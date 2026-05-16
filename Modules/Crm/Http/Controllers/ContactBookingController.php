@@ -8,6 +8,7 @@ use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Modules\Crm\Services\ContactBookingService;
 use Yajra\DataTables\Facades\DataTables;
 
 class ContactBookingController extends Controller
@@ -17,9 +18,12 @@ class ContactBookingController extends Controller
      */
     protected $commonUtil;
 
-    public function __construct(Util $commonUtil)
+    protected ContactBookingService $bookingService;
+
+    public function __construct(Util $commonUtil, ContactBookingService $bookingService)
     {
         $this->commonUtil = $commonUtil;
+        $this->bookingService = $bookingService;
         $this->bookingStatuses = [
             'waiting' => [
                 'label' => __('lang_v1.waiting'),
@@ -107,43 +111,12 @@ class ContactBookingController extends Controller
                 $business_id = request()->session()->get('user.business_id');
                 $user_id = request()->session()->get('user.id');
 
-                $input = $request->input();
-                $booking_start = $this->commonUtil->uf_date($input['booking_start'], true);
-                $booking_end = $this->commonUtil->uf_date($input['booking_end'], true);
-                $date_range = [$booking_start, $booking_end];
-
-                //Check if booking is available for the required input
-                $query = Booking::where('business_id', $business_id)
-                                ->where('location_id', $input['location_id'])
-                                ->where('contact_id', $input['contact_id'])
-                                ->where(function ($q) use ($date_range) {
-                                    $q->whereBetween('booking_start', $date_range)
-                                    ->orWhereBetween('booking_end', $date_range);
-                                });
-
-                $existing_booking = $query->first();
-                if (empty($existing_booking)) {
-                    $input['business_id'] = $business_id;
-                    $input['created_by'] = $user_id;
-                    $input['booking_start'] = $booking_start;
-                    $input['booking_end'] = $booking_end;
-                    $booking = Booking::createBooking($input);
-
-                    $output = ['success' => 1,
-                        'msg' => trans('lang_v1.added_success'),
-                    ];
-                } else {
-                    $time_range = $this->commonUtil->format_date($existing_booking->booking_start, true).' ~ '.
-                                    $this->commonUtil->format_date($existing_booking->booking_end, true);
-
-                    $output = ['success' => 0,
-                        'msg' => trans(
-                            'restaurant.booking_not_available',
-                            ['customer_name' => $existing_booking->customer->name,
-                                'booking_time_range' => $time_range, ]
-                        ),
-                    ];
-                }
+                // Service thin: checagem de conflito + create. Response shape preservada.
+                [, $output] = $this->bookingService->attemptBooking(
+                    $request->input(),
+                    (int) $business_id,
+                    (int) $user_id,
+                );
             } else {
                 exit(__('messages.something_went_wrong'));
             }

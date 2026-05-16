@@ -42,38 +42,72 @@ class KbController extends Controller
 
     public function index(Request $request): Response
     {
+        $type = $request->get('type');
+        $module = $request->get('module');
+        $search = trim((string) $request->get('q', ''));
+        $withPii = $request->boolean('with_pii');
+        $page = (int) max(1, $request->get('page', 1));
+
+        // D-14 perf 2026-05-15 — `docs` (paginator c/ withTrashed + selectRaw)
+        // e `kpis` (5 queries agregadas count/groupBy) movidos pra Inertia::defer.
+        // Skip de execução quando partial reload `only:[]` não pede.
+        // Pattern oimpresso skill `inertia-defer-default` (Tier B).
+        return Inertia::render('kb/Index', [
+            // ─── Eager: estado UI leve (filtros do request, repo string) ───
+            'filters' => [
+                'type'     => $type,
+                'module'   => $module,
+                'q'        => $search,
+                'with_pii' => $withPii,
+            ],
+            'github_repo' => 'wagnerra23/oimpresso.com',
+            // ─── DEFER: paginate + queries agregadas (caras) ────────────────
+            'docs'    => Inertia::defer(fn () => $this->buildDocsPayload(
+                $request->user(), $type, $module, $search, $withPii, $page
+            )),
+            'kpis'    => Inertia::defer(fn () => $this->buildKpisPayload()),
+        ]);
+    }
+
+    /**
+     * D-14 perf — paginator paginate(25) + withTrashed + selectRaw CHAR_LENGTH.
+     * Movido pra closure defer no `index()`.
+     */
+    protected function buildDocsPayload($user, ?string $type, ?string $module, string $search, bool $withPii, int $page)
+    {
         $query = McpMemoryDocument::query()
-            ->acessiveisPara($request->user())
+            ->acessiveisPara($user)
             ->orderByDesc('indexed_at');
 
-        // Filtros
-        if ($type = $request->get('type')) {
+        if ($type) {
             $query->doTipo($type);
         }
-        if ($module = $request->get('module')) {
+        if ($module) {
             $query->doModulo($module);
         }
-        if ($search = trim((string) $request->get('q', ''))) {
+        if ($search !== '') {
             $query->buscarTexto($search);
         }
-        if ($request->boolean('with_pii')) {
+        if ($withPii) {
             $query->where('pii_redactions_count', '>', 0);
         }
 
-        $page = (int) max(1, $request->get('page', 1));
-        $perPage = 25;
-
-        $paginator = $query
+        return $query
             ->select(['id', 'slug', 'type', 'module', 'title', 'scope_required',
                      'admin_only', 'git_sha', 'git_path', 'pii_redactions_count',
                      'indexed_at', 'updated_at', 'deleted_at'])
             ->selectRaw('CHAR_LENGTH(content_md) as size_chars')
             ->withTrashed()
-            ->paginate($perPage, ['*'], 'page', $page)
+            ->paginate(25, ['*'], 'page', $page)
             ->withQueryString();
+    }
 
-        // KPIs globais (não filtrados por search — visão total)
-        $kpis = [
+    /**
+     * D-14 perf — 5 queries agregadas (count/groupBy/max). Movido pra closure defer.
+     */
+    protected function buildKpisPayload(): array
+    {
+        return [
             'total'          => McpMemoryDocument::count(),
             'soft_deleted'   => McpMemoryDocument::onlyTrashed()->count(),
             'com_pii'        => McpMemoryDocument::where('pii_redactions_count', '>', 0)->count(),
@@ -94,18 +128,6 @@ class KbController extends Controller
                 ->all(),
             'ultimo_sync'    => McpMemoryDocument::max('indexed_at'),
         ];
-
-        return Inertia::render('kb/Index', [
-            'docs'    => $paginator,
-            'filters' => [
-                'type'     => $type,
-                'module'   => $module,
-                'q'        => $search,
-                'with_pii' => $request->boolean('with_pii'),
-            ],
-            'kpis'    => $kpis,
-            'github_repo' => 'wagnerra23/oimpresso.com',
-        ]);
     }
 
     /**

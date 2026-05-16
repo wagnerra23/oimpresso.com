@@ -14,8 +14,10 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
+use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -865,6 +867,48 @@ class ProductionController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * MWART Wave J — Index Inertia v2 (coexiste com index() Blade legacy).
+     *
+     * Rota nova `/manufacturing/v2/production` retorna Inertia render minimal
+     * via ProductionService (thin). Preserva rota legacy intacta.
+     *
+     * @return \Inertia\Response|Response
+     */
+    public function indexV2(ProductionService $productionService)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Snapshot filters/biz pra closures defer (request() não funciona dentro de fn).
+        $filters = [
+            'location_id' => request()->get('location_id'),
+            'start_date' => request()->get('start_date'),
+            'end_date' => request()->get('end_date'),
+            'is_final' => request()->has('is_final'),
+        ];
+
+        return Inertia::render('Manufacturing/Index', [
+            // productions: listProductions multi-join via Service → defer (Service-DB call)
+            'productions' => Inertia::defer(fn () => $productionService
+                ->listProductions($business_id, $filters)
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'ref_no' => $p->ref_no,
+                        'transaction_date' => $p->transaction_date?->format('d/m/Y'),
+                        'location_name' => optional($p->location)->name,
+                        'final_total' => (float) $p->final_total,
+                        'mfg_is_final' => (int) $p->mfg_is_final,
+                    ];
+                })->values()),
+            // summary: aggregated COUNT/SUM via Service → defer
+            'summary' => Inertia::defer(fn () => $productionService->summary($business_id)),
+        ]);
     }
 
     /**

@@ -49,18 +49,21 @@ class IndexController extends Controller
 
     public function __invoke(Request $request): Response
     {
+        // RUNBOOK-inertia-defer-pattern.md — cada widget é Service call (DB/HTTP/cache).
+        // Defer permite frontend renderizar shell instantâneo + skeletons; partial reload
+        // posterior carrega cada widget independente. Preserva response shape (mesmas chaves).
         return Inertia::render('Admin/Index', [
             'widgets' => [
-                'brief'        => $this->brief->fetch(),
-                'health'       => $this->health->fetch(),
-                'cycles'       => $this->cycles->fetch(),
-                'adr_alerts'   => $this->adrAlerts->fetch(),
-                'curador'      => $this->curador->fetch(),
-                'mcp'          => $this->mcp->fetch(),
-                'vaultwarden'  => $this->vaultwarden->fetch(),
-                'sessions'     => $this->sessions->fetch(),
-                'infra'        => $this->infra->fetch(),
-                'brain_b_cost' => $this->brainBCost->fetch(),
+                'brief'        => Inertia::defer(fn () => $this->brief->fetch()),
+                'health'       => Inertia::defer(fn () => $this->health->fetch()),
+                'cycles'       => Inertia::defer(fn () => $this->cycles->fetch()),
+                'adr_alerts'   => Inertia::defer(fn () => $this->adrAlerts->fetch()),
+                'curador'      => Inertia::defer(fn () => $this->curador->fetch()),
+                'mcp'          => Inertia::defer(fn () => $this->mcp->fetch()),
+                'vaultwarden'  => Inertia::defer(fn () => $this->vaultwarden->fetch()),
+                'sessions'     => Inertia::defer(fn () => $this->sessions->fetch()),
+                'infra'        => Inertia::defer(fn () => $this->infra->fetch()),
+                'brain_b_cost' => Inertia::defer(fn () => $this->brainBCost->fetch()),
             ],
             'meta' => [
                 'subdomain'    => config('admin.subdomain', 'admin.oimpresso.com'),

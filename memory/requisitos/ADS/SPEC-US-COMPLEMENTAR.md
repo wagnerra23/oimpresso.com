@@ -1,3 +1,9 @@
+---
+na_justified:
+  D5: "ADS está DORMANT por design (ADR 0105 cliente-como-sinal). Module construído mas standby — ativa quando cliente reportar dor real. Penalidade D5 não reflete gap de implementação, é decisão estratégica documentada."
+related_adrs: [0035, 0105, 0153, 0154]
+---
+
 # ADS — SPEC complementar (User Stories US-ADS-001..012)
 
 > Complementa [`SPEC.md`](SPEC.md) — adiciona granularidade US-XXX-NNN sobre Brain A/B, PolicyEngine, RiskEngine, ConfidenceEngine, DecisionRouter, HITL.
