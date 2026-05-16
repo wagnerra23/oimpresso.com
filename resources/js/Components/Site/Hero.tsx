@@ -2,18 +2,55 @@ import { Button } from '@/Components/ui/button';
 import DashboardMockup from '@/Components/Site/DashboardMockup';
 import { motion, useReducedMotion } from 'framer-motion';
 
+interface CmsPageMeta {
+  meta_key?: string;
+  meta_value?: string;
+}
+
 interface HeroPage {
   title?: string | null;
   content?: string | null;
+  pageMeta?: CmsPageMeta[] | null;
+  page_meta?: CmsPageMeta[] | null;
 }
 
 interface HeroProps {
   page?: HeroPage | null;
 }
 
-export default function Hero(_props: HeroProps) {
+const FALLBACK_HERO = {
+  badge: 'Comunicação visual · Varejo · Serviços · Multi-loja',
+  title_top: 'O ERP pra quem',
+  title_mid: 'orça, imprime, monta',
+  title_bottom: 'e entrega.',
+  subtitle:
+    'Cálculo automático por m², ordem de produção em tempo real e fechamento fiscal sem retrabalho. PDV, NF-e, estoque, ponto, financeiro e BI integrados — em uma plataforma só.',
+  cta_primary: 'Começar grátis',
+  cta_secondary: 'Ver recursos',
+};
+
+function extractHeroMeta(page?: HeroPage | null): Partial<typeof FALLBACK_HERO> {
+  if (!page) return {};
+  const meta = page.pageMeta ?? page.page_meta ?? null;
+  if (!meta || meta.length === 0) {
+    return page.title ? { title_top: page.title } : {};
+  }
+  const out: Record<string, string> = {};
+  for (const item of meta) {
+    if (!item?.meta_key) continue;
+    const match = /^hero_(badge|title_top|title_mid|title_bottom|subtitle|cta_primary|cta_secondary)$/.exec(
+      item.meta_key,
+    );
+    if (!match || !match[1]) continue;
+    out[match[1]] = item.meta_value ?? '';
+  }
+  return out;
+}
+
+export default function Hero({ page }: HeroProps) {
   const reduceMotion = useReducedMotion();
   const baseTransition = reduceMotion ? { duration: 0 } : { duration: 0.6 };
+  const hero = { ...FALLBACK_HERO, ...extractHeroMeta(page) };
 
   return (
     <section className="relative overflow-hidden">
@@ -30,7 +67,7 @@ export default function Hero(_props: HeroProps) {
         <div className="flex flex-col justify-center">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-            Comunicação visual · Varejo · Serviços · Multi-loja
+            {hero.badge}
           </span>
 
           <motion.h1
@@ -39,9 +76,9 @@ export default function Hero(_props: HeroProps) {
             transition={{ ...baseTransition, delay: 0 }}
             className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.75rem]"
           >
-            <span className="block text-foreground">O ERP pra quem</span>
-            <span className="block text-primary">orça, imprime, monta</span>
-            <span className="block text-primary">e entrega.</span>
+            <span className="block text-foreground">{hero.title_top}</span>
+            <span className="block text-primary">{hero.title_mid}</span>
+            <span className="block text-primary">{hero.title_bottom}</span>
           </motion.h1>
 
           <motion.p
@@ -50,9 +87,7 @@ export default function Hero(_props: HeroProps) {
             transition={{ ...baseTransition, delay: reduceMotion ? 0 : 0.15 }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
           >
-            Cálculo automático por <strong className="font-semibold text-foreground">m²</strong>,
-            ordem de produção em tempo real e fechamento fiscal sem retrabalho.
-            PDV, NF-e, estoque, ponto, financeiro e BI integrados — em uma plataforma só.
+            {hero.subtitle}
           </motion.p>
 
           <motion.div
@@ -62,10 +97,10 @@ export default function Hero(_props: HeroProps) {
             className="mt-8 flex flex-col gap-3 sm:flex-row"
           >
             <Button size="lg" asChild>
-              <a href="/login">Começar grátis</a>
+              <a href="/login">{hero.cta_primary}</a>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <a href="#recursos">Ver recursos</a>
+              <a href="#recursos">{hero.cta_secondary}</a>
             </Button>
           </motion.div>
 
