@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\ContaBancaria;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Contrato de assinatura — vincula Contact (cliente) a um Plan + define
@@ -27,8 +29,28 @@ class Subscription extends Model
     use HasBusinessScope;
 
     use SoftDeletes;
+    use LogsActivity; // D7 LGPD audit trail (Wave 14)
 
     protected $table = 'rb_subscriptions';
+
+    /**
+     * Auditoria LGPD (D7) — registra mudanças de status/plano/cancelamento.
+     * NÃO loga `metadata` (pode conter payload gateway com PII).
+     * Caller deve redact via PiiRedactor antes de logar campos livres.
+     *
+     * @see Modules\RecurringBilling\Config\retention.php
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'status', 'plan_id', 'contact_id', 'next_due_date',
+                'canceled_at', 'paused_at', 'payment_method', 'churn_reason',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('recurringbilling.subscription');
+    }
 
     protected $fillable = [
         'business_id', 'plan_id', 'contact_id', 'status',

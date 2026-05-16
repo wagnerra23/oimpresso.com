@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -15,12 +16,27 @@ use Illuminate\Support\Facades\Storage;
  * relação custo/benefício pra MVP).
  *
  * Graceful fallback: snapshot ausente → stub vermelho com instruções.
+ *
+ * **D9.a Wave 14 (2026-05-16):** span `admin.health.snapshot.read`
+ * envolve leitura+parse. Zero-cost se `otel.enabled=false` (default
+ * Hostinger). Em CT 100 com OTel collector ativo, exporta tracing
+ * pra detectar slow I/O do Storage local.
+ *
+ * @see memory/decisions/0155-module-grade-v3-anti-injustica-na-justified.md D9.a
+ * @see app\Util\OtelHelper
  */
 class HealthSnapshotReader
 {
     private const SNAPSHOT_PATH = 'jana-health-snapshot.json';
 
     public function fetch(): array
+    {
+        return OtelHelper::spanBiz('admin.health.snapshot.read', function () {
+            return $this->fetchInner();
+        }, ['component' => 'admin.widget.w2']);
+    }
+
+    private function fetchInner(): array
     {
         if (! Storage::disk('local')->exists(self::SNAPSHOT_PATH)) {
             return $this->stub('snapshot_missing');

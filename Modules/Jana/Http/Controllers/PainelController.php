@@ -37,13 +37,18 @@ class PainelController extends Controller
         $businessId = $request->session()->get('user.business_id');
         $business   = $request->session()->get('business');
 
+        // D6.a (Wave 14 governance v3) — Inertia::defer no payload pesado do
+        // painel. Render inicial só carrega `business` (lightweight). O closure
+        // `painel` roda numa segunda requisição partial-reload, mantendo TTFB
+        // baixo e permitindo skeleton no frontend (charter Painel.charter.md).
+        // Referência: memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md
         return Inertia::render('Jana/Painel', [
             'business' => [
                 'id'      => $businessId,
                 'name'    => $business['name'] ?? 'OIMPRESSO',
                 'version' => 'v1404 legacy migrado',
             ],
-            'painel' => $this->buildMockPayload(),
+            'painel' => Inertia::defer(fn () => $this->buildMockPayload()),
         ]);
     }
 

@@ -15,9 +15,14 @@ use Illuminate\Support\Facades\Route;
 // ===========================================================================
 // 1) Rotas web — prefixo /copiloto
 // ===========================================================================
+// D8.a (Wave 14 governance v3) — throttle:120,1 por user (auth) reforça defesa
+// abuse contra rotas Jana mesmo já sendo Tailscale-only no CT 100. 120 req/min
+// é folgado pra UX chat real (mensagens + sugestões + sidebar polling) e ainda
+// bloqueia bot scraping. Rotas SSE/stream pesadas têm throttle agressivo extra
+// inline abaixo (60,1). Referência: ADR 0093 + segurança fail-secure.
 Route::group(
     [
-        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:120,1'],
         'prefix'     => 'jana',
         'namespace'  => 'Modules\Jana\Http\Controllers',
     ],
@@ -40,9 +45,16 @@ Route::group(
         // Cria conversa e redireciona pro /conversas/{id}. Antes era 404.
         Route::get('/conversas/nova',                      'ChatController@novaConversa')->name('jana.conversas.nova');
         Route::get('/conversas/{id}',                      'ChatController@show')->name('jana.conversas.show');
-        Route::post('/conversas/{id}/mensagens',           'ChatController@send')->name('jana.conversas.mensagens.store');
+        Route::post('/conversas/{id}/mensagens',           'ChatController@send')
+            ->middleware('throttle:60,1')
+            ->name('jana.conversas.mensagens.store');
         // Streaming SSE — UX token-por-token (versão preferencial pelo frontend)
-        Route::post('/conversas/{id}/mensagens/stream',    'ChatController@sendStream')->name('jana.conversas.mensagens.stream');
+        // D8.a — throttle 60,1 extra (mais agressivo que group 120,1) porque
+        // cada mensagem chama LLM (custo R$ + latência). 1 msg/seg sustained
+        // é mais que suficiente pra UX humana e bloqueia abuso de tokens.
+        Route::post('/conversas/{id}/mensagens/stream',    'ChatController@sendStream')
+            ->middleware('throttle:60,1')
+            ->name('jana.conversas.mensagens.stream');
         Route::patch('/conversas/{id}',                    'ChatController@updateConversa')->name('jana.conversas.update');
         Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')->name('jana.sugestoes.escolher');
         Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')->name('jana.sugestoes.rejeitar');
