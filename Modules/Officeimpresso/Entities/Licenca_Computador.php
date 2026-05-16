@@ -3,10 +3,29 @@
 namespace Modules\Officeimpresso\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Licenca_Computador extends Model
 {
+    use LogsActivity;
+
     protected $table = 'licenca_computador';
+
+    /**
+     * Auditoria LGPD Tier 0 (Wave 10 D7.b — 2026-05-16): registra mudanças em
+     * licenças desktop bridge Delphi (block/unblock, troca de serial, alteração
+     * de versão_exe, validade) via Spatie ActivityLog. Campos PII (`senha`,
+     * `contra_senha`, `token`, `user_win`) são automaticamente fillable mas
+     * NÃO inclui senha plain — verificar storage encrypted ([ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §LGPD Art. 6).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $fillable = [
         'business_id',

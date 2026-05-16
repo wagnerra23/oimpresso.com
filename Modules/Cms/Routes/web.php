@@ -31,7 +31,9 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::post('c/submit-contact-form', [Modules\Cms\Http\Controllers\CmsController::class, 'postContactForm'])->name('cms.submit.contact.form');
 });
 
-Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'superadmin')->prefix('cms')->group(function () {
+// Wave 10 D8 — throttle 60 req/min/user nas rotas administrativas do CMS (anti-brute + anti-abuse).
+// Settings/cms-page sao endpoints de configuracao do site publico — proteger contra spam mass-update.
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'superadmin', 'throttle:60,1'])->prefix('cms')->group(function () {
     Route::get('install', [\Modules\Cms\Http\Controllers\InstallController::class, 'index']);
     Route::post('install', [\Modules\Cms\Http\Controllers\InstallController::class, 'install']);
     Route::get('install/uninstall', [\Modules\Cms\Http\Controllers\InstallController::class, 'uninstall']);
