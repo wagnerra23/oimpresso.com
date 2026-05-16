@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Services;
 
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
+use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -51,6 +52,30 @@ class NfeInutilizacaoService
     ) {}
 
     public function inutilizar(
+        int $businessId,
+        string $modelo,
+        string $serie,
+        int $numeroDe,
+        int $numeroAte,
+        string $justificativa,
+    ): NfeInutilizacao {
+        // D9.a OTel — wrap chamada SEFAZ sefazInutiliza (CONFAZ SINIEF 07/2005 Art. 14).
+        // Faixa: numero_de..numero_ate como atributos do span.
+        return OtelHelper::spanBiz('nfe.inutilizar', function () use ($businessId, $modelo, $serie, $numeroDe, $numeroAte, $justificativa): NfeInutilizacao {
+            return $this->inutilizarInterno($businessId, $modelo, $serie, $numeroDe, $numeroAte, $justificativa);
+        }, [
+            'module'     => 'NfeBrasil',
+            'modelo'     => $modelo,
+            'serie'      => $serie,
+            'numero_de'  => $numeroDe,
+            'numero_ate' => $numeroAte,
+        ]);
+    }
+
+    /**
+     * @internal Corpo real de inutilizar() — separado para wrap OTel.
+     */
+    private function inutilizarInterno(
         int $businessId,
         string $modelo,
         string $serie,

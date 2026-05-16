@@ -10,6 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\ProposalTemplate;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class ProposalTemplateController extends Controller
 {
@@ -114,7 +115,8 @@ class ProposalTemplateController extends Controller
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (template tem placeholder PII).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -245,7 +247,8 @@ class ProposalTemplateController extends Controller
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (template tem placeholder PII).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),

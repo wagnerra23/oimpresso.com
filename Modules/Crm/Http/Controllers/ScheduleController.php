@@ -19,6 +19,7 @@ use Modules\Crm\Http\Requests\StoreScheduleRequest;
 use Modules\Crm\Http\Requests\UpdateScheduleRequest;
 use Modules\Crm\Services\ScheduleService;
 use Modules\Crm\Utils\CrmUtil;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class ScheduleController extends Controller
@@ -388,7 +389,8 @@ class ScheduleController extends Controller
                 'schedule_for' => $schedule_for,
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -513,7 +515,8 @@ class ScheduleController extends Controller
                 'schedule_for' => $schedule_for,
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,
@@ -563,7 +566,8 @@ class ScheduleController extends Controller
                     'view_type' => $view_type,
                 ];
             } catch (Exception $e) {
-                \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = [
                     'success' => false,
@@ -603,7 +607,8 @@ class ScheduleController extends Controller
                 'todays_schedule' => $schedule_html,
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,

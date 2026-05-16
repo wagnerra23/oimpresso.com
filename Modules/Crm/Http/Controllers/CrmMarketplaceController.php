@@ -13,6 +13,7 @@ use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\CrmMarketplace;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Utils\CrmUtil;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class CrmMarketplaceController extends Controller
 {
@@ -189,7 +190,8 @@ class CrmMarketplaceController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (marketplace assigna users).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = [
                 'success' => false,

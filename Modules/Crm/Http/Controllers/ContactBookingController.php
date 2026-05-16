@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Services\ContactBookingService;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class ContactBookingController extends Controller
@@ -121,7 +122,8 @@ class ContactBookingController extends Controller
                 exit(__('messages.something_went_wrong'));
             }
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (booking carrega contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
             ];
