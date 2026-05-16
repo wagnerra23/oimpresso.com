@@ -85,6 +85,8 @@ import {
   BusinessOpt,
   LS,
   ShellMenuItem,
+  SIDEBAR_GROUP_HUE,
+  SidebarMode,
   gradientFor,
   isSuperadminMenu,
   isUserMenuItem,
@@ -394,12 +396,17 @@ function SidebarGroup({
     localStorage.setItem(lsKey, expanded ? '1' : '0');
   }, [expanded, lsKey]);
 
+  // Hue OKLCH por grupo (canon Cowork) — aplica no dot + label header.
+  // Items não mapeados (ex. 'mais') ficam neutros (sem var --gh).
+  const hue = SIDEBAR_GROUP_HUE[groupKey];
+  const groupStyle = hue !== undefined ? ({ ['--gh' as never]: String(hue) } as React.CSSProperties) : undefined;
+
   if (!label) {
     return <div className="sb-group sb-group-noheader">{children}</div>;
   }
 
   return (
-    <div className={`sb-group ${expanded ? 'is-open' : ''}`}>
+    <div className={`sb-group ${expanded ? 'is-open' : ''}`} style={groupStyle}>
       <button
         type="button"
         className="sb-group-h"
@@ -414,7 +421,8 @@ function SidebarGroup({
             transition: 'transform 150ms',
           }}
         />
-        <span>{label}</span>
+        {hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
+        <span className="sb-group-l">{label}</span>
       </button>
       {expanded && <div className="sb-group-body">{children}</div>}
     </div>
@@ -423,7 +431,7 @@ function SidebarGroup({
 
 // ── SidebarMenu (agrupa shell.menu por scope — UI-0011) ─────────────────
 
-export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
+export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem[]; mode?: SidebarMode }) {
   if (!items?.length) {
     return (
       <div className="sb-menu-stub">
@@ -459,6 +467,16 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
   const sharedShell = (usePage().props as any)?.shell as { sidebar_counts?: SidebarCountsShared | null } | undefined;
   const counts = sharedShell?.sidebar_counts ?? { atendimento: 0, tarefas: 0, chat: 0 };
 
+  if (mode === 'rail') {
+    return (
+      <SidebarMenuRail
+        groupsToRender={groupsToRender}
+        groupedItems={groupedItems}
+        counts={counts}
+      />
+    );
+  }
+
   return (
     <div className="sb-menu-grouped">
       <SidebarShortcuts
@@ -478,6 +496,129 @@ export function SidebarMenu({ items }: { items: ShellMenuItem[] }) {
           ))}
         </SidebarGroup>
       ))}
+    </div>
+  );
+}
+
+// ── SidebarMenuRail (rail compacto — só ícones + flyout grupo) ──────────
+// Espelha SidebarMenuRail do prototipo Cowork (sidebar.jsx:286-385).
+// Wagner 2026-05-16: rail mode + cores hue por grupo.
+
+function SidebarMenuRail({
+  groupsToRender,
+  groupedItems,
+  counts,
+}: {
+  groupsToRender: Array<{ key: string; label: string }>;
+  groupedItems: Record<string, ShellMenuItem[]>;
+  counts: SidebarCountsShared;
+}) {
+  const [flyout, setFlyout] = useState<string | null>(null);
+  const [flyoutPos, setFlyoutPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const flyoutRef = useRef<HTMLDivElement>(null);
+  const anchorRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    if (!flyout) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (flyoutRef.current?.contains(target)) return;
+      const anchor = anchorRefs.current[flyout];
+      if (anchor?.contains(target)) return;
+      setFlyout(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [flyout]);
+
+  const openFlyout = (key: string) => {
+    const anchor = anchorRefs.current[key];
+    if (!anchor) { setFlyout(null); return; }
+    const r = anchor.getBoundingClientRect();
+    setFlyoutPos({ top: r.top, left: r.right + 6 });
+    setFlyout(key);
+  };
+
+  return (
+    <div className="sb-menu-rail">
+      <a
+        href="/tarefas"
+        className="sb-rail-btn"
+        data-tip="Tarefas"
+        onClick={() => setFlyout(null)}
+      >
+        <Inbox size={18} className="ic" />
+        {!!counts.tarefas && <span className="sb-rail-dot-badge" />}
+      </a>
+      <a
+        href="/jana"
+        className="sb-rail-btn"
+        data-tip="Chat"
+        onClick={() => setFlyout(null)}
+      >
+        <MessageSquare size={18} className="ic" />
+        {!!counts.chat && <span className="sb-rail-dot-badge" />}
+      </a>
+      <a
+        href="/atendimento/inbox"
+        className="sb-rail-btn"
+        data-tip="Atendimento"
+        onClick={() => setFlyout(null)}
+      >
+        <MessageCircle size={18} className="ic" />
+        {!!counts.atendimento && <span className="sb-rail-dot-badge" />}
+      </a>
+
+      <div className="sb-rail-sep" />
+
+      {groupsToRender.map((g) => {
+        const hue = SIDEBAR_GROUP_HUE[g.key];
+        const railStyle = hue !== undefined ? ({ ['--gh' as never]: String(hue) } as React.CSSProperties) : undefined;
+        const isOpen = flyout === g.key;
+        // Pega ícone do primeiro item do grupo (representativo)
+        const firstItem = groupedItems[g.key]?.[0];
+        const Icon = firstItem ? findMenuIcon(firstItem.label) : Hash;
+        return (
+          <button
+            key={g.key}
+            ref={(el) => { anchorRefs.current[g.key] = el; }}
+            type="button"
+            className={`sb-rail-btn sb-rail-group ${isOpen ? 'open' : ''}`}
+            data-tip={g.label}
+            style={railStyle}
+            onClick={() => (isOpen ? setFlyout(null) : openFlyout(g.key))}
+            aria-expanded={isOpen}
+          >
+            <Icon size={18} className="ic" />
+          </button>
+        );
+      })}
+
+      {flyout && (() => {
+        const g = groupsToRender.find((x) => x.key === flyout);
+        if (!g) return null;
+        const hue = SIDEBAR_GROUP_HUE[g.key];
+        const flyoutStyle: React.CSSProperties = {
+          position: 'fixed',
+          top: flyoutPos.top,
+          left: flyoutPos.left,
+          ...(hue !== undefined ? { ['--gh' as never]: String(hue) } : {}),
+        };
+        return (
+          <div className="sb-rail-flyout" ref={flyoutRef} style={flyoutStyle}>
+            <div className="sb-rail-flyout-h">
+              {hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
+              <span className="sb-rail-flyout-l">{g.label}</span>
+              <span className="sb-group-n">{groupedItems[g.key]?.length ?? 0}</span>
+            </div>
+            {(groupedItems[g.key] ?? []).map((item, idx) => (
+              <div key={`${item.label}-${idx}`} onClick={() => setFlyout(null)}>
+                <SidebarMenuItem item={item} />
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }
