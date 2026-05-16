@@ -185,11 +185,17 @@ class ModuleGradeService
         $naApplied = [];
 
         // D1.a — BusinessScope global em Entities críticas (10 pts)
+        //
+        // ADR 0158 (Wave 12 2026-05-16) — flag `governance.d1_hardened` ativa
+        // varredura recursiva. Pattern Jana/Entities/Mcp/*.php (28 Models em
+        // subdir) ficava invisível pra heurística non-recursive. Default false
+        // preserva backward-compat dos módulos atuais.
         $entitiesPath = $modulePath . '/Entities';
         $modelsPath   = $modulePath . '/Models';
+        $d1Hardened   = (bool) config('governance.d1_hardened', false);
         $entities = array_merge(
-            $this->phpFiles($entitiesPath),
-            $this->phpFiles($modelsPath)
+            $this->phpFiles($entitiesPath, recursive: $d1Hardened),
+            $this->phpFiles($modelsPath, recursive: $d1Hardened)
         );
         $businessScopeCount = 0;
         foreach ($entities as $file) {
@@ -252,12 +258,27 @@ class ModuleGradeService
         $d1b = $d1bItem['score'];
 
         // D1.c — Jobs assíncronos $businessId no constructor (5 pts)
+        //
+        // ADR 0158 (Wave 12 2026-05-16) — flag `governance.d1_hardened`:
+        //   - varredura recursiva (subpastas Jobs/Faturamento/*.php detectadas)
+        //   - fallback regex: Job que recebe `int $entityId` + body referencia
+        //     `->business_id` qualifica (extraindo biz da Eloquent — pattern
+        //     canônico Asaas/Inter quando o ID resolve pra Model com scope)
         $jobsPath = $modulePath . '/Jobs';
-        $jobFiles = $this->phpFiles($jobsPath);
+        $jobFiles = $this->phpFiles($jobsPath, recursive: $d1Hardened);
         $jobsBusinessId = 0;
         foreach ($jobFiles as $file) {
             $content = @file_get_contents($file) ?: '';
+            // (a) pattern canônico — $business* no constructor
             if (preg_match('/__construct\s*\([^)]*\$business/', $content)) {
+                $jobsBusinessId++;
+                continue;
+            }
+            // (b) ADR 0158 fallback — constructor com $entityId + body usa ->business_id
+            if ($d1Hardened
+                && preg_match('/__construct\s*\([^)]*\$\w+Id\b/', $content)
+                && preg_match('/->business_id\b/', $content)
+            ) {
                 $jobsBusinessId++;
             }
         }
@@ -290,9 +311,31 @@ class ModuleGradeService
 
     // ────────────────────────────────────────────────────────────────────────
     // D2 — Pest cobertura (20 pts)
+    //
+    // Dispatcher dual-mode (ADR 0157):
+    //   - hardened = true  → dim2PestCoverageHardened (parser XML + dir registrada + asserção real)
+    //   - hardened = false → dim2PestCoverageLegacy   (str_contains, backward-compat ADR 0155)
+    //
+    // Flag canônica: config('governance.d2_hardened', false). Default false
+    // até Wagner aceitar ADR 0157 + rebaseline (Fase 2 do plano).
     // ────────────────────────────────────────────────────────────────────────
 
     private function dim2PestCoverage(string $name, string $modulePath, array $naJustified = []): array
+    {
+        $hardened = (bool) config('governance.d2_hardened', false);
+
+        return $hardened
+            ? $this->dim2PestCoverageHardened($name, $modulePath, $naJustified)
+            : $this->dim2PestCoverageLegacy($name, $modulePath, $naJustified);
+    }
+
+    /**
+     * D2 LEGACY — heurística ADR 0155 original (str_contains substring no phpunit.xml,
+     * conta TODOS arquivos em Modules/<X>/Tests/, match por NOME apenas).
+     *
+     * Preservada idêntica pra backward-compat enquanto baseline atual não muda.
+     */
+    private function dim2PestCoverageLegacy(string $name, string $modulePath, array $naJustified = []): array
     {
         $breakdown = [];
         $naApplied = [];
@@ -362,8 +405,209 @@ class ModuleGradeService
             'max'       => 20,
             'breakdown' => $breakdown,
             'na_justified' => $naApplied,
+            'mode'      => 'legacy',
         ];
         return $this->applyDimensionNa($dimResult, 'D2', $naJustified);
+    }
+
+    /**
+     * D2 HARDENED — heurística ADR 0157 (anti-gaming) — 3 frentes simultâneas:
+     *
+     *   D2.a: filesystem APENAS dentro de pastas registradas em phpunit.xml
+     *         (arquivos fora dos `<directory>` da testsuite não contam)
+     *   D2.b: NOME do arquivo + asserção real no corpo (regex assert*(.|expect\()
+     *   D2.c: parser SimpleXMLElement, granularidade parcial (1 dir = 2 pts)
+     *         vs integral (2+ dirs = 4 pts)
+     *
+     * @see memory/decisions/0157-module-grade-v3-d2-detection-hardening.md
+     */
+    private function dim2PestCoverageHardened(string $name, string $modulePath, array $naJustified = []): array
+    {
+        $breakdown = [];
+        $naApplied = [];
+
+        $controllers = $this->phpFiles($modulePath . '/Http/Controllers');
+
+        // Pastas REGISTRADAS no phpunit.xml (parser XML estruturado — D2.c hardened)
+        $registeredDirs = $this->parsePhpunitDirectories($name);
+
+        // Coleta arquivos APENAS dentro de dirs registrados (D2.a hardened)
+        $testFiles = [];
+        foreach ($registeredDirs as $relDir) {
+            $absDir = base_path($relDir);
+            if (! is_dir($absDir)) {
+                continue;
+            }
+            $found = $this->phpFiles($absDir, recursive: true);
+            foreach ($found as $f) {
+                if (str_ends_with($f, 'Pest.php') || str_ends_with($f, 'TestCase.php')) {
+                    continue;
+                }
+                $testFiles[] = $f;
+            }
+        }
+        $testFiles = array_values(array_unique($testFiles));
+
+        // ────── D2.a hardened — razão tests REGISTRADOS / Controllers ──────
+        $ratio = count($controllers) === 0 ? 1.0 : count($testFiles) / count($controllers);
+        $d2a = (int) round(min(8, $ratio * 16));
+        $d2aEvidence = sprintf(
+            '%d tests registrados / %d controllers (ratio %.2f) — dirs: %s',
+            count($testFiles),
+            count($controllers),
+            $ratio,
+            count($registeredDirs) === 0 ? 'NENHUM' : implode(', ', $registeredDirs)
+        );
+        $d2aItem = [
+            'key'   => 'D2.a',
+            'desc'  => 'Razão tests/Controllers ≥ 0.5 (apenas dirs registrados)',
+            'score' => $d2a,
+            'max'   => 8,
+            'evidence' => $d2aEvidence,
+        ];
+        $d2aItem = $this->applyNaJustified($d2aItem, 'D2.a', $naJustified, $naApplied);
+        $breakdown[] = $d2aItem;
+        $d2a = $d2aItem['score'];
+
+        // ────── D2.b hardened — NOME + asserção real no corpo ──────
+        $canonicalCount = 0;
+        $patterns = ['MultiTenant', 'Smoke', 'Scaffold'];
+        $matchedDetails = [];
+        foreach ($patterns as $p) {
+            foreach ($testFiles as $f) {
+                if (! str_contains($f, $p)) {
+                    continue;
+                }
+                if ($this->hasRealAssertions($f)) {
+                    $canonicalCount++;
+                    $matchedDetails[] = $p;
+                    break;
+                }
+            }
+        }
+        $d2b = (int) round(($canonicalCount / 3) * 8);
+        $d2bEvidence = "{$canonicalCount}/3 padrões canônicos com asserção real"
+            . (empty($matchedDetails) ? '' : ' (' . implode(', ', $matchedDetails) . ')');
+        $d2bItem = [
+            'key'   => 'D2.b',
+            'desc'  => 'Tem MultiTenant + Smoke + Scaffold canônicos COM asserção',
+            'score' => $d2b,
+            'max'   => 8,
+            'evidence' => $d2bEvidence,
+        ];
+        $d2bItem = $this->applyNaJustified($d2bItem, 'D2.b', $naJustified, $naApplied);
+        $breakdown[] = $d2bItem;
+        $d2b = $d2bItem['score'];
+
+        // ────── D2.c hardened — granularidade parcial vs integral ──────
+        $dirCount = count($registeredDirs);
+        if ($dirCount === 0) {
+            $d2c = 0;
+            $d2cEvidence = 'NÃO REGISTRADO — 0 dirs em phpunit.xml';
+        } elseif ($dirCount === 1) {
+            $d2c = 2;
+            $d2cEvidence = 'PARCIAL — 1 dir registrado (' . $registeredDirs[0] . '); falta cobertura integral';
+        } else {
+            $d2c = 4;
+            $d2cEvidence = 'INTEGRAL — ' . $dirCount . ' dirs registrados: ' . implode(', ', $registeredDirs);
+        }
+        $d2cItem = [
+            'key'   => 'D2.c',
+            'desc'  => 'Registrado em phpunit.xml CI (parser XML estruturado)',
+            'score' => $d2c,
+            'max'   => 4,
+            'evidence' => $d2cEvidence,
+        ];
+        $d2cItem = $this->applyNaJustified($d2cItem, 'D2.c', $naJustified, $naApplied);
+        $breakdown[] = $d2cItem;
+        $d2c = $d2cItem['score'];
+
+        $dimResult = [
+            'weight'    => 20,
+            'score'     => $d2a + $d2b + $d2c,
+            'max'       => 20,
+            'breakdown' => $breakdown,
+            'na_justified' => $naApplied,
+            'mode'      => 'hardened',
+        ];
+        return $this->applyDimensionNa($dimResult, 'D2', $naJustified);
+    }
+
+    /**
+     * Parser SimpleXMLElement do phpunit.xml — retorna lista de paths relativos
+     * (sem leading `./`) registrados em qualquer `<testsuite>/<directory>` que
+     * tenha prefixo `./Modules/<name>/`.
+     *
+     * Robusto a:
+     *   - Múltiplos `<testsuite>` (Unit + Feature)
+     *   - XML mal-formado (retorna [] graciosamente)
+     *   - Comentários XML (SimpleXMLElement ignora — diferente de str_contains)
+     *
+     * @return list<string> ex: ['Modules/ADS/Tests/Unit']
+     */
+    private function parsePhpunitDirectories(string $name): array
+    {
+        if (! file_exists($this->phpunitXmlPath)) {
+            return [];
+        }
+
+        // Silencia warnings de XML mal-formado — degrada pra []
+        $previous = libxml_use_internal_errors(true);
+        $xml = @simplexml_load_file($this->phpunitXmlPath);
+        libxml_use_internal_errors($previous);
+
+        if (! $xml) {
+            return [];
+        }
+
+        $modulePrefix = "./Modules/{$name}/";
+        $dirs = [];
+
+        $testsuites = $xml->testsuites ?? null;
+        if (! $testsuites) {
+            return [];
+        }
+        foreach ($testsuites->testsuite as $suite) {
+            foreach ($suite->directory as $dirNode) {
+                $dir = trim((string) $dirNode);
+                if ($dir === '') {
+                    continue;
+                }
+                if (str_starts_with($dir, $modulePrefix)) {
+                    // Normaliza leading `./` mantendo path relativo a base_path()
+                    $dirs[] = ltrim($dir, './');
+                }
+            }
+        }
+
+        return array_values(array_unique($dirs));
+    }
+
+    /**
+     * Detecta asserção Pest/PHPUnit real no corpo do arquivo.
+     *
+     * Patterns aceitos:
+     *   - `expect(...)` (Pest fluent)
+     *   - `assert*(...)` (PHPUnit static-style)
+     *   - `->assert*(...)` (HTTP response, Eloquent assertions)
+     *   - `$this->assert*(...)` (TestCase classes)
+     *
+     * Arquivo vazio scaffold-only (sem nenhum pattern) NÃO conta — anti-gaming
+     * pra "nome casa mas corpo é vazio" (D2.b hardened ADR 0157).
+     */
+    private function hasRealAssertions(string $filePath): bool
+    {
+        if (! is_file($filePath)) {
+            return false;
+        }
+        $body = @file_get_contents($filePath);
+        if ($body === false || $body === '') {
+            return false;
+        }
+        return preg_match(
+            '/\b(expect\(|assert[A-Z]\w*\(|->assert[A-Z]\w*\(|\$this->assert[A-Z]\w*\()/',
+            $body
+        ) === 1;
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -1176,7 +1420,11 @@ class ModuleGradeService
         $hasBizWagner   = (bool) preg_match('/\bBIZ_WAGNER\w*\b|\b[A-Z]+_BIZ_WAGNER\w*\b/', $content);
         $hasBiz99Lit    = (bool) preg_match('/biz=99|business_id.{0,30}99\b/', $content);
         $hasBiz1Lit     = (bool) preg_match('/biz=1\b|business_id.{0,30}1\b/', $content);
-        $hasWithout     = str_contains($content, 'withoutGlobalScopes');
+        // ADR 0158 (Wave 12 2026-05-16) — aceita singular OU plural.
+        // Pest canônico usa `withoutGlobalScopes()` (plural sem args), mas
+        // `withoutGlobalScope(BusinessScope::class)` (singular com 1 scope)
+        // é igualmente válido. Regex `s?` cobre os 2 com 1 match.
+        $hasWithout     = (bool) preg_match('/\bwithoutGlobalScopes?\b/', $content);
         $hasSetBiz      = (bool) preg_match_all('/\b(setBizSession|setAccBizSession)\b/', $content, $m) >= 2;
         $hasCrossWord   = (bool) preg_match('/cross[-_ ]tenant|tenant[-_ ]?isol|isolation|multi[-_ ]?tenant/i', $content);
 

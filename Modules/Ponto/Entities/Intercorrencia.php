@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,8 +11,16 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * Wave 12 — Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093).
+ *
+ * Tabela `ponto_intercorrencias` tem coluna `business_id`. Trait `HasBusinessScope`
+ * aplica global scope automático. Workflow RASCUNHO→APLICADA já é auditado via
+ * LogsActivity (Wave 11 D7.b); agora também isolado por tenant via Eloquent.
+ */
 class Intercorrencia extends Model
 {
+    use HasBusinessScope;
     use HasFactory;
     use LogsActivity;
     use SoftDeletes;

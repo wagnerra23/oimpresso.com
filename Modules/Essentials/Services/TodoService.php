@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Essentials\Services;
 
+use App\Util\OtelHelper;
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use Carbon\Carbon;
@@ -135,5 +136,42 @@ class TodoService
         }
 
         return $requestedAssignees;
+    }
+
+    /**
+     * Lista todos paginated scoped — hot-path D9 OTel instrumented.
+     *
+     * Wave 12 D9 — span `essentials.todo.list_paginated` com business_id Tier 0
+     * + user_id pra correlação de query lenta. Zero-cost se OTel desligado
+     * (config('otel.enabled')=false em Hostinger; ativa apenas CT 100 collector).
+     *
+     * @param int $perPage default 25 (compat DataTables)
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function listPaginatedForUser(int $businessId, Model $user, int $perPage = 25)
+    {
+        return OtelHelper::spanBiz('essentials.todo.list_paginated', function () use ($businessId, $user, $perPage) {
+            return $this->scopedQueryForUser($businessId, $user)
+                ->orderBy('id', 'desc')
+                ->paginate($perPage);
+        }, [
+            'user_id'  => $user->id,
+            'per_page' => $perPage,
+        ]);
+    }
+
+    /**
+     * Carrega ToDo scoped + checa permissão own/all. Span `essentials.todo.find_scoped`.
+     */
+    public function findScopedOrNull(int $id, int $businessId, Model $user): ?ToDo
+    {
+        return OtelHelper::spanBiz('essentials.todo.find_scoped', function () use ($id, $businessId, $user) {
+            return $this->scopedQueryForUser($businessId, $user)
+                ->where('id', $id)
+                ->first();
+        }, [
+            'todo_id' => $id,
+            'user_id' => $user->id,
+        ]);
     }
 }
