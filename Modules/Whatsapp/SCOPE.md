@@ -21,6 +21,8 @@ contains:
   - "Api/ZapiWebhookController — recebe events Z-API (Client-Token timing-safe)"
   - "Api/BaileysWebhookController — recebe events daemon Node CT 100 schema legacy (Bearer timing-safe)"
   - "Api/ChannelBaileysWebhookController — recebe events daemon Node CT 100 schema novo via channel_uuid (ADR 0135)"
+  - "Api/CustomerProfileController — Customer Memory profile endpoint (US-WA-VOZ-001 PR #919)"
+  - "Api/EmployeeScorecardController — Employee scorecard reclamações 30d (US-WA-VOZ-002 PR #919)"
   # Services / Drivers
   - "Services/Drivers/{ZapiDriver, MetaCloudDriver, BaileysDriver, NullDriver, DriverFactory} — abstração + fallback runtime"
   - "Services/Centrifugo/{CentrifugoPublisher, CentrifugoTokenIssuer} — real-time UI ADR 0058"
