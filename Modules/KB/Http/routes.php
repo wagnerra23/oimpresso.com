@@ -98,16 +98,35 @@ Route::group(
         Route::delete('/edges/{id}',                      'KbEdgeController@destroy')
             ->where('id', '[0-9]+')->name('kb.edges.destroy');
 
-        // ---- AI endpoints (ONDA 4 — placeholder, Agent D vai implementar) ----
-        // Route::post('/ai/ask',                           'AiController@ask');
-        // Route::post('/ai/summarize/{slug}',              'AiController@summarize');
-        // Route::post('/ai/suggest-meta',                  'AiController@suggestMeta');
+        // ---- AI endpoints — implementados pelo Agent F em group separado no FINAL do arquivo
+        //      (linha ~150). Wagner pode mover pra cá no merge final.
 
-        // ---- Grafo (ONDA 5 — placeholder, agent posterior) ----
-        // Route::get('/graph',                             'GraphPageController@index');
-        // Route::get('/graph/data',                        'GraphDataController@index');
+        // ---- Index V2 tri-pane (ONDA 2, Agent B) — gate visual pré-cutover ----
+        // Page Inertia tri-pane portada do Cowork. Tem fallback mock interno —
+        // Wagner abre /kb/v2 e vê 18 nós seed pra aprovar screenshot ADR 0114
+        // ANTES de cutover Index.tsx V3 → Index.v2.tsx (Wagner decide).
+        Route::get('/v2', function () {
+            return \Inertia\Inertia::render('kb/Index.v2');
+        })->name('kb.v2');
 
-        // ---- Imprimir SOP (ONDA 5 — placeholder) ----
+        // ---- Grafo (ONDA 5, Agent E) — vis-grafo Reactflow ----
+        // Page Inertia Cytoscape-like com mock 50 nodes / 64 edges quando
+        // /kb/graph/data não está populado ainda. Wagner abre e vê o coração
+        // da promessa "visualização sobre meus dados e arquivos importantes".
+        Route::get('/graph', function () {
+            return \Inertia\Inertia::render('kb/Graph');
+        })->name('kb.graph.page');
+
+        // /kb/graph/data — endpoint JSON pro Reactflow.
+        // V1 placeholder: retorna estrutura vazia; frontend cai automaticamente
+        // pra mockGraphData.ts (badge "modo mock" visível). Quando Agent A
+        // implementar KbGraphController real (Inertia::defer business_id scope),
+        // basta substituir esta closure por @vis method.
+        Route::get('/graph/data', function () {
+            return response()->json(['nodes' => [], 'edges' => [], 'kpis' => null]);
+        })->name('kb.graph.data');
+
+        // ---- Imprimir SOP (ONDA 5 — placeholder, sem precedente Inertia ainda) ----
         // Route::get('/print-sop/{slug}',                  'PrintSopController@show');
     }
 );
