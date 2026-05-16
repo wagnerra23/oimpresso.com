@@ -14,6 +14,7 @@ use DB;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use App\Events\StockTransferCreatedOrModified;
+use Inertia\Inertia;
 
 class StockTransferController extends Controller
 {
@@ -149,7 +150,104 @@ class StockTransferController extends Controller
                 ->make(true);
         }
 
+        // MWART Wave2 B5 — dual path opt-in Inertia via ?v=2 (ADR 0104).
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            return $this->indexInertia($statuses);
+        }
+
         return view('stock_transfer.index')->with(compact('statuses'));
+    }
+
+    /**
+     * MWART Wave2 B5 — Inertia path para /stock-transfers.
+     *
+     * Tier 0 IRREVOGÁVEL (ADR 0093): `business_id` puxado da sessão, todas as
+     * queries scopadas. `view_own_purchase` filtra por `created_by` quando
+     * permission limitada.
+     */
+    private function indexInertia(array $statuses)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $user = auth()->user();
+
+        $query = Transaction::join('business_locations AS l1', 'transactions.location_id', '=', 'l1.id')
+            ->join('transactions as t2', 't2.transfer_parent_id', '=', 'transactions.id')
+            ->join('business_locations AS l2', 't2.location_id', '=', 'l2.id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell_transfer');
+
+        if (! $user->can('purchase.view') && $user->can('view_own_purchase')) {
+            $query->where('t2.created_by', request()->session()->get('user.id'));
+        }
+
+        $permitted_locations = $user->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        // Filtros UI
+        if (request()->location_id) {
+            $query->where('transactions.location_id', request()->location_id);
+        }
+        if (request()->status) {
+            $query->where('transactions.status', request()->status);
+        }
+        if (request()->start_date && request()->end_date) {
+            $query->whereBetween(DB::raw('date(transactions.transaction_date)'), [
+                request()->start_date,
+                request()->end_date,
+            ]);
+        }
+
+        $rows = $query
+            ->select(
+                'transactions.id',
+                'transactions.transaction_date',
+                'transactions.ref_no',
+                'l1.name as location_from',
+                'l2.name as location_to',
+                'transactions.final_total',
+                'transactions.shipping_charges',
+                'transactions.additional_notes',
+                'transactions.status'
+            )
+            ->orderByDesc('transactions.transaction_date')
+            ->limit(200)
+            ->get();
+
+        $business_locations = BusinessLocation::forDropdown($business_id);
+        $locationOptions = collect($business_locations)
+            ->map(fn ($name, $id) => ['id' => $id, 'label' => $name])
+            ->values();
+
+        return Inertia::render('StockTransfer/Index', [
+            'rows' => $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'ref_no' => $r->ref_no ?? '',
+                'transaction_date' => $r->transaction_date,
+                'location_from' => $r->location_from,
+                'location_to' => $r->location_to,
+                'status' => $r->status === 'final' ? 'completed' : $r->status,
+                'final_total' => (float) $r->final_total,
+                'shipping_charges' => (float) $r->shipping_charges,
+                'additional_notes' => $r->additional_notes,
+            ]),
+            'filters' => [
+                'location_id' => (string) (request()->location_id ?? ''),
+                'status' => (string) (request()->status ?? ''),
+                'start_date' => (string) (request()->start_date ?? ''),
+                'end_date' => (string) (request()->end_date ?? ''),
+            ],
+            'business_locations' => $locationOptions,
+            'statuses' => $statuses,
+            'permissions' => [
+                'view' => $user->can('purchase.view') || $user->can('view_own_purchase'),
+                'create' => $user->can('purchase.create'),
+                'update' => $user->can('purchase.update'),
+                'delete' => $user->can('purchase.delete'),
+                'view_purchase_price' => $user->can('view_purchase_price'),
+            ],
+        ]);
     }
 
     /**
@@ -174,8 +272,35 @@ class StockTransferController extends Controller
 
         $statuses = $this->stockTransferStatuses();
 
+        // MWART Wave2 B5 — dual path opt-in Inertia (ADR 0104).
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            return $this->createInertia($business_id, $business_locations, $statuses);
+        }
+
         return view('stock_transfer.create')
                 ->with(compact('business_locations', 'statuses'));
+    }
+
+    /**
+     * MWART Wave2 B5 — Inertia path para /stock-transfers/create.
+     *
+     * Tier 0 IRREVOGÁVEL: $business_id validado em create() (sessão).
+     * $business_locations já vem filtrado por business — origem E destino
+     * obrigatoriamente da MESMA business (R-XFER-004).
+     */
+    private function createInertia(int $business_id, $business_locations, array $statuses)
+    {
+        $user = auth()->user();
+
+        return Inertia::render('StockTransfer/Create', [
+            'business_locations' => $business_locations,
+            'statuses' => $statuses,
+            'default_datetime' => now()->format('Y-m-d H:i:s'),
+            'permissions' => [
+                'view_purchase_price' => $user->can('view_purchase_price'),
+                'edit_price' => $user->can('edit_purchase_price'),
+            ],
+        ]);
     }
 
     private function stockTransferStatuses()
