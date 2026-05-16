@@ -826,3 +826,310 @@ PHP;
         cleanupFakeModule($fake);
     }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION D2 HARDENED (ADR 0157) — endurecimento detection com dual-mode flag
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Helpers locais pra cenários hardened — patcham phpunit.xml temporariamente
+// inserindo `<directory>` linhas pra módulo fake, com safety-net.
+
+function patchPhpunitInsertDirectories(string $fakeName, array $relativeDirs): string
+{
+    $path = base_path('phpunit.xml');
+    $original = file_get_contents($path);
+    if ($original === false) {
+        throw new RuntimeException("Não conseguiu ler phpunit.xml pra snapshot — abort.");
+    }
+
+    registerFileRestoreSafetyNet($path, $original);
+
+    // Insere linhas `<directory>./Modules/<fakeName>/Tests/Xxx</directory>` ANTES
+    // do fechamento do testsuite Feature. Marcador: `</testsuite>` precedido pela
+    // linha do último Modules/<>/Tests/Feature já presente.
+    $injection = '';
+    foreach ($relativeDirs as $rel) {
+        $injection .= "            <directory>./{$rel}</directory>\n";
+    }
+
+    // Insere logo antes do `</testsuite>` que fecha o Feature suite. Substituição
+    // simples na PRIMEIRA ocorrência depois do nome="Feature".
+    $patched = preg_replace(
+        '#(</testsuite>\s*</testsuites>)#',
+        $injection . '$1',
+        $original,
+        1
+    );
+
+    if ($patched === null || $patched === $original) {
+        // Fallback: insere antes do último </testsuite>
+        $patched = preg_replace(
+            '#(</testsuite>)(\s*</testsuites>)#s',
+            $injection . '$1$2',
+            $original,
+            1
+        );
+    }
+
+    file_put_contents($path, $patched);
+    return $original;
+}
+
+function restorePhpunit(string $originalContent): void
+{
+    $path = base_path('phpunit.xml');
+    file_put_contents($path, $originalContent);
+    markFileRestored($path);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 14 — D2 hardened NÃO credita Tests/Feature dir NÃO REGISTRADO
+//
+// Setup: módulo fake com Tests/Feature/SmokeTest.php (com asserção), mas SEM
+// entry no phpunit.xml. Hardened deve dar D2.a=0 (nenhum arquivo registrado) e
+// D2.c=0 (0 dirs). Legacy daria D2.a alto + D2.c=4 (str_contains false positive).
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 14 — d2_hardened NÃO credita Tests/Feature dir não-registrado em phpunit.xml', function () {
+    config(['governance.d2_hardened' => true]);
+
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    // Cria Tests/Feature com arquivo CONTENDO asserção real
+    $testsFeatureDir = $fake['moduleDir'] . '/Tests/Feature';
+    @mkdir($testsFeatureDir, 0755, true);
+    $smokeTest = $testsFeatureDir . '/SmokeRoutesTest.php';
+    file_put_contents($smokeTest, <<<'PHP'
+<?php
+test('smoke route', function () {
+    expect(1)->toBe(1);
+});
+PHP);
+    registerFileRestoreSafetyNet($smokeTest, null);
+
+    // Cleanup blindado
+    register_shutdown_function(function () use ($testsFeatureDir) {
+        if (is_dir($testsFeatureDir)) {
+            foreach ((array) @scandir($testsFeatureDir) as $f) {
+                if ($f !== '.' && $f !== '..') {
+                    @unlink($testsFeatureDir . '/' . $f);
+                }
+            }
+            @rmdir($testsFeatureDir);
+            @rmdir(dirname($testsFeatureDir));
+        }
+    });
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d2 = $grade['dimensions']['pest_coverage'];
+        expect($d2)->toHaveKey('mode');
+        expect($d2['mode'])->toBe('hardened');
+
+        // D2.c hardened — 0 dirs registrados → score 0
+        $d2c = collect($d2['breakdown'])->firstWhere('key', 'D2.c');
+        expect($d2c['score'])->toBe(0, 'D2.c hardened → 0 quando dir não registrado em phpunit.xml');
+        expect($d2c['evidence'])->toContain('NÃO REGISTRADO');
+
+        // D2.a hardened — 0 tests contados (nenhum dir registrado) → score 0 (sem controllers, score sobe a 8 — adjust)
+        // Como fake module tem 0 controllers, ratio = 1.0 → d2a = 8 mesmo. Validamos evidence em vez disso.
+        $d2a = collect($d2['breakdown'])->firstWhere('key', 'D2.a');
+        expect($d2a['evidence'])->toContain('dirs: NENHUM');
+    } finally {
+        @unlink($smokeTest);
+        @rmdir($testsFeatureDir);
+        @rmdir(dirname($testsFeatureDir));
+        markFileRestored($smokeTest);
+        cleanupFakeModule($fake);
+        config(['governance.d2_hardened' => false]);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 15 — D2 hardened credita INTEGRAL quando 2+ dirs registrados
+//
+// Setup: módulo fake com Tests/Feature + Tests/Unit, ambos registrados em
+// phpunit.xml via patch temporário. Hardened deve dar D2.c=4 (integral).
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 15 — d2_hardened credita FULL 4pts em D2.c quando Tests/Feature + Tests/Unit registrados', function () {
+    config(['governance.d2_hardened' => true]);
+    $mutex = acquireFsMutex();
+
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $testsFeatureDir = $fake['moduleDir'] . '/Tests/Feature';
+    $testsUnitDir = $fake['moduleDir'] . '/Tests/Unit';
+    @mkdir($testsFeatureDir, 0755, true);
+    @mkdir($testsUnitDir, 0755, true);
+
+    $featureTest = $testsFeatureDir . '/MultiTenantDecisionTest.php';
+    file_put_contents($featureTest, <<<'PHP'
+<?php
+test('multi tenant decision', function () {
+    expect(true)->toBeTrue();
+});
+PHP);
+    registerFileRestoreSafetyNet($featureTest, null);
+
+    $unitTest = $testsUnitDir . '/ScaffoldTest.php';
+    file_put_contents($unitTest, <<<'PHP'
+<?php
+test('scaffold', function () {
+    expect('x')->toBe('x');
+});
+PHP);
+    registerFileRestoreSafetyNet($unitTest, null);
+
+    register_shutdown_function(function () use ($testsFeatureDir, $testsUnitDir) {
+        foreach ([$testsFeatureDir, $testsUnitDir] as $d) {
+            if (is_dir($d)) {
+                foreach ((array) @scandir($d) as $f) {
+                    if ($f !== '.' && $f !== '..') {
+                        @unlink($d . '/' . $f);
+                    }
+                }
+                @rmdir($d);
+            }
+        }
+        @rmdir(dirname($testsFeatureDir));
+    });
+
+    // Patcha phpunit.xml registrando ambos dirs
+    $originalPhpunit = patchPhpunitInsertDirectories($fakeName, [
+        "Modules/{$fakeName}/Tests/Feature",
+        "Modules/{$fakeName}/Tests/Unit",
+    ]);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d2 = $grade['dimensions']['pest_coverage'];
+        expect($d2['mode'])->toBe('hardened');
+
+        $d2c = collect($d2['breakdown'])->firstWhere('key', 'D2.c');
+        expect($d2c['score'])->toBe(4, 'D2.c hardened → 4 (INTEGRAL) com Tests/Feature + Tests/Unit');
+        expect($d2c['evidence'])->toContain('INTEGRAL')->toContain('2 dirs');
+
+        // D2.b hardened — MultiTenant + Scaffold detectados COM asserção → 2/3 padrões = 5 pts (round)
+        $d2b = collect($d2['breakdown'])->firstWhere('key', 'D2.b');
+        expect($d2b['score'])->toBeGreaterThanOrEqual(5, 'D2.b hardened detecta MultiTenant + Scaffold com expect()');
+        expect($d2b['evidence'])->toContain('MultiTenant')->toContain('Scaffold');
+    } finally {
+        restorePhpunit($originalPhpunit);
+        @unlink($featureTest);
+        @unlink($unitTest);
+        @rmdir($testsFeatureDir);
+        @rmdir($testsUnitDir);
+        @rmdir(dirname($testsFeatureDir));
+        markFileRestored($featureTest);
+        markFileRestored($unitTest);
+        cleanupFakeModule($fake);
+        releaseFsMutex($mutex);
+        config(['governance.d2_hardened' => false]);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 16 — D2 hardened NÃO credita arquivo registrado SEM asserção real
+//
+// Setup: módulo fake com Tests/Feature/MultiTenantTest.php registrado em
+// phpunit.xml, mas corpo SEM `expect`/`assert`. Hardened deve dar D2.b=0 (nome
+// casa mas sem asserção — anti-gaming scaffold vazio). Legacy daria 8/3 ≈ 3 pts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 16 — d2_hardened NÃO credita test file registrado SEM asserção real no corpo', function () {
+    config(['governance.d2_hardened' => true]);
+    $mutex = acquireFsMutex();
+
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $testsFeatureDir = $fake['moduleDir'] . '/Tests/Feature';
+    @mkdir($testsFeatureDir, 0755, true);
+
+    // Scaffold vazio: NOME canônico MultiTenant, mas corpo só placeholder sem
+    // expect/assert — D2.b hardened deve rejeitar.
+    $scaffoldTest = $testsFeatureDir . '/MultiTenantTest.php';
+    file_put_contents($scaffoldTest, <<<'PHP'
+<?php
+
+// TODO: implementar asserções multi-tenant biz=1 vs biz=99 (ADR 0093)
+test('placeholder', function () {
+    // sem expect / sem assert — scaffold só
+});
+PHP);
+    registerFileRestoreSafetyNet($scaffoldTest, null);
+
+    register_shutdown_function(function () use ($testsFeatureDir) {
+        if (is_dir($testsFeatureDir)) {
+            foreach ((array) @scandir($testsFeatureDir) as $f) {
+                if ($f !== '.' && $f !== '..') {
+                    @unlink($testsFeatureDir . '/' . $f);
+                }
+            }
+            @rmdir($testsFeatureDir);
+            @rmdir(dirname($testsFeatureDir));
+        }
+    });
+
+    // Registra Tests/Feature em phpunit.xml pra arquivo CONTAR no filesystem
+    $originalPhpunit = patchPhpunitInsertDirectories($fakeName, [
+        "Modules/{$fakeName}/Tests/Feature",
+    ]);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d2 = $grade['dimensions']['pest_coverage'];
+        expect($d2['mode'])->toBe('hardened');
+
+        // D2.b — MultiTenant detectado por NOME mas SEM asserção → canonicalCount=0
+        $d2b = collect($d2['breakdown'])->firstWhere('key', 'D2.b');
+        expect($d2b['score'])->toBe(0, 'D2.b hardened → 0 quando MultiTenantTest.php existe mas sem asserção real');
+        expect($d2b['evidence'])->toContain('0/3');
+
+        // D2.c — 1 dir registrado → PARCIAL = 2 pts
+        $d2c = collect($d2['breakdown'])->firstWhere('key', 'D2.c');
+        expect($d2c['score'])->toBe(2, 'D2.c hardened → 2 (PARCIAL) com apenas Tests/Feature registrado');
+        expect($d2c['evidence'])->toContain('PARCIAL');
+    } finally {
+        restorePhpunit($originalPhpunit);
+        @unlink($scaffoldTest);
+        @rmdir($testsFeatureDir);
+        @rmdir(dirname($testsFeatureDir));
+        markFileRestored($scaffoldTest);
+        cleanupFakeModule($fake);
+        releaseFsMutex($mutex);
+        config(['governance.d2_hardened' => false]);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 17 — Backward-compat: dual-mode dispatcher preserva legacy quando flag false
+//
+// Garante que sem flag set (default), Service retorna mode=legacy + score
+// idêntico à heurística ADR 0155 (regressão zero pra baseline atual).
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 17 — d2 default (flag false) retorna mode=legacy preservando ADR 0155', function () {
+    // Garante flag false (default canônico Fase 1 ADR 0157)
+    config(['governance.d2_hardened' => false]);
+
+    $service = app(ModuleGradeService::class);
+    $grade = $service->gradeModule('Governance');
+
+    $d2 = $grade['dimensions']['pest_coverage'];
+    expect($d2)->toHaveKey('mode');
+    expect($d2['mode'])->toBe('legacy', 'default flag=false → modo legacy preservado (backward-compat ADR 0157)');
+
+    // Score continua válido (0-20)
+    expect($d2['score'])->toBeInt()->toBeGreaterThanOrEqual(0)->toBeLessThanOrEqual(20);
+    expect(array_column($d2['breakdown'], 'key'))->toBe(['D2.a', 'D2.b', 'D2.c']);
+});

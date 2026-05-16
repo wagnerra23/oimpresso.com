@@ -2,10 +2,16 @@
 
 namespace Modules\Essentials\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Reminder extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 12 D1 boost)
+    use LogsActivity;
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -19,6 +25,22 @@ class Reminder extends Model
      * @var string
      */
     protected $table = 'essentials_reminders';
+
+    /**
+     * Auditoria LGPD (D7) — registra mudanças em lembretes.
+     * `name` pode conter PII (nome de cliente/colaborador) — log redacted via
+     * PiiRedactor antes de subir pro activity_log (responsabilidade do caller).
+     *
+     * @see Modules\Essentials\Config\retention.php
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'date', 'time', 'end_time', 'repeat', 'user_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('essentials.reminder');
+    }
 
     /**
      * Fetches all reminders for the calendar
