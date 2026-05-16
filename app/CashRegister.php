@@ -3,9 +3,13 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class CashRegister extends Model
 {
+    use LogsActivity;
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -21,6 +25,14 @@ class CashRegister extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->useLogName('cash_register');
+    }
 
     /**
      * Get the Cash registers transactions.

@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsSiteDetail;
+use Modules\Cms\Http\Requests\SubmitContactFormRequest;
 use Modules\Cms\Notifications\NewLeadGeneratedNotification;
 use Modules\Cms\Services\SiteContentService;
 use Modules\Cms\Utils\CmsUtil;
@@ -206,7 +207,7 @@ class CmsController extends Controller
             ->with(compact('page'));
     }
 
-    public function postContactForm(Request $request)
+    public function postContactForm(SubmitContactFormRequest $request)
     {
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->cmsUtil->notAllowedInDemo();
@@ -216,7 +217,9 @@ class CmsController extends Controller
 
         if ($request->ajax()) {
             try {
-                $lead_details = $request->only(['name', 'mobile', 'email', 'message']);
+                // SubmitContactFormRequest ja validou + sanitizou (trim/honeypot)
+                $lead_details = $request->validated();
+                unset($lead_details['_gotcha']);
 
                 $recipient = CmsSiteDetail::getValue('notifiable_email');
 

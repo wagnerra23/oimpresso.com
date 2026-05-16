@@ -6,6 +6,7 @@ namespace Modules\Crm\Services;
 
 use App\Business;
 use App\Transaction;
+use App\Util\OtelHelper;
 use App\Utils\NotificationUtil;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -128,43 +129,45 @@ class CampaignService
      */
     public function sendCampaignNotification(int $campaignId, int $businessId): array
     {
-        try {
-            $campaign = Campaign::where('business_id', $businessId)->findOrFail($campaignId);
-            $business = Business::findOrFail($businessId);
+        return OtelHelper::spanBiz('crm.campaign.send', function () use ($campaignId, $businessId) {
+            try {
+                $campaign = Campaign::where('business_id', $businessId)->findOrFail($campaignId);
+                $business = Business::findOrFail($businessId);
 
-            $contactIds = $this->resolveContactIds($campaign, $businessId);
-            $notifiableUsers = CrmContact::find($contactIds);
+                $contactIds = $this->resolveContactIds($campaign, $businessId);
+                $notifiableUsers = CrmContact::find($contactIds);
 
-            if (! empty($notifiableUsers) && $campaign->campaign_type === 'sms') {
-                $notificationData = [
-                    'sms_settings' => request()->session()->get('business.sms_settings'),
-                ];
-                foreach ($notifiableUsers as $user) {
-                    $notificationData['mobile_number'] = $user->mobile;
-                    $notificationData['sms_body'] = preg_replace(
-                        ['/{contact_name}/', '/{campaign_name}/', '/{business_name}/'],
-                        [$user->name, $campaign->name, $business->name],
-                        $campaign->sms_body,
-                    );
+                if (! empty($notifiableUsers) && $campaign->campaign_type === 'sms') {
+                    $notificationData = [
+                        'sms_settings' => request()->session()->get('business.sms_settings'),
+                    ];
+                    foreach ($notifiableUsers as $user) {
+                        $notificationData['mobile_number'] = $user->mobile;
+                        $notificationData['sms_body'] = preg_replace(
+                            ['/{contact_name}/', '/{campaign_name}/', '/{business_name}/'],
+                            [$user->name, $campaign->name, $business->name],
+                            $campaign->sms_body,
+                        );
 
-                    $this->notificationUtil->sendSms($notificationData);
+                        $this->notificationUtil->sendSms($notificationData);
+                    }
+                } elseif (! empty($notifiableUsers) && $campaign->campaign_type === 'email') {
+                    Notification::send($notifiableUsers, new SendCampaignNotification($campaign, $business));
                 }
-            } elseif (! empty($notifiableUsers) && $campaign->campaign_type === 'email') {
-                Notification::send($notifiableUsers, new SendCampaignNotification($campaign, $business));
+
+                DB::beginTransaction();
+                $campaign->sent_on = Carbon::now();
+                $campaign->save();
+                DB::commit();
+
+                return ['success' => true, 'msg' => __('lang_v1.success')];
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+                return ['success' => false, 'msg' => __('messages.something_went_wrong')];
             }
-
-            DB::beginTransaction();
-            $campaign->sent_on = Carbon::now();
-            $campaign->save();
-            DB::commit();
-
-            return ['success' => true, 'msg' => __('lang_v1.success')];
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            return ['success' => false, 'msg' => __('messages.something_went_wrong')];
-        }
+        }, ['campaign_id' => $campaignId]);
     }
 
     /**
