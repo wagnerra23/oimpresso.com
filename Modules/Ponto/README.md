@@ -76,6 +76,52 @@ Modules/PontoWr2/
 - **Lei 13.709/2018 (LGPD)** — Dados pessoais, retenção, consentimento
 - **eSocial** — Leiautes S-1.2
 
+## Como o cliente usa (jornada funcionário)
+
+### 1. Bater ponto (4 marcações típicas por dia)
+
+Acessa `/ponto/marcacoes` → botão **"Registrar"** → escolhe tipo:
+
+- **ENTRADA** (~08:00)
+- **ALMOCO_INICIO** (~12:00)
+- **ALMOCO_FIM** (~13:00)
+- **SAIDA** (~17:00)
+
+Cada marcação é registrada com NSR sequencial + hash SHA256 + IP/geo capturados. Imutável (Portaria 671/2021 Art. 85) — banco bloqueia via trigger + Model lança `RuntimeException` em `update()`/`delete()`.
+
+### 2. Consultar espelho de ponto
+
+`/ponto/espelho` mostra:
+- Jornada bruta do dia (entrada → saída)
+- Intervalo intrajornada (almoço — CLT Art. 71 mín. 1h se >6h trabalhadas)
+- Banco de horas saldo
+- Intercorrências pendentes/aprovadas
+- HE (CLT Art. 59)
+
+### 3. Justificar ausência (intercorrência)
+
+`/ponto/intercorrencias` → **"Solicitar"** → tipo (ATESTADO/FALTA/SAIDA_ANTECIPADA…) + justificativa + anexo (atestado médico em PDF). Fluxo PENDENTE → APROVADA/REJEITADA (gestor decide).
+
+### 4. Anular marcação (caso erro de digitação)
+
+⚠️ NUNCA `delete()` — append-only. Fluxo correto: `Marcacao::anular(<id>, <motivo>)` cria **nova** marcação com `origem=ANULACAO` + `marcacao_anulada_id` apontando pra original. Original permanece registrada (auditoria fiscal).
+
+### 5. Exportar fiscalização (AFD/AFDT/AEJ)
+
+`/ponto/relatorios` → **"AFD"** (períodos parametrizáveis). Saída em layout REP-P/REP-C conforme Portaria 671/2021 Anexo I — Auditor Fiscal do Trabalho aceita direto.
+
+### 6. RH fechar período mensal
+
+`/ponto/aprovacoes` → **"Fechar período"** → calcula HE, banco de horas, faltas, atrasos → gera planilha pra folha de pagamento (eSocial S-1010/S-2230/S-2240).
+
+## Smoke test E2E
+
+```bash
+php artisan test --filter=CustomerJourneyTest
+```
+
+Cobre jornada 4 marcações + append-only defesa + cross-tenant biz=99 + fluxo anulação. Roda contra MySQL real (NÃO SQLite — triggers MySQL exigidos).
+
 ## Licença
 
 Proprietário — WR2 Sistemas

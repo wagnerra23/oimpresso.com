@@ -7,5 +7,14 @@
     "providers": [
         "Modules\\ADS\\Providers\\AdsServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "retention_days": 730,
+    "retention_config": "Modules/ADS/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["event_metadata", "instruction_generated", "wagner_modified_to"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": false,
+        "activity_log_note": "ADS usa DB::table query-builder (sem Eloquent Models). Audit append-only fica em sale_stage_history (FSM) + mcp_dual_brain_decisions (resolved_by/resolved_at). LogsActivity Spatie será adicionado quando ADS migrar pra Eloquent.",
+        "policy_doc": "Modules/ADS/Config/retention.php"
+    }
 }

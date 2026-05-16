@@ -42,20 +42,33 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         // CRUD Vehicle
         Route::get('veiculos',                     [VehicleController::class, 'index'])->name('oficinaauto.vehicles.index');
         Route::get('veiculos/create',              [VehicleController::class, 'create'])->name('oficinaauto.vehicles.create');
-        Route::post('veiculos',                    [VehicleController::class, 'store'])->name('oficinaauto.vehicles.store');
+        // D8 Security Wave 15: throttle 60 req/min nas mutações autenticadas (anti-bot+anti-abuse).
+        Route::post('veiculos',                    [VehicleController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.vehicles.store');
         Route::get('veiculos/{vehicle}',           [VehicleController::class, 'show'])->name('oficinaauto.vehicles.show');
         Route::get('veiculos/{vehicle}/edit',      [VehicleController::class, 'edit'])->name('oficinaauto.vehicles.edit');
-        Route::put('veiculos/{vehicle}',           [VehicleController::class, 'update'])->name('oficinaauto.vehicles.update');
-        Route::delete('veiculos/{vehicle}',        [VehicleController::class, 'destroy'])->name('oficinaauto.vehicles.destroy');
+        Route::put('veiculos/{vehicle}',           [VehicleController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.vehicles.update');
+        Route::delete('veiculos/{vehicle}',        [VehicleController::class, 'destroy'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.vehicles.destroy');
 
         // CRUD ServiceOrder (status livre V0; FSM em US-OFICINA-003)
         Route::get('ordens-servico',                [ServiceOrderController::class, 'index'])->name('oficinaauto.orders.index');
         Route::get('ordens-servico/create',         [ServiceOrderController::class, 'create'])->name('oficinaauto.orders.create');
-        Route::post('ordens-servico',               [ServiceOrderController::class, 'store'])->name('oficinaauto.orders.store');
+        Route::post('ordens-servico',               [ServiceOrderController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.store');
         Route::get('ordens-servico/{order}',        [ServiceOrderController::class, 'show'])->name('oficinaauto.orders.show');
         Route::get('ordens-servico/{order}/edit',   [ServiceOrderController::class, 'edit'])->name('oficinaauto.orders.edit');
-        Route::put('ordens-servico/{order}',        [ServiceOrderController::class, 'update'])->name('oficinaauto.orders.update');
-        Route::delete('ordens-servico/{order}',     [ServiceOrderController::class, 'destroy'])->name('oficinaauto.orders.destroy');
+        Route::put('ordens-servico/{order}',        [ServiceOrderController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.update');
+        Route::delete('ordens-servico/{order}',     [ServiceOrderController::class, 'destroy'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.destroy');
 
         // ─────────────────────────────────────────────────────────────────────
         // Hotfix Wave 7+ — drawer ServiceOrderSheet.fetchData chama URL inglês
@@ -75,12 +88,16 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [ServiceOrderFsmActionController::class, 'actions'])
             ->name('oficinaauto.service_orders.fsm.actions');
 
+        // D8 Security Wave 15: FSM execute é side-effect crítico (reserva estoque, cancela NFe,
+        // dispara WhatsApp). Throttle 60 req/min/IP previne abuse de actions repetidas.
         Route::post('service-orders/{order}/fsm/execute',
             [ServiceOrderFsmActionController::class, 'execute'])
+            ->middleware('throttle:60,1')
             ->name('oficinaauto.service_orders.fsm.execute');
 
         Route::post('service-orders/{order}/fsm/start-pipeline',
             [ServiceOrderFsmActionController::class, 'startPipeline'])
+            ->middleware('throttle:30,1')
             ->name('oficinaauto.service_orders.fsm.start-pipeline');
     });
 

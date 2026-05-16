@@ -7,6 +7,8 @@ namespace Modules\TeamMcp\Entities;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * ADR 0081 — Identity Mesh actor (humano ou IA conectada).
@@ -15,9 +17,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * skills_required, actions_blocked, audit_required, parent_actor.
  *
  * Tokens MCP bind a actor_id; resolver canonical em ActorResolver service.
+ *
+ * **D7 LGPD (Wave 15 governance v3 RESCUE):**
+ * - PII surface: `slug` (identificador pessoal), `display_name` (nome completo),
+ *   `user_id` (link pra users → email/CPF), `notes` (texto livre).
+ * - Auditoria via Spatie LogsActivity (audit_log append-only, não purgada).
+ * - Retention em `Modules/TeamMcp/Config/retention.php` (LGPD Art. 16).
  */
 class McpActor extends Model
 {
+    use LogsActivity;
+
     protected $table = 'mcp_actors';
 
     protected $fillable = [
@@ -39,6 +49,29 @@ class McpActor extends Model
         'audit_required'  => 'boolean',
         'revoked_at'      => 'datetime',
     ];
+
+    /**
+     * Auditoria LGPD — registra mudanças sensíveis em actor (Identity Mesh).
+     * D7 LGPD compliance (audit trail append-only via activity_log).
+     *
+     * `notes` NÃO é logado (texto livre — risco PII bruta no audit log; basta
+     * o `dirty` indicar que foi tocado). Senhas/tokens NUNCA passam por aqui
+     * (Tier 0 segredo — ADR 0081: token raw nem persiste, hash em outra tabela).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'slug', 'type', 'trust_level', 'parent_actor_id',
+                'modules_write', 'modules_read', 'modules_blocked',
+                'skills_required', 'actions_blocked',
+                'audit_required', 'user_id', 'display_name',
+                'revoked_at', 'revoked_by_actor_id',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('teammcp.actor');
+    }
 
     public function parent(): BelongsTo
     {

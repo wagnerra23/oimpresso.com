@@ -182,7 +182,7 @@ class RevokeAllocatedAssetController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
 
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
 
             return redirect()->back()
                 ->with('status', ['success' => false,
@@ -251,7 +251,7 @@ class RevokeAllocatedAssetController extends Controller
                     'msg' => __('lang_v1.success'),
                 ];
             } catch (Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = [
                     'success' => false,

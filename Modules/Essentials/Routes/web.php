@@ -13,8 +13,13 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         Route::get('/', [Modules\Essentials\Http\Controllers\EssentialsController::class, 'index']);
 
         //document controller
-        Route::resource('document', 'Modules\Essentials\Http\Controllers\DocumentController')->only(['index', 'store', 'destroy', 'show']);
-        Route::get('document/download/{id}', [Modules\Essentials\Http\Controllers\DocumentController::class, 'download']);
+        // D8 Security Wave 15 — throttle upload anti-DOS: 30 store / 60 download por minuto.
+        Route::post('document', [Modules\Essentials\Http\Controllers\DocumentController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('document.store');
+        Route::resource('document', 'Modules\Essentials\Http\Controllers\DocumentController')->only(['index', 'destroy', 'show']);
+        Route::get('document/download/{id}', [Modules\Essentials\Http\Controllers\DocumentController::class, 'download'])
+            ->middleware('throttle:60,1');
 
         //document share controller
         Route::resource('document-share', 'Modules\Essentials\Http\Controllers\DocumentShareController')->only(['edit', 'update']);
@@ -22,10 +27,13 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         //todo controller
         Route::resource('todo', 'ToDoController');
 
-        Route::post('todo/add-comment', [Modules\Essentials\Http\Controllers\ToDoController::class, 'addComment']);
+        // D8 Security Wave 15 — throttle 60/min em endpoints que aceitam comment/upload livre.
+        Route::post('todo/add-comment', [Modules\Essentials\Http\Controllers\ToDoController::class, 'addComment'])
+            ->middleware('throttle:60,1');
         Route::get('todo/delete-comment/{id}', [Modules\Essentials\Http\Controllers\ToDoController::class, 'deleteComment']);
         Route::get('todo/delete-document/{id}', [Modules\Essentials\Http\Controllers\ToDoController::class, 'deleteDocument']);
-        Route::post('todo/upload-document', [Modules\Essentials\Http\Controllers\ToDoController::class, 'uploadDocument']);
+        Route::post('todo/upload-document', [Modules\Essentials\Http\Controllers\ToDoController::class, 'uploadDocument'])
+            ->middleware('throttle:30,1');
         Route::get('view-todo-{id}-share-docs', [Modules\Essentials\Http\Controllers\ToDoController::class, 'viewSharedDocs']);
 
         //reminder controller
@@ -33,7 +41,11 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
 
         //message controller
         Route::get('get-new-messages', [Modules\Essentials\Http\Controllers\EssentialsMessageController::class, 'getNewMessages']);
-        Route::resource('messages', 'Modules\Essentials\Http\Controllers\EssentialsMessageController')->only(['index', 'store', 'destroy']);
+        // D8 Security Wave 15 — throttle anti-spam chat (60 msg/min por user)
+        Route::post('messages', [Modules\Essentials\Http\Controllers\EssentialsMessageController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('messages.store');
+        Route::resource('messages', 'Modules\Essentials\Http\Controllers\EssentialsMessageController')->only(['index', 'destroy']);
 
         //Allowance and deduction controller
         Route::resource('allowance-deduction', 'Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController');

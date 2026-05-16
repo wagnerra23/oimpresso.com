@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Essentials\Entities\KnowledgeBase;
+use Modules\Essentials\Http\Requests\StoreKnowledgeBaseRequest;
 
 /**
  * KnowledgeBaseController — versão Inertia.
@@ -86,20 +87,12 @@ class KnowledgeBaseController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreKnowledgeBaseRequest $request): RedirectResponse
     {
         $businessId = $this->currentBusinessId();
         $this->authorizeAccess($businessId);
 
-        $validated = $request->validate([
-            'title'      => 'required|string|max:255',
-            'content'    => 'nullable|string',
-            'kb_type'    => 'nullable|in:knowledge_base,section,article',
-            'parent_id'  => 'nullable|integer|exists:essentials_kb,id',
-            'share_with' => 'nullable|in:public,only_with',
-            'user_ids'   => 'nullable|array',
-            'user_ids.*' => 'integer|exists:users,id',
-        ]);
+        $validated = $request->validated();
 
         $data = [
             'business_id' => $businessId,

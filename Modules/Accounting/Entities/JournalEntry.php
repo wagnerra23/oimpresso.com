@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Entities;
 
+use App\Concerns\BelongsToBusinessViaParent;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Accounting\Entities\BusinessLocation;
 use Modules\Accounting\Entities\User;
@@ -10,7 +11,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class JournalEntry extends Model
 {
+    use BelongsToBusinessViaParent; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 15 D1 MT rescue; child de BusinessLocation via location_id)
     use LogsActivity;
+
+    /**
+     * Parent relation pra ScopeByBusinessViaParent — BusinessLocation tem business_id direto.
+     */
+    protected string $businessParentRelation = 'business_location';
 
     protected $table = "journal_entries";
     protected $fillable = ['reversed'];
