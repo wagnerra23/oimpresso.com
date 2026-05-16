@@ -91,6 +91,11 @@ class BoardController extends Controller
             $projectId, $cycleFocoId, $epicId, $componente, $owner, $colunas, $statusVisiveis
         );
 
+        // Wave 11 D6.a — defer APENAS as 3 queries auxiliares (dropdowns).
+        // kanban/kpis/cycle/columns ficam EAGER por causa do rollback PR #963
+        // (charter Board live exige initial render — atalhos J/K precisam de
+        // cards já presentes). epics/cycles/owners alimentam filtros dropdown,
+        // que abrem por interação user → defer ok.
         return Inertia::render('ProjectMgmt/Board/Index', [
             'project' => $project ? [
                 'id'   => $project->id,
@@ -101,9 +106,9 @@ class BoardController extends Controller
             'kanban'  => $kanbanPayload['kanban'],
             'kpis'    => $kanbanPayload['kpis'],
             'columns' => $colunas,
-            'epics'   => $this->buildEpicsPayload($projectId),
-            'cycles'  => $this->buildCyclesPayload($projectId),
-            'owners'  => $this->buildOwnersPayload($projectId),
+            'epics'   => Inertia::defer(fn () => $this->buildEpicsPayload($projectId)),
+            'cycles'  => Inertia::defer(fn () => $this->buildCyclesPayload($projectId)),
+            'owners'  => Inertia::defer(fn () => $this->buildOwnersPayload($projectId)),
             'filters' => [
                 'project'   => $projectKey,
                 'cycle'     => $cycleFocoId,

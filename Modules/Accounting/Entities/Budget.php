@@ -3,9 +3,28 @@
 namespace Modules\Accounting\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Budget extends Model
 {
+    use LogsActivity;
+
+    /**
+     * Auditoria LGPD — D7 LGPD compliance (Wave 11 sessão 2026-05-16).
+     *
+     * Append-only via Spatie activity_log. Orçamento é dado de gestão
+     * (não-PII direto), mas valores anuais são estratégicos. Retenção:
+     * balancetes 2555d (CC Art. 206 — 10 anos).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
     protected $fillable = [
         'chart_of_account_id',
         'business_id',

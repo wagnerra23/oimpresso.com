@@ -8,9 +8,12 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
 use Modules\Superadmin\Entities\SuperadminFrontendPage;
+use Modules\Superadmin\Support\RedactsPiiInLogs;
 
 class PageController extends Controller
 {
+    use RedactsPiiInLogs;
+
     /**
      * All Utils instance.
      */
@@ -81,7 +84,8 @@ class PageController extends Controller
                 $output = ['success' => 0, 'msg' => __('superadmin::lang.slug_already_exists')];
             }
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'PageController');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -151,7 +155,8 @@ class PageController extends Controller
                 $output = ['success' => 0, 'msg' => __('superadmin::lang.slug_already_exists')];
             }
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'PageController');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -180,7 +185,8 @@ class PageController extends Controller
 
             $output = ['success' => 1, 'msg' => __('lang_v1.success')];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'PageController');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),

@@ -5,11 +5,39 @@ namespace Modules\Ponto\Entities;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Escala extends Model
 {
     use HasFactory;
+    use LogsActivity;
+
     protected $table = 'ponto_escalas';
+
+    /**
+     * Wave 11 D7.b — audit trail LGPD pra escalas de trabalho.
+     *
+     * Escalas afetam jornada CLT (Art. 58, 59, 71) — mudanças precisam ser auditáveis
+     * pro RH e pra fiscalização MTE. Não é append-only (escala pode ser corrigida),
+     * mas TODO update vira histórico via spatie/activity_log.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'nome',
+                'codigo',
+                'tipo',
+                'carga_diaria_minutos',
+                'carga_semanal_minutos',
+                'permite_banco_horas',
+                'ativo',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('ponto_escala');
+    }
 
     protected $fillable = [
         'business_id',

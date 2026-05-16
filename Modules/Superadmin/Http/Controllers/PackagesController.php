@@ -7,12 +7,15 @@ use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
-use Illuminate\Routing\Controller;
+use Modules\Superadmin\Support\RedactsPiiInLogs;
 
 class PackagesController extends Controller
 {
+    use RedactsPiiInLogs;
+
     /**
      * All Utils instance.
      */
@@ -113,7 +116,8 @@ class PackagesController extends Controller
 
             $output = ['success' => 1, 'msg' => __('lang_v1.success')];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'PackagesController');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -204,7 +208,8 @@ class PackagesController extends Controller
 
             $output = ['success' => 1, 'msg' => __('lang_v1.success')];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'PackagesController');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -233,7 +238,8 @@ class PackagesController extends Controller
 
             $output = ['success' => 1, 'msg' => __('lang_v1.success')];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'PackagesController');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),

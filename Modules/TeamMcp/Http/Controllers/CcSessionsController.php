@@ -33,32 +33,69 @@ class CcSessionsController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
+        $userId = (int) $request->get('user_id');
+        $from   = $request->get('from');
+        $to     = $request->get('to');
+        $search = trim((string) $request->get('q', ''));
+        $status = $request->get('status');
+        $project = $request->get('project_path');
+        $page = (int) max(1, $request->get('page', 1));
+
+        // Wave 11 D6.a — Inertia::defer pra props caras: paginator sessions (1 query
+        // count + 1 page + N user lookups), KPIs (6 queries agregadas mcp_cc_*),
+        // devs (lista users autorizados), projects (distinct paths). Filters +
+        // permissions inline (trivial scalar/bool).
+        return Inertia::render('team-mcp/CcSessions/Index', [
+            'sessions' => Inertia::defer(fn () => $this->buildSessionsPayload(
+                $user, $userId, $from, $to, $search, $status, $project, $page
+            )),
+            'filters'  => [
+                'user_id'      => $userId ?: null,
+                'from'         => $from,
+                'to'           => $to,
+                'q'            => $search,
+                'status'       => $status,
+                'project_path' => $project,
+            ],
+            'kpis'     => Inertia::defer(fn () => $this->buildKpisPayload($user)),
+            'devs'     => Inertia::defer(fn () => $this->buildDevsPayload($user)),
+            'projects' => Inertia::defer(fn () => $this->buildProjectsPayload($user)),
+            'permissions' => [
+                'read_all' => $user->can('jana.cc.read.all'),
+                'curate'   => $user->can('jana.cc.curate'),
+            ],
+        ]);
+    }
+
+    /**
+     * Builder paginator sessions + hidratação user_nome (Wave 11 D6.a defer).
+     */
+    protected function buildSessionsPayload(
+        $user, int $userId, ?string $from, ?string $to, string $search,
+        ?string $status, ?string $project, int $page
+    ) {
         $query = McpCcSession::query()
             ->acessivelPara($user)
             ->orderByDesc('started_at');
 
-        // Filtros
-        if ($userId = (int) $request->get('user_id')) {
+        if ($userId) {
             $query->where('user_id', $userId);
         }
-        if ($from = $request->get('from')) {
+        if ($from) {
             $query->where('started_at', '>=', $from);
         }
-        if ($to = $request->get('to')) {
+        if ($to) {
             $query->where('started_at', '<=', $to . ' 23:59:59');
         }
-        if ($search = trim((string) $request->get('q', ''))) {
+        if ($search) {
             $query->whereRaw('MATCH(summary_auto) AGAINST(? IN NATURAL LANGUAGE MODE)', [$search]);
         }
-        if ($status = $request->get('status')) {
+        if ($status) {
             $query->where('status', $status);
         }
-        if ($project = $request->get('project_path')) {
+        if ($project) {
             $query->where('project_path', $project);
         }
-
-        $page = (int) max(1, $request->get('page', 1));
-        $perPage = 25;
 
         $paginator = $query
             ->select([
@@ -68,10 +105,9 @@ class CcSessionsController extends Controller
                 'total_messages', 'total_tokens', 'total_cost_brl',
                 'status', 'summary_auto', 'metadata',
             ])
-            ->paginate($perPage, ['*'], 'page', $page)
+            ->paginate(25, ['*'], 'page', $page)
             ->withQueryString();
 
-        // Hidrata user_name pra cada session (1 query agregada)
         $userIds = $paginator->pluck('user_id')->unique()->values();
         $usersMap = User::whereIn('id', $userIds)
             ->get(['id', 'first_name', 'last_name', 'email'])
@@ -84,13 +120,22 @@ class CcSessionsController extends Controller
             return $s;
         });
 
-        // KPIs globais (não filtrados pra dar visão total) — só pra users autorizados ver tudo
+        return $paginator;
+    }
+
+    /**
+     * Builder KPIs globais — 6 agregados (Wave 11 D6.a defer).
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildKpisPayload($user): array
+    {
         $hoje = Carbon::today();
         $kpiQuery = $user->can('jana.cc.read.all')
             ? McpCcSession::query()
             : McpCcSession::query()->where('user_id', $user->id);
 
-        $kpis = [
+        return [
             'sessions_hoje'    => (clone $kpiQuery)->whereDate('started_at', $hoje)->count(),
             'sessions_total'   => (clone $kpiQuery)->count(),
             'custo_hoje_brl'   => (float) (clone $kpiQuery)->whereDate('started_at', $hoje)->sum('total_cost_brl'),
@@ -98,36 +143,37 @@ class CcSessionsController extends Controller
             'devs_ativos_hoje' => (clone $kpiQuery)->whereDate('started_at', $hoje)->distinct('user_id')->count('user_id'),
             'tools_top'        => $this->topTools($user, $hoje),
         ];
+    }
 
-        // Lista de devs no time (pro dropdown filtro)
+    /**
+     * Builder devs dropdown — autorizado vê todos, demais só ele mesmo (Wave 11 D6.a defer).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildDevsPayload($user): array
+    {
         $devs = $user->can('jana.cc.read.all')
             ? User::query()->whereIn('id', McpCcSession::query()->select('user_id')->distinct())->get(['id', 'first_name', 'last_name', 'email'])
             : collect([$user]);
 
-        // Project paths distintos pra dropdown
-        $projects = $kpiQuery->select('project_path')->distinct()->orderBy('project_path')->pluck('project_path');
+        return $devs->map(fn ($d) => [
+            'id' => $d->id,
+            'nome' => trim(($d->first_name ?? '') . ' ' . ($d->last_name ?? '')) ?: $d->email,
+        ])->values()->toArray();
+    }
 
-        return Inertia::render('team-mcp/CcSessions/Index', [
-            'sessions' => $paginator,
-            'filters'  => [
-                'user_id'      => $userId ?: null,
-                'from'         => $from,
-                'to'           => $to,
-                'q'            => $search,
-                'status'       => $status,
-                'project_path' => $project,
-            ],
-            'kpis' => $kpis,
-            'devs' => $devs->map(fn ($d) => [
-                'id' => $d->id,
-                'nome' => trim(($d->first_name ?? '') . ' ' . ($d->last_name ?? '')) ?: $d->email,
-            ])->values(),
-            'projects' => $projects,
-            'permissions' => [
-                'read_all' => $user->can('jana.cc.read.all'),
-                'curate'   => $user->can('jana.cc.curate'),
-            ],
-        ]);
+    /**
+     * Builder projects dropdown — distinct paths (Wave 11 D6.a defer).
+     *
+     * @return array<int, string>
+     */
+    protected function buildProjectsPayload($user): array
+    {
+        $kpiQuery = $user->can('jana.cc.read.all')
+            ? McpCcSession::query()
+            : McpCcSession::query()->where('user_id', $user->id);
+
+        return $kpiQuery->select('project_path')->distinct()->orderBy('project_path')->pluck('project_path')->toArray();
     }
 
     /**

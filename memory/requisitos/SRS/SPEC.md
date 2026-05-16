@@ -70,7 +70,16 @@ related_adrs: [0093, 0153, 0154]
 - `Tests/Feature/ScaffoldTest.php`
 - `Tests/Feature/SmokeRoutesTest.php`
 
+## D7 LGPD + D8 Security (Wave 11)
+
+- **D7.a PiiRedactor** — `Services/ChatAssistant.php` sanitiza `$e->getMessage()` + pergunta antes de `Log::warning` (vetor: erros OpenAI podem ecoar payload com PII)
+- **D7.b LogsActivity** — `Entities/DocSource` (logFillable) + `Entities/DocChatMessage` (logOnly metadata, sem content) via Spatie Activitylog
+- **D7.c Retention** — `Config/retention.php` declara janelas (generated_docs 1825d / drafts 90d / generation_logs 365d / chat_messages 365d)
+- **D8.a Throttle** — `Http/routes.php` middleware `throttle:60,1` em todos 2 grupos (memcofre/* + srs/install/*). CLI commands fora do escopo (não passam por route).
+- **D8.c FormRequest** — `Http/Requests/StoreIngestRequest` (MIME whitelist upload) + `Http/Requests/ChatAskRequest` (regex session_id + cap 2000 chars LLM cost)
+
 ## Histórico
 
 - 2026-05-04: SPEC criada como placeholder (hipóteses A/B/C/D pendentes)
 - 2026-05-16: substituída por SPEC realista do estado atual — módulo virou tool interna Wagner (US-SRS-001..006 cobrem o código existente)
+- 2026-05-16 (Wave 11): D7 LGPD (PiiRedactor + LogsActivity + retention) + D8 Security (throttle + 2 FormRequests) — SRS 52→60 esperado
