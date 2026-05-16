@@ -2,10 +2,13 @@
 
 namespace Modules\Accounting\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 class CustomerGroup extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 13 D1 MT)
+
     /**
      * The attributes that should be mutated to dates.
      *

@@ -4,6 +4,7 @@ namespace Modules\Brief\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use RuntimeException;
 
 /**
@@ -210,6 +211,16 @@ PROMPT;
     private function buildUserPrompt(array $payload): string
     {
         $nowHuman = now()->locale('pt_BR')->isoFormat('DD MMM YYYY · HH:mm');
+
+        // D7 LGPD (Wave 13): redact PII do payload ANTES de mandar pro OpenAI
+        // (provedor externo BR). Mesmo brief sendo interno, payload pode
+        // conter emails/telefones do time. Defesa em profundidade — config
+        // em Modules/Brief/Config/retention.php#redact_pii_before_llm.
+        // Ver: Modules\Jana\Services\Privacy\PiiRedactor + ADR Constituição §4.
+        if (config('brief.redact_pii_before_llm', true)) {
+            $payload = app(PiiRedactor::class)->redactArray($payload);
+        }
+
         $payloadJson = json_encode(
             $payload,
             JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT

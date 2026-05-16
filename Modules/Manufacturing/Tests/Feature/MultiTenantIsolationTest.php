@@ -2,13 +2,52 @@
 
 declare(strict_types=1);
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 
 uses(Tests\TestCase::class);
+
+/**
+ * Wave 13 — D1 boost Manufacturing (adoção HasBusinessScope).
+ *
+ * Asserções via reflection (não tocam DB → rodam em SQLite e MySQL):
+ *  - MfgIngredientGroup recebe trait HasBusinessScope (coluna business_id direta)
+ *  - MfgRecipe / MfgRecipeIngredient permanecem SEM HasBusinessScope por design
+ *    (tabelas SEM coluna business_id; isolamento via JOIN products.business_id —
+ *    aplicar trait causaria SQL error "Unknown column"). `na_justified`.
+ *
+ * @see App\Concerns\HasBusinessScope
+ * @see Modules\Manufacturing\Database\Migrations\2019_11_05_115136_create_ingredient_groups_table
+ */
+describe('Wave 13 — adoção HasBusinessScope (reflection-only)', function () {
+    it('MfgIngredientGroup usa HasBusinessScope (D1 boost)', function () {
+        $traits = class_uses_recursive(MfgIngredientGroup::class);
+
+        expect(in_array(HasBusinessScope::class, $traits, true))
+            ->toBeTrue('MfgIngredientGroup precisa de HasBusinessScope (ADR 0093 — tabela mfg_ingredient_groups tem business_id direto).');
+    });
+
+    it('ScopeByBusiness está registrado como global scope em MfgIngredientGroup', function () {
+        $globalScopes = (new MfgIngredientGroup())->getGlobalScopes();
+        expect($globalScopes)->toHaveKey(ScopeByBusiness::class);
+    });
+
+    it('MfgRecipe e MfgRecipeIngredient permanecem sem HasBusinessScope por design (na_justified)', function () {
+        // Tabelas mfg_recipes / mfg_recipe_ingredients NÃO têm coluna business_id.
+        // Isolamento via JOIN products.business_id (pattern legacy UltimatePOS).
+        // Aplicar HasBusinessScope nessas Models causaria "Unknown column" em SQL.
+        $recipeTraits = class_uses_recursive(MfgRecipe::class);
+        $ingTraits = class_uses_recursive(MfgRecipeIngredient::class);
+
+        expect(in_array(HasBusinessScope::class, $recipeTraits, true))->toBeFalse();
+        expect(in_array(HasBusinessScope::class, $ingTraits, true))->toBeFalse();
+    });
+});
 
 /**
  * Testa isolamento multi-tenant Tier 0 do módulo Manufacturing.
@@ -30,18 +69,19 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-// Guard SQLite + schema. UltimatePOS Manufacturing requer schema MySQL real.
-beforeEach(function () {
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: Manufacturing depende de schema MySQL UltimatePOS (products/variations/business). ADR 0101.');
-    }
-    if (! Schema::hasTable('mfg_recipes') || ! Schema::hasTable('mfg_recipe_ingredients') || ! Schema::hasTable('mfg_ingredient_groups')) {
-        $this->markTestSkipped('Tabelas Manufacturing ausentes — rode Modules/Manufacturing install primeiro.');
-    }
-});
-
 const BIZ_WAGNER = 1;
 const BIZ_FICTICIO = 99;
+
+describe('Isolamento multi-tenant Manufacturing (DB-dependent — MySQL only)', function () {
+    // Guard SQLite + schema. UltimatePOS Manufacturing requer schema MySQL real.
+    beforeEach(function () {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            $this->markTestSkipped('SQLite-incompatível: Manufacturing depende de schema MySQL UltimatePOS (products/variations/business). ADR 0101.');
+        }
+        if (! Schema::hasTable('mfg_recipes') || ! Schema::hasTable('mfg_recipe_ingredients') || ! Schema::hasTable('mfg_ingredient_groups')) {
+            $this->markTestSkipped('Tabelas Manufacturing ausentes — rode Modules/Manufacturing install primeiro.');
+        }
+    });
 
 // ------------------------------------------------------------------
 // MfgIngredientGroup — isolamento DIRETO via coluna business_id
@@ -205,3 +245,5 @@ it('MfgRecipeIngredient herda isolamento via parent MfgRecipe (cascade)', functi
     // FK cascade delete já remove os ingredients quando a recipe é apagada
     MfgRecipe::where('instructions', 'recipe-teste-ingredient-cascade')->delete();
 });
+
+}); // describe('Isolamento multi-tenant Manufacturing ...')

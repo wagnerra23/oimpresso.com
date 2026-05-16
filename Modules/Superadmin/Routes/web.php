@@ -8,7 +8,9 @@ Route::get('/pricing', [Modules\Superadmin\Http\Controllers\PricingController::c
 // Fallback Blade legado (template UltimatePOS roxo) — remover após validar a Inertia
 Route::get('/pricing/old', [Modules\Superadmin\Http\Controllers\PricingController::class, 'indexLegacy'])->name('pricing.legacy');
 
-Route::middleware('web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin')->prefix('superadmin')->group(function () {
+// D8.b Wave 13 — throttle:superadmin (60 req/min por user/IP) protege actions sensíveis admin
+// (criar business, resetar senha, destruir tenant). RateLimiter registrado em RouteServiceProvider.
+Route::middleware(['web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin', 'throttle:superadmin'])->prefix('superadmin')->group(function () {
     // Usuário 360° — vista única (roles, permissions, tokens, scopes, sessions, lockouts)
     Route::get('/usuarios',                 [Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'index'])->name('superadmin.usuarios.index');
     Route::get('/usuarios/{id}/360',        [Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'show'])->name('superadmin.usuarios.show');
