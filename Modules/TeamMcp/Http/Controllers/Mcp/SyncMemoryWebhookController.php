@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Jana\Services\TaskRegistry\GitTaskLinkerService;
 use Modules\Jana\Services\TaskRegistry\TaskParserService;
 
@@ -94,10 +95,13 @@ class SyncMemoryWebhookController extends Controller
         try {
             $stats = $service->run();
         } catch (\Throwable $e) {
+            // D7 LGPD Wave 15 — redact PII em mensagens de erro (paths podem conter
+            // emails/CPFs de arquivos memory/* indexados). Resposta JSON também redacted.
+            $redactor = app(PiiRedactor::class);
             Log::channel('copiloto-ai')->error('SyncMemoryWebhook: sync falhou', [
-                'error' => $e->getMessage(),
+                'error' => $redactor->redact($e->getMessage()),
             ]);
-            return response()->json(['error' => 'Sync failed', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Sync failed', 'message' => $redactor->redact($e->getMessage())], 500);
         }
 
         // US-TR-004: dispara tasks sync se algum SPEC.md foi tocado no push
@@ -113,10 +117,12 @@ class SyncMemoryWebhookController extends Controller
                     'canceladas' => $relatorio['canceladas'],
                 ];
             } catch (\Throwable $e) {
+                // D7 LGPD Wave 15 — redact PII (SPEC.md pode citar contatos).
+                $redactor = app(PiiRedactor::class);
                 Log::channel('copiloto-ai')->error('SyncMemoryWebhook: tasks sync falhou', [
-                    'error' => $e->getMessage(),
+                    'error' => $redactor->redact($e->getMessage()),
                 ]);
-                $tasksStats = ['synced' => false, 'error' => $e->getMessage()];
+                $tasksStats = ['synced' => false, 'error' => $redactor->redact($e->getMessage())];
             }
         }
 
@@ -145,10 +151,12 @@ class SyncMemoryWebhookController extends Controller
                 'git_links' => $stats,
             ]);
         } catch (\Throwable $e) {
+            // D7 LGPD Wave 15 — redact PII (PR body pode citar emails commit authors).
+            $redactor = app(PiiRedactor::class);
             Log::channel('copiloto-ai')->error('SyncMemoryWebhook PR handler falhou', [
-                'error' => $e->getMessage(),
+                'error' => $redactor->redact($e->getMessage()),
             ]);
-            return response()->json(['error' => 'PR handler failed', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'PR handler failed', 'message' => $redactor->redact($e->getMessage())], 500);
         }
     }
 
@@ -160,10 +168,12 @@ class SyncMemoryWebhookController extends Controller
         try {
             return app(GitTaskLinkerService::class)->handlePushEvent($request->all());
         } catch (\Throwable $e) {
+            // D7 LGPD Wave 15 — redact PII em git error messages.
+            $redactor = app(PiiRedactor::class);
             Log::channel('copiloto-ai')->error('SyncMemoryWebhook git links falhou', [
-                'error' => $e->getMessage(),
+                'error' => $redactor->redact($e->getMessage()),
             ]);
-            return ['error' => $e->getMessage()];
+            return ['error' => $redactor->redact($e->getMessage())];
         }
     }
 
@@ -189,8 +199,10 @@ class SyncMemoryWebhookController extends Controller
 
         $fetch = Process::path($repo)->timeout(30)->run('git fetch origin main');
         if (! $fetch->successful()) {
+            // D7 LGPD Wave 15 — git stderr pode conter caminhos com nomes de autores.
+            $redactor = app(PiiRedactor::class);
             Log::channel('copiloto-ai')->error('SyncMemoryWebhook: git fetch falhou', [
-                'stderr' => $fetch->errorOutput(),
+                'stderr' => $redactor->redact($fetch->errorOutput()),
             ]);
             return [
                 'pulled' => false,
@@ -201,8 +213,10 @@ class SyncMemoryWebhookController extends Controller
 
         $reset = Process::path($repo)->timeout(15)->run('git reset --hard origin/main');
         if (! $reset->successful()) {
+            // D7 LGPD Wave 15 — git stderr pode conter PII via paths/author.
+            $redactor = app(PiiRedactor::class);
             Log::channel('copiloto-ai')->error('SyncMemoryWebhook: git reset falhou', [
-                'stderr' => $reset->errorOutput(),
+                'stderr' => $redactor->redact($reset->errorOutput()),
             ]);
             return [
                 'pulled' => false,

@@ -153,7 +153,7 @@ class AssetSettingsController extends Controller
                 'msg' => __('lang_v1.updated_success'),
             ];
         } catch (Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),

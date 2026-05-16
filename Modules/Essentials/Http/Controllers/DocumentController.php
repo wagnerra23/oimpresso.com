@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Essentials\Entities\Document;
 use Modules\Essentials\Entities\DocumentShare;
+use Modules\Essentials\Http\Requests\StoreDocumentRequest;
 
 /**
  * DocumentController — versão Inertia.
@@ -55,25 +56,18 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreDocumentRequest $request): RedirectResponse
     {
         $businessId = $this->currentBusinessId();
         $this->authorizeAccess($businessId);
 
+        // FormRequest aplica regras condicionais (memos vs document) — aqui só
+        // decidimos o storage path baseado na presença de 'body'.
         $type = $request->has('body') ? 'memos' : 'document';
 
         if ($type === 'document') {
-            $request->validate([
-                'name'        => 'required|file|max:20480', // 20MB
-                'description' => 'nullable|string|max:2000',
-            ]);
             $name = $this->moduleUtil->uploadFile($request, 'name', 'documents');
         } else {
-            $request->validate([
-                'name'        => 'required|string|max:255',
-                'body'        => 'required|string',
-                'description' => 'nullable|string|max:2000',
-            ]);
             $name = $request->string('name');
         }
 

@@ -10,6 +10,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\Vehicle;
+use Modules\OficinaAuto\Http\Requests\StoreVehicleRequest;
+use Modules\OficinaAuto\Http\Requests\UpdateVehicleRequest;
 
 /**
  * VehicleController — CRUD de veículos (Modules/OficinaAuto V0).
@@ -161,34 +163,18 @@ class VehicleController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreVehicleRequest $request): RedirectResponse
     {
+        // D8 Security Wave 15: authorize() rodou no FormRequest (Spatie permission check).
+        // abort_unless mantido como defense-in-depth caso FormRequest::authorize seja burlado.
         abort_unless(
             auth()->user()->can('superadmin')
             || auth()->user()->can('oficinaauto.vehicle.create'),
             403
         );
 
-        $validated = $request->validate([
-            'plate'             => ['required', 'string', 'max:10'],
-            'secondary_plate'   => ['nullable', 'string', 'max:10'],
-            'chassis'           => ['nullable', 'string', 'max:30'],
-            'secondary_chassis' => ['nullable', 'string', 'max:30'],
-            'contact_id'        => ['nullable', 'integer'],
-            'manufacture_year'  => ['nullable', 'integer', 'min:1900', 'max:2100'],
-            'model_year'        => ['nullable', 'integer', 'min:1900', 'max:2100'],
-            'renavam'           => ['nullable', 'string', 'max:11'],
-            'vehicle_type'      => ['required', 'in:' . implode(',', array_keys(self::vehicleTypes()))],
-            'engine'            => ['nullable', 'string', 'max:50'],
-            'mileage_at_entry'  => ['nullable', 'integer', 'min:0'],
-            'fuel_type'         => ['nullable', 'string', 'max:30'],
-            'color'             => ['nullable', 'string', 'max:30'],
-            'notes'             => ['nullable', 'string'],
-            'legacy_id'         => ['nullable', 'string', 'max:20'],
-        ]);
-
         // business_id é setado automaticamente pelo Model::creating hook (ADR 0093)
-        $vehicle = Vehicle::create($validated);
+        $vehicle = Vehicle::create($request->validated());
 
         return redirect('/oficina-auto/veiculos/' . $vehicle->id)
             ->with('status', ['success' => 1, 'msg' => 'Veículo cadastrado.']);
@@ -196,11 +182,8 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle): Response
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.vehicle.view'),
-            403
-        );
+        // D8 Security Wave 15: Policy multi-tenant sameTenant() guard.
+        $this->authorize('view', $vehicle);
 
         // Global scope garante isolamento — se vehicle.business_id != session, model binding falha (404)
         $vehicle->load('serviceOrders');
@@ -212,11 +195,8 @@ class VehicleController extends Controller
 
     public function edit(Vehicle $vehicle): Response
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.vehicle.update'),
-            403
-        );
+        // D8 Security Wave 15: Policy sameTenant guard.
+        $this->authorize('update', $vehicle);
 
         return Inertia::render('OficinaAuto/Vehicles/Edit', [
             'vehicle'      => $vehicle,
@@ -224,32 +204,12 @@ class VehicleController extends Controller
         ]);
     }
 
-    public function update(Request $request, Vehicle $vehicle): RedirectResponse
+    public function update(UpdateVehicleRequest $request, Vehicle $vehicle): RedirectResponse
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.vehicle.update'),
-            403
-        );
+        // D8 Security Wave 15: Policy multi-tenant + FormRequest validation.
+        $this->authorize('update', $vehicle);
 
-        $validated = $request->validate([
-            'plate'             => ['required', 'string', 'max:10'],
-            'secondary_plate'   => ['nullable', 'string', 'max:10'],
-            'chassis'           => ['nullable', 'string', 'max:30'],
-            'secondary_chassis' => ['nullable', 'string', 'max:30'],
-            'contact_id'        => ['nullable', 'integer'],
-            'manufacture_year'  => ['nullable', 'integer', 'min:1900', 'max:2100'],
-            'model_year'        => ['nullable', 'integer', 'min:1900', 'max:2100'],
-            'renavam'           => ['nullable', 'string', 'max:11'],
-            'vehicle_type'      => ['required', 'in:' . implode(',', array_keys(self::vehicleTypes()))],
-            'engine'            => ['nullable', 'string', 'max:50'],
-            'mileage_at_entry'  => ['nullable', 'integer', 'min:0'],
-            'fuel_type'         => ['nullable', 'string', 'max:30'],
-            'color'             => ['nullable', 'string', 'max:30'],
-            'notes'             => ['nullable', 'string'],
-        ]);
-
-        $vehicle->update($validated);
+        $vehicle->update($request->validated());
 
         return redirect('/oficina-auto/veiculos/' . $vehicle->id)
             ->with('status', ['success' => 1, 'msg' => 'Veículo atualizado.']);
@@ -257,11 +217,8 @@ class VehicleController extends Controller
 
     public function destroy(Vehicle $vehicle): RedirectResponse
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.vehicle.delete'),
-            403
-        );
+        // D8 Security Wave 15: Policy multi-tenant sameTenant guard.
+        $this->authorize('delete', $vehicle);
 
         try {
             $vehicle->delete();

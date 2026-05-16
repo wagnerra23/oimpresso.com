@@ -4,11 +4,16 @@ namespace Modules\Crm\Providers;
 
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Routing\Router;
+use Modules\Crm\Entities\Campaign;
+use Modules\Crm\Entities\Proposal;
+use Modules\Crm\Policies\CampaignPolicy;
+use Modules\Crm\Policies\ProposalPolicy;
 
 class CrmServiceProvider extends ServiceProvider
 {
@@ -37,6 +42,7 @@ class CrmServiceProvider extends ServiceProvider
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->registerScheduleCommands();
+        $this->registerPolicies();
 
         $this->registerMiddleware($this->app['router']);
 
@@ -163,6 +169,24 @@ class CrmServiceProvider extends ServiceProvider
             \Modules\Crm\Console\SendScheduleNotification::class,
             \Modules\Crm\Console\CreateRecursiveFollowup::class,
         ]);
+    }
+
+    /**
+     * Registra Policies do modulo Crm (Wave 15 D8 Security).
+     *
+     * Gate::policy mapeia Model -> Policy class. Usado por:
+     *   - $user->can('view', $proposal)  em Controllers
+     *   - @can('update', $campaign)      em views
+     *   - authorize('delete', $campaign) em form requests
+     *
+     * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+     * @see Modules/Crm/Policies/ProposalPolicy.php
+     * @see Modules/Crm/Policies/CampaignPolicy.php
+     */
+    protected function registerPolicies(): void
+    {
+        Gate::policy(Proposal::class, ProposalPolicy::class);
+        Gate::policy(Campaign::class, CampaignPolicy::class);
     }
 
     public function registerScheduleCommands()

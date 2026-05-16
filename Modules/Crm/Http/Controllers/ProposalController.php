@@ -11,6 +11,7 @@ use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\Proposal;
 use Modules\Crm\Entities\ProposalTemplate;
+use Modules\Crm\Http\Requests\StoreProposalRequest;
 use Modules\Crm\Notifications\SendProposalNotification;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
@@ -103,18 +104,10 @@ class ProposalController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreProposalRequest $request)
     {
+        // Wave 15 D8 Security — authorize() + validate() centralizados em StoreProposalRequest.
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $request->validate([
-            'contact_id' => 'required',
-            'subject' => 'required',
-            'body' => 'required',
-        ]);
 
         try {
             $input = $request->only(['subject', 'body', 'contact_id', 'cc', 'bcc']);

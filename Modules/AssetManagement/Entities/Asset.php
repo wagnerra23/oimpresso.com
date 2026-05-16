@@ -19,14 +19,20 @@ class Asset extends Model
     protected $guarded = ['id'];
 
     /**
-     * Audit LGPD — registra mudanças via activity_log (D7.b dim v3 audit trail append-only).
+     * Auditoria LGPD — registra mudanças em assets (D7.b dim v3 audit trail append-only).
+     * Whitelist explícita evita logar `description` que pode conter PII inadvertida.
      */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll()
+            ->logOnly([
+                'name', 'asset_code', 'business_id', 'category_id', 'location_id',
+                'quantity', 'is_allocatable', 'purchase_date', 'purchase_amount',
+                'created_by',
+            ])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->useLogName('assetmanagement.asset');
     }
 
     /**

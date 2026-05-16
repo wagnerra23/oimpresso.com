@@ -18,14 +18,19 @@ class AssetTransaction extends Model
     protected $guarded = ['id'];
 
     /**
-     * Audit LGPD — registra mudanças via activity_log (D7.b dim v3 audit trail append-only).
+     * Auditoria LGPD — registra movimentações allocate/revoke vinculando user a asset
+     * (D7.b dim v3 audit trail append-only). Whitelist explícita pra reduzir ruído.
      */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll()
+            ->logOnly([
+                'asset_id', 'business_id', 'transaction_type', 'allocated_to',
+                'quantity', 'transaction_date', 'parent_id', 'created_by',
+            ])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->useLogName('assetmanagement.transaction');
     }
 
     /**
