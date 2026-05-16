@@ -7,6 +7,7 @@ use Modules\Accounting\Entities\BusinessLocation;
 use Modules\Accounting\Entities\Currency;
 use Modules\Accounting\Entities\PaymentDetail;
 use Modules\Accounting\Services\FlashService;
+use Modules\Accounting\Services\JournalEntryService;
 use App\Utils\Util;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -22,9 +23,12 @@ class JournalEntryController extends Controller
 {
     private $commonUtil;
 
-    public function __construct(Util $commonUtil)
+    private JournalEntryService $journalEntryService;
+
+    public function __construct(Util $commonUtil, JournalEntryService $journalEntryService)
     {
         $this->commonUtil = $commonUtil;
+        $this->journalEntryService = $journalEntryService;
     }
 
     /**
@@ -172,63 +176,27 @@ class JournalEntryController extends Controller
             'date' => ['required', 'date'],
         ]);
 
-        foreach ($request->journal_entry_data as $data) {
-            try {
-                DB::beginTransaction();
+        try {
+            $transactionNumbers = $this->journalEntryService->criarEntradaBalanceada([
+                'location_id' => $request->location_id,
+                'currency_id' => $request->currency_id,
+                'payment_type_id' => $request->payment_type_id,
+                'date' => $request->date,
+                'journal_entry_data' => $request->journal_entry_data,
+            ], (int) Auth::id());
 
-                $payment_detail = new PaymentDetail();
-                $payment_detail->created_by_id = Auth::id();
-                $payment_detail->payment_type_id = $request->payment_type_id;
-                $payment_detail->transaction_type = 'journal_manual_entry';
-                $payment_detail->save();
-
-                //debit account
-                $transaction_number = get_uniqid();
-                $journal_entry = new JournalEntry();
-                $journal_entry->created_by_id = Auth::id();
-                $journal_entry->payment_detail_id = $payment_detail->id;
-                $journal_entry->transaction_number = $transaction_number;
-                $journal_entry->location_id = $request->location_id;
-                $journal_entry->currency_id = $request->currency_id;
-                $journal_entry->chart_of_account_id = $data['debit'];
-                $journal_entry->transaction_type = 'manual_entry';
-                $journal_entry->date = $request->date;
-                $date = explode('-', $request->date);
-                $journal_entry->month = $date[1];
-                $journal_entry->year = $date[0];
-                $journal_entry->debit = $data['amount'];
-                $journal_entry->manual_entry = 1;
-                $journal_entry->notes = $data['notes'];
-                $journal_entry->save();
-
-                //credit account
-                $journal_entry = new JournalEntry();
-                $journal_entry->created_by_id = Auth::id();
-                $journal_entry->transaction_number = $transaction_number;
-                $journal_entry->payment_detail_id = $payment_detail->id;
-                $journal_entry->location_id = $request->location_id;
-                $journal_entry->currency_id = $request->currency_id;
-                $journal_entry->chart_of_account_id = $data['credit'];
-                $journal_entry->transaction_type = 'manual_entry';
-                $journal_entry->date = $request->date;
-                $date = explode('-', $request->date);
-                $journal_entry->month = $date[1];
-                $journal_entry->year = $date[0];
-                $journal_entry->credit = $data['amount'];
-                $journal_entry->manual_entry = 1;
-                $journal_entry->notes = $data['notes'];
-                $journal_entry->save();
-
-                activity()
-                    ->on($journal_entry)
-                    ->withProperties(['id' => $journal_entry->id])
-                    ->log('Create Journal Entry');
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return (new FlashService())->onException($e)->redirectBackWithInput();
+            // Audit-trail por transaction_number criado (Spatie activity log)
+            foreach ($transactionNumbers as $txNumber) {
+                $lastEntry = JournalEntry::where('transaction_number', $txNumber)->latest('id')->first();
+                if ($lastEntry) {
+                    activity()
+                        ->on($lastEntry)
+                        ->withProperties(['id' => $lastEntry->id])
+                        ->log('Create Journal Entry');
+                }
             }
+        } catch (\Exception $e) {
+            return (new FlashService())->onException($e)->redirectBackWithInput();
         }
 
         (new FlashService())->onSave();
@@ -261,59 +229,20 @@ class JournalEntryController extends Controller
 
     public function reverse($old_transaction_number)
     {
-        $journal_entry = JournalEntry::leftJoin("business_locations", "business_locations.id", "journal_entries.location_id")
-            ->where('transaction_number', $old_transaction_number)
-            ->where('business_locations.business_id', session('business.id'));
+        $new_transaction_number = $this->journalEntryService->reverter(
+            $old_transaction_number,
+            (int) session('business.id'),
+            (int) Auth::id(),
+        );
 
-        $journal_entry->update(['reversed' => 1, 'reversible' => 0]);
-        //create new transactions to reverse these
-        $new_transaction_number = uniqid();
-
-        foreach ($journal_entry->get() as $key) {
-            if (empty($key->debit)) {
-                //credit account
-                $journal_entry = new JournalEntry();
-                $journal_entry->created_by_id = Auth::id();
-                $journal_entry->transaction_number = $new_transaction_number;
-                $journal_entry->payment_detail_id = $key->payment_detail_id;
-                $journal_entry->location_id = $key->location_id;
-                $journal_entry->currency_id = $key->currency_id;
-                $journal_entry->chart_of_account_id = $key->chart_of_account_id;
-                $journal_entry->transaction_type = $key->transaction_type;
-                $journal_entry->date = date("Y-m-d");
-                $date = explode('-', date("Y-m-d"));
-                $journal_entry->month = $date[1];
-                $journal_entry->year = $date[0];
-                $journal_entry->debit = $key->credit;
-                $journal_entry->reference = $key->reference;
-                $journal_entry->manual_entry = $key->manual_entry;
-                $journal_entry->notes = $key->notes;
-                $journal_entry->save();
-            } else {
-                //debit account
-                $journal_entry = new JournalEntry();
-                $journal_entry->created_by_id = Auth::id();
-                $journal_entry->transaction_number = $new_transaction_number;
-                $journal_entry->payment_detail_id = $key->payment_detail_id;
-                $journal_entry->location_id = $key->location_id;
-                $journal_entry->currency_id = $key->currency_id;
-                $journal_entry->chart_of_account_id = $key->chart_of_account_id;
-                $journal_entry->transaction_type = $key->transaction_type;
-                $journal_entry->date = date("Y-m-d");
-                $date = explode('-', date("Y-m-d"));
-                $journal_entry->month = $date[1];
-                $journal_entry->year = $date[0];
-                $journal_entry->credit = $key->debit;
-                $journal_entry->reference = $key->reference;
-                $journal_entry->manual_entry = $key->manual_entry;
-                $journal_entry->notes = $key->notes;
-                $journal_entry->save();
-            }
+        $lastEntry = JournalEntry::where('transaction_number', $new_transaction_number)->latest('id')->first();
+        if ($lastEntry) {
+            activity()
+                ->on($lastEntry)
+                ->withProperties(['id' => $lastEntry->id])
+                ->log('Reverse Journal Entry');
         }
-        activity()
-            ->on($journal_entry)
-            ->withProperties(['id' => $journal_entry->id])
-            ->log('Reverse Journal Entry');
+
         (new FlashService())->onSave();
         return redirect()->back()->with("transaction_number", $new_transaction_number);
     }

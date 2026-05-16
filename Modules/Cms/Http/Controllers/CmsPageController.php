@@ -108,17 +108,28 @@ class CmsPageController extends Controller
     {
         $title = str_replace('-', ' ', $page_title);
 
-        $page = CmsPage::with(['pageMeta'])
-                    ->where('title', $title)
-                    ->first();
+        // Pre-check existência eager (404 deve vir antes de defer pra não vazar shell).
+        $exists = CmsPage::where('title', $title)->exists();
 
-        if (empty($page)) {
+        if (! $exists) {
             abort(404);
         }
 
+        // Inertia::defer: CmsPage::with(['pageMeta']) eager-load relacionamento — pesado.
+        // — RUNBOOK-inertia-defer-pattern.md (skill inertia-defer-default Tier B).
         return Inertia::render('Site/Page', [
-            'page' => $page,
+            'page' => Inertia::defer(fn () => $this->buildPagePayload($title)),
         ]);
+    }
+
+    /**
+     * Payload deferido da página CMS (eager-load pageMeta).
+     */
+    private function buildPagePayload(string $title)
+    {
+        return CmsPage::with(['pageMeta'])
+                    ->where('title', $title)
+                    ->first();
     }
 
     /** Versão Blade legada de /c/page/{slug} — em /c/page/{slug}/old. */

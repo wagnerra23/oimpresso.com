@@ -170,9 +170,39 @@ class ServiceOrderController extends Controller
         }
         $base->orderByDesc('id');
 
-        $orders = $base->paginate(25)->withQueryString();
+        return Inertia::render('OficinaAuto/ServiceOrders/Index', [
+            // orders: paginate com with-eager + orderByRaw + filtros → defer (query cara)
+            'orders'  => Inertia::defer(fn () => $base->paginate(25)->withQueryString()),
+            'filters' => [
+                'status' => $statusFilter,
+                'type'   => $typeFilter,
+                'q'      => $q,
+            ],
+            // KPIs: 4 COUNT queries separadas → defer (não bloqueia first paint)
+            'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate)),
+            // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager
+            'schemaFlags' => [
+                'has_order_type'      => $hasOrderType,
+                'has_return_date'     => $hasReturnDate,
+                'has_delivery_address' => $hasDeliveryAddr,
+                'has_daily_rate'      => $hasDailyRate,
+                'has_number'          => $hasNumber,
+                'has_started_at'      => $hasStartedAt,
+                'has_contact'         => $hasContact,
+                'has_vehicle_number'  => $hasVehicleNumber,
+                'has_capacity_m3'     => $hasCapacityM3,
+            ],
+        ]);
+    }
 
-        // ──────── KPIs (queries separadas, não afetadas por filtros) ────────
+    /**
+     * KPIs Index — 4 COUNT queries separadas (não afetadas por filtros).
+     *
+     * Extraído pra helper + Inertia::defer no index() pra pular execução quando
+     * partial reload `only:['orders']` não pede kpis (RUNBOOK-inertia-defer-pattern).
+     */
+    private function buildServiceOrderKpisPayload(bool $hasOrderType, bool $hasReturnDate): array
+    {
         $kpiBase = fn () => ServiceOrder::query();
 
         if ($hasOrderType) {
@@ -214,31 +244,12 @@ class ServiceOrderController extends Controller
                 ->count();
         }
 
-        return Inertia::render('OficinaAuto/ServiceOrders/Index', [
-            'orders'  => $orders,
-            'filters' => [
-                'status' => $statusFilter,
-                'type'   => $typeFilter,
-                'q'      => $q,
-            ],
-            'kpis' => [
-                'locacoes_ativas'   => $locacoesAtivas,
-                'manutencao_ativas' => $manutencaoAtivas,
-                'concluidas_mes'    => $concluidasMes,
-                'atrasadas'         => $atrasadas,
-            ],
-            'schemaFlags' => [
-                'has_order_type'      => $hasOrderType,
-                'has_return_date'     => $hasReturnDate,
-                'has_delivery_address' => $hasDeliveryAddr,
-                'has_daily_rate'      => $hasDailyRate,
-                'has_number'          => $hasNumber,
-                'has_started_at'      => $hasStartedAt,
-                'has_contact'         => $hasContact,
-                'has_vehicle_number'  => $hasVehicleNumber,
-                'has_capacity_m3'     => $hasCapacityM3,
-            ],
-        ]);
+        return [
+            'locacoes_ativas'   => $locacoesAtivas,
+            'manutencao_ativas' => $manutencaoAtivas,
+            'concluidas_mes'    => $concluidasMes,
+            'atrasadas'         => $atrasadas,
+        ];
     }
 
     public function create(): Response

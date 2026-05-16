@@ -7,20 +7,24 @@ namespace Modules\RecurringBilling\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Modules\RecurringBilling\Models\Invoice;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
 use Spatie\Activitylog\Facades\Activity;
 
 /**
- * Controller de operações sobre rb_invoices (foundation US-RB-043).
+ * Controller thin de operações sobre rb_invoices (foundation US-RB-043).
  *
- * US-RB-042: endpoint cancel() chama BoletoService → driver do gateway
+ * US-RB-042: endpoint cancel() delega pra AssinaturaCobrancaService (SoC brutal)
  * + audit via Spatie Activity Log + permissão `recurringbilling.invoice.cancel`.
+ *
+ * Wave J 2026-05-16: lógica de gateway/transaction movida pro Service —
+ * controller fica HTTP-only (auth/session/audit/response shape).
  */
 class InvoiceController extends Controller
 {
-    public function __construct(private readonly BoletoService $boletos) {}
+    public function __construct(
+        private readonly AssinaturaCobrancaService $cobrancas,
+    ) {}
 
     /**
      * POST /financeiro/rb-invoices/{invoice}/cancelar
@@ -37,61 +41,37 @@ class InvoiceController extends Controller
             ], 403);
         }
 
-        $businessId = $request->session()->get('business.id');
-
-        $invoice = Invoice::where('business_id', $businessId)
-            ->whereKey($invoiceId)
-            ->firstOrFail();
-
-        if ($invoice->status === 'canceled') {
-            return response()->json(['ok' => true, 'skipped' => 'already_canceled']);
-        }
-
-        if ($invoice->status === 'paid') {
-            return response()->json([
-                'ok' => false,
-                'error' => 'Invoice já paga. Use estorno em vez de cancelamento.',
-            ], 422);
-        }
-
-        if (! $invoice->gateway || ! $invoice->gateway_ref) {
-            // Nunca foi tentada cobrança no gateway — só marca local
-            $invoice->update(['status' => 'canceled']);
-            $this->logActivity($invoice, $request, 'local-only', null);
-
-            return response()->json(['ok' => true, 'gateway_call' => false]);
-        }
-
+        $businessId = (int) $request->session()->get('business.id');
         $motivo = trim((string) $request->input('motivo', 'ACERTOS'));
 
-        try {
-            DB::transaction(function () use ($invoice, $motivo, $request) {
-                $this->boletos->cancelar(
-                    $invoice->business_id,
-                    $invoice->gateway_ref,
-                    $motivo,
-                );
-                $invoice->update(['status' => 'canceled']);
-                $this->logActivity($invoice, $request, $invoice->gateway, $motivo);
-            });
-        } catch (\BadMethodCallException $e) {
-            // C6Driver — cancelamento manual obrigatório
-            return response()->json([
-                'ok' => false,
-                'gateway_call' => false,
-                'error' => $e->getMessage(),
-                'requires_manual_action' => true,
-            ], 501);
-        } catch (\Throwable $e) {
-            $this->logActivity($invoice, $request, $invoice->gateway, $motivo, $e->getMessage());
-            return response()->json([
-                'ok' => false,
-                'gateway' => $invoice->gateway,
-                'error' => $e->getMessage(),
-            ], 502);
+        $result = $this->cobrancas->cancelInvoice($businessId, $invoiceId, $motivo);
+
+        // Audit always (success or failure) — usa invoice retornado pelo Service
+        if (isset($result['invoice']) && $result['invoice'] instanceof Invoice) {
+            $this->logActivity(
+                $result['invoice'],
+                $request,
+                $result['gateway_used'] ?? ($result['gateway'] ?? null),
+                $motivo,
+                $result['error'] ?? null,
+            );
         }
 
-        return response()->json(['ok' => true, 'gateway_call' => true]);
+        if ($result['ok']) {
+            return response()->json(array_filter([
+                'ok' => true,
+                'gateway_call' => $result['gateway_call'] ?? false,
+                'skipped' => $result['skipped'] ?? null,
+            ], fn ($v) => $v !== null));
+        }
+
+        return response()->json(array_filter([
+            'ok' => false,
+            'gateway_call' => $result['gateway_call'] ?? false,
+            'gateway' => $result['gateway'] ?? null,
+            'error' => $result['error'] ?? null,
+            'requires_manual_action' => $result['requires_manual_action'] ?? null,
+        ], fn ($v) => $v !== null), $result['http_status'] ?? 500);
     }
 
     private function logActivity(

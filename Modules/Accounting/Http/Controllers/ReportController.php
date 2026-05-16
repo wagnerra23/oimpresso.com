@@ -16,16 +16,20 @@ use Modules\Accounting\Entities\ChartOfAccount;
 use Modules\Accounting\Entities\JournalEntry;
 use Modules\Accounting\Entities\Transaction;
 use Modules\Accounting\Services\BudgetService;
+use Modules\Accounting\Services\TrialBalanceService;
 
 class ReportController extends Controller
 {
     private $default_start_date;
     private $default_end_date;
 
-    public function __construct()
+    private TrialBalanceService $trialBalanceService;
+
+    public function __construct(TrialBalanceService $trialBalanceService)
     {
         $this->default_start_date = date('Y') . '-' . '01-01';
         $this->default_end_date = date('Y-m-d');
+        $this->trialBalanceService = $trialBalanceService;
     }
 
     public function index()
@@ -40,19 +44,16 @@ class ReportController extends Controller
         $start_date = $request->start_date ?: $this->default_start_date;
         $end_date = $request->end_date ?: $this->default_end_date;
         $location_id = $request->location_id;
-        $data = [];
         $currency_code = currency_code();
         $business_locations = BusinessLocation::getDropdownCollection(session('business.id'));
         $account_types = ChartOfAccount::getAccountTypes();
-        $data = DB::table("chart_of_accounts")->join("journal_entries", "journal_entries.chart_of_account_id", "chart_of_accounts.id")->join("business_locations", "journal_entries.location_id", "business_locations.id")->when($start_date, function ($query) use ($start_date, $end_date) {
-            $query->whereBetween('journal_entries.date', [$start_date, $end_date]);
-        })->when($location_id, function ($query) use ($location_id) {
-            $query->where('journal_entries.location_id', $location_id);
-        })->where('chart_of_accounts.active', 1)
-            ->where('chart_of_accounts.business_id', session('business.id'))
-            ->selectRaw("chart_of_accounts.name,chart_of_accounts.gl_code,chart_of_accounts.account_type,business_locations.name business_location,SUM(journal_entries.debit) debit,SUM(journal_entries.credit) credit")
-            ->groupBy("chart_of_accounts.id")
-            ->get();
+
+        $data = $this->trialBalanceService->trialBalance(
+            (int) session('business.id'),
+            $start_date,
+            $end_date,
+            $location_id ? (int) $location_id : null,
+        );
 
         $compact_data = compact(
             'start_date',
