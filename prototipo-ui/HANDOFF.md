@@ -5,11 +5,30 @@
 
 ---
 
-## Estado atual: 2026-05-15 — Cowork export novo recebido (provável Jana V2 + outros)
+## Estado atual: 2026-05-15 — PIVOT Cowork detectado · F1.5 bloqueado aguardando Wagner
 
-**Fase global:** `[CC]` entregou novo export via Claude Design (`Oimpresso ERP - Chat.html` era o arquivo aberto no handoff). Snapshot salvo em [`_cowork-export-2026-05-15/`](_cowork-export-2026-05-15/_SNAPSHOT.md) — 161 arquivos · 3.3 MB · **NÃO promovido pra `prototipos/<tela>/` ainda** (sync conservador, espera Wagner aprovar tela-a-tela). Heavy dirs (`uploads/` 9.3 MB, `backups/` 2 MB, `scraps/`) excluídos — mesmo trap stale de 2026-05-11 (Design System do zip era foto antiga que regrediria prod).
+**Fase global:** `[CC]` entregou novo export via Claude Design (`Oimpresso ERP - Chat.html` era o arquivo aberto no handoff). Snapshot salvo em [`_cowork-export-2026-05-15/`](_cowork-export-2026-05-15/_SNAPSHOT.md) — 161 arquivos · 3.3 MB · **NÃO promovido pra `prototipos/<tela>/` ainda**. Heavy dirs (`uploads/` 9.3 MB, `backups/` 2 MB, `scraps/`) excluídos.
 
-**⭐ Highlight:** snapshot contém `chat-jana.jsx` (491 lin · 20 KB) + `chat-jana.css` (645 lin · 17 KB) — provável V2 da Jana Chat que bloqueia F3 desde 2026-05-14. Cabeçalho do JSX declara: *"Cockpit do Analista IA (substitui o chat tradicional). Conceito: a IA é uma analista (Jana) que entrega um brief diário, monitora KPIs, detecta anomalias, sugere ações com HITL e responde via chat."* Inclui mock de Martinho Caçambas (biz=164 legacy), 4 KPIs, 4 análises (inadimplência / faturamento / concentração / churn ouro), chips de ação HITL. **Próximo passo:** cruzar com as 19 divergências P0 de `COWORK_NOTES.amendment-jana-chat-block-renderer.md` antes de promover pra `prototipos/chat/`.
+**🔄 PIVOT detectado** — comparação contra amendment 2026-05-14 [(CRITIQUE-chat-jana-vs-amendment.md)](_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md):
+
+Cowork **não fez V2 do chat 2-col conversacional** que o amendment-block-renderer pediu. Em vez disso entregou tela diferente — `chat-jana.jsx` é "**Cockpit do Analista IA**" (dashboard com Brief diário + 4 KPIs + 6 análises + 4 ações HITL · com chat embutido como aba `ia` ao lado da aba `dashboard`). Routing em [app.jsx:474](_cowork-export-2026-05-15/app.jsx) confirma: `route === "chat"` → `<window.JanaCockpit/>` (novo). O `chat.jsx` antigo (WhatsApp shell) virou dead code no shell exportado.
+
+Paradigma: **Glean Home / Copilot M365** (dashboard-com-chat-tab) — não **ChatGPT Enterprise / Front** (chat-conversacional-puro) que o charter atual descreve.
+
+**Score F1.5 das 19 divergências P0:** 4 ✅ fechados · 6 🟡 parciais · 7 ❌ abertos · 2 ⚪ moot.
+- Sob critério literal: **41/100** (Cowork ignorou ~7 anti-patterns)
+- Sob critério "pivot aceito": **78/100** (dashboard é forte, falta refinar)
+- Sob critério "pivot rejeitado": **22/100** (entregou tela errada)
+
+**🔴 BLOQUEADOR Wagner:** decidir entre 3 caminhos antes de F1.5 critique-score formal:
+
+- **A) Aceitar pivot** — reescrever charter `Chat.charter.md` → `Cockpit.charter.md` com novos goals; reescrever amendment marcando 2 itens moot; pedir [CC] V2.1 focado em A1+A3+A5 (4 violações abertas) + C1+C2+C4+C7 (4 features IA abertas).
+- **B) Rejeitar pivot** — mandar Cowork voltar ao paradigma 2-col + aproveitar `BriefDiario`/`KPICard`/`AnaliseCard` em outra tela `/jana/dashboard` separada.
+- **C) Ambos** — `/jana/dashboard` recebe (A), `/jana/chat` recebe (B). 2 charters, 2 implementações.
+
+Detalhe completo + check item-a-item das 19 divergências: [CRITIQUE-chat-jana-vs-amendment.md](_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md).
+
+**Anti-pattern meta:** Cowork mudou paradigma sem amendment formal. Candidato a virar override `/pivot-detected` em PROTOCOL.md §5 (igual `/design-override` etc).
 
 **Outras telas candidatas no snapshot** (não há `prototipos/<tela>/` correspondente no repo): `crm-page.jsx`, `kb-page.jsx` (+ 5 satélites kb-*), `equipe-page.jsx`. Comparar antes de criar dir novo. Lista completa no [_SNAPSHOT.md](_cowork-export-2026-05-15/_SNAPSHOT.md).
 

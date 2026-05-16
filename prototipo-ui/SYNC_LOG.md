@@ -64,3 +64,7 @@
 2026-05-15 21:10 [CL] sync snapshot-only pra `_cowork-export-2026-05-15/` — 161 arquivos · 3.3 MB · excluiu uploads/backups/scraps (trap stale conhecido SYNC_LOG 2026-05-11)
 2026-05-15 21:10 [CL] highlight no _SNAPSHOT.md: `chat-jana.jsx` (491 lin) + `chat-jana.css` (645 lin) presentes — provável V2 atendendo amendment-block-renderer; aguarda Wagner confirmar comparação contra 19 divergências P0
 2026-05-15 21:10 [CL] AVISO no _SNAPSHOT.md: `prototipo-ui-patch/{Modules,Pages,resources,routes,app}` mantido isolado — NÃO aplicar direto (Tier 0 ADR 0093, mesmo bloqueio de 2026-05-09 PR #352 e 2026-05-11 zip canon)
+2026-05-15 21:35 [CL] CRITIQUE interim em `_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md` — PIVOT detectado: Cowork substituiu chat 2-col por dashboard cockpit (Glean Home / Copilot M365 paradigm) em vez de fixar amendment original
+2026-05-15 21:35 [CL] check 19 divergências: 4 ✅ / 6 🟡 / 7 ❌ / 2 ⚪ moot (porque coluna conversa sumiu). Score literal 41/100, ajustado 78/100 se pivot aceito, 22/100 se pivot rejeitado
+2026-05-15 21:35 [CL] F1.5 critique-score formal BLOQUEADO — pivot precisa Wagner ratificar/rejeitar (A: pivot aceito · B: pivot rejeitado · C: ambos `/jana/dashboard` + `/jana/chat`)
+2026-05-15 21:35 [CL] anti-pattern meta catalogado: "Cowork mudou paradigma sem amendment formal" — candidato a virar override `/pivot-detected` em PROTOCOL.md §5
