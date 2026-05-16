@@ -19,11 +19,25 @@ uses(Tests\TestCase::class);
  */
 beforeEach(function () {
     foreach ([
+        'activity_log',
         'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes',
         'rb_subscriptions', 'rb_plans', 'users', 'contacts',
     ] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // Wave 10 D7 LGPD: Plan/Subscription com LogsActivity (Spatie).
+    Schema::create('activity_log', function ($t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable()->index();
+        $t->text('description')->nullable();
+        $t->nullableMorphs('subject', 'subject');
+        $t->string('event')->nullable();
+        $t->nullableMorphs('causer', 'causer');
+        $t->longText('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
+        $t->timestamps();
+    });
 
     Schema::create('contacts', function ($t) {
         $t->increments('id');
@@ -114,6 +128,7 @@ beforeEach(function () {
 
 afterEach(function () {
     foreach ([
+        'activity_log',
         'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes',
         'rb_subscriptions', 'rb_plans', 'users', 'contacts',
     ] as $t) {

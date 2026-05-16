@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\ContaBancaria;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Fatura — uma cobrança individual gerada por uma Subscription
@@ -20,12 +22,24 @@ use Modules\Financeiro\Models\ContaBancaria;
  *
  * Triggered events:
  *   - InvoicePaid (status=paid) — listener em NfeBrasil emite NFe (US-RB-044)
+ *
+ * LGPD (Wave 10 D7): LogsActivity registra mudanças de status (paid/overdue/cancelled),
+ * valor e vencimento — retenção 5 anos pra suportar contestação fiscal/Receita.
  */
 class Invoice extends Model
 {
     use HasBusinessScope;
-
+    use LogsActivity;
     use SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'valor', 'vencimento', 'pago_em', 'gateway', 'gateway_ref'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('recurringbilling.invoice');
+    }
 
     protected $table = 'rb_invoices';
 

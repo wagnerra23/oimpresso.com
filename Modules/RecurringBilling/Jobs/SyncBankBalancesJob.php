@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\ContaBancaria;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Services\Banking\InterBankingClient;
 
@@ -38,7 +39,9 @@ class SyncBankBalancesJob implements ShouldQueue
             $query->where('id', $this->contaBancariaId);
         }
 
-        $query->each(function (ContaBancaria $conta) {
+        $redactor = app(PiiRedactor::class);
+
+        $query->each(function (ContaBancaria $conta) use ($redactor) {
             try {
                 $saldo = $this->fetchSaldo($conta);
                 if ($saldo !== null) {
@@ -48,8 +51,10 @@ class SyncBankBalancesJob implements ShouldQueue
                     ]);
                 }
             } catch (\Throwable $e) {
+                // LGPD: exception message pode trazer trecho do payload Inter/Asaas
+                // (CPF beneficiário, CNPJ pagador). Redact defensivo antes de log.
                 Log::warning("SyncBankBalancesJob: erro ao sincronizar conta {$conta->id}", [
-                    'error' => $e->getMessage(),
+                    'error' => $redactor->redact($e->getMessage()),
                 ]);
             }
         });

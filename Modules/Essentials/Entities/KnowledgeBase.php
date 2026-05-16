@@ -3,9 +3,14 @@
 namespace Modules\Essentials\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class KnowledgeBase extends Model
 {
+    // Wave 11 LGPD (D7.b) — audit trail Spatie ActivityLog.
+    use LogsActivity;
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -19,6 +24,17 @@ class KnowledgeBase extends Model
      * @var string
      */
     protected $table = 'essentials_kb';
+
+    /**
+     * Wave 11 LGPD (D7.b) — log mudanças em KB (title/parent_id/description).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'parent_id', 'description', 'business_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Get all the children of the knowledge base.

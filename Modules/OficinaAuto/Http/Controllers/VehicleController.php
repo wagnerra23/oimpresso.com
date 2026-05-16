@@ -5,9 +5,11 @@ namespace Modules\OficinaAuto\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\Vehicle;
 
 /**
@@ -189,6 +191,16 @@ class VehicleController extends Controller
         // business_id é setado automaticamente pelo Model::creating hook (ADR 0093)
         $vehicle = Vehicle::create($validated);
 
+        // Audit trail LGPD (Art. 37) — log PII-redacted (placa/chassi/renavam mascarados
+        // pelo PiiRedactor BR). Spatie LogsActivity já registra mudanças estruturadas
+        // em activity_log; aqui complementamos com trace operacional pra Loki/Grafana.
+        Log::info('[oficinaauto.vehicle] criado', [
+            'business_id' => $vehicle->business_id,
+            'vehicle_id'  => $vehicle->id,
+            'user_id'     => auth()->id(),
+            'payload'     => app(PiiRedactor::class)->redact(json_encode($validated, JSON_UNESCAPED_UNICODE) ?: ''),
+        ]);
+
         return redirect('/oficina-auto/veiculos/' . $vehicle->id)
             ->with('status', ['success' => 1, 'msg' => 'Veículo cadastrado.']);
     }
@@ -250,6 +262,14 @@ class VehicleController extends Controller
 
         $vehicle->update($validated);
 
+        // Audit trail LGPD (Art. 37) — log PII-redacted antes de retornar.
+        Log::info('[oficinaauto.vehicle] atualizado', [
+            'business_id' => $vehicle->business_id,
+            'vehicle_id'  => $vehicle->id,
+            'user_id'     => auth()->id(),
+            'payload'     => app(PiiRedactor::class)->redact(json_encode($validated, JSON_UNESCAPED_UNICODE) ?: ''),
+        ]);
+
         return redirect('/oficina-auto/veiculos/' . $vehicle->id)
             ->with('status', ['success' => 1, 'msg' => 'Veículo atualizado.']);
     }
@@ -263,6 +283,16 @@ class VehicleController extends Controller
         );
 
         $vehicle->delete();
+
+        // Audit trail LGPD (Art. 37 + Art. 18 §6 — direito de eliminação).
+        // Soft delete preserva histórico fiscal/legal (CNAE 4520 — guarda 5 anos);
+        // log registra operador + momento pra trilha cross-tenant.
+        Log::info('[oficinaauto.vehicle] removido (soft)', [
+            'business_id' => $vehicle->business_id,
+            'vehicle_id'  => $vehicle->id,
+            'user_id'     => auth()->id(),
+            'plate_hash'  => app(PiiRedactor::class)->redact((string) $vehicle->plate, 'hash'),
+        ]);
 
         return redirect('/oficina-auto/veiculos')
             ->with('status', ['success' => 1, 'msg' => 'Veículo removido (soft delete).']);

@@ -95,11 +95,21 @@ class RecurringBillingServiceProvider extends ServiceProvider
 
     /**
      * Register config.
+     *
+     * LGPD (Wave 10 D7 — 2026-05-16): registra também `retention.php` em
+     * `config('recurringbilling.retention.*')` — política de retenção LGPD
+     * + audit fiscal (CTN Art. 195).
      */
     protected function registerConfig(): void
     {
         $this->publishes([module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower.'.php')], 'config');
         $this->mergeConfigFrom(module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower);
+
+        // Retention policy LGPD — namespace recurringbilling.retention.*
+        $this->mergeConfigFrom(
+            module_path($this->moduleName, 'Config/retention.php'),
+            $this->moduleNameLower.'.retention'
+        );
     }
 
     /**

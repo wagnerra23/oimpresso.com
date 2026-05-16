@@ -109,6 +109,20 @@ beforeEach(function () {
         $t->primary(['permission_id', 'role_id']);
     });
 
+    // Wave 10 D7 LGPD: BoletoCredential agora dispara LogsActivity (Spatie) ao create.
+    // Cria tabela `activity_log` mínima compatível com Spatie\Activitylog\Models\Activity.
+    Schema::create('activity_log', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable()->index();
+        $t->text('description')->nullable();
+        $t->nullableMorphs('subject', 'subject');
+        $t->string('event')->nullable();
+        $t->nullableMorphs('causer', 'causer');
+        $t->longText('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
+        $t->timestamps();
+    });
+
     Schema::create('transaction_documents', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->unsignedInteger('business_id');
@@ -129,7 +143,7 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (['transaction_documents', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_charges', 'rb_boleto_credentials', 'users'] as $tbl) {
+    foreach (['transaction_documents', 'activity_log', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_charges', 'rb_boleto_credentials', 'users'] as $tbl) {
         Schema::dropIfExists($tbl);
     }
     app(PermissionRegistrar::class)->forgetCachedPermissions();

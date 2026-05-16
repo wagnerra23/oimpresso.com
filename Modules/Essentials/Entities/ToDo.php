@@ -3,15 +3,32 @@
 namespace Modules\Essentials\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ToDo extends Model
 {
+    // Wave 11 LGPD (D7.b) — audit trail Spatie ActivityLog (LGPD Art. 37 — registro de operações).
+    use LogsActivity;
+
     /**
      * The attributes that aren't mass assignable.
      *
      * @var array
      */
     protected $guarded = ['id'];
+
+    /**
+     * Wave 11 LGPD (D7.b) — ActivityLog Spatie v4 API.
+     * Loga apenas atributos relevantes (sem timestamps), só quando há diff.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['task', 'status', 'priority', 'date', 'end_date', 'description'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * The table associated with the model.

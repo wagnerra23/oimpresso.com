@@ -13,6 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Services\Boleto\BoletoService;
 use RuntimeException;
 use Throwable;
@@ -123,12 +124,16 @@ class CancelarCobrancaAsaasJob implements ShouldQueue
         try {
             $service->cancelar($this->businessId, $chargeId, $this->motivo);
         } catch (RequestException $e) {
+            // LGPD (Wave 10 D7): response_body Asaas em erro 400/422 pode trazer
+            // customer.cpfCnpj / email / name. Redact antes de logar.
+            $redactor = app(PiiRedactor::class);
+            $responseBody = $e->response?->body() ?? '';
             Log::error('CancelarCobrancaAsaasJob: falha HTTP no DELETE /payments/{id}', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
                 'status_code' => $e->response?->status(),
-                'response_body' => $e->response?->body(),
+                'response_body' => $redactor->redact($responseBody),
                 'motivo' => $this->motivo,
             ]);
 
@@ -138,12 +143,14 @@ class CancelarCobrancaAsaasJob implements ShouldQueue
                 . ($e->response?->status() ?? '?')
             );
         } catch (Throwable $e) {
+            // LGPD: exception message pode citar payload do gateway. Redact defensivo.
+            $redactor = app(PiiRedactor::class);
             Log::error('CancelarCobrancaAsaasJob: erro inesperado', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
                 'exception' => get_class($e),
-                'message' => $e->getMessage(),
+                'message' => $redactor->redact($e->getMessage()),
             ]);
             throw $e;
         }

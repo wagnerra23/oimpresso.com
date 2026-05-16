@@ -10,5 +10,11 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "retention_days": 1825,
+    "lgpd": {
+        "pii_redactor": "Modules\\Jana\\Services\\Privacy\\PiiRedactor",
+        "activity_log": ["oficinaauto.vehicle", "oficinaauto.service_order"],
+        "retention_config": "Modules/OficinaAuto/Config/retention.php"
+    }
 }

@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\ContaBancaria;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Contrato de assinatura — vincula Contact (cliente) a um Plan + define
@@ -21,12 +23,28 @@ use Modules\Financeiro\Models\ContaBancaria;
  *   paused    — pausado pelo cliente/admin (sem nova fatura)
  *   past_due  — fatura vencida sem pagamento (régua dunning ativa)
  *   canceled  — encerrado, fim do contrato
+ *
+ * LGPD (Wave 10 D7): LogsActivity (Spatie) registra mudanças críticas
+ * (status, plano, vencimento, valores cached, churn) em `activity_log` —
+ * auditoria 5 anos (Art. 195 CTN + LGPD Art. 37 § 1º).
  */
 class Subscription extends Model
 {
     use HasBusinessScope;
-
+    use LogsActivity;
     use SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'status', 'plan_id', 'next_due_date', 'canceled_at', 'paused_at',
+                'payment_method', 'total_paid_cached', 'churn_reason',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('recurringbilling.subscription');
+    }
 
     protected $table = 'rb_subscriptions';
 

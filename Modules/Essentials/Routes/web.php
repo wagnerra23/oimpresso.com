@@ -3,7 +3,10 @@
 // use App\Http\Controllers\Modules;
 // use Illuminate\Support\Facades\Route;
 
-Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {
+// Wave 11 D8.a — throttle anti-abuse (60 req/min/IP) em todas as rotas autenticadas Essentials/HRM.
+// Justificativa: rotas legacy HRM (attendance/payroll/leave) tinham loops cliente sem throttle
+// que podiam derrubar instância em scrape acidental. ADR 0155 §D8.a (rate-limit security).
+Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'throttle:60,1')->group(function () {
     Route::prefix('essentials')->group(function () {
         Route::get('/dashboard', [Modules\Essentials\Http\Controllers\DashboardController::class, 'essentialsDashboard']);
         Route::get('/install', [Modules\Essentials\Http\Controllers\InstallController::class, 'index']);

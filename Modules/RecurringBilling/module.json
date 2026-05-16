@@ -7,5 +7,22 @@
     "providers": [
         "Modules\\RecurringBilling\\Providers\\RecurringBillingServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "lgpd": {
+        "compliance_level": "high",
+        "pii_redactor_enabled": true,
+        "retention_config": "Config/retention.php",
+        "audit_trail": "spatie/activitylog (LogsActivity em Subscription, Invoice, ChargeAttempt, Plan, BoletoCredential)",
+        "data_categories": [
+            "dados pessoais pagador (CPF/CNPJ, email, telefone)",
+            "dados bancários (agência/conta via gateway, NUNCA armazenamos cartão)",
+            "registros financeiros (valor, vencimento, status)",
+            "webhook payloads externos (Asaas/Inter — redactados antes de persistir)"
+        ],
+        "legal_basis": [
+            "execução de contrato (LGPD Art. 7º V) — base primária pagamento recorrente",
+            "obrigação legal/fiscal (Art. 7º II) — Receita Federal CTN Art. 195"
+        ],
+        "wave": "Wave 10 D7 (2026-05-16)"
+    }
 }

@@ -13,6 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Services\Boleto\BoletoService;
 use RuntimeException;
 use Throwable;
@@ -145,12 +146,14 @@ class RefundCobrancaAsaasJob implements ShouldQueue
             // Falha de fetch não bloqueia refund — apenas loga warning.
             // Em prod retries vão eventualmente atingir o GET ou já passar
             // direto pro POST /refund (Asaas retorna 400 se já refunded).
+            // LGPD (Wave 10 D7): redact defensivo na mensagem.
+            $redactor = app(PiiRedactor::class);
             Log::warning('RefundCobrancaAsaasJob: fetch status Asaas falhou (segue pro refund)', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
                 'exception' => get_class($e),
-                'message' => $e->getMessage(),
+                'message' => $redactor->redact($e->getMessage()),
             ]);
         }
 
@@ -184,12 +187,16 @@ class RefundCobrancaAsaasJob implements ShouldQueue
                 'motivo' => $this->motivo,
             ]);
         } catch (RequestException $e) {
+            // LGPD (Wave 10 D7): response_body Asaas pode incluir customer.cpfCnpj /
+            // email / name em erros 400/422 (validation). Redact obrigatório.
+            $redactor = app(PiiRedactor::class);
+            $responseBody = $e->response?->body() ?? '';
             Log::error('RefundCobrancaAsaasJob: falha HTTP no POST /payments/{id}/refund', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
                 'status_code' => $e->response?->status(),
-                'response_body' => $e->response?->body(),
+                'response_body' => $redactor->redact($responseBody),
                 'motivo' => $this->motivo,
             ]);
 
@@ -198,12 +205,14 @@ class RefundCobrancaAsaasJob implements ShouldQueue
                 . ($e->response?->status() ?? '?')
             );
         } catch (Throwable $e) {
+            // LGPD: redact defensivo — exception pode citar payload Asaas raw.
+            $redactor = app(PiiRedactor::class);
             Log::error('RefundCobrancaAsaasJob: erro inesperado', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
                 'exception' => get_class($e),
-                'message' => $e->getMessage(),
+                'message' => $redactor->redact($e->getMessage()),
             ]);
             throw $e;
         }

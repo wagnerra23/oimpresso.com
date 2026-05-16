@@ -5,9 +5,11 @@ namespace Modules\OficinaAuto\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 
@@ -294,6 +296,16 @@ class ServiceOrderController extends Controller
 
         $order = ServiceOrder::create($validated);
 
+        // Audit trail LGPD (Art. 37) — log PII-redacted (delivery_address contém
+        // logradouro+número+bairro do cliente em locações Martinho/caçamba).
+        Log::info('[oficinaauto.service_order] criada', [
+            'business_id' => $order->business_id,
+            'order_id'    => $order->id,
+            'vehicle_id'  => $order->vehicle_id,
+            'user_id'     => auth()->id(),
+            'payload'     => app(PiiRedactor::class)->redact(json_encode($validated, JSON_UNESCAPED_UNICODE) ?: ''),
+        ]);
+
         return redirect('/oficina-auto/ordens-servico/' . $order->id)
             ->with('status', ['success' => 1, 'msg' => 'Ordem de Serviço criada.']);
     }
@@ -392,6 +404,14 @@ class ServiceOrderController extends Controller
 
         $order->update($validated);
 
+        // Audit trail LGPD (Art. 37) — log PII-redacted antes de retornar.
+        Log::info('[oficinaauto.service_order] atualizada', [
+            'business_id' => $order->business_id,
+            'order_id'    => $order->id,
+            'user_id'     => auth()->id(),
+            'payload'     => app(PiiRedactor::class)->redact(json_encode($validated, JSON_UNESCAPED_UNICODE) ?: ''),
+        ]);
+
         return redirect('/oficina-auto/ordens-servico/' . $order->id)
             ->with('status', ['success' => 1, 'msg' => 'OS atualizada.']);
     }
@@ -405,6 +425,13 @@ class ServiceOrderController extends Controller
         );
 
         $order->delete();
+
+        // Audit trail LGPD (Art. 37 + Art. 18 §6 — direito de eliminação).
+        Log::info('[oficinaauto.service_order] removida (soft)', [
+            'business_id' => $order->business_id,
+            'order_id'    => $order->id,
+            'user_id'     => auth()->id(),
+        ]);
 
         return redirect('/oficina-auto/ordens-servico')
             ->with('status', ['success' => 1, 'msg' => 'OS removida (soft delete).']);

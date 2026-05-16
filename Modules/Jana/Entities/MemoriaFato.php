@@ -61,6 +61,9 @@ class MemoriaFato extends Model
         'metadata' => 'array',
         'valid_from' => 'datetime',
         'valid_until' => 'datetime',
+        'hits_count' => 'integer',
+        'core_memory' => 'boolean',
+        'ultimo_hit_em' => 'datetime',
     ];
 
     public function searchableAs(): string
@@ -71,8 +74,13 @@ class MemoriaFato extends Model
     /**
      * Campos indexados em Meilisearch.
      * Embeddings são gerados pelo Meilisearch via embedder configurado no index
-     * (provider: openAi, model: text-embedding-3-small) — ver config/scout.php
-     * + Modules/Jana/Database/seeders/MeilisearchIndexSetup.php (opcional).
+     * (provider: openAi, model: text-embedding-3-small) — ver config/scout.php.
+     *
+     * Atributos flat metadata_* + hits + core_memory são expostos como
+     * filterableAttributes em config/scout.php → destravam:
+     *   - P1-A: filtro `metadata_relevancia >= 3` no recall
+     *   - P1-B: query `core_memory = true` injetada direto no system prompt
+     *   - bloat reducer: filtro `hits_count = 0 AND created_at < now-30d`
      */
     public function toSearchableArray(): array
     {
@@ -82,8 +90,13 @@ class MemoriaFato extends Model
             'user_id' => $this->user_id,
             'fato' => $this->fato,
             'metadata_json' => json_encode($this->metadata ?? []),
+            'metadata_relevancia' => $this->metadata['relevancia'] ?? null,
+            'metadata_tipo' => $this->metadata['tipo'] ?? null,
+            'metadata_fonte' => $this->metadata['fonte'] ?? null,
             'valid_from' => $this->valid_from?->timestamp,
             'valid_until' => $this->valid_until?->timestamp,
+            'hits_count' => $this->hits_count ?? 0,
+            'core_memory' => (bool) ($this->core_memory ?? false),
         ];
     }
 

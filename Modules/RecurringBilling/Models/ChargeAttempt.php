@@ -5,6 +5,8 @@ namespace Modules\RecurringBilling\Models;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Tentativa de cobrança — append-only log idempotente.
@@ -22,12 +24,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *   failed         — erro genérico (não retriable)
  *   soft_decline   — recusa retriable (cartão sem saldo, etc.) → smart retry
  *   hard_decline   — cartão inválido / fraude → marca subscription past_due
+ *
+ * LGPD (Wave 10 D7): LogsActivity registra apenas (gateway, status, error_code) —
+ * NUNCA `request_json`/`response_json` (que carregam customer.cpfCnpj/email).
  */
 class ChargeAttempt extends Model
 {
     use HasBusinessScope;
+    use LogsActivity;
 
     public const UPDATED_AT = null; // append-only
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['gateway', 'status', 'attempt_n', 'error_code'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('recurringbilling.charge_attempt');
+    }
 
     protected $table = 'rb_charge_attempts';
 

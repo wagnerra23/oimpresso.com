@@ -140,9 +140,24 @@ return [
         'host' => env('MEILISEARCH_HOST', 'http://localhost:7700'),
         'key' => env('MEILISEARCH_KEY'),
         'index-settings' => [
-            // 'users' => [
-            //     'filterableAttributes'=> ['id', 'name', 'email'],
-            // ],
+            // Jana memoria — Wave Memoria Semanal 2026-05-16 (Pendência #1 + P1-A.0 prep)
+            // Atributos flat destravam P1-A (metadata_relevancia >= 3), P1-B (core_memory = true),
+            // e bloat reducer (hits_count = 0 AND created_at < now-30d).
+            // Aplicar via `php artisan scout:sync-index-settings` (CT 100 Tailscale).
+            'jana_memoria_facts' => [
+                'filterableAttributes' => [
+                    'business_id',
+                    'user_id',
+                    'valid_from',
+                    'valid_until',
+                    'metadata_relevancia',
+                    'metadata_tipo',
+                    'metadata_fonte',
+                    'hits_count',
+                    'core_memory',
+                ],
+                'sortableAttributes' => ['hits_count', 'valid_from'],
+            ],
         ],
     ],
 

@@ -24,6 +24,20 @@ beforeEach(function () {
         $this->markTestSkipped('Smoke test rodado apenas em SQLite in-memory.');
     }
 
+    Schema::dropIfExists('activity_log');
+    // Wave 10 D7 LGPD: Invoice com LogsActivity (Spatie).
+    Schema::create('activity_log', function ($table) {
+        $table->bigIncrements('id');
+        $table->string('log_name')->nullable()->index();
+        $table->text('description')->nullable();
+        $table->nullableMorphs('subject', 'subject');
+        $table->string('event')->nullable();
+        $table->nullableMorphs('causer', 'causer');
+        $table->longText('properties')->nullable();
+        $table->uuid('batch_uuid')->nullable();
+        $table->timestamps();
+    });
+
     Schema::dropIfExists('rb_invoices');
     Schema::create('rb_invoices', function ($table) {
         $table->id();
@@ -46,6 +60,7 @@ beforeEach(function () {
 
 afterEach(function () {
     Schema::dropIfExists('rb_invoices');
+    Schema::dropIfExists('activity_log');
 });
 
 /**

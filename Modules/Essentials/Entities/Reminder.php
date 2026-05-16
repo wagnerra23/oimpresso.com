@@ -3,15 +3,33 @@
 namespace Modules\Essentials\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Reminder extends Model
 {
+    // Wave 11 LGPD (D7.b) — audit trail Spatie ActivityLog.
+    use LogsActivity;
+
     /**
      * The attributes that aren't mass assignable.
      *
      * @var array
      */
     protected $guarded = ['id'];
+
+    /**
+     * Wave 11 LGPD (D7.b) — log apenas campos relevantes do reminder.
+     * Texto livre (`name`/`description`) deve ser redactado via PiiRedactor
+     * em logs externos — ActivityLog persiste em DB do próprio tenant.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'date', 'time', 'end_time', 'repeat', 'user_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * The table associated with the model.

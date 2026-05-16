@@ -18,4 +18,10 @@ return [
      */
     'cnaes' => ['4520-0/01', '2212-9/00', '4581-4/00'],
     'cnae_principal' => '4520-0/01',
+
+    /*
+     * Política de retenção LGPD (Art. 16) — vide Config/retention.php pro detalhe.
+     * 1825 dias (5 anos) cobre Marco Civil Art. 15, CTN Art. 174, CONFAZ SINIEF 07/2005.
+     */
+    'retention_days' => 1825,
 ];

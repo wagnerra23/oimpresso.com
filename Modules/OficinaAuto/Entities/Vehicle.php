@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Vehicle — veículo da oficina (cliente/frota) ou caçamba estacionária (Martinho).
@@ -51,8 +53,39 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Vehicle extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
 
     protected $table = 'vehicles';
+
+    /**
+     * Audit trail LGPD (Art. 37 — registro de operações sobre dados pessoais).
+     *
+     * CNAE 4520-0/01 (oficinas auto) — Vehicle armazena PII grave:
+     *  - plate (placa) → identifica veículo + via DETRAN identifica o dono
+     *  - contact_id → FK pra Contact (CPF/CNPJ do cliente)
+     *
+     * Logamos apenas campos que rastreiam mudanças de estado relevantes pra
+     * auditoria (LGPD Art. 37 + ADR 0094 §"Transparência"). NÃO logamos
+     * chassi/renavam/notes pra reduzir vazamento em activity_log table.
+     *
+     * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+     * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md §"Transparência"
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'plate',
+                'secondary_plate',
+                'contact_id',
+                'vehicle_type',
+                'current_status',
+                'current_rental_id',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('oficinaauto.vehicle');
+    }
 
     protected $fillable = [
         'business_id',

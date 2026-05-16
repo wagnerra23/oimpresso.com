@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\ExtratoLancamento;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Dto\StatementLineDto;
 use Modules\RecurringBilling\Services\Banking\Drivers\InterStatementDriver;
 use Modules\RecurringBilling\Services\Banking\InterBankingClient;
@@ -57,14 +58,18 @@ class SyncBankStatementsJob implements ShouldQueue
         $from = now()->subDays($this->diasRetro)->startOfDay();
         $to   = now()->endOfDay();
 
-        $query->each(function (ContaBancaria $conta) use ($from, $to) {
+        $redactor = app(PiiRedactor::class);
+
+        $query->each(function (ContaBancaria $conta) use ($from, $to, $redactor) {
             try {
                 $this->syncConta($conta, $from, $to);
             } catch (\Throwable $e) {
+                // LGPD (Wave 10 D7): exception Inter Banking pode trazer trecho do
+                // extrato (contraparte_documento = CPF/CNPJ, nome). Redact defensivo.
                 Log::warning('SyncBankStatementsJob: erro conta', [
                     'conta_id'    => $conta->id,
                     'business_id' => $conta->business_id,
-                    'error'       => $e->getMessage(),
+                    'error'       => $redactor->redact($e->getMessage()),
                 ]);
             }
         });

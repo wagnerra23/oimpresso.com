@@ -18,6 +18,21 @@ uses(Tests\TestCase::class);
  */
 beforeEach(function () {
     \Illuminate\Support\Facades\Schema::dropIfExists('rb_boleto_credentials');
+    \Illuminate\Support\Facades\Schema::dropIfExists('activity_log');
+
+    // Wave 10 D7 LGPD: BoletoCredential agora usa LogsActivity (Spatie).
+    \Illuminate\Support\Facades\Schema::create('activity_log', function ($table) {
+        $table->bigIncrements('id');
+        $table->string('log_name')->nullable()->index();
+        $table->text('description')->nullable();
+        $table->nullableMorphs('subject', 'subject');
+        $table->string('event')->nullable();
+        $table->nullableMorphs('causer', 'causer');
+        $table->longText('properties')->nullable();
+        $table->uuid('batch_uuid')->nullable();
+        $table->timestamps();
+    });
+
     \Illuminate\Support\Facades\Schema::create('rb_boleto_credentials', function ($table) {
         $table->id();
         $table->unsignedInteger('business_id')->index();
@@ -33,6 +48,7 @@ beforeEach(function () {
 
 afterEach(function () {
     \Illuminate\Support\Facades\Schema::dropIfExists('rb_boleto_credentials');
+    \Illuminate\Support\Facades\Schema::dropIfExists('activity_log');
 });
 
 /**

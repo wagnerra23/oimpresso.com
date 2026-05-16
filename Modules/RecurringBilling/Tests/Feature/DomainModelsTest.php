@@ -19,9 +19,22 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
-    foreach (['rb_charge_attempts', 'rb_invoices', 'rb_subscriptions', 'rb_plans', 'fin_contas_bancarias', 'contacts'] as $t) {
+    foreach (['activity_log', 'rb_charge_attempts', 'rb_invoices', 'rb_subscriptions', 'rb_plans', 'fin_contas_bancarias', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // Wave 10 D7 LGPD: Plan/Invoice/Subscription/ChargeAttempt usam LogsActivity (Spatie).
+    Schema::create('activity_log', function ($table) {
+        $table->bigIncrements('id');
+        $table->string('log_name')->nullable()->index();
+        $table->text('description')->nullable();
+        $table->nullableMorphs('subject', 'subject');
+        $table->string('event')->nullable();
+        $table->nullableMorphs('causer', 'causer');
+        $table->longText('properties')->nullable();
+        $table->uuid('batch_uuid')->nullable();
+        $table->timestamps();
+    });
 
     // Stubs das tabelas legadas com PK int unsigned (ADR tech/0008)
     Schema::create('contacts', function ($table) {
@@ -104,7 +117,7 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (['rb_charge_attempts', 'rb_invoices', 'rb_subscriptions', 'rb_plans', 'fin_contas_bancarias', 'contacts'] as $t) {
+    foreach (['activity_log', 'rb_charge_attempts', 'rb_invoices', 'rb_subscriptions', 'rb_plans', 'fin_contas_bancarias', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }
 });

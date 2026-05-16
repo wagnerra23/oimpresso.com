@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * ServiceOrder — Ordem de Serviço da oficina automotiva OU locação caçamba (Martinho).
@@ -48,8 +50,42 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ServiceOrder extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
 
     protected $table = 'service_orders';
+
+    /**
+     * Audit trail LGPD (Art. 37 — registro de operações sobre dados pessoais).
+     *
+     * CNAE 4520-0/01 (oficinas auto) — ServiceOrder armazena PII grave:
+     *  - delivery_address (endereço entrega caçamba — locação Martinho)
+     *  - vehicle_id → FK pra placa
+     *  - contact_id → FK pra CPF/CNPJ cliente
+     *  - transaction_id → FK pra venda UltimatePOS (financeiro do cliente)
+     *
+     * Logamos mudanças de estado (FSM US-OFICINA-003) + identificadores —
+     * sem logar `notes` (free-text que pode conter outras PII não-estruturadas).
+     *
+     * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+     * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md §"Transparência"
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'status',
+                'order_type',
+                'vehicle_id',
+                'contact_id',
+                'transaction_id',
+                'expected_return_date',
+                'completed_at',
+                'delivered_at',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('oficinaauto.service_order');
+    }
 
     protected $fillable = [
         'business_id',

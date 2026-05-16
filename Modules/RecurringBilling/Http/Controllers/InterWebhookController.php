@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Jobs\ProcessInterWebhookJob;
 use Modules\RecurringBilling\Models\BoletoCredential;
 
@@ -27,11 +28,17 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  *
  * Idempotência via `pg_webhook_events.(provider='inter', event_id=endToEndId)`.
  *
+ * LGPD (Wave 10 D7 — 2026-05-16):
+ *   - `pg_webhook_events.payload` é redactado via `PiiRedactor::redactArray()`
+ *     antes de persistir. Payload Inter PIX inclui `pagador.cpf|cnpj`,
+ *     `pagador.nome`, `infoPagador`, valores (LGPD Art. 5º, I).
+ *   - Job downstream `ProcessInterWebhookJob` recebe payload raw em memória.
+ *
  * @see US-RB-047
  */
 class InterWebhookController extends Controller
 {
-    public function handle(Request $request, int $businessId): JsonResponse
+    public function handle(Request $request, int $businessId, PiiRedactor $redactor): JsonResponse
     {
         $credential = BoletoCredential::where('business_id', $businessId)
             ->where('banco', 'inter')
@@ -74,11 +81,15 @@ class InterWebhookController extends Controller
                 continue;
             }
 
+            // LGPD: redact PII (CPF/CNPJ/nome pagador) antes de persistir.
+            // Job recebe $pix raw em memória — regra de negócio preservada.
+            $pixRedactado = $redactor->redactArray($pix);
+
             DB::table('pg_webhook_events')->insert([
                 'provider'    => 'inter',
                 'event_id'    => $endToEndId,
                 'event_type'  => 'pix.recebido',
-                'payload'     => json_encode($pix),
+                'payload'     => json_encode($pixRedactado),
                 'business_id' => $businessId,
                 'processed'   => false,
                 'created_at'  => now(),
