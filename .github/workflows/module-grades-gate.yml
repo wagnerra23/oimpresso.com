@@ -1,9 +1,14 @@
 name: Module Grades Gate (anti-regressão)
 
 # Gate CI anti-regressão da rubrica module-grade v3 (ADR 0155).
-# Bloqueia merge se nota de QUALQUER módulo DIMINUIR vs governance/module-grades-baseline.json.
-# Override: aplicar label 'module-grades-allowed-regression' no PR.
-# Comenta delta por módulo (subiu / desceu / igual).
+# Bloqueia merge em DOIS cenários:
+#   1) Nota de QUALQUER módulo DIMINUIR vs governance/module-grades-baseline.json
+#      → Override: label 'module-grades-allowed-regression' no PR
+#   2) Módulo NOVO entrando na rubrica (presente no current, ausente na baseline)
+#      → Override: label 'module-grades-new-module-allowed' no PR
+# Justificativa #2 (gap P1 fechado): módulo crítico (Admin/Connector/Arquivos/Essentials)
+# entrando sem nota mínima passava silencioso — agora exige aprovação explícita Wagner.
+# Comenta delta por módulo (subiu / desceu / igual / novo).
 
 on:
   pull_request:
@@ -63,11 +68,21 @@ jobs:
         run: |
           set -euo pipefail
           labels=$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH" 2>/dev/null || echo "")
+
+          # Label 1 — override de REGRESSÃO (módulo existente baixou nota)
           if echo "$labels" | grep -qx 'module-grades-allowed-regression'; then
-            echo "Label override detectada — gate vai apenas reportar, não bloqueia."
+            echo "Label 'module-grades-allowed-regression' detectada — gate apenas reporta regressões, não bloqueia."
             echo "active=true" >> "$GITHUB_OUTPUT"
           else
             echo "active=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Label 2 — override de MÓDULO NOVO (entrando na rubrica pela primeira vez)
+          if echo "$labels" | grep -qx 'module-grades-new-module-allowed'; then
+            echo "Label 'module-grades-new-module-allowed' detectada — módulos novos podem entrar sem bloqueio."
+            echo "new_allowed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_allowed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Comparar com baseline
@@ -108,11 +123,16 @@ jobs:
             }
 
             $baseMap = $baseline["modules"];
+            // Módulos com seed inicial pendente (baseline placeholder 0 — não comparar até Wagner rodar seed real)
+            $pendingInitialSeed = isset($baseline["pending_initial_seed"]) && is_array($baseline["pending_initial_seed"])
+              ? $baseline["pending_initial_seed"]
+              : [];
             $rows = [];
             $regressed = 0;
             $improved = 0;
             $stable = 0;
             $new = 0;
+            $seedPending = 0;
 
             // Módulos baseline → comparar
             foreach ($baseMap as $name => $baseScore) {
@@ -122,6 +142,13 @@ jobs:
                 continue;
               }
               $now = $currentMap[$name];
+              // Seed pending: baseline ainda é placeholder 0 — não conta como regressão/melhoria.
+              // Wagner roda `php artisan module:grade --all --json` e PR follow-up substitui zeros.
+              if (in_array($name, $pendingInitialSeed, true)) {
+                $rows[] = ["module" => $name, "base" => $baseScore, "now" => $now, "delta" => null, "status" => "seed_pending"];
+                $seedPending++;
+                continue;
+              }
               $delta = $now - $baseScore;
               if ($delta < 0) { $status = "down"; $regressed++; }
               elseif ($delta > 0) { $status = "up"; $improved++; }
@@ -137,16 +164,16 @@ jobs:
               }
             }
 
-            // Ordena: desce primeiro, depois novo, eq, sobe
+            // Ordena: desce primeiro, depois novo, seed_pending, eq, sobe
             usort($rows, function ($a, $b) {
-              $order = ["down" => 0, "removed" => 1, "new" => 2, "eq" => 3, "up" => 4];
+              $order = ["down" => 0, "removed" => 1, "new" => 2, "seed_pending" => 3, "eq" => 4, "up" => 5];
               return ($order[$a["status"]] ?? 9) <=> ($order[$b["status"]] ?? 9);
             });
 
             // Render markdown table
             $md = "| Módulo | Baseline | Atual | Δ | Status |\n";
             $md .= "|---|---:|---:|---:|---|\n";
-            $emoji = ["down" => "🔻", "up" => "🟢", "eq" => "⚪", "new" => "✨", "removed" => "⚠️"];
+            $emoji = ["down" => "🔻", "up" => "🟢", "eq" => "⚪", "new" => "✨", "removed" => "⚠️", "seed_pending" => "🌱"];
             foreach ($rows as $r) {
               $base = $r["base"] === null ? "—" : (string) $r["base"];
               $now = $r["now"] === null ? "—" : (string) $r["now"];
@@ -154,19 +181,35 @@ jobs:
               $md .= sprintf("| `%s` | %s | %s | %s | %s %s |\n", $r["module"], $base, $now, $delta, $emoji[$r["status"]] ?? "?", $r["status"]);
             }
 
-            $summary = sprintf("**Resumo:** 🔻 %d regrediram · 🟢 %d melhoraram · ⚪ %d estáveis · ✨ %d novos\n\n", $regressed, $improved, $stable, $new);
+            $summary = sprintf("**Resumo:** 🔻 %d regrediram · 🟢 %d melhoraram · ⚪ %d estáveis · ✨ %d novos · 🌱 %d seed pending\n\n", $regressed, $improved, $stable, $new, $seedPending);
+            if ($seedPending > 0) {
+              $summary .= "_Módulos com seed pending: baseline ainda placeholder 0. Wagner roda `php artisan module:grade --all --json` localmente pra atualizar. Não bloqueia gate, mas sinal de débito._\n\n";
+            }
 
             file_put_contents("/tmp/grades/report.md", $summary . $md);
             file_put_contents("/tmp/grades/regressed_count.txt", (string) $regressed);
+            file_put_contents("/tmp/grades/new_count.txt", (string) $new);
+            file_put_contents("/tmp/grades/seed_pending_count.txt", (string) $seedPending);
           '
 
           regressed=$(cat /tmp/grades/regressed_count.txt 2>/dev/null || echo "0")
+          new_count=$(cat /tmp/grades/new_count.txt 2>/dev/null || echo "0")
           echo "regressed=$regressed" >> "$GITHUB_OUTPUT"
+          echo "new_count=$new_count" >> "$GITHUB_OUTPUT"
 
+          # Bloqueio por regressão (módulo existente baixou nota)
           if [ "$regressed" -gt 0 ]; then
             echo "fail=1" >> "$GITHUB_OUTPUT"
           else
             echo "fail=0" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Bloqueio por módulo novo sem label de aprovação (gap P1 — ADR 0155 emenda)
+          # Note: a step "Falhar build" decide o bloqueio efetivo combinando new_blocked + new_allowed
+          if [ "$new_count" -gt 0 ]; then
+            echo "new_blocked=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_blocked=false" >> "$GITHUB_OUTPUT"
           fi
 
           {
@@ -185,18 +228,47 @@ jobs:
           OVERRIDE: ${{ steps.override.outputs.active }}
           FIRST_RUN: ${{ steps.compare.outputs.first_run }}
           REGRESSED: ${{ steps.compare.outputs.regressed }}
+          NEW_COUNT: ${{ steps.compare.outputs.new_count }}
+          NEW_BLOCKED: ${{ steps.compare.outputs.new_blocked }}
+          NEW_ALLOWED: ${{ steps.override.outputs.new_allowed }}
         with:
           script: |
             const fail = process.env.FAIL === '1';
             const override = process.env.OVERRIDE === 'true';
             const firstRun = process.env.FIRST_RUN === 'true';
             const regressed = process.env.REGRESSED || '0';
+            const newCount = process.env.NEW_COUNT || '0';
+            const newBlocked = process.env.NEW_BLOCKED === 'true';
+            const newAllowed = process.env.NEW_ALLOWED === 'true';
+            const newWillBlock = newBlocked && !newAllowed;
             const report = process.env.REPORT || '_(sem relatório)_';
 
             let title, intro;
             if (firstRun) {
               title = '📊 Module Grades Gate — primeiro run';
               intro = '> Baseline ausente. Commit `governance/module-grades-baseline.json` pra ativar o gate anti-regressão (ADR 0155 v3).';
+            } else if (fail && newWillBlock) {
+              title = '📊 Module Grades Gate — ❌ regressão + módulo novo sem aprovação';
+              intro = [
+                `> **${regressed} módulo(s) regrediram** E **${newCount} módulo(s) novo(s) sem aprovação** vs baseline.`,
+                ``,
+                `### Como resolver`,
+                `- Regressão: corrigir, atualizar baseline, OU label \`module-grades-allowed-regression\``,
+                `- Módulo novo: confirmar entrada do módulo na rubrica e aplicar label \`module-grades-new-module-allowed\` (Wagner aprova)`,
+                ``,
+                `Skill helper: [\`.claude/skills/module-grades-gate\`](/.claude/skills/module-grades-gate/SKILL.md)`
+              ].join('\n');
+            } else if (override && newWillBlock) {
+              title = '📊 Module Grades Gate — ❌ módulo novo sem aprovação';
+              intro = [
+                `> Override de regressão ativo, mas **${newCount} módulo(s) novo(s) detectado(s)** sem label de aprovação.`,
+                ``,
+                `### Como resolver`,
+                `- Aplicar label \`module-grades-new-module-allowed\` pra autorizar entrada do(s) novo(s) módulo(s) na rubrica`,
+                `- OU remover/renomear o módulo se entrada foi acidental`,
+                ``,
+                `Justificativa: módulo crítico (Admin/Connector/Arquivos/Essentials) entrando sem nota mínima passava silencioso na v3 inicial — gap P1 fechado.`
+              ].join('\n');
             } else if (override) {
               title = '📊 Module Grades Gate — ⚠️ override ativo';
               intro = `> Label \`module-grades-allowed-regression\` aplicada — ${regressed} módulo(s) regrediram, mas merge permitido. Justificar a regressão em ADR ou comentário do PR.`;
@@ -210,14 +282,29 @@ jobs:
                 `2. OU atualizar baseline conscientemente — editar \`governance/module-grades-baseline.json\` no mesmo PR`,
                 `3. OU aplicar label \`module-grades-allowed-regression\` (registra exceção, exige justificativa em comentário/ADR)`,
                 ``,
-                `Skill helper: [\`.claude/skills/module-grades-gate\`](.claude/skills/module-grades-gate/SKILL.md)`
+                `Skill helper: [\`.claude/skills/module-grades-gate\`](/.claude/skills/module-grades-gate/SKILL.md)`
               ].join('\n');
+            } else if (newWillBlock) {
+              title = '📊 Module Grades Gate — ❌ módulo novo sem aprovação';
+              intro = [
+                `> ✨ **${newCount} módulo(s) novo(s) detectado(s)** vs baseline (\`governance/module-grades-baseline.json\`).`,
+                ``,
+                `### Como resolver`,
+                `1. Confirmar que a entrada do novo módulo é intencional (não foi acidente de scan/heurística)`,
+                `2. Aplicar label \`module-grades-new-module-allowed\` no PR (Wagner aprova entrada na rubrica)`,
+                `3. Após merge, atualizar baseline incluindo o novo módulo via \`composer module-grades-update-baseline\` ou edição manual de \`governance/module-grades-baseline.json\``,
+                ``,
+                `Justificativa do bloqueio: módulo crítico (Admin/Connector/Arquivos/Essentials) entrando sem nota mínima passava silencioso (gap P1 — ADR 0155 emenda).`
+              ].join('\n');
+            } else if (newAllowed && newCount !== '0') {
+              title = '📊 Module Grades Gate — ✨ módulo(s) novo(s) aprovado(s)';
+              intro = `> Label \`module-grades-new-module-allowed\` aplicada — ${newCount} módulo(s) novo(s) entram na rubrica. Lembrar de atualizar \`governance/module-grades-baseline.json\` pós-merge pra fixar baseline.`;
             } else {
               title = '📊 Module Grades Gate — ✅ all clear';
-              intro = '> Nenhum módulo regrediu vs baseline. (ADR 0155 v3)';
+              intro = '> Nenhum módulo regrediu vs baseline e nenhum módulo novo sem aprovação. (ADR 0155 v3)';
             }
 
-            const body = `## ${title}\n\n${intro}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](../../memory/decisions/0155-rubrica-module-grade-v3.md)._`;
+            const body = `## ${title}\n\n${intro}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](/memory/decisions/0155-rubrica-module-grade-v3.md)._`;
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -230,4 +317,10 @@ jobs:
         if: steps.compare.outputs.fail == '1' && steps.override.outputs.active != 'true'
         run: |
           echo "::error::${{ steps.compare.outputs.regressed }} módulo(s) regrediram vs baseline. Aplique label 'module-grades-allowed-regression' OU atualize governance/module-grades-baseline.json."
+          exit 1
+
+      - name: Falhar build se módulo novo sem override (gap P1 — ADR 0155 emenda)
+        if: steps.compare.outputs.new_blocked == 'true' && steps.override.outputs.new_allowed != 'true'
+        run: |
+          echo "::error::${{ steps.compare.outputs.new_count }} módulo(s) novo(s) detectado(s) sem aprovação. Aplique label 'module-grades-new-module-allowed' pra confirmar entrada na rubrica OU remova/renomeie o módulo se foi acidental."
           exit 1
