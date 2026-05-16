@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Modules\Brief\Http\Requests\BriefFetchToolRequest;
 use Modules\Brief\Services\BriefGeneratorService;
 use Throwable;
 
@@ -27,10 +28,12 @@ final class BriefFetchController
         private readonly BriefGeneratorService $generator,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(BriefFetchToolRequest $request): JsonResponse
     {
+        // BriefFetchToolRequest valida force_refresh (boolean coerce + nullable).
+        // Header X-MCP-Agent-Id e auth Bearer ficam upstream (middleware mcp.auth).
         $agentId = (string) $request->header('X-MCP-Agent-Id', 'unknown');
-        $forceRefresh = (bool) $request->input('force_refresh', false);
+        $forceRefresh = (bool) ($request->validated()['force_refresh'] ?? false);
 
         if ($forceRefresh) {
             $this->guardForceRefresh($agentId);

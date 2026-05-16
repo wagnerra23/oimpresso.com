@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Crm\Services;
 
+use App\Util\OtelHelper;
 use App\Utils\Util;
 use Illuminate\Support\Facades\DB;
 use Modules\Crm\Entities\Schedule;
@@ -55,25 +56,30 @@ class ScheduleService
      */
     public function createFollowUp(array $input, $user): void
     {
-        if (empty($input['is_recursive'])) {
-            $input['start_datetime'] = $this->commonUtil->uf_date($input['start_datetime'], true);
-            $input['end_datetime']   = $this->commonUtil->uf_date($input['end_datetime'], true);
-        }
-
-        DB::beginTransaction();
-        try {
-            if (empty($input['follow_ups']) && empty($input['is_recursive'])) {
-                $this->crmUtil->addFollowUp($input, $user);
-            } elseif (! empty($input['is_recursive'])) {
-                $this->crmUtil->addRecursiveFollowUp($input, $user);
-            } else {
-                $this->crmUtil->addAdvanceFollowUp($input, $user);
+        OtelHelper::spanBiz('crm.schedule.create', function () use (&$input, $user) {
+            if (empty($input['is_recursive'])) {
+                $input['start_datetime'] = $this->commonUtil->uf_date($input['start_datetime'], true);
+                $input['end_datetime']   = $this->commonUtil->uf_date($input['end_datetime'], true);
             }
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
-        }
+
+            DB::beginTransaction();
+            try {
+                if (empty($input['follow_ups']) && empty($input['is_recursive'])) {
+                    $this->crmUtil->addFollowUp($input, $user);
+                } elseif (! empty($input['is_recursive'])) {
+                    $this->crmUtil->addRecursiveFollowUp($input, $user);
+                } else {
+                    $this->crmUtil->addAdvanceFollowUp($input, $user);
+                }
+                DB::commit();
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        }, [
+            'is_recursive' => ! empty($input['is_recursive']),
+            'has_follow_ups' => ! empty($input['follow_ups']),
+        ]);
     }
 
     /**

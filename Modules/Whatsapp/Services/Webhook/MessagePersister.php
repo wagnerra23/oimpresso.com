@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Webhook;
 
+use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
@@ -57,6 +58,21 @@ class MessagePersister
      * @return PersistResult
      */
     public function persist(array $data, bool $bumpUnread = true): PersistResult
+    {
+        return OtelHelper::spanBiz('whatsapp.webhook.message_persist', function () use ($data, $bumpUnread) {
+            return $this->doPersist($data, $bumpUnread);
+        }, [
+            'channel_id' => $this->channel->id,
+            'channel_type' => $this->channel->type,
+            'bump_unread' => $bumpUnread,
+            'is_history_sync' => (bool) ($data['is_history_sync'] ?? false),
+        ]);
+    }
+
+    /**
+     * @internal Implementação real do persist — wrapped por OTel span em persist().
+     */
+    protected function doPersist(array $data, bool $bumpUnread = true): PersistResult
     {
         $msgKey = $data['key'] ?? [];
         $remoteJid = $msgKey['remoteJid'] ?? null;

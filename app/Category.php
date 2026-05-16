@@ -5,10 +5,12 @@ namespace App;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Category extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
     /**
      * The attributes that should be mutated to dates.
      *
@@ -21,6 +23,14 @@ class Category extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->useLogName('category');
+    }
 
     /**
      * Combines Category and sub-category

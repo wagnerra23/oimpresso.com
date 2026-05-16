@@ -3,6 +3,7 @@
 namespace Modules\Manufacturing\Services;
 
 use App\Transaction;
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 
 /**
@@ -24,37 +25,43 @@ class ProductionService
      */
     public function listProductions(int $businessId, array $filters = [], int $perPage = 25): Collection
     {
-        $query = Transaction::query()
-            ->where('business_id', $businessId)
-            ->where('type', 'production_purchase')
-            ->select([
-                'id',
-                'ref_no',
-                'transaction_date',
-                'location_id',
-                'final_total',
-                'mfg_is_final',
-                'mfg_wasted_units',
-                'mfg_production_cost',
-                'status',
-            ]);
+        return OtelHelper::spanBiz('manufacturing.production.list', function () use ($businessId, $filters, $perPage) {
+            $query = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_purchase')
+                ->select([
+                    'id',
+                    'ref_no',
+                    'transaction_date',
+                    'location_id',
+                    'final_total',
+                    'mfg_is_final',
+                    'mfg_wasted_units',
+                    'mfg_production_cost',
+                    'status',
+                ]);
 
-        if (! empty($filters['location_id'])) {
-            $query->where('location_id', $filters['location_id']);
-        }
+            if (! empty($filters['location_id'])) {
+                $query->where('location_id', $filters['location_id']);
+            }
 
-        if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {
-            $query->whereDate('transaction_date', '>=', $filters['start_date'])
-                ->whereDate('transaction_date', '<=', $filters['end_date']);
-        }
+            if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {
+                $query->whereDate('transaction_date', '>=', $filters['start_date'])
+                    ->whereDate('transaction_date', '<=', $filters['end_date']);
+            }
 
-        if (! empty($filters['is_final'])) {
-            $query->where('mfg_is_final', 1);
-        }
+            if (! empty($filters['is_final'])) {
+                $query->where('mfg_is_final', 1);
+            }
 
-        return $query->orderByDesc('transaction_date')
-            ->limit($perPage)
-            ->get();
+            return $query->orderByDesc('transaction_date')
+                ->limit($perPage)
+                ->get();
+        }, [
+            'per_page' => $perPage,
+            'has_location_filter' => ! empty($filters['location_id']),
+            'is_final' => ! empty($filters['is_final']),
+        ]);
     }
 
     /**

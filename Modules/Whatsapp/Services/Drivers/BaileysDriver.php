@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Drivers;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -71,13 +72,18 @@ class BaileysDriver implements DriverInterface
         string $to,
         string $body,
     ): WhatsappSendResult {
-        $response = $this->client($config)
-            ->post("/instances/{$config->baileys_instance_id}/text", [
-                'to' => $this->normalizePhone($to),
-                'text' => $body,
-            ]);
+        return OtelHelper::spanBiz('whatsapp.baileys.send_freeform', function () use ($config, $to, $body) {
+            $response = $this->client($config)
+                ->post("/instances/{$config->baileys_instance_id}/text", [
+                    'to' => $this->normalizePhone($to),
+                    'text' => $body,
+                ]);
 
-        return $this->mapSendResponse($response);
+            return $this->mapSendResponse($response);
+        }, [
+            'instance_id' => $config->baileys_instance_id ?? null,
+            'body_length' => strlen($body),
+        ]);
     }
 
     public function sendMedia(
