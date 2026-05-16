@@ -32,7 +32,8 @@ return new class extends Migration {
                 ->comment('draft|published|archived');
             $table->unsignedBigInteger('root_step_id')->nullable()
                 ->comment('primeiro passo (entry point) — populado após criação');
-            $table->unsignedBigInteger('author_user_id')->nullable();
+            // refs users.id (int unsigned, UltimatePOS legacy)
+            $table->unsignedInteger('author_user_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
