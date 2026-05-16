@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Http\Requests\CancelarNfeRequest;
 use Modules\NfeBrasil\Models\NfeInutilizacao;
 use Modules\NfeBrasil\Services\NfeInutilizacaoService;
 
@@ -95,20 +96,14 @@ class NfeInutilizacaoController extends Controller
      *   UnauthorizedActionException → 403
      *   Falha SEFAZ (RuntimeException) → 502 (Bad Gateway)
      */
-    public function store(Request $request): JsonResponse
+    public function store(CancelarNfeRequest $request): JsonResponse
     {
         $businessId = (int) $request->session()->get('business.id', 0);
         if ($businessId === 0) {
             return response()->json(['error' => 'no_business_context'], 400);
         }
 
-        $validated = $request->validate([
-            'modelo' => ['required', 'string', 'in:55,65'],
-            'serie' => ['required', 'string', 'max:3'],
-            'numero_de' => ['required', 'integer', 'min:1'],
-            'numero_ate' => ['required', 'integer', 'min:1'],
-            'justificativa' => ['required', 'string', 'min:15', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         try {
             $inut = $this->service->inutilizar(

@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsPageMeta;
+use Modules\Cms\Http\Requests\StoreCmsPageRequest;
 
 class CmsPageController extends Controller
 {
@@ -61,8 +62,9 @@ class CmsPageController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreCmsPageRequest $request)
     {
+        // Rules basicas (title obrigatorio, feature_image valida) em StoreCmsPageRequest::rules().
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->commonUtil->notAllowedInDemo();
         if (! empty($notAllowedInDemo)) {
@@ -108,17 +110,28 @@ class CmsPageController extends Controller
     {
         $title = str_replace('-', ' ', $page_title);
 
-        $page = CmsPage::with(['pageMeta'])
-                    ->where('title', $title)
-                    ->first();
+        // Pre-check existência eager (404 deve vir antes de defer pra não vazar shell).
+        $exists = CmsPage::where('title', $title)->exists();
 
-        if (empty($page)) {
+        if (! $exists) {
             abort(404);
         }
 
+        // Inertia::defer: CmsPage::with(['pageMeta']) eager-load relacionamento — pesado.
+        // — RUNBOOK-inertia-defer-pattern.md (skill inertia-defer-default Tier B).
         return Inertia::render('Site/Page', [
-            'page' => $page,
+            'page' => Inertia::defer(fn () => $this->buildPagePayload($title)),
         ]);
+    }
+
+    /**
+     * Payload deferido da página CMS (eager-load pageMeta).
+     */
+    private function buildPagePayload(string $title)
+    {
+        return CmsPage::with(['pageMeta'])
+                    ->where('title', $title)
+                    ->first();
     }
 
     /** Versão Blade legada de /c/page/{slug} — em /c/page/{slug}/old. */

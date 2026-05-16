@@ -30,6 +30,28 @@ class RecurringBillingServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        $this->registerInterPixServices();
+    }
+
+    /**
+     * Registra services Inter PJ PIX cobrança imediata (US-RB-050) + webhook
+     * receiver (US-RB-051). Singleton — InterPixCobrancaService partilha cliente
+     * HTTP mTLS + token cache OAuth entre chamadas do mesmo request.
+     *
+     * Implementação física do service vem em PRs paralelos (M1+M2). Wiring aqui
+     * registra o binding pra Laravel resolver via container. Multi-tenant Tier 0
+     * IRREVOGÁVEL (ADR 0093): credenciais lidas SEMPRE de `rb_boleto_credentials`
+     * por `business_id`, NUNCA de `config('services.inter')`. Config aqui é só
+     * shared infra (api_base_url, paths default).
+     */
+    protected function registerInterPixServices(): void
+    {
+        $serviceClass = 'Modules\\RecurringBilling\\Services\\Inter\\InterPixCobrancaService';
+
+        if (class_exists($serviceClass)) {
+            $this->app->singleton($serviceClass);
+        }
     }
 
     /**

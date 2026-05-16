@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\KB\Entities\KbDecisionTree;
 use Modules\KB\Entities\KbDecisionTreeStep;
+use Modules\KB\Http\Requests\StoreDecisionTreeRequest;
 
 /**
  * KbDecisionTreeController — troubleshooters (Q→Sim/Não→Q'/Fix).
@@ -54,25 +55,20 @@ class KbDecisionTreeController extends Controller
         return response()->json(['tree' => $tree]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreDecisionTreeRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'title'       => 'required|string|max:180',
-            'slug'        => 'nullable|string|max:120',
-            'equip'       => 'nullable|string|max:80',
-            'when_to_use' => 'nullable|string|max:500',
-            'hue'         => 'nullable|integer|min:0|max:360',
-            'status'      => 'sometimes|string|in:draft,published',
-            'steps'       => 'required|array|min:1',
-            'steps.*.question'         => 'required|string|max:500',
-            'steps.*.yes_next_position' => 'nullable|integer|min:1',
-            'steps.*.yes_fix'          => 'nullable|string',
-            'steps.*.yes_fix_node_id'  => 'nullable|integer|exists:kb_nodes,id',
-            'steps.*.no_next_position' => 'nullable|integer|min:1',
-            'steps.*.no_fix'           => 'nullable|string',
-            'steps.*.no_fix_node_id'   => 'nullable|integer|exists:kb_nodes,id',
-        ]);
+        // Validation via StoreDecisionTreeRequest (D8.c Security 2026-05-16) — rules
+        // idênticas ao inline original; authorize() reusa 'copiloto.mcp.memory.manage'.
+        return $this->createTreeFromData($request->validated());
+    }
 
+    /**
+     * Core de criação reutilizado por store() e update() (replace strategy V1).
+     *
+     * @param  array<string, mixed>  $data  Validated payload (mesma shape de StoreDecisionTreeRequest::rules()).
+     */
+    private function createTreeFromData(array $data): JsonResponse
+    {
         $tree = DB::transaction(function () use ($data) {
             $tree = KbDecisionTree::create([
                 'title'          => $data['title'],
@@ -144,25 +140,35 @@ class KbDecisionTreeController extends Controller
         $tree = KbDecisionTree::query()->where('slug', $slug)->firstOrFail();
 
         $data = $request->validate([
-            'title'       => 'sometimes|string|max:180',
-            'equip'       => 'nullable|string|max:80',
-            'when_to_use' => 'nullable|string|max:500',
-            'hue'         => 'nullable|integer|min:0|max:360',
-            'status'      => 'sometimes|string|in:draft,published,archived',
-            'steps'       => 'nullable|array',
+            'title'                     => 'sometimes|string|max:180',
+            'equip'                     => 'nullable|string|max:80',
+            'when_to_use'               => 'nullable|string|max:500',
+            'hue'                       => 'nullable|integer|min:0|max:360',
+            'status'                    => 'sometimes|string|in:draft,published,archived',
+            'steps'                     => 'nullable|array',
+            'steps.*.question'          => 'required_with:steps|string|max:500',
+            'steps.*.yes_next_position' => 'nullable|integer|min:1',
+            'steps.*.yes_fix'           => 'nullable|string',
+            'steps.*.yes_fix_node_id'   => 'nullable|integer|exists:kb_nodes,id',
+            'steps.*.no_next_position'  => 'nullable|integer|min:1',
+            'steps.*.no_fix'            => 'nullable|string',
+            'steps.*.no_fix_node_id'    => 'nullable|integer|exists:kb_nodes,id',
         ]);
 
         DB::transaction(function () use ($tree, $data) {
             $tree->fill(array_filter($data, fn ($k) => $k !== 'steps', ARRAY_FILTER_USE_KEY))->save();
 
             if (isset($data['steps']) && is_array($data['steps'])) {
-                // Re-create steps via store() — esvazia primeiro.
+                // Re-create steps via createTreeFromData() — esvazia primeiro.
                 $tree->root_step_id = null;
                 $tree->save();
                 KbDecisionTreeStep::where('tree_id', $tree->id)->delete();
                 // TODO[CL]: refatorar pra repos compartilhado entre store() e update() — V2.
-                $request->merge(['title' => $tree->title, 'slug' => $tree->slug, 'steps' => $data['steps']]);
-                $this->store($request);
+                $this->createTreeFromData([
+                    'title' => $tree->title,
+                    'slug'  => $tree->slug,
+                    'steps' => $data['steps'],
+                ]);
             }
         });
 

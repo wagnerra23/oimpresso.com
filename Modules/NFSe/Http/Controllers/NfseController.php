@@ -7,9 +7,8 @@ use App\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\Exceptions\NfseException;
-use Modules\NFSe\Jobs\EmitirNfseJob;
+use Modules\NFSe\Http\Requests\StoreNfseRequest;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
@@ -22,12 +21,23 @@ class NfseController extends Controller
     public function __construct(private readonly NfseEmissaoService $service) {}
 
     // US-NFSE-008: listagem
+    //
+    // `notas` (paginate 25) usa `Inertia::defer()` pra pular execução em
+    // partial reloads que pedem `only:['filters']`. Skill `inertia-defer-default`.
     public function index(Request $request)
     {
         $this->authorize('nfse.view');
 
         $filters = $request->only(['status', 'de', 'ate', 'q']);
 
+        return Inertia::render('Nfse/Index', [
+            'notas'   => Inertia::defer(fn () => $this->buildNotasPayload($filters)),
+            'filters' => $filters,
+        ]);
+    }
+
+    private function buildNotasPayload(array $filters)
+    {
         $query = NfseEmissao::latest('competencia');
 
         if (!empty($filters['status'])) {
@@ -47,12 +57,7 @@ class NfseController extends Controller
             });
         }
 
-        $notas = $query->paginate(25)->withQueryString();
-
-        return Inertia::render('Nfse/Index', [
-            'notas'   => $notas,
-            'filters' => $filters,
-        ]);
+        return $query->paginate(25)->withQueryString();
     }
 
     // US-NFSE-009: formulário de emissão
@@ -100,57 +105,16 @@ class NfseController extends Controller
     }
 
     // US-NFSE-006: recebe POST, valida, dispara job assíncrono
-    public function store(Request $request)
+    public function store(StoreNfseRequest $request)
     {
-        $this->authorize('nfse.emit');
+        // Autorização via gate `nfse.emit` + rules ABRASF/Município espelhadas no FormRequest.
+        $data = $request->validated();
 
-        $data = $request->validate([
-            'competencia'     => ['required', 'date_format:Y-m'],
-            'tomador_nome'    => ['required', 'string', 'max:150'],
-            'tomador_cnpj'    => ['nullable', 'string'],
-            'tomador_cpf'     => ['nullable', 'string'],
-            'tomador_email'   => ['nullable', 'email'],
-            'descricao'       => ['required', 'string', 'max:2000'],
-            'lc116_codigo'    => ['required', 'string', 'max:5'],
-            'valor_servicos'  => ['required', 'numeric', 'min:0.01'],
-            'aliquota_iss'    => ['required', 'numeric', 'min:0', 'max:1'],
-            'iss_retido'      => ['boolean'],
-            'transaction_id'  => ['nullable', 'integer'],
-        ]);
+        $businessId = (int) session('user.business_id');
 
-        $businessId = session('user.business_id');
-
-        static $rpsCounter = 0;
-        $rpsNumero = now()->format('YmdHis') . str_pad(++$rpsCounter, 4, '0', STR_PAD_LEFT);
-
-        // Carrega cert do DB para o payload
-        $config = NfseProviderConfig::where('business_id', $businessId)->with('certificado')->first();
-        $certPfxBase64 = $config?->certificado?->pfxDecriptado()
-            ? base64_encode($config->certificado->pfxDecriptado())
-            : null;
-        $certSenha = $config?->certificado?->senhaDecriptada();
-
-        $payload = new NfseEmissaoPayload(
-            businessId: $businessId,
-            rpsNumero: $rpsNumero,
-            competencia: Carbon::createFromFormat('Y-m', $data['competencia']),
-            tomadorNome: $data['tomador_nome'],
-            tomadorCnpj: $data['tomador_cnpj'] ?? null,
-            tomadorCpf: $data['tomador_cpf'] ?? null,
-            tomadorEmail: $data['tomador_email'] ?? null,
-            descricao: $data['descricao'],
-            lc116Codigo: $data['lc116_codigo'],
-            valorServicos: (float) $data['valor_servicos'],
-            aliquotaIss: (float) $data['aliquota_iss'],
-            issRetido: (bool) ($data['iss_retido'] ?? false),
-            certPfxBase64: $certPfxBase64,
-            certSenha: $certSenha,
-            prestadorCnpj: $config?->prestador_cnpj,
-            prestadorIm: $config?->prestador_im,
-            transactionId: !empty($data['transaction_id']) ? (int) $data['transaction_id'] : null,
-        );
-
-        EmitirNfseJob::dispatch($payload)->onQueue('nfse');
+        // Service monta DTO (cert + RPS) + despacha job — Controller fica thin (apenas HTTP/auth/validate)
+        $payload = $this->service->montarPayload($data, $businessId);
+        $this->service->despacharEmissaoAsync($payload);
 
         return redirect()->route('nfse.index')
             ->with('status', [

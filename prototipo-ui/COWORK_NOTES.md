@@ -235,3 +235,34 @@ Fallback aceito se `bg-primary` ficar pesado em densidade alta da lista de conve
 
 [CD] no F1.5 valida bloco A/B zero violações + bloco C 4 kinds funcionando — score perde ≥15 por anti-pattern reaparecido, ≥10 por kind IA ausente.
 
+---
+
+## [W → CC] Amendment Cockpit V2.1 — fechar 8 refinos pra F1.5 ≥80 (2026-05-15)
+
+**Quem:** Wagner [W] + Claude Code [CL], pós CRITIQUE 78/100 do `chat-jana.jsx` (export 2026-05-15) + decisão Wagner caminho A (pivot Cowork aceito).
+
+**Motivação:** Cowork pivotou no export 2026-05-15 — entregou `chat-jana.jsx` (Cockpit do Analista IA · brief diário + KPIs + análises + ações HITL · com aba IA single-thread) em vez de V2 do chat 2-col que o amendment-block-renderer pedia. **Pivot é correto**: Caixa Unificada V4 (`/atendimento/caixa-unificada`) já cumpre paradigma 2-col humano omnichannel — refazer outro 2-col em `/jana/` duplicaria conceito. Charter [`Cockpit.charter.md`](../resources/js/Pages/Jana/Cockpit.charter.md) (NOVO 2026-05-15) fixa destino. F1.5 score interim **78/100** — gate ≥80, 1 round refator necessário.
+
+**Documento completo:** [`COWORK_NOTES.amendment-cockpit-v2.1-refinos.md`](COWORK_NOTES.amendment-cockpit-v2.1-refinos.md) — 8 refinos com snippets executáveis (CSS + JSX + JS) + critério F1.5 ponderado por categoria + checklist itens INALTERADOS (não rebobinar dashboard).
+
+### Resumo executivo dos 8 refinos (~3-4h Cowork)
+
+1. **A1** — `JanaAvatar` quadrado mono primary letra "J" (substitui gradient + emoji 🤖)
+2. **A3** — bubbles `rounded-md` simétricos (remove tail asimétrico WhatsApp-style)
+3. **A5+A2** — `mock-stream.js` SSE fake + chip "Jana está pensando" (resolve typing automático)
+4. **B7** — keydown listener `/` `J/K` `Esc` filtrado por focus
+5. **C1** — switch 4 kinds bubble (`markdown` + `tool_use` + `data_table` + `action_card`) + 4 componentes
+6. **C2** — citations inline `[1]` clicáveis (parser regex no markdown)
+7. **C4** — PII detector regex CPF/CNPJ/cartão no composer + chip amber
+8. **C7** — markdown render mais robusto (cobre bold/italic/link/code · documenta troca por react-markdown na F3)
+
+### Próxima ação
+
+[CC] aplica os 8 refinos no `chat-jana.jsx` + `chat-jana.css` + cria `mock-stream.js`. Não toca dashboard tab (lista §3 INALTERADOS no doc completo). Score esperado pós-refator: **~90/100**.
+
+[CD] no F1.5 valida zero violações Bloco A + 4 kinds funcionando + streaming + PII chip + atalhos. Itens dashboard INALTERADOS (regressão zero).
+
+[W2] aprovação F2 com checklist visual (10 itens · doc §5).
+
+[CL] F3 só depois F2 — substitui `Cockpit.tsx` in-place + sub-componentes em `Pages/Jana/_components/Cockpit/` + 7 Pest GUARDs (R-JANA-COCKPIT-001..007 spec no charter).
+

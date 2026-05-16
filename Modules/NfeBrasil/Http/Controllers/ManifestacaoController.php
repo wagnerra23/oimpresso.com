@@ -34,31 +34,51 @@ class ManifestacaoController extends Controller
 
     /**
      * GET /nfe-brasil/manifestacao
+     *
+     * Props caras (`itens` paginate, `kpis` 3 counts, `nsuState`) usam
+     * `Inertia::defer()` pra pular execução em partial reloads que pedem
+     * `only:['filters']`/`['permissions']`. Skill `inertia-defer-default`.
      */
     public function index(Request $request): Response
     {
         abort_unless($this->canView(), 403);
 
         $businessId = (int) session('user.business_id');
+        $statusFilter = $request->string('status')->toString();
+        $qFilter = trim($request->string('q')->toString());
 
+        return Inertia::render('NfeBrasil/Manifestacao/Index', [
+            'itens'    => Inertia::defer(fn () => $this->buildItensPayload($statusFilter, $qFilter)),
+            'kpis'     => Inertia::defer(fn () => $this->buildKpisPayload($businessId)),
+            'nsuState' => Inertia::defer(fn () => $this->buildNsuStatePayload($businessId)),
+            'filters'  => [
+                'status' => $statusFilter ?: null,
+                'q'      => $qFilter ?: null,
+            ],
+            'permissions' => [
+                'canManage' => $this->canManage(),
+            ],
+        ]);
+    }
+
+    private function buildItensPayload(string $statusFilter, string $qFilter)
+    {
         $query = NfeDfeRecebido::query()
             ->orderByRaw('CASE WHEN status_manifestacao = "pendente" THEN 0 ELSE 1 END')
             ->orderBy('prazo_confirmacao_em', 'asc');
 
-        if ($status = $request->string('status')->toString()) {
-            $query->where('status_manifestacao', $status);
+        if ($statusFilter !== '') {
+            $query->where('status_manifestacao', $statusFilter);
         }
-        if ($q = trim($request->string('q')->toString())) {
-            $query->where(function ($w) use ($q) {
-                $w->where('cnpj_emitente', 'like', "%{$q}%")
-                  ->orWhere('nome_emitente', 'like', "%{$q}%")
-                  ->orWhere('chave_44', 'like', "%{$q}%");
+        if ($qFilter !== '') {
+            $query->where(function ($w) use ($qFilter) {
+                $w->where('cnpj_emitente', 'like', "%{$qFilter}%")
+                  ->orWhere('nome_emitente', 'like', "%{$qFilter}%")
+                  ->orWhere('chave_44', 'like', "%{$qFilter}%");
             });
         }
 
-        $itens = $query->paginate(50)->withQueryString();
-
-        $itensFormatados = $itens->through(fn (NfeDfeRecebido $dfe) => [
+        return $query->paginate(50)->withQueryString()->through(fn (NfeDfeRecebido $dfe) => [
             'id'                   => $dfe->id,
             'chave_44'             => $dfe->chave_44,
             'cnpj_emitente'        => $dfe->cnpj_emitente,
@@ -70,8 +90,11 @@ class ManifestacaoController extends Controller
             'prazo_confirmacao_em' => optional($dfe->prazo_confirmacao_em)?->toDateString(),
             'dias_ate_prazo'       => $dfe->diasAtePrazoConfirmacao(),
         ]);
+    }
 
-        $kpis = [
+    private function buildKpisPayload(int $businessId): array
+    {
+        return [
             'pendentes'        => NfeDfeRecebido::where('business_id', $businessId)
                 ->where('status_manifestacao', 'pendente')->count(),
             'vencendo_7d'      => NfeDfeRecebido::where('business_id', $businessId)
@@ -83,25 +106,19 @@ class ManifestacaoController extends Controller
                 ->whereBetween('manifestado_em', [now()->startOfMonth(), now()->endOfMonth()])
                 ->count(),
         ];
+    }
 
+    private function buildNsuStatePayload(int $businessId): ?array
+    {
         $nsuState = NfeDfeNsuState::where('business_id', $businessId)->first();
-
-        return Inertia::render('NfeBrasil/Manifestacao/Index', [
-            'itens' => $itensFormatados,
-            'filters' => [
-                'status' => $request->string('status')->toString() ?: null,
-                'q'      => $request->string('q')->toString() ?: null,
-            ],
-            'kpis' => $kpis,
-            'nsuState' => $nsuState ? [
-                'last_nsu'         => (int) $nsuState->last_nsu,
-                'ultimo_check_em'  => optional($nsuState->ultimo_check_em)?->toIso8601String(),
-                'ultimo_lote_count' => (int) $nsuState->ultimo_lote_count,
-            ] : null,
-            'permissions' => [
-                'canManage' => $this->canManage(),
-            ],
-        ]);
+        if (! $nsuState) {
+            return null;
+        }
+        return [
+            'last_nsu'          => (int) $nsuState->last_nsu,
+            'ultimo_check_em'   => optional($nsuState->ultimo_check_em)?->toIso8601String(),
+            'ultimo_lote_count' => (int) $nsuState->ultimo_lote_count,
+        ];
     }
 
     /**

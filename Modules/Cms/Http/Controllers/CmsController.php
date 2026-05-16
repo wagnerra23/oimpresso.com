@@ -8,7 +8,9 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsSiteDetail;
+use Modules\Cms\Http\Requests\SubmitContactFormRequest;
 use Modules\Cms\Notifications\NewLeadGeneratedNotification;
+use Modules\Cms\Services\SiteContentService;
 use Modules\Cms\Utils\CmsUtil;
 use Notification;
 
@@ -20,14 +22,20 @@ class CmsController extends Controller
     protected $cmsUtil;
 
     /**
+     * Service de conteúdo do site público (D4.a SoC brutal — ADR 0094 §5).
+     */
+    protected SiteContentService $siteContent;
+
+    /**
      * Constructor
      *
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(CmsUtil $cmsUtil)
+    public function __construct(CmsUtil $cmsUtil, SiteContentService $siteContent)
     {
         $this->cmsUtil = $cmsUtil;
+        $this->siteContent = $siteContent;
     }
 
     /**
@@ -39,17 +47,8 @@ class CmsController extends Controller
     {
         // PR2: hidratar Hero/Features/SocialProof a partir destes dados
         // (atualmente Pages/Site/Home.tsx tem copy hardcoded em PT-BR pra acelerar PR1)
-        $testimonials = $this->cmsUtil->getPageByType('testimonial');
-        $page = $this->cmsUtil->getPageByLayout('home');
-        $faqs = CmsSiteDetail::getValue('faqs');
-        $statistics = CmsSiteDetail::getValue('statistics');
-
-        return Inertia::render('Site/Home', [
-            'testimonials' => $testimonials,
-            'page' => $page,
-            'faqs' => $faqs,
-            'statistics' => $statistics,
-        ]);
+        // Payload extraído pra SiteContentService — ver charter Site/Home.charter.md
+        return Inertia::render('Site/Home', $this->siteContent->getHomePayload());
     }
 
     /**
@@ -135,14 +134,22 @@ class CmsController extends Controller
 
     public function getBlogList()
     {
-        $posts = CmsPage::where('type', 'blog')
+        // Inertia::defer: query CmsPage::where()->get() (eager full table scan blogs)
+        // — RUNBOOK-inertia-defer-pattern.md (ADR 0094 §5 SoC + skill inertia-defer-default).
+        return Inertia::render('Site/Blogs', [
+            'posts' => Inertia::defer(fn () => $this->buildBlogListPayload()),
+        ]);
+    }
+
+    /**
+     * Payload deferido da lista de blogs (closure executada só quando frontend pede).
+     */
+    private function buildBlogListPayload()
+    {
+        return CmsPage::where('type', 'blog')
                     ->orderBy('priority', 'asc')
                     ->where('is_enabled', 1)
                     ->get();
-
-        return Inertia::render('Site/Blogs', [
-            'posts' => $posts,
-        ]);
     }
 
     /** Versão Blade legada de /c/blogs — em /c/blogs/old durante a transição. */
@@ -159,15 +166,24 @@ class CmsController extends Controller
 
     public function viewBlog(Request $request)
     {
+        // Resolve id eager (precisa pra findOrFail throw 404 antes da defer).
         $id = $this->cmsUtil->findIdFromGivenUrl($request->url());
 
-        $post = CmsPage::where('type', 'blog')
+        // Inertia::defer: query CmsPage com findOrFail diferida pro after-shell paint.
+        // — RUNBOOK-inertia-defer-pattern.md.
+        return Inertia::render('Site/BlogPost', [
+            'post' => Inertia::defer(fn () => $this->buildBlogPostPayload($id)),
+        ]);
+    }
+
+    /**
+     * Payload deferido do blog post individual.
+     */
+    private function buildBlogPostPayload(int $id)
+    {
+        return CmsPage::where('type', 'blog')
                     ->where('is_enabled', 1)
                     ->findOrFail($id);
-
-        return Inertia::render('Site/BlogPost', [
-            'post' => $post,
-        ]);
     }
 
     /** Versão Blade legada de /c/blog/{slug}-{id} — em /c/blog/{slug}-{id}/old. */
@@ -191,7 +207,7 @@ class CmsController extends Controller
             ->with(compact('page'));
     }
 
-    public function postContactForm(Request $request)
+    public function postContactForm(SubmitContactFormRequest $request)
     {
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->cmsUtil->notAllowedInDemo();
@@ -201,7 +217,9 @@ class CmsController extends Controller
 
         if ($request->ajax()) {
             try {
-                $lead_details = $request->only(['name', 'mobile', 'email', 'message']);
+                // SubmitContactFormRequest ja validou + sanitizou (trim/honeypot)
+                $lead_details = $request->validated();
+                unset($lead_details['_gotcha']);
 
                 $recipient = CmsSiteDetail::getValue('notifiable_email');
 

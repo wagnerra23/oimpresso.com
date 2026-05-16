@@ -1,3 +1,12 @@
+---
+module: ADS
+na_justified:
+  D6.b: "ADS é meta-sistema dormente (ARQ-0011 aguardando S5 ~jul/2026 — ver ADR 0105 cliente como sinal qualificado). p99 <500ms via OTel N/A enquanto módulo não está em prod ativa — sem tráfego pra medir."
+  D6.c: "ADS Brain A roda no CT 100 (Node.js daemon), Brain B é Anthropic API. Hostinger expõe APENAS POST /api/ads/route (síncrono ~50ms). Não há queries paginate/eager-load com risco N+1 — ADS é firewall de decisão, não CRUD."
+  D9.b: "ADS pre-S5 não tem jobs assíncronos Horizon — Brain B chamadas via cron `ads:process-brain-b` artisan direto. failed_jobs N/A enquanto pipeline não ativa (ADR 0105 dormant)."
+related_adrs: [0105, 0153, 0154]
+---
+
 # ADS — Adaptive Decision System
 
 > Módulo Laravel: `Modules/ADS/` (a criar)

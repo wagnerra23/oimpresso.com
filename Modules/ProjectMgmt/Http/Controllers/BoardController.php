@@ -60,71 +60,7 @@ class BoardController extends Controller
 
         $colunas = config('projectmgmt.kanban_columns', ['backlog', 'todo', 'doing', 'review', 'done']);
 
-        // Query base — tasks NÃO canceladas e dentro das colunas visíveis (+ blocked como overlay)
-        $statusVisiveis = array_merge($colunas, ['blocked']);
-
-        $baseQ = McpTask::query()
-            ->when($project, fn ($q) => $q->where('project_id', $project->id))
-            ->when($cycleFoco, fn ($q) => $q->where('cycle_id', $cycleFoco->id))
-            ->when($epicId, fn ($q) => $q->where('epic_id', $epicId))
-            ->when($componente, fn ($q) => $q->where('component_id', $componente))
-            ->when($owner, fn ($q) => $q->where('owner', $owner))
-            ->whereIn('status', $statusVisiveis)
-            ->orderByRaw("FIELD(priority,'p0','p1','p2','p3','')")
-            ->orderBy('due_date')
-            ->orderBy('task_id');
-
-        $tasks = $baseQ->get()->map(fn (McpTask $t) => $this->serializeTask($t));
-
-        // Agrupa por status (blocked entra na coluna onde estava antes — mas como
-        // mcp_tasks não guarda "previous status", deixa em todo + flag is_blocked)
-        $kanban = [];
-        foreach ($colunas as $col) {
-            $kanban[$col] = $tasks->where('status', $col)->values()->all();
-        }
-        // Bloqueadas: jogamos em `todo` por default e marcamos. Se Wagner achar
-        // ruim no uso, abrimos coluna própria via config.
-        $bloqueadas = $tasks->where('status', 'blocked')->map(function ($t) {
-            $t['is_blocked'] = true;
-            return $t;
-        })->values()->all();
-        $kanban['todo'] = array_merge($bloqueadas, $kanban['todo'] ?? []);
-
-        // Filtros disponíveis (apenas do projeto em foco)
-        $epics = $project
-            ? McpEpic::where('project_id', $project->id)
-                ->whereIn('status', ['planning', 'active'])
-                ->orderBy('sort_order')
-                ->orderBy('key')
-                ->get()
-                ->map(fn ($e) => ['id' => $e->id, 'key' => $e->key, 'title' => $e->title])
-                ->all()
-            : [];
-
-        $cycles = $project
-            ? McpCycle::where('project_id', $project->id)
-                ->whereIn('status', ['planning', 'active'])
-                ->orderBy('start_date', 'desc')
-                ->get()
-                ->map(fn ($c) => [
-                    'id'       => $c->id,
-                    'key'      => $c->key,
-                    'name'     => $c->name,
-                    'status'   => $c->status,
-                    'is_active' => $c->status === 'active',
-                ])
-                ->all()
-            : [];
-
-        $owners = McpTask::query()
-            ->when($project, fn ($q) => $q->where('project_id', $project->id))
-            ->whereNotNull('owner')
-            ->distinct()
-            ->orderBy('owner')
-            ->pluck('owner')
-            ->all();
-
-        // Header context: cycle ativo + goal + progresso
+        // Header context: cycle ativo + goal + progresso (cheap — props eager)
         $cycleHeader = null;
         if ($cycleFoco) {
             $cycleHeader = [
@@ -140,14 +76,14 @@ class BoardController extends Controller
             ];
         }
 
-        // KPIs globais (em cima do filtro atual — útil pro topo)
-        $kpis = [
-            'total'     => $tasks->whereNotIn('status', ['cancelled'])->count(),
-            'doing'     => $tasks->where('status', 'doing')->count(),
-            'review'    => $tasks->where('status', 'review')->count(),
-            'blocked'   => $tasks->where('status', 'blocked')->count(),
-            'p0_aberto' => $tasks->where('priority', 'p0')->whereNotIn('status', ['done', 'cancelled'])->count(),
-        ];
+        // RUNBOOK-inertia-defer-pattern.md — defer props caras (queries SQL pesadas).
+        // Filtros UI state (cycleId/epicId/etc), config static, e cycleHeader pré-computado
+        // ficam eager. Kanban+kpis compartilham $tasks (1 query) — agrupados em 1 closure.
+        // epics/cycles/owners são queries independentes — closures separadas pra partial reload.
+        $projectId       = $project?->id;
+        $projectKey      = $project?->key;
+        $cycleFocoId     = $cycleFoco?->id;
+        $statusVisiveis  = array_merge($colunas, ['blocked']);
 
         return Inertia::render('ProjectMgmt/Board/Index', [
             'project' => $project ? [
@@ -156,20 +92,119 @@ class BoardController extends Controller
                 'name' => $project->name,
             ] : null,
             'cycle'   => $cycleHeader,
-            'kanban'  => $kanban,
-            'kpis'    => $kpis,
+            'kanban'  => Inertia::defer(fn () => $this->buildKanbanPayload(
+                $projectId, $cycleFocoId, $epicId, $componente, $owner, $colunas, $statusVisiveis
+            )['kanban']),
+            'kpis'    => Inertia::defer(fn () => $this->buildKanbanPayload(
+                $projectId, $cycleFocoId, $epicId, $componente, $owner, $colunas, $statusVisiveis
+            )['kpis']),
             'columns' => $colunas,
-            'epics'   => $epics,
-            'cycles'  => $cycles,
-            'owners'  => $owners,
+            'epics'   => Inertia::defer(fn () => $this->buildEpicsPayload($projectId)),
+            'cycles'  => Inertia::defer(fn () => $this->buildCyclesPayload($projectId)),
+            'owners'  => Inertia::defer(fn () => $this->buildOwnersPayload($projectId)),
             'filters' => [
-                'project'   => $project?->key,
-                'cycle'     => $cycleFoco?->id,
+                'project'   => $projectKey,
+                'cycle'     => $cycleFocoId,
                 'epic'      => $epicId,
                 'component' => $componente,
                 'owner'     => $owner,
             ],
         ]);
+    }
+
+    /**
+     * Constrói kanban (tasks agrupadas por status) + kpis.
+     * Compartilham mesma query $tasks — chamados juntos em 1 closure quando ambos requested.
+     * @return array{kanban: array<string,array<int,array<string,mixed>>>, kpis: array<string,int>}
+     */
+    protected function buildKanbanPayload(
+        ?int $projectId,
+        ?int $cycleId,
+        ?int $epicId,
+        ?int $componentId,
+        ?string $owner,
+        array $colunas,
+        array $statusVisiveis,
+    ): array {
+        $tasks = McpTask::query()
+            ->when($projectId, fn ($q) => $q->where('project_id', $projectId))
+            ->when($cycleId, fn ($q) => $q->where('cycle_id', $cycleId))
+            ->when($epicId, fn ($q) => $q->where('epic_id', $epicId))
+            ->when($componentId, fn ($q) => $q->where('component_id', $componentId))
+            ->when($owner, fn ($q) => $q->where('owner', $owner))
+            ->whereIn('status', $statusVisiveis)
+            ->orderByRaw("FIELD(priority,'p0','p1','p2','p3','')")
+            ->orderBy('due_date')
+            ->orderBy('task_id')
+            ->get()
+            ->map(fn (McpTask $t) => $this->serializeTask($t));
+
+        $kanban = [];
+        foreach ($colunas as $col) {
+            $kanban[$col] = $tasks->where('status', $col)->values()->all();
+        }
+        $bloqueadas = $tasks->where('status', 'blocked')->map(function ($t) {
+            $t['is_blocked'] = true;
+            return $t;
+        })->values()->all();
+        $kanban['todo'] = array_merge($bloqueadas, $kanban['todo'] ?? []);
+
+        $kpis = [
+            'total'     => $tasks->whereNotIn('status', ['cancelled'])->count(),
+            'doing'     => $tasks->where('status', 'doing')->count(),
+            'review'    => $tasks->where('status', 'review')->count(),
+            'blocked'   => $tasks->where('status', 'blocked')->count(),
+            'p0_aberto' => $tasks->where('priority', 'p0')->whereNotIn('status', ['done', 'cancelled'])->count(),
+        ];
+
+        return ['kanban' => $kanban, 'kpis' => $kpis];
+    }
+
+    /** @return array<int,array{id:int,key:string,title:string}> */
+    protected function buildEpicsPayload(?int $projectId): array
+    {
+        if (! $projectId) {
+            return [];
+        }
+        return McpEpic::where('project_id', $projectId)
+            ->whereIn('status', ['planning', 'active'])
+            ->orderBy('sort_order')
+            ->orderBy('key')
+            ->get()
+            ->map(fn ($e) => ['id' => $e->id, 'key' => $e->key, 'title' => $e->title])
+            ->all();
+    }
+
+    /** @return array<int,array<string,mixed>> */
+    protected function buildCyclesPayload(?int $projectId): array
+    {
+        if (! $projectId) {
+            return [];
+        }
+        return McpCycle::where('project_id', $projectId)
+            ->whereIn('status', ['planning', 'active'])
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->map(fn ($c) => [
+                'id'        => $c->id,
+                'key'       => $c->key,
+                'name'      => $c->name,
+                'status'    => $c->status,
+                'is_active' => $c->status === 'active',
+            ])
+            ->all();
+    }
+
+    /** @return array<int,string> */
+    protected function buildOwnersPayload(?int $projectId): array
+    {
+        return McpTask::query()
+            ->when($projectId, fn ($q) => $q->where('project_id', $projectId))
+            ->whereNotNull('owner')
+            ->distinct()
+            ->orderBy('owner')
+            ->pluck('owner')
+            ->all();
     }
 
     /**

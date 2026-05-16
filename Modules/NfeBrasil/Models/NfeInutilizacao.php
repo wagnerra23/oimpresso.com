@@ -4,6 +4,8 @@ namespace Modules\NfeBrasil\Models;
 
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Inutilização de range de numeração — fechamento legal de "lacuna" na sequência.
@@ -16,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 class NfeInutilizacao extends Model
 {
     use HasBusinessScope;
+    use LogsActivity; // D7 LGPD — audit trail accountability Art. 37. PII fiscal preservada por exceção CONFAZ (PII-LGPD-FISCAL.md)
 
     protected $table = 'nfe_inutilizacoes';
 
@@ -36,5 +39,19 @@ class NfeInutilizacao extends Model
     public function quantidadeNumeros(): int
     {
         return ($this->numero_ate - $this->numero_de) + 1;
+    }
+
+    /**
+     * D7 audit trail (Spatie\Activitylog) — accountability LGPD Art. 37.
+     * Loga status/cstat/justificativa (range numérico já é payload curto, sem PII).
+     * Ver memory/requisitos/NfeBrasil/PII-LGPD-FISCAL.md §3.1
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'cstat', 'numero_de', 'numero_ate', 'justificativa', 'autorizada_em'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('nfe_inutilizacao');
     }
 }

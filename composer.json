@@ -84,7 +84,10 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "Modules/KB/Tests/Helpers.php"
+        ]
     },
     "scripts": {
         "post-root-package-install": [
@@ -103,7 +106,8 @@
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
-        ]
+        ],
+        "module-grades-check": "php artisan module:grade --all --json"
     },
     "config": {
         "preferred-install": "dist",

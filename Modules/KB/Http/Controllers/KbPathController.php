@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\KB\Entities\KbPath;
 use Modules\KB\Entities\KbPathStep;
+use Modules\KB\Http\Requests\StoreKbPathRequest;
 
 /**
  * KbPathController — trilhas de aprendizado (kb_paths + kb_path_steps).
@@ -54,20 +55,11 @@ class KbPathController extends Controller
         return response()->json(['path' => $path]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreKbPathRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'title'       => 'required|string|max:180',
-            'slug'        => 'nullable|string|max:120',
-            'audience'    => 'nullable|string|max:180',
-            'description' => 'nullable|string|max:500',
-            'hue'         => 'nullable|integer|min:0|max:360',
-            'status'      => 'sometimes|string|in:draft,published',
-            'steps'       => 'nullable|array',
-            'steps.*.node_id'   => 'required_with:steps|integer|exists:kb_nodes,id',
-            'steps.*.step_type' => 'sometimes|string|in:leitura,pratica,decisao',
-            'steps.*.note'      => 'nullable|string|max:500',
-        ]);
+        // Validation via StoreKbPathRequest (D8.c Security 2026-05-16) — rules
+        // idênticas ao inline original; authorize() reusa 'copiloto.mcp.memory.manage'.
+        $data = $request->validated();
 
         $path = DB::transaction(function () use ($data) {
             $path = KbPath::create([

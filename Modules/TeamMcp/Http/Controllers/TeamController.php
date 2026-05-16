@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Entities\Mcp\McpQuota;
 use Modules\Jana\Entities\Mcp\McpToken;
+use Modules\TeamMcp\Http\Requests\IssueActorTokenRequest;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -84,11 +85,12 @@ class TeamController extends Controller
     /**
      * Gera token MCP novo pra um user.
      */
-    public function gerarToken(Request $request, int $userId)
+    public function gerarToken(IssueActorTokenRequest $request, int $userId)
     {
-        $request->validate([
-            'note' => 'nullable|string|max:120',
-        ]);
+        // Permission gate `copiloto.mcp.usage.all` ja aplicada no construtor.
+        // IssueActorTokenRequest valida 'note' (nullable|string|max:120) + trim.
+        // Tier 0 segredo (ADR 0081): token raw devolvido APENAS no response, 1x,
+        // jamais logado nem persistido em raw.
         $user = User::findOrFail($userId);
 
         // Usa helper canônico que computa sha256_token corretamente.

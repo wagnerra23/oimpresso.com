@@ -13,7 +13,9 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\Campaign;
 use Modules\Crm\Entities\CrmContact;
+use Modules\Crm\Http\Requests\StoreCampaignRequest;
 use Modules\Crm\Notifications\SendCampaignNotification;
+use Modules\Crm\Services\CampaignService;
 use Notification;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -23,16 +25,19 @@ class CampaignController extends Controller
 
     protected $moduleUtil;
 
+    protected CampaignService $campaignService;
+
     /**
      * Constructor
      *
      * @param  NotificationUtil  $notificationUtil
      * @return void
      */
-    public function __construct(NotificationUtil $notificationUtil, ModuleUtil $moduleUtil)
+    public function __construct(NotificationUtil $notificationUtil, ModuleUtil $moduleUtil, CampaignService $campaignService)
     {
         $this->notificationUtil = $notificationUtil;
         $this->moduleUtil = $moduleUtil;
+        $this->campaignService = $campaignService;
     }
 
     /**
@@ -163,35 +168,31 @@ class CampaignController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreCampaignRequest $request)
     {
+        // Permissão crm_module validada em StoreCampaignRequest::authorize().
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
-            $input = $request->only('name', 'campaign_type', 'subject', 'email_body', 'sms_body');
-
-            $input['business_id'] = $business_id;
-            $input['created_by'] = $request->user()->id;
+            $base = $request->only('name', 'campaign_type', 'subject', 'email_body', 'sms_body');
             $customers = $request->input('contact_id', []);
             $leads = $request->input('lead_id', []);
             $contacts = $request->input('contact', []); //birthday_wishes
-
-            $input['contact_ids'] = array_merge($customers, $leads, $contacts);
-
-            $input['additional_info'] = [
+            $additionalInfo = [
                 'to' => $request->input('to'),
                 'trans_activity' => $request->input('trans_activity'),
                 'in_days' => $request->input('in_days'),
             ];
 
-            DB::beginTransaction();
-
-            $campaign = Campaign::create($input);
-
-            DB::commit();
+            $campaign = $this->campaignService->createCampaign(
+                $base,
+                (int) $business_id,
+                (int) $request->user()->id,
+                $customers,
+                $leads,
+                $contacts,
+                $additionalInfo,
+            );
 
             if ($request->get('send_notification') && ! empty($campaign)) {
                 $this->__sendCampaignNotification($campaign->id, $business_id);
@@ -202,8 +203,6 @@ class CampaignController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            DB::rollBack();
-
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [
@@ -307,15 +306,11 @@ class CampaignController extends Controller
         }
 
         try {
-            $input = $request->only('name', 'campaign_type', 'subject', 'email_body', 'sms_body');
-
+            $base = $request->only('name', 'campaign_type', 'subject', 'email_body', 'sms_body');
             $customers = $request->input('contact_id', []);
             $leads = $request->input('lead_id', []);
             $contacts = $request->input('contact', []); //birthday_wishes
-
-            $input['contact_ids'] = array_merge($customers, $leads, $contacts);
-
-            $input['additional_info'] = [
+            $additionalInfo = [
                 'to' => $request->input('to'),
                 'trans_activity' => $request->input('trans_activity'),
                 'in_days' => $request->input('in_days'),
@@ -329,11 +324,14 @@ class CampaignController extends Controller
 
             $campaign = $query->findOrFail($id);
 
-            DB::beginTransaction();
-
-            $campaign->update($input);
-
-            DB::commit();
+            $campaign = $this->campaignService->updateCampaign(
+                $campaign,
+                $base,
+                $customers,
+                $leads,
+                $contacts,
+                $additionalInfo,
+            );
 
             if ($request->get('send_notification') && ! empty($campaign)) {
                 $this->__sendCampaignNotification($campaign->id, $business_id);
@@ -344,8 +342,6 @@ class CampaignController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (Exception $e) {
-            DB::rollBack();
-
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = [

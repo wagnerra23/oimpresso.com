@@ -1,7 +1,7 @@
 # BRIEFING — Whatsapp / Atendimento
 
 > **Mantido por:** skill `brief-update` (Tier B auto-trigger) + Wagner review
-> **Atualizado:** 2026-05-15 16:00 BRT (inaugural — PRs #871/#873/#875 + defer cross-tela Whatsapp 7 páginas)
+> **Atualizado:** 2026-05-16 (Wave M agent boost — Service facade + 3 charters + governance D3.c/D4)
 > **Próximo update esperado:** quando próximo PR `feat/perf/fix(whatsapp)` mergear
 
 ---
@@ -25,6 +25,8 @@ Inbox omnichannel polimórfico (ADR 0135 Fase 0) — multi-canal por design com 
 | Documentação canon (SPEC + AUDIT-LOG + CAPTERRA + BRIEFING) | **~95%** | 2026-05-15 (BRIEFING inaugural + skill `brief-update` ativa) |
 | Deploy/ops (prod biz=1) | **~100%** | 2026-05-15 (CT 100 Baileys 7.x daemon LIVE 09:00 BRT) |
 | **Perf SPA-feel cross-página** | **~85%** | 2026-05-15 (7 páginas com `Inertia::defer`; JanaTemplates eager OK; outras Pages oimpresso ainda eager) |
+| **Governance D3.c — charter ratio** | **~62%** | 2026-05-16 (6 charters live: Inbox + CaixaUnificada + JanaTemplates + Channels/Index + Macros/Index + Metricas/Index — Wave M boost) |
+| **Governance D4 — Service ratio** | **~75%** | 2026-05-16 (`InboxQueryService` facade adicionado — agrega leituras Inbox/CaixaUnificada/DataController; 22 Services em `Modules/Whatsapp/Services/`) |
 
 ## 3. Capacidades hoje (paridade Chatwoot OSS + ERP-nativo)
 
@@ -121,8 +123,13 @@ Total CYCLE-08: **~30h IA-pair** → score estimado **~96%**.
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-15 16:00 BRT — via skill `brief-update` após sessão Wagner pedir "conferir todas as páginas + Inertia::defer em todos"
-**PRs incorporados:** #871 (F1+F2 Caixa Unificada v4 + governance backfill D-1/D-3/D-11), #873 (D-14 perf Inertia::defer Inbox 300ms→50ms), #875 (governance regras Tier 0 + 2 skills `inertia-defer-default` + `brief-update` + BRIEFING-TEMPLATE), defer cross-tela Whatsapp (7 páginas restantes além do Inbox)
+**Atualizado:** 2026-05-16 — Wave M agent (boost 69→meta 80) — focal gap D4 (Service ratio) + D3.c (charter ratio)
+**Mudanças desta wave:**
+- `Modules/Whatsapp/Services/InboxQueryService.php` — facade THIN sobre 4 leituras compartilhadas (visibleChannelIds / listConversations / listMessages / unreadBadgeForUser). Multi-tenant Tier 0 explícito ($businessId required, sem session()). Compatível Jobs assíncronos. Delega pra Entities existentes — zero regra nova.
+- 3 charters live novos: `resources/js/Pages/Atendimento/{Channels,Macros,Metricas}/Index.charter.md` — Mission/Goals/Non-Goals/UX/Automation/Anti-hooks. Validadas 2026-05-16. Total 6 charters cobertos no Atendimento.
+- BRIEFING table refreshed — 2 dimensões governance acrescentadas (D3.c charter ratio + D4 Service ratio).
+
+**PRs anteriores incorporados:** #871 (F1+F2 Caixa Unificada v4 + governance backfill D-1/D-3/D-11), #873 (D-14 perf Inertia::defer Inbox 300ms→50ms), #875 (governance regras Tier 0 + 2 skills `inertia-defer-default` + `brief-update` + BRIEFING-TEMPLATE), defer cross-tela Whatsapp (7 páginas restantes além do Inbox)
 **Perf SPA-feel cross-página:** 7 telas do módulo agora com `Inertia::defer` — switch página ~50ms validado. JanaTemplates exceção legítima eager (1 query simples, ADR Tier 0 §10 do RUNBOOK).
 **Próximo update esperado:** quando próximo `feat/perf/fix(whatsapp)` mergear (auto-trigger skill `brief-update`)
 **Mantenedor:** Claude (auto via skill) + Wagner (review)

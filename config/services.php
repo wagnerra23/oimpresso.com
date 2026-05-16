@@ -66,4 +66,33 @@ return [
         'refund_enabled' => (bool) env('ASAAS_REFUND_ENABLED', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Inter PJ — shared infra Banking API + PIX (US-RB-045..047, US-RB-050..051)
+    |--------------------------------------------------------------------------
+    |
+    | ⚠️ Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): credenciais por tenant
+    | (client_id/client_secret/cert paths/secret_webhook/chave_pix) ficam em
+    | `rb_boleto_credentials.config_json` criptografadas. NÃO use estas envs
+    | pra credencial real de produção.
+    |
+    | As envs aqui só atendem (a) sandbox local de dev (Wagner cobrança
+    | imediata smoke), (b) ambientes onde só existe 1 tenant (single-instance
+    | self-host), e (c) defaults compartilhados (api_base_url, webhook_hmac
+    | de validação assinatura quando o tenant não cadastrou o seu).
+    |
+    | InterPixCobrancaService (US-RB-050) e InterWebhookController (US-RB-051)
+    | priorizam SEMPRE config_json do BoletoCredential do tenant; estes valores
+    | são fallback dev-only.
+    */
+    'inter' => [
+        'client_id' => env('INTER_CLIENT_ID'),
+        'client_secret' => env('INTER_CLIENT_SECRET'),
+        'certificate_path' => env('INTER_CERT_PATH'),
+        'private_key_path' => env('INTER_KEY_PATH'),
+        'api_base_url' => env('INTER_API_BASE', 'https://cdpj.partners.bancointer.com.br'),
+        'webhook_hmac' => env('INTER_WEBHOOK_HMAC'),
+        'pix_chave' => env('INTER_PIX_CHAVE'),
+    ],
+
 ];

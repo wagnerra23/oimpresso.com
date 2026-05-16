@@ -5,6 +5,8 @@ namespace Modules\Officeimpresso\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
+use Modules\Officeimpresso\Http\Requests\StoreLicencaRequest;
+use Modules\Officeimpresso\Http\Requests\RevokeLicencaRequest;
 use App\Business;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\Package;
@@ -109,17 +111,10 @@ class LicencaComputadorController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreLicencaRequest $request)
     {
-        // Validação dos dados recebidos
-        $validated = $request->validate([
-            'licenca_id' => 'required|exists:licenca,id',
-            'hd' => 'required|unique:licenca_computador,hd',
-            'processador' => 'required',
-            'memoria' => 'required',
-            'versao_exe' => 'required',
-            'bloqueado' => 'boolean',
-        ]);
+        // Validação delegada ao StoreLicencaRequest (D8.c Security)
+        $validated = $request->validated();
 
         // Criação de um novo registro
         $computador = Licenca_Computador::create($validated);
@@ -185,16 +180,16 @@ class LicencaComputadorController extends Controller
         return response()->json(['message' => 'Computador deletado com sucesso'], 200);
     }
 
-    public function toggleBlock($id)
+    public function toggleBlock(RevokeLicencaRequest $request, $id)
     {
         try {
             // Encontra o computador pelo ID
             $licenca = Licenca_Computador::findOrFail($id);
-    
-            // Alterna o status de bloqueio
+
+            // Alterna o status de bloqueio (revoke/restore)
             $licenca->bloqueado = !$licenca->bloqueado;
             $licenca->save();
-    
+
             // Retorna uma mensagem de sucesso
             return redirect()->back()->with('status', 'Status de bloqueio alterado com sucesso.');
         } catch (\Exception $e) {

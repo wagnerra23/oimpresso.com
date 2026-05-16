@@ -1,69 +1,76 @@
-# Especificação funcional — SRS (Software Requirements Specifications)
+---
+module: SRS
+na_justified:
+  D6.b: "SRS é ferramenta interna Wagner — uso raro, sem tráfego que justifique medir p99 OTel <500ms. Instrumentação OTel project-wide pendente. Sucessor natural é MCP server canon (`mcp.oimpresso.com`) — SRS pode ser descontinuado em ADR futura."
+related_adrs: [0093, 0153, 0154]
+---
 
-> **Status:** 🟡 PROPOSTA / placeholder — aguardando Wagner expandir escopo
-> **Origem:** trigger "guarde no cofre" 2026-05-04 (Wagner)
-> **Tipo:** módulo nWidart (`Modules/SRS/`)
-> **Alias provisório:** `srs`
+# SPEC — Modules/SRS
 
-## Visão geral (a confirmar)
+> **Atualizado 2026-05-16:** placeholder de 2026-05-04 substituído por SPEC realista do estado atual. Hipóteses A/B/C/D do placeholder foram resolvidas na prática — módulo virou ferramenta interna Wagner pra ingestão+search de documentação (versão lite do que o MCP server faz hoje).
+>
+> **SRS = Software Requirements System.** Módulo legado de uso interno raro, ingere documentação (PDF/Markdown/HTML), indexa em `docs_evidences` (FULLTEXT MySQL), permite chat assistido sobre o corpus e gera relatórios de validação de requisitos. Usa prefix `memcofre` em algumas tabelas/views por herança da fase anterior (cofre de docs).
 
-Módulo pra **gerenciar Software Requirements Specifications** dentro do oimpresso. Hipóteses de uso a serem validadas com Wagner:
+## Contexto
 
-| Hipótese | Caso |
-|---|---|
-| **A** Specs do PRÓPRIO oimpresso ERP | Substitui/complementa `memory/requisitos/<Mod>/SPEC.md` no git, com UI admin pra editar/versionar |
-| **B** Specs de DESENVOLVIMENTO CUSTOM pra clientes | Gráficas que contratam dev personalizado (templates fiscais, integrações WMS, etc.) — entrega tem SRS formal |
-| **C** Specs de IA/Copiloto | Estrutura formal pras specs que o Copiloto consome/gera (ex.: feature requests do cliente viram SRS) |
-| **D** Outro | Definir |
+- **Stack:** Laravel 13.6 + Blade legacy
+- **Tabelas:** `docs_sources`, `docs_evidences` (FULLTEXT), `docs_requirements`, `docs_links`, `docs_chat_messages`, `docs_pages`, `docs_validation_runs`
+- **Owner:** Wagner (uso interno) — não exposto pra cliente final
+- **Pré-requisito Tier 0:** todas as tabelas têm `business_id` indexado + FK ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- **Sucessor natural:** MCP server canon (`mcp.oimpresso.com`) — SRS pode ser descontinuado em ADR futura
 
-## Decisões pendentes (Wagner decidir)
+## User Stories
 
-1. **Qual hipótese acima?** A/B/C/D
-2. **Multi-tenant?** Specs por `business_id` ou globais (superadmin only)?
-3. **Versionamento?** Append-only (LGPD) ou edit-in-place com histórico?
-4. **Integração com TaskRegistry MCP (ADR 0069)?** SRS gera tasks automaticamente quando aprovada?
-5. **Template padrão?** IEEE 830 / Volere / custom oimpresso?
-6. **Approval workflow?** Quem aprova (cliente, Wagner, gestor)?
-7. **Export/import?** PDF/Markdown/Word? Importar de Notion/Confluence?
+### US-SRS-001 — Cadastrar fonte de documentação (Doc Source)
+**Como** Wagner, **quero** registrar uma fonte de docs (URL/arquivo/pasta), **pra** o sistema saber de onde puxar evidências.
+- Entity: `DocSource` (campos `name`, `kind`, `uri`, `business_id`)
+- Controller: `IngestController::storeSource`
+- Aceite: fonte com `kind=url` aceita HTTPS; `kind=file` aceita PDF/MD/HTML; `business_id` automático
 
-## Personas (provisório)
+### US-SRS-002 — Cadastrar requisito (Requirement) e linkar evidências
+**Como** Wagner, **quero** criar um requirement (texto curto, ex: "LGPD Art. 7º opt-in") e linkar evidências do corpus que o sustentam, **pra** rastrear cobertura.
+- Entity: `DocRequirement` + `DocLink` (M2M com evidence)
+- Aceite: link tem `confidence` (0-100); permite múltiplas evidências por requirement
 
-| Persona | Acesso esperado |
-|---|---|
-| Wagner (superadmin) | CRUD completo + aprovar |
-| Gestor business (cliente) | Ler + comentar specs do próprio business (se hipótese B) |
-| Dev (Felipe/Maiara/Luiz) | Ler specs aprovadas + criar drafts |
+### US-SRS-003 — Ingest job (process source → evidences)
+**Como** Wagner, **quero** rodar `php artisan srs:ingest <source_id>`, **pra** o sistema baixar/parsear/indexar uma fonte e popular `docs_evidences`.
+- Command: `SyncMemoriesCommand` ou `SyncPagesCommand`
+- Service: `RequirementsFileReader` + `MemoryReader`
+- Aceite: ingest idempotente (re-run não duplica); registra run em `docs_validation_runs`; FULLTEXT index aplicado pós-ingest
 
-## User stories (placeholder — preencher após decidir hipótese)
+### US-SRS-004 — Search hybrid (FULLTEXT + chat)
+**Como** Wagner, **quero** buscar evidências por termo natural via FULLTEXT, **pra** encontrar trecho que sustenta um requirement.
+- Controller: `ChatController::search` + `MemoriaController`
+- Service: `ChatAssistant` (consome `docs_evidences` via FULLTEXT `MATCH ... AGAINST`)
+- Aceite: retorna top-K com `score` MySQL native; respeita `business_id` scope
 
-| ID | Título | Status |
-|---|---|---|
-| US-SRS-001 | Criar SRS draft | 🟡 placeholder |
-| US-SRS-002 | Versionar SRS aprovada | 🟡 placeholder |
-| US-SRS-003 | Listar SRS por business | 🟡 placeholder |
-| US-SRS-004 | Export PDF/Markdown | 🟡 placeholder |
-| US-SRS-005 | Aprovar/rejeitar SRS | 🟡 placeholder |
-| US-SRS-006 | Comentários inline | 🟡 placeholder |
-| US-SRS-007 | Gerar tasks automaticamente (TaskRegistry) | 🟡 placeholder |
+### US-SRS-005 — Audit log SRS (validation runs)
+**Como** Wagner, **quero** ver histórico de ingest/validate runs, **pra** auditar quando foi ingerido o quê e se houve erro.
+- Entity: `DocValidationRun` (audit trail)
+- Tela: `DashboardController::index`
+- Aceite: append-only; campos `status`, `started_at`, `finished_at`, `error`, `payload`
 
-## Stack canônica (assumindo padrão oimpresso)
+### US-SRS-006 — Memcofre legacy prefix (compat layer)
+**Como** dev migrando docs antigos, **quero** que rotas/views legadas com prefixo `memcofre` continuem respondendo, **pra** não quebrar bookmarks Wagner.
+- Resource: `Resources/lang/pt/memcofre.php`
+- Routes: alias em `Http/routes.php`
+- Aceite: rotas `memcofre.*` redirecionam pra `srs.*` mantendo querystring
 
-- Laravel 13.6 + PHP 8.4 + Inertia v3 + React 19
-- nWidart laravel-modules (ver [RUNBOOK-criar-modulo](../Infra/RUNBOOK-criar-modulo.md))
-- Multi-tenant via `business_id` global scope (se hipótese B/C)
-- Skill `criar-modulo` ativa quando for criar o scaffold
+## Anti-padrões (NÃO fazer)
 
-## Próximos passos
+- ❌ `withoutGlobalScopes()` em queries de docs — vaza evidência cross-tenant
+- ❌ Apagar `docs_validation_runs` (audit append-only)
+- ❌ DDL direto em `docs_evidences` FULLTEXT — usar migration + `validate-fulltext.sql`
+- ❌ Expor SRS pra cliente externo sem ADR (escopo backoffice Wagner)
+- ❌ Investir em features novas — sucessor MCP server canon já cobre o caso
 
-1. Wagner expande seção "Decisões pendentes" acima
-2. Definir hipótese principal (A/B/C/D)
-3. Preencher user stories com DoD por US
-4. Criar ADR `memory/requisitos/SRS/adr/arq/0001-escopo-srs.md` documentando a decisão
-5. Acionar skill `criar-modulo` ("crie o módulo SRS") → scaffold em `Modules/SRS/`
+## Testes existentes (Wave B)
 
-## Refs
+- `Tests/Feature/MultiTenantIsolationTest.php`
+- `Tests/Feature/ScaffoldTest.php`
+- `Tests/Feature/SmokeRoutesTest.php`
 
-- [RUNBOOK-criar-modulo](../Infra/RUNBOOK-criar-modulo.md) — passo-a-passo do scaffold
-- [ADR 0011 — alinhamento Jana](../../decisions/0011-alinhamento-padrao-jana.md) — imitação canônica
-- [ADR 0069 — TaskRegistry MCP](../../decisions/0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated.md)
-- Specs existentes pra imitar formato: [Copiloto/SPEC.md](../Copiloto/SPEC.md), [PontoWr2/](../PontoWr2/), [NFSe/SPEC.md](../NFSe/SPEC.md)
+## Histórico
+
+- 2026-05-04: SPEC criada como placeholder (hipóteses A/B/C/D pendentes)
+- 2026-05-16: substituída por SPEC realista do estado atual — módulo virou tool interna Wagner (US-SRS-001..006 cobrem o código existente)

@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 // log.delphi aplica a TODO /connector/api/* pra capturar payload + formato
 // de qualquer endpoint que o Delphi bate — facilita mapear novos fluxos
 // e descobrir endpoints que o Delphi usa mas nao estao documentados.
-Route::middleware(['log.delphi', 'auth:api', 'timezone'])->prefix('connector/api')->name('connector.')->group(function () {
+// D8.a Security — throttle:120,1 (120 req/min) em REST API externa Delphi/WR Comercial.
+// auth:api ja garante autenticidade via OAuth; throttle limita abuso (per-token).
+Route::middleware(['throttle:120,1', 'log.delphi', 'auth:api', 'timezone'])->prefix('connector/api')->name('connector.')->group(function () {
     // === DELPHI OImpresso endpoints (restaurado do 3.7 — ADR 0021) ===
     // Fluxo primario: Delphi manda JSON com EMPRESA + LICENCIAMENTO;
     // backend cria/atualiza Business + Licenca_Computador; responde
@@ -106,7 +108,8 @@ Route::middleware(['log.delphi', 'auth:api', 'timezone'])->prefix('connector/api
     Route::get('new_contactapi', [Modules\Connector\Http\Controllers\Api\ProductSellController::class, 'newContactApi'])->name('new_contactapi');
 });
 
-Route::middleware(['log.delphi', 'auth:api', 'timezone'])->prefix('connector/api/crm')->name('connector.crm.')->group(function () {
+// D8.a Security — throttle:120,1 (CRM grupo separado, mesma politica)
+Route::middleware(['throttle:120,1', 'log.delphi', 'auth:api', 'timezone'])->prefix('connector/api/crm')->name('connector.crm.')->group(function () {
     Route::resource('follow-ups', 'Modules\Connector\Http\Controllers\Api\Crm\FollowUpController')->only('index', 'store', 'show', 'update');
 
     Route::get('follow-up-resources', [Modules\Connector\Http\Controllers\Api\Crm\FollowUpController::class, 'getFollowUpResources']);
@@ -116,7 +119,8 @@ Route::middleware(['log.delphi', 'auth:api', 'timezone'])->prefix('connector/api
     Route::post('call-logs', [Modules\Connector\Http\Controllers\Api\Crm\CallLogsController::class, 'saveCallLogs']);
 });
 
-Route::middleware(['log.delphi', 'auth:api', 'timezone'])->prefix('connector/api')->name('connector.fieldforce.')->group(function () {
+// D8.a Security — throttle:120,1 (FieldForce grupo separado, mesma politica)
+Route::middleware(['throttle:120,1', 'log.delphi', 'auth:api', 'timezone'])->prefix('connector/api')->name('connector.fieldforce.')->group(function () {
     Route::get('field-force', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'index']);
     Route::post('field-force/create', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'store']);
     Route::post('field-force/update-visit-status/{id}', [Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'updateStatus']);

@@ -12,6 +12,7 @@ use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Essentials\Entities\EssentialsLeaveType;
 use Modules\Essentials\Notifications\LeaveStatusNotification;
 use Modules\Essentials\Notifications\NewLeaveNotification;
+use Modules\Essentials\Services\LeaveRequestService;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -25,28 +26,24 @@ class EssentialsLeaveController extends Controller
     protected $leave_statuses;
 
     /**
+     * Wave J 2026-05-16: Service thin (D4.a — extrai scope + status map + auth do Controller).
+     * Mantém compat: `$this->leave_statuses` segue acessível, agora populado via Service.
+     *
+     * @see Modules\Essentials\Services\LeaveRequestService
+     */
+    protected LeaveRequestService $leaveService;
+
+    /**
      * Constructor
      *
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(ModuleUtil $moduleUtil)
+    public function __construct(ModuleUtil $moduleUtil, ?LeaveRequestService $leaveService = null)
     {
         $this->moduleUtil = $moduleUtil;
-        $this->leave_statuses = [
-            'pending' => [
-                'name' => __('lang_v1.pending'),
-                'class' => 'bg-yellow',
-            ],
-            'approved' => [
-                'name' => __('essentials::lang.approved'),
-                'class' => 'bg-green',
-            ],
-            'cancelled' => [
-                'name' => __('essentials::lang.cancelled'),
-                'class' => 'bg-red',
-            ],
-        ];
+        $this->leaveService = $leaveService ?? new LeaveRequestService($moduleUtil);
+        $this->leave_statuses = $this->leaveService->statusMap();
     }
 
     /**

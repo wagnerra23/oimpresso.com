@@ -7,6 +7,7 @@ use Modules\Governance\Http\Controllers\DataController;
 use Modules\Governance\Http\Controllers\PoliciesController;
 use Modules\Governance\Http\Controllers\AuditController;
 use Modules\Governance\Http\Controllers\DriftAlertsController;
+use Modules\Governance\Http\Controllers\ModuleGradeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,13 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Drift alerts (Module Charter Art. 7)
         Route::get('/drift', [DriftAlertsController::class, 'index'])
             ->name('drift.index');
+
+        // Module Grades — rubrica module-grade-v1 (ADR 0153)
+        Route::get('/module-grades', [ModuleGradeController::class, 'index'])
+            ->name('module-grades.index');
+        Route::get('/module-grades/{name}', [ModuleGradeController::class, 'show'])
+            ->name('module-grades.show')
+            ->where('name', '[A-Za-z0-9_-]+');
 
         // Install hooks (ADR 0024 — pattern padronizado BaseModuleInstallController)
         Route::get('install',           [InstallController::class, 'index'])

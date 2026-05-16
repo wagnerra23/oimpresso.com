@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
+use Modules\Manufacturing\Http\Requests\StoreRecipeRequest;
+use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -29,18 +31,26 @@ class RecipeController extends Controller
 
     protected $transactionUtil;
 
+    protected $recipeBomService;
+
     /**
      * Constructor
      *
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(ModuleUtil $moduleUtil, ManufacturingUtil $mfgUtil, BusinessUtil $businessUtil, TransactionUtil $transactionUtil)
-    {
+    public function __construct(
+        ModuleUtil $moduleUtil,
+        ManufacturingUtil $mfgUtil,
+        BusinessUtil $businessUtil,
+        TransactionUtil $transactionUtil,
+        RecipeBomService $recipeBomService
+    ) {
         $this->moduleUtil = $moduleUtil;
         $this->mfgUtil = $mfgUtil;
         $this->businessUtil = $businessUtil;
         $this->transactionUtil = $transactionUtil;
+        $this->recipeBomService = $recipeBomService;
     }
 
     /**
@@ -152,12 +162,10 @@ class RecipeController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreRecipeRequest $request)
     {
+        // Permissoes manufacturing_module + add_recipe validadas em StoreRecipeRequest::authorize().
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
             $input = $request->only(['variation_id', 'ingredients', 'total', 'instructions',

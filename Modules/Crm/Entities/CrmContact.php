@@ -5,15 +5,31 @@ namespace Modules\Crm\Entities;
 use App\Contact;
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class CrmContact extends Contact
 {
+    use LogsActivity;
+
     /**
      * The table associated with the model.
      *
      * @var string
      */
     protected $table = 'contacts';
+
+    /**
+     * Auditoria LGPD — registra mudanças em leads/contatos CRM.
+     * D7 LGPD compliance (audit trail append-only via activity_log).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * The member that assigned to the lead.

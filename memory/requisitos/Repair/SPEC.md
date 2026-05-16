@@ -99,3 +99,46 @@ Então recebe `403 Unauthorized`
 
 **Implementação:** Controllers checam `$user->can('repair_status.update')`  
 **Testado em:** `Modules/Repair/Tests/Feature/PermissionsTest` (stub pendente)
+
+### R-REPA-008 · Throttle endpoint público `/repair-status` (Wave 3 D8.a)
+
+```gherkin
+Dado que `/repair-status` é endpoint PÚBLICO (sem auth) que recebe número OS + telefone últimos dígitos
+Quando um IP faz mais de N requests/minuto
+Então recebe 429 Too Many Requests + log estruturado `repair.public_status.checked`
+```
+
+**Implementação proposta (backlog Wave 4):** middleware `throttle:30,1` no grupo top-level que envolve `Route::get('/repair-status', ...)` e `Route::post('/post-repair-status', ...)` em [Modules/Repair/Routes/web.php](../../Modules/Repair/Routes/web.php) linhas 3-4. Hoje SEM throttle explícito — apenas throttle global Laravel via `RouteServiceProvider` (60 req/min padrão).
+**Risco:** scraping massivo de OS expõe pattern de numeração + telefone redact incompleto.
+**Ver:** [PII-LGPD.md §"Pontos críticos"](PII-LGPD.md), [OBSERVABILITY.md §"repair_public_status_abuse"](OBSERVABILITY.md).
+**Testado em:** _(pendente — Pest test 31 requests retorna 429)_
+
+---
+
+## 5. Notas técnicas Wave 3 v3 booster (2026-05-16)
+
+### D6.a · Inertia::defer já adotado em JobSheetController
+
+Auditoria confirma `JobSheetController` já usa `Inertia::defer()` em props pesadas — refactor adicional desnecessário:
+
+| Action | Linha | Defer aplicado em |
+|---|---|---|
+| `create()` | 376 | `options` (statuses + devices + brands + technicians + customers + groups) |
+| `show()` | 550-552 | `parts`, `activities`, `anexos` |
+| `edit()` | 706 | `options` (via `buildJobSheetEditOptions`) |
+
+Pattern alinhado com skill `inertia-defer-default` (Tier B) e [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md). Confirmado por Wave L L2 + auditoria Wave 3.
+
+### D7.a · PiiRedactor herdado (sem código próprio)
+
+Repair NÃO duplica `PiiRedactor` — herda do core (`App\Services\PiiRedactor`). Detalhe em [PII-LGPD.md §2](PII-LGPD.md).
+
+### D7.b · LogsActivity trait em JobSheet
+
+[Entities/JobSheet.php](../../../Modules/Repair/Entities/JobSheet.php) recebeu trait `LogsActivity` Spatie + método `getActivitylogOptions()` listando 8 campos críticos (`status_id`, `service_staff`, `device_id`, `brand_id`, `device_model_id`, `defects`, `completed_on`, `current_stage_id`), com `logOnlyDirty()` + `dontSubmitEmptyLogs()` + `useLogName('repair_job_sheet')`.
+
+Complementa, NÃO substitui, `sale_stage_history` FSM ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)).
+
+### D9.a · OTel herdado
+
+Repair NÃO emite traces/metrics próprios. Herda OTel auto-instrumentação + logs estruturados + health checks do core. Detalhe completo em [OBSERVABILITY.md §"Herança Core"](OBSERVABILITY.md).

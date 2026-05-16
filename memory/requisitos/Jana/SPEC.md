@@ -839,3 +839,26 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 - ADR ui/0114 loop Cowork + ADR 0107 gate F1.5
 
 **Estimate:** 24h total — [CC] V2 (~6h) + [CD] critique (~1h) + [CL] F3 Inertia (~16h IA-pair) + Wagner aprovação (~1h)
+
+---
+
+### US-COPI-106 · Jana V2 demo — tela navegável apresentável a 1 cliente piloto
+
+> owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto apresentado).
+
+**DoD:**
+- [ ] Definir 1 cliente piloto candidato (sugestão: Larissa ROTA LIVRE biz=4 — usuária mais ativa do oimpresso)
+- [ ] Tela Cockpit Analista IA (Modules/Jana — referência F3 Cockpit já mergeada em 39ae79434)
+- [ ] Fluxo navegável: brief diário → consulta memória → conversa → ação (não apenas mockup estático)
+- [ ] Smoke browser MCP biz=1 (ADR 0101) + screenshot salvo em memory/sessions/
+- [ ] Demo session script: 3-5 perguntas Larissa + respostas Jana citando dados reais biz=4
+- [ ] Charter da tela demo `<Tela>.charter.md` ao lado do `.tsx` (Tier A always-on)
+- [ ] Wagner aprova SCREENSHOT antes de demo real ([ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md))
+- **Estimate:** 8h IA-pair (fator 10x ADR 0106 — telas Inertia + Charter + smoke)
+
+---
+
+**Última atualização:** 2026-05-15 — US-COPI-106 adicionada (goal #4 CYCLE-06 Jana V2 demo).

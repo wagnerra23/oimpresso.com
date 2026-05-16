@@ -22,6 +22,7 @@ use Modules\Essentials\Http\Requests\ToDoUploadDocumentRequest;
 use Modules\Essentials\Notifications\NewTaskCommentNotification;
 use Modules\Essentials\Notifications\NewTaskDocumentNotification;
 use Modules\Essentials\Notifications\NewTaskNotification;
+use Modules\Essentials\Services\TodoService;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -49,10 +50,20 @@ class ToDoController extends Controller
 
     protected ModuleUtil $moduleUtil;
 
-    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil)
+    /**
+     * Service thin (Wave J 2026-05-16) — delega scope + parse de data + auth checks.
+     * Mantém compat: métodos protected do Controller (scopedQueryForUser, parseDate,
+     * authorize*) seguem callable e agora repassam pro Service via composição.
+     *
+     * @see Modules\Essentials\Services\TodoService
+     */
+    protected TodoService $todoService;
+
+    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil, ?TodoService $todoService = null)
     {
         $this->commonUtil = $commonUtil;
         $this->moduleUtil = $moduleUtil;
+        $this->todoService = $todoService ?? new TodoService($commonUtil, $moduleUtil);
     }
 
     /**
@@ -426,23 +437,12 @@ class ToDoController extends Controller
     /**
      * Converte a data do input (ISO Y-m-d, opcionalmente com hora) em DATETIME MySQL.
      * Tolera formatos configurados no business via uf_date como fallback.
+     *
+     * Wave J 2026-05-16: delega pro TodoService (D4.a — extrai regra do Controller).
      */
     protected function parseDate(?string $date): ?string
     {
-        if ($date === null || $date === '') {
-            return null;
-        }
-
-        try {
-            return Carbon::parse($date)->format('Y-m-d H:i:s');
-        } catch (\Throwable $e) {
-            // Fallback para formato configurado no business
-            try {
-                return $this->commonUtil->uf_date($date, true);
-            } catch (\Throwable $e2) {
-                return null;
-            }
-        }
+        return $this->todoService->parseDate($date);
     }
 
     protected function authorizeAccess(int $businessId): void
@@ -473,21 +473,13 @@ class ToDoController extends Controller
         }
     }
 
+    /**
+     * Wave J 2026-05-16: delega pro TodoService.
+     * D4.a — extrai scope multi-tenant + visibility do Controller.
+     */
     protected function scopedQueryForUser(int $businessId)
     {
-        $query = ToDo::where('business_id', $businessId);
-        $isAdmin = $this->moduleUtil->is_admin(auth()->user(), $businessId);
-
-        if (! $isAdmin) {
-            $query->where(function ($q) {
-                $q->where('created_by', auth()->user()->id)
-                    ->orWhereHas('users', function ($inner) {
-                        $inner->where('user_id', auth()->user()->id);
-                    });
-            });
-        }
-
-        return $query;
+        return $this->todoService->scopedQueryForUser($businessId, auth()->user());
     }
 
     protected function dropdownUsers(int $businessId): array

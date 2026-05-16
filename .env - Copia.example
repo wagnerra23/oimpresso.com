@@ -186,3 +186,22 @@ GROWTHBOOK_API_HOST=https://growthbook-api.oimpresso.com   # SDK proxy (read)
 # /admin/feature-flags + tools MCP flag-* + artisan flag:* retornam "não configurado".
 GROWTHBOOK_ADMIN_API_HOST=https://growthbook.oimpresso.com/api/v1
 GROWTHBOOK_ADMIN_API_TOKEN=            # secret_admin_xxxxxxxxxxxxx
+
+# === Inter PJ — PIX cobrança imediata + webhook (US-RB-050 + US-RB-051) ===
+# Módulo: Modules/RecurringBilling/Services/Inter  |  owner: wagner
+#
+# ⚠️ Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): credenciais REAIS de produção
+# por tenant vivem em `rb_boleto_credentials.config_json` criptografadas. As
+# envs abaixo servem APENAS pra (a) sandbox local dev/smoke, (b) single-tenant
+# self-host, (c) defaults compartilhados (api_base_url). NUNCA commitar
+# valores reais aqui — PRs Tier 0 IRREVOGÁVEL bloqueiam.
+#
+# Cadastro produção: /financeiro/credenciais → Adicionar Inter PJ → upload
+# cert.crt + key.key + colar client_id/secret/webhook_hmac/pix_chave por tenant.
+INTER_CLIENT_ID=                       # uuid v4 do app PJ — obter em devs.bancointer.com.br
+INTER_CLIENT_SECRET=                   # secret OAuth — NUNCA commitar valor real
+INTER_CERT_PATH=storage/certs/inter-pj-sandbox.crt    # relativo a storage_path()
+INTER_KEY_PATH=storage/certs/inter-pj-sandbox.key     # relativo a storage_path()
+INTER_API_BASE=https://cdpj.partners.bancointer.com.br   # prod (sandbox: https://cdpj-sandbox...)
+INTER_WEBHOOK_HMAC=                    # secret pra validar HMAC SHA-256 do payload webhook
+INTER_PIX_CHAVE=                       # chave PIX recebedora — CNPJ/email/celular

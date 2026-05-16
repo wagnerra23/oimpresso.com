@@ -1,0 +1,156 @@
+# Configuração D5 (Cliente real) da rubrica module-grade-v1 (ADR 0153).
+#
+# Wagner edita manualmente — quando Modules/Brief gerar volume/módulo automático,
+# pode virar source DB (mcp_module_clients table).
+#
+# Níveis (peso D5 = 15 pts):
+#   biz_4_rota_livre_prod   → 15 pts (cliente piloto produção)
+#   biz_1_wagner_active     → 10 pts (Wagner usa diário)
+#   piloto_reportando_dor   →  8 pts (sinal qualificado ADR 0105)
+#   backlog_hipotese        →  3 pts (feature-wish sem cliente)
+#   none                    →  0 pts (ninguém usa — descontinuar?)
+#
+# Formato:
+#   <ModuleName>:
+#     level: <nivel>
+#     note: <observação curta>
+
+Vestuario:
+  level: biz_4_rota_livre_prod
+  note: Larissa @ ROTA LIVRE 99% volume vendas (cliente piloto canônico)
+
+Whatsapp:
+  level: biz_1_wagner_active
+  note: Wagner biz=1 ativo + ROTA LIVRE potencial
+
+Jana:
+  level: biz_1_wagner_active
+  note: Wagner usa Jana diário + Larissa via BriefDiario
+
+Repair:
+  level: biz_1_wagner_active
+  note: Wagner biz=1 + Martinho CYCLE-06 prod candidato
+
+Sells:
+  level: biz_4_rota_livre_prod
+  note: ROTA LIVRE PDV principal (Sells/Create.tsx)
+
+NfeBrasil:
+  level: biz_1_wagner_active
+  note: biz=1 + biz=4 emitem NFe ativamente
+
+Financeiro:
+  level: biz_1_wagner_active
+  note: Wagner usa cobrança + Larissa AR/AP
+
+RecurringBilling:
+  level: piloto_reportando_dor
+  note: CYCLE-06 G1 Martinho — Inter PJ ativando
+
+OficinaAuto:
+  level: piloto_reportando_dor
+  note: Martinho Caçambas — sinal qualificado confirmado CYCLE-06
+
+ComunicacaoVisual:
+  level: backlog_hipotese
+  note: candidatos 6 OfficeImpresso saudáveis (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo) — sem sinal qualificado ainda
+
+Crm:
+  level: biz_4_rota_livre_prod
+  note: ROTA LIVRE usa contatos + leads + schedules
+
+KB:
+  level: biz_1_wagner_active
+  note: Wagner uso interno + team MCP futuro
+
+Brief:
+  level: biz_1_wagner_active
+  note: Wagner usa brief-fetch diário (Daily Brief)
+
+Ponto:
+  level: piloto_reportando_dor
+  note: clientes legacy WR2 (Eliana) usam ponto eletronico em prod — Wagner valida sinal qualificado 2026-05-16
+
+Officeimpresso:
+  level: piloto_reportando_dor
+  note: bridge Delphi WR Sistemas — 6 clientes saudáveis em migração
+
+Admin:
+  level: biz_1_wagner_active
+  note: Wagner uso interno gates auth
+
+Superadmin:
+  level: biz_1_wagner_active
+  note: Wagner uso interno governança UltimatePOS
+
+Governance:
+  level: biz_1_wagner_active
+  note: Wagner uso interno Constituição v2
+
+Auditoria:
+  level: biz_1_wagner_active
+  note: Wagner uso interno activity_log + RevertService
+
+Arquivos:
+  level: biz_1_wagner_active
+  note: Wagner uso interno + vault encryption
+
+TeamMcp:
+  level: biz_1_wagner_active
+  note: tokens MCP team (Wagner/Felipe/Maiara/Eliana/Luiz)
+
+NFSe:
+  level: piloto_reportando_dor
+  note: pareado NfeBrasil — empresa oimpresso biz=1 homologação SEFIN + candidatos ComVis (Wave J boost 2026-05-16)
+
+Accounting:
+  level: biz_4_rota_livre_prod
+  note: ROTA LIVRE usa contábil UltimatePOS (70 entities core)
+
+Manufacturing:
+  level: piloto_reportando_dor
+  note: ROTA LIVRE recipes vestuário + Martinho receitas oficina
+
+Cms:
+  level: biz_1_wagner_active
+  note: site oimpresso.com.br hidratação Wagner
+
+Essentials:
+  level: biz_4_rota_livre_prod
+  note: ROTA LIVRE usa Todo + HRM UltimatePOS
+
+ProjectMgmt:
+  level: backlog_hipotese
+  note: subset Project — pouco uso
+
+ADS:
+  level: backlog_hipotese
+  note: dual-brain dormente até cliente reportar dor (ADR 0105)
+
+Connector:
+  level: piloto_reportando_dor
+  note: integração Delphi clientes OfficeImpresso
+
+ConsultaOs:
+  level: backlog_hipotese
+  note: mock-only — TODO migrar pra transactions real
+
+SRS:
+  level: backlog_hipotese
+  note: SR legacy — uso interno raro
+
+AssetManagement:
+  level: none
+  note: scaffold UltimatePOS sem uso
+
+Spreadsheet:
+  level: none
+  note: scaffold UltimatePOS sem uso
+
+ProductCatalogue:
+  level: backlog_hipotese
+  note: catálogo público QR — uso pontual
+
+Woocommerce:
+  level: none
+  note: integração externa sem cliente ativo

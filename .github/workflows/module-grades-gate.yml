@@ -1,0 +1,233 @@
+name: Module Grades Gate (anti-regressão)
+
+# Gate CI anti-regressão da rubrica module-grade v3 (ADR 0155).
+# Bloqueia merge se nota de QUALQUER módulo DIMINUIR vs governance/module-grades-baseline.json.
+# Override: aplicar label 'module-grades-allowed-regression' no PR.
+# Comenta delta por módulo (subiu / desceu / igual).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  module-grades-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, bcmath, intl, pdo_mysql, fileinfo
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Copy .env (CI)
+        run: |
+          set -euo pipefail
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          fi
+          php artisan key:generate --ansi || true
+
+      - name: Gerar grades atuais do PR head
+        id: current
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/grades
+          php artisan module:grade --all --json > /tmp/grades/current.json
+          echo "Linhas JSON capturadas:"
+          wc -l /tmp/grades/current.json || true
+
+      - name: Detectar override via label
+        id: override
+        run: |
+          set -euo pipefail
+          labels=$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH" 2>/dev/null || echo "")
+          if echo "$labels" | grep -qx 'module-grades-allowed-regression'; then
+            echo "Label override detectada — gate vai apenas reportar, não bloqueia."
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comparar com baseline
+        id: compare
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          baseline_path="governance/module-grades-baseline.json"
+
+          if [ ! -f "$baseline_path" ]; then
+            echo "::warning::Baseline não encontrada em $baseline_path — primeiro run, criando snapshot lógico (não bloqueia)."
+            echo "fail=0" >> "$GITHUB_OUTPUT"
+            echo "first_run=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "report<<EOF"
+              echo "_Baseline ausente — primeiro run. Commit \`governance/module-grades-baseline.json\` pra ativar o gate._"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Comparação via PHP inline (json parsing robusto + delta por módulo)
+          php -r '
+            $baseline = json_decode(file_get_contents("'"$baseline_path"'"), true);
+            $current = json_decode(file_get_contents("/tmp/grades/current.json"), true);
+
+            if (!is_array($baseline) || !isset($baseline["modules"])) {
+              fwrite(STDERR, "Baseline inválida — chave modules ausente\n");
+              exit(2);
+            }
+
+            // current é array de objetos {module, score, ...}
+            $currentMap = [];
+            foreach ($current as $g) {
+              if (isset($g["module"], $g["score"])) {
+                $currentMap[$g["module"]] = (int) $g["score"];
+              }
+            }
+
+            $baseMap = $baseline["modules"];
+            $rows = [];
+            $regressed = 0;
+            $improved = 0;
+            $stable = 0;
+            $new = 0;
+
+            // Módulos baseline → comparar
+            foreach ($baseMap as $name => $baseScore) {
+              $baseScore = (int) $baseScore;
+              if (!array_key_exists($name, $currentMap)) {
+                $rows[] = ["module" => $name, "base" => $baseScore, "now" => null, "delta" => null, "status" => "removed"];
+                continue;
+              }
+              $now = $currentMap[$name];
+              $delta = $now - $baseScore;
+              if ($delta < 0) { $status = "down"; $regressed++; }
+              elseif ($delta > 0) { $status = "up"; $improved++; }
+              else { $status = "eq"; $stable++; }
+              $rows[] = ["module" => $name, "base" => $baseScore, "now" => $now, "delta" => $delta, "status" => $status];
+            }
+
+            // Módulos novos (presentes só no current)
+            foreach ($currentMap as $name => $now) {
+              if (!array_key_exists($name, $baseMap)) {
+                $rows[] = ["module" => $name, "base" => null, "now" => $now, "delta" => null, "status" => "new"];
+                $new++;
+              }
+            }
+
+            // Ordena: desce primeiro, depois novo, eq, sobe
+            usort($rows, function ($a, $b) {
+              $order = ["down" => 0, "removed" => 1, "new" => 2, "eq" => 3, "up" => 4];
+              return ($order[$a["status"]] ?? 9) <=> ($order[$b["status"]] ?? 9);
+            });
+
+            // Render markdown table
+            $md = "| Módulo | Baseline | Atual | Δ | Status |\n";
+            $md .= "|---|---:|---:|---:|---|\n";
+            $emoji = ["down" => "🔻", "up" => "🟢", "eq" => "⚪", "new" => "✨", "removed" => "⚠️"];
+            foreach ($rows as $r) {
+              $base = $r["base"] === null ? "—" : (string) $r["base"];
+              $now = $r["now"] === null ? "—" : (string) $r["now"];
+              $delta = $r["delta"] === null ? "—" : ($r["delta"] > 0 ? "+" . $r["delta"] : (string) $r["delta"]);
+              $md .= sprintf("| `%s` | %s | %s | %s | %s %s |\n", $r["module"], $base, $now, $delta, $emoji[$r["status"]] ?? "?", $r["status"]);
+            }
+
+            $summary = sprintf("**Resumo:** 🔻 %d regrediram · 🟢 %d melhoraram · ⚪ %d estáveis · ✨ %d novos\n\n", $regressed, $improved, $stable, $new);
+
+            file_put_contents("/tmp/grades/report.md", $summary . $md);
+            file_put_contents("/tmp/grades/regressed_count.txt", (string) $regressed);
+          '
+
+          regressed=$(cat /tmp/grades/regressed_count.txt 2>/dev/null || echo "0")
+          echo "regressed=$regressed" >> "$GITHUB_OUTPUT"
+
+          if [ "$regressed" -gt 0 ]; then
+            echo "fail=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "fail=0" >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "report<<EOF"
+            cat /tmp/grades/report.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comentar resultado no PR
+        if: always() && github.event.pull_request.number != ''
+        uses: actions/github-script@v7
+        env:
+          # via env evita SyntaxError com backticks/pipes na tabela markdown
+          REPORT: ${{ steps.compare.outputs.report }}
+          FAIL: ${{ steps.compare.outputs.fail }}
+          OVERRIDE: ${{ steps.override.outputs.active }}
+          FIRST_RUN: ${{ steps.compare.outputs.first_run }}
+          REGRESSED: ${{ steps.compare.outputs.regressed }}
+        with:
+          script: |
+            const fail = process.env.FAIL === '1';
+            const override = process.env.OVERRIDE === 'true';
+            const firstRun = process.env.FIRST_RUN === 'true';
+            const regressed = process.env.REGRESSED || '0';
+            const report = process.env.REPORT || '_(sem relatório)_';
+
+            let title, intro;
+            if (firstRun) {
+              title = '📊 Module Grades Gate — primeiro run';
+              intro = '> Baseline ausente. Commit `governance/module-grades-baseline.json` pra ativar o gate anti-regressão (ADR 0155 v3).';
+            } else if (override) {
+              title = '📊 Module Grades Gate — ⚠️ override ativo';
+              intro = `> Label \`module-grades-allowed-regression\` aplicada — ${regressed} módulo(s) regrediram, mas merge permitido. Justificar a regressão em ADR ou comentário do PR.`;
+            } else if (fail) {
+              title = '📊 Module Grades Gate — ❌ regressão detectada';
+              intro = [
+                `> **${regressed} módulo(s) com nota MENOR** vs baseline (\`governance/module-grades-baseline.json\`).`,
+                ``,
+                `### Como resolver`,
+                `1. Corrigir o que regrediu (rodar \`composer module-grades-check\` local pra ver dimensões D1-D9)`,
+                `2. OU atualizar baseline conscientemente — editar \`governance/module-grades-baseline.json\` no mesmo PR`,
+                `3. OU aplicar label \`module-grades-allowed-regression\` (registra exceção, exige justificativa em comentário/ADR)`,
+                ``,
+                `Skill helper: [\`.claude/skills/module-grades-gate\`](.claude/skills/module-grades-gate/SKILL.md)`
+              ].join('\n');
+            } else {
+              title = '📊 Module Grades Gate — ✅ all clear';
+              intro = '> Nenhum módulo regrediu vs baseline. (ADR 0155 v3)';
+            }
+
+            const body = `## ${title}\n\n${intro}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](../../memory/decisions/0155-rubrica-module-grade-v3.md)._`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      - name: Falhar build se regressão sem override
+        if: steps.compare.outputs.fail == '1' && steps.override.outputs.active != 'true'
+        run: |
+          echo "::error::${{ steps.compare.outputs.regressed }} módulo(s) regrediram vs baseline. Aplique label 'module-grades-allowed-regression' OU atualize governance/module-grades-baseline.json."
+          exit 1

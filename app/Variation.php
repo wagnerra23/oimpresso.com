@@ -4,9 +4,12 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Variation extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     /**
@@ -15,6 +18,17 @@ class Variation extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    /**
+     * Auditoria Spatie Activitylog — campos de preço/SKU críticos.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'default_purchase_price', 'default_sell_price', 'sub_sku'])
+            ->logOnlyDirty()
+            ->useLogName('variation');
+    }
 
     /**
      * The attributes that should be cast to native types.

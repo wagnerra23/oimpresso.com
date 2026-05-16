@@ -1,6 +1,6 @@
 # KB Unificado — Schema DB V1 (contrato técnico)
 
-> **Status:** contrato firme. Mudanças exigem ADR amendment a [0149](../../decisions/proposals/0149-kb-unificado-grafo-conhecimento-modulo-ia-central.md).
+> **Status:** contrato firme. Mudanças exigem ADR amendment a [0149](../../decisions/proposals/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md).
 > **Audiência:** agents implement-expert + Wagner. Este doc é o que os agents paralelos consomem como CONTRATO.
 > **Princípio:** **kb_nodes é o grafo. mcp_memory_documents continua read-only fotografia git.** Bridge nullable FK.
 

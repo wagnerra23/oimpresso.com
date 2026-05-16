@@ -7,6 +7,8 @@ namespace Modules\Whatsapp\Entities;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * WhatsappMessage — append-only.
@@ -41,10 +43,30 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class WhatsappMessage extends Model
 {
     use HasBusinessScope;
+    use LogsActivity;
 
     protected $table = 'whatsapp_messages';
 
     protected $guarded = ['id'];
+
+    /**
+     * Wave P — auditoria LGPD delivery-flow append-only.
+     *
+     * Mensagem é APPEND-ONLY (ADR 0135 + IMMUTABLE_COLUMNS const). Aqui só
+     * loggamos meta de delivery (`status`, `failed_reason`) que sofrem UPDATE
+     * legítimo no fluxo provider→sent→delivered→read OU error→failed.
+     *
+     * ⛔ JAMAIS loggar `body`, `payload`, `provider_message_id`, `template_name`
+     * — campos PII/conteúdo (LGPD Art. 7º). log_name dedicado p/ filtragem.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('whatsapp_message_meta')
+            ->logOnly(['status', 'failed_reason'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Colunas que JAMAIS podem ser UPDATEd após INSERT (append-only).

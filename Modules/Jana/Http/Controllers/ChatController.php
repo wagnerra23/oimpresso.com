@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Modules\Jana\Contracts\AiAdapter;
+use Modules\Jana\Http\Requests\SendChatMessageRequest;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Entities\Mensagem;
 use Modules\Jana\Entities\Meta;
@@ -84,29 +85,118 @@ class ChatController extends Controller
 
     protected function renderChat(Conversa $conversa, $businessId, $userId)
     {
-        $conversas = Conversa::where('user_id', $userId)
+        // D-14 perf 2026-05-15 — props caras (lista de conversas + mensagens +
+        // sugestões pendentes) movidas pra Inertia::defer (skip quando partial
+        // reload `only:[...]` não pede). Pattern oimpresso ADR + skill
+        // `inertia-defer-default`. Frontend (Chat.tsx) wrap em <Deferred>.
+        //
+        // Eager (cheap): conversa atual (já carregada via findOrFail) + shell
+        // props (Business::query() limit 50, user lookup). Permanece síncrono.
+        $shellProps = $this->shellPropsForDeferred($businessId, $conversa, $userId);
+
+        return Inertia::render('Jana/Chat', array_merge(
+            $shellProps,
+            [
+                'conversa'           => $conversa,
+                'mensagens'          => Inertia::defer(fn () => $this->buildMensagensPayload($conversa)),
+                'sugestoesPendentes' => Inertia::defer(fn () => $this->buildSugestoesPendentesPayload($conversa)),
+            ]
+        ));
+    }
+
+    /**
+     * D-14 perf — mensagens da conversa em closure defer.
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function buildMensagensPayload(Conversa $conversa)
+    {
+        return $conversa->mensagens()->orderBy('created_at')->get();
+    }
+
+    /**
+     * D-14 perf — sugestões pendentes (não escolhidas/rejeitadas) em closure defer.
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function buildSugestoesPendentesPayload(Conversa $conversa)
+    {
+        return Sugestao::where('conversa_id', $conversa->id)
+            ->whereNull('escolhida_em')
+            ->whereNull('rejeitada_em')
+            ->get();
+    }
+
+    /**
+     * D-14 perf — shell props com lista de conversas deferida.
+     * Conversa atual + business + user permanecem eager (necessários no render inicial).
+     * Lista `conversas[recentes]` deferida (pode ter dezenas/centenas de rows).
+     */
+    protected function shellPropsForDeferred($businessId, ?Conversa $conversaFoco, $userId): array
+    {
+        $user    = auth()->user();
+        $isSuper = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
+
+        $businessesDisponiveis = $isSuper
+            ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
+            : \App\Business::where('id', $businessId)->get(['id', 'name']);
+
+        $businesses = $businessesDisponiveis->map(fn ($b) => [
+            'id'       => $b->id,
+            'nome'     => $b->name,
+            'iniciais' => $this->iniciais($b->name),
+            'ativa'    => $b->id === (int) $businessId,
+        ])->values();
+
+        $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
+
+        $roleName = null;
+        try {
+            $firstRole = method_exists($user, 'roles') ? $user->roles()->first() : null;
+            $roleName = $firstRole?->name;
+            if ($roleName) {
+                $roleName = preg_replace('/#\d+$/', '', $roleName);
+            }
+        } catch (\Throwable $e) {
+            $roleName = null;
+        }
+        $cargo = $isSuper ? 'Superadmin' : ($roleName ?: 'Usuário');
+
+        return [
+            'businessNome'     => session('business.name', 'Oimpresso Matriz'),
+            'businesses'       => $businesses,
+            'usuarioNome'      => $userNome,
+            'usuarioNomeCurto' => $user->first_name ?? 'Usuário',
+            'usuarioEmail'     => $user->email ?? '',
+            'usuarioCargo'     => $cargo,
+            'usuarioIniciais'  => $this->iniciais($userNome),
+            // Lista conversas (sidebar) — defer (pode ser dezenas/centenas).
+            'conversas'        => Inertia::defer(fn () => $this->buildConversasListPayload($businessId, $userId, $conversaFoco)),
+        ];
+    }
+
+    /**
+     * D-14 perf — lista de conversas do usuário (sidebar Cockpit) em closure defer.
+     * @return array{fixadas: array, rotinas: array, recentes: array}
+     */
+    protected function buildConversasListPayload($businessId, $userId, ?Conversa $conversaFoco): array
+    {
+        $conversasReais = Conversa::where('user_id', $userId)
             ->where('business_id', $businessId)
             ->orderByDesc('iniciada_em')
             ->get(['id', 'titulo', 'status', 'iniciada_em']);
 
-        $mensagens = $conversa->mensagens()->orderBy('created_at')->get();
+        $recentes = collect($conversasReais)->map(fn ($c) => [
+            'id'     => (string) $c->id,
+            'titulo' => $c->titulo,
+            'unread' => 0,
+            'origem' => 'COPI',
+            'ativa'  => $conversaFoco && (int) $c->id === (int) $conversaFoco->id,
+        ])->values()->all();
 
-        $sugestoesPendentes = Sugestao::where('conversa_id', $conversa->id)
-            ->whereNull('escolhida_em')
-            ->whereNull('rejeitada_em')
-            ->get();
-
-        // Sprint 1 (2026-04-27): Chat.tsx agora usa AppShellV2 (Cockpit) como
-        // layout-mae, então precisa dos shell props (business, user, conversas
-        // formatadas pra fixadas/rotinas/recentes).
-        return Inertia::render('Jana/Chat', array_merge(
-            $this->shellPropsFor($businessId, $conversas, $conversa),
-            [
-                'conversa'           => $conversa,
-                'mensagens'          => $mensagens,
-                'sugestoesPendentes' => $sugestoesPendentes,
-            ]
-        ));
+        return [
+            'fixadas'  => [],
+            'rotinas'  => [],
+            'recentes' => $recentes,
+        ];
     }
 
     /**
@@ -218,10 +308,8 @@ class ChatController extends Controller
     /**
      * Usuário manda mensagem → IA responde + opcionalmente retorna propostas.
      */
-    public function send(Request $request, $id)
+    public function send(SendChatMessageRequest $request, $id)
     {
-        $request->validate(['content' => 'required|string|max:5000']);
-
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
 
@@ -273,10 +361,8 @@ class ChatController extends Controller
      * Frontend: fetch() + ReadableStream + TextDecoder pra parse linha-a-linha.
      * NÃO usa EventSource (que só faz GET; nosso endpoint é POST com body).
      */
-    public function sendStream(Request $request, $id): StreamedResponse
+    public function sendStream(SendChatMessageRequest $request, $id): StreamedResponse
     {
-        $request->validate(['content' => 'required|string|max:5000']);
-
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
 
@@ -417,13 +503,13 @@ class ChatController extends Controller
     public function cockpit(Request $request)
     {
         $businessId = $request->session()->get('user.business_id');
-        $userId     = auth()->id();
         $user       = auth()->user();
         $isSuper    = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
 
-        // Lista de businesses disponiveis pro CompanyPicker:
+        // Lista de businesses disponíveis pro CompanyPicker:
         // - Superadmin/admin oimpresso: TODAS as businesses ativas
         // - Outros: apenas a business atual do user
+        // Tier 0 ADR 0093: filtro explícito por business_id pra não-super
         $businessesDisponiveis = $isSuper
             ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
             : \App\Business::where('id', $businessId)->get(['id', 'name']);
@@ -435,91 +521,181 @@ class ChatController extends Controller
             'ativa'    => $b->id === (int) $businessId,
         ])->values();
 
-        // Tenta puxar a conversa real ativa do usuário (se houver) — só pra
-        // ter um ID válido pro composer de teste. Se não tiver, usa null.
-        $conversaAtiva = Conversa::where('user_id', $userId)
-            ->where('business_id', $businessId)
-            ->where('status', 'ativa')
-            ->latest('iniciada_em')
-            ->first(['id', 'titulo']);
-
-        // Mock de conversas espelhando a vibe do protótipo (Cowork "Oimpresso ERP
-        // Comunicação Visual"). Categorias: fixadas, rotinas, recentes.
-        // Gradualmente vai virar dado real conforme TaskProvider/CRM forem
-        // entregando contexto (ver ADR 0039 plano de migração).
-        $mockConversas = [
-            'fixadas' => [
-                ['id' => 'p1', 'titulo' => 'Banner Loja Acme 3×2m', 'unread' => 0, 'origem' => 'OS'],
-                ['id' => 'p2', 'titulo' => 'Produção — Turno A',     'unread' => 2, 'origem' => 'MFG'],
-            ],
-            'rotinas' => [
-                ['id' => 'r1', 'titulo' => 'Banner Acme — aprovação',  'frequencia' => 'Diário'],
-                ['id' => 'r2', 'titulo' => 'Cobrança Padaria Estrela', 'frequencia' => 'Uma vez'],
-                ['id' => 'r3', 'titulo' => 'Reunião PCP — 8h30',       'frequencia' => 'Diário'],
-                ['id' => 'r4', 'titulo' => 'Fechamento Caixa',         'frequencia' => 'Diário'],
-            ],
-            'recentes' => [
-                ['id' => 'c1', 'titulo' => 'Padaria Estrela — Renato',     'unread' => 1, 'origem' => 'CRM'],
-                ['id' => 'c2', 'titulo' => 'Adesivos Recortados — TechPro', 'unread' => 0, 'origem' => 'OS'],
-                ['id' => 'c3', 'titulo' => 'Comercial',                     'unread' => 0, 'origem' => null],
-                ['id' => 'c4', 'titulo' => 'Clínica Vida — Marcos',         'unread' => 0, 'origem' => 'CRM', 'ativa' => true],
-            ],
-        ];
-
-        // Conversa em foco (mock rico — protótipo de referência Cowork)
-        $conversaFoco = [
-            'id'         => 'c2',
-            'titulo'     => 'Adesivos Recortados — TechPro',
-            'tipo'       => 'os',
-            'online'     => true,
-            'avatar'     => ['iniciais' => 'TP', 'gradId' => 7],
-            'cliente'    => [
-                'nome'          => 'TechPro Soluções',
-                'telefone'      => '+55 11 98712-3344',
-                'ultimoContato' => 'hoje 11:48 — perguntou se pode retirar 9h amanhã',
-            ],
-            'os'         => [
-                'numero'   => '#OS-2814',
-                'cliente'  => 'TechPro Soluções',
-                'estagio'  => 'Em produção',
-                'prazo'    => '30/04 às 16h',
-            ],
-            'financeiro' => [
-                'saldo'    => 'R$ 4.820,00 a receber',
-                'boletos'  => '2 boletos · R$ 4.820,00',
-            ],
-            'historico' => [
-                ['quando' => '14:32',       'quem' => 'Mateus PCP',  'oque' => 'liberou para impressão'],
-                ['quando' => '13:55',       'quem' => 'Joana Lima',  'oque' => 'subiu versão v3'],
-                ['quando' => '10:02',       'quem' => 'Mateus PCP',  'oque' => 'alocou na Roland 540'],
-                ['quando' => 'ontem 17:30', 'quem' => 'Camila (cli)','oque' => 'pediu logo +6%'],
-            ],
-            'anexos' => [
-                ['nome' => 'arte-final-v3.pdf', 'tamanho' => '2.4 MB'],
-                ['nome' => 'briefing.pdf',      'tamanho' => '180 KB'],
-            ],
-            'mensagens' => [
-                ['id' => 1, 'autor' => 'them', 'whoAvatar' => ['iniciais' => 'CT', 'gradId' => 12], 'whoNome' => 'Camila — TechPro', 'dia' => 'Hoje', 'texto' => 'Bom dia! Conseguem me passar a previsão de entrega?', 'hora' => '09:42'],
-                ['id' => 2, 'autor' => 'me',   'dia' => 'Hoje', 'texto' => 'Bom dia, Camila! Estamos imprimindo agora — entrega 30/04 às 16h conforme combinado.', 'hora' => '09:48', 'lida' => true],
-                ['id' => 3, 'autor' => 'them', 'whoAvatar' => ['iniciais' => 'CT', 'gradId' => 12], 'whoNome' => 'Camila — TechPro', 'dia' => 'Hoje', 'texto' => 'Perfeito! Posso retirar 9h amanhã em vez de 16h hoje?', 'hora' => '11:48'],
-                ['id' => 4, 'autor' => 'me',   'dia' => 'Hoje', 'texto' => 'Vou confirmar com produção e te aviso em 5 min.', 'hora' => '11:50', 'lida' => true],
-            ],
-        ];
-
         $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
 
+        // Payload `jana` = mock estruturado seguindo charter Cockpit.charter.md
+        // Visual source: prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx
+        // F2 (próxima): plugar JanaCockpitDataService (brief diário real
+        // + KPIs via Service consultando Sells/Receivables/Frota com business_id scope).
+        // PII redaction client-side é UX warning · server-side PiiRedactor faz redação real no audit log.
+        $jana = $this->mockJanaPayload();
+
         return Inertia::render('Jana/Cockpit', [
-            'businessNome'  => session('business.name', 'Oimpresso Matriz'),
-            'businesses'    => $businesses,
-            'usuarioNome'        => $userNome,
-            'usuarioNomeCurto'   => $user->first_name ?? 'Usuário',
-            'usuarioEmail'  => $user->email ?? '',
-            'usuarioCargo'  => $isSuper ? 'Administrador' : 'Usuário',
-            'usuarioIniciais'    => $this->iniciais($userNome),
-            'conversas'     => $mockConversas,
-            'conversaFoco'  => $conversaFoco,
-            'conversaAtivaRealId' => $conversaAtiva?->id,
+            'businessNome'      => session('business.name', 'Oimpresso Matriz'),
+            'businesses'        => $businesses,
+            'usuarioNome'       => $userNome,
+            'usuarioNomeCurto'  => $user->first_name ?? 'Usuário',
+            'usuarioEmail'      => $user->email ?? '',
+            'usuarioCargo'      => $isSuper ? 'Administrador' : 'Usuário',
+            'usuarioIniciais'   => $this->iniciais($userNome),
+            'jana'              => $jana,
         ]);
+    }
+
+    /**
+     * Mock payload do Cockpit Analista IA — espelha o protótipo Cowork
+     * `chat-jana.jsx` (export 2026-05-15). Estrutura Martinho Caçambas
+     * (biz=164 legacy migrado · cliente OfficeImpresso).
+     *
+     * F2 substitui por `JanaCockpitDataService::buildPayload($businessId)`
+     * que consulta Sells/Receivables/Frota com business_id scope.
+     */
+    protected function mockJanaPayload(): array
+    {
+        return [
+            'person'    => ['name' => 'Jana', 'role' => 'Analista IA'],
+            'biz'       => ['code' => 'biz=164', 'version' => 'v1404 legacy migrado'],
+            'updatedAt' => now()->format('H:i'),
+            'today'     => now()->locale('pt_BR')->isoFormat('D [de] MMMM [de] YYYY'),
+            'brief'     => [
+                'greeting'   => $this->saudacaoPorHora() . ', ' . (auth()->user()->first_name ?? 'Wagner') . '.',
+                'paragraphs' => [
+                    ['kind' => 'text', 'body' => [
+                        ['normal', 'Maio até hoje somou '],
+                        ['strong', 'R$ 47.150'],
+                        ['normal', ' (vs R$ 145k em maio/25 — '],
+                        ['danger', '-68%'],
+                        ['normal', ' · investigar sazonalidade ou causa estrutural).'],
+                    ]],
+                    ['kind' => 'text', 'body' => [
+                        ['danger', 'R$ 4.535.636'],
+                        ['normal', ' em 4.255 títulos vencidos (excluído lixo de saldos virtuais e parcelas agrupadas). '],
+                        ['strong', 'Top 20 clientes concentram R$ 2.142k (~47%)'],
+                        ['normal', ' da inadimplência.'],
+                    ]],
+                    ['kind' => 'action', 'icon' => '🎯', 'body' => [
+                        ['strong', 'Ação sugerida HOJE: '],
+                        ['normal', '8 clientes "ouro" (LTV >R$ 50k) estão >90d sem comprar — score reativação alto. Posso disparar régua WhatsApp HITL?'],
+                    ]],
+                    ['kind' => 'anomaly', 'body' => [
+                        ['normal', 'Anomalia detectada: ticket médio caiu de R$ 2.430 para R$ 1.890 (-22%) — 4 meses consecutivos. Margem mantida (preço por m³ estável) → indica mix de produto mudando (mais caçambas pequenas/curtas).'],
+                    ]],
+                ],
+                'chips' => [
+                    ['tone' => 'primary', 'icon' => '📨', 'label' => 'Disparar régua 8 clientes'],
+                    ['tone' => 'ghost',   'icon' => '📋', 'label' => 'Ver top 20 devedores'],
+                    ['tone' => 'ghost',   'icon' => '🔍', 'label' => 'Investigar queda ticket médio'],
+                    ['tone' => 'ghost',   'icon' => '💡', 'label' => 'Por que -68% MoM?'],
+                ],
+            ],
+            'kpis' => [
+                ['label' => 'Receita mês',       'value' => 'R$ 47k',   'delta' => '↓ -68% vs mai/25', 'deltaCls' => 'down', 'icon' => '💰'],
+                ['label' => 'A receber vencido', 'value' => 'R$ 4,5M',  'deltaCls' => 'red big', 'icon' => '🚨', 'sub' => '4.255 títulos · 76% inadimplência', 'emphasize' => true],
+                ['label' => 'Ticket médio',      'value' => 'R$ 1.890', 'delta' => '↓ -22% 4m', 'deltaCls' => 'down', 'icon' => '📈'],
+                ['label' => 'Frota utilização',  'value' => '33%',      'deltaCls' => 'info', 'icon' => '🚚', 'sub' => '30/91 · 8 paradas >7d'],
+            ],
+            'analises' => [
+                ['id' => 'inad', 'title' => 'Inadimplência', 'sub' => 'Top 20 devedores', 'pill' => ['tone' => 'crit', 'label' => 'CRÍTICO'], 'icon' => '🚨', 'kind' => 'buckets',
+                 'big' => ['value' => 'R$ 4.535.636', 'color' => 'danger'],
+                 'buckets' => [
+                     ['label' => '0–30d',   'bar' => 18, 'val' => 'R$ 1.1M', 'color' => '#d4910f'],
+                     ['label' => '30–90d',  'bar' => 14, 'val' => 'R$ 818k', 'color' => '#e0791a'],
+                     ['label' => '90–365d', 'bar' => 31, 'val' => 'R$ 1.8M', 'color' => '#d65a3a'],
+                     ['label' => '>365d',   'bar' => 13, 'val' => 'R$ 770k', 'color' => '#2a2a2a'],
+                 ],
+                 'footer' => 'Top 1: VARGAS LEANDRO R$ 385k (246 parcelas)'],
+                ['id' => 'fat', 'title' => 'Faturamento', 'sub' => 'Curva 24 meses', 'pill' => ['tone' => 'warn', 'label' => 'QUEDA'], 'icon' => '📈', 'kind' => 'sparkline',
+                 'big' => ['value' => 'R$ 107M', 'color' => 'ok'],
+                 'spark' => [1.0, 0.95, 1.05, 1.10, 1.15, 1.18, 1.16, 1.12, 1.08, 1.05, 1.10, 1.15, 1.18, 1.19, 1.14, 1.08, 1.02, 0.95, 0.92, 0.87, 0.82, 0.74, 0.62, 0.55],
+                 'sparkRange' => ['mai/24', 'mai/26'],
+                 'footer' => 'Melhor mês: nov/24 R$ 1.19M · Pico sazonal: out-fev'],
+                ['id' => 'conc', 'title' => 'Concentração', 'sub' => 'Top clientes Pareto', 'pill' => ['tone' => 'ok', 'label' => 'OK'], 'icon' => '🎯', 'kind' => 'bars',
+                 'big' => ['value' => '8.856 clientes'],
+                 'bars' => [
+                     ['label' => 'Top 10',  'bar' => 24, 'pct' => '24%'],
+                     ['label' => 'Top 50',  'bar' => 55, 'pct' => '55%'],
+                     ['label' => 'Top 100', 'bar' => 73, 'pct' => '73%'],
+                 ],
+                 'footer' => '4.500 one-shot (~51%) · saudável caçamba avulsa'],
+                ['id' => 'churn', 'title' => 'Churn ouro', 'sub' => 'LTV alto inativos', 'pill' => ['tone' => 'react', 'label' => 'REATIVAR'], 'icon' => '⏰', 'kind' => 'list',
+                 'big' => ['value' => '8 clientes'],
+                 'list' => [
+                     ['left' => 'CONSTRUFERRO IND.', 'right' => 'LTV R$ 87k · 124d'],
+                     ['left' => 'EXTREMA SOLDAS',    'right' => 'LTV R$ 71k · 98d'],
+                     ['left' => 'CAPITAL CARGAS',    'right' => 'LTV R$ 62k · 112d'],
+                 ],
+                 'footer' => 'Cohort 2024: retenção 35% (target 60%) · drift alto'],
+                ['id' => 'frota', 'title' => 'Frota', 'sub' => '91 caçambas avulsas', 'pill' => ['tone' => 'warn', 'label' => 'PARADAS'], 'icon' => '🚛', 'kind' => 'donut',
+                 'donut' => ['pct' => 33, 'segs' => [
+                     ['color' => '#2563eb', 'pct' => 33],
+                     ['color' => '#22c55e', 'pct' => 58],
+                     ['color' => '#e0791a', 'pct' => 9],
+                 ]],
+                 'legend' => [
+                     ['color' => '#2563eb', 'label' => 'Locadas',     'val' => '30'],
+                     ['color' => '#22c55e', 'label' => 'Disponíveis', 'val' => '61'],
+                     ['color' => '#e0791a', 'label' => 'Paradas >7d', 'val' => '8', 'danger' => true],
+                 ],
+                 'footer' => '3 overdue HOJE · target util 70%'],
+                ['id' => 'cheq', 'title' => 'Cheques previsão', 'sub' => 'Na mão / a depositar', 'icon' => '🧾', 'kind' => 'text',
+                 'big' => ['value' => '4.421 cheques'],
+                 'text' => [
+                     'Total circulou histórico: R$ 7.022.176',
+                     'Quitados: 4.420 (99,9%)',
+                     'Ativos hoje: 1 (R$ 8 — teste)',
+                 ],
+                 'footnote' => 'Atalho HITL: Jana lembra Larissa qual dia depositar cada cheque'],
+            ],
+            'acoes' => [
+                ['id' => 'a1', 'icon' => '📨', 'tone' => 'rose',   'title' => 'Régua WhatsApp · 8 clientes >90d sem contato',  'sub' => 'Potencial recuperação: R$ 287k · HITL aprovação cada msg', 'cta' => ['label' => 'Disparar', 'tone' => 'danger']],
+                ['id' => 'a2', 'icon' => '❤️', 'tone' => 'violet', 'title' => 'Reativação · 8 clientes "ouro" inativos',         'sub' => 'LTV combinado R$ 612k · oferta retorno personalizada',     'cta' => ['label' => 'Preparar', 'tone' => 'violet']],
+                ['id' => 'a3', 'icon' => '🚛', 'tone' => 'peach',  'title' => 'Outbound · 8 caçambas paradas há >7d',           'sub' => 'Top 3 últimos clientes mesma região · ligar HOJE',          'cta' => ['label' => 'Listar', 'tone' => 'orange']],
+                ['id' => 'a4', 'icon' => '🗑️', 'tone' => 'grey',   'title' => 'Cleanup · 2.470 títulos write-off candidatos',   'sub' => 'R$ 770k incobráveis >365d · liberar dashboard',             'cta' => ['label' => 'Revisar', 'tone' => 'dark']],
+            ],
+            'chat' => [
+                'messages' => [
+                    ['from' => 'user', 'kind' => 'text', 'text' => 'Quais os top 5 devedores agora?'],
+                    ['from' => 'jana', 'kind' => 'tool_use', 'tool' => 'financeiro.devedores.top', 'status' => 'done'],
+                    ['from' => 'jana', 'kind' => 'data_table',
+                     'caption' => '5 devedores ativos (sem agrupados duplicados)',
+                     'columns' => ['Cliente', 'Saldo', 'Parcelas'],
+                     'rows' => [
+                         ['VARGAS LEANDRO COM. VAREJISTA', 'R$ 385.195', '229'],
+                         ['TORK COMERCIO DE PECAS AUTO',   'R$ 145.511', '167'],
+                         ['AMS SOLDAS E MAQUINAS',         'R$ 133.386', '71'],
+                         ['BUSSOLO E PRUDENCIO',           'R$ 118.970', '43'],
+                         ['FAN COM. DE PECAS E IMPLEMENTOS', 'R$ 117.063', '166'],
+                     ]],
+                    ['from' => 'jana', 'kind' => 'markdown',
+                     'text' => "Top 5 concentra **R$ 901k** (~20% inadimplência). VARGAS sozinho concentra **8,5%** [1] — risco alto, mas é cliente recorrente (229 parcelas) [2] então tem relacionamento.",
+                     'sources' => [
+                         ['n' => 1, 'label' => 'Inadimplência por cliente', 'href' => '/financeiro/inadimplencia?cliente=vargas'],
+                         ['n' => 2, 'label' => 'Histórico VARGAS',          'href' => '/clientes/vargas'],
+                     ]],
+                    ['from' => 'jana', 'kind' => 'action_card',
+                     'summary' => 'Disparar régua WhatsApp pra VARGAS LEANDRO (último contato 47d)',
+                     'confirm_required' => true],
+                ],
+                'suggestions' => [
+                    ['icon' => '🤔', 'label' => 'Quem deve mais?'],
+                    ['icon' => '💸', 'label' => 'Vendi ontem?'],
+                    ['icon' => '🧭', 'label' => 'Onde estou perdendo?'],
+                    ['icon' => '🎯', 'label' => 'Quais ações HOJE?'],
+                    ['icon' => '🚛', 'label' => 'Caçambas paradas'],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Saudação por hora do dia (BRT — sem TZ awareness por enquanto).
+     */
+    protected function saudacaoPorHora(): string
+    {
+        $h = (int) now()->format('H');
+        if ($h < 12) return 'Bom dia';
+        if ($h < 18) return 'Boa tarde';
+        return 'Boa noite';
     }
 
     /**
