@@ -278,7 +278,9 @@ class ModuleGradeService
 
         $specPath = $this->memoryPath . "/{$name}/SPEC.md";
         $briefingPath = $this->memoryPath . "/{$name}/BRIEFING.md";
-        $pagesModulePath = $this->pagesPath . "/{$name}";
+        // Resolve case-insensitive — Linux Hostinger é case-sensitive, Windows local não.
+        // Convenção real do oimpresso é inconsistente (governance/ vs Crm/ vs Vestuario/).
+        $pagesModulePath = $this->resolveCaseInsensitivePagesPath($name) ?? ($this->pagesPath . "/{$name}");
 
         // D3.a — SPEC.md (5 pts)
         $d3a = file_exists($specPath) ? 5 : 0;
@@ -366,8 +368,10 @@ class ModuleGradeService
         ];
 
         // D4.c — Pages Inertia .tsx ≥ Blade .blade.php legacy (5 pts)
-        $tsxCount = count($this->filesByExt($this->pagesPath . "/{$name}", '.tsx'));
-        $bladeViewsPath = $this->viewsPath . '/' . strtolower($name);  // tentativa convenção
+        // Resolve case-insensitive — Linux Hostinger ≠ Windows local (mesmo bug do D3.c).
+        $pagesModulePath = $this->resolveCaseInsensitivePagesPath($name) ?? ($this->pagesPath . "/{$name}");
+        $tsxCount = count($this->filesByExt($pagesModulePath, '.tsx'));
+        $bladeViewsPath = $this->resolveCaseInsensitiveViewsPath($name) ?? ($this->viewsPath . '/' . strtolower($name));
         $bladeCount = count($this->filesByExt($bladeViewsPath, '.blade.php', recursive: true));
         $d4c = $tsxCount + $bladeCount === 0
             ? 3  // módulo backend-only — neutro
@@ -611,5 +615,79 @@ class ModuleGradeService
         } catch (\Throwable $e) {
             return [];
         }
+    }
+
+    /**
+     * Resolve diretório `resources/js/Pages/<Modulo>/` de forma case-insensitive.
+     *
+     * Convenção real do oimpresso é INCONSISTENTE:
+     *   - resources/js/Pages/governance/ (g minúsculo)
+     *   - resources/js/Pages/Crm/        (C maiúsculo)
+     *   - resources/js/Pages/Vestuario/  (V maiúsculo)
+     *
+     * Windows local é case-insensitive (não falha). Linux Hostinger (prod) é
+     * case-sensitive — Service reportava "0 charters / 0 tsx" mesmo quando
+     * arquivos existiam (bug detectado em 2026-05-15 no Modules/Governance).
+     *
+     * Ordem de fallback: case exato → lowercase → lcfirst → scandir match.
+     * Performance OK: Controller faz Cache::remember 5min.
+     *
+     * @return string|null Path real OR null se nenhum existir
+     */
+    private function resolveCaseInsensitivePagesPath(string $moduleName): ?string
+    {
+        return $this->resolveCaseInsensitiveDir($this->pagesPath, $moduleName);
+    }
+
+    /**
+     * Resolve diretório `resources/views/<modulo>/` (Blade legacy) case-insensitive.
+     * Mesma motivação do helper Pages — convenção Blade também varia.
+     */
+    private function resolveCaseInsensitiveViewsPath(string $moduleName): ?string
+    {
+        return $this->resolveCaseInsensitiveDir($this->viewsPath, $moduleName);
+    }
+
+    /**
+     * Helper genérico — tenta resolver subdir `<basePath>/<moduleName>` em
+     * 4 variantes antes de desistir.
+     */
+    private function resolveCaseInsensitiveDir(string $basePath, string $moduleName): ?string
+    {
+        if (! is_dir($basePath)) {
+            return null;
+        }
+
+        // 1. case exato (caminho mais rápido — Windows local + alguns módulos)
+        $exact = $basePath . DIRECTORY_SEPARATOR . $moduleName;
+        if (is_dir($exact)) {
+            return $exact;
+        }
+
+        // 2. lowercase (convenção Blade legacy + Pages/governance, Pages/kb)
+        $lower = $basePath . DIRECTORY_SEPARATOR . strtolower($moduleName);
+        if (is_dir($lower)) {
+            return $lower;
+        }
+
+        // 3. lcfirst (convenção Inertia camelCase eventual)
+        $lcFirst = $basePath . DIRECTORY_SEPARATOR . lcfirst($moduleName);
+        if (is_dir($lcFirst)) {
+            return $lcFirst;
+        }
+
+        // 4. scandir + strcasecmp — último recurso (~ms em diretório de ~30 entries)
+        $entries = @scandir($basePath) ?: [];
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            $candidate = $basePath . DIRECTORY_SEPARATOR . $entry;
+            if (is_dir($candidate) && strcasecmp($entry, $moduleName) === 0) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }
