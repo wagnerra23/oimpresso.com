@@ -370,6 +370,26 @@ class JobSheetController extends Controller
             $technecians = $this->commonUtil->serviceStaffDropdown($business_id);
         }
 
+        // Wave 3 B6 MWART — branch Inertia (canary biz=1).
+        if ($this->mwartEnabled('repair_job_sheet_create', (int) $business_id)) {
+            return Inertia::render('Repair/JobSheet/Create', [
+                'options' => Inertia::defer(fn () => [
+                    'repair_statuses' => (array) $repair_statuses,
+                    'device_models' => (array) $device_models,
+                    'brands' => (array) $brands,
+                    'devices' => (array) $devices,
+                    'technecians' => (array) $technecians,
+                    'business_locations' => (array) $business_locations,
+                    'repair_settings' => is_array($repair_settings) ? $repair_settings : [],
+                ]),
+                'walk_in_customer' => $walk_in_customer ? [
+                    'id' => (int) $walk_in_customer->id,
+                    'name' => $walk_in_customer->name,
+                ] : null,
+                'default_status' => $default_status !== '' ? $default_status : '',
+            ]);
+        }
+
         return view('repair::job_sheet.create')
             ->with(compact('repair_statuses', 'device_models', 'brands', 'devices', 'default_status', 'technecians', 'business_locations', 'types', 'customer_groups', 'walk_in_customer', 'repair_settings'));
     }
@@ -523,8 +543,125 @@ class JobSheetController extends Controller
         // Coleção unificada via accessor — view usa $anexos em vez de $job_sheet->media
         $anexos = $job_sheet->anexos;
 
+        // Wave 3 B6 MWART — branch Inertia (canary biz=1).
+        if ($this->mwartEnabled('repair_job_sheet_show', (int) $business_id)) {
+            return Inertia::render('Repair/JobSheet/Show', [
+                'job_sheet' => $this->buildJobSheetShowPayload($job_sheet),
+                'parts' => Inertia::defer(fn () => $this->buildJobSheetPartsPayload($parts)),
+                'activities' => Inertia::defer(fn () => $this->buildJobSheetActivitiesPayload($activities)),
+                'anexos' => Inertia::defer(fn () => $this->buildJobSheetAnexosPayload($anexos)),
+                'fsm' => [
+                    'in_pipeline' => $job_sheet->current_stage_id !== null,
+                    'endpoints' => [
+                        'actions' => "/api/repair/job-sheets/{$job_sheet->id}/fsm-actions",
+                        'execute' => "/repair/job-sheets/{$job_sheet->id}/fsm-action",
+                        'start_pipeline' => "/repair/job-sheets/{$job_sheet->id}/fsm-start-pipeline",
+                    ],
+                ],
+                'permissions' => [
+                    'edit' => (bool) auth()->user()->can('job_sheet.edit'),
+                    'delete' => (bool) auth()->user()->can('job_sheet.delete'),
+                    'print' => true,
+                ],
+            ]);
+        }
+
         return view('repair::job_sheet.show')
             ->with(compact('job_sheet', 'repair_settings', 'parts', 'activities', 'jobsheet_settings', 'anexos'));
+    }
+
+    /**
+     * Wave 3 B6 — payload de JobSheet pra Inertia Show.
+     */
+    private function buildJobSheetShowPayload(JobSheet $job_sheet): array
+    {
+        $currencySymbol = request()->session()->get('business.currency_symbol') ?? 'R$';
+
+        return [
+            'id' => (int) $job_sheet->id,
+            'job_sheet_no' => $job_sheet->job_sheet_no,
+            'contact_id' => $job_sheet->contact_id ? (int) $job_sheet->contact_id : null,
+            'contact_name' => optional($job_sheet->customer)?->name,
+            'service_type' => $job_sheet->service_type,
+            'brand_name' => optional($job_sheet->Brand)?->name,
+            'device_name' => optional($job_sheet->Device)?->name,
+            'device_model_name' => optional($job_sheet->deviceModel)?->name,
+            'serial_no' => $job_sheet->serial_no,
+            'security_pwd' => $job_sheet->security_pwd,
+            'security_pattern' => $job_sheet->security_pattern,
+            'delivery_date' => optional($job_sheet->delivery_date)?->format('Y-m-d'),
+            'estimated_cost' => $job_sheet->estimated_cost ? (float) $job_sheet->estimated_cost : null,
+            'estimated_cost_formatted' => $job_sheet->estimated_cost
+                ? $currencySymbol . ' ' . number_format((float) $job_sheet->estimated_cost, 2, ',', '.')
+                : null,
+            'defects' => $job_sheet->defects,
+            'product_condition' => $job_sheet->product_condition,
+            'product_configuration' => $job_sheet->product_configuration,
+            'status' => [
+                'id' => $job_sheet->status_id ? (int) $job_sheet->status_id : null,
+                'name' => optional($job_sheet->status)?->name,
+                'color' => optional($job_sheet->status)?->color,
+            ],
+            'technician' => $job_sheet->service_staff ? [
+                'id' => (int) $job_sheet->service_staff,
+                'name' => trim((optional($job_sheet->technician)?->first_name ?? '').' '.(optional($job_sheet->technician)?->last_name ?? '')),
+            ] : ['id' => null, 'name' => null],
+            'business_location' => [
+                'id' => $job_sheet->location_id ? (int) $job_sheet->location_id : null,
+                'name' => optional($job_sheet->businessLocation)?->name,
+            ],
+            'comment_by_ss' => $job_sheet->comment_by_ss,
+            'checklist' => is_array($job_sheet->checklist) ? $job_sheet->checklist : null,
+            'current_stage_id' => $job_sheet->current_stage_id ? (int) $job_sheet->current_stage_id : null,
+            'created_at' => optional($job_sheet->created_at)?->toIso8601String(),
+            'updated_at' => optional($job_sheet->updated_at)?->toIso8601String(),
+        ];
+    }
+
+    private function buildJobSheetPartsPayload($parts): array
+    {
+        if (! is_array($parts) && ! ($parts instanceof \Illuminate\Support\Collection)) {
+            return [];
+        }
+        return collect($parts)->map(function ($p) {
+            return [
+                'id' => (int) ($p->id ?? $p['id'] ?? 0),
+                'variation_name' => $p->variation_name ?? $p['variation_name'] ?? null,
+                'quantity' => (float) ($p->quantity ?? $p['quantity'] ?? 0),
+                'unit_price' => isset($p->unit_price) ? (float) $p->unit_price : (isset($p['unit_price']) ? (float) $p['unit_price'] : null),
+                'unit' => $p->unit ?? $p['unit'] ?? null,
+            ];
+        })->toArray();
+    }
+
+    private function buildJobSheetActivitiesPayload($activities): array
+    {
+        if (! $activities) {
+            return [];
+        }
+        return collect($activities)->take(50)->map(function ($a) {
+            return [
+                'id' => (int) $a->id,
+                'description' => $a->description,
+                'causer' => optional($a->causer)?->first_name ?? null,
+                'created_at' => optional($a->created_at)?->toIso8601String(),
+            ];
+        })->values()->toArray();
+    }
+
+    private function buildJobSheetAnexosPayload($anexos): array
+    {
+        if (! $anexos) {
+            return [];
+        }
+        return collect($anexos)->map(function ($a) {
+            return [
+                'id' => (int) ($a->id ?? 0),
+                'url' => method_exists($a, 'getUrl') ? $a->getUrl() : ($a->url ?? ''),
+                'name' => $a->name ?? $a->file_name ?? '—',
+                'mime' => $a->mime_type ?? null,
+            ];
+        })->values()->toArray();
     }
 
     /**
@@ -562,8 +699,63 @@ class JobSheetController extends Controller
             $technecians = $this->commonUtil->serviceStaffDropdown($business_id);
         }
 
+        // Wave 3 B6 MWART — branch Inertia (canary biz=1).
+        if ($this->mwartEnabled('repair_job_sheet_edit', (int) $business_id)) {
+            return Inertia::render('Repair/JobSheet/Edit', [
+                'job_sheet' => $this->buildJobSheetEditPayload($job_sheet),
+                'options' => Inertia::defer(fn () => $this->buildJobSheetEditOptions($business_id, $repair_statuses, $device_models, $brands, $devices, $technecians, $customer_groups, $repair_settings)),
+            ]);
+        }
+
         return view('repair::job_sheet.edit')
             ->with(compact('job_sheet', 'repair_statuses', 'device_models', 'brands', 'devices', 'default_status', 'technecians', 'types', 'customer_groups', 'repair_settings'));
+    }
+
+    /**
+     * Wave 3 B6 — payload pra Inertia Edit.
+     */
+    private function buildJobSheetEditPayload(JobSheet $job_sheet): array
+    {
+        return [
+            'id' => (int) $job_sheet->id,
+            'job_sheet_no' => $job_sheet->job_sheet_no,
+            'contact_id' => $job_sheet->contact_id ? (int) $job_sheet->contact_id : null,
+            'service_type' => $job_sheet->service_type,
+            'brand_id' => $job_sheet->brand_id ? (int) $job_sheet->brand_id : null,
+            'device_id' => $job_sheet->device_id ? (int) $job_sheet->device_id : null,
+            'device_model_id' => $job_sheet->device_model_id ? (int) $job_sheet->device_model_id : null,
+            'security_pwd' => $job_sheet->security_pwd,
+            'security_pattern' => $job_sheet->security_pattern,
+            'serial_no' => $job_sheet->serial_no,
+            'status_id' => $job_sheet->status_id ? (int) $job_sheet->status_id : null,
+            'delivery_date' => optional($job_sheet->delivery_date)?->format('Y-m-d'),
+            'estimated_cost' => $job_sheet->estimated_cost ? (float) $job_sheet->estimated_cost : null,
+            'product_configuration' => $job_sheet->product_configuration,
+            'defects' => $job_sheet->defects,
+            'product_condition' => $job_sheet->product_condition,
+            'service_staff' => $job_sheet->service_staff ? (int) $job_sheet->service_staff : null,
+            'pick_up_on_site_addr' => $job_sheet->pick_up_on_site_addr,
+            'comment_by_ss' => $job_sheet->comment_by_ss,
+            'custom_field_1' => $job_sheet->custom_field_1,
+            'custom_field_2' => $job_sheet->custom_field_2,
+            'custom_field_3' => $job_sheet->custom_field_3,
+            'custom_field_4' => $job_sheet->custom_field_4,
+            'custom_field_5' => $job_sheet->custom_field_5,
+            'checklist' => is_array($job_sheet->checklist) ? $job_sheet->checklist : null,
+        ];
+    }
+
+    private function buildJobSheetEditOptions(int $business_id, $repair_statuses, $device_models, $brands, $devices, $technecians, $customer_groups, $repair_settings): array
+    {
+        return [
+            'repair_statuses' => (array) $repair_statuses,
+            'device_models' => (array) $device_models,
+            'brands' => (array) $brands,
+            'devices' => (array) $devices,
+            'technecians' => (array) $technecians,
+            'customer_groups' => (array) $customer_groups,
+            'repair_settings' => is_array($repair_settings) ? $repair_settings : [],
+        ];
     }
 
     /**
@@ -870,6 +1062,21 @@ class JobSheetController extends Controller
 
         $status_dropdown = RepairStatus::forDropdown($business_id, true);
         $status_template_tags = $this->repairUtil->getRepairStatusTemplateTags();
+
+        // Wave 3 B6 MWART — branch Inertia (canary biz=1).
+        if ($this->mwartEnabled('repair_job_sheet_add_parts', (int) $business_id)) {
+            return Inertia::render('Repair/JobSheet/AddParts', [
+                'job_sheet' => [
+                    'id' => (int) $job_sheet->id,
+                    'job_sheet_no' => $job_sheet->job_sheet_no,
+                    'contact_name' => optional($job_sheet->customer)?->name,
+                ],
+                'parts' => $this->buildJobSheetPartsPayload($parts),
+                'status_update_data' => $status_update_data,
+                'status_dropdown' => (array) $status_dropdown,
+                'status_template_tags' => is_array($status_template_tags) ? $status_template_tags : [],
+            ]);
+        }
 
         return view('repair::job_sheet.add_parts')
             ->with(compact('job_sheet', 'parts', 'status_update_data', 'status_dropdown', 'status_template_tags'));
