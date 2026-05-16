@@ -33,29 +33,65 @@ class BacklogController extends Controller
     {
         $project = $this->resolveProject($request);
 
-        $statusFilter   = $request->get('status');
-        $priorityFilter = $request->get('priority');
-        $ownerFilter    = $request->get('owner');
-        $epicFilter     = (int) $request->get('epic', 0) ?: null;
-        $cycleFilter    = (int) $request->get('cycle', 0) ?: null;
-        $sprintFilter   = $request->get('sprint');
-        $search         = trim((string) $request->get('q', ''));
-        $sort           = $request->get('sort', 'priority');
+        $filters = [
+            'status'   => $request->get('status'),
+            'priority' => $request->get('priority'),
+            'owner'    => $request->get('owner'),
+            'epic'     => (int) $request->get('epic', 0) ?: null,
+            'cycle'    => (int) $request->get('cycle', 0) ?: null,
+            'sprint'   => $request->get('sprint'),
+            'q'        => trim((string) $request->get('q', '')),
+            'sort'     => $request->get('sort', 'priority'),
+        ];
+        $projectId = $project?->id;
+
+        // RUNBOOK-inertia-defer-pattern.md (Wave 11 D6.a) — defer queries pesadas.
+        // `filters` (UI state) + `project` (cheap) ficam eager.
+        // tasks/kpis compartilham mesma query — agrupados em 1 closure.
+        // epics/owners/sprints são queries independentes — closures separadas
+        // permitem partial reload (ex `only:['tasks','kpis']` ao filtrar).
+        return Inertia::render('ProjectMgmt/Backlog/Index', [
+            'project' => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
+            'tasks'   => Inertia::defer(fn () => $this->buildTasksAndKpis($projectId, $filters)['tasks']),
+            'kpis'    => Inertia::defer(fn () => $this->buildTasksAndKpis($projectId, $filters)['kpis']),
+            'epics'   => Inertia::defer(fn () => $this->buildEpicsPayload($projectId)),
+            'owners'  => Inertia::defer(fn () => $this->buildOwnersPayload($projectId)),
+            'sprints' => Inertia::defer(fn () => $this->buildSprintsPayload($projectId)),
+            'filters' => $filters,
+        ]);
+    }
+
+    /**
+     * Constrói tasks + kpis (compartilham mesma query). Memoiza por (projectId, filters)
+     * pra evitar dobrar query quando ambos requested numa render.
+     *
+     * @param array<string,mixed> $filters
+     * @return array{tasks: \Illuminate\Support\Collection, kpis: array<string,int>}
+     */
+    protected function buildTasksAndKpis(?int $projectId, array $filters): array
+    {
+        static $cache = [];
+        $cacheKey = md5(serialize([$projectId, $filters]));
+        if (isset($cache[$cacheKey])) {
+            return $cache[$cacheKey];
+        }
 
         $q = McpTask::query()
-            ->when($project, fn ($qq) => $qq->where('project_id', $project->id))
-            ->when($priorityFilter, fn ($qq, $p) => $qq->where('priority', $p))
-            ->when($ownerFilter, fn ($qq, $o) => $qq->where('owner', $o))
-            ->when($epicFilter, fn ($qq, $e) => $qq->where('epic_id', $e))
-            ->when($cycleFilter, fn ($qq, $c) => $qq->where('cycle_id', $c))
-            ->when($sprintFilter, fn ($qq, $s) => $qq->where('sprint', $s));
+            ->when($projectId, fn ($qq) => $qq->where('project_id', $projectId))
+            ->when($filters['priority'], fn ($qq, $p) => $qq->where('priority', $p))
+            ->when($filters['owner'], fn ($qq, $o) => $qq->where('owner', $o))
+            ->when($filters['epic'], fn ($qq, $e) => $qq->where('epic_id', $e))
+            ->when($filters['cycle'], fn ($qq, $c) => $qq->where('cycle_id', $c))
+            ->when($filters['sprint'], fn ($qq, $s) => $qq->where('sprint', $s));
 
+        $statusFilter = $filters['status'];
         if ($statusFilter && $statusFilter !== 'all') {
             $q->where('status', $statusFilter);
         } elseif ($statusFilter !== 'all') {
             $q->whereNotIn('status', ['cancelled']);
         }
 
+        $search = $filters['q'];
         if ($search !== '') {
             $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $search) . '%';
             $q->where(function ($qq) use ($like) {
@@ -67,7 +103,7 @@ class BacklogController extends Controller
             });
         }
 
-        match ($sort) {
+        match ($filters['sort']) {
             'recent' => $q->orderBy('updated_at', 'desc'),
             'due'    => $q->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
                           ->orderBy('due_date', 'asc'),
@@ -81,18 +117,6 @@ class BacklogController extends Controller
 
         $tasks = $q->limit(500)->get()->map(fn (McpTask $t) => $this->serializeTask($t));
 
-        $owners = McpTask::when($project, fn ($qq) => $qq->where('project_id', $project->id))
-            ->whereNotNull('owner')->distinct()->orderBy('owner')->pluck('owner')->all();
-
-        $sprints = McpTask::when($project, fn ($qq) => $qq->where('project_id', $project->id))
-            ->whereNotNull('sprint')->distinct()->orderBy('sprint')->pluck('sprint')->all();
-
-        $epics = $project
-            ? McpEpic::where('project_id', $project->id)
-                ->orderBy('sort_order')->orderBy('key')->get()
-                ->map(fn ($e) => ['id' => $e->id, 'key' => $e->key, 'title' => $e->title])->all()
-            : [];
-
         $kpis = [
             'total'   => $tasks->count(),
             'active'  => $tasks->whereNotIn('status', ['done', 'cancelled'])->count(),
@@ -101,19 +125,33 @@ class BacklogController extends Controller
             'unowned' => $tasks->whereNull('owner')->whereNotIn('status', ['done', 'cancelled'])->count(),
         ];
 
-        return Inertia::render('ProjectMgmt/Backlog/Index', [
-            'project' => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
-            'tasks'   => $tasks,
-            'epics'   => $epics,
-            'owners'  => $owners,
-            'sprints' => $sprints,
-            'kpis'    => $kpis,
-            'filters' => [
-                'status' => $statusFilter, 'priority' => $priorityFilter, 'owner' => $ownerFilter,
-                'epic' => $epicFilter, 'cycle' => $cycleFilter, 'sprint' => $sprintFilter,
-                'q' => $search, 'sort' => $sort,
-            ],
-        ]);
+        $cache[$cacheKey] = ['tasks' => $tasks, 'kpis' => $kpis];
+        return $cache[$cacheKey];
+    }
+
+    /** @return array<int,array{id:int,key:string,title:string}> */
+    protected function buildEpicsPayload(?int $projectId): array
+    {
+        if (! $projectId) {
+            return [];
+        }
+        return McpEpic::where('project_id', $projectId)
+            ->orderBy('sort_order')->orderBy('key')->get()
+            ->map(fn ($e) => ['id' => $e->id, 'key' => $e->key, 'title' => $e->title])->all();
+    }
+
+    /** @return array<int,string> */
+    protected function buildOwnersPayload(?int $projectId): array
+    {
+        return McpTask::when($projectId, fn ($qq) => $qq->where('project_id', $projectId))
+            ->whereNotNull('owner')->distinct()->orderBy('owner')->pluck('owner')->all();
+    }
+
+    /** @return array<int,string> */
+    protected function buildSprintsPayload(?int $projectId): array
+    {
+        return McpTask::when($projectId, fn ($qq) => $qq->where('project_id', $projectId))
+            ->whereNotNull('sprint')->distinct()->orderBy('sprint')->pluck('sprint')->all();
     }
 
     public function bulk(Request $request): JsonResponse

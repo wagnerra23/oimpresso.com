@@ -7,9 +7,12 @@ use App\Utils\BusinessUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Modules\Superadmin\Support\RedactsPiiInLogs;
 
 class SuperadminSettingsController extends Controller
 {
+    use RedactsPiiInLogs;
+
     /**
      * All Utils instance.
      */
@@ -214,7 +217,8 @@ class SuperadminSettingsController extends Controller
                 $output = ['success' => 0, 'msg' => 'Some setting could not be saved, make sure .env file has 644 permission & owned by www-data user'];
             }
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'SuperadminSettingsController');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),

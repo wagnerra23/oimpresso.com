@@ -2,17 +2,21 @@
 
 namespace Modules\Superadmin\Http\Controllers;
 
-use Modules\Superadmin\Entities\Subscription;
 use Illuminate\Routing\Controller;
+use Modules\Superadmin\Entities\Subscription;
+use Modules\Superadmin\Support\RedactsPiiInLogs;
 
 class PesaPalController extends Controller
 {
+    use RedactsPiiInLogs;
+
     //This method get called from app/Http/Controllers/PesaPalController
     public function pesaPalPaymentConfirmation($transaction_id, $status, $payment_method, $merchant_reference)
     {
         $subscription = Subscription::where('payment_transaction_id', $transaction_id)->first();
 
-        \Log::emergency('subscription transaction_id:'.$transaction_id.'status:'.$status.'payment_method:'.$payment_method);
+        // LGPD D7.a — transaction_id/payment_method podem conter PII em alguns gateways
+        $this->logInfoRedacted('subscription transaction_id:'.$transaction_id.'status:'.$status.'payment_method:'.$payment_method);
 
         if ($status == 'COMPLETED') {
             if ($subscription->status != 'approved') {

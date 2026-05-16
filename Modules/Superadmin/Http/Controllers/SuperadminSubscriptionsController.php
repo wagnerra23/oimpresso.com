@@ -151,7 +151,8 @@ class SuperadminSubscriptionsController extends BaseController
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'SuperadminSubscriptionsController');
 
             $output = ['success' => 0, 'msg' => __('messages.something_went_wrong')];
         }
@@ -222,7 +223,8 @@ class SuperadminSubscriptionsController extends BaseController
                     'msg' => __('superadmin::lang.subcription_updated_success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'SuperadminSubscriptionsController');
 
                 $output = ['success' => false,
                     'msg' => __('messages.something_went_wrong'),
@@ -288,7 +290,8 @@ class SuperadminSubscriptionsController extends BaseController
                     'msg' => __('superadmin::lang.subcription_updated_success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'SuperadminSubscriptionsController');
 
                 $output = ['success' => false,
                     'msg' => __('messages.something_went_wrong'),

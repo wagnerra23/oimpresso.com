@@ -6,12 +6,30 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Utils\Util;
 use DB;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Account extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $guarded = ['id'];
+
+    /**
+     * Auditoria LGPD — D7 LGPD compliance (Wave 11 sessão 2026-05-16).
+     *
+     * Append-only via Spatie activity_log. Contas bancárias guardam dados
+     * sensíveis (account_number, account_details JSON). Retenção:
+     * ver retention.php — clientes/fornecedores 1825d (5 anos pós-extinção).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * The attributes that should be cast to native types.

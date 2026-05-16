@@ -4,9 +4,12 @@ namespace Modules\Superadmin\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Package extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $guarded = ['id'];
@@ -14,6 +17,22 @@ class Package extends Model
     protected $casts = [
         'custom_permissions' => 'array',
     ];
+
+    /**
+     * Auditoria LGPD D7.b — Wave 11 Superadmin.
+     * Packages controlam SKU comercial (preço, limites, permissions) — toda
+     * mudança DEVE deixar trail append-only (activity_log). Cross-tenant
+     * intencional: superadmin é Wagner-only, mas auditoria detecta drift
+     * (alguém alterando preço sem PR/aprovação).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('superadmin.package');
+    }
 
     /**
      * Scope a query to only include active packages.

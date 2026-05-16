@@ -29,9 +29,35 @@ class RoadmapController extends Controller
     public function index(Request $request): Response
     {
         $project = $this->resolveProject($request);
+        $projectId = $project?->id;
 
-        $epics = $project
-            ? McpEpic::where('project_id', $project->id)
+        // RUNBOOK-inertia-defer-pattern.md (Wave 11 D6.a) — defer queries pesadas.
+        // `project` é cheap (resolveProject já consultou); demais props deferidas
+        // pra desbloquear initial render. Quarters+kpis compartilham mesma query
+        // de epics — agrupados em 1 closure pra evitar duplicar.
+        return Inertia::render('ProjectMgmt/Roadmap/Index', [
+            'project'  => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
+            'quarters' => Inertia::defer(fn () => $this->buildRoadmapPayload($projectId)['quarters']),
+            'kpis'     => Inertia::defer(fn () => $this->buildRoadmapPayload($projectId)['kpis']),
+        ]);
+    }
+
+    /**
+     * Constrói quarters (epics agrupados) + kpis a partir de epics + task_counts.
+     * Chamado por 2 closures defer — caching via memoization simples na request.
+     *
+     * @return array{quarters: array<int,array<string,mixed>>, kpis: array<string,int>}
+     */
+    protected function buildRoadmapPayload(?int $projectId): array
+    {
+        static $cache = [];
+        $key = (string) ($projectId ?? 'none');
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
+        $epics = $projectId
+            ? McpEpic::where('project_id', $projectId)
                 ->whereIn('status', ['planning', 'active', 'done'])
                 ->orderBy('target_quarter')
                 ->orderBy('sort_order')
@@ -83,8 +109,7 @@ class RoadmapController extends Controller
             $byQuarter['Sem quarter'] = $sem;
         }
 
-        return Inertia::render('ProjectMgmt/Roadmap/Index', [
-            'project'  => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
+        $cache[$key] = [
             'quarters' => array_values($byQuarter),
             'kpis'     => [
                 'total_epics'    => $epics->count(),
@@ -92,7 +117,9 @@ class RoadmapController extends Controller
                 'planning_epics' => $epics->where('status', 'planning')->count(),
                 'done_epics'     => $epics->where('status', 'done')->count(),
             ],
-        ]);
+        ];
+
+        return $cache[$key];
     }
 
     protected function resolveProject(Request $request): ?McpProject

@@ -5,9 +5,12 @@ namespace Modules\Superadmin\Entities;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Subscription extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $guarded = ['id'];
@@ -21,6 +24,21 @@ class Subscription extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'package_details' => 'array',    ];
+
+    /**
+     * Auditoria LGPD D7.b — Wave 11 Superadmin.
+     * Subscriptions tocam pagamento de TODOS tenants (cross-tenant intencional
+     * Wagner-only). Mudança em status/dates/payment_transaction_id == evento
+     * fiscal — append-only obrigatório (CC Art. 206 prescrição 10 anos).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('superadmin.subscription');
+    }
 
     /**
      * Scope a query to only include approved subscriptions.
