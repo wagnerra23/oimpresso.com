@@ -28,6 +28,13 @@ Route::group(
         // ---- Cockpit MVP (padrao "Chat Cockpit", ADR 0039 - rota paralela
         //      pra validacao visual sem substituir a /copiloto atual). ----------
         Route::get('/cockpit',                             'ChatController@cockpit')->name('jana.cockpit');
+
+        // ---- Painel Analista IA (Jana V2 — cycle CYCLE-06 goal #4) ---------
+        // Canon Cowork: prototipo-ui/cowork-snapshot/chat-jana.jsx (491 ln IIFE).
+        // Render Inertia/React via resources/js/Pages/Jana/Painel.tsx.
+        // Onda A1: esqueleto + mock data · Onda B: queries SQL reais · Onda C: BriefDiarioAgent.
+        Route::get('/painel',                              'PainelController@index')->name('jana.painel');
+
         Route::post('/conversas',                          'ChatController@criarConversa')->name('jana.conversas.store');
         // Atalho GET — link "Nova conversa" da sidebar (UX Wagner 2026-05-08).
         // Cria conversa e redireciona pro /conversas/{id}. Antes era 404.
