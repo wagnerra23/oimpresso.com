@@ -11,6 +11,9 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\Spreadsheet\Entities\Spreadsheet;
 use Modules\Spreadsheet\Entities\SpreadsheetShare;
+use Modules\Spreadsheet\Http\Requests\MoveToFolderRequest;
+use Modules\Spreadsheet\Http\Requests\StoreFolderRequest;
+use Modules\Spreadsheet\Http\Requests\UpdateSpreadsheetRequest;
 use Modules\Spreadsheet\Notifications\SpreadsheetShared;
 use Modules\Spreadsheet\Services\SpreadsheetService;
 use Notification;
@@ -246,11 +249,15 @@ class SpreadsheetController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Request  $request
+     * D8.c Security Wave 17 — validação via UpdateSpreadsheetRequest (name maxlen +
+     * sheet_data type) preserva regras RBAC granulares (`create.spreadsheet`)
+     * checadas abaixo.
+     *
+     * @param  UpdateSpreadsheetRequest  $request
      * @param  int  $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateSpreadsheetRequest $request, $id)
     {
         $business_id = request()->session()->get('user.business_id');
 
@@ -259,8 +266,9 @@ class SpreadsheetController extends Controller
         }
 
         try {
-            $input['name'] = ! empty($request->input('name')) ? $request->input('name') : 'My Spreasheet';
-            $input['sheet_data'] = json_encode($request->input('sheet_data'));
+            $validated = $request->validated();
+            $input['name'] = ! empty($validated['name']) ? $validated['name'] : 'My Spreasheet';
+            $input['sheet_data'] = json_encode($validated['sheet_data'] ?? $request->input('sheet_data'));
 
             $user_id = request()->session()->get('user.id');
             $role_id = User::find($user_id)->roles()->first()->id;
@@ -507,8 +515,10 @@ class SpreadsheetController extends Controller
         Notification::send($users, new SpreadsheetShared($sheet_id));
     }
 
-    public function addFolder(Request $request)
+    public function addFolder(StoreFolderRequest $request)
     {
+        // D8.c Security Wave 17 — validação centralizada (name required + maxlen,
+        // folder_id integer + exists). Pattern UltimatePOS preservado.
         try {
             $input = $request->only(['name']);
             if (! empty($request->input('folder_id'))) {
@@ -541,8 +551,10 @@ class SpreadsheetController extends Controller
                 ->with('status', $output);
     }
 
-    public function moveToFolder(Request $request)
+    public function moveToFolder(MoveToFolderRequest $request)
     {
+        // D8.c Security Wave 17 — validação centralizada
+        // (spreadsheet_id required+exists, move_to_folder required+integer).
         if (! empty($request->input('move_to_folder'))) {
             $business_id = $request->session()->get('user.business_id');
 

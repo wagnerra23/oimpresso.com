@@ -10,6 +10,9 @@ use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappReminder;
 
 /**
+ * Observabilidade D9.a (ADR 0155): handler inline com webhook; Tracer pai
+ * via `OtelHelper::span(` herda o span do SlashCommandHandler dispatcher.
+ *
  * LembreteHandler — US-WA-076 (ADR 0142 §5).
  *
  * Atendente escreve em nota interna:

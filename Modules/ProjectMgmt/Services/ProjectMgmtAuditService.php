@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\ProjectMgmt\Services;
 
+use App\Util\OtelHelper;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Spatie\Activitylog\Facades\LogBatch;
 use Spatie\Activitylog\Models\Activity;
@@ -81,32 +82,41 @@ class ProjectMgmtAuditService
         ?int $subjectId = null,
         ?int $causerId = null,
     ): Activity {
-        $validEvents = $this->validEvents();
-        if (! in_array($event, $validEvents, true)) {
-            throw new \InvalidArgumentException(
-                "Event '{$event}' não está em EVENT_*. Permitidos: " . implode(', ', $validEvents)
-            );
-        }
+        // D9 observabilidade (Wave 17): toda gravação no activity_log é
+        // observável via OTel — auditoria LGPD + tracing unificados.
+        return OtelHelper::spanBiz('project_mgmt.audit.log', function () use (
+            $event, $description, $properties, $subjectType, $subjectId, $causerId
+        ): Activity {
+            $validEvents = $this->validEvents();
+            if (! in_array($event, $validEvents, true)) {
+                throw new \InvalidArgumentException(
+                    "Event '{$event}' não está em EVENT_*. Permitidos: " . implode(', ', $validEvents)
+                );
+            }
 
-        $sanitized = $this->sanitizeProperties($properties);
-        $sanitized['business_id'] = $this->businessId;
-        $sanitized['event'] = $event;
+            $sanitized = $this->sanitizeProperties($properties);
+            $sanitized['business_id'] = $this->businessId;
+            $sanitized['event'] = $event;
 
-        $activity = new Activity();
-        $activity->log_name = self::LOG_NAME;
-        $activity->description = $this->redactor->redact($description);
-        $activity->properties = collect($sanitized);
-        $activity->causer_id = $causerId ?? (auth()->id() ?? null);
-        $activity->causer_type = $causerId !== null || auth()->check() ? \App\User::class : null;
+            $activity = new Activity();
+            $activity->log_name = self::LOG_NAME;
+            $activity->description = $this->redactor->redact($description);
+            $activity->properties = collect($sanitized);
+            $activity->causer_id = $causerId ?? (auth()->id() ?? null);
+            $activity->causer_type = $causerId !== null || auth()->check() ? \App\User::class : null;
 
-        if ($subjectType !== null && $subjectId !== null) {
-            $activity->subject_type = $subjectType;
-            $activity->subject_id = $subjectId;
-        }
+            if ($subjectType !== null && $subjectId !== null) {
+                $activity->subject_type = $subjectType;
+                $activity->subject_id = $subjectId;
+            }
 
-        $activity->save();
+            $activity->save();
 
-        return $activity;
+            return $activity;
+        }, [
+            'business_id' => $this->businessId,
+            'event'       => $event,
+        ]);
     }
 
     /**

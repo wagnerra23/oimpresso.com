@@ -3,6 +3,7 @@
 namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,9 +40,12 @@ class FluxoController extends Controller
         $businessId = (int) session('user.business_id');
         $dias = $this->resolveDias($request);
 
-        $shape = $this->service->projetar($businessId, $dias);
-
-        return Inertia::render('Financeiro/Fluxo/Index', $shape);
+        // Wave 17 D9 — projeção 35d agrega Titulo + TituloBaixa + ContaBancaria.saldo_cached;
+        // pode ser pesada em business com volume alto. Span ajuda a detectar regressão.
+        return OtelHelper::spanBiz('financeiro.fluxo.projetar', function () use ($businessId, $dias) {
+            $shape = $this->service->projetar($businessId, $dias);
+            return Inertia::render('Financeiro/Fluxo/Index', $shape);
+        }, ['op' => 'projetar', 'dias' => $dias]);
     }
 
     /**

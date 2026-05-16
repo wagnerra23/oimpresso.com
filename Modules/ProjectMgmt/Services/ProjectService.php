@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\ProjectMgmt\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -43,9 +44,19 @@ class ProjectService
     /**
      * Lista projects scoped por business_id com KPIs de progress (parts done/total).
      *
+     * D9 observabilidade (Wave 17): wrapped em OtelHelper::spanBiz pra trace
+     * com business_id auto-injetado (Tier 0 audit) + count de projects.
+     *
      * @return Collection<int, array<string,mixed>>
      */
     public function list(): Collection
+    {
+        return OtelHelper::spanBiz('project_mgmt.project.list', fn () => $this->doList(), [
+            'business_id' => $this->businessId,
+        ]);
+    }
+
+    private function doList(): Collection
     {
         return DB::table('mcp_projects')
             ->where('business_id', $this->businessId)
@@ -76,21 +87,29 @@ class ProjectService
     /**
      * Calcula KPIs agregados da lista de projects.
      *
+     * D9 (Wave 17): span — KPI compute é puro (sem DB), trace mede só CPU.
+     *
      * @param  Collection<int, array<string,mixed>>  $projects  Resultado de list()
      * @return array{total:int,active:int,draft:int,completed:int}
      */
     public function calculateKpis(Collection $projects): array
     {
-        return [
+        return OtelHelper::spanBiz('project_mgmt.project.calculate_kpis', fn () => [
             'total'     => $projects->count(),
             'active'    => $projects->where('status', 'active')->count(),
             'draft'     => $projects->where('status', 'draft')->count(),
             'completed' => $projects->where('status', 'completed')->count(),
-        ];
+        ], [
+            'business_id'   => $this->businessId,
+            'projects_count' => $projects->count(),
+        ]);
     }
 
     /**
      * Busca project + parts + decisions linkadas (página de detalhe).
+     *
+     * D9 (Wave 17): span dedicado pra medir custo da query composta
+     * (3 joins lógicos: project + parts + decisions).
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException quando ID
      *         não existe ou não pertence ao $businessId atual (cross-tenant defense)
@@ -98,6 +117,14 @@ class ProjectService
      * @return array{project: array<string,mixed>, parts: list<array<string,mixed>>, decisions: list<array<string,mixed>>}
      */
     public function findDetail(int $projectId): array
+    {
+        return OtelHelper::spanBiz('project_mgmt.project.find_detail', fn () => $this->doFindDetail($projectId), [
+            'business_id' => $this->businessId,
+            'project_id'  => $projectId,
+        ]);
+    }
+
+    private function doFindDetail(int $projectId): array
     {
         $project = DB::table('mcp_projects')
             ->where('id', $projectId)
@@ -162,10 +189,19 @@ class ProjectService
     /**
      * Cria project novo. Auto-gera código `PROJ-YYYYMM-NNN` se não fornecido.
      *
+     * D9 (Wave 17): span dedicado pra trace de mutation (auditável + lat).
+     *
      * @param  array{nome:string, objetivo_macro:string, codigo?:string, owner?:string}  $data
      * @return int  ID do project criado
      */
     public function create(array $data): int
+    {
+        return OtelHelper::spanBiz('project_mgmt.project.create', fn () => $this->doCreate($data), [
+            'business_id' => $this->businessId,
+        ]);
+    }
+
+    private function doCreate(array $data): int
     {
         if (! isset($data['nome']) || ! isset($data['objetivo_macro'])) {
             throw new \InvalidArgumentException('nome + objetivo_macro são obrigatórios');
@@ -191,10 +227,20 @@ class ProjectService
     /**
      * Atualiza atributos seletivos do project (defense-in-depth: re-scope business_id).
      *
+     * D9 (Wave 17): span dedicado pra trace de mutation com project_id.
+     *
      * @param  array<string,mixed>  $data
      * @return bool  true se houve update (1+ rows affected)
      */
     public function update(int $projectId, array $data): bool
+    {
+        return OtelHelper::spanBiz('project_mgmt.project.update', fn () => $this->doUpdate($projectId, $data), [
+            'business_id' => $this->businessId,
+            'project_id'  => $projectId,
+        ]);
+    }
+
+    private function doUpdate(int $projectId, array $data): bool
     {
         $allowed = ['nome', 'objetivo_macro', 'status', 'decision', 'owner', 'viability_score', 'custo_estimado_brl', 'prazo_estimado_dias'];
         $payload = array_intersect_key($data, array_flip($allowed));

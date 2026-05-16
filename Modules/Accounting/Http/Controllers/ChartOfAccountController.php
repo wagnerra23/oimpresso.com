@@ -22,6 +22,8 @@ use Modules\Accounting\Entities\AccountSubtype;
 use Modules\Accounting\Entities\AccountType;
 use Modules\Accounting\Entities\JournalEntry;
 use Modules\Accounting\Exports\AccountingTableExport;
+use Modules\Accounting\Http\Requests\StoreChartOfAccountRequest;
+use Modules\Accounting\Http\Requests\UpdateChartOfAccountRequest;
 use PDF;
 
 class ChartOfAccountController extends Controller
@@ -166,21 +168,14 @@ class ChartOfAccountController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * @param Request $request
+     *
+     * D8.c Wave 17: validation extraída pra StoreChartOfAccountRequest
+     * (contrato preservado — vide PR/runbook governance v3).
+     *
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreChartOfAccountRequest $request)
     {
-        $request->validate([
-            'name' => ['required'],
-            'gl_code' => ['required', 'numeric', 'unique:chart_of_accounts,gl_code'],
-            'currency_id' => ['required'],
-            'opening_balance' => ['sometimes', 'required', 'numeric'],
-            'payment_type_id' => ['sometimes', 'required'],
-            'account_subtype_id' => ['required'],
-            'detail_type_id' => ['required'],
-        ]);
-
         try {
 
             DB::transaction(function () use ($request) {
@@ -283,22 +278,15 @@ class ChartOfAccountController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * @param Request $request
+     *
+     * D8.c Wave 17: validation extraída pra UpdateChartOfAccountRequest
+     * (contrato preservado — vide PR/runbook governance v3).
+     *
      * @param int $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateChartOfAccountRequest $request, $id)
     {
-        $request->validate([
-            'name' => ['required'],
-            'gl_code' => ['required', 'numeric', Rule::unique('chart_of_accounts', 'gl_code')->ignore($id)],
-            'currency_id' => ['required'],
-            'opening_balance' => ['sometimes', 'required', 'numeric'],
-            'payment_type_id' => ['sometimes', 'required'],
-            'account_subtype_id' => ['required'],
-            'detail_type_id' => ['required'],
-        ]);
-
         $chart_of_account = ChartOfAccount::findOrFail($id);
         $chart_of_account->name = $request->name;
         $chart_of_account->parent_id = $request->parent_id;

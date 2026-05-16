@@ -5,6 +5,9 @@ namespace Modules\Whatsapp\Services\Drivers;
 /**
  * Resultado padronizado de envio de mensagem (qualquer driver).
  *
+ * Observabilidade: value-object puro; spans OTel ficam no driver chamador
+ * via `OtelHelper::span(` ou `OtelHelper::spanBiz(` (Tracer canônico, ADR 0155 D9.a).
+ *
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-002
  */
 final class WhatsappSendResult

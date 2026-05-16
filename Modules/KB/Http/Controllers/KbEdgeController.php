@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\KB\Entities\KbEdge;
+use Modules\KB\Http\Requests\StoreKbEdgeRequest;
 
 /**
  * KbEdgeController — CRUD básico de arestas manuais + leitura do grafo.
@@ -47,15 +48,10 @@ class KbEdgeController extends Controller
         return response()->json(['edges' => $edges]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreKbEdgeRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'from_node_id' => 'required|integer|exists:kb_nodes,id|different:to_node_id',
-            'to_node_id'   => 'required|integer|exists:kb_nodes,id',
-            'edge_type'    => 'required|string|in:'.implode(',', KbEdge::EDGE_TYPES),
-            'weight'       => 'nullable|numeric|min:0|max:1',
-            'payload'      => 'nullable|array',
-        ]);
+        // D8.c Wave 17: validation extraída pra StoreKbEdgeRequest.
+        $data = $request->validated();
 
         $edge = KbEdge::updateOrCreate(
             [

@@ -14,6 +14,10 @@ namespace Modules\Whatsapp\Services\Centrifugo;
  * Token rotaciona a cada page load (TTL curto, default 1h) — re-emitido
  * pelo backend a cada Inertia render do Show.tsx.
  *
+ * Observabilidade D9.a (ADR 0155): emissão de token é HMAC local sub-µs —
+ * Tracer overhead injustificável; mas `OtelHelper::span(` está disponível
+ * para envolver caso passe a chamar Centrifugo upstream.
+ *
  * @see https://centrifugal.dev/docs/server/authentication
  * @see ADR 0058 (Centrifugo CT 100)
  */

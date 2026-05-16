@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
@@ -30,6 +31,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class JobSheetController extends Controller
 {
+    use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
      * All Utils instance.
      */
@@ -870,7 +872,7 @@ class JobSheetController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('job_sheet', $e); // D7.a Wave 17 LGPD
 
             return redirect()->back()
                 ->with('status', ['success' => false,
@@ -1130,7 +1132,7 @@ class JobSheetController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('job_sheet', $e); // D7.a Wave 17 LGPD
         }
 
         return redirect()
@@ -1326,7 +1328,7 @@ class JobSheetController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('job_sheet', $e); // D7.a Wave 17 LGPD
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
             ];

@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -27,15 +28,19 @@ class InfraStatusReader
 {
     public function fetch(): array
     {
-        return Cache::remember('admin.widget.infra', 60, function () {
-            return [
-                'hostinger_ssh'    => $this->checkTcp('177.74.67.30', 22, 2),
-                'ct100_tailscale'  => $this->checkHttp('http://100.99.207.66/admin/health', 2),
-                'centrifugo'       => $this->checkHttp('https://reverb.oimpresso.com/health', 2),
-                'meilisearch'      => $this->checkHttp('http://192.168.0.50:7700/version', 2),
-                'mysql'            => $this->checkMysql(),
-            ];
-        });
+        // D9.a OTel (Wave 17): span envolve 5 healthchecks paralelos.
+        // Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('admin.infra_status.fetch', function () {
+            return Cache::remember('admin.widget.infra', 60, function () {
+                return [
+                    'hostinger_ssh'    => $this->checkTcp('177.74.67.30', 22, 2),
+                    'ct100_tailscale'  => $this->checkHttp('http://100.99.207.66/admin/health', 2),
+                    'centrifugo'       => $this->checkHttp('https://reverb.oimpresso.com/health', 2),
+                    'meilisearch'      => $this->checkHttp('http://192.168.0.50:7700/version', 2),
+                    'mysql'            => $this->checkMysql(),
+                ];
+            });
+        }, ['component' => 'admin.widget.w9']);
     }
 
     private function checkTcp(string $host, int $port, int $timeoutSecs): array

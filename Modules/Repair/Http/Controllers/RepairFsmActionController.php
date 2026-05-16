@@ -16,7 +16,9 @@ use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
 use Symfony\Component\HttpFoundation\Response;
@@ -150,13 +152,19 @@ class RepairFsmActionController extends Controller
         } catch (InvalidActionForCurrentStageException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
-            \Log::error('RepairFsmActionController: falha execute', [
+            // D7.a LGPD — PiiRedactor wrap (Wave 17). $e->getMessage() pode conter
+            // ref_no/nome cliente/email/telefone se exception veio de SaleStageHistory
+            // observers que serializam contexto. Defesa em profundidade (ADR 0094 §6).
+            $redactor = app(PiiRedactor::class);
+            $safeContext = $redactor->redactArray([
                 'business_id' => $businessId,
                 'job_sheet_id' => $id,
                 'action_key' => $validated['action_key'],
                 'error' => $e->getMessage(),
             ]);
-            return response()->json(['error' => 'Falha interna: ' . $e->getMessage()], 500);
+            Log::error('[repair.fsm] falha execute action', $safeContext);
+
+            return response()->json(['error' => 'Falha interna: ' . $redactor->redact($e->getMessage())], 500);
         }
     }
 

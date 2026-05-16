@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\CalculaMeta;
@@ -24,6 +25,16 @@ class ApuracaoService
      * @param  Carbon $dataRef Data de referência (ponto final da janela; janela = mês/trim/ano do período ativo).
      */
     public function apurar(Meta $meta, Carbon $dataRef): MetaApuracao
+    {
+        // D9.a OTel Wave 17 — instrumentação Apuração (DB-bound, driver pluggable).
+        return OtelHelper::spanBiz('jana.apuracao.run', fn () => $this->apurarInternal($meta, $dataRef), [
+            'meta.id'     => $meta->id,
+            'meta.slug'   => $meta->slug ?? null,
+            'data.ref'    => $dataRef->toDateString(),
+        ]);
+    }
+
+    private function apurarInternal(Meta $meta, Carbon $dataRef): MetaApuracao
     {
         $meta->loadMissing(['fonte', 'periodoAtual']);
 

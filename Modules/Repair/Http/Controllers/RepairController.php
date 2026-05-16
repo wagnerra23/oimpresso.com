@@ -26,6 +26,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\RepairStatus;
 use Modules\Repair\Http\Resources\RepairListResource;
@@ -35,6 +36,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RepairController extends Controller
 {
+    use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
+
     /**
      * All Utils instance.
      */
@@ -1199,7 +1202,7 @@ class RepairController extends Controller
                     'msg' => __('lang_v1.updated_success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                $this->logSafeEmergency('repair', $e); // D7.a Wave 17 LGPD
 
                 $output = ['success' => false,
                     'msg' => __('messages.something_went_wrong'),
@@ -1225,7 +1228,7 @@ class RepairController extends Controller
                 'msg' => __('lang_v1.deleted_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('repair', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
@@ -1274,7 +1277,7 @@ class RepairController extends Controller
             return view('repair::repair.partials.preview_label')
                 ->with(compact('product_details', 'business_name', 'barcode_details', 'page_height', 'barcode_type'));
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('repair', $e); // D7.a Wave 17 LGPD
 
             $output = ['html' => '',
                 'success' => false,
@@ -1316,7 +1319,7 @@ class RepairController extends Controller
                     $output = ['success' => 1, 'receipt' => $receipt];
                 }
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                $this->logSafeEmergency('repair', $e); // D7.a Wave 17 LGPD
 
                 $output = [
                     'success' => 0,

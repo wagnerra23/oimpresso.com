@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\ProductCatalogue\Services;
 
+use App\Util\OtelHelper;
 use App\Utils\ProductUtil;
 use Modules\ProductCatalogue\Repositories\ProductCatalogueRepository;
 
@@ -35,57 +36,65 @@ class CatalogueService
     /**
      * Monta payload da tela /catalogue/{business}/{location} (listagem por categoria).
      *
+     * D9 observabilidade (Wave 17): wrapped em OtelHelper::spanBiz pra trace
+     * end-to-end (catálogo público QR é hot path — múltiplas queries Repository).
+     *
      * @return array{products: \Illuminate\Support\Collection, business: \App\Business, discounts: \Illuminate\Support\Collection, business_location: \App\BusinessLocation, categories: array}
      */
     public function buildIndexPayload(int $businessId, int $locationId): array
     {
-        $products = $this->repository->listProductsByLocation($businessId, $locationId);
-        $business = $this->repository->findBusinessWithCurrency($businessId);
-        $businessLocation = $this->repository->findLocationForBusiness($businessId, $locationId);
-        $discounts = $this->formatDiscountAmounts(
-            $this->repository->activeDiscounts($businessId, $locationId),
-            $business,
-        );
-        $categories = $this->repository->categoriesDropdown($businessId);
-
-        return [
-            'products' => $products,
-            'business' => $business,
-            'discounts' => $discounts,
-            'business_location' => $businessLocation,
-            'categories' => $categories,
-        ];
+        return OtelHelper::spanBiz('product_catalogue.build_index_payload', fn () => [
+            'products' => $this->repository->listProductsByLocation($businessId, $locationId),
+            'business' => $business = $this->repository->findBusinessWithCurrency($businessId),
+            'business_location' => $this->repository->findLocationForBusiness($businessId, $locationId),
+            'discounts' => $this->formatDiscountAmounts(
+                $this->repository->activeDiscounts($businessId, $locationId),
+                $business,
+            ),
+            'categories' => $this->repository->categoriesDropdown($businessId),
+        ], [
+            'business_id'  => $businessId,
+            'location_id'  => $locationId,
+        ]);
     }
 
     /**
      * Monta payload da tela /show-catalogue/{business}/{product} (detalhe).
      *
+     * D9 (Wave 17): span dedicado mede latência por produto + business_id Tier 0.
+     *
      * @return array{product: \App\Product, allowed_group_prices: array, group_price_details: array, combo_variations: array, discounts: array}
      */
     public function buildShowPayload(int $businessId, int $productId, ?int $locationId): array
     {
-        $product = $this->repository->findProductWithDetails($businessId, $productId);
-        $priceGroups = $this->repository->activePriceGroups($product->business_id);
+        return OtelHelper::spanBiz('product_catalogue.build_show_payload', function () use ($businessId, $productId, $locationId): array {
+            $product = $this->repository->findProductWithDetails($businessId, $productId);
+            $priceGroups = $this->repository->activePriceGroups($product->business_id);
 
-        $allowedGroupPrices = [];
-        foreach ($priceGroups as $key => $value) {
-            $allowedGroupPrices[$key] = $value;
-        }
+            $allowedGroupPrices = [];
+            foreach ($priceGroups as $key => $value) {
+                $allowedGroupPrices[$key] = $value;
+            }
 
-        [$groupPriceDetails, $discounts] = $this->collectVariationPricingAndDiscounts(
-            $product,
-            $locationId,
-        );
+            [$groupPriceDetails, $discounts] = $this->collectVariationPricingAndDiscounts(
+                $product,
+                $locationId,
+            );
 
-        $comboVariations = $this->collectComboVariations($product);
+            $comboVariations = $this->collectComboVariations($product);
 
-        return [
-            'product' => $product,
-            'allowed_group_prices' => $allowedGroupPrices,
-            'group_price_details' => $groupPriceDetails,
-            'combo_variations' => $comboVariations,
-            'discounts' => $discounts,
-        ];
+            return [
+                'product' => $product,
+                'allowed_group_prices' => $allowedGroupPrices,
+                'group_price_details' => $groupPriceDetails,
+                'combo_variations' => $comboVariations,
+                'discounts' => $discounts,
+            ];
+        }, [
+            'business_id' => $businessId,
+            'product_id'  => $productId,
+            'location_id' => $locationId,
+        ]);
     }
 
     /**

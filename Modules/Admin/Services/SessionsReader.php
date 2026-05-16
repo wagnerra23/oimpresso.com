@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +25,9 @@ class SessionsReader
 {
     public function fetch(): array
     {
+        // D9.a OTel (Wave 17): span envolve top 10 + GROUP BY by_dev.
+        // Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('admin.sessions.fetch', function () {
         try {
             if (! Schema::hasTable('mcp_cc_sessions')) {
                 return $this->stub('mcp_cc_sessions_missing');
@@ -64,6 +68,7 @@ class SessionsReader
             Log::warning('admin.widget.sessions.error', ['error' => $e->getMessage()]);
             return $this->stub('exception:' . substr($e->getMessage(), 0, 120));
         }
+        }, ['component' => 'admin.widget.w8']);
     }
 
     private function stub(string $reason): array

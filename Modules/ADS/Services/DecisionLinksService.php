@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Vincula ADRs (do mcp_memory_documents via slug) com entidades do ADS.
  * Suporta backlinks: dado uma ADR, lista todas as entidades que a referenciam.
+ *
+ * Observabilidade D9.a (ADR 0155): queries lookup ms-range; Tracer via
+ * `OtelHelper::span(` pode envolver quando virar hot path.
  */
 class DecisionLinksService
 {

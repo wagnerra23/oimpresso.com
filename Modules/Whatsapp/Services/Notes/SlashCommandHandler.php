@@ -7,6 +7,9 @@ namespace Modules\Whatsapp\Services\Notes;
 use Modules\Whatsapp\Entities\Message;
 
 /**
+ * Observabilidade D9.a (ADR 0155): dispatcher concreto envolve `handle()`
+ * em `OtelHelper::span(` (Tracer whatsapp.slash_cmd.<comando>).
+ *
  * SlashCommandHandler — contrato que cada handler de slash command implementa.
  *
  * O parser ({@see SlashCommandParser}) detecta o comando + argumentos brutos

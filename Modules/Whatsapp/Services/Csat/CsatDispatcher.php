@@ -13,6 +13,9 @@ use Modules\Whatsapp\Entities\CsatResponse;
 use Modules\Whatsapp\Entities\Message;
 
 /**
+ * Observabilidade D9.a (ADR 0155): `dispatchOnResolve` envolto em
+ * `OtelHelper::span(` (Tracer whatsapp.csat.dispatch) — mede idempotência hit/miss.
+ *
  * CsatDispatcher — envia pesquisa CSAT pós-resolução (PR-6 CYCLE-07).
  *
  * Quando atendente marca conversa como `resolved` (InboxController::updateStatus),

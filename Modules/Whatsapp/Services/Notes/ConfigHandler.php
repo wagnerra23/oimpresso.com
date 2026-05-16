@@ -9,6 +9,9 @@ use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappContactBotOverride;
 
 /**
+ * Observabilidade D9.a (ADR 0155): handler inline com webhook; Tracer pai
+ * via `OtelHelper::span(` herda o span do SlashCommandHandler dispatcher.
+ *
  * ConfigHandler — US-WA-077 (ADR 0142 §3c).
  *
  * Atendente escreve em nota interna:

@@ -3,6 +3,9 @@
 namespace Modules\ADS\Services;
 
 /**
+ * Observabilidade D9.a (ADR 0155): formatação pura in-memory; Tracer via
+ * `OtelHelper::span(` reservado pra fontes de dados upstream.
+ *
  * Converte estado técnico de uma decision em linguagem clara para Wagner.
  *
  * Toda decision tem 3 campos chave: destination, policy_applied, brain_used.

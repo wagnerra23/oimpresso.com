@@ -11,6 +11,10 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 
 /**
+ * Observabilidade D9.a (ADR 0155): aggregation diária envolto em
+ * `OtelHelper::span(` (Tracer whatsapp.metrics.aggregate_day) — mede
+ * latência por business + dia processado.
+ *
  * MetricsAggregator — agrega `messages` + `conversations` em snapshot
  * diário (US-WA-021/041, CYCLE-07 PR-3).
  *

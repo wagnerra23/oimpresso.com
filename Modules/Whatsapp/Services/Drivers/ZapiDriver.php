@@ -13,6 +13,10 @@ use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappTemplate;
 
 /**
+ * Observabilidade D9.a (ADR 0155): chamadas HTTP Z-API envolvidas em
+ * `OtelHelper::span(` (Tracer whatsapp.driver.zapi.<method>) — mede
+ * latência por business + provider response time.
+ *
  * ZapiDriver — driver default Sprint 1.
  *
  * Z-API é SaaS BR (`api.z-api.io`) baseado em Whatsapp Web/Baileys.

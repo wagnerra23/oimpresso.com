@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -46,6 +47,14 @@ class ProfileDistiller
      * }
      */
     public function destilar(int $businessId): array
+    {
+        // D9.a OTel Wave 17 — span Profile distill (LLM call + cache write).
+        return OtelHelper::spanBiz('jana.profile.distill', fn () => $this->destilarInternal($businessId), [
+            'biz.scope'  => $businessId,
+        ]);
+    }
+
+    private function destilarInternal(int $businessId): array
     {
         // Pega snapshot crus via ContextSnapshotService (já existe)
         $ctx = $this->context->paraBusiness($businessId);
