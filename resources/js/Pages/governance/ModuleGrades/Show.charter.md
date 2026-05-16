@@ -3,7 +3,7 @@ page: governance/ModuleGrades/Show
 route: /governance/module-grades/{name}
 status: live
 owner: [W]
-adrs: [0153]
+adrs: [0153, 0154]
 runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 ---
 
@@ -15,11 +15,12 @@ Drill-down de **um módulo específico** — mostrar nota grande, breakdown das 
 
 ## Goals
 
-1. Header com nota grande (5xl) + bucket badge colorido
+1. Header com nota grande (5xl) + bucket badge colorido + (ADR 0154 v2) contador "X de 5 dimensões com N/A justificado" quando aplicável
 2. Grid 3 colunas (responsivo) com 5 cards de dimensão (D1-D5) — cada card lista breakdown sub-items com score/max + evidência
-3. Lista "Top gaps" ordenada por `lost` desc — mostra perda + prioridade (P0/P1/P2/P3) + key + desc + evidence
-4. Botão **"Evoluir"** primário (verde, alto contraste) — abre Dialog com tasks suggested + markdown copiável
-5. Markdown gerado é colável direto no Claude Code pra criar tasks via `tasks-create` MCP
+3. **ADR 0154 v2 — N/A justificado:** Card de dimensão ganha badge verde "N/A justificado" + score exibe "N/A" + cor emerald-600 + fundo emerald-50/30 quando todos sub-itens são `na_justified`. Sub-item N/A mostra ícone "✓ N/A" verde + razão em italic verde abaixo do desc (substitui evidence padrão).
+4. Lista "Top gaps" ordenada por `lost` desc — mostra perda + prioridade (P0/P1/P2/P3) + key + desc + evidence
+5. Botão **"Evoluir"** primário (verde, alto contraste) — abre Dialog com tasks suggested + markdown copiável
+6. Markdown gerado é colável direto no Claude Code pra criar tasks via `tasks-create` MCP
 
 ## Non-Goals
 
@@ -34,6 +35,7 @@ Drill-down de **um módulo específico** — mostrar nota grande, breakdown das 
 - Gaps com perda em vermelho destacado
 - Modal Evoluir scrollável + accordion pro markdown raw
 - Botão "Copiar Markdown" com feedback visual "✓ Copiado!"
+- **ADR 0154 v2 N/A justificado:** cor emerald-600 dominante em dimensões/sub-itens N/A (não vermelho/amarelo). Razão SEMPRE visível pra Wagner saber por que é N/A — transparência total, sem "nota artificialmente alta" sem justificativa.
 
 ## Anti-hooks
 
@@ -41,3 +43,5 @@ Drill-down de **um módulo específico** — mostrar nota grande, breakdown das 
 - ❌ NÃO usar `<a href>` puro pra voltar (usar `<Link>` Inertia)
 - ❌ NÃO mostrar markdown raw fora do `<details>` (poluído visualmente)
 - ❌ NÃO disparar AJAX automático ao abrir modal — gerado client-side via useMemo
+- ❌ NÃO esconder a razão do N/A (ADR 0154 v2) — Wagner precisa ver o **porquê** pra confiar na nota; "verde silencioso" é anti-transparência
+- ❌ NÃO contar dimensão N/A como "pontuação cheia silenciosamente" — sempre rotular "N/A" no score (não inflar com "100%")

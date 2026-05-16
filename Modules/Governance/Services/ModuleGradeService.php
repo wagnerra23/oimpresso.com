@@ -23,7 +23,13 @@ use Symfony\Component\Yaml\Yaml;
  * Coleta automática via filesystem inspection. D5 (cliente) lê config/governance/module_clients.yaml
  * (Wagner edita manualmente — quando Modules/Brief gerar volume/módulo vira automático).
  *
+ * V2 (ADR 0154 proposto) — suporta "N/A justificado" lido do frontmatter `na_justified`
+ * em `memory/requisitos/<X>/SPEC.md`. Sub-itens/dimensões marcadas N/A recebem pontuação
+ * máxima + evidence "N/A justificado: <razão>". Anti-gaming: máx 3 N/A por módulo —
+ * excedentes são ignoradas + warning logado.
+ *
  * @see memory/decisions/0153-module-grade-rubrica-v1.md
+ * @see memory/decisions/0154-na-justificado-rubrica-v2.md (proposto)
  */
 class ModuleGradeService
 {
@@ -34,6 +40,9 @@ class ModuleGradeService
         ['min' => 20, 'label' => 'Crítico',   'color' => 'orange'],
         ['min' => 0,  'label' => 'Embrião',   'color' => 'red'],
     ];
+
+    /** Máximo de sub-itens/dimensões N/A justificados por módulo (anti-gaming v2). */
+    private const NA_JUSTIFIED_LIMIT = 3;
 
     private string $modulesPath;
     private string $memoryPath;
@@ -65,11 +74,13 @@ class ModuleGradeService
             throw new \InvalidArgumentException("Módulo `{$name}` não existe em Modules/");
         }
 
-        $d1 = $this->dim1MultiTenant($name, $modulePath);
-        $d2 = $this->dim2PestCoverage($name, $modulePath);
-        $d3 = $this->dim3Documentation($name, $modulePath);
-        $d4 = $this->dim4Architecture($name, $modulePath);
-        $d5 = $this->dim5Client($name);
+        $naJustified = $this->loadNaJustified($name);
+
+        $d1 = $this->dim1MultiTenant($name, $modulePath, $naJustified);
+        $d2 = $this->dim2PestCoverage($name, $modulePath, $naJustified);
+        $d3 = $this->dim3Documentation($name, $modulePath, $naJustified);
+        $d4 = $this->dim4Architecture($name, $modulePath, $naJustified);
+        $d5 = $this->dim5Client($name, $naJustified);
 
         $score = $d1['score'] + $d2['score'] + $d3['score'] + $d4['score'] + $d5['score'];
         $bucket = $this->bucketFor($score);
@@ -82,21 +93,24 @@ class ModuleGradeService
             'client_real'   => $d5,
         ]);
 
+        $totalNaJustified = $this->countNaApplied([$d1, $d2, $d3, $d4, $d5]);
+
         return [
-            'module'        => $name,
-            'score'         => $score,
-            'bucket'        => $bucket['label'],
-            'color'         => $bucket['color'],
-            'dimensions'    => [
+            'module'            => $name,
+            'score'             => $score,
+            'bucket'            => $bucket['label'],
+            'color'             => $bucket['color'],
+            'dimensions'        => [
                 'multi_tenant'  => $d1,
                 'pest_coverage' => $d2,
                 'documentation' => $d3,
                 'architecture'  => $d4,
                 'client_real'   => $d5,
             ],
-            'gaps'          => $gaps,
-            'evolve_tasks'  => $this->suggestEvolveTasks($name, $gaps),
-            'evaluated_at'  => now()->toIso8601String(),
+            'gaps'              => $gaps,
+            'evolve_tasks'      => $this->suggestEvolveTasks($name, $gaps),
+            'total_na_justified'=> $totalNaJustified,
+            'evaluated_at'      => now()->toIso8601String(),
         ];
     }
 
@@ -118,9 +132,10 @@ class ModuleGradeService
     // D1 — Multi-tenant Tier 0 (30 pts)
     // ────────────────────────────────────────────────────────────────────────
 
-    private function dim1MultiTenant(string $name, string $modulePath): array
+    private function dim1MultiTenant(string $name, string $modulePath, array $naJustified = []): array
     {
         $breakdown = [];
+        $naApplied = [];
 
         // D1.a — BusinessScope global em Entities críticas (10 pts)
         $entitiesPath = $modulePath . '/Entities';
@@ -139,7 +154,7 @@ class ModuleGradeService
         $d1a = count($entities) === 0
             ? 5  // sem entities — neutro (módulo pode usar Models core)
             : (int) round(min(10, ($businessScopeCount / max(1, count($entities))) * 10));
-        $breakdown[] = [
+        $d1aItem = [
             'key'   => 'D1.a',
             'desc'  => 'BusinessScope global em Entities críticas',
             'score' => $d1a,
@@ -148,6 +163,9 @@ class ModuleGradeService
                 ? 'sem Entities próprias (neutro)'
                 : "{$businessScopeCount}/" . count($entities) . " Entities com BusinessScope",
         ];
+        $d1aItem = $this->applyNaJustified($d1aItem, 'D1.a', $naJustified, $naApplied);
+        $breakdown[] = $d1aItem;
+        $d1a = $d1aItem['score'];
 
         // D1.b — Cross-tenant Pest cobrindo ≥50% Entities (15 pts)
         // Regex expandido pra capturar variantes canônicas (PR Wave H 2026-05-16):
@@ -175,13 +193,16 @@ class ModuleGradeService
         $d1b = $entCount === 0
             ? ($crossTenantTestFiles > 0 ? 15 : 0)
             : (int) round(min(15, ($crossTenantTestFiles / max(1, $entCount * 0.5)) * 15));
-        $breakdown[] = [
+        $d1bItem = [
             'key'   => 'D1.b',
             'desc'  => 'Cross-tenant Pest biz=1 vs biz=99',
             'score' => $d1b,
             'max'   => 15,
             'evidence' => "{$crossTenantTestFiles} test files com cross-tenant pattern",
         ];
+        $d1bItem = $this->applyNaJustified($d1bItem, 'D1.b', $naJustified, $naApplied);
+        $breakdown[] = $d1bItem;
+        $d1b = $d1bItem['score'];
 
         // D1.c — Jobs assíncronos $businessId no constructor (5 pts)
         $jobsPath = $modulePath . '/Jobs';
@@ -196,7 +217,7 @@ class ModuleGradeService
         $d1c = count($jobFiles) === 0
             ? 5  // sem Jobs — neutro
             : (int) round(min(5, ($jobsBusinessId / max(1, count($jobFiles))) * 5));
-        $breakdown[] = [
+        $d1cItem = [
             'key'   => 'D1.c',
             'desc'  => 'Jobs assíncronos recebem $businessId no constructor',
             'score' => $d1c,
@@ -205,22 +226,29 @@ class ModuleGradeService
                 ? 'sem Jobs (neutro)'
                 : "{$jobsBusinessId}/" . count($jobFiles) . " Jobs com \$businessId",
         ];
+        $d1cItem = $this->applyNaJustified($d1cItem, 'D1.c', $naJustified, $naApplied);
+        $breakdown[] = $d1cItem;
+        $d1c = $d1cItem['score'];
 
-        return [
+        // D1 dimensão inteira N/A (override total)
+        $dimResult = [
             'weight'    => 30,
             'score'     => $d1a + $d1b + $d1c,
             'max'       => 30,
             'breakdown' => $breakdown,
+            'na_justified' => $naApplied,
         ];
+        return $this->applyDimensionNa($dimResult, 'D1', $naJustified);
     }
 
     // ────────────────────────────────────────────────────────────────────────
     // D2 — Pest cobertura (20 pts)
     // ────────────────────────────────────────────────────────────────────────
 
-    private function dim2PestCoverage(string $name, string $modulePath): array
+    private function dim2PestCoverage(string $name, string $modulePath, array $naJustified = []): array
     {
         $breakdown = [];
+        $naApplied = [];
 
         $controllers = $this->phpFiles($modulePath . '/Http/Controllers');
         $testsPath = $modulePath . '/Tests';
@@ -232,13 +260,16 @@ class ModuleGradeService
         // D2.a — Razão tests/Controllers ≥ 0.5 (8 pts)
         $ratio = count($controllers) === 0 ? 1.0 : count($testFiles) / count($controllers);
         $d2a = (int) round(min(8, $ratio * 16));  // ratio 0.5 → 8 pts
-        $breakdown[] = [
+        $d2aItem = [
             'key'   => 'D2.a',
             'desc'  => 'Razão tests/Controllers ≥ 0.5',
             'score' => $d2a,
             'max'   => 8,
             'evidence' => sprintf('%d tests / %d controllers (ratio %.2f)', count($testFiles), count($controllers), $ratio),
         ];
+        $d2aItem = $this->applyNaJustified($d2aItem, 'D2.a', $naJustified, $naApplied);
+        $breakdown[] = $d2aItem;
+        $d2a = $d2aItem['score'];
 
         // D2.b — Tem MultiTenant + Smoke + Scaffold canônicos (8 pts)
         $canonicalCount = 0;
@@ -252,41 +283,50 @@ class ModuleGradeService
             }
         }
         $d2b = (int) round(($canonicalCount / 3) * 8);
-        $breakdown[] = [
+        $d2bItem = [
             'key'   => 'D2.b',
             'desc'  => 'Tem MultiTenant + Smoke + Scaffold canônicos',
             'score' => $d2b,
             'max'   => 8,
             'evidence' => "{$canonicalCount}/3 padrões canônicos presentes",
         ];
+        $d2bItem = $this->applyNaJustified($d2bItem, 'D2.b', $naJustified, $naApplied);
+        $breakdown[] = $d2bItem;
+        $d2b = $d2bItem['score'];
 
         // D2.c — Registrado em phpunit.xml CI (4 pts)
         $phpunit = file_exists($this->phpunitXmlPath) ? file_get_contents($this->phpunitXmlPath) : '';
         $isRegistered = str_contains($phpunit, "./Modules/{$name}/Tests");
         $d2c = $isRegistered ? 4 : 0;
-        $breakdown[] = [
+        $d2cItem = [
             'key'   => 'D2.c',
             'desc'  => 'Registrado em phpunit.xml CI',
             'score' => $d2c,
             'max'   => 4,
             'evidence' => $isRegistered ? 'sim — Tests em phpunit.xml' : 'NÃO REGISTRADO — falsa cobertura',
         ];
+        $d2cItem = $this->applyNaJustified($d2cItem, 'D2.c', $naJustified, $naApplied);
+        $breakdown[] = $d2cItem;
+        $d2c = $d2cItem['score'];
 
-        return [
+        $dimResult = [
             'weight'    => 20,
             'score'     => $d2a + $d2b + $d2c,
             'max'       => 20,
             'breakdown' => $breakdown,
+            'na_justified' => $naApplied,
         ];
+        return $this->applyDimensionNa($dimResult, 'D2', $naJustified);
     }
 
     // ────────────────────────────────────────────────────────────────────────
     // D3 — Documentação canônica (15 pts)
     // ────────────────────────────────────────────────────────────────────────
 
-    private function dim3Documentation(string $name, string $modulePath): array
+    private function dim3Documentation(string $name, string $modulePath, array $naJustified = []): array
     {
         $breakdown = [];
+        $naApplied = [];
 
         $specPath = $this->memoryPath . "/{$name}/SPEC.md";
         $briefingPath = $this->memoryPath . "/{$name}/BRIEFING.md";
@@ -296,11 +336,14 @@ class ModuleGradeService
 
         // D3.a — SPEC.md (5 pts)
         $d3a = file_exists($specPath) ? 5 : 0;
-        $breakdown[] = [
+        $d3aItem = [
             'key' => 'D3.a', 'desc' => 'memory/requisitos/<X>/SPEC.md',
             'score' => $d3a, 'max' => 5,
             'evidence' => $d3a ? 'sim' : 'ausente',
         ];
+        $d3aItem = $this->applyNaJustified($d3aItem, 'D3.a', $naJustified, $naApplied);
+        $breakdown[] = $d3aItem;
+        $d3a = $d3aItem['score'];
 
         // D3.b — BRIEFING.md atualizado ≤90d (5 pts)
         $d3b = 0;
@@ -310,46 +353,58 @@ class ModuleGradeService
             $d3b = $age <= 90 ? 5 : 2;
             $briefingEvidence = sprintf('idade %.0fd', $age);
         }
-        $breakdown[] = [
+        $d3bItem = [
             'key' => 'D3.b', 'desc' => 'BRIEFING.md 1-pager ≤90d',
             'score' => $d3b, 'max' => 5,
             'evidence' => $briefingEvidence,
         ];
+        $d3bItem = $this->applyNaJustified($d3bItem, 'D3.b', $naJustified, $naApplied);
+        $breakdown[] = $d3bItem;
+        $d3b = $d3bItem['score'];
 
         // D3.c — Charter ≥30% telas (3 pts)
         $tsxFiles = $this->filesByExt($pagesModulePath, '.tsx');
         $charterFiles = $this->filesByExt($pagesModulePath, '.charter.md');
         $charterRatio = count($tsxFiles) === 0 ? 0 : count($charterFiles) / count($tsxFiles);
         $d3c = $charterRatio >= 0.30 ? 3 : (int) round($charterRatio * 10);
-        $breakdown[] = [
+        $d3cItem = [
             'key' => 'D3.c', 'desc' => 'Charter por tela ≥30%',
             'score' => $d3c, 'max' => 3,
             'evidence' => sprintf('%d charters / %d tsx (%.0f%%)', count($charterFiles), count($tsxFiles), $charterRatio * 100),
         ];
+        $d3cItem = $this->applyNaJustified($d3cItem, 'D3.c', $naJustified, $naApplied);
+        $breakdown[] = $d3cItem;
+        $d3c = $d3cItem['score'];
 
         // D3.d — ADR mãe declarada (2 pts) — busca em memory/decisions/ frontmatter module: <Name>
         $d3d = $this->hasModuleAdr($name) ? 2 : 0;
-        $breakdown[] = [
+        $d3dItem = [
             'key' => 'D3.d', 'desc' => 'ADR mãe com module: <X> no frontmatter',
             'score' => $d3d, 'max' => 2,
             'evidence' => $d3d ? 'sim' : 'ausente',
         ];
+        $d3dItem = $this->applyNaJustified($d3dItem, 'D3.d', $naJustified, $naApplied);
+        $breakdown[] = $d3dItem;
+        $d3d = $d3dItem['score'];
 
-        return [
+        $dimResult = [
             'weight'    => 15,
             'score'     => $d3a + $d3b + $d3c + $d3d,
             'max'       => 15,
             'breakdown' => $breakdown,
+            'na_justified' => $naApplied,
         ];
+        return $this->applyDimensionNa($dimResult, 'D3', $naJustified);
     }
 
     // ────────────────────────────────────────────────────────────────────────
     // D4 — Maturidade arquitetura (20 pts)
     // ────────────────────────────────────────────────────────────────────────
 
-    private function dim4Architecture(string $name, string $modulePath): array
+    private function dim4Architecture(string $name, string $modulePath, array $naJustified = []): array
     {
         $breakdown = [];
+        $naApplied = [];
 
         $services = $this->phpFiles($modulePath . '/Services');
         $controllers = $this->phpFiles($modulePath . '/Http/Controllers');
@@ -357,11 +412,14 @@ class ModuleGradeService
         // D4.a — Service/Controller ratio ≥ 0.3 (6 pts)
         $ratio = count($controllers) === 0 ? 0 : count($services) / count($controllers);
         $d4a = (int) round(min(6, $ratio * 20));  // ratio 0.3 → 6
-        $breakdown[] = [
+        $d4aItem = [
             'key' => 'D4.a', 'desc' => 'Services/Controllers ratio ≥ 0.3',
             'score' => $d4a, 'max' => 6,
             'evidence' => sprintf('%d Services / %d Controllers (ratio %.2f)', count($services), count($controllers), $ratio),
         ];
+        $d4aItem = $this->applyNaJustified($d4aItem, 'D4.a', $naJustified, $naApplied);
+        $breakdown[] = $d4aItem;
+        $d4a = $d4aItem['score'];
 
         // D4.b — FSM canônica (5 pts) — busca trait GuardsFsmTransitions em Models OR sale_processes referenciado
         $d4b = 0;
@@ -373,11 +431,14 @@ class ModuleGradeService
                 break;
             }
         }
-        $breakdown[] = [
+        $d4bItem = [
             'key' => 'D4.b', 'desc' => 'FSM canônica (ADR 0143)',
             'score' => $d4b, 'max' => 5,
             'evidence' => $d4b ? 'sim — GuardsFsmTransitions ou current_stage_id detectado' : 'não aplicável ou ausente',
         ];
+        $d4bItem = $this->applyNaJustified($d4bItem, 'D4.b', $naJustified, $naApplied);
+        $breakdown[] = $d4bItem;
+        $d4b = $d4bItem['score'];
 
         // D4.c — Pages Inertia .tsx ≥ Blade .blade.php legacy (5 pts)
         // Resolve case-insensitive — Linux Hostinger ≠ Windows local (mesmo bug do D3.c).
@@ -388,11 +449,14 @@ class ModuleGradeService
         $d4c = $tsxCount + $bladeCount === 0
             ? 3  // módulo backend-only — neutro
             : ($tsxCount >= $bladeCount ? 5 : (int) round(($tsxCount / max(1, $tsxCount + $bladeCount)) * 5));
-        $breakdown[] = [
+        $d4cItem = [
             'key' => 'D4.c', 'desc' => 'Pages Inertia .tsx ≥ Blade .blade.php legacy',
             'score' => $d4c, 'max' => 5,
             'evidence' => "{$tsxCount} tsx / {$bladeCount} blade",
         ];
+        $d4cItem = $this->applyNaJustified($d4cItem, 'D4.c', $naJustified, $naApplied);
+        $breakdown[] = $d4cItem;
+        $d4c = $d4cItem['score'];
 
         // D4.d — AuditLog + OTel telemetry (4 pts)
         $d4d = 0;
@@ -403,28 +467,34 @@ class ModuleGradeService
                 break;
             }
         }
-        $breakdown[] = [
+        $d4dItem = [
             'key' => 'D4.d', 'desc' => 'AuditLog + OTel telemetry',
             'score' => $d4d, 'max' => 4,
             'evidence' => $d4d ? 'sim — activitylog ou OTel detectado' : 'ausente',
         ];
+        $d4dItem = $this->applyNaJustified($d4dItem, 'D4.d', $naJustified, $naApplied);
+        $breakdown[] = $d4dItem;
+        $d4d = $d4dItem['score'];
 
-        return [
+        $dimResult = [
             'weight'    => 20,
             'score'     => $d4a + $d4b + $d4c + $d4d,
             'max'       => 20,
             'breakdown' => $breakdown,
+            'na_justified' => $naApplied,
         ];
+        return $this->applyDimensionNa($dimResult, 'D4', $naJustified);
     }
 
     // ────────────────────────────────────────────────────────────────────────
     // D5 — Cliente real + criticidade (15 pts)
     // ────────────────────────────────────────────────────────────────────────
 
-    private function dim5Client(string $name): array
+    private function dim5Client(string $name, array $naJustified = []): array
     {
         $clients = $this->loadClients();
         $entry = $clients[$name] ?? null;
+        $naApplied = [];
 
         $score = 0;
         $evidence = 'ninguém usa (D5.e)';
@@ -441,18 +511,22 @@ class ModuleGradeService
             $evidence = "{$level}" . (isset($entry['note']) ? " — {$entry['note']}" : '');
         }
 
-        return [
+        $d5Item = [
+            'key' => 'D5', 'desc' => 'Cliente real (manual via config/governance/module_clients.yaml)',
+            'score' => $score, 'max' => 15,
+            'evidence' => $evidence,
+        ];
+        $d5Item = $this->applyNaJustified($d5Item, 'D5', $naJustified, $naApplied);
+        $score = $d5Item['score'];
+
+        $dimResult = [
             'weight'    => 15,
             'score'     => $score,
             'max'       => 15,
-            'breakdown' => [
-                [
-                    'key' => 'D5', 'desc' => 'Cliente real (manual via config/governance/module_clients.yaml)',
-                    'score' => $score, 'max' => 15,
-                    'evidence' => $evidence,
-                ],
-            ],
+            'breakdown' => [$d5Item],
+            'na_justified' => $naApplied,
         ];
+        return $this->applyDimensionNa($dimResult, 'D5', $naJustified);
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -677,6 +751,138 @@ class ModuleGradeService
             }
         }
         return false;
+    }
+
+    /**
+     * Lê frontmatter YAML campo `na_justified` em `memory/requisitos/<X>/SPEC.md`.
+     *
+     * Aceita 2 formatos:
+     *   na_justified:
+     *     D4.b: "Módulo de governança não tem state machine"
+     *     D5: "Cross-tenant intencional Art. 6"
+     * OU array simples (sem razão — fallback string vazia):
+     *   na_justified: [D4.b, D5]
+     *
+     * Anti-gaming v2 (ADR 0154 proposto): máx NA_JUSTIFIED_LIMIT (3) entradas por módulo.
+     * Excedentes são ignoradas + Log::warning() emitido.
+     *
+     * @return array<string, string> mapeamento key (D1.a / D5) → razão
+     */
+    private function loadNaJustified(string $module): array
+    {
+        $specPath = $this->memoryPath . "/{$module}/SPEC.md";
+        if (! file_exists($specPath)) {
+            return [];
+        }
+
+        $content = @file_get_contents($specPath) ?: '';
+        // Extrai frontmatter YAML (entre --- ... ---)
+        if (! preg_match('/\A---\s*\n(.*?)\n---\s*\n/s', $content, $m)) {
+            return [];
+        }
+
+        try {
+            $front = Yaml::parse($m[1]);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        if (! is_array($front) || ! isset($front['na_justified'])) {
+            return [];
+        }
+
+        $raw = $front['na_justified'];
+        $parsed = [];
+
+        if (is_array($raw)) {
+            foreach ($raw as $key => $value) {
+                if (is_int($key)) {
+                    // Formato lista: [D4.b, D5]
+                    if (is_string($value)) {
+                        $parsed[$value] = '';
+                    }
+                } else {
+                    // Formato mapping: D4.b: "razão"
+                    $parsed[(string) $key] = is_string($value) ? $value : '';
+                }
+            }
+        }
+
+        // Anti-gaming: máximo NA_JUSTIFIED_LIMIT entradas
+        if (count($parsed) > self::NA_JUSTIFIED_LIMIT) {
+            $excedentes = array_slice($parsed, self::NA_JUSTIFIED_LIMIT, null, true);
+            $parsed = array_slice($parsed, 0, self::NA_JUSTIFIED_LIMIT, true);
+
+            if (class_exists(\Illuminate\Support\Facades\Log::class)) {
+                try {
+                    \Illuminate\Support\Facades\Log::warning(
+                        "[ModuleGradeService] Módulo {$module} declarou " . (count($parsed) + count($excedentes)) .
+                        " N/A justificados — limite é " . self::NA_JUSTIFIED_LIMIT . ". Excedentes ignoradas: " .
+                        implode(', ', array_keys($excedentes))
+                    );
+                } catch (\Throwable $e) {
+                    // logger indisponível em test isolado — segue sem log
+                }
+            }
+        }
+
+        return $parsed;
+    }
+
+    /**
+     * Aplica N/A justificado a um sub-item (D1.a, D2.b, etc) se key estiver declarada.
+     * Substitui score por max + apenda razão ao evidence + marca em $naApplied.
+     */
+    private function applyNaJustified(array $item, string $key, array $naJustified, array &$naApplied): array
+    {
+        if (! array_key_exists($key, $naJustified)) {
+            return $item;
+        }
+
+        $reason = $naJustified[$key];
+        $item['score'] = $item['max'];
+        $item['evidence'] = 'N/A justificado: ' . ($reason !== '' ? $reason : 'sem razão declarada');
+        $item['na_justified'] = true;
+
+        $naApplied[$key] = $reason;
+        return $item;
+    }
+
+    /**
+     * Aplica N/A na DIMENSÃO inteira (ex D5 completo) — força score = max + marca todos breakdowns.
+     */
+    private function applyDimensionNa(array $dimResult, string $dimKey, array $naJustified): array
+    {
+        if (! array_key_exists($dimKey, $naJustified)) {
+            return $dimResult;
+        }
+
+        $reason = $naJustified[$dimKey];
+        $dimResult['score'] = $dimResult['max'];
+
+        // Marca todos sub-itens N/A (caso ainda não estejam)
+        foreach ($dimResult['breakdown'] as $idx => $sub) {
+            if (! ($sub['na_justified'] ?? false)) {
+                $dimResult['breakdown'][$idx]['score'] = $sub['max'];
+                $dimResult['breakdown'][$idx]['evidence'] = 'N/A justificado: ' . ($reason !== '' ? $reason : 'sem razão declarada');
+                $dimResult['breakdown'][$idx]['na_justified'] = true;
+            }
+        }
+
+        $dimResult['na_justified'][$dimKey] = $reason;
+        return $dimResult;
+    }
+
+    /**
+     * Conta total de sub-itens + dimensões N/A aplicados ao longo das 5 dimensões.
+     */
+    private function countNaApplied(array $dimensions): int
+    {
+        $total = 0;
+        foreach ($dimensions as $dim) {
+            $total += count($dim['na_justified'] ?? []);
+        }
+        return $total;
     }
 
     private function loadClients(): array

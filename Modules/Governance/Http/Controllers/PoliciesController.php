@@ -33,14 +33,26 @@ class PoliciesController extends Controller
 
     public function index(Request $request): Response
     {
+        // Inertia::defer pra props com query DB (skill inertia-defer-default).
+        return Inertia::render('governance/Policies', [
+            'rules_by_category' => Inertia::defer(fn () => $this->buildRulesByCategoryPayload()),
+            'kpis'              => Inertia::defer(fn () => $this->buildKpisPayload()),
+        ]);
+    }
+
+    private function buildRulesByCategoryPayload(): mixed
+    {
+        $rules = $this->service->listPolicies();
+
+        return $this->service->groupByCategory($rules);
+    }
+
+    private function buildKpisPayload(): mixed
+    {
         $rules = $this->service->listPolicies();
         $byCategory = $this->service->groupByCategory($rules);
-        $kpis = $this->service->kpisFor($rules, $byCategory);
 
-        return Inertia::render('governance/Policies', [
-            'rules_by_category' => $byCategory,
-            'kpis'              => $kpis,
-        ]);
+        return $this->service->kpisFor($rules, $byCategory);
     }
 
     public function toggle(Request $request, int $id): RedirectResponse
