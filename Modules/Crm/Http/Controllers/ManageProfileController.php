@@ -8,6 +8,7 @@ use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class ManageProfileController extends Controller
 {
@@ -80,7 +81,8 @@ class ManageProfileController extends Controller
                 'msg' => __('lang_v1.profile_updated_successfully'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (profile toca dados pessoais).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -118,7 +120,8 @@ class ManageProfileController extends Controller
                 ];
             }
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (profile toca dados pessoais).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),

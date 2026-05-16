@@ -4,6 +4,7 @@ namespace Modules\Repair\Utils;
 
 use App\Business;
 use App\Charts\CommonChart;
+use App\Util\OtelHelper;
 use App\Utils\Util;
 use DB;
 use Modules\Repair\Entities\JobSheet;
@@ -13,6 +14,17 @@ use Notification;
 class RepairUtil extends Util
 {
     public function replaceModuleTags($business_id, $data, $job_sheet)
+    {
+        // Wave 9 OTel — span hot-path: substituição de tags em template (DB read JobSheet+Business)
+        return OtelHelper::spanBiz('repair.util.replace_module_tags', function () use ($business_id, $data, $job_sheet) {
+            return $this->replaceModuleTagsInner($business_id, $data, $job_sheet);
+        }, ['module' => 'Repair', 'biz' => (int) $business_id]);
+    }
+
+    /**
+     * Lógica original preservada — chamada interna do span.
+     */
+    private function replaceModuleTagsInner($business_id, $data, $job_sheet)
     {
         $id = empty($job_sheet->repair_job_sheet_id) ? $job_sheet->id : $job_sheet->repair_job_sheet_id;
 
@@ -170,6 +182,17 @@ class RepairUtil extends Util
 
     public function sendJobSheetUpdateSmsNotification($sms_body, $job_sheet)
     {
+        // Wave 9 OTel — span hot-path: envio SMS notificação OS
+        return OtelHelper::spanBiz('repair.util.send_job_sheet_sms', function () use ($sms_body, $job_sheet) {
+            return $this->sendJobSheetUpdateSmsNotificationInner($sms_body, $job_sheet);
+        }, ['module' => 'Repair', 'biz' => (int) ($job_sheet->business_id ?? 0)]);
+    }
+
+    /**
+     * Lógica original preservada — chamada interna do span.
+     */
+    private function sendJobSheetUpdateSmsNotificationInner($sms_body, $job_sheet)
+    {
         $business_id = $job_sheet->business_id;
         $customer = $job_sheet->customer;
         $notification_data['sms_body'] = $sms_body;
@@ -205,15 +228,18 @@ class RepairUtil extends Util
 
     public function sendJobSheetUpdateEmailNotification($notification_data, $job_sheet)
     {
-        $business_id = $job_sheet->business_id;
-        $customer = $job_sheet->customer;
+        // Wave 9 OTel — span hot-path: envio email notificação OS
+        return OtelHelper::spanBiz('repair.util.send_job_sheet_email', function () use ($notification_data, $job_sheet) {
+            $business_id = $job_sheet->business_id;
+            $customer = $job_sheet->customer;
 
-        //replace tag from template
-        $tag_replaced_data = $this->replaceModuleTags($business_id, $notification_data, $job_sheet);
+            // replace tag from template
+            $tag_replaced_data = $this->replaceModuleTags($business_id, $notification_data, $job_sheet);
 
-        if (! empty($customer->email)) {
-            $customer->notify(new RepairStatusUpdated($tag_replaced_data));
-        }
+            if (! empty($customer->email)) {
+                $customer->notify(new RepairStatusUpdated($tag_replaced_data));
+            }
+        }, ['module' => 'Repair', 'biz' => (int) ($job_sheet->business_id ?? 0)]);
     }
 
     public function getRepairStatusTemplateTags()
@@ -226,73 +252,82 @@ class RepairUtil extends Util
 
     public function getRepairByStatus($business_id)
     {
-        $job_sheets_by_status = JobSheet::join(
-                    'repair_statuses as rs',
-                    'repair_job_sheets.status_id',
-                    '=',
-                    'rs.id'
-                )
-                ->where('repair_job_sheets.business_id', $business_id)
-                ->select(
-                    DB::raw('COUNT(repair_job_sheets.id) as total_job_sheets'),
-                    'rs.name as status_name',
-                    'rs.color',
-                    'rs.sort_order'
-                )
-                ->groupBy('rs.id')
-                ->orderBy('sort_order', 'asc')
-                ->get();
+        // Wave 9 OTel — span hot-path: agregação dashboard por status
+        return OtelHelper::spanBiz('repair.util.get_repair_by_status', function () use ($business_id) {
+            $job_sheets_by_status = JobSheet::join(
+                        'repair_statuses as rs',
+                        'repair_job_sheets.status_id',
+                        '=',
+                        'rs.id'
+                    )
+                    ->where('repair_job_sheets.business_id', $business_id)
+                    ->select(
+                        DB::raw('COUNT(repair_job_sheets.id) as total_job_sheets'),
+                        'rs.name as status_name',
+                        'rs.color',
+                        'rs.sort_order'
+                    )
+                    ->groupBy('rs.id')
+                    ->orderBy('sort_order', 'asc')
+                    ->get();
 
-        return $job_sheets_by_status;
+            return $job_sheets_by_status;
+        }, ['module' => 'Repair', 'biz' => (int) $business_id]);
     }
 
     public function getRepairByServiceStaff($business_id)
     {
-        $job_sheets_by_service_staff = JobSheet::leftJoin(
-                        'users', 'repair_job_sheets.service_staff',
-                         '=',
-                         'users.id'
-                        )
-                        ->where('repair_job_sheets.business_id', $business_id)
-                        ->whereNotNull('repair_job_sheets.service_staff')
-                        ->select(DB::raw("CONCAT(COALESCE(surname, ''),' ',COALESCE(first_name, ''),' ',COALESCE(last_name,'')) as service_staff"),
-                            DB::raw('COUNT(repair_job_sheets.id) as total_job_sheets')
-                        )
-                        ->groupBy('repair_job_sheets.service_staff')
-                        ->get();
+        // Wave 9 OTel — span hot-path: agregação dashboard por técnico
+        return OtelHelper::spanBiz('repair.util.get_repair_by_service_staff', function () use ($business_id) {
+            $job_sheets_by_service_staff = JobSheet::leftJoin(
+                            'users', 'repair_job_sheets.service_staff',
+                             '=',
+                             'users.id'
+                            )
+                            ->where('repair_job_sheets.business_id', $business_id)
+                            ->whereNotNull('repair_job_sheets.service_staff')
+                            ->select(DB::raw("CONCAT(COALESCE(surname, ''),' ',COALESCE(first_name, ''),' ',COALESCE(last_name,'')) as service_staff"),
+                                DB::raw('COUNT(repair_job_sheets.id) as total_job_sheets')
+                            )
+                            ->groupBy('repair_job_sheets.service_staff')
+                            ->get();
 
-        return $job_sheets_by_service_staff;
+            return $job_sheets_by_service_staff;
+        }, ['module' => 'Repair', 'biz' => (int) $business_id]);
     }
 
     public function getTrendingRepairBrands($business_id)
     {
-        $job_sheets = JobSheet::leftJoin('brands',
-                            'repair_job_sheets.brand_id',
-                            '=',
-                            'brands.id')
-                            ->where('repair_job_sheets.business_id', $business_id)
-                            ->whereNotNull('repair_job_sheets.brand_id')
-                            ->select('brands.name as brand',
-                                DB::raw('COUNT(repair_job_sheets.id) as job_sheets_brands')
-                            )
-                            ->limit(5)
-                            ->groupBy('brands.id')
-                            ->orderBy('job_sheets_brands', 'desc')
-                            ->get();
+        // Wave 9 OTel — span hot-path: trending dashboard brands
+        return OtelHelper::spanBiz('repair.util.get_trending_brands', function () use ($business_id) {
+            $job_sheets = JobSheet::leftJoin('brands',
+                                'repair_job_sheets.brand_id',
+                                '=',
+                                'brands.id')
+                                ->where('repair_job_sheets.business_id', $business_id)
+                                ->whereNotNull('repair_job_sheets.brand_id')
+                                ->select('brands.name as brand',
+                                    DB::raw('COUNT(repair_job_sheets.id) as job_sheets_brands')
+                                )
+                                ->limit(5)
+                                ->groupBy('brands.id')
+                                ->orderBy('job_sheets_brands', 'desc')
+                                ->get();
 
-        $labels = [];
-        $values = [];
-        foreach ($job_sheets as $key => $job_sheet) {
-            $labels[] = $job_sheet['brand'];
-            $values[] = $job_sheet['job_sheets_brands'];
-        }
+            $labels = [];
+            $values = [];
+            foreach ($job_sheets as $key => $job_sheet) {
+                $labels[] = $job_sheet['brand'];
+                $values[] = $job_sheet['job_sheets_brands'];
+            }
 
-        $chart = new CommonChart;
-        $chart->labels($labels)
-            ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
-            ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
+            $chart = new CommonChart;
+            $chart->labels($labels)
+                ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
+                ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
 
-        return $chart;
+            return $chart;
+        }, ['module' => 'Repair', 'biz' => (int) $business_id]);
     }
 
     private function __chartOptions($title)
@@ -314,80 +349,86 @@ class RepairUtil extends Util
 
     public function getTrendingDevices($business_id)
     {
-        $job_sheets = JobSheet::leftJoin('categories as CAT',
-                            'repair_job_sheets.device_id',
-                            '=',
-                            'CAT.id')
-                            ->where('repair_job_sheets.business_id', $business_id)
-                            ->whereNotNull('repair_job_sheets.device_id')
-                            ->select('CAT.name as device',
-                                DB::raw('COUNT(repair_job_sheets.id) as job_sheet_devices')
-                            )
-                            ->limit(5)
-                            ->groupBy('CAT.id')
-                            ->orderBy('job_sheet_devices', 'desc')
-                            ->get();
+        // Wave 9 OTel — span hot-path: trending dashboard devices
+        return OtelHelper::spanBiz('repair.util.get_trending_devices', function () use ($business_id) {
+            $job_sheets = JobSheet::leftJoin('categories as CAT',
+                                'repair_job_sheets.device_id',
+                                '=',
+                                'CAT.id')
+                                ->where('repair_job_sheets.business_id', $business_id)
+                                ->whereNotNull('repair_job_sheets.device_id')
+                                ->select('CAT.name as device',
+                                    DB::raw('COUNT(repair_job_sheets.id) as job_sheet_devices')
+                                )
+                                ->limit(5)
+                                ->groupBy('CAT.id')
+                                ->orderBy('job_sheet_devices', 'desc')
+                                ->get();
 
-        $labels = [];
-        $values = [];
-        foreach ($job_sheets as $key => $job_sheet) {
-            $labels[] = $job_sheet['device'];
-            $values[] = $job_sheet['job_sheet_devices'];
-        }
+            $labels = [];
+            $values = [];
+            foreach ($job_sheets as $key => $job_sheet) {
+                $labels[] = $job_sheet['device'];
+                $values[] = $job_sheet['job_sheet_devices'];
+            }
 
-        $chart = new CommonChart;
-        $chart->labels($labels)
-            ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
-            ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
+            $chart = new CommonChart;
+            $chart->labels($labels)
+                ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
+                ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
 
-        return $chart;
+            return $chart;
+        }, ['module' => 'Repair', 'biz' => (int) $business_id]);
     }
 
     public function getTrendingDeviceModels($business_id)
     {
-        $job_sheets = JobSheet::leftJoin('repair_device_models as RDM',
-                            'repair_job_sheets.device_model_id',
-                            '=',
-                            'RDM.id')
-                            ->leftJoin('brands', 'RDM.brand_id',
-                            '=', 'brands.id')
-                            ->leftJoin('categories as CAT',
-                            'RDM.device_id',
-                            '=',
-                            'CAT.id')
-                            ->where('repair_job_sheets.business_id', $business_id)
-                            ->whereNotNull('repair_job_sheets.device_model_id')
-                            ->select('RDM.name as device_model', 'brands.name as brand',
-                                DB::raw('COUNT(repair_job_sheets.id) as job_sheet_models'),
-                                'CAT.name as device'
-                            )
-                            ->limit(5)
-                            ->groupBy('RDM.id')
-                            ->orderBy('job_sheet_models', 'desc')
-                            ->get();
+        // Wave 9 OTel — span hot-path: trending dashboard device models
+        return OtelHelper::spanBiz('repair.util.get_trending_device_models', function () use ($business_id) {
+            $job_sheets = JobSheet::leftJoin('repair_device_models as RDM',
+                                'repair_job_sheets.device_model_id',
+                                '=',
+                                'RDM.id')
+                                ->leftJoin('brands', 'RDM.brand_id',
+                                '=', 'brands.id')
+                                ->leftJoin('categories as CAT',
+                                'RDM.device_id',
+                                '=',
+                                'CAT.id')
+                                ->where('repair_job_sheets.business_id', $business_id)
+                                ->whereNotNull('repair_job_sheets.device_model_id')
+                                ->select('RDM.name as device_model', 'brands.name as brand',
+                                    DB::raw('COUNT(repair_job_sheets.id) as job_sheet_models'),
+                                    'CAT.name as device'
+                                )
+                                ->limit(5)
+                                ->groupBy('RDM.id')
+                                ->orderBy('job_sheet_models', 'desc')
+                                ->get();
 
-        $labels = [];
-        $values = [];
-        foreach ($job_sheets as $key => $job_sheet) {
-            $label = $job_sheet['device_model'];
-            $brand = $job_sheet['brand'];
-            $device = $job_sheet['device'];
-            if (! empty($brand) && ! empty($device)) {
-                $label = $job_sheet['device_model'].' ('.$brand.' / '.$device.')';
-            } elseif (! empty($brand)) {
-                $label = $job_sheet['device_model'].' ('.$brand.')';
-            } elseif (! empty($device)) {
-                $label = $job_sheet['device_model'].' ('.$device.')';
+            $labels = [];
+            $values = [];
+            foreach ($job_sheets as $key => $job_sheet) {
+                $label = $job_sheet['device_model'];
+                $brand = $job_sheet['brand'];
+                $device = $job_sheet['device'];
+                if (! empty($brand) && ! empty($device)) {
+                    $label = $job_sheet['device_model'].' ('.$brand.' / '.$device.')';
+                } elseif (! empty($brand)) {
+                    $label = $job_sheet['device_model'].' ('.$brand.')';
+                } elseif (! empty($device)) {
+                    $label = $job_sheet['device_model'].' ('.$device.')';
+                }
+                $labels[] = $label;
+                $values[] = $job_sheet['job_sheet_models'];
             }
-            $labels[] = $label;
-            $values[] = $job_sheet['job_sheet_models'];
-        }
 
-        $chart = new CommonChart;
-        $chart->labels($labels)
-            ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
-            ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
+            $chart = new CommonChart;
+            $chart->labels($labels)
+                ->options($this->__chartOptions(__('repair::lang.total_unit_repaired')))
+                ->dataset(__('repair::lang.total_unit_repaired'), 'column', $values);
 
-        return $chart;
+            return $chart;
+        }, ['module' => 'Repair', 'biz' => (int) $business_id]);
     }
 }

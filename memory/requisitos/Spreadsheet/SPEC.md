@@ -1,8 +1,9 @@
 ---
 module: Spreadsheet
 na_justified:
+  D5: "Utilitário backend de import/export planilhas cross-business. Não tem cliente externo direto — serve todos businesses como infraestrutura compartilhada (mesma natureza Brief/MCP tools — ADR 0094 §SoC brutal). ADR 0105 (cliente como sinal qualificado): função é infraestrutura interna, não produto cliente-facing."
   D9.b: "Spreadsheet é módulo CRUD síncrono — sem jobs assíncronos. CRUD de sheets + shares opera direto via Controller. failed_jobs N/A por design (sem owner ativo, manutenção bug-fix only)."
-related_adrs: [0093, 0153, 0154]
+related_adrs: [0093, 0094, 0105, 0153, 0154, 0155, 0156]
 ---
 
 # SPEC — Modules/Spreadsheet

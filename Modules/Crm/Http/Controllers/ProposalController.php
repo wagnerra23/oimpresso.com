@@ -12,6 +12,7 @@ use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\Proposal;
 use Modules\Crm\Entities\ProposalTemplate;
 use Modules\Crm\Notifications\SendProposalNotification;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProposalController extends Controller
@@ -159,7 +160,8 @@ class ProposalController extends Controller
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (proposal toca contato + valores).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),

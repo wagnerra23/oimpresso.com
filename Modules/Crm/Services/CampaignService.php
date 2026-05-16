@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Notification;
 use Modules\Crm\Entities\Campaign;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Notifications\SendCampaignNotification;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * CampaignService — orquestrador thin de campanhas SMS/Email (crm_campaigns).
@@ -163,7 +164,9 @@ class CampaignService
                 return ['success' => true, 'msg' => __('lang_v1.success')];
             } catch (\Throwable $e) {
                 DB::rollBack();
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII (telefone/email de contato pode vazar via $e->getMessage()).
+                $safeMessage = app(PiiRedactor::class)->redact($e->getMessage());
+                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$safeMessage);
 
                 return ['success' => false, 'msg' => __('messages.something_went_wrong')];
             }
