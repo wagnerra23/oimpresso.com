@@ -42,13 +42,12 @@ class AuditController extends Controller
             'status'   => $status,
         ];
 
-        // Inertia::defer pra props com queries DB (skill inertia-defer-default).
-        // Filters UI state eager — usado pra estado dos selects/inputs.
+        // ROLLBACK Wave W7 #953: Inertia::defer quebrava Pages que esperam props eager.
         return Inertia::render('governance/Audit', [
-            'entries'             => Inertia::defer(fn () => $this->buildEntriesPayload($filterPayload)),
-            'kpis'                => Inertia::defer(fn () => $this->buildKpisPayload($filterPayload)),
-            'available_endpoints' => Inertia::defer(fn () => $this->service->availableEndpoints()),
-            'available_actors'    => Inertia::defer(fn () => $this->service->availableActors()),
+            'entries'             => $this->buildEntriesPayload($filterPayload),
+            'kpis'                => $this->buildKpisPayload($filterPayload),
+            'available_endpoints' => $this->service->availableEndpoints(),
+            'available_actors'    => $this->service->availableActors(),
             'filters'             => $filterPayload,
         ]);
     }
