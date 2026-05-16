@@ -1,3 +1,17 @@
+---
+slug: modules-auditoria-spec
+title: "Modules/Auditoria — SPEC"
+type: spec
+module: Auditoria
+status: accepted
+authority: canonical
+related_adrs: [0093, 0094, 0127, 0153, 0154, 0156]
+na_justified:
+  D5: "Governança transversal cross-tenant — módulo de audit log opera sobre todos businesses (activity_log reusado). Exceção formal ao Tier 0 multi-tenant ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md) §SUPERADMIN exception + Constituição v2 Art. 6 [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md))."
+pii: false
+updated_at: 2026-05-16
+---
+
 # Modules/Auditoria — SPEC
 
 > Status: **accepted** ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md) accepted 2026-05-10)

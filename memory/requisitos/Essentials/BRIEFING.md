@@ -1,6 +1,19 @@
+---
+module: Essentials
+status: shared infrastructure backend HRM (em prod via biz=4 + cross-business)
+piloto: N/A (utilitário interno cross-business — Todo/Leave/Documents usados por todos)
+last_review: 2026-05-16
+owner: wagner
+parent_adr: 0011
+related_adrs: [0011, 0093, 0101, 0153, 0155, 0156]
+nota_atual_v2: "~50-55/100 (injusto — D5 penaliza utilitário compartilhado)"
+nota_esperada_v3: "~70-80/100 pós-PR4 na_justified D5 declarado"
+na_justified: [D5]
+---
+
 # BRIEFING — Modules/Essentials
 
-> Estado consolidado 1-pager · canon vivo (atualizado a cada PR mergeado que toque o módulo via skill `brief-update`) · Wave Massive 2026-05-16
+> Estado consolidado 1-pager · canon vivo (atualizado a cada PR mergeado que toque o módulo via skill `brief-update`) · Wave Massive 2026-05-16 + Wave 5 re-try `na_justified` D5
 
 ## O que é
 
@@ -49,6 +62,16 @@ Origem: módulo opcional UltimatePOS v6 — preservado intencionalmente como **s
 
 **Total: 38 casos** (era 10; +280% pós-Wave Massive).
 
+## Score module-grade (v3 pós-PR4)
+
+| Versão | Score | Observação |
+|---|---|---|
+| v2 (pré-PR4) | ~50-55/100 | Penalizava D5 (cliente externo) — utilitário shared sem piloto único |
+| **v3 (pós-PR4)** | **~70-80/100** (esperado) | `na_justified` D5 declarado no SPEC → rubrica v3 redistribui peso (ADR 0156) + ratio Pest ainda médio |
+
+**`na_justified` declarado no SPEC:**
+- **D5 (cliente externo):** utilitário HRM compartilhado backend (Todo/Leave/Documents/Reminder) consumido cross-business sem cliente externo único piloto. biz=4 usa diariamente mas não é "cliente paying Essentials" — paga oimpresso ERP completo.
+
 ## Nota CAPTERRA atual
 
 **35/100 (Crítico)** pre-Wave Massive. Gap detectado:
@@ -81,3 +104,5 @@ Origem: módulo opcional UltimatePOS v6 — preservado intencionalmente como **s
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) Multi-tenant Tier 0
 - [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) Tests biz=1
 - [ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md) Padrão módulos referência
+- [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) Rubrica v3 `na_justified`
+- [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md) Pesos redistribuídos v3
