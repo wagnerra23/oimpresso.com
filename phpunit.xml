@@ -34,6 +34,14 @@
             <directory>./Modules/TeamMcp/Tests/Feature</directory>
             <directory>./Modules/KB/Tests/Feature</directory>
             <directory>./Modules/KB/Tests/Unit</directory>
+            <directory>./Modules/Auditoria/Tests/Feature</directory>
+            <directory>./Modules/Crm/Tests/Feature</directory>
+            <directory>./Modules/Manufacturing/Tests/Feature</directory>
+            <directory>./Modules/NFSe/Tests/Feature</directory>
+            <directory>./Modules/Connector/Tests/Feature</directory>
+            <directory>./Modules/Accounting/Tests/Feature</directory>
+            <directory>./Modules/Superadmin/Tests/Feature</directory>
+            <directory>./Modules/Officeimpresso/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
