@@ -476,6 +476,33 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     return () => window.removeEventListener('keydown', onEsc);
   }, []);
 
+  // US-SELL-007 — Atalho `/` top-level: foca busca de produto (canon Cockpit list/form).
+  // PR-FIX-2 audit 2026-05-15 — elimina débito "em breve" do empty state e cumpre
+  // promessa do charter §UX Targets. Não dispara quando user está digitando em
+  // input/textarea/select/contentEditable (evita roubar `/` em campo de busca/notas).
+  useEffect(() => {
+    const onSlash = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const active = document.activeElement as HTMLElement | null;
+      const tag = active?.tagName.toLowerCase();
+      if (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        active?.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      const input = productSearchRef.current?.querySelector<HTMLInputElement>(
+        'input[type="search"]',
+      );
+      input?.focus();
+    };
+    window.addEventListener('keydown', onSlash);
+    return () => window.removeEventListener('keydown', onSlash);
+  }, []);
+
   // US-SELL-010 — Auto-open <details> "Mais opções" quando erro está em campo colapsado.
   // Larissa scrola pro erro mas a seção fica fechada — sem isso ela não acha o campo.
   // Detectado pelo design-arte agent 2026-05-13 como maior gap UX restante.
@@ -608,15 +635,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 Adicionar venda
               </h1>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Registre uma venda completa — cliente, produtos, pagamento e frete.{' '}
-                {props.defaultLocation?.name && (
-                  <span>
-                    Local:{' '}
-                    <span className="font-medium text-foreground">
-                      {props.defaultLocation.name}
-                    </span>
-                  </span>
-                )}
+                Registre uma venda completa — cliente, produtos, pagamento e frete.
               </p>
             </div>
           </div>
@@ -821,7 +840,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <EmptyState
               icon="package"
               title="Nenhum produto adicionado"
-              description="Use a busca acima ou aperte / pra focar (em breve)."
+              description="Use a busca acima ou aperte / pra focar."
               action={
                 <Button variant="outline" size="sm" onClick={focusProductSearch}>
                   Buscar produto
