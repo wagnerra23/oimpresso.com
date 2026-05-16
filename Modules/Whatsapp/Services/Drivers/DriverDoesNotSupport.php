@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Drivers;
 
 /**
+ * Observabilidade D9.a (ADR 0155): exceção é instantânea; quando capturada
+ * pelo Job consumidor, span Tracer pai via `OtelHelper::span(` marca
+ * status=ERROR sem custo extra.
+ *
  * DriverDoesNotSupport — driver não suporta tipo de mensagem interativa solicitado.
  *
  * Lançada quando caller pede CTA URL pro Z-API (não suporta), list pro Baileys

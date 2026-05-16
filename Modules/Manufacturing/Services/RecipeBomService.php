@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Manufacturing\Services;
 
+use App\Util\OtelHelper;
 use App\Variation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -40,28 +41,35 @@ class RecipeBomService
      */
     public function resolveBom(int $recipeId, int $businessId): Collection
     {
-        // Confirma que a recipe pertence ao business via JOIN chain (multi-tenant Tier 0)
-        $pertence = MfgRecipe::join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
-            ->join('products as p', 'v.product_id', '=', 'p.id')
-            ->where('mfg_recipes.id', $recipeId)
-            ->where('p.business_id', $businessId)
-            ->exists();
+        // D9.a OTel: span de leitura do BOM (hot-path RecipeController + ProductionController).
+        // Zero-cost quando otel.enabled=false (default Hostinger).
+        return OtelHelper::spanBiz('manufacturing.recipe.resolve_bom', function () use ($recipeId, $businessId) {
+            // Confirma que a recipe pertence ao business via JOIN chain (multi-tenant Tier 0)
+            $pertence = MfgRecipe::join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
+                ->join('products as p', 'v.product_id', '=', 'p.id')
+                ->where('mfg_recipes.id', $recipeId)
+                ->where('p.business_id', $businessId)
+                ->exists();
 
-        if (! $pertence) {
-            return collect();
-        }
+            if (! $pertence) {
+                return collect();
+            }
 
-        return MfgRecipeIngredient::where('mfg_recipe_id', $recipeId)
-            ->with([
-                'variation',
-                'variation.product',
-                'variation.product.unit',
-                'variation.product_variation',
-                'sub_unit',
-                'ingredient_group',
-            ])
-            ->orderBy('sort_order', 'asc')
-            ->get();
+            return MfgRecipeIngredient::where('mfg_recipe_id', $recipeId)
+                ->with([
+                    'variation',
+                    'variation.product',
+                    'variation.product.unit',
+                    'variation.product_variation',
+                    'sub_unit',
+                    'ingredient_group',
+                ])
+                ->orderBy('sort_order', 'asc')
+                ->get();
+        }, [
+            'module'    => 'Manufacturing',
+            'recipe_id' => $recipeId,
+        ]);
     }
 
     /**

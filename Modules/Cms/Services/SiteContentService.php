@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Services;
 
+use App\Util\OtelHelper;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsSiteDetail;
 use Modules\Cms\Utils\CmsUtil;
@@ -20,6 +21,14 @@ use Modules\Cms\Utils\CmsUtil;
  *
  * Skill `multi-tenant-patterns` (Tier A) — toda query nova adicionada aqui deve
  * herdar global scope dos Models, NUNCA usar `withoutGlobalScopes` sem comentário.
+ *
+ * Observabilidade (D9.a — Wave 17 governance): cada método público envolve seu corpo
+ * em `OtelHelper::spanBiz(...)` (zero-cost quando `otel.enabled=false`). Wave 16
+ * instrumentou os Controllers, mas `ModuleGradeService::dim9Observability()` mede
+ * D9.a sobre `Modules/<X>/Services/` — instrumentar aqui é o que move o score.
+ *
+ * @see App\Util\OtelHelper
+ * @see Modules\Governance\Services\ModuleGradeService::dim9Observability
  */
 class SiteContentService
 {
@@ -36,12 +45,14 @@ class SiteContentService
      */
     public function getHomePayload(): array
     {
-        return [
-            'testimonials' => $this->cmsUtil->getPageByType('testimonial'),
-            'page' => $this->cmsUtil->getPageByLayout('home'),
-            'faqs' => CmsSiteDetail::getValue('faqs'),
-            'statistics' => CmsSiteDetail::getValue('statistics'),
-        ];
+        return OtelHelper::spanBiz('cms.service.home_payload', function () {
+            return [
+                'testimonials' => $this->cmsUtil->getPageByType('testimonial'),
+                'page' => $this->cmsUtil->getPageByLayout('home'),
+                'faqs' => CmsSiteDetail::getValue('faqs'),
+                'statistics' => CmsSiteDetail::getValue('statistics'),
+            ];
+        });
     }
 
     /**
@@ -51,10 +62,12 @@ class SiteContentService
      */
     public function getBlogList()
     {
-        return CmsPage::where('type', 'blog')
-            ->where('is_enabled', 1)
-            ->orderBy('priority', 'asc')
-            ->get();
+        return OtelHelper::spanBiz('cms.service.blog_list', function () {
+            return CmsPage::where('type', 'blog')
+                ->where('is_enabled', 1)
+                ->orderBy('priority', 'asc')
+                ->get();
+        });
     }
 
     /**
@@ -64,9 +77,11 @@ class SiteContentService
      */
     public function findBlogPost(int $id): CmsPage
     {
-        return CmsPage::where('type', 'blog')
-            ->where('is_enabled', 1)
-            ->findOrFail($id);
+        return OtelHelper::spanBiz('cms.service.blog_find', function () use ($id) {
+            return CmsPage::where('type', 'blog')
+                ->where('is_enabled', 1)
+                ->findOrFail($id);
+        }, ['blog_post_id' => $id]);
     }
 
     /**
@@ -74,6 +89,8 @@ class SiteContentService
      */
     public function getPageByLayout(string $layout)
     {
-        return $this->cmsUtil->getPageByLayout($layout);
+        return OtelHelper::spanBiz('cms.service.page_by_layout', function () use ($layout) {
+            return $this->cmsUtil->getPageByLayout($layout);
+        }, ['layout' => $layout]);
     }
 }

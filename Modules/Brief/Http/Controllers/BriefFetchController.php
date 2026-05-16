@@ -2,6 +2,7 @@
 
 namespace Modules\Brief\Http\Controllers;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -76,6 +77,11 @@ final class BriefFetchController
     }
 
     private function fetchCurrent(): ?array
+    {
+        return OtelHelper::spanBiz('brief.fetch_current', fn () => $this->doFetchCurrent());
+    }
+
+    private function doFetchCurrent(): ?array
     {
         $row = DB::selectOne(<<<'SQL'
             SELECT

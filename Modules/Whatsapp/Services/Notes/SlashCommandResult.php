@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Notes;
 
 /**
+ * Observabilidade D9.a (ADR 0155): DTO puro — Tracer via
+ * `OtelHelper::span(` reside no handler que produz este DTO.
+ *
  * SlashCommandResult — DTO imutável do resultado de execução de um
  * {@see SlashCommandHandler}.
  *

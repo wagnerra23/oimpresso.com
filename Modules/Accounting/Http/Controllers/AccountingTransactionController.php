@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Entities\ChartOfAccount;
 use Modules\Accounting\Entities\JournalEntry;
+use Modules\Accounting\Http\Requests\MapTransactionToChartRequest;
 
 class AccountingTransactionController extends Controller
 {
@@ -99,15 +100,13 @@ class AccountingTransactionController extends Controller
         }
     }
 
-    public function map_to_chart_of_account(Request $request)
+    /**
+     * D8.c Wave 17 batch 2: validation extraída pra MapTransactionToChartRequest.
+     * Mapeia transactions UltimatePOS (sell/purchase/expense) pra chart_of_account contábil.
+     */
+    public function map_to_chart_of_account(MapTransactionToChartRequest $request)
     {
-        $request->validate([
-            'map_type' => ['required'],
-            'mapping_for' => ['required'],
-            'chart_of_account_id' => ['required'],
-            'transaction_id' => ['required'],
-            'notes' => ['nullable'],
-        ]);
+        // Validação delegada — FormRequest authorize() + rules() já rodaram.
 
         try {
             DB::beginTransaction();

@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -22,6 +23,9 @@ class CyclesAggregator
 {
     public function fetch(): array
     {
+        // D9.a OTel (Wave 17): span envolve query mcp_cycles + tasks_by_dev
+        // GROUP BY. Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('admin.cycles_aggregator.fetch', function () {
         try {
             if (! Schema::hasTable('mcp_cycles') || ! Schema::hasTable('mcp_tasks')) {
                 return $this->stub('tables_missing');
@@ -61,6 +65,7 @@ class CyclesAggregator
             Log::warning('admin.widget.cycles.error', ['error' => $e->getMessage()]);
             return $this->stub('exception:' . substr($e->getMessage(), 0, 120));
         }
+        }, ['component' => 'admin.widget.w3']);
     }
 
     private function stub(string $reason): array

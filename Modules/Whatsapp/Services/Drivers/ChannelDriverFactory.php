@@ -7,6 +7,9 @@ namespace Modules\Whatsapp\Services\Drivers;
 use Modules\Whatsapp\Entities\Channel;
 
 /**
+ * Observabilidade D9.a (ADR 0155): factory mapping é constante-time;
+ * Tracer via `OtelHelper::span(` reservado pra drivers concretos retornados.
+ *
  * ChannelDriverFactory — resolve `DriverInterface` a partir de `Channel`.
  *
  * Decisão mãe: ADR 0135 (omnichannel inbox).

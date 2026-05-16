@@ -10,6 +10,8 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Accounting\Entities\Budget;
 use Modules\Accounting\Entities\ChartOfAccount;
+use Modules\Accounting\Http\Requests\UpdateMonthlyBudgetRequest;
+use Modules\Accounting\Http\Requests\UpdateQuarterlyBudgetRequest;
 use Modules\Accounting\Services\BudgetService;
 
 class BudgetController extends Controller
@@ -64,25 +66,13 @@ class BudgetController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function update_monthly_budget(Request $request)
+    /**
+     * D8.c Wave 17 batch 2: validation extraída pra UpdateMonthlyBudgetRequest.
+     * Corrige pegadinha histórica em 'month_11' (regra 'numeric' fora do array).
+     */
+    public function update_monthly_budget(UpdateMonthlyBudgetRequest $request)
     {
-        $request->validate([
-            'chart_of_account_id' => ['required'],
-            'business_id' => ['required'],
-            'financial_year' => ['required'],
-            'month_1' => ['required', 'numeric'],
-            'month_2' => ['required', 'numeric'],
-            'month_3' => ['required', 'numeric'],
-            'month_4' => ['required', 'numeric'],
-            'month_5' => ['required', 'numeric'],
-            'month_6' => ['required', 'numeric'],
-            'month_7' => ['required', 'numeric'],
-            'month_8' => ['required', 'numeric'],
-            'month_9' => ['required', 'numeric'],
-            'month_10' => ['required', 'numeric'],
-            'month_11' => ['required'], 'numeric',
-            'month_12' => ['required', 'numeric'],
-        ]);
+        // Validação delegada — FormRequest authorize() + rules() já rodaram.
 
         try {
             $budget = Budget::updateOrCreate(
@@ -121,17 +111,12 @@ class BudgetController extends Controller
     }
 
 
-    public function update_quarterly_budget(Request $request)
+    /**
+     * D8.c Wave 17 batch 2: validation extraída pra UpdateQuarterlyBudgetRequest.
+     */
+    public function update_quarterly_budget(UpdateQuarterlyBudgetRequest $request)
     {
-        $request->validate([
-            'chart_of_account_id' => ['required'],
-            'business_id' => ['required'],
-            'financial_year' => ['required'],
-            'quarter_1' => ['required', 'numeric'],
-            'quarter_2' => ['required', 'numeric'],
-            'quarter_3' => ['required', 'numeric'],
-            'quarter_4' => ['required', 'numeric'],
-        ]);
+        // Validação delegada — FormRequest authorize() + rules() já rodaram.
 
         $quarters = collect($request->only(['quarter_1', 'quarter_2', 'quarter_3', 'quarter_4']));
 

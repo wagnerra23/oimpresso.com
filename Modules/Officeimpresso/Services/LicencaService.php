@@ -3,6 +3,7 @@
 namespace Modules\Officeimpresso\Services;
 
 use App\Business;
+use App\Util\OtelHelper;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 
 /**
@@ -23,7 +24,9 @@ class LicencaService
      */
     public function listarPorEmpresa(int $businessId)
     {
-        return Licenca_Computador::where('business_id', $businessId)->get();
+        return OtelHelper::spanBiz('officeimpresso.licenca.listar', function () use ($businessId) {
+            return Licenca_Computador::where('business_id', $businessId)->get();
+        }, ['module' => 'Officeimpresso']);
     }
 
     /**
@@ -31,7 +34,9 @@ class LicencaService
      */
     public function buscarParaEdit(int $id, int $businessId): Licenca_Computador
     {
-        return Licenca_Computador::where('business_id', $businessId)->findOrFail($id);
+        return OtelHelper::spanBiz('officeimpresso.licenca.buscar', function () use ($id, $businessId) {
+            return Licenca_Computador::where('business_id', $businessId)->findOrFail($id);
+        }, ['module' => 'Officeimpresso', 'licenca_id' => $id]);
     }
 
     /**
@@ -39,7 +44,9 @@ class LicencaService
      */
     public function criar(array $dadosValidados): Licenca_Computador
     {
-        return Licenca_Computador::create($dadosValidados);
+        return OtelHelper::spanBiz('officeimpresso.licenca.criar', function () use ($dadosValidados) {
+            return Licenca_Computador::create($dadosValidados);
+        }, ['module' => 'Officeimpresso']);
     }
 
     /**
@@ -47,12 +54,14 @@ class LicencaService
      */
     public function atualizar(int $id, array $dadosValidados): ?Licenca_Computador
     {
-        $licenca = Licenca_Computador::find($id);
-        if (! $licenca) {
-            return null;
-        }
-        $licenca->update($dadosValidados);
-        return $licenca;
+        return OtelHelper::spanBiz('officeimpresso.licenca.atualizar', function () use ($id, $dadosValidados) {
+            $licenca = Licenca_Computador::find($id);
+            if (! $licenca) {
+                return null;
+            }
+            $licenca->update($dadosValidados);
+            return $licenca;
+        }, ['module' => 'Officeimpresso', 'licenca_id' => $id]);
     }
 
     /**
@@ -60,11 +69,13 @@ class LicencaService
      */
     public function remover(int $id): bool
     {
-        $licenca = Licenca_Computador::find($id);
-        if (! $licenca) {
-            return false;
-        }
-        return (bool) $licenca->delete();
+        return OtelHelper::spanBiz('officeimpresso.licenca.remover', function () use ($id) {
+            $licenca = Licenca_Computador::find($id);
+            if (! $licenca) {
+                return false;
+            }
+            return (bool) $licenca->delete();
+        }, ['module' => 'Officeimpresso', 'licenca_id' => $id]);
     }
 
     /**
@@ -72,10 +83,12 @@ class LicencaService
      */
     public function alternarBloqueio(int $id): Licenca_Computador
     {
-        $licenca = Licenca_Computador::findOrFail($id);
-        $licenca->bloqueado = ! $licenca->bloqueado;
-        $licenca->save();
-        return $licenca;
+        return OtelHelper::spanBiz('officeimpresso.licenca.alternar_bloqueio', function () use ($id) {
+            $licenca = Licenca_Computador::findOrFail($id);
+            $licenca->bloqueado = ! $licenca->bloqueado;
+            $licenca->save();
+            return $licenca;
+        }, ['module' => 'Officeimpresso', 'licenca_id' => $id]);
     }
 
     /**
@@ -83,14 +96,16 @@ class LicencaService
      */
     public function atualizarEmpresa(int $businessId, array $dados): Business
     {
-        $empresa = Business::findOrFail($businessId);
-        $empresa->caminho_banco_servidor = $dados['caminho_banco_servidor'] ?? $empresa->caminho_banco_servidor;
-        $empresa->versao_obrigatoria = $dados['versao_obrigatoria'] ?? $empresa->versao_obrigatoria;
-        $empresa->versao_disponivel = $dados['versao_disponivel'] ?? $empresa->versao_disponivel;
-        $empresa->officeimpresso_numerodemaquinas = $dados['officeimpresso_numerodemaquinas']
-            ?? $empresa->officeimpresso_numerodemaquinas;
-        $empresa->save();
-        return $empresa;
+        return OtelHelper::spanBiz('officeimpresso.empresa.atualizar', function () use ($businessId, $dados) {
+            $empresa = Business::findOrFail($businessId);
+            $empresa->caminho_banco_servidor = $dados['caminho_banco_servidor'] ?? $empresa->caminho_banco_servidor;
+            $empresa->versao_obrigatoria = $dados['versao_obrigatoria'] ?? $empresa->versao_obrigatoria;
+            $empresa->versao_disponivel = $dados['versao_disponivel'] ?? $empresa->versao_disponivel;
+            $empresa->officeimpresso_numerodemaquinas = $dados['officeimpresso_numerodemaquinas']
+                ?? $empresa->officeimpresso_numerodemaquinas;
+            $empresa->save();
+            return $empresa;
+        }, ['module' => 'Officeimpresso']);
     }
 
     /**
@@ -98,10 +113,12 @@ class LicencaService
      */
     public function alternarBloqueioEmpresa(int $businessId): Business
     {
-        $empresa = Business::findOrFail($businessId);
-        $empresa->officeimpresso_bloqueado = ! $empresa->officeimpresso_bloqueado;
-        $empresa->save();
-        return $empresa;
+        return OtelHelper::spanBiz('officeimpresso.empresa.alternar_bloqueio', function () use ($businessId) {
+            $empresa = Business::findOrFail($businessId);
+            $empresa->officeimpresso_bloqueado = ! $empresa->officeimpresso_bloqueado;
+            $empresa->save();
+            return $empresa;
+        }, ['module' => 'Officeimpresso']);
     }
 
     /**
@@ -109,6 +126,8 @@ class LicencaService
      */
     public function listarEmpresasComDesktop()
     {
-        return Business::where('is_officeimpresso', true)->get();
+        return OtelHelper::spanBiz('officeimpresso.empresa.listar_com_desktop', function () {
+            return Business::where('is_officeimpresso', true)->get();
+        }, ['module' => 'Officeimpresso']);
     }
 }

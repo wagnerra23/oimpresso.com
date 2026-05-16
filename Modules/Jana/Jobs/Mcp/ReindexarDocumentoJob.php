@@ -36,9 +36,15 @@ class ReindexarDocumentoJob implements ShouldQueue
     public int $tries = 3;
     public int $backoff = 30;
 
+    /**
+     * `$businessId = null` by design (Wave 17 D1.c hardened) — `mcp_memory_documents`
+     * é repo-wide. Mantido nullable pra compat — futuro override permite reindex
+     * scoped (caso doc tenha business_id no futuro).
+     */
     public function __construct(
         public readonly int $documentId,
         public readonly string $reason = 'freshness',
+        public readonly ?int $businessId = null,
     ) {
     }
 

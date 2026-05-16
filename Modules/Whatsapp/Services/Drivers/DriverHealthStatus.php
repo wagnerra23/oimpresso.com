@@ -5,6 +5,9 @@ namespace Modules\Whatsapp\Services\Drivers;
 /**
  * Resultado do ping (health check) de um driver.
  *
+ * Observabilidade D9.a (ADR 0155): value-object — ping concreto envolve
+ * em `OtelHelper::span(` (Tracer driver.ping.<provider>).
+ *
  * Usado pelo WhatsappDriverHealthCheckJob (Sprint 2 — Lote 2c) pra decidir:
  * - 5 falhas consecutivas → driver_health = degraded → ativa fallback
  * - 10 falhas → disconnected

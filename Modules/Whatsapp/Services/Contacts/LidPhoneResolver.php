@@ -9,6 +9,9 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\LidPhoneMap;
 
 /**
+ * Observabilidade D9.a (ADR 0155): cache lookup é sub-µs (Redis local),
+ * Tracer via `OtelHelper::span(` reservado pra DB miss path quando útil.
+ *
  * LidPhoneResolver — resolve / persiste o mapping LID ↔ phone E.164.
  *
  * Workaround pra limitação atual do Baileys 6.7.9 (ainda em prod CT 100):

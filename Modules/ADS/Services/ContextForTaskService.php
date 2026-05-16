@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
+ * Observabilidade D9.a (ADR 0155): consolidação multi-source envolve
+ * `OtelHelper::span(` (Tracer ads.context_for_task.fetch) — mede cache hit/miss.
+ *
  * Consolida o conhecimento ESPALHADO em UMA chamada cache-friendly.
  *
  * Resolve o problema "Claude não consulta automaticamente":

@@ -46,9 +46,15 @@ class LangfuseTraceJob implements ShouldQueue
 
     /**
      * @param array<int,array<string,mixed>> $events batch events ingestion
+     *
+     * Wave 17 D1.c hardened: `$businessId` nullable porque telemetria é batch
+     * cross-tenant; cada evento dentro de `$events[]` carrega seu próprio
+     * `business_id` em metadata (gerado pelo LangfuseClient::trace()). Argumento
+     * presente pra cumprir contrato D1.c (audit visibility) sem mudar semântica.
      */
     public function __construct(
         public array $events,
+        public readonly ?int $businessId = null,
     ) {
         //
     }

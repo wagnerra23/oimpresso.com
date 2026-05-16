@@ -61,6 +61,8 @@ class FinanceiroServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Financeiro\Console\Commands\InstallCommand::class,
+                // Wave 17 D9.c — Health check do módulo (governance v3 saturação 66→81).
+                \Modules\Financeiro\Console\Commands\FinanceiroHealthCommand::class,
             ]);
         }
     }

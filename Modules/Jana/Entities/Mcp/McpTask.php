@@ -3,6 +3,8 @@
 namespace Modules\Jana\Entities\Mcp;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * TaskRegistry estendida para Jira-style (ADR 0070, supersedes ADR 0069).
@@ -13,9 +15,16 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Identifier humano (Linear-style): "<PROJECT_KEY>-<NNNN>", ex: COPI-123.
  * Mantém task_id legacy (US-XXX-NNN) durante migração.
+ *
+ * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity registra mudanças
+ * estruturais (status, owner, priority, cycle_id, epic_id) — essenciais pra
+ * auditoria de governança (ADR 0070 Jira-style). Tabela mcp_tasks é repo-wide
+ * (sem business_id) — gated por Spatie permission `copiloto.mcp.tasks.*`.
  */
 class McpTask extends Model
 {
+    use LogsActivity;
+
     protected $table = 'mcp_tasks';
 
     protected $fillable = [
@@ -209,5 +218,19 @@ class McpTask extends Model
     public function getDisplayIdAttribute(): string
     {
         return $this->identifier ?: $this->task_id;
+    }
+
+    /**
+     * D7 LGPD audit — logga apenas campos estruturais críticos pra auditoria
+     * de governança (ADR 0070 Jira-style). Sem PII direta (description/title
+     * podem conter nomes, mas auditoria mantém estado, não conteúdo).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('mcp_task')
+            ->logOnly(['status', 'owner', 'priority', 'cycle_id', 'epic_id', 'completed_at', 'blocked_by'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

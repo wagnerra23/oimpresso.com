@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\NFSe\Exceptions\NfseException;
+use Modules\NFSe\Http\Requests\CancelarNfseRequest;
+use Modules\NFSe\Http\Requests\IndexNfseRequest;
 use Modules\NFSe\Http\Requests\StoreNfseRequest;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
@@ -24,11 +26,13 @@ class NfseController extends Controller
     //
     // `notas` (paginate 25) usa `Inertia::defer()` pra pular execução em
     // partial reloads que pedem `only:['filters']`. Skill `inertia-defer-default`.
-    public function index(Request $request)
+    public function index(IndexNfseRequest $request)
     {
+        // D8.c Security Wave 17 — IndexNfseRequest valida whitelist status + date_format
+        // de/ate + maxlen q. RBAC `nfse.view` segue via $this->authorize() (gate).
         $this->authorize('nfse.view');
 
-        $filters = $request->only(['status', 'de', 'ate', 'q']);
+        $filters = $request->validated();
 
         // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Nfse/Index', [
@@ -170,16 +174,12 @@ class NfseController extends Controller
     }
 
     // US-NFSE-006: cancelamento
-    public function cancelar(Request $request, NfseEmissao $nfse)
+    public function cancelar(CancelarNfseRequest $request, NfseEmissao $nfse)
     {
-        $this->authorize('nfse.cancel');
-
-        $request->validate([
-            'motivo' => ['required', 'string', 'min:15', 'max:255'],
-        ]);
-
+        // D8.c Security Wave 17 — CancelarNfseRequest valida motivo (ABRASF 15..255).
+        // RBAC `nfse.cancel` checado via FormRequest::authorize() (compat com gate).
         try {
-            $this->service->cancelar($nfse, $request->motivo);
+            $this->service->cancelar($nfse, $request->validated()['motivo']);
         } catch (NfseException $e) {
             return back()->with('status', ['success' => false, 'msg' => $e->getMessage()]);
         }

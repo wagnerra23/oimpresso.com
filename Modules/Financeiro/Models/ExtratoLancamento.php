@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Lançamento de extrato bancário sincronizado via API do banco.
@@ -20,7 +22,22 @@ use Modules\Financeiro\Models\Concerns\BusinessScope;
  */
 class ExtratoLancamento extends Model
 {
-    use HasFactory, BusinessScope;
+    use HasFactory, BusinessScope, LogsActivity;
+
+    /**
+     * Wave 17 D7 — audit trail conciliação bancária (CTN Art. 195 5 anos +
+     * BCB 3.978/2020 audit trail). Extrato é base da conciliação tributária;
+     * mudanças em valor/tipo/data DEVEM ser audit-trailed. NÃO loga descricao
+     * (PII contraparte sem necessidade — privacidade by-design LGPD Art. 6º VII).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['conta_bancaria_id', 'data', 'valor', 'tipo', 'idempotency_key'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('financeiro.extrato_lancamento');
+    }
 
     protected $table = 'fin_extrato_lancamentos';
 

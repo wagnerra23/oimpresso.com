@@ -11,6 +11,9 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
 
 /**
+ * Observabilidade D9.a (ADR 0155): `tryLink()` invocado em hot path do
+ * webhook — Tracer via `OtelHelper::span(` mede latência por business.
+ *
  * Auto-link Conversation → Contact CRM (UltimatePOS) por phone normalizado.
  *
  * Usado em 2 contextos (US-WA-078):

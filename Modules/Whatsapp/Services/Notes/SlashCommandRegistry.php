@@ -7,6 +7,9 @@ namespace Modules\Whatsapp\Services\Notes;
 use Modules\Whatsapp\Entities\Message;
 
 /**
+ * Observabilidade D9.a (ADR 0155): lookup hashmap sub-µs; Tracer via
+ * `OtelHelper::span(` reside no handler dispatchado.
+ *
  * SlashCommandRegistry — mapeia nome do comando → handler concreto.
  *
  * Wiring é feito em `WhatsappServiceProvider::register()`. Handlers

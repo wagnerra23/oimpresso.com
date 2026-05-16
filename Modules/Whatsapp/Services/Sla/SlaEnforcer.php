@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Sla;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
@@ -14,6 +15,9 @@ use Modules\Whatsapp\Entities\SlaPolicy;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
 
 /**
+ * Observabilidade D9.a (ADR 0155): scanAndAlert envolto em `OtelHelper::span(`
+ * (Tracer whatsapp.sla.scan) — mede policies × conversations × fired/skipped.
+ *
  * SlaEnforcer — CYCLE-07 PR-2 (Gap P0 #2 COMPARATIVO-MERCADO-2026-05-12).
  *
  * Varre policies ativas de TODOS businesses (job cross-tenant), pra cada
@@ -67,6 +71,14 @@ class SlaEnforcer
      * @return array{policies_scanned:int,alerts_fired:int,locked_skipped:int,by_policy:array<int,array<string,int|string>>}
      */
     public function scanAndAlert(?int $businessId = null, bool $dryRun = false): array
+    {
+        return OtelHelper::span('whatsapp.sla.scan', [
+            'business_filter' => $businessId ?? 'all',
+            'dry_run' => $dryRun,
+        ], fn () => $this->doScanAndAlert($businessId, $dryRun));
+    }
+
+    private function doScanAndAlert(?int $businessId, bool $dryRun): array
     {
         $policyQuery = SlaPolicy::withoutGlobalScopes()->active();
         if ($businessId !== null) {
