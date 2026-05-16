@@ -92,6 +92,30 @@
 - **Próximo canary:** biz=1 (Wagner) — uso ativo chat + memória + brief diário
 - **Próxima onda:** Felipe/Maiara/Eliana via MCP server tools (não UI direta)
 
+### 10.1 Demo Pilot Status (CYCLE-06 G3)
+
+**Pacote demo apresentável criado 2026-05-16** — [demo-pilot-2026-05-16/](demo-pilot-2026-05-16/):
+
+- [JANA-V2-DEMO-SCRIPT.md](demo-pilot-2026-05-16/JANA-V2-DEMO-SCRIPT.md) — roteiro 15min (brief + chat memória + governança + FSM)
+- [JANA-V2-MOCKUP-1PAGER.md](demo-pilot-2026-05-16/JANA-V2-MOCKUP-1PAGER.md) — descrição UI textual (sem código novo, mapeia componentes existentes)
+- [JANA-V2-PILOTO-CHECKLIST.md](demo-pilot-2026-05-16/JANA-V2-PILOTO-CHECKLIST.md) — pré-flight D-1 + D-2h + D-15min + critérios de adiar
+
+**Candidato piloto recomendado:** **ROTA LIVRE / Larissa (biz=4, Modules/Vestuario)**.
+
+Justificativa (3 fatores):
+
+1. **Dados reais validados em prod ≥6 meses** — transactions, contacts, FSM stages, Asaas cobranças ativos; brief diário rodando sem alucinação histórica; baixo risco de demo "vazia"
+2. **Relacionamento sólido + monitor 1280px compat** — Larissa conhece Wagner há tempo, aceita canary, e mockup foi pensado pra 1280px (não vai quebrar layout ao vivo); ROTA LIVRE já é 99% volume de vendas — investimento de captura justificado
+3. **Vertical ✅ em produção (CNAE 4781-4/00)** — vs ComVis 🟡 em construção e OficinaAuto ⏸️ aguardando sinal; demo num vertical maduro reduz risco bug visível durante apresentação
+
+**Candidatos backup (próxima onda, não primeira demo):** Vargas/Extreme/Gold (ComVis — após Modules/ComunicacaoVisual amadurecer Q3/2026) + Martinho Caçambas (OficinaAuto — após sinal qualificado).
+
+**Próximos passos:**
+
+- D-1: Wagner roda Bloco A/B do checklist
+- D-0 demo síncrona 15min via Meet
+- D+1: session log + task follow-up MCP + update desta seção com outcome
+
 ## 11. ADRs centrais do módulo
 
 - [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md) — Stack IA canônica (laravel/ai oficial)

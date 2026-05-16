@@ -4,6 +4,7 @@ use App\Http\Controllers\ServiceOrderFsmActionController;
 use Illuminate\Support\Facades\Route;
 use Modules\OficinaAuto\Http\Controllers\InstallController;
 use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
+use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
@@ -82,3 +83,22 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [ServiceOrderFsmActionController::class, 'startPipeline'])
             ->name('oficinaauto.service_orders.fsm.start-pipeline');
     });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rotas PÚBLICAS — Aprovação OS via WhatsApp link + PIN (US-OFICINA-006).
+//
+// Cliente final (NÃO User do sistema) acessa sem auth via token HMAC assinado
+// + PIN 4 dígitos enviado out-of-band. Multi-tenant Tier 0 garantido pelo
+// token carregar business_id assinado (AprovacaoOsService::validarToken).
+//
+// Throttle 30 req/min/IP anti-bruteforce. Lockout adicional 5 tentativas PIN.
+//
+// @see Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php
+// @see resources/js/Pages/OficinaAuto/AprovacaoPublica.charter.md
+// ─────────────────────────────────────────────────────────────────────────────
+Route::middleware(['web', 'throttle:30,1'])->group(function () {
+    Route::get('/aprovar-os/{token}',  [AprovacaoOsController::class, 'show'])
+        ->name('oficinaauto.aprovacao.show');
+    Route::post('/aprovar-os/{token}', [AprovacaoOsController::class, 'submit'])
+        ->name('oficinaauto.aprovacao.submit');
+});
