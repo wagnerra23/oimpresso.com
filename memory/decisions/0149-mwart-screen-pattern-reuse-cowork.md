@@ -1,11 +1,19 @@
 ---
-status: accepted
-date: 2026-05-15
-deciders: [Wagner]
+slug: 0149-mwart-screen-pattern-reuse-cowork
+number: 149
+title: "Screen-Pattern Reuse no MWART — Index Cowork blueprint pra Show/Edit/Detail da mesma entidade"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: 2026-05-15
+quarter: 2026-Q2
+module: design-system
+tags: [mwart, cowork, design-system, pattern-reuse, governance, wave-massiva]
 supersedes: []
+related: [0104, 0114, 0107, 0109]
 amended-by: []
-relates: [0104, 0114, 0107, 0109]
-lifecycle: accepted
 ---
 
 # ADR 0149 — Screen-Pattern Reuse no MWART: Index Cowork blueprint pra Show/Edit/Detail da mesma entidade
