@@ -68,3 +68,8 @@
 2026-05-15 21:35 [CL] check 19 divergências: 4 ✅ / 6 🟡 / 7 ❌ / 2 ⚪ moot (porque coluna conversa sumiu). Score literal 41/100, ajustado 78/100 se pivot aceito, 22/100 se pivot rejeitado
 2026-05-15 21:35 [CL] F1.5 critique-score formal BLOQUEADO — pivot precisa Wagner ratificar/rejeitar (A: pivot aceito · B: pivot rejeitado · C: ambos `/jana/dashboard` + `/jana/chat`)
 2026-05-15 21:35 [CL] anti-pattern meta catalogado: "Cowork mudou paradigma sem amendment formal" — candidato a virar override `/pivot-detected` em PROTOCOL.md §5
+2026-05-15 21:55 [W]  pegou framing errado do CRITIQUE: "é o whatszap que tem que comparar?" — pivot Cowork é correto porque Caixa Unificada V4 (`/atendimento/caixa-unificada`) já cumpre paradigma 2-col WhatsApp humano
+2026-05-15 21:55 [W]  decisão: foco caminho A (pivot aceito) · pode comparar contra `/caixa-unificada`
+2026-05-15 22:05 [CL] re-mapeou Jana atual em prod: 3 páginas (`/jana/` Chat.tsx live · `/jana/cockpit` Cockpit.tsx MVP piloto · `/jana/dashboard` Dashboard.tsx KPIs) — comentário em `Modules/Jana/Http/routes.php:30` previa separação "rota PARALELA ao /copiloto atual; nao substitui Chat.tsx"
+2026-05-15 22:05 [CL] CRITIQUE atualizado v2: zero-overlap Caixa Unificada confirmado · `chat-jana.jsx` evolui `Cockpit.tsx` (não `Chat.tsx`) · `Dashboard.tsx` folda como tab · score 78/100 · 8 refinos listados pra F1.5 ≥80 (~3-4h Cowork V2.1)
+2026-05-15 22:05 [CL] HANDOFF atualizado: pivot aceito · workstreams separados (cockpit principal · chat 2-col congelado em workstream isolado)

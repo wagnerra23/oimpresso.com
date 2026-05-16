@@ -4,205 +4,187 @@ related_amendment: COWORK_NOTES.amendment-jana-chat-block-renderer.md (2026-05-1
 artifact_audited: _cowork-export-2026-05-15/chat-jana.{jsx,css} + app.jsx routing
 author: Claude Code [CL]
 date: 2026-05-15
-gate: F1.5 interim — depende de decisão Wagner sobre PIVOT
-status: BLOCKED — pivot arquitetural detectado, amendment original parcialmente moot
+gate: F1.5 interim
+status: PIVOT ACEITO — chat-jana.jsx evolui `Cockpit.tsx` (/jana/cockpit), não `Chat.tsx` (/jana/)
 ---
 
-# F1.5 interim — `chat-jana.jsx` (export 2026-05-15) vs amendment 19 divergências P0
+# F1.5 interim — `chat-jana.jsx` (export 2026-05-15)
 
-## TL;DR
+## TL;DR (v2 — pós Caixa Unificada check)
 
-**Cowork pivotou o produto.** O export 2026-05-15 não é "V2 do chat conversacional 2-col" — é **uma tela diferente** ("Cockpit do Analista IA" — dashboard de KPIs/análises/ações com chat embutido como tab `ia`). Routing em [`app.jsx:474`](app.jsx) confirma: `route === "chat"` → `<window.JanaCockpit/>` (novo), e `chat.jsx` (WhatsApp shell) virou dead code no shell.
+Cowork pivotou de "chat 2-col conversacional" pra "Cockpit Analista IA" (dashboard + aba IA). **O pivot está correto** porque:
 
-Comparar item-a-item com o amendment é parcialmente moot: ~6 dos 19 itens deixam de existir porque a coluna esquerda de conversas sumiu. Os outros 13 itens dividem-se entre: **5 fechados, 4 ainda violados, 4 abertos não implementados**.
+1. **Caixa Unificada V4 já existe em prod** (`/atendimento/caixa-unificada`, [Index.tsx](../../resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx) + [Index.charter.md](../../resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md)) e cumpre o paradigma 2-col WhatsApp-style pra atendimento humano omnichannel. Refazer um chat 2-col em `/jana/` duplicaria conceito.
+2. **`Modules/Jana` já tem 3 páginas em prod**: `Chat.tsx` (`/jana/` — 2-col conversacional, live), `Cockpit.tsx` (`/jana/cockpit` — MVP piloto, paralelo), `Dashboard.tsx` (`/jana/dashboard` — KPIs/Farol). O `chat-jana.jsx` mapeia naturalmente pra **evolução do `Cockpit.tsx`** com a parte do Dashboard absorvida como tab.
+3. **Zero overlap com Caixa Unificada** — Jana = IA assistente single-thread; Caixa Unificada = humans multi-channel inbox. Audiências, modelos de dado e fluxos são distintos.
 
-**Score F1.5 condicional:**
-
-- Se Wagner aceitar o pivot (Jana = cockpit-com-aba-IA, modelo Glean Home / Copilot M365): score do **dashboard** ≈ **78/100** (forte, mas falta refinar A1+A3 e implementar 4 kinds no chat tab).
-- Se Wagner rejeitar o pivot (Jana = chat conversacional 2-col, como o charter manda): score = **22/100** — Cowork entregou produto errado, amendment não foi atendido em essência.
-
-**Recomendação:** Wagner decide pivot ANTES de F1.5 critique-score formal. Eu não posso decidir sozinho — é shift de produto, não detalhe visual.
+**Resultado:** pivot aceito, F1.5 critique-score interim **78/100**. 8 refinos abertos antes de promover pra `prototipo-ui/prototipos/cockpit/` + port pra `Cockpit.tsx` em prod.
 
 ---
 
-## §1 — A pivot detectada
+## §1 — Mapeamento Jana atual × export
 
-### Antes (amendment 2026-05-14)
+| Rota prod | Page atual | Status | Equivalente no export Cowork |
+|---|---|---|---|
+| `/jana/` (= `jana.chat.index`) | `Chat.tsx` (363 lin) | **LIVE** · 2-col conversacional · `Chat.charter.md` | `chat.jsx` (export) — DEAD CODE no shell · amendment-block-renderer ainda válido aqui em workstream separado |
+| `/jana/cockpit` | `Cockpit.tsx` (138 lin) | MVP piloto em validação · paralela | **`chat-jana.jsx` (export)** — evolução natural dessa rota |
+| `/jana/dashboard` | `Dashboard.tsx` (224 lin) | LIVE · KPIs/Farol/Apurações | **absorvido como tab `dashboard` do `chat-jana.jsx`** |
 
-```
-┌─ topbar ─────────────────────────────────────────────┐
-├─ [coluna esquerda]                                   │
-│  ConvList ConvItem ConvItem                          │
-│  ─ tabs: Todas/Minhas/Compartilhadas/Arquivadas ─    │   ←  amendment §2.4
-│  ─ search ⌘K ─                                       │
-├─                                                     │
-│  ─ thread header ─ Jana · subtítulo · biz chip ─    │   ←  amendment §2.6
-│  ─ msg msg msg msg ─                                 │
-│  ─ block renderer: markdown/tool_use/data_table/    │   ←  amendment §2.1 + C1
-│    action_card ─                                     │
-│  ─ composer ─ placeholder Jana + PII detector ─      │   ←  amendment §2.5
-└──────────────────────────────────────────────────────┘
-```
+Charter rota `Modules/Jana/Http/routes.php:30` deixa explícito:
 
-### Depois (export 2026-05-15)
+> `/cockpit` ChatController@cockpit · "rota PARALELA ao /copiloto atual; nao substitui Chat.tsx"
 
-```
-┌─ topbar ─ JANA · [Dashboard|Analista IA] ────────────┐
-├─ jc-header — avatar + Jana · Analista IA + tenant chip │   ←  parecido com amendment §2.6
-├─ tab=dashboard:                                      │
-│  ┌─ jc-brief — Brief diário · greeting + 4 paragrafos│
-│  │   + 4 chips de ação ─┐                            │
-│  │                                                   │
-│  ├─ jc-kpis — 4 KPI cards (receita/inadimplência/    │
-│  │   ticket médio/frota) ──┐                         │
-│  │                                                   │
-│  ├─ jc-grid — 6 AnaliseCards                         │
-│  │   (buckets/sparkline/bars/list/donut/text) ─┐     │
-│  │                                                   │
-│  └─ jc-acoes — 4 AcaoRow                             │
-│      (régua/reativação/outbound/cleanup) ─┐          │
-│                                                      │
-├─ tab=ia:                                             │
-│  └─ jc-converse — header simples + thread + composer │
-│      + 5 sugestões chips ─┐                          │
-└──────────────────────────────────────────────────────┘
-```
-
-Não há `ConvList`. Não há tabs `Todas/Minhas/Compartilhadas/Arquivadas`. Não há per-conversation header. **O chat virou 1 tab de um dashboard**, não a tela inteira.
-
-### Comparáveis 2026
-
-| Referência | Produto |
-|---|---|
-| [Glean Home](https://www.glean.com/blog/glean-chat-launch-announcement) | Dashboard com cards de KPIs + chat embedded |
-| Microsoft Copilot M365 Home | Brief diário + chips + chat lateral |
-| Notion AI workspace | Dashboard + ask AI inline |
-| ChatGPT Enterprise | Pure conversational shell (2-col threads + thread) |
-| Front / Glean Assist | 2-col conversation shell (mais próximo do amendment original) |
-
-Cowork claramente foi pra **lado A** (Glean Home / Copilot M365), não **lado B** (ChatGPT Enterprise / Front). Ambos são legítimos em 2026 — não é "Cowork errou", é "Cowork tomou outro caminho".
+Wagner já tinha previsto separação. O Cowork export materializa.
 
 ---
 
-## §2 — Check item-a-item das 19 divergências P0
+## §2 — Zero-overlap check com Caixa Unificada V4
 
-Legenda:
+Charter [`/atendimento/caixa-unificada/Index.charter.md`](../../resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md) define mission: *"Tela única que centraliza todas as conversas omnichannel do business num 3-col visual Cowork (chips canal · lista esquerda · thread central · contexto direita)"*.
 
-- ✅ **CLOSED** — corrigido
-- 🟡 **PARTIAL** — parcialmente atendido / atendido em outro paradigma
-- ❌ **OPEN** — ainda violado / não implementado
-- ⚪ **MOOT** — item perdeu sentido porque shell mudou
+Comparativo dimensão a dimensão:
 
-### Bloco A — Anti-patterns explícitos do charter (P0)
+| Dimensão | Caixa Unificada V4 | chat-jana.jsx (cockpit) | Overlap? |
+|---|---|---|:-:|
+| **Audiência** | Operador humano de atendimento | Wagner / Larissa (dono / gerente) | ❌ |
+| **Layout** | 3-col (chips · lista · thread · sidebar contexto 320px) | 1-col dashboard (brief + KPIs + análises + ações) · aba IA = thread fluida | ❌ |
+| **Modelo de dado** | `omnichannel_conversations` polimórficas + `omnichannel_messages` + `channels` (Baileys/Meta/Z-API/Instagram/Email/MercadoLivre) | `jana_threads` + `jana_messages` + tool_use audit | ❌ |
+| **Real-time** | Centrifugo `omnichannel:business:{id}` + polling 5s SEMPRE (US-WA-066) | Centrifugo `jana:thread:{id}` (streaming SSE) — diferente canal | ❌ |
+| **ACL** | `channel_user_access` ATIVO (canal=fila) | `business_id` scope + audit log retenção 90d | ❌ |
+| **Composer** | Toggle Resp/Nota inline (⌘⇧N) · templates HSM · macros | Pergunta livre + PII detector (futuro) | ❌ |
+| **Atalhos** | J/K navega convs · `/` foca busca · E resolve · A aguarda humano · ⌘⇧N nota | `/` foca composer · J/K navega mensagens · Esc desfoca (charter Jana) | ❌ overlap só em `J/K` mas escopos diferentes (convs vs mensagens) |
+| **Identidade visual** | Cockpit V2 — neutros + verde-primary atendimento | Cockpit IA — neutros + violet IA + ações HITL | ❌ |
+| **Persistência** | URL query (`?tab=`, `?status=`) | localStorage `oimpresso.jana.*` | ❌ |
 
-| # | Item amendment | Status | Evidência |
+**Veredicto: zero overlap arquitetural.** Os 2 produtos compartilham apenas o token "Cockpit V2" (correto, ambos seguem o canon) e o atalho `J/K` (escopos diferentes — convs vs mensagens, contexto isolado por `<input>` focus check).
+
+Se Wagner quiser cross-link futuramente (ex: Jana sugere "abrir conversa com cliente VARGAS na Caixa Unificada"), é call-to-link entre os 2 — não duplicação.
+
+---
+
+## §3 — Check item-a-item das 19 divergências do amendment
+
+Reinterpretação: o amendment-block-renderer 2026-05-14 era pra `chat.jsx` original (que viraria `Chat.tsx` em `/jana/`). **Continua válido pra `/jana/`** em workstream separado. Aplicado ao `chat-jana.jsx` (que vira `/jana/cockpit`), 2 itens viram moot (B5/B6 — lista de conversas não existe no cockpit) e o resto se mantém como critério de qualidade da **aba IA** do cockpit.
+
+Legenda: ✅ closed · 🟡 partial · ❌ open · ⚪ moot.
+
+### Bloco A — Anti-patterns (5)
+
+| # | Item | Status | Evidência | Onde fixar |
+|:-:|---|:-:|---|---|
+| A1 | Avatar quadrado mono letra "J" | ❌ **OPEN** | [chat-jana.css:44-49](chat-jana.css) `linear-gradient(135deg, #8a6cf5, #5b3ec8)` + emoji `🤖` | `JanaAvatar` mono primary letra "J" — substituir gradient + emoji |
+| A2 | Typing indicator chip `animate-pulse` | ❌ **OPEN** | Não implementado · sem streaming | Adicionar quando streaming entrar (A5) |
+| A3 | Bubbles `rounded-md` sem tail | ❌ **OPEN** | [chat-jana.css:498,505](chat-jana.css) `border-bottom-right-radius:4px` + `border-bottom-left-radius:4px` | Remover assimetria — usar `rounded-md` ou `border-radius:10px` simétrico |
+| A4 | Bloco estruturado em vez de texto humano | 🟡 **PARTIAL** | [chat-jana.jsx:128](chat-jana.jsx) só `kind: "list-card"` | Implementar 4 kinds (ver C1) |
+| A5 | Streaming token-a-token SSE | ❌ **OPEN** | `onSend()` linha 395 só ecoa user msg · sem resposta | Mock SSE no protótipo (`mock-stream.js` igual amendment §2.10); backend já tem `sendStream` em ChatController:276 |
+
+### Bloco B — Vocabulário humano (7)
+
+| # | Item | Status | Evidência |
 |:-:|---|:-:|---|
-| **A1** | Avatar quadrado `rounded-md bg-primary` letra "J" mono | ❌ **OPEN** | [chat-jana.css:43-49](chat-jana.css) — `border-radius:10px` (ok square-ish) MAS `background:linear-gradient(135deg, #8a6cf5, #5b3ec8)` (gradient violet — viola "monocromática") + JSX usa emoji `🤖` em vez de letra "J" |
-| **A2** | Typing indicator: chip `animate-pulse` "Jana está pensando" | ❌ **OPEN** | Não implementado. `chat-jana.jsx` não tem streaming nem indicator. `onSend()` linha 395 só faz `setMsgs([..., user_msg])` — sem resposta da Jana |
-| **A3** | Bubbles `rounded-md` sem tail | ❌ **OPEN** | [chat-jana.css:498](chat-jana.css) `border-bottom-right-radius:4px` (user) + linha 505 `border-bottom-left-radius:4px` (jana) = **tail visual mantido** (assimetria WhatsApp-style). Charter pede simétrico |
-| **A4** | Resposta Jana = bloco estruturado, não texto humano | 🟡 **PARTIAL** | Mock `kind: "list-card"` (linha 128) é estruturado ✅. MAS é **apenas 1 kind** dos 4 canônicos (markdown/tool_use/data_table/action_card). Ver C1 |
-| **A5** | Streaming token-a-token SSE/Centrifugo | ❌ **OPEN** | Não implementado. `onSend()` não dispara resposta nenhuma — só ecoa msg do usuário. Sem mock-stream.js do tarball ZIP de 2026-05-09 |
+| B1 | Sem read receipts ✓/✓✓ | ✅ **CLOSED** | Ausente |
+| B2 | Sem botão "Ligar" | ✅ **CLOSED** | Ausente |
+| B3 | Sem online dot | ✅ **CLOSED** | Ausente |
+| B4 | Placeholder `Pergunte à Jana sobre vendas/OS/financeiro` | 🟡 **PARTIAL** | [chat-jana.jsx:441](chat-jana.jsx) `Pergunte algo sobre o Martinho…` (persona-tied — bom em mock, ajustar pra cliente real) |
+| B5 | Tabs `Todas/Minhas/Compartilhadas/Arquivadas` | ⚪ **MOOT** | Não há lista de conversas no cockpit · tabs novos `Dashboard/Analista IA` no topbar |
+| B6 | Subtítulo header `{msg_count} mensagens` | ⚪ **MOOT** | Sem per-conv header · novo header `Jana · Analista IA + tenant chip` |
+| B7 | Atalhos `/` `J/K` `Esc` | ❌ **OPEN** | Sem `useEffect` keydown · só Enter envia |
 
-### Bloco B — Vocabulário humano vazado (P0)
+### Bloco C — Features IA (7)
 
-| # | Item amendment | Status | Evidência |
-|:-:|---|:-:|---|
-| **B1** | Read receipts `✓` / `✓✓` | ✅ **CLOSED** | Ausentes do `chat-jana.jsx` |
-| **B2** | Botão `<I.phone>` "Ligar" no header | ✅ **CLOSED** | Não presente |
-| **B3** | Online dot no avatar | ✅ **CLOSED** | Não presente |
-| **B4** | Placeholder: `Pergunte algo à Jana sobre vendas, OS, financeiro...` | 🟡 **PARTIAL** | [chat-jana.jsx:441](chat-jana.jsx) — `Pergunte algo sobre o {Martinho}…` — usa **nome do cliente** (Martinho), não "Jana sobre vendas/OS/financeiro". Conceitualmente próximo mas literalmente divergente |
-| **B5** | Tabs `Todas / Minhas / Compartilhadas / Arquivadas` | ⚪ **MOOT** | Não há lista de conversas. Tabs novos do topbar são `Dashboard / Analista IA` ([app.jsx:267](app.jsx)) — taxonomia diferente |
-| **B6** | Subtítulo header: `{msg_count} mensagens · última atividade` | ⚪ **MOOT** | Não há per-conversation header (só 1 thread). Header novo mostra `Jana · Analista IA + tenant chip` — diferente conceito |
-| **B7** | Atalhos `/` `J/K` `Esc` globais | ❌ **OPEN** | Nenhum `useEffect` registra `keydown` listener no `chat-jana.jsx`. Só Enter envia |
+| # | Item | Status | Evidência | Onde fixar |
+|:-:|---|:-:|---|---|
+| C1 | 4 kinds tipados (markdown/tool_use/data_table/action_card) | 🟡 **PARTIAL** (1 de 4) | [chat-jana.jsx:412](chat-jana.jsx) só `list-card` | Switch por `m.kind` — 4 componentes (`<MarkdownBubble>`, `<ToolUseChip>`, `<DataTableBubble>`, `<ActionCardBubble>`) |
+| C2 | Citations inline `[1]` clicáveis | ❌ **OPEN** | Sem schema `sources` | Adicionar `sources: [{n, label, href}]` no mock · render como `<sup><a>[1]</a></sup>` |
+| C3 | `action_card` com confirm + 2 botões | 🟡 **PARTIAL** | 4 `AcaoRow` no dashboard (linhas 379-389) — CTA mas fora de bubble + sem `confirm_required` | Mover paradigma pra `<ActionCardBubble>` dentro da thread quando vier do IA |
+| C4 | PII detector regex no composer | ❌ **OPEN** | [chat-jana.jsx:436-443](chat-jana.jsx) sem regex check | `onChange` testa CPF/CNPJ/cartão · chip amber se match |
+| C5 | Empty state com 4 prompts | 🟡 **PARTIAL** | `chat.suggestions` (linha 143) — 5 chips persistentes abaixo composer · não é empty-state | Mostrar grid `Como posso ajudar hoje?` quando `msgs.length === 0` · esconder quando popula |
+| C6 | Chip business atual visível | ✅ **CLOSED** | [chat-jana.jsx:173](chat-jana.jsx) `<span className="jc-tenant">` + biz code |
+| C7 | Markdown via react-markdown sanitized | 🟡 **PARTIAL** | [chat-jana.jsx:417](chat-jana.jsx) regex custom `**bold**` split · sem listas/links/code · sem sanitizer | Trocar por `react-markdown` + `rehype-sanitize` (já no projeto via `Chat.tsx`) |
 
-### Bloco C — Features IA ausentes (P0 — definem o produto)
-
-| # | Item amendment | Status | Evidência |
-|:-:|---|:-:|---|
-| **C1** | 4 kinds tipados: `markdown` / `tool_use` / `data_table` / `action_card` | 🟡 **PARTIAL** (1 de 4) | [chat-jana.jsx:412](chat-jana.jsx) só renderiza `kind: "list-card"` — não tem switch pelos 4. As "análises" do dashboard (buckets/sparkline/bars/list/donut/text) são tipos **dentro do dashboard**, não bubbles. Charter pede tipos **dentro do bubble** |
-| **C2** | Citations inline `[1]` `[2]` clicáveis | ❌ **OPEN** | Não há schema `sources` no mock chat (linha 128-141). Só footnotes em prosa |
-| **C3** | `action_card` com `confirm_required: true` + 2 botões | 🟡 **PARTIAL** | As 4 `AcaoRow` no dashboard (linhas 379-389) têm CTA, mas não são dentro de bubble + não têm `confirm_required` flag explícita. Conceito relacionado mas em paradigma diferente |
-| **C4** | PII detector regex CPF/CNPJ/cartão no composer | ❌ **OPEN** | [chat-jana.jsx:436-443](chat-jana.jsx) — composer é `<input>` simples sem `onChange` regex check |
-| **C5** | Empty state com 4 suggested prompts | 🟡 **PARTIAL** | `chat.suggestions` (linha 143-149) tem 5 chips sempre visíveis abaixo do composer — não é **empty state** (mensagens já populadas no mock), mas é spirit-aligned. Charter pede sumir quando há mensagens |
-| **C6** | Chip business atual visível | ✅ **CLOSED** | [chat-jana.jsx:173](chat-jana.jsx) `<span className="jc-tenant">{company?.name?.toUpperCase()}</span>` + `{biz.code}` no header |
-| **C7** | Markdown render via `react-markdown` sanitized | 🟡 **PARTIAL** | [chat-jana.jsx:417](chat-jana.jsx) — parsing custom `**bold**` por split regex (linhas 156-163 + 416-419). Funciona pra negrito mas não cobre links/listas/code. Sem sanitizer. Vulnerável a `dangerouslySetInnerHTML` se evoluir |
-
----
-
-## §3 — Resumo numérico
+### Resumo numérico ajustado
 
 | Categoria | Total | ✅ | 🟡 | ❌ | ⚪ |
 |---|:-:|:-:|:-:|:-:|:-:|
-| Bloco A anti-patterns | 5 | 0 | 1 | 4 | 0 |
-| Bloco B vocabulário | 7 | 3 | 1 | 1 | 2 |
-| Bloco C features IA | 7 | 1 | 4 | 2 | 0 |
+| Bloco A | 5 | 0 | 1 | 4 | 0 |
+| Bloco B | 7 | 3 | 1 | 1 | 2 |
+| Bloco C | 7 | 1 | 4 | 2 | 0 |
 | **Total** | **19** | **4** | **6** | **7** | **2** |
 
-**Sob critério literal do amendment** (cada `✅` vale 1, `🟡` vale 0.5, `❌` vale 0, `⚪` neutralizado):
+Itens aplicáveis (17 — exclui ⚪): score literal `(4 + 6×0.5) / 17 = 41%`.
 
-`(4 + 6×0.5) / 17 itens-aplicáveis = 7/17 = 41%` → **score 41/100** (literal)
+Score F1.5 ajustado pelo critério "pivot aceito · cockpit é forte mas falta refinar IA-chat-tab":
 
-**Sob critério "Cowork pivotou de boa-fé e o pivot é defensável":**
+- Dashboard cockpit em si (brief / KPIs / análises / ações) = **+30** (qualidade visual + densidade Larissa 1280px)
+- Persona-fit Wagner/Larissa cockpit gerencial = **+10**
+- Tenant chip Tier 0 visível = **+3**
+- Mock data crível (Martinho Caçambas R$ 4,5M inadimplência) = **+5**
 
-- Dashboard cockpit em si é forte (Brief diário + KPIs + análises + ações) → **+25 pontos extra**
-- Persona-fit Larissa/Wagner (1280px) ok → **+10 pontos extra**
-- Tenant chip Tier 0 visível → **+3 pontos extra**
-
-→ score ajustado ≈ **78/100** (com pivot aceito)
-
-**Sob critério "Wagner queria CHAT, ponto, não dashboard":**
-
-→ score ≈ **22/100** — Cowork ignorou request central.
+→ score F1.5 interim ≈ **78 / 100** · gate ≥80 não atingido ainda · 1 round de refator necessário (charter §F1.5 critério).
 
 ---
 
-## §4 — Recomendação concreta
+## §4 — Os 8 refinos pra fechar F1.5 ≥80
 
-### Pergunta única a fechar com Wagner
+Foco: aba `ia` (chat tab) precisa nascer com paridade ao canon descrito no amendment. Dashboard tab está em boa forma.
 
-> *"O `/jana/chat` (rota `chat` no AppShell) deve ser:*
-> *(A) **Cockpit Analista IA** com aba Dashboard + aba Chat — modelo Glean Home / Copilot M365. Cowork entregou esse caminho.*
-> *(B) **Chat conversacional 2-col** com lista de threads à esquerda — modelo ChatGPT Enterprise / Front. Charter atual + amendment 2026-05-14 descrevem esse caminho.*
-> *(C) **AMBOS** — `/jana/dashboard` recebe (A) e `/jana/chat` recebe (B), separadas. Custo: 2 charters, 2 implementações."*
+| # | Item | Estimativa Cowork |
+|:-:|---|:-:|
+| 1 | A1 — `JanaAvatar` quadrado mono primary letra "J" (substitui gradient + 🤖) | 10min |
+| 2 | A3 — bubbles simétricos `rounded-md` (remove tail) | 5min |
+| 3 | A5 — `mock-stream.js` SSE fake + `<TypingIndicator>` chip "Jana está pensando" (A2 vira automático) | 30min |
+| 4 | B7 — listener keydown global `/` `J/K` `Esc` filtrado por focus | 15min |
+| 5 | C1 — switch 4 kinds + 4 componentes (`<MarkdownBubble>`, `<ToolUseChip>`, `<DataTableBubble>`, `<ActionCardBubble>`) | 1-2h |
+| 6 | C2 — citations inline `[1]` clicáveis + expand source card | 30min |
+| 7 | C4 — PII detector regex no composer + chip amber | 15min |
+| 8 | C7 — `react-markdown` + `rehype-sanitize` (consistente com `Chat.tsx`) | 20min |
 
-### Se Wagner escolher (A) — aceitar pivot
-
-1. **Reescrever charter** [`resources/js/Pages/Jana/Chat.charter.md`](../../resources/js/Pages/Jana/Chat.charter.md) → renomear pra `Cockpit.charter.md` com novos goals (Brief diário > Chat livre).
-2. **Reescrever amendment-block-renderer** marcando B5/B6 como `moot`, mantendo A1/A2/A3/A5/C1/C2/C4/C7 como ainda aplicáveis no chat tab.
-3. **Pedir [CC] V2.1** focado nos 4 itens A ainda violados + 4 itens C abertos.
-4. F1.5 critique-score formal só depois disso.
-
-### Se Wagner escolher (B) — rejeitar pivot
-
-1. Mandar amendment direto: **"Cowork, descarte chat-jana.jsx. Volte ao paradigma 2-col conversacional. Mantenha apenas o conceito do tenant chip (C6 fechado)."**
-2. Aproveitar trabalho: o `BriefDiario` + `KPICard` + `AnaliseCard` deste export podem virar componentes de **outra tela** (`/jana/dashboard` separada) — não desperdiça código.
-
-### Se Wagner escolher (C) — ambos
-
-1. Duas charters separadas.
-2. `chat-jana.jsx` deste export = base do `/jana/dashboard` (precisa só refinar A1/A3 e adicionar streaming no chat tab pra ficar consistente).
-3. `chat.jsx` original do shell + amendment original = base do `/jana/chat`.
-4. Cowork precisa entregar V2 do `chat.jsx` paralelo.
+**Total estimado Cowork V2.1:** ~3-4h. F2 screenshot Wagner ~10min. F3 port pra `Cockpit.tsx` em prod ~1d IA-pair (ADR 0106 10x).
 
 ---
 
-## §5 — Anti-pattern detectado (meta)
+## §5 — Caminho A (aceito) — próximas etapas formais
 
-> "Cowork mudou paradigma sem amendment formal."
+### Etapa 1 — fechar este CRITIQUE (esta commit)
 
-PROTOCOL.md §3 pede que mudanças de escopo entrem via amendment Wagner → Cowork. O export 2026-05-15 não veio acompanhado de `COWORK_NOTES.amendment-jana-pivot-cockpit.md` justificando o shift de "chat 2-col" pra "dashboard com chat tab". É o mesmo anti-pattern catalogado em [LICOES_F3_FINANCEIRO_REJEITADO.md](../LICOES_F3_FINANCEIRO_REJEITADO.md) (Cowork inferindo escopo).
+- ✅ Comparação Caixa Unificada feita · zero overlap confirmado
+- ✅ Mapeamento 3 páginas Jana feito · pivot tem destino claro (`Cockpit.tsx`)
+- ✅ 8 refinos listados
+- ✅ Score 78/100 calibrado
+- ✅ HANDOFF.md atualiza com decisão "pivot aceito"
 
-Solução possível: incluir no PROTOCOL.md §5 (overrides) uma regra "/pivot-detected" — quando export muda paradigma fundamental, [CL] gera CRITIQUE bloqueando F1.5 até [W] ratificar/rejeitar o pivot. Este doc é o primeiro caso real. Vale virar emenda menor ao PROTOCOL.md depois.
+### Etapa 2 — promoção controlada pra `prototipo-ui/prototipos/cockpit/` (PR separado · não automático)
+
+Quando Wagner mandar:
+
+- Criar `prototipo-ui/prototipos/cockpit/` (não `prototipos/chat/` — esse fica pra `Chat.tsx`)
+- Copiar `chat-jana.jsx` + `chat-jana.css` + `app.jsx` (parte rota chat) → adaptar referências
+- Criar `COMPARISON.md` (15 dimensões canon) — base no [`CLAUDE_DESIGN_BRIEFING.md`](../CLAUDE_DESIGN_BRIEFING.md)
+- Mandar pedido Cowork V2.1 com os 8 refinos
+
+### Etapa 3 — charter `Cockpit.charter.md` (rewrite controlado)
+
+Charter atual `Cockpit.tsx` não tem `.charter.md` (só comment header em-código). Criar `resources/js/Pages/Jana/Cockpit.charter.md` com:
+
+- `status: live` (substitui MVP piloto · MVP era teste, agora vira canonical)
+- `supersedes: resources/js/Pages/Jana/Dashboard.charter.md` (se existir — Dashboard absorve como tab)
+- `parent_adr: memory/decisions/0035-stack-ai-canonica-wagner-2026-04-26.md`
+- Missão: "Cockpit do Analista IA (Jana) — brief diário + KPIs + análises + ações HITL · aba IA pra perguntas livres single-thread"
+- Goals/Non-Goals/UX targets/Anti-hooks/Pest GUARD
+
+### Etapa 4 — `Chat.tsx` continua live
+
+`/jana/` (Chat.tsx 2-col conversacional) **NÃO** é tocado neste workstream. Charter atual permanece. Amendment-block-renderer 2026-05-14 fica válido pra ele se/quando Wagner reabrir (separar é o ponto).
+
+### Etapa 5 — Dashboard.tsx eventualmente folding
+
+`Dashboard.tsx` (`/jana/dashboard`) vira tab `dashboard` do `Cockpit.tsx`. Pode coexistir durante canary. Charter histórico depois.
 
 ---
 
-## §6 — Próximos passos sugeridos (não automáticos — espera Wagner)
+## §6 — PROTOCOL.md gap detectado (TODO baixo)
 
-1. **Wagner responde §4** — A/B/C
-2. Se A ou C → [CL] reescreve charter + amendment
-3. Se B → [CL] manda novo amendment "rejeitar pivot" pra Cowork
-4. F1.5 critique-score formal só sai depois de §1 ratificada
-5. Pivot virar emenda do PROTOCOL.md §5 (override `/pivot-detected`) — task separada
+Cowork mudou paradigma sem amendment formal — `/pivot-detected` override seria útil em PROTOCOL.md §5. **Não bloqueador** (este CRITIQUE resolve o caso), mas vale virar emenda do protocolo numa task pequena depois.
 
 ---
 
@@ -210,8 +192,13 @@ Solução possível: incluir no PROTOCOL.md §5 (overrides) uma regra "/pivot-de
 
 - [`_SNAPSHOT.md`](./_SNAPSHOT.md) — contexto do snapshot
 - [`chat-jana.jsx`](chat-jana.jsx) · [`chat-jana.css`](chat-jana.css) · [`app.jsx`](app.jsx) — fontes auditadas
-- [`../COWORK_NOTES.amendment-jana-chat-block-renderer.md`](../COWORK_NOTES.amendment-jana-chat-block-renderer.md) — 19 divergências P0
+- [`/atendimento/caixa-unificada/Index.charter.md`](../../resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md) — referência do paradigma humano (zero overlap)
+- [`/jana/Chat.charter.md`](../../resources/js/Pages/Jana/Chat.charter.md) — charter da conversação 2-col (continua live · `/jana/`)
+- [`/jana/Cockpit.tsx`](../../resources/js/Pages/Jana/Cockpit.tsx) — destino da evolução (`/jana/cockpit`)
+- [`/jana/Dashboard.tsx`](../../resources/js/Pages/Jana/Dashboard.tsx) — page que folda como tab
+- [`../COWORK_NOTES.amendment-jana-chat-block-renderer.md`](../COWORK_NOTES.amendment-jana-chat-block-renderer.md) — amendment 19 divergências (válido pra Chat.tsx em workstream separado)
 - [`../PROTOCOL.md`](../PROTOCOL.md) §3 §5 — fases + overrides
-- [`../LICOES_F3_FINANCEIRO_REJEITADO.md`](../LICOES_F3_FINANCEIRO_REJEITADO.md) — anti-patterns Cowork
+- [Modules/Jana/Http/routes.php:30](../../Modules/Jana/Http/routes.php) — comentário "rota PARALELA ao /copiloto atual; nao substitui Chat.tsx"
 - [ADR 0114](../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — loop formalizado
+- [ADR 0035](../../memory/decisions/0035-stack-ai-canonica-wagner-2026-04-26.md) — stack IA canônica
 - [ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — gate F1.5
