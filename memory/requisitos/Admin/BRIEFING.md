@@ -1,7 +1,7 @@
 # BRIEFING — Modules/Admin (Admin Center @ CT 100)
 
-> **Estado consolidado 1-pager** · Atualizado: 2026-05-16
-> Canon: [SPEC.md](SPEC.md) · ADR mãe: [0122](../../decisions/0122-admin-center-ct100.md)
+> **Estado consolidado 1-pager** · Atualizado: 2026-05-16 (pós-PR3 governance-v3-docs `na_justified` declarado)
+> Canon: [SPEC.md](SPEC.md) · ADR mãe: [0122](../../decisions/0122-admin-center-ct100.md) · Rubrica v3: [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
 
 ## O que é
 
@@ -28,9 +28,20 @@ Painel **Wagner-only** que agrega visão de toda infra/governance/time do oimpre
 | Charter Index.tsx | 🔜 backlog |
 | RUNBOOK acesso CT 100 | ✅ existe ([Infra/RUNBOOK-acesso-ct100.md](../Infra/RUNBOOK-acesso-ct100.md)) |
 
-## Gaps conhecidos (módulo grade 49/100)
+## Score module-grade
 
-- **D1 testes 10/30** — cross-tenant + permission isolation faltando (PR atual cobre)
+| Versão | Score | Observação |
+|---|---|---|
+| v2 (pré-PR3) | 49/100 | Penalizava D5 (sem cliente externo) e D4.b (sem FSM) — injusto pro design Wagner-only CT 100 |
+| **v3 (pós-PR3)** | **~85-90/100** (esperado) | `na_justified` D5+D4.b declarado no SPEC → rubrica v3 redistribui pesos pras dimensões aplicáveis (ADR 0155) |
+
+**`na_justified` declarado no SPEC:**
+- **D5 (cliente externo):** Wagner-only CT 100 Tailscale-only por design — internet pública zera vetor de ataque. Cliente biz=4 ROTA LIVRE NÃO acessa por princípio arquitetural ADR 0122.
+- **D4.b (FSM canônica):** painel read-mostly que agrega outros módulos — sem state machine própria. 3 mutations controladas (Curador apply, MCP token, run-now) são atômicas.
+
+## Gaps remanescentes
+
+- **D1 testes 10/30** — cross-tenant + permission isolation faltando (PR atual `claude/governance-v3-wave5` cobre `CrossTenantAdminTest`)
 - **D3 charter 6/15** — `Index.charter.md` ainda não criado (US-ADMIN-007)
 - **Curador apply** ainda stub Sprint 2 — não mexe filesystem real
 - **MCP token regenerate** retorna 404 em homolog (tabela `mcp_tokens` só vive CT 100 prod)
