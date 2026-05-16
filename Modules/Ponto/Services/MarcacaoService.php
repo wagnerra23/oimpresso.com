@@ -130,17 +130,32 @@ class MarcacaoService
             // Mantido como comentário/placeholder — política definida em operação.
         }
 
-        return $this->registrar([
-            'business_id'           => $original->business_id,
-            'colaborador_config_id' => $original->colaborador_config_id,
-            'rep_id'                => $original->rep_id,
-            'momento'               => now(),
-            'origem'                => Marcacao::ORIGEM_ANULACAO,
-            'tipo'                  => $original->tipo,
-            'marcacao_anulada_id'   => $original->id,
-            'usuario_criador_id'    => $usuarioId,
-            'dispositivo_id'        => 'anulacao:' . substr(md5($motivo), 0, 16),
-        ]);
+        // D9.a Wave 16 OTel — span próprio para anulação. NÃO toca marcação original
+        // (append-only Portaria 671/2021 Art. 85); cria NOVA marcação ORIGEM_ANULACAO
+        // apontando para original via marcacao_anulada_id. PII: motivo NÃO entra no
+        // span (texto livre pode conter dados do colaborador); só hash truncado.
+        return OtelHelper::span('ponto.marcacao.anular', [
+            'module'                  => 'Ponto',
+            'business_id'             => (int) $original->business_id,
+            'employee_id'             => (int) $original->colaborador_config_id,
+            'marcacao_original_id'    => (string) $original->id,
+            'origem_original'         => $original->origem,
+            'tipo_original'           => $original->tipo,
+            'usuario_id'              => (int) $usuarioId,
+            'motivo_hash'             => substr(md5((string) $motivo), 0, 16),
+        ], function () use ($original, $usuarioId, $motivo) {
+            return $this->registrar([
+                'business_id'           => $original->business_id,
+                'colaborador_config_id' => $original->colaborador_config_id,
+                'rep_id'                => $original->rep_id,
+                'momento'               => now(),
+                'origem'                => Marcacao::ORIGEM_ANULACAO,
+                'tipo'                  => $original->tipo,
+                'marcacao_anulada_id'   => $original->id,
+                'usuario_criador_id'    => $usuarioId,
+                'dispositivo_id'        => 'anulacao:' . substr(md5($motivo), 0, 16),
+            ]);
+        });
     }
 
     /**

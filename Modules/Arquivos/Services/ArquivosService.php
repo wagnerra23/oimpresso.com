@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\App;
@@ -49,6 +50,23 @@ class ArquivosService
             throw new \RuntimeException('attach: business_id ausente na sessão (multi-tenant Tier 0).');
         }
 
+        return OtelHelper::spanBiz('arquivos.attach', function () use ($owner, $file, $opts, $businessId) {
+            return $this->attachInternal($owner, $file, $opts, (int) $businessId);
+        }, [
+            'module'        => 'Arquivos',
+            'owner_type'    => $owner::class,
+            'size_bytes'    => (int) $file->getSize(),
+            'mime_type'     => $file->getMimeType() ?? 'application/octet-stream',
+            'extension'     => strtolower($file->getClientOriginalExtension() ?: 'bin'),
+        ]);
+    }
+
+    /**
+     * Internal attach — extraído pra ser envelopado por OtelHelper::spanBiz (D9.a).
+     * Log estruturado emite tamanho + tipo MIME (sem PII — filename redactado).
+     */
+    private function attachInternal(Model $owner, UploadedFile $file, array $opts, int $businessId): Arquivo
+    {
         $md5 = md5_file($file->getRealPath());
 
         // Dedupe lookup por business — se já existe arquivo com mesmo MD5
@@ -114,10 +132,30 @@ class ArquivosService
         $this->insertDedupe($md5);
         $this->audit($arquivo, 'upload', ['size' => $arquivo->size_bytes]);
 
+        // D9.b — log estruturado upload: tamanho + tipo MIME + biz (sem PII).
+        Log::info('arquivos.upload', [
+            'business_id'  => $arquivo->business_id,
+            'arquivo_id'   => $arquivo->id,
+            'mime_type'    => $arquivo->mime_type,
+            'size_bytes'   => $arquivo->size_bytes,
+            'bucket'       => $arquivo->bucket,
+            'encrypted'    => $arquivo->encrypted,
+        ]);
+
         return $arquivo;
     }
 
     public function classify(Arquivo $arquivo): array
+    {
+        return OtelHelper::spanBiz('arquivos.classify', function () use ($arquivo) {
+            return $this->classifyInternal($arquivo);
+        }, [
+            'module'      => 'Arquivos',
+            'arquivo_id'  => $arquivo->id,
+        ]);
+    }
+
+    private function classifyInternal(Arquivo $arquivo): array
     {
         $result = $this->curador->classify($arquivo);
         $arquivo->bucket          = $result['bucket'] ?? $arquivo->bucket;
@@ -132,25 +170,42 @@ class ArquivosService
 
     public function signedUrl(Arquivo $arquivo, int $expiresMinutes = 60): string
     {
-        $url = URL::temporarySignedRoute(
-            'arquivos.download',
-            now()->addMinutes($expiresMinutes),
-            ['arquivo' => $arquivo->id],
-        );
-        $this->audit($arquivo, 'signed_url_issued', ['expires_minutes' => $expiresMinutes]);
-        return $url;
+        return OtelHelper::spanBiz('arquivos.signed_url', function () use ($arquivo, $expiresMinutes) {
+            $url = URL::temporarySignedRoute(
+                'arquivos.download',
+                now()->addMinutes($expiresMinutes),
+                ['arquivo' => $arquivo->id],
+            );
+            $this->audit($arquivo, 'signed_url_issued', ['expires_minutes' => $expiresMinutes]);
+            return $url;
+        }, [
+            'module'           => 'Arquivos',
+            'arquivo_id'       => $arquivo->id,
+            'expires_minutes'  => $expiresMinutes,
+        ]);
     }
 
     public function softDelete(Arquivo $arquivo): void
     {
-        $arquivo->delete();
-        $this->audit($arquivo, 'soft_delete', []);
+        OtelHelper::spanBiz('arquivos.soft_delete', function () use ($arquivo) {
+            $arquivo->delete();
+            $this->audit($arquivo, 'soft_delete', []);
+        }, [
+            'module'      => 'Arquivos',
+            'arquivo_id'  => $arquivo->id,
+            'size_bytes'  => $arquivo->size_bytes,
+        ]);
     }
 
     public function restore(Arquivo $arquivo): void
     {
-        $arquivo->restore();
-        $this->audit($arquivo, 'restore', []);
+        OtelHelper::spanBiz('arquivos.restore', function () use ($arquivo) {
+            $arquivo->restore();
+            $this->audit($arquivo, 'restore', []);
+        }, [
+            'module'      => 'Arquivos',
+            'arquivo_id'  => $arquivo->id,
+        ]);
     }
 
     /**

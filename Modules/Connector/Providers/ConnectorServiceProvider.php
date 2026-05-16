@@ -2,12 +2,14 @@
 
 namespace Modules\Connector\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Console\ClientCommand;
 use Laravel\Passport\Console\InstallCommand;
 use Laravel\Passport\Console\KeysCommand;
+use Modules\Connector\Console\Commands\ConnectorHealthCommand;
 
 class ConnectorServiceProvider extends ServiceProvider
 {
@@ -42,7 +44,19 @@ class ConnectorServiceProvider extends ServiceProvider
             InstallCommand::class,
             ClientCommand::class,
             KeysCommand::class,
+            ConnectorHealthCommand::class,
         ]);
+
+        // D9.c — schedule daily 06:15 BRT (após jana:health-check 06:00).
+        // Wave 16 governance v3.
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+            $schedule->command('connector:health --notify')
+                ->dailyAt('06:15')
+                ->timezone('America/Sao_Paulo')
+                ->name('connector:health daily')
+                ->withoutOverlapping(10);
+        });
     }
 
     /**

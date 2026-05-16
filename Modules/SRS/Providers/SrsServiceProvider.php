@@ -34,6 +34,7 @@ class SrsServiceProvider extends ServiceProvider
                 \Modules\SRS\Console\Commands\SyncMemoriesCommand::class,
                 \Modules\SRS\Console\Commands\AuditModuleCommand::class,
                 \Modules\SRS\Console\Commands\InstallHooksCommand::class,
+                \Modules\SRS\Console\Commands\SrsHealthCommand::class,
             ]);
         }
     }

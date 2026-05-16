@@ -7,6 +7,7 @@ namespace Modules\Whatsapp\Http\Controllers\Api;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Jobs\ProcessIncomingWebhookJob;
@@ -48,6 +49,13 @@ class MetaWebhookController extends Controller
         $config = $request->attributes->get('whatsapp.config');
         /** @var WhatsappBusinessPhone|null $phone */
         $phone = $request->attributes->get('whatsapp.phone');
+
+        Log::info('whatsapp.webhook.received', [
+            'business_id' => $config->business_id,
+            'provider' => 'meta_cloud',
+            'phone_id' => $phone?->id,
+            'event' => 'http_post',
+        ]);
 
         ProcessIncomingWebhookJob::dispatch(
             $config->business_id,

@@ -2,127 +2,78 @@
 
 namespace Modules\ProductCatalogue\Http\Controllers;
 
-use App\Business;
-use App\BusinessLocation;
-use App\Category;
-use App\Discount;
-use App\Product;
-use App\SellingPriceGroup;
-use App\Utils\ModuleUtil;
-use App\Utils\ProductUtil;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Modules\ProductCatalogue\Services\CatalogueQrService;
+use Modules\ProductCatalogue\Services\CatalogueService;
 
+/**
+ * Wave 16 D4 Architecture — Controller refatorado pra ser MAGRO (single responsibility).
+ *
+ * Responsabilidades exclusivas do Controller (≤30 linhas/método):
+ *   - Receber HTTP Request (validações via FormRequest separado quando aplicável)
+ *   - Delegar lógica de negócio aos Services injetados via constructor
+ *   - Devolver Response/View
+ *
+ * Lógica de negócio (queries Eloquent, formatação, autorização) vive em:
+ *   - {@see CatalogueService} — telas públicas index/show
+ *   - {@see CatalogueQrService} — tela admin QR generator
+ *   - {@see \Modules\ProductCatalogue\Repositories\ProductCatalogueRepository} — DB
+ *
+ * Pattern canônico: ADR 0011 (padrão Jana/Repair), inspirado em Modules/Jana/Services.
+ */
 class ProductCatalogueController extends Controller
 {
-    /**
-     * All Utils instance.
-     */
-    protected $productUtil;
-
-    protected $moduleUtil;
-
-    /**
-     * Constructor
-     *
-     * @param  ProductUtils  $product
-     * @return void
-     */
-    public function __construct(ProductUtil $productUtil, ModuleUtil $moduleUtil)
-    {
-        $this->productUtil = $productUtil;
-        $this->moduleUtil = $moduleUtil;
+    public function __construct(
+        private CatalogueService $catalogueService,
+        private CatalogueQrService $qrService,
+    ) {
     }
 
     /**
-     * Display a listing of the resource.
+     * GET /catalogue/{business_id}/{location_id} — listagem pública agrupada por categoria.
      *
      * @return Response
      */
     public function index($business_id, $location_id)
     {
-        $products = Product::where('business_id', $business_id)
-                ->whereHas('product_locations', function ($q) use ($location_id) {
-                    $q->where('product_locations.location_id', $location_id);
-                })
-                ->ProductForSales()
-                ->with(['variations', 'variations.product_variation', 'category'])
-                ->get()
-                ->groupBy('category_id');
-        $business = Business::with(['currency'])->findOrFail($business_id);
-        $business_location = BusinessLocation::where('business_id', $business_id)->findOrFail($location_id);
+        $payload = $this->catalogueService->buildIndexPayload((int) $business_id, (int) $location_id);
 
-        $now = \Carbon::now()->toDateTimeString();
-        $discounts = Discount::where('business_id', $business_id)
-                                ->where('location_id', $location_id)
-                                ->where('is_active', 1)
-                                ->where('starts_at', '<=', $now)
-                                ->where('ends_at', '>=', $now)
-                                ->orderBy('priority', 'desc')
-                                ->get();
-        foreach ($discounts as $key => $value) {
-            $discounts[$key]->discount_amount = $this->productUtil->num_f($value->discount_amount, false, $business);
-        }
-
-        $categories = Category::forDropdown($business_id, 'product');
-
-        return view('productcatalogue::catalogue.index')->with(compact('products', 'business', 'discounts', 'business_location', 'categories'));
+        return view('productcatalogue::catalogue.index')->with($payload);
     }
 
     /**
-     * Show the specified resource.
+     * GET /show-catalogue/{business_id}/{product_id} — detalhe público do produto.
      *
+     * @param  int  $business_id
      * @param  int  $id
      * @return Response
      */
     public function show($business_id, $id)
     {
-        $product = Product::with(['brand', 'unit', 'category', 'sub_category', 'product_tax', 'variations', 'variations.product_variation', 'variations.group_prices', 'variations.media', 'product_locations', 'warranty'])->where('business_id', $business_id)
-                        ->findOrFail($id);
+        $locationId = request()->input('location_id');
+        $payload = $this->catalogueService->buildShowPayload(
+            (int) $business_id,
+            (int) $id,
+            $locationId !== null ? (int) $locationId : null,
+        );
 
-        $price_groups = SellingPriceGroup::where('business_id', $product->business_id)->active()->pluck('name', 'id');
-
-        $allowed_group_prices = [];
-        foreach ($price_groups as $key => $value) {
-            $allowed_group_prices[$key] = $value;
-        }
-
-        $group_price_details = [];
-        $discounts = [];
-        foreach ($product->variations as $variation) {
-            foreach ($variation->group_prices as $group_price) {
-                $group_price_details[$variation->id][$group_price->price_group_id] = $group_price->price_inc_tax;
-            }
-
-            $discounts[$variation->id] = $this->productUtil->getProductDiscount($product, $product->business_id, request()->input('location_id'), false, null, $variation->id);
-        }
-
-        $combo_variations = [];
-        if ($product->type == 'combo') {
-            $combo_variations = $this->productUtil->__getComboProductDetails($product['variations'][0]->combo_variations, $product->business_id);
-        }
-
-        return view('productcatalogue::catalogue.show')->with(compact(
-            'product',
-            'allowed_group_prices',
-            'group_price_details',
-            'combo_variations',
-            'discounts'
-        ));
+        return view('productcatalogue::catalogue.show')->with($payload);
     }
 
+    /**
+     * GET /product-catalogue/catalogue-qr — tela admin pra gerar QR codes do catálogo.
+     */
     public function generateQr()
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'productcatalogue_module'))) {
+        $businessId = (int) request()->session()->get('user.business_id');
+
+        if (! $this->qrService->authorizeAccess($businessId, auth()->user())) {
             abort(403, 'Unauthorized action.');
         }
 
-        $business_id = request()->session()->get('user.business_id');
-        $business_locations = BusinessLocation::forDropdown($business_id);
-        $business = Business::findOrFail($business_id);
+        $payload = $this->qrService->buildQrPayload($businessId);
 
-        return view('productcatalogue::catalogue.generate_qr')
-                    ->with(compact('business_locations', 'business'));
+        return view('productcatalogue::catalogue.generate_qr')->with($payload);
     }
 }

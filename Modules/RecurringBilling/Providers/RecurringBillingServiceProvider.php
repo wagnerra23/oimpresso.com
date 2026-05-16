@@ -62,6 +62,7 @@ class RecurringBillingServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\RecurringBilling\Console\Commands\SyncBankBalancesCommand::class,
+                \Modules\RecurringBilling\Console\Commands\RecurringHealthCommand::class,
             ]);
         }
     }

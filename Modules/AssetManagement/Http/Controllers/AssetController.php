@@ -16,9 +16,16 @@ use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Entities\AssetWarranty;
 use Modules\AssetManagement\Http\Requests\StoreAssetRequest;
 use Modules\AssetManagement\Http\Requests\UpdateAssetRequest;
+use Modules\AssetManagement\Services\AssetService;
 use Modules\AssetManagement\Utils\AssetUtil;
 use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * Wave 16 governance D4 Architecture: Controller magro — regras de criacao /
+ * atualizacao / remocao delegadas a AssetService. Index/dashboard mantidos
+ * (queries de leitura + datatables permanecem aqui por enquanto — extraidos
+ * em wave futura).
+ */
 class AssetController extends Controller
 {
     /**
@@ -30,16 +37,24 @@ class AssetController extends Controller
 
     protected $assetUtil;
 
+    protected $assetService;
+
     protected $purchaseTypes;
 
     /**
-     * Constructor
+     * Constructor — DI Tier 0: ModuleUtil/Util/AssetUtil mantidos pra
+     * compatibilidade com index/dashboard; AssetService novo pra store/update/destroy.
      */
-    public function __construct(ModuleUtil $moduleUtil, Util $commonUtil, AssetUtil $assetUtil)
-    {
+    public function __construct(
+        ModuleUtil $moduleUtil,
+        Util $commonUtil,
+        AssetUtil $assetUtil,
+        AssetService $assetService,
+    ) {
         $this->moduleUtil = $moduleUtil;
         $this->commonUtil = $commonUtil;
         $this->assetUtil = $assetUtil;
+        $this->assetService = $assetService;
 
         $this->purchaseTypes = [
             'owned' => __('assetmanagement::lang.owned'),
@@ -283,87 +298,18 @@ class AssetController extends Controller
     public function store(StoreAssetRequest $request)
     {
         // D8.c Wave 10 — validation + permission checks (asset.create + subscription)
-        // movidos pra StoreAssetRequest::authorize/rules. Permission check redundante
-        // removido — FormRequest ja retorna 403 antes de chegar aqui.
+        // movidos pra StoreAssetRequest::authorize/rules.
+        // Wave 16 D4 — regra de criacao + media + warranties extraida pra AssetService.
         $business_id = request()->session()->get('user.business_id');
+        $user_id = request()->session()->get('user.id');
 
         try {
-            $input = $request->only('asset_code', 'name', 'quantity', 'model',
-                'serial_no', 'category_id', 'location_id', 'purchase_date',
-                'unit_price', 'depreciation', 'is_allocatable', 'description', 'purchase_type');
-
-            $input['business_id'] = $business_id;
-            $input['created_by'] = request()->session()->get('user.id');
-            $input['is_allocatable'] = ! empty($input['is_allocatable']) ? 1 : 0;
-
-            DB::beginTransaction();
-
-            if (empty($input['asset_code'])) {
-                $ref_count = $this->commonUtil->setAndGetReferenceCount('asset_code', $business_id);
-                $asset_settings = $this->assetUtil->getAssetSettings($business_id);
-
-                $asset_code_prefix = $asset_settings['asset_code_prefix'] ?? null;
-                $input['asset_code'] = $this->commonUtil->generateReferenceNumber('asset_code', $ref_count, null, $asset_code_prefix);
-            }
-
-            if (! empty($input['quantity'])) {
-                $input['quantity'] = $this->commonUtil->num_uf($input['quantity']);
-            }
-
-            if (! empty($input['purchase_date'])) {
-                $input['purchase_date'] = $this->commonUtil->uf_date($input['purchase_date']);
-            }
-
-            if (! empty($input['unit_price'])) {
-                $input['unit_price'] = $this->commonUtil->num_uf($input['unit_price']);
-            }
-
-            if (! empty($input['depreciation'])) {
-                $input['depreciation'] = $this->commonUtil->num_uf($input['depreciation']);
-            }
-
-            $asset = Asset::create($input);
-
-            //upload media
-            if ($request->has('image')) {
-                Media::uploadMedia($business_id, $asset, $request, 'image', true);
-            }
-            $warranties = [];
-            if (! empty($request->input('start_dates'))) {
-                $months = $request->input('months');
-                foreach ($request->input('start_dates') as $key => $value) {
-                    if (! empty($value) && ! empty($months[$key])) {
-                        $start_date = $this->commonUtil->uf_date($value);
-                        $warranties[] = [
-                            'start_date' => $start_date,
-                            'end_date' => \Carbon::parse($start_date)->addMonths($months[$key])->format('Y-m-d'),
-                            'additional_cost' => $this->commonUtil->num_uf($request->input('additional_cost')[$key]),
-                            'additional_note' => $request->input('additional_note')[$key],
-
-                        ];
-                    }
-                }
-            }
-
-            if (! empty($warranties)) {
-                $asset->warranties()->createMany($warranties);
-            }
-
-            DB::commit();
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (Exception $e) {
+            $this->assetService->criar($request, (int) $business_id, (int) $user_id);
+            $output = ['success' => true, 'msg' => __('lang_v1.success')];
+        } catch (\Exception $e) {
             DB::rollBack();
-
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
+            $output = ['success' => false, 'msg' => __('messages.something_went_wrong')];
         }
 
         return redirect()
@@ -424,101 +370,17 @@ class AssetController extends Controller
      */
     public function update(UpdateAssetRequest $request, $id)
     {
-        // D8.c Wave 10 — validation + permission checks (asset.update + subscription)
-        // movidos pra UpdateAssetRequest::authorize/rules.
+        // D8.c Wave 10 — validation + permission checks via FormRequest.
+        // Wave 16 D4 — regra de update + warranties + media delegada a AssetService.
         $business_id = request()->session()->get('user.business_id');
 
         try {
-            $input = $request->only('name', 'quantity', 'model',
-                        'category_id', 'location_id', 'purchase_date', 'unit_price', 'depreciation',
-                        'is_allocatable', 'description', 'purchase_type', 'serial_no');
-            $input['is_allocatable'] = ! empty($input['is_allocatable']) ? 1 : 0;
-
-            DB::beginTransaction();
-
-            if (! empty($input['quantity'])) {
-                $input['quantity'] = $this->commonUtil->num_uf($input['quantity']);
-            }
-
-            if (! empty($input['purchase_date'])) {
-                $input['purchase_date'] = $this->commonUtil->uf_date($input['purchase_date']);
-            }
-
-            if (! empty($input['unit_price'])) {
-                $input['unit_price'] = $this->commonUtil->num_uf($input['unit_price']);
-            }
-
-            if (! empty($input['depreciation'])) {
-                $input['depreciation'] = $this->commonUtil->num_uf($input['depreciation']);
-            }
-
-            $asset = Asset::where('business_id', $business_id)
-                        ->findOrfail($id);
-
-            $asset->update($input);
-
-            //update existing warranties
-            $edited_warranty_ids = [];
-            if (! empty($request->input('edit_warranty'))) {
-                foreach ($request->input('edit_warranty') as $key => $value) {
-                    $edited_warranty_ids[] = $key;
-                    $start_date = $this->commonUtil->uf_date($value['start_date']);
-                    AssetWarranty::where('id', $key)
-                                ->update([
-                                    'start_date' => $start_date,
-                                    'end_date' => \Carbon::parse($start_date)->addMonths($value['months'])->format('Y-m-d'),
-                                    'additional_cost' => $this->commonUtil->num_uf($value['additional_cost']),
-                                    'additional_note' => $value['additional_note'],
-
-                                ]);
-                }
-            }
-            AssetWarranty::where('asset_id', $asset->id)
-                        ->whereNotIn('id', $edited_warranty_ids)
-                        ->delete();
-
-            //add new warranties
-            $warranties = [];
-            if (! empty($request->input('start_dates'))) {
-                $months = $request->input('months');
-                foreach ($request->input('start_dates') as $key => $value) {
-                    if (! empty($value) && ! empty($months[$key])) {
-                        $start_date = $this->commonUtil->uf_date($value);
-                        $warranties[] = [
-                            'start_date' => $start_date,
-                            'end_date' => \Carbon::parse($start_date)->addMonths($months[$key])->format('Y-m-d'),
-                            'additional_cost' => $this->commonUtil->num_uf($request->input('additional_cost')[$key]),
-                            'additional_note' => $request->input('additional_note')[$key],
-
-                        ];
-                    }
-                }
-            }
-
-            if (! empty($warranties)) {
-                $asset->warranties()->createMany($warranties);
-            }
-
-            //upload media
-            if ($request->has('image')) {
-                Media::uploadMedia($business_id, $asset, $request, 'image', true);
-            }
-
-            DB::commit();
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (Exception $e) {
+            $this->assetService->atualizar($request, (int) $id, (int) $business_id);
+            $output = ['success' => true, 'msg' => __('lang_v1.success')];
+        } catch (\Exception $e) {
             DB::rollBack();
-
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
+            $output = ['success' => false, 'msg' => __('messages.something_went_wrong')];
         }
 
         return redirect()
@@ -546,23 +408,12 @@ class AssetController extends Controller
 
         if (request()->ajax()) {
             try {
-                $asset = Asset::where('business_id', $business_id)
-                            ->findOrfail($id);
-
-                $asset->delete();
-                $asset->media()->delete();
-
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                ];
-            } catch (Exception $e) {
+                // Wave 16 D4 — remocao delegada a AssetService.
+                $this->assetService->remover((int) $id, (int) $business_id);
+                $output = ['success' => true, 'msg' => __('lang_v1.success')];
+            } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($e->getMessage()));
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
+                $output = ['success' => false, 'msg' => __('messages.something_went_wrong')];
             }
 
             return $output;

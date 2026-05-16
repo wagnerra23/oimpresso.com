@@ -3,6 +3,7 @@
 namespace Modules\ComunicacaoVisual\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\ComunicacaoVisual\Console\Commands\ComvisHealthCommand;
 use Modules\ComunicacaoVisual\Console\Commands\DemoSeedCommand;
 
 /**
@@ -34,6 +35,7 @@ class ComunicacaoVisualServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 DemoSeedCommand::class,
+                ComvisHealthCommand::class,
             ]);
         }
     }
