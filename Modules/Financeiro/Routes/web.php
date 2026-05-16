@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\BoletoController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
@@ -28,6 +29,19 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('install', [InstallController::class, 'index']);
         Route::get('install/uninstall', [InstallController::class, 'uninstall']);
         Route::get('install/update', [InstallController::class, 'update']);
+    });
+
+// FIN-004 — Atualizar cobranca de assinatura recorrente (HITL pending Wagner aprovou)
+// Cuidado biz=4 prod ROTA LIVRE — Controller log NUNCA imprime valor real / CPF.
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('financeiro')
+    ->name('financeiro.')
+    ->group(function () {
+        Route::get('assinaturas/atualizar', [AssinaturaController::class, 'showAtualizar'])
+            ->name('assinaturas.atualizar.show');
+        Route::patch('assinaturas/{assinatura}', [AssinaturaController::class, 'atualizar'])
+            ->name('assinaturas.atualizar')
+            ->where('assinatura', '[0-9]+');
     });
 
 // Rotas operacionais do módulo

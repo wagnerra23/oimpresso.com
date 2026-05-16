@@ -27,11 +27,30 @@ class OficinaAutoServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'oficina-auto');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->registerCommands();
     }
 
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+    }
+
+    /**
+     * Commands artisan OficinaAuto (CYCLE-06 — cleanup pós-migração cliente legacy PR #555).
+     *
+     * - oficina:cleanup-migrated {biz} [--dry-run] [--detail]
+     * - oficina:sanity-check {biz} [--detail]
+     * - oficina:migration-report {biz} [--detail]
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\OficinaAuto\Console\Commands\OficinaAutoCleanupMigratedClientCommand::class,
+                \Modules\OficinaAuto\Console\Commands\OficinaAutoSanityCheckCommand::class,
+                \Modules\OficinaAuto\Console\Commands\OficinaAutoMigrationReportCommand::class,
+            ]);
+        }
     }
 
     protected function registerConfig(): void

@@ -907,3 +907,69 @@ Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 2 Permiss
 **Disparo:** Auditoria de completude 2026-05-10.
 **Bloqueado por:** US-RB-046 (Inter PJ UI — pra ter onde mostrar gestão de permissões). Pode ser implementada parcialmente (só backend + middleware) antes da UI.
 **Tags:** completeness-gap, from-skill, audit-2026-05-10
+
+### US-RB-050 · Inter PJ — PIX cobrança imediata (CYCLE-06 G1 wiring Martinho)
+
+> owner: wagner · sprint: cycle-06 · priority: p0 · estimate: 4h · status: todo · type: story · origin: cycle-06-martinho-cacambas-2026-05-16
+> blocked_by: US-RB-045 (Banking API OAuth + mTLS já mergeado)
+
+**Contexto.** Pivot Martinho Caçambas — cliente real (CYCLE-06 G1) precisa receber pagamento PIX antes do boleto cair. Reaproveita 100% do `InterBankingClient` (Fase 1 OF direto, ADR-paralela): OAuth client_credentials, mTLS cert+key, retry exponencial, token cache 60min.
+
+Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobrancaService` (Service de domínio, não Driver de adapter) pra alinhar com nomenclatura DDD do módulo (`Modules/RecurringBilling/Services/Inter/`).
+
+**Escopo backend:**
+- `Modules/RecurringBilling/Services/Inter/InterPixCobrancaService.php` registrado como singleton em `RecurringBillingServiceProvider::registerInterPixServices()` (já wired neste PR)
+- Método `criarCobImediata(int $businessId, float $valor, array $devedor, ?string $infoAdicionais, ?int $expiracaoSegundos = 3600): PixCobResult`
+- Endpoint Inter: `PUT /cobranca/v3/cob/{txid}` — txid gerado server-side (UUIDv4 sem hífens, 26 chars conforme spec BCB Pix)
+- Credencial: lê `BoletoCredential` do tenant (gateway=inter) ANTES de cair em `config('services.inter')` (Tier 0 multi-tenant)
+- Retorna `PixCobResult` DTO: `txid`, `qrcode_base64`, `copia_e_cola`, `expiracao_em`, `e2e_id_esperado`
+- Persiste tentativa em `pg_charge_attempts` com `gateway=inter`, `metodo=pix`, `status=aguardando_pagamento`
+
+**Acceptance criteria:**
+- [ ] `InterPixCobrancaService::criarCobImediata` retorna `PixCobResult` válido em sandbox Inter
+- [ ] Pest cobre: criação cob biz=1 sucesso · cred ausente lança `BoletoCredentialMissingException` · cross-tenant biz=99 não usa cred de biz=1 · txid colisão é retried 1x
+- [ ] Pest test biz=1 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) — NUNCA biz=4 (Larissa/ROTA LIVRE)
+- [ ] Singleton registrado em ServiceProvider sem quebrar boot se classe ainda não existe (defensive `class_exists`)
+- [ ] `config/services.php` chave `inter` documentada como fallback dev-only
+- [ ] `.env - Copia.example` lista 7 envs `INTER_*` com placeholders comentados
+
+**Risco.** Médio. Mitigação: token cache + circuit breaker já testados em US-RB-045; txid colisão extremely rara (UUIDv4); fallback de credencial estrito (cred tenant > config > exception).
+
+**Out of scope:** PIX automático recorrente BCB (US futura — JRC), PIX saída (`/banking/v2/pagamento`), QR Code estático.
+
+**Refs:** ADR 0093 Multi-tenant Tier 0 · skill `multi-tenant-patterns` Tier A · `Modules/RecurringBilling/Services/Inter/InterBankingClient.php` (US-RB-045).
+
+### US-RB-051 · Inter PJ — webhook PIX receiver (CYCLE-06 G1 wiring Martinho)
+
+> owner: wagner · sprint: cycle-06 · priority: p0 · estimate: 5h · status: todo · type: story · origin: cycle-06-martinho-cacambas-2026-05-16
+> blocked_by: US-RB-050
+
+**Contexto.** Complemento de US-RB-050 — sem receiver, cobrança imediata fica órfã (Service emite QR mas nunca sabe que cliente pagou). Caminho canônico Inter: webhook `pix.recebido` em endpoint HTTPS público com mTLS + HMAC.
+
+**Escopo backend:**
+- Endpoint público `POST /webhooks/inter/pix/{business_id}` (rota web group, fora do middleware `auth`)
+- Controller `Modules/RecurringBilling/Http/Controllers/InterWebhookController.php::pix()`:
+  1. Validar `business_id` existe (404 se não)
+  2. Validar HMAC SHA-256 do raw body contra `BoletoCredential.config_json.webhook_hmac` (gateway=inter, business_id=path) ANTES de qualquer parse — assinatura inválida → 401 com log `[REDACTED]`
+  3. Idempotência via `pg_webhook_events` (UNIQUE `gateway+event_id`) — `event_id = endToEndId` do payload PIX
+  4. Resposta 200 imediata (Inter exige ≤10s)
+  5. Dispatch `ProcessInterWebhookJob` na fila `rb_webhooks`
+- `ProcessInterWebhookJob`:
+  - Parsa array `pix[]` do payload (Inter envia batch até 1000 PIX)
+  - Pra cada item: localiza `pg_charge_attempts.txid` → atualiza `status=pago` + `paid_at` → dispara `Modules\RecurringBilling\Events\InvoicePaid`
+  - Listener `BaixarTituloOnInvoicePaidListener` (já existe pro Asaas, US-RB-044) baixa título Financeiro + dispara NFe automática via `NfeBrasil`
+
+**Acceptance criteria:**
+- [ ] Endpoint registrado em `Routes/web.php` web group SEM middleware `auth` — apenas `web` + `throttle:60,1` (anti-DDOS)
+- [ ] HMAC mismatch retorna 401 + log estruturado sem payload (apenas hash 8 chars + business_id)
+- [ ] Pest cobre: webhook válido dispara `InvoicePaid` · HMAC inválido 401 · `business_id` 404 · duplicado mesmo endToEndId ignorado · cross-tenant biz=99 não vê event de biz=1
+- [ ] Pest test biz=1 (ADR 0101) — NUNCA biz=4
+- [ ] `InvoicePaid` event reusa pattern Asaas — listener único trata ambos gateways
+- [ ] Idempotência: 2× POST mesmo payload grava 1× em `pg_charge_attempts` e dispara 1× evento
+- [ ] Configurar webhook URL no Inter via API durante onboarding credencial (`PUT /webhooks/pix`)
+
+**Risco.** ALTO porque é endpoint público + dinheiro real. Mitigação Tier 0: HMAC obrigatório · idempotência forte · resposta 200 mesmo se payload órfão (evita Inter ficar reenviando) · log `[REDACTED]` (PII LGPD) · Pest cenários adversariais explícitos.
+
+**Out of scope:** PIX automático JRC, PIX saída, dashboards de webhooks (futuro UI sob `recurringbilling.webhooks.view` perm — US-RB-049).
+
+**Refs:** ADR 0093 Multi-tenant Tier 0 · ADR 0094 §6 · pattern `Modules/RecurringBilling/Http/Controllers/AsaasWebhookController.php` · tabela `pg_webhook_events` (idempotência shared) · US-RB-044 listener NFe automática boleto pago (reusado).

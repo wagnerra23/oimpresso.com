@@ -13,7 +13,7 @@ import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react'
+import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap } from 'lucide-react'
 import FabJana from './components/FabJana'
 
 interface Apuracao {
@@ -175,34 +175,138 @@ function MetaCard({ meta }: { meta: Meta }) {
   )
 }
 
+function JanaKpiStrip() {
+  // Placeholders — Brain B vai preencher via Inertia::defer no futuro
+  // Mocks intencionais pra demo CYCLE-06 G3 (não consultam DB)
+  const kpis = [
+    {
+      icon: Brain,
+      label: 'Memória ativa',
+      value: '—',
+      hint: 'facts indexados',
+      tone: 'text-violet-500',
+    },
+    {
+      icon: Clock,
+      label: 'Última conversa',
+      value: '—',
+      hint: 'aguardando contexto',
+      tone: 'text-sky-500',
+    },
+    {
+      icon: Zap,
+      label: 'Brain B hoje',
+      value: '0/50',
+      hint: 'orçamento diário',
+      tone: 'text-amber-500',
+    },
+  ]
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      {kpis.map(({ icon: Icon, label, value, hint, tone }) => (
+        <Card key={label} className="border-muted/60">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className={`rounded-full bg-muted/40 p-2 ${tone}`}>
+              <Icon className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+              <div className="text-lg font-semibold tabular-nums">{value}</div>
+              <div className="text-[11px] text-muted-foreground">{hint}</div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function ProximaAcaoCard() {
+  // Mock pra demo — Brain B vai preencher próxima ação sugerida
+  return (
+    <Card className="border-violet-500/20 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-violet-500" />
+          <CardTitle className="text-sm font-medium text-violet-700 dark:text-violet-300">
+            Próxima ação sugerida
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-1">
+        <p className="text-sm text-muted-foreground">
+          Quando houver sinal claro nas metas, a Jana vai sugerir aqui o próximo passo prático — sem você precisar perguntar.
+        </p>
+        <div className="mt-3">
+          <Link href="/jana">
+            <Button size="sm" variant="outline" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Conversar agora
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function Dashboard({ metas }: Props) {
   return (
     <>
       <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Dashboard de Metas</h1>
-            <p className="text-sm text-muted-foreground">
-              {metas.length} {metas.length === 1 ? 'meta ativa' : 'metas ativas'}
-            </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge
+                className="border-0 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white shadow-sm"
+                aria-label="Versão Jana V2"
+              >
+                <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
+                JANA V2
+              </Badge>
+              <span className="text-xs text-muted-foreground">Copiloto operacional</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Dashboard de Metas</h1>
+              <p className="text-sm text-muted-foreground">
+                {metas.length} {metas.length === 1 ? 'meta ativa' : 'metas ativas'} — visão consolidada do business
+              </p>
+            </div>
           </div>
 
           <Link href="/jana">
             <Button className="gap-2">
               <MessageSquare className="h-4 w-4" />
-              Conversar com Copiloto
+              Conversar com a Jana
             </Button>
           </Link>
         </div>
 
+        <JanaKpiStrip />
+
+        <ProximaAcaoCard />
+
         {metas.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <MessageSquare className="h-12 w-12 text-muted-foreground/50" />
-            <p className="text-muted-foreground">Nenhuma meta ativa. Converse com o Copiloto para criar a primeira.</p>
-            <Link href="/jana">
-              <Button>Iniciar conversa</Button>
-            </Link>
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+              <div className="rounded-full bg-violet-500/10 p-4">
+                <Sparkles className="h-10 w-10 text-violet-500" aria-hidden="true" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-base font-medium">Nada por aqui ainda</p>
+                <p className="max-w-sm text-sm text-muted-foreground">
+                  Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
+                </p>
+              </div>
+              <Link href="/jana">
+                <Button className="gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Pergunte algo a Jana
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {metas.map(meta => (
