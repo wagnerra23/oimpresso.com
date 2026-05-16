@@ -1,3 +1,17 @@
+---
+slug: modules-essentials-spec
+title: "Modules/Essentials — SPEC"
+type: spec
+module: Essentials
+status: stub
+authority: canonical
+related_adrs: [0093, 0094, 0153, 0154, 0156]
+na_justified:
+  D5: "Utilitários backend compartilhados HRM/legado UltimatePOS — sem cliente direto Larissa/biz=4. Módulo transversal cross-business (helpers, traits, mailables compartilhados) seguindo proibições Tier 0 [memory/proibicoes.md](../../proibicoes.md) §Multi-tenant + Constituição v2 [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)."
+pii: false
+updated_at: 2026-05-16
+---
+
 # Especificação funcional
 
 ## 3. User stories
