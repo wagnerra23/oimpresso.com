@@ -29,6 +29,7 @@ F1.5 CRITIQUE  [CD]  score ≥80 ok / 70-79 1 round refator / <70 discussão
 F2 SCREENSHOT  [W2]  aprovação visual síncrona (não tabela)
                      ↓
 F3 CODE        [CL]  refator/criação Inertia em <Tela>.tsx + .charter.md
+                     (detalhe cirúrgico: ver PROTOCOL-F3-COWORK-CODE.md — 7 sub-fases + agente cowork-to-inertia)
                      ↓
 F3.5 A11Y      [CA]  accessibility-review WCAG 2.1 AA
                      ↓
