@@ -85,6 +85,12 @@ class BoardController extends Controller
         $cycleFocoId     = $cycleFoco?->id;
         $statusVisiveis  = array_merge($colunas, ['blocked']);
 
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
+        // kanban+kpis compartilham mesma query — evita dobrar chamada extraindo pra var local.
+        $kanbanPayload = $this->buildKanbanPayload(
+            $projectId, $cycleFocoId, $epicId, $componente, $owner, $colunas, $statusVisiveis
+        );
+
         return Inertia::render('ProjectMgmt/Board/Index', [
             'project' => $project ? [
                 'id'   => $project->id,
@@ -92,16 +98,12 @@ class BoardController extends Controller
                 'name' => $project->name,
             ] : null,
             'cycle'   => $cycleHeader,
-            'kanban'  => Inertia::defer(fn () => $this->buildKanbanPayload(
-                $projectId, $cycleFocoId, $epicId, $componente, $owner, $colunas, $statusVisiveis
-            )['kanban']),
-            'kpis'    => Inertia::defer(fn () => $this->buildKanbanPayload(
-                $projectId, $cycleFocoId, $epicId, $componente, $owner, $colunas, $statusVisiveis
-            )['kpis']),
+            'kanban'  => $kanbanPayload['kanban'],
+            'kpis'    => $kanbanPayload['kpis'],
             'columns' => $colunas,
-            'epics'   => Inertia::defer(fn () => $this->buildEpicsPayload($projectId)),
-            'cycles'  => Inertia::defer(fn () => $this->buildCyclesPayload($projectId)),
-            'owners'  => Inertia::defer(fn () => $this->buildOwnersPayload($projectId)),
+            'epics'   => $this->buildEpicsPayload($projectId),
+            'cycles'  => $this->buildCyclesPayload($projectId),
+            'owners'  => $this->buildOwnersPayload($projectId),
             'filters' => [
                 'project'   => $projectKey,
                 'cycle'     => $cycleFocoId,

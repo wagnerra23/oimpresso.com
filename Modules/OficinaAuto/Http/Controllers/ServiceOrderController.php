@@ -170,16 +170,15 @@ class ServiceOrderController extends Controller
         }
         $base->orderByDesc('id');
 
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('OficinaAuto/ServiceOrders/Index', [
-            // orders: paginate com with-eager + orderByRaw + filtros → defer (query cara)
-            'orders'  => Inertia::defer(fn () => $base->paginate(25)->withQueryString()),
+            'orders'  => $base->paginate(25)->withQueryString(),
             'filters' => [
                 'status' => $statusFilter,
                 'type'   => $typeFilter,
                 'q'      => $q,
             ],
-            // KPIs: 4 COUNT queries separadas → defer (não bloqueia first paint)
-            'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate)),
+            'kpis' => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate),
             // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager
             'schemaFlags' => [
                 'has_order_type'      => $hasOrderType,

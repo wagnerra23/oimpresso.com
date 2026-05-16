@@ -85,21 +85,15 @@ class ChatController extends Controller
 
     protected function renderChat(Conversa $conversa, $businessId, $userId)
     {
-        // D-14 perf 2026-05-15 — props caras (lista de conversas + mensagens +
-        // sugestões pendentes) movidas pra Inertia::defer (skip quando partial
-        // reload `only:[...]` não pede). Pattern oimpresso ADR + skill
-        // `inertia-defer-default`. Frontend (Chat.tsx) wrap em <Deferred>.
-        //
-        // Eager (cheap): conversa atual (já carregada via findOrFail) + shell
-        // props (Business::query() limit 50, user lookup). Permanece síncrono.
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         $shellProps = $this->shellPropsForDeferred($businessId, $conversa, $userId);
 
         return Inertia::render('Jana/Chat', array_merge(
             $shellProps,
             [
                 'conversa'           => $conversa,
-                'mensagens'          => Inertia::defer(fn () => $this->buildMensagensPayload($conversa)),
-                'sugestoesPendentes' => Inertia::defer(fn () => $this->buildSugestoesPendentesPayload($conversa)),
+                'mensagens'          => $this->buildMensagensPayload($conversa),
+                'sugestoesPendentes' => $this->buildSugestoesPendentesPayload($conversa),
             ]
         ));
     }
@@ -168,8 +162,8 @@ class ChatController extends Controller
             'usuarioEmail'     => $user->email ?? '',
             'usuarioCargo'     => $cargo,
             'usuarioIniciais'  => $this->iniciais($userNome),
-            // Lista conversas (sidebar) — defer (pode ser dezenas/centenas).
-            'conversas'        => Inertia::defer(fn () => $this->buildConversasListPayload($businessId, $userId, $conversaFoco)),
+            // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
+            'conversas'        => $this->buildConversasListPayload($businessId, $userId, $conversaFoco),
         ];
     }
 

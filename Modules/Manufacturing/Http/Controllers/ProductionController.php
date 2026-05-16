@@ -892,9 +892,9 @@ class ProductionController extends Controller
             'is_final' => request()->has('is_final'),
         ];
 
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Manufacturing/Index', [
-            // productions: listProductions multi-join via Service → defer (Service-DB call)
-            'productions' => Inertia::defer(fn () => $productionService
+            'productions' => $productionService
                 ->listProductions($business_id, $filters)
                 ->map(function ($p) {
                     return [
@@ -905,9 +905,8 @@ class ProductionController extends Controller
                         'final_total' => (float) $p->final_total,
                         'mfg_is_final' => (int) $p->mfg_is_final,
                     ];
-                })->values()),
-            // summary: aggregated COUNT/SUM via Service → defer
-            'summary' => Inertia::defer(fn () => $productionService->summary($business_id)),
+                })->values(),
+            'summary' => $productionService->summary($business_id),
         ]);
     }
 
