@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Financeiro\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -54,6 +55,30 @@ class FluxoCaixaService
      * }
      */
     public function projetar(int $businessId, int $dias = 35): array
+    {
+        return OtelHelper::spanBiz('financeiro.fluxo_caixa.projetar', function () use ($businessId, $dias): array {
+            return $this->projetarInternal($businessId, $dias);
+        }, [
+            'business_id' => $businessId,
+            'dias' => $dias,
+        ]);
+    }
+
+    /**
+     * @return array{
+     *   saldo_hoje: float,
+     *   saldo_30d: float,
+     *   pior_dia: array{saldo: float, data_label: string},
+     *   margem_minima: float,
+     *   conta: string,
+     *   dias: array<int, array{
+     *     data: string, data_label: string, is_today: bool, is_past: bool,
+     *     entradas: float, saidas: float, liquido: float, saldo_acumulado: float,
+     *     eventos: array<int, array{id: int, kind: string, descricao: string, contraparte: string, categoria: string, valor: float}>
+     *   }>
+     * }
+     */
+    private function projetarInternal(int $businessId, int $dias): array
     {
         $hoje = CarbonImmutable::today();
         $inicioHistorico = $hoje->subDays(self::HISTORICO_DIAS);

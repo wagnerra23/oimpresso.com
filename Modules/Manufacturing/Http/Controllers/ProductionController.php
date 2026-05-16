@@ -17,6 +17,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
+use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
 use Yajra\DataTables\Facades\DataTables;
@@ -172,10 +173,13 @@ class ProductionController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  Request  $request
+     * D8.c Security — Wave S: type-hint StoreProductionRequest (FormRequest).
+     * Authorize/rules movidos pra Modules\Manufacturing\Http\Requests\StoreProductionRequest.
+     * Permission check legacy mantido como defense-in-depth.
+     *
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreProductionRequest $request)
     {
         $business_id = $request->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
@@ -183,11 +187,7 @@ class ProductionController extends Controller
         }
 
         try {
-            $request->validate([
-                'transaction_date' => 'required',
-                'location_id' => 'required',
-                'final_total' => 'required',
-            ]);
+            // Rules originais já validadas pelo FormRequest — bloco removido. Preservado payload original.
 
             //Create Production purchase
             $manufacturing_settings = $this->mfgUtil->getSettings($business_id);

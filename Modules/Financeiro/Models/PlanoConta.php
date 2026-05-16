@@ -8,10 +8,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class PlanoConta extends Model
 {
-    use HasFactory, SoftDeletes, BusinessScope;
+    use HasFactory, SoftDeletes, BusinessScope, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['nome', 'codigo', 'tipo', 'aceita_lancamento'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('financeiro.plano_conta');
+    }
 
     protected $table = 'fin_planos_conta';
 

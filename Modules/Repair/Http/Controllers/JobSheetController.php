@@ -22,6 +22,8 @@ use Inertia\Inertia;
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
+use Modules\Repair\Http\Requests\StoreJobSheetRequest;
+use Modules\Repair\Http\Requests\UpdateJobSheetRequest;
 use Modules\Repair\Utils\RepairUtil;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
@@ -397,10 +399,13 @@ class JobSheetController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  Request  $request
+     * D8.c Security — Wave S: type-hint StoreJobSheetRequest (FormRequest).
+     * Authorize/rules movidos pra Modules\Repair\Http\Requests\StoreJobSheetRequest.
+     * Permission check legacy mantido como defense-in-depth.
+     *
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreJobSheetRequest $request)
     {
         $business_id = request()->session()->get('user.business_id');
 
@@ -765,8 +770,10 @@ class JobSheetController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateJobSheetRequest $request, $id)
     {
+        // D8.c Security — Wave S: type-hint UpdateJobSheetRequest (FormRequest).
+        // Authorize/rules movidos pra Modules\Repair\Http\Requests\UpdateJobSheetRequest.
         $business_id = request()->session()->get('user.business_id');
 
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'repair_module') && auth()->user()->can('job_sheet.edit')))) {

@@ -11,6 +11,7 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\User;
+use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Jana\Scopes\ScopeByBusiness;
@@ -32,6 +33,21 @@ class ExecuteStageActionService
      * @param  array<string, mixed>  $payload
      */
     public function execute(Model $subject, string $actionKey, ?User $user = null, array $payload = []): SaleStageHistory
+    {
+        return OtelHelper::spanBiz('fsm.execute_action', function () use ($subject, $actionKey, $user, $payload): SaleStageHistory {
+            return $this->executeInternal($subject, $actionKey, $user, $payload);
+        }, [
+            'action_key' => $actionKey,
+            'subject_type' => get_class($subject),
+            'subject_id' => $subject->getKey(),
+            'business_id' => $subject->business_id ?? null,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function executeInternal(Model $subject, string $actionKey, ?User $user, array $payload): SaleStageHistory
     {
         $user ??= auth()->user();
         $currentStageId = $subject->current_stage_id ?? null;
