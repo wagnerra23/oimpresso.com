@@ -9,6 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use App\Util\OtelHelper;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
@@ -66,6 +68,21 @@ class ProcessIncomingWebhookJob implements ShouldQueue
 
     public function handle(): void
     {
+        OtelHelper::span('whatsapp.webhook.process_incoming', [
+            'business_id' => $this->businessId,
+            'provider' => $this->provider,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+        ], fn () => $this->doHandle());
+    }
+
+    private function doHandle(): void
+    {
+        Log::info('whatsapp.webhook.process_incoming.started', [
+            'business_id' => $this->businessId,
+            'provider' => $this->provider,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+        ]);
+
         // Resolve phone se fornecido (defensive Tier 0); senão fallback config legacy
         $phone = null;
         if ($this->whatsappBusinessPhoneId !== null) {

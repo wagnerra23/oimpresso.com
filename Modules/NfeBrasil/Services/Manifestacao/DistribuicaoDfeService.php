@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services\Manifestacao;
 
+use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -39,9 +40,25 @@ class DistribuicaoDfeService
     /**
      * Puxa lote de DFes recebidos pelo business.
      *
+     * D9.a OTel wrap — sefazDistDFe é hot-path HTTP nacional SEFAZ (timeout 30s
+     * comum). Atributos incluem `last_nsu` inicial pra correlacionar cursor.
+     *
      * @return array{processados: int, last_nsu: int, skipped_throttle?: bool}
      */
     public function puxarLote(int $businessId, int $loopLimit = self::LOOP_LIMIT_DEFAULT): array
+    {
+        return OtelHelper::spanBiz('nfe.distribuicao_dfe', function () use ($businessId, $loopLimit): array {
+            return $this->puxarLoteInterno($businessId, $loopLimit);
+        }, [
+            'module'     => 'NfeBrasil',
+            'loop_limit' => $loopLimit,
+        ]);
+    }
+
+    /**
+     * @internal Corpo real de puxarLote() — separado para wrap OTel.
+     */
+    private function puxarLoteInterno(int $businessId, int $loopLimit): array
     {
         $state = $this->getOrCreateState($businessId);
 

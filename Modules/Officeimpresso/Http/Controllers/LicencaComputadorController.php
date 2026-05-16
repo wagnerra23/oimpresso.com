@@ -7,91 +7,74 @@ use App\Http\Controllers\Controller;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 use Modules\Officeimpresso\Http\Requests\StoreLicencaRequest;
 use Modules\Officeimpresso\Http\Requests\RevokeLicencaRequest;
+use Modules\Officeimpresso\Services\LicencaService;
 use App\Business;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\Package;
 
-
+/**
+ * Wave 16 governance D4 Architecture: Controller magro, regras de negocio
+ * delegadas a LicencaService (Service injetado via DI no constructor).
+ */
 class LicencaComputadorController extends Controller
 {
+    public function __construct(private LicencaService $licencaService)
+    {
+    }
+
     /**
      * Display a listing of all resources.
-     * @return Response
      */
     public function index()
     {
-        // Obter o business_id da sessão do usuário logado
         $business_id = request()->session()->get('user.business_id');
+        $licencas = $this->licencaService->listarPorEmpresa($business_id);
 
-        // Filtrar as licenças que pertencem ao business_id do usuário
-        $licencas = Licenca_Computador::where('business_id', $business_id)->get();
-
-        // Retornar a view com as licenças
         return view('officeimpresso::licenca_computador.index', compact('licencas'));
-
     }
-    
+
     /**
-     * Display a listing of all resources.
-     * @return Response
+     * View "computadores" — pagina principal do cliente.
      */
     public function computadores()
     {
-        // Obter o business_id da sessão do usuário logado
         $business_id = request()->session()->get('user.business_id');
 
-        //Get active subscription and upcoming subscriptions.
         $active = Subscription::active_subscription($business_id);
-
         $package = $active ? Package::find($active->package_id) : null;
 
-        // Filtrar as licenças que pertencem ao business_id do usuário
-        $licencas = Licenca_Computador::where('business_id', $business_id)->get();
+        $licencas = $this->licencaService->listarPorEmpresa($business_id);
+        $empresa = Business::where('id', $business_id)->first();
 
-        $empresa = business::where('id', $business_id)->first();
-
-        // Retornar a view com as licenças
-        return view('officeimpresso::licenca_computador.computadores', compact('licencas', 'empresa','active','package'));
-
+        return view('officeimpresso::licenca_computador.computadores', compact('licencas', 'empresa', 'active', 'package'));
     }
 
     /**
-     * Display a listing of all resources.
-     * @return Response
+     * View superadmin: lista licencas de uma empresa qualquer.
      */
     public function viewLicencas($id)
     {
-
-        //Get active subscription and upcoming subscriptions.
         $active = Subscription::active_subscription($id);
-
         $package = $active ? Package::find($active->package_id) : null;
 
-        // Filtrar as licenças que pertencem ao business_id do usuário
-        $licencas = Licenca_Computador::where('business_id', $id)->get();
+        $licencas = $this->licencaService->listarPorEmpresa($id);
+        $empresa = Business::where('id', $id)->first();
 
-        $empresa = business::where('id', $id)->first();
-
-        // Retornar a view com as licenças
-        return view('officeimpresso::licenca_computador.computadores', compact('licencas', 'empresa','active','package'));
-
+        return view('officeimpresso::licenca_computador.computadores', compact('licencas', 'empresa', 'active', 'package'));
     }
 
     /**
-     * Display a listing of all resources.
-     * @return Response
+     * View superadmin: todas empresas com officeimpresso ativo.
      */
     public function businessall()
     {
-        // Obter todas as licenças
-        $business = business::where('is_officeimpresso', true)->get();  // aqui tem que criar esse campo
+        $business = $this->licencaService->listarEmpresasComDesktop();
 
-        // Retornar a view com todas as licenças
         return view('officeimpresso::licenca_computador.businessall', compact('business'));
     }
 
     /**
-     * Show the form for creating a new license.
+     * Form criar.
      */
     public function create()
     {
@@ -99,49 +82,34 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Show the form for editing a license.
+     * Form editar (scopado a business_id da sessao).
      */
     public function edit($id)
     {
         $business_id = request()->session()->get('user.business_id');
-        $licenca = Licenca_Computador::where('business_id', $business_id)->findOrFail($id);
+        $licenca = $this->licencaService->buscarParaEdit((int) $id, (int) $business_id);
+
         return view('officeimpresso::licenca_computador.create', compact('licenca'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreLicencaRequest $request)
     {
-        // Validação delegada ao StoreLicencaRequest (D8.c Security)
-        $validated = $request->validated();
-
-        // Criação de um novo registro
-        $computador = Licenca_Computador::create($validated);
+        $computador = $this->licencaService->criar($request->validated());
 
         return response()->json($computador, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $computador = Licenca_Computador::find($id);
-
-        if (!$computador) {
+        if (! $computador) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
         }
-
         return response()->json($computador, 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-        // Validação dos dados recebidos
         $validated = $request->validate([
             'licenca_id' => 'required|exists:licenca,id',
             'hd' => 'required|unique:licenca_computador,hd,' . $id,
@@ -151,46 +119,26 @@ class LicencaComputadorController extends Controller
             'bloqueado' => 'boolean',
         ]);
 
-        // Encontrar o computador pelo ID
-        $computador = Licenca_Computador::find($id);
-
-        if (!$computador) {
+        $computador = $this->licencaService->atualizar((int) $id, $validated);
+        if (! $computador) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
         }
-
-        // Atualizar os dados do computador
-        $computador->update($validated);
-
         return response()->json($computador, 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        $computador = Licenca_Computador::find($id);
-
-        if (!$computador) {
+        $ok = $this->licencaService->remover((int) $id);
+        if (! $ok) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
         }
-
-        $computador->delete();
-
         return response()->json(['message' => 'Computador deletado com sucesso'], 200);
     }
 
     public function toggleBlock(RevokeLicencaRequest $request, $id)
     {
         try {
-            // Encontra o computador pelo ID
-            $licenca = Licenca_Computador::findOrFail($id);
-
-            // Alterna o status de bloqueio (revoke/restore)
-            $licenca->bloqueado = !$licenca->bloqueado;
-            $licenca->save();
-
-            // Retorna uma mensagem de sucesso
+            $this->licencaService->alternarBloqueio((int) $id);
             return redirect()->back()->with('status', 'Status de bloqueio alterado com sucesso.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Erro ao alterar o status de bloqueio.');
@@ -200,22 +148,17 @@ class LicencaComputadorController extends Controller
     public function businessupdate(Request $request, $id)
     {
         try {
-            // Valida os dados enviados
             $request->validate([
                 'caminho_banco' => 'nullable|string|max:255',
                 'versao_obrigatoria' => 'nullable|string|max:50',
                 'versao_disponivel' => 'nullable|string|max:50',
             ]);
-        
-            // Busca a empresa pelo ID e atualiza os dados
-            $empresa = Business::findOrFail($id);
-            $empresa->caminho_banco_servidor = $request->caminho_banco_servidor;
-            $empresa->versao_obrigatoria = $request->versao_obrigatoria;
-            $empresa->versao_disponivel = $request->versao_disponivel;
-            $empresa->officeimpresso_numerodemaquinas = $request->officeimpresso_numerodemaquinas;            
-            $empresa->save();
-        
-            // Retorna para a página com uma mensagem de sucesso
+
+            $this->licencaService->atualizarEmpresa((int) $id, $request->only([
+                'caminho_banco_servidor', 'versao_obrigatoria', 'versao_disponivel',
+                'officeimpresso_numerodemaquinas',
+            ]));
+
             return redirect()->back()->with('status', 'Dados da empresa atualizados com sucesso!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Erro ao alterar os dados da empresa.');
@@ -224,17 +167,11 @@ class LicencaComputadorController extends Controller
 
     public function businessbloqueado($id)
     {
-        try {  
-            // Busca a empresa pelo ID e atualiza os dados
-            $empresa = Business::findOrFail($id);
-            $empresa->officeimpresso_bloqueado = !$empresa->officeimpresso_bloqueado;
-            $empresa->save();
-        
-            // Retorna para a página com uma mensagem de sucesso
+        try {
+            $this->licencaService->alternarBloqueioEmpresa((int) $id);
             return redirect()->back()->with('status', 'Status de bloqueio alterado com sucesso!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Erro ao alterar o status de bloqueio.');
         }
-    } 
-    
+    }
 }

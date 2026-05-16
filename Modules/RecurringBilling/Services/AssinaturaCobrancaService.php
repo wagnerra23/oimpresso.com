@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Modules\RecurringBilling\Events\AssinaturaAtualizada;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Models\Invoice;
@@ -44,6 +46,21 @@ class AssinaturaCobrancaService
         int $businessId,
         int $invoiceId,
         string $motivo = 'ACERTOS',
+    ): array {
+        return OtelHelper::spanBiz('rb.invoice.cancel', function () use ($businessId, $invoiceId, $motivo) {
+            return $this->cancelInvoiceInternal($businessId, $invoiceId, $motivo);
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'invoice.cancel',
+            'business_id' => $businessId,
+            'invoice_id'  => $invoiceId,
+        ]);
+    }
+
+    private function cancelInvoiceInternal(
+        int $businessId,
+        int $invoiceId,
+        string $motivo,
     ): array {
         $invoice = Invoice::where('business_id', $businessId)
             ->whereKey($invoiceId)
@@ -141,6 +158,24 @@ class AssinaturaCobrancaService
      * Logger: ZERO valor real, ZERO CPF — apenas IDs e flags.
      */
     public function atualizarCobrancaAssinatura(
+        int $businessId,
+        int $assinaturaId,
+        array $payload,
+    ): array {
+        return OtelHelper::spanBiz('rb.subscription.update', function () use ($businessId, $assinaturaId, $payload) {
+            return $this->atualizarCobrancaAssinaturaInternal($businessId, $assinaturaId, $payload);
+        }, [
+            'module'        => 'RecurringBilling',
+            'op'            => 'subscription.update',
+            'business_id'   => $businessId,
+            'assinatura_id' => $assinaturaId,
+            'mudou_valor'   => isset($payload['valor']),
+            'mudou_ciclo'   => isset($payload['ciclo']),
+            'mudou_forma'   => isset($payload['forma_pagamento']),
+        ]);
+    }
+
+    private function atualizarCobrancaAssinaturaInternal(
         int $businessId,
         int $assinaturaId,
         array $payload,
@@ -268,6 +303,18 @@ class AssinaturaCobrancaService
             mudouForma: $mudouForma,
             gatewayCall: $gatewayCall,
         ));
+
+        // D9.b log estruturado update assinatura — útil pra US-RB-044
+        // (NFe-de-boleto pago emite quando subscription muda valor/ciclo).
+        Log::info('rb.subscription.atualizada', [
+            'business_id'    => $businessId,
+            'subscription_id' => $subscription->id,
+            'mudou_valor'    => $mudouValor,
+            'mudou_ciclo'    => $mudouCiclo,
+            'mudou_forma'    => $mudouForma,
+            'gateway_call'   => $gatewayCall,
+            'gateway_warning' => $gatewayError,
+        ]);
 
         return array_filter([
             'ok' => true,

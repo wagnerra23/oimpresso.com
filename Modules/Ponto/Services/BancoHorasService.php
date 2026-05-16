@@ -104,11 +104,28 @@ class BancoHorasService
      */
     public function expirarSaldosAntigos()
     {
+        // D9.a Wave 16 OTel — fechamento mensal banco horas (cron). Cross-tenant
+        // (sem business_id no span outer, individual por colaborador no movimentar).
+        // Hot-path noturno. Log estruturado no final reporta total expirado.
+        return OtelHelper::span('ponto.banco_horas.expirar_saldos', [
+            'module' => 'Ponto',
+            'prazo_meses' => (int) config('pontowr2.banco_horas.prazo_compensacao_meses', 6),
+        ], function () {
+            return $this->expirarSaldosAntigosInterno();
+        });
+    }
+
+    /**
+     * @internal Corpo real de expirarSaldosAntigos() — wrap OTel D9.a Wave 16.
+     */
+    private function expirarSaldosAntigosInterno()
+    {
         $prazoMeses = (int) config('pontowr2.banco_horas.prazo_compensacao_meses', 6);
         $corte = now()->subMonths($prazoMeses)->startOfDay();
         $marcadorCorte = 'FIFO-' . $corte->format('Ymd');
 
         $totalExpirado = 0;
+        $colaboradoresAfetados = 0;
 
         // Iterar colaboradores com saldo positivo
         BancoHorasSaldo::where('saldo_minutos', '>', 0)
@@ -169,7 +186,18 @@ class BancoHorasService
                 );
 
                 $totalExpirado += $residual;
+                $colaboradoresAfetados++;
             });
+
+        // D9.b Wave 16 — log estruturado fim do fechamento mensal (cron).
+        // Tier 0: corte+marcador são metadados sem PII; números agregados.
+        \Illuminate\Support\Facades\Log::info('ponto.banco_horas.expirar_saldos.concluido', [
+            'prazo_meses'              => $prazoMeses,
+            'corte'                    => $corte->toDateString(),
+            'marcador'                 => $marcadorCorte,
+            'colaboradores_afetados'   => $colaboradoresAfetados,
+            'total_minutos_expirados'  => $totalExpirado,
+        ]);
 
         return $totalExpirado;
     }

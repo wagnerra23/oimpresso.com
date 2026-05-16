@@ -4,6 +4,7 @@ namespace Modules\Connector\Http\Controllers\Api;
 
 use App\Business;
 use App\Http\Controllers\Controller;
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +41,27 @@ class OImpressoRegistroController extends Controller
 {
     public function registrar(Request $request)
     {
+        // D9.a OTel — wrap registro Delphi pra rastreio (Wave 16 governance v3).
+        return OtelHelper::spanBiz('connector.delphi.oimpresso.registrar', function () use ($request) {
+            return $this->doRegistrar($request);
+        }, [
+            'connector.endpoint' => 'oimpresso/registrar',
+            'connector.content_type' => $request->header('Content-Type') ?? 'unknown',
+        ]);
+    }
+
+    private function doRegistrar(Request $request)
+    {
         $payload = $this->extractPayload($request);
+
+        // D9.b log estruturado contexto biz — payload de registro Delphi.
+        Log::channel('stack')->info('connector.delphi.registrar.request', [
+            'biz' => session('business.id'),
+            'endpoint' => '/connector/api/oimpresso/registrar',
+            'cnpj_hash' => $payload['cnpj'] ?? null ? substr(hash('sha256', (string) $payload['cnpj']), 0, 8) : null,
+            'has_serial_hd' => ! empty($payload['serial_hd']),
+            'remote_ip' => $request->ip(),
+        ]);
 
         if (! ($payload['cnpj'] ?? null) || ! ($payload['serial_hd'] ?? null)) {
             return response()->json([
