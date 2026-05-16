@@ -5,6 +5,7 @@ contains:
   # Chat IA core
   - "ChatController — UI chat principal"
   - "DashboardController — resumo executivo"
+  - "PainelController — Cockpit Analista IA (Jana V2) — visual canon chat-jana.jsx · US-JANA-PAINEL-001 ondas A1-D"
   - "Services/Memoria/* — recall hybrid (Hyde, Reranker, Meilisearch)"
   - "Entities/jana_memoria_* — memória persistente do business (rename ADR 0092)"
   # Custos / Qualidade
