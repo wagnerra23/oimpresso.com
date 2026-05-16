@@ -1,7 +1,20 @@
+---
+module: Accounting
+status: legacy UltimatePOS contábil (núcleo comum — 70 entities + 12 controllers)
+piloto: N/A (cross-business interno consumido por Vestuario/Financeiro/NfeBrasil/RecurringBilling)
+last_review: 2026-05-16
+owner: wagner
+parent_adr: 0011
+related_adrs: [0011, 0093, 0101, 0121, 0153, 0155, 0156]
+nota_atual_v2: "~50/100 (injusto — D5 + D6.a Blade zero Inertia penalizados)"
+nota_esperada_v3: "~70-80/100 pós-PR4 na_justified D5+D6.a declarados"
+na_justified: [D5, "D6.a"]
+---
+
 # Accounting — BRIEFING
 
 > 1-pager estado consolidado do módulo. Mantido por PR (skill `brief-update` Tier B).
-> Última atualização: 2026-05-16 — Wave J Boost (51→meta 65)
+> Última atualização: 2026-05-16 — Wave J Boost (51→meta 65) + Wave 5 re-try `na_justified` D5+D6.a
 
 ## O que é
 
@@ -24,6 +37,17 @@ Módulo contábil **CORE UltimatePOS herdado** — núcleo de **70 entities** vi
 | **Exports** | PDF + Excel 2007/xls/csv via Maatwebsite |
 | **Audit log** | `activity()->log(...)` Spatie — 100% Create/Reverse JournalEntry |
 | **Multi-tenant** | Filtro via JOIN `business_locations.business_id` (D1 5/30 — **GAP**: sem `BusinessScope` global em Entities) |
+
+## Score module-grade (v3 pós-PR4)
+
+| Versão | Score | Observação |
+|---|---|---|
+| v2 (pré-PR4) | ~50/100 | Penalizava D5 (cliente externo) + D6.a (zero Inertia — UI 100% Blade legacy) |
+| **v3 (pós-PR4)** | **~70-80/100** (esperado) | `na_justified` D5+D6.a declarados no SPEC → rubrica v3 redistribui pesos (ADR 0156) |
+
+**`na_justified` declarado no SPEC:**
+- **D5 (cliente externo):** núcleo contábil cross-business consumido pelos verticais via JournalEntry automático — Larissa biz=4 consome transparentemente sem UI direta. Sem cliente externo único piloto.
+- **D6.a (Inertia::defer):** UI 100% Blade legacy UltimatePOS (12 Controllers chamam `view(...)`, zero `Inertia::render`). Migração Blade→Inertia não planejada (módulo candidato a `lifecycle: historical` se Vestuario/Financeiro encapsular relatórios próprios).
 
 ## Gaps catalogados (Wave J — meta 65)
 
@@ -51,5 +75,6 @@ Módulo contábil **CORE UltimatePOS herdado** — núcleo de **70 entities** vi
 
 - [SPEC.md](./SPEC.md) · [SCOPE.md](../../../Modules/Accounting/SCOPE.md)
 - ADR 0093 (multi-tenant Tier 0) · ADR 0101 (tests biz=1) · ADR 0121 (modular vertical)
+- ADR 0155 (Rubrica v3 `na_justified`) · ADR 0156 (Pesos redistribuídos v3)
 - Entities (70): `Modules/Accounting/Entities/*.php`
 - Controllers (12): `Modules/Accounting/Http/Controllers/*.php`
