@@ -141,7 +141,27 @@ export const LS = {
   TW_HUE: 'oimpresso.cockpit.tweaks.accentHue',
   TW_OPEN: 'oimpresso.cockpit.tweaks.open',
   SUPER_EXPANDED: 'oimpresso.cockpit.superadmin.expanded',
+  SB_MODE: 'oimpresso.sb.mode',
 } as const;
+
+export type SidebarMode = 'expanded' | 'rail';
+
+// Hue OKLCH por grupo (espelha GROUP_META do prototipo Cowork
+// _cowork-export-2026-05-15/data.jsx). Aplicado via CSS var --gh nos
+// elementos sb-group (dot + label) e sb-rail-group (tooltip + ícone).
+export const SIDEBAR_GROUP_HUE: Record<string, number> = {
+  office: 60,
+  oficina: 350,
+  fin: 145,
+  estoque: 30,
+  fiscal: 200,
+  rh: 295,
+  conhecimento: 80,
+  rel: 240,
+  ia: 220,
+  governanca: 270,
+  plataforma: 200,
+};
 
 // ── helpers ─────────────────────────────────────────────────────────────
 

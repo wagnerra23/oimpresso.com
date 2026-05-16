@@ -115,7 +115,13 @@
   text-rendering: optimizeLegibility;
 }
 .cockpit[data-linked="off"] { grid-template-columns: 260px 1fr 0; }
-@media (max-width: 1280px) { .cockpit { grid-template-columns: 260px 1fr 0; } }.cockpit .main {
+/* Sidebar rail (56px) — Wagner 2026-05-16, espelha prototipo Cowork. */
+.cockpit[data-sidebar="rail"] { grid-template-columns: 56px 1fr 320px; }
+.cockpit[data-sidebar="rail"][data-linked="off"] { grid-template-columns: 56px 1fr 0; }
+@media (max-width: 1280px) {
+  .cockpit { grid-template-columns: 260px 1fr 0; }
+  .cockpit[data-sidebar="rail"] { grid-template-columns: 56px 1fr 0; }
+}.cockpit .main {
   display: grid;
   /* 3 rows: topbar (44px) + topnav-module opcional (auto, ~40px quando presente) + main-body (1fr).
      Antes era `44px 1fr` — quando o topnav-module foi adicionado (Wagner 2026-05-07
@@ -1982,4 +1988,256 @@
 .cockpit .tk-detail-body .empty { text-align: center; color: var(--text-mute); padding: 32px; font-size: 12.5px; }
 @media (max-width: 1023px) {
   .cockpit .tk-page { grid-template-columns: 1fr; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   SIDEBAR RAIL MODE + GROUP COLORS — Wagner 2026-05-16
+   Espelha prototipo Cowork _cowork-export-2026-05-15/sidebar.jsx + styles.css
+   (linhas 5039-5350). 5 capacidades portadas:
+     1. Modo rail (56px ícone-only) + flyout grupo
+     2. Alça .sb-collapse-handle borda direita on-hover
+     3. (placeholder modo hidden — Fase 2)
+     4. Cor por grupo (hue OKLCH) via CSS var --gh
+     5. Persistência LS oimpresso.sb.mode (gerenciado em AppShellV2)
+   ════════════════════════════════════════════════════════════════════════ */
+
+.cockpit .sb { position: relative; overflow: visible; }
+
+/* ── Alça de colapsar/expandir (borda direita) ─────────────────────────── */
+.cockpit .sb-collapse-handle {
+  position: absolute;
+  top: 50%;
+  right: -10px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 36px;
+  border-radius: 4px;
+  border: 1px solid var(--sb-border);
+  background: var(--sb-bg);
+  color: var(--sb-text-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 30;
+  opacity: 0;
+  transition: opacity 120ms, color 120ms, background 120ms;
+  padding: 0;
+}
+.cockpit .sb:hover .sb-collapse-handle,
+.cockpit .sb-collapse-handle:focus-visible,
+.cockpit .sb-collapse-handle:hover {
+  opacity: 1;
+}
+.cockpit .sb-collapse-handle:hover {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+
+/* ── Cores por grupo (CSS var --gh) ────────────────────────────────────── */
+.cockpit .sb-group-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.62 0.13 var(--gh, 220));
+  flex-shrink: 0;
+  opacity: 0.85;
+  display: inline-block;
+}
+.cockpit[data-theme="dark"] .sb-group-dot {
+  background: oklch(0.68 0.13 var(--gh, 220));
+}
+.cockpit .sb-group[style*="--gh"] .sb-group-h .sb-group-l {
+  color: oklch(0.46 0.10 var(--gh, 220));
+}
+.cockpit[data-theme="dark"] .sb-group[style*="--gh"] .sb-group-h .sb-group-l {
+  color: oklch(0.78 0.08 var(--gh, 220));
+}
+
+/* ── Modo RAIL (56px ícone-only) ───────────────────────────────────────── */
+.cockpit .sb--rail { overflow: visible; }
+.cockpit .sb--rail .sb-top {
+  padding: 8px 8px 6px;
+  display: grid;
+  place-items: center;
+}
+.cockpit .sb--rail .sb-cp-btn .name,
+.cockpit .sb--rail .sb-cp-btn .chev {
+  display: none;
+}
+.cockpit .sb--rail .sb-cp-btn {
+  padding: 4px;
+  background: transparent;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+}
+.cockpit .sb--rail .sb-cp-btn .avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+/* Dropdown empresa quando em rail: abre à direita */
+.cockpit .sb--rail .sb-dd {
+  left: calc(100% + 8px);
+  top: 0;
+  right: auto;
+  width: 220px;
+  z-index: 50;
+}
+
+.cockpit .sb--rail .sb-body { padding: 4px 0; }
+
+.cockpit .sb-menu-rail {
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.cockpit .sb-rail-sep {
+  width: 24px;
+  height: 1px;
+  background: var(--sb-border);
+  margin: 6px 0;
+  opacity: 0.6;
+}
+.cockpit .sb-rail-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--sb-text);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  text-decoration: none;
+  transition: background 100ms, color 100ms;
+}
+.cockpit .sb-rail-btn:hover {
+  background: var(--sb-hover);
+  color: var(--sb-text-hi);
+}
+.cockpit .sb-rail-btn.open {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+.cockpit .sb-rail-btn .ic {
+  width: 18px;
+  height: 18px;
+  opacity: 0.9;
+}
+.cockpit .sb-rail-btn.open .ic { opacity: 1; }
+.cockpit .sb-rail-btn.sb-rail-group .ic {
+  color: oklch(0.62 0.13 var(--gh, 220));
+}
+.cockpit[data-theme="dark"] .sb-rail-btn.sb-rail-group .ic {
+  color: oklch(0.72 0.13 var(--gh, 220));
+}
+
+/* Badge indicador (sb-shortcut rail) — bolinha laranja no canto */
+.cockpit .sb-rail-dot-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.62 0.18 30);
+  box-shadow: 0 0 0 2px var(--sb-bg);
+}
+
+/* Tooltip via data-tip (somente no rail, hover ~600ms) */
+.cockpit .sb--rail [data-tip] { position: relative; }
+.cockpit .sb--rail [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 8px;
+  background: var(--sb-bg-2);
+  color: var(--sb-text-hi);
+  border: 1px solid var(--sb-border);
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms 400ms;
+  z-index: 60;
+}
+.cockpit .sb--rail [data-tip]:hover::after {
+  opacity: 1;
+  transition-delay: 0ms;
+}
+/* Não exibir tooltip quando flyout do mesmo botão está aberto */
+.cockpit .sb--rail .sb-rail-btn.open[data-tip]::after { opacity: 0; }
+
+/* Flyout do grupo (cascata lateral quando clica no botão rail) */
+.cockpit .sb-rail-flyout {
+  min-width: 220px;
+  background: var(--sb-bg-2);
+  border: 1px solid var(--sb-border);
+  border-radius: 6px;
+  padding: 6px;
+  box-shadow: 0 8px 24px oklch(0 0 0 / 0.18);
+  z-index: 55;
+}
+.cockpit .sb-rail-flyout-h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 6px;
+  border-bottom: 1px solid var(--sb-border);
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cockpit .sb-rail-flyout-l {
+  flex: 1 1 auto;
+  color: oklch(0.46 0.10 var(--gh, 220));
+}
+.cockpit[data-theme="dark"] .sb-rail-flyout-l {
+  color: oklch(0.78 0.08 var(--gh, 220));
+}
+.cockpit .sb-rail-flyout .sb-group-n {
+  font-size: 9.5px;
+  font-family: var(--mono, ui-monospace, monospace);
+  color: var(--text-mute, var(--sb-text-dim));
+  font-weight: 500;
+}
+
+/* ── Footer (user) em rail: só avatar ──────────────────────────────────── */
+.cockpit .sb--rail .sb-user-btn .who,
+.cockpit .sb--rail .sb-user-btn > svg {
+  display: none;
+}
+.cockpit .sb--rail .sb-user-btn {
+  padding: 6px;
+  background: transparent;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+}
+.cockpit .sb--rail .sb-user-btn .avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 11px;
+}
+.cockpit .sb--rail .sb-user-wrap {
+  padding: 8px;
+  display: grid;
+  place-items: center;
 }

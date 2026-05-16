@@ -17,6 +17,8 @@ import {
   CalendarRange,
   CheckSquare,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   Compass,
   Flag,
@@ -92,6 +94,7 @@ import {
   ConversaFoco,
   LS,
   ShellMenuItem,
+  SidebarMode,
   Vibe,
   isSuperadminMenu,
   isUserMenuItem,
@@ -257,15 +260,32 @@ export default function AppShellV2({
     return localStorage.getItem(LS.LINKED) === '1';
   });
 
+  // ── Sidebar mode (expanded | rail) — Wagner 2026-05-16.
+  // Espelha protótipo Cowork _cowork-export-2026-05-15/sidebar.jsx (modes
+  // expanded/rail + alça collapse na borda direita + atalho ⌘\).
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>(() => {
+    if (typeof window === 'undefined') return 'expanded';
+    const v = localStorage.getItem(LS.SB_MODE);
+    return v === 'rail' ? 'rail' : 'expanded';
+  });
+  useEffect(() => { localStorage.setItem(LS.SB_MODE, sidebarMode); }, [sidebarMode]);
+  const toggleSidebarMode = () => setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
+
   // ── Command Palette global (PMG-002, ADR 0100) — atalho Cmd/Ctrl+K
   const [paletteOpen, setPaletteOpen] = useState<boolean>(false);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      // Cmd+K (Mac) ou Ctrl+K (Windows/Linux)
+      // Cmd+K (Mac) ou Ctrl+K (Windows/Linux) — Command Palette
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         setPaletteOpen((v) => !v);
+        return;
+      }
+      // Cmd+\ (Mac) ou Ctrl+\ (Windows/Linux) — toggle sidebar rail/expanded
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        e.preventDefault();
+        setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
       }
     }
     window.addEventListener('keydown', onKey);
@@ -370,13 +390,15 @@ export default function AppShellV2({
       <div
         className="cockpit"
         data-linked={!conversaFoco || linkedCollapsed ? 'off' : 'on'}
+        data-sidebar={sidebarMode}
         data-vibe={vibe}
         data-density={densityLabel}
         data-theme={userTheme}
         style={cockpitStyle}
       >
-        {/* SIDEBAR — single-pane (UI-0011, 2026-05-05). Toggle Chat/Menu removido. */}
-        <aside className="sb">
+        {/* SIDEBAR — single-pane (UI-0011, 2026-05-05). Toggle Chat/Menu removido.
+            Modos expanded/rail (Wagner 2026-05-16) — protótipo Cowork sidebar.jsx. */}
+        <aside className={`sb${sidebarMode === 'rail' ? ' sb--rail' : ''}`}>
           <div className="sb-top">
             <CompanyPicker businesses={business.opcoes} fallbackNome={business.nome} />
           </div>
@@ -385,7 +407,7 @@ export default function AppShellV2({
               quando OK ou business não emite NFe. */}
           <NfeCertBadge />
           <div className="sb-body">
-            <SidebarMenu items={shellMenu} />
+            <SidebarMenu items={shellMenu} mode={sidebarMode} />
           </div>
           <SidebarFooter
             nome={user.nome}
@@ -398,6 +420,17 @@ export default function AppShellV2({
             vibe={vibe}
             onVibe={setVibe}
           />
+          {/* Alça collapse/expand na borda direita — espelha .sb-collapse-handle
+              do protótipo Cowork. Aparece on-hover, atalho ⌘\ duplicado no useEffect. */}
+          <button
+            type="button"
+            className="sb-collapse-handle"
+            onClick={toggleSidebarMode}
+            title={sidebarMode === 'rail' ? 'Expandir sidebar (⌘\\)' : 'Recolher sidebar (⌘\\)'}
+            aria-label={sidebarMode === 'rail' ? 'Expandir sidebar' : 'Recolher sidebar'}
+          >
+            {sidebarMode === 'rail' ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+          </button>
         </aside>
 
         {/* MAIN COLUMN */}
