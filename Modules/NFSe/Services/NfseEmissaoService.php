@@ -2,6 +2,7 @@
 
 namespace Modules\NFSe\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
@@ -9,6 +10,7 @@ use Modules\NFSe\Exceptions\CertificadoInvalidoException;
 use Modules\NFSe\Exceptions\NfseException;
 use Modules\NFSe\Exceptions\ProviderTimeoutException;
 use Modules\NFSe\Exceptions\RpsDuplicadoException;
+use Modules\NFSe\Jobs\EmitirNfseJob;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 
@@ -16,7 +18,72 @@ class NfseEmissaoService
 {
     private const MAX_RETRIES = 3;
 
+    /**
+     * Contador estático per-request para RPS — formato YmdHis + sufixo 4-dig.
+     * Reseta entre requests (request-scoped do PHP-FPM).
+     */
+    private static int $rpsCounter = 0;
+
     public function __construct(private readonly NfseProviderInterface $provider) {}
+
+    /**
+     * Constrói o payload a partir dos dados validados do form + business_id.
+     *
+     * Extrai lógica de assembly que vivia no NfseController::store() —
+     * separa concern (HTTP) de regra de domínio (montar DTO + carregar cert + gerar RPS).
+     *
+     * @param array<string,mixed> $data Dados validados do FormRequest
+     */
+    public function montarPayload(array $data, int $businessId): NfseEmissaoPayload
+    {
+        $rpsNumero = now()->format('YmdHis') . str_pad(
+            (string) ++self::$rpsCounter,
+            4,
+            '0',
+            STR_PAD_LEFT,
+        );
+
+        // Carrega cert do DB pro payload — cert PFX vai em base64 + senha decriptada
+        // SUPERADMIN: monta payload sem context tenant (chamado por Controller após auth);
+        // business_id explícito como param garante scope correto
+        $config = NfseProviderConfig::withoutGlobalScopes()
+            ->where('business_id', $businessId)
+            ->with('certificado')
+            ->first();
+
+        $certPfxBase64 = $config?->certificado?->pfxDecriptado()
+            ? base64_encode($config->certificado->pfxDecriptado())
+            : null;
+        $certSenha = $config?->certificado?->senhaDecriptada();
+
+        return new NfseEmissaoPayload(
+            businessId: $businessId,
+            rpsNumero: $rpsNumero,
+            competencia: Carbon::createFromFormat('Y-m', $data['competencia']),
+            tomadorNome: $data['tomador_nome'],
+            tomadorCnpj: $data['tomador_cnpj'] ?? null,
+            tomadorCpf: $data['tomador_cpf'] ?? null,
+            tomadorEmail: $data['tomador_email'] ?? null,
+            descricao: $data['descricao'],
+            lc116Codigo: $data['lc116_codigo'],
+            valorServicos: (float) $data['valor_servicos'],
+            aliquotaIss: (float) $data['aliquota_iss'],
+            issRetido: (bool) ($data['iss_retido'] ?? false),
+            certPfxBase64: $certPfxBase64,
+            certSenha: $certSenha,
+            prestadorCnpj: $config?->prestador_cnpj,
+            prestadorIm: $config?->prestador_im,
+            transactionId: !empty($data['transaction_id']) ? (int) $data['transaction_id'] : null,
+        );
+    }
+
+    /**
+     * Despacha emissão assíncrona — atalho pra Controller chamar 1 linha.
+     */
+    public function despacharEmissaoAsync(NfseEmissaoPayload $payload): void
+    {
+        EmitirNfseJob::dispatch($payload)->onQueue('nfse');
+    }
 
     /**
      * Emite uma NFSe com idempotência, retry e log de erros.

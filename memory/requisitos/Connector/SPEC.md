@@ -1,3 +1,9 @@
+---
+na_justified:
+  D4.c: "Connector é REST API externa pra clientes Delphi consumirem (zero UI Inertia/Blade próprias por design). CHARTER-rest-api-external.md documenta o contrato. Penalizar por 0 tsx não faz sentido — é módulo backend-only."
+related_adrs: [0153, 0154]
+---
+
 # SPEC — Modules/Connector
 
 > **Módulo:** Connector (REST API externa)
