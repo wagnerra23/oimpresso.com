@@ -34,10 +34,10 @@ class PoliciesController extends Controller
 
     public function index(Request $request): Response
     {
-        // Inertia::defer pra props com query DB (skill inertia-defer-default).
+        // ROLLBACK Wave W7 #953: Inertia::defer quebrava Pages que esperam props eager.
         return Inertia::render('governance/Policies', [
-            'rules_by_category' => Inertia::defer(fn () => $this->buildRulesByCategoryPayload()),
-            'kpis'              => Inertia::defer(fn () => $this->buildKpisPayload()),
+            'rules_by_category' => $this->buildRulesByCategoryPayload(),
+            'kpis'              => $this->buildKpisPayload(),
         ]);
     }
 
