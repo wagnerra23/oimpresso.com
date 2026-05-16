@@ -34,13 +34,43 @@ class MyWorkController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
+        $userId = (int) $user->id;
         $username = $this->resolveUsername($user);
         $project = $this->resolveProject($request);
+        $projectId = $project?->id;
         $showRead = $request->boolean('show_read', false);
 
-        // ---- My Work: tasks ativas do owner ---------------------------------
+        // RUNBOOK-inertia-defer-pattern.md (Wave 11 D6.a) — defer queries pesadas.
+        // `username`/`project`/`filters` cheap eager.
+        // my_work/inbox/inbox_stats/kpis compartilham contagens — agrupados em
+        // 2 closures (work payload + inbox payload). kpis depende dos 2 → 3ª closure.
+        return Inertia::render('ProjectMgmt/MyWork/Index', [
+            'project'     => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
+            'username'    => $username,
+            'my_work'     => Inertia::defer(fn () => $this->buildMyWorkPayload($projectId, $username)['my_work']),
+            'inbox'       => Inertia::defer(fn () => $this->buildInboxPayload($userId, $showRead)['inbox']),
+            'inbox_stats' => Inertia::defer(fn () => $this->buildInboxPayload($userId, $showRead)['inbox_stats']),
+            'kpis'        => Inertia::defer(fn () => $this->buildKpisPayload($projectId, $username, $userId, $showRead)),
+            'filters'     => ['show_read' => $showRead],
+        ]);
+    }
+
+    /**
+     * Constrói my_work (tasks ativas do owner agrupadas por cycle).
+     * Memoiza por (projectId, username) na request.
+     *
+     * @return array{my_work: array<int,array<string,mixed>>, tasks: \Illuminate\Support\Collection}
+     */
+    protected function buildMyWorkPayload(?int $projectId, string $username): array
+    {
+        static $cache = [];
+        $key = "{$projectId}::{$username}";
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
         $tasksQ = McpTask::query()
-            ->when($project, fn ($q) => $q->where('project_id', $project->id))
+            ->when($projectId, fn ($q) => $q->where('project_id', $projectId))
             ->where('owner', $username)
             ->whereIn('status', ['todo', 'doing', 'review', 'blocked'])
             ->orderByRaw("FIELD(status,'doing','review','todo','blocked')")
@@ -55,6 +85,7 @@ class MyWorkController extends Controller
         $cycleMap = McpCycle::whereIn('id', $cycleIds)->get()->keyBy('id');
 
         $myWork = [];
+        $project = $projectId ? McpProject::find($projectId) : null;
         $cycleAtivo = $project ? $project->activeCycle() : null;
         $cycleAtivoId = $cycleAtivo?->id;
 
@@ -75,9 +106,25 @@ class MyWorkController extends Controller
             $myWork[] = ['header' => $header, 'tasks' => $bucketTasks];
         }
 
-        // ---- Inbox ----------------------------------------------------------
+        $cache[$key] = ['my_work' => $myWork, 'tasks' => $tasks];
+        return $cache[$key];
+    }
+
+    /**
+     * Constrói inbox + inbox_stats (compartilham mesma user_id query).
+     *
+     * @return array{inbox: array<int,array<string,mixed>>, inbox_stats: array<string,int>}
+     */
+    protected function buildInboxPayload(int $userId, bool $showRead): array
+    {
+        static $cache = [];
+        $key = "{$userId}::" . ($showRead ? '1' : '0');
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
         $inboxQ = McpInboxNotification::query()
-            ->where('user_id', (int) $user->id)
+            ->where('user_id', $userId)
             ->orderBy('read_at', 'asc')
             ->orderBy('created_at', 'desc')
             ->limit(60);
@@ -106,34 +153,34 @@ class MyWorkController extends Controller
         ])->values()->all();
 
         $inboxStats = [
-            'unread'    => McpInboxNotification::where('user_id', $user->id)->whereNull('read_at')->count(),
-            'total_30d' => McpInboxNotification::where('user_id', $user->id)
+            'unread'    => McpInboxNotification::where('user_id', $userId)->whereNull('read_at')->count(),
+            'total_30d' => McpInboxNotification::where('user_id', $userId)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->count(),
         ];
 
-        $kpis = [
+        $cache[$key] = ['inbox' => $inbox, 'inbox_stats' => $inboxStats];
+        return $cache[$key];
+    }
+
+    /**
+     * KPIs combinam tasks (do my_work) + unread (do inbox).
+     * @return array<string,int>
+     */
+    protected function buildKpisPayload(?int $projectId, string $username, int $userId, bool $showRead): array
+    {
+        $work = $this->buildMyWorkPayload($projectId, $username);
+        $inbox = $this->buildInboxPayload($userId, $showRead);
+        $tasks = $work['tasks'];
+
+        return [
             'doing'   => $tasks->where('status', 'doing')->count(),
             'review'  => $tasks->where('status', 'review')->count(),
             'blocked' => $tasks->where('status', 'blocked')->count(),
             'p0'      => $tasks->where('priority', 'p0')->count(),
             'overdue' => $tasks->where('is_overdue', true)->count(),
-            'unread'  => $inboxStats['unread'],
+            'unread'  => $inbox['inbox_stats']['unread'],
         ];
-
-        return Inertia::render('ProjectMgmt/MyWork/Index', [
-            'project' => $project ? [
-                'id'   => $project->id,
-                'key'  => $project->key,
-                'name' => $project->name,
-            ] : null,
-            'username'    => $username,
-            'my_work'     => $myWork,
-            'inbox'       => $inbox,
-            'inbox_stats' => $inboxStats,
-            'kpis'        => $kpis,
-            'filters'     => ['show_read' => $showRead],
-        ]);
     }
 
     public function markRead(Request $request, int $id): JsonResponse

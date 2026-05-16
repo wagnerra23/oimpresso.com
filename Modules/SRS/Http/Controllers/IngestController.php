@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\SRS\Entities\DocEvidence;
 use Modules\SRS\Entities\DocSource;
+use Modules\SRS\Http\Requests\StoreIngestRequest;
 
 class IngestController extends Controller
 {
@@ -30,21 +31,10 @@ class IngestController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreIngestRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'type'            => 'required|in:screenshot,chat,error,file,text,url',
-            'module_target'   => 'nullable|string|max:64',
-            'title'           => 'nullable|string|max:255',
-            'description'     => 'nullable|string|max:2000',
-            'body_text'       => 'nullable|string',
-            'source_url'      => 'nullable|url|max:500',
-            'upload'          => 'nullable|file|max:20480',
-            // Evidência inicial (opcional — criar direto do ingest)
-            'create_evidence' => 'boolean',
-            'evidence_kind'   => 'nullable|in:bug,rule,flow,quote,screenshot,decision',
-            'evidence_content'=> 'nullable|string|max:5000',
-        ]);
+        // D8.c — validação migrada pra FormRequest dedicado (SoC + MIME whitelist).
+        $validated = $request->validated();
 
         $businessId = (int) (session('business.id') ?: $request->session()->get('user.business_id'));
 

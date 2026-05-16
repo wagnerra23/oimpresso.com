@@ -30,7 +30,31 @@ class TasksAdminController extends Controller
         $owner  = $request->get('owner');
         $sprint = $request->get('sprint');
 
-        // Kanban: tasks ativas (todo/doing/review/done) agrupadas por status
+        // Wave 11 D6.a — Inertia::defer pra props caras. Filters UI state inline
+        // (trivial 1ms); kanban/backlog/kpis/modulos/owners/sprints caem em closures
+        // resolvidas em background — frontend skeleton até cada uma chegar.
+        return Inertia::render('team-mcp/Tasks/Index', [
+            'kanban'  => Inertia::defer(fn () => $this->buildKanbanPayload($modulo, $owner, $sprint)),
+            'backlog' => Inertia::defer(fn () => $this->buildBacklogPayload($modulo, $owner, $sprint)),
+            'kpis'    => Inertia::defer(fn () => $this->buildKpisPayload($modulo, $owner)),
+            'modulos' => Inertia::defer(fn () => McpTask::distinct()->orderBy('module')->pluck('module')->toArray()),
+            'owners'  => Inertia::defer(fn () => McpTask::whereNotNull('owner')->distinct()->orderBy('owner')->pluck('owner')->toArray()),
+            'sprints' => Inertia::defer(fn () => McpTask::whereNotNull('sprint')->distinct()->orderBy('sprint')->pluck('sprint')->toArray()),
+            'filters' => [
+                'module' => $modulo,
+                'owner'  => $owner,
+                'sprint' => $sprint,
+            ],
+        ]);
+    }
+
+    /**
+     * Builder Kanban — tasks ativas agrupadas por status (Wave 11 D6.a defer).
+     *
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    protected function buildKanbanPayload(?string $modulo, ?string $owner, ?string $sprint): array
+    {
         $baseKanban = McpTask::query()
             ->when($modulo, fn ($q) => $q->where('module', $modulo))
             ->when($owner,  fn ($q) => $q->where('owner', $owner))
@@ -39,7 +63,7 @@ class TasksAdminController extends Controller
             ->orderByRaw("FIELD(priority,'p0','p1','p2','p3')")
             ->orderBy('task_id');
 
-        $porStatus = $baseKanban->get()
+        return $baseKanban->get()
             ->groupBy('status')
             ->map(fn ($tasks) => $tasks->map(fn ($t) => [
                 'task_id'    => $t->task_id,
@@ -53,8 +77,15 @@ class TasksAdminController extends Controller
                 'status'     => $t->status,
             ])->values())
             ->toArray();
+    }
 
-        // Backlog: todas as tasks com filtros mais amplos
+    /**
+     * Builder Backlog — 200 tasks com filtros amplos (Wave 11 D6.a defer).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildBacklogPayload(?string $modulo, ?string $owner, ?string $sprint): array
+    {
         $backlogQ = McpTask::query()
             ->when($modulo, fn ($q) => $q->where('module', $modulo))
             ->when($owner,  fn ($q) => $q->where('owner', $owner))
@@ -64,7 +95,7 @@ class TasksAdminController extends Controller
             ->orderBy('task_id')
             ->limit(200);
 
-        $backlog = $backlogQ->get()->map(fn ($t) => [
+        return $backlogQ->get()->map(fn ($t) => [
             'task_id'    => $t->task_id,
             'title'      => $t->title,
             'module'     => $t->module,
@@ -75,14 +106,21 @@ class TasksAdminController extends Controller
             'blocked_by' => $t->blocked_by ?? [],
             'status'     => $t->status,
         ])->values()->toArray();
+    }
 
-        // KPIs
+    /**
+     * Builder KPIs — full scan filtrado p/ agregados (Wave 11 D6.a defer).
+     *
+     * @return array<string, int|float>
+     */
+    protected function buildKpisPayload(?string $modulo, ?string $owner): array
+    {
         $all = McpTask::query()
             ->when($modulo, fn ($q) => $q->where('module', $modulo))
             ->when($owner,  fn ($q) => $q->where('owner', $owner))
             ->get();
 
-        $kpis = [
+        return [
             'total'     => $all->whereNotIn('status', ['cancelled'])->count(),
             'p0'        => $all->where('priority', 'p0')->whereNotIn('status', ['done','cancelled'])->count(),
             'doing'     => $all->where('status', 'doing')->count(),
@@ -91,25 +129,6 @@ class TasksAdminController extends Controller
             'cancelled' => $all->where('status', 'cancelled')->count(),
             'total_h'   => (float) $all->whereNotIn('status', ['done','cancelled'])->sum('estimate_h'),
         ];
-
-        // Listas de filtros disponíveis
-        $modulos  = McpTask::distinct()->orderBy('module')->pluck('module');
-        $owners   = McpTask::whereNotNull('owner')->distinct()->orderBy('owner')->pluck('owner');
-        $sprints  = McpTask::whereNotNull('sprint')->distinct()->orderBy('sprint')->pluck('sprint');
-
-        return Inertia::render('team-mcp/Tasks/Index', [
-            'kanban'  => $porStatus,
-            'backlog' => $backlog,
-            'kpis'    => $kpis,
-            'modulos' => $modulos,
-            'owners'  => $owners,
-            'sprints' => $sprints,
-            'filters' => [
-                'module' => $modulo,
-                'owner'  => $owner,
-                'sprint' => $sprint,
-            ],
-        ]);
     }
 
     /**

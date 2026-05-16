@@ -5,6 +5,7 @@ namespace Modules\Cms\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class NewLeadGeneratedNotification extends Notification
 {
@@ -15,11 +16,25 @@ class NewLeadGeneratedNotification extends Notification
     /**
      * Create a new notification instance.
      *
+     * D7.a LGPD — payload do lead (nome/email/mobile) é PII por definição;
+     * o mail destinatário é o admin do site (notifiable_email), então o envio
+     * é legítimo, mas qualquer log/falha de queue deve passar por PiiRedactor.
+     * Ver `memory/requisitos/Cms/PII-REDACTION.md`.
+     *
      * @return void
      */
     public function __construct($lead_details)
     {
         $this->lead = $lead_details;
+    }
+
+    /**
+     * Representação redactada do lead pra log/exception — NÃO pra envio mail.
+     * Mail toMail() continua usando $this->lead original (destino legítimo admin).
+     */
+    public function leadForLog(PiiRedactor $piiRedactor): array
+    {
+        return $piiRedactor->redactArray((array) $this->lead);
     }
 
     /**

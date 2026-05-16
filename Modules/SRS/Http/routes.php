@@ -10,7 +10,11 @@
 |
 */
 
-Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {
+// D8.a Security — throttle:60,1 (60 req/min por user) em todas as rotas SRS.
+// SRS é tool interna Wagner (uso raro), mas throttle defense-in-depth
+// previne loop runaway no chat (pode chamar OpenAI = custo $) e flood
+// no ingest (upload 20MB). Stack middleware UltimatePOS preservada.
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'throttle:60,1'])->group(function () {
     Route::prefix('memcofre')->group(function () {
         // Dashboard
         Route::get('/', [\Modules\SRS\Http\Controllers\DashboardController::class, 'index'])->name('memcofre.dashboard');
@@ -47,7 +51,7 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
 // prefixo /memcofre — botão em /manage-modules ficava com action() apontando
 // pra nome antigo. Agora 4 rotas no prefixo novo /srs/install + 301 das
 // URLs antigas pra compat de bookmarks.
-Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'throttle:60,1'])->group(function () {
     Route::prefix('srs/install')->group(function () {
         Route::get('/',           [\Modules\SRS\Http\Controllers\InstallController::class, 'index'])->name('srs.install.index');
         Route::post('/',          [\Modules\SRS\Http\Controllers\InstallController::class, 'install'])->name('srs.install.run');
