@@ -2,6 +2,7 @@
 
 namespace Modules\Officeimpresso\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Str;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\LicencaLog;
@@ -43,24 +44,34 @@ class LicencaAuditService
      */
     public function registrar(array $payload, array $contextoRequest): LicencaLog
     {
-        [$errorMessage, $metadata] = $this->extrairEMascarar($payload);
+        // D9.a OTel (Wave 17): span envolve INSERT pra detectar slow audit log
+        // do endpoint Delphi. Zero-cost se otel.enabled=false. Attributes apenas
+        // counts e codes (sem PII — error_message redactada antes).
+        return OtelHelper::spanBiz('officeimpresso.licenca_audit.registrar', function () use ($payload, $contextoRequest) {
+            [$errorMessage, $metadata] = $this->extrairEMascarar($payload);
 
-        return LicencaLog::create([
-            'event'         => $payload['event']         ?? 'desktop_audit',
-            'user_id'       => $contextoRequest['user_id']     ?? null,
-            'licenca_id'    => $payload['licenca_id']    ?? null,
-            'business_id'   => $contextoRequest['business_id'] ?? null,
-            'ip'            => $contextoRequest['ip']          ?? null,
-            'user_agent'    => Str::limit($contextoRequest['user_agent'] ?? '', 500, ''),
-            'endpoint'      => $payload['endpoint']      ?? null,
-            'http_method'   => $payload['http_method']   ?? ($contextoRequest['http_method'] ?? null),
-            'http_status'   => $payload['http_status']   ?? null,
-            'duration_ms'   => $payload['duration_ms']   ?? null,
-            'error_code'    => $payload['error_code']    ?? null,
-            'error_message' => $errorMessage,
-            'metadata'      => $metadata ?: null,
-            'source'        => 'desktop_audit',
-            'created_at'    => now(),
+            return LicencaLog::create([
+                'event'         => $payload['event']         ?? 'desktop_audit',
+                'user_id'       => $contextoRequest['user_id']     ?? null,
+                'licenca_id'    => $payload['licenca_id']    ?? null,
+                'business_id'   => $contextoRequest['business_id'] ?? null,
+                'ip'            => $contextoRequest['ip']          ?? null,
+                'user_agent'    => Str::limit($contextoRequest['user_agent'] ?? '', 500, ''),
+                'endpoint'      => $payload['endpoint']      ?? null,
+                'http_method'   => $payload['http_method']   ?? ($contextoRequest['http_method'] ?? null),
+                'http_status'   => $payload['http_status']   ?? null,
+                'duration_ms'   => $payload['duration_ms']   ?? null,
+                'error_code'    => $payload['error_code']    ?? null,
+                'error_message' => $errorMessage,
+                'metadata'      => $metadata ?: null,
+                'source'        => 'desktop_audit',
+                'created_at'    => now(),
+            ]);
+        }, [
+            'module'      => 'Officeimpresso',
+            'event'       => $payload['event'] ?? 'desktop_audit',
+            'has_error'   => ! empty($payload['error_code']),
+            'http_status' => $payload['http_status'] ?? 0,
         ]);
     }
 

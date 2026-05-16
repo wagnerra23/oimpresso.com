@@ -7,12 +7,17 @@ namespace Modules\Jana\Entities\Mcp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * ADR 0070 — Jira-style task management.
  *
  * Project = unidade superior de agrupamento. Tasks têm identifier humano
  * "<key>-<NNNN>" gerado a partir de next_task_number.
+ *
+ * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia mudanças
+ * de status/lead/settings — projeto é raiz da hierarquia, audit vital.
  *
  * @property int     $id
  * @property string  $key             COPI, NFSE, FIN, INFRA
@@ -29,6 +34,7 @@ use Illuminate\Support\Facades\DB;
  */
 class McpProject extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $table = 'mcp_jira_projects';
@@ -86,5 +92,14 @@ class McpProject extends Model
     public function activeCycle(): ?McpCycle
     {
         return $this->cycles()->where('status', 'active')->first();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('mcp_project')
+            ->logOnly(['status', 'lead_user_id', 'name', 'key', 'default_workflow_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

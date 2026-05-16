@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Audio;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +13,10 @@ use RuntimeException;
 
 /**
  * US-WA-072 — Whisper transcriber via OpenAI API.
+ *
+ * Observabilidade D9.a (ADR 0155): chamada HTTP externa custosa — Tracer
+ * envolvido em `OtelHelper::span(` (audio.transcribe.openai) pra rastrear
+ * latência + custo por business.
  *
  * Provider único nesta fase (`openai`). Fallback Ollama whisper-local CT 100
  * fica em US separada (decisão pendente SPEC §1 — adiar até OpenAI custo

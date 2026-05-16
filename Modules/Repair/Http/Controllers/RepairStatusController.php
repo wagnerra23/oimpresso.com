@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\RepairStatus;
 use Modules\Repair\Utils\RepairUtil;
 use Yajra\DataTables\Facades\DataTables;
 
 class RepairStatusController extends Controller
 {
+    use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
      * All Utils instance.
      */
@@ -139,7 +141,7 @@ class RepairStatusController extends Controller
                 'msg' => __('lang_v1.added_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('repair_status', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
@@ -197,7 +199,7 @@ class RepairStatusController extends Controller
                     'msg' => __('lang_v1.updated_success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                $this->logSafeEmergency('repair_status', $e); // D7.a Wave 17 LGPD
 
                 $output = ['success' => false,
                     'msg' => __('messages.something_went_wrong'),

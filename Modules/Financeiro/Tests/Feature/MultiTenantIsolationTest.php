@@ -143,4 +143,139 @@ class MultiTenantIsolationTest extends FinanceiroTestCase
         $this->expectException(\DomainException::class);
         $caixa->delete();
     }
+
+    // ─────────────── Wave 17 D1+D7+D8+D9 — saturação governance (66→81) ───────────────
+
+    /**
+     * D1 — todas as 9 Models do Financeiro usam BusinessScope (multi-tenant Tier 0).
+     *
+     * Auditável via reflection: garante que nenhuma Model nova entre sem o scope.
+     */
+    public function test_d1_todas_models_financeiro_usam_business_scope(): void
+    {
+        $models = [
+            \Modules\Financeiro\Models\Titulo::class,
+            \Modules\Financeiro\Models\TituloBaixa::class,
+            \Modules\Financeiro\Models\CaixaMovimento::class,
+            \Modules\Financeiro\Models\ContaBancaria::class,
+            \Modules\Financeiro\Models\PlanoConta::class,
+            \Modules\Financeiro\Models\Categoria::class,
+            \Modules\Financeiro\Models\BoletoRemessa::class,
+            \Modules\Financeiro\Models\ExtratoLancamento::class,
+            \Modules\Financeiro\Models\AccountsLegacyMap::class,
+        ];
+
+        foreach ($models as $modelClass) {
+            $traits = class_uses_recursive($modelClass);
+            $this->assertContains(
+                \Modules\Financeiro\Models\Concerns\BusinessScope::class,
+                $traits,
+                "Model {$modelClass} DEVE usar trait BusinessScope (multi-tenant Tier 0 ADR 0093)."
+            );
+        }
+    }
+
+    /**
+     * D7 — LogsActivity aplicado nas 7 Models sensíveis (audit trail LGPD + CTN).
+     *
+     * AccountsLegacyMap é bridge importer (sem LogsActivity por design — gerenciado
+     * pelo importer Python). Categoria/ExtratoLancamento adicionados Wave 17.
+     */
+    public function test_d7_models_sensiveis_tem_logs_activity(): void
+    {
+        $modelsComAudit = [
+            \Modules\Financeiro\Models\Titulo::class,
+            \Modules\Financeiro\Models\TituloBaixa::class,
+            \Modules\Financeiro\Models\CaixaMovimento::class,
+            \Modules\Financeiro\Models\ContaBancaria::class,
+            \Modules\Financeiro\Models\PlanoConta::class,
+            \Modules\Financeiro\Models\BoletoRemessa::class,
+            \Modules\Financeiro\Models\Categoria::class,         // Wave 17 D7
+            \Modules\Financeiro\Models\ExtratoLancamento::class, // Wave 17 D7
+        ];
+
+        foreach ($modelsComAudit as $modelClass) {
+            $traits = class_uses_recursive($modelClass);
+            $this->assertContains(
+                \Spatie\Activitylog\Traits\LogsActivity::class,
+                $traits,
+                "Model {$modelClass} DEVE usar trait LogsActivity (D7 audit governance)."
+            );
+        }
+    }
+
+    /**
+     * D8 — 3 FormRequests novos existem e expõem rules() corretamente type-hintable.
+     */
+    public function test_d8_form_requests_novos_existem_e_validam(): void
+    {
+        $requests = [
+            \Modules\Financeiro\Http\Requests\StoreTransactionRequest::class,
+            \Modules\Financeiro\Http\Requests\UpdateTransactionRequest::class,
+            \Modules\Financeiro\Http\Requests\StoreAccountRequest::class,
+        ];
+
+        foreach ($requests as $requestClass) {
+            $this->assertTrue(
+                class_exists($requestClass),
+                "FormRequest {$requestClass} DEVE existir (D8)."
+            );
+
+            $reflection = new \ReflectionClass($requestClass);
+            $this->assertTrue(
+                $reflection->isSubclassOf(\Illuminate\Foundation\Http\FormRequest::class),
+                "{$requestClass} DEVE estender FormRequest."
+            );
+
+            $instance = new $requestClass();
+            $rules = $instance->rules();
+            $this->assertIsArray($rules);
+            $this->assertNotEmpty($rules, "{$requestClass}::rules() não pode ser vazio.");
+        }
+    }
+
+    /**
+     * D9.a — Controllers principais wrap em OtelHelper::spanBiz.
+     */
+    public function test_d9_controllers_principais_tem_otel_span(): void
+    {
+        $controllersComSpan = [
+            'DashboardController.php' => "OtelHelper::spanBiz('financeiro.dashboard",
+            'BoletoController.php'    => "OtelHelper::spanBiz('financeiro.boleto.cancelar'",
+            'ContaReceberController.php' => "OtelHelper::spanBiz('financeiro.boleto.emitir'",
+            'FluxoController.php'     => "OtelHelper::spanBiz('financeiro.fluxo.projetar'",
+            'ExtratoController.php'   => "OtelHelper::spanBiz('financeiro.extrato.lancamentos'",
+        ];
+
+        foreach ($controllersComSpan as $file => $needle) {
+            $path = module_path('Financeiro', "Http/Controllers/{$file}");
+            $this->assertFileExists($path);
+            $source = file_get_contents($path);
+            $this->assertStringContainsString(
+                $needle,
+                $source,
+                "{$file} DEVE wrap em {$needle} (D9.a observability)."
+            );
+        }
+    }
+
+    /**
+     * D9.c — FinanceiroHealthCommand registrado e instanciável.
+     */
+    public function test_d9_financeiro_health_command_existe(): void
+    {
+        $class = \Modules\Financeiro\Console\Commands\FinanceiroHealthCommand::class;
+        $this->assertTrue(class_exists($class));
+
+        $instance = new $class();
+        $reflection = new \ReflectionClass($instance);
+        $signatureProp = $reflection->getProperty('signature');
+        $signatureProp->setAccessible(true);
+        $signature = $signatureProp->getValue($instance);
+
+        $this->assertStringContainsString('financeiro:health', $signature);
+        $this->assertStringContainsString('--detail', $signature);
+        // Anti-pattern: --verbose colide com Symfony Console reserved (handoff 2026-05-14 PR #851).
+        $this->assertStringNotContainsString('{--verbose', $signature, '--verbose colide com Symfony reserved.');
+    }
 }

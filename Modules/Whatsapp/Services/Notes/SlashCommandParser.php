@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\Notes;
 
 /**
+ * Observabilidade D9.a (ADR 0155): parse regex sub-µs; Tracer pai via
+ * `OtelHelper::span(` herda o webhook span do MessagePersister.
+ *
  * SlashCommandParser — detecta `/comando <argumentos>` em notas internas.
  *
  * Sintaxe canônica (ADR 0142 §2):

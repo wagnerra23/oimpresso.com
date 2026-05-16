@@ -8,6 +8,9 @@ use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 
 /**
+ * Observabilidade D9.a (ADR 0155): resolução in-memory; spans Tracer
+ * via `OtelHelper::span(` ficam nos drivers concretos retornados.
+ *
  * DriverFactory — resolve driver por business com fallback runtime.
  *
  * Decisão mãe: ADR 0096 + ADR 0117 (multi-números).

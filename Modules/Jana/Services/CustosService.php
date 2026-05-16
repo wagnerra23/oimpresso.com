@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -36,6 +37,15 @@ class CustosService
      * }
      */
     public function painel(int $businessId, CarbonInterface $inicio, CarbonInterface $fim): array
+    {
+        // D9.a OTel Wave 17 — span Custos painel (DB-bound multi-aggregação).
+        return OtelHelper::spanBiz('jana.custos.painel', fn () => $this->painelInternal($businessId, $inicio, $fim), [
+            'biz.scope'  => $businessId,
+            'periodo.dias' => (int) $inicio->diffInDays($fim),
+        ]);
+    }
+
+    private function painelInternal(int $businessId, CarbonInterface $inicio, CarbonInterface $fim): array
     {
         $iniSql = $inicio->copy()->startOfDay()->toDateTimeString();
         $fimSql = $fim->copy()->endOfDay()->toDateTimeString();

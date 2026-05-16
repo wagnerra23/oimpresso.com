@@ -2,6 +2,7 @@
 
 namespace Modules\Brief\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Modules\Jana\Services\Privacy\PiiRedactor;
@@ -45,80 +46,90 @@ final class BriefGeneratorService
 
     /**
      * Executa pipeline completo: refresh cache → fetch → Brain B.
+     *
+     * D9 observabilidade (Wave 17): wrapped em OtelHelper::spanBiz pra trace
+     * end-to-end (refresh + fetch + LLM call). business_id=0 quando CLI sem session.
      */
     public function generateNow(): string
     {
-        DB::statement('CALL refresh_brief_inputs_cache()');
+        return OtelHelper::spanBiz('brief.generate_now', function (): string {
+            DB::statement('CALL refresh_brief_inputs_cache()');
 
-        $aggregated = DB::selectOne(
-            'SELECT * FROM mcp_brief_inputs_cache WHERE singleton_id = 1'
-        );
-
-        if ($aggregated === null) {
-            throw new RuntimeException(
-                'mcp_brief_inputs_cache vazio — refresh_brief_inputs_cache() falhou'
+            $aggregated = DB::selectOne(
+                'SELECT * FROM mcp_brief_inputs_cache WHERE singleton_id = 1'
             );
-        }
 
-        return $this->generateFromAggregated($aggregated);
+            if ($aggregated === null) {
+                throw new RuntimeException(
+                    'mcp_brief_inputs_cache vazio — refresh_brief_inputs_cache() falhou'
+                );
+            }
+
+            return $this->generateFromAggregated($aggregated);
+        });
     }
 
     /**
      * Gera o brief a partir de um payload já agregado.
      * Útil pra dry-run e golden tests com fixtures.
      *
+     * D9 observabilidade (Wave 17): span dedicado pra chamada LLM externa
+     * (custo + latência rastreáveis sem snapshot manual).
+     *
      * @param object|array $aggregated Linha de mcp_brief_inputs_cache
      */
     public function generateFromAggregated($aggregated): string
     {
-        $payload = is_object($aggregated) ? (array) $aggregated : $aggregated;
+        return OtelHelper::spanBiz('brief.generate_from_aggregated', function () use ($aggregated): string {
+            $payload = is_object($aggregated) ? (array) $aggregated : $aggregated;
 
-        $systemPrompt = $this->buildSystemPrompt();
-        $userPrompt = $this->buildUserPrompt($payload);
+            $systemPrompt = $this->buildSystemPrompt();
+            $userPrompt = $this->buildUserPrompt($payload);
 
-        $apiKey = config('services.openai.api_key', env('OPENAI_API_KEY'));
-        if (! $apiKey) {
-            throw new RuntimeException(
-                'OPENAI_API_KEY ausente — configure em .env ou config/services.php'
+            $apiKey = config('services.openai.api_key', env('OPENAI_API_KEY'));
+            if (! $apiKey) {
+                throw new RuntimeException(
+                    'OPENAI_API_KEY ausente — configure em .env ou config/services.php'
+                );
+            }
+
+            $response = OtelHelper::spanBiz('brief.llm_call_openai', fn () => Http::withHeaders([
+                'Authorization' => 'Bearer '.$apiKey,
+                'Content-Type' => 'application/json',
+            ])
+                ->timeout(60)
+                ->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => self::MODEL,
+                    'max_tokens' => self::MAX_TOKENS,
+                    'temperature' => self::TEMPERATURE,
+                    'stop' => [self::STOP_SEQUENCE],
+                    'messages' => [
+                        ['role' => 'system', 'content' => $systemPrompt],
+                        ['role' => 'user', 'content' => $userPrompt],
+                    ],
+                ]), ['model' => self::MODEL]);
+
+            if ($response->failed()) {
+                throw new RuntimeException(
+                    'OpenAI API erro: HTTP '.$response->status().' '.$response->body()
+                );
+            }
+
+            $body = $response->json();
+            $content = $body['choices'][0]['message']['content'] ?? '';
+
+            if (! str_ends_with(trim($content), '---END---')) {
+                // Stop sequence cortou — re-anexa pra validador aceitar
+                $content = rtrim($content)."\n---END---";
+            }
+
+            $this->lastCallCost = $this->computeCost(
+                (int) ($body['usage']['prompt_tokens'] ?? 0),
+                (int) ($body['usage']['completion_tokens'] ?? 0),
             );
-        }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$apiKey,
-            'Content-Type' => 'application/json',
-        ])
-            ->timeout(60)
-            ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => self::MODEL,
-                'max_tokens' => self::MAX_TOKENS,
-                'temperature' => self::TEMPERATURE,
-                'stop' => [self::STOP_SEQUENCE],
-                'messages' => [
-                    ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user', 'content' => $userPrompt],
-                ],
-            ]);
-
-        if ($response->failed()) {
-            throw new RuntimeException(
-                'OpenAI API erro: HTTP '.$response->status().' '.$response->body()
-            );
-        }
-
-        $body = $response->json();
-        $content = $body['choices'][0]['message']['content'] ?? '';
-
-        if (! str_ends_with(trim($content), '---END---')) {
-            // Stop sequence cortou — re-anexa pra validador aceitar
-            $content = rtrim($content)."\n---END---";
-        }
-
-        $this->lastCallCost = $this->computeCost(
-            (int) ($body['usage']['prompt_tokens'] ?? 0),
-            (int) ($body['usage']['completion_tokens'] ?? 0),
-        );
-
-        return $content;
+            return $content;
+        });
     }
 
     public function lastCallCost(): float

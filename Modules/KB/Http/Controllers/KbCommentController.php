@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\KB\Entities\KbComment;
 use Modules\KB\Entities\KbNode;
+use Modules\KB\Http\Requests\StoreKbCommentRequest;
 
 /**
  * KbCommentController — comments inline (ancorados em block_idx).
@@ -27,12 +28,10 @@ class KbCommentController extends Controller
         $this->middleware('can:copiloto.mcp.memory.manage');
     }
 
-    public function store(Request $request, string $slug): JsonResponse
+    public function store(StoreKbCommentRequest $request, string $slug): JsonResponse
     {
-        $data = $request->validate([
-            'block_idx' => 'required|integer|min:0',
-            'text'      => 'required|string|max:5000',
-        ]);
+        // D8.c Wave 17: validation extraída pra StoreKbCommentRequest.
+        $data = $request->validated();
 
         $node = KbNode::query()->where('slug', $slug)->firstOrFail();
 

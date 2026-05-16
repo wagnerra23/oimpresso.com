@@ -7,6 +7,9 @@ namespace Modules\Whatsapp\Services\Audio\Contracts;
 /**
  * Contrato pra serviços de transcrição de áudio (US-WA-072).
  *
+ * Observabilidade D9.a (ADR 0155): implementações concretas envolvem
+ * `transcribe()` em `OtelHelper::span(` — Tracer registra latência + erros.
+ *
  * Implementações:
  *  - `WhisperTranscriber` (OpenAI API, default Hostinger)
  *  - `NullTranscriber` (testes / dev sem OpenAI key)

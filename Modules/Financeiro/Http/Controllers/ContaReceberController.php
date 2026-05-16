@@ -3,6 +3,7 @@
 namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Util\OtelHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -77,17 +78,21 @@ class ContaReceberController extends Controller
     {
         $businessId = $request->session()->get('business.id');
 
-        $titulo = Titulo::where('business_id', $businessId)->findOrFail($tituloId);
+        // Wave 17 D9 — emissão de boleto é fluxo crítico observado (latência HTTP gateway
+        // Inter/Asaas + erro 4xx/5xx). Span captura biz + titulo + falha gateway.
+        return OtelHelper::spanBiz('financeiro.boleto.emitir', function () use ($request, $tituloId, $service, $businessId) {
+            $titulo = Titulo::where('business_id', $businessId)->findOrFail($tituloId);
 
-        try {
-            $remessa = $service->emitirBoleto(
-                $titulo,
-                $request->integer('conta_bancaria_id') ?: null
-            );
+            try {
+                $remessa = $service->emitirBoleto(
+                    $titulo,
+                    $request->integer('conta_bancaria_id') ?: null
+                );
 
-            return back()->with('success', "Boleto gerado: {$remessa->nosso_numero}");
-        } catch (\DomainException $e) {
-            return back()->with('error', $e->getMessage());
-        }
+                return back()->with('success', "Boleto gerado: {$remessa->nosso_numero}");
+            } catch (\DomainException $e) {
+                return back()->with('error', $e->getMessage());
+            }
+        }, ['op' => 'emitir_boleto', 'titulo_id' => $tituloId]);
     }
 }

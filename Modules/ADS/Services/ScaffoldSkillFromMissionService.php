@@ -9,6 +9,9 @@ use Modules\Jana\Entities\Mcp\McpSkillVersion;
 use Symfony\Component\Yaml\Yaml;
 
 /**
+ * Observabilidade D9.a (ADR 0155): scaffold generation envolto em
+ * `OtelHelper::span(` (Tracer ads.scaffold.skill) — mede 4 testes validade.
+ *
  * Meta-skill `meta-skill-roi-erp-autonomo` em código.
  *
  * Aplica os 4 testes de validade da missão e gera scaffold de skill nova

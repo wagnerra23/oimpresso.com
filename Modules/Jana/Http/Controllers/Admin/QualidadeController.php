@@ -39,7 +39,44 @@ class QualidadeController extends Controller
             ? (int) $request->get('business_id')
             : null;
 
-        // Trend série
+        // Gates ADR 0049/0050 (alvos canônicos) — eager (constante leve, sem DB).
+        $gates = [
+            'recall_at_3'           => ['op' => '>=', 'alvo' => 0.80, 'unit' => '',  'label' => 'Recall@3'],
+            'precision_at_3'        => ['op' => '>=', 'alvo' => 0.60, 'unit' => '',  'label' => 'Precision@3'],
+            'mrr'                   => ['op' => '>=', 'alvo' => 0.70, 'unit' => '',  'label' => 'MRR'],
+            'faithfulness'          => ['op' => '>=', 'alvo' => 0.85, 'unit' => '',  'label' => 'Faithfulness'],
+            'latencia_p95_ms'       => ['op' => '<=', 'alvo' => 2000, 'unit' => 'ms','label' => 'Latência p95'],
+            'tokens_medio'          => ['op' => '<=', 'alvo' => 3000, 'unit' => 'tk','label' => 'Tokens/interação'],
+            'memory_bloat'          => ['op' => '>=', 'alvo' => 0.60, 'unit' => '',  'label' => 'Bloat ratio'],
+            'taxa_contradicoes_pct' => ['op' => '<=', 'alvo' => 2.0,  'unit' => '%', 'label' => 'Contradições'],
+            'cross_tenant_violations' => ['op' => '==', 'alvo' => 0,  'unit' => '',  'label' => 'Cross-tenant'],
+        ];
+
+        // D6.a Inertia::defer (Wave 17) — payloads pesados (DB-bound + foreach
+        // O(n×rows)) viram closures lazy. Ver RUNBOOK-inertia-defer-pattern.md.
+        return Inertia::render('Jana/Admin/Qualidade/Index', [
+            'filtros' => ['dias' => $dias, 'business_id' => $businessId],
+            'gates'   => $gates,
+
+            // Trend série + KPIs deferred (query GET MemoriaMetrica + agregação).
+            'series' => Inertia::defer(fn () => $this->buildSeriesPayload($dias, $businessId)),
+            'kpis'   => Inertia::defer(fn () => $this->buildKpisPayload($dias, $businessId)),
+
+            // Gabarito count deferred (COUNT + GROUP BY)
+            'gabarito_total' => Inertia::defer(
+                fn () => DB::table('jana_memoria_gabarito')->where('ativo', true)->count()
+            ),
+            'gabarito_por_categoria' => Inertia::defer(fn () => DB::table('jana_memoria_gabarito')
+                ->where('ativo', true)
+                ->select('categoria', DB::raw('COUNT(*) as c'))
+                ->groupBy('categoria')
+                ->pluck('c', 'categoria')),
+        ]);
+    }
+
+    /** Trend série — extraído pra closure deferred (D6.a Wave 17). */
+    private function buildSeriesPayload(int $dias, ?int $businessId): array
+    {
         $query = MemoriaMetrica::query()
             ->ultimosDias($dias)
             ->orderBy('apurado_em');
@@ -50,7 +87,6 @@ class QualidadeController extends Controller
 
         $rows = $query->get();
 
-        // Agrupar por business pra desenhar séries
         $series = [];
         foreach ($rows as $r) {
             $bizKey = $r->business_id === null ? 'plataforma' : "biz_{$r->business_id}";
@@ -79,12 +115,19 @@ class QualidadeController extends Controller
             ];
         }
 
-        // Última métrica por business (KPIs)
+        return array_values($series);
+    }
+
+    /** KPIs — última métrica por business (D6.a Wave 17). */
+    private function buildKpisPayload(int $dias, ?int $businessId): array
+    {
+        $series = $this->buildSeriesPayload($dias, $businessId);
+
         $kpis = [];
-        foreach ($series as $key => $s) {
+        foreach ($series as $s) {
             $ultimo = end($s['pontos']);
             if ($ultimo === false) continue;
-            $kpis[$key] = [
+            $kpis[] = [
                 'business_id' => $s['business_id'],
                 'label'       => $s['label'],
                 'apurado_em'  => $ultimo['data'],
@@ -100,37 +143,6 @@ class QualidadeController extends Controller
             ];
         }
 
-        // Gates ADR 0049/0050 (alvos canônicos)
-        $gates = [
-            'recall_at_3'           => ['op' => '>=', 'alvo' => 0.80, 'unit' => '',  'label' => 'Recall@3'],
-            'precision_at_3'        => ['op' => '>=', 'alvo' => 0.60, 'unit' => '',  'label' => 'Precision@3'],
-            'mrr'                   => ['op' => '>=', 'alvo' => 0.70, 'unit' => '',  'label' => 'MRR'],
-            'faithfulness'          => ['op' => '>=', 'alvo' => 0.85, 'unit' => '',  'label' => 'Faithfulness'],
-            'latencia_p95_ms'       => ['op' => '<=', 'alvo' => 2000, 'unit' => 'ms','label' => 'Latência p95'],
-            'tokens_medio'          => ['op' => '<=', 'alvo' => 3000, 'unit' => 'tk','label' => 'Tokens/interação'],
-            'memory_bloat'          => ['op' => '>=', 'alvo' => 0.60, 'unit' => '',  'label' => 'Bloat ratio'],
-            'taxa_contradicoes_pct' => ['op' => '<=', 'alvo' => 2.0,  'unit' => '%', 'label' => 'Contradições'],
-            'cross_tenant_violations' => ['op' => '==', 'alvo' => 0,  'unit' => '',  'label' => 'Cross-tenant'],
-        ];
-
-        // Lista de businesses pro filtro
-        $businesses = DB::table('mcp_memory_documents')
-            ->whereNotNull('module')
-            ->select('module')
-            ->distinct()
-            ->pluck('module');
-
-        return Inertia::render('Jana/Admin/Qualidade/Index', [
-            'series'         => array_values($series),
-            'kpis'           => array_values($kpis),
-            'gates'          => $gates,
-            'filtros'        => ['dias' => $dias, 'business_id' => $businessId],
-            'gabarito_total' => DB::table('jana_memoria_gabarito')->where('ativo', true)->count(),
-            'gabarito_por_categoria' => DB::table('jana_memoria_gabarito')
-                ->where('ativo', true)
-                ->select('categoria', DB::raw('COUNT(*) as c'))
-                ->groupBy('categoria')
-                ->pluck('c', 'categoria'),
-        ]);
+        return $kpis;
     }
 }

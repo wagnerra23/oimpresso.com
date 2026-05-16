@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +22,10 @@ class BriefAdapter
 {
     public function fetch(): array
     {
-        return Cache::remember('admin.widget.brief', 300, function () {
+        // D9.a OTel (Wave 17): span envolve Cache::remember pra detectar
+        // cache-miss + latência DB. Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('admin.brief_adapter.fetch', function () {
+            return Cache::remember('admin.widget.brief', 300, function () {
             try {
                 if (! \Schema::hasTable('mcp_briefs')) {
                     return $this->stub('table_missing');
@@ -46,7 +50,8 @@ class BriefAdapter
                 Log::warning('admin.widget.brief.error', ['error' => $e->getMessage()]);
                 return $this->stub('exception:' . substr($e->getMessage(), 0, 120));
             }
-        });
+            });
+        }, ['component' => 'admin.widget.w1']);
     }
 
     private function stub(string $reason): array

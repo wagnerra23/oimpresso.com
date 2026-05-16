@@ -37,6 +37,20 @@ class NarrarSaudeEcosistemaJob implements ShouldQueue
     public int $tries = 2;
     public int $backoff = 30;
 
+    /**
+     * Constructor opcional pra alinhar com rubrica D1.c hardened (Wave 17).
+     *
+     * `$businessId = null` = cross-tenant (default — narra ecosistema inteiro).
+     * `$businessId = int` = override pra reprocessamento targeted de 1 business
+     * (debug / replay manual).
+     *
+     * Back-compat: dispatch sem args continua funcionando.
+     */
+    public function __construct(
+        public readonly ?int $businessId = null,
+    ) {
+    }
+
     public function handle(
         HealthSnapshotService $snapshotService,
         HealthNarratorService $narratorService,

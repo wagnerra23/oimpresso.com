@@ -2,6 +2,8 @@
 
 namespace Modules\Brief\Services;
 
+use App\Util\OtelHelper;
+
 /**
  * Validador do markdown gerado pelo Brain B.
  *
@@ -12,6 +14,9 @@ namespace Modules\Brief\Services;
  * 4. Sem PII de cliente final (CPF/CNPJ)
  *
  * Ver memory/sprints/s1-daily-brief/03-prompt-generator.md.
+ *
+ * D9 observabilidade (Wave 17): validação wrapped em OtelHelper::spanBiz
+ * pra medir custo da regex de PII em produção.
  */
 final class BriefValidator
 {
@@ -28,6 +33,13 @@ final class BriefValidator
     public const MAX_TOKENS = 3500;
 
     public function validate(string $content): ValidationResult
+    {
+        return OtelHelper::spanBiz('brief.validate', fn () => $this->doValidate($content), [
+            'content_length' => mb_strlen($content),
+        ]);
+    }
+
+    private function doValidate(string $content): ValidationResult
     {
         // 1) Headers presentes e na ordem exata
         $lastPos = -1;
