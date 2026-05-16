@@ -1,3 +1,11 @@
+---
+module: ProductCatalogue
+na_justified:
+  D6.b: "ProductCatalogue é catálogo público read-only — p99 OTel <500ms ainda não exportado (instrumentação OTel project-wide pendente). Performance dominada por queries simples em `App\\Product` com cache de imagens — sem otimização específica necessária no estado atual."
+  D9.b: "ProductCatalogue é módulo read-only sem operações assíncronas — só renderização pública via Controller. Sem jobs/Horizon. failed_jobs N/A por design."
+related_adrs: [0011, 0093, 0153, 0154]
+---
+
 # SPEC — Modules/ProductCatalogue
 
 > Catálogo append-only de User Stories aprovadas pro módulo de catálogo público de produtos (compartilhável via QR code + URL pública). Núcleo herdado UltimatePOS v6 ([ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md)) — **sem Entities/Models próprios**; reusa `App\Product`, `App\Business`, `App\BusinessLocation`, `App\Category`, `App\Discount` do core (cobertura multi-tenant herdada).

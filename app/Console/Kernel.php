@@ -122,6 +122,22 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADR 0153/0155 — Module Grades snapshot diário pra sparkline 7d.
+        // Persiste 1 row/módulo em mcp_module_grades_history (~34 módulos × 1KB).
+        // Pareado com jana:health-check (06:00) — ambos rodam após brief regenerar.
+        // 06:05 BRT pra evitar disputa DB com health-check. Cross-tenant intencional
+        // (Governance Art. 6 — observabilidade cross-business — pareado mcp_* tables).
+        $schedule->command('module:grade-snapshot')
+            ->dailyAt('06:05')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule module:grade-snapshot FALHOU — sparkline 7d defasada'
+                );
+            });
+
         // ADR 0133 — System audit (5 dimensões: observability/evals/ADR-stale/cost-agg/test-coverage).
         // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM. 06:15 BRT (15min após health-check
         // pra evitar disputa DB). Tool MCP system-health-audit consulta o mesmo output.

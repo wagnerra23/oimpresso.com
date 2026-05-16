@@ -16,7 +16,7 @@ use Modules\Governance\Services\ModuleGradeService;
  *   php artisan module:grade --all --json       # Output JSON pra dashboard/CI
  *   php artisan module:grade Crm --evolve       # Mostra batch de tasks-create sugeridas
  *
- * Pesos: D1 Multi-tenant 30 / D2 Pest 20 / D3 Doc 15 / D4 Arq 20 / D5 Cliente 15.
+ * Pesos v3 (9 dims): D1 MT 25 / D2 Pest 17 / D3 Doc 12 / D4 Arq 17 / D5 Cli 12 / D6 Perf 10 / D7 LGPD 10 / D8 Sec 8 / D9 Obs 7.
  * Buckets: Excelente 80+ / Bom 60-79 / Médio 40-59 / Crítico 20-39 / Embrião <20.
  *
  * NOTA: NÃO usa `--verbose` (reservado Symfony Console — colide). Usa `--detail`.
@@ -29,7 +29,7 @@ class ModuleGradeCommand extends Command
                             {name? : Nome do módulo (ex: Crm). Vazio + --all avalia todos}
                             {--all : Avalia todos os módulos detectados em Modules/}
                             {--json : Output JSON (machine-readable, sem cores)}
-                            {--detail : Mostra breakdown completo das 5 dimensões}
+                            {--detail : Mostra breakdown completo das 9 dimensões v3}
                             {--evolve : Mostra batch de tasks-create sugeridas pra fechar gaps top 5}';
 
     protected $description = 'Avalia maturidade de Modules/<X>/ via rubrica oficial module-grade-v1 (ADR 0153)';
@@ -85,15 +85,19 @@ class ModuleGradeCommand extends Command
             'Módulo'   => $g['module'],
             'Nota'     => $g['score'],
             'Bucket'   => $g['bucket'],
-            'D1 MT'    => "{$g['dimensions']['multi_tenant']['score']}/{$g['dimensions']['multi_tenant']['max']}",
-            'D2 Pest'  => "{$g['dimensions']['pest_coverage']['score']}/{$g['dimensions']['pest_coverage']['max']}",
-            'D3 Doc'   => "{$g['dimensions']['documentation']['score']}/{$g['dimensions']['documentation']['max']}",
-            'D4 Arq'   => "{$g['dimensions']['architecture']['score']}/{$g['dimensions']['architecture']['max']}",
-            'D5 Cli'   => "{$g['dimensions']['client_real']['score']}/{$g['dimensions']['client_real']['max']}",
+            'D1 MT'    => $this->dimCell($g, 'multi_tenant'),
+            'D2 Pest'  => $this->dimCell($g, 'pest_coverage'),
+            'D3 Doc'   => $this->dimCell($g, 'documentation'),
+            'D4 Arq'   => $this->dimCell($g, 'architecture'),
+            'D5 Cli'   => $this->dimCell($g, 'client_real'),
+            'D6 Perf'  => $this->dimCell($g, 'performance'),
+            'D7 LGPD'  => $this->dimCell($g, 'lgpd'),
+            'D8 Sec'   => $this->dimCell($g, 'security'),
+            'D9 Obs'   => $this->dimCell($g, 'observability'),
         ])->all();
 
         $this->table(
-            ['Módulo', 'Nota', 'Bucket', 'D1 MT', 'D2 Pest', 'D3 Doc', 'D4 Arq', 'D5 Cli'],
+            ['Módulo', 'Nota', 'Bucket', 'D1 MT', 'D2 Pest', 'D3 Doc', 'D4 Arq', 'D5 Cli', 'D6 Perf', 'D7 LGPD', 'D8 Sec', 'D9 Obs'],
             $rows,
         );
 
@@ -133,6 +137,10 @@ class ModuleGradeCommand extends Command
                 'documentation' => 'D3 Documentação canônica',
                 'architecture'  => 'D4 Maturidade arquitetura',
                 'client_real'   => 'D5 Cliente real',
+                'performance'   => 'D6 Performance',
+                'lgpd'          => 'D7 LGPD',
+                'security'      => 'D8 Segurança',
+                'observability' => 'D9 Observabilidade',
                 default         => $key,
             };
             $rows[] = [$label, "{$dim['score']}/{$dim['max']}", "peso {$dim['weight']}"];
@@ -166,6 +174,21 @@ class ModuleGradeCommand extends Command
                 ));
             }
         }
+    }
+
+    /**
+     * Formata célula score/max de uma dimensão.
+     *
+     * Backward-compat: se a dim não existir no output (Service v1 antigo
+     * sem D6-D9 v3), retorna "—" em vez de quebrar.
+     */
+    private function dimCell(array $grade, string $key): string
+    {
+        $dim = $grade['dimensions'][$key] ?? null;
+        if (! $dim || ! isset($dim['score'], $dim['max'])) {
+            return '—';
+        }
+        return "{$dim['score']}/{$dim['max']}";
     }
 
     private function printEvolve(array $grade): void

@@ -1,7 +1,11 @@
 <?php
 
-Route::get('/repair-status', [Modules\Repair\Http\Controllers\CustomerRepairStatusController::class, 'index'])->name('repair-status');
-Route::post('/post-repair-status', [Modules\Repair\Http\Controllers\CustomerRepairStatusController::class, 'postRepairStatus'])->name('post-repair-status');
+// Wave 3 v3 booster D8.a — throttle endpoint público anti-scraping (R-REPA-008)
+// 30 req/min por IP em rota sem auth (consulta OS pública por número + telefone)
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('/repair-status', [Modules\Repair\Http\Controllers\CustomerRepairStatusController::class, 'index'])->name('repair-status');
+    Route::post('/post-repair-status', [Modules\Repair\Http\Controllers\CustomerRepairStatusController::class, 'postRepairStatus'])->name('post-repair-status');
+});
 Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('repair')->group(function () {
     Route::get('edit-repair/{id}/status', [Modules\Repair\Http\Controllers\RepairController::class, 'editRepairStatus']);
     Route::post('update-repair-status', [Modules\Repair\Http\Controllers\RepairController::class, 'updateRepairStatus']);

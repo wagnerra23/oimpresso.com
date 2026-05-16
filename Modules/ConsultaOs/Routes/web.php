@@ -5,10 +5,12 @@ use Modules\ConsultaOs\Http\Controllers\InstallController;
 
 // Portal publico de consulta de OS — sem middleware auth, espelha
 // Modules/Repair/Routes/web.php (rotas /repair-status e /post-repair-status).
+// D8.a Security — throttle:30,1 (30 req/min) em consulta pública anti-enumeration.
 Route::prefix('consulta-os')->name('consulta-os.')->group(function () {
 
     Route::get('/', [ConsultaOsController::class, 'index'])
-        ->name('index');
+        ->name('index')
+        ->middleware('throttle:30,1');
 
     Route::get('/buscar', [ConsultaOsController::class, 'buscar'])
         ->name('buscar')

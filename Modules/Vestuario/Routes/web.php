@@ -10,7 +10,7 @@ use Modules\Vestuario\Http\Controllers\InstallController;
 // e o botão "Install" da tela /manage-modules fica sem ação.
 // Skill criar-modulo §Críticas.
 // ─────────────────────────────────────────────────────────────────────────────
-Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'throttle:120,1'])
     ->prefix('vestuario')
     ->group(function () {
         Route::get('install',           [InstallController::class, 'index']);

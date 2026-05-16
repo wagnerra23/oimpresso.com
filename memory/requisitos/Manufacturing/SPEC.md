@@ -1,3 +1,8 @@
+---
+na_justified:
+  D6.a: "Manufacturing usa pattern Blade legacy + 1 página Inertia v2 (Wave J Onda 1) — Inertia::defer aplicado parcialmente."
+---
+
 # Especificação funcional
 
 ## 3. User stories

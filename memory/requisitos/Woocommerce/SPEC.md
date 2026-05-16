@@ -1,3 +1,10 @@
+---
+module: Woocommerce
+na_justified:
+  D6.b: "Sync WooCommerce REST API depende de latência rede externa do site cliente — fora do controle oimpresso. p99 OTel <500ms N/A enquanto módulo dormante sem cliente ativo + instrumentação OTel project-wide pendente. ADR 0105 (cliente como sinal qualificado)."
+related_adrs: [0093, 0105, 0153, 0154]
+---
+
 # SPEC — Modules/Woocommerce
 
 > Integração com lojas WooCommerce externas — sync de produtos/categorias/tax/atributos via REST API + webhook receiver pra ordens. Herdado do UltimatePOS v6. **Sem cliente ativo hoje** — scaffold preservado pra futuro caso surja cliente que precise.

@@ -1,6 +1,8 @@
 ---
 na_justified:
   D5: "TeamMcp é módulo INTERNO de gestão de tokens MCP do time (Wagner/Felipe/Maiara/Luiz/Eliana). Cliente biz=4 ROTA LIVRE não usa por design — é ferramenta da equipe, não produto pra cliente final. ADR 0081 documenta como módulo team-internal."
+  D8.b: "TeamMcp já nasceu Inertia/React (sem Blade legacy). CSRF é aplicado via middleware web padrão Laravel — não há views Blade pra auditar paridade."
+  D9.b: "Operações TeamMcp (issue token, revoke, rotate) são síncronas via Controller — sem dispatch pra fila assíncrona. failed_jobs N/A por design."
 related_adrs: [0081, 0153, 0154]
 ---
 

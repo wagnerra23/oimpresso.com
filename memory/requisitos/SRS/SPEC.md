@@ -1,3 +1,10 @@
+---
+module: SRS
+na_justified:
+  D6.b: "SRS é ferramenta interna Wagner — uso raro, sem tráfego que justifique medir p99 OTel <500ms. Instrumentação OTel project-wide pendente. Sucessor natural é MCP server canon (`mcp.oimpresso.com`) — SRS pode ser descontinuado em ADR futura."
+related_adrs: [0093, 0153, 0154]
+---
+
 # SPEC — Modules/SRS
 
 > **Atualizado 2026-05-16:** placeholder de 2026-05-04 substituído por SPEC realista do estado atual. Hipóteses A/B/C/D do placeholder foram resolvidas na prática — módulo virou ferramenta interna Wagner pra ingestão+search de documentação (versão lite do que o MCP server faz hoje).

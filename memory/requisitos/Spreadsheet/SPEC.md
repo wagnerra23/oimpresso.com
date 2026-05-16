@@ -1,3 +1,10 @@
+---
+module: Spreadsheet
+na_justified:
+  D9.b: "Spreadsheet é módulo CRUD síncrono — sem jobs assíncronos. CRUD de sheets + shares opera direto via Controller. failed_jobs N/A por design (sem owner ativo, manutenção bug-fix only)."
+related_adrs: [0093, 0153, 0154]
+---
+
 # SPEC — Modules/Spreadsheet
 
 > Módulo legado UltimatePOS v6 — planilhas web colaborativas inline com share via link público. Pouco uso real hoje (Wagner prefere Google Sheets pra colaboração externa). Mantido por compat de scaffold + alguns clientes legacy que ainda têm dados.

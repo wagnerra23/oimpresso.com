@@ -1,6 +1,8 @@
 ---
 project: PMG
 default_component: UI
+na_justified:
+  D9.b: "ProjectMgmt sem jobs assíncronos por design (operações síncronas Kanban) — failed_jobs N/A."
 ---
 
 # ProjectMgmt — SPEC

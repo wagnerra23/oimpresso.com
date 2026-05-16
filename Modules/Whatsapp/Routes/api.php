@@ -23,24 +23,27 @@ use Modules\Whatsapp\Http\Controllers\Api\ZapiWebhookController;
 | @see memory/requisitos/Whatsapp/ARCHITECTURE.md §6 Middlewares
 */
 
+// D8.a Security — throttle:60,1 (60 req/min) em webhooks externos públicos.
+// HMAC + signature já protegem autenticidade; throttle adiciona defesa contra
+// flood/replay storm caso provider externo (Meta/Z-API/Baileys daemon) entre em loop.
 Route::group(['prefix' => 'whatsapp/webhook'], function () {
     // Meta Cloud — GET é challenge (verify_token); POST é evento real
     Route::get('/meta/{business_uuid}', [MetaWebhookController::class, 'verify'])
-        ->middleware('whatsapp.meta.signature')
+        ->middleware(['throttle:60,1', 'whatsapp.meta.signature'])
         ->name('whatsapp.webhook.meta.verify');
 
     Route::post('/meta/{business_uuid}', [MetaWebhookController::class, 'handle'])
-        ->middleware('whatsapp.meta.signature')
+        ->middleware(['throttle:60,1', 'whatsapp.meta.signature'])
         ->name('whatsapp.webhook.meta.handle');
 
     // Z-API — só POST (sem GET challenge; auth via Client-Token header)
     Route::post('/zapi/{business_uuid}', [ZapiWebhookController::class, 'handle'])
-        ->middleware('whatsapp.zapi.signature')
+        ->middleware(['throttle:60,1', 'whatsapp.zapi.signature'])
         ->name('whatsapp.webhook.zapi.handle');
 
     // Baileys daemon Node próprio (Sprint 3 — ADR 0096 emenda 4)
     Route::post('/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
-        ->middleware('whatsapp.baileys.signature')
+        ->middleware(['throttle:60,1', 'whatsapp.baileys.signature'])
         ->name('whatsapp.webhook.baileys.handle');
 });
 
@@ -61,6 +64,7 @@ Route::group(['prefix' => 'atendimento/channels'], function () {
     Route::post('/baileys/{channel_uuid}', [ChannelBaileysWebhookController::class, 'handle'])
         ->where('channel_uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
         ->middleware([
+            'throttle:60,1', // D8.a Security — defesa flood antes mesmo de hmac/backpressure
             'whatsapp.otel.propagate',
             'whatsapp.baileys.hmac',
             'whatsapp.baileys.backpressure',
