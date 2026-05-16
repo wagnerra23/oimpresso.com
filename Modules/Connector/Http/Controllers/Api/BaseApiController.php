@@ -2,6 +2,7 @@
 
 namespace Modules\Connector\Http\Controllers\Api;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +23,17 @@ class BaseApiController extends ApiController
 
     public function syncData(Request $request, array $validationRules, array $responseMapping, callable $uniqueQueryCallback = null)
     {
+        // D9.a OTel — wrap syncData (entrypoint REST genérico p/ módulos externos).
+        return OtelHelper::spanBiz('connector.api.sync_data', function () use ($request, $validationRules, $responseMapping, $uniqueQueryCallback) {
+            return $this->doSyncData($request, $validationRules, $responseMapping, $uniqueQueryCallback);
+        }, [
+            'connector.model' => is_string($this->model) ? $this->model : get_class($this->model),
+            'connector.endpoint' => $request->path(),
+        ]);
+    }
+
+    protected function doSyncData(Request $request, array $validationRules, array $responseMapping, callable $uniqueQueryCallback = null)
+    {
         try {
             $validatedData = $request->validate([
                 'data' => 'required|array',
@@ -31,6 +43,15 @@ class BaseApiController extends ApiController
             $response = [];
             $user = Auth::user();
             $business_id = $user->business_id;
+
+            // D9.b log estruturado contexto biz — entrada syncData.
+            Log::channel('stack')->info('connector.api.sync_data.request', [
+                'biz' => $business_id,
+                'endpoint' => $request->path(),
+                'model' => is_string($this->model) ? $this->model : get_class($this->model),
+                'rows_in' => count($data),
+                'user_id' => $user?->id,
+            ]);
 
             foreach ($data as $item) {
                 try {

@@ -39,31 +39,38 @@ class MetaCloudDriver implements DriverInterface
         array $params,
         string $locale = 'pt_BR',
     ): WhatsappSendResult {
-        $components = empty($params) ? [] : [
-            [
-                'type' => 'body',
-                'parameters' => array_values(array_map(
-                    fn ($value) => ['type' => 'text', 'text' => (string) $value],
-                    $params,
-                )),
-            ],
-        ];
+        return OtelHelper::span('whatsapp.meta_cloud.send_template', [
+            'business_id' => $config->business_id,
+            'template' => $templateName,
+            'locale' => $locale,
+            'phone_id' => $config->id,
+        ], function () use ($config, $to, $templateName, $params, $locale) {
+            $components = empty($params) ? [] : [
+                [
+                    'type' => 'body',
+                    'parameters' => array_values(array_map(
+                        fn ($value) => ['type' => 'text', 'text' => (string) $value],
+                        $params,
+                    )),
+                ],
+            ];
 
-        $payload = [
-            'messaging_product' => 'whatsapp',
-            'to' => $this->normalizePhone($to),
-            'type' => 'template',
-            'template' => [
-                'name' => $templateName,
-                'language' => ['code' => $locale],
-                'components' => $components,
-            ],
-        ];
+            $payload = [
+                'messaging_product' => 'whatsapp',
+                'to' => $this->normalizePhone($to),
+                'type' => 'template',
+                'template' => [
+                    'name' => $templateName,
+                    'language' => ['code' => $locale],
+                    'components' => $components,
+                ],
+            ];
 
-        $response = $this->client($config)
-            ->post("/{$config->meta_phone_number_id}/messages", $payload);
+            $response = $this->client($config)
+                ->post("/{$config->meta_phone_number_id}/messages", $payload);
 
-        return $this->mapSendResponse($response);
+            return $this->mapSendResponse($response);
+        });
     }
 
     public function sendFreeform(

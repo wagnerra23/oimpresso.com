@@ -2,6 +2,8 @@
 
 namespace Modules\ComunicacaoVisual\Services;
 
+use App\Util\OtelHelper;
+use Illuminate\Support\Facades\Log;
 use Modules\ComunicacaoVisual\Entities\Apontamento;
 use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
 use Modules\ComunicacaoVisual\Entities\Os;
@@ -47,6 +49,23 @@ class ApontamentoTracker
         ?int $orcamentoItemId = null,
         ?string $maquina = null,
         array $opts = []
+    ): Apontamento {
+        return OtelHelper::spanBiz('comvis.apontamento.iniciar', function () use (
+            $osId, $operadorId, $orcamentoItemId, $maquina, $opts
+        ) {
+            return $this->iniciarInterno($osId, $operadorId, $orcamentoItemId, $maquina, $opts);
+        }, ['os_id' => $osId, 'operador_id' => $operadorId, 'maquina' => $maquina ?? 'na']);
+    }
+
+    /**
+     * Implementação interna de iniciar — envolvida pelo span OTel acima.
+     */
+    private function iniciarInterno(
+        int $osId,
+        int $operadorId,
+        ?int $orcamentoItemId,
+        ?string $maquina,
+        array $opts
     ): Apontamento {
         // Valida OS existe no business atual (global scope filtra automaticamente)
         $os = Os::find($osId);
@@ -108,6 +127,19 @@ class ApontamentoTracker
      */
     public function finalizar(int $apontamentoId, float $m2Produzido, ?string $observacoes = null): Apontamento
     {
+        return OtelHelper::spanBiz('comvis.apontamento.finalizar', function () use (
+            $apontamentoId, $m2Produzido, $observacoes
+        ) {
+            return $this->finalizarInterno($apontamentoId, $m2Produzido, $observacoes);
+        }, ['apontamento_id' => $apontamentoId, 'm2_produzido' => $m2Produzido]);
+    }
+
+    /**
+     * Implementação interna de finalizar — envolvida pelo span OTel acima.
+     * Loga apontamento finalizado em canal estruturado (D9 observability).
+     */
+    private function finalizarInterno(int $apontamentoId, float $m2Produzido, ?string $observacoes): Apontamento
+    {
         $apontamento = Apontamento::find($apontamentoId);
 
         if ($apontamento === null) {
@@ -140,6 +172,18 @@ class ApontamentoTracker
             'observacoes'      => $observacoes,
         ]);
 
+        // Log estruturado D9 — apontamento finalizado (audit + dashboard)
+        Log::info('comvis.apontamento.finalizado', [
+            'business_id'       => $apontamento->business_id ?? null,
+            'apontamento_id'    => $apontamento->id,
+            'os_id'             => $apontamento->os_id,
+            'operador_id'       => $apontamento->operador_id,
+            'duracao_segundos'  => $duracaoSegundos,
+            'm2_produzido'      => round($m2Produzido, 3),
+            'm2_orcado'         => $m2Orcado,
+            'drift_percent'     => $driftPercent,
+        ]);
+
         return $apontamento->fresh();
     }
 
@@ -155,6 +199,13 @@ class ApontamentoTracker
      * @throws RuntimeException Se apontamento não encontrado ou já finalizado
      */
     public function cancelar(int $apontamentoId, string $motivo): Apontamento
+    {
+        return OtelHelper::spanBiz('comvis.apontamento.cancelar', function () use ($apontamentoId, $motivo) {
+            return $this->cancelarInterno($apontamentoId, $motivo);
+        }, ['apontamento_id' => $apontamentoId]);
+    }
+
+    private function cancelarInterno(int $apontamentoId, string $motivo): Apontamento
     {
         $apontamento = Apontamento::find($apontamentoId);
 

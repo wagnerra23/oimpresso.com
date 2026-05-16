@@ -93,35 +93,41 @@ class BaileysDriver implements DriverInterface
         string $type,
         ?string $caption = null,
     ): WhatsappSendResult {
-        $daemonType = match ($type) {
-            'image' => 'image',
-            'document', 'pdf' => 'document',
-            'audio' => 'audio',
-            'video' => 'video',
-            default => null,
-        };
+        return OtelHelper::span('whatsapp.baileys.send_media', [
+            'business_id' => $config->business_id,
+            'instance_id' => $config->baileys_instance_id ?? null,
+            'media_type' => $type,
+        ], function () use ($config, $to, $mediaUrl, $type, $caption) {
+            $daemonType = match ($type) {
+                'image' => 'image',
+                'document', 'pdf' => 'document',
+                'audio' => 'audio',
+                'video' => 'video',
+                default => null,
+            };
 
-        if ($daemonType === null) {
-            return WhatsappSendResult::failed(
-                errorCode: 'baileys_unsupported_media_type',
-                errorMessage: "Tipo de mídia '{$type}' não suportado pelo BaileysDriver.",
-            );
-        }
+            if ($daemonType === null) {
+                return WhatsappSendResult::failed(
+                    errorCode: 'baileys_unsupported_media_type',
+                    errorMessage: "Tipo de mídia '{$type}' não suportado pelo BaileysDriver.",
+                );
+            }
 
-        $payload = [
-            'to' => $this->normalizePhone($to),
-            'media_url' => $mediaUrl,
-            'type' => $daemonType,
-        ];
+            $payload = [
+                'to' => $this->normalizePhone($to),
+                'media_url' => $mediaUrl,
+                'type' => $daemonType,
+            ];
 
-        if ($caption !== null && in_array($daemonType, ['image', 'video', 'document'], true)) {
-            $payload['caption'] = $caption;
-        }
+            if ($caption !== null && in_array($daemonType, ['image', 'video', 'document'], true)) {
+                $payload['caption'] = $caption;
+            }
 
-        $response = $this->client($config)
-            ->post("/instances/{$config->baileys_instance_id}/media", $payload);
+            $response = $this->client($config)
+                ->post("/instances/{$config->baileys_instance_id}/media", $payload);
 
-        return $this->mapSendResponse($response);
+            return $this->mapSendResponse($response);
+        });
     }
 
     public function sendInteractive(
@@ -132,28 +138,34 @@ class BaileysDriver implements DriverInterface
     ): WhatsappSendResult {
         $type = (string) ($interactive['type'] ?? '');
 
-        // Baileys 6.7+ suporta buttons + list nativos. CTA URL não tem
-        // equivalente direto no Whatsapp Web protocol — daemon mapeia pra
-        // texto com URL embedded, mas preferimos rejeitar explícito pro
-        // caller saber que precisa cair pro Meta Cloud.
-        if ($type === 'cta_url') {
-            throw DriverDoesNotSupport::for('baileys', 'interactive.cta_url');
-        }
+        return OtelHelper::span('whatsapp.baileys.send_interactive', [
+            'business_id' => $config->business_id,
+            'instance_id' => $config->baileys_instance_id ?? null,
+            'interactive_type' => $type,
+        ], function () use ($config, $to, $body, $interactive, $type) {
+            // Baileys 6.7+ suporta buttons + list nativos. CTA URL não tem
+            // equivalente direto no Whatsapp Web protocol — daemon mapeia pra
+            // texto com URL embedded, mas preferimos rejeitar explícito pro
+            // caller saber que precisa cair pro Meta Cloud.
+            if ($type === 'cta_url') {
+                throw DriverDoesNotSupport::for('baileys', 'interactive.cta_url');
+            }
 
-        if (! in_array($type, ['buttons', 'list'], true)) {
-            throw DriverDoesNotSupport::for('baileys', "interactive.{$type}");
-        }
+            if (! in_array($type, ['buttons', 'list'], true)) {
+                throw DriverDoesNotSupport::for('baileys', "interactive.{$type}");
+            }
 
-        $payload = [
-            'to' => $this->normalizePhone($to),
-            'body' => $body,
-            'interactive' => $interactive,
-        ];
+            $payload = [
+                'to' => $this->normalizePhone($to),
+                'body' => $body,
+                'interactive' => $interactive,
+            ];
 
-        $response = $this->client($config)
-            ->post("/instances/{$config->baileys_instance_id}/interactive", $payload);
+            $response = $this->client($config)
+                ->post("/instances/{$config->baileys_instance_id}/interactive", $payload);
 
-        return $this->mapSendResponse($response);
+            return $this->mapSendResponse($response);
+        });
     }
 
     public function fetchMessageStatus(

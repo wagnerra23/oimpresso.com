@@ -2,8 +2,10 @@
 
 namespace Modules\Ponto\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Ponto\Entities\Colaborador;
@@ -61,6 +63,26 @@ class AfdParserService
     }
 
     public function processar(Importacao $importacao)
+    {
+        // D9.a Wave 16 OTel — processamento AFD/AFDT (Portaria 671/2021 Anexo I).
+        // Hot-path: pode demorar minutos pra arquivos grandes. NÃO inclui caminho
+        // do arquivo no span (pode conter dados sensíveis); só importacao_id+hash.
+        return OtelHelper::span('ponto.afd.processar', [
+            'module'         => 'Ponto',
+            'business_id'    => (int) $importacao->business_id,
+            'importacao_id'  => (int) $importacao->id,
+            'tipo'           => $importacao->tipo,
+            'hash_arquivo'   => substr((string) $importacao->hash_arquivo, 0, 16),
+            'tamanho_bytes'  => (int) $importacao->tamanho_bytes,
+        ], function () use ($importacao) {
+            return $this->processarInterno($importacao);
+        });
+    }
+
+    /**
+     * @internal Corpo real de processar() — separado para wrap OTel D9.a Wave 16.
+     */
+    private function processarInterno(Importacao $importacao)
     {
         $importacao->update([
             'estado'      => Importacao::ESTADO_PROCESSANDO,
@@ -194,6 +216,21 @@ class AfdParserService
                 'erros_amostra'      => $erroAmostras,
                 'log'                => $log,
                 'concluido_em'       => now(),
+            ]);
+
+            // D9.b Wave 16 — log estruturado conclusão AFD (cron/queue worker).
+            // Tier 0 multi-tenant: business_id sempre presente. PII: zero — só
+            // ids numéricos + contadores agregados (pis_nao_cadastrados é COUNT,
+            // não lista valores). Útil pra alertas: linhas_erro > 0 em prod.
+            Log::info('ponto.afd.processar.concluido', [
+                'business_id'                  => $importacao->business_id,
+                'importacao_id'                => $importacao->id,
+                'tipo'                         => $importacao->tipo,
+                'estado_final'                 => $estadoFinal,
+                'linhas_total'                 => $total,
+                'linhas_sucesso'               => $sucesso,
+                'linhas_erro'                  => $erros,
+                'pis_nao_cadastrados_distintos' => count($pisNaoCadastrados),
             ]);
         }
     }

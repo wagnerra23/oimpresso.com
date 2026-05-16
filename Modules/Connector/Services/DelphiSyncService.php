@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Connector\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -85,21 +86,24 @@ class DelphiSyncService
      */
     public function extractHd(Request $request): ?string
     {
-        // Fallback header explícito
-        $headerHd = $request->headers->get('X-OI-HD');
-        if ($headerHd) {
-            return strtoupper(trim($headerHd));
-        }
+        // D9.a OTel — wrap extração HD (chamada por todos endpoints licença).
+        return OtelHelper::spanBiz('connector.delphi.extract_hd', function () use ($request) {
+            // Fallback header explícito
+            $headerHd = $request->headers->get('X-OI-HD');
+            if ($headerHd) {
+                return strtoupper(trim($headerHd));
+            }
 
-        $body = $request->getContent();
-        $format = $this->detectBodyFormat($body);
+            $body = $request->getContent();
+            $format = $this->detectBodyFormat($body);
 
-        return match ($format) {
-            'array_tabelas' => $this->extractHdFromArrayTabelas($body),
-            'json_flat'     => $this->extractHdFromJsonFlat($body),
-            'pipe'          => $this->extractHdFromPipe($body),
-            default         => null,
-        };
+            return match ($format) {
+                'array_tabelas' => $this->extractHdFromArrayTabelas($body),
+                'json_flat'     => $this->extractHdFromJsonFlat($body),
+                'pipe'          => $this->extractHdFromPipe($body),
+                default         => null,
+            };
+        }, ['connector.service' => self::class]);
     }
 
     /**
@@ -113,6 +117,14 @@ class DelphiSyncService
      * @return array{0: ?int, 1: ?int} [business_id, business_location_id]
      */
     public function resolveByCnpj(Request $request): array
+    {
+        // D9.a OTel — wrap resolução CNPJ (chamada por todos endpoints Delphi).
+        return OtelHelper::spanBiz('connector.delphi.resolve_by_cnpj', function () use ($request) {
+            return $this->doResolveByCnpj($request);
+        }, ['connector.service' => self::class]);
+    }
+
+    private function doResolveByCnpj(Request $request): array
     {
         // 1. URL param explícito
         $routeBizId = $request->route('business_id');

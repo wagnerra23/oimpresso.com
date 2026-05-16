@@ -2,10 +2,12 @@
 
 namespace Modules\Cms\Http\Controllers;
 
+use App\Util\OtelHelper;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsPageMeta;
@@ -90,7 +92,21 @@ class CmsPageController extends Controller
 
             $input['is_enabled'] = ! empty($request->is_enabled);
 
-            $page = CmsPage::create($input);
+            // D9.a OTel — instrumenta criação de página CMS (operação de escrita crítica).
+            $page = OtelHelper::spanBiz('cms.page.create', function () use ($input) {
+                return CmsPage::create($input);
+            }, [
+                'page_type' => $input['type'] ?? 'page',
+                'is_enabled' => (bool) ($input['is_enabled'] ?? false),
+            ]);
+
+            // D9.b Log estruturado — evento de auditoria (não-crítico, sem span completo).
+            Log::info('cms.page.created', [
+                'biz' => session('user.business_id'),
+                'page_id' => $page->id,
+                'type' => $input['type'] ?? 'page',
+                'created_by' => $input['created_by'] ?? null,
+            ]);
 
             $output = ['success' => 1,
                 'msg' => __('lang_v1.added_success'),
@@ -136,12 +152,16 @@ class CmsPageController extends Controller
 
     /**
      * Payload deferido da página CMS (eager-load pageMeta).
+     *
+     * D9.a OTel — instrumenta render público (latência sensível pra SEO + UX).
      */
     private function buildPagePayload(string $title)
     {
-        return CmsPage::with(['pageMeta'])
-                    ->where('title', $title)
-                    ->first();
+        return OtelHelper::spanBiz('cms.page.render', function () use ($title) {
+            return CmsPage::with(['pageMeta'])
+                        ->where('title', $title)
+                        ->first();
+        }, ['page_title' => $title]);
     }
 
     /** Versão Blade legada de /c/page/{slug} — em /c/page/{slug}/old. */
@@ -213,11 +233,25 @@ class CmsPageController extends Controller
 
             $input['is_enabled'] = ! empty($request->is_enabled);
 
-            $page->update($input);
+            // D9.a OTel — instrumenta update de página + sync meta (operação crítica).
+            OtelHelper::spanBiz('cms.page.update', function () use ($page, $input, $request, $id) {
+                $page->update($input);
 
-            if (! empty($request->input('meta'))) {
-                CmsPageMeta::updateOrCreateMetaForPage($request->input('meta'), $id);
-            }
+                if (! empty($request->input('meta'))) {
+                    CmsPageMeta::updateOrCreateMetaForPage($request->input('meta'), $id);
+                }
+            }, [
+                'page_id' => (int) $id,
+                'page_type' => $input['type'] ?? 'page',
+                'has_meta' => ! empty($request->input('meta')),
+            ]);
+
+            // D9.b Log estruturado — toggle is_enabled é evento relevante (LGPD Art. 37 audit).
+            Log::info('cms.page.updated', [
+                'biz' => session('user.business_id'),
+                'page_id' => (int) $id,
+                'is_enabled' => (bool) $input['is_enabled'],
+            ]);
 
             $output = ['success' => 1,
                 'msg' => __('lang_v1.updated_success'),
@@ -259,11 +293,24 @@ class CmsPageController extends Controller
                 $page = CmsPage::where('type', $post_type)
                         ->findOrFail($id);
 
-                if (! empty($page->feature_image_path) && file_exists($page->feature_image_path)) {
-                    unlink($page->feature_image_path);
-                }
+                // D9.a OTel — instrumenta delete (operação destrutiva crítica).
+                OtelHelper::spanBiz('cms.page.delete', function () use ($page) {
+                    if (! empty($page->feature_image_path) && file_exists($page->feature_image_path)) {
+                        unlink($page->feature_image_path);
+                    }
 
-                $page->delete();
+                    $page->delete();
+                }, [
+                    'page_id' => (int) $page->id,
+                    'page_type' => (string) $post_type,
+                ]);
+
+                // D9.b Log estruturado — delete obrigatório (audit trail LGPD Art. 37/38).
+                Log::info('cms.page.deleted', [
+                    'biz' => session('user.business_id'),
+                    'page_id' => (int) $id,
+                    'type' => $post_type,
+                ]);
 
                 $output = ['success' => true,
                     'msg' => __('unit.deleted_success'),
