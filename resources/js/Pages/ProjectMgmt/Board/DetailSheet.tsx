@@ -14,7 +14,6 @@
 // Endpoint: GET /project-mgmt/board/{taskId}/detail (BoardController@show).
 
 import { useEffect, useState } from 'react';
-import { router } from '@inertiajs/react';
 import {
   Activity as ActivityIcon,
   AlertCircle,
@@ -29,6 +28,7 @@ import {
   MessageSquare,
   Plus,
   RefreshCw,
+  Send,
   UserPlus,
 } from 'lucide-react';
 import {
@@ -38,6 +38,8 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/Components/ui/sheet';
+import { Button } from '@/Components/ui/button';
+import MentionInput from '@/Components/MentionInput';
 import { PRIORITY_BADGE, type Priority, type Status } from '@/Components/board/badges';
 
 interface TaskDetail {
@@ -176,6 +178,11 @@ export default function DetailSheet({ taskId, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('description');
 
+  // PMG-005 (ADR 0100) — formulário comment com @mentions
+  const [commentDraft, setCommentDraft] = useState<string>('');
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
+
   // Fetch quando abre
   useEffect(() => {
     if (!taskId) return;
@@ -207,6 +214,52 @@ export default function DetailSheet({ taskId, onClose }: Props) {
 
     return () => ctrl.abort();
   }, [taskId]);
+
+  // Reset form quando troca de task
+  useEffect(() => {
+    setCommentDraft('');
+    setPostError(null);
+  }, [taskId]);
+
+  // PMG-005 — submeter comment + refetch
+  async function handlePostComment() {
+    if (!taskId || !commentDraft.trim() || posting) return;
+    setPosting(true);
+    setPostError(null);
+
+    const csrfToken =
+      (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+
+    try {
+      const r = await fetch(`/project-mgmt/board/${taskId}/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ body: commentDraft.trim() }),
+      });
+
+      if (r.status === 403) throw new Error('Sem permissão para comentar.');
+      if (r.status === 422) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.message ?? 'Comentário inválido.');
+      }
+      if (!r.ok) throw new Error(`Erro ${r.status}`);
+
+      const json = await r.json();
+      // Otimista: anexa novo comment local e clear draft
+      setData((prev) =>
+        prev ? { ...prev, comments: [...prev.comments, json.comment] } : prev
+      );
+      setCommentDraft('');
+    } catch (err) {
+      setPostError(err instanceof Error ? err.message : 'Erro ao enviar.');
+    } finally {
+      setPosting(false);
+    }
+  }
 
   const open = !!taskId;
   const t = data?.task;
@@ -363,7 +416,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
               )}
 
               {tab === 'comments' && (
-                <div className="py-4">
+                <div className="py-4 space-y-4">
                   {data.comments.length === 0 ? (
                     <p className="text-sm text-muted-foreground italic">Sem comentários ainda.</p>
                   ) : (
@@ -379,9 +432,37 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                       ))}
                     </ul>
                   )}
-                  <p className="mt-4 text-[11px] text-muted-foreground">
-                    Adicionar comentário: use <code className="font-mono">tasks-comment</code> via MCP. UI inline entra em PMG-005 (@mentions).
-                  </p>
+
+                  {/* PMG-005 (ADR 0100) — form add comment com @mentions */}
+                  <div className="border-t pt-4">
+                    <MentionInput
+                      value={commentDraft}
+                      onChange={setCommentDraft}
+                      onSubmit={handlePostComment}
+                      placeholder="Comentar (use @ pra mencionar)…"
+                      disabled={posting}
+                      rows={3}
+                    />
+
+                    {postError && (
+                      <p className="mt-2 text-xs text-red-600 dark:text-red-400">{postError}</p>
+                    )}
+
+                    <div className="mt-2 flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={handlePostComment}
+                        disabled={posting || !commentDraft.trim()}
+                      >
+                        {posting ? (
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        ) : (
+                          <Send className="mr-1 h-3 w-3" />
+                        )}
+                        Enviar
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
 

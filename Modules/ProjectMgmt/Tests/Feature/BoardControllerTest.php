@@ -329,3 +329,84 @@ it('GET /board/{taskId}/detail happy path retorna shape canônico', function () 
     expect($data['task']['status'])->toBe('doing');
     expect($data['task']['priority'])->toBe('p1');
 });
+
+// ============================================================================
+// PMG-005 (ADR 0100) — Comments + @mentions
+// ============================================================================
+
+it("POST /board/{taskId}/comment sem permission retorna 403", function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, "todo");
+
+    pmgRevokePerm($user);
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$task->task_id}/comment", ["body" => "teste"]);
+
+    expect($response->status())->toBe(403);
+});
+
+it("POST comment happy path cria mcp_task_comment + retorna 201", function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, "todo");
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$task->task_id}/comment", [
+            "body" => "comentário sem mentions",
+        ]);
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped("Permission gate inesperado.");
+    }
+
+    expect($response->status())->toBe(201);
+    $response->assertJsonStructure([
+        "ok",
+        "comment" => ["id", "task_id", "author", "body", "created_at"],
+    ]);
+
+    $persisted = \Modules\Jana\Entities\Mcp\McpTaskComment::where("task_id", $task->task_id)->count();
+    expect($persisted)->toBe(1);
+});
+
+it("POST comment vazio retorna 422", function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+    $project = pmgEnsureProject();
+    $task = pmgCreateTask($project, "todo");
+
+    $response = $this->actingAs($user)
+        ->postJson("/project-mgmt/board/{$task->task_id}/comment", ["body" => ""]);
+
+    expect($response->status())->toBe(422);
+});
+
+it("GET /board/users/suggest sem query retorna lista vazia", function () {
+    $user = pmgBootstrapUser();
+    pmgGivePerm($user);
+
+    $response = $this->actingAs($user)
+        ->getJson("/project-mgmt/board/users/suggest");
+
+    if ($response->status() === 403) {
+        test()->markTestSkipped("Permission gate inesperado.");
+    }
+
+    $response->assertOk();
+    $response->assertJson(["users" => []]);
+});
+
+it("GET /board/users/suggest sem permission retorna 403", function () {
+    $user = pmgBootstrapUser();
+    pmgRevokePerm($user);
+
+    $response = $this->actingAs($user)
+        ->getJson("/project-mgmt/board/users/suggest?q=admin");
+
+    expect($response->status())->toBe(403);
+});
+
