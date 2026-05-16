@@ -4,11 +4,13 @@ namespace Modules\Arquivos\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\Arquivos\Services\VaultEncryptionService;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * arquivos:export-zip — Sprint 2 ADR 0123 (LGPD Art. 18 portabilidade de dados).
@@ -293,11 +295,13 @@ class ExportZipCommand extends Command
             // Verifica existência do file no disk antes de tentar ler
             if (! Storage::disk($diskName)->exists($row->storage_path)) {
                 $stats['missing_file']++;
+                // D7 LGPD (Wave 10): path/filename pode conter CPF/CNPJ embutido
+                // ("biz-1/2026/05/ab12.../contrato-123.456.789-00.pdf") — redact.
                 Log::warning('arquivos.export_zip.file_missing', [
                     'arquivo_id'  => $row->id,
                     'business_id' => $row->business_id,
                     'disk'        => $diskName,
-                    'path'        => $row->storage_path,
+                    'path'        => $this->redactPii((string) $row->storage_path),
                 ]);
                 return 'missing';
             }
@@ -442,6 +446,26 @@ class ExportZipCommand extends Command
     {
         // Substitui backslashes e barras por hífen, remove chars inválidos
         return preg_replace('/[\\\\\/]+/', '-', $type);
+    }
+
+    /**
+     * D7 LGPD (Wave 10) — redactor seguro pra paths/filenames em logs.
+     *
+     * Filename original pode trazer PII embutida (ex: "rg-123.456.789-00.pdf",
+     * "contrato-cnpj-12.345.678-0001-90.pdf", "boleto-email-foo@bar.com.pdf").
+     * Fail-open: se PiiRedactor não resolver (boot/teardown), retorna input.
+     */
+    private function redactPii(string $input): string
+    {
+        if ($input === '') {
+            return '';
+        }
+
+        try {
+            return App::make(PiiRedactor::class)->redact($input);
+        } catch (\Throwable) {
+            return $input;
+        }
     }
 
     /**

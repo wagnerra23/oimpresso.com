@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Modules\Cms\Http\Controllers;
 
@@ -23,7 +23,7 @@ class CmsController extends Controller
     protected $cmsUtil;
 
     /**
-     * Service de conteúdo do site público (D4.a SoC brutal — ADR 0094 §5).
+     * Service de conteÃºdo do site pÃºblico (D4.a SoC brutal â€” ADR 0094 Â§5).
      */
     protected SiteContentService $siteContent;
 
@@ -46,62 +46,60 @@ class CmsController extends Controller
      */
     public function index()
     {
-        // PR2: hidratar Hero/Features/SocialProof a partir destes dados
-        // (atualmente Pages/Site/Home.tsx tem copy hardcoded em PT-BR pra acelerar PR1)
-        // Payload extraído pra SiteContentService — ver charter Site/Home.charter.md
+        // Wave 10 D6.a: 4 props per-key Inertia::defer â€” Site/Home pode renderizar shell
+        // imediato e hidratar Testimonials/Faqs/SocialProof/Hero/FeatureGrid em segundo turno.
+        // Pattern validado em ContactController@index (Cliente/Index â€” kpis+customers).
         //
-        // D6.a (ADR 0155) — Inertia::defer em 4 props caras (testimonials/page/faqs/statistics):
-        // cada uma toca DB via SiteContentService → CmsPage/CmsSiteDetail. Closures defer
-        // skippam execução no initial paint (Hero+SocialProof com copy hardcoded já cobrem),
-        // só executam quando Site/Home faz async fetch via <Deferred data="..."> wrapper.
-        // RUNBOOK: memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md
+        // Site/Home NÃƒO foi alvo do rollback PR #963 (que afetou sÃ³ Blogs/BlogPost/Page) â€”
+        // se sintoma "undefined initial render" aparecer, frontend tem <Deferred> wrapper
+        // com fallback={null} pra cada seÃ§Ã£o (resources/js/Pages/Site/Home.tsx).
+        //
+        // SoC: payload continua thin via SiteContentService (D4.a ADR 0094 Â§5).
         return Inertia::render('Site/Home', [
-            'testimonials' => Inertia::defer(fn () => $this->buildTestimonialsPayload()),
-            'page'         => Inertia::defer(fn () => $this->buildHomePagePayload()),
-            'faqs'         => Inertia::defer(fn () => $this->buildFaqsPayload()),
-            'statistics'   => Inertia::defer(fn () => $this->buildStatisticsPayload()),
+            'page' => Inertia::defer(fn () => $this->buildHomePagePayload()),
+            'testimonials' => Inertia::defer(fn () => $this->buildHomeTestimonialsPayload()),
+            'faqs' => Inertia::defer(fn () => $this->buildHomeFaqsPayload()),
+            'statistics' => Inertia::defer(fn () => $this->buildHomeStatisticsPayload()),
         ]);
     }
 
     /**
-     * Payload deferido — testimonials (CmsPage where type=testimonial).
-     * Custo: 1 query SELECT scan ordered by priority.
+     * Payload deferido da pÃ¡gina layout=home (Hero + FeatureGrid).
+     * Wrapper sobre SiteContentService â€” closure sÃ³ executa quando Inertia pede.
      */
-    private function buildTestimonialsPayload()
+    private function buildHomePagePayload()
+    {
+        return $this->siteContent->getPageByLayout('home');
+    }
+
+    /**
+     * Payload deferido dos testimonials (type=testimonial).
+     * Query independente â€” vai pra <Deferred data="testimonials"> no frontend.
+     */
+    private function buildHomeTestimonialsPayload()
     {
         return $this->cmsUtil->getPageByType('testimonial');
     }
 
     /**
-     * Payload deferido — página de layout=home (CmsPage hero/features copy editável).
-     * Custo: 1 query SELECT + eager-load pageMeta.
+     * Payload deferido das FAQs (CmsSiteDetail key=faqs).
      */
-    private function buildHomePagePayload()
-    {
-        return $this->cmsUtil->getPageByLayout('home');
-    }
-
-    /**
-     * Payload deferido — FAQs (CmsSiteDetail key=faqs).
-     * Custo: 1 query SELECT scalar value.
-     */
-    private function buildFaqsPayload()
+    private function buildHomeFaqsPayload()
     {
         return CmsSiteDetail::getValue('faqs');
     }
 
     /**
-     * Payload deferido — estatísticas (CmsSiteDetail key=statistics).
-     * Custo: 1 query SELECT scalar value.
+     * Payload deferido das statistics (CmsSiteDetail key=statistics).
      */
-    private function buildStatisticsPayload()
+    private function buildHomeStatisticsPayload()
     {
         return CmsSiteDetail::getValue('statistics');
     }
 
     /**
-     * Versão Blade legada da home (template UltimatePOS em inglês).
-     * Mantida atrás de /old durante a transição pra Inertia — remover após validação.
+     * VersÃ£o Blade legada da home (template UltimatePOS em inglÃªs).
+     * Mantida atrÃ¡s de /old durante a transiÃ§Ã£o pra Inertia â€” remover apÃ³s validaÃ§Ã£o.
      */
     public function indexLegacy()
     {
@@ -189,7 +187,7 @@ class CmsController extends Controller
     }
 
     /**
-     * Payload deferido da lista de blogs (closure executada só quando frontend pede).
+     * Payload deferido da lista de blogs (closure executada sÃ³ quando frontend pede).
      */
     private function buildBlogListPayload()
     {
@@ -199,7 +197,7 @@ class CmsController extends Controller
                     ->get();
     }
 
-    /** Versão Blade legada de /c/blogs — em /c/blogs/old durante a transição. */
+    /** VersÃ£o Blade legada de /c/blogs â€” em /c/blogs/old durante a transiÃ§Ã£o. */
     public function getBlogListLegacy()
     {
         $blogs = CmsPage::where('type', 'blog')
@@ -232,7 +230,7 @@ class CmsController extends Controller
                     ->findOrFail($id);
     }
 
-    /** Versão Blade legada de /c/blog/{slug}-{id} — em /c/blog/{slug}-{id}/old. */
+    /** VersÃ£o Blade legada de /c/blog/{slug}-{id} â€” em /c/blog/{slug}-{id}/old. */
     public function viewBlogLegacy(Request $request)
     {
         $id = $this->cmsUtil->findIdFromGivenUrl($request->url());
@@ -274,9 +272,9 @@ class CmsController extends Controller
                         ->notify(new NewLeadGeneratedNotification($lead_details));
                 }
 
-                // D7.a LGPD — log com PII redactada (CPF/CNPJ/email/telefone)
-                // antes de gravar trace de lead capturado (skill multi-tenant + ADR 0094 §4).
-                \Log::info('[cms.lead.captured] novo lead via formulário público', [
+                // D7.a LGPD â€” log com PII redactada (CPF/CNPJ/email/telefone)
+                // antes de gravar trace de lead capturado (skill multi-tenant + ADR 0094 Â§4).
+                \Log::info('[cms.lead.captured] novo lead via formulÃ¡rio pÃºblico', [
                     'lead' => $piiRedactor->redactArray($lead_details),
                 ]);
 
@@ -285,7 +283,7 @@ class CmsController extends Controller
                     'msg' => __('cms::lang.we_will_contact_soon'),
                 ];
             } catch (Exception $e) {
-                // PII redaction defensiva — exception pode carregar payload com email/telefone.
+                // PII redaction defensiva â€” exception pode carregar payload com email/telefone.
                 \Log::emergency('[cms.lead.error] '.$piiRedactor->redact(
                     'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()
                 ));

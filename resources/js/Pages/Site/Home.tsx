@@ -18,6 +18,9 @@ interface SiteHomeProps {
   statistics?: any[] | null;
 }
 
+// Wave 10 D6.a: cada prop vem via Inertia::defer (per-key). Wrap em <Deferred>
+// renderiza fallback shell até hidratar; componentes filhos JÁ tratam undefined/null
+// (Hero/FeatureGrid recebem `page` opcional, SocialProof aceita null, etc.).
 function SiteHome({ page, testimonials, faqs, statistics }: SiteHomeProps) {
   return (
     <>

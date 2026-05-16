@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Entities\AssetWarranty;
+use Modules\AssetManagement\Http\Requests\StoreAssetRequest;
+use Modules\AssetManagement\Http\Requests\UpdateAssetRequest;
 use Modules\AssetManagement\Utils\AssetUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -278,17 +280,12 @@ class AssetController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreAssetRequest $request)
     {
-        if (! auth()->user()->can('asset.create')) {
-            abort(403, 'Unauthorized action.');
-        }
-
+        // D8.c Wave 10 — validation + permission checks (asset.create + subscription)
+        // movidos pra StoreAssetRequest::authorize/rules. Permission check redundante
+        // removido — FormRequest ja retorna 403 antes de chegar aqui.
         $business_id = request()->session()->get('user.business_id');
-
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
             $input = $request->only('asset_code', 'name', 'quantity', 'model',
@@ -425,17 +422,11 @@ class AssetController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateAssetRequest $request, $id)
     {
-        if (! auth()->user()->can('asset.update')) {
-            abort(403, 'Unauthorized action.');
-        }
-
+        // D8.c Wave 10 — validation + permission checks (asset.update + subscription)
+        // movidos pra UpdateAssetRequest::authorize/rules.
         $business_id = request()->session()->get('user.business_id');
-
-        if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
             $input = $request->only('name', 'quantity', 'model',

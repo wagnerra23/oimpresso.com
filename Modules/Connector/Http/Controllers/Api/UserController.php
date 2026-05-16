@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Modules\Connector\Http\Requests\RegisterUserRequest;
 use Modules\Connector\Notifications\NewPassword;
 use Modules\Connector\Transformers\CommonResource;
 
@@ -369,14 +370,9 @@ class UserController extends ApiController
         }
     }
      */
-    public function registerUser(Request $request)
+    public function registerUser(RegisterUserRequest $request)
     {
-        $request->validate([
-            'username' => 'unique:users',
-            'email' => 'required|unique:users',
-            'user_type' => 'required',
-        ]);
-
+        // D8.c Wave 10 — validation movida pra RegisterUserRequest.
         try {
             $user = $this->commonUtil->createUser($request);
 
