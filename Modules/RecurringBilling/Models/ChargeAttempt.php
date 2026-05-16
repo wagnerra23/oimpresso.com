@@ -5,6 +5,8 @@ namespace Modules\RecurringBilling\Models;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Tentativa de cobrança — append-only log idempotente.
@@ -26,10 +28,28 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ChargeAttempt extends Model
 {
     use HasBusinessScope;
+    use LogsActivity; // D7 LGPD audit trail (Wave 14) — INSERT-only por causa do append
 
     public const UPDATED_AT = null; // append-only
 
     protected $table = 'rb_charge_attempts';
+
+    /**
+     * Auditoria LGPD (D7) — registra INSERT da tentativa (append-only).
+     * NÃO loga `request_json`/`response_json` (payload gateway com PII).
+     *
+     * @see Modules\RecurringBilling\Config\retention.php
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'invoice_id', 'gateway', 'attempt_n',
+                'status', 'error_code',
+            ])
+            ->dontSubmitEmptyLogs()
+            ->useLogName('recurringbilling.charge_attempt');
+    }
 
     protected $fillable = [
         'business_id', 'invoice_id', 'gateway', 'attempt_n',

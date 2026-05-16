@@ -18,7 +18,7 @@ return [
     'next_review_at' => env('GOVERNANCE_NEXT_REVIEW_AT', '2026-08-05'),
 
     /*
-     * D1 heurística hardening (ADR 0158 proposto) — Wave 12 2026-05-16.
+     * D1 heurística hardening (ADR 0158 — aceita Wave 12, ATIVADA Wave 14 2026-05-16).
      *
      * Quando true, ModuleGradeService aplica 3 fixes na heurística D1 multi-tenant:
      *
@@ -29,10 +29,15 @@ return [
      *   (3) D1.c fallback regex: Job constructor `__construct(int $entityId)` +
      *       body referencia `->business_id` qualifica como multi-tenant safe
      *
-     * Default false: módulos atuais que passavam D1 continuam com mesmo score.
-     * Wagner aprova ativar via .env após smoke run + diff de score por módulo.
+     * Default `true` desde Wave 14 — Wagner aprovou após smoke run + diff por módulo
+     * mostrar ajustes esperados (Jana/Entities/Mcp/* sobe, jobs Asaas/Inter qualificam).
      *
-     * @see memory/decisions/0158-module-grade-v3-d1-heuristica-hardening.md (proposto)
+     * Quando desativar (`GOVERNANCE_D1_HARDENED=false` no .env):
+     *   - Regressão massiva (>3 módulos perdem ≥3pts D1) detectada em prod
+     *   - Investigação de bug exige isolar heurística legacy vs hardened
+     *   - Rollback emergencial de ADR 0158 (via ADR nova de reversão)
+     *
+     * @see memory/decisions/0158-module-grade-v3-d1-heuristica-hardening.md
      */
-    'd1_hardened' => env('GOVERNANCE_D1_HARDENED', false),
+    'd1_hardened' => env('GOVERNANCE_D1_HARDENED', true),
 ];

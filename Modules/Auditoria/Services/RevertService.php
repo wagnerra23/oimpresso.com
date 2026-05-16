@@ -3,8 +3,10 @@
 namespace Modules\Auditoria\Services;
 
 use App\User;
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -164,6 +166,12 @@ class RevertService
             throw new \InvalidArgumentException('revert_reason precisa ter no minimo 10 caracteres.');
         }
 
+        // D7.a LGPD: redacta PII (CPF/CNPJ/email/telefone) da justificativa do
+        // revert ANTES de persistir em activity_log. Service Jana é a fonte
+        // canônica de redaction BR — Auditoria NÃO duplica regex/lógica, apenas
+        // consome (ADR 0093 + ADR 0127). Modo placeholder mantém legibilidade.
+        $reason = app(PiiRedactor::class)->redact($reason, 'placeholder');
+
         $modelClass = $log->subject_type;
         $subject = $modelClass::find($log->subject_id);
 
@@ -174,7 +182,11 @@ class RevertService
 
         $batchUuid = (string) Str::uuid();
 
-        return DB::transaction(function () use ($log, $by, $reason, $subject, $oldAttrs, $batchUuid) {
+        // D9.a OTel: span hot-path do revert (transaction + 3 writes).
+        // Zero-cost quando OTel disabled (config('otel.enabled')=false default).
+        // Attributes: NO PII — apenas IDs + classe (Tier 0 ADR 0093).
+        return OtelHelper::spanBiz('auditoria.revert.execute', function () use ($log, $by, $reason, $subject, $oldAttrs, $batchUuid): Activity {
+            return DB::transaction(function () use ($log, $by, $reason, $subject, $oldAttrs, $batchUuid) {
             // Aplica old attrs no Model (campos logged anyway)
             foreach ($oldAttrs as $field => $value) {
                 $subject->{$field} = $value;
@@ -215,7 +227,15 @@ class RevertService
                 'business_id' => $log->business_id,
             ]);
 
-            return $revertEntry;
-        });
+                return $revertEntry;
+            });
+        }, [
+            'module'              => 'Auditoria',
+            'activity_id'         => $log->id,
+            'subject_type'        => $log->subject_type,
+            'subject_id'          => (int) $log->subject_id,
+            'restored_attrs_count' => count($oldAttrs),
+            'has_reason'          => $reason !== '',
+        ]);
     }
 }

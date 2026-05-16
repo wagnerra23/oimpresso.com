@@ -2,8 +2,10 @@
 
 namespace Modules\NFSe\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\Exceptions\CertificadoInvalidoException;
@@ -91,6 +93,15 @@ class NfseEmissaoService
      * @throws NfseException se a emissão falhar após todas as tentativas
      */
     public function emitir(NfseEmissaoPayload $payload): NfseEmissao
+    {
+        // OtelHelper::spanBiz — observability webservice prefeitura (HTTP externo p99 crítico).
+        // D9.a Wave 14: span por emissão envolve adapter HTTP + idempotência + retries.
+        return OtelHelper::spanBiz('nfse.emissao', function () use ($payload) {
+            return $this->emitirInterno($payload);
+        }, $payload->businessId);
+    }
+
+    private function emitirInterno(NfseEmissaoPayload $payload): NfseEmissao
     {
         // Idempotência: retorna nota existente se já foi emitida com mesmo payload
         // SUPERADMIN: service de emissão NFSe sem context tenant — business_id vem do payload (DTO recebido); idempotência cross-session
@@ -229,15 +240,21 @@ class NfseEmissaoService
 
     private function marcarErro(NfseEmissao $emissao, ?NfseException $e): void
     {
+        // D7.a Wave 14: PiiRedactor em erro_mensagem + log — webservice prefeitura pode
+        // ecoar CPF/CNPJ tomador no payload SOAP de erro (LGPD Art. 6º IX — minimização).
+        $mensagemSegura = $e?->getMessage()
+            ? app(PiiRedactor::class)->redact($e->getMessage())
+            : null;
+
         $emissao->update([
             'status'        => 'erro',
-            'erro_mensagem' => $e?->getMessage(),
+            'erro_mensagem' => $mensagemSegura,
         ]);
 
         Log::channel('nfse')->error('NFSe erro', [
             'business_id' => $emissao->business_id,
             'codigo'      => $e?->codigo,
-            'mensagem'    => $e?->getMessage(),
+            'mensagem'    => $mensagemSegura,
         ]);
     }
 }
