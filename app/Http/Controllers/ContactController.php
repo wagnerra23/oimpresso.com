@@ -22,9 +22,46 @@ use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ContactCreatedOrModified;
+use Inertia\Inertia;
 
 class ContactController extends Controller
 {
+    /**
+     * W1-B3 — Helper MWART pra checar feature flag `cliente_*` por business.
+     * Vazia em business_ids = todos os businesses; lista = só os listados.
+     * Ver `config/mwart.php` + ADR 0104.
+     */
+    private function shouldRenderInertiaCliente(string $flag, int $business_id): bool
+    {
+        if (! config("mwart.{$flag}.enabled")) {
+            return false;
+        }
+        $allowedBizIds = config("mwart.{$flag}.business_ids", []);
+        if (empty($allowedBizIds)) {
+            return true;
+        }
+        return in_array($business_id, $allowedBizIds, true);
+    }
+
+    /**
+     * W1-B3 — Mascara CNPJ/CPF pra display client-side.
+     * NUNCA enviar plain digits — ADR 0093 PII §LGPD Art.7.
+     */
+    private function maskTaxNumber(?string $taxNumber): ?string
+    {
+        if (empty($taxNumber)) {
+            return null;
+        }
+        $digits = preg_replace('/\D/', '', $taxNumber);
+        if (strlen($digits) === 11) {
+            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $digits);
+        }
+        if (strlen($digits) === 14) {
+            return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $digits);
+        }
+        return $taxNumber;
+    }
+
     protected $commonUtil;
 
     protected $contactUtil;
@@ -91,8 +128,141 @@ class ContactController extends Controller
             $customer_groups = CustomerGroup::forDropdown($business_id);
         }
 
+        // W1-B3 MWART branch — Inertia render quando flag cliente_index liga.
+        if ($type === 'customer' && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
+            return Inertia::render('Cliente/Index', [
+                'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id)),
+                'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id)),
+                'permissions' => [
+                    'create' => auth()->user()->can('customer.create'),
+                    'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
+                    'import' => auth()->user()->can('customer.create'),
+                ],
+            ]);
+        }
+
         return view('contact.index')
             ->with(compact('type', 'reward_enabled', 'customer_groups', 'users'));
+    }
+
+    /**
+     * W1-B3 — Constrói KPIs da listagem de clientes pra Inertia/React.
+     * Multi-tenant: scoped por `business_id` ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+     */
+    private function buildClienteIndexKpis(int $business_id): array
+    {
+        $base = Contact::where('contacts.business_id', $business_id)
+            ->whereIn('type', ['customer', 'both']);
+
+        $total = (clone $base)->count();
+        $com_os_aberta = (clone $base)
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                  ->from('transactions')
+                  ->whereColumn('transactions.contact_id', 'contacts.id')
+                  ->where('transactions.type', 'sell')
+                  ->whereIn('transactions.payment_status', ['due', 'partial']);
+            })
+            ->count();
+        $com_atraso = (clone $base)
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                  ->from('transactions')
+                  ->whereColumn('transactions.contact_id', 'contacts.id')
+                  ->where('transactions.type', 'sell')
+                  ->whereIn('transactions.payment_status', ['due', 'partial'])
+                  ->whereNotNull('transactions.due_date')
+                  ->where('transactions.due_date', '<', now());
+            })
+            ->count();
+        $valor_total_aberto = (float) Transaction::where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->whereIn('transactions.payment_status', ['due', 'partial'])
+            ->sum(DB::raw('final_total - COALESCE(total_paid, 0)'));
+
+        return [
+            'total' => (int) $total,
+            'com_os_aberta' => (int) $com_os_aberta,
+            'com_atraso' => (int) $com_atraso,
+            'valor_total_aberto' => $valor_total_aberto,
+        ];
+    }
+
+    /**
+     * W1-B3 — Constrói lista paginada de clientes pra Inertia/React.
+     * Multi-tenant scope obrigatório ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+     */
+    private function buildClienteIndexCustomers(int $business_id): array
+    {
+        $perPage = (int) request()->input('per_page', 50);
+        $perPage = max(10, min($perPage, 100));
+
+        $contacts = Contact::where('contacts.business_id', $business_id)
+            ->whereIn('contacts.type', ['customer', 'both'])
+            ->select(
+                'contacts.id',
+                'contacts.name',
+                'contacts.tax_number',
+                'contacts.contact_id',
+                'contacts.mobile',
+            )
+            ->orderBy('contacts.name', 'asc')
+            ->paginate($perPage);
+
+        $contactIds = $contacts->pluck('id')->all();
+
+        $stats = Transaction::where('transactions.business_id', $business_id)
+            ->whereIn('transactions.contact_id', $contactIds)
+            ->where('transactions.type', 'sell')
+            ->select(
+                'contact_id',
+                DB::raw('COUNT(*) AS total_os'),
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN 1 ELSE 0 END) AS os_abertas'),
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') AND due_date IS NOT NULL AND due_date < NOW() THEN 1 ELSE 0 END) AS os_atrasadas'),
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN (final_total - COALESCE(total_paid, 0)) ELSE 0 END) AS valor_aberto'),
+                DB::raw('MAX(transaction_date) AS last_os_at'),
+            )
+            ->groupBy('contact_id')
+            ->get()
+            ->keyBy('contact_id');
+
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats) {
+            $row = $stats->get($contact->id);
+            $totalOs = $row ? (int) $row->total_os : 0;
+            $abertas = $row ? (int) $row->os_abertas : 0;
+            $atrasadas = $row ? (int) $row->os_atrasadas : 0;
+            $valorAberto = $row ? (float) $row->valor_aberto : 0.0;
+            $lastOsAt = $row ? $row->last_os_at : null;
+            $status = $atrasadas > 0 ? 'late' : ($abertas > 0 ? 'active' : 'idle');
+
+            return [
+                'id' => (int) $contact->id,
+                'name' => (string) $contact->name,
+                'tax_number_masked' => $this->maskTaxNumber($contact->tax_number),
+                'contact_id' => $contact->contact_id,
+                'mobile' => $contact->mobile,
+                'total_os' => $totalOs,
+                'os_abertas' => $abertas,
+                'os_atrasadas' => $atrasadas,
+                'valor_aberto' => $valorAberto,
+                'status' => $status,
+                'last_os_at' => $lastOsAt,
+            ];
+        })->all();
+
+        return [
+            'data' => $rows,
+            'meta' => [
+                'current_page' => $contacts->currentPage(),
+                'last_page' => $contacts->lastPage(),
+                'per_page' => $contacts->perPage(),
+                'total' => $contacts->total(),
+                'from' => $contacts->firstItem(),
+                'to' => $contacts->lastItem(),
+                'sort' => 'name',
+                'dir' => 'asc',
+            ],
+        ];
     }
 
     /**
@@ -573,6 +743,22 @@ class ContactController extends Controller
             $prefill_name = mb_substr($prefill_name, 0, 100);
         }
 
+        // W1-B3 MWART branch — Inertia render quando flag cliente_create liga.
+        if ($this->shouldRenderInertiaCliente('cliente_create', (int) $business_id)) {
+            return Inertia::render('Cliente/Create', [
+                'types' => $types,
+                'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
+                    ? $customer_groups->map(fn ($v, $k) => ['id' => $k, 'name' => $v])->values()->all()
+                    : (is_array($customer_groups) ? array_map(fn ($v, $k) => ['id' => $k, 'name' => $v], $customer_groups, array_keys($customer_groups)) : []),
+                'selected_type' => $selected_type,
+                'prefill_name' => $prefill_name,
+                'permissions' => [
+                    'create_customer' => auth()->user()->can('customer.create'),
+                    'create_supplier' => auth()->user()->can('supplier.create'),
+                ],
+            ]);
+        }
+
         return view('contact.create')
             ->with(compact('types', 'customer_groups', 'selected_type', 'module_form_parts', 'users', 'prefill_name'));
     }
@@ -755,6 +941,49 @@ class ContactController extends Controller
            ->latest()
            ->get();
 
+        // W1-B3 MWART branch — Inertia render quando flag cliente_show liga.
+        if ($this->shouldRenderInertiaCliente('cliente_show', (int) $business_id)) {
+            return Inertia::render('Cliente/Show', [
+                'contact' => [
+                    'id' => (int) $contact->id,
+                    'name' => (string) $contact->name,
+                    'supplier_business_name' => $contact->supplier_business_name ?? null,
+                    'type' => (string) ($contact->type ?? 'customer'),
+                    'tax_number_masked' => $this->maskTaxNumber($contact->tax_number ?? null),
+                    'mobile' => $contact->mobile ?? null,
+                    'landline' => $contact->landline ?? null,
+                    'email' => $contact->email ?? null,
+                    'city' => $contact->city ?? null,
+                    'state' => $contact->state ?? null,
+                    'address_line_1' => $contact->address_line_1 ?? null,
+                ],
+                'stats' => Inertia::defer(fn () => [
+                    'total_invoice' => (float) ($contact->total_invoice ?? 0),
+                    'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
+                    'total_purchase' => (float) ($contact->total_purchase ?? 0),
+                    'purchase_due' => (float) (($contact->total_purchase ?? 0) - ($contact->purchase_paid ?? 0)),
+                    'opening_balance' => (float) ($contact->opening_balance ?? 0),
+                ]),
+                'transactions' => Inertia::defer(fn () => Transaction::where('business_id', $business_id)
+                    ->where('contact_id', $contact->id)
+                    ->whereIn('type', ['sell', 'purchase'])
+                    ->orderByDesc('transaction_date')
+                    ->limit(20)
+                    ->get(['id', 'invoice_no', 'transaction_date', 'final_total', 'payment_status'])
+                    ->map(fn ($tx) => [
+                        'id' => (int) $tx->id,
+                        'invoice_no' => (string) $tx->invoice_no,
+                        'transaction_date' => optional($tx->transaction_date)->toIso8601String(),
+                        'final_total' => (float) $tx->final_total,
+                        'payment_status' => (string) $tx->payment_status,
+                    ])
+                    ->all()),
+                'permissions' => [
+                    'update' => auth()->user()->can('customer.update') || auth()->user()->can('supplier.update'),
+                ],
+            ]);
+        }
+
         return view('contact.show')
              ->with(compact('contact', 'reward_enabled', 'contact_dropdown', 'business_locations', 'view_type', 'contact_view_tabs', 'activities'));
     }
@@ -812,6 +1041,65 @@ class ContactController extends Controller
 
             return view('contact.edit')
                 ->with(compact('contact', 'types', 'customer_groups', 'opening_balance', 'users'));
+        }
+
+        // W1-B3 MWART branch (non-ajax full page) — Inertia render quando flag cliente_edit liga.
+        $business_id = request()->session()->get('user.business_id');
+        if ($this->shouldRenderInertiaCliente('cliente_edit', (int) $business_id)) {
+            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+
+            $types = [];
+            if (auth()->user()->can('supplier.create')) {
+                $types['supplier'] = __('report.supplier');
+            }
+            if (auth()->user()->can('customer.create')) {
+                $types['customer'] = __('report.customer');
+            }
+            if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create')) {
+                $types['both'] = __('lang_v1.both_supplier_customer');
+            }
+            $customer_groups = CustomerGroup::forDropdown($business_id);
+
+            $ob_transaction = Transaction::where('contact_id', $id)
+                ->where('type', 'opening_balance')
+                ->first();
+            $opening_balance = ! empty($ob_transaction->final_total) ? $ob_transaction->final_total : 0;
+            if (! empty($opening_balance)) {
+                $opening_balance_paid = $this->transactionUtil->getTotalAmountPaid($ob_transaction->id);
+                if (! empty($opening_balance_paid)) {
+                    $opening_balance = $opening_balance - $opening_balance_paid;
+                }
+                $opening_balance = $this->commonUtil->num_f($opening_balance);
+            }
+
+            return Inertia::render('Cliente/Edit', [
+                'contact' => [
+                    'id' => (int) $contact->id,
+                    'type' => (string) ($contact->type ?? 'customer'),
+                    'contact_type' => $contact->contact_type ?? null,
+                    'name' => (string) $contact->name,
+                    'prefix' => $contact->prefix ?? null,
+                    'first_name' => (string) ($contact->first_name ?? $contact->name),
+                    'middle_name' => $contact->middle_name ?? null,
+                    'last_name' => $contact->last_name ?? null,
+                    'supplier_business_name' => $contact->supplier_business_name ?? null,
+                    'tax_number' => $contact->tax_number ?? null,
+                    'mobile' => $contact->mobile ?? null,
+                    'landline' => $contact->landline ?? null,
+                    'email' => $contact->email ?? null,
+                    'address_line_1' => $contact->address_line_1 ?? null,
+                    'city' => $contact->city ?? null,
+                    'state' => $contact->state ?? null,
+                    'zip_code' => $contact->zip_code ?? null,
+                    'customer_group_id' => $contact->customer_group_id ?? null,
+                    'credit_limit' => $contact->credit_limit ?? null,
+                ],
+                'types' => $types,
+                'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
+                    ? $customer_groups->map(fn ($v, $k) => ['id' => $k, 'name' => $v])->values()->all()
+                    : [],
+                'opening_balance' => (string) $opening_balance,
+            ]);
         }
     }
 
@@ -1061,6 +1349,23 @@ class ContactController extends Controller
         }
 
         $zip_loaded = extension_loaded('zip') ? true : false;
+        $business_id = request()->session()->get('user.business_id');
+
+        // W1-B3 MWART branch — Inertia render quando flag cliente_import liga.
+        if ($this->shouldRenderInertiaCliente('cliente_import', (int) $business_id)) {
+            $notification = null;
+            if ($zip_loaded === false) {
+                $notification = [
+                    'success' => 0,
+                    'msg' => 'Please install/enable PHP Zip archive for import',
+                ];
+            }
+
+            return Inertia::render('Cliente/Import', [
+                'zip_available' => $zip_loaded,
+                'notification' => $notification,
+            ]);
+        }
 
         //Check if zip extension it loaded or not.
         if ($zip_loaded === false) {
@@ -1385,6 +1690,50 @@ class ContactController extends Controller
             $mpdf->Output($output_file_name, 'I');
         }
 
+        // W1-B3 MWART branch — Inertia render quando flag cliente_ledger liga.
+        if ($this->shouldRenderInertiaCliente('cliente_ledger', (int) $business_id) && request()->input('action') !== 'pdf') {
+            $lines = collect($ledger_details['ledger'] ?? [])->map(function ($line) {
+                return [
+                    'date' => $line['date'] ?? null,
+                    'ref_no' => $line['ref_no'] ?? '',
+                    'description' => $line['type'] ?? $line['description'] ?? '',
+                    'debit' => (float) ($line['debit'] ?? 0),
+                    'credit' => (float) ($line['credit'] ?? 0),
+                    'balance' => (float) ($line['balance'] ?? 0),
+                    'payment_method' => $line['payment_method'] ?? null,
+                    'doc_type' => (string) ($line['doc_type'] ?? 'invoice'),
+                ];
+            })->all();
+
+            return Inertia::render('Cliente/Ledger', [
+                'contact' => [
+                    'id' => (int) $contact->id,
+                    'name' => (string) $contact->name,
+                    'tax_number_masked' => $this->maskTaxNumber($contact->tax_number ?? null),
+                    'mobile' => $contact->mobile ?? null,
+                    'email' => $contact->email ?? null,
+                    'opening_balance' => (float) ($contact->opening_balance ?? 0),
+                    'current_balance' => (float) ($ledger_details['balance_due'] ?? 0),
+                ],
+                'ledger' => [
+                    'lines' => $lines,
+                    'total_debit' => (float) ($ledger_details['total_debit'] ?? array_sum(array_column($lines, 'debit'))),
+                    'total_credit' => (float) ($ledger_details['total_credit'] ?? array_sum(array_column($lines, 'credit'))),
+                    'balance' => (float) ($ledger_details['balance_due'] ?? 0),
+                ],
+                'filters' => [
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'format' => $format,
+                    'location_id' => $location_id ? (int) $location_id : null,
+                ],
+                'locations' => BusinessLocation::where('business_id', $business_id)
+                    ->get(['id', 'name'])
+                    ->map(fn ($l) => ['id' => (int) $l->id, 'name' => (string) $l->name])
+                    ->all(),
+            ]);
+        }
+
         if ($format == 'format_2') {
             return view('contact.ledger_format_2')
              ->with(compact('ledger_details', 'contact', 'location'));
@@ -1651,6 +2000,31 @@ class ContactController extends Controller
         $all_contacts = Contact::where('business_id', $business_id)
                         ->active()
                         ->get();
+
+        // W1-B3 MWART branch — Inertia render quando flag cliente_map liga.
+        if ($this->shouldRenderInertiaCliente('cliente_map', (int) $business_id)) {
+            $mapContacts = $contacts->map(fn ($c) => [
+                'id' => (int) $c->id,
+                'name' => (string) $c->name,
+                'position' => $c->position,
+                'city' => $c->city ?? null,
+                'state' => $c->state ?? null,
+                'mobile' => $c->mobile ?? null,
+            ])->all();
+            $mapAll = $all_contacts->map(fn ($c) => [
+                'id' => (int) $c->id,
+                'name' => (string) $c->name,
+                'position' => $c->position,
+                'city' => $c->city ?? null,
+                'state' => $c->state ?? null,
+                'mobile' => $c->mobile ?? null,
+            ])->all();
+
+            return Inertia::render('Cliente/Map', [
+                'contacts' => $mapContacts,
+                'all_contacts' => $mapAll,
+            ]);
+        }
 
         return view('contact.contact_map')
              ->with(compact('contacts', 'all_contacts'));

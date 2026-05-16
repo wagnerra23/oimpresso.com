@@ -32,6 +32,8 @@
             <directory>./Modules/ComunicacaoVisual/Tests/Feature</directory>
             <directory>./Modules/OficinaAuto/Tests/Feature</directory>
             <directory>./Modules/TeamMcp/Tests/Feature</directory>
+            <directory>./Modules/KB/Tests/Feature</directory>
+            <directory>./Modules/KB/Tests/Unit</directory>
         </testsuite>
     </testsuites>
     <source>

@@ -26,6 +26,7 @@ use App\Warranty;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Inertia\Inertia;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -1596,9 +1597,11 @@ class SellController extends Controller
      */
     public function show($id)
     {
-        // if (!auth()->user()->can('sell.view') && !auth()->user()->can('direct_sell.access') && !auth()->user()->can('view_own_sell_only')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        // Wave 1 W1-A — MWART migração. Branch dual Inertia/Blade preserva legacy.
+        // Auth gate explícito (legacy tinha comentado; reativado conforme ADR 0093 + RUNBOOK-show §2).
+        if (! auth()->user()->can('sell.view') && ! auth()->user()->can('direct_sell.access') && ! auth()->user()->can('view_own_sell_only')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $business_id = request()->session()->get('user.business_id');
         $taxes = TaxRate::where('business_id', $business_id)
@@ -1662,6 +1665,100 @@ class SellController extends Controller
         $status_color_in_activity = Transaction::sales_order_statuses();
         $sales_orders = $sell->salesOrders();
 
+        // Wave 1 W1-A — branch dual MWART. Inertia se header X-Inertia presente.
+        // Detail (8 with()-pesados + activities + line_taxes) vai DEFERRED — RUNBOOK-show §3.1.
+        if (request()->header('X-Inertia')) {
+            $totalPaid = (float) collect($sell->payment_lines ?? [])->sum('amount');
+            $headline = [
+                'id' => (int) $sell->id,
+                'invoice_no' => (string) $sell->invoice_no,
+                'transaction_date' => (string) $sell->transaction_date,
+                'final_total' => (float) $sell->final_total,
+                'total_paid' => $totalPaid,
+                'payment_status' => (string) $sell->payment_status,
+                'status' => (string) $sell->status,
+                'current_stage_key' => null,  // FSM ADR 0143 — lazy preencher se relation existir
+                'customer' => $sell->contact ? [
+                    'id' => (int) $sell->contact->id,
+                    'name' => (string) $sell->contact->name,
+                    'mobile' => $sell->contact->mobile ?: null,
+                    'email' => $sell->contact->email ?: null,
+                ] : null,
+                'location' => $sell->location_id ? [
+                    'id' => (int) $sell->location_id,
+                    'name' => optional(\App\BusinessLocation::find($sell->location_id))->name,
+                ] : null,
+            ];
+
+            // Detail payload já calculado acima — encapsular pra defer.
+            $detailPayload = function () use ($sell, $taxes, $payment_types, $order_taxes, $pos_settings, $shipping_statuses, $shipping_status_colors, $is_warranty_enabled, $activities, $statuses, $status_color_in_activity, $sales_orders, $line_taxes) {
+                return [
+                    'lines' => collect($sell->sell_lines)->map(function ($line) {
+                        return [
+                            'id' => (int) $line->id,
+                            'product_name' => optional($line->product)->name ?? '',
+                            'product_sku' => optional($line->variations)->sub_sku ?? '',
+                            'quantity' => (float) $line->quantity,
+                            'unit_price' => (float) $line->unit_price,
+                            'discount' => (float) ($line->line_discount_amount ?? 0),
+                            'subtotal' => (float) ($line->unit_price_inc_tax * $line->quantity),
+                            'tax_amount' => (float) ($line->item_tax * $line->quantity),
+                            'unit' => optional(optional($line->product)->unit)->short_name ?? '',
+                        ];
+                    })->values()->toArray(),
+                    'payments' => collect($sell->payment_lines ?? [])->map(function ($p) {
+                        return [
+                            'id' => (int) $p->id,
+                            'amount' => (float) $p->amount,
+                            'method' => (string) $p->method,
+                            'paid_on' => $p->paid_on ? (string) $p->paid_on : null,
+                            'note' => $p->note ? (string) $p->note : null,
+                        ];
+                    })->values()->toArray(),
+                    'taxes' => [
+                        'order_taxes' => $order_taxes,
+                        'line_taxes' => $line_taxes,
+                    ],
+                    'activities' => collect($activities)->map(function ($a) {
+                        return [
+                            'description' => (string) $a->description,
+                            'causer_name' => optional($a->causer)->user_full_name ?? (optional($a->causer)->surname . ' ' . optional($a->causer)->first_name),
+                            'created_at' => (string) $a->created_at,
+                        ];
+                    })->values()->toArray(),
+                    'shipping' => [
+                        'details' => (string) ($sell->shipping_details ?? ''),
+                        'address' => (string) ($sell->shipping_address ?? ''),
+                        'cost' => (float) ($sell->shipping_charges ?? 0),
+                        'status' => $sell->shipping_status ? (string) $sell->shipping_status : null,
+                    ],
+                    'notes' => $sell->additional_notes ? (string) $sell->additional_notes : null,
+                    'sub_type' => $sell->sub_type ? (string) $sell->sub_type : null,
+                    'sales_orders' => collect($sales_orders ?? [])->map(fn ($so) => (string) ($so->invoice_no ?? ''))->values()->toArray(),
+                    'statuses' => $statuses,
+                    'shipping_statuses' => $shipping_statuses,
+                    'is_warranty_enabled' => (bool) $is_warranty_enabled,
+                ];
+            };
+
+            return Inertia::render('Sells/Show', [
+                'saleId' => (int) $id,
+                'headline' => $headline,
+                'detail' => Inertia::defer($detailPayload),
+                'permissions' => [
+                    'edit' => auth()->user()->can('direct_sell.update') || auth()->user()->can('so.update'),
+                    'delete' => auth()->user()->can('direct_sell.delete') || auth()->user()->can('sell.delete'),
+                    'print' => true,
+                ],
+                'urls' => [
+                    'edit' => action([\App\Http\Controllers\SellController::class, 'edit'], [$id]),
+                    'print' => '/sells/' . $id . '/print',
+                    'sheet_data' => '/sells/' . $id . '/sheet-data',
+                    'back' => '/sells',
+                ],
+            ]);
+        }
+
         return view('sale_pos.show')
             ->with(compact(
                 'taxes',
@@ -1695,6 +1792,13 @@ class SellController extends Controller
         //Check if the transaction can be edited or not.
         $edit_days = request()->session()->get('business.transaction_edit_days');
         if (! $this->transactionUtil->canBeEdited($id, $edit_days)) {
+            // Wave 1 W1-A — resposta 422 JSON se header X-Inertia (frontend trata via onError).
+            if (request()->header('X-Inertia')) {
+                return response()->json([
+                    'success' => 0,
+                    'msg' => __('messages.transaction_edit_not_allowed', ['days' => $edit_days]),
+                ], 422);
+            }
             return back()
                 ->with('status', ['success' => 0,
                     'msg' => __('messages.transaction_edit_not_allowed', ['days' => $edit_days]), ]);
@@ -1702,6 +1806,12 @@ class SellController extends Controller
 
         //Check if return exist then not allowed
         if ($this->transactionUtil->isReturnExist($id)) {
+            if (request()->header('X-Inertia')) {
+                return response()->json([
+                    'success' => 0,
+                    'msg' => __('lang_v1.return_exist'),
+                ], 422);
+            }
             return back()->with('status', ['success' => 0,
                 'msg' => __('lang_v1.return_exist'), ]);
         }
@@ -1984,6 +2094,84 @@ class SellController extends Controller
         //Added check because $users is of no use if enable_contact_assign if false
         $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
 
+        // Wave 1 W1-A — branch dual MWART. Inertia se header X-Inertia presente.
+        // Form payload pesado (sell_details join 6 tables + payment_lines + dropdowns) vai DEFERRED.
+        if (request()->header('X-Inertia')) {
+            $headline = [
+                'id' => (int) $transaction->id,
+                'invoice_no' => (string) $transaction->invoice_no,
+                'type' => (string) $transaction->type,
+                'status' => (string) $transaction->status,
+                'current_stage_key' => null,  // FSM ADR 0143 (lazy)
+            ];
+
+            $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $users) {
+                return [
+                    'transaction' => [
+                        'id' => (int) $transaction->id,
+                        'invoice_no' => (string) $transaction->invoice_no,
+                        'transaction_date' => (string) $transaction->transaction_date,
+                        'status' => (string) $transaction->status,
+                        'contact_id' => (int) $transaction->contact_id,
+                        'location_id' => (int) $transaction->location_id,
+                        'final_total' => (float) $transaction->final_total,
+                        'discount_type' => (string) ($transaction->discount_type ?? 'percentage'),
+                        'discount_amount' => (float) ($transaction->discount_amount ?? 0),
+                        'tax_id' => $transaction->tax_id ? (int) $transaction->tax_id : null,
+                        'tax_amount' => (float) ($transaction->tax_amount ?? 0),
+                        'shipping_details' => (string) ($transaction->shipping_details ?? ''),
+                        'shipping_address' => (string) ($transaction->shipping_address ?? ''),
+                        'shipping_charges' => (float) ($transaction->shipping_charges ?? 0),
+                        'shipping_status' => $transaction->shipping_status ? (string) $transaction->shipping_status : null,
+                        'additional_notes' => $transaction->additional_notes ? (string) $transaction->additional_notes : null,
+                        'invoice_scheme_id' => $transaction->invoice_scheme_id ? (int) $transaction->invoice_scheme_id : null,
+                        'pay_term_number' => $transaction->pay_term_number,
+                        'pay_term_type' => $transaction->pay_term_type ? (string) $transaction->pay_term_type : null,
+                    ],
+                    'sellDetails' => $sell_details,
+                    'taxes' => $taxes,
+                    'commissionAgents' => $commission_agent,
+                    'types' => $types,
+                    'customerGroups' => $customer_groups,
+                    'posSettings' => $pos_settings,
+                    'waiters' => $waiters,
+                    'invoiceSchemes' => $invoice_schemes,
+                    'defaultInvoiceScheme' => $default_invoice_schemes,
+                    'redeemDetails' => $redeem_details,
+                    'permissions' => [
+                        'editDiscount' => (bool) $edit_discount,
+                        'editPrice' => (bool) $edit_price,
+                    ],
+                    'shippingStatuses' => $shipping_statuses,
+                    'warranties' => $warranties,
+                    'statuses' => $statuses,
+                    'salesOrders' => $sales_orders,
+                    'paymentTypes' => $payment_types,
+                    'accounts' => $accounts,
+                    'paymentLines' => $payment_lines,
+                    'isOrderRequestEnabled' => (bool) $is_order_request_enabled,
+                    'customerDue' => (string) $customer_due,
+                    'users' => $users,
+                ];
+            };
+
+            return Inertia::render('Sells/Edit', [
+                'saleId' => (int) $id,
+                'headline' => $headline,
+                'form' => Inertia::defer($formPayload),
+                'permissions' => [
+                    'editPrice' => (bool) $edit_price,
+                    'editDiscount' => (bool) $edit_discount,
+                    'update' => true,
+                ],
+                'urls' => [
+                    'submit' => '/sells/' . $id,
+                    'cancel' => '/sells/' . $id,
+                    'back' => '/sells',
+                ],
+            ]);
+        }
+
         return view('sell.edit')
             ->with(compact('business_details', 'taxes', 'sell_details', 'transaction', 'commission_agent', 'types', 'customer_groups', 'pos_settings', 'waiters', 'invoice_schemes', 'default_invoice_schemes', 'redeem_details', 'edit_discount', 'edit_price', 'shipping_statuses', 'warranties', 'statuses', 'sales_orders', 'payment_types', 'accounts', 'payment_lines', 'change_return', 'is_order_request_enabled', 'customer_due', 'users'));
     }
@@ -2006,6 +2194,35 @@ class SellController extends Controller
 
         $sales_representative = User::forDropdown($business_id, false, false, true);
 
+        // Wave 1 W1-A — branch dual MWART. KPI agregado leve eager + customers deferred.
+        if (request()->header('X-Inertia')) {
+            $draftCount = Transaction::where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->where('status', 'draft')
+                ->whereNull('sub_status')
+                ->count();
+
+            return Inertia::render('Sells/Drafts', [
+                'kpis' => [
+                    'total' => (int) $draftCount,
+                ],
+                'filters' => [
+                    'businessLocations' => $business_locations,
+                    // Customers pode ser dropdown grande (ROTA LIVRE tem ~1500 clientes) — deferred.
+                    'customers' => Inertia::defer(fn () => Contact::customersDropdown($business_id, false)),
+                    'salesRepresentative' => $sales_representative,
+                ],
+                'permissions' => [
+                    'view_all' => auth()->user()->can('draft.view_all'),
+                    'view_own' => auth()->user()->can('draft.view_own'),
+                ],
+                'urls' => [
+                    'datatable' => '/sells/drafts',  // mesmo endpoint AJAX
+                    'back' => '/sells',
+                ],
+            ]);
+        }
+
         return view('sale_pos.draft')
             ->with(compact('business_locations', 'customers', 'sales_representative'));
     }
@@ -2027,6 +2244,35 @@ class SellController extends Controller
         $customers = Contact::customersDropdown($business_id, false);
 
         $sales_representative = User::forDropdown($business_id, false, false, true);
+
+        // Wave 1 W1-A — branch dual MWART. KPIs cotação leves eager.
+        if (request()->header('X-Inertia')) {
+            $quoteBase = Transaction::where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->where('status', 'draft')
+                ->where('sub_status', 'quotation');
+
+            $kpis = [
+                'total' => (int) (clone $quoteBase)->count(),
+            ];
+
+            return Inertia::render('Sells/Quotations', [
+                'kpis' => $kpis,
+                'filters' => [
+                    'businessLocations' => $business_locations,
+                    'customers' => Inertia::defer(fn () => Contact::customersDropdown($business_id, false)),
+                    'salesRepresentative' => $sales_representative,
+                ],
+                'permissions' => [
+                    'view_all' => auth()->user()->can('quotation.view_all'),
+                    'view_own' => auth()->user()->can('quotation.view_own'),
+                ],
+                'urls' => [
+                    'datatable' => '/sells/quotations?is_quotation=1',
+                    'back' => '/sells',
+                ],
+            ]);
+        }
 
         return view('sale_pos.quotations')
                 ->with(compact('business_locations', 'customers', 'sales_representative'));

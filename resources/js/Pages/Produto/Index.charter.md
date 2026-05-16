@@ -1,18 +1,25 @@
 ---
-page: /produto
+page: /products
 component: resources/js/Pages/Produto/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-09
+last_validated: 2026-05-15
 parent_module: Produto
-related_adrs: [0110, 0107, 0093]
+related_adrs: [0110, 0107, 0093, 0104, 0149]
 tier: A
-charter_version: 1
+charter_version: 2
+mwart_pattern_reuse:
+  blueprint_cowork: "prototipo-ui/prototipos/produto-cockpit/"
+  blueprint_screenshot_approval: "SYNC_LOG (pendente — Wave 2 B4 Produto 2026-05-15)"
+  derived_screens: [Create, Show, Edit, SellingPrices, BulkEdit, StockHistory]
+  divergence_from_blueprint: "none — Index é o blueprint canon B4 Produto"
 ---
 
-# Page Charter — /produto (DRAFT)
+# Page Charter — /products (DRAFT — Wave 2 B4 Produto pattern reuse)
 
-> **Status:** draft criado em batch 2026-05-09 a partir de [`prod-page.jsx`](../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/prod-page.jsx) (6.5 KB — versão simples, grid-first). Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
+> **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: [`prototipo-ui/prototipos/produto-cockpit/`](../../../prototipo-ui/prototipos/produto-cockpit/) (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
+>
+> Versão v1 (2026-05-09) referenciava [`prod-page.jsx`](../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/prod-page.jsx) (6.5 KB grid-first). v2 promove para blueprint cockpit completo. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
 > ⚠️ **Relação com `/produto/unificado`:** essa Page é a versão SIMPLES (catálogo grid only). `/produto/unificado` é a versão DENSA (5 sub-views). Wagner decide na aprovação se mantém ambas ou unifica em uma só. Backend canon: `app/Http/Controllers/ProductController.php` (UPOS herdado). Produto = `App\Product` direto em `app/`, **NÃO** em `Modules\Produto\`.
 

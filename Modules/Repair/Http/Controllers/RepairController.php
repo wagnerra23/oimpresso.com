@@ -859,8 +859,86 @@ class RepairController extends Controller
             $checklists = array_merge(explode('|', $repair_settings['default_repair_checklist']), $checklists);
         }
 
+        // Wave 3 B6 MWART — branch Inertia (canary biz=1).
+        if ($this->mwartEnabled('repair_show', (int) $business_id)) {
+            return Inertia::render('Repair/Show', [
+                'sell' => $this->buildRepairSellPayload($sell, $business_id),
+                'payment_types' => (array) $payment_types,
+                'order_taxes' => $order_taxes,
+                'activities' => Inertia::defer(fn () => $this->buildRepairActivitiesPayload($activities)),
+                'warranty_expires_in' => $warranty_expires_in,
+                'is_warranty_enabled' => (bool) $is_warranty_enabled,
+                'checklists' => $checklists,
+                'fsm' => [
+                    'enabled' => (bool) config('mwart.repair_show_fsm_panel.enabled'),
+                    'sale_id' => (int) $sell->id,
+                ],
+            ]);
+        }
+
         return view('repair::repair.show')
             ->with(compact('taxes', 'sell', 'payment_types', 'order_taxes', 'activities', 'warranty_expires_in', 'is_warranty_enabled', 'checklists'));
+    }
+
+    /**
+     * Wave 3 B6 — payload pra Inertia Repair/Show.
+     */
+    private function buildRepairSellPayload($sell, int $business_id): array
+    {
+        $currencySymbol = request()->session()->get('business.currency_symbol') ?? 'R$';
+
+        return [
+            'id' => (int) $sell->id,
+            'invoice_no' => $sell->invoice_no,
+            'transaction_date' => $sell->transaction_date ? (string) $sell->transaction_date : null,
+            'repair_due_date' => $sell->repair_due_date ? (string) $sell->repair_due_date : null,
+            'contact_id' => $sell->contact_id ? (int) $sell->contact_id : null,
+            'contact_name' => optional($sell->contact)?->name ?? null,
+            'final_total' => (float) ($sell->final_total ?? 0),
+            'final_total_formatted' => $currencySymbol . ' ' . number_format((float) ($sell->final_total ?? 0), 2, ',', '.'),
+            'payment_status' => $sell->payment_status,
+            'status' => [
+                'id' => $sell->repair_status_id ? (int) $sell->repair_status_id : null,
+                'name' => optional($sell->repair_status)?->name ?? null,
+                'color' => optional($sell->repair_status)?->color ?? null,
+            ],
+            'device_model_name' => optional($sell->repair_model)?->name ?? null,
+            'serial_no' => $sell->repair_serial_no,
+            'defects' => $sell->repair_defects,
+            'warranty_name' => optional($sell->repair_warranty)?->name ?? null,
+            'sell_lines' => collect($sell->sell_lines ?? [])->map(function ($line) {
+                return [
+                    'id' => (int) ($line->id ?? 0),
+                    'product_name' => optional($line->product)?->name ?? '—',
+                    'quantity' => (float) ($line->quantity ?? 0),
+                    'unit_price' => (float) ($line->unit_price ?? 0),
+                    'total' => (float) (($line->quantity ?? 0) * ($line->unit_price ?? 0)),
+                ];
+            })->values()->toArray(),
+            'payments' => collect($sell->payment_lines ?? [])->map(function ($p) {
+                return [
+                    'id' => (int) ($p->id ?? 0),
+                    'method' => $p->method ?? '—',
+                    'amount' => (float) ($p->amount ?? 0),
+                    'paid_on' => optional($p->paid_on)?->toIso8601String() ?? null,
+                ];
+            })->values()->toArray(),
+        ];
+    }
+
+    private function buildRepairActivitiesPayload($activities): array
+    {
+        if (! $activities) {
+            return [];
+        }
+        return collect($activities)->take(50)->map(function ($a) {
+            return [
+                'id' => (int) ($a->id ?? 0),
+                'description' => $a->description ?? '',
+                'causer' => optional($a->causer)?->first_name ?? null,
+                'created_at' => optional($a->created_at)?->toIso8601String() ?? null,
+            ];
+        })->values()->toArray();
     }
 
     /**
