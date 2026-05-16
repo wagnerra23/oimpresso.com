@@ -5,7 +5,7 @@
 **Status:**
 - ✅ **ONDA 0+1+2+4+5(parcial) LIVE no main** (PR #934 mergeado 2026-05-16 00:32 UTC, 132 arquivos, +25.465 LOC, 7 agents)
 - ⏳ **ONDA 3 + 5(restante) + 6(parcial) em execução** (sessão 2026-05-16, 4 agents H/I/J/K paralelos background)
-- 📋 **ADR 0149:** **ACEITA** ([decided_at 2026-05-16](../../decisions/0149-kb-unificado-grafo-conhecimento-modulo-ia-central.md))
+- 📋 **ADR 0150:** **ACEITA** ([decided_at 2026-05-16](../../decisions/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md))
 
 **Critério de sucesso:** Wagner consegue (a) ver grafo navegável dos 143 ADRs + sessions + charters com edges de dependência; (b) perguntar IA "qual ADR rege X?" e receber resposta com citações; (c) usar trilha didática "Como funciona Multi-tenant Tier 0 aqui".
 
@@ -59,7 +59,7 @@ Trilha vs Decisão = views diferentes sobre o mesmo grafo. **Decisão pode gerar
 
 ```
 ONDA 0 (em execução agora — eu sequencial)
-   ADR 0149 proposal + CAPTERRA-FICHA + BRIEFING + SCHEMA-DB-V1 + charter
+   ADR 0150 proposal + CAPTERRA-FICHA + BRIEFING + SCHEMA-DB-V1 + charter
 
 ONDA 1 (3-4d, 1-2 agents paralelos)
    Migrations + Models + Controllers + Services + bridge job
@@ -97,7 +97,7 @@ ONDA 6 (3-5d, escopo aberto)
 
 ## Pré-requisitos pendentes
 
-- ⏳ Aceite Wagner da ADR 0149 (promover de proposals → memory/decisions/)
+- ⏳ Aceite Wagner da ADR 0150 (promover de proposals → memory/decisions/)
 - ⏳ Spawn dos agents paralelos (ONDA 1+)
 - ⏳ Decisão sobre roles Spatie: criar role `kb-author` por business? ou reusar `Admin#{biz}` mais wide?
 - ⏳ Decisão sobre persona-handler do MCP server: o servidor MCP `mcp.oimpresso.com` deve EXPOR tool `kb-search` e `kb-graph-query` pro Copiloto/Jana? (recomendação: sim, ONDA 4)
@@ -112,7 +112,7 @@ ONDA 6 (3-5d, escopo aberto)
 
 ## Arquivos canônicos relacionados (ler ANTES de tocar código)
 
-- [ADR 0149 proposal](../../decisions/proposals/0149-kb-unificado-grafo-conhecimento-modulo-ia-central.md) — decisão arquitetural
+- [ADR 0150 proposal](../../decisions/proposals/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md) — decisão arquitetural
 - [SCHEMA-DB-V1.md](SCHEMA-DB-V1.md) — contrato técnico de migrations/tabelas
 - [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — benchmark de mercado (16 dimensões, Bench v2 + adendo v5)
 - [Index.charter.md](../../../resources/js/Pages/kb/Index.charter.md) — Mission/Goals/Non-Goals/UX

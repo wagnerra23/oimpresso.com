@@ -1,6 +1,6 @@
 ---
-slug: 0149-kb-unificado-grafo-conhecimento-modulo-ia-central
-number: 0149
+slug: 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
+number: 0150
 title: "KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso"
 type: adr
 status: aceito
@@ -16,7 +16,7 @@ implemented_via:
   - merge_commit: 3204fffe5
   - merged_by: wagnerra23
   - merged_at: 2026-05-16T00:32:13Z
-module: KB
+module: kb
 quarter: 2026-Q2
 tags: [kb, knowledge-graph, ia, rag, governance, capterra, p0]
 supersedes: []

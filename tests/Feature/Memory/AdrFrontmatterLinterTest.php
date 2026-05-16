@@ -33,6 +33,7 @@ const MODULE_VALIDOS    = [
     'cms', 'officeimpresso', 'connector', 'grow', 'core', 'infra',
     'whatsapp', 'ads', 'governance', 'nfebrasil', 'recurringbilling',
     'nfse', 'projectmgmt', 'repair', 'consultaos',
+    'kb', // ADR 0150 KB Unificado como Grafo de Conhecimento (2026-05-16)
 ];
 
 const CAMPOS_OBRIGATORIOS = [
