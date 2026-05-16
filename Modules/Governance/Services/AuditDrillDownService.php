@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -33,44 +34,55 @@ class AuditDrillDownService
      */
     public function getRecentEntries(int $limit = 50, ?array $filters = null): Collection
     {
-        $filters = $filters ?? [];
-        $period   = $filters['period']   ?? '24h';
-        $actor    = $filters['actor']    ?? null;
-        $endpoint = $filters['endpoint'] ?? null;
-        $status   = $filters['status']   ?? null;
+        // D9.a OTel: wrap hot-path de leitura do audit log (query + JOIN actors).
+        return OtelHelper::spanBiz('governance.audit_drilldown.get_recent_entries', function () use ($limit, $filters): Collection {
+            $filters = $filters ?? [];
+            $period   = $filters['period']   ?? '24h';
+            $actor    = $filters['actor']    ?? null;
+            $endpoint = $filters['endpoint'] ?? null;
+            $status   = $filters['status']   ?? null;
 
-        $cutoff = $this->cutoffFor($period);
+            $cutoff = $this->cutoffFor($period);
 
-        // Schema mcp_audit_log: `ts` é o timestamp canonical da tabela (auto current_timestamp).
-        $q = DB::table('mcp_audit_log')->where('ts', '>', $cutoff);
+            // Schema mcp_audit_log: `ts` é o timestamp canonical da tabela (auto current_timestamp).
+            $q = DB::table('mcp_audit_log')->where('ts', '>', $cutoff);
 
-        if ($actor !== null && $actor !== '') {
-            // mcp_audit_log usa user_id; resolve slug -> user_id via mcp_actors.
-            $userIds = DB::table('mcp_actors')
-                ->where('slug', $actor)
-                ->whereNull('revoked_at')
-                ->pluck('user_id')
-                ->filter()
-                ->values()
-                ->all();
+            if ($actor !== null && $actor !== '') {
+                // mcp_audit_log usa user_id; resolve slug -> user_id via mcp_actors.
+                $userIds = DB::table('mcp_actors')
+                    ->where('slug', $actor)
+                    ->whereNull('revoked_at')
+                    ->pluck('user_id')
+                    ->filter()
+                    ->values()
+                    ->all();
 
-            if (! empty($userIds)) {
-                $q->whereIn('user_id', $userIds);
-            } else {
-                $q->whereRaw('1=0'); // actor não encontrado = zero results (fail-safe)
+                if (! empty($userIds)) {
+                    $q->whereIn('user_id', $userIds);
+                } else {
+                    $q->whereRaw('1=0'); // actor não encontrado = zero results (fail-safe)
+                }
             }
-        }
-        if ($endpoint !== null && $endpoint !== '') {
-            $q->where('endpoint', $endpoint);
-        }
-        if ($status !== null && $status !== '') {
-            $q->where('status', $status);
-        }
+            if ($endpoint !== null && $endpoint !== '') {
+                $q->where('endpoint', $endpoint);
+            }
+            if ($status !== null && $status !== '') {
+                $q->where('status', $status);
+            }
 
-        return $q->orderByDesc('ts')
-            ->limit($limit)
-            ->select('id', 'user_id', 'business_id', 'endpoint', 'tool_or_resource', 'status', 'duration_ms', 'ts as created_at')
-            ->get();
+            return $q->orderByDesc('ts')
+                ->limit($limit)
+                ->select('id', 'user_id', 'business_id', 'endpoint', 'tool_or_resource', 'status', 'duration_ms', 'ts as created_at')
+                ->get();
+        }, [
+            'module'   => 'Governance',
+            'limit'    => $limit,
+            'period'   => $filters['period']   ?? '24h',
+            // Sem PII: armazena apenas presença de filtros, nunca os valores (actor slug pode ser sensível).
+            'has_actor'    => isset($filters['actor']) && $filters['actor'] !== '' && $filters['actor'] !== null,
+            'has_endpoint' => isset($filters['endpoint']) && $filters['endpoint'] !== '' && $filters['endpoint'] !== null,
+            'has_status'   => isset($filters['status']) && $filters['status'] !== '' && $filters['status'] !== null,
+        ]);
     }
 
     /**

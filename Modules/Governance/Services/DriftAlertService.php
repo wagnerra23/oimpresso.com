@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Symfony\Component\Yaml\Yaml;
 
@@ -46,67 +47,73 @@ class DriftAlertService
      */
     public function getActiveDrifts(int $limit = 20): Collection
     {
-        $modulesPath = base_path('Modules');
-        $modules = is_dir($modulesPath)
-            ? array_filter(scandir($modulesPath), function ($d) use ($modulesPath) {
-                return ! in_array($d, ['.', '..'], true) && is_dir($modulesPath . '/' . $d);
-            })
-            : [];
+        // D9.a OTel: wrap scan filesystem (N módulos × YAML parse + dir walk).
+        return OtelHelper::spanBiz('governance.drift_alert.get_active_drifts', function () use ($limit): Collection {
+            $modulesPath = base_path('Modules');
+            $modules = is_dir($modulesPath)
+                ? array_filter(scandir($modulesPath), function ($d) use ($modulesPath) {
+                    return ! in_array($d, ['.', '..'], true) && is_dir($modulesPath . '/' . $d);
+                })
+                : [];
 
-        $report = [];
-        $totalDrift = 0;
-        $modulesWithoutScope = [];
+            $report = [];
+            $totalDrift = 0;
+            $modulesWithoutScope = [];
 
-        foreach ($modules as $module) {
-            $modulePath = $modulesPath . '/' . $module;
-            $scopePath = $modulePath . '/SCOPE.md';
+            foreach ($modules as $module) {
+                $modulePath = $modulesPath . '/' . $module;
+                $scopePath = $modulePath . '/SCOPE.md';
 
-            if (! is_file($scopePath)) {
-                $modulesWithoutScope[] = $module;
-                continue;
-            }
+                if (! is_file($scopePath)) {
+                    $modulesWithoutScope[] = $module;
+                    continue;
+                }
 
-            $declared = $this->declaredControllers($scopePath);
-            $actual = $this->actualControllers($modulePath);
-            $undeclared = [];
+                $declared = $this->declaredControllers($scopePath);
+                $actual = $this->actualControllers($modulePath);
+                $undeclared = [];
 
-            foreach ($actual as $ctrl) {
-                $shortName = preg_replace('#^Http/Controllers/#', '', $ctrl);
-                $shortName = preg_replace('#Controller\.php$#', 'Controller', $shortName);
+                foreach ($actual as $ctrl) {
+                    $shortName = preg_replace('#^Http/Controllers/#', '', $ctrl);
+                    $shortName = preg_replace('#Controller\.php$#', 'Controller', $shortName);
 
-                $matches = false;
-                foreach ($declared as $d) {
-                    if ($d === $shortName || str_ends_with($shortName, '/' . $d)) {
-                        $matches = true;
-                        break;
+                    $matches = false;
+                    foreach ($declared as $d) {
+                        if ($d === $shortName || str_ends_with($shortName, '/' . $d)) {
+                            $matches = true;
+                            break;
+                        }
+                    }
+
+                    if (! $matches) {
+                        $undeclared[] = $shortName;
                     }
                 }
 
-                if (! $matches) {
-                    $undeclared[] = $shortName;
+                if (! empty($undeclared)) {
+                    $report[] = [
+                        'module'           => $module,
+                        'undeclared'       => $undeclared,
+                        'undeclared_count' => count($undeclared),
+                        'total_actual'     => count($actual),
+                    ];
+                    $totalDrift += count($undeclared);
                 }
             }
 
-            if (! empty($undeclared)) {
-                $report[] = [
-                    'module'           => $module,
-                    'undeclared'       => $undeclared,
-                    'undeclared_count' => count($undeclared),
-                    'total_actual'     => count($actual),
-                ];
-                $totalDrift += count($undeclared);
-            }
-        }
+            // Ordena drift por undeclared_count desc e trunca pelo limit.
+            usort($report, fn ($a, $b) => $b['undeclared_count'] <=> $a['undeclared_count']);
+            $report = array_slice($report, 0, $limit);
 
-        // Ordena drift por undeclared_count desc e trunca pelo limit.
-        usort($report, fn ($a, $b) => $b['undeclared_count'] <=> $a['undeclared_count']);
-        $report = array_slice($report, 0, $limit);
-
-        return collect([
-            'report'                => $report,
-            'modules_without_scope' => array_values($modulesWithoutScope),
-            'modules_total'         => count($modules),
-            'total_drift'           => $totalDrift,
+            return collect([
+                'report'                => $report,
+                'modules_without_scope' => array_values($modulesWithoutScope),
+                'modules_total'         => count($modules),
+                'total_drift'           => $totalDrift,
+            ]);
+        }, [
+            'module' => 'Governance',
+            'limit'  => $limit,
         ]);
     }
 
