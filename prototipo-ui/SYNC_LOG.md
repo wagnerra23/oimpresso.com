@@ -60,3 +60,7 @@
 2026-05-14 06:55 [CL] escreveu COWORK_NOTES.amendment-jana-chat-block-renderer.md — 19 divergências catalogadas (5 anti-patterns charter + 7 vocabulário humano + 7 features IA ausentes) + correção formal item-por-item + critério F1.5 ≥80
 2026-05-14 06:55 [CL] appendou resumo executivo do amendment em COWORK_NOTES.md (principal) + atualizou HANDOFF.md sinalizando F0.5 amendment P0 bloqueia F3 Jana
 2026-05-14 06:55 [CL] aguarda decisão Wagner: opção A (atacar Jana V2 primeiro — [CC] gera V2 com 4 kinds tipados + streaming + citations) vs opção B (atacar Financeiro/Fluxo primeiro)
+2026-05-15 21:10 [CC] export Cowork novo via WebFetch design URL (`Oimpresso ERP - Chat.html` aberto no handoff) — tarball 6.9 MB · 605 arquivos
+2026-05-15 21:10 [CL] sync snapshot-only pra `_cowork-export-2026-05-15/` — 161 arquivos · 3.3 MB · excluiu uploads/backups/scraps (trap stale conhecido SYNC_LOG 2026-05-11)
+2026-05-15 21:10 [CL] highlight no _SNAPSHOT.md: `chat-jana.jsx` (491 lin) + `chat-jana.css` (645 lin) presentes — provável V2 atendendo amendment-block-renderer; aguarda Wagner confirmar comparação contra 19 divergências P0
+2026-05-15 21:10 [CL] AVISO no _SNAPSHOT.md: `prototipo-ui-patch/{Modules,Pages,resources,routes,app}` mantido isolado — NÃO aplicar direto (Tier 0 ADR 0093, mesmo bloqueio de 2026-05-09 PR #352 e 2026-05-11 zip canon)
