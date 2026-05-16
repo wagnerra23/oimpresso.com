@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Repair\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 
 /**
@@ -39,27 +40,31 @@ class KanbanProductionService
      */
     public function mapStatusesToColumns(Collection $statuses): array
     {
-        $completed = $statuses->where('is_completed_status', true);
-        $active = $statuses->where('is_completed_status', false)->values();
+        return OtelHelper::spanBiz('repair.kanban.map_statuses_to_columns', function () use ($statuses): array {
+            $completed = $statuses->where('is_completed_status', true);
+            $active = $statuses->where('is_completed_status', false)->values();
 
-        $map = [];
-        foreach ($completed as $s) {
-            $map[$s->id] = self::COLUMN_PRONTO;
-        }
+            $map = [];
+            foreach ($completed as $s) {
+                $map[$s->id] = self::COLUMN_PRONTO;
+            }
 
-        $count = $active->count();
-        if ($count === 0) {
+            $count = $active->count();
+            if ($count === 0) {
+                return $map;
+            }
+
+            $bucketSize = max(1, (int) ceil($count / 4));
+
+            foreach ($active as $i => $status) {
+                $bucketIdx = min(3, intdiv($i, $bucketSize));
+                $map[$status->id] = self::COLUMN_ORDER[$bucketIdx];
+            }
+
             return $map;
-        }
-
-        $bucketSize = max(1, (int) ceil($count / 4));
-
-        foreach ($active as $i => $status) {
-            $bucketIdx = min(3, intdiv($i, $bucketSize));
-            $map[$status->id] = self::COLUMN_ORDER[$bucketIdx];
-        }
-
-        return $map;
+        }, [
+            'statuses_count' => $statuses->count(),
+        ]);
     }
 
     /**

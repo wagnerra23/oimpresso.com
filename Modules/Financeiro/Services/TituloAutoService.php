@@ -4,6 +4,7 @@ namespace Modules\Financeiro\Services;
 
 use App\Transaction;
 use App\TransactionPayment;
+use App\Util\OtelHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Financeiro\Models\CaixaMovimento;
@@ -38,6 +39,18 @@ class TituloAutoService
      * Onda 2: este é o ponto de entrada canônico (renomeado de sincronizarDeVenda).
      */
     public function sincronizarDeTransacao(Transaction $tx): ?Titulo
+    {
+        return OtelHelper::spanBiz('financeiro.titulo_auto.sincronizar', function () use ($tx): ?Titulo {
+            return $this->sincronizarDeTransacaoInternal($tx);
+        }, [
+            'transaction_id' => $tx->id,
+            'transaction_type' => $tx->type,
+            'business_id' => $tx->business_id,
+            'payment_status' => $tx->payment_status,
+        ]);
+    }
+
+    private function sincronizarDeTransacaoInternal(Transaction $tx): ?Titulo
     {
         $tipo = match ($tx->type) {
             'sell' => 'receber',

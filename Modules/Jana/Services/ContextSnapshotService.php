@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Modules\Jana\Support\ContextoNegocio;
@@ -16,13 +17,16 @@ class ContextSnapshotService
 {
     public function paraBusiness(?int $businessId): ContextoNegocio
     {
-        $ttl = (int) config('copiloto.context_cache_ttl_minutes', 10);
+        // D9.a Observability — span zero-cost wrap; preserva Cache::remember.
+        return OtelHelper::spanBiz('jana.context.para_business', function () use ($businessId) {
+            $ttl = (int) config('copiloto.context_cache_ttl_minutes', 10);
 
-        return Cache::remember(
-            "copiloto.contexto.business_{$businessId}",
-            $ttl * 60,
-            fn () => $this->montar($businessId),
-        );
+            return Cache::remember(
+                "copiloto.contexto.business_{$businessId}",
+                $ttl * 60,
+                fn () => $this->montar($businessId),
+            );
+        }, ['business_id' => $businessId]);
     }
 
     protected function montar(?int $businessId): ContextoNegocio

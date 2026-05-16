@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Ai;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Ai\Agents\BriefingAgent;
 use Modules\Jana\Ai\Agents\ChatCopilotoAgent;
@@ -29,34 +30,37 @@ class LaravelAiSdkDriver implements AiAdapter
 {
     public function gerarBriefing(ContextoNegocio $ctx): string
     {
-        if (config('copiloto.dry_run')) {
-            return $this->fixtureBriefing($ctx);
-        }
+        // D9.a Observability — span zero-cost ao redor do call LLM.
+        return OtelHelper::spanBiz('jana.ai.gerar_briefing', function () use ($ctx) {
+            if (config('copiloto.dry_run')) {
+                return $this->fixtureBriefing($ctx);
+            }
 
-        $ctxSanitizado = $this->sanitizarContexto($ctx);
-        $agent = new BriefingAgent($ctxSanitizado);
+            $ctxSanitizado = $this->sanitizarContexto($ctx);
+            $agent = new BriefingAgent($ctxSanitizado);
 
-        try {
-            $response = $agent->prompt($agent->montarPromptBriefing());
+            try {
+                $response = $agent->prompt($agent->montarPromptBriefing());
 
-            Log::channel('copiloto-ai')->info('gerarBriefing', [
-                'business_id' => $ctx->businessId,
-                'driver' => 'laravel_ai_sdk',
-            ]);
+                Log::channel('copiloto-ai')->info('gerarBriefing', [
+                    'business_id' => $ctx->businessId,
+                    'driver' => 'laravel_ai_sdk',
+                ]);
 
-            // GAP D4 #5 — Prompt cache observability (Anthropic).
-            $this->logPromptCacheUsage(
-                agent: 'BriefingAgent',
-                businessId: $ctx->businessId,
-                usage: $response->usage ?? null,
-            );
+                // GAP D4 #5 — Prompt cache observability (Anthropic).
+                $this->logPromptCacheUsage(
+                    agent: 'BriefingAgent',
+                    businessId: $ctx->businessId,
+                    usage: $response->usage ?? null,
+                );
 
-            return (string) $response;
-        } catch (\Throwable $e) {
-            Log::channel('copiloto-ai')->error('gerarBriefing error: ' . $e->getMessage());
+                return (string) $response;
+            } catch (\Throwable $e) {
+                Log::channel('copiloto-ai')->error('gerarBriefing error: ' . $e->getMessage());
 
-            return $this->fixtureBriefing($ctx);
-        }
+                return $this->fixtureBriefing($ctx);
+            }
+        }, ['business_id' => $ctx->businessId, 'driver' => 'laravel_ai_sdk']);
     }
 
     public function sugerirMetas(ContextoNegocio $ctx, string $prompt): array

@@ -6,6 +6,8 @@ use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * MemoriaFato — fato persistente sobre user/business pra Jana lembrar.
@@ -23,10 +25,28 @@ class MemoriaFato extends Model
 {
     use HasBusinessScope;
 
+    use LogsActivity;
     use Searchable;
     use SoftDeletes;
 
     protected $table = 'jana_memoria_facts';
+
+    /**
+     * Wave P — auditoria LGPD ciclo de vida temporal do fato.
+     *
+     * Schema canônico não tem `relevance` nem `consolidated_at` — janela de
+     * validade é `valid_from`/`valid_until` (US-COPI-MEM-005, ADR 0036).
+     * Logga consolidação (valid_until set), retirada de circulação e LGPD
+     * esquecer() via `deleted_at`. NÃO logga `fato`/`metadata` (PII livre).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('jana_memoria_fato')
+            ->logOnly(['valid_from', 'valid_until', 'deleted_at'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $fillable = [
         'business_id',
