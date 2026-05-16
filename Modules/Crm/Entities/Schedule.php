@@ -3,9 +3,13 @@
 namespace Modules\Crm\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Schedule extends Model
 {
+    use LogsActivity;
+
     /**
      * The table associated with the model.
      *
@@ -29,6 +33,18 @@ class Schedule extends Model
         'notify_via' => 'array',
         'followup_additional_info' => 'array',
     ];
+
+    /**
+     * Auditoria LGPD — registra mudanças em agendamentos/follow-ups CRM.
+     * D7 LGPD compliance (audit trail append-only via activity_log).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * The member that belongs to the schedule.

@@ -106,7 +106,8 @@
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
-        ]
+        ],
+        "module-grades-check": "php artisan module:grade --all --json"
     },
     "config": {
         "preferred-install": "dist",

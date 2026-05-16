@@ -111,8 +111,11 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
     ->prefix('nfe-brasil')
     ->name('nfe-brasil.')
     ->group(function () {
+        // Throttle 30/min anti-DOS — protege resource externo SEFAZ (latência 2-15s)
+        // CONFAZ Ajuste SINIEF 07/2005 — disparos descontrolados podem ban IP no webservice
         Route::post('transactions/{tx}/emitir', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'emitir'])
             ->whereNumber('tx')
+            ->middleware('throttle:30,1')
             ->name('transactions.emitir');
         Route::post('emissoes/{id}/reenviar-email', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'reenviarEmail'])
             ->whereNumber('id')

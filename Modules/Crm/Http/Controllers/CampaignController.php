@@ -13,6 +13,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\Campaign;
 use Modules\Crm\Entities\CrmContact;
+use Modules\Crm\Http\Requests\StoreCampaignRequest;
 use Modules\Crm\Notifications\SendCampaignNotification;
 use Modules\Crm\Services\CampaignService;
 use Notification;
@@ -167,12 +168,10 @@ class CampaignController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreCampaignRequest $request)
     {
+        // Permissão crm_module validada em StoreCampaignRequest::authorize().
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
             $base = $request->only('name', 'campaign_type', 'subject', 'email_body', 'sms_body');

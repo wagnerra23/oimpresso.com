@@ -5,6 +5,8 @@ namespace Modules\Vestuario\Entities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * VestuarioSetting — settings per-business pra vertical Vestuario (ADR 0121 §P7).
@@ -24,6 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class VestuarioSetting extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $table = 'vestuario_settings';
@@ -85,5 +88,17 @@ class VestuarioSetting extends Model
     {
         $businessId = session('user.business_id') ?? session('business.id') ?? 0;
         return static::firstOrCreate(['business_id' => $businessId], ['settings' => []]);
+    }
+
+    /**
+     * Audit LGPD — registra mudanças em settings JSON via activity_log.
+     * D7 dim v3 (audit trail append-only) — ver memory/requisitos/Vestuario/PII-LGPD.md.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

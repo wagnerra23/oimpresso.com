@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Arquivos\Concerns\HasArquivos;
 use Modules\Arquivos\Entities\Arquivo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Emissão fiscal — NFe (55), NFC-e (65), CT-e (67).
@@ -29,6 +31,7 @@ class NfeEmissao extends Model
 {
     use HasBusinessScope;
     use HasArquivos; // ADR 0123 — adopcao trait Sprint 3 US-ARQ-019
+    use LogsActivity; // D7 LGPD — audit trail accountability Art. 37. PII fiscal preservada por exceção CONFAZ (PII-LGPD-FISCAL.md)
     use SoftDeletes;
 
     protected $table = 'nfe_emissoes';
@@ -51,6 +54,20 @@ class NfeEmissao extends Model
     public function eventos(): HasMany
     {
         return $this->hasMany(NfeEvento::class, 'emissao_id');
+    }
+
+    /**
+     * D7 audit trail (Spatie\Activitylog) — accountability LGPD Art. 37.
+     * Loga apenas status/cstat/motivo/numero/chave_44 (sem XML body — XML fica em arquivos table).
+     * Ver memory/requisitos/NfeBrasil/PII-LGPD-FISCAL.md §3.1
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'cstat', 'motivo', 'numero', 'chave_44', 'emitido_em'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('nfe_emissao');
     }
 
     public function scopeAutorizadas(Builder $q): Builder

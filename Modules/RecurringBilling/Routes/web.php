@@ -37,6 +37,8 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
 // US-RB-047 — webhook PIX Inter (público, validação shared secret no header).
 // Wagner configura URL no Inter via PUT /webhooks/pix-recebidos. CSRF excluído
 // no VerifyCsrfToken via /webhook/* (já existente pra Asaas).
+// D8.a Security — throttle:60,1 (60 req/min). Defesa burst/replay storm.
 Route::post('/webhooks/inter/pix/{businessId}', [InterWebhookController::class, 'handle'])
     ->where('businessId', '[0-9]+')
+    ->middleware('throttle:60,1')
     ->name('webhooks.inter.pix');

@@ -8,6 +8,8 @@ use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Channel — entidade canônica omnichannel polimórfica (ADR 0135).
@@ -40,8 +42,30 @@ use Illuminate\Support\Str;
 class Channel extends Model
 {
     use HasBusinessScope;
+    use LogsActivity;
 
     protected $table = 'channels';
+
+    /**
+     * Auditoria LGPD D7 — registra mudanças de configuração de canal (label,
+     * status, handles_*, bot_enabled, channel_health, lgpd_acknowledged_at).
+     * NÃO loga `config_json` (encrypted, contém tokens Meta/Z-API/Baileys).
+     * Append-only via `activity_log` (Spatie). Onda 3 refinement.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'label', 'type', 'status', 'display_identifier',
+                'handles_repair_status', 'handles_billing',
+                'handles_jana_bot', 'handles_outbound_default',
+                'bot_enabled', 'channel_health',
+                'channel_health_consecutive_failures',
+                'lgpd_acknowledged_at',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public const TYPE_WHATSAPP_META = 'whatsapp_meta';
     public const TYPE_WHATSAPP_ZAPI = 'whatsapp_zapi';
