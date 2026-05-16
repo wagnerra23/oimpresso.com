@@ -28,8 +28,38 @@ Route::group(
         'namespace'  => 'Modules\KB\Http\Controllers',
     ],
     function () {
-        // ---- LEGACY (V0) — KB browser dos docs MCP. Continua respondendo /kb/{slug}/show etc.
+        // ---- ROTAS ESTÁTICAS PRIMEIRO ----
+        // IMPORTANTE: registrar ANTES das rotas com {slug} dinâmico abaixo,
+        // senão Laravel matcha /kb/v2 vs /kb/{slug} e devolve MethodNotAllowed
+        // por causa do DELETE softDelete.
+
         Route::get('/',                  'KbController@index')->name('kb.index');
+
+        // ---- Index V2 tri-pane (ONDA 2, Agent B) — gate visual pré-cutover ----
+        // Page Inertia tri-pane portada do Cowork. Tem fallback mock interno —
+        // Wagner abre /kb/v2 e vê 18 nós seed pra aprovar screenshot ADR 0114
+        // ANTES de cutover Index.tsx V3 → Index.v2.tsx (Wagner decide).
+        Route::get('/v2', function () {
+            return \Inertia\Inertia::render('kb/Index.v2');
+        })->name('kb.v2');
+
+        // ---- Grafo (ONDA 5, Agent E) — vis-grafo Reactflow ----
+        // Page Inertia com mock 50 nodes / 64 edges quando /kb/graph/data não
+        // está populado ainda. Coração da promessa "visualização sobre meus
+        // dados e arquivos importantes".
+        Route::get('/graph', function () {
+            return \Inertia\Inertia::render('kb/Graph');
+        })->name('kb.graph.page');
+
+        // /kb/graph/data — endpoint JSON pro Reactflow.
+        // V1 placeholder: retorna estrutura vazia; frontend cai automaticamente
+        // pra mockGraphData.ts (badge "modo mock" visível). Agent A substitui
+        // por KbGraphController@vis real (Inertia::defer business_id scope).
+        Route::get('/graph/data', function () {
+            return response()->json(['nodes' => [], 'edges' => [], 'kpis' => null]);
+        })->name('kb.graph.data');
+
+        // ---- LEGACY (V0) — KB browser dos docs MCP. Continua respondendo /kb/{slug}/show etc.
         Route::get('/{slug}/show',       'KbController@show')
             ->where('slug', '[A-Za-z0-9\-_]+')
             ->name('kb.show');
@@ -99,32 +129,7 @@ Route::group(
             ->where('id', '[0-9]+')->name('kb.edges.destroy');
 
         // ---- AI endpoints — implementados pelo Agent F em group separado no FINAL do arquivo
-        //      (linha ~150). Wagner pode mover pra cá no merge final.
-
-        // ---- Index V2 tri-pane (ONDA 2, Agent B) — gate visual pré-cutover ----
-        // Page Inertia tri-pane portada do Cowork. Tem fallback mock interno —
-        // Wagner abre /kb/v2 e vê 18 nós seed pra aprovar screenshot ADR 0114
-        // ANTES de cutover Index.tsx V3 → Index.v2.tsx (Wagner decide).
-        Route::get('/v2', function () {
-            return \Inertia\Inertia::render('kb/Index.v2');
-        })->name('kb.v2');
-
-        // ---- Grafo (ONDA 5, Agent E) — vis-grafo Reactflow ----
-        // Page Inertia Cytoscape-like com mock 50 nodes / 64 edges quando
-        // /kb/graph/data não está populado ainda. Wagner abre e vê o coração
-        // da promessa "visualização sobre meus dados e arquivos importantes".
-        Route::get('/graph', function () {
-            return \Inertia\Inertia::render('kb/Graph');
-        })->name('kb.graph.page');
-
-        // /kb/graph/data — endpoint JSON pro Reactflow.
-        // V1 placeholder: retorna estrutura vazia; frontend cai automaticamente
-        // pra mockGraphData.ts (badge "modo mock" visível). Quando Agent A
-        // implementar KbGraphController real (Inertia::defer business_id scope),
-        // basta substituir esta closure por @vis method.
-        Route::get('/graph/data', function () {
-            return response()->json(['nodes' => [], 'edges' => [], 'kpis' => null]);
-        })->name('kb.graph.data');
+        //      (group /kb/ai). Wagner pode mover pra cá no merge final.
 
         // ---- Imprimir SOP (ONDA 5 — placeholder, sem precedente Inertia ainda) ----
         // Route::get('/print-sop/{slug}',                  'PrintSopController@show');
