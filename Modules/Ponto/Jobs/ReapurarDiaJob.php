@@ -51,6 +51,15 @@ class ReapurarDiaJob implements ShouldQueue
 
     public function handle(ApuracaoService $apuracao)
     {
+        // D9.b Wave 16 — log estruturado entry queue worker (reapuração disparada
+        // por aprovação intercorrência, AFD concluído ou ajuste BH). Tier 0:
+        // business_id sempre no constructor (ADR 0093).
+        Log::info('ponto.apuracao.job.iniciado', [
+            'business_id'    => $this->businessId,
+            'colaborador_id' => $this->colaboradorId,
+            'data'           => $this->data,
+        ]);
+
         // SUPERADMIN: job sem session (queue worker não tem auth) — scope manual
         // garante isolamento multi-tenant Tier 0 mesmo sem global scope ativo.
         // Ver ADR 0093 + ScopeByBusiness::apply() (sem auth → sem filtro).

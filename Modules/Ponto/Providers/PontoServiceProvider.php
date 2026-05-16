@@ -65,6 +65,7 @@ class PontoServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\Ponto\Console\Commands\ImportAfdCommand::class,
                 \Modules\Ponto\Console\Commands\AfdInspecionarCommand::class,
+                \Modules\Ponto\Console\Commands\PontoHealthCommand::class,
             ]);
         }
     }

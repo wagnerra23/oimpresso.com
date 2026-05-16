@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -40,6 +41,31 @@ class CmsServiceProvider extends ServiceProvider
             $__site_details = CmsSiteDetail::getSiteDetails();
             $view->with(compact('__site_details'));
         });
+
+        // D9 Observability — schedule health-check diário (Wave 16 governance v3).
+        // Roda 03:30 BRT (após cron geral). Só ambiente live evita poluir logs dev.
+        $this->registerScheduleCommands();
+    }
+
+    /**
+     * Registra schedule de commands do módulo Cms.
+     *
+     * Pattern canônico nWidart (ver CrmServiceProvider::registerScheduleCommands).
+     * Schedule só ativa em `live` pra não disparar em dev/test.
+     */
+    public function registerScheduleCommands(): void
+    {
+        if (config('app.env') !== 'live') {
+            return;
+        }
+
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+            $schedule->command('cms:health --notify')
+                ->dailyAt('03:30')
+                ->withoutOverlapping()
+                ->onOneServer();
+        });
     }
 
     /**
@@ -69,6 +95,7 @@ class CmsServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Cms\Console\ImportWpOfficeImpressoCommand::class,
+                \Modules\Cms\Console\Commands\CmsHealthCommand::class,
             ]);
         }
     }

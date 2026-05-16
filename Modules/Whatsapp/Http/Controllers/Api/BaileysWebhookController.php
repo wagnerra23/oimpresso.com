@@ -7,6 +7,7 @@ namespace Modules\Whatsapp\Http\Controllers\Api;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Jobs\ProcessIncomingWebhookJob;
@@ -62,6 +63,13 @@ class BaileysWebhookController extends Controller
 
         $event = (string) $request->input('event', '');
         $data = (array) $request->input('data', []);
+
+        Log::info('whatsapp.webhook.received', [
+            'business_id' => $config->business_id,
+            'provider' => 'baileys',
+            'phone_id' => $phone?->id,
+            'event' => $event,
+        ]);
 
         switch ($event) {
             case 'message':

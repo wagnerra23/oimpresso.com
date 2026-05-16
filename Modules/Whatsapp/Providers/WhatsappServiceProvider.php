@@ -22,6 +22,7 @@ use Modules\Whatsapp\Console\Commands\CleanupWebhookNoncesCommand;
 use Modules\Whatsapp\Console\Commands\ChannelsReconcilerCommand;
 use Modules\Whatsapp\Console\Commands\DaemonSourceDriftCheckCommand;
 use Modules\Whatsapp\Console\Commands\WhatsappAuthStateDriftCheckCommand;
+use Modules\Whatsapp\Console\Commands\WhatsappObservabilityHealthCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Console\Commands\ImportHistoryCommand;
 use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
@@ -106,6 +107,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 CleanupStaleJobsCommand::class,         // US-WA-084 — purga jobs presos da fila whatsapp-history (>6h)
                 DaemonSourceDriftCheckCommand::class,   // 2026-05-13 — alerta drift main↔daemon CT 100 (cron weekly)
                 WhatsappAuthStateDriftCheckCommand::class, // 2026-05-15 — alerta drift auth_state↔channels pós incident Baileys 7.x deploy (cron daily 03h BRT)
+                WhatsappObservabilityHealthCommand::class,  // Wave 16 D9 — snapshot observabilidade (phones + msgs 24h + fail-rate)
                 // US-WA-VOZ-001 — Customer Memory foundation (2026-05-15)
                 CustomerMemoryBackfillCommand::class,
                 CustomerMemoryRefreshDailyCommand::class,

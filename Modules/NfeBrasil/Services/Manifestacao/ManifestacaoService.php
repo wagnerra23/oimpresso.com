@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services\Manifestacao;
 
+use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -73,6 +74,10 @@ class ManifestacaoService
      *
      * Idempotência: se já existe evento (autorizado) do mesmo tipo pra mesma chave,
      * retorna o existente sem tocar SEFAZ.
+     *
+     * D9.a OTel wrap — chamada SEFAZ sefazManifesta (4 eventos NT 2014.002) é
+     * hot-path crítico p99. Atributos incluem `chave_44` e `tipo` pra correlação
+     * em traces (ADR 0155 module-grade-v3 D9).
      */
     private function aplicarEvento(
         NfeDfeRecebido $dfe,
@@ -83,6 +88,24 @@ class ManifestacaoService
             throw new InvalidArgumentException("Tipo de evento inválido: {$tipo}");
         }
 
+        return OtelHelper::spanBiz('nfe.manifestar', function () use ($dfe, $tipo, $justificativa): NfeDfeEvento {
+            return $this->aplicarEventoInterno($dfe, $tipo, $justificativa);
+        }, [
+            'module'          => 'NfeBrasil',
+            'tipo_evento'     => $tipo,
+            'chave_44'        => (string) ($dfe->chave_44 ?? ''),
+            'dfe_recebido_id' => (int) $dfe->id,
+        ]);
+    }
+
+    /**
+     * @internal Corpo real de aplicarEvento() — separado para wrap OTel.
+     */
+    private function aplicarEventoInterno(
+        NfeDfeRecebido $dfe,
+        string $tipo,
+        string $justificativa,
+    ): NfeDfeEvento {
         $businessId = (int) $dfe->business_id;
 
         $existente = NfeDfeEvento::where('business_id', $businessId)
@@ -92,7 +115,7 @@ class ManifestacaoService
             ->first();
 
         if ($existente) {
-            Log::info('ManifestacaoService: evento já autorizado — idempotente', [
+            Log::info('nfe.manifesta.idempotente', [
                 'business_id'    => $businessId,
                 'chave'          => $dfe->chave_44,
                 'tipo'           => $tipo,
@@ -131,6 +154,18 @@ class ManifestacaoService
                 'payload_json' => $parsed,
             ]);
 
+            // D9.a Log estruturado retorno SEFAZ com biz/chave/cstat (chave SEFAZ
+            // é o identificador fiscal canônico — sempre presente nos logs de evento).
+            Log::info('nfe.manifesta.retorno_sefaz', [
+                'biz'        => $businessId,
+                'chave'      => (string) $dfe->chave_44,
+                'tipo'       => $tipo,
+                'cstat'      => $cstat,
+                'autorizado' => $autorizado,
+                'nseq'       => $nSeq,
+                'evento_id'  => $evento->id,
+            ]);
+
             if ($autorizado) {
                 $this->atualizarStatusDfe($dfe, $tipo);
             }
@@ -141,11 +176,11 @@ class ManifestacaoService
                 'status'       => 'rejeitado',
                 'payload_json' => ['exception' => $e->getMessage()],
             ]);
-            Log::error('ManifestacaoService: falha SEFAZ', [
-                'business_id' => $businessId,
-                'chave'       => $dfe->chave_44,
-                'tipo'        => $tipo,
-                'erro'        => $e->getMessage(),
+            Log::error('nfe.manifesta.falha_sefaz', [
+                'biz'   => $businessId,
+                'chave' => $dfe->chave_44,
+                'tipo'  => $tipo,
+                'erro'  => $e->getMessage(),
             ]);
             throw $e;
         }

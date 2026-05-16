@@ -2,9 +2,11 @@
 
 namespace Modules\Cms\Http\Controllers;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsSiteDetail;
@@ -64,12 +66,16 @@ class CmsController extends Controller
     }
 
     /**
-     * Payload deferido da pÃ¡gina layout=home (Hero + FeatureGrid).
-     * Wrapper sobre SiteContentService â€” closure sÃ³ executa quando Inertia pede.
+     * Payload deferido da página layout=home (Hero + FeatureGrid).
+     * Wrapper sobre SiteContentService — closure só executa quando Inertia pede.
+     *
+     * D9.a OTel — instrumenta render home pública (hot path, SEO/conversão).
      */
     private function buildHomePagePayload()
     {
-        return $this->siteContent->getPageByLayout('home');
+        return OtelHelper::spanBiz('cms.home.render', function () {
+            return $this->siteContent->getPageByLayout('home');
+        }, ['layout' => 'home']);
     }
 
     /**
@@ -187,14 +193,18 @@ class CmsController extends Controller
     }
 
     /**
-     * Payload deferido da lista de blogs (closure executada sÃ³ quando frontend pede).
+     * Payload deferido da lista de blogs (closure executada só quando frontend pede).
+     *
+     * D9.a OTel — instrumenta listagem pública de blogs (paginação/SEO).
      */
     private function buildBlogListPayload()
     {
-        return CmsPage::where('type', 'blog')
-                    ->orderBy('priority', 'asc')
-                    ->where('is_enabled', 1)
-                    ->get();
+        return OtelHelper::spanBiz('cms.blog.list', function () {
+            return CmsPage::where('type', 'blog')
+                        ->orderBy('priority', 'asc')
+                        ->where('is_enabled', 1)
+                        ->get();
+        });
     }
 
     /** VersÃ£o Blade legada de /c/blogs â€” em /c/blogs/old durante a transiÃ§Ã£o. */
@@ -222,12 +232,16 @@ class CmsController extends Controller
 
     /**
      * Payload deferido do blog post individual.
+     *
+     * D9.a OTel — instrumenta render de blog post (hot path SEO).
      */
     private function buildBlogPostPayload(int $id)
     {
-        return CmsPage::where('type', 'blog')
-                    ->where('is_enabled', 1)
-                    ->findOrFail($id);
+        return OtelHelper::spanBiz('cms.blog.view', function () use ($id) {
+            return CmsPage::where('type', 'blog')
+                        ->where('is_enabled', 1)
+                        ->findOrFail($id);
+        }, ['post_id' => $id]);
     }
 
     /** VersÃ£o Blade legada de /c/blog/{slug}-{id} â€” em /c/blog/{slug}-{id}/old. */
@@ -267,9 +281,12 @@ class CmsController extends Controller
 
                 $recipient = CmsSiteDetail::getValue('notifiable_email');
 
+                // D9.a OTel — instrumenta dispatch de notificação de lead (HTTP externo: mail).
                 if (! empty($recipient) && ! empty($lead_details['message'])) {
-                    Notification::route('mail', $recipient)
-                        ->notify(new NewLeadGeneratedNotification($lead_details));
+                    OtelHelper::spanBiz('cms.lead.notify', function () use ($recipient, $lead_details) {
+                        Notification::route('mail', $recipient)
+                            ->notify(new NewLeadGeneratedNotification($lead_details));
+                    }, ['has_recipient' => true]);
                 }
 
                 // D7.a LGPD â€” log com PII redactada (CPF/CNPJ/email/telefone)

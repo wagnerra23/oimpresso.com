@@ -3,6 +3,7 @@
 namespace Modules\Vestuario\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Vestuario\Console\Commands\VestuarioHealthCommand;
 use Modules\Vestuario\Console\Commands\VestuarioSettingsCommand;
 
 /**
@@ -34,6 +35,7 @@ class VestuarioServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 VestuarioSettingsCommand::class,
+                VestuarioHealthCommand::class,
             ]);
         }
     }

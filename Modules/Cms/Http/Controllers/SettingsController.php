@@ -2,11 +2,13 @@
 
 namespace Modules\Cms\Http\Controllers;
 
+use App\Util\OtelHelper;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Cms\Entities\CmsSiteDetail;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 
@@ -83,9 +85,18 @@ class SettingsController extends Controller
             $logo = CmsSiteDetail::getValue('logo', false);
             $site_details['logo'] = $this->__uploadFile($request, $logo);
 
-            CmsSiteDetail::createOrUpdateSiteDetails($site_details);
+            // D9.a OTel — instrumenta save de site details (operação admin crítica).
+            OtelHelper::spanBiz('cms.settings.save', function () use ($site_details) {
+                CmsSiteDetail::createOrUpdateSiteDetails($site_details);
+            }, ['keys_count' => count($site_details)]);
 
             DB::commit();
+
+            // D9.b Log estruturado — mudança de config admin (audit trail).
+            Log::info('cms.settings.saved', [
+                'biz' => $business_id,
+                'keys' => array_keys($site_details),
+            ]);
             $output = [
                 'success' => true,
                 'msg' => __('lang_v1.success'),
