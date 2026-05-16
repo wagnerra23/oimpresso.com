@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\KB\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -77,37 +78,44 @@ class KbCorpusBuilder
      */
     public function corpusVersionHash(): string
     {
-        try {
-            // KbNode usa BelongsToBusinessTrait — global scope cuida do filtro
-            // se sessão tem business; aqui forçamos pra ser explícito em CLI/job.
-            $maxKbNodes = KbNode::query()
-                ->withoutGlobalScopes() // SUPERADMIN: hash precisa ler sem dep de sessão
-                ->where('business_id', $this->businessId)
-                ->max('updated_at');
+        // Wave 13 — OTel span (ADR 0155 D9.a). Zero-cost se config('otel.enabled')=false.
+        // 2 queries SQL agregadas — útil pra correlate cache invalidation com latency.
+        return OtelHelper::span('kb.corpus.version_hash', [
+            'module'      => 'KB',
+            'business_id' => $this->businessId,
+        ], function () {
+            try {
+                // KbNode usa BelongsToBusinessTrait — global scope cuida do filtro
+                // se sessão tem business; aqui forçamos pra ser explícito em CLI/job.
+                $maxKbNodes = KbNode::query()
+                    ->withoutGlobalScopes() // SUPERADMIN: hash precisa ler sem dep de sessão
+                    ->where('business_id', $this->businessId)
+                    ->max('updated_at');
 
-            $maxMcpDocs = McpMemoryDocument::query()
-                ->where(function (Builder $q) {
-                    $q->where('business_id', $this->businessId)
-                      ->orWhereNull('business_id'); // docs globais entram no corpus
-                })
-                ->max('updated_at');
+                $maxMcpDocs = McpMemoryDocument::query()
+                    ->where(function (Builder $q) {
+                        $q->where('business_id', $this->businessId)
+                          ->orWhereNull('business_id'); // docs globais entram no corpus
+                    })
+                    ->max('updated_at');
 
-            $key = sprintf(
-                'biz:%d|kb:%s|mcp:%s',
-                $this->businessId,
-                $maxKbNodes ?? '0',
-                $maxMcpDocs ?? '0',
-            );
+                $key = sprintf(
+                    'biz:%d|kb:%s|mcp:%s',
+                    $this->businessId,
+                    $maxKbNodes ?? '0',
+                    $maxMcpDocs ?? '0',
+                );
 
-            return sha1($key);
-        } catch (\Throwable $e) {
-            Log::channel('copiloto-ai')->warning('KbCorpusBuilder::corpusVersionHash falhou', [
-                'business_id' => $this->businessId,
-                'error'       => $e->getMessage(),
-            ]);
-            // Fail-open: retorna hash baseado em now() — invalida cache mas não quebra ask().
-            return sha1('biz:' . $this->businessId . '|fallback:' . microtime(true));
-        }
+                return sha1($key);
+            } catch (\Throwable $e) {
+                Log::channel('copiloto-ai')->warning('KbCorpusBuilder::corpusVersionHash falhou', [
+                    'business_id' => $this->businessId,
+                    'error'       => $e->getMessage(),
+                ]);
+                // Fail-open: retorna hash baseado em now() — invalida cache mas não quebra ask().
+                return sha1('biz:' . $this->businessId . '|fallback:' . microtime(true));
+            }
+        });
     }
 
     /**
@@ -204,24 +212,34 @@ class KbCorpusBuilder
             return collect();
         }
 
-        try {
-            // Reaproveita pattern do MeilisearchDriver (ADR 0036) — Scout callback
-            // hybrid + filter business_id. Como ainda não há `KbCorpusDocument` model
-            // Searchable persistido, usamos cliente Meilisearch direto via container.
-            //
-            // TODO[F]: assim que Agent A adicionar trait Searchable em KbNode (ou criar
-            //          KbCorpusDocument shadow model), trocar isto pelo pattern
-            //          MemoriaFato::search($q, callback)->take()->get().
-            return $this->retrieveViaMeilisearchClient($query, $topK);
-        } catch (\Throwable $e) {
-            Log::channel('copiloto-ai')->warning('KbCorpusBuilder::retrieve falhou (degradação)', [
-                'business_id' => $this->businessId,
-                'query'       => mb_substr($query, 0, 80),
-                'error'       => $e->getMessage(),
-            ]);
+        // Wave 13 — OTel span (ADR 0155 D9.a). Zero-cost se config('otel.enabled')=false.
+        // Meilisearch HTTP ~50-300ms — hot-path do RAG; PII: hash(query) curto pra correlate
+        // sem expor texto. business_id Tier 0.
+        return OtelHelper::span('kb.corpus.retrieve', [
+            'module'      => 'KB',
+            'business_id' => $this->businessId,
+            'top_k'       => $topK,
+            'query_hash'  => substr(sha1($query), 0, 12),
+        ], function () use ($query, $topK) {
+            try {
+                // Reaproveita pattern do MeilisearchDriver (ADR 0036) — Scout callback
+                // hybrid + filter business_id. Como ainda não há `KbCorpusDocument` model
+                // Searchable persistido, usamos cliente Meilisearch direto via container.
+                //
+                // TODO[F]: assim que Agent A adicionar trait Searchable em KbNode (ou criar
+                //          KbCorpusDocument shadow model), trocar isto pelo pattern
+                //          MemoriaFato::search($q, callback)->take()->get().
+                return $this->retrieveViaMeilisearchClient($query, $topK);
+            } catch (\Throwable $e) {
+                Log::channel('copiloto-ai')->warning('KbCorpusBuilder::retrieve falhou (degradação)', [
+                    'business_id' => $this->businessId,
+                    'query'       => mb_substr($query, 0, 80),
+                    'error'       => $e->getMessage(),
+                ]);
 
-            return collect();
-        }
+                return collect();
+            }
+        });
     }
 
     // ------------------------------------------------------------------
