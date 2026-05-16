@@ -25,6 +25,8 @@ class Plan extends Model
         'business_id', 'name', 'slug', 'description',
         'valor', 'ciclo', 'ciclo_dias', 'trial_days',
         'ativo', 'metadata',
+        // v9,75 — Onda 1 schema aditivo
+        'descricao_curta', 'fiscal_type', 'fiscal_cfop', 'fiscal_servico',
     ];
 
     protected $casts = [
