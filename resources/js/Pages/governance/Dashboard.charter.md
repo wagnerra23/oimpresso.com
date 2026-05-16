@@ -3,9 +3,9 @@ page: /governance
 component: resources/js/Pages/governance/Dashboard.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-09
+last_validated: "2026-05-09"
 parent_module: Governance
-related_adrs: [0110, 0079, 0094, 0114]
+related_adrs: ["0110-cockpit-pattern-v2-canon-list-detail", "0079-constituicao-oimpresso-7-camadas-governanca", "0094-constituicao-v2-7-camadas-8-principios", "0114-prototipo-ui-cowork-loop-formalizado"]
 tier: A
 charter_version: 2
 ---

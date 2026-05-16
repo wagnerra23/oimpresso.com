@@ -3,9 +3,9 @@ page: /admin
 component: resources/js/Pages/Admin/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-10
+last_validated: "2026-05-10"
 parent_module: Admin
-related_adrs: [0122, 0093, 0094, 0091, 0070, 0042, 0062]
+related_adrs: ["0122-admin-center-ct100", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0091-daily-brief", "0070-jira-style-task-management-current-md-removed", "0042-reverb-substitui-pusher-cloud", "0062-separacao-runtime-hostinger-ct100"]
 tier: A
 charter_version: 1
 ---

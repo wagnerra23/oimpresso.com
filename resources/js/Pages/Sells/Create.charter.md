@@ -3,9 +3,9 @@ page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-08
+last_validated: "2026-05-08"
 parent_module: Sells
-related_adrs: [0110, 0107, 0104, 0093]
+related_adrs: ["0110-cockpit-pattern-v2-canon-list-detail", "0107-emendation-0104-visual-comparison-gate-f3", "0104-processo-mwart-canonico-unico-caminho", "0093-multi-tenant-isolation-tier-0"]
 tier: A
 charter_version: 1
 ---

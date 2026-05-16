@@ -3,11 +3,11 @@ page: /atendimento/canais/jana-templates
 component: resources/js/Pages/Atendimento/JanaTemplates.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-12
+last_validated: "2026-05-12"
 parent_module: Whatsapp
 parent_capterra: memory/requisitos/Whatsapp/CAPTERRA-FICHA.md
 supersedes: resources/js/Pages/Whatsapp/Settings.charter.md
-related_adrs: [0035, 0048, 0093, 0135]
+related_adrs: ["0035-stack-ai-canonica-wagner-2026-04-26", "0048-framework-agentes-laravel-ai-vizra-rejeitada", "0093-multi-tenant-isolation-tier-0", "0135-omnichannel-inbox-arquitetura"]
 tier: B
 charter_version: 1
 ---

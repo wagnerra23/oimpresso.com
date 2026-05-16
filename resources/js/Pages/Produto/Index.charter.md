@@ -3,9 +3,9 @@ page: /produto
 component: resources/js/Pages/Produto/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-09
+last_validated: "2026-05-09"
 parent_module: Produto
-related_adrs: [0110, 0107, 0093]
+related_adrs: ["0110-cockpit-pattern-v2-canon-list-detail", "0107-emendation-0104-visual-comparison-gate-f3", "0093-multi-tenant-isolation-tier-0"]
 tier: A
 charter_version: 1
 ---
