@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
@@ -41,18 +42,21 @@ class BriefDiarioService
      */
     public function snapshot(): array
     {
-        return [
-            'generated_at' => now()->toIso8601String(),
-            'business_id' => $this->businessId,
-            'version' => '0.1.0',
-            'sources' => [
-                'vendas' => $this->vendasPeriodo(),
-                'inadimplencia' => $this->inadimplenciaBuckets(),
-                'tickets' => $this->ticketsPriorizados(),
-                'nfe' => $this->nfeStatus(),
-                'oportunidades' => $this->oportunidadesUpsell(),
-            ],
-        ];
+        // D9.a Observability — span zero-cost quando OTel disabled (default).
+        return OtelHelper::spanBiz('jana.brief_diario.snapshot', function () {
+            return [
+                'generated_at' => now()->toIso8601String(),
+                'business_id' => $this->businessId,
+                'version' => '0.1.0',
+                'sources' => [
+                    'vendas' => $this->vendasPeriodo(),
+                    'inadimplencia' => $this->inadimplenciaBuckets(),
+                    'tickets' => $this->ticketsPriorizados(),
+                    'nfe' => $this->nfeStatus(),
+                    'oportunidades' => $this->oportunidadesUpsell(),
+                ],
+            ];
+        }, ['business_id' => $this->businessId, 'version' => '0.1.0']);
     }
 
     /**

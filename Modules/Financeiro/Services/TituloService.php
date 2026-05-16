@@ -2,6 +2,7 @@
 
 namespace Modules\Financeiro\Services;
 
+use App\Util\OtelHelper;
 use Modules\Financeiro\Contracts\BoletoStrategy;
 use Modules\Financeiro\Models\BoletoRemessa;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -26,9 +27,15 @@ class TituloService
      */
     public function emitirBoleto(Titulo $titulo, ?int $contaBancariaId = null): BoletoRemessa
     {
-        $conta = $this->resolverConta($titulo, $contaBancariaId);
+        return OtelHelper::spanBiz('financeiro.titulo.emitir_boleto', function () use ($titulo, $contaBancariaId): BoletoRemessa {
+            $conta = $this->resolverConta($titulo, $contaBancariaId);
 
-        return $this->emitirBoletoComConta($titulo, $conta);
+            return $this->emitirBoletoComConta($titulo, $conta);
+        }, [
+            'titulo_id' => $titulo->id,
+            'business_id' => $titulo->business_id,
+            'conta_bancaria_id' => $contaBancariaId,
+        ]);
     }
 
     /**

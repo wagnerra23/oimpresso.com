@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Connector\Http\Requests\StoreContactApiRequest;
 use Modules\Connector\Transformers\CommonResource;
 
 /**
@@ -400,16 +401,10 @@ class ContactController extends ApiController
         }
     }
      */
-    public function store(Request $request)
+    public function store(StoreContactApiRequest $request)
     {
         try {
-            $request->validate([
-                'first_name' => 'required',
-                'type' => 'required|in:customer,supplier,both,lead',
-                'mobile' => 'required',
-                'supplier_business_name' => 'required_if:type,supplier',
-            ]);
-
+            // Validação ocorre via FormRequest (authorize + rules + Passport guard).
             $input = $request->only(['type', 'supplier_business_name',
                 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'address_line_1', 'address_line_2', 'customer_group_id', 'zip_code', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'email', 'shipping_address', 'position', 'dob', ]);
             $input['business_id'] = Auth::user()->business_id;

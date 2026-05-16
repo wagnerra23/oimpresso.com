@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\MemoriaContrato;
@@ -59,6 +60,23 @@ class MeilisearchDriver implements MemoriaContrato
     }
 
     public function buscar(int $businessId, int $userId, string $query, int $topK = 5): array
+    {
+        // D9.a Observability — span zero-cost wrapper sobre todo o pipeline hybrid.
+        return OtelHelper::spanBiz('jana.memoria.buscar', function () use ($businessId, $userId, $query, $topK) {
+            return $this->buscarInterno($businessId, $userId, $query, $topK);
+        }, [
+            'business_id' => $businessId,
+            'user_id' => $userId,
+            'query_chars' => strlen($query),
+            'top_k' => $topK,
+        ]);
+    }
+
+    /**
+     * Implementação interna isolada de buscar() — preservada idêntica
+     * pra OtelHelper::spanBiz envolver sem afetar comportamento.
+     */
+    private function buscarInterno(int $businessId, int $userId, string $query, int $topK = 5): array
     {
         // MEM-HOT-1 (ADR 0047): Scout default = só full-text. Pra ativar hybrid
         // (full-text + semantic via embedder OpenAI configurado no índice), passamos

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\NFSe\Exceptions\NfseException;
+use Modules\NFSe\Http\Requests\StoreNfseRequest;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
@@ -104,23 +105,10 @@ class NfseController extends Controller
     }
 
     // US-NFSE-006: recebe POST, valida, dispara job assíncrono
-    public function store(Request $request)
+    public function store(StoreNfseRequest $request)
     {
-        $this->authorize('nfse.emit');
-
-        $data = $request->validate([
-            'competencia'     => ['required', 'date_format:Y-m'],
-            'tomador_nome'    => ['required', 'string', 'max:150'],
-            'tomador_cnpj'    => ['nullable', 'string'],
-            'tomador_cpf'     => ['nullable', 'string'],
-            'tomador_email'   => ['nullable', 'email'],
-            'descricao'       => ['required', 'string', 'max:2000'],
-            'lc116_codigo'    => ['required', 'string', 'max:5'],
-            'valor_servicos'  => ['required', 'numeric', 'min:0.01'],
-            'aliquota_iss'    => ['required', 'numeric', 'min:0', 'max:1'],
-            'iss_retido'      => ['boolean'],
-            'transaction_id'  => ['nullable', 'integer'],
-        ]);
+        // Autorização via gate `nfse.emit` + rules ABRASF/Município espelhadas no FormRequest.
+        $data = $request->validated();
 
         $businessId = (int) session('user.business_id');
 

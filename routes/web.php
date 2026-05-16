@@ -82,30 +82,49 @@ Route::middleware(['setData'])->group(function () {
     Auth::routes();
 
     // PR3: login social via Socialite (Google + Microsoft).
+    // throttle:10,1 — anti-bruteforce no callback OAuth (state token guessing).
     Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\Auth\SocialAuthController::class, 'redirect'])
         ->where('provider', 'google|microsoft')
+        ->middleware('throttle:10,1')
         ->name('auth.social.redirect');
     Route::get('/auth/{provider}/callback', [\App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])
         ->where('provider', 'google|microsoft')
+        ->middleware('throttle:10,1')
         ->name('auth.social.callback');
 
     // Blade legado (UltimatePOS) — mantém /login/old e /register/old durante a transição.
+    // throttle:5,1 — anti-bruteforce de exibição (consistente com /login canônico).
     Route::get('/login/old', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginFormLegacy'])
+        ->middleware('throttle:5,1')
         ->name('login.legacy');
 
+    // /business/register — registro público novo business; alvo de enum/bruteforce + spam.
+    // throttle:5,1 no POST (cria business); throttle:30,1 nas checagens AJAX (UX permite mais).
     Route::get('/business/register', [BusinessController::class, 'getRegister'])->name('business.getRegister');
-    Route::post('/business/register', [BusinessController::class, 'postRegister'])->name('business.postRegister');
-    Route::post('/business/register/check-username', [BusinessController::class, 'postCheckUsername'])->name('business.postCheckUsername');
-    Route::post('/business/register/check-email', [BusinessController::class, 'postCheckEmail'])->name('business.postCheckEmail');
+    Route::post('/business/register', [BusinessController::class, 'postRegister'])
+        ->middleware('throttle:5,1')
+        ->name('business.postRegister');
+    Route::post('/business/register/check-username', [BusinessController::class, 'postCheckUsername'])
+        ->middleware('throttle:30,1')
+        ->name('business.postCheckUsername');
+    Route::post('/business/register/check-email', [BusinessController::class, 'postCheckEmail'])
+        ->middleware('throttle:30,1')
+        ->name('business.postCheckEmail');
 
+    // Rotas públicas com token (vulneráveis a enum de tokens). throttle:30,1 — limite UX gentil + freio enum.
     Route::get('/invoice/{token}', [SellPosController::class, 'showInvoice'])
+        ->middleware('throttle:30,1')
         ->name('show_invoice');
     Route::get('/quote/{token}', [SellPosController::class, 'showInvoice'])
+        ->middleware('throttle:30,1')
         ->name('show_quote');
 
     Route::get('/pay/{token}', [SellPosController::class, 'invoicePayment'])
+        ->middleware('throttle:30,1')
         ->name('invoice_payment');
+    // /confirm-payment — manipula pagamento; throttle:10,1 mais conservador.
     Route::post('/confirm-payment/{id}', [SellPosController::class, 'confirmPayment'])
+        ->middleware('throttle:10,1')
         ->name('confirm_payment');
 });
 
