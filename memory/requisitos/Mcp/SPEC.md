@@ -1,4 +1,14 @@
+---
+module: Mcp
+na_justified:
+  D5: "MCP server (`mcp.oimpresso.com`) é tools/governança consumida pelo TIME INTERNO (Wagner/Felipe/Maiara/Eliana/Luiz) e por Claude Code via protocol MCP — NÃO é módulo de features cliente. Cliente externo biz=4 ROTA LIVRE não consome tools MCP (não tem acesso ao server CT 100). D5 cliente real não aplica por design (mesma justificativa de TeamMcp/Brief — ADR 0094 Constituição §infraestrutura interna)."
+  D4.b: "MCP server é bounded context de tools governança (entries em `OimpressoMcpServer::$tools`) — sem state machine FSM (ADR 0143) por design. Tools são funções idempotentes invocáveis; não há fluxo de negócio com transições Eloquent. D4.b FSM canônica N/A."
+related_adrs: [0053, 0094, 0130, 0153, 0154]
+---
+
 # Especificação funcional — MCP (bounded context tools/governança)
+
+> **N/A justificado** D5 + D4.b — tools/governança internas (consumo time MCP + Claude Code, sem cliente externo) e sem state machine FSM por design. Detalhes em [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md).
 
 > **Convenção do ID:** `US-MCP-NNN` para user stories de tools MCP do server `mcp.oimpresso.com`.
 > **Origem:** consolidação 2026-05-15 — antes US-MCP-* estavam dispersas em [Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md](../Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md) e [Jana/BUGS-MCP-SYNC-2026-05-13.md](../Jana/BUGS-MCP-SYNC-2026-05-13.md). Este SPEC vira a casa canônica do bounded context MCP.

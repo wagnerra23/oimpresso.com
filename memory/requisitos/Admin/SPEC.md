@@ -1,4 +1,14 @@
+---
+module: Admin
+na_justified:
+  D5: "Admin Center é Wagner-only no CT 100 via Tailscale (gate `is_wagner` + role `superadmin#1` + CIDR `100.99.0.0/16` whitelist — ADR 0122 Princípio 1+2). Cliente externo biz=4 ROTA LIVRE NÃO tem acesso por design — internet pública zera vetor de ataque. D5 cliente real não aplica."
+  D4.b: "Admin Center é painel read-mostly que AGREGA visão de outros módulos (brief, health-check, cycles, ADRs) — sem state machine FSM própria. Não orquestra fluxo de negócio Eloquent; ações mutacionais limitadas a `apply` Curador, regenerate token, run-now health-check (ADR 0122 Princípio 4 read-mostly). D4.b FSM N/A."
+related_adrs: [0122, 0093, 0094, 0153, 0154]
+---
+
 # Admin Center — Centro de Operações @ CT 100
+
+> **N/A justificado** D5 + D4.b — Wagner-only no CT 100 (Tailscale-only, sem cliente externo) e painel read-mostly que agrega outros módulos (sem FSM própria). Detalhes em [ADR 0122](../../decisions/0122-admin-center-ct100.md).
 
 > Módulo Laravel: `Modules/Admin/` (a criar)
 > ADR mãe: [0122](../../decisions/0122-admin-center-ct100.md)
