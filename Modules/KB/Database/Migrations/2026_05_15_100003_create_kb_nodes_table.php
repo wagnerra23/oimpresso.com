@@ -83,7 +83,8 @@ return new class extends Migration {
             $table->unsignedInteger('os_linked_count')->default(0);
 
             // Meta.
-            $table->unsignedBigInteger('author_user_id')->nullable();
+            // refs users.id (int unsigned, UltimatePOS legacy)
+            $table->unsignedInteger('author_user_id')->nullable();
             $table->unsignedSmallInteger('read_time_min')->nullable();
             $table->timestamp('last_verified_at')->nullable()
                 ->comment('última re-verificação pelo dono (botão "Re-verificar")');
