@@ -2,14 +2,24 @@
 
 namespace Modules\Ponto\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * Wave 12 — Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093).
+ *
+ * Tabela `ponto_escalas` tem coluna `business_id`. Trait `HasBusinessScope`
+ * garante isolamento Model-level. Marcacao (append-only) NÃO recebe trait —
+ * portaria 671/2021 protege via trigger MySQL diferente; Escala é dado cadastral
+ * (Wave 11 D7.b LogsActivity já presente — agora Tier 0 também).
+ */
 class Escala extends Model
 {
+    use HasBusinessScope;
     use HasFactory;
     use LogsActivity;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Essentials\Services;
 
+use App\Util\OtelHelper;
 use App\Utils\ModuleUtil;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -145,11 +146,18 @@ class LeaveRequestService
     /**
      * Carrega leave scoped (business_id + permissão own).
      * Retorna null se não encontrado ou usuário não tem permissão de ver.
+     *
+     * Wave 12 D9 OTel — instrumented com `spanBiz` (zero-cost se OTel off).
      */
     public function findScopedOrNull(int $id, int $businessId, Model $user): ?EssentialsLeave
     {
-        return $this->scopedQueryForUser($businessId, $user)
-            ->where('id', $id)
-            ->first();
+        return OtelHelper::spanBiz('essentials.leave.find_scoped', function () use ($id, $businessId, $user) {
+            return $this->scopedQueryForUser($businessId, $user)
+                ->where('id', $id)
+                ->first();
+        }, [
+            'leave_id' => $id,
+            'user_id'  => $user->id,
+        ]);
     }
 }

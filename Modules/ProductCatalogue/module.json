@@ -10,5 +10,7 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "retention_days": 0,
+    "retention_note": "Catálogo público read-only sem PII coletada (renderiza somente nome/preço/imagem de App\\Product do core; sem formulário, sem cookies de tracking, sem logs nominais). LGPD Art. 16 N/A — não há dado pessoal a reter/descartar. Visitante anônimo (sem CPF/email/IP correlacionado). Logs de acesso herdados do servidor web (Apache/Nginx) seguem retention infra-level — fora do escopo modular."
 }

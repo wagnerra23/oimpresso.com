@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Modules\Accounting\Entities\Currency;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
@@ -9,6 +10,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class ChartOfAccount extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 12 D1 MT; complementa scopeForBusiness existente — back-compat preservada)
     use LogsActivity;
 
     protected $table = "chart_of_accounts";
