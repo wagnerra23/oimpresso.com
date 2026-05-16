@@ -5,6 +5,7 @@ namespace Modules\ADS\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\ADS\Ai\Agents\PlannerAgent;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * T9 — Orquestra PlannerAgent: chama, parseia, cria child decisions.
@@ -123,11 +124,13 @@ class PlannerService
                 'error'            => null,
             ];
         } catch (\Throwable $e) {
+            // D7.a — PiiRedactor wrap antes de logar mensagem livre
+            $safeMessage = app(PiiRedactor::class)->redact($e->getMessage());
             Log::channel('single')->error('ads.planner.failed', [
                 'decision_id' => $decisionId,
-                'msg'         => $e->getMessage(),
+                'msg'         => $safeMessage,
             ]);
-            return ['success' => false, 'plan' => null, 'subtasks_created' => 0, 'error' => $e->getMessage()];
+            return ['success' => false, 'plan' => null, 'subtasks_created' => 0, 'error' => $safeMessage];
         }
     }
 

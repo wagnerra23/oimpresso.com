@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Accounting\Entities\Account;
 use Modules\Accounting\Entities\AccountSubtype;
+use Modules\Accounting\Entities\AccountTransaction;
 use Modules\Accounting\Entities\ChartOfAccount;
 use Modules\Accounting\Entities\JournalEntry;
 
@@ -229,6 +231,34 @@ it('query raw com business_id=99 não retorna chart_of_accounts inseridos como b
     expect($count)->toBe(0);
 })->afterEach(function () {
     ChartOfAccount::where('gl_code', 'TEST-RAW-CT')
+        ->where('business_id', ACC_BIZ_WAGNER)
+        ->forceDelete();
+});
+
+// ------------------------------------------------------------------
+// Wave 15 D1 MT rescue — Account (trait HasBusinessScope) cross-tenant raw
+// ------------------------------------------------------------------
+// Reflexion-only trait declaration tests vivem em MultiTenantTraitDeclarationTest.php
+// (não dependem de MySQL, rodam em qualquer driver).
+
+it('Account criada em biz=1 não vaza pra raw query biz=99 (defesa-em-profundidade Tier 0)', function () {
+    $account = Account::create([ // SUPERADMIN: seed pra teste de isolamento
+        'business_id' => ACC_BIZ_WAGNER,
+        'name'        => 'Conta Banco Teste ISOL Wave 15',
+        'account_number' => 'WAVE15-001',
+        'note'        => 'Pest Wave 15 D1 rescue',
+        'created_by'  => 1,
+    ]);
+
+    // Raw cross-tenant check
+    $rawCount = DB::table('accounts')
+        ->where('business_id', ACC_BIZ_FICTICIO)
+        ->where('id', $account->id)
+        ->count();
+
+    expect($rawCount)->toBe(0);
+})->afterEach(function () {
+    Account::where('account_number', 'WAVE15-001')
         ->where('business_id', ACC_BIZ_WAGNER)
         ->forceDelete();
 });

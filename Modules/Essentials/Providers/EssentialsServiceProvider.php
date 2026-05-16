@@ -4,8 +4,15 @@ namespace Modules\Essentials\Providers;
 
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
+use Modules\Essentials\Entities\Document;
 use Modules\Essentials\Entities\EssentialsAttendance;
+use Modules\Essentials\Entities\KnowledgeBase;
+use Modules\Essentials\Entities\ToDo;
+use Modules\Essentials\Policies\DocumentPolicy;
+use Modules\Essentials\Policies\KnowledgeBasePolicy;
+use Modules\Essentials\Policies\ToDoPolicy;
 use App\Utils\ModuleUtil;
 use Illuminate\Console\Scheduling\Schedule;
 
@@ -22,6 +29,7 @@ class EssentialsServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerFactories();
+        $this->registerPolicies();
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
         view::composer(['essentials::layouts.partials.header_part',
@@ -77,6 +85,17 @@ class EssentialsServiceProvider extends ServiceProvider
 
         $this->registerScheduleCommands();
     
+    }
+
+    /**
+     * D8 Security Wave 15 — registra Policies multi-tenant (ADR 0093 defesa-em-profundidade).
+     * Uso no Controller: `$this->authorize('update', $todo)` ou `Gate::allows('update', $todo)`.
+     */
+    protected function registerPolicies(): void
+    {
+        Gate::policy(ToDo::class, ToDoPolicy::class);
+        Gate::policy(Document::class, DocumentPolicy::class);
+        Gate::policy(KnowledgeBase::class, KnowledgeBasePolicy::class);
     }
 
     public function registerScheduleCommands()

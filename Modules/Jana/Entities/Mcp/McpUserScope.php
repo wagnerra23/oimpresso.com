@@ -2,14 +2,20 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Mapping user → scope (com escopo opcional por business).
+ *
+ * Multi-tenant Tier 0 (ADR 0093) — Wave 15: business_id direto + scope global.
+ * business_id NULL = scope vale pra todos os businesses do user (superadmin).
  */
 class McpUserScope extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'mcp_user_scopes';
 
     protected $fillable = [

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpCcBlob;
 use Modules\Jana\Entities\Mcp\McpCcMessage;
 use Modules\Jana\Entities\Mcp\McpCcSession;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * MEM-CC-1 — Endpoint POST /api/cc/ingest pra watcher local de cada dev
@@ -112,14 +113,18 @@ class CcIngestController extends Controller
                 'total_messages' => $session->total_messages,
             ]);
         } catch (\Throwable $e) {
+            // D7 LGPD Wave 15 — redact PII em $e->getMessage() (pode conter email/CPF
+            // de mensagens ingeridas) ANTES de logar. PiiRedactor::class smoke valida
+            // existência em LgpdComplianceTest.
+            $redactor = app(PiiRedactor::class);
             Log::channel('copiloto-ai')->error('CcIngest erro', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage(),
+                'error' => $redactor->redact($e->getMessage()),
                 'session_uuid' => $payload['session']['uuid'] ?? '?',
             ]);
             return response()->json([
                 'error' => 'Internal',
-                'message' => $e->getMessage(),
+                'message' => $redactor->redact($e->getMessage()),
             ], 500);
         }
     }

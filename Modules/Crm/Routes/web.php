@@ -34,16 +34,21 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
 
     Route::resource('follow-up-log', 'Modules\Crm\Http\Controllers\ScheduleLogController');
 
-    Route::get('install', [Modules\Crm\Http\Controllers\InstallController::class, 'index']);
-    Route::post('install', [Modules\Crm\Http\Controllers\InstallController::class, 'install']);
-    Route::get('install/uninstall', [Modules\Crm\Http\Controllers\InstallController::class, 'uninstall']);
-    Route::get('install/update', [Modules\Crm\Http\Controllers\InstallController::class, 'update']);
+    // Wave 15 D8 Security — throttle 10/min em rotas Install (setup, idempotente mas pesado).
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::get('install', [Modules\Crm\Http\Controllers\InstallController::class, 'index']);
+        Route::post('install', [Modules\Crm\Http\Controllers\InstallController::class, 'install']);
+        Route::get('install/uninstall', [Modules\Crm\Http\Controllers\InstallController::class, 'uninstall']);
+        Route::get('install/update', [Modules\Crm\Http\Controllers\InstallController::class, 'update']);
+    });
 
     Route::resource('leads', 'Modules\Crm\Http\Controllers\LeadController');
     Route::get('lead/{id}/convert', [Modules\Crm\Http\Controllers\LeadController::class, 'convertToCustomer']);
     Route::get('lead/{id}/post-life-stage', [Modules\Crm\Http\Controllers\LeadController::class, 'postLifeStage']);
 
-    Route::get('{id}/send-campaign-notification', [Modules\Crm\Http\Controllers\CampaignController::class, 'sendNotification']);
+    // Wave 15 D8 Security — throttle 20/min em send-notification (envia massa email/SMS — anti-abuso/spam).
+    Route::middleware('throttle:20,1')
+        ->get('{id}/send-campaign-notification', [Modules\Crm\Http\Controllers\CampaignController::class, 'sendNotification']);
     Route::resource('campaigns', 'Modules\Crm\Http\Controllers\CampaignController');
     Route::get('dashboard', [Modules\Crm\Http\Controllers\CrmDashboardController::class, 'index']);
 
@@ -53,12 +58,16 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::get('lead-to-customer-report', [Modules\Crm\Http\Controllers\ReportController::class, 'leadToCustomerConversion']);
     Route::get('lead-to-customer-details/{user_id}', [Modules\Crm\Http\Controllers\ReportController::class, 'showLeadToCustomerConversionDetails']);
     Route::get('call-log', [Modules\Crm\Http\Controllers\CallLogController::class, 'index'], ['only' => ['index']]);
-    Route::post('mass-delete-call-log', [Modules\Crm\Http\Controllers\CallLogController::class, 'massDestroy']);
+    // Wave 15 D8 Security — throttle 30/min em mass-delete (bulk DELETE — anti-abuso destrutivo).
+    Route::middleware('throttle:30,1')
+        ->post('mass-delete-call-log', [Modules\Crm\Http\Controllers\CallLogController::class, 'massDestroy']);
 
     Route::get('edit-proposal-template', [Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'getEdit']);
     Route::post('update-proposal-template', [Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'postEdit']);
     Route::get('view-proposal-template', [Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'getView']);
-    Route::get('send-proposal', [Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'send']);
+    // Wave 15 D8 Security — throttle 30/min em send-proposal (envia email; anti-abuso).
+    Route::middleware('throttle:30,1')
+        ->get('send-proposal', [Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'send']);
     Route::delete('delete-proposal-media/{id}', [Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'deleteProposalMedia']);
     Route::resource('proposal-template', 'Modules\Crm\Http\Controllers\ProposalTemplateController')->except(['show', 'edit', 'update', 'destroy']);
     Route::resource('proposals', 'Modules\Crm\Http\Controllers\ProposalController')->except(['create', 'edit', 'update', 'destroy']);

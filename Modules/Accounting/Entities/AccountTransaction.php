@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Entities;
 
+use App\Concerns\BelongsToBusinessViaParent;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,8 +11,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class AccountTransaction extends Model
 {
+    use BelongsToBusinessViaParent; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 15 D1 MT rescue; child de Account via account_id)
     use LogsActivity;
     use SoftDeletes;
+
+    /**
+     * Parent relation pra ScopeByBusinessViaParent — Account tem business_id direto.
+     */
+    protected string $businessParentRelation = 'account';
 
     protected $guarded = ['id'];
 
