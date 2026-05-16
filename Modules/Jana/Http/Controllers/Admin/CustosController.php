@@ -43,13 +43,12 @@ class CustosController extends Controller
             $request->get('ate'),
         );
 
-        $painel = $service->painel($businessId, $range['inicio'], $range['fim']);
+        // D6.a Wave 17: painel é DB-bound + foreach pesado → deferred.
+        // Build helper closure pra evitar chamar service 4× (1 por prop).
+        $painelDeferred = Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim']));
 
         return Inertia::render('Jana/Admin/Custos/Index', [
-            'kpis'         => $painel['kpis'],
-            'por_usuario'  => $painel['por_usuario'],
-            'serie_diaria' => $painel['serie_diaria'],
-            'periodo'      => $painel['periodo'],
+            'periodo'      => $range,  // eager — range resolvido sem DB
             'filters'      => [
                 'preset' => $preset,
                 'de'     => $request->get('de'),
@@ -59,6 +58,10 @@ class CustosController extends Controller
                 'modelo_default' => config('copiloto.ai.pricing_default_model'),
                 'cambio_brl_usd' => (float) config('copiloto.ai.cambio_brl_usd'),
             ],
+            // D6.a Wave 17 — payloads pesados defer'd. Front wrap em <Deferred data="kpis,por_usuario,serie_diaria" fallback={skeleton}>.
+            'kpis'         => Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim'])['kpis']),
+            'por_usuario'  => Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim'])['por_usuario']),
+            'serie_diaria' => Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim'])['serie_diaria']),
         ]);
     }
 }

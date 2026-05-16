@@ -2,6 +2,7 @@
 
 namespace Modules\Auditoria\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Models\Activity;
@@ -36,17 +37,24 @@ class AuditEntryService
      */
     public function list(int $businessId, array $filters = [], ?int $perPage = null): LengthAwarePaginator
     {
-        $query = $this->baseQuery($businessId);
+        // D9.a OTel: span de listing (hot-path AuditoriaController paginação).
+        // Zero-cost quando otel.enabled=false. Attributes apenas counts e flags (sem PII).
+        return OtelHelper::spanBiz('auditoria.entry.list', function () use ($businessId, $filters, $perPage) {
+            $query = $this->baseQuery($businessId);
 
-        foreach (self::ALLOWED_FILTERS as $key) {
-            if (! empty($filters[$key])) {
-                $query->where($key, $filters[$key]);
+            foreach (self::ALLOWED_FILTERS as $key) {
+                if (! empty($filters[$key])) {
+                    $query->where($key, $filters[$key]);
+                }
             }
-        }
 
-        return $query
-            ->orderByDesc('id')
-            ->paginate($perPage ?? (int) config('auditoria.page_size', 50));
+            return $query
+                ->orderByDesc('id')
+                ->paginate($perPage ?? (int) config('auditoria.page_size', 50));
+        }, [
+            'module'        => 'Auditoria',
+            'filters_count' => count(array_intersect_key($filters, array_flip(self::ALLOWED_FILTERS))),
+        ]);
     }
 
     /**
@@ -54,9 +62,14 @@ class AuditEntryService
      */
     public function find(int $businessId, int $activityId): Activity
     {
-        return $this->baseQuery($businessId)
-            ->where('id', $activityId)
-            ->firstOrFail();
+        return OtelHelper::spanBiz('auditoria.entry.find', function () use ($businessId, $activityId) {
+            return $this->baseQuery($businessId)
+                ->where('id', $activityId)
+                ->firstOrFail();
+        }, [
+            'module'      => 'Auditoria',
+            'activity_id' => $activityId,
+        ]);
     }
 
     /**

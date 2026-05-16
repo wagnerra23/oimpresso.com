@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +25,9 @@ class CuradorStatsReader
 {
     public function fetch(): array
     {
+        // D9.a OTel (Wave 17): span envolve 3 queries (by_bucket + audit_24h +
+        // dedupe_stats) pra detectar slow DB. Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('admin.curador_stats.fetch', function () {
         try {
             if (! Schema::hasTable('arquivos')) {
                 return $this->stub('arquivos_table_missing');
@@ -85,6 +89,7 @@ class CuradorStatsReader
             Log::warning('admin.widget.curador.error', ['error' => $e->getMessage()]);
             return $this->stub('exception:' . substr($e->getMessage(), 0, 120));
         }
+        }, ['component' => 'admin.widget.w5']);
     }
 
     private function stub(string $reason): array

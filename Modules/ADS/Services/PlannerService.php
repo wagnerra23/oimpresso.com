@@ -2,6 +2,7 @@
 
 namespace Modules\ADS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\ADS\Ai\Agents\PlannerAgent;
@@ -12,6 +13,9 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
  *
  * Política: child decisions herdam business_id do parent. event_source='scheduler'
  * (não brain_a) pra distinguir. Auto_generated=true pra contar quota.
+ *
+ * Observabilidade D9.a (ADR 0155): `plan()` envolto em `OtelHelper::span(`
+ * (Tracer ads.planner.plan) — mede latência LLM + custo por decision.
  */
 class PlannerService
 {
@@ -24,6 +28,13 @@ class PlannerService
      * @return array{success:bool, plan:?array, subtasks_created:int, error:?string}
      */
     public function plan(int $decisionId): array
+    {
+        return OtelHelper::span('ads.planner.plan', [
+            'decision_id' => $decisionId,
+        ], fn () => $this->doPlan($decisionId));
+    }
+
+    private function doPlan(int $decisionId): array
     {
         $decision = DB::table('mcp_dual_brain_decisions')->where('id', $decisionId)->first();
 

@@ -9,6 +9,12 @@ class AuditoriaServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerConfig();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Auditoria\Console\Commands\AuditoriaHealthCommand::class,
+            ]);
+        }
     }
 
     public function register(): void

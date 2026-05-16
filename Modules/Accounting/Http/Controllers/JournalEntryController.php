@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Entities\ChartOfAccount;
 use Modules\Accounting\Entities\JournalEntry;
+use Modules\Accounting\Http\Requests\StoreJournalEntryRequest;
 use Yajra\DataTables\Facades\DataTables;
 
 class JournalEntryController extends Controller
@@ -164,18 +165,14 @@ class JournalEntryController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * @param Request $request
+     *
+     * D8.c Wave 17: validation extraída pra StoreJournalEntryRequest
+     * (regra contábil dupla balanceada permanece no JournalEntryService).
+     *
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreJournalEntryRequest $request)
     {
-        $request->validate([
-            'location_id' => ['required'],
-            'currency_id' => ['required'],
-            'journal_entry_data' => ['required', 'array'], // {'debit', 'credit', 'amount', 'notes'}
-            'date' => ['required', 'date'],
-        ]);
-
         try {
             $transactionNumbers = $this->journalEntryService->criarEntradaBalanceada([
                 'location_id' => $request->location_id,

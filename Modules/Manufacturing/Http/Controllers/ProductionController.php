@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
@@ -24,6 +25,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ProductionController extends Controller
 {
+    use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
      * All Utils instance.
      */
@@ -363,7 +365,7 @@ class ProductionController extends Controller
             ];
         } catch (Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -824,7 +826,7 @@ class ProductionController extends Controller
             ];
         } catch (Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -859,7 +861,7 @@ class ProductionController extends Controller
                     'msg' => __('lang_v1.deleted_success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
 
                 $output['success'] = false;
                 $output['msg'] = trans('messages.something_went_wrong');

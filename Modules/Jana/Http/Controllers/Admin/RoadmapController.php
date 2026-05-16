@@ -112,21 +112,20 @@ class RoadmapController extends Controller
             ->limit(500)
             ->get();
 
-        // 4) Owners distintos pro filtro dropdown.
-        $owners = DB::table('mcp_tasks')
+        // 4+5) Owners/Modules distintos — D6.a Wave 17: deferred (DISTINCT cross-table).
+        $ownersDeferred = Inertia::defer(fn () => DB::table('mcp_tasks')
             ->select('owner')
             ->whereNotNull('owner')
             ->distinct()
             ->orderBy('owner')
-            ->pluck('owner');
+            ->pluck('owner'));
 
-        // 5) Modules distintos pro filtro dropdown.
-        $modules = DB::table('mcp_tasks')
+        $modulesDeferred = Inertia::defer(fn () => DB::table('mcp_tasks')
             ->select('module')
             ->whereNotNull('module')
             ->distinct()
             ->orderBy('module')
-            ->pluck('module');
+            ->pluck('module'));
 
         return Inertia::render('Jana/Admin/Roadmap', [
             'cycles' => $cycles->map(function ($c) {
@@ -171,8 +170,8 @@ class RoadmapController extends Controller
                 'priority' => $priorityFilter,
                 'module'   => $moduleFilter,
             ],
-            'owners'  => $owners,
-            'modules' => $modules,
+            'owners'  => $ownersDeferred,
+            'modules' => $modulesDeferred,
             'active_cycle_id' => $activeCycle?->id,
         ]);
     }

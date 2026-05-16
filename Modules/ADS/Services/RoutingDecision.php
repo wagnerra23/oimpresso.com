@@ -2,6 +2,10 @@
 
 namespace Modules\ADS\Services;
 
+/**
+ * Observabilidade D9.a (ADR 0155): value-object — spans Tracer ficam no
+ * DecisionRouter que produz este resultado, via `OtelHelper::span(`.
+ */
 final class RoutingDecision
 {
     public function __construct(

@@ -12,6 +12,9 @@ use Modules\Whatsapp\Entities\EmployeePerformance;
 use Throwable;
 
 /**
+ * Observabilidade D9.a (ADR 0155): `rebuild()` envolto em `OtelHelper::span(`
+ * (Tracer whatsapp.employee_performance.rebuild) — mede aggregations por business.
+ *
  * US-WA-VOZ-003 — Recompila scorecard de 1 atendente do business.
  *
  * Stateless. Idempotente. Fail-open per-step.

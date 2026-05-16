@@ -3,6 +3,7 @@
 namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Util\OtelHelper;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,19 +80,22 @@ class BoletoController extends Controller
     {
         $businessId = (int) $request->session()->get('business.id');
 
-        $remessa = BoletoRemessa::where('business_id', $businessId)->findOrFail($remessaId);
+        // Wave 17 D9 — operação mutativa observada (span por op + business).
+        return OtelHelper::spanBiz('financeiro.boleto.cancelar', function () use ($request, $remessaId, $service, $businessId) {
+            $remessa = BoletoRemessa::where('business_id', $businessId)->findOrFail($remessaId);
 
-        if ($remessa->status === BoletoRemessa::STATUS_CANCELADO) {
-            return back()->with('error', 'Boleto ja cancelado.');
-        }
+            if ($remessa->status === BoletoRemessa::STATUS_CANCELADO) {
+                return back()->with('error', 'Boleto ja cancelado.');
+            }
 
-        if ($remessa->status === BoletoRemessa::STATUS_PAGO) {
-            return back()->with('error', 'Boleto ja pago — nao pode ser cancelado.');
-        }
+            if ($remessa->status === BoletoRemessa::STATUS_PAGO) {
+                return back()->with('error', 'Boleto ja pago — nao pode ser cancelado.');
+            }
 
-        $service->cancelarBoleto($remessa, $request->input('motivo', 'cancelado pelo usuario'));
+            $service->cancelarBoleto($remessa, $request->input('motivo', 'cancelado pelo usuario'));
 
-        return back()->with('success', 'Boleto cancelado.');
+            return back()->with('success', 'Boleto cancelado.');
+        }, ['op' => 'cancelar', 'remessa_id' => $remessaId]);
     }
 
     /**

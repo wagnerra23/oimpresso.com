@@ -4,15 +4,25 @@ namespace Modules\Jana\Entities\Mcp;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Token MCP (extensão sobre Sanctum).
  *
  * Token raw é gerado, hashed com SHA256 e armazenado. Raw é exibido UMA VEZ
  * pro user copiar — depois disso, só hash. Lookup por sha256_token.
+ *
+ * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia revocação
+ * e expiração — essencial pra responder LGPD Art. 9º (rastreabilidade de
+ * tratamento por credenciais).
+ *
+ * SECURITY: sha256_token NUNCA logado (já marcado em $hidden).
  */
 class McpToken extends Model
 {
+    use LogsActivity;
+
     protected $table = 'mcp_tokens';
 
     protected $fillable = [
@@ -90,5 +100,19 @@ class McpToken extends Model
             'last_used_ip' => $ip,
             'user_agent'   => $userAgent ? Str::limit($userAgent, 200, '') : $this->user_agent,
         ]);
+    }
+
+    /**
+     * D7 LGPD audit — NUNCA logga sha256_token (já hidden). Só rastreia
+     * mudanças críticas: revocação, expiração override. last_used_at
+     * intencionalmente fora pra evitar flood de eventos.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('mcp_token')
+            ->logOnly(['revoked_at', 'revoked_by', 'expires_at', 'name'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

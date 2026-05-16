@@ -129,7 +129,11 @@ class ManufacturingServiceProvider extends ServiceProvider
      */
     protected function registerCommands()
     {
-        
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Manufacturing\Console\Commands\ManufacturingHealthCommand::class,
+            ]);
+        }
     }
 
     public function registerScheduleCommands()

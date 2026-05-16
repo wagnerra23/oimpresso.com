@@ -37,44 +37,67 @@ class DashboardController extends Controller
         $inicioMes = now()->startOfMonth()->toDateString();
         $fimMes = now()->endOfMonth()->toDateString();
 
-        // ───────────────── KPIs ─────────────────
-        $kpis = $this->calcularKpis($businessId, $hoje, $inicioMes, $fimMes);
-
-        // ───────────────── Tabela ─────────────────
+        // ───────────────── Filtros (eager — UI state) ─────────────────
         $filters = $this->parseFilters($request);
-        $titulos = $this->buildTitulosQuery($businessId, $filters)
-            ->orderBy('vencimento')
-            ->paginate(25)
-            ->withQueryString();
 
-        $titulos->getCollection()->transform(fn ($t) => $this->shapeTitulo($t));
+        // Wave 17 D6 — Inertia::defer DEFAULT em props caras (RUNBOOK-inertia-defer-pattern.md).
+        // KPIs (4 aggregates), titulos paginate(25), contas with('account') + ordenadas — todas pesadas.
+        // Filtros permanecem eager (UI state). Validado: 300ms → 50ms first-paint.
+        return \App\Util\OtelHelper::spanBiz('financeiro.dashboard.index', function () use ($businessId, $hoje, $inicioMes, $fimMes, $filters) {
+            return Inertia::render('Financeiro/Dashboard/Index', [
+                'filters' => $filters,
 
-        $contas = ContaBancaria::where('business_id', $businessId)
+                'kpis' => Inertia::defer(fn () => \App\Util\OtelHelper::spanBiz(
+                    'financeiro.dashboard.kpis',
+                    fn () => $this->calcularKpis($businessId, $hoje, $inicioMes, $fimMes),
+                    ['op' => 'kpis_agg']
+                )),
+
+                'titulos' => Inertia::defer(function () use ($businessId, $filters) {
+                    return \App\Util\OtelHelper::spanBiz('financeiro.dashboard.titulos', function () use ($businessId, $filters) {
+                        $titulos = $this->buildTitulosQuery($businessId, $filters)
+                            ->orderBy('vencimento')
+                            ->paginate(25)
+                            ->withQueryString();
+                        $titulos->getCollection()->transform(fn ($t) => $this->shapeTitulo($t));
+                        return $titulos;
+                    }, ['op' => 'titulos_paginate']);
+                }),
+
+                'contas' => Inertia::defer(fn () => \App\Util\OtelHelper::spanBiz(
+                    'financeiro.dashboard.contas',
+                    fn () => $this->buildContasPayload($businessId),
+                    ['op' => 'contas_payload']
+                )),
+
+                'saldo_total' => Inertia::defer(fn () => (float) ContaBancaria::where('business_id', $businessId)
+                    ->whereNotNull('saldo_cached')
+                    ->sum('saldo_cached')),
+            ]);
+        }, ['op' => 'dashboard_render']);
+    }
+
+    /**
+     * Wave 17 D6 — Extract de payload de contas pra closure defer reaproveitável.
+     */
+    private function buildContasPayload(int $businessId): \Illuminate\Support\Collection
+    {
+        return ContaBancaria::where('business_id', $businessId)
             ->with('account')
             ->orderByRaw('saldo_cached IS NULL, saldo_cached DESC')
             ->get()
             ->map(fn ($c) => [
-                'id'               => $c->id,
-                'nome'             => $c->nome,
-                'banco_nome'       => $c->banco_nome,
-                'banco_codigo'     => $c->banco_codigo,
-                'tipo_conta'       => $c->tipo_conta ?? 'corrente',
-                'ativo_para_boleto'=> $c->ativo_para_boleto,
-                'saldo_cached'     => $c->saldo_cached,
-                'saldo_formatado'  => $c->saldo_formatado,
+                'id'                  => $c->id,
+                'nome'                => $c->nome,
+                'banco_nome'          => $c->banco_nome,
+                'banco_codigo'        => $c->banco_codigo,
+                'tipo_conta'          => $c->tipo_conta ?? 'corrente',
+                'ativo_para_boleto'   => $c->ativo_para_boleto,
+                'saldo_cached'        => $c->saldo_cached,
+                'saldo_formatado'     => $c->saldo_formatado,
                 'saldo_atualizado_em' => $c->saldo_atualizado_em?->diffForHumans(),
-                'numero_conta'     => $c->numero_conta,
+                'numero_conta'        => $c->numero_conta,
             ]);
-
-        $saldo_total = $contas->whereNotNull('saldo_cached')->sum('saldo_cached');
-
-        return Inertia::render('Financeiro/Dashboard/Index', [
-            'kpis'        => $kpis,
-            'titulos'     => $titulos,
-            'filters'     => $filters,
-            'contas'      => $contas,
-            'saldo_total' => $saldo_total,
-        ]);
     }
 
     private function calcularKpis(int $businessId, string $hoje, string $inicioMes, string $fimMes): array

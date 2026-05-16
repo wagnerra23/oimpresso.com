@@ -9,6 +9,9 @@ use Modules\Jana\Entities\MemoriaFato;
 use Modules\Whatsapp\Entities\Message;
 
 /**
+ * Observabilidade D9.a (ADR 0155): handler inline com webhook; Tracer pai
+ * via `OtelHelper::span(` herda o span do SlashCommandHandler dispatcher.
+ *
  * LembrarHandler — US-WA-074.
  *
  * Atendente escreve em nota interna:

@@ -7,12 +7,17 @@ namespace Modules\Jana\Entities\Mcp;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * ADR 0070 — Jira-style task management.
  *
  * Cycle = sprint de duração fixa com goal outcome-oriented.
  * 1 cycle ativo por projeto (status='active').
+ *
+ * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia mudanças
+ * de status/goal/datas — pra reconstruir timeline de sprints (retro audit).
  *
  * @property int     $id
  * @property int     $project_id
@@ -26,6 +31,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class McpCycle extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $table = 'mcp_cycles';
@@ -83,5 +89,14 @@ class McpCycle extends Model
         $total = (float) ($this->start_date->diffInDays($this->end_date) ?: 1);
         $elapsed = (float) $this->start_date->diffInDays(today());
         return min(100.0, max(0.0, ($elapsed / $total) * 100));
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('mcp_cycle')
+            ->logOnly(['status', 'goal', 'start_date', 'end_date', 'owner_user_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

@@ -3,31 +3,24 @@
 namespace Modules\Jana\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Modules\Jana\Entities\MetaPeriodo;
+use Modules\Jana\Http\Requests\StorePeriodoRequest;
+use Modules\Jana\Http\Requests\UpdatePeriodoRequest;
 
 /** STUB spec-ready: CRUD de períodos aninhado em meta. */
 class PeriodosController extends Controller
 {
-    public function store(Request $request, $metaId)
+    public function store(StorePeriodoRequest $request, $metaId)
     {
-        $data = $request->validate([
-            'tipo_periodo' => 'required|in:mes,trim,ano,custom',
-            'data_ini'     => 'required|date',
-            'data_fim'     => 'required|date|after_or_equal:data_ini',
-            'valor_alvo'   => 'required|numeric',
-            'trajetoria'   => 'nullable|in:linear,sazonal,exponencial,manual',
-        ]);
-
-        MetaPeriodo::create(array_merge($data, ['meta_id' => $metaId]));
+        MetaPeriodo::create(array_merge($request->validated(), ['meta_id' => $metaId]));
 
         return redirect()->route('jana.metas.show', $metaId);
     }
 
-    public function update(Request $request, $metaId, $id)
+    public function update(UpdatePeriodoRequest $request, $metaId, $id)
     {
         $periodo = MetaPeriodo::where('meta_id', $metaId)->findOrFail($id);
-        $periodo->update($request->only(['tipo_periodo', 'data_ini', 'data_fim', 'valor_alvo', 'trajetoria']));
+        $periodo->update($request->validated());
         return redirect()->route('jana.metas.show', $metaId);
     }
 

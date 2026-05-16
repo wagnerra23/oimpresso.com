@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
+ * Observabilidade D9.a (ADR 0155): evaluation envolto em `OtelHelper::span(`
+ * (Tracer ads.governance.evaluate) — mede regras x triggers acionados.
+ *
  * Meta-skills runtime — avalia condições JSON-DSL e dispara ações.
  *
  * Diferente do PolicyEngine (HARD): regras aqui são SOFT, configuráveis,

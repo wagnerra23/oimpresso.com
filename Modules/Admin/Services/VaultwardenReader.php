@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -28,6 +29,9 @@ class VaultwardenReader
 {
     public function fetch(): array
     {
+        // D9.a OTel (Wave 17): span envolve HTTP Vaultwarden API.
+        // Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('admin.vaultwarden.fetch', function () {
         return Cache::remember('admin.widget.vaultwarden', 300, function () {
             $url   = config('admin.vaultwarden_url', 'http://192.168.0.50:8200');
             $token = config('admin.vaultwarden_admin_token');
@@ -66,6 +70,7 @@ class VaultwardenReader
                 return $this->stub('exception:' . substr($e->getMessage(), 0, 100));
             }
         });
+        }, ['component' => 'admin.widget.w7']);
     }
 
     /**

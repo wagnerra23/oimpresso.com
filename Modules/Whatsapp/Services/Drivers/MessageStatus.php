@@ -4,6 +4,9 @@ namespace Modules\Whatsapp\Services\Drivers;
 
 /**
  * Status de uma mensagem (resultado de fetchMessageStatus).
+ *
+ * Observabilidade D9.a (ADR 0155): value-object puro — driver chamador
+ * usa Tracer via `OtelHelper::span(` em fetchMessageStatus.
  */
 final class MessageStatus
 {

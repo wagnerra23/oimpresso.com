@@ -5,6 +5,9 @@ namespace Modules\ADS\Services;
 use Illuminate\Support\Facades\DB;
 
 /**
+ * Observabilidade D9.a (ADR 0155): permission check ms-range; Tracer via
+ * `OtelHelper::span(` pode envolver `canWriteToPath()` se hot path.
+ *
  * Resolve permissões granulares de (usuário × módulo).
  *
  * Caso Maiara:

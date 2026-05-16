@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\SRS\Entities\DocEvidence;
+use Modules\SRS\Http\Requests\TriageEvidenceRequest;
 
 class InboxController extends Controller
 {
@@ -77,18 +78,13 @@ class InboxController extends Controller
         ]);
     }
 
-    public function triage(Request $request, $evidenceId): RedirectResponse
+    public function triage(TriageEvidenceRequest $request, $evidenceId): RedirectResponse
     {
+        // D8.c Security Wave 17 — validação migrada pra FormRequest dedicado
+        // (whitelist status + kind alinhada com enum de domínio).
         $businessId = (int) (session('business.id') ?: $request->session()->get('user.business_id'));
 
-        $validated = $request->validate([
-            'status'        => 'required|in:pending,triaged,applied,rejected,duplicate',
-            'kind'          => 'nullable|in:bug,rule,flow,quote,screenshot,decision',
-            'module_target' => 'nullable|string|max:64',
-            'suggested_story_id' => 'nullable|string|max:32',
-            'suggested_rule_id'  => 'nullable|string|max:32',
-            'notes'         => 'nullable|string|max:2000',
-        ]);
+        $validated = $request->validated();
 
         $evidence = DocEvidence::where('business_id', $businessId)->findOrFail($evidenceId);
 

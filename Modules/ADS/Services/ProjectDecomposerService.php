@@ -8,6 +8,9 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\ADS\Ai\Agents\ProjectDecomposerAgent;
 
 /**
+ * Observabilidade D9.a (ADR 0155): chamada Sonnet envolto em
+ * `OtelHelper::span(` (Tracer ads.project_decomposer.decompose) — mede tokens.
+ *
  * Decompõe Project em Parts via ProjectDecomposerAgent (Sonnet).
  *
  * Diferente do PlannerService (que decompõe DECISION em subtarefas atômicas):

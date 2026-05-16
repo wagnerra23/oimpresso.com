@@ -29,6 +29,12 @@ class AdminServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Admin\Console\Commands\AdminHealthCommand::class,
+            ]);
+        }
     }
 
     public function register(): void

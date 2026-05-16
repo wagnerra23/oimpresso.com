@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
 /**
+ * Observabilidade D9.a (ADR 0155): scan + curriculum envolto em
+ * `OtelHelper::span(` (Tracer ads.autotask.generate) quando invocado.
+ *
  * T7 — Self-Instruct goal-directed (Wang et al., 2022).
  *
  * Não gera tarefas inventadas. Faz SCAN do estado real do projeto e propõe

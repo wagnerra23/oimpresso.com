@@ -29,6 +29,7 @@ class ExtratoController extends Controller
     {
         $businessId = (int) $request->session()->get('business.id');
 
+        // Conta header é cheap (firstOrFail single row) — fica eager.
         $conta = ContaBancaria::where('business_id', $businessId)
             ->where('id', $contaBancariaId)
             ->with('account:id,name,account_number')
@@ -37,22 +38,28 @@ class ExtratoController extends Controller
         $from = $request->date('from') ?? Carbon::now()->subDays(30)->startOfDay();
         $to   = $request->date('to')   ?? Carbon::now()->endOfDay();
 
-        $lancamentos = ExtratoLancamento::where('business_id', $businessId)
-            ->where('conta_bancaria_id', $contaBancariaId)
-            ->whereBetween('data', [$from->toDateString(), $to->toDateString()])
-            ->orderByDesc('data')
-            ->orderByDesc('id')
-            ->limit(500)
-            ->get()
-            ->map(fn (ExtratoLancamento $e) => [
-                'id'                    => $e->id,
-                'data'                  => $e->data->toDateString(),
-                'valor'                 => (float) $e->valor,
-                'tipo'                  => $e->tipo,
-                'descricao'             => $e->descricao,
-                'contraparte_documento' => $e->contraparte_documento,
-                'contraparte_nome'      => $e->contraparte_nome,
-            ]);
+        // Wave 17 D6+D9 — lancamentos LIMIT 500 + totais agregados são pesados (range scan).
+        // Inertia::defer + OtelHelper::spanBiz pra observabilidade per-business.
+        $loadLancamentos = function () use ($businessId, $contaBancariaId, $from, $to) {
+            return \App\Util\OtelHelper::spanBiz('financeiro.extrato.lancamentos', function () use ($businessId, $contaBancariaId, $from, $to) {
+                return ExtratoLancamento::where('business_id', $businessId)
+                    ->where('conta_bancaria_id', $contaBancariaId)
+                    ->whereBetween('data', [$from->toDateString(), $to->toDateString()])
+                    ->orderByDesc('data')
+                    ->orderByDesc('id')
+                    ->limit(500)
+                    ->get()
+                    ->map(fn (ExtratoLancamento $e) => [
+                        'id'                    => $e->id,
+                        'data'                  => $e->data->toDateString(),
+                        'valor'                 => (float) $e->valor,
+                        'tipo'                  => $e->tipo,
+                        'descricao'             => $e->descricao,
+                        'contraparte_documento' => $e->contraparte_documento,
+                        'contraparte_nome'      => $e->contraparte_nome,
+                    ]);
+            }, ['op' => 'lancamentos_range', 'conta_id' => $contaBancariaId]);
+        };
 
         return Inertia::render('Financeiro/Extrato/Index', [
             'conta' => [
@@ -63,16 +70,23 @@ class ExtratoController extends Controller
                 'saldo_cached'        => $conta->saldo_cached,
                 'saldo_atualizado_em' => $conta->saldo_atualizado_em?->toIso8601String(),
             ],
-            'lancamentos' => $lancamentos,
-            'filtros'     => [
+            'filtros' => [
                 'from' => $from->toDateString(),
                 'to'   => $to->toDateString(),
             ],
-            'totais' => [
-                'creditos' => $lancamentos->where('tipo', 'C')->sum('valor'),
-                'debitos'  => $lancamentos->where('tipo', 'D')->sum('valor'),
-                'count'    => $lancamentos->count(),
-            ],
+
+            // Lazy: deferred — frontend wrap em <Deferred data="lancamentos" fallback={skeleton}>.
+            'lancamentos' => Inertia::defer($loadLancamentos),
+
+            // Totais derivam dos lancamentos — também defer (independente).
+            'totais' => Inertia::defer(function () use ($loadLancamentos) {
+                $lancs = $loadLancamentos();
+                return [
+                    'creditos' => $lancs->where('tipo', 'C')->sum('valor'),
+                    'debitos'  => $lancs->where('tipo', 'D')->sum('valor'),
+                    'count'    => $lancs->count(),
+                ];
+            }),
         ]);
     }
 }
