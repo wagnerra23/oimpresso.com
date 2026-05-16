@@ -5,44 +5,36 @@ namespace Modules\Auditoria\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
-use Spatie\Activitylog\Models\Activity;
+use Modules\Auditoria\Services\AuditEntryService;
 
 /**
  * AuditoriaController — UI rica /auditoria + revert.
  *
  * Sprint F3 implementa Pages Inertia + RevertService (US-AUDIT-008..010).
- * Este scaffold (US-AUDIT-007) entrega placeholder funcional pra
- * `php artisan module:enable Auditoria` + listagem basica multi-tenant Tier 0.
+ * Wave M (2026-05-16): listing/filter extraído pra AuditEntryService thin
+ * (response shape PRESERVADO — Pages Inertia não quebram).
  *
- * Refs: ADR 0127 (Modules/Auditoria UI + undo)
+ * Tier 0 IRREVOGÁVEL: queries scoped via Service::list/find ([ADR 0093]).
+ * RevertService permanece intocado (compliance crítica).
+ *
+ * Refs: ADR 0127 (Modules/Auditoria UI + undo) · SPEC US-AUDIT-007/010
  */
 class AuditoriaController extends Controller
 {
+    public function __construct(private AuditEntryService $entries) {}
+
     public function index(Request $request)
     {
         $businessId = (int) $request->session()->get('user.business_id');
 
-        // Multi-tenant Tier 0 ([ADR 0093]) — toda query scoped por business_id.
-        $query = Activity::query()
-            ->where('activity_log.business_id', $businessId)
-            ->orderByDesc('id');
-
-        // Filtros basicos MVP
-        if ($causerKind = $request->input('causer_kind')) {
-            $query->where('causer_kind', $causerKind);
-        }
-        if ($subjectType = $request->input('subject_type')) {
-            $query->where('subject_type', $subjectType);
-        }
-        if ($event = $request->input('event')) {
-            $query->where('event', $event);
-        }
-
-        $activities = $query->paginate(config('auditoria.page_size', 50));
+        $activities = $this->entries->list(
+            $businessId,
+            $this->entries->normalizeFilters($request->all())
+        );
 
         return Inertia::render('Auditoria/Index', [
             'activities' => $activities,
-            'filters'    => $request->only(['causer_kind', 'subject_type', 'event']),
+            'filters'    => $this->entries->normalizeFilters($request->all()),
         ]);
     }
 
@@ -50,10 +42,7 @@ class AuditoriaController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id');
 
-        $activity = Activity::query()
-            ->where('activity_log.business_id', $businessId)
-            ->where('id', $activityId)
-            ->firstOrFail();
+        $activity = $this->entries->find($businessId, $activityId);
 
         return Inertia::render('Auditoria/Detail', [
             'activity' => $activity,

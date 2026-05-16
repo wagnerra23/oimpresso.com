@@ -1,6 +1,6 @@
 // @governance
 //   tela: /governance/module-grades
-//   adrs: 0153 module-grade-v1 rubrica oficial
+//   adrs: 0153 module-grade-v1 rubrica oficial, 0155 v3 9 dimensões
 //   runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 
 import React, { useState, useMemo } from 'react'
@@ -16,6 +16,8 @@ import KpiCard from '@/Components/shared/KpiCard'
 interface GradeRow {
   module: string
   score: number
+  /** ADR 0155 v3 — raw /118 (opcional p/ compat retroativa) */
+  score_v3_raw?: number
   bucket: 'Excelente' | 'Bom' | 'Médio' | 'Crítico' | 'Embrião'
   color: string
   dimensions: {
@@ -24,6 +26,11 @@ interface GradeRow {
     documentation: string
     architecture: string
     client_real: string
+    // ADR 0155 v3 — 4 novas dimensões compactas (opcionais p/ compat retroativa)
+    performance?: string
+    lgpd?: string
+    security?: string
+    observability?: string
   }
 }
 
@@ -79,7 +86,7 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
       <Head title="Module Grades — Governance" />
       <PageHeader
         title="Module Grades"
-        subtitle="Rubrica oficial module-grade-v1 (ADR 0153) — nota 0-100 ponderada por 5 dimensões"
+        subtitle="Rubrica oficial module-grade-v3 (ADR 0155) — nota 0-100 normalizada de 9 dimensões (raw /118)"
         breadcrumbs={[
           { label: 'Governança', href: '/governance' },
           { label: 'Module Grades' },
@@ -127,18 +134,23 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
                   <th className="px-4 py-3 font-semibold">Módulo</th>
                   <th className="px-4 py-3 font-semibold text-right">Nota</th>
                   <th className="px-4 py-3 font-semibold">Bucket</th>
-                  <th className="px-4 py-3 font-semibold text-center">D1 MT</th>
-                  <th className="px-4 py-3 font-semibold text-center">D2 Pest</th>
-                  <th className="px-4 py-3 font-semibold text-center">D3 Doc</th>
-                  <th className="px-4 py-3 font-semibold text-center">D4 Arq</th>
-                  <th className="px-4 py-3 font-semibold text-center">D5 Cli</th>
+                  <th className="px-2 py-3 font-semibold text-center">D1 MT</th>
+                  <th className="px-2 py-3 font-semibold text-center">D2 Pest</th>
+                  <th className="px-2 py-3 font-semibold text-center">D3 Doc</th>
+                  <th className="px-2 py-3 font-semibold text-center">D4 Arq</th>
+                  <th className="px-2 py-3 font-semibold text-center">D5 Cli</th>
+                  {/* ADR 0155 v3 — 4 colunas novas (compactas — só score/max) */}
+                  <th className="px-2 py-3 font-semibold text-center text-purple-700" title="D6 Performance — ADR 0155 v3">D6 Perf</th>
+                  <th className="px-2 py-3 font-semibold text-center text-pink-700" title="D7 LGPD — ADR 0155 v3">D7 LGPD</th>
+                  <th className="px-2 py-3 font-semibold text-center text-indigo-700" title="D8 Security — ADR 0155 v3">D8 Sec</th>
+                  <th className="px-2 py-3 font-semibold text-center text-cyan-700" title="D9 Observability — ADR 0155 v3">D9 Obs</th>
                   <th className="px-4 py-3 font-semibold text-right">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredGrades.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={13} className="px-4 py-8 text-center text-zinc-500">
                       Nenhum módulo combina com o filtro.
                     </td>
                   </tr>
@@ -154,11 +166,16 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
                       <td className="px-4 py-2">
                         <Badge className={bucketBadgeClass(g.bucket)}>{g.bucket}</Badge>
                       </td>
-                      <td className="px-4 py-2 text-center font-mono text-xs">{g.dimensions.multi_tenant}</td>
-                      <td className="px-4 py-2 text-center font-mono text-xs">{g.dimensions.pest_coverage}</td>
-                      <td className="px-4 py-2 text-center font-mono text-xs">{g.dimensions.documentation}</td>
-                      <td className="px-4 py-2 text-center font-mono text-xs">{g.dimensions.architecture}</td>
-                      <td className="px-4 py-2 text-center font-mono text-xs">{g.dimensions.client_real}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs">{g.dimensions.multi_tenant}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs">{g.dimensions.pest_coverage}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs">{g.dimensions.documentation}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs">{g.dimensions.architecture}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs">{g.dimensions.client_real}</td>
+                      {/* ADR 0155 v3 — render compacto (—) quando dimensão ausente p/ compat */}
+                      <td className="px-2 py-2 text-center font-mono text-xs text-purple-700">{g.dimensions.performance ?? '—'}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs text-pink-700">{g.dimensions.lgpd ?? '—'}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs text-indigo-700">{g.dimensions.security ?? '—'}</td>
+                      <td className="px-2 py-2 text-center font-mono text-xs text-cyan-700">{g.dimensions.observability ?? '—'}</td>
                       <td className="px-4 py-2 text-right">
                         <Link href={`/governance/module-grades/${g.module}`}>
                           <Button variant="ghost" size="sm">
@@ -176,7 +193,11 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
       </Card>
 
       <p className="text-xs text-zinc-500 mt-4">
-        Rubrica oficial: <code>module-grade-v1</code> · <Link href="/copiloto/admin/memoria?slug=0153-module-grade-rubrica-v1" className="underline">ADR 0153</Link> · pesos 30/20/15/20/15
+        Rubrica oficial: <code>module-grade-v3</code> ·{' '}
+        <Link href="/copiloto/admin/memoria?slug=0153-module-grade-rubrica-v1" className="underline">ADR 0153</Link> ·{' '}
+        <Link href="/copiloto/admin/memoria?slug=0154-module-grade-rubrica-v2-na-justificado" className="underline">ADR 0154 v2</Link> ·{' '}
+        <Link href="/copiloto/admin/memoria?slug=0155-module-grade-rubrica-v3-9-dimensoes" className="underline">ADR 0155 v3</Link>{' '}
+        · pesos 30/20/15/20/15 + (D6 Perf 6 / D7 LGPD 6 / D8 Sec 4 / D9 Obs 2) = /118 raw → /100 normalizado
       </p>
     </>
   )

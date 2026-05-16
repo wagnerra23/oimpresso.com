@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
+use Modules\Repair\Services\KanbanProductionService;
 
 /**
  * Produção · Oficina/OS — kanban shared infrastructure (read-mostly).
@@ -51,6 +52,11 @@ class ProducaoOficinaController extends Controller
         ['key' => 'area', 'label' => 'Elevador', 'options' => ['E1', 'E2']],
     ];
 
+    public function __construct(private ?KanbanProductionService $kanban = null)
+    {
+        $this->kanban ??= new KanbanProductionService();
+    }
+
     private const DEFAULT_LABEL_OVERRIDES = [
         // genérico-shared (defaults). Vertical passa labels específicas via JSON.
         'code' => 'Código',
@@ -86,7 +92,7 @@ class ProducaoOficinaController extends Controller
             return $this->renderMock($repairSettings);
         }
 
-        $statusToColumn = $this->mapStatusesToColumns($statuses);
+        $statusToColumn = $this->kanban->mapStatusesToColumns($statuses);
         $columns = $this->buildColumns($jobSheets, $statusToColumn);
 
         return Inertia::render('Repair/ProducaoOficina/Index', [
@@ -134,7 +140,7 @@ class ProducaoOficinaController extends Controller
             return back()->with('error', 'Nenhum status configurado para este business.');
         }
 
-        $targetStatusId = $this->findStatusForColumn($statuses, $targetColumn);
+        $targetStatusId = $this->kanban->findStatusForColumn($statuses, $targetColumn);
         if ($targetStatusId === null) {
             return back()->with('error', "Não foi possível mapear coluna '{$targetColumn}' pra um status — confira se há status \`is_completed_status=true\` (Pronto) e ≥1 status ativo.");
         }

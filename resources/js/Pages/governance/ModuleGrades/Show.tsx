@@ -1,6 +1,6 @@
 // @governance
 //   tela: /governance/module-grades/{module}
-//   adrs: 0153 module-grade-v1 rubrica oficial
+//   adrs: 0153 module-grade-v1 rubrica oficial, 0154 v2 N/A justificado, 0155 v3 9 dimensões
 //   runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 
 import React, { useState, useMemo } from 'react'
@@ -63,7 +63,10 @@ interface EvolveTask {
 
 interface Grade {
   module: string
+  /** Score normalizado /100 (compat v1/v2 + ADR 0155 v3) */
   score: number
+  /** ADR 0155 v3 — score raw /118 (soma de pesos das 9 dimensões); opcional p/ compat v1/v2 */
+  score_v3_raw?: number
   bucket: string
   color: string
   dimensions: {
@@ -72,6 +75,11 @@ interface Grade {
     documentation: Dimension
     architecture: Dimension
     client_real: Dimension
+    /** ADR 0155 v3 — 4 dimensões novas (opcionais p/ compat retroativa) */
+    performance?: Dimension
+    lgpd?: Dimension
+    security?: Dimension
+    observability?: Dimension
   }
   gaps: Gap[]
   evolve_tasks: EvolveTask[]
@@ -88,6 +96,27 @@ const DIM_LABELS: Record<keyof Grade['dimensions'], string> = {
   documentation: 'D3 — Documentação canônica',
   architecture: 'D4 — Maturidade arquitetura',
   client_real: 'D5 — Cliente real',
+  // ADR 0155 v3 — dimensões novas
+  performance: 'D6 — Performance',
+  lgpd: 'D7 — LGPD',
+  security: 'D8 — Security',
+  observability: 'D9 — Observability',
+}
+
+/** ADR 0155 v3 — dimensões que são "NOVO v3" (ganham badge no header do card) */
+const V3_NEW_DIMS = new Set<keyof Grade['dimensions']>([
+  'performance',
+  'lgpd',
+  'security',
+  'observability',
+])
+
+/** ADR 0155 v3 — cor de accent por dimensão (border-left + badge tone) */
+const DIM_ACCENT: Partial<Record<keyof Grade['dimensions'], string>> = {
+  performance: 'border-l-4 border-l-purple-400',
+  lgpd: 'border-l-4 border-l-pink-400',
+  security: 'border-l-4 border-l-indigo-400',
+  observability: 'border-l-4 border-l-cyan-400',
 }
 
 const BUCKET_STYLES: Record<string, string> = {
@@ -137,12 +166,17 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
 
   const evolveMarkdown = useMemo(() => generateEvolveMarkdown(grade), [grade])
 
+  // ADR 0155 v3 — só lista as dimensões realmente presentes (compat retroativa v1/v2 — sem D6-D9)
+  const presentDims = useMemo<(keyof Grade['dimensions'])[]>(() => {
+    return (Object.keys(DIM_LABELS) as (keyof Grade['dimensions'])[])
+      .filter((key) => grade.dimensions[key] !== undefined)
+  }, [grade])
+
   // ADR 0154 v2 — conta dimensões N/A justificadas (mostrado no header)
   const naJustifiedCount = useMemo(() => {
-    return (Object.keys(DIM_LABELS) as (keyof Grade['dimensions'])[])
-      .filter((key) => isDimensionNaJustified(grade.dimensions[key])).length
-  }, [grade])
-  const totalDims = Object.keys(DIM_LABELS).length
+    return presentDims.filter((key) => isDimensionNaJustified(grade.dimensions[key] as Dimension)).length
+  }, [grade, presentDims])
+  const totalDims = presentDims.length
 
   function handleCopyMarkdown(): void {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return
@@ -178,8 +212,18 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
       {/* Header de nota */}
       <Card className="mb-4">
         <CardContent className="py-6 flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <div className={`text-5xl font-bold ${scoreColorClass(grade.score)}`}>{grade.score}<span className="text-2xl text-zinc-400">/100</span></div>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className={`text-5xl font-bold ${scoreColorClass(grade.score)}`}>
+              {grade.score}
+              <span className="text-2xl text-zinc-400">/100</span>
+            </div>
+            {/* ADR 0155 v3 — score raw /118 em fonte pequena ao lado do normalizado */}
+            {typeof grade.score_v3_raw === 'number' && (
+              <div className="text-xs text-zinc-500 leading-tight">
+                <div className="font-mono">{grade.score_v3_raw}<span className="text-zinc-400">/118</span></div>
+                <div className="text-[10px] uppercase tracking-wide text-zinc-400">raw v3</div>
+              </div>
+            )}
             <Badge className={`${BUCKET_STYLES[grade.bucket] ?? ''} text-base px-3 py-1`}>{grade.bucket}</Badge>
             {/* ADR 0154 v2 — indica dimensões N/A justificadas no header */}
             {naJustifiedCount > 0 && (
@@ -187,6 +231,11 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
                 {naJustifiedCount} de {totalDims} dimensões com N/A justificado
               </Badge>
             )}
+            {/* ADR 0155 v3 — placeholder sparkline 7d (Wave 4 entrega) */}
+            <div className="px-3 py-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 text-xs text-zinc-500">
+              <div className="text-[10px] uppercase tracking-wide text-zinc-400">Evolução 7d</div>
+              <div className="font-medium">not available yet (Wave 4 entrega)</div>
+            </div>
           </div>
           <Link href="/governance/module-grades" className="text-sm text-sky-700 hover:underline">
             ← Voltar à lista
@@ -194,16 +243,26 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
         </CardContent>
       </Card>
 
-      {/* 5 cards dimensões */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-        {(Object.keys(DIM_LABELS) as (keyof Grade['dimensions'])[]).map((key) => {
-          const dim = grade.dimensions[key]
+      {/* Cards de dimensões — responsivo: 1 col mobile / 2 col tablet / 3 col desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        {presentDims.map((key) => {
+          const dim = grade.dimensions[key] as Dimension
           const dimNa = isDimensionNaJustified(dim)
+          const isV3New = V3_NEW_DIMS.has(key)
+          const accent = DIM_ACCENT[key] ?? ''
           return (
-            <Card key={key} className={dimNa ? 'border-emerald-200 bg-emerald-50/30' : ''}>
+            <Card key={key} className={`${dimNa ? 'border-emerald-200 bg-emerald-50/30' : ''} ${accent}`}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center justify-between gap-2">
-                  <span>{DIM_LABELS[key]}</span>
+                  <span className="flex items-center gap-2 flex-wrap">
+                    {DIM_LABELS[key]}
+                    {/* ADR 0155 v3 — badge "NOVO v3" pra dimensões D6-D9 */}
+                    {isV3New && (
+                      <Badge className="bg-violet-100 text-violet-800 border-violet-300 text-[10px] px-1.5 py-0 font-semibold">
+                        NOVO v3
+                      </Badge>
+                    )}
+                  </span>
                   <div className="flex items-center gap-2">
                     {/* ADR 0154 v2 — badge "N/A justificado" verde no card de dimensão */}
                     {dimNa && (
@@ -325,9 +384,17 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
       </Dialog>
 
       <p className="text-xs text-zinc-500 mt-4">
-        Rubrica oficial: <code>module-grade-v1</code> ·{' '}
+        Rubrica oficial: <code>module-grade-v3</code> ·{' '}
         <Link href="/copiloto/admin/memoria?slug=0153-module-grade-rubrica-v1" className="underline">
           ADR 0153
+        </Link>{' '}
+        ·{' '}
+        <Link href="/copiloto/admin/memoria?slug=0154-module-grade-rubrica-v2-na-justificado" className="underline">
+          ADR 0154 v2
+        </Link>{' '}
+        ·{' '}
+        <Link href="/copiloto/admin/memoria?slug=0155-module-grade-rubrica-v3-9-dimensoes" className="underline">
+          ADR 0155 v3
         </Link>{' '}
         · CLI equivalente: <code className="text-xs">php artisan module:grade {grade.module} --detail --evolve</code>
       </p>
