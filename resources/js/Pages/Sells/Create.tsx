@@ -636,16 +636,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               const isActive = activeSection === tab.id;
               const Icon = tab.icon;
               return (
-                <button
+                <Button
                   key={tab.id}
                   type="button"
+                  variant={isActive ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => scrollToSection(tab.id)}
-                  className={
-                    'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ' +
-                    (isActive
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
-                      : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground')
-                  }
+                  className="rounded-full text-xs"
                   aria-current={isActive ? 'true' : undefined}
                 >
                   <Icon size={13} />
@@ -654,13 +651,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                     <span
                       className={
                         'ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] tabular-nums ' +
-                        (isActive ? 'bg-blue-100 dark:bg-blue-900/60' : 'bg-background')
+                        (isActive ? 'bg-primary-foreground/20' : 'bg-background border border-border')
                       }
                     >
                       {tab.count}
                     </span>
                   )}
-                </button>
+                </Button>
               );
             })}
           </nav>
@@ -908,14 +905,16 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                           {formatBRL(lineSubtotal)}
                         </td>
                         <td className="px-3 py-2 text-right align-middle">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-sm"
                             onClick={() => handleRemoveProduct(idx)}
                             aria-label={`Remover ${p.name}`}
-                            className="text-muted-foreground hover:text-destructive p-1"
+                            className="text-muted-foreground hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     );
