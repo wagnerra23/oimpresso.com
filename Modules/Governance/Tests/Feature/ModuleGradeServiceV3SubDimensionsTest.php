@@ -194,27 +194,245 @@ it('cenário 5 — score_v3_normalized respeita fórmula round(raw * 100 / 118)'
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SAFETY HARNESS — arquivos REAIS do repo + arquivos FAKE são protegidos contra
+// drift mesmo em fatal/segfault/Ctrl+C/OOM (P0 BLOQUEADOR — ultrareview Bloco A
+// 2026-05-16). Combina:
+//
+//   1. Mutex flock() em storage/framework/cache/ — serializa worktrees paralelos
+//   2. register_shutdown_function — restaura SEMPRE, inclusive em fatal PHP
+//   3. pcntl_signal handlers (Linux) — captura SIGINT/SIGTERM via Ctrl+C
+//   4. try/finally — fluxo normal restaura first; shutdown handler é safety-net
+//   5. Módulo fake __GovernanceTestFake__ pra cenários 6/9/10/11 — substitui
+//      AssetManagement (arquivo versionado) por diretório efêmero não-tracked
+//
+// Risco residual: VerifyCsrfToken.php e Crm/SPEC.md NÃO têm versão fake (Service
+// lê base_path() hardcoded — refactor pra path injection é PR separado). Pra
+// esses 2 arquivos confiamos em (1)+(2)+(3)+(4) acima.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Mutex flock — serializa execução de cenários que patcheiam arquivos REAIS
+ * entre múltiplos processos Pest (e.g. Wagner rodando 2 worktrees em paralelo).
+ *
+ * Retorna o handle aberto; chamador é responsável por chamar releaseFsMutex().
+ *
+ * @return resource
+ */
+function acquireFsMutex()
+{
+    $lockDir = base_path('storage/framework/cache');
+    if (! is_dir($lockDir)) {
+        @mkdir($lockDir, 0755, true);
+    }
+    $lockPath = $lockDir . '/governance-grade-fs-mutex.lock';
+    $handle = fopen($lockPath, 'c');
+    if ($handle === false) {
+        // Falha em criar lock não deve quebrar test — degrada pra "best-effort"
+        return null;
+    }
+    // Blocking lock — espera worktree irmão liberar
+    @flock($handle, LOCK_EX);
+    return $handle;
+}
+
+function releaseFsMutex($handle): void
+{
+    if (is_resource($handle)) {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
+}
+
+/**
+ * Registra restauração resiliente:
+ *  - try/finally restaura no caminho feliz (assertion ok ou Exception capturada)
+ *  - register_shutdown_function cobre fatal error / die() / parse error
+ *  - pcntl_signal cobre Ctrl+C e SIGTERM (Linux/Mac apenas — Windows ignora)
+ *
+ * O handler é IDEMPOTENTE: usa flag por path pra evitar dupla restauração
+ * (try/finally já restaurou + shutdown handler dispararia de novo com lixo).
+ *
+ * @param string      $path     Caminho absoluto do arquivo a restaurar
+ * @param string|null $original Conteúdo original (null = arquivo NÃO existia)
+ */
+function registerFileRestoreSafetyNet(string $path, ?string $original): void
+{
+    static $registered = [];
+    static $signalsBound = false;
+
+    // Track estado atual por path (último registro vence — match nested patches)
+    $GLOBALS['__governance_test_restore_map'][$path] = $original;
+
+    if (! isset($registered[$path])) {
+        $registered[$path] = true;
+        register_shutdown_function(function () use ($path) {
+            if (! isset($GLOBALS['__governance_test_restore_done'][$path])) {
+                $orig = $GLOBALS['__governance_test_restore_map'][$path] ?? null;
+                if ($orig === null) {
+                    @unlink($path); // arquivo era sintético — apaga
+                } else {
+                    @file_put_contents($path, $orig);
+                }
+                $GLOBALS['__governance_test_restore_done'][$path] = true;
+            }
+        });
+    }
+
+    // Bind signal handlers UMA vez (pcntl só existe em Linux/Mac)
+    if (! $signalsBound && function_exists('pcntl_signal') && function_exists('pcntl_async_signals')) {
+        pcntl_async_signals(true);
+        $handler = function () {
+            // Shutdown handlers vão rodar — só termina graciosamente
+            exit(130);
+        };
+        pcntl_signal(SIGINT, $handler);
+        pcntl_signal(SIGTERM, $handler);
+        $signalsBound = true;
+    }
+}
+
+/**
+ * Marca path como "já restaurado" pelo try/finally — neutraliza shutdown handler.
+ */
+function markFileRestored(string $path): void
+{
+    $GLOBALS['__governance_test_restore_done'][$path] = true;
+}
+
+/**
+ * Cria módulo FAKE efêmero pra isolar cenários N/A justificado dos arquivos
+ * REAIS de AssetManagement/Crm. Cria 2 dirs com cleanup blindado:
+ *
+ *   - Modules/__GovernanceTestFake__/      (mínimo: dir vazia satisfaz is_dir())
+ *   - memory/requisitos/__GovernanceTestFake__/SPEC.md  (conteúdo sintético)
+ *
+ * Service só exige `is_dir(Modules/<X>)` pra prosseguir (linha 96 do Service).
+ * Cleanup: tanto try/finally do chamador quanto register_shutdown_function
+ * removem ambos os dirs.
+ *
+ * @return array{moduleDir: string, memoryDir: string, specPath: string}
+ */
+function createFakeModule(string $fakeName = '__GovernanceTestFake__'): array
+{
+    $moduleDir  = base_path("Modules/{$fakeName}");
+    $memoryDir  = base_path("memory/requisitos/{$fakeName}");
+    $specPath   = $memoryDir . '/SPEC.md';
+
+    if (! is_dir($moduleDir)) {
+        @mkdir($moduleDir, 0755, true);
+    }
+    if (! is_dir($memoryDir)) {
+        @mkdir($memoryDir, 0755, true);
+    }
+
+    // Marca cleanup do MÓDULO via shutdown handler (Service-required dir)
+    if (! isset($GLOBALS['__governance_test_fake_module_registered'])) {
+        $GLOBALS['__governance_test_fake_module_registered'] = true;
+        register_shutdown_function(function () use ($moduleDir, $memoryDir) {
+            // Remove arquivos órfãos primeiro
+            if (is_dir($memoryDir)) {
+                foreach ((array) @scandir($memoryDir) as $f) {
+                    if ($f !== '.' && $f !== '..') {
+                        @unlink($memoryDir . '/' . $f);
+                    }
+                }
+                @rmdir($memoryDir);
+            }
+            if (is_dir($moduleDir)) {
+                @rmdir($moduleDir);
+            }
+        });
+    }
+
+    return [
+        'moduleDir' => $moduleDir,
+        'memoryDir' => $memoryDir,
+        'specPath'  => $specPath,
+    ];
+}
+
+function cleanupFakeModule(array $fake): void
+{
+    @unlink($fake['specPath']);
+    @rmdir($fake['memoryDir']);
+    @rmdir($fake['moduleDir']);
+    markFileRestored($fake['specPath']);
+}
+
+/**
+ * Sobrescreve $except em VerifyCsrfToken.php temporariamente — BLINDADO contra
+ * fatal/segfault via register_shutdown_function + mutex inter-worktree.
+ *
+ * Retorna conteúdo original pra restauração no try/finally do chamador.
+ */
+function patchVerifyCsrfTokenExcept(array $newExcept): string
+{
+    $path = base_path('app/Http/Middleware/VerifyCsrfToken.php');
+    $original = file_get_contents($path);
+    if ($original === false) {
+        throw new RuntimeException("Não conseguiu ler {$path} pra snapshot — abort.");
+    }
+
+    // Safety-net ANTES do file_put_contents — se write falhar pelo meio, shutdown
+    // handler restaura o que estiver lá
+    registerFileRestoreSafetyNet($path, $original);
+
+    $renderArray = '[' . implode(', ', array_map(fn ($p) => "'{$p}'", $newExcept)) . ']';
+    $patched = preg_replace(
+        '/(\$except\s*=\s*)\[.*?\]/s',
+        '$1' . $renderArray,
+        $original,
+        1
+    );
+
+    file_put_contents($path, $patched);
+    return $original;
+}
+
+function restoreVerifyCsrfToken(string $originalContent): void
+{
+    $path = base_path('app/Http/Middleware/VerifyCsrfToken.php');
+    file_put_contents($path, $originalContent);
+    markFileRestored($path);
+}
+
+/**
+ * Snapshot + patch resiliente de SPEC.md (Crm cenários 7/8).
+ */
+function patchSpecResilient(string $path, string $newContent): ?string
+{
+    $original = file_exists($path) ? file_get_contents($path) : null;
+    registerFileRestoreSafetyNet($path, $original);
+    file_put_contents($path, $newContent);
+    return $original;
+}
+
+function restoreSpec(string $path, ?string $originalContent): void
+{
+    if ($originalContent === null) {
+        @unlink($path);
+    } else {
+        file_put_contents($path, $originalContent);
+    }
+    markFileRestored($path);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // CENÁRIO 6 — N/A v2 continua funcionando em sub-itens D6-D9 (backward-compat)
 // ─────────────────────────────────────────────────────────────────────────────
 
 it('cenário 6 — N/A justificado v2 aplicável em D6.a (backward-compat sub-itens v3)', function () {
-    // Cria SPEC sintético em módulo AssetManagement com N/A em D6.a
-    $tmpDir = base_path('memory/requisitos/AssetManagement');
-    if (! is_dir($tmpDir)) {
-        @mkdir($tmpDir, 0755, true);
-    }
-    $originalSpec = $tmpDir . '/SPEC.md';
-    $backupSpec = $tmpDir . '/SPEC.md.bak-v3test';
+    // FIX P0 BLOQUEADOR — usa módulo FAKE __GovernanceTestFake__ em vez de
+    // patchear AssetManagement/SPEC.md (arquivo REAL versionado). Diretório
+    // não existe no repo, é criado/destruído por test — ZERO risco de drift.
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
 
-    if (file_exists($originalSpec)) {
-        copy($originalSpec, $backupSpec);
-    }
-
-    $syntheticSpec = <<<'YAML'
+    $syntheticSpec = <<<YAML
 ---
 lifecycle: active
 owner: [W]
-module: AssetManagement
+module: {$fakeName}
 na_justified:
   D6.a: "módulo CLI-only, sem Inertia::render"
 ---
@@ -222,11 +440,12 @@ na_justified:
 # Test synthetic SPEC v3
 YAML;
 
-    file_put_contents($originalSpec, $syntheticSpec);
+    registerFileRestoreSafetyNet($fake['specPath'], null);
+    file_put_contents($fake['specPath'], $syntheticSpec);
 
     try {
         $service = app(ModuleGradeService::class);
-        $grade = $service->gradeModule('AssetManagement');
+        $grade = $service->gradeModule($fakeName);
 
         // D6.a deve estar marcado N/A com score=max (4)
         $d6aBreakdown = collect($grade['dimensions']['performance']['breakdown'])->firstWhere('key', 'D6.a');
@@ -241,12 +460,369 @@ YAML;
         // Estrutura v3 completa preservada
         expect($grade)->toHaveKeys(['score_v3_normalized', 'score_v3_raw', 'weights_v3']);
     } finally {
-        // Restaura SPEC original (se existia) ou remove o sintético
-        if (file_exists($backupSpec)) {
-            copy($backupSpec, $originalSpec);
-            @unlink($backupSpec);
-        } else {
-            @unlink($originalSpec);
+        cleanupFakeModule($fake);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 7 — D8.b CSRF except penalty detectada quando route do módulo lista
+// em app/Http/Middleware/VerifyCsrfToken.php::$except (ADR 0155 §D8.b)
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 7 — D8.b CSRF except penalty aplicada quando route do módulo em VerifyCsrfToken::except', function () {
+    // FIX P0 BLOQUEADOR — mutex flock serializa entre worktrees paralelos.
+    // VerifyCsrfToken.php é arquivo único do framework (não tem fake).
+    // Patch é blindado por register_shutdown_function + try/finally.
+    $mutex = acquireFsMutex();
+
+    $crmSpecPath = base_path('memory/requisitos/Crm/SPEC.md');
+    $crmSpecBackup = null;
+    $original = null;
+
+    try {
+        // Patch VerifyCsrfToken.php inserindo route que pertence ao módulo Crm
+        $original = patchVerifyCsrfTokenExcept(['/install/details', 'crm/webhook/*']);
+
+        // Bypass do SPEC Crm que declara `na_justified: { D8.b }` — substitui
+        // por SPEC sintético sem na_justified pra evidenciar a heurística pura.
+        if (file_exists($crmSpecPath)) {
+            $crmSpecBackup = patchSpecResilient($crmSpecPath, <<<'YAML'
+---
+module: Crm
+lifecycle: active
+owner: [W]
+---
+# Test synthetic SPEC — sem na_justified pra validar penalty pura
+YAML);
         }
+
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule('Crm');
+
+        $d8 = $grade['dimensions']['security'];
+        $d8b = collect($d8['breakdown'])->firstWhere('key', 'D8.b');
+
+        expect($d8b)->not->toBeNull();
+        expect($d8b['max'])->toBe(2);
+        expect($d8b['score'])->toBe(0, 'D8.b → 0 quando route do módulo está em VerifyCsrfToken::except');
+        expect($d8b['evidence'])->toContain('PENALTY')->toContain('crm/webhook');
+    } finally {
+        if ($original !== null) {
+            restoreVerifyCsrfToken($original);
+        }
+        if ($crmSpecBackup !== null) {
+            restoreSpec($crmSpecPath, $crmSpecBackup);
+        }
+        releaseFsMutex($mutex);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 8 — D8.b sem penalty quando except só lista routes externas/genéricas
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 8 — D8.b mantém default 2 pts quando except não lista route do módulo', function () {
+    // FIX P0 BLOQUEADOR — mesma blindagem do cenário 7 (mutex + safety-net).
+    $mutex = acquireFsMutex();
+
+    $crmSpecPath = base_path('memory/requisitos/Crm/SPEC.md');
+    $crmSpecBackup = null;
+    $original = null;
+
+    try {
+        // Patch removendo qualquer prefix do módulo Crm — só /install + /api ecom
+        $original = patchVerifyCsrfTokenExcept([
+            '/install/details',
+            '/install/post-details',
+            '/api/ecom/customers',
+        ]);
+
+        // Bypass SPEC Crm (mesma razão do cenário 7)
+        if (file_exists($crmSpecPath)) {
+            $crmSpecBackup = patchSpecResilient($crmSpecPath, <<<'YAML'
+---
+module: Crm
+lifecycle: active
+owner: [W]
+---
+# Test synthetic SPEC — sem na_justified pra validar default 2 pts
+YAML);
+        }
+
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule('Crm');
+
+        $d8b = collect($grade['dimensions']['security']['breakdown'])->firstWhere('key', 'D8.b');
+
+        expect($d8b)->not->toBeNull();
+        expect($d8b['score'])->toBe(2, 'D8.b default 2 pts (Laravel CSRF on, sem except do módulo)');
+        expect($d8b['evidence'])->toContain('default Laravel CSRF on');
+    } finally {
+        if ($original !== null) {
+            restoreVerifyCsrfToken($original);
+        }
+        if ($crmSpecBackup !== null) {
+            restoreSpec($crmSpecPath, $crmSpecBackup);
+        }
+        releaseFsMutex($mutex);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 9 — na_justified_v3 exclui sub-dim v3 (D6.a) + denominador re-normaliza
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 9 — na_justified_v3 D6.a aceito e aplicado igual a na_justified v2', function () {
+    // FIX P0 BLOQUEADOR — módulo FAKE (não toca AssetManagement real)
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $syntheticSpec = <<<YAML
+---
+lifecycle: active
+owner: [W]
+module: {$fakeName}
+na_justified_v3:
+  D6.a: "CLI-only, sem Inertia (declarado via na_justified_v3 ADR 0155)"
+---
+
+# Test synthetic SPEC v3 — chave nova
+YAML;
+
+    registerFileRestoreSafetyNet($fake['specPath'], null);
+    file_put_contents($fake['specPath'], $syntheticSpec);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d6aBreakdown = collect($grade['dimensions']['performance']['breakdown'])->firstWhere('key', 'D6.a');
+        expect($d6aBreakdown)->not->toBeNull();
+        expect($d6aBreakdown['score'])->toBe(4, 'D6.a N/A (via v3) → score = max');
+        expect($d6aBreakdown['na_justified'] ?? false)->toBeTrue();
+        expect($d6aBreakdown['evidence'])->toContain('N/A justificado')->toContain('CLI-only');
+        expect($grade['total_na_justified'])->toBeGreaterThanOrEqual(1);
+    } finally {
+        cleanupFakeModule($fake);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 10 — na_justified (v2) + na_justified_v3 coexistem no MESMO SPEC
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 10 — na_justified v2 + na_justified_v3 coexistem (merge)', function () {
+    // FIX P0 BLOQUEADOR — módulo FAKE
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $syntheticSpec = <<<YAML
+---
+lifecycle: active
+owner: [W]
+module: {$fakeName}
+na_justified:
+  D5: "Asset CLI-only — sem cliente externo (v2 backward-compat)"
+na_justified_v3:
+  D6.a: "Sem Inertia — CLI-only (v3 chave nova)"
+---
+
+# Test synthetic SPEC — coexistência v2 + v3
+YAML;
+
+    registerFileRestoreSafetyNet($fake['specPath'], null);
+    file_put_contents($fake['specPath'], $syntheticSpec);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        // D5 marcado N/A via v2
+        $d5 = $grade['dimensions']['client_real'];
+        expect($d5['score'])->toBe($d5['max'], 'D5 N/A via na_justified v2');
+
+        // D6.a marcado N/A via v3
+        $d6a = collect($grade['dimensions']['performance']['breakdown'])->firstWhere('key', 'D6.a');
+        expect($d6a['na_justified'] ?? false)->toBeTrue('D6.a N/A via na_justified_v3');
+        expect($d6a['score'])->toBe(4);
+
+        // total_na_justified conta ambos (mín 2)
+        expect($grade['total_na_justified'])->toBeGreaterThanOrEqual(2);
+    } finally {
+        cleanupFakeModule($fake);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 11 — na_justified_v3 com chave de dim v2 (D5) também é aceito
+// (compat ampliado — ADR 0155 não restringe na_justified_v3 a D6-D9)
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 11 — na_justified_v3 aceita chave de dim v2 (D5) — compat ampliado', function () {
+    // FIX P0 BLOQUEADOR — módulo FAKE
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    // Declara D5 em na_justified_v3 (chave v3 com dim v2) — Service deve aceitar
+    $syntheticSpec = <<<YAML
+---
+lifecycle: active
+owner: [W]
+module: {$fakeName}
+na_justified_v3:
+  D5: "Asset CLI-only — declarado via chave nova v3 (compat ampliado ADR 0155)"
+---
+
+# Test synthetic SPEC — D5 declarado em na_justified_v3 (canal preferencial)
+YAML;
+
+    registerFileRestoreSafetyNet($fake['specPath'], null);
+    file_put_contents($fake['specPath'], $syntheticSpec);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        // D5 deve estar marcado N/A — Service trata chave v3 como ampliação de v2
+        $d5 = $grade['dimensions']['client_real'];
+        expect($d5['score'])->toBe($d5['max'], 'D5 N/A via na_justified_v3 (compat ampliado)');
+        expect($grade['total_na_justified'])->toBeGreaterThanOrEqual(1);
+    } finally {
+        cleanupFakeModule($fake);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 12 — D9.a detecta padrão canônico OtelHelper::spanBiz (ADR 0156 §Errata 1)
+//
+// Confirma que regex atualizada captura a facade canônica oimpresso
+// (`app/Util/OtelHelper.php`), corrigindo "falsa promessa" da ADR 0156 antes do fix:
+// módulos como Sells FSM, Jana, Whatsapp que usam o canônico pontuariam ZERO.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 12 — D9.a detecta OtelHelper::spanBiz canônico (regex ADR 0156 §Errata 1)', function () {
+    // Módulo fake — Service exige is_dir(Modules/<X>/Services) pra contar arquivos
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $servicesDir = $fake['moduleDir'] . '/Services';
+    if (! is_dir($servicesDir)) {
+        @mkdir($servicesDir, 0755, true);
+    }
+    $fakeService = $servicesDir . '/FakeOtelService.php';
+
+    // Service que invoca facade canônica `OtelHelper::spanBiz(...)` — padrão prod-real
+    // (igual MessagePersister, MetaCloudDriver, MeilisearchDriver, FluxoCaixaService, etc.)
+    $fakeServiceContent = <<<'PHP'
+<?php
+
+namespace Modules\__GovernanceTestFake__\Services;
+
+class FakeOtelService
+{
+    public function run(): bool
+    {
+        return \App\Util\OtelHelper::spanBiz('test.fake.action', fn () => true);
+    }
+}
+PHP;
+    file_put_contents($fakeService, $fakeServiceContent);
+    registerFileRestoreSafetyNet($fakeService, null);
+
+    // Cleanup do dir Services (não coberto pelo registerFakeModule)
+    register_shutdown_function(function () use ($servicesDir) {
+        if (is_dir($servicesDir)) {
+            foreach ((array) @scandir($servicesDir) as $f) {
+                if ($f !== '.' && $f !== '..') {
+                    @unlink($servicesDir . '/' . $f);
+                }
+            }
+            @rmdir($servicesDir);
+        }
+    });
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d9a = collect($grade['dimensions']['observability']['breakdown'])->firstWhere('key', 'D9.a');
+        expect($d9a)->not->toBeNull();
+        // 1/1 Services com OTel → score = 4 (max)
+        expect($d9a['score'])->toBe(4, 'D9.a → 4 quando 100% Services usam OtelHelper::spanBiz canônico');
+        expect($d9a['evidence'])->toContain('1/1');
+    } finally {
+        @unlink($fakeService);
+        @rmdir($servicesDir);
+        markFileRestored($fakeService);
+        cleanupFakeModule($fake);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 13 — D9.a NÃO faz match em menção apenas em comentário (sem invocação)
+//
+// Regra `\s*\(` no regex força parêntese após `OtelHelper::span[Biz]`, evitando
+// match em docblocks/comentários que apenas mencionam a API (ex.: MeilisearchDriver:77
+// "pra OtelHelper::spanBiz envolver sem afetar comportamento").
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 13 — D9.a NÃO faz match em menção textual de OtelHelper sem invocação', function () {
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $servicesDir = $fake['moduleDir'] . '/Services';
+    if (! is_dir($servicesDir)) {
+        @mkdir($servicesDir, 0755, true);
+    }
+    $fakeService = $servicesDir . '/FakeNoOtelService.php';
+
+    // Service que MENCIONA OtelHelper apenas em comentário/docblock — sem invocar.
+    // Não deve pontuar D9.a (regex exige `\s*\(`).
+    $fakeServiceContent = <<<'PHP'
+<?php
+
+namespace Modules\__GovernanceTestFake__\Services;
+
+class FakeNoOtelService
+{
+    /**
+     * Implementação isolada — preservada idêntica pra OtelHelper::spanBiz envolver
+     * sem afetar comportamento. (TODO: futuro — wrap em facade canônica)
+     */
+    public function run(): bool
+    {
+        // OtelHelper::span foi planejado mas ainda não implementado.
+        return true;
+    }
+}
+PHP;
+    file_put_contents($fakeService, $fakeServiceContent);
+    registerFileRestoreSafetyNet($fakeService, null);
+
+    register_shutdown_function(function () use ($servicesDir) {
+        if (is_dir($servicesDir)) {
+            foreach ((array) @scandir($servicesDir) as $f) {
+                if ($f !== '.' && $f !== '..') {
+                    @unlink($servicesDir . '/' . $f);
+                }
+            }
+            @rmdir($servicesDir);
+        }
+    });
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d9a = collect($grade['dimensions']['observability']['breakdown'])->firstWhere('key', 'D9.a');
+        expect($d9a)->not->toBeNull();
+        // 0/1 Services com OTel → score = 0 (regex `\s*\(` exige parêntese)
+        expect($d9a['score'])->toBe(0, 'D9.a → 0 quando apenas comentário menciona OtelHelper (sem invocação)');
+        expect($d9a['evidence'])->toContain('0/1');
+    } finally {
+        @unlink($fakeService);
+        @rmdir($servicesDir);
+        markFileRestored($fakeService);
+        cleanupFakeModule($fake);
     }
 });

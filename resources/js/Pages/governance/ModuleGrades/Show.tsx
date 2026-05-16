@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from '@/Components/ui/dialog'
 import PageHeader from '@/Components/shared/PageHeader'
+import { Shield } from 'lucide-react'
 
 interface BreakdownItem {
   key?: string
@@ -466,6 +467,31 @@ function ModuleGradesShow({ grade, history }: Props): React.ReactElement {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Gate CI anti-regressão — info pro time MCP entender comportamento do merge */}
+      <Card className="mt-4 border-sky-200 bg-sky-50/50">
+        <CardContent className="py-3">
+          <div className="flex items-start gap-3">
+            <Shield className="w-4 h-4 text-sky-700 mt-0.5 flex-shrink-0" aria-hidden />
+            <div className="text-xs text-zinc-700 space-y-1.5">
+              <p className="font-semibold text-sky-900">Gate CI anti-regressão ativo</p>
+              <p className="text-zinc-600">
+                Se a nota deste módulo <strong>cair</strong> em uma PR, o merge é bloqueado automaticamente.
+                Override: aplicar a label <code className="text-[11px] px-1 py-0.5 bg-amber-100 text-amber-900 rounded">module-grades-allowed-regression</code> na PR.
+              </p>
+              <p className="text-zinc-600">
+                <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/.github/workflows/module-grades-gate.yml" target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">Workflow GitHub Actions</a>{' '}
+                ·{' '}
+                <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/governance/module-grades-baseline.json" target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">Baseline JSON</a>{' '}
+                ·{' '}
+                <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Governance/RUNBOOK-module-grades.md" target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">RUNBOOK módulo</a>{' '}
+                ·{' '}
+                <Link href="/copiloto/admin/memoria?slug=0155-module-grade-rubrica-v3-9-dimensoes" className="text-sky-700 hover:underline">ADR 0155</Link>
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <p className="text-xs text-zinc-500 mt-4">
         Rubrica oficial: <code>module-grade-v3</code> ·{' '}

@@ -22,6 +22,7 @@ Drill-down de **um módulo específico** — mostrar nota grande, breakdown das 
 5. Lista "Top gaps" ordenada por `lost` desc — mostra perda + prioridade (P0/P1/P2/P3) + key + desc + evidence
 6. Botão **"Evoluir"** primário (verde, alto contraste) — abre Dialog com tasks suggested + markdown copiável
 7. Markdown gerado é colável direto no Claude Code pra criar tasks via `tasks-create` MCP
+8. **Gate CI anti-regressão surfaced no rodapé** (Wave 2 ADR 0155 §"Gate CI"). Wagner e time MCP entram no drill-down do módulo X e veem que **se a nota deste módulo cair em PR, merge é bloqueado**. Card sky discreto explica comportamento + label de override `module-grades-allowed-regression` + 4 links externos (workflow + baseline JSON + RUNBOOK + ADR 0155). Texto adaptado pro contexto módulo único ("deste módulo" não "qualquer módulo" como no Index).
 
 ## Non-Goals
 
@@ -38,6 +39,7 @@ Drill-down de **um módulo específico** — mostrar nota grande, breakdown das 
 - Modal Evoluir scrollável + accordion pro markdown raw
 - Botão "Copiar Markdown" com feedback visual "✓ Copiado!"
 - **ADR 0154 v2 N/A justificado:** cor emerald-600 dominante em dimensões/sub-itens N/A (não vermelho/amarelo). Razão SEMPRE visível pra Wagner saber por que é N/A — transparência total, sem "nota artificialmente alta" sem justificativa.
+- Banner gate CI rodapé Show — card sky compact (mt-4, border-sky-200, bg-sky-50/50), ícone Shield (Lucide, `w-4 h-4 text-sky-700`), texto adaptado "deste módulo", 4 links externos com `target="_blank" rel="noreferrer"`, fica abaixo do Dialog Evoluir como nota de rodapé visual
 
 ## Anti-hooks
 
@@ -47,3 +49,5 @@ Drill-down de **um módulo específico** — mostrar nota grande, breakdown das 
 - ❌ NÃO disparar AJAX automático ao abrir modal — gerado client-side via useMemo
 - ❌ NÃO esconder a razão do N/A (ADR 0154 v2) — Wagner precisa ver o **porquê** pra confiar na nota; "verde silencioso" é anti-transparência
 - ❌ NÃO contar dimensão N/A como "pontuação cheia silenciosamente" — sempre rotular "N/A" no score (não inflar com "100%")
+- ❌ NÃO adicionar interação no banner gate CI (read-only links externos apenas — sem botão, sem dialog, sem state)
+- ❌ NÃO promover banner gate CI a posição acima do Header/nota — é nota de rodapé contextual, não headline do módulo

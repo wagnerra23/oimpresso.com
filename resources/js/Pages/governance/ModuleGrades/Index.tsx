@@ -12,6 +12,7 @@ import { Button } from '@/Components/ui/button'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
+import { Shield } from 'lucide-react'
 
 interface GradeRow {
   module: string
@@ -124,11 +125,12 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
         </CardContent>
       </Card>
 
-      {/* Tabela */}
+      {/* Tabela — wrapper overflow-x-auto pra acomodar 13 colunas em laptops 1366px */}
       <Card>
         <CardContent className="p-0">
           <Deferred data="grades" fallback={<TableSkeleton />}>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[1100px]">
               <thead className="bg-zinc-50 border-b border-zinc-200">
                 <tr className="text-left">
                   <th className="px-4 py-3 font-semibold">Módulo</th>
@@ -188,7 +190,34 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
                 )}
               </tbody>
             </table>
+            </div>
           </Deferred>
+        </CardContent>
+      </Card>
+
+      {/* Gate CI anti-regressão — info pro time MCP (Felipe/Maiara/Eliana/Luiz) entender por que PR fica bloqueado */}
+      <Card className="mt-4 border-sky-200 bg-sky-50/50">
+        <CardContent className="py-3">
+          <div className="flex items-start gap-3">
+            <Shield className="w-4 h-4 text-sky-700 mt-0.5 flex-shrink-0" aria-hidden />
+            <div className="text-xs text-zinc-700 space-y-1.5">
+              <p className="font-semibold text-sky-900">Gate CI anti-regressão ativo</p>
+              <p className="text-zinc-600">
+                Toda PR roda <code className="text-[11px]">module-grade --all --json</code> e compara com o baseline.
+                Se a nota de qualquer módulo <strong>cair</strong>, o merge é bloqueado.
+                Override: aplicar a label <code className="text-[11px] px-1 py-0.5 bg-amber-100 text-amber-900 rounded">module-grades-allowed-regression</code> na PR.
+              </p>
+              <p className="text-zinc-600">
+                <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/.github/workflows/module-grades-gate.yml" target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">Workflow GitHub Actions</a>{' '}
+                ·{' '}
+                <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/governance/module-grades-baseline.json" target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">Baseline JSON</a>{' '}
+                ·{' '}
+                <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Governance/RUNBOOK-module-grades.md" target="_blank" rel="noreferrer" className="text-sky-700 hover:underline">RUNBOOK módulo</a>{' '}
+                ·{' '}
+                <Link href="/copiloto/admin/memoria?slug=0155-module-grade-rubrica-v3-9-dimensoes" className="text-sky-700 hover:underline">ADR 0155</Link>
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -197,7 +226,7 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
         <Link href="/copiloto/admin/memoria?slug=0153-module-grade-rubrica-v1" className="underline">ADR 0153</Link> ·{' '}
         <Link href="/copiloto/admin/memoria?slug=0154-module-grade-rubrica-v2-na-justificado" className="underline">ADR 0154 v2</Link> ·{' '}
         <Link href="/copiloto/admin/memoria?slug=0155-module-grade-rubrica-v3-9-dimensoes" className="underline">ADR 0155 v3</Link>{' '}
-        · pesos 30/20/15/20/15 + (D6 Perf 6 / D7 LGPD 6 / D8 Sec 4 / D9 Obs 2) = /118 raw → /100 normalizado
+        · 9 dimensões × pesos canônicos (D1 25, D2 17, D3 12, D4 17, D5 12, D6 10, D7 10, D8 8, D9 7) = 118 raw → /100 normalizado
       </p>
     </>
   )
