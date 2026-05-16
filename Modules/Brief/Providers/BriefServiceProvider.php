@@ -25,6 +25,13 @@ class BriefServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../Routes/api.php');
         $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
 
+        // D7 LGPD (Wave 13): publica config de retenção pra que
+        // config('brief.redact_pii_before_llm') e demais flags fiquem
+        // disponíveis em tempo de execução (BriefGeneratorService).
+        $this->publishes([
+            __DIR__.'/../Config/retention.php' => config_path('brief.php'),
+        ], 'brief-config');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 GenerateBriefCommand::class,
@@ -34,6 +41,14 @@ class BriefServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        // Service container: nada especial — autoresolve dependências.
+        // D7 LGPD (Wave 13): merge config retention.php sob namespace 'brief.*'
+        // — flags como 'brief.redact_pii_before_llm' funcionam sem publish.
+        $this->mergeConfigFrom(
+            __DIR__.'/../Config/retention.php',
+            'brief'
+        );
+
+        // Service container: autoresolve PiiRedactor (Modules\Jana\Services\Privacy\)
+        // — registrado no Jana ServiceProvider.
     }
 }
