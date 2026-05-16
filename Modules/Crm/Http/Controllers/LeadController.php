@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmContact;
+use Modules\Crm\Services\LeadAssignmentService;
 use Modules\Crm\Utils\CrmUtil;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -22,17 +23,22 @@ class LeadController extends Controller
 
     protected $crmUtil;
 
+    protected LeadAssignmentService $leadAssignment;
+
     /**
      * Constructor
      *
      * @param  Util  $commonUtil
      * @return void
      */
-    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil, CrmUtil $crmUtil)
+    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil, CrmUtil $crmUtil, ?LeadAssignmentService $leadAssignment = null)
     {
         $this->commonUtil = $commonUtil;
         $this->moduleUtil = $moduleUtil;
         $this->crmUtil = $crmUtil;
+        // Wave Massive D4.a — thin service injetado opcional pra preservar back-compat
+        // se outro caller instanciar manualmente sem container. Default = via app().
+        $this->leadAssignment = $leadAssignment ?? app(LeadAssignmentService::class);
     }
 
     /**
@@ -352,7 +358,9 @@ class LeadController extends Controller
 
             $assigned_to = $request->input('user_id');
 
-            $contact = CrmContact::createNewLead($input, $assigned_to);
+            // Wave Massive D4.a — delegação ao Service thin (zero regressão; mesma chamada CrmContact)
+            // $assigned_to é array de user_ids (sync()) ou null — preservar tipo original.
+            $contact = $this->leadAssignment->createLead($input, $assigned_to);
 
             if (! empty($contact)) {
                 $this->moduleUtil->getModuleData('after_contact_saved', ['contact' => $contact, 'input' => $request->input()]);
@@ -473,7 +481,8 @@ class LeadController extends Controller
 
             $assigned_to = $request->input('user_id');
 
-            $contact = CrmContact::updateLead($id, $input, $assigned_to);
+            // Wave Massive D4.a — delegação ao Service thin (zero regressão; mesma chamada CrmContact)
+            $contact = $this->leadAssignment->updateLead((int) $id, $input, $assigned_to);
 
             $output = [
                 'success' => true,
