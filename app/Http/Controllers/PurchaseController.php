@@ -396,8 +396,74 @@ class PurchaseController extends Controller
 
         $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
 
+        // MWART Wave2 B5 — dual path opt-in Inertia via ?v=2 (ADR 0104, 0149).
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            return $this->createInertia(
+                $business_id,
+                $business_locations,
+                $taxes,
+                $orderStatuses,
+                $default_purchase_status,
+                $currency_details,
+                $customer_groups,
+                $accounts,
+                $payment_types,
+                $common_settings
+            );
+        }
+
         return view('purchase.create')
             ->with(compact('taxes', 'orderStatuses', 'business_locations', 'currency_details', 'default_purchase_status', 'customer_groups', 'types', 'shortcuts', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'common_settings'));
+    }
+
+    /**
+     * MWART Wave2 B5 — Inertia path para /purchases/create.
+     *
+     * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): $business_id chega como
+     * parâmetro vindo de create() que já validou sessão.
+     */
+    private function createInertia(
+        int $business_id,
+        $business_locations,
+        $taxes,
+        array $orderStatuses,
+        ?string $default_purchase_status,
+        $currency_details,
+        $customer_groups,
+        $accounts,
+        $payment_types,
+        array $common_settings
+    ) {
+        $user = auth()->user();
+
+        return Inertia::render('Purchase/Create', [
+            'business_locations' => $business_locations,
+            'taxes' => $taxes->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'amount' => (float) $t->amount,
+            ])->values(),
+            'order_statuses' => $orderStatuses,
+            'default_purchase_status' => $default_purchase_status,
+            'payment_types' => $payment_types,
+            'currency' => [
+                'symbol' => $currency_details->symbol ?? 'R$',
+                'code' => $currency_details->code ?? 'BRL',
+                'thousand_separator' => $currency_details->thousand_separator ?? '.',
+                'decimal_separator' => $currency_details->decimal_separator ?? ',',
+                'decimal' => $currency_details->decimal ?? 2,
+            ],
+            'customer_groups' => $customer_groups,
+            'accounts' => $accounts,
+            'default_datetime' => now()->format('Y-m-d H:i:s'),
+            'permissions' => [
+                'create_supplier' => $user->can('supplier.create'),
+                'create_customer' => $user->can('customer.create'),
+                'edit_price' => $user->can('edit_purchase_price'),
+                'view_purchase_price' => $user->can('view_purchase_price'),
+            ],
+            'common_settings' => $common_settings,
+        ]);
     }
 
     /**
@@ -858,6 +924,18 @@ class PurchaseController extends Controller
                                         ->pluck('ref_no', 'id');
         }
 
+        // MWART Wave2 B5 — dual path opt-in Inertia via ?v=2 (ADR 0104).
+        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+            return $this->editInertia(
+                $business_id,
+                $purchase,
+                $business_locations,
+                $taxes,
+                $orderStatuses,
+                $currency_details
+            );
+        }
+
         return view('purchase.edit')
             ->with(compact(
                 'taxes',
@@ -873,6 +951,84 @@ class PurchaseController extends Controller
                 'purchase_orders',
                 'common_settings'
             ));
+    }
+
+    /**
+     * MWART Wave2 B5 — Inertia path para /purchases/{id}/edit.
+     *
+     * Tier 0 IRREVOGÁVEL: $business_id chega de edit() já validado em sessão.
+     * $purchase já vem com where('business_id') aplicado, garantindo isolamento.
+     */
+    private function editInertia(
+        int $business_id,
+        $purchase,
+        $business_locations,
+        $taxes,
+        array $orderStatuses,
+        $currency_details
+    ) {
+        $user = auth()->user();
+
+        $purchaseLines = $purchase->purchase_lines->map(function ($line) {
+            $product = $line->product;
+            $variation = $line->variations;
+
+            return [
+                'id' => $line->id,
+                'product_name' => $product?->name ?? '',
+                'product_id' => $line->product_id,
+                'variation_id' => $line->variation_id,
+                'unit_id' => $product?->unit_id,
+                'unit_name' => $product?->unit?->short_name ?? 'un',
+                'quantity' => (float) $line->quantity,
+                'pp_without_discount' => (float) ($line->pp_without_discount ?? 0),
+                'discount_percent' => (float) ($line->discount_percent ?? 0),
+                'item_tax' => (float) ($line->item_tax ?? 0),
+                'tax_id' => $line->tax_id,
+                'purchase_price' => (float) ($line->purchase_price ?? 0),
+                'purchase_price_inc_tax' => (float) ($line->purchase_price_inc_tax ?? 0),
+            ];
+        })->values();
+
+        return Inertia::render('Purchase/Edit', [
+            'purchase' => [
+                'id' => $purchase->id,
+                'ref_no' => $purchase->ref_no ?? '',
+                'status' => $purchase->status,
+                'contact_id' => $purchase->contact_id,
+                'contact_name' => $purchase->contact?->name ?? '',
+                'transaction_date' => optional($purchase->transaction_date)->format('Y-m-d H:i:s'),
+                'location_id' => $purchase->location_id,
+                'discount_type' => $purchase->discount_type ?? 'fixed',
+                'discount_amount' => (float) ($purchase->discount_amount ?? 0),
+                'tax_id' => $purchase->tax_id,
+                'tax_amount' => (float) ($purchase->tax_amount ?? 0),
+                'shipping_charges' => (float) ($purchase->shipping_charges ?? 0),
+                'additional_notes' => $purchase->additional_notes,
+                'exchange_rate' => (float) ($purchase->exchange_rate ?? 1),
+                'total_before_tax' => (float) ($purchase->total_before_tax ?? 0),
+                'final_total' => (float) ($purchase->final_total ?? 0),
+                'purchase_lines' => $purchaseLines,
+            ],
+            'business_locations' => $business_locations,
+            'taxes' => $taxes->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'amount' => (float) $t->amount,
+            ])->values(),
+            'order_statuses' => $orderStatuses,
+            'currency' => [
+                'symbol' => $currency_details->symbol ?? 'R$',
+                'code' => $currency_details->code ?? 'BRL',
+                'thousand_separator' => $currency_details->thousand_separator ?? '.',
+                'decimal_separator' => $currency_details->decimal_separator ?? ',',
+                'decimal' => $currency_details->decimal ?? 2,
+            ],
+            'permissions' => [
+                'edit_price' => $user->can('edit_purchase_price'),
+                'view_purchase_price' => $user->can('view_purchase_price'),
+            ],
+        ]);
     }
 
     /**
