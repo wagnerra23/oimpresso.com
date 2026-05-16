@@ -114,7 +114,7 @@ Estimativa restante consolidada (Onda 2-5): ~7-10 dias agents paralelos respeita
 - [BRIEFING.md](../requisitos/KB/BRIEFING.md) — 6 ondas, status atual
 - [SCHEMA-DB-V1.md](../requisitos/KB/SCHEMA-DB-V1.md) — contrato 11 tabelas + endpoints
 - [CAPTERRA-FICHA.md](../requisitos/KB/CAPTERRA-FICHA.md) — bench v2 + v5
-- [ADR 0149 proposal](../decisions/proposals/0149-kb-unificado-grafo-conhecimento-modulo-ia-central.md)
+- [ADR 0150 proposal](../decisions/proposals/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md)
 - [ADR 0035](../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md) — stack IA canônica (NÃO duplicar)
 - [ADR 0053](../decisions/0053-mcp-server-governanca-como-produto.md) — MCP server pattern
 - [ADR 0061](../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) — bridge canônico append-only

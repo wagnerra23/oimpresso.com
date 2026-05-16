@@ -9,7 +9,7 @@ persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
 charter_version: 1.0
 charter_at: 2026-05-15
 related_adrs:
-  - 0149-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
@@ -25,7 +25,7 @@ related_index_charter: ./Index.charter.md
 
 A tela `/kb/graph` é o **coração visual do KB Unificado** — onde Wagner vê **as conexões entre os 143 ADRs + ~500 sessions + ~30 charters + ~50 runbooks + ~10 briefings** como um grafo navegável, com nodes coloridos por tipo, edges tipadas (supersedes, charter-of, cross-link, related-by-tag, ai-related), filtros sidebar e detalhe lateral por click.
 
-Cumpre a promessa central da ADR 0149: *"ter essa visualização sobre meus dados e arquivos mais importantes"* (Wagner, 2026-05-15).
+Cumpre a promessa central da ADR 0150: *"ter essa visualização sobre meus dados e arquivos mais importantes"* (Wagner, 2026-05-15).
 
 ## Goals (o que esta tela DEVE fazer bem)
 

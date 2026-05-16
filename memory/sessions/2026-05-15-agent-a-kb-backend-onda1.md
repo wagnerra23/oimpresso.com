@@ -6,7 +6,7 @@ authority: working
 lifecycle: ativo
 tags: [kb, backend, onda1, agent-a, schema-v1, multi-tenant]
 related:
-  - 0149-kb-unificado-grafo-conhecimento-modulo-ia-central
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
 pii: false
 ---
 
@@ -144,7 +144,7 @@ Implementação backend ONDA 1 do KB Unificado conforme contrato `memory/requisi
 
 6. **Atualizar `Modules/KB/SCOPE.md`**:
    - `db_tables_owned` adicionar as 12 novas tabelas
-   - `purpose` ampliar pra "KB Unificado grafo (ADR 0149)"
+   - `purpose` ampliar pra "KB Unificado grafo (ADR 0150)"
    - `contains` listar Controllers/Models/Services novos
 
 7. **Atualizar `BRIEFING.md`**:

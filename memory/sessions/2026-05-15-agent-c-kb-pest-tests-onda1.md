@@ -2,12 +2,12 @@
 
 > **Persona:** Agent C (testes Pest).
 > **Owner:** [CL] (Claude Code).
-> **Contrato:** [SCHEMA-DB-V1.md](../requisitos/KB/SCHEMA-DB-V1.md) + [ADR 0149 proposal](../decisions/proposals/0149-kb-unificado-grafo-conhecimento-modulo-ia-central.md) + [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) + [ADR 0101](../decisions/0101-tests-business-id-1-nunca-cliente.md).
+> **Contrato:** [SCHEMA-DB-V1.md](../requisitos/KB/SCHEMA-DB-V1.md) + [ADR 0150 proposal](../decisions/proposals/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md) + [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) + [ADR 0101](../decisions/0101-tests-business-id-1-nunca-cliente.md).
 > **Branch:** claude/practical-engelbart-8d8eb0 (worktree).
 
 ## Resumo
 
-Suite Pest completa do KB Unificado ONDA 1 (módulo IA central — ADR 0149) escrita ANTES dos Models/Controllers do Agent A existirem. Os testes são contrato de aceite — Agent A finaliza quando esta suite passa verde. 15 arquivos criados (1 Pest.php + 11 factories + 7 unit + 6 feature) cobrindo invariante crítica `is_editable=false ⇒ body_blocks IS NULL` (R1), cross-tenant isolation Tier 0 (R5), append-only kb_node_versions, FK circular root_step_id em transação, e os 4 fluxos REST principais (`/kb/nodes`, `/kb/paths`, `/kb/decision-trees`, `/kb/comments`). `phpunit.xml` atualizado com 2 directories KB (Feature + Unit).
+Suite Pest completa do KB Unificado ONDA 1 (módulo IA central — ADR 0150) escrita ANTES dos Models/Controllers do Agent A existirem. Os testes são contrato de aceite — Agent A finaliza quando esta suite passa verde. 15 arquivos criados (1 Pest.php + 11 factories + 7 unit + 6 feature) cobrindo invariante crítica `is_editable=false ⇒ body_blocks IS NULL` (R1), cross-tenant isolation Tier 0 (R5), append-only kb_node_versions, FK circular root_step_id em transação, e os 4 fluxos REST principais (`/kb/nodes`, `/kb/paths`, `/kb/decision-trees`, `/kb/comments`). `phpunit.xml` atualizado com 2 directories KB (Feature + Unit).
 
 ## Arquivos criados
 
@@ -81,9 +81,9 @@ Suite Pest completa do KB Unificado ONDA 1 (módulo IA central — ADR 0149) esc
 | `CrossTenantIsolationTest.php:73` | Endpoint `kb.edges.store` opcional — skip se ausente |
 | `permissions.php` | Permissions novas (kb.write, kb.publish.path, kb.publish.troubleshoot, kb.favorite, kb.comment, kb.ai.ask, kb.graph.view) precisam ser declaradas no `Modules/KB/Resources/permissions.php` E criadas como Permission Spatie pelo seeder |
 
-## Riscos R1-R5 cobertos (ADR 0149)
+## Riscos R1-R5 cobertos (ADR 0150)
 
-| Risco ADR 0149 | Mitigação testada | Test responsável |
+| Risco ADR 0150 | Mitigação testada | Test responsável |
 |---|---|---|
 | **R1** Duplicação acidental kb_nodes ↔ mcp_memory_documents | invariante `is_editable=false ⇒ body_blocks IS NULL` | `KbNodeTest::rejects body_blocks when is_editable=false`<br>`KbNodeTest::allows NULL body_blocks when is_editable=false`<br>`GovernanceInvariantsTest::keeps ADR bridge nodes body_blocks always NULL`<br>`KbBridgeFromMcpJobTest::sets is_editable=false for all bridge nodes` |
 | **R2** Custo IA RAG explode sem caching | (ONDA 4) — não coberto V1 | n/a (ONDA 4) |
