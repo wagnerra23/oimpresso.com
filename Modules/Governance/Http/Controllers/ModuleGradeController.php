@@ -13,14 +13,15 @@ use Inertia\Response;
 use Modules\Governance\Services\ModuleGradeService;
 
 /**
- * Module Grades dashboard — rubrica oficial module-grade-v1 (ADR 0153).
+ * Module Grades dashboard — rubrica oficial module-grade-v3 (ADR 0155).
  *
  * Rotas:
- *   GET /governance/module-grades         → Index (tabela 34 módulos ranqueada)
- *   GET /governance/module-grades/{name}  → Show (drill-down 5 dimensões + gaps + Evoluir)
+ *   GET /governance/module-grades         → Index (tabela 34 módulos ranqueada, 9 dims)
+ *   GET /governance/module-grades/{name}  → Show (drill-down 9 dimensões + gaps + Evoluir)
  *
  * Cache 5min em gradeAllModules() — Service faz I/O filesystem 1-2s × 34 módulos.
  *
+ * @see memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md
  * @see memory/requisitos/Governance/RUNBOOK-module-grades.md
  */
 class ModuleGradeController extends Controller
@@ -98,6 +99,13 @@ class ModuleGradeController extends Controller
     }
 
     /**
+     * Payload da listagem Index (34 módulos × campos compactos).
+     *
+     * ADR 0155 v3 — repassa 9 dimensões + `score_v3_raw`/`score_v3_normalized`/`weights_v3_total`
+     * pra Index.tsx renderizar colunas D1-D9 (antes só D1-D5 — D6-D9 ficavam `—` permanente).
+     *
+     * Cada dimensão vem como string `"score/max"` consistente com Show.tsx + back-compat v1.
+     *
      * @return array<int, array>
      */
     private function buildAllGradesPayload(): array
@@ -107,16 +115,27 @@ class ModuleGradeController extends Controller
             self::CACHE_TTL_SECONDS,
             fn () => $this->service->gradeAllModules()
                 ->map(fn ($g) => [
-                    'module'     => $g['module'],
-                    'score'      => $g['score'],
-                    'bucket'     => $g['bucket'],
-                    'color'      => $g['color'],
-                    'dimensions' => [
+                    'module'              => $g['module'],
+                    // `score` sinônimo de score_v3_normalized — back-compat v1/v2
+                    'score'               => $g['score'],
+                    // ADR 0155 v3 — chaves explícitas (marca audit + permite UI v3 destacar)
+                    'score_v3_normalized' => $g['score_v3_normalized'] ?? $g['score'],
+                    'score_v3_raw'        => $g['score_v3_raw'] ?? null,
+                    'weights_v3_total'    => $g['weights_v3_total'] ?? null,
+                    'bucket'              => $g['bucket'],
+                    'color'               => $g['color'],
+                    'dimensions'          => [
+                        // D1-D5 (v1/v2 — preservadas)
                         'multi_tenant'  => "{$g['dimensions']['multi_tenant']['score']}/{$g['dimensions']['multi_tenant']['max']}",
                         'pest_coverage' => "{$g['dimensions']['pest_coverage']['score']}/{$g['dimensions']['pest_coverage']['max']}",
                         'documentation' => "{$g['dimensions']['documentation']['score']}/{$g['dimensions']['documentation']['max']}",
                         'architecture'  => "{$g['dimensions']['architecture']['score']}/{$g['dimensions']['architecture']['max']}",
                         'client_real'   => "{$g['dimensions']['client_real']['score']}/{$g['dimensions']['client_real']['max']}",
+                        // D6-D9 (ADR 0155 v3 — antes ausentes na payload Index, Index.tsx renderizava '—')
+                        'performance'   => "{$g['dimensions']['performance']['score']}/{$g['dimensions']['performance']['max']}",
+                        'lgpd'          => "{$g['dimensions']['lgpd']['score']}/{$g['dimensions']['lgpd']['max']}",
+                        'security'      => "{$g['dimensions']['security']['score']}/{$g['dimensions']['security']['max']}",
+                        'observability' => "{$g['dimensions']['observability']['score']}/{$g['dimensions']['observability']['max']}",
                     ],
                 ])
                 ->all()

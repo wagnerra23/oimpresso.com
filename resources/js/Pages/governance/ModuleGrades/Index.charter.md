@@ -22,6 +22,7 @@ Permitir que Wagner (e time MCP futuro) abram **uma tela** e vejam a maturidade 
 5. Click row → drill-down `/governance/module-grades/{name}`
 6. Performance: initial render <2s via `Inertia::defer` (Service faz I/O filesystem 1-2s × 34 módulos)
 7. **ADR 0155 v3 — Colunas D6/D7/D8/D9 compactas** (Perf/LGPD/Sec/Obs) na tabela rank, só mostram score/max + tom de cor canônica (purple/pink/indigo/cyan). Render `—` quando módulo ainda não tem dimensão v3 avaliada (compat retroativa).
+8. **Gate CI anti-regressão surfaced no rodapé** (Wave 2 ADR 0155 §"Gate CI"). Wagner e time MCP (Felipe/Maiara/Eliana/Luiz) entram em PR e enxergam que o gate existe sem precisar abrir GitHub Actions. Card sky discreto explica comportamento (cai nota → merge bloqueado, label `module-grades-allowed-regression` faz override) + 4 links externos (workflow + baseline JSON + RUNBOOK + ADR 0155). NÃO interrompe hierarquia da tabela — fica abaixo do KPI/tabela como nota de rodapé visual.
 
 ## Non-Goals
 
@@ -37,6 +38,7 @@ Permitir que Wagner (e time MCP futuro) abram **uma tela** e vejam a maturidade 
 - Skeleton enquanto defer carrega
 - Empty state quando filtro não bate
 - Filter chips por bucket continuam iguais (não filtra por dimensão — drill-down é no /show)
+- Banner gate CI rodapé Index — card sky compact (mt-4, border-sky-200, bg-sky-50/50), ícone Shield (Lucide, `w-4 h-4 text-sky-700`), 4 links externos com `target="_blank" rel="noreferrer"`, não interrompe hierarquia da tabela rank
 
 ## Anti-hooks
 
@@ -44,3 +46,5 @@ Permitir que Wagner (e time MCP futuro) abram **uma tela** e vejam a maturidade 
 - ❌ NÃO permitir edição inline de notas (read-only)
 - ❌ NÃO armazenar localStorage filter (refresh = volta padrão)
 - ❌ NÃO mostrar evidence detalhada aqui (só no /show)
+- ❌ NÃO adicionar interação no banner gate CI (read-only links externos apenas — sem botão, sem dialog, sem state)
+- ❌ NÃO promover banner gate CI a posição acima da tabela (é nota de rodapé, não headline)
