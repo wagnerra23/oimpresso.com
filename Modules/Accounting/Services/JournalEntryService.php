@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Accounting\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Entities\JournalEntry;
@@ -40,6 +41,20 @@ class JournalEntryService
      * @throws \Throwable Rollback automático em erro
      */
     public function criarEntradaBalanceada(array $payload, int $userId): array
+    {
+        // D9 OTel — wrap operação contábil crítica (Wave 12). Zero-cost se OTel não configurado.
+        return OtelHelper::spanBiz('accounting.journal_entry.create_balanced', function () use ($payload, $userId) {
+            return $this->doCriarEntradaBalanceada($payload, $userId);
+        }, [
+            'rows_count' => count($payload['journal_entry_data'] ?? []),
+            'user_id' => $userId,
+        ]);
+    }
+
+    /**
+     * Implementação interna — extraída pra OTel wrap não-invasivo.
+     */
+    private function doCriarEntradaBalanceada(array $payload, int $userId): array
     {
         $transactionNumbers = [];
 
@@ -97,6 +112,21 @@ class JournalEntryService
      * @return string                        Novo transaction_number gerado
      */
     public function reverter(string $oldTransactionNumber, int $businessId, int $userId): string
+    {
+        // D9 OTel — wrap reversão (Wave 12). business_id passado explícito (jobs async).
+        return OtelHelper::span('accounting.journal_entry.reverse', [
+            'business_id' => $businessId,
+            'user_id' => $userId,
+            'old_transaction_number' => $oldTransactionNumber,
+        ], function () use ($oldTransactionNumber, $businessId, $userId) {
+            return $this->doReverter($oldTransactionNumber, $businessId, $userId);
+        });
+    }
+
+    /**
+     * Implementação interna — extraída pra OTel wrap não-invasivo.
+     */
+    private function doReverter(string $oldTransactionNumber, int $businessId, int $userId): string
     {
         $entries = JournalEntry::leftJoin('business_locations', 'business_locations.id', 'journal_entries.location_id')
             ->where('transaction_number', $oldTransactionNumber)
