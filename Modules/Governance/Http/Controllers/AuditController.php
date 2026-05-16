@@ -6,9 +6,9 @@ namespace Modules\Governance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Governance\Services\AuditDrillDownService;
 
 /**
  * Audit log drill-down — Constituição Art. 9.
@@ -17,10 +17,13 @@ use Inertia\Response;
  * append-only (trigger MySQL — ADR 0084) então read-only aqui.
  *
  * Export LGPD por business_id (Art. 18 LGPD) fica pra próxima iteração.
+ *
+ * Refator Wave H (#947): lógica de query extraída pra AuditDrillDownService —
+ * Controller só responde HTTP + delega Service + render Inertia (mesma response shape).
  */
 class AuditController extends Controller
 {
-    public function __construct()
+    public function __construct(private readonly AuditDrillDownService $service)
     {
         $this->middleware('auth');
     }
@@ -32,64 +35,16 @@ class AuditController extends Controller
         $endpoint = $request->input('endpoint');
         $status   = $request->input('status');
 
-        $cutoff = match ($period) {
-            '1h'    => now()->subHour(),
-            '24h'   => now()->subDay(),
-            '7d'    => now()->subDays(7),
-            '30d'   => now()->subDays(30),
-            default => now()->subDay(),
-        };
+        $entries = $this->service->getRecentEntries(200, [
+            'period'   => $period,
+            'actor'    => $actor,
+            'endpoint' => $endpoint,
+            'status'   => $status,
+        ]);
 
-        // Schema mcp_audit_log: usa `ts` (auto current_timestamp) ou `created_at`.
-        // Ambos existem; usar `ts` que é o canonical da tabela.
-        $q = DB::table('mcp_audit_log')
-            ->where('ts', '>', $cutoff);
-
-        if ($actor) {
-            // mcp_audit_log usa user_id; lookup actor_slug via mcp_actors join se necessário
-            $userIds = DB::table('mcp_actors')
-                ->where('slug', $actor)
-                ->whereNull('revoked_at')
-                ->pluck('user_id')
-                ->filter()
-                ->values()
-                ->all();
-            if (!empty($userIds)) {
-                $q->whereIn('user_id', $userIds);
-            } else {
-                $q->whereRaw('1=0'); // actor não encontrado = zero results
-            }
-        }
-        if ($endpoint) $q->where('endpoint', $endpoint);
-        if ($status)   $q->where('status', $status);
-
-        $entries = $q->orderByDesc('ts')
-            ->limit(200)
-            ->select('id', 'user_id', 'business_id', 'endpoint', 'tool_or_resource', 'status', 'duration_ms', 'ts as created_at')
-            ->get();
-
-        // KPIs do período
-        $kpis = [
-            'total'        => $entries->count(),
-            'errors'       => $entries->where('status', '!=', 'ok')->count(),
-            'unique_users' => $entries->pluck('user_id')->unique()->count(),
-        ];
-
-        // Distinct values pra filtros (endpoint é enum — 7 valores fixos)
-        $availableEndpoints = DB::table('mcp_audit_log')
-            ->where('ts', '>', now()->subDays(30))
-            ->select('endpoint')
-            ->distinct()
-            ->orderBy('endpoint')
-            ->limit(50)
-            ->pluck('endpoint')
-            ->all();
-
-        $availableActors = DB::table('mcp_actors')
-            ->whereNull('revoked_at')
-            ->select('slug', 'display_name')
-            ->orderBy('slug')
-            ->get();
+        $kpis = $this->service->kpisFor($entries);
+        $availableEndpoints = $this->service->availableEndpoints();
+        $availableActors = $this->service->availableActors();
 
         return Inertia::render('governance/Audit', [
             'entries' => $entries,
