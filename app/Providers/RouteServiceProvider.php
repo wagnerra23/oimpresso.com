@@ -48,5 +48,13 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+
+        // D8.b Security — Wave 13 Superadmin rate limit (proteção brute-force admin actions).
+        // 60 req/min por user_id autenticado OU por IP se não autenticado.
+        // Aplicado no grupo de rotas em Modules/Superadmin/Routes/web.php via middleware('throttle:superadmin').
+        // Cross-tenant intencional (ADR 0093) — limita só taxa, não escopo de acesso.
+        RateLimiter::for('superadmin', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }

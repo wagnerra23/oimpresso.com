@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\KB\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\KB\Entities\KbEdge;
@@ -46,37 +47,46 @@ class KbEdgeAutoDeriver
             return 0;
         }
 
-        $created = 0;
-        foreach ($supersededSlugs as $slug) {
-            $slug = trim((string) $slug);
-            if ($slug === '') {
-                continue;
+        // Wave 13 — OTel span (ADR 0155 D9.a). Hot-path no bridge job (todo ADR canon
+        // processado). Zero-cost se OTel disabled.
+        return OtelHelper::span('kb.edge.derive_supersedes', [
+            'module'      => 'KB',
+            'business_id' => $node->business_id,
+            'node_id'     => $node->id,
+            'slug_count'  => count($supersededSlugs),
+        ], function () use ($node, $supersededSlugs) {
+            $created = 0;
+            foreach ($supersededSlugs as $slug) {
+                $slug = trim((string) $slug);
+                if ($slug === '') {
+                    continue;
+                }
+
+                // Resolve o slug pra um kb_node já bridgeado.
+                $targetNode = KbNode::withoutGlobalScopes()
+                    ->where('business_id', $node->business_id)
+                    ->where('slug', $slug)
+                    ->first();
+
+                if (! $targetNode) {
+                    // Target ainda não foi bridgeado — pula. Próxima run do bridge job pega.
+                    continue;
+                }
+
+                $this->upsertEdge(
+                    $node->business_id,
+                    $node->id,
+                    $targetNode->id,
+                    'supersedes',
+                    weight: 1.000,
+                    generatedBy: 'bridge_job',
+                    payload: ['source' => 'frontmatter:supersedes'],
+                );
+                $created++;
             }
 
-            // Resolve o slug pra um kb_node já bridgeado.
-            $targetNode = KbNode::withoutGlobalScopes()
-                ->where('business_id', $node->business_id)
-                ->where('slug', $slug)
-                ->first();
-
-            if (! $targetNode) {
-                // Target ainda não foi bridgeado — pula. Próxima run do bridge job pega.
-                continue;
-            }
-
-            $this->upsertEdge(
-                $node->business_id,
-                $node->id,
-                $targetNode->id,
-                'supersedes',
-                weight: 1.000,
-                generatedBy: 'bridge_job',
-                payload: ['source' => 'frontmatter:supersedes'],
-            );
-            $created++;
-        }
-
-        return $created;
+            return $created;
+        });
     }
 
     /**
@@ -95,38 +105,48 @@ class KbEdgeAutoDeriver
             return 0;
         }
 
-        // Encontra outros nodes do mesmo business com 2+ tags em comum.
-        // SQL: lista nodes que tem JSON_CONTAINS pra qualquer das tags.
-        $candidates = KbNode::withoutGlobalScopes()
-            ->where('business_id', $node->business_id)
-            ->where('id', '<>', $node->id)
-            ->whereNotNull('tags')
-            ->limit(50) // safety cap
-            ->get();
+        // Wave 13 — OTel span (ADR 0155 D9.a). Query SQL com JSON_CONTAINS + loop
+        // de overlap — N candidates (cap 50) × tag-overlap; útil pra correlate spike
+        // de upsert edges com latency.
+        return OtelHelper::span('kb.edge.derive_related', [
+            'module'      => 'KB',
+            'business_id' => $node->business_id,
+            'node_id'     => $node->id,
+            'tags_count'  => count($tags),
+        ], function () use ($node, $tags) {
+            // Encontra outros nodes do mesmo business com 2+ tags em comum.
+            // SQL: lista nodes que tem JSON_CONTAINS pra qualquer das tags.
+            $candidates = KbNode::withoutGlobalScopes()
+                ->where('business_id', $node->business_id)
+                ->where('id', '<>', $node->id)
+                ->whereNotNull('tags')
+                ->limit(50) // safety cap
+                ->get();
 
-        $created = 0;
-        foreach ($candidates as $candidate) {
-            $candidateTags = array_map('strval', (array) $candidate->tags);
-            $overlap = array_intersect($tags, $candidateTags);
-            if (count($overlap) < 2) {
-                continue;
+            $created = 0;
+            foreach ($candidates as $candidate) {
+                $candidateTags = array_map('strval', (array) $candidate->tags);
+                $overlap = array_intersect($tags, $candidateTags);
+                if (count($overlap) < 2) {
+                    continue;
+                }
+
+                $score = round(count($overlap) / max(count($tags), count($candidateTags)), 3);
+
+                $this->upsertEdge(
+                    $node->business_id,
+                    $node->id,
+                    $candidate->id,
+                    'related-by-tag',
+                    weight: (float) $score,
+                    generatedBy: 'tag_overlap',
+                    payload: ['tags_in_common' => array_values($overlap)],
+                );
+                $created++;
             }
 
-            $score = round(count($overlap) / max(count($tags), count($candidateTags)), 3);
-
-            $this->upsertEdge(
-                $node->business_id,
-                $node->id,
-                $candidate->id,
-                'related-by-tag',
-                weight: (float) $score,
-                generatedBy: 'tag_overlap',
-                payload: ['tags_in_common' => array_values($overlap)],
-            );
-            $created++;
-        }
-
-        return $created;
+            return $created;
+        });
     }
 
     /**
@@ -203,29 +223,39 @@ class KbEdgeAutoDeriver
             return 0;
         }
 
-        $targets = KbNode::withoutGlobalScopes()
-            ->where('business_id', $node->business_id)
-            ->whereIn('id', $ids)
-            ->get();
+        // Wave 13 — OTel span (ADR 0155 D9.a). Cross-link scan tipicamente roda em
+        // toda re-bridge — útil pra detectar regressões de regex performance ou explosão
+        // de targets resolvidos.
+        return OtelHelper::span('kb.edge.derive_cross_link', [
+            'module'      => 'KB',
+            'business_id' => $node->business_id,
+            'node_id'     => $node->id,
+            'refs_count'  => count($ids),
+        ], function () use ($node, $ids) {
+            $targets = KbNode::withoutGlobalScopes()
+                ->where('business_id', $node->business_id)
+                ->whereIn('id', $ids)
+                ->get();
 
-        $created = 0;
-        foreach ($targets as $target) {
-            if ($target->id === $node->id) {
-                continue; // pula self-loop
+            $created = 0;
+            foreach ($targets as $target) {
+                if ($target->id === $node->id) {
+                    continue; // pula self-loop
+                }
+                $this->upsertEdge(
+                    $node->business_id,
+                    $node->id,
+                    $target->id,
+                    'cross-link',
+                    weight: 1.000,
+                    generatedBy: 'bridge_job',
+                    payload: ['source' => 'content_md:#kb-NNN'],
+                );
+                $created++;
             }
-            $this->upsertEdge(
-                $node->business_id,
-                $node->id,
-                $target->id,
-                'cross-link',
-                weight: 1.000,
-                generatedBy: 'bridge_job',
-                payload: ['source' => 'content_md:#kb-NNN'],
-            );
-            $created++;
-        }
 
-        return $created;
+            return $created;
+        });
     }
 
     /**
