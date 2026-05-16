@@ -56,7 +56,11 @@ class LaravelAiSdkDriver implements AiAdapter
 
                 return (string) $response;
             } catch (\Throwable $e) {
-                Log::channel('copiloto-ai')->error('gerarBriefing error: ' . $e->getMessage());
+                // D7 LGPD (Wave 10) — provider exception pode echo system message
+                // contendo dados do business. Redact ANTES de logar.
+                Log::channel('copiloto-ai')->error(
+                    'gerarBriefing error: ' . $this->redactErrorMessage($e),
+                );
 
                 return $this->fixtureBriefing($ctx);
             }
@@ -104,7 +108,10 @@ class LaravelAiSdkDriver implements AiAdapter
 
             return $propostas;
         } catch (\Throwable $e) {
-            Log::channel('copiloto-ai')->error('sugerirMetas error: ' . $e->getMessage());
+            // D7 LGPD (Wave 10) — redact provider exception antes de log.
+            Log::channel('copiloto-ai')->error(
+                'sugerirMetas error: ' . $this->redactErrorMessage($e),
+            );
 
             return $this->fixtureSugestoes($ctx);
         }
@@ -246,8 +253,12 @@ class LaravelAiSdkDriver implements AiAdapter
                 }
             }
         } catch (\Throwable $e) {
-            Log::channel('copiloto-ai')->error('responderChatStream error: ' . $e->getMessage());
-            yield "\n\n_(Erro de IA: " . substr($e->getMessage(), 0, 100) . ")_";
+            // D7 LGPD (Wave 10) — redact provider exception (Anthropic/OpenAI
+            // pode echo system message + user content). Output user-facing
+            // já é truncado a 100 chars, mas reservamos PiiRedactor canônico.
+            $sanitizado = $this->redactErrorMessage($e);
+            Log::channel('copiloto-ai')->error('responderChatStream error: ' . $sanitizado);
+            yield "\n\n_(Erro de IA: " . mb_substr($sanitizado, 0, 100) . ")_";
         }
     }
 
@@ -375,7 +386,10 @@ class LaravelAiSdkDriver implements AiAdapter
         } catch (\Throwable $e) {
             $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
 
-            Log::channel('copiloto-ai')->error('responderChat error: ' . $e->getMessage());
+            // D7 LGPD (Wave 10) — redact provider exception ANTES de log.
+            Log::channel('copiloto-ai')->error(
+                'responderChat error: ' . $this->redactErrorMessage($e),
+            );
 
             // OTel emite mesmo em erro — observability precisa do span de falha
             $this->emitirOtelGenAi($conv, $mensagem, null, $durationMs, ok: false, error: $e);
@@ -630,6 +644,30 @@ class LaravelAiSdkDriver implements AiAdapter
         }
 
         return app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($texto);
+    }
+
+    /**
+     * D7 LGPD (Wave 10) — Redacta exception message ANTES de log.
+     *
+     * Provider externo (Anthropic/OpenAI) pode lançar exception cujo `getMessage()`
+     * inclui partes do prompt original (system message com nome business + last
+     * user message com CPF/CNPJ/email). Logar raw = vazamento Tier 0 LGPD ADR 0093.
+     *
+     * Trunca a 500 chars + aplica PiiRedactor canônico (5 tipos PII BR cobertos:
+     * CPF, CNPJ, EMAIL, CEP, PHONE BR). ADR 0035 stack IA canônica preservada.
+     *
+     * Fail-open: se PiiRedactor falhar (não deveria — service simples regex), cai
+     * pra truncate puro pra nunca quebrar o logger.
+     */
+    protected function redactErrorMessage(\Throwable $e): string
+    {
+        $raw = mb_substr($e->getMessage(), 0, 500);
+        try {
+            return app(\Modules\Jana\Services\Privacy\PiiRedactor::class)->redact($raw);
+        } catch (\Throwable $redactErr) {
+            // Logger nunca quebra por causa de PII redaction — fallback seguro.
+            return $raw;
+        }
     }
 
     protected function sanitizarContexto(ContextoNegocio $ctx): ContextoNegocio

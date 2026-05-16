@@ -5,6 +5,7 @@ namespace Modules\Officeimpresso\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\LicencaLog;
 
 /**
@@ -84,10 +85,20 @@ class ParseLicencaLogCommand extends Command
                 continue;
             }
 
+            // LGPD Tier 0 (D7.a): linha do laravel.log pode embarcar CNPJ/CPF/email
+            // do cliente legacy em mensagens "OAuthServerException" ou stack traces.
+            // Redaciona ANTES de persistir em licenca_log.error_message.
+            $rawLine = Str::limit(trim($line), 500, '');
+            try {
+                $errorMessage = app(PiiRedactor::class)->redact($rawLine);
+            } catch (\Throwable $piiError) {
+                $errorMessage = '[REDACTED:LOG_PII_FALLBACK]';
+            }
+
             LicencaLog::create([
                 'event'         => $event,
                 'error_code'    => $errorCode,
-                'error_message' => Str::limit(trim($line), 500, ''),
+                'error_message' => $errorMessage,
                 'source'        => 'log_parser',
                 'metadata'      => ['line_hash' => $hash],
                 'created_at'    => $this->extractTimestamp($line) ?? now(),
