@@ -26,7 +26,8 @@ return new class extends Migration {
             $table->unsignedSmallInteger('block_idx')
                 ->comment('index do bloco em body_blocks (0-based)');
             $table->text('text');
-            $table->unsignedBigInteger('author_user_id');
+            // refs users.id (int unsigned, UltimatePOS legacy)
+            $table->unsignedInteger('author_user_id');
             $table->timestamps();
             $table->softDeletes();
 

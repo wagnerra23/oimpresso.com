@@ -1,17 +1,37 @@
 ---
 slug: jana-runbook-cockpit
-title: "Jana — Runbook da tela Cockpit (MVP em validação)"
+title: "Jana — Runbook da tela Cockpit (MVP em validação · supersede em curso V2)"
 type: runbook
 module: Jana
-status: active
+status: active-superseded-by-v2
 date: 2026-05-09
+last_revised: 2026-05-15
 ---
 
-# RUNBOOK — Cockpit (Jana — MVP em validação)
+# RUNBOOK — Cockpit (Jana — MVP em validação · supersede em curso V2)
+
+> **⚠️ AVISO 2026-05-15 — supersede em curso (V2 Analista IA):**
+>
+> O `Cockpit.tsx` documentado neste RUNBOOK (138 lin · MVP-piloto-em-validacao) é a IMPLEMENTAÇÃO ATUAL e ainda LIVE em `/copiloto/cockpit`. Mas é o **anti-pattern WhatsApp-style** identificado no [`COWORK_NOTES.amendment-jana-chat-block-renderer.md`](../../../prototipo-ui/COWORK_NOTES.amendment-jana-chat-block-renderer.md) (tabs `Todos/OS/Equipe/Clientes` · `setTimeout(reply, 2400)` · resposta humana literal *"Recebido, vou verificar e te respondo já já 👍"*).
+>
+> **Charter V2 já existe em [`resources/js/Pages/Jana/Cockpit.charter.md`](../../../resources/js/Pages/Jana/Cockpit.charter.md)** — define destino "Cockpit do Analista IA" (brief diário + KPIs + análises + ações HITL · aba IA single-thread com 4 kinds tipados). Status `spec-ahead-of-impl`.
+>
+> **Fonte canônica visual V2:** [`prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx`](../../../prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx) (491 lin) + [chat-jana.css](../../../prototipo-ui/_cowork-export-2026-05-15/chat-jana.css) (645 lin). F1.5 score interim **78/100** ([CRITIQUE](../../../prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md)).
+>
+> **Quando F3 entrar (Cowork V2.1 entrega 8 refinos · Wagner aprova screenshot):**
+>
+> - Este RUNBOOK passa pra `status: historical`
+> - Novo `RUNBOOK-cockpit-v2.md` é criado (ou esse re-escrito) com §3 Passo-a-passo + §8 Component contract + §10 Pegadinhas reescritos pra V2
+> - `Cockpit.tsx` é substituído in-place (charter `supersedes_in_place`)
+> - `Dashboard.tsx` folda como tab `dashboard` na F5 do roadmap V2 (charter `absorbs_when_live`)
+>
+> Até lá, este RUNBOOK continua válido como descrição do que está EM PROD HOJE. As §1-§11 abaixo cobrem a implementação atual sem alteração.
+
+---
 
 > **Tipo:** runbook reproduzível
-> **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
-> **Status:** **MVP em validação** — rota PARALELA `/copiloto/cockpit` (não substitui `Chat.tsx` em `/copiloto`). Mock data hoje; backend real só plugado depois da aprovação visual de Wagner.
+> **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), **[charter V2 vivo](../../../resources/js/Pages/Jana/Cockpit.charter.md)**, **[CRITIQUE V2](../../../prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md)**
+> **Status:** **MVP em validação · supersede em curso V2** — rota PARALELA `/copiloto/cockpit` (não substitui `Chat.tsx` em `/copiloto`). Mock data hoje; será substituído in-place pelo Cockpit V2 Analista IA quando F1.5 ≥80 + screenshot Wagner aprovados.
 > **Ref protótipo:** Cowork "Oimpresso ERP Comunicação Visual"
 
 Tela do padrão "Chat Cockpit" canônico ([ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md)) — layout-mãe do ERP. Sidebar de conversas (fixadas / rotinas / recentes), thread central com header + tabs + contexto + mensagens + composer, e (via `AppShellV2`) coluna direita de Apps Vinculados. **Hoje a thread é simulada client-side** com `setTimeout` produzindo "typing" mock — o ChatController.cockpit() devolve mocks ricos pra Wagner aprovar a UX antes de plugar `responderChatStream` real (já implementado em `/copiloto/conversas/{id}/mensagens/stream`).
@@ -343,6 +363,12 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 **Rules:** padrão Chat Cockpit (3 colunas) — formalizado em [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md)
 **Tests:** sem suite Pest dedicada hoje — quando plugar backend, criar `tests/Feature/Modules/Jana/CockpitMockTest.php` validando shape do `conversaFoco`
 
+**Refs V2 (supersede em curso):**
+- [Cockpit.charter.md V2](../../../resources/js/Pages/Jana/Cockpit.charter.md) — destino arquitetural
+- [CRITIQUE chat-jana vs amendment](../../../prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md) — score F1.5 interim 78/100
+- [`prototipo-ui/_cowork-export-2026-05-15/chat-jana.{jsx,css}`](../../../prototipo-ui/_cowork-export-2026-05-15/) — fonte canônica visual V2
+- 7 Pest GUARDs spec: R-JANA-COCKPIT-001..007 (definidos no charter V2 §Métricas vivas)
+
 ---
 
-**Última atualização:** 2026-05-09
+**Última atualização:** 2026-05-15 — adicionado §AVISO supersede em curso V2 + refs charter/CRITIQUE/protótipo. §1-§11 (impl atual) inalteradas. Original 2026-05-09 preservado.

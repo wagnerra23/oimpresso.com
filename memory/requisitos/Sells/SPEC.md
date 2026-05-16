@@ -874,6 +874,24 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) (§5 SoC, §6 Tier 0)
 - [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) (estimates recalibradas)
 
+### US-SELL-036 · FSM rollout — migrar 14 vendas legadas biz=1 via bulk-start-pipeline + canary 7d
+
+> owner: wagner · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06 — alvo: 14 de 162 vendas migradas).
+
+**DoD:**
+- [ ] Dry-run primeiro: `php artisan fsm:bulk-start-pipeline 1 --dry-run` valida 14 candidatos
+- [ ] Aprovar lista 14 (cherry-pick por stage atual / payment_status / volume)
+- [ ] Executar `php artisan fsm:bulk-start-pipeline 1 --limit=14` (sem --dry-run)
+- [ ] Smoke: 14 transactions têm `current_stage_id` populado + 14 entries em `sale_stage_history` ("Pipeline iniciado")
+- [ ] Canary 7d: monitorar `fsm:scan-drift transactions` daily 03:00 BRT pra detectar mass-update bypass
+- [ ] Verificar drawer SaleSheet (`resources/js/Pages/Sells/_components/FsmActionPanel.tsx`) renderiza actions corretas pros stages das 14 vendas
+- [ ] Comunicar Wagner (owner biz=1) sobre mudança de UX no drawer
+- **Estimate:** 4h código + 7d canary monitoring (relógio mundo real)
+- **blocked_by:** nenhum (FSM canon LIVE prod biz=1 desde 2026-05-12, ADR 0143)
+
 ---
 
-**Última atualização:** 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) = 21 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).
+**Última atualização:** 2026-05-15 — US-SELL-036 adicionada (goal #3 CYCLE-06 FSM rollout). 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) + 1 P0 (US-036) = 22 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).

@@ -28,9 +28,11 @@ use Illuminate\Support\Facades\Schema;
 |   - kbActAsUser($bizId, $userId=42, array $permissions=[])  → autentica + session()
 |   - kbCreateBusinessRow($bizId)
 |   - kbCreateMcpDoc($bizId, $type='adr', array $overrides=[])
+|
+| Carregado via composer autoload-dev.files (Pest discovery não sobe acima
+| do testsuite root no phpunit.xml — `Modules/KB/Tests/Feature` + `/Unit`).
+| `uses(...)->in(__DIR__)` foi movido pra Pest.php dentro de cada subdir.
 */
-
-uses(Tests\TestCase::class)->in(__DIR__);
 
 /**
  * Cria as tabelas mínimas necessárias pros tests do KB.

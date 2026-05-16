@@ -1509,6 +1509,168 @@
   .cockpit .copiloto-chat-convs { display: none; }
 }
 
+/* ConvSidePanel header (Chat title + filtros + nova conv)
+   Cowork chat.jsx visual port — gate F1.5 Chat-visual-comparison.md.
+   Escopo cirúrgico em .copiloto-chat-convs (não polui outros chats). */
+.cockpit .copiloto-chat-convs .cs-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.cockpit .copiloto-chat-convs .cs-head h2 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.cockpit .copiloto-chat-convs .cs-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.cockpit .copiloto-chat-convs .cs-iconbtn:hover {
+  background: var(--sb-hover);
+  color: var(--text);
+  border-color: var(--border);
+}
+.cockpit .copiloto-chat-convs .cs-iconbtn.primary {
+  background: var(--accent, oklch(0.62 0.18 250));
+  color: var(--accent-fg, #fff);
+  border-color: transparent;
+}
+.cockpit .copiloto-chat-convs .cs-iconbtn.primary:hover {
+  filter: brightness(1.05);
+}
+
+/* Search client-side (filtra titulo case+acento-insensitive) */
+.cockpit .copiloto-chat-convs .cs-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.cockpit .copiloto-chat-convs .cs-search .cs-search-ic {
+  position: absolute;
+  left: 12px;
+  color: var(--text-mute);
+  pointer-events: none;
+}
+.cockpit .copiloto-chat-convs .cs-search input {
+  flex: 1 1 auto;
+  height: 28px;
+  padding: 0 38px 0 26px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.cockpit .copiloto-chat-convs .cs-search input::placeholder {
+  color: var(--text-mute);
+}
+.cockpit .copiloto-chat-convs .cs-search input:focus {
+  border-color: var(--accent, oklch(0.62 0.18 250));
+}
+.cockpit .copiloto-chat-convs .cs-search .kbd {
+  position: absolute;
+  right: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-mute);
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  pointer-events: none;
+}
+
+/* 4 tabs filtro (Todas/Minhas/Compartilhadas/Arquivadas — Charter §Goals) */
+.cockpit .copiloto-chat-convs .cs-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 4px 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cockpit .copiloto-chat-convs .cs-tabs::-webkit-scrollbar { display: none; }
+.cockpit .copiloto-chat-convs .cs-tab {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-mute);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.cockpit .copiloto-chat-convs .cs-tab:hover {
+  background: var(--sb-hover);
+  color: var(--text);
+}
+.cockpit .copiloto-chat-convs .cs-tab.active {
+  background: var(--text);
+  color: var(--bg-1);
+  border-color: var(--text);
+}
+
+/* Empty state pros tabs ainda não funcionais (Minhas/Compartilhadas/Arquivadas) */
+.cockpit .copiloto-chat-convs .cs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-mute);
+  font-size: 12px;
+  gap: 4px;
+}
+.cockpit .copiloto-chat-convs .cs-empty small {
+  font-size: 10.5px;
+  opacity: 0.8;
+  max-width: 200px;
+  line-height: 1.4;
+}
+
+/* Badge unread minúscula ao lado direito do sb-conv-t (backend já expõe `unread`) */
+.cockpit .copiloto-chat-convs .sb-conv-badge {
+  flex: 0 0 auto;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: oklch(0.78 0.16 75); /* amber — alinhado com sb-bullet.filled */
+  color: oklch(0.20 0.04 75);
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.02em;
+}
+
 /* ────────────────── Sidebar single-pane (UI-0011) ────────────────── */
 /* Tarefas + Chat — hover/active arredondado (canon Cowork 2026-04-27).
    Wagner 2026-05-05: "seleção arredondada dos itens quando hover". */

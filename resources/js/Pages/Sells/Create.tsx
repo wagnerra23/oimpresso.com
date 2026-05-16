@@ -476,6 +476,33 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     return () => window.removeEventListener('keydown', onEsc);
   }, []);
 
+  // US-SELL-007 — Atalho `/` top-level: foca busca de produto (canon Cockpit list/form).
+  // PR-FIX-2 audit 2026-05-15 — elimina débito "em breve" do empty state e cumpre
+  // promessa do charter §UX Targets. Não dispara quando user está digitando em
+  // input/textarea/select/contentEditable (evita roubar `/` em campo de busca/notas).
+  useEffect(() => {
+    const onSlash = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const active = document.activeElement as HTMLElement | null;
+      const tag = active?.tagName.toLowerCase();
+      if (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        active?.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      const input = productSearchRef.current?.querySelector<HTMLInputElement>(
+        'input[type="search"]',
+      );
+      input?.focus();
+    };
+    window.addEventListener('keydown', onSlash);
+    return () => window.removeEventListener('keydown', onSlash);
+  }, []);
+
   // US-SELL-010 — Auto-open <details> "Mais opções" quando erro está em campo colapsado.
   // Larissa scrola pro erro mas a seção fica fechada — sem isso ela não acha o campo.
   // Detectado pelo design-arte agent 2026-05-13 como maior gap UX restante.
@@ -608,15 +635,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 Adicionar venda
               </h1>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Registre uma venda completa — cliente, produtos, pagamento e frete.{' '}
-                {props.defaultLocation?.name && (
-                  <span>
-                    Local:{' '}
-                    <span className="font-medium text-foreground">
-                      {props.defaultLocation.name}
-                    </span>
-                  </span>
-                )}
+                Registre uma venda completa — cliente, produtos, pagamento e frete.
               </p>
             </div>
           </div>
@@ -636,16 +655,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               const isActive = activeSection === tab.id;
               const Icon = tab.icon;
               return (
-                <button
+                <Button
                   key={tab.id}
                   type="button"
+                  variant={isActive ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => scrollToSection(tab.id)}
-                  className={
-                    'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ' +
-                    (isActive
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
-                      : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground')
-                  }
+                  className="rounded-full text-xs"
                   aria-current={isActive ? 'true' : undefined}
                 >
                   <Icon size={13} />
@@ -654,13 +670,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                     <span
                       className={
                         'ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] tabular-nums ' +
-                        (isActive ? 'bg-blue-100 dark:bg-blue-900/60' : 'bg-background')
+                        (isActive ? 'bg-primary-foreground/20' : 'bg-background border border-border')
                       }
                     >
                       {tab.count}
                     </span>
                   )}
-                </button>
+                </Button>
               );
             })}
           </nav>
@@ -824,7 +840,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <EmptyState
               icon="package"
               title="Nenhum produto adicionado"
-              description="Use a busca acima ou aperte / pra focar (em breve)."
+              description="Use a busca acima ou aperte / pra focar."
               action={
                 <Button variant="outline" size="sm" onClick={focusProductSearch}>
                   Buscar produto
@@ -908,14 +924,16 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                           {formatBRL(lineSubtotal)}
                         </td>
                         <td className="px-3 py-2 text-right align-middle">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-sm"
                             onClick={() => handleRemoveProduct(idx)}
                             aria-label={`Remover ${p.name}`}
-                            className="text-muted-foreground hover:text-destructive p-1"
+                            className="text-muted-foreground hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     );

@@ -1,17 +1,27 @@
 ---
 module: Pcp
-status: proposta (discovery 2026-05-12)
+status: dormente (feature-wish — ADR 0152)
 type: spec
 scope: cross-vertical (OficinaAuto + ComunicacaoVisual + Repair + Vestuario)
 piloto_previsto: Vargas (recapagem multi-mecânico) OU Extreme (ComVis multi-plotter) — sinal qualificado pendente
-related_adrs: [0093, 0094, 0104, 0121, 0129, 0143, 0137]
+related_adrs: [0093, 0094, 0104, 0121, 0129, 0143, 0137, 0152]
 related_specs: [ComunicacaoVisual/SPEC.md (US-COMVIS-003 PCP), OficinaAuto/SPEC.md (US-OFICINA-004), Repair/SPEC.md, Manufacturing/SPEC.md]
 related_research: [research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md]
 owner: [W]
-last_review: 2026-05-12
+last_review: 2026-05-15
 ---
 
 # SPEC — PCP / Apontamento de Produção (cross-vertical)
+
+> ## ⛔ DORMENTE — feature-wish ([ADR 0152](../../decisions/0152-modules-pcp-feature-wish.md))
+>
+> **NÃO atribuir owner às US-PCP-* abaixo.** **NÃO scaffoldear código** em `Modules/Pcp/` nem renomear `Modules/IProduction/` placeholder. **DECISÃO D1 (Pcp vs IProduction)** também fica dormente — resolve no ADR de promoção quando trigger ativar.
+>
+> Razão (ADR 0152): nenhum dos verticais com produção física hoje tem cliente pagante ativo (Vestuario é revenda; ComVis em Sprint 1 sem piloto; OficinaAuto aguarda Martinho; Autopecas aguarda Vargas ADR 0125; Repair legacy sem clientes oimpresso novo). [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — sem sinal qualificado, sem código.
+>
+> Triggers de ativação documentados em [ADR 0152 §"Trigger condições"](../../decisions/0152-modules-pcp-feature-wish.md). Pelo menos UM precisa ser satisfeito + Wagner aprovar ADR de promoção.
+>
+> **SPEC abaixo permanece intacto como blueprint pré-pago** — quando trigger ativar, dev abre o SPEC e tem ~3 semanas de design já feito (60% reuso identificado, 4 schema tables novas, 5 cenários peculiares, 20 US, 10 regras Gherkin, mapping TOTVS/SAP/Mubisys/Sankhya/Odoo).
 
 > Convenção do ID: `US-PCP-NNN`.
 > ⚠️ **NÃO É MÓDULO NOVO POR DEFAULT.** §0 abaixo prova que 60–70% do que PCP precisa já existe espalhado (`Modules/Repair` Kanban shared infra + FSM canon stages produção + Modules/IProduction placeholder + Modules/Manufacturing recipes/BoM). PCP é **camada fina de apontamento + capacidade + agenda** que **costura** o que já tem.

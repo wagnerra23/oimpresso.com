@@ -28,7 +28,8 @@ return new class extends Migration {
             $table->unsignedInteger('business_id');
             $table->unsignedBigInteger('node_id');
             $table->timestamp('version_at');
-            $table->unsignedBigInteger('author_user_id')->nullable();
+            // refs users.id (int unsigned, UltimatePOS legacy)
+            $table->unsignedInteger('author_user_id')->nullable();
             $table->json('snapshot')
                 ->comment('{title, excerpt, body_blocks, tags, status, category_id, subcategory_id, nivel, equip}');
             $table->string('change_reason', 255)->nullable();

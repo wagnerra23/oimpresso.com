@@ -22,7 +22,8 @@ return new class extends Migration {
         Schema::create('kb_favorites', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedInteger('business_id');
-            $table->unsignedBigInteger('user_id');
+            // refs users.id (int unsigned, UltimatePOS legacy)
+            $table->unsignedInteger('user_id');
             $table->unsignedBigInteger('node_id');
             $table->timestamp('created_at')->nullable();
 
