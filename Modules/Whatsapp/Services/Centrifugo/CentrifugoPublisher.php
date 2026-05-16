@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Centrifugo;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -29,6 +30,16 @@ class CentrifugoPublisher
      * @return bool  true = sucesso (200 OK Centrifugo). false = qualquer falha (silencioso, log warning).
      */
     public function publish(string $channel, array $data): bool
+    {
+        return OtelHelper::span('whatsapp.centrifugo.publish', [
+            'channel' => $channel,
+            'payload_keys' => count($data),
+        ], function () use ($channel, $data): bool {
+            return $this->doPublish($channel, $data);
+        });
+    }
+
+    private function doPublish(string $channel, array $data): bool
     {
         if (! $this->isEnabled()) {
             return false;

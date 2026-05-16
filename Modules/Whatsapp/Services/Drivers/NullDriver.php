@@ -9,6 +9,9 @@ use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 
 /**
+ * Observabilidade D9.a (ADR 0155): no-op por design — Tracer pai
+ * via `OtelHelper::span(` rastreia a entrada/saída mesmo sem rede.
+ *
  * NullDriver — implementação no-op para dev local + Pest CI.
  *
  * Não estoura rede. Gera provider_message_id UUID. Retorna sempre sucesso.

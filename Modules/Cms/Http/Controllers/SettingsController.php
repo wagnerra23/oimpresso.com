@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Cms\Entities\CmsSiteDetail;
+use Modules\Cms\Http\Requests\StoreCmsSettingsRequest;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class SettingsController extends Controller
@@ -62,10 +63,13 @@ class SettingsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  Request  $request
+     * D8.c Wave 17: validation extraída pra StoreCmsSettingsRequest
+     * (limites max em custom_js/custom_css agora obrigatórios — antes não havia
+     * validação alguma, vide PR/runbook governance v3).
+     *
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreCmsSettingsRequest $request)
     {
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->commonUtil->notAllowedInDemo();

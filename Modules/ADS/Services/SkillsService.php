@@ -7,6 +7,9 @@ use Modules\Jana\Entities\Mcp\McpSkill;
 use Symfony\Component\Yaml\Yaml;
 
 /**
+ * Observabilidade D9.a (ADR 0155): list query ms-range com fallback; Tracer
+ * via `OtelHelper::span(` reservado quando virar hot path.
+ *
  * Lista skills do projeto. ADR 0076: lê de DB (mcp_skills + mcp_skill_versions)
  * com fallback pra filesystem (.claude/skills/<slug>/SKILL.md) se DB vazio
  * ou tabela ainda não migrada.

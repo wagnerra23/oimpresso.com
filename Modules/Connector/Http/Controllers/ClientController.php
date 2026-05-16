@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Laravel\Passport\Passport;
+use Modules\Connector\Http\Requests\StoreOauthClientRequest;
 
 class ClientController extends Controller
 {
@@ -55,15 +56,13 @@ class ClientController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  Request  $request
+     * D8.c Wave 17: validation + authorization superadmin extraídas
+     * pra StoreOauthClientRequest (fail-secure 403 antes do controller).
+     *
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreOauthClientRequest $request)
     {
-        if (! auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
-
         try {
             $client = Passport::client()->forceFill([
                 'user_id' => auth()->user()->id,

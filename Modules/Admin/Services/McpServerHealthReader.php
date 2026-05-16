@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -28,7 +29,10 @@ class McpServerHealthReader
 
     public function fetch(): array
     {
-        return Cache::remember('admin.widget.mcp', 60, function () {
+        // D9.a OTel (Wave 17): span envolve Cache::remember + ping HTTP CT 100.
+        // Zero-cost se otel.enabled=false.
+        return OtelHelper::spanBiz('admin.mcp_health.fetch', function () {
+            return Cache::remember('admin.widget.mcp', 60, function () {
             try {
                 if (! Schema::hasTable('mcp_memory_documents')) {
                     return $this->stub('mcp_memory_documents_missing');
@@ -67,7 +71,8 @@ class McpServerHealthReader
                 Log::warning('admin.widget.mcp.error', ['error' => $e->getMessage()]);
                 return $this->stub('exception:' . substr($e->getMessage(), 0, 120));
             }
-        });
+            });
+        }, ['component' => 'admin.widget.w6']);
     }
 
     private function pingMcp(): array

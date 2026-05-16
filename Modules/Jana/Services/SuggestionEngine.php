@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Modules\Jana\Contracts\AiAdapter;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Support\ContextoNegocio;
@@ -22,8 +23,11 @@ class SuggestionEngine
 
     public function gerarBriefing(?int $businessId): string
     {
-        $ctx = $this->snapshot->paraBusiness($businessId);
-        return $this->ai->gerarBriefing($ctx);
+        // D9.a OTel Wave 17 — chamada LLM externa (latência + custo a rastrear).
+        return OtelHelper::spanBiz('jana.suggestion.briefing', function () use ($businessId) {
+            $ctx = $this->snapshot->paraBusiness($businessId);
+            return $this->ai->gerarBriefing($ctx);
+        }, ['biz.scope' => $businessId]);
     }
 
     /**
@@ -31,12 +35,20 @@ class SuggestionEngine
      */
     public function sugerir(Conversa $conversa, string $prompt): array
     {
-        $ctx = $this->snapshot->paraBusiness($conversa->business_id);
-        return $this->ai->sugerirMetas($ctx, $prompt);
+        // D9.a OTel Wave 17 — chamada LLM externa (estructured output).
+        return OtelHelper::spanBiz('jana.suggestion.sugerir', function () use ($conversa, $prompt) {
+            $ctx = $this->snapshot->paraBusiness($conversa->business_id);
+            return $this->ai->sugerirMetas($ctx, $prompt);
+        }, ['conversa.id' => $conversa->id, 'prompt.length' => strlen($prompt)]);
     }
 
     public function responder(Conversa $conversa, string $mensagemUser): string
     {
-        return $this->ai->responderChat($conversa, $mensagemUser);
+        // D9.a OTel Wave 17 — chat completion (path quente, latência crítica).
+        return OtelHelper::spanBiz('jana.suggestion.responder', fn () => $this->ai->responderChat($conversa, $mensagemUser), [
+            'conversa.id'  => $conversa->id,
+            'msg.length'   => strlen($mensagemUser),
+        ]);
     }
+
 }

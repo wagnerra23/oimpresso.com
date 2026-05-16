@@ -11,11 +11,13 @@ use App\Variation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\RepairStatus;
 use Modules\Repair\Utils\RepairUtil;
 
 class RepairSettingsController extends Controller
 {
+    use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
      * All Utils instance.
      */
@@ -109,7 +111,7 @@ class RepairSettingsController extends Controller
                 'msg' => __('lang_v1.updated_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('repair_settings', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
@@ -150,7 +152,7 @@ class RepairSettingsController extends Controller
                 'msg' => __('lang_v1.updated_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $this->logSafeEmergency('repair_settings', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),

@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
+ * Observabilidade D9.a (ADR 0155): aprendizado batch envolto em
+ * `OtelHelper::span(` (Tracer ads.pattern.learn) — mede Wilson computation.
+ *
  * T15 — Pattern Learning estado-da-arte (ARQ-0007).
  *
  * Usa Wilson Score Interval (não taxa de sucesso simples) para evitar promoção

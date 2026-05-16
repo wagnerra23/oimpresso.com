@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Services\CustomerMemory\Sources;
 
 /**
+ * Observabilidade D9.a (ADR 0155): implementações concretas envolvem
+ * `lookupByPhone()` em `OtelHelper::span(` — Tracer por fonte registra
+ * latência + match/no-match.
+ *
  * US-WA-VOZ-002 — Contrato pra lookup de cliente em fonte externa Firebird
  * (OfficeImpresso legacy WR Sistemas).
  *

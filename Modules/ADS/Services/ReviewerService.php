@@ -8,6 +8,10 @@ use Modules\ADS\Ai\Agents\ReviewerAgent;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
+ * Observabilidade D9.a (ADR 0155): self-consistency 2-call envolto em
+ * `OtelHelper::span(` (Tracer ads.reviewer.review) — mede latência + tokens
+ * acumulados por decision review.
+ *
  * T11 — orquestra ReviewerAgent com:
  *   - self-consistency n=2 (faz 2 chamadas, média)
  *   - retry automático se score < 70 (T18)

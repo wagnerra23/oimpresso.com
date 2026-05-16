@@ -6,9 +6,14 @@ namespace Modules\Jana\Entities\Mcp;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * ADR 0070 — Jira-style task management.
+ *
+ * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia mudanças
+ * de status/owner/target_quarter — essenciais pra timeline de Epic.
  *
  * @property int     $id
  * @property int     $project_id
@@ -21,6 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class McpEpic extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $table = 'mcp_epics';
@@ -54,5 +60,14 @@ class McpEpic extends Model
     public function scopeStatus($q, ?string $status)
     {
         return $status ? $q->where('status', $status) : $q;
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('mcp_epic')
+            ->logOnly(['status', 'owner', 'target_quarter', 'title'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

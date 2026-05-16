@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
+use Modules\Connector\Http\Requests\StoreLicencaComputadorRequest;
 use App\Business;
 use Carbon\Carbon;
 
@@ -245,19 +246,12 @@ class LicencaComputadorController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * D8.c Wave 17: validation extraída pra StoreLicencaComputadorRequest.
      */
-    public function store(Request $request)
+    public function store(StoreLicencaComputadorRequest $request)
     {
-        // Validação dos dados recebidos
-        $validated = $request->validate([
-            'business_id' => 'required|exists:business,id',
-            'licenca_id' => 'required|exists:licenca,id',
-            'hd' => 'required|unique:licenca_computador,hd',
-            'processador' => 'required',
-            'memoria' => 'required',
-            'versao_exe' => 'required',
-            'bloqueado' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
         // Criação de um novo registro
         $computador = Licenca_Computador::create($validated);

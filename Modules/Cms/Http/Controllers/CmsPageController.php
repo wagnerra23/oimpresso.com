@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsPageMeta;
 use Modules\Cms\Http\Requests\StoreCmsPageRequest;
+use Modules\Cms\Http\Requests\UpdateCmsPageRequest;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class CmsPageController extends Controller
@@ -204,11 +205,12 @@ class CmsPageController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Request  $request
+     * D8.c Wave 17: validation extraída pra UpdateCmsPageRequest.
+     *
      * @param  int  $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCmsPageRequest $request, $id)
     {
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->commonUtil->notAllowedInDemo();

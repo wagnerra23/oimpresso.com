@@ -2,6 +2,7 @@
 
 namespace Modules\ADS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\ADS\Ai\Agents\BrainBAgent;
@@ -12,6 +13,9 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
  *
  * Não executa código. Recebe uma decision com destination=brain_b,
  * chama o agente, parseia a instrução e atualiza o registro.
+ *
+ * Observabilidade D9.a (ADR 0155): `process()` envolto em `OtelHelper::span(`
+ * (Tracer ads.brain_b.process) — mede latência Claude API + tokens.
  */
 class BrainBService
 {
@@ -21,6 +25,13 @@ class BrainBService
      * @return array{instruction: ?array, error: ?string}
      */
     public function process(int $decisionId): array
+    {
+        return OtelHelper::span('ads.brain_b.process', [
+            'decision_id' => $decisionId,
+        ], fn () => $this->doProcess($decisionId));
+    }
+
+    private function doProcess(int $decisionId): array
     {
         $decision = DB::table('mcp_dual_brain_decisions')->where('id', $decisionId)->first();
 

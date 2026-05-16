@@ -2,6 +2,8 @@
 
 namespace Modules\Admin\Services;
 
+use App\Util\OtelHelper;
+
 /**
  * AdrAlertReader — Widget W4 (ADRs Tier 0 violados).
  *
@@ -10,6 +12,9 @@ namespace Modules\Admin\Services;
  * (ADR 0094 §princípio 7), profile_distiller_drift (ADR 0094).
  *
  * Top-bar vermelha quando >0 falhas. Click → drill-down do check.
+ *
+ * D9.a OTel (Wave 17): span `admin.adr_alert.fetch` rastreia contagem
+ * de Tier 0 alerts pra alarme drift. Zero-cost se otel.enabled=false.
  */
 class AdrAlertReader
 {
@@ -28,35 +33,37 @@ class AdrAlertReader
 
     public function fetch(): array
     {
-        $snapshot = $this->health->fetch();
+        return OtelHelper::spanBiz('admin.adr_alert.fetch', function () {
+            $snapshot = $this->health->fetch();
 
-        if (! ($snapshot['available'] ?? false)) {
-            return [
-                'available'      => false,
-                'reason'         => $snapshot['reason'] ?? 'snapshot_unavailable',
-                'tier_0_alerts'  => [],
-            ];
-        }
-
-        $alerts = [];
-        foreach ($snapshot['checks'] ?? [] as $check) {
-            $name   = $check['name'] ?? '';
-            $status = $check['status'] ?? 'unknown';
-            if (isset(self::TIER_0_MAP[$name]) && $status !== 'green') {
-                $alerts[] = [
-                    'check'    => $name,
-                    'adr'      => self::TIER_0_MAP[$name],
-                    'status'   => $status,
-                    'message'  => $check['message'] ?? '',
-                    'last_run' => $check['last_run'] ?? null,
+            if (! ($snapshot['available'] ?? false)) {
+                return [
+                    'available'      => false,
+                    'reason'         => $snapshot['reason'] ?? 'snapshot_unavailable',
+                    'tier_0_alerts'  => [],
                 ];
             }
-        }
 
-        return [
-            'available'      => true,
-            'tier_0_alerts'  => $alerts,
-            'count'          => count($alerts),
-        ];
+            $alerts = [];
+            foreach ($snapshot['checks'] ?? [] as $check) {
+                $name   = $check['name'] ?? '';
+                $status = $check['status'] ?? 'unknown';
+                if (isset(self::TIER_0_MAP[$name]) && $status !== 'green') {
+                    $alerts[] = [
+                        'check'    => $name,
+                        'adr'      => self::TIER_0_MAP[$name],
+                        'status'   => $status,
+                        'message'  => $check['message'] ?? '',
+                        'last_run' => $check['last_run'] ?? null,
+                    ];
+                }
+            }
+
+            return [
+                'available'      => true,
+                'tier_0_alerts'  => $alerts,
+                'count'          => count($alerts),
+            ];
+        }, ['component' => 'admin.widget.w4']);
     }
 }

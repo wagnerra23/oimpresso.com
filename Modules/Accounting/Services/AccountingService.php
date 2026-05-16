@@ -22,22 +22,30 @@ class AccountingService
 
     public function updateChartAccounts($input, $type, $subtype = null)
     {
-        //Get the amount depending on whether a debit or credit is being made
-        $amount = $input['debit'] > 0 ? $input['debit'] : $input['credit'];
+        // D9.a OTel Wave 17 — span chamada pública crítica (cria AccountTransaction).
+        return OtelHelper::spanBiz('accounting.service.update_chart_accounts', function () use ($input, $type, $subtype) {
+            //Get the amount depending on whether a debit or credit is being made
+            $amount = $input['debit'] > 0 ? $input['debit'] : $input['credit'];
 
-        $account_transaction_data = [
-            'amount' => $amount,
-            'account_id' => $input['account_id'],
-            'type' => $type,
-            'sub_type' => $subtype,
-            'operation_date' => $input['journal_date'],
-            'created_by' => Auth::id(),
-            'note' => $input['description']
-        ];
+            $account_transaction_data = [
+                'amount' => $amount,
+                'account_id' => $input['account_id'],
+                'type' => $type,
+                'sub_type' => $subtype,
+                'operation_date' => $input['journal_date'],
+                'created_by' => Auth::id(),
+                'note' => $input['description']
+            ];
 
-        $account_transaction = AccountTransaction::createAccountTransaction($account_transaction_data);
+            $account_transaction = AccountTransaction::createAccountTransaction($account_transaction_data);
 
-        $account_transaction->save();
+            $account_transaction->save();
+
+            return $account_transaction;
+        }, [
+            'type'    => (string) $type,
+            'subtype' => (string) ($subtype ?? ''),
+        ]);
     }
 
     public function createJournalEntry(Request $request)

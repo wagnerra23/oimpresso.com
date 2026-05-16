@@ -47,6 +47,16 @@ class InboxAutoCleanupJob implements ShouldQueue
     /** Idade mínima (dias) pra notification virar elegível pro auto-mark-read. */
     public const STALE_AFTER_DAYS = 7;
 
+    /**
+     * Constructor opcional (Wave 17 D1.c hardened).
+     * `$businessId = null` = cross-tenant (default — cleanup global).
+     * `$businessId = int` = override pra reprocessamento targeted.
+     */
+    public function __construct(
+        public readonly ?int $businessId = null,
+    ) {
+    }
+
     public function handle(): void
     {
         $cutoff = now()->subDays(self::STALE_AFTER_DAYS);
