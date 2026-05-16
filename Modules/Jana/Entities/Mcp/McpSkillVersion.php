@@ -2,15 +2,25 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use App\Concerns\BelongsToBusinessViaParent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * ADR 0076 — versão append-only de skill.
+ *
+ * Multi-tenant Tier 0 (ADR 0093) — Wave 15: tenancy herdada via parent `skill`
+ * (mcp_skills.business_id). Skills com business_id NULL (plataforma) só
+ * aparecem pra superadmin (ScopeByBusinessViaParent respeita).
  */
 class McpSkillVersion extends Model
 {
+    use BelongsToBusinessViaParent;
+
     protected $table = 'mcp_skill_versions';
+
+    /** Relação parent que carrega business_id (usada por ScopeByBusinessViaParent). */
+    protected string $businessParentRelation = 'skill';
 
     protected $fillable = [
         'skill_id', 'version',

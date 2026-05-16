@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmCallLog;
+use Modules\Crm\Http\Requests\MassDestroyCallLogRequest;
 use Yajra\DataTables\Facades\DataTables;
 
 class CallLogController extends Controller
@@ -119,13 +120,12 @@ class CallLogController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function massDestroy(Request $request)
+    public function massDestroy(MassDestroyCallLogRequest $request)
     {
-        $is_admin = $this->commonUtil->is_admin(auth()->user());
-
+        // Wave 15 D8 Security — authorize() + validacao + normalizacao IDs centralizados.
         $business_id = $request->session()->get('user.business_id');
 
-        $selected_rows = explode(',', $request->input('selected_rows'));
+        $selected_rows = $request->ids();
 
         if (! empty($selected_rows)) {
             CrmCallLog::where('business_id', $business_id)

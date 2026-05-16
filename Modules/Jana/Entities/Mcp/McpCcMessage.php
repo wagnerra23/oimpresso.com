@@ -2,14 +2,21 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * MEM-CC-1 — Mensagem individual de uma session Claude Code.
+ *
+ * Multi-tenant Tier 0 (ADR 0093) — Wave 15: business_id direto + scope global.
+ * scopeAcessivelPara() continua aplicando RBAC fine-grained por user
+ * (jana.cc.read.all vê do tenant todo; demais só próprias mensagens).
  */
 class McpCcMessage extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'mcp_cc_messages';
 
     protected $fillable = [

@@ -11,5 +11,11 @@
     "aliases": {},
     "files": [
     ],
-    "requires": []
+    "requires": [],
+    "retention_days": 3650,
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["allocated_to", "created_by", "assigned_to"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true
+    }
 }
