@@ -819,49 +819,25 @@ class ModuleGradeService
         $breakdown[] = $d8aItem;
         $d8a = $d8aItem['score'];
 
-        // D8.b — CSRF Inertia/Blade (2 pts)
-        // Inertia já entrega CSRF via X-XSRF-TOKEN — se módulo tem Inertia::render, ganha pontos.
-        // Blade legacy: precisa de @csrf nos forms.
-        $controllers = $this->phpFiles($modulePath . '/Http/Controllers', recursive: true);
-        $hasInertia = false;
-        foreach ($controllers as $f) {
-            $content = @file_get_contents($f) ?: '';
-            if (str_contains($content, 'Inertia::render')) {
-                $hasInertia = true;
-                break;
-            }
-        }
-        $bladeViewsPath = $this->resolveCaseInsensitiveViewsPath($name) ?? ($this->viewsPath . '/' . strtolower($name));
-        $bladeFiles = $this->filesByExt($bladeViewsPath, '.blade.php', recursive: true);
-        $bladeWithCsrf = 0;
-        $bladeWithForms = 0;
-        foreach ($bladeFiles as $bf) {
-            $content = @file_get_contents($bf) ?: '';
-            if (preg_match('/<form\b/i', $content)) {
-                $bladeWithForms++;
-                if (str_contains($content, '@csrf') || preg_match('/csrf_field|csrf_token/', $content)) {
-                    $bladeWithCsrf++;
-                }
-            }
-        }
-        if ($hasInertia && $bladeWithForms === 0) {
-            $d8b = 2;
-            $d8bEvidence = 'Inertia CSRF nativo (X-XSRF-TOKEN)';
-        } elseif ($bladeWithForms > 0) {
-            $ratio = $bladeWithCsrf / max(1, $bladeWithForms);
-            $d8b = (int) round($ratio * 2);
-            $d8bEvidence = "{$bladeWithCsrf}/{$bladeWithForms} forms Blade com @csrf";
-            if ($hasInertia) {
-                $d8b = max($d8b, 1);
-                $d8bEvidence .= ' (+ Inertia)';
-            }
+        // D8.b — CSRF except penalty (ADR 0155 §D8 — 2 pts default, -2 se route do módulo
+        // está listada em app/Http/Middleware/VerifyCsrfToken.php::$except).
+        //
+        // Inertia entrega CSRF nativo via X-XSRF-TOKEN — default Laravel = ON.
+        // Penalty SÓ se VerifyCsrfToken::except listar route que pertence ao módulo
+        // (sinal explícito de bypass intencional → -2 pts → score 0).
+        $csrfExcept = $this->loadCsrfExcept();
+        $moduleRoutesInExcept = $this->filterExceptForModule($csrfExcept, $name);
+        if (! empty($moduleRoutesInExcept)) {
+            $d8b = 0;
+            $d8bEvidence = 'PENALTY -2: VerifyCsrfToken::except lista route(s) do módulo: '
+                . implode(', ', $moduleRoutesInExcept);
         } else {
-            $d8b = 1;  // módulo sem forms — parcial neutro
-            $d8bEvidence = 'sem forms detectados (parcial neutro)';
+            $d8b = 2;
+            $d8bEvidence = 'default Laravel CSRF on (Inertia X-XSRF-TOKEN — sem except detectada)';
         }
         $d8bItem = [
             'key'   => 'D8.b',
-            'desc'  => 'CSRF protection (Inertia X-XSRF-TOKEN OU @csrf Blade)',
+            'desc'  => 'CSRF except penalty (default 2; -2 se route do módulo em VerifyCsrfToken::except)',
             'score' => $d8b,
             'max'   => 2,
             'evidence' => $d8bEvidence,
@@ -872,6 +848,7 @@ class ModuleGradeService
 
         // D8.c — FormRequest cobertura (3 pts)
         $requests = $this->phpFiles($modulePath . '/Http/Requests', recursive: true);
+        $controllers = $this->phpFiles($modulePath . '/Http/Controllers', recursive: true);
         $controllersCount = count($controllers);
         if ($controllersCount === 0) {
             $d8c = 2;  // sem Controllers — parcial neutro
@@ -908,7 +885,17 @@ class ModuleGradeService
     // ────────────────────────────────────────────────────────────────────────
 
     /**
-     * D9.a OTel spans em Services (4 pts) — grep `OpenTelemetry`/`otel_span`/`Tracer` em Modules/<X>/Services/
+     * D9.a OTel spans em Services (4 pts) — detecta instrumentation OTel em `Modules/<X>/Services/`.
+     *
+     * Regex canônica (ADR 0156 §Errata 1) cobre:
+     *   - `OpenTelemetry` (SDK direto via namespace)
+     *   - `otel_span` (helper legacy)
+     *   - `Tracer`, `StartSpan`, `tracer()` (API OTel direta)
+     *   - `OtelHelper::span(` e `OtelHelper::spanBiz(` (facade canônica oimpresso em `app/Util/OtelHelper.php`)
+     *
+     * O `\s*\(` final exige parêntese após `OtelHelper::span[Biz]`, evitando match em
+     * comentários/docblocks que apenas mencionam a API sem invocá-la (ex.: MeilisearchDriver:77).
+     *
      * D9.b failed_jobs <5/24h (3 pts) — opt-in via config `governance.observability.query_failed_jobs`,
      *      default off; quando off retorna placeholder 1.5→2.
      */
@@ -917,12 +904,12 @@ class ModuleGradeService
         $breakdown = [];
         $naApplied = [];
 
-        // D9.a — OTel spans em Services (4 pts)
+        // D9.a — OTel spans em Services (4 pts) — regex ADR 0156 §Errata 1
         $services = $this->phpFiles($modulePath . '/Services', recursive: true);
         $servicesWithOtel = 0;
         foreach ($services as $f) {
             $content = @file_get_contents($f) ?: '';
-            if (preg_match('/\b(OpenTelemetry|otel_span|Tracer|StartSpan|tracer\(\))/i', $content)) {
+            if (preg_match('/\b(OpenTelemetry|otel_span|Tracer|StartSpan|tracer\(\)|OtelHelper::span(?:Biz)?\s*\()/i', $content)) {
                 $servicesWithOtel++;
             }
         }
@@ -1064,7 +1051,7 @@ class ModuleGradeService
             'D7.b' => "Adicionar trait LogsActivity nos Models do {$module} (Spatie ActivityLog)",
             'D7.c' => "Declarar retention_days em module.json OR config/retention.{$module}.php (LGPD Art. 16)",
             'D8.a' => "Adicionar middleware throttle nas rotas do {$module}",
-            'D8.b' => "Garantir CSRF nos forms Blade (@csrf) ou migrar pra Inertia em {$module}",
+            'D8.b' => "Remover route(s) do {$module} de VerifyCsrfToken::except OU justificar via na_justified_v3",
             'D8.c' => "Criar FormRequests pros Controllers do {$module} (ratio Requests/Controllers ≥ 0.5)",
             'D9.a' => "Instrumentar OTel spans nos Services do {$module}",
             'D9.b' => "Investigar failed_jobs do {$module} (alvo <5/24h)",
@@ -1243,19 +1230,29 @@ class ModuleGradeService
     }
 
     /**
-     * Lê frontmatter YAML campo `na_justified` em `memory/requisitos/<X>/SPEC.md`.
+     * Lê frontmatter YAML campo `na_justified` (v2) E `na_justified_v3` (v3 — ADR 0155
+     * Fase 1) em `memory/requisitos/<X>/SPEC.md` e retorna mapa MESCLADO.
      *
-     * Aceita 2 formatos:
-     *   na_justified:
-     *     D4.b: "Módulo de governança não tem state machine"
-     *     D5: "Cross-tenant intencional Art. 6"
+     * Aceita 2 formatos em ambas chaves:
+     *   na_justified:                      |  na_justified_v3:
+     *     D4.b: "Sem state machine"        |    D6.a: "CLI-only, sem Inertia"
+     *     D5: "Cross-tenant Art. 6"        |    D7.c: "retention global"
      * OU array simples (sem razão — fallback string vazia):
      *   na_justified: [D4.b, D5]
+     *   na_justified_v3: [D6.a, D8.b]
      *
-     * Anti-gaming v2 (ADR 0154 proposto): máx NA_JUSTIFIED_LIMIT (3) entradas por módulo.
-     * Excedentes são ignoradas + Log::warning() emitido.
+     * Convenção v2/v3 (ADR 0155 §"N/A v2 backward-compat"):
+     *   - `na_justified` v2 cobre D1-D5 originais E continua aceitando D6-D9
+     *     (backward-compat total — ADR 0155 §"N/A v2 backward-compat" exige Service v3
+     *     lê `na_justified: [d6.a, d7.c]` com mesma lógica v2)
+     *   - `na_justified_v3` v3 é o canal preferencial pra D6-D9 (chave nova)
+     *   - Chaves declaradas em AMBAS são mescladas; v3 sobrescreve v2 em colisão
+     *   - Soft-deprecation log quando D6-D9 vem por v2 (sugere migrar pra v3)
      *
-     * @return array<string, string> mapeamento key (D1.a / D5) → razão
+     * Anti-gaming v2 (ADR 0154): máx NA_JUSTIFIED_LIMIT (3) entradas TOTAIS (v2 + v3
+     * mescladas). Excedentes são ignoradas + Log::warning() emitido.
+     *
+     * @return array<string, string> mapeamento key (D1.a / D5 / D6.a) → razão
      */
     private function loadNaJustified(string $module): array
     {
@@ -1276,28 +1273,41 @@ class ModuleGradeService
             return [];
         }
 
-        if (! is_array($front) || ! isset($front['na_justified'])) {
+        if (! is_array($front)) {
             return [];
         }
 
-        $raw = $front['na_justified'];
-        $parsed = [];
-
-        if (is_array($raw)) {
-            foreach ($raw as $key => $value) {
-                if (is_int($key)) {
-                    // Formato lista: [D4.b, D5]
-                    if (is_string($value)) {
-                        $parsed[$value] = '';
-                    }
-                } else {
-                    // Formato mapping: D4.b: "razão"
-                    $parsed[(string) $key] = is_string($value) ? $value : '';
-                }
+        // Parse v2 (na_justified) — aceita D6-D9 (backward-compat ADR 0155);
+        // soft-deprecation log se aparecer D6-D9 (sugere usar na_justified_v3)
+        $parsedV2 = $this->parseNaJustifiedRaw($front['na_justified'] ?? null);
+        $v6plusInV2 = [];
+        foreach ($parsedV2 as $key => $reason) {
+            if (preg_match('/^[dD][6789](\b|\.)/', $key)) {
+                $v6plusInV2[] = $key;
             }
         }
 
-        // Anti-gaming: máximo NA_JUSTIFIED_LIMIT entradas
+        // Parse v3 (na_justified_v3) — todas chaves aceitas (compat ampliado)
+        $parsedV3 = $this->parseNaJustifiedRaw($front['na_justified_v3'] ?? null);
+
+        // Merge — v3 sobrescreve v2 se mesma chave declarada (decisão Wagner: v3 wins)
+        $parsed = array_merge($parsedV2, $parsedV3);
+
+        // Soft-deprecation: chaves D6-D9 em `na_justified` v2 continuam funcionando,
+        // mas log sugere migração pra `na_justified_v3` (canal preferencial v3)
+        if (! empty($v6plusInV2) && class_exists(\Illuminate\Support\Facades\Log::class)) {
+            try {
+                \Illuminate\Support\Facades\Log::info(
+                    "[ModuleGradeService] Módulo {$module}: chave(s) D6-D9 declaradas em `na_justified` v2 " .
+                    "(aceitas via backward-compat). Sugestão: migrar pra `na_justified_v3` (ADR 0155). " .
+                    "Chaves: " . implode(', ', $v6plusInV2)
+                );
+            } catch (\Throwable $e) {
+                // logger indisponível em test isolado — segue sem log
+            }
+        }
+
+        // Anti-gaming: máximo NA_JUSTIFIED_LIMIT entradas totais (v2 + v3)
         if (count($parsed) > self::NA_JUSTIFIED_LIMIT) {
             $excedentes = array_slice($parsed, self::NA_JUSTIFIED_LIMIT, null, true);
             $parsed = array_slice($parsed, 0, self::NA_JUSTIFIED_LIMIT, true);
@@ -1316,6 +1326,136 @@ class ModuleGradeService
         }
 
         return $parsed;
+    }
+
+    /**
+     * Helper: parse raw value (lista OR mapping) → array key=>reason.
+     *
+     * @param mixed $raw Valor cru do frontmatter (array, null, string, etc)
+     * @return array<string, string>
+     */
+    private function parseNaJustifiedRaw($raw): array
+    {
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $parsed = [];
+        foreach ($raw as $key => $value) {
+            if (is_int($key)) {
+                // Formato lista: [D4.b, D5]
+                if (is_string($value)) {
+                    $parsed[$value] = '';
+                }
+            } else {
+                // Formato mapping: D4.b: "razão"
+                $parsed[(string) $key] = is_string($value) ? $value : '';
+            }
+        }
+        return $parsed;
+    }
+
+    /**
+     * Lê array `$except` de `app/Http/Middleware/VerifyCsrfToken.php` via regex.
+     *
+     * Suporta tanto middleware tradicional (Laravel 10/11/12) quanto eventual
+     * config flat futura (`bootstrap/app.php` com `->validateCsrfTokens(except: [...])`).
+     *
+     * Retorna lista de paths string. Vazio se arquivo ausente ou regex não bate.
+     *
+     * @return string[]
+     */
+    private function loadCsrfExcept(): array
+    {
+        $paths = [];
+
+        // 1. Middleware clássico (Laravel 10/11/12 — oimpresso atual em 13.6)
+        $middlewarePath = base_path('app/Http/Middleware/VerifyCsrfToken.php');
+        if (is_file($middlewarePath)) {
+            $content = @file_get_contents($middlewarePath) ?: '';
+            if (preg_match('/\$except\s*=\s*\[(.*?)\]/s', $content, $m)) {
+                preg_match_all('/[\'"]([^\'"]+)[\'"]/', $m[1], $matches);
+                $paths = array_merge($paths, $matches[1] ?? []);
+            }
+        }
+
+        // 2. Config flat (bootstrap/app.php — Laravel 11+ skeleton)
+        $bootstrapApp = base_path('bootstrap/app.php');
+        if (is_file($bootstrapApp)) {
+            $content = @file_get_contents($bootstrapApp) ?: '';
+            if (preg_match('/validateCsrfTokens\s*\(\s*except\s*:\s*\[(.*?)\]\s*\)/s', $content, $m)) {
+                preg_match_all('/[\'"]([^\'"]+)[\'"]/', $m[1], $matches);
+                $paths = array_merge($paths, $matches[1] ?? []);
+            }
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * Filtra paths do CSRF except que pertencem ao módulo via heurística.
+     *
+     * Heurística (ADR 0155 §D8.b "route do módulo"):
+     *   - Path contém segmento `<modulo-lowercase>/` no início OU como sub-path
+     *   - Match também via `module.json` `routes_prefix` se declarado
+     *   - Wildcard `*` ignorado pra normalização
+     *
+     * Exemplos (módulo=Crm):
+     *   '/crm/webhook'           → MATCH (segmento /crm/)
+     *   'crm/inbound/*'          → MATCH (prefix crm/)
+     *   '/webhook/*'             → SEM match (path genérico não-específico)
+     *   '/whatsapp/webhook'      → SEM match (outro módulo)
+     *
+     * @param string[] $exceptPaths Lista de paths em VerifyCsrfToken::except
+     * @param string $moduleName Nome PascalCase do módulo
+     * @return string[] Subset que casa com o módulo
+     */
+    private function filterExceptForModule(array $exceptPaths, string $moduleName): array
+    {
+        if (empty($exceptPaths)) {
+            return [];
+        }
+
+        $lower = strtolower($moduleName);
+        $candidates = [$lower];
+
+        // module.json `routes_prefix` (raro mas vale conferir)
+        $moduleJsonPath = $this->modulesPath . DIRECTORY_SEPARATOR . $moduleName . DIRECTORY_SEPARATOR . 'module.json';
+        if (is_file($moduleJsonPath)) {
+            $json = @json_decode(@file_get_contents($moduleJsonPath) ?: '', true);
+            if (is_array($json)) {
+                $prefix = $json['routes_prefix'] ?? null;
+                if (is_string($prefix) && $prefix !== '') {
+                    $candidates[] = strtolower(trim($prefix, '/'));
+                }
+            }
+        }
+        $candidates = array_values(array_unique(array_filter($candidates)));
+
+        $matched = [];
+        foreach ($exceptPaths as $path) {
+            // Normaliza: tira leading slash + lowercase + tira wildcard final
+            $normalized = strtolower(ltrim($path, '/'));
+            $normalized = rtrim($normalized, '*');
+            $normalized = trim($normalized, '/');
+
+            if ($normalized === '') {
+                continue;
+            }
+
+            $segments = explode('/', $normalized);
+            $firstSegment = $segments[0] ?? '';
+
+            foreach ($candidates as $cand) {
+                // Match estrito: primeiro segmento bate (rota raiz do módulo)
+                if ($firstSegment === $cand) {
+                    $matched[] = $path;
+                    break;
+                }
+            }
+        }
+
+        return $matched;
     }
 
     /**
