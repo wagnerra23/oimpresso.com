@@ -35,6 +35,10 @@ class Subscription extends Model
         'start_date', 'next_due_date', 'billing_anchor_date',
         'canceled_at', 'paused_at',
         'conta_bancaria_id', 'metadata',
+        // v9,75 — Onda 1 schema aditivo
+        'payment_method', 'last_jobsheet_id',
+        'total_paid_cached', 'failed_count_cached', 'total_revenue_cached',
+        'paused_until', 'churn_reason', 'contact_phone_cached',
     ];
 
     protected $casts = [
@@ -44,6 +48,9 @@ class Subscription extends Model
         'canceled_at'          => 'datetime',
         'paused_at'            => 'datetime',
         'metadata'             => 'array',
+        // v9,75
+        'paused_until'         => 'date',
+        'total_revenue_cached' => 'decimal:2',
     ];
 
     public function plan(): BelongsTo
@@ -64,6 +71,28 @@ class Subscription extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class, 'subscription_id');
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(SubscriptionNote::class, 'subscription_id');
+    }
+
+    public function pinnedNote()
+    {
+        return $this->hasOne(SubscriptionNote::class, 'subscription_id')
+            ->where('is_pinned', true)
+            ->latest('updated_at');
+    }
+
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(SubscriptionFavorite::class, 'subscription_id');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(SubscriptionEvent::class, 'subscription_id');
     }
 
     public function scopeAtivas(Builder $q): Builder
