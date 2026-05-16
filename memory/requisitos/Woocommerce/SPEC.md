@@ -1,8 +1,9 @@
 ---
 module: Woocommerce
 na_justified:
+  D5: "Gateway de integração WooCommerce webhook — não módulo cliente-facing direto. Integração técnica entre oimpresso e lojas WooCommerce externas (B2B2C). ADR 0121 §integrações + ADR 0105 §cliente como sinal qualificado: módulo dormente preservado pra futuro, sem cliente ativo reportando dor pra justificar UX investigation."
   D6.b: "Sync WooCommerce REST API depende de latência rede externa do site cliente — fora do controle oimpresso. p99 OTel <500ms N/A enquanto módulo dormante sem cliente ativo + instrumentação OTel project-wide pendente. ADR 0105 (cliente como sinal qualificado)."
-related_adrs: [0093, 0105, 0153, 0154]
+related_adrs: [0093, 0105, 0121, 0153, 0154, 0155, 0156]
 ---
 
 # SPEC — Modules/Woocommerce

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Listeners;
 
 use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Modules\Whatsapp\Entities\WhatsappContactBotOverride;
 use Modules\Whatsapp\Entities\WhatsappConversation;
@@ -123,12 +124,22 @@ class DispatchToJanaBot
         //       'REQUIRE_HUMAN_REVIEW' => $conversation->update(['status' => 'awaiting_human']),
         //       'BLOCK_ALWAYS' => /* log + no-op */,
         //   };
+        // D7 LGPD — PII redaction antes de logar body do cliente (Wave 9 governance).
+        // `inbound_preview` é o ÚNICO log-call do módulo Whatsapp que copia conteúdo
+        // raw da mensagem do cliente pra storage/logs/laravel.log (vetor de vazamento
+        // catalogado: msg pode conter CPF/CNPJ/email/phone). PiiRedactor substitui
+        // por placeholders [REDACTED:CPF] etc preservando contexto pra debug.
+        // Centrifugo previews (PublishMessageReceivedToCentrifugo + PublishOmnichannel)
+        // NÃO precisam de redact — channel é tenant-scoped (only authorized UI subscribes).
+        $previewRaw = mb_substr((string) $message->body, 0, 80);
+        $previewRedacted = app(PiiRedactor::class)->redact($previewRaw);
+
         \Log::info('[whatsapp.dispatch_to_jana_bot] mensagem recebida (Sprint 3 prep — sem resposta automática ainda)', [
             'business_id' => $message->business_id,
             'phone_id' => $phone->id,
             'phone_label' => $phone->label,
             'conversation_id' => $conversation->id,
-            'inbound_preview' => mb_substr((string) $message->body, 0, 80),
+            'inbound_preview' => $previewRedacted,
         ]);
     }
 }

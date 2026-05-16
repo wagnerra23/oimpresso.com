@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Ponto\Entities\Marcacao;
@@ -36,6 +37,29 @@ class MarcacaoService
      * @return Marcacao
      */
     public function registrar(array $dados)
+    {
+        // D9.a OTel — append-only INSERT marcação (Portaria 671/2021 Art. 85,
+        // hash encadeado + NSR sequencial). PII redacted: employee_id numérico,
+        // SEM CPF/PIS no span.
+        $bizId = $dados['business_id'] ?? null;
+        $empId = $dados['colaborador_config_id'] ?? null;
+
+        return OtelHelper::span('ponto.marcacao.registrar', [
+            'module'      => 'Ponto',
+            'business_id' => is_int($bizId) ? $bizId : (int) $bizId,
+            'employee_id' => is_int($empId) ? $empId : (int) $empId,
+            'origem'      => $dados['origem'] ?? null,
+            'tipo'        => $dados['tipo'] ?? null,
+            'rep_id'      => $dados['rep_id'] ?? null,
+        ], function () use ($dados) {
+            return $this->registrarInterno($dados);
+        });
+    }
+
+    /**
+     * @internal Corpo real de registrar() — separado para wrap OTel D9.a.
+     */
+    private function registrarInterno(array $dados)
     {
         if (empty($dados['business_id']) || empty($dados['colaborador_config_id'])) {
             throw new RuntimeException('registrar(): business_id e colaborador_config_id são obrigatórios.');

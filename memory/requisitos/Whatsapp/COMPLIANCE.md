@@ -76,8 +76,10 @@ Wagner ADR + skill `commit-discipline` exigem:
 
 Ver [PII-REDACTION.md](PII-REDACTION.md). Resumo:
 
-- `App\Support\PiiRedactor` aplicado em logs estruturados Loki
-- E.164 phone, CPF/CNPJ, email reduzidos a hash truncado em `storage/logs/*.log`
+- `Modules\Jana\Services\Privacy\PiiRedactor` aplicado em logs estruturados Loki
+- E.164 phone, CPF/CNPJ, email, CEP reduzidos a placeholder `[REDACTED:TIPO]` em `storage/logs/*.log`
+- **Wired-up (Wave 9 — 2026-05-16):** `DispatchToJanaBot.php:131` — `inbound_preview` redacted antes de `Log::info`. Único log-call do módulo que copia body raw do cliente; demais Centrifugo previews (`PublishMessageReceivedToCentrifugo`, `PublishOmnichannelToCentrifugo`) são tenant-scoped real-time channels (não vão pra `storage/logs/*.log`)
+- Pest: [DispatchToJanaBotPiiRedactionTest.php](../../../Modules/Whatsapp/Tests/Feature/DispatchToJanaBotPiiRedactionTest.php) — 7 it cobrindo CPF/CNPJ/email/CEP + non-PII preservado + multi-tenant biz=1 vs biz=99 isolation + config retention exposed
 - Mídia URL truncada a `https://.../[REDACTED]`
 
 ## 7. Roadmap LGPD residual (post-Onda 3)
