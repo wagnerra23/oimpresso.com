@@ -2,6 +2,8 @@
 
 namespace Modules\ADS\Services;
 
+use App\Util\OtelHelper;
+
 /**
  * ARQ-0004 — Quantifica o risco de executar uma ação sem supervisão humana.
  *
@@ -9,6 +11,9 @@ namespace Modules\ADS\Services;
  *
  * Priors hardcoded por event_type. Nunca modificar por LLM ou banco.
  * Calibração de incerteza via histórico após 10+ execuções (Learning Loop L1).
+ *
+ * Observabilidade: `calculate()` envolto em OTel span (D9.a — ADR 0155).
+ * Multi-tenant Tier 0: `OtelHelper::spanBiz` auto-resolve `business_id` da sessão.
  */
 final class RiskEngine
 {
@@ -58,23 +63,29 @@ final class RiskEngine
      */
     public function calculate(string $eventType, ?float $calibratedUncertainty = null): RiskResult
     {
-        [$impact, $priorUncertainty, $reversibility, $criticality] = $this->getPrior($eventType);
+        return OtelHelper::spanBiz('ads.risk_engine.calculate', function () use ($eventType, $calibratedUncertainty): RiskResult {
+            [$impact, $priorUncertainty, $reversibility, $criticality] = $this->getPrior($eventType);
 
-        $uncertainty = $calibratedUncertainty ?? $priorUncertainty;
-        $uncertainty = max(0.0, min(1.0, $uncertainty));
+            $uncertainty = $calibratedUncertainty ?? $priorUncertainty;
+            $uncertainty = max(0.0, min(1.0, $uncertainty));
 
-        $score = $impact * $uncertainty * (1.0 - $reversibility) * $criticality;
-        $score = round(max(0.0, min(1.0, $score)), 3);
+            $score = $impact * $uncertainty * (1.0 - $reversibility) * $criticality;
+            $score = round(max(0.0, min(1.0, $score)), 3);
 
-        return new RiskResult(
-            score: $score,
-            eventType: $eventType,
-            impact: $impact,
-            uncertainty: $uncertainty,
-            reversibility: $reversibility,
-            criticality: $criticality,
-            usedPrior: $calibratedUncertainty === null,
-        );
+            return new RiskResult(
+                score: $score,
+                eventType: $eventType,
+                impact: $impact,
+                uncertainty: $uncertainty,
+                reversibility: $reversibility,
+                criticality: $criticality,
+                usedPrior: $calibratedUncertainty === null,
+            );
+        }, [
+            'module' => 'ADS',
+            'event_type' => $eventType,
+            'used_prior' => $calibratedUncertainty === null,
+        ]);
     }
 
     /**

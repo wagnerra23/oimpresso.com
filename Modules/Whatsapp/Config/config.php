@@ -260,4 +260,32 @@ return [
             fn ($id) => $id > 0,
         )),
     ],
+
+    /*
+     * D7 LGPD — Retention policy canônica (Wave 9 governance push).
+     *
+     * Valores espelhados de memory/requisitos/Whatsapp/COMPLIANCE.md §2.
+     * Consumidos pelos 3 comandos artisan retention (§3 do COMPLIANCE,
+     * implementação pós-aprovação Wagner):
+     *   - whatsapp:redact-old-messages  (body+payload → PII redact após `body_redact_days`)
+     *   - whatsapp:purge-old-media       (delete arquivo storage após `media_purge_days`)
+     *   - whatsapp:anonymize-inactive-contacts (phone+name → anonymize após `contact_anonymize_months`)
+     *
+     * Bases legais (LGPD Art. 7º) — execução de contrato (transacional) +
+     * consentimento (marketing) + cumprimento obrigação legal (NFe Lei 8.846/94).
+     *
+     * Override via .env: ajuste fino quando cliente exige retention diferenciada
+     * (ex: setor financeiro PCI-DSS exige 7 anos, vestuário Termas pode 90d).
+     *
+     * @see memory/requisitos/Whatsapp/COMPLIANCE.md
+     * @see memory/requisitos/Whatsapp/PII-REDACTION.md
+     */
+    'retention' => [
+        'body_redact_days' => (int) env('WHATSAPP_RETENTION_BODY_DAYS', 180),
+        'media_purge_days' => (int) env('WHATSAPP_RETENTION_MEDIA_DAYS', 365),
+        'contact_anonymize_months' => (int) env('WHATSAPP_RETENTION_CONTACT_MONTHS', 24),
+        // Activity log Spatie (LogsActivity em Channel/Conversation) — 5 anos alinha
+        // com NFe SEFAZ Art. 23 Lei 8.846/94 (Brasil exige guarda fiscal 5 anos).
+        'activity_log_years' => (int) env('WHATSAPP_RETENTION_ACTIVITY_LOG_YEARS', 5),
+    ],
 ];

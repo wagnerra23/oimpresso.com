@@ -2,9 +2,14 @@
 
 namespace Modules\ADS\Services;
 
+use App\Util\OtelHelper;
+
 /**
  * ARQ-0006 — Firewall de decisões. Regras imutáveis: só mudam via PR aprovado por Wagner.
  * NUNCA modificar estas listas por sugestão de LLM ou config de banco.
+ *
+ * Observabilidade: método público `check()` envolto em OTel span (D9.a — ADR 0155).
+ * Multi-tenant Tier 0: `OtelHelper::spanBiz` auto-resolve `business_id` da sessão.
  */
 final class PolicyEngine
 {
@@ -61,24 +66,29 @@ final class PolicyEngine
 
     public function check(string $eventType): PolicyResult
     {
-        if (in_array($eventType, self::BLOCK_ALWAYS, true)) {
-            return PolicyResult::block($eventType, 'BLOCK_ALWAYS');
-        }
+        return OtelHelper::spanBiz('ads.policy_engine.check', function () use ($eventType): PolicyResult {
+            if (in_array($eventType, self::BLOCK_ALWAYS, true)) {
+                return PolicyResult::block($eventType, 'BLOCK_ALWAYS');
+            }
 
-        if (in_array($eventType, self::REQUIRE_HUMAN_REVIEW, true)) {
-            return PolicyResult::requireHuman($eventType, 'REQUIRE_HUMAN_REVIEW');
-        }
+            if (in_array($eventType, self::REQUIRE_HUMAN_REVIEW, true)) {
+                return PolicyResult::requireHuman($eventType, 'REQUIRE_HUMAN_REVIEW');
+            }
 
-        if (in_array($eventType, self::REQUIRE_BRAIN_B, true)) {
-            return PolicyResult::requireBrainB($eventType, 'REQUIRE_BRAIN_B');
-        }
+            if (in_array($eventType, self::REQUIRE_BRAIN_B, true)) {
+                return PolicyResult::requireBrainB($eventType, 'REQUIRE_BRAIN_B');
+            }
 
-        if (in_array($eventType, self::ALLOW_BRAIN_A, true)) {
-            return PolicyResult::allowBrainA($eventType, 'ALLOW_BRAIN_A');
-        }
+            if (in_array($eventType, self::ALLOW_BRAIN_A, true)) {
+                return PolicyResult::allowBrainA($eventType, 'ALLOW_BRAIN_A');
+            }
 
-        // Tipo desconhecido → conservador: requer Brain B
-        return PolicyResult::requireBrainB($eventType, 'UNKNOWN_TYPE_CONSERVATIVE');
+            // Tipo desconhecido → conservador: requer Brain B
+            return PolicyResult::requireBrainB($eventType, 'UNKNOWN_TYPE_CONSERVATIVE');
+        }, [
+            'module' => 'ADS',
+            'event_type' => $eventType,
+        ]);
     }
 
     public function isBlockedAlways(string $eventType): bool

@@ -8,10 +8,39 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest;
 
+/**
+ * ConsultaOsController — Portal publico de consulta de OS (mock-only).
+ *
+ * Arquitetura (SoC — D4):
+ *
+ * - index(): boot do Inertia React (zero props — pagina opera 100% client-side via
+ *   useState; nao usa Inertia partial reload). D6.a Inertia::defer marcado N/A
+ *   justificado no SPEC.md (frontmatter `na_justified.D6.a`, ADR 0155).
+ *
+ * - buscar(): endpoint JSON publico (sem auth). Validacao anti-enumeration via
+ *   ConsultaPublicaRequest (FormRequest dedicado — D8.c): `alpha_num` + `max:20`
+ *   + lista controlada de estagios. Throttle/rate-limit aplicado via middleware
+ *   na rota (defesa em profundidade — TODO infra na US-CONSULTA-001).
+ *
+ * Status: mock-only ate US-CONSULTA-001 substituir mockData() por query real em
+ * Modules/Repair via Service read-only (canary 7d ROTA LIVRE antes outros tenants).
+ * Mapping pendente Wagner: invoice_no + ultimos 4 do telefone (padrao Repair).
+ *
+ * Tier 0 multi-tenant: consulta publica por protocolo unico globally — NAO scopa
+ * por business_id hoje. Quando US-CONSULTA-001 ativar busca real, Service deve
+ * resolver business_id via lookup do protocolo + rate limit por IP.
+ *
+ * @see memory/requisitos/ConsultaOs/SPEC.md
+ * @see memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md §188 (D6.a N/A pattern)
+ * @see Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest (D8.c FormRequest)
+ */
 class ConsultaOsController extends Controller
 {
     public function index(): Response
     {
+        // D6.a N/A justified — zero props (pagina React opera client-state + fetch
+        // JSON via @buscar). Quando US-CONSULTA-001 entregar payload real via Inertia
+        // props, aplicar Inertia::defer pattern (RUNBOOK-inertia-defer-pattern.md).
         return Inertia::render('ConsultaOs/Index');
     }
 

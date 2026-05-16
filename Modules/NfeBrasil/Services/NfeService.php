@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Services;
 
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use App\Transaction;
+use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -369,6 +370,23 @@ class NfeService
         $modelo        = $dadosNfe['modelo'] ?? '55';
         $transactionId = isset($dadosNfe['transaction_id']) ? (int) $dadosNfe['transaction_id'] : null;
 
+        // D9.a OTel — span envolve TUDO (validação, idempotência, reserva número,
+        // HTTP SEFAZ sefazEnviaLote, processamento retorno). p99 crítico SEFAZ.
+        return OtelHelper::spanBiz('nfe.emitir', function () use ($businessId, $dadosNfe, $modelo, $transactionId): NfeEmissao {
+            return $this->emitirInterno($businessId, $dadosNfe, $modelo, $transactionId);
+        }, [
+            'module'         => 'NfeBrasil',
+            'modelo'         => (string) $modelo,
+            'transaction_id' => $transactionId,
+        ]);
+    }
+
+    /**
+     * @internal Corpo real de emitir() — separado para wrap em OtelHelper::spanBiz().
+     *           D9.a OTel instrumentação SEFAZ webservice p99 crítico.
+     */
+    private function emitirInterno(int $businessId, array $dadosNfe, string $modelo, ?int $transactionId): NfeEmissao
+    {
         // ── 1. Idempotência ─────────────────────────────────────────────────
         // SEFAZ distingue 3 estados terminais (US-SELL-029):
         //   - autorizada → número usado oficialmente, imutável
@@ -551,6 +569,19 @@ class NfeService
      */
     public function consultarStatusSefaz(int $businessId): array
     {
+        // D9.a OTel — wrap HTTP SEFAZ status call (timeout cURL é hot-path crítico).
+        return OtelHelper::spanBiz('nfe.status_sefaz', function () use ($businessId): array {
+            return $this->consultarStatusSefazInterno($businessId);
+        }, [
+            'module' => 'NfeBrasil',
+        ]);
+    }
+
+    /**
+     * @internal Corpo real de consultarStatusSefaz() — separado para wrap OTel.
+     */
+    private function consultarStatusSefazInterno(int $businessId): array
+    {
         $business = DB::table('business')->where('id', $businessId)->first();
         if (! $business) {
             throw new RuntimeException("Business {$businessId} não encontrado.");
@@ -636,6 +667,24 @@ class NfeService
      *                                   de infra/cert
      */
     public function cancelar(
+        int $businessId,
+        int $nfeEmissaoId,
+        string $justificativa,
+    ): NfeEvento {
+        // D9.a OTel — wrap evento SEFAZ cancela (tpEvento 110111). Prazo legal
+        // NFe55=168h NFC-e=24h — p99 monitorado.
+        return OtelHelper::spanBiz('nfe.cancelar', function () use ($businessId, $nfeEmissaoId, $justificativa): NfeEvento {
+            return $this->cancelarInterno($businessId, $nfeEmissaoId, $justificativa);
+        }, [
+            'module'         => 'NfeBrasil',
+            'nfe_emissao_id' => $nfeEmissaoId,
+        ]);
+    }
+
+    /**
+     * @internal Corpo real de cancelar() — separado para wrap OTel.
+     */
+    private function cancelarInterno(
         int $businessId,
         int $nfeEmissaoId,
         string $justificativa,

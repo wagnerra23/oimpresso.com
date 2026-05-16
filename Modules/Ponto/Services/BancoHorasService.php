@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Ponto\Entities\BancoHorasMovimento;
@@ -24,6 +25,19 @@ class BancoHorasService
         ?string $observacao = null,
         float $multiplicador = 1.0
     ): BancoHorasMovimento {
+        // D9.a OTel — ledger banco horas (CLT Art. 59 §2º). PII: só employee_id
+        // numérico, sem CPF/PIS. observacao NÃO entra (pode conter dados livres).
+        return OtelHelper::span('ponto.banco_horas.movimentar', [
+            'module'        => 'Ponto',
+            'business_id'   => $businessId,
+            'employee_id'   => $colaboradorId,
+            'tipo'          => $tipo,
+            'minutos'       => $minutos,
+            'multiplicador' => $multiplicador,
+        ], function () use (
+            $colaboradorId, $businessId, $minutos, $tipo, $usuarioId,
+            $dataReferencia, $apuracaoDiaId, $intercorrenciaId, $observacao, $multiplicador
+        ) {
         return DB::transaction(function () use (
             $colaboradorId, $businessId, $minutos, $tipo, $usuarioId,
             $dataReferencia, $apuracaoDiaId, $intercorrenciaId, $observacao, $multiplicador
@@ -54,6 +68,7 @@ class BancoHorasService
                 'created_at'              => now(),
             ]);
         });
+        }); // fecha OtelHelper::span outer
     }
 
     public function ajustarManual(int $colaboradorId, int $minutos, string $observacao, int $usuarioId): BancoHorasMovimento

@@ -8,6 +8,7 @@ use DB;
 use Illuminate\Console\Command;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Utils\CrmUtil;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class CreateRecursiveFollowup extends Command
 {
@@ -58,7 +59,8 @@ class CreateRecursiveFollowup extends Command
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (follow-up toca contato).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
         }
     }
 

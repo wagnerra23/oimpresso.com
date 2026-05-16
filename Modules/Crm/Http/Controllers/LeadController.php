@@ -13,6 +13,7 @@ use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Services\LeadAssignmentService;
 use Modules\Crm\Utils\CrmUtil;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class LeadController extends Controller
@@ -370,7 +371,8 @@ class LeadController extends Controller
                 'msg' => __('contact.added_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (CPF/email/telefone em queries).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
@@ -489,7 +491,8 @@ class LeadController extends Controller
                 'msg' => __('lang_v1.success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (CPF/email/telefone em queries).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
@@ -531,7 +534,8 @@ class LeadController extends Controller
                     'msg' => __('lang_v1.success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (CPF/email/telefone em queries).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = ['success' => false,
                     'msg' => __('messages.something_went_wrong'),
@@ -567,7 +571,8 @@ class LeadController extends Controller
                     'msg' => __('lang_v1.success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (CPF/email/telefone em queries).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = ['success' => false,
                     'msg' => __('messages.something_went_wrong'),
@@ -597,7 +602,8 @@ class LeadController extends Controller
                     'msg' => __('lang_v1.success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (CPF/email/telefone em queries).
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = ['success' => false,
                     'msg' => __('messages.something_went_wrong'),
