@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\KB\Entities\Concerns\BelongsToBusinessTrait;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * KbNode — unidade atômica do grafo de conhecimento.
@@ -58,9 +60,29 @@ use Modules\KB\Entities\Concerns\BelongsToBusinessTrait;
  */
 class KbNode extends Model
 {
-    use BelongsToBusinessTrait, SoftDeletes;
+    use BelongsToBusinessTrait, LogsActivity, SoftDeletes;
 
     protected $table = 'kb_nodes';
+
+    /**
+     * Audit trail LGPD Art. 37 (Wave 11 — boost D7 KB).
+     *
+     * Registra QUEM mudou QUE campo em artigos editáveis. Bridges canon
+     * (is_editable=false) também passam aqui (raro, mas pode acontecer
+     * em ajustes de meta tipo pinned/tags).
+     *
+     * Loga apenas campos dirty (não polui tabela). Não submete logs
+     * vazios. activity_log retention controlada via
+     * config('kb.retention.audit_log_days', 730).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('kb.node');
+    }
 
     protected $fillable = [
         'business_id', 'type', 'slug', 'title', 'excerpt',

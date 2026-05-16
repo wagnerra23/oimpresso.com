@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\TaskRegistry;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Jana\Entities\Mcp\McpComponent;
@@ -34,6 +35,24 @@ class TaskCrudService
      * @return array{task: McpTask, events: list<McpTaskEvent>}
      */
     public function update(string $taskId, array $fields, string $author = 'system'): array
+    {
+        return OtelHelper::spanBiz('project_mgmt.task_crud.update', function () use ($taskId, $fields, $author): array {
+            return $this->updateInner($taskId, $fields, $author);
+        }, [
+            'module'      => 'ProjectMgmt',
+            'task_id'     => $taskId,
+            'fields'      => implode(',', array_keys($fields)),
+            'author'      => $author,
+        ]);
+    }
+
+    /**
+     * Inner update — assinatura preservada pra audit log de OTel não duplicar.
+     *
+     * @param  array<string,mixed> $fields
+     * @return array{task: McpTask, events: list<McpTaskEvent>}
+     */
+    protected function updateInner(string $taskId, array $fields, string $author = 'system'): array
     {
         $task = $this->findTaskOrFail($taskId);
 
@@ -104,6 +123,21 @@ class TaskCrudService
      */
     public function comment(string $taskId, string $body, string $author): McpTaskComment
     {
+        return OtelHelper::spanBiz('project_mgmt.task_crud.comment', function () use ($taskId, $body, $author): McpTaskComment {
+            return $this->commentInner($taskId, $body, $author);
+        }, [
+            'module'      => 'ProjectMgmt',
+            'task_id'     => $taskId,
+            'author'      => $author,
+            'body_length' => mb_strlen($body),
+        ]);
+    }
+
+    /**
+     * Inner comment — wrap pra OTel não interceptar lógica.
+     */
+    protected function commentInner(string $taskId, string $body, string $author): McpTaskComment
+    {
         $task = $this->findTaskOrFail($taskId);
         $body = trim($body);
 
@@ -149,6 +183,24 @@ class TaskCrudService
      * @return array{task_id: string, identifier: ?string, markdown: ?string, spec_path: ?string, written: bool}
      */
     public function create(array $data): array
+    {
+        return OtelHelper::spanBiz('project_mgmt.task_crud.create', function () use ($data): array {
+            return $this->createInner($data);
+        }, [
+            'module'      => 'ProjectMgmt',
+            'task_module' => (string) ($data['module'] ?? ''),
+            'project'     => isset($data['project']) ? strtoupper((string) $data['project']) : '',
+            'has_parent'  => isset($data['parent_task_id']) ? 'true' : 'false',
+        ]);
+    }
+
+    /**
+     * Inner create — wrap pra OTel não interceptar lógica.
+     *
+     * @param  array<string,mixed> $data
+     * @return array{task_id: string, identifier: ?string, markdown: ?string, spec_path: ?string, written: bool}
+     */
+    protected function createInner(array $data): array
     {
         $module = trim((string) ($data['module'] ?? ''));
         $title = trim((string) ($data['title'] ?? ''));
@@ -249,20 +301,28 @@ class TaskCrudService
      */
     public function bulkUpdate(array $taskIds, array $fields, string $author = 'system'): array
     {
-        $bulkOpId = (string) \Illuminate\Support\Str::uuid();
-        $updated = 0;
-        $errors = [];
+        return OtelHelper::spanBiz('project_mgmt.task_crud.bulk_update', function () use ($taskIds, $fields, $author): array {
+            $bulkOpId = (string) \Illuminate\Support\Str::uuid();
+            $updated = 0;
+            $errors = [];
 
-        foreach ($taskIds as $tid) {
-            try {
-                $this->update($tid, $fields, $author);
-                $updated++;
-            } catch (\Throwable $e) {
-                $errors[] = ['task_id' => $tid, 'error' => $e->getMessage()];
+            foreach ($taskIds as $tid) {
+                try {
+                    // Usa updateInner pra evitar criar span filho por task (N+1 ruído).
+                    $this->updateInner($tid, $fields, $author);
+                    $updated++;
+                } catch (\Throwable $e) {
+                    $errors[] = ['task_id' => $tid, 'error' => $e->getMessage()];
+                }
             }
-        }
 
-        return ['updated' => $updated, 'errors' => $errors, 'bulk_op_id' => $bulkOpId];
+            return ['updated' => $updated, 'errors' => $errors, 'bulk_op_id' => $bulkOpId];
+        }, [
+            'module'      => 'ProjectMgmt',
+            'task_count'  => count($taskIds),
+            'fields'      => implode(',', array_keys($fields)),
+            'author'      => $author,
+        ]);
     }
 
     // ---------- helpers ----------

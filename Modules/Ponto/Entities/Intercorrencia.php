@@ -7,11 +7,44 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Intercorrencia extends Model
 {
     use HasFactory;
+    use LogsActivity;
     use SoftDeletes;
+
+    /**
+     * Wave 11 D7.b — audit trail LGPD pra workflow de intercorrências.
+     *
+     * Intercorrências têm ciclo RASCUNHO→PENDENTE→APROVADA→APLICADA (não append-only,
+     * mas precisa de histórico pra defesa em fiscalização MTE + transparência ao
+     * colaborador). Loga transições de estado + decisão do aprovador.
+     *
+     * NÃO loga `justificativa` (texto livre do colaborador, pode conter PII pessoal —
+     * minimização LGPD; activity_log expõe diff em UI admin) — fica só no campo direto.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'tipo',
+                'estado',
+                'data',
+                'dia_todo',
+                'prioridade',
+                'impacta_apuracao',
+                'descontar_banco_horas',
+                'aprovador_id',
+                'aprovado_em',
+                'motivo_rejeicao',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('ponto_intercorrencia');
+    }
 
     protected $table = 'ponto_intercorrencias';
 

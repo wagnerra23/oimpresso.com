@@ -8,10 +8,17 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\Cms\Entities\CmsSiteDetail;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class SettingsController extends Controller
 {
     protected $commonUtil;
+
+    /**
+     * PiiRedactor canônico (Modules/Jana) — D7.a LGPD em logs Cms admin
+     * (site details podem conter `notifiable_email` / `mail_us` / `contact_us`).
+     */
+    protected PiiRedactor $piiRedactor;
 
     /**
      * Constructor
@@ -19,9 +26,10 @@ class SettingsController extends Controller
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(Util $commonUtil)
+    public function __construct(Util $commonUtil, PiiRedactor $piiRedactor)
     {
         $this->commonUtil = $commonUtil;
+        $this->piiRedactor = $piiRedactor;
     }
 
     /**
@@ -88,7 +96,10 @@ class SettingsController extends Controller
                 ->with('status', $output);
         } catch (Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7.a LGPD — exception message pode conter email/telefone (settings carregam contact_us/mail_us).
+            \Log::emergency('[cms.settings.error] '.$this->piiRedactor->redact(
+                'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()
+            ));
             $output = [
                 'success' => false,
                 'msg' => __('messages.something_went_wrong'),

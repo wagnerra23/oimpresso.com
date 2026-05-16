@@ -27,9 +27,23 @@ class TeamScopesController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id', 1);
 
-        $users = $service->listUsersWithAccess($businessId);
+        // Wave 11 D6.a — Inertia::defer pra props caras: users (UserScopeService
+        // faz JOIN users × mcp_user_module_access + agregação per-módulo) e modules
+        // (scan filesystem Modules/ + 30+ stat() calls). Closures resolvidas após
+        // first paint — frontend skeleton até chegarem.
+        return Inertia::render('ads/Admin/TeamScopes', [
+            'users'   => Inertia::defer(fn () => $service->listUsersWithAccess($businessId)),
+            'modules' => Inertia::defer(fn () => $this->buildModulesPayload()),
+        ]);
+    }
 
-        // Lista de módulos disponíveis (escaneia diretório Modules/)
+    /**
+     * Builder módulos disponíveis — scan filesystem (Wave 11 D6.a defer).
+     *
+     * @return array<int, string>
+     */
+    protected function buildModulesPayload(): array
+    {
         $modules = [];
         $modulesDir = base_path('Modules');
         if (is_dir($modulesDir)) {
@@ -42,10 +56,7 @@ class TeamScopesController extends Controller
         }
         sort($modules);
 
-        return Inertia::render('ads/Admin/TeamScopes', [
-            'users'   => $users,
-            'modules' => $modules,
-        ]);
+        return $modules;
     }
 
     public function grant(Request $request, UserScopeService $service): RedirectResponse

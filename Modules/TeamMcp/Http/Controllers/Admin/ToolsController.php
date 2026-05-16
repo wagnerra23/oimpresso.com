@@ -19,7 +19,25 @@ class ToolsController extends Controller
 
     public function index(ToolRegistry $registry): Response
     {
-        $tools = collect($registry->all())
+        // Wave 11 D6.a — Inertia::defer pra props caras: tools_by_category (iter
+        // sobre registry inteiro + agrupamento), recent_executions (1 query DB),
+        // kpis (3 counts registry + 1 count DB). Closures executam em background
+        // após first paint — frontend mostra skeleton até resolverem.
+        return Inertia::render('ads/Admin/Tools', [
+            'tools_by_category' => Inertia::defer(fn () => $this->buildToolsByCategoryPayload($registry)),
+            'recent_executions' => Inertia::defer(fn () => $this->buildRecentExecutionsPayload()),
+            'kpis'              => Inertia::defer(fn () => $this->buildKpisPayload($registry)),
+        ]);
+    }
+
+    /**
+     * Builder tools agrupadas por categoria (Wave 11 D6.a defer).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildToolsByCategoryPayload(ToolRegistry $registry): array
+    {
+        return collect($registry->all())
             ->map(fn ($t) => [
                 'name'         => $t->name(),
                 'description'  => $t->description(),
@@ -32,9 +50,18 @@ class ToolsController extends Controller
                 'category' => $cat,
                 'tools'    => $group->values(),
             ])
-            ->values();
+            ->values()
+            ->toArray();
+    }
 
-        $recentExecutions = DB::table('mcp_tool_executions')
+    /**
+     * Builder execuções recentes (últimas 20) — audit log Tier 0 (Wave 11 D6.a defer).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildRecentExecutionsPayload(): array
+    {
+        return DB::table('mcp_tool_executions')
             ->orderByDesc('id')
             ->limit(20)
             ->get(['id', 'tool_name', 'is_read_only', 'ok', 'error', 'duration_ms', 'triggered_by', 'created_at'])
@@ -47,23 +74,29 @@ class ToolsController extends Controller
                 'duration_ms'  => $r->duration_ms,
                 'triggered_by' => $r->triggered_by,
                 'created_at'   => $r->created_at,
-            ]);
+            ])
+            ->toArray();
+    }
 
-        $kpis = [
-            'total'         => count($registry->all()),
+    /**
+     * Builder KPIs registry + audit count (Wave 11 D6.a defer).
+     *
+     * @return array<string, int>
+     */
+    protected function buildKpisPayload(ToolRegistry $registry): array
+    {
+        $all = $registry->all();
+        $categoriasCount = collect($all)->groupBy(fn ($t) => $t->category())->count();
+
+        return [
+            'total'         => count($all),
             'read_only'     => count($registry->readOnly()),
             'write'         => count($registry->writeOnly()),
-            'categories'    => $tools->count(),
+            'categories'    => $categoriasCount,
             'executions_7d' => DB::table('mcp_tool_executions')
                 ->where('created_at', '>=', now()->subDays(7))
                 ->count(),
         ];
-
-        return Inertia::render('ads/Admin/Tools', [
-            'tools_by_category' => $tools,
-            'recent_executions' => $recentExecutions,
-            'kpis'              => $kpis,
-        ]);
     }
 
     /**

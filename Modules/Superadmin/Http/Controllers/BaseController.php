@@ -7,10 +7,23 @@ use Illuminate\Routing\Controller;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Notifications\NewSubscriptionNotification;
+use Modules\Superadmin\Support\RedactsPiiInLogs;
 use Notification;
 
 class BaseController extends Controller
 {
+    use RedactsPiiInLogs;
+
+    /**
+     * Alias backward-compat — método inline do controller usa snake_case por
+     * convenção UltimatePOS herdada. Delegação pro trait centraliza redaction.
+     * LGPD Tier 0 D7.a (Wave 11).
+     */
+    protected function _log_emergency_redacted(\Throwable $e, string $context = ''): void
+    {
+        $this->logEmergencyRedacted($e, $context);
+    }
+
     /**
      * Returns the list of all configured payment gateway
      *

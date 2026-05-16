@@ -5,10 +5,31 @@ namespace Modules\Cms\Entities;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Arquivos\Concerns\HasArquivos;
 use Modules\Arquivos\Entities\Arquivo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class CmsPage extends Model
 {
     use HasArquivos; // ADR 0123 — adopcao Sprint 4 (feature_image via arquivos)
+    use LogsActivity;
+
+    /**
+     * Auditoria LGPD D7.b — registra alterações de páginas/posts/blogs públicos
+     * em `activity_log` (append-only via spatie/laravel-activitylog).
+     *
+     * Conteúdo pode ser público mas autor/editor é identificável; mudanças
+     * críticas (is_enabled flip, delete, conteúdo alterado) ficam audit trail
+     * pra rastreio LGPD Art. 37 (responsável tratamento) + Art. 38 (registros).
+     *
+     * @see memory/requisitos/Cms/PII-REDACTION.md
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * The attributes that aren't mass assignable.
