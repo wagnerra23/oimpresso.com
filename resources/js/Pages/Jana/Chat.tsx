@@ -8,8 +8,8 @@
 //   module: Copiloto
 
 import { Head, router } from '@inertiajs/react';
-import { useMemo, type ReactNode } from 'react';
-import { Bell, Cog, Inbox, Pin, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Bell, Cog, Inbox, Pin, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -292,6 +292,29 @@ export default function Chat({
 }
 
 // ── ConvSidePanel — lista de conversas migrada da SidebarChat removida ─
+//
+// Layout enriquecido conforme Cowork chat.jsx (snapshot 2026-05-09) + Charter
+// §Goals: header + search client-side + 4 tabs filtro (labels Charter Todas/
+// Minhas/Compartilhadas/Arquivadas — não OS/Equipe/Clientes do Cowork que
+// conflitam com semântica Jana IA). Gate F1.5 em Chat-visual-comparison.md.
+//
+// Hoje só 'todas' filtra de fato (backend não expõe flag compartilhada/
+// arquivada em ConversaResumo). 'minhas/compartilhadas/arquivadas' mostram
+// empty state "Em breve" pra dar preview do roadmap.
+
+type ConvTab = 'todas' | 'minhas' | 'compartilhadas' | 'arquivadas';
+
+const CONV_TABS: Array<{ id: ConvTab; label: string }> = [
+  { id: 'todas',           label: 'Todas'         },
+  { id: 'minhas',          label: 'Minhas'        },
+  { id: 'compartilhadas',  label: 'Compartilhadas'},
+  { id: 'arquivadas',      label: 'Arquivadas'    },
+];
+
+// Normaliza pra busca acento-insensitive
+function normalizeSearch(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
 
 function ConvSidePanel({
   fixadas,
@@ -304,13 +327,67 @@ function ConvSidePanel({
   activeConvId: string;
   onSelectConv: (id: string) => void;
 }) {
+  const [query, setQuery] = useState('');
+  const [tab, setTab] = useState<ConvTab>('todas');
+
+  const { fixadasShow, recentesShow, showEmptyTabPlaceholder } = useMemo(() => {
+    if (tab !== 'todas') {
+      // Backend ainda não expõe flag compartilhada/arquivada — mostra empty
+      // state e mantém lista vazia até backend evoluir.
+      return { fixadasShow: [], recentesShow: [], showEmptyTabPlaceholder: true };
+    }
+    const q = normalizeSearch(query.trim());
+    if (!q) {
+      return { fixadasShow: fixadas, recentesShow: recentes, showEmptyTabPlaceholder: false };
+    }
+    const matchQ = (c: ConversaResumo) => normalizeSearch(c.titulo).includes(q);
+    return {
+      fixadasShow: fixadas.filter(matchQ),
+      recentesShow: recentes.filter(matchQ),
+      showEmptyTabPlaceholder: false,
+    };
+  }, [fixadas, recentes, query, tab]);
+
   return (
     <aside className="copiloto-chat-convs">
-      <div className="sb-actions">
-        <a href="/jana/conversas/nova" className="sb-action">
-          <Plus size={14} /> <span>Nova conversa</span>
-          <span className="kbd" style={{ marginLeft: 'auto' }}>⌘N</span>
+      <header className="cs-head">
+        <h2>Chat</h2>
+        <button type="button" className="cs-iconbtn" title="Filtros" aria-label="Filtros">
+          <SlidersHorizontal size={14} />
+        </button>
+        <a href="/jana/conversas/nova" className="cs-iconbtn primary" title="Nova conversa · ⌘N" aria-label="Nova conversa">
+          <Plus size={14} />
         </a>
+      </header>
+
+      <div className="cs-search">
+        <Search size={12} className="cs-search-ic" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar conversas..."
+          aria-label="Buscar conversas"
+        />
+        <span className="kbd">⌘K</span>
+      </div>
+
+      <div className="cs-tabs" role="tablist" aria-label="Filtros de conversa">
+        {CONV_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`cs-tab ${tab === t.id ? 'active' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="sb-actions">
         <a href="/tarefas" className="sb-action">
           <Inbox size={14} /> <span>Tarefas</span>
         </a>
@@ -323,41 +400,60 @@ function ConvSidePanel({
         </div>
       </div>
 
-      <div className="sb-section-h">Fixadas</div>
-      {fixadas.length === 0 ? (
-        <div className="sb-action" style={{ opacity: 0.6 }}>
-          <Pin size={14} /> <span>Arraste para fixar</span>
+      {showEmptyTabPlaceholder ? (
+        <div className="cs-empty">
+          <span>Em breve</span>
+          <small>Filtro disponível quando o backend expor o campo.</small>
         </div>
       ) : (
-        fixadas.map((c) => (
-          <div
-            key={c.id}
-            className={`sb-conv ${c.id === activeConvId ? 'active' : ''}`}
-            onClick={() => onSelectConv(c.id)}
-          >
-            <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
-            <span className="sb-conv-t">{c.titulo}</span>
-          </div>
-        ))
-      )}
+        <>
+          <div className="sb-section-h">Fixadas</div>
+          {fixadasShow.length === 0 ? (
+            <div className="sb-action" style={{ opacity: 0.6 }}>
+              <Pin size={14} /> <span>{query ? 'Nenhuma fixada nesta busca' : 'Arraste para fixar'}</span>
+            </div>
+          ) : (
+            fixadasShow.map((c) => (
+              <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={onSelectConv} />
+            ))
+          )}
 
-      <div className="sb-section-h">Recentes</div>
-      {recentes.length === 0 ? (
-        <div className="sb-action" style={{ opacity: 0.6 }}>
-          <span>Nenhuma conversa ainda</span>
-        </div>
-      ) : (
-        recentes.map((c) => (
-          <div
-            key={c.id}
-            className={`sb-conv ${c.id === activeConvId ? 'active' : ''}`}
-            onClick={() => onSelectConv(c.id)}
-          >
-            <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
-            <span className="sb-conv-t">{c.titulo}</span>
-          </div>
-        ))
+          <div className="sb-section-h">Recentes</div>
+          {recentesShow.length === 0 ? (
+            <div className="sb-action" style={{ opacity: 0.6 }}>
+              <span>{query ? 'Nenhuma recente nesta busca' : 'Nenhuma conversa ainda'}</span>
+            </div>
+          ) : (
+            recentesShow.map((c) => (
+              <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={onSelectConv} />
+            ))
+          )}
+        </>
       )}
     </aside>
+  );
+}
+
+function SbConvItem({
+  c,
+  active,
+  onSelect,
+}: {
+  c: ConversaResumo;
+  active: boolean;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div
+      className={`sb-conv ${active ? 'active' : ''}`}
+      onClick={() => onSelect(c.id)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(c.id); } }}
+    >
+      <span className={`sb-bullet ${c.unread ? 'filled' : ''}`} />
+      <span className="sb-conv-t">{c.titulo}</span>
+      {c.unread ? <span className="sb-conv-badge">{c.unread > 99 ? '99+' : c.unread}</span> : null}
+    </div>
   );
 }
