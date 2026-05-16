@@ -1,29 +1,102 @@
 {
   "generated_at": "2026-05-16T08:08:00Z",
-  "baseline_version": "v3",
+  "baseline_version": "v3.1",
   "rubric_adr": "0155",
-  "notes": "Snapshot inicial baseline anti-regressão module-grade v3. Atualizar conscientemente neste arquivo quando uma regressão for justificável (e fundamentar em comentário do PR ou ADR). Valores aproximados do ranking observado em prod 2026-05-16; pode ser regenerado a partir do output `php artisan module:grade --all --json` quando preferir baseline preciso.",
+  "reconciled_at": "2026-05-16T14:46:35-03:00",
+  "reconciliation_pr": "TBD",
+  "notes": "Snapshot baseline anti-regressão module-grade v3 (ADR 0155). v3.1 reconciliou 34 dirs físicos em Modules/ vs 21 entries v3 (cobertura PARCIAL ~62%, gap P0 auditoria 2026-05-16). 3 renames pra match com dir físico canônico, 17 novos com nota PLACEHOLDER 0 + pending_initial_seed=true (Wagner roda `php artisan module:grade --all --json` localmente e PR follow-up substitui zeros), 4 órfãos movidos pra deprecated_pending_decision (não existem em Modules/ — decisão Wagner pendente: deprecar oficialmente OU reativar). Atualizar conscientemente neste arquivo quando uma regressão for justificável (fundamentar em comentário do PR ou ADR).",
   "modules": {
     "Governance": 88,
     "Vestuario": 69,
     "Repair": 68,
     "Jana": 66,
-    "Copiloto": 64,
     "NfeBrasil": 62,
     "Financeiro": 60,
-    "Sells": 58,
     "Crm": 55,
     "RecurringBilling": 52,
-    "Project": 50,
+    "ProjectMgmt": 50,
     "ADS": 48,
     "ComunicacaoVisual": 45,
-    "MemCofre": 44,
-    "Compras": 42,
+    "SRS": 44,
     "OficinaAuto": 40,
     "Whatsapp": 38,
     "ConsultaOs": 36,
     "KB": 34,
-    "PontoWr2": 32,
-    "Form": 30
-  }
+    "Ponto": 32,
+    "Accounting": 0,
+    "Admin": 0,
+    "Arquivos": 0,
+    "AssetManagement": 0,
+    "Auditoria": 0,
+    "Brief": 0,
+    "Cms": 0,
+    "Connector": 0,
+    "Essentials": 0,
+    "Manufacturing": 0,
+    "NFSe": 0,
+    "Officeimpresso": 0,
+    "ProductCatalogue": 0,
+    "Spreadsheet": 0,
+    "Superadmin": 0,
+    "TeamMcp": 0,
+    "Woocommerce": 0
+  },
+  "renames": {
+    "PontoWr2": {
+      "new_name": "Ponto",
+      "reason": "Renomeado Fase 3.7 PR-2 — module.json name=Ponto. URL/permissions/config keys mantêm prefixo legacy pontowr2.* por compat.",
+      "renamed_at": "2026-05-16T14:46:35-03:00"
+    },
+    "MemCofre": {
+      "new_name": "SRS",
+      "reason": "Renomeado Fase 3.7 PR-2 — module.json name=SRS (System Requirements Spec). URL/permissions/config keys mantêm prefixo legacy memcofre.* por compat.",
+      "renamed_at": "2026-05-16T14:46:35-03:00"
+    },
+    "Project": {
+      "new_name": "ProjectMgmt",
+      "reason": "Dir físico canônico é Modules/ProjectMgmt (promovido módulo próprio 2026-05-04 ADR 0070, supersede absorção em TeamMcp). module.json name=ProjectMgmt.",
+      "renamed_at": "2026-05-16T14:46:35-03:00"
+    }
+  },
+  "deprecated_pending_decision": {
+    "Copiloto": {
+      "score_v3": 64,
+      "reason": "Entry baseline v3 sem dir físico em Modules/. Funcionalidade Jana IA agora vive em Modules/Jana + rotas /copiloto/admin. Decisão Wagner pendente: deprecar entry OU reativar se houver código vivo a ser graded.",
+      "marked_at": "2026-05-16T14:46:35-03:00"
+    },
+    "Sells": {
+      "score_v3": 58,
+      "reason": "Entry baseline v3 sem dir físico em Modules/. Sells é feature core UltimatePOS (rotas/views fora de Modules/, FSM pipeline em app/Domain/Fsm/ — ADR 0143). Decisão Wagner pendente: criar Modules/Sells wrapper OU deprecar entry do gate.",
+      "marked_at": "2026-05-16T14:46:35-03:00"
+    },
+    "Compras": {
+      "score_v3": 42,
+      "reason": "Entry baseline v3 sem dir físico em Modules/. Compras é feature core UltimatePOS legacy. Decisão Wagner pendente.",
+      "marked_at": "2026-05-16T14:46:35-03:00"
+    },
+    "Form": {
+      "score_v3": 30,
+      "reason": "Entry baseline v3 sem dir físico em Modules/. Provável referência ao shim App\\View\\Helpers\\Form (não é módulo nWidart). Decisão Wagner pendente: remover do baseline.",
+      "marked_at": "2026-05-16T14:46:35-03:00"
+    }
+  },
+  "pending_initial_seed": [
+    "Accounting",
+    "Admin",
+    "Arquivos",
+    "AssetManagement",
+    "Auditoria",
+    "Brief",
+    "Cms",
+    "Connector",
+    "Essentials",
+    "Manufacturing",
+    "NFSe",
+    "Officeimpresso",
+    "ProductCatalogue",
+    "Spreadsheet",
+    "Superadmin",
+    "TeamMcp",
+    "Woocommerce"
+  ]
 }
