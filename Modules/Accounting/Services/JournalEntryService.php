@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Entities\JournalEntry;
 use Modules\Accounting\Entities\PaymentDetail;
+use Modules\Accounting\Services\Privacy\AccountingAuditLogger;
 
 /**
  * Service thin — extrai lógica de criação/reversão de lançamentos contábeis
@@ -22,6 +23,13 @@ use Modules\Accounting\Entities\PaymentDetail;
  */
 class JournalEntryService
 {
+    public function __construct(
+        private ?AccountingAuditLogger $auditLogger = null,
+    ) {
+        // Fallback resolve container — caller pode injetar (testes) ou usar default.
+        $this->auditLogger = $auditLogger ?? app(AccountingAuditLogger::class);
+    }
+
     /**
      * Cria entradas contábeis balanceadas (debit + credit) dentro de uma transação DB.
      *
@@ -122,6 +130,21 @@ class JournalEntryService
             $entry->manual_entry = $key->manual_entry;
             $entry->notes = $key->notes;
             $entry->save();
+
+            // LGPD D7.a — audit reversão com payload sanitizado (notes/reference
+            // podem conter CPF/CNPJ/email de cliente/fornecedor).
+            // Wave 11 sessão 2026-05-16.
+            $this->auditLogger->log(
+                subject: $entry,
+                event: 'journal_entry.reversed',
+                properties: [
+                    'original_transaction_number' => $oldTransactionNumber,
+                    'new_transaction_number' => $newTransactionNumber,
+                    'business_id' => $businessId,
+                    'reference' => $key->reference,
+                    'notes' => $key->notes,
+                ],
+            );
         }
 
         return $newTransactionNumber;
@@ -162,5 +185,20 @@ class JournalEntryService
         }
 
         $entry->save();
+
+        // LGPD D7.a — payload sanitizado via PiiRedactor antes do audit log
+        // (notes pode conter CPF/CNPJ/email de cliente/fornecedor — ver
+        // AccountingAuditLogger). Wave 11 sessão 2026-05-16.
+        $this->auditLogger->log(
+            subject: $entry,
+            event: 'journal_entry.balanced_created',
+            properties: [
+                'id' => $entry->id,
+                'transaction_number' => $transactionNumber,
+                'side' => $isDebit ? 'debit' : 'credit',
+                'amount' => $amount,
+                'notes' => $notes,
+            ],
+        );
     }
 }

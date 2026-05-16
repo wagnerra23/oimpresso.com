@@ -61,9 +61,12 @@ class IntercorrenciaAIClassifierTest extends TestCase
         $this->assertStringNotContainsString('123.456.789-00', $output);
         $this->assertStringNotContainsString('wagner@exemplo.com', $output);
         $this->assertStringNotContainsString('91234-5678', $output);
-        $this->assertStringContainsString('[CPF]', $output);
-        $this->assertStringContainsString('[EMAIL]', $output);
-        $this->assertStringContainsString('[TELEFONE]', $output);
+        // Wave 11 D7.a — delegação ao PiiRedactor canônico (Modules/Jana/Services/Privacy)
+        // mudou placeholder de `[CPF]` para `[REDACTED:CPF]`. PII continua mascarada.
+        $this->assertStringContainsString('[REDACTED:CPF]', $output);
+        $this->assertStringContainsString('[REDACTED:EMAIL]', $output);
+        $this->assertStringContainsString('[REDACTED:PHONE]', $output);
+        $this->assertStringContainsString('[REDACTED:PIS]', $output);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

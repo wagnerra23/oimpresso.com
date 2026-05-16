@@ -3,15 +3,35 @@
 namespace Modules\Cms\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class CmsPageMeta extends Model
 {
+    use LogsActivity;
+
     /**
      * The attributes that aren't mass assignable.
      *
      * @var array
      */
     protected $guarded = ['id'];
+
+    /**
+     * Auditoria LGPD D7.b — meta tags + open graph podem conter dados de autor
+     * (og:author, twitter:creator) com identificadores.
+     *
+     * Audit trail append-only via spatie/laravel-activitylog (LGPD Art. 37/38).
+     *
+     * @see memory/requisitos/Cms/PII-REDACTION.md
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Get the page for the meta.

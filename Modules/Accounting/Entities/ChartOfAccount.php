@@ -4,9 +4,13 @@ namespace Modules\Accounting\Entities;
 
 use Modules\Accounting\Entities\Currency;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ChartOfAccount extends Model
 {
+    use LogsActivity;
+
     protected $table = "chart_of_accounts";
     protected $fillable = [
         'reconcile_opening_balance',
@@ -25,6 +29,21 @@ class ChartOfAccount extends Model
         'detail_type_id',
     ];
     protected $appends = ['name_with_subtype', 'current_balance', 'last_opening_balance', 'last_reconcile_transaction_id'];
+
+    /**
+     * Auditoria LGPD — D7 LGPD compliance (Wave 11 sessão 2026-05-16).
+     *
+     * Append-only via Spatie activity_log. Plano de contas é estrutura
+     * contábil (não PII direto), mas mudanças em gl_code/notes precisam
+     * audit pra SPED/CC Art. 1.179. Retenção: balancetes 2555d (10 anos).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Get all of the journal_entries for the ChartOfAccount

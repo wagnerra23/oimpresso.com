@@ -163,7 +163,8 @@ class SubscriptionController extends BaseController
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'SubscriptionController');
 
             $output = ['success' => 0, 'msg' => 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()];
 
@@ -236,7 +237,8 @@ class SubscriptionController extends BaseController
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'SubscriptionController');
             echo 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage();
             exit;
             $output = ['success' => 0, 'msg' => $e->getMessage()];

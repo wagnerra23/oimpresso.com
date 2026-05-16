@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\TeamMcp\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Modules\TeamMcp\Entities\McpActor;
 
@@ -26,22 +27,31 @@ class ActorResolver
      */
     public function fromRequest(?Request $request = null): ?McpActor
     {
-        $request = $request ?? request();
-        $token = $request->attributes->get('mcp_token');
-        if (!$token || empty($token->actor_id)) {
-            return null;
-        }
+        // Wave 11 D9.a — OTel span pra resolução actor a partir de token request.
+        // Chamado em toda tool MCP via middleware (auth + identity mesh). Span
+        // detecta latência de lookup + revoked check (caso DB lento).
+        return OtelHelper::spanBiz('teammcp.actor.resolve_from_request', function () use ($request) {
+            $request = $request ?? request();
+            $token = $request->attributes->get('mcp_token');
+            if (!$token || empty($token->actor_id)) {
+                return null;
+            }
 
-        return $this->byId((int) $token->actor_id);
+            return $this->byId((int) $token->actor_id);
+        }, ['module' => 'TeamMcp']);
     }
 
     public function byId(int $id): ?McpActor
     {
-        $actor = McpActor::find($id);
-        if (!$actor || $actor->isRevoked()) {
-            return null;
-        }
-        return $actor;
+        // Wave 11 D9.a — OTel span pra lookup direto por id. Atributos não logam
+        // dados sensíveis (apenas actor_id resolvido + revoked flag).
+        return OtelHelper::spanBiz('teammcp.actor.by_id', function () use ($id) {
+            $actor = McpActor::find($id);
+            if (!$actor || $actor->isRevoked()) {
+                return null;
+            }
+            return $actor;
+        }, ['module' => 'TeamMcp', 'actor_id' => $id]);
     }
 
     public function bySlug(string $slug): ?McpActor

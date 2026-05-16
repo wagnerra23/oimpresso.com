@@ -5,12 +5,30 @@ namespace Modules\Accounting\Entities;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class AccountTransaction extends Model
 {
+    use LogsActivity;
     use SoftDeletes;
 
     protected $guarded = ['id'];
+
+    /**
+     * Auditoria LGPD — D7 LGPD compliance (Wave 11 sessão 2026-05-16).
+     *
+     * Append-only via Spatie activity_log. Campo `note` é livre e pode conter
+     * PII (CPF/CNPJ fornecedor/cliente). Retenção: ver retention.php —
+     * lancamentos 1825d (Art. 195 CTN — 5 anos).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * The attributes that should be mutated to dates.

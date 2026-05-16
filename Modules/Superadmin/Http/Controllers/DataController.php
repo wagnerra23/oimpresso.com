@@ -8,10 +8,13 @@ use Illuminate\Routing\Controller;
 use Menu;
 use Modules\Superadmin\Notifications\NewBusinessNotification;
 use Modules\Superadmin\Notifications\NewBusinessWelcomNotification;
+use Modules\Superadmin\Support\RedactsPiiInLogs;
 use Notification;
 
 class DataController extends Controller
 {
+    use RedactsPiiInLogs;
+
     /**
      * Parses notification message from database.
      *
@@ -91,7 +94,8 @@ class DataController extends Controller
                 ->notify(new NewBusinessWelcomNotification($welcome_email_data));
             }
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->logEmergencyRedacted($e, 'DataController');
         }
 
         return null;

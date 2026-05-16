@@ -35,35 +35,66 @@ class BurndownController extends Controller
     public function index(Request $request): Response
     {
         $project = $this->resolveProject($request);
-
+        $projectId = $project?->id;
         $cycleId = (int) $request->get('cycle', 0) ?: null;
+
+        // RUNBOOK-inertia-defer-pattern.md (Wave 11 D6.a) — defer queries pesadas.
+        // `project` cheap eager; cycles list/series/kpis/cycle deferidos.
+        // series/kpis/cycle compartilham mesma query histórica McpTaskEvent —
+        // agrupados em 1 closure pra evitar reprocessar.
+        return Inertia::render('ProjectMgmt/Burndown/Index', [
+            'project' => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
+            'cycles'  => Inertia::defer(fn () => $this->buildCyclesPayload($projectId)),
+            'cycle'   => Inertia::defer(fn () => $this->buildBurndownPayload($projectId, $cycleId)['cycle']),
+            'series'  => Inertia::defer(fn () => $this->buildBurndownPayload($projectId, $cycleId)['series']),
+            'kpis'    => Inertia::defer(fn () => $this->buildBurndownPayload($projectId, $cycleId)['kpis']),
+            'filters' => ['cycle' => $cycleId],
+        ]);
+    }
+
+    /** @return array<int,array<string,mixed>> */
+    protected function buildCyclesPayload(?int $projectId): array
+    {
+        if (! $projectId) {
+            return [];
+        }
+        return McpCycle::where('project_id', $projectId)
+            ->whereIn('status', ['planning', 'active', 'closed'])
+            ->orderBy('start_date', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(fn ($c) => [
+                'id' => $c->id, 'key' => $c->key, 'name' => $c->name,
+                'status' => $c->status, 'is_active' => $c->status === 'active',
+            ])->all();
+    }
+
+    /**
+     * Constrói cycle header + series histórica + kpis (compartilham mesma query
+     * de McpTask/McpTaskEvent). Memoiza por (projectId, cycleId) na request.
+     *
+     * @return array{cycle: ?array<string,mixed>, series: array<int,array<string,mixed>>, kpis: array<string,mixed>}
+     */
+    protected function buildBurndownPayload(?int $projectId, ?int $cycleId): array
+    {
+        static $cache = [];
+        $key = "{$projectId}::{$cycleId}";
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
+        $project = $projectId ? McpProject::find($projectId) : null;
         $cycle = $cycleId
             ? McpCycle::find($cycleId)
             : ($project ? $project->activeCycle() : null);
 
-        $payload = [
-            'project' => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
-            'cycle'   => null,
-            'series'  => [],
-            'cycles'  => $project
-                ? McpCycle::where('project_id', $project->id)
-                    ->whereIn('status', ['planning', 'active', 'closed'])
-                    ->orderBy('start_date', 'desc')
-                    ->limit(10)
-                    ->get()
-                    ->map(fn ($c) => [
-                        'id' => $c->id, 'key' => $c->key, 'name' => $c->name,
-                        'status' => $c->status, 'is_active' => $c->status === 'active',
-                    ])->all()
-                : [],
-            'kpis' => [
-                'total' => 0, 'done' => 0, 'remaining' => 0, 'percent_done' => 0,
-                'pace_per_day' => null, 'forecast_days' => null,
-            ],
+        $emptyKpis = [
+            'total' => 0, 'done' => 0, 'remaining' => 0, 'percent_done' => 0,
+            'pace_per_day' => null, 'forecast_days' => null,
         ];
 
         if (! $cycle) {
-            return Inertia::render('ProjectMgmt/Burndown/Index', $payload);
+            return $cache[$key] = ['cycle' => null, 'series' => [], 'kpis' => $emptyKpis];
         }
 
         $tasks = McpTask::where('cycle_id', $cycle->id)
@@ -117,27 +148,29 @@ class BurndownController extends Controller
         $paceDay = $recentDones / 7;
         $forecastDays = $paceDay > 0 ? (int) ceil($remaining / $paceDay) : null;
 
-        $payload['cycle'] = [
-            'id'             => $cycle->id,
-            'key'            => $cycle->key,
-            'name'           => $cycle->name,
-            'goal'           => $cycle->goal,
-            'start_date'     => $start->toDateString(),
-            'end_date'       => $end->toDateString(),
-            'status'         => $cycle->status,
-            'days_remaining' => $cycle->status === 'active' ? $cycle->daysRemaining() : 0,
-        ];
-        $payload['series'] = $series;
-        $payload['kpis'] = [
-            'total'         => $total,
-            'done'          => $done,
-            'remaining'     => $remaining,
-            'percent_done'  => $percentDone,
-            'pace_per_day'  => round($paceDay, 1),
-            'forecast_days' => $forecastDays,
+        $cache[$key] = [
+            'cycle' => [
+                'id'             => $cycle->id,
+                'key'            => $cycle->key,
+                'name'           => $cycle->name,
+                'goal'           => $cycle->goal,
+                'start_date'     => $start->toDateString(),
+                'end_date'       => $end->toDateString(),
+                'status'         => $cycle->status,
+                'days_remaining' => $cycle->status === 'active' ? $cycle->daysRemaining() : 0,
+            ],
+            'series' => $series,
+            'kpis'   => [
+                'total'         => $total,
+                'done'          => $done,
+                'remaining'     => $remaining,
+                'percent_done'  => $percentDone,
+                'pace_per_day'  => round($paceDay, 1),
+                'forecast_days' => $forecastDays,
+            ],
         ];
 
-        return Inertia::render('ProjectMgmt/Burndown/Index', $payload);
+        return $cache[$key];
     }
 
     protected function resolveProject(Request $request): ?McpProject

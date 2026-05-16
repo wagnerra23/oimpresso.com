@@ -331,7 +331,8 @@ class BusinessController extends BaseController
                 ->with('status', $output);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'BusinessController@store');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -428,7 +429,8 @@ class BusinessController extends BaseController
                 ->with('status', $output);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'BusinessController@destroy');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
@@ -542,7 +544,8 @@ class BusinessController extends BaseController
                 'msg' => __('superadmin::lang.password_updated_successfully'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
+            $this->_log_emergency_redacted($e, 'BusinessController@updatePassword');
 
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
