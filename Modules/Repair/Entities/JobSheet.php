@@ -8,12 +8,42 @@ use App\Variation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Arquivos\Concerns\HasArquivos;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class JobSheet extends Model
 {
     use GuardsFsmTransitions; // US-REP-FSM-003 — bloqueia UPDATE direto em current_stage_id sem ExecuteStageActionService (ADR 0129)
     use HasArquivos; // ADR 0123 — adopcao Sprint 4 (foto OS via arquivos table)
     use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (defesa-em-profundidade)
+    use LogsActivity; // D7 v3 booster — audit trail OS (spatie/laravel-activitylog), complementa sale_stage_history FSM
+
+    /**
+     * Spatie ActivityLog config — registra mudanças de campos críticos da OS.
+     *
+     * Complementa, não substitui, `sale_stage_history` FSM (ADR 0143):
+     * - sale_stage_history: transições de stage via ExecuteStageActionService
+     * - activity_log: mudanças de campos atributos (status_id, service_staff, defects, etc.)
+     *
+     * Ver memory/requisitos/Repair/PII-LGPD.md §"Audit trail"
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'status_id',
+                'service_staff',
+                'device_id',
+                'brand_id',
+                'device_model_id',
+                'defects',
+                'completed_on',
+                'current_stage_id',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('repair_job_sheet');
+    }
 
     /**
      * The attributes that aren't mass assignable.

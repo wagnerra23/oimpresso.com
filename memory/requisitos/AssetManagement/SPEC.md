@@ -1,3 +1,11 @@
+---
+module: AssetManagement
+na_justified:
+  D6.c: "Scaffold UltimatePOS v6 legacy — controllers usam DataTables server-side (yajra) com SQL determinístico simples, sem paginate Eloquent complexo nem eager-load com N+1 risk. Volume típico <2k assets/business — perf adequada sem otimização avançada."
+  D9.b: "AssetManagement é módulo CRUD síncrono — sem jobs assíncronos Horizon. Operações de allocate/revoke/maintenance são single-shot via Controller. failed_jobs N/A por design."
+related_adrs: [0011, 0093, 0153, 0154]
+---
+
 # SPEC — Modules/AssetManagement
 
 > Catálogo append-only de User Stories aprovadas pro módulo de gestão de ativos físicos (notebooks, impressoras, servidores, móveis, veículos). Núcleo herdado UltimatePOS v6 ([ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md)) — preserva schema legacy (`assets`, `asset_transactions`, `asset_warranties`, `asset_maintenances`) com isolamento multi-tenant manual via `where('business_id', ...)` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).

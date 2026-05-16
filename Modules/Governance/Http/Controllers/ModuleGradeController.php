@@ -7,6 +7,7 @@ namespace Modules\Governance\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Governance\Services\ModuleGradeService;
@@ -57,9 +58,43 @@ class ModuleGradeController extends Controller
             abort(404, $e->getMessage());
         }
 
+        // ADR 0155 v3 + RUNBOOK-inertia-defer-pattern.md — history é query SQL
+        // (até 7 rows × 34 módulos) — defer pra não bloquear render inicial.
+        $history = Inertia::defer(fn () => $this->buildHistoryPayload($name));
+
         return Inertia::render('governance/ModuleGrades/Show', [
-            'grade' => $grade,
+            'grade'   => $grade,
+            'history' => $history,
         ]);
+    }
+
+    /**
+     * Últimos 7 snapshots da nota do módulo (sparkline 7d).
+     * Alimentado por `php artisan module:grade-snapshot` (cron daily 06:05 BRT).
+     *
+     * @return array<int, array{score: int, bucket: string, snapshot_at: string}>
+     */
+    private function buildHistoryPayload(string $name): array
+    {
+        // Tolerante a ambientes sem a migration aplicada ainda (CI / dev fresh)
+        if (! \Illuminate\Support\Facades\Schema::hasTable('mcp_module_grades_history')) {
+            return [];
+        }
+
+        return DB::table('mcp_module_grades_history')
+            ->select('score', 'bucket', 'snapshot_at')
+            ->where('module', $name)
+            ->orderByDesc('snapshot_at')
+            ->limit(7)
+            ->get()
+            ->reverse() // ordem cronológica pra sparkline ler da esquerda pra direita
+            ->values()
+            ->map(fn ($row) => [
+                'score'       => (int) $row->score,
+                'bucket'      => (string) $row->bucket,
+                'snapshot_at' => (string) $row->snapshot_at,
+            ])
+            ->all();
     }
 
     /**

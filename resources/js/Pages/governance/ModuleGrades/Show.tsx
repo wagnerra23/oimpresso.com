@@ -4,7 +4,7 @@
 //   runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 
 import React, { useState, useMemo } from 'react'
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link, Deferred } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -86,8 +86,77 @@ interface Grade {
   evaluated_at: string
 }
 
+interface HistoryPoint {
+  score: number
+  bucket: string
+  snapshot_at: string
+}
+
 interface Props {
   grade: Grade
+  /** ADR 0155 v3 — últimos 7 snapshots de mcp_module_grades_history (deferred) */
+  history?: HistoryPoint[]
+}
+
+/** Sparkline 7d Tailwind-only — 7 barras verticais com altura ~ score/100. */
+function Sparkline7d({ history }: { history: HistoryPoint[] }): React.ReactElement {
+  if (history.length === 0) {
+    return (
+      <div className="text-[11px] text-zinc-400 italic">
+        Sem histórico ainda — primeiro snapshot cron 06:05 BRT.
+      </div>
+    )
+  }
+
+  const last = history[history.length - 1]
+  const first = history[0]
+  const delta = last.score - first.score
+  const deltaLabel =
+    history.length > 1
+      ? delta > 0
+        ? `+${delta}`
+        : delta < 0
+        ? `${delta}`
+        : '±0'
+      : '—'
+  const deltaClass =
+    delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-zinc-500'
+
+  return (
+    <div
+      className="flex items-end gap-0.5 h-10"
+      role="img"
+      aria-label={`Sparkline 7 dias — variação ${deltaLabel} pontos · último ${last.score}/100`}
+      title={history
+        .map((p) => `${new Date(p.snapshot_at).toLocaleDateString('pt-BR')}: ${p.score}/100`)
+        .join('\n')}
+    >
+      {history.map((point, i) => {
+        const heightPct = Math.max(4, Math.min(100, point.score))
+        const barColor =
+          point.score >= 80
+            ? 'bg-emerald-500'
+            : point.score >= 60
+            ? 'bg-sky-500'
+            : point.score >= 40
+            ? 'bg-amber-500'
+            : point.score >= 20
+            ? 'bg-orange-500'
+            : 'bg-red-500'
+        return (
+          <div
+            key={i}
+            className={`w-2 ${barColor} rounded-sm`}
+            style={{ height: `${heightPct}%` }}
+          />
+        )
+      })}
+      <div className="ml-1 text-[10px] leading-tight">
+        <div className={`font-semibold ${deltaClass}`}>{deltaLabel}</div>
+        <div className="text-zinc-400 uppercase tracking-wide">7d</div>
+      </div>
+    </div>
+  )
 }
 
 const DIM_LABELS: Record<keyof Grade['dimensions'], string> = {
@@ -160,7 +229,7 @@ function isDimensionNaJustified(dim: Dimension): boolean {
   return dim.breakdown.every((item) => item.na_justified === true)
 }
 
-function ModuleGradesShow({ grade }: Props): React.ReactElement {
+function ModuleGradesShow({ grade, history }: Props): React.ReactElement {
   const [evolveOpen, setEvolveOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -231,10 +300,25 @@ function ModuleGradesShow({ grade }: Props): React.ReactElement {
                 {naJustifiedCount} de {totalDims} dimensões com N/A justificado
               </Badge>
             )}
-            {/* ADR 0155 v3 — placeholder sparkline 7d (Wave 4 entrega) */}
-            <div className="px-3 py-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50 text-xs text-zinc-500">
-              <div className="text-[10px] uppercase tracking-wide text-zinc-400">Evolução 7d</div>
-              <div className="font-medium">not available yet (Wave 4 entrega)</div>
+            {/* ADR 0155 v3 — sparkline 7d real consumindo `history` deferred prop */}
+            <div className="px-3 py-2 rounded-md border border-zinc-200 bg-white text-xs text-zinc-600">
+              <div className="text-[10px] uppercase tracking-wide text-zinc-400 mb-1">Evolução 7d</div>
+              <Deferred
+                data="history"
+                fallback={
+                  <div className="flex items-end gap-0.5 h-10" aria-busy="true">
+                    {Array.from({ length: 7 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-2 bg-zinc-200 rounded-sm animate-pulse"
+                        style={{ height: '40%' }}
+                      />
+                    ))}
+                  </div>
+                }
+              >
+                <Sparkline7d history={history ?? []} />
+              </Deferred>
             </div>
           </div>
           <Link href="/governance/module-grades" className="text-sm text-sky-700 hover:underline">
