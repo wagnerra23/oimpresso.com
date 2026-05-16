@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-05-16T08:08:00Z",
+  "baseline_version": "v3",
+  "rubric_adr": "0155",
+  "notes": "Snapshot inicial baseline anti-regressão module-grade v3. Atualizar conscientemente neste arquivo quando uma regressão for justificável (e fundamentar em comentário do PR ou ADR). Valores aproximados do ranking observado em prod 2026-05-16; pode ser regenerado a partir do output `php artisan module:grade --all --json` quando preferir baseline preciso.",
+  "modules": {
+    "Governance": 88,
+    "Vestuario": 69,
+    "Repair": 68,
+    "Jana": 66,
+    "Copiloto": 64,
+    "NfeBrasil": 62,
+    "Financeiro": 60,
+    "Sells": 58,
+    "Crm": 55,
+    "RecurringBilling": 52,
+    "Project": 50,
+    "ADS": 48,
+    "ComunicacaoVisual": 45,
+    "MemCofre": 44,
+    "Compras": 42,
+    "OficinaAuto": 40,
+    "Whatsapp": 38,
+    "ConsultaOs": 36,
+    "KB": 34,
+    "PontoWr2": 32,
+    "Form": 30
+  }
+}

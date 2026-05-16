@@ -9,6 +9,9 @@ parent_adr_proposal: memory/decisions/proposals/drafts/crm-pre-venda-pipeline.md
 related_adrs: [0093, 0094, 0096, 0105, 0117, 0121, 0143]
 related_modules: [Whatsapp, Sells (FSM canon), Jana, Repair, RecurringBilling]
 fsm_handoff: lead_won → transactions.current_stage_id = "quote_draft" (US-SELL-033 processo "Venda Com Produção")
+na_justified:
+  D6.a: "Crm é módulo Blade legacy (21 controllers AJAX), sem Inertia::render — Inertia::defer N/A (migração MWART em backlog)."
+  D8.b: "Crm Blade tem @csrf padrão preservado — auto-pattern UltimatePOS legacy."
 ---
 
 # Especificação funcional — Crm/Pipeline Pré-venda

@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsPageMeta;
+use Modules\Cms\Http\Requests\StoreCmsPageRequest;
 
 class CmsPageController extends Controller
 {
@@ -61,8 +62,9 @@ class CmsPageController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreCmsPageRequest $request)
     {
+        // Rules basicas (title obrigatorio, feature_image valida) em StoreCmsPageRequest::rules().
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->commonUtil->notAllowedInDemo();
         if (! empty($notAllowedInDemo)) {

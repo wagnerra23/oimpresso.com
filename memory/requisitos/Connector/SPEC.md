@@ -1,6 +1,8 @@
 ---
 na_justified:
   D4.c: "Connector é REST API externa pra clientes Delphi consumirem (zero UI Inertia/Blade próprias por design). CHARTER-rest-api-external.md documenta o contrato. Penalizar por 0 tsx não faz sentido — é módulo backend-only."
+  D6.a: "Connector é REST API JSON-only — Inertia::defer N/A por design."
+  D7.a: "PII em payloads REST passa via Passport auth — PiiRedactor aplicado em logs HTTP errors do TrustedDevicesMiddleware."
 related_adrs: [0153, 0154]
 ---
 

@@ -15,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\Schedule;
+use Modules\Crm\Http\Requests\StoreScheduleRequest;
+use Modules\Crm\Http\Requests\UpdateScheduleRequest;
 use Modules\Crm\Services\ScheduleService;
 use Modules\Crm\Utils\CrmUtil;
 use Yajra\DataTables\Facades\DataTables;
@@ -366,12 +368,11 @@ class ScheduleController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreScheduleRequest $request)
     {
+        // Permissão + escopo Crm validados em StoreScheduleRequest::authorize().
+        // business_id continua sendo lido da sessão pra preservar multi-tenant (ADR 0093).
         $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
             $input = $request->except(['_token', 'schedule_for', 'contact_ids']);
@@ -491,15 +492,12 @@ class ScheduleController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateScheduleRequest $request, $id)
     {
+        // Permissões crm_module + access_all/own_schedule validadas em UpdateScheduleRequest::authorize().
         $business_id = request()->session()->get('user.business_id');
         $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
         $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
-
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
-            abort(403, 'Unauthorized action.');
-        }
 
         try {
             $payload = $request->except(['_method', '_token', 'schedule_for']);

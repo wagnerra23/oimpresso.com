@@ -4,6 +4,8 @@ status: bridge-legacy
 related_adrs: [0136, 0137, 0153, 0154]
 na_justified:
   D3.b: "Officeimpresso é bridge legacy Delphi WR Sistemas → oimpresso Laravel. Não é módulo de produto novo, é ponte de migração. BRIEFING canônico vive no projeto principal (Connector + Officeimpresso são pareados). ADR 0136+0137 documentam migração legacy."
+  D6.b: "Bridge legacy Firebird → Laravel via Connector REST. p99 OTel <500ms ainda não exportado (instrumentação pendente infra OTel project-wide). Performance é dominada pelo Firebird remoto do cliente — fora do controle do oimpresso. ADR 0136+0137."
+  D8.b: "Officeimpresso bridge é backend-only (endpoints REST consumidos pelo Connector/Delphi). Sem views Blade legacy próprias — autenticação via Passport tokens, CSRF N/A em rotas API stateless."
 ---
 
 # SPEC — Modules/Officeimpresso

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Conversation — entidade canônica omnichannel (ADR 0135).
@@ -42,8 +44,27 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Conversation extends Model
 {
     use HasBusinessScope;
+    use LogsActivity;
 
     protected $table = 'conversations';
+
+    /**
+     * Auditoria LGPD D7 — registra mudanças relevantes na conversa
+     * (atribuição atendente, status open/resolved/archived, bloqueio,
+     * toggle bot_handling). NÃO loga `contact_name`, `last_message_preview`
+     * nem `customer_external_id` (PII intensa — fica no banco redacted
+     * conforme COMPLIANCE.md retention 180d). Append-only via `activity_log`.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'status', 'assigned_user_id', 'bot_handling',
+                'is_blocked', 'unread_count',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public const STATUS_OPEN = 'open';
     public const STATUS_AWAITING_HUMAN = 'awaiting_human';
