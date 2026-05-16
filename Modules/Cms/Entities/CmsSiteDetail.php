@@ -3,9 +3,13 @@
 namespace Modules\Cms\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class CmsSiteDetail extends Model
 {
+    use LogsActivity;
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -14,6 +18,23 @@ class CmsSiteDetail extends Model
     protected $guarded = ['id'];
 
     protected $appends = ['logo_url', 'logo_path'];
+
+    /**
+     * Auditoria LGPD D7.b — registra mudanças em settings do site
+     * (`notifiable_email`, `contact_us`, `mail_us`, `follow_us`) que são
+     * configurações sensíveis com PII de admin/business.
+     *
+     * Audit trail append-only via spatie/laravel-activitylog (LGPD Art. 37/38).
+     *
+     * @see memory/requisitos/Cms/PII-REDACTION.md
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Get display link for the media

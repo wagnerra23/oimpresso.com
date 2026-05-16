@@ -8,9 +8,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Entities\JournalEntry;
 use Modules\Accounting\Entities\PaymentDetail;
+use Modules\Accounting\Services\Privacy\AccountingAuditLogger;
 
 class AccountingService
 {
+    public function __construct(
+        private ?AccountingAuditLogger $auditLogger = null,
+    ) {
+        // Fallback resolve container (back-compat com instâncias `new AccountingService()` existentes).
+        $this->auditLogger = $auditLogger ?? app(AccountingAuditLogger::class);
+    }
+
     public function updateChartAccounts($input, $type, $subtype = null)
     {
         //Get the amount depending on whether a debit or credit is being made
@@ -81,10 +89,18 @@ class AccountingService
             $journal_entry->notes = $request->additional_notes;
             $journal_entry->save();
 
-            activity()
-                ->on($journal_entry)
-                ->withProperties(['id' => $journal_entry->id])
-                ->log('Create Journal Entry');
+            // LGPD D7.a — payload sanitizado via PiiRedactor antes do audit log
+            // (notes pode conter CPF/CNPJ/email de cliente/fornecedor — ver
+            // AccountingAuditLogger). Wave 11 — sessão 2026-05-16.
+            $this->auditLogger->log(
+                subject: $journal_entry,
+                event: 'journal_entry.created',
+                properties: [
+                    'id' => $journal_entry->id,
+                    'transaction_number' => $journal_entry->transaction_number,
+                    'notes' => $journal_entry->notes,
+                ],
+            );
 
             DB::commit();
         } catch (\Exception $e) {

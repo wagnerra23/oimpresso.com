@@ -3,6 +3,7 @@
 namespace Modules\Ponto\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Throwable;
 
 /**
@@ -199,19 +200,24 @@ PROMPT;
 
     /**
      * Remove/mascara PII antes de enviar à OpenAI.
-     * Proteção LGPD: o texto do colaborador pode ter nome próprio, CPF, etc.
+     *
+     * Wave 11 D7.a — delegação ao `PiiRedactor` canônico (Modules/Jana/Services/Privacy),
+     * complementada por máscara PIS (formato específico CLT — `000.00000.00-0`) que o
+     * redactor genérico não cobre. Estratégia: PIS primeiro (formato mais restritivo),
+     * depois CPF/CNPJ/Email/Telefone/CEP via PiiRedactor compartilhado.
+     *
+     * Proteção LGPD Art. 7º + Constituição §6 Multi-tenant Tier 0: texto do colaborador
+     * pode conter PII (CPF próprio, PIS, telefone) que NUNCA pode sair pra LLM externo.
+     *
+     * Tradeoff: mantém PIS local (Portaria 671 — semântica trabalhista) + delega resto
+     * pro service compartilhado (DRY entre Ponto/Repair/Crm/Whatsapp).
      */
     protected function mascararPII(string $texto): string
     {
-        // CPF: 000.000.000-00 ou 00000000000
-        $texto = preg_replace('/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/', '[CPF]', $texto);
-        // PIS: 000.00000.00-0 ou 00000000000
-        $texto = preg_replace('/\b\d{3}\.?\d{5}\.?\d{2}-?\d\b/', '[PIS]', $texto);
-        // Email
-        $texto = preg_replace('/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i', '[EMAIL]', $texto);
-        // Telefone com DDD
-        $texto = preg_replace('/\(?\d{2}\)?\s*9?\d{4}-?\d{4}/', '[TELEFONE]', $texto);
+        // PIS: 000.00000.00-0 ou 00000000000 (formato CLT específico, não coberto pelo PiiRedactor genérico)
+        $texto = preg_replace('/\b\d{3}\.?\d{5}\.?\d{2}-?\d\b/', '[REDACTED:PIS]', $texto);
 
-        return $texto;
+        // Demais PII (CPF, CNPJ, Email, Telefone, CEP) — service canônico compartilhado
+        return app(PiiRedactor::class)->redact($texto);
     }
 }

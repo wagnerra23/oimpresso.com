@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\SRS\Entities\DocChatMessage;
+use Modules\SRS\Http\Requests\ChatAskRequest;
 use Modules\SRS\Services\ChatAssistant;
 use Modules\SRS\Services\RequirementsFileReader;
 
@@ -62,13 +63,10 @@ class ChatController extends Controller
         ]);
     }
 
-    public function ask(Request $request, ChatAssistant $assistant): JsonResponse
+    public function ask(ChatAskRequest $request, ChatAssistant $assistant): JsonResponse
     {
-        $validated = $request->validate([
-            'session_id'     => 'required|string|max:64',
-            'question'       => 'required|string|max:2000',
-            'module_context' => 'nullable|string|max:64',
-        ]);
+        // D8.c — validação migrada pra FormRequest dedicado (cap LLM cost + regex whitelist).
+        $validated = $request->validated();
 
         $businessId = (int) (session('business.id') ?: $request->session()->get('user.business_id'));
         $userId = (int) (auth()->id() ?? 0);

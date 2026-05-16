@@ -267,10 +267,29 @@ SYS;
                 'tokens_used' => $tokens,
             ];
         } catch (\Throwable $e) {
-            // Fallback gracioso pra modo offline se OpenAI falhar
-            \Log::warning('[MemCofre] OpenAI falhou, caindo pra offline: ' . $e->getMessage());
+            // Fallback gracioso pra modo offline se OpenAI falhar.
+            //
+            // D7 LGPD (ADR 0093/0094 §4) — pergunta do usuário pode conter PII
+            // (CPF/CNPJ/email cliente em "quem é o cliente X?"). Sanitiza via
+            // PiiRedactor canônico ANTES de mandar pro log (logs viram audit
+            // trail; nunca podem vazar PII em texto-cru).
+            try {
+                /** @var \Modules\Jana\Services\Privacy\PiiRedactor $redactor */
+                $redactor = app(\Modules\Jana\Services\Privacy\PiiRedactor::class);
+                $safeMsg = $redactor->redact((string) $e->getMessage());
+                $safeQuestion = $redactor->redact($question);
+            } catch (\Throwable $_) {
+                // Fallback regex mínimo se PiiRedactor indisponível.
+                $safeMsg = preg_replace('/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/', '[CPF]', (string) $e->getMessage()) ?? '';
+                $safeMsg = preg_replace('/[\w.+-]+@[\w-]+\.[\w.-]+/', '[EMAIL]', $safeMsg) ?? $safeMsg;
+                $safeQuestion = '[REDACTED]';
+            }
+            \Log::warning('[SRS] OpenAI falhou, caindo pra offline', [
+                'error'    => substr($safeMsg, 0, 200),
+                'question' => substr($safeQuestion, 0, 100),
+            ]);
             $fallback = $this->buildOfflineReply($question, $snippets);
-            $fallback['reply'] = "⚠️ IA indisponível (" . substr($e->getMessage(), 0, 80) . "). Modo offline:\n\n" . $fallback['reply'];
+            $fallback['reply'] = "⚠️ IA indisponível (" . substr($safeMsg, 0, 80) . "). Modo offline:\n\n" . $fallback['reply'];
             return $fallback;
         }
     }

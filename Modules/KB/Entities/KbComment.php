@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\KB\Entities\Concerns\BelongsToBusinessTrait;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * KbComment — comment inline ancorado em block_idx do body_blocks.
@@ -25,7 +27,7 @@ use Modules\KB\Entities\Concerns\BelongsToBusinessTrait;
  */
 class KbComment extends Model
 {
-    use BelongsToBusinessTrait, SoftDeletes;
+    use BelongsToBusinessTrait, LogsActivity, SoftDeletes;
 
     protected $table = 'kb_comments';
 
@@ -39,6 +41,23 @@ class KbComment extends Model
         'block_idx'      => 'integer',
         'author_user_id' => 'integer',
     ];
+
+    /**
+     * Audit trail LGPD Art. 37 (Wave 11 — boost D7 KB).
+     *
+     * Comments podem conter PII em texto livre (user digita CPF/email no
+     * comentário). Mudanças registradas em `activity_log` pra rastrear
+     * autor + timestamp + diff. Hard-delete após 5 anos via
+     * kb:retention-cleanup --bucket=comments (config canônica).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('kb.comment');
+    }
 
     public function node(): BelongsTo
     {

@@ -5,6 +5,7 @@ namespace Modules\Ponto\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Importacao;
 use Modules\Ponto\Entities\Marcacao;
@@ -125,11 +126,16 @@ class AfdParserService
                 } catch (\Throwable $e) {
                     $erros++;
                     if (count($erroAmostras) < 20) {
+                        // Wave 11 D7.a — exception message pode conter PIS (parseMarcacao
+                        // lança "PIS inválido (NSR ...)" com valor cru). LGPD Art. 7º:
+                        // amostras de erro vão pra storage + UI admin → PII deve ir mascarada.
+                        $msg = app(PiiRedactor::class)->redact($e->getMessage());
+
                         $erroAmostras[] = [
                             'linha' => $total,
                             'nsr'   => (int) substr($linha, 0, 9),
                             'tipo'  => $tipoRegistro,
-                            'erro'  => $e->getMessage(),
+                            'erro'  => $msg,
                         ];
                     }
                 }

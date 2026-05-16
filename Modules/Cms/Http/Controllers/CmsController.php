@@ -12,6 +12,7 @@ use Modules\Cms\Http\Requests\SubmitContactFormRequest;
 use Modules\Cms\Notifications\NewLeadGeneratedNotification;
 use Modules\Cms\Services\SiteContentService;
 use Modules\Cms\Utils\CmsUtil;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Notification;
 
 class CmsController extends Controller
@@ -205,7 +206,7 @@ class CmsController extends Controller
             ->with(compact('page'));
     }
 
-    public function postContactForm(SubmitContactFormRequest $request)
+    public function postContactForm(SubmitContactFormRequest $request, PiiRedactor $piiRedactor)
     {
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->cmsUtil->notAllowedInDemo();
@@ -226,12 +227,21 @@ class CmsController extends Controller
                         ->notify(new NewLeadGeneratedNotification($lead_details));
                 }
 
+                // D7.a LGPD — log com PII redactada (CPF/CNPJ/email/telefone)
+                // antes de gravar trace de lead capturado (skill multi-tenant + ADR 0094 §4).
+                \Log::info('[cms.lead.captured] novo lead via formulário público', [
+                    'lead' => $piiRedactor->redactArray($lead_details),
+                ]);
+
                 $output = [
                     'success' => true,
                     'msg' => __('cms::lang.we_will_contact_soon'),
                 ];
             } catch (Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // PII redaction defensiva — exception pode carregar payload com email/telefone.
+                \Log::emergency('[cms.lead.error] '.$piiRedactor->redact(
+                    'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()
+                ));
                 $output = [
                     'success' => false,
                     'msg' => __('messages.something_went_wrong'),

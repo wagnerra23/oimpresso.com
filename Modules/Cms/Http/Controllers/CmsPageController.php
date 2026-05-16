@@ -10,10 +10,17 @@ use Inertia\Inertia;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsPageMeta;
 use Modules\Cms\Http\Requests\StoreCmsPageRequest;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 class CmsPageController extends Controller
 {
     protected $commonUtil;
+
+    /**
+     * PiiRedactor canônico — D7.a LGPD em logs (conteúdo CMS pode incluir
+     * texto livre com email/telefone do autor/editor).
+     */
+    protected PiiRedactor $piiRedactor;
 
     /**
      * Constructor
@@ -21,9 +28,10 @@ class CmsPageController extends Controller
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(Util $commonUtil)
+    public function __construct(Util $commonUtil, PiiRedactor $piiRedactor)
     {
         $this->commonUtil = $commonUtil;
+        $this->piiRedactor = $piiRedactor;
     }
 
     /**
@@ -88,7 +96,10 @@ class CmsPageController extends Controller
                 'msg' => __('lang_v1.added_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7.a LGPD — exception pode carregar conteúdo CMS com PII em texto livre.
+            \Log::emergency('[cms.page.error] '.$this->piiRedactor->redact(
+                'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()
+            ));
 
             $output = ['success' => 0,
                 'msg' => __('lang_v1.something_went_wrong'),
@@ -212,7 +223,10 @@ class CmsPageController extends Controller
                 'msg' => __('lang_v1.updated_success'),
             ];
         } catch (\Exception $e) {
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            // D7.a LGPD — exception pode carregar conteúdo CMS com PII em texto livre.
+            \Log::emergency('[cms.page.error] '.$this->piiRedactor->redact(
+                'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()
+            ));
 
             $output = ['success' => 0,
                 'msg' => __('lang_v1.something_went_wrong'),
@@ -255,7 +269,10 @@ class CmsPageController extends Controller
                     'msg' => __('unit.deleted_success'),
                 ];
             } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                // D7.a LGPD — exception pode carregar conteúdo CMS com PII em texto livre.
+            \Log::emergency('[cms.page.error] '.$this->piiRedactor->redact(
+                'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()
+            ));
 
                 $output = ['success' => false,
                     'msg' => '__("messages.something_went_wrong")',

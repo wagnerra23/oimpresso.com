@@ -4,6 +4,7 @@ namespace Modules\TeamMcp\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\User;
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -45,14 +46,46 @@ class TeamController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id');
 
-        // Lista users do business — todos (admin pode ver tudo)
+        // Wave 11 D6.a — Inertia::defer pra props caras (team rows N×6 queries cada,
+        // stats_globais 4 queries DB). Frontend Inertia carrega tela vazia primeiro
+        // + skeleton, depois resolve closures em background (~50ms vs 300-800ms
+        // hard load). Pricing config inline (1ms).
+        return Inertia::render('team-mcp/Team/Index', [
+            'team' => Inertia::defer(fn () => $this->buildTeamRowsPayload($businessId)),
+            'stats_globais' => Inertia::defer(fn () => $this->buildStatsGlobaisPayload()),
+            'pricing_config' => [
+                'modelo_default' => config('copiloto.openai.model_chat', 'gpt-4o-mini'),
+                'cambio_brl_usd' => (float) config('copiloto.ai.cambio_brl_usd', 5.5),
+            ],
+        ]);
+    }
+
+    /**
+     * Builder: lista users do business + montarRow per user (Wave 11 D6.a defer).
+     *
+     * Cada `montarRow` executa ~6 queries em `mcp_audit_log` + `mcp_tokens` + `mcp_quotas`.
+     * Pra business com 5 devs = ~30 queries — defer evita bloqueio do first paint.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildTeamRowsPayload(int $businessId): array
+    {
         $users = User::where('business_id', $businessId)
             ->orderBy('id')
             ->get(['id', 'first_name', 'last_name', 'username', 'email']);
 
-        $rows = $users->map(fn ($u) => $this->montarRow($u));
+        return $users->map(fn ($u) => $this->montarRow($u))->values()->toArray();
+    }
 
-        // Stats globais
+    /**
+     * Builder: stats globais audit log (Wave 11 D6.a defer).
+     *
+     * 4 queries agregadas em `mcp_audit_log` (sum custo dia/mês + distinct count + count).
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildStatsGlobaisPayload(): array
+    {
         $hoje = Carbon::today();
         $totalCustoHoje = (float) DB::table('mcp_audit_log')
             ->whereDate('ts', $hoje)
@@ -67,19 +100,12 @@ class TeamController extends Controller
             ->whereDate('ts', $hoje)
             ->count();
 
-        return Inertia::render('team-mcp/Team/Index', [
-            'team' => $rows->values(),
-            'stats_globais' => [
-                'custo_hoje_brl' => $totalCustoHoje,
-                'custo_mes_brl'  => $totalCustoMes,
-                'usuarios_ativos_hoje' => $usuariosAtivosHoje,
-                'calls_hoje' => $callsHoje,
-            ],
-            'pricing_config' => [
-                'modelo_default' => config('copiloto.openai.model_chat', 'gpt-4o-mini'),
-                'cambio_brl_usd' => (float) config('copiloto.ai.cambio_brl_usd', 5.5),
-            ],
-        ]);
+        return [
+            'custo_hoje_brl' => $totalCustoHoje,
+            'custo_mes_brl'  => $totalCustoMes,
+            'usuarios_ativos_hoje' => $usuariosAtivosHoje,
+            'calls_hoje' => $callsHoje,
+        ];
     }
 
     /**
@@ -93,17 +119,21 @@ class TeamController extends Controller
         // jamais logado nem persistido em raw.
         $user = User::findOrFail($userId);
 
-        // Usa helper canônico que computa sha256_token corretamente.
-        // Schema tem `name` (não `note`) — 'note' é alias UI-side.
-        $name = $request->input('note') ?: 'Gerado por admin em ' . now()->toDateString();
-        [$token, $raw] = McpToken::gerar($user->id, $name);
+        // Wave 11 D9.a — OTel span pra token lifecycle (governança crítica MCP server).
+        // Atributos NÃO incluem `raw` por design (Tier 0 segredo — ADR 0081).
+        return OtelHelper::spanBiz('teammcp.token.issue', function () use ($request, $user) {
+            // Usa helper canônico que computa sha256_token corretamente.
+            // Schema tem `name` (não `note`) — 'note' é alias UI-side.
+            $name = $request->input('note') ?: 'Gerado por admin em ' . now()->toDateString();
+            [$token, $raw] = McpToken::gerar($user->id, $name);
 
-        return response()->json([
-            'ok' => true,
-            'token_id' => $token->id,
-            'token_raw' => $raw,
-            'aviso' => 'COPIE AGORA — não será mostrado de novo. Hash gravado, raw descartado.',
-        ]);
+            return response()->json([
+                'ok' => true,
+                'token_id' => $token->id,
+                'token_raw' => $raw,
+                'aviso' => 'COPIE AGORA — não será mostrado de novo. Hash gravado, raw descartado.',
+            ]);
+        }, ['module' => 'TeamMcp', 'target_user_id' => $user->id]);
     }
 
     /**
@@ -293,11 +323,15 @@ JS;
      */
     public function revogarToken(int $tokenId)
     {
-        $token = McpToken::findOrFail($tokenId);
-        $token->update(['expires_at' => now()]);
-        $token->delete();
+        // Wave 11 D9.a — OTel span pra revoke (audit crítico: invalidação imediata
+        // de credencial MCP, equivale a operação Tier 0 governança).
+        return OtelHelper::spanBiz('teammcp.token.revoke', function () use ($tokenId) {
+            $token = McpToken::findOrFail($tokenId);
+            $token->update(['expires_at' => now()]);
+            $token->delete();
 
-        return response()->json(['ok' => true]);
+            return response()->json(['ok' => true]);
+        }, ['module' => 'TeamMcp', 'token_id' => $tokenId]);
     }
 
     /**

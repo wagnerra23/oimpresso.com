@@ -3,6 +3,8 @@
 namespace Modules\Ponto\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Ponto\Entities\Intercorrencia;
 
 class IntercorrenciaService
@@ -59,6 +61,18 @@ class IntercorrenciaService
             'aprovador_id'    => $aprovadorId,
             'aprovado_em'     => now(),
             'motivo_rejeicao' => $motivo,
+        ]);
+
+        // Wave 11 D7.a — log auditoria com motivo mascarado. Motivo é texto livre do
+        // aprovador (RH) e pode conter PII do colaborador (CPF/CNPJ/PIS/email/tel).
+        // O VALOR no DB permanece cru (acesso restrito + finalidade legítima Art. 7º V
+        // LGPD — gestão de contrato trabalho); apenas o LOG (que vai pra storage/laravel.log
+        // + possível external sink OTel) é redactado.
+        Log::info('ponto.intercorrencia.rejeitada', [
+            'business_id'      => $intercorrencia->business_id,
+            'intercorrencia_id' => $intercorrencia->id,
+            'aprovador_id'     => $aprovadorId,
+            'motivo_redacted'  => app(PiiRedactor::class)->redact($motivo),
         ]);
     }
 
