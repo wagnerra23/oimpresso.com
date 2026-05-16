@@ -3,9 +3,33 @@
 namespace Modules\Manufacturing\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class MfgRecipeIngredient extends Model
 {
+    use LogsActivity; // D7.b LGPD — audit trail ingrediente receita (Wave S Batch 2)
+
+    /**
+     * Spatie ActivityLog — registra mudanças nos ingredientes da receita.
+     *
+     * business_id chain via JOIN products->mfg_recipe — não mexer no scope.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'quantity',
+                'waste_percent',
+                'variation_id',
+                'sub_unit_id',
+                'mfg_ingredient_group_id',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('manufacturing.recipe_ingredient');
+    }
+
     /**
      * The attributes that aren't mass assignable.
      *

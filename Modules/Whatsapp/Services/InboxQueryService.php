@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -81,14 +82,20 @@ final class InboxQueryService
         array $statuses = ['open', 'awaiting_human'],
         int $perPage = 30
     ): LengthAwarePaginator {
-        $channelIds = $this->visibleChannelIdsForUser($businessId, $userId);
+        return OtelHelper::spanBiz('whatsapp.inbox.list_conversations', function () use ($businessId, $userId, $statuses, $perPage) {
+            $channelIds = $this->visibleChannelIdsForUser($businessId, $userId);
 
-        return Conversation::query()
-            ->where('business_id', $businessId)
-            ->whereIn('channel_id', $channelIds)
-            ->whereIn('status', $statuses)
-            ->orderByDesc('last_message_at')
-            ->paginate($perPage);
+            return Conversation::query()
+                ->where('business_id', $businessId)
+                ->whereIn('channel_id', $channelIds)
+                ->whereIn('status', $statuses)
+                ->orderByDesc('last_message_at')
+                ->paginate($perPage);
+        }, [
+            'user_id' => $userId,
+            'statuses_count' => count($statuses),
+            'per_page' => $perPage,
+        ]);
     }
 
     /**

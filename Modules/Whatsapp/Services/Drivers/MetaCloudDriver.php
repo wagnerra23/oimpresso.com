@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Drivers;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -70,21 +71,26 @@ class MetaCloudDriver implements DriverInterface
         string $to,
         string $body,
     ): WhatsappSendResult {
-        // Meta Cloud só permite freeform dentro janela 24h. Validação real
-        // (consultar WhatsappConversation->isWithinMeta24hWindow) acontece
-        // no SendWhatsappMessageJob — aqui o driver tenta e Meta rejeita
-        // se fora da janela.
-        $payload = [
-            'messaging_product' => 'whatsapp',
-            'to' => $this->normalizePhone($to),
-            'type' => 'text',
-            'text' => ['body' => $body],
-        ];
+        return OtelHelper::spanBiz('whatsapp.meta_cloud.send_freeform', function () use ($config, $to, $body) {
+            // Meta Cloud só permite freeform dentro janela 24h. Validação real
+            // (consultar WhatsappConversation->isWithinMeta24hWindow) acontece
+            // no SendWhatsappMessageJob — aqui o driver tenta e Meta rejeita
+            // se fora da janela.
+            $payload = [
+                'messaging_product' => 'whatsapp',
+                'to' => $this->normalizePhone($to),
+                'type' => 'text',
+                'text' => ['body' => $body],
+            ];
 
-        $response = $this->client($config)
-            ->post("/{$config->meta_phone_number_id}/messages", $payload);
+            $response = $this->client($config)
+                ->post("/{$config->meta_phone_number_id}/messages", $payload);
 
-        return $this->mapSendResponse($response);
+            return $this->mapSendResponse($response);
+        }, [
+            'phone_number_id' => $config->meta_phone_number_id ?? null,
+            'body_length' => strlen($body),
+        ]);
     }
 
     public function sendMedia(

@@ -4,10 +4,12 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class SellingPriceGroup extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     /**
      * The attributes that aren't mass assignable.
@@ -15,6 +17,14 @@ class SellingPriceGroup extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->useLogName('selling_price_group');
+    }
 
     public function scopeActive($query)
     {
