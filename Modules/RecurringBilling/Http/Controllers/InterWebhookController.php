@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Jobs\ProcessInterWebhookJob;
 use Modules\RecurringBilling\Models\BoletoCredential;
 
@@ -96,10 +97,14 @@ class InterWebhookController extends Controller
 
     private function reject(string $reason, int $businessId, int $status): JsonResponse
     {
+        // D7 LGPD: garantia adicional via PiiRedactor mesmo o body já estando placeholder
+        // (defense-in-depth — se futura iteração quiser logar trechos, redact é obrigatório)
+        $bodySanitized = app(PiiRedactor::class)->redact('[REDACTED]');
+
         Log::warning('InterWebhookController.reject', [
             'business_id' => $businessId,
             'reason'      => $reason,
-            'body'        => '[REDACTED]',
+            'body'        => $bodySanitized,
         ]);
 
         return response()->json(['ok' => false, 'reason' => $reason], $status);

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * ServiceOrder — Ordem de Serviço da oficina automotiva OU locação caçamba (Martinho).
@@ -47,6 +49,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class ServiceOrder extends Model
 {
+    use LogsActivity; // D7.b LGPD audit trail (Wave 14)
     use SoftDeletes;
 
     protected $table = 'service_orders';
@@ -195,6 +198,33 @@ class ServiceOrder extends Model
         }
 
         return round((float) $this->daily_rate * $this->dias_locacao, 2);
+    }
+
+    // ------------------------------------------------------------------
+    // LGPD audit trail (D7.b — Wave 14)
+    // ------------------------------------------------------------------
+
+    /**
+     * Spatie ActivityLog — registra mudanças em campos PII-relevantes
+     * (vehicle_id, contact_id, daily_rate, delivery_address, status) com
+     * `logOnlyDirty`. Audit trail append-only conforme retention.php contrato.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'vehicle_id',
+                'contact_id',
+                'order_type',
+                'status',
+                'delivery_address',
+                'expected_return_date',
+                'daily_rate',
+                'completed_at',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('oficinaauto.service_order');
     }
 
     // ------------------------------------------------------------------

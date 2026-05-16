@@ -5,10 +5,12 @@ namespace Modules\NFSe\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\NFSe\Models\Concerns\NfseBusinessScope;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class NfseEmissao extends Model
 {
-    use SoftDeletes, NfseBusinessScope;
+    use SoftDeletes, NfseBusinessScope, LogsActivity;
 
     protected $table = 'nfse_emissoes';
 
@@ -64,5 +66,22 @@ class NfseEmissao extends Model
     public function transaction()
     {
         return $this->belongsTo(\App\Transaction::class);
+    }
+
+    /**
+     * Auditoria LGPD — registra mudanças em emissões NFSe (PII tomador + valor + status).
+     * D7.b Wave 14: audit trail append-only via activity_log (LGPD Art. 37).
+     *
+     * Exclui campos volumosos (xml_envio/xml_retorno/pdf_url) — auditoria foca em
+     * mudança de estado, não em conteúdo SOAP/PDF (storage cost + ruído).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logExcept(['xml_envio', 'xml_retorno', 'pdf_url'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('nfse.emissao');
     }
 }

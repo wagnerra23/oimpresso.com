@@ -5,6 +5,8 @@ namespace Modules\Manufacturing\Services;
 use App\Transaction;
 use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
  * ProductionService — orquestração thin de queries de produção (Manufacturing).
@@ -14,9 +16,38 @@ use Illuminate\Support\Collection;
  * em Controllers conforme migração MWART (Blade -> Inertia/React) avança.
  *
  * Wave J — Manufacturing boost 59 -> meta 70 (Capterra D4.a 2/6 -> 3/6).
+ *
+ * Wave 14 D7.a (LGPD) — método `logProductionEvent()` aplica PiiRedactor
+ * em strings antes de logar (defesa em profundidade: ref_no/lot_number/notas
+ * podem conter PII de cliente em casos extremos).
  */
 class ProductionService
 {
+    public function __construct(
+        private ?PiiRedactor $piiRedactor = null,
+    ) {
+        // Resolve do container se não injetado (Manufacturing legacy usa instanciação direta)
+        $this->piiRedactor = $piiRedactor ?? app(PiiRedactor::class);
+    }
+
+    /**
+     * Log estruturado de eventos de produção com PII redactada (D7.a LGPD).
+     *
+     * Use SEMPRE pra logar contexto operacional de produção em vez de Log::xxx
+     * direto. Redaciona CPF/CNPJ/email/telefone/CEP no contexto antes de gravar.
+     *
+     * @param  string  $level  emergency|error|warning|info
+     * @param  string  $message  Mensagem livre (será redactada)
+     * @param  array<string,mixed>  $context  Contexto adicional (strings serão redactadas)
+     */
+    public function logProductionEvent(string $level, string $message, array $context = []): void
+    {
+        $safeMessage = $this->piiRedactor->redact($message);
+        $safeContext = $this->piiRedactor->redactArray($context);
+
+        Log::log($level, '[manufacturing.production] '.$safeMessage, $safeContext);
+    }
+
     /**
      * Lista produções (production_purchase) do business com filtros opcionais.
      *

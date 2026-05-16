@@ -17,6 +17,37 @@ class DashboardController extends Controller
     {
         $businessId = $request->session()->get('user.business_id');
 
+        // Pré-check rápido (count) pra decidir redirect antes de hidratar payload.
+        // Anti-pattern evitado: get() completo só pra ver isEmpty() — desperdiça
+        // a query pesada com eager loads quando user não tem meta ativa.
+        $temMetas = Meta::where('ativo', true)
+            ->where(function ($q) use ($businessId) {
+                $q->where('business_id', $businessId)
+                  ->orWhereNull('business_id');
+            })
+            ->exists();
+
+        if (! $temMetas) {
+            return redirect()->route('jana.chat.index')
+                ->with('status', 'Nenhuma meta ativa. Converse com o Copiloto pra criar a primeira.');
+        }
+
+        // D6.a (Wave 14 governance v3) — Inertia::defer no payload `metas`.
+        // Eager loads (periodoAtual + ultimaApuracao + apuracoes×12) podem
+        // ficar custosos com N metas. Closure só executa em segundo round
+        // partial-reload, mantendo TTFB inicial baixo e exibindo skeleton.
+        // Multi-tenant scope preservado dentro do closure (business_id capturado).
+        return Inertia::render('Jana/Dashboard', [
+            'metas' => Inertia::defer(fn () => $this->buildMetasPayload($businessId)),
+        ]);
+    }
+
+    /**
+     * D6.a defer closure — hidrata metas ativas do business com eager loads.
+     * Multi-tenant Tier 0: filtra por business_id (ou repo-wide null) — ADR 0093.
+     */
+    protected function buildMetasPayload(int $businessId): \Illuminate\Support\Collection
+    {
         $metas = Meta::where('ativo', true)
             ->where(function ($q) use ($businessId) {
                 $q->where('business_id', $businessId)
@@ -29,13 +60,7 @@ class DashboardController extends Controller
             ])
             ->get();
 
-        // Se não tem nenhuma meta, redireciona ao chat (ver adr/arq/0002)
-        if ($metas->isEmpty()) {
-            return redirect()->route('jana.chat.index')
-                ->with('status', 'Nenhuma meta ativa. Converse com o Copiloto pra criar a primeira.');
-        }
-
-        $metasTransformadas = $metas->map(fn ($meta) => [
+        return $metas->map(fn ($meta) => [
             'id'                 => $meta->id,
             'slug'               => $meta->slug,
             'nome'               => $meta->nome,
@@ -55,10 +80,6 @@ class DashboardController extends Controller
                 'data_ref'        => $a->data_ref,
                 'valor_realizado' => (float) $a->valor_realizado,
             ])->values(),
-        ]);
-
-        return Inertia::render('Jana/Dashboard', [
-            'metas' => $metasTransformadas,
         ]);
     }
 }
