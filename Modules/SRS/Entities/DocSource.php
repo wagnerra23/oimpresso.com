@@ -2,12 +2,26 @@
 
 namespace Modules\SRS\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * Wave 12 — Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093).
+ *
+ * Tabela `docs_sources` tem coluna `business_id` (migration 2026_04_22_000001).
+ * Trait `HasBusinessScope` aplica global scope automático — antes era
+ * column-level enforcement (Controller-side via where('business_id', ...))
+ * que era frágil. Agora é Model-level (Eloquent global scope) — defense
+ * in depth (Wagner Tier 0 IRREVOGÁVEL).
+ *
+ * Pré-existente: MultiTenantIsolationTest SRS já cobre column-level — passa
+ * tranquilo com scope adicional (scope refina, não muda contrato visível).
+ */
 class DocSource extends Model
 {
+    use HasBusinessScope;
     use LogsActivity;
 
     protected $table = 'docs_sources';

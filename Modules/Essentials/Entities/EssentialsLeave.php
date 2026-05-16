@@ -2,12 +2,14 @@
 
 namespace Modules\Essentials\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
 class EssentialsLeave extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 12 D1 boost)
     use LogsActivity;
 
     protected static $logAttributes = ['*'];

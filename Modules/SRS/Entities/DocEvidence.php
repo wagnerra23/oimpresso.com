@@ -2,11 +2,20 @@
 
 namespace Modules\SRS\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
+/**
+ * Wave 12 — Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093).
+ *
+ * Tabela `docs_evidences` tem coluna `business_id` (migration
+ * 2026_04_22_000002). Trait `HasBusinessScope` aplica global scope automático.
+ * shouldBeSearchable() já filtra por business_id presente — alinhado com scope.
+ */
 class DocEvidence extends Model
 {
+    use HasBusinessScope;
     use Searchable;
 
     protected $table = 'docs_evidences';
