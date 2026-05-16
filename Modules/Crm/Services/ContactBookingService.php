@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Crm\Services;
 
 use App\Restaurant\Booking;
+use App\Util\OtelHelper;
 use App\Utils\Util;
 use Carbon\Carbon;
 
@@ -44,48 +45,53 @@ class ContactBookingService
      */
     public function attemptBooking(array $input, int $businessId, int $userId): array
     {
-        $bookingStart = $this->commonUtil->uf_date($input['booking_start'], true);
-        $bookingEnd   = $this->commonUtil->uf_date($input['booking_end'], true);
-        $dateRange = [$bookingStart, $bookingEnd];
+        return OtelHelper::spanBiz('crm.booking.attempt', function () use ($input, $businessId, $userId) {
+            $bookingStart = $this->commonUtil->uf_date($input['booking_start'], true);
+            $bookingEnd   = $this->commonUtil->uf_date($input['booking_end'], true);
+            $dateRange = [$bookingStart, $bookingEnd];
 
-        $existing = $this->findOverlap(
-            businessId: $businessId,
-            locationId: (int) $input['location_id'],
-            contactId: (int) $input['contact_id'],
-            dateRange: $dateRange,
-        );
+            $existing = $this->findOverlap(
+                businessId: $businessId,
+                locationId: (int) $input['location_id'],
+                contactId: (int) $input['contact_id'],
+                dateRange: $dateRange,
+            );
 
-        if ($existing) {
-            $timeRange = $this->commonUtil->format_date($existing->booking_start, true)
-                .' ~ '
-                .$this->commonUtil->format_date($existing->booking_end, true);
+            if ($existing) {
+                $timeRange = $this->commonUtil->format_date($existing->booking_start, true)
+                    .' ~ '
+                    .$this->commonUtil->format_date($existing->booking_end, true);
+
+                return [
+                    null,
+                    [
+                        'success' => 0,
+                        'msg' => trans('restaurant.booking_not_available', [
+                            'customer_name'      => $existing->customer->name ?? '',
+                            'booking_time_range' => $timeRange,
+                        ]),
+                    ],
+                ];
+            }
+
+            $input['business_id']   = $businessId;
+            $input['created_by']    = $userId;
+            $input['booking_start'] = $bookingStart;
+            $input['booking_end']   = $bookingEnd;
+
+            $booking = Booking::createBooking($input);
 
             return [
-                null,
+                $booking,
                 [
-                    'success' => 0,
-                    'msg' => trans('restaurant.booking_not_available', [
-                        'customer_name'      => $existing->customer->name ?? '',
-                        'booking_time_range' => $timeRange,
-                    ]),
+                    'success' => 1,
+                    'msg' => trans('lang_v1.added_success'),
                 ],
             ];
-        }
-
-        $input['business_id']   = $businessId;
-        $input['created_by']    = $userId;
-        $input['booking_start'] = $bookingStart;
-        $input['booking_end']   = $bookingEnd;
-
-        $booking = Booking::createBooking($input);
-
-        return [
-            $booking,
-            [
-                'success' => 1,
-                'msg' => trans('lang_v1.added_success'),
-            ],
-        ];
+        }, [
+            'contact_id' => (int) ($input['contact_id'] ?? 0),
+            'location_id' => (int) ($input['location_id'] ?? 0),
+        ]);
     }
 
     /**

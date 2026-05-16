@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Crm\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Modules\Crm\Entities\CrmContact;
 
@@ -58,7 +59,9 @@ class LeadAssignmentService
      */
     public function createLead(array $input, $assignedUsers): ?CrmContact
     {
-        return CrmContact::createNewLead($input, $assignedUsers);
+        return OtelHelper::spanBiz('crm.lead.create', function () use ($input, $assignedUsers) {
+            return CrmContact::createNewLead($input, $assignedUsers);
+        }, ['contact_id' => $input['contact_id'] ?? null]);
     }
 
     /**
@@ -73,7 +76,9 @@ class LeadAssignmentService
      */
     public function updateLead(int $id, array $input, $assignedUsers): ?CrmContact
     {
-        return CrmContact::updateLead($id, $input, $assignedUsers);
+        return OtelHelper::spanBiz('crm.lead.update', function () use ($id, $input, $assignedUsers) {
+            return CrmContact::updateLead($id, $input, $assignedUsers);
+        }, ['lead_id' => $id]);
     }
 
     /**

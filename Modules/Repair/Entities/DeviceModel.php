@@ -4,10 +4,30 @@ namespace Modules\Repair\Entities;
 
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class DeviceModel extends Model
 {
     use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (defesa-em-profundidade)
+    use LogsActivity; // D7.b LGPD — audit trail catálogo (Wave S Batch 2)
+
+    /**
+     * Spatie ActivityLog — registra mudanças no catálogo de modelos de dispositivo.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'name',
+                'device_id',
+                'brand_id',
+                'repair_checklist',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('repair.device_model');
+    }
 
     /**
      * The attributes that aren't mass assignable.

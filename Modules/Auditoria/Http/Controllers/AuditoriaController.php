@@ -5,6 +5,7 @@ namespace Modules\Auditoria\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Modules\Auditoria\Http\Requests\RevertActivityRequest;
 use Modules\Auditoria\Services\AuditEntryService;
 
 /**
@@ -49,8 +50,9 @@ class AuditoriaController extends Controller
         ]);
     }
 
-    public function revert(Request $request, int $activityId)
+    public function revert(RevertActivityRequest $request, int $activityId)
     {
+        // FormRequest valida revert_reason >= 10 chars (Wave S Batch 2 D8.c).
         // Implementado em US-AUDIT-008 (RevertService). Placeholder MVP.
         return response()->json([
             'message' => 'RevertService ainda nao implementado — US-AUDIT-008 pendente.',

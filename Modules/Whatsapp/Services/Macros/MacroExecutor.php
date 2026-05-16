@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Services\Macros;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -51,6 +52,22 @@ class MacroExecutor
      * @return array{message_id: ?int, actions_applied: array<int, string>, send_failed: bool, macro_variant_id: ?int}
      */
     public function execute(int $businessId, int $macroId, int $conversationId, int $userId): array
+    {
+        return OtelHelper::spanBiz('whatsapp.macro.execute', function () use ($businessId, $macroId, $conversationId, $userId) {
+            return $this->doExecute($businessId, $macroId, $conversationId, $userId);
+        }, [
+            'macro_id' => $macroId,
+            'conversation_id' => $conversationId,
+            'user_id' => $userId,
+        ]);
+    }
+
+    /**
+     * @internal Implementação real do execute — wrapped por OTel span em execute().
+     *
+     * @return array{message_id: ?int, actions_applied: array<int, string>, send_failed: bool, macro_variant_id: ?int}
+     */
+    protected function doExecute(int $businessId, int $macroId, int $conversationId, int $userId): array
     {
         $macro = Macro::query()
             ->where('business_id', $businessId)

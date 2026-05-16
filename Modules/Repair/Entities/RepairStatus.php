@@ -4,10 +4,35 @@ namespace Modules\Repair\Entities;
 
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class RepairStatus extends Model
 {
     use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (defesa-em-profundidade)
+    use LogsActivity; // D7.b LGPD — audit trail status etapa OS (Wave S Batch 2)
+
+    /**
+     * Spatie ActivityLog — registra mudanças no status de etapa OS.
+     *
+     * Complementa sale_stage_history FSM (ADR 0143) — este loga mudanças
+     * no catálogo de status; o FSM loga transições aplicadas a JobSheet.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'name',
+                'sort_order',
+                'is_completed_status',
+                'sms_template',
+                'email_subject',
+                'email_body',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('repair.status');
+    }
 
     /**
      * The attributes that aren't mass assignable.

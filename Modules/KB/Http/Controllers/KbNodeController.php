@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\KB\Entities\KbNode;
 use Modules\KB\Entities\KbNodeVersion;
+use Modules\KB\Http\Requests\StoreKbNodeRequest;
 use Modules\KB\Services\KbArticleService;
 
 /**
@@ -76,24 +77,14 @@ class KbNodeController extends Controller
 
     /**
      * POST /kb/nodes — cria artigo (type=article, is_editable=true).
+     *
+     * Validation via {@see StoreKbNodeRequest} (D8.c Security 2026-05-16) — rules
+     * preservadas idênticas ao inline original; authorize() reusa
+     * 'copiloto.mcp.memory.manage'.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreKbNodeRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'title'          => 'required|string|max:255',
-            'type'           => 'sometimes|string|in:article,external_file',
-            'slug'           => 'nullable|string|max:180',
-            'excerpt'        => 'nullable|string|max:500',
-            'body_blocks'    => 'nullable|array',
-            'category_id'    => 'nullable|integer|exists:kb_categories,id',
-            'subcategory_id' => 'nullable|integer|exists:kb_subcategories,id',
-            'nivel'          => 'nullable|string|in:iniciante,intermediario,avancado',
-            'equip'          => 'nullable|string|max:80',
-            'tags'           => 'nullable|array',
-            'pinned'         => 'sometimes|boolean',
-            'status'         => 'sometimes|string|in:draft,ok,outdated',
-            'read_time_min'  => 'nullable|integer|min:1|max:600',
-        ]);
+        $data = $request->validated();
 
         $node = new KbNode();
         $node->fill(array_merge($data, [

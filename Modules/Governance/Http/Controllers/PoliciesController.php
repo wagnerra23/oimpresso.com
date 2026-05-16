@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Governance\Http\Requests\TogglePolicyRequest;
 use Modules\Governance\Services\PolicyToggleService;
 
 /**
@@ -55,9 +56,10 @@ class PoliciesController extends Controller
         return $this->service->kpisFor($rules, $byCategory);
     }
 
-    public function toggle(Request $request, int $id): RedirectResponse
+    public function toggle(TogglePolicyRequest $request, int $id): RedirectResponse
     {
-        $enabled = (bool) $request->input('enabled', false);
+        // FormRequest valida enabled boolean (Wave S Batch 2 D8.c).
+        $enabled = (bool) $request->validated('enabled', false);
         $this->service->togglePolicy($id, $enabled);
 
         return back()->with('status', "Policy #{$id} " . ($enabled ? 'ativada' : 'desativada'));

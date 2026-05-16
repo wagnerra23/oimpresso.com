@@ -3,10 +3,10 @@
 namespace Modules\ConsultaOs\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest;
 
 class ConsultaOsController extends Controller
 {
@@ -15,13 +15,8 @@ class ConsultaOsController extends Controller
         return Inertia::render('ConsultaOs/Index');
     }
 
-    public function buscar(Request $request): JsonResponse
+    public function buscar(ConsultaPublicaRequest $request): JsonResponse
     {
-        $request->validate([
-            'numero'  => ['required', 'string', 'max:20'],
-            'estagio' => ['nullable', 'string'],
-        ]);
-
         $numero  = $request->input('numero');
         $estagio = $request->input('estagio', 'todos');
 
