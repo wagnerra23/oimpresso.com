@@ -1247,6 +1247,21 @@ Quando os pré-requisitos forem satisfeitos, **abrir ADR canon** "OficinaAuto-at
 - Sindirepa-SP TAM R$ [redacted Tier 0]bi/2022 — https://rafamarrafon.com.br/oicinas-mecanicas-faturam-128-bilhoes-em-2022/
 - CINAU 121k oficinas BR — https://oficinabrasil.com.br/noticia/mercado-cinau/dimensoes-do-mercado-de-reposicao-quem-somos-onde-estamos-e-quanto-representamos
 
+### US-OFICINA-026 · Outreach Martinho Caçambas + cutover discovery — fechar contrato pioneer
+
+> owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Fechar 1º cliente pagante Modules/OficinaAuto (goal #1 CYCLE-06 — sinal qualificado ADR 0105).
+
+**DoD:**
+- [ ] Outreach direto Martinho (call/presencial — não cold email)
+- [ ] Pacote pioneer apresentado (pricing + setup + grandfathering)
+- [ ] Contrato assinado OU explicitamente recusado (decidir Plano B)
+- [ ] Se aceito: discovery cutover Delphi WR Comercial → oimpresso (skill `officeimpresso-source-analysis` + `officeimpresso-financial-snapshot`)
+- [ ] Se aceito: cycle dedicado ativar OficinaAuto (Sprint 0 com US-OFICINA-001..005 P0)
+- **Estimate:** 8h humano-limitado (call + análise + decisão) — relógio mundo real, não fator 10x
+
 ---
 
-**Última atualização:** 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
