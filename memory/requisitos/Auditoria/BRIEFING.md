@@ -1,7 +1,20 @@
+---
+module: Auditoria
+status: governança transversal cross-tenant (sprint 3 em curso)
+piloto: N/A (governança transversal — todos businesses sem cliente externo direto)
+last_review: 2026-05-16
+owner: wagner
+parent_adr: 0127
+related_adrs: [0093, 0094, 0101, 0107, 0127, 0153, 0155, 0156]
+nota_atual_v2: "~55/100 (injusto — D5 penaliza ausência de cliente externo)"
+nota_esperada_v3: "~75-85/100 pós-PR4 na_justified D5 declarado"
+na_justified: [D5]
+---
+
 # Modules/Auditoria — BRIEFING
 
 > 1-pager executivo. Estado consolidado do módulo. Atualizado por PR (skill `brief-update`).
-> Última atualização: 2026-05-16
+> Última atualização: 2026-05-16 (Wave 5 re-try — `na_justified` D5 declarado no SPEC pareado, rubrica v3 [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md))
 
 ## O que é
 
@@ -46,6 +59,16 @@ Módulo de governança que materializa o **Art. 9 da Constituição v2** (audita
 
 Adicionar = PR + comentário. Remover = ADR amendada. Detalhe em [SPEC.md §Whitelist UNREVERTIBLE](SPEC.md).
 
+## Score module-grade (v3 pós-PR4)
+
+| Versão | Score | Observação |
+|---|---|---|
+| v2 (pré-PR4) | ~55/100 | Penalizava D5 (cliente externo) — `activity_log` é fundação transversal sem cliente direto |
+| **v3 (pós-PR4)** | **~75-85/100** (esperado) | `na_justified` D5 declarado no SPEC → rubrica v3 redistribui peso (ADR 0156) |
+
+**`na_justified` declarado no SPEC:**
+- **D5 (cliente externo):** governança transversal cross-tenant — todos businesses consomem `activity_log` table compartilhada, mas não há cliente externo único piloto. Larissa biz=4 usa indiretamente via reverse de transactions, sem UI dedicada.
+
 ## Estado atual (2026-05-16)
 
 - ✅ Sprint 1 (US-AUDIT-001..004): traits `LogsActivity` em Models do piloto Vestuario (ROTA LIVRE biz=4)
@@ -77,4 +100,6 @@ Adicionar = PR + comentário. Remover = ADR amendada. Detalhe em [SPEC.md §Whit
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 Art. 9
 - [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Pest biz=1 nunca cliente
 - [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — Gate F1.5+F3 Pages
+- [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) — Rubrica v3 `na_justified`
+- [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md) — Pesos redistribuídos v3
 - Padrão referência viva: [`Modules/Financeiro/Models/Titulo.php:28-35`](../../../Modules/Financeiro/Models/Titulo.php#L28)

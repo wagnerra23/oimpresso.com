@@ -1,9 +1,23 @@
+---
+module: NFSe
+status: homologação SN-NFSe federal (cert A1 pendente Wagner) — recente 2026-05-01
+piloto: oimpresso biz=1 (Wagner empresa, Tubarão-SC) — cliente único interno
+last_review: 2026-05-16
+owner: eliana
+parent_adr: ARQ-0001
+related_adrs: [0093, 0101, 0121, 0153, 0155, 0156]
+nota_atual_v2: "~56/100 (injusto — D5 penaliza cliente único interno em homologação)"
+nota_esperada_v3: "~65-75/100 pós-PR4 na_justified D5 declarado"
+na_justified: [D5]
+---
+
 # BRIEFING — `Modules/NFSe`
 
 > **Tipo:** BRIEFING canônico do módulo — 1 página executiva
 > **Refs:** [proibicoes.md §Sempre fazer](../../proibicoes.md) — Tier 0 "BRIEFING.md atualizado em todo PR mergeado"
 > **Skill auto-trigger:** `brief-update` (Tier B)
 > **Owner:** Eliana[E] · **Paralelo a:** Cycle 01 (não bloqueia)
+> Última atualização: 2026-05-16 (Wave 5 re-try — `na_justified` D5 declarado no SPEC pareado)
 
 ---
 
@@ -25,6 +39,16 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 | Cobertura SPEC formal (done/spec'ado) | 70% | 2026-05-16 (Sprint A ✅ · Sprint B em curso) |
 | Documentação canon (SPEC + ACESSOS + PESQUISA + RUNBOOK) | 80% | 2026-05-16 |
 | Deploy/ops (prod) | 0% — homologação | 2026-05-16 (cert A1 pendente Wagner) |
+
+### Score module-grade (v3 pós-PR4)
+
+| Versão | Score | Observação |
+|---|---|---|
+| v2 (pré-PR4) | ~56/100 | Penalizava D5 (cliente externo) — homologação com biz=1 oimpresso interno único |
+| **v3 (pós-PR4)** | **~65-75/100** (esperado) | `na_justified` D5 declarado no SPEC → rubrica v3 redistribui peso (ADR 0156) + cobertura prefeituras inicial limita upside |
+
+**`na_justified` declarado no SPEC:**
+- **D5 (cliente externo):** módulo recente (2026-05-01), homologação SEFIN com biz=1 oimpresso interno (Wagner empresa, Tubarão-SC). Sem cliente externo pagante ainda — próximo canary ComunicacaoVisual (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo) aguarda ativação Modules/ComunicacaoVisual produção. NUNCA biz=4 ROTA LIVRE (vestuário CNAE 4781-4/00 só emite NFCe).
 
 ## 3. Capacidades hoje
 
@@ -96,6 +120,8 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0 IRREVOGÁVEL
 - [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Pest biz=1 nunca cliente real
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — modular especializado por vertical (pareado NfeBrasil)
+- [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) — Rubrica v3 `na_justified`
+- [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md) — Pesos redistribuídos v3
 
 ## 12. Sessões e handoffs relevantes (últimos 30d)
 

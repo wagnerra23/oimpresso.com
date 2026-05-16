@@ -1,3 +1,18 @@
+---
+slug: modules-accounting-spec
+title: "Modules/Accounting — SPEC"
+type: spec
+module: Accounting
+status: legacy
+authority: canonical
+related_adrs: [0093, 0094, 0104, 0153, 0154, 0156]
+na_justified:
+  D5: "Módulo herdado UltimatePOS — 12 Controllers Blade legacy compartilhados cross-business sem cliente alvo isolado (Budget/Journal/COA genéricos contabilidade). Sem onboarding Larissa/ROTA LIVRE direto, ferramenta backoffice transversal ([memory/proibicoes.md](../../proibicoes.md) §Multi-tenant Tier 0)."
+  D6.a: "Stack legacy UltimatePOS — 12 Controllers Blade puros, ZERO Inertia::render por design. Migração MWART [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) ainda não iniciada (sem cliente sinal qualificado — [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Inertia::defer N/A enquanto Blade."
+pii: false
+updated_at: 2026-05-16
+---
+
 # Especificação funcional
 
 ## 3. User stories

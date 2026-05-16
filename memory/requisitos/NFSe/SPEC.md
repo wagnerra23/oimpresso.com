@@ -1,3 +1,18 @@
+---
+slug: modules-nfse-spec
+title: "Modules/NFSe — SPEC"
+type: spec
+module: NFSe
+status: in_progress
+authority: canonical
+owner: "[E] Eliana"
+related_adrs: [0093, 0094, 0105, 0153, 0154, 0156]
+na_justified:
+  D5: "Cliente único biz=1 oimpresso interno (empresa Wagner em Tubarão-SC) — NÃO ROTA LIVRE/Larissa biz=4. Módulo standalone single-tenant intencional [adr/arq/0001-cliente-oimpresso-modulo-standalone.md](adr/arq/0001-cliente-oimpresso-modulo-standalone.md) — sem cliente externo qualificado [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)."
+pii: false
+updated_at: 2026-05-16
+---
+
 # NFSe — SPEC + Lista de tarefas
 
 > **Status**: Sprint A concluída · Sprint B em progresso (2026-05-01) · US-001 ✅ · US-002 ✅ · US-003 ✅ · US-004 ✅ parcial (Service+Adapter stub)
