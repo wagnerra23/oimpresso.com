@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cowork-recurring",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5550", "--directory", "D:\\oimpresso.com\\prototipo-ui\\cowork-snapshot"],
+      "port": 5550
+    }
+  ]
+}
