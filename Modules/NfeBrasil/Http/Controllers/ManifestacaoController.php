@@ -47,10 +47,11 @@ class ManifestacaoController extends Controller
         $statusFilter = $request->string('status')->toString();
         $qFilter = trim($request->string('q')->toString());
 
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('NfeBrasil/Manifestacao/Index', [
-            'itens'    => Inertia::defer(fn () => $this->buildItensPayload($statusFilter, $qFilter)),
-            'kpis'     => Inertia::defer(fn () => $this->buildKpisPayload($businessId)),
-            'nsuState' => Inertia::defer(fn () => $this->buildNsuStatePayload($businessId)),
+            'itens'    => $this->buildItensPayload($statusFilter, $qFilter),
+            'kpis'     => $this->buildKpisPayload($businessId),
+            'nsuState' => $this->buildNsuStatePayload($businessId),
             'filters'  => [
                 'status' => $statusFilter ?: null,
                 'q'      => $qFilter ?: null,

@@ -30,8 +30,9 @@ class NfseController extends Controller
 
         $filters = $request->only(['status', 'de', 'ate', 'q']);
 
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Nfse/Index', [
-            'notas'   => Inertia::defer(fn () => $this->buildNotasPayload($filters)),
+            'notas'   => $this->buildNotasPayload($filters),
             'filters' => $filters,
         ]);
     }

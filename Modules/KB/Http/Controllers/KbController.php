@@ -48,12 +48,8 @@ class KbController extends Controller
         $withPii = $request->boolean('with_pii');
         $page = (int) max(1, $request->get('page', 1));
 
-        // D-14 perf 2026-05-15 — `docs` (paginator c/ withTrashed + selectRaw)
-        // e `kpis` (5 queries agregadas count/groupBy) movidos pra Inertia::defer.
-        // Skip de execução quando partial reload `only:[]` não pede.
-        // Pattern oimpresso skill `inertia-defer-default` (Tier B).
+        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('kb/Index', [
-            // ─── Eager: estado UI leve (filtros do request, repo string) ───
             'filters' => [
                 'type'     => $type,
                 'module'   => $module,
@@ -61,11 +57,10 @@ class KbController extends Controller
                 'with_pii' => $withPii,
             ],
             'github_repo' => 'wagnerra23/oimpresso.com',
-            // ─── DEFER: paginate + queries agregadas (caras) ────────────────
-            'docs'    => Inertia::defer(fn () => $this->buildDocsPayload(
+            'docs'    => $this->buildDocsPayload(
                 $request->user(), $type, $module, $search, $withPii, $page
-            )),
-            'kpis'    => Inertia::defer(fn () => $this->buildKpisPayload()),
+            ),
+            'kpis'    => $this->buildKpisPayload(),
         ]);
     }
 
