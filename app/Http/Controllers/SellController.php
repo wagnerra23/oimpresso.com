@@ -1529,13 +1529,19 @@ class SellController extends Controller
      * (Cowork KB-9.75 Onda 2 R2 IA). 3 modos: summary (resumir pedido),
      * history (histórico cliente), suggest (sugerir próxima venda).
      *
-     * Esta Onda 2 entrega o ENDPOINT + UX. A integração com Jana Copiloto
-     * real (Modules/Jana/Ai/Agents/) virá em Onda 2.5 incremental — esta
-     * versão usa stub determinístico baseado no contexto da venda pra UX
-     * funcionar end-to-end. Catalogado em commit body "NÃO INCLUI".
+     * Onda 2 entregou ENDPOINT + UX com stub determinístico.
+     * Onda 2.5 (ESTE PR) integra Modules\Jana\Ai\Agents\SaleInsightAgent real
+     * (laravel/ai SDK, gpt-4o-mini, custo ~R$ [redacted Tier 0]/call). Stub permanece
+     * como FALLBACK on error/timeout/feature-flag-off (graceful degradation).
+     *
+     * Flag de ativação: `config('sells.ai.use_jana_real')` (default false
+     * em prod até Wagner configurar OPENAI_API_KEY).
      *
      * Payload: { mode: 'summary'|'history'|'suggest' }
-     * Retorna: { text, mode, latency_ms, is_stub }
+     * Retorna: { text, mode, latency_ms, is_stub, source, venda_id, [error_class] }
+     *   - is_stub=true: resposta veio do fallback determinístico
+     *   - is_stub=false: resposta veio do SaleInsightAgent via laravel/ai
+     *   - source: 'jana' | 'stub' (explícito além do is_stub)
      *
      * Multi-tenant Tier 0 (ADR 0093): business_id global scope.
      * Permission gate: direct_sell.view + variants (mesma de sheetData).
@@ -1573,6 +1579,126 @@ class SellController extends Controller
             abort(404);
         }
 
+        // Tenta Jana real quando flag ON; fallback stub on error.
+        $errorClass = null;
+        $useJana = (bool) config('sells.ai.use_jana_real', false)
+            && class_exists(\Modules\Jana\Ai\Agents\SaleInsightAgent::class);
+
+        if ($useJana) {
+            try {
+                $contexto = $this->buildSaleAiContext($sale, $mode, $business_id);
+                $agent = new \Modules\Jana\Ai\Agents\SaleInsightAgent(
+                    mode: $mode,
+                    contextoVenda: $contexto,
+                );
+                $response = $agent->prompt('Gere a resposta seguindo o formato definido nas instruções.');
+                $text = (string) ($response->text ?? '');
+
+                if ($text !== '') {
+                    $latency = (int) round((microtime(true) - $start) * 1000);
+                    return response()->json([
+                        'text' => $text,
+                        'mode' => $mode,
+                        'latency_ms' => $latency,
+                        'is_stub' => false,
+                        'source' => 'jana',
+                        'venda_id' => $sale->id,
+                    ]);
+                }
+                // Resposta vazia: cai pro fallback abaixo
+                $errorClass = 'EmptyResponse';
+            } catch (\Throwable $e) {
+                // Qualquer falha (rate-limit, network, config) → fallback graceful.
+                $errorClass = class_basename($e);
+                \Log::warning('SaleInsightAgent failed — fallback to stub', [
+                    'business_id' => $business_id,
+                    'venda_id' => $sale->id,
+                    'mode' => $mode,
+                    'error' => $e->getMessage(),
+                    'class' => $errorClass,
+                ]);
+            }
+        }
+
+        // Fallback stub determinístico (mantém UX funcional sempre).
+        $text = $this->buildSaleAiStub($sale, $mode, $business_id);
+        $latency = (int) round((microtime(true) - $start) * 1000);
+
+        $payload = [
+            'text' => $text,
+            'mode' => $mode,
+            'latency_ms' => $latency,
+            'is_stub' => true,
+            'source' => 'stub',
+            'venda_id' => $sale->id,
+        ];
+        if ($errorClass !== null) {
+            $payload['error_class'] = $errorClass;
+        }
+        return response()->json($payload);
+    }
+
+    /**
+     * US-SELL-COWORK-R2-IA Onda 2.5 — monta string de contexto pra SaleInsightAgent.
+     * Mesmos dados usados pelo stub, formatado pra LLM ler.
+     */
+    private function buildSaleAiContext(\App\Transaction $sale, string $mode, int $business_id): string
+    {
+        $clientName = $sale->contact?->supplier_business_name ?: ($sale->contact?->name ?? 'Consumidor Final');
+        $totalFmt = 'R$ ' . number_format((float) $sale->final_total, 2, ',', '.');
+        $items = $sale->sell_lines->map(function ($line) {
+            $qty = (float) $line->quantity;
+            $name = $line->product?->name ?? 'Item sem nome';
+            $unitPrice = 'R$ ' . number_format((float) $line->unit_price_inc_tax, 2, ',', '.');
+            $qtyFmt = $qty == (int) $qty ? (string) (int) $qty : number_format($qty, 2, ',', '.');
+            return "- {$qtyFmt}× {$name} (unitário {$unitPrice})";
+        })->implode("\n");
+        $paymentStatus = match ((string) $sale->payment_status) {
+            'paid' => 'paga (recebida integral)',
+            'partial' => 'parcialmente paga',
+            'due' => 'pendente (a receber)',
+            default => (string) $sale->payment_status,
+        };
+
+        $base = "Venda #{$sale->invoice_no}\n"
+            . "Cliente: {$clientName}\n"
+            . "Total: {$totalFmt}\n"
+            . "Itens ({$sale->sell_lines->count()}):\n{$items}\n"
+            . "Status pagamento: {$paymentStatus}\n"
+            . ($sale->additional_notes ? "Notas: " . mb_substr((string) $sale->additional_notes, 0, 200) . "\n" : '');
+
+        // Modo history precisa de histórico do cliente — agrega.
+        if ($mode === 'history' && $sale->contact_id) {
+            $stats = \DB::table('transactions')
+                ->where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->where('status', 'final')
+                ->whereNull('sub_type')
+                ->where('contact_id', $sale->contact_id)
+                ->where('id', '!=', $sale->id)
+                ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(final_total), 0) as soma, MAX(transaction_date) as ult')
+                ->first();
+            $cnt = (int) ($stats->cnt ?? 0);
+            $soma = 'R$ ' . number_format((float) ($stats->soma ?? 0), 2, ',', '.');
+            $ult = $stats->ult
+                ? \Carbon\Carbon::parse($stats->ult)->translatedFormat('d \d\e F \d\e Y')
+                : 'n/a';
+            $base .= "\nHistórico do cliente:\n"
+                . "- Vendas anteriores: {$cnt}\n"
+                . "- Soma total anterior: {$soma}\n"
+                . "- Última venda: {$ult}\n";
+        }
+
+        return $base;
+    }
+
+    /**
+     * US-SELL-COWORK-R2-IA — stub determinístico (fallback).
+     * Mesma lógica original da Onda 2; preservada como graceful degradation
+     * pra quando feature flag OFF OU agent Jana falhar (rate-limit, network).
+     */
+    private function buildSaleAiStub(\App\Transaction $sale, string $mode, int $business_id): string
+    {
         $clientName = $sale->contact?->supplier_business_name ?: ($sale->contact?->name ?? 'Cliente');
         $totalFmt = 'R$ ' . number_format((float) $sale->final_total, 2, ',', '.');
         $itemsCount = $sale->sell_lines->count();
@@ -1584,8 +1710,7 @@ class SellController extends Controller
             default => $sale->payment_status,
         };
 
-        // Stub determinístico — Onda 2.5 substitui por Jana real.
-        $text = match ($mode) {
+        return match ($mode) {
             'summary' => sprintf(
                 "Venda #%s pra %s — %s em %d %s. Pagamento %s. %s",
                 $sale->invoice_no ?: $sale->id,
@@ -1594,7 +1719,9 @@ class SellController extends Controller
                 $itemsCount,
                 $itemsCount === 1 ? 'item' : 'itens',
                 $paymentStatus,
-                $sale->additional_notes ? 'Nota: ' . mb_substr((string) $sale->additional_notes, 0, 120) : 'Sem notas adicionais.'
+                $sale->additional_notes
+                    ? 'Nota: ' . mb_substr((string) $sale->additional_notes, 0, 120)
+                    : 'Sem notas adicionais.'
             ),
             'history' => (function () use ($sale, $business_id) {
                 $clientId = $sale->contact_id;
@@ -1634,16 +1761,6 @@ class SellController extends Controller
             ),
             default => 'Não consegui inferir disso. Abre a venda direto pra ver detalhes.',
         };
-
-        $latency = (int) round((microtime(true) - $start) * 1000);
-
-        return response()->json([
-            'text' => $text,
-            'mode' => $mode,
-            'latency_ms' => $latency,
-            'is_stub' => true, // Onda 2.5 trocará pra false quando Jana real estiver plugada
-            'venda_id' => $sale->id,
-        ]);
     }
 
     /**
