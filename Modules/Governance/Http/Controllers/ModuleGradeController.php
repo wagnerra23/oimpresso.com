@@ -63,10 +63,86 @@ class ModuleGradeController extends Controller
         // (até 7 rows × 34 módulos) — defer pra não bloquear render inicial.
         $history = Inertia::defer(fn () => $this->buildHistoryPayload($name));
 
+        // Charter Goal 9 (2026-05-17) — dossier markdown do módulo lido de
+        // memory/requisitos/<name>/ via filesystem. I/O lento (até 6 arquivos
+        // grandes em SRS/TeamMcp) — Inertia::defer pula closure quando partial
+        // reload não pede. Não-bloqueante pra render inicial da rubrica.
+        $dossier = Inertia::defer(fn () => $this->buildDossierPayload($name));
+
         return Inertia::render('governance/ModuleGrades/Show', [
             'grade'   => $grade,
             'history' => $history,
+            'dossier' => $dossier,
         ]);
+    }
+
+    /**
+     * Dossier canônico do módulo — lê docs markdown de memory/requisitos/<name>/.
+     *
+     * Lê em ordem de prioridade canônica:
+     *  1. BRIEFING.md (estado consolidado 1 pág executiva)
+     *  2. CAPTERRA-*.md (qualquer variação — narrativa qualitativa vs mercado)
+     *  3. GOVERNANCE-MATURITY-FICHA.md (nota cross-benchmark Backstage etc)
+     *  4. DEPRECATION-PLAN.md (se existir — sinal de zumbi state)
+     *  5. SPEC.md (US-XXX-NNN catalogadas)
+     *  6. CHANGELOG.md (Waves recentes)
+     *
+     * NÃO lê: RUNBOOK-*.md (poluiria lista; usuário pode abrir via git/IDE),
+     * UI-CATALOG.md (auxiliar técnico), arquivos sem extensão .md.
+     *
+     * Robusto a módulos sem nenhuma ficha (retorna []), case-insensitive em
+     * nome do diretório (Modules/SRS vs memory/requisitos/SRS), normaliza
+     * line endings CRLF→LF pra ReactMarkdown render limpo.
+     *
+     * @return array<int, array{slug: string, label: string, content_md: string, size_chars: int, modified_at: string|null}>
+     */
+    private function buildDossierPayload(string $name): array
+    {
+        $baseDir = base_path("memory/requisitos/{$name}");
+        if (! is_dir($baseDir)) {
+            return [];
+        }
+
+        // Mapeamento slug → label humano + glob pattern (ordem de prioridade)
+        $catalog = [
+            'briefing'           => ['BRIEFING.md',              'Briefing — estado consolidado'],
+            'capterra'           => ['CAPTERRA*.md',             'Capterra — narrativa vs mercado'],
+            'governance-maturity' => ['GOVERNANCE-MATURITY-FICHA.md', 'Maturity Ficha — Backstage/LeanIX bench'],
+            'deprecation-plan'   => ['DEPRECATION-PLAN.md',      'Deprecation Plan — zumbi roadmap'],
+            'spec'               => ['SPEC.md',                  'SPEC — US catalogadas'],
+            'changelog'          => ['CHANGELOG.md',             'Changelog — Waves'],
+        ];
+
+        $docs = [];
+        foreach ($catalog as $slug => [$pattern, $label]) {
+            $matches = glob("{$baseDir}/{$pattern}") ?: [];
+            foreach ($matches as $file) {
+                $raw = @file_get_contents($file);
+                if ($raw === false || $raw === '') {
+                    continue;
+                }
+
+                // Normaliza line endings CRLF→LF (ReactMarkdown remarkGfm respeita LF nativo)
+                $content = str_replace("\r\n", "\n", $raw);
+
+                // Sufixo "-variant" pra CAPTERRA múltiplos (ex CAPTERRA-FICHA + CAPTERRA-MCP-TEAM-FICHA)
+                $filename = basename($file);
+                $finalSlug = count($matches) > 1
+                    ? $slug . '-' . strtolower(pathinfo($filename, PATHINFO_FILENAME))
+                    : $slug;
+
+                $docs[] = [
+                    'slug'        => $finalSlug,
+                    'label'       => count($matches) > 1 ? "{$label} ({$filename})" : $label,
+                    'filename'    => $filename,
+                    'content_md'  => $content,
+                    'size_chars'  => mb_strlen($content),
+                    'modified_at' => @date('Y-m-d H:i:s', filemtime($file)) ?: null,
+                ];
+            }
+        }
+
+        return $docs;
     }
 
     /**
