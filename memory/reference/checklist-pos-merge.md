@@ -92,9 +92,9 @@ memory/handoffs/YYYY-MM-DD-HHMM-<slug-kebab>.md
 
 #### 5c. Atualizar índice `memory/08-handoff.md`
 
-Adicionar **1 linha no topo** da lista "Últimos handoffs" apontando pro arquivo novo.
+Adicionar **1 linha no topo** da lista "Últimos handoffs" apontando pro arquivo novo. **Nada mais** — não truncar, não reordenar, não editar entradas antigas.
 
-⚠️ **Drift detectado 2026-05-17:** ADR 0130 §2 diz "truncar 5 mais recentes", mas o índice atual tem ~35 entradas. Convenção evoluiu de facto pra histórico mais longo no índice. Wagner decide se formaliza emenda ou trunca.
+Histórico longo é convenção canônica formal — [ADR 0167](../decisions/0167-errata-0130-indice-handoff-historico-longo.md) emenda ADR 0130 §2 ("truncar pros 5 mais recentes" → "histórico longo mantido como mapa narrativo cronológico"). Review trigger em 300 linhas.
 
 ### 6. Session log (`memory/sessions/`)
 
@@ -156,8 +156,8 @@ Hoje (2026-05-17): brief mostra CYCLE-06 com drift 38/38 PRs 0% alinhados. Wagne
 | Skill `tela-smoke-pos-merge` | ✅ ativa Tier B + 100+ `.review.md` criados |
 | Skill `brief-update` | ✅ ativa Tier B + 34 BRIEFINGs canônicos |
 | Skill `memory-sync` | ✅ ativa Tier B + checklist MCP-first em SKILL.md |
-| ADR 0070 / 0130 / 0164 | ✅ accepted canon |
-| Índice `08-handoff.md` truncamento | ⚠️ drift de facto (35 entradas vs ADR 0130 "truncar 5") — Wagner decide |
+| ADR 0070 / 0130 / 0164 / 0167 | ✅ accepted canon |
+| Índice `08-handoff.md` histórico longo | ✅ formalizado por ADR 0167 errata (~35 entradas mantidas como mapa cronológico) |
 | Doc canônico unificado checklist | ✅ este arquivo (criado 2026-05-17) |
 
 ## Anti-patterns proibidos
@@ -174,6 +174,7 @@ Hoje (2026-05-17): brief mostra CYCLE-06 com drift 38/38 PRs 0% alinhados. Wagne
 
 - [ADR 0070](../decisions/0070-jira-style-task-management-current-md-removed.md) — Jira-style tasks (passos 3, 7)
 - [ADR 0130](../decisions/0130-handoff-append-only-mcp-first.md) — Handoff append-only + MCP-first (passo 5)
+- [ADR 0167](../decisions/0167-errata-0130-indice-handoff-historico-longo.md) — Errata 0130: índice mantém histórico longo (passo 5c)
 - [ADR 0164](../decisions/0164-screen-review-pdca-tela-smoke-pos-merge.md) — Screen Review PDCA (passo 2)
 - [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 (PII redactor passo 2)
 - [ADR 0101](../decisions/0101-tests-business-id-1-nunca-cliente.md) — biz=99 não biz=4 em smoke
