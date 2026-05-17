@@ -1,0 +1,160 @@
+name: Jana RAGAS Eval Gate
+
+# W28-2 — RAGAS CI gate Jana BLOQUEANTE (paths trigger PR + weekly cron).
+#
+# Diferença vs ragas-gate.yml (W22 MVP):
+#   - Aquele é workflow_dispatch + cron manual ALERTA (não bloqueia)
+#   - Este é PR paths-triggered + cron BLOQUEANTE (exit 1 abaixo threshold)
+#
+# Comando: `php artisan jana:ragas-ci-eval --json`
+# Modo: mock default (zero LLM cost CI). Real mode via secret RAGAS_MODE=real ($0.06/run).
+#
+# Thresholds W28 (calibrados pra Vellum 50-100 target W27):
+#   - faithfulness   ≥ 0.80
+#   - answer_relevancy ≥ 0.75
+#
+# Gate fail = merge bloqueado. Sobe threshold conforme baseline matura.
+#
+# Custo prod estimado:
+#   - mock (CI default): $0 (zero LLM)
+#   - real (weekly): ~$0.06 × 4 = ~$0.24/mês
+#   - real (per-PR Jana): ~$0.06 × 30 PRs/mês = ~$1.80/mês
+
+on:
+  pull_request:
+    paths:
+      - 'Modules/Jana/**'
+      - 'config/ragas.php'
+      - '.github/workflows/jana-ragas-gate.yml'
+  schedule:
+    # Segunda 08:00 UTC = 05:00 BRT (ANTES do daily 06:00 brief:generate)
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'mock (zero $) | real (consome LLM ~$0.06)'
+        required: false
+        default: 'mock'
+        type: choice
+        options:
+          - mock
+          - real
+
+concurrency:
+  group: jana-ragas-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ragas-eval:
+    name: Jana RAGAS Eval (gate bloqueante)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, tokenizer, xml, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Composer install
+        run: composer install --no-progress --prefer-dist --no-interaction --no-scripts
+
+      - name: Create .env (mock-safe)
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-jana-ragas-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=false' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' \
+            'RAGAS_ENABLED=true' \
+            'RAGAS_FORCE_MOCK=true' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Prepare dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app/ragas bootstrap/cache
+
+      - name: Run RAGAS CI eval (mock default — zero $)
+        id: ragas
+        env:
+          # Default mock — pra real mode crie secret RAGAS_MODE=real + OPENAI_API_KEY
+          RAGAS_MODE: ${{ github.event.inputs.mode || secrets.RAGAS_MODE || 'mock' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RAGAS_THRESHOLD_FAITHFULNESS: '0.80'
+          RAGAS_THRESHOLD_RELEVANCY: '0.75'
+        run: |
+          php artisan jana:ragas-ci-eval \
+            --threshold-faithfulness=0.80 \
+            --threshold-relevancy=0.75 \
+            --mode="${RAGAS_MODE}" \
+            --json > ragas-result.json
+          cat ragas-result.json
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jana-ragas-ci-result-${{ github.run_id }}
+          path: ragas-result.json
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const result = JSON.parse(fs.readFileSync('ragas-result.json', 'utf8'));
+            const icon = result.gate_status === 'pass' ? '✅' : '❌';
+            const status = result.gate_status === 'pass' ? 'PASSOU' : 'BLOQUEADO';
+            const mode = result.mode === 'real' ? `real (custo $${result.cost_usd})` : 'mock (zero $)';
+            const body = [
+              `${icon} **Jana RAGAS Gate — ${status}** (modo ${mode})`,
+              '',
+              `| Métrica | Score médio | Threshold | Status |`,
+              `|---|---|---|---|`,
+              `| Faithfulness | ${result.faithfulness_avg.toFixed(3)} | 0.80 | ${result.faithfulness_avg >= 0.80 ? '✅' : '❌'} |`,
+              `| Answer Relevancy | ${result.relevancy_avg.toFixed(3)} | 0.75 | ${result.relevancy_avg >= 0.75 ? '✅' : '❌'} |`,
+              `| **Score Avg** | **${result.score_avg.toFixed(3)}** | — | — |`,
+              '',
+              `Perguntas: ${result.n_passed}/${result.n_questions} acima do threshold (${result.n_failed} falharam).`,
+              result.failures.length > 0 ? `\n<details><summary>Primeiras falhas</summary>\n\n\`\`\`json\n${JSON.stringify(result.failures.slice(0, 5), null, 2)}\n\`\`\`\n</details>` : ''
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - name: Fail if gate did not pass
+        run: |
+          gate=$(php -r "echo json_decode(file_get_contents('ragas-result.json'), true)['gate_status'];")
+          if [ "$gate" != "pass" ]; then
+            echo "::error::Jana RAGAS gate FAIL — faithfulness ou answer_relevancy abaixo threshold (0.80/0.75)"
+            exit 1
+          fi
+          echo "::notice::Jana RAGAS gate PASS"

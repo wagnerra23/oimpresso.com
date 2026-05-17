@@ -255,6 +255,7 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | 0160 | A | — | Governance v4 — Scoped Scorecards bucket-aware (5 buckets) |
 | 0161 | A | (parcial 0162) | **Aposentar 3 hacks ADR 0159 redundantes com v4 (D5 cross-cutting, D4.b FSM, D3.b CHANGELOG)** · 4º hack D9.b permanece até OTel collector ativo |
 | 0162 | A | — | **OpenTelemetry Collector ativo prod CT 100 · destrava D6.b + D9.b · Tempo 2.6+ + sampling 5% + mcp_observability_spans + 3 services Jana/Repair/Sells** |
+| 0163 | A | — | **Governance v4 metas alcançadas Ondas 19-28 · 4/4 buckets acima da meta** · vertical_client_facing ~92 / cross_cutting_infra ~93 / ai_central ~93 / functional_horizontal ~91 · v4 LIVE dual-mode 30d antes aposentar v3 · foco shift cliente CYCLE-06 |
 
 ---
 

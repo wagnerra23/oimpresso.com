@@ -155,6 +155,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Wave 28 Agent 1 (2026-05-17) — Initiatives Cortex-style.
+        // Sync diário Initiatives ↔ scorecards: abre breach (rule abaixo target),
+        // fecha recuperadas (score_after >= target), expira deadlines passadas.
+        // 08:00 BRT — 60min após governance:scorecard-snapshot (07:00), pra usar
+        // scorecard_runs do dia. Cross-tenant intencional (mcp_governance_initiatives
+        // é repo-wide). Alertas expired persistidos em mcp_alertas business_id=1 superadmin.
+        $schedule->command('governance:initiative-sync')
+            ->dailyAt('08:00')
+            ->timezone('America/Sao_Paulo')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:initiative-sync FALHOU — initiatives auto-loop defasado (Wave 28)'
+                );
+            });
+
         // Wave 26 Agent 3 (2026-05-17, ADR 0162) — Rollup diário OTel spans.
         // Pega spans crus em mcp_observability_spans, computa p50/p95/p99 + error rate
         // por par (module, span_name) e popula mcp_observability_aggregates_daily.

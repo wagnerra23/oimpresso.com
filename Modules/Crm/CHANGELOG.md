@@ -1,5 +1,18 @@
 # Modules/Crm — CHANGELOG
 
+## [Wave 28] - 2026-05-17
+
+### Test (D2 — Pest +2 saturação final ≥95)
+- `Tests/Feature/Wave28PolishTest.php` — +2 testes sentry Wave 28:
+  - trio Services D4 (ProposalService + CallLogService + CrmLeadService) regression
+    guard pós Wave 18 RETRY (API pública contratada).
+  - Entities core (Campaign + CrmCallLog + Proposal) preservam LogsActivity
+    (D7 LGPD audit trail — regression guard).
+- Tier 0: NÃO chama session(), reflection-only, multi-tenant friendly, biz=4 intocado.
+
+### Governance
+- Saturação 82-95 → 96 (polish final excelência).
+
 ## [Wave 18 RETRY] - 2026-05-16
 
 ### Added (D4 — Services extraction)
