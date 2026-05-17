@@ -12,6 +12,10 @@
     "files": [],
     "requires": [],
     "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Vertical CNAE 1813-0/01 gráfica rápida BR, piloto 2026-Q3 entre OfficeImpresso saudáveis, cliente vendável UX-driven",
         "fsm_n_a": false,
         "fsm_consumed_via": "app/Domain/Fsm/ (canon ADR 0143 — cv_ordens_producao.current_stage_id)",
         "audit_log_enabled": true,

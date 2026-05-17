@@ -12,6 +12,10 @@
     "files": [],
     "requires": [],
     "governance": {
+        "bucket": "cross_cutting_infra",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Daily Brief L7 gerador 6x/dia + tool MCP brief-fetch, infra interna onboarding sessão Claude/time MCP, sem cliente vendável (ADR 0091)",
         "fsm_n_a": true,
         "fsm_reason": "Brief é gerador stateless agregador L7 — ciclo de geração linear (refresh cache → Brain B → valida → grava → invalida cache). Sem transições de estado por entidade de negócio. FSM Pipeline (ADR 0143) aplica a Sells/Repair, não a artefatos efêmeros de meta-contexto.",
         "wave_18_score": {

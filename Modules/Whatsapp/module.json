@@ -7,5 +7,11 @@
     "providers": [
         "Modules\\Whatsapp\\Providers\\WhatsappServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Whatsapp transacional Z-API/Meta Cloud (status OS, boleto/NFe, dunning, bot Jana) cross-vertical útil em qualquer empresa BR, padrão Service horizontal"
+    }
 }

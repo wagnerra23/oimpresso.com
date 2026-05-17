@@ -22,6 +22,10 @@
         "policy_doc": "memory/requisitos/Crm/PII-REDACTION.md"
     },
     "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "CRM cross-vertical sem dono cliente único (lead/contact/proposal/follow-up padrão), CRUD/Service horizontal útil em qualquer vertical",
         "fsm_n_a": true,
         "fsm_n_a_reason": "CRM workflow é flat (lead → contact → proposal → schedule) sem state machine FSM custom — leads/proposals usam status enum direto. FSM canon (ADR 0143) aplica-se a Sells/Repair onde há lifecycle multi-stage com side-effects. Wave 18 sinalizado.",
         "wave_18_saturation": {
