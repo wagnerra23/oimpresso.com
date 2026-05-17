@@ -5,6 +5,16 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
+### Wave 26 governance — Cms polish 71→≥85 (+14pp) (2026-05-17)
+
+- **ADD D2** `Tests/Feature/Wave26CmsSaturationTest.php` (~24 cenários):
+  - **D1 guard schema preservado**: `cms_pages.business_id` AUSENTE permanece canônico (US-CMS-002 schema pendente IRREVOGÁVEL). Test detecta drift positivo + valida NOT NULL + migration explícita se schema mudar.
+  - **D2 Services expansão**: CmsPageService return types canon (`criar` nullable + `remover` bool), DI Repository (CmsPageRepository com `baseQuery()` canon), CmsLeadService PII redaction (D7.a span `cms.lead.captured`), SiteContentService 4 chaves home + ≥4 métodos públicos.
+  - **D2 Entities expansão**: CmsPage accessor `feature_image_url` + `feature_image_arquivo` (Sprint 4 backbone Arquivos ADR 0123) + appends slug + HasArquivos trait; CmsSiteDetail + CmsPageMeta existem.
+  - **D6 defer**: CmsPageController::showPage helper `buildPagePayload` private + pre-check 404 ANTES de defer (rollback Wave L/W7 PR #963 preservado) + `OtelHelper::spanBiz('cms.page.render')` + `Inertia::render('Site/Page')` + `showPageLegacy` /old preservado.
+  - **D3 docs**: CHANGELOG (este entry) + BRIEFING.md atualizado.
+  - **D7 baseline preservado**: Config/retention.php + `LogsActivity` config canon `logOnlyDirty + dontSubmitEmptyLogs`.
+
 ### Wave 25 governance — Cms saturation 71→≥85 (2026-05-16)
 
 - **ADD D1/D2** `Tests/Feature/Wave25CmsSaturationTest.php` — 12 cenários (9 passed + 3 MySQL-skipped):

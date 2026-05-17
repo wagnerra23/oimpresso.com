@@ -5,6 +5,8 @@ namespace Modules\ComunicacaoVisual\Entities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Acabamento — catálogo (corte, ilhós, costura, perfuração, laminação).
@@ -28,6 +30,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Acabamento extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 26 D7 LGPD compliance).
+     * Loga apenas mudanças preço/ativo — catálogo sem PII.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['nome', 'tipo', 'preco', 'ativo'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.acabamento');
+    }
 
     protected $table = 'cv_acabamentos';
 

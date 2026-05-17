@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * OrdemProducao — Ordem de Produção de Comunicação Visual (FSM canon ADR 0143).
@@ -59,6 +61,22 @@ class OrdemProducao extends Model
 {
     use SoftDeletes;
     use GuardsFsmTransitions;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 26 D7 LGPD compliance).
+     * Whitelist exclui contato_id, endereco_instalacao_json, arte_url (PII).
+     * Loga apenas estágio FSM + totais + prazo — critical pra audit fiscal/FSM.
+     * AuditTrailIntegrityTest enforça.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['current_stage_id', 'subtotal', 'total', 'extras', 'prazo_prometido', 'arte_aprovada_em', 'completed_at'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.ordem_producao');
+    }
 
     protected $table = 'cv_ordens_producao';
 

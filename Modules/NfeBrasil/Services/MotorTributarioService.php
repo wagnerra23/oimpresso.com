@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
@@ -40,6 +41,27 @@ class MotorTributarioService
     private array $cacheConfigs = [];
 
     public function calcular(
+        ProdutoFiscalContext $produto,
+        int $businessId,
+        string $ufOrigem,
+        string $ufDestino,
+    ): TributoCalculado {
+        // D9 Wave 26 observabilidade — wrap calcular() em span com business_id (Tier 0).
+        return OtelHelper::span('nfe.motor_tributario.calcular', [
+            'business_id' => $businessId,
+            'ncm'         => (string) ($produto->ncm ?? ''),
+            'uf_origem'   => $ufOrigem,
+            'uf_destino'  => $ufDestino,
+            'has_override' => $produto->fiscal_rule_override_id !== null,
+        ], function () use ($produto, $businessId, $ufOrigem, $ufDestino): TributoCalculado {
+            return $this->calcularInterno($produto, $businessId, $ufOrigem, $ufDestino);
+        });
+    }
+
+    /**
+     * Implementacao interna de calcular() — envolvida pelo span OTel acima (D9 Wave 26).
+     */
+    private function calcularInterno(
         ProdutoFiscalContext $produto,
         int $businessId,
         string $ufOrigem,

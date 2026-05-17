@@ -1,7 +1,22 @@
 # BRIEFING — Modules/Cms
 
 > 1-pager executivo. Atualizado por PR (skill `brief-update` Tier B).
-> **Última atualização:** 2026-05-16 (Wave 18 FULL SATURATION — D4 services + D2 Pest).
+> **Última atualização:** 2026-05-17 (Wave 26 polish 71 → ≥85: +14pp · D1 guard schema preservado + D2 Services/Repository contract expansão + D6 buildPagePayload helper confirmado).
+
+### Wave 26 polish (2026-05-17) — saturation 71 → ≥85 (+14pp)
+
+- **D1 guard preservado:** test `cms_pages.business_id` AUSENTE permanece canônico (US-CMS-002 schema pendente IRREVOGÁVEL). Detecta drift positivo se alguém adicionar coluna sem migration explícita US-CMS-002 (sinaliza migração concluída).
+- **D2 Pest** novo `Tests/Feature/Wave26CmsSaturationTest.php` (~24 cenários):
+  - `CmsPageService::criar` return type `?CmsPage` (nullable fail-safe); `::remover` retorna bool; `::atualizar` 4 params + metas nullable (preservado Wave 23/25)
+  - `CmsPageRepository` resolvível DI + tem `baseQuery()` canon (ponto futuro injeção `business_id` US-CMS-002)
+  - `CmsLeadService::capturar` faz log com PII redactada (D7.a LGPD via `piiRedactor->redactArray` + span `cms.lead.captured`)
+  - `SiteContentService::getHomePayload` retorna 4 chaves canon (testimonials/page/faqs/statistics) + ≥4 métodos públicos canon
+  - `CmsPage` accessor `feature_image_url` + `feature_image_arquivo` (Sprint 4 Arquivos backbone ADR 0123) + appends slug + HasArquivos trait
+- **D6 defer:** `CmsPageController::showPage` confirma helper `buildPagePayload` private + pre-check 404 ANTES de defer (não vaza shell — rollback Wave L/W7 PR #963 preservado) + `OtelHelper::spanBiz('cms.page.render')` + `Inertia::render('Site/Page')` canon + `showPageLegacy` /old Blade rollback path
+- **D3 CHANGELOG + BRIEFING (este entry)** Wave 26
+- **D7 baseline preservado:** Config/retention.php + LogsActivity `logOnlyDirty + dontSubmitEmptyLogs`
+
+
 
 ## O que é
 

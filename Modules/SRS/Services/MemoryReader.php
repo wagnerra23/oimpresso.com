@@ -2,6 +2,7 @@
 
 namespace Modules\SRS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -26,11 +27,13 @@ class MemoryReader
 
     public function listRoots(): array
     {
-        return [
-            self::ROOT_PRIMER  => $this->readPrimer(),
-            self::ROOT_PROJECT => $this->readTree(config('memcofre.memory.project_dir'), self::ROOT_PROJECT),
-            self::ROOT_CLAUDE  => $this->readTree(config('memcofre.memory.claude_dir'), self::ROOT_CLAUDE, true),
-        ];
+        return OtelHelper::spanBiz('srs.memory.list_roots', function (): array {
+            return [
+                self::ROOT_PRIMER  => $this->readPrimer(),
+                self::ROOT_PROJECT => $this->readTree(config('memcofre.memory.project_dir'), self::ROOT_PROJECT),
+                self::ROOT_CLAUDE  => $this->readTree(config('memcofre.memory.claude_dir'), self::ROOT_CLAUDE, true),
+            ];
+        });
     }
 
     public function stats(): array
