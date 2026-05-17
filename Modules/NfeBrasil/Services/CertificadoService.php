@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services;
 
+use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +49,13 @@ class CertificadoService
      * @throws InvalidArgumentException Quando pfx inválido / senha errada / cert expirado
      */
     public function validar(string $pfxBase64, string $senha): array
+    {
+        return OtelHelper::span('nfe.certificado_validar', [
+            'pfx_size_bytes' => strlen($pfxBase64),
+        ], fn () => $this->validarInterno($pfxBase64, $senha));
+    }
+
+    private function validarInterno(string $pfxBase64, string $senha): array
     {
         $binary = base64_decode($pfxBase64, true);
         if ($binary === false || strlen($binary) === 0) {

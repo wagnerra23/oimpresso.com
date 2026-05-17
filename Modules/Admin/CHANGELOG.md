@@ -5,6 +5,24 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
+### Wave 27 polish final (2026-05-17) — target cross_cutting ≥92
+
+- **ADD D2 Pest +13** `Tests/Feature/Wave27IsWagnerEdgeCasesExpandedTest.php` —
+  expansão Wave 23 (8 cenários) → Wave 27 (+13 cenários novos): 3 ANDs guards
+  (superadmin role sem user_id correto, business_id sem user_id correto,
+  user->id E business_id), fallback emergencial (default vazio, path alternativo,
+  4 chaves config), bypass_local defesas (AND lógico, sem branch prod, env()
+  default false), audit log severity (warning/alert obrigatório), abort PT-BR
+  (Wagner-only marker), meta-test regressão guard 11 defense markers.
+- **ADD D9.b** `OtelHelper::spanBiz` em **3 ações mutacionais**
+  (`MutationsController::applyCurador`, `regenerateMcpToken`, `runHealthCheckNow`)
+  — spans `admin.mutations.{curador_apply,mcp_token_regenerate,health_check_run}`
+  cobrem hot-path mutation security-sensitive sem PII em attributes (apenas
+  action + component).
+- **DOC** Total Admin OTel spans agora: **15** (10 W17 services + 1 W18
+  IndexController + 1 W18 FeatureFlagsController + 1 W24 GovernanceV4 +
+  **3 W27 MutationsController**).
+
 ### Wave 18 governance (2026-05-16)
 
 - **ADD D3.d** `CHANGELOG.md` (este arquivo) — histórico per-wave.

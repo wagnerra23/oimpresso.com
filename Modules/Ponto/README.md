@@ -114,6 +114,61 @@ Cada marcação é registrada com NSR sequencial + hash SHA256 + IP/geo capturad
 
 `/ponto/aprovacoes` → **"Fechar período"** → calcula HE, banco de horas, faltas, atrasos → gera planilha pra folha de pagamento (eSocial S-1010/S-2230/S-2240).
 
+## Jornada completa biz=1 (Wave 27 — fluxo end-to-end Wagner/RH)
+
+Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LIVRE pattern, NUNCA biz=4 prod cliente em testes — [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)).
+
+### Fase A — Setup empresa (Admin Wagner)
+
+1. **Cadastrar escala padrão**: `/ponto/escalas` → criar `ESCALA_5X2` (seg–sex 08:00–17:00, intrajornada 12:00–13:00).
+   - Validação via `StoreEscalaRequest` (Wave 18 D8): `carga_diaria_minutos ≤ 720` (CLT Art. 59), `carga_semanal_minutos ≤ 2640` (CLT Art. 7º XIII).
+2. **Cadastrar colaboradores**: `/ponto/colaboradores` → vincula `business_id` + escala + REP autorizado.
+3. **Configurar REP-P (mobile)**: `/ponto/configuracao` → ativar geolocalização obrigatória (Portaria 671 Anexo I §10).
+
+### Fase B — Operação diária (Funcionário)
+
+4. **Bater 4 marcações**: ENTRADA / ALMOCO_INICIO / ALMOCO_FIM / SAIDA via `/ponto/marcacoes` → `StoreMarcacaoRequest` (Wave 18 D8) valida `before_or_equal:now + after:-24 hours` (limite offline REP-P).
+5. **Hash + NSR encadeado**: cada marcação calcula `hash = sha256(hash_anterior || payload)` via `MarcacaoService` ([app/Domain/Fsm/Support](../../app/Domain/Fsm/Support/) helpers OTel `ponto.marcar`).
+6. **Consultar espelho**: `/ponto/espelho` → `Inertia::defer()` props heavy (Wave 25 D6 — switch 300ms→50ms validado em [RUNBOOK-inertia-defer-pattern.md](../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)).
+
+### Fase C — Anomalias (Funcionário + Gestor)
+
+7. **Solicitar intercorrência (atestado)**: `/ponto/intercorrencias` → `StoreIntercorrenciaRequest` (Wave 18 D8) — upload PDF anexo + classificação automática IA (`IntercorrenciaAIClassifierTest` Wave 11 LGPD).
+8. **Aprovar/rejeitar**: gestor acessa `/ponto/aprovacoes`, decide com base em política CLT Art. 6º Lei 605/49 (faltas justificadas).
+9. **Anular marcação errada**: Funcionário NÃO anula (segregação de funções — Portaria 671 Anexo I §3); apenas RH/gestor via `AnularMarcacaoRequest` (Wave 27 D8) → cria NOVA marcação `ORIGEM=ANULACAO` + `marcacao_anulada_id` apontando original. **Original PERMANECE** (append-only Portaria 671 Art. 85).
+
+### Fase D — Banco de horas (RH + Wagner)
+
+10. **Acompanhar saldo BH**: `/ponto/banco-horas` → calculado automaticamente via `BancoHorasService`. Saldo positivo = HE compensável; negativo = falta a repor.
+11. **Ajuste manual retroativo (acordo coletivo novo)**: RH usa `StoreBancoHorasMovimentoRequest` (Wave 27 D8) tipos `CREDITO`/`DEBITO`/`AJUSTE`/`QUITACAO`. `motivo` obrigatório (Portaria 671 Anexo I §4 auditoria fiscal).
+12. **Quitação em folha**: `QUITACAO` zera saldo positivo após pagamento integrado eSocial S-1010 (acerto eventos remuneratórios).
+
+### Fase E — Fechamento mensal (RH)
+
+13. **Fechar período** dia 30: `/ponto/aprovacoes` → "Fechar período" → calcula HE/BH/faltas/atrasos por colaborador → exporta planilha pra folha + envia eventos eSocial S-1010 (rubricas) + S-2230 (afastamentos) + S-2240 (CAT).
+
+### Fase F — Fiscalização (Auditor Fiscal do Trabalho)
+
+14. **Gerar AFD/AFDT/AEJ**: `/ponto/relatorios` → escolhe período + colaboradores → arquivo layout Portaria 671 Anexo I (campos delimitados, encoding ASCII puro, registro tipo 9 marcações).
+15. **Auditor assina recibo digital**: append `Registro 9` com timestamp + matrícula auditor (Portaria 671 Anexo I §6).
+
+### Fase G — Cross-tenant safety (Tier 0 IRREVOGÁVEL)
+
+16. **Isolamento garantido em camadas**:
+    - **Eloquent global scope** `HasBusinessScope` em `Marcacao`/`Escala`/`BancoHorasSaldo`/`BancoHorasMovimento`/`Importacao`/`Rep` (Wave 18 D1)
+    - **Trigger MySQL** `trg_ponto_marcacoes_no_delete` + `trg_ponto_marcacoes_no_update` (defesa em profundidade contra `tinker` direto)
+    - **Pest cross-tenant**: `CrossTenantMarcacaoTest` (Wave 15, via `DB::table()` column-level) + `Wave27CrossTenantEscalaTest` (Wave 27, via Eloquent Model-level)
+
+### Comandos artisan Ponto canônicos
+
+```bash
+php artisan ponto:apuracao-dia {biz} {colaborador} {data}      # recalcula 1 dia
+php artisan ponto:apuracao-mes {biz} {mes:YYYY-MM}             # fecha periodo mensal
+php artisan ponto:importar-afd {biz} {arquivo.afd}             # import REP-A
+php artisan ponto:exportar-afdt {biz} {periodo}                # export fiscal AFDT
+php artisan ponto:health-check                                  # checks 5 dimensões
+```
+
 ## Smoke test E2E
 
 ```bash

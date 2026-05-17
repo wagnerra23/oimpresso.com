@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services;
 
+use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -51,15 +52,21 @@ class DanfeService
      */
     public function renderizar(NfeEmissao $emissao): string
     {
-        $xml = $this->obterXmlContents($emissao);
+        return OtelHelper::span('nfe.danfe_render', [
+            'business_id' => (int) $emissao->business_id,
+            'emissao_id' => (int) $emissao->id,
+            'modelo' => $emissao->modelo ?? null,
+        ], function () use ($emissao) {
+            $xml = $this->obterXmlContents($emissao);
 
-        $danfe = $this->danfeFactory !== null
-            ? ($this->danfeFactory)($xml)
-            : new Danfe($xml);
+            $danfe = $this->danfeFactory !== null
+                ? ($this->danfeFactory)($xml)
+                : new Danfe($xml);
 
-        $logo = $this->resolverLogoPath((int) $emissao->business_id);
+            $logo = $this->resolverLogoPath((int) $emissao->business_id);
 
-        return $danfe->render($logo ?? '');
+            return $danfe->render($logo ?? '');
+        });
     }
 
     /**
@@ -158,6 +165,15 @@ class DanfeService
      * Retorna o path em storage ou null se falhou.
      */
     public function salvar(NfeEmissao $emissao): ?string
+    {
+        return OtelHelper::span('nfe.danfe_salvar', [
+            'business_id' => (int) $emissao->business_id,
+            'emissao_id' => (int) $emissao->id,
+            'chave_44_present' => (bool) $emissao->chave_44,
+        ], fn () => $this->salvarInterno($emissao));
+    }
+
+    private function salvarInterno(NfeEmissao $emissao): ?string
     {
         if (! $emissao->isAutorizada()) {
             Log::info('DanfeService: emissão não autorizada — pulando DANFE', [

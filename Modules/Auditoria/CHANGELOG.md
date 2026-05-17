@@ -1,5 +1,37 @@
 # Modules/Auditoria — CHANGELOG
 
+## [Wave 27] - 2026-05-17 (polish final target 95)
+
+### Test (D1+D2+D9 SATURATION)
+- `Tests/Feature/Wave27SaturationTest.php` (NOVO) — **23 cenários organizados
+  em 5 blocos**:
+  - Bloco A (5) D1 cross-tenant via AuditEntryService — biz=99 NÃO retorna
+    entries biz=1, biz=1 retorna suas próprias, find() lança 404 cross-tenant,
+    normalizeFilters whitelist hardcoded (sem business_id injection)
+  - Bloco B (5) D2 expand Reversibility — whitelist NÃO contém infra classes
+    (User/Permission/Role), reasons citam autoridade legal (Portaria/SEFAZ/
+    Asaas/NFSe/pagamento), cstats SEFAZ-firmes 100/101/135 bloqueia vs
+    200/300/999 permite, TituloBaixa origem discrimina, OS nfse_emitida
+  - Bloco C (5) D2 expand PiiLeak — telefone BR (47) 99876-5432, texto sem
+    PII inalterado, input vazio sem fatal, input longo 1000 chars,
+    redact SEMPRE antes de Activity::create/log->save (source code proof)
+  - Bloco D (5) D9 spans completos — `auditoria.revert.execute` + `entry.list`
+    + `entry.find` (zero-cost otel.enabled=false), attributes nunca exportam
+    reason raw (PII Tier 0)
+  - Bloco E (3) meta-saturation — acumulado ≥30 tests, whitelist count=5
+    intocável regressão guard, todos Services com OtelHelper
+
+### Acumulado Auditoria suite (Waves M + 18 + 23 + 25 + 27)
+- AuditEntryReversibility (10) + PiiLeakActivityLog (8 base + 6 W25) + Wave18Sat
+  + Wave27Sat (23) + outros = **≥45 cenários cross-tenant + PII + reversibility**.
+
+### Spans OTel (D9 saturated)
+- RevertService::revert (`auditoria.revert.execute`)
+- AuditEntryService::list (`auditoria.entry.list`)
+- AuditEntryService::find (`auditoria.entry.find`)
+- Atributos canônicos: module + activity_id + subject_type + subject_id +
+  restored_attrs_count + has_reason (NUNCA reason raw).
+
 ## [Wave 25] - 2026-05-16
 
 ### Added (D8 — FormRequest +1)
