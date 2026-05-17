@@ -10,7 +10,7 @@ decided_by: [W]
 decided_at: 2026-05-17
 accepted_at: null
 review_at: 2026-11-17
-module: _DesignSystem
+module: Governance
 quarter: 2026-Q2
 tags: [design-system, responsive, mobile-first, breakpoints, tailwind, charter, mwart, larissa, acessibilidade, touch-targets]
 supersedes: []
