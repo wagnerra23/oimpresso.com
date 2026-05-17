@@ -16,8 +16,6 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
-import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import * as React from 'react';
@@ -362,11 +360,11 @@ function KbIndexV2(props: KbIndexProps) {
     <div className="flex flex-col gap-3 px-4 py-3 min-h-0 h-[calc(100vh-3.5rem)]">
       <PageHeader
         icon="book-open"
-        title="KB Unificado"
+        title="Procedimentos Operacionais Padrão"
         description={
           usingMock
-            ? `${numBR(baseNodes.length)} nós · ${numBR(kpis.total_reads)} leituras · ${numBR(kpis.total_os_linked)} vínculos OS · MOCK (Agent A pendente)`
-            : `${numBR(kpis.total)} nós · ${numBR(kpis.total_reads)} leituras · ${numBR(kpis.total_os_linked)} vínculos OS`
+            ? `${numBR(baseNodes.length)} SOPs · ${numBR(kpis.total_reads)} leituras · ${numBR(kpis.total_os_linked)} OS vinculadas · MOCK (Agent A pendente)`
+            : `${numBR(kpis.total)} SOPs · ${numBR(kpis.total_reads)} leituras · ${numBR(kpis.total_os_linked)} OS vinculadas`
         }
         action={
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -397,7 +395,7 @@ function KbIndexV2(props: KbIndexProps) {
               onClick={() => setHealthOpen(true)}
             >
               <HeartPulse size={13} className="mr-1.5" />
-              Saúde do KB
+              Dashboard
             </Button>
             <Button
               variant="ghost"
@@ -439,52 +437,17 @@ function KbIndexV2(props: KbIndexProps) {
                 onClick={() => setComposerOpen(true)}
               >
                 <Plus size={13} className="mr-1" />
-                Novo artigo
+                Novo SOP
               </Button>
             )}
           </div>
         }
       />
 
-      {/* KPIs */}
-      <KpiGrid cols={4}>
-        <KpiCard
-          label="Mais lido este mês"
-          value={kpis.most_read?.title.slice(0, 32) ?? '—'}
-          description={
-            kpis.most_read
-              ? `${numBR(kpis.most_read.reads_count)} leituras`
-              : 'sem dados'
-          }
-          icon="trending-up"
-          tone="info"
-          size="compact"
-        />
-        <KpiCard
-          label="Pinados no topo"
-          value={numBR(kpis.pinned_count)}
-          description="artigos essenciais"
-          icon="pin"
-          tone="default"
-          size="compact"
-        />
-        <KpiCard
-          label="Recentemente atualizados"
-          value={numBR(kpis.fresh_last_14d)}
-          description="últimos 14 dias"
-          icon="sparkles"
-          tone="success"
-          size="compact"
-        />
-        <KpiCard
-          label="Precisam de revisão"
-          value={numBR(kpis.outdated)}
-          description="marcados desatualizados"
-          icon="alert-triangle"
-          tone={kpis.outdated > 0 ? 'warning' : 'default'}
-          size="compact"
-        />
-      </KpiGrid>
+      {/* KPIs movidos pro modal "Dashboard" (botão na header acima).
+          Wagner 2026-05-17: cards no topo ocupavam ~150px sem ROI suficiente;
+          Mais lido + Recentemente atualizados + Precisam revisão ja sao
+          cobertos pelos 4 quadrantes do HealthPanel; Pinados é menor. */}
 
       {/* Search bar (always-on, separado do command palette ⌘K) */}
       <div className="relative">
@@ -495,11 +458,11 @@ function KbIndexV2(props: KbIndexProps) {
         />
         <Input
           ref={searchInputRef}
-          placeholder="Filtrar artigos por título, etiqueta ou autor (/, debounce 350ms)..."
+          placeholder="Filtrar SOPs por título, etiqueta ou autor (/, debounce 350ms)..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="h-9 pl-9 text-sm"
-          aria-label="Buscar artigos"
+          aria-label="Buscar SOPs"
         />
         {searchInput && (
           <button
@@ -637,7 +600,7 @@ function KbIndexV2(props: KbIndexProps) {
 }
 
 KbIndexV2.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="KB Unificado" breadcrumbItems={[{ label: 'KB' }, { label: 'V2' }]}>
+  <AppShellV2 title="SOPs" breadcrumbItems={[{ label: 'Conhecimento' }, { label: 'SOPs' }]}>
     {page}
   </AppShellV2>
 );
