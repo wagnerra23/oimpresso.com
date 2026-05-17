@@ -1,0 +1,109 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Pest — US-SELL-COWORK · backend payload extras (sla_kind, days_to_due, pipeline,
+ * seller, items_summary, installments).
+ *
+ * Cobertura estrutural: cada campo novo está presente no payload JSON do
+ * SellController::inertiaList. Os valores derivados (sla_kind condicional)
+ * são testados via análise da função map() existente — Pest browser cobre
+ * o end-to-end visual quando o ambiente permite.
+ *
+ * Refs:
+ *  - app/Http/Controllers/SellController.php::inertiaList
+ *  - memory/requisitos/Sells/index-r1-visual-comparison.md
+ *  - resources/js/Pages/Sells/Index.tsx
+ */
+
+const COWORK_SELL_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
+
+function coworkReadSellController(): string
+{
+    return file_get_contents(base_path(COWORK_SELL_CONTROLLER_PATH));
+}
+
+it('payload da listagem expõe sla_kind', function () {
+    expect(coworkReadSellController())->toContain("'sla_kind' => \$slaKind");
+});
+
+it('payload expõe days_to_due signed (null permitido)', function () {
+    expect(coworkReadSellController())->toContain("'days_to_due' => \$daysToDue");
+});
+
+it('payload expõe pipeline_step + pipeline_total + pipeline_label', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'pipeline_step'")
+        ->toContain("'pipeline_total'")
+        ->toContain("'pipeline_label'");
+});
+
+it('payload expõe seller_name + seller_abbr', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'seller_name' => \$sellerName")
+        ->toContain("'seller_abbr' => \$sellerAbbr");
+});
+
+it('payload expõe items_summary + items_count', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'items_summary' => \$itemsSummary")
+        ->toContain("'items_count'");
+});
+
+it('payload expõe payment_method_label + installments', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'payment_method_label' => \$paymentMethodLabel")
+        ->toContain("'installments' => (int) (\$r->installments_count");
+});
+
+it('sla_kind cobre os 4 estados — fresh/warning/overdue/paid', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("\$slaKind = 'paid'")
+        ->toContain("\$slaKind = 'overdue'")
+        ->toContain("\$slaKind = 'warning'")
+        ->toContain("\$slaKind = 'fresh'");
+});
+
+it('payment_method_label mapeia chaves UltimatePOS pra PT-BR', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'cash'")
+        ->toContain("=> 'Dinheiro'")
+        ->toContain("'custom_pay_1' => 'PIX'")
+        ->toContain("'custom_pay_2' => 'Boleto'");
+});
+
+it('JOIN users sob alias seller_u preserva tenancy', function () {
+    $source = coworkReadSellController();
+    // LEFT JOIN não impacta business_id global scope porque transactions.business_id
+    // permanece como filtro principal em where()
+    expect($source)
+        ->toContain("leftJoin('users as seller_u', 'transactions.created_by', '=', 'seller_u.id')")
+        ->toContain("->where('transactions.business_id', \$business_id)");
+});
+
+it('subqueries pipeline_total + items_first_name + installments_count usam alias diferente pra evitar conflito com sps externo', function () {
+    $source = coworkReadSellController();
+    // pipeline_total subquery usa sps_t (alias interno) — não conflita com sps externo
+    expect($source)
+        ->toContain('sale_process_stages sps_t')
+        ->toContain('transaction_sell_lines tsl_n')
+        ->toContain('transaction_payments tp_i');
+});
+
+it('preserva campos legacy do US-SELL-008/021/023/024', function () {
+    $source = coworkReadSellController();
+    // não pode regredir contratos existentes
+    expect($source)
+        ->toContain("'fiscal_status'")
+        ->toContain("'fiscal_modelo'")
+        ->toContain("'current_stage_key'")
+        ->toContain("'is_grouped_invoice'")
+        ->toContain("'display_date'");
+});

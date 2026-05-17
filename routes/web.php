@@ -260,6 +260,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
+    // US-SELL-COWORK-R2-IA — Cowork KB-9.75 Onda 2: painel ✦ IA no drawer SaleSheet.
+    // 3 modos: summary|history|suggest. Stub determinístico nesta Onda; Onda 2.5
+    // integra Modules/Jana/Ai/Agents/ real.
+    Route::post('/sells/{id}/ai-ask', [SellController::class, 'aiAsk']);
     // US-OFICINA-OS-LINK — Criar OS a partir da venda (modos: auto/single/per_line).
     Route::post('/sells/{id}/create-os', [SellController::class, 'createOs'])->name('sells.create-os');
     // US-SELL-016 — Bulk actions (Grade Avançada — multiseleção).

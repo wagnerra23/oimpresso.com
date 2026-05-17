@@ -6,6 +6,7 @@ contains:
   - "PoliciesController — CRUD inline mcp_governance_rules (toggle enabled MVP; edit JSON futuro)"
   - "AuditController — drill-down mcp_audit_log filtrável (período/actor/endpoint/status)"
   - "DriftAlertsController — runtime scan SCOPE.md vs filesystem real + persisted alerts cron"
+  - "ModuleGradeController — /governance/module-grades Index ranking 34 módulos + Show drill-down 9 dimensões v3 + dossier markdown (ADR 0155 + Charter Goal 9 2026-05-17)"
   - "InstallController — install/uninstall hooks (ADR 0024)"
   - "DataController — sidebar/permissions hooks (UltimatePOS pattern)"
   - "ActionGate middleware — runtime gate (modo warn|strict por config)"
