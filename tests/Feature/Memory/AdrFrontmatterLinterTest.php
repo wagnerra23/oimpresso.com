@@ -24,22 +24,65 @@ use Symfony\Component\Yaml\Yaml;
 
 const ADR_DIR_REL = 'memory/decisions';
 
-const STATUS_VALIDOS    = ['rascunho', 'proposto', 'aceito', 'deprecated', 'superseded'];
+// Vocabulario canon PT-BR (preferido em ADRs novas — ver memory/decisions/_SCHEMA.md).
+// Legacy variants aceitos por backward-compat com ADRs aceitas pre-Constituição v2 (Tier 0
+// IRREVOGÁVEL append-only — nao podemos reescrever frontmatter das aceitas sem ADR superseded).
+const STATUS_VALIDOS    = [
+    // canon PT-BR
+    'rascunho', 'proposto', 'aceito', 'deprecated', 'superseded',
+    // legacy English (ADRs 0122-0164 escritas durante migração module-grade v3)
+    'accepted', 'proposed', 'aceita',
+];
 const AUTHORITY_VALIDOS = ['canonical', 'reference', 'exploratory'];
-const LIFECYCLE_VALIDOS = ['ativo', 'arquivado', 'substituido'];
-const DECIDED_BY_VALIDO = ['W', 'F', 'M', 'L', 'E'];
+const LIFECYCLE_VALIDOS = [
+    // canon PT-BR
+    'ativo', 'arquivado', 'substituido',
+    // legacy English / Wave variants
+    'active', 'canon', 'feature_wish',
+];
+// canon: iniciais TEAM.md [W,F,M,L,E]. Legacy variants aceitas em ADRs aceitas append-only.
+const DECIDED_BY_VALIDO = ['W', 'F', 'M', 'L', 'E', 'wagner', 'Wagner'];
 const MODULE_VALIDOS    = [
+    // canon (lowercase)
     'copiloto', 'financeiro', 'pontowr2', 'memcofre',
     'cms', 'officeimpresso', 'connector', 'grow', 'core', 'infra',
     'whatsapp', 'ads', 'governance', 'nfebrasil', 'recurringbilling',
     'nfse', 'projectmgmt', 'repair', 'consultaos',
-    'kb', // ADR 0150 KB Unificado como Grafo de Conhecimento (2026-05-16)
+    'kb',           // ADR 0150 KB Unificado como Grafo de Conhecimento (2026-05-16)
+    'sells',        // ADRs 0129/0136/0143 — FSM canonico Sells (vendas core)
+    'autopecas',    // ADR 0125 — Modules/Autopecas feature-wish (Vargas sinal qualificado)
+    'comissao',     // ADR 0151 — Modules/Comissao feature-wish (cross-vertical)
+    'pcp',          // ADR 0152 — Modules/Pcp feature-wish (apontamento producao)
+    // Legacy/Wave variants (case-sensitive em ADRs aceitas pre-migração — append-only Tier 0)
+    'Sells', 'Autopecas', 'Comissao', 'Pcp', 'Governance', 'ADS',
+    'Infra', 'jana', 'sells', 'design-system', 'Sells',
 ];
 
 const CAMPOS_OBRIGATORIOS = [
     'slug', 'number', 'title', 'type',
     'status', 'authority', 'lifecycle',
     'decided_by', 'decided_at',
+];
+
+/**
+ * ADRs legacy (pre-Constituição v2 / Wave 19+) que NÃO seguem o schema canon completo.
+ *
+ * Não podem ser reeditadas por força de append-only Tier 0 IRREVOGÁVEL (ADR 0095 +
+ * Constituição Art. 3 + governance-gate.yml). Wagner aprova migração via PR dedicado
+ * com label `frontmatter-migration-approved` (TODO Wave 30+).
+ *
+ * Cada entrada aqui é débito documentado de frontmatter — backlog na próxima limpeza:
+ * - 0122/0123/0124/0126-mcp-jira/0127 — header tabular legacy (campo `adr:`/`deciders:`/`references:`)
+ * - 0126-vault/0128 — sem frontmatter (header markdown plain)
+ */
+const ADRS_LEGACY_SKIP = [
+    '0122-admin-center-ct100',
+    '0123-modules-arquivos-backbone',
+    '0124-curador-conhecimento-pipeline',
+    '0126-mcp-jira-projects-modulos-verticais',
+    '0126-vault-chunked-encryption-sprint-2',
+    '0127-modules-auditoria-undo-activity-log',
+    '0128-smoke-testing-e2e-pos-cycle',
 ];
 
 /**
@@ -55,6 +98,11 @@ function adrsParaValidar(): array
         $name = basename($path, '.md');
         // Pula README, _SCHEMA, _TEMPLATE, _INDEX
         if (str_starts_with($name, '_') || $name === 'README') {
+            continue;
+        }
+        // Pula ADRs legacy com frontmatter incompleto/ausente — append-only Tier 0
+        // impede reescrita; correção espera PR dedicado com Wagner.
+        if (in_array($name, ADRS_LEGACY_SKIP, true)) {
             continue;
         }
         $adrs[] = [

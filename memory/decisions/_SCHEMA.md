@@ -103,7 +103,9 @@ admin_only: false
 Iniciais do TEAM.md: `[W]`, `[F]`, `[M]`, `[L]`, `[E]`, ou combinações `[W, F]`.
 
 ### `module`
-`copiloto` · `financeiro` · `pontowr2` · `memcofre` · `cms` · `officeimpresso` · `connector` · `grow` · `core` · `infra` · `null` (transversal).
+**Canon (preferido em ADRs novas — lowercase):** `copiloto` · `financeiro` · `pontowr2` · `memcofre` · `cms` · `officeimpresso` · `connector` · `grow` · `core` · `infra` · `whatsapp` · `ads` · `governance` · `nfebrasil` · `recurringbilling` · `nfse` · `projectmgmt` · `repair` · `consultaos` · `kb` · `sells` · `autopecas` · `comissao` · `pcp` · `null` (transversal).
+
+**Legacy variants aceitos no linter** (ADRs aceitas pre-Constituição v2 + Ondas 19-28 escritas com case-sensitive ou PascalCase — append-only Tier 0 impede reescrita): `Sells` · `Autopecas` · `Comissao` · `Pcp` · `Governance` · `ADS` · `Infra` · `jana` · `design-system`. Migração canônica completa espera ADR mãe dedicada + PR com label `frontmatter-migration-approved` (TODO Wave 30+).
 
 ---
 

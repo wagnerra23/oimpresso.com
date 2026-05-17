@@ -71,6 +71,11 @@ jobs:
       - name: Composer install
         run: composer install --no-progress --prefer-dist --no-interaction --no-scripts
 
+      - name: Prepare dirs (storage/framework antes do boot Laravel)
+        # ORDEM IMPORTA — package:discover boota AppServiceProvider que chama Blade::*
+        # que precisa de realpath(storage/framework/views). Sem dir, throw "Please provide a valid cache path".
+        run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/ragas bootstrap/cache
+
       - name: Create .env (mock-safe)
         run: |
           printf '%s\n' \
@@ -93,9 +98,6 @@ jobs:
             'RAGAS_FORCE_MOCK=true' > .env
           php artisan key:generate
           php artisan package:discover --ansi
-
-      - name: Prepare dirs
-        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app/ragas bootstrap/cache
 
       - name: Run RAGAS CI eval (mock default — zero $)
         id: ragas
