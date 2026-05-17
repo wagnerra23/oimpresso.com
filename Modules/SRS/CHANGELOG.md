@@ -2,6 +2,18 @@
 
 Append-only. Cada PR mergeado que toca `Modules/SRS/` deve adicionar 1 linha na entrada do Wave/data.
 
+## Wave 28 — 2026-05-17 (SATURATION FINAL functional → ≥92)
+
+### Added
+
+- `Tests/Feature/Wave28SaturationTest.php` — D2 cross-tenant defesa em camadas (3 casos source-level): 3 Entities tenant-scoped (DocSource/DocRequirement/DocEvidence) confirmam `HasBusinessScope` trait + DocChatMessage business_id no fillable + DocEvidence::shouldBeSearchable() filtra anti-vazamento Meilisearch + DocLink/DocPage justificativa repo-wide source-level.
+
+### Notes
+
+- Sub-dimensoes alvo Wave 28: D2 (+3 = cross-tenant defesa Model-level reforço — 3 entities tenant-scoped trait confirmation + 2 entities repo-wide justificadas source-level).
+- Pattern alinhado com Wave 26 (`class_uses_recursive` + reflexão + zero hit MySQL) — Wave 25 já fez DB-level full coverage com 4 tenants quando MySQL disponível.
+- Tier 0 ADR 0093 preservado — DocLink/DocPage/DocValidationRun são repo-wide intencional (justificado Wave 26 source-level).
+
 ## Wave 25 — 2026-05-16 (SATURATION functional → ≥85)
 
 ### Added

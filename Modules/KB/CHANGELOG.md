@@ -2,6 +2,11 @@
 
 Append-only. Cada PR mergeado que toca `Modules/KB/` deve adicionar 1 linha na entrada do Wave/data.
 
+## Wave 28 — 2026-05-17 (SATURATION FINAL functional+AI → ≥95)
+
+- `Tests/Feature/Wave28SaturationTest.php` — D2 KbRagService contract source-level (3 casos): `ask()` exige `$businessId` parâmetro obrigatório Tier 0 (não session()) + PiiRedactor + assertBusinessId defesa duas camadas + `askCacheKey` inclui businessId+corpusHash (anti-vazamento cross-tenant). D9 catalog confirmação 4 spans canônicos hot-path RAG (`kb.rag.ask` + `kb.corpus.retrieve` + `kb.rerank.bge_v2_m3` + `kb.health.check`).
+- Notes: Tier 0 ADR 0093 §"Services com $businessId param explícito" reforçado. KbRagService cobre 3 capacidades canônicas (ask/summarize/suggestMeta) — Wave 28 focou ask() hot-path por ser único método que chama LLM real (custo + latência crítica). Pattern alinhado Wave 26 (file_get_contents + reflexão, zero hit prod sem MySQL).
+
 ## Wave 18 RETRY — 2026-05-16 (governança meta-97)
 
 - `module.json`: declarado `fsm_n_a: true` + razão — KB é read-mostly, sem ciclo transacional (vs Sells/Repair ADR 0143). Fecha gap fsm-coverage falso-positivo.

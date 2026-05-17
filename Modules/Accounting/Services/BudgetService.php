@@ -2,6 +2,25 @@
 
 namespace Modules\Accounting\Services;
 
+use App\Util\OtelHelper;
+
+/**
+ * BudgetService — orçamento mensal/trimestral/anual Accounting (legacy UltimatePOS).
+ *
+ * Stateless após Wave 28 D9 instrumentation. Mantém retro-compat com construtor com
+ * argumentos (legacy code Controllers ainda usa) mas adiciona span observável aos
+ * cálculos críticos pra rastrear latência de geração de relatório anual.
+ *
+ * Multi-tenant Tier 0 ({@see ADR 0093}): Service stateless — toda query DB que ler
+ * Budget DEVE passar business_id explicitamente NO callsite (Controller já faz). Este
+ * Service só faz cálculo determinístico em memória (não toca DB direto).
+ *
+ * Catálogo biz=0 preservado: NUNCA usar biz=0 como tenant — `chart_of_accounts` permite
+ * catálogo global, mas Budget é por tenant.
+ *
+ * @see Modules\Accounting\Http\Controllers\BudgetController
+ * @see Modules\Accounting\Tests\Feature\Wave28AccountingSaturationTest
+ */
 class BudgetService
 {
     private $starting_month;
@@ -30,7 +49,7 @@ class BudgetService
         //Init the first month
         $current_month = $first_month;
 
-        // Iterate over the nex 
+        // Iterate over the nex
         for ($i = 0; $i < 11; $i++) {
             $current_month = date('Y-m', strtotime("+1 months", strtotime($current_month)));
             $readable_month = $this->readableMonth($current_month);
@@ -61,64 +80,77 @@ class BudgetService
 
     public function quartelyBudgetToMonthly(array $months, int $quarter_budget, bool $eliminate_decimals)
     {
-        $monthly_budget = [];
+        return OtelHelper::spanBiz('accounting.budget.quarterly_to_monthly', function () use ($months, $quarter_budget, $eliminate_decimals) {
+            $monthly_budget = [];
 
-        switch ($eliminate_decimals) {
-            case true:
-                $single_month = intdiv($quarter_budget, 3);
-                $first_two_months = $single_month * 2;
-                $last_month = $quarter_budget - $first_two_months;
+            switch ($eliminate_decimals) {
+                case true:
+                    $single_month = intdiv($quarter_budget, 3);
+                    $first_two_months = $single_month * 2;
+                    $last_month = $quarter_budget - $first_two_months;
 
-                foreach ($months as $index => $month) {
-                    $month_number = $index + 1;
-                    if ($month_number == 3) {
-                        $monthly_budget[$month] = $last_month;
-                        break;
+                    foreach ($months as $index => $month) {
+                        $month_number = $index + 1;
+                        if ($month_number == 3) {
+                            $monthly_budget[$month] = $last_month;
+                            break;
+                        }
+                        $monthly_budget[$month] = $single_month;
                     }
-                    $monthly_budget[$month] = $single_month;
-                }
-                break;
+                    break;
 
-            case false:
-                $single_month = $quarter_budget / 3;
-                foreach ($months as $month) {
-                    $monthly_budget[$month] = $single_month;
-                }
-                break;
-        }
+                case false:
+                    $single_month = $quarter_budget / 3;
+                    foreach ($months as $month) {
+                        $monthly_budget[$month] = $single_month;
+                    }
+                    break;
+            }
 
-        return $monthly_budget;
+            return $monthly_budget;
+        }, [
+            'module'             => 'Accounting',
+            'quarter_budget'     => $quarter_budget,
+            'eliminate_decimals' => $eliminate_decimals,
+            // Sem PII (apenas valor numérico do orçamento — não é dado pessoal).
+        ]);
     }
 
     public function yearlyBudgetToMonthly(int $yearly_budget, bool $eliminate_decimals)
     {
-        $monthly_budget = [];
+        return OtelHelper::spanBiz('accounting.budget.yearly_to_monthly', function () use ($yearly_budget, $eliminate_decimals) {
+            $monthly_budget = [];
 
-        switch ($eliminate_decimals) {
-            case true:
-                $single_month = intdiv($yearly_budget, 12);
-                $first_eleven_months = $single_month * 11;
-                $last_month = $yearly_budget - $first_eleven_months;
+            switch ($eliminate_decimals) {
+                case true:
+                    $single_month = intdiv($yearly_budget, 12);
+                    $first_eleven_months = $single_month * 11;
+                    $last_month = $yearly_budget - $first_eleven_months;
 
-                for ($i = 1; $i <= 12; $i++) {
-                    $month_number = "month_$i";
-                    if ($i == 12) {
-                        $monthly_budget[$month_number] = $last_month;
-                        break;
+                    for ($i = 1; $i <= 12; $i++) {
+                        $month_number = "month_$i";
+                        if ($i == 12) {
+                            $monthly_budget[$month_number] = $last_month;
+                            break;
+                        }
+                        $monthly_budget[$month_number] = $single_month;
                     }
-                    $monthly_budget[$month_number] = $single_month;
-                }
-                break;
+                    break;
 
-            case false:
-                $single_month = $yearly_budget / 12;
-                for ($i = 1; $i <= 12; $i++) {
-                    $month_number = "month_$i";
-                    $monthly_budget[$month_number] = $single_month;
-                }
-                break;
-        }
-        
-        return $monthly_budget;
+                case false:
+                    $single_month = $yearly_budget / 12;
+                    for ($i = 1; $i <= 12; $i++) {
+                        $month_number = "month_$i";
+                        $monthly_budget[$month_number] = $single_month;
+                    }
+                    break;
+            }
+
+            return $monthly_budget;
+        }, [
+            'module'             => 'Accounting',
+            'yearly_budget'      => $yearly_budget,
+            'eliminate_decimals' => $eliminate_decimals,
+        ]);
     }
 }

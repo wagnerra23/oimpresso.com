@@ -231,4 +231,58 @@ class SpreadsheetService
             'user_id'        => $userId,
         ]);
     }
+
+    /**
+     * Wave 28 D9 — registra share idempotente com user específico (span observável isolado).
+     *
+     * Antes: SpreadsheetController criava SpreadsheetShare inline numa lista; agora
+     * canalizamos por Service pra ganhar OTel span + ACL multi-tenant explícito.
+     *
+     * Multi-tenant Tier 0 ({@see ADR 0093}): valida que a Spreadsheet pertence ao bizId
+     * ANTES de criar share — bloqueia cross-tenant share leak (defesa em profundidade
+     * acima do unique key + FK).
+     *
+     * Idempotente: usa `updateOrCreate` keyed por (spreadsheet, user) — re-chamar é no-op.
+     *
+     * @param  int  $spreadsheetId  Spreadsheet ID alvo
+     * @param  int  $sharedUserId   User que vai receber acesso
+     * @param  int  $bizId          business_id Tier 0 (NUNCA session)
+     * @return SpreadsheetShare|null  Share row, ou null se Spreadsheet ausente/cross-tenant
+     */
+    public function shareWithUser(int $spreadsheetId, int $sharedUserId, int $bizId): ?SpreadsheetShare
+    {
+        return OtelHelper::spanBiz('spreadsheet.share_with_user', function () use ($spreadsheetId, $sharedUserId, $bizId) {
+            // Defesa em profundidade: garante que spreadsheet existe NO bizId antes do share.
+            $exists = Spreadsheet::where('business_id', $bizId)
+                ->where('id', $spreadsheetId)
+                ->exists();
+
+            if (! $exists) {
+                \Log::warning('SpreadsheetService::shareWithUser cross-tenant bloqueado', [
+                    'business_id'    => $bizId,
+                    'spreadsheet_id' => $spreadsheetId,
+                    'shared_user'    => $sharedUserId,
+                ]);
+
+                return null;
+            }
+
+            return SpreadsheetShare::updateOrCreate(
+                [
+                    'sheet_spreadsheet_id' => $spreadsheetId,
+                    'shared_with'          => 'user',
+                    'shared_id'            => $sharedUserId,
+                ],
+                [
+                    'sheet_spreadsheet_id' => $spreadsheetId,
+                    'shared_with'          => 'user',
+                    'shared_id'            => $sharedUserId,
+                ],
+            );
+        }, [
+            'module'         => 'Spreadsheet',
+            'spreadsheet_id' => $spreadsheetId,
+            'shared_user_id' => $sharedUserId,
+        ]);
+    }
 }

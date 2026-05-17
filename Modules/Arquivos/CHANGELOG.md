@@ -2,6 +2,30 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Wave 28 — Polish saturation 74-88 → ≥92 (+4pp)] — 2026-05-17
+
+### Adicionado — D9 +1 span `arquivos.retention.summary` (5º span Retention canon)
+- `ArquivosRetentionService::summary(int $businessId, int $retentionDays): array` — novo método público read-only retornando `{total, soft_deleted, expired_eligible, business_id}`. Útil pra HealthCheck dashboard (cron daily) e Wagner conferir saúde por tenant ANTES de aprovar `purge=true`. **Zero mutação** (preserva fail-secure dry_run W18) — apenas count buckets via `Arquivo::query()` respeitando `business_id` scope Tier 0.
+- Span attributes sem PII: apenas `business_id` + `retention_days` + `module`.
+
+### Adicionado — D2 +3 Pest Wave 28
+- `Tests/Feature/Wave28ArquivosSaturationTest.php` (~7 cenários):
+  - D9 W28 método novo + 5º span Retention (cumulativo 4 W18 + 1 W28)
+  - D2 W28 businessId+retentionDays Tier 0 obrigatórios + shape canon `{total, soft_deleted, expired_eligible, business_id}` + zero mutação validado via source-grep block (regression guard)
+  - OtelHelper fail-loud em spans `arquivos.retention.*` preservado
+  - D3 W28 CHANGELOG entry (este)
+
+### D3 W28 doc
+- CHANGELOG (este entry).
+
+### Preservado
+- D7.c retention.php Wave 25 (8 entities mapeadas LGPD Art. 15-16 + grace_period_days 30)
+- D9 ArquivosService spans baseline ≥6 (Wave 18 + 26 dedupe_lookup novo)
+- D7.a PiiRedactor em audit log + redact_payload fail-open
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0123 Modules/Arquivos backbone · ADR 0155 Module Grade v3 D9 saturated +1 · LGPD Art. 15-16
+
 ## [Wave 25 — Polish D7.c retention canônico] — 2026-05-16
 
 ### Adicionado — D7.c rubrica governance v3 (+1 arquivo)

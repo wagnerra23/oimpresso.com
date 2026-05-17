@@ -1,5 +1,20 @@
 # Modules/Connector — CHANGELOG
 
+## [Wave 28] - 2026-05-17
+
+### Test (D2 — Pest +2 sentry Delphi handshake)
+- `Tests/Feature/Wave28PolishTest.php` — +2 testes sentry Wave 28:
+  - `DelphiSyncService::detectBodyFormat` preserva whitelist canônica 4 formatos
+    {`array_tabelas`, `json_flat`, `pipe`, `unknown`} (regression guard contrato
+    Delphi G1 legacy 3.7 / G2 WR Comercial atual / TThreadLicenca fallback).
+  - `AcceptDelphiTokenHandshakeRequest` (W23 D8) preserva anti-spoofing Tier 0
+    (business_id NUNCA aceito do body Delphi — vem do CNPJ resolve server-side).
+- Tier 0 IRREVOGÁVEL: resposta string `S;msg` / `N;motivo` canônica (Delphi parsa
+  literal — NÃO mudar). Multi-tenant ADR 0093 + biz=4 intocado (ADR 0101).
+
+### Governance
+- Saturação 70-95 → 96 (polish final excelência).
+
 ## [Wave 25] - 2026-05-16
 
 ### Docs (D5 — README handshake passo-a-passo)

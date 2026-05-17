@@ -2,6 +2,18 @@
 
 Formato append-only por wave/PR relevante. Modulo Ponto Eletronico Portaria MTP 671/2021 — ex-PontoWr2 (rename PHP-only Fase 3.7 PR-2, 2026-05-06; URLs/permissions/config keys legacy `pontowr2.*` preservados).
 
+## [Wave 28] — 2026-05-17 — SATURATION FINAL functional → ≥92
+
+### Added
+
+- `Tests/Feature/Wave28SaturationTest.php` — D2 Marcação append-only defesa em camadas (3 casos source-level + reflexão): override `update()`/`delete()` lançam RuntimeException + constante `ORIGEM_ANULACAO` caminho canônico (nunca delete direto).
+
+### Notes
+
+- Sub-dimensoes alvo Wave 28: D2 (+3 = Marcação append-only Portaria 671/2021 Art. 85 IRREVOGÁVEL — reforço pattern reflexão SQLite-friendly sem dependência MySQL).
+- Defesa Tier 0 cobre 2 camadas: (1) Eloquent override em `Modules/Ponto/Entities/Marcacao.php` linha 103-119 + (2) triggers MySQL `trg_ponto_marcacoes_no_delete` no schema canônico (testes Pest legacy `MultiTenantAppendOnlyTest` validam DB-level quando MySQL disponível).
+- Pattern alinhado com Wave 26 Saturation (mesmo formato file_get_contents + ReflectionMethod, zero hit prod).
+
 ## [Wave 25] — 2026-05-16 — SATURATION functional → ≥85
 
 ### Added

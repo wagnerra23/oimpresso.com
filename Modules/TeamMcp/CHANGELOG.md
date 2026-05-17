@@ -1,5 +1,19 @@
 # Modules/TeamMcp — CHANGELOG
 
+## [Wave 28] - 2026-05-17
+
+### Test (D2 — Pest +2 sentry token rotate W22/W23 G3 FICHA)
+- `Tests/Feature/Wave28PolishTest.php` — +2 testes sentry Wave 28:
+  - `McpTokenIssuer` preserva trio canônico `issue` + `revoke` + `rotate` (regression
+    guard W23 G3 FICHA self-service rotation) + signature `rotate(userId, oldTokenId, ?note)`.
+  - `RotateTokenCommand` artifact + signature canônica preservados (Tier 0 segredo:
+    raw token 1× via warn() stdout, NUNCA log; `--detail` em vez de `--verbose`).
+- Tier 0 IRREVOGÁVEL ADR 0081: `mcp_tokens` hash-only (raw NUNCA persistido).
+  Cross-tenant by design (mcp_actors sem business_id).
+
+### Governance
+- Saturação 79-95 → 96 (polish final excelência).
+
 ## [Wave 25] - 2026-05-16
 
 ### Added (D4 — Service extract Scorecard)
