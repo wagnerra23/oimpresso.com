@@ -21,9 +21,20 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('install/update', [InstallController::class, 'update']);
     });
 
-// Rotas operacionais (placeholder — a expandir nas próximas sub-ondas)
+// Rota canônica nova (v9,75 Ondas 3+4+5 — Inertia Page Cobrança Recorrente).
+// Skill `sidebar-menu-arch`: DataController.modifyAdminMenu aponta pra esta rota nomeada.
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('recurring-billing')
+    ->group(function () {
+        Route::get('/', [RecurringBillingController::class, 'index'])
+            ->name('recurring-billing.index');
+    });
+
+// Rotas legacy preservadas até cutover Onda 10 (ADR 0104 §5 CUTOVER + canary 7d).
 Route::group([], function () {
-    Route::resource('recurringbilling', RecurringBillingController::class)->names('recurringbilling');
+    Route::resource('recurringbilling', RecurringBillingController::class)
+        ->only(['show', 'create', 'edit', 'store', 'update', 'destroy'])
+        ->names('recurringbilling');
 });
 
 // US-RB-042 — cancelamento de invoice via gateway + audit log + permissão

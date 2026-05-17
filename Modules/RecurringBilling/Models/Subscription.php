@@ -95,6 +95,15 @@ class Subscription extends Model
         return $this->hasMany(Invoice::class, 'subscription_id');
     }
 
+    /**
+     * Última fatura — usado pelo SubscriptionIndexPresenter pra derivar
+     * `visual_status` (em_dia/retentando/falhou) na Page Cobrança Recorrente.
+     */
+    public function lastInvoice()
+    {
+        return $this->hasOne(Invoice::class, 'subscription_id')->latestOfMany();
+    }
+
     public function notes(): HasMany
     {
         return $this->hasMany(SubscriptionNote::class, 'subscription_id');

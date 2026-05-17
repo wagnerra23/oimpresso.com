@@ -13,7 +13,7 @@ import {
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   FileSearch, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
   MessageCircle, MessageSquare, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
-  Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
+  RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
 } from 'lucide-react';
@@ -48,6 +48,7 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'contas de pagamento': Wallet,
   accounting: Calculator, contabilidade: Calculator,
   financeiro: Wallet,
+  'cobrança recorrente': RefreshCw,
   relatórios: BarChart3,
   reservas: Calendar,
   cocina: Utensils,
@@ -112,7 +113,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'fin',
     label: 'FINANCEIRO',
-    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro'],
+    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Cobrança Recorrente'],
   },
   {
     key: 'estoque',
