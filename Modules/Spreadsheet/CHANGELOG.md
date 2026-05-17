@@ -2,6 +2,31 @@
 
 Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS — manutenção bug-fix + governance only.
 
+## Wave 28 — 2026-05-17 (polish 74-88 → ≥92 +4pp · D9+D2+D3)
+
+### D9 +1 span `spreadsheet.share_with_user` (7º span SpreadsheetService)
+- `SpreadsheetService::shareWithUser(int $spreadsheetId, int $sharedUserId, int $bizId): ?SpreadsheetShare` — novo método público com span dedicado. Canaliza criação de share por Service (antes inline no Controller), ganhando observabilidade + defesa em profundidade multi-tenant.
+- **Multi-tenant Tier 0 ({@see ADR 0093}):** pre-check `Spreadsheet::where('business_id', $bizId)->where('id', ...)->exists()` ANTES de criar share — bloqueia cross-tenant leak acima do unique key + FK.
+- **Idempotente**: `SpreadsheetShare::updateOrCreate` keyed por (spreadsheet, user) — re-chamar é no-op.
+- **Fail-secure**: retorno `null` quando cross-tenant bloqueado + Log::warning estruturado.
+
+### D2 +3 Pest Wave 28
+- `Tests/Feature/Wave28SpreadsheetSaturationTest.php` (~7 cenários):
+  - D9 W28 método novo + 7º span cumulativo + bizId Tier 0 obrigatório
+  - D2 W28 retorno nullable fail-secure + idempotente + cross-tenant MySQL biz=1 vs biz=99 (skip SQLite ADR 0101)
+  - D3 W28 CHANGELOG entry (este)
+
+### D3 W28 doc
+- CHANGELOG (este entry); BRIEFING.md atualizado próxima sessão (out-of-scope deste agent).
+
+### Preservado
+- D1 W26 Entities LogsActivity Spatie (`logAll + logOnlyDirty + dontSubmitEmptyLogs`) + table custom canon
+- D4 W26 6 métodos públicos canon (create/update/delete/resolveNotifyableUsers/listForUser/getForUser) com bizId Tier 0 obrigatório no CRUD
+- D7 retention.php 1825d (janela fiscal Brasil 5y)
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3 D9 saturated +1
+
 ## Wave 26 — 2026-05-17 (polish 74 → ≥85 +11pp · D1+D4+D6+D7+D3)
 
 ### D1 Entities + cross-tenant guard preservado

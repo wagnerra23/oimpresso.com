@@ -2,6 +2,18 @@
 
 Formato append-only por wave/PR relevante.
 
+## [Wave 28] — 2026-05-17 — SATURATION FINAL functional → ≥92
+
+### Added
+
+- `Tests/Feature/Wave28SaturationTest.php` — D2 portal público resilience (3 casos source-level): throttle middleware na rota canônica + FormRequest dedicado em `buscar()` + Repository contract `ConsultaOsRepositoryInterface` preservado pra switch Mock↔Real US-CONSULTA-001 (1-line bind). D9 catalog confirmação 2 spans canon (`consultaos.busca_publica` Service + `consultaos.health` Command) + log estruturado Controller redacted via PiiRedactor.
+
+### Notes
+
+- Sub-dimensoes alvo Wave 28: D2 (+3 = portal público defesa em camadas — throttle + FormRequest + Repository contract) + D9 (+1 = catalog cobertura confirmação 2 spans + audit log Controller).
+- Tier 0 ADR 0093 §"Exceção repo-wide" preservado — portal público sem `business_id` (cliente externo sem sessão). US-CONSULTA-001 quando ativar busca real DEVE resolver `business_id` via lookup protocolo + rate-limit IP (Repository injection contract estável já garante isso — só muda implementação `binding` no Provider).
+- Pattern alinhado com Wave 26 (SQLite-friendly source-level + reflexão + zero hit prod).
+
 ## [Wave 25] — 2026-05-16 — SATURATION functional → ≥85
 
 ### Added

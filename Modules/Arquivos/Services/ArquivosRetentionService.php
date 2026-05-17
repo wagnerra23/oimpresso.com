@@ -182,4 +182,49 @@ class ArquivosRetentionService
             'purge'          => $purge,
         ]);
     }
+
+    /**
+     * Wave 28 D9 — summary aging counts read-only por business (idempotente, zero mutação).
+     *
+     * Sai do dry_run loop do `run()` pra cenário "quero ver o cenário SEM nem listar".
+     * Útil pra HealthCheck dashboard (cron daily) e Wagner conferir saúde por tenant
+     * antes de decidir aprovar `purge=true`.
+     *
+     * Span: `arquivos.retention.summary` — atributos sem PII (apenas count buckets).
+     *
+     * @return array{total:int, soft_deleted:int, expired_eligible:int, business_id:int}
+     */
+    public function summary(int $businessId, int $retentionDays): array
+    {
+        return OtelHelper::spanBiz('arquivos.retention.summary', function () use ($businessId, $retentionDays) {
+            $cutoff = Carbon::now()->subDays($retentionDays);
+
+            $total = Arquivo::query()
+                ->where('business_id', $businessId)
+                ->whereNull('deleted_at')
+                ->count();
+
+            $softDeleted = Arquivo::query()
+                ->where('business_id', $businessId)
+                ->whereNotNull('deleted_at')
+                ->count();
+
+            $expiredEligible = Arquivo::query()
+                ->where('business_id', $businessId)
+                ->whereNull('deleted_at')
+                ->where('created_at', '<', $cutoff)
+                ->count();
+
+            return [
+                'total'             => $total,
+                'soft_deleted'      => $softDeleted,
+                'expired_eligible'  => $expiredEligible,
+                'business_id'       => $businessId,
+            ];
+        }, [
+            'module'         => 'Arquivos',
+            'business_id'    => $businessId,
+            'retention_days' => $retentionDays,
+        ]);
+    }
 }

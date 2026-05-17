@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### Added (Wave 28 — 2026-05-17 — SATURATION FINAL functional+AI → ≥92)
+
+- `Tests/Feature/Wave28SaturationTest.php` — D2 cross-tenant defesa Model-level (3 casos source-level): 100% Entities (10/10) declaram `addGlobalScope('business_id', ...)` Tier 0 + Orcamento/OrcamentoItem `boot()` override + Wave 26 LogsActivity preservada em 10/10 (não-regressão audit trail D7). D9 `OrcamentoCalculator::calcular` confirmado `spanBiz('comvis.orcamento.calcular')` + catalog 4 spans canon (1 calculator + 3 ApontamentoTracker).
+- Notes: Tier 0 ADR 0093 reforço Model-level — todas 10 entities ComVis (Material/Substrato/Acabamento/Instalacao/InstalacaoCatalogo/Orcamento/OrcamentoItem/Os/OrdemProducao/Apontamento) com global scope confirmado source-level (grep `addGlobalScope`). ROTA LIVRE biz=4 preservada (Larissa cliente piloto vestuário — ComVis aproximação CNAE 1813-0/01). Tests usam biz=1 (Wagner) + biz=99 (fictício) — ADR 0101.
+- Pattern alinhado Wave 26 (file_get_contents + `class_uses_recursive` + reflexão sem booting Laravel, zero hit MySQL).
+
 ### Added (Wave 26 — 2026-05-17 — SATURATION FINAL forensic D7 1/10 → 10/10)
 
 #### Forensic D7=1/10 persistente W25 (raiz catalogada)

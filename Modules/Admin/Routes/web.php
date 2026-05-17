@@ -6,6 +6,7 @@ use Modules\Admin\Http\Controllers\GovernanceV4DashboardController;
 use Modules\Admin\Http\Controllers\IndexController;
 use Modules\Admin\Http\Controllers\InstallController;
 use Modules\Admin\Http\Controllers\MutationsController;
+use Modules\Admin\Http\Controllers\RagQualityDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,14 @@ Route::middleware(['web', 'tailscale-only', 'auth', 'is-wagner'])
         // @see Modules/Jana/Services/Scorecard/AiScorecardJudge.php
         Route::get('governance-v4', GovernanceV4DashboardController::class)
             ->name('admin.governance-v4.index');
+
+        // Wave 28 §G3 — RAG Quality Dashboard (KB + Jana cross-pipeline observability).
+        // 3 sparklines (retrieve/rerank/generate p99), nDCG@5 / recall@5 trend 30d,
+        // top 10 queries lentas, fallback rate BGE. Inertia::defer pra props caras.
+        // @see Modules/Admin/Http/Controllers/RagQualityDashboardController.php
+        // @see Modules/KB/Services/KbBgeRerankerService.php (span kb.rerank.bge_v2_m3)
+        Route::get('rag-quality', RagQualityDashboardController::class)
+            ->name('admin.rag-quality.index');
 
         // US-INFRA-008 (2026-05-13) — Painel de feature flags GrowthBook.
         // Read via GrowthBookAdminService. Audit em feature_flag_audits (dedicado).
