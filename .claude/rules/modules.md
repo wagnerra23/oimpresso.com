@@ -12,11 +12,14 @@ paths:
 Regra Primária [`memory/proibicoes.md`](../../memory/proibicoes.md) §"REGRA PRIMÁRIA — Mexeu, REGISTRA":
 
 1. **PRE-FLIGHT** — antes de Edit/Write ler:
+   - **`Modules/<Modulo>/SCOPE.md`** — FONTE PRIMÁRIA: frontmatter lista `url_prefixes`, `contains` (1-liner por controller), `not_contains` (cross-cutting documentado), `drift_alerts`, `db_tables_owned`, `charter_adr`. Antes de Glob/Grep, abra SCOPE — responde 80% das perguntas "onde está X em Y / que rotas Y tem / quem owna tabela Z". Se SCOPE responder, cite-o; se estiver desatualizado, proponha PR de fix junto.
    - `memory/requisitos/<Modulo>/SPEC.md` (US-XXX-NNN)
    - `memory/requisitos/<Modulo>/RUNBOOK-*.md` (se MWART .tsx)
    - `memory/requisitos/<Modulo>/CAPTERRA*.md` (escopo aprovado)
    - `memory/requisitos/<Modulo>/BRIEFING.md` (estado consolidado)
    - ADRs via `decisions-search query:"<modulo lowercase>"`
+
+   **Reverse-lookup cross-modular** ("quem usa X cross-cutting?"): `Grep "<termo>" Modules/*/SCOPE.md` — `not_contains` + `drift_alerts` revelam decisões conscientes sem precisar varrer código. Origem: 2026-05-17 — pergunta "reunir rotas governança" mapeada via 4 Glob + 2 Grep quando `Modules/Governance/SCOPE.md` + `Modules/Jana/SCOPE.md` respondiam direto.
 2. **DURING** — commit incremental por step lógico; `git push` WIP a cada ~30min; `TodoWrite` mark completed; NUNCA `git checkout` sem `stash`/`commit`
 3. **POST** — `mexeu, registra` — PR no git + CI verde + merge + docs canon
 
