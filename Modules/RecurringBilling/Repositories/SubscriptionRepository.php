@@ -118,6 +118,94 @@ class SubscriptionRepository
     }
 
     /**
+     * Lista pra Page Cobrança Recorrente (v9,75 Ondas 3+4+5) — eager load
+     * relations consumidos pelo SubscriptionIndexPresenter.
+     *
+     * Filtros: status_visual (em_dia/retentando/falhou/pausada/cancelada),
+     * when (any/today/tomorrow/week/month), busca (nome/CNPJ).
+     *
+     * @param  array<string, mixed>  $filtros
+     */
+    public function paginatedForIndex(int $businessId, array $filtros = [], int $perPage = 50): LengthAwarePaginator
+    {
+        return OtelHelper::spanBiz('rb.subscription.repo.paginatedForIndex', function () use ($businessId, $filtros, $perPage) {
+            $q = $this->base($businessId)
+                ->with([
+                    'plan',
+                    'contact:id,business_id,name,mobile,landline,email,tax_number',
+                    'lastInvoice',
+                    'pinnedNote',
+                ]);
+
+            if (! empty($filtros['status_visual']) && $filtros['status_visual'] !== 'all') {
+                $q = match ($filtros['status_visual']) {
+                    'em_dia'     => $q->whereIn('status', ['active', 'trialing']),
+                    'retentando' => $q->where('status', 'past_due'),
+                    'falhou'     => $q->where('status', 'past_due'),
+                    'pausada'    => $q->where('status', 'paused'),
+                    'cancelada'  => $q->where('status', 'canceled'),
+                    default      => $q,
+                };
+            }
+
+            if (! empty($filtros['when']) && $filtros['when'] !== 'any') {
+                $hoje = now()->toDateString();
+                $amanha = now()->copy()->addDay()->toDateString();
+                $semana = now()->copy()->addDays(7)->toDateString();
+                $mes = now()->copy()->addDays(30)->toDateString();
+
+                $q = match ($filtros['when']) {
+                    'today'    => $q->whereDate('next_due_date', $hoje),
+                    'tomorrow' => $q->whereDate('next_due_date', $amanha),
+                    'week'     => $q->whereBetween('next_due_date', [$hoje, $semana]),
+                    'month'    => $q->whereBetween('next_due_date', [$hoje, $mes]),
+                    default    => $q,
+                };
+            }
+
+            if (! empty($filtros['busca'])) {
+                $busca = '%' . trim((string) $filtros['busca']) . '%';
+                $q->whereHas('contact', function ($sub) use ($busca) {
+                    $sub->where('name', 'like', $busca)
+                        ->orWhere('tax_number', 'like', $busca);
+                });
+            }
+
+            return $q->orderByRaw("FIELD(status, 'past_due', 'active', 'trialing', 'paused', 'canceled')")
+                ->orderBy('next_due_date', 'asc')
+                ->orderBy('id', 'desc')
+                ->paginate($perPage);
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'subscription.repo.paginatedForIndex',
+            'business_id' => $businessId,
+        ]);
+    }
+
+    /**
+     * Coleção plena (sem paginate) pra cálculo agregado de KPIs.
+     * Otimizado: SELECT só colunas que SubscriptionIndexPresenter::computeKpis usa.
+     *
+     * @return Collection<int, Subscription>
+     */
+    public function allForKpis(int $businessId): Collection
+    {
+        return OtelHelper::spanBiz('rb.subscription.repo.allForKpis', function () use ($businessId) {
+            return $this->base($businessId)
+                ->with(['plan:id,valor,ciclo'])
+                ->get([
+                    'id', 'business_id', 'plan_id', 'status', 'next_due_date',
+                    'canceled_at', 'paused_at', 'metadata',
+                    'total_revenue_cached', 'failed_count_cached', 'total_paid_cached',
+                ]);
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'subscription.repo.allForKpis',
+            'business_id' => $businessId,
+        ]);
+    }
+
+    /**
      * Builder base — escopo explícito por business_id (defesa em profundidade).
      */
     private function base(int $businessId): Builder
