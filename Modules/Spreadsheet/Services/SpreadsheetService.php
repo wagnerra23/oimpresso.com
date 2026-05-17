@@ -157,4 +157,78 @@ class SpreadsheetService
             'shared_ids_count' => count($sharedIds),
         ]);
     }
+
+    /**
+     * Lista paginada de spreadsheets visíveis ao usuário no tenant.
+     *
+     * Wave 18 D4: extração canônica do critério de "minhas + compartilhadas comigo",
+     * antes inlined no Controller (acoplava UI a query lógica).
+     *
+     * Multi-tenant Tier 0: bizId obrigatório; query principal sempre filtra
+     * `business_id` explicitamente (Spreadsheet NÃO tem global scope porque pre-data
+     * convenção ADR 0093 — back-compat preserva manual filter via Controller/Service).
+     *
+     * @param  int       $bizId    business_id ativo (Tier 0)
+     * @param  int       $userId   User logado
+     * @param  int|null  $folderId Folder ID (null = root)
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function listForUser(int $bizId, int $userId, ?int $folderId = null, int $perPage = 25): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return OtelHelper::spanBiz('spreadsheet.list_for_user', function () use ($bizId, $userId, $folderId, $perPage) {
+            $query = Spreadsheet::where('business_id', $bizId)
+                ->where(function ($q) use ($userId) {
+                    // Próprias planilhas OU compartilhadas com o user
+                    $q->where('created_by', $userId)
+                        ->orWhereHas('shares', function ($sq) use ($userId) {
+                            $sq->where('shared_with', 'user')->where('shared_id', $userId);
+                        });
+                });
+
+            if ($folderId !== null) {
+                $query->where('folder_id', $folderId);
+            } else {
+                $query->whereNull('folder_id');
+            }
+
+            return $query->orderByDesc('updated_at')->paginate($perPage);
+        }, [
+            'module'    => 'Spreadsheet',
+            'user_id'   => $userId,
+            'folder_id' => $folderId ?? 0,
+            'per_page'  => $perPage,
+        ]);
+    }
+
+    /**
+     * Get-by-id com checagem ACL multi-tenant + share.
+     *
+     * Wave 18 D4: 1 ponto de truth pra "posso abrir essa spreadsheet?".
+     * Antes espalhado em find() + where business_id em controllers diferentes.
+     *
+     * Retorna `null` se: id não existe, business_id diferente, OU user
+     * não é criador nem tem share. Frontend trata 404 uniformemente.
+     *
+     * @param  int  $id      Spreadsheet ID
+     * @param  int  $bizId   business_id ativo
+     * @param  int  $userId  User logado
+     */
+    public function getForUser(int $id, int $bizId, int $userId): ?Spreadsheet
+    {
+        return OtelHelper::spanBiz('spreadsheet.get_for_user', function () use ($id, $bizId, $userId) {
+            return Spreadsheet::where('business_id', $bizId)
+                ->where('id', $id)
+                ->where(function ($q) use ($userId) {
+                    $q->where('created_by', $userId)
+                        ->orWhereHas('shares', function ($sq) use ($userId) {
+                            $sq->where('shared_with', 'user')->where('shared_id', $userId);
+                        });
+                })
+                ->first();
+        }, [
+            'module'         => 'Spreadsheet',
+            'spreadsheet_id' => $id,
+            'user_id'        => $userId,
+        ]);
+    }
 }

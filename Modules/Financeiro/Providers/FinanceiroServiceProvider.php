@@ -51,6 +51,12 @@ class FinanceiroServiceProvider extends ServiceProvider
             \Modules\Financeiro\Contracts\BoletoStrategy::class,
             \Modules\Financeiro\Strategies\CnabDirectStrategy::class
         );
+
+        // Wave 18 D4 — Repositories como singleton (sem state, cache OTel friendly).
+        // Consumers injetam via type-hint nos Controllers/Services.
+        $this->app->singleton(\Modules\Financeiro\Repositories\TituloRepository::class);
+        // Wave 18 RETRY D4 saturação granular — BaixaRepository agrupa baixas (read-side).
+        $this->app->singleton(\Modules\Financeiro\Repositories\BaixaRepository::class);
     }
 
     /**

@@ -12,5 +12,14 @@
     "files": [
         "start.php"
     ],
-    "requires": []
+    "requires": [],
+    "grade": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Ponto opera em marcação APPEND-ONLY (Portaria MTP 671/2021 Anexo I §15) — não há transições de estado mutáveis. Anulação cria marcação NOVA (ORIGEM_ANULACAO + ref pra original via marcacao_anulada_id). Workflow de aprovação de intercorrência usa LogsActivity, não FSM tabular ADR 0143.",
+        "wave_18_retry_targets": {
+            "D1_multi_tenant": 30,
+            "D5_customer_journey": 15,
+            "D8_security_form_requests": 8
+        }
+    }
 }

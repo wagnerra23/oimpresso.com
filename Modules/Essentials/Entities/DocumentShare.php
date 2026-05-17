@@ -2,10 +2,18 @@
 
 namespace Modules\Essentials\Entities;
 
+use App\Concerns\BelongsToBusinessViaParent;
 use Illuminate\Database\Eloquent\Model;
 
 class DocumentShare extends Model
 {
+    use BelongsToBusinessViaParent; // ADR 0093 — multi-tenant via Document->business_id (Wave 18 D1)
+
+    /**
+     * Resolve business_id via document parent (share herda tenancy do doc).
+     */
+    protected string $businessParentRelation = 'document';
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -19,6 +27,14 @@ class DocumentShare extends Model
      * @var string
      */
     protected $table = 'essentials_document_shares';
+
+    /**
+     * Documento compartilhado (parent pra tenancy).
+     */
+    public function document()
+    {
+        return $this->belongsTo(\Modules\Essentials\Entities\Document::class, 'document_id');
+    }
 
     public static function documentShareNotificationData($data)
     {

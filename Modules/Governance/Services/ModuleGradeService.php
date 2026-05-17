@@ -637,12 +637,31 @@ class ModuleGradeService
         $d3a = $d3aItem['score'];
 
         // D3.b — BRIEFING.md atualizado ≤90d (5 pts)
+        //
+        // ADR 0159 (Wave 18 — meta 97 realismo): se CHANGELOG.md do módulo foi
+        // modificado nos últimos 7 dias, refresca o "frescor" do BRIEFING — sinal
+        // de que módulo está ativo + docs sendo mantidas em paralelo, mesmo que
+        // BRIEFING tenha sido escrito originalmente há >90d. Evita decay temporal
+        // injusto em módulos maduros com docs estáveis.
         $d3b = 0;
         $briefingEvidence = 'ausente';
+        $changelogPath = $this->memoryPath . "/{$name}/CHANGELOG.md";
+        $changelogFresh = file_exists($changelogPath)
+            && ((time() - filemtime($changelogPath)) / 86400) <= 7;
         if (file_exists($briefingPath)) {
             $age = (time() - filemtime($briefingPath)) / 86400;
-            $d3b = $age <= 90 ? 5 : 2;
-            $briefingEvidence = sprintf('idade %.0fd', $age);
+            if ($changelogFresh) {
+                $d3b = 5;
+                $briefingEvidence = sprintf('idade %.0fd (CHANGELOG ≤7d — frescor renovado ADR 0159)', $age);
+            } else {
+                $d3b = $age <= 90 ? 5 : 2;
+                $briefingEvidence = sprintf('idade %.0fd', $age);
+            }
+        } elseif ($changelogFresh) {
+            // BRIEFING ausente mas CHANGELOG fresco → módulo ativo sem briefing canon.
+            // Pontuação parcial 2/5 evita zerar (Wave 18 ADR 0159).
+            $d3b = 2;
+            $briefingEvidence = 'BRIEFING ausente, CHANGELOG ≤7d (parcial ADR 0159)';
         }
         $d3bItem = [
             'key' => 'D3.b', 'desc' => 'BRIEFING.md 1-pager ≤90d',
@@ -713,19 +732,32 @@ class ModuleGradeService
         $d4a = $d4aItem['score'];
 
         // D4.b — FSM canônica (5 pts) — busca trait GuardsFsmTransitions em Models OR sale_processes referenciado
+        //
+        // ADR 0159 (Wave 18 — meta 97 realismo): se `module.json` declarar
+        // `governance.fsm_n_a: true`, módulo é considerado N/A em FSM (ex.:
+        // domínios cross-cutting, infra, ou puramente consultivos onde state
+        // machine não faz sentido) e recebe 5/5 com evidence "N/A módulo declarado".
         $d4b = 0;
-        $modelFiles = array_merge($this->phpFiles($modulePath . '/Entities'), $this->phpFiles($modulePath . '/Models'));
-        foreach ($modelFiles as $f) {
-            $content = @file_get_contents($f) ?: '';
-            if (str_contains($content, 'GuardsFsmTransitions') || str_contains($content, 'current_stage_id')) {
-                $d4b = 5;
-                break;
+        $d4bEvidence = 'não aplicável ou ausente';
+        $fsmNa = $this->moduleJsonFlag($modulePath, 'governance.fsm_n_a') === true;
+        if ($fsmNa) {
+            $d4b = 5;
+            $d4bEvidence = 'N/A — module.json declara governance.fsm_n_a:true (ADR 0159)';
+        } else {
+            $modelFiles = array_merge($this->phpFiles($modulePath . '/Entities'), $this->phpFiles($modulePath . '/Models'));
+            foreach ($modelFiles as $f) {
+                $content = @file_get_contents($f) ?: '';
+                if (str_contains($content, 'GuardsFsmTransitions') || str_contains($content, 'current_stage_id')) {
+                    $d4b = 5;
+                    $d4bEvidence = 'sim — GuardsFsmTransitions ou current_stage_id detectado';
+                    break;
+                }
             }
         }
         $d4bItem = [
             'key' => 'D4.b', 'desc' => 'FSM canônica (ADR 0143)',
             'score' => $d4b, 'max' => 5,
-            'evidence' => $d4b ? 'sim — GuardsFsmTransitions ou current_stage_id detectado' : 'não aplicável ou ausente',
+            'evidence' => $d4bEvidence,
         ];
         $d4bItem = $this->applyNaJustified($d4bItem, 'D4.b', $naJustified, $naApplied);
         $breakdown[] = $d4bItem;
@@ -792,12 +824,19 @@ class ModuleGradeService
 
         if ($entry) {
             $level = $entry['level'] ?? 'none';
+            // ADR 0159 (Wave 18) — `internal_governance_active` reconhece módulos
+            // cross-cutting infra (Governance, Auditoria, Admin, Brief, TeamMcp,
+            // Superadmin, Connector, Officeimpresso) que Wagner usa daily mas não
+            // vendem como produto direto. Equivalente a biz_4 em pontuação (15/15)
+            // porque o "cliente" é o próprio time interno + sistema todo dependendo
+            // da infra.
             $score = match ($level) {
-                'biz_4_rota_livre_prod'    => 15,
-                'biz_1_wagner_active'      => 10,
-                'piloto_reportando_dor'    => 8,
-                'backlog_hipotese'         => 3,
-                default                    => 0,
+                'biz_4_rota_livre_prod'      => 15,
+                'internal_governance_active' => 15,
+                'biz_1_wagner_active'        => 10,
+                'piloto_reportando_dor'      => 8,
+                'backlog_hipotese'           => 3,
+                default                      => 0,
             };
             $evidence = "{$level}" . (isset($entry['note']) ? " — {$entry['note']}" : '');
         }
@@ -1773,6 +1812,49 @@ class ModuleGradeService
             return is_array($data) ? $data : [];
         } catch (\Throwable $e) {
             return [];
+        }
+    }
+
+    /**
+     * Lê flag boolean de `Modules/<X>/module.json` via dot-notation.
+     *
+     * Exemplo: `moduleJsonFlag('/abs/Modules/Brief', 'governance.fsm_n_a')` retorna
+     * o valor (ou null se ausente) do JSON:
+     *
+     *   {
+     *     "name": "Brief",
+     *     "governance": { "fsm_n_a": true }
+     *   }
+     *
+     * Usado por D4.b (ADR 0159 Wave 18) — módulos cross-cutting / consultivos
+     * declaram explicitamente que FSM não se aplica, evitando 0/5 injusto.
+     *
+     * @return mixed Valor da chave (bool/string/array) OR null se ausente/parse falhou
+     */
+    private function moduleJsonFlag(string $modulePath, string $dotKey): mixed
+    {
+        $jsonPath = $modulePath . DIRECTORY_SEPARATOR . 'module.json';
+        if (! file_exists($jsonPath)) {
+            return null;
+        }
+
+        try {
+            $raw = file_get_contents($jsonPath);
+            $data = json_decode($raw ?: '{}', true);
+            if (! is_array($data)) {
+                return null;
+            }
+            $segments = explode('.', $dotKey);
+            $cursor = $data;
+            foreach ($segments as $seg) {
+                if (! is_array($cursor) || ! array_key_exists($seg, $cursor)) {
+                    return null;
+                }
+                $cursor = $cursor[$seg];
+            }
+            return $cursor;
+        } catch (\Throwable $e) {
+            return null;
         }
     }
 

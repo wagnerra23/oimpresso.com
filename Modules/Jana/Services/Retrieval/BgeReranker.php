@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Retrieval;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -44,13 +45,33 @@ use Throwable;
  */
 class BgeReranker implements Reranker
 {
+    private readonly int $timeoutSeconds;
+
+    /**
+     * @param  int|null  $timeout  Alias canon (Provider passa `timeout:` named arg).
+     */
     public function __construct(
         private readonly string $endpoint,
         private readonly Reranker $fallback,
-        private readonly int $timeoutSeconds = 5,
-    ) {}
+        int $timeoutSeconds = 5,
+        ?int $timeout = null,
+    ) {
+        // Provider usa `timeout:` named arg; back-compat aceitando ambos.
+        $this->timeoutSeconds = $timeout ?? $timeoutSeconds;
+    }
 
     public function reranquear(string $query, array $candidatos, int $topK = 5): array
+    {
+        return OtelHelper::spanBiz('jana.rerank.bge', function () use ($query, $candidatos, $topK) {
+            return $this->doReranquear($query, $candidatos, $topK);
+        }, [
+            'candidatos_in' => count($candidatos),
+            'top_k' => $topK,
+            'endpoint' => $this->endpoint,
+        ]);
+    }
+
+    private function doReranquear(string $query, array $candidatos, int $topK): array
     {
         if (empty($candidatos) || $topK <= 0) {
             return [];

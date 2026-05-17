@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Http\Controllers;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -30,44 +31,51 @@ class DownloadController extends Controller
 {
     public function __invoke(Request $request, int $arquivo, VaultEncryptionService $vault): Response|StreamedResponse
     {
-        // Signed URL middleware (Laravel) já valida expiração + assinatura HMAC.
-        // Aqui foco em business_id scope + audit + stream.
+        // Wave 18 D9.a — span pra download (hot-path crítico audit + crypto).
+        // Atributos sem PII: arquivo_id + bucket + encrypted flag.
+        return OtelHelper::spanBiz('arquivos.download', function () use ($request, $arquivo, $vault) {
+            // Signed URL middleware (Laravel) já valida expiração + assinatura HMAC.
+            // Aqui foco em business_id scope + audit + stream.
 
-        $row = Arquivo::find($arquivo);
+            $row = Arquivo::find($arquivo);
 
-        if (! $row) {
-            abort(404);
-        }
-
-        $this->audit($row, 'signed_url_consumed', $request);
-
-        $diskName = $row->disk ?: 'arquivos';
-        $disk = Storage::disk($diskName);
-
-        if (! $disk->exists($row->storage_path)) {
-            abort(404, 'Arquivo não encontrado no storage.');
-        }
-
-        // Bucket=sensitive em disk=vault: encrypted-at-rest, decrypt antes de servir
-        // (ADR 0123 §3). Storage::download serviria ciphertext direto pro cliente.
-        if ($row->encrypted) {
-            $plain = $vault->getDecrypted($diskName, $row->storage_path);
-            if ($plain === null) {
-                abort(404, 'Arquivo não encontrado no storage (decrypt).');
+            if (! $row) {
+                abort(404);
             }
-            return response($plain, 200, [
-                'Content-Type'        => $row->mime_type ?: 'application/octet-stream',
-                'Content-Disposition' => 'attachment; filename="' . addslashes($row->original_name) . '"',
-            ]);
-        }
 
-        return $disk->download(
-            $row->storage_path,
-            $row->original_name,
-            [
-                'Content-Type' => $row->mime_type ?: 'application/octet-stream',
-            ]
-        );
+            $this->audit($row, 'signed_url_consumed', $request);
+
+            $diskName = $row->disk ?: 'arquivos';
+            $disk = Storage::disk($diskName);
+
+            if (! $disk->exists($row->storage_path)) {
+                abort(404, 'Arquivo não encontrado no storage.');
+            }
+
+            // Bucket=sensitive em disk=vault: encrypted-at-rest, decrypt antes de servir
+            // (ADR 0123 §3). Storage::download serviria ciphertext direto pro cliente.
+            if ($row->encrypted) {
+                $plain = $vault->getDecrypted($diskName, $row->storage_path);
+                if ($plain === null) {
+                    abort(404, 'Arquivo não encontrado no storage (decrypt).');
+                }
+                return response($plain, 200, [
+                    'Content-Type'        => $row->mime_type ?: 'application/octet-stream',
+                    'Content-Disposition' => 'attachment; filename="' . addslashes($row->original_name) . '"',
+                ]);
+            }
+
+            return $disk->download(
+                $row->storage_path,
+                $row->original_name,
+                [
+                    'Content-Type' => $row->mime_type ?: 'application/octet-stream',
+                ]
+            );
+        }, [
+            'module'      => 'Arquivos',
+            'arquivo_id'  => $arquivo,
+        ]);
     }
 
     private function audit(Arquivo $arquivo, string $action, Request $request): void

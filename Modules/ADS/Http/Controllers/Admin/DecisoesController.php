@@ -28,9 +28,23 @@ class DecisoesController extends Controller
     public function index(Request $request): Response
     {
         $businessId = (int) $request->session()->get('user.business_id', 1);
-
         $tab = $request->get('tab', 'pendentes'); // pendentes | em_andamento | subtarefas | historico
 
+        // D6.a Wave 18 RETRY — `kpis` (5 COUNTs cumulativos por destination/outcome)
+        // e `decisions` (50 rows + DecisionPresenter::explain por row) defer pra
+        // pular re-render quando frontend troca de tab via partial reload.
+        return Inertia::render('ads/Admin/Decisoes', [
+            'tab'       => $tab,
+            'decisions' => Inertia::defer(fn () => $this->buildDecisionsPayload($businessId, $tab)),
+            'kpis'      => Inertia::defer(fn () => $this->buildKpisPayload($businessId)),
+        ]);
+    }
+
+    /**
+     * D6.a Wave 18 RETRY — extraído pra pular initial render quando partial reload.
+     */
+    private function buildDecisionsPayload(int $businessId, string $tab): array
+    {
         $query = DB::table('mcp_dual_brain_decisions')
             ->where('business_id', $businessId);
 
@@ -53,7 +67,7 @@ class DecisoesController extends Controller
             });
         }
 
-        $decisions = $query->orderByDesc('id')->limit(50)->get()->map(function ($d) {
+        return $query->orderByDesc('id')->limit(50)->get()->map(function ($d) {
             $explained = DecisionPresenter::explain($d);
             return [
                 'id'                  => $d->id,
@@ -82,9 +96,15 @@ class DecisoesController extends Controller
                 'action_hint'       => $explained['action_hint'],
                 'risk_label'        => $explained['risk_label'],
             ];
-        });
+        })->all();
+    }
 
-        $kpis = [
+    /**
+     * D6.a Wave 18 RETRY — 5 COUNTs por destination/outcome.
+     */
+    private function buildKpisPayload(int $businessId): array
+    {
+        return [
             'pendentes'    => DB::table('mcp_dual_brain_decisions')
                 ->where('business_id', $businessId)
                 ->whereIn('destination', ['pending_wagner', 'blocked'])
@@ -114,12 +134,6 @@ class DecisoesController extends Controller
                 ->where('outcome', 'cancelled')
                 ->count(),
         ];
-
-        return Inertia::render('ads/Admin/Decisoes', [
-            'tab'       => $tab,
-            'decisions' => $decisions,
-            'kpis'      => $kpis,
-        ]);
     }
 
     public function show(Request $request, int $id): Response

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\TaskRegistry;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -54,6 +55,16 @@ class GitTaskLinkerService
      * @return array{links_created:int,tasks_updated:int,errors:list<string>}
      */
     public function handlePushEvent(array $payload): array
+    {
+        // D9.a (Wave 18 SATURATION) — span webhook push event; ref+repo essenciais.
+        return OtelHelper::span('jana.git_linker.push_event', [
+            'repo' => $payload['repository']['full_name'] ?? null,
+            'ref' => $payload['ref'] ?? null,
+            'commits_count' => count((array) ($payload['commits'] ?? [])),
+        ], fn () => $this->handlePushEventInternal($payload));
+    }
+
+    private function handlePushEventInternal(array $payload): array
     {
         $linksCreated = 0;
         $tasksUpdated = 0;

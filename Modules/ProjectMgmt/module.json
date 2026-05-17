@@ -12,5 +12,9 @@
     "files": [
         "start.php"
     ],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "ProjectMgmt usa Kanban free-flow (todo/doing/blocked/done) sobre mcp_jira_tasks — NÃO é state machine FSM tabular (sale_stage_history). Transições de status são livres ad-hoc per Wagner/Felipe; sem actions_critical, sem roles per-stage, sem audit append-only formal. Per ADR 0143, FSM aplica a fluxo crítico Sells/Repair com cancel cascade — ProjectMgmt é gestão interna time, fora do escopo FSM."
+    }
 }

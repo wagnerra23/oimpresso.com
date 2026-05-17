@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Ragas;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 

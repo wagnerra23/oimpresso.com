@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Summarizer;
 
+use App\Util\OtelHelper;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -66,6 +67,16 @@ class AutoSummarizerService
      * @param  array   $opts  Override: model, target_tokens, force (bypass threshold)
      */
     public function summarize(string $text, array $opts = []): SummaryResult
+    {
+        // D9.a (Wave 18 SATURATION) — span auto-summarize; size+model essenciais.
+        return OtelHelper::spanBiz('jana.auto_summarizer.summarize', fn () => $this->summarizeInternal($text, $opts), [
+            'text_chars' => strlen($text),
+            'model' => (string) ($opts['model'] ?? config('copiloto.auto_summarizer.model', 'gpt-4o-mini')),
+            'force' => (bool) ($opts['force'] ?? false),
+        ]);
+    }
+
+    private function summarizeInternal(string $text, array $opts = []): SummaryResult
     {
         $threshold = (int) ($opts['threshold_chars']
             ?? config('copiloto.auto_summarizer.threshold_chars', 8000));

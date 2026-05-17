@@ -20,7 +20,20 @@ class PatternsController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id', 1);
 
-        $patterns = DB::table('mcp_decision_patterns')
+        // D6.a Wave 18 — Inertia::defer pra props caras.
+        // Cada bloco invoca PatternLearningService (Wilson bound calc + drift
+        // detection) ou query GROUP BY — defer evita block initial render.
+        return Inertia::render('ads/Admin/Patterns', [
+            'patterns'   => Inertia::defer(fn () => $this->buildPatternsPayload($businessId, $service)),
+            'candidates' => Inertia::defer(fn () => $service->listPromotionCandidates($businessId)),
+            'drifts'     => Inertia::defer(fn () => $service->detectDrift($businessId)),
+            'kpis'       => Inertia::defer(fn () => $this->buildKpisPayload($businessId, $service)),
+        ]);
+    }
+
+    private function buildPatternsPayload(int $businessId, PatternLearningService $service): array
+    {
+        return DB::table('mcp_decision_patterns')
             ->where('business_id', $businessId)
             ->orderByDesc('total_count')
             ->get()
@@ -39,23 +52,22 @@ class PatternsController extends Controller
                     'is_hardcoded'       => (bool) $p->is_hardcoded,
                     'updated_at'         => $p->updated_at,
                 ];
-            });
+            })
+            ->values()
+            ->toArray();
+    }
 
+    private function buildKpisPayload(int $businessId, PatternLearningService $service): array
+    {
+        $patterns   = $this->buildPatternsPayload($businessId, $service);
         $candidates = $service->listPromotionCandidates($businessId);
         $drifts     = $service->detectDrift($businessId);
 
-        $kpis = [
-            'total_patterns'  => $patterns->count(),
-            'candidates'      => count($candidates),
-            'drifts'          => count($drifts),
-            'hardcoded'       => $patterns->where('is_hardcoded', true)->count(),
+        return [
+            'total_patterns' => count($patterns),
+            'candidates'     => count($candidates),
+            'drifts'         => count($drifts),
+            'hardcoded'      => collect($patterns)->where('is_hardcoded', true)->count(),
         ];
-
-        return Inertia::render('ads/Admin/Patterns', [
-            'patterns'   => $patterns->values(),
-            'candidates' => $candidates,
-            'drifts'     => $drifts,
-            'kpis'       => $kpis,
-        ]);
     }
 }

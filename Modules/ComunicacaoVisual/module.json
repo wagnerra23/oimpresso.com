@@ -10,5 +10,15 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "fsm_n_a": false,
+        "fsm_consumed_via": "app/Domain/Fsm/ (canon ADR 0143 — cv_ordens_producao.current_stage_id)",
+        "audit_log_enabled": true,
+        "audit_log_entities": ["Orcamento", "Os", "Apontamento"],
+        "retention_config": "Modules/ComunicacaoVisual/Config/retention.php",
+        "client_level": "backlog_hipotese",
+        "wave_18_saturation": true,
+        "last_governance_review": "2026-05-16"
+    }
 }

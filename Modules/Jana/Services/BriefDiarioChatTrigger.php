@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Modules\Jana\Ai\Agents\BriefDiarioAgent;
 use Modules\Jana\Entities\Conversa;
 use Throwable;
@@ -68,6 +69,15 @@ class BriefDiarioChatTrigger
      * Tier 0 mecânico: business_id vem da Conversa, NUNCA da mensagem do user.
      */
     public function gerar(Conversa $conversa): string
+    {
+        // D9.a (Wave 18 SATURATION) — span brief chat-trigger; business_id explícito Tier 0.
+        return OtelHelper::span('jana.brief.chat_trigger.gerar', [
+            'business_id' => $conversa->business_id,
+            'conversa_id' => $conversa->id,
+        ], fn () => $this->gerarInternal($conversa));
+    }
+
+    private function gerarInternal(Conversa $conversa): string
     {
         try {
             $businessName = $this->resolveBusinessName($conversa->business_id);

@@ -24,28 +24,37 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->prefix('governance')
     ->name('governance.')
     ->group(function () {
-        // Dashboard consolidado
+        // Dashboard consolidado — throttle 60req/min (read-only, cheap cache)
         Route::get('/', [DashboardController::class, 'index'])
+            ->middleware('throttle:60,1')
             ->name('admin.dashboard');
 
-        // Policies CRUD (mcp_governance_rules)
+        // Policies CRUD (mcp_governance_rules) — throttle defensivo:
+        // read 60/min, toggle 10/min (operação sensível afeta enforcement runtime)
         Route::get('/policies', [PoliciesController::class, 'index'])
+            ->middleware('throttle:60,1')
             ->name('policies.index');
         Route::post('/policies/{id}/toggle', [PoliciesController::class, 'toggle'])
+            ->middleware('throttle:10,1')
             ->name('policies.toggle');
 
-        // Audit log drill-down
+        // Audit log drill-down — throttle 30/min (query pesada DB com filtros)
         Route::get('/audit', [AuditController::class, 'index'])
+            ->middleware('throttle:30,1')
             ->name('audit.index');
 
-        // Drift alerts (Module Charter Art. 7)
+        // Drift alerts (Module Charter Art. 7) — throttle 20/min (scan filesystem caro)
         Route::get('/drift', [DriftAlertsController::class, 'index'])
+            ->middleware('throttle:20,1')
             ->name('drift.index');
 
-        // Module Grades — rubrica module-grade-v1 (ADR 0153)
+        // Module Grades — rubrica module-grade-v3 (ADR 0155)
+        // index/show throttle 30/min — cache 5min mitiga repeat hits
         Route::get('/module-grades', [ModuleGradeController::class, 'index'])
+            ->middleware('throttle:30,1')
             ->name('module-grades.index');
         Route::get('/module-grades/{name}', [ModuleGradeController::class, 'show'])
+            ->middleware('throttle:30,1')
             ->name('module-grades.show')
             ->where('name', '[A-Za-z0-9_-]+');
 

@@ -6,6 +6,7 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Models\FeatureFlagAudit;
 use App\Services\GrowthBookAdminService;
+use App\Util\OtelHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -33,18 +34,22 @@ class FeatureFlagsController extends Controller
     /** Lista todas feature flags + estado por env. */
     public function index(): Response
     {
-        $features = $this->safeCall(fn () => $this->service->listFeatures());
-        $recentAudits = FeatureFlagAudit::query()
-            ->orderByDesc('id')
-            ->limit(20)
-            ->get(['id', 'created_at', 'actor_label', 'flag_key', 'action', 'environment', 'diff_summary']);
+        // D9.a (Wave 18): span agrega 2 sources (REST GrowthBook + DB audits) numa
+        // métrica única — pra spotting de regressão de latência por env.
+        return OtelHelper::spanBiz('admin.feature_flags.index', function () {
+            $features = $this->safeCall(fn () => $this->service->listFeatures());
+            $recentAudits = FeatureFlagAudit::query()
+                ->orderByDesc('id')
+                ->limit(20)
+                ->get(['id', 'created_at', 'actor_label', 'flag_key', 'action', 'environment', 'diff_summary']);
 
-        return Inertia::render('Admin/FeatureFlags/Index', [
-            'configured'   => $this->service->isConfigured(),
-            'features'     => $features['data'] ?? [],
-            'fetch_error'  => $features['error'] ?? null,
-            'recent_audits' => $recentAudits,
-        ]);
+            return Inertia::render('Admin/FeatureFlags/Index', [
+                'configured'   => $this->service->isConfigured(),
+                'features'     => $features['data'] ?? [],
+                'fetch_error'  => $features['error'] ?? null,
+                'recent_audits' => $recentAudits,
+            ]);
+        }, ['component' => 'admin.feature_flags']);
     }
 
     /** Detalhe de 1 feature + audit history dela. */

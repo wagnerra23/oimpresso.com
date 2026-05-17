@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\MemoriaContrato;
@@ -42,6 +43,18 @@ class McpMemoriaDriver implements MemoriaContrato
     }
 
     public function buscar(int $businessId, int $userId, string $query, int $topK = 5): array
+    {
+        // D9.a (Wave 18 SATURATION) — span recall MCP HTTP; biz + token presence.
+        return OtelHelper::span('jana.memoria.mcp.buscar', [
+            'business_id' => $businessId,
+            'user_id'     => $userId,
+            'query_chars' => strlen($query),
+            'top_k'       => $topK,
+            'has_token'   => $this->token !== '',
+        ], fn () => $this->buscarInternal($businessId, $userId, $query, $topK));
+    }
+
+    private function buscarInternal(int $businessId, int $userId, string $query, int $topK = 5): array
     {
         if ($this->token === '') {
             $this->logAviso('Sem token MCP system. Pula recall.');

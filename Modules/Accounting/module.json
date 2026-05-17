@@ -13,5 +13,14 @@
         "start.php",
         "Helpers/general_helper.php"
     ],
-    "requires": []
+    "requires": [],
+    "grade": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Accounting é dado contábil (debit/credit balanced + activity_log append-only) — não há máquina de estados de processo de negócio. Imutabilidade via DB constraint + LogsActivity. FSM (ADR 0143) aplica-se a Sells/Repair.",
+        "wave_18_retry_targets": {
+            "D1_multi_tenant": 30,
+            "D7_lgpd_retention": 10,
+            "D9_observability_otel": 7
+        }
+    }
 }
