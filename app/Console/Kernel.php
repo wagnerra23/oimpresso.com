@@ -122,6 +122,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-SELL-COWORK-R6-SMOKE — smoke automatizado Sells/Index Cowork.
+        // 5 sinais críticos: schema essencial + multi-tenant biz=1/biz=4 com vendas 30d
+        // + Vite manifest contém chunks Cowork (Sale*.tsx) + CSS scoped imports
+        // + SellController::buildCoworkAggregates shape canônico.
+        // 06:30 BRT — após brief (06:00) + grade-snapshot (06:05), antes de cliente abrir.
+        // ROTA LIVRE (biz=4 piloto) zero vendas 30d = ALERT CRÍTICO em prod.
+        $schedule->command('sells:smoke-daily --notify')
+            ->dailyAt('06:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule sells:smoke-daily FALHOU — investigar Cowork drift'
+                );
+            });
+
         // ADR 0153/0155 — Module Grades snapshot diário pra sparkline 7d.
         // Persiste 1 row/módulo em mcp_module_grades_history (~34 módulos × 1KB).
         // Pareado com jana:health-check (06:00) — ambos rodam após brief regenerar.
