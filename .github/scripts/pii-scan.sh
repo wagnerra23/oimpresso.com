@@ -65,8 +65,12 @@ fi
 CPF_REGEX='[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}'
 CNPJ_REGEX='[0-9]{2}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2}'
 
-# Diretórios e extensões pulados (binários, vendored)
-SKIP_DIR_REGEX='^(vendor|node_modules|public|storage|bootstrap/cache|\.git)/'
+# Diretórios e extensões pulados (binários, vendored, protótipos visuais)
+# prototipo-ui/prototipos/* contém mock data UI Cowork (CNPJs/CPFs fake sequenciais
+# pra design visual — não código operacional, não vai pra prod). Inclusão aqui evita
+# floods de falso-positivo em PRs que tocam outros arquivos. Catalogado 2026-05-17:
+# data-os.jsx + vendas-extras.jsx + vendas-output.jsx têm 16+ CNPJs fake placeholder.
+SKIP_DIR_REGEX='^(vendor|node_modules|public|storage|bootstrap/cache|\.git|prototipo-ui/prototipos)/'
 SKIP_EXT_REGEX='\.(lock|min\.js|min\.css|map|svg|png|jpg|jpeg|gif|webp|pdf|zip|woff2?|ttf|eot)$'
 
 violations=0
