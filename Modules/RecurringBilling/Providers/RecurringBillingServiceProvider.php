@@ -32,6 +32,27 @@ class RecurringBillingServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
 
         $this->registerInterPixServices();
+        $this->registerRepositories();
+    }
+
+    /**
+     * Wave 18 D4 saturação RecurringBilling (69→95) — Repositories como singleton.
+     *
+     * SoC brutal (Constituição v2 §5): Controllers/Services injetam via type-hint
+     * em vez de chamar Model::where() inline. Singleton porque Repositories
+     * são stateless (sem estado mutável entre requests).
+     *
+     * @see Modules\RecurringBilling\Repositories\SubscriptionRepository
+     * @see Modules\RecurringBilling\Repositories\InvoiceRepository
+     */
+    protected function registerRepositories(): void
+    {
+        $this->app->singleton(\Modules\RecurringBilling\Repositories\SubscriptionRepository::class);
+        $this->app->singleton(\Modules\RecurringBilling\Repositories\InvoiceRepository::class);
+
+        // Wave 18 RETRY D4 saturação granular — Services extraídos de Controllers/inline
+        $this->app->singleton(\Modules\RecurringBilling\Services\AssinaturaService::class);
+        $this->app->singleton(\Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver::class);
     }
 
     /**

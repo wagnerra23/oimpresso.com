@@ -5,6 +5,7 @@ namespace Modules\Woocommerce\Services;
 use App\Category;
 use App\Media;
 use App\Product;
+use App\Util\OtelHelper;
 use App\Variation;
 use App\VariationTemplate;
 use Illuminate\Support\Facades\Log;
@@ -36,24 +37,30 @@ class WoocommerceResetService
      */
     public function resetarCategorias(int $businessId, int $userId): array
     {
-        try {
-            Category::where('business_id', $businessId)
-                ->update(['woocommerce_cat_id' => null]);
+        // D9 Wave 18 — OTel span (reset destrutivo — visibilidade alta)
+        return OtelHelper::span('woocommerce.reset.categories', [
+            'business_id' => $businessId,
+            'user_id' => $userId,
+        ], function () use ($businessId, $userId) {
+            try {
+                Category::where('business_id', $businessId)
+                    ->update(['woocommerce_cat_id' => null]);
 
-            $this->woocommerceUtil->createSyncLog($businessId, $userId, 'categories', 'reset', null);
+                $this->woocommerceUtil->createSyncLog($businessId, $userId, 'categories', 'reset', null);
 
-            return [
-                'success' => 1,
-                'msg' => __('woocommerce::lang.cat_reset_success'),
-            ];
-        } catch (\Exception $e) {
-            Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+                return [
+                    'success' => 1,
+                    'msg' => __('woocommerce::lang.cat_reset_success'),
+                ];
+            } catch (\Exception $e) {
+                Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
-            return [
-                'success' => 0,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
+                return [
+                    'success' => 0,
+                    'msg' => __('messages.something_went_wrong'),
+                ];
+            }
+        });
     }
 
     /**
@@ -68,41 +75,47 @@ class WoocommerceResetService
      */
     public function resetarProdutos(int $businessId, int $userId): array
     {
-        try {
-            Product::where('business_id', $businessId)
-                ->update([
-                    'woocommerce_product_id' => null,
-                    'woocommerce_media_id' => null,
-                ]);
+        // D9 Wave 18 — OTel span (reset destrutivo 5 tabelas — observability crítica)
+        return OtelHelper::span('woocommerce.reset.products', [
+            'business_id' => $businessId,
+            'user_id' => $userId,
+        ], function () use ($businessId, $userId) {
+            try {
+                Product::where('business_id', $businessId)
+                    ->update([
+                        'woocommerce_product_id' => null,
+                        'woocommerce_media_id' => null,
+                    ]);
 
-            // Variations precisam ser filtradas via product_ids do business (tabela
-            // variations não tem business_id direto — pivot via products).
-            $productIds = Product::where('business_id', $businessId)->pluck('id');
+                // Variations precisam ser filtradas via product_ids do business (tabela
+                // variations não tem business_id direto — pivot via products).
+                $productIds = Product::where('business_id', $businessId)->pluck('id');
 
-            if ($productIds->isNotEmpty()) {
-                Variation::whereIn('product_id', $productIds)
-                    ->update(['woocommerce_variation_id' => null]);
+                if ($productIds->isNotEmpty()) {
+                    Variation::whereIn('product_id', $productIds)
+                        ->update(['woocommerce_variation_id' => null]);
+                }
+
+                VariationTemplate::where('business_id', $businessId)
+                    ->update(['woocommerce_attr_id' => null]);
+
+                Media::where('business_id', $businessId)
+                    ->update(['woocommerce_media_id' => null]);
+
+                $this->woocommerceUtil->createSyncLog($businessId, $userId, 'all_products', 'reset', null);
+
+                return [
+                    'success' => 1,
+                    'msg' => __('woocommerce::lang.prod_reset_success'),
+                ];
+            } catch (\Exception $e) {
+                Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+                return [
+                    'success' => 0,
+                    'msg' => 'Erro interno ao resetar produtos.',
+                ];
             }
-
-            VariationTemplate::where('business_id', $businessId)
-                ->update(['woocommerce_attr_id' => null]);
-
-            Media::where('business_id', $businessId)
-                ->update(['woocommerce_media_id' => null]);
-
-            $this->woocommerceUtil->createSyncLog($businessId, $userId, 'all_products', 'reset', null);
-
-            return [
-                'success' => 1,
-                'msg' => __('woocommerce::lang.prod_reset_success'),
-            ];
-        } catch (\Exception $e) {
-            Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            return [
-                'success' => 0,
-                'msg' => 'Erro interno ao resetar produtos.',
-            ];
-        }
+        });
     }
 }

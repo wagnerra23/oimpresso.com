@@ -10,5 +10,17 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_reason": "Brief é gerador stateless agregador L7 — ciclo de geração linear (refresh cache → Brain B → valida → grava → invalida cache). Sem transições de estado por entidade de negócio. FSM Pipeline (ADR 0143) aplica a Sells/Repair, não a artefatos efêmeros de meta-contexto.",
+        "wave_18_score": {
+            "d1": 30,
+            "d2": 20,
+            "d3": 15,
+            "d6": 10,
+            "d8": 8,
+            "d9": 7
+        }
+    }
 }

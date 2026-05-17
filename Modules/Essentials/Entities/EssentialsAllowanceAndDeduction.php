@@ -2,11 +2,14 @@
 
 namespace Modules\Essentials\Entities;
 
+use App\Concerns\HasBusinessScope;
 use App\Utils\Util;
 use Illuminate\Database\Eloquent\Model;
 
 class EssentialsAllowanceAndDeduction extends Model
 {
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 18 D1 SATURATION — folha/RH)
+
     /**
      * The attributes that aren't mass assignable.
      *

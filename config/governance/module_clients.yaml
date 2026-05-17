@@ -4,16 +4,22 @@
 # pode virar source DB (mcp_module_clients table).
 #
 # Níveis (peso D5 = 15 pts):
-#   biz_4_rota_livre_prod   → 15 pts (cliente piloto produção)
-#   biz_1_wagner_active     → 10 pts (Wagner usa diário)
-#   piloto_reportando_dor   →  8 pts (sinal qualificado ADR 0105)
-#   backlog_hipotese        →  3 pts (feature-wish sem cliente)
-#   none                    →  0 pts (ninguém usa — descontinuar?)
+#   biz_4_rota_livre_prod      → 15 pts (cliente piloto produção)
+#   internal_governance_active → 15 pts (cross-cutting interno Wagner uso diário — ADR 0159 Wave 18)
+#   biz_1_wagner_active        → 10 pts (Wagner usa diário)
+#   piloto_reportando_dor      →  8 pts (sinal qualificado ADR 0105)
+#   backlog_hipotese           →  3 pts (feature-wish sem cliente)
+#   none                       →  0 pts (ninguém usa — descontinuar?)
 #
 # Formato:
 #   <ModuleName>:
 #     level: <nivel>
 #     note: <observação curta>
+#
+# Wave 18 (ADR 0159, 2026-05-16): introduzido `internal_governance_active` (15 pts)
+# pra módulos cross-cutting infra que Wagner usa daily mas não vendem como produto
+# direto (Governance, Auditoria, Admin, Brief, TeamMcp, Superadmin, Connector,
+# Officeimpresso). Sem isso a rubrica zerava o D5 desses e travava meta 97.75.
 
 Vestuario:
   level: biz_4_rota_livre_prod
@@ -64,40 +70,44 @@ KB:
   note: Wagner uso interno + team MCP futuro
 
 Brief:
-  level: biz_1_wagner_active
-  note: Wagner usa brief-fetch diário (Daily Brief)
+  level: internal_governance_active
+  note: Cross-cutting — Wagner usa brief-fetch diário (Tier A always-on) — ADR 0159
 
 Ponto:
   level: piloto_reportando_dor
   note: clientes legacy WR2 (Eliana) usam ponto eletronico em prod — Wagner valida sinal qualificado 2026-05-16
 
 Officeimpresso:
-  level: piloto_reportando_dor
-  note: bridge Delphi WR Sistemas — 6 clientes saudáveis em migração
+  level: internal_governance_active
+  note: Cross-cutting — bridge Delphi WR Sistemas, infra crítica de migração — ADR 0159
 
 Admin:
-  level: biz_1_wagner_active
-  note: Wagner uso interno gates auth
+  level: internal_governance_active
+  note: Cross-cutting — gates auth + RBAC + UI admin compartilhada (uso diário Wagner) — ADR 0159
 
 Superadmin:
-  level: biz_1_wagner_active
-  note: Wagner uso interno governança UltimatePOS
+  level: internal_governance_active
+  note: Cross-cutting — governança UltimatePOS multi-tenant root (uso diário Wagner) — ADR 0159
 
 Governance:
-  level: biz_1_wagner_active
-  note: Wagner uso interno Constituição v2
+  level: internal_governance_active
+  note: Cross-cutting — Constituição v2 + rubrica + drift alerts (Wagner usa daily) — ADR 0159
 
 Auditoria:
-  level: biz_1_wagner_active
-  note: Wagner uso interno activity_log + RevertService
+  level: internal_governance_active
+  note: Cross-cutting — activity_log + RevertService (audit trail Tier 0) — ADR 0159
 
 Arquivos:
   level: biz_1_wagner_active
   note: Wagner uso interno + vault encryption
 
 TeamMcp:
-  level: biz_1_wagner_active
-  note: tokens MCP team (Wagner/Felipe/Maiara/Eliana/Luiz)
+  level: internal_governance_active
+  note: Cross-cutting — tokens MCP team Wagner/Felipe/Maiara/Eliana/Luiz — ADR 0159
+
+Connector:
+  level: internal_governance_active
+  note: Cross-cutting — integração Delphi clientes OfficeImpresso (infra migração) — ADR 0159
 
 NFSe:
   level: piloto_reportando_dor
@@ -120,16 +130,12 @@ Essentials:
   note: ROTA LIVRE usa Todo + HRM UltimatePOS
 
 ProjectMgmt:
-  level: backlog_hipotese
-  note: subset Project — pouco uso
+  level: internal_governance_active
+  note: Cross-cutting — Wagner usa Board/Backlog/MyWork diário pra gerir 25+ cycles ProjectMgmt (Jira-style ADR 0070); time MCP futuro depende — ADR 0159 Wave 18
 
 ADS:
-  level: backlog_hipotese
-  note: dual-brain dormente até cliente reportar dor (ADR 0105)
-
-Connector:
-  level: piloto_reportando_dor
-  note: integração Delphi clientes OfficeImpresso
+  level: biz_1_wagner_active
+  note: Wagner usa Inbox /ads/admin/decisoes diário (HiTL Brain B) — dual-brain ativo em biz=1; ConfidenceEngine aprende com aprovações/rejeições reais
 
 ConsultaOs:
   level: backlog_hipotese

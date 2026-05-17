@@ -18,5 +18,15 @@
         "pii_redactor_enabled": true,
         "activity_log_enabled": true,
         "policy_doc": "memory/requisitos/OficinaAuto/SPEC.md"
+    },
+    "governance": {
+        "fsm_canonico": true,
+        "fsm_pipeline": "service_order",
+        "fsm_doc": "memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md",
+        "fsm_estados_simples": ["aberta", "em_servico", "concluida"],
+        "fsm_estados_complexa": ["aberta", "orcamento", "aprovada", "em_producao", "concluida", "entregue"],
+        "fsm_us": "US-OFICINA-003",
+        "wave": 18,
+        "rubrica_version": "v3"
     }
 }

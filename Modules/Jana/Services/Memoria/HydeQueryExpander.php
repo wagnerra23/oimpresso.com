@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\AnonymousAgent;
@@ -34,6 +35,15 @@ class HydeQueryExpander
      * Retorna [query_original, doc_hipotetico] pra usar com RRF entre os 2.
      */
     public function expandir(string $queryOriginal, ?array $contextoMinimal = null): array
+    {
+        // D9.a (Wave 18 SATURATION) — span HyDE expansion, fora do path quente se disabled.
+        return OtelHelper::spanBiz('jana.memoria.hyde.expandir', fn () => $this->expandirInternal($queryOriginal, $contextoMinimal), [
+            'query_chars' => strlen($queryOriginal),
+            'has_contexto' => $contextoMinimal !== null,
+        ]);
+    }
+
+    private function expandirInternal(string $queryOriginal, ?array $contextoMinimal = null): array
     {
         if (! config('copiloto.hyde.enabled', false)) {
             return [$queryOriginal];

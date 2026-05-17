@@ -26,6 +26,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\CharterAuditCommand::class,
                 \Modules\Governance\Console\Commands\CharterHealthCommand::class,
                 \Modules\Governance\Console\Commands\CharterMetricsCommand::class,
+                \Modules\Governance\Console\Commands\GovernanceHealthCommand::class,
                 \Modules\Governance\Console\Commands\ModuleGradeCommand::class,
                 \Modules\Governance\Console\Commands\ModuleGradeSnapshotCommand::class,
             ]);

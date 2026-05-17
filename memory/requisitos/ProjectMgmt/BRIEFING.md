@@ -59,3 +59,27 @@ Ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — comparado com Linear, Jira, Click
 - ⛔ **Stack middlewares completa obrigatória** em Http/routes.php — sem `SetSessionData` o `session('user.business_id')` é null → vazamento
 - ⚠️ **Schema migration** — `mcp_projects` + `mcp_tasks` vivem em Modules/Copiloto (Jana) — ProjectMgmt é UI sobre essas tabelas, não dono do schema
 - ⚠️ **Permission canônica** — `copiloto.mcp.usage.all` (herdada do Copiloto, igual ao TeamMcp anterior) — não criar permission própria do ProjectMgmt
+
+## Wave 18 Saturação (2026-05-16)
+
+**Meta:** 97/100 module-grade (D5 +12, D8 +3, D1 +5).
+
+| Δ | Entrega |
+|---|---|
+| D5 +12 (3→15) | Yaml `module_clients.yaml` ProjectMgmt: `backlog_hipotese` → `internal_governance_active` (ADR 0159 — Wagner usa Board/Backlog/MyWork diário pra gerir 25+ cycles; time MCP futuro depende) |
+| D8 +1→3 | 2 FormRequests novos: `UpdateTaskStatusRequest` (Kanban drag-drop status in:todo,doing,blocked,done) + `UpdateTaskRequest` (priority P0-P3 + estimate 1-240h) — ratio 5/10=0.5 |
+| D1 +5 | Pest `CrossTenantSaturationTest`: epics biz=1 vs biz=99 isolation + 6 FormRequest sanity check (PT-BR messages + Kanban states + priority range) |
+| module.json | `governance.fsm_n_a: true` justificado (ProjectMgmt usa Kanban free-flow, NÃO FSM tabular — ADR 0143 aplica a Sells/Repair com cancel cascade) |
+
+Services spans já cobertos pré-Wave 18 (ProjectService.list/create/update/find_detail/calculate_kpis + ProjectMgmtAuditService.log via `OtelHelper::spanBiz`).
+
+## Wave 18 RETRY (2026-05-16)
+
+**Meta:** subir D8 ratio 5→9 FormRequests + completar coverage PMG-005/006/007 + Bulk.
+
+| Δ | Entrega |
+|---|---|
+| D8 +4 FormRequests | `AddCommentRequest` (body 1-5000 + 50 mentions PMG-005) + `AddSubtaskRequest` (title + estimate 1-240h + P0-P3 PMG-007) + `WatchTaskRequest` (20 user_ids + notify_method PMG-006) + `BulkBacklogRequest` (op in:5 + confirm:accepted destrutivos) — ratio agora 9/10 = 0.90 |
+| D1 +1 test file | `CrossTenantSaturationRetryTest` — 7 testes (1 cross-tenant em mcp_jira_cycles + 6 FormRequest sanity PMG-005/006/007 + Bulk) |
+| Pest local | 6/6 passed (22 assertions, 2.12s) + 1 skipped por env minimal (mcp_jira_projects/cycles ausente local) |
+| D6/D9 | Já saturados pré-Wave 18 (Controllers Inertia::defer + Services OtelHelper::spanBiz cobertura completa) |

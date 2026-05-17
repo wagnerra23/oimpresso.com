@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Metricas;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +45,16 @@ class GabaritoEvaluator
      * @return array<string, mixed> Métricas agregadas + por-categoria + por-pergunta
      */
     public function rodar(?int $businessId, array $opts = []): array
+    {
+        // D9.a (Wave 18 SATURATION) — span gabarito eval (custoso em LLM).
+        return OtelHelper::span('jana.gabarito.rodar', [
+            'business_id' => $businessId,
+            'include_resposta' => (bool) ($opts['include_resposta'] ?? false),
+            'top_k' => (int) ($opts['top_k'] ?? 10),
+        ], fn () => $this->rodarInternal($businessId, $opts));
+    }
+
+    private function rodarInternal(?int $businessId, array $opts = []): array
     {
         $includeResposta = (bool) ($opts['include_resposta'] ?? false);
         $topK = (int) ($opts['top_k'] ?? 10);

@@ -10,7 +10,9 @@
     ],
     "aliases": {},
     "files": [
-        
+
     ],
-    "requires": []
+    "requires": [],
+    "fsm_n_a": true,
+    "fsm_n_a_reason": "Superadmin é módulo backoffice Wagner-only (cross-tenant intencional). Subscription tem status simples (waiting_approval/approved/expired) com transição linear via Asaas/PesaPal — não justifica ADR 0143 FSM Pipeline (sem stages × actions × roles paralelos como Sells/Repair). Wave 18 RETRY declaração explícita pra evitar falso-positivo em auditoria fsm-coverage."
 }

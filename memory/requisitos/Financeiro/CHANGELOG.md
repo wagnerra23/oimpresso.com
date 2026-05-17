@@ -4,6 +4,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 
 ## [Unreleased]
 
+### Wave 18 saturação 68→95 (2026-05-16)
+
+- **D4 SoC brutal** — Criado `Modules\Financeiro\Repositories\TituloRepository` com 5 métodos canônicos (`listarPaginado`, `totaisAbertos`, `vencidosAntigos`, `aging`, `acharPorOrigem`). Singleton via FinanceiroServiceProvider. Consumers futuros: UnificadoController, FluxoController, FinanceiroHealthCommand. Substitui `Titulo::where(...)` inline em Controllers.
+- **D8 saturação** — Criado `Modules\Financeiro\Http\Requests\FluxoFiltroRequest` (4º FormRequest tipado da onda) com helpers `dias()` / `margemMinima()` pré-validados, evitando `$request->input()` ad-hoc no FluxoController.
+- **D1+D9.a Pest cross-tenant** — `TituloRepositoryWave18Test` (5 cenários): cobertura biz=1 vs biz=99 isolamento Tier 0 (ADR 0093), reflection nos métodos garante 1º param sempre `$businessId: int`, validação spanBiz nos métodos hot (`titulo.repo.listar`, `titulo.repo.aging`), defesa em profundidade `where('business_id', $businessId)` explícito.
+- **module.json governance** — Declarado `governance.fsm_n_a=true` (titulo é status linear simples, não pipeline FSM) + `retention_days=2555` (CTN Art. 195: 7 anos) + `lgpd_compliance` bloco com pii_fields_tracked canônicos.
+
 ### Entregue (Onda 1 — MVP, parcial — 2026-04-25)
 
 - Schema base: `fin_titulos`, `fin_titulo_baixas`, `fin_caixa_movimentos`, `fin_contas_bancarias`, `fin_categorias`, `fin_planos_conta`

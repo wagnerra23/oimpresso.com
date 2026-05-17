@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Retrieval;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -38,6 +39,16 @@ class RrfReranker implements Reranker
     private const RRF_K = 60;
 
     public function reranquear(string $query, array $candidatos, int $topK = 5): array
+    {
+        return OtelHelper::spanBiz('jana.rerank.rrf', function () use ($query, $candidatos, $topK) {
+            return $this->doReranquear($query, $candidatos, $topK);
+        }, [
+            'candidatos_in' => count($candidatos),
+            'top_k' => $topK,
+        ]);
+    }
+
+    private function doReranquear(string $query, array $candidatos, int $topK): array
     {
         if (empty($candidatos) || $topK <= 0) {
             return [];

@@ -4,6 +4,12 @@
 > **Audiencia:** Wagner (dono), Eliana (advogada/LGPD-CLT), Felipe/Maiara (suporte+dev), Luiz (dev IA-pair).
 > **Atualizar a cada PR que altere capacidades/diferenciais.** Skill `brief-update` Tier B auto-ativa.
 
+## Wave 18 RETRY (2026-05-16) — saturação D1/D5/D8
+
+- **D1 Multi-tenant:** `EscalaTurno` recebeu trait `BelongsToBusinessViaParent` (parent = Escala via `escala_id`). Demais 10 Entities Ponto já tinham `HasBusinessScope` (Waves 11+18). **Marcação preservada APPEND-ONLY** (Portaria 671/2021 — `update()`/`delete()` lançam `RuntimeException`).
+- **D5 Cliente:** `CustomerJourneyTest` (Wave 15) cobre jornada completa funcionário: 4 marcações dia + anulação correta (nova marcação com `ORIGEM_ANULACAO`+`marcacao_anulada_id`, original intacta) + cross-tenant biz=1 vs biz=99.
+- **D8 Segurança:** novo `StoreEscalaRequest` (FormRequest) valida limites CLT Art. 58/59/7º (jornada ≤12h, semana ≤44h, tipos canônicos). Validação centralizada (SoC) + 8 cenários Pest sem touch DB.
+
 ## Em uma frase
 
 Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-only imutavel + workflow de intercorrencias + banco de horas com saldo auditavel**, multi-tenant Tier 0, integravel com eSocial.

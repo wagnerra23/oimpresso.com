@@ -4,6 +4,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 
 ## [Unreleased]
 
+### Wave 18 saturação 69→95 (2026-05-16)
+
+- **D4 SoC brutal +14** — Criados `Modules\RecurringBilling\Repositories\SubscriptionRepository` (5 métodos: `listarPaginado`, `contarAtivas`, `mrrBaselineCached`, `vencendoNoIntervalo`, `acharPorId`) e `InvoiceRepository` (5 métodos: `listarPaginado`, `totaisPorStatus`, `atrasadasAntigas`, `acharPorGatewayRef`, `acharPorId`). Singleton via RecurringBillingServiceProvider (`registerRepositories()`). Substitui `Subscription::where()`/`Invoice::where()` inline. MRR cached calcula divisão por ciclo (mensal/trimestral/semestral/anual).
+- **D8 saturação** — Criado `Modules\RecurringBilling\Http\Requests\CancelInvoiceRequest` (3º FormRequest tipado) com `Rule::in` pra motivo (ACERTOS/DUPLICIDADE/PEDIDO_CLIENTE/ERRO_OPERADOR/INADIMPLENCIA/OUTROS) + helper `motivo()` default ACERTOS.
+- **D1+D2+D9.a Pest cross-tenant** — `RepositoryWave18Test` (8 cenários Pest): reflection valida type hints `int $businessId` no 1º param, biz=99 retorna zero em todos métodos (isolamento Tier 0 ADR 0093), spanBiz wrap nos métodos hot, defesa em profundidade `where('business_id', $businessId)` explícito por regex.
+- **module.json governance** — Declarado `governance.fsm_n_a=true` (Subscription/Invoice são state machines lineares simples, não pipelines FSM canon ADR 0143; dunning futuro US-RB-013 pode virar FSM).
+
 ### Planejado (Onda 1 — PaymentGateway + Asaas)
 
 - Schema PaymentGateway: `pg_credentials`, `pg_payment_methods`, `pg_charge_attempts`, `pg_webhook_events`

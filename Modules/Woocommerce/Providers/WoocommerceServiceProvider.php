@@ -137,6 +137,8 @@ class WoocommerceServiceProvider extends ServiceProvider
         $this->commands([
             \Modules\Woocommerce\Console\WooCommerceSyncOrder::class,
             \Modules\Woocommerce\Console\WoocommerceSyncProducts::class,
+            // Wave 18 D9 — health check (DI/schema/creds/last-sync)
+            \Modules\Woocommerce\Console\Commands\WoocommerceHealthCommand::class,
         ]);
     }
 

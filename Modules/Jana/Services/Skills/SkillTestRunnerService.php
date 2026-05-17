@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Skills;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpSkillTestRun;
@@ -32,6 +33,17 @@ class SkillTestRunnerService
      * @return McpSkillTestRun
      */
     public function run(McpSkillVersion $version, string $userPrompt, ?int $businessIdScope, ?int $userId): McpSkillTestRun
+    {
+        // D9.a (Wave 18 SATURATION) — span skill test run; biz scope opcional.
+        return OtelHelper::span('jana.skill.test_run', [
+            'business_id' => $businessIdScope,
+            'user_id' => $userId,
+            'skill_version_id' => $version->id,
+            'prompt_chars' => strlen($userPrompt),
+        ], fn () => $this->runInternal($version, $userPrompt, $businessIdScope, $userId));
+    }
+
+    private function runInternal(McpSkillVersion $version, string $userPrompt, ?int $businessIdScope, ?int $userId): McpSkillTestRun
     {
         $startedAt = microtime(true);
 

@@ -111,6 +111,11 @@ Emissor fiscal brasileiro completo: NFC-e (modelo 65 B2C), NF-e (modelo 55 B2B),
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-16 BRT pelo Wave M boost (auditoria 71→meta 82)
+**Atualizado:** 2026-05-16 BRT pelo Wave 18 saturation (D1/D2 NfeEvento cross-tenant + D7 LogsActivity NfeEvento)
 **Próximo update esperado:** quando próximo PR relevante mergear (auto-trigger `brief-update` skill)
 **Mantenedor:** Claude (auto) + Wagner (review)
+
+### Wave 18 deltas (2026-05-16)
+- D7: `NfeEvento` ganha `LogsActivity` — accountability LGPD Art. 37 (loga tipo/status/cstat_evento sem payload_json completo)
+- D1/D2: novo Pest `NfeEventoMultiTenantIsolationTest.php` (5 testes — scope herdado + append-only + count cross-tenant)
+- CHANGELOG.md criado pelo módulo (rastreio observable de wave a wave)

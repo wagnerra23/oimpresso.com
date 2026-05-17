@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Privacy;
 
+use App\Util\OtelHelper;
+
 /**
  * PII Redactor BR — Constituição Art. 4 (Compliance LGPD Art. 7º).
  *
@@ -58,17 +60,18 @@ class PiiRedactor
      */
     public function redact(string $input, string $mode = 'placeholder'): string
     {
-        if ($input === '') return $input;
+        return OtelHelper::spanBiz('jana.privacy.pii_redact', function () use ($input, $mode) {
+            if ($input === '') return $input;
 
-        $output = $input;
-        foreach (self::PATTERNS as $type => $regex) {
-            $replacement = $this->makeReplacement($type, $mode);
-            $output = preg_replace_callback($regex, function ($matches) use ($type, $mode) {
-                return $this->makeReplacement($type, $mode, $matches[0]);
-            }, $output);
-        }
+            $output = $input;
+            foreach (self::PATTERNS as $type => $regex) {
+                $output = preg_replace_callback($regex, function ($matches) use ($type, $mode) {
+                    return $this->makeReplacement($type, $mode, $matches[0]);
+                }, $output);
+            }
 
-        return $output;
+            return $output;
+        }, ['input_chars' => strlen($input), 'mode' => $mode]);
     }
 
     /**

@@ -7,5 +7,16 @@
     "providers": [
         "Modules\\Auditoria\\Providers\\AuditoriaServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Auditoria opera SOBRE activity_log existente (Spatie Activitylog) — NÃO tem state machine própria. Listing/filter/revert são ações idempotentes (revertir é uma write nova, NÃO mudança de stage). Whitelist UNREVERTIBLE (5 categorias — ADR 0127 §3) é regra de domínio, não FSM. Wave 18 RETRY sinalizado.",
+        "wave_18_retry": {
+            "d1_score": 30,
+            "d2_score": 20,
+            "d6_score": 10,
+            "d8_score": 8,
+            "artifacts": ["AuditEntryService", "AuditNote", "Inertia::defer", "RevertActivityRequest", "FilterAuditEntriesRequest", "StoreAuditNoteRequest", "UpdateAuditNoteRequest", "BulkRevertActivityRequest", "Wave18SaturationTest"]
+        }
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\OficinaAuto\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\OficinaAuto\Entities\ServiceOrder;
@@ -57,35 +58,43 @@ class AprovacaoOsService
      */
     public function gerarTokenAprovacao(ServiceOrder $so): array
     {
-        $expTs = now()->addDays(self::TOKEN_TTL_DAYS)->timestamp;
-
-        $payload = [
-            'os_id'       => (int) $so->id,
+        // D9.a OTel (Wave 18 saturation): span envolve geração de token+PIN
+        // sem expor payload (multi-tenant Tier 0 — attributes só meta).
+        return OtelHelper::span('oficinaauto.aprovacao.gerar_token', [
             'business_id' => (int) $so->business_id,
-            'exp_ts'      => $expTs,
-        ];
+            'os_id'       => (int) $so->id,
+            'module'      => 'OficinaAuto',
+        ], function () use ($so) {
+            $expTs = now()->addDays(self::TOKEN_TTL_DAYS)->timestamp;
 
-        $payloadB64 = $this->base64UrlEncode(json_encode($payload, JSON_THROW_ON_ERROR));
-        $sig        = $this->sign($payloadB64);
-        $token      = $payloadB64.'.'.$sig;
+            $payload = [
+                'os_id'       => (int) $so->id,
+                'business_id' => (int) $so->business_id,
+                'exp_ts'      => $expTs,
+            ];
 
-        // PIN aleatório seguro 4 dígitos (0000-9999)
-        $pin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+            $payloadB64 = $this->base64UrlEncode(json_encode($payload, JSON_THROW_ON_ERROR));
+            $sig        = $this->sign($payloadB64);
+            $token      = $payloadB64.'.'.$sig;
 
-        Cache::put(
-            $this->pinCacheKey((int) $so->id, (int) $so->business_id),
-            hash('sha256', $pin), // armazena hash, NUNCA plain
-            now()->addDays(self::TOKEN_TTL_DAYS)
-        );
+            // PIN aleatório seguro 4 dígitos (0000-9999)
+            $pin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
-        // Reset contador de tentativas em nova geração
-        Cache::forget($this->attemptsCacheKey((int) $so->id));
+            Cache::put(
+                $this->pinCacheKey((int) $so->id, (int) $so->business_id),
+                hash('sha256', $pin), // armazena hash, NUNCA plain
+                now()->addDays(self::TOKEN_TTL_DAYS)
+            );
 
-        return [
-            'token'      => $token,
-            'pin'        => $pin, // plain-text APENAS pra envio ao cliente (1x)
-            'expires_at' => now()->addDays(self::TOKEN_TTL_DAYS),
-        ];
+            // Reset contador de tentativas em nova geração
+            Cache::forget($this->attemptsCacheKey((int) $so->id));
+
+            return [
+                'token'      => $token,
+                'pin'        => $pin, // plain-text APENAS pra envio ao cliente (1x)
+                'expires_at' => now()->addDays(self::TOKEN_TTL_DAYS),
+            ];
+        });
     }
 
     /**
@@ -99,6 +108,17 @@ class AprovacaoOsService
      * Retorna null se qualquer check falhar. NÃO loga payload do token (pode ter PII via SO).
      */
     public function validarToken(string $token): ?ServiceOrder
+    {
+        // D9.a OTel span — attributes só meta (sem leak do token bruto)
+        return OtelHelper::span('oficinaauto.aprovacao.validar_token', [
+            'module' => 'OficinaAuto',
+            'tem_token' => $token !== '',
+        ], function () use ($token) {
+            return $this->validarTokenInterno($token);
+        });
+    }
+
+    private function validarTokenInterno(string $token): ?ServiceOrder
     {
         $parts = explode('.', $token);
         if (count($parts) !== 2) {
@@ -152,6 +172,17 @@ class AprovacaoOsService
      * Retorna true se OK; false se inválido OU em lockout.
      */
     public function validarPin(ServiceOrder $so, string $pin): bool
+    {
+        return OtelHelper::span('oficinaauto.aprovacao.validar_pin', [
+            'business_id' => (int) $so->business_id,
+            'os_id'       => (int) $so->id,
+            'module'      => 'OficinaAuto',
+        ], function () use ($so, $pin) {
+            return $this->validarPinInterno($so, $pin);
+        });
+    }
+
+    private function validarPinInterno(ServiceOrder $so, string $pin): bool
     {
         $osId       = (int) $so->id;
         $businessId = (int) $so->business_id;
