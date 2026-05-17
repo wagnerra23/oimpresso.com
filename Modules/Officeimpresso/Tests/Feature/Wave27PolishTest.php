@@ -60,11 +60,7 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
         ];
 
         foreach ($canonicos as $m) {
-<<<<<<< HEAD
             expect($methods)->toContain($m, "LicencaService deve expor método público {$m}");
-=======
-            expect(in_array($m, $methods, true))->toBeTrue("LicencaService deve expor método público {$m}");
->>>>>>> origin/main
         }
     });
 
@@ -132,11 +128,7 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
         $campos = $const->getValue();
         foreach (['event', 'licenca_id', 'error_code', 'error_message',
                   'endpoint', 'http_method', 'http_status', 'duration_ms'] as $f) {
-<<<<<<< HEAD
             expect($campos)->toContain($f, "CAMPOS_CONHECIDOS deve incluir {$f}");
-=======
-            expect(in_array($f, $campos, true))->toBeTrue("CAMPOS_CONHECIDOS deve incluir {$f}");
->>>>>>> origin/main
         }
     });
 
@@ -215,11 +207,7 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
         // PATCH-friendly: Wagner pode atualizar 1 campo só (ex: liberar versao_disponivel)
         foreach (['caminho_banco_servidor', 'versao_obrigatoria', 'versao_disponivel', 'officeimpresso_numerodemaquinas'] as $field) {
             $rule = implode('|', $rules[$field]);
-<<<<<<< HEAD
             expect($rule)->toContain('sometimes', "Campo {$field} deve ser 'sometimes' (PATCH-friendly)");
-=======
-            expect(str_contains($rule, 'sometimes'))->toBeTrue("Campo {$field} deve ser 'sometimes' (PATCH-friendly)");
->>>>>>> origin/main
         }
     });
 
@@ -241,11 +229,7 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
 
         // Campos contrato Delphi (NÃO renomear — sincronização HTTP)
         foreach (['licenca_id', 'hd', 'processador', 'memoria', 'versao_exe'] as $field) {
-<<<<<<< HEAD
             expect($rules)->toHaveKey($field, "StoreLicencaRequest deve preservar campo Delphi {$field}");
-=======
-            expect(array_key_exists($field, $rules))->toBeTrue("StoreLicencaRequest deve preservar campo Delphi {$field}");
->>>>>>> origin/main
         }
     });
 
@@ -281,11 +265,7 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
             'officeimpresso.empresa.atualizar',
             'officeimpresso.empresa.alternar_bloqueio',
         ] as $span) {
-<<<<<<< HEAD
             expect($src)->toContain("'{$span}'", "Span canon {$span} ausente");
-=======
-            expect(str_contains($src, "'{$span}'"))->toBeTrue("Span canon {$span} ausente");
->>>>>>> origin/main
         }
     });
 
@@ -305,18 +285,12 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
     it('D9 spans: LicencaAuditService span registrar com attributes canon', function () {
         $src = file_get_contents((new ReflectionClass(LicencaAuditService::class))->getFileName());
 
-<<<<<<< HEAD
-        expect($src)->toContain("OtelHelper::spanBiz('officeimpresso.licenca_audit.registrar'")
-            ->and($src)->toContain("'module' => 'Officeimpresso'")
-            ->and($src)->toContain("'event'")
-=======
         expect($src)->toContain("OtelHelper::spanBiz('officeimpresso.licenca_audit.registrar'");
 
         // Atributos canon com tolerância a alinhamento de espaços/padding
         expect(preg_match("/['\"]module['\"]\s*=>\s*['\"]Officeimpresso['\"]/", $src))->toBe(1,
             'LicencaAuditService deve declarar module => Officeimpresso em span attributes');
         expect($src)->toContain("'event'")
->>>>>>> origin/main
             ->and($src)->toContain("'has_error'")
             ->and($src)->toContain("'http_status'");
     });
