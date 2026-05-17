@@ -13,6 +13,7 @@ use App\Utils\TransactionUtil;
 use Datatables;
 use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class TransactionPaymentController extends Controller
 {
@@ -737,5 +738,194 @@ class TransactionPaymentController extends Controller
                 ->rawColumns(['amount', 'method', 'action'])
                 ->make(true);
         }
+    }
+
+    /* ====================================================================
+     | MWART · *Inertia() paralelos — Wave Blade T1 Migration B (2026-05-17)
+     | Coexiste com Blade legacy em /payments. Rotas /payments/v2.
+     | Multi-tenant Tier 0 (ADR 0093) via Transaction.business_id.
+     * ==================================================================== */
+
+    /**
+     * Lista pagamentos (Inertia) — full page com KPIs deferred.
+     *
+     * Filtros suportados (query string):
+     *   - tipo: recebido | pago | null (default null = todos)
+     *   - status: paid | partial | due | null
+     *   - from, to: Y-m-d (default últimos 30d quando nenhum filtro)
+     */
+    public function indexInertia(Request $request)
+    {
+        if (! (auth()->user()->can('sell.payments') || auth()->user()->can('purchase.payments'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $businessId = (int) $request->session()->get('user.business_id');
+
+        $filtros = [
+            'tipo'   => $request->query('tipo'),    // recebido | pago | null
+            'status' => $request->query('status'),  // paid | partial | due | null
+            'from'   => $request->query('from'),
+            'to'     => $request->query('to'),
+        ];
+
+        $base = TransactionPayment::query()
+            ->join('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            ->leftJoin('contacts as c', 't.contact_id', '=', 'c.id')
+            ->where('t.business_id', $businessId)
+            ->where('transaction_payments.business_id', $businessId);
+
+        if ($filtros['tipo'] === 'recebido') {
+            $base->whereIn('t.type', ['sell', 'sell_return', 'opening_balance']);
+        } elseif ($filtros['tipo'] === 'pago') {
+            $base->whereIn('t.type', ['purchase', 'purchase_return', 'expense', 'expense_refund']);
+        }
+        if (in_array($filtros['status'], ['paid', 'partial', 'due'], true)) {
+            $base->where('t.payment_status', $filtros['status']);
+        }
+        if (! empty($filtros['from'])) {
+            $base->whereDate('transaction_payments.paid_on', '>=', $filtros['from']);
+        }
+        if (! empty($filtros['to'])) {
+            $base->whereDate('transaction_payments.paid_on', '<=', $filtros['to']);
+        }
+
+        $pagamentos = (clone $base)
+            ->select(
+                'transaction_payments.id',
+                'transaction_payments.amount',
+                'transaction_payments.method',
+                'transaction_payments.paid_on',
+                'transaction_payments.payment_ref_no',
+                't.id as transaction_id',
+                't.ref_no as transaction_ref_no',
+                't.type as transaction_type',
+                't.payment_status',
+                'c.name as contact_name',
+                'c.type as contact_type'
+            )
+            ->orderByDesc('transaction_payments.paid_on')
+            ->paginate(50)
+            ->withQueryString();
+
+        return Inertia::render('TransactionPayment/Index', [
+            'pagamentos' => $pagamentos,
+            'filtros'    => $filtros,
+            // KPIs deferred — pattern Wave 17 D6 (RUNBOOK-inertia-defer-pattern.md)
+            'kpis' => Inertia::defer(function () use ($businessId) {
+                $sinceMs = now()->subDays(30);
+
+                $recebido30d = (float) TransactionPayment::query()
+                    ->join('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+                    ->where('t.business_id', $businessId)
+                    ->whereIn('t.type', ['sell', 'sell_return', 'opening_balance'])
+                    ->where('transaction_payments.paid_on', '>=', $sinceMs)
+                    ->sum('transaction_payments.amount');
+
+                $pago30d = (float) TransactionPayment::query()
+                    ->join('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+                    ->where('t.business_id', $businessId)
+                    ->whereIn('t.type', ['purchase', 'purchase_return', 'expense', 'expense_refund'])
+                    ->where('transaction_payments.paid_on', '>=', $sinceMs)
+                    ->sum('transaction_payments.amount');
+
+                $pendentesCount = Transaction::where('business_id', $businessId)
+                    ->whereIn('payment_status', ['due', 'partial'])
+                    ->count();
+
+                return [
+                    'recebido_30d'    => $recebido30d,
+                    'pago_30d'        => $pago30d,
+                    'pendentes_count' => $pendentesCount,
+                ];
+            }),
+        ]);
+    }
+
+    /**
+     * Edit pagamento (Inertia full page).
+     *
+     * Coexiste com Blade `edit()` modal AJAX.
+     * Submit POST reusa `update($request, $id)` existente — redireciona /payments/v2.
+     */
+    public function editInertia($id)
+    {
+        if (! auth()->user()->can('edit_purchase_payment') && ! auth()->user()->can('edit_sell_payment') && ! auth()->user()->can('hms.edit_booking_payment')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $businessId = (int) request()->session()->get('user.business_id');
+
+        $paymentLine = TransactionPayment::with(['denominations'])
+            ->where('method', '!=', 'advance')
+            ->findOrFail($id);
+
+        $transaction = Transaction::where('id', $paymentLine->transaction_id)
+            ->where('business_id', $businessId)
+            ->with(['contact', 'location'])
+            ->first();
+
+        if (empty($transaction)) {
+            // Multi-tenant cross-tenant: pagamento existe mas Transaction não pertence a este business
+            abort(404);
+        }
+
+        $paymentTypes = $this->transactionUtil->payment_types($transaction->location);
+        $accounts     = $this->moduleUtil->accountsDropdown($businessId, true, false, true);
+
+        return Inertia::render('TransactionPayment/Edit', [
+            'payment_line'  => $paymentLine,
+            'transaction'   => $transaction,
+            'payment_types' => $paymentTypes,
+            'accounts'      => $accounts,
+        ]);
+    }
+
+    /**
+     * Show pagamento (Inertia full page) — equivalente a `viewPayment()` modal.
+     */
+    public function showInertia($id)
+    {
+        if (! (auth()->user()->can('sell.payments') ||
+                auth()->user()->can('purchase.payments') ||
+                auth()->user()->can('edit_sell_payment') ||
+                auth()->user()->can('delete_sell_payment') ||
+                auth()->user()->can('edit_purchase_payment') ||
+                auth()->user()->can('delete_purchase_payment') ||
+                auth()->user()->can('hms.add_booking_payment')
+            )) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $businessId = (int) request()->session()->get('business.id');
+
+        $singlePaymentLine = TransactionPayment::findOrFail($id);
+
+        $transaction = null;
+        if (! empty($singlePaymentLine->transaction_id)) {
+            $transaction = Transaction::where('id', $singlePaymentLine->transaction_id)
+                ->where('business_id', $businessId)
+                ->with(['contact', 'location', 'transaction_for'])
+                ->first();
+        } else {
+            $childPayment = TransactionPayment::where('business_id', $businessId)
+                ->where('parent_id', $id)
+                ->with(['transaction', 'transaction.contact', 'transaction.location', 'transaction.transaction_for'])
+                ->first();
+            $transaction = ! empty($childPayment) ? $childPayment->transaction : null;
+        }
+
+        // Multi-tenant Tier 0 (ADR 0093): pagamento pertencente a outro business retorna 404
+        if (empty($transaction)) {
+            abort(404);
+        }
+
+        $paymentTypes = $this->transactionUtil->payment_types(null, false, $businessId);
+
+        return Inertia::render('TransactionPayment/Show', [
+            'single_payment_line' => $singlePaymentLine,
+            'transaction'         => $transaction,
+            'payment_types'       => $paymentTypes,
+        ]);
     }
 }
