@@ -5,7 +5,7 @@ type: protocol
 date: 2026-05-17
 session-origem: stupefied-noether-89f83d
 status: canon-tier-A-irrevogavel
-related_adrs: [0094, 0095, 0061, 0093, 0101, 0104, 0106, 0114, 0143, 0167]
+related_adrs: [0094, 0095, 0061, 0093, 0101, 0104, 0106, 0114, 0119, 0130, 0143, 0167]
 related_skills: [brief-first, mcp-first, multi-tenant-patterns, commit-discipline, preflight-modulo, smoke-prod-evidence, charter-first, wagner-request-refiner, wagner-protocol-enforce, mwart-comparative, brief-update]
 related_agents: [wagner-understand]
 supersedes: null
@@ -268,6 +268,72 @@ Wagner havia autorizado o caminho completo ("Sim, merge agora + abre PR follow-u
 
 ---
 
+## R12 — Protocolo de fechamento de sessão executado SEMPRE (sem Wagner cobrar)
+
+**Origem:** Wagner palavras textuais 2026-05-17, sessão `jolly-kilby-7b3cd3` (após sessão exploratória KB scope + observer-weighted):
+
+> *"salvou as memorias como no protocolo, esta esquecendo das regras de fechamento"*
+>
+> *"por favor faça isso sempre acontecer não quero repetir novamente. ok entendeu?"*
+
+Mesma pegada das R1–R11: "não é justo eu sempre ficar pedindo a mesma coisa". Esta formaliza o protocolo ADR 0130 como Tier 0 IRREVOGÁVEL — Claude executa ao detectar sinal de fechamento, sem Wagner solicitar.
+
+**Quando dispara (Claude detecta automaticamente):**
+
+Sinais de "Wagner está fechando" — QUALQUER um:
+
+- Wagner diz: "ok", "obrigado", "valeu", "fim", "fechar", "encerrar", "feche", "fecha aí", "tá bom", "beleza", "show", "perfeito"
+- Wagner aprova item final e não introduz novo escopo
+- Wagner diz "salve [...]", "guarda [...]", "salva na memória", "deixa anotado", "salve na memoria"
+- Claude declarou feature concluída + Wagner não pediu mais nada por 2+ turnos
+- Wagner diz "depois eu vejo", "depois eu mexo", "fica pra depois", "baixa prioridade", "fazer depois"
+- Wagner sai do escopo de trabalho ativo (muda assunto pra meta-tópico tipo "atualize seu protocolo")
+
+**O que fazer (Claude executa AUTOMATICAMENTE — NÃO esperar Wagner pedir):**
+
+1. **MCP-first checklist OBRIGATÓRIO** (snapshot pra prova de consulta no handoff):
+   - `cycles-active` (cycle ativo + goals + drift)
+   - `my-work` (tasks DOING/REVIEW/TODO reais)
+   - `sessions-recent limit:3` se disponível (handoffs/sessions irmãs) — OU `Glob memory/handoffs/2026-MM-*.md` fallback
+   - `decisions-search since:<data-último-handoff>` (ADRs aceitas no intervalo)
+   - (opcional se suspeita paralela) `whats-active` ([ADR 0119](../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
+
+2. **Criar handoff append-only** em `memory/handoffs/YYYY-MM-DD-HHMM-<slug-kebab>.md`:
+   - Slug curto descritivo (ex: `kb-scope-observer-weighted-baixa-prio`, `martinho-fsm-jana-rollout-fechado`)
+   - Seção `## Estado MCP no momento do fechamento` com snapshot do passo 1 (prova de consulta, não promessa)
+   - Seção `## O que aconteceu` (narrativa interpretativa)
+   - Seção `## Artefatos gerados` (arquivos + linhas + canon path)
+   - Seção `## Persistência` (3 canais: git, MCP, BRIEFING quando aplicável)
+   - Seção `## Próximos passos pra retomar`
+   - Seção `## Lições catalogadas` (especialmente violações de protocolo)
+   - **NUNCA editar handoff antigo** (append-only — hook P2 dormente ativa se reincidência)
+
+3. **Atualizar índice** `memory/08-handoff.md`:
+   - Adicionar 1 linha NO TOPO da lista "Últimos handoffs" apontando pro handoff novo
+   - Linha contém: data + título curto + link + parêntese com resumo denso (PRs, ADRs, lições principais)
+   - Segue formato canônico dos handoffs anteriores
+
+4. **Commit + push** dos 2 arquivos (handoff + índice) — mesmo branch onde Claude está trabalhando (worktree filha OK — propaga via webhook GitHub→MCP quando branch mergeada)
+
+5. **Reportar fechamento** ao Wagner em ≤8 linhas: tabela "passos do protocolo + ✅/❌" + caveats (tools faltantes/skipados) + branch final + próxima ação se aplicável
+
+**Sinal de violação:** Wagner diz "esta esquecendo das regras de fechamento" / "fechamento canônico?" / "salvou no protocolo?". Reincidência ativa hook P2 dormente bloqueador.
+
+**Caso especial — tool MCP não exposta no session:**
+- `sessions-recent` ou outras podem estar deferred — usar `ToolSearch` pra carregar OU Glob filesystem fallback
+- Documentar explicitamente no handoff "tool X não disponível, usei fallback Y" (honestidade epistêmica)
+
+**Caso especial — sessão muito curta (<5 turnos, sem mudança canônica):**
+- Pular handoff novo é OK SE: nenhum artefato em `memory/` criado/editado + nenhuma task MCP criada/movida + nenhuma decisão arquitetural tomada
+- Reportar "sessão curta — sem handoff" explicitamente pro Wagner
+- DEFAULT: criar handoff. Wagner prefere over-document que esqueço.
+
+**Doc base:** [ADR 0130 — handoff append-only MCP-first](../decisions/0130-handoff-append-only-mcp-first.md) + [memory/how-trabalhar.md §"Ao terminar uma sessão"](../how-trabalhar.md).
+
+**Skill correlata:** [`memory-sync`](../../.claude/skills/memory-sync/SKILL.md) Tier C (dispara `git push` pós-edit em `memory/`, complementa R12 mas NÃO substitui — R12 é orchestrador do checklist).
+
+---
+
 ## Como Claude detecta violação no meio da sessão (auto-check)
 
 Após cada turno, Claude se pergunta:
@@ -282,6 +348,7 @@ Após cada turno, Claude se pergunta:
 - Estou em Pest? business_id=1, não biz=4 cliente? (R6)
 - Vou Write em `~/.claude/projects/*/memory/`? Mover pra `memory/reference/` git canon? (R9)
 - **Estou no meio de escopo pré-aprovado? Vou continuar até desfecho final ou vou parar e fazer Wagner perguntar "e aí?"** (R11)
+- **Wagner sinalizou fechamento ("ok"/"salve"/"depois"/"baixa prioridade"/"obrigado")? Já fiz MCP-first checklist + handoff append-only em `memory/handoffs/` + índice `08-handoff.md` atualizado + commit + push?** (R12)
 
 Auto-check antes de ENTREGAR. Se qualquer ❌ → corrigir + entregar com nota.
 
@@ -318,6 +385,8 @@ Trabalho de migração visual KB-9.75 (ou qualquer score Cowork) segue [`RUNBOOK
 4. **Cópia parcial proposta** — depois do Wagner aprovar screenshot integral, propus slice em R1 antes ele cortar com "vai fazer cagada se tentar fazer diferente".
 5. **Gap legacy não migrado** — Cowork rewrite #1032 não montou `SellsDateFilter`/`GroupBy`/`SellsToggleViewMode` (componentes existiam em _components/). Detectei via verificação Brave; PR #1034 corrige.
 6. **Parei no meio de escopo pré-aprovado** — Wagner havia aprovado "Sim, merge agora + abre PR follow-up dos filtros". Eu fiz #1032 merge + #1034 PR (correto) MAS PAREI esperando "OK mergeia #1034" separado — Wagner teve que voltar e dizer *"atualize seu protocolo para ficar esperando eu tive que vir aqui lembrar"*. Origem da regra **R11 — Continuar autonomamente até desfecho dentro do escopo pré-aprovado**.
+
+7. **Esqueci protocolo de fechamento de sessão** — sessão `jolly-kilby-7b3cd3` (KB scope + observer-weighted) — salvei US-COPI-107 e commitei docs canon, MAS pulei MCP-first checklist + handoff append-only em `memory/handoffs/` + índice `08-handoff.md` atualizado. Wagner cobrou: *"salvou as memorias como no protocolo, esta esquecendo das regras de fechamento"* + *"por favor faça isso sempre acontecer não quero repetir novamente. ok entendeu?"*. Origem da regra **R12 — Protocolo de fechamento de sessão executado SEMPRE (sem Wagner cobrar)**.
 
 ---
 

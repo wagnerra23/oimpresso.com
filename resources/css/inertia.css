@@ -8,6 +8,9 @@
 /* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
 @import "./sells-cowork-ia.css";
 
+/* Sells Cowork Onda 3 R3 Curadoria — escopado em .sells-cowork-curadoria + linkify pills */
+@import "./sells-cowork-curadoria.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
