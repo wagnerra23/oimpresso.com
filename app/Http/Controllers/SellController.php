@@ -666,7 +666,117 @@ class SellController extends Controller
                           auth()->user()->can('view_commission_agent_sell'),
             ],
             'datatableUrl' => '/sells',
+            // US-SELL-COWORK-R5-POLISH — agregados Cowork (sparkline 30d + deltas + top vendedor).
+            // Inertia::defer pra não bloquear render inicial (pages.md rule canon).
+            'coworkAggregates' => \Inertia\Inertia::defer(fn () => $this->buildCoworkAggregates($business_id)),
         ]);
+    }
+
+    /**
+     * US-SELL-COWORK-R5-POLISH — agregados pra cards Cowork da Sells/Index.
+     *
+     * Retorna:
+     *  - sparkline: array 30 days revenue (final_total) — multi-tenant Tier 0 scoped via business_id
+     *  - deltaRevenueVsYesterday: pct (round int) — null se ontem == 0
+     *  - deltaTicketVsLastWeek: pct (round int) — null se semana passada == 0
+     *  - topSeller: { name, total } — commission_agent do mês corrente OU null
+     *
+     * Multi-tenant Tier 0 IRREVOGÁVEL: todo where() abaixo recebe ->where('business_id', $business_id)
+     * explícito além do global scope (defesa em profundidade, ADR 0093).
+     */
+    protected function buildCoworkAggregates(int $business_id): array
+    {
+        $today = now()->startOfDay();
+        $yesterday = (clone $today)->subDay();
+        $start30 = (clone $today)->subDays(29);
+        $monthStart = (clone $today)->startOfMonth();
+        $lastWeekStart = (clone $today)->subDays(13);
+        $lastWeekEnd = (clone $today)->subDays(7);
+        $thisWeekStart = (clone $today)->subDays(6);
+
+        // Sparkline — 30d revenue per day. GROUP BY DATE().
+        $sparkRowsQ = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereNull('sub_type')
+            ->whereBetween('transaction_date', [$start30, (clone $today)->endOfDay()])
+            ->selectRaw('DATE(transaction_date) as d, SUM(final_total) as total')
+            ->groupBy('d')
+            ->orderBy('d');
+
+        $sparkByDate = $sparkRowsQ->get()->keyBy('d')->map(fn ($r) => (float) $r->total);
+
+        $sparkline = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = (clone $today)->subDays($i)->format('Y-m-d');
+            $sparkline[] = (float) ($sparkByDate[$date] ?? 0.0);
+        }
+
+        // Delta revenue hoje vs ontem (round int %).
+        $revToday = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereNull('sub_type')
+            ->whereDate('transaction_date', $today)
+            ->sum('final_total');
+        $revYesterday = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereNull('sub_type')
+            ->whereDate('transaction_date', $yesterday)
+            ->sum('final_total');
+
+        $deltaRevenueVsYesterday = $revYesterday > 0
+            ? (int) round((($revToday - $revYesterday) / $revYesterday) * 100)
+            : null;
+
+        // Delta ticket médio esta semana vs semana passada (round int %).
+        $thisWeekRows = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereNull('sub_type')
+            ->whereBetween('transaction_date', [$thisWeekStart, (clone $today)->endOfDay()])
+            ->selectRaw('COUNT(*) as c, SUM(final_total) as s')
+            ->first();
+        $lastWeekRows = \App\Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereNull('sub_type')
+            ->whereBetween('transaction_date', [$lastWeekStart, $lastWeekEnd])
+            ->selectRaw('COUNT(*) as c, SUM(final_total) as s')
+            ->first();
+
+        $thisWeekTicket = ($thisWeekRows && $thisWeekRows->c > 0) ? $thisWeekRows->s / $thisWeekRows->c : 0.0;
+        $lastWeekTicket = ($lastWeekRows && $lastWeekRows->c > 0) ? $lastWeekRows->s / $lastWeekRows->c : 0.0;
+
+        $deltaTicketVsLastWeek = $lastWeekTicket > 0
+            ? (int) round((($thisWeekTicket - $lastWeekTicket) / $lastWeekTicket) * 100)
+            : null;
+
+        // Top vendedor do mês (commission_agent).
+        $topSellerRow = \App\Transaction::where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final')
+            ->whereNull('transactions.sub_type')
+            ->whereBetween('transactions.transaction_date', [$monthStart, (clone $today)->endOfDay()])
+            ->whereNotNull('transactions.commission_agent')
+            ->join('users', 'users.id', '=', 'transactions.commission_agent')
+            ->selectRaw("CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as name, SUM(transactions.final_total) as total")
+            ->groupBy('transactions.commission_agent', 'users.first_name', 'users.last_name')
+            ->orderByDesc('total')
+            ->limit(1)
+            ->first();
+
+        $topSeller = $topSellerRow && trim((string) $topSellerRow->name) !== ''
+            ? ['name' => trim((string) $topSellerRow->name), 'total' => (float) $topSellerRow->total]
+            : null;
+
+        return [
+            'sparkline' => $sparkline,
+            'deltaRevenueVsYesterday' => $deltaRevenueVsYesterday,
+            'deltaTicketVsLastWeek' => $deltaTicketVsLastWeek,
+            'topSeller' => $topSeller,
+        ];
     }
 
     /**

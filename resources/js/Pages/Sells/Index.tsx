@@ -112,12 +112,22 @@ interface TotalsSummary {
   sum_due: number;
 }
 
+// US-SELL-COWORK-R5-POLISH — agregados deferred (sparkline real 30d + deltas + top vendedor).
+interface CoworkAggregates {
+  sparkline: number[]; // 30 days, oldest → newest, sum(final_total) per day
+  deltaRevenueVsYesterday: number | null; // pct round int (today vs yesterday); null se ontem=0
+  deltaTicketVsLastWeek: number | null;   // pct round int (this week ticket médio vs last week); null se 0
+  topSeller: { name: string; total: number } | null;
+}
+
 export interface SellsIndexPageProps {
   sellKpis: SellKpis;
   permissions: {
     create: boolean;
     view: boolean;
   };
+  /** US-SELL-COWORK-R5-POLISH — Inertia::defer prop; undefined enquanto carrega. */
+  coworkAggregates?: CoworkAggregates;
   sells?: {
     viewMode?: {
       default?: string;
@@ -701,16 +711,26 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     return { ok, wait, bad, total: ok + wait + bad };
   }, [rows]);
 
-  // Sparkline mock — 30d simulado por enquanto (backend canônico vem em refino futuro).
+  // US-SELL-COWORK-R5-POLISH — Sparkline real (30d) via Inertia::defer.
+  // Fallback: enquanto coworkAggregates não chega, usa base ascendente + faturado hoje.
   const sparkData = useMemo<number[]>(() => {
-    // base ascendente terminada no faturado de hoje pra dar continuidade visual.
+    if (props.coworkAggregates?.sparkline?.length) {
+      // Escala pra mil pra renderização compacta (Sparkline component aceita qualquer escala).
+      return props.coworkAggregates.sparkline.map((v) => Math.max(0.1, v / 1000));
+    }
+    // Fallback enquanto deferred não carregou — base com últ. ponto = faturado hoje.
     const base = [
       3.2, 2.8, 4.1, 3.6, 4.8, 5.2, 3.9, 4.4, 5.8, 4.6,
       5.1, 6.3, 5.4, 4.9, 6.8, 7.2, 5.9, 6.4, 7.8, 6.2,
       7.5, 8.4, 6.9, 7.8, 9.1, 8.2, 7.6, 8.9, 9.4,
     ];
     return [...base, Math.max(0.1, kpiToday.total / 1000)];
-  }, [kpiToday.total]);
+  }, [kpiToday.total, props.coworkAggregates?.sparkline]);
+
+  // US-SELL-COWORK-R5-POLISH — deltas reais (round int %) com fallback —.
+  const deltaRevenue = props.coworkAggregates?.deltaRevenueVsYesterday ?? null;
+  const deltaTicket = props.coworkAggregates?.deltaTicketVsLastWeek ?? null;
+  const topSeller = props.coworkAggregates?.topSeller ?? null;
 
   // Selection helpers.
   const toggleSel = useCallback(
@@ -951,7 +971,19 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           </div>
 
           <div className="vd-toolbar-r">
-            <button className="vd-toolbar-act" type="button" title="Imprimir caixa do dia">
+            <button
+              className="vd-toolbar-act"
+              type="button"
+              title="Imprimir resumo do caixa de hoje (vendas, formas de pagamento, total)"
+              onClick={() => {
+                // US-SELL-COWORK-R5-POLISH — abre relatório de caixa de hoje em nova aba.
+                // Endpoint existente UltimatePOS: /home (cash register summary) ou /sells?print=today.
+                // Estratégia: filtra rows do dia + dispara window.print() do próprio Index
+                // pra capturar o que está visível agora. Stack canônica imprime sells/{id}/print
+                // mas pra "caixa do dia" inteiro o usuário faz print da listagem filtrada.
+                window.print();
+              }}
+            >
               <Printer size={11} />
               <span>Imprimir caixa</span>
             </button>
@@ -997,23 +1029,49 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
         {/* KPIs row — 4 cards (Faturado hero · Ticket médio · A receber · 4º vista-dependente) */}
         <div className="os-kpis vd-kpis">
-          {/* Hero: Faturado hoje + sparkline */}
+          {/* Hero: Faturado hoje + sparkline (delta real US-SELL-COWORK-R5) */}
           <div className="os-kpi vd-kpi-hero">
             <span className="os-kpi-label">Faturado hoje</span>
             <span className="os-kpi-value">{fmtShort(kpiToday.total)}</span>
-            <span className="os-kpi-sub vd-delta-up">
-              ↑ +18% vs ontem · {kpiToday.count} venda{kpiToday.count === 1 ? '' : 's'}
+            <span
+              className={
+                'os-kpi-sub ' +
+                (deltaRevenue == null ? '' : deltaRevenue >= 0 ? 'vd-delta-up' : 'vd-delta-dn')
+              }
+              title={
+                deltaRevenue == null
+                  ? 'Sem dado de ontem pra comparar'
+                  : `Variação vs ontem (${deltaRevenue >= 0 ? '+' : ''}${deltaRevenue}%)`
+              }
+            >
+              {deltaRevenue == null
+                ? `— · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`
+                : `${deltaRevenue >= 0 ? '↑ +' : '↓ '}${deltaRevenue}% vs ontem · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`}
             </span>
             <div className="vd-spark">
               <Sparkline data={sparkData} color="oklch(0.72 0.10 155)" />
             </div>
           </div>
 
-          {/* Ticket médio */}
+          {/* Ticket médio (delta WoW real US-SELL-COWORK-R5) */}
           <div className="os-kpi">
             <span className="os-kpi-label">Ticket médio</span>
             <span className="os-kpi-value">{fmtShort(kpiToday.ticket)}</span>
-            <span className="os-kpi-sub vd-delta-up">↑ 12% vs semana passada</span>
+            <span
+              className={
+                'os-kpi-sub ' +
+                (deltaTicket == null ? '' : deltaTicket >= 0 ? 'vd-delta-up' : 'vd-delta-dn')
+              }
+              title={
+                deltaTicket == null
+                  ? 'Sem ticket médio da semana passada pra comparar'
+                  : `Ticket médio: variação semana atual vs semana passada (${deltaTicket >= 0 ? '+' : ''}${deltaTicket}%)`
+              }
+            >
+              {deltaTicket == null
+                ? '— vs semana passada'
+                : `${deltaTicket >= 0 ? '↑ +' : '↓ '}${deltaTicket}% vs semana passada`}
+            </span>
           </div>
 
           {/* A receber */}
@@ -1097,10 +1155,16 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </div>
           )}
           {foco === 'comissao' && (
-            <div className="os-kpi">
+            <div className="os-kpi" title={topSeller ? `Soma de vendas final_total do mês corrente` : ''}>
               <span className="os-kpi-label">Top vendedor (mês)</span>
-              <span className="os-kpi-value">—</span>
-              <span className="os-kpi-sub">backlog · backend (commission_agent) próximo refino</span>
+              <span className="os-kpi-value">{topSeller ? topSeller.name : '—'}</span>
+              <span className="os-kpi-sub">
+                {topSeller
+                  ? `${fmtShort(topSeller.total)} no mês`
+                  : props.coworkAggregates
+                    ? 'sem commission_agent atribuído este mês'
+                    : 'carregando…'}
+              </span>
             </div>
           )}
         </div>
