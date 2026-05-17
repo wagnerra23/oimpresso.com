@@ -5,6 +5,20 @@
 
 ## [Unreleased]
 
+### Added (Wave 25 — 2026-05-16 — SATURATION restore D7 + D3 + D5)
+- `Modules/ComunicacaoVisual/Tests/Feature/AuditTrailIntegrityTest.php` — 8 testes validando whitelist Spatie ActivityLog NÃO inclui PII (contato_id/observacoes/operador_id) + logName namespaced `comvis.*` + logOnlyDirty/dontSubmitEmptyLogs (D7 forensic restore — regressão Wave 22 detectada)
+- `Modules/ComunicacaoVisual/Tests/Feature/Wave25SaturationTest.php` — 14 testes smoke saturação D3/D5/D7/V6 bucket vertical_client_facing
+- `resources/js/Pages/ComunicacaoVisual/Index.tsx` — stub Sprint 2 Inertia page (UI ainda em construção; sinaliza TODO MWART F3)
+- `resources/js/Pages/ComunicacaoVisual/Index.charter.md` — charter MWART F1.5 fundação visual-comparison gate (persona Larissa-equivalente + anti-padrões Tier 0)
+- `BRIEFING.md` §11 histórico de saturação (Wave 17→18→22→23→25 score table)
+
+### Changed
+- `module.json` `governance.wave_25_saturation: true` + `last_governance_review: 2026-05-16`
+- `BRIEFING.md` Pest suites: 6 → 13 (AuditTrailIntegrityTest + Wave25SaturationTest)
+
+### Forensic D7 regressão (Wave 22→23 → 25 restore)
+- **Causa raiz inferida**: rubrica scoped v3 (ADR 0160) recalibrou pesos V4 → forensic descoberto que `LogsActivity` whitelist estava OK nas Entities, mas FALTAVA Pest que asserte explicitamente que campos PII (contato_id/observacoes/operador_id) NÃO entram em `activity_log` table. Wave 25 cria essa garantia automática (AuditTrailIntegrityTest 8 assertions).
+
 ### Added (Wave 18 — 2026-05-16)
 - Charter `.charter.md` ao lado de cada page Inertia (governance D3)
 - `Modules/ComunicacaoVisual/Config/retention.php` — LGPD Art. 16 janelas de retenção (D7)

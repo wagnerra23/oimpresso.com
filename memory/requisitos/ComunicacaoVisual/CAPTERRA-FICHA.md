@@ -2,6 +2,7 @@
 
 > Ficha canônica de benchmark do módulo vertical ComunicacaoVisual.
 > **Bucket**: `vertical_client_facing` ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md))
+> **Wave 25** — SATURATION D7 forensic restore + D3/D5 boost (65→≥85 após regressão Wave 22)
 > **Wave 23** — saturação 41.5 → ≥85 (gap maior do bucket; rubrica scoped vertical_client_facing.yaml)
 > ADR governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) + [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
 
@@ -71,17 +72,21 @@ capacidades_baseline:
 5. **FSM canon multi-stage** (ADR 0143) — auditoria append-only de cada transição
 6. **Stack moderna** Laravel 13.6 + React 19 + Inertia v3 vs Mubisys Delphi/Zênite jQuery
 
-## Score Capterra W22 → W23
+## Score Capterra W22 → W23 → W25
 
-| Dimensão (scoped vertical_client_facing) | W22 | W23 alvo |
-|------------------------------------------|-----|----------|
-| V1 Pest E2E Customer Journey | 4/15 | **12/15** |
-| V2 Code Quality FormRequests | 6/10 | 9/10 |
-| V3 Perf UX (Inertia::defer) | 3/10 | 6/10 |
-| V4 LGPD retention canon | 7/15 | **14/15** |
-| V5 Docs canon (BRIEFING/CHANGELOG/CAPTERRA) | 4/20 | **18/20** |
-| V6 Capterra ROI Top 5 | 2/10 | 7/10 |
-| **Total scoped** | **41.5/100** (gap maior) | **≥85/100** |
+| Dimensão (scoped vertical_client_facing) | W22 | W23 | W25 alvo |
+|------------------------------------------|-----|-----|----------|
+| V1 Pest E2E Customer Journey | 4/15 | 12/15 | **13/15** (Wave25SaturationTest D5 expanded) |
+| V2 Code Quality FormRequests | 6/10 | 9/10 | 9/10 |
+| V3 Perf UX (Inertia::defer) | 3/10 | 6/10 | 7/10 (page stub criada) |
+| V4 LGPD retention canon | 7/15 | 14/15 | **15/15** (AuditTrailIntegrityTest D7 restore) |
+| V5 Docs canon (BRIEFING/CHANGELOG/CAPTERRA) | 4/20 | 18/20 | **19/20** (W25 entries + §11 histórico) |
+| V6 Capterra ROI Top 5 | 2/10 | 7/10 | 8/10 |
+| **Total scoped** | **41.5/100** (gap maior) | **≥85/100** | **≥87/100** |
+
+### Forensic D7 Wave 22→23 → W25 restore
+
+Causa raiz inferida da regressão D7=1/10 reportada Wave 22: rubrica scoped v3 (ADR 0160) recalibrou pesos V4 LGPD — `LogsActivity` whitelist Entities (Orcamento/Os/Apontamento) estava declarada mas FALTAVA Pest assertando explicitamente que campos PII (`contato_id`/`observacoes`/`operador_id`) NÃO entram em `activity_log`. Wave 25 cria `AuditTrailIntegrityTest.php` (8 asserts) que fecha a garantia automática + previne futura regressão silenciosa.
 
 ## Status lifecycle (ADR 0121)
 

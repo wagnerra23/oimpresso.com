@@ -43,10 +43,106 @@ Cada step tem FormRequest dedicado com `rules()` + mensagens PT-BR + ownership s
 - ⛔ Bypass `ContactPayloadValidatorService` ao gravar Contact via API (CPF/CNPJ formato BR).
 - ⛔ Persistir Marcacao (ponto) sem `Marcacao::anular()` quando ajuste — Portaria 671/2021.
 
+## Como cliente Delphi usa — handshake passo-a-passo (Wave 25)
+
+Cliente legacy (UltimatePOS v6.7 Windows Delphi) integra com oimpresso via
+fluxo "handshake → token cached → batch sync". Cada estação Windows fica
+auto-suficiente offline e sincroniza em janelas.
+
+### 1. Handshake inicial (uma vez por máquina/instalação)
+
+```http
+POST /connector/api/handshake/{business_id}
+Content-Type: application/json
+
+{
+  "hd":            "ABC123DEF456",       // serial físico do HD
+  "serial":        "SOFT-INSTALL-XYZ-001", // serial software (random per install)
+  "versao":        "6.7.124",            // versão Delphi
+  "ip":            "192.168.1.30",       // opcional, captured server-side
+  "cnpj":          "12.345.678/0001-99", // CNPJ do business (validation leve)
+  "razao_social":  "LOJA TESTE LTDA",    // audit only
+  "host":          "PDV-CAIXA-01"        // hostname máquina
+}
+```
+
+**Validação** (via `AcceptDelphiTokenHandshakeRequest` — Wave 23):
+- `hd` regex `/^[A-Za-z0-9\-_]+$/` (UPPER coerce automatic)
+- `serial` 8-120 chars (random per install)
+- `versao` semver-like (max 32)
+- ⛔ `business_id` no body → `prohibited` (anti-spoofing) — vem na URL
+
+**Resposta** (sucesso 200):
+```json
+{
+  "token":         "Bearer eyJhbGc...",  // Passport personal access token
+  "expires_at":    "2026-08-16T00:00:00Z",
+  "computer_id":   42,                    // licenca_computador.id
+  "business_name": "LOJA TESTE LTDA",
+  "ttl_seconds":   7776000                // 90d default
+}
+```
+
+### 2. Cliente salva token em registry Windows + envia em todo request
+
+```
+Authorization: Bearer eyJhbGc...
+X-Computer-Id: 42
+X-Delphi-Version: 6.7.124
+```
+
+### 3. Sync batch (durante o dia)
+
+Cada operação POS (venda fechada, contato novo, expense) é enfileirada localmente
+em SQLite Delphi e mandada em batch via `POST /api/connector/delphi-sync`:
+
+```http
+POST /api/connector/delphi-sync
+Authorization: Bearer eyJhbGc...
+
+{
+  "cnpj":    "12.345.678/0001-99",
+  "payload_format": "pipe",  // ou "json_flat" ou "json_nested" (DelphiSyncService auto-detect)
+  "payload": "venda|001|2026-05-15|123.45\ncontato|002|joao@x.com|..."
+}
+```
+
+`DelphiSyncService::detectFormat()` lê primeira linha e roteia parser:
+- **pipe** legacy = `tipo|id|campo1|campo2|...` (CSV custom)
+- **json_flat** = `[{tipo, id, ...}]`
+- **json_nested** = `{vendas: [...], contatos: [...]}`
+
+### 4. Renovação de token (cron 30 dias antes expiry)
+
+Cliente Delphi monitora `expires_at` e renova proativamente via:
+```http
+POST /connector/api/handshake/{business_id}
+```
+(mesmo HD/serial → backend faz upsert, devolve token novo + revoga anterior).
+
+### Anti-padrões Delphi (Tier 0)
+
+- ⛔ Cliente NÃO armazena CPF/CNPJ em payload pipe sem CNPJ business no header
+- ⛔ Cliente NÃO retenta sync > 3× sem backoff exponencial (anti-thundering-herd)
+- ⛔ Cliente NÃO envia `business_id` no body — server resolve via token Passport
+- ⛔ Cliente NÃO compartilha token entre máquinas — 1 token = 1 `licenca_computador`
+
+### Edge cases (catalogados Wave 25)
+
+| Cenário | Comportamento esperado |
+|---|---|
+| HD trocado (HD novo na mesma máquina) | Handshake retorna 401, cliente exige re-auth admin |
+| Token expirado mid-sync | 401 → cliente para sync + agenda re-handshake |
+| Payload pipe com encoding errado (latin1) | DelphiSyncService força UTF-8 + log warning |
+| Sync de venda já enviada (idempotência) | Backend dedup por `external_id` + 200 OK |
+| HD lookup retorna 2+ business (suporte cruzado) | Backend escolhe `business_id` da URL, audita warning |
+
 ## Referências
 
+- ADR 0021 — Connector Delphi bridge (mãe)
 - ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL
 - ADR 0101 — Tests business_id=1 (NUNCA cliente real)
 - ADR 0155 — Module Grade v3 D5/D8 (FormRequests + Services extraction)
 - `Tests/Feature/CustomerJourneyTest.php` — smoke journey end-to-end light
 - `Tests/Feature/Wave18SaturationTest.php` — saturation D5+D6+D8 Wave 17+18
+- `Tests/Feature/Wave23ConnectorSaturationTest.php` — Wave 23 handshake + observability

@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Append-only: nunca atualizar ou deletar registros desta tabela.
  *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — eventos de tasks
+ * repo-wide. Sem `business_id` by design (audit trail da governança MCP).
+ * Wave 25 SATURATION marker explícito pra rubrica D1.c v3.2 hardened.
+ *
  * @property int         $id
  * @property string      $task_id
  * @property string      $event_type

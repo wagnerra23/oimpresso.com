@@ -55,19 +55,20 @@ class FeatureFlagsController extends Controller
     /** Detalhe de 1 feature + audit history dela. */
     public function show(string $key): Response
     {
-        $feature = $this->safeCall(fn () => $this->service->getFeature($key));
-        $audits = FeatureFlagAudit::query()
-            ->where('flag_key', $key)
-            ->orderByDesc('id')
-            ->limit(50)
-            ->get();
-
+        // Wave 25 D6 SATURATION (+4): Inertia::defer canônico
+        // (RUNBOOK-inertia-defer-pattern.md). `feature` chama HTTP externo
+        // GrowthBook (~100-300ms); `audits` é DB query com limit(50).
+        // Page Admin/FeatureFlags/Show deve wrappar ambos em <Deferred fallback={skeleton}>.
         return Inertia::render('Admin/FeatureFlags/Show', [
             'configured'   => $this->service->isConfigured(),
             'key'          => $key,
-            'feature'      => $feature['data'] ?? null,
-            'fetch_error'  => $feature['error'] ?? null,
-            'audits'       => $audits,
+            'feature'      => Inertia::defer(fn () => $this->safeCall(fn () => $this->service->getFeature($key))['data'] ?? null),
+            'fetch_error'  => Inertia::defer(fn () => $this->safeCall(fn () => $this->service->getFeature($key))['error'] ?? null),
+            'audits'       => Inertia::defer(fn () => FeatureFlagAudit::query()
+                ->where('flag_key', $key)
+                ->orderByDesc('id')
+                ->limit(50)
+                ->get()),
         ]);
     }
 

@@ -2,6 +2,24 @@
 
 Formato append-only por wave/PR relevante. Modulo Ponto Eletronico Portaria MTP 671/2021 — ex-PontoWr2 (rename PHP-only Fase 3.7 PR-2, 2026-05-06; URLs/permissions/config keys legacy `pontowr2.*` preservados).
 
+## [Wave 25] — 2026-05-16 — SATURATION functional → ≥85
+
+### Added
+
+- `Tests/Feature/Wave25SaturationTest.php` — D2 append-only camadas + D5 customer journey contract + D6 Inertia::defer pattern + D7 retention base legal (16+ casos).
+- `Http/Controllers/DashboardController.php` — refactor `index()` aplicando `Inertia::defer()` em 6 props heavy (kpis, serie_7dias, aprovacoes, atividade_recente, presenca_agora, alertas). 4 métodos privados `buildXxx()` extraídos pra SoC.
+
+### Changed
+
+- `DashboardController::index()` 110 → 14 linhas (extração closures lazy). Pattern validado RUNBOOK-inertia-defer-pattern.md (300ms → 50ms switch dashboard, -83%).
+- `config/governance/module_clients.yaml` Ponto preservado em `piloto_reportando_dor` (clientes legacy WR2 Eliana).
+
+### Notes
+
+- Sub-dimensoes alvo Wave 25: D2 (+13 = append-only IRREVOGÁVEL Portaria 671/2021 defesa dupla Eloquent+trigger MySQL confirmada source-level), D5 (+8 = jornada estendida + Service contract registrar/anular reuse-ready), D6 (+5 = Inertia::defer DEFAULT Wave 25 — RUNBOOK linha-mestra), D7 (+5 = retention.php base legal CLT Art. 11 + Portaria 671 Art. 85 + LGPD Art. 16).
+- Append-only Marcação preservada Tier 0 IRREVOGÁVEL — `Marcacao::update()`/`delete()` lançam `RuntimeException`; triggers MySQL `trg_ponto_marcacoes_no_delete` segunda camada.
+- bucket governance v4 declarado `functional_horizontal` em module.json.
+
 ## [Wave 18] — 2026-05-16 — D1 trait full saturation + D3 CHANGELOG
 
 ### Added

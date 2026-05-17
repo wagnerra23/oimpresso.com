@@ -110,7 +110,29 @@ function inertiaPropsTributacao(\Inertia\Response $r): array
     $ref = new ReflectionClass($r);
     $prop = $ref->getProperty('props');
     $prop->setAccessible(true);
-    return $prop->getValue($r);
+    $props = $prop->getValue($r);
+
+    // Wave 25 D3: `regras` + `templates` agora são Inertia::defer(closure).
+    // Pra preservar contrato do test (lê valor resolvido), resolve closures
+    // que sejam Inertia DeferProp OU LazyProp (fallback) OU Closure direto.
+    foreach ($props as $key => $value) {
+        if ($value instanceof \Closure) {
+            $props[$key] = $value();
+        } elseif (is_object($value)) {
+            // Inertia\DeferProp + LazyProp armazenam callable em "callback"
+            $rv = new ReflectionClass($value);
+            if ($rv->hasProperty('callback')) {
+                $cb = $rv->getProperty('callback');
+                $cb->setAccessible(true);
+                $callable = $cb->getValue($value);
+                if (is_callable($callable)) {
+                    $props[$key] = $callable();
+                }
+            }
+        }
+    }
+
+    return $props;
 }
 
 function inertiaComponentTributacao(\Inertia\Response $r): string

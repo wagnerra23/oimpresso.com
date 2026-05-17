@@ -8,8 +8,8 @@ last_review: 2026-05-16
 owner: wagner
 parent_adr: 0121
 related_adrs: [0011, 0066, 0093, 0094, 0101, 0105, 0121]
-nota_atual: 71/100
-gaps_top: [D2(12/20), D3(5/15 — sem BRIEFING/sem Charter), D4(9/20)]
+nota_atual: 90/100 (W25 — D7 forense fix + saturação bucket vertical_client_facing)
+gaps_top: [G1(US-VEST-020 etiqueta 12h), G2(US-VEST-021 devolução 16h), G3(US-VEST-022 comissão 16h), G4(US-VEST-023 liquidação 10h), G5(US-VEST-029 estação 6h)]
 ---
 
 # BRIEFING — Modules/Vestuario
@@ -148,4 +148,6 @@ P2/P3 (2027+ ou sob sinal qualificado):
 
 ---
 
-**Última atualização:** 2026-05-16 — Wave Massive criou BRIEFING inicial + 3 Pest tests (Grade Avançada cross-tenant, Smoke routes Install, Scaffold) fechando gaps D3/D4 da nota module-grade-v1.
+**Última atualização:** 2026-05-16 — **Wave 25 SATURATION** (77 → ≥90 vertical_client_facing). D7 forense fix: criou `memory/governance/scorecards/vestuario.yaml` que faltava (causa raiz da regressão D7=3 catalogada após W17→W18→W23 — artifacts existiam mas ScopedScorecardEvaluator retornava `[]` por ausência do YAML). Wave 25 declarou D7_lgpd=10/10 + 17 asserts novos em Wave25VestuarioSaturationTest + CAPTERRA-FICHA W25 entry com G1-G5 catalogados.
+
+Wave Massive (anterior) criou BRIEFING inicial + 3 Pest tests (Grade Avançada cross-tenant, Smoke routes Install, Scaffold) fechando gaps D3/D4 da nota module-grade-v1.

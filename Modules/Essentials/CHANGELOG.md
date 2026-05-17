@@ -2,6 +2,26 @@
 
 > HRM + essenciais (Documents/Reminders/ToDo/KnowledgeBase/Holidays/Leaves/Payroll/Shifts) sobre UltimatePOS legacy.
 
+## [Wave 25 — Polish D6.a saturation] — 2026-05-16
+
+### Adicionado — D6.a Inertia::defer (+5 Controllers)
+- `DocumentController::index` — `Inertia::defer` em `documents` + `memos` (2× `fetchByType` com JOIN + GROUP BY)
+- `ToDoController::index` — `Inertia::defer` em `todos` (paginate + transform map) + `assignableUsers` (dropdownUsers DB)
+- `EssentialsMessageController::index` — `Inertia::defer` em `messages` (toMessageShape map) + `locations` (BusinessLocation::forDropdown)
+- `KnowledgeBaseController::index` — `Inertia::defer` em `books` (eager-load 2 níveis + ACL where + toBookShape recursivo)
+- `EssentialsHolidayController::index` — `Inertia::defer` em `holidays` (with('location') + map) + `locations` (BusinessLocation::forDropdown)
+
+### Pattern aplicado (Tier 0 — skill `inertia-defer-default`)
+- Filtros + UI state (statuses/priorities/can_manage/initialTab/refreshInterval/me) ficam EAGER (props leves, evita waterfall em partial reloads).
+- Queries pesadas (paginate + transform/JOIN + GROUP BY/eager-load/forDropdown) viram `Inertia::defer(fn () => ...)` — closure só executa quando frontend pede via `<Deferred>` wrapper.
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0
+- ADR 0101 Tests biz=1
+- ADR 0155 Module Grade v3 (D6.a saturated 5/5 Controllers principais)
+- ADR 0159 Wave 25 polish (level `biz_4_rota_livre_prod` mantido)
+- Skill `inertia-defer-default` (Tier B) — `memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md`
+
 ## [Unreleased] — Wave 18 SATURATION (2026-05-16)
 
 ### Adicionado — D1 Multi-tenant Tier 0 SATURATION (+14 entries)

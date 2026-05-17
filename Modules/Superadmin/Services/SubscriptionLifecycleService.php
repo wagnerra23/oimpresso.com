@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Superadmin\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Superadmin\Entities\Subscription;
@@ -19,13 +20,20 @@ use Modules\Superadmin\Entities\Subscription;
  *   - Encapsular cálculo de end_date a partir de package.interval
  *   - Permitir mock em Pest sem precisar dispatch Asaas/PesaPal stub
  *
+ * Wave 25 SATURATION — D9 boost: spans OTel canônicos por transição.
+ * Zero-cost se `otel.enabled=false`. Em CT 100 com OTel collector ativo,
+ * exporta tracing pra dashboard SRE — slice por `lifecycle.action` permite
+ * spotting de regressão de approve/expire/cancel.
+ *
  * Cross-tenant intencional (Superadmin Wagner-only).
  *
  * Spatie LogsActivity em Subscription model já registra os deltas — Service
  * apenas orquestra UPDATEs com escrita coerente (DB::transaction).
  *
  * @see Modules\Superadmin\Entities\Subscription
+ * @see app\Util\OtelHelper
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md (cross-tenant Superadmin)
+ * @see memory/decisions/0155-module-grade-v3-anti-injustica-na-justified.md D9.a
  */
 class SubscriptionLifecycleService
 {
@@ -36,31 +44,39 @@ class SubscriptionLifecycleService
      */
     public function approve(Subscription $subscription, ?Carbon $startDate = null): bool
     {
-        if ($subscription->status !== 'waiting' && $subscription->status !== 'waiting_approval') {
-            return false;
-        }
+        return OtelHelper::spanBiz('superadmin.subscription.approve', function () use ($subscription, $startDate): bool {
+            if ($subscription->status !== 'waiting' && $subscription->status !== 'waiting_approval') {
+                return false;
+            }
 
-        $startDate = $startDate ?? now();
+            $startDate = $startDate ?? now();
 
-        return DB::transaction(function () use ($subscription, $startDate) {
-            $packageDetails = (array) ($subscription->package_details ?? []);
-            $intervalType = $packageDetails['interval'] ?? 'months';
-            $intervalCount = (int) ($packageDetails['interval_count'] ?? 1);
+            return DB::transaction(function () use ($subscription, $startDate) {
+                $packageDetails = (array) ($subscription->package_details ?? []);
+                $intervalType = $packageDetails['interval'] ?? 'months';
+                $intervalCount = (int) ($packageDetails['interval_count'] ?? 1);
 
-            $endDate = match ($intervalType) {
-                'days'   => $startDate->copy()->addDays($intervalCount),
-                'months' => $startDate->copy()->addMonths($intervalCount),
-                'years'  => $startDate->copy()->addYears($intervalCount),
-                default  => $startDate->copy()->addMonth(),
-            };
+                $endDate = match ($intervalType) {
+                    'days'   => $startDate->copy()->addDays($intervalCount),
+                    'months' => $startDate->copy()->addMonths($intervalCount),
+                    'years'  => $startDate->copy()->addYears($intervalCount),
+                    default  => $startDate->copy()->addMonth(),
+                };
 
-            $subscription->status = 'approved';
-            $subscription->start_date = $startDate;
-            $subscription->end_date = $endDate;
-            $subscription->save();
+                $subscription->status = 'approved';
+                $subscription->start_date = $startDate;
+                $subscription->end_date = $endDate;
+                $subscription->save();
 
-            return true;
-        });
+                return true;
+            });
+        }, [
+            'module' => 'Superadmin',
+            'service' => self::class,
+            'subscription_id' => $subscription->id ?? 0,
+            'target_biz' => $subscription->business_id ?? 0,
+            'lifecycle.action' => 'approve',
+        ]);
     }
 
     /**
@@ -68,18 +84,26 @@ class SubscriptionLifecycleService
      */
     public function expire(Subscription $subscription): bool
     {
-        if ($subscription->status === 'expired') {
-            return false;  // idempotente
-        }
+        return OtelHelper::spanBiz('superadmin.subscription.expire', function () use ($subscription): bool {
+            if ($subscription->status === 'expired') {
+                return false;  // idempotente
+            }
 
-        if ($subscription->end_date && $subscription->end_date->isFuture()) {
-            return false;  // ainda válida
-        }
+            if ($subscription->end_date && $subscription->end_date->isFuture()) {
+                return false;  // ainda válida
+            }
 
-        $subscription->status = 'expired';
-        $subscription->save();
+            $subscription->status = 'expired';
+            $subscription->save();
 
-        return true;
+            return true;
+        }, [
+            'module' => 'Superadmin',
+            'service' => self::class,
+            'subscription_id' => $subscription->id ?? 0,
+            'target_biz' => $subscription->business_id ?? 0,
+            'lifecycle.action' => 'expire',
+        ]);
     }
 
     /**
@@ -89,17 +113,26 @@ class SubscriptionLifecycleService
      */
     public function cancel(Subscription $subscription, string $reason = ''): bool
     {
-        if (in_array($subscription->status, ['cancelled', 'expired'], true)) {
-            return false;
-        }
+        return OtelHelper::spanBiz('superadmin.subscription.cancel', function () use ($subscription, $reason): bool {
+            if (in_array($subscription->status, ['cancelled', 'expired'], true)) {
+                return false;
+            }
 
-        return DB::transaction(function () use ($subscription, $reason) {
-            // Properties extra Spatie via activity()->withProperties() — fora do escopo Service.
-            $subscription->status = 'cancelled';
-            $subscription->save();
+            return DB::transaction(function () use ($subscription, $reason) {
+                // Properties extra Spatie via activity()->withProperties() — fora do escopo Service.
+                $subscription->status = 'cancelled';
+                $subscription->save();
 
-            return true;
-        });
+                return true;
+            });
+        }, [
+            'module' => 'Superadmin',
+            'service' => self::class,
+            'subscription_id' => $subscription->id ?? 0,
+            'target_biz' => $subscription->business_id ?? 0,
+            'lifecycle.action' => 'cancel',
+            'reason_len' => strlen($reason),
+        ]);
     }
 
     /**
@@ -107,9 +140,12 @@ class SubscriptionLifecycleService
      */
     public function findOverdueApproved(): \Illuminate\Database\Eloquent\Collection
     {
-        return Subscription::query()
-            ->where('status', 'approved')
-            ->whereDate('end_date', '<', now())
-            ->get();
+        return OtelHelper::spanBiz('superadmin.subscription.find_overdue', function (): \Illuminate\Database\Eloquent\Collection {
+            // SUPERADMIN: cross-tenant intencional (cron sweep global).
+            return Subscription::query()
+                ->where('status', 'approved')
+                ->whereDate('end_date', '<', now())
+                ->get();
+        }, ['module' => 'Superadmin', 'service' => self::class, 'lifecycle.action' => 'find_overdue']);
     }
 }
