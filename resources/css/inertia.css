@@ -11,6 +11,9 @@
 /* Sells Cowork Onda 3 R3 Curadoria — escopado em .sells-cowork-curadoria + linkify pills */
 @import "./sells-cowork-curadoria.css";
 
+/* Sells Cowork Onda 4 R4 Distribuição — transcript PDF A4, presentation fullscreen, WhatsApp preview */
+@import "./sells-cowork-distribuicao.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
