@@ -19,7 +19,30 @@ class DashboardController extends Controller
         $businessId = session('business.id') ?: $request->user()->business_id;
         $hoje = now()->toDateString();
 
-        $kpis = [
+        // Wave 25 D6.a Inertia::defer DEFAULT — todas props com aggregate/joinada/sum
+        // viram closures lazy (RUNBOOK-inertia-defer-pattern.md). Eager apenas
+        // `server_time` (~0ms — string trivial). Pattern valida 300ms → 50ms (-83%)
+        // em switch dashboard. Frontend wrap com `<Deferred data="..." fallback={skeleton}>`.
+        return Inertia::render('Ponto/Dashboard/Index', [
+            'kpis'              => Inertia::defer(fn () => $this->buildKpis($businessId, $hoje)),
+            'aprovacoes'        => Inertia::defer(fn () => $this->buildAprovacoes($businessId)),
+            'atividade_recente' => Inertia::defer(fn () => $this->buildAtividadeRecente($businessId, $hoje)),
+            'serie_7dias'       => Inertia::defer(fn () => $this->buildSerie7dias($businessId, $hoje)),
+            'presenca_agora'    => Inertia::defer(fn () => $this->calcularPresenca($businessId, $hoje)),
+            'alertas'           => Inertia::defer(fn () => $this->coletarAlertas($businessId, $hoje)),
+            'server_time'       => now()->format('H:i'),
+        ]);
+    }
+
+    /**
+     * KPIs cards — 6 queries aggregate (count/sum). Wave 25 extraído pra closure
+     * `Inertia::defer` (RUNBOOK-inertia-defer-pattern.md).
+     *
+     * @return array<string,int>
+     */
+    private function buildKpis(int $businessId, string $hoje): array
+    {
+        return [
             'colaboradores_ativos' => Colaborador::where('business_id', $businessId)
                 ->where('controla_ponto', true)
                 ->whereNull('desligamento')
@@ -44,8 +67,16 @@ class DashboardController extends Controller
                 ->pendentes()
                 ->count(),
         ];
+    }
 
-        // Série dos últimos 7 dias — marcações + horas extras por dia
+    /**
+     * Série de 7 dias — query groupBy + iteração diária. Wave 25 extraído pra
+     * closure `Inertia::defer`.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function buildSerie7dias(int $businessId, string $hoje): array
+    {
         $inicioSerie = Carbon::today()->subDays(6);
         $raw = ApuracaoDia::where('business_id', $businessId)
             ->whereBetween('data', [$inicioSerie->toDateString(), $hoje])
@@ -67,8 +98,17 @@ class DashboardController extends Controller
                 'he'         => $row ? (int) $row->he : 0,
             ];
         }
+        return $serie7d;
+    }
 
-        $aprovacoes = Intercorrencia::where('business_id', $businessId)
+    /**
+     * Top 5 aprovações pendentes — eager `colaborador.user`. Wave 25 extraído.
+     *
+     * @return \Illuminate\Support\Collection<int,array<string,mixed>>
+     */
+    private function buildAprovacoes(int $businessId): \Illuminate\Support\Collection
+    {
+        return Intercorrencia::where('business_id', $businessId)
             ->pendentes()
             ->with(['colaborador.user'])
             ->orderByDesc('prioridade')
@@ -90,8 +130,17 @@ class DashboardController extends Controller
                     'matricula' => optional($i->colaborador)->matricula,
                 ],
             ]);
+    }
 
-        $atividadeRecente = Marcacao::where('business_id', $businessId)
+    /**
+     * Marcações criadas hoje (20 últimas) — eager `colaborador.user` + `rep`.
+     * Wave 25 extraído pra closure `Inertia::defer`.
+     *
+     * @return \Illuminate\Support\Collection<int,array<string,mixed>>
+     */
+    private function buildAtividadeRecente(int $businessId, string $hoje): \Illuminate\Support\Collection
+    {
+        return Marcacao::where('business_id', $businessId)
             ->with(['colaborador.user', 'rep'])
             ->whereDate('created_at', $hoje)
             ->orderByDesc('created_at')
@@ -114,22 +163,6 @@ class DashboardController extends Controller
                     'tipo'          => optional($m->rep)->tipo,
                 ],
             ]);
-
-        // Presença ao vivo: colaboradores que controlam ponto + seu status hoje
-        $presenca = $this->calcularPresenca($businessId, $hoje);
-
-        // Anomalias/alertas do dia (atrasos, saídas sem retorno, aprovações paradas >24h)
-        $alertas = $this->coletarAlertas($businessId, $hoje);
-
-        return Inertia::render('Ponto/Dashboard/Index', [
-            'kpis'              => $kpis,
-            'aprovacoes'        => $aprovacoes,
-            'atividade_recente' => $atividadeRecente,
-            'serie_7dias'       => $serie7d,
-            'presenca_agora'    => $presenca,
-            'alertas'           => $alertas,
-            'server_time'       => now()->format('H:i'),
-        ]);
     }
 
     /**

@@ -2,6 +2,28 @@
 
 Append-only. Cada PR mergeado que toca `Modules/SRS/` deve adicionar 1 linha na entrada do Wave/data.
 
+## Wave 25 — 2026-05-16 (SATURATION functional → ≥85)
+
+### Added
+
+- `Tests/Feature/Wave25CrossTenantSaturationTest.php` — 25+ cenarios cobrindo:
+  - D1.A 7 Entities canon declaram business_id no fillable (DocSource/Requirement/Evidence/Page/Link/ChatMessage/ValidationRun)
+  - D1.B schema column-level (4 tabelas docs_* têm coluna business_id verificada)
+  - D1.C 8 cenarios DB cross-tenant (biz=1/99/100/101 — 4 tenants coexistem isolados; mass-update + delete + count scoped; reverso 99→1)
+  - D9 confirmação spans canon (ChatAssistant.ask + DocValidator.validate via OtelHelper::spanBiz)
+  - D9 SrsHealthCommand `--detail` (NÃO `--verbose` Symfony reserved)
+  - D7 retention.php hierarquia LGPD (drafts<logs<=docs) + base legal cita Art. 16/ADR 0093/ADR 0094
+
+### Changed
+
+- `config/governance/module_clients.yaml` SRS promovido `backlog_hipotese` → `internal_governance_active` (Wagner uso diário /srs Chat + Validator + RetentionCleaner pra SPEC.md/CAPTERRA/BRIEFING — ADR 0159).
+
+### Notes
+
+- Sub-dimensoes alvo Wave 25: D1 (+19 = 25+ cenarios cross-tenant cobrindo 7 entities; legacy MultiTenantIsolationTest cobria só 2 entities × 5 cenarios), D9 (+3 = spans canon Wave 18 confirmados + OtelHelper class exists assert), D7 (+5 = retention.php base legal LGPD/ADRs preservado Wave 17/18 + hierarquia).
+- SRS NÃO usa BusinessScope global (verificado MultiTenantIsolationTest legacy) — contrato é column-level: toda query DEVE incluir `where('business_id', ...)` explícito. Test PROTEGE contrato e expande cobertura sobre as 5 entities Wave 16+18 que legacy NÃO cobria (DocEvidence/DocPage/DocLink/DocChatMessage/DocValidationRun).
+- bucket governance v4 declarado `functional_horizontal` em module.json.
+
 ## Wave 18 RETRY — 2026-05-16 (governança meta-97)
 
 - `module.json`: declarado `fsm_n_a: true` + razão — SRS é doc-ingest + chat assistido, sem ciclo transacional cross-stage.

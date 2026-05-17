@@ -1,6 +1,6 @@
 # Charter — Pages/Auditoria/Index.tsx
 
-> Charter F1.5 obrigatório (ADR 0107 + ADR 0114). Atualizado Wave 23 (2026-05-16).
+> Charter F1.5 obrigatório (ADR 0107 + ADR 0114). Atualizado Wave 25 (2026-05-16) — adiciona Export flow + Bulk action panel + edge cases catalogados.
 > Tela `/auditoria` — UI rica de governança transversal sobre `activity_log`.
 
 ## Goal único
@@ -78,6 +78,60 @@ Botão "Reverter" fica **disabled** + tooltip explicando o motivo (ADR 0127 §3)
 Pendente Wave 24 — `mwart-comparative V4` orquestrará Claude Design plugin.
 Por ora referência canônica é Datadog Audit Trail UI (filtros laterais
 sticky + table dense + diff modal).
+
+## Wave 25 — Export flow + Bulk action panel (POLISH ≥92)
+
+### Export CSV/JSON (`ExportAuditEntriesRequest`)
+
+Auditor LGPD/Compliance pode dump da grade filtrada via botão `[Exportar]` no
+PageHeader. UX:
+
+```
+[Modal Export]
+  Format: ( ) CSV  ( ) JSON
+  Limite: [____] (default 1000, max 10.000 — anti-abuse)
+  [x] Incluir properties JSON (PII passa por PiiRedactor automaticamente)
+  Motivo (obrigatório, min 10 chars):
+  [________________________________]
+  [Cancelar]  [Exportar]
+```
+
+**Tier 0 IRREVOGÁVEIS export:**
+- ⛔ Cap hard `limit` max 10.000 (FormRequest) — anti-DoS no servidor
+- ⛔ `include_properties=true` SEMPRE passa pelo `PiiRedactor` antes do stream
+- ⛔ Motivo grava `activity_log` evento `auditoria.export.requested` (audit de auditoria)
+- ⛔ Format whitelist `csv|json` apenas — bloqueia `xlsx`/`php` injetados
+- ⛔ `business_id` JAMAIS no body (`prohibited` rule) — sempre da session
+
+### Bulk action panel (`BulkRevertActivityRequest` — Wave 18 + UX Wave 25)
+
+Quando user marca ≥2 checkboxes na table, aparece sticky panel:
+
+```
+[Panel Bulk — N selecionados]
+  [Reverter N]  [Anotar N]  [Exportar N]  [Limpar seleção]
+```
+
+**Tier 0 bulk revert:**
+- ⛔ Máximo 50 ids por chamada (FormRequest cap)
+- ⛔ Reason único compartilhado (auditor justifica uma vez)
+- ⛔ Whitelist UNREVERTIBLE filtra silenciosamente — count "Reverted: X/Y"
+  no toast pós-action
+- ⛔ Confirm modal double-confirm exigido (anti-tap acidental)
+
+### Edge cases catalogados Wave 25
+
+1. **Auditor seleciona 50 ids mas 30 são UNREVERTIBLE** — backend retorna
+   `{ reverted: 20, skipped: 30, skipped_reasons: [...] }`. Frontend toast
+   mostra split + abre modal "Ver detalhes dos 30 ignorados".
+2. **Period filter sem `period_end`** — backend assume `period_end = now()`
+   silenciosamente; PageHeader badge mostra range explícito.
+3. **Export com filter zero results** — backend retorna 204 No Content +
+   toast frontend "Nenhuma entrada no filtro atual" (NÃO download vazio).
+4. **PiiRedactor falha (Jana indisponível)** — Controller fail-secure: retorna
+   503 + audit log `auditoria.export.failed` com reason. Auditor reexecuta.
+5. **Charter <-> Controller drift** — Pest `PiiLeakActivityLogEnforceTest`
+   garante `RevertService::revert` invoca `PiiRedactor` antes de save.
 
 ## Anti-padrões catalogados
 

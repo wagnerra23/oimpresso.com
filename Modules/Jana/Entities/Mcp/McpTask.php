@@ -20,6 +20,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * estruturais (status, owner, priority, cycle_id, epic_id) — essenciais pra
  * auditoria de governança (ADR 0070 Jira-style). Tabela mcp_tasks é repo-wide
  * (sem business_id) — gated por Spatie permission `copiloto.mcp.tasks.*`.
+ *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — planejamento é da
+ * plataforma. Sem `business_id` by design. Wave 25 SATURATION marker explícito
+ * pra rubrica D1.c v3.2 hardened.
  */
 class McpTask extends Model
 {

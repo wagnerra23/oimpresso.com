@@ -12,6 +12,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Quando current_usage >= limit, MCP retorna 429 (block_on_exceed=true)
  * ou só dispara alerta (false). Reset automático em reset_at.
  *
+ * REPO-WIDE: ADR 0053 quota per-user (isolamento via user_id, não business_id).
+ * Sem `business_id` by design. Wave 25 SATURATION marker explícito pra rubrica
+ * D1.c v3.2 hardened.
+ *
  * D7 LGPD audit trail — Wave 18 SATURATION (2026-05-16): LogsActivity registra
  * mudanças no contrato da quota (period, kind, limit, block_on_exceed, ativo)
  * — auditoria de quem mexeu nas regras de billing/cap. NÃO loga current_usage

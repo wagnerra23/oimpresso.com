@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\Artisan;
 uses(Tests\TestCase::class);
 
 /**
- * assetmanagement:health — Wave 23 D9.c (Bucket functional_horizontal).
+ * assetmanagement:health — Wave 23 D9.c + Wave 25 (Bucket functional_horizontal).
  *
  * Cobertura mínima:
  *   1. Command registrado em artisan list
  *   2. --json retorna JSON válido com schema esperado (timestamp + module + checks + summary)
  *   3. Exit code respeita semântica (sem --alert sempre 0)
- *   4. Output contém os 7 checks canônicos
+ *   4. Output contém os 8 checks canônicos (Wave 25 +1: retention_config_present)
  *
  * Multi-tenant Tier 0 (ADR 0093) — health command é read-only cross-tenant,
  * sem PII em output. Testa via Artisan::call().
@@ -41,10 +41,10 @@ it('assetmanagement:health --json retorna estrutura válida', function () {
     expect($data)->toHaveKey('checks');
     expect($data)->toHaveKey('summary');
     expect($data['summary'])->toHaveKeys(['ok', 'warn', 'fail', 'total']);
-    expect($data['summary']['total'])->toBe(7);
+    expect($data['summary']['total'])->toBe(8);
 });
 
-it('assetmanagement:health contém os 7 checks canônicos', function () {
+it('assetmanagement:health contém os 8 checks canônicos (Wave 25 +retention_config_present)', function () {
     Artisan::call('assetmanagement:health', ['--json' => true]);
     $output = Artisan::output();
     $data = json_decode(trim($output), true);
@@ -59,6 +59,7 @@ it('assetmanagement:health contém os 7 checks canônicos', function () {
         'orphan_allocations',
         'orphan_maintenances',
         'warranties_expired_overdue',
+        'retention_config_present',  // Wave 25 D9.c
     ] as $expected) {
         expect($names)->toContain($expected);
     }

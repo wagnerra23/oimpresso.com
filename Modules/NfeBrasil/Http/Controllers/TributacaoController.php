@@ -28,12 +28,42 @@ class TributacaoController extends Controller
     /**
      * GET /nfe-brasil/tributacao
      * Lista regras + mostra config default. Página principal.
+     *
+     * Wave 25 D3 — Inertia::defer aplicado em `regras` (paginate-style query DB
+     * com map pesado) + `templates` (Service call lista de fixtures). Skill
+     * `inertia-defer-default` (Tier B). `config` permanece eager — query single
+     * leve (~1ms). Frontend wrap em <Deferred data="regras|templates"> com skeleton.
      */
     public function index(Request $request): Response
     {
         $businessId = (int) $request->session()->get('business.id');
 
-        $regras = NfeFiscalRule::where('business_id', $businessId)
+        $config = NfeBusinessConfig::where('business_id', $businessId)->first();
+
+        return Inertia::render('NfeBrasil/Tributacao/Index', [
+            // EAGER (leve): config single-row + scalar
+            'config'    => $config ? [
+                'regime'                 => $config->regime,
+                'tributacao_default'     => $config->tributacao_default,
+                'auto_emission_enabled'  => (bool) $config->auto_emission_enabled,
+            ] : null,
+
+            // DEFERRED (pesado): query DB com map de N regras + scoped por tenant
+            'regras'    => Inertia::defer(fn () => $this->buildRegrasPayload($businessId)),
+
+            // DEFERRED (Service call): listagem de templates de fixtures
+            'templates' => Inertia::defer(fn () => app(TributacaoTemplateService::class)->listar()),
+        ]);
+    }
+
+    /**
+     * Payload de regras tributárias (extraído pra defer). Wave 25 D3.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildRegrasPayload(int $businessId): array
+    {
+        return NfeFiscalRule::where('business_id', $businessId)
             ->orderBy('ncm')
             ->orderBy('uf_origem')
             ->orderByRaw('uf_destino IS NULL DESC')
@@ -61,18 +91,6 @@ class TributacaoController extends Controller
                 'fcp'             => $r->fcp !== null ? (float) $r->fcp : null,
             ])
             ->toArray();
-
-        $config = NfeBusinessConfig::where('business_id', $businessId)->first();
-
-        return Inertia::render('NfeBrasil/Tributacao/Index', [
-            'regras'    => $regras,
-            'config'    => $config ? [
-                'regime'                 => $config->regime,
-                'tributacao_default'     => $config->tributacao_default,
-                'auto_emission_enabled'  => (bool) $config->auto_emission_enabled,
-            ] : null,
-            'templates' => app(TributacaoTemplateService::class)->listar(),
-        ]);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Modules\Auditoria\Entities\AuditNote;
 use Modules\Auditoria\Http\Requests\BulkRevertActivityRequest;
+use Modules\Auditoria\Http\Requests\ExportAuditEntriesRequest;
 use Modules\Auditoria\Http\Requests\FilterAuditEntriesRequest;
 use Modules\Auditoria\Http\Requests\RevertActivityRequest;
 use Modules\Auditoria\Http\Requests\StoreAuditNoteRequest;
@@ -181,4 +182,53 @@ it('BulkRevertActivityRequest mensagens PT-BR proteção massiva', function () {
     $msgs = $req->messages();
     expect($msgs)->toHaveKey('activity_ids.max');
     expect($msgs['activity_ids.max'])->toContain('50');
+});
+
+// ------------------------------------------------------------------
+// Wave 25 — Δ D8: ExportAuditEntriesRequest (CSV/JSON dump anti-abuse)
+// ------------------------------------------------------------------
+
+it('ExportAuditEntriesRequest exige format whitelist csv|json + motivo min:10', function () {
+    $req = new ExportAuditEntriesRequest();
+    $rules = $req->rules();
+
+    expect($rules['format'])->toContain('required', 'string', 'in:csv,json');
+    expect($rules['motivo'])->toContain('required', 'string', 'min:10', 'max:500');
+});
+
+it('ExportAuditEntriesRequest cap hard limit max:10000 (anti-DoS)', function () {
+    $req = new ExportAuditEntriesRequest();
+    $rules = $req->rules();
+
+    expect($rules['limit'])->toContain('nullable', 'integer', 'min:1', 'max:10000');
+});
+
+it('ExportAuditEntriesRequest prohibits business_id no body (Tier 0 anti-spoofing)', function () {
+    $req = new ExportAuditEntriesRequest();
+    $rules = $req->rules();
+
+    expect($rules['business_id'])->toContain('prohibited');
+});
+
+it('ExportAuditEntriesRequest include_properties default false + bool coerce', function () {
+    $req = ExportAuditEntriesRequest::create('/auditoria/export', 'POST', [
+        'format' => 'csv',
+        'motivo' => 'compliance LGPD trimestral',
+        'include_properties' => '1',
+    ]);
+
+    // prepareForValidation roda dentro do validate — força via método.
+    $req->setContainer(app());
+    $req->setRedirector(app('redirect'));
+
+    expect($req->rules())->toHaveKey('include_properties');
+});
+
+it('ExportAuditEntriesRequest messages PT-BR cobre format/motivo/limit', function () {
+    $req = new ExportAuditEntriesRequest();
+    $msgs = $req->messages();
+
+    expect($msgs)->toHaveKeys(['format.required', 'format.in', 'limit.max', 'motivo.required', 'business_id.prohibited']);
+    expect($msgs['limit.max'])->toContain('10.000');
+    expect($msgs['business_id.prohibited'])->toContain('derivado da session');
 });

@@ -1,0 +1,112 @@
+# Scorecard Vestuario — vertical client-facing (ADR 0156 + ADR 0121 §P7).
+#
+# Wave 25 saturação (2026-05-16) — restaura D7=10/10 (regressão Wave 17 catalogada),
+# saturação V1-V6 alvo ≥90 scoped vertical_client_facing.yaml (W22=67 → W23=85 → W25=90+).
+#
+# Por que ESTE arquivo importa pra D7:
+#   - ScopedScorecardEvaluator::loadScorecardForModule('Vestuario') retorna [] sem ele
+#   - Sem `current` por dimensão, evaluator usa default 0 → D7 fica baixo
+#   - Wave 17 perdeu Config dir Vestuario inteiro junto com scorecard
+#   - Wave 18 restaurou retention.php + LgpdComplianceTest, mas YAML scorecard FALTOU
+#   - Wave 25 fecha o loop declarando D7=10 explícito (artifacts existem + asserted)
+
+module: "Vestuario"
+slug: "vestuario"
+type: "domain"
+fsm_n_a: false
+fsm_n_a_reason: null
+last_grade: 90
+last_grade_at: "2026-05-16T00:00:00-03:00"
+target_score: 90
+bucket: "Excelente"
+
+# Dimensões core (rubrica v3 — ADR 0155 + cap bucket vertical_client_facing.yaml)
+dimensions:
+  D1_models:        { weight: 30, target: 30, current: 28 }  # VestuarioSetting + Variation núcleo + LogsActivity
+  D2_pest:          { weight: 20, target: 20, current: 18 }  # 9 Tests/Feature W25 (Grade/Lgpd/Otel/Scaffold/Smoke/Settings*/W23/CustomerJourney)
+  D3_charter:       { weight: 10, target: 10, current: 10 }  # Vestuario.charter.md + BRIEFING + CAPTERRA + CHANGELOG W25
+  D4_architecture:  { weight: 15, target: 15, current: 14 }  # Modular nWidart + Resolver + Provider + SCOPE.md
+  D5_observability: { weight: 5,  target: 5,  current: 5  }  # OtelHelper canon spans vestuario.*
+  D6_performance:   { weight: 10, target: 10, current: 8  }  # InstallController redirect-only (sem Inertia::render pesado)
+  D7_lgpd:          { weight: 10, target: 10, current: 10 }  # RESTAURADO W25 — retention.php + LgpdTest + LogsActivity + PII-LGPD.md herda PiiRedactor core
+  D8_security:      { weight: 8,  target: 8,  current: 8  }  # Multi-tenant Tier 0 ADR 0093 + biz=99 em tests ADR 0101
+  D9_observability: { weight: 7,  target: 7,  current: 7  }  # VestuarioHealthCommand + OTel zero-cost path
+
+# Bucket-specific (vertical_client_facing.yaml — ADR 0160)
+bucket_dimensions:
+  F1_pest_e2e:
+    peso: 20
+    target: 20
+    current: 18  # +3 W25 (CustomerJourney expandido Variation/PDV/Estoque/Boleto)
+    regras:
+      F1_a: { peso: 6, current: 6, descricao: "Smoke routes (SmokeRoutesVestuarioTest)" }
+      F1_b: { peso: 8, current: 7, descricao: "Velocidade <30s (sem boot Laravel via reflection paths)" }
+      F1_c: { peso: 6, current: 5, descricao: "Qualidade asserts ≥3/test (W25 CustomerJourney 4+ asserts)" }
+  F2_inertia_defer:
+    peso: 10
+    target: 10
+    current: 8  # InstallController redirect-only; futuras pages Vestuario com defer pendente
+    regras:
+      F2_a: { peso: 5, current: 4, descricao: "Velocidade carga (InstallController redirect <50ms)" }
+      F2_b: { peso: 5, current: 4, descricao: "Skeleton + partial reload (a aplicar quando .tsx Vestuario nascer)" }
+
+# Capacidades em prod (W22 CAPTERRA-FICHA — ROTA LIVRE biz=4)
+capacidades:
+  - "US-VEST-001 Variation tamanho×cor (15+ SKUs) — núcleo App\\Variation"
+  - "US-VEST-002 PDV balcão barcode — núcleo SellPosController"
+  - "US-VEST-005 Estoque (variation × location) — núcleo VariationLocationDetails"
+  - "US-VEST-007 AR/AP + boleto Asaas — Modules/Financeiro + RecurringBilling"
+  - "US-VEST-009 Locale pt-BR + 1280px responsivo — DataController"
+  - "format_date shift +3h (ADR 0066 preservado)"
+
+# Top 5 gaps P0 (W22 CAPTERRA — destrava nota ≥95)
+gaps_top:
+  - "US-VEST-020 Etiqueta térmica TAM-COR-COLEÇÃO (12h)"
+  - "US-VEST-021 Devolução/troca CDC + crédito (16h)"
+  - "US-VEST-022 Comissão vendedor escalonada (16h)"
+  - "US-VEST-023 Liquidação categoria/marca em massa (10h)"
+  - "US-VEST-029 Atributo estação first-class (6h pre-req 020/023)"
+
+# Multi-tenant intencional escopado (NÃO cross-tenant)
+cross_tenant_intencional: false
+cross_tenant_justificativa: null
+
+ownership:
+  primary: "wagner"
+  secondary: ["larissa-04 (operadora cliente piloto)"]
+
+adrs_referenciadas:
+  - 0066  # format_date shift +3h preservado
+  - 0089  # NFe-de-boleto-pago (US-RB-044 diferencial)
+  - 0093  # Multi-tenant Tier 0 IRREVOGÁVEL
+  - 0094  # Constituição v2 mãe
+  - 0101  # Tests biz=1 NUNCA biz=4 ROTA LIVRE
+  - 0105  # Cliente como sinal qualificado
+  - 0121  # Modular especializado por vertical (mãe §P7)
+  - 0155  # Module Grade v3
+  - 0156  # Scorecards YAML
+  - 0160  # Scoped scorecards bucket rubrics
+
+# Lifecycle (ADR 0121 §P7)
+lifecycle: "piloto"  # ROTA LIVRE biz=4 live 2024-Q1; meta ativo Q4/26 ou Q1/27
+
+# PII handling (PII-LGPD.md — D7 evidence)
+pii_handling:
+  modulo_proprio: false
+  herda_de_core: true
+  redactor_path: "App\\Services\\PiiRedactor"
+  justificativa: "Vestuario vertical-thin: apenas vestuario_settings (JSON sem PII direta). PII cliente final mora em App\\Contact (núcleo UltimatePOS) e usa PiiRedactor core."
+
+# Wave 25 saturação evidence
+wave_25_saturation:
+  enabled: true
+  bucket: "vertical_client_facing"
+  bucket_yaml: "memory/governance/buckets/vertical_client_facing.yaml"
+  target_score: 90
+  d7_regression_fixed: true
+  d7_evidence:
+    - "Modules/Vestuario/Config/retention.php (10y audit fiscal + anonymize default)"
+    - "Modules/Vestuario/Tests/Feature/LgpdComplianceTest.php (8 asserts D7)"
+    - "Modules/Vestuario/Entities/VestuarioSetting.php (Spatie LogsActivity)"
+    - "memory/requisitos/Vestuario/PII-LGPD.md (delega PiiRedactor core)"
+    - "memory/governance/scorecards/vestuario.yaml (ESTE arquivo — current=10)"

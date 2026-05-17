@@ -53,6 +53,10 @@ Route::group(
         Route::get('/cc-sessions/{sessionUuid}',     'CcSessionsController@show')
             ->where('sessionUuid', '[A-Za-z0-9\-]+')
             ->name('team-mcp.cc.show');
+
+        // ---- G1 FICHA W22 (Wave 25 polish) — Scorecard Facts+Checks ----
+        Route::get('/scorecard',                     'ScorecardController@index')
+            ->name('team-mcp.scorecard.index');
     }
 );
 

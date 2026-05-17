@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Superadmin\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Modules\Superadmin\Entities\Package;
 
@@ -12,6 +13,9 @@ use Modules\Superadmin\Entities\Package;
  *
  * Wave 18 RETRY — D4 boost. Extraído de Package::listPackages() estático (legacy
  * UltimatePOS) pra Service injectável testável.
+ *
+ * Wave 25 SATURATION — D9 boost: spans OTel canônicos por método (zero-cost se
+ * `otel.enabled=false`). Habilita dashboard SRE de catalog reads cross-tenant.
  *
  * Motivação:
  *   - `Package::listPackages($excludePrivate)` é static — não-mockable, dificulta test
@@ -23,7 +27,9 @@ use Modules\Superadmin\Entities\Package;
  *   - Não usa global scope multi-tenant (Package model não tem business_id)
  *
  * @see Modules\Superadmin\Entities\Package
+ * @see app\Util\OtelHelper
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+ * @see memory/decisions/0155-module-grade-v3-anti-injustica-na-justified.md D9.a
  */
 class PackageManagerService
 {
@@ -35,13 +41,16 @@ class PackageManagerService
      */
     public function listActive(bool $excludePrivate = false): Collection
     {
-        $query = Package::active()->orderBy('sort_order');
+        return OtelHelper::spanBiz('superadmin.package.list_active', function () use ($excludePrivate): Collection {
+            // SUPERADMIN: Package é catálogo global (sem business_id, ADR 0093 §exceções).
+            $query = Package::active()->orderBy('sort_order');
 
-        if ($excludePrivate) {
-            $query->where('is_private', 0);
-        }
+            if ($excludePrivate) {
+                $query->where('is_private', 0);
+            }
 
-        return $query->get();
+            return $query->get();
+        }, ['module' => 'Superadmin', 'service' => self::class, 'exclude_private' => $excludePrivate]);
     }
 
     /**
@@ -49,13 +58,16 @@ class PackageManagerService
      */
     public function countActive(bool $excludePrivate = false): int
     {
-        $query = Package::active();
+        return OtelHelper::spanBiz('superadmin.package.count_active', function () use ($excludePrivate): int {
+            // SUPERADMIN: cross-tenant intencional (catalog global).
+            $query = Package::active();
 
-        if ($excludePrivate) {
-            $query->where('is_private', 0);
-        }
+            if ($excludePrivate) {
+                $query->where('is_private', 0);
+            }
 
-        return $query->count();
+            return $query->count();
+        }, ['module' => 'Superadmin', 'service' => self::class, 'exclude_private' => $excludePrivate]);
     }
 
     /**
@@ -65,13 +77,16 @@ class PackageManagerService
      */
     public function find(int $id, bool $withTrashed = false): ?Package
     {
-        $query = Package::query();
+        return OtelHelper::spanBiz('superadmin.package.find', function () use ($id, $withTrashed): ?Package {
+            // SUPERADMIN: lookup global por id.
+            $query = Package::query();
 
-        if ($withTrashed) {
-            $query->withTrashed();
-        }
+            if ($withTrashed) {
+                $query->withTrashed();
+            }
 
-        return $query->find($id);
+            return $query->find($id);
+        }, ['module' => 'Superadmin', 'service' => self::class, 'package_id' => $id, 'with_trashed' => $withTrashed]);
     }
 
     /**
@@ -83,8 +98,10 @@ class PackageManagerService
      */
     public function listForBusiness(int $businessId, bool $excludePrivate = true): Collection
     {
-        // SUPERADMIN: Package não tem business_id (catálogo global).
-        // Filtragem por-business é via custom_permissions JSON cast.
-        return $this->listActive($excludePrivate);
+        return OtelHelper::spanBiz('superadmin.package.list_for_business', function () use ($businessId, $excludePrivate): Collection {
+            // SUPERADMIN: Package não tem business_id (catálogo global).
+            // Filtragem por-business é via custom_permissions JSON cast.
+            return $this->listActive($excludePrivate);
+        }, ['module' => 'Superadmin', 'service' => self::class, 'target_biz' => $businessId, 'exclude_private' => $excludePrivate]);
     }
 }
