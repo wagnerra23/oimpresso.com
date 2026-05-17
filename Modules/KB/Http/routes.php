@@ -153,6 +153,28 @@ Route::group(
     }
 );
 
+// ===========================================================================
+// 3) Alias /sops — atalho semântico pra KB v2 (Standard Operating Procedures)
+// ===========================================================================
+// Wagner pediu rota memorável pra acessar V2 sem digitar /kb/v2 (2026-05-17).
+// Mesma stack middleware /kb canônica. Index.v2.tsx renderizado igual /kb/v2 —
+// SEM rename de arquivos, SEM cutover de /kb (V3 continua browser dos 352 docs
+// canônicos). Wagner decide depois se promove V2 oficialmente.
+//
+// Coexistência: /kb (V3 docs canon) · /kb/v2 (gate visual) · /sops (alias).
+// Reversível: deletar este bloco remove a rota sem afetar V2 nem V3.
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'sops',
+    ],
+    function () {
+        Route::get('/', function () {
+            return \Inertia\Inertia::render('kb/Index.v2');
+        })->name('sops.index');
+    }
+);
+
 // ============= IA RAG (Agent F · ONDA 4) =============
 // Adicionado em paralelo ao Agent A (CRUD nodes/paths/...). Wagner: no merge
 // final, considerar mover este bloco PRA DENTRO do group /kb principal acima
