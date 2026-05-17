@@ -40,10 +40,17 @@ class AppServiceProvider extends ServiceProvider
             error_reporting(0);
         }
 
-        //force https
+        // Força root URL canônica — Ziggy/asset() leem do request context por padrão,
+        // o que faz request acidental em /public/X gerar URLs com /public na base.
+        // forceRootUrl trava na config app.url, eliminando hierarquia duplicada.
+        // Ref: tighten/ziggy #110, #205, #410.
+        if (! empty(config('app.url'))) {
+            \URL::forceRootUrl(config('app.url'));
+        }
+
         $url = parse_url(config('app.url'));
 
-        if ($url['scheme'] == 'https') {
+        if (! empty($url['scheme']) && $url['scheme'] == 'https') {
             \URL::forceScheme('https');
         }
 
