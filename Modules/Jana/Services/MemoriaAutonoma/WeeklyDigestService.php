@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\MemoriaAutonoma;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -45,6 +46,16 @@ class WeeklyDigestService
      * @return array{path:?string, contexto:string, digest:?string, metrics:array, custo_estimado:array}
      */
     public function gerar(string $semana, bool $dryRun = false, bool $force = false): array
+    {
+        // D9.a (Wave 18 SATURATION) — span weekly digest cross-tenant (admin op).
+        return OtelHelper::span('jana.weekly_digest.gerar', [
+            'semana' => $semana,
+            'dry_run' => $dryRun,
+            'force' => $force,
+        ], fn () => $this->gerarInternal($semana, $dryRun, $force));
+    }
+
+    private function gerarInternal(string $semana, bool $dryRun = false, bool $force = false): array
     {
         [$inicio, $fim] = $this->resolverRangeIso($semana);
 

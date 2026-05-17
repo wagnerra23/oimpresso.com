@@ -10,7 +10,9 @@
     ],
     "aliases": {},
     "files": [
-        
+
     ],
-    "requires": []
+    "requires": [],
+    "fsm_n_a": true,
+    "fsm_n_a_reason": "Essentials = HRM/Documents/ToDo — não há pipeline de venda/serviço estado-orientado. Reminders/Leaves/Holidays/Shifts/Payroll são entidades CRUD com workflow administrativo (approve/reject pontual), não FSM canonical (ADR 0143). RH não tem produção/entrega estágio-orientada."
 }

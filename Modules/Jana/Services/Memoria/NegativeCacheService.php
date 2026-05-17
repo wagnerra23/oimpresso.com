@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -24,20 +25,27 @@ class NegativeCacheService
 {
     public function ehNegativo(int $businessId, int $userId, string $query): bool
     {
-        if (! config('copiloto.negative_cache.enabled', false)) {
-            return false;
-        }
+        // D9.a (Wave 18 SATURATION) — span lookup negative cache; zero-cost se OTel disabled.
+        return OtelHelper::span('jana.negative_cache.lookup', [
+            'business_id' => $businessId,
+            'user_id'     => $userId,
+            'query_chars' => strlen($query),
+        ], function () use ($businessId, $userId, $query) {
+            if (! config('copiloto.negative_cache.enabled', false)) {
+                return false;
+            }
 
-        $hit = Cache::has($this->cacheKey($businessId, $userId, $query));
+            $hit = Cache::has($this->cacheKey($businessId, $userId, $query));
 
-        if ($hit) {
-            Log::channel('copiloto-ai')->debug('NegativeCache: hit', [
-                'business_id' => $businessId,
-                'query_chars' => strlen($query),
-            ]);
-        }
+            if ($hit) {
+                Log::channel('copiloto-ai')->debug('NegativeCache: hit', [
+                    'business_id' => $businessId,
+                    'query_chars' => strlen($query),
+                ]);
+            }
 
-        return $hit;
+            return $hit;
+        });
     }
 
     public function marcarNegativo(int $businessId, int $userId, string $query): void

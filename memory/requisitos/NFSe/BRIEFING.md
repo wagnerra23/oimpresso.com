@@ -132,6 +132,11 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-16 BRT — Wave J boost (`backlog_hipotese` → `piloto_reportando_dor` pareado NfeBrasil ComVis)
+**Atualizado:** 2026-05-16 BRT — Wave 18 saturation (D1 NfseCertificado cross-tenant Pest)
 **Próximo update esperado:** quando US-NFSE-007 (bulk emission) ou cert A1 ativado prod
 **Mantenedor:** Claude (auto) + Eliana (owner) + Wagner (review)
+
+### Wave 18 deltas (2026-05-16)
+- D1: novo Pest `NfseCertificadoMultiTenantIsolationTest.php` (3 testes — scope herdado de NfeCertificado, isExpirado() alias, contrato business_id NOT NULL)
+- CHANGELOG.md criado pelo módulo
+- Cobertura cross-tenant explícita pra credenciais fiscais A1/A3 (CNPJ titular + encrypted_password)

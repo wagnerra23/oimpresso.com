@@ -120,8 +120,14 @@ Total Wave G: **~14.5h IA-pair** → score estimado **49 → ~84/100 (Bom)**.
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-16 BRT — inaugural via Wave G agent paralelo (D3.b BRIEFING 1-pager)
-**PRs incorporados:** #948 (Module Grades CLI + persist + rubrica v1)
-**Score evolução esperada:** 49/100 (Médio) → ~84/100 (Bom) ao fechar Wave G (5 sub-tasks ~14.5h IA-pair)
+**Atualizado:** 2026-05-16 BRT — Wave 18 saturate 88 → ~100 (Excelente)
+**PRs incorporados:** #948 (Module Grades CLI + persist + rubrica v1) + Wave 18 (saturate D6+D7+D8+D9)
+**Score evolução esperada:** 49 (Médio) → 84 (Bom — Wave G) → ~100 (Excelente saturado — Wave 18)
+**Wave 18 deliverables:**
+- D7: `Config/retention.php` + ActionGate PII redactor + config `pii_redaction_enabled`
+- D8: `FilterAuditRequest` + `GenerateReportRequest` + throttle 6 rotas (10-60/min)
+- D9: `governance:health` Command (4 checks core infra) + registro no Provider
+- meta: `module.json governance.fsm_n_a: true` com reason (meta-módulo sem lifecycle stages)
+- testes: 10 cenários `GovernanceWave18SaturateTest.php`
 **Próximo update esperado:** quando próximo `feat/fix(governance)` mergear (auto-trigger skill `brief-update`)
 **Mantenedor:** Claude (auto via skill) + Wagner (review)

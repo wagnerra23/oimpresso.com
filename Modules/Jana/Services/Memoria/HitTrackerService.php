@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -38,6 +39,17 @@ class HitTrackerService
             return;
         }
 
+        // D9.a (Wave 18 SATURATION) — span hit tracking memória; Tier 0 business_id explícito.
+        OtelHelper::span('jana.memoria.hit_tracker', [
+            'business_id' => $businessId,
+            'fato_ids_count' => count($fatoIds),
+        ], function () use ($businessId, $fatoIds) {
+            $this->registrarUsoInternal($businessId, $fatoIds);
+        });
+    }
+
+    private function registrarUsoInternal(int $businessId, array $fatoIds): void
+    {
         try {
             $threshold = (int) config('copiloto.hits.core_memory_threshold', 5);
             $now = now();

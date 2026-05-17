@@ -7,6 +7,7 @@ namespace Modules\Governance\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\TeamMcp\Services\ActorResolver;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -98,13 +99,43 @@ class ActionGate
 
     private function logViolation(string $type, string $route, ?string $actorSlug, Request $request, array $extra = []): void
     {
-        Log::channel('single')->warning('ActionGate violation', array_merge([
+        // D7 LGPD — redact PII (CPF/CNPJ/email/phone) antes de log/audit.
+        // ActionGate violations vão pra log filesystem (storage/logs/laravel.log)
+        // que é persistido + rotacionado — PII em claro = vazamento LGPD.
+        //
+        // Reusa Modules\Jana\Services\Privacy\PiiRedactor (canônico do projeto).
+        // Sem-op se config('governance.pii_redaction_enabled')=false (debug local).
+        $piiRedactionEnabled = (bool) config('governance.pii_redaction_enabled', true);
+
+        $payload = array_merge([
             'type'        => $type,
             'route'       => $route,
             'actor'       => $actorSlug,
             'method'      => $request->method(),
             'ip'          => $request->ip(),
             'mode'        => config('governance.actiongate_mode', 'warn'),
-        ], $extra));
+        ], $extra);
+
+        if ($piiRedactionEnabled && class_exists(PiiRedactor::class)) {
+            // PiiRedactor canon trabalha sobre string; iterar campos sensíveis.
+            // Mantém shape estável pro log parser (campos sempre presentes,
+            // apenas valores redacted in-place).
+            try {
+                $redactor = app(PiiRedactor::class);
+                foreach ($payload as $k => $v) {
+                    if (is_string($v) && $v !== '') {
+                        $payload[$k] = $redactor->redact($v);
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Fail-open: log original sem PII redaction se Service indisponível
+                // (Jana opcional em alguns ambientes). NÃO bloqueia ActionGate.
+                Log::channel('single')->debug('ActionGate PiiRedactor falhou (fail-open)', [
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        Log::channel('single')->warning('ActionGate violation', $payload);
     }
 }

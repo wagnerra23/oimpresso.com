@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Mcp;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Modules\Jana\Entities\Mcp\McpSkill;
 use Modules\Jana\Entities\Mcp\McpSkillLabel;
@@ -23,6 +24,12 @@ class ImportarSkillsDoGitService
      * @return array{created: int, updated: int, unchanged: int, skipped: int, errors: array}
      */
     public function run(): array
+    {
+        // D9.a (Wave 18 SATURATION) — span import skills git; sem business_id (global registry).
+        return OtelHelper::span('jana.mcp.importar_skills', [], fn () => $this->runInternal());
+    }
+
+    private function runInternal(): array
     {
         $created = 0;
         $updated = 0;

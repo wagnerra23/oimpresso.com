@@ -2,6 +2,7 @@
 
 namespace Modules\Woocommerce\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Woocommerce\Exceptions\WooCommerceError;
@@ -38,22 +39,28 @@ class WoocommerceSyncService
      */
     public function sincronizarCategorias(int $businessId, int $userId): array
     {
-        try {
-            DB::beginTransaction();
+        // D9 Wave 18 — OTel span (no-op em local sem collector — overhead < 1µs)
+        return OtelHelper::span('woocommerce.sync.categories', [
+            'business_id' => $businessId,
+            'user_id' => $userId,
+        ], function () use ($businessId, $userId) {
+            try {
+                DB::beginTransaction();
 
-            $this->woocommerceUtil->syncCategories($businessId, $userId);
+                $this->woocommerceUtil->syncCategories($businessId, $userId);
 
-            DB::commit();
+                DB::commit();
 
-            return [
-                'success' => 1,
-                'msg' => __('woocommerce::lang.synced_successfully'),
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
+                return [
+                    'success' => 1,
+                    'msg' => __('woocommerce::lang.synced_successfully'),
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
 
-            return $this->respostaErro($e);
-        }
+                return $this->respostaErro($e);
+            }
+        });
     }
 
     /**
@@ -72,34 +79,43 @@ class WoocommerceSyncService
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 0);
 
-        try {
-            DB::beginTransaction();
+        // D9 Wave 18 — OTel span (sync_type/limit/offset visíveis no trace)
+        return OtelHelper::span('woocommerce.sync.products', [
+            'business_id' => $businessId,
+            'user_id' => $userId,
+            'sync_type' => $syncType,
+            'limit' => $limit,
+            'offset' => $offset ?? -1,
+        ], function () use ($businessId, $userId, $syncType, $limit, $offset) {
+            try {
+                DB::beginTransaction();
 
-            $allProducts = $this->woocommerceUtil->syncProducts(
-                $businessId,
-                $userId,
-                $syncType,
-                $limit,
-                $offset
-            );
+                $allProducts = $this->woocommerceUtil->syncProducts(
+                    $businessId,
+                    $userId,
+                    $syncType,
+                    $limit,
+                    $offset
+                );
 
-            DB::commit();
+                DB::commit();
 
-            $totalProducts = is_array($allProducts) ? count($allProducts) : 0;
-            $msg = $totalProducts > 0
-                ? __('woocommerce::lang.n_products_synced_successfully', ['count' => $totalProducts])
-                : __('woocommerce::lang.synced_successfully');
+                $totalProducts = is_array($allProducts) ? count($allProducts) : 0;
+                $msg = $totalProducts > 0
+                    ? __('woocommerce::lang.n_products_synced_successfully', ['count' => $totalProducts])
+                    : __('woocommerce::lang.synced_successfully');
 
-            return [
-                'success' => 1,
-                'msg' => $msg,
-                'total_products' => $totalProducts,
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
+                return [
+                    'success' => 1,
+                    'msg' => $msg,
+                    'total_products' => $totalProducts,
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
 
-            return $this->respostaErro($e);
-        }
+                return $this->respostaErro($e);
+            }
+        });
     }
 
     /**
@@ -107,22 +123,28 @@ class WoocommerceSyncService
      */
     public function sincronizarOrders(int $businessId, int $userId): array
     {
-        try {
-            DB::beginTransaction();
+        // D9 Wave 18 — OTel span (orders incoming: WooCommerce → POS Sells)
+        return OtelHelper::span('woocommerce.sync.orders', [
+            'business_id' => $businessId,
+            'user_id' => $userId,
+        ], function () use ($businessId, $userId) {
+            try {
+                DB::beginTransaction();
 
-            $this->woocommerceUtil->syncOrders($businessId, $userId);
+                $this->woocommerceUtil->syncOrders($businessId, $userId);
 
-            DB::commit();
+                DB::commit();
 
-            return [
-                'success' => 1,
-                'msg' => __('woocommerce::lang.synced_successfully'),
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
+                return [
+                    'success' => 1,
+                    'msg' => __('woocommerce::lang.synced_successfully'),
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
 
-            return $this->respostaErro($e);
-        }
+                return $this->respostaErro($e);
+            }
+        });
     }
 
     /**

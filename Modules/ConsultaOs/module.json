@@ -7,5 +7,14 @@
     "providers": [
         "Modules\\ConsultaOs\\Providers\\ConsultaOsServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "grade": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "ConsultaOs é portal read-only de consulta pública (cliente externo sem login). Estado da OS pertence a Modules/Repair (que ESTE módulo só lê). Não há transições próprias — FSM (ADR 0143) gerenciada por Repair/Sells.",
+        "wave_18_retry_targets": {
+            "D4_service_pattern": 20,
+            "D5_customer_journey": 15,
+            "D9_observability_otel": 7
+        }
+    }
 }

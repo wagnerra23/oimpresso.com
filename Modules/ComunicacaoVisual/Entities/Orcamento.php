@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Orcamento — orçamento de serviços de comunicação visual.
@@ -44,6 +46,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Orcamento extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 18 D7 LGPD compliance).
+     *
+     * Loga apenas mudanças de status + totais (não polui DB com toda update).
+     * Tabela `activity_log` shared entre módulos.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'total', 'subtotal', 'data_validade'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.orcamento');
+    }
+
 
     protected $table = 'comvis_orcamentos';
 

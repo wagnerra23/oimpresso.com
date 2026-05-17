@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Mcp;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
@@ -49,6 +50,16 @@ class IndexarMemoryGitParaDb
      * @return array{indexados:int, atualizados:int, novos:int, removidos:int, redactions:int}
      */
     public function run(): array
+    {
+        // D9.a (Wave 18 SATURATION) — span indexação memória git→DB; reason+businessId.
+        return OtelHelper::span('jana.mcp.indexar_memory', [
+            'business_id' => $this->businessId,
+            'reason' => $this->reason,
+            'user_id' => $this->userId,
+        ], fn () => $this->runInternal());
+    }
+
+    private function runInternal(): array
     {
         $stats = ['indexados' => 0, 'atualizados' => 0, 'novos' => 0, 'removidos' => 0, 'redactions' => 0];
 

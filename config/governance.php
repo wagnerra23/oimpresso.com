@@ -37,4 +37,56 @@ return [
     */
     'd2_hardened' => env('GOVERNANCE_D2_HARDENED', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Observability — D9.b query failed_jobs (ADR 0159 Wave 18 ready-mode)
+    |--------------------------------------------------------------------------
+    |
+    | Quando true (default Wave 18), ModuleGradeService::dim9Observability D9.b
+    | consulta a tabela `failed_jobs` nas últimas 24h e pontua 3/3 se <5 fails.
+    | Antes (placeholder) zerava ~todos módulos em 2/3 + bloqueava meta 97.75.
+    |
+    | Desativar (.env `OBSERVABILITY_QUERY_FAILED_JOBS=false`) quando:
+    |   - DB Hostinger sob carga e essa query somar latência percebida
+    |   - Investigação de regressão exige isolar D9.b sem DB hit
+    |
+    | @see memory/decisions/0159-module-grade-v3-errata-meta-97-realismo.md
+    */
+    'observability' => [
+        'query_failed_jobs' => env('OBSERVABILITY_QUERY_FAILED_JOBS', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | D7 LGPD — PII redaction (Wave 18 saturate)
+    |--------------------------------------------------------------------------
+    |
+    | Quando true (default prod), ActionGate::logViolation roda PiiRedactor
+    | (Modules\Jana\Services\Privacy\PiiRedactor) sobre strings do payload
+    | ANTES de Log::warning. Garante CPF/CNPJ/email/phone redacted em
+    | storage/logs/laravel.log + audit downstream.
+    |
+    | Desativar (.env GOVERNANCE_PII_REDACTION=false) APENAS em debug local
+    | quando precisar reproduzir incident com PII real (NUNCA em prod).
+    |
+    | @see Modules/Governance/Config/retention.php
+    | @see memory/proibicoes.md §"Multi-tenant Tier 0 IRREVOGÁVEL" (PII nunca em log)
+    */
+    'pii_redaction_enabled' => env('GOVERNANCE_PII_REDACTION', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | D7 LGPD — Retention (Wave 18 saturate, delegado pra Config/retention.php)
+    |--------------------------------------------------------------------------
+    |
+    | Carrega defaults declarados em Modules/Governance/Config/retention.php.
+    | Permite override via env sem precisar republicar config.
+    */
+    'retention' => [
+        'audit_log_days'              => env('GOVERNANCE_RETENTION_AUDIT_DAYS', 1825),
+        'module_grades_days'          => env('GOVERNANCE_RETENTION_MODULE_GRADES_DAYS', 90),
+        'action_gate_violations_days' => env('GOVERNANCE_RETENTION_VIOLATIONS_DAYS', 365),
+        'charter_metrics_days'        => env('GOVERNANCE_RETENTION_CHARTER_METRICS_DAYS', 180),
+    ],
+
 ];

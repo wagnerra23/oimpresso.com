@@ -12,5 +12,7 @@
     "files": [
         "start.php"
     ],
-    "requires": []
+    "requires": [],
+    "fsm_n_a": true,
+    "fsm_n_a_reason": "TeamMcp é governança/audit do MCP server (tokens, audit log, Identity Mesh, ingest CC sessions, Kanban Jira-style do time). NÃO opera transactions/job-sheets/orders — FSM Pipeline canônico (ADR 0143) não se aplica. Lifecycle de actor é tabela append-only (mcp_actors.revoked_at), não state machine."
 }

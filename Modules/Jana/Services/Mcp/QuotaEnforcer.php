@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Mcp;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -30,6 +31,14 @@ class QuotaEnforcer
      *   ok: false + block: false → middleware deixa passar mas aviso registrado
      */
     public function checar(int $userId): array
+    {
+        // D9.a (Wave 18 SATURATION) — span quota enforcement; userId obrigatório.
+        return OtelHelper::span('jana.mcp.quota.checar', [
+            'user_id' => $userId,
+        ], fn () => $this->checarInternal($userId));
+    }
+
+    private function checarInternal(int $userId): array
     {
         // Pega TODAS quotas ativas (BRL OU calls OU tokens) deste user
         $quotas = McpQuota::where('user_id', $userId)

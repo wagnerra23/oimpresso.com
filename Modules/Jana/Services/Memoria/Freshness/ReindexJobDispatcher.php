@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Memoria\Freshness;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Jobs\Mcp\ReindexarDocumentoJob;
 
@@ -32,6 +33,13 @@ final class ReindexJobDispatcher
      * @return int Quantidade de jobs efetivamente enfileirados.
      */
     public function dispatchStaleAndDrift(int $limit = 100): int
+    {
+        return OtelHelper::spanBiz('jana.freshness.dispatch_reindex', function () use ($limit) {
+            return $this->doDispatchStaleAndDrift($limit);
+        }, ['limit' => $limit]);
+    }
+
+    private function doDispatchStaleAndDrift(int $limit): int
     {
         $stale = $this->detector->detectStale();
         $drift = $this->detector->detectDrift();
