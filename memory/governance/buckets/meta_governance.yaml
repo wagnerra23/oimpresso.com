@@ -1,0 +1,45 @@
+# Bucket config canônico — meta_governance (ADR 0160 proposto).
+#
+# Wave 24 Agent A (2026-05-16) — paired indicators enforcement aplicado a meta-módulos.
+#
+# Meta-módulos: Governance, Auditoria, Admin. Características:
+#   - fsm_n_a=true (sem entity lifecycle)
+#   - cross-tenant by design (Art. 6+8 Constituição)
+#   - foco em coerência/reflexividade/cobertura
+#
+# Consumido por ScopedScorecardEvaluator quando module.json declara bucket="meta_governance".
+
+bucket: "meta_governance"
+description: "Meta-módulos governança (Governance, Auditoria, Admin). fsm_n_a=true por design."
+target_score: 90
+adr: "0160"
+
+core:
+  multi_tenant:  { peso: 15, target: 15 }  # cross-tenant by design - peso reduzido
+  pest_coverage: { peso: 17, target: 17 }
+  documentation: { peso: 15, target: 15 }  # peso aumentado (reflexividade)
+  architecture:  { peso: 12, target: 12 }
+  client_real:   { peso:  5, target:  5 }  # módulos internos - peso reduzido
+  performance:   { peso: 10, target: 10 }
+  lgpd:          { peso:  8, target:  8 }
+  security:      { peso:  8, target:  8 }
+  observability: { peso: 10, target: 10 }  # peso aumentado
+
+bucket_dimensions:
+  C_coerencia:
+    peso: 10
+    target: 10
+    descricao: "Coerência entre Constituição + ADRs + código + skills"
+  C_reflexividade:
+    peso: 10
+    target: 10
+    descricao: "Módulo audita a si mesmo (ex Governance audita policies)"
+    regras:
+      C_a: { peso: 5, descricao: "Velocidade audit (rodam <1s)" }
+      C_b: { peso: 5, descricao: "Qualidade evidências (link ADR + artefato)" }
+
+paired:
+  - velocidade: "C_reflexividade.C_a"
+    qualidade:  "C_reflexividade.C_b"
+    rule: "Audit rápido sem evidências robustas -> cap 50%"
+    racional: "Audit veloz sem link ADR + artefato é teatro"

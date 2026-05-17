@@ -221,6 +221,22 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 > - 9 ADRs `substituido` sem `superseded_by:` no frontmatter (0008, 0010, 0031, 0032, 0033, 0042, 0073, 0075, 0077) — pendente ADR 0120 housekeeping
 > - 0079 ainda `lifecycle: ativo` apesar de 0094 declarar `supersedes: [0079]` — pendente ADR 0120
 
+### Bloco 9 — Governance rubrica + erratas + v4 (0153–0161) — apendado 2026-05-16
+
+> Apendado em 2026-05-16 (Waves 17-24) cobrindo evolução `module-grade` rubrica v1→v2→v3 + erratas hardening + v4 Scoped Scorecards. ADR 0159 parcialmente superseded por 0160 (Scoped Scorecards) + 0161 (aposenta 3/4 hacks).
+
+| ID | Estado | Substituída por | Nota |
+|---|---|---|---|
+| 0153 | A | — | module-grade rubrica v1 (5 dimensões D1..D5) |
+| 0154 | A | — | module-grade v2 — N/A justificado (anti-gaming limit 3) |
+| 0155 | A | — | module-grade v3 — sub-dimensões + reweight + gate CI |
+| 0156 | A | — | v3 errata — OtelHelper N/A justified backward-compat |
+| 0157 | A | — | v3 errata — D2 detection hardening |
+| 0158 | A | — | v3 errata — D1 heurística hardening recursivo |
+| 0159 | A | (parcial 0160, 0161) | v3 errata meta 97 realismo — 4 hacks (D5 cross-cutting, D9.b ready, D4.b N/A, D3.b CHANGELOG) |
+| 0160 | A | — | Governance v4 — Scoped Scorecards bucket-aware (5 buckets) |
+| 0161 | A | — | **Aposentar 3 hacks ADR 0159 redundantes com v4 (D5 cross-cutting, D4.b FSM, D3.b CHANGELOG)** · 4º hack D9.b permanece até OTel collector ativo |
+
 ---
 
 ## Próximos passos pós-aprovação Wagner

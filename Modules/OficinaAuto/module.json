@@ -20,13 +20,19 @@
         "policy_doc": "memory/requisitos/OficinaAuto/SPEC.md"
     },
     "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_adr": "0160",
+        "bucket_config": "governance/buckets/vertical_client_facing.yaml",
         "fsm_canonico": true,
         "fsm_pipeline": "service_order",
         "fsm_doc": "memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md",
         "fsm_estados_simples": ["aberta", "em_servico", "concluida"],
         "fsm_estados_complexa": ["aberta", "orcamento", "aprovada", "em_producao", "concluida", "entregue"],
         "fsm_us": "US-OFICINA-003",
-        "wave": 18,
-        "rubrica_version": "v3"
+        "wave": 23,
+        "wave_23_saturation": true,
+        "scoped_score_target": 85,
+        "last_governance_review": "2026-05-16",
+        "rubrica_version": "v3_scoped"
     }
 }
