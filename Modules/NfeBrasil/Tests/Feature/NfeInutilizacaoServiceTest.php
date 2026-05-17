@@ -35,6 +35,22 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // Spatie LogsActivity em NfeEmissao + NfeInutilizacao → INSERT em activity_log.
+    Schema::create('activity_log', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable();
+        $t->text('description')->nullable();
+        $t->unsignedBigInteger('subject_id')->nullable();
+        $t->string('subject_type')->nullable();
+        $t->unsignedBigInteger('causer_id')->nullable();
+        $t->string('causer_type')->nullable();
+        $t->text('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
+        $t->string('event')->nullable();
+        $t->unsignedInteger('business_id')->nullable();
+        $t->timestamps();
+    });
+
     Schema::create('business', function (Blueprint $t) {
         $t->increments('id');
         $t->string('name')->nullable();
@@ -87,6 +103,7 @@ afterEach(function () {
     Schema::dropIfExists('nfe_inutilizacoes');
     Schema::dropIfExists('nfe_emissoes');
     Schema::dropIfExists('business');
+    Schema::dropIfExists('activity_log');
     \Mockery::close();
 });
 
