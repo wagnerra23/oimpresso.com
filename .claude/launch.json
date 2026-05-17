@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "5550", "--directory", "D:\\oimpresso.com\\prototipo-ui\\cowork-snapshot"],
       "port": 5550
+    },
+    {
+      "name": "kb-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5560", "--directory", "D:\\oimpresso.com\\public\\prototipos\\kb"],
+      "port": 5560
     }
   ]
 }
