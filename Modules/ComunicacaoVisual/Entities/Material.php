@@ -5,6 +5,8 @@ namespace Modules\ComunicacaoVisual\Entities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Material — catálogo de materiais para comunicação visual.
@@ -35,6 +37,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Material extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 26 D7 LGPD compliance).
+     * Loga apenas mudanças preço/ativo/estoque — catálogo sem PII.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['nome', 'categoria', 'preco_venda_m2', 'preco_custo_m2', 'estoque_minimo_m2', 'ativo'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.material');
+    }
 
     protected $table = 'comvis_materiais';
 

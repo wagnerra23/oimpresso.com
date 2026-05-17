@@ -211,12 +211,20 @@ class ArquivosService
     /**
      * Dedupe lookup — retorna Arquivo existente com mesmo MD5 no mesmo business.
      * Não vaza cross-business (Agent E security review §dedupe leak).
+     *
+     * Wave 26 D9 — span observável separa hit/miss vs latência da query.
      */
     public function dedupe(string $md5, int $businessId): ?Arquivo
     {
-        return Arquivo::where('md5', $md5)
-            ->where('business_id', $businessId)
-            ->first();
+        return OtelHelper::spanBiz('arquivos.dedupe_lookup', function () use ($md5, $businessId) {
+            return Arquivo::where('md5', $md5)
+                ->where('business_id', $businessId)
+                ->first();
+        }, [
+            'module'      => 'Arquivos',
+            'business_id' => $businessId,
+            // md5 NÃO incluído (não é PII mas é hash de conteúdo — defesa em profundidade)
+        ]);
     }
 
     private function insertDedupe(string $md5): void

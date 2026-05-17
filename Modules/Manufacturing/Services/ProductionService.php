@@ -115,4 +115,38 @@ class ProductionService
             'module' => 'Manufacturing',
         ]);
     }
+
+    /**
+     * Wave 26 D9 — KPIs por janela temporal (últimos N dias) pra dashboard.
+     *
+     * Spans observáveis pra hot-path de dashboards reagentes (Producao card).
+     * Multi-tenant Tier 0: caller injeta biz_id, NUNCA session() em Job.
+     *
+     * @param  int  $businessId  Tenant — explícito sempre
+     * @param  int  $windowDays  Janela em dias (default 30)
+     * @return array{count:int, value:float, avg_value:float}
+     */
+    public function windowKpis(int $businessId, int $windowDays = 30): array
+    {
+        return OtelHelper::spanBiz('manufacturing.production.window_kpis', function () use ($businessId, $windowDays) {
+            $since = now()->subDays($windowDays)->toDateTimeString();
+
+            $base = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_purchase')
+                ->where('transaction_date', '>=', $since);
+
+            $count = (clone $base)->count();
+            $value = (float) (clone $base)->sum('final_total');
+
+            return [
+                'count'     => $count,
+                'value'     => $value,
+                'avg_value' => $count > 0 ? round($value / $count, 2) : 0.0,
+            ];
+        }, [
+            'module'      => 'Manufacturing',
+            'window_days' => $windowDays,
+        ]);
+    }
 }

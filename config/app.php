@@ -204,6 +204,11 @@ return [
         // (composer.json) — vendor provider só sobe via App\Providers\HorizonServiceProvider
         // quando flag true. Garante ADR 0062 (Hostinger nunca expõe Horizon).
         App\Providers\HorizonServiceProvider::class,
+
+        // OTel SDK boot (Wave 26 — ADR 0162 proposta). register() faz early-return
+        // se otel.enabled=false (default) OU otel.sdk_disabled=true OU SDK ausente.
+        // Hostinger: deixar OTEL_ENABLED=false. CT 100 .env: OTEL_ENABLED=true.
+        App\Providers\OtelServiceProvider::class,
     ],
 
     /*

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * InstalacaoCatalogo — catálogo de tipos de instalação (US-COMVIS-007).
@@ -33,6 +35,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class InstalacaoCatalogo extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 26 D7 LGPD compliance).
+     * Catálogo de tipos de instalação — sem PII. Loga preço/NR-35.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['nome', 'preco_base', 'preco_m2', 'preco_km', 'exige_nr35', 'ativo'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.instalacao_catalogo');
+    }
 
     protected $table = 'cv_instalacoes_catalogo';
 
