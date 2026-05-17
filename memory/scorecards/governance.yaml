@@ -1,0 +1,423 @@
+# Scorecard score-as-code — Modules/Governance
+# Bucket: cross_cutting_infra (Wagner aprovou 2026-05-16, sessão Domain-Specific Scorecards)
+# Pattern: Cortex score-as-code + Port initiatives + paired indicators Jellyfish 2025
+# Status: EXPERIMENTAL — valida formato antes de implementar `php artisan oimpresso:scorecard`
+#
+# Reflexividade: Governance audita Governance (dogfood) — bucket exige que módulo
+# que define rubrica seja avaliado pela própria rubrica e bata média do bucket.
+#
+# Quando virar canon:
+# - Mover pra `Modules/Governance/Scorecard/governance.yaml` (co-localizado)
+# - Service ModuleGradeService v4 carrega YAML em vez de rubrica hardcoded
+# - Gate CI `module-grades-gate.yml` bloqueia regressão por bucket
+# - Drift detection daily snapshots em mcp_scorecard_runs
+
+---
+
+apiVersion: oimpresso.governance/v1
+kind: ModuleScorecard
+metadata:
+  module: Governance
+  bucket: cross_cutting_infra
+  owner: '[W]'   # Wagner — single point of decision
+  cliente_real: 'time_interno_mcp'  # Felipe/Maiara/Eliana/Luiz + Wagner — consumidores diretos da rubrica
+  cnae: 'N/A'  # módulo infra-time, sem CNAE
+  status: 'em-prod'   # Wave 14+ governance gate ativo prod
+  ultima_revisao: 2026-05-16
+  proxima_revisao: 2026-08-16  # quarterly review
+
+# ===========================================================================
+# CORE DIMENSIONS — universais (compartilhadas TODOS buckets, sem variação)
+# Peso fixo 33pts (D1=25 + D8=8). Tier 0 IRREVOGÁVEL.
+# ===========================================================================
+core:
+  D1_multi_tenant:
+    peso: 25
+    descricao: 'business_id global scope ADR 0093 — Tier 0 IRREVOGÁVEL'
+    rules:
+      - id: D1.a
+        peso: 15
+        descricao: 'HasBusinessScope/BelongsToBusinessViaParent em TODAS Entities recursive'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Governance/Entities/**/*.php'
+          expect: 'use HasBusinessScope|use BelongsToBusinessViaParent'
+          coverage_target: 100  # 100% das Entities
+          na_if: 'Modules/Governance/Entities nao existe — modulo repo-wide sem dados negocio biz-scoped'
+
+      - id: D1.b
+        peso: 5
+        descricao: 'Pest cross-tenant biz=1 vs biz=99 com isolation real'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Governance/Tests/Feature/**/*Test.php'
+          expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
+          assertion: 'assertSee|assertCount|assertDatabaseMissing'
+          coverage_target: 1  # ≥1 test cross-tenant
+          na_if: 'modulo repo-wide — testes garantem isolation de comandos artisan/services cross-tenant'
+
+      - id: D1.c
+        peso: 5
+        descricao: 'Jobs recebem int $businessId no constructor'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Governance/Jobs/**/*.php'
+          expect: '__construct.*int\s+\$businessId'
+          coverage_target: 100  # 100% dos Jobs
+          na_if: 'Modules/Governance/Jobs nao existe — comandos artisan rodam scope-aware via flag explicit'
+
+  D8_security:
+    peso: 8
+    descricao: 'Throttle + CSRF + FormRequest hardening'
+    rules:
+      - id: D8.a
+        peso: 3
+        descricao: 'Throttle middleware em rotas sensíveis (dashboard governance, exports rubrica)'
+        detect:
+          tipo: grep
+          path: 'Modules/Governance/Routes/**/*.php'
+          expect: "throttle:|->middleware\\('throttle"
+          coverage_target: 1
+
+      - id: D8.b
+        peso: 2
+        descricao: 'CSRF Inertia ativo (default Laravel) — sem `except` no VerifyCsrfToken pro módulo'
+        detect:
+          tipo: negative_grep
+          path: 'app/Http/Middleware/VerifyCsrfToken.php'
+          unexpected: 'governance|Governance'
+
+      - id: D8.c
+        peso: 3
+        descricao: 'FormRequest dedicado em store/update Controllers'
+        detect:
+          tipo: ratio
+          numerator: 'Modules/Governance/Http/Requests/*.php'
+          denominator: 'Modules/Governance/Http/Controllers/**/*.php'
+          coverage_target: 0.5  # ≥50% Controllers tem FormRequest correspondente
+
+# ===========================================================================
+# BUCKET DIMENSIONS — cross_cutting_infra (peso próprio 67pts)
+# Total core (33) + bucket (67) = 100pts normalizado
+#
+# Diferenças vs vertical_client_facing:
+# - SEM peso forte em "cliente real biz=4" (Governance não atende cliente externo)
+# - COM peso forte em "auto-detection accuracy" (rubrica precisa funcionar bem)
+# - COM peso forte em "anti-regression CI" (gate é entregável do módulo)
+# - COM peso em "reflexividade" (eat your own dogfood — Governance se auto-avalia)
+# - COM peso em "cobertura cross-projeto" (% módulos com baseline + bucket declarado)
+# ===========================================================================
+bucket_dimensions:
+
+  C1_auto_detection:
+    peso: 12
+    descricao: 'Heurísticas de detecção funcionam — falsos-positivos baixos + runtime aceitável'
+    rules:
+      - id: C1.a
+        peso: 5
+        descricao: 'Heurísticas testadas com Pest (mocks + fixtures de módulos sintéticos)'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Governance/Tests/**/AutoDetection*Test.php'
+          expect: 'fixture|mock|synthetic_module'
+          assertion: 'assertEquals|assertContains|assertCount'
+          coverage_target: 1
+
+      - id: C1.b
+        peso: 4
+        descricao: 'Falso-positivos <5% validados semanal (manual spot-check Wagner)'
+        detect:
+          tipo: mcp_query
+          source: 'mcp_scorecard_runs WHERE detection_drift_flagged=true last_7d'
+          expect: 'count / total_runs < 0.05'
+
+      - id: C1.c
+        peso: 3
+        descricao: 'Detection runtime <2s por módulo (`module:grade <X>`)'
+        detect:
+          tipo: bench_runtime
+          source: 'mcp_scorecard_runs.execution_ms last_30d'
+          expect: 'p95 < 2000'  # 2s em ms
+          fallback: 'placeholder até mcp_scorecard_runs popular ≥30 execuções'
+
+  C2_anti_regression_ci:
+    peso: 12
+    descricao: 'Gate CI bloqueia merges com regressão — entregável principal do módulo'
+    rules:
+      - id: C2.a
+        peso: 5
+        descricao: 'Workflow `.github/workflows/module-grades-gate.yml` ativo + bloqueando últimos 30d'
+        detect:
+          tipo: file_exists_and_active
+          path: '.github/workflows/module-grades-gate.yml'
+          source: 'GitHub Actions runs WHERE name=module-grades-gate AND conclusion=failure last_30d'
+          expect: 'count >= 1'  # já bloqueou pelo menos 1x = funcional
+
+      - id: C2.b
+        peso: 4
+        descricao: 'Label override `module-grades-allowed-regression` funcional (testado em PR real)'
+        detect:
+          tipo: github_label_usage
+          source: 'gh pr list --label module-grades-allowed-regression --state all'
+          expect: 'count >= 1 AND count_last_7d <= 3'  # existe E não abusado
+
+      - id: C2.c
+        peso: 3
+        descricao: 'Baseline JSON checked-in atualizado por PR (`memory/governance/module-grades-baseline.json`)'
+        detect:
+          tipo: file_age
+          path: 'memory/governance/module-grades-baseline.json'
+          age_max_days: 7
+
+  C3_reflexivity:
+    peso: 10
+    descricao: 'Governance audita Governance — módulo bate média do próprio bucket (eat your own dogfood)'
+    rules:
+      - id: C3.a
+        peso: 5
+        descricao: 'Governance score ≥ média dos módulos cross_cutting_infra'
+        detect:
+          tipo: comparative_score
+          source: 'mcp_scorecard_runs WHERE bucket=cross_cutting_infra last_run'
+          expect: 'governance_score >= avg(bucket_scores)'
+
+      - id: C3.b
+        peso: 3
+        descricao: '`governance.bucket: cross_cutting_infra` declarado em Modules/Governance/module.json (dogfood)'
+        detect:
+          tipo: yaml_lookup
+          source: 'Modules/Governance/module.json'
+          key: 'governance.bucket'
+          expect: 'cross_cutting_infra'
+
+      - id: C3.c
+        peso: 2
+        descricao: 'ADRs 0155-0160 (foundation v4) referenciadas no SPEC/BRIEFING do módulo'
+        detect:
+          tipo: grep
+          path: 'memory/requisitos/Governance/{SPEC,BRIEFING}.md'
+          expect: '015[5-9]|0160'
+          coverage_target: 1
+
+  C4_docs_vivos:
+    peso: 10
+    descricao: 'ADRs canônicas atualizadas + CHANGELOG fresh + _INDEX-LIFECYCLE sincronizado'
+    rules:
+      - id: C4.a
+        peso: 4
+        descricao: '100% ADRs do módulo com status atual (accepted/superseded/historical)'
+        detect:
+          tipo: ast_scan
+          path: 'memory/decisions/*.md'
+          expect: 'status:\s*(accepted|superseded|historical)'
+          filter_frontmatter: 'module: Governance OR tags: governance'
+          coverage_target: 100
+
+      - id: C4.b
+        peso: 3
+        descricao: 'CHANGELOG.md presente + entry últimos 30d'
+        detect:
+          tipo: file_age
+          path: 'Modules/Governance/CHANGELOG.md'
+          age_max_days: 30
+
+      - id: C4.c
+        peso: 3
+        descricao: '`memory/decisions/_INDEX-LIFECYCLE.md` sincronizado (ADRs novas listadas)'
+        detect:
+          tipo: file_age_relative
+          path: 'memory/decisions/_INDEX-LIFECYCLE.md'
+          compare_to: 'memory/decisions/*.md (newest)'
+          max_lag_days: 7
+
+  C5_cobertura_cross_projeto:
+    peso: 13
+    descricao: 'Adoção real — todos módulos têm bucket + baseline + drift detection ativa'
+    rules:
+      - id: C5.a
+        peso: 6
+        descricao: '100% módulos têm `governance.bucket` declarado em module.json'
+        detect:
+          tipo: ratio
+          numerator: 'Modules/*/module.json WHERE has(governance.bucket)'
+          denominator: 'Modules/*/module.json'
+          coverage_target: 1.0  # 100%
+
+      - id: C5.b
+        peso: 4
+        descricao: '100% buckets têm YAML em `memory/scorecards/`'
+        detect:
+          tipo: file_exists_set
+          required:
+            - 'memory/scorecards/vertical_client_facing.yaml'  # ou vestuario.yaml (alias)
+            - 'memory/scorecards/cross_cutting_infra.yaml'      # ou governance.yaml (alias)
+            - 'memory/scorecards/ai_central.yaml'
+            - 'memory/scorecards/functional_horizontal.yaml'
+          coverage_target: 4  # 4/4
+
+      - id: C5.c
+        peso: 3
+        descricao: 'Drift snapshots daily em `mcp_scorecard_runs` (cron job ativo)'
+        detect:
+          tipo: mcp_query
+          source: 'mcp_scorecard_runs WHERE created_at last_24h'
+          expect: 'count >= 1'  # cron rodou pelo menos 1x últimas 24h
+
+  C6_adoption_time_interno:
+    peso: 10
+    descricao: 'Time MCP consome rubrica diariamente — métrica anti-vanity'
+    rules:
+      - id: C6.a
+        peso: 5
+        descricao: 'Wagner roda `module:grade --all` ≥1x/semana (medido via mcp_actor_log)'
+        detect:
+          tipo: mcp_query
+          source: 'mcp_actor_log WHERE command LIKE %module:grade% AND user=wagner last_7d'
+          expect: 'count >= 1'
+
+      - id: C6.b
+        peso: 3
+        descricao: 'Time MCP referencia score em PR descriptions (grep "module:grade" últimas 50 PRs)'
+        detect:
+          tipo: gh_pr_grep
+          source: 'gh pr list --state merged --limit 50 --json body'
+          expect: 'module:grade|module-grade'
+          coverage_target: 0.1  # ≥10% PRs mencionam (5 de 50)
+
+      - id: C6.c
+        peso: 2
+        descricao: 'Dashboard `/copiloto/admin/governance/v4` acessado ≥5x/semana'
+        detect:
+          tipo: mcp_query
+          source: 'mcp_route_hits WHERE path LIKE /copiloto/admin/governance% last_7d'
+          expect: 'count >= 5'
+          fallback: 'placeholder até dashboard v4 entregue Wave 21+'
+
+# ===========================================================================
+# PAIRED INDICATORS — anti-gaming Jellyfish 2025
+# Toda métrica de velocidade exige métrica de qualidade pareada
+# Se a parelha não bate, o score da dimensão fica capped em 50%
+# ===========================================================================
+paired_indicators:
+  - velocidade: C5_cobertura_cross_projeto.C5.a (cobertura módulos com bucket)
+    qualidade: C5_cobertura_cross_projeto.C5.c (drift snapshots daily)
+    rule: 'se cobertura >= 80% mas drift snapshots < 1/dia últimos 7d, C5 cap em 50%'
+    racional: 'Cobertura alta sem detection ativa = vanity metric (rubrica fixa que ninguém roda)'
+
+  - velocidade: C2_anti_regression_ci.C2.a (gate workflow ativo)
+    qualidade: C2_anti_regression_ci.C2.b (label override controlado ≤3/semana)
+    rule: 'se gate ativo mas label override usado >3x/semana, C2 cap em 50%'
+    racional: 'Gate vira ritual se time bypassa toda hora — gate inválido na prática'
+
+  - velocidade: C6_adoption_time_interno.C6.a (Wagner roda comando)
+    qualidade: C3_reflexivity.C3.a (Governance score ≥ média bucket)
+    rule: 'se C3.a aponta Governance bem-avaliado mas C6.a < 1x/semana, C3+C6 cap em 50%'
+    racional: 'Auto-avaliação inflada sem adoção real = gaming Goodhart classic'
+
+# ===========================================================================
+# CALCULO FINAL
+# ===========================================================================
+calculo:
+  formula: 'core_score + bucket_score'
+  core_score:
+    soma: 'D1 + D8'
+    max: 33
+  bucket_score:
+    soma: 'C1 + C2 + C3 + C4 + C5 + C6'
+    max: 67
+  total_max: 100
+  meta_bucket: 80  # cross_cutting_infra target (menor que vertical pq sem cliente externo bate menos prioridade UX/perf)
+  meta_excelente: 90
+  meta_aspiracional: 95  # bater 95 = bucket world-class (Governance lidera dogfood)
+
+# ===========================================================================
+# SIMULAÇÃO — estado HOJE (2026-05-16 pós Wave 18, pré Wave 19)
+# Score que daria se rodasse contra estado atual Governance
+# Calibrado contra rubrica v3 hardcoded (Governance hoje 88-89)
+# ===========================================================================
+simulation_2026_05_16:
+  core:
+    D1_multi_tenant:
+      D1.a: 15  # ✓ N/A — Governance repo-wide, sem Entities biz-scoped (placeholder full credit)
+      D1.b: 5   # ✓ Pest cross-tenant existe pra serviços rubrica (rodam scope-aware)
+      D1.c: 5   # ✓ N/A — sem Jobs (comandos artisan recebem flag explicit)
+      subtotal: 25
+    D8_security:
+      D8.a: 2   # parcial — dashboard /admin/governance tem auth mas throttle só em rotas críticas
+      D8.b: 2   # ✓ CSRF default ON
+      D8.c: 2   # ✓ FormRequest em store actions (cobertura ≥50%)
+      subtotal: 6
+
+  bucket:
+    C1_auto_detection:
+      C1.a: 4   # ✓ Pest com fixtures de módulos sintéticos (parcial — coverage cresce)
+      C1.b: 4   # ✓ falso-positivos baixos (Wave 14-18 calibrou heurísticas)
+      C1.c: 2   # parcial — runtime ok mas mcp_scorecard_runs ainda pré-popular
+      subtotal: 10
+
+    C2_anti_regression_ci:
+      C2.a: 5   # ✓ Wave 14 ativou module-grades-gate.yml, já bloqueou
+      C2.b: 3   # parcial — label existe, raramente usado (bom sinal)
+      C2.c: 1   # parcial — baseline JSON existe mas update não automático em todo PR
+      subtotal: 9
+
+    C3_reflexivity:
+      C3.a: 4   # parcial — Governance 88 ≥ média (assumido até Wave 20 popular outros)
+      C3.b: 1   # ❌ governance.bucket NÃO declarado em Modules/Governance/module.json (pendente Wave 20)
+      C3.c: 2   # ✓ ADRs 0155-0159 referenciadas; 0160 pendente
+      subtotal: 7
+
+    C4_docs_vivos:
+      C4.a: 4   # ✓ ADRs governance todas com status atual
+      C4.b: 3   # ✓ CHANGELOG fresh (Wave 14-18 frequente)
+      C4.c: 2   # parcial — _INDEX-LIFECYCLE lag ~10d
+      subtotal: 9
+
+    C5_cobertura_cross_projeto:
+      C5.a: 1   # ❌ Wave 20 vai popular bucket assignment em todos module.json
+      C5.b: 2   # parcial — 2/4 YAMLs (vestuario + governance Wave 19 agora)
+      C5.c: 1   # parcial — cron drift snapshots não rodando daily ainda
+      subtotal: 4
+
+    C6_adoption_time_interno:
+      C6.a: 5   # ✓ Wagner roda module:grade --all diário
+      C6.b: 1   # parcial — PRs Wave 14+ mencionam, mas <10% últimas 50
+      C6.c: 1   # parcial — dashboard v4 pendente Wave 21+
+      subtotal: 7
+
+  score_total: 77
+  vs_meta_bucket: '77 / 80 = 96% (quase batendo meta bucket)'
+  vs_meta_excelente: '77 / 90 = 86%'
+  vs_meta_aspiracional: '77 / 95 = 81%'
+
+  comparacao_com_rubrica_v3_atual:
+    nota_v3_atual: 88  # module:grade --all 2026-05-16 hoje
+    nota_yaml_simulado: 77
+    diferenca: -11
+    motivo_diferenca: |
+      Rubrica v4 (este YAML) é MAIS exigente que v3 hardcoded:
+      - C3.b (governance.bucket declarado): v4 cobra dogfood, v3 não tinha
+      - C5.a (cobertura cross-projeto módulos com bucket): v4 cobra adoção real, v3 não
+      - C5.c (drift snapshots daily): v4 cobra cron ativo, v3 não
+      - C2.c (baseline JSON fresh): v4 cobra ≤7d, v3 só checava existência
+      Wave 20 (bucket assignment populado) + Wave 21 (dashboard v4 + cron drift) recuperam +10pts → 87.
+
+  top_3_acoes_pra_chegar_meta_90_cross_cutting:
+    1: |
+      C5.a + C3.b (Wave 20): declarar `governance.bucket: cross_cutting_infra` em
+      TODOS Modules/*/module.json (~24 módulos) → C5.a 1→6 (+5pts) + C3.b 1→3 (+2pts)
+      → +7pts total. CRÍTICO pra desbloquear reflexividade.
+    2: |
+      C5.b + C5.c (Wave 19+20): completar 4 YAMLs (vestuario ✓, governance ✓ now,
+      ai_central + functional_horizontal Wave 19 agents A/C/D) + ativar cron drift
+      daily snapshots → C5.b 2→4 (+2pts) + C5.c 1→3 (+2pts) → +4pts total.
+    3: |
+      C6.b + C6.c (Wave 21): dashboard v4 entregue + skill `governance-pr-summary`
+      auto-injeta "module:grade" em PR descriptions → C6.b 1→3 (+2pts) + C6.c 1→2
+      (+1pt) → +3pts total.
+    total_ganho_estimado: '+14pts → 91/100 (Excelente, bate meta excelente 90)'
+
+  pra_chegar_meta_95:
+    'precisa todas paired indicators verdes + OTel collector ativo prod CT 100 (popula mcp_observability)'
+    'meta realista: 95 em 2 quarters após Wave 21 (alinhado caso OpsLevel 22→89% em 8 semanas)'
+    'risco: paired C6.a × C3.a — se adoção time MCP ficar <5x/semana, Governance score cap em 50% mesmo com C3.a verde'
