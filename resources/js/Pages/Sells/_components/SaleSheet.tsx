@@ -39,6 +39,11 @@ import CriarOsButton from './CriarOsButton';
 // US-SELL-COWORK-R2-IA — painel ✦ IA do drawer (Cowork KB-9.75 Onda 2).
 // Toggle ON via botão ✦ no header; chama POST /sells/{id}/ai-ask (3 modos).
 import SaleAiPanel from './SaleAiPanel';
+// US-SELL-COWORK-R3-CURADORIA — Onda 3 KB-9.75:
+// comentários inline por item · audit trail · linkify cross-link.
+import SaleItemComments, { useSaleItemComments } from './SaleItemComments';
+import SaleAuditTrail, { type SaleAuditInput } from './SaleAuditTrail';
+import SaleLinkifier from './SaleLinkifier';
 
 interface Customer {
   id: number;
@@ -165,6 +170,8 @@ export default function SaleSheet({
   const [error, setError] = useState<string | null>(null);
   // US-SELL-COWORK-R2-IA — toggle painel IA dentro do drawer.
   const [aiOpen, setAiOpen] = useState(initialAiOpen);
+  // US-SELL-COWORK-R3-CURADORIA — hook compartilhado de comentários por item.
+  const itemComments = useSaleItemComments();
   // Sincroniza aiOpen quando muda saleId/initialAiOpen (entrada via ⌘K ✦).
   useEffect(() => {
     if (saleId != null && initialAiOpen) setAiOpen(true);
@@ -404,18 +411,32 @@ export default function SaleSheet({
                         </tr>
                       </thead>
                       <tbody>
-                        {data.lines.map((l) => (
+                        {data.lines.map((l, idx) => (
                           <tr key={l.id} className="border-t border-border">
                             <td className="px-3 py-2">
-                              <div className="text-foreground">{l.product_name ?? '—'}</div>
-                              {l.product_sku && (
-                                <div className="text-[10px] text-muted-foreground font-mono">{l.product_sku}</div>
-                              )}
+                              <div className="flex items-start gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-foreground">{l.product_name ?? '—'}</div>
+                                  {l.product_sku && (
+                                    <div className="text-[10px] text-muted-foreground font-mono">
+                                      {l.product_sku}
+                                    </div>
+                                  )}
+                                </div>
+                                {/* US-SELL-COWORK-R3 — comentário inline por item */}
+                                <div className="sells-cowork-curadoria flex-shrink-0">
+                                  <SaleItemComments
+                                    venda_id={data.id}
+                                    item_idx={idx}
+                                    controller={itemComments}
+                                  />
+                                </div>
+                              </div>
                             </td>
-                            <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                            <td className="px-3 py-2 text-right tabular-nums text-muted-foreground align-top">
                               {l.quantity}
                             </td>
-                            <td className="px-3 py-2 text-right tabular-nums text-foreground">
+                            <td className="px-3 py-2 text-right tabular-nums text-foreground align-top">
                               {formatBRL(l.subtotal)}
                             </td>
                           </tr>
@@ -567,10 +588,12 @@ export default function SaleSheet({
                 )}
               </section>
 
-              {/* Notas */}
+              {/* Notas (com linkify cross-link #V- #OS- #CLI- #orc-) */}
               {data.additional_notes && (
                 <Section title="Observações" icon={Receipt}>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{data.additional_notes}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap sells-cowork-curadoria">
+                    <SaleLinkifier text={data.additional_notes} />
+                  </p>
                 </Section>
               )}
 
@@ -615,6 +638,31 @@ export default function SaleSheet({
               <Section title="Histórico" icon={Clock}>
                 <SaleTimeline saleId={data.id} enabled={open} />
               </Section>
+
+              {/* US-SELL-COWORK-R3-CURADORIA — audit trail compacto (Cowork Onda 3)
+                  Render frontend determinístico baseado em SaleDetail.
+                  Onda 3.5 plugará em sale_stage_history real (ADR 0143 FSM). */}
+              <div className="sells-cowork-curadoria">
+                <SaleAuditTrail
+                  venda={
+                    {
+                      id: data.id,
+                      invoice_no: data.invoice_no,
+                      transaction_date: data.transaction_date,
+                      lines: data.lines.map((l) => ({
+                        product_name: l.product_name,
+                        quantity: l.quantity,
+                        unit_price: l.unit_price,
+                      })),
+                      payments: data.payments.map((p) => ({
+                        amount: p.amount,
+                        method: p.method,
+                        paid_on: p.paid_on ?? data.transaction_date,
+                      })),
+                    } satisfies SaleAuditInput
+                  }
+                />
+              </div>
             </div>
 
             {/* Footer ações sticky */}
