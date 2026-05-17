@@ -13,8 +13,11 @@
     "requires": [],
     "governance": {
         "bucket": "vertical_client_facing",
-        "bucket_assigned_at": "2026-05-17",
-        "bucket_assigned_by": "[W]",
-        "bucket_justificativa": "Vertical CNAE 4781-4/00 (lojas vestuário/moda BR), cliente real em prod (ROTA LIVRE biz=4 Larissa), UX-driven cliente vendável"
+        "bucket_adr": "0160",
+        "bucket_config": "governance/buckets/vertical_client_facing.yaml",
+        "wave_23_saturation": true,
+        "scoped_score_target": 85,
+        "last_governance_review": "2026-05-16",
+        "rubrica_version": "v3_scoped"
     }
 }
