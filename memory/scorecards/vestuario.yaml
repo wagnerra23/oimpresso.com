@@ -1,0 +1,368 @@
+# Scorecard score-as-code — Modules/Vestuario
+# Bucket: vertical_client_facing (Wagner aprovou 2026-05-16, sessão Domain-Specific Scorecards)
+# Pattern: Cortex score-as-code + Port initiatives + paired indicators Jellyfish 2025
+# Status: EXPERIMENTAL — valida formato antes de implementar `php artisan oimpresso:scorecard`
+#
+# Quando virar canon:
+# - Mover pra `Modules/Vestuario/Scorecard/vestuario.yaml` (co-localizado com módulo)
+# - Service ModuleGradeService v4 carrega YAML em vez de rubrica hardcoded
+# - Gate CI bloqueia regressão por bucket
+# - Drift detection diff snapshots dia-a-dia em mcp_scorecard_runs
+
+---
+
+apiVersion: oimpresso.governance/v1
+kind: ModuleScorecard
+metadata:
+  module: Vestuario
+  bucket: vertical_client_facing
+  owner: '[W]'   # Wagner — single point of decision
+  cliente_real: 'biz_4_rota_livre_prod'  # Larissa @ ROTA LIVRE Termas do Gravatal/SC
+  cnae: '4781-4/00'
+  status: 'em-prod'   # ROTA LIVRE 2024-Q1+ — único módulo vertical em prod hoje
+  ultima_revisao: 2026-05-16
+  proxima_revisao: 2026-08-16  # quarterly review
+
+# ===========================================================================
+# CORE DIMENSIONS — universais (compartilhadas TODOS buckets, sem variação)
+# Peso fixo 33pts (D1=25 + D8=8). Tier 0 IRREVOGÁVEL.
+# ===========================================================================
+core:
+  D1_multi_tenant:
+    peso: 25
+    descricao: 'business_id global scope ADR 0093 — Tier 0 IRREVOGÁVEL'
+    rules:
+      - id: D1.a
+        peso: 15
+        descricao: 'HasBusinessScope/BelongsToBusinessViaParent em TODAS Entities recursive'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Vestuario/Entities/**/*.php'
+          expect: 'use HasBusinessScope|use BelongsToBusinessViaParent'
+          coverage_target: 100  # 100% das Entities
+
+      - id: D1.b
+        peso: 5
+        descricao: 'Pest cross-tenant biz=1 vs biz=99 com isolation real'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Vestuario/Tests/Feature/**/*Test.php'
+          expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
+          assertion: 'assertSee|assertCount|assertDatabaseMissing'
+          coverage_target: 1  # ≥1 test cross-tenant
+
+      - id: D1.c
+        peso: 5
+        descricao: 'Jobs recebem int $businessId no constructor'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Vestuario/Jobs/**/*.php'
+          expect: '__construct.*int\s+\$businessId'
+          coverage_target: 100  # 100% dos Jobs
+          na_if: 'Modules/Vestuario/Jobs nao existe'  # módulos sem Jobs N/A
+
+  D8_security:
+    peso: 8
+    descricao: 'Throttle + CSRF + FormRequest hardening'
+    rules:
+      - id: D8.a
+        peso: 3
+        descricao: 'Throttle middleware em rotas sensíveis'
+        detect:
+          tipo: grep
+          path: 'Modules/Vestuario/Routes/**/*.php'
+          expect: "throttle:|->middleware\\('throttle"
+          coverage_target: 1
+
+      - id: D8.b
+        peso: 2
+        descricao: 'CSRF Inertia ativo (default Laravel) — sem `except` no VerifyCsrfToken pro módulo'
+        detect:
+          tipo: negative_grep
+          path: 'app/Http/Middleware/VerifyCsrfToken.php'
+          unexpected: 'vestuario|Vestuario'
+
+      - id: D8.c
+        peso: 3
+        descricao: 'FormRequest dedicado em store/update Controllers'
+        detect:
+          tipo: ratio
+          numerator: 'Modules/Vestuario/Http/Requests/*.php'
+          denominator: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          coverage_target: 0.5  # ≥50% Controllers tem FormRequest correspondente
+
+# ===========================================================================
+# BUCKET DIMENSIONS — vertical_client_facing (peso próprio 67pts)
+# Total core (33) + bucket (67) = 100pts normalizado
+# ===========================================================================
+bucket_dimensions:
+
+  V1_pest_e2e:
+    peso: 15
+    descricao: 'Cliente real exige E2E real (não só smoke unit) — biz=1 fluxo principal'
+    rules:
+      - id: V1.a
+        peso: 8
+        descricao: 'CustomerJourneyTest cobrindo fluxo principal end-to-end'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Vestuario/Tests/Feature/CustomerJourneyTest.php'
+          expect: 'cria.*venda|finaliza.*pedido|grade.*completa'
+          assertion: 'assertOk|assertSee|assertDatabaseHas'
+
+      - id: V1.b
+        peso: 4
+        descricao: 'Cobertura Pest ≥30 testes (ratio tests/Controllers)'
+        detect:
+          tipo: ratio
+          numerator: 'Modules/Vestuario/Tests/Feature/**/*Test.php'
+          denominator: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          coverage_target: 3  # ≥3 tests por Controller
+
+      - id: V1.c
+        peso: 3
+        descricao: 'Pest verde em CI biz=1 últimos 7 dias'
+        detect:
+          tipo: ci_health
+          source: 'GitHub Actions Pest workflow'
+          coverage_target: 0.95  # ≥95% green em 7d
+
+  V2_d5_cliente_real:
+    peso: 15
+    descricao: 'Cliente real prod com sinal qualificado — peso aumentado vs 12 (rubrica genérica) pq vertical'
+    rules:
+      - id: V2.a
+        peso: 10
+        descricao: 'Cliente em prod declarado em module_clients.yaml (ROTA LIVRE biz=4)'
+        detect:
+          tipo: yaml_lookup
+          source: 'config/governance/module_clients.yaml'
+          key: 'Vestuario.level'
+          expect: 'biz_4_rota_livre_prod'  # nível mais alto pra vertical
+
+      - id: V2.b
+        peso: 5
+        descricao: 'Cliente paga + reporta OR métrica detecta uso (ADR 0105 sinal qualificado)'
+        detect:
+          tipo: business_signal
+          source: 'mcp_brief_runs WHERE module=Vestuario AND business_id=4 last_30d'
+          expect: 'count > 0'  # uso real detectado
+
+  V3_d6_perf_ux:
+    peso: 12
+    descricao: 'Performance UX-crítico (cliente bate na tela) — Inertia::defer + paginação + p99'
+    rules:
+      - id: V3.a
+        peso: 5
+        descricao: 'Inertia::defer aplicado em props caras Controllers'
+        detect:
+          tipo: grep
+          path: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          expect: 'Inertia::defer'
+          coverage_target: 1
+
+      - id: V3.b
+        peso: 4
+        descricao: 'p99 <500ms Controllers principais (OTel collector ativo prod)'
+        detect:
+          tipo: otel_query
+          source: 'mcp_observability.spans WHERE module=Vestuario AND http_target last_24h'
+          expect: 'p99 < 500'
+          fallback: 'placeholder 50% até OTel collector ativo prod CT 100'
+
+      - id: V3.c
+        peso: 3
+        descricao: 'Sem N+1 estático detectado (paginate + with eager-load)'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          expect_pair: 'paginate.*with'  # paginate sempre acompanhado de with()
+          coverage_target: 1
+
+  V4_d7_lgpd_pii:
+    peso: 10
+    descricao: 'CPF/CNPJ cliente real — LGPD compliance forte pra vertical'
+    rules:
+      - id: V4.a
+        peso: 4
+        descricao: 'PiiRedactor em logs/exports/PR'
+        detect:
+          tipo: grep
+          path: 'Modules/Vestuario/**/*.php'
+          expect: 'PiiRedactor'
+          coverage_target: 1
+
+      - id: V4.b
+        peso: 3
+        descricao: 'LogsActivity Spatie em Entities sensíveis com whitelist'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Vestuario/Entities/**/*.php'
+          expect: 'use LogsActivity'
+          coverage_target: 0.5  # ≥50% Entities sensíveis
+
+      - id: V4.c
+        peso: 3
+        descricao: 'Config/retention.php com TTL declarado'
+        detect:
+          tipo: file_exists
+          path: 'Modules/Vestuario/Config/retention.php'
+          expect_content: 'tabelas|strategy|retention_days'
+
+  V5_d3_docs_vertical:
+    peso: 8
+    descricao: 'SPEC + charter + BRIEFING — vertical vendável precisa de docs cliente-facing'
+    rules:
+      - id: V5.a
+        peso: 3
+        descricao: 'SPEC.md presente + atualizado ≤90d'
+        detect:
+          tipo: file_age
+          path: 'memory/requisitos/Vestuario/SPEC.md'
+          age_max_days: 90
+
+      - id: V5.b
+        peso: 3
+        descricao: 'BRIEFING.md presente + atualizado ≤30d'
+        detect:
+          tipo: file_age
+          path: 'memory/requisitos/Vestuario/BRIEFING.md'
+          age_max_days: 30
+
+      - id: V5.c
+        peso: 2
+        descricao: 'CHANGELOG.md presente + entry últimos 30d'
+        detect:
+          tipo: file_age
+          path: 'Modules/Vestuario/CHANGELOG.md'
+          age_max_days: 30
+
+  V6_capterra_gap:
+    peso: 7
+    descricao: 'NOVO — gap vs concorrente top BR/global (Vendizap/Linx Microvix/ProMoz pra vertical Vestuario)'
+    rules:
+      - id: V6.a
+        peso: 4
+        descricao: 'CAPTERRA-FICHA.md presente com nota >=60 vs concorrente top'
+        detect:
+          tipo: file_exists_with_score
+          path: 'memory/requisitos/Vestuario/CAPTERRA-FICHA.md'
+          expect_score_field: 'nota_total'
+          score_target: 60
+
+      - id: V6.b
+        peso: 3
+        descricao: 'Gap analysis priorizada — top 5 capacidades P0 cobertas ou em roadmap'
+        detect:
+          tipo: yaml_lookup
+          source: 'memory/requisitos/Vestuario/CAPTERRA-FICHA.md frontmatter'
+          key: 'p0_capacidades_status'
+          expect: 'cobertas + planejadas >= 5'
+
+# ===========================================================================
+# PAIRED INDICATORS — anti-gaming Jellyfish 2025
+# Toda métrica de velocidade exige métrica de qualidade pareada
+# Se a parelha não bate, o score da dimensão fica capped em 50%
+# ===========================================================================
+paired_indicators:
+  - velocidade: V1_pest_e2e.V1.b (tests/Controllers ratio)
+    qualidade: V1_pest_e2e.V1.c (CI green rate)
+    rule: 'se ratio>3 mas CI green<80%, V1 cap em 50%'
+    racional: 'Testes vazios pra inflar ratio inválido'
+
+  - velocidade: D1_multi_tenant.D1.b (cross-tenant tests)
+    qualidade: D1_multi_tenant.D1.a (Entities trait coverage)
+    rule: 'se cross-tenant tests existem mas <100% Entities têm trait, D1 cap em 50%'
+    racional: 'Testes não cobrem o que rubrica diz cobrir'
+
+  - velocidade: V6_capterra_gap.V6.a (nota CAPTERRA)
+    qualidade: V6_capterra_gap.V6.b (gap analysis P0 status)
+    rule: 'se nota >=80 mas P0 não cobertas/planejadas, V6 cap em 50%'
+    racional: 'Nota inflada sem plano de fechamento de gap = vanity metric'
+
+# ===========================================================================
+# CALCULO FINAL
+# ===========================================================================
+calculo:
+  formula: 'core_score + bucket_score'
+  core_score:
+    soma: 'D1 + D8'
+    max: 33
+  bucket_score:
+    soma: 'V1 + V2 + V3 + V4 + V5 + V6'
+    max: 67
+  total_max: 100
+  meta_bucket: 85  # vertical_client_facing target
+  meta_excelente: 90
+  meta_aspiracional: 95  # bater 95 = mercado world-class real (não 99 Spotify-cultural)
+
+# ===========================================================================
+# SIMULAÇÃO — estado HOJE (2026-05-16 pós Wave 18)
+# Score que daria se rodasse contra biz=4 ROTA LIVRE agora
+# ===========================================================================
+simulation_2026_05_16:
+  core:
+    D1_multi_tenant:
+      D1.a: 15  # ✓ Wave 18 saturou — Entities têm trait
+      D1.b: 5   # ✓ MultiTenantTraitTest existe
+      D1.c: 5   # ✓ N/A — sem Jobs Vestuario (módulo é settings-only)
+      subtotal: 25
+    D8_security:
+      D8.a: 2   # parcial — algumas rotas tem throttle
+      D8.b: 2   # ✓ CSRF default ON
+      D8.c: 2   # 2 FormRequests / 1 Controller = ratio 2 (acima de 0.5)
+      subtotal: 6
+
+  bucket:
+    V1_pest_e2e:
+      V1.a: 5   # parcial — testes existem mas CustomerJourney não tão completo
+      V1.b: 4   # ✓ 7 tests / 1 Controller = 7 (acima de 3)
+      V1.c: 2   # parcial — CI green mas dependência MySQL trava local
+      subtotal: 11
+    V2_d5_cliente_real:
+      V2.a: 10  # ✓ biz_4_rota_livre_prod confirmado
+      V2.b: 5   # ✓ Larissa usa diário
+      subtotal: 15
+    V3_d6_perf_ux:
+      V3.a: 0   # ❌ Controllers Vestuario sem defer (a maioria)
+      V3.b: 2   # placeholder OTel
+      V3.c: 3   # ✓ sem N+1 detectado
+      subtotal: 5
+    V4_d7_lgpd_pii:
+      V4.a: 2   # parcial — PiiRedactor presente mas adoção dispersa
+      V4.b: 2   # parcial — LogsActivity em VestuarioSetting (1 Entity)
+      V4.c: 3   # ✓ Config/retention.php restaurado Wave 18
+      subtotal: 7
+    V5_d3_docs_vertical:
+      V5.a: 3   # ✓ SPEC.md existe e atualizado
+      V5.b: 3   # ✓ BRIEFING.md atualizado Wave 17/18
+      V5.c: 2   # ✓ CHANGELOG existe
+      subtotal: 8
+    V6_capterra_gap:
+      V6.a: 0   # ❌ CAPTERRA-FICHA.md não existe ainda pra Vestuario
+      V6.b: 0   # ❌ idem
+      subtotal: 0
+
+  score_total: 77
+  vs_meta_bucket: '77 / 85 = 91% (abaixo meta vertical_client_facing)'
+  vs_meta_excelente: '77 / 90 = 86%'
+  vs_meta_aspiracional: '77 / 95 = 81%'
+
+  comparacao_com_rubrica_v3_atual:
+    nota_v3_atual: 77  # bate com module:grade --all 2026-05-16
+    nota_yaml_simulado: 77
+    diferenca: 0
+    nota_v3_pre_wave18: 80
+    motivo_diferenca: 'rubrica v3 detecta D7 LGPD 3/10 com regressão (retention.php restaurado); YAML detecta V4 7/10 (mesma lógica mas peso diferente)'
+
+  top_5_acoes_pra_chegar_meta_85:
+    1: 'V6.a + V6.b: criar CAPTERRA-FICHA.md Vestuario (gap analysis vs Vendizap/Linx Microvix/ProMoz) → +5pts'
+    2: 'V3.a: Inertia::defer em 2-3 Controllers principais Vestuario → +5pts'
+    3: 'V4.b: LogsActivity nas demais Entities (Grade, Apontamento se virarem Entities) → +1pt'
+    4: 'V1.a: completar CustomerJourneyTest end-to-end venda completa biz=1 → +3pts'
+    5: 'D8.a: throttle middleware em rotas públicas portal cliente → +1pt'
+    total_ganho: '+15pts → 92/100 (Excelente)'
+
+  pra_chegar_meta_95:
+    'precisa todas paired indicators verdes + V6 saturado + V3 saturado'
+    'meta realista: 95 em 2 quarters (alinhado caso OpsLevel logistics 22→89% em 8 semanas)'

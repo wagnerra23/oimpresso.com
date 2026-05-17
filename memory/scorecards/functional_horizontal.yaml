@@ -1,0 +1,427 @@
+# Scorecard score-as-code — Bucket functional_horizontal
+# Bucket: functional_horizontal (20 módulos: Crm, Financeiro, Ponto, RecurringBilling, NfeBrasil, NFSe,
+#         Manufacturing, Cms, Spreadsheet, Arquivos, Accounting, AssetManagement, Essentials, ADS,
+#         ConsultaOs, SRS, Whatsapp, Woocommerce, ProductCatalogue, ProjectMgmt)
+# Wagner aprovou 2026-05-16, sessão Domain-Specific Scorecards
+# Pattern: Cortex score-as-code + Port initiatives + paired indicators Jellyfish 2025
+# Status: EXPERIMENTAL — valida formato antes de implementar `php artisan oimpresso:scorecard`
+#
+# Racional do bucket:
+# - 20 módulos "úteis cross-vertical sem dono cliente único"
+# - Nem todos têm cliente real piloto (diferente de vertical_client_facing)
+# - Ganham peso em REUSO entre módulos, COBERTURA Pest sistêmica, OBSERVABILITY ops-grade
+# - Não precisam de CAPTERRA-FICHA (não competem em vertical específico) — peso vai pra Reuse
+#
+# Quando virar canon:
+# - Mover pra `Modules/<X>/Scorecard/functional_horizontal.yaml` (compartilhado entre 20)
+# - Service ModuleGradeService v4 carrega YAML em vez de rubrica hardcoded
+# - Gate CI bloqueia regressão por bucket
+# - Drift detection diff snapshots dia-a-dia em mcp_scorecard_runs
+
+---
+
+apiVersion: oimpresso.governance/v1
+kind: ModuleScorecard
+metadata:
+  bucket: functional_horizontal
+  module_exemplo: Crm   # simulação no final; rubrica vale pra todos 20 membros
+  owner: '[W]'   # Wagner — single point of decision
+  cliente_real: 'cross_vertical_no_single_owner'   # módulos cross-cutting sem dono cliente único
+  status: 'em-prod'   # vários membros em prod (Crm, Financeiro, RecurringBilling, NfeBrasil, Whatsapp)
+  ultima_revisao: 2026-05-16
+  proxima_revisao: 2026-08-16   # quarterly review
+  membros:
+    - Crm
+    - Financeiro
+    - Ponto
+    - RecurringBilling
+    - NfeBrasil
+    - NFSe
+    - Manufacturing
+    - Cms
+    - Spreadsheet
+    - Arquivos
+    - Accounting
+    - AssetManagement
+    - Essentials
+    - ADS
+    - ConsultaOs
+    - SRS
+    - Whatsapp
+    - Woocommerce
+    - ProductCatalogue
+    - ProjectMgmt
+
+# ===========================================================================
+# CORE DIMENSIONS — universais (compartilhadas TODOS buckets, sem variação)
+# Peso fixo 33pts (D1=25 + D8=8). Tier 0 IRREVOGÁVEL.
+# IDÊNTICO ao vestuario.yaml — copy literal (path adaptado pro módulo alvo)
+# ===========================================================================
+core:
+  D1_multi_tenant:
+    peso: 25
+    descricao: 'business_id global scope ADR 0093 — Tier 0 IRREVOGÁVEL'
+    rules:
+      - id: D1.a
+        peso: 15
+        descricao: 'HasBusinessScope/BelongsToBusinessViaParent em TODAS Entities recursive'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/<MODULO>/Entities/**/*.php'
+          expect: 'use HasBusinessScope|use BelongsToBusinessViaParent'
+          coverage_target: 100  # 100% das Entities
+
+      - id: D1.b
+        peso: 5
+        descricao: 'Pest cross-tenant biz=1 vs biz=99 com isolation real'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/<MODULO>/Tests/Feature/**/*Test.php'
+          expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
+          assertion: 'assertSee|assertCount|assertDatabaseMissing'
+          coverage_target: 1  # ≥1 test cross-tenant
+
+      - id: D1.c
+        peso: 5
+        descricao: 'Jobs recebem int $businessId no constructor'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/<MODULO>/Jobs/**/*.php'
+          expect: '__construct.*int\s+\$businessId'
+          coverage_target: 100  # 100% dos Jobs
+          na_if: 'Modules/<MODULO>/Jobs nao existe'  # módulos sem Jobs N/A
+
+  D8_security:
+    peso: 8
+    descricao: 'Throttle + CSRF + FormRequest hardening'
+    rules:
+      - id: D8.a
+        peso: 3
+        descricao: 'Throttle middleware em rotas sensíveis'
+        detect:
+          tipo: grep
+          path: 'Modules/<MODULO>/Routes/**/*.php'
+          expect: "throttle:|->middleware\\('throttle"
+          coverage_target: 1
+
+      - id: D8.b
+        peso: 2
+        descricao: 'CSRF Inertia ativo (default Laravel) — sem `except` no VerifyCsrfToken pro módulo'
+        detect:
+          tipo: negative_grep
+          path: 'app/Http/Middleware/VerifyCsrfToken.php'
+          unexpected: '<modulo_slug>'
+
+      - id: D8.c
+        peso: 3
+        descricao: 'FormRequest dedicado em store/update Controllers'
+        detect:
+          tipo: ratio
+          numerator: 'Modules/<MODULO>/Http/Requests/*.php'
+          denominator: 'Modules/<MODULO>/Http/Controllers/**/*.php'
+          coverage_target: 0.5  # ≥50% Controllers tem FormRequest correspondente
+
+# ===========================================================================
+# BUCKET DIMENSIONS — functional_horizontal (peso próprio 67pts)
+# Total core (33) + bucket (67) = 100pts normalizado
+#
+# Racional dos pesos:
+# - F1 (15) cobertura Pest sistêmica — bucket grande exige cobertura defensiva
+# - F2 (12) reuso entre módulos — diferencial chave do horizontal
+# - F3 (10) perf — UX-importante mas não crítico (cliente não bate direto na tela como vertical)
+# - F4 (10) LGPD — PII presente (CRM, Financeiro, RecurringBilling lidam CPF/CNPJ massivamente)
+# - F5 (10) docs — SPEC + BRIEFING + CHANGELOG cliente-time interno
+# - F6 (10) observability — ops-grade pra módulos rodando 24/7 em background
+# ===========================================================================
+bucket_dimensions:
+
+  F1_pest_cobertura_ratio:
+    peso: 15
+    descricao: 'Cobertura Pest sistêmica — tests/Controllers ≥3 + cross-tenant + CI green'
+    rules:
+      - id: F1.a
+        peso: 8
+        descricao: 'Ratio tests/Controllers ≥3 (3 tests por Controller na média)'
+        detect:
+          tipo: ratio
+          numerator: 'Modules/<MODULO>/Tests/Feature/**/*Test.php'
+          denominator: 'Modules/<MODULO>/Http/Controllers/**/*.php'
+          coverage_target: 3   # ≥3 tests por Controller
+
+      - id: F1.b
+        peso: 4
+        descricao: 'Cross-tenant biz=1 vs biz=99 (≥1 test isolation real)'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/<MODULO>/Tests/Feature/**/*Test.php'
+          expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
+          assertion: 'assertDatabaseMissing|assertCount|assertNotSee'
+          coverage_target: 1
+
+      - id: F1.c
+        peso: 3
+        descricao: 'CI green rate ≥95% últimos 7 dias'
+        detect:
+          tipo: ci_health
+          source: 'GitHub Actions Pest workflow'
+          coverage_target: 0.95
+
+  F2_module_reuse:
+    peso: 12
+    descricao: 'Reuso entre módulos via Service público — diferencial functional_horizontal'
+    rules:
+      - id: F2.a
+        peso: 6
+        descricao: 'Service público bem definido em Modules/<X>/Services/<X>Service.php'
+        detect:
+          tipo: file_exists
+          path: 'Modules/<MODULO>/Services/<MODULO>Service.php'
+          expect_content: 'class.*Service|public function'
+
+      - id: F2.b
+        peso: 4
+        descricao: '≥2 outros módulos importam o Service (consumo real cross-module)'
+        detect:
+          tipo: grep_cross_module
+          path: 'Modules/**/*.php'
+          exclude_path: 'Modules/<MODULO>/**/*.php'
+          expect: 'use Modules\\<MODULO>\\Services'
+          coverage_target: 2   # ≥2 módulos consumidores distintos
+
+      - id: F2.c
+        peso: 2
+        descricao: 'Interface/contract declarado em Modules/<X>/Contracts/'
+        detect:
+          tipo: file_exists
+          path: 'Modules/<MODULO>/Contracts/<MODULO>RepositoryInterface.php'
+          expect_content: 'interface.*Interface'
+
+  F3_perf_padrao:
+    peso: 10
+    descricao: 'D6 Performance padrão — Inertia::defer + sem N+1 + p99'
+    rules:
+      - id: F3.a
+        peso: 5
+        descricao: 'Inertia::defer aplicado em props caras Controllers'
+        detect:
+          tipo: grep
+          path: 'Modules/<MODULO>/Http/Controllers/**/*.php'
+          expect: 'Inertia::defer'
+          coverage_target: 1
+
+      - id: F3.b
+        peso: 3
+        descricao: 'Sem N+1 estático (paginate sempre com with() eager-load)'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/<MODULO>/Http/Controllers/**/*.php'
+          expect_pair: 'paginate.*with'
+          coverage_target: 1
+
+      - id: F3.c
+        peso: 2
+        descricao: 'p99 <500ms Controllers principais (OTel collector ativo prod)'
+        detect:
+          tipo: otel_query
+          source: 'mcp_observability.spans WHERE module=<MODULO> AND http_target last_24h'
+          expect: 'p99 < 500'
+          fallback: 'placeholder 50% até OTel collector ativo prod CT 100'
+
+  F4_lgpd_padrao:
+    peso: 10
+    descricao: 'D7 LGPD padrão — retention + LogsActivity + PiiRedactor (PII cross-vertical)'
+    rules:
+      - id: F4.a
+        peso: 4
+        descricao: 'PiiRedactor em logs/exports/PR sensíveis'
+        detect:
+          tipo: grep
+          path: 'Modules/<MODULO>/**/*.php'
+          expect: 'PiiRedactor'
+          coverage_target: 1
+
+      - id: F4.b
+        peso: 3
+        descricao: 'LogsActivity Spatie em Entities com PII (whitelist)'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/<MODULO>/Entities/**/*.php'
+          expect: 'use LogsActivity'
+          coverage_target: 0.5   # ≥50% Entities sensíveis
+
+      - id: F4.c
+        peso: 3
+        descricao: 'Config/retention.php com TTL declarado'
+        detect:
+          tipo: file_exists
+          path: 'Modules/<MODULO>/Config/retention.php'
+          expect_content: 'tabelas|strategy|retention_days'
+
+  F5_docs:
+    peso: 10
+    descricao: 'D3 Docs — SPEC + BRIEFING + CHANGELOG (time interno enxerga estado)'
+    rules:
+      - id: F5.a
+        peso: 4
+        descricao: 'SPEC.md presente + atualizado ≤90d'
+        detect:
+          tipo: file_age
+          path: 'memory/requisitos/<MODULO>/SPEC.md'
+          age_max_days: 90
+
+      - id: F5.b
+        peso: 3
+        descricao: 'BRIEFING.md presente + atualizado ≤30d'
+        detect:
+          tipo: file_age
+          path: 'memory/requisitos/<MODULO>/BRIEFING.md'
+          age_max_days: 30
+
+      - id: F5.c
+        peso: 3
+        descricao: 'CHANGELOG.md presente + entry últimos 30d'
+        detect:
+          tipo: file_age
+          path: 'Modules/<MODULO>/CHANGELOG.md'
+          age_max_days: 30
+
+  F6_observability:
+    peso: 10
+    descricao: 'D9 Observability — OTel spans Services + Health command + log estruturado'
+    rules:
+      - id: F6.a
+        peso: 5
+        descricao: 'OtelHelper::span(Biz)? em ≥50% Services'
+        detect:
+          tipo: ratio_grep
+          path: 'Modules/<MODULO>/Services/**/*.php'
+          expect: 'OtelHelper::span(Biz)?\\('
+          coverage_target: 0.5   # ≥50% Services instrumentados
+
+      - id: F6.b
+        peso: 3
+        descricao: 'Health command artisan dedicado'
+        detect:
+          tipo: file_exists
+          path: 'Modules/<MODULO>/Console/Commands/<modulo>Health*.php'
+          expect_content: 'class.*Command|handle'
+
+      - id: F6.c
+        peso: 2
+        descricao: 'Log estruturado biz scope em pontos críticos'
+        detect:
+          tipo: grep
+          path: 'Modules/<MODULO>/**/*.php'
+          expect: "Log::(info|warning|error)\\(.*,.*\\[.*biz"
+          coverage_target: 1
+
+# ===========================================================================
+# PAIRED INDICATORS — anti-gaming Jellyfish 2025
+# Toda métrica de velocidade exige métrica de qualidade pareada
+# Se a parelha não bate, o score da dimensão fica capped em 50%
+# ===========================================================================
+paired_indicators:
+  - velocidade: F1_pest_cobertura_ratio.F1.a (tests/Controllers ratio)
+    qualidade: F1_pest_cobertura_ratio.F1.c (CI green rate)
+    rule: 'se ratio>3 mas CI green<80%, F1 cap em 50%'
+    racional: 'Testes vazios pra inflar ratio (skip, expect-nothing) inválido — qualidade real exige verde'
+
+  - velocidade: F2_module_reuse.F2.b (≥2 módulos consumidores)
+    qualidade: F2_module_reuse.F2.c (interface/contract declarado)
+    rule: 'se reuso real existe mas contrato não declarado, F2 cap em 50%'
+    racional: 'Reuso sem interface = acoplamento implícito que vira dor crônica de refactor'
+
+  - velocidade: F6_observability.F6.a (Services com OTel spans)
+    qualidade: F6_observability.F6.b (Health command artisan)
+    rule: 'se ≥50% Services tem span mas Health command ausente, F6 cap em 50%'
+    racional: 'Observability cosmética (só span sem health check operacional) é vanity — ops precisa de tool real'
+
+# ===========================================================================
+# CALCULO FINAL
+# ===========================================================================
+calculo:
+  formula: 'core_score + bucket_score'
+  core_score:
+    soma: 'D1 + D8'
+    max: 33
+  bucket_score:
+    soma: 'F1 + F2 + F3 + F4 + F5 + F6'
+    max: 67
+  total_max: 100
+  meta_bucket: 80   # functional_horizontal target (menor que vertical 85 — bucket cobre 20 módulos heterogêneos)
+  meta_excelente: 88
+  meta_aspiracional: 93   # bater 93 = top-tier cross-module reuse + observability ops-grade
+
+# ===========================================================================
+# SIMULAÇÃO — Crm (exemplo bucket) estado HOJE (2026-05-16 pós Wave 18)
+# Crm é membro functional_horizontal — escolhido como exemplo por ter score conhecido 82
+# ===========================================================================
+simulation_2026_05_16:
+  modulo: Crm
+  contexto: 'Crm pós Wave 18 (CrmLeadService extracted + Pest novos + Policies Wave 16 + FormRequests Wave 16/17/18)'
+
+  core:
+    D1_multi_tenant:
+      D1.a: 14   # parcial — Crm Entities Wave 9-10 tem trait mas Lead/Deal cobertos, periféricos não
+      D1.b: 4    # ✓ MultiTenantTraitTest existe mas não exaustivo
+      D1.c: 3    # parcial — Jobs Crm têm $businessId em maioria, alguns legacy faltam
+      subtotal: 21
+    D8_security:
+      D8.a: 1    # parcial — throttle só em algumas rotas Crm públicas
+      D8.b: 2    # ✓ CSRF default ON
+      D8.c: 2    # parcial — FormRequests Wave 16/17/18 cobrem alguns Controllers mas não todos
+      subtotal: 5
+
+  bucket:
+    F1_pest_cobertura_ratio:
+      F1.a: 7    # ✓ Wave 18 trouxe muitos tests novos — ratio ~3.5 (acima de 3)
+      F1.b: 4    # ✓ cross-tenant em CrmLeadServiceTest e outros
+      F1.c: 2    # parcial — CI green mas algumas falhas intermitentes
+      subtotal: 13
+    F2_module_reuse:
+      F2.a: 4    # ✓ CrmLeadService extracted Wave 18 (Service público existe)
+      F2.b: 0    # ❌ ainda não consumido por outros módulos (Manufacturing/Sells poderiam mas não importam)
+      F2.c: 1    # parcial — sem Contracts/CrmLeadRepositoryInterface ainda
+      subtotal: 5
+    F3_perf_padrao:
+      F3.a: 4    # ✓ defer em LeadsController, DealsController, ContactsController
+      F3.b: 3    # ✓ paginate + with eager-load consistente
+      F3.c: 2    # placeholder OTel (collector ainda não 100% ativo)
+      subtotal: 9
+    F4_lgpd_padrao:
+      F4.a: 4    # ✓ PiiRedactor em ContactsController, LeadsController
+      F4.b: 3    # ✓ LogsActivity em Lead, Deal, Contact (Wave 9 Crm pattern)
+      F4.c: 3    # ✓ Config/retention.php presente
+      subtotal: 10
+    F5_docs:
+      F5.a: 4    # ✓ SPEC.md atualizado (Wave 17/18)
+      F5.b: 3    # ✓ BRIEFING.md atualizado Wave 17/18
+      F5.c: 3    # ✓ CHANGELOG entry Wave 18
+      subtotal: 10
+    F6_observability:
+      F6.a: 3    # parcial — ~30% Services com OtelHelper::span (Wave 18 começou)
+      F6.b: 2    # parcial — health command parcial (não cobre Crm específico ainda)
+      F6.c: 1    # parcial — alguns Log estruturados biz scope
+      subtotal: 6
+
+  score_total: 79
+  vs_meta_bucket: '79 / 80 = 99% (quase na meta functional_horizontal)'
+  vs_meta_excelente: '79 / 88 = 90%'
+  vs_meta_aspiracional: '79 / 93 = 85%'
+
+  comparacao_com_rubrica_v3_atual:
+    nota_v3_atual: 82  # `php artisan module:grade Crm` 2026-05-16 (rubrica genérica hardcoded)
+    nota_yaml_simulado: 79
+    diferenca: -3
+    motivo_diferenca: 'YAML bucket functional_horizontal pesa F2 (reuso) com peso 12 — Crm tem CrmLeadService mas reuso=0; rubrica v3 não tem F2, então não pune. Honestidade do bucket: Crm AINDA não é reutilizado por outros módulos, score reflete realidade.'
+
+  top_3_acoes_pra_chegar_meta_80:
+    1: 'F2.b + F2.c: importar CrmLeadService em Manufacturing/Sells (≥2 consumidores) + declarar CrmLeadRepositoryInterface → +5pts (5→10)'
+    2: 'F6.a + F6.b: instrumentar restantes Services Crm com OtelHelper::span + criar `crm:health` artisan command → +4pts (6→10)'
+    3: 'D1.a + D1.c: trait HasBusinessScope nas Entities periféricas Crm + revisar Jobs sem $businessId → +3pts (21→24)'
+    total_ganho: '+12pts → 91/100 (Excelente functional_horizontal)'
+
+  pra_chegar_meta_93:
+    'precisa todas paired indicators verdes + F2 saturado (reuso real ≥2 consumers + interface) + F6 saturado'
+    'meta realista functional_horizontal: 88 em 2 quarters (cobre 20 módulos heterogêneos, alguns inerte hoje)'
+    'Crm é membro mais maduro do bucket — outros (Spreadsheet, AssetManagement, SRS) provavelmente 40-55 pts'

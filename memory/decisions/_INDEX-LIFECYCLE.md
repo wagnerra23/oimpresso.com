@@ -216,6 +216,24 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | 0119a | A | — | Migration factory capacidade institucional · ⚠️ **colisão numérica com 0119b** |
 | 0119b | A | — | Paralelismo sessões whats-active Tier 1 · ⚠️ **colisão numérica com 0119a** |
 
+### Bloco 9 — Governance v3/v4 + módulos novos (0150–0160) — apendado 2026-05-16
+
+> Apendado em 2026-05-16 (Wave 19 governance v4). Bloco cobre ADRs 0150-0160 produzidas entre 2026-05-15 e 2026-05-16. Demais ADRs do bloco (0120-0149) entram em housekeeping futuro.
+
+| ID | Estado | Substituída por | Nota |
+|---|---|---|---|
+| 0150 | A | — | KB unificado grafo conhecimento · módulo IA central |
+| 0151 | A | — | Modules/Comissao feature-wish · sem cliente sinalizando |
+| 0152 | A | — | Modules/PCP feature-wish · sem cliente sinalizando |
+| 0153 | A | (parcial 0155, 0160) | module-grade-v1 rubrica 5 dims × 100 pts (LIVE 2026-05-15) |
+| 0154 | A | (parcial 0155, 0160) | module-grade-v2 N/A justificado (LIVE 2026-05-15) |
+| 0155 | A | (parcial 0160) | module-grade-v3 9 sub-dimensões + reweight + gate CI |
+| 0156 | A | — | module-grade-v3 errata · OtelHelper + na_justified backward-compat |
+| 0157 | A | — | module-grade-v3 errata · D2 detection hardening |
+| 0158 | A | — | module-grade-v3 errata · D1 heurística hardening recursivo |
+| 0159 | A | (parcial 0160) | module-grade-v3 errata · realismo meta 97 (3/4 hacks redundantes com v4) |
+| 0160 | A | — | **module-grade-v4 Scoped Scorecards · 4 buckets + meta por bucket · core+lens + paired indicators + score-as-code** |
+
 > **Pendências de housekeeping** apuradas pela skill `audit-constituicao` em 2026-05-09:
 > - 3 colisões numéricas (0101/0102/0119) — ADR 0028 violada · resolução requer ADR amendment
 > - 9 ADRs `substituido` sem `superseded_by:` no frontmatter (0008, 0010, 0031, 0032, 0033, 0042, 0073, 0075, 0077) — pendente ADR 0120 housekeeping
