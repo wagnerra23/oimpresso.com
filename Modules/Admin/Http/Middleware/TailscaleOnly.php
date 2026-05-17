@@ -31,6 +31,18 @@ class TailscaleOnly
             return $next($request);
         }
 
+        // Bypass Tailscale-only restrito (qualquer env, inclusive prod). Defense-in-depth
+        // preservado — middleware `is-wagner` continua validando user_id=1. Log WARN
+        // pra auditoria. Ver config('admin.bypass_tailscale') + ADR 0122.
+        if (config('admin.bypass_tailscale')) {
+            \Log::channel('stack')->warning('admin.tailscale_bypass', [
+                'ip'    => $request->ip(),
+                'route' => $request->path(),
+                'env'   => app()->environment(),
+            ]);
+            return $next($request);
+        }
+
         $allowedCidrs = config('admin.tailscale_cidrs', '100.99.0.0/16');
         $cidrs = is_array($allowedCidrs)
             ? $allowedCidrs
