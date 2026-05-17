@@ -25,9 +25,20 @@ import {
   Plus,
   Printer,
   Search,
+  SlidersHorizontal,
   X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
+// PR follow-up Cowork — filtros legacy reintegrados via barra colapsável "Filtros avançados ▾".
+// Refs: Index.charter.md v2 Goals · feedback-design-literal-copy §How to apply #5.
+import SellsDateFilter, {
+  computePresetRange,
+  type DateFilterPreset,
+} from './_components/SellsDateFilter';
+import SellsToggleViewMode, { type SellsViewMode } from './_components/SellsToggleViewMode';
+import SellsGroupByDropdown, { type GroupByField } from './_components/SellsGroupByDropdown';
+import SellsGradeAvancada from './_components/SellsGradeAvancada';
+import type { SellsTotals } from './_components/SellsTotalsRow';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS
@@ -435,8 +446,99 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const [rows, setRows] = useState<SaleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState<ListMeta | null>(null);
-  const [, setTotals] = useState<TotalsSummary | null>(null); // totals reservados pro footer summary v2
+  const [totals, setTotals] = useState<TotalsSummary | null>(null);
   const [openSaleId, setOpenSaleId] = useState<number | null>(null);
+
+  // PR follow-up Cowork — filtros legacy preservados US-SELL-015/017/018/019/021.
+  // viewMode (lista | grade-avancada), preset (Dia/Semana/Mês/Ano/Personalizado/all),
+  // dateField (7 opções: emissão/atualização/nfe/faturamento/envio/competência/prometido),
+  // groupBy (none/customer/payment_status/emission_month), sortKey/Dir.
+  const [viewMode, setViewMode] = useState<SellsViewMode>(() => {
+    const v = lsGet('viewMode', 'lista');
+    return (['lista', 'grade-avancada'] as const).includes(v as SellsViewMode)
+      ? (v as SellsViewMode)
+      : 'lista';
+  });
+  useEffect(() => lsSet('viewMode', viewMode), [viewMode]);
+
+  const [datePreset, setDatePreset] = useState<DateFilterPreset>(() => {
+    const v = lsGet('datePreset', 'all');
+    return (['day', 'week', 'month', 'year', 'custom', 'all'] as const).includes(
+      v as DateFilterPreset
+    )
+      ? (v as DateFilterPreset)
+      : 'all';
+  });
+  useEffect(() => lsSet('datePreset', datePreset), [datePreset]);
+
+  const [dateFrom, setDateFrom] = useState<string>(() => {
+    const stored = lsGet('datePreset', 'all') as DateFilterPreset;
+    if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateFrom;
+    return lsGet('dateFrom', '');
+  });
+  const [dateTo, setDateTo] = useState<string>(() => {
+    const stored = lsGet('datePreset', 'all') as DateFilterPreset;
+    if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateTo;
+    return lsGet('dateTo', '');
+  });
+  useEffect(() => lsSet('dateFrom', dateFrom), [dateFrom]);
+  useEffect(() => lsSet('dateTo', dateTo), [dateTo]);
+
+  const [dateField, setDateField] = useState<
+    'transaction_date' | 'updated_at' | 'nfe_issued_at' | 'invoiced_at'
+    | 'invoice_sent_at' | 'competence_date' | 'due_date'
+  >(() => {
+    const v = lsGet('dateField', 'transaction_date');
+    const allowed = [
+      'transaction_date', 'updated_at', 'nfe_issued_at', 'invoiced_at',
+      'invoice_sent_at', 'competence_date', 'due_date',
+    ] as const;
+    return (allowed as readonly string[]).includes(v) ? (v as typeof allowed[number]) : 'transaction_date';
+  });
+  useEffect(() => lsSet('dateField', dateField), [dateField]);
+
+  const [groupBy, setGroupBy] = useState<GroupByField>(() => {
+    const v = lsGet('groupBy', 'none');
+    const allowed = ['none', 'customer_name', 'payment_status', 'emission_month'] as const;
+    return (allowed as readonly string[]).includes(v) ? (v as GroupByField) : 'none';
+  });
+  useEffect(() => lsSet('groupBy', groupBy), [groupBy]);
+
+  type SortKey = 'transaction_date' | 'invoice_no' | 'customer_name' | 'final_total' | 'payment_status';
+  const [sortKey, setSortKey] = useState<SortKey>('transaction_date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const handleSort = useCallback(
+    (k: SortKey) => {
+      setSortKey((prev) => {
+        if (k === prev) return prev;
+        return k;
+      });
+      setSortDir((prev) => {
+        if (k === sortKey) return prev === 'asc' ? 'desc' : 'asc';
+        return k === 'transaction_date' || k === 'final_total' ? 'desc' : 'asc';
+      });
+    },
+    [sortKey]
+  );
+
+  const handleDateFilterChange = useCallback(
+    (next: {
+      preset: DateFilterPreset;
+      dateFrom: string;
+      dateTo: string;
+      dateField: typeof dateField;
+    }) => {
+      setDatePreset(next.preset);
+      setDateFrom(next.dateFrom);
+      setDateTo(next.dateTo);
+      setDateField(next.dateField);
+    },
+    []
+  );
+
+  // Toggle de visibilidade da barra (default fechado pra não poluir o Cowork visual).
+  const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => lsGet('advancedOpen', '0') === '1');
+  useEffect(() => lsSet('advancedOpen', advancedOpen ? '1' : '0'), [advancedOpen]);
 
   // Selection + favorites + focus row (J/K navigation).
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
@@ -462,8 +564,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // Pagination + sort (preservados do legacy — controles ficam compactos no rodapé).
   const [page, setPage] = useState(1);
   const perPage = 50;
-  const sortKey = 'transaction_date';
-  const sortDir: 'asc' | 'desc' = 'desc';
+  // sortKey/sortDir agora vêm de state (declarados acima); permitem header clicáveis.
 
   // Refetch trigger (independente de filtros) — disparado por onSaleChanged do drawer.
   const [refetchToken, setRefetchToken] = useState(0);
@@ -490,6 +591,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     params.set('page', String(page));
     params.set('sort', sortKey);
     params.set('dir', sortDir);
+    // PR follow-up — date_field + date_from/date_to do SellsDateFilter (US-SELL-018/021).
+    params.set('date_field', dateField);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
 
     fetch(`/sells-list-json?${params.toString()}`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -514,10 +619,13 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     return () => {
       cancelled = true;
     };
-  }, [pillFilter, searchDebounced, page, perPage, sortKey, sortDir, refetchToken]);
+  }, [pillFilter, searchDebounced, page, perPage, sortKey, sortDir, dateField, dateFrom, dateTo, refetchToken]);
 
   // Reset page when filter changes.
-  useEffect(() => setPage(1), [pillFilter, searchDebounced]);
+  useEffect(
+    () => setPage(1),
+    [pillFilter, searchDebounced, sortKey, sortDir, dateField, dateFrom, dateTo]
+  );
 
   // SavedView + pill filtering (client-side composto).
   const currentSavedView: SavedView =
@@ -994,22 +1102,81 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           )}
         </div>
 
-        {/* 5 status pills */}
-        <div className="os-tabs">
-          {(['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as const).map((s) => (
+        {/* 5 status pills + toggle "Filtros avançados ▾" (PR follow-up) */}
+        <div className="vd-tabs-row">
+          <div className="os-tabs vd-tabs-grow">
+            {(['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={'os-tab' + (pillFilter === s ? ' active' : '')}
+                onClick={() => setPillFilter(s)}
+              >
+                {STATUS_LABEL[s] ?? s}
+                <span className="os-tab-n">{countByPill(s)}</span>
+              </button>
+            ))}
+          </div>
+          <div className="vd-tabs-actions">
+            <SellsToggleViewMode viewMode={viewMode} onChange={setViewMode} />
             <button
-              key={s}
               type="button"
-              className={'os-tab' + (pillFilter === s ? ' active' : '')}
-              onClick={() => setPillFilter(s)}
+              className={'vd-filters-toggle' + (advancedOpen ? ' on' : '')}
+              onClick={() => setAdvancedOpen((v) => !v)}
+              aria-expanded={advancedOpen}
+              title="Filtros avançados (período, data, agrupamento)"
             >
-              {STATUS_LABEL[s] ?? s}
-              <span className="os-tab-n">{countByPill(s)}</span>
+              <SlidersHorizontal size={12} />
+              <span>Filtros avançados</span>
+              <ChevronDown
+                size={11}
+                style={{
+                  transition: 'transform .12s',
+                  transform: advancedOpen ? 'rotate(180deg)' : 'none',
+                }}
+              />
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* TABLE */}
+        {/* Barra colapsável Filtros avançados (US-SELL-018/019/021 preservados) */}
+        {advancedOpen && (
+          <div className="vd-filters-bar">
+            <SellsDateFilter
+              preset={datePreset}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              dateField={dateField}
+              onChange={handleDateFilterChange}
+            />
+            {viewMode === 'grade-avancada' && (
+              <SellsGroupByDropdown groupBy={groupBy} onChange={setGroupBy} />
+            )}
+          </div>
+        )}
+
+        {/* TABLE — Cowork (lista) OU Grade Avançada (toggle) */}
+        {viewMode === 'grade-avancada' ? (
+          <div className="vd-grade-wrap">
+            <SellsGradeAvancada
+              rows={rows}
+              loading={loading}
+              totals={totals as SellsTotals | null}
+              selectedIds={selectedIds}
+              onToggleSelect={toggleSel}
+              onToggleSelectAll={toggleAll}
+              onClearSelection={() => setSelectedIds(new Set())}
+              onRowClick={(id: number) => setOpenSaleId(id)}
+              openSaleId={openSaleId}
+              totalFiltered={meta?.total ?? rows.length}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSort={handleSort}
+              groupBy={groupBy}
+              onGroupByChange={setGroupBy}
+            />
+          </div>
+        ) : (
         <div className="os-table-wrap">
           <table className="os-table vendas-table vd-aplus-table">
             <thead>
@@ -1186,6 +1353,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </tbody>
           </table>
         </div>
+        )}
 
         {/* Pagination compacta (preserva contrato US-SELL-008) */}
         {meta && meta.last_page > 1 && (
