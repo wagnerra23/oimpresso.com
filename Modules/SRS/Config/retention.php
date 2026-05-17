@@ -62,4 +62,79 @@ return [
      */
     'chat_messages_days' => (int) env('SRS_RETENTION_CHAT_MESSAGES_DAYS', 365),
 
+    // ============================================================================
+    // Wave 27 D7 LGPD push final — base legal + notice_period explicito por categoria
+    // ============================================================================
+
+    /**
+     * Base legal LGPD aplicável (Art. 7º — bases de tratamento).
+     *
+     * SRS é ferramenta interna Wagner com baixíssima exposição a PII de cliente
+     * (mensagens de chat operacional + evidências de bugs/features). Base
+     * primária é Art. 7º II (cumprimento de obrigação legal — governance audit
+     * trail) + Art. 7º IX (legítimo interesse — operação interna oimpresso).
+     */
+    'base_legal' => [
+        'art' => 'LGPD Art. 7º II (cumprimento obrigação legal) + IX (legítimo interesse interno)',
+        'finalidade' => 'Governance audit trail SRS ferramenta interna — rastreabilidade decisões requisitos',
+        'titular_pertence_a' => 'Wagner/admin oimpresso (não cliente externo)',
+    ],
+
+    /**
+     * Notice period — Wave 27.
+     *
+     * LGPD Art. 9º exige informar titular sobre alteração de retenção. Para
+     * dados de PII grave, exige notificação prévia (30-90d). SRS opera sem PII
+     * grave (ver `base_legal.titular_pertence_a` acima) — notice 0d (nao se
+     * aplica notificacao prévia) MAS Wagner deve documentar mudancas em ADR
+     * antes de alterar retention janela (governance interno).
+     */
+    'notice_period_days' => (int) env('SRS_RETENTION_NOTICE_PERIOD_DAYS', 0),
+
+    /**
+     * Hierarquia LGPD declarativa Wave 27 — referência rapida pra audit.
+     *
+     * Ordem crescente de retencao:
+     *   drafts (90d)  < chat (365d) = logs (365d)  < generated_docs (1825d / 5 anos)
+     *
+     * Justificativa:
+     *   - drafts: minimização agressiva (abandonados não tem valor)
+     *   - chat/logs: janela média operacional (debug + audit)
+     *   - generated_docs: 5 anos = obrigação fiscal Brasil (Receita Federal +
+     *     CLT Art. 11 prescrição trabalhista) — quando SRS gera doc de US/spec,
+     *     ela vira artefato fiscal-relevante (auditoria MTE pode pedir).
+     */
+    'hierarquia' => [
+        'drafts'         => 90,
+        'chat_messages'  => 365,
+        'logs_validation' => 365,
+        'generated_docs' => 1825,
+    ],
+
+    /**
+     * Strategy aplicacao limpeza — Wave 27.
+     *
+     * 'soft' = marca como purged (mantem row) — pra rollback acidental
+     * 'hard' = DELETE definitivo (LGPD minimização padrão)
+     *
+     * SRS usa 'hard' por design — generated_docs governance ja preservado em
+     * git canônico (memory/requisitos/...) que e fonte de verdade. Tabela
+     * docs_* sao cache operacional, não fonte primaria.
+     */
+    'strategy' => env('SRS_RETENTION_STRATEGY', 'hard'),
+
+    /**
+     * Entities cobertas pela limpeza automatica (`srs:retention-cleanup`).
+     *
+     * Mapeamento explicito Entity → janela. Pest valida que toda Entity
+     * tenant-scoped esta listada (defesa contra esquecer nova entity).
+     */
+    'entities' => [
+        'DocChatMessage'   => 365,
+        'DocValidationRun' => 365,
+        // Wave 27 — entities adicionadas conforme nova evidence/requirement workflow
+        // 'DocEvidence' => 1825,  // doc fiscal-relevante, manter 5 anos
+        // 'DocRequirement' => 1825, // governance hist, manter 5 anos
+    ],
+
 ];

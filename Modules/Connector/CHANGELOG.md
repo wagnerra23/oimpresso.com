@@ -1,5 +1,40 @@
 # Modules/Connector — CHANGELOG
 
+## [Wave 27] - 2026-05-17
+
+### Docs (D5 — README handshake sequence diagram + edge cases expand)
+- `README.md` — seção "Como cliente Delphi usa" Wave 27:
+  - **Mermaid sequence diagram** completo (4 fases: handshake → sync batch
+    → renovação proativa → rotate manual via Vaultwarden)
+  - **+5 edge cases** catalogados: clock skew sem NTP, estação offline > TTL,
+    rede instável TCP RST mid-batch, backoff manutenção 502/503, SQLite local
+    cheio (disk full)
+  - Total agora: 10 edge cases canônicos (era 5 em Wave 25)
+
+### Code (D9 — OTel spans completos DelphiSyncService)
+- `Services/DelphiSyncService.php` — +4 spans novos pra completar instrumentação:
+  - `connector.delphi.format_legacy_response` — rastreia taxa S/N (sinal de
+    drift quando taxa N sobe abruptamente). Attrs: ok bool + msg_len.
+  - `connector.delphi.log_drift` — wrap em log warning de drift (anti-padrão
+    Delphi). Attrs: reason + context_keys (NÃO logs raw — PII LGPD).
+  - `connector.delphi.extract_cnpj` (novo método público `extractCnpjFromRequest`)
+    — wrapper observável de helper privado.
+  - `connector.delphi.detect_body_format` (`detectBodyFormatWithSpan`) —
+    **fix tech debt Wave 23**: método estava referenciado em
+    `Wave23ConnectorSaturationTest.php:155` mas nunca implementado (deixava
+    suite com 1 fail). W27 implementa o wrapper; suite Wave 23 volta a 14/14
+    green. Span permite detectar drift de formato Delphi (cliente legacy
+    mandando novo formato sem aviso).
+- Pré-existentes: `extract_hd` + `resolve_by_cnpj` (Wave 18). Total agora: 6 spans
+  (era 2 em Wave 18). Cobre 100% das superfícies públicas do Service.
+
+### Preserved
+- D6 Inertia::defer permanece **N/A** — Connector é módulo Blade puro
+  (sem `Inertia::render`). Pattern defer é específico de Pages React.
+
+### Docs
+- `CHANGELOG.md` (entry Wave 27 atual).
+
 ## [Wave 25] - 2026-05-16
 
 ### Docs (D5 — README handshake passo-a-passo)

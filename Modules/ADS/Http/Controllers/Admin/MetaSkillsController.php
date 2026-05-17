@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\ADS\Http\Requests\StoreGovernanceMetaSkillRequest;
 use Modules\ADS\Services\GovernanceRulesService;
 
 class MetaSkillsController extends Controller
@@ -50,17 +51,10 @@ class MetaSkillsController extends Controller
     /**
      * Cria nova meta-skill via editor UI.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreGovernanceMetaSkillRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'rule_key'    => 'required|string|max:80|unique:mcp_governance_rules,rule_key|regex:/^[a-z0-9_]+$/',
-            'name'        => 'required|string|max:150',
-            'description' => 'required|string|max:2000',
-            'category'    => 'required|in:promotion,archival,escalation,retry,budget,review',
-            'condition'   => 'required|array',
-            'action'      => 'required|array',
-            'enabled'     => 'sometimes|boolean',
-        ]);
+        // Wave 27 D8.c — validação extraída pra StoreGovernanceMetaSkillRequest.
+        $data = $request->validated();
 
         \Illuminate\Support\Facades\DB::table('mcp_governance_rules')->insert([
             'rule_key'    => $data['rule_key'],

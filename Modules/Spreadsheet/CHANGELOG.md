@@ -2,6 +2,40 @@
 
 Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS — manutenção bug-fix + governance only.
 
+<<<<<<< HEAD
+## Wave 27 — 2026-05-17 (polish D7.c shim canon + D2 cobertura completa)
+
+### Adicionado — D7.c shim canônico Wave 27
+- **`Config/retention.spreadsheet.php`** novo — shim D7.c-compliant que espelha
+  `Config/retention.php` (operacional) num shape canônico pra rubrica governance v3:
+  - 2 entities canônicas: `sheet_spreadsheets` (1825d, CTN Art. 173 + LGPD Art. 16,
+    strategy=anonymize) e `sheet_spreadsheet_shares` (1825d, vínculo derivado,
+    strategy=hard_delete quando pai some).
+  - `pii_redactor`: shape `{enabled, mode='best_effort', targets:['sheet_data'],
+    patterns:['cpf','cnpj','email','phone_br']}` documenta limitação técnica de
+    UGC opaco.
+  - Acoplamento explícito com `retention.php` via mesma fonte ENV (defaults
+    espelham `enabled` + `strategy`). Mudança REAL altera AMBOS arquivos.
+  - Mesmo padrão consolidado em `Modules/Arquivos/Config/retention.php` (Wave 25).
+
+### Adicionado — D2 Pest cobertura completa SpreadsheetService W16
+- **`Tests/Feature/Wave27SpreadsheetPolishTest.php`** — 14 cenários (todos passed local, 76 assertions):
+  - 5 cenários D2 (DI, contrato dos 3 métodos CRUD, lista 6 métodos canon W18)
+  - 3 cenários D9.a (OtelHelper canon, ≥6 spans, attributo `module=Spreadsheet`)
+  - 6 cenários D7.c (existência shim, shape, 2 entities, 1825d ambas, acoplamento
+    ENV com retention.php operacional, PII redactor flag UGC opaco)
+
+### Não alterado (intencional — já saturado)
+- D9.a 6 spans canon em `SpreadsheetService` (Wave 16/18) — Wave 27 só REGRESSION test.
+- D4 SoC brutal Service layer (Wave 18) — sem refactor; cobertura amplifica.
+- D7.b `LogsActivity` Spatie em `Spreadsheet` + `SpreadsheetShare` (Wave 17).
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL
+- ADR 0101 Tests biz=1
+- ADR 0155 Module Grade v3 (D7.c shim canon + D2 saturated)
+- ADR 0159 Wave 27 polish
+=======
 ## Wave 26 — 2026-05-17 (polish 74 → ≥85 +11pp · D1+D4+D6+D7+D3)
 
 ### D1 Entities + cross-tenant guard preservado
@@ -26,6 +60,7 @@ Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS
 
 ### Referências
 - ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3 D4+D7 saturated · ADR 0159 Wave polish
+>>>>>>> origin/main
 
 ## Wave 25 — 2026-05-16 (polish D7 LGPD declaração estável)
 

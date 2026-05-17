@@ -2,6 +2,25 @@
 
 Formato append-only por wave/PR relevante. Modulo Ponto Eletronico Portaria MTP 671/2021 — ex-PontoWr2 (rename PHP-only Fase 3.7 PR-2, 2026-05-06; URLs/permissions/config keys legacy `pontowr2.*` preservados).
 
+## [Wave 27] — 2026-05-17 — POLISH final → ≥90
+
+### Added
+
+- `Tests/Feature/Wave27CrossTenantEscalaTest.php` — D2 expansão cross-tenant via Eloquent (HasBusinessScope global scope efetivo). Complementa Wave 15 `CrossTenantMarcacaoTest` (DB::table column-level) com 8 cenários Model-level: Escala (A1-A5 — leak forward+reverse+aggregate+superadmin+bulk bidirecional) + Marcacao (B1-B2 — query scoped + trait contract). Defesa em profundidade ambos os caminhos auditados.
+- `Http/Requests/AnularMarcacaoRequest.php` — D8.a FormRequest dedicado pra fluxo anulação Portaria 671 Art. 85 (append-only). Valida UUID v4 marcacao_anulada_id + motivo min:10 (auditoria fiscal §4) + tipo nullable. Service valida cross-tenant business_id match.
+- `Http/Requests/StoreBancoHorasMovimentoRequest.php` — D8.b FormRequest pra movimento manual BH (CREDITO/DEBITO/AJUSTE/QUITACAO). Constantes TIPOS_VALIDOS expostas. Validação CLT Art. 11 prescrição 5 anos + limite mensal sanity 43200min + motivo obrigatório AJUSTE/QUITACAO.
+
+### Changed
+
+- `README.md` — D5 jornada completa biz=1 estendida (6 fases A-G + 16 passos): Setup empresa → Operação diária → Anomalias → BH → Fechamento mensal → Fiscalização AFD/AFDT/AEJ → Cross-tenant safety. Cita StoreEscalaRequest/StoreMarcacaoRequest/StoreIntercorrenciaRequest (Wave 18) + AnularMarcacaoRequest/StoreBancoHorasMovimentoRequest (Wave 27) + comandos artisan canônicos.
+
+### Notes
+
+- Sub-dimensões alvo Wave 27: D2 (+2 = 8 cenários Eloquent cross-tenant Escala/Marcacao defesa profundidade), D5 (+2 = jornada 16 passos biz=1 6 fases — referência canônica Wagner/RH), D8 (+2 = AnularMarcacaoRequest + StoreBancoHorasMovimentoRequest reach FormRequests cobertura completa fluxos modificadores).
+- Append-only Portaria 671 PRESERVADO: AnularMarcacaoRequest não permite DELETE — cria NOVA marcação ORIGEM_ANULACAO mantendo original (Tier 0 IRREVOGÁVEL).
+- Multi-tenant Tier 0 PRESERVADO: nenhum FormRequest aceita business_id no body (anti-tampering — Service injeta via session/auth).
+- bucket governance v4 mantido `functional_horizontal` em module.json.
+
 ## [Wave 25] — 2026-05-16 — SATURATION functional → ≥85
 
 ### Added

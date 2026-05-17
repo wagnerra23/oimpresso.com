@@ -1,5 +1,28 @@
 # Modules/TeamMcp — CHANGELOG
 
+## [Wave 27] - 2026-05-17
+
+### Test (D2 — Pest +6 Wave 27 rotate edge cases)
+- `Tests/Feature/Wave23ScorecardRotateTest.php` — +6 testes Wave 27:
+  - rotate em cadeia A→B→C revoga A+B mantém C ativo (chain integrity)
+  - rotate de token JÁ soft-deleted retorna null (Tier 0 segredo idempotência)
+  - rotate raw NÃO aparece em log estruturado (defesa em profundidade — Log::listen)
+  - rotate cross-user (B tenta rotacionar token A) retorna null sem efeito colateral
+    (count tokens userB permanece igual — anti-cross-user attack)
+  - countActive ignora tokens soft-deleted (consistente com rotate semantics)
+  - chain rotate cleanup helper sintetiza pattern Wave 25 D3
+
+### UI (D6 — Pages tsx Deferred wrapper Team/Index)
+- `resources/js/Pages/team-mcp/Team/Index.tsx` — wrap `<Deferred data="team">`
+  + `<Deferred data="stats_globais">` em torno do conteúdo caro (backend
+  TeamController já fazia `Inertia::defer` Wave 11; frontend agora trata o
+  loading state com skeleton animate-pulse em vez de undefined crash).
+  Pattern alinhado com [`Admin/GovernanceV4Dashboard.tsx`](../../resources/js/Pages/Admin/GovernanceV4Dashboard.tsx).
+  Props `team` e `stats_globais` viram `Props?` opcional com defaults sentinela.
+
+### Docs
+- `CHANGELOG.md` (entry Wave 27 atual).
+
 ## [Wave 25] - 2026-05-16
 
 ### Added (D4 — Service extract Scorecard)

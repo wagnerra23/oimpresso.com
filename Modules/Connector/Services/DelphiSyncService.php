@@ -39,6 +39,26 @@ use Illuminate\Support\Facades\Log;
 class DelphiSyncService
 {
     /**
+     * Wave 23 wrapper: detectBodyFormat com OTel span dedicado.
+     *
+     * D9 OTel (Wave 27 polish — método estava referenciado em Wave23ConnectorSaturationTest
+     * mas nunca implementado; fix pendente conforme commit Wave 23 plan).
+     * Span permite rastrear distribuição de formatos Delphi (drift quando
+     * cliente legacy começa a mandar novo formato sem aviso prévio).
+     */
+    public function detectBodyFormatWithSpan(string $body): string
+    {
+        return OtelHelper::spanBiz('connector.delphi.detect_body_format', function () use ($body) {
+            $format = $this->detectBodyFormat($body);
+
+            return $format;
+        }, [
+            'connector.service'  => self::class,
+            'connector.body.len' => strlen($body),
+        ]);
+    }
+
+    /**
      * Detecta formato do body Delphi.
      *
      * @return string 'array_tabelas' | 'json_flat' | 'pipe' | 'unknown'
@@ -170,25 +190,56 @@ class DelphiSyncService
      *
      * @param bool   $ok     true → "S;...", false → "N;..."
      * @param string $message mensagem (sem ponto-e-vírgula)
+     *
+     * D9 OTel (Wave 27): span dedicado pra rastrear taxa S/N resposta legacy
+     * (sinal de drift Delphi quando taxa N sobe abruptamente).
      */
     public function formatLegacyResponse(bool $ok, string $message): string
     {
-        // Delphi parsa split(';'), então message não pode ter ';'
-        $sanitized = str_replace(';', ',', $message);
+        return OtelHelper::spanBiz('connector.delphi.format_legacy_response', function () use ($ok, $message) {
+            // Delphi parsa split(';'), então message não pode ter ';'
+            $sanitized = str_replace(';', ',', $message);
 
-        return ($ok ? 'S' : 'N') . ';' . $sanitized;
+            return ($ok ? 'S' : 'N') . ';' . $sanitized;
+        }, [
+            'connector.service'  => self::class,
+            'connector.response.ok' => $ok,
+            'connector.response.msg_len' => strlen($message),
+        ]);
     }
 
     /**
      * Log estruturado de drift suspeito (HD não cadastrado, CNPJ órfão, etc).
+     *
+     * D9 OTel (Wave 27): span dedicado pra rastrear todos drifts detectados
+     * (anti-padrão Delphi escondido — taxa drift > 0 dispara alerta).
      */
     public function logDrift(string $reason, array $context = []): void
     {
-        Log::channel('stack')->warning('[DelphiSync] drift detectado', array_merge([
-            'reason'     => $reason,
-            'service'    => self::class,
-            'timestamp'  => now()->toIso8601String(),
-        ], $context));
+        OtelHelper::spanBiz('connector.delphi.log_drift', function () use ($reason, $context) {
+            Log::channel('stack')->warning('[DelphiSync] drift detectado', array_merge([
+                'reason'     => $reason,
+                'service'    => self::class,
+                'timestamp'  => now()->toIso8601String(),
+            ], $context));
+        }, [
+            'connector.service'  => self::class,
+            'connector.drift.reason' => $reason,
+            'connector.drift.context_keys' => implode(',', array_keys($context)),
+        ]);
+    }
+
+    /**
+     * Extrai CNPJ do body (qualquer formato).
+     *
+     * D9 OTel (Wave 27): span dedicado — chamada por resolveByCnpj + audit.
+     * NÃO loga CNPJ raw nas attrs (PII LGPD — apenas formato detectado).
+     */
+    public function extractCnpjFromRequest(Request $request): ?string
+    {
+        return OtelHelper::spanBiz('connector.delphi.extract_cnpj', function () use ($request) {
+            return $this->extractCnpj($request);
+        }, ['connector.service' => self::class]);
     }
 
     // ===== Helpers privados =====

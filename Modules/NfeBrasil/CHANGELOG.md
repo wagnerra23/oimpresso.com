@@ -2,6 +2,34 @@
 
 Mudanças observáveis na capacidade fiscal NFe/NFC-e/NFSe. Append-only por release/wave.
 
+## Wave 27 POLISH — 2026-05-17 (saturation 72-88 → ≥90)
+
+### D9 — Spans canon SEFAZ +3 (era 5 em W18, agora ≥ 8)
+- `DanfeService::renderizar` envolve `OtelHelper::span('nfe.danfe_render', ...)` — attributes business_id + emissao_id + modelo (sem PII). Latência observable do render PDF via sped-da.
+- `DanfeService::salvar` envolve `OtelHelper::span('nfe.danfe_salvar', ...)` — extraí lógica pra `salvarInterno` privado preservando behavior; attributes chave_44_present boolean (sem expor chave fiscal real no metric).
+- `CertificadoService::validar` envolve `OtelHelper::span('nfe.certificado_validar', ...)` — extraí lógica pra `validarInterno`; attribute pfx_size_bytes (sem senha/cert content).
+- Total spans canon `nfe.*` cumulativo agora: 8 (nfe.emitir, nfe.cancelar, nfe.inutilizar, nfe.status_sefaz, nfe.retorno_sefaz, nfe.danfe_render, nfe.danfe_salvar, nfe.certificado_validar).
+
+### D2 Pest novo
+- `Tests/Feature/Wave27NfeSaturationTest.php` — 8 cenários reflection + source-grep + Container resolve:
+  - DanfeService 2 spans novos confirmados (`nfe.danfe_render` + `nfe.danfe_salvar`)
+  - CertificadoService 1 span novo confirmado (`nfe.certificado_validar`)
+  - Total spans `nfe.*` cumulativo ≥ 8 (era 5 em W18)
+  - 3 Models críticos preservam LogsActivity (NfeEmissao + NfeEvento — W25 reforço D7)
+  - CONFAZ SINIEF 07/2005 Art. 14 IRREVOGÁVEL — NfeService source-grep ZERO `forceDelete` em cancelamento
+  - 4 Services canon resolvem do container (DI Tier 0 estável)
+  - Spans canon mantém prefix `nfe.` (no module leak)
+  - NfeEmissao usa SoftDeletes (CONFAZ preservation IRREVOGÁVEL)
+
+### D7 — LogsActivity confirmação (Wave 18+25 + W27 reforço)
+- NfeEmissao + NfeEvento traits preservados — W27 Pest valida source-grep `LogsActivity` no Model body
+- Append-only contrato mantido: reprocessamento gera novo `NfeEvento`, nunca update
+
+### Tier 0 IRREVOGÁVEIS preservados
+- CONFAZ SINIEF 07/2005 Art. 14 — `forceDelete` proibido em cancelamento fiscal (Pest enforce via source-grep)
+- ADR 0093 multi-tenant — NfeEmissao/NfeEvento/NfeInutilizacao com global scope preservado
+- NFe cancelada mantém status `cancelada` + permanece no banco (nunca hard-delete)
+
 ## Wave 25 — 2026-05-16 (saturation 72→≥85)
 
 ### D2 — Multi-tenant Tier 0 cross-tenant deep
