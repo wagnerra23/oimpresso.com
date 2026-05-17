@@ -14,6 +14,10 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $middleware = [
+        // Fallback PHP-side do redirect /public/X → /X. Roda ANTES de tudo
+        // porque o .htaccess raiz não consegue interceptar em LiteSpeed em
+        // alguns paths (request com auth passava direto). Ver hostinger.md.
+        \App\Http\Middleware\RedirectPublicPath::class,
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
