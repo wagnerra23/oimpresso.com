@@ -17,6 +17,7 @@ import {
   Plus,
   Printer,
   Receipt,
+  Sparkles,
   User,
   X,
 } from 'lucide-react';
@@ -35,6 +36,9 @@ import FiscalSection from './FiscalSection';
 import FsmActionPanel from './FsmActionPanel';
 import SaleTimeline from './SaleTimeline';
 import CriarOsButton from './CriarOsButton';
+// US-SELL-COWORK-R2-IA — painel ✦ IA do drawer (Cowork KB-9.75 Onda 2).
+// Toggle ON via botão ✦ no header; chama POST /sells/{id}/ai-ask (3 modos).
+import SaleAiPanel from './SaleAiPanel';
 
 interface Customer {
   id: number;
@@ -89,6 +93,8 @@ interface Props {
   saleId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** US-SELL-COWORK-R2-IA — quando true, abre o painel IA assim que drawer monta. */
+  initialAiOpen?: boolean;
   onSaleChanged?: () => void;
 }
 
@@ -147,10 +153,23 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
   partial: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
 };
 
-export default function SaleSheet({ saleId, open, onOpenChange, onSaleChanged }: Props) {
+export default function SaleSheet({
+  saleId,
+  open,
+  onOpenChange,
+  onSaleChanged,
+  initialAiOpen = false,
+}: Props) {
   const [data, setData] = useState<SaleDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // US-SELL-COWORK-R2-IA — toggle painel IA dentro do drawer.
+  const [aiOpen, setAiOpen] = useState(initialAiOpen);
+  // Sincroniza aiOpen quando muda saleId/initialAiOpen (entrada via ⌘K ✦).
+  useEffect(() => {
+    if (saleId != null && initialAiOpen) setAiOpen(true);
+    if (saleId == null) setAiOpen(false);
+  }, [saleId, initialAiOpen]);
 
   // State pra "Adicionar pagamento" inline.
   const [showAddPayment, setShowAddPayment] = useState(false);
@@ -285,6 +304,24 @@ export default function SaleSheet({ saleId, open, onOpenChange, onSaleChanged }:
                   <span>Cliente não informado</span>
                 )}
               </SheetDescription>
+              {/* US-SELL-COWORK-R2-IA — botão toggle ✦ IA */}
+              <div className="flex items-center justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={() => setAiOpen((v) => !v)}
+                  className={
+                    'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
+                    (aiOpen
+                      ? 'border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300'
+                      : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground')
+                  }
+                  aria-expanded={aiOpen}
+                  title="Perguntar à IA sobre esta venda"
+                >
+                  <Sparkles size={12} />
+                  {aiOpen ? 'Fechar IA' : '✦ IA'}
+                </button>
+              </div>
             </SheetHeader>
 
             {/* Conteúdo scroll */}
@@ -304,6 +341,9 @@ export default function SaleSheet({ saleId, open, onOpenChange, onSaleChanged }:
                   tone={saldoDevedor > 0 ? 'warning' : 'success'}
                 />
               </div>
+
+              {/* US-SELL-COWORK-R2-IA — painel ✦ IA da venda */}
+              {aiOpen && <SaleAiPanel saleId={data.id} enabled={aiOpen} />}
 
               {/* Cliente + local */}
               <Section title="Cliente">

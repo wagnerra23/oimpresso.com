@@ -1525,6 +1525,128 @@ class SellController extends Controller
     }
 
     /**
+     * US-SELL-COWORK-R2-IA — POST JSON pro painel ✦ IA do drawer SaleSheet
+     * (Cowork KB-9.75 Onda 2 R2 IA). 3 modos: summary (resumir pedido),
+     * history (histórico cliente), suggest (sugerir próxima venda).
+     *
+     * Esta Onda 2 entrega o ENDPOINT + UX. A integração com Jana Copiloto
+     * real (Modules/Jana/Ai/Agents/) virá em Onda 2.5 incremental — esta
+     * versão usa stub determinístico baseado no contexto da venda pra UX
+     * funcionar end-to-end. Catalogado em commit body "NÃO INCLUI".
+     *
+     * Payload: { mode: 'summary'|'history'|'suggest' }
+     * Retorna: { text, mode, latency_ms, is_stub }
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id global scope.
+     * Permission gate: direct_sell.view + variants (mesma de sheetData).
+     */
+    public function aiAsk(\Illuminate\Http\Request $request, $id)
+    {
+        if (! auth()->user()->can('direct_sell.view') &&
+            ! auth()->user()->can('view_own_sell_only') &&
+            ! auth()->user()->can('view_commission_agent_sell')) {
+            abort(403);
+        }
+
+        $start = microtime(true);
+        $business_id = $request->session()->get('user.business_id');
+        $mode = (string) $request->input('mode', 'summary');
+        $allowedModes = ['summary', 'history', 'suggest'];
+        if (! in_array($mode, $allowedModes, true)) {
+            return response()->json([
+                'error' => 'mode inválido — use summary|history|suggest',
+                'mode' => $mode,
+            ], 422);
+        }
+
+        $sale = \App\Transaction::with([
+            'contact:id,name,supplier_business_name',
+            'sell_lines:id,transaction_id,product_id,quantity,unit_price_inc_tax',
+            'sell_lines.product:id,name',
+        ])
+            ->where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->whereNull('sub_type')
+            ->find($id);
+
+        if (! $sale) {
+            abort(404);
+        }
+
+        $clientName = $sale->contact?->supplier_business_name ?: ($sale->contact?->name ?? 'Cliente');
+        $totalFmt = 'R$ ' . number_format((float) $sale->final_total, 2, ',', '.');
+        $itemsCount = $sale->sell_lines->count();
+        $firstItem = $sale->sell_lines->first()?->product?->name ?? 'item';
+        $paymentStatus = match ((string) $sale->payment_status) {
+            'paid' => 'paga',
+            'partial' => 'parcialmente paga',
+            'due' => 'pendente',
+            default => $sale->payment_status,
+        };
+
+        // Stub determinístico — Onda 2.5 substitui por Jana real.
+        $text = match ($mode) {
+            'summary' => sprintf(
+                "Venda #%s pra %s — %s em %d %s. Pagamento %s. %s",
+                $sale->invoice_no ?: $sale->id,
+                $clientName,
+                $totalFmt,
+                $itemsCount,
+                $itemsCount === 1 ? 'item' : 'itens',
+                $paymentStatus,
+                $sale->additional_notes ? 'Nota: ' . mb_substr((string) $sale->additional_notes, 0, 120) : 'Sem notas adicionais.'
+            ),
+            'history' => (function () use ($sale, $business_id) {
+                $clientId = $sale->contact_id;
+                if (! $clientId) {
+                    return 'Consumidor Final (sem cadastro) — sem histórico de relacionamento.';
+                }
+                $stats = \DB::table('transactions')
+                    ->where('business_id', $business_id)
+                    ->where('type', 'sell')
+                    ->where('status', 'final')
+                    ->whereNull('sub_type')
+                    ->where('contact_id', $clientId)
+                    ->where('id', '!=', $sale->id)
+                    ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(final_total), 0) as soma, MAX(transaction_date) as ult')
+                    ->first();
+                $cnt = (int) ($stats->cnt ?? 0);
+                if ($cnt === 0) {
+                    return 'Primeira venda deste cliente — boa oportunidade pra atenção extra no atendimento.';
+                }
+                $soma = 'R$ ' . number_format((float) $stats->soma, 2, ',', '.');
+                $ult = $stats->ult ? \Carbon\Carbon::parse($stats->ult)->translatedFormat('d \d\e F') : '—';
+                return sprintf(
+                    '%d venda%s anterior%s totalizando %s. Última em %s. Cliente %s.',
+                    $cnt,
+                    $cnt === 1 ? '' : 's',
+                    $cnt === 1 ? '' : 'es',
+                    $soma,
+                    $ult,
+                    $cnt >= 5 ? 'recorrente — atenção VIP' : 'em desenvolvimento'
+                );
+            })(),
+            'suggest' => sprintf(
+                "PRODUTO: complemento de %s\nPREÇO: faixa similar (~%s)\nPORQUE: cliente já comprou %s — oferta cruzada de produto complementar tem taxa de aceite ~30%% nesses casos.",
+                $firstItem,
+                $totalFmt,
+                $itemsCount === 1 ? "este item" : "{$itemsCount} itens"
+            ),
+            default => 'Não consegui inferir disso. Abre a venda direto pra ver detalhes.',
+        };
+
+        $latency = (int) round((microtime(true) - $start) * 1000);
+
+        return response()->json([
+            'text' => $text,
+            'mode' => $mode,
+            'latency_ms' => $latency,
+            'is_stub' => true, // Onda 2.5 trocará pra false quando Jana real estiver plugada
+            'venda_id' => $sale->id,
+        ]);
+    }
+
+    /**
      * US-SELL-PAY-DRAWER — POST JSON pra criar TransactionPayment a partir do
      * drawer SaleSheet. Versão enxuta de TransactionPaymentController@store
      * (sem cartão/cheque/denominations) que retorna JSON em vez de redirect.
