@@ -3,16 +3,20 @@ page: /sells
 component: resources/js/Pages/Sells/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-08
+last_validated: 2026-05-17
 parent_module: Sells
-related_adrs: [0110, 0107, 0109, 0104, 0093]
+related_adrs: [0110, 0107, 0109, 0104, 0093, 0114, 0143]
 tier: A
-charter_version: 1
+charter_version: 2
+visual_source: prototipo-ui/prototipos/sells-index/vendas-page.jsx
+canon_method: Cowork KB-9.75 (chat10, score 9.75/10)
 ---
 
-# Page Charter — /sells
+# Page Charter — /sells (v2 · Cowork rewrite)
 
-> **Status:** live (US-SELL-008 mergeado 2026-05-08, PR #261). Página de referência viva do **Cockpit Pattern V2** ADR 0110.
+> **Status:** live · rewrite Cowork em curso 2026-05-17 (sessão `stupefied-noether-89f83d`). Charter v1 (Cockpit V2 puro) preservado historicamente em [`Index.tsx.bak.cowork-rewrite-2026-05-17`](Index.tsx.bak.cowork-rewrite-2026-05-17).
+>
+> **Origem v2:** prototype Claude Design `Kf6GHQu6fkwlh0vnL30Oog` (handoff 2026-05-16). Visual-comparison: [`memory/requisitos/Sells/index-r1-visual-comparison.md`](../../../memory/requisitos/Sells/index-r1-visual-comparison.md). Decisão de cópia integral: [`memory/reference/feedback-design-literal-copy-quando-aprovado.md`](../../../memory/reference/feedback-design-literal-copy-quando-aprovado.md).
 
 ---
 
@@ -22,17 +26,26 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 
 ---
 
-## Goals — Features (faz)
+## Goals — Features (faz · v2 Cowork)
 
-- AppShellV2 + topnav inline com breadcrumb (Cockpit canon)
-- Header `<PageHeader>` shared: h1 "Vendas" + subtitle + botão "Nova venda" único
-- 3 KPIs cards: Abertas (due+partial), Atrasadas (rose destaque), Total
-- 5 filter pills `rounded-full + counter`: Todas / Pago / A receber / Parcial / Atrasadas
-- Tabela limpa 6 colunas: data + nº fatura (com red dot bullet se overdue) + cliente 2 linhas + total + pago + status badge
-- Click linha abre drawer `SaleSheet` lateral direito (`<Sheet>` shadcn)
-- Linha selecionada `bg-blue-50/60` (info active)
-- Endpoint REST canon: `GET /sells-list-json` (limit 50, filtra payment_status)
-- Multi-tenant Tier 0: `business_id` global scope + permission gate (direct_sell.view + variants)
+- AppShellV2 sidebar dark (260px) + `.sells-cowork` wrapper escopa CSS verbatim do prototype
+- Header com h1 "Vendas" + subtitle "Pedidos · faturamento · NF-e/NFS-e" + ⌘K busca + "Nova venda" CTA com kbd N
+- Toolbar 2: Foco segmented control (Caixa/Faturamento/Comissão) + Saved views tree dropdown (Pendentes pgto. / Pendentes / Atrasadas / Rejeitadas / Faturadas) + Imprimir caixa + Visões ▾ dropdown
+- 4 KPI cards: Faturado hoje dark green hero com sparkline · Ticket médio · A receber + breakdown SLA (estourado/atrasando/fresco) + ageing bar 0-30/31-60/+60d · 4º vista-dependente (Pagos hoje / Notas fiscais / Top vendedor)
+- 5 status pills com counts: Todas / Paga / Pendente / Faturada / Cancelada
+- Tabela 10 cols: checkbox + Venda (#) + Data + Cliente (nome + items_summary) + Atendido por (avatar + nome) + Pipeline dots (FSM stepper + label curta) + Fiscal badges (NF-e + status SEFAZ) + Pagamento (método + parcelas + SLA pill compacta) + Total + Status
+- Pipeline dots derivam de `sale_process_stages.sort_order` + `sale_processes` (FSM ADR 0143 live biz=1)
+- SLA pill 4 estados: paga · fresco · atrasando · estourado (computado backend `sla_kind`)
+- Linha em foco (J/K) ganha `row-focused` border-left accent + scrollIntoView
+- Linha selecionada `.os-row.selected` (CSS scoped)
+- Hover-reveal row actions (DANFE PDF / XML / Imprimir recibo) quando fiscal_status=autorizada
+- Favoritas ★ via atalho `B` + persiste em `localStorage[oimpresso.sells.favs]`
+- Bulk action bar fixed-bottom quando há seleção: Emitir NF-e lote / Marcar pagas / Exportar / Limpar
+- Cheat-sheet overlay (?) + ⌘K palette (busca venda/cliente/chave SEFAZ + ações + prefixos #/@/$/`/`)
+- Drawer SaleSheet preservado (sem mudança)
+- Endpoint REST canon: `GET /sells-list-json` (50 por page, agora retorna +14 campos derivados)
+- Multi-tenant Tier 0: `business_id` global scope + permission gate (`direct_sell.view` + variants)
+- Paginator compacta no rodapé (preserva contrato existente)
 
 ---
 
@@ -40,12 +53,12 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 
 - ❌ Edição inline (vai pra `/sells/{id}/edit` Blade legacy)
 - ❌ Print direto (rota Blade `/sells/{id}/print`)
-- ❌ Filtros avançados (date range, location, customer, source) — backlog US-SELL-009
-- ❌ Paginação (limita 50 últimas; banner "Filtros adicionais em US-SELL-009")
-- ❌ Export PDF/Excel (DataTables legacy ainda tem botão próprio quando `?ajax=1`)
-- ❌ Bulk actions (checkbox seleção múltipla) — não no MVP
-- ❌ Real-time updates (WebSocket/Centrifugo) — não no MVP
+- ❌ Filtros avançados de data range / location / customer / source — Visões dropdown atende parcialmente; refator futuro
+- ❌ Date field dropdown (7 opções) e Group-by — features Cockpit V2 não migradas (eram do legacy Index.tsx pré-Cowork; reavaliar valor)
+- ❌ ViewMode toggle `lista | grade-avancada` — Cowork tem visual unificado; Grade Avançada legacy permanece no _components/ mas não está montada
+- ❌ Real-time updates (WebSocket/Centrifugo) — backlog
 - ❌ Migrar `index()` Blade view por completo — fallback `request()->ajax()` mantido
+- ❌ R2 IA painel drawer, R3 comentários inline, R4 transcript PDF + apresentação fullscreen — refinos opcionais KB-9.75 (não no escopo desta cópia)
 
 ---
 
@@ -62,12 +75,11 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 
 ## UX Anti-patterns
 
-- ❌ Tabs `border-b-2 border-primary` em filter (canon = pills `rounded-full`)
-- ❌ Modal/Dialog pra detalhe de linha (canon = Sheet lateral)
-- ❌ KpiCard custom inline (canon = `@/Components/shared/KpiCard`)
-- ❌ Cor crua `bg-(gray|red|green)-N` (canon = rose/emerald/amber/blue semântico)
+- ❌ Cor crua Tailwind dentro do TSX (canon = classes `.vd-*`/`.os-*` escopadas em `.sells-cowork`)
+- ❌ Modal/Dialog pra detalhe de linha (canon = drawer SaleSheet lateral via `<Sheet>` shadcn)
+- ❌ Adaptar peça-a-peça desfazendo coesão visual do prototype (ver [`feedback-design-literal-copy-quando-aprovado.md`](../../../memory/reference/feedback-design-literal-copy-quando-aprovado.md))
 - ❌ `font-bold` em h1 (canon = `font-semibold`)
-- ❌ `sessionStorage` (canon = `localStorage` com prefix `oimpresso.`)
+- ❌ `sessionStorage` (canon = `localStorage` com prefix `oimpresso.sells.`)
 
 ---
 
@@ -75,19 +87,20 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 
 | Método | Rota | Retorna |
 |---|---|---|
-| GET | `/sells-list-json?payment_status=&limit=50` | 8 fields/linha + is_overdue derivado |
-| GET | `/sells/{id}/sheet-data` | Drawer detail JSON (lines + payments + customer + urls) |
+| GET | `/sells-list-json?payment_status=&per_page=50&page=N&sort=&dir=` | 8 fields legacy + 14 fields Cowork derivados (sla_kind, days_to_due, pipeline_step, pipeline_total, pipeline_label, pipeline_color, seller_id, seller_name, seller_abbr, seller_origin, items_summary, items_count, payment_method_label, installments) |
+| GET | `/sells/{id}/sheet-data` | Drawer detail JSON (lines + payments + customer + urls) — sem mudança |
 | GET | `/sells` (X-Inertia) | Inertia render Sells/Index |
-| GET | `/sells` (X-Requested-With ajax) | DataTables legacy (preservado) |
+| GET | `/sells` (X-Requested-With ajax) | DataTables legacy (preservado pra `?ajax=1`) |
 
 ---
 
 ## Tests anti-regressão
 
-- [tests/Feature/Sells/SellsIndexPageTest.php](../../tests/Feature/Sells/SellsIndexPageTest.php) — 24 testes estruturais
-- [tests/Feature/Sells/SaleSheetComponentTest.php](../../tests/Feature/Sells/SaleSheetComponentTest.php) — 22 testes drawer
-- [tests/Feature/Sells/SellControllerEndpointsTest.php](../../tests/Feature/Sells/SellControllerEndpointsTest.php) — 21 testes backend
-- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (esta Page no canon target)
+- [tests/Feature/Sells/SellsIndexCoworkPayloadTest.php](../../../tests/Feature/Sells/SellsIndexCoworkPayloadTest.php) — 11 testes estruturais novos (backend payload Cowork + tenancy preservada)
+- [tests/Feature/Sells/SellsIndexPageTest.php](../../../tests/Feature/Sells/SellsIndexPageTest.php) — 13 testes legacy ainda passam + 9 marcados `markTestSkipped()` com razão canon (atoms Tailwind shadcn substituídos por classes `.vd-*` / `.os-*`)
+- [tests/Feature/Sells/SaleSheetComponentTest.php](../../../tests/Feature/Sells/SaleSheetComponentTest.php) — preservados (drawer não mudou)
+- [tests/Feature/Sells/SellControllerEndpointsTest.php](../../../tests/Feature/Sells/SellControllerEndpointsTest.php) — 25 testes passam (multi-tenant + endpoints + total_paid subquery)
+- Pest browser keyboard J/K/?/B/Enter — backlog (depende de Pest browser estável)
 
 ---
 

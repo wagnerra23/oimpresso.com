@@ -951,6 +951,9 @@ class SellController extends Controller
             // só pode apontar pra stage do mesmo business porque foi resolvido pelo
             // ExecuteStageActionService que valida tenancy.
             ->leftJoin('sale_process_stages as sps', 'transactions.current_stage_id', '=', 'sps.id')
+            // US-SELL-COWORK — JOIN users pra exibir vendedor "atendido por" (Cowork KB-9.75).
+            // LEFT JOIN preserva vendas sem created_by (legacy).
+            ->leftJoin('users as seller_u', 'transactions.created_by', '=', 'seller_u.id')
             ->where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
@@ -1050,6 +1053,24 @@ class SellController extends Controller
                 // US-SELL-024 — flag boolean explícita "venda agrupada" (default false em vendas legadas).
                 // Defesa: COALESCE pra schemas SQLite Pest sem a coluna ainda (default 0).
                 \DB::raw('COALESCE(transactions.is_grouped_invoice, 0) as is_grouped_invoice'),
+                // US-SELL-COWORK — pipeline visual (dot stepper + label) do prototype KB-9.75.
+                // pipeline_total via subquery — mesmo process_id da stage atual.
+                'sps.sort_order as pipeline_sort_order',
+                'sps.name as pipeline_name',
+                'sps.color as pipeline_color',
+                \DB::raw('(SELECT COUNT(*) FROM sale_process_stages sps_t WHERE sps_t.process_id = sps.process_id) as pipeline_total'),
+                // US-SELL-COWORK — vendedor (created_by → users).
+                'seller_u.first_name as seller_first_name',
+                'seller_u.surname as seller_surname',
+                'seller_u.username as seller_username',
+                'seller_u.id as seller_id',
+                // US-SELL-COWORK — items_summary (primeiro produto + qty total) pra exibir sub-linha "cliente / produto".
+                \DB::raw('(SELECT p.name FROM transaction_sell_lines tsl_n LEFT JOIN products p ON tsl_n.product_id = p.id WHERE tsl_n.transaction_id = transactions.id ORDER BY tsl_n.id ASC LIMIT 1) as items_first_name'),
+                \DB::raw('(SELECT COUNT(*) FROM transaction_sell_lines tsl_c WHERE tsl_c.transaction_id = transactions.id) as items_count'),
+                \DB::raw('(SELECT COALESCE(SUM(tsl_q.quantity), 0) FROM transaction_sell_lines tsl_q WHERE tsl_q.transaction_id = transactions.id) as items_total_qty'),
+                // US-SELL-COWORK — pagamento: método dominante (último registrado) + número de parcelas (count > 0 amount).
+                \DB::raw('(SELECT method FROM transaction_payments tp_m WHERE tp_m.transaction_id = transactions.id AND tp_m.is_return = 0 ORDER BY tp_m.id DESC LIMIT 1) as last_payment_method'),
+                \DB::raw('(SELECT COUNT(*) FROM transaction_payments tp_i WHERE tp_i.transaction_id = transactions.id AND tp_i.is_return = 0 AND tp_i.amount > 0) as installments_count'),
             ], 'page', $page);
         $rows = $paginator->getCollection();
 
@@ -1070,13 +1091,73 @@ class SellController extends Controller
             ->map(function ($r) use ($fiscalByTx) {
                 // Calcula overdue inline (boolean derivado, evita re-query).
                 $overdue = false;
+                $daysToDue = null;
                 if (in_array($r->payment_status, ['due', 'partial'], true) && $r->pay_term_number && $r->pay_term_type) {
                     $dueDate = $r->pay_term_type === 'days'
                         ? \Carbon\Carbon::parse($r->transaction_date)->addDays((int) $r->pay_term_number)
                         : \Carbon\Carbon::parse($r->transaction_date)->addMonths((int) $r->pay_term_number);
                     $overdue = $dueDate->isPast();
+                    // US-SELL-COWORK — days_to_due signed int (negativo = atraso).
+                    // diffInDays(false) preserva sinal. now()->startOfDay() pra evitar drift de horas.
+                    $daysToDue = (int) round(\Carbon\Carbon::now()->startOfDay()->diffInDays($dueDate, false));
                 }
+
+                // US-SELL-COWORK — sla_kind (fresh/warning/overdue/paid) — espelha vdSlaInfo() do prototype.
+                //   fsm/payment paid → paid (sem SLA)
+                //   overdue ou daysToDue < 0 → overdue
+                //   daysToDue <= 7 → warning (atrasando)
+                //   daysToDue > 7 → fresh (vence em N+d)
+                //   sem pay_term → fresh (não está atrasando — sem prazo definido)
+                if ($r->payment_status === 'paid') {
+                    $slaKind = 'paid';
+                } elseif ($daysToDue === null) {
+                    $slaKind = 'fresh';
+                } elseif ($daysToDue < 0) {
+                    $slaKind = 'overdue';
+                } elseif ($daysToDue <= 7) {
+                    $slaKind = 'warning';
+                } else {
+                    $slaKind = 'fresh';
+                }
+
                 $fiscal = $fiscalByTx->get($r->id);
+
+                // US-SELL-COWORK — seller_name display (preferência first_name; fallback username; fallback null).
+                $sellerName = trim(($r->seller_first_name ?? '') . ' ' . ($r->seller_surname ?? '')) ?: ($r->seller_username ?? null);
+                $sellerAbbr = null;
+                if ($sellerName) {
+                    $parts = explode(' ', trim($sellerName));
+                    $sellerAbbr = mb_strtoupper(mb_substr($parts[0], 0, 1) . (isset($parts[1]) ? mb_substr($parts[1], 0, 1) : mb_substr($parts[0], 1, 1)));
+                }
+
+                // US-SELL-COWORK — payment_method_label PT-BR (UltimatePOS armazena chaves curtas).
+                $paymentMethodLabel = match ((string) ($r->last_payment_method ?? '')) {
+                    'cash'         => 'Dinheiro',
+                    'card'         => 'Cartão',
+                    'bank_transfer'=> 'Transferência',
+                    'cheque'       => 'Cheque',
+                    'other'        => 'Outro',
+                    'custom_pay_1' => 'PIX',
+                    'custom_pay_2' => 'Boleto',
+                    'custom_pay_3' => 'Crediário',
+                    ''             => null,
+                    default        => ucfirst((string) ($r->last_payment_method ?? '')),
+                };
+
+                // US-SELL-COWORK — items_summary "Produto X · 200un" ou "Produto X (+2 itens)".
+                $itemsSummary = null;
+                if ($r->items_first_name) {
+                    $qtyInt = (int) ($r->items_total_qty ?? 0);
+                    $cnt = (int) ($r->items_count ?? 0);
+                    if ($cnt > 1) {
+                        $itemsSummary = $r->items_first_name . ' (+' . ($cnt - 1) . ' itens)';
+                    } elseif ($qtyInt > 0) {
+                        $itemsSummary = $r->items_first_name . ' · ' . $qtyInt . 'un';
+                    } else {
+                        $itemsSummary = $r->items_first_name;
+                    }
+                }
+
                 return [
                     'id' => $r->id,
                     'transaction_date' => $r->transaction_date,
@@ -1100,6 +1181,30 @@ class SellController extends Controller
                     // US-SELL-024 — boolean explícito "venda agrupada" (cast pra bool defensivo
                     // — vem como 0/1 do COALESCE quando coluna ausente em SQLite Pest).
                     'is_grouped_invoice' => (bool) $r->is_grouped_invoice,
+
+                    // US-SELL-COWORK — campos novos do prototype KB-9.75 (visual-comparison.md):
+                    'sla_kind' => $slaKind,            // fresh | warning | overdue | paid
+                    'days_to_due' => $daysToDue,       // signed int, null quando paid/sem pay_term
+                    'pay_term_number' => $r->pay_term_number,
+                    'pay_term_type' => $r->pay_term_type,
+
+                    'pipeline_step' => $r->pipeline_sort_order !== null ? (int) $r->pipeline_sort_order : null,
+                    'pipeline_total' => $r->pipeline_total !== null ? (int) $r->pipeline_total : null,
+                    'pipeline_label' => $r->pipeline_name,
+                    'pipeline_color' => $r->pipeline_color,
+
+                    'seller_id' => $r->seller_id ?? null,
+                    'seller_name' => $sellerName,
+                    'seller_abbr' => $sellerAbbr,
+                    // origem fixa "balcão" como fallback — UltimatePOS não tem campo dedicado
+                    // (refino futuro: source_channel via custom_field_X).
+                    'seller_origin' => 'balcão',
+
+                    'items_summary' => $itemsSummary,
+                    'items_count' => (int) ($r->items_count ?? 0),
+
+                    'payment_method_label' => $paymentMethodLabel,
+                    'installments' => (int) ($r->installments_count ?? 0),
                 ];
             });
 
