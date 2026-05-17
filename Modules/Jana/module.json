@@ -14,6 +14,10 @@
     ],
     "requires": [],
     "governance": {
+        "bucket": "ai_central",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Chat IA conversacional canon do business (laravel/ai + LaravelAiSdkDriver + 4 Agents próprios), dimensões específicas hallucination/recall/cost (ADR 0035)",
         "fsm_n_a": true,
         "fsm_n_a_reason": "Jana é chat IA conversacional (Conversa.status é enum trivial aberta/arquivada). FSM canon ADR 0143 aplica a domínios transacionais (Sells/Repair) — não a chat. Wave 18.",
         "d1_overrides": {

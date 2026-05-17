@@ -9,6 +9,10 @@
     ],
     "files": [],
     "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Contas pagar/receber/fluxo caixa/DRE cross-vertical útil em qualquer empresa BR, foundation horizontal sem dono cliente único",
         "fsm_n_a": true,
         "fsm_n_a_reason": "Financeiro nao tem state machine de processo (titulo aberto/parcial/quitado e status linear, nao fsm pipeline). Boleto remessa e step puramente tecnico. Vendas/Repair usam FSM canon mas titulos sao subordinados a essas (ADR 0143)."
     },

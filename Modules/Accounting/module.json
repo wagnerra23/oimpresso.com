@@ -22,5 +22,11 @@
             "D7_lgpd_retention": 10,
             "D9_observability_otel": 7
         }
+    },
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Bookkeeping/DRE/cashflow cross-vertical útil em qualquer empresa BR, padrão append-only contábil horizontal sem dono cliente único"
     }
 }
