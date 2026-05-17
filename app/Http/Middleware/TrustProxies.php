@@ -10,9 +10,13 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * Hostinger Cloud Startup roda LiteSpeed atrás de proxy/load balancer próprio
+     * cujos IPs não são públicos. '*' confia em todos os X-Forwarded-* headers
+     * recebidos, necessário pra Laravel detectar HTTPS corretamente em shared hosting.
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.
