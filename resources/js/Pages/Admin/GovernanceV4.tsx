@@ -22,24 +22,14 @@
 // substitui até cutover ONDA 7 via flag `meta.v4_enabled`.
 
 import * as React from 'react';
-import { Head, Link, useForm, Deferred } from '@inertiajs/react';
+import { Head, useForm, Deferred } from '@inertiajs/react';
 import { toast } from 'sonner';
-import {
-  Sparkles,
-  Plus,
-  HeartPulse,
-  RefreshCw,
-  Search as SearchIcon,
-  GitBranch,
-  Settings2,
-  Camera,
-} from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
+import PageHeaderActions from '@/Components/shared/PageHeaderActions';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
-import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 
 import BucketSidebar from './_components/BucketSidebar';
@@ -317,70 +307,27 @@ function GovernanceV4(props: GovernanceV4PageProps) {
               : 'Tri-pane MOCK — v4_enabled=false (rollout ONDA 7+)'
           }
           action={
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {/* W30-B — link Screen Review (PDCA tri-pane) */}
-              <Link
-                href="/admin/screen-review"
-                as="button"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary/40"
-              >
-                <Camera size={13} />
-                Screen Review
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => setHealthOpen(true)}
-              >
-                <HeartPulse size={13} className="mr-1.5" />
-                Saúde v4
-              </Button>
-              {can.refresh_now && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs"
-                  onClick={() => refreshNow()}
-                >
-                  <RefreshCw size={13} className="mr-1.5" />
-                  Refresh now
-                </Button>
-              )}
-              {can.override_bucket && selectedModule && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs"
-                  onClick={() => openOverride(selectedModule.slug)}
-                >
-                  <Settings2 size={13} className="mr-1.5" />
-                  Override bucket
-                </Button>
-              )}
-              {can.create_initiative && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="h-8 text-xs"
-                  onClick={() =>
-                    openInitiativeNew(selectedModule?.slug ?? 'oimpresso')
-                  }
-                >
-                  <Plus size={13} className="mr-1" />
-                  Initiative manual
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => setPaletteOpen(true)}
-              >
-                <kbd className="kb-kbd mr-1.5">⌘K</kbd>
-                Buscar
-              </Button>
-            </div>
+            <PageHeaderActions
+              items={[
+                { label: 'Buscar (⌘K)', icon: 'search', onClick: () => setPaletteOpen(true), variant: 'ghost' },
+                { label: 'Screen Review', icon: 'camera', href: '/admin/screen-review' },
+                { label: 'Saúde v4', icon: 'heart-pulse', onClick: () => setHealthOpen(true), variant: 'ghost' },
+                ...(can.refresh_now ? [{ label: 'Refresh now', icon: 'refresh-cw', onClick: () => refreshNow(), variant: 'ghost' as const }] : []),
+                ...(can.override_bucket && selectedModule
+                  ? [{ label: 'Override bucket', icon: 'settings-2', onClick: () => openOverride(selectedModule.slug), variant: 'ghost' as const }]
+                  : []),
+                ...(can.create_initiative
+                  ? [{
+                      label: 'Initiative manual',
+                      icon: 'plus',
+                      onClick: () => openInitiativeNew(selectedModule?.slug ?? 'oimpresso'),
+                      pinned: true,
+                      active: true,
+                    }]
+                  : []),
+              ]}
+              maxVisible={3}
+            />
           }
         />
 
