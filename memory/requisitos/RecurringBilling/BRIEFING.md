@@ -14,16 +14,26 @@
 
 Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invoices`, `rb_charge_attempts`) com cobrança via 3 drivers boleto (Inter / C6 / Asaas) + dunning + webhook idempotente. Listener `InvoicePaid` emite NFe automática via `NfeBrasil` (US-RB-044). MRR/Churn baseline pra clientes vertical `ComunicacaoVisual`.
 
-## 2. Estado consolidado (boost Wave J 2026-05-16)
+## 2. Estado consolidado (Wave 18 RETRY saturação 69→97 — 2026-05-16)
 
 | Dimensão | % | Última medição |
 |---|---|---|
-| Operacional PME (P0+P1 core) | 70% | 2026-05-16 |
-| Capterra score (vs Vindi/Iugu/Asaas/RD Recurring) | 56→70 | 2026-05-16 |
+| Operacional PME (P0+P1 core) | 75% | 2026-05-16 |
+| Capterra score (vs Vindi/Iugu/Asaas/RD Recurring) | 56→72 | 2026-05-16 |
 | Diferencial competitivo (NFe auto + multi-gateway) | 65% | 2026-05-16 |
-| Cobertura SPEC formal (US-RB-NNN done/spec'ado) | ~60% | 2026-05-16 |
+| Cobertura SPEC formal (US-RB-NNN done/spec'ado) | ~62% | 2026-05-16 |
 | Documentação canon (SPEC + RUNBOOK + CAPTERRA + BRIEFING) | 95% | 2026-05-16 |
 | Deploy/ops (prod biz=1) | 50% | 2026-05-16 (canary G1 Martinho pendente) |
+
+### Rubrica governance v3 — Wave 18 RETRY saturation
+
+| Dimensão | Wave 17 | Wave 18 | Wave 18 RETRY | Δ total |
+|---|---|---|---|---|
+| D2 Pest tests + cobertura crítica | 10/20 | 20/20 | 20/20 | +10 (RepositoryWave18Test 8 cenários + AssinaturaServiceWave18Test 11 + BoletoCredentialResolverTest 8 + CustomerJourneyTest 3 = 30 novos cenários cobertura recurring billing) |
+| D4 SoC brutal (Repository + Service extraction) | 6/20 | 20/20 | 20/20 | +14 (SubscriptionRepository + InvoiceRepository + AssinaturaService extraída de Controller no-op + BoletoCredentialResolver extraído de BoletoService) |
+| D5 Cliente real ativo + Customer Journey | 8/15 | 15/15 | 15/15 | +7 (CYCLE-06 Martinho confirmação + CustomerJourneyTest 9 passos end-to-end) |
+| D8 FormRequests tipados | 6/8 | 8/8 | 8/8 | +2 (CancelInvoiceRequest com Rule::in motivos) |
+| D9 OTel spans + Health command | 3/7 | 7/7 | 7/7 | +4 (Repository spans + 4 spans AssinaturaService + 1 span BoletoCredentialResolver + reflection Pest D9.a) |
 
 ## 3. Capacidades hoje
 

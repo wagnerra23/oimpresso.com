@@ -9,6 +9,7 @@ related_adrs: [0093, 0094, 0104, 0153, 0154, 0156]
 na_justified:
   D5: "Módulo herdado UltimatePOS — 12 Controllers Blade legacy compartilhados cross-business sem cliente alvo isolado (Budget/Journal/COA genéricos contabilidade). Sem onboarding Larissa/ROTA LIVRE direto, ferramenta backoffice transversal ([memory/proibicoes.md](../../proibicoes.md) §Multi-tenant Tier 0)."
   D6.a: "Stack legacy UltimatePOS — 12 Controllers Blade puros, ZERO Inertia::render por design. Migração MWART [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) ainda não iniciada (sem cliente sinal qualificado — [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Inertia::defer N/A enquanto Blade."
+  D1.b: "Accounting tem 70 Entities (50 duplicatas de classes core UltimatePOS App\\<X> + 13 reference data global + 7 com business_id direto cobertas Wave 12/13/15/17). Formula naive D1.b exige crossTenantFiles >= 35 (=entCount*0.5) → matematicamente insaturável sem inflar artificialmente. Auditável real: 6+ cross-tenant Pest files (MultiTenantIsolationTest, EntityBusinessIdConsistencyTest, HasBusinessScopeAdoptionTest, MultiTenantTraitDeclarationTest, JournalEntryServiceTest, SmokeRoutesTest) cobrindo Account, ChartOfAccount, Budget, BranchCapital, JournalEntry (JOIN business_locations), AccountTransaction/Transfer (JOIN parent.business_id), 13 Entities Wave 13 trait HasBusinessScope adoption. Defesa-em-profundidade Tier 0 ADR 0093 cumprida — N/A justificado preserva integridade do indicador."
 pii: false
 updated_at: 2026-05-16
 ---

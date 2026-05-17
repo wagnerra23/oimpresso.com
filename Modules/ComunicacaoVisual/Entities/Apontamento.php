@@ -6,6 +6,8 @@ use App\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Apontamento — registro de produção (spool plotter / apontamento OS).
@@ -40,6 +42,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Apontamento extends Model
 {
     // Sem SoftDeletes — append-only, registro legal de produção
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 18 D7 LGPD compliance).
+     *
+     * Como Apontamento é append-only, log captura apenas updates raros
+     * (correção de drift, ajuste m²) — essenciais pra audit produtivo.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['finalizado_em', 'duracao_segundos', 'm2_produzido', 'drift_percent'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.apontamento');
+    }
+
 
     protected $table = 'comvis_apontamentos';
 

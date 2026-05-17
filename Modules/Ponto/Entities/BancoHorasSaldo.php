@@ -2,12 +2,21 @@
 
 namespace Modules\Ponto\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Saldo agregado de banco de horas por colaborador.
+ *
+ * Wave 18 D1 — Multi-tenant Tier 0 IRREVOGAVEL ([ADR 0093]):
+ * trait HasBusinessScope aplica global scope automatico por business_id.
+ */
 class BancoHorasSaldo extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'ponto_banco_horas_saldo';
 
     protected $fillable = [

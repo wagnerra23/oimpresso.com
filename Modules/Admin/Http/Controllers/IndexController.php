@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
@@ -50,8 +51,12 @@ class IndexController extends Controller
     public function __invoke(Request $request): Response
     {
         // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
-        return Inertia::render('Admin/Index', [
-            'widgets' => [
+        // Wave 18 (D6+D9): mantemos eager load + OtelHelper::spanBiz para medir custo
+        // agregado dos 10 widgets. Sem trocar pra defer enquanto frontend Admin/Index.tsx
+        // não tiver <Deferred data="..." fallback={...}> wrap por widget (MWART exige par
+        // controller+page atualizados juntos — ver Modules/Admin/BRIEFING.md §"D6 defer").
+        $widgets = OtelHelper::spanBiz('admin.index.widgets', function () {
+            return [
                 'brief'        => $this->brief->fetch(),
                 'health'       => $this->health->fetch(),
                 'cycles'       => $this->cycles->fetch(),
@@ -62,7 +67,11 @@ class IndexController extends Controller
                 'sessions'     => $this->sessions->fetch(),
                 'infra'        => $this->infra->fetch(),
                 'brain_b_cost' => $this->brainBCost->fetch(),
-            ],
+            ];
+        }, ['component' => 'admin.index', 'widget_count' => 10]);
+
+        return Inertia::render('Admin/Index', [
+            'widgets' => $widgets,
             'meta' => [
                 'subdomain'    => config('admin.subdomain', 'admin.oimpresso.com'),
                 'environment'  => app()->environment(),

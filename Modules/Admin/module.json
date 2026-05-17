@@ -10,5 +10,17 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_reason": "Admin Center é painel read-mostly cross-tenant Wagner-only — não tem entidade de negócio com transições de estado. As 3 ações mutacionais (apply curador / regen MCP token / run health check) são atômicas auditáveis, não fluxos multi-stage. FSM Pipeline (ADR 0143) aplica a Sells/Repair, não a meta-administração.",
+        "wave_18_score": {
+            "d1": 30,
+            "d2": 20,
+            "d3": 15,
+            "d6": 10,
+            "d8": 8,
+            "d9": 7
+        }
+    }
 }

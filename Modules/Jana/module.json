@@ -12,5 +12,41 @@
     "files": [
         "start.php"
     ],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Jana é chat IA conversacional (Conversa.status é enum trivial aberta/arquivada). FSM canon ADR 0143 aplica a domínios transacionais (Sells/Repair) — não a chat. Wave 18.",
+        "d1_overrides": {
+            "cross_tenant_by_design": [
+                "Modules\\Jana\\Entities\\Mcp\\McpSkill",
+                "Modules\\Jana\\Entities\\Mcp\\McpScope",
+                "Modules\\Jana\\Entities\\Mcp\\McpToken",
+                "Modules\\Jana\\Entities\\Mcp\\McpTask",
+                "Modules\\Jana\\Entities\\Mcp\\McpEpic",
+                "Modules\\Jana\\Entities\\Mcp\\McpCycle",
+                "Modules\\Jana\\Entities\\Mcp\\McpProject",
+                "Modules\\Jana\\Entities\\Mcp\\McpComponent",
+                "Modules\\Jana\\Entities\\Mcp\\McpCycleGoal",
+                "Modules\\Jana\\Entities\\Mcp\\McpTaskComment",
+                "Modules\\Jana\\Entities\\Mcp\\McpTaskDependency",
+                "Modules\\Jana\\Entities\\Mcp\\McpTaskEvent",
+                "Modules\\Jana\\Entities\\Mcp\\McpTaskWatcher",
+                "Modules\\Jana\\Entities\\Mcp\\McpInboxNotification",
+                "Modules\\Jana\\Entities\\Mcp\\McpQuota",
+                "Modules\\Jana\\Entities\\Mcp\\McpMemoryDocument",
+                "Modules\\Jana\\Entities\\Mcp\\McpCcBlob",
+                "Modules\\Jana\\Entities\\HealthNarrative"
+            ],
+            "cross_tenant_reason": "Registry global (skills/scopes), planejamento Jira-style cross-business (tasks/epics/cycles), tokens admin, inbox/quota per-user, governance repo-wide (memory docs), dedup hash storage (blobs), plataforma narrative (HealthNarrative superadmin)."
+        },
+        "d4_audit": {
+            "service": "Modules\\Jana\\Services\\JanaAuditService",
+            "sinks": ["activitylog", "otel", "log_channel:copiloto-ai"]
+        },
+        "wave_18": {
+            "score_target": 95,
+            "score_baseline_wave_17": 66,
+            "saturation_at": "2026-05-16"
+        }
+    }
 }

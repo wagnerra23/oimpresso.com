@@ -69,3 +69,27 @@ ADR 0105 — **Cliente como sinal qualificado**: backlog só ativa se cliente pa
 Gatilho objetivo: time MCP submete ≥10 eventos/semana via `EvolutionAgent` OU Wagner detecta drift codebase (test failures cross-PR).
 
 Até lá: manter Pest verde, não adicionar features novas (ADR 0105 — feature-wish vira ADR, não US ativa).
+
+## Wave 18 Saturação (2026-05-16)
+
+**Meta:** 97/100 module-grade (D5 +12, D8 +6, D6 +4, D1 +5).
+
+| Δ | Entrega |
+|---|---|
+| D5 +7→10 | Yaml `module_clients.yaml` ADS: `backlog_hipotese` → `biz_1_wagner_active` (Wagner usa Inbox HiTL diário; ConfidenceEngine aprende com aprovações reais) |
+| D8 +0→3 | 8 FormRequests novos: Approve/Reject/Dismiss Decision + Store/Approve/Reject Skill + StoreMetaSkill + TestSkill (ratio 8/15=0.53 ≥0.5) |
+| D6 +0→3 | `Inertia::defer` em MetricasController/PatternsController/ConflictsController (10+ aggregations cada — block initial render ~200ms) |
+| D1 +5 | Pest `CrossTenantSaturationTest`: confidence_scores + decision_patterns biz=1 vs biz=99 + 6 FormRequest sanity check |
+| module.json | `governance.fsm_n_a: true` justificado (ADS é meta-orquestrador, não state machine de domínio) |
+| Services | `SkillsService::listAll()` + `findBySlug()` envolvidos em `OtelHelper::span` (D9 measure cache miss/fallback DB→filesystem) |
+
+## Wave 18 RETRY (2026-05-16)
+
+**Meta:** subir D8 8→14 FormRequests + D6 cobertura DecisoesController/LearningController.
+
+| Δ | Entrega |
+|---|---|
+| D8 +6 FormRequests | `ToggleMetaSkillRequest` + `ValidateMetaSkillRuleRequest` + `MoveSkillLabelRequest` + `PublishSkillVersionRequest` + `ExecuteToolRequest` (timeout 1-120s + dry_run) + `DecomposeProjectRequest` (confirm:accepted custo LLM) — ratio agora 14/15 = 0.93 |
+| D6 +2 Controllers | `DecisoesController::index` defer em decisions (50 rows × DecisionPresenter::explain) + kpis (5 COUNTs) · `LearningController::index` defer em stages (11 COUNT) + throughput (24 buckets GROUP BY) + kpis derivados |
+| D1 +1 test file | `CrossTenantSaturationRetryTest` — 8 testes (1 cross-tenant em mcp_skills_versions + 7 FormRequest sanity novos) |
+| Pest local | 7/7 passed (28 assertions, 2.46s) + 1 skipped por env minimal (mcp_skills_versions ausente local) |

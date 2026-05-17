@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Retrieval;
 
+use App\Util\OtelHelper;
 use Modules\Jana\Services\Memoria\LlmReranker;
 
 /**
@@ -23,6 +24,16 @@ class LlmRerankerAdapter implements Reranker
     public function __construct(private LlmReranker $inner) {}
 
     public function reranquear(string $query, array $candidatos, int $topK = 5): array
+    {
+        return OtelHelper::spanBiz('jana.rerank.llm_adapter', function () use ($query, $candidatos, $topK) {
+            return $this->doReranquear($query, $candidatos, $topK);
+        }, [
+            'candidatos_in' => count($candidatos),
+            'top_k' => $topK,
+        ]);
+    }
+
+    private function doReranquear(string $query, array $candidatos, int $topK): array
     {
         if (empty($candidatos) || $topK <= 0) {
             return [];

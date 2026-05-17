@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+### Wave 18 — Governance v3 SATURATION FULL (2026-05-16)
+- D1.a/b cobertura comprehensive: `MultiTenantIsolationComprehensiveTest.php` valida 40 Entities (17 scoped + 10 via parent + 13 cross-tenant by design) — Jana ≥95 contrato Tier 0 ADR 0093
+- D2 FSM N/A explícito: `FsmCanonicalTest.php` + `module.json` `governance.fsm_n_a: true` — Jana é chat IA, não pipeline transacional (elimina falso-positivo rubrica)
+- D3.b BRIEFING.md canônico criado (template canon `memory/requisitos/_DesignSystem/BRIEFING-TEMPLATE.md`)
+- D4.d AuditLog: `JanaAuditService` Wave 17 já tem OTel span explícito + ActivityLog + log structured (3 sinks)
+- D7 retention.php validado (Wave 17 canon) — LGPD Art. 16 declaração por entidade
+- D8.c +2 FormRequests: SendChatMessageRequest + UpdateAlertasConfigRequest validados em test
+- D9.a OTel batch +30 Services Jana wrapados com `OtelHelper::spanBiz` (44 total → ~43 instrumentados)
+- `module.json` governance.d1_overrides + d4_audit + wave_18 metadata canônico
+
 ### Wave 17 — Governance v3 saturação (2026-05-16)
 - D7.b LogsActivity expandido pra 6 Mcp Models (McpTask, McpEpic, McpCycle, McpProject, McpCycleGoal, McpToken)
 - D6.a Inertia::defer aplicado em 4 Controllers admin (Qualidade, Roadmap, Custos, Governança) — latência inicial -60-80% em telas pesadas

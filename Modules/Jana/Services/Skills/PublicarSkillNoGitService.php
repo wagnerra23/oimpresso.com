@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Skills;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpSkill;
@@ -24,6 +25,15 @@ use Symfony\Component\Yaml\Yaml;
 class PublicarSkillNoGitService
 {
     public function publish(McpSkillVersion $version): array
+    {
+        // D9.a (Wave 18 SATURATION) — span publish skill git PR (operação cara — GitHub API).
+        return OtelHelper::span('jana.skill.publish', [
+            'skill_id' => $version->skill_id,
+            'version' => $version->version,
+        ], fn () => $this->publishInternal($version));
+    }
+
+    private function publishInternal(McpSkillVersion $version): array
     {
         $skill = $version->skill;
         if (! $skill) {

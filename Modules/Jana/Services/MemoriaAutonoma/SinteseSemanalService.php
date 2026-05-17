@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\MemoriaAutonoma;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +32,16 @@ class SinteseSemanalService
      * @return array{path:?string, contexto:string, sintese:?string, custo_estimado:?array}
      */
     public function gerar(string $semana, bool $dryRun = false, bool $force = false): array
+    {
+        // D9.a (Wave 18 SATURATION) — span síntese semanal cross-tenant.
+        return OtelHelper::span('jana.sintese_semanal.gerar', [
+            'semana' => $semana,
+            'dry_run' => $dryRun,
+            'force' => $force,
+        ], fn () => $this->gerarInternal($semana, $dryRun, $force));
+    }
+
+    private function gerarInternal(string $semana, bool $dryRun = false, bool $force = false): array
     {
         [$inicio, $fim] = $this->resolverRangeIso($semana);
 

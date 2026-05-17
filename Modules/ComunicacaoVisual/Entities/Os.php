@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Os — Ordem de Serviço de comunicação visual.
@@ -42,6 +44,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Os extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 18 D7 LGPD compliance).
+     *
+     * Loga transições de etapa + datas + valor — crítico pra rastreabilidade
+     * produção e audit fiscal.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status_etapa', 'data_inicio', 'data_prazo', 'data_conclusao', 'valor_total'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.os');
+    }
+
 
     protected $table = 'comvis_os';
 
