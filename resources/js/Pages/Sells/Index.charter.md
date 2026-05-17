@@ -7,7 +7,7 @@ last_validated: 2026-05-17
 parent_module: Sells
 related_adrs: [0110, 0107, 0109, 0104, 0093, 0114, 0143]
 tier: A
-charter_version: 2
+charter_version: 3
 visual_source: prototipo-ui/prototipos/sells-index/vendas-page.jsx
 canon_method: Cowork KB-9.75 (chat10, score 9.75/10)
 ---
@@ -58,7 +58,9 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 - ❌ ViewMode toggle `lista | grade-avancada` — Cowork tem visual unificado; Grade Avançada legacy permanece no _components/ mas não está montada
 - ❌ Real-time updates (WebSocket/Centrifugo) — backlog
 - ❌ Migrar `index()` Blade view por completo — fallback `request()->ajax()` mantido
-- ❌ R2 IA painel drawer, R3 comentários inline, R4 transcript PDF + apresentação fullscreen — refinos opcionais KB-9.75 (não no escopo desta cópia)
+- ❌ R3 comentários inline, R4 transcript PDF + apresentação fullscreen — refinos opcionais KB-9.75 (backlog Ondas 3-4)
+- ❌ Tabs estruturadas no SaleSheet drawer (Itens/Fiscal/Pagamento/Timeline/✦ IA) — gap catalogado pós-screenshot Wagner; refator futuro (Onda 2.7 candidata)
+- ❌ `/sells/create` Cowork (vendas-create-completo.jsx 683 LOC 3 verticais) — Onda 7 candidata
 
 ---
 
