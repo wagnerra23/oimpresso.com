@@ -436,7 +436,7 @@ export default function AppShellV2({
         </aside>
 
         {/* MAIN COLUMN */}
-        <div className="main">
+        <div className="main" data-topbar={hideTopbar ? 'hidden' : 'on'}>
           {!hideTopbar && (
           <header className="topbar">
             <div className="bc">
