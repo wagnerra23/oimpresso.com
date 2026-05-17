@@ -45,7 +45,8 @@ class ProductCatalogueHealthCommand extends Command
     protected $signature = 'product-catalogue:health
         {--business= : Filtra por business_id (default: todos)}
         {--alert : Exit code 2 se FAIL, 1 se WARN (cron + monitoring)}
-        {--json : Output JSON estruturado em vez de tabela}';
+        {--json : Output JSON estruturado em vez de tabela}
+        {--detail : Log detalhado por check (Wave 27 — .claude/rules/commands.md NUNCA --verbose)}';
 
     protected $description = 'Health check do ProductCatalogue — 4 sinais (ADR 0155 D9.c, Wave 17).';
 

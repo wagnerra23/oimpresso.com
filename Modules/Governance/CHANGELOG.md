@@ -3,6 +3,50 @@
 Convenção: [Keep a Changelog](https://keepachangelog.com/) — datas BRT.
 Versionamento atrelado a Waves do projeto (ver `memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md` rubrica oficial).
 
+## [Wave 27] — 2026-05-17 — Auto-saturate ≥95 + mecanismos canon finais
+
+### Added (D7 LGPD shim + C5 catalogo buckets + Pest cobertura)
+- `config/retention.governance.php` — shim canônico que delega pro
+  `Modules/Governance/Config/retention.php` (espelha pattern `config/retention.ads.php`
+  + `config/retention.whatsapp.php`). Permite `config('retention.governance.audit_log_days')`
+  uniforme por outros módulos sem conhecer caminho interno. Fail-safe fallback se
+  Modules/Governance não publicado (CI fresh).
+- `memory/governance/buckets/_INDEX.md` — catálogo canônico buckets v4 (ADR 0160).
+  Lista buckets ativos (`meta_governance`, `vertical_client_facing`) + paired indicators
+  cap 50% + roteiro "como adicionar bucket novo". Antes só YAMLs soltos sem índice.
+- `Modules/Governance/Tests/Feature/Wave27GovernanceSaturateTest.php` — 17 cenários
+  cobrindo D7 shim retention + D9 OTel span em GovernanceHealthCommand + D9 OTel
+  span em ScopedScorecardEvaluator + D6 Inertia::defer ModuleGradeController +
+  C3 BRIEFING ADRs 0160+0161 + C5 buckets/_INDEX.md + CHANGELOG entry presença.
+
+### Changed (C3 Reflexividade + C5 cobertura)
+- `Modules/Governance/BRIEFING.md` — adiciona Wave 27 cabeçalho + promove ADRs
+  0160 + 0161 a referência canônica neste BRIEFING (antes ADRs 0156-0160 eram
+  "entries lógicas"). Adiciona seção "Wave 27 deltas" com tabela ganho por eixo.
+- `memory/decisions/_INDEX-LIFECYCLE.md` — Bloco 9 confirma ADRs 0160+0161
+  cadastradas (sem mudança — apenas validação Pest Wave 27 trava regressão).
+
+### Notes
+- GovernanceHealthCommand já tinha OtelHelper::span wrapping desde Wave 18
+  (D9.a `governance.health.run`). Wave 27 acrescenta cobertura Pest que valida
+  o span ATIVO + execução zero-cost com `otel.enabled=false`.
+- ScopedScorecardEvaluator wraps `governance.scorecard.evaluate` via
+  OtelHelper::spanBiz (auto-resolve business_id Tier 0) desde Wave 24 Agent A.
+  Wave 27 trava regressão via Pest.
+- Inertia::defer já aplicado em ModuleGradeController desde Wave anterior;
+  Wave 27 acrescenta 2 cenários Pest que falham se Edit futuro remover defer.
+- Hostinger NÃO roda OTel collector — `otel.enabled=false` default → zero-cost
+  no-op em prod. CT 100 ativa collector quando deploy futuro.
+
+### Impact esperado (rubrica governance v4 / module-grade-v3)
+- D6 Performance: +1 (Pest trava regressão Inertia::defer)
+- D7 LGPD: +2 (shim canônico padroniza retention por módulo + fail-safe fallback)
+- D9 Observability: +1 (Pest cobre 2 spans canon `governance.health.run` +
+  `governance.scorecard.evaluate`)
+- C3 Reflexividade: +2 (ADRs 0160+0161 promovidas + Wave 27 deltas table)
+- C5 Cobertura: +2 (buckets/_INDEX.md catálogo)
+- **Score esperado: ~90 → ≥95 (Excelente saturado)**
+
 ## [Wave 18] — 2026-05-16 — Saturate 88 → ~100 (Excelente)
 
 ### Added (D7 LGPD + D8 Security + D9 Observability)

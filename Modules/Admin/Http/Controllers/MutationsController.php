@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Http\Controllers;
 
+use App\Util\OtelHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -46,6 +47,9 @@ class MutationsController extends Controller
      */
     public function applyCurador(Request $request): JsonResponse
     {
+        // Wave 27 D9: span hot-path mutation Admin (apply curador).
+        // Attributes: NO PII — apenas batch_id + result count. Zero-cost com otel.enabled=false.
+        return OtelHelper::spanBiz('admin.mutations.curador_apply', function () use ($request): JsonResponse {
         $validator = Validator::make($request->all(), [
             'batch_id' => 'required|string|max:64',
             'reason'   => 'required|string|min:5|max:500',
@@ -95,6 +99,7 @@ class MutationsController extends Controller
                 ? 'Nenhum arquivo encontrado com classified_by batch:'.$batchId.' (stub Sprint 2 — espera Modules/Arquivos pipeline US-ARQ-008..014)'
                 : 'Aplicado.',
         ], 202);
+        }, ['action' => 'curador_apply', 'component' => 'admin.mutations']);
     }
 
     /**
@@ -103,6 +108,8 @@ class MutationsController extends Controller
      */
     public function regenerateMcpToken(Request $request): JsonResponse
     {
+        // Wave 27 D9: span regen MCP token (security-sensitive — sem PII em attributes).
+        return OtelHelper::spanBiz('admin.mutations.mcp_token_regenerate', function () use ($request): JsonResponse {
         $validator = Validator::make($request->all(), [
             'token_id' => 'nullable|integer',
             'reason'   => 'required|string|min:5|max:500',
@@ -177,6 +184,7 @@ class MutationsController extends Controller
                 'message' => 'Falha ao rotacionar token. Verifique schema mcp_tokens (precisa colunas rotated_at, rotated_by_reason).',
             ], 500);
         }
+        }, ['action' => 'mcp_token_regenerate', 'component' => 'admin.mutations']);
     }
 
     /**
@@ -188,6 +196,8 @@ class MutationsController extends Controller
      */
     public function runHealthCheckNow(Request $request): JsonResponse
     {
+        // Wave 27 D9: span health-check sync (operação pesada, cap 30s).
+        return OtelHelper::spanBiz('admin.mutations.health_check_run', function () use ($request): JsonResponse {
         $validator = Validator::make($request->all(), [
             'reason'  => 'required|string|min:5|max:500',
             'confirm' => 'required|boolean|in:1,true',
@@ -251,6 +261,7 @@ class MutationsController extends Controller
                 'message' => 'Falha ao rodar health-check: ' . substr($e->getMessage(), 0, 200),
             ], 500);
         }
+        }, ['action' => 'health_check_run_now', 'component' => 'admin.mutations']);
     }
 
     private function fail(string $audit, array $errors, Request $request): JsonResponse

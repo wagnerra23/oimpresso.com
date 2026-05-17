@@ -2,6 +2,43 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Wave 27 — Polish final ≥88] — 2026-05-17 (73-77 → 88, +11 a +15pp)
+
+### Adicionado — D9.a OTel spans AssetWarrantyService (+2 spans)
+- `AssetWarrantyService::contagemAtivas` — span `assetmanagement.warranty.count_active`
+  (widget dashboard "N garantias ativas"). Findless safe (return 0 se asset não existe).
+- `AssetWarrantyService::contagemExpiradas` — span `assetmanagement.warranty.count_expired`
+  (relatório alerta garantias vencidas). Pareado pra observability simétrica.
+- Total AssetWarrantyService: 3 originais (add/revoke/list_active) + 2 W27 = **5 spans**.
+
+### Adicionado — D5 README "como cliente usa" (customer journey)
+- `Modules/AssetManagement/README.md` documentando:
+  - 4 cenários canônicos (cadastrar asset, alocar, abrir OS manutenção, contar garantias)
+  - Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) chain warranty via Asset.business_id
+  - D7 retention LGPD 4 categorias (3650d/1825d/2555d com bases CC Art. 206 / CTN Art. 195)
+  - D9 observability tabela 14 spans (3 Services + AssetWarrantyService W27)
+  - Health check commands `php artisan assetmanagement:health [--json|--alert|--detail]`
+
+### Adicionado — D2 Pest expand Wave 27 (9 cenários novos)
+- `Tests/Feature/Wave27AssetManagementPolishTest.php`:
+  - Spans novos (Reflection source) — count canônico ≥5 spanBiz invocations
+  - README existence + cenários A/B/C/D documentados
+  - Cross-tenant biz=99: contagemAtivas/contagemExpiradas retorna 0 (Tier 0)
+  - Contract int type sanity
+
+### Tier 0 IRREVOGÁVEIS preservadas
+- ⛔ Multi-tenant Tier 0 (ADR 0093) — `business_id` global scope em Asset/Allocation/Maintenance
+- ⛔ `am_warranties` SEM business_id direto — scope via JOIN parent Asset preservado
+- ⛔ NUNCA biz=4 cliente real (ADR 0101) — biz=1 / biz=99 em testes
+- ⛔ OtelHelper canônico (`App\Util\OtelHelper`)
+- ⛔ PT-BR comentários
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0
+- ADR 0101 Tests biz=1
+- ADR 0155 Module Grade v3 (D9.a 14 spans + D5 customer journey README)
+- ADR 0159 Wave 25 polish base
+
 ## [Wave 25 — Polish D9.a/c saturation + retention compliance] — 2026-05-16
 
 ### Adicionado — D9.a OTel spans (+9 spans em 3 Services)

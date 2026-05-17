@@ -2,6 +2,23 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## [Unreleased] - 2026-05-17 — Wave 27 POLISH FINAL (90 → ≥95 vertical_client_facing)
+
+### Added
+
+- **Modules/Vestuario/Tests/Feature/Wave27VestuarioPolishTest.php** — 8 asserts cobrindo D2 cross-tenant biz=99 estrutural triple + D9 spans `vestuario.settings.get/set/changed` declarados via source assert + V5 CHANGELOG W27 + Tier 0 ADR 0066 format_date +3h quadruple-asserted (BRIEFING + CAPTERRA + scorecard + CHANGELOG).
+- **D2 reforço** — grep estrutural valida que TODOS Wave*Test.php Vestuario rejeitam `'business_id' => 4` em código PHP real (ignora docblock/comment), incluindo Wave25 + Wave27 simultaneamente.
+
+### Changed
+
+- Score Capterra scoped: 90/100 (W25 alvo) → ≥95/100 estimado pós W27 (D2 +2, D9 +2, V5 +1).
+
+### Preserved (Tier 0 IRREVOGÁVEL)
+
+- ROTA LIVRE biz=4 PROD intocada — Wave 27 NÃO toca lógica, só artefatos governança + testes reflection.
+- ADR 0066 format_date shift +3h preservado (agora quadruple-asserted).
+- VestuarioSettingsResolver `withoutGlobalScopes` justificado com `// SUPERADMIN:` comment.
+
 ## [Unreleased] - 2026-05-16 — Wave 25 SATURATION (77 → ≥90 vertical_client_facing)
 
 ### Added

@@ -5,18 +5,41 @@ namespace Modules\SRS\Entities;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Wave 12 — Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093).
+ * Wave 27 — D1 expand LogsActivity (audit trail LGPD — paridade DocSource/DocRequirement).
  *
  * Tabela `docs_evidences` tem coluna `business_id` (migration
  * 2026_04_22_000002). Trait `HasBusinessScope` aplica global scope automático.
  * shouldBeSearchable() já filtra por business_id presente — alinhado com scope.
+ *
+ * LogsActivity (Wave 27): evidencias (screenshots/logs/snippets ingeridos)
+ * podem conter info sensivel/contextual — auditar quem mudou status/triagem
+ * preserva rastreabilidade governance + LGPD.
  */
 class DocEvidence extends Model
 {
     use HasBusinessScope;
+    use LogsActivity;
     use Searchable;
+
+    /**
+     * Wave 27 — audit trail LGPD pra triagem de evidencias.
+     *
+     * Evidencias passam por ciclo: ingerida → triaged → linked-to-requirement.
+     * Auditar mudancas (status/triaged_by/notes) preserva rastreabilidade
+     * governance + LGPD (Wagner pode tirar duvida "quem triaged isso?").
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $table = 'docs_evidences';
     protected $guarded = ['id'];
