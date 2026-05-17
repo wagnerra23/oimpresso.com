@@ -93,4 +93,30 @@ class SiteContentService
             return $this->cmsUtil->getPageByLayout($layout);
         }, ['layout' => $layout]);
     }
+
+    /**
+     * Wave 28 D9 — render chrome do site público (cabeçalho + rodapé + site_details GLOBAL).
+     *
+     * Agrega CmsSiteDetail (chaves de configuração global do site oimpresso.com) num único
+     * payload reaproveitável pelo Inertia shell (header/footer). Span dedicado isola
+     * latência de leitura dos settings vs render principal da página (cms.page.render).
+     *
+     * Multi-tenant: CmsSiteDetail é GLOBAL (site oimpresso.com é único — US-CMS-002 schema
+     * pendente IRREVOGÁVEL, ver Wave 26 D1 guard). NÃO scope business_id aqui.
+     *
+     * Wave 28 — adiciona o 5º span canon de SiteContentService (D9 saturation +1).
+     *
+     * @return array{site_name:?string, logo:?string, contact_email:?string, social:?string}
+     */
+    public function getRenderChromePayload(): array
+    {
+        return OtelHelper::spanBiz('cms.service.render_chrome', function () {
+            return [
+                'site_name'     => CmsSiteDetail::getValue('site_name'),
+                'logo'          => CmsSiteDetail::getValue('logo'),
+                'contact_email' => CmsSiteDetail::getValue('contact_email'),
+                'social'        => CmsSiteDetail::getValue('social'),
+            ];
+        });
+    }
 }

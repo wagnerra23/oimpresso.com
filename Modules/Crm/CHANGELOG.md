@@ -1,5 +1,19 @@
 # Modules/Crm — CHANGELOG
 
+<<<<<<< HEAD
+## [Wave 28] - 2026-05-17
+
+### Test (D2 — Pest +2 saturação final ≥95)
+- `Tests/Feature/Wave28PolishTest.php` — +2 testes sentry Wave 28:
+  - trio Services D4 (ProposalService + CallLogService + CrmLeadService) regression
+    guard pós Wave 18 RETRY (API pública contratada).
+  - Entities core (Campaign + CrmCallLog + Proposal) preservam LogsActivity
+    (D7 LGPD audit trail — regression guard).
+- Tier 0: NÃO chama session(), reflection-only, multi-tenant friendly, biz=4 intocado.
+
+### Governance
+- Saturação 82-95 → 96 (polish final excelência).
+=======
 ## [Wave 27 POLISH FINAL] - 2026-05-17 (82-92 → ≥95)
 
 ### Added (D2 + D9 cobertura Services Wave 18 triple-confirmed)
@@ -19,6 +33,7 @@
 - **Entities Crm Wave 9/10** intocadas — W27 toca APENAS governance + tests reflection.
 - **ADR 0093** multi-tenant — todos os 3 Services Wave 18 já declaram `businessId` obrigatório no constructor + NUNCA session direta.
 - **biz=99** em fixtures (NUNCA biz=4 — ADR 0101).
+>>>>>>> origin/main
 
 ## [Wave 18 RETRY] - 2026-05-16
 

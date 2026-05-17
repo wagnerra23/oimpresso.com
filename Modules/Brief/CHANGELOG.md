@@ -3,6 +3,20 @@
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Services/ModuleGradeService.php) D3.d).
 
+## [Wave 28] - 2026-05-17
+
+### Test (D2 — Pest +2 sentry BriefFallback ADR 0091)
+- `Tests/Feature/Wave28PolishTest.php` — +2 testes sentry Wave 28:
+  - `BriefGeneratorService` preserva API canônica `generateNow` +
+    `generateFromAggregated` (regression guard se alguém renomear/remover).
+  - `BriefGeneratorService` preserva wrap `OtelHelper::spanBiz('brief.generate_now')`
+    + constantes Brain B canônicas (gpt-4o-mini + sentinela `---END---`).
+- Tier 0 IRREVOGÁVEL ADR 0091: brief repo-wide (sem business_id no fallback),
+  Brain B OpenAI gpt-4o-mini canônico. Mock mode reflection-only (zero custo LLM).
+
+### Governance
+- Saturação 76-95 → 96 (polish final excelência).
+
 ## [Não publicado]
 
 ### Wave 27 POLISH (2026-05-17)
