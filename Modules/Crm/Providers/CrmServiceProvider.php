@@ -82,6 +82,21 @@ class CrmServiceProvider extends ServiceProvider
     {
         $this->app->register(RouteServiceProvider::class);
         $this->registerCommands();
+        $this->registerContracts();
+    }
+
+    /**
+     * Wave 23 D2 — bind contracts pra reuso cross-module.
+     *
+     * `CrmLeadRepositoryInterface` permite que Sells/Manufacturing/Jana resolvam
+     * Lead via DI sem acoplamento concreto. Multi-tenant Tier 0 IRREVOGÁVEL.
+     */
+    protected function registerContracts(): void
+    {
+        $this->app->bind(
+            \Modules\Crm\Contracts\CrmLeadRepositoryInterface::class,
+            \Modules\Crm\Repositories\CrmLeadRepository::class,
+        );
     }
 
     /**
@@ -168,6 +183,7 @@ class CrmServiceProvider extends ServiceProvider
         $this->commands([
             \Modules\Crm\Console\SendScheduleNotification::class,
             \Modules\Crm\Console\CreateRecursiveFollowup::class,
+            \Modules\Crm\Console\Commands\CrmHealthCommand::class,
         ]);
     }
 

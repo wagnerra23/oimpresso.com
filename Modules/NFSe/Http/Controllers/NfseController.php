@@ -24,8 +24,14 @@ class NfseController extends Controller
 
     // US-NFSE-008: listagem
     //
-    // `notas` (paginate 25) usa `Inertia::defer()` pra pular execução em
-    // partial reloads que pedem `only:['filters']`. Skill `inertia-defer-default`.
+    // Wave 23 D3 Performance NOTA: `notas` candidata a `Inertia::defer()`
+    // (paginate 25 caro). NÃO migrado neste PR porque resources/js/Pages/Nfse/Index.tsx
+    // consome `notas.data.length` direto no render inicial (sem `<Deferred>` wrap)
+    // — Rollback W7 PR #963 já comprovou que ativar defer SEM wrapper React quebra.
+    //
+    // Pré-req pra defer: PR companion atualizar Index.tsx pra `<Deferred data="notas">`
+    // + skeleton fallback (skill `inertia-defer-default` Tier B). Tarefa rastreada
+    // em handoff Wave 23.
     public function index(IndexNfseRequest $request)
     {
         // D8.c Security Wave 17 — IndexNfseRequest valida whitelist status + date_format
@@ -34,7 +40,6 @@ class NfseController extends Controller
 
         $filters = $request->validated();
 
-        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Nfse/Index', [
             'notas'   => $this->buildNotasPayload($filters),
             'filters' => $filters,

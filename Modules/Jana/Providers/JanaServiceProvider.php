@@ -67,6 +67,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\JanaWeeklyDigestCommand::class, // Gap G8 P2 auditoria 2026-05-13 — Reflect-style weekly digest
                 \Modules\Jana\Console\Commands\JanaValidateMemoryCommand::class, // S1 Onda 5 P1 — schema rígido CI (6 schemas + AJV + grace period 14d)
                 \Modules\Jana\Console\Commands\FreshnessCheckCommand::class, // GAP D7 #2 auditoria 2026-05-15 — freshness pipeline (4 níveis + drift + alert + reindex)
+                \Modules\Jana\Console\Commands\JanaDriftSentinelCommand::class, // Wave 23 §G2 — canary semanal drift Jana (faithfulness vs baseline)
             ]);
         }
     }

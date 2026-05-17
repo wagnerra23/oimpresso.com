@@ -33,6 +33,7 @@ class AdminServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Admin\Console\Commands\AdminHealthCommand::class,
+                \Modules\Admin\Console\Commands\ExportAuditCommand::class,
             ]);
         }
     }

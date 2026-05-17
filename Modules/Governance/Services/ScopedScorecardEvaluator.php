@@ -4,375 +4,286 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
+use App\Util\OtelHelper;
+use Illuminate\Support\Facades\File;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * ScopedScorecardEvaluator — implementa Scoped Scorecards v4 (ADR 0160).
+ * ScopedScorecardEvaluator — avalia scorecards bucket-scoped (ADR 0160 proposto).
  *
- * Substitui rubrica monolítica v3 por rubrica POR BUCKET — cada Modules/<X>/
- * declara `governance.bucket` no module.json, e o avaliador carrega o YAML
- * `memory/scorecards/<bucket>.yaml` correspondente.
+ * Wave 21 criou stub; Wave 24 Agent A (2026-05-16) implementa:
+ *   - Carrega scorecard YAML por módulo (memory/governance/scorecards/<slug>.yaml)
+ *   - Carrega bucket config (memory/governance/buckets/<bucket>.yaml)
+ *   - Avalia paired indicators (cap 50% canônico)
+ *   - Retorna breakdown completo: score_total + core + bucket_dimensions + paired_violations
  *
- * Buckets canônicos Wave 19:
- *   - vestuario             — varejo físico vertical (foco ROTA LIVRE)
- *   - governance            — auto-recursivo (Governance + Jana sub-domínio policy)
- *   - jana                  — IA conversacional + memória persistente
- *   - functional_horizontal — Sells/Repair/Project/etc (módulos generalistas)
+ * Cap 50% paired: se velocidade alta (≥75% peso) mas qualidade baixa (<50% peso),
+ * a dimensão velocidade tem score capado em 50% — penaliza gaming "ship fast / break quality".
  *
- * Cada YAML expõe:
- *   - metadata: bucket, versao, ADR
- *   - core: D1 multi-tenant + D8 security (compartilhados entre buckets — Tier 0)
- *   - bucket_dimensions: dimensões específicas do vertical
- *   - paired_indicators: detecção de gaming (velocidade vs qualidade) — Wave 24
- *   - calculo: meta_bucket, threshold cor, normalização
+ * NÃO substitui ModuleGradeService (rubrica v3 filesystem-driven) — complementa:
+ * - ModuleGradeService = scan automático
+ * - ScopedScorecardEvaluator = leitura YAML curated (Wagner edita manualmente).
  *
- * Multi-tenant Tier 0 ([ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
- * todo módulo é re-avaliado isolando seu próprio scope; service NÃO toca banco
- * (filesystem-only) — multi-tenant preserved by design.
+ * Snapshot diário via `governance:scorecard-snapshot` (cron daily 07:00 BRT).
  *
- * Dual-mode (Wave 21): convive com `ModuleGradeService::grade()` v3 enquanto
- * `config('governance.v4_enabled') === false` (default).
- *
- * @see memory/decisions/0160-scoped-scorecards-v4-bucket-yaml.md
- * @see memory/scorecards/<bucket>.yaml
- * @see Modules/Governance/Services/ModuleGradeService.php (gradeV4 entrypoint)
+ * @see memory/governance/buckets/vertical_client_facing.yaml
+ * @see memory/governance/scorecards/<slug>.yaml
+ * @see Modules\Governance\Console\Commands\ScorecardSnapshotCommand
  */
 class ScopedScorecardEvaluator
 {
-    /** Caminho base pra resolução de Modules/<X>/ e memory/scorecards/. */
-    private string $basePath;
+    private string $scorecardsPath;
+    private string $bucketsPath;
+    private string $modulesPath;
 
-    public function __construct(?string $basePath = null)
+    public function __construct()
     {
-        $this->basePath = $basePath ?? base_path();
+        $this->scorecardsPath = base_path('memory/governance/scorecards');
+        $this->bucketsPath    = base_path('memory/governance/buckets');
+        $this->modulesPath    = base_path('Modules');
     }
 
     /**
-     * Carrega scorecard YAML do bucket declarado em Modules/<X>/module.json.
+     * Carrega scorecard YAML pra um módulo.
      *
-     * Retorna [] se:
-     *  - module.json não existe (módulo inválido)
-     *  - module.json não declara `governance.bucket`
-     *  - YAML do bucket não existe (Wave 19 só publicou 4 buckets — outros nascem em ondas futuras)
-     *
-     * Caller (gradeV4) decide se cai pra v3 (back-compat) ou retorna score zero.
-     *
-     * @return array<string,mixed>
+     * @return array<string, mixed>  Vazio se arquivo não existe ou parse falha.
      */
     public function loadScorecardForModule(string $module): array
     {
-        $moduleJsonPath = $this->basePath . "/Modules/{$module}/module.json";
-        if (! file_exists($moduleJsonPath)) {
+        $slug = strtolower($module);
+        $path = $this->scorecardsPath . DIRECTORY_SEPARATOR . $slug . '.yaml';
+
+        if (! File::exists($path)) {
             return [];
         }
 
-        $raw = @file_get_contents($moduleJsonPath);
-        if ($raw === false) {
+        try {
+            $data = Yaml::parseFile($path);
+            return is_array($data) ? $data : [];
+        } catch (\Throwable $e) {
+            \Log::warning('ScopedScorecardEvaluator: YAML parse falhou', [
+                'module' => $module,
+                'path'   => $path,
+                'error'  => $e->getMessage(),
+            ]);
             return [];
         }
-        $json = json_decode($raw, true);
-        if (! is_array($json)) {
-            return [];
-        }
-
-        $bucket = $json['governance']['bucket'] ?? null;
-        if (! is_string($bucket) || $bucket === '') {
-            return [];
-        }
-
-        $yamlPath = $this->basePath . "/memory/scorecards/{$bucket}.yaml";
-        if (! file_exists($yamlPath)) {
-            return [];
-        }
-
-        $parsed = Yaml::parseFile($yamlPath);
-
-        return is_array($parsed) ? $parsed : [];
     }
 
     /**
-     * Avalia scorecard carregado + retorna breakdown por dimensão.
+     * Lê bucket do `module.json` em Modules/<X>/.
      *
-     * Estrutura retornada:
-     *   [
-     *     'module'             => string,
-     *     'bucket'             => string,            // do YAML.metadata.bucket
-     *     'core'               => [...],             // D1 + D8 (peso fixo entre buckets)
-     *     'bucket_dimensions'  => [...],             // específicas do vertical
-     *     'paired_violations'  => [...],             // gaming detectado (Wave 24 aplica cap)
-     *     'score_total'        => int,               // soma core + bucket_dimensions
-     *     'meta_bucket'        => int,               // meta declarada no YAML
-     *   ]
+     * Retorna `unknown` se módulo não declara `governance.bucket`.
+     */
+    public function resolveBucketForModule(string $module): string
+    {
+        $modulePath = $this->modulesPath . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR . 'module.json';
+        if (! File::exists($modulePath)) {
+            return 'unknown';
+        }
+        try {
+            $json = json_decode(File::get($modulePath), true);
+            return (string) ($json['governance']['bucket'] ?? 'unknown');
+        } catch (\Throwable $e) {
+            return 'unknown';
+        }
+    }
+
+    /**
+     * Carrega bucket config YAML.
      *
-     * @param array<string,mixed> $scorecard
-     * @return array<string,mixed>
+     * @return array<string, mixed>  Vazio se arquivo não existe.
+     */
+    public function loadBucketConfig(string $bucket): array
+    {
+        $path = $this->bucketsPath . DIRECTORY_SEPARATOR . $bucket . '.yaml';
+        if (! File::exists($path)) {
+            return [];
+        }
+        try {
+            $data = Yaml::parseFile($path);
+            return is_array($data) ? $data : [];
+        } catch (\Throwable $e) {
+            \Log::warning('ScopedScorecardEvaluator: bucket YAML parse falhou', [
+                'bucket' => $bucket,
+                'path'   => $path,
+                'error'  => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Avalia scorecard de um módulo (core + bucket dimensions + paired enforcement).
+     *
+     * @param  string  $module  Nome do módulo (ex 'Vestuario')
+     * @param  array  $scorecard  YAML carregado via loadScorecardForModule()
+     * @return array{module: string, bucket: string, score_total: int, core: array, bucket_dimensions: array, paired_violations: array, evaluated_at: string}
      */
     public function evaluateScorecard(string $module, array $scorecard): array
     {
-        $result = [
-            'module'            => $module,
-            'bucket'            => $scorecard['metadata']['bucket'] ?? 'unknown',
-            'core'              => [],
-            'bucket_dimensions' => [],
-            'paired_violations' => [],
-            'score_total'       => 0,
-            'meta_bucket'       => (int) ($scorecard['calculo']['meta_bucket'] ?? 80),
-        ];
+        return OtelHelper::spanBiz('governance.scorecard.evaluate', function () use ($module, $scorecard): array {
+            $bucket = $this->resolveBucketForModule($module);
+            $bucketConfig = $this->loadBucketConfig($bucket);
 
-        // Core dimensions (D1 multi-tenant + D8 security — Tier 0 cross-bucket)
-        foreach (($scorecard['core'] ?? []) as $dimKey => $dim) {
-            if (! is_array($dim)) {
-                continue;
+            // Core dimensions — herda do scorecard ou usa bucket targets como max.
+            $core = [];
+            $coreScore = 0;
+            $coreMaxTotal = 0;
+            $bucketCore = $bucketConfig['core'] ?? [];
+            $scorecardDims = $scorecard['dimensions'] ?? [];
+
+            foreach ($bucketCore as $key => $cfg) {
+                $peso = (int) ($cfg['peso'] ?? 0);
+                $current = (int) ($scorecardDims[$key]['current'] ?? $scorecardDims[$key]['target'] ?? 0);
+                $current = max(0, min($peso, $current));
+                $core[$key] = [
+                    'peso'    => $peso,
+                    'score'   => $current,
+                    'target'  => (int) ($cfg['target'] ?? $peso),
+                ];
+                $coreScore += $current;
+                $coreMaxTotal += $peso;
             }
-            $result['core'][$dimKey] = $this->evaluateDimension($module, $dim);
-        }
 
-        // Bucket dimensions (específicas do vertical — ex: vestuario.sazonalidade)
-        foreach (($scorecard['bucket_dimensions'] ?? []) as $dimKey => $dim) {
-            if (! is_array($dim)) {
-                continue;
+            // Bucket dimensions — extras específicas do bucket.
+            $bucketDims = [];
+            $bucketScore = 0;
+            $bucketMaxTotal = 0;
+            foreach (($bucketConfig['bucket_dimensions'] ?? []) as $dimKey => $dimCfg) {
+                $peso = (int) ($dimCfg['peso'] ?? 0);
+                $current = (int) ($scorecardDims[$dimKey]['current'] ?? $dimCfg['target'] ?? 0);
+                $current = max(0, min($peso, $current));
+                $bucketDims[$dimKey] = [
+                    'peso'    => $peso,
+                    'score'   => $current,
+                    'target'  => (int) ($dimCfg['target'] ?? $peso),
+                    'regras'  => $dimCfg['regras'] ?? [],
+                ];
+                $bucketScore += $current;
+                $bucketMaxTotal += $peso;
             }
-            $result['bucket_dimensions'][$dimKey] = $this->evaluateDimension($module, $dim);
-        }
 
-        // Paired indicators (detecção velocidade-vs-qualidade gameado)
-        // Wave 21 (mínimo viável): listagem simbólica.
-        // Wave 24: aplicar cap 50% se par detectado violando.
-        foreach (($scorecard['paired_indicators'] ?? []) as $pair) {
-            if (! is_array($pair)) {
-                continue;
+            $result = [
+                'module'             => $module,
+                'bucket'             => $bucket,
+                'core'               => $core,
+                'bucket_dimensions'  => $bucketDims,
+                'paired_violations'  => [],
+                'evaluated_at'       => now()->toIso8601String(),
+            ];
+
+            // Paired enforcement (cap 50% canônico Wave 24).
+            foreach (($bucketConfig['paired'] ?? []) as $pair) {
+                $violation = $this->checkPairedViolation($result, $pair);
+                if ($violation) {
+                    $result['paired_violations'][] = $violation;
+                }
             }
-            $violation = $this->checkPairedViolation($result, $pair);
-            if ($violation !== null) {
-                $result['paired_violations'][] = $violation;
+
+            // Recalcula bucket_dimensions score após eventual cap (paired).
+            $bucketScorePostCap = 0;
+            foreach ($result['bucket_dimensions'] as $dim) {
+                $bucketScorePostCap += (int) ($dim['score'] ?? 0);
             }
-        }
 
-        $coreScore   = $this->sumScores($result['core']);
-        $bucketScore = $this->sumScores($result['bucket_dimensions']);
+            $totalMax = $coreMaxTotal + $bucketMaxTotal;
+            $totalScore = $coreScore + $bucketScorePostCap;
+            $result['score_total'] = $totalMax > 0
+                ? (int) round(($totalScore / $totalMax) * 100)
+                : 0;
+            $result['score_raw'] = $totalScore;
+            $result['score_max'] = $totalMax;
 
-        $result['score_total'] = $coreScore + $bucketScore;
-
-        return $result;
+            return $result;
+        }, [
+            'module' => $module,
+        ]);
     }
 
     /**
-     * Avalia uma dimensão (D1, D8, ou qualquer bucket_dimension) — itera rules
-     * e soma pesos onde `detect` retorna true.
+     * Detecta violação paired (cap 50% canônico Wave 24).
      *
-     * @param array<string,mixed> $dim
-     * @return array{peso:int, score:int, rules:array<int,array<string,mixed>>}
+     * Heurística: se velocidade alta (≥75% peso) mas qualidade baixa (<50% peso),
+     * cap 50% no dimensão velocidade (penaliza gaming "ship fast / break quality").
+     *
+     * @param  array  $result  Resultado parcial passado por referência implícita.
+     * @param  array  $pair  { velocidade, qualidade, rule, racional }
      */
-    private function evaluateDimension(string $module, array $dim): array
+    public function checkPairedViolation(array &$result, array $pair): ?array
     {
-        $totalScore = 0;
-        $totalPeso  = (int) ($dim['peso'] ?? 0);
-        $breakdown  = [];
+        $velKey  = (string) ($pair['velocidade'] ?? '');
+        $qualKey = (string) ($pair['qualidade'] ?? '');
+        if ($velKey === '' || $qualKey === '') {
+            return null;
+        }
 
-        foreach (($dim['rules'] ?? []) as $rule) {
-            if (! is_array($rule)) {
-                continue;
+        $velScore  = $this->resolveRuleScore($result, $velKey);
+        $qualScore = $this->resolveRuleScore($result, $qualKey);
+        if ($velScore === null || $qualScore === null) {
+            return null;
+        }
+
+        if ($velScore['percent'] >= 0.75 && $qualScore['percent'] < 0.5) {
+            $dimKey = explode('.', $velKey)[0];
+            if (isset($result['bucket_dimensions'][$dimKey])) {
+                $peso = (int) ($result['bucket_dimensions'][$dimKey]['peso'] ?? 0);
+                $capped = (int) round($peso * 0.5);
+                $result['bucket_dimensions'][$dimKey]['score'] = $capped;
+                $result['bucket_dimensions'][$dimKey]['capped_by_paired'] = true;
             }
-            $rulePeso = (int) ($rule['peso'] ?? 0);
-            $detected = $this->detectRule($module, $rule['detect'] ?? []);
-            $score    = $detected ? $rulePeso : 0;
-            $totalScore += $score;
-
-            $breakdown[] = [
-                'id'        => (string) ($rule['id'] ?? '?'),
-                'descricao' => (string) ($rule['descricao'] ?? ''),
-                'peso'      => $rulePeso,
-                'score'     => $score,
-                'detected'  => $detected,
+            return [
+                'pair'       => $velKey . ' x ' . $qualKey,
+                'rule'       => (string) ($pair['rule'] ?? ''),
+                'racional'   => (string) ($pair['racional'] ?? ''),
+                'cap_applied' => '50%',
+                'vel_percent'  => round($velScore['percent'], 3),
+                'qual_percent' => round($qualScore['percent'], 3),
             ];
         }
-
-        return [
-            'peso'  => $totalPeso,
-            'score' => $totalScore,
-            'rules' => $breakdown,
-        ];
-    }
-
-    /**
-     * Dispatcher de detection types — Wave 21 mínimo viável.
-     *
-     * Tipos implementados: file_exists, grep, ratio, file_age.
-     * Tipos pendentes (pass-through TRUE, não bloqueia migração v3→v4):
-     *   - ast_scan (Wave 22)
-     *   - yaml_lookup (Wave 22)
-     *   - ci_health (Wave 23 — depende otel)
-     *   - otel_query (Wave 23)
-     *   - sql_check (Wave 23)
-     *
-     * Pass-through TRUE é intencional: scorecards v4 ainda em maturação;
-     * bloquear módulos por tipos não-implementados travaria adoção.
-     *
-     * @param array<string,mixed> $detect
-     */
-    private function detectRule(string $module, array $detect): bool
-    {
-        $tipo = (string) ($detect['tipo'] ?? '');
-
-        return match ($tipo) {
-            'file_exists' => $this->detectFileExists($module, $detect),
-            'grep'        => $this->detectGrep($module, $detect),
-            'ratio'       => $this->detectRatio($module, $detect),
-            'file_age'    => $this->detectFileAge($module, $detect),
-            default       => true, // pass-through Wave 21 — tipos pendentes não bloqueiam
-        };
-    }
-
-    /**
-     * file_exists — arquivo (ou glob) existe relativo ao basePath.
-     *
-     * @param array<string,mixed> $detect
-     */
-    private function detectFileExists(string $module, array $detect): bool
-    {
-        $path = $this->resolvePath($module, (string) ($detect['path'] ?? ''));
-        if ($path === '') {
-            return false;
-        }
-        $absolute = $this->basePath . '/' . ltrim($path, '/');
-
-        // Suporta glob (ex: Modules/<X>/Services/*.php)
-        if (str_contains($absolute, '*') || str_contains($absolute, '?')) {
-            return count(glob($absolute) ?: []) > 0;
-        }
-
-        return file_exists($absolute);
-    }
-
-    /**
-     * grep — content match em arquivo(s) (suporta glob no path).
-     *
-     * @param array<string,mixed> $detect
-     */
-    private function detectGrep(string $module, array $detect): bool
-    {
-        $path = $this->resolvePath($module, (string) ($detect['path'] ?? ''));
-        if ($path === '') {
-            return false;
-        }
-        $expect = (string) ($detect['expect'] ?? '');
-        if ($expect === '') {
-            return false;
-        }
-
-        $absolute = $this->basePath . '/' . ltrim($path, '/');
-        $files    = (str_contains($absolute, '*') || str_contains($absolute, '?'))
-            ? (glob($absolute) ?: [])
-            : (file_exists($absolute) ? [$absolute] : []);
-
-        foreach ($files as $f) {
-            $content = @file_get_contents($f) ?: '';
-            // Tentamos preg primeiro; fallback pra str_contains se regex inválida.
-            $pattern = '/' . str_replace('/', '\/', $expect) . '/i';
-            $match   = @preg_match($pattern, $content);
-            if ($match === 1) {
-                return true;
-            }
-            if ($match === false && stripos($content, $expect) !== false) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * ratio — razão `numerator/denominator` ≥ `coverage_target` (0..1).
-     *
-     * Usado pra cobertura tipo Pest/Controller (D2 v3 → Wave 21 reaproveita
-     * mesma heurística mas declarada em YAML).
-     *
-     * @param array<string,mixed> $detect
-     */
-    private function detectRatio(string $module, array $detect): bool
-    {
-        $numPath = $this->resolvePath($module, (string) ($detect['numerator'] ?? ''));
-        $denPath = $this->resolvePath($module, (string) ($detect['denominator'] ?? ''));
-        if ($numPath === '' || $denPath === '') {
-            return false;
-        }
-
-        $numAbs = $this->basePath . '/' . ltrim($numPath, '/');
-        $denAbs = $this->basePath . '/' . ltrim($denPath, '/');
-
-        $num = count(glob($numAbs) ?: []);
-        $den = max(count(glob($denAbs) ?: []), 1);
-
-        $target = (float) ($detect['coverage_target'] ?? 0);
-
-        return ($num / $den) >= $target;
-    }
-
-    /**
-     * file_age — arquivo modificado nos últimos `age_max_days` (frescor docs).
-     *
-     * @param array<string,mixed> $detect
-     */
-    private function detectFileAge(string $module, array $detect): bool
-    {
-        $path = $this->resolvePath($module, (string) ($detect['path'] ?? ''));
-        if ($path === '') {
-            return false;
-        }
-        $absolute = $this->basePath . '/' . ltrim($path, '/');
-        if (! file_exists($absolute)) {
-            return false;
-        }
-        $maxDays = (int) ($detect['age_max_days'] ?? 999);
-        $ageDays = (time() - filemtime($absolute)) / 86400;
-
-        return $ageDays <= $maxDays;
-    }
-
-    /**
-     * Paired indicators (Wave 21 mínimo viável) — apenas observação,
-     * sem aplicar cap. Wave 24 vai implementar a regra: se par
-     * (velocidade↑, qualidade↓) detectado → score cap 50%.
-     *
-     * @param array<string,mixed> $result
-     * @param array<string,mixed> $pair
-     * @return array<string,mixed>|null
-     */
-    private function checkPairedViolation(array $result, array $pair): ?array
-    {
-        // Wave 21: stub. Retorna null sempre (sem violação). Wave 24 implementa.
         return null;
     }
 
     /**
-     * Resolve placeholder Modules/Vestuario → Modules/<module> nos paths YAML.
+     * Resolve score de uma regra interna a uma dimensão.
      *
-     * Convenção dos YAMLs Wave 19: paths declarados com 'Modules/Vestuario/...'
-     * como template, substituídos pelo módulo sendo avaliado em runtime.
+     * Formato key: `<dimensao>.<regra>` (ex: `F1_pest_e2e.F1_b`).
+     * Lê de bucket_dimensions[dim]['regras'][rule] ou estima
+     * proporcional a partir do score atual da dimensão.
+     *
+     * @return array{score: int, peso: int, percent: float}|null
      */
-    private function resolvePath(string $module, string $path): string
+    public function resolveRuleScore(array $result, string $key): ?array
     {
-        if ($path === '') {
-            return '';
+        if (! str_contains($key, '.')) {
+            return null;
+        }
+        [$dim, $rule] = explode('.', $key, 2);
+        $dimData = $result['bucket_dimensions'][$dim] ?? $result['core'][$dim] ?? null;
+        if (! $dimData) {
+            return null;
         }
 
-        return str_replace('Modules/Vestuario', "Modules/{$module}", $path);
-    }
-
-    /**
-     * Soma scores de um conjunto de dimensões.
-     *
-     * @param array<string,array{score:int}|mixed> $dimensions
-     */
-    private function sumScores(array $dimensions): int
-    {
-        $total = 0;
-        foreach ($dimensions as $dim) {
-            if (is_array($dim) && isset($dim['score'])) {
-                $total += (int) $dim['score'];
-            }
+        // Tenta regra específica em regras[<rule>].
+        if (isset($dimData['regras'][$rule])) {
+            $regra = $dimData['regras'][$rule];
+            $pesoRule = (int) ($regra['peso'] ?? 0);
+            $scoreRule = (int) ($regra['current'] ?? $regra['score'] ?? $pesoRule);
+            $scoreRule = max(0, min($pesoRule, $scoreRule));
+            return [
+                'score'   => $scoreRule,
+                'peso'    => $pesoRule,
+                'percent' => $pesoRule > 0 ? ($scoreRule / $pesoRule) : 0.0,
+            ];
         }
 
-        return $total;
+        // Fallback proporcional: usa razão score/peso da dimensão inteira.
+        $totalScore = (int) ($dimData['score'] ?? 0);
+        $totalPeso  = (int) ($dimData['peso'] ?? 1);
+        return [
+            'score'   => $totalScore,
+            'peso'    => $totalPeso,
+            'percent' => $totalPeso > 0 ? ($totalScore / $totalPeso) : 0.0,
+        ];
     }
 }
