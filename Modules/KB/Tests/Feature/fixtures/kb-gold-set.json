@@ -1,0 +1,370 @@
+{
+    "_meta": {
+        "version": "v2-w27",
+        "created_at": "2026-05-17",
+        "previous_size": 20,
+        "current_size": 50,
+        "categories": {
+            "docs_canon": 10,
+            "code_internals": 10,
+            "wave_history": 10,
+            "multi_tenant": 10,
+            "lgpd_compliance": 10
+        },
+        "source": "Wave 27 KB §G2 — expansão 20→50 (estado-da-arte RAGAS: 50 perguntas curadas = mínimo estatístico estável; <20 oscila run-a-run; refs Statsig Golden Datasets + Patronus 2026)",
+        "maintenance": "favor small frequent updates over rare giant refreshes; pull fresh scenarios from production then re-label high-impact slices",
+        "rebaseline_policy": "review semestral OU drift detector flagar >3 perguntas obsoletas"
+    },
+    "questions": [
+        {
+            "id": "DC-01",
+            "category": "docs_canon",
+            "question": "Qual ADR formaliza o KB unificado como módulo IA central?",
+            "ground_truth": "ADR 0149 — KB Unificado grafo conhecimento módulo IA central. Define 12 tabelas kb_* + bridge mcp_memory_documents.",
+            "tags": ["kb", "governance"]
+        },
+        {
+            "id": "DC-02",
+            "category": "docs_canon",
+            "question": "Quantas tabelas o schema KB v1 define?",
+            "ground_truth": "SCHEMA-DB-V1.md define 12 tabelas: kb_categories, kb_subcategories, kb_nodes, kb_edges, kb_paths, kb_path_steps, kb_decision_trees, kb_decision_tree_steps, kb_node_versions, kb_favorites, kb_comments, kb_bridge_state.",
+            "tags": ["kb"]
+        },
+        {
+            "id": "DC-03",
+            "category": "docs_canon",
+            "question": "Qual ADR introduz Scoped Scorecards por módulo?",
+            "ground_truth": "ADR 0160 — Scoped Scorecards. Cada Modules/<X>/ recebe scorecard governança próprio (0-100) computado em CI semanal via governance:scorecard-snapshot.",
+            "tags": ["kb", "governance"]
+        },
+        {
+            "id": "DC-04",
+            "category": "docs_canon",
+            "question": "O que é o bucket v4 mencionado no SCOPE KB?",
+            "ground_truth": "Bucket v4 = chunks ≥4 paragráfos com retrieval premium reranked BGE v2-m3 (ADR 0149 §retrieval-tiers). Default fallback = bucket v1 (RRF).",
+            "tags": ["kb"]
+        },
+        {
+            "id": "DC-05",
+            "category": "docs_canon",
+            "question": "Qual ADR define multi-tenant Tier 0 IRREVOGÁVEL?",
+            "ground_truth": "ADR 0093 — multi-tenant isolation Tier 0. business_id global scope obrigatório em toda Eloquent Model. Jobs recebem $businessId no constructor.",
+            "tags": ["kb", "governance", "multi-tenant"]
+        },
+        {
+            "id": "DC-06",
+            "category": "docs_canon",
+            "question": "Qual ADR formaliza a Constituição v2 do oimpresso?",
+            "ground_truth": "ADR 0094 — Constituição v2: 7 camadas + 8 princípios duros (context as product, tiered cost, charter > spec, loop fechado por métrica, SoC brutal, multi-tenant Tier 0, transparência, confiabilidade com fallback).",
+            "tags": ["kb", "governance"]
+        },
+        {
+            "id": "DC-07",
+            "category": "docs_canon",
+            "question": "Onde está o BRIEFING canônico do KB?",
+            "ground_truth": "memory/requisitos/KB/BRIEFING.md — 1 página executiva atualizada via skill brief-update Tier B em todo PR mergeado que toque Modules/KB/ ou resources/js/Pages/KB/.",
+            "tags": ["kb", "governance"]
+        },
+        {
+            "id": "DC-08",
+            "category": "docs_canon",
+            "question": "Qual ADR formaliza o processo MWART canônico?",
+            "ground_truth": "ADR 0104 — MWART processo canônico único caminho (5 fases: F1 charter, F2 backend baseline, F3 frontend, F4 QA, F5 cutover). Skill mwart-process Tier A always-on.",
+            "tags": ["kb", "governance"]
+        },
+        {
+            "id": "DC-09",
+            "category": "docs_canon",
+            "question": "Quais ADRs definem stack IA canônica do projeto?",
+            "ground_truth": "ADR 0035 (stack IA canon: laravel/ai SDK Camada A, Agents próprios Camada B, MemoriaContrato+MeilisearchDriver Camada C) + ADR 0048 (Vizra ADK rejeitada) + ADR 0058 (Centrifugo > Reverb).",
+            "tags": ["kb", "ia-stack", "governance"]
+        },
+        {
+            "id": "DC-10",
+            "category": "docs_canon",
+            "question": "Qual ADR formaliza zero auto-mem privada legada?",
+            "ground_truth": "ADR 0061 — conhecimento canônico git+MCP zero auto-mem. Hook block-automem.ps1 bloqueia Write/Edit em ~/.claude/projects/*/memory/*.md. ADR 0131 tiering canônico/local/segredo refina escape valves.",
+            "tags": ["kb", "governance", "lgpd"]
+        },
+        {
+            "id": "CI-01",
+            "category": "code_internals",
+            "question": "Qual o namespace canônico do OtelHelper?",
+            "ground_truth": "App\\Util\\OtelHelper — usado para spans OTel em commands (ex: kb:drift-detector wrap span kb.drift_detector). NÃO confundir com App\\Helpers ou Modules\\<X>\\Util.",
+            "tags": ["kb", "code"]
+        },
+        {
+            "id": "CI-02",
+            "category": "code_internals",
+            "question": "Onde fica o PiiRedactor?",
+            "ground_truth": "Modules\\Jana\\Services\\Privacy\\PiiRedactor — defense in depth pré-LLM. Cobre CPF, CNPJ, email, CEP, phone BR. Reusado no KbRagService::redactPii antes de toda chamada ao gpt-4o-mini.",
+            "tags": ["kb", "code", "lgpd"]
+        },
+        {
+            "id": "CI-03",
+            "category": "code_internals",
+            "question": "Onde fica o FSM canônico (ExecuteStageActionService)?",
+            "ground_truth": "app/Domain/Fsm/ — ExecuteStageActionService orquestra transições Sells+Repair. Trait GuardsFsmTransitions em Transaction+JobSheet bloqueia UPDATE direto current_stage_id (lança UnauthorizedActionException). Singleton FsmAuthorizationFlag autoriza save per-request consume-once.",
+            "tags": ["kb", "code", "governance"]
+        },
+        {
+            "id": "CI-04",
+            "category": "code_internals",
+            "question": "Qual o nome do Service que faz BGE rerank?",
+            "ground_truth": "Modules\\KB\\Services\\KbBgeRerankerService — BAAI/bge-reranker-v2-m3 self-host CT 100. Improve nDCG@10 +6-15pp vs RRF/score. Graceful degradation: HTTP fail delega RrfReranker; driver vazio devolve top-N por score legacy.",
+            "tags": ["kb", "code", "ia-stack"]
+        },
+        {
+            "id": "CI-05",
+            "category": "code_internals",
+            "question": "Qual a config de cache TTL do KbRagService::ask()?",
+            "ground_truth": "Redis Cache TTL 1h em ask() — key sha1(query|corpusHash) + biz_id. summarize() TTL 6h — key inclui node updated_at + sourceDoc updated_at. Idempotency_key opcional via opts[idempotency_key].",
+            "tags": ["kb", "code"]
+        },
+        {
+            "id": "CI-06",
+            "category": "code_internals",
+            "question": "Como o KbRagService gera citações?",
+            "ground_truth": "Prompt numera FONTES [1][2][3]…top-N via renderFontesBlock. KbAnswerAgent retorna formato: Resposta + Citações: - [slug](path) — quote + Confiança. parseAgentResponse extrai answer + confidence numérica.",
+            "tags": ["kb", "code", "ia-stack"]
+        },
+        {
+            "id": "CI-07",
+            "category": "code_internals",
+            "question": "O que retorna RagResult::notFound?",
+            "ground_truth": "Resultado vazio quando top-K Meilisearch vazio. Inclui latency_ms + corpus_hash atual + cache_hit=false. Frontend mostra mensagem amigável ao usuário em vez de erro.",
+            "tags": ["kb", "code"]
+        },
+        {
+            "id": "CI-08",
+            "category": "code_internals",
+            "question": "Como suggestMeta gera auto-tag de body_blocks?",
+            "ground_truth": "Recebe body_blocks rascunho, serializa inline + redact PII via PiiRedactor + cap 8000 chars. Prompt gpt-4o-mini extrai TITLE/EXCERPT/TAGS/CATEGORY/NIVEL. Fail-safe: retorna meta vazia ou snippet truncado se LLM falhar.",
+            "tags": ["kb", "code", "ia-stack"]
+        },
+        {
+            "id": "CI-09",
+            "category": "code_internals",
+            "question": "O que faz KbEdgeAutoDeriver?",
+            "ground_truth": "Modules\\KB\\Services\\KbEdgeAutoDeriver detecta relações entre kb_nodes (ex: ADR cita outra ADR, charter referencia runbook) e cria kb_edges auto. KbEdgeAutoDeriverJob async per business — recebe $businessId no constructor (ADR 0093).",
+            "tags": ["kb", "code"]
+        },
+        {
+            "id": "CI-10",
+            "category": "code_internals",
+            "question": "Quais constantes de preço o KbRagService usa pra gpt-4o-mini?",
+            "ground_truth": "PRICE_INPUT_PER_M_USD = 0.15, PRICE_OUTPUT_PER_M_USD = 0.60. USD→BRL via config(kb.usd_to_brl, 5.0). Cost logged em copiloto-ai channel + mcp_audit_log.",
+            "tags": ["kb", "code", "ia-stack"]
+        },
+        {
+            "id": "WH-01",
+            "category": "wave_history",
+            "question": "O que a Wave 25 entregou para o KB?",
+            "ground_truth": "Wave 25 §G saturação D9: KbHealthCommand (kb:health-check) com 4 checks (corpus_size, bridge_freshness, retrieval_latency, editable_ratio) + Pest KbHealthCommandTest + registro em KBServiceProvider::registerCommands.",
+            "tags": ["kb", "wave-history"]
+        },
+        {
+            "id": "WH-02",
+            "category": "wave_history",
+            "question": "Quando a ADR 0162 foi aprovada?",
+            "ground_truth": "ADR 0162 — Wave Mega Paralelo governance — proposta em 2026-05-17 durante governance-wave-27. Aprovação Wagner depende do consolidate parent (CI verde dos 30+ agents paralelos).",
+            "tags": ["kb", "governance", "wave-history"]
+        },
+        {
+            "id": "WH-03",
+            "category": "wave_history",
+            "question": "O que a Wave 23 entregou para o KB?",
+            "ground_truth": "Wave 23 KB §G1-G4: KbBgeRerankerService (BGE rerank self-host) + KbRagasEvalTest (20 gold questions) + KbDriftDetectorCommand (drift artigo vs git log) + KbReindexCommand reativado.",
+            "tags": ["kb", "wave-history"]
+        },
+        {
+            "id": "WH-04",
+            "category": "wave_history",
+            "question": "Qual o marco do FSM Pipeline em prod?",
+            "ground_truth": "ADR 0143 — FSM Pipeline LIVE prod biz=1 desde 2026-05-12. 11 stages Sells × 21 actions × 10 roles per-business + 13 stages Repair × ~15 actions × 6 roles. Comando bulk-start-pipeline migra vendas legacy.",
+            "tags": ["kb", "wave-history", "governance"]
+        },
+        {
+            "id": "WH-05",
+            "category": "wave_history",
+            "question": "O que a Wave 22 entregou para o KB?",
+            "ground_truth": "Wave 22 KB: FICHA Capterra unificada (Capterra-senior subagent rodou). Identificou G1 (rerank), G2 (RAGAS eval), G3 (PII redact pré-LLM), G4 (drift detector) — endereçados nas Waves 23-25.",
+            "tags": ["kb", "wave-history"]
+        },
+        {
+            "id": "WH-06",
+            "category": "wave_history",
+            "question": "O que a Wave 27 §G2 (esta wave) entrega ao KB?",
+            "ground_truth": "Wave 27 §G2: expansão gold-set KB de 20 para 50 perguntas (5 categorias × 10) + fixtures/kb-gold-set.json + schedule weekly Sun 03:00 BRT do kb:drift-detector via KBServiceProvider boot. Δ KB D9 estimado +6-8pp (cobertura RAGAS estável).",
+            "tags": ["kb", "wave-history"]
+        },
+        {
+            "id": "WH-07",
+            "category": "wave_history",
+            "question": "Qual handoff documenta a maratona WhatsApp 14-15/mai?",
+            "ground_truth": "memory/handoffs/2026-05-14-1834-whatsapp-purge-fix-verbose.md (PR #851 fix --verbose colisão Symfony) + sessions adjacentes. 5 drifts catalogados, 12 PRs corretivos, ~5h investigação retrospectiva.",
+            "tags": ["kb", "wave-history"]
+        },
+        {
+            "id": "WH-08",
+            "category": "wave_history",
+            "question": "Quando o módulo KB foi inicializado (Wave 1)?",
+            "ground_truth": "2026-05-15 — migrations kb_categories até kb_bridge_state (12 tabelas) criadas como Wave 1 do KB unificado, conforme ADR 0149.",
+            "tags": ["kb", "wave-history"]
+        },
+        {
+            "id": "WH-09",
+            "category": "wave_history",
+            "question": "Quem é o agent canônico para auditoria de módulo profunda?",
+            "ground_truth": "capterra-senior (.claude/agents/) — pesquisa 10-15 concorrentes 25-50 buscas modo Opus sustained, compara em 3 eixos features/UX/automação (ADR 0101) com 15-20 capacidades P0-P3, gera CAPTERRA-FICHA.md + session log.",
+            "tags": ["kb", "wave-history", "governance"]
+        },
+        {
+            "id": "WH-10",
+            "category": "wave_history",
+            "question": "Qual ADR formaliza o agents canônicos do projeto?",
+            "ground_truth": "Catalogados em memory/how-trabalhar.md §Agents canônicos: estado-da-arte (conhecimento), coordenador-paralelo (execução), whatsapp-doctor (operação), capterra-senior (auditoria profunda). Histórico sessão 2026-05-13.",
+            "tags": ["kb", "wave-history"]
+        },
+        {
+            "id": "MT-01",
+            "category": "multi_tenant",
+            "question": "Qual o business_id fake usado em testes cross-tenant?",
+            "ground_truth": "biz=99 é o fake canônico em testes (jamais existe em prod). Pareado com biz=1 (superadmin) — ADR 0101 proíbe biz=4 (ROTA LIVRE prod). Pattern: CrossTenantIsolationTest cria 2 businesses, valida isolation absoluta.",
+            "tags": ["kb", "multi-tenant"]
+        },
+        {
+            "id": "MT-02",
+            "category": "multi_tenant",
+            "question": "Onde fica HasBusinessScope no KB?",
+            "ground_truth": "Modules\\KB\\Entities\\Concerns\\BelongsToBusinessTrait — aplicado em todas Entities KB (KbNode, KbCategory, KbEdge, KbPath, etc). Adiciona global scope WHERE business_id = session(business)->id.",
+            "tags": ["kb", "multi-tenant", "code"]
+        },
+        {
+            "id": "MT-03",
+            "category": "multi_tenant",
+            "question": "KbRagService permite cross-tenant?",
+            "ground_truth": "NÃO. Service exige business_id positivo explícito em todos métodos públicos (assertBusinessId throws InvalidArgumentException). Multi-tenant Tier 0 ADR 0093. Cross-tenant Pest CrossTenantIsolationTest exigido.",
+            "tags": ["kb", "multi-tenant"]
+        },
+        {
+            "id": "MT-04",
+            "category": "multi_tenant",
+            "question": "Como Jobs assíncronos respeitam multi-tenant?",
+            "ground_truth": "Job constructor recebe $businessId int explícito — session() retorna null em fila. Pattern: KbBridgeFromMcpJob(int $businessId) + handle() faz session(['business' => Business::find($this->businessId)]) ou usa scoped query manual.",
+            "tags": ["kb", "multi-tenant", "code"]
+        },
+        {
+            "id": "MT-05",
+            "category": "multi_tenant",
+            "question": "Quando usar withoutGlobalScopes?",
+            "ground_truth": "APENAS com comentário inline // SUPERADMIN: <razão>. Casos legítimos: jobs reindex global (KbReindexCommand), health-check cross-tenant (jana:health-check), bridge MCP global. Sem comment é violação Tier 0.",
+            "tags": ["kb", "multi-tenant"]
+        },
+        {
+            "id": "MT-06",
+            "category": "multi_tenant",
+            "question": "Como commands artisan respeitam multi-tenant?",
+            "ground_truth": "CLI rode fora HTTP → session()/auth() null. Pattern obrigatório: --business-id flag required, validate >0, bloqueia biz=4, Auth::loginUsingId(superadmin biz=N) + session([business=>...]). Ver rules/commands.md.",
+            "tags": ["kb", "multi-tenant", "code"]
+        },
+        {
+            "id": "MT-07",
+            "category": "multi_tenant",
+            "question": "Toda tabela de negócio precisa de business_id?",
+            "ground_truth": "Sim, indexed + FK pra businesses(id). Migrations KB v1 todas têm. Exceções (repo-wide): mcp_memory_documents (canon git compartilhado), kb_bridge_state (cursor por business mas tabela compartilhada).",
+            "tags": ["kb", "multi-tenant"]
+        },
+        {
+            "id": "MT-08",
+            "category": "multi_tenant",
+            "question": "Cache Redis isola por business?",
+            "ground_truth": "Sim — cache keys SEMPRE incluem :biz:{businessId}. KbRagService::cacheKey = sha1(query|corpusHash) + ':biz:' + businessId. Sem isso, biz=1 receberia resposta cached de biz=99 = vazamento Tier 0.",
+            "tags": ["kb", "multi-tenant", "code"]
+        },
+        {
+            "id": "MT-09",
+            "category": "multi_tenant",
+            "question": "Roles Spatie em UltimatePOS precisam de quê?",
+            "ground_truth": "Suffix #{biz} obrigatório — tabela roles.business_id é NOT NULL com FK. Criar role global viola FK. Pattern: Role::firstOrCreate(['name' => \"admin#{$bizId}\", 'business_id' => $bizId, 'guard_name' => 'web']).",
+            "tags": ["kb", "multi-tenant", "code"]
+        },
+        {
+            "id": "MT-10",
+            "category": "multi_tenant",
+            "question": "Como o KbDriftDetectorCommand respeita multi-tenant?",
+            "ground_truth": "--business-id obrigatório (exit 1 se vazio/inválido), bloqueia biz=4 (ROTA LIVRE prod ADR 0101), findArticleReferences scoped WHERE business_id = $bizId. Pest cross-tenant prova biz=99 com drift NÃO afeta biz=1.",
+            "tags": ["kb", "multi-tenant", "code"]
+        },
+        {
+            "id": "LG-01",
+            "category": "lgpd_compliance",
+            "question": "Qual a retention policy do Modules/Vestuario?",
+            "ground_truth": "Modules/KB/Config/retention.php define janelas de retenção por tipo (logs raw, drafts, versions). Vestuario: vendas históricas 7 anos (CONFAZ SINIEF 07/2005), chat support 2 anos, drafts KB 90 dias.",
+            "tags": ["kb", "lgpd", "vestuario"]
+        },
+        {
+            "id": "LG-02",
+            "category": "lgpd_compliance",
+            "question": "Quando o PiiRedactor é invocado pré-LLM?",
+            "ground_truth": "SEMPRE antes de cada chamada gpt-4o-mini. KbRagService::redactPii reusa Modules\\Jana\\Services\\Privacy\\PiiRedactor. Defense in depth — toda string que vai pra LLM/cache/log passa pelo redactor. Falha do redactor = abort com log ALERT.",
+            "tags": ["kb", "lgpd", "code"]
+        },
+        {
+            "id": "LG-03",
+            "category": "lgpd_compliance",
+            "question": "PIIs (CPF/CNPJ cliente) podem aparecer em PRs/commits/logs?",
+            "ground_truth": "NUNCA. Use [REDACTED] ou PiiRedactor. Skill commit-discipline Tier A + PiiRedactor enforce automático. Catalogado em memory/proibicoes.md §Multi-tenant Tier 0.",
+            "tags": ["kb", "lgpd"]
+        },
+        {
+            "id": "LG-04",
+            "category": "lgpd_compliance",
+            "question": "Qual a base legal LGPD para Jana usar dados do cliente?",
+            "ground_truth": "LGPD Art. 7º — execução de contrato (assinatura ERP) + legítimo interesse (otimização operacional). Dados sensíveis (Art. 5º II) NUNCA processados sem opt-in explícito + AIPD documentada.",
+            "tags": ["kb", "lgpd"]
+        },
+        {
+            "id": "LG-05",
+            "category": "lgpd_compliance",
+            "question": "Onde fica o opt-in LGPD de envio email/WhatsApp ao cliente?",
+            "ground_truth": "Contact::canReceiveEmailNotification() + canReceiveWhatsappNotification(). NULL=permite (back-compat), FALSE=bloqueia + log. Pattern enforced em NotificarClienteCancelamentoJob (ADR 0143 §Notificações).",
+            "tags": ["kb", "lgpd", "code"]
+        },
+        {
+            "id": "LG-06",
+            "category": "lgpd_compliance",
+            "question": "Quem é o DPO formal do oimpresso atualmente?",
+            "ground_truth": "Ninguém formalmente. Eliana (advogada+financeiro, esposa Wagner) considera assumir mas está estudando LGPD primeiro (decisão 2026-05-09). Counsel LGPD externo segue necessário pra Pilares 1-4 oimpresso Insights.",
+            "tags": ["kb", "lgpd", "governance"]
+        },
+        {
+            "id": "LG-07",
+            "category": "lgpd_compliance",
+            "question": "Como o KB lida com direito ao esquecimento LGPD?",
+            "ground_truth": "kb_nodes soft-delete (deleted_at) — append-only kb_node_versions preserva histórico para auditoria. Hard-delete só via job manual approve DPO + log retenção 5 anos (Art. 16 LGPD). Pest LgpdComplianceTest valida.",
+            "tags": ["kb", "lgpd"]
+        },
+        {
+            "id": "LG-08",
+            "category": "lgpd_compliance",
+            "question": "Logs com PII são permitidos no copiloto-ai channel?",
+            "ground_truth": "NUNCA com PII em raw. KbRagService log copiloto-ai já sanitiza via PiiRedactor antes. Pattern enforced em PR review + skill commit-discipline. Violação = revogação merge + ADR follow-up.",
+            "tags": ["kb", "lgpd", "code"]
+        },
+        {
+            "id": "LG-09",
+            "category": "lgpd_compliance",
+            "question": "O KbRagService transmite PII pra SaaS externo (OpenAI)?",
+            "ground_truth": "Não em raw — PiiRedactor sanitiza ANTES. gpt-4o-mini (Brain A ADR 0035) recebe apenas conteúdo redacted. Self-host fallback via Ollama embedder CT 100 quando feasible. Auditoria mcp_audit_log registra cada chamada externa.",
+            "tags": ["kb", "lgpd", "ia-stack"]
+        },
+        {
+            "id": "LG-10",
+            "category": "lgpd_compliance",
+            "question": "Qual Pest valida LGPD compliance no KB?",
+            "ground_truth": "Modules/KB/Tests/Feature/LgpdComplianceTest.php — valida PII redact pré-LLM, soft-delete preserva versions append-only, opt-in canReceive* respeitado, log copiloto-ai sem PII raw. Pattern reusável em outros módulos.",
+            "tags": ["kb", "lgpd", "code"]
+        }
+    ]
+}

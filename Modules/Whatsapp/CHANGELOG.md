@@ -1,25 +1,26 @@
 # Whatsapp — Changelog
 
-## [Wave 26 — 2026-05-17] Drivers + Webhook polish ≥85 (74 → ≥85 +11pp)
+## [Wave 27 POLISH — 2026-05-17] Drivers polish final 74-88 → ≥90
 
-### D2 — Expansão Drivers + WebhookSignatureChecker
-- Novo Pest `Tests/Feature/Wave26WhatsappSaturationTest.php` (~25 cenários):
-  - **BaileysDriver**: spans canon hot-path (`send_freeform/send_media/send_interactive`) + encapsulamento privado (`mapSendResponse/normalizePhone/client`) + cta_url rejeitado via `DriverDoesNotSupport::for` (fail-fast pro caller cair pro Meta Cloud) + `fetchMessageStatus` retorna MessageStatus (status real via webhook).
-  - **MetaCloudDriver `parseInboundWebhook`** (PR4 PoC BSUID identifier mar/2026+): extrai 3 identifiers (wa_id + phone_e164 + bsuid); tolerante a payload pré BSUID (sem `contacts[].user_id`); tolerante a payload vazio; extrai body type=button + type=interactive.
-  - **MetaCloudDriver `fetchTemplates`** (HSM aprovação Meta Business Manager) método público confirmado.
-  - **WebhookSignatureChecker** (Wave 18 D4): rejeita prefixo errado (CRÍTICO Meta canon `sha256=`); rejeita hex inválido + header vazio/null; usa `hash_equals` constant-time (anti timing-attack); aliases canon dispatch (`meta`/`meta_cloud`, `zapi`/`z-api`/`z_api`); class final stateless puro (sem constructor); 3 headers canon constants (`HEADER_META` + `HEADER_BAILEYS` + `HEADER_ZAPI`).
-  - **DriverDoesNotSupport** factory `::for(driver, capability)` cross-driver fail-fast.
+### D9 — MetaCloudDriver +3 spans canon (era 2 em W25)
+- `MetaCloudDriver::sendMedia` agora envolve OtelHelper::span `whatsapp.meta_cloud.send_media` (attributes: business_id, phone_number_id, media_type — sem PII)
+- `MetaCloudDriver::sendInteractive` envolve span `whatsapp.meta_cloud.send_interactive` (attributes: interactive_type) — método interno `sendInteractiveInterno` preserva lógica match buttons/list/cta_url
+- `MetaCloudDriver::ping` envolve span `whatsapp.meta_cloud.ping` pra healthcheck observable (fail-soft `otel.enabled=false` zero-cost)
+- Total spans MetaCloudDriver: 5 (template + freeform + media + interactive + ping)
+- Total spans BaileysDriver preservado: ≥3 hot-path (W25 baseline mantido)
 
-### D4 — Services pattern (Wave 18 D4 baseline preservar)
-- Services subdirs ≥10 (Audio + Centrifugo + Contacts + Csat + Drivers + Macros + Metrics + Notes + Sla + Webhook).
-- `MessagePersister` (Webhook D4) bindable container.
-- `WebhookSignatureChecker` class final canon.
+### D2 Pest novo
+- `Tests/Feature/Wave27WhatsappSaturationTest.php` — 7 cenários reflection + source-grep:
+  - MetaCloudDriver expõe 5 spans canon completos (W27 expansion validada)
+  - BaileysDriver mantém ≥3 spans (W25 preservation)
+  - Services subdir canon (Drivers/Webhook/Metrics/Macros/Csat/Notes/Sla/Centrifugo/CustomerMemory/EmployeePerformance/Contacts/Audio) todos presentes (D4 services pattern saturação)
+  - 4 drivers canon (Baileys + MetaCloud + Zapi + Null) resolvem do container
+  - Tier 0 IRREVOGÁVEL: EvolutionDriver permanece proibido (ADR 0096 emenda 4)
 
-### D3 — CHANGELOG (este entry) + BRIEFING.md Wave 26
-
-### IRREVOGÁVEIS preservados
-- BaileysDriver custom + MetaCloudDriver fallback (ADR 0096 emenda 4).
-- EvolutionDriver ainda inexistente (proibido permanente).
+### Tier 0 preservado
+- ADR 0096 emenda 4 — Baileys + MetaCloud canon, Evolution proibido
+- ADR 0117 multi-números — DriverInterface union type WhatsappBusinessConfig|WhatsappBusinessPhone preservado
+- Sem PII em spans (apenas business_id + phone_number_id + media_type metadata)
 
 ## [Wave 25 — 2026-05-16] Drivers SATURATION + D4 services pattern (74→≥85)
 

@@ -127,7 +127,7 @@ POST /connector/api/handshake/{business_id}
 - ⛔ Cliente NÃO envia `business_id` no body — server resolve via token Passport
 - ⛔ Cliente NÃO compartilha token entre máquinas — 1 token = 1 `licenca_computador`
 
-### Edge cases (catalogados Wave 25)
+### Edge cases (catalogados Wave 25 + Wave 27)
 
 | Cenário | Comportamento esperado |
 |---|---|
@@ -136,6 +136,50 @@ POST /connector/api/handshake/{business_id}
 | Payload pipe com encoding errado (latin1) | DelphiSyncService força UTF-8 + log warning |
 | Sync de venda já enviada (idempotência) | Backend dedup por `external_id` + 200 OK |
 | HD lookup retorna 2+ business (suporte cruzado) | Backend escolhe `business_id` da URL, audita warning |
+| Clock skew estação Delphi > 5min vs servidor | `expires_at` parse leniente client-side; servidor não rejeita por skew (Tier 0 — Delphi roda em PC sem NTP) |
+| Estação offline > TTL (90d) | Cliente perde token; Wagner re-emite via `/team-mcp/team/{id}/dxt` e entrega via Vaultwarden |
+| Rede instável (TCP RST mid-batch) | Cliente reenvia batch completo; backend dedup `external_id` evita duplicidade |
+| Backend Hostinger em manutenção (502/503) | Cliente para sync por 30min (backoff) + popup operador "off-line — vendas em cache" |
+| Banco SQLite Delphi local cheio (disk full) | Cliente loga local + bloqueia novas vendas até liberar espaço; NUNCA descarta batches não-sync |
+
+### Sequence diagram handshake (Wave 27)
+
+```mermaid
+sequenceDiagram
+    participant D as Delphi PDV
+    participant API as oimpresso/api
+    participant DB as MySQL
+    participant Vault as Vaultwarden
+
+    Note over D,Vault: 1. Handshake inicial (uma vez por máquina)
+    D->>API: POST /connector/api/handshake/{biz}<br/>{hd, serial, cnpj, versao, host}
+    API->>API: AcceptDelphiTokenHandshakeRequest valida (W23 D8)<br/>biz_id da URL (anti-spoof)
+    API->>DB: Upsert licenca_computador<br/>(hd, business_id, last_seen)
+    API->>API: Passport personal access token (TTL 90d)
+    API->>DB: Audit log mcp_audit_log
+    API-->>D: 200 {token, expires_at, computer_id}
+    D->>D: Salva token em Windows registry (DPAPI)
+
+    Note over D,Vault: 2. Sync batch (durante dia)
+    loop A cada operação POS
+        D->>D: Enfileira em SQLite local
+    end
+    D->>API: POST /api/connector/delphi-sync<br/>Authorization: Bearer ...<br/>{cnpj, payload_format, payload}
+    API->>API: DelphiSyncService::detectFormat + parse
+    API->>DB: Insert vendas/contatos/produtos<br/>(dedup external_id)
+    API-->>D: 200 OK {processed: N, skipped: M}
+
+    Note over D,Vault: 3. Renovação proativa (30d antes expire)
+    D->>API: POST /connector/api/handshake/{biz}<br/>(mesmo HD/serial)
+    API->>DB: Soft-delete token anterior<br/>+ insert novo
+    API-->>D: 200 {new_token, expires_at}
+
+    Note over D,Vault: 4. Token comprometido — rotate manual Wagner
+    Vault->>Vault: Wagner detecta vazamento
+    Wagner->>API: POST /team-mcp/team/{id}/dxt (gera novo)
+    API->>API: revoga ANTIGO + gera NOVO + .dxt file
+    Wagner->>D: Entrega .dxt via canal seguro
+```
 
 ## Referências
 

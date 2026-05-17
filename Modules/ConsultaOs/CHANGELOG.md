@@ -2,6 +2,7 @@
 
 Formato append-only por wave/PR relevante.
 
+<<<<<<< HEAD
 ## [Wave 28] — 2026-05-17 — SATURATION FINAL functional → ≥92
 
 ### Added
@@ -13,6 +14,31 @@ Formato append-only por wave/PR relevante.
 - Sub-dimensoes alvo Wave 28: D2 (+3 = portal público defesa em camadas — throttle + FormRequest + Repository contract) + D9 (+1 = catalog cobertura confirmação 2 spans + audit log Controller).
 - Tier 0 ADR 0093 §"Exceção repo-wide" preservado — portal público sem `business_id` (cliente externo sem sessão). US-CONSULTA-001 quando ativar busca real DEVE resolver `business_id` via lookup protocolo + rate-limit IP (Repository injection contract estável já garante isso — só muda implementação `binding` no Provider).
 - Pattern alinhado com Wave 26 (SQLite-friendly source-level + reflexão + zero hit prod).
+=======
+## [Wave 27] — 2026-05-17 — POLISH final → ≥88
+
+### Added
+
+- `Tests/Feature/Wave27PolishTest.php` — 18 cenarios cobrindo:
+  - D9.A Repository span OTel `consultaos.repository.lookup` (defesa em profundidade)
+  - D5.A README portal publico completo (jornada feliz + filtro estagio + feedback + observabilidade — 10+ passos)
+  - D8.A `ConsultaPorEstagioRequest` (4 cenarios — estagio in: lista + paginacao max + authorize)
+  - D8.B `FeedbackPublicoRequest` (5 cenarios — numero_os + nota 1-5 + comentario + PiiRedactor doc)
+- `Http/Requests/ConsultaPorEstagioRequest.php` — D8.A FormRequest scaffold US-CONSULTA-002 (lista OS por estagio). Validacao `estagio` em lista controlada + paginacao max 50/pag + por_pagina max 20 (anti-scraping).
+- `Http/Requests/FeedbackPublicoRequest.php` — D8.B FormRequest scaffold US-CONSULTA-002 (feedback NPS-like). `numero_os` alpha_num + nota 1-5 + comentario nullable max:500 + PiiRedactor wraps documentado.
+
+### Changed
+
+- `Repositories/MockConsultaOsRepository.php` — D9.A adicionado `OtelHelper::span('consultaos.repository.lookup')` envolvendo `buscarPorNumero()`. Isolamento de latencia da fonte de dados — quando RepairConsultaOsRepository entrar (US-CONSULTA-001), span ja existe pra observabilidade SQL real.
+- `README.md` — D5.A expandido "Como cliente usa portal publico completo": 4 secoes (Jornada feliz + Filtro estagio + Feedback + Operacao timeline) + secao Observabilidade defesa em profundidade (4 layers).
+
+### Notes
+
+- Sub-dimensoes alvo Wave 27: D9 (+2 = Repository span canon + defesa em profundidade duas layers — Service + Repository), D5 (+2 = README portal publico canonico 4 secoes), D8 (+2 = 2 FormRequests scaffold US-CONSULTA-002 ready).
+- Tier 0 IRREVOGAVEL: rota publica mantida sem business_id scope (cliente externo sem sessao); FormRequests scaffolds documentam onde Repository real resolveria biz via numero_os/telefone lookup.
+- Defesa em profundidade observabilidade: 4 layers spans canonicos (Repository → Service → Controller audit log → Health probes).
+- bucket governance v4 mantido `functional_horizontal` em module.json.
+>>>>>>> origin/main
 
 ## [Wave 25] — 2026-05-16 — SATURATION functional → ≥85
 

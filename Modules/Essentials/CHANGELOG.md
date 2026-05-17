@@ -2,6 +2,42 @@
 
 > HRM + essenciais (Documents/Reminders/ToDo/KnowledgeBase/Holidays/Leaves/Payroll/Shifts) sobre UltimatePOS legacy.
 
+## [Wave 27 — Polish final ≥90] — 2026-05-17
+
+### Adicionado — D7 LogsActivity SATURATION em 4 Models RH sensíveis
+- `EssentialsAttendance` — LogsActivity (marcação ponto CLT Art. 74 §3 = registro fiscal)
+  - logOnly: user_id, business_id, essentials_shift_id, clock_in_time, clock_out_time
+  - Skip: ip_address, clock_in_note (campos livres podem ter PII)
+  - useLogName: `essentials.attendance`
+- `EssentialsAllowanceAndDeduction` — LogsActivity (folha de pagamento PII forte)
+  - logOnly: business_id, description, type, amount, amount_type, applicable_date
+  - useLogName: `essentials.allowance_deduction`
+- `PayrollGroup` — LogsActivity (grupo folha — referência fiscal CLT Art. 11)
+  - logOnly: business_id, name, location_id, payroll_for, status
+  - useLogName: `essentials.payroll_group`
+- `Shift` — LogsActivity (escala de jornada CLT Art. 74)
+  - logOnly: business_id, name, type, start_time, end_time, auto_clockout
+  - Skip: holidays (array gigante polui audit_log)
+  - useLogName: `essentials.shift`
+
+### Pattern aplicado (canon LogsActivity Spatie)
+- `logOnlyDirty` + `dontSubmitEmptyLogs` → anti-spam em activity_log
+- `useLogName` per-entity → filtro fácil no UI activity_log + retention por entidade
+- Skip de campos sensíveis livres (notes, message, holidays array) → minimização LGPD
+
+### Saturação Pest
+- `Modules/Essentials/Tests/Feature/Wave27PolishTest.php` (7 specs × dataset 5 = 17 assertions+):
+  - 4 Models W27 + EssentialsMessage (W18 sentinel) com LogsActivity validado
+  - getActivitylogOptions retorna LogOptions com useLogName correto per-entity
+  - logOnlyDirty + dontSubmitEmptyLogs preservados (anti-spam)
+  - D9 spans sentinel: TodoService/LeaveAuditService/ReminderAuditService preservados
+  - D1 multi-tenant lock-in: 7+ HasBusinessScope + 6+ BelongsToBusinessViaParent (W18 SATURATION)
+
+### Refs
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL
+- ADR 0094 §4 Constituição v2 (Custo IA + audit trail)
+- ADR 0155 Module Grade v3 + ADR 0159 Errata meta 97 realismo
+
 ## [Wave 25 — Polish D6.a saturation] — 2026-05-16
 
 ### Adicionado — D6.a Inertia::defer (+5 Controllers)
