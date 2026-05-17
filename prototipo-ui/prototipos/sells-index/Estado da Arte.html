@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Estado da Arte · Mockups · Oimpresso ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.98 0.005 80);
+    --surface: #fff;
+    --text: oklch(0.20 0.01 80);
+    --text-dim: oklch(0.40 0.01 80);
+    --text-mute: oklch(0.55 0.01 80);
+    --border: oklch(0.92 0.005 80);
+    --border-2: oklch(0.95 0.005 80);
+    --accent: oklch(0.58 0.12 220);
+    --ok: oklch(0.55 0.13 145);
+    --warn: oklch(0.62 0.13 70);
+    --bad: oklch(0.55 0.18 25);
+    --emerald: oklch(0.55 0.13 145);
+    --emerald-soft: oklch(0.94 0.05 145);
+    --rose: oklch(0.55 0.18 25);
+    --rose-soft: oklch(0.95 0.05 25);
+    --amber: oklch(0.62 0.13 70);
+    --amber-soft: oklch(0.95 0.06 70);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; background: var(--bg);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    color: var(--text); font-size: 13px; line-height: 1.5;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 40px 32px 80px; }
+
+  /* HEADER */
+  .doc-h { margin-bottom: 48px; }
+  .doc-h .meta {
+    display: flex; gap: 12px; align-items: center;
+    color: var(--text-mute);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .doc-h .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .doc-h .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-mute); font-weight: 500; }
+  .doc-h h1 { margin: 6px 0 12px; font-size: 38px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+  .doc-h p { margin: 0; font-size: 15px; color: var(--text-dim); max-width: 720px; }
+
+  /* SCREEN MOCKUP CARD */
+  .screen {
+    margin-bottom: 56px;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .screen-h {
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 14px;
+    background: oklch(0.97 0.005 80);
+    border-bottom: 1px solid var(--border);
+  }
+  .screen-h .num {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--text); color: var(--surface);
+    display: grid; place-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 700;
+  }
+  .screen-h h2 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .screen-h .what { margin-left: auto; font-size: 11px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .mockup {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ====== Generic mockup chrome ====== */
+  .m-hero {
+    padding: 22px 28px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .m-hero h3 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.015em; }
+  .m-hero .breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); }
+  .m-hero .ctas { margin-left: auto; display: flex; gap: 6px; }
+
+  .btn {
+    height: 28px; padding: 0 12px; border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    font-family: inherit; font-size: 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn.primary { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
+
+  /* ────────── FINANCEIRO MOCKUP ────────── */
+  .fin-hero-strip {
+    margin: 16px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr;
+  }
+  .fin-hero-strip > div { padding: 14px 18px; border-right: 1px solid var(--border); min-width: 0; }
+  .fin-hero-strip > div:last-child { border-right: none; }
+  .fin-hero-strip .hero-card {
+    background: linear-gradient(135deg, oklch(0.18 0.01 80), oklch(0.24 0.012 80));
+    color: oklch(0.94 0.01 80);
+    border-right-color: oklch(0.24 0.012 80);
+  }
+  .fin-hero-strip .hero-card small,
+  .fin-hero-strip > div small { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-mute); font-weight: 600; display: block; margin-bottom: 4px; }
+  .fin-hero-strip .hero-card small { color: oklch(0.65 0.01 80); }
+  .fin-hero-strip > div b { display: block; font-size: 19px; font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; font-weight: 600; line-height: 1.1; }
+  .fin-hero-strip .hero-card b { color: var(--surface); font-size: 22px; }
+  .fin-hero-strip > div .sub { font-size: 10.5px; color: var(--text-mute); margin-top: 3px; }
+  .fin-hero-strip .hero-card .sub { color: oklch(0.62 0.01 80); }
+  .fin-hero-strip > div .delta { font-size: 10.5px; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .fin-hero-strip > div .delta.up { color: var(--emerald); }
+  .fin-hero-strip > div .delta.down { color: var(--rose); }
+
+  /* Sparkline inline no hero card */
+  .sparkline {
+    margin-top: 8px;
+    height: 36px;
+    background: linear-gradient(180deg, oklch(0.30 0.01 80) 0%, transparent 100%);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sparkline svg { width: 100%; height: 100%; display: block; }
+
+  /* Ageing row */
+  .fin-ageing {
+    margin: 12px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px;
+    display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center;
+  }
+  .fin-ageing .label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; white-space: nowrap; }
+  .fin-ageing .label b { display: block; color: var(--text); font-size: 17px; font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-weight: 600; margin-top: 2px; }
+  .fin-ageing .bar {
+    display: flex; height: 28px;
+    border-radius: 6px; overflow: hidden;
+    background: var(--border-2);
+  }
+  .fin-ageing .seg { display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: white; font-weight: 600; min-width: 0; padding: 0 6px; }
+  .fin-ageing .seg.s1 { background: oklch(0.50 0.13 145); }
+  .fin-ageing .seg.s2 { background: oklch(0.62 0.13 70); }
+  .fin-ageing .seg.s3 { background: oklch(0.60 0.16 30); }
+  .fin-ageing .seg.s4 { background: oklch(0.50 0.18 25); }
+
+  /* Calendar week strip */
+  .fin-cal {
+    margin: 12px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .fin-cal-h {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .fin-cal-h b { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text); }
+  .fin-cal-h small { font-size: 11px; color: var(--text-mute); }
+  .fin-cal-row {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+  }
+  .fin-cal-day {
+    padding: 8px 10px; border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border-2);
+    min-height: 64px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .fin-cal-day.today { border-color: var(--text); background: oklch(0.97 0.005 80); }
+  .fin-cal-day.weekend { background: oklch(0.99 0.003 80); opacity: 0.7; }
+  .fin-cal-day .d { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-mute); }
+  .fin-cal-day.today .d { color: var(--text); font-weight: 700; }
+  .fin-cal-day .v { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600; color: var(--text); }
+  .fin-cal-day .v.in { color: var(--emerald); }
+  .fin-cal-day .v.out { color: var(--rose); }
+  .fin-cal-day .dots { display: flex; gap: 2px; margin-top: auto; }
+  .fin-cal-day .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .fin-cal-day .dot.in { background: var(--emerald); }
+  .fin-cal-day .dot.out { background: var(--rose); }
+
+  /* AI insight callout */
+  .fin-insight {
+    margin: 12px 24px 16px;
+    padding: 12px 16px;
+    background: oklch(0.97 0.015 220);
+    border: 1px solid oklch(0.90 0.04 220);
+    border-radius: 10px;
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 12.5px; color: oklch(0.32 0.08 220);
+  }
+  .fin-insight b { color: oklch(0.30 0.10 220); }
+
+  /* ────────── BOLETOS MOCKUP ────────── */
+  .bol-funnel {
+    margin: 16px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .bol-funnel-h { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 12px; }
+  .bol-funnel-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; align-items: stretch; }
+  .bol-funnel-step {
+    background: var(--bg);
+    border: 1px solid var(--border-2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .bol-funnel-step .l { font-size: 10.5px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.04em; }
+  .bol-funnel-step .v { font-size: 19px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; margin-top: 2px; }
+  .bol-funnel-step .vv { font-size: 10.5px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+  .bol-funnel-step.active { background: oklch(0.97 0.025 220); border-color: oklch(0.90 0.05 220); }
+  .bol-funnel-step.alert { background: var(--rose-soft); border-color: oklch(0.86 0.08 25); }
+  .bol-funnel-step.alert .v { color: var(--rose); }
+  .bol-funnel-step.alert .l { color: oklch(0.42 0.13 20); }
+
+  /* Boletos table */
+  .bol-table {
+    margin: 12px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .bol-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .bol-table thead th {
+    background: var(--bg); padding: 9px 14px; text-align: left;
+    font-size: 9.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-mute);
+    border-bottom: 1px solid var(--border);
+  }
+  .bol-table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border-2); vertical-align: middle; }
+  .bol-table tbody tr:last-child td { border-bottom: none; }
+  .bol-table tbody tr:hover td { background: var(--bg); }
+  .bol-table b { font-size: 12.5px; font-weight: 600; }
+  .bol-table small { display: block; font-size: 10.5px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
+  .bol-table .num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; text-align: right; }
+
+  /* Timeline pills inline na linha do boleto */
+  .bol-timeline { display: flex; align-items: center; gap: 3px; }
+  .bol-tl {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--border);
+    position: relative;
+  }
+  .bol-tl.done { background: var(--emerald); }
+  .bol-tl.now { background: var(--accent); box-shadow: 0 0 0 3px oklch(0.94 0.05 220); }
+  .bol-tl.late { background: var(--rose); }
+  .bol-tl::after {
+    content: ""; position: absolute; top: 50%; left: 100%;
+    width: 6px; height: 1.5px; background: var(--border-2);
+    transform: translateY(-50%);
+  }
+  .bol-tl:last-child::after { display: none; }
+
+  /* Inline CTAs that appear on hover */
+  .bol-ctas { display: flex; gap: 4px; opacity: 0.5; }
+  .bol-ctas .btn { height: 24px; padding: 0 8px; font-size: 10.5px; }
+  tr:hover .bol-ctas { opacity: 1; }
+
+  /* Score dot */
+  .score-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    display: inline-block; margin-right: 4px;
+  }
+  .score-dot.green { background: var(--emerald); }
+  .score-dot.yellow { background: var(--amber); }
+  .score-dot.red { background: var(--rose); }
+
+  /* ────────── OS MOCKUP (mini-stepper inline) ────────── */
+  .os-stepper { display: flex; gap: 4px; align-items: center; }
+  .os-stepper .s {
+    width: 22px; height: 6px; border-radius: 3px;
+    background: var(--border);
+  }
+  .os-stepper .s.done { background: var(--text-dim); }
+  .os-stepper .s.cur { background: var(--accent); }
+  .os-stepper .label {
+    margin-left: 6px; font-size: 11px; color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  .os-table {
+    margin: 16px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .os-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .os-table thead th {
+    background: var(--bg); padding: 9px 14px; text-align: left;
+    font-size: 9.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-mute);
+    border-bottom: 1px solid var(--border);
+  }
+  .os-table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border-2); vertical-align: middle; }
+  .os-table tbody tr:last-child td { border-bottom: none; }
+  .os-table tbody tr:hover td { background: var(--bg); }
+
+  .os-urgent { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--rose); margin-right: 4px; vertical-align: 2px; }
+
+  .av { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 10px; font-weight: 600; color: white; }
+  .av.a { background: oklch(0.55 0.12 200); }
+  .av.b { background: oklch(0.55 0.12 30); }
+  .av.c { background: oklch(0.55 0.12 145); }
+  .av.d { background: oklch(0.55 0.12 295); }
+  .av.e { background: oklch(0.55 0.12 60); }
+
+  /* ────────── OFICINA MOCKUP ────────── */
+  .ofc-kanban {
+    margin: 16px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .ofc-col {
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px;
+    min-height: 240px;
+  }
+  .ofc-col-h {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 10px;
+  }
+  .ofc-col-h .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .ofc-col-h h4 { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ofc-col-h .n { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-mute); background: var(--border-2); padding: 1px 6px; border-radius: 99px; }
+  .ofc-col.diag .dot { background: oklch(0.55 0.16 270); }
+  .ofc-col.exec .dot { background: oklch(0.58 0.13 155); }
+  .ofc-col.pron .dot { background: oklch(0.62 0.14 145); }
+
+  .ofc-card {
+    background: var(--bg);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .ofc-card.urgent { border-color: oklch(0.85 0.08 25); }
+  .ofc-card.urgent::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--rose); border-radius: 8px 8px 0 0;
+  }
+
+  .ofc-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .ofc-veh {
+    width: 48px; height: 36px; border-radius: 4px;
+    background: linear-gradient(135deg, oklch(0.85 0.02 80), oklch(0.78 0.02 80));
+    display: grid; place-items: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 8.5px;
+    color: oklch(0.42 0.02 80); font-weight: 600;
+    border: 1px solid var(--border);
+  }
+  .ofc-plate {
+    display: inline-flex; flex-direction: column; align-items: stretch;
+    border: 1.5px solid oklch(0.30 0.01 240);
+    border-radius: 3px; overflow: hidden;
+    font-family: 'IBM Plex Mono', monospace; line-height: 1;
+    background: white;
+    min-width: 70px;
+  }
+  .ofc-plate .top { background: oklch(0.45 0.13 250); color: white; font-size: 6.5px; letter-spacing: 0.1em; text-align: center; padding: 1px 0; font-weight: 600; }
+  .ofc-plate .num { padding: 2px 4px; font-size: 11px; font-weight: 700; text-align: center; color: oklch(0.20 0.01 240); }
+
+  .ofc-card-meta { flex: 1; min-width: 0; }
+  .ofc-card-meta b { display: block; font-size: 11.5px; font-weight: 500; }
+  .ofc-card-meta small { display: block; font-size: 10px; color: var(--text-mute); }
+
+  .ofc-card-sym { font-size: 11px; color: var(--text-dim); line-height: 1.4; margin: 4px 0; }
+  .ofc-card-foot { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 10px; color: var(--text-mute); }
+  .ofc-mech-av { width: 18px; height: 18px; border-radius: 50%; background: oklch(0.85 0.02 250); color: oklch(0.30 0.06 250); display: inline-grid; place-items: center; font-size: 9px; font-weight: 600; }
+
+  .ofc-timer {
+    margin-left: auto;
+    background: var(--ok); color: white;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+    padding: 1px 6px; border-radius: 3px; font-weight: 600;
+  }
+  .ofc-timer.late { background: var(--rose); }
+
+  /* Linha de produtividade do dia */
+  .ofc-prod {
+    margin: 16px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px;
+    display: flex; gap: 20px; align-items: center;
+  }
+  .ofc-prod .seg {
+    flex: 1; display: flex; flex-direction: column; gap: 4px;
+  }
+  .ofc-prod .seg .l { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; }
+  .ofc-prod .seg .v { font-size: 18px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .ofc-prod .seg .b { height: 4px; background: var(--border-2); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .ofc-prod .seg .b > div { height: 100%; }
+  .ofc-prod .seg.recep .b > div { background: oklch(0.55 0.02 250); }
+  .ofc-prod .seg.exec .b > div { background: var(--ok); }
+  .ofc-prod .seg.urg .b > div { background: var(--rose); }
+  .ofc-prod .seg.pron .b > div { background: var(--accent); }
+
+  /* ────────── COMPRAS MOCKUP ────────── */
+  .cmp-ageing {
+    margin: 16px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 20px;
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px;
+  }
+  .cmp-ageing-l b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 6px; }
+  .cmp-ageing-l .total { font-size: 24px; font-family: 'IBM Plex Mono', monospace; font-weight: 700; color: oklch(0.40 0.13 30); }
+  .cmp-ageing-l .total small { font-size: 13px; color: var(--text-mute); font-weight: 500; }
+  .cmp-ageing-l .bar { margin-top: 10px; height: 24px; border-radius: 5px; overflow: hidden; display: flex; background: var(--border-2); }
+  .cmp-ageing-l .bar .s { display: flex; align-items: center; justify-content: center; color: white; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; padding: 0 6px; }
+  .cmp-ageing-l .bar .s1 { background: oklch(0.55 0.13 145); }
+  .cmp-ageing-l .bar .s2 { background: oklch(0.62 0.13 70); }
+  .cmp-ageing-l .bar .s3 { background: oklch(0.55 0.18 25); }
+  .cmp-ageing-l .leg { display: flex; gap: 14px; font-size: 11px; color: var(--text-mute); margin-top: 8px; }
+  .cmp-ageing-l .leg span::before { content: "■"; margin-right: 4px; }
+  .cmp-ageing-l .leg .l1::before { color: oklch(0.55 0.13 145); }
+  .cmp-ageing-l .leg .l2::before { color: oklch(0.62 0.13 70); }
+  .cmp-ageing-l .leg .l3::before { color: oklch(0.55 0.18 25); }
+
+  .cmp-top-sup b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 6px; }
+  .cmp-top-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 5px 0; font-size: 12px; }
+  .cmp-top-row .sup b { color: var(--text); font-size: 11.5px; font-weight: 500; margin-bottom: 0; text-transform: none; letter-spacing: 0; }
+  .cmp-top-row .bar { width: 100%; height: 4px; background: var(--border-2); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+  .cmp-top-row .bar > div { height: 100%; background: oklch(0.40 0.10 30); }
+  .cmp-top-row .v { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 600; }
+
+  /* XML drop zone */
+  .cmp-drop {
+    margin: 16px 24px 16px;
+    border: 2px dashed oklch(0.85 0.05 220);
+    background: oklch(0.98 0.012 220);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex; align-items: center; gap: 12px;
+    color: oklch(0.42 0.10 220);
+    font-size: 13px;
+  }
+  .cmp-drop b { color: oklch(0.30 0.10 220); }
+  .cmp-drop small { color: var(--text-mute); font-size: 11.5px; }
+
+  /* DIFF callouts */
+  .diff-note {
+    background: oklch(0.97 0.013 145);
+    border-left: 3px solid var(--emerald);
+    padding: 10px 14px;
+    margin: 14px 24px 18px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    border-radius: 0 6px 6px 0;
+  }
+  .diff-note b { color: var(--emerald); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-h">
+    <div class="meta">
+      <span class="dot"></span>
+      <span>Estado da Arte · mockups</span>
+      <span>·</span>
+      <span>13 mai 2026</span>
+    </div>
+    <div class="eyebrow">Oimpresso ERP · Volume 3</div>
+    <h1>O que cada tela <em>deveria</em> mostrar</h1>
+    <p>
+      Mockups de referência para cada uma das 5 telas — versão estado-da-arte com tudo que falta
+      visualizado: sparklines, timelines, ageing, funil de cobrança, mini-stepper, fotos de veículo,
+      ageing de fornecedores. Aspirational visual, baseado em Stripe, Asaas, Linear, ServiceTitan, Ramp.
+    </p>
+  </header>
+
+
+  <!-- ═══════════════════ FINANCEIRO ═══════════════════ -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#1</div>
+      <h2>Financeiro · cockpit ao vivo</h2>
+      <div class="what">Stripe Balance + Mercury Cashflow + Conta Azul</div>
+    </div>
+    <div class="mockup">
+
+      <div class="m-hero">
+        <h3>Financeiro</h3>
+        <span class="breadcrumb">Maio 2026 · ROTA LIVRE · Visão unificada</span>
+        <div class="ctas">
+          <button class="btn ghost">⌘K · Buscar</button>
+          <button class="btn">Conciliar</button>
+          <button class="btn primary">+ Lançamento</button>
+        </div>
+      </div>
+
+      <!-- KPI strip COM sparkline embutido -->
+      <div class="fin-hero-strip">
+        <div class="hero-card">
+          <small>Saldo previsto · maio</small>
+          <b>R$ 13.420,80</b>
+          <div class="sub">R$ 8.870 realizado · R$ 4.550 pendente</div>
+          <div class="sparkline">
+            <svg viewBox="0 0 200 36" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="gradA" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="oklch(0.78 0.13 145)" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="oklch(0.78 0.13 145)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,28 L15,24 L30,20 L45,18 L60,16 L75,20 L90,14 L105,18 L120,12 L135,10 L150,14 L165,8 L180,12 L200,6 L200,36 L0,36 Z" fill="url(#gradA)"/>
+              <path d="M0,28 L15,24 L30,20 L45,18 L60,16 L75,20 L90,14 L105,18 L120,12 L135,10 L150,14 L165,8 L180,12 L200,6" stroke="oklch(0.78 0.13 145)" stroke-width="1.5" fill="none"/>
+              <line x1="0" y1="22" x2="200" y2="22" stroke="oklch(0.55 0.01 80)" stroke-width="0.5" stroke-dasharray="2,3" opacity="0.5"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <small>Recebido</small>
+          <b style="color: var(--emerald);">R$ 1.980</b>
+          <div class="delta up">↑ 12% vs abr</div>
+        </div>
+        <div>
+          <small>A receber</small>
+          <b>R$ 15.600</b>
+          <div class="delta down">R$ 7.730 atraso</div>
+        </div>
+        <div>
+          <small>Pago</small>
+          <b style="color: var(--rose);">R$ 10.850</b>
+          <div class="delta up">↑ 8% vs abr</div>
+        </div>
+        <div>
+          <small>A pagar</small>
+          <b>R$ 8.542</b>
+          <div class="sub">10 mai · Suprigraf</div>
+        </div>
+      </div>
+
+      <!-- Ageing horizontal -->
+      <div class="fin-ageing">
+        <div class="label">A receber · ageing<b>R$ 15.600</b></div>
+        <div class="bar">
+          <div class="seg s1" style="flex: 60;">60% · 0-30d</div>
+          <div class="seg s2" style="flex: 22;">22% · 31-60d</div>
+          <div class="seg s3" style="flex: 11;">11% · 61-90d</div>
+          <div class="seg s4" style="flex: 7;">7% · 90+</div>
+        </div>
+      </div>
+
+      <!-- Calendário da semana -->
+      <div class="fin-cal">
+        <div class="fin-cal-h">
+          <b>Semana 19/2026</b>
+          <small>11–17 maio · 4 vencimentos · saldo líquido projetado <b style="color: var(--emerald); font-family: 'IBM Plex Mono', monospace;">+R$ 2.318</b></small>
+        </div>
+        <div class="fin-cal-row">
+          <div class="fin-cal-day"><div class="d">SEG 11</div><div class="v in">+ 1.980</div><div class="dots"><span class="dot in"></span></div></div>
+          <div class="fin-cal-day today"><div class="d">TER 12</div><div class="v out">− 2.450</div><div class="dots"><span class="dot out"></span><span class="dot out"></span></div></div>
+          <div class="fin-cal-day"><div class="d">QUA 13</div><div class="v">—</div><div class="dots"></div></div>
+          <div class="fin-cal-day"><div class="d">QUI 14</div><div class="v out">− 1.180</div><div class="dots"><span class="dot out"></span></div></div>
+          <div class="fin-cal-day"><div class="d">SEX 15</div><div class="v in">+ 2.340</div><div class="dots"><span class="dot in"></span></div></div>
+          <div class="fin-cal-day weekend"><div class="d">SÁB 16</div><div class="v">—</div></div>
+          <div class="fin-cal-day weekend"><div class="d">DOM 17</div><div class="v">—</div></div>
+        </div>
+      </div>
+
+      <div class="fin-insight">
+        <span style="font-size: 14px;">✦</span>
+        <div>
+          <b>Insight automático ·</b> Categoria "Banner" cresceu 22% em maio vs abril. 3 fornecedores (Suprigraf, Tinta Solvent BR, Alphagraf) concentram 64% das saídas — considere negociar prazo.
+        </div>
+      </div>
+
+    </div>
+    <div class="diff-note">
+      <b>Diff vs tela atual ·</b> Adicionado: sparkline no hero card (substitui número chapado), ageing visual,
+      calendário da semana, insight automático no topo. Removido: pílulas Categoria/Contraparte/Conta (vão pra "filtros avançados").
+    </div>
+  </article>
+
+
+  <!-- ═══════════════════ BOLETOS ═══════════════════ -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#2</div>
+      <h2>Boletos · jornada de cobrança</h2>
+      <div class="what">Asaas + Iugu + Stripe Invoices</div>
+    </div>
+    <div class="mockup">
+
+      <div class="m-hero">
+        <h3>Financeiro · Boletos</h3>
+        <span class="breadcrumb">Maio 2026 · ROTA LIVRE · via Inter API</span>
+        <div class="ctas">
+          <button class="btn ghost">⌘K</button>
+          <button class="btn">Remessa CNAB</button>
+          <button class="btn primary">+ Emitir boleto</button>
+        </div>
+      </div>
+
+      <!-- Funil de cobrança -->
+      <div class="bol-funnel">
+        <div class="bol-funnel-h">Funil de cobrança · maio</div>
+        <div class="bol-funnel-row">
+          <div class="bol-funnel-step active">
+            <div class="l">Em aberto</div>
+            <div class="v">14</div>
+            <div class="vv">R$ 18.420</div>
+          </div>
+          <div class="bol-funnel-step">
+            <div class="l">→ Lembrete enviado</div>
+            <div class="v">7</div>
+            <div class="vv">3d antes do vcto</div>
+          </div>
+          <div class="bol-funnel-step">
+            <div class="l">→ Cobrança ativa</div>
+            <div class="v">3</div>
+            <div class="vv">1d após vcto</div>
+          </div>
+          <div class="bol-funnel-step alert">
+            <div class="l">→ Vencidos +5d</div>
+            <div class="v">1</div>
+            <div class="vv">R$ 4.200</div>
+          </div>
+          <div class="bol-funnel-step">
+            <div class="l">→ Protesto</div>
+            <div class="v">0</div>
+            <div class="vv">30d+</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fin-insight" style="margin: 12px 24px 0;">
+        <span style="font-size: 14px;">✦</span>
+        <div>
+          <b>Forecast 7 dias ·</b> Com base no histórico de pontualidade dos clientes, estima-se entrada de
+          <b style="font-family: 'IBM Plex Mono', monospace;">R$ 5.840 ± R$ 720</b>. Padaria Pão Quente atrasou 2/3 últimas → considere lembrar hoje.
+        </div>
+      </div>
+
+      <!-- Tabela de boletos com timeline inline + CTAs hover -->
+      <div class="bol-table" style="margin-top: 16px;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 14px;"></th>
+              <th>Cliente · título</th>
+              <th>Timeline</th>
+              <th>Vencimento</th>
+              <th class="num">Valor</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="score-dot green" title="Pontual"></span></td>
+              <td>
+                <b>Studio Alfa Design</b>
+                <small>TR-9930 · 12.882.441/0001-08</small>
+              </td>
+              <td>
+                <div class="bol-timeline">
+                  <span class="bol-tl done" title="Gerado"></span>
+                  <span class="bol-tl done" title="Registrado"></span>
+                  <span class="bol-tl done" title="Enviado"></span>
+                  <span class="bol-tl now" title="Aguarda pgto"></span>
+                  <span class="bol-tl" title="Pago"></span>
+                </div>
+              </td>
+              <td class="num">18/05/2026<br/><small style="color: var(--ok);">em 5 dias</small></td>
+              <td class="num">R$ 2.480,00</td>
+              <td><div class="bol-ctas"><button class="btn">📞</button><button class="btn">📄</button><button class="btn">🔗</button></div></td>
+            </tr>
+            <tr>
+              <td><span class="score-dot yellow" title="Atrasa 1-3 dias"></span></td>
+              <td>
+                <b>Auto Posto Rota Mor</b>
+                <small>TR-9929 · 08.441.221/0001-12</small>
+              </td>
+              <td>
+                <div class="bol-timeline">
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl now"></span>
+                  <span class="bol-tl"></span>
+                </div>
+              </td>
+              <td class="num">17/05/2026<br/><small style="color: var(--amber);">em 4 dias · lembrete sai amanhã</small></td>
+              <td class="num">R$ 890,00</td>
+              <td><div class="bol-ctas"><button class="btn">📞</button><button class="btn">📄</button><button class="btn">🔗</button></div></td>
+            </tr>
+            <tr>
+              <td><span class="score-dot red" title="Costuma atrasar"></span></td>
+              <td>
+                <b>Padaria Pão Quente LTDA</b>
+                <small>TR-9821 · 12.882.441/0001-08</small>
+              </td>
+              <td>
+                <div class="bol-timeline">
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl late" title="Cobrança ativa"></span>
+                  <span class="bol-tl"></span>
+                </div>
+              </td>
+              <td class="num">10/05/2026<br/><small style="color: var(--rose);">atrasou 3d · cobrar</small></td>
+              <td class="num">R$ 4.200,00</td>
+              <td><div class="bol-ctas"><button class="btn">📞 WhatsApp</button><button class="btn primary">Cobrar</button></div></td>
+            </tr>
+            <tr style="background: var(--emerald-soft);">
+              <td><span class="score-dot green"></span></td>
+              <td>
+                <b>Sapataria Bom Jesus</b>
+                <small>TR-9820 · pago via PIX</small>
+              </td>
+              <td>
+                <div class="bol-timeline">
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done"></span>
+                  <span class="bol-tl done" title="Pago"></span>
+                </div>
+              </td>
+              <td class="num">15/05/2026<br/><small style="color: var(--ok);">pago 12/05 antecipado</small></td>
+              <td class="num"><b style="color: var(--ok);">R$ 1.560,00 ✓</b></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <div class="diff-note">
+      <b>Diff vs tela atual ·</b> Adicionado: funil de cobrança 5 etapas, score por cliente (verde/amarelo/vermelho),
+      timeline inline por boleto (5 bolinhas), CTAs no hover (WhatsApp/PDF/Link), forecast 7 dias.
+      Removido: "Nosso Número" exposto (vai pro hover) · sub-tela Contas & Caixa em rota separada.
+    </div>
+  </article>
+
+
+  <!-- ═══════════════════ OS ═══════════════════ -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#3</div>
+      <h2>Ordens de Serviço · linear-style</h2>
+      <div class="what">Linear Issues + Pipefy Pipes</div>
+    </div>
+    <div class="mockup">
+
+      <div class="m-hero">
+        <h3>Ordens de Serviço</h3>
+        <span class="breadcrumb">3 atrasadas · 16 abertas · 4 entregando hoje</span>
+        <div class="ctas">
+          <button class="btn ghost">⌘K</button>
+          <button class="btn">Saved views ▾</button>
+          <button class="btn primary">+ Nova OS</button>
+        </div>
+      </div>
+
+      <div class="os-table">
+        <table>
+          <thead>
+            <tr>
+              <th>OS</th>
+              <th>Cliente</th>
+              <th>Produto</th>
+              <th>Pipeline</th>
+              <th>Responsável</th>
+              <th>Prazo</th>
+              <th class="num">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="os-urgent"></span><span class="mono">#4821</span></td>
+              <td>
+                <b>Acme Comércio Ltda</b>
+                <small style="display:block;color:var(--text-mute);font-size:10.5px;">Camila Diniz</small>
+              </td>
+              <td>Banner Lona 440g — 3×2m</td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s cur"></div>
+                  <div class="s"></div>
+                  <div class="s"></div>
+                  <span class="label">Produção</span>
+                </div>
+              </td>
+              <td><span class="av a">JL</span> Joana</td>
+              <td class="mono" style="color: var(--rose); font-weight: 600;">hoje 14h</td>
+              <td class="num"><b>R$ 480,00</b></td>
+            </tr>
+            <tr>
+              <td><span class="os-urgent"></span><span class="mono">#4820</span></td>
+              <td>
+                <b>TechPro Equipamentos</b>
+                <small style="display:block;color:var(--text-mute);font-size:10.5px;">Diego Vasconcellos</small>
+              </td>
+              <td>Adesivos recortados 8×8cm — 200un</td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s cur"></div>
+                  <div class="s"></div>
+                  <span class="label">Acabamento</span>
+                </div>
+              </td>
+              <td><span class="av b">FA</span> Felipe</td>
+              <td class="mono" style="color: var(--rose); font-weight: 600;">atrasada 2d</td>
+              <td class="num"><b>R$ 1.840,00</b></td>
+            </tr>
+            <tr>
+              <td><span class="mono">#4819</span></td>
+              <td>
+                <b>Padaria Estrela</b>
+                <small style="display:block;color:var(--text-mute);font-size:10.5px;">Renato Lopes</small>
+              </td>
+              <td>Cardápios A4 frente e verso · 50un</td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s cur"></div>
+                  <span class="label">Aguarda retirada</span>
+                </div>
+              </td>
+              <td><span class="av c">MP</span> Mateus</td>
+              <td class="mono">amanhã 9h</td>
+              <td class="num"><b>R$ 380,00</b></td>
+            </tr>
+            <tr>
+              <td><span class="mono">#4818</span></td>
+              <td>
+                <b>Construtora Vértice</b>
+                <small style="display:block;color:var(--text-mute);font-size:10.5px;">Eduardo Pessoa</small>
+              </td>
+              <td>Placas de obra (8un + suporte)</td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s cur"></div>
+                  <div class="s"></div>
+                  <div class="s"></div>
+                  <div class="s"></div>
+                  <div class="s"></div>
+                  <span class="label">Aprovação</span>
+                </div>
+              </td>
+              <td><span class="av d">BV</span> Bruna</td>
+              <td class="mono">22/05</td>
+              <td class="num"><b>R$ 3.200,00</b></td>
+            </tr>
+            <tr>
+              <td><span class="mono">#4817</span></td>
+              <td>
+                <b>Studio Foco</b>
+                <small style="display:block;color:var(--text-mute);font-size:10.5px;">Marina Tavares</small>
+              </td>
+              <td>Banner 3×1m — show local</td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <span class="label" style="color: var(--ok);">✓ Entregue</span>
+                </div>
+              </td>
+              <td><span class="av e">CR</span> Carla</td>
+              <td class="mono" style="color: var(--text-mute);">04/05</td>
+              <td class="num"><b style="color: var(--ok);">R$ 380,00 ✓</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <div class="diff-note">
+      <b>Diff vs tela atual ·</b> Adicionado: mini-stepper de 6 bolinhas por linha (visual scan instantâneo do pipeline),
+      avatar do responsável colorido, saved views ▾, ⌘K rico no header. Removido: tabs "Recebidas/Pagas" duplicadas,
+      KPI "Total no mês" sem ação.
+    </div>
+  </article>
+
+
+  <!-- ═══════════════════ OFICINA ═══════════════════ -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#4</div>
+      <h2>Oficina Auto · servicetitan-grade</h2>
+      <div class="what">ServiceTitan + Mitchell 1 + Tractian</div>
+    </div>
+    <div class="mockup">
+
+      <div class="m-hero">
+        <h3>Oficina Auto</h3>
+        <span class="breadcrumb">3 urgentes · 5 boxes ocupados · 2 entregando hoje</span>
+        <div class="ctas">
+          <button class="btn ghost">⚙ Foco · etapa</button>
+          <button class="btn">Kanban</button>
+          <button class="btn primary">+ Nova OS</button>
+        </div>
+      </div>
+
+      <!-- Linha de produtividade do dia -->
+      <div class="ofc-prod">
+        <div class="seg recep">
+          <span class="l">Recepção</span>
+          <span class="v">2</span>
+          <div class="b"><div style="width: 25%"></div></div>
+        </div>
+        <div class="seg exec">
+          <span class="l">Em execução</span>
+          <span class="v">5 / 5</span>
+          <div class="b"><div style="width: 100%"></div></div>
+        </div>
+        <div class="seg urg">
+          <span class="l">Urgentes</span>
+          <span class="v" style="color: var(--rose);">3</span>
+          <div class="b"><div style="width: 60%"></div></div>
+        </div>
+        <div class="seg pron">
+          <span class="l">Entregando hoje</span>
+          <span class="v">2</span>
+          <div class="b"><div style="width: 40%"></div></div>
+        </div>
+        <div style="margin-left: auto; text-align: right;">
+          <small style="display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute);font-weight:600;">Faturamento previsto</small>
+          <b style="font-size: 22px; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">R$ 10.550</b>
+        </div>
+      </div>
+
+      <!-- Kanban com fotos -->
+      <div class="ofc-kanban">
+
+        <div class="ofc-col diag">
+          <div class="ofc-col-h"><span class="dot"></span><h4>Diagnóstico</h4><span class="n">2</span></div>
+
+          <div class="ofc-card urgent">
+            <div class="ofc-card-top">
+              <div class="ofc-veh">📷 FRT</div>
+              <div class="ofc-card-meta">
+                <b>Fiat Strada 2022</b>
+                <small>31.580 km</small>
+              </div>
+              <span class="ofc-timer late">T-2h</span>
+            </div>
+            <div class="ofc-plate"><div class="top">BR · MERCOSUL</div><div class="num">QXM-1B33</div></div>
+            <p class="ofc-card-sym">Luz de injeção acendendo intermitente</p>
+            <div class="ofc-card-foot">
+              <span class="ofc-mech-av">PS</span>
+              <span>Pedro · ETA 30 min</span>
+              <span style="margin-left:auto; color: var(--rose); font-weight: 600;">hoje 18h</span>
+            </div>
+          </div>
+
+          <div class="ofc-card">
+            <div class="ofc-card-top">
+              <div class="ofc-veh">📷 PNL</div>
+              <div class="ofc-card-meta">
+                <b>Ford Ka 2018</b>
+                <small>108.900 km</small>
+              </div>
+              <span class="ofc-timer">1h 20m</span>
+            </div>
+            <div class="ofc-plate"><div class="top">BR · MERCOSUL</div><div class="num">GHS-8E22</div></div>
+            <p class="ofc-card-sym">Embreagem patinando em rampa</p>
+            <div class="ofc-card-foot">
+              <span class="ofc-mech-av">DA</span>
+              <span>Diego · 70%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ofc-col exec">
+          <div class="ofc-col-h"><span class="dot"></span><h4>Em execução</h4><span class="n">3</span></div>
+
+          <div class="ofc-card urgent">
+            <div class="ofc-card-top">
+              <div class="ofc-veh">📷 CRR</div>
+              <div class="ofc-card-meta">
+                <b>Hyundai HB20</b>
+                <small>76.400 km</small>
+              </div>
+              <span class="ofc-timer late">T-1h</span>
+            </div>
+            <div class="ofc-plate"><div class="top">BR · MERCOSUL</div><div class="num">PLT-2C18</div></div>
+            <p class="ofc-card-sym">Substituição correia dentada</p>
+            <div class="ofc-card-foot">
+              <span class="ofc-mech-av">JL</span>
+              <span>João · ETA 2h 40m · ELEV 2</span>
+            </div>
+          </div>
+
+          <div class="ofc-card">
+            <div class="ofc-card-top">
+              <div class="ofc-veh">📷 PNU</div>
+              <div class="ofc-card-meta">
+                <b>Jeep Renegade</b>
+                <small>42.110 km</small>
+              </div>
+              <span class="ofc-timer">1h 10m</span>
+            </div>
+            <div class="ofc-plate"><div class="top">BR · MERCOSUL</div><div class="num">BCY-9G07</div></div>
+            <p class="ofc-card-sym">Alinhamento + balanceamento + pneus</p>
+            <div class="ofc-card-foot">
+              <span class="ofc-mech-av">CR</span>
+              <span>Carlos · 60% · BOX 1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ofc-col pron">
+          <div class="ofc-col-h"><span class="dot"></span><h4>Pronto p/ retirar</h4><span class="n">2</span></div>
+
+          <div class="ofc-card">
+            <div class="ofc-card-top">
+              <div class="ofc-veh">📷 RVS</div>
+              <div class="ofc-card-meta">
+                <b>Nissan Versa</b>
+                <small>55.300 km</small>
+              </div>
+            </div>
+            <div class="ofc-plate"><div class="top">BR · MERCOSUL</div><div class="num">VRP-5K27</div></div>
+            <p class="ofc-card-sym">Revisão 50.000 km</p>
+            <div class="ofc-card-foot">
+              <span style="color: var(--amber); font-weight: 600;">Aguarda pgto · R$ 780</span>
+              <span style="margin-left:auto;">Helena B.</span>
+            </div>
+          </div>
+
+          <div class="ofc-card">
+            <div class="ofc-card-top">
+              <div class="ofc-veh">📷 BAT</div>
+              <div class="ofc-card-meta">
+                <b>Fiat Mobi 2019</b>
+                <small>89.100 km</small>
+              </div>
+            </div>
+            <div class="ofc-plate"><div class="top">BR · MERCOSUL</div><div class="num">WBL-3D88</div></div>
+            <p class="ofc-card-sym">Bateria + alternador</p>
+            <div class="ofc-card-foot">
+              <span style="color: var(--ok); font-weight: 600;">✓ Pago · R$ 1.020</span>
+              <span style="margin-left:auto;">Tiago R.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    <div class="diff-note">
+      <b>Diff vs tela atual ·</b> Adicionado: linha de produtividade do dia (recep/exec/urg/pron + faturamento),
+      mini-foto do veículo no card, timer ao vivo (verde se OK, vermelho se atrasou estimativa), avatar do mecânico em todo card.
+      Removido: toolbar de tweaks (vai pra ícone ⚙), filtros por box em pílulas (dropdown).
+    </div>
+  </article>
+
+
+  <!-- ═══════════════════ COMPRAS ═══════════════════ -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#5</div>
+      <h2>Compras · ramp + ariba</h2>
+      <div class="what">Ramp Bill Pay + SAP Ariba + Nibo</div>
+    </div>
+    <div class="mockup">
+
+      <div class="m-hero">
+        <h3>Compras</h3>
+        <span class="breadcrumb">7 compras · R$ 14.221 a pagar · 1 em trânsito</span>
+        <div class="ctas">
+          <button class="btn ghost">⌘K</button>
+          <button class="btn">Manifestar lote</button>
+          <button class="btn primary">+ Nova compra</button>
+        </div>
+      </div>
+
+      <!-- Ageing + top fornecedores -->
+      <div class="cmp-ageing">
+        <div class="cmp-ageing-l">
+          <b>A pagar · ageing por vencimento</b>
+          <div class="total">R$ 14.221 <small>· 3 compras em aberto</small></div>
+          <div class="bar">
+            <div class="s s1" style="flex: 40;">40% · 0-7d</div>
+            <div class="s s2" style="flex: 35;">35% · 8-30d</div>
+            <div class="s s3" style="flex: 25;">25% · 31-60d</div>
+          </div>
+          <div class="leg">
+            <span class="l1">R$ 5.689 esta semana</span>
+            <span class="l2">R$ 4.977 este mês</span>
+            <span class="l3">R$ 3.555 atrasa</span>
+          </div>
+        </div>
+        <div class="cmp-top-sup">
+          <b>Top 5 fornecedores · spend mês</b>
+          <div class="cmp-top-row">
+            <div class="sup"><b>Lonas & Vinis Ltda</b><div class="bar"><div style="width: 92%"></div></div></div>
+            <span class="v">R$ 14.040</span>
+          </div>
+          <div class="cmp-top-row">
+            <div class="sup"><b>Tintas Coral</b><div class="bar"><div style="width: 38%"></div></div></div>
+            <span class="v">R$ 5.100</span>
+          </div>
+          <div class="cmp-top-row">
+            <div class="sup"><b>Importadora Têxtil RH</b><div class="bar"><div style="width: 80%"></div></div></div>
+            <span class="v">R$ 12.450</span>
+          </div>
+          <div class="cmp-top-row">
+            <div class="sup"><b>Papel & Cia Atacado</b><div class="bar"><div style="width: 12%"></div></div></div>
+            <span class="v">R$ 1.180</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drop XML inline -->
+      <div class="cmp-drop">
+        <span style="font-size: 28px;">⊞</span>
+        <div style="flex: 1;">
+          <b>Arraste o XML da NF-e aqui</b>
+          <small>Match automático de fornecedor · sugestão de centro de custo · 3-way match com PO se houver</small>
+        </div>
+        <button class="btn primary">Selecionar arquivo</button>
+      </div>
+
+      <!-- Tabela compacta -->
+      <div class="bol-table" style="margin: 0 24px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Compra · NF-e</th>
+              <th>Fornecedor</th>
+              <th>Estágio</th>
+              <th>Vencimento</th>
+              <th class="num">A pagar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <b>COMP-2847</b>
+                <small>NF-e 4521 · SEFAZ 100 ✓</small>
+              </td>
+              <td><b>Lonas & Vinis</b><small>SP · histórico 87% pontual</small></td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s cur"></div>
+                  <div class="s"></div>
+                  <div class="s"></div>
+                  <span class="label">Recebido</span>
+                </div>
+              </td>
+              <td><b style="font-family: 'IBM Plex Mono', monospace; color: var(--rose);">amanhã</b><br/><small style="font-size: 10.5px; color: var(--text-mute);">14/05/2026</small></td>
+              <td class="num"><b style="color: var(--rose);">R$ 8.420,00</b></td>
+            </tr>
+            <tr>
+              <td>
+                <b>COMP-2846</b>
+                <small style="color: var(--ok);">NF-e 0998 · pago via PIX</small>
+              </td>
+              <td><b>Tintas Coral</b><small>Guarulhos · 100% pontual</small></td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <span class="label" style="color: var(--ok);">✓ Pago</span>
+                </div>
+              </td>
+              <td><small style="color: var(--text-mute);">07/05 quitado</small></td>
+              <td class="num"><b style="color: var(--ok);">R$ 3.240,00 ✓</b></td>
+            </tr>
+            <tr>
+              <td>
+                <b>COMP-2844</b>
+                <small style="color: var(--amber);">NF-e 0234 · em trânsito</small>
+              </td>
+              <td><b>Lonas & Vinis</b><small>previsão chegada 09/05</small></td>
+              <td>
+                <div class="os-stepper">
+                  <div class="s done"></div>
+                  <div class="s done"></div>
+                  <div class="s cur"></div>
+                  <div class="s"></div>
+                  <div class="s"></div>
+                  <div class="s"></div>
+                  <span class="label">Em trânsito</span>
+                </div>
+              </td>
+              <td><b style="font-family: 'IBM Plex Mono', monospace;">30/60</b><br/><small style="font-size: 10.5px; color: var(--text-mute);">prazo dividido</small></td>
+              <td class="num"><b>R$ 4.620,80</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <div class="diff-note">
+      <b>Diff vs tela atual ·</b> Adicionado: ageing horizontal por vencimento, top 5 fornecedores com spend bar,
+      drop XML inline (ato principal do dia), mini-stepper FSM compacto na lista, histórico de pontualidade do fornecedor.
+      Removido: 4 KPIs retangulares (comprimido em 2 widgets ricos), coluna NF-e ✓/— (status SEFAZ no nome),
+      tab "Cancelados" (dropdown), footer KPI duplicado.
+    </div>
+  </article>
+
+
+  <p style="margin-top: 32px; padding: 18px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 12.5px; color: var(--text-dim);">
+    <b style="color: var(--text);">Nota técnica ·</b> Estes mockups são designs de referência (HTML/CSS estáticos sem JS) baseados nos
+    padrões Stripe Balance, Mercury Cashflow, Asaas Cobrança, Linear Issues, ServiceTitan Job Board e Ramp Bill Pay.
+    Cada bloco já está com estrutura semântica e classes <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 4px;border-radius:3px;">.fin-*</code>,
+    <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 4px;border-radius:3px;">.bol-*</code>,
+    <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 4px;border-radius:3px;">.os-stepper</code>,
+    <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 4px;border-radius:3px;">.ofc-*</code>,
+    <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 4px;border-radius:3px;">.cmp-*</code>
+    para serem importadas direto no shell quando implementadas.
+  </p>
+
+</div>
+</body>
+</html>
