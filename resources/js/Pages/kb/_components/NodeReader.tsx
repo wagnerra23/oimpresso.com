@@ -110,6 +110,14 @@ export default function NodeReader({
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [node?.id]);
 
+  // related precisa ser computado ANTES do early return — senão React quebra
+  // com "Rendered more hooks than during the previous render" (#310) quando
+  // user clica artigo (null → node) e o número de hooks chamados muda.
+  const related = React.useMemo(
+    () => (node ? relatedNodes(node, allNodes, 3) : []),
+    [node, allNodes],
+  );
+
   // ─── Empty state ─────────────────────────────────────
   if (!node) {
     return (
@@ -162,10 +170,7 @@ export default function NodeReader({
   const outdated = isNodeOutdated(node);
   const fresh = freshnessLevel(node.updated_at);
   const headings = extractHeadings(node.body_blocks);
-  const related = React.useMemo(
-    () => relatedNodes(node, allNodes, 3),
-    [node, allNodes],
-  );
+  // `related` movido pra antes do early return (linhas 113-117) — fix React #310
 
   // Conteúdo do body: bridge (mcp_memory_documents) NÃO tem body_blocks.
   // V1 mostra excerpt e link pra GitHub. ONDA 3 / Agent A vai entregar
