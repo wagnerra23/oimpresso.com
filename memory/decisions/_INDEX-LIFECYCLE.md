@@ -253,7 +253,8 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | 0158 | A | — | v3 errata — D1 heurística hardening recursivo |
 | 0159 | A | (parcial 0160, 0161) | v3 errata meta 97 realismo — 4 hacks (D5 cross-cutting, D9.b ready, D4.b N/A, D3.b CHANGELOG) |
 | 0160 | A | — | Governance v4 — Scoped Scorecards bucket-aware (5 buckets) |
-| 0161 | A | — | **Aposentar 3 hacks ADR 0159 redundantes com v4 (D5 cross-cutting, D4.b FSM, D3.b CHANGELOG)** · 4º hack D9.b permanece até OTel collector ativo |
+| 0161 | A | (parcial 0162) | **Aposentar 3 hacks ADR 0159 redundantes com v4 (D5 cross-cutting, D4.b FSM, D3.b CHANGELOG)** · 4º hack D9.b permanece até OTel collector ativo |
+| 0162 | A | — | **OpenTelemetry Collector ativo prod CT 100 · destrava D6.b + D9.b · Tempo 2.6+ + sampling 5% + mcp_observability_spans + 3 services Jana/Repair/Sells** |
 
 ---
 

@@ -1,5 +1,26 @@
 # Whatsapp — Changelog
 
+## [Wave 26 — 2026-05-17] Drivers + Webhook polish ≥85 (74 → ≥85 +11pp)
+
+### D2 — Expansão Drivers + WebhookSignatureChecker
+- Novo Pest `Tests/Feature/Wave26WhatsappSaturationTest.php` (~25 cenários):
+  - **BaileysDriver**: spans canon hot-path (`send_freeform/send_media/send_interactive`) + encapsulamento privado (`mapSendResponse/normalizePhone/client`) + cta_url rejeitado via `DriverDoesNotSupport::for` (fail-fast pro caller cair pro Meta Cloud) + `fetchMessageStatus` retorna MessageStatus (status real via webhook).
+  - **MetaCloudDriver `parseInboundWebhook`** (PR4 PoC BSUID identifier mar/2026+): extrai 3 identifiers (wa_id + phone_e164 + bsuid); tolerante a payload pré BSUID (sem `contacts[].user_id`); tolerante a payload vazio; extrai body type=button + type=interactive.
+  - **MetaCloudDriver `fetchTemplates`** (HSM aprovação Meta Business Manager) método público confirmado.
+  - **WebhookSignatureChecker** (Wave 18 D4): rejeita prefixo errado (CRÍTICO Meta canon `sha256=`); rejeita hex inválido + header vazio/null; usa `hash_equals` constant-time (anti timing-attack); aliases canon dispatch (`meta`/`meta_cloud`, `zapi`/`z-api`/`z_api`); class final stateless puro (sem constructor); 3 headers canon constants (`HEADER_META` + `HEADER_BAILEYS` + `HEADER_ZAPI`).
+  - **DriverDoesNotSupport** factory `::for(driver, capability)` cross-driver fail-fast.
+
+### D4 — Services pattern (Wave 18 D4 baseline preservar)
+- Services subdirs ≥10 (Audio + Centrifugo + Contacts + Csat + Drivers + Macros + Metrics + Notes + Sla + Webhook).
+- `MessagePersister` (Webhook D4) bindable container.
+- `WebhookSignatureChecker` class final canon.
+
+### D3 — CHANGELOG (este entry) + BRIEFING.md Wave 26
+
+### IRREVOGÁVEIS preservados
+- BaileysDriver custom + MetaCloudDriver fallback (ADR 0096 emenda 4).
+- EvolutionDriver ainda inexistente (proibido permanente).
+
 ## [Wave 25 — 2026-05-16] Drivers SATURATION + D4 services pattern (74→≥85)
 
 ### D2/D3 — Drivers contract coverage

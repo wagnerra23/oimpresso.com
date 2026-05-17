@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\ConsultaOs\Console\Commands;
 
+use App\Util\OtelHelper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
@@ -43,6 +44,20 @@ class ConsultaOsHealthCommand extends Command
     protected $description = 'Health-check ConsultaOs portal publico (Repository bind + Service + retention + smoke probes).';
 
     public function handle(): int
+    {
+        // D9 observabilidade Wave 26 — span sem business_id (CLI command portal publico).
+        return OtelHelper::span('consultaos.health', [
+            'cli'    => true,
+            'detail' => (bool) $this->option('detail'),
+        ], function (): int {
+            return $this->handleInterno();
+        });
+    }
+
+    /**
+     * Implementacao interna — wrap span OTel acima (D9 Wave 26 saturation).
+     */
+    private function handleInterno(): int
     {
         $report = [
             'repository_bound'   => false,

@@ -23,6 +23,19 @@ class BancoHorasController extends Controller
     {
         $businessId = session('business.id') ?: $request->user()->business_id;
 
+        // Wave 26 D6 Inertia::defer DEFAULT — paginate(30) + 4 aggregates (sum/count)
+        // viram closures lazy (RUNBOOK-inertia-defer-pattern.md).
+        return Inertia::render('Ponto/BancoHoras/Index', [
+            'saldos' => Inertia::defer(fn () => $this->buildSaldosPagina($businessId)),
+            'totais' => Inertia::defer(fn () => $this->buildTotaisSaldos($businessId)),
+        ]);
+    }
+
+    /**
+     * Paginação 30 saldos (orderByDesc saldo) — eager `colaborador.user`. Wave 26 extraído.
+     */
+    private function buildSaldosPagina(int $businessId)
+    {
         $paginated = BancoHorasSaldo::where('business_id', $businessId)
             ->with('colaborador.user:id,first_name,last_name')
             ->orderByDesc('saldo_minutos')
@@ -40,7 +53,17 @@ class BancoHorasController extends Controller
             'atualizado_em'  => optional($s->updated_at)->diffForHumans(),
         ]);
 
-        $totais = [
+        return $paginated;
+    }
+
+    /**
+     * Totais credito/debito + contagem colaboradores (4 aggregates). Wave 26 extraído.
+     *
+     * @return array<string,int>
+     */
+    private function buildTotaisSaldos(int $businessId): array
+    {
+        return [
             'credito_total' => (int) BancoHorasSaldo::where('business_id', $businessId)
                 ->where('saldo_minutos', '>', 0)->sum('saldo_minutos'),
             'debito_total' => (int) BancoHorasSaldo::where('business_id', $businessId)
@@ -50,11 +73,6 @@ class BancoHorasController extends Controller
             'colaboradores_debito' => BancoHorasSaldo::where('business_id', $businessId)
                 ->where('saldo_minutos', '<', 0)->count(),
         ];
-
-        return Inertia::render('Ponto/BancoHoras/Index', [
-            'saldos' => $paginated,
-            'totais' => $totais,
-        ]);
     }
 
     public function show(Request $request, int $colaboradorId): Response
@@ -63,6 +81,27 @@ class BancoHorasController extends Controller
             ->with('colaborador.user:id,first_name,last_name')
             ->firstOrFail();
 
+        // Wave 26 D6 Inertia::defer — paginate(50) movimentos lazy. Saldo header eager
+        // (já materializado pra findOrFail validar acesso tenant).
+        return Inertia::render('Ponto/BancoHoras/Show', [
+            'saldo' => [
+                'colaborador_id' => $saldo->colaborador_config_id,
+                'matricula'      => optional($saldo->colaborador)->matricula,
+                'nome'           => trim(
+                    optional(optional($saldo->colaborador)->user)->first_name . ' ' .
+                    optional(optional($saldo->colaborador)->user)->last_name
+                ) ?: '—',
+                'saldo_minutos'  => (int) $saldo->saldo_minutos,
+            ],
+            'movimentos' => Inertia::defer(fn () => $this->buildMovimentosPagina($colaboradorId)),
+        ]);
+    }
+
+    /**
+     * Paginação 50 movimentos do ledger. Wave 26 extraído pra closure lazy.
+     */
+    private function buildMovimentosPagina(int $colaboradorId)
+    {
         $paginated = BancoHorasMovimento::where('colaborador_config_id', $colaboradorId)
             ->orderByDesc('created_at')
             ->paginate(50)
@@ -78,18 +117,7 @@ class BancoHorasController extends Controller
             'created_at_human' => optional($m->created_at)->diffForHumans(),
         ]);
 
-        return Inertia::render('Ponto/BancoHoras/Show', [
-            'saldo' => [
-                'colaborador_id' => $saldo->colaborador_config_id,
-                'matricula'      => optional($saldo->colaborador)->matricula,
-                'nome'           => trim(
-                    optional(optional($saldo->colaborador)->user)->first_name . ' ' .
-                    optional(optional($saldo->colaborador)->user)->last_name
-                ) ?: '—',
-                'saldo_minutos'  => (int) $saldo->saldo_minutos,
-            ],
-            'movimentos' => $paginated,
-        ]);
+        return $paginated;
     }
 
     public function ajustarManual(Request $request, $colaboradorId)

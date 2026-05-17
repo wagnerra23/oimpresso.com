@@ -31,6 +31,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\ModuleGradeV4Command::class,         // v4 (Wave 21 — scoped scorecards por bucket)
                 \Modules\Governance\Console\Commands\ModuleGradeSnapshotCommand::class,
                 \Modules\Governance\Console\Commands\ScorecardSnapshotCommand::class,
+                \Modules\Governance\Console\Commands\ObservabilityAggregateCommand::class,  // Wave 26 Agent 3 — ADR 0162
             ]);
         }
     }
