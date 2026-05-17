@@ -176,6 +176,74 @@ class ModuleGradeService
     }
 
     // ────────────────────────────────────────────────────────────────────────
+    // V4 — Scoped Scorecards (ADR 0160) — dual-mode com v3 via feature flag
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Avalia módulo via Scoped Scorecards v4 (ADR 0160 — Wave 19+21).
+     *
+     * Dual-mode controlado por `config('governance.v4_enabled')`:
+     *   - false (default Wave 21): delega pra `gradeModule()` v3 — back-compat
+     *     total. UI/CLI/Pest existentes continuam funcionando sem mudança.
+     *   - true (Wave 22+ rollout): carrega bucket declarado em
+     *     `Modules/<X>/module.json.governance.bucket` + avalia YAML
+     *     `memory/scorecards/<bucket>.yaml`.
+     *
+     * Fallback v3 também acontece quando v4_enabled=true mas:
+     *   - module.json sem `governance.bucket` declarado
+     *   - YAML do bucket inexistente (ondas futuras adicionam buckets)
+     *
+     * Esse comportamento é intencional pra migração gradual: módulos novos
+     * (com bucket declarado) usam v4; módulos legados sem bucket continuam
+     * v3 até serem migrados (Wave 20 já preencheu 34 module.json).
+     *
+     * @return array<string,mixed>
+     * @see Modules/Governance/Services/ScopedScorecardEvaluator.php
+     * @see memory/decisions/0160-scoped-scorecards-v4-bucket-yaml.md
+     */
+    public function gradeV4(string $module): array
+    {
+        // Feature flag — default false preserva v3 enquanto rollout v4 amadurece.
+        if (! (bool) config('governance.v4_enabled', false)) {
+            return $this->gradeModule($module);
+        }
+
+        $evaluator = app(ScopedScorecardEvaluator::class);
+        $scorecard = $evaluator->loadScorecardForModule($module);
+
+        // Sem scorecard YAML resolvível → fallback v3 (módulo legado ou bucket
+        // ainda não publicado em memory/scorecards/).
+        if ($scorecard === []) {
+            $v3 = $this->gradeModule($module);
+            $v3['v4_mode']     = 'fallback_v3';
+            $v3['v4_reason']   = 'module.json sem governance.bucket OU YAML bucket inexistente';
+
+            return $v3;
+        }
+
+        $evaluated = $evaluator->evaluateScorecard($module, $scorecard);
+
+        // Normalização: meta_bucket é alvo (ex: 80). score_total ≤ 100.
+        // bucket_label derivado do mesmo mapping v3 pra UI consistente.
+        $bucket = $this->bucketFor((int) $evaluated['score_total']);
+
+        return [
+            'module'           => $module,
+            'v4_mode'          => 'scoped_scorecard',
+            'v4_bucket'        => $evaluated['bucket'],
+            'score'            => (int) $evaluated['score_total'],
+            'score_total'      => (int) $evaluated['score_total'],
+            'meta_bucket'      => (int) $evaluated['meta_bucket'],
+            'bucket'           => $bucket['label'],
+            'color'            => $bucket['color'],
+            'core'             => $evaluated['core'],
+            'bucket_dimensions' => $evaluated['bucket_dimensions'],
+            'paired_violations' => $evaluated['paired_violations'],
+            'evaluated_at'     => now()->toIso8601String(),
+        ];
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
     // D1 — Multi-tenant Tier 0 (30 pts)
     // ────────────────────────────────────────────────────────────────────────
 
