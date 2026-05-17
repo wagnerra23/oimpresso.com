@@ -57,6 +57,18 @@ Route::middleware(['web', 'tailscale-only', 'auth', 'is-wagner'])
         Route::get('governance-v4', GovernanceV4DashboardController::class)
             ->name('admin.governance-v4.index');
 
+        // Wave 29 Agent B — Tri-pane V2 + Initiative endpoints + bucket override.
+        // V2 feature-flagged via governance.v4_enabled; render Page tsx Admin/GovernanceV4.
+        // POST initiative cria via InitiativeService::createFromScorecardBreach (idempotent).
+        // POST override-bucket apenas registra intent + retorna instrução PR manual.
+        // @see Modules/Admin/Http/Controllers/GovernanceV4DashboardController::indexV2
+        Route::get('governance/v4',                  [GovernanceV4DashboardController::class, 'indexV2'])
+            ->name('admin.governance.v4');
+        Route::post('governance/v4/initiative',      [GovernanceV4DashboardController::class, 'createInitiative'])
+            ->name('admin.governance.v4.initiative');
+        Route::post('governance/v4/override-bucket', [GovernanceV4DashboardController::class, 'overrideBucket'])
+            ->name('admin.governance.v4.override-bucket');
+
         // Wave 28 §G3 — RAG Quality Dashboard (KB + Jana cross-pipeline observability).
         // 3 sparklines (retrieve/rerank/generate p99), nDCG@5 / recall@5 trend 30d,
         // top 10 queries lentas, fallback rate BGE. Inertia::defer pra props caras.
