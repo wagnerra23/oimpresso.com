@@ -38,7 +38,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, xml, ctype, json, bcmath, intl, gd, pdo_mysql, zip, pcntl, posix
+          extensions: mbstring, xml, ctype, json, bcmath, intl, gd, pdo_mysql, zip, pcntl, posix, opentelemetry
           coverage: none
           tools: composer:v2
 
