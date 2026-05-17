@@ -50,13 +50,37 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
-      - name: Copy .env (CI)
+      - name: Prepare storage dirs (boot Laravel cache path)
         run: |
           set -euo pipefail
+          mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      - name: Create .env (CI)
+        run: |
+          set -euo pipefail
+          # Repo nao tem .env.example canonico (so existe ".env - Copia.example" com nome legacy).
+          # Criamos .env minimal CI-safe inline em vez de depender de copy.
           if [ -f .env.example ]; then
             cp .env.example .env
+          else
+            printf '%s\n' \
+              'APP_NAME=oimpresso-grades-ci' \
+              'APP_ENV=testing' \
+              'APP_DEBUG=false' \
+              'APP_URL=http://localhost' \
+              'LOG_CHANNEL=stderr' \
+              'DB_CONNECTION=sqlite' \
+              'DB_DATABASE=:memory:' \
+              'CACHE_DRIVER=array' \
+              'QUEUE_CONNECTION=sync' \
+              'SESSION_DRIVER=array' \
+              'MAIL_MAILER=array' \
+              'BCRYPT_ROUNDS=4' \
+              'TELESCOPE_ENABLED=false' \
+              'SCOUT_DRIVER=null' \
+              'MCP_TOOLS_EXPOSED=false' > .env
           fi
-          php artisan key:generate --ansi || true
+          php artisan key:generate --ansi
 
       - name: Gerar grades atuais do PR head
         id: current
