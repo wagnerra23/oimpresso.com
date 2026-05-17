@@ -53,6 +53,12 @@ class RecurringBillingServiceProvider extends ServiceProvider
         // Wave 18 RETRY D4 saturação granular — Services extraídos de Controllers/inline
         $this->app->singleton(\Modules\RecurringBilling\Services\AssinaturaService::class);
         $this->app->singleton(\Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver::class);
+
+        // Wave 23 D2 — bind interface => concrete (reuse cross-module Financeiro/NfeBrasil)
+        $this->app->bind(
+            \Modules\RecurringBilling\Contracts\BoletoCredentialResolverInterface::class,
+            \Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver::class,
+        );
     }
 
     /**

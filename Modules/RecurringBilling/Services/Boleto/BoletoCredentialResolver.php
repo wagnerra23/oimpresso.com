@@ -6,6 +6,7 @@ namespace Modules\RecurringBilling\Services\Boleto;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Crypt;
+use Modules\RecurringBilling\Contracts\BoletoCredentialResolverInterface;
 use Modules\RecurringBilling\Models\BoletoCredential;
 
 /**
@@ -31,7 +32,7 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  * @see Modules\RecurringBilling\Models\BoletoCredential
  * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md §5 SoC
  */
-class BoletoCredentialResolver
+class BoletoCredentialResolver implements BoletoCredentialResolverInterface
 {
     /**
      * Campos sensíveis de `config_json` que vêm criptografados via Crypt::encryptString.

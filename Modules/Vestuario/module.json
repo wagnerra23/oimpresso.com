@@ -10,5 +10,14 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_adr": "0160",
+        "bucket_config": "governance/buckets/vertical_client_facing.yaml",
+        "wave_23_saturation": true,
+        "scoped_score_target": 85,
+        "last_governance_review": "2026-05-16",
+        "rubrica_version": "v3_scoped"
+    }
 }

@@ -33,6 +33,9 @@ class AdminHealthCommand extends Command
 
     protected $description = 'Health check Admin Center — 4 sinais (ADR 0155 D9.c, Wave 17).';
 
+    // NOTE Wave 23: pareado com `admin:export-audit` (Modules\Admin\Console\Commands\ExportAuditCommand)
+    // e `Modules\Admin\Services\CentrifugoAdminChannel` (esqueleto canal admin.wagner).
+
     public function handle(): int
     {
         $asJson = (bool) $this->option('json');

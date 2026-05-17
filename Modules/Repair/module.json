@@ -22,5 +22,19 @@
         "wave_compliance": "Wave 17 governance v3 — D7 LGPD push 2026-05-16"
     },
     "retention_days": 1825,
-    "retention_config": "Modules/Repair/Config/retention.php"
+    "retention_config": "Modules/Repair/Config/retention.php",
+    "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_adr": "0160",
+        "bucket_config": "governance/buckets/vertical_client_facing.yaml",
+        "fsm_canonico": true,
+        "fsm_pipeline": "repair",
+        "fsm_doc": "memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md",
+        "fsm_estados": 13,
+        "wave": 23,
+        "wave_23_saturation": true,
+        "scoped_score_target": 85,
+        "last_governance_review": "2026-05-16",
+        "rubrica_version": "v3_scoped"
+    }
 }

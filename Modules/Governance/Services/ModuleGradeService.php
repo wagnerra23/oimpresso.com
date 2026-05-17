@@ -643,6 +643,13 @@ class ModuleGradeService
         // de que módulo está ativo + docs sendo mantidas em paralelo, mesmo que
         // BRIEFING tenha sido escrito originalmente há >90d. Evita decay temporal
         // injusto em módulos maduros com docs estáveis.
+        //
+        // @deprecated since v4 (ADR 0161) — substituído por dimensões bucket-specific
+        // V5.c (vendable_product Capterra ≤quarter), C4.b (cross_cutting Constituição
+        // ≤quarter), F5.c (external_integration contrato ≤semestre) em Scoped Scorecards
+        // (ADR 0160). Branch `changelogFresh` mantido pra back-compat enquanto
+        // `governance.v4_enabled=false`. Quando v4 virar default em prod, este branch
+        // vira no-op (dead code cleanup PR posterior).
         $d3b = 0;
         $briefingEvidence = 'ausente';
         $changelogPath = $this->memoryPath . "/{$name}/CHANGELOG.md";
@@ -737,6 +744,13 @@ class ModuleGradeService
         // `governance.fsm_n_a: true`, módulo é considerado N/A em FSM (ex.:
         // domínios cross-cutting, infra, ou puramente consultivos onde state
         // machine não faz sentido) e recebe 5/5 com evidence "N/A módulo declarado".
+        //
+        // @deprecated since v4 (ADR 0161) — em Scoped Scorecards (ADR 0160) os buckets
+        // `cross_cutting_infra`, `consultive_listing` e `external_integration` removem
+        // D4.b do scorecard nativamente (peso 0); a flag `governance.fsm_n_a:true` no
+        // module.json permanece válida como sinal canônico documental no manifest, mas
+        // não é mais usada como bonus pontual. Branch `$fsmNa` mantido pra back-compat
+        // enquanto `governance.v4_enabled=false`.
         $d4b = 0;
         $d4bEvidence = 'não aplicável ou ausente';
         $fsmNa = $this->moduleJsonFlag($modulePath, 'governance.fsm_n_a') === true;
@@ -830,6 +844,12 @@ class ModuleGradeService
             // vendem como produto direto. Equivalente a biz_4 em pontuação (15/15)
             // porque o "cliente" é o próprio time interno + sistema todo dependendo
             // da infra.
+            //
+            // @deprecated since v4 (ADR 0161) — substituído por bucket `cross_cutting_infra`
+            // em Scoped Scorecards (ADR 0160), que define peso D5 nativo do bucket sem
+            // precisar do nível YAML como hack. Módulos `internal_governance_active`
+            // devem ser reclassificados em `bucket_assignments.yaml`. Match arm mantido
+            // pra back-compat enquanto `governance.v4_enabled=false`.
             $score = match ($level) {
                 'biz_4_rota_livre_prod'      => 15,
                 'internal_governance_active' => 15,

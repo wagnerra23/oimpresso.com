@@ -31,6 +31,13 @@ class AccountingServiceProvider extends ServiceProvider
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
 
+        // Wave 23 D9.c — health command Accounting (espelha pattern Ponto/Cms/Manufacturing).
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Accounting\Console\Commands\AccountingHealthCommand::class,
+            ]);
+        }
+
         //TODO:Remove sidebar
         view::composer(['accounting::layouts.partials.sidebar'], function ($view) {
                 if (auth()->user()->can('superadmin')) {

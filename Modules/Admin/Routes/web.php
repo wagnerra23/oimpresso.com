@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\FeatureFlagsController;
+use Modules\Admin\Http\Controllers\GovernanceV4DashboardController;
 use Modules\Admin\Http\Controllers\IndexController;
 use Modules\Admin\Http\Controllers\InstallController;
 use Modules\Admin\Http\Controllers\MutationsController;
@@ -47,6 +48,13 @@ Route::middleware(['web', 'tailscale-only', 'auth', 'is-wagner'])
             ->name('admin.mutations.mcp-token.regenerate');
         Route::post('mutations/health-check/run-now',   [MutationsController::class, 'runHealthCheckNow'])
             ->name('admin.mutations.health-check.run-now');
+
+        // Wave 24 Agent B — Governance v4 Dashboard intra-bucket (AI baseline READ-ONLY 30d).
+        // Lista ranking por bucket (vertical/cross-cutting/ai/functional) com sparkline 30d
+        // + paired violations + AI suggestions (NÃO altera score oficial — anti-Goodhart).
+        // @see Modules/Jana/Services/Scorecard/AiScorecardJudge.php
+        Route::get('governance-v4', GovernanceV4DashboardController::class)
+            ->name('admin.governance-v4.index');
 
         // US-INFRA-008 (2026-05-13) — Painel de feature flags GrowthBook.
         // Read via GrowthBookAdminService. Audit em feature_flag_audits (dedicado).

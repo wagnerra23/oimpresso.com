@@ -7,6 +7,7 @@ namespace Modules\Crm\Repositories;
 use App\Util\OtelHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Crm\Contracts\CrmLeadRepositoryInterface;
 use Modules\Crm\Entities\CrmContact;
 
 /**
@@ -27,7 +28,7 @@ use Modules\Crm\Entities\CrmContact;
  * @see Modules\Crm\Services\LeadAssignmentService
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
-class CrmLeadRepository
+class CrmLeadRepository implements CrmLeadRepositoryInterface
 {
     /**
      * Builder base pra leads de um business (`contacts.type = lead`).
