@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services;
 
+use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +49,18 @@ class CertificadoService
      * @throws InvalidArgumentException Quando pfx inválido / senha errada / cert expirado
      */
     public function validar(string $pfxBase64, string $senha): array
+    {
+        // D9 Wave 26 — span no parse PKCS12 (hot-path SEFAZ — senha/pfx NUNCA em attributes).
+        // Defesa Tier 0: attributes carregam APENAS booleans/length, nunca conteudo do .pfx ou senha.
+        return OtelHelper::spanBiz('nfe.certificado.validar', function () use ($pfxBase64, $senha): array {
+            return $this->validarInterno($pfxBase64, $senha);
+        }, ['has_senha' => $senha !== '', 'pfx_len' => strlen($pfxBase64)]);
+    }
+
+    /**
+     * Implementacao interna de validar — wrap span OTel acima (D9 Wave 26).
+     */
+    private function validarInterno(string $pfxBase64, string $senha): array
     {
         $binary = base64_decode($pfxBase64, true);
         if ($binary === false || strlen($binary) === 0) {
