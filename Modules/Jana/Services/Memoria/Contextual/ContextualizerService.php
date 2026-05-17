@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Memoria\Contextual;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -76,6 +77,16 @@ final class ContextualizerService
      * @return string Contexto 50-100 tokens (sem prefix/suffix)
      */
     public function contextualize(string $documentFull, string $chunkContent): string
+    {
+        return OtelHelper::spanBiz('jana.contextual_retrieval.contextualize', function () use ($documentFull, $chunkContent) {
+            return $this->doContextualize($documentFull, $chunkContent);
+        }, [
+            'doc_chars' => strlen($documentFull),
+            'chunk_chars' => strlen($chunkContent),
+        ]);
+    }
+
+    private function doContextualize(string $documentFull, string $chunkContent): string
     {
         if (! $this->isEnabled()) {
             return '';

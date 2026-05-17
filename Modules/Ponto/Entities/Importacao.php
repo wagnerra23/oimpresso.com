@@ -2,11 +2,21 @@
 
 namespace Modules\Ponto\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Importacao AFD/AFDT — historico de processamento por business.
+ *
+ * Wave 18 D1 — Multi-tenant Tier 0 IRREVOGAVEL ([ADR 0093]):
+ * trait HasBusinessScope aplica global scope automatico por business_id.
+ * Cross-tenant leak permitiria ver arquivos/erros de outras empresas.
+ */
 class Importacao extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'ponto_importacoes';
 
     protected $fillable = [

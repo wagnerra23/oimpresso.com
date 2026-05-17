@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
@@ -61,27 +62,35 @@ class VaultEncryptionService
      */
     public function putEncrypted(string $disk, string $path, string $contents): bool
     {
-        $cap = $this->capBytes();
-        if (strlen($contents) > $cap) {
-            throw new \RuntimeException(sprintf(
-                'Vault: conteúdo excede cap %dMB (recebeu %dMB). ' .
-                'Sprint 2 implementará chunked encryption — ver ADR 0126.',
-                intdiv($cap, 1024 * 1024),
-                intdiv(strlen($contents), 1024 * 1024)
-            ));
-        }
+        // Wave 18 D9.a — span pra encrypt+write (hot-path vault). Atributos sem PII
+        // (path/disk + size — jamais conteúdo plaintext).
+        return OtelHelper::spanBiz('arquivos.vault.put_encrypted', function () use ($disk, $path, $contents) {
+            $cap = $this->capBytes();
+            if (strlen($contents) > $cap) {
+                throw new \RuntimeException(sprintf(
+                    'Vault: conteúdo excede cap %dMB (recebeu %dMB). ' .
+                    'Sprint 2 implementará chunked encryption — ver ADR 0126.',
+                    intdiv($cap, 1024 * 1024),
+                    intdiv(strlen($contents), 1024 * 1024)
+                ));
+            }
 
-        try {
-            $cipher = Crypt::encryptString($contents);
-            return Storage::disk($disk)->put($path, $cipher);
-        } catch (\Throwable $e) {
-            Log::error('arquivos.vault.encrypt_failed', [
-                'disk'  => $disk,
-                'path'  => $path,
-                'error' => $e->getMessage(),
-            ]);
-            throw $e;
-        }
+            try {
+                $cipher = Crypt::encryptString($contents);
+                return Storage::disk($disk)->put($path, $cipher);
+            } catch (\Throwable $e) {
+                Log::error('arquivos.vault.encrypt_failed', [
+                    'disk'  => $disk,
+                    'path'  => $path,
+                    'error' => $e->getMessage(),
+                ]);
+                throw $e;
+            }
+        }, [
+            'module'      => 'Arquivos',
+            'disk'        => $disk,
+            'size_bytes'  => strlen($contents),
+        ]);
     }
 
     /**
@@ -122,26 +131,33 @@ class VaultEncryptionService
      */
     public function getDecrypted(string $disk, string $path): ?string
     {
-        $disk_obj = Storage::disk($disk);
-        if (! $disk_obj->exists($path)) {
-            return null;
-        }
+        // Wave 18 D9.a — span pra read+decrypt (hot-path download). Latência
+        // observável separa storage I/O vs Crypt decrypt (debug performance).
+        return OtelHelper::spanBiz('arquivos.vault.get_decrypted', function () use ($disk, $path) {
+            $disk_obj = Storage::disk($disk);
+            if (! $disk_obj->exists($path)) {
+                return null;
+            }
 
-        $cipher = $disk_obj->get($path);
-        if (! is_string($cipher)) {
-            return null;
-        }
+            $cipher = $disk_obj->get($path);
+            if (! is_string($cipher)) {
+                return null;
+            }
 
-        try {
-            return Crypt::decryptString($cipher);
-        } catch (DecryptException $e) {
-            Log::error('arquivos.vault.decrypt_failed', [
-                'disk'  => $disk,
-                'path'  => $path,
-                'error' => $e->getMessage(),
-            ]);
-            throw $e;
-        }
+            try {
+                return Crypt::decryptString($cipher);
+            } catch (DecryptException $e) {
+                Log::error('arquivos.vault.decrypt_failed', [
+                    'disk'  => $disk,
+                    'path'  => $path,
+                    'error' => $e->getMessage(),
+                ]);
+                throw $e;
+            }
+        }, [
+            'module' => 'Arquivos',
+            'disk'   => $disk,
+        ]);
     }
 
     /**

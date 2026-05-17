@@ -2,6 +2,7 @@
 
 namespace Modules\Woocommerce\Services;
 
+use App\Util\OtelHelper;
 use App\Utils\ModuleUtil;
 
 /**
@@ -44,14 +45,20 @@ class WoocommerceAuthorizationService
      */
     public function podeExecutarAcao(int $businessId, string $permissionKey): bool
     {
-        if (auth()->user()->can('superadmin')) {
-            return true;
-        }
+        // D9 Wave 18 SATURATION — OTel span (no-op em local sem collector — overhead < 1µs)
+        return OtelHelper::span('woocommerce.auth.pode_executar', [
+            'business_id' => $businessId,
+            'permission_key' => $permissionKey,
+        ], function () use ($businessId, $permissionKey) {
+            if (auth()->user()->can('superadmin')) {
+                return true;
+            }
 
-        $temSubscription = (bool) $this->moduleUtil->hasThePermissionInSubscription($businessId, 'woocommerce_module');
-        $temPermissao = (bool) auth()->user()->can($permissionKey);
+            $temSubscription = (bool) $this->moduleUtil->hasThePermissionInSubscription($businessId, 'woocommerce_module');
+            $temPermissao = (bool) auth()->user()->can($permissionKey);
 
-        return $temSubscription && $temPermissao;
+            return $temSubscription && $temPermissao;
+        });
     }
 
     /**

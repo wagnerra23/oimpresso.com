@@ -3,6 +3,8 @@
 namespace Modules\ConsultaOs\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
+use Modules\ConsultaOs\Repositories\MockConsultaOsRepository;
 
 class ConsultaOsServiceProvider extends ServiceProvider
 {
@@ -14,6 +16,14 @@ class ConsultaOsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // Wave 18 D4 — Repository bind. Mock-only ate US-CONSULTA-001 entregar
+        // RepairConsultaOsRepository com query real em transactions (multi-tenant
+        // via protocolo + rate limit IP). Troca = 1 linha aqui.
+        $this->app->bind(
+            ConsultaOsRepositoryInterface::class,
+            MockConsultaOsRepository::class,
+        );
     }
 
     protected function registerConfig(): void

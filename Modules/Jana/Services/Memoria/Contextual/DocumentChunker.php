@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Memoria\Contextual;
 
+use App\Util\OtelHelper;
+
 /**
  * DocumentChunker — quebra markdown em chunks otimizados pra retrieval.
  *
@@ -28,6 +30,13 @@ final class DocumentChunker
      * @return array<int, string>  Lista de chunks (na ordem do doc)
      */
     public function chunk(string $markdown, int $maxChars = 3200): array
+    {
+        return OtelHelper::spanBiz('jana.contextual.chunk', function () use ($markdown, $maxChars) {
+            return $this->doChunk($markdown, $maxChars);
+        }, ['doc_chars' => strlen($markdown), 'max_chars' => $maxChars]);
+    }
+
+    private function doChunk(string $markdown, int $maxChars): array
     {
         $markdown = trim($markdown);
         if ($markdown === '') {

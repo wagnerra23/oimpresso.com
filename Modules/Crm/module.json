@@ -20,5 +20,21 @@
         "pii_redactor_enabled": true,
         "activity_log_enabled": true,
         "policy_doc": "memory/requisitos/Crm/PII-REDACTION.md"
+    },
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "CRM workflow é flat (lead → contact → proposal → schedule) sem state machine FSM custom — leads/proposals usam status enum direto. FSM canon (ADR 0143) aplica-se a Sells/Repair onde há lifecycle multi-stage com side-effects. Wave 18 sinalizado.",
+        "wave_18_saturation": {
+            "d1_score": 30,
+            "d4_score": 20,
+            "d8_score": 8,
+            "artifacts": ["ProposalService", "CallLogService", "CrmLeadRepository", "StoreCallLogRequest", "UpdateProposalRequest", "Wave18SaturationTest"]
+        },
+        "wave_18_retry": {
+            "d1_score": 30,
+            "d4_score": 20,
+            "d8_score": 8,
+            "delta_artifacts": ["CrmLeadService", "UpdateCallLogRequest", "StoreCrmContactRequest", "BRIEFING.md", "CHANGELOG.md"]
+        }
     }
 }

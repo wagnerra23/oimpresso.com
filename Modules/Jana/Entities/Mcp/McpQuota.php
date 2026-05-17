@@ -3,15 +3,24 @@
 namespace Modules\Jana\Entities\Mcp;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Quota de uso MCP por usuário e período.
  *
  * Quando current_usage >= limit, MCP retorna 429 (block_on_exceed=true)
  * ou só dispara alerta (false). Reset automático em reset_at.
+ *
+ * D7 LGPD audit trail — Wave 18 SATURATION (2026-05-16): LogsActivity registra
+ * mudanças no contrato da quota (period, kind, limit, block_on_exceed, ativo)
+ * — auditoria de quem mexeu nas regras de billing/cap. NÃO loga current_usage
+ * (incremento diário causa flood).
  */
 class McpQuota extends Model
 {
+    use LogsActivity;
+
     protected $table = 'mcp_quotas';
 
     protected $fillable = [
@@ -26,6 +35,19 @@ class McpQuota extends Model
         'block_on_exceed' => 'boolean',
         'ativo'           => 'boolean',
     ];
+
+    /**
+     * D7 LGPD audit — logga apenas o contrato da quota, NÃO current_usage
+     * (que muda toda chamada MCP — log flood). Reset_at também fica fora.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('mcp_quota')
+            ->logOnly(['user_id', 'period', 'kind', 'limit', 'block_on_exceed', 'ativo'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * @return bool true se passou da quota

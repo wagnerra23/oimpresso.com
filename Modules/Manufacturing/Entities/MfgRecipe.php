@@ -4,11 +4,13 @@ namespace Modules\Manufacturing\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Manufacturing\Concerns\AssertsBusinessChain;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class MfgRecipe extends Model
 {
+    use AssertsBusinessChain; // Wave 18 D1 — multi-tenant chain helper (substitui JOIN ad-hoc) — ADR 0093
     use LogsActivity; // D7.b LGPD — audit trail receita produção (Wave S Batch 2)
 
     /**

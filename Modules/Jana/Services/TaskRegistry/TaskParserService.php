@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\TaskRegistry;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpComponent;
@@ -63,6 +64,14 @@ class TaskParserService
      * @return array{tasks_processadas:int, inseridas:int, atualizadas:int, canceladas:int, modulos:array<string,int>}
      */
     public function syncAll(?string $apenasModulo = null): array
+    {
+        // D9.a (Wave 18 SATURATION) — span sync SPEC→DB; cross-tenant admin op.
+        return OtelHelper::span('jana.task_parser.sync_all', [
+            'apenas_modulo' => $apenasModulo,
+        ], fn () => $this->syncAllInternal($apenasModulo));
+    }
+
+    private function syncAllInternal(?string $apenasModulo = null): array
     {
         $base = base_path('memory/requisitos');
         if (! is_dir($base)) {

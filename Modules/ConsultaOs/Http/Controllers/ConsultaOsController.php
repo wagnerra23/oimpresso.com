@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest;
+use Modules\ConsultaOs\Services\ConsultaOsMockService;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 
 /**
@@ -38,6 +39,11 @@ use Modules\Jana\Services\Privacy\PiiRedactor;
  */
 class ConsultaOsController extends Controller
 {
+    public function __construct(
+        private readonly ConsultaOsMockService $service,
+    ) {
+    }
+
     public function index(): Response
     {
         // D6.a N/A justified — zero props (pagina React opera client-state + fetch
@@ -51,20 +57,13 @@ class ConsultaOsController extends Controller
         $numero  = $request->input('numero');
         $estagio = $request->input('estagio', 'todos');
 
-        // TODO(query-real): trocar mock por busca em transactions multi-tenant.
-        // Decisao pendente Wagner: identificacao por invoice_no + ultimos 4 do
-        // telefone (padrao Repair) e mapeamento dos estagios (transactions.status
-        // + shipping_status vs tabela bridge consulta_os_estagio).
-        $os = $this->mockData()[$numero] ?? null;
+        // Wave 18 D4 — Service-driven (SoC brutal). Controller responsabiliza-se
+        // apenas por validacao (ConsultaPublicaRequest) + auditoria. Mock vs real
+        // e decidido no Provider via bind(ConsultaOsRepositoryInterface).
+        $resultado = $this->service->buscar($numero, $estagio);
 
-        if (! $os) {
-            $this->auditarConsulta($request, $numero, $estagio, 'not_found');
-
-            return response()->json(['found' => false], 404);
-        }
-
-        if ($estagio && $estagio !== 'todos' && $os['stage'] !== $estagio) {
-            $this->auditarConsulta($request, $numero, $estagio, 'stage_mismatch');
+        if (! $resultado['found']) {
+            $this->auditarConsulta($request, $numero, $estagio, $resultado['reason'] ?? 'not_found');
 
             return response()->json(['found' => false], 404);
         }
@@ -73,7 +72,7 @@ class ConsultaOsController extends Controller
 
         return response()->json([
             'found' => true,
-            'os'    => $os,
+            'os'    => $resultado['os'],
         ]);
     }
 
@@ -137,63 +136,6 @@ class ConsultaOsController extends Controller
         return '0.0.0.0';
     }
 
-    private function mockData(): array
-    {
-        return [
-            '4821' => [
-                'id'       => '4821',
-                'client'   => 'Acme Comércio Ltda',
-                'contact'  => 'Camila Diniz',
-                'vendedor' => 'Bruna Vendas',
-                'designer' => 'Joana Lima',
-                'created'  => '21/04/2025',
-                'updated'  => 'hoje, 13:55',
-                'stage'    => 'aprovacao',
-                'items'    => [
-                    ['desc' => 'Banner Lona 440g — 3×2m', 'qty' => 1, 'unit' => 'un', 'stage' => 'aprovacao'],
-                ],
-            ],
-            '4819' => [
-                'id'       => '4819',
-                'client'   => 'Padaria Estrela',
-                'contact'  => 'Renato Lopes',
-                'vendedor' => 'Bruna Vendas',
-                'designer' => 'Joana Lima',
-                'created'  => '18/04/2025',
-                'updated'  => 'ontem, 16:20',
-                'stage'    => 'expedicao',
-                'items'    => [
-                    ['desc' => 'Cardápios A4 frente e verso', 'qty' => 50, 'unit' => 'un', 'stage' => 'expedicao'],
-                ],
-            ],
-            '4817' => [
-                'id'       => '4817',
-                'client'   => 'Clínica Vida',
-                'contact'  => 'Marcos Saraiva',
-                'vendedor' => 'Bruna Vendas',
-                'designer' => 'Carla Souza',
-                'created'  => '16/04/2025',
-                'updated'  => 'hoje, 08:42',
-                'stage'    => 'producao',
-                'items'    => [
-                    ['desc' => 'Placa de sinalização PVC — 60×40cm', 'qty' => 8,  'unit' => 'un', 'stage' => 'producao'],
-                    ['desc' => 'Placa de sinalização PVC — 30×20cm', 'qty' => 4,  'unit' => 'un', 'stage' => 'acabamento'],
-                    ['desc' => 'Suporte metálico fixação parede',     'qty' => 12, 'unit' => 'un', 'stage' => 'producao'],
-                ],
-            ],
-            '4815' => [
-                'id'       => '4815',
-                'client'   => 'Escola Aurora',
-                'contact'  => 'Pedagógico',
-                'vendedor' => 'Mateus PCP',
-                'designer' => '—',
-                'created'  => '10/04/2025',
-                'updated'  => 'ontem, 17:50',
-                'stage'    => 'entregue',
-                'items'    => [
-                    ['desc' => 'Banners faixas 1×3m', 'qty' => 6, 'unit' => 'un', 'stage' => 'entregue'],
-                ],
-            ],
-        ];
-    }
+    // mockData() removido Wave 18 — extraido pra MockConsultaOsRepository
+    // (Repository pattern + bind no Provider). Trocar fonte = 1 linha (US-CONSULTA-001).
 }

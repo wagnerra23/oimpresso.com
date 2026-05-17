@@ -10,5 +10,20 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "CMS é conteúdo estático/blog/leads — sem máquina de estados de negócio (sale_processes/repair). LGPD audit trail via spatie/activitylog cobre histórico (ADR 0094 §5 SoC: FSM é pro pipeline transacional).",
+        "wave_18_saturation": "2026-05-16 — D4 Services (CmsPageService, CmsLeadService, SiteContentService) + CmsPageRepository extraídos; D2 Pest +22 tests (Service architecture, FormRequest validation, Repository contract)."
+    },
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["notifiable_email", "contact_us", "mail_us", "follow_us", "lead.email", "lead.mobile", "lead.message"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "activity_log_note": "Entities CmsPage, CmsPageMeta, CmsSiteDetail usam Spatie LogsActivity. Lead capturado via CmsLeadService passa por PiiRedactor antes do Log::info.",
+        "audit_strategy": "spatie_activitylog + PiiRedactor canônico (Modules/Jana)",
+        "wave_compliance": "Wave 17 governance v3 — D7 LGPD + Wave 18 saturação D4 (2026-05-16)"
+    },
+    "retention_days": 730,
+    "retention_config": "Modules/Cms/Config/retention.php"
 }

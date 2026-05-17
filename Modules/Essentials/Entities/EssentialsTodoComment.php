@@ -2,10 +2,18 @@
 
 namespace Modules\Essentials\Entities;
 
+use App\Concerns\BelongsToBusinessViaParent;
 use Illuminate\Database\Eloquent\Model;
 
 class EssentialsTodoComment extends Model
 {
+    use BelongsToBusinessViaParent; // ADR 0093 — multi-tenant via ToDo->business_id (Wave 18 D1)
+
+    /**
+     * Nome da relação parent pra `ScopeByBusinessViaParent` resolver business_id.
+     */
+    protected string $businessParentRelation = 'task';
+
     /**
      * The attributes that aren't mass assignable.
      *
