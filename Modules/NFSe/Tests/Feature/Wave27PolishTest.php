@@ -203,11 +203,7 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
 
         // PII tomador rastreado pra LGPD Art. 37 (registro operações tratamento dados)
         foreach (['tomador_cnpj', 'tomador_cpf', 'tomador_nome', 'tomador_email'] as $pii) {
-<<<<<<< HEAD
             expect($fillable)->toContain($pii, "PII {$pii} deve estar em logFillable pra audit LGPD");
-=======
-            expect(in_array($pii, $fillable, true))->toBeTrue("PII {$pii} deve estar em logFillable pra audit LGPD");
->>>>>>> origin/main
         }
     });
 
@@ -215,11 +211,7 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
         $fillable = (new NfseEmissao())->getFillable();
 
         foreach (['valor_servicos', 'valor_iss', 'aliquota_iss', 'lc116_codigo', 'iss_retido'] as $fiscal) {
-<<<<<<< HEAD
             expect($fillable)->toContain($fiscal, "Campo fiscal {$fiscal} deve estar em audit trail");
-=======
-            expect(in_array($fiscal, $fillable, true))->toBeTrue("Campo fiscal {$fiscal} deve estar em audit trail");
->>>>>>> origin/main
         }
     });
 
@@ -309,16 +301,11 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
     it('Tier 0: NfseEmissaoService.cancelar registra motivo (auditoria fiscal)', function () {
         $src = file_get_contents((new ReflectionClass(NfseEmissaoService::class))->getFileName());
 
-<<<<<<< HEAD
-        expect($src)->toContain('cancelar(NfseEmissao $emissao, string $motivo)')
-            ->and($src)->toContain("'motivo' => \$motivo");
-=======
         expect($src)->toContain('cancelar(NfseEmissao $emissao, string $motivo)');
 
         // Aceita alinhamento de espaços ('motivo'      => $motivo).
         expect(preg_match('/[\'"]motivo[\'"]\s*=>\s*\$motivo/', $src))->toBe(1,
             'cancelar() deve registrar motivo em log estruturado');
->>>>>>> origin/main
     });
 
     it('Tier 0: NfseProviderConfig isProducao() helper (gate anti-erro homolog→prod)', function () {
