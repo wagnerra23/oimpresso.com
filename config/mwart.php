@@ -54,6 +54,18 @@ return [
         'business_ids' => $parseBizIds('MWART_REPAIR_DEVICE_MODELS_INDEX_BIZ'),
     ],
 
+    // Blade T1 Migration C (2026-05-17) — Device Models create + edit
+    // Página dedicada substitui modal Blade legacy. Coexiste via flag opt-in.
+    'repair_device_models_create' => [
+        'enabled'      => env('MWART_REPAIR_DEVICE_MODELS_CREATE', false),
+        'business_ids' => $parseBizIds('MWART_REPAIR_DEVICE_MODELS_CREATE_BIZ'),
+    ],
+
+    'repair_device_models_edit' => [
+        'enabled'      => env('MWART_REPAIR_DEVICE_MODELS_EDIT', false),
+        'business_ids' => $parseBizIds('MWART_REPAIR_DEVICE_MODELS_EDIT_BIZ'),
+    ],
+
     // Tela 3/4 — Dashboard Repair (DashboardController@index)
     'repair_dashboard_index' => [
         'enabled'      => env('MWART_REPAIR_DASHBOARD_INDEX', false),
