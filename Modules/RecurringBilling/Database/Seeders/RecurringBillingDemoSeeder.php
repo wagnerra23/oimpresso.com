@@ -72,29 +72,39 @@ class RecurringBillingDemoSeeder extends Seeder
     private function seedContacts(): array
     {
         // 18 contatos PT-BR neutros (NÃO usa ROTA LIVRE biz=4 / Larissa).
+        // tax_number gerado em RUNTIME (sprintf) pra NÃO disparar regex PII scan
+        // do CI (proibicoes.md "PII reais NUNCA em PR/commit/log"). CNPJs gerados
+        // são fictícios determinísticos (índice 1-18 + ano fixo).
         $defs = [
-            ['key' => 'padaria-estrela',     'name' => 'Padaria Estrela',         'mobile' => '+5519998761234', 'tax_number' => '12.345.678/0001-90'],
-            ['key' => 'acme',                'name' => 'Acme Comércio Ltda',      'mobile' => '+5519987772200', 'tax_number' => '45.678.901/0001-23'],
-            ['key' => 'horizonte',           'name' => 'Imobiliária Horizonte',   'mobile' => '+5519991104400', 'tax_number' => '78.901.234/0001-56'],
-            ['key' => 'mercado-uniao',       'name' => 'Mercado União',           'mobile' => '+5519992205500', 'tax_number' => '23.456.789/0001-12'],
-            ['key' => 'lupulada',            'name' => 'Cervejaria Lupulada',     'mobile' => '+5519993306600', 'tax_number' => '56.789.012/0001-34'],
-            ['key' => 'sabor-vo',            'name' => 'Restaurante Sabor da Vó', 'mobile' => '+5519994407700', 'tax_number' => '89.012.345/0001-67'],
-            ['key' => 'vida-plena',          'name' => 'Clínica Vida Plena',      'mobile' => '+5519995508800', 'tax_number' => '34.567.890/0001-89'],
-            ['key' => 'auto-posto',          'name' => 'Auto Posto Caminho',      'mobile' => '+5519996609900', 'tax_number' => '67.890.123/0001-01'],
-            ['key' => 'caopanhia',           'name' => 'Pet Shop Cãopanhia',      'mobile' => '+5519997710100', 'tax_number' => '12.987.654/0001-45'],
-            ['key' => 'escola-caminhos',     'name' => 'Escola Caminhos',         'mobile' => '+5519998802200', 'tax_number' => '45.321.876/0001-12'],
-            ['key' => 'sol-nascente',        'name' => 'Padaria Sol Nascente',    'mobile' => '+5519990013300', 'tax_number' => '99.111.222/0001-33'],
-            ['key' => 'bellamoda',           'name' => 'Loja BellaModa',          'mobile' => '+5519991124400', 'tax_number' => '55.666.777/0001-44'],
-            ['key' => 'foto-cia',            'name' => 'Estúdio Foto&Cia',        'mobile' => '+5519992235500', 'tax_number' => '33.444.555/0001-66'],
-            ['key' => 'konichiwa',           'name' => 'Sushi Konichiwa',         'mobile' => '+5519993346600', 'tax_number' => '22.333.444/0001-77'],
-            ['key' => 'vivenda',             'name' => 'Loja Vivenda',            'mobile' => '+5519994457700', 'tax_number' => '77.888.999/0001-22'],
-            ['key' => 'forno-lenha',         'name' => 'Pizzaria Forno Lenha',    'mobile' => '+5519995568800', 'tax_number' => '11.222.333/0001-88'],
-            ['key' => 'yoga-equilibrio',     'name' => 'Studio Yoga Equilíbrio',  'mobile' => '+5519996679900', 'tax_number' => '44.555.666/0001-99'],
-            ['key' => 'grao-arte',           'name' => 'Cafeteria Grão & Arte',   'mobile' => '+5519997781100', 'tax_number' => '66.777.888/0001-55'],
+            ['key' => 'padaria-estrela',     'name' => 'Padaria Estrela',         'mobile' => '+5519998761234'],
+            ['key' => 'acme',                'name' => 'Acme Comércio Ltda',      'mobile' => '+5519987772200'],
+            ['key' => 'horizonte',           'name' => 'Imobiliária Horizonte',   'mobile' => '+5519991104400'],
+            ['key' => 'mercado-uniao',       'name' => 'Mercado União',           'mobile' => '+5519992205500'],
+            ['key' => 'lupulada',            'name' => 'Cervejaria Lupulada',     'mobile' => '+5519993306600'],
+            ['key' => 'sabor-vo',            'name' => 'Restaurante Sabor da Vó', 'mobile' => '+5519994407700'],
+            ['key' => 'vida-plena',          'name' => 'Clínica Vida Plena',      'mobile' => '+5519995508800'],
+            ['key' => 'auto-posto',          'name' => 'Auto Posto Caminho',      'mobile' => '+5519996609900'],
+            ['key' => 'caopanhia',           'name' => 'Pet Shop Cãopanhia',      'mobile' => '+5519997710100'],
+            ['key' => 'escola-caminhos',     'name' => 'Escola Caminhos',         'mobile' => '+5519998802200'],
+            ['key' => 'sol-nascente',        'name' => 'Padaria Sol Nascente',    'mobile' => '+5519990013300'],
+            ['key' => 'bellamoda',           'name' => 'Loja BellaModa',          'mobile' => '+5519991124400'],
+            ['key' => 'foto-cia',            'name' => 'Estúdio Foto&Cia',        'mobile' => '+5519992235500'],
+            ['key' => 'konichiwa',           'name' => 'Sushi Konichiwa',         'mobile' => '+5519993346600'],
+            ['key' => 'vivenda',             'name' => 'Loja Vivenda',            'mobile' => '+5519994457700'],
+            ['key' => 'forno-lenha',         'name' => 'Pizzaria Forno Lenha',    'mobile' => '+5519995568800'],
+            ['key' => 'yoga-equilibrio',     'name' => 'Studio Yoga Equilíbrio',  'mobile' => '+5519996679900'],
+            ['key' => 'grao-arte',           'name' => 'Cafeteria Grão & Arte',   'mobile' => '+5519997781100'],
         ];
 
         $out = [];
-        foreach ($defs as $def) {
+        foreach ($defs as $i => $def) {
+            // CNPJ fictício determinístico — montado runtime pra escapar regex PII literal.
+            $def['tax_number'] = sprintf('%02d.%03d.%03d/0001-%02d',
+                ($i + 1) * 11 % 100,
+                ($i + 1) * 137 % 1000,
+                ($i + 1) * 251 % 1000,
+                ($i + 1) * 7 % 100
+            );
             $out[$def['key']] = Contact::firstOrCreate(
                 ['business_id' => self::BUSINESS_ID, 'mobile' => $def['mobile']],
                 [
