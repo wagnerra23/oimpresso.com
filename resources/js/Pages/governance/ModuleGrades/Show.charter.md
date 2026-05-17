@@ -3,7 +3,7 @@ page: governance/ModuleGrades/Show
 route: /governance/module-grades/{name}
 status: live
 owner: [W]
-adrs: [0153, 0154, 0155]
+adrs: [0153, 0154, 0155, 0167]
 runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 ---
 
@@ -23,6 +23,7 @@ Drill-down de **um módulo específico** — mostrar nota grande, breakdown das 
 6. Botão **"Evoluir"** primário (verde, alto contraste) — abre Dialog com tasks suggested + markdown copiável
 7. Markdown gerado é colável direto no Claude Code pra criar tasks via `tasks-create` MCP
 8. **Gate CI anti-regressão surfaced no rodapé** (Wave 2 ADR 0155 §"Gate CI"). Wagner e time MCP entram no drill-down do módulo X e veem que **se a nota deste módulo cair em PR, merge é bloqueado**. Card sky discreto explica comportamento + label de override `module-grades-allowed-regression` + 4 links externos (workflow + baseline JSON + RUNBOOK + ADR 0155). Texto adaptado pro contexto módulo único ("deste módulo" não "qualquer módulo" como no Index).
+9. **Dossier do módulo (2026-05-17)** — Card entre Header e Grid de dimensões lista narrativa qualitativa canônica de `memory/requisitos/<name>/` (BRIEFING + CAPTERRA-*.md + GOVERNANCE-MATURITY-FICHA + DEPRECATION-PLAN + SPEC + CHANGELOG). Click em chip abre Dialog com markdown renderizado (ReactMarkdown + remarkGfm — mesma stack do KB) + botão "Copiar Markdown" pra colar contexto no Claude. Resolve fragmentação detectada sessão 2026-05-17: 13+ fichas Capterra existentes em `memory/requisitos/*` ficam invisíveis sem essa surface UI. Read-only, sem Brain B, sem edit inline — respeita non-goals existentes. `Inertia::defer` no Controller pula filesystem I/O quando partial reload não pede.
 
 ## Non-Goals
 
