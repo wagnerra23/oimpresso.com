@@ -2,6 +2,35 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+<<<<<<< HEAD
+## [Wave 28 — Polish saturation FINAL 60-79-88 → ≥92 (+4pp)] — 2026-05-17
+
+### Adicionado — D9 +1 span `accounting.budget.yearly_to_monthly` + companion `quarterly_to_monthly`
+- `BudgetService` instrumentado com `OtelHelper::spanBiz`:
+  - `accounting.budget.yearly_to_monthly` — split anual em 12 buckets `month_N` com proteção `eliminate_decimals` (soma 12 meses == yearly_budget exato)
+  - `accounting.budget.quarterly_to_monthly` (companion span) — split trimestral em 3 buckets named keys
+- Service stateless após Wave 28; mantém retro-compat com construtor de argumentos legacy (Controllers UltimatePOS).
+- Span attributes sem PII: apenas valor numérico orçamento (não é dado pessoal LGPD) + `eliminate_decimals` flag + `module`.
+
+### Adicionado — D2 +3 Pest cross-tenant Wave 28
+- `Tests/Feature/Wave28AccountingSaturationTest.php` (~9 cenários):
+  - D9 W28 span yearly + quarterly + retorno preservado (12 keys + soma == budget)
+  - D2 W28 cross-tenant Budget (biz=1 NÃO aparece em raw query biz=99 — LGPD Art. 6 ADR 0093) + ScopeByBusiness filtra Budget biz=1 quando session=biz=99 + quartelyBudgetToMonthly contract preservado
+  - Tier 0 W28 preservação: catálogo `chart_of_accounts` biz=0 NÃO alterado (regression guard explícito — lesson W13/W15) + OtelHelper fail-loud em `accounting.budget.*`
+  - D3 W28 CHANGELOG entry (este)
+- Tests MySQL-aware (skip SQLite quando schema `budgets`/`chart_of_accounts` ausente — ADR 0101).
+
+### D3 W28 doc
+- CHANGELOG (este entry).
+
+### Preservado (Tier 0 IRREVOGÁVEIS)
+- ⛔ Catálogo `chart_of_accounts` biz=0 NÃO alterado (lesson W13/W15)
+- D7.b W25 LogsActivity em 8/8 Entities principais (Account, AccountTransaction, Budget, ChartOfAccount, DocumentAndNote, JournalEntry, CashRegister, CashRegisterTransaction)
+- D7.c retention.php 5 categorias LGPD canônicas (CTN Art. 195 / CC Art. 206 / Lei 8.846/94)
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3 D9 saturated +1
+=======
 ## [Wave 27 — Polish final ≥88] — 2026-05-17 (60-79 → 88, +9 a +28pp)
 
 ### Adicionado — D9.a OTel spans BudgetService (+2 spans)
@@ -39,6 +68,7 @@
 - ADR 0101 Tests biz=1
 - ADR 0155 Module Grade v3 (D9.a Services span coverage + D7.c retention config)
 - ADR 0159 Wave 25 polish base
+>>>>>>> origin/main
 
 ## [Wave 25 — Polish D7.b LogsActivity] — 2026-05-16
 

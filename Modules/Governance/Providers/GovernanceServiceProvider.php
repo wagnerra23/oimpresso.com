@@ -32,6 +32,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\ModuleGradeSnapshotCommand::class,
                 \Modules\Governance\Console\Commands\ScorecardSnapshotCommand::class,
                 \Modules\Governance\Console\Commands\ObservabilityAggregateCommand::class,  // Wave 26 Agent 3 — ADR 0162
+                \Modules\Governance\Console\Commands\ScorecardInitiativeSyncCommand::class, // Wave 28 Agent 1 — Initiatives Cortex-style
             ]);
         }
     }
