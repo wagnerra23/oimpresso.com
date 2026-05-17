@@ -96,3 +96,75 @@ it('config governance.pii_redaction_enabled tem default true (ADR 0094 §PII)', 
     $content = file_get_contents($path);
     expect($content)->toContain('pii_redaction_enabled');
 });
+
+// ------------------------------------------------------------------
+// Wave 25 — expansão PII Leak coverage (placeholder mode, CPF/CNPJ regex)
+// ------------------------------------------------------------------
+
+it('PiiRedactor placeholder mode preserva legibilidade — substitui mas NÃO mascara tudo', function () {
+    $redactor = app(PiiRedactor::class);
+    $input = 'Cliente CPF 123.456.789-09 ligou às 10h.';
+
+    $output = $redactor->redact($input, 'placeholder');
+
+    // Output deve continuar contendo "Cliente" e "ligou" (não vira tudo asterisco)
+    expect($output)->toContain('Cliente');
+    expect($output)->toContain('ligou');
+    // Mas CPF formatado deve sumir
+    expect($output)->not->toContain('123.456.789-09');
+});
+
+it('PiiRedactor lida com CNPJ formatado BR (xx.xxx.xxx/yyyy-zz)', function () {
+    $redactor = app(PiiRedactor::class);
+    $input = 'Empresa CNPJ 12.345.678/0001-99 enviou nota.';
+
+    $output = $redactor->redact($input, 'placeholder');
+
+    expect($output)->not->toContain('12.345.678/0001-99');
+    expect($output)->toContain('Empresa');
+});
+
+it('PiiRedactor é idempotente — redact(redact(x)) == redact(x)', function () {
+    $redactor = app(PiiRedactor::class);
+    $input = 'CPF 111.222.333-44 e email teste@gmail.com';
+
+    $pass1 = $redactor->redact($input, 'placeholder');
+    $pass2 = $redactor->redact($pass1, 'placeholder');
+
+    expect($pass1)->toBe($pass2, 'redact deve ser idempotente — segunda chamada não altera');
+});
+
+it('RevertService NUNCA persiste reason raw em activity_log (sempre via PiiRedactor)', function () {
+    $path = base_path('Modules/Auditoria/Services/RevertService.php');
+    $content = file_get_contents($path);
+
+    // Garantir que NÃO existe pattern `revert_reason' => $reason` (raw direto)
+    // mas sim a versão `PiiRedactor::class)->redact($reason, ...)` na atribuição.
+    expect($content)->toMatch('/redact\(\$reason/');
+
+    // Sanidade: assign de revert_reason aparece DEPOIS do redact (ordem importa)
+    $redactPos = strpos($content, '->redact($reason');
+    $reasonAssign = strpos($content, "'revert_reason'");
+    if ($reasonAssign !== false) {
+        expect($redactPos)->toBeLessThan($reasonAssign, 'redact precisa rodar ANTES de atribuir revert_reason');
+    }
+});
+
+it('AuditNote casts não expõem note como searchable (defesa LGPD)', function () {
+    $note = new \Modules\Auditoria\Entities\AuditNote();
+    $casts = $note->getCasts();
+
+    // note deve ser plain string (sem encrypted cast removido) — mas activity log
+    // não deve ter note no logAttributes (já testado acima). Aqui só reforça que
+    // não há cast acidental tipo `'note' => 'encrypted'` que mudaria o storage.
+    expect($casts)->not->toHaveKey('note');
+});
+
+it('ExportAuditEntriesRequest tem flag include_properties default false (Wave 25 D8)', function () {
+    $path = base_path('Modules/Auditoria/Http/Requests/ExportAuditEntriesRequest.php');
+    expect(file_exists($path))->toBeTrue('FormRequest Wave 25 export deve existir');
+
+    $content = file_get_contents($path);
+    expect($content)->toContain("'include_properties' => ['nullable', 'boolean']");
+    expect($content)->toContain("'motivo'        => ['required', 'string', 'min:10'");
+});

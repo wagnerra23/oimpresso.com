@@ -44,6 +44,7 @@ class KBServiceProvider extends ServiceProvider
 
     /**
      * Wave 23 §G4 — registra commands KB (kb:drift-detector + kb:reindex).
+     * Wave 25 §G saturação D9 — adiciona kb:health-check.
      */
     protected function registerCommands(): void
     {
@@ -51,6 +52,7 @@ class KBServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\KB\Console\Commands\KbReindexCommand::class,
                 \Modules\KB\Console\Commands\KbDriftDetectorCommand::class, // Wave 23 §G4 — drift artigo KB vs git log
+                \Modules\KB\Console\Commands\KbHealthCommand::class,        // Wave 25 §G D9 — health-check RAG (corpus_size/bridge_freshness/retrieval_latency/editable_ratio)
             ]);
         }
     }

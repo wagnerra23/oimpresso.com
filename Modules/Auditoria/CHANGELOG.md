@@ -1,5 +1,26 @@
 # Modules/Auditoria — CHANGELOG
 
+## [Wave 25] - 2026-05-16
+
+### Added (D8 — FormRequest +1)
+- `Http/Requests/ExportAuditEntriesRequest.php` — CSV/JSON dump da grade filtrada
+  com 4 defesas Tier 0: cap hard limit max 10.000, `include_properties` via
+  PiiRedactor, motivo obrigatório (audit log), whitelist format csv|json,
+  `business_id` prohibited.
+
+### Test (D1 — Pest +5 Wave 25 + PII expandido +6)
+- `Tests/Feature/Wave18SaturationTest.php` — +5 testes ExportAuditEntriesRequest
+  (rules/cap/prohibited/coerce/messages).
+- `Tests/Feature/PiiLeakActivityLogEnforceTest.php` — +6 testes Wave 25:
+  placeholder mode preserva legibilidade, CNPJ formatado BR, idempotência
+  redact, RevertService nunca persiste raw, AuditNote casts sanity,
+  ExportRequest include_properties default false.
+
+### Docs
+- `Pages/Auditoria/Index.charter.md` — seção Wave 25 (Export flow UX +
+  Bulk action panel + 5 edge cases catalogados).
+- `CHANGELOG.md` (este arquivo).
+
 ## [Wave 18 RETRY] - 2026-05-16
 
 ### Added (D8 — FormRequests)

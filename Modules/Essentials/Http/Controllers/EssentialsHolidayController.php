@@ -60,15 +60,15 @@ class EssentialsHolidayController extends Controller
                 ->whereDate('start_date', '<=', $request->string('end_date'));
         }
 
-        $holidays = $query->orderByDesc('start_date')->get()->map(fn ($h) => $this->toShape($h))->values();
-
-        $locations = collect(BusinessLocation::forDropdown($businessId))
-            ->map(fn ($label, $id) => ['id' => (int) $id, 'label' => (string) $label])
-            ->values()->all();
-
+        // Wave 25 D6.a — Inertia::defer em holidays (with('location') + map toShape) +
+        // locations dropdown (DB). Filtros/can_manage eager (UI state + bool).
         return Inertia::render('Essentials/Holidays/Index', [
-            'holidays' => $holidays,
-            'locations' => $locations,
+            'holidays'  => Inertia::defer(fn () => $query->orderByDesc('start_date')->get()
+                ->map(fn ($h) => $this->toShape($h))
+                ->values()),
+            'locations' => Inertia::defer(fn () => collect(BusinessLocation::forDropdown($businessId))
+                ->map(fn ($label, $id) => ['id' => (int) $id, 'label' => (string) $label])
+                ->values()->all()),
             'filtros'   => [
                 'location_id' => $request->integer('location_id') ?: null,
                 'start_date'  => $request->string('start_date')->toString() ?: null,

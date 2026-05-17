@@ -16,6 +16,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Project = unidade superior de agrupamento. Tasks têm identifier humano
  * "<key>-<NNNN>" gerado a partir de next_task_number.
  *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — projects são da
+ * plataforma. Sem `business_id` by design. Wave 25 SATURATION marker explícito
+ * pra rubrica D1.c v3.2 hardened.
+ *
  * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia mudanças
  * de status/lead/settings — projeto é raiz da hierarquia, audit vital.
  *

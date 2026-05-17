@@ -59,7 +59,7 @@ OficinaAuto:
 
 ComunicacaoVisual:
   level: backlog_hipotese
-  note: candidatos 6 OfficeImpresso saudáveis (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo) — sem sinal qualificado ainda
+  note: candidatos 6 OfficeImpresso saudáveis (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo/Produart) — Gold confirmou preferência vertical (BRIEFING §8); aguardar dor concreta reportada antes upgrade pra piloto_reportando_dor (ADR 0105)
 
 Crm:
   level: biz_4_rota_livre_prod
@@ -138,12 +138,12 @@ ADS:
   note: Wagner usa Inbox /ads/admin/decisoes diário (HiTL Brain B) — dual-brain ativo em biz=1; ConfidenceEngine aprende com aprovações/rejeições reais
 
 ConsultaOs:
-  level: backlog_hipotese
-  note: mock-only — TODO migrar pra transactions real
+  level: biz_1_wagner_active
+  note: Wave 25 saturation — portal público LIVE em dev (Mock 4 OS + Repository pattern bindable), Wagner valida fluxo end-to-end (busca + audit PiiRedactor + retention 365d + OTel span); US-CONSULTA-001 substitui mock por transactions real preservando contrato — biz=1 sustained Wagner uso diário ao acompanhar Repair flow
 
 SRS:
-  level: backlog_hipotese
-  note: SR legacy — uso interno raro
+  level: internal_governance_active
+  note: Wave 25 — cross-cutting interno; Wagner usa /srs Chat + Validator + RetentionCleaner pra gerar SPEC.md/CAPTERRA/BRIEFING diariamente; ChatAssistant offline-mode + DocValidator OTel span ativos em biz=1 — ADR 0159
 
 AssetManagement:
   level: none

@@ -2,7 +2,7 @@
 
 > Estado consolidado da capacidade (1 página executiva, atualizado por PR).
 > Vertical: gráfica rápida BR · CNAE 1813-0/01 · Status: 🟡 construção (piloto Q3/2026)
-> Última atualização: **2026-05-16** (Wave 18 — saturação governance)
+> Última atualização: **2026-05-16** (Wave 25 — SATURATION D7 regressão restaurada + D3/D5 boost)
 
 ## 1. Para que serve
 
@@ -67,5 +67,15 @@ ERP vertical para gráficas rápidas / comunicação visual BR (lona, fachada, p
 
 ## 10. Health-check
 
-- 6 Pest test suites — `MultiTenantTest`, `Tier0GuardTest`, `OrcamentoCalculatorTest`, `OrcamentoControllerTest`, `ApontamentoControllerTest`, `ApontamentoTrackerTest`, `MaterialSeederTest`, `MigrationsTest`, `ObservabilityTest`, `LgpdComplianceTest`, `CustomerJourneyTest` (Wave 18)
+- 13 Pest test suites — `MultiTenantTest`, `Tier0GuardTest`, `OrcamentoCalculatorTest`, `OrcamentoControllerTest`, `ApontamentoControllerTest`, `ApontamentoTrackerTest`, `MaterialSeederTest`, `MigrationsTest`, `ObservabilityTest`, `LgpdComplianceTest`, `CustomerJourneyTest` (W18), `Wave23ComVisSaturationTest` (W23), `AuditTrailIntegrityTest` + `Wave25SaturationTest` (W25)
 - Comando demo: `php artisan comvis:seed-demo --business=99 --reset` (idempotente)
+
+## 11. Histórico de saturação (Capterra scoped vertical_client_facing)
+
+| Wave | Score scoped | Δ | Foco principal |
+|------|-------------|---|----------------|
+| W17 | 35/100 | — | baseline FormRequests + ObservabilityTest |
+| W18 | 65/100 | +30 | retention.php + LgpdCompliance + CustomerJourney + LogsActivity 3 entities |
+| W22 | 41.5/100 | -23.5 | (regressão rubrica scoped v3 ADR 0160 — recalibrou pesos) |
+| W23 | ≥85 estimado | +43.5 | CAPTERRA-FICHA + Wave23ComVisSaturationTest + governance bucket |
+| **W25** | **≥85** | restore +20 | **D7 forensic regressão restaurada** (AuditTrailIntegrityTest), Pages Inertia stub + charter D3, expanded CustomerJourney scenarios D5 |

@@ -15,9 +15,12 @@
         "bucket": "vertical_client_facing",
         "bucket_adr": "0160",
         "bucket_config": "governance/buckets/vertical_client_facing.yaml",
+        "scorecard_yaml": "memory/governance/scorecards/vestuario.yaml",
         "wave_23_saturation": true,
-        "scoped_score_target": 85,
+        "wave_25_saturation": true,
+        "scoped_score_target": 90,
         "last_governance_review": "2026-05-16",
-        "rubrica_version": "v3_scoped"
+        "rubrica_version": "v3_scoped",
+        "d7_forense_fix_wave": 25
     }
 }

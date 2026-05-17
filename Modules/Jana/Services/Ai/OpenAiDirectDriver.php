@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Ai;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\AiAdapter;
 use Modules\Jana\Entities\Conversa;
@@ -13,6 +14,11 @@ use OpenAI\Laravel\Facades\OpenAI;
  * OpenAiDirectDriver — usa openai-php/laravel diretamente.
  * Fallback padrão quando LaravelAI não está disponível.
  * Ver adr/tech/0002-adapter-ia-laravelai-ou-openai.md.
+ *
+ * D9.a Wave 25 SATURATION — span observability zero-cost via OtelHelper::span
+ * (config('otel.enabled') gateia). Tier 0 ADR 0093: business_id explícito do
+ * ContextoNegocio (não auth()->user()->business_id porque driver pode rodar
+ * em queue worker CT 100 sem session HTTP).
  */
 class OpenAiDirectDriver implements AiAdapter
 {
@@ -25,6 +31,18 @@ class OpenAiDirectDriver implements AiAdapter
         $ctxSanitizado = $this->sanitizarContexto($ctx);
         $prompt        = $this->montarPromptBriefing($ctxSanitizado);
 
+        // D9.a Wave 25 — OTel span explícito com business_id do ContextoNegocio
+        // (driver pode rodar fora de HTTP context — CT 100 queue worker).
+        return OtelHelper::span('jana.openai.gerar_briefing', [
+            'business_id' => $ctx->businessId,
+            'model'       => (string) config('copiloto.openai.model_chat', 'gpt-4o-mini'),
+        ], function () use ($prompt, $ctx) {
+            return $this->doGerarBriefing($prompt, $ctx);
+        });
+    }
+
+    private function doGerarBriefing(string $prompt, ContextoNegocio $ctx): string
+    {
         try {
             $response = OpenAI::chat()->create([
                 'model'       => config('copiloto.openai.model_chat', 'gpt-4o-mini'),

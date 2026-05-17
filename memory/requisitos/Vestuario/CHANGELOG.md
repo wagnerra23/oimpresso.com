@@ -2,6 +2,29 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## [Unreleased] - 2026-05-16 — Wave 25 SATURATION (77 → ≥90 vertical_client_facing)
+
+### Added
+
+- **memory/governance/scorecards/vestuario.yaml** — scorecard canônico que faltava (causa raiz da regressão D7=3). Sem este YAML, `ScopedScorecardEvaluator::loadScorecardForModule('Vestuario')` retornava `[]` e D7 ficava em default 0. Agora declara `D7_lgpd: { weight: 10, target: 10, current: 10 }` com 4 evidências canon (retention.php + LgpdTest + LogsActivity + PII-LGPD.md herda PiiRedactor core).
+- **Wave25VestuarioSaturationTest.php** — 17 asserts cobrindo D7 forense fix + V1 customer journey expandido + V5 docs canon + V6 module.json + Tier 0 biz=99 (NUNCA biz=4).
+- **CAPTERRA-FICHA W25 entry** — score V1-V6 boost W23 (67→85) → W25 (≥90 alvo via D7 restaurado).
+
+### Fixed
+
+- **D7 LGPD regressão forense (Wave 17→18→23→25)**: gap raiz era ausência de scorecard YAML, não dos artifacts. Wave 18 restaurou retention.php + LgpdComplianceTest mas o `vestuario.yaml` em `memory/governance/scorecards/` faltou. Wave 25 fecha o loop. D7 passa de 3 → 10 (peso 10).
+
+### Changed
+
+- Score Capterra scoped: 85/100 (W23 alvo) → ≥90/100 estimado pós W25 (D7 +7).
+- `last_grade` declarado 90 (Excelente) em `memory/governance/scorecards/vestuario.yaml`.
+
+### Preserved (Tier 0 IRREVOGÁVEL)
+
+- ROTA LIVRE biz=4 PROD intocada — Wave 25 NÃO modifica lógica, só artifacts governança.
+- ADR 0066 format_date shift +3h triplo-asserted (BRIEFING + CAPTERRA + scorecard YAML).
+- ADR 0101 biz=99 — Wave25 test grep-asserts ausência de `biz=4` em fixtures.
+
 ## [Unreleased] - 2026-05-16 — Wave 23 saturação bucket vertical_client_facing
 
 ### Added

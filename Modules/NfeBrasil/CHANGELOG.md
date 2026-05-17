@@ -2,6 +2,27 @@
 
 Mudanças observáveis na capacidade fiscal NFe/NFC-e/NFSe. Append-only por release/wave.
 
+## Wave 25 — 2026-05-16 (saturation 72→≥85)
+
+### D2 — Multi-tenant Tier 0 cross-tenant deep
+- Novo Pest `Tests/Feature/Wave25NfeSaturationTest.php` — 14 cenários (12 MySQL-skipped sem DB válido, contract tests rodam):
+  - `NfeInutilizacao::count()` cross-tenant: session biz=99 só vê 1 range (biz=1 tem 2, blindados).
+  - `quantidadeNumeros()` computa range inclusivo (991000..991009 = 10 numeros).
+  - Numeração inutilizada por (business_id) — mesmo range repete entre tenants (sem conflito).
+- Pattern reusa `NfeBrasilMultiTenantIsolationTest.php` (Wave 13) + `NfeEventoMultiTenantIsolationTest.php` (Wave 18) — cobertura ampliada agora pra NfeInutilizacao.
+
+### D6 — CONFAZ SINIEF 07/2005 Art. 14 (preservation IRREVOGÁVEL)
+- `NfeEmissao` usa `SoftDeletes` (preserva histórico — nunca hard-delete).
+- `isCancelavel()` respeita prazos canônicos: 24h NFC-e (modelo 65) / 168h NFe (modelo 55).
+- Status terminal `cancelada` NÃO pode ser re-cancelada (idempotência fiscal).
+- **`NfeService` source-grep confirma ZERO chamadas `forceDelete()`** em código de cancelamento — preservação contratual blindada por Pest.
+
+### D7 — LogsActivity confirmação (Wave 17/18 já implementado)
+- Teste prova 3 Models críticos preservam trait: `NfeEmissao` (logName=`nfe_emissao`), `NfeEvento` (logName=`nfe_evento`), `NfeInutilizacao` (logName=`nfe_inutilizacao`).
+
+### D3 — Inertia::defer perf
+- `TributacaoController::index` refatorado: `regras` (query DB com map N items) + `templates` (Service call) movidos pra `Inertia::defer(fn () => ...)`. `config` permanece eager (single-row leve). Skill `inertia-defer-default` (Tier B). Pattern D-14 validado (300ms → 50ms switch página).
+
 ## Wave 18 — 2026-05-16 (governance saturation)
 
 ### D7 — LGPD audit trail

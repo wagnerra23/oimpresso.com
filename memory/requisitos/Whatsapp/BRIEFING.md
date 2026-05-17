@@ -1,7 +1,7 @@
 # BRIEFING — Whatsapp / Atendimento
 
 > **Mantido por:** skill `brief-update` (Tier B auto-trigger) + Wagner review
-> **Atualizado:** 2026-05-16 (Wave M agent boost — Service facade + 3 charters + governance D3.c/D4)
+> **Atualizado:** 2026-05-16 (Wave 25 — Drivers SATURATION + DriverInterface contract coverage 15/15 passed)
 > **Próximo update esperado:** quando próximo PR `feat/perf/fix(whatsapp)` mergear
 
 ---

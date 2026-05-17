@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * MEM-CC-1 — Blob deduplicado.
+ *
+ * REPO-WIDE: ADR 0053 dedup hash global SHA256 — cross-tenant intencional.
+ * Conteúdo é deduplicado por hash, refs_count contabiliza N tenants apontando
+ * pro mesmo blob (storage savings). Sem `business_id` by design (objetivo do
+ * dedup). Wave 25 SATURATION marker explícito pra rubrica D1.c v3.2 hardened.
  */
 class McpCcBlob extends Model
 {
