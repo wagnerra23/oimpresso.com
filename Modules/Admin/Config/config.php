@@ -42,4 +42,18 @@ return [
      * desabilitados).
      */
     'bypass_local' => env('ADMIN_BYPASS_LOCAL', false),
+
+    /**
+     * Bypass Tailscale-only restrito (válido em qualquer env, inclusive prod).
+     * Defense-in-depth preservado: middleware `is-wagner` (user_id=1) continua
+     * validando — apenas Wagner autenticado entra, mesmo com flag ON. Cada
+     * request bypass loga WARN em admin.tailscale_bypass pra auditoria.
+     *
+     * Caso de uso: Wagner acessando admin via Hostinger público (sem VPN
+     * Tailscale ativa no laptop). Ativado em prod 2026-05-17 quando setup
+     * Tailscale-only do Admin foi diferido pra Sprint posterior.
+     *
+     * Default false (CIDR Tailscale obrigatório).
+     */
+    'bypass_tailscale' => env('ADMIN_BYPASS_TAILSCALE', false),
 ];
