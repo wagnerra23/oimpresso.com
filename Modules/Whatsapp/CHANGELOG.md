@@ -1,5 +1,27 @@
 # Whatsapp — Changelog
 
+## [Wave 27 POLISH — 2026-05-17] Drivers polish final 74-88 → ≥90
+
+### D9 — MetaCloudDriver +3 spans canon (era 2 em W25)
+- `MetaCloudDriver::sendMedia` agora envolve OtelHelper::span `whatsapp.meta_cloud.send_media` (attributes: business_id, phone_number_id, media_type — sem PII)
+- `MetaCloudDriver::sendInteractive` envolve span `whatsapp.meta_cloud.send_interactive` (attributes: interactive_type) — método interno `sendInteractiveInterno` preserva lógica match buttons/list/cta_url
+- `MetaCloudDriver::ping` envolve span `whatsapp.meta_cloud.ping` pra healthcheck observable (fail-soft `otel.enabled=false` zero-cost)
+- Total spans MetaCloudDriver: 5 (template + freeform + media + interactive + ping)
+- Total spans BaileysDriver preservado: ≥3 hot-path (W25 baseline mantido)
+
+### D2 Pest novo
+- `Tests/Feature/Wave27WhatsappSaturationTest.php` — 7 cenários reflection + source-grep:
+  - MetaCloudDriver expõe 5 spans canon completos (W27 expansion validada)
+  - BaileysDriver mantém ≥3 spans (W25 preservation)
+  - Services subdir canon (Drivers/Webhook/Metrics/Macros/Csat/Notes/Sla/Centrifugo/CustomerMemory/EmployeePerformance/Contacts/Audio) todos presentes (D4 services pattern saturação)
+  - 4 drivers canon (Baileys + MetaCloud + Zapi + Null) resolvem do container
+  - Tier 0 IRREVOGÁVEL: EvolutionDriver permanece proibido (ADR 0096 emenda 4)
+
+### Tier 0 preservado
+- ADR 0096 emenda 4 — Baileys + MetaCloud canon, Evolution proibido
+- ADR 0117 multi-números — DriverInterface union type WhatsappBusinessConfig|WhatsappBusinessPhone preservado
+- Sem PII em spans (apenas business_id + phone_number_id + media_type metadata)
+
 ## [Wave 25 — 2026-05-16] Drivers SATURATION + D4 services pattern (74→≥85)
 
 ### D2/D3 — Drivers contract coverage

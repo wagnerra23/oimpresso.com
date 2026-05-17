@@ -320,13 +320,56 @@ class ScopedScorecardEvaluator
 
     /**
      * Substitui placeholders do nome do módulo no path declarado em YAML.
-     * Convenção: scorecards usam Modules/Vestuario como template e este método
-     * troca o slug pelo módulo real sendo avaliado.
+     *
+     * Suporta dois patterns canônicos (Wave 27 fix v4 detection — 2026-05-17):
+     *
+     *   1) Placeholder explícito `<modulo>` (CANONICAL W27+) — recomendado pra novos YAMLs
+     *      `path: 'Modules/<modulo>/Entities/**\/*.php'`
+     *      `path: 'memory/requisitos/<modulo>/SPEC.md'`
+     *
+     *   2) Legacy literal `Modules/<NomeReal>/` (BACK-COMPAT W19-W26) — pra YAMLs históricos
+     *      `path: 'Modules/Vestuario/Entities/**\/*.php'` → substitui pelo módulo avaliado
+     *      Lista whitelist explícita (vs regex genérica) pra evitar false-match em strings
+     *      como `Modules/Vestuario` que aparecem em comentários internos do conteúdo PHP.
+     *
+     * Ordem matter: placeholder primeiro (pra `<modulo>` ser substituído ANTES do regex
+     * legacy capturar `Modules/<modulo>` como literal — improvável mas defensivo).
+     *
+     * Visibilidade `public` desde W27 pra Pest test direto (antes era `private` regex genérica).
      */
-    private function resolveModulePath(string $module, string $path): string
+    public function resolveModulePath(string $module, string $path): string
     {
-        // Substitui "Modules/<Qualquer>" pelo módulo atual mantendo path suffix
-        return preg_replace('#Modules/[A-Z][A-Za-z0-9]+#', "Modules/{$module}", $path) ?? $path;
+        // 1) Placeholder canônico W27+
+        $path = str_replace(
+            ['<modulo>', '<MODULO>', '<module>', '{modulo}', '{module}'],
+            $module,
+            $path
+        );
+
+        // 2) Legacy literal substitution (back-compat W19-W26)
+        //    Whitelist de nomes reais conhecidos — evita substituir match acidental
+        //    em strings/comments embutidos no path glob.
+        $modulosConhecidos = 'Vestuario|Governance|Jana|Crm|Financeiro|Repair|Ponto'
+            . '|RecurringBilling|NfeBrasil|NFSe|Manufacturing|Cms|Spreadsheet'
+            . '|Arquivos|Accounting|AssetManagement|Essentials|ADS|ConsultaOs'
+            . '|SRS|Whatsapp|Woocommerce|ProductCatalogue|ProjectMgmt'
+            . '|ComunicacaoVisual|OficinaAuto|Officeimpresso|Auditoria|Admin'
+            . '|Brief|TeamMcp|Superadmin|Connector|KB|MemCofre|Project|Sells';
+
+        $path = preg_replace(
+            '#Modules/(' . $modulosConhecidos . ')/#',
+            "Modules/{$module}/",
+            $path
+        ) ?? $path;
+
+        // 3) Legacy `memory/requisitos/<Nome>/` — mesma whitelist
+        $path = preg_replace(
+            '#memory/requisitos/(' . $modulosConhecidos . ')/#',
+            "memory/requisitos/{$module}/",
+            $path
+        ) ?? $path;
+
+        return $path;
     }
 
     /**

@@ -61,6 +61,7 @@ class OficinaAutoServiceProvider extends ServiceProvider
      * - oficina:cleanup-migrated {biz} [--dry-run] [--detail]
      * - oficina:sanity-check {biz} [--detail]
      * - oficina:migration-report {biz} [--detail]
+     * - oficina:import-firebird-martinho --business=N [--json=path] [--dry-run] (W27 G4 — esqueleto)
      */
     protected function registerCommands(): void
     {
@@ -69,6 +70,7 @@ class OficinaAutoServiceProvider extends ServiceProvider
                 \Modules\OficinaAuto\Console\Commands\OficinaAutoCleanupMigratedClientCommand::class,
                 \Modules\OficinaAuto\Console\Commands\OficinaAutoSanityCheckCommand::class,
                 \Modules\OficinaAuto\Console\Commands\OficinaAutoMigrationReportCommand::class,
+                \Modules\OficinaAuto\Console\Commands\ImportFirebirdMartinhoCommand::class,
             ]);
         }
     }

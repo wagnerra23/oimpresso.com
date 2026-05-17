@@ -5,6 +5,7 @@ namespace Modules\Superadmin\Http\Controllers;
 use App\Business;
 use App\Charts\CommonChart;
 use App\System;
+use App\Util\OtelHelper;
 use Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,6 +26,10 @@ class SuperadminController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Wave 27 D9 SATURATION: span dashboard legacy blade (paridade com
+        // SuperadminDashboardService extraído em W18+W23). Attributes sem PII —
+        // apenas métrica de execução. Zero-cost com otel.enabled=false.
+        return OtelHelper::spanBiz('superadmin.legacy.index', function () {
         $date_filters['this_yr'] = ['start' => Carbon::today()->startOfYear()->toDateString(),
             'end' => Carbon::today()->endOfYear()->toDateString(),
         ];
@@ -52,6 +57,7 @@ class SuperadminController extends Controller
                 'not_subscribed',
                 'monthly_sells_chart'
             ));
+        }, ['component' => 'superadmin.legacy.index']);
     }
 
     /**
@@ -92,22 +98,26 @@ class SuperadminController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $start_date = $request->get('start');
-        $end_date = $request->get('end');
+        // Wave 27 D9: span stats endpoint AJAX (chamado pela dashboard SPA Blade).
+        return OtelHelper::spanBiz('superadmin.legacy.stats', function () use ($request) {
+            $start_date = $request->get('start');
+            $end_date = $request->get('end');
 
-        $subscription = Subscription::whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start_date, $end_date])
-            ->where('status', 'approved')
-            ->select(DB::raw('SUM(package_price) as total'))
-            ->first()
-            ->total;
+            // SUPERADMIN: stats GLOBAIS cross-tenant intencional (ADR 0093 §exceções).
+            $subscription = Subscription::whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start_date, $end_date])
+                ->where('status', 'approved')
+                ->select(DB::raw('SUM(package_price) as total'))
+                ->first()
+                ->total;
 
-        $registrations = Business::whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start_date, $end_date])
-            ->select(DB::raw('COUNT(id) as total'))
-            ->first()
-            ->total;
+            $registrations = Business::whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start_date, $end_date])
+                ->select(DB::raw('COUNT(id) as total'))
+                ->first()
+                ->total;
 
-        return ['new_subscriptions' => $subscription,
-            'new_registrations' => $registrations,
-        ];
+            return ['new_subscriptions' => $subscription,
+                'new_registrations' => $registrations,
+            ];
+        }, ['component' => 'superadmin.legacy.stats']);
     }
 }

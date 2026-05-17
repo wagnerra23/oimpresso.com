@@ -40,17 +40,17 @@ core:
         descricao: 'HasBusinessScope/BelongsToBusinessViaParent em TODAS Entities recursive'
         detect:
           tipo: ast_scan
-          path: 'Modules/Governance/Entities/**/*.php'
+          path: 'Modules/<modulo>/Entities/**/*.php'
           expect: 'use HasBusinessScope|use BelongsToBusinessViaParent'
           coverage_target: 100  # 100% das Entities
-          na_if: 'Modules/Governance/Entities nao existe — modulo repo-wide sem dados negocio biz-scoped'
+          na_if: 'Modules/<modulo>/Entities nao existe — modulo repo-wide sem dados negocio biz-scoped'
 
       - id: D1.b
         peso: 5
         descricao: 'Pest cross-tenant biz=1 vs biz=99 com isolation real'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Governance/Tests/Feature/**/*Test.php'
+          path: 'Modules/<modulo>/Tests/Feature/**/*Test.php'
           expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
           assertion: 'assertSee|assertCount|assertDatabaseMissing'
           coverage_target: 1  # ≥1 test cross-tenant
@@ -61,10 +61,10 @@ core:
         descricao: 'Jobs recebem int $businessId no constructor'
         detect:
           tipo: ast_scan
-          path: 'Modules/Governance/Jobs/**/*.php'
+          path: 'Modules/<modulo>/Jobs/**/*.php'
           expect: '__construct.*int\s+\$businessId'
           coverage_target: 100  # 100% dos Jobs
-          na_if: 'Modules/Governance/Jobs nao existe — comandos artisan rodam scope-aware via flag explicit'
+          na_if: 'Modules/<modulo>/Jobs nao existe — comandos artisan rodam scope-aware via flag explicit'
 
   D8_security:
     peso: 8
@@ -75,7 +75,7 @@ core:
         descricao: 'Throttle middleware em rotas sensíveis (dashboard governance, exports rubrica)'
         detect:
           tipo: grep
-          path: 'Modules/Governance/Routes/**/*.php'
+          path: 'Modules/<modulo>/Routes/**/*.php'
           expect: "throttle:|->middleware\\('throttle"
           coverage_target: 1
 
@@ -92,8 +92,8 @@ core:
         descricao: 'FormRequest dedicado em store/update Controllers'
         detect:
           tipo: ratio
-          numerator: 'Modules/Governance/Http/Requests/*.php'
-          denominator: 'Modules/Governance/Http/Controllers/**/*.php'
+          numerator: 'Modules/<modulo>/Http/Requests/*.php'
+          denominator: 'Modules/<modulo>/Http/Controllers/**/*.php'
           coverage_target: 0.5  # ≥50% Controllers tem FormRequest correspondente
 
 # ===========================================================================
@@ -118,7 +118,7 @@ bucket_dimensions:
         descricao: 'Heurísticas testadas com Pest (mocks + fixtures de módulos sintéticos)'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Governance/Tests/**/AutoDetection*Test.php'
+          path: 'Modules/<modulo>/Tests/**/AutoDetection*Test.php'
           expect: 'fixture|mock|synthetic_module'
           assertion: 'assertEquals|assertContains|assertCount'
           coverage_target: 1
@@ -186,7 +186,7 @@ bucket_dimensions:
         descricao: '`governance.bucket: cross_cutting_infra` declarado em Modules/Governance/module.json (dogfood)'
         detect:
           tipo: yaml_lookup
-          source: 'Modules/Governance/module.json'
+          source: 'Modules/<modulo>/module.json'
           key: 'governance.bucket'
           expect: 'cross_cutting_infra'
 
@@ -195,7 +195,7 @@ bucket_dimensions:
         descricao: 'ADRs 0155-0160 (foundation v4) referenciadas no SPEC/BRIEFING do módulo'
         detect:
           tipo: grep
-          path: 'memory/requisitos/Governance/{SPEC,BRIEFING}.md'
+          path: 'memory/requisitos/<modulo>/{SPEC,BRIEFING}.md'
           expect: '015[5-9]|0160'
           coverage_target: 1
 
@@ -218,7 +218,7 @@ bucket_dimensions:
         descricao: 'CHANGELOG.md presente + entry últimos 30d'
         detect:
           tipo: file_age
-          path: 'Modules/Governance/CHANGELOG.md'
+          path: 'Modules/<modulo>/CHANGELOG.md'
           age_max_days: 30
 
       - id: C4.c

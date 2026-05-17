@@ -107,40 +107,59 @@ class MetaCloudDriver implements DriverInterface
         string $type,
         ?string $caption = null,
     ): WhatsappSendResult {
-        $mediaType = match ($type) {
-            'image' => 'image',
-            'document', 'pdf' => 'document',
-            'audio' => 'audio',
-            'video' => 'video',
-            default => null,
-        };
+        return OtelHelper::span('whatsapp.meta_cloud.send_media', [
+            'business_id' => $config->business_id,
+            'phone_number_id' => $config->meta_phone_number_id ?? null,
+            'media_type' => $type,
+        ], function () use ($config, $to, $mediaUrl, $type, $caption) {
+            $mediaType = match ($type) {
+                'image' => 'image',
+                'document', 'pdf' => 'document',
+                'audio' => 'audio',
+                'video' => 'video',
+                default => null,
+            };
 
-        if ($mediaType === null) {
-            return WhatsappSendResult::failed(
-                errorCode: 'meta_unsupported_media_type',
-                errorMessage: "Tipo '{$type}' não suportado pelo MetaCloudDriver.",
-            );
-        }
+            if ($mediaType === null) {
+                return WhatsappSendResult::failed(
+                    errorCode: 'meta_unsupported_media_type',
+                    errorMessage: "Tipo '{$type}' não suportado pelo MetaCloudDriver.",
+                );
+            }
 
-        $mediaPayload = ['link' => $mediaUrl];
-        if ($caption !== null && in_array($mediaType, ['image', 'document', 'video'], true)) {
-            $mediaPayload['caption'] = $caption;
-        }
+            $mediaPayload = ['link' => $mediaUrl];
+            if ($caption !== null && in_array($mediaType, ['image', 'document', 'video'], true)) {
+                $mediaPayload['caption'] = $caption;
+            }
 
-        $payload = [
-            'messaging_product' => 'whatsapp',
-            'to' => $this->normalizePhone($to),
-            'type' => $mediaType,
-            $mediaType => $mediaPayload,
-        ];
+            $payload = [
+                'messaging_product' => 'whatsapp',
+                'to' => $this->normalizePhone($to),
+                'type' => $mediaType,
+                $mediaType => $mediaPayload,
+            ];
 
-        $response = $this->client($config)
-            ->post("/{$config->meta_phone_number_id}/messages", $payload);
+            $response = $this->client($config)
+                ->post("/{$config->meta_phone_number_id}/messages", $payload);
 
-        return $this->mapSendResponse($response);
+            return $this->mapSendResponse($response);
+        });
     }
 
     public function sendInteractive(
+        WhatsappBusinessConfig|WhatsappBusinessPhone $config,
+        string $to,
+        string $body,
+        array $interactive,
+    ): WhatsappSendResult {
+        return OtelHelper::span('whatsapp.meta_cloud.send_interactive', [
+            'business_id' => $config->business_id,
+            'phone_number_id' => $config->meta_phone_number_id ?? null,
+            'interactive_type' => (string) ($interactive['type'] ?? ''),
+        ], fn () => $this->sendInteractiveInterno($config, $to, $body, $interactive));
+    }
+
+    private function sendInteractiveInterno(
         WhatsappBusinessConfig|WhatsappBusinessPhone $config,
         string $to,
         string $body,
@@ -228,25 +247,30 @@ class MetaCloudDriver implements DriverInterface
 
     public function ping(WhatsappBusinessConfig|WhatsappBusinessPhone $config): DriverHealthStatus
     {
-        // Meta Cloud não tem endpoint /ping; usamos GET no phone_number_id
-        // pra validar token + número.
-        $response = $this->client($config)
-            ->get("/{$config->meta_phone_number_id}");
+        return OtelHelper::span('whatsapp.meta_cloud.ping', [
+            'business_id' => $config->business_id,
+            'phone_number_id' => $config->meta_phone_number_id ?? null,
+        ], function () use ($config) {
+            // Meta Cloud não tem endpoint /ping; usamos GET no phone_number_id
+            // pra validar token + número.
+            $response = $this->client($config)
+                ->get("/{$config->meta_phone_number_id}");
 
-        if (! $response->successful()) {
-            return DriverHealthStatus::unhealthy(
-                errorMessage: "Meta Cloud ping falhou: HTTP {$response->status()} — {$response->body()}",
-                sessionState: 'disconnected',
-                banDetected: false, // Meta oficial não bane
+            if (! $response->successful()) {
+                return DriverHealthStatus::unhealthy(
+                    errorMessage: "Meta Cloud ping falhou: HTTP {$response->status()} — {$response->body()}",
+                    sessionState: 'disconnected',
+                    banDetected: false, // Meta oficial não bane
+                );
+            }
+
+            $data = $response->json();
+
+            return DriverHealthStatus::healthy(
+                displayPhone: $data['display_phone_number'] ?? null,
+                sessionState: 'connected',
             );
-        }
-
-        $data = $response->json();
-
-        return DriverHealthStatus::healthy(
-            displayPhone: $data['display_phone_number'] ?? null,
-            sessionState: 'connected',
-        );
+        });
     }
 
     /**
