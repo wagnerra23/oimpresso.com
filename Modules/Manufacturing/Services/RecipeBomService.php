@@ -117,18 +117,25 @@ class RecipeBomService
     /**
      * Resolve unit cost (custo por unidade base) — útil pra previsão de preço de venda e relatórios.
      *
+     * Wave 26 D9 — span observável separa cálculo unitário de calculateCost (callsite distinto).
+     *
      * @param  MfgRecipe  $recipe
      * @return float Custo unitário; zero se `total_quantity` <= 0 (proteção div-by-zero)
      */
     public function calculateUnitCost(MfgRecipe $recipe): float
     {
-        $total = $this->calculateCost($recipe);
+        return OtelHelper::spanBiz('manufacturing.recipe.unit_cost', function () use ($recipe) {
+            $total = $this->calculateCost($recipe);
 
-        if ((float) $recipe->total_quantity <= 0) {
-            return 0.0;
-        }
+            if ((float) $recipe->total_quantity <= 0) {
+                return 0.0;
+            }
 
-        return $total / (float) $recipe->total_quantity;
+            return $total / (float) $recipe->total_quantity;
+        }, [
+            'module'    => 'Manufacturing',
+            'recipe_id' => $recipe->id,
+        ]);
     }
 
     /**

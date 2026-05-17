@@ -173,7 +173,12 @@ class ServiceOrderController extends Controller
         }
         $base->orderByDesc('id');
 
-        // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
+        // Wave 26 D6 — Inertia::defer pro kpis payload (RUNBOOK-inertia-defer-pattern):
+        // - orders eager (sempre tem; resposta partial reload `only:['orders']` espera direto)
+        // - kpis defer (4 COUNT queries — pula quando UI já tem cached/partial reload)
+        // - schemaFlags eager (booleanos baratos Schema::hasColumn cached)
+        // - filters eager (UI state)
+        // Rollback Wave L/W7 PR #963 estudado: defer só aplicado em payload que NÃO é target de partial reload + tem custo > 50ms.
         return Inertia::render('OficinaAuto/ServiceOrders/Index', [
             'orders'  => $base->paginate(25)->withQueryString(),
             'filters' => [
@@ -181,7 +186,7 @@ class ServiceOrderController extends Controller
                 'type'   => $typeFilter,
                 'q'      => $q,
             ],
-            'kpis' => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate),
+            'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate)),
             // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager
             'schemaFlags' => [
                 'has_order_type'      => $hasOrderType,

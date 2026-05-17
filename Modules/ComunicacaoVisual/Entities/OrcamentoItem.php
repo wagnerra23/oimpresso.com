@@ -5,6 +5,8 @@ namespace Modules\ComunicacaoVisual\Entities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * OrcamentoItem — linha individual de um orçamento de comunicação visual.
@@ -40,6 +42,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OrcamentoItem extends Model
 {
     // Sem SoftDeletes — itens são deletados junto com o orçamento via CASCADE
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 26 D7 LGPD compliance).
+     * Whitelist exclui observacoes (texto livre potencialmente PII). Loga dimensões e preço.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['largura_m', 'altura_m', 'quantidade', 'area_m2', 'preco_unitario_m2', 'subtotal'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.orcamento_item');
+    }
 
     protected $table = 'comvis_orcamento_itens';
 
