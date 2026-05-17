@@ -36,7 +36,9 @@ Snapshot em 2026-04-24:
 
 | id | name | CNPJ | Migração WR2→oimpresso | Situação |
 |---|---|---|---|---|
-| **164** | **MARTINHO CAÇAMBAS LTDA** | 10.609.954/0001-50 | ✅ **CONCLUÍDA 2026-05-16** — 91 caçambas + 9.988 contatos + 44.018 vendas + 83.040 títulos (R$ 4M aberto: 90% fóssil pré-2020) | 🟡 demo 2026-05-13 com Larissa; HiSoft competitor já em implantação |
-| 170 | VARGAS JATO DE GRANALHA LTDA | 24.102.723/0001-60 | ⏸️ pendente | 🔴 sinais de cancelamento — abordagem proativa replicável |
+| **164** | **MARTINHO CAÇAMBAS LTDA** | `[REDACTED]` (prod) | ✅ **CONCLUÍDA 2026-05-16** — 91 caçambas + 9.988 contatos + 44.018 vendas + 83.040 títulos (R$ 4M aberto: 90% fóssil pré-2020) | 🟡 demo 2026-05-13 com Larissa; HiSoft competitor já em implantação |
+| 170 | VARGAS JATO DE GRANALHA LTDA | `[REDACTED]` (prod) | ⏸️ pendente | 🔴 sinais de cancelamento — abordagem proativa replicável |
+
+> CNPJs em `[REDACTED]` (LGPD Art. 7º). Consultar `SELECT cnpj FROM business WHERE id IN (164,170)` em prod Hostinger.
 
 Ver perfil detalhado: [cliente-martinho-cacambas.md](cliente-martinho-cacambas.md)

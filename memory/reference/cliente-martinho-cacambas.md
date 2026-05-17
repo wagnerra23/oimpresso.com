@@ -1,6 +1,6 @@
 ---
 name: Cliente Martinho Caçambas — perfil, migração concluída, contexto competitivo
-description: Perfil do prospect Martinho Caçambas (business_id=164, CNPJ 10.609.954/0001-50). Migração legacy WR2 Firebird → oimpresso CONCLUÍDA 2026-05-16 (91 caçambas + 9.988 contatos + 44k vendas + 83k títulos). HiSoft é competidor. Aging real: 90% fóssil pré-2020.
+description: Perfil do prospect Martinho Caçambas (business_id=164, CNPJ [REDACTED]). Migração legacy WR2 Firebird → oimpresso CONCLUÍDA 2026-05-16 (91 caçambas + 9.988 contatos + 44k vendas + 83k títulos). HiSoft é competidor. Aging real: 90% fóssil pré-2020.
 type: project
 ---
 
@@ -11,7 +11,7 @@ type: project
 | Campo | Valor |
 |---|---|
 | **Razão Social** | MARTINHO CAÇAMBAS LTDA |
-| **CNPJ** | 10.609.954/0001-50 |
+| **CNPJ** | `[REDACTED]` — consultar `SELECT cnpj FROM business WHERE id=164` em prod Hostinger (LGPD Art. 7º) |
 | **business_id oimpresso** | **164** (prod Hostinger) |
 | **CNAE** | locação/manutenção caçambas |
 | **Contato principal** | dona (nome não capturado em sessão) |
