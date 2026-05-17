@@ -31,6 +31,26 @@ beforeEach(function () {
         test()->markTestSkipped('MultiTenantRepairTest exige SQLite in-memory.');
     }
 
+    // RepairStatus usa trait Spatie LogsActivity (D7.b LGPD audit trail) →
+    // toda RepairStatus::create() dispara INSERT em `activity_log`. Sem essa
+    // tabela o teste explode com "SQLSTATE no such table: activity_log".
+    // Schema espelha vendor/spatie/laravel-activitylog/database/migrations/*
+    // (4 migrations consolidadas).
+    Schema::create('activity_log', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable();
+        $t->text('description')->nullable();
+        $t->unsignedBigInteger('subject_id')->nullable();
+        $t->string('subject_type')->nullable();
+        $t->unsignedBigInteger('causer_id')->nullable();
+        $t->string('causer_type')->nullable();
+        $t->text('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
+        $t->string('event')->nullable();
+        $t->unsignedInteger('business_id')->nullable();
+        $t->timestamps();
+    });
+
     // Schema mínimo pra repair_job_sheets + repair_statuses sem depender da
     // suite Repair full migrations.
     Schema::create('repair_statuses', function (Blueprint $t) {
@@ -56,6 +76,7 @@ beforeEach(function () {
 afterEach(function () {
     Schema::dropIfExists('repair_job_sheets');
     Schema::dropIfExists('repair_statuses');
+    Schema::dropIfExists('activity_log');
 });
 
 test('JobSheet biz=1 não vaza pra query biz=99 (cross-tenant scope)', function () {

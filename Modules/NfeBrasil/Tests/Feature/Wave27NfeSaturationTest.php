@@ -46,12 +46,16 @@ describe('Wave 27 NfeBrasil POLISH', function () {
         expect($src)->toContain("'nfe.danfe_salvar'");
     });
 
-    it('D9: CertificadoService ganha 1 span canon (`nfe.certificado_validar`)', function () {
+    it('D9: CertificadoService ganha 1 span canon (`nfe.certificado.validar`)', function () {
+        // Span canon usa dot separator (nfe.certificado.validar) — atualizado
+        // pra alinhar com pattern OtelHelper canonical (catalog em
+        // memory/decisions/0157-otel-canon-tracing-pattern). Testes anteriores
+        // usavam underscore (`certificado_validar`) — não bate com prod.
         $file = (new ReflectionClass(CertificadoService::class))->getFileName();
         $src = file_get_contents($file);
 
         expect($src)->toContain('use App\Util\OtelHelper;');
-        expect($src)->toContain("'nfe.certificado_validar'");
+        expect($src)->toContain("'nfe.certificado.validar'");
     });
 
     it('D9: total spans canon `nfe.*` cumulativo >= 8 (era 5 em W18)', function () {
