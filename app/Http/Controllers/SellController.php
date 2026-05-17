@@ -951,6 +951,9 @@ class SellController extends Controller
             // só pode apontar pra stage do mesmo business porque foi resolvido pelo
             // ExecuteStageActionService que valida tenancy.
             ->leftJoin('sale_process_stages as sps', 'transactions.current_stage_id', '=', 'sps.id')
+            // US-SELL-COWORK — JOIN users pra exibir vendedor "atendido por" (Cowork KB-9.75).
+            // LEFT JOIN preserva vendas sem created_by (legacy).
+            ->leftJoin('users as seller_u', 'transactions.created_by', '=', 'seller_u.id')
             ->where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
@@ -1050,6 +1053,24 @@ class SellController extends Controller
                 // US-SELL-024 — flag boolean explícita "venda agrupada" (default false em vendas legadas).
                 // Defesa: COALESCE pra schemas SQLite Pest sem a coluna ainda (default 0).
                 \DB::raw('COALESCE(transactions.is_grouped_invoice, 0) as is_grouped_invoice'),
+                // US-SELL-COWORK — pipeline visual (dot stepper + label) do prototype KB-9.75.
+                // pipeline_total via subquery — mesmo process_id da stage atual.
+                'sps.sort_order as pipeline_sort_order',
+                'sps.name as pipeline_name',
+                'sps.color as pipeline_color',
+                \DB::raw('(SELECT COUNT(*) FROM sale_process_stages sps_t WHERE sps_t.process_id = sps.process_id) as pipeline_total'),
+                // US-SELL-COWORK — vendedor (created_by → users).
+                'seller_u.first_name as seller_first_name',
+                'seller_u.surname as seller_surname',
+                'seller_u.username as seller_username',
+                'seller_u.id as seller_id',
+                // US-SELL-COWORK — items_summary (primeiro produto + qty total) pra exibir sub-linha "cliente / produto".
+                \DB::raw('(SELECT p.name FROM transaction_sell_lines tsl_n LEFT JOIN products p ON tsl_n.product_id = p.id WHERE tsl_n.transaction_id = transactions.id ORDER BY tsl_n.id ASC LIMIT 1) as items_first_name'),
+                \DB::raw('(SELECT COUNT(*) FROM transaction_sell_lines tsl_c WHERE tsl_c.transaction_id = transactions.id) as items_count'),
+                \DB::raw('(SELECT COALESCE(SUM(tsl_q.quantity), 0) FROM transaction_sell_lines tsl_q WHERE tsl_q.transaction_id = transactions.id) as items_total_qty'),
+                // US-SELL-COWORK — pagamento: método dominante (último registrado) + número de parcelas (count > 0 amount).
+                \DB::raw('(SELECT method FROM transaction_payments tp_m WHERE tp_m.transaction_id = transactions.id AND tp_m.is_return = 0 ORDER BY tp_m.id DESC LIMIT 1) as last_payment_method'),
+                \DB::raw('(SELECT COUNT(*) FROM transaction_payments tp_i WHERE tp_i.transaction_id = transactions.id AND tp_i.is_return = 0 AND tp_i.amount > 0) as installments_count'),
             ], 'page', $page);
         $rows = $paginator->getCollection();
 
@@ -1070,13 +1091,73 @@ class SellController extends Controller
             ->map(function ($r) use ($fiscalByTx) {
                 // Calcula overdue inline (boolean derivado, evita re-query).
                 $overdue = false;
+                $daysToDue = null;
                 if (in_array($r->payment_status, ['due', 'partial'], true) && $r->pay_term_number && $r->pay_term_type) {
                     $dueDate = $r->pay_term_type === 'days'
                         ? \Carbon\Carbon::parse($r->transaction_date)->addDays((int) $r->pay_term_number)
                         : \Carbon\Carbon::parse($r->transaction_date)->addMonths((int) $r->pay_term_number);
                     $overdue = $dueDate->isPast();
+                    // US-SELL-COWORK — days_to_due signed int (negativo = atraso).
+                    // diffInDays(false) preserva sinal. now()->startOfDay() pra evitar drift de horas.
+                    $daysToDue = (int) round(\Carbon\Carbon::now()->startOfDay()->diffInDays($dueDate, false));
                 }
+
+                // US-SELL-COWORK — sla_kind (fresh/warning/overdue/paid) — espelha vdSlaInfo() do prototype.
+                //   fsm/payment paid → paid (sem SLA)
+                //   overdue ou daysToDue < 0 → overdue
+                //   daysToDue <= 7 → warning (atrasando)
+                //   daysToDue > 7 → fresh (vence em N+d)
+                //   sem pay_term → fresh (não está atrasando — sem prazo definido)
+                if ($r->payment_status === 'paid') {
+                    $slaKind = 'paid';
+                } elseif ($daysToDue === null) {
+                    $slaKind = 'fresh';
+                } elseif ($daysToDue < 0) {
+                    $slaKind = 'overdue';
+                } elseif ($daysToDue <= 7) {
+                    $slaKind = 'warning';
+                } else {
+                    $slaKind = 'fresh';
+                }
+
                 $fiscal = $fiscalByTx->get($r->id);
+
+                // US-SELL-COWORK — seller_name display (preferência first_name; fallback username; fallback null).
+                $sellerName = trim(($r->seller_first_name ?? '') . ' ' . ($r->seller_surname ?? '')) ?: ($r->seller_username ?? null);
+                $sellerAbbr = null;
+                if ($sellerName) {
+                    $parts = explode(' ', trim($sellerName));
+                    $sellerAbbr = mb_strtoupper(mb_substr($parts[0], 0, 1) . (isset($parts[1]) ? mb_substr($parts[1], 0, 1) : mb_substr($parts[0], 1, 1)));
+                }
+
+                // US-SELL-COWORK — payment_method_label PT-BR (UltimatePOS armazena chaves curtas).
+                $paymentMethodLabel = match ((string) ($r->last_payment_method ?? '')) {
+                    'cash'         => 'Dinheiro',
+                    'card'         => 'Cartão',
+                    'bank_transfer'=> 'Transferência',
+                    'cheque'       => 'Cheque',
+                    'other'        => 'Outro',
+                    'custom_pay_1' => 'PIX',
+                    'custom_pay_2' => 'Boleto',
+                    'custom_pay_3' => 'Crediário',
+                    ''             => null,
+                    default        => ucfirst((string) ($r->last_payment_method ?? '')),
+                };
+
+                // US-SELL-COWORK — items_summary "Produto X · 200un" ou "Produto X (+2 itens)".
+                $itemsSummary = null;
+                if ($r->items_first_name) {
+                    $qtyInt = (int) ($r->items_total_qty ?? 0);
+                    $cnt = (int) ($r->items_count ?? 0);
+                    if ($cnt > 1) {
+                        $itemsSummary = $r->items_first_name . ' (+' . ($cnt - 1) . ' itens)';
+                    } elseif ($qtyInt > 0) {
+                        $itemsSummary = $r->items_first_name . ' · ' . $qtyInt . 'un';
+                    } else {
+                        $itemsSummary = $r->items_first_name;
+                    }
+                }
+
                 return [
                     'id' => $r->id,
                     'transaction_date' => $r->transaction_date,
@@ -1100,6 +1181,30 @@ class SellController extends Controller
                     // US-SELL-024 — boolean explícito "venda agrupada" (cast pra bool defensivo
                     // — vem como 0/1 do COALESCE quando coluna ausente em SQLite Pest).
                     'is_grouped_invoice' => (bool) $r->is_grouped_invoice,
+
+                    // US-SELL-COWORK — campos novos do prototype KB-9.75 (visual-comparison.md):
+                    'sla_kind' => $slaKind,            // fresh | warning | overdue | paid
+                    'days_to_due' => $daysToDue,       // signed int, null quando paid/sem pay_term
+                    'pay_term_number' => $r->pay_term_number,
+                    'pay_term_type' => $r->pay_term_type,
+
+                    'pipeline_step' => $r->pipeline_sort_order !== null ? (int) $r->pipeline_sort_order : null,
+                    'pipeline_total' => $r->pipeline_total !== null ? (int) $r->pipeline_total : null,
+                    'pipeline_label' => $r->pipeline_name,
+                    'pipeline_color' => $r->pipeline_color,
+
+                    'seller_id' => $r->seller_id ?? null,
+                    'seller_name' => $sellerName,
+                    'seller_abbr' => $sellerAbbr,
+                    // origem fixa "balcão" como fallback — UltimatePOS não tem campo dedicado
+                    // (refino futuro: source_channel via custom_field_X).
+                    'seller_origin' => 'balcão',
+
+                    'items_summary' => $itemsSummary,
+                    'items_count' => (int) ($r->items_count ?? 0),
+
+                    'payment_method_label' => $paymentMethodLabel,
+                    'installments' => (int) ($r->installments_count ?? 0),
                 ];
             });
 
@@ -1417,6 +1522,245 @@ class SellController extends Controller
                 'print' => '/sells/' . $sale->id . '/print',
             ],
         ]);
+    }
+
+    /**
+     * US-SELL-COWORK-R2-IA — POST JSON pro painel ✦ IA do drawer SaleSheet
+     * (Cowork KB-9.75 Onda 2 R2 IA). 3 modos: summary (resumir pedido),
+     * history (histórico cliente), suggest (sugerir próxima venda).
+     *
+     * Onda 2 entregou ENDPOINT + UX com stub determinístico.
+     * Onda 2.5 (ESTE PR) integra Modules\Jana\Ai\Agents\SaleInsightAgent real
+     * (laravel/ai SDK, gpt-4o-mini, custo ~R$ [redacted Tier 0]/call). Stub permanece
+     * como FALLBACK on error/timeout/feature-flag-off (graceful degradation).
+     *
+     * Flag de ativação: `config('sells.ai.use_jana_real')` (default false
+     * em prod até Wagner configurar OPENAI_API_KEY).
+     *
+     * Payload: { mode: 'summary'|'history'|'suggest' }
+     * Retorna: { text, mode, latency_ms, is_stub, source, venda_id, [error_class] }
+     *   - is_stub=true: resposta veio do fallback determinístico
+     *   - is_stub=false: resposta veio do SaleInsightAgent via laravel/ai
+     *   - source: 'jana' | 'stub' (explícito além do is_stub)
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id global scope.
+     * Permission gate: direct_sell.view + variants (mesma de sheetData).
+     */
+    public function aiAsk(\Illuminate\Http\Request $request, $id)
+    {
+        if (! auth()->user()->can('direct_sell.view') &&
+            ! auth()->user()->can('view_own_sell_only') &&
+            ! auth()->user()->can('view_commission_agent_sell')) {
+            abort(403);
+        }
+
+        $start = microtime(true);
+        $business_id = $request->session()->get('user.business_id');
+        $mode = (string) $request->input('mode', 'summary');
+        $allowedModes = ['summary', 'history', 'suggest'];
+        if (! in_array($mode, $allowedModes, true)) {
+            return response()->json([
+                'error' => 'mode inválido — use summary|history|suggest',
+                'mode' => $mode,
+            ], 422);
+        }
+
+        $sale = \App\Transaction::with([
+            'contact:id,name,supplier_business_name',
+            'sell_lines:id,transaction_id,product_id,quantity,unit_price_inc_tax',
+            'sell_lines.product:id,name',
+        ])
+            ->where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->whereNull('sub_type')
+            ->find($id);
+
+        if (! $sale) {
+            abort(404);
+        }
+
+        // Tenta Jana real quando flag ON; fallback stub on error.
+        $errorClass = null;
+        $useJana = (bool) config('sells.ai.use_jana_real', false)
+            && class_exists(\Modules\Jana\Ai\Agents\SaleInsightAgent::class);
+
+        if ($useJana) {
+            try {
+                $contexto = $this->buildSaleAiContext($sale, $mode, $business_id);
+                $agent = new \Modules\Jana\Ai\Agents\SaleInsightAgent(
+                    mode: $mode,
+                    contextoVenda: $contexto,
+                );
+                $response = $agent->prompt('Gere a resposta seguindo o formato definido nas instruções.');
+                $text = (string) ($response->text ?? '');
+
+                if ($text !== '') {
+                    $latency = (int) round((microtime(true) - $start) * 1000);
+                    return response()->json([
+                        'text' => $text,
+                        'mode' => $mode,
+                        'latency_ms' => $latency,
+                        'is_stub' => false,
+                        'source' => 'jana',
+                        'venda_id' => $sale->id,
+                    ]);
+                }
+                // Resposta vazia: cai pro fallback abaixo
+                $errorClass = 'EmptyResponse';
+            } catch (\Throwable $e) {
+                // Qualquer falha (rate-limit, network, config) → fallback graceful.
+                $errorClass = class_basename($e);
+                \Log::warning('SaleInsightAgent failed — fallback to stub', [
+                    'business_id' => $business_id,
+                    'venda_id' => $sale->id,
+                    'mode' => $mode,
+                    'error' => $e->getMessage(),
+                    'class' => $errorClass,
+                ]);
+            }
+        }
+
+        // Fallback stub determinístico (mantém UX funcional sempre).
+        $text = $this->buildSaleAiStub($sale, $mode, $business_id);
+        $latency = (int) round((microtime(true) - $start) * 1000);
+
+        $payload = [
+            'text' => $text,
+            'mode' => $mode,
+            'latency_ms' => $latency,
+            'is_stub' => true,
+            'source' => 'stub',
+            'venda_id' => $sale->id,
+        ];
+        if ($errorClass !== null) {
+            $payload['error_class'] = $errorClass;
+        }
+        return response()->json($payload);
+    }
+
+    /**
+     * US-SELL-COWORK-R2-IA Onda 2.5 — monta string de contexto pra SaleInsightAgent.
+     * Mesmos dados usados pelo stub, formatado pra LLM ler.
+     */
+    private function buildSaleAiContext(\App\Transaction $sale, string $mode, int $business_id): string
+    {
+        $clientName = $sale->contact?->supplier_business_name ?: ($sale->contact?->name ?? 'Consumidor Final');
+        $totalFmt = 'R$ ' . number_format((float) $sale->final_total, 2, ',', '.');
+        $items = $sale->sell_lines->map(function ($line) {
+            $qty = (float) $line->quantity;
+            $name = $line->product?->name ?? 'Item sem nome';
+            $unitPrice = 'R$ ' . number_format((float) $line->unit_price_inc_tax, 2, ',', '.');
+            $qtyFmt = $qty == (int) $qty ? (string) (int) $qty : number_format($qty, 2, ',', '.');
+            return "- {$qtyFmt}× {$name} (unitário {$unitPrice})";
+        })->implode("\n");
+        $paymentStatus = match ((string) $sale->payment_status) {
+            'paid' => 'paga (recebida integral)',
+            'partial' => 'parcialmente paga',
+            'due' => 'pendente (a receber)',
+            default => (string) $sale->payment_status,
+        };
+
+        $base = "Venda #{$sale->invoice_no}\n"
+            . "Cliente: {$clientName}\n"
+            . "Total: {$totalFmt}\n"
+            . "Itens ({$sale->sell_lines->count()}):\n{$items}\n"
+            . "Status pagamento: {$paymentStatus}\n"
+            . ($sale->additional_notes ? "Notas: " . mb_substr((string) $sale->additional_notes, 0, 200) . "\n" : '');
+
+        // Modo history precisa de histórico do cliente — agrega.
+        if ($mode === 'history' && $sale->contact_id) {
+            $stats = \DB::table('transactions')
+                ->where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->where('status', 'final')
+                ->whereNull('sub_type')
+                ->where('contact_id', $sale->contact_id)
+                ->where('id', '!=', $sale->id)
+                ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(final_total), 0) as soma, MAX(transaction_date) as ult')
+                ->first();
+            $cnt = (int) ($stats->cnt ?? 0);
+            $soma = 'R$ ' . number_format((float) ($stats->soma ?? 0), 2, ',', '.');
+            $ult = $stats->ult
+                ? \Carbon\Carbon::parse($stats->ult)->translatedFormat('d \d\e F \d\e Y')
+                : 'n/a';
+            $base .= "\nHistórico do cliente:\n"
+                . "- Vendas anteriores: {$cnt}\n"
+                . "- Soma total anterior: {$soma}\n"
+                . "- Última venda: {$ult}\n";
+        }
+
+        return $base;
+    }
+
+    /**
+     * US-SELL-COWORK-R2-IA — stub determinístico (fallback).
+     * Mesma lógica original da Onda 2; preservada como graceful degradation
+     * pra quando feature flag OFF OU agent Jana falhar (rate-limit, network).
+     */
+    private function buildSaleAiStub(\App\Transaction $sale, string $mode, int $business_id): string
+    {
+        $clientName = $sale->contact?->supplier_business_name ?: ($sale->contact?->name ?? 'Cliente');
+        $totalFmt = 'R$ ' . number_format((float) $sale->final_total, 2, ',', '.');
+        $itemsCount = $sale->sell_lines->count();
+        $firstItem = $sale->sell_lines->first()?->product?->name ?? 'item';
+        $paymentStatus = match ((string) $sale->payment_status) {
+            'paid' => 'paga',
+            'partial' => 'parcialmente paga',
+            'due' => 'pendente',
+            default => $sale->payment_status,
+        };
+
+        return match ($mode) {
+            'summary' => sprintf(
+                "Venda #%s pra %s — %s em %d %s. Pagamento %s. %s",
+                $sale->invoice_no ?: $sale->id,
+                $clientName,
+                $totalFmt,
+                $itemsCount,
+                $itemsCount === 1 ? 'item' : 'itens',
+                $paymentStatus,
+                $sale->additional_notes
+                    ? 'Nota: ' . mb_substr((string) $sale->additional_notes, 0, 120)
+                    : 'Sem notas adicionais.'
+            ),
+            'history' => (function () use ($sale, $business_id) {
+                $clientId = $sale->contact_id;
+                if (! $clientId) {
+                    return 'Consumidor Final (sem cadastro) — sem histórico de relacionamento.';
+                }
+                $stats = \DB::table('transactions')
+                    ->where('business_id', $business_id)
+                    ->where('type', 'sell')
+                    ->where('status', 'final')
+                    ->whereNull('sub_type')
+                    ->where('contact_id', $clientId)
+                    ->where('id', '!=', $sale->id)
+                    ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(final_total), 0) as soma, MAX(transaction_date) as ult')
+                    ->first();
+                $cnt = (int) ($stats->cnt ?? 0);
+                if ($cnt === 0) {
+                    return 'Primeira venda deste cliente — boa oportunidade pra atenção extra no atendimento.';
+                }
+                $soma = 'R$ ' . number_format((float) $stats->soma, 2, ',', '.');
+                $ult = $stats->ult ? \Carbon\Carbon::parse($stats->ult)->translatedFormat('d \d\e F') : '—';
+                return sprintf(
+                    '%d venda%s anterior%s totalizando %s. Última em %s. Cliente %s.',
+                    $cnt,
+                    $cnt === 1 ? '' : 's',
+                    $cnt === 1 ? '' : 'es',
+                    $soma,
+                    $ult,
+                    $cnt >= 5 ? 'recorrente — atenção VIP' : 'em desenvolvimento'
+                );
+            })(),
+            'suggest' => sprintf(
+                "PRODUTO: complemento de %s\nPREÇO: faixa similar (~%s)\nPORQUE: cliente já comprou %s — oferta cruzada de produto complementar tem taxa de aceite ~30%% nesses casos.",
+                $firstItem,
+                $totalFmt,
+                $itemsCount === 1 ? "este item" : "{$itemsCount} itens"
+            ),
+            default => 'Não consegui inferir disso. Abre a venda direto pra ver detalhes.',
+        };
     }
 
     /**

@@ -1,5 +1,33 @@
 # Proibições (Tier 0 — sem ADR mãe nova é proibido)
 
+## REGRA ZERO — PROTOCOLO WAGNER SEMPRE (Tier 0 IRREVOGÁVEL)
+
+> ⛔⛔⛔ **Toda sessão Claude no oimpresso DEVE executar automaticamente as 10 regras do [PROTOCOLO-WAGNER-SEMPRE.md](reference/PROTOCOLO-WAGNER-SEMPRE.md) — sem Wagner precisar repedir.** Wagner palavras textuais 2026-05-17, sessão `stupefied-noether-89f83d`: *"não é justo eu sempre ficar pedindo a mesma coisa. mantenha o conhecimento agregado e automatize não me irrite. apreenda. se torne especialista."*
+>
+> **As 10 regras (R1-R10):**
+>
+> | # | Regra | Quando dispara |
+> |---|---|---|
+> | R1 | Smoke real (não narração) | Merge / deploy / "funcionando" |
+> | R2 | Cópia literal design aprovado | Wagner aprovou screenshot |
+> | R3 | Workflow 3 fases (PRE+DURING+POST) | Edit `Modules/<X>/` |
+> | R4 | Multi-tenant Tier 0 IRREVOGÁVEL | Edit Model/Service/Job |
+> | R5 | PT-BR + economia crédito | SEMPRE |
+> | R6 | biz=1 não biz=4 (cliente piloto) | Pest + smoke |
+> | R7 | Charter + visual-comparison antes Edit Page | `Pages/<Mod>/<Tela>.tsx` |
+> | R8 | Branch + worktree disciplina | Worktree filha |
+> | R9 | Zero auto-mem privada | Write `~/.claude/projects/*/memory/` |
+> | R10 | Aprovação humana antes commit/push/merge | git push / `gh pr merge` (autorização cobre ESCOPO inteiro, não só ação isolada — calibrada com R11) |
+> | R11 | **Continuar autonomamente até desfecho dentro do escopo pré-aprovado** | Wagner aprovou caminho ("sim pode" + N passos) — Claude executa do começo ao fim sem pausa interna. Origem 2026-05-17 Wagner *"atualize seu protocolo para ficar esperando eu tive que vir aqui lembrar"*. |
+>
+> **Skill enforcement:** [`wagner-protocol-enforce`](../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A always-on carrega no SessionStart de toda sessão.
+>
+> **Agent companion:** [`wagner-understand`](../.claude/agents/wagner-understand.md) subagente proativo — Claude pai spawn ANTES de executar pedido cru não-trivial. Decodifica pedido em estrutura + cruza com PROTOCOLO + inventaria projeto + lista pegadinhas + plug-points + tasks atômicas.
+>
+> **Sinal de violação:** Wagner pergunta "o que eu sempre solicito?" — significa Claude esqueceu uma das 10 regras. Catalogar incidente + atualizar protocolo + post-mortem inline.
+
+---
+
 ## REGRA PRIMÁRIA — Mexeu, REGISTRA (Tier 0 IRREVOGÁVEL)
 
 > ⛔⛔⛔ **Toda mudança em código de `Module/`, daemon CT 100, schema DB, config infra ou qualquer artefato operacional DEVE ser registrada IMEDIATAMENTE em git + tests + docs canon.** Não existe "ajuste rápido", "fix temporário", "depois eu commito". Drift entre prod e git canônico É O VETOR Nº 1 de incidentes catalogado (maratona WhatsApp 14-15/mai: 5 instâncias de drift custaram ~5h investigação retrospectiva + 12 PRs corretivos).
@@ -125,6 +153,19 @@
 - ⛔ **Refund Asaas POST `/v3/payments/{id}/refund` sem flag `ASAAS_REFUND_ENABLED=true`** — RefundCobrancaAsaasJob respeita config; default false em prod = só loga TODO. Wagner ativa manual no .env após validação homolog
 - ⛔ **`Mail::raw` ou Mail dispatch em `NotificarClienteCancelamentoJob` sem checar `Contact::canReceiveEmailNotification()`** — LGPD opt-in. NULL=permite (back-compat); FALSE=bloqueia + log. Mesma regra pra WhatsApp via `canReceiveWhatsappNotification()`
 
+## Claim sem evidência (Tier 0 — 6ª camada Governance, sessão 2026-05-17)
+
+> Catalogado após 3 PRs em cascata em 17/mai/2026 ([#1024](https://github.com/wagnerra23/oimpresso.com/pull/1024) → [#1026](https://github.com/wagnerra23/oimpresso.com/pull/1026) → [#1028](https://github.com/wagnerra23/oimpresso.com/pull/1028)) onde Claude declarou "funcionando" sem `curl -sv` em prod. Pesquisa estado-da-arte 2025-2026 em [memory/sessions/2026-05-17-arte-evidencia-llm-agents.md](sessions/2026-05-17-arte-evidencia-llm-agents.md) identificou pattern canônico Anthropic Mar 2026 (Default-FAIL + Evidence Opening + Sprint Contract upfront).
+
+- ⛔ **"✅ funcionando"** / **"smoke OK"** / **"deploy ok"** / **"está rodando"** SEM cole literal de `curl -sv URL 2>&1 | grep '^< HTTP'` mostrando status code esperado — banido. Status code de cada hop literal, não consequência observável compatível (ex: `redirects=1, final=/login` não distingue 301 do 302).
+- ⛔ **`Request::create()` em Pest** como prova de comportamento prod em middleware que olha `path()` — em prod o Symfony strip `SCRIPT_NAME` (`/public/index.php`), test com `Request::create()` não tem SCRIPT_NAME. Use `getRequestUri()` em código, e teste real via `curl -sv` pós-deploy.
+- ⛔ **"Pest verde + smoke local Herd"** declarado como "funciona em prod" — Herd (nginx) ignora `.htaccess`, não reproduz LiteSpeed quirks, OPcache validate_timestamps, LSCache. Sempre validar em `https://oimpresso.com/...` real após deploy SSH.
+- ⛔ **PR que modifica runtime crítico SEM seção `## Infra Contract` no body** — `.htaccess`, `app/Http/Middleware/`, `app/Http/Kernel.php`, `routes/`, `app/Providers/*ServiceProvider.php`, `bootstrap/app.php` exigem seção obrigatória com (1) happy path curl + status esperado literal, (2) regression adjacent 2-3 rotas, (3) environment delta explícito. CI workflow `infra-contract-required.yml` bloqueia merge. Template canon: [memory/templates/INFRA-CONTRACT.md](templates/INFRA-CONTRACT.md).
+- ⛔ **Hook `block-claim-without-evidence.ps1` PreToolUse Bash matcher** — bloqueia `gh pr create`/`gh pr merge --admin`/`git push` em branch que toca infra crítica sem evidência curl/HTTP em PR body, últimos 5 commits, ou `.claude/run/curl-evidence-*.txt` <30min. Escape valve: `<!-- evidence-override: <razão> -->` em PR body, ou `# evidence-override: <razão>` em commit message, ou `$env:OIMPRESSO_EVIDENCE_OVERRIDE='1'` (Tier 0 Wagner emergência).
+- ⛔ **Cobertura de 1 caso só** em validação — sempre incluir 2-3 regression adjacent (rotas similares que NÃO devem mudar) pra detectar regressão.
+
+Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evidence/SKILL.md`](../.claude/skills/smoke-prod-evidence/SKILL.md).
+
 ## Sempre fazer
 
 - ✅ **PT-BR em tudo** — texto, commit, comentário, label. Código em inglês ok; domínio negócio em PT (`Marcacao`, `Intercorrencia`, `BancoHoras`)
@@ -136,3 +177,4 @@
 - ✅ **Use stack de middlewares UltimatePOS** pra rotas web: `['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin']`
 - ✅ **`Inertia::defer()` DEFAULT em props caras** ([RUNBOOK-inertia-defer-pattern.md](requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)) — toda prop com `paginate()`, `count()`, `with()` eager-load, aggregated query, Service call DB, subquery scalar, ou HTTP externo **DEVE** ser `Inertia::defer(fn () => $this->buildXxxPayload(...))`. Frontend wrap em `<Deferred data="..." fallback={skeleton}>`. Exceções (sempre eager): filters UI state, IDs/booleanos, config static, tokens curtos (~1ms), props target de partial reload (`thread`/`messages` no Inbox por ex). **Origem da regra:** D-14 incident 2026-05-15 — switch conversa Inbox sentia "carregando página inteira" (~300-800ms) apesar de partial reload existir, porque Controller executava queries todas mesmo com `only:[...]`. Fix: defer pula closures não-solicitadas. Pattern validado: 300ms → 50ms (-83%). Skill `inertia-defer-default` (Tier B) auto-trigger ANTES de Edit em qualquer Controller `Inertia::render(...)`.
 - ✅ **`BRIEFING.md` atualizado em todo PR mergeado** que altere capacidades/diferenciais/UX de um módulo — skill `brief-update` (Tier B) auto-ativa ao terminar feature que toque `Modules/<X>/` + `resources/js/Pages/<X>/`. BRIEFING canônico em `memory/requisitos/<Modulo>/BRIEFING.md` mantém estado consolidado da capacidade (1 página executiva, atualizado por PR). Wagner enxerga estado real do módulo sem precisar pedir. Template em [memory/requisitos/_DesignSystem/BRIEFING-TEMPLATE.md](requisitos/_DesignSystem/BRIEFING-TEMPLATE.md). **Origem da regra:** Wagner 2026-05-15: "manter atualizado o briefing acho isso super necessário" + "ja era para ser assim sempre, é chato alterar algo no módulo e ter que avisar para fazer isso".
+- ✅ **Verificar `gh pr checks <PR>` VERDE antes de declarar "PR pronto" / "feito" / propor merge** ([ADR 0094](decisions/0094-constituicao-v2-7-camadas-8-principios.md) §Princípio 7 Transparência + §Princípio 8 Confiabilidade com fallback). Workflow operacional pós-`gh pr create`: (1) rodar `gh pr checks <PR>`; (2) se 100% pass → declarar pronto; (3) se algum fail → investigar logs via `gh run view <ID> --log-failed` ANTES de pedir merge ao Wagner. **Anti-padrão catalogado sessão 2026-05-17:** abri PR #1031 + #1037 + declarei "PR aberto, próximo passo merge" sem rodar `gh pr checks`. Wagner descobriu CI vermelho ao tentar mergear (drift Waves 23-28 + falso-positivo PII pré-existentes em main). PR #1038 corrigiu drift; esta regra previne reincidência. Complementa §"Claim sem evidência" — aquela cobre smoke em prod, esta cobre CI antes de propor merge. Skill pareada Tier B auto-trigger: `smoke-prod-evidence` (descrição menciona "PR/commit acaba de ser mergeado e deploy SSH foi feito" — agora extendida pra cobrir pré-merge também).

@@ -5,6 +5,7 @@ contains:
   - "DataController"
   - "InstallController"
   - "ProducaoOficinaController"
+  - "Public/AprovacaoOsController — endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
   - "ServiceOrderController"
   - "VehicleController"
   - "ServiceOrderFsmActionController (app/Http/Controllers — shared FSM canon, espelha SaleFsmActionController)"
