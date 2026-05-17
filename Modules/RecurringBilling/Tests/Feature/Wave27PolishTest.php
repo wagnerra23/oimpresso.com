@@ -41,11 +41,7 @@ describe('Wave 27 RecurringBilling POLISH FINAL', function () {
             ->toArray();
 
         foreach (['emitir', 'cancelar', 'pdf', 'refundAsaas', 'fetchPaymentAsaas'] as $m) {
-<<<<<<< HEAD
             expect($methods)->toContain($m, "BoletoService deve expor método público {$m}");
-=======
-            expect(in_array($m, $methods, true))->toBeTrue("BoletoService deve expor método público {$m}");
->>>>>>> origin/main
         }
     });
 
@@ -81,11 +77,7 @@ describe('Wave 27 RecurringBilling POLISH FINAL', function () {
             ->toArray();
 
         foreach (['criar', 'pausar', 'retomar', 'cancelar', 'calcularProximoVencimento'] as $m) {
-<<<<<<< HEAD
             expect($methods)->toContain($m, "AssinaturaService deve expor método público {$m}");
-=======
-            expect(in_array($m, $methods, true))->toBeTrue("AssinaturaService deve expor método público {$m}");
->>>>>>> origin/main
         }
     });
 
