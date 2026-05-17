@@ -2,6 +2,7 @@
 module: Financeiro
 purpose: "Contas a pagar/receber, fluxo de caixa, DRE BR."
 contains:
+  - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
   - "BoletoController"
   - "CategoriaController"
   - "ContaBancariaController"
