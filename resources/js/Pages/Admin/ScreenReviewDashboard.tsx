@@ -114,7 +114,7 @@ function ScreenReviewDashboard({ meta }: Props) {
 }
 
 ScreenReviewDashboard.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="Screen Review · Dashboard">{page}</AppShellV2>
+  <AppShellV2 title="Screen Review · Dashboard" hideTopbar>{page}</AppShellV2>
 );
 
 export default ScreenReviewDashboard;
