@@ -1,0 +1,388 @@
+# Scorecard score-as-code — Modules/Jana
+# Bucket: ai_central (Wagner aprovou 2026-05-16, sessão Domain-Specific Scorecards)
+# Pattern: Cortex score-as-code + Port initiatives + paired indicators Jellyfish 2025
+# Status: EXPERIMENTAL — valida formato antes de implementar `php artisan oimpresso:scorecard`
+#
+# Quando virar canon:
+# - Mover pra `Modules/Jana/Scorecard/jana.yaml` (co-localizado com módulo)
+# - Service ModuleGradeService v4 carrega YAML em vez de rubrica hardcoded
+# - Gate CI bloqueia regressão por bucket
+# - Drift detection diff snapshots dia-a-dia em mcp_scorecard_runs
+#
+# Stack IA canônica preservada (ADR 0035/0048/0053):
+# - Camada A: laravel/ai ^0.6.3 oficial (Vizra REJEITADA ADR 0048)
+# - Camada B: LaravelAiSdkDriver + 4 Agents em Modules/Jana/Ai/Agents/
+# - Camada C: MemoriaContrato + MeilisearchDriver (hybrid embedder Ollama)
+# - MCP server: mcp.oimpresso.com (CT 100/FrankenPHP, NÃO Hostinger — ADR 0058+0062)
+
+---
+
+apiVersion: oimpresso.governance/v1
+kind: ModuleScorecard
+metadata:
+  module: Jana
+  bucket: ai_central
+  owner: '[W]'   # Wagner — single point of decision
+  cliente_real: 'biz_4_rota_livre_prod'  # Larissa pergunta sobre faturamento via Jana (CYCLE-01 goal)
+  stack_canon: 'laravel/ai + MCP server + Meilisearch hybrid embedder + Ollama'
+  status: 'em-prod'   # Jana em prod biz=1 e biz=4 desde 2026-Q1
+  ultima_revisao: 2026-05-16
+  proxima_revisao: 2026-08-16  # quarterly review
+
+# ===========================================================================
+# CORE DIMENSIONS — universais (compartilhadas TODOS buckets, sem variação)
+# Peso fixo 33pts (D1=25 + D8=8). Tier 0 IRREVOGÁVEL.
+# ===========================================================================
+core:
+  D1_multi_tenant:
+    peso: 25
+    descricao: 'business_id global scope ADR 0093 — Tier 0 IRREVOGÁVEL'
+    rules:
+      - id: D1.a
+        peso: 15
+        descricao: 'HasBusinessScope/BelongsToBusinessViaParent em TODAS Entities recursive'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Jana/Entities/**/*.php'
+          expect: 'use HasBusinessScope|use BelongsToBusinessViaParent'
+          coverage_target: 100  # 100% das Entities
+
+      - id: D1.b
+        peso: 5
+        descricao: 'Pest cross-tenant biz=1 vs biz=99 com isolation real'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Jana/Tests/Feature/**/*Test.php'
+          expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
+          assertion: 'assertSee|assertCount|assertDatabaseMissing'
+          coverage_target: 1  # ≥1 test cross-tenant
+
+      - id: D1.c
+        peso: 5
+        descricao: 'Jobs recebem int $businessId no constructor (NUNCA session())'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Jana/Jobs/**/*.php'
+          expect: '__construct.*int\s+\$businessId'
+          coverage_target: 100  # 100% dos Jobs
+
+  D8_security:
+    peso: 8
+    descricao: 'Throttle + CSRF + FormRequest hardening'
+    rules:
+      - id: D8.a
+        peso: 3
+        descricao: 'Throttle middleware em rotas sensíveis (LLM chat endpoint principal)'
+        detect:
+          tipo: grep
+          path: 'Modules/Jana/Routes/**/*.php'
+          expect: "throttle:|->middleware\\('throttle"
+          coverage_target: 1
+
+      - id: D8.b
+        peso: 2
+        descricao: 'CSRF Inertia ativo (default Laravel) — sem `except` no VerifyCsrfToken pro módulo'
+        detect:
+          tipo: negative_grep
+          path: 'app/Http/Middleware/VerifyCsrfToken.php'
+          unexpected: 'jana|Jana|copiloto'
+
+      - id: D8.c
+        peso: 3
+        descricao: 'FormRequest dedicado em store/update Controllers'
+        detect:
+          tipo: ratio
+          numerator: 'Modules/Jana/Http/Requests/*.php'
+          denominator: 'Modules/Jana/Http/Controllers/**/*.php'
+          coverage_target: 0.5  # ≥50% Controllers tem FormRequest correspondente
+
+# ===========================================================================
+# BUCKET DIMENSIONS — ai_central (peso próprio 67pts)
+# Total core (33) + bucket (67) = 100pts normalizado
+# Específico: IA tem 6 dimensões críticas que rubrica genérica não capturava
+# ===========================================================================
+bucket_dimensions:
+
+  A1_hallucination_rate:
+    peso: 15
+    descricao: 'Hallucination rate <5% — Pest evals contra fixtures golden questions'
+    rules:
+      - id: A1.a
+        peso: 8
+        descricao: 'HallucinationEvalTest existe + 20+ golden questions cobertas'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Jana/Tests/Feature/HallucinationEvalTest.php'
+          expect: 'golden_question|fixture.*hallucination|expectedAnswer'
+          assertion: 'assertJsonStructure|toBeLessThan|expect.*hallucinated'
+          coverage_target: 20  # ≥20 golden questions distintas
+
+      - id: A1.b
+        peso: 4
+        descricao: 'Taxa hallucination medida ≤5% últimas 1000 respostas (log em mcp_brief_runs OR jana_evals)'
+        detect:
+          tipo: otel_query
+          source: 'mcp_observability.spans WHERE module=Jana AND span.name=jana.eval.hallucination last_1000'
+          expect: 'hallucination_rate <= 0.05'
+          fallback: 'placeholder 50% até jana_evals table populated'
+
+      - id: A1.c
+        peso: 3
+        descricao: 'Degradation alert se hallucination >10% (skill mcp_alertas ativa)'
+        detect:
+          tipo: file_exists
+          path: '.claude/skills/mcp-alertas/SKILL.md'
+          expect_content: 'hallucination|jana.*degradation'
+
+  A2_llm_cost_per_request:
+    peso: 12
+    descricao: 'LLM cost per request — OTel span llm_cost_brl (anti-runaway)'
+    rules:
+      - id: A2.a
+        peso: 5
+        descricao: 'OTel span captura llm_cost_brl + model_id + tokens_in/out'
+        detect:
+          tipo: grep
+          path: 'Modules/Jana/Ai/**/*.php'
+          expect: 'llm_cost_brl|setAttribute.*cost|tokens_in.*tokens_out'
+          coverage_target: 1
+
+      - id: A2.b
+        peso: 4
+        descricao: 'Custo médio per request ≤R$ [redacted Tier 0] (dashboard mostra trend 30d)'
+        detect:
+          tipo: otel_query
+          source: 'mcp_observability.spans WHERE module=Jana AND attr.llm_cost_brl IS NOT NULL last_30d'
+          expect: 'avg(llm_cost_brl) <= 0.05'
+          fallback: 'placeholder 50% até dashboard OTel ativo prod CT 100'
+
+      - id: A2.c
+        peso: 3
+        descricao: 'Alert se custo >R$ [redacted Tier 0] per request (anti-runaway)'
+        detect:
+          tipo: file_exists
+          path: 'app/Console/Commands/JanaCustoMonitorCommand.php'
+          expect_content: 'alert.*0.10|threshold.*custo_alto'
+
+  A3_latency_p99_rag:
+    peso: 10
+    descricao: 'Latency p99 RAG end-to-end — OTel + Meilisearch hybrid embedder'
+    rules:
+      - id: A3.a
+        peso: 5
+        descricao: 'Spans jana.rag.retrieve + jana.rag.rerank capturados'
+        detect:
+          tipo: grep
+          path: 'Modules/Jana/Ai/**/*.php'
+          expect: 'jana\\.rag\\.retrieve|jana\\.rag\\.rerank|startSpan.*rag'
+          coverage_target: 1
+
+      - id: A3.b
+        peso: 3
+        descricao: 'p99 <2s end-to-end (retrieve + rerank + LLM)'
+        detect:
+          tipo: otel_query
+          source: 'mcp_observability.spans WHERE module=Jana AND span.name LIKE jana.rag.% last_24h'
+          expect: 'p99(duration_ms) < 2000'
+          fallback: 'placeholder 50% até OTel collector ativo prod CT 100'
+
+      - id: A3.c
+        peso: 2
+        descricao: 'Fallback BgeReranker.timeout <500ms se LLM lento'
+        detect:
+          tipo: grep
+          path: 'Modules/Jana/Ai/**/*.php'
+          expect: 'BgeReranker|timeout.*500|reranker.*fallback'
+          coverage_target: 1
+
+  A4_rag_recall_at_5:
+    peso: 10
+    descricao: 'RAG recall@5 ≥80% — golden questions ROTA LIVRE biz=4 fixture'
+    rules:
+      - id: A4.a
+        peso: 6
+        descricao: 'RecallEvalTest com 30+ golden questions biz=4 fixture'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Jana/Tests/Feature/RecallEvalTest.php'
+          expect: 'recall.*at.*5|expected_docs|business_id.*4'
+          assertion: 'toBeGreaterThanOrEqual|assertContains'
+          coverage_target: 30  # ≥30 golden questions
+
+      - id: A4.b
+        peso: 4
+        descricao: 'recall@5 ≥80% nas 30 golden questions'
+        detect:
+          tipo: otel_query
+          source: 'mcp_observability.spans WHERE span.name=jana.eval.recall last_run'
+          expect: 'recall_at_5 >= 0.80'
+          fallback: 'placeholder 50% até RecallEvalTest implementado'
+
+  A5_pii_redaction_pre_llm:
+    peso: 10
+    descricao: 'PII redaction antes LLM — PiiRedactor wrap garantido (Tier 0 LGPD)'
+    rules:
+      - id: A5.a
+        peso: 5
+        descricao: 'PiiRedactor aplicado em 100% calls LLM (auditoria via grep LlmClient::generate)'
+        detect:
+          tipo: ast_scan
+          path: 'Modules/Jana/Ai/**/*.php'
+          expect_pair: 'PiiRedactor.*LlmClient|redact.*generate'
+          coverage_target: 100  # 100% das calls LLM
+
+      - id: A5.b
+        peso: 3
+        descricao: 'Pest test garante CPF/CNPJ nunca passa pra LLM provider'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Jana/Tests/Feature/**/*Test.php'
+          expect: 'PiiRedactor|cpf.*redact|cnpj.*redact'
+          assertion: 'assertStringNotContainsString|expect.*not.*toContain'
+          coverage_target: 1
+
+      - id: A5.c
+        peso: 2
+        descricao: 'Log NUNCA contém PII em claro (auditoria diária via mcp_audit_log)'
+        detect:
+          tipo: file_exists
+          path: 'app/Console/Commands/JanaPiiLeakAuditCommand.php'
+          expect_content: 'audit.*pii|cpf.*regex|cnpj.*regex'
+
+  A6_drift_modelo_sentinel:
+    peso: 10
+    descricao: 'Drift modelo (sentinel canary) — eval semanal vs baseline'
+    rules:
+      - id: A6.a
+        peso: 5
+        descricao: 'Pest weekly cron compara respostas atuais vs baseline checked-in'
+        detect:
+          tipo: file_exists
+          path: 'memory/jana-baseline-responses.json'
+          expect_content: 'baseline_version|golden_questions|expected_responses'
+
+      - id: A6.b
+        peso: 3
+        descricao: 'Drift detect se >10% respostas divergem (canary alert)'
+        detect:
+          tipo: pest_pattern
+          path: 'Modules/Jana/Tests/Feature/DriftSentinelTest.php'
+          expect: 'drift.*0.10|divergence.*threshold|baseline.*compare'
+          assertion: 'toBeLessThan|assertLessThan'
+
+      - id: A6.c
+        peso: 2
+        descricao: 'Rollback pra modelo anterior se drift confirmado 2 semanas seguidas'
+        detect:
+          tipo: file_exists
+          path: 'memory/requisitos/Jana/RUNBOOK-drift-rollback.md'
+          expect_content: 'rollback|modelo.*anterior|2.*semanas'
+
+# ===========================================================================
+# PAIRED INDICATORS — anti-gaming Jellyfish 2025
+# Toda métrica de velocidade exige métrica de qualidade pareada
+# Se a parelha não bate, o score da dimensão fica capped em 50%
+# ===========================================================================
+paired_indicators:
+  - velocidade: A1_hallucination_rate.A1.b (hallucination ≤5%)
+    qualidade: A4_rag_recall_at_5.A4.b (recall ≥80%)
+    rule: 'se A1.b baixa (hallucination 1%) mas A4.b baixa (recall 30%), modelo está conservador demais → A1 cap em 50%'
+    racional: 'Modelo "I dont know" demais baixa hallucination mas é inútil — precisa equilíbrio'
+
+  - velocidade: A2_llm_cost_per_request.A2.b (custo médio)
+    qualidade: A3_latency_p99_rag.A3.b (latency p99)
+    rule: 'se custo alto E latency alta, modelo ineficiente → A2 cap em 50%'
+    racional: 'Custo alto com latência boa pode ser modelo premium (ok); custo alto com latência ruim = modelo errado'
+
+  - velocidade: A5_pii_redaction_pre_llm.A5.a (PiiRedactor cobertura)
+    qualidade: A5_pii_redaction_pre_llm.A5.b (Pest CPF/CNPJ não vaza)
+    rule: 'se A5.a diz 100% cobertura mas A5.b Pest falha, A5 cap em 50%'
+    racional: 'Testes têm que cobrir o que cobertura diz cobrir — anti-vanity coverage'
+
+# ===========================================================================
+# CALCULO FINAL
+# ===========================================================================
+calculo:
+  formula: 'core_score + bucket_score'
+  core_score:
+    soma: 'D1 + D8'
+    max: 33
+  bucket_score:
+    soma: 'A1 + A2 + A3 + A4 + A5 + A6'
+    max: 67
+  total_max: 100
+  meta_bucket: 85  # ai_central target — Jana é o produto IA, padrão alto
+  meta_excelente: 90
+  meta_aspiracional: 95  # bater 95 = IA enterprise world-class (não OpenAI hype)
+
+# ===========================================================================
+# SIMULAÇÃO — estado HOJE (2026-05-16 pós Wave 18)
+# Score que daria se rodasse contra Modules/Jana agora
+# ===========================================================================
+simulation_2026_05_16:
+  core:
+    D1_multi_tenant:
+      D1.a: 10  # parcial — Wave 18 progrediu mas Mcp Entities cross-tenant ainda detect v3 penaliza
+      D1.b: 3   # parcial — alguns tests cross-tenant existem mas não 100% cobertos
+      D1.c: 1   # parcial — Jobs maioria tem $businessId mas alguns legacy session()
+      subtotal: 14
+    D8_security:
+      D8.a: 2   # parcial — chat endpoint tem throttle mas outras rotas não
+      D8.b: 2   # ✓ CSRF default ON
+      D8.c: 2   # parcial — FormRequests em alguns Controllers
+      subtotal: 6
+
+  bucket:
+    A1_hallucination_rate:
+      A1.a: 1   # ❌ HallucinationEvalTest não existe ainda
+      A1.b: 1   # ❌ taxa não medida formalmente
+      A1.c: 1   # parcial — alertas dispersos
+      subtotal: 3
+    A2_llm_cost_per_request:
+      A2.a: 3   # parcial — OTel custos parcial via Wave 18
+      A2.b: 2   # parcial — Wave 18 começou dashboard custos
+      A2.c: 2   # parcial — alert manual via cron, não automatizado
+      subtotal: 7
+    A3_latency_p99_rag:
+      A3.a: 3   # parcial — spans existem Wave 17/18 (jana.rag.retrieve)
+      A3.b: 2   # parcial — sem dashboard p99 formal
+      A3.c: 1   # parcial — BgeReranker existe mas timeout não explícito
+      subtotal: 6
+    A4_rag_recall_at_5:
+      A4.a: 1   # ❌ RecallEvalTest não existe
+      A4.b: 1   # ❌ recall não medido
+      subtotal: 2
+    A5_pii_redaction_pre_llm:
+      A5.a: 4   # ✓ Wave 18 aplicou PiiRedactor em mais Services
+      A5.b: 2   # parcial — 1 Pest existe mas não cobre todos paths
+      A5.c: 1   # parcial — JanaPiiLeakAuditCommand parcial
+      subtotal: 7
+    A6_drift_modelo_sentinel:
+      A6.a: 0   # ❌ baseline-responses.json não existe
+      A6.b: 0   # ❌ DriftSentinelTest não existe
+      A6.c: 0   # ❌ RUNBOOK-drift-rollback.md não existe
+      subtotal: 0
+
+  score_total: 45
+  vs_meta_bucket: '45 / 85 = 53% (MUITO abaixo meta ai_central — gap crítico)'
+  vs_meta_excelente: '45 / 90 = 50%'
+  vs_meta_aspiracional: '45 / 95 = 47%'
+
+  comparacao_com_rubrica_v3_atual:
+    nota_v3_atual: 72  # bate com module:grade Jana pós Wave 18
+    nota_yaml_simulado: 45
+    diferenca: -27
+    motivo_diferenca: 'rubrica v3 GENÉRICA não capturava dimensões IA críticas (hallucination, recall, drift, cost per request). Bucket ai_central expõe gap real — Jana é módulo IA mas avaliado como CRUD comum.'
+    insight_critico: 'Esse é o VALOR principal do score-as-code: rubrica genérica mascarava gaps específicos de IA. Jana parece 72 mas é 45 quando medido pelo padrão correto.'
+
+  top_5_acoes_pra_chegar_meta_85:
+    1: 'A6.a + A6.b + A6.c: criar baseline-responses.json + DriftSentinelTest + RUNBOOK-drift-rollback → +10pts'
+    2: 'A4.a + A4.b: implementar RecallEvalTest 30+ golden questions biz=4 → +8pts'
+    3: 'A1.a + A1.b: implementar HallucinationEvalTest 20+ golden + medir taxa → +12pts'
+    4: 'D1.a + D1.b: saturar HasBusinessScope em Mcp Entities + completar Pest cross-tenant → +6pts'
+    5: 'A2.b + A3.b: ativar OTel collector prod CT 100 + dashboard p99 + custo médio → +4pts'
+    total_ganho: '+40pts → 85/100 (meta ai_central atingida)'
+
+  pra_chegar_meta_95:
+    'precisa todas paired indicators verdes + golden questions atualizadas mensalmente + drift sentinel rodando 4+ semanas sem alerta'
+    'meta realista: 95 em 3 quarters (mais lento que vertical_client_facing pq evals IA exigem fixtures curados)'
