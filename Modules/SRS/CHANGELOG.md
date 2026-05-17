@@ -2,6 +2,7 @@
 
 Append-only. Cada PR mergeado que toca `Modules/SRS/` deve adicionar 1 linha na entrada do Wave/data.
 
+<<<<<<< HEAD
 ## Wave 28 — 2026-05-17 (SATURATION FINAL functional → ≥92)
 
 ### Added
@@ -13,6 +14,32 @@ Append-only. Cada PR mergeado que toca `Modules/SRS/` deve adicionar 1 linha na 
 - Sub-dimensoes alvo Wave 28: D2 (+3 = cross-tenant defesa Model-level reforço — 3 entities tenant-scoped trait confirmation + 2 entities repo-wide justificadas source-level).
 - Pattern alinhado com Wave 26 (`class_uses_recursive` + reflexão + zero hit MySQL) — Wave 25 já fez DB-level full coverage com 4 tenants quando MySQL disponível.
 - Tier 0 ADR 0093 preservado — DocLink/DocPage/DocValidationRun são repo-wide intencional (justificado Wave 26 source-level).
+=======
+## Wave 27 — 2026-05-17 (POLISH final → ≥88)
+
+### Added
+
+- `Tests/Feature/Wave27PolishTest.php` — 20 cenarios cobrindo:
+  - D1.A LogsActivity expand (DocRequirement + DocEvidence — paridade DocSource/DocChatMessage) — 8 cenarios incluindo preserve HasBusinessScope + Searchable + source-doc motivacao LGPD
+  - D9.A Spans canon expand (ModuleAuditor.audit `srs.audit.module` + MemoryReader.listRoots `srs.memory.list_roots`) — 4 cenarios
+  - D7.A LGPD push final retention.php Wave 27: 8 cenarios cobrindo `base_legal` Art. 7º II+IX + `notice_period_days` configuravel + `hierarquia` ordem crescente + `strategy` hard/soft + `entities` mapping + justificativa CLT Art. 11 + back-compat keys
+
+### Changed
+
+- `Entities/DocRequirement.php` — D1.A adicionado `LogsActivity` trait + `getActivitylogOptions()` (paridade DocSource Wave 12). Audit trail user stories — rastreabilidade governance ADR/CHANGELOG cross-check.
+- `Entities/DocEvidence.php` — D1.A adicionado `LogsActivity` trait + `getActivitylogOptions()`. Audit triagem evidencias (ingerida → triaged → linked-to-requirement).
+- `Services/ModuleAuditor.php` — D9.A `audit()` envolve `OtelHelper::spanBiz('srs.audit.module')` (latencia tipica 50-200ms). Metodo `auditInterno()` separado preserva contrato source-level.
+- `Services/MemoryReader.php` — D9.A `listRoots()` envolve `OtelHelper::spanBiz('srs.memory.list_roots')` (I/O-heavy 100-800ms recursivo). Ajuda Wagner notar regressao quando memory/ cresce.
+- `Config/retention.php` — D7.A push final Wave 27: 5 chaves novas (`base_legal` LGPD Art. 7º II+IX + `notice_period_days` env-configuravel + `hierarquia` ordem crescente declarativa + `strategy` hard/soft + `entities` mapping pra `srs:retention-cleanup` futuro). Back-compat keys legadas preservadas.
+
+### Notes
+
+- Sub-dimensoes alvo Wave 27: D1 (+3 = LogsActivity em 2 entities tenant-scoped restantes — DocRequirement/DocEvidence, paridade com DocSource/DocChatMessage Wave 12), D9 (+3 = spans canon em 2 services I/O-heavy adicionais — ModuleAuditor + MemoryReader, paridade ChatAssistant/DocValidator), D7 (+5 = retention.php audit-ready com base_legal + hierarquia + strategy + entities mapping — fiscal-ready Wagner pode demonstrar compliance LGPD per-rotina).
+- Multi-tenant Tier 0 PRESERVADO: LogsActivity nao quebra HasBusinessScope (traits independentes); spans canon NAO vazam business_id em rota repo-wide.
+- Append-only governance: retention.php `strategy=hard` por design — generated_docs governance preservado em git canonico (memory/requisitos/...) e fonte primaria; tabelas docs_* sao cache operacional.
+- DocLink/DocPage/DocValidationRun mantem repo-wide intencional (EXCEÇÃO REPO-WIDE Wave 17 — isolamento transitivo via parents) — NAO ganham LogsActivity Wave 27 (catalogos governance sem mutacao frequente).
+- bucket governance v4 mantido `functional_horizontal` em module.json.
+>>>>>>> origin/main
 
 ## Wave 25 — 2026-05-16 (SATURATION functional → ≥85)
 

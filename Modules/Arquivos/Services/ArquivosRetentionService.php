@@ -184,6 +184,7 @@ class ArquivosRetentionService
     }
 
     /**
+<<<<<<< HEAD
      * Wave 28 D9 — summary aging counts read-only por business (idempotente, zero mutação).
      *
      * Sai do dry_run loop do `run()` pra cenário "quero ver o cenário SEM nem listar".
@@ -220,6 +221,47 @@ class ArquivosRetentionService
                 'soft_deleted'      => $softDeleted,
                 'expired_eligible'  => $expiredEligible,
                 'business_id'       => $businessId,
+=======
+     * Wave 27 D9.a — preview agregado pra Auditor LGPD (UI dashboard).
+     *
+     * Conta arquivos elegíveis por bucket SEM mutar nada — span dedicado
+     * permite traçar "quantos arquivos vão ser purged amanhã" no Grafana.
+     *
+     * Span: `arquivos.retention.preview` — atributos sem PII (apenas counts).
+     *
+     * @return array{total:int, by_bucket:array<string,int>, oldest_at:?string}
+     */
+    public function preview(int $businessId, int $retentionDays): array
+    {
+        return OtelHelper::spanBiz('arquivos.retention.preview', function () use ($businessId, $retentionDays) {
+            $cutoff = Carbon::now()->subDays($retentionDays);
+
+            $rows = Arquivo::query()
+                ->where('business_id', $businessId)
+                ->whereNull('deleted_at')
+                ->where('created_at', '<', $cutoff)
+                ->selectRaw('bucket, COUNT(*) as total, MIN(created_at) as oldest')
+                ->groupBy('bucket')
+                ->get();
+
+            $byBucket = [];
+            $total = 0;
+            $oldest = null;
+
+            foreach ($rows as $r) {
+                $byBucket[(string) $r->bucket] = (int) $r->total;
+                $total += (int) $r->total;
+                $rowOldest = $r->oldest ? (string) $r->oldest : null;
+                if ($oldest === null || ($rowOldest !== null && $rowOldest < $oldest)) {
+                    $oldest = $rowOldest;
+                }
+            }
+
+            return [
+                'total'     => $total,
+                'by_bucket' => $byBucket,
+                'oldest_at' => $oldest,
+>>>>>>> origin/main
             ];
         }, [
             'module'         => 'Arquivos',
@@ -227,4 +269,51 @@ class ArquivosRetentionService
             'retention_days' => $retentionDays,
         ]);
     }
+<<<<<<< HEAD
+=======
+
+    /**
+     * Wave 27 D9.a — relatório pós-batch (artefato pra Auditor LGPD assinar).
+     *
+     * Recebe o resultado de `run()` + metadados (batch_tag, motivo, user_id)
+     * e estrutura um payload determinístico pra audit log + export PDF/CSV
+     * (consumido por endpoint admin não exposto neste service).
+     *
+     * Span: `arquivos.retention.report` — append-only audit, sem mutação.
+     *
+     * @param  array{scanned:int, expired:int, purged:int, dry_run:bool}  $runResult
+     * @param  array<string, mixed>  $meta  ['batch_tag', 'motivo', 'user_id']
+     * @return array<string, mixed>  payload pronto pra serializar
+     */
+    public function report(int $businessId, int $retentionDays, array $runResult, array $meta = []): array
+    {
+        return OtelHelper::spanBiz('arquivos.retention.report', function () use ($businessId, $retentionDays, $runResult, $meta) {
+            $payload = [
+                'generated_at'   => now()->toIso8601String(),
+                'business_id'    => $businessId,
+                'retention_days' => $retentionDays,
+                'result'         => $runResult,
+                'meta'           => [
+                    'batch_tag' => (string) ($meta['batch_tag'] ?? ''),
+                    'motivo'    => (string) ($meta['motivo'] ?? ''),
+                    'user_id'   => isset($meta['user_id']) ? (int) $meta['user_id'] : null,
+                ],
+                'law_ref' => [
+                    'LGPD Art. 16 (eliminação tempestiva)',
+                    'LGPD Art. 18 §VI (direito eliminação)',
+                ],
+            ];
+
+            Log::info('arquivos.retention.report', $payload);
+
+            return $payload;
+        }, [
+            'module'         => 'Arquivos',
+            'business_id'    => $businessId,
+            'retention_days' => $retentionDays,
+            'scanned'        => (int) ($runResult['scanned'] ?? 0),
+            'purged'         => (int) ($runResult['purged'] ?? 0),
+        ]);
+    }
+>>>>>>> origin/main
 }

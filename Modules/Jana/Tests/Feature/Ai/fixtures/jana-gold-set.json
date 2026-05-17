@@ -1,9 +1,23 @@
 {
   "_meta": {
-    "version": "1.0",
+    "version": "3.0",
     "created_at": "2026-05-16",
-    "description": "Gold-set canônico Jana — 50 perguntas com ground_truth pra RAGAS gate semanal. Atualizar sempre que ADR canon nova relevante for criada. PT-BR, biz=1 OR biz=99 only (ADR 0101 — NUNCA biz=4 ROTA LIVRE).",
-    "tags_canon": ["multi-tenant", "fsm", "ia-stack", "runtime", "mwart", "skills", "memoria", "governance", "lgpd", "vertical"]
+    "updated_at": "2026-05-17",
+    "description": "Gold-set canônico Jana — Wave 27 expandiu 60→100 questões conceito (HallucinationEvalTest.php tem 100 entries com must_contain/must_not_contain + bucket coverage). Este JSON contém o ground_truth descritivo. PT-BR, biz=1 OR biz=99 only (ADR 0101 — NUNCA biz=4 ROTA LIVRE). Placeholders [CLIENTE]/[VALOR]/[PRODUTO] em perguntas rota_livre_biz4.",
+    "tags_canon": ["multi-tenant", "fsm", "ia-stack", "runtime", "mwart", "skills", "memoria", "governance", "lgpd", "vertical", "nfe", "rota_livre"],
+    "waves_evolution": {
+      "wave_23": "criou 22 golden questions (set inicial)",
+      "wave_25": "expandiu 22→30 (saturation)",
+      "wave_27": "expandiu 30→100 com 6 buckets categorizados (rota_livre_biz4:16, lgpd_compliance:16, nfe_nfse_contabil:16, multi_tenant_tier0:16, fsm_canon_adr0143:16, constituicao_governanca:20). Bucket coverage gate em HallucinationEvalTest.php"
+    },
+    "bucket_coverage": {
+      "rota_livre_biz4": 16,
+      "lgpd_compliance": 16,
+      "nfe_nfse_contabil": 16,
+      "multi_tenant_tier0": 16,
+      "fsm_canon_adr0143": 16,
+      "constituicao_governanca": 20
+    }
   },
   "questions": [
     {"question": "Qual ADR define o isolamento multi-tenant Tier 0 obrigatório no oimpresso?", "ground_truth": "ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL. Define business_id global scope obrigatório em toda Eloquent Model.", "tags": ["multi-tenant", "governance"]},

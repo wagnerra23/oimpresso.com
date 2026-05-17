@@ -43,7 +43,7 @@ core:
         descricao: 'HasBusinessScope/BelongsToBusinessViaParent em TODAS Entities recursive'
         detect:
           tipo: ast_scan
-          path: 'Modules/Jana/Entities/**/*.php'
+          path: 'Modules/<modulo>/Entities/**/*.php'
           expect: 'use HasBusinessScope|use BelongsToBusinessViaParent'
           coverage_target: 100  # 100% das Entities
 
@@ -52,7 +52,7 @@ core:
         descricao: 'Pest cross-tenant biz=1 vs biz=99 com isolation real'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Jana/Tests/Feature/**/*Test.php'
+          path: 'Modules/<modulo>/Tests/Feature/**/*Test.php'
           expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
           assertion: 'assertSee|assertCount|assertDatabaseMissing'
           coverage_target: 1  # ≥1 test cross-tenant
@@ -62,7 +62,7 @@ core:
         descricao: 'Jobs recebem int $businessId no constructor (NUNCA session())'
         detect:
           tipo: ast_scan
-          path: 'Modules/Jana/Jobs/**/*.php'
+          path: 'Modules/<modulo>/Jobs/**/*.php'
           expect: '__construct.*int\s+\$businessId'
           coverage_target: 100  # 100% dos Jobs
 
@@ -75,7 +75,7 @@ core:
         descricao: 'Throttle middleware em rotas sensíveis (LLM chat endpoint principal)'
         detect:
           tipo: grep
-          path: 'Modules/Jana/Routes/**/*.php'
+          path: 'Modules/<modulo>/Routes/**/*.php'
           expect: "throttle:|->middleware\\('throttle"
           coverage_target: 1
 
@@ -92,8 +92,8 @@ core:
         descricao: 'FormRequest dedicado em store/update Controllers'
         detect:
           tipo: ratio
-          numerator: 'Modules/Jana/Http/Requests/*.php'
-          denominator: 'Modules/Jana/Http/Controllers/**/*.php'
+          numerator: 'Modules/<modulo>/Http/Requests/*.php'
+          denominator: 'Modules/<modulo>/Http/Controllers/**/*.php'
           coverage_target: 0.5  # ≥50% Controllers tem FormRequest correspondente
 
 # ===========================================================================
@@ -112,7 +112,7 @@ bucket_dimensions:
         descricao: 'HallucinationEvalTest existe + 20+ golden questions cobertas'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Jana/Tests/Feature/HallucinationEvalTest.php'
+          path: 'Modules/<modulo>/Tests/Feature/HallucinationEvalTest.php'
           expect: 'golden_question|fixture.*hallucination|expectedAnswer'
           assertion: 'assertJsonStructure|toBeLessThan|expect.*hallucinated'
           coverage_target: 20  # ≥20 golden questions distintas
@@ -143,7 +143,7 @@ bucket_dimensions:
         descricao: 'OTel span captura llm_cost_brl + model_id + tokens_in/out'
         detect:
           tipo: grep
-          path: 'Modules/Jana/Ai/**/*.php'
+          path: 'Modules/<modulo>/Ai/**/*.php'
           expect: 'llm_cost_brl|setAttribute.*cost|tokens_in.*tokens_out'
           coverage_target: 1
 
@@ -173,7 +173,7 @@ bucket_dimensions:
         descricao: 'Spans jana.rag.retrieve + jana.rag.rerank capturados'
         detect:
           tipo: grep
-          path: 'Modules/Jana/Ai/**/*.php'
+          path: 'Modules/<modulo>/Ai/**/*.php'
           expect: 'jana\\.rag\\.retrieve|jana\\.rag\\.rerank|startSpan.*rag'
           coverage_target: 1
 
@@ -191,7 +191,7 @@ bucket_dimensions:
         descricao: 'Fallback BgeReranker.timeout <500ms se LLM lento'
         detect:
           tipo: grep
-          path: 'Modules/Jana/Ai/**/*.php'
+          path: 'Modules/<modulo>/Ai/**/*.php'
           expect: 'BgeReranker|timeout.*500|reranker.*fallback'
           coverage_target: 1
 
@@ -204,7 +204,7 @@ bucket_dimensions:
         descricao: 'RecallEvalTest com 30+ golden questions biz=4 fixture'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Jana/Tests/Feature/RecallEvalTest.php'
+          path: 'Modules/<modulo>/Tests/Feature/RecallEvalTest.php'
           expect: 'recall.*at.*5|expected_docs|business_id.*4'
           assertion: 'toBeGreaterThanOrEqual|assertContains'
           coverage_target: 30  # ≥30 golden questions
@@ -227,7 +227,7 @@ bucket_dimensions:
         descricao: 'PiiRedactor aplicado em 100% calls LLM (auditoria via grep LlmClient::generate)'
         detect:
           tipo: ast_scan
-          path: 'Modules/Jana/Ai/**/*.php'
+          path: 'Modules/<modulo>/Ai/**/*.php'
           expect_pair: 'PiiRedactor.*LlmClient|redact.*generate'
           coverage_target: 100  # 100% das calls LLM
 
@@ -236,7 +236,7 @@ bucket_dimensions:
         descricao: 'Pest test garante CPF/CNPJ nunca passa pra LLM provider'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Jana/Tests/Feature/**/*Test.php'
+          path: 'Modules/<modulo>/Tests/Feature/**/*Test.php'
           expect: 'PiiRedactor|cpf.*redact|cnpj.*redact'
           assertion: 'assertStringNotContainsString|expect.*not.*toContain'
           coverage_target: 1
@@ -266,7 +266,7 @@ bucket_dimensions:
         descricao: 'Drift detect se >10% respostas divergem (canary alert)'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Jana/Tests/Feature/DriftSentinelTest.php'
+          path: 'Modules/<modulo>/Tests/Feature/DriftSentinelTest.php'
           expect: 'drift.*0.10|divergence.*threshold|baseline.*compare'
           assertion: 'toBeLessThan|assertLessThan'
 
@@ -275,7 +275,7 @@ bucket_dimensions:
         descricao: 'Rollback pra modelo anterior se drift confirmado 2 semanas seguidas'
         detect:
           tipo: file_exists
-          path: 'memory/requisitos/Jana/RUNBOOK-drift-rollback.md'
+          path: 'memory/requisitos/<modulo>/RUNBOOK-drift-rollback.md'
           expect_content: 'rollback|modelo.*anterior|2.*semanas'
 
 # ===========================================================================

@@ -1,5 +1,6 @@
 # Modules/Crm — CHANGELOG
 
+<<<<<<< HEAD
 ## [Wave 28] - 2026-05-17
 
 ### Test (D2 — Pest +2 saturação final ≥95)
@@ -12,6 +13,27 @@
 
 ### Governance
 - Saturação 82-95 → 96 (polish final excelência).
+=======
+## [Wave 27 POLISH FINAL] - 2026-05-17 (82-92 → ≥95)
+
+### Added (D2 + D9 cobertura Services Wave 18 triple-confirmed)
+
+- `Modules/Crm/Tests/Feature/Wave27CrmPolishTest.php` — 11 asserts cobrindo:
+  - **D9** — spans declarados em CrmLeadService (`crm.lead.create/convert`), ProposalService (`crm.proposal.create/update/default_template`), CallLogService (`crm.call_log.base_query/total_duration`)
+  - **D2** — cobertura source-assert Services Wave 18 (Tier 0 ADR 0093 declarado, businessId injected, NUNCA session direta, whitelist ALLOWED_FILTERS anti-SQLi)
+  - **V5** — CHANGELOG W27 entry exigido + cita polish ≥95
+  - **Tier 0** — Crm Entities Wave 9/10 NÃO retocadas (apenas verifica diretório existe)
+
+### Changed
+
+- Score Capterra scoped: 82-92 (W23+W25) → ≥95 estimado pós W27 (D2 +2, D9 +3, V5 +1).
+
+### Preserved (Tier 0 IRREVOGÁVEL)
+
+- **Entities Crm Wave 9/10** intocadas — W27 toca APENAS governance + tests reflection.
+- **ADR 0093** multi-tenant — todos os 3 Services Wave 18 já declaram `businessId` obrigatório no constructor + NUNCA session direta.
+- **biz=99** em fixtures (NUNCA biz=4 — ADR 0101).
+>>>>>>> origin/main
 
 ## [Wave 18 RETRY] - 2026-05-16
 

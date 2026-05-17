@@ -117,6 +117,30 @@ class ProductionService
     }
 
     /**
+<<<<<<< HEAD
+     * Custo médio de produção — usado em widgets dashboard Manufacturing.
+     *
+     * Wave 27 D9.a — span observa agregada cara (média ponderada sobre todas as
+     * production_purchase do business). Zero-cost OTel quando otel.enabled=false.
+     *
+     * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) — caller injeta business_id.
+     *
+     * @param  int  $businessId  Tenant — NUNCA omitir, NUNCA usar session() em Job.
+     * @return float Custo médio (zero se não houver produções).
+     */
+    public function averageProductionCost(int $businessId): float
+    {
+        return OtelHelper::spanBiz('manufacturing.production.average_cost', function () use ($businessId) {
+            $value = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_purchase')
+                ->where('mfg_is_final', 1)
+                ->avg('mfg_production_cost');
+
+            return (float) ($value ?? 0.0);
+        }, [
+            'module' => 'Manufacturing',
+=======
      * Wave 26 D9 — KPIs por janela temporal (últimos N dias) pra dashboard.
      *
      * Spans observáveis pra hot-path de dashboards reagentes (Producao card).
@@ -147,6 +171,7 @@ class ProductionService
         }, [
             'module'      => 'Manufacturing',
             'window_days' => $windowDays,
+>>>>>>> origin/main
         ]);
     }
 }

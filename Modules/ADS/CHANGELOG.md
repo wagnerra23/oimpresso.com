@@ -2,6 +2,38 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Wave 27 — Polish ≥88 D2/D8/D9] — 2026-05-17
+
+### Adicionado — D8.c Wave 27 +2 FormRequests (ratio 16/17 = 0.94)
+- **`Http/Requests/StoreGovernanceMetaSkillRequest.php`** novo — POST /ads/admin/meta-skills
+  (endpoint editor governance rule; valida `rule_key` regex + `condition/action` arrays + categoria enum).
+- **`Http/Requests/StoreSkillVersionRequest.php`** novo — POST /ads/admin/skills/{slug}
+  (cria nova version Skill; valida 4 rationale fields obrigatórios ADR 0061).
+
+### Alterado — D8.c Controllers Admin usam FormRequest type-hint
+- **`Http/Controllers/Admin/MetaSkillsController.php`** — `store(StoreGovernanceMetaSkillRequest)` (era `Request`).
+- **`Http/Controllers/Admin/SkillsController.php`** — `store(string, StoreSkillVersionRequest, SkillsService)` (era `Request`).
+- Validação INLINE removida → encapsulada em FormRequest (Pest valida via `$req->rules()`).
+
+### Adicionado — `Tests/Feature/Wave27SaturationTest.php` (10 cenários, 0.27s avg)
+- D2 Pest cumulativo: Feature ≥7 + Unit ≥7 (ADS bucket internal_governance_active)
+- D8 Wave 27 +2 FormRequests: existência + regras canon (regex/enum/rationale obrigatório)
+- D8 ratio 16/17 = 0.94 (W18 RETRY: 14/15 = 0.93)
+- D9 spans completos: PlannerService.plan + BrainBService.process + SkillsService canon
+- D9 span attributes: `decision_id` documentado em planner/brain_b (rastreabilidade)
+- D9 OtelHelper preserva exception em `ads.*` (fail-loud)
+- D2 5 Controllers ADS Admin com `Inertia::defer` cobertura (Decisoes/Learning/Metricas/Patterns/Conflicts)
+- D8 Controllers usam FormRequests Wave 27 (assertion source-grep)
+- D2 3 Services ADS resolvidos via container (dual-brain preservado)
+
+### Tier 0 IRREVOGÁVEL preservado
+- Dual-brain pattern: `mcp_dual_brain_decisions` + `mcp_decision_patterns` + `mcp_skills_versions` isolation Pest (W18+W18RETRY+W25).
+- Backward compat: rules Wave 27 idênticas à validação inline anterior — ZERO breaking change.
+
+### Referências
+- ADR 0061 ZERO auto-mem (rationale fields) · ADR 0093 Multi-tenant Tier 0 · ADR 0155 Module Grade v3
+- ADR 0159 Polish series · Wave 18 RETRY (ratio base 14/15)
+
 ## [Wave 25 — Confirmação polish ≥85 Excelente] — 2026-05-16
 
 ### Sem alterações de código (saturação confirmada Wave 18 RETRY)

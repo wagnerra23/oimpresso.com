@@ -19,6 +19,24 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
+### Wave 27 POLISH (2026-05-17)
+
+- **ADD D8** `Http/Requests/ExportBriefMarkdownRequest.php` — endpoint admin
+  `GET /brief/admin/{id}/export.md` (Wagner cola brief individual em handoff
+  ou relatório). Defaults seguros: `redact_pii=true` + `include_metadata=true`.
+  `wrap_columns` whitelist (`0,40,60,80,100,120,160,200`) — defesa anti-injection.
+  Permission `brief.history.view` (Wagner/superadmin RBAC).
+- **ADD D8** `Http/Requests/CompareBriefRequest.php` — endpoint admin
+  `GET /brief/admin/compare?a=X&b=Y` (side-by-side debug regressão Brain B).
+  Anti-erro operador: `a` e `b` exigem `different` cross-reference.
+  `diff_mode` whitelist `full|sections|headers` pra granularidade do diff.
+- **ADD D2** `Tests/Feature/BriefFallbackTest.php` — +9 testes Wave 27:
+  fallback edge cases (429 rate-limit, 200 com body malformado, defesa PII
+  em serveCachedWithStaleFlag), ExportBriefMarkdownRequest (whitelist
+  wrap_columns + coerce booleans + defaults), CompareBriefRequest (different
+  a==b + diff_mode whitelist + messages PT-BR + optionsOrDefaults).
+- **NOOP D6** — Brief permanece módulo MCP/CLI puro sem Inertia pages.
+
 ### Wave 25 POLISH (2026-05-16)
 
 - **ADD D8** `Http/Requests/FetchBriefHistoryRequest.php` — paginação read-only

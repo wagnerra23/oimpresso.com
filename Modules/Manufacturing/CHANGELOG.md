@@ -1,5 +1,6 @@
 # Manufacturing — Changelog
 
+<<<<<<< HEAD
 ## [Wave 28 — 2026-05-17] POLISH FINAL ≥92 (77-90 → 92, +2pp)
 
 ### D2 +3 Pest BomRecipes (Wave 28)
@@ -25,6 +26,32 @@
 
 ### Referências
 - ADR 0093 Multi-tenant Tier 0 (chain via JOIN products) · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3
+=======
+## [Wave 27 — 2026-05-17] POLISH final ≥90 (88 → 90, +2pp)
+
+### D9.a OTel saturation (2 spans novos)
+- `RecipeBomService::listForDropdown` — span `manufacturing.recipe.list_for_dropdown`
+  (hot-path form Recipe + Production carregam dropdown). Atributo `by_variation_id`.
+- `ProductionService::averageProductionCost` — NOVO método com span
+  `manufacturing.production.average_cost`. Útil em widgets dashboard.
+- Zero-cost OTel quando `otel.enabled=false` (default Hostinger).
+
+### D5 Customer Journey biz=1 (BOM 7 ingredients)
+- `Tests/Feature/Wave27ManufacturingPolishTest.php` — receita BOM 7 ingredientes
+  (Wave 25 cobria 5). Multi-tenant biz=1 vs biz=99 isolation validado.
+- Cobertura `averageProductionCost(1)` retorna float + `averageProductionCost(99)` = 0.0
+
+### D2 Pest expand (8 cenários novos)
+- 8 testes Wave 27 cobrindo: spans novos (Reflection source), customer journey real,
+  cross-tenant Tier 0 (biz=99 vazio em todos os novos métodos).
+
+### Tier 0 IRREVOGÁVEIS preservadas
+- ⛔ Multi-tenant Tier 0 (ADR 0093) — isolation biz=1 vs biz=99 todos novos testes.
+- ⛔ NUNCA biz=4 cliente real (ADR 0101). `mfg_recipes/ingredients` sem `business_id`
+  direto preservado (chain via JOIN products).
+- ⛔ PT-BR em comentários. PHP identifiers em inglês. SQLite skip preservado.
+- ⛔ OtelHelper canônico (`App\Util\OtelHelper`) — NUNCA OpenTelemetry vendor direto.
+>>>>>>> origin/main
 
 ## [Wave 25 — 2026-05-16] POLISH ≥88 (77 → 88, +11pp)
 
