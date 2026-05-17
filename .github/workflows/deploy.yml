@@ -97,10 +97,11 @@ jobs:
 
       - name: Composer install (produção)
         # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component"). Ver auto-mem reference_composer_install_obrigatorio_pos_deploy.md
+        # --ignore-platform-req=ext-opentelemetry: Hostinger shared NÃO tem ext-opentelemetry (PECL out/2025). OTel pacotes vivem em require-dev pós ADR 0166 (errata 0162) + OtelHelper é fail-safe (class_exists guard). Hostinger nunca emite spans em prod — só CT 100 emite (ADR 0062 Tier 0 IRREVOGÁVEL runtime).
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
-            composer install --optimize-autoloader --no-interaction --no-scripts 2>&1 | tail -20 &&
+            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -20 &&
             composer dump-autoload --optimize 2>&1 | tail -3
           "
 
