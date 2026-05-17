@@ -576,6 +576,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const [palSel, setPalSel] = useState(0);
   const [viewsOpen, setViewsOpen] = useState(false);
   const [visoesOpen, setVisoesOpen] = useState(false);
+  // US-SELL-COWORK-R2-IA — ⌘K palette ✦ "Perguntar à IA" abre drawer da 1ª venda
+  // visível + painel IA. Esta flag sincroniza com SaleSheet via prop initialAiOpen.
+  const [aiTriggered, setAiTriggered] = useState(false);
 
   // Fetch /sells-list-json sempre que filtros mudam.
   useEffect(() => {
@@ -1457,6 +1460,34 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                   </span>
                   <kbd>↵</kbd>
                 </div>
+                {palQ.trim() && filtered.length > 0 && (
+                  <>
+                    <div className="vd-pal-grp">✦ Inteligência</div>
+                    <button
+                      type="button"
+                      className="vd-pal-ai-cta"
+                      onClick={() => {
+                        const firstId = filtered[0]?.id;
+                        if (firstId != null) {
+                          setAiTriggered(true);
+                          setPalOpen(false);
+                          setPalQ('');
+                          setOpenSaleId(firstId);
+                        }
+                      }}
+                      title="Abrir a 1ª venda visível + painel IA"
+                    >
+                      <span className="vd-pal-ai-ic">✦</span>
+                      <span className="vd-pal-ai-tx">
+                        <b>Perguntar à IA</b>
+                        <small>
+                          sobre "<i>{palQ}</i>" — abre a 1ª venda visível com painel ✦ ativo
+                        </small>
+                      </span>
+                      <kbd>↵</kbd>
+                    </button>
+                  </>
+                )}
                 <div className="vd-pal-grp">Ações</div>
                 <a className="vd-pal-it" href="/sells/create">
                   <span className="vd-pal-ic">
@@ -1494,14 +1525,18 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         )}
       </div>
 
-      {/* DRAWER detalhe — preserva SaleSheet existente (drawer-internal não muda) */}
+      {/* DRAWER detalhe + painel ✦ IA (Cowork Onda 2 R2 IA) */}
       <SaleSheet
         saleId={openSaleId}
         open={openSaleId != null}
         onOpenChange={(open) => {
-          if (!open) setOpenSaleId(null);
+          if (!open) {
+            setOpenSaleId(null);
+            setAiTriggered(false);
+          }
         }}
         onSaleChanged={() => setRefetchToken((t) => t + 1)}
+        initialAiOpen={aiTriggered}
       />
     </div>
   );
