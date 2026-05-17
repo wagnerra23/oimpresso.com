@@ -3,7 +3,7 @@ name: wagner-protocol-enforce
 description: |
   BLOQUEADOR Tier A always-on — carrega memory/reference/PROTOCOLO-WAGNER-SEMPRE.md
   no SessionStart de TODA sessão Claude no oimpresso. Garante que Claude execute
-  automaticamente as 10 regras que Wagner sempre solicita (smoke real, cópia
+  automaticamente as 12 regras que Wagner sempre solicita (smoke real, cópia
   literal design aprovado, workflow 3 fases mexer-registrar, multi-tenant Tier 0,
   PT-BR + economia crédito, biz=1 não biz=4 em tests, charter+visual-comparison
   antes Edit Page, branch/worktree disciplina, zero auto-mem privada, aprovação
@@ -30,7 +30,7 @@ canon_doc: memory/reference/PROTOCOLO-WAGNER-SEMPRE.md
 
 ## O que faz
 
-Carrega [`memory/reference/PROTOCOLO-WAGNER-SEMPRE.md`](../../../memory/reference/PROTOCOLO-WAGNER-SEMPRE.md) na memória de trabalho de Claude no início da sessão. O protocolo enumera **10 regras** (R1-R10) que Wagner sempre solicita:
+Carrega [`memory/reference/PROTOCOLO-WAGNER-SEMPRE.md`](../../../memory/reference/PROTOCOLO-WAGNER-SEMPRE.md) na memória de trabalho de Claude no início da sessão. O protocolo enumera **12 regras** (R1-R12) que Wagner sempre solicita:
 
 | # | Regra | Trigger |
 |---|---|---|
@@ -45,11 +45,12 @@ Carrega [`memory/reference/PROTOCOLO-WAGNER-SEMPRE.md`](../../../memory/referenc
 | **R9** | ZERO auto-mem privada | Tentativa Write em `~/.claude/projects/*/memory/` |
 | **R10** | Aprovação humana antes commit/push/merge | git push/merge/`gh pr create`/`gh pr merge` |
 | **R11** | **Continuar autonomamente até desfecho dentro do escopo pré-aprovado** | Wagner aprovou caminho ("sim pode" + descrição de N passos) — Claude executa do começo ao fim sem pausa interna |
+| **R12** | **Protocolo de fechamento de sessão executado SEMPRE** (MCP-first + handoff append-only + índice + commit/push) | Wagner sinaliza fechamento ("ok"/"salve"/"depois"/"obrigado"/"baixa prioridade") OR feature concluída sem novo escopo por 2+ turnos |
 
 ## Protocolo de execução (Claude no SessionStart)
 
 1. **Ler o protocolo completo** em `memory/reference/PROTOCOLO-WAGNER-SEMPRE.md` se ainda não na memória.
-2. **Auto-check antes de cada turno terminar** (ver §"Como Claude detecta violação" no protocolo) — passa pelos 10 itens R1-R10.
+2. **Auto-check antes de cada turno terminar** (ver §"Como Claude detecta violação" no protocolo) — passa pelos 10 itens R1-R12.
 3. **Quando trigger de regra dispara, executar SEM esperar Wagner pedir.** Por exemplo:
    - Mergei PR → execute R1 (abrir Brave, screenshot, verificar visual) automaticamente.
    - Wagner aprovou screenshot → execute R2 (cópia integral 1 PR, não slice).
@@ -61,7 +62,7 @@ Carrega [`memory/reference/PROTOCOLO-WAGNER-SEMPRE.md`](../../../memory/referenc
 
 ## Sinal de violação observável
 
-Wagner pergunta "o que eu sempre solicito?" — significa Claude esqueceu uma das 10 regras. Catalogar incidente + atualizar protocolo + post-mortem inline no turno corrente.
+Wagner pergunta "o que eu sempre solicito?" — significa Claude esqueceu uma das 12 regras. Catalogar incidente + atualizar protocolo + post-mortem inline no turno corrente.
 
 ## Diferença de outras skills Tier A
 
@@ -74,7 +75,7 @@ Wagner pergunta "o que eu sempre solicito?" — significa Claude esqueceu uma da
 | `charter-first` | Charter da página antes Edit `.tsx` | CONTRATO visual/UX |
 | `mwart-comparative` | Gate visual + Cowork loop | PROCESSO migração |
 | `preflight-modulo` | Pré-flight obrigatório Edit `Modules/<X>/` | DISCIPLINA módulo (R3) |
-| **`wagner-protocol-enforce`** | **PROTOCOLO de comportamento (10 regras)** | **AUTO-EXECUÇÃO sem Wagner pedir** |
+| **`wagner-protocol-enforce`** | **PROTOCOLO de comportamento (12 regras)** | **AUTO-EXECUÇÃO sem Wagner pedir** |
 
 Esta skill é **ortogonal** às outras Tier A — não substitui nenhuma, ENCAPSULA o pacote completo num único contrato cobrável.
 
@@ -87,6 +88,6 @@ Esta skill é **ortogonal** às outras Tier A — não substitui nenhuma, ENCAPS
 
 ## Refs
 
-- [PROTOCOLO-WAGNER-SEMPRE.md](../../../memory/reference/PROTOCOLO-WAGNER-SEMPRE.md) — canon (10 regras detalhadas)
+- [PROTOCOLO-WAGNER-SEMPRE.md](../../../memory/reference/PROTOCOLO-WAGNER-SEMPRE.md) — canon (12 regras detalhadas)
 - ADR 0094 [Constituição v2](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)
 - Agent companion: [wagner-understand](../../agents/wagner-understand.md) — decodificador de pedidos crus
