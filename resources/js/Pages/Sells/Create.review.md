@@ -63,4 +63,40 @@ US-SELL-004 → US-SELL-007 declarados nos comentários iniciais (linhas 1-13). 
 
 ---
 
+**Append-only.** Blocos YAML canon abaixo (parseados pelo `ScreenReviewController::parseReviewFile`).
+
+## Round 1 — pending-wagner (2026-05-17T10:00:00-03:00)
+
+```yaml
+round: 1
+status: pending-wagner
+user: W31-bulk-static
+at: 2026-05-17T10:00:00-03:00
+desvios:
+  - "Inertia::defer audit: precisa confirmar Controller (pendência dynamic)"
+  - "STORAGE_KEY draft localStorage: declara biz+user mas não confirmado em runtime"
+  - "1409 LOC monolítico — maior tela do batch"
+  - "taxes Record com comentário-bug-historic indica typing backend→frontend frágil"
+  - "Triagem 18→8+10 campos colapsáveis: confirmar todos 18 presentes"
+notes: "Round 1 estático bulk W31 sem rodar testes nem screenshot. Findings pra dynamic round 2."
+```
+
+## Round 2 — pending-wagner (2026-05-17T15:30:00-03:00)
+
+```yaml
+round: 2
+status: pending-wagner
+user: Claude (dynamic post-Wave-1)
+at: 2026-05-17T15:30:00-03:00
+desvios:
+  - "P0 CONFIRMADO Inertia::defer AUSENTE em SellController@create (linhas 810-842) — 8 props eager (taxes/priceGroups/commissionAgents/customerGroups/accounts/typesOfService/users/invoiceSchemes). Show/Edit/Drafts/Quotations JÁ usam defer. D-14 risk 300ms→50ms validado em outras telas."
+  - "P0 CONFIRMADO STORAGE_KEY draft TIER 0 OK — Create.tsx:528-533 usa `oimpresso.sells.create.draft.${bizId}.${userId}` ADR 0093 ✅ (fecha pendência round 1)"
+  - "P0 CONFIRMADO FieldError + role=alert + COLLAPSED_FIELD_KEYS auto-open <details> US-SELL-010 implementados ✅"
+  - "P0 RESPONSIVIDADE — tela desenhada xl-only (1280+) quebra em 1024/375 (dossier 2026-05-17 tela-venda-arte-responsivo.md: nota 49/100 vs líderes 88/100 vs concorrentes BR 62/100)"
+  - "P1 type union string polui payment_status/status — extrair resources/js/Types/Sale.ts shared cross Index/Show/Edit"
+  - "Wave 1 ENTREGUE Wave 1 (sessão 2026-05-17): ADR 0165 proposed + ProductLineCard.tsx novo + PaymentRow.tsx refatorado mobile-first. Preview em prototipo-ui/sells-responsive-preview/index.html"
+  - "Wave 2 PENDENTE: integrar ProductLineCard em Create.tsx (md:hidden / hidden md:block linhas 851-955) + P0-2 touch h-8→h-11-md-h-8 + P0-3 footer safe-area + P1-1 pills horizontal-scroll mobile + atualizar Create.charter.md viewport mínimo 375px"
+notes: "Status sugerido: ITERATE (loop F1.5) pra Wagner aprovar Wave 2 integration. NÃO rejected — 1 PR pontual SellController defer resolve o P0 conhecido. Pré-req: ADR 0165 accepted."
+```
+
 **Append-only.**
