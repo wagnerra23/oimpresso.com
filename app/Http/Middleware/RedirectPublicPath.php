@@ -25,13 +25,19 @@ class RedirectPublicPath
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $path = $request->path();
+        // ATENÇÃO: usar getRequestUri() em vez de path(). Em prod o Symfony Request
+        // detecta SCRIPT_NAME=/public/index.php e strip "/public" automaticamente
+        // do path() — então em HTTP real /public/admin → path()=admin (sem prefix).
+        // getRequestUri() preserva o path bruto do cliente, incluindo "/public/".
+        // Descoberto via probe inline 17/mai 2026.
+        $uri = $request->getRequestUri();
+        $pathOnly = strtok($uri, '?');
 
-        if ($path !== 'public' && ! str_starts_with($path, 'public/')) {
+        if ($pathOnly !== '/public' && ! str_starts_with((string) $pathOnly, '/public/')) {
             return $next($request);
         }
 
-        $newPath = $path === 'public' ? '/' : '/' . substr($path, strlen('public/'));
+        $newPath = $pathOnly === '/public' ? '/' : substr($pathOnly, strlen('/public'));
         $query = $request->getQueryString();
 
         return redirect()->to($newPath . ($query !== null && $query !== '' ? '?' . $query : ''), 301);
