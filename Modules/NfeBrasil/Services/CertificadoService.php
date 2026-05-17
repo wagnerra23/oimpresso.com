@@ -50,13 +50,6 @@ class CertificadoService
      */
     public function validar(string $pfxBase64, string $senha): array
     {
-<<<<<<< HEAD
-        return OtelHelper::span('nfe.certificado_validar', [
-            'pfx_size_bytes' => strlen($pfxBase64),
-        ], fn () => $this->validarInterno($pfxBase64, $senha));
-    }
-
-=======
         // D9 Wave 26 — span no parse PKCS12 (hot-path SEFAZ — senha/pfx NUNCA em attributes).
         // Defesa Tier 0: attributes carregam APENAS booleans/length, nunca conteudo do .pfx ou senha.
         return OtelHelper::spanBiz('nfe.certificado.validar', function () use ($pfxBase64, $senha): array {
@@ -67,7 +60,6 @@ class CertificadoService
     /**
      * Implementacao interna de validar — wrap span OTel acima (D9 Wave 26).
      */
->>>>>>> origin/main
     private function validarInterno(string $pfxBase64, string $senha): array
     {
         $binary = base64_decode($pfxBase64, true);

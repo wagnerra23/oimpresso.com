@@ -7,6 +7,7 @@ use Modules\Admin\Http\Controllers\IndexController;
 use Modules\Admin\Http\Controllers\InstallController;
 use Modules\Admin\Http\Controllers\MutationsController;
 use Modules\Admin\Http\Controllers\RagQualityDashboardController;
+use Modules\Admin\Http\Controllers\ScreenReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,19 @@ Route::middleware(['web', 'tailscale-only', 'auth', 'is-wagner'])
         // @see Modules/KB/Services/KbBgeRerankerService.php (span kb.rerank.bge_v2_m3)
         Route::get('rag-quality', RagQualityDashboardController::class)
             ->name('admin.rag-quality.index');
+
+        // W30 Agent B (2026-05-17) — Screen Review tri-pane PDCA Wagner-only.
+        // Lista TODAS telas .tsx do projeto com status pending/approved/rejected/iterate.
+        // updateStatus é append-only em <Tela>.review.md (cada call = round novo bloco YAML).
+        // Status `rejected` opcionalmente abre Initiative via InitiativeService (idempotent).
+        // {screenPath} usa where(.*) pra aceitar barras URL-encoded (Admin/GovernanceV4).
+        // @see Modules\Admin\Http\Controllers\ScreenReviewController
+        // @see resources/js/Pages/Admin/ScreenReview.charter.md
+        Route::get('screen-review',                              [ScreenReviewController::class, 'index'])
+            ->name('admin.screen-review');
+        Route::post('screen-review/{screenPath}/status',         [ScreenReviewController::class, 'updateStatus'])
+            ->where('screenPath', '.*')
+            ->name('admin.screen-review.update-status');
 
         // US-INFRA-008 (2026-05-13) — Painel de feature flags GrowthBook.
         // Read via GrowthBookAdminService. Audit em feature_flag_audits (dedicado).
