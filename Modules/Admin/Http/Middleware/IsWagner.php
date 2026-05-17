@@ -44,7 +44,10 @@ class IsWagner
 
         $userIdMatch     = (int) $user->id === $expectedUserId;
         $businessIdMatch = (int) ($user->business_id ?? 0) === $expectedBusinessId;
-        $hasRole         = method_exists($user, 'hasRole') && $user->hasRole('superadmin');
+        // UltimatePOS Spatie usa suffix #{biz} (roles.business_id NOT NULL — FK).
+        // Aceita 'superadmin' (legacy global) OU 'superadmin#{biz}' (canon multi-tenant).
+        $hasRole         = method_exists($user, 'hasRole')
+            && ($user->hasRole('superadmin') || $user->hasRole("superadmin#{$expectedBusinessId}"));
 
         // Caminho normal: 3 condições AND
         if ($userIdMatch && $businessIdMatch && $hasRole) {
