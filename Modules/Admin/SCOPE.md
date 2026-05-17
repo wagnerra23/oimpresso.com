@@ -4,9 +4,12 @@ purpose: "Centro de Operações Wagner-only (admin.oimpresso.com em CT 100/Tails
 contains:
   - "DataController"
   - "FeatureFlagsController"
+  - "GovernanceV4DashboardController — Wave 24/29 Tri-pane scorecards intra-bucket Wagner-only (V1 legacy + V2 feature-flagged)"
   - "IndexController"
   - "InstallController"
   - "MutationsController"
+  - "RagQualityDashboardController — Wave 28 §G3 RAG quality observability (KB + Jana cross-pipeline)"
+  - "ScreenReviewController — W30 Agent B Screen Review tri-pane PDCA Wagner-only (review status append-only por tela)"
 not_contains:
   - "Superadmin cliente-side → Modules/Superadmin (mantido)"
   - "Admin team MCP → /copiloto/admin/team (Hostinger)"

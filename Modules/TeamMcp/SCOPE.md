@@ -14,6 +14,7 @@ contains:
   - "Admin/TeamScopesController — RBAC scopes per actor; URL /ads/admin/team-scopes mantida"
   # Fase 4 (NOVA, ADR 0081):
   - "ActorsController (NOVO) — Identity Mesh: CRUD de mcp_actors com manifest YAML"
+  - "ScorecardController — G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
 not_contains:
   - "Chat IA conversacional → Modules/Copiloto"
   - "Knowledge browsing → Modules/KB"
