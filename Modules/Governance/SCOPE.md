@@ -17,6 +17,8 @@ not_contains:
   - "Identity Mesh (mcp_actors) UI → Modules/TeamMcp"
   - "Knowledge browsing (ADRs read-only) → Modules/KB"
   - "Constitution doc edit → memory/governance/CONSTITUTION.md (não DB)"
+  - "Module Grade v4 Tri-pane Wagner-only Tailscale (/admin/governance/v4 + /admin/governance-v4) → Modules/Admin (ADR 0122 — separação intencional, Centro de Operações CT 100 Wagner-only, NÃO unificar)"
+  - "MCP usage cross-team dashboard (/jana/admin/governanca) → Modules/Jana (drift — migrar pra cá Fase 5, ver drift_alerts)"
 trust_required: L1
 owner: wagner
 permission_prefix: governance.*
@@ -25,15 +27,29 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
   - 0086-fase-5-mvp-governance-actiongate-warn
+  - 0122-admin-center-ct100
 url_prefixes:
   - /governance/*
+routes:
+  # Fonte canônica: Modules/Governance/Http/routes.php
+  - "GET  /governance                              → DashboardController@index           (governance.admin.dashboard)"
+  - "GET  /governance/policies                     → PoliciesController@index            (governance.policies.index)"
+  - "POST /governance/policies/{id}/toggle         → PoliciesController@toggle           (governance.policies.toggle)"
+  - "GET  /governance/audit                        → AuditController@index               (governance.audit.index)"
+  - "GET  /governance/drift                        → DriftAlertsController@index         (governance.drift.index)"
+  - "GET  /governance/module-grades                → ModuleGradeController@index         (governance.module-grades.index)"
+  - "GET  /governance/module-grades/{name}         → ModuleGradeController@show          (governance.module-grades.show)"
+  - "GET  /governance/install{,/uninstall,/update} → InstallController@*                 (governance.install.*)"
 db_tables_owned:
   - mcp_governance_rules (compartilha com ADS — ActionGate lê, ADS write rules de decision flow)
 drift_alerts:
-  - controller: "(esperando migração)"
-    pertence_a: "Modules/Copiloto/Http/Controllers/Admin/GovernancaController.php"
-    motivo: "GovernancaController existente em Copiloto pertence aqui"
-    eta_migracao: "Fase 5 (próxima sessão)"
+  # 2026-05-17 — atualizado: Copiloto foi renomeado Jana em Fase 3.7 PR-2 (2026-05-06).
+  # Drift ainda VIVO. ETA migração: Fase 5 (próxima sessão dedicada).
+  - controller: "Modules/Jana/Http/Controllers/Admin/GovernancaController.php"
+    pertence_a: "Modules/Governance (MCP usage cross-team)"
+    motivo: "Dashboard de MCP usage cross-team (cf. ADR 0053) é governança, não chat Jana. SCOPE.md de Jana já cataloga este drift (Fase 5)."
+    url_atual: "/jana/admin/governanca"
+    eta_migracao: "Fase 5 — manter URL via Route::redirect 301 (pattern Fase 3.7 PR-1)"
 ---
 
 # Modules/Governance — UI consolidada de governança
