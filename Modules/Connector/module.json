@@ -14,6 +14,10 @@
     ],
     "requires": [],
     "governance": {
+        "bucket": "cross_cutting_infra",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Bridge API external (Passport tokens) provendo endpoints POS p/ apps externos, infra interna sem cliente vendável próprio, depende-de-tudo (Sells/Contact/Product)",
         "fsm_n_a": true,
         "fsm_n_a_reason": "Connector é bridge stateless de API external (Passport tokens) — write operations delegam pro core (Sells/Contact/Product) onde FSM canon aplica (ADR 0143 Sells/Repair). Não tem state machine própria — apenas validação payload + roteamento. Wave 18 RETRY sinalizado.",
         "wave_18_retry": {

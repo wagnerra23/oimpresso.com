@@ -12,5 +12,11 @@
     "files": [],
     "requires": [],
     "fsm_n_a": true,
-    "fsm_n_a_reason": "Arquivos é backbone DMS (storage + vault + curador + dedupe + audit log + retention LGPD). Lifecycle de arquivo é trivial via SoftDeletes (created → deleted → restored OR purged) — não justifica state machine FSM canônica (ADR 0143). Pipeline curador 5-fase é orquestração de classificação, não state machine de domínio."
+    "fsm_n_a_reason": "Arquivos é backbone DMS (storage + vault + curador + dedupe + audit log + retention LGPD). Lifecycle de arquivo é trivial via SoftDeletes (created → deleted → restored OR purged) — não justifica state machine FSM canônica (ADR 0143). Pipeline curador 5-fase é orquestração de classificação, não state machine de domínio.",
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "DMS backbone polimórfico (HasArquivos trait opt-in) cross-vertical útil em qualquer empresa BR, padrão Service horizontal sem dono cliente único (ADR 0123)"
+    }
 }

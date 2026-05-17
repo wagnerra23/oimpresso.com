@@ -7,5 +7,11 @@
     "providers": [
         "Modules\\NFSe\\Providers\\NfseServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "NFSe federal LC 214/2025 cross-vertical útil pra qualquer empresa BR que presta serviço, foundation fiscal horizontal sem dono cliente único"
+    }
 }
