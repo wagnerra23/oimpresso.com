@@ -184,7 +184,6 @@ class ArquivosRetentionService
     }
 
     /**
-<<<<<<< HEAD
      * Wave 28 D9 — summary aging counts read-only por business (idempotente, zero mutação).
      *
      * Sai do dry_run loop do `run()` pra cenário "quero ver o cenário SEM nem listar".
@@ -221,7 +220,15 @@ class ArquivosRetentionService
                 'soft_deleted'      => $softDeleted,
                 'expired_eligible'  => $expiredEligible,
                 'business_id'       => $businessId,
-=======
+            ];
+        }, [
+            'module'         => 'Arquivos',
+            'business_id'    => $businessId,
+            'retention_days' => $retentionDays,
+        ]);
+    }
+
+    /**
      * Wave 27 D9.a — preview agregado pra Auditor LGPD (UI dashboard).
      *
      * Conta arquivos elegíveis por bucket SEM mutar nada — span dedicado
@@ -261,7 +268,6 @@ class ArquivosRetentionService
                 'total'     => $total,
                 'by_bucket' => $byBucket,
                 'oldest_at' => $oldest,
->>>>>>> origin/main
             ];
         }, [
             'module'         => 'Arquivos',
@@ -269,8 +275,6 @@ class ArquivosRetentionService
             'retention_days' => $retentionDays,
         ]);
     }
-<<<<<<< HEAD
-=======
 
     /**
      * Wave 27 D9.a — relatório pós-batch (artefato pra Auditor LGPD assinar).
@@ -315,5 +319,4 @@ class ArquivosRetentionService
             'purged'         => (int) ($runResult['purged'] ?? 0),
         ]);
     }
->>>>>>> origin/main
 }
