@@ -88,6 +88,7 @@
 
 ## Workflow & triggers
 
+- [checklist-pos-merge.md](checklist-pos-merge.md) — **Checklist canônico unificado pós-merge** (8 passos consolidando ADR 0070/0130/0164 + skills tela-smoke-pos-merge/brief-update/memory-sync + workflow GHA) — tabela de gatilhos por tipo de PR + estado auditado
 - [trigger-guarde-no-cofre.md](trigger-guarde-no-cofre.md) — Comando reservado Wagner: classifica decisão/regra/evidência e grava em ADR/SPEC/docs_evidences
 - [cursor-collaboration.md](cursor-collaboration.md) — Cursor é outra IA paralela; checa `memory/sessions/` + `git status` antes de começar
 
