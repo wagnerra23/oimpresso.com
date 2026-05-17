@@ -11,14 +11,13 @@
 
 import * as React from 'react';
 import { Head, router } from '@inertiajs/react';
-import { Clock, RefreshCw } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
-import PageNavTabs from '@/Components/shared/PageNavTabs';
+import PageHeaderActions from '@/Components/shared/PageHeaderActions';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
-import { Button } from '@/Components/ui/button';
 
 import type { ScreenReviewMeta } from './ScreenReview';
 
@@ -36,29 +35,14 @@ function ScreenReviewDashboard({ meta }: Props) {
           icon="layout-dashboard"
           title="Screen Review · Dashboard"
           description={`Visão PDCA · ${meta.total_telas} telas · gerado ${new Date(meta.generated_at).toLocaleString('pt-BR')}`}
-          nav={
-            <PageNavTabs
+          action={
+            <PageHeaderActions
               items={[
-                { label: 'Dashboard', href: '/admin/screen-review/dashboard', hotkey: 1, active: true },
-                {
-                  label: 'Triagem',
-                  href: '/admin/screen-review',
-                  count: meta.pending_count,
-                  hotkey: 2,
-                },
+                { label: 'Dashboard', icon: 'layout-dashboard', href: '/admin/screen-review/dashboard', active: true },
+                { label: 'Triagem', icon: 'list-checks', href: '/admin/screen-review', count: meta.pending_count },
+                { label: 'Reload', icon: 'refresh-cw', onClick: () => router.reload(), variant: 'ghost' },
               ]}
             />
-          }
-          action={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => router.reload()}
-            >
-              <RefreshCw size={13} className="mr-1.5" />
-              Reload
-            </Button>
           }
         />
 
