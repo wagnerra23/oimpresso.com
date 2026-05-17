@@ -185,7 +185,7 @@ Este documento é a **lei canônica** que enumera as regras que Wagner sempre so
 
 ---
 
-## R10 — Aprovação humana antes de COMMIT/PUSH/MERGE
+## R10 — Aprovação humana antes de COMMIT/PUSH/MERGE (calibrada com R11)
 
 **Quando:** todo git push, gh pr create, gh pr merge.
 
@@ -193,14 +193,67 @@ Este documento é a **lei canônica** que enumera as regras que Wagner sempre so
 
 1. Implementa tudo localmente (Edit/Write/Pest verde/TS check).
 2. `git status` + `git diff --stat` pra Wagner inspeciona ANTES do commit.
-3. **Espera "sim pode" / "pode mergear" / "manda"** explícito antes de commit/push.
-4. Após `gh pr create`, ESPERA aprovação explícita ANTES de `gh pr merge` (mesmo com CI verde).
+3. **Espera "sim pode" / "pode mergear" / "manda"** explícito **uma vez** pra autorizar o caminho.
+4. **A autorização cobre o ESCOPO PRÉ-APROVADO inteiro** — incluindo PRs follow-up que Wagner explicitamente mandou abrir ("sim, merge + abre PR follow-up"). Ver R11.
 5. Branch protection de `main` exige PR + review — nunca push direto em main.
-6. NÃO usar `--no-verify` / `--no-gpg-sign` / `--admin` sem autorização explícita do Wagner pra essa ação específica.
+6. NÃO usar `--no-verify` / `--no-gpg-sign` sem autorização explícita. `--admin` SIM quando Wagner autorizou caminho que precisa bypassar "branch up-to-date" check.
 
-**Sinal de violação:** Claude faz `gh pr merge` sem autorização explícita.
+**Sinal de violação:** Claude faz `gh pr merge` em PR que Wagner NÃO autorizou OU `git push --force` sem permissão.
+
+**Anti-padrão calibrado (R11):** Claude faz `gh pr create` autorizado e PARA esperando ENTÃO aprovação SEPARADA do merge do mesmo PR. Wagner já autorizou o caminho — Claude continua até desfecho.
 
 **Doc base:** [skill `publication-policy`](../../.claude/skills/publication-policy/SKILL.md) — matriz Tier 0/1/2 do que escala.
+
+---
+
+## R11 — Continuar autonomamente até desfecho dentro do escopo pré-aprovado
+
+**Origem:** Wagner palavras textuais 2026-05-17, sessão `stupefied-noether-89f83d`, segundo turno:
+
+> *"atualize seu protocolo para ficar esperando eu tive que vir aqui lembrar"*
+
+Wagner havia autorizado o caminho completo ("Sim, merge agora + abre PR follow-up dos filtros") mas Claude parou nos PRs #1034 e #1035 esperando aprovação **separada** de cada merge — em vez de continuar até o desfecho.
+
+**Quando:** Wagner aprovou explicitamente um CAMINHO (não só uma ação isolada). Frases-gatilho:
+
+- "sim pode"
+- "manda"
+- "Sim, merge agora + abre PR follow-up"
+- "vai" / "faz isso"
+- "pode" + descrição de N passos
+
+**O que fazer (Claude executa):**
+
+1. **Identificar o desfecho final do escopo pré-aprovado** — não a primeira ação isolada.
+2. **Executar do começo ao fim** sem pausa pra re-aprovação interna desde que cada passo esteja dentro do caminho aprovado:
+   - Implementação → tests → commit → push → PR → CI watch → merge → smoke pos-deploy → BRIEFING update → cleanup
+3. **CI watch ativo** — se CI rodando, fica em loop curto (`gh pr checks <N>` polling cada 30-60s OU usa run_in_background) até verde ou red.
+4. **CI verde + aprovação prévia → merge automático** com `--admin` se necessário pra bypassar branch-up-to-date (mesma autorização do passo 3 acima).
+5. **Pos-merge → smoke real (R1)** automático, não delegar pra Wagner.
+6. **Pos-smoke → relatório resumido pro Wagner** quando ele voltar — não aguardar pergunta dele.
+
+**Sinal de violação:** Wagner volta e pergunta "e aí?", "o que tá rolando?", "tive que vir lembrar" — significa Claude parou no meio de caminho pré-aprovado.
+
+**Quando PARAR mesmo dentro de escopo pré-aprovado (NÃO violação):**
+
+- **CI fica RED** — coleta evidência (link do job, erro inline) e ESPERA decisão Wagner (não tente "fix automático" sem aprovação)
+- **Detecta gap visual em smoke** — reporta gap + propõe hotfix + ESPERA aprovação Wagner (foi o caso do PR #1034 detectado via smoke Brave de #1032 — comportamento certo)
+- **Escopo se expande** além do que Wagner aprovou — pausa e pede aprovação extension
+- **Resultado contradiz hipótese** (ex: smoke mostra layout quebrado) — pausa, reporta, espera
+- **Erro Tier 0** (vazamento `business_id`, PII em log) — bloqueia e reporta imediato
+
+**Como decidir "continuar" vs "parar":**
+
+| Situação | Continuar (R11) | Parar (R10 ou outro) |
+|---|---|---|
+| Wagner aprovou caminho completo + CI verde | ✅ merge automático | — |
+| Wagner aprovou caminho + CI rodando | ✅ watch + continua | — |
+| Wagner aprovou caminho + CI red | — | ✅ reporta + espera decisão |
+| Wagner aprovou PR1 mas PR2 não explicitamente | ✅ se PR2 está no caminho aprovado | ✅ se PR2 é novo escopo |
+| Detectou gap visual via smoke | — | ✅ reporta + propõe hotfix |
+| Tier 0 violado em algum passo | — | ✅ bloqueia + reporta |
+
+**Doc base:** este ADR + [feedback-continuar-ate-desfecho.md](feedback-continuar-ate-desfecho.md) (a criar como follow-up se reincidir).
 
 ---
 
@@ -213,12 +266,15 @@ Após cada turno, Claude se pergunta:
 - Estou em worktree? Edits foram pro path worktree, não main repo? (R8)
 - Vou declarar "funcionando"? tenho `curl -sv` ou `screenshot` salvo? (R1)
 - Wagner aprovou design? estou copiando integral, não slice? (R2)
-- Vou commit/push/merge? Wagner autorizou explicitamente esta ação específica? (R10)
+- Vou commit/push/merge? Wagner autorizou ESCOPO/CAMINHO (não só ação isolada)? (R10 + R11)
 - Texto UI/commit em PT-BR? (R5)
 - Estou em Pest? business_id=1, não biz=4 cliente? (R6)
 - Vou Write em `~/.claude/projects/*/memory/`? Mover pra `memory/reference/` git canon? (R9)
+- **Estou no meio de escopo pré-aprovado? Vou continuar até desfecho final ou vou parar e fazer Wagner perguntar "e aí?"** (R11)
 
 Auto-check antes de ENTREGAR. Se qualquer ❌ → corrigir + entregar com nota.
+
+**Regra de ouro R11:** se Wagner volta e pergunta "e aí?" ou "o que tá rolando?" → Claude parou onde devia continuar. Catalogar como violação + corrigir caminho atual.
 
 ---
 
@@ -243,6 +299,7 @@ Auto-check antes de ENTREGAR. Se qualquer ❌ → corrigir + entregar com nota.
 3. **Auto-mem privada** — escrevi `feedback_design_literal_copy.md` em `~/.claude/projects/*/memory/` antes de mover pra git canon `memory/reference/`.
 4. **Cópia parcial proposta** — depois do Wagner aprovar screenshot integral, propus slice em R1 antes ele cortar com "vai fazer cagada se tentar fazer diferente".
 5. **Gap legacy não migrado** — Cowork rewrite #1032 não montou `SellsDateFilter`/`GroupBy`/`SellsToggleViewMode` (componentes existiam em _components/). Detectei via verificação Brave; PR #1034 corrige.
+6. **Parei no meio de escopo pré-aprovado** — Wagner havia aprovado "Sim, merge agora + abre PR follow-up dos filtros". Eu fiz #1032 merge + #1034 PR (correto) MAS PAREI esperando "OK mergeia #1034" separado — Wagner teve que voltar e dizer *"atualize seu protocolo para ficar esperando eu tive que vir aqui lembrar"*. Origem da regra **R11 — Continuar autonomamente até desfecho dentro do escopo pré-aprovado**.
 
 ---
 

@@ -17,7 +17,8 @@
 > | R7 | Charter + visual-comparison antes Edit Page | `Pages/<Mod>/<Tela>.tsx` |
 > | R8 | Branch + worktree disciplina | Worktree filha |
 > | R9 | Zero auto-mem privada | Write `~/.claude/projects/*/memory/` |
-> | R10 | Aprovação humana antes commit/push/merge | git push / `gh pr merge` |
+> | R10 | Aprovação humana antes commit/push/merge | git push / `gh pr merge` (autorização cobre ESCOPO inteiro, não só ação isolada — calibrada com R11) |
+> | R11 | **Continuar autonomamente até desfecho dentro do escopo pré-aprovado** | Wagner aprovou caminho ("sim pode" + N passos) — Claude executa do começo ao fim sem pausa interna. Origem 2026-05-17 Wagner *"atualize seu protocolo para ficar esperando eu tive que vir aqui lembrar"*. |
 >
 > **Skill enforcement:** [`wagner-protocol-enforce`](../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A always-on carrega no SessionStart de toda sessão.
 >

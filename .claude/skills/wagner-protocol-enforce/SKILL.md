@@ -44,6 +44,7 @@ Carrega [`memory/reference/PROTOCOLO-WAGNER-SEMPRE.md`](../../../memory/referenc
 | **R8** | Branch + worktree disciplina | Trabalho em worktree filha |
 | **R9** | ZERO auto-mem privada | Tentativa Write em `~/.claude/projects/*/memory/` |
 | **R10** | Aprovação humana antes commit/push/merge | git push/merge/`gh pr create`/`gh pr merge` |
+| **R11** | **Continuar autonomamente até desfecho dentro do escopo pré-aprovado** | Wagner aprovou caminho ("sim pode" + descrição de N passos) — Claude executa do começo ao fim sem pausa interna |
 
 ## Protocolo de execução (Claude no SessionStart)
 

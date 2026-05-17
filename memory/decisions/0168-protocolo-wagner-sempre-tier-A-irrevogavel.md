@@ -67,7 +67,8 @@ As 10 regras canônicas:
 | **R7** | Charter `live` + visual-comparison antes Edit Page | `Pages/<Mod>/<Tela>.tsx` |
 | **R8** | Branch + worktree disciplina | Trabalho em worktree filha |
 | **R9** | ZERO auto-mem privada | Tentativa Write `~/.claude/projects/*/memory/` |
-| **R10** | Aprovação humana antes commit/push/merge | git push / `gh pr merge` |
+| **R10** | Aprovação humana antes commit/push/merge | git push / `gh pr merge` (cobre ESCOPO, não só ação isolada) |
+| **R11** | Continuar autonomamente até desfecho dentro do escopo pré-aprovado | Wagner aprovou caminho — executa N passos sem pausa interna (errata 2026-05-17 segundo turno) |
 
 ## Justificativa
 
