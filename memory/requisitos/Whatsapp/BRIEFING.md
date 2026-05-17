@@ -1,8 +1,24 @@
 # BRIEFING — Whatsapp / Atendimento
 
 > **Mantido por:** skill `brief-update` (Tier B auto-trigger) + Wagner review
-> **Atualizado:** 2026-05-16 (Wave 25 — Drivers SATURATION + DriverInterface contract coverage 15/15 passed)
+> **Atualizado:** 2026-05-17 (Wave 26 — Drivers/Webhook polish ≥85; +14 Pest tests Drivers/WebhookSignatureChecker/MessagePersister sem chamar daemon/Meta real)
 > **Próximo update esperado:** quando próximo PR `feat/perf/fix(whatsapp)` mergear
+
+### Wave 26 polish (2026-05-17) — Drivers + Webhook saturation 74 → ≥85 (+11pp)
+
+- D2 expandido `Tests/Feature/Wave26WhatsappSaturationTest.php` (~25 cenários):
+  - BaileysDriver spans canon hot-path (`send_freeform/send_media/send_interactive`) + encapsulamento (`mapSendResponse/normalizePhone/client` private)
+  - MetaCloudDriver `parseInboundWebhook` (PR4 PoC BSUID identifier mar/2026+) — extrai 3 identifiers (wa_id + phone_e164 + bsuid) + tolerância payload pré BSUID + payload vazio + type=button/interactive
+  - MetaCloudDriver `fetchTemplates` (HSM Meta Business Manager)
+  - WebhookSignatureChecker (Wave 18 D4): rejeitar prefixo errado (CRÍTICO Meta), hex inválido, header vazio/null, hash_equals constant-time (anti timing-attack), aliases (`meta`/`meta_cloud`, `zapi`/`z-api`/`z_api`), class final stateless puro
+  - DriverDoesNotSupport factory `::for(driver, capability)` cross-driver fail-fast
+  - Services pattern subdirs ≥10 (Audio + Centrifugo + Contacts + Csat + Drivers + Macros + Metrics + Notes + Sla + Webhook)
+- D4 Services confirmados (Wave 18 D4 baseline preservar): MessagePersister + WebhookSignatureChecker bindable container
+- D3 BRIEFING + CHANGELOG W26 (este entry)
+- D6/D7 baseline preservado (defer Pages + LogsActivity)
+- IRREVOGÁVEIS preservados: BaileysDriver custom + MetaCloudDriver fallback (ADR 0096 e4); EvolutionDriver ainda inexistente
+
+
 
 ---
 
