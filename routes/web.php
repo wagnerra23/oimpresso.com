@@ -405,6 +405,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/payments/add_payment/{transaction_id}', [TransactionPaymentController::class, 'addPayment']);
     Route::get('/payments/pay-contact-due/{contact_id}', [TransactionPaymentController::class, 'getPayContactDue']);
     Route::post('/payments/pay-contact-due', [TransactionPaymentController::class, 'postPayContactDue']);
+
+    // MWART · /payments/v2 — Inertia coexiste com Blade /payments (Wave Blade T1 Migration B)
+    Route::get('/payments/v2', [TransactionPaymentController::class, 'indexInertia'])->name('payments.v2.index');
+    Route::get('/payments/v2/{id}/edit', [TransactionPaymentController::class, 'editInertia'])->name('payments.v2.edit');
+    Route::get('/payments/v2/{id}', [TransactionPaymentController::class, 'showInertia'])->name('payments.v2.show');
+
     Route::resource('payments', TransactionPaymentController::class);
 
     //Printers...
