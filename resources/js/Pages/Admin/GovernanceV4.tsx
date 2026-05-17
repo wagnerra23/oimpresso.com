@@ -22,7 +22,7 @@
 // substitui até cutover ONDA 7 via flag `meta.v4_enabled`.
 
 import * as React from 'react';
-import { Head, useForm, Deferred } from '@inertiajs/react';
+import { Head, Link, useForm, Deferred } from '@inertiajs/react';
 import { toast } from 'sonner';
 import {
   Sparkles,
@@ -32,6 +32,7 @@ import {
   Search as SearchIcon,
   GitBranch,
   Settings2,
+  Camera,
 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -317,6 +318,15 @@ function GovernanceV4(props: GovernanceV4PageProps) {
           }
           action={
             <div className="flex items-center gap-1.5 flex-wrap">
+              {/* W30-B — link Screen Review (PDCA tri-pane) */}
+              <Link
+                href="/admin/screen-review"
+                as="button"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-xs font-medium text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                <Camera size={13} />
+                Screen Review
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"
