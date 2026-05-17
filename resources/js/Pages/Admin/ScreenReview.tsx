@@ -274,7 +274,7 @@ function ReaderSkeleton() {
 }
 
 ScreenReview.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="Screen Review">{page}</AppShellV2>
+  <AppShellV2 title="Screen Review" hideTopbar>{page}</AppShellV2>
 );
 
 export default ScreenReview;
