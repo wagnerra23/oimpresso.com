@@ -12,6 +12,10 @@
     "files": [],
     "requires": [],
     "governance": {
+        "bucket": "cross_cutting_infra",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Centro de Operações Wagner-only @ CT 100 (Tailscale), infra interna read-mostly cross-tenant sem cliente vendável (ADR 0122)",
         "fsm_n_a": true,
         "fsm_reason": "Admin Center é painel read-mostly cross-tenant Wagner-only — não tem entidade de negócio com transições de estado. As 3 ações mutacionais (apply curador / regen MCP token / run health check) são atômicas auditáveis, não fluxos multi-stage. FSM Pipeline (ADR 0143) aplica a Sells/Repair, não a meta-administração.",
         "wave_18_score": {
