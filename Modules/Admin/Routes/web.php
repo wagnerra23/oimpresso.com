@@ -89,6 +89,10 @@ Route::middleware(['web', 'tailscale-only', 'SetSessionData', 'auth', 'is-wagner
         // {screenPath} usa where(.*) pra aceitar barras URL-encoded (Admin/GovernanceV4).
         // @see Modules\Admin\Http\Controllers\ScreenReviewController
         // @see resources/js/Pages/Admin/ScreenReview.charter.md
+        // Dashboard split (2026-05-17 Wagner) — landing leve com 5 KPIs PDCA.
+        // Registrada ANTES de /screen-review pra ordem importar (route precedence).
+        Route::get('screen-review/dashboard',                    [ScreenReviewController::class, 'dashboard'])
+            ->name('admin.screen-review.dashboard');
         Route::get('screen-review',                              [ScreenReviewController::class, 'index'])
             ->name('admin.screen-review');
         Route::post('screen-review/{screenPath}/status',         [ScreenReviewController::class, 'updateStatus'])

@@ -57,6 +57,29 @@ class ScreenReviewController extends Controller
     }
 
     /**
+     * GET /admin/screen-review/dashboard — landing leve com 5 KPIs PDCA + alerta
+     * drift pending>7d. Atalho navegacional pra `/admin/screen-review` (tri-pane).
+     * Wagner pediu split (2026-05-17): KPIs viraram tela própria pra reduzir
+     * scroll na tri-pane operacional.
+     */
+    public function dashboard(): Response
+    {
+        $counts = $this->countAllStatuses();
+
+        return Inertia::render('Admin/ScreenReviewDashboard', [
+            'meta' => [
+                'generated_at' => now()->toIso8601String(),
+                'total_telas' => $counts['total'],
+                'pending_count' => $counts[self::STATUS_PENDING],
+                'approved_count' => $counts[self::STATUS_APPROVED],
+                'rejected_count' => $counts[self::STATUS_REJECTED],
+                'iterate_count' => $counts[self::STATUS_ITERATE],
+                'pending_over_7d' => $counts['pending_over_7d'],
+            ],
+        ]);
+    }
+
+    /**
      * GET /admin/screen-review — render tri-pane.
      */
     public function index(): Response
