@@ -5,6 +5,8 @@
 
 import React, { useState, useMemo } from 'react'
 import { Head, Link, Deferred } from '@inertiajs/react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -17,8 +19,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/Components/ui/dialog'
+import { ScrollArea } from '@/Components/ui/scroll-area'
 import PageHeader from '@/Components/shared/PageHeader'
-import { Shield } from 'lucide-react'
+import { FileText, Shield } from 'lucide-react'
 
 interface BreakdownItem {
   key?: string
@@ -93,10 +96,22 @@ interface HistoryPoint {
   snapshot_at: string
 }
 
+/** Charter Goal 9 (2026-05-17) — entry do dossier markdown do módulo. */
+interface DossierDoc {
+  slug: string
+  label: string
+  filename: string
+  content_md: string
+  size_chars: number
+  modified_at: string | null
+}
+
 interface Props {
   grade: Grade
   /** ADR 0155 v3 — últimos 7 snapshots de mcp_module_grades_history (deferred) */
   history?: HistoryPoint[]
+  /** Charter Goal 9 — dossier docs lidos de memory/requisitos/<name>/ (deferred). */
+  dossier?: DossierDoc[]
 }
 
 /** Sparkline 7d Tailwind-only — 7 barras verticais com altura ~ score/100. */
@@ -230,9 +245,25 @@ function isDimensionNaJustified(dim: Dimension): boolean {
   return dim.breakdown.every((item) => item.na_justified === true)
 }
 
-function ModuleGradesShow({ grade, history }: Props): React.ReactElement {
+function ModuleGradesShow({ grade, history, dossier }: Props): React.ReactElement {
   const [evolveOpen, setEvolveOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  // Charter Goal 9 — slug do doc dossier aberto no Dialog (null = fechado)
+  const [openedDossierSlug, setOpenedDossierSlug] = useState<string | null>(null)
+  const [dossierCopied, setDossierCopied] = useState(false)
+
+  const openedDossierDoc = useMemo<DossierDoc | null>(() => {
+    if (!openedDossierSlug || !dossier) return null
+    return dossier.find((d) => d.slug === openedDossierSlug) ?? null
+  }, [openedDossierSlug, dossier])
+
+  function handleCopyDossierMarkdown(): void {
+    if (typeof navigator === 'undefined' || !navigator.clipboard || !openedDossierDoc) return
+    navigator.clipboard.writeText(openedDossierDoc.content_md).then(() => {
+      setDossierCopied(true)
+      setTimeout(() => setDossierCopied(false), 2500)
+    })
+  }
 
   const evolveMarkdown = useMemo(() => generateEvolveMarkdown(grade), [grade])
 
@@ -327,6 +358,50 @@ function ModuleGradesShow({ grade, history }: Props): React.ReactElement {
           </Link>
         </CardContent>
       </Card>
+
+      {/* Charter Goal 9 — Dossier do módulo (markdown canônico de memory/requisitos/<name>/).
+          Inertia::defer pula closure se partial reload não pedir. Card discreto entre Header
+          e Grid de dimensões — Wagner enxerga narrativa qualitativa (Capterra, BRIEFING,
+          DEPRECATION-PLAN) lado-a-lado com nota técnica. Resolve fragmentação detectada
+          sessão 2026-05-17. */}
+      <Deferred data="dossier" fallback={null}>
+        {dossier && dossier.length > 0 ? (
+          <Card className="mb-4">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-700" />
+                Dossier do módulo
+                <Badge className="bg-sky-100 text-sky-800 border-sky-300 text-[10px] px-1.5 py-0">
+                  {dossier.length} doc{dossier.length === 1 ? '' : 's'}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-xs text-zinc-500 mb-3">
+                Narrativa qualitativa canônica em <code className="text-[11px]">memory/requisitos/{grade.module}/</code> —
+                complementa a rubrica técnica D1-D9 acima.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {dossier.map((doc) => (
+                  <button
+                    key={doc.slug}
+                    type="button"
+                    onClick={() => setOpenedDossierSlug(doc.slug)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-zinc-200 bg-white hover:bg-sky-50 hover:border-sky-300 text-xs text-zinc-700 transition-colors"
+                    title={`${doc.size_chars.toLocaleString('pt-BR')} caracteres · modificado ${doc.modified_at ?? '—'}`}
+                  >
+                    <FileText className="w-3 h-3 text-sky-600" />
+                    <span className="font-medium">{doc.label}</span>
+                    <span className="text-[10px] text-zinc-400 font-mono">
+                      {Math.round(doc.size_chars / 1024)}KB
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+      </Deferred>
 
       {/* Cards de dimensões — responsivo: 1 col mobile / 2 col tablet / 3 col desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -463,6 +538,71 @@ function ModuleGradesShow({ grade, history }: Props): React.ReactElement {
             </Button>
             <Button onClick={handleCopyMarkdown} className="bg-emerald-600 hover:bg-emerald-700 text-white">
               {copied ? '✓ Copiado!' : 'Copiar Markdown'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Charter Goal 9 — Dialog dossier markdown renderer. ReactMarkdown + remarkGfm
+          mesma stack do KB Index. ScrollArea pra docs longos (DEPRECATION-PLAN ~470
+          linhas). Botão Copiar pra Wagner colar no Claude pra contexto. */}
+      <Dialog
+        open={openedDossierSlug !== null}
+        onOpenChange={(open) => !open && setOpenedDossierSlug(null)}
+      >
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-sky-700" />
+              {openedDossierDoc?.label ?? 'Dossier'}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {openedDossierDoc && (
+                <>
+                  <code className="text-[11px]">memory/requisitos/{grade.module}/{openedDossierDoc.filename}</code>
+                  {' · '}
+                  {openedDossierDoc.size_chars.toLocaleString('pt-BR')} caracteres
+                  {openedDossierDoc.modified_at ? ` · modificado ${openedDossierDoc.modified_at}` : ''}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 -mx-6 px-6 border-y border-zinc-100">
+            <article className="prose prose-sm max-w-none py-4
+              prose-headings:text-zinc-900 prose-headings:font-semibold
+              prose-h1:text-2xl prose-h2:text-xl prose-h3:text-base prose-h4:text-sm
+              prose-p:text-sm prose-p:leading-relaxed
+              prose-code:text-xs prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+              prose-pre:bg-zinc-50 prose-pre:border prose-pre:border-zinc-200 prose-pre:text-xs
+              prose-a:text-sky-700 prose-a:no-underline hover:prose-a:underline
+              prose-table:text-xs prose-th:text-xs prose-td:py-1 prose-td:px-2
+              prose-blockquote:border-l-4 prose-blockquote:border-sky-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-zinc-600
+              prose-hr:my-6 prose-hr:border-zinc-200
+              prose-strong:text-zinc-900
+              prose-li:my-0.5">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  a: ({ href, children, ...rest }) => {
+                    const isExternal = href && /^(https?:|mailto:)/.test(href)
+                    return isExternal
+                      ? <a href={href} target="_blank" rel="noopener noreferrer" {...rest}>{children}</a>
+                      : <a href={href} {...rest}>{children}</a>
+                  },
+                }}
+              >
+                {openedDossierDoc?.content_md ?? ''}
+              </ReactMarkdown>
+            </article>
+          </ScrollArea>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setOpenedDossierSlug(null)}>
+              Fechar
+            </Button>
+            <Button onClick={handleCopyDossierMarkdown} className="bg-sky-600 hover:bg-sky-700 text-white">
+              {dossierCopied ? '✓ Copiado!' : 'Copiar Markdown'}
             </Button>
           </DialogFooter>
         </DialogContent>
