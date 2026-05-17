@@ -26,7 +26,7 @@ Este documento é a **lei canônica** que enumera as regras que Wagner sempre so
 
 ## R1 — Smoke real obrigatório (não narração)
 
-**Quando:** após (a) merge de PR, (b) deploy SSH, (c) declarar "funcionando", (d) declarar "tela X tá ok visualmente", (e) edição em runtime crítico (.htaccess, middleware, routes, Inertia render, asset bundle).
+**Quando:** após (a) merge de PR, (b) deploy SSH, (c) declarar "funcionando", (d) declarar "tela X tá ok visualmente", (e) edição em runtime crítico (.htaccess, middleware, routes, Inertia render, asset bundle), (f) **ANTES de abrir PR que toque shell-shared** (AppShellV2 / PageHeader / cockpit.css / qualquer Layout ou Component em `resources/js/Layouts/` e `resources/js/Components/shared/` que renderiza em N+ telas — Wagner 2026-05-17 *"conferiu as paginas? mais um erro de protocolo"*).
 
 **O que fazer (Claude executa):**
 
@@ -37,7 +37,18 @@ Este documento é a **lei canônica** que enumera as regras que Wagner sempre so
 5. Comparar contra screenshot canônico ou prototype HTML quando aplicável.
 6. **Só ENTÃO declarar "smoke ok" com link/evidência inline.**
 
-**Sinal de violação:** Claude escreve "deve estar funcionando" / "✅ deploy ok" / "página tá ok visualmente" **sem evidência inline visível**.
+**Caso especial — mudança em shell-shared (Layouts/AppShellV2.tsx, Components/shared/PageHeader.tsx, css/cockpit.css):**
+
+Antes de abrir PR, conferir ao menos 3 rotas Inertia distintas (ex: `/sells` + `/financeiro/fluxo` + `/produto`). Se Herd não aponta pro worktree e ambiente local não está disponível, documentar isso EXPLICITAMENTE no PR body como "smoke worktree pendente" e justificar caminho alternativo (ex: medição matemática DOM em prod do ANTES + plano de smoke imediato pós-deploy). Catalogar como `pending-verification` no PR title.
+
+Mínimo de medição via DOM (sem screenshots se houver PII visível):
+```js
+const main = document.querySelector('.cockpit .main');
+const mainBody = document.querySelector('.cockpit .main-body');
+({ gridRows: getComputedStyle(main).gridTemplateRows, dataTopbar: main.getAttribute('data-topbar'), mainBodyTop: mainBody.getBoundingClientRect().top, childrenCount: main.children.length })
+```
+
+**Sinal de violação:** Claude escreve "deve estar funcionando" / "✅ deploy ok" / "página tá ok visualmente" **sem evidência inline visível**. Ou Claude empurra PR que toca shell-shared sem ter conferido ao menos 3 rotas Inertia distintas no worktree (lição PR #1039 — 2026-05-17, Wagner *"conferiu as paginas?"*).
 
 **Skill correlata:** [`smoke-prod-evidence`](../../.claude/skills/smoke-prod-evidence/SKILL.md) Tier B (exige `curl -sv` antes de declarar funcionando — origem 3 PRs cascata 2026-05-17).
 

@@ -131,7 +131,12 @@
   grid-template-rows: 44px auto 1fr;
   min-height: 0;
   min-width: 0;
-}.cockpit .main-body {
+}
+/* Wagner 2026-05-17: hideTopbar=true (default) elimina o track de 44px reservado
+   pro <header className="topbar"> — sem isso o body ficava com banda fantasma no
+   topo. Páginas que mantêm topbar (hideTopbar={false}) caem no default acima. */
+.cockpit .main[data-topbar="hidden"] { grid-template-rows: 1fr; }
+.cockpit .main-body {
   min-height: 0;
   min-width: 0;
   overflow-y: auto;
