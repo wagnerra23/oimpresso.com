@@ -106,6 +106,7 @@ Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invo
 
 ## 12. Sessões e handoffs relevantes (últimos 30d)
 
+- **2026-05-17 — PR #1045 Ondas 3+4+5 (Page Inertia Cobrança Recorrente)**: primeiro Page Inertia React substitui Blade "Hello World". Backend (Controller Inertia::defer + SubscriptionRepository::paginatedForIndex + SubscriptionIndexPresenter stateless). Frontend (Index.tsx ~600 linhas Tailwind 4 + 3-col + Drawer detalhe + skeletons). Sidebar grupo FINANCEIRO (DataController.modifyAdminMenu order 86 + Sidebar.tsx MENU_ICON_MAP RefreshCw + SIDEBAR_GROUPS['fin']). DemoSeeder biz=1 (5 planos + 18 subs + invoices/charge_attempts). Pest 5/5 (47 assertions) PASSED. Smoke local Herd OK.
 - Wave J 2026-05-16 — boost 56→70: thin `AssinaturaCobrancaService` + BRIEFING + Pest smoke
 - CYCLE-06 G1 — Martinho Inter PJ canary (pendente desbloqueio cert)
 
@@ -113,6 +114,6 @@ Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invo
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-16 BRT pela Wave J (boost RecurringBilling 56→70)
-**Próximo update esperado:** pós-canary G1 Martinho Inter PJ
-**Mantenedor:** Claude (auto Wave J) + Wagner (review)
+**Atualizado:** 2026-05-17 BRT pelo PR #1045 (Ondas 3+4+5 — Page Inertia Cobrança Recorrente)
+**Próximo update esperado:** Ondas 6/7/8 (tabs Planos/Faturas/Configurações) OU canary G1 Martinho Inter PJ
+**Mantenedor:** Claude (PR #1045 + Wave J) + Wagner (review/merge)
