@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Memoria\Freshness;
 
+use App\Util\OtelHelper;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -53,17 +54,19 @@ final class StalenessDetectorService
      */
     public function detectStale(): array
     {
-        $staleDays = (int) config('copiloto.freshness.thresholds_days.stale', 7);
-        $cutoff = now()->subDays($staleDays);
+        return OtelHelper::spanBiz('jana.freshness.detect_stale', function () {
+            $staleDays = (int) config('copiloto.freshness.thresholds_days.stale', 7);
+            $cutoff = now()->subDays($staleDays);
 
-        return McpMemoryDocument::query()
-            ->where(function ($q) use ($cutoff) {
-                $q->where('indexed_at', '<', $cutoff)
-                  ->orWhereNull('indexed_at');
-            })
-            ->orderBy('indexed_at', 'asc')
-            ->get()
-            ->all();
+            return McpMemoryDocument::query()
+                ->where(function ($q) use ($cutoff) {
+                    $q->where('indexed_at', '<', $cutoff)
+                      ->orWhereNull('indexed_at');
+                })
+                ->orderBy('indexed_at', 'asc')
+                ->get()
+                ->all();
+        });
     }
 
     /**
@@ -74,6 +77,13 @@ final class StalenessDetectorService
      * @return array<int, McpMemoryDocument>
      */
     public function detectDrift(): array
+    {
+        return OtelHelper::spanBiz('jana.freshness.detect_drift', function () {
+            return $this->doDetectDrift();
+        });
+    }
+
+    private function doDetectDrift(): array
     {
         // Drift tipo A: updated_at > indexed_at (sempre consultável)
         $driftDb = McpMemoryDocument::query()

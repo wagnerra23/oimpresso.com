@@ -10,7 +10,9 @@
     ],
     "aliases": [],
     "files": [
-        
+
     ],
-    "requires": []
+    "requires": [],
+    "fsm_n_a": true,
+    "fsm_n_a_reason": "Woocommerce = integração unidirecional POS → WooCommerce externo (sync categories/products/orders). Estado de pedido vive no WooCommerce (status externo: pending/processing/completed/cancelled) — oimpresso não opera pipeline. Não há FSM canon (ADR 0143) porque oimpresso não muda estado de ordem WC; apenas espelha/sincroniza. Eventual estado interno = Transaction (Sells) que tem FSM próprio."
 }

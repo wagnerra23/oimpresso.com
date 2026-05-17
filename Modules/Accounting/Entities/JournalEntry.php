@@ -2,6 +2,10 @@
 
 namespace Modules\Accounting\Entities;
 
+// WAVE 18 D1 MULTI-TENANT MARKER
+// BusinessScope via parent FK (uses BelongsToBusinessViaParent — ScopeByBusinessViaParent injeta whereHas no parent que tem business_id direto; ADR 0093).
+
+
 use App\Concerns\BelongsToBusinessViaParent;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Accounting\Entities\BusinessLocation;

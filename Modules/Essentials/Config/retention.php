@@ -66,6 +66,16 @@ return [
         'essentials_message'                => 730,    // 2 anos
         'essentials_attendance'             => 1825,   // 5 anos (CLT Art. 74 §3)
         'essentials_holiday'                => null,   // indefinido (dado público)
+        // Wave 18 D7 SATURATION — folha de pagamento + targets (CLT + RFB)
+        'essentials_allowance_deduction'    => 1825,   // 5 anos (cadastro folha + auditoria fiscal RFB 5 anos)
+        'essentials_user_allowance_deduction' => 1825, // 5 anos (lançamento individual — pivot)
+        'payroll_group'                     => 1825,   // 5 anos (CLT folha de pagamento)
+        'payroll_group_transaction'         => 1825,   // 5 anos (pivot folha × transaction)
+        'essentials_user_sales_target'      => 1095,   // 3 anos (meta comercial — sem PII bruta direta)
+        'essentials_user_shift'             => 1825,   // 5 anos (escala de jornada — CLT Art. 74)
+        'essentials_todo_comment'           => 1095,   // 3 anos (herda ToDo)
+        'shift'                             => null,   // indefinido (cadastro de turno — não PII)
+        'essentials_leave_type'             => null,   // indefinido (config — não PII)
     ],
 
     /*

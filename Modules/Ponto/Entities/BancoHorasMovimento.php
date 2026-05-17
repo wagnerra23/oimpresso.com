@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -9,9 +10,15 @@ use RuntimeException;
 
 /**
  * Movimentos de banco de horas — append-only.
+ *
+ * Wave 18 D1 — Multi-tenant Tier 0 IRREVOGAVEL ([ADR 0093]):
+ * trait HasBusinessScope aplica global scope automatico por business_id.
+ * Cross-tenant leak = vazamento de saldo HE entre empresas (incidente CLT).
  */
 class BancoHorasMovimento extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'ponto_banco_horas_movimentos';
 
     public $incrementing = false;

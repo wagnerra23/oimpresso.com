@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,12 +10,23 @@ use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
- * Marcação de ponto. Append-only conforme Portaria MTP 671/2021.
+ * Marcacao de ponto. Append-only conforme Portaria MTP 671/2021.
  * Triggers MySQL bloqueiam UPDATE/DELETE direto no banco.
+ *
+ * Wave 18 D1 — Multi-tenant Tier 0 IRREVOGAVEL ([ADR 0093]):
+ * trait HasBusinessScope aplica global scope automatico por business_id.
+ * Convive com boot() override custom (UUID gen) — Eloquent chama todos bootXxx().
+ * MarcacaoService usa DB::table() pra inserts diretos (com business_id explicito),
+ * Model::query() em reads recebe scope.
+ *
+ * NUNCA usar withoutGlobalScopes() em Marcacao sem comentario `// SUPERADMIN: <razao>`
+ * — exposicao cross-tenant viola Portaria 671 (acesso fiscal e por empresa).
  */
 class Marcacao extends Model
 {
+    use HasBusinessScope;
     use HasFactory;
+
     protected $table = 'ponto_marcacoes';
 
     public $incrementing = false;

@@ -1,7 +1,7 @@
 # BRIEFING — Modules/Cms
 
 > 1-pager executivo. Atualizado por PR (skill `brief-update` Tier B).
-> **Última atualização:** 2026-05-16 (Wave Massive 12-agents — criação inicial).
+> **Última atualização:** 2026-05-16 (Wave 18 FULL SATURATION — D4 services + D2 Pest).
 
 ## O que é
 
@@ -66,6 +66,23 @@ Futuro: módulos verticais com CMS próprio (ComVis serigrafia precisa portfolio
 `MultiTenantSlugIsolationTest.php` (5 cenários — D3) · `SiteHomeMultiTenantTest.php` (3 cenários — D1+D3).
 
 Suítes `markTestSkipped` até US-CMS-002/003 entregarem `business_id` — viram alarme passivo automático: assim que a coluna existir, testes ativam sem reescrita.
+
+## Wave 18 FULL SATURATION (2026-05-16)
+
+**D4 arquitetura** — extração SoC brutal (ADR 0094 §5):
+- `CmsPageService` (orquestração CRUD) ← extraído de `CmsPageController`
+- `CmsLeadService` (captura+notify leads) ← extraído de `CmsController@postContactForm`
+- `CmsPageRepository` (query layer isolando Eloquent) — ponto único pra `business_id` scope quando US-CMS-002 entregar
+- `SiteContentService` (preservado Wave 17 — home/blog/pricing público)
+
+Ratio Services/Controllers: 4/5 = 0.80 (era 1/5 = 0.20). D4.a satura 6/6.
+
+**D2 Pest** — +22 tests novos em 3 arquivos:
+- `ServiceArchitectureTest.php` (10) — Services/Repository existem + OTel + LogsActivity
+- `FormRequestValidationTest.php` (12) — rules() StoreCmsPage/UpdateCmsPage/SubmitContactForm
+- `RepositoryContractTest.php` (10) — DI resolution + assinatura pública + multi-tenant compliance
+
+**Governance** — `module.json` ganhou `governance.fsm_n_a: true` (CMS é conteúdo estático/leads sem state machine; audit trail via spatie/activitylog cobre histórico).
 
 ## Referências
 

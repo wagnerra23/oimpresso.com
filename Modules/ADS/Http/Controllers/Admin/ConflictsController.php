@@ -28,23 +28,27 @@ class ConflictsController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id', 1);
 
-        $fileLockConflicts = $this->detectFileLockConflicts($businessId);
-        $driftConflicts    = $patterns->detectDrift($businessId);
-        $judgmentConflicts = $this->detectHumanAiJudgmentConflicts($businessId);
-
-        $kpis = [
-            'file_lock'       => count($fileLockConflicts),
-            'drift'           => count($driftConflicts),
-            'human_ai'        => count($judgmentConflicts),
-            'total'           => count($fileLockConflicts) + count($driftConflicts) + count($judgmentConflicts),
-        ];
-
+        // D6.a Wave 18 — Inertia::defer pra 3 detectores pesados (cada um
+        // varre últimas 7 dias de mcp_dual_brain_decisions + faz Wilson calc).
         return Inertia::render('ads/Admin/Conflicts', [
-            'file_lock_conflicts' => $fileLockConflicts,
-            'drift_conflicts'     => $driftConflicts,
-            'judgment_conflicts'  => $judgmentConflicts,
-            'kpis'                => $kpis,
+            'file_lock_conflicts' => Inertia::defer(fn () => $this->detectFileLockConflicts($businessId)),
+            'drift_conflicts'     => Inertia::defer(fn () => $patterns->detectDrift($businessId)),
+            'judgment_conflicts'  => Inertia::defer(fn () => $this->detectHumanAiJudgmentConflicts($businessId)),
+            'kpis'                => Inertia::defer(fn () => $this->buildKpisPayload($businessId, $patterns)),
         ]);
+    }
+
+    private function buildKpisPayload(int $businessId, PatternLearningService $patterns): array
+    {
+        $fileLock = $this->detectFileLockConflicts($businessId);
+        $drift    = $patterns->detectDrift($businessId);
+        $judg     = $this->detectHumanAiJudgmentConflicts($businessId);
+        return [
+            'file_lock' => count($fileLock),
+            'drift'     => count($drift),
+            'human_ai'  => count($judg),
+            'total'     => count($fileLock) + count($drift) + count($judg),
+        ];
     }
 
     /**

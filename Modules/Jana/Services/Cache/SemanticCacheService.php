@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Cache;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\CacheSemantico;
 use Modules\Jana\Entities\Conversa;
@@ -53,6 +54,17 @@ class SemanticCacheService
      * Tenta cache hit. Retorna entrada ou null.
      */
     public function buscar(Conversa $conv, string $mensagem): ?CacheSemantico
+    {
+        // D9.a (Wave 18 SATURATION) — span cache semântico lookup; biz/user Tier 0.
+        return OtelHelper::span('jana.semantic_cache.buscar', [
+            'business_id' => $conv->business_id,
+            'user_id' => $conv->user_id,
+            'conversa_id' => $conv->id,
+            'mensagem_chars' => strlen($mensagem),
+        ], fn () => $this->buscarInternal($conv, $mensagem));
+    }
+
+    private function buscarInternal(Conversa $conv, string $mensagem): ?CacheSemantico
     {
         $bizId = (int) $conv->business_id;
         $userId = (int) $conv->user_id;

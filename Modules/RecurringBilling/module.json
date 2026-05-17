@@ -8,6 +8,10 @@
         "Modules\\RecurringBilling\\Providers\\RecurringBillingServiceProvider"
     ],
     "files": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Subscription/Invoice status (trialing/active/paused/past_due/canceled e open/paid/overdue/canceled) sao state machines simples lineares geridas pelo AssinaturaCobrancaService + listeners (InvoicePaid emite NFe). NAO usam FSM canon (ADR 0143) porque nao tem 11 stages × 21 actions × roles — granularidade overkill. Convencao: dunning regua pode virar FSM futuramente (US-RB-013) mas hoje e regra simples retry."
+    },
     "retention_days": 1825,
     "retention_config": "Modules/RecurringBilling/Config/retention.php",
     "lgpd_compliance": {

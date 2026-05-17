@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\AnonymousAgent;
@@ -62,6 +63,15 @@ class ConversationSummarizer
      * }
      */
     public function comprimirSeNecessario(Conversa $conv): array
+    {
+        // D9.a (Wave 18 SATURATION) — span conversa summarizer; biz+conversa Tier 0.
+        return OtelHelper::span('jana.summarizer.comprimir_se_necessario', [
+            'business_id' => $conv->business_id,
+            'conversa_id' => $conv->id,
+        ], fn () => $this->comprimirSeNecessarioInternal($conv));
+    }
+
+    private function comprimirSeNecessarioInternal(Conversa $conv): array
     {
         $totalTurnos = $conv->mensagens()
             ->whereIn('role', ['user', 'assistant'])

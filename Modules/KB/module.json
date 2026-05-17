@@ -12,5 +12,7 @@
     "files": [
         "start.php"
     ],
-    "requires": []
+    "requires": [],
+    "fsm_n_a": true,
+    "fsm_n_a_reason": "KB é módulo read-mostly (artigos + grafo de conhecimento). Sem ciclo de vida transacional (sem estados quote/draft/produção/entregue como Sells/Repair). ADR 0143 FSM Pipeline Canônico NÃO se aplica — kb_node.status simples (draft/published) é coluna boolean-like, não state machine. Wave 18 RETRY declaração explícita pra evitar falso-positivo em auditoria fsm-coverage."
 }

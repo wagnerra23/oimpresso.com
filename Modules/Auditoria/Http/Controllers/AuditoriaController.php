@@ -27,15 +27,16 @@ class AuditoriaController extends Controller
     public function index(Request $request)
     {
         $businessId = (int) $request->session()->get('user.business_id');
+        $filters = $this->entries->normalizeFilters($request->all());
 
-        $activities = $this->entries->list(
-            $businessId,
-            $this->entries->normalizeFilters($request->all())
-        );
-
+        // Wave 18 D6.a: Inertia::defer DEFAULT em prop cara — `activities` é
+        // `LengthAwarePaginator` (queries paginadas em activity_log com índices
+        // subject_type/event/causer_kind, mas lookup full-text properties JSON
+        // pode custar 100-400ms). Frontend wrap em `<Deferred data="activities">`.
+        // `filters` é state UI (≤1ms) — eager OK.
         return Inertia::render('Auditoria/Index', [
-            'activities' => $activities,
-            'filters'    => $this->entries->normalizeFilters($request->all()),
+            'activities' => Inertia::defer(fn () => $this->entries->list($businessId, $filters)),
+            'filters'    => $filters,
         ]);
     }
 
@@ -43,10 +44,11 @@ class AuditoriaController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id');
 
-        $activity = $this->entries->find($businessId, $activityId);
-
+        // Wave 18 D6.a: Inertia::defer em `activity` — find single row pode
+        // hidratar properties JSON pesado (diff old/attributes em entidades
+        // grandes tipo Transaction/Contact). Deferred libera 1st paint do shell.
         return Inertia::render('Auditoria/Detail', [
-            'activity' => $activity,
+            'activity' => Inertia::defer(fn () => $this->entries->find($businessId, $activityId)),
         ]);
     }
 

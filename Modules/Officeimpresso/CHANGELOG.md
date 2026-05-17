@@ -1,5 +1,24 @@
 # Officeimpresso — Changelog
 
+## [Wave 18 RETRY — 2026-05-16] Saturação governance v3 — D5 +7
+
+### D5 Cliente real / Journey (RETRY +1 arquivo)
+- `Tests/Feature/E2EJourneyDelphiBiz1Test.php` — 7 cenários E2E: Delphi POST audit → LicencaLog persistido, cross-biz isolation 3 vs 5 logs, truncate user_agent 500 chars (anti-DOS), payload com error_message PII NÃO derruba registrar (fallback), campos extras vão pra metadata sem perder, append-only verificado por reflection (Service sem método update/delete público), high-volume smoke 50 inserts <10s.
+
+### Confirmação `module.json`
+- `fsm_n_a: true` confirmado — Officeimpresso é bridge desktop Delphi sem state machine própria (eventos audit append-only via LicencaLog). Sem mudanças necessárias.
+
+## [Wave 18 — 2026-05-16] Saturação governance v3 (inicial)
+
+### D2 Pest novo
+- `Tests/Feature/ObservabilityServicesTest.php` — 7 cenários cobrindo: LicencaService usa OtelHelper canon (≥5 spans), LicencaAuditService idem, prefix span `officeimpresso.*`, no-op com otel disabled, exception preservada, lock-in canon (não usa OtelHelper de outro namespace), README existe + cita ADR 0159.
+
+### D5 Cliente real / Journey
+- `README.md` criado — bridge Delphi legacy + journey 5 passos biz=1 (audit POST → admin block/unblock → cron drift detection) + retention LGPD por evento + cliente piloto cross-cutting internal_governance_active.
+
+### D9.a Observabilidade
+- Spans canon `officeimpresso.licenca.*` + `officeimpresso.empresa.*` + `officeimpresso.licenca_audit.registrar` já presentes (Wave 17). Wave 18 adiciona Pest lock-in pra garantir não regressão.
+
 ## Roadmap / Futuro
 
 ### [vX.Y] — Restaurar endpoints do Connector 3.7 que o Delphi realmente usa

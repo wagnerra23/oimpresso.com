@@ -2,13 +2,14 @@
 
 namespace Modules\ADS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpSkill;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Observabilidade D9.a (ADR 0155): list query ms-range com fallback; Tracer
- * via `OtelHelper::span(` reservado quando virar hot path.
+ * Observabilidade D9.a (ADR 0155 + Wave 18): listAll() + findBySlug() envolvidos
+ * em `OtelHelper::span(` — measure cache miss/fallback DB → filesystem.
  *
  * Lista skills do projeto. ADR 0076: lê de DB (mcp_skills + mcp_skill_versions)
  * com fallback pra filesystem (.claude/skills/<slug>/SKILL.md) se DB vazio
@@ -34,14 +35,16 @@ class SkillsService
      */
     public function listAll(): array
     {
-        if ($this->canUseDb()) {
-            $dbList = $this->listFromDb();
-            if (count($dbList) > 0) {
-                return $dbList;
+        return OtelHelper::span('ads.skills.list_all', function (): array {
+            if ($this->canUseDb()) {
+                $dbList = $this->listFromDb();
+                if (count($dbList) > 0) {
+                    return $dbList;
+                }
             }
-        }
 
-        return $this->listFromFilesystem();
+            return $this->listFromFilesystem();
+        });
     }
 
     /**
@@ -55,24 +58,26 @@ class SkillsService
      */
     public function findBySlug(string $slug): ?array
     {
-        if (! preg_match('/^[a-z0-9][a-z0-9-]*$/', $slug)) {
-            return null;
-        }
-
-        if ($this->canUseDb()) {
-            $skill = McpSkill::with('currentVersion')->where('slug', $slug)->first();
-            if ($skill !== null && $skill->currentVersion !== null) {
-                return [
-                    'slug'        => $skill->slug,
-                    'frontmatter' => $skill->currentVersion->frontmatter_json ?? [],
-                    'body'        => $skill->currentVersion->body_markdown,
-                    'git_path'    => $skill->git_path ?? ".claude/skills/{$slug}/SKILL.md",
-                    'source'      => 'db',
-                ];
+        return OtelHelper::span('ads.skills.find_by_slug', function () use ($slug): ?array {
+            if (! preg_match('/^[a-z0-9][a-z0-9-]*$/', $slug)) {
+                return null;
             }
-        }
 
-        return $this->findInFilesystem($slug);
+            if ($this->canUseDb()) {
+                $skill = McpSkill::with('currentVersion')->where('slug', $slug)->first();
+                if ($skill !== null && $skill->currentVersion !== null) {
+                    return [
+                        'slug'        => $skill->slug,
+                        'frontmatter' => $skill->currentVersion->frontmatter_json ?? [],
+                        'body'        => $skill->currentVersion->body_markdown,
+                        'git_path'    => $skill->git_path ?? ".claude/skills/{$slug}/SKILL.md",
+                        'source'      => 'db',
+                    ];
+                }
+            }
+
+            return $this->findInFilesystem($slug);
+        });
     }
 
     private function canUseDb(): bool

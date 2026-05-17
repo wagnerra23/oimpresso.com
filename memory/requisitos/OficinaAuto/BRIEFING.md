@@ -20,6 +20,7 @@ Vertical especializado pra **oficinas mecânicas + locação de equipamentos aut
 ## Capacidades atuais (V0 — done)
 
 - **8 peças nWidart canônicas** (module.json, ServiceProvider, RouteServiceProvider, InstallController, DataController, Routes, Config, composer)
+- **Wave 18 saturação D4/D9** — 2 Services novos stateless (`VehicleQueryService`, `ServiceOrderSummaryService`) com OtelHelper canon (9 spans `oficinaauto.*` mensurados em prod) + spans D9.a em `AprovacaoOsService` (gerar_token/validar_token/validar_pin); 2 Pest novos (ServicesObservabilityTest 8 cenários + AprovacaoOsTokenTest 8 cenários edge); README.md público; CHANGELOG.md canônico; module.json com bloco `governance.fsm_canonico=true` apontando ADR 0143.
 - **Schema multi-tenant Tier 0** (ADR 0093) — `vehicles` (multi-placa nullable, legacy_id pra mapping Firebird) + `service_orders` (vehicle_id FK + transaction_id nullable UltimatePOS + order_type locacao/manutencao)
 - **2 fluxos OS coexistentes:**
   - **Simples (Martinho):** `aberta → em_servico → concluida` — caçamba avulsa

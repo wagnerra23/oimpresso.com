@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services\Backlinks;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Yaml\Yaml;
 
@@ -86,6 +87,12 @@ class AdrGraphBuilder
      * Constrói o grafo. Retorna self pra chain.
      */
     public function build(): self
+    {
+        // D9.a (Wave 18 SATURATION) — span construção grafo ADRs; admin op cross-tenant.
+        return OtelHelper::span('jana.adr_graph.build', [], fn () => $this->buildInternal());
+    }
+
+    private function buildInternal(): self
     {
         $files = File::glob($this->decisionsPath . '/[0-9]*.md');
 

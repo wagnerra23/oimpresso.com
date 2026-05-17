@@ -27,13 +27,29 @@ class LearningController extends Controller
     {
         $businessId = (int) $request->session()->get('user.business_id', 1);
 
-        // Janela de análise: últimas 24h
+        // D6.a Wave 18 RETRY — defer 3 aggregations pesadas pra evitar TTFB grande:
+        //   - stages (9 COUNT em mcp_dual_brain_decisions + 2 em mcp_decision_patterns)
+        //   - throughput (24 buckets GROUP BY DATE_FORMAT)
+        //   - kpis (depende de stages)
+        return Inertia::render('ads/Admin/Learning', [
+            'stages'     => Inertia::defer(fn () => $this->buildStagesPayload($businessId)),
+            'throughput' => Inertia::defer(fn () => $this->buildThroughputPayload($businessId)),
+            'kpis'       => Inertia::defer(fn () => $this->buildKpisPayload($businessId)),
+        ]);
+    }
+
+    /**
+     * D6.a Wave 18 RETRY — extraído do index pra pular initial render quando
+     * frontend faz partial reload (`only=[...]`).
+     */
+    private function buildStagesPayload(int $businessId): array
+    {
         $since = now()->subDay();
         $base = DB::table('mcp_dual_brain_decisions')
             ->where('business_id', $businessId)
             ->where('created_at', '>=', $since);
 
-        $stages = [
+        return [
             [
                 'key'         => 'captured',
                 'name'        => 'Capturado',
@@ -121,9 +137,15 @@ class LearningController extends Controller
                 'color'       => 'green',
             ],
         ];
+    }
 
-        // Throughput por hora (últimas 24h)
-        $throughput = DB::table('mcp_dual_brain_decisions')
+    /**
+     * D6.a Wave 18 RETRY — throughput hourly bucket GROUP BY (24 buckets).
+     */
+    private function buildThroughputPayload(int $businessId): array
+    {
+        $since = now()->subDay();
+        return DB::table('mcp_dual_brain_decisions')
             ->where('business_id', $businessId)
             ->where('created_at', '>=', $since)
             ->select(
@@ -142,8 +164,15 @@ class LearningController extends Controller
                 'rejeitadas' => (int) $r->rejeitadas,
             ])
             ->all();
+    }
 
-        $kpis = [
+    /**
+     * D6.a Wave 18 RETRY — KPIs derivados de stages (re-executa stages payload).
+     */
+    private function buildKpisPayload(int $businessId): array
+    {
+        $stages = $this->buildStagesPayload($businessId);
+        return [
             'janela_horas'    => 24,
             'eventos_24h'     => $stages[0]['count'],
             'taxa_review'     => $stages[0]['count'] > 0
@@ -154,11 +183,5 @@ class LearningController extends Controller
                 : 0,
             'pendencia_humana' => $stages[4]['count'],
         ];
-
-        return Inertia::render('ads/Admin/Learning', [
-            'stages'     => $stages,
-            'throughput' => $throughput,
-            'kpis'       => $kpis,
-        ]);
     }
 }

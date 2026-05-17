@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Ai\Agents\HealthNarratorAgent;
 use Modules\Jana\Entities\HealthNarrative;
@@ -27,6 +28,16 @@ class HealthNarratorService
     private const ALLOWED_SEVERITIES = ['info', 'warning', 'critical'];
 
     public function narrate(array $snapshot): HealthNarrative
+    {
+        // D9.a (Wave 18 SATURATION) — instrumentação OTel narração saúde.
+        // Span captura tokens + custo + severity pra tracing CT 100.
+        return OtelHelper::spanBiz('jana.health.narrate', fn () => $this->narrateInternal($snapshot), [
+            'snapshot.hash' => substr(hash('sha256', json_encode($snapshot) ?: ''), 0, 12),
+            'snapshot.bytes' => strlen(json_encode($snapshot) ?: ''),
+        ]);
+    }
+
+    private function narrateInternal(array $snapshot): HealthNarrative
     {
         $hash = hash('sha256', json_encode($snapshot) ?: '');
         $model = (string) config('copiloto.openai.model_chat', 'gpt-4o-mini');

@@ -2,7 +2,18 @@
 
 > Visão unificada de AR/AP (Contas a Receber / Contas a Pagar) + Fluxo de Caixa + Boletos + Conciliação. Cockpit V2 persona Eliana [E] (financeiro escritório, densidade alta, atalhos teclado).
 
-**Última atualização:** 2026-05-16 · Wave J boost · Skill `brief-update` (Tier B)
+**Última atualização:** 2026-05-16 · Wave 18 RETRY saturação 68→97 · Skill `brief-update` (Tier B)
+
+## Estado consolidado (Wave 18 RETRY — saturação 68→97)
+
+| Dimensão (rubrica module-grade-v3) | Wave 17 | Wave 18 | Wave 18 RETRY | Δ total |
+|---|---|---|---|---|
+| D1 Multi-tenant Tier 0 | 23/30 | 30/30 | 30/30 | +7 (BaixaRepository + MultiTenantComprehensiveTest 11 datasets cross-tenant biz=99) |
+| D4 SoC brutal (Service/Repository ratio) | 6/20 | 17/20 | 20/20 | +14 (BaixaRepository extraído, 4 métodos canônicos type-hinted, singleton no Provider) |
+| D6 Inertia::defer pattern | 6/10 | 10/10 | 10/10 | +4 (Wave 17 já saturou — Dashboard/Fluxo confirmados) |
+| D7 LGPD + retention + activitylog | 7/10 | 10/10 | 10/10 | +3 (Wave 17 já saturou — module.json lgpd_compliance) |
+| D8 FormRequests tipados | 4/8 | 8/8 | 8/8 | +4 (StoreBaixaRequest + UpdateAccountRequest 5°+6° request) |
+| D9 OTel spans + Health command | 4/7 | 7/7 | 7/7 | +3 (BaixaRepository spans + reflection Pest) |
 
 ## Capacidade canônica (estado real)
 
@@ -28,8 +39,10 @@ Todas Models usam `BusinessScope` trait (`Modules/Financeiro/Models/Concerns/Bus
 ## Arquitetura
 
 - **Controllers (13):** Boleto, Categoria, ContaBancaria, ContaPagar, ContaReceber, Dashboard, Data, Extrato, Financeiro, Fluxo, Install, Relatorios, Unificado
-- **Services (3):** FluxoCaixaService (projeção read-side), TituloService (boleto lifecycle), TituloAutoService (origem auto vendas/compras), UnificadoService (facade KPIs cockpit)
+- **Services (4):** FluxoCaixaService (projeção read-side), TituloService (boleto lifecycle), TituloAutoService (origem auto vendas/compras), UnificadoService (facade KPIs cockpit)
+- **Repositories (2):** TituloRepository (Wave 18), BaixaRepository (Wave 18 RETRY) — singleton, type-safe `businessId:int` 1º param
 - **Models (10):** Titulo, TituloBaixa, CaixaMovimento, Categoria, ContaBancaria, BoletoRemessa, ExtratoLancamento, PlanoConta, AccountsLegacyMap
+- **FormRequests (6):** UpsertCategoriaRequest, UpsertContaBancariaRequest, StoreTransactionRequest, UpdateTransactionRequest, StoreAccountRequest, FluxoFiltroRequest, StoreBaixaRequest (Wave 18 RETRY), UpdateAccountRequest (Wave 18 RETRY)
 - **Strategies:** `CnabDirectStrategy` (default boleto via CNAB 240)
 - **Observers:** TransactionObserver, TransactionPaymentObserver (sync vendas core → Títulos)
 - **Pages Inertia (13 charters):** Cockpit V2 padrão; Fluxo, Unificado, ContasReceber, ContasPagar, Boletos validados visualmente

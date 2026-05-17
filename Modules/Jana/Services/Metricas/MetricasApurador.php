@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Metricas;
 
+use App\Util\OtelHelper;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -39,6 +40,15 @@ class MetricasApurador
      * @param string|null $apuradoEm  Data alvo no formato YYYY-MM-DD (default: hoje)
      */
     public function apurar(?int $businessId, ?string $apuradoEm = null): MemoriaMetrica
+    {
+        // D9.a (Wave 18 SATURATION) — span apuração métricas; businessId pode ser null (agregado).
+        return OtelHelper::span('jana.metricas.apurar', [
+            'business_id' => $businessId,
+            'apurado_em' => $apuradoEm,
+        ], fn () => $this->apurarInternal($businessId, $apuradoEm));
+    }
+
+    private function apurarInternal(?int $businessId, ?string $apuradoEm = null): MemoriaMetrica
     {
         $data = CarbonImmutable::parse($apuradoEm ?? now()->toDateString())->startOfDay();
 

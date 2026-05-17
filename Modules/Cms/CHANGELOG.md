@@ -5,6 +5,24 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
+### Wave 18 governance — FULL SATURATION (2026-05-16)
+
+- **ADD D4.a** `CmsPageService` (`Modules/Cms/Services/CmsPageService.php`) — orquestração
+  CRUD de páginas (criar/atualizar/remover) extraída de `CmsPageController`. Service recebe
+  `CmsPageRepository` + `Util` por DI; Controller fica thin (HTTP only). SoC brutal (ADR 0094 §5).
+- **ADD D4.a** `CmsLeadService` (`Modules/Cms/Services/CmsLeadService.php`) — captura +
+  notificação de leads via formulário público. Extraído de `CmsController@postContactForm`.
+  Wraps `PiiRedactor` (D7.a LGPD) + `NewLeadGeneratedNotification`.
+- **ADD D4.a** `CmsPageRepository` (`Modules/Cms/Repositories/CmsPageRepository.php`) —
+  query layer isolando Eloquent. Método único `baseQuery()` será ponto de injeção de
+  `business_id` global scope quando US-CMS-002 entregar (hoje gap conhecido).
+- **ADD D2** 22 Pest tests novos:
+  - `ServiceArchitectureTest.php` (10) — garante Services/Repository existem + OTel + LogsActivity
+  - `FormRequestValidationTest.php` (12) — valida rules de Store/Update CmsPage + SubmitContactForm
+  - `RepositoryContractTest.php` (10) — DI resolution + assinatura pública + multi-tenant compliance
+- **ADD governance** `module.json` ganhou bloco `governance.fsm_n_a: true` — CMS é conteúdo
+  estático (sem state machine de negócio); audit trail via spatie/activitylog cobre histórico.
+
 ### Wave 17 governance (2026-05-16)
 
 - **FIX D9.a** OTel spans em `SiteContentService` — `OtelHelper::spanBiz(...)` em todos

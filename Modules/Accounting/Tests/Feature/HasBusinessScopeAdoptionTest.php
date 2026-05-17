@@ -7,10 +7,14 @@ use Modules\Accounting\Entities\Account;
 use Modules\Accounting\Entities\BranchCapital;
 use Modules\Accounting\Entities\Brands;
 use Modules\Accounting\Entities\Budget;
+use Modules\Accounting\Entities\CashRegister;
 use Modules\Accounting\Entities\Category;
 use Modules\Accounting\Entities\ChartOfAccount;
 use Modules\Accounting\Entities\ContactRestriction;
 use Modules\Accounting\Entities\CustomerGroup;
+use Modules\Accounting\Entities\DashboardConfiguration;
+use Modules\Accounting\Entities\Discount;
+use Modules\Accounting\Entities\ExpenseCategory;
 use Modules\Accounting\Entities\InvoiceLayout;
 use Modules\Accounting\Entities\InvoiceScheme;
 use Modules\Accounting\Entities\NotificationTemplate;
@@ -51,14 +55,14 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
-it('Entities Accounting Wave 12 + Wave 13 com business_id direto usam HasBusinessScope', function () {
+it('Entities Accounting Wave 12 + Wave 13 + Wave 18 RETRY com business_id direto usam HasBusinessScope', function () {
     $expected = [
         // Wave 12 (sessão anterior 2026-05-16)
         Account::class,
         ChartOfAccount::class,
         Budget::class,
         BranchCapital::class,
-        // Wave 13 (esta sessão)
+        // Wave 13 (sessão anterior 2026-05-16)
         Brands::class,
         Category::class,
         ContactRestriction::class,
@@ -72,6 +76,11 @@ it('Entities Accounting Wave 12 + Wave 13 com business_id direto usam HasBusines
         TypesOfService::class,
         Unit::class,
         Warranty::class,
+        // Wave 18 RETRY (saturação D1 MT — 2026-05-16)
+        ExpenseCategory::class,
+        Discount::class,
+        CashRegister::class,
+        DashboardConfiguration::class,
     ];
 
     $missing = [];
@@ -98,6 +107,8 @@ it('ScopeByBusiness está registrado como global scope (sanity check Wave 12+13)
         InvoiceLayout::class, InvoiceScheme::class, NotificationTemplate::class,
         Printer::class, SellingPriceGroup::class, TaxRate::class, TypesOfService::class,
         Unit::class, Warranty::class,
+        // Wave 18 RETRY
+        ExpenseCategory::class, Discount::class, CashRegister::class, DashboardConfiguration::class,
     ];
 
     $missing = [];

@@ -39,11 +39,19 @@ Originalmente UltimatePOS embarcou planilha pra cobrir caso de uso "exportar rel
 - 🟡 Sem export Excel nativo (XLSX) — só JSON
 - 🟡 LGPD: tokens de share não têm rate-limit no enumeration
 
-## Estado de testes (Wave B)
+## Estado de testes (Wave B + Wave 18)
 
 - `Tests/Feature/MultiTenantIsolationTest.php`
 - `Tests/Feature/ScaffoldTest.php`
 - `Tests/Feature/SmokeRoutesTest.php`
+- `Tests/Feature/ArchitectureTest.php`
+- `Tests/Feature/ObservabilityTest.php` (Wave 18 D8 — contract OTel SpreadsheetService)
+
+## Wave 18 (2026-05-16) — D4 service + D8 observability
+
+- SpreadsheetService: 2 métodos novos `listForUser()` + `getForUser()` (D4 service layer canônica) — extrai critério de "minhas + compartilhadas" do Controller pra service testável + instrumentado OtelHelper canonico
+- ObservabilityTest contract garante todos 6 métodos público instrumentados com `spanBiz('spreadsheet.*')`
+- Spans novos: `spreadsheet.list_for_user`, `spreadsheet.get_for_user`
 
 ## Decisões relacionadas
 

@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Services\Memoria;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\AnonymousAgent;
@@ -30,6 +31,16 @@ class LlmReranker
      * @return array Mesmo formato, reordenado, com novo `score_rerank` adicionado.
      */
     public function reranquear(string $query, array $candidatos, int $topK = 5): array
+    {
+        // D9.a (Wave 18 SATURATION) — span LLM rerank com custo+candidatos.
+        return OtelHelper::spanBiz('jana.memoria.llm_reranker', fn () => $this->reranquearInternal($query, $candidatos, $topK), [
+            'query_chars' => strlen($query),
+            'candidatos_count' => count($candidatos),
+            'top_k' => $topK,
+        ]);
+    }
+
+    private function reranquearInternal(string $query, array $candidatos, int $topK = 5): array
     {
         if (! config('copiloto.reranker.enabled', false) || empty($candidatos)) {
             return array_slice($candidatos, 0, $topK);

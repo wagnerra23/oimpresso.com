@@ -12,5 +12,14 @@
     "files": [
         
     ],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Connector é bridge stateless de API external (Passport tokens) — write operations delegam pro core (Sells/Contact/Product) onde FSM canon aplica (ADR 0143 Sells/Repair). Não tem state machine própria — apenas validação payload + roteamento. Wave 18 RETRY sinalizado.",
+        "wave_18_retry": {
+            "d5_score": 15,
+            "d8_score": 8,
+            "artifacts": ["ContactPayloadValidatorService", "DelphiSyncService", "RegisterUserRequest", "StoreContactApiRequest", "StoreFollowUpRequest", "StoreLicencaComputadorRequest", "StoreOauthClientRequest", "UpdateFollowUpRequest", "StoreCashRegisterApiRequest", "StoreExpenseApiRequest", "StoreSyncRequest", "UpdateContactApiRequest", "StoreProductApiRequest", "StoreSellPosApiRequest", "StoreAttendanceApiRequest", "CustomerJourneyTest", "Wave18SaturationTest", "README"]
+        }
+    }
 }
