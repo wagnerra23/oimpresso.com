@@ -8,6 +8,7 @@ import { cn } from '@/Lib/utils';
  *   2 → 1 col mobile, 2 tablet, 2 desktop
  *   3 → 1 col mobile, 2 tablet, 3 desktop
  *   4 → 1 col mobile, 2 tablet, 4 desktop (padrão)
+ *   5 → 1 col mobile, 2 tablet, 5 desktop (Governance v4 saúde KPIs)
  *   6 → 2 col mobile, 3 tablet, 6 desktop
  *
  * Uso:
@@ -18,7 +19,7 @@ import { cn } from '@/Lib/utils';
  *   </KpiGrid>
  */
 interface Props {
-  cols?: 2 | 3 | 4 | 6;
+  cols?: 2 | 3 | 4 | 5 | 6;
   children: React.ReactNode;
   className?: string;
 }
@@ -27,6 +28,7 @@ const colsMap: Record<NonNullable<Props['cols']>, string> = {
   2: 'grid-cols-1 sm:grid-cols-2',
   3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
   4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+  5: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5',
   6: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
 };
 
