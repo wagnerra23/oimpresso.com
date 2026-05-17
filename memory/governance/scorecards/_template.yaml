@@ -1,0 +1,30 @@
+# Template canônico de Scorecard governance ([ADR 0156]).
+#
+# 1 YAML por módulo em memory/governance/scorecards/<modulo-lowercase>.yaml.
+# Computado por `php artisan governance:scorecard-snapshot`.
+
+module: "<Nome do módulo>"
+slug: "<modulo-lowercase>"
+type: "domain | infra | meta"  # meta = Governance/Admin/Auditoria
+fsm_n_a: false                  # true só pra meta-módulos sem entity lifecycle
+last_grade: null                # preenchido por module:grade-snapshot
+last_grade_at: null             # ISO 8601 BRT
+target_score: 90
+bucket: "Bom"                   # Ruim<60 | Médio 60-74 | Bom 75-89 | Excelente ≥90
+
+dimensions:
+  D1_models:        { weight: 30, target: 30 }
+  D2_pest:          { weight: 20, target: 20 }
+  D3_charter:       { weight: 10, target: 10 }
+  D4_architecture:  { weight: 15, target: 15 }
+  D5_observability: { weight: 5,  target: 5 }
+  D6_performance:   { weight: 10, target: 10 }
+  D7_lgpd:          { weight: 5,  target: 5 }
+  D8_security:      { weight: 3,  target: 3 }
+  D9_observability: { weight: 2,  target: 2 }
+
+ownership:
+  primary: "wagner"
+  secondary: []
+
+adrs_referenciadas: []

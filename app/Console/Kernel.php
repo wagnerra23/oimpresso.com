@@ -138,6 +138,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Wave 24 Agent A (2026-05-16) — Scorecard snapshot bucket-scoped + drift detection.
+        // Persiste 1 row/módulo/dia em mcp_scorecard_runs + alerta drifts >=5pts em mcp_alertas.
+        // 07:00 BRT (55min após module:grade-snapshot) — usa scorecards YAML curated
+        // (memory/governance/scorecards/<slug>.yaml + buckets/<bucket>.yaml).
+        // Paired enforcement (cap 50%) canônico Wave 24. Cross-tenant intencional.
+        $schedule->command('governance:scorecard-snapshot --alert')
+            ->dailyAt('07:00')
+            ->timezone('America/Sao_Paulo')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:scorecard-snapshot FALHOU — drift detection defasada (Wave 24)'
+                );
+            });
+
         // ADR 0133 — System audit (5 dimensões: observability/evals/ADR-stale/cost-agg/test-coverage).
         // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM. 06:15 BRT (15min após health-check
         // pra evitar disputa DB). Tool MCP system-health-audit consulta o mesmo output.

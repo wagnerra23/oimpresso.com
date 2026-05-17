@@ -39,6 +39,20 @@ class KBServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerObservers();
+        $this->registerCommands();
+    }
+
+    /**
+     * Wave 23 §G4 — registra commands KB (kb:drift-detector + kb:reindex).
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\KB\Console\Commands\KbReindexCommand::class,
+                \Modules\KB\Console\Commands\KbDriftDetectorCommand::class, // Wave 23 §G4 — drift artigo KB vs git log
+            ]);
+        }
     }
 
     /**
@@ -60,7 +74,12 @@ class KBServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Sem bindings por enquanto.
+        // Wave 23 §G1 — KbBgeRerankerService singleton (BGE v2-m3 self-host CT 100).
+        // Factory makeDefault() resolve endpoint via config('kb.bge.endpoint') + fallback RRF.
+        $this->app->singleton(
+            \Modules\KB\Services\KbBgeRerankerService::class,
+            fn () => \Modules\KB\Services\KbBgeRerankerService::makeDefault()
+        );
     }
 
     /**
