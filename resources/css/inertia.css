@@ -113,6 +113,13 @@
 .sells-cowork .vd-pagi-btn:hover:not(:disabled) { background: var(--bg-2); }
 .sells-cowork .vd-pagi-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* US-SELL-COWORK-R5-POLISH — delta negativo (cor vermelha-suave) */
+.sells-cowork .vd-delta-dn {
+  color: oklch(0.55 0.16 25) !important;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.sells-cowork .vd-kpi-hero .vd-delta-dn { color: oklch(0.65 0.18 25) !important; }
+
 /* PR follow-up — Filtros avançados ▾ (DateFilter + GroupBy + Toggle Lista/Grade) */
 .sells-cowork .vd-tabs-row {
   display: flex;
