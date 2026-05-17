@@ -285,10 +285,17 @@ Auto-check antes de ENTREGAR. Se qualquer ❌ → corrigir + entregar com nota.
 3. **Skill nova ou Tier mudou** → `.claude/skills/<nome>/SKILL.md` + commit + push (webhook GitHub→MCP propaga).
 4. **Hook novo** → `.claude/hooks/<nome>.ps1` + entry em `settings.json`.
 5. **Subagent novo** → `.claude/agents/<nome>.md`.
-6. **memory-sync** skill Tier C dispara `git push` pra MCP server propagar pro time.
-7. **brief-update** skill Tier B mantém `BRIEFING.md` do módulo afetado atualizado por PR.
+6. **RUNBOOK operacional novo** → `memory/requisitos/_DesignSystem/RUNBOOK-<slug>.md` (ex: [RUNBOOK-onda-cowork.md](../requisitos/_DesignSystem/RUNBOOK-onda-cowork.md) — playbook 12 fases pra cópia Cowork → Inertia em Ondas).
+7. **memory-sync** skill Tier C dispara `git push` pra MCP server propagar pro time.
+8. **brief-update** skill Tier B mantém `BRIEFING.md` do módulo afetado atualizado por PR.
 
 **Wagner não deve precisar pedir "lembra disso" — Claude formaliza no protocolo automaticamente.**
+
+## Cópia Cowork → Inertia em Ondas
+
+Trabalho de migração visual KB-9.75 (ou qualquer score Cowork) segue [`RUNBOOK-onda-cowork.md`](../requisitos/_DesignSystem/RUNBOOK-onda-cowork.md) canônico — 12 fases por Onda, gate de "Onda completa", estimate fator 10x ([ADR 0106](../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)), anti-padrões catalogados, pattern reusável pra 14 módulos com prototype Cowork disponível.
+
+**Regra de transparência:** cada PR de Onda inclui seção `NÃO INCLUI` no commit body com gaps remanescentes catalogados explicitamente. Ver [`feedback-ondas-cowork-transparencia-de-gaps.md`](feedback-ondas-cowork-transparencia-de-gaps.md). Wagner enxerga próximas Ondas sem precisar perguntar "o que tá faltando?".
 
 ---
 
@@ -313,5 +320,9 @@ Auto-check antes de ENTREGAR. Se qualquer ❌ → corrigir + entregar com nota.
   - [feedback-modulo-mexeu-registra-sempre.md](feedback-modulo-mexeu-registra-sempre.md)
   - [feedback-nunca-publicar-credenciais.md](feedback-nunca-publicar-credenciais.md)
   - [feedback-baileys-7x-decisao-irreversivel.md](feedback-baileys-7x-decisao-irreversivel.md)
+  - [feedback-ondas-cowork-transparencia-de-gaps.md](feedback-ondas-cowork-transparencia-de-gaps.md)
+- RUNBOOK operacional: [RUNBOOK-onda-cowork.md](../requisitos/_DesignSystem/RUNBOOK-onda-cowork.md) — playbook 12 fases canon
+- ADR 0168 [PROTOCOLO Tier A IRREVOGÁVEL](../decisions/0168-protocolo-wagner-sempre-tier-A-irrevogavel.md)
+- ADR 0169 [Errata 0168 — RUNBOOK como 4º artefato](../decisions/0169-errata-0168-runbook-onda-cowork-canon.md)
 - Skill enforcement: [`wagner-protocol-enforce`](../../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A always-on
 - Agent decoder: [`wagner-understand`](../../.claude/agents/wagner-understand.md) — subagent que recebe pedido cru e devolve interpretação refinada cruzando protocolo + SPECs + ADRs + charters
