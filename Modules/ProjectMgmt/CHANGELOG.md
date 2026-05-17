@@ -2,6 +2,29 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Wave 27 — Polish ≥90 D2/D9] — 2026-05-17
+
+### Adicionado
+- **`Tests/Feature/Wave27SaturationTest.php`** (10 cenários, 0.27s avg) — saturação polish ≥90:
+  - D2 CustomerJourney cumulativo (Wave 16 ≥5 cenários, jornada cliente fim-a-fim)
+  - D9 spans completos `ProjectService`: 5 spans canon `project_mgmt.project.*` (list/calculate_kpis/find_detail/create/update)
+  - D9 span `ProjectMgmtAuditService.log` canônico — helpers `logTaskStatusChange`/`logTaskComment` delegam → span propagado
+  - D9 OtelHelper preserva exception em `project_mgmt.*` (fail-loud)
+  - D9 ProjectService contrato multi-tenant: constructor recebe `$businessId:int` (Tier 0 ADR 0093)
+  - D8 FormRequests ratio 9/10 = 0.90 (W18 RETRY) confirmado em arquivo
+  - D6 defer cobertura: 5 Controllers Kanban (Board/Backlog/MyWork/Burndown/Roadmap) com `Inertia::defer` ≥1 cada
+  - D9 module boundary: Services dentro `Modules\ProjectMgmt` + import `App\Util\OtelHelper`
+  - D6 module.json declara `governance.fsm_n_a:true` (Kanban free-flow ≠ FSM tabular)
+
+### Não alterado (intencional — já saturado)
+- D6.a defer (W16/17): 5 Controllers Kanban + Roadmap cobertos.
+- D8.c FormRequests (W18 RETRY): 9 FormRequests em `Http/Requests/`.
+- D9.a OTel (W17): `ProjectService` 6 spans + `ProjectMgmtAuditService.log` 1 span.
+
+### Referências
+- ADR 0070 Jira-style tasks · ADR 0093 Multi-tenant Tier 0 · ADR 0101 Tests biz=1
+- ADR 0155 Module Grade v3 · ADR 0159 Polish series
+
 ## [Wave 25 — Confirmação saturação restaurada Wave 18 RETRY] — 2026-05-16
 
 ### Investigação queda Wave 18 (72 Bom) → Wave 18 RETRY (≥85 Excelente)

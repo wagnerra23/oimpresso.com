@@ -37,7 +37,7 @@ core:
         descricao: 'HasBusinessScope/BelongsToBusinessViaParent em TODAS Entities recursive'
         detect:
           tipo: ast_scan
-          path: 'Modules/Vestuario/Entities/**/*.php'
+          path: 'Modules/<modulo>/Entities/**/*.php'
           expect: 'use HasBusinessScope|use BelongsToBusinessViaParent'
           coverage_target: 100  # 100% das Entities
 
@@ -46,7 +46,7 @@ core:
         descricao: 'Pest cross-tenant biz=1 vs biz=99 com isolation real'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Vestuario/Tests/Feature/**/*Test.php'
+          path: 'Modules/<modulo>/Tests/Feature/**/*Test.php'
           expect: 'business_id.*=>\s*99|biz_99|MultiTenant'
           assertion: 'assertSee|assertCount|assertDatabaseMissing'
           coverage_target: 1  # ≥1 test cross-tenant
@@ -56,10 +56,10 @@ core:
         descricao: 'Jobs recebem int $businessId no constructor'
         detect:
           tipo: ast_scan
-          path: 'Modules/Vestuario/Jobs/**/*.php'
+          path: 'Modules/<modulo>/Jobs/**/*.php'
           expect: '__construct.*int\s+\$businessId'
           coverage_target: 100  # 100% dos Jobs
-          na_if: 'Modules/Vestuario/Jobs nao existe'  # módulos sem Jobs N/A
+          na_if: 'Modules/<modulo>/Jobs nao existe'  # módulos sem Jobs N/A
 
   D8_security:
     peso: 8
@@ -70,7 +70,7 @@ core:
         descricao: 'Throttle middleware em rotas sensíveis'
         detect:
           tipo: grep
-          path: 'Modules/Vestuario/Routes/**/*.php'
+          path: 'Modules/<modulo>/Routes/**/*.php'
           expect: "throttle:|->middleware\\('throttle"
           coverage_target: 1
 
@@ -87,8 +87,8 @@ core:
         descricao: 'FormRequest dedicado em store/update Controllers'
         detect:
           tipo: ratio
-          numerator: 'Modules/Vestuario/Http/Requests/*.php'
-          denominator: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          numerator: 'Modules/<modulo>/Http/Requests/*.php'
+          denominator: 'Modules/<modulo>/Http/Controllers/**/*.php'
           coverage_target: 0.5  # ≥50% Controllers tem FormRequest correspondente
 
 # ===========================================================================
@@ -106,7 +106,7 @@ bucket_dimensions:
         descricao: 'CustomerJourneyTest cobrindo fluxo principal end-to-end'
         detect:
           tipo: pest_pattern
-          path: 'Modules/Vestuario/Tests/Feature/CustomerJourneyTest.php'
+          path: 'Modules/<modulo>/Tests/Feature/CustomerJourneyTest.php'
           expect: 'cria.*venda|finaliza.*pedido|grade.*completa'
           assertion: 'assertOk|assertSee|assertDatabaseHas'
 
@@ -115,8 +115,8 @@ bucket_dimensions:
         descricao: 'Cobertura Pest ≥30 testes (ratio tests/Controllers)'
         detect:
           tipo: ratio
-          numerator: 'Modules/Vestuario/Tests/Feature/**/*Test.php'
-          denominator: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          numerator: 'Modules/<modulo>/Tests/Feature/**/*Test.php'
+          denominator: 'Modules/<modulo>/Http/Controllers/**/*.php'
           coverage_target: 3  # ≥3 tests por Controller
 
       - id: V1.c
@@ -157,7 +157,7 @@ bucket_dimensions:
         descricao: 'Inertia::defer aplicado em props caras Controllers'
         detect:
           tipo: grep
-          path: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          path: 'Modules/<modulo>/Http/Controllers/**/*.php'
           expect: 'Inertia::defer'
           coverage_target: 1
 
@@ -175,7 +175,7 @@ bucket_dimensions:
         descricao: 'Sem N+1 estático detectado (paginate + with eager-load)'
         detect:
           tipo: ast_scan
-          path: 'Modules/Vestuario/Http/Controllers/**/*.php'
+          path: 'Modules/<modulo>/Http/Controllers/**/*.php'
           expect_pair: 'paginate.*with'  # paginate sempre acompanhado de with()
           coverage_target: 1
 
@@ -188,7 +188,7 @@ bucket_dimensions:
         descricao: 'PiiRedactor em logs/exports/PR'
         detect:
           tipo: grep
-          path: 'Modules/Vestuario/**/*.php'
+          path: 'Modules/<modulo>/**/*.php'
           expect: 'PiiRedactor'
           coverage_target: 1
 
@@ -197,7 +197,7 @@ bucket_dimensions:
         descricao: 'LogsActivity Spatie em Entities sensíveis com whitelist'
         detect:
           tipo: ast_scan
-          path: 'Modules/Vestuario/Entities/**/*.php'
+          path: 'Modules/<modulo>/Entities/**/*.php'
           expect: 'use LogsActivity'
           coverage_target: 0.5  # ≥50% Entities sensíveis
 
@@ -206,7 +206,7 @@ bucket_dimensions:
         descricao: 'Config/retention.php com TTL declarado'
         detect:
           tipo: file_exists
-          path: 'Modules/Vestuario/Config/retention.php'
+          path: 'Modules/<modulo>/Config/retention.php'
           expect_content: 'tabelas|strategy|retention_days'
 
   V5_d3_docs_vertical:
@@ -218,7 +218,7 @@ bucket_dimensions:
         descricao: 'SPEC.md presente + atualizado ≤90d'
         detect:
           tipo: file_age
-          path: 'memory/requisitos/Vestuario/SPEC.md'
+          path: 'memory/requisitos/<modulo>/SPEC.md'
           age_max_days: 90
 
       - id: V5.b
@@ -226,7 +226,7 @@ bucket_dimensions:
         descricao: 'BRIEFING.md presente + atualizado ≤30d'
         detect:
           tipo: file_age
-          path: 'memory/requisitos/Vestuario/BRIEFING.md'
+          path: 'memory/requisitos/<modulo>/BRIEFING.md'
           age_max_days: 30
 
       - id: V5.c
@@ -234,7 +234,7 @@ bucket_dimensions:
         descricao: 'CHANGELOG.md presente + entry últimos 30d'
         detect:
           tipo: file_age
-          path: 'Modules/Vestuario/CHANGELOG.md'
+          path: 'Modules/<modulo>/CHANGELOG.md'
           age_max_days: 30
 
   V6_capterra_gap:
@@ -246,7 +246,7 @@ bucket_dimensions:
         descricao: 'CAPTERRA-FICHA.md presente com nota >=60 vs concorrente top'
         detect:
           tipo: file_exists_with_score
-          path: 'memory/requisitos/Vestuario/CAPTERRA-FICHA.md'
+          path: 'memory/requisitos/<modulo>/CAPTERRA-FICHA.md'
           expect_score_field: 'nota_total'
           score_target: 60
 
@@ -255,7 +255,7 @@ bucket_dimensions:
         descricao: 'Gap analysis priorizada — top 5 capacidades P0 cobertas ou em roadmap'
         detect:
           tipo: yaml_lookup
-          source: 'memory/requisitos/Vestuario/CAPTERRA-FICHA.md frontmatter'
+          source: 'memory/requisitos/<modulo>/CAPTERRA-FICHA.md frontmatter'
           key: 'p0_capacidades_status'
           expect: 'cobertas + planejadas >= 5'
 

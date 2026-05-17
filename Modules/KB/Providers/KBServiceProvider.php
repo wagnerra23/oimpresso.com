@@ -2,6 +2,7 @@
 
 namespace Modules\KB\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Modules\KB\Entities\KbDecisionTreeStep;
@@ -40,6 +41,46 @@ class KBServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerObservers();
         $this->registerCommands();
+        $this->registerSchedule();
+    }
+
+    /**
+     * Wave 27 §G2 — schedule weekly do kb:drift-detector (W23 KbDriftDetectorCommand).
+     *
+     * Frequência: domingo 03:00 BRT (baixa carga, pós-backup, pré-segunda).
+     *
+     * Estado-da-arte 2026 (Stack Pulsar, Oneuptime, Qdrant RAG Eval Guide):
+     *   - daily = high-stakes apps (transações financeiras, médico)
+     *   - weekly = governance/knowledge bases (drift artigo vs canon)
+     *   - monthly = static reference docs
+     *
+     * Pattern Laravel 13+ callAfterResolving Schedule — isola schedule no provider
+     * do módulo (não acopla app/Console/Kernel.php). Inspirado em ADR 0091 Daily Brief.
+     *
+     * Multi-tenant Tier 0: command iterate Business::active() internamente. Aqui só
+     * dispatch superadmin biz=1 (proof-of-life cron). Per-business scheduling pode
+     * ser adicionado quando mcp_briefs.cycle estabilizar (ver Wave 28+).
+     *
+     * onOneServer + withoutOverlapping: defesa contra:
+     *   - Multi-server (CT 100 + Hostinger Hostinger scheduler simultâneo)
+     *   - Run anterior >7 dias (drift catastrófico — exit 1 prolonga sessão)
+     */
+    protected function registerSchedule(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            $schedule->command('kb:drift-detector --business-id=1')
+                ->weeklyOn(0, '03:00')       // 0 = domingo
+                ->timezone('America/Sao_Paulo')
+                ->onOneServer()              // race-condition guard multi-server
+                ->withoutOverlapping(60)     // 60min lock (drift detector típico <2min)
+                ->runInBackground()
+                ->name('kb:drift-detector-weekly')
+                ->description('KB drift detector weekly Sun 03:00 BRT (Wave 27 §G2)');
+        });
     }
 
     /**

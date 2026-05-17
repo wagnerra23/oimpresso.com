@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\ConsultaOs\Repositories;
 
+use App\Util\OtelHelper;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
 
 /**
@@ -15,12 +16,26 @@ use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
  *
  * Dados sao mock — NAO incluem PII real (CPF/CNPJ), apenas razao social
  * publica + numero OS + estagio. Cliente externo so ve oque publico do estado.
+ *
+ * Wave 27 D9 — span OTel canonico (`consultaos.repository.lookup`) adicionado
+ * no metodo principal. Hoje envolve dataset estatico (latencia desprezivel),
+ * MAS quando RepairConsultaOsRepository substituir (US-CONSULTA-001 SQL real),
+ * span ja existe — observabilidade ganha automaticamente sem refactor.
+ * Defesa em profundidade: Service tambem tem span (`consultaos.busca_publica`)
+ * envolvendo TUDO, e Repository tem span proprio (`consultaos.repository.lookup`)
+ * isolando latencia da fonte de dados — facilita debug de latencia.
  */
 class MockConsultaOsRepository implements ConsultaOsRepositoryInterface
 {
     public function buscarPorNumero(string $numero): ?array
     {
-        return $this->dataset()[$numero] ?? null;
+        return OtelHelper::span('consultaos.repository.lookup', [
+            'repository_kind' => 'mock',
+            // SEM business_id (rota publica) — quando RepairRepository entrar,
+            // adicionar 'business_id' resolvido via protocolo apos lookup.
+        ], function () use ($numero) {
+            return $this->dataset()[$numero] ?? null;
+        });
     }
 
     /**

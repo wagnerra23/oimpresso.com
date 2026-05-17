@@ -291,3 +291,147 @@ it('McpTokenIssuer::rotate retorna null pra token inexistente (idempotência)', 
 
     expect($result)->toBeNull('rotate de token inexistente deve retornar null sem efeito colateral');
 });
+
+// ---------- Wave 27 D2: rotate expandido (race + double-revoke + raw isolation) ----------
+
+it('McpTokenIssuer::rotate em sequência (A→B→C) revoga A+B, mantém C ativo', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'rotate_chain_w27'],
+        ['email' => 'rc@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'RC'],
+    );
+
+    [$a, ] = McpToken::gerar($user->id, 'A');
+    $issuer = new McpTokenIssuer();
+
+    // Rotate A → B
+    $resultB = $issuer->rotate($user->id, (int) $a->id, 'B');
+    expect($resultB)->not->toBeNull();
+    $bId = (int) $resultB['new_token']->id;
+
+    // Rotate B → C
+    $resultC = $issuer->rotate($user->id, $bId, 'C');
+    expect($resultC)->not->toBeNull();
+    $cId = (int) $resultC['new_token']->id;
+
+    // Estado final: A revoked, B revoked, C ativo
+    expect(McpToken::withTrashed()->find($a->id)?->trashed())->toBeTrue();
+    expect(McpToken::withTrashed()->find($bId)?->trashed())->toBeTrue();
+
+    $c = McpToken::find($cId);
+    expect($c)->not->toBeNull();
+    expect($c->expires_at)->toBeNull('C deve continuar ativo após chain rotate');
+
+    // Cleanup
+    McpToken::withTrashed()->whereIn('id', [(int) $a->id, $bId, $cId])->forceDelete();
+});
+
+it('McpTokenIssuer::rotate de token JÁ revogado retorna null (Tier 0 segredo idempotência)', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'rotate_revoked_w27'],
+        ['email' => 'rrev@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'RR'],
+    );
+
+    [$token, ] = McpToken::gerar($user->id, 'Token pra revogar antes de rotate');
+    $issuer = new McpTokenIssuer();
+
+    // Revoga primeiro
+    $revoked = $issuer->revoke((int) $token->id);
+    expect($revoked)->toBeTrue();
+
+    // Agora tenta rotate de token já soft-deleted — find() não acha (sem withTrashed)
+    $result = $issuer->rotate($user->id, (int) $token->id);
+
+    expect($result)->toBeNull('rotate de token já revogado JAMAIS deve emitir novo (defesa Tier 0)');
+
+    // Cleanup
+    McpToken::withTrashed()->find($token->id)?->forceDelete();
+});
+
+it('McpTokenIssuer::rotate raw NÃO é logado em info-level (defesa em profundidade Tier 0)', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'rotate_log_w27'],
+        ['email' => 'rlog@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'RL'],
+    );
+
+    [$old, ] = McpToken::gerar($user->id, 'Pre-rotate token');
+
+    // Captura logs durante rotate
+    $logs = [];
+    \Illuminate\Support\Facades\Log::listen(function ($level, $message, $context) use (&$logs) {
+        $logs[] = ['level' => $level, 'message' => $message, 'context' => $context];
+    });
+
+    $issuer = new McpTokenIssuer();
+    $result = $issuer->rotate($user->id, (int) $old->id, 'rotate W27 log audit');
+
+    expect($result)->not->toBeNull();
+    $raw = $result['raw'];
+
+    // O raw token NÃO deve aparecer em nenhum log capturado
+    foreach ($logs as $entry) {
+        $serialized = $entry['message'] . ' ' . json_encode($entry['context'] ?? []);
+        expect($serialized)->not->toContain($raw, 'raw token jamais pode aparecer em log estruturado');
+    }
+
+    // Cleanup
+    $result['new_token']->forceDelete();
+    McpToken::withTrashed()->find($old->id)?->forceDelete();
+});
+
+it('McpTokenIssuer::rotate cross-user (B tenta rotacionar token A→C) retorna null sem efeito', function () {
+    requiresMcpSchema();
+
+    $userA = User::firstOrCreate(
+        ['username' => 'rotate_xuser_a_w27'],
+        ['email' => 'xa@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'XA'],
+    );
+    $userB = User::firstOrCreate(
+        ['username' => 'rotate_xuser_b_w27'],
+        ['email' => 'xb@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'XB'],
+    );
+
+    [$tokenA, ] = McpToken::gerar($userA->id, 'Token de A — alvo de cross-user attack');
+    $countAntes = McpToken::where('user_id', $userB->id)->count();
+
+    $issuer = new McpTokenIssuer();
+    // userB tenta rotacionar token de A (anti-pattern Tier 0)
+    $result = $issuer->rotate($userB->id, (int) $tokenA->id, 'tentativa ilícita W27');
+
+    expect($result)->toBeNull('cross-user rotate JAMAIS pode suceder');
+
+    // Token A continua intacto (não foi revogado por engano)
+    $tokenA->refresh();
+    expect($tokenA->expires_at)->toBeNull();
+
+    // userB não ganhou token novo (rotate falhou sem efeito colateral)
+    $countDepois = McpToken::where('user_id', $userB->id)->count();
+    expect($countDepois)->toBe($countAntes, 'userB não pode ganhar tokens novos via cross-user attack');
+
+    $tokenA->forceDelete();
+});
+
+it('countActive ignora tokens soft-deleted (consistente com rotate)', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'count_active_w27'],
+        ['email' => 'ca@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'CA'],
+    );
+
+    $issuer = new McpTokenIssuer();
+    $countInicial = $issuer->countActive($user->id);
+
+    [$token, ] = McpToken::gerar($user->id, 'Token pra contar');
+    expect($issuer->countActive($user->id))->toBe($countInicial + 1);
+
+    $issuer->revoke((int) $token->id);
+    expect($issuer->countActive($user->id))->toBe($countInicial, 'após revoke, count volta ao inicial');
+
+    McpToken::withTrashed()->find($token->id)?->forceDelete();
+});
