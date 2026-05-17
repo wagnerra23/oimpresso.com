@@ -14,6 +14,10 @@
     ],
     "requires": [],
     "governance": {
+        "bucket": "cross_cutting_infra",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Meta-módulo Constituição enforcer + audit dashboard, infra interna sem cliente vendável, time MCP usa diário pra governança",
         "fsm_n_a": true,
         "fsm_n_a_reason": "Governance é meta-módulo (Constituição enforcer + audit dashboard) — não tem entity de domínio com lifecycle de stages. Policies têm enabled boolean, ADRs têm status enum simples gerenciado por mcp_memory_documents; nenhum requer FSM pipeline (ADR 0143). Marca explícita pra ModuleGradeService computar D4 architecture sem penalizar ausência de FSM."
     }

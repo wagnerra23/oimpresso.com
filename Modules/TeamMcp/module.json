@@ -14,5 +14,11 @@
     ],
     "requires": [],
     "fsm_n_a": true,
-    "fsm_n_a_reason": "TeamMcp é governança/audit do MCP server (tokens, audit log, Identity Mesh, ingest CC sessions, Kanban Jira-style do time). NÃO opera transactions/job-sheets/orders — FSM Pipeline canônico (ADR 0143) não se aplica. Lifecycle de actor é tabela append-only (mcp_actors.revoked_at), não state machine."
+    "fsm_n_a_reason": "TeamMcp é governança/audit do MCP server (tokens, audit log, Identity Mesh, ingest CC sessions, Kanban Jira-style do time). NÃO opera transactions/job-sheets/orders — FSM Pipeline canônico (ADR 0143) não se aplica. Lifecycle de actor é tabela append-only (mcp_actors.revoked_at), não state machine.",
+    "governance": {
+        "bucket": "cross_cutting_infra",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Governança self-host MCP server (tokens, DXT, quotas, Kanban Jira-style, audit sessões), infra interna depende-de-tudo, time MCP usa diário (ADR 0055/0057)"
+    }
 }

@@ -22,5 +22,11 @@
         "wave_compliance": "Wave 17 governance v3 — D7 LGPD push 2026-05-16"
     },
     "retention_days": 1825,
-    "retention_config": "Modules/Repair/Config/retention.php"
+    "retention_config": "Modules/Repair/Config/retention.php",
+    "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Shared infra Kanban OS reutilizável entre verticais (Vestuario/ComVis/OficinaAuto), cliente real consome via JobSheet UX-driven com FSM canon"
+    }
 }

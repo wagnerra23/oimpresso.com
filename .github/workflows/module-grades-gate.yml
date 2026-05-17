@@ -1,14 +1,18 @@
 name: Module Grades Gate (anti-regressão)
 
 # Gate CI anti-regressão da rubrica module-grade v3 (ADR 0155).
-# Bloqueia merge em DOIS cenários:
+# Bloqueia merge em TRÊS cenários:
 #   1) Nota de QUALQUER módulo DIMINUIR vs governance/module-grades-baseline.json
 #      → Override: label 'module-grades-allowed-regression' no PR
 #   2) Módulo NOVO entrando na rubrica (presente no current, ausente na baseline)
 #      → Override: label 'module-grades-new-module-allowed' no PR
+#   3) (Wave 20 — ADR 0160) Mudança de `governance.bucket` em algum Modules/*/module.json
+#      → Override: label 'bucket-change-approved' no PR (Wagner aprova reclassificação)
 # Justificativa #2 (gap P1 fechado): módulo crítico (Admin/Connector/Arquivos/Essentials)
 # entrando sem nota mínima passava silencioso — agora exige aprovação explícita Wagner.
-# Comenta delta por módulo (subiu / desceu / igual / novo).
+# Justificativa #3 (anti-gaming Scoped Scorecards): trocar bucket muda dimensões/pesos
+# aplicáveis → nota artificialmente sobe sem melhoria real do módulo.
+# Comenta delta por módulo (subiu / desceu / igual / novo) + sinaliza buckets alterados.
 
 on:
   pull_request:
@@ -323,4 +327,137 @@ jobs:
         if: steps.compare.outputs.new_blocked == 'true' && steps.override.outputs.new_allowed != 'true'
         run: |
           echo "::error::${{ steps.compare.outputs.new_count }} módulo(s) novo(s) detectado(s) sem aprovação. Aplique label 'module-grades-new-module-allowed' pra confirmar entrada na rubrica OU remova/renomeie o módulo se foi acidental."
+          exit 1
+
+  bucket-change-detection:
+    name: Detectar mudança de bucket sem label aprovação (ADR 0160 — Wave 20)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+
+    # Job anti-gaming Scoped Scorecards (ADR 0160 — Wave 20).
+    # Detecta diff em `governance.bucket` dentro de Modules/*/module.json.
+    # Mudar bucket muda dimensões/pesos aplicáveis → nota artificialmente sobe sem
+    # melhoria real do módulo (ex: trocar "vertical-deep" pra "shared-infra" pula D9).
+    # Exige label 'bucket-change-approved' (Wagner aprova manual) pra liberar merge.
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detectar diff em governance.bucket dos module.json
+        id: diff
+        run: |
+          set -euo pipefail
+          # Lista module.json modificados (Added/Modified) entre base e HEAD
+          changed_files=$(git diff --name-only --diff-filter=AM \
+            "origin/${{ github.base_ref }}...HEAD" \
+            -- 'Modules/*/module.json' 2>/dev/null || true)
+
+          if [ -z "$changed_files" ]; then
+            echo "Nenhum Modules/*/module.json modificado neste PR."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "modules=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Pra cada arquivo modificado, comparar campo governance.bucket entre base e HEAD
+          modules_changed=""
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+
+            # Bucket na base (pode não existir se arquivo é novo OU campo ainda não existia)
+            base_bucket=$(git show "origin/${{ github.base_ref }}:$file" 2>/dev/null \
+              | jq -r '.governance.bucket // empty' 2>/dev/null || echo "")
+            # Bucket no HEAD
+            head_bucket=$(jq -r '.governance.bucket // empty' "$file" 2>/dev/null || echo "")
+
+            if [ "$base_bucket" != "$head_bucket" ]; then
+              module_name=$(echo "$file" | sed -E 's|^Modules/([^/]+)/module\.json$|\1|')
+              echo "Bucket changed in $module_name: '$base_bucket' → '$head_bucket'"
+              modules_changed="${modules_changed}${module_name}|${base_bucket:-<vazio>}|${head_bucket:-<vazio>}\n"
+            fi
+          done <<< "$changed_files"
+
+          if [ -n "$modules_changed" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "modules<<EOF"
+              echo -e "$modules_changed"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "Nenhuma mudança de governance.bucket detectada."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "modules=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verificar label bucket-change-approved
+        id: label
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          labels=$(gh pr view "${{ github.event.pull_request.number }}" \
+            --json labels --jq '.labels[].name' 2>/dev/null || echo "")
+
+          if echo "$labels" | grep -qx 'bucket-change-approved'; then
+            echo "Label 'bucket-change-approved' presente — mudança aprovada por Wagner."
+            echo "approved=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Label 'bucket-change-approved' ausente — bloqueio ativo."
+            echo "approved=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comentar mudança de bucket no PR
+        if: steps.diff.outputs.changed == 'true' && github.event.pull_request.number != ''
+        uses: actions/github-script@v7
+        env:
+          MODULES: ${{ steps.diff.outputs.modules }}
+          APPROVED: ${{ steps.label.outputs.approved }}
+        with:
+          script: |
+            const approved = process.env.APPROVED === 'true';
+            const raw = (process.env.MODULES || '').trim();
+            const lines = raw.split('\n').filter(l => l.trim());
+            const rows = lines.map(l => {
+              const [mod, from, to] = l.split('|');
+              return `| \`${mod}\` | \`${from}\` | \`${to}\` |`;
+            }).join('\n');
+
+            const table = `| Módulo | Bucket anterior | Bucket novo |\n|---|---|---|\n${rows}`;
+
+            const title = approved
+              ? '🪣 Bucket Change Gate — ✅ aprovado'
+              : '🪣 Bucket Change Gate — ❌ label faltando';
+
+            const intro = approved
+              ? '> Label `bucket-change-approved` aplicada — Wagner autorizou reclassificação(ões) abaixo.'
+              : [
+                  `> Mudança(s) de \`governance.bucket\` detectada(s) em \`Modules/*/module.json\` SEM label \`bucket-change-approved\`.`,
+                  ``,
+                  `### Por que isto bloqueia (anti-gaming Scoped Scorecards — ADR 0160)`,
+                  `Trocar bucket muda dimensões/pesos aplicáveis → nota pode subir sem melhoria real do módulo (ex: pular D9 trocando \`vertical-deep\` por \`shared-infra\`).`,
+                  ``,
+                  `### Como resolver`,
+                  `1. Se a reclassificação é intencional → Wagner [W] aplica label \`bucket-change-approved\` no PR.`,
+                  `2. Se foi acidente → reverter \`governance.bucket\` no \`module.json\` afetado.`,
+                  `3. Override de emergência → comentar \`/bypass-bucket-gate <razão>\` no PR (gera ADR per-PR \`lifecycle: historical\`).`,
+                ].join('\n');
+
+            const body = `## ${title}\n\n${intro}\n\n${table}\n\n---\n_Ver [ADR 0160 — Scoped Scorecards + anti-gaming](/memory/decisions/0160-scoped-scorecards.md) e [RUNBOOK Governance Gate CI §Bucket Change Detection](/memory/requisitos/Infra/RUNBOOK-governance-gate-ci.md)._`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      - name: Falhar build se bucket mudou sem label de aprovação
+        if: steps.diff.outputs.changed == 'true' && steps.label.outputs.approved != 'true'
+        run: |
+          echo "::error::Mudança de governance.bucket em module.json sem label 'bucket-change-approved'. Anti-gaming Scoped Scorecards (ADR 0160 — Wave 20). Wagner aplica label se reclassificação foi intencional."
           exit 1

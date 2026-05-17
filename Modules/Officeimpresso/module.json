@@ -20,6 +20,10 @@
         "_doc": "LGPD Art. 16 (eliminação dados pós-finalidade) — Wave 10 D7.c 2026-05-16. Janelas: api_call/error_logs 1 ano (debug Delphi); login_success/login_error 2 anos (auditoria acesso usuário); admin_action block/unblock/businessupdate 7 anos (audit trail legal CC Art. 206); licenca_computador inativa 5 anos (suporte vitalício OfficeImpresso legacy). Command artisan licenca-log:retention-purge pendente (Wave 11 backlog)."
     },
     "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Bridge clientes legacy Delphi 6.7 OfficeImpresso (vertical histórica gráfica), licenças vendáveis cliente real, UX-driven via desktop",
         "fsm_n_a": true,
         "fsm_n_a_reason": "Bridge desktop Delphi → sync de dados externos sem state machine própria. Sem fluxos com transições controladas; eventos audit-only (LicencaLog append-only).",
         "wave": 18,
