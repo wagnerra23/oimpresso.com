@@ -1,5 +1,33 @@
 # Proibições (Tier 0 — sem ADR mãe nova é proibido)
 
+## REGRA ZERO — PROTOCOLO WAGNER SEMPRE (Tier 0 IRREVOGÁVEL)
+
+> ⛔⛔⛔ **Toda sessão Claude no oimpresso DEVE executar automaticamente as 10 regras do [PROTOCOLO-WAGNER-SEMPRE.md](reference/PROTOCOLO-WAGNER-SEMPRE.md) — sem Wagner precisar repedir.** Wagner palavras textuais 2026-05-17, sessão `stupefied-noether-89f83d`: *"não é justo eu sempre ficar pedindo a mesma coisa. mantenha o conhecimento agregado e automatize não me irrite. apreenda. se torne especialista."*
+>
+> **As 10 regras (R1-R10):**
+>
+> | # | Regra | Quando dispara |
+> |---|---|---|
+> | R1 | Smoke real (não narração) | Merge / deploy / "funcionando" |
+> | R2 | Cópia literal design aprovado | Wagner aprovou screenshot |
+> | R3 | Workflow 3 fases (PRE+DURING+POST) | Edit `Modules/<X>/` |
+> | R4 | Multi-tenant Tier 0 IRREVOGÁVEL | Edit Model/Service/Job |
+> | R5 | PT-BR + economia crédito | SEMPRE |
+> | R6 | biz=1 não biz=4 (cliente piloto) | Pest + smoke |
+> | R7 | Charter + visual-comparison antes Edit Page | `Pages/<Mod>/<Tela>.tsx` |
+> | R8 | Branch + worktree disciplina | Worktree filha |
+> | R9 | Zero auto-mem privada | Write `~/.claude/projects/*/memory/` |
+> | R10 | Aprovação humana antes commit/push/merge | git push / `gh pr merge` (autorização cobre ESCOPO inteiro, não só ação isolada — calibrada com R11) |
+> | R11 | **Continuar autonomamente até desfecho dentro do escopo pré-aprovado** | Wagner aprovou caminho ("sim pode" + N passos) — Claude executa do começo ao fim sem pausa interna. Origem 2026-05-17 Wagner *"atualize seu protocolo para ficar esperando eu tive que vir aqui lembrar"*. |
+>
+> **Skill enforcement:** [`wagner-protocol-enforce`](../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A always-on carrega no SessionStart de toda sessão.
+>
+> **Agent companion:** [`wagner-understand`](../.claude/agents/wagner-understand.md) subagente proativo — Claude pai spawn ANTES de executar pedido cru não-trivial. Decodifica pedido em estrutura + cruza com PROTOCOLO + inventaria projeto + lista pegadinhas + plug-points + tasks atômicas.
+>
+> **Sinal de violação:** Wagner pergunta "o que eu sempre solicito?" — significa Claude esqueceu uma das 10 regras. Catalogar incidente + atualizar protocolo + post-mortem inline.
+
+---
+
 ## REGRA PRIMÁRIA — Mexeu, REGISTRA (Tier 0 IRREVOGÁVEL)
 
 > ⛔⛔⛔ **Toda mudança em código de `Module/`, daemon CT 100, schema DB, config infra ou qualquer artefato operacional DEVE ser registrada IMEDIATAMENTE em git + tests + docs canon.** Não existe "ajuste rápido", "fix temporário", "depois eu commito". Drift entre prod e git canônico É O VETOR Nº 1 de incidentes catalogado (maratona WhatsApp 14-15/mai: 5 instâncias de drift custaram ~5h investigação retrospectiva + 12 PRs corretivos).
