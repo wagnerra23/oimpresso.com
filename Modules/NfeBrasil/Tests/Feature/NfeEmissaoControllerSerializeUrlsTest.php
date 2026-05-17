@@ -31,6 +31,23 @@ uses(Tests\TestCase::class);
 beforeEach(function () {
     Schema::dropIfExists('arquivos');
     Schema::dropIfExists('nfe_emissoes');
+    Schema::dropIfExists('activity_log');
+
+    // Spatie LogsActivity em NfeEmissao → INSERT em activity_log.
+    Schema::create('activity_log', function ($t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable();
+        $t->text('description')->nullable();
+        $t->unsignedBigInteger('subject_id')->nullable();
+        $t->string('subject_type')->nullable();
+        $t->unsignedBigInteger('causer_id')->nullable();
+        $t->string('causer_type')->nullable();
+        $t->text('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
+        $t->string('event')->nullable();
+        $t->unsignedInteger('business_id')->nullable();
+        $t->timestamps();
+    });
 
     Schema::create('nfe_emissoes', function ($t) {
         $t->id();
@@ -80,6 +97,7 @@ beforeEach(function () {
 afterEach(function () {
     Schema::dropIfExists('arquivos');
     Schema::dropIfExists('nfe_emissoes');
+    Schema::dropIfExists('activity_log');
 });
 
 // ── helpers ──────────────────────────────────────────────────────────────────

@@ -200,7 +200,9 @@ it('Nível 3: regra padrão NCM aplica quando não há regra exata', function ()
 });
 
 it('Nível 4: defaults business aplicam quando NCM não tem regra', function () {
-    configBusiness(4, [
+    // configBusiness deve receber o MESMO businessId usado no calcular() abaixo,
+    // senão lança TributacaoNaoConfiguradaException (Business 1 sem default).
+    configBusiness(1, [
         'cfop'            => '5102',
         'csosn'           => '102',
         'aliquota_icms'   => 0.0,
@@ -217,8 +219,8 @@ it('Nível 4: defaults business aplicam quando NCM não tem regra', function () 
         ->and($tributo->cfop)->toBe('5102')
         ->and($tributo->csosn)->toBe('102')
         ->and($tributo->aliquota_icms)->toBe(0.0)
-        ->and($tributo->valor_pis)->toBe(0.65)
-        ->and($tributo->valor_cofins)->toBe(30.0)
+        ->and($tributo->valor_pis)->toBe(6.5)      // 1000 × 0.0065 PIS
+        ->and($tributo->valor_cofins)->toBe(30.0)  // 1000 × 0.03 COFINS
         ->and($tributo->regra_id)->toBeNull();
 });
 

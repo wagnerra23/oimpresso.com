@@ -25,9 +25,26 @@ uses(Tests\TestCase::class);
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes'] as $t) {
+        foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes', 'activity_log'] as $t) {
             Schema::dropIfExists($t);
         }
+
+        // Spatie LogsActivity em NfeEmissao/NfeEvento/NfeInutilizacao dispara
+        // INSERT em activity_log. Sem tabela → SQLSTATE no such table.
+        Schema::create('activity_log', function ($table) {
+            $table->bigIncrements('id');
+            $table->string('log_name')->nullable();
+            $table->text('description')->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->string('subject_type')->nullable();
+            $table->unsignedBigInteger('causer_id')->nullable();
+            $table->string('causer_type')->nullable();
+            $table->text('properties')->nullable();
+            $table->uuid('batch_uuid')->nullable();
+            $table->string('event')->nullable();
+            $table->unsignedInteger('business_id')->nullable();
+            $table->timestamps();
+        });
 
         Schema::create('nfe_certificados', function ($table) {
             $table->id();
@@ -111,7 +128,7 @@ beforeEach(function () {
 
 afterEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes'] as $t) {
+        foreach (['nfe_eventos', 'nfe_emissoes', 'nfe_certificados', 'nfe_inutilizacoes', 'activity_log'] as $t) {
             Schema::dropIfExists($t);
         }
     } else {
