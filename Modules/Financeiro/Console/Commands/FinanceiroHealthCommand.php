@@ -74,6 +74,9 @@ class FinanceiroHealthCommand extends Command
             $this->checkTitulosPerBusiness($businessId),
             $this->checkVencidosAlarme($businessId),
             $this->checkRetentionPolicy(),
+            // Wave 23 D6 saturation:
+            $this->checkOrphanBaixas($businessId),
+            $this->checkValorAbertoConsistente($businessId),
         ];
 
         if ($detail && ! $asJson) {
@@ -244,6 +247,81 @@ class FinanceiroHealthCommand extends Command
                 ? 'Job financeiro:purge-expired pode rodar — verifique cron.'
                 : 'Declaração canônica OK. Ativar via FINANCEIRO_RETENTION_ENABLED=true quando job estiver implementado.'
         );
+    }
+
+    /**
+     * Wave 23 D6 Check 7: baixas órfãs sem titulo (FK violation drift).
+     */
+    private function checkOrphanBaixas(?int $businessId): array
+    {
+        if (! Schema::hasTable('fin_titulo_baixas') || ! Schema::hasTable('fin_titulos')) {
+            return $this->makeCheck('orphan_baixas', 'WARN', null, '0', 'Tabelas ausentes', 'Rode migrate.');
+        }
+
+        $q = DB::table('fin_titulo_baixas')
+            ->leftJoin('fin_titulos', 'fin_titulo_baixas.titulo_id', '=', 'fin_titulos.id')
+            ->whereNull('fin_titulos.id');
+
+        if ($businessId !== null) {
+            $q->where('fin_titulo_baixas.business_id', $businessId);
+        }
+
+        $orphans = $q->count();
+
+        if ($orphans > 0) {
+            return $this->makeCheck(
+                'orphan_baixas',
+                'WARN',
+                $orphans,
+                '0',
+                "{$orphans} baixa(s) sem titulo correspondente",
+                'Investigue: forceDelete de titulo deixou baixa órfã? Restaurar via soft delete ou purgar via comando dedicado.'
+            );
+        }
+
+        return $this->makeCheck('orphan_baixas', 'OK', 0, '0', 'Sem baixas órfãs', 'FK integrity OK.');
+    }
+
+    /**
+     * Wave 23 D6 Check 8: valor_aberto consistente com soma de baixas
+     * (sanity check contra drift de cálculo).
+     */
+    private function checkValorAbertoConsistente(?int $businessId): array
+    {
+        if (! Schema::hasTable('fin_titulo_baixas') || ! Schema::hasTable('fin_titulos')) {
+            return $this->makeCheck('valor_aberto_consistente', 'WARN', null, '0', 'Tabelas ausentes', 'Rode migrate.');
+        }
+
+        // Subquery: soma de baixas por titulo
+        $q = DB::table('fin_titulos as t')
+            ->leftJoinSub(
+                DB::table('fin_titulo_baixas')
+                    ->selectRaw('titulo_id, SUM(valor) as total_baixado')
+                    ->groupBy('titulo_id'),
+                'b',
+                't.id', '=', 'b.titulo_id'
+            )
+            ->whereNull('t.deleted_at')
+            ->whereRaw('ABS(t.valor_total - COALESCE(b.total_baixado, 0) - t.valor_aberto) > 0.01');
+
+        if ($businessId !== null) {
+            $q->where('t.business_id', $businessId);
+        }
+
+        $inconsistentes = $q->count();
+
+        if ($inconsistentes > 0) {
+            return $this->makeCheck(
+                'valor_aberto_consistente',
+                'WARN',
+                $inconsistentes,
+                '0',
+                "{$inconsistentes} titulo(s) com valor_aberto ≠ (valor_total - SUM(baixas))",
+                'Rode `financeiro:recalc-valor-aberto` (se existir) ou investigue caso a caso.'
+            );
+        }
+
+        return $this->makeCheck('valor_aberto_consistente', 'OK', 0, '0', 'Saldos consistentes', 'Aritmética OK.');
     }
 
     private function outputTable(array $checks, array $summary, ?int $businessId, bool $alert): int

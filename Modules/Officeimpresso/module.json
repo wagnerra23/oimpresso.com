@@ -21,12 +21,14 @@
     },
     "governance": {
         "bucket": "vertical_client_facing",
-        "bucket_assigned_at": "2026-05-17",
-        "bucket_assigned_by": "[W]",
-        "bucket_justificativa": "Bridge clientes legacy Delphi 6.7 OfficeImpresso (vertical histórica gráfica), licenças vendáveis cliente real, UX-driven via desktop",
+        "bucket_adr": "0160",
+        "bucket_config": "governance/buckets/vertical_client_facing.yaml",
         "fsm_n_a": true,
         "fsm_n_a_reason": "Bridge desktop Delphi → sync de dados externos sem state machine própria. Sem fluxos com transições controladas; eventos audit-only (LicencaLog append-only).",
-        "wave": 18,
-        "rubrica_version": "v3"
+        "wave": 23,
+        "wave_23_saturation": true,
+        "scoped_score_target": 85,
+        "last_governance_review": "2026-05-16",
+        "rubrica_version": "v3_scoped"
     }
 }

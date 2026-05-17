@@ -77,4 +77,35 @@ return [
     'activity_log' => [
         'enabled' => (bool) env('KB_ACTIVITY_LOG_ENABLED', true),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Wave 23 §G1 — BGE Reranker v2-m3 (self-host CT 100)
+    |--------------------------------------------------------------------------
+    | Plug do BAAI/bge-reranker-v2-m3 servido por FastAPI + FlagEmbedding no
+    | container Docker do CT 100 (RUNBOOK-bge-reranker-ct100.md). Improve
+    | nDCG@10 +6-15pp sobre re-rank algorítmico legacy (bonus type + score
+    | Meilisearch base). Latency +100-300ms aceitável.
+    |
+    | Defaults seguros:
+    |  - enabled=false em prod até container BGE estiver up e validado
+    |  - endpoint LAN Tailscale (bge-reranker.ct100:8080) — não exposto público
+    |  - timeout 5s evita travar UX em failover
+    |  - Graceful degradation automática pra RrfReranker em HTTP fail
+    |
+    | Ativar: .env KB_BGE_ENABLED=true após health-check container OK.
+    */
+    'bge' => [
+        'enabled'  => (bool) env('KB_BGE_ENABLED', false),
+        'endpoint' => (string) env('KB_BGE_ENDPOINT', 'http://bge-reranker.ct100:8080/rerank'),
+        'timeout'  => (int) env('KB_BGE_TIMEOUT', 5),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Wave 23 — Estimate custo LLM (USD → BRL)
+    |--------------------------------------------------------------------------
+    | Fallback se config não definir. KbRagService::estimateCostBrl usa.
+    */
+    'usd_to_brl' => (float) env('USD_TO_BRL', 5.0),
 ];

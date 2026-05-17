@@ -1,0 +1,195 @@
+<?php
+
+declare(strict_types=1);
+
+use App\User;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Modules\Jana\Entities\Mcp\McpToken;
+use Modules\TeamMcp\Http\Controllers\ScorecardController;
+use Modules\TeamMcp\Services\McpTokenIssuer;
+
+uses(Tests\TestCase::class);
+
+/**
+ * Wave 23 Scorecard + Rotate Test — TeamMcp G1+G3 FICHA W22.
+ *
+ * Cobertura:
+ *   - G3 FICHA: McpTokenIssuer::rotate atômico (revoke+issue mesma transação)
+ *   - G3 FICHA: comando teammcp:token:rotate registrado
+ *   - G1 FICHA: ScorecardController smoke (route + builders)
+ *
+ * Tier 0 IRREVOGÁVEL (ADR 0081):
+ *   - rotate retorna raw 1× (não loga, não persiste)
+ *   - rotate transactional (old revogado SE new criado)
+ *   - rotate guard ownership (token de outro user retorna null)
+ *
+ * Multi-tenant Tier 0: scorecard repo-wide (cross-business Wagner-only).
+ *
+ * @see Modules\TeamMcp\Services\McpTokenIssuer::rotate
+ * @see Modules\TeamMcp\Console\Commands\RotateTokenCommand
+ * @see Modules\TeamMcp\Http\Controllers\ScorecardController
+ */
+
+function requiresMcpSchema(): void
+{
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        test()->markTestSkipped('SQLite-incompatível: mcp_tokens + users exigem schema MySQL UltimatePOS.');
+    }
+    if (! Schema::hasTable('mcp_tokens') || ! Schema::hasTable('users')) {
+        test()->markTestSkipped('Schema MCP ausente — rode migrations primeiro.');
+    }
+}
+
+// ---------- G3 FICHA: rotate atômico ----------
+
+it('McpTokenIssuer::rotate gera novo token + revoga anterior atomicamente', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'rotate_test_user_w23'],
+        [
+            'email' => 'rotate_test@test.local',
+            'password' => bcrypt('secret'),
+            'business_id' => 1,
+            'first_name' => 'Rotate',
+            'last_name' => 'Test',
+        ]
+    );
+
+    [$old, $oldRaw] = McpToken::gerar($user->id, 'Token pra rotacionar W23');
+    expect($oldRaw)->toStartWith('mcp_');
+
+    $issuer = new McpTokenIssuer();
+    $result = $issuer->rotate($user->id, (int) $old->id, 'rotated W23');
+
+    expect($result)->not->toBeNull();
+    expect($result['old_token_id'])->toBe((int) $old->id);
+    expect($result['raw'])->toStartWith('mcp_');
+    expect($result['raw'])->not->toBe($oldRaw, 'novo raw deve ser distinto do anterior');
+    expect($result['new_token']->name)->toBe('rotated W23');
+
+    // Old token: revogado (soft-deleted)
+    $oldReloaded = McpToken::withTrashed()->find($old->id);
+    expect($oldReloaded->trashed())->toBeTrue();
+    expect($oldReloaded->expires_at)->not->toBeNull();
+
+    // Cleanup
+    $result['new_token']->forceDelete();
+    $oldReloaded->forceDelete();
+});
+
+it('McpTokenIssuer::rotate retorna null quando token pertence a outro user (Tier 0 guard)', function () {
+    requiresMcpSchema();
+
+    $userA = User::firstOrCreate(
+        ['username' => 'rotate_user_a_w23'],
+        ['email' => 'ra@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'A'],
+    );
+    $userB = User::firstOrCreate(
+        ['username' => 'rotate_user_b_w23'],
+        ['email' => 'rb@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'B'],
+    );
+
+    [$tokenA, $rawA] = McpToken::gerar($userA->id, 'Token de A');
+
+    $issuer = new McpTokenIssuer();
+
+    // userB tenta rotacionar token de A → deve retornar null (guard ownership)
+    $result = $issuer->rotate($userB->id, (int) $tokenA->id);
+
+    expect($result)->toBeNull('rotate de outro user JAMAIS pode suceder (Tier 0 segredo)');
+
+    // Token de A continua ativo (não foi revogado por engano)
+    $tokenA->refresh();
+    expect($tokenA->expires_at)->toBeNull();
+
+    $tokenA->forceDelete();
+});
+
+// ---------- G3 FICHA: comando registrado ----------
+
+it('comando teammcp:token:rotate está registrado em artisan', function () {
+    $commands = Artisan::all();
+    expect($commands)->toHaveKey('teammcp:token:rotate');
+});
+
+it('teammcp:token:rotate sem args retorna exit code de erro', function () {
+    $exit = Artisan::call('teammcp:token:rotate');
+
+    // SQLite (sem schema) → exit 1 com "tabela ausente"
+    // MySQL (com schema) → exit 1 com mensagem de uso (--token/--user)
+    expect($exit)->toBeIn([1, 2]);
+
+    $output = Artisan::output();
+    // Aceita uma das duas vias (schema ausente OU mensagem de uso).
+    $hasSchemaMsg = str_contains($output, 'mcp_tokens') || str_contains($output, 'migrations');
+    $hasUsageMsg = str_contains($output, '--token') || str_contains($output, '--user');
+    expect($hasSchemaMsg || $hasUsageMsg)->toBeTrue(
+        'Comando deve sinalizar schema ausente OU instruir uso (--token/--user).'
+    );
+});
+
+it('teammcp:token:rotate signature usa --detail (não --verbose Symfony reserved)', function () {
+    $cmd = app(\Modules\TeamMcp\Console\Commands\RotateTokenCommand::class);
+    $signature = (new ReflectionClass($cmd))->getProperty('signature');
+    $signature->setAccessible(true);
+    $sig = $signature->getValue($cmd);
+
+    expect($sig)->toContain('teammcp:token:rotate');
+    expect($sig)->toContain('--detail');
+    expect($sig)->toContain('--dry-run');
+    expect(str_contains($sig, '--verbose'))->toBeFalse('--verbose é reservado Symfony (rule commands.md)');
+});
+
+// ---------- G1 FICHA: Scorecard route + controller ----------
+
+it('rota team-mcp.scorecard.index está registrada', function () {
+    $route = Route::getRoutes()->getByName('team-mcp.scorecard.index');
+    expect($route)->not->toBeNull('rota /team-mcp/scorecard deve estar registrada (G1 FICHA W22)');
+});
+
+it('ScorecardController::buildFacts retorna estrutura canônica Facts', function () {
+    requiresMcpSchema();
+
+    $ctl = app(ScorecardController::class);
+    $reflect = new ReflectionClass($ctl);
+    $method = $reflect->getMethod('buildFacts');
+    $method->setAccessible(true);
+    $facts = $method->invoke($ctl);
+
+    expect($facts)->toHaveKeys([
+        'tokens_ativos',
+        'calls_7d',
+        'cost_7d_brl',
+        'users_ativos_7d',
+        'top_tools_7d',
+        'audit_log_present',
+        'tokens_table_present',
+    ]);
+    expect($facts['tokens_ativos'])->toBeInt();
+    expect($facts['cost_7d_brl'])->toBeFloat();
+    expect($facts['top_tools_7d'])->toBeArray();
+});
+
+it('ScorecardController::buildChecks retorna array de checks com name/ok/detail', function () {
+    requiresMcpSchema();
+
+    $ctl = app(ScorecardController::class);
+    $reflect = new ReflectionClass($ctl);
+    $method = $reflect->getMethod('buildChecks');
+    $method->setAccessible(true);
+    $checks = $method->invoke($ctl);
+
+    expect($checks)->toBeArray();
+    expect(count($checks))->toBeGreaterThanOrEqual(4, 'esperado ao menos 4 checks Facts+Checks');
+
+    foreach ($checks as $c) {
+        expect($c)->toHaveKeys(['name', 'ok', 'detail']);
+        expect($c['ok'])->toBeBool();
+        expect($c['name'])->toBeString();
+        expect($c['detail'])->toBeString();
+    }
+});

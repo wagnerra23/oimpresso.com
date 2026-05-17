@@ -2,178 +2,172 @@
 
 declare(strict_types=1);
 
-uses(Tests\TestCase::class);
+use Modules\Governance\Services\ScopedScorecardEvaluator;
 
 /**
- * Tests pro `ScopedScorecardEvaluator` Service (Wave 21 — bucket-based scorecards v4).
+ * Tests pra ScopedScorecardEvaluator — paired indicators cap 50% canônico (Wave 24 Agent A).
  *
- * Estrutura esperada do Service (criado por Wave 21 Agent A):
- *   - loadScorecardForModule(string $module): array  — carrega YAML do bucket via _INDEX.md
- *   - evaluateScorecard(string $module, array $scorecard): array
- *       => ['module','bucket','core','bucket_dimensions','paired_violations','score_total','meta_bucket']
+ * Cap 50%: se velocidade alta (≥75% peso) mas qualidade baixa (<50% peso),
+ * a dimensão velocidade tem score capado em 50% — penaliza gaming.
  *
- * Buckets canônicos esperados (memory/governance/buckets/_INDEX.md):
- *   - vertical_client_facing   → Vestuario, ComunicacaoVisual, OficinaAuto, Repair...
- *   - cross_cutting_infra      → Governance, Auditoria, TeamMcp, Superadmin...
- *   - ai_central               → Jana
- *   - functional_horizontal    → Crm, Financeiro, NfeBrasil, RecurringBilling, Whatsapp...
- *
- * Pre-conditions:
- *   - Service `Modules\Governance\Services\ScopedScorecardEvaluator` existe (Wave 21 Agent A)
- *   - YAMLs em `memory/scorecards/<bucket>.yaml`
- *   - Index em `memory/governance/buckets/_INDEX.md` ou similar
- *
- * Se faltarem pre-conditions, tests pulam graciosamente (markTestSkipped).
- *
- * @see memory/decisions/ scoped scorecards v4 (Wave 21)
- * @see Modules/Governance/Services/ScopedScorecardEvaluator.php
+ * @see Modules\Governance\Services\ScopedScorecardEvaluator
  */
+
 beforeEach(function () {
-    $evaluatorClass = 'Modules\\Governance\\Services\\ScopedScorecardEvaluator';
-    if (! class_exists($evaluatorClass)) {
-        $this->markTestSkipped('ScopedScorecardEvaluator ainda não criado (Wave 21 Agent A em andamento)');
-    }
-
-    $scorecardsDir = base_path('memory/scorecards');
-    if (! is_dir($scorecardsDir)) {
-        $this->markTestSkipped('memory/scorecards/ ainda não populado (Wave 21 dependency)');
-    }
-
-    $this->evaluator = app($evaluatorClass);
+    $this->eval = new ScopedScorecardEvaluator();
 });
 
-it('loadScorecardForModule(Vestuario) retorna bucket vertical_client_facing', function () {
-    $scorecard = $this->evaluator->loadScorecardForModule('Vestuario');
-
-    expect($scorecard)->toBeArray()->not->toBeEmpty();
-    expect($scorecard)->toHaveKey('metadata');
-    expect($scorecard['metadata'])->toHaveKey('bucket');
-    expect($scorecard['metadata']['bucket'])->toBe('vertical_client_facing');
+it('resolveRuleScore retorna null pra key sem ponto', function () {
+    $result = ['bucket_dimensions' => [], 'core' => []];
+    expect($this->eval->resolveRuleScore($result, 'invalid_key'))->toBeNull();
 });
 
-it('loadScorecardForModule(Governance) retorna bucket cross_cutting_infra', function () {
-    $scorecard = $this->evaluator->loadScorecardForModule('Governance');
+it('resolveRuleScore lê regra interna a uma dimensão (com regras)', function () {
+    $result = [
+        'bucket_dimensions' => [
+            'F1_pest_e2e' => [
+                'peso'   => 20,
+                'score'  => 16,
+                'regras' => [
+                    'F1_b' => ['peso' => 8, 'current' => 8], // 100%
+                    'F1_c' => ['peso' => 6, 'current' => 2], // 33%
+                ],
+            ],
+        ],
+        'core' => [],
+    ];
 
-    expect($scorecard)->toBeArray()->not->toBeEmpty();
-    expect($scorecard['metadata']['bucket'] ?? null)->toBe('cross_cutting_infra');
+    $velScore = $this->eval->resolveRuleScore($result, 'F1_pest_e2e.F1_b');
+    expect($velScore)->not->toBeNull();
+    expect($velScore['percent'])->toBe(1.0);
+
+    $qualScore = $this->eval->resolveRuleScore($result, 'F1_pest_e2e.F1_c');
+    expect($qualScore['percent'])->toBeLessThan(0.5);
 });
 
-it('loadScorecardForModule(Jana) retorna bucket ai_central', function () {
-    $scorecard = $this->evaluator->loadScorecardForModule('Jana');
+it('checkPairedViolation aplica cap 50% quando velocidade alta + qualidade baixa', function () {
+    $result = [
+        'bucket_dimensions' => [
+            'F1_pest_e2e' => [
+                'peso'   => 20,
+                'score'  => 18, // antes do cap
+                'regras' => [
+                    'F1_b' => ['peso' => 8, 'current' => 8], // 100% velocidade
+                    'F1_c' => ['peso' => 6, 'current' => 2], // 33% qualidade
+                ],
+            ],
+        ],
+        'core'              => [],
+        'paired_violations' => [],
+    ];
 
-    expect($scorecard)->toBeArray()->not->toBeEmpty();
-    expect($scorecard['metadata']['bucket'] ?? null)->toBe('ai_central');
+    $pair = [
+        'velocidade' => 'F1_pest_e2e.F1_b',
+        'qualidade'  => 'F1_pest_e2e.F1_c',
+        'rule'       => 'Velocidade >=75% + Qualidade <50% -> cap 50%',
+        'racional'   => 'Testes rápidos sem asserts robustas',
+    ];
+
+    $violation = $this->eval->checkPairedViolation($result, $pair);
+
+    expect($violation)->toBeArray();
+    expect($violation['cap_applied'])->toBe('50%');
+    expect($violation['pair'])->toBe('F1_pest_e2e.F1_b x F1_pest_e2e.F1_c');
+    // Score capado em 50% do peso (20 * 0.5 = 10)
+    expect($result['bucket_dimensions']['F1_pest_e2e']['score'])->toBe(10);
+    expect($result['bucket_dimensions']['F1_pest_e2e']['capped_by_paired'])->toBeTrue();
 });
 
-it('loadScorecardForModule(Crm) retorna bucket functional_horizontal', function () {
-    $scorecard = $this->evaluator->loadScorecardForModule('Crm');
+it('checkPairedViolation retorna null quando velocidade e qualidade balanceadas', function () {
+    $result = [
+        'bucket_dimensions' => [
+            'F1_pest_e2e' => [
+                'peso'   => 20,
+                'score'  => 18,
+                'regras' => [
+                    'F1_b' => ['peso' => 8, 'current' => 8], // 100% velocidade
+                    'F1_c' => ['peso' => 6, 'current' => 5], // 83% qualidade — OK
+                ],
+            ],
+        ],
+        'core'              => [],
+        'paired_violations' => [],
+    ];
 
-    expect($scorecard)->toBeArray()->not->toBeEmpty();
-    expect($scorecard['metadata']['bucket'] ?? null)->toBe('functional_horizontal');
+    $pair = [
+        'velocidade' => 'F1_pest_e2e.F1_b',
+        'qualidade'  => 'F1_pest_e2e.F1_c',
+        'rule'       => 'X',
+        'racional'   => 'Y',
+    ];
+
+    $violation = $this->eval->checkPairedViolation($result, $pair);
+    expect($violation)->toBeNull();
+    // Score não foi alterado
+    expect($result['bucket_dimensions']['F1_pest_e2e']['score'])->toBe(18);
+    expect($result['bucket_dimensions']['F1_pest_e2e']['capped_by_paired'] ?? false)->toBeFalse();
 });
 
-it('loadScorecardForModule(NaoExiste) retorna array vazio (gracefully)', function () {
-    $scorecard = $this->evaluator->loadScorecardForModule('NaoExisteXyz123');
+it('checkPairedViolation retorna null quando velocidade baixa (não dispara cap)', function () {
+    $result = [
+        'bucket_dimensions' => [
+            'F1_pest_e2e' => [
+                'peso'   => 20,
+                'score'  => 6,
+                'regras' => [
+                    'F1_b' => ['peso' => 8, 'current' => 3], // 37% velocidade — abaixo do threshold
+                    'F1_c' => ['peso' => 6, 'current' => 2], // 33% qualidade
+                ],
+            ],
+        ],
+        'core'              => [],
+        'paired_violations' => [],
+    ];
 
-    expect($scorecard)->toBeArray()->toBeEmpty();
+    $pair = [
+        'velocidade' => 'F1_pest_e2e.F1_b',
+        'qualidade'  => 'F1_pest_e2e.F1_c',
+        'rule'       => 'X',
+        'racional'   => 'Y',
+    ];
+
+    expect($this->eval->checkPairedViolation($result, $pair))->toBeNull();
 });
 
-it('evaluateScorecard(Vestuario) retorna estrutura canônica completa', function () {
-    $scorecard = $this->evaluator->loadScorecardForModule('Vestuario');
+it('loadBucketConfig carrega vertical_client_facing.yaml com paired declarado', function () {
+    $config = $this->eval->loadBucketConfig('vertical_client_facing');
 
-    if (empty($scorecard)) {
-        $this->markTestSkipped('Scorecard vestuario YAML ainda não populado');
-    }
-
-    $result = $this->evaluator->evaluateScorecard('Vestuario', $scorecard);
-
-    expect($result)->toBeArray();
-    expect($result)->toHaveKeys([
-        'module',
-        'bucket',
-        'core',
-        'bucket_dimensions',
-        'paired_violations',
-        'score_total',
-        'meta_bucket',
-    ]);
-    expect($result['module'])->toBe('Vestuario');
+    expect($config)->toBeArray()->not->toBeEmpty();
+    expect($config['bucket'])->toBe('vertical_client_facing');
+    expect($config['target_score'])->toBe(85);
+    expect($config['paired'])->toBeArray();
+    expect(count($config['paired']))->toBeGreaterThanOrEqual(1);
+    expect($config['paired'][0])->toHaveKey('velocidade');
+    expect($config['paired'][0])->toHaveKey('qualidade');
+    expect($config['paired'][0])->toHaveKey('rule');
 });
 
-it('score_total respeita range 0-100 (nunca negativo, nunca >100)', function () {
-    foreach (['Vestuario', 'Governance', 'Jana', 'Crm'] as $module) {
-        $scorecard = $this->evaluator->loadScorecardForModule($module);
-        if (empty($scorecard)) {
-            continue;
-        }
-
-        $result = $this->evaluator->evaluateScorecard($module, $scorecard);
-
-        expect($result['score_total'])
-            ->toBeNumeric()
-            ->toBeGreaterThanOrEqual(0)
-            ->toBeLessThanOrEqual(100);
-    }
+it('loadBucketConfig retorna array vazio pra bucket inexistente', function () {
+    expect($this->eval->loadBucketConfig('bucket_inexistente_xyz'))->toBe([]);
 });
 
-it('detection file_exists funciona pra arquivo existente (Modules/Vestuario/module.json)', function () {
-    if (! method_exists($this->evaluator, 'detectFileExists')) {
-        $this->markTestSkipped('Service não expõe detectFileExists (pode ser private — OK)');
-    }
-
-    expect($this->evaluator->detectFileExists('Modules/Vestuario/module.json'))->toBeTrue();
-    expect($this->evaluator->detectFileExists('Modules/Vestuario/nao_existe.json'))->toBeFalse();
+it('resolveBucketForModule lê governance.bucket de module.json', function () {
+    // Vestuario declara bucket=vertical_client_facing em module.json
+    expect($this->eval->resolveBucketForModule('Vestuario'))->toBe('vertical_client_facing');
 });
 
-it('detection grep funciona pra string presente em código', function () {
-    if (! method_exists($this->evaluator, 'detectGrep')) {
-        $this->markTestSkipped('Service não expõe detectGrep (pode ser private — OK)');
-    }
-
-    // HasBusinessScope (ou similar) DEVE existir em algum Entity do Vestuario
-    $found = $this->evaluator->detectGrep(
-        'Modules/Vestuario/**/*.php',
-        'business_id'
-    );
-    expect($found)->toBeTrue();
+it('resolveBucketForModule retorna unknown pra módulo sem bucket declarado', function () {
+    // Governance module.json não declara bucket (só fsm_n_a)
+    expect($this->eval->resolveBucketForModule('Governance'))->toBe('unknown');
 });
 
-it('detection ratio calcula numerator/denominator vs coverage_target', function () {
-    if (! method_exists($this->evaluator, 'detectRatio')) {
-        $this->markTestSkipped('Service não expõe detectRatio (pode ser private — OK)');
-    }
+it('evaluateScorecard retorna estrutura completa com paired_violations vazio quando balanceado', function () {
+    $module = 'Governance';
+    $scorecard = $this->eval->loadScorecardForModule($module);
 
-    // ratio 0.6 vs target 0.5 → pass
-    expect($this->evaluator->detectRatio(6, 10, 0.5))->toBeTrue();
-    // ratio 0.3 vs target 0.5 → fail
-    expect($this->evaluator->detectRatio(3, 10, 0.5))->toBeFalse();
-    // divisão por zero → false (não crash)
-    expect($this->evaluator->detectRatio(0, 0, 0.5))->toBeFalse();
-});
+    $result = $this->eval->evaluateScorecard($module, $scorecard);
 
-it('detection file_age retorna true se arquivo modificado ≤ N dias', function () {
-    if (! method_exists($this->evaluator, 'detectFileAge')) {
-        $this->markTestSkipped('Service não expõe detectFileAge (pode ser private — OK)');
-    }
-
-    // composer.json certamente existe e foi modificado em algum momento
-    expect($this->evaluator->detectFileAge('composer.json', 36500))->toBeTrue();
-    // arquivo inexistente → false
-    expect($this->evaluator->detectFileAge('nao_existe_xyz.json', 30))->toBeFalse();
-});
-
-it('pass-through pra tipos detection não-implementados (placeholder Wave 23)', function () {
-    // Wave 23 vai implementar mais tipos (ex: 'sql_query', 'mcp_tool_call', 'cron_running').
-    // Service v1 (Wave 21) deve aceitar sem crash — score 0 ou pass-through neutro.
-    $scorecard = $this->evaluator->loadScorecardForModule('Vestuario');
-
-    if (empty($scorecard)) {
-        $this->markTestSkipped('Scorecard vestuario YAML ainda não populado');
-    }
-
-    // Não deve throw exception mesmo se YAML mencionar detection desconhecida
-    $result = $this->evaluator->evaluateScorecard('Vestuario', $scorecard);
-
-    expect($result)->toBeArray();
-    expect($result['score_total'])->toBeNumeric();
+    expect($result)->toHaveKeys(['module', 'bucket', 'score_total', 'core', 'bucket_dimensions', 'paired_violations', 'evaluated_at']);
+    expect($result['module'])->toBe('Governance');
+    expect($result['paired_violations'])->toBeArray();
 });

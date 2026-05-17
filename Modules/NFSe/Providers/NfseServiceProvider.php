@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\NFSe\Adapters\SnNfseAdapter;
 use Modules\NFSe\Console\Commands\ImportarCertificadoCommand;
+use Modules\NFSe\Console\Commands\NfseHealthCommand;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\Observers\TransactionNfseObserver;
 
@@ -40,6 +41,7 @@ class NfseServiceProvider extends ServiceProvider
     {
         $this->commands([
             ImportarCertificadoCommand::class,
+            NfseHealthCommand::class,
         ]);
     }
 

@@ -57,6 +57,14 @@ class RagasJudgeService
     }
 
     /**
+     * Indica se o service está em modo mock (testes).
+     */
+    public function isMockMode(): bool
+    {
+        return $this->mockMode;
+    }
+
+    /**
      * Faithfulness — claims da `answer` suportados pelo `context`?
      *
      * Prompt RAGAS-style: decompõe answer em claims; pra cada claim, contexto suporta?
