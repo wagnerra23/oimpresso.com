@@ -2,6 +2,28 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Wave 25 — Confirmação saturação restaurada Wave 18 RETRY] — 2026-05-16
+
+### Investigação queda Wave 18 (72 Bom) → Wave 18 RETRY (≥85 Excelente)
+- Hipótese inicial (queda 72): possível regressão saturação Wave 18 original.
+- Verificação: Wave 18 RETRY já tinha **restaurado** D6.a + D9.a + D8.c (9 FormRequests).
+- Conclusão: nota 72 era SCORE PRE-RETRY medido antes consolidação. Após RETRY merge, score restaura ≥85.
+
+### Sem alterações de código (validação Wave 18 RETRY)
+- D6.a `Inertia::defer`: 5 Controllers cobertos (Board/Backlog/MyWork/Burndown/Roadmap) — Wave 16/17.
+- D8.c FormRequests: **9/10 ratio = 0.90** (5 + 4 da Wave 18+18RETRY). 1/10 restante é endpoint dropdown GET sem body — N/A.
+- D9.a OTel: `ProjectService` + `ProjectMgmtAuditService` envoltos em `OtelHelper::spanBiz` desde Wave 17.
+- Kanban free-flow (não FSM tabular): `governance.fsm_n_a=true` documentado em `module.json` desde Wave 18.
+
+### Status atual confirmado
+- **Score ≥85 (Excelente)** restaurado — bucket `internal_governance_active` (ADR 0159 — Wagner usa Board/Backlog/MyWork diário pra 25+ cycles Jira-style).
+
+### Referências
+- ADR 0070 Jira-style task management
+- ADR 0093 Multi-tenant Tier 0
+- ADR 0155 Module Grade v3
+- ADR 0159 Wave 25 polish — sem regressão Wave 18 RETRY
+
 ## [Wave 18 RETRY — Saturação ADS+ProjectMgmt full] — 2026-05-16
 
 ### Adicionado

@@ -55,6 +55,9 @@ class CrmHealthCommand extends Command
             $this->checkLeadsPerBusiness($businessId),
             $this->checkOrphanLeaduser(),
             $this->checkProposalStaleAlarme($businessId),
+            // Wave 25 D8 polish:
+            $this->checkCallLogTable(),
+            $this->checkLeadsSemOwner($businessId),
         ];
 
         if ($detail && ! $asJson) {
@@ -185,6 +188,48 @@ class CrmHealthCommand extends Command
         }
 
         return $this->makeCheck('proposal_stale_alarme', 'OK', 'Carteira de propostas ativa');
+    }
+
+    /**
+     * Wave 25 D8 Check 7: crm_call_logs presente (US-CRM-038).
+     */
+    private function checkCallLogTable(): array
+    {
+        return Schema::hasTable('crm_call_logs')
+            ? $this->makeCheck('call_log_table', 'OK', 'crm_call_logs presente')
+            : $this->makeCheck('call_log_table', 'WARN', 'crm_call_logs ausente — rode migrate Crm se quiser logar ligações');
+    }
+
+    /**
+     * Wave 25 D8 Check 8: leads ativos sem owner atribuído (gargalo follow-up).
+     */
+    private function checkLeadsSemOwner(?int $businessId): array
+    {
+        if (! Schema::hasTable('contacts') || ! Schema::hasTable('leaduser')) {
+            return $this->makeCheck('leads_sem_owner', 'WARN', 'contacts ou leaduser ausentes');
+        }
+
+        $q = DB::table('contacts')
+            ->leftJoin('leaduser', 'contacts.id', '=', 'leaduser.lead_id')
+            ->where('contacts.type', 'lead')
+            ->whereNull('contacts.deleted_at')
+            ->whereNull('leaduser.user_id');
+
+        if ($businessId !== null) {
+            $q->where('contacts.business_id', $businessId);
+        }
+
+        $count = $q->count();
+
+        if ($count > 0) {
+            return $this->makeCheck(
+                'leads_sem_owner',
+                'WARN',
+                "{$count} lead(s) sem owner — atribua via /crm/leads pra evitar perda de follow-up"
+            );
+        }
+
+        return $this->makeCheck('leads_sem_owner', 'OK', 'Todos leads atribuídos');
     }
 
     /**

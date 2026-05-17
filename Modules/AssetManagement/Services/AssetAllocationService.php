@@ -2,6 +2,7 @@
 
 namespace Modules\AssetManagement\Services;
 
+use App\Util\OtelHelper;
 use App\Utils\Util;
 use DB;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Modules\AssetManagement\Utils\AssetUtil;
  * Service de alocacao de asset (asset_transactions transaction_type=allocate).
  *
  * Wave 16 governance D4 Architecture: extraido de AssetAllocationController.
+ * Wave 25 D9.a: spans OtelHelper::spanBiz em criar/atualizar/remover.
  * Multi-tenant Tier 0 (ADR 0093) — business_id obrigatorio.
  */
 class AssetAllocationService
@@ -24,65 +26,73 @@ class AssetAllocationService
     }
 
     /**
-     * Cria alocacao em transacao.
+     * Cria alocacao em transacao. Wave 25 D9.a: span `assetmanagement.allocation.criar`.
      */
     public function criar(Request $request, int $businessId, int $userId): AssetTransaction
     {
-        $input = $request->only(
-            'ref_no', 'asset_id', 'quantity', 'receiver',
-            'transaction_datetime', 'reason', 'allocated_upto'
-        );
-        $input['transaction_type'] = 'allocate';
-        $input['business_id'] = $businessId;
-        $input['created_by'] = $userId;
+        return OtelHelper::spanBiz('assetmanagement.allocation.criar', function () use ($request, $businessId, $userId): AssetTransaction {
+            $input = $request->only(
+                'ref_no', 'asset_id', 'quantity', 'receiver',
+                'transaction_datetime', 'reason', 'allocated_upto'
+            );
+            $input['transaction_type'] = 'allocate';
+            $input['business_id'] = $businessId;
+            $input['created_by'] = $userId;
 
-        DB::beginTransaction();
+            DB::beginTransaction();
 
-        if (empty($input['ref_no'])) {
-            $ref_count = $this->commonUtil->setAndGetReferenceCount('allocation_code', $businessId);
-            $asset_settings = $this->assetUtil->getAssetSettings($businessId);
-            $prefix = $asset_settings['allocation_code_prefix'] ?? null;
-            $input['ref_no'] = $this->commonUtil->generateReferenceNumber('allocation_code', $ref_count, null, $prefix);
-        }
+            if (empty($input['ref_no'])) {
+                $ref_count = $this->commonUtil->setAndGetReferenceCount('allocation_code', $businessId);
+                $asset_settings = $this->assetUtil->getAssetSettings($businessId);
+                $prefix = $asset_settings['allocation_code_prefix'] ?? null;
+                $input['ref_no'] = $this->commonUtil->generateReferenceNumber('allocation_code', $ref_count, null, $prefix);
+            }
 
-        $input = $this->normalizarCampos($input);
+            $input = $this->normalizarCampos($input);
 
-        $trans = AssetTransaction::create($input);
+            $trans = AssetTransaction::create($input);
 
-        DB::commit();
+            DB::commit();
 
-        return $trans;
+            return $trans;
+        }, ['business_id' => $businessId, 'user_id' => $userId]);
     }
 
     /**
      * Atualiza alocacao existente (scopado a business_id).
+     * Wave 25 D9.a: span `assetmanagement.allocation.atualizar`.
      */
     public function atualizar(Request $request, int $id, int $businessId): AssetTransaction
     {
-        $input = $request->only(
-            'asset_id', 'quantity', 'receiver',
-            'transaction_datetime', 'reason', 'allocated_upto'
-        );
+        return OtelHelper::spanBiz('assetmanagement.allocation.atualizar', function () use ($request, $id, $businessId): AssetTransaction {
+            $input = $request->only(
+                'asset_id', 'quantity', 'receiver',
+                'transaction_datetime', 'reason', 'allocated_upto'
+            );
 
-        DB::beginTransaction();
+            DB::beginTransaction();
 
-        $input = $this->normalizarCampos($input);
+            $input = $this->normalizarCampos($input);
 
-        $trans = AssetTransaction::where('business_id', $businessId)->findOrFail($id);
-        $trans->update($input);
+            $trans = AssetTransaction::where('business_id', $businessId)->findOrFail($id);
+            $trans->update($input);
 
-        DB::commit();
+            DB::commit();
 
-        return $trans;
+            return $trans;
+        }, ['business_id' => $businessId, 'allocation_id' => $id]);
     }
 
     /**
      * Remove alocacao (scopado a business_id).
+     * Wave 25 D9.a: span `assetmanagement.allocation.remover`.
      */
     public function remover(int $id, int $businessId): void
     {
-        $trans = AssetTransaction::where('business_id', $businessId)->findOrFail($id);
-        $trans->delete();
+        OtelHelper::spanBiz('assetmanagement.allocation.remover', function () use ($id, $businessId): void {
+            $trans = AssetTransaction::where('business_id', $businessId)->findOrFail($id);
+            $trans->delete();
+        }, ['business_id' => $businessId, 'allocation_id' => $id]);
     }
 
     /**

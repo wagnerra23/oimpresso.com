@@ -3,6 +3,7 @@
 namespace Modules\TeamMcp\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\TeamMcp\Console\Commands\RotateTokenCommand;
 use Modules\TeamMcp\Console\Commands\SeedActorsCommand;
 
 /**
@@ -13,6 +14,7 @@ use Modules\TeamMcp\Console\Commands\SeedActorsCommand;
  *
  * Commands artisan registrados em runningInConsole():
  *   - team-mcp:seed-actors — popular 5 manifests Identity Mesh (ADR 0081)
+ *   - teammcp:token:rotate — G3 FICHA W22 self-service token rotation (Wave 25)
  */
 class TeamMcpServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,7 @@ class TeamMcpServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 SeedActorsCommand::class,
+                RotateTokenCommand::class,
             ]);
         }
     }

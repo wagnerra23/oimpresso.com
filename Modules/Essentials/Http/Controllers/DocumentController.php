@@ -45,14 +45,13 @@ class DocumentController extends Controller
         $userId = auth()->user()->id;
         $roleId = optional(User::find($userId)->roles()->first())->id;
 
-        $documents = $this->fetchByType($businessId, $userId, $roleId, 'document');
-        $memos     = $this->fetchByType($businessId, $userId, $roleId, 'memos');
-
+        // Wave 25 D6.a — Inertia::defer em fetchByType (JOIN + GROUP BY + map por tipo)
+        // Tab inicial decide qual lista renderiza primeiro; o outro tab carrega lazy.
         return Inertia::render('Essentials/Documents/Index', [
-            'documents' => $documents,
-            'memos'     => $memos,
+            'documents'  => Inertia::defer(fn () => $this->fetchByType($businessId, $userId, $roleId, 'document')),
+            'memos'      => Inertia::defer(fn () => $this->fetchByType($businessId, $userId, $roleId, 'memos')),
             'initialTab' => $request->string('type')->toString() === 'memos' ? 'memos' : 'documents',
-            'me' => $userId,
+            'me'         => $userId,
         ]);
     }
 

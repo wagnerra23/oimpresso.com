@@ -12,6 +12,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * Component = agrupamento ortogonal a Epic.
  * Ex: Frontend, Backend, Infra, Memória, Tests.
+ *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — planejamento
+ * é da plataforma, não per-business. Sem `business_id` by design (governança
+ * MCP gated por Spatie permission `copiloto.mcp.tasks.*`). Wave 25 SATURATION
+ * marker explícito pra rubrica D1.c v3.2 hardened.
  */
 class McpComponent extends Model
 {

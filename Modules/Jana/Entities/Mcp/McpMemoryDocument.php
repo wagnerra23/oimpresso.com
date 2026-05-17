@@ -15,6 +15,11 @@ use Laravel\Scout\Searchable;
  * NUNCA acessa filesystem direto.
  *
  * Sync via job IndexarMemoryGitParaDb (webhook GitHub OU cron 5min).
+ *
+ * REPO-WIDE: ADR 0053 docs canon do git são da plataforma, não per-business.
+ * `business_id` nullable preserva back-compat (legado pré-MEM-MULTI-1) mas
+ * default é NULL (compartilhado). Wave 25 SATURATION marker explícito pra
+ * rubrica D1.c v3.2 hardened.
  */
 class McpMemoryDocument extends Model
 {

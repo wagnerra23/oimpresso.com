@@ -158,14 +158,66 @@ function hallucinationGoldenSet(): array
             'must_contain' => ['PROIBIDO', 'supersedes', 'governance-gate'],
             'must_not_contain' => ['ok editar', 'pode reescrever', 'permitido pequeno fix'],
         ],
+
+        // ---------------------------------------------------------------------
+        // Wave 25 SATURATION — +8 perguntas canon (22 → 30) expandindo cobertura.
+        // ---------------------------------------------------------------------
+        [
+            'question' => 'O que diz o ADR 0053 sobre o MCP server?',
+            'answer' => 'ADR 0053 — MCP server canon roda em CT 100 Proxmox FrankenPHP. Tabela mcp_memory_documents é REPO-WIDE (governança da plataforma, sem business_id).',
+            'must_contain' => ['0053', 'CT 100', 'mcp_memory_documents', 'REPO-WIDE'],
+            'must_not_contain' => ['Hostinger', 'shared hosting', 'business_id obrigatório no doc'],
+        ],
+        [
+            'question' => 'Como Jobs Tier 0 lidam com business_id?',
+            'answer' => 'ADR 0093 §"Commands & Jobs sem HTTP context": Job assíncrono SEMPRE recebe int $businessId no constructor. session() não funciona em queue worker.',
+            'must_contain' => ['0093', 'businessId', 'constructor', 'session()'],
+            'must_not_contain' => ['opcional', 'usar auth() no Job', 'session() funciona em queue'],
+        ],
+        [
+            'question' => 'Qual modelo o NarrarSaudeEcosistemaJob usa?',
+            'answer' => 'gpt-4o-mini com custo ~R$ 0.30/dia (cron horário 24x/dia). Cap protegido por jana:health-check check custo_brain_b_24h <= R$ 5/dia.',
+            'must_contain' => ['gpt-4o-mini', 'R$ 0', 'jana:health-check'],
+            'must_not_contain' => ['Claude Opus', 'sem cap', 'gpt-3.5'],
+        ],
+        [
+            'question' => 'Hook block-automem.ps1 faz o quê?',
+            'answer' => 'BLOQUEIA Write/Edit em ~/.claude/projects/*/memory/*.md desde a Constituição v2. Auto-mem privada legada zerada (ADR 0061 + ADR 0131).',
+            'must_contain' => ['BLOQUEIA', 'ADR 0061', 'ADR 0131'],
+            'must_not_contain' => ['permite escrita', 'opcional', 'só warn'],
+        ],
+        [
+            'question' => 'O que é OtelHelper::spanBiz?',
+            'answer' => 'Helper facade zero-cost App\\Util\\OtelHelper. Wrap callback em span OTel com business_id auto-resolvido da session/auth. Zero overhead quando config(otel.enabled)=false.',
+            'must_contain' => ['App\\Util\\OtelHelper', 'business_id', 'zero-cost'],
+            'must_not_contain' => ['sempre exporta', 'overhead alto', 'Modules\\Jana\\OtelHelper'],
+        ],
+        [
+            'question' => 'Workflow MEXEU REGISTRA em 3 fases?',
+            'answer' => 'PRE-FLIGHT (ler SPEC + RUNBOOK + ADRs) → DURING (commit incremental + push WIP 30min) → POST (PR + CI + merge + docs canon). Tier 0 IRREVOGÁVEL.',
+            'must_contain' => ['PRE-FLIGHT', 'DURING', 'POST', 'IRREVOGÁVEL'],
+            'must_not_contain' => ['opcional', 'depois eu commito', '2 fases'],
+        ],
+        [
+            'question' => 'PiiRedactor onde aplica?',
+            'answer' => 'Modules/Jana/Services/Privacy/PiiRedactor. Sanitização Tier 0 ANTES de mandar texto pro LLM externo. Logga PII como [REDACTED]. Audit periódico D7.a.',
+            'must_contain' => ['PiiRedactor', 'ANTES', '[REDACTED]'],
+            'must_not_contain' => ['DEPOIS do LLM', 'opcional', 'só em prod'],
+        ],
+        [
+            'question' => 'Vaultwarden roda onde e pra quê?',
+            'answer' => 'vault.oimpresso.com em CT 100 Proxmox. Cofre canônico de segredos (tokens, credenciais). Git canônico e auto-mem privada NUNCA recebem credenciais sensíveis.',
+            'must_contain' => ['vault.oimpresso.com', 'CT 100', 'NUNCA'],
+            'must_not_contain' => ['Hostinger vault', 'commit de credenciais ok', 'env commitado'],
+        ],
     ];
 }
 
-it('gold-set hallucination tem >= 20 perguntas canon', function () {
-    expect(count(hallucinationGoldenSet()))->toBeGreaterThanOrEqual(20);
+it('gold-set hallucination tem >= 30 perguntas canon (Wave 25 saturation 22→30)', function () {
+    expect(count(hallucinationGoldenSet()))->toBeGreaterThanOrEqual(30);
 });
 
-it('valida must_contain sobre todas as 22 respostas canon', function () {
+it('valida must_contain sobre todas as 30 respostas canon', function () {
     foreach (hallucinationGoldenSet() as $i => $entry) {
         foreach ($entry['must_contain'] as $term) {
             $msg = "Q#{$i} ({$entry['question']}) — answer NÃO contém termo canon '{$term}'";
@@ -174,7 +226,7 @@ it('valida must_contain sobre todas as 22 respostas canon', function () {
     }
 });
 
-it('valida must_not_contain sobre todas as 22 respostas canon (anti-alucinação)', function () {
+it('valida must_not_contain sobre todas as 30 respostas canon (anti-alucinação)', function () {
     foreach (hallucinationGoldenSet() as $i => $entry) {
         foreach ($entry['must_not_contain'] as $term) {
             $msg = "Q#{$i} ({$entry['question']}) — answer CONTÉM termo alucinado proibido '{$term}'";

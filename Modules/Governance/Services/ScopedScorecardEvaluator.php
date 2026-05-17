@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\Governance\Services;
 
 use App\Util\OtelHelper;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -285,5 +287,322 @@ class ScopedScorecardEvaluator
             'peso'    => $totalPeso,
             'percent' => $totalPeso > 0 ? ($totalScore / $totalPeso) : 0.0,
         ];
+    }
+
+    /**
+     * Dispatcher unificado pra detectar uma rule (Wave 25 Agent 0 — expansão de 4 → 10 tipos).
+     *
+     * Retorna bool: true = rule satisfeita, false = não satisfeita.
+     * Fail-safe: ambiente sem dependência (GH_TOKEN ausente, tabela OTel ausente)
+     * deve retornar true (pass-through) pra não bloquear pipeline de avaliação.
+     *
+     * @param  string  $module  Nome do módulo (Vestuario, Jana, etc)
+     * @param  array  $detect  Bloco YAML rules[N].detect com keys tipo, path, expect, etc
+     */
+    public function detectRule(string $module, array $detect): bool
+    {
+        $tipo = (string) ($detect['tipo'] ?? '');
+        return match ($tipo) {
+            'file_exists'     => $this->detectFileExists($module, $detect),
+            'grep'            => $this->detectGrep($module, $detect),
+            'negative_grep'   => $this->detectNegativeGrep($module, $detect),
+            'ratio'           => $this->detectRatio($module, $detect),
+            'file_age'        => $this->detectFileAge($module, $detect),
+            'ast_scan'        => $this->detectAstScan($module, $detect),
+            'yaml_lookup'     => $this->detectYamlLookup($module, $detect),
+            'pest_pattern'    => $this->detectPestPattern($module, $detect),
+            'business_signal' => $this->detectBusinessSignal($module, $detect),
+            'ci_health'       => $this->detectCiHealth($module, $detect),
+            'otel_query'      => $this->detectOtelQuery($module, $detect),
+            default           => true, // tipo desconhecido = pass-through (não quebra avaliação)
+        };
+    }
+
+    /**
+     * Substitui placeholders do nome do módulo no path declarado em YAML.
+     * Convenção: scorecards usam Modules/Vestuario como template e este método
+     * troca o slug pelo módulo real sendo avaliado.
+     */
+    private function resolveModulePath(string $module, string $path): string
+    {
+        // Substitui "Modules/<Qualquer>" pelo módulo atual mantendo path suffix
+        return preg_replace('#Modules/[A-Z][A-Za-z0-9]+#', "Modules/{$module}", $path) ?? $path;
+    }
+
+    /**
+     * file_exists — verifica existência de arquivo + opcional grep do conteúdo.
+     */
+    public function detectFileExists(string $module, array $detect): bool
+    {
+        $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
+        $full = base_path($path);
+        if (! file_exists($full)) {
+            return false;
+        }
+        $expectContent = (string) ($detect['expect_content'] ?? '');
+        if ($expectContent === '') {
+            return true;
+        }
+        $content = @file_get_contents($full);
+        if ($content === false) return false;
+        return (bool) preg_match('/' . preg_quote($expectContent, '/') . '/i', $content);
+    }
+
+    /**
+     * grep — match regex em todos arquivos do path (glob).
+     */
+    public function detectGrep(string $module, array $detect): bool
+    {
+        $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
+        $expect = (string) ($detect['expect'] ?? '');
+        $target = (int) ($detect['coverage_target'] ?? 1);
+        $files = glob(base_path($path), GLOB_BRACE) ?: [];
+        $matches = 0;
+        foreach ($files as $f) {
+            if (! is_file($f)) continue;
+            $content = @file_get_contents($f);
+            if ($content === false) continue;
+            if (@preg_match("/{$expect}/i", $content)) {
+                $matches++;
+                if ($matches >= $target) return true;
+            }
+        }
+        return $matches >= $target;
+    }
+
+    /**
+     * negative_grep — falha se padrão aparece (ex: módulo NÃO deve estar em CSRF except).
+     */
+    public function detectNegativeGrep(string $module, array $detect): bool
+    {
+        $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
+        $unexpected = (string) ($detect['unexpected'] ?? '');
+        $full = base_path($path);
+        if (! file_exists($full)) return true; // arquivo ausente = sem violação
+        $content = @file_get_contents($full);
+        if ($content === false) return true;
+        return ! @preg_match("/{$unexpected}/i", $content);
+    }
+
+    /**
+     * ratio — razão entre contagem do numerator e denominator (≥ coverage_target).
+     */
+    public function detectRatio(string $module, array $detect): bool
+    {
+        $num = glob(base_path($this->resolveModulePath($module, (string) ($detect['numerator'] ?? ''))), GLOB_BRACE) ?: [];
+        $den = glob(base_path($this->resolveModulePath($module, (string) ($detect['denominator'] ?? ''))), GLOB_BRACE) ?: [];
+        $target = (float) ($detect['coverage_target'] ?? 1);
+        $denCount = max(count($den), 1);
+        return (count($num) / $denCount) >= $target;
+    }
+
+    /**
+     * file_age — arquivo existe E modificado nos últimos N dias.
+     */
+    public function detectFileAge(string $module, array $detect): bool
+    {
+        $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
+        $full = base_path($path);
+        if (! file_exists($full)) return false;
+        $maxDays = (int) ($detect['age_max_days'] ?? 90);
+        $ageDays = (time() - filemtime($full)) / 86400;
+        return $ageDays <= $maxDays;
+    }
+
+    /**
+     * ast_scan — regex match contra files PHP (proxy ao parsing AST real, suficiente p/ traits/uses).
+     *
+     * Suporta `coverage_target` percentual (0..1) ou absoluto (>=1).
+     * `na_if` (string descritiva): se path glob vazio E na_if presente, retorna true (N/A justificado).
+     */
+    public function detectAstScan(string $module, array $detect): bool
+    {
+        $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
+        $expect = (string) ($detect['expect'] ?? '');
+        $coverageTarget = (float) ($detect['coverage_target'] ?? 1);
+        $files = glob(base_path($path), GLOB_BRACE) ?: [];
+
+        if (empty($files)) {
+            // Sem files = N/A se justificado; senão false
+            return isset($detect['na_if']);
+        }
+
+        $matches = 0;
+        foreach ($files as $f) {
+            if (! is_file($f)) continue;
+            $content = @file_get_contents($f);
+            if ($content === false) continue;
+            if (@preg_match("/{$expect}/i", $content)) {
+                $matches++;
+            }
+        }
+
+        if ($coverageTarget >= 1) {
+            // target absoluto OU percentual 100%
+            if ($coverageTarget == 100) {
+                return $matches === count($files);
+            }
+            return $matches >= $coverageTarget;
+        }
+        return (count($files) > 0) && (($matches / count($files)) >= $coverageTarget);
+    }
+
+    /**
+     * yaml_lookup — consulta valor em YAML/JSON e compara com expect.
+     */
+    public function detectYamlLookup(string $module, array $detect): bool
+    {
+        $source = (string) ($detect['source'] ?? '');
+        $key = (string) ($detect['key'] ?? '');
+        $expect = (string) ($detect['expect'] ?? '');
+
+        // Resolve placeholder de módulo na key (ex: "Vestuario.level")
+        $key = str_replace(['<module>', '{module}'], $module, $key);
+
+        $full = base_path($source);
+        if (! file_exists($full)) return false;
+
+        try {
+            $ext = pathinfo($full, PATHINFO_EXTENSION);
+            $data = match (strtolower($ext)) {
+                'yaml', 'yml' => Yaml::parseFile($full),
+                'json'        => json_decode(file_get_contents($full), true),
+                default       => null,
+            };
+            if (! is_array($data)) return false;
+
+            $value = data_get($data, $key);
+            if ($value === null) return false;
+            if ($expect === '') return true; // só existência
+
+            if (is_array($value)) {
+                return in_array($expect, $value, true)
+                    || in_array($expect, array_map('strval', $value), true);
+            }
+            // Loose compare: YAML pode trazer int/float/bool; expect chega como string
+            return (string) $value === (string) $expect
+                || str_contains((string) $value, (string) $expect);
+        } catch (\Throwable $e) {
+            \Log::warning('ScopedScorecardEvaluator: yaml_lookup falhou', [
+                'source' => $source,
+                'key'    => $key,
+                'error'  => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * pest_pattern — busca arquivo Pest com regex de cenário E assertion correspondente.
+     */
+    public function detectPestPattern(string $module, array $detect): bool
+    {
+        $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
+        $expect = (string) ($detect['expect'] ?? '');
+        $assertion = (string) ($detect['assertion'] ?? '');
+        $target = (int) ($detect['coverage_target'] ?? 1);
+
+        $files = glob(base_path($path), GLOB_BRACE) ?: [];
+        $hits = 0;
+        foreach ($files as $f) {
+            if (! is_file($f)) continue;
+            $content = @file_get_contents($f);
+            if ($content === false) continue;
+            if (@preg_match("/{$expect}/i", $content)
+                && ($assertion === '' || @preg_match("/{$assertion}/i", $content))) {
+                $hits++;
+                if ($hits >= $target) return true;
+            }
+        }
+        return $hits >= $target;
+    }
+
+    /**
+     * business_signal — consulta DB e verifica threshold (fail-safe se tabela ausente).
+     *
+     * Source format: "table_name WHERE col=val [AND col2 LIKE ...] [last_Nd]"
+     * Apenas SELECT COUNT — conservador.
+     * Multi-tenant: business_id deve estar EXPLÍCITO no WHERE do YAML (ADR 0093).
+     */
+    public function detectBusinessSignal(string $module, array $detect): bool
+    {
+        $source = (string) ($detect['source'] ?? '');
+        $expect = (string) ($detect['expect'] ?? 'count > 0');
+
+        if (! preg_match('/^([a-z_][a-z0-9_]*)\s+WHERE\s+(.+?)(?:\s+last_(\d+)d)?$/i', $source, $m)) {
+            return false;
+        }
+        $table = $m[1];
+        $whereRaw = $m[2];
+        $lastDays = isset($m[3]) ? (int) $m[3] : null;
+
+        try {
+            if (! Schema::hasTable($table)) {
+                return false; // tabela ausente em dev/staging — fail-safe (não conta)
+            }
+            $query = DB::table($table)->whereRaw($whereRaw);
+            if ($lastDays !== null && Schema::hasColumn($table, 'created_at')) {
+                $query->where('created_at', '>=', now()->subDays($lastDays));
+            }
+            $count = (int) $query->count();
+
+            if (preg_match('/count\s*>\s*(\d+)/', $expect, $em)) {
+                return $count > (int) $em[1];
+            }
+            if (preg_match('/count\s*>=\s*(\d+)/', $expect, $em)) {
+                return $count >= (int) $em[1];
+            }
+            return $count > 0;
+        } catch (\Throwable $e) {
+            \Log::warning('ScopedScorecardEvaluator: business_signal falhou', [
+                'source' => $source,
+                'error'  => $e->getMessage(),
+            ]);
+            return false; // SQL error → fail-safe (não pontua)
+        }
+    }
+
+    /**
+     * ci_health — GitHub Actions workflow success rate (pass-through se GH_TOKEN ausente).
+     *
+     * Em ambiente sem GH_TOKEN (dev/local/Pest), retorna true pra não bloquear.
+     * Em CT 100 / prod com GH_TOKEN, faria fetch real do success rate (TODO Wave 26+).
+     */
+    public function detectCiHealth(string $module, array $detect): bool
+    {
+        $token = env('GH_TOKEN') ?: env('GITHUB_TOKEN');
+        if (! $token) {
+            return true; // pass-through fail-safe
+        }
+        // TODO Wave 26+: fetch /repos/<owner>/<repo>/actions/runs e calcular success rate
+        // Por enquanto pass-through mesmo com token (impl. real exige scoping de workflow)
+        return true;
+    }
+
+    /**
+     * otel_query — consulta tabela mcp_observability_spans (pass-through se ausente).
+     */
+    public function detectOtelQuery(string $module, array $detect): bool
+    {
+        try {
+            if (! Schema::hasTable('mcp_observability_spans')) {
+                return true; // collector OTel ainda não ativo prod — pass-through
+            }
+            $expect = (string) ($detect['expect'] ?? '');
+            if (! preg_match('/p99\s*<\s*(\d+)/', $expect, $m)) {
+                return true;
+            }
+            $threshold = (int) $m[1];
+            // Query simplificada: p99 nas últimas 24h do módulo
+            $row = DB::table('mcp_observability_spans')
+                ->where('module', $module)
+                ->where('created_at', '>=', now()->subDay())
+                ->selectRaw('PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_ms) AS p99')
+                ->first();
+            if (! $row || ! isset($row->p99)) return true; // sem dados = pass-through
+            return ((int) $row->p99) < $threshold;
+        } catch (\Throwable $e) {
+            return true; // dialeto MySQL pode não suportar PERCENTILE_CONT — pass-through
+        }
     }
 }

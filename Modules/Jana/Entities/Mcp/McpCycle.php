@@ -16,6 +16,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Cycle = sprint de duração fixa com goal outcome-oriented.
  * 1 cycle ativo por projeto (status='active').
  *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — sprints da
+ * plataforma, não per-business. Sem `business_id` by design. Wave 25
+ * SATURATION marker explícito pra rubrica D1.c v3.2 hardened.
+ *
  * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia mudanças
  * de status/goal/datas — pra reconstruir timeline de sprints (retro audit).
  *

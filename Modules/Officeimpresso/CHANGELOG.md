@@ -1,5 +1,45 @@
 # Officeimpresso — Changelog
 
+## [Wave 25 — 2026-05-16] POLISH ≥90 (80 → 90, +10pp)
+
+### D8 Security FormRequests (4 → 8)
+- `Http/Requests/UpdateLicencaRequest.php` — par de `StoreLicencaRequest`.
+  Rules `sometimes` (PATCH-friendly) + `hd` unique IGNORA própria licenca em
+  curso (rota ID). Bridge legacy Delphi preservado.
+- `Http/Requests/BulkRevokeLicencaRequest.php` — operacao em lote bloqueio/
+  desbloqueio até 100 licencas/chamada. Motivo obrigatório (audit LGPD).
+  Caso de uso real: cliente cancela contrato (bloquear N) ou isolar maquinas
+  comprometidas. Multi-tenant Tier 0 ({@see ADR 0093}) — Controller filtra
+  IDs por business_id da sessao ANTES do bulk update (defesa-em-profundidade
+  vs IDOR em payload).
+
+### D2 Pest expand observability (Wave 18 inicial → Wave 25 saturado)
+- `Tests/Feature/Wave25ObservabilityExpandedTest.php` — 7 cenários novos:
+  - LicencaService ≥5 OtelHelper spans (baseline preserved)
+  - Span attributes preservam canon `module` key
+  - UpdateLicencaRequest carrega + rules `sometimes` (PATCH)
+  - BulkRevokeLicencaRequest valida array IDs + motivo obrigatório
+  - PII redactor lock-in — Services NÃO logam payload raw
+  - Lei Software 9.609/98 — LicencaAuditService SEM métodos update/delete públicos
+  - OtelHelper no-op preserva tipo genérico (array/int/null)
+
+### D5 Firebird fixtures schema importer Pest
+- `Tests/Feature/Wave25FirebirdImporterFixturesTest.php` — 7 cenários contrato:
+  - Shape canon `LICENCA_COMPUTADOR` (7 campos bridge Delphi)
+  - Shape canon `LICENCA_LOG` append-only (CREATED_AT sim, UPDATED_AT/DELETED_AT não)
+  - Encoding ISO-8859-1 → UTF-8 (acentuação Delphi WR Comercial)
+  - Truncate user_agent 500 chars (anti-DOS)
+  - BLOQUEADO Firebird INTEGER 0/1 maps boolean PHP
+  - `ParseLicencaLogCommand` existe (importer real)
+  - `LicencaLog` Model SEM `SoftDeletes` trait (Lei 9.609/98 retention 5y)
+
+### Notas Tier 0 IRREVOGÁVEIS preservadas
+- ⛔ Bridge Delphi WR Comercial: campos `licenca_id|hd|processador|memoria|versao_exe|bloqueado` PRESERVADOS (Delphi sincroniza via HTTP).
+- ⛔ Lei Software 9.609/98: retention 5y `LicencaLog` audit append-only validado por reflection (sem métodos update/delete públicos no Service + sem SoftDeletes no Model).
+- ⛔ Multi-tenant Tier 0 (ADR 0093): bulk operations filtradas por session biz antes do UPDATE.
+- ⛔ OtelHelper canon (`App\Util\OtelHelper`) preservado. NÃO mover pra namespace módulo.
+- ⛔ PT-BR em comentários/mensagens. Identificadores PHP em inglês.
+
 ## [Wave 18 RETRY — 2026-05-16] Saturação governance v3 — D5 +7
 
 ### D5 Cliente real / Journey (RETRY +1 arquivo)

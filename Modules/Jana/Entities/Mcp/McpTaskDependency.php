@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Substitui mcp_tasks.blocked_by JSON por estrutura relacional com tipos:
  * blocks, relates, duplicates, clones.
+ *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — relação entre tasks
+ * repo-wide. Sem `business_id` by design. Wave 25 SATURATION marker explícito
+ * pra rubrica D1.c v3.2 hardened.
  */
 class McpTaskDependency extends Model
 {

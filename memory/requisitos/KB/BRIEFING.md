@@ -1,11 +1,12 @@
 # KB Unificado — BRIEFING (estado consolidado 1 página)
 
-**Última atualização:** 2026-05-16 — pós-merge PR #934 ([3204fffe5](https://github.com/wagnerra23/oimpresso.com/commit/3204fffe5)) + ONDA 3 e ONDA 6 (parcial) em 4 agents paralelos
+**Última atualização:** 2026-05-16 — Wave 25 saturação D9 (KbHealthCommand + OTel spans expandidos)
 **Owner:** [W] Wagner · **Persona-piloto:** Wagner governança (ONDAS 1-5) → Larissa operacional gráfica (ONDA 6+)
 **Status:**
 - ✅ **ONDA 0+1+2+4+5(parcial) LIVE no main** (PR #934 mergeado 2026-05-16 00:32 UTC, 132 arquivos, +25.465 LOC, 7 agents)
 - ⏳ **ONDA 3 + 5(restante) + 6(parcial) em execução** (sessão 2026-05-16, 4 agents H/I/J/K paralelos background)
 - 📋 **ADR 0150:** **ACEITA** ([decided_at 2026-05-16](../../decisions/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md))
+- 🆕 **Wave 25 (2026-05-16):** `kb:health-check` artisan (4 checks RAG saudáveis) + OTel spans em `KbArticleService::paginate` + `KbBridgeStateService::markRun` (D9.a expandido); +10 Pest tests health command (multi-tenant Tier 0 cross-tenant biz=1 vs biz=99 cobertos)
 
 **Critério de sucesso:** Wagner consegue (a) ver grafo navegável dos 143 ADRs + sessions + charters com edges de dependência; (b) perguntar IA "qual ADR rege X?" e receber resposta com citações; (c) usar trilha didática "Como funciona Multi-tenant Tier 0 aqui".
 

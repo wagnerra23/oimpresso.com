@@ -6,6 +6,13 @@
 
 ## [Unreleased]
 
+### Wave 25 — Governance v3 SATURATION MÁXIMA (2026-05-16)
+- D1.c hardening: marker canônico `REPO-WIDE: ADR 0070 jira-style cross-tenant intencional` adicionado em 8 Entities Mcp (McpScope, McpComponent, McpTaskComment, McpTaskDependency, McpTaskEvent, McpTaskWatcher, McpCcBlob, McpInboxNotification) — distingue "esqueceu trait" de "governance OK" na rubrica D1.c v3.2 hardened
+- D1.c novo test `MultiTenantIsolationComprehensiveTest::D1.c declara marker canônico` (Pest reflection PHPDoc) — exige marker explícito em TODAS 18 entities cross-tenant by design
+- D9.a OpenAiDirectDriver wrapado com `OtelHelper::span` (business_id explícito do ContextoNegocio — queue worker CT 100 sem session HTTP) — Services com OTel passa 45 → 46
+- D2.b hallucination golden expandido 22 → 30 questions (cobertura +ADR 0053 MCP + jobs Tier 0 + Brain A custo + block-automem + OtelHelper + workflow MEXEU REGISTRA + PiiRedactor + Vaultwarden)
+- D3.d CHANGELOG + BRIEFING update entry Wave 25 — score 95 → 96 estimado
+
 ### Wave 18 — Governance v3 SATURATION FULL (2026-05-16)
 - D1.a/b cobertura comprehensive: `MultiTenantIsolationComprehensiveTest.php` valida 40 Entities (17 scoped + 10 via parent + 13 cross-tenant by design) — Jana ≥95 contrato Tier 0 ADR 0093
 - D2 FSM N/A explícito: `FsmCanonicalTest.php` + `module.json` `governance.fsm_n_a: true` — Jana é chat IA, não pipeline transacional (elimina falso-positivo rubrica)

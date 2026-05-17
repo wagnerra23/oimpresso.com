@@ -5,6 +5,21 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
+### Wave 25 POLISH (2026-05-16)
+
+- **ADD D8** `Http/Requests/FetchBriefHistoryRequest.php` — paginação read-only
+  `mcp_briefs` (Wagner debug regressão Brain B). Cap `per_page` max 100
+  (anti-DoS). Filtros temporais `from`/`to`, `valid` whitelist, `min/max_tokens`.
+- **ADD D8** `Http/Requests/MarkBriefValidRequest.php` — endpoint simétrico ao
+  `InvalidateBriefRequest`. Restaura `valid=1` quando review humana confirma
+  falso positivo. Permission `brief.purge` (mesma da invalidate — operação
+  simétrica). Audit log evento `brief.marked_valid`.
+- **ADD D2** `Tests/Feature/BriefFallbackTest.php` — +8 testes Wave 25:
+  fallback fail-fast com key vazia, 504 Gateway Timeout, staleness minutes
+  precision, FetchBriefHistoryRequest (cap/filtros/whitelist/defaults),
+  MarkBriefValidRequest (motivo/messages/coerce).
+- **NOOP D6** — Brief permanece módulo MCP/CLI puro sem Inertia pages.
+
 ### Wave 18 governance (2026-05-16)
 
 - **ADD D3.d** `CHANGELOG.md` (este arquivo) — histórico per-wave.

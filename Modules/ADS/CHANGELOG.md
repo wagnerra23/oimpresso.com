@@ -2,6 +2,23 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Wave 25 — Confirmação polish ≥85 Excelente] — 2026-05-16
+
+### Sem alterações de código (saturação confirmada Wave 18 RETRY)
+- D6.a `Inertia::defer`: 5 Controllers cobertos (Decisoes/Learning/Metricas/Patterns/Conflicts) — Wave 17/18.
+- D8.c FormRequests: **14/15 ratio = 0.93** (3 + 6 + 5 da Wave 18+18RETRY) — Wave 25 NÃO adiciona mais (último 1/15 é Show endpoint sem body — N/A).
+- D9.a OTel: `SkillsService::listAll/findBySlug` envoltos em `OtelHelper::span` desde Wave 18.
+- Dual-brain pattern Tier 0 preservado: `mcp_dual_brain_decisions` + `mcp_decision_patterns` + `mcp_skills_versions` isolation Pest cobertura Wave 18+18RETRY.
+
+### Status atual confirmado
+- **Score 83 (Excelente)** mantido — bucket `internal_governance_active` level (ADR 0159).
+- ADS é meta-orquestrador (não state machine domínio) — `governance.fsm_n_a=true` documentado em `module.json` desde Wave 18.
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0
+- ADR 0155 Module Grade v3
+- ADR 0159 Wave 25 polish — sem regressão Wave 18 RETRY
+
 ## [Wave 18 RETRY — Saturação ADS+ProjectMgmt full] — 2026-05-16
 
 ### Adicionado

@@ -23,6 +23,7 @@
         "client_level": "backlog_hipotese",
         "wave_18_saturation": true,
         "wave_23_saturation": true,
+        "wave_25_saturation": true,
         "scoped_score_target": 85,
         "last_governance_review": "2026-05-16",
         "rubrica_version": "v3_scoped"

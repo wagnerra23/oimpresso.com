@@ -2,6 +2,29 @@
 
 Formato append-only por wave/PR relevante.
 
+## [Wave 25] — 2026-05-16 — SATURATION functional → ≥85
+
+### Added
+
+- `Tests/Feature/Wave25SaturationTest.php` — 23 cenarios cobrindo:
+  - D5.B README "Como cliente usa" (4 passos canonicos + LGPD privacy contract + arquitetura D4 SoC + cita US-CONSULTA-001)
+  - D5.C CustomerJourneyTest existe + cobre 9 passos canonicos (brute-force + payload limpo + filtros)
+  - D9.A OtelHelper canon spans no Service (consultaos.busca_publica com atributo estagio)
+  - D9.B Controller audit log estruturado com PiiRedactor + IP truncado /24 + User-Agent 80c
+  - D9.C Rota pública com middleware throttle + Controller DI testável
+  - D9.D ConsultaOsHealthCommand 5 probes (repository_bound, service_resolvable, retention_declared, smoke_known_ok, smoke_unknown_ok) + log estruturado + `--detail` (não `--verbose`)
+  - D7 retention.php Wave 23 preservado (entities + strategy + notice_period)
+
+### Changed
+
+- `config/governance/module_clients.yaml` ConsultaOs promovido `backlog_hipotese` → `biz_1_wagner_active` (Wagner valida fluxo end-to-end dev — busca + audit + retention + OTel span; US-CONSULTA-001 substitui mock preservando contrato Repository).
+
+### Notes
+
+- Sub-dimensoes alvo Wave 25: D5 (+3 = README "Como cliente usa" canonico + CustomerJourneyTest cobertura source-level), D9 (+6 = audit log estruturado Controller + spans Service + HealthCommand 5 probes + middleware throttle confirmado em rota).
+- Portal público mock-only mantido — US-CONSULTA-001 substitui MockConsultaOsRepository → RepairConsultaOsRepository (1 linha bind Provider) preservando interface ConsultaOsRepositoryInterface.
+- bucket governance v4 declarado `functional_horizontal` em module.json.
+
 ## [Wave 18] — 2026-05-16 — D4 extract Service/Repository + D3 README/CHANGELOG/BRIEFING
 
 ### Added

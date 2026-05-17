@@ -1,5 +1,22 @@
 # Whatsapp — Changelog
 
+## [Wave 25 — 2026-05-16] Drivers SATURATION + D4 services pattern (74→≥85)
+
+### D2/D3 — Drivers contract coverage
+- Novo Pest `Tests/Feature/Wave25WhatsappSaturationTest.php` — 15 cenários (15/15 passed, 41 assertions):
+  - `BaileysDriver` + `MetaCloudDriver` + `ZapiDriver` + `NullDriver` todos implementam `DriverInterface` canon (6 métodos canon: sendTemplate/sendFreeform/sendMedia/fetchMessageStatus/ping/sendInteractive).
+  - `EvolutionDriver` confirmado NÃO existe (ADR 0096 emenda 4 — proibido permanente).
+  - `DriverInterface::sendFreeform` aceita union type `WhatsappBusinessConfig|WhatsappBusinessPhone` (ADR 0117 multi-números).
+  - DI canon: `BaileysDriver` + `MetaCloudDriver` resolvem do container.
+
+### D4 — Services pattern (preserva Wave 17/18 — OtelHelper canon)
+- `BaileysDriver` importa `App\Util\OtelHelper` + ≥3 spans `whatsapp.baileys.*` hot-path (send_freeform/send_media/etc).
+- `MetaCloudDriver` importa OtelHelper + ≥2 spans `whatsapp.meta_cloud.*` (send_template/send_freeform).
+- `WebhookSignatureChecker` (Wave 18 D4) saturado: dispatcher rejeita driver desconhecido (fail-secure), Meta exige prefixo `sha256=` (formato canon Meta), Baileys aceita hex puro (formato daemon Node), resiste a key rotation (secret rotacionado = false).
+
+### D7 — Auditoria preservada
+- Drivers/Services não introduzem PII bypass — Trust L0 mantido (testes via Reflection + Http::fake nos drivers individuais).
+
 ## [Wave 18 RETRY — 2026-05-16] Saturação governance v3 — D2/D4/D5/D9 +Δ
 
 ### D4 Architecture — Service extraction (RETRY +1 service)

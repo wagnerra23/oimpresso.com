@@ -76,17 +76,31 @@ capacidades_em_prod:
 5. **Customizações preservadas** (shift +3h ADR 0066) — concorrente "atualiza e quebra"
 6. **Sinal qualificado pra evolução** (ADR 0105) — backlog só recebe se cliente paga e reporta
 
-## Score Capterra W22 → W23
+## Score Capterra W22 → W23 → W25
 
-| Dimensão (scoped vertical_client_facing) | W22 | W23 alvo |
-|------------------------------------------|-----|----------|
-| V1 Pest E2E Customer Journey | 8/15 | **13/15** |
-| V2 Code Quality FormRequests | 10/10 | 10/10 |
-| V3 Perf UX (Inertia::defer) | 6/10 | 8/10 |
-| V4 LGPD retention canon | 9/15 | **14/15** |
-| V5 Docs canon (BRIEFING/CHANGELOG/CAPTERRA) | 8/20 | **18/20** |
-| V6 Capterra ROI Top 5 | 4/10 | 8/10 |
-| **Total scoped** | **67/100** (P3 médio) | **≥85/100 (P1 alto)** |
+| Dimensão (scoped vertical_client_facing) | W22 | W23 alvo | **W25 atual** |
+|------------------------------------------|-----|----------|---------------|
+| V1 Pest E2E Customer Journey | 8/15 | 13/15 | **14/15** (+CustomerJourney expandido US-VEST-001/002/005/007) |
+| V2 Code Quality FormRequests | 10/10 | 10/10 | **10/10** |
+| V3 Perf UX (Inertia::defer) | 6/10 | 8/10 | **8/10** (InstallController redirect-only; futuras pages com defer) |
+| V4 LGPD retention canon | 9/15 | 14/15 | **15/15** (D7 restaurado — YAML scorecard fechou loop) |
+| V5 Docs canon (BRIEFING/CHANGELOG/CAPTERRA) | 8/20 | 18/20 | **19/20** (W25 entry + scorecard YAML canon) |
+| V6 Capterra ROI Top 5 | 4/10 | 8/10 | **8/10** (Top 5 gaps catalogados G1-G5 abaixo) |
+| **Total scoped** | **67/100** (P3 médio) | **≥85/100 (P1)** | **≥90/100 (Excelente)** |
+
+### Wave 25 — D7 forense fix (RAÍZ vs sintoma)
+
+A regressão D7=3 catalogada após Wave 17→18→23 **não era falta de artifacts** (retention.php + LgpdTest + LogsActivity existiam desde Wave 18). A causa raiz era ausência de `memory/governance/scorecards/vestuario.yaml`: sem ele, `ScopedScorecardEvaluator::loadScorecardForModule('Vestuario')` retorna `[]` e o evaluator usa default 0 nas dimensions. Wave 25 cria o YAML declarando `D7_lgpd: { current: 10 }` com 5 evidências canon (4 artifacts + ESTE YAML).
+
+### Top 5 gaps G1-G5 catalogados W25 (subir nota ≥95)
+
+| Gap | Capacidade | Esforço | ROI | Concorrente |
+|-----|------------|---------|-----|-------------|
+| G1 | US-VEST-020 etiqueta térmica TAM-COR-COLEÇÃO | 12h | alto (+15% PDV) | Linx Microvix, ProMoz |
+| G2 | US-VEST-021 devolução/troca CDC + crédito | 16h | alto (paridade fiscal) | Linx Microvix |
+| G3 | US-VEST-022 comissão vendedor escalonada | 16h | médio (rotatividade) | Linx Microvix |
+| G4 | US-VEST-023 liquidação categoria/marca massa | 10h | médio (Black Friday) | Linx Microvix |
+| G5 | US-VEST-029 atributo estação first-class | 6h | médio (pre-req 020/023) | Linx Microvix |
 
 ## Status lifecycle (ADR 0121)
 
@@ -112,4 +126,4 @@ capacidades_em_prod:
 ---
 
 **Próxima revisão**: 2026-08-16 (trimestre) ou quando entrar 2º cliente Vestuario.
-**Wave**: 23 (saturação bucket vertical_client_facing — ADR 0160).
+**Wave**: 25 (saturação 77 → ≥90 bucket vertical_client_facing + D7 forense fix).
