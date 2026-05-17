@@ -127,8 +127,10 @@ interface AppShellV2Props {
   breadcrumbItems?: Array<{ label: string; href?: string }>;
   /**
    * Esconde a barra superior (breadcrumb + topnav do módulo) inteira.
-   * Usado em telas com header próprio que torna a topbar redundante (ex.: Caixa Unificada V4).
-   * Default: false.
+   * Default invertido pra TRUE em 2026-05-17 (Wagner): topbar global removida
+   * em todo o ERP, navegação fica por sidebar + PageHeader. Páginas que ainda
+   * querem topnav-de-módulo passam `hideTopbar={false}` explicitamente.
+   * Caso original (Caixa Unificada V4) usava esta prop quando default era false.
    */
   hideTopbar?: boolean;
 }
@@ -213,7 +215,7 @@ export default function AppShellV2({
   onSelectConv,
   breadcrumb,
   breadcrumbItems,
-  hideTopbar = false,
+  hideTopbar = true,
 }: AppShellV2Props) {
   // Pega o menu compartilhado do shell (LegacyMenuAdapter via Inertia share)
   const page = usePage();
