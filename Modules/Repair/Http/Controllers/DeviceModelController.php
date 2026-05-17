@@ -114,24 +114,71 @@ class DeviceModelController extends Controller
         }
 
         // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
+        // Blade T1 Migration C (2026-05-17) — expandida com filtros brand_id/device_id + KPIs.
         if ($this->mwartEnabled('repair_device_models_index', (int) $business_id)) {
-            $models = DeviceModel::with('Device', 'Brand')
-                ->where('business_id', $business_id)
-                ->orderBy('id', 'desc')
-                ->get(['id', 'name', 'device_id', 'brand_id', 'repair_checklist']);
-
             return Inertia::render('Repair/DeviceModels/Index', [
-                'models' => $models->map(fn ($m) => [
-                    'id' => $m->id,
-                    'name' => $m->name,
-                    'device_name' => $m->Device?->name,
-                    'brand_name' => $m->Brand?->name,
-                    'has_checklist' => ! empty($m->repair_checklist),
-                ]),
-                'devices' => \App\Category::forDropdown($business_id, 'service'),
-                'brands' => \App\Brands::forDropdown($business_id, false),
+                'filters' => [
+                    'brand_id'  => $request->filled('brand_id')  ? (int) $request->get('brand_id')  : null,
+                    'device_id' => $request->filled('device_id') ? (int) $request->get('device_id') : null,
+                ],
+                'models' => Inertia::defer(fn () => $this->buildDeviceModelsInertiaPayload($request, (int) $business_id)),
+                'kpis'   => Inertia::defer(fn () => $this->buildDeviceModelsInertiaKpis((int) $business_id)),
+                'devices' => \App\Category::forDropdown($business_id, 'device'),
+                'brands'  => \App\Brands::forDropdown($business_id, false),
             ]);
         }
+    }
+
+    /**
+     * Blade T1 Migration C — payload listagem DeviceModel (defer).
+     * Multi-tenant: business_id scoped (ADR 0093 Tier 0 IRREVOGÁVEL).
+     */
+    private function buildDeviceModelsInertiaPayload(Request $request, int $business_id): array
+    {
+        $query = DeviceModel::with('Device', 'Brand')
+            ->where('business_id', $business_id);
+
+        if ($request->filled('brand_id')) {
+            $query->where('brand_id', (int) $request->get('brand_id'));
+        }
+        if ($request->filled('device_id')) {
+            $query->where('device_id', (int) $request->get('device_id'));
+        }
+
+        return $query->orderBy('id', 'desc')
+            ->get(['id', 'name', 'device_id', 'brand_id', 'repair_checklist'])
+            ->map(fn ($m) => [
+                'id'            => $m->id,
+                'name'          => $m->name,
+                'device_id'     => $m->device_id,
+                'brand_id'      => $m->brand_id,
+                'device_name'   => $m->Device?->name,
+                'brand_name'    => $m->Brand?->name,
+                'has_checklist' => ! empty($m->repair_checklist),
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Blade T1 Migration C — KPIs catálogo (defer).
+     */
+    private function buildDeviceModelsInertiaKpis(int $business_id): array
+    {
+        $total = DeviceModel::where('business_id', $business_id)->count();
+        $brands = DeviceModel::where('business_id', $business_id)
+            ->whereNotNull('brand_id')
+            ->distinct('brand_id')
+            ->count('brand_id');
+        $categories = DeviceModel::where('business_id', $business_id)
+            ->whereNotNull('device_id')
+            ->distinct('device_id')
+            ->count('device_id');
+
+        return [
+            'total'      => $total,
+            'brands'     => $brands,
+            'categories' => $categories,
+        ];
     }
 
     /**
@@ -161,6 +208,14 @@ class DeviceModelController extends Controller
 
         $brands = Brands::forDropdown($business_id, false, true);
         $devices = Category::forDropdown($business_id, 'device');
+
+        // Blade T1 Migration C — branch Inertia opt-in.
+        if ($this->mwartEnabled('repair_device_models_create', (int) $business_id)) {
+            return Inertia::render('Repair/DeviceModels/Create', [
+                'brands'  => $brands,
+                'devices' => $devices,
+            ]);
+        }
 
         return view('repair::device_model.create')
             ->with(compact('devices', 'brands'));
@@ -234,6 +289,21 @@ class DeviceModelController extends Controller
 
         $brands = Brands::forDropdown($business_id, false, true);
         $devices = Category::forDropdown($business_id, 'device');
+
+        // Blade T1 Migration C — branch Inertia opt-in.
+        if ($this->mwartEnabled('repair_device_models_edit', (int) $business_id)) {
+            return Inertia::render('Repair/DeviceModels/Edit', [
+                'model' => [
+                    'id'               => $model->id,
+                    'name'             => $model->name,
+                    'brand_id'         => $model->brand_id,
+                    'device_id'        => $model->device_id,
+                    'repair_checklist' => $model->repair_checklist ?? '',
+                ],
+                'brands'  => $brands,
+                'devices' => $devices,
+            ]);
+        }
 
         return view('repair::device_model.edit')
             ->with(compact('devices', 'brands', 'model'));
