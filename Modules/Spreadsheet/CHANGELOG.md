@@ -2,6 +2,7 @@
 
 Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS — manutenção bug-fix + governance only.
 
+<<<<<<< HEAD
 ## Wave 27 — 2026-05-17 (polish D7.c shim canon + D2 cobertura completa)
 
 ### Adicionado — D7.c shim canônico Wave 27
@@ -34,6 +35,32 @@ Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS
 - ADR 0101 Tests biz=1
 - ADR 0155 Module Grade v3 (D7.c shim canon + D2 saturated)
 - ADR 0159 Wave 27 polish
+=======
+## Wave 26 — 2026-05-17 (polish 74 → ≥85 +11pp · D1+D4+D6+D7+D3)
+
+### D1 Entities + cross-tenant guard preservado
+- `Tests/Feature/Wave26SpreadsheetSaturationTest.php` (~22 cenários, ~9 MySQL-skipped):
+  - Entities (Spreadsheet + SpreadsheetShare) usam `LogsActivity` Spatie + `getActivitylogOptions` canon (`logAll + logOnlyDirty + dontSubmitEmptyLogs`).
+  - Table custom canon (`sheet_spreadsheets` + `sheet_spreadsheet_shares`); `sheet_data` cast array; relação `shares()` hasMany via `sheet_spreadsheet_id`; `$guarded = [id]` mass assignment safe.
+  - Schema `sheet_spreadsheets.business_id` confirmado existir (ADR 0093 Tier 0); cross-tenant manual via `where('business_id', ...)` no Controller (biz=1 vs biz=99 isolation preservado).
+
+### D4 Service contract preservado
+- 6 métodos canon (`createSpreadsheet`, `updateSpreadsheet`, `deleteSpreadsheet`, `resolveNotifyableUsers`, `listForUser`, `getForUser`).
+- ≥6 chamadas `OtelHelper::spanBiz` (1 por método público crítico).
+- `bizId` Tier 0 obrigatório nos 3 métodos write (CRUD); `listForUser` retorna LengthAwarePaginator; `getForUser` fail-secure nullable retorno.
+
+### D6 SpreadsheetController DI canon
+- Confirmado: injeta `SpreadsheetService` via DI; ACL canon (`superadmin || hasThePermissionInSubscription + access.spreadsheet`).
+
+### D7 LGPD preservado
+- `Config/retention.php` declara ≥2 entities canon (`sheet_spreadsheets` 1825d + `sheet_spreadsheet_shares` 1825d — janela fiscal Brasil 5y).
+
+### D3 docs
+- CHANGELOG (este entry) + BRIEFING.md Wave 26.
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3 D4+D7 saturated · ADR 0159 Wave polish
+>>>>>>> origin/main
 
 ## Wave 25 — 2026-05-16 (polish D7 LGPD declaração estável)
 

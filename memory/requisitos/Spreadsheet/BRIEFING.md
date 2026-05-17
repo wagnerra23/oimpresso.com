@@ -1,6 +1,21 @@
 # BRIEFING — Modules/Spreadsheet
 
-> **Estado:** 🟡 legado UltimatePOS, pouco uso, manutenção bug-fix only | **Atualizado:** 2026-05-16 | **Owner:** sem owner ativo
+> **Estado:** 🟡 legado UltimatePOS, pouco uso, manutenção bug-fix only | **Atualizado:** 2026-05-17 (Wave 26 polish 74 → ≥85 +11pp · D1 LogsActivity + D6 Controller DI canon + D4 Service contract preservado) | **Owner:** sem owner ativo
+
+### Wave 26 polish (2026-05-17) — saturation 74 → ≥85 (+11pp)
+
+- **D1 Entities trait:** test `Tests/Feature/Wave26SpreadsheetSaturationTest.php` (~22 cenários):
+  - `Spreadsheet` + `SpreadsheetShare` usam `LogsActivity` Spatie (audit trail D7.b append-only)
+  - `getActivitylogOptions` canon: `logAll() + logOnlyDirty() + dontSubmitEmptyLogs()`
+  - Table custom canon (`sheet_spreadsheets` + `sheet_spreadsheet_shares`)
+  - `sheet_data` cast array; `shares()` hasMany via `sheet_spreadsheet_id`; $guarded = [id]
+- **D1 cross-tenant guard preservar** (Wave 18 baseline): `sheet_spreadsheets.business_id` existe (ADR 0093); query `where(business_id)` manual no Controller isola biz=1 vs biz=99
+- **D6 Controller:** `SpreadsheetController` existe + injeta `SpreadsheetService` via DI (Wave 18 D4); ACL canon (superadmin || hasPermission)
+- **D7 LGPD:** Config/retention.php declara ≥2 entities canon (`sheet_spreadsheets` 1825d + `sheet_spreadsheet_shares` 1825d — janela fiscal Brasil 5y)
+- **D4 Service contract preservado:** 6 métodos canon (create/update/delete/resolveNotifyableUsers/listForUser/getForUser); ≥6 spans `OtelHelper::spanBiz`; bizId Tier 0 obrigatório em CRUD; listForUser retorna LengthAwarePaginator; getForUser fail-secure nullable
+- **D3 CHANGELOG + BRIEFING (este entry)** Wave 26
+
+
 
 ## O que é
 

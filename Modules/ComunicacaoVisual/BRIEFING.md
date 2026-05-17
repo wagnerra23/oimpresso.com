@@ -2,7 +2,7 @@
 
 > Estado consolidado da capacidade (1 página executiva, atualizado por PR).
 > Vertical: gráfica rápida BR · CNAE 1813-0/01 · Status: 🟡 construção (piloto Q3/2026)
-> Última atualização: **2026-05-16** (Wave 25 — SATURATION D7 regressão restaurada + D3/D5 boost)
+> Última atualização: **2026-05-17** (Wave 26 — SATURATION FINAL forensic D7 1/10 → 10/10 + scorecard YAML + retention shim)
 
 ## 1. Para que serve
 
@@ -32,6 +32,7 @@ ERP vertical para gráficas rápidas / comunicação visual BR (lona, fachada, p
 ## 4. Multi-tenant + Tier 0
 
 - 100% das entities (`Orcamento`, `OrcamentoItem`, `Os`, `Apontamento`, `Material`, `Substrato`, `Acabamento`, `Instalacao`, `InstalacaoCatalogo`, `OrdemProducao`) com `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- **Wave 26:** 10/10 entities com `LogsActivity` (Spatie) — whitelists sem PII (D7.b=3/3)
 - Pest cross-tenant biz=1 vs biz=99 em `Tier0GuardTest.php` (Wave 16) — 100% verde
 - Append-only `comvis_apontamentos` (sem SoftDeletes) — registro legal de produção
 
@@ -78,4 +79,5 @@ ERP vertical para gráficas rápidas / comunicação visual BR (lona, fachada, p
 | W18 | 65/100 | +30 | retention.php + LgpdCompliance + CustomerJourney + LogsActivity 3 entities |
 | W22 | 41.5/100 | -23.5 | (regressão rubrica scoped v3 ADR 0160 — recalibrou pesos) |
 | W23 | ≥85 estimado | +43.5 | CAPTERRA-FICHA + Wave23ComVisSaturationTest + governance bucket |
-| **W25** | **≥85** | restore +20 | **D7 forensic regressão restaurada** (AuditTrailIntegrityTest), Pages Inertia stub + charter D3, expanded CustomerJourney scenarios D5 |
+| Wave 25 | 69 | parcial +4 (D7 persistiu 1/10) | **D7 forensic regressão restaurada** (AuditTrailIntegrityTest), Pages Inertia stub + charter D3, expanded CustomerJourney scenarios D5 |
+| **W26** | **≥85 estimado** | **+16** | **Forensic D7 RAIZ tripla identificada**: rubrica busca `config/retention.{modulo}.php` (shim novo), LogsActivity em 10/10 entities (era 3/10 → +7), `PiiRedactor` ref em OrcamentoCalculator. Bonus: scorecard YAML ComVis, PII-LGPD.md canon, RecusarOrcamentoRequest D8 |

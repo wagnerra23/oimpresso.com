@@ -155,6 +155,22 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Wave 26 Agent 3 (2026-05-17, ADR 0162) — Rollup diário OTel spans.
+        // Pega spans crus em mcp_observability_spans, computa p50/p95/p99 + error rate
+        // por par (module, span_name) e popula mcp_observability_aggregates_daily.
+        // 02:00 BRT — janela conservadora ANTES de jana:health-check (06:00) e
+        // module:grade-snapshot (06:05) que consomem o aggregate via D9.b.
+        $schedule->command('observability:aggregate-daily')
+            ->dailyAt('02:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule observability:aggregate-daily FALHOU — D9.b governance v4 ficará defasada'
+                );
+            });
+
         // ADR 0133 — System audit (5 dimensões: observability/evals/ADR-stale/cost-agg/test-coverage).
         // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM. 06:15 BRT (15min após health-check
         // pra evitar disputa DB). Tool MCP system-health-audit consulta o mesmo output.
