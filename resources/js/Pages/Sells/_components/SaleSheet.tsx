@@ -10,8 +10,10 @@ import {
   CreditCard,
   Edit,
   ExternalLink,
+  FileText,
   Loader2,
   MapPin,
+  MonitorPlay,
   Package,
   Phone,
   Plus,
@@ -44,6 +46,11 @@ import SaleAiPanel from './SaleAiPanel';
 import SaleItemComments, { useSaleItemComments } from './SaleItemComments';
 import SaleAuditTrail, { type SaleAuditInput } from './SaleAuditTrail';
 import SaleLinkifier from './SaleLinkifier';
+// US-SELL-COWORK-R4-DISTRIBUICAO — Onda 4 KB-9.75:
+// transcript A4 print · presentation fullscreen · WhatsApp message preview.
+import SaleTranscriptPDF from './SaleTranscriptPDF';
+import SalePresentationMode from './SalePresentationMode';
+import SaleMessagePreview from './SaleMessagePreview';
 
 interface Customer {
   id: number;
@@ -172,6 +179,9 @@ export default function SaleSheet({
   const [aiOpen, setAiOpen] = useState(initialAiOpen);
   // US-SELL-COWORK-R3-CURADORIA — hook compartilhado de comentários por item.
   const itemComments = useSaleItemComments();
+  // US-SELL-COWORK-R4-DISTRIBUICAO — overlays transcript A4 + presentation fullscreen.
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [presentationOpen, setPresentationOpen] = useState(false);
   // Sincroniza aiOpen quando muda saleId/initialAiOpen (entrada via ⌘K ✦).
   useEffect(() => {
     if (saleId != null && initialAiOpen) setAiOpen(true);
@@ -588,6 +598,26 @@ export default function SaleSheet({
                 )}
               </section>
 
+              {/* US-SELL-COWORK-R4-DISTRIBUICAO — preview mensagem WhatsApp (3 templates) */}
+              <Section title="Mensagem WhatsApp" icon={Phone}>
+                <div className="sells-cowork-distribuicao">
+                  <SaleMessagePreview
+                    venda={{
+                      invoice_no: data.invoice_no,
+                      transaction_date: data.transaction_date,
+                      final_total: data.final_total,
+                      payment_status: data.payment_status,
+                      payment_method: data.payments[0]?.method ?? null,
+                      customer_name: data.customer?.name ?? null,
+                      customer_mobile: data.customer?.mobile ?? null,
+                      seller_name: null,
+                      pay_term_days: null,
+                      due_date: null,
+                    }}
+                  />
+                </div>
+              </Section>
+
               {/* Notas (com linkify cross-link #V- #OS- #CLI- #orc-) */}
               {data.additional_notes && (
                 <Section title="Observações" icon={Receipt}>
@@ -666,7 +696,26 @@ export default function SaleSheet({
             </div>
 
             {/* Footer ações sticky */}
-            <div className="border-t border-border px-6 py-3 bg-background flex items-center justify-end gap-2">
+            <div className="border-t border-border px-6 py-3 bg-background flex items-center justify-end gap-2 flex-wrap">
+              {/* US-SELL-COWORK-R4-DISTRIBUICAO — Transcript A4 + Apresentar fullscreen */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTranscriptOpen(true)}
+                title="Abrir transcript A4 imprimível"
+              >
+                <FileText size={14} className="mr-1.5" />
+                Transcript
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPresentationOpen(true)}
+                title="Apresentar venda em tela cheia"
+              >
+                <MonitorPlay size={14} className="mr-1.5" />
+                Apresentar
+              </Button>
               <Button variant="outline" size="sm" asChild>
                 <a href={data.urls.print} target="_blank" rel="noopener noreferrer">
                   <Printer size={14} className="mr-1.5" />
@@ -679,6 +728,56 @@ export default function SaleSheet({
                   Editar
                 </a>
               </Button>
+            </div>
+
+            {/* US-SELL-COWORK-R4-DISTRIBUICAO — overlays escopados em .sells-cowork-distribuicao */}
+            <div className="sells-cowork-distribuicao">
+              <SaleTranscriptPDF
+                open={transcriptOpen}
+                onClose={() => setTranscriptOpen(false)}
+                venda={{
+                  id: data.id,
+                  invoice_no: data.invoice_no,
+                  transaction_date: data.transaction_date,
+                  final_total: data.final_total,
+                  total_paid: data.total_paid,
+                  payment_status: data.payment_status,
+                  customer_name: data.customer?.name ?? null,
+                  customer_secondary: data.customer?.secondary ?? null,
+                  customer_doc: null,
+                  seller_name: null,
+                  lines: data.lines.map((l) => ({
+                    id: l.id,
+                    product_name: l.product_name,
+                    product_sku: l.product_sku,
+                    quantity: l.quantity,
+                    unit_price: l.unit_price,
+                    subtotal: l.subtotal,
+                  })),
+                  payments: data.payments.map((p) => ({
+                    id: p.id,
+                    amount: p.amount,
+                    method: p.method,
+                    paid_on: p.paid_on,
+                  })),
+                  additional_notes: data.additional_notes,
+                }}
+              />
+              <SalePresentationMode
+                open={presentationOpen}
+                onClose={() => setPresentationOpen(false)}
+                venda={{
+                  customer_name: data.customer?.name ?? null,
+                  final_total: data.final_total,
+                  payment_status: data.payment_status,
+                  payment_method: data.payments[0]?.method ?? null,
+                  lines: data.lines.map((l) => ({
+                    product_name: l.product_name,
+                    quantity: l.quantity,
+                    subtotal: l.subtotal,
+                  })),
+                }}
+              />
             </div>
           </>
         )}
