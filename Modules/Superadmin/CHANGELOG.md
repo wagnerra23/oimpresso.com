@@ -2,6 +2,30 @@
 
 Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 linha na entrada do Wave/data.
 
+## Wave 27 polish final — 2026-05-17 (target cross_cutting ≥92)
+
+- `Tests/Feature/Wave27CrossTenantSaturationTest.php` (NOVO) — **50 cenários
+  cross-tenant SATURADOS** organizados em 5 blocos:
+  - Bloco A SuperadminDashboardService (12 cenários: smoke / cross-session /
+    invariants / SUPERADMIN convention / D9 spans)
+  - Bloco B BusinessAuditService (10 cenários: canDestroy Wagner-protect /
+    self-destroy / aging summary / convention / spans)
+  - Bloco C PackageManagerService (9 cenários: smoke / find defesa / catálogo
+    cross-tenant / consistência listActive vs countActive)
+  - Bloco D SubscriptionLifecycleService (10 cenários: lifecycle approve/expire/
+    cancel rejeições + idempotência cross-state)
+  - Bloco E Regression guards (9 cenários: signatures estáveis / no withoutGlobalScopes
+    sem comment / PII-free attributes / PT-BR markers / meta-test count)
+- `Http/Controllers/SuperadminController.php` — **D9 spans** legacy blade
+  (`superadmin.legacy.index` + `superadmin.legacy.stats`) — paridade com
+  SuperadminDashboardService extraído W18+W23. Cross-tenant intencional
+  marcado com `// SUPERADMIN:` em stats() method (ADR 0093).
+- Acumulado Pest cross-tenant Superadmin: W23 (14) + W25 (25) + W27 (**50**)
+  = **89+ cenários** (target 50+ no W27 alcançado).
+- Acumulado OTel spans Superadmin: 4 Services × 3-4 métodos
+  (Dashboard 4 + BusinessAudit 3 + PackageManager 2 + SubscriptionLifecycle 3)
+  = 12 spans + 2 W27 Controllers legacy = **14 spans canônicos**.
+
 ## Wave 18 RETRY — 2026-05-16 (governança meta-97)
 
 - `module.json`: declarado `fsm_n_a: true` + razão — Superadmin é backoffice Wagner-only com Subscription status linear (vs Sells/Repair ADR 0143 multi-stage).

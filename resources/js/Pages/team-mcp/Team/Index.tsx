@@ -14,7 +14,7 @@
 //   - Actions: gerar/revogar token, editar quota, export CSV
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router } from '@inertiajs/react';
+import { router, Deferred } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -58,8 +58,11 @@ interface StatsGlobais {
 }
 
 interface Props {
-  team: TeamMember[];
-  stats_globais: StatsGlobais;
+  // W27 D6: backend devolve via Inertia::defer (TeamController:54) — frontend
+  // recebe undefined no primeiro paint e dado real após resolve. UI usa
+  // <Deferred> wrapper pra evitar crash de map/length em undefined.
+  team?: TeamMember[];
+  stats_globais?: StatsGlobais;
   pricing_config: { modelo_default: string; cambio_brl_usd: number };
 }
 
@@ -82,7 +85,15 @@ function quotaBadge(pct: number, block: boolean): { className: string; label: st
 }
 
 function TeamIndex(props: Props) {
-  const { team, stats_globais, pricing_config } = props;
+  // W27 D6: defaults sentinela enquanto props deferred resolvem
+  const team = props.team ?? [];
+  const stats_globais = props.stats_globais ?? {
+    custo_hoje_brl: 0,
+    custo_mes_brl: 0,
+    usuarios_ativos_hoje: 0,
+    calls_hoje: 0,
+  };
+  const { pricing_config } = props;
   const [tokenGerado, setTokenGerado] = useState<{ user: string; raw: string } | null>(null);
   const [editQuotaUser, setEditQuotaUser] = useState<TeamMember | null>(null);
 
@@ -166,37 +177,48 @@ function TeamIndex(props: Props) {
         }
       />
 
-      {/* KPIs globais */}
-      <KpiGrid cols={4} className="mt-6">
-        <KpiCard
-          icon="users"
-          tone="info"
-          label="Devs ativos hoje"
-          value={num(stats_globais.usuarios_ativos_hoje)}
-          description={`de ${team.length} no time`}
-        />
-        <KpiCard
-          icon="activity"
-          tone="default"
-          label="Calls MCP hoje"
-          value={num(stats_globais.calls_hoje)}
-        />
-        <KpiCard
-          icon="dollar-sign"
-          tone="warning"
-          label="Custo hoje"
-          value={brl(stats_globais.custo_hoje_brl)}
-        />
-        <KpiCard
-          icon="dollar-sign"
-          tone="success"
-          label="Custo mês"
-          value={brl(stats_globais.custo_mes_brl)}
-          description={`média ${brl(stats_globais.custo_mes_brl / Math.max(1, new Date().getDate()))} /dia`}
-        />
-      </KpiGrid>
+      {/* W27 D6 — KPIs globais via Inertia::defer (backend TeamController:55) */}
+      <Deferred
+        data="stats_globais"
+        fallback={
+          <KpiGrid cols={4} className="mt-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 rounded-lg bg-muted/40 animate-pulse" />
+            ))}
+          </KpiGrid>
+        }
+      >
+        <KpiGrid cols={4} className="mt-6">
+          <KpiCard
+            icon="users"
+            tone="info"
+            label="Devs ativos hoje"
+            value={num(stats_globais.usuarios_ativos_hoje)}
+            description={`de ${team.length} no time`}
+          />
+          <KpiCard
+            icon="activity"
+            tone="default"
+            label="Calls MCP hoje"
+            value={num(stats_globais.calls_hoje)}
+          />
+          <KpiCard
+            icon="dollar-sign"
+            tone="warning"
+            label="Custo hoje"
+            value={brl(stats_globais.custo_hoje_brl)}
+          />
+          <KpiCard
+            icon="dollar-sign"
+            tone="success"
+            label="Custo mês"
+            value={brl(stats_globais.custo_mes_brl)}
+            description={`média ${brl(stats_globais.custo_mes_brl / Math.max(1, new Date().getDate()))} /dia`}
+          />
+        </KpiGrid>
+      </Deferred>
 
-      {/* Tabela team */}
+      {/* W27 D6 — Tabela team via Inertia::defer (N×6 queries cada row) */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Time ({team.length} devs)</CardTitle>
@@ -205,6 +227,17 @@ function TeamIndex(props: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <Deferred
+            data="team"
+            fallback={
+              <div className="space-y-2 py-4">
+                <div className="text-xs text-muted-foreground">Carregando time…</div>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-10 rounded bg-muted/40 animate-pulse" />
+                ))}
+              </div>
+            }
+          >
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -306,6 +339,7 @@ function TeamIndex(props: Props) {
               </tbody>
             </table>
           </div>
+          </Deferred>
         </CardContent>
       </Card>
 

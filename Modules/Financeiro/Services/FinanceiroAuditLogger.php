@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Financeiro\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 
@@ -84,23 +85,34 @@ class FinanceiroAuditLogger
      * (KEYS_SKIP_REDACTION) e tipos não-string (int/float/bool/array).
      *
      * Arrays aninhados são tratados recursivamente via PiiRedactor::redactArray.
+     *
+     * Wave 27 D9.a — wrap em OtelHelper::spanBiz pra mensurar custo de redação
+     * em hot-paths (TransactionObserver/TituloAutoService logam por baixa).
+     * business_id é resolvido do próprio contexto se presente.
      */
     private function redactContext(array $context): array
     {
-        $out = [];
-        foreach ($context as $key => $value) {
-            if (in_array($key, self::KEYS_SKIP_REDACTION, true)) {
-                $out[$key] = $value;
-                continue;
+        $businessId = is_int($context['business_id'] ?? null) ? (int) $context['business_id'] : 0;
+
+        return OtelHelper::spanBiz('financeiro.audit.redact_context', function () use ($context): array {
+            $out = [];
+            foreach ($context as $key => $value) {
+                if (in_array($key, self::KEYS_SKIP_REDACTION, true)) {
+                    $out[$key] = $value;
+                    continue;
+                }
+                if (is_string($value)) {
+                    $out[$key] = $this->redactor->redact($value);
+                } elseif (is_array($value)) {
+                    $out[$key] = $this->redactor->redactArray($value);
+                } else {
+                    $out[$key] = $value;
+                }
             }
-            if (is_string($value)) {
-                $out[$key] = $this->redactor->redact($value);
-            } elseif (is_array($value)) {
-                $out[$key] = $this->redactor->redactArray($value);
-            } else {
-                $out[$key] = $value;
-            }
-        }
-        return $out;
+            return $out;
+        }, [
+            'business_id' => $businessId,
+            'keys_count'  => count($context),
+        ]);
     }
 }

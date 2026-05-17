@@ -1,5 +1,27 @@
 # OficinaAuto — Changelog
 
+## [Wave 27 POLISH — 2026-05-17] Polish final 77-88 → ≥90
+
+### D2 Pest novo
+- `Tests/Feature/Wave27OficinaAutoSaturationTest.php` — 8 cenários reflection + source-grep + Container resolve (ZERO hit DB pra paralelização worktree):
+  - Container resolve 4 Services canon (D4 reuse Wave 18+25 estável)
+  - Total spans canon `oficinaauto.*` cumulativo ≥ 14 (W18+RETRY+W25 preservado)
+  - CapacidadeService thresholds 5 níveis (ociosa/normal/apertada/lotada/overcommit) documentados
+  - VehicleQueryService STATUSES whitelist documentada
+  - AprovacaoOsService 3 spans canon `oficinaauto.aprovacao.*` (gerar_token + validar_token + validar_pin)
+  - README cita cliente piloto Martinho Caçambas (D5 customer journey)
+  - E2EJourneyMartinhoBiz1Test existe (DB-real 4+ cenários — W18 RETRY)
+  - Tier 0 IRREVOGÁVEL: ADR 0143 FSM ServiceOrder + ADR 0093 Vehicle global scope preservados (Model existe)
+
+### D5 — CustomerJourney Martinho completo (W18+W25 + W27 reforço)
+- W27 valida contratos imutáveis adicionais (spans count, thresholds, STATUSES whitelist) que protegem o journey E2E contra regressão silenciosa
+- Pattern Pest sem boot DB (reflection-only) permite rodar paralelizado N worktrees sem conflito
+
+### Tier 0 IRREVOGÁVEIS preservados
+- ADR 0143 FSM pipeline ServiceOrder — Wave 27 NÃO toca Service nem FSM
+- ADR 0093 multi-tenant — global scope Vehicle/ServiceOrder preservado
+- ADR 0101 biz=1 nunca cliente real — E2E test usa biz=1 Wagner dev
+
 ## [Wave 25 POLISH — 2026-05-16] Saturação ≥90 D2/D5/D6 sem boot DB
 
 ### D2 Pest novo

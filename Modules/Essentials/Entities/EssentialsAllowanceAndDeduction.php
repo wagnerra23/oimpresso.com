@@ -5,10 +5,13 @@ namespace Modules\Essentials\Entities;
 use App\Concerns\HasBusinessScope;
 use App\Utils\Util;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class EssentialsAllowanceAndDeduction extends Model
 {
     use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (Wave 18 D1 SATURATION — folha/RH)
+    use LogsActivity;     // D7 LGPD audit Wave 27 — folha de pagamento PII forte
 
     /**
      * The attributes that aren't mass assignable.
@@ -23,6 +26,24 @@ class EssentialsAllowanceAndDeduction extends Model
      * @var string
      */
     protected $table = 'essentials_allowances_and_deductions';
+
+    /**
+     * Auditoria LGPD (D7 Wave 27) — cadastro de proventos/descontos folha.
+     *
+     * CLT Art. 11 + RFB 5 anos. Loga metadata fiscal (type, amount, amount_type)
+     * + business_id. `description` pode ser livre — loga só hash via metadata se
+     * necessário no futuro.
+     *
+     * @see Modules\Essentials\Config\retention.php (essentials_allowance_deduction: 1825 dias)
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['business_id', 'description', 'type', 'amount', 'amount_type', 'applicable_date'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('essentials.allowance_deduction');
+    }
 
     public function employees()
     {

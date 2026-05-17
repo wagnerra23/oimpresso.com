@@ -2,6 +2,30 @@
 
 > Integração unidirecional POS oimpresso → WooCommerce externo (categories/products/orders sync).
 
+## [Wave 27 — Polish ≥95 D2/D9] — 2026-05-17
+
+### Adicionado — `Tests/Feature/Wave27SaturationTest.php` (10 cenários, ~0.30s avg)
+- D2 SyncService expansão: 3 sync methods + contrato `$businessId:int` primeiro param (Tier 0 ADR 0093)
+- D2 ResetService expansão: 2 reset methods + contrato `$businessId:int` (Tier 0)
+- D9 spans completos: 6 spans canon `woocommerce.*` cobertos em 3 Services
+- D9 imports canon: 3 Services importam `App\Util\OtelHelper`
+- D9 OtelHelper preserva exception em `woocommerce.*` (fail-loud Wave 25 + 27)
+- D6 HealthCommand canônico `--detail` + `--business-id` obrigatório
+- D6 HealthCommand `SYNC_STALE_DAYS = 7` (alerta config preservado W25)
+- D2 3 Services Woocommerce resolvidos via container (D4 reuse)
+- D2 module boundary: 3 Services dentro `Modules\Woocommerce` (zero leak)
+- D6 module.json declara `fsm_n_a:true` (integração unidirecional WooCommerce externo)
+- D9 SyncService span attributes Tier 0: `business_id` em todos os 3 sync spans
+
+### Tier 0 IRREVOGÁVEL preservado
+- Contract HTTP WooCommerce REST API: ZERO mock interno (Wave 16/17/23/25/27).
+- Multi-tenant ADR 0093: `$businessId:int` primeiro param em todo Service public method.
+- Wave 25 entregas (6 spans + 4 HealthCommand checks + SYNC_STALE_DAYS) intactas.
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 · ADR 0155 Module Grade v3 · ADR 0159 Polish series
+- `.claude/rules/commands.md` (`--detail` NUNCA `--verbose`)
+
 ## [Unreleased] — Wave 25 POLISH (2026-05-16) — Saturação ≥92 D6/D9
 
 ### D9 Spans completos (cumulativo Wave 18+25)

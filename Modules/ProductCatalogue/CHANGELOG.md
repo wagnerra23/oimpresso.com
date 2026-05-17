@@ -2,6 +2,33 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Wave 27 — Polish ≥90 D2/D9] — 2026-05-17
+
+### Adicionado
+- **`Tests/Feature/Wave27SaturationTest.php`** (8 cenários, 0.32s avg) — saturação polish ≥90:
+  - D2 ArchitectureTest cumulativo (Wave 16 12 cenários + Wave 23 8 cenários ≥20)
+  - D9 spans completos: 3 spans canon `product_catalogue.*` em 2 Services
+  - D9 span attributes: `business_id` Tier 0 em todos os spans (defesa rota pública QR)
+  - D9 OtelHelper preserva exception em `product_catalogue.*` (fail-loud)
+  - D9 imports canon `App\Util\OtelHelper` (zero duplicação)
+  - D2 module boundary: Services/Repository/Controller dentro `Modules\ProductCatalogue`
+  - D6 HealthCommand `--detail` canon (NUNCA `--verbose` Symfony reserved)
+  - D2 Controller Blade explicito — usa `view()` não `Inertia::render` (defer N/A pra catálogo QR público)
+
+### Alterado
+- **`Console/Commands/ProductCatalogueHealthCommand.php`** — adicionado flag `--detail` no signature (alinha `.claude/rules/commands.md` — NUNCA `--verbose`).
+
+### Não alterado (intencional — já saturado)
+- D4 Architecture (W16): Controller magro + 2 Services + Repository.
+- D9.a OTel (W17): `buildIndexPayload`/`buildShowPayload`/`buildQrPayload` wrapped em `OtelHelper::spanBiz`.
+- D7.c retention.php (W25): preservado.
+- D6 defer: N/A — Controller usa Blade view() pra rota pública QR; `Inertia::defer` aplica só a páginas Inertia/React.
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 · ADR 0094 Constituição §5 SoC · ADR 0101 Tests biz=1
+- ADR 0155 Module Grade v3 · ADR 0159 Polish series
+- `.claude/rules/commands.md` (Tier 0 — `--detail` NUNCA `--verbose`)
+
 ## [Wave 25 — Polish D7.c retention compliance] — 2026-05-16
 
 ### Adicionado — D7.c rubrica governance v3 (+1 arquivo)

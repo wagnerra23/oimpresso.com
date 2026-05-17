@@ -67,18 +67,20 @@ it('Apontamento whitelist logOnly NÃO inclui observacoes nem operador_id', func
 });
 
 it('whitelist logOnly cobre campos críticos de negócio (status/totais/datas)', function () {
+    // W27 D7 forensic fix: Pest expect()->toContain($a, $b) checa AMBOS valores em array,
+    // não passa $b como mensagem. Mensagem semântica vai pro nome do test (acima).
     $orcOpts = (new Orcamento())->getActivitylogOptions();
     expect($orcOpts->logAttributes)->toContain('status');
     expect($orcOpts->logAttributes)->toContain('total');
 
+    // status_etapa é coluna crítica FSM-trackável (rastreabilidade produtiva)
     $osOpts = (new Os())->getActivitylogOptions();
-    expect($osOpts->logAttributes)->toContain('status_etapa',
-        'status_etapa é coluna crítica FSM-trackável (rastreabilidade produtiva)');
+    expect($osOpts->logAttributes)->toContain('status_etapa');
     expect($osOpts->logAttributes)->toContain('valor_total');
 
+    // m² produzido é coluna crítica drift produtivo (audit fiscal)
     $apOpts = (new Apontamento())->getActivitylogOptions();
-    expect($apOpts->logAttributes)->toContain('m2_produzido',
-        'm² produzido é coluna crítica drift produtivo (audit fiscal)');
+    expect($apOpts->logAttributes)->toContain('m2_produzido');
     expect($apOpts->logAttributes)->toContain('drift_percent');
 });
 

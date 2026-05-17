@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 /**
- * KbRagasEvalTest — Wave 23 KB §G2 — port do pattern Jana RAGAS pra KB.
+ * KbRagasEvalTest — Wave 23 KB §G2 + Wave 27 §G2 expansão 20→50.
  *
- * Mede baseline cego (mock mode default) sobre 20 perguntas golden KB.
+ * Mede baseline cego (mock mode default) sobre **50** perguntas golden KB.
+ * Fixtures carregadas de Modules/KB/Tests/Feature/fixtures/kb-gold-set.json
+ * (5 categorias × 10: docs_canon, code_internals, wave_history, multi_tenant, lgpd_compliance).
+ *
  * Real mode opt-in via .env OPENAI_API_KEY + RAGAS_FORCE_MOCK=false.
  *
  * Métricas RAGAS reusando RagasJudgeService do Jana (Modules\Jana\Services\Ragas):
@@ -13,14 +16,22 @@ declare(strict_types=1);
  *   - answer_relevancy — respostas relevantes
  *   - context_precision — top-N reranked com signal > noise
  *
- * Custo aprox real mode (20 ex × 3 métricas):
- *   - ~$0.024 por suite run
- *   - Weekly = ~$0.10/mês
+ * Por que 50 (não 20, não 200)?
+ *   - <20: scores oscilam run-a-run (variância >5pp) — instável pra detectar drift
+ *   - 50: estável estatisticamente, custo aceitável real-mode (~$0.06/run × 3 métricas)
+ *   - 200+: cost-of-eval explode, sem ganho marginal pra regression detection
+ *   - Refs 2026: Statsig Golden Datasets, Patronus LLM Testing, Qdrant RAG Eval Guide
+ *
+ * Custo aprox real mode (50 ex × 3 métricas):
+ *   - ~$0.06/suite run (gpt-4o-mini @ $0.15/M input + $0.60/M output)
+ *   - Weekly schedule = ~$0.25/mês
  *
  * @group ragas
  * @see Modules/Jana/Services/Ragas/RagasJudgeService.php
  * @see Modules/KB/Services/KbRagService.php
+ * @see Modules/KB/Tests/Feature/fixtures/kb-gold-set.json (canon dataset)
  * @see Wave 22 FICHA KB §G2 RAGAS eval suite KB
+ * @see Wave 27 §G2 expansão gold-set 20→50 + schedule drift detector weekly
  */
 
 use Modules\Jana\Services\Ragas\RagasJudgeService;
@@ -28,10 +39,49 @@ use Modules\Jana\Services\Ragas\RagasJudgeService;
 // TestCase é aplicado via tests/Pest.php uses(TestCase::class)->in(KbFeatureDir).
 
 /**
- * Gold-set KB — 20 perguntas canon sobre Knowledge Base unificado.
- * Cobre: SCHEMA KB, multi-tenant Tier 0, retrieval, ADRs canon.
+ * Gold-set KB — 50 perguntas canon sobre Knowledge Base unificado.
+ *
+ * Carregado de `fixtures/kb-gold-set.json` (Wave 27 §G2 expansão 20→50).
+ * Cobre 5 categorias × 10:
+ *   - docs_canon (ADRs, BRIEFINGs, charter)
+ *   - code_internals (namespaces, services, classes)
+ *   - wave_history (entregas Wave 22-27, marcos)
+ *   - multi_tenant (Tier 0, business_id, cross-tenant)
+ *   - lgpd_compliance (PiiRedactor, retention, opt-in)
+ *
+ * Fallback inline (20 perguntas legacy) preservado se fixtures ausente —
+ * graceful degradation em CI puro sem fs access.
  */
 function ragasKbGoldSet(): array
+{
+    $fixturePath = __DIR__ . '/fixtures/kb-gold-set.json';
+
+    if (is_file($fixturePath)) {
+        $raw = (string) file_get_contents($fixturePath);
+        $decoded = json_decode($raw, true);
+
+        if (is_array($decoded) && isset($decoded['questions']) && is_array($decoded['questions'])) {
+            // Normaliza pro shape esperado: ['question', 'ground_truth', 'tags']
+            return array_map(static function (array $q): array {
+                return [
+                    'question' => (string) ($q['question'] ?? ''),
+                    'ground_truth' => (string) ($q['ground_truth'] ?? ''),
+                    'tags' => (array) ($q['tags'] ?? []),
+                    'category' => (string) ($q['category'] ?? ''),
+                    'id' => (string) ($q['id'] ?? ''),
+                ];
+            }, $decoded['questions']);
+        }
+    }
+
+    // Fallback inline 20 legacy (CI sem fs ou fixtures corrompida)
+    return ragasKbGoldSetLegacy();
+}
+
+/**
+ * Fallback legacy 20 perguntas — preservado pra graceful degradation.
+ */
+function ragasKbGoldSetLegacy(): array
 {
     return [
         ['question' => 'Qual ADR formaliza o KB unificado como módulo IA central?', 'ground_truth' => 'ADR 0149 — KB Unificado grafo conhecimento módulo IA central. Define 12 tabelas kb_* + bridge mcp_memory_documents.', 'tags' => ['kb', 'governance']],
@@ -63,13 +113,54 @@ beforeEach(function () {
     }
 });
 
-it('gold-set KB tem >= 20 perguntas canon', function () {
+it('gold-set KB tem >= 50 perguntas canon (Wave 27 §G2 expansão)', function () {
     $set = ragasKbGoldSet();
-    expect(count($set))->toBeGreaterThanOrEqual(20);
+    expect(count($set))->toBeGreaterThanOrEqual(50);
 
     foreach ($set as $i => $q) {
         expect($q)->toHaveKeys(['question', 'ground_truth', 'tags'], "Item #{$i} malformado");
+        expect($q['question'])->not->toBeEmpty("Item #{$i} sem question");
+        expect($q['ground_truth'])->not->toBeEmpty("Item #{$i} sem ground_truth");
     }
+})->group('ragas');
+
+it('gold-set KB cobre 5 categorias × 10 (Wave 27 §G2)', function () {
+    $set = ragasKbGoldSet();
+
+    // Fallback legacy (20) não tem 'category' — skipa se rodando inline
+    $categorized = array_filter($set, fn ($q) => ! empty($q['category'] ?? null));
+    if (count($categorized) < 50) {
+        $this->markTestSkipped('Fixtures kb-gold-set.json ausente ou legacy fallback ativo.');
+    }
+
+    $byCategory = [];
+    foreach ($categorized as $q) {
+        $byCategory[$q['category']] = ($byCategory[$q['category']] ?? 0) + 1;
+    }
+
+    expect($byCategory)->toHaveKeys([
+        'docs_canon',
+        'code_internals',
+        'wave_history',
+        'multi_tenant',
+        'lgpd_compliance',
+    ]);
+
+    foreach (['docs_canon', 'code_internals', 'wave_history', 'multi_tenant', 'lgpd_compliance'] as $cat) {
+        expect($byCategory[$cat])->toBeGreaterThanOrEqual(10, "Categoria {$cat} tem <10 perguntas");
+    }
+})->group('ragas');
+
+it('gold-set KB perguntas têm id único (Wave 27 §G2 governança)', function () {
+    $set = ragasKbGoldSet();
+    $withIds = array_filter($set, fn ($q) => ! empty($q['id'] ?? null));
+
+    if (count($withIds) < 50) {
+        $this->markTestSkipped('Fixtures ausente — legacy 20 sem id.');
+    }
+
+    $ids = array_map(fn ($q) => $q['id'], $withIds);
+    expect(count($ids))->toBe(count(array_unique($ids)), 'IDs duplicados no gold-set');
 })->group('ragas');
 
 it('KB faithfulness gate >= threshold sobre gold-set (mock-safe)', function () {
@@ -126,7 +217,7 @@ it('KB context_precision gate >= threshold sobre gold-set (mock-safe)', function
     expect($avg)->toBeGreaterThanOrEqual($threshold);
 })->group('ragas');
 
-it('KB gold-set cobre tags canon (kb, multi-tenant, ia-stack)', function () {
+it('KB gold-set cobre tags canon (kb, multi-tenant, ia-stack, lgpd, governance)', function () {
     $set = ragasKbGoldSet();
     $allTags = [];
     foreach ($set as $q) {
@@ -136,7 +227,11 @@ it('KB gold-set cobre tags canon (kb, multi-tenant, ia-stack)', function () {
     }
 
     expect($allTags)->toHaveKey('kb');
-    expect($allTags['kb'])->toBeGreaterThanOrEqual(15);
+    // Wave 27 §G2 — 50 perguntas, todas com tag 'kb' (era >=15 com 20 legacy)
+    expect($allTags['kb'])->toBeGreaterThanOrEqual(40);
     expect($allTags)->toHaveKey('multi-tenant');
     expect($allTags)->toHaveKey('ia-stack');
+    // Wave 27 §G2 — categorias novas adicionam tags
+    expect($allTags)->toHaveKey('lgpd');
+    expect($allTags)->toHaveKey('governance');
 })->group('ragas');
