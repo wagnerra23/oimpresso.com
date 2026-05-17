@@ -35,8 +35,12 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     });
 
 // Painel principal Wagner-only — ordem de middleware crítica:
-// tailscale-only (zero cost IP) -> auth -> is-wagner (DB check)
-Route::middleware(['web', 'tailscale-only', 'auth', 'is-wagner'])
+// tailscale-only (zero cost IP) -> SetSessionData (popula session.business
+// usado pelo AdminSidebarMenu) -> auth -> is-wagner (DB check) ->
+// language/timezone (cosmetic UltimatePOS) -> AdminSidebarMenu (popula
+// Menu::create('admin-sidebar-menu') consumido pelo HandleInertiaRequests
+// como shell.menu; sem ele o Cockpit Sidebar exibe "Menu vazio")
+Route::middleware(['web', 'tailscale-only', 'SetSessionData', 'auth', 'is-wagner', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('admin')
     ->group(function () {
         Route::get('/', IndexController::class)->name('admin.index');
