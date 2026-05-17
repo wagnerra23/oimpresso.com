@@ -2,6 +2,7 @@
 
 namespace Modules\SRS\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\File;
 use Modules\SRS\Entities\DocPage;
 
@@ -34,6 +35,20 @@ class ModuleAuditor
     ) {}
 
     public function audit(string $moduleName): array
+    {
+        // Wave 27 D9 — span OTel canonico envolve auditoria completa de modulo.
+        // Latencia tipica 50-200ms (lê N arquivos .md + parse frontmatter).
+        // Span isola contribuicao desta operacao em traces consolidados.
+        return OtelHelper::spanBiz('srs.audit.module', function () use ($moduleName) {
+            return $this->auditInterno($moduleName);
+        }, ['module' => $moduleName]);
+    }
+
+    /**
+     * Wave 27 — implementacao interna de audit (envolvida por OtelHelper acima).
+     * Mantida separada pra Pest source-level testar contrato sem overhead OTel.
+     */
+    protected function auditInterno(string $moduleName): array
     {
         $data = $this->reader->readModule($moduleName);
         if (! $data) {

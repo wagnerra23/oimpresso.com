@@ -5,6 +5,7 @@ namespace Modules\ADS\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\ADS\Http\Requests\StoreSkillVersionRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ADS\Services\SkillsService;
@@ -120,16 +121,10 @@ class SkillsController extends Controller
         ]);
     }
 
-    public function store(string $slug, Request $request, SkillsService $service): RedirectResponse
+    public function store(string $slug, StoreSkillVersionRequest $request, SkillsService $service): RedirectResponse
     {
-        $data = $request->validate([
-            'frontmatter_yaml'         => 'required|string|max:5000',
-            'body_markdown'            => 'required|string|max:200000',
-            'rationale_problem'        => 'required|string|min:10|max:2000',
-            'rationale_hypothesis'     => 'required|string|min:10|max:2000',
-            'rationale_success_metric' => 'required|string|min:10|max:2000',
-            'rationale_rollback'       => 'required|string|min:10|max:2000',
-        ]);
+        // Wave 27 D8.c — validação extraída pra StoreSkillVersionRequest.
+        $data = $request->validated();
 
         $skillModel = McpSkill::where('slug', $slug)->first();
         if ($skillModel === null) {

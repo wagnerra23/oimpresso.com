@@ -135,14 +135,23 @@ class RecipeBomService
      * Lista recipes do business em formato dropdown — wrapper sobre MfgRecipe::forDropdown()
      * com tipagem explícita pra DI em Controllers.
      *
+     * Wave 27 — D9.a span observa hot-path do dropdown (forms Recipe + Production
+     * carregam toda lista de receitas do business no select). Zero-cost OTel quando
+     * `otel.enabled=false` (default Hostinger).
+     *
      * @param  int  $businessId
      * @param  bool  $byVariationId  Se true, key = variation_id; senão key = recipe.id
      * @return Collection<string, string>
      */
     public function listForDropdown(int $businessId, bool $byVariationId = true): Collection
     {
-        $recipes = MfgRecipe::forDropdown($businessId, $byVariationId);
+        return OtelHelper::spanBiz('manufacturing.recipe.list_for_dropdown', function () use ($businessId, $byVariationId) {
+            $recipes = MfgRecipe::forDropdown($businessId, $byVariationId);
 
-        return collect($recipes->toArray());
+            return collect($recipes->toArray());
+        }, [
+            'module'           => 'Manufacturing',
+            'by_variation_id'  => $byVariationId,
+        ]);
     }
 }

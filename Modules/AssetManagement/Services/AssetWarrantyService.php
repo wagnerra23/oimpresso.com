@@ -85,11 +85,64 @@ class AssetWarrantyService
     public function ativas(int $assetId, int $businessId): \Illuminate\Support\Collection
     {
         return OtelHelper::spanBiz('assetmanagement.warranty.list_active', function () use ($assetId, $businessId) {
-            $asset = Asset::where('business_id', $businessId)->findOrFail($assetId);
+            $asset = Asset::where('business_id', $businessId)->findOrFail($asset_id = $assetId);
             return $asset->warranties()
                 ->where('end_date', '>=', now()->toDateString())
                 ->orderBy('end_date')
                 ->get();
+        }, [
+            'module'      => 'AssetManagement',
+            'asset_id'    => $assetId,
+            'business_id' => $businessId,
+        ]);
+    }
+
+    /**
+     * Conta garantias ativas de um asset — útil em widgets dashboard / badges.
+     *
+     * Wave 27 polish D9.a — span observa agregação (count cheap, mas instrumentar
+     * mantém contagem fina pra detectar latência em N+1 futuro). Zero-cost OTel
+     * quando `otel.enabled=false` (default Hostinger).
+     *
+     * Multi-tenant Tier 0 ({@see ADR 0093}): scope via Asset.business_id JOIN.
+     *
+     * @return int Quantidade de warranties ativas (end_date >= hoje)
+     */
+    public function contagemAtivas(int $assetId, int $businessId): int
+    {
+        return OtelHelper::spanBiz('assetmanagement.warranty.count_active', function () use ($assetId, $businessId) {
+            $asset = Asset::where('business_id', $businessId)->find($assetId);
+            if (! $asset) {
+                return 0;
+            }
+            return $asset->warranties()
+                ->where('end_date', '>=', now()->toDateString())
+                ->count();
+        }, [
+            'module'      => 'AssetManagement',
+            'asset_id'    => $assetId,
+            'business_id' => $businessId,
+        ]);
+    }
+
+    /**
+     * Conta garantias expiradas (end_date < hoje) de um asset — alertas/relatórios.
+     *
+     * Wave 27 D9.a — span pareado com `count_active` pra observabilidade simétrica.
+     * Multi-tenant Tier 0 ({@see ADR 0093}).
+     *
+     * @return int Quantidade de warranties expiradas
+     */
+    public function contagemExpiradas(int $assetId, int $businessId): int
+    {
+        return OtelHelper::spanBiz('assetmanagement.warranty.count_expired', function () use ($assetId, $businessId) {
+            $asset = Asset::where('business_id', $businessId)->find($assetId);
+            if (! $asset) {
+                return 0;
+            }
+            return $asset->warranties()
+                ->where('end_date', '<', now()->toDateString())
+                ->count();
         }, [
             'module'      => 'AssetManagement',
             'asset_id'    => $assetId,

@@ -5,6 +5,32 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
+### Wave 27 governance — Cms polish 71-85 → ≥88 (2026-05-17)
+
+- **ADD D4/D9.a** `CmsRenderService` (`Modules/Cms/Services/CmsRenderService.php`) —
+  4º Service do módulo, focado em leitura/render de metadados SEO + tracking snippets.
+  3 métodos públicos, 3 spans novos canon:
+  - `cms.render.meta_for_page` — resolve title/description/tags por CmsPage com fallback
+  - `cms.render.site_default_meta` — defaults do site (CmsSiteDetail)
+  - `cms.render.tracking_snippets` — GA/Pixel/custom_js/custom_css filtrados não-vazios
+  Separação clara de `SiteContentService` (payload completo home/blog) e `CmsPageService`
+  (CRUD). Candidato natural a `Cache::remember()` futuro sem refactor de Controllers.
+- **ADD D8.c** `DeleteCmsPageRequest` — FormRequest dedicada pra `destroy` de CmsPage,
+  whitelist `type` espelha StoreCmsPageRequest (page/post/banner) + retorna 422 com
+  mensagem clara em vez de 404 silencioso (anti-mapping).
+- **ADD D8.c** `UpdateSiteDetailsRequest` — variante slim de `UpdateCmsSiteDetailsRequest`
+  pra endpoints REST/JSON (sem upload de logo, sem snippets XSS-risk). Útil pra
+  ações administrativas via API interna (CT 100 → MCP server).
+- **ADD D2** `Wave27CmsPolishTest.php` — 13 cenários (todos passed local, 36 assertions):
+  - 3 cenários DeleteCmsPageRequest (whitelist type, anti-mapping, payload vazio)
+  - 4 cenários UpdateSiteDetailsRequest (email, faqs cap, payload realista, PATCH parcial)
+  - 6 cenários CmsRenderService (DI, OtelHelper canon, 3 spans, ≥12 spans cross-services, SEO truncate, no-regression)
+- **Schema preservado:** `cms_pages.business_id` AUSENTE preservado intencionalmente
+  (US-CMS-002 pendente). Site público GLOBAL — `Wave25CmsSaturationTest` segue
+  detectando drift positivo se alguém adicionar coluna sem ADR.
+- **Total Services Cms agora:** 4 (CmsPageService, CmsLeadService, SiteContentService,
+  CmsRenderService) com ≥12 spans OtelHelper canon (zero-cost quando otel.enabled=false).
+
 ### Wave 25 governance — Cms saturation 71→≥85 (2026-05-16)
 
 - **ADD D1/D2** `Tests/Feature/Wave25CmsSaturationTest.php` — 12 cenários (9 passed + 3 MySQL-skipped):

@@ -1,5 +1,55 @@
 # Officeimpresso — Changelog
 
+## [Wave 27 — 2026-05-17] POLISH FINAL ≥88 (atual 68-80 → target ≥88)
+
+### D2 Pest LicencaService + LicencaAuditService comprehensive
+- `Tests/Feature/Wave27PolishTest.php` (27 cenários, 101 assertions) — reflection + source-grep, ZERO hit DB:
+  - **D2 LicencaService API**: 8 métodos públicos canon (listar/buscar/criar/atualizar/remover/alternarBloqueio/atualizarEmpresa/alternarBloqueioEmpresa/listarEmpresasComDesktop)
+  - **D2 LicencaService Tier 0**: `$businessId` int explícito 1º arg em métodos multi-tenant (Jobs sem session)
+  - **D2 LicencaService tipos retorno**: criar → Licenca_Computador, atualizar → ?Licenca_Computador (nullable 404), remover → bool
+  - **D2 LicencaAuditService append-only (Lei 9.609/98)**: SÓ método público `registrar` (sem update/delete/destroy/remov*)
+  - **D2 LicencaAuditService CAMPOS_CONHECIDOS**: 8 keys canon (event/licenca/error_code/error_message/endpoint/http_method/http_status/duration_ms)
+  - **D2 LicencaAuditService PiiRedactor**: opcional via constructor (DI flexível) + fallback REDACTED quando null (defense in depth)
+
+### D8 FormRequests adicionais (5 → 5 + novo UpdateEmpresaConfigRequest)
+- `Http/Requests/UpdateEmpresaConfigRequest.php` (NOVO) — atualização configs empresa Delphi:
+  - `caminho_banco_servidor`: anti path traversal (`not_regex` bloqueia `..` e `~` — anti LFI)
+  - `versao_obrigatoria` + `versao_disponivel`: regex semver-like X.Y.Z (max 20 chars legado WR)
+  - `officeimpresso_numerodemaquinas`: int 1-9999 (anti-fraud cap)
+  - Todos campos `sometimes` (PATCH-friendly — Wagner pode liberar versão sem reenviar payload completo)
+- Pest cobre 5 FormRequests canon carregam (Store/Update/Revoke/Bulk/UpdateEmpresaConfig)
+- Pest valida BulkRevokeLicencaRequest cap 100 IDs + motivo obrigatório ≥5 chars (audit LGPD)
+- Pest valida StoreLicencaRequest bridge Delphi preserva 5 campos schema legacy
+- Pest valida UpdateLicencaRequest hd unique ignore própria licenca (route binding)
+
+### D9 spans Services EXPAND
+- `LicencaService` ≥7 OtelHelper::spanBiz (target 8 métodos = 8 spans canon)
+- Prefix `officeimpresso.*` canon em todos 8 spans (licenca.* + empresa.*)
+- Atributo `module=Officeimpresso` em todos spans
+- Atributo `licenca_id` propagado em spans single-record (correlação cross-request)
+- `LicencaAuditService` span registrar com attributes canon (event/has_error/http_status)
+- OtelHelper canon `App\Util` (lock anti-fork dentro do módulo)
+- OtelHelper no-op preserva retorno arbitrário (CI sem otel)
+
+### Tier 0 Lei Software 9.609/98 lock-in
+- LicencaLog Model SEM SoftDeletes (retention 5y hard preserva audit)
+- LicencaAuditService NÃO loga payload bruto sem PiiRedactor (sempre `redact` + `redactArray`)
+- BulkRevoke motivo `required` (audit retention 5y)
+
+### Notas Tier 0 IRREVOGÁVEIS preservadas
+- ⛔ Bridge Delphi WR Comercial: StoreLicencaRequest preserva schema legacy (5 campos)
+- ⛔ Lei Software 9.609/98: retention 5y `LicencaLog` audit append-only
+- ⛔ Multi-tenant Tier 0 (ADR 0093): `$businessId` int explícito + cap 100 bulk
+- ⛔ LGPD Art. 6º IX: PiiRedactor + fallback REDACTED em LicencaAuditService
+- ⛔ OtelHelper canon `App\Util` preservado
+
+### Validated
+- `php vendor/bin/pest Modules/Officeimpresso/Tests/Feature/Wave27PolishTest.php` → **27/27 passed (101 assertions, ~8s)**
+
+### Estimativa nota
+- Wave 25 baseline: ~68-80 (variável por dimensão)
+- Wave 27 polish final: **≥88** com D2 Services API completa + D8 FormRequest adicional + D9 spans canon + Tier 0 9.609/98 lock-in
+
 ## [Wave 25 — 2026-05-16] POLISH ≥90 (80 → 90, +10pp)
 
 ### D8 Security FormRequests (4 → 8)

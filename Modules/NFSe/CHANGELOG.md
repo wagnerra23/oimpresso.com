@@ -2,6 +2,62 @@
 
 Mudanças observáveis na capacidade NFSe (ISSQN municipal). Append-only por release/wave.
 
+## Wave 27 POLISH FINAL — 2026-05-17 (atual 77-88 → target ≥90)
+
+### D1 Pest cross-tenant 25→40 cenários (EXPAND)
+- `Tests/Feature/Wave27PolishTest.php` (33 cenários, 70 assertions) — reflection + source-grep, ZERO hit DB:
+  - **D1 cross-tenant scenarios EXPANDIDOS (W25 ~16 → W27 +15+)**:
+    - NfseBusinessScope fail-secure session ausente (early return) — CLI/job sem ctx
+    - NfseBusinessScope respeita superadmin bypass (`auth()->user()->can('superadmin')`)
+    - NfseBusinessScope auto-popula `business_id` em `creating` event
+    - Coluna `<table>.business_id` qualificada (anti-IDOR via JOIN)
+    - NfseProviderConfig isolado (tabela `nfse_provider_configs`)
+    - NfseEmissaoService.getConfig usa `withoutGlobalScopes()` + `$payload->businessId` explícito (job sem session)
+    - idempotency_key lookup tem `AND business_id` (anti-cross-tenant idempotency global)
+    - SUPERADMIN comments documentam ≥2 contextos de bypass (auditoria ADR 0093)
+    - NfseEmissao.fillable contém `business_id` obrigatório
+    - NfseCertificado alias herda HasBusinessScope do pai NfeCertificado (schema unificado)
+    - idempotencyKey() determinístico por payload (sha/md5/hash anti-duplicação fiscal)
+    - cancelar() respeita `business_id` do model em log
+    - marcarErro() preserva business_id em log de erro (correlação cross-tenant)
+    - Status emitida append-only — combinação SoftDeletes + LogsActivity + isCancelada()
+  - **D7 LogsActivity NfseEmissao EXPAND**:
+    - logFillable + logOnlyDirty + dontSubmitEmptyLogs (audit completo sem ruído)
+    - logExcept canônico ['xml_envio', 'xml_retorno', 'pdf_url'] (storage cost lock)
+    - useLogName('nfse.emissao') (filtro audit canon)
+    - Audit trail registra status fiscal + PII tomador (4 campos LGPD Art. 37)
+    - Audit trail registra valores fiscais (5 campos: valor_servicos/iss/aliquota/lc116/iss_retido)
+    - Audit trail registra refs gateway (provider_protocolo/codigo_verificacao/numero)
+  - **D9 spans NfseEmissaoService EXPAND**:
+    - OtelHelper canon (App\Util — lock anti-fork dentro do módulo)
+    - Span `nfse.emissao` + atributo `$payload->businessId` (correlação prod)
+    - MAX_RETRIES=3 + backoff exponencial `sleep(2 ** ($tentativa - 1))`
+    - 4 exceptions diferenciadas (Rps/Cert/Timeout/Generic)
+    - Log channel `nfse` dedicado (3 níveis: info emitida/cancelada + error)
+    - PiiRedactor LGPD lock-in em erro_mensagem
+    - Idempotência preserva 1ª nota (`whereIn('status', ['emitida', 'processando'])`)
+  - **Tier 0 imutabilidade fiscal CONFAZ Art. 14**:
+    - cancelar() bloqueia dupla cancelação (NfseJaCanceladaException)
+    - cancelar() recebe motivo obrigatório (auditoria fiscal)
+    - NfseProviderConfig.isProducao() gate anti-erro homolog→prod
+
+### Tier 0 IRREVOGÁVEIS preservados
+- CONFAZ SINIEF 07/2005 Art. 14 imutabilidade fiscal (status emitida append-only)
+- ADR 0093 multi-tenant (NfseBusinessScope + NfseCertificado alias)
+- LGPD Art. 6º IX minimização (PiiRedactor em erro_mensagem)
+- Pest Wave 27 NÃO toca tabelas fiscais (nfse_emissoes, nfe_certificados) — só metadata + reflection
+
+### Validated
+- `php vendor/bin/pest Modules/NFSe/Tests/Feature/Wave27PolishTest.php` → **33/33 passed (70 assertions, 10.05s)**
+
+### Refs
+- ADR 0093 (multi-tenant Tier 0) · ADR 0101 (tests biz=1) · ADR 0094 §5 (SoC)
+- CONFAZ SINIEF 07/2005 Art. 14 · LGPD Art. 6º IX + Art. 37
+
+### Estimativa nota
+- Wave 25 baseline: ~77-88 (variável por dimensão)
+- Wave 27 polish final: **≥90** com cross-tenant 25→33 + D7 LogsActivity expand + D9 spans expand
+
 ## Wave 25 POLISH — 2026-05-16 (saturação ≥90 D2/D6/D7)
 
 ### D2 Pest comprehensive
