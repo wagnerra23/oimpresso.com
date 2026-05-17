@@ -19,7 +19,7 @@ Chat IA conversacional do business (ex-Copiloto, renomeado Fase 3.7 PR-2). Laris
 | Dimensão | % | Última medição |
 |---|---|---|
 | Operacional PME (chat + metas + memória live prod) | 95% | 2026-05-16 (Wave 18) |
-| Governance score v3 (D1-D9) | 95/100 (target) | 2026-05-16 (Wave 18 SATURATION) |
+| Governance score v3 (D1-D9) | 96/100 (target ≥95) | 2026-05-16 (Wave 25 SATURATION) |
 | Capterra (chat IA vs assistentes BI) | N/A em curso | — |
 | Diferencial competitivo (chat ↔ ERP nativo) | alto | 2026-05-12 |
 | Cobertura SPEC formal (US-COPI-*) | ~80% | 2026-05-15 |
@@ -110,6 +110,8 @@ Chat IA conversacional do business (ex-Copiloto, renomeado Fase 3.7 PR-2). Laris
 
 ## 12. Sessões e handoffs relevantes (últimos 30d)
 
+- Wave 25 SATURATION 2026-05-16 — Jana 73 → 96 (D1.c markers REPO-WIDE 8 entities + D9 OpenAiDirectDriver OTel + D2 hallucination golden 22→30 + D3 BRIEFING/CHANGELOG)
+- Wave 23 RAGAS gate + drift sentinel + hallucination 22 golden 2026-05-16
 - Wave 18 SATURATION 2026-05-16 — Jana 66 → 95 (D1 comprehensive + D2 FSM N/A + D3 BRIEFING + D4 OTel audit + D7 retention + D8 FormRequests + D9 OTel batch)
 - Wave 17 governance v3 2026-05-15 — D7.b LogsActivity 6 Mcp Models + D6.a Inertia::defer 4 Controllers + D8.c 3 FormRequests
 - Wave 15-16 RESCUE D1 — Mcp Models trait coverage + chain 2-level via parent
@@ -120,6 +122,6 @@ Chat IA conversacional do business (ex-Copiloto, renomeado Fase 3.7 PR-2). Laris
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-16 BRT pelo PR Wave 18 — SATURATION Jana FULL (66 → ≥95)
+**Atualizado:** 2026-05-16 BRT pelo PR Wave 25 — SATURATION MÁXIMA Jana (73 → ≥95) — D1.c markers + D9 OTel + D2 hallucination 30 golden
 **Próximo update esperado:** quando próximo PR relevante mergear (auto-trigger `brief-update` skill)
 **Mantenedor:** Claude (auto) + Wagner (review)

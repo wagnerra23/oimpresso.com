@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Financeiro\Services;
 
+use App\Util\OtelHelper;
 use Carbon\CarbonImmutable;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
@@ -36,6 +37,16 @@ class UnificadoService
      * }
      */
     public function kpis(int $businessId, ?CarbonImmutable $hoje = null): array
+    {
+        return OtelHelper::spanBiz('financeiro.unificado.kpis', function () use ($businessId, $hoje) {
+            return $this->kpisInternal($businessId, $hoje);
+        }, ['business_id_explicit' => $businessId]);
+    }
+
+    /**
+     * Implementação real — extraída para permitir wrap em OtelHelper::spanBiz (Wave 25 D9).
+     */
+    private function kpisInternal(int $businessId, ?CarbonImmutable $hoje = null): array
     {
         $hoje = $hoje ?? CarbonImmutable::today();
         $hojeIso = $hoje->toDateString();

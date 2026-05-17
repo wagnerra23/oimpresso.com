@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\TeamMcp\Services;
 
 use App\Util\OtelHelper;
+use Illuminate\Support\Facades\DB;
 use Modules\Jana\Entities\Mcp\McpToken;
 
 /**
@@ -70,5 +71,54 @@ class McpTokenIssuer
                 $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
             ->count();
+    }
+
+    /**
+     * Wave 23 G3 FICHA — Rotaciona token MCP atomicamente.
+     *
+     * Guarda Tier 0 IRREVOGÁVEL ({@see ADR 0081}):
+     *   1. Ownership check — token deve pertencer ao $userId informado.
+     *      Caso contrário retorna null (sem efeito colateral).
+     *   2. Atômico — emit new + revoke old na MESMA DB::transaction.
+     *      Se issue falhar, old permanece ativo.
+     *   3. Raw devolvido 1× no array — JAMAIS logado/persistido em raw.
+     *
+     * Wave 25 D4 — Service permanece thin (issue + revoke já existem); rotate é
+     * apenas a composição segura desses dois primitivos.
+     *
+     * @return array{old_token_id: int, new_token: McpToken, raw: string}|null
+     */
+    public function rotate(int $userId, int $oldTokenId, ?string $note = null): ?array
+    {
+        // Pre-check ownership (fora da transaction pra fail-fast sem custo DB)
+        $oldToken = McpToken::find($oldTokenId);
+        if ($oldToken === null || (int) $oldToken->user_id !== $userId) {
+            // Tier 0 segredo: NÃO loga detalhes (anti-enumeration)
+            return null;
+        }
+
+        return OtelHelper::spanBiz('teammcp.token.rotate', function () use ($userId, $oldTokenId, $note) {
+            return DB::transaction(function () use ($userId, $oldTokenId, $note) {
+                // Re-fetch dentro da transaction (lock implícito)
+                $old = McpToken::lockForUpdate()->find($oldTokenId);
+                if ($old === null || (int) $old->user_id !== $userId) {
+                    return null;
+                }
+
+                // Issue novo
+                $defaultNote = 'Rotated em ' . now()->toDateString();
+                [$new, $raw] = McpToken::gerar($userId, $note ?: $defaultNote);
+
+                // Revoke old (expires_at=now + soft delete)
+                $old->update(['expires_at' => now()]);
+                $old->delete();
+
+                return [
+                    'old_token_id' => $oldTokenId,
+                    'new_token'    => $new,
+                    'raw'          => $raw, // Tier 0: jamais re-logado downstream
+                ];
+            });
+        }, ['module' => 'TeamMcp', 'old_token_id' => $oldTokenId, 'target_user_id' => $userId]);
     }
 }

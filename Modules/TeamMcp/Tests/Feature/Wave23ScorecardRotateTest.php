@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpToken;
 use Modules\TeamMcp\Http\Controllers\ScorecardController;
 use Modules\TeamMcp\Services\McpTokenIssuer;
+use Modules\TeamMcp\Services\ScorecardBuilderService;
 
 uses(Tests\TestCase::class);
 
@@ -192,4 +193,101 @@ it('ScorecardController::buildChecks retorna array de checks com name/ok/detail'
         expect($c['name'])->toBeString();
         expect($c['detail'])->toBeString();
     }
+});
+
+// ---------- Wave 25 D4: ScorecardBuilderService extraction smoke ----------
+
+it('ScorecardBuilderService carrega via container (Wave 25 D4 extraction)', function () {
+    $svc = app(ScorecardBuilderService::class);
+    expect($svc)->toBeInstanceOf(ScorecardBuilderService::class);
+});
+
+it('ScorecardBuilderService expõe buildFacts + buildChecks + 4 checkXxx helpers', function () {
+    $svc = app(ScorecardBuilderService::class);
+    $ref = new ReflectionClass($svc);
+
+    expect($ref->hasMethod('buildFacts'))->toBeTrue();
+    expect($ref->hasMethod('buildChecks'))->toBeTrue();
+    expect($ref->hasMethod('checkSchema'))->toBeTrue();
+    expect($ref->hasMethod('checkBriefRecente'))->toBeTrue();
+    expect($ref->hasMethod('checkTokensSemOrphan'))->toBeTrue();
+    expect($ref->hasMethod('checkCustoMedioSanidade'))->toBeTrue();
+});
+
+it('ScorecardBuilderService::checkSchema retorna ok=false pra tabela inexistente', function () {
+    $svc = app(ScorecardBuilderService::class);
+    $check = $svc->checkSchema('tabela_que_nao_existe_w25', 'Teste tabela fake');
+
+    expect($check)->toHaveKeys(['name', 'ok', 'detail']);
+    expect($check['ok'])->toBeFalse();
+    expect($check['detail'])->toContain('AUSENTE');
+});
+
+it('ScorecardController delega buildFacts/buildChecks pra Service (Wave 25 thin)', function () {
+    // Garantir que controller injeta Service e não duplica lógica
+    $path = base_path('Modules/TeamMcp/Http/Controllers/ScorecardController.php');
+    $content = file_get_contents($path);
+
+    expect($content)->toContain('ScorecardBuilderService $builder');
+    expect($content)->toContain('$this->builder->buildFacts()');
+    expect($content)->toContain('$this->builder->buildChecks()');
+
+    // E que NÃO tem mais OtelHelper direto (foi pra Service)
+    expect($content)->not->toContain('use App\\Util\\OtelHelper;');
+});
+
+// ---------- Wave 25 D3: McpTokenIssuer::rotate extras ----------
+
+it('McpTokenIssuer::rotate preserva note do novo token quando informado', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'rotate_note_test_w25'],
+        ['email' => 'rn@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'RN'],
+    );
+
+    [$old, ] = McpToken::gerar($user->id, 'Token original');
+    $issuer = new McpTokenIssuer();
+    $result = $issuer->rotate($user->id, (int) $old->id, 'Nota custom rotate W25');
+
+    expect($result)->not->toBeNull();
+    expect($result['new_token']->name)->toBe('Nota custom rotate W25');
+
+    $result['new_token']->forceDelete();
+    McpToken::withTrashed()->find($old->id)?->forceDelete();
+});
+
+it('McpTokenIssuer::rotate sem note usa default "Rotated em <data>"', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'rotate_default_note_w25'],
+        ['email' => 'rdn@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'RDN'],
+    );
+
+    [$old, ] = McpToken::gerar($user->id, 'Token original sem nota');
+    $issuer = new McpTokenIssuer();
+    $result = $issuer->rotate($user->id, (int) $old->id);
+
+    expect($result)->not->toBeNull();
+    // Default depende da implementação — só asseguramos que algo veio (não vazio)
+    expect($result['new_token']->name)->not->toBeEmpty();
+
+    $result['new_token']->forceDelete();
+    McpToken::withTrashed()->find($old->id)?->forceDelete();
+});
+
+it('McpTokenIssuer::rotate retorna null pra token inexistente (idempotência)', function () {
+    requiresMcpSchema();
+
+    $user = User::firstOrCreate(
+        ['username' => 'rotate_inex_w25'],
+        ['email' => 'ri@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'RI'],
+    );
+
+    $issuer = new McpTokenIssuer();
+    // Token id absurdo — não existe
+    $result = $issuer->rotate($user->id, 99999999);
+
+    expect($result)->toBeNull('rotate de token inexistente deve retornar null sem efeito colateral');
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\KB\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -80,10 +81,20 @@ class KbArticleService
     {
         $perPage = (int) min(100, max(5, $request->integer('per_page', 25)));
 
-        return $this->buildListQuery($request)
-            ->orderByDesc('pinned')
-            ->orderByDesc('updated_at')
-            ->paginate($perPage)
-            ->withQueryString();
+        // Wave 25 — OTel span (ADR 0155 D9.a). Pagination é hot-path do KB browser;
+        // útil pra observar p95 latency por business + filtros aplicados.
+        // Zero-cost se config('otel.enabled')=false.
+        return OtelHelper::spanBiz('kb.article.paginate', function () use ($request, $perPage) {
+            return $this->buildListQuery($request)
+                ->orderByDesc('pinned')
+                ->orderByDesc('updated_at')
+                ->paginate($perPage)
+                ->withQueryString();
+        }, [
+            'module'   => 'KB',
+            'per_page' => $perPage,
+            'has_q'    => $request->filled('q'),
+            'type'     => $request->string('type')->toString() ?: 'any',
+        ]);
     }
 }

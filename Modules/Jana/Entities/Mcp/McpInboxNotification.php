@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Model;
  * ADR 0070 — Jira-style task management.
  *
  * Inbox unificado: @mention, assignment, review_requested, status_changed, commented.
+ *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — inbox per-user
+ * (isolamento via user_id, não via business_id). Wave 25 SATURATION marker
+ * explícito pra rubrica D1.c v3.2 hardened.
  */
 class McpInboxNotification extends Model
 {

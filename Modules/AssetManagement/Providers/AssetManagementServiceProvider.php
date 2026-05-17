@@ -19,6 +19,13 @@ class AssetManagementServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+
+        // Wave 25 D9.c — registra command de health (estava órfão pré-Wave 25).
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\AssetManagement\Console\Commands\AssetManagementHealthCommand::class,
+            ]);
+        }
     }
 
     /**

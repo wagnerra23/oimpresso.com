@@ -2,6 +2,37 @@
 
 > Integração unidirecional POS oimpresso → WooCommerce externo (categories/products/orders sync).
 
+## [Unreleased] — Wave 25 POLISH (2026-05-16) — Saturação ≥92 D6/D9
+
+### D9 Spans completos (cumulativo Wave 18+25)
+- `Tests/Feature/Wave25SaturationTest.php` (13 cenários) — reflection + source-grep + Container resolve, ZERO hit API WooCommerce externa:
+  - 6 spans canon `woocommerce.*` declarados em 3 Services (Sync/Reset/Authorization)
+  - Span attributes documentados: business_id, user_id, sync_type, limit, offset
+  - HealthCommand SYNC_STALE_DAYS=7 (alerta config)
+  - HealthCommand 4 checks (schema/DI/creds/last-sync) + 3 exit codes (0/1/2)
+  - HealthCommand fail-secure `--business-id` obrigatório (Tier 0 ADR 0093)
+  - HealthCommand signature `--detail` (NUNCA `--verbose` Symfony reserved — .claude/rules/commands.md)
+  - 6 spans esperados: sync.categories, sync.products, sync.orders, reset.categories, reset.products, auth.pode_executar
+  - OtelHelper preserva exception (fail-loud)
+  - 3 Sync methods contrato multi-tenant — `$businessId:int` primeiro param (Tier 0)
+  - 2 Reset methods contrato multi-tenant — `$businessId:int` primeiro param (Tier 0)
+  - 3 Services resolvidos via container (D4 reuse)
+  - 3 Services importam `App\Util\OtelHelper` canon (zero duplicação)
+  - module.json declara fsm_n_a:true (integração unidirecional preservada)
+
+### D6 HealthCommand checks expandidos (validação Pest cobertura)
+- Wave 25 Pest valida 4 checks WoocommerceHealthCommand documentados em PHPDoc:
+  1. Schema woocommerce_sync_logs acessível
+  2. DI resolve 3 Services canon
+  3. Credenciais business.woocommerce_* cadastradas (warning não-bloqueante)
+  4. Última sync ≤7 dias (stale alert)
+- Exit codes 0=healthy / 1=degraded / 2=error verificados via source-grep
+
+### Tier 0 IRREVOGÁVEIS preservados
+- Contract HTTP WooCommerce REST API (Wave 16) — Wave 25 NÃO toca WoocommerceUtil legacy (1541 linhas), só metadata + reflection nos 3 Services novos
+- ADR 0093 multi-tenant — `$businessId` explícito em TODO Service method validado via reflection
+- ADR 0159 errata meta 97 realismo — Wave 25 mira ≥92 sem overengineering
+
 ## [Unreleased] — Wave 18 SATURATION (2026-05-16)
 
 ### Adicionado — D4 Services contrato estável

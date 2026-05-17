@@ -2,6 +2,24 @@
 
 Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS — manutenção bug-fix + governance only.
 
+## Wave 25 — 2026-05-16 (polish D7 LGPD declaração estável)
+
+### Confirmação saturação D7 LGPD (sem alterações de código)
+- `Spreadsheet` Model: `LogsActivity` Spatie já presente (`logAll()->logOnlyDirty()->dontSubmitEmptyLogs()`) — Wave 17.
+- `SpreadsheetShare` Model: `LogsActivity` Spatie já presente — Wave 17.
+- `Config/retention.php` declara 2 entities canônicas (`sheet_spreadsheets` 1825d / `sheet_spreadsheet_shares` 1825d — janela fiscal Brasil 5y).
+- Strategy default `anonymize` + PiiRedactor best-effort pass sobre células texto (UGC opaco — limitação técnica documentada).
+- **Status D7.b/c/a:** SATURATED — Modulo bucket `functional_horizontal` polish v3 ≥85 confirmado sem regressão.
+
+### Pest local validado
+- `Modules/Spreadsheet/Tests/Feature/ObservabilityTest` + `SpreadsheetServiceContractTest` mantém cobertura D9 OTel + Service contract.
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL
+- ADR 0101 Tests biz=1
+- ADR 0155 Module Grade v3 (D7 saturated)
+- ADR 0159 Wave 25 polish (level `none` — scaffold sem cliente, saturação serve baseline)
+
 ## Wave 18 — 2026-05-16 (governance saturation)
 
 ### D4 — Service layer canônica (ADR 0155 D4)

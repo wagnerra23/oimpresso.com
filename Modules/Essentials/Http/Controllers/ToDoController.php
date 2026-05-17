@@ -108,30 +108,35 @@ class ToDoController extends Controller
                 ->whereDate('date', '<=', $request->string('end_date'));
         }
 
-        $paginated = $query->orderByDesc('created_at')
-            ->paginate(25)
-            ->withQueryString();
-
-        $paginated->getCollection()->transform(fn (ToDo $t) => $this->toRowShape($t));
-
-        $assignableUsers = [];
-        if (auth()->user()->can('essentials.assign_todos')) {
-            $assignableUsers = $this->dropdownUsers($businessId);
-        }
-
+        // Wave 25 D6.a — Inertia::defer em paginate (com transform map) + dropdownUsers
+        // (forDropdown DB call). Filtros + statuses/priorities/can ficam eager (UI state).
         return Inertia::render('Essentials/Todo/Index', [
-            'todos'            => $paginated,
-            'filtros'          => [
+            'todos'           => Inertia::defer(function () use ($query) {
+                $paginated = $query->orderByDesc('created_at')
+                    ->paginate(25)
+                    ->withQueryString();
+
+                $paginated->getCollection()->transform(fn (ToDo $t) => $this->toRowShape($t));
+
+                return $paginated;
+            }),
+            'filtros'         => [
                 'status'     => $request->string('status')->toString() ?: null,
                 'priority'   => $request->string('priority')->toString() ?: null,
                 'user_id'    => $request->integer('user_id') ?: null,
                 'start_date' => $request->string('start_date')->toString() ?: null,
                 'end_date'   => $request->string('end_date')->toString() ?: null,
             ],
-            'assignableUsers'  => $assignableUsers,
-            'statuses'         => $this->statusOptions(),
-            'priorities'       => $this->priorityOptions(),
-            'can'              => $this->policies(),
+            'assignableUsers' => Inertia::defer(function () use ($businessId) {
+                if (! auth()->user()->can('essentials.assign_todos')) {
+                    return [];
+                }
+
+                return $this->dropdownUsers($businessId);
+            }),
+            'statuses'        => $this->statusOptions(),
+            'priorities'      => $this->priorityOptions(),
+            'can'             => $this->policies(),
         ]);
     }
 

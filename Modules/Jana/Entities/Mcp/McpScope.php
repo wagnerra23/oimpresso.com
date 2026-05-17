@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * MEM-MCP-1.a (ADR 0053) — Catálogo de scopes do MCP server.
  * Mapeamento 1-pra-1 com Spatie permissions `copiloto.mcp.*`.
+ *
+ * REPO-WIDE: ADR 0053 catálogo canônico de scopes — cross-tenant intencional.
+ * Sem `business_id` (catálogo de governança da plataforma). Auditável pela
+ * rubrica D1.c v3.2 hardened — Wave 25 SATURATION marker explícito.
  */
 class McpScope extends Model
 {

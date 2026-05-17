@@ -1,5 +1,27 @@
 # Modules/Connector — CHANGELOG
 
+## [Wave 25] - 2026-05-16
+
+### Docs (D5 — README handshake passo-a-passo)
+- `README.md` — seção "Como cliente Delphi usa" expandida:
+  - 4 passos do handshake (initial → token → batch sync → renewal)
+  - Exemplos request/response JSON canônicos
+  - 4 anti-padrões Delphi catalogados (Tier 0)
+  - 5 edge cases catalogados (HD trocado, token expirado, encoding latin1,
+    idempotência venda, HD cruzado entre business)
+  - Referência ADR 0021 (Connector Delphi bridge mãe) explícita
+
+### Preserved
+- D6 Inertia::defer **NÃO APLICÁVEL** — Connector é módulo Blade puro
+  (sem `Inertia::render`). Pattern defer é específico de Pages React.
+- ContactPayloadValidatorService + DelphiSyncService permanecem fonte de
+  verdade (sem extração adicional — Wave 18 RETRY já fez split máximo SoC).
+- AcceptDelphiTokenHandshakeRequest (Wave 23 D8) preservado intocado —
+  `business_id` prohibited no body é Tier 0 IRREVOGÁVEL.
+
+### Docs
+- `CHANGELOG.md` (entry Wave 25 atual).
+
 ## [Wave 18 RETRY] - 2026-05-16
 
 ### Added (D8 — FormRequests +5)

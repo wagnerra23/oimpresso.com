@@ -5,6 +5,15 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
+### Wave 25 governance — Cms saturation 71→≥85 (2026-05-16)
+
+- **ADD D1/D2** `Tests/Feature/Wave25CmsSaturationTest.php` — 12 cenários (9 passed + 3 MySQL-skipped):
+  - **Guard schema cms_pages.business_id ausente** preservado (US-CMS-002 schema pendente IRREVOGÁVEL) — site público GLOBAL. Test detecta drift positivo se alguém adicionar coluna sem ADR.
+  - Reuse contract Services Wave 18 via Reflection: CmsPageService (OtelHelper canon, spans `cms.service.page.*`, ≥3), CmsLeadService (OtelHelper + PiiRedactor D7.a LGPD), SiteContentService (≥4 spans canon).
+  - Métodos canon: `criar` (3 params, typed array), `atualizar` (4 params + metas nullable), `remover` (return bool), `capturar` (return bool — sent ou no-op).
+  - DI: CmsPageService injeta `CmsPageRepository` + `Util` (SoC brutal ADR 0094 §5); CmsLeadService 1-dep stateless.
+  - CmsPage usa LogsActivity (LGPD D7.b — auditoria conteúdo público) confirmado.
+
 ### Wave 18 governance — FULL SATURATION (2026-05-16)
 
 - **ADD D4.a** `CmsPageService` (`Modules/Cms/Services/CmsPageService.php`) — orquestração

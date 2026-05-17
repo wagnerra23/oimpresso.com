@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Schema;
  *   5. orphan_allocations          — asset_transactions sem asset pai
  *   6. orphan_maintenances         — asset_maintenances sem asset pai
  *   7. warranties_expired_overdue  — garantias vencidas há mais de 30 dias sem flag (ALERT comercial/SLA)
+ *   8. retention_config_present    — Wave 25 D9.c — Config/retention.php existe + entities mapeadas
  *
  * Multi-tenant Tier 0 (ADR 0093): agregação cross-tenant superadmin. Read-only.
  * SEMPRE sem `--verbose` (Symfony reserved — `--detail` se precisar).
@@ -37,7 +38,7 @@ class AssetManagementHealthCommand extends Command
         {--alert : Exit code 2 se FAIL, 1 se WARN}
         {--json : Output JSON estruturado}';
 
-    protected $description = 'Health check AssetManagement — 7 sinais (ADR 0155 D9.c, Wave 23).';
+    protected $description = 'Health check AssetManagement — 8 sinais (ADR 0155 D9.c, Wave 23 + Wave 25).';
 
     public function handle(): int
     {
@@ -52,6 +53,7 @@ class AssetManagementHealthCommand extends Command
             $this->checkOrphanAllocations(),
             $this->checkOrphanMaintenances(),
             $this->checkWarrantiesExpiredOverdue(),
+            $this->checkRetentionConfigPresent(),
         ];
 
         $summary = [
@@ -172,6 +174,47 @@ class AssetManagementHealthCommand extends Command
             return $this->mk('warranties_expired_overdue', 'WARN', "{$vencidas} garantias vencidas >30d", 'Revisar processo de renovação / arquivamento.');
         }
         return $this->mk('warranties_expired_overdue', 'OK', "{$vencidas} garantias vencidas >30d (dentro do esperado)", 'Saudável.');
+    }
+
+    /**
+     * Wave 25 D9.c — Verifica se Config/retention.php está presente e mapeia 4 entidades
+     * canônicas (am_assets, am_asset_transactions, am_maintenance_logs, am_warranties).
+     * Sem retention.php declarado, módulo viola D7.c rubrica governance v3.
+     */
+    private function checkRetentionConfigPresent(): array
+    {
+        $configPath = __DIR__ . '/../../Config/retention.php';
+
+        if (! file_exists($configPath)) {
+            return $this->mk(
+                'retention_config_present',
+                'FAIL',
+                'Config/retention.php ausente',
+                'Criar Config/retention.php declarando entities + strategy (D7.c LGPD).'
+            );
+        }
+
+        $config = require $configPath;
+
+        $entitiesEsperadas = ['am_assets', 'am_asset_transactions', 'am_maintenance_logs', 'am_warranties'];
+        $entitiesDeclaradas = array_keys($config['entities'] ?? []);
+        $faltantes = array_diff($entitiesEsperadas, $entitiesDeclaradas);
+
+        if (! empty($faltantes)) {
+            return $this->mk(
+                'retention_config_present',
+                'WARN',
+                'retention.php existe mas faltam entities: ' . implode(', ', $faltantes),
+                'Adicionar entities faltantes em Config/retention.php.'
+            );
+        }
+
+        return $this->mk(
+            'retention_config_present',
+            'OK',
+            count($entitiesDeclaradas) . ' entities mapeadas + strategy=' . ($config['strategy'] ?? 'n/a'),
+            'D7.c compliance OK.'
+        );
     }
 
     private function mk(string $name, string $status, string $details, string $recommendation): array
