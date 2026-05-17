@@ -1,5 +1,32 @@
 # OficinaAuto — Changelog
 
+## [Wave 25 POLISH — 2026-05-16] Saturação ≥90 D2/D5/D6 sem boot DB
+
+### D2 Pest novo
+- `Tests/Feature/Wave25SaturationTest.php` (13 cenários) — reflection + source-grep + Container resolve, ZERO hit DB pra paralelização worktree:
+  - Container resolve 4 Services canon (D4 reuse contrato estável)
+  - CapacidadeService 5 spans + thresholds (ociosa/normal/apertada/lotada/overcommit) documentados
+  - VehicleQueryService 3 spans + STATUSES whitelist documentada
+  - ServiceOrderSummaryService 3 spans + shape canon kpisDashboard docblock
+  - AprovacaoOsService 3 spans canon `oficinaauto.aprovacao.*`
+  - Total spans cumulativo Wave 18+RETRY+W25 confirmado >= 14
+  - README cita cliente piloto Martinho Caçambas (D5)
+  - Constantes públicas CapacidadeService (CAPACIDADE_DIARIA_HORAS_DEFAULT=32, HORAS_OS_ABERTA=4, HORAS_OS_PRODUCAO=6)
+  - OtelHelper preserva exception em spans (fail-loud)
+  - ProducaoOficinaController usa Inertia::render (não Blade legado — D6 MWART)
+
+### D5 Cliente real / Journey Martinho Caçambas
+- E2E formalizado (Wave 18+RETRY): journey full vehicle→OS orçamento→token HMAC→PIN one-shot validado em `E2EJourneyMartinhoBiz1Test.php` (4 cenários DB-real ADR 0101 biz=1)
+- Cobertura W25 adiciona contratos imutáveis (spans + constantes + thresholds) que protegem journey contra regressão silenciosa
+
+### D6 Observabilidade SATURATION
+- Spans canon documentados em todos os 4 Services principais — Wave 25 valida contrato via source-grep (literais string, não comentários)
+- OtelHelper canon (`use App\Util\OtelHelper;`) confirmado em 4 Services via Pest
+
+### Tier 0 IRREVOGÁVEIS preservados
+- ADR 0143 FSM ServiceOrder pipeline (orcamento/aprovada/em_servico/concluida) preservada — Wave 25 NÃO toca ServiceOrder model nem FSM service
+- ADR 0093 multi-tenant Tier 0 — global scope ServiceOrder/Vehicle preservado
+
 ## [Wave 18 RETRY — 2026-05-16] Saturação governance v3 — D2/D4/D5/D9 +Δ
 
 ### D4 Architecture — Service extraction (RETRY +1 service)

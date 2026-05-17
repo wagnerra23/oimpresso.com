@@ -47,19 +47,15 @@ class EssentialsMessageController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $messages = $this->scopedMessagesQuery($businessId)->get()
-            ->map(fn (EssentialsMessage $m) => $this->toMessageShape($m))
-            ->values();
-
-        $locations = BusinessLocation::forDropdown($businessId);
-        $locationsArr = collect($locations)->map(fn ($label, $id) => [
-            'id'    => (int) $id,
-            'label' => (string) $label,
-        ])->values()->all();
-
+        // Wave 25 D6.a — Inertia::defer em messages (scopedMessagesQuery + toMessageShape map)
+        // + locations (forDropdown DB). Can/refreshInterval/me eager (UI state + ints curtos).
         return Inertia::render('Essentials/Messages/Index', [
-            'messages'        => $messages,
-            'locations'       => $locationsArr,
+            'messages'        => Inertia::defer(fn () => $this->scopedMessagesQuery($businessId)->get()
+                ->map(fn (EssentialsMessage $m) => $this->toMessageShape($m))
+                ->values()),
+            'locations'       => Inertia::defer(fn () => collect(BusinessLocation::forDropdown($businessId))
+                ->map(fn ($label, $id) => ['id' => (int) $id, 'label' => (string) $label])
+                ->values()->all()),
             'can'             => [
                 'view'   => (bool) auth()->user()->can('essentials.view_message'),
                 'create' => (bool) auth()->user()->can('essentials.create_message'),

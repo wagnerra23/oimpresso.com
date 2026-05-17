@@ -12,6 +12,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * ADR 0070 — Jira-style task management.
  *
+ * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — epics agrupam tasks
+ * repo-wide. Sem `business_id` by design. Wave 25 SATURATION marker explícito
+ * pra rubrica D1.c v3.2 hardened.
+ *
  * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia mudanças
  * de status/owner/target_quarter — essenciais pra timeline de Epic.
  *

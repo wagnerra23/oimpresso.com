@@ -13,6 +13,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Token raw é gerado, hashed com SHA256 e armazenado. Raw é exibido UMA VEZ
  * pro user copiar — depois disso, só hash. Lookup por sha256_token.
  *
+ * REPO-WIDE: ADR 0053 tokens per-user (isolamento via user_id, não business_id).
+ * Sem `business_id` by design. Wave 25 SATURATION marker explícito pra rubrica
+ * D1.c v3.2 hardened.
+ *
  * D7 LGPD audit trail — Wave 17 (2026-05-16): LogsActivity rastreia revocação
  * e expiração — essencial pra responder LGPD Art. 9º (rastreabilidade de
  * tratamento por credenciais).

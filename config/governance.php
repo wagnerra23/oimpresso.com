@@ -18,7 +18,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | V4 Scoped Scorecards (ADR 0160 — Wave 19+21+22 rollout)
+    | V4 Scoped Scorecards (ADR 0160 — Wave 19+21+22+25 LIVE)
     |--------------------------------------------------------------------------
     |
     | Quando true, `ModuleGradeService::gradeV4()` carrega bucket declarado em
@@ -26,14 +26,16 @@ return [
     | `memory/scorecards/<bucket>.yaml` em vez de aplicar rubrica v3
     | monolítica.
     |
-    | Default `false` (Wave 21) — dual-mode preserva v3 enquanto:
-    |   1. Wave 22 fecha cobertura Pest pro ScopedScorecardEvaluator
-    |   2. Wave 23 implementa detection types pendentes (ast_scan, ci_health, otel_query)
-    |   3. Wave 24 ativa paired_indicators cap 50% anti-gaming
+    | Default `true` desde Wave 25 (2026-05-16) — Wagner aprovou ativação após:
+    |   1. Wave 22 fechou cobertura Pest pro ScopedScorecardEvaluator
+    |   2. Wave 23 implementou detection types reais (ast_scan, yaml_lookup,
+    |      pest_pattern, business_signal — Wave 25 Agent 0 expandiu)
+    |   3. Wave 24 ativou paired_indicators cap 50% anti-gaming
     |
-    | Ativar gradualmente (.env `GOVERNANCE_V4_ENABLED=true`):
-    |   - staging primeiro → comparar v3 vs v4 (módulo a módulo)
-    |   - prod só após Wagner aprovar diff de pontuação por módulo
+    | Rollback emergência (.env `GOVERNANCE_V4_ENABLED=false`):
+    |   - Bug catastrófico zera score >5 módulos simultaneamente em prod
+    |   - Regressão de detecção falsa-positivo em CI bloqueante
+    |   - Investigação isolada exige rodar v3 monolítica pra comparar
     |
     | Mesmo com flag true, módulos legados sem `governance.bucket` em
     | module.json caem em fallback_v3 automático (`v4_mode='fallback_v3'`
@@ -42,7 +44,7 @@ return [
     | @see memory/decisions/0160-scoped-scorecards-v4-bucket-yaml.md
     | @see Modules/Governance/Services/ScopedScorecardEvaluator.php
     */
-    'v4_enabled' => env('GOVERNANCE_V4_ENABLED', false),
+    'v4_enabled' => env('GOVERNANCE_V4_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------

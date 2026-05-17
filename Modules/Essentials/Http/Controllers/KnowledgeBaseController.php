@@ -42,23 +42,24 @@ class KnowledgeBaseController extends Controller
 
         $userId = auth()->user()->id;
 
-        $books = KnowledgeBase::where('business_id', $businessId)
-            ->where('kb_type', 'knowledge_base')
-            ->whereNull('parent_id')
-            ->with(['children', 'children.children'])
-            ->where(function ($query) use ($userId) {
-                $query->whereHas('users', function ($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })
-                    ->orWhere('created_by', $userId)
-                    ->orWhere('share_with', 'public');
-            })
-            ->orderBy('title')
-            ->get()
-            ->map(fn (KnowledgeBase $k) => $this->toBookShape($k));
-
+        // Wave 25 D6.a — Inertia::defer em books (eager-load 2 níveis children + ACL where +
+        // map toBookShape recursivo). Custo proporcional ao depth da árvore KB.
         return Inertia::render('Essentials/Knowledge/Index', [
-            'books' => $books->values(),
+            'books' => Inertia::defer(fn () => KnowledgeBase::where('business_id', $businessId)
+                ->where('kb_type', 'knowledge_base')
+                ->whereNull('parent_id')
+                ->with(['children', 'children.children'])
+                ->where(function ($query) use ($userId) {
+                    $query->whereHas('users', function ($q) use ($userId) {
+                        $q->where('user_id', $userId);
+                    })
+                        ->orWhere('created_by', $userId)
+                        ->orWhere('share_with', 'public');
+                })
+                ->orderBy('title')
+                ->get()
+                ->map(fn (KnowledgeBase $k) => $this->toBookShape($k))
+                ->values()),
         ]);
     }
 

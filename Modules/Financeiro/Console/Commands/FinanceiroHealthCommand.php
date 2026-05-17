@@ -77,6 +77,9 @@ class FinanceiroHealthCommand extends Command
             // Wave 23 D6 saturation:
             $this->checkOrphanBaixas($businessId),
             $this->checkValorAbertoConsistente($businessId),
+            // Wave 25 D9 polish:
+            $this->checkContasBancariasAtivas($businessId),
+            $this->checkCaixaMovimentoFreshness($businessId),
         ];
 
         if ($detail && ! $asJson) {
@@ -322,6 +325,80 @@ class FinanceiroHealthCommand extends Command
         }
 
         return $this->makeCheck('valor_aberto_consistente', 'OK', 0, '0', 'Saldos consistentes', 'Aritmética OK.');
+    }
+
+    /**
+     * Wave 25 D9 Check 9: contas bancárias ativas cadastradas (pré-condição UnificadoService).
+     */
+    private function checkContasBancariasAtivas(?int $businessId): array
+    {
+        if (! Schema::hasTable('fin_contas_bancarias')) {
+            return $this->makeCheck('contas_bancarias_ativas', 'WARN', null, '>=1', 'fin_contas_bancarias ausente', 'Rode migrate.');
+        }
+
+        $q = DB::table('fin_contas_bancarias')->whereNull('deleted_at');
+        if ($businessId !== null) {
+            $q->where('business_id', $businessId);
+        }
+
+        $count = $q->count();
+
+        if ($count === 0) {
+            return $this->makeCheck(
+                'contas_bancarias_ativas',
+                'WARN',
+                0,
+                '>=1',
+                'Nenhuma conta bancária cadastrada',
+                'Cadastre conta em /financeiro/contas-bancarias — KPI saldo_bancario depende disso.'
+            );
+        }
+
+        return $this->makeCheck('contas_bancarias_ativas', 'OK', $count, '>=1', "{$count} conta(s) cadastrada(s)", 'KPI saldo_bancario operacional.');
+    }
+
+    /**
+     * Wave 25 D9 Check 10: caixa_movimento freshness (último lançamento ≤ 7 dias).
+     */
+    private function checkCaixaMovimentoFreshness(?int $businessId): array
+    {
+        if (! Schema::hasTable('fin_caixa_movimentos')) {
+            return $this->makeCheck('caixa_movimento_freshness', 'WARN', null, '<=7d', 'fin_caixa_movimentos ausente', 'Rode migrate.');
+        }
+
+        $q = DB::table('fin_caixa_movimentos')->whereNull('deleted_at');
+        if ($businessId !== null) {
+            $q->where('business_id', $businessId);
+        }
+
+        $count = (clone $q)->count();
+
+        if ($count === 0) {
+            return $this->makeCheck(
+                'caixa_movimento_freshness',
+                'WARN',
+                0,
+                '>=1',
+                'Nenhum lançamento de caixa registrado',
+                'Pré-uso: lançamentos surgem ao baixar título ou registrar manual.'
+            );
+        }
+
+        $lastDate = (clone $q)->max('created_at');
+        $daysSince = $lastDate ? now()->diffInDays($lastDate) : 999;
+
+        if ($daysSince > 7) {
+            return $this->makeCheck(
+                'caixa_movimento_freshness',
+                'WARN',
+                $daysSince,
+                '<=7d',
+                "Último lançamento há {$daysSince} dia(s) — fluxo parado?",
+                'Revise se operação financeira está ativa ou se há job/processo travado.'
+            );
+        }
+
+        return $this->makeCheck('caixa_movimento_freshness', 'OK', $daysSince, '<=7d', "Último lançamento há {$daysSince} dia(s)", 'Operação ativa.');
     }
 
     private function outputTable(array $checks, array $summary, ?int $businessId, bool $alert): int

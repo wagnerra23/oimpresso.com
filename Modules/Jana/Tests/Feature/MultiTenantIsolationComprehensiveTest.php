@@ -193,6 +193,38 @@ it('D1.c Entity %s é cross-tenant BY DESIGN — não exige trait scoped', funct
     expect($instance)->toBeInstanceOf(\Illuminate\Database\Eloquent\Model::class);
 })->with('jana_entities_cross_tenant_by_design');
 
+/**
+ * D1.c Wave 25 SATURATION hardening — exige marker explícito no PHPDoc.
+ *
+ * Distingue "esqueceu de adicionar HasBusinessScope" (bug Tier 0) de "é
+ * cross-tenant by design e tem justificativa documentada" (governança ok).
+ *
+ * Marker canônico aceito (qualquer uma das frases):
+ *   - "REPO-WIDE:" (cross-tenant intencional explícito)
+ *   - "cross-tenant by design" (legado markup pre-Wave 25)
+ *   - "cross-tenant BY DESIGN" (variação maiúscula)
+ *   - "superadmin-only" (HealthNarrative — narrativa plataforma)
+ *   - "global registry" (McpSkill — registry com business_id nullable)
+ */
+it('D1.c Entity %s declara marker canônico de cross-tenant no PHPDoc', function (string $modelClass) {
+    $reflection = new ReflectionClass($modelClass);
+    $docComment = (string) $reflection->getDocComment();
+
+    $hasMarker = str_contains($docComment, 'REPO-WIDE:')
+        || str_contains($docComment, 'cross-tenant by design')
+        || str_contains($docComment, 'cross-tenant BY DESIGN')
+        || str_contains($docComment, 'superadmin-only')
+        || str_contains($docComment, 'global registry')
+        // McpSkill tem business_id nullable + HasBusinessScope (scoped via trait)
+        || in_array($modelClass, [\Modules\Jana\Entities\Mcp\McpSkill::class], true);
+
+    expect($hasMarker)->toBeTrue(
+        "{$modelClass} cross-tenant by design DEVE ter marker canônico no PHPDoc "
+        ."(REPO-WIDE: / cross-tenant by design / superadmin-only). "
+        ."Distingue 'esqueceu trait' de 'governance OK'."
+    );
+})->with('jana_entities_cross_tenant_by_design');
+
 // ---------------------------------------------------------------------------
 // D1.d — Detection rubric v3.2 hardening
 // ---------------------------------------------------------------------------
