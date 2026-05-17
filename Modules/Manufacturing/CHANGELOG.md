@@ -1,5 +1,32 @@
 # Manufacturing — Changelog
 
+<<<<<<< HEAD
+## [Wave 28 — 2026-05-17] POLISH FINAL ≥92 (77-90 → 92, +2pp)
+
+### D2 +3 Pest BomRecipes (Wave 28)
+- `Tests/Feature/Wave28ManufacturingSaturationTest.php` (~7 cenários):
+  - `RecipeBomService::calculateUnitCost` retorno `float` + proteção div-by-zero canon (`total_quantity <= 0 → 0.0`)
+  - `RecipeBomService::calculateCost` preserva paridade legacy `ManufacturingUtil::getRecipeTotal` — 3 modos canon `production_cost_type` (`percentage` / `per_unit` / fallback fixed) + `base_unit_multiplier` aplicado quando sub_unit existe + fórmula base `dpp_inc_tax * quantity`
+  - `RecipeBomService::resolveBom` chain multi-tenant via `products.business_id` (NÃO `mfg_recipes.business_id` — chain preserved D1 Wave 25) + early return defensivo se NÃO pertence ao bizId
+  - `RecipeBomService::listForDropdown` retorna `Collection` + bizId Tier 0 obrigatório (NÃO optional)
+- Regression guard preservação Tier 0: spans Manufacturing modulewide ≥5 (W26 saturado) + MfgRecipe `AssertsBusinessChain` trait + OtelHelper fail-loud em spans `manufacturing.*`
+
+### Sem novo span (D9 Manufacturing já saturado em Wave 26)
+- Wave 26 saturou D9 Manufacturing com 5+ spans (`manufacturing.recipe.resolve_bom` + `unit_cost` + `production.list/summary/window_kpis`). Wave 28 NÃO adiciona spans — foca em D2 expansão Pest BOM legacy contract.
+
+### D3 W28 doc
+- CHANGELOG (este entry).
+
+### Preservado (Tier 0 IRREVOGÁVEIS)
+- ⛔ NÃO mexer BOM existente
+- ⛔ Tabelas `mfg_recipes` / `mfg_recipe_ingredients` SEM `business_id` direto — chain via JOIN products
+- ⛔ PT-BR comentários + biz=1 smoke (NUNCA biz=4 cliente real ADR 0101)
+- D1 W25 traits `AssertsBusinessChain` + `HasManufacturingProductChain` companion
+- D5 W25 ProductionJourney biz=1 receita real catalogado
+
+### Referências
+- ADR 0093 Multi-tenant Tier 0 (chain via JOIN products) · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3
+=======
 ## [Wave 27 — 2026-05-17] POLISH final ≥90 (88 → 90, +2pp)
 
 ### D9.a OTel saturation (2 spans novos)
@@ -24,6 +51,7 @@
   direto preservado (chain via JOIN products).
 - ⛔ PT-BR em comentários. PHP identifiers em inglês. SQLite skip preservado.
 - ⛔ OtelHelper canônico (`App\Util\OtelHelper`) — NUNCA OpenTelemetry vendor direto.
+>>>>>>> origin/main
 
 ## [Wave 25 — 2026-05-16] POLISH ≥88 (77 → 88, +11pp)
 

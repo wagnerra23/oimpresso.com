@@ -2,40 +2,31 @@
 
 Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS — manutenção bug-fix + governance only.
 
-<<<<<<< HEAD
-## Wave 27 — 2026-05-17 (polish D7.c shim canon + D2 cobertura completa)
+## Wave 28 — 2026-05-17 (polish 74-88 → ≥92 +4pp · D9+D2+D3)
 
-### Adicionado — D7.c shim canônico Wave 27
-- **`Config/retention.spreadsheet.php`** novo — shim D7.c-compliant que espelha
-  `Config/retention.php` (operacional) num shape canônico pra rubrica governance v3:
-  - 2 entities canônicas: `sheet_spreadsheets` (1825d, CTN Art. 173 + LGPD Art. 16,
-    strategy=anonymize) e `sheet_spreadsheet_shares` (1825d, vínculo derivado,
-    strategy=hard_delete quando pai some).
-  - `pii_redactor`: shape `{enabled, mode='best_effort', targets:['sheet_data'],
-    patterns:['cpf','cnpj','email','phone_br']}` documenta limitação técnica de
-    UGC opaco.
-  - Acoplamento explícito com `retention.php` via mesma fonte ENV (defaults
-    espelham `enabled` + `strategy`). Mudança REAL altera AMBOS arquivos.
-  - Mesmo padrão consolidado em `Modules/Arquivos/Config/retention.php` (Wave 25).
+### D9 +1 span `spreadsheet.share_with_user` (7º span SpreadsheetService)
+- `SpreadsheetService::shareWithUser(int $spreadsheetId, int $sharedUserId, int $bizId): ?SpreadsheetShare` — novo método público com span dedicado. Canaliza criação de share por Service (antes inline no Controller), ganhando observabilidade + defesa em profundidade multi-tenant.
+- **Multi-tenant Tier 0 ({@see ADR 0093}):** pre-check `Spreadsheet::where('business_id', $bizId)->where('id', ...)->exists()` ANTES de criar share — bloqueia cross-tenant leak acima do unique key + FK.
+- **Idempotente**: `SpreadsheetShare::updateOrCreate` keyed por (spreadsheet, user) — re-chamar é no-op.
+- **Fail-secure**: retorno `null` quando cross-tenant bloqueado + Log::warning estruturado.
 
-### Adicionado — D2 Pest cobertura completa SpreadsheetService W16
-- **`Tests/Feature/Wave27SpreadsheetPolishTest.php`** — 14 cenários (todos passed local, 76 assertions):
-  - 5 cenários D2 (DI, contrato dos 3 métodos CRUD, lista 6 métodos canon W18)
-  - 3 cenários D9.a (OtelHelper canon, ≥6 spans, attributo `module=Spreadsheet`)
-  - 6 cenários D7.c (existência shim, shape, 2 entities, 1825d ambas, acoplamento
-    ENV com retention.php operacional, PII redactor flag UGC opaco)
+### D2 +3 Pest Wave 28
+- `Tests/Feature/Wave28SpreadsheetSaturationTest.php` (~7 cenários):
+  - D9 W28 método novo + 7º span cumulativo + bizId Tier 0 obrigatório
+  - D2 W28 retorno nullable fail-secure + idempotente + cross-tenant MySQL biz=1 vs biz=99 (skip SQLite ADR 0101)
+  - D3 W28 CHANGELOG entry (este)
 
-### Não alterado (intencional — já saturado)
-- D9.a 6 spans canon em `SpreadsheetService` (Wave 16/18) — Wave 27 só REGRESSION test.
-- D4 SoC brutal Service layer (Wave 18) — sem refactor; cobertura amplifica.
-- D7.b `LogsActivity` Spatie em `Spreadsheet` + `SpreadsheetShare` (Wave 17).
+### D3 W28 doc
+- CHANGELOG (este entry); BRIEFING.md atualizado próxima sessão (out-of-scope deste agent).
+
+### Preservado
+- D1 W26 Entities LogsActivity Spatie (`logAll + logOnlyDirty + dontSubmitEmptyLogs`) + table custom canon
+- D4 W26 6 métodos públicos canon (create/update/delete/resolveNotifyableUsers/listForUser/getForUser) com bizId Tier 0 obrigatório no CRUD
+- D7 retention.php 1825d (janela fiscal Brasil 5y)
 
 ### Referências
-- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL
-- ADR 0101 Tests biz=1
-- ADR 0155 Module Grade v3 (D7.c shim canon + D2 saturated)
-- ADR 0159 Wave 27 polish
-=======
+- ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3 D9 saturated +1
+
 ## Wave 26 — 2026-05-17 (polish 74 → ≥85 +11pp · D1+D4+D6+D7+D3)
 
 ### D1 Entities + cross-tenant guard preservado
@@ -60,7 +51,6 @@ Mudanças observáveis. Append-only por release/wave. Módulo legado UltimatePOS
 
 ### Referências
 - ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3 D4+D7 saturated · ADR 0159 Wave polish
->>>>>>> origin/main
 
 ## Wave 25 — 2026-05-16 (polish D7 LGPD declaração estável)
 

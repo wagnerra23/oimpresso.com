@@ -28,6 +28,8 @@ class OfficeimpressoServiceProvider extends ServiceProvider
                 \Modules\Officeimpresso\Console\ParseLicencaLogCommand::class,
                 \Modules\Officeimpresso\Console\InspectDelphiApiCommand::class,
                 \Modules\Officeimpresso\Console\Commands\OfficeimpressoHealthCommand::class,
+                // W28-4 G1 vertical bucket — Firebird Delphi → oimpresso importer.
+                \Modules\Officeimpresso\Console\Commands\ImportOfficeimpressoCommand::class,
             ]);
         }
 

@@ -1,0 +1,96 @@
+# OpenTelemetry Collector Contrib 0.110.0 — SMOKE LOCAL DEV
+# Wave 28 Agent 6 — espelha infra/ct100/otel/otel-collector-config.yaml SEM exporter Laravel custom.
+#
+# Diffs vs CT 100:
+#   ❌ exporter otlphttp/laravel REMOVIDO (local-dev não fala com Hostinger)
+#   ❌ sampling random reduzido (em local-dev queremos VER tudo — random 100%)
+#   ✅ anti-PII filter MANTIDO IDÊNTICO (Tier 0 ADR 0093 — valida que funciona local antes prod)
+#   ✅ debug exporter ATIVADO com verbosity detailed (Wagner vê span no log)
+#
+# Pipeline traces local-dev:
+#   curl --OTLP--> collector
+#     -> batch (1s/64 — flush rápido pra Wagner ver na hora)
+#     -> attributes/redact (anti-PII Tier 0, mesmo do CT 100)
+#     -> tail_sampling (todos 100% — local-dev quer ver tudo)
+#     -> exporters: tempo + debug log
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "*"
+          allowed_headers:
+            - "*"
+
+processors:
+  # Flush rápido em local-dev pra Wagner ver span no Tempo em segundos.
+  batch:
+    timeout: 1s
+    send_batch_size: 64
+    send_batch_max_size: 128
+
+  # Anti-PII filter (Tier 0 ADR 0093) — IDÊNTICO ao CT 100.
+  # Valida que delete/hash funcionam ANTES de Wagner subir pra prod.
+  attributes/redact:
+    actions:
+      - key: http.url
+        action: delete
+      - key: http.target
+        action: delete
+      - key: http.request.header.authorization
+        action: delete
+      - key: http.request.header.cookie
+        action: delete
+      - key: http.request.header.x-api-key
+        action: delete
+      - key: user.email
+        action: delete
+      - key: user.cpf
+        action: delete
+      - key: user.cnpj
+        action: delete
+      - key: db.statement
+        action: delete
+      - key: oimpresso.tenant_id
+        action: hash
+      - key: oimpresso.user_id
+        action: hash
+
+  # Tail sampling — local-dev quer ver TUDO (100%); em prod CT 100 é 5% baseline.
+  tail_sampling:
+    decision_wait: 5s          # local-dev flush rápido (prod = 30s)
+    num_traces: 10000
+    expected_new_traces_per_sec: 50
+    policies:
+      - name: keep-everything-localdev
+        type: always_sample
+
+exporters:
+  otlphttp/tempo:
+    endpoint: http://tempo:4318
+    tls:
+      insecure: true
+
+  # Debug verbose em local-dev — Wagner vê span no docker logs.
+  debug:
+    verbosity: detailed
+    sampling_initial: 100
+    sampling_thereafter: 100
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, attributes/redact, tail_sampling]
+      exporters: [otlphttp/tempo, debug]
+
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888
+    logs:
+      level: info

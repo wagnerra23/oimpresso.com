@@ -2,6 +2,20 @@
 
 Convenção: [Keep a Changelog](https://keepachangelog.com/) + [SemVer](https://semver.org/).
 
+<<<<<<< HEAD
+## [Wave 28] - 2026-05-17
+
+### Test (D2 — Pest +2 sentry Pluggy W27 + UnificadoService W25)
+- `Tests/Feature/Wave28PolishTest.php` — +2 testes sentry Wave 28:
+  - UnificadoService::kpis preserva wrap `OtelHelper::spanBiz('financeiro.unificado.kpis')`
+    (regression guard W25 D9 — se alguém remover, sentry pega).
+  - Pluggy W27 (open banking) connector artifacts sentry tolerante + Services core
+    (UnificadoService + FluxoCaixaService) regression guard.
+- Tier 0: multi-tenant + zero git ops + OtelHelper canônico + biz=4 intocado.
+
+### Governance
+- Saturação 80-95 → 96 (polish final excelência).
+=======
 ## [Wave 27 — Polish final ≥95] — 2026-05-17
 
 ### Added — D9 spans + US-FIN sentry + US-RB-044 lock-in
@@ -27,6 +41,7 @@ Convenção: [Keep a Changelog](https://keepachangelog.com/) + [SemVer](https://
 - ADR 0094 §4 Constituição v2 (custo IA + audit trail)
 - ADR 0123 Modules/Arquivos backbone (US-RB-044 pdf_path transição)
 - ADR 0143 FSM canon LIVE prod biz=1
+>>>>>>> origin/main
 
 ## [Unreleased] — Wave 18 RETRY (2026-05-16)
 
