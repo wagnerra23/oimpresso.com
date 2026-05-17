@@ -32,6 +32,32 @@ use Spatie\Permission\PermissionRegistrar;
 uses(Tests\TestCase::class);
 
 beforeEach(function () {
+    // JobSheet usa Spatie LogsActivity (FSM history + status). Sem `activity_log`
+    // o teste explode em SQLSTATE 1. Schema espelha vendor/spatie/laravel-activitylog.
+    Schema::create('activity_log', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable();
+        $t->text('description')->nullable();
+        $t->unsignedBigInteger('subject_id')->nullable();
+        $t->string('subject_type')->nullable();
+        $t->unsignedBigInteger('causer_id')->nullable();
+        $t->string('causer_type')->nullable();
+        $t->text('properties')->nullable();
+        $t->uuid('batch_uuid')->nullable();
+        $t->string('event')->nullable();
+        $t->unsignedInteger('business_id')->nullable();
+        $t->timestamps();
+    });
+
+    // Middleware Timezone (web.php stack) acessa `Auth::user()->business->time_zone`
+    // → precisa da tabela business mínima pra User belongsTo Business funcionar.
+    Schema::create('business', function (Blueprint $t) {
+        $t->increments('id');
+        $t->string('name')->nullable();
+        $t->string('time_zone')->nullable();
+        $t->timestamps();
+    });
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();
@@ -74,6 +100,27 @@ beforeEach(function () {
         (require $f)->up();
     }
 
+    // Hotfix #643 (2026-05-12): startPipeline cria audit log SEM action_id.
+    // Migration 2026_05_12_040001_alter_sale_stage_history_action_id_nullable
+    // usa DB::statement ALTER TABLE MODIFY (MySQL-only — não roda em SQLite).
+    // Aqui re-recria a tabela com action_id nullable pra refletir prod.
+    if (Schema::hasTable('sale_stage_history')) {
+        Schema::dropIfExists('sale_stage_history');
+        Schema::create('sale_stage_history', function (Blueprint $t) {
+            $t->bigIncrements('id');
+            $t->unsignedInteger('business_id');
+            $t->unsignedBigInteger('transaction_id');
+            $t->unsignedBigInteger('action_id')->nullable(); // hotfix nullable
+            $t->unsignedBigInteger('from_stage_id')->nullable();
+            $t->unsignedBigInteger('to_stage_id')->nullable();
+            $t->unsignedBigInteger('user_id')->nullable();
+            $t->json('payload_snapshot')->nullable();
+            $t->dateTime('executed_at');
+            $t->index(['business_id', 'transaction_id'], 'sale_history_biz_tx_idx');
+            $t->index(['business_id', 'executed_at'], 'sale_history_biz_when_idx');
+        });
+    }
+
     // Tabela mínima `repair_job_sheets` pra suportar Model JobSheet em teste.
     // Schema completo está em Modules/Repair/Database/Migrations — aqui só
     // o subset necessário pro FSM (id, business_id, status_id, current_stage_id).
@@ -85,6 +132,10 @@ beforeEach(function () {
         $t->timestamps();
     });
 
+    // Cria business=1 sintético pra middleware Timezone resolver $user->business
+    // sem 500. Não usamos business=4 (ROTA LIVRE cliente real — ADR 0101).
+    DB::table('business')->insert(['id' => 1, 'name' => 'TestBiz', 'time_zone' => 'America/Sao_Paulo']);
+
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
@@ -94,7 +145,7 @@ afterEach(function () {
     foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
         (require $f)->down();
     }
-    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users'] as $tbl) {
+    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users', 'business', 'activity_log'] as $tbl) {
         Schema::dropIfExists($tbl);
     }
 

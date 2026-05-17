@@ -29,17 +29,45 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\ComunicacaoVisual\Entities\Apontamento;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\Os;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+// `Tests\TestCase` necessário pra `session()`, `app()`, RefreshDatabase boot.
+// Sem ele a classe anônima do teste herda só PHPUnit\Framework\TestCase →
+// Container vazio + RefreshDatabase no-op + session() lança BindingResolutionException.
+//
+// IMPORTANTE: `RefreshDatabase` roda `migrate:fresh` em setUp() — antes do
+// beforeEach Pest. Em CI Linux com DB SQLite in-memory, UltimatePOS migrations
+// têm `ALTER TABLE ... MODIFY COLUMN type ENUM(...)` MySQL-only que explodem.
+// Tests deste arquivo (CustomerJourneyTest) são smoke E2E que precisam de
+// schema real → só rodam em MySQL local. Em CI/SQLite, pula RefreshDatabase
+// e marca tests como skipped no beforeEach.
+$dbDriver = getenv('DB_CONNECTION') ?: ($_ENV['DB_CONNECTION'] ?? 'mysql');
+if ($dbDriver !== 'sqlite') {
+    uses(TestCase::class, RefreshDatabase::class);
+} else {
+    uses(TestCase::class);
+}
 
 const COMVIS_TEST_BIZ = 99; // ADR 0101 — nunca biz=4 cliente real
 
 beforeEach(function () {
-    // Simula sessão biz=99 pra global scope multi-tenant
+    // Simula sessão biz=99 pra global scope multi-tenant (sem DB ainda).
     session(['user.business_id' => COMVIS_TEST_BIZ, 'business.id' => COMVIS_TEST_BIZ]);
 });
 
+/**
+ * Pula tests DB-dependent quando rodando em SQLite (CI).
+ * Tests reflection-only não precisam — não usam DB.
+ */
+function comvisSkipIfSqlite(): void
+{
+    if (\DB::connection()->getDriverName() === 'sqlite') {
+        test()->markTestSkipped('CustomerJourneyTest E2E exige MySQL real (UltimatePOS migrations ALTER TABLE ENUM são MySQL-only).');
+    }
+}
+
 it('jornada completa: criar orçamento → aprovar → gerar OS → apontar produção', function () {
+    comvisSkipIfSqlite();
     // ETAPA 1 — atender pedido novo: vendedor cria orçamento
     $orcamento = Orcamento::create([
         'numero'        => 'ORC-2026-TEST1',
@@ -100,9 +128,10 @@ it('jornada completa: criar orçamento → aprovar → gerar OS → apontar prod
     expect($apontamento->business_id)->toBe(COMVIS_TEST_BIZ);
     expect((float) $apontamento->drift_percent)->toBeGreaterThan(0);
     expect($apontamento->esta_em_andamento)->toBeFalse();
-})->skip(! class_exists(\Tests\TestCase::class), 'Requires Laravel TestCase (skip em CI sem DB)');
+});
 
 it('isolamento multi-tenant: biz=99 não vê orçamento de biz=1', function () {
+    comvisSkipIfSqlite();
     // Cria orçamento em biz=1 (simulado)
     session(['user.business_id' => 1, 'business.id' => 1]);
     $orcBiz1 = Orcamento::create([
@@ -124,7 +153,7 @@ it('isolamento multi-tenant: biz=99 não vê orçamento de biz=1', function () {
     // biz=99 NÃO deve enxergar orcBiz1 (global scope filtra)
     $found = Orcamento::find($orcBiz1->id);
     expect($found)->toBeNull('Tier 0 IRREVOGÁVEL — biz=99 não pode ver dados de biz=1');
-})->skip(! class_exists(\Tests\TestCase::class), 'Requires Laravel TestCase');
+});
 
 it('apontamento append-only: tentativa de delete não usa SoftDeletes', function () {
     // Não cria registro DB; reflection-only verifica padrão classe
