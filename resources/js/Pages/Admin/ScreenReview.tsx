@@ -17,12 +17,10 @@
 import * as React from 'react';
 import { Head, router, Deferred } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { Search as SearchIcon } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
-import PageNavTabs from '@/Components/shared/PageNavTabs';
-import { Button } from '@/Components/ui/button';
+import PageHeaderActions from '@/Components/shared/PageHeaderActions';
 import { Skeleton } from '@/Components/ui/skeleton';
 
 import ScreenReviewSidebar, {
@@ -173,30 +171,14 @@ function ScreenReview(props: ScreenReviewPageProps) {
           icon="camera"
           title="Screen Review"
           description={`PDCA Wagner-Claude loop · ${meta.total_telas} telas · gerado ${new Date(meta.generated_at).toLocaleString('pt-BR')}`}
-          nav={
-            <PageNavTabs
+          action={
+            <PageHeaderActions
               items={[
-                { label: 'Dashboard', href: '/admin/screen-review/dashboard', hotkey: 1 },
-                {
-                  label: 'Triagem',
-                  href: '/admin/screen-review',
-                  count: meta.pending_count,
-                  hotkey: 2,
-                  active: true,
-                },
+                { label: 'Dashboard', icon: 'layout-dashboard', href: '/admin/screen-review/dashboard' },
+                { label: 'Triagem', icon: 'list-checks', href: '/admin/screen-review', count: meta.pending_count, active: true },
+                { label: 'Reload', icon: 'refresh-cw', onClick: () => router.reload(), variant: 'ghost' },
               ]}
             />
-          }
-          action={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => router.reload()}
-            >
-              <SearchIcon size={13} className="mr-1.5" />
-              Reload
-            </Button>
           }
         />
 
