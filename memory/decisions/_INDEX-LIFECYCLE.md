@@ -256,6 +256,7 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 | 0161 | A | (parcial 0162) | **Aposentar 3 hacks ADR 0159 redundantes com v4 (D5 cross-cutting, D4.b FSM, D3.b CHANGELOG)** · 4º hack D9.b permanece até OTel collector ativo |
 | 0162 | A | — | **OpenTelemetry Collector ativo prod CT 100 · destrava D6.b + D9.b · Tempo 2.6+ + sampling 5% + mcp_observability_spans + 3 services Jana/Repair/Sells** |
 | 0163 | A | — | **Governance v4 metas alcançadas Ondas 19-28 · 4/4 buckets acima da meta** · vertical_client_facing ~92 / cross_cutting_infra ~93 / ai_central ~93 / functional_horizontal ~91 · v4 LIVE dual-mode 30d antes aposentar v3 · foco shift cliente CYCLE-06 |
+| 0164 | A | — | **Screen Review PDCA · fase C (Check) automática pós-merge via skill `tela-smoke-pos-merge`** · emenda ADR 0104 MWART · 3 artefatos canon por tela (review.md round Wagner + smoke-log.md run máquina + UI-CATALOG.md módulo) · trigger GitHub Actions PR merge `Pages/**/*.tsx` + cron daily 09h BRT + pedido Wagner · Tier 0 READ-ONLY + Vaultwarden + auto-mask PII + append-only · custo <R$ [redacted Tier 0]/mês |
 
 ---
 
