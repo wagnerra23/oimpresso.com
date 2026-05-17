@@ -125,6 +125,19 @@
 - ⛔ **Refund Asaas POST `/v3/payments/{id}/refund` sem flag `ASAAS_REFUND_ENABLED=true`** — RefundCobrancaAsaasJob respeita config; default false em prod = só loga TODO. Wagner ativa manual no .env após validação homolog
 - ⛔ **`Mail::raw` ou Mail dispatch em `NotificarClienteCancelamentoJob` sem checar `Contact::canReceiveEmailNotification()`** — LGPD opt-in. NULL=permite (back-compat); FALSE=bloqueia + log. Mesma regra pra WhatsApp via `canReceiveWhatsappNotification()`
 
+## Claim sem evidência (Tier 0 — 6ª camada Governance, sessão 2026-05-17)
+
+> Catalogado após 3 PRs em cascata em 17/mai/2026 ([#1024](https://github.com/wagnerra23/oimpresso.com/pull/1024) → [#1026](https://github.com/wagnerra23/oimpresso.com/pull/1026) → [#1028](https://github.com/wagnerra23/oimpresso.com/pull/1028)) onde Claude declarou "funcionando" sem `curl -sv` em prod. Pesquisa estado-da-arte 2025-2026 em [memory/sessions/2026-05-17-arte-evidencia-llm-agents.md](sessions/2026-05-17-arte-evidencia-llm-agents.md) identificou pattern canônico Anthropic Mar 2026 (Default-FAIL + Evidence Opening + Sprint Contract upfront).
+
+- ⛔ **"✅ funcionando"** / **"smoke OK"** / **"deploy ok"** / **"está rodando"** SEM cole literal de `curl -sv URL 2>&1 | grep '^< HTTP'` mostrando status code esperado — banido. Status code de cada hop literal, não consequência observável compatível (ex: `redirects=1, final=/login` não distingue 301 do 302).
+- ⛔ **`Request::create()` em Pest** como prova de comportamento prod em middleware que olha `path()` — em prod o Symfony strip `SCRIPT_NAME` (`/public/index.php`), test com `Request::create()` não tem SCRIPT_NAME. Use `getRequestUri()` em código, e teste real via `curl -sv` pós-deploy.
+- ⛔ **"Pest verde + smoke local Herd"** declarado como "funciona em prod" — Herd (nginx) ignora `.htaccess`, não reproduz LiteSpeed quirks, OPcache validate_timestamps, LSCache. Sempre validar em `https://oimpresso.com/...` real após deploy SSH.
+- ⛔ **PR que modifica runtime crítico SEM seção `## Infra Contract` no body** — `.htaccess`, `app/Http/Middleware/`, `app/Http/Kernel.php`, `routes/`, `app/Providers/*ServiceProvider.php`, `bootstrap/app.php` exigem seção obrigatória com (1) happy path curl + status esperado literal, (2) regression adjacent 2-3 rotas, (3) environment delta explícito. CI workflow `infra-contract-required.yml` bloqueia merge. Template canon: [memory/templates/INFRA-CONTRACT.md](templates/INFRA-CONTRACT.md).
+- ⛔ **Hook `block-claim-without-evidence.ps1` PreToolUse Bash matcher** — bloqueia `gh pr create`/`gh pr merge --admin`/`git push` em branch que toca infra crítica sem evidência curl/HTTP em PR body, últimos 5 commits, ou `.claude/run/curl-evidence-*.txt` <30min. Escape valve: `<!-- evidence-override: <razão> -->` em PR body, ou `# evidence-override: <razão>` em commit message, ou `$env:OIMPRESSO_EVIDENCE_OVERRIDE='1'` (Tier 0 Wagner emergência).
+- ⛔ **Cobertura de 1 caso só** em validação — sempre incluir 2-3 regression adjacent (rotas similares que NÃO devem mudar) pra detectar regressão.
+
+Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evidence/SKILL.md`](../.claude/skills/smoke-prod-evidence/SKILL.md).
+
 ## Sempre fazer
 
 - ✅ **PT-BR em tudo** — texto, commit, comentário, label. Código em inglês ok; domínio negócio em PT (`Marcacao`, `Intercorrencia`, `BancoHoras`)
