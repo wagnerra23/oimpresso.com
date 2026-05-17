@@ -10,11 +10,12 @@
 // tela dedicada com nav `Screen Review` pro retorno.
 
 import * as React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import { Clock, ListChecks, RefreshCw } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Clock, RefreshCw } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
+import PageNavTabs from '@/Components/shared/PageNavTabs';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Button } from '@/Components/ui/button';
@@ -35,24 +36,29 @@ function ScreenReviewDashboard({ meta }: Props) {
           icon="layout-dashboard"
           title="Screen Review · Dashboard"
           description={`Visão PDCA · ${meta.total_telas} telas · gerado ${new Date(meta.generated_at).toLocaleString('pt-BR')}`}
+          nav={
+            <PageNavTabs
+              items={[
+                { label: 'Dashboard', href: '/admin/screen-review/dashboard', hotkey: 1, active: true },
+                {
+                  label: 'Triagem',
+                  href: '/admin/screen-review',
+                  count: meta.pending_count,
+                  hotkey: 2,
+                },
+              ]}
+            />
+          }
           action={
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => router.reload()}
-              >
-                <RefreshCw size={13} className="mr-1.5" />
-                Reload
-              </Button>
-              <Button asChild size="sm" className="h-8 text-xs">
-                <Link href="/admin/screen-review">
-                  <ListChecks size={13} className="mr-1.5" />
-                  Screen Review
-                </Link>
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => router.reload()}
+            >
+              <RefreshCw size={13} className="mr-1.5" />
+              Reload
+            </Button>
           }
         />
 
