@@ -12,5 +12,11 @@
     "files": [],
     "requires": [],
     "retention_days": 0,
-    "retention_note": "Catálogo público read-only sem PII coletada (renderiza somente nome/preço/imagem de App\\Product do core; sem formulário, sem cookies de tracking, sem logs nominais). LGPD Art. 16 N/A — não há dado pessoal a reter/descartar. Visitante anônimo (sem CPF/email/IP correlacionado). Logs de acesso herdados do servidor web (Apache/Nginx) seguem retention infra-level — fora do escopo modular."
+    "retention_note": "Catálogo público read-only sem PII coletada (renderiza somente nome/preço/imagem de App\\Product do core; sem formulário, sem cookies de tracking, sem logs nominais). LGPD Art. 16 N/A — não há dado pessoal a reter/descartar. Visitante anônimo (sem CPF/email/IP correlacionado). Logs de acesso herdados do servidor web (Apache/Nginx) seguem retention infra-level — fora do escopo modular.",
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Catálogo público read-only de produtos cross-vertical útil em qualquer empresa BR, padrão read-only horizontal sem dono cliente único"
+    }
 }

@@ -14,5 +14,11 @@
     ],
     "requires": [],
     "fsm_n_a": true,
-    "fsm_n_a_reason": "Woocommerce = integração unidirecional POS → WooCommerce externo (sync categories/products/orders). Estado de pedido vive no WooCommerce (status externo: pending/processing/completed/cancelled) — oimpresso não opera pipeline. Não há FSM canon (ADR 0143) porque oimpresso não muda estado de ordem WC; apenas espelha/sincroniza. Eventual estado interno = Transaction (Sells) que tem FSM próprio."
+    "fsm_n_a_reason": "Woocommerce = integração unidirecional POS → WooCommerce externo (sync categories/products/orders). Estado de pedido vive no WooCommerce (status externo: pending/processing/completed/cancelled) — oimpresso não opera pipeline. Não há FSM canon (ADR 0143) porque oimpresso não muda estado de ordem WC; apenas espelha/sincroniza. Eventual estado interno = Transaction (Sells) que tem FSM próprio.",
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Bridge POS ↔ WooCommerce externo cross-vertical útil em qualquer empresa BR com e-commerce, padrão Service de sync horizontal"
+    }
 }

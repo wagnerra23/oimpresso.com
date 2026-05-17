@@ -9,6 +9,10 @@
     ],
     "files": [],
     "governance": {
+        "bucket": "cross_cutting_infra",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Camada governança transversal /auditoria + undo sobre activity_log, infra interna depende-de-tudo, time MCP usa diário (ADR 0127)",
         "fsm_n_a": true,
         "fsm_n_a_reason": "Auditoria opera SOBRE activity_log existente (Spatie Activitylog) — NÃO tem state machine própria. Listing/filter/revert são ações idempotentes (revertir é uma write nova, NÃO mudança de stage). Whitelist UNREVERTIBLE (5 categorias — ADR 0127 §3) é regra de domínio, não FSM. Wave 18 RETRY sinalizado.",
         "wave_18_retry": {

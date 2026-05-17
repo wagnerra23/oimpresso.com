@@ -20,6 +20,10 @@
         "policy_doc": "memory/requisitos/OficinaAuto/SPEC.md"
     },
     "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Vertical CNAE 4520-0/01 oficinas automotivas BR, candidato cliente Martinho Caçambas, UX-driven cliente vendável (ADR 0137)",
         "fsm_canonico": true,
         "fsm_pipeline": "service_order",
         "fsm_doc": "memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md",

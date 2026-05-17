@@ -10,5 +10,11 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": [],
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Spreadsheet compartilhada com employees/roles/todos cross-vertical útil em qualquer empresa BR, padrão CRUD horizontal"
+    }
 }
