@@ -15,12 +15,13 @@
 // Quando defer ainda não retornou, página entra em estado MOCK skeleton.
 
 import * as React from 'react';
-import { Head, Link, router, Deferred } from '@inertiajs/react';
+import { Head, router, Deferred } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { LayoutDashboard, Search as SearchIcon } from 'lucide-react';
+import { Search as SearchIcon } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
+import PageNavTabs from '@/Components/shared/PageNavTabs';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 
@@ -172,24 +173,30 @@ function ScreenReview(props: ScreenReviewPageProps) {
           icon="camera"
           title="Screen Review"
           description={`PDCA Wagner-Claude loop · ${meta.total_telas} telas · gerado ${new Date(meta.generated_at).toLocaleString('pt-BR')}`}
+          nav={
+            <PageNavTabs
+              items={[
+                { label: 'Dashboard', href: '/admin/screen-review/dashboard', hotkey: 1 },
+                {
+                  label: 'Triagem',
+                  href: '/admin/screen-review',
+                  count: meta.pending_count,
+                  hotkey: 2,
+                  active: true,
+                },
+              ]}
+            />
+          }
           action={
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => router.reload()}
-              >
-                <SearchIcon size={13} className="mr-1.5" />
-                Reload
-              </Button>
-              <Button asChild variant="outline" size="sm" className="h-8 text-xs">
-                <Link href="/admin/screen-review/dashboard">
-                  <LayoutDashboard size={13} className="mr-1.5" />
-                  Dashboard
-                </Link>
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => router.reload()}
+            >
+              <SearchIcon size={13} className="mr-1.5" />
+              Reload
+            </Button>
           }
         />
 

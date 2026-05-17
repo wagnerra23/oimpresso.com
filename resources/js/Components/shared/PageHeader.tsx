@@ -5,15 +5,23 @@ import { cn } from '@/Lib/utils';
 /**
  * PageHeader — cabeçalho padronizado de tela operacional.
  *
- * Layout:
- *   [icon] Titulo grande                    [slot action]
+ * Layout 3 colunas:
+ *   [icon] Titulo grande      [slot nav]       [slot action]
  *          Descricao opcional abaixo
+ *
+ * Wagner 2026-05-17: topbar global removida (`hideTopbar=true` default).
+ * Navegação intra-módulo (ex: Financeiro Lançamentos/Conciliação/Fluxo/DRE)
+ * agora vive no slot `nav` do PageHeader, ao lado do título.
  *
  * Uso:
  *   <PageHeader
  *     icon="calendar-clock"
  *     title="Aprovações pendentes"
  *     description="12 solicitações aguardando revisão"
+ *     nav={<PageNavTabs items={[
+ *       { label: 'Lançamentos', href: '/financeiro', count: 27, hotkey: 1, active: true },
+ *       { label: 'Conciliação', href: '/financeiro/conciliacao', count: 18, hotkey: 2 },
+ *     ]} />}
  *     action={<Button>Nova intercorrência</Button>}
  *   />
  *
@@ -23,16 +31,17 @@ interface Props {
   title: string;
   description?: string;
   icon?: string;
+  nav?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
 }
 
-export default function PageHeader({ title, description, icon, action, className }: Props) {
+export default function PageHeader({ title, description, icon, nav, action, className }: Props) {
   return (
     <div
       data-slot="page-header"
       className={cn(
-        'flex flex-col gap-3 pb-4 border-b border-border md:flex-row md:items-start md:justify-between',
+        'flex flex-col gap-3 pb-4 border-b border-border md:flex-row md:items-center md:justify-between',
         className,
       )}
     >
@@ -56,6 +65,11 @@ export default function PageHeader({ title, description, icon, action, className
           )}
         </div>
       </div>
+      {nav && (
+        <div data-slot="page-header-nav" className="min-w-0 flex-1 md:flex md:justify-center">
+          {nav}
+        </div>
+      )}
       {action && <div data-slot="page-header-action" className="shrink-0">{action}</div>}
     </div>
   );
