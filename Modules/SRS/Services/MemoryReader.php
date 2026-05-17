@@ -27,17 +27,25 @@ class MemoryReader
 
     public function listRoots(): array
     {
+<<<<<<< HEAD
         // Wave 27 D9 — span OTel canonico envolve listagem 3 fontes (I/O-heavy).
         // Operacao percorre disco recursivamente em memory/ + ~/.claude/projects/.
         // Latencia varia 100-800ms conforme tamanho. Span ajuda Wagner a notar
         // regressao quando memory/ cresce ou /srs Chat fica lento.
         return OtelHelper::spanBiz('srs.memory.list_roots', function () {
+=======
+        return OtelHelper::spanBiz('srs.memory.list_roots', function (): array {
+>>>>>>> origin/main
             return [
                 self::ROOT_PRIMER  => $this->readPrimer(),
                 self::ROOT_PROJECT => $this->readTree(config('memcofre.memory.project_dir'), self::ROOT_PROJECT),
                 self::ROOT_CLAUDE  => $this->readTree(config('memcofre.memory.claude_dir'), self::ROOT_CLAUDE, true),
             ];
+<<<<<<< HEAD
         }, ['operation' => 'list_roots']);
+=======
+        });
+>>>>>>> origin/main
     }
 
     public function stats(): array

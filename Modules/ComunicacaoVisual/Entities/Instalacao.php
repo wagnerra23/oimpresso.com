@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Instalacao — execução de instalação (fachada/equipe/comprovação) SPEC §12.1.
@@ -42,6 +44,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Instalacao extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 26 D7 LGPD compliance).
+     * Whitelist exclui equipe_user_ids_json (PII operadores), endereco_json (cliente),
+     * assinatura_cliente_url e foto_*_url (mídia PII). Apenas status + datas + comissão.
+     * AuditTrailIntegrityTest reforça whitelist.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'data_agendada', 'data_realizada', 'nfse_emissao_id', 'comissao_calculada'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.instalacao');
+    }
 
     protected $table = 'cv_instalacoes';
 

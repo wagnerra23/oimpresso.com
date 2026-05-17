@@ -26,6 +26,20 @@ class EspelhoController extends Controller
         $businessId = session('business.id') ?: $request->user()->business_id;
         $mes = $request->input('mes', now()->format('Y-m'));
 
+        // Wave 26 D6 Inertia::defer DEFAULT — paginate() heavy vira closure lazy
+        // (RUNBOOK-inertia-defer-pattern.md). Filters UI state (`mes`) permanece eager.
+        return Inertia::render('Ponto/Espelho/Index', [
+            'colaboradores' => Inertia::defer(fn () => $this->buildColaboradoresPagina($businessId)),
+            'mes'           => $mes,
+        ]);
+    }
+
+    /**
+     * Paginação 25 colaboradores ativos — eager `user`. Wave 26 extraído pra
+     * closure `Inertia::defer` (pattern Dashboard Wave 25 replicado).
+     */
+    private function buildColaboradoresPagina(int $businessId)
+    {
         $paginated = Colaborador::where('business_id', $businessId)
             ->where('controla_ponto', true)
             ->whereNull('desligamento')
@@ -42,10 +56,7 @@ class EspelhoController extends Controller
             'email'     => optional($c->user)->email,
         ]);
 
-        return Inertia::render('Ponto/Espelho/Index', [
-            'colaboradores' => $paginated,
-            'mes' => $mes,
-        ]);
+        return $paginated;
     }
 
     public function show(Request $request, $colaboradorId): Response
@@ -58,6 +69,57 @@ class EspelhoController extends Controller
             ->with(['user:id,first_name,last_name,email', 'escalaAtual'])
             ->findOrFail($colaboradorId);
 
+        // Wave 26 D6 Inertia::defer — sums + loop construção `linhas` (até 31 dias)
+        // viram closures lazy. Cabeçalho `colaborador` eager (já materializado acima
+        // pra findOrFail validar tenant).
+        return Inertia::render('Ponto/Espelho/Show', [
+            'colaborador' => [
+                'id'        => $colaborador->id,
+                'matricula' => $colaborador->matricula,
+                'cpf'       => $colaborador->cpf,
+                'nome'      => trim(optional($colaborador->user)->first_name . ' ' . optional($colaborador->user)->last_name) ?: '—',
+                'email'     => optional($colaborador->user)->email,
+                'admissao'  => optional($colaborador->admissao)->format('Y-m-d'),
+                'escala'    => optional($colaborador->escalaAtual)->nome,
+            ],
+            'mes'    => $mes,
+            'totais' => Inertia::defer(fn () => $this->buildTotaisEspelho((int) $colaboradorId, (int) $ano, (int) $mesNum)),
+            'linhas' => Inertia::defer(fn () => $this->buildLinhasEspelho((int) $colaboradorId, (int) $ano, (int) $mesNum)),
+        ]);
+    }
+
+    /**
+     * Totalizadores mensais (8 sums + 1 count). Wave 26 extraído pra closure lazy.
+     *
+     * @return array<string,int>
+     */
+    private function buildTotaisEspelho(int $colaboradorId, int $ano, int $mesNum): array
+    {
+        $apuracoes = ApuracaoDia::where('colaborador_config_id', $colaboradorId)
+            ->whereYear('data', $ano)
+            ->whereMonth('data', $mesNum)
+            ->get();
+
+        return [
+            'trabalhado'    => (int) $apuracoes->sum('realizada_trabalhada_minutos'),
+            'atraso'        => (int) $apuracoes->sum('atraso_minutos'),
+            'falta'         => (int) $apuracoes->sum('falta_minutos'),
+            'he_diurna'     => (int) $apuracoes->sum('he_diurna_minutos'),
+            'he_noturna'    => (int) $apuracoes->sum('he_noturna_minutos'),
+            'adicional_not' => (int) $apuracoes->sum('adicional_noturno_minutos'),
+            'bh_credito'    => (int) $apuracoes->sum('banco_horas_credito_minutos'),
+            'bh_debito'     => (int) $apuracoes->sum('banco_horas_debito_minutos'),
+            'divergencias'  => $apuracoes->where('tem_divergencia', true)->count(),
+        ];
+    }
+
+    /**
+     * Linhas dia-a-dia do espelho (até 31). Wave 26 extraído pra closure lazy.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function buildLinhasEspelho(int $colaboradorId, int $ano, int $mesNum): array
+    {
         $apuracoes = ApuracaoDia::where('colaborador_config_id', $colaboradorId)
             ->whereYear('data', $ano)
             ->whereMonth('data', $mesNum)
@@ -71,27 +133,13 @@ class EspelhoController extends Controller
             ->orderBy('momento')
             ->get();
 
-        // Totalizadores
-        $totais = [
-            'trabalhado'    => (int) $apuracoes->sum('realizada_trabalhada_minutos'),
-            'atraso'        => (int) $apuracoes->sum('atraso_minutos'),
-            'falta'         => (int) $apuracoes->sum('falta_minutos'),
-            'he_diurna'     => (int) $apuracoes->sum('he_diurna_minutos'),
-            'he_noturna'    => (int) $apuracoes->sum('he_noturna_minutos'),
-            'adicional_not' => (int) $apuracoes->sum('adicional_noturno_minutos'),
-            'bh_credito'    => (int) $apuracoes->sum('banco_horas_credito_minutos'),
-            'bh_debito'     => (int) $apuracoes->sum('banco_horas_debito_minutos'),
-            'divergencias'  => $apuracoes->where('tem_divergencia', true)->count(),
-        ];
-
-        // Por dia, monta linha do espelho
         $marcacoesPorDia = $marcacoes->groupBy(fn ($m) => $m->momento->toDateString());
-
-        $inicio = Carbon::createFromDate((int) $ano, (int) $mesNum, 1)->startOfMonth();
-        $fim = $inicio->copy()->endOfMonth();
-        $linhas = [];
-        $cursor = $inicio->copy();
         $apuracoesPorData = $apuracoes->keyBy(fn ($a) => (string) $a->data);
+
+        $inicio = Carbon::createFromDate($ano, $mesNum, 1)->startOfMonth();
+        $fim = $inicio->copy()->endOfMonth();
+        $cursor = $inicio->copy();
+        $linhas = [];
 
         while ($cursor <= $fim) {
             $dataStr = $cursor->toDateString();
@@ -117,20 +165,7 @@ class EspelhoController extends Controller
             $cursor->addDay();
         }
 
-        return Inertia::render('Ponto/Espelho/Show', [
-            'colaborador' => [
-                'id'        => $colaborador->id,
-                'matricula' => $colaborador->matricula,
-                'cpf'       => $colaborador->cpf,
-                'nome'      => trim(optional($colaborador->user)->first_name . ' ' . optional($colaborador->user)->last_name) ?: '—',
-                'email'     => optional($colaborador->user)->email,
-                'admissao'  => optional($colaborador->admissao)->format('Y-m-d'),
-                'escala'    => optional($colaborador->escalaAtual)->nome,
-            ],
-            'mes'    => $mes,
-            'totais' => $totais,
-            'linhas' => $linhas,
-        ]);
+        return $linhas;
     }
 
     public function imprimir(Request $request, $colaboradorId)

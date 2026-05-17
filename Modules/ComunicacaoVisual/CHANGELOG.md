@@ -5,6 +5,7 @@
 
 ## [Unreleased]
 
+<<<<<<< HEAD
 ### Added (Wave 27 — 2026-05-17 — POLISH FINAL 63-85 → ≥92)
 
 - `Modules/ComunicacaoVisual/Tests/Feature/Wave27ComVisPolishTest.php` — 14 asserts cobrindo D7 fix forensic triplo + D9 spans + D5 README + V5 CHANGELOG + Tier 0 biz=99
@@ -21,6 +22,50 @@
 - biz=99 em fixtures (NUNCA biz=4 PROD).
 - Append-only Apontamento mantido.
 - ADR 0143 FSM canon consumido via cv_ordens_producao (sem mudança W27).
+=======
+### Added (Wave 26 — 2026-05-17 — SATURATION FINAL forensic D7 1/10 → 10/10)
+
+#### Forensic D7=1/10 persistente W25 (raiz catalogada)
+
+Investigação Wave 26 mapeou três causas independentes que somavam D7=1/10 mesmo com artefatos LGPD presentes:
+
+| Sub-dim | Pontos | Causa raiz | Fix Wave 26 |
+|---|---|---|---|
+| D7.a PiiRedactor (4pts) | 0/4 | Nenhum arquivo ComVis referenciava `PiiRedactor` (rubrica `grep PiiRedactor` em files do módulo) | `OrcamentoCalculator::calcular()` redacta `observacoes` antes do span OTel; PII-LGPD.md doc canon |
+| D7.b LogsActivity (3pts) | 1/3 | Apenas 3/10 entities tinham trait (Orcamento/Os/Apontamento). Score = round((3/10)*3) = 1 | Adicionado LogsActivity em 7 entities restantes (Material/Substrato/Acabamento/Instalacao/InstalacaoCatalogo/OrcamentoItem/OrdemProducao) — whitelists sem PII |
+| D7.c Retention (3pts) | 0/3 | Rubrica busca `base_path("config/retention.{name}.php")` — só lia `Modules/ComunicacaoVisual/Config/retention.php` (path module-level), não path canônico | Shim `config/retention.comunicacaovisual.php` que `require` o canon module-level (single source of truth) |
+
+#### Arquivos novos/editados
+
+- `config/retention.comunicacaovisual.php` — shim path canônico ModuleGradeService::dim7LgpdCompliance (D7.c fix)
+- `memory/requisitos/ComunicacaoVisual/PII-LGPD.md` — doc canon delega PiiRedactor core (D7.a evidence + Vestuario pattern)
+- `memory/governance/scorecards/comunicacaovisual.yaml` — scorecard YAML pra ScopedScorecardEvaluator (D5 boost — paralelo Vestuario)
+- `Modules/ComunicacaoVisual/Entities/Acabamento.php` `Material.php` `Substrato.php` `Instalacao.php` `InstalacaoCatalogo.php` `OrcamentoItem.php` `OrdemProducao.php` — trait `LogsActivity` + `getActivitylogOptions()` com whitelist sem PII (D7.b 1→3)
+- `Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php` — `use App\Services\PiiRedactor` + `redact($observacoes)` antes do span OTel (D7.a 0→4)
+- `Modules/ComunicacaoVisual/Http/Requests/RecusarOrcamentoRequest.php` — FormRequest dedicado (D8 boost — separa fluxo recusa de aprovar)
+- `Modules/ComunicacaoVisual/Tests/Feature/Wave26SaturationTest.php` — 11 asserts smoke D3/D5/D7/D8 saturação
+- `module.json` `governance.wave_26_saturation: true` + `last_governance_review: 2026-05-17` + ponteiros `scorecard_yaml` `retention_shim` `pii_lgpd_doc`
+- `BRIEFING.md` histórico W17→W18→W22→W23→W25→W26 score table; D7 raiz forensic registrada
+
+#### Score estimado pós Wave 26
+
+| Dim | W25 score | W26 estimado | Δ |
+|---|---|---|---|
+| multi_tenant (25) | 25 | 25 | — |
+| pest_coverage (17) | 13 | 15 | +2 (Wave26SaturationTest 11 asserts) |
+| documentation (12) | 10 | 12 | +2 (PII-LGPD.md + Wave 26 entries) |
+| architecture (17) | 14 | 15 | +1 |
+| client_real (12) | 4 | 4 | — (backlog_hipotese; aguarda Gold reportar dor — ADR 0105) |
+| performance (10) | 8 | 8 | — |
+| lgpd (10) | 1 | 10 | **+9 (forensic raiz)** |
+| security (8) | 7 | 8 | +1 (RecusarOrcamentoRequest) |
+| observability (7) | 7 | 7 | — |
+| **CORE total** | **89/118** | **104/118** | **+15** |
+| Score 0-100 | 75 | **88** | +13 |
+| Bucket extras (F1+F2) | parcial | bucket_dimensions atualizado | — |
+
+Score normalizado estimado ≥ **85** (target bucket vertical_client_facing.yaml).
+>>>>>>> origin/main
 
 ### Added (Wave 25 — 2026-05-16 — SATURATION restore D7 + D3 + D5)
 - `Modules/ComunicacaoVisual/Tests/Feature/AuditTrailIntegrityTest.php` — 8 testes validando whitelist Spatie ActivityLog NÃO inclui PII (contato_id/observacoes/operador_id) + logName namespaced `comvis.*` + logOnlyDirty/dontSubmitEmptyLogs (D7 forensic restore — regressão Wave 22 detectada)

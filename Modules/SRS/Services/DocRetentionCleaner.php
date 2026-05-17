@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\SRS\Services;
 
+use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -46,22 +47,24 @@ class DocRetentionCleaner
      */
     public function dryRun(): array
     {
-        $cutoffs = $this->computeCutoffs();
+        return OtelHelper::spanBiz('srs.retention.dry_run', function (): array {
+            $cutoffs = $this->computeCutoffs();
 
-        return [
-            'chat_messages' => DocChatMessage::query()
-                ->where('created_at', '<', $cutoffs['chat'])
-                ->count(),
-            'validation_runs' => DocValidationRun::query()
-                ->where('created_at', '<', $cutoffs['logs'])
-                ->count(),
-            'cutoffs' => [
-                'chat'  => $cutoffs['chat']->toIso8601String(),
-                'logs'  => $cutoffs['logs']->toIso8601String(),
-                'draft' => $cutoffs['draft']->toIso8601String(),
-                'docs'  => $cutoffs['docs']->toIso8601String(),
-            ],
-        ];
+            return [
+                'chat_messages' => DocChatMessage::query()
+                    ->where('created_at', '<', $cutoffs['chat'])
+                    ->count(),
+                'validation_runs' => DocValidationRun::query()
+                    ->where('created_at', '<', $cutoffs['logs'])
+                    ->count(),
+                'cutoffs' => [
+                    'chat'  => $cutoffs['chat']->toIso8601String(),
+                    'logs'  => $cutoffs['logs']->toIso8601String(),
+                    'draft' => $cutoffs['draft']->toIso8601String(),
+                    'docs'  => $cutoffs['docs']->toIso8601String(),
+                ],
+            ];
+        });
     }
 
     /**
@@ -72,25 +75,27 @@ class DocRetentionCleaner
      */
     public function purge(): array
     {
-        $cutoffs = $this->computeCutoffs();
-        $deleted = ['chat_messages' => 0, 'validation_runs' => 0];
+        return OtelHelper::spanBiz('srs.retention.purge', function (): array {
+            $cutoffs = $this->computeCutoffs();
+            $deleted = ['chat_messages' => 0, 'validation_runs' => 0];
 
-        DB::transaction(function () use ($cutoffs, &$deleted) {
-            $deleted['chat_messages'] = DocChatMessage::query()
-                ->where('created_at', '<', $cutoffs['chat'])
-                ->delete();
+            DB::transaction(function () use ($cutoffs, &$deleted) {
+                $deleted['chat_messages'] = DocChatMessage::query()
+                    ->where('created_at', '<', $cutoffs['chat'])
+                    ->delete();
 
-            $deleted['validation_runs'] = DocValidationRun::query()
-                ->where('created_at', '<', $cutoffs['logs'])
-                ->delete();
+                $deleted['validation_runs'] = DocValidationRun::query()
+                    ->where('created_at', '<', $cutoffs['logs'])
+                    ->delete();
+            });
+
+            Log::info('[SRS][retention] purge applied', $deleted + [
+                'cutoff_chat' => $cutoffs['chat']->toIso8601String(),
+                'cutoff_logs' => $cutoffs['logs']->toIso8601String(),
+            ]);
+
+            return $deleted;
         });
-
-        Log::info('[SRS][retention] purge applied', $deleted + [
-            'cutoff_chat' => $cutoffs['chat']->toIso8601String(),
-            'cutoff_logs' => $cutoffs['logs']->toIso8601String(),
-        ]);
-
-        return $deleted;
     }
 
     /**

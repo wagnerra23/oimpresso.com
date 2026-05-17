@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Substrato — catálogo SPEC §12.1 (lona/vinil/adesivo/ACM/tela/MDF/neon/letra_caixa).
@@ -38,6 +40,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Substrato extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
+
+    /**
+     * Audit trail Spatie ActivityLog (Wave 26 D7 LGPD compliance).
+     * Loga preço/tributação — alterações fiscais relevantes para audit.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['nome', 'preco_venda_m2', 'preco_custo_m2', 'ncm', 'cfop_padrao', 'csosn_padrao', 'ativo'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('comvis.substrato');
+    }
 
     protected $table = 'cv_substratos';
 

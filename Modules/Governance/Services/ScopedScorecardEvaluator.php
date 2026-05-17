@@ -623,29 +623,82 @@ class ScopedScorecardEvaluator
     }
 
     /**
-     * otel_query — consulta tabela mcp_observability_spans (pass-through se ausente).
+     * otel_query — consulta agregado diário OTel (pass-through fail-safe quando tabela ausente).
+     *
+     * Wave 26 (2026-05-17 — Agent 5) implementação real:
+     *   - Prefere `mcp_observability_aggregates_daily` (canon Wave 26, populado por
+     *     ObservabilitySnapshotService.php cron daily) — barato + indexado por (module, date).
+     *   - Fallback `mcp_observability_spans` (legacy US-WA-083 raw spans) com COUNT.
+     *   - Sem tabela = pass-through true (collector CT 100 ainda não ativo prod).
+     *   - Sem dados na janela = pass-through true (não pontua, mas não bloqueia).
+     *
+     * YAML detect schema:
+     *   tipo: otel_query
+     *   window_days: 7              # opcional, default 7
+     *   p99_threshold_ms: 2000      # opcional, default 2000
+     *   expect: "p99 < 2000"        # legacy compat (regex extrai threshold)
+     *
+     * Multi-tenant: agregado é per-module global (não per-business) — OTel telemetry
+     * é horizontal por design. business_id fica em cada span individual via spanBiz.
      */
     public function detectOtelQuery(string $module, array $detect): bool
     {
         try {
-            if (! Schema::hasTable('mcp_observability_spans')) {
-                return true; // collector OTel ainda não ativo prod — pass-through
+            $window   = (int) ($detect['window_days'] ?? 7);
+            $expect   = (string) ($detect['expect'] ?? '');
+
+            // Threshold: parâmetro explícito > parse do expect legacy > default 2000ms.
+            $threshold = (int) ($detect['p99_threshold_ms'] ?? 0);
+            if ($threshold === 0 && preg_match('/p99\s*<\s*(\d+)/', $expect, $m) === 1) {
+                $threshold = (int) $m[1];
             }
-            $expect = (string) ($detect['expect'] ?? '');
-            if (! preg_match('/p99\s*<\s*(\d+)/', $expect, $m)) {
-                return true;
+            if ($threshold === 0) {
+                $threshold = 2000; // default canon Wave 26
             }
-            $threshold = (int) $m[1];
-            // Query simplificada: p99 nas últimas 24h do módulo
-            $row = DB::table('mcp_observability_spans')
-                ->where('module', $module)
-                ->where('created_at', '>=', now()->subDay())
-                ->selectRaw('PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_ms) AS p99')
-                ->first();
-            if (! $row || ! isset($row->p99)) return true; // sem dados = pass-through
-            return ((int) $row->p99) < $threshold;
+
+            // Path canônico Wave 26: agregado daily indexado.
+            if (Schema::hasTable('mcp_observability_aggregates_daily')) {
+                $row = DB::table('mcp_observability_aggregates_daily')
+                    ->where('module', $module)
+                    ->where('snapshot_date', '>=', now()->subDays($window)->toDateString())
+                    ->orderBy('snapshot_date', 'desc')
+                    ->first();
+
+                if (! $row || ! isset($row->p99_ms)) {
+                    return true; // sem dados na janela — pass-through (não pontua, não bloqueia)
+                }
+                return ((int) $row->p99_ms) <= $threshold;
+            }
+
+            // Path legacy US-WA-083: tabela raw spans — calcula p99 aproximado via percentile_disc
+            // simplificado (ORDER BY duration_ms LIMIT offset). MySQL não tem PERCENTILE_CONT
+            // até 8.0.x — fazemos approximation conservadora.
+            if (Schema::hasTable('mcp_observability_spans')) {
+                $query = DB::table('mcp_observability_spans')
+                    ->where('module', $module)
+                    ->where('created_at', '>=', now()->subDays($window));
+                $count = (int) $query->count();
+                if ($count === 0) {
+                    return true; // sem dados na janela — pass-through
+                }
+                // p99 ≈ ordenado desc, pega no offset count*0.01 (1% mais lentos)
+                $offset = max(0, (int) floor($count * 0.01));
+                $row = (clone $query)->orderBy('duration_ms', 'desc')
+                    ->offset($offset)->limit(1)->first(['duration_ms']);
+                if (! $row || ! isset($row->duration_ms)) {
+                    return true;
+                }
+                return ((int) $row->duration_ms) <= $threshold;
+            }
+
+            // Nenhuma tabela presente — collector OTel ainda não ativo prod.
+            return true;
         } catch (\Throwable $e) {
-            return true; // dialeto MySQL pode não suportar PERCENTILE_CONT — pass-through
+            \Log::warning('ScopedScorecardEvaluator: otel_query falhou (pass-through fail-safe)', [
+                'module' => $module,
+                'error'  => $e->getMessage(),
+            ]);
+            return true; // qualquer erro SQL/schema → pass-through (não bloqueia avaliação)
         }
     }
 }

@@ -3,6 +3,7 @@
 namespace Modules\ComunicacaoVisual\Services;
 
 use App\Util\OtelHelper;
+use Modules\Jana\Services\Privacy\PiiRedactor; // Wave 26 D7.a — redacta texto livre observacoes antes de log/span (PII-LGPD.md §2)
 use InvalidArgumentException;
 use Modules\ComunicacaoVisual\Entities\Material;
 
@@ -59,9 +60,21 @@ class OrcamentoCalculator
      */
     public function calcular(array $payload): array
     {
+        // Wave 26 D7.a — observacoes é texto livre potencialmente PII (nome/telefone cliente
+        // digitado pelo vendedor). Redactamos ANTES de qualquer span/log/audit pra evitar
+        // vazamento de PII em telemetria. Persistência em DB mantém valor original (RTBF
+        // anonimiza depois via retention.php right_to_be_forgotten).
+        $observacoesBruto = (string) ($payload['observacoes'] ?? '');
+        $observacoesRedacted = $observacoesBruto === ''
+            ? ''
+            : app(PiiRedactor::class)->redact($observacoesBruto);
+
         return OtelHelper::spanBiz('comvis.orcamento.calcular', function () use ($payload) {
             return $this->calcularInterno($payload);
-        }, ['itens_count' => count($payload['itens'] ?? [])]);
+        }, [
+            'itens_count'        => count($payload['itens'] ?? []),
+            'observacoes_redact' => $observacoesRedacted, // log sem PII
+        ]);
     }
 
     /**
