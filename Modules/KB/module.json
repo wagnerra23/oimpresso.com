@@ -14,5 +14,11 @@
     ],
     "requires": [],
     "fsm_n_a": true,
-    "fsm_n_a_reason": "KB é módulo read-mostly (artigos + grafo de conhecimento). Sem ciclo de vida transacional (sem estados quote/draft/produção/entregue como Sells/Repair). ADR 0143 FSM Pipeline Canônico NÃO se aplica — kb_node.status simples (draft/published) é coluna boolean-like, não state machine. Wave 18 RETRY declaração explícita pra evitar falso-positivo em auditoria fsm-coverage."
+    "fsm_n_a_reason": "KB é módulo read-mostly (artigos + grafo de conhecimento). Sem ciclo de vida transacional (sem estados quote/draft/produção/entregue como Sells/Repair). ADR 0143 FSM Pipeline Canônico NÃO se aplica — kb_node.status simples (draft/published) é coluna boolean-like, não state machine. Wave 18 RETRY declaração explícita pra evitar falso-positivo em auditoria fsm-coverage.",
+    "governance": {
+        "bucket": "ai_central",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Knowledge Base IA-driven (mcp_memory_documents + FULLTEXT + Meilisearch hybrid embedder) consumido por Jana RAG, dimensões IA recall/relevance (ADR 0053)"
+    }
 }

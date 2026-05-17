@@ -11,6 +11,10 @@
     "retention_days": 730,
     "retention_config": "Modules/ADS/Config/retention.php",
     "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Adaptive Decision System (Risk/Confidence/Policy/Router) cross-vertical útil em qualquer empresa BR com decisões automatizadas, padrão Service horizontal",
         "fsm_n_a": true,
         "fsm_n_a_reason": "ADS é meta-orquestrador de decisões (Risk/Confidence/Policy/Router) — NÃO transiciona estados de negócio (Sells/Repair). Brain B → HiTL approve/reject não é state machine de domínio; é fluxo de governança. FSM N/A justificado per ADR 0143 (FSM aplica a Sells/Repair, não governance layer)."
     },

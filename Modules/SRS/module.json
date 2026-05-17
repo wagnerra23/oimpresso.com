@@ -14,5 +14,11 @@
     ],
     "requires": [],
     "fsm_n_a": true,
-    "fsm_n_a_reason": "SRS é módulo doc-ingest + chat assistido (ex-MemCofre). Sem ciclo de vida transacional. ADR 0143 FSM Pipeline NÃO aplica — docs_validation_runs já tem status simples (queued/running/done/failed) interno ao próprio módulo, sem orquestração cross-stage com side-effects fiscais. Wave 18 RETRY declaração explícita pra fechar gap fsm-coverage falso-positivo."
+    "fsm_n_a_reason": "SRS é módulo doc-ingest + chat assistido (ex-MemCofre). Sem ciclo de vida transacional. ADR 0143 FSM Pipeline NÃO aplica — docs_validation_runs já tem status simples (queued/running/done/failed) interno ao próprio módulo, sem orquestração cross-stage com side-effects fiscais. Wave 18 RETRY declaração explícita pra fechar gap fsm-coverage falso-positivo.",
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "System Requirements Spec (doc-ingest + chat assistido) cross-vertical útil em qualquer empresa BR pra documentação viva, padrão Service horizontal"
+    }
 }

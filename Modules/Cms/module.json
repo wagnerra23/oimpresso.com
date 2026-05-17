@@ -12,6 +12,10 @@
     "files": [],
     "requires": [],
     "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Mini CMS (landing/blog/contact/lead) cross-vertical útil em qualquer empresa BR, padrão CRUD horizontal sem dono cliente único",
         "fsm_n_a": true,
         "fsm_n_a_reason": "CMS é conteúdo estático/blog/leads — sem máquina de estados de negócio (sale_processes/repair). LGPD audit trail via spatie/activitylog cobre histórico (ADR 0094 §5 SoC: FSM é pro pipeline transacional).",
         "wave_18_saturation": "2026-05-16 — D4 Services (CmsPageService, CmsLeadService, SiteContentService) + CmsPageRepository extraídos; D2 Pest +22 tests (Service architecture, FormRequest validation, Repository contract)."
