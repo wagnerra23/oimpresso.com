@@ -24,5 +24,11 @@
     "retention_days": 1825,
     "retention_config": "Modules/Manufacturing/Config/retention.php",
     "fsm_n_a": true,
-    "fsm_n_a_reason": "Manufacturing tem production_purchase como Transaction type, MAS o ciclo produtivo (rascunho → produção → finalizado) é flag boolean `mfg_is_final` legacy UltimatePOS, não state machine FSM canônica (ADR 0143). Adoção FSM Pipeline poderia vir em Wave futura quando recipe-versioning + waste-tracking justificarem stages auditáveis. Atual: state via flag direta, n/a."
+    "fsm_n_a_reason": "Manufacturing tem production_purchase como Transaction type, MAS o ciclo produtivo (rascunho → produção → finalizado) é flag boolean `mfg_is_final` legacy UltimatePOS, não state machine FSM canônica (ADR 0143). Adoção FSM Pipeline poderia vir em Wave futura quando recipe-versioning + waste-tracking justificarem stages auditáveis. Atual: state via flag direta, n/a.",
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Manufacturing recipes/BOM cross-vertical útil onde houver produção (gráfica, vestuário, alimentos), padrão CRUD/Service legacy UltimatePOS"
+    }
 }
