@@ -29,16 +29,32 @@
 /* Sells/Subscriptions Cowork — lista assinaturas recorrentes (extensões mínimas além da família Index) */
 @import "./sells-cowork-subscriptions.css";
 
-/* Financeiro/Unificado Cowork Onda 5 R1 Curadoria — escopado em .fin-curadoria (Conferido + Comments + Audit + Frescor) */
+/* ============================================================================
+ * FINANCEIRO — Design System Cowork
+ *
+ * Ordem de importação canônica (Wagner regra 2026-05-18, feedback-cowork-bundle-aplicar-inteiro.md):
+ *   1. cowork-financeiro-bundle.css (BASE CANÔNICA — bundle integral 9054 LOC)
+ *   2. fin-curadoria.css / fin-ia.css / fin-output.css / fin-cowork.css (OVERRIDES locais)
+ *
+ * Bundle PRIMEIRO garante que TODAS as 123 classes .fin-* + 138 .vd-* + utilities
+ * carregam. Overrides DEPOIS permitem cherry-picks históricos vencer onde diferem.
+ *
+ * Próxima onda: deprecar overrides locais conforme bundle absorve customizações.
+ * ============================================================================ */
+
+/* Cowork bundle integral — base canônica do Design System (123 .fin-* classes) */
+@import "./cowork-financeiro-bundle.css";
+
+/* Override Onda 5 R1 Curadoria — escopado em .fin-curadoria (Conferido + Comments + Audit + Frescor) */
 @import "./fin-curadoria.css";
 
-/* Financeiro/Unificado Cowork Onda 6 R2 IA — escopado em .fin-curadoria (Anomaly + PartyHistory + MonthDigest) */
+/* Override Onda 6 R2 IA — escopado em .fin-curadoria (Anomaly + PartyHistory + MonthDigest) */
 @import "./fin-ia.css";
 
-/* Financeiro/Unificado Cowork Onda 7 R3 Output — escopado em .fin-curadoria (CrossLinkify + Checklist Fechamento) */
+/* Override Onda 7/7b/7c/9 — dialogs (CrossLinkify + Checklist Fechamento + Troubleshooter + PresentationMode + TranscriptPDF + Resume) */
 @import "./fin-output.css";
 
-/* Financeiro/Unificado Cowork Onda 8 — F1 page rewrite (header + hero KPI sparkline + filter chips coloridos + footer atalhos) */
+/* Override Onda 8/8b — F1 page rewrite (header + hero KPI sparkline + filter chips + footer atalhos) */
 @import "./fin-cowork.css";
 
 @theme {
