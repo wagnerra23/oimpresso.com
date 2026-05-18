@@ -1,15 +1,23 @@
 // Configurações Cobrança Recorrente — Page Inertia v9,75 Onda 8 (read-only stub).
+// Onda 23 v9,75 — refinos Cowork: Tour onboarding (13) + CheatSheet `?` (18) + atalhos teclado.
 // Charter: ./Index.charter.md
 // Visual canon: prototipo-ui/prototipos/recurring/recurring-page.jsx (tab Configurações).
 // Refs: ADR 0104 MWART · 0107 visual gate · 0093 multi-tenant Tier 0 · skill inertia-defer-default
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head } from '@inertiajs/react';
+// Onda 23 v9,75 — sub-components Cowork refinos.
+// TOUR_DONE_KEY compartilhada: user que fez tour no Index não vê aqui (e vice-versa).
+// TourConfiguracoes é local: steps específicos da página (Gateways/Dunning/NFe/Webhooks).
+import { TOUR_DONE_KEY } from '../_components/TourOnboarding';
+import CheatSheet from '../_components/CheatSheet';
 import {
   AlertTriangle,
   Banknote,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Copy,
   ExternalLink,
   FileText,
@@ -18,10 +26,11 @@ import {
   Receipt,
   Settings,
   Webhook,
+  X,
   XCircle,
   type LucideIcon,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 // ────────────────────────────────────────────────────────────────
 // TIPOS — espelham ConfiguracoesController PHP
@@ -124,6 +133,40 @@ const BANCO_BG: Record<Banco, string> = {
 
 export default function ConfiguracoesIndex(props: PageProps) {
   const { regua_dunning, nfe_auto, webhooks } = props;
+  // Onda 23 v9,75 — overlays modal state (Tour 1ª vez + CheatSheet `?`)
+  const [showTour, setShowTour] = useState(false);
+  const [showCheatsheet, setShowCheatsheet] = useState(false);
+
+  // Onda 23 v9,75 — Tour onboarding 1ª vez (TOUR_DONE_KEY compartilhada com Index.tsx)
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(TOUR_DONE_KEY) !== '1') {
+        setShowTour(true);
+      }
+    } catch {
+      // silently ignore (private mode etc)
+    }
+  }, []);
+
+  // Onda 23 v9,75 — atalhos teclado básicos (? abre CheatSheet · Esc fecha modais).
+  // Ctrl/Cmd+C deixado nativo: botões "Copiar" por webhook já existem (WebhookCard) e
+  // browser default permite copiar texto selecionado do <code> sem interceptação.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      const inField = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+      if (inField && e.key !== 'Escape') return;
+      if (e.key === '?') {
+        e.preventDefault();
+        setShowCheatsheet(true);
+      } else if (e.key === 'Escape') {
+        setShowCheatsheet(false);
+        setShowTour(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <>
@@ -132,18 +175,30 @@ export default function ConfiguracoesIndex(props: PageProps) {
       <div className="min-h-screen bg-zinc-50 p-4 md:p-6">
         {/* ── HEADER ── */}
         <header className="mb-6">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
-              <Settings size={20} />
-            </span>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-                Configurações · cobrança recorrente
-              </h1>
-              <div className="mt-0.5 text-sm text-zinc-500">
-                Gateways de pagamento, régua de dunning, NFe automática e webhooks por gateway.
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+                <Settings size={20} />
+              </span>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+                  Configurações · cobrança recorrente
+                </h1>
+                <div className="mt-0.5 text-sm text-zinc-500">
+                  Gateways de pagamento, régua de dunning, NFe automática e webhooks por gateway.
+                </div>
               </div>
             </div>
+            {/* Onda 23 v9,75 — hint atalho `?` (CheatSheet) */}
+            <button
+              type="button"
+              onClick={() => setShowCheatsheet(true)}
+              title="Ver atalhos de teclado"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+            >
+              atalhos
+              <kbd className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] text-zinc-700 ring-1 ring-zinc-200">?</kbd>
+            </button>
           </div>
         </header>
 
@@ -255,7 +310,133 @@ export default function ConfiguracoesIndex(props: PageProps) {
           </SectionCard>
         </div>
       </div>
+
+      {/* Onda 23 v9,75 — Tour onboarding 1ª vez (4 steps Configurações) + CheatSheet (?) */}
+      {showTour && <TourConfiguracoes onClose={() => setShowTour(false)} />}
+      {showCheatsheet && <CheatSheet onClose={() => setShowCheatsheet(false)} />}
     </>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────
+// TOUR INLINE — 4 steps específicos Configurações (Onda 23 v9,75)
+// TOUR_DONE_KEY compartilhada com Index.tsx (user faz tour 1× pra
+// toda área Cobrança Recorrente, não 1 vez por sub-rota).
+// ────────────────────────────────────────────────────────────────
+
+const TOUR_STEPS_CONFIG: Array<{ title: string; body: string }> = [
+  {
+    title: 'Gateways de pagamento',
+    body: 'Configuram quais bancos recebem cobrança — Inter PJ, C6 Bank ou Asaas. Sandbox = teste, production = real.',
+  },
+  {
+    title: 'Régua de dunning',
+    body: 'Automatiza retentativas quando fatura falha: 3 dias (lembrete), 7 dias (alerta), 15 dias (escalação).',
+  },
+  {
+    title: 'NFe automática (US-RB-044)',
+    body: 'Emite NFe automaticamente ao receber InvoicePaid — Listener via NfeBrasil. Liga/desliga aqui em breve.',
+  },
+  {
+    title: 'Webhooks por gateway',
+    body: 'URLs canônicas pra colar no painel admin do banco/gateway. Botão "Copiar" duplica a URL para área de transferência.',
+  },
+];
+
+function TourConfiguracoes({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState(0);
+
+  function close(setDone: boolean) {
+    if (setDone) {
+      try {
+        localStorage.setItem(TOUR_DONE_KEY, '1');
+      } catch {
+        /* ignore */
+      }
+    }
+    onClose();
+  }
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close(false);
+      else if (e.key === 'ArrowRight' && step < TOUR_STEPS_CONFIG.length - 1) setStep(step + 1);
+      else if (e.key === 'ArrowLeft' && step > 0) setStep(step - 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const cur = TOUR_STEPS_CONFIG[step] ?? TOUR_STEPS_CONFIG[0]!;
+  const isLast = step === TOUR_STEPS_CONFIG.length - 1;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/30 backdrop-blur-sm"
+    >
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-zinc-200">
+        <header className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
+          <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <span className="rounded bg-violet-100 px-2 py-0.5 font-semibold text-violet-700">
+              {step + 1}/{TOUR_STEPS_CONFIG.length}
+            </span>
+            <span>Tour · Configurações</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => close(false)}
+            aria-label="Fechar"
+            className="rounded p-1 hover:bg-zinc-100"
+          >
+            <X size={14} className="text-zinc-500" />
+          </button>
+        </header>
+        <div className="px-6 py-6">
+          <h3 className="text-lg font-bold text-zinc-900">{cur.title}</h3>
+          <p className="mt-2 text-sm text-zinc-600">{cur.body}</p>
+        </div>
+        <footer className="flex items-center justify-between gap-2 border-t border-zinc-100 px-4 py-3">
+          <button
+            type="button"
+            onClick={() => close(true)}
+            className="text-xs text-zinc-500 hover:text-zinc-700"
+          >
+            Não mostrar mais
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setStep(Math.max(0, step - 1))}
+              disabled={step === 0}
+              className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
+            >
+              <ChevronLeft size={12} /> Anterior
+            </button>
+            {!isLast && (
+              <button
+                type="button"
+                onClick={() => setStep(step + 1)}
+                className="inline-flex items-center gap-1 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700"
+              >
+                Próximo <ChevronRight size={12} />
+              </button>
+            )}
+            {isLast && (
+              <button
+                type="button"
+                onClick={() => close(true)}
+                className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700"
+              >
+                Começar
+              </button>
+            )}
+          </div>
+        </footer>
+      </div>
+    </div>
   );
 }
 

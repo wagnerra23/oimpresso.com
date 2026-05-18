@@ -1,6 +1,8 @@
-// Planos — CRUD Inertia (v9,75 Onda 6).
+// Planos — CRUD Inertia (v9,75 Onda 6 + Onda 21 refinos Cowork).
 // Charter: ./Index.charter.md
 // Refs: ADR 0104 MWART · 0107 visual gate · 0093 multi-tenant Tier 0 · US-RB-001
+// Onda 21 v9,75 — refinos Cowork 11/13/14/15/18 aplicados (Sparkline, CmdPalette ⌘K,
+//                 Tour onboarding compartilhado, CheatSheet ?, atalhos teclado J/K/N//)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router, usePage } from '@inertiajs/react';
@@ -16,11 +18,18 @@ import {
 } from 'lucide-react';
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
   type ReactNode,
 } from 'react';
+
+// Onda 21 v9,75 — sub-components Cowork refinos compartilhados.
+import Sparkline from '../_components/Sparkline';
+import CmdPalette from '../_components/CmdPalette';
+import TourOnboarding, { TOUR_DONE_KEY } from '../_components/TourOnboarding';
+import CheatSheet from '../_components/CheatSheet';
 
 // ────────────────────────────────────────────────────────────────
 // TIPOS
@@ -110,22 +119,44 @@ function KpiCard({
   label,
   value,
   delta,
+  deltaTone = 'neutral',
   hero = false,
+  sparkline,
 }: {
   label: string;
   value: ReactNode;
   delta?: string;
+  deltaTone?: 'ok' | 'warn' | 'bad' | 'neutral';
   hero?: boolean;
+  sparkline?: number[];
 }) {
+  // Onda 21 v9,75 — paleta delta tons (espelha Index.tsx principal).
+  const deltaCls = {
+    ok: 'text-emerald-300',
+    warn: 'text-amber-400',
+    bad: 'text-rose-400',
+    neutral: 'text-zinc-400',
+  }[deltaTone];
+  const deltaClsLight = {
+    ok: 'text-emerald-700',
+    warn: 'text-amber-700',
+    bad: 'text-rose-700',
+    neutral: 'text-zinc-500',
+  }[deltaTone];
+
   if (hero) {
     return (
       <div className="rounded-2xl bg-zinc-900 p-4 text-white shadow-sm ring-1 ring-zinc-800">
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-zinc-400">
           <span>{label}</span>
-          <TrendingUp size={14} className="text-emerald-400" />
+          {sparkline && sparkline.length > 0 ? (
+            <Sparkline points={sparkline} color="oklch(0.75 0.13 145)" />
+          ) : (
+            <TrendingUp size={14} className="text-emerald-400" />
+          )}
         </div>
         <div className="mt-2 text-2xl font-bold tabular-nums">{value}</div>
-        {delta && <div className="mt-1 text-xs font-medium text-emerald-300">{delta}</div>}
+        {delta && <div className={`mt-1 text-xs font-medium ${deltaCls}`}>{delta}</div>}
       </div>
     );
   }
@@ -133,7 +164,7 @@ function KpiCard({
     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200">
       <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{label}</div>
       <div className="mt-2 text-2xl font-bold text-zinc-900 tabular-nums">{value}</div>
-      {delta && <div className="mt-1 text-xs font-medium text-zinc-500">{delta}</div>}
+      {delta && <div className={`mt-1 text-xs font-medium ${deltaClsLight}`}>{delta}</div>}
     </div>
   );
 }
@@ -223,7 +254,26 @@ export default function PlanosIndex(props: PageProps) {
   const [search, setSearch] = useState(filters.q || '');
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Atalho `/` focus busca.
+  // Onda 21 v9,75 — state overlays (CmdPalette ⌘K, CheatSheet ?, Tour onboarding)
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const [showCmdPalette, setShowCmdPalette] = useState(false);
+  const [showCheatsheet, setShowCheatsheet] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+
+  const rows = plans?.data ?? [];
+
+  // Onda 21 v9,75 — Tour onboarding 1ª vez (TOUR_DONE_KEY compartilhado com Index Assinaturas).
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(TOUR_DONE_KEY) !== '1') {
+        setShowTour(true);
+      }
+    } catch {
+      // silently ignore (private mode etc)
+    }
+  }, []);
+
+  // Onda 21 v9,75 — Atalhos teclado completos (J/K navegar, N novo, / busca, ? cheatsheet, ⌘K palette, Esc).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -234,11 +284,49 @@ export default function PlanosIndex(props: PageProps) {
         searchRef.current?.focus();
       } else if (e.key === 'Escape') {
         (t as HTMLInputElement).blur?.();
+      } else if (e.key === 'j' || e.key === 'k') {
+        if (rows.length === 0) return;
+        e.preventDefault();
+        const idx = rows.findIndex((p) => p.id === activeId);
+        if (e.key === 'j') {
+          const nextIdx = idx < 0 ? 0 : Math.min(idx + 1, rows.length - 1);
+          const next = rows[nextIdx];
+          if (next) setActiveId(next.id);
+        } else {
+          const prevIdx = idx <= 0 ? 0 : idx - 1;
+          const prev = rows[prevIdx];
+          if (prev) setActiveId(prev.id);
+        }
+      } else if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        router.visit('/recurring-billing/planos/novo');
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShowCheatsheet(true);
+      } else if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setShowCmdPalette(true);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [rows, activeId]);
+
+  // Onda 21 v9,75 — KPIs derivados (ticket médio + plano top vendido).
+  const ticketMedio = useMemo(() => {
+    if (!kpis || kpis.total_planos === 0) return 0;
+    // Aproximação: MRR potencial / total planos. Quando backend fornecer mrr_real, trocar.
+    return kpis.mrr_potencial / Math.max(kpis.total_planos, 1);
+  }, [kpis]);
+
+  const topPlan = useMemo(() => {
+    if (rows.length === 0) return null;
+    return rows.reduce<PlanRow | null>(
+      (best, p) =>
+        !best || p.assinaturas_ativas_count > best.assinaturas_ativas_count ? p : best,
+      null,
+    );
+  }, [rows]);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -263,8 +351,6 @@ export default function PlanosIndex(props: PageProps) {
       },
     });
   }
-
-  const rows = plans?.data ?? [];
 
   return (
     <>
@@ -295,12 +381,21 @@ export default function PlanosIndex(props: PageProps) {
               >
                 Voltar
               </Link>
+              <button
+                type="button"
+                onClick={() => setShowCheatsheet(true)}
+                title="Atalhos teclado (?)"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+              >
+                <kbd className="rounded bg-zinc-100 px-1 text-[10px] font-mono text-zinc-500 ring-1 ring-zinc-200">?</kbd>
+              </button>
               <Link
                 href="/recurring-billing/planos/novo"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-violet-700"
               >
                 <Plus size={14} />
                 Novo plano
+                <kbd className="ml-1 rounded bg-violet-700 px-1 text-[10px] font-mono">N</kbd>
               </Link>
             </div>
           </div>
@@ -308,28 +403,51 @@ export default function PlanosIndex(props: PageProps) {
 
         <FlashBanner flash={flash} />
 
-        {/* KPIs */}
+        {/* KPIs — Onda 21 v9,75: 4 cards (Ticket médio hero+sparkline, Total planos, Total ativos, Plano top) + Distribuição abaixo */}
         <Deferred data="kpis" fallback={<KpiSkeleton />}>
           {kpis && (
-            <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiCard
-                label="MRR potencial"
-                value={BRL(kpis.mrr_potencial)}
-                delta="soma equivalente mensal"
-                hero
-              />
-              <KpiCard
-                label="Planos cadastrados"
-                value={kpis.total_planos}
-                delta={`${kpis.total_ativos} ativos`}
-              />
-              <KpiCard
-                label="Inativos"
-                value={kpis.total_planos - kpis.total_ativos}
-                delta="ocultos de novas assinaturas"
-              />
-              <CicloDistribuicao kpis={kpis} />
-            </div>
+            <>
+              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <KpiCard
+                  label="Ticket médio · MRR potencial"
+                  value={BRL(ticketMedio)}
+                  delta={`MRR total ${BRLshort(kpis.mrr_potencial)}`}
+                  deltaTone="ok"
+                  hero
+                  sparkline={(() => {
+                    // Onda 21 v9,75 — sparkline mock 12 pontos crescente (futuro: backend retorna ticket histórico 12m real).
+                    if (ticketMedio === 0) return [];
+                    return [0.72, 0.76, 0.79, 0.82, 0.85, 0.87, 0.9, 0.92, 0.94, 0.96, 0.98, 1].map((r) => ticketMedio * r);
+                  })()}
+                />
+                <KpiCard
+                  label="Total planos"
+                  value={kpis.total_planos}
+                  delta={`${kpis.total_planos - kpis.total_ativos} inativos`}
+                  deltaTone="neutral"
+                />
+                <KpiCard
+                  label="Total ativos"
+                  value={kpis.total_ativos}
+                  delta="disponíveis pra novas assinaturas"
+                  deltaTone="ok"
+                />
+                <KpiCard
+                  label="Plano top vendido"
+                  value={topPlan ? topPlan.name : '—'}
+                  delta={
+                    topPlan && topPlan.assinaturas_ativas_count > 0
+                      ? `${topPlan.assinaturas_ativas_count} assin. · ${BRLshort(topPlan.valor)}`
+                      : 'sem assinaturas ativas'
+                  }
+                  deltaTone={topPlan && topPlan.assinaturas_ativas_count > 0 ? 'ok' : 'neutral'}
+                />
+              </div>
+              {/* Distribuição ciclos full-width abaixo dos KPIs */}
+              <div className="mb-4">
+                <CicloDistribuicao kpis={kpis} />
+              </div>
+            </>
           )}
         </Deferred>
 
@@ -381,7 +499,15 @@ export default function PlanosIndex(props: PageProps) {
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
                     {rows.map((p) => (
-                      <tr key={p.id} className="hover:bg-zinc-50">
+                      <tr
+                        key={p.id}
+                        onClick={() => setActiveId(p.id)}
+                        className={`cursor-pointer transition ${
+                          activeId === p.id
+                            ? 'border-l-2 border-l-violet-500 bg-violet-50/50'
+                            : 'hover:bg-zinc-50'
+                        }`}
+                      >
                         <td className="px-4 py-2.5">
                           <div className="font-medium text-zinc-900">{p.name}</div>
                           <div className="font-mono text-[11px] text-zinc-500">{p.slug}</div>
@@ -449,6 +575,32 @@ export default function PlanosIndex(props: PageProps) {
           )}
         </section>
       </div>
+
+      {/* Onda 21 v9,75 — Overlays: Tour onboarding (1ª vez compartilhado), CheatSheet (?), CmdPalette (⌘K) */}
+      {showTour && (
+        <TourOnboarding onClose={() => setShowTour(false)} />
+      )}
+      {showCheatsheet && <CheatSheet onClose={() => setShowCheatsheet(false)} />}
+      {showCmdPalette && (
+        <CmdPalette
+          subs={[]} /* sem subs na Page Planos — IA fallback continua útil */
+          plans={rows.map((p) => ({
+            id: p.id,
+            name: p.name,
+            price: p.valor,
+            cycle_label: p.ciclo_label,
+          }))}
+          onClose={() => setShowCmdPalette(false)}
+          onPick={(item) => {
+            setShowCmdPalette(false);
+            if (item.kind === 'plan') {
+              router.visit(`/recurring-billing/planos/${item.id}/editar`);
+            } else if (item.kind === 'sub') {
+              router.visit('/recurring-billing');
+            }
+          }}
+        />
+      )}
     </>
   );
 }
