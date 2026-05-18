@@ -86,6 +86,9 @@
 - [feedback-revert-isolar-client.md](feedback-revert-isolar-client.md) — Antes reverter PR em prod, isolar client-side primeiro
 - [feedback-tenancy-pest-local.md](feedback-tenancy-pest-local.md) — Mudanças tenancy exigem Pest verde local antes de PR
 - [feedback-test-biz-99-cross-tenant.md](feedback-test-biz-99-cross-tenant.md) — biz=1 default; biz=99 cross-tenant (não biz=4 cliente real)
+- [feedback-auditar-components-antes-de-onda.md](feedback-auditar-components-antes-de-onda.md) — Antes de planejar N ondas, grep `_components/` do módulo. Componentes podem já estar mounted (economizou 4 ondas na sessão 2026-05-18)
+- [feedback-sync-cowork-shared-files-completos.md](feedback-sync-cowork-shared-files-completos.md) — Sync KB-X.X: contar `.jsx` referenciados em HTML vs existentes. Sem isso, React crasha em runtime (PR #1066 fix)
+- [feedback-localstorage-filter-stale-hint.md](feedback-localstorage-filter-stale-hint.md) — Filter em localStorage SEM UI hint visível é trap. Pattern: pill colorido sempre + estado stale amber + botão Limpar (PR #1071 fix)
 
 ## Workflow & triggers
 
