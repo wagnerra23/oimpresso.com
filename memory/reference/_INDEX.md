@@ -86,7 +86,7 @@
 - [feedback-revert-isolar-client.md](feedback-revert-isolar-client.md) — Antes reverter PR em prod, isolar client-side primeiro
 - [feedback-tenancy-pest-local.md](feedback-tenancy-pest-local.md) — Mudanças tenancy exigem Pest verde local antes de PR
 - [feedback-test-biz-99-cross-tenant.md](feedback-test-biz-99-cross-tenant.md) — biz=1 default; biz=99 cross-tenant (não biz=4 cliente real)
-- [feedback-habilitar-modulo-por-business.md](feedback-habilitar-modulo-por-business.md) — Esconder/liberar item sidebar pra biz=N específico. Pattern guard `$business_id === N` no DataController OR AdminSidebarMenu — preserva Tier 0. PRs #1073-#1075 + este (Wagner ROTA LIVRE)
+- [feedback-habilitar-modulo-por-business.md](feedback-habilitar-modulo-por-business.md) — **Tier 0 IRREVOGÁVEL** (lado a lado com `business_id` global scope em [proibicoes.md](../proibicoes.md)). Habilitar/desabilitar módulo por business = SEMPRE subscription package via Modules/Superadmin/PackagesController. NUNCA `if ($business_id === N) return`. Wagner regra 2026-05-18.
 
 ## Workflow & triggers
 
