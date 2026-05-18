@@ -3,11 +3,11 @@ page: /jana/chat
 component: resources/js/Pages/Jana/Chat.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-09
+last_validated: 2026-05-18
 parent_module: Jana
-related_adrs: [0110, 0094, 0107]
+related_adrs: [0110, 0094, 0107, 0114]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /jana/chat
@@ -25,6 +25,7 @@ Conversar com a Jana (IA assistente do oimpresso) pra **consultar dados** (venda
 ## Goals — Features (faz)
 
 - AppShellV2 + topnav inline com breadcrumb (Cockpit V2 canon)
+- **Header sticky área "JANA"** com dot da área (hue 220 — SIDEBAR_GROUP_HUE.ia) + label "JANA" à esquerda + **tabs `Dashboard | Chat`** (navegação Inertia entre `/jana/dashboard` e `/jana`). Espelha `prototipo-ui/_cowork-export-2026-05-15/app.jsx` Header function (L247-336). Componente compartilhado `JanaAreaHeader` plugado em Chat.tsx + Dashboard.tsx. Tabs usam `<Link>` (Inertia router.get) com `data-active` baseado em URL atual. Sticky `top-0 z-10 backdrop-blur` mantém referência visual durante scroll thread. Charter §UX Anti-patterns respeitado: ícones lucide (LayoutDashboard + MessageSquare), nunca emoji.
 - Layout 2-col: histórico de conversas (lista esquerda, ~280px) + thread ativa (centro, fluido)
 - Sidebar "Conversas" com pills de filtro `rounded-full`: Todas / Minhas / Compartilhadas / Arquivadas
 - Thread central com bubbles separadas por papel: `user` (direita, `bg-primary/5`) e `assistant` (esquerda, `bg-card`)
@@ -160,3 +161,4 @@ it('pauses auto-scroll when user scrolls up mid-stream')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-09 | [CC] (Cowork) + [W] | Charter criado em P2 do TELAS_REVIEW_QUEUE.md, antes de qualquer refator visual. Disparado pela auditoria dos 9 charters P0/P1 (sessão 2026-05-09). |
+| 2026-05-18 | [CL] Claude Code + [W] | charter_version → 2. Goal novo: header sticky com tabs `Dashboard | Chat` espelhando `app.jsx` Header function (linhas 247-336 protótipo Cockpit). Componente compartilhado `JanaAreaHeader` em Chat.tsx + Dashboard.tsx. Gate F1.5: `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md`. Pareado com PR #1053 (Fase 1+2 sidebar reordenada: shortcut Chat→IA). |

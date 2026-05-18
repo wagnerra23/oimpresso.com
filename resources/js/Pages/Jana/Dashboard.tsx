@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap } from 'lucide-react'
 import FabJana from './components/FabJana'
+import { JanaAreaHeader } from './components/JanaAreaHeader'
 
 interface Apuracao {
   data_ref: string
@@ -254,6 +255,11 @@ function ProximaAcaoCard() {
 export default function Dashboard({ metas }: Props) {
   return (
     <>
+      {/* JanaAreaHeader — header sticky com tabs Dashboard | Chat (Wagner
+          2026-05-18). Compartilhado com Chat.tsx. Gate F1.5 em
+          memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
+      <JanaAreaHeader active="dashboard" />
+
       <div className="space-y-6 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
