@@ -1,10 +1,12 @@
 ---
 name: feedback-habilitar-modulo-por-business
-description: Pra habilitar/desabilitar item do sidebar pra business específico, usar SEMPRE subscription package via Modules/Superadmin/PackagesController. NUNCA hardcode `if ($business_id === N) return` — Wagner regra 2026-05-18 IRREVOGÁVEL.
+description: Pra habilitar/desabilitar item do sidebar pra business específico, usar SEMPRE subscription package via Modules/Superadmin/PackagesController. NUNCA hardcode `if ($business_id === N) return` — Wagner regra 2026-05-18 IRREVOGÁVEL (Tier 0 lado a lado com business_id global scope).
 type: feedback
 ---
 
 # Habilitar/desabilitar módulo por business — SUBSCRIPTION PACKAGES, NÃO hardcode
+
+> **Status:** Tier 0 IRREVOGÁVEL — catalogada em [`memory/proibicoes.md`](../proibicoes.md) §"Multi-tenant Tier 0" lado a lado com `business_id` global scope (ADR 0093). Wagner palavras textuais 2026-05-18: *"Regra basica junto com Business_id acho que não porderia ser diferente"*.
 
 **Regra IRREVOGÁVEL Wagner 2026-05-18:** *"Nunca faça isso, habilitar e desabilitar é compra de pacote no modulo superadmin"*.
 
