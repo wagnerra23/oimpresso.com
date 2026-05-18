@@ -26,3 +26,4 @@ type: feedback
 
 **Histórico:**
 - 2026-05-15 — Wagner instalou regra após sessão Caixa Unificada V4 onde Claude pediu print 3× em vez de olhar direto.
+- 2026-05-18 — REINCIDÊNCIA. Após merge PR #1064 (sync KB-9.75 Vendas+Financeiro) + #1065 (docs follow-up), Claude reportou "mergeado" sem abrir Chrome MCP no `prototipo-ui/Oimpresso ERP - Chat.html` pra Wagner ver render. Wagner: *"confere o resultado no crome, lembre isso é outra reclamação sempre solicitando a mesma coisa"*. Regra aplica TAMBÉM a mockup local (HTML standalone do Cowork), não só prod Hostinger.
