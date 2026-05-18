@@ -2,7 +2,23 @@
 
 > Visão unificada de AR/AP (Contas a Receber / Contas a Pagar) + Fluxo de Caixa + Boletos + Conciliação. Cockpit V2 persona Eliana [E] (financeiro escritório, densidade alta, atalhos teclado).
 
-**Última atualização:** 2026-05-18 · Onda Edit PR #1086 (Edit Sheet inline + Conferido per-user DB + cross-links auto-pop) · Skill `brief-update` (Tier B)
+**Última atualização:** 2026-05-18 noite · **PR [#1115](https://github.com/wagnerra23/oimpresso.com/pull/1115) — Revert Plano B AppShellV2 nu** (default `mock_cowork_mode=false` + `sidebar_wrap_enabled=false`) · Skill `brief-update` (Tier B)
+
+## Estado UI 2026-05-18 noite — AppShellV2 nu (Plano B canon)
+
+`/financeiro/*` voltou pro **AppShellV2 + sidebar UltimatePOS canônico** via `DataController` + `package_details` + Spatie permissions (Tier 0 universal, zero hardcode biz). Pages Inertia `Pages/Financeiro/*.tsx` renderizam direto — controllers caem em `Inertia::render` normal porque trait `RendersMockCowork::tryRenderMockCowork()` retorna `null`.
+
+**Por que:** 3 PRs cherry-pick Cowork falhos (#1085 → #1091 → #1092) + tentativas 4-5 mock+wrap erraram layout 2026-05-18 inteiro. Regra Tier 0 nova (`proibicoes.md §Design System / Pacote Cowork novo`): primeira aplicação Cowork = bundle copy `styles.css` INTEIRO 1×, sem cherry-pick. Replanejamento Cowork Financeiro fica em PR separado quando estiver pronto pra bundle copy direito.
+
+**Reversibilidade 5 camadas** (canon em [feedback-cowork-bundle-aplicar-inteiro.md §Apêndice Plano B](../../reference/feedback-cowork-bundle-aplicar-inteiro.md)): env var `FINANCEIRO_MOCK_COWORK=true` / `FINANCEIRO_SIDEBAR_WRAP=true` / `localStorage __OIMPRESSO_SIDEBAR_OFF__='1'` / git revert / branch snapshot.
+
+**Smoke prod validado** (2026-05-18 noite pós-merge):
+- `bootstrap/cache/config.php` literal: `'mock_cowork_mode' => false,` + `'sidebar_wrap_enabled' => false,`
+- `curl -sv /financeiro/{unificado,fluxo,boletos}` → 302 `/login` **sem header `X-Mock-Cowork`** (antes era `X-Mock-Cowork: 1` injetado pelo trait)
+- Regression `/pos/sells` 302 → inalterado
+- Visual logado biz=4/biz=1: pendente Wagner (Chrome MCP ou validação manual)
+
+**Artefatos Cowork preservados** (dormentes, reativáveis): `public/cowork-preview/*.html`, bridges JS (`_oimpresso-bridge-*.js`), trait `RendersMockCowork`, componentes `Pages/Financeiro/_components/Fin*.tsx`. NÃO deletados — Plano B é pausa, não desistência.
 
 ## Estado consolidado (Wave 18 RETRY — saturação 68→97)
 

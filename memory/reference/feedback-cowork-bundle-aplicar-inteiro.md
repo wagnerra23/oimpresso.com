@@ -77,4 +77,53 @@ Próxima vez que Wagner pedir aplicação Cowork de módulo NOVO:
 
 ---
 
-**Última atualização:** 2026-05-18 (Wagner)
+## Apêndice — Plano B canônico (revert pro shell nu) 2026-05-18 noite
+
+Quando cherry-pick Cowork falha 3+ vezes no mesmo módulo E não há tempo/disposição pra fazer bundle copy inteiro AGORA, a saída pragmática é **reverter pro `AppShellV2` nu + sidebar UltimatePOS canônico via DataController + flag default false no config**, até estar pronto pra fazer bundle copy direito.
+
+**Não é desistência** — é estancar a sangria visual de um módulo crítico (Financeiro tem Eliana usando dia a dia) sem se comprometer com 4ª/5ª tentativa cherry-pick que vai falhar igual.
+
+### Pattern do revert (validado PR [#1115](https://github.com/wagnerra23/oimpresso.com/pull/1115) Financeiro 2026-05-18 noite)
+
+1. **Flag canônica no config do módulo** — `config/<modulo>.php` tem 2 defaults:
+   - `mock_cowork_mode` (controllers retornam HTML literal do bundle Cowork via trait `RendersMockCowork`)
+   - `sidebar_wrap_enabled` (bridge JS injeta sidebar wrap no mock)
+2. **Revert = trocar defaults pra `false`** + manter env vars `FINANCEIRO_MOCK_COWORK` / `FINANCEIRO_SIDEBAR_WRAP` pra reversibilidade futura
+3. **Não deletar artefatos** — preserva `public/cowork-preview/*.html`, bridges JS, trait, `Pages/Financeiro/_components/Fin*.tsx`. Tudo dormente, ativável via `.env` quando bundle copy estiver pronto.
+4. **PR pequeno** — só `config/<modulo>.php` (Financeiro: +35/-8). Não mexer em Pages/Controllers (já compatíveis com ambos caminhos via trait `if-null-return`).
+5. **Comentário do config explica os 2 caminhos + 5 camadas de reversibilidade** — futuro Claude/dev entende decisão sem precisar reler 3 PRs falhos.
+
+### Reversibilidade 5 camadas (canon)
+
+1. `.env` produção: `FINANCEIRO_MOCK_COWORK=true` (volta mock literal)
+2. `.env` produção: `FINANCEIRO_SIDEBAR_WRAP=true` (volta wrap se mock on)
+3. localStorage runtime: `__OIMPRESSO_SIDEBAR_OFF__='1'` (kill switch JS — bridge respeita; linha 55 `_oimpresso-bridge-sidebar.js`)
+4. `git revert` do commit do revert
+5. Branch/tag snapshot pré-revert preservada
+
+### Critério de evidência (smoke pós-deploy)
+
+- `curl -sv https://oimpresso.com/<rota_modulo> 2>&1 | grep -iE '^< (HTTP|X-Mock)'`
+  - **Esperado:** ausência do header `X-Mock-Cowork: 1` (que o trait injetava quando ativo)
+  - Esperado: comportamento idêntico a rota Inertia não-mockada (ex: `/pos/sells` redirecionando 302 → `/login` quando não autenticado)
+- Validação `bootstrap/cache/config.php` literal: `'mock_cowork_mode' => false,`
+- Chrome MCP screenshot logado biz=4 (Larissa) + biz=1: AppShellV2 + sidebar UltimatePOS canônica renderiza
+
+### Quando ATIVAR Plano B vs insistir cherry-pick
+
+| Sinal | Decisão |
+|---|---|
+| 2 PRs cherry-pick falharam visualmente + Wagner reabriu gap | Insiste só se a 3ª falha for SÓ 1-2 classes faltando |
+| 3+ PRs cherry-pick falharam + Wagner pediu pausa | **ATIVAR Plano B** — não tentar 4ª. Bundle copy fica em PR separado |
+| Wagner diz "tira o css e me devolve o que funcionava" | **ATIVAR Plano B imediatamente** — não negociar mais cherry-pick |
+| Cliente piloto reporta "tela quebrada" e produção tá com mock on | **ATIVAR Plano B emergência** — `.env FINANCEIRO_MOCK_COWORK=false` + cache:clear até PR revert mergear |
+
+### Vínculo com outras regras
+
+- Regra principal deste arquivo (bundle copy inteiro 1ª vez): **continua valendo** — Plano B só pausa até estar pronto pra fazer bundle copy direito
+- Tier 0 universal preservado: sem hardcode `biz=N`. AppShellV2 + DataController + `package_details` + Spatie permissions decidem o que aparece (3 camadas — ver `proibicoes.md §Multi-tenant Tier 0`)
+- Não conflita com [ADR 0104 MWART canônico](../decisions/0104-processo-mwart-canonico-unico-caminho.md) — Pages MWART continuam onde estavam, só o caminho mock/wrap fica off
+
+---
+
+**Última atualização:** 2026-05-18 noite (Wagner) — Plano B canon após [PR #1115](https://github.com/wagnerra23/oimpresso.com/pull/1115) revert Financeiro
