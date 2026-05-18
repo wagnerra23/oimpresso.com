@@ -140,6 +140,9 @@
             ]
         }
     },
+    "suggest": {
+        "spatie/browsershot": "Necessário pra PDF server-side do Transcript de venda (Sells/Index Onda 4 R4 C1). Requer Chrome headless instalado no runtime — funciona em CT 100 Proxmox, NÃO suportado em Hostinger shared (fallback 503 graceful)."
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "repositories": [
