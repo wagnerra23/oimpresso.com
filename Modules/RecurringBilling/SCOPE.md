@@ -8,6 +8,10 @@ contains:
   - "AsaasWebhookController"
   - "InterWebhookController"
   - "InvoiceController"
+  - "PlanController"
+  - "ConfiguracoesController"
+  - "SubscriptionNoteController"
+  - "SubscriptionFavoriteController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/ProjectMgmt"
@@ -20,7 +24,8 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
-  - /recurringbilling/*
+  - /recurring-billing/*
+  - /recurringbilling/* (legacy 301 redirect — Onda 10 cutover v9,75)
 drift_alerts: []
 ---
 
