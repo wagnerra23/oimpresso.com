@@ -40,9 +40,9 @@ import { FinTranscriptPDF } from './_components/FinTranscriptPDF';
 import { useFinFavs, FinFavPin } from './_components/useFinFavs';
 // Onda 9 — Resumo executivo do mês (narrativa compute-based · plug LLM Fase 2).
 import { FinMonthResumeDialog } from './_components/FinMonthResume';
-// Onda 10 (canon 100%) — Sub-nav horizontal + ageing bar + edit panel inline real.
-import { FinSubNav } from './_components/FinSubNav';
-import { FinAgeing } from './_components/FinAgeing';
+// Onda 10 (canon 100%) — Edit panel inline real (FinSubNav + FinAgeing REMOVIDOS
+// 2026-05-18 Wagner: visualmente duplicados — sidebar já navega entre Fluxo/DRE/etc,
+// e ageing bar é insight contextual no drawer, não strip permanente).
 import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
@@ -518,9 +518,6 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
   return (
     <div className="fin-curadoria">
-      {/* Onda 10 Cowork canon: sub-nav horizontal (5 sub-rotas) ANTES do page header */}
-      <FinSubNav active="unified" />
-
       {/* Onda 8 Cowork: page header canon com h1 + breadcrumb + 7 botões.
           Substitui PageHeader shadcn legacy (mantido em _KpiBarLegacy + comentário). */}
       <div className="fin-page-h">
@@ -581,9 +578,6 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
       </div>
 
       <KpiBar kpis={kpis} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
-
-      {/* Onda 10 Cowork canon — barra ageing A receber (vencido/0-30d/31-60d/61d+) */}
-      <FinAgeing lancamentos={lancamentos} />
 
       {/* Cowork KB-9.75 Onda 6 R2 IA — Resumo executivo do mês (Eliana 5min sexta) */}
       <FinMonthDigest
