@@ -35,6 +35,8 @@ import { FinChecklistFechamento } from './_components/FinChecklistFechamento';
 // Onda 7b — Troubleshooter dialog + PresentationMode fullscreen.
 import { FinTroubleshooterDialog, FinTroubleButton } from './_components/FinTroubleshooter';
 import { FinPresentationMode } from './_components/FinPresentationMode';
+// Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
+import { TituloEditSheet } from './_components/TituloEditSheet';
 
 // ---------- Tipos ----------
 
@@ -49,6 +51,7 @@ interface Lancamento {
   contraparte: string;
   contraparte_doc: string | null;
   categoria: string;
+  categoria_id: number | null;
   conta_bancaria: string;
   vencimento: string;            // ISO yyyy-mm-dd
   vencimento_label: string;      // "qua, 14 mai"
@@ -57,6 +60,11 @@ interface Lancamento {
   nfe_numero: string | null;
   canal: string | null;
   observacao: string | null;
+  // Onda Edit 2026-05-18 — conferido per-user (DB-backed) + valor_mutavel pós-baixa.
+  conferido_by: number | null;
+  conferido_at: string | null;
+  conferido_user_nome: string | null;
+  valor_mutavel: boolean;
 }
 
 interface Kpi {
@@ -374,14 +382,16 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const [paletteOpen, setPaletteOpen] = useState(false);
   const dens = DENSITY[filters.densidade ?? 'comfortable'];
 
-  // Cowork KB-9.75 Onda 5 R1 Curadoria — hooks localStorage compartilhados pela página.
-  const conferido = useFinConferido();
+  // Cowork KB-9.75 Onda Edit (2026-05-18) — conferido per-user DB (substitui Onda 5 localStorage).
+  const conferido = useFinConferido(lancamentos);
   const comments = useFinComments();
   // Cowork KB-9.75 Onda 7 R3 — trilha fechamento dialog state.
   const [checklistOpen, setChecklistOpen] = useState(false);
   // Cowork KB-9.75 Onda 7b — Troubleshooter + Presentation Mode states.
   const [troubleOpen, setTroubleOpen] = useState(false);
   const [presentOpen, setPresentOpen] = useState(false);
+  // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
+  const [editOpen, setEditOpen] = useState(false);
 
   const aplicar = useCallback((patch: Partial<Filters>) => {
     router.get('/financeiro/unificado', { ...filters, ...patch }, {
@@ -703,7 +713,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                       {selected.kind === 'receivable' ? 'Marcar recebido' : 'Marcar pago'}
                     </Button>
                   )}
-                  <Button variant="outline">Editar</Button>
+                  <Button variant="outline" onClick={() => setEditOpen(true)}>Editar</Button>
                   <Button variant="outline" className="ml-auto">Anexar</Button>
                 </div>
               </div>
@@ -761,6 +771,16 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         open={checklistOpen}
         onClose={() => setChecklistOpen(false)}
       />
+
+      {/* Onda Edit 2026-05-18 — Sheet inline pra editar título */}
+      {selected && (
+        <TituloEditSheet
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          lancamento={selected}
+          categorias={categorias}
+        />
+      )}
     </div>
   );
 }

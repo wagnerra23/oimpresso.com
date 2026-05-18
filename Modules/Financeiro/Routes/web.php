@@ -58,6 +58,16 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/unificado/{id}/baixar', [UnificadoController::class, 'baixar'])
             ->whereNumber('id')
             ->name('unificado.baixar');
+        // Onda Edit 2026-05-18 — edit Sheet inline + conferido per-user DB.
+        Route::put('/unificado/{id}', [UnificadoController::class, 'update'])
+            ->whereNumber('id')
+            ->name('unificado.update');
+        Route::post('/unificado/{id}/conferir', [UnificadoController::class, 'conferir'])
+            ->whereNumber('id')
+            ->name('unificado.conferir');
+        Route::delete('/unificado/{id}/conferir', [UnificadoController::class, 'unconferir'])
+            ->whereNumber('id')
+            ->name('unificado.unconferir');
 
         // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
