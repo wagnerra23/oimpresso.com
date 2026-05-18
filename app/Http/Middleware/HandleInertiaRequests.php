@@ -373,12 +373,12 @@ class HandleInertiaRequests extends Middleware
 
         // Tarefas: universal — MCP tasks system sempre disponível em prod
         // (`mcp_tasks` table existe desde Sprint 0). Try/catch só pra dev.
-        // Wagner 2026-05-18: escondido pra biz=4 (ROTA LIVRE Larissa) — ela
-        // não usa MCP tasks (workflow operacional vestuário, não dev/governance).
+        // Visibilidade per-business deve ser via subscription package
+        // (Modules/Superadmin/PackagesController). NUNCA hardcode biz=N.
         try {
-            $shortcuts['tarefas'] = \Schema::hasTable('mcp_tasks') && $businessId !== 4;
+            $shortcuts['tarefas'] = \Schema::hasTable('mcp_tasks');
         } catch (\Throwable $e) {
-            $shortcuts['tarefas'] = ($businessId !== 4);
+            $shortcuts['tarefas'] = true;
         }
 
         return $shortcuts;
