@@ -3,7 +3,9 @@
 > Lista priorizada de telas pra passar pelo loop Claude Design.
 > Wagner pode reordenar. Status atualizado a cada movimento de fase.
 >
-> **Última reconciliação:** 2026-05-09 — auditoria charters live no repo + 4 novas P2 com drafts (Cliente, Produto/Unificado, Produto/Index, Orcamento). 11 telas reposicionadas de `[ ]` pra `[x]` (todas com charter `status: live` no frontmatter).
+> **Última reconciliação:** 2026-05-18 — Método KB-9.75 v2 aplicado em Vendas + Financeiro (PR #1064 mergeado). Sells/Index, Sells/Create e Financeiro/Unificado marcadas **done · A+** (≥9,5 visual) — implementação Inertia/React separada em ondas técnicas (7 ondas estimadas).
+>
+> **Reconciliação anterior:** 2026-05-09 — auditoria charters live no repo + 4 novas P2 com drafts (Cliente, Produto/Unificado, Produto/Index, Orcamento). 11 telas reposicionadas de `[ ]` pra `[x]` (todas com charter `status: live` no frontmatter).
 
 **Legenda:**
 - `[ ]` pending — não começou
@@ -15,10 +17,10 @@
 
 ## ✅ P0 — Coração da venda (todas live)
 
-| Status | Tela | Refs |
-|---|---|---|
-| `[x]` | [`Sells/Create`](../resources/js/Pages/Sells/Create.tsx) | charter live, last_validated 2026-05-08, US-SELL-001..008 (PRs #257-261) |
-| `[x]` | [`Sells/Index`](../resources/js/Pages/Sells/Index.tsx) | charter live, last_validated 2026-05-08, PR #261 |
+| Status | Tela | Score visual | Refs |
+|---|---|---|---|
+| `[x]` | [`Sells/Create`](../resources/js/Pages/Sells/Create.tsx) | **A+ · 9,75/10** (KB-9.75 v2 · PR #1064) | charter live, last_validated 2026-05-08, US-SELL-001..008 (PRs #257-261). Impl Inertia/React pendente em ondas técnicas. |
+| `[x]` | [`Sells/Index`](../resources/js/Pages/Sells/Index.tsx) | **A+ · 9,75/10** (KB-9.75 v2 · PR #1064) | charter live, last_validated 2026-05-08, PR #261. Impl Inertia/React pendente em ondas técnicas. |
 
 ## ✅ P1 — Fluxos com charter existente (live exceto bloqueios backend)
 
@@ -28,7 +30,7 @@
 | `[x]` | [`Repair/Dashboard`](../resources/js/Pages/Repair/Dashboard/Index.tsx) | charter live (rascunho exemplo ADR 0101), last_validated 2026-05-07 |
 | `[x]` | [`Repair/JobSheet`](../resources/js/Pages/Repair/JobSheet/Index.tsx) | charter live, last_validated 2026-05-07 (sprint 2.5/MWART-0002) |
 | `[x]` | [`Repair/Status`](../resources/js/Pages/Repair/Status/Index.tsx) | charter stub F1 live, last_validated 2026-05-07 |
-| `[x]` | [`Financeiro/Unificado`](../resources/js/Pages/Financeiro/Unificado/Index.tsx) | em prod com fixes #355/#358 |
+| `[x]` | [`Financeiro/Unificado`](../resources/js/Pages/Financeiro/Unificado/Index.tsx) | em prod com fixes #355/#358. **Visual: A+ · 9,75/10** (KB-9.75 v2 · PR #1064). Impl Inertia/React pendente em ondas técnicas. |
 | `[x]` | [`Financeiro/ContasBancarias`](../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx) | charter stub F1 live, last_validated 2026-05-07 |
 | `[x]` | [`Financeiro/Extrato`](../resources/js/Pages/Financeiro/Extrato/Index.tsx) | charter live, last_validated 2026-05-07, US-RB-046 |
 | `[x]` | [`ProjectMgmt/Board`](../resources/js/Pages/ProjectMgmt/Board/Index.tsx) | charter live, last_validated 2026-05-08, ADR 0070 PMG |
