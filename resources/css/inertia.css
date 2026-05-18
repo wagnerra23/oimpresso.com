@@ -17,6 +17,9 @@
 /* Sells/Show Cowork — readonly venda finalizada (espelha família Index) */
 @import "./sells-cowork-show.css";
 
+/* Sells/Quotations Cowork — lista orçamentos (extensões mínimas além da família Index) */
+@import "./sells-cowork-quotations.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
