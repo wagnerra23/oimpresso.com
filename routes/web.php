@@ -272,6 +272,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-SELL-035 — Timeline FSM (sale_stage_history) pra drawer e auditoria.
     Route::get('/api/sells/{id}/history', [\App\Http\Controllers\SaleHistoryController::class, 'index'])
         ->name('sells.history');
+    // US-SELL-COWORK-R3-CURADORIA Onda 3.5 — Audit Trail FSM real (formato flat
+    // amigável pro componente SaleAuditTrail.tsx). Multi-tenant Tier 0.
+    Route::get('/sells/{sale}/audit', [\App\Http\Controllers\SellAuditController::class, 'show'])
+        ->name('sells.audit');
     // Wire-up UI FSM — actions disponíveis no stage atual + execute transição.
     Route::get('/api/sells/{id}/fsm-actions', [\App\Http\Controllers\SaleFsmActionController::class, 'actions'])
         ->name('sells.fsm-actions');

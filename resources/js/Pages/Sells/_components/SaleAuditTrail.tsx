@@ -1,21 +1,25 @@
-// SaleAuditTrail — Cowork KB-9.75 Sells Onda 3 R3 Curadoria
-// (histórico de edições + emissões fiscais + transições FSM).
+// SaleAuditTrail — Cowork KB-9.75 Sells Onda 3 R3 Curadoria + Onda 3.5
+// (histórico de edições + emissões fiscais + transições FSM REAIS).
 //
 // Refs:
 //  - prototipo-ui/prototipos/sells-index/vendas-curation.jsx (canonical source)
 //  - sale_stage_history table (ADR 0143 FSM Pipeline live biz=1)
-//  - SellController::sheetData (futuro: retornará audit_trail real)
+//  - GET /sells/{sale}/audit → SellAuditController (Onda 3.5)
 //
-// Esta Onda: render frontend determinístico baseado no SaleDetail (cria/edita/
-// emite). Onda 3.5 plugará em sale_stage_history + transaction audit log real.
+// Modos suportados:
+//  1) DETERMINÍSTICO (Onda 3 — default): prop `venda: SaleAuditInput` → render
+//     entries derivadas no frontend (create/payment/fiscal/reject).
+//  2) REAL FSM (Onda 3.5 — opt-in): prop `realApiUrl` → fetch
+//     /sells/{id}/audit e render entries reais de sale_stage_history. Em caso
+//     de erro/loading, faz fallback pro modo determinístico (preserva UX).
 
-import { useMemo, type ReactNode } from 'react';
-import { Plus, Pencil, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Plus, Pencil, FileText, AlertTriangle, CheckCircle2, GitBranch } from 'lucide-react';
 
 interface AuditEntry {
   when: string;
   who: string;
-  kind: 'create' | 'edit' | 'fiscal' | 'reject' | 'payment';
+  kind: 'create' | 'edit' | 'fiscal' | 'reject' | 'payment' | 'fsm';
   desc: string;
   diff?: { from: number; to: number; pct: number };
 }
@@ -34,6 +38,24 @@ interface SaleAuditInput {
   fiscal_emitted_at?: string | null;
   fiscal_fail_reason?: string | null;
   current_stage_label?: string | null;
+}
+
+// Payload retornado por SellAuditController (Onda 3.5).
+interface FsmHistoryEntry {
+  id: number;
+  when: string | null;
+  from_stage: string | null;
+  to_stage: string;
+  action: string;
+  action_key: string | null;
+  user_name: string;
+}
+
+interface FsmAuditResponse {
+  venda_id: number;
+  invoice_no: string;
+  count: number;
+  history: FsmHistoryEntry[];
 }
 
 function buildEntries(venda: SaleAuditInput): AuditEntry[] {
@@ -91,6 +113,21 @@ function buildEntries(venda: SaleAuditInput): AuditEntry[] {
   return entries.sort((a, b) => a.when.localeCompare(b.when));
 }
 
+// Onda 3.5 — converte payload real de sale_stage_history pra AuditEntry.
+function fsmHistoryToEntries(history: FsmHistoryEntry[]): AuditEntry[] {
+  return history.map((h) => {
+    const transitionDesc = h.from_stage
+      ? `${h.action} · ${h.from_stage} → ${h.to_stage}`
+      : `${h.action} · → ${h.to_stage}`;
+    return {
+      when: formatDateTime(h.when ?? null),
+      who: h.user_name || 'sistema',
+      kind: 'fsm' as const,
+      desc: transitionDesc,
+    };
+  });
+}
+
 function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);
@@ -110,6 +147,7 @@ const KIND_ICON: Record<AuditEntry['kind'], ReactNode> = {
   fiscal: <FileText size={11} />,
   reject: <AlertTriangle size={11} />,
   payment: <CheckCircle2 size={11} />,
+  fsm: <GitBranch size={11} />,
 };
 
 const KIND_LABEL: Record<AuditEntry['kind'], string> = {
@@ -118,20 +156,94 @@ const KIND_LABEL: Record<AuditEntry['kind'], string> = {
   fiscal: 'fiscal',
   reject: 'erro',
   payment: 'pagou',
+  fsm: 'pipeline',
 };
 
 interface Props {
   venda: SaleAuditInput;
+  /**
+   * Onda 3.5 — se setado, faz fetch GET nessa URL pra buscar entries reais
+   * de sale_stage_history (Controller SellAuditController). Em erro/timeout
+   * cai automaticamente no fallback determinístico (preserva UX).
+   * Ex: `/sells/123/audit`
+   */
+  realApiUrl?: string;
 }
 
-export default function SaleAuditTrail({ venda }: Props): ReactNode {
-  const entries = useMemo(() => buildEntries(venda), [venda]);
+export default function SaleAuditTrail({ venda, realApiUrl }: Props): ReactNode {
+  const fallbackEntries = useMemo(() => buildEntries(venda), [venda]);
+  const [realEntries, setRealEntries] = useState<AuditEntry[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!realApiUrl) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    fetch(realApiUrl, {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<FsmAuditResponse>;
+      })
+      .then((json) => {
+        if (cancelled) return;
+        const entries = fsmHistoryToEntries(json.history || []);
+        setRealEntries(entries);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError(true);
+        setRealEntries(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [realApiUrl]);
+
+  // Estratégia de fallback (Onda 3.5):
+  //  - sem realApiUrl → sempre determinístico (modo Onda 3 original)
+  //  - com realApiUrl + dados reais OK → real
+  //  - com realApiUrl + erro → determinístico (UX preservada)
+  //  - com realApiUrl + carregando → skeleton
+  const usingReal = !!realApiUrl && realEntries !== null && !error;
+  const entries = usingReal ? (realEntries as AuditEntry[]) : fallbackEntries;
+
+  if (loading && realApiUrl) {
+    return (
+      <div className="vd-audit">
+        <div className="vd-audit-h">
+          <h4>Histórico</h4>
+          <small>carregando auditoria FSM…</small>
+        </div>
+        <ul className="vd-audit-list">
+          <li className="vd-audit-row vd-audit-skeleton">
+            <span className="vd-audit-ic">⋯</span>
+            <div className="vd-audit-body">
+              <header><b>—</b><time>—</time></header>
+              <p>carregando…</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    );
+  }
+
   if (entries.length === 0) return null;
   return (
     <div className="vd-audit">
       <div className="vd-audit-h">
         <h4>Histórico</h4>
-        <small>{entries.length} entrada{entries.length === 1 ? '' : 's'} · auditoria</small>
+        <small>
+          {entries.length} entrada{entries.length === 1 ? '' : 's'} · auditoria
+          {usingReal ? ' · FSM real' : ''}
+        </small>
       </div>
       <ul className="vd-audit-list">
         {entries.map((e, i) => (
@@ -163,4 +275,4 @@ export default function SaleAuditTrail({ venda }: Props): ReactNode {
   );
 }
 
-export type { SaleAuditInput };
+export type { SaleAuditInput, FsmHistoryEntry, FsmAuditResponse };
