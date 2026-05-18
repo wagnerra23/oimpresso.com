@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { ThreadHeader } from '@/Components/cockpit/Thread';
+import { JanaAreaHeader } from './components/JanaAreaHeader';
 import {
   AvatarRef,
   BusinessOpt,
@@ -255,6 +256,12 @@ export default function Chat({
       onSelectConv={selectConv}
     >
       <Head title="Jana · Chat" />
+
+      {/* JanaAreaHeader — header sticky com tabs Dashboard | Chat (Wagner
+          2026-05-18). Espelha app.jsx Header function do protótipo Cockpit.
+          Componente compartilhado com Dashboard.tsx. Gate F1.5:
+          memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
+      <JanaAreaHeader active="chat" />
 
       {/* Master/detail interno — UI-0011 (sidebar single-pane) migrou conv
           switcher pra dentro da própria Page. 320px lista + 1fr thread. */}
