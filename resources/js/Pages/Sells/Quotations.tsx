@@ -1,8 +1,13 @@
 // Wave 1 W1-A — MWART /sells/quotations (Cotações).
+// US-SELL-QUOTATIONS-COWORK marker — Onda Cowork Sells/Quotations (visual reuse família Index).
 // Refs: ADR 0104, ADR 0149 (pattern reuse Sells/Drafts), ADR 0110, ADR 0143 (FSM quote_*), ADR 0093.
 //
 // Lista cotações (status=draft + sub_status=quotation). Pattern idêntico Drafts;
 // muda título, endpoint AJAX (?is_quotation=1), ações específicas (enviar/converter).
+//
+// Visual: wrapper outer reusa família .sells-cowork (tokens canon + filtros + paginação)
+// e adiciona .sells-cowork-quotations (extensões mínimas: badge orçamento, CTA converter,
+// chip expiração). Sem mudar Controller / props / funcionalidade.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
@@ -119,7 +124,7 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
     <>
       <Head title="Cotações" />
 
-      <div className="container mx-auto px-6 py-6 space-y-6">
+      <div className="sells-cowork sells-cowork-quotations container mx-auto px-6 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-start gap-3">
@@ -129,7 +134,10 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
               </Link>
             </Button>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Cotações</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-semibold tracking-tight">Cotações</h1>
+                <span className="vd-quote-badge" aria-label="Tipo: Orçamento">Orçamento</span>
+              </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Propostas formais — enviar pro cliente e converter em venda quando aprovado.
               </p>
