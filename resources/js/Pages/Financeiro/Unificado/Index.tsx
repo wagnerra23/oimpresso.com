@@ -25,6 +25,10 @@ import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
 import { FinCommentsThread, FinCommentsBadge, useFinComments, type UseFinCommentsApi } from './_components/FinCommentsThread';
 import { FinAuditTrail } from './_components/FinAuditTrail';
+// Onda 6 R2 IA — anomaly + party history + month digest (pure compute, sem backend).
+import { FinAnomalyDetector } from './_components/FinAnomalyDetector';
+import { FinPartyHistory } from './_components/FinPartyHistory';
+import { FinMonthDigest } from './_components/FinMonthDigest';
 
 // ---------- Tipos ----------
 
@@ -291,6 +295,14 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
       <KpiBar kpis={kpis} onTabClick={(tab) => aplicar({ tab })} />
 
+      {/* Cowork KB-9.75 Onda 6 R2 IA — Resumo executivo do mês (Eliana 5min sexta) */}
+      <FinMonthDigest
+        lancamentos={lancamentos}
+        kpis={kpis}
+        conferidoSet={new Set(lancamentos.filter((l) => conferido.has(l.id)).map((l) => String(l.id)))}
+        periodLabel={periodLabel}
+      />
+
       {/* Tabs + filtros sticky */}
       <Card className="mt-6 sticky top-14 z-10">
         <CardContent className="p-3 flex flex-wrap items-center gap-2">
@@ -412,6 +424,26 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 </div>
 
                 <FinConferidoToggle rowId={selected.id} conferido={conferido} />
+
+                {/* Cowork KB-9.75 Onda 6 R2 IA — Anomaly + Party History */}
+                <FinAnomalyDetector
+                  row={{
+                    id: selected.id,
+                    contraparte: selected.contraparte,
+                    categoria: selected.categoria,
+                    valor: selected.valor,
+                    vencimento: selected.vencimento,
+                    liquidacao: selected.liquidacao,
+                    status: selected.status,
+                    kind: selected.kind,
+                  }}
+                  all={lancamentos}
+                />
+
+                <FinPartyHistory
+                  currentRow={{ id: selected.id, contraparte: selected.contraparte }}
+                  all={lancamentos}
+                />
 
                 <dl className="grid grid-cols-2 gap-y-2 text-[12.5px]">
                   <dt className="text-stone-500">Contraparte</dt><dd>{selected.contraparte}{selected.contraparte_doc && <span className="block text-stone-500">{selected.contraparte_doc}</span>}</dd>
