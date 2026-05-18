@@ -12,7 +12,7 @@ import {
   ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   FileSearch, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
-  MessageCircle, MessageSquare, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
+  MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
@@ -31,6 +31,26 @@ interface SidebarCountsShared {
   atendimento: number;
   tarefas: number;
   chat: number;
+}
+
+/**
+ * Sidebar shortcuts visibility (Wagner 2026-05-18) — vem de
+ * `HandleInertiaRequests::sidebarShortcuts()` via shared prop
+ * `shell.shortcuts`. Cliente sem o módulo → flag false → shortcut some
+ * do topo da sidebar (regra "cliente não quer módulo → some do menu").
+ *
+ * Espelha o padrão Cockpit (`prototipo-ui/_cowork-export-2026-05-15/`):
+ *  - IA (Jana) substitui label "Chat"
+ *  - Tarefas universal (MCP)
+ *  - Atendimento condicional ao módulo Whatsapp instalado
+ *
+ * Equipe (Slack interno) entra como shortcut quando `Modules/Equipe`
+ * for criado em PR separado.
+ */
+interface SidebarShortcutsShared {
+  ia: boolean;
+  tarefas: boolean;
+  atendimento: boolean;
 }
 
 // Mapa estático de ícones por label do shell.menu (LegacyMenuAdapter entrega
@@ -323,7 +343,7 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
   );
 }
 
-// ── SidebarShortcuts — Tarefas + Chat + Atendimento no topo (UI-0011) ──────
+// ── SidebarShortcuts — Tarefas + IA + Atendimento no topo (UI-0011) ──────
 // Wagner 2026-05-08: "o whatszap precisa ir abaixo do chat" — entrypoint
 // rápido pra Inbox ao lado do chat com a Jana.
 //
@@ -333,37 +353,58 @@ function SidebarMenuItem({ item }: { item: ShellMenuItem }) {
 // mesmo Inbox `/atendimento/inbox`. URL atualizada de `/whatsapp/conversations`
 // legacy pra `/atendimento/inbox` (topnav já tinha mudado em US-WA-067).
 //
-// TODO US-WA-083: badges hoje são hard-coded (tarefasCount=6 chatCount=3
-// whatsappCount=2 — chamando aqui também por consistência). Wire backend
-// count real via Inertia shared props (Conversation.unread_count sum por
-// business_id + Task.where(owner_user_id, status='todo').count() etc).
+// Renomeado 2026-05-18 (Wagner): "Chat" → "IA" pra refletir entry-point
+// universal pra Jana (assistente IA). Ícone MessageSquare → Bot. Espelha
+// `prototipo-ui/_cowork-export-2026-05-15/data.jsx` que tem `chat` =
+// "Jana · Analista" no topo do sidebar Cockpit.
+//
+// Visibilidade condicional via `shell.shortcuts` shared prop: cliente sem
+// o módulo (Jana/Whatsapp) NÃO vê o shortcut topo correspondente (regra
+// "cliente não quer módulo → some do menu"). Default true preserva back-
+// compat quando shared prop ainda não foi requisitada (lazy).
+//
+// Equipe (Slack interno) entra como 4º shortcut quando `Modules/Equipe`
+// for criado (PR separado — sessão 2026-05-18 deixou plano A1).
 
 function SidebarShortcuts({
   tarefasCount,
   chatCount,
   atendimentoCount,
+  shortcuts,
 }: {
   tarefasCount?: number;
   chatCount?: number;
   atendimentoCount?: number;
+  shortcuts?: SidebarShortcutsShared;
 }) {
+  // Default true (back-compat) — quando shared prop não veio ainda
+  const showTarefas = shortcuts?.tarefas ?? true;
+  const showIa = shortcuts?.ia ?? true;
+  const showAtendimento = shortcuts?.atendimento ?? true;
+
   return (
     <div className="sb-shortcuts">
-      <a href="/tarefas" className="sb-shortcut">
-        <Inbox size={13} />
-        <span className="label">Tarefas</span>
-        {!!tarefasCount && <span className="badge">{tarefasCount}</span>}
-      </a>
-      <a href="/jana" className="sb-shortcut">
-        <MessageSquare size={13} />
-        <span className="label">Chat</span>
-        {!!chatCount && <span className="badge">{chatCount}</span>}
-      </a>
-      <a href="/atendimento/inbox" className="sb-shortcut">
-        <MessageCircle size={13} />
-        <span className="label">Atendimento</span>
-        {!!atendimentoCount && <span className="badge">{atendimentoCount}</span>}
-      </a>
+      {showTarefas && (
+        <a href="/tarefas" className="sb-shortcut">
+          <Inbox size={13} />
+          <span className="label">Tarefas</span>
+          {!!tarefasCount && <span className="badge">{tarefasCount}</span>}
+        </a>
+      )}
+      {showIa && (
+        <a href="/jana" className="sb-shortcut">
+          <Bot size={13} />
+          <span className="label">IA</span>
+          {!!chatCount && <span className="badge">{chatCount}</span>}
+        </a>
+      )}
+      {showAtendimento && (
+        <a href="/atendimento/inbox" className="sb-shortcut">
+          <MessageCircle size={13} />
+          <span className="label">Atendimento</span>
+          {!!atendimentoCount && <span className="badge">{atendimentoCount}</span>}
+        </a>
+      )}
     </div>
   );
 }
@@ -465,8 +506,14 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
   // US-WA-083: counts reais via Inertia shared prop `shell.sidebar_counts`
   // (HandleInertiaRequests::sidebarCounts). Fallback pra 0 se shared
   // prop ainda não foi requisitada (lazy) ou se módulo desinstalado.
-  const sharedShell = (usePage().props as any)?.shell as { sidebar_counts?: SidebarCountsShared | null } | undefined;
+  // Wagner 2026-05-18: shared prop `shell.shortcuts` controla visibilidade
+  // dos shortcuts topo baseado em módulos instalados por business.
+  const sharedShell = (usePage().props as any)?.shell as {
+    sidebar_counts?: SidebarCountsShared | null;
+    shortcuts?: SidebarShortcutsShared | null;
+  } | undefined;
   const counts = sharedShell?.sidebar_counts ?? { atendimento: 0, tarefas: 0, chat: 0 };
+  const shortcuts = sharedShell?.shortcuts ?? undefined;
 
   if (mode === 'rail') {
     return (
@@ -474,6 +521,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
         groupsToRender={groupsToRender}
         groupedItems={groupedItems}
         counts={counts}
+        shortcuts={shortcuts}
       />
     );
   }
@@ -484,6 +532,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
         tarefasCount={counts.tarefas}
         chatCount={counts.chat}
         atendimentoCount={counts.atendimento}
+        shortcuts={shortcuts}
       />
       {groupsToRender.map((g) => (
         <SidebarGroup
@@ -509,11 +558,16 @@ function SidebarMenuRail({
   groupsToRender,
   groupedItems,
   counts,
+  shortcuts,
 }: {
   groupsToRender: Array<{ key: string; label: string }>;
   groupedItems: Record<string, ShellMenuItem[]>;
   counts: SidebarCountsShared;
+  shortcuts?: SidebarShortcutsShared;
 }) {
+  const showTarefas = shortcuts?.tarefas ?? true;
+  const showIa = shortcuts?.ia ?? true;
+  const showAtendimento = shortcuts?.atendimento ?? true;
   const [flyout, setFlyout] = useState<string | null>(null);
   const [flyoutPos, setFlyoutPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const flyoutRef = useRef<HTMLDivElement>(null);
@@ -542,33 +596,39 @@ function SidebarMenuRail({
 
   return (
     <div className="sb-menu-rail">
-      <a
-        href="/tarefas"
-        className="sb-rail-btn"
-        data-tip="Tarefas"
-        onClick={() => setFlyout(null)}
-      >
-        <Inbox size={18} className="ic" />
-        {!!counts.tarefas && <span className="sb-rail-dot-badge" />}
-      </a>
-      <a
-        href="/jana"
-        className="sb-rail-btn"
-        data-tip="Chat"
-        onClick={() => setFlyout(null)}
-      >
-        <MessageSquare size={18} className="ic" />
-        {!!counts.chat && <span className="sb-rail-dot-badge" />}
-      </a>
-      <a
-        href="/atendimento/inbox"
-        className="sb-rail-btn"
-        data-tip="Atendimento"
-        onClick={() => setFlyout(null)}
-      >
-        <MessageCircle size={18} className="ic" />
-        {!!counts.atendimento && <span className="sb-rail-dot-badge" />}
-      </a>
+      {showTarefas && (
+        <a
+          href="/tarefas"
+          className="sb-rail-btn"
+          data-tip="Tarefas"
+          onClick={() => setFlyout(null)}
+        >
+          <Inbox size={18} className="ic" />
+          {!!counts.tarefas && <span className="sb-rail-dot-badge" />}
+        </a>
+      )}
+      {showIa && (
+        <a
+          href="/jana"
+          className="sb-rail-btn"
+          data-tip="IA"
+          onClick={() => setFlyout(null)}
+        >
+          <Bot size={18} className="ic" />
+          {!!counts.chat && <span className="sb-rail-dot-badge" />}
+        </a>
+      )}
+      {showAtendimento && (
+        <a
+          href="/atendimento/inbox"
+          className="sb-rail-btn"
+          data-tip="Atendimento"
+          onClick={() => setFlyout(null)}
+        >
+          <MessageCircle size={18} className="ic" />
+          {!!counts.atendimento && <span className="sb-rail-dot-badge" />}
+        </a>
+      )}
 
       <div className="sb-rail-sep" />
 
