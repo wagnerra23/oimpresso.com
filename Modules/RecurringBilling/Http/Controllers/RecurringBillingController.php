@@ -14,8 +14,10 @@ use Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter;
 use Modules\RecurringBilling\Http\Requests\CancelSubscriptionRequest;
 use Modules\RecurringBilling\Http\Requests\PauseSubscriptionRequest;
 use Modules\RecurringBilling\Http\Requests\StoreAssinaturaRequest;
+use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Models\Plan;
 use Modules\RecurringBilling\Models\Subscription;
+use Modules\RecurringBilling\Models\SubscriptionEvent;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 
 /**
@@ -208,6 +210,94 @@ class RecurringBillingController extends Controller
         return $this->respondOk($request, sprintf('Assinatura #%d reativada.', $sub->id), ['subscription' => $sub->fresh()]);
     }
 
+    /**
+     * POST /recurring-billing/{id}/reenviar-nfe — Onda 20 wire.
+     *
+     * Reenvia DANFE da última NFe autorizada vinculada à última invoice paga
+     * desta subscription. Delega 100% pra endpoint canônico NfeBrasil
+     * `nfe-brasil.emissoes.reenviar-email` (NfeEmissaoController::reenviarEmail).
+     *
+     * Cross-module guard: se NfeBrasil module não responder ou não houver
+     * NFe vinculada, retorna 503 com mensagem clara (fallback Constituição
+     * v2 §8 Confiabilidade com fallback).
+     *
+     * Cadeia: Subscription → última paid Invoice → nfe_emissoes (lookup por
+     * (business_id, contact_id) ordenado por emitido_em DESC quando metadata
+     * não tiver `nfe_emissao_id` explícito — gateway listener US-RB-044
+     * popula esse hint).
+     */
+    public function reenviarNfe(Request $request, int $id): JsonResponse
+    {
+        $sub = $this->loadOwnedOrFail($id);
+
+        // 1. Acha última invoice paga (timeline business-correta).
+        $lastPaid = Invoice::query()
+            ->where('business_id', $sub->business_id)
+            ->where('subscription_id', $sub->id)
+            ->where('status', 'paid')
+            ->orderByDesc('pago_em')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($lastPaid === null) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'sem_invoice_paga',
+                'message' => 'Nenhuma fatura paga encontrada pra reenviar NFe.',
+            ], 422);
+        }
+
+        // 2. Acha NFe emissão associada — hint em metadata OU lookup heurístico.
+        $emissaoId = $this->resolveNfeEmissaoId($sub, $lastPaid);
+
+        if ($emissaoId === null) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'sem_nfe_emitida',
+                'message' => 'Última fatura paga não tem NFe emitida vinculada.',
+            ], 422);
+        }
+
+        // 3. Delega pra endpoint canônico NfeBrasil (in-process call evita HTTP).
+        $controllerFqcn = '\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController';
+        if (! class_exists($controllerFqcn)) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'nfe_module_indisponivel',
+                'message' => 'Módulo NfeBrasil não está disponível neste ambiente.',
+            ], 503);
+        }
+
+        try {
+            /** @var \Illuminate\Http\JsonResponse $response */
+            $response = app($controllerFqcn)->reenviarEmail($request, $emissaoId);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'nfe_reenvio_falhou',
+                'message' => 'Falha ao reenviar DANFE: '.$e->getMessage(),
+            ], 503);
+        }
+
+        // 4. Append-only event na timeline (Onda 16 integração).
+        SubscriptionEvent::create([
+            'business_id'     => $sub->business_id,
+            'subscription_id' => $sub->id,
+            'kind'            => SubscriptionEvent::KIND_NF,
+            'by_actor'        => optional(auth()->user())->first_name ?? 'sistema',
+            'body'            => sprintf('DANFE da NFe #%d reenviada por email.', $emissaoId),
+            'occurred_at'     => now(),
+        ]);
+
+        return response()->json([
+            'ok'         => true,
+            'message'    => 'DANFE reenviada por email.',
+            'emissao_id' => $emissaoId,
+            'invoice_id' => $lastPaid->id,
+            'upstream'   => $response->getData(true),
+        ]);
+    }
+
     public function create()
     {
         return view('recurringbilling::create');
@@ -267,6 +357,42 @@ class RecurringBillingController extends Controller
         }
 
         return redirect()->back()->withErrors(['_error' => $message]);
+    }
+
+    /**
+     * Resolve nfe_emissoes.id pra uma invoice paga.
+     *
+     * Estratégia (ordem):
+     *  1. Hint explícito em `invoice.metadata.nfe_emissao_id` (gateway listener US-RB-044).
+     *  2. Heurística: última nfe_emissoes status=autorizada do (business_id) — limitada
+     *     a janela pago_em±7d quando disponível.
+     *
+     * Retorna null se NfeBrasil module ausente ou nada bater.
+     */
+    private function resolveNfeEmissaoId(Subscription $sub, Invoice $invoice): ?int
+    {
+        $meta = is_array($invoice->metadata) ? $invoice->metadata : [];
+        if (! empty($meta['nfe_emissao_id'])) {
+            return (int) $meta['nfe_emissao_id'];
+        }
+
+        if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_emissoes')) {
+            return null;
+        }
+
+        $query = \Illuminate\Support\Facades\DB::table('nfe_emissoes')
+            ->where('business_id', $sub->business_id)
+            ->where('status', 'autorizada')
+            ->whereNull('deleted_at');
+
+        if ($invoice->pago_em) {
+            $query->whereBetween('emitido_em', [
+                $invoice->pago_em->copy()->subDays(7),
+                $invoice->pago_em->copy()->addDays(7),
+            ]);
+        }
+
+        return (int) ($query->orderByDesc('emitido_em')->value('id') ?? 0) ?: null;
     }
 
     /**

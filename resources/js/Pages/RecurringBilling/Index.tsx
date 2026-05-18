@@ -5,11 +5,18 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
+// Onda 12/13/18 v9,75 — sub-components Cowork refinos
+import TroubleshooterOverlay from './_components/TroubleshooterOverlay';
+import PresentationMode from './_components/PresentationMode';
+import TourOnboarding, { TOUR_DONE_KEY } from './_components/TourOnboarding';
+import CheatSheet from './_components/CheatSheet';
+import CmdPalette from './_components/CmdPalette';
+import JanaPanel from './_components/JanaPanel';
+import { printSubDetail, installPrintStyles } from './_components/printExtractStyles';
 import {
   Banknote,
   CreditCard,
   Pause,
-  Pencil,
   Play,
   Plus,
   RefreshCw,
@@ -258,12 +265,55 @@ function MethodIcon({ method, size = 12 }: { method: PaymentMethod; size?: numbe
   return <Icon size={size} className="text-zinc-500" />;
 }
 
-function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false }: {
+// Onda 11 v9,75 — sparkline SVG real (substituiu TrendingUp icon estático).
+// Gera SVG path normalizado dos últimos N pontos.
+function Sparkline({ points, color = 'oklch(0.75 0.13 145)', width = 80, height = 24 }: {
+  points: number[];
+  color?: string;
+  width?: number;
+  height?: number;
+}) {
+  if (!points.length) return null;
+  const max = Math.max(...points, 1);
+  const min = Math.min(...points, 0);
+  const range = Math.max(max - min, 1);
+  const step = width / Math.max(points.length - 1, 1);
+  const linePath = points
+    .map((p, i) => {
+      const x = i * step;
+      const y = height - ((p - min) / range) * height;
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+  const areaPath = `${linePath} L${width},${height} L0,${height} Z`;
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={`sparkG-${color}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.45" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill={`url(#sparkG-${color})`} />
+      <path
+        d={linePath}
+        stroke={color}
+        strokeWidth="1.5"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, sparkline }: {
   label: string;
   value: ReactNode;
   delta?: string;
   deltaTone?: 'ok' | 'warn' | 'bad' | 'neutral';
   hero?: boolean;
+  sparkline?: number[];
 }) {
   const deltaCls = {
     ok: 'text-emerald-300',
@@ -283,7 +333,11 @@ function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false }: {
       <div className="rounded-2xl bg-zinc-900 p-4 text-white shadow-sm ring-1 ring-zinc-800">
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-zinc-400">
           <span>{label}</span>
-          <TrendingUp size={14} className="text-emerald-400" />
+          {sparkline && sparkline.length > 0 ? (
+            <Sparkline points={sparkline} color="oklch(0.75 0.13 145)" />
+          ) : (
+            <TrendingUp size={14} className="text-emerald-400" />
+          )}
         </div>
         <div className="mt-2 text-2xl font-bold tabular-nums">{value}</div>
         {delta && <div className={`mt-1 text-xs font-medium ${deltaCls}`}>{delta}</div>}
@@ -308,27 +362,28 @@ export default function RecurringBillingIndex(props: PageProps) {
   const [tab, setTab] = useState<Tab>(props.tab || 'assinaturas');
   const [activeId, setActiveId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>(filters.status_visual || 'all');
+  // Onda 13/14/18 v9,75 — overlays modal state
+  const [showCheatsheet, setShowCheatsheet] = useState(false);
+  const [showPresentation, setShowPresentation] = useState(false);
+  const [showCmdPalette, setShowCmdPalette] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  const [trouble, setTrouble] = useState<'boleto-recusado' | 'cartao-expirado' | 'cliente-sumiu' | 'suspensao' | null>(null);
+
+  // Onda 13 v9,75 — Tour onboarding primeira vez + print styles install
+  useEffect(() => {
+    try {
+      installPrintStyles();
+      if (localStorage.getItem(TOUR_DONE_KEY) !== '1') {
+        setShowTour(true);
+      }
+    } catch {
+      // silently ignore (private mode etc)
+    }
+  }, []);
   const [whenFilter, setWhenFilter] = useState<string>(filters.when || 'any');
   const [search, setSearch] = useState<string>(filters.busca || '');
   const [onlyPinned, setOnlyPinned] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-
-  // Atalho `/` focus search
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
-      const inField = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
-      if (inField && e.key !== 'Escape') return;
-      if (e.key === '/') {
-        e.preventDefault();
-        searchRef.current?.focus();
-      } else if (e.key === 'Escape') {
-        (t as HTMLInputElement).blur?.();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
 
   // Reload server-side on filter change (Inertia partial reload — só re-fetch subscriptions+kpis)
   function applyFilters(next: Partial<{ status: string; when: string; q: string }>) {
@@ -358,6 +413,51 @@ export default function RecurringBillingIndex(props: PageProps) {
   const filteredMrr = filtered
     .filter((s) => s.status !== 'cancelada')
     .reduce((acc, s) => acc + (s.next_value || 0), 0);
+
+  // Onda 18 v9,75 — atalhos teclado completos (depois de filtered+active calculados).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      const inField = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+      if (inField && e.key !== 'Escape') return;
+      if (e.key === '/') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      } else if (e.key === 'Escape') {
+        (t as HTMLInputElement).blur?.();
+      } else if (e.key === 'j' || e.key === 'k') {
+        e.preventDefault();
+        const idx = filtered.findIndex((s) => s.id === active?.id);
+        if (e.key === 'j' && idx >= 0 && idx < filtered.length - 1) {
+          const next = filtered[idx + 1];
+          if (next) setActiveId(next.id);
+        } else if (e.key === 'k' && idx > 0) {
+          const prev = filtered[idx - 1];
+          if (prev) setActiveId(prev.id);
+        }
+      } else if (e.key === 'b' || e.key === 'B') {
+        if (active) {
+          e.preventDefault();
+          router.post(`/recurring-billing/${active.id}/favorite`, {} as Record<string, never>, {
+            preserveScroll: true,
+            onSuccess: () => router.reload({ only: ['subscriptions'] }),
+          });
+        }
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShowCheatsheet(true);
+      } else if (e.key === 'P' && e.shiftKey) {
+        e.preventDefault();
+        setShowPresentation(true);
+      } else if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+        // Onda 14 v9,75 — ⌘K abre CmdPalette
+        e.preventDefault();
+        setShowCmdPalette(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [filtered, active]);
 
   // ── Tabs sub-rota
   const TABS: Array<{ key: Tab; label: string; count?: number }> = [
@@ -462,6 +562,13 @@ export default function RecurringBillingIndex(props: PageProps) {
                 delta={kpis.mrr_delta ? `↑ ${BRLshort(kpis.mrr_delta)} vs mês anterior` : 'baseline'}
                 deltaTone="ok"
                 hero
+                sparkline={(() => {
+                  // Onda 11 v9,75 — sparkline mock derivada: tendência crescente do MRR atual
+                  // até atingir o valor final. Onda futura: backend retorna histórico 12m real.
+                  const mrr = kpis.mrr || 0;
+                  if (mrr === 0) return [];
+                  return [0.7, 0.75, 0.78, 0.82, 0.85, 0.88, 0.91, 0.93, 0.96, 0.98, 0.99, 1].map((r) => mrr * r);
+                })()}
               />
               <KpiCard
                 label="Churn este mês"
@@ -653,12 +760,27 @@ export default function RecurringBillingIndex(props: PageProps) {
                             : 'hover:bg-zinc-50'
                         }`}
                       >
+                        {/* Onda 19 v9,75 — ★ favorite toggle persistente (POST backend). */}
+                        <button
+                          type="button"
+                          title={s.is_pinned ? 'Desfavoritar' : 'Favoritar (B)'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.post(`/recurring-billing/${s.id}/favorite`, {}, {
+                              preserveScroll: true,
+                              onSuccess: () => router.reload({ only: ['subscriptions'] }),
+                            });
+                          }}
+                          className="shrink-0 rounded p-0.5 hover:bg-amber-50"
+                        >
+                          <Star
+                            size={14}
+                            className={s.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-zinc-300 hover:text-amber-400'}
+                          />
+                        </button>
                         <Avatar name={s.client} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-zinc-900">
-                            {s.is_pinned && (
-                              <Star size={11} className="shrink-0 fill-amber-500 text-amber-500" />
-                            )}
                             <span className="truncate">{s.client}</span>
                           </div>
                           <div className="truncate text-xs text-zinc-500">
@@ -688,11 +810,43 @@ export default function RecurringBillingIndex(props: PageProps) {
                   Selecione uma assinatura
                 </div>
               )}
-              {active && <DetailDrawer sub={active} />}
+              {active && <DetailDrawer sub={active} onTrouble={setTrouble} />}
             </aside>
           </div>
         )}
       </div>
+
+      {/* Onda 12 v9,75 — Troubleshooters árvore decisão (auto-sugestão para retentando/falhou). */}
+      {trouble && <TroubleshooterOverlay troubleId={trouble} onClose={() => setTrouble(null)} />}
+
+      {/* Onda 13 v9,75 — Modo apresentação (⇧P) + Tour onboarding 1ª vez + CheatSheet (?) */}
+      {showPresentation && kpis && (
+        <PresentationMode
+          kpis={kpis}
+          subs={subsData}
+          plans={plans || []}
+          onClose={() => setShowPresentation(false)}
+        />
+      )}
+      {showTour && <TourOnboarding onClose={() => setShowTour(false)} />}
+      {showCheatsheet && <CheatSheet onClose={() => setShowCheatsheet(false)} />}
+
+      {/* Onda 14 v9,75 — CmdPalette ⌘K com Jana IA fallback graceful */}
+      {showCmdPalette && (
+        <CmdPalette
+          subs={subsData}
+          plans={plans || []}
+          onClose={() => setShowCmdPalette(false)}
+          onPick={(item) => {
+            setShowCmdPalette(false);
+            if (item.kind === 'sub') {
+              setActiveId(Number(item.id));
+            } else if (item.kind === 'plan') {
+              router.visit('/recurring-billing/planos');
+            }
+          }}
+        />
+      )}
     </>
   );
 }
@@ -704,13 +858,15 @@ export default function RecurringBillingIndex(props: PageProps) {
 // Onda 9 v9,75 — handlers POST pra ações executáveis do drawer.
 function postAction(url: string, payload: Record<string, unknown> = {}, confirmMsg?: string) {
   if (confirmMsg && !window.confirm(confirmMsg)) return;
-  router.post(url, payload, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router.post(url, payload as any, {
     preserveScroll: true,
     onSuccess: () => router.reload({ only: ['subscriptions', 'kpis'] }),
   });
 }
 
-function DetailDrawer({ sub }: { sub: SubRow }) {
+type TroubleId = 'boleto-recusado' | 'cartao-expirado' | 'cliente-sumiu' | 'suspensao';
+function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: TroubleId | null) => void }) {
   const fiscalLabels: Record<FiscalType, { label: string; long: string }> = {
     nfe: { label: 'NFe', long: 'NFe · Nota Fiscal Eletrônica' },
     nfse: { label: 'NFS-e', long: 'NFS-e · Nota Fiscal de Serviços' },
@@ -718,15 +874,33 @@ function DetailDrawer({ sub }: { sub: SubRow }) {
   };
   const fiscal = fiscalLabels[sub.fiscal?.type ?? 'none'];
 
+  // Onda 12 v9,75 — sugere troubleshooter por método + status crítico
+  const suggestedTrouble: TroubleId | null =
+    sub.status === 'retentando' || sub.status === 'falhou'
+      ? sub.method === 'card'
+        ? 'cartao-expirado'
+        : sub.missed >= 3
+          ? 'suspensao'
+          : 'boleto-recusado'
+      : null;
+
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {/* Header — Onda 13 v9,75 add botão PDF (print extrato) */}
       <div className="flex items-start gap-3 border-b border-zinc-100 pb-3">
         <Avatar name={sub.client} size={40} />
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-semibold text-zinc-900">{sub.client}</h3>
           <div className="truncate text-xs text-zinc-500">{sub.cnpj || '—'}</div>
         </div>
+        <button
+          type="button"
+          title="Imprimir extrato (⇧E)"
+          onClick={() => printSubDetail(sub.id)}
+          className="inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-1 text-[10px] text-zinc-600 hover:bg-zinc-50"
+        >
+          PDF
+        </button>
         <StatusBadge status={sub.status} retry={sub.retry} retryMax={sub.retry_max} />
       </div>
 
@@ -822,8 +996,9 @@ function DetailDrawer({ sub }: { sub: SubRow }) {
           {sub.fiscal?.last_nf && (
             <button
               type="button"
+              onClick={() => postAction(`/recurring-billing/${sub.id}/reenviar-nfe`, {}, `Reenviar ${sub.fiscal?.last_nf}?`)}
               className="inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-1 text-[11px] text-zinc-600 hover:bg-zinc-50"
-              title="Em breve"
+              title="Reenviar última NFe por e-mail/WhatsApp"
             >
               <RefreshCw size={10} />
               Reenviar
@@ -831,6 +1006,15 @@ function DetailDrawer({ sub }: { sub: SubRow }) {
           )}
         </div>
       </div>
+
+      {/* Onda 17 v9,75 — Histórico de pagamentos (12 cells últimos meses). */}
+      <PaymentHistory paid={sub.paid} missed={sub.missed} />
+
+      {/* Onda 16/19 v9,75 — Timeline append-only + input nota persistente. */}
+      <SubscriptionTimeline subId={sub.id} subStatus={sub.status} />
+
+      {/* Onda 15 v9,75 — JanaPanel IA Sugerir/Resumir/Perguntar (fallback graceful sem IA real) */}
+      {sub.status !== 'cancelada' && <JanaPanel sub={sub} />}
 
       {/* Ações executáveis — Onda 9 v9,75 wiring real. */}
       {sub.status !== 'cancelada' && (
@@ -861,6 +1045,14 @@ function DetailDrawer({ sub }: { sub: SubRow }) {
                 hint="P"
                 onClick={() => postAction(`/recurring-billing/${sub.id}/pausar`, {}, 'Pausar enquanto resolve inadimplência?')}
               />
+              {suggestedTrouble && onTrouble && (
+                <ActionBtn
+                  icon={RefreshCw}
+                  label="Diagnosticar"
+                  primary
+                  onClick={() => onTrouble(suggestedTrouble)}
+                />
+              )}
               <ActionBtn
                 icon={XCircle}
                 label="Cancelar"
@@ -881,6 +1073,218 @@ function DetailDrawer({ sub }: { sub: SubRow }) {
             />
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// Onda 17 v9,75 — Histórico de pagamentos 12 cells heatmap (últimos 12 meses).
+function PaymentHistory({ paid, missed }: { paid: number; missed: number }) {
+  // Mock heurístico client-side: distribui paid + missed entre últimos 12 meses
+  // proporcionalmente (último mês = futuro). Onda futura: backend retorna real history.
+  const cells = useMemo(() => {
+    const totalKnown = paid + missed;
+    if (totalKnown === 0) return Array.from({ length: 12 }, () => 'future' as const);
+    return Array.from({ length: 12 }, (_, i) => {
+      if (i === 11) return 'future' as const;
+      const ratio = (i + 1) / 11;
+      const expectedPaid = Math.round(paid * ratio);
+      const expectedMissed = Math.round(missed * ratio);
+      const cellIdx = i + 1;
+      if (cellIdx <= expectedMissed && missed > 0 && i < 3) return 'missed' as const;
+      if (cellIdx <= expectedPaid) return 'paid' as const;
+      return 'future' as const;
+    });
+  }, [paid, missed]);
+  const months = useMemo(() => {
+    const out: string[] = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      out.push(d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''));
+    }
+    return out;
+  }, []);
+
+  return (
+    <div className="rounded-lg border border-zinc-200 p-3">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        Histórico de pagamentos
+      </div>
+      <div className="flex gap-1">
+        {cells.map((c, i) => (
+          <div key={i} className="flex-1 text-center" title={`${months[i]} — ${c === 'paid' ? 'pago' : c === 'missed' ? 'falhou' : 'futuro'}`}>
+            <div
+              className={`h-5 rounded-sm ${
+                c === 'paid'
+                  ? 'bg-emerald-400'
+                  : c === 'missed'
+                    ? 'bg-rose-400'
+                    : 'bg-zinc-100 ring-1 ring-zinc-200'
+              }`}
+            />
+            <div className="mt-0.5 text-[9px] text-zinc-400">{months[i]?.slice(0, 1) || ''}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex items-center gap-3 text-[10px] text-zinc-500">
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> pago ({paid})
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-sm bg-rose-400" /> falhou ({missed})
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-sm bg-zinc-100 ring-1 ring-zinc-200" /> futuro
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Onda 16+19 v9,75 — Timeline append-only + input nota persistente.
+interface TimelineEvent {
+  id: number;
+  kind: string;
+  by_actor: string;
+  body: string;
+  occurred_at: string;
+}
+function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: VisualStatus }) {
+  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [noteText, setNoteText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancel = false;
+    setLoading(true);
+    fetch(`/recurring-billing/${subId}/events`, { headers: { Accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : { events: [] }))
+      .then((d) => {
+        if (!cancel) {
+          setEvents(d.events || []);
+          setLoading(false);
+        }
+      })
+      .catch(() => !cancel && setLoading(false));
+    return () => {
+      cancel = true;
+    };
+  }, [subId]);
+
+  function submitNote() {
+    if (!noteText.trim() || submitting) return;
+    setSubmitting(true);
+    fetch(`/recurring-billing/${subId}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+      },
+      body: JSON.stringify({ body: noteText, kind: 'note' }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        setSubmitting(false);
+        if (d?.event || d?.ok) {
+          setNoteText('');
+          // Reload events
+          fetch(`/recurring-billing/${subId}/events`, { headers: { Accept: 'application/json' } })
+            .then((r) => r.json())
+            .then((dd) => setEvents(dd.events || []));
+        }
+      })
+      .catch(() => setSubmitting(false));
+  }
+
+  const kindStyle: Record<string, { dot: string; label: string }> = {
+    note: { dot: 'bg-amber-400', label: 'nota' },
+    'event-create': { dot: 'bg-violet-400', label: 'criou' },
+    'event-status': { dot: 'bg-zinc-400', label: 'status' },
+    'event-plan': { dot: 'bg-blue-400', label: 'plano' },
+    'event-charge': { dot: 'bg-emerald-400', label: 'cobrança' },
+    'event-retry': { dot: 'bg-amber-500', label: 'retry' },
+    'event-nf': { dot: 'bg-blue-500', label: 'nf' },
+  };
+
+  return (
+    <div className="rounded-lg border border-zinc-200 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          Notas & Eventos {events.length > 0 ? `· ${events.length}` : ''}
+        </div>
+      </div>
+
+      {subStatus !== 'cancelada' && (
+        <div className="mb-3 flex items-center gap-2">
+          <input
+            type="text"
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitNote();
+              }
+            }}
+            placeholder="Anotar internamente…"
+            className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-200"
+            maxLength={5000}
+          />
+          <button
+            type="button"
+            onClick={submitNote}
+            disabled={submitting || !noteText.trim()}
+            className="rounded-lg bg-violet-600 px-3 py-1 text-xs font-medium text-white hover:bg-violet-700 disabled:bg-zinc-300"
+          >
+            Anotar
+          </button>
+        </div>
+      )}
+
+      {loading && (
+        <div className="space-y-1.5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-8 animate-pulse rounded bg-zinc-100" />
+          ))}
+        </div>
+      )}
+
+      {!loading && events.length === 0 && (
+        <div className="py-3 text-center text-[11px] text-zinc-400">
+          Nenhum evento registrado.
+        </div>
+      )}
+
+      {!loading && events.length > 0 && (
+        <ul className="space-y-2 max-h-64 overflow-y-auto">
+          {events.map((ev) => {
+            const ks = kindStyle[ev.kind] || { dot: 'bg-zinc-300', label: ev.kind };
+            const when = new Date(ev.occurred_at).toLocaleString('pt-BR', {
+              day: '2-digit',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            return (
+              <li key={ev.id} className="flex gap-2 text-xs">
+                <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${ks.dot}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
+                    <span className="font-semibold uppercase">{ks.label}</span>
+                    <span>·</span>
+                    <span>{ev.by_actor}</span>
+                    <span>·</span>
+                    <span>{when}</span>
+                  </div>
+                  <div className="text-zinc-800">{ev.body}</div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );
