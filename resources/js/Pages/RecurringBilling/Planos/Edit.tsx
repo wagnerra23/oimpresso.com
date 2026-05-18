@@ -1,11 +1,12 @@
-// Planos — Editar (v9,75 Onda 6).
+// Planos — Editar (v9,75 Onda 6 + Onda 21 refinos teclado).
 // Charter: ./Edit.charter.md
 // Refs: ADR 0104 MWART · 0093 multi-tenant Tier 0 · US-RB-001
+// Onda 21 v9,75 — atalhos teclado: Esc cancela e volta, Ctrl/Cmd+Enter submit.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
-import { type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, type FormEvent, type ReactNode } from 'react';
 
 type Ciclo = 'monthly' | 'quarterly' | 'semiannual' | 'yearly' | 'custom';
 type FiscalType = 'nfe' | 'nfse' | 'none';
@@ -61,12 +62,37 @@ export default function PlanosEdit({ plan }: PageProps) {
     fiscal_servico: plan.fiscal_servico ?? '',
   });
 
+  // Onda 21 v9,75 — Ref pro form pra trigger submit programático via atalho.
+  const formRef = useRef<HTMLFormElement>(null);
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     form.put(`/recurring-billing/planos/${plan.id}`, {
       preserveScroll: true,
     });
   }
+
+  // Onda 21 v9,75 — Atalhos teclado: Esc cancela e volta, Ctrl/Cmd+Enter submit.
+  // Tour skip: TOUR_DONE_KEY compartilhado com Index — Edit nunca dispara Tour.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const t = e.target as HTMLElement;
+        const inField = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+        if (inField) {
+          (t as HTMLInputElement).blur?.();
+          return;
+        }
+        e.preventDefault();
+        router.visit('/recurring-billing/planos');
+      } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const showCicloDias = form.data.ciclo === 'custom';
   const showCfop      = form.data.fiscal_type === 'nfe';
@@ -101,6 +127,7 @@ export default function PlanosEdit({ plan }: PageProps) {
 
         {/* FORM */}
         <form
+          ref={formRef}
           onSubmit={handleSubmit}
           className="space-y-4"
         >
@@ -311,13 +338,14 @@ export default function PlanosEdit({ plan }: PageProps) {
             </div>
           </section>
 
-          {/* Ações */}
+          {/* Ações — Onda 21 v9,75 kbd hints */}
           <div className="flex items-center justify-end gap-2 pt-2">
             <Link
               href="/recurring-billing/planos"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
             >
               Cancelar
+              <kbd className="rounded bg-zinc-100 px-1 text-[10px] font-mono text-zinc-500 ring-1 ring-zinc-200">Esc</kbd>
             </Link>
             <button
               type="submit"
@@ -326,6 +354,7 @@ export default function PlanosEdit({ plan }: PageProps) {
             >
               <Save size={14} />
               {form.processing ? 'Salvando…' : 'Salvar alterações'}
+              <kbd className="ml-1 rounded bg-violet-700 px-1 text-[10px] font-mono">⌘↵</kbd>
             </button>
           </div>
         </form>

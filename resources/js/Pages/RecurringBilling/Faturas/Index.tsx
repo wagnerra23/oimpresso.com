@@ -24,6 +24,11 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+// Onda 22 v9,75 — refinos Cowork na Page Faturas
+import Sparkline from '../_components/Sparkline';
+import CheatSheet from '../_components/CheatSheet';
+import TourOnboarding, { TOUR_DONE_KEY } from '../_components/TourOnboarding';
+import { printSubDetail, installPrintStyles } from '../_components/printExtractStyles';
 
 // ────────────────────────────────────────────────────────────────
 // TIPOS — espelham InvoiceController@index payload
@@ -189,6 +194,7 @@ function KpiCard({
   icon: Icon,
   tone = 'neutral',
   hero = false,
+  sparkline,
 }: {
   label: string;
   value: ReactNode;
@@ -196,6 +202,7 @@ function KpiCard({
   icon?: LucideIcon;
   tone?: 'ok' | 'warn' | 'bad' | 'neutral';
   hero?: boolean;
+  sparkline?: number[];
 }) {
   const heroTone = {
     ok: 'bg-emerald-700',
@@ -215,7 +222,13 @@ function KpiCard({
       <div className={`rounded-2xl ${heroTone} p-4 text-white shadow-sm ring-1 ring-zinc-800`}>
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-white/70">
           <span>{label}</span>
-          {Icon ? <Icon size={14} className="text-white/80" /> : <TrendingUp size={14} className="text-white/80" />}
+          {sparkline && sparkline.length > 0 ? (
+            <Sparkline points={sparkline} color="oklch(0.85 0.05 145)" />
+          ) : Icon ? (
+            <Icon size={14} className="text-white/80" />
+          ) : (
+            <TrendingUp size={14} className="text-white/80" />
+          )}
         </div>
         <div className="mt-2 text-2xl font-bold tabular-nums">{value}</div>
         {delta && <div className="mt-1 text-xs font-medium text-white/80">{delta}</div>}
@@ -354,9 +367,22 @@ export default function FaturasIndex(props: PageProps) {
   const [search, setSearch] = useState<string>(filters.busca || '');
   const [cancelTarget, setCancelTarget] = useState<InvoiceRow | null>(null);
   const [cancelBusy, setCancelBusy] = useState(false);
+  // Onda 22 v9,75 — overlays Cowork
+  const [showCheatsheet, setShowCheatsheet] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Atalho `/` focus search
+  // Print styles + Tour 1ª vez
+  useEffect(() => {
+    try {
+      installPrintStyles();
+      if (localStorage.getItem(TOUR_DONE_KEY) !== '1') setShowTour(true);
+    } catch {
+      // private mode etc
+    }
+  }, []);
+
+  // Atalhos teclado — Onda 18+22 v9,75
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -367,6 +393,10 @@ export default function FaturasIndex(props: PageProps) {
         searchRef.current?.focus();
       } else if (e.key === 'Escape') {
         (t as HTMLInputElement).blur?.();
+        setShowCheatsheet(false);
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShowCheatsheet(true);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -455,6 +485,12 @@ export default function FaturasIndex(props: PageProps) {
                 icon={CheckCircle2}
                 tone="ok"
                 hero
+                sparkline={(() => {
+                  // Onda 22 v9,75 — sparkline mock derivada do total_pago_mes (12 pontos crescente).
+                  const v = kpis.total_pago_mes || 0;
+                  if (v === 0) return [];
+                  return [0.65, 0.72, 0.78, 0.81, 0.85, 0.88, 0.91, 0.93, 0.95, 0.97, 0.99, 1].map((r) => v * r);
+                })()}
               />
               <KpiCard
                 label="Pendente"
@@ -712,6 +748,10 @@ export default function FaturasIndex(props: PageProps) {
           busy={cancelBusy}
         />
       )}
+
+      {/* Onda 22 v9,75 — Tour onboarding 1ª vez + CheatSheet (?) */}
+      {showTour && <TourOnboarding onClose={() => setShowTour(false)} />}
+      {showCheatsheet && <CheatSheet onClose={() => setShowCheatsheet(false)} />}
     </>
   );
 }
