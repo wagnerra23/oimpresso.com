@@ -481,11 +481,9 @@ class AdminSidebarMenu
             }
 
             //Expense dropdown
-            // Wagner 2026-05-18: esconder pra biz=4 (ROTA LIVRE Larissa). Ela
-            // não usa "Despesas" — vestuário não tem regime fiscal com lançamento
-            // de despesa avulsa por aqui (preferencia Financeiro/Unificado).
-            $current_biz = (int) session('user.business_id');
-            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense')) && $current_biz !== 4) {
+            // Visibilidade per-business via $enabled_modules (vem do package
+            // subscription do business) + permission Spatie. NUNCA hardcode biz=N.
+            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense'))) {
                 $menu->dropdown(
                     __('expense.expenses'),
                     function ($sub) {
@@ -798,10 +796,9 @@ class AdminSidebarMenu
             }
 
             //Service Staff menu (Pedidos · restaurant module)
-            // Wagner 2026-05-18 (fix biz=4): "Pedidos" abre tela feia legacy do
-            // service_staff (restaurant); biz=4 ROTA LIVRE não usa restaurante.
-            // Esconde pra biz=4 (mesmo pattern de Despesas + Tarefas + Governança).
-            if (in_array('service_staff', $enabled_modules) && $current_biz !== 4) {
+            // Visibilidade per-business via $enabled_modules (package subscription).
+            // Pra esconder, desmarcar 'service_staff' no pacote da business.
+            if (in_array('service_staff', $enabled_modules)) {
                 $menu->url(action([\App\Http\Controllers\Restaurant\OrderController::class, 'index']), __('restaurant.orders'), ['icon' => 'fa fas fa-list-alt', 'active' => request()->segment(1) == 'modules' && request()->segment(2) == 'orders'])->order(75);
             }
 
