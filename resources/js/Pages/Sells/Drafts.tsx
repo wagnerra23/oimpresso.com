@@ -1,8 +1,13 @@
 // Wave 1 W1-A — MWART /sells/drafts (Rascunhos).
-// Refs: ADR 0104, ADR 0149 (pattern reuse Sells/Index), ADR 0110 (Cockpit V2), ADR 0093.
+// Refs: ADR 0104, ADR 0149 (pattern reuse Sells/Index), ADR 0110 (Cockpit V2), ADR 0143 FSM, ADR 0093.
 //
 // Lista compacta de rascunhos (status=draft, sub_status NULL).
 // Reusa SaleSheet drawer do Index pra ver detalhe/finalizar.
+//
+// US-SELL-DRAFTS-COWORK — Onda Cowork Sells/Drafts (2026-05-18).
+// Visual reusa família Sells/Index (.sells-cowork) + extensões mínimas
+// específicas (.sells-cowork-drafts) — badge "Rascunho", chip idade,
+// botão "Continuar venda". Espelha pattern PR #1049 Sells/Quotations.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
@@ -44,6 +49,29 @@ function formatDateTime(input: string): string {
     month: '2-digit',
     year: '2-digit',
   }).format(d);
+}
+
+// Idade do rascunho em dias (sinal de abandono — quanto mais velho, mais quente).
+// fresh: 0-2d · aging: 3-7d · stale: 8d+
+function draftAgeDays(input: string): number | null {
+  if (!input) return null;
+  const d = new Date(input);
+  if (Number.isNaN(d.getTime())) return null;
+  const diffMs = Date.now() - d.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+}
+
+function draftAgeTone(days: number | null): 'fresh' | 'aging' | 'stale' {
+  if (days === null || days <= 2) return 'fresh';
+  if (days <= 7) return 'aging';
+  return 'stale';
+}
+
+function draftAgeLabel(days: number | null): string {
+  if (days === null) return '—';
+  if (days === 0) return 'hoje';
+  if (days === 1) return '1 dia';
+  return `${days} dias`;
 }
 
 export default function SellsDrafts(props: SellsDraftsPageProps) {
@@ -122,7 +150,9 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
     <>
       <Head title="Rascunhos de venda" />
 
-      <div className="container mx-auto px-6 py-6 space-y-6">
+      {/* US-SELL-DRAFTS-COWORK — wrapper duplo: família .sells-cowork (tokens canon)
+          + extensão .sells-cowork-drafts (badge/idade/CTA-continuar específicos). */}
+      <div className="sells-cowork sells-cowork-drafts container mx-auto px-6 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-start gap-3">
@@ -132,7 +162,12 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
               </Link>
             </Button>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Rascunhos</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-semibold tracking-tight">Rascunhos</h1>
+                <span className="vd-draft-badge" aria-label="Status rascunho">
+                  Rascunho
+                </span>
+              </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Vendas salvas como rascunho — finalizar depois.
               </p>
@@ -198,6 +233,7 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
               <thead className="text-xs text-muted-foreground uppercase tracking-wide">
                 <tr className="border-b border-border">
                   <th className="text-left px-5 py-2 font-medium">Data</th>
+                  <th className="text-left px-3 py-2 font-medium">Idade</th>
                   <th className="text-left px-3 py-2 font-medium">Nº rascunho</th>
                   <th className="text-left px-3 py-2 font-medium">Cliente</th>
                   <th className="text-left px-3 py-2 font-medium">Local</th>
@@ -206,26 +242,40 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((r, idx) => (
-                  <tr
-                    key={r.id}
-                    className={`border-b border-border last:border-0 ${idx % 2 === 1 ? 'bg-muted/20' : ''}`}
-                  >
-                    <td className="px-5 py-3 tabular-nums">{formatDateTime(r.transaction_date)}</td>
-                    <td className="px-3 py-3 font-mono text-xs">{r.invoice_no}</td>
-                    <td className="px-3 py-3">{r.customer_name ?? '—'}</td>
-                    <td className="px-3 py-3 text-muted-foreground">{r.business_location}</td>
-                    <td className="px-3 py-3 text-right tabular-nums">{r.total_items}</td>
-                    <td className="px-5 py-3 text-right">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/sells/${r.id}/edit`}>
-                          <FileText className="h-3 w-3 mr-1" />
-                          Continuar
+                {filteredRows.map((r, idx) => {
+                  const ageDays = draftAgeDays(r.transaction_date);
+                  const ageTone = draftAgeTone(ageDays);
+                  return (
+                    <tr
+                      key={r.id}
+                      className={`border-b border-border last:border-0 ${idx % 2 === 1 ? 'bg-muted/20' : ''}`}
+                    >
+                      <td className="px-5 py-3 tabular-nums">{formatDateTime(r.transaction_date)}</td>
+                      <td className="px-3 py-3">
+                        <span
+                          className={`vd-draft-age ${ageTone}`}
+                          aria-label={`Idade do rascunho: ${draftAgeLabel(ageDays)}`}
+                        >
+                          {draftAgeLabel(ageDays)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 font-mono text-xs">{r.invoice_no}</td>
+                      <td className="px-3 py-3">{r.customer_name ?? '—'}</td>
+                      <td className="px-3 py-3 text-muted-foreground">{r.business_location}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{r.total_items}</td>
+                      <td className="px-5 py-3 text-right">
+                        <Link
+                          href={`/sells/${r.id}/edit`}
+                          className="vd-draft-continue-btn"
+                          aria-label={`Continuar venda ${r.invoice_no}`}
+                        >
+                          <FileText className="h-3 w-3" />
+                          Continuar venda
                         </Link>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
