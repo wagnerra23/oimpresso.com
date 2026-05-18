@@ -29,6 +29,9 @@ import { FinAuditTrail } from './_components/FinAuditTrail';
 import { FinAnomalyDetector } from './_components/FinAnomalyDetector';
 import { FinPartyHistory } from './_components/FinPartyHistory';
 import { FinMonthDigest } from './_components/FinMonthDigest';
+// Onda 7 R3 Output — cross-link + checklist fechamento.
+import { FinCrossLinkify } from './_components/FinCrossLinkify';
+import { FinChecklistFechamento } from './_components/FinChecklistFechamento';
 
 // ---------- Tipos ----------
 
@@ -200,7 +203,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       <td className="pl-4 pr-2"><span className={`text-[14px] ${isIn ? 'text-emerald-600' : 'text-stone-500'}`}>{isIn ? '↑' : '↓'}</span></td>
       <td className="px-2">
         <div className="font-medium text-stone-900 truncate max-w-[260px] flex items-center gap-1.5">
-          <span className="truncate">{row.descricao}</span>
+          <FinCrossLinkify text={row.descricao} className="truncate" />
           <FinConferidoBadge rowId={row.id} conferido={conferido} />
           <FinCommentsBadge rowId={row.id} comments={comments} />
         </div>
@@ -236,6 +239,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   // Cowork KB-9.75 Onda 5 R1 Curadoria — hooks localStorage compartilhados pela página.
   const conferido = useFinConferido();
   const comments = useFinComments();
+  // Cowork KB-9.75 Onda 7 R3 — trilha fechamento dialog state.
+  const [checklistOpen, setChecklistOpen] = useState(false);
 
   const aplicar = useCallback((patch: Partial<Filters>) => {
     router.get('/financeiro/unificado', { ...filters, ...patch }, {
@@ -282,7 +287,15 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         title="Financeiro · Visão unificada"
         description={businessName ? `${periodLabel} · ${businessName}` : periodLabel}
         action={
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <button
+              type="button"
+              className="fin-fechamento-trigger"
+              onClick={() => setChecklistOpen(true)}
+              title="Trilha de 12 passos do fechamento mensal"
+            >
+              ☑ Fechamento
+            </button>
             <Button variant="outline" size="sm" onClick={() => router.visit('/financeiro/extrato')}>
               Conciliar
             </Button>
@@ -414,7 +427,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           {selected && (
             <>
               <SheetHeader>
-                <SheetTitle className="text-[16px]">{selected.descricao}</SheetTitle>
+                <SheetTitle className="text-[16px]">
+                  <FinCrossLinkify text={selected.descricao} />
+                </SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-4 text-[13px]">
                 <div className="flex items-center gap-2">
@@ -522,6 +537,13 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         <span><kbd className="px-1 rounded border border-stone-200 bg-stone-50">␣</kbd> selecionar</span>
         <span className="ml-auto">Densidade: <strong>{filters.densidade}</strong></span>
       </div>
+
+      {/* Cowork KB-9.75 Onda 7 R3 — Trilha fechamento dialog */}
+      <FinChecklistFechamento
+        periodLabel={periodLabel}
+        open={checklistOpen}
+        onClose={() => setChecklistOpen(false)}
+      />
     </div>
   );
 }
