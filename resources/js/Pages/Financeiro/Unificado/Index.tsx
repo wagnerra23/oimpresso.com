@@ -40,6 +40,10 @@ import { FinTranscriptPDF } from './_components/FinTranscriptPDF';
 import { useFinFavs, FinFavPin } from './_components/useFinFavs';
 // Onda 9 — Resumo executivo do mês (narrativa compute-based · plug LLM Fase 2).
 import { FinMonthResumeDialog } from './_components/FinMonthResume';
+// Onda 10 (canon 100%) — Sub-nav horizontal + ageing bar + edit panel inline real.
+import { FinSubNav } from './_components/FinSubNav';
+import { FinAgeing } from './_components/FinAgeing';
+import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
 
@@ -159,7 +163,9 @@ function statusTone(s: LancamentoStatus): 'success' | 'default' | 'warning' | 'd
 }
 
 function statusLabel(s: LancamentoStatus): string {
-  return { aberto: 'Aberto', recebido: 'Recebido', pago: 'Pago', atrasado: 'Atrasado', vencendo: 'Vencendo' }[s];
+  // Onda 10 canon 100%: "Aberto" → "Pendente" (Cowork STATUS_STYLES canon ref).
+  // Backend continua usando "aberto" interno (rotas/filtros legacy preservados).
+  return { aberto: 'Pendente', recebido: 'Recebido', pago: 'Pago', atrasado: 'Atrasado', vencendo: 'Vencendo' }[s];
 }
 
 // ---------- Componentes ----------
@@ -512,6 +518,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
   return (
     <div className="fin-curadoria">
+      {/* Onda 10 Cowork canon: sub-nav horizontal (5 sub-rotas) ANTES do page header */}
+      <FinSubNav active="unified" />
+
       {/* Onda 8 Cowork: page header canon com h1 + breadcrumb + 7 botões.
           Substitui PageHeader shadcn legacy (mantido em _KpiBarLegacy + comentário). */}
       <div className="fin-page-h">
@@ -572,6 +581,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
       </div>
 
       <KpiBar kpis={kpis} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
+
+      {/* Onda 10 Cowork canon — barra ageing A receber (vencido/0-30d/31-60d/61d+) */}
+      <FinAgeing lancamentos={lancamentos} />
 
       {/* Cowork KB-9.75 Onda 6 R2 IA — Resumo executivo do mês (Eliana 5min sexta) */}
       <FinMonthDigest
@@ -894,66 +906,14 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 </div>
               )}
 
-              {/* Aba Editar — V2.1 canon: panel inline amber (substitui Sheet separado) */}
-              {drawerTab === 'editar' && selected.valor_mutavel && (
-                <div className="mt-3 fin-edit-panel">
-                  <div className="fin-edit-h">
-                    <h4>✎ Editar campos do título</h4>
-                    <small>Campos seguros · vencimento, descrição, categoria, observações</small>
-                  </div>
-                  <div className="fin-edit-grid">
-                    <div>
-                      <label htmlFor="fin-edit-vencimento">Vencimento</label>
-                      <input
-                        id="fin-edit-vencimento"
-                        type="date"
-                        defaultValue={selected.vencimento}
-                        readOnly
-                        title="Edição via Sheet separado (TituloEditSheet) — clique Editar para abrir formulário completo"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="fin-edit-categoria">Categoria</label>
-                      <select id="fin-edit-categoria" defaultValue={selected.categoria_id ?? ''} disabled>
-                        <option value="">— sem categoria —</option>
-                        {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="fin-edit-valor">Valor (BRL)</label>
-                      <input id="fin-edit-valor" type="text" defaultValue={brl(selected.valor)} readOnly />
-                    </div>
-                    <div className="fin-edit-wide">
-                      <label htmlFor="fin-edit-desc">Descrição</label>
-                      <input id="fin-edit-desc" type="text" defaultValue={selected.descricao} readOnly />
-                    </div>
-                    <div className="fin-edit-wide">
-                      <label htmlFor="fin-edit-obs">Observações</label>
-                      <textarea id="fin-edit-obs" rows={2} defaultValue={selected.observacao ?? ''} readOnly />
-                    </div>
-                  </div>
-                  <div className="fin-edit-footer">
-                    <button type="button" className="fin-edit-cancel" onClick={() => setDrawerTab('detalhes')}>
-                      Cancelar
-                    </button>
-                    <button type="button" className="fin-edit-close" onClick={() => { setDrawerTab('detalhes'); setEditOpen(true); }}>
-                      Abrir formulário completo →
-                    </button>
-                  </div>
-                  <p className="mt-2 text-[11px] text-stone-500 italic">
-                    Preview inline · edição validada acontece no Sheet separado (TituloEditSheet)
-                  </p>
-                </div>
-              )}
-              {drawerTab === 'editar' && !selected.valor_mutavel && (
-                <div className="mt-3 fin-edit-panel" style={{ background: 'oklch(0.97 0.005 80)', border: '1px dashed oklch(0.85 0.005 80)' }}>
-                  <div className="fin-edit-h">
-                    <h4 style={{ color: 'oklch(0.40 0 0)' }}>Valor não-mutável</h4>
-                    <small>ADR fin-tech/0002</small>
-                  </div>
-                  <p className="text-[12.5px] text-stone-600">
-                    Este lançamento já recebeu uma baixa (parcial ou total). O valor não pode mais ser editado — preserva-se a integridade contábil pós-baixa. Para correções, lance um novo título de ajuste.
-                  </p>
+              {/* Aba Editar — Onda 10 canon 100%: form INLINE real (PUT /financeiro/unificado/{id}) */}
+              {drawerTab === 'editar' && (
+                <div className="mt-3">
+                  <FinEditPanel
+                    lancamento={selected}
+                    categorias={categorias}
+                    onClose={() => setDrawerTab('detalhes')}
+                  />
                 </div>
               )}
             </>

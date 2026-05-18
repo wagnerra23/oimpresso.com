@@ -993,3 +993,110 @@
 @media (min-width: 1280px) {
   .fin-drawer-wide { padding-left: 22px; padding-right: 22px; }
 }
+
+/* ========================================================================
+ * Onda 10 — Canon 100% Cowork: FinAgeing + FinSubNav
+ * Refs: prototipo-ui-patch/vendas-financeiro-completo/financeiro-app.jsx
+ * ======================================================================== */
+
+/* FinAgeing — barra horizontal segmentada A receber ageing */
+.fin-ageing {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: oklch(0.98 0.005 80);
+  border: 1px solid oklch(0.92 0.005 80);
+  border-radius: 8px;
+}
+.fin-ageing-l {
+  flex: 0 0 auto;
+  min-width: 140px;
+}
+.fin-ageing-l small {
+  display: block;
+  font-size: 10.5px;
+  color: oklch(0.50 0 0);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+.fin-ageing-l b {
+  font-family: ui-monospace, monospace;
+  font-size: 14px;
+  color: oklch(0.20 0 0);
+  letter-spacing: -0.01em;
+}
+.fin-ageing-bar {
+  flex: 1 1 auto;
+  display: flex;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: oklch(0.95 0.005 80);
+  gap: 1px;
+}
+.fin-ageing-bar .seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: filter .12s;
+}
+.fin-ageing-bar .seg:hover { filter: brightness(0.95); }
+/* s1 = 0-30d  verde fresh */
+.fin-ageing-bar .seg.s1 { background: oklch(0.85 0.13 145); color: oklch(0.22 0.13 145); }
+/* s2 = 31-60d amber */
+.fin-ageing-bar .seg.s2 { background: oklch(0.85 0.13 70);  color: oklch(0.25 0.13 60); }
+/* s3 = 61d+   roxo */
+.fin-ageing-bar .seg.s3 { background: oklch(0.75 0.13 280); color: oklch(0.95 0.04 280); }
+/* s4 = late   rose */
+.fin-ageing-bar .seg.s4 { background: oklch(0.65 0.20 25);  color: oklch(0.98 0.02 25); }
+
+/* FinSubNav — sub-rotas horizontais Cowork canon */
+.fin-subnav {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0 0 0 4px;
+  margin: 8px 0 0;
+  border-bottom: 1px solid oklch(0.92 0.005 80);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.fin-subnav-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 14px;
+  margin-bottom: -1px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: oklch(0.50 0.01 80);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+}
+.fin-subnav-tab:hover {
+  color: oklch(0.20 0 0);
+}
+.fin-subnav-tab.on {
+  color: oklch(0.20 0 0);
+  border-bottom-color: oklch(0.55 0.13 240);
+  font-weight: 600;
+}
+.fin-subnav-tab:focus-visible {
+  outline: 2px solid oklch(0.55 0.13 240);
+  outline-offset: 2px;
+  border-radius: 4px 4px 0 0;
+}

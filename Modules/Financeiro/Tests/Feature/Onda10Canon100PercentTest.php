@@ -1,0 +1,187 @@
+<?php
+
+declare(strict_types=1);
+
+uses(Tests\TestCase::class);
+
+/**
+ * Onda 10 — Fechamento canon 100% Cowork (Wagner 2026-05-18: "esta 95% eu quero 100%").
+ *
+ * Fecha os 5 gaps identificados entre template `_cowork-bundle/financeiro-app.jsx` (58k LOC)
+ * e a tela /financeiro/unificado em prod:
+ *   1. FinAgeing.tsx — barra ageing A receber (vencido / 0-30d / 31-60d / 61d+)
+ *   2. FinSubNav.tsx — sub-nav horizontal (5 sub-rotas Cowork canon)
+ *   3. Status "aberto" → label "Pendente" (Cowork STATUS_STYLES canon)
+ *   4. FinEditPanel.tsx — form inline REAL (substitui preview readOnly V2.1)
+ *   5. CSS canon escopado pros 2 novos componentes + ageing colors (s1-s4)
+ *
+ * Tier 0 multi-tenant preservado (pure-compute frontend, zero backend novo).
+ */
+
+const FIN_BASE_10 = __DIR__ . '/../../../../resources/js/Pages/Financeiro/Unificado';
+const FIN_CSS_10 = __DIR__ . '/../../../../resources/css/fin-output.css';
+
+describe('Onda 10 — FinAgeing (barra ageing A receber)', function () {
+    it('FinAgeing.tsx exporta componente', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinAgeing.tsx');
+        expect($src)->toContain('export function FinAgeing');
+    });
+
+    it('Algoritmo: classifica delta por 4 buckets (late/d30/d60/d90)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinAgeing.tsx');
+        expect($src)->toContain('buckets = { d30: 0, d60: 0, d90: 0, late: 0 }');
+        expect($src)->toContain('if (delta < 0)');
+        expect($src)->toContain('else if (delta <= 30)');
+        expect($src)->toContain('else if (delta <= 60)');
+    });
+
+    it('Filtra apenas kind=receivable não-recebido (Cowork canon)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinAgeing.tsx');
+        expect($src)->toContain("kind === 'receivable'");
+        expect($src)->toContain("status !== 'recebido'");
+    });
+
+    it('Esconde quando total=0 (sem ageing)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinAgeing.tsx');
+        expect($src)->toContain('if (k.total === 0) return null');
+    });
+
+    it('Renderiza 4 segments coloridos (s1-s4) com fin-ageing-bar', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinAgeing.tsx');
+        expect($src)->toContain('fin-ageing-bar');
+        expect($src)->toContain("seg s1");
+        expect($src)->toContain("seg s2");
+        expect($src)->toContain("seg s3");
+        expect($src)->toContain("seg s4");
+    });
+});
+
+describe('Onda 10 — FinSubNav (sub-rotas horizontais)', function () {
+    it('FinSubNav.tsx exporta componente', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
+        expect($src)->toContain('export function FinSubNav');
+    });
+
+    it('5 sub-rotas canon: unified/fluxo/concil/dre/pcontas', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
+        expect($src)->toContain("id: 'unified'");
+        expect($src)->toContain("id: 'fluxo'");
+        expect($src)->toContain("id: 'concil'");
+        expect($src)->toContain("id: 'dre'");
+        expect($src)->toContain("id: 'pcontas'");
+    });
+
+    it('Hrefs canônicos do projeto (não mock)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
+        expect($src)->toContain('/financeiro/unificado');
+        expect($src)->toContain('/financeiro/fluxo');
+        expect($src)->toContain('/financeiro/extrato');
+        expect($src)->toContain('/financeiro/relatorios');
+        expect($src)->toContain('/financeiro/plano-contas');
+    });
+
+    it('Inertia router.visit pra navegação (não <a> hardcoded)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
+        expect($src)->toContain("from '@inertiajs/react'");
+        expect($src)->toContain('router.visit(item.href)');
+    });
+});
+
+describe('Onda 10 — FinEditPanel (form inline REAL)', function () {
+    it('FinEditPanel.tsx exporta componente', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinEditPanel.tsx');
+        expect($src)->toContain('export function FinEditPanel');
+    });
+
+    it('Usa Inertia useForm + PUT canon /financeiro/unificado/{id}', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinEditPanel.tsx');
+        expect($src)->toContain("useForm } from '@inertiajs/react'");
+        expect($src)->toContain('form.put(`/financeiro/unificado/${lancamento.id}`');
+    });
+
+    it('Guard valor_mutavel (ADR fin-tech/0002) — não envia valor_total se imutável', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinEditPanel.tsx');
+        expect($src)->toContain('if (lancamento.valor_mutavel)');
+        expect($src)->toContain('data.valor_total = form.data.valor_total');
+        expect($src)->toContain('disabled={!lancamento.valor_mutavel}');
+    });
+
+    it('Diff visual "era X" inline em hints small', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinEditPanel.tsx');
+        expect($src)->toContain('era {brl(lancamento.valor)}');
+        expect($src)->toContain('era {lancamento.vencimento_label}');
+    });
+
+    it('hasEdits guard desabilita botão Salvar sem mudanças', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/_components/FinEditPanel.tsx');
+        expect($src)->toContain('const hasEdits =');
+        expect($src)->toContain('disabled={form.processing || !hasEdits}');
+    });
+});
+
+describe('Onda 10 — CSS canon (fin-ageing + fin-subnav)', function () {
+    it('Tokens .fin-ageing-* mounted (4 segments coloridos)', function () {
+        $css = file_get_contents(FIN_CSS_10);
+        expect($css)->toContain('.fin-ageing');
+        expect($css)->toContain('.fin-ageing-bar');
+        expect($css)->toContain('.fin-ageing-bar .seg.s1');
+        expect($css)->toContain('.fin-ageing-bar .seg.s2');
+        expect($css)->toContain('.fin-ageing-bar .seg.s3');
+        expect($css)->toContain('.fin-ageing-bar .seg.s4');
+    });
+
+    it('Tokens .fin-subnav-* mounted (sub-rotas horizontais)', function () {
+        $css = file_get_contents(FIN_CSS_10);
+        expect($css)->toContain('.fin-subnav');
+        expect($css)->toContain('.fin-subnav-tab');
+        expect($css)->toContain('.fin-subnav-tab.on');
+    });
+
+    it('Cores semânticas oklch dos segments: 145 verde / 60 amber / 280 roxo / 25 rose', function () {
+        $css = file_get_contents(FIN_CSS_10);
+        // s1 = 0-30d verde 145
+        expect($css)->toContain('oklch(0.85 0.13 145)');
+        // s2 = 31-60d amber 60-70
+        expect($css)->toContain('oklch(0.85 0.13 70)');
+        // s3 = 61d+ roxo 280
+        expect($css)->toContain('oklch(0.75 0.13 280)');
+        // s4 = late rose 25
+        expect($css)->toContain('oklch(0.65 0.20 25)');
+    });
+});
+
+describe('Onda 10 — wire-up Index.tsx', function () {
+    it('Index.tsx importa 3 novos componentes', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
+        expect($src)->toContain("from './_components/FinSubNav'");
+        expect($src)->toContain("from './_components/FinAgeing'");
+        expect($src)->toContain("from './_components/FinEditPanel'");
+    });
+
+    it('FinSubNav renderizado ANTES do page header (active=unified)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
+        expect($src)->toContain('<FinSubNav active="unified"');
+        // Ordem: FinSubNav vem antes de fin-page-h
+        $subnavPos = strpos($src, '<FinSubNav active="unified"');
+        $headerPos = strpos($src, 'fin-page-h');
+        expect($subnavPos)->toBeLessThan($headerPos);
+    });
+
+    it('FinAgeing renderizado APÓS KpiBar (lancamentos como prop)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
+        expect($src)->toContain('<FinAgeing lancamentos={lancamentos} />');
+    });
+
+    it('Aba Editar usa FinEditPanel (form real, não preview readOnly)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
+        expect($src)->toContain('<FinEditPanel');
+        // Preview readOnly da V2.1 removido
+        expect($src)->not->toContain('Abrir formulário completo →');
+        expect($src)->not->toContain('Preview inline · edição validada acontece no Sheet separado');
+    });
+
+    it('Status label "aberto" → "Pendente" (Cowork STATUS_STYLES canon)', function () {
+        $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
+        expect($src)->toContain("aberto: 'Pendente'");
+    });
+});
