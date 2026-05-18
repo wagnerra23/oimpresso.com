@@ -456,6 +456,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const favs = useFinFavs(businessName || 'default');
   // Cowork KB-9.75 Onda 9 — Resumir mês dialog (narrativa exec compute-based).
   const [resumoOpen, setResumoOpen] = useState(false);
+  // Drawer Cowork v2 (2026-05-18 gap report Wagner) — nav de abas Detalhes/IA
+  // dentro do drawer detalhe. Reseta pra 'detalhes' ao trocar de linha.
+  const [drawerTab, setDrawerTab] = useState<'detalhes' | 'ia'>('detalhes');
+  useEffect(() => { setDrawerTab('detalhes'); }, [selectedId]);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
 
@@ -746,9 +750,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </CardContent>
       </Card>
 
-      {/* Drawer detalhe */}
+      {/* Drawer detalhe — Cowork v2 (gap report 2026-05-18):
+          nav `fin-drawer-tabs` separa Detalhes (info+actions) de ✦ IA (insights). */}
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
-        <SheetContent side="right" className="w-[460px] sm:max-w-[460px]">
+        <SheetContent side="right" className="fin-drawer-wide w-[460px] sm:max-w-[460px]">
           {selected && (
             <>
               <SheetHeader>
@@ -756,85 +761,122 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                   <FinCrossLinkify text={selected.descricao} />
                 </SheetTitle>
               </SheetHeader>
-              <div className="mt-4 space-y-4 text-[13px]">
-                <div className="flex items-center gap-2">
-                  <StatusPill s={selected.status} />
-                  <FinPillFrescor row={{ due: selected.vencimento, paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null, vencimento: selected.vencimento }} />
-                  <span className="ml-auto font-semibold tabular-nums text-[16px]">{brl(selected.valor)}</span>
-                </div>
 
-                <FinConferidoToggle rowId={selected.id} conferido={conferido} />
-
-                {/* Cowork KB-9.75 Onda 6 R2 IA — Anomaly + Party History */}
-                <FinAnomalyDetector
-                  row={{
-                    id: selected.id,
-                    contraparte: selected.contraparte,
-                    categoria: selected.categoria,
-                    valor: selected.valor,
-                    vencimento: selected.vencimento,
-                    liquidacao: selected.liquidacao,
-                    status: selected.status,
-                    kind: selected.kind,
-                  }}
-                  all={lancamentos}
-                />
-
-                <FinPartyHistory
-                  currentRow={{ id: selected.id, contraparte: selected.contraparte }}
-                  all={lancamentos}
-                />
-
-                <dl className="grid grid-cols-2 gap-y-2 text-[12.5px]">
-                  <dt className="text-stone-500">Contraparte</dt><dd>{selected.contraparte}{selected.contraparte_doc && <span className="block text-stone-500">{selected.contraparte_doc}</span>}</dd>
-                  <dt className="text-stone-500">Categoria</dt><dd>{selected.categoria}</dd>
-                  <dt className="text-stone-500">Conta</dt><dd>{selected.conta_bancaria}</dd>
-                  <dt className="text-stone-500">Vencimento</dt><dd>{selected.vencimento_label}</dd>
-                  {selected.liquidacao && <><dt className="text-stone-500">Liquidação</dt><dd>{selected.liquidacao}</dd></>}
-                  {selected.nfe_numero && <><dt className="text-stone-500">NF-e</dt><dd>{selected.nfe_numero}</dd></>}
-                  {selected.canal && <><dt className="text-stone-500">Canal</dt><dd>{selected.canal}</dd></>}
-                </dl>
-                {selected.observacao && (
-                  <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
-                )}
-
-                <div className="border-t border-stone-200 pt-4">
-                  <FinAuditTrail row={{
-                    id: selected.id,
-                    descricao: selected.descricao,
-                    contraparte: selected.contraparte,
-                    categoria: selected.categoria,
-                    conta_bancaria: selected.conta_bancaria,
-                    canal: selected.canal ?? undefined,
-                    valor: selected.valor,
-                    status: selected.status,
-                    kind: selected.kind,
-                    paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null,
-                    due: selected.vencimento,
-                  }} />
-                </div>
-
-                <div className="border-t border-stone-200 pt-4">
-                  <FinCommentsThread rowId={selected.id} comments={comments} />
-                </div>
-
-                <div className="flex gap-2 pt-2 border-t border-stone-200">
-                  {(selected.status !== 'recebido' && selected.status !== 'pago') && (
-                    <Button onClick={() => onBaixar(selected.id)}>
-                      {selected.kind === 'receivable' ? 'Marcar recebido' : 'Marcar pago'}
-                    </Button>
+              {/* Nav de abas — Cowork canon */}
+              <nav className="fin-drawer-tabs" role="tablist" aria-label="Visualização do título">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={drawerTab === 'detalhes'}
+                  className={'fin-drawer-tab' + (drawerTab === 'detalhes' ? ' on' : '')}
+                  onClick={() => setDrawerTab('detalhes')}
+                >
+                  Detalhes
+                  {comments.countFor(selected.id) > 0 && (
+                    <span className="fin-drawer-tab-badge">💬{comments.countFor(selected.id)}</span>
                   )}
-                  <Button variant="outline" onClick={() => setEditOpen(true)}>Editar</Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => favs.toggle(selected.id)}
-                    title="Atalho: B (com a linha selecionada)"
-                  >
-                    {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
-                  </Button>
-                  <Button variant="outline" className="ml-auto">Anexar</Button>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={drawerTab === 'ia'}
+                  className={'fin-drawer-tab fin-drawer-tab-ai' + (drawerTab === 'ia' ? ' on' : '')}
+                  onClick={() => setDrawerTab('ia')}
+                >
+                  ✦ IA
+                </button>
+              </nav>
+
+              {/* Aba Detalhes — info + audit + comments + actions */}
+              {drawerTab === 'detalhes' && (
+                <div className="mt-3 space-y-4 text-[13px]">
+                  <div className="flex items-center gap-2 fin-toggles-row">
+                    <StatusPill s={selected.status} />
+                    <FinPillFrescor row={{ due: selected.vencimento, paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null, vencimento: selected.vencimento }} />
+                    <span className="ml-auto font-semibold tabular-nums text-[16px]">{brl(selected.valor)}</span>
+                  </div>
+
+                  <FinConferidoToggle rowId={selected.id} conferido={conferido} />
+
+                  <dl className="grid grid-cols-2 gap-y-2 text-[12.5px]">
+                    <dt className="text-stone-500">Contraparte</dt><dd>{selected.contraparte}{selected.contraparte_doc && <span className="block text-stone-500">{selected.contraparte_doc}</span>}</dd>
+                    <dt className="text-stone-500">Categoria</dt><dd>{selected.categoria}</dd>
+                    <dt className="text-stone-500">Conta</dt><dd>{selected.conta_bancaria}</dd>
+                    <dt className="text-stone-500">Vencimento</dt><dd>{selected.vencimento_label}</dd>
+                    {selected.liquidacao && <><dt className="text-stone-500">Liquidação</dt><dd>{selected.liquidacao}</dd></>}
+                    {selected.nfe_numero && <><dt className="text-stone-500">NF-e</dt><dd>{selected.nfe_numero}</dd></>}
+                    {selected.canal && <><dt className="text-stone-500">Canal</dt><dd>{selected.canal}</dd></>}
+                  </dl>
+                  {selected.observacao && (
+                    <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
+                  )}
+
+                  <div className="border-t border-stone-200 pt-4">
+                    <FinAuditTrail row={{
+                      id: selected.id,
+                      descricao: selected.descricao,
+                      contraparte: selected.contraparte,
+                      categoria: selected.categoria,
+                      conta_bancaria: selected.conta_bancaria,
+                      canal: selected.canal ?? undefined,
+                      valor: selected.valor,
+                      status: selected.status,
+                      kind: selected.kind,
+                      paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null,
+                      due: selected.vencimento,
+                    }} />
+                  </div>
+
+                  <div className="border-t border-stone-200 pt-4">
+                    <FinCommentsThread rowId={selected.id} comments={comments} />
+                  </div>
+
+                  <div className="fin-drawer-footer">
+                    {(selected.status !== 'recebido' && selected.status !== 'pago') && (
+                      <Button onClick={() => onBaixar(selected.id)}>
+                        {selected.kind === 'receivable' ? 'Marcar recebido' : 'Marcar pago'}
+                      </Button>
+                    )}
+                    <Button variant="outline" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => favs.toggle(selected.id)}
+                      title="Atalho: B (com a linha selecionada)"
+                    >
+                      {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
+                    </Button>
+                    <Button variant="outline" className="ml-auto">Anexar</Button>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Aba IA — insights computacionais (Anomaly + Party History) */}
+              {drawerTab === 'ia' && (
+                <div className="mt-3 space-y-4 text-[13px] fin-ai-panel">
+                  <FinAnomalyDetector
+                    row={{
+                      id: selected.id,
+                      contraparte: selected.contraparte,
+                      categoria: selected.categoria,
+                      valor: selected.valor,
+                      vencimento: selected.vencimento,
+                      liquidacao: selected.liquidacao,
+                      status: selected.status,
+                      kind: selected.kind,
+                    }}
+                    all={lancamentos}
+                  />
+
+                  <FinPartyHistory
+                    currentRow={{ id: selected.id, contraparte: selected.contraparte }}
+                    all={lancamentos}
+                  />
+
+                  <p className="text-[11.5px] text-stone-500 italic pt-2 border-t border-stone-100">
+                    Insights computacionais · pure compute · Fase 2 plugará JanaService LLM
+                  </p>
+                </div>
+              )}
             </>
           )}
         </SheetContent>
