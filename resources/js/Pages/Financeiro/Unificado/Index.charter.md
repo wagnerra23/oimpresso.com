@@ -9,9 +9,9 @@ parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
 related_adrs: [arq/0005, ui/0002, ui/0114, 0093, 0094]
 related_us: [US-FIN-013, US-FIN-020]
 related_prototype: prototipo Cowork "Visao Unificada" (Financeiro.html), aprovado por Wagner 2026-05-09
-canon_method: Cowork KB-9.75 v2 — Onda 5 R1 Curadoria (PR #1064/#1066 + Onda 5 atual)
+canon_method: Cowork KB-9.75 v2 — Ondas 5+6 (R1 Curadoria + R2 IA · PR #1064/#1066 + Onda 5 + Onda 6 atual)
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Page Charter — /financeiro/unificado
@@ -29,6 +29,10 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 
 ## Goals — Features (faz)
 
+- **Onda 6 KB-9.75 R2 IA** (2026-05-18):
+  - **FinAnomalyDetector** — detecta valor outlier vs média histórica da contraparte (threshold ≥25%, severity high/medium/low). Mostrado no drawer quando aplicável. Pure compute, sem LLM.
+  - **FinPartyHistory** — stats da contraparte no drawer (count, total, média, on-time%, categoria top, 5 recentes). Detecta isNew (1 lançamento) vs isRecurrent (≥3). Pure compute.
+  - **FinMonthDigest** — section colapsável acima da tabela com 4 cards (Recebido / Pago / Saldo do mês / Atrasados) + top contraparte in/out. Pure compute, "Eliana 5min sexta" digest.
 - **Onda 5 KB-9.75 R1 Curadoria** (2026-05-18):
   - **Conferido toggle** por Eliana (localStorage `oimpresso.financeiro.conferido`) — pill grande no drawer + badge ✓ silent na linha
   - **Comentários inline** thread Eliana ↔ Wagner ↔ Bruna (localStorage `oimpresso.financeiro.comments`) — textarea no drawer + badge 💬N silent na linha
