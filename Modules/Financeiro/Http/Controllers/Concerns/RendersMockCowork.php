@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Financeiro\Http\Controllers\Concerns;
 
 use Illuminate\Http\Response;
+use Modules\Financeiro\Services\CoworkDataMapper;
 
 /**
  * Trait — serve HTML mock canon Cowork em vez de Inertia/Blade real
@@ -78,34 +79,90 @@ trait RendersMockCowork
         // em vez de /financeiro/<file> (que dá 404).
         //
         // Injeção 2: <script> setando localStorage["oimpresso.route"] pra
-        // que app.jsx Cowork abra direto na tela correta (financeiro,
-        // fin-fluxo, fin-dre, boletos) em vez do default "chat".
+        // que app.jsx Cowork abra direto na tela correta.
+        //
+        // Injeção 3 (Integração #1 Wagner 2026-05-18): coleta dados REAIS
+        // do business via CoworkDataMapper + injeta como window.__OIMPRESSO_FIN_REAL__
+        // ANTES dos scripts babel. Outro script DEPOIS de financeiro-data.jsx
+        // sobrescreve window.FIN_ROWS com os reais (mock continua como fallback).
         $coworkRouteEscaped = htmlspecialchars($coworkRoute, ENT_QUOTES);
-        $injection = <<<HTML
+
+        // Tier 0: business_id da session — sem business logado, mantém mock
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+        $realDataJson = 'null';
+        if ($businessId > 0) {
+            try {
+                $real = CoworkDataMapper::collect($businessId);
+                $realDataJson = json_encode($real, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            } catch (\Throwable $e) {
+                // Fallback gracioso pro mock; logamos mas não bloqueia
+                logger()->warning('CoworkDataMapper failed, falling back to mock', [
+                    'business_id' => $businessId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $injectionHead = <<<HTML
 <base href="/cowork-preview/" />
   <script>
-    // Mock Cowork Mode (Wagner 2026-05-18): abre tela direto baseada na URL Laravel
+    // Mock Cowork Mode (Wagner 2026-05-18 + Integração #1):
+    // - localStorage.route abre tela correta
+    // - __OIMPRESSO_FIN_REAL__ carrega dados Eloquent do business logado
     try {
       localStorage.setItem('oimpresso.route', '{$coworkRouteEscaped}');
     } catch (e) {}
+    window.__OIMPRESSO_FIN_REAL__ = {$realDataJson};
   </script>
 HTML;
 
         if (str_contains($html, '<head>')) {
             $html = preg_replace(
                 '/<head>/i',
-                "<head>\n  {$injection}",
+                "<head>\n  {$injectionHead}",
                 $html,
                 1
             );
         } elseif (str_contains($html, '<head ')) {
             $html = preg_replace(
                 '/<head([^>]*)>/i',
-                "<head$1>\n  {$injection}",
+                "<head$1>\n  {$injectionHead}",
                 $html,
                 1
             );
         }
+
+        // Injeção 4: script polling INLINE DEPOIS de financeiro-data.jsx que
+        // sobrescreve window.FIN_ROWS / FIN_TODAY com dados reais (se disponível).
+        // Polling porque Babel Standalone é assíncrono — financeiro-data.jsx
+        // pode não ter rodado quando esse script começar.
+        $overrideScript = <<<'HTML'
+<script>
+    // Integração #1 Wagner 2026-05-18 — substitui FIN_ROWS mock pelos dados Eloquent
+    (function pollOverride() {
+      if (!window.FIN_ROWS) { setTimeout(pollOverride, 30); return; }
+      var real = window.__OIMPRESSO_FIN_REAL__;
+      if (!real || !Array.isArray(real.FIN_ROWS)) return;
+      window.FIN_ROWS = real.FIN_ROWS.map(function (r) {
+        return Object.assign({}, r, {
+          due: r.due ? new Date(r.due + 'T12:00:00') : null,
+          paid_at: r.paid_at ? new Date(r.paid_at + 'T12:00:00') : null,
+        });
+      });
+      if (real.FIN_TODAY) {
+        window.FIN_TODAY = new Date(real.FIN_TODAY + 'T12:00:00');
+      }
+      console.log('[oimpresso] Mock Cowork: dados reais injetados, %d rows', window.FIN_ROWS.length);
+    })();
+  </script>
+HTML;
+        // Insere DEPOIS de <script type="text/babel" src="financeiro-data.jsx"></script>
+        $html = preg_replace(
+            '/(<script\s+type="text\/babel"\s+src="financeiro-data\.jsx"><\/script>)/i',
+            "$1\n  {$overrideScript}",
+            $html,
+            1
+        );
 
         return response($html, 200, [
             'Content-Type' => 'text/html; charset=utf-8',
