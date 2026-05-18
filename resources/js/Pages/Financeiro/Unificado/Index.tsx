@@ -32,6 +32,9 @@ import { FinMonthDigest } from './_components/FinMonthDigest';
 // Onda 7 R3 Output — cross-link + checklist fechamento.
 import { FinCrossLinkify } from './_components/FinCrossLinkify';
 import { FinChecklistFechamento } from './_components/FinChecklistFechamento';
+// Onda 7b — Troubleshooter dialog + PresentationMode fullscreen.
+import { FinTroubleshooterDialog, FinTroubleButton } from './_components/FinTroubleshooter';
+import { FinPresentationMode } from './_components/FinPresentationMode';
 
 // ---------- Tipos ----------
 
@@ -376,6 +379,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const comments = useFinComments();
   // Cowork KB-9.75 Onda 7 R3 — trilha fechamento dialog state.
   const [checklistOpen, setChecklistOpen] = useState(false);
+  // Cowork KB-9.75 Onda 7b — Troubleshooter + Presentation Mode states.
+  const [troubleOpen, setTroubleOpen] = useState(false);
+  const [presentOpen, setPresentOpen] = useState(false);
 
   const aplicar = useCallback((patch: Partial<Filters>) => {
     router.get('/financeiro/unificado', { ...filters, ...patch }, {
@@ -450,8 +456,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <button
             type="button"
             className="fin-btn fin-btn-present"
-            title="Modo apresentação fullscreen (Onda 7b — em construção)"
-            onClick={() => alert('Apresentar: feature Onda 7b — FinPresentationMode (em construção)')}
+            title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
+            onClick={() => setPresentOpen(true)}
           >
             ▶ Apresentar
           </button>
@@ -733,9 +739,21 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         <span><kbd>/</kbd> buscar</span>
         <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
         <span><kbd>␣</kbd> marcar pago/recebido</span>
+        <FinTroubleButton onClick={() => setTroubleOpen(true)} />
         <span className="spacer" />
         <span>Densidade: <strong>{filters.densidade}</strong></span>
       </div>
+
+      {/* Onda 7b — Dialogs Troubleshooter + Presentation Mode */}
+      <FinTroubleshooterDialog open={troubleOpen} onClose={() => setTroubleOpen(false)} />
+      <FinPresentationMode
+        open={presentOpen}
+        onClose={() => setPresentOpen(false)}
+        kpis={kpis}
+        lancamentos={lancamentos}
+        periodLabel={periodLabel}
+        businessName={businessName}
+      />
 
       {/* Cowork KB-9.75 Onda 7 R3 — Trilha fechamento dialog */}
       <FinChecklistFechamento
