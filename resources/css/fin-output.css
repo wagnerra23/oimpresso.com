@@ -454,3 +454,141 @@
   padding: 1px 5px; border-radius: 3px;
   background: oklch(0.30 0.06 240); color: white; margin: 0 2px;
 }
+
+/* ========================================================================
+ * Onda 7c — FinTranscriptPDF + FinFavPin
+ * Folha jurídica imprimível + estrela favorito.
+ * @media print isola só a .fin-transcript-page quando user dá Ctrl+P.
+ * ======================================================================== */
+
+/* Pin estrela inline (lista + drawer) */
+.fin-fav-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: oklch(0.72 0.16 75);
+  margin-left: 4px;
+  line-height: 1;
+}
+
+/* Overlay fullscreen com barra de ação fixa no topo */
+.fin-transcript-overlay {
+  position: fixed; inset: 0; z-index: 80;
+  background: oklch(0.95 0.005 80);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+
+.fin-transcript-bar {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  background: oklch(0.99 0 0); border-bottom: 1px solid oklch(0.90 0.005 80);
+  box-shadow: 0 1px 4px oklch(0 0 0 / 0.05);
+}
+.fin-transcript-bar-l { display: flex; align-items: baseline; gap: 8px; color: oklch(0.30 0.01 80); }
+.fin-transcript-bar-l strong { font-size: 13.5px; }
+.fin-transcript-bar-l small { font-size: 12px; color: oklch(0.50 0.01 80); }
+.fin-transcript-bar-r { display: flex; gap: 8px; }
+.fin-transcript-btn {
+  padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 500;
+  background: white; color: oklch(0.30 0.01 80); border: 1px solid oklch(0.85 0.005 80);
+  cursor: pointer; transition: all 0.12s;
+}
+.fin-transcript-btn:hover { background: oklch(0.97 0.005 80); border-color: oklch(0.75 0.005 80); }
+.fin-transcript-btn.primary { background: oklch(0.30 0.06 240); color: white; border-color: oklch(0.30 0.06 240); }
+.fin-transcript-btn.primary:hover { background: oklch(0.36 0.07 240); }
+
+/* Folha A4 simulada — sombra leve pra parecer papel */
+.fin-transcript-page {
+  background: white;
+  max-width: 760px;
+  margin: 24px auto;
+  padding: 40px 48px;
+  box-shadow: 0 4px 18px oklch(0 0 0 / 0.08);
+  font-family: ui-serif, Georgia, 'Times New Roman', serif;
+  color: oklch(0.18 0 0);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.fin-transcript-h {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding-bottom: 18px; margin-bottom: 24px;
+  border-bottom: 2px solid oklch(0.20 0 0);
+}
+.fin-transcript-h h1 {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.01em;
+}
+.fin-transcript-h p { font-size: 11.5px; color: oklch(0.45 0 0); margin: 4px 0 0; font-family: ui-sans-serif, system-ui; }
+.fin-transcript-totals { text-align: right; }
+.fin-transcript-totals small { display: block; font-size: 10px; color: oklch(0.50 0 0); text-transform: uppercase; letter-spacing: 0.08em; font-family: ui-sans-serif, system-ui; }
+.fin-transcript-totals b {
+  font-size: 22px; font-weight: 700; font-family: ui-monospace, monospace;
+  color: oklch(0.18 0 0); letter-spacing: -0.02em;
+}
+
+/* Tabela jurídica clean */
+.fin-transcript-tbl {
+  width: 100%; border-collapse: collapse; margin-bottom: 32px;
+  font-size: 11.5px; font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.fin-transcript-tbl thead th {
+  text-align: left; padding: 8px 6px; border-bottom: 1.5px solid oklch(0.20 0 0);
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  color: oklch(0.30 0 0);
+}
+.fin-transcript-tbl tbody td { padding: 7px 6px; border-bottom: 1px solid oklch(0.92 0 0); vertical-align: top; }
+.fin-transcript-tbl tbody tr:hover { background: oklch(0.98 0 0); }
+.fin-transcript-tbl tbody td b { font-weight: 600; }
+.fin-transcript-tbl .mono { font-family: ui-monospace, monospace; font-size: 11px; color: oklch(0.30 0 0); }
+.fin-transcript-tbl .right { text-align: right; }
+.fin-transcript-tbl .pos { color: oklch(0.40 0.13 145); }
+.fin-transcript-tbl .neg { color: oklch(0.50 0.18 25); }
+.fin-transcript-nfe { font-size: 10.5px; color: oklch(0.50 0 0); font-weight: 400; }
+
+.fin-transcript-tbl tfoot td {
+  padding: 8px 6px; border-bottom: none;
+  font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
+}
+.fin-transcript-tbl tfoot tr:last-child td {
+  border-top: 1.5px solid oklch(0.20 0 0); padding-top: 10px; font-size: 13px;
+}
+
+/* Rodapé com 2 assinaturas */
+.fin-transcript-f {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+  margin-top: 60px; padding-top: 24px;
+}
+.fin-transcript-sig { text-align: center; }
+.fin-transcript-sig-line { height: 1px; background: oklch(0.30 0 0); margin-bottom: 6px; }
+.fin-transcript-sig small {
+  font-size: 11px; color: oklch(0.30 0 0); font-family: ui-sans-serif, system-ui;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+.fin-transcript-foot-meta {
+  margin-top: 32px; padding-top: 12px;
+  text-align: center; font-size: 10px; color: oklch(0.55 0 0);
+  font-family: ui-sans-serif, system-ui;
+  border-top: 1px solid oklch(0.92 0 0);
+}
+
+/* Print isolation — esconde tudo exceto a folha */
+@media print {
+  body * { visibility: hidden; }
+  .fin-transcript-overlay,
+  .fin-transcript-overlay * { visibility: visible; }
+  .fin-transcript-bar { display: none; }
+  .fin-transcript-overlay {
+    position: static; background: white; overflow: visible;
+  }
+  .fin-transcript-page {
+    box-shadow: none; margin: 0; padding: 24mm 18mm;
+    max-width: none; width: 100%;
+  }
+  .fin-transcript-tbl tbody tr:hover { background: transparent; }
+  @page { size: A4; margin: 0; }
+}

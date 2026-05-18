@@ -35,6 +35,9 @@ import { FinChecklistFechamento } from './_components/FinChecklistFechamento';
 // Onda 7b — Troubleshooter dialog + PresentationMode fullscreen.
 import { FinTroubleshooterDialog, FinTroubleButton } from './_components/FinTroubleshooter';
 import { FinPresentationMode } from './_components/FinPresentationMode';
+// Onda 7c — Folha jurídica imprimível + favoritos pessoais (atalho B).
+import { FinTranscriptPDF } from './_components/FinTranscriptPDF';
+import { useFinFavs, FinFavPin } from './_components/useFinFavs';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
 
@@ -298,10 +301,11 @@ function _KpiBarLegacy({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabI
   );
 }
 
-function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comments }: {
+function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comments, isFav }: {
   row: Lancamento; dens: typeof DENSITY[keyof typeof DENSITY]; selected: boolean;
   onSelect: () => void; onBaixar: () => void;
   conferido: UseFinConferidoApi; comments: UseFinCommentsApi;
+  isFav: boolean;
 }) {
   const isIn = row.kind === 'receivable';
   const settled = row.status === 'recebido' || row.status === 'pago';
@@ -340,6 +344,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       <td className="px-2">
         <div className="font-medium text-stone-900 truncate max-w-[260px] flex items-center gap-1.5">
           <FinCrossLinkify text={row.descricao} className="truncate" />
+          <FinFavPin active={isFav} />
           <FinConferidoBadge rowId={row.id} conferido={conferido} />
           <FinCommentsBadge rowId={row.id} comments={comments} />
         </div>
@@ -380,6 +385,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   // Cowork KB-9.75 Onda 7b — Troubleshooter + Presentation Mode states.
   const [troubleOpen, setTroubleOpen] = useState(false);
   const [presentOpen, setPresentOpen] = useState(false);
+  // Cowork KB-9.75 Onda 7c — Folha imprimível + favoritos pessoais (localStorage).
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [transcriptOnlyFavs, setTranscriptOnlyFavs] = useState(false);
+  const favs = useFinFavs(businessName || 'default');
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
 
@@ -396,17 +405,24 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
     });
   };
 
-  // Atalhos: Cmd+K → palette, / → busca
+  // Atalhos: Cmd+K → palette, / → busca, B → toggle favorito da linha selecionada
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setPaletteOpen(true); }
-      if (e.key === '/' && (e.target as HTMLElement)?.tagName !== 'INPUT') {
-        e.preventDefault(); document.getElementById('fin-search-input')?.focus();
+      const target = e.target as HTMLElement;
+      const inEditable = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable;
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setPaletteOpen(true); return; }
+      if (e.key === '/' && !inEditable) {
+        e.preventDefault(); document.getElementById('fin-search-input')?.focus(); return;
+      }
+      // Onda 7c — B (bookmark) toggle favorito da linha atualmente selecionada
+      if (e.key === 'b' && !inEditable && selectedId !== null) {
+        e.preventDefault();
+        favs.toggle(selectedId);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [selectedId, favs]);
 
   // Agrupamento por data de vencimento
   const grupos = useMemo(() => {
@@ -460,6 +476,15 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             onClick={() => setPresentOpen(true)}
           >
             ▶ Apresentar
+          </button>
+          <button
+            type="button"
+            className="fin-btn"
+            title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
+            onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
+          >
+            📄 Imprimir
+            {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
           </button>
           <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/extrato')}>
             ↺ Conciliar
@@ -627,6 +652,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                         onBaixar={() => onBaixar(r.id)}
                         conferido={conferido}
                         comments={comments}
+                        isFav={favs.has(r.id)}
                       />
                     ))}
                   </React.Fragment>
@@ -732,6 +758,13 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                     </Button>
                   )}
                   <Button variant="outline" onClick={() => setEditOpen(true)}>Editar</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => favs.toggle(selected.id)}
+                    title="Atalho: B (com a linha selecionada)"
+                  >
+                    {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
+                  </Button>
                   <Button variant="outline" className="ml-auto">Anexar</Button>
                 </div>
               </div>
@@ -749,6 +782,14 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/unificado/novo'); }}>Novo lançamento</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/extrato'); }}>Conciliar extrato</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}>
+              📄 Imprimir período (folha jurídica)
+            </CommandItem>
+            {favs.count > 0 && (
+              <CommandItem onSelect={() => { setPaletteOpen(false); setTranscriptOnlyFavs(true); setTranscriptOpen(true); }}>
+                ★ Imprimir só favoritos ({favs.count})
+              </CommandItem>
+            )}
           </CommandGroup>
           <CommandGroup heading="Lançamentos">
             {lancamentos.slice(0, 15).map(l => (
@@ -767,8 +808,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         <span><kbd>/</kbd> buscar</span>
         <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
         <span><kbd>␣</kbd> marcar pago/recebido</span>
+        <span><kbd>B</kbd> favoritar linha</span>
         <FinTroubleButton onClick={() => setTroubleOpen(true)} />
         <span className="spacer" />
+        {favs.count > 0 && <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>}
         <span>Densidade: <strong>{filters.densidade}</strong></span>
       </div>
 
@@ -781,6 +824,16 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         lancamentos={lancamentos}
         periodLabel={periodLabel}
         businessName={businessName}
+      />
+
+      {/* Onda 7c — Folha jurídica imprimível (fullscreen overlay + @print) */}
+      <FinTranscriptPDF
+        open={transcriptOpen}
+        onClose={() => setTranscriptOpen(false)}
+        lancamentos={lancamentos}
+        periodLabel={periodLabel}
+        businessName={businessName}
+        onlyFavs={transcriptOnlyFavs ? favs.favs : null}
       />
 
       {/* Cowork KB-9.75 Onda 7 R3 — Trilha fechamento dialog */}
