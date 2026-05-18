@@ -25,7 +25,7 @@ class ContaReceberController extends Controller
 {
     use RendersMockCowork;
 
-    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function index(Request $request): Response|\Illuminate\Http\Response
     {
         if ($mock = $this->tryRenderMockCowork()) {
             return $mock;

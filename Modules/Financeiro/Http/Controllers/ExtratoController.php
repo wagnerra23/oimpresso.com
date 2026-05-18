@@ -28,7 +28,7 @@ class ExtratoController extends Controller
 {
     use RendersMockCowork;
 
-    public function index(Request $request, int $contaBancariaId): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function index(Request $request, int $contaBancariaId): Response|\Illuminate\Http\Response
     {
         if ($mock = $this->tryRenderMockCowork()) {
             return $mock;

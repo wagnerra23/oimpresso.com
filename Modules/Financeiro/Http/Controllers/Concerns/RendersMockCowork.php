@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Financeiro\Http\Controllers\Concerns;
 
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Http\Response;
 
 /**
  * Trait — serve HTML mock canon Cowork em vez de Inertia/Blade real
@@ -15,9 +15,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  * #1091 → #1092 → #1094 → #1095). Adaptação errou o dia inteiro.
  *
  * Solução: cada controller método index() chama tryRenderMockCowork()
- * no topo. Se mock_cowork_mode true → response()->file() do HTML mock
- * literal em public/cowork-preview/<tela>.html (servido com mime
- * text/html pelo Laravel/Apache, JSX carrega via Babel CDN).
+ * no topo. Se mock_cowork_mode true → response() com conteúdo HTML mock
+ * + injeção `<base href="/cowork-preview/">` pra paths relativos resolverem
+ * pros assets corretos (styles.css, financeiro-app.jsx, etc).
  *
  * Tier 0 multi-tenant preservado:
  *   - Middleware auth + Spatie permissions continuam no __construct
@@ -31,8 +31,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 trait RendersMockCowork
 {
     /**
-     * Se `financeiro.mock_cowork_mode` true, retorna BinaryFileResponse com
-     * o HTML mock canon mapeado pela rota atual.
+     * Se `financeiro.mock_cowork_mode` true, retorna Response com o HTML
+     * mock canon mapeado pela rota atual, com `<base href>` injetado pros
+     * assets relativos resolverem corretamente.
      *
      * Uso típico no controller:
      *
@@ -44,9 +45,9 @@ trait RendersMockCowork
      *       // ... código Inertia normal ...
      *   }
      *
-     * @return BinaryFileResponse|null  null = mock desligado, segue Inertia
+     * @return Response|null  null = mock desligado, segue Inertia
      */
-    protected function tryRenderMockCowork(): ?BinaryFileResponse
+    protected function tryRenderMockCowork(): ?Response
     {
         if (! config('financeiro.mock_cowork_mode')) {
             return null;
@@ -62,10 +63,34 @@ trait RendersMockCowork
             return null; // fallback pra Inertia real
         }
 
-        return response()->file($path, [
+        $html = (string) file_get_contents($path);
+
+        // Injeção CRÍTICA: <base href> faz paths relativos (styles.css,
+        // financeiro-app.jsx, etc) resolverem pra /cowork-preview/<file>
+        // em vez de /financeiro/<file> (que dá 404). Sem isso, mock NÃO
+        // carrega assets quando servido fora de /cowork-preview/.
+        $baseTag = '<base href="/cowork-preview/" />';
+        if (str_contains($html, '<head>')) {
+            $html = preg_replace(
+                '/<head>/i',
+                "<head>\n  {$baseTag}",
+                $html,
+                1
+            );
+        } elseif (str_contains($html, '<head ')) {
+            $html = preg_replace(
+                '/<head([^>]*)>/i',
+                "<head$1>\n  {$baseTag}",
+                $html,
+                1
+            );
+        }
+
+        return response($html, 200, [
             'Content-Type' => 'text/html; charset=utf-8',
             'X-Mock-Cowork' => '1',
             'X-Mock-Source' => $htmlFile,
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
         ]);
     }
 }
