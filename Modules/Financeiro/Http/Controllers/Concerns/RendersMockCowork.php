@@ -56,7 +56,15 @@ trait RendersMockCowork
         $routeName = optional(request()->route())->getName() ?? '';
         $mapping = (array) config('financeiro.mock_route_map', []);
 
-        $htmlFile = $mapping[$routeName] ?? 'Financeiro Unificado.html';
+        // Cada entry agora é array ['html' => ..., 'cowork_route' => ...].
+        // Back-compat: aceita string simples (cai em cowork_route='financeiro').
+        $entry = $mapping[$routeName] ?? ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'];
+        if (is_string($entry)) {
+            $entry = ['html' => $entry, 'cowork_route' => 'financeiro'];
+        }
+
+        $htmlFile = $entry['html'] ?? 'Oimpresso ERP - Chat.html';
+        $coworkRoute = $entry['cowork_route'] ?? 'financeiro';
         $path = public_path('cowork-preview/' . $htmlFile);
 
         if (! file_exists($path)) {
@@ -65,22 +73,35 @@ trait RendersMockCowork
 
         $html = (string) file_get_contents($path);
 
-        // Injeção CRÍTICA: <base href> faz paths relativos (styles.css,
+        // Injeção 1: <base href> faz paths relativos (styles.css,
         // financeiro-app.jsx, etc) resolverem pra /cowork-preview/<file>
-        // em vez de /financeiro/<file> (que dá 404). Sem isso, mock NÃO
-        // carrega assets quando servido fora de /cowork-preview/.
-        $baseTag = '<base href="/cowork-preview/" />';
+        // em vez de /financeiro/<file> (que dá 404).
+        //
+        // Injeção 2: <script> setando localStorage["oimpresso.route"] pra
+        // que app.jsx Cowork abra direto na tela correta (financeiro,
+        // fin-fluxo, fin-dre, boletos) em vez do default "chat".
+        $coworkRouteEscaped = htmlspecialchars($coworkRoute, ENT_QUOTES);
+        $injection = <<<HTML
+<base href="/cowork-preview/" />
+  <script>
+    // Mock Cowork Mode (Wagner 2026-05-18): abre tela direto baseada na URL Laravel
+    try {
+      localStorage.setItem('oimpresso.route', '{$coworkRouteEscaped}');
+    } catch (e) {}
+  </script>
+HTML;
+
         if (str_contains($html, '<head>')) {
             $html = preg_replace(
                 '/<head>/i',
-                "<head>\n  {$baseTag}",
+                "<head>\n  {$injection}",
                 $html,
                 1
             );
         } elseif (str_contains($html, '<head ')) {
             $html = preg_replace(
                 '/<head([^>]*)>/i',
-                "<head$1>\n  {$baseTag}",
+                "<head$1>\n  {$injection}",
                 $html,
                 1
             );
@@ -90,6 +111,7 @@ trait RendersMockCowork
             'Content-Type' => 'text/html; charset=utf-8',
             'X-Mock-Cowork' => '1',
             'X-Mock-Source' => $htmlFile,
+            'X-Mock-Route' => $coworkRoute,
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
         ]);
     }
