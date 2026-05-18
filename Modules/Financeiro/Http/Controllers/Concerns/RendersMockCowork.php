@@ -120,6 +120,8 @@ trait RendersMockCowork
   </script>
   <!-- Integração #2 oimpresso: bridge POSTs reais (Recebi/Paguei → /financeiro/unificado/{id}/baixar) -->
   <script src="/cowork-preview/_oimpresso-bridge-posts.js"></script>
+  <!-- Integração #5 oimpresso: bridge Conferido (toggle → POST/DELETE /financeiro/unificado/{id}/conferir) -->
+  <script src="/cowork-preview/_oimpresso-bridge-conferido.js"></script>
 HTML;
 
         if (str_contains($html, '<head>')) {
