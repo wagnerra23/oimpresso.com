@@ -21,7 +21,35 @@ class RecurringBillingServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerObservers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+    }
+
+    /**
+     * Observers — Onda 2 v9,75 cached fields denormalizados.
+     *
+     * SubscriptionCachedFieldsObserver mantém rb_subscriptions cached cols
+     * (total_paid_cached / failed_count_cached / total_revenue_cached /
+     * contact_phone_cached) em sincronia com rb_invoices state changes +
+     * Contact updates.
+     *
+     * Backfill bulk: php artisan rb:backfill-cached-fields
+     */
+    protected function registerObservers(): void
+    {
+        $observer = new \Modules\RecurringBilling\Observers\SubscriptionCachedFieldsObserver();
+
+        \Modules\RecurringBilling\Models\Invoice::saved(function ($invoice) use ($observer) {
+            $observer->invoiceSaved($invoice);
+        });
+
+        \Modules\RecurringBilling\Models\Invoice::deleted(function ($invoice) use ($observer) {
+            $observer->invoiceDeleted($invoice);
+        });
+
+        \Modules\RecurringBilling\Models\Subscription::saving(function ($sub) use ($observer) {
+            $observer->subscriptionSaving($sub);
+        });
     }
 
     /**
@@ -33,6 +61,18 @@ class RecurringBillingServiceProvider extends ServiceProvider
 
         $this->registerInterPixServices();
         $this->registerRepositories();
+        $this->registerPolicies();
+    }
+
+    /**
+     * Policies — Onda 3 v9,75 autorização granular Subscription.
+     */
+    protected function registerPolicies(): void
+    {
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\RecurringBilling\Models\Subscription::class,
+            \Modules\RecurringBilling\Policies\SubscriptionPolicy::class
+        );
     }
 
     /**
@@ -90,6 +130,7 @@ class RecurringBillingServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\RecurringBilling\Console\Commands\SyncBankBalancesCommand::class,
                 \Modules\RecurringBilling\Console\Commands\RecurringHealthCommand::class,
+                \Modules\RecurringBilling\Console\Commands\BackfillCachedFieldsCommand::class,
             ]);
         }
     }
