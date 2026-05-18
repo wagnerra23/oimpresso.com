@@ -125,22 +125,25 @@ class DataController extends Controller
                     ]
                 )->order(85.1);
 
-                // 3. DRE / Relatórios
+                // 3. DRE / Relatórios — Wagner 2026-05-18 fix: rota era
+                // /relatorios/dre (não existia) → corrigido pra /relatorios.
                 $menu->url(
-                    url('/financeiro/relatorios/dre'),
+                    url('/financeiro/relatorios'),
                     __('financeiro::financeiro.dre_label'),
                     [
                         'icon'   => 'fa fas fa-file-invoice-dollar',
-                        'active' => $segmento_ativo && request()->segment(2) == 'relatorios' && request()->segment(3) == 'dre',
+                        'active' => $segmento_ativo && request()->segment(2) == 'relatorios',
                     ]
                 )->order(85.2);
 
-                // 4. Boletos
+                // 4. Gateway de Pagamento (renomeado de "Boletos" — Wagner
+                // 2026-05-18: "Boletos" muito restrito; gateway cobre
+                // Inter API + PIX + futuras integrações).
                 $menu->url(
                     url('/financeiro/boletos'),
                     __('financeiro::financeiro.boletos_label'),
                     [
-                        'icon'   => 'fa fas fa-barcode',
+                        'icon'   => 'fa fas fa-credit-card',
                         'active' => $segmento_ativo && request()->segment(2) == 'boletos',
                     ]
                 )->order(85.3);
