@@ -138,14 +138,17 @@ jobs:
             npm run build 2>&1 | tail -10
           "
 
-      - name: Clear view + config + route caches
+      - name: Clear view + config + route + cache (force PHP DataController reload)
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             php artisan view:clear &&
             php artisan config:clear &&
-            php artisan route:clear
+            php artisan route:clear &&
+            php artisan cache:clear
           "
+        # cache:clear adicionado 2026-05-18 pós bug "Financeiro dropdown invisivel
+        # apos sync biz=4" — DataController novo não era visto sem cache:clear.
 
       - name: Smoke test
         run: |
