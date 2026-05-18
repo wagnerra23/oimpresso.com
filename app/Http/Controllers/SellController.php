@@ -653,6 +653,14 @@ class SellController extends Controller
                 ->count(),
         ];
 
+        // US-SELL-COWORK-COMMISSION — Coluna Comissão na grade só aparece quando
+        // setting business_details.sales_cmsn_agnt ≠ 'disable' (gap PR #1043).
+        // Valores possíveis em UltimatePOS: 'disable' (oculta), 'user' (todos users),
+        // 'cmsn_agnt' (apenas usuários com role commission agent).
+        // Multi-tenant Tier 0 (ADR 0093): setting vem do session() já scopado por business_id.
+        $cmsnAgntSetting = (string) ($request_session_business_cmsn = request()->session()->get('business.sales_cmsn_agnt'));
+        $coworkCommissionEnabled = $cmsnAgntSetting !== '' && $cmsnAgntSetting !== 'disable';
+
         return \Inertia\Inertia::render('Sells/Index', [
             'sellKpis' => $sellKpis,
             'businessLocations' => $business_locations,
@@ -666,6 +674,8 @@ class SellController extends Controller
                           auth()->user()->can('view_commission_agent_sell'),
             ],
             'datatableUrl' => '/sells',
+            // US-SELL-COWORK-COMMISSION — flag que liga/desliga coluna Comissão na grade (gap PR #1043).
+            'coworkCommissionEnabled' => $coworkCommissionEnabled,
             // US-SELL-COWORK-R5-POLISH — agregados Cowork (sparkline 30d + deltas + top vendedor).
             // Inertia::defer pra não bloquear render inicial (pages.md rule canon).
             'coworkAggregates' => \Inertia\Inertia::defer(fn () => $this->buildCoworkAggregates($business_id)),
@@ -1064,6 +1074,14 @@ class SellController extends Controller
             // US-SELL-COWORK — JOIN users pra exibir vendedor "atendido por" (Cowork KB-9.75).
             // LEFT JOIN preserva vendas sem created_by (legacy).
             ->leftJoin('users as seller_u', 'transactions.created_by', '=', 'seller_u.id')
+            // US-SELL-COWORK-COMMISSION — JOIN users pra coluna Comissão (gap PR #1043).
+            // LEFT JOIN porque commission_agent é nullable (vendas sem comissionado).
+            // Multi-tenant Tier 0 (ADR 0093): transactions.business_id continua sendo
+            // o filtro principal; a tabela users tem business_id (UltimatePOS pattern)
+            // e users.id é FK seguro porque commission_agent foi escolhido entre os
+            // usuários do MESMO business (via dropdown). Defesa adicional: o JOIN
+            // não vaza dados — apenas exibe nome de usuário já visível no Edit form.
+            ->leftJoin('users as cmsn_user', 'transactions.commission_agent', '=', 'cmsn_user.id')
             ->where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
@@ -1174,6 +1192,12 @@ class SellController extends Controller
                 'seller_u.surname as seller_surname',
                 'seller_u.username as seller_username',
                 'seller_u.id as seller_id',
+                // US-SELL-COWORK-COMMISSION — comissionado (commission_agent → users).
+                // NULL pra vendas sem comissionado (gap PR #1043).
+                'transactions.commission_agent as commission_agent_id',
+                'cmsn_user.first_name as commission_agent_first_name',
+                'cmsn_user.last_name as commission_agent_last_name',
+                'cmsn_user.username as commission_agent_username',
                 // US-SELL-COWORK — items_summary (primeiro produto + qty total) pra exibir sub-linha "cliente / produto".
                 \DB::raw('(SELECT p.name FROM transaction_sell_lines tsl_n LEFT JOIN products p ON tsl_n.product_id = p.id WHERE tsl_n.transaction_id = transactions.id ORDER BY tsl_n.id ASC LIMIT 1) as items_first_name'),
                 \DB::raw('(SELECT COUNT(*) FROM transaction_sell_lines tsl_c WHERE tsl_c.transaction_id = transactions.id) as items_count'),
@@ -1234,6 +1258,14 @@ class SellController extends Controller
 
                 // US-SELL-COWORK — seller_name display (preferência first_name; fallback username; fallback null).
                 $sellerName = trim(($r->seller_first_name ?? '') . ' ' . ($r->seller_surname ?? '')) ?: ($r->seller_username ?? null);
+
+                // US-SELL-COWORK-COMMISSION — commission_agent_name (mesmo pattern do seller).
+                // first_name + last_name; fallback username; fallback null (sem comissionado).
+                $commissionAgentName = null;
+                if (! empty($r->commission_agent_id)) {
+                    $commissionAgentName = trim(($r->commission_agent_first_name ?? '') . ' ' . ($r->commission_agent_last_name ?? ''))
+                        ?: ($r->commission_agent_username ?? null);
+                }
                 $sellerAbbr = null;
                 if ($sellerName) {
                     $parts = explode(' ', trim($sellerName));
@@ -1309,6 +1341,11 @@ class SellController extends Controller
                     // origem fixa "balcão" como fallback — UltimatePOS não tem campo dedicado
                     // (refino futuro: source_channel via custom_field_X).
                     'seller_origin' => 'balcão',
+
+                    // US-SELL-COWORK-COMMISSION — coluna Comissão (gap PR #1043).
+                    // Frontend só renderiza se coworkCommissionEnabled=true (setting business.sales_cmsn_agnt ≠ 'disable').
+                    'commission_agent_id' => $r->commission_agent_id ?? null,
+                    'commission_agent_name' => $commissionAgentName,
 
                     'items_summary' => $itemsSummary,
                     'items_count' => (int) ($r->items_count ?? 0),
