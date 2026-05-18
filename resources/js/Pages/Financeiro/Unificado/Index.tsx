@@ -21,6 +21,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sh
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
+import { FinPillFrescor } from './_components/FinPillFrescor';
+import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
+import { FinCommentsThread, FinCommentsBadge, useFinComments, type UseFinCommentsApi } from './_components/FinCommentsThread';
+import { FinAuditTrail } from './_components/FinAuditTrail';
 
 // ---------- Tipos ----------
 
@@ -171,22 +175,36 @@ function KpiBar({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabId) => v
   );
 }
 
-function LinhaTabela({ row, dens, selected, onSelect, onBaixar }: {
+function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comments }: {
   row: Lancamento; dens: typeof DENSITY[keyof typeof DENSITY]; selected: boolean;
   onSelect: () => void; onBaixar: () => void;
+  conferido: UseFinConferidoApi; comments: UseFinCommentsApi;
 }) {
   const isIn = row.kind === 'receivable';
   const settled = row.status === 'recebido' || row.status === 'pago';
+  // FinPillFrescor consome `due`/`paid_at` — adapta de `vencimento`/`liquidacao`.
+  const frescorRow = {
+    due: row.vencimento,
+    paid_at: settled ? row.liquidacao : null,
+    vencimento: row.vencimento,
+  };
   return (
     <tr
       className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''}`}
       onClick={onSelect}
     >
       <td className="pl-4 pr-2"><span className={`text-[14px] ${isIn ? 'text-emerald-600' : 'text-stone-500'}`}>{isIn ? '↑' : '↓'}</span></td>
-      <td className="px-2"><div className="font-medium text-stone-900 truncate max-w-[260px]">{row.descricao}</div>{row.nfe_numero && <div className="text-[11px] text-stone-500">NF-e {row.nfe_numero}</div>}</td>
+      <td className="px-2">
+        <div className="font-medium text-stone-900 truncate max-w-[260px] flex items-center gap-1.5">
+          <span className="truncate">{row.descricao}</span>
+          <FinConferidoBadge rowId={row.id} conferido={conferido} />
+          <FinCommentsBadge rowId={row.id} comments={comments} />
+        </div>
+        {row.nfe_numero && <div className="text-[11px] text-stone-500">NF-e {row.nfe_numero}</div>}
+      </td>
       <td className="px-2 text-stone-700 truncate max-w-[160px]">{row.contraparte}</td>
       <td className="px-2 text-stone-500 truncate max-w-[140px]">{row.categoria}</td>
-      <td className="px-2"><StatusPill s={row.status} /></td>
+      <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-stone-900'}`}>
         <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
@@ -210,6 +228,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const dens = DENSITY[filters.densidade ?? 'comfortable'];
+
+  // Cowork KB-9.75 Onda 5 R1 Curadoria — hooks localStorage compartilhados pela página.
+  const conferido = useFinConferido();
+  const comments = useFinComments();
 
   const aplicar = useCallback((patch: Partial<Filters>) => {
     router.get('/financeiro/unificado', { ...filters, ...patch }, {
@@ -250,7 +272,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const selected = lancamentos.find(l => l.id === selectedId) ?? null;
 
   return (
-    <>
+    <div className="fin-curadoria">
       <PageHeader
         icon="coins"
         title="Financeiro · Visão unificada"
@@ -346,6 +368,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                         selected={selectedId === r.id}
                         onSelect={() => setSelectedId(r.id)}
                         onBaixar={() => onBaixar(r.id)}
+                        conferido={conferido}
+                        comments={comments}
                       />
                     ))}
                   </React.Fragment>
@@ -374,15 +398,21 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
       {/* Drawer detalhe */}
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
-        <SheetContent side="right" className="w-[420px] sm:max-w-[420px]">
+        <SheetContent side="right" className="w-[460px] sm:max-w-[460px]">
           {selected && (
             <>
               <SheetHeader>
                 <SheetTitle className="text-[16px]">{selected.descricao}</SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-4 text-[13px]">
-                <div className="flex items-center gap-2"><StatusPill s={selected.status} />
-                  <span className="ml-auto font-semibold tabular-nums text-[16px]">{brl(selected.valor)}</span></div>
+                <div className="flex items-center gap-2">
+                  <StatusPill s={selected.status} />
+                  <FinPillFrescor row={{ due: selected.vencimento, paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null, vencimento: selected.vencimento }} />
+                  <span className="ml-auto font-semibold tabular-nums text-[16px]">{brl(selected.valor)}</span>
+                </div>
+
+                <FinConferidoToggle rowId={selected.id} conferido={conferido} />
+
                 <dl className="grid grid-cols-2 gap-y-2 text-[12.5px]">
                   <dt className="text-stone-500">Contraparte</dt><dd>{selected.contraparte}{selected.contraparte_doc && <span className="block text-stone-500">{selected.contraparte_doc}</span>}</dd>
                   <dt className="text-stone-500">Categoria</dt><dd>{selected.categoria}</dd>
@@ -395,6 +425,27 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 {selected.observacao && (
                   <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
                 )}
+
+                <div className="border-t border-stone-200 pt-4">
+                  <FinAuditTrail row={{
+                    id: selected.id,
+                    descricao: selected.descricao,
+                    contraparte: selected.contraparte,
+                    categoria: selected.categoria,
+                    conta_bancaria: selected.conta_bancaria,
+                    canal: selected.canal ?? undefined,
+                    valor: selected.valor,
+                    status: selected.status,
+                    kind: selected.kind,
+                    paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null,
+                    due: selected.vencimento,
+                  }} />
+                </div>
+
+                <div className="border-t border-stone-200 pt-4">
+                  <FinCommentsThread rowId={selected.id} comments={comments} />
+                </div>
+
                 <div className="flex gap-2 pt-2 border-t border-stone-200">
                   {(selected.status !== 'recebido' && selected.status !== 'pago') && (
                     <Button onClick={() => onBaixar(selected.id)}>
@@ -439,7 +490,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         <span><kbd className="px-1 rounded border border-stone-200 bg-stone-50">␣</kbd> selecionar</span>
         <span className="ml-auto">Densidade: <strong>{filters.densidade}</strong></span>
       </div>
-    </>
+    </div>
   );
 }
 

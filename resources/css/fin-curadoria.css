@@ -1,0 +1,306 @@
+/* fin-curadoria.css — Cowork KB-9.75 Financeiro Onda 5 R1 Curadoria
+ *
+ * Tokens visuais portados de prototipo-ui/styles.css (Refino #1).
+ * Escopados em .fin-curadoria pra não vazar pra outras telas Inertia.
+ *
+ * Refs:
+ *   - prototipo-ui/financeiro-curation.jsx (canonical components)
+ *   - prototipo-ui/styles.css linhas ~7700-7910 (canonical tokens)
+ */
+
+.fin-curadoria {
+  /* fallback caso var global ausente */
+  --fin-text: oklch(0.30 0.005 240);
+  --fin-text-mute: oklch(0.55 0.005 240);
+  --fin-line: oklch(0.92 0.005 240);
+  --fin-bg-soft: oklch(0.97 0.005 240);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Conferido — toggle grande + badge silencioso + pill inline
+ * ───────────────────────────────────────────────────────────── */
+
+.fin-curadoria .fin-conferido-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 6px;
+  border: 1.5px solid oklch(0.78 0.10 145);
+  background: oklch(0.97 0.04 145);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: oklch(0.32 0.13 145);
+  cursor: pointer;
+  transition: all .12s;
+}
+.fin-curadoria .fin-conferido-toggle:hover { background: oklch(0.94 0.06 145); }
+.fin-curadoria .fin-conferido-toggle.on {
+  background: oklch(0.86 0.14 145);
+  border-color: oklch(0.55 0.18 145);
+  color: oklch(0.22 0.06 145);
+}
+.fin-curadoria .fin-conferido-toggle .fin-conf-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: white;
+  color: oklch(0.45 0.18 145);
+  border: 1px solid oklch(0.55 0.13 145);
+}
+.fin-curadoria .fin-conferido-toggle.on .fin-conf-check {
+  background: oklch(0.45 0.18 145);
+  color: white;
+  border-color: transparent;
+}
+.fin-curadoria .fin-conferido-toggle .fin-conf-lbl { font-weight: 600; }
+.fin-curadoria .fin-conferido-toggle small {
+  font-size: 10.5px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+.fin-curadoria .fin-conferido-toggle.on small { display: none; }
+
+.fin-curadoria .fin-conferido-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: oklch(0.86 0.14 145);
+  color: oklch(0.22 0.06 145);
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Frescor — pill 6 estados (paid · overdue · today · warning · soon · fresh)
+ * ───────────────────────────────────────────────────────────── */
+
+.fin-curadoria .fin-frescor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  vertical-align: middle;
+}
+.fin-curadoria .fin-frescor-ic { font-size: 9px; line-height: 1; }
+.fin-curadoria .fin-frescor-fresh   { background: oklch(0.94 0.04 145); color: oklch(0.42 0.13 145); }
+.fin-curadoria .fin-frescor-soon    { background: oklch(0.95 0.03 145); color: oklch(0.45 0.10 145); }
+.fin-curadoria .fin-frescor-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60);  }
+.fin-curadoria .fin-frescor-today   { background: oklch(0.96 0.07 60);  color: oklch(0.42 0.18 60);  }
+.fin-curadoria .fin-frescor-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25);  }
+.fin-curadoria .fin-frescor-paid    { background: oklch(0.94 0.005 240); color: var(--fin-text-mute); }
+
+/* ─────────────────────────────────────────────────────────────
+ * Audit trail — lista de eventos derivados
+ * ───────────────────────────────────────────────────────────── */
+
+.fin-curadoria .fin-audit { font-size: 12px; }
+.fin-curadoria .fin-audit-h {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.fin-curadoria .fin-audit-h h4 { margin: 0; font-size: 13px; font-weight: 700; }
+.fin-curadoria .fin-audit-h small { font-size: 11px; color: var(--fin-text-mute); }
+
+.fin-curadoria .fin-audit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+.fin-curadoria .fin-audit-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--fin-line);
+  position: relative;
+}
+.fin-curadoria .fin-audit-row:last-child { border-bottom: none; }
+
+.fin-curadoria .fin-audit-ic {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--fin-bg-soft);
+}
+.fin-curadoria .fin-audit-create     .fin-audit-ic { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
+.fin-curadoria .fin-audit-categorize .fin-audit-ic { background: oklch(0.95 0.04 240); color: oklch(0.36 0.13 240); }
+.fin-curadoria .fin-audit-edit       .fin-audit-ic { background: oklch(0.96 0.05 70);  color: oklch(0.42 0.13 60);  }
+.fin-curadoria .fin-audit-concil     .fin-audit-ic { background: oklch(0.94 0.04 145); color: oklch(0.32 0.13 145); }
+.fin-curadoria .fin-audit-alert      .fin-audit-ic { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25);  }
+
+.fin-curadoria .fin-audit-body { flex: 1; min-width: 0; }
+.fin-curadoria .fin-audit-body header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+}
+.fin-curadoria .fin-audit-body header b { font-weight: 600; color: var(--fin-text); }
+.fin-curadoria .fin-audit-action { color: var(--fin-text-mute); font-size: 11px; }
+.fin-curadoria .fin-audit-body time { margin-left: auto; color: var(--fin-text-mute); font-size: 10.5px; }
+.fin-curadoria .fin-audit-body p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--fin-text);
+  word-wrap: break-word;
+}
+
+.fin-curadoria .fin-audit-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-family: ui-monospace, monospace;
+  background: var(--fin-bg-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.fin-curadoria .fin-audit-diff .diff-arr { color: var(--fin-text-mute); }
+.fin-curadoria .fin-audit-diff .diff-from { color: var(--fin-text-mute); text-decoration: line-through; }
+.fin-curadoria .fin-audit-diff .diff-to { font-weight: 600; }
+.fin-curadoria .fin-audit-diff .diff-pct.pos { color: oklch(0.45 0.18 145); }
+.fin-curadoria .fin-audit-diff .diff-pct.neg { color: oklch(0.50 0.18 25); }
+
+/* ─────────────────────────────────────────────────────────────
+ * Comments — thread + new + badge silent
+ * ───────────────────────────────────────────────────────────── */
+
+.fin-curadoria .fin-comments { font-size: 12px; }
+.fin-curadoria .fin-comments-h {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.fin-curadoria .fin-comments-h h4 { margin: 0; font-size: 13px; font-weight: 700; }
+.fin-curadoria .fin-comments-h small { font-size: 11px; color: var(--fin-text-mute); }
+
+.fin-curadoria .fin-comments-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fin-curadoria .fin-comment {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: var(--fin-bg-soft);
+  border-radius: 6px;
+}
+.fin-curadoria .fin-comment-av {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: oklch(0.95 0.04 240);
+  color: oklch(0.36 0.13 240);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.fin-curadoria .fin-comment-body { flex: 1; min-width: 0; }
+.fin-curadoria .fin-comment-body header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11px;
+}
+.fin-curadoria .fin-comment-body header b { font-weight: 600; color: var(--fin-text); }
+.fin-curadoria .fin-comment-body time { color: var(--fin-text-mute); font-size: 10.5px; }
+.fin-curadoria .fin-comment-x {
+  margin-left: auto;
+  background: transparent;
+  border: 0;
+  color: var(--fin-text-mute);
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 1;
+}
+.fin-curadoria .fin-comment-x:hover { color: oklch(0.50 0.18 25); }
+.fin-curadoria .fin-comment-body p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--fin-text);
+  word-wrap: break-word;
+}
+
+.fin-curadoria .fin-comment-new {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+.fin-curadoria .fin-comment-new textarea {
+  flex: 1;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid var(--fin-line);
+  border-radius: 4px;
+  background: white;
+  color: var(--fin-text);
+}
+.fin-curadoria .fin-comment-new textarea:focus {
+  outline: none;
+  border-color: oklch(0.55 0.13 240);
+}
+.fin-curadoria .fin-comment-new button {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 4px;
+  background: oklch(0.36 0.13 240);
+  color: white;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.fin-curadoria .fin-comment-new button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.fin-curadoria .fin-comment-new button:not(:disabled):hover {
+  background: oklch(0.30 0.13 240);
+}
+
+.fin-curadoria .fin-comments-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: oklch(0.95 0.04 240);
+  color: oklch(0.36 0.13 240);
+  font-size: 10px;
+  font-weight: 600;
+  vertical-align: middle;
+}
