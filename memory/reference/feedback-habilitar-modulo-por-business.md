@@ -1,132 +1,165 @@
 ---
 name: feedback-habilitar-modulo-por-business
-description: Como habilitar/desabilitar items do sidebar pra business específico (biz=N). Pattern guard `$business_id === N` no DataController OR AdminSidebarMenu — preserva multi-tenant Tier 0.
+description: Pra habilitar/desabilitar item do sidebar pra business específico, usar SEMPRE subscription package via Modules/Superadmin/PackagesController. NUNCA hardcode `if ($business_id === N) return` — Wagner regra 2026-05-18 IRREVOGÁVEL.
 type: feedback
 ---
 
-# Habilitar/desabilitar módulo (sidebar) por business
+# Habilitar/desabilitar módulo por business — SUBSCRIPTION PACKAGES, NÃO hardcode
 
-**Regra:** Pra customizar VISIBILIDADE de item no sidebar por business específico (ex: piloto cliente, plano pago, feature flag), usar guard `$business_id === N` (ou `!== N`) no DataController do módulo OU no AdminSidebarMenu core. **Não tocar** queries Eloquent — guard só esconde no menu, controllers continuam respeitando permission gates.
+**Regra IRREVOGÁVEL Wagner 2026-05-18:** *"Nunca faça isso, habilitar e desabilitar é compra de pacote no modulo superadmin"*.
+
+Pra controlar visibilidade de módulos/items do sidebar por business específico, o pattern UltimatePOS canônico é **subscription packages** — NUNCA hardcode `if ($business_id === N) return` em DataController ou Middleware.
 
 ## Pattern canônico
 
-### 1. **Esconder** módulo pra business específico (mais comum)
+### Como funciona (UltimatePOS)
 
-**Módulo nWidart:** `Modules/<Nome>/Http/Controllers/DataController.php` no `modifyAdminMenu()`:
+1. **Pacote** (`Modules\Superadmin\Entities\Package`) define quais módulos estão ativos via `package_details` (JSON map `module_name => bool/limit`)
+2. **Business** assina **uma `Subscription`** ativa apontando pra um Pacote (`Modules\Superadmin\Entities\Subscription::active_subscription($business_id)`)
+3. **DataController** de cada módulo checa via `ModuleUtil::hasThePermissionInSubscription($business_id, 'modulo_module', 'superadmin_package')`
+4. Se package tem `package_details['modulo_module'] = true` → libera. Else → return (esconde item)
+5. **Superadmin sempre retorna true** (acesso total a TODOS módulos, sem precisar pacote)
+
+### Onde mexer pra esconder/liberar (sem código)
+
+UI Superadmin → **`/superadmin/packages`** (`Modules/Superadmin/Http/Controllers/PackagesController`):
+
+1. Login como superadmin
+2. Menu Superadmin → Pacotes
+3. **Editar o pacote** ativo da business alvo (descobrir via Modules/Superadmin business → subscription)
+4. Marcar/desmarcar checkbox do módulo (`woocommerce_module`, `financeiro_module`, `essentials_module`, `governance_module`, `expenses_module`, `service_staff_module`, etc)
+5. Salvar — quick-sync invalida cache, refresh do user mostra novo sidebar
+
+### Code pattern correto em DataController
 
 ```php
-public function modifyAdminMenu()
+public function modifyAdminMenu(): void
 {
-    $business_id = (int) session('user.business_id');
+    $module_util = new ModuleUtil();
 
-    // Wagner YYYY-MM-DD: razão de negócio aqui.
-    if ($business_id === N) {
+    if (auth()->user()->can('superadmin')) {
+        $is_enabled = $module_util->isModuleInstalled('NomeModulo');
+    } else {
+        $business_id = session('user.business_id');
+        $is_enabled = (bool) $module_util->hasThePermissionInSubscription(
+            $business_id,
+            'nomemodulo_module',          // chave no package_details
+            'superadmin_package'           // callback function
+        );
+    }
+
+    if (! $is_enabled) {
+        return;  // package não tem este módulo → esconde do sidebar
+    }
+
+    // Permission gate adicional (role/Spatie) pra controlar quem dentro
+    // do business pode ver (admin vs operador, etc):
+    if (! auth()->user()->can('superadmin') && ! auth()->user()->can('nomemodulo.access')) {
         return;
     }
 
-    // ... resto do menu render ...
+    Menu::modify('admin-sidebar-menu', function ($menu) {
+        // ... render menu ...
+    });
 }
 ```
 
-**Item core UltimatePOS:** `app/Http/Middleware/AdminSidebarMenu.php`:
+### Code pattern correto em AdminSidebarMenu core (UltimatePOS)
 
 ```php
-// Reusa variável $current_biz já definida no escopo da função handle()
-if (in_array('feature_module', $enabled_modules) && /* ... permissions ... */ && $current_biz !== N) {
-    $menu->dropdown(/* ... */)->order(NN);
+// $enabled_modules vem de session('business.enabled_modules') no boot do middleware
+// — preenchido com array de keys ativas no package atual (ex: ['expenses', 'service_staff'])
+
+if (in_array('expenses', $enabled_modules) && auth()->user()->can('all_expense.access')) {
+    $menu->dropdown(/* ... */);
 }
 ```
 
-### 2. **Liberar** módulo pra business específico (exceção positiva)
+`$enabled_modules` é o source-of-truth — não há `if ($business_id === N)`.
 
-Quando guard atual restringe (ex: SUPERADMIN-ONLY em dev) e queremos liberar pra piloto:
+## Anti-pattern (NUNCA fazer)
 
 ```php
+// ❌ HARDCODE biz=N — viola Tier 0 conceitualmente + impossível Wagner gerenciar via UI
 $business_id = (int) session('user.business_id');
-$piloto_biz = ($business_id === N);  // ex: ROTA LIVRE biz=4
+if ($business_id === 4) {
+    return;
+}
 
-if (
-    ! auth()->user()->can('superadmin')
-    && ! $piloto_biz
-    && ! auth()->user()->can('feature.access')
-) {
+// ❌ EXCEÇÃO POSITIVA hardcode (mesmo problema)
+$piloto_rotalivre = ($business_id === 4);
+if (! $piloto_rotalivre && ! auth()->user()->can('feature.access')) {
     return;
 }
 ```
 
-## Aplicações conhecidas — biz=4 ROTA LIVRE (Larissa)
+**Por que é errado:**
+- Wagner precisa **subir PR + deploy** pra cada business novo que quer habilitar/desabilitar
+- Acopla comportamento de visibilidade a **número mágico** sem contexto histórico
+- Não escala (10+ clientes piloto = N if-elif-elif maluco)
+- **Wagner não consegue ver/editar via UI** (precisa abrir código pra cada cliente)
 
-Sessão 2026-05-18 — Wagner pediu sidebar customizado pra cliente piloto:
+## Histórico — episódio que motivou essa regra
 
-| Item | Action | Localização |
-|---|---|---|
-| **Financeiro** + sub-items (Fluxo/DRE/Gateway) | LIBERAR exceção biz=4 | `Modules/Financeiro/Http/Controllers/DataController.php` |
-| **Tarefas** (shortcut top-bar) | ESCONDER pra biz=4 | `app/Http/Middleware/HandleInertiaRequests.php` (`sidebarShortcuts()`) |
-| **Governança** dropdown | ESCONDER pra biz=4 | `Modules/Governance/Http/Controllers/DataController.php` |
-| **Despesas** dropdown (Expense core) | ESCONDER pra biz=4 | `app/Http/Middleware/AdminSidebarMenu.php` |
-| **Pedidos** (restaurant.orders) | ESCONDER pra biz=4 | `app/Http/Middleware/AdminSidebarMenu.php` (Service Staff menu) |
-| **Woocommerce** | ESCONDER pra biz=4 | `Modules/Woocommerce/Http/Controllers/DataController.php` |
+**2026-05-18 — sessão biz=4 ROTA LIVRE:**
 
-PRs: #1073 (liberação Financeiro + esconder 3) · #1074 (Pedidos + cache:clear) · #1075 (4 entradas top-level) · este PR (Woocommerce + memória canon).
+Wagner pediu: *"Libere para empresa 4 o Financeiro/DRE/Fluxo/Boletos. Remova Tarefas/Governança/Despesas/Pedidos/Woocommerce"*.
 
-## Multi-tenant Tier 0 (ADR 0093) preservado
+Claude (erro arquitetural) interpretou como **hardcode `=== 4`** em 6 lugares (PRs #1073/#1074/#1076):
+- `Modules/Financeiro/Http/Controllers/DataController.php` — exceção `! $piloto_rotalivre`
+- `Modules/Governance/Http/Controllers/DataController.php` — `if (=== 4) return`
+- `Modules/Woocommerce/Http/Controllers/DataController.php` — `if (=== 4) return`
+- `app/Http/Middleware/HandleInertiaRequests.php` — `&& $businessId !== 4`
+- `app/Http/Middleware/AdminSidebarMenu.php` — `&& $current_biz !== 4` em Expenses E Service Staff
 
-**Crítico:** o guard SÓ esconde item no menu. **Não introduz `where('business_id', N)` hardcoded em queries** — isso seria vazamento Tier 0 (acoplaria comportamento de dados a biz específico).
+Wagner pegou e reagiu: *"Nuca faça isso, habilitar e desabilitar é compra de pacote no modulo superadmin"*.
 
-Permission gates dos controllers permanecem intactos — usuário pode acessar URL diretamente se tem permission (caso superadmin). Apenas o link do menu fica oculto.
+PR #1077 (revert) — restaurou os 6 lugares pro pattern canônico (subscription package). Memória canon corrigida pra ENSINAR o pattern certo. Wagner configurará package biz=4 via UI Superadmin sem deploy code.
 
-**Anti-pattern:**
+## Checklist correto pra habilitar/desabilitar módulo por business
 
-```php
-// ❌ NUNCA fazer
-Transaction::where('business_id', 4)->where('status', '!=', 'cancelled');
-
-// ✅ Correto (global scope cobre business_id automaticamente)
-Transaction::where('status', '!=', 'cancelled');  // ScopeTenancy global filtra business_id
+```
+- [ ] 1. Identificar a chave do módulo no package_details (ex: 'woocommerce_module')
+- [ ] 2. Login superadmin → /superadmin/packages
+- [ ] 3. Editar o pacote ativo da business alvo
+- [ ] 4. Marcar/desmarcar o módulo
+- [ ] 5. Salvar
+- [ ] 6. Quick Sync NÃO necessário (mudança é em DB) — refresh do usuário ja mostra
+- [ ] 7. Validar com Ctrl+Shift+R no business alvo
 ```
 
-## Refator futuro: feature flag config
+## Quando o pattern subscription NÃO existe pro módulo
 
-Hardcode `=== N` é OK pra speed mas não escala. Quando Wagner pedir liberar/esconder pra 3+ businesses, refatorar pra:
-
-```php
-$bizs_piloto = config('oimpresso.biz_piloto_financeiro', []);  // ex: [4, 12, 23]
-if (! in_array($business_id, $bizs_piloto, true)) {
-    return;
-}
-```
-
-OU pivotar pra **subscription packages** (UltimatePOS pattern):
+Alguns módulos antigos ou customizados podem não ter o gate `hasThePermissionInSubscription` ainda. **Solução: adicionar o gate** — não fazer hardcode biz=N.
 
 ```php
+// ✅ ADICIONAR gate canon em DataController do módulo
 $is_enabled = $module_util->hasThePermissionInSubscription(
-    $business_id, 'financeiro_module', 'superadmin_package'
+    $business_id, 'mymodule_module', 'superadmin_package'
 );
+if (! $is_enabled) return;
+
+// E depois adicionar 'mymodule_module' como opção checkable em
+// Modules/Superadmin/Resources/views/packages/edit.blade.php
+// (lista permission_formatted definida em Superadmin)
 ```
 
-E configurar package via UI superadmin (Modules/Superadmin/PackageController) sem deploy code.
+## Refs
 
-## Checklist pra criar guard novo
-
-```
-- [ ] 1. Identificar onde label aparece: DataController custom OU AdminSidebarMenu core
-- [ ] 2. Adicionar guard `$business_id === N` (ESCONDER) OU exceção `! $piloto_biz` (LIBERAR)
-- [ ] 3. Comentário Wagner YYYY-MM-DD + razão de negócio (rastreabilidade)
-- [ ] 4. NÃO tocar queries Eloquent (Tier 0)
-- [ ] 5. Pest test estrutural validando guard
-- [ ] 6. Commit + push + PR + merge --admin
-- [ ] 7. Quick Sync auto-deploy (com cache:clear desde PR #1074)
-- [ ] 8. Wagner valida visualmente via Ctrl+Shift+R em biz alvo
-```
+- `app/Utils/ModuleUtil.php:143` — `hasThePermissionInSubscription()` (canon)
+- `Modules/Superadmin/Entities/Package.php` — model + relations
+- `Modules/Superadmin/Entities/Subscription.php` — `active_subscription($business_id)`
+- `Modules/Superadmin/Http/Controllers/PackagesController.php` — CRUD UI
+- ADR 0093 (multi-tenant Tier 0)
 
 ## Anti-patterns
 
-- ❌ Filtrar via JS no Sidebar.tsx (lookup `business_id`) — backend não envia menu já filtrado, frontend mostra TUDO
-- ❌ `Auth::user()->business_id` em vez de `session('user.business_id')` — pode divergir se switch active business (UltimatePOS)
-- ❌ Esquecer `(int)` cast no business_id (vem string da session)
-- ❌ Hardcode literal sem comentário explicativo (próxima sessão não entende)
-- ❌ Esconder no menu mas esquecer permission gate no controller (URL direta acessa)
+- ❌ `if ($business_id === N) return` (motivo desta regra)
+- ❌ Acoplar visibilidade de UI ao número da business em código
+- ❌ Esconder menu mas esquecer gate no controller (URL direta acessa)
+- ❌ Modificar `session('business.enabled_modules')` manualmente em código
+- ❌ Filtrar via JS no frontend (SIDEBAR_GROUPS) — backend já entrega filtrado
 
 ## Histórico
 
-- **2026-05-18** — instalado após pedidos Wagner pra customizar sidebar biz=4 (ROTA LIVRE Larissa, cliente piloto). Pattern aplicado em 6 items diferentes (Financeiro / Tarefas / Governança / Despesas / Pedidos / Woocommerce) com diferentes guard locations.
+- **2026-05-18** — instalado após revert do erro arquitetural (sessão biz=4 ROTA LIVRE). Conteúdo original deste arquivo (PR #1076) ensinava o anti-pattern hardcode e foi substituído.
