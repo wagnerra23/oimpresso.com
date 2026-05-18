@@ -32,6 +32,9 @@
 /* Financeiro/Unificado Cowork Onda 5 R1 Curadoria — escopado em .fin-curadoria (Conferido + Comments + Audit + Frescor) */
 @import "./fin-curadoria.css";
 
+/* Financeiro/Unificado Cowork Onda 6 R2 IA — escopado em .fin-curadoria (Anomaly + PartyHistory + MonthDigest) */
+@import "./fin-ia.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
