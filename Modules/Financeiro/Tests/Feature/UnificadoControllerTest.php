@@ -99,7 +99,7 @@ it('expõe 5 KPIs no shape esperado', function () {
     );
 });
 
-it('filtra por tab via querystring', function () {
+it('filtra por tab via querystring (back-compat)', function () {
     $user = unificadoBootstrap();
     $response = $this->actingAs($user)->get('/financeiro/unificado?tab=rec');
 
@@ -109,6 +109,48 @@ it('filtra por tab via querystring', function () {
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
         ->where('filters.tab', 'rec')
+    );
+});
+
+it('Onda Polish: lifecycle multi-select via querystring CSV "ar,pa"', function () {
+    $user = unificadoBootstrap();
+    $response = $this->actingAs($user)->get('/financeiro/unificado?lifecycle=ar,pa');
+
+    if (in_array($response->status(), [403, 404], true)) {
+        test()->markTestSkipped('Module gate bloqueia neste env.');
+    }
+
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->has('filters.lifecycle', 2)
+        ->where('filters.lifecycle.0', 'ar')
+        ->where('filters.lifecycle.1', 'pa')
+    );
+});
+
+it('Onda Polish: toggle overdue=1 ativa filtro atrasados', function () {
+    $user = unificadoBootstrap();
+    $response = $this->actingAs($user)->get('/financeiro/unificado?overdue=1');
+
+    if (in_array($response->status(), [403, 404], true)) {
+        test()->markTestSkipped('Module gate bloqueia neste env.');
+    }
+
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('filters.overdue', true)
+    );
+});
+
+it('Onda Polish: lifecycle invalido é descartado (sanitização)', function () {
+    $user = unificadoBootstrap();
+    $response = $this->actingAs($user)->get('/financeiro/unificado?lifecycle=ar,xx,sql_injection,pa');
+
+    if (in_array($response->status(), [403, 404], true)) {
+        test()->markTestSkipped('Module gate bloqueia neste env.');
+    }
+
+    // Só 'ar' e 'pa' são válidos — 'xx' e 'sql_injection' descartados.
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->has('filters.lifecycle', 2)
     );
 });
 

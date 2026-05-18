@@ -83,9 +83,13 @@
   border: 1px solid var(--fin-line);
   margin-left: 4px;
 }
+/* Onda Polish 2026-05-18 — hues corrigidos conforme gap analysis Wagner:
+   - ai (✦ Resumir mês)  → roxo  oklch 280 (IA accent)
+   - trilha (☑ Fechamento) → verde-floresta oklch 145 (trilha persistente, antes 240 azul ❌)
+   - present (▶ Apresentar) → azul oklch 240 (read-only mode, antes 145 verde ❌) */
 .fin-curadoria .fin-btn-ai { color: oklch(0.42 0.18 280); }
-.fin-curadoria .fin-btn-trilha { color: oklch(0.40 0.13 240); }
-.fin-curadoria .fin-btn-present { color: oklch(0.42 0.18 145); }
+.fin-curadoria .fin-btn-trilha { color: oklch(0.42 0.18 145); }
+.fin-curadoria .fin-btn-present { color: oklch(0.40 0.13 240); }
 
 /* ─────────────────────────────────────────────────────────────
  * KPI Stats grid (hero sparkline + 4 cards)

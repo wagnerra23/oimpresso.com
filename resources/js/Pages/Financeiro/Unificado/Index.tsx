@@ -76,9 +76,17 @@ interface Kpi {
 }
 
 type TabId = 'all' | 'open' | 'rec' | 'pay' | 'received' | 'paid' | 'late';
+// Onda Polish 2026-05-18 — lifecycle multi-select (gap analysis Wagner):
+//  ar = A receber (kind=receivable, status aberto/parcial/atrasado/vencendo)
+//  re = Recebidas (kind=receivable, status quitado)
+//  ap = A pagar   (kind=payable, status aberto/parcial/atrasado/vencendo)
+//  pa = Pagas     (kind=payable, status quitado)
+type LifecycleId = 'ar' | 're' | 'ap' | 'pa';
 
 interface Filters {
-  tab: TabId;
+  tab: TabId;              // Legacy — preservado pra back-compat de bookmarks.
+  lifecycle: LifecycleId[]; // Onda Polish — multi-select.
+  overdue: boolean;        // Toggle "Só atrasados" independente.
   busca: string;
   conta: string;
   categoria: string;
@@ -101,54 +109,35 @@ interface Props {
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(v ?? 0);
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: 'all',      label: 'Todas' },
-  { id: 'open',     label: 'Aberto' },
-  { id: 'rec',      label: 'Receber' },
-  { id: 'pay',      label: 'Pagar' },
-  { id: 'received', label: 'Recebidas' },
-  { id: 'paid',     label: 'Pagas' },
-  { id: 'late',     label: 'Atraso' },
+// Onda Polish 2026-05-18 — 4 lifecycle checkboxes (multi-select) + 1 overdue toggle.
+// Substitui TABS radio (1 escolha) por checkboxes lifecycle. Conforme gap analysis Wagner:
+// "Eliana quer ver 'só pagas + só pagar' pra um relatório específico — radio não permite. Multi-checkbox sim."
+const FILTER_LIFECYCLE: { id: LifecycleId; label: string; hue: number }[] = [
+  { id: 'ar', label: 'A receber',  hue: 145 }, // verde
+  { id: 're', label: 'Recebidas',  hue: 145 }, // verde (lifecycle complementar)
+  { id: 'ap', label: 'A pagar',    hue: 25  }, // rose
+  { id: 'pa', label: 'Pagas',      hue: 240 }, // azul (saída liquidada)
 ];
 
-// Onda 8b Cowork canon — hue por status semântico (oklch tokens canon):
-//   verde 145 = A receber / Recebidas (entrada cash)
-//   rose  25  = A pagar / Atraso (saída cash + alerta)
-//   azul  240 = Pagas (saída liquidada, neutralizada)
-//   stone 240 = Todas / Aberto (default sem foco)
-const TAB_HUES: Record<TabId, number> = {
-  all: 240,
-  open: 240,
-  rec: 145,
-  received: 145,
-  pay: 25,
-  paid: 240,
-  late: 25,
-};
-
 /**
- * Conta lançamentos por tab (client-side rápido pra UX dos chips).
- * Match com a lógica de filter do backend `UnificadoController::filterByTab`.
+ * Conta lançamentos por lifecycle (client-side rápido pra UX dos chips).
+ * Match com a lógica de filter do backend `UnificadoController::applyLifecycleFilter`.
  */
-function countByTab(tabId: TabId, all: Lancamento[]): number {
-  switch (tabId) {
-    case 'all':
-      return all.length;
-    case 'open':
-      return all.filter((l) => l.status === 'aberto' || l.status === 'vencendo').length;
-    case 'rec':
+function countByLifecycle(lc: LifecycleId, all: Lancamento[]): number {
+  switch (lc) {
+    case 'ar':
       return all.filter((l) => l.kind === 'receivable' && (l.status === 'aberto' || l.status === 'vencendo' || l.status === 'atrasado')).length;
-    case 'pay':
-      return all.filter((l) => l.kind === 'payable' && (l.status === 'aberto' || l.status === 'vencendo' || l.status === 'atrasado')).length;
-    case 'received':
+    case 'ap':
+      return all.filter((l) => l.kind === 'payable'    && (l.status === 'aberto' || l.status === 'vencendo' || l.status === 'atrasado')).length;
+    case 're':
       return all.filter((l) => l.kind === 'receivable' && l.status === 'recebido').length;
-    case 'paid':
-      return all.filter((l) => l.kind === 'payable' && l.status === 'pago').length;
-    case 'late':
-      return all.filter((l) => l.status === 'atrasado').length;
-    default:
-      return 0;
+    case 'pa':
+      return all.filter((l) => l.kind === 'payable'    && l.status === 'pago').length;
   }
+}
+
+function countOverdue(all: Lancamento[]): number {
+  return all.filter((l) => l.status === 'atrasado').length;
 }
 
 const DENSITY = {
@@ -218,13 +207,14 @@ function FinSparkline({ tone = 'pos' }: { tone?: 'pos' | 'neg' }) {
   );
 }
 
-function KpiBar({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabId) => void }) {
+function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
+  // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
   const pendente = kpis.a_receber.valor - kpis.a_pagar.valor;
   return (
     <div className="fin-stats">
-      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onTabClick('open')} aria-label="Filtrar abertos">
+      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onLifecycleSelect(['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
         <small>Saldo previsto · maio</small>
         <b>{brl(kpis.saldo_previsto)}</b>
         <span className="fin-stat-hint">
@@ -233,25 +223,25 @@ function KpiBar({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabId) => v
         <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} />
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onTabClick('received')} aria-label="Filtrar recebidas">
+      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['re'])} aria-label="Filtrar recebidas">
         <small>Recebido</small>
         <b className="fin-num-pos">{brl(kpis.recebido.valor)}</b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onTabClick('rec')} aria-label="Filtrar a receber">
+      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ar'])} aria-label="Filtrar a receber">
         <small>A receber</small>
         <b>{brl(kpis.a_receber.valor)}</b>
         <span className="fin-stat-hint">{kpis.a_receber.qtd} títulos</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onTabClick('paid')} aria-label="Filtrar pagas">
+      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['pa'])} aria-label="Filtrar pagas">
         <small>Pago</small>
         <b className="fin-num-neg">{brl(kpis.pago.valor)}</b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onTabClick('pay')} aria-label="Filtrar a pagar">
+      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ap'])} aria-label="Filtrar a pagar">
         <small>A pagar</small>
         <b>{brl(kpis.a_pagar.valor)}</b>
         <span className="fin-stat-hint">{kpis.a_pagar.qtd} títulos</span>
@@ -483,7 +473,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </div>
       </div>
 
-      <KpiBar kpis={kpis} onTabClick={(tab) => aplicar({ tab })} />
+      <KpiBar kpis={kpis} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
 
       {/* Cowork KB-9.75 Onda 6 R2 IA — Resumo executivo do mês (Eliana 5min sexta) */}
       <FinMonthDigest
@@ -493,34 +483,62 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         periodLabel={periodLabel}
       />
 
-      {/* Onda 8b Cowork: toolbar canon com filter chips coloridos + density + search.
-          Substitui tabs shadcn flat. Cada chip tem --cb-hue por status semântico
-          (verde A receber/Recebidas, rose A pagar/Atraso, azul Pagas, stone neutros). */}
+      {/* Onda Polish 2026-05-18 — gap analysis Wagner: filtros viraram 4 checkboxes
+          lifecycle multi-select + toggle "Só atrasados" independente. Radio (1 escolha)
+          não permitia "só pagas + só pagar" — Eliana pediu pra relatório.
+          Hue por status semântico (oklch tokens canon):
+            verde 145 = A receber/Recebidas (entrada cash)
+            rose  25  = A pagar/Atraso (saída cash + alerta)
+            azul  240 = Pagas (saída liquidada) */}
       <div className="fin-toolbar mt-4">
-        <div className="fin-filter-group" role="group" aria-label="Filtros por status">
-          {TABS.map((t) => {
-            const on = filters.tab === t.id;
-            const hue = TAB_HUES[t.id];
-            const count = countByTab(t.id, lancamentos);
+        <div className="fin-filter-group" role="group" aria-label="Filtros por ciclo de vida">
+          {FILTER_LIFECYCLE.map((lc) => {
+            const on = filters.lifecycle.includes(lc.id);
+            const count = countByLifecycle(lc.id, lancamentos);
+            const toggle = () => {
+              const next = on
+                ? filters.lifecycle.filter((x) => x !== lc.id)
+                : [...filters.lifecycle, lc.id];
+              aplicar({ lifecycle: next });
+            };
             return (
               <label
-                key={t.id}
+                key={lc.id}
                 className={'fin-filter-cb' + (on ? ' on' : '')}
-                style={on ? ({ ['--cb-hue' as string]: hue } as React.CSSProperties) : undefined}
+                style={on ? ({ ['--cb-hue' as string]: lc.hue } as React.CSSProperties) : undefined}
               >
                 <input
-                  type="radio"
-                  name="fin-tab"
+                  type="checkbox"
+                  name={`fin-lifecycle-${lc.id}`}
                   checked={on}
-                  onChange={() => aplicar({ tab: t.id })}
+                  onChange={toggle}
                 />
                 <span className="fin-filter-cb-box" />
-                <span>{t.label}</span>
+                <span>{lc.label}</span>
                 {count > 0 && <span className="fin-filter-ct">{count}</span>}
               </label>
             );
           })}
         </div>
+
+        <span className="fin-filter-sep" />
+
+        {/* Toggle "Só atrasados" — separado dos checkboxes lifecycle. AND multiplicativo. */}
+        <label
+          className={'fin-filter-cb' + (filters.overdue ? ' on' : '')}
+          style={filters.overdue ? ({ ['--cb-hue' as string]: 25 } as React.CSSProperties) : undefined}
+          title="AND multiplicativo: combina com lifecycle ativos"
+        >
+          <input
+            type="checkbox"
+            name="fin-overdue"
+            checked={filters.overdue}
+            onChange={() => aplicar({ overdue: !filters.overdue })}
+          />
+          <span className="fin-filter-cb-box" />
+          <span>Só atrasados</span>
+          {countOverdue(lancamentos) > 0 && <span className="fin-filter-ct">{countOverdue(lancamentos)}</span>}
+        </label>
 
         <span className="fin-filter-sep" />
 
@@ -618,11 +636,11 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 <tr><td colSpan={7} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
                     <div className="text-sm text-stone-600">
-                      {filters.tab === 'all' && !filters.busca && filters.conta === '' && filters.categoria === ''
+                      {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
                         ? `Nenhum lançamento em ${periodLabel}.`
                         : 'Nenhum lançamento com os filtros atuais.'}
                     </div>
-                    {filters.tab === 'all' && !filters.busca && filters.conta === '' && filters.categoria === '' && (
+                    {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === '' && (
                       <Button size="sm" onClick={() => router.visit('/financeiro/unificado/novo')}>
                         + Adicionar primeiro lançamento
                       </Button>
