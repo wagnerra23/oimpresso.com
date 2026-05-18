@@ -412,7 +412,18 @@ export default function RecurringBillingIndex(props: PageProps) {
                   <button
                     key={t.key}
                     type="button"
-                    onClick={() => setTab(t.key)}
+                    onClick={() => {
+                      // Onda 9 v9,75 — tabs navegam pras Pages reais (rotas dedicadas).
+                      if (t.key === 'planos') {
+                        router.visit('/recurring-billing/planos');
+                      } else if (t.key === 'faturas') {
+                        router.visit('/recurring-billing/faturas');
+                      } else if (t.key === 'configuracoes') {
+                        router.visit('/recurring-billing/configuracoes');
+                      } else {
+                        setTab(t.key);
+                      }
+                    }}
                     className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition ${
                       tab === t.key
                         ? 'bg-violet-100 text-violet-900'

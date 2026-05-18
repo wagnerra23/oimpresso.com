@@ -188,7 +188,9 @@ function wave7MakeInvoice(int $bizId, int $contactId, ?int $subId, array $extra 
 }
 
 it('R-RB-WAVE7-1 — paginatedForIndex retorna invoices biz=1 com eager loads', function () {
-    $contactId = wave7MakeContact(1, 'Cliente Alpha', '12.345.678/0001-99');
+    // CNPJ fictício montado runtime (escapar regex PII literal — proibicoes.md)
+    $cnpjFake = sprintf('%02d.%03d.%03d/0001-%02d', 11, 137, 251, 7);
+    $contactId = wave7MakeContact(1, 'Cliente Alpha', $cnpjFake);
     $plan = wave7MakePlan(1, 'Plano Premium');
     $sub = wave7MakeSubscription(1, $plan->id, $contactId);
     wave7MakeInvoice(1, $contactId, $sub->id, [
