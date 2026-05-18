@@ -53,6 +53,16 @@ return [
     'mock_cowork_mode' => (bool) env('FINANCEIRO_MOCK_COWORK', true),
 
     /*
+    | Sidebar wrap (Onda #4) — substitui sidebar Cowork canon por sidebar
+    | oimpresso AppShellV2 (logout, troca business, navegação) via CSS
+    | injection. Wagner valida visual antes de ativar.
+    |
+    | Default FALSE em prod — kill-switch IRREVOGÁVEL pra reverter se
+    | quebrar layout. Ligar via: FINANCEIRO_SIDEBAR_WRAP=true no .env.
+    */
+    'sidebar_wrap_enabled' => (bool) env('FINANCEIRO_SIDEBAR_WRAP', false),
+
+    /*
     | Mapping rota.name → arquivo HTML mock canon servido de
     | public/cowork-preview/.
     |
