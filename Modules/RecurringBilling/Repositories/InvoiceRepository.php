@@ -8,6 +8,7 @@ use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Modules\RecurringBilling\Models\Invoice;
 
 /**
@@ -49,6 +50,121 @@ class InvoiceRepository
         }, [
             'module'      => 'RecurringBilling',
             'op'          => 'invoice.repo.listar',
+            'business_id' => $businessId,
+        ]);
+    }
+
+    /**
+     * Lista paginada de faturas — Onda 7 v9,75 (Page Inertia Faturas).
+     *
+     * Eager loads: subscription.plan + contact (id,name,tax_number scoped pra evitar full row).
+     * Order canônico: overdue → open → paid → canceled → refunded, depois vencimento ASC.
+     *
+     * Filtros aceitos:
+     *   status:  'open'|'paid'|'overdue'|'canceled'|'refunded'|'all'
+     *   gateway: 'inter'|'c6'|'asaas'|'all'
+     *   periodo: 'mes_atual'|'proximo_mes'|'atrasados'|'all'
+     *   busca:   string (LIKE em contact.name OR numero_documento)
+     *
+     * @param  array<string, mixed>  $filtros
+     */
+    public function paginatedForIndex(int $businessId, array $filtros = [], int $perPage = 50): LengthAwarePaginator
+    {
+        return OtelHelper::spanBiz('rb.invoice.repo.paginatedForIndex', function () use ($businessId, $filtros, $perPage) {
+            $q = $this->aplicarFiltrosIndex($this->base($businessId), $filtros);
+
+            // SQLite (testes) não suporta FIELD(); fallback: order_by status alpha + vencimento.
+            // Em MySQL prod usa-se FIELD() pra prioridade visual canônica.
+            $driver = $q->getModel()->getConnection()->getDriverName();
+            if ($driver === 'mysql') {
+                $q->orderByRaw("FIELD(status, 'overdue', 'open', 'paid', 'canceled', 'refunded')");
+            } else {
+                // SQLite — ordena por CASE WHEN equivalente
+                $q->orderByRaw(
+                    "CASE status "
+                    ."WHEN 'overdue' THEN 1 "
+                    ."WHEN 'open' THEN 2 "
+                    ."WHEN 'paid' THEN 3 "
+                    ."WHEN 'canceled' THEN 4 "
+                    ."WHEN 'refunded' THEN 5 "
+                    ."ELSE 9 END"
+                );
+            }
+
+            return $q->with([
+                    'subscription:id,business_id,plan_id',
+                    'subscription.plan:id,name,ciclo',
+                    'contact:id,business_id,name,tax_number',
+                ])
+                ->orderBy('vencimento', 'asc')
+                ->orderBy('id', 'desc')
+                ->paginate($perPage);
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'invoice.repo.paginatedForIndex',
+            'business_id' => $businessId,
+        ]);
+    }
+
+    /**
+     * KPIs do header Faturas Page (Onda 7).
+     *
+     * Calcula em queries leves + cache-friendly (aggregations apenas em business_id+status+period).
+     * Pago este mês: soma valor onde status=paid AND pago_em entre [primeiro_dia_mes, hoje].
+     * Pendente: soma valor onde status IN (open).
+     * Atrasado: soma valor onde status=overdue OR (status=open AND vencimento < hoje).
+     * Count overdue: count(*) onde status=overdue OR (status=open AND vencimento < hoje).
+     * Total faturas: count(*) all-time.
+     *
+     * @return array{
+     *   total_pago_mes: float,
+     *   total_pendente: float,
+     *   total_atrasado: float,
+     *   count_overdue: int,
+     *   total_faturas: int,
+     * }
+     */
+    public function kpisForIndex(int $businessId): array
+    {
+        return OtelHelper::spanBiz('rb.invoice.repo.kpisForIndex', function () use ($businessId) {
+            $inicioMes = Carbon::now()->startOfMonth()->toDateString();
+            $hoje = Carbon::now()->toDateString();
+
+            $pagoMes = (float) $this->base($businessId)
+                ->where('status', 'paid')
+                ->whereBetween('pago_em', [$inicioMes.' 00:00:00', $hoje.' 23:59:59'])
+                ->sum('valor');
+
+            $pendente = (float) $this->base($businessId)
+                ->where('status', 'open')
+                ->where('vencimento', '>=', $hoje)
+                ->sum('valor');
+
+            $atrasadoQuery = function () use ($businessId, $hoje) {
+                return $this->base($businessId)->where(function ($q) use ($hoje) {
+                    $q->where('status', 'overdue')
+                        ->orWhere(function ($sub) use ($hoje) {
+                            $sub->where('status', 'open')
+                                ->where('vencimento', '<', $hoje);
+                        });
+                });
+            };
+
+            $totalAtrasado = (float) $atrasadoQuery()->sum('valor');
+            $countOverdue = (int) $atrasadoQuery()->count();
+
+            $totalFaturas = (int) $this->base($businessId)->count();
+
+            return [
+                'total_pago_mes' => $pagoMes,
+                'total_pendente' => $pendente,
+                'total_atrasado' => $totalAtrasado,
+                'count_overdue'  => $countOverdue,
+                'total_faturas'  => $totalFaturas,
+            ];
+        }, [
+            'module'      => 'RecurringBilling',
+            'op'          => 'invoice.repo.kpisForIndex',
             'business_id' => $businessId,
         ]);
     }
@@ -112,6 +228,61 @@ class InvoiceRepository
     private function base(int $businessId): Builder
     {
         return Invoice::query()->where('business_id', $businessId);
+    }
+
+    /**
+     * Filtros canônicos da Page Inertia Faturas (Onda 7).
+     *
+     * @param  array<string, mixed>  $filtros
+     */
+    private function aplicarFiltrosIndex(Builder $q, array $filtros): Builder
+    {
+        $status = $filtros['status'] ?? 'all';
+        if ($status !== 'all' && in_array($status, ['open', 'paid', 'overdue', 'canceled', 'refunded'], true)) {
+            $q->where('status', $status);
+        }
+
+        $gateway = $filtros['gateway'] ?? 'all';
+        if ($gateway !== 'all' && in_array($gateway, ['inter', 'c6', 'asaas'], true)) {
+            $q->where('gateway', $gateway);
+        }
+
+        $periodo = $filtros['periodo'] ?? 'all';
+        if ($periodo === 'mes_atual') {
+            $q->whereBetween('vencimento', [
+                Carbon::now()->startOfMonth()->toDateString(),
+                Carbon::now()->endOfMonth()->toDateString(),
+            ]);
+        } elseif ($periodo === 'proximo_mes') {
+            $proximo = Carbon::now()->addMonthNoOverflow();
+            $q->whereBetween('vencimento', [
+                $proximo->copy()->startOfMonth()->toDateString(),
+                $proximo->copy()->endOfMonth()->toDateString(),
+            ]);
+        } elseif ($periodo === 'atrasados') {
+            $hoje = Carbon::now()->toDateString();
+            $q->where(function ($sub) use ($hoje) {
+                $sub->where('status', 'overdue')
+                    ->orWhere(function ($inner) use ($hoje) {
+                        $inner->where('status', 'open')
+                            ->where('vencimento', '<', $hoje);
+                    });
+            });
+        }
+
+        $busca = trim((string) ($filtros['busca'] ?? ''));
+        if ($busca !== '') {
+            $like = '%'.$busca.'%';
+            $q->where(function ($sub) use ($like) {
+                $sub->where('numero_documento', 'like', $like)
+                    ->orWhereHas('contact', function ($c) use ($like) {
+                        $c->where('name', 'like', $like)
+                            ->orWhere('tax_number', 'like', $like);
+                    });
+            });
+        }
+
+        return $q;
     }
 
     /**
