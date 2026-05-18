@@ -100,6 +100,46 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'late',     label: 'Atraso' },
 ];
 
+// Onda 8b Cowork canon — hue por status semântico (oklch tokens canon):
+//   verde 145 = A receber / Recebidas (entrada cash)
+//   rose  25  = A pagar / Atraso (saída cash + alerta)
+//   azul  240 = Pagas (saída liquidada, neutralizada)
+//   stone 240 = Todas / Aberto (default sem foco)
+const TAB_HUES: Record<TabId, number> = {
+  all: 240,
+  open: 240,
+  rec: 145,
+  received: 145,
+  pay: 25,
+  paid: 240,
+  late: 25,
+};
+
+/**
+ * Conta lançamentos por tab (client-side rápido pra UX dos chips).
+ * Match com a lógica de filter do backend `UnificadoController::filterByTab`.
+ */
+function countByTab(tabId: TabId, all: Lancamento[]): number {
+  switch (tabId) {
+    case 'all':
+      return all.length;
+    case 'open':
+      return all.filter((l) => l.status === 'aberto' || l.status === 'vencendo').length;
+    case 'rec':
+      return all.filter((l) => l.kind === 'receivable' && (l.status === 'aberto' || l.status === 'vencendo' || l.status === 'atrasado')).length;
+    case 'pay':
+      return all.filter((l) => l.kind === 'payable' && (l.status === 'aberto' || l.status === 'vencendo' || l.status === 'atrasado')).length;
+    case 'received':
+      return all.filter((l) => l.kind === 'receivable' && l.status === 'recebido').length;
+    case 'paid':
+      return all.filter((l) => l.kind === 'payable' && l.status === 'pago').length;
+    case 'late':
+      return all.filter((l) => l.status === 'atrasado').length;
+    default:
+      return 0;
+  }
+}
+
 const DENSITY = {
   compact:     { row: 'h-8',  text: 'text-[12.5px]' },
   comfortable: { row: 'h-11', text: 'text-[13px]' },
@@ -275,7 +315,27 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''}`}
       onClick={onSelect}
     >
-      <td className="pl-4 pr-2"><span className={`text-[14px] ${isIn ? 'text-emerald-600' : 'text-stone-500'}`}>{isIn ? '↑' : '↓'}</span></td>
+      <td className="pl-4 pr-2">
+        {/* Onda 8b Cowork canon: direction arrow com bg pill semântico.
+            Receivable = ↘ entrada (emerald), Payable = ↗ saída (rose).
+            Settled tem opacidade reduzida (cor "tomada"). */}
+        <span
+          className="inline-grid place-items-center rounded"
+          style={{
+            width: 22,
+            height: 22,
+            background: isIn
+              ? (settled ? 'oklch(0.94 0.04 145 / 0.6)' : 'oklch(0.94 0.06 145)')
+              : (settled ? 'oklch(0.95 0.03 25 / 0.6)' : 'oklch(0.95 0.04 25)'),
+            color: isIn ? 'oklch(0.40 0.13 145)' : 'oklch(0.50 0.18 25)',
+            fontSize: 14,
+            fontWeight: 700,
+          }}
+          aria-label={isIn ? 'Entrada' : 'Saída'}
+        >
+          {isIn ? '↘' : '↗'}
+        </span>
+      </td>
       <td className="px-2">
         <div className="font-medium text-stone-900 truncate max-w-[260px] flex items-center gap-1.5">
           <FinCrossLinkify text={row.descricao} className="truncate" />
@@ -417,50 +477,87 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         periodLabel={periodLabel}
       />
 
-      {/* Tabs + filtros sticky */}
-      <Card className="mt-6 sticky top-14 z-10">
-        <CardContent className="p-3 flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-md border border-stone-200 bg-stone-50 p-0.5">
-            {TABS.map(t => (
-              <button
+      {/* Onda 8b Cowork: toolbar canon com filter chips coloridos + density + search.
+          Substitui tabs shadcn flat. Cada chip tem --cb-hue por status semântico
+          (verde A receber/Recebidas, rose A pagar/Atraso, azul Pagas, stone neutros). */}
+      <div className="fin-toolbar mt-4">
+        <div className="fin-filter-group" role="group" aria-label="Filtros por status">
+          {TABS.map((t) => {
+            const on = filters.tab === t.id;
+            const hue = TAB_HUES[t.id];
+            const count = countByTab(t.id, lancamentos);
+            return (
+              <label
                 key={t.id}
-                onClick={() => aplicar({ tab: t.id })}
-                className={`px-2.5 py-1 text-[12.5px] rounded ${filters.tab === t.id ? 'bg-white shadow-sm text-stone-900 font-medium' : 'text-stone-600 hover:text-stone-900'}`}
-              >{t.label}</button>
-            ))}
+                className={'fin-filter-cb' + (on ? ' on' : '')}
+                style={on ? ({ ['--cb-hue' as string]: hue } as React.CSSProperties) : undefined}
+              >
+                <input
+                  type="radio"
+                  name="fin-tab"
+                  checked={on}
+                  onChange={() => aplicar({ tab: t.id })}
+                />
+                <span className="fin-filter-cb-box" />
+                <span>{t.label}</span>
+                {count > 0 && <span className="fin-filter-ct">{count}</span>}
+              </label>
+            );
+          })}
+        </div>
+
+        <span className="fin-filter-sep" />
+
+        <select
+          className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
+          value={filters.conta}
+          onChange={(e) => aplicar({ conta: e.target.value })}
+          aria-label="Conta bancária"
+        >
+          <option value="">Todas as contas</option>
+          {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+        </select>
+
+        <select
+          className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
+          value={filters.categoria}
+          onChange={(e) => aplicar({ categoria: e.target.value })}
+          aria-label="Categoria"
+        >
+          <option value="">Todas as categorias</option>
+          {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+        </select>
+
+        <div className="fin-toolbar-r">
+          <div className="fin-search-wrap">
+            <span aria-hidden="true">🔍</span>
+            <input
+              id="fin-search-input"
+              placeholder="Buscar lançamento…"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && aplicar({ busca })}
+            />
+            <kbd style={{ fontSize: 10, color: 'var(--fin-text-mute)' }}>/</kbd>
           </div>
 
-          <select className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
-                  value={filters.conta} onChange={(e) => aplicar({ conta: e.target.value })}>
-            <option value="">Todas as contas</option>
-            {contas.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </select>
-
-          <select className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
-                  value={filters.categoria} onChange={(e) => aplicar({ categoria: e.target.value })}>
-            <option value="">Todas as categorias</option>
-            {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </select>
-
-          <Input
-            id="fin-search-input"
-            placeholder="Buscar lançamento…  /"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && aplicar({ busca })}
-            className="h-8 w-[200px] text-[12.5px]"
-          />
-
-          <div className="ml-auto inline-flex rounded-md border border-stone-200 p-0.5 text-[11.5px]">
-            {(['compact','comfortable','spacious'] as const).map(d => (
-              <button key={d} onClick={() => aplicar({ densidade: d })}
-                      className={`px-2 py-0.5 rounded ${filters.densidade === d ? 'bg-stone-900 text-white' : 'text-stone-600'}`}>
+          <div className="fin-density" role="group" aria-label="Densidade">
+            {(['compact', 'comfortable', 'spacious'] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                className={filters.densidade === d ? 'on' : ''}
+                onClick={() => aplicar({ densidade: d })}
+                aria-pressed={filters.densidade === d}
+                aria-label={d}
+                title={d}
+              >
                 {d === 'compact' ? '◰' : d === 'comfortable' ? '▦' : '▤'}
               </button>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tabela agrupada */}
       <Card className="mt-3">
