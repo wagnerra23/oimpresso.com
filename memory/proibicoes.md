@@ -140,6 +140,7 @@
 - ⛔ **Job assíncrono SEMPRE passa `$businessId`** no constructor — `session()` não funciona em fila
 - ⛔ **Tabela de negócio nova obrigatoriamente** tem `business_id` indexado + FK
 - ⛔ **PII reais (CPF/CNPJ cliente) NUNCA em PR/commit/log** — use `[REDACTED]` ou `PiiRedactor`
+- ⛔ **NUNCA hardcode `if ($business_id === N) return` pra esconder/liberar módulo do sidebar.** Habilitar/desabilitar feature por business é SEMPRE via **subscription package** (UI `Modules/Superadmin/PackagesController` → marcar/desmarcar `X_module` no `package_details`). DataController consulta via `ModuleUtil::hasThePermissionInSubscription($business_id, 'X_module', 'superadmin_package')` — JÁ existe pattern canônico no UltimatePOS, NÃO improvisar. **Origem:** Wagner regra IRREVOGÁVEL 2026-05-18 *"Nuca faça isso, habilitar e desabilitar é compra de pacote no modulo superadmin"* após PR #1077 reverter 5 hardcodes errados (#1073/#1074/#1076). Pareia conceitualmente com `business_id` global scope — Wagner: *"Regra basica junto com Business_id acho que não porderia ser diferente"*. Detalhe + pattern correto + UI step-by-step em [`memory/reference/feedback-habilitar-modulo-por-business.md`](reference/feedback-habilitar-modulo-por-business.md). Pest anti-regressão: [`tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php`](../tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php) bloqueia patterns `=== N`/`!== N` em 5 arquivos canon.
 
 ## FSM Pipeline Canônico ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — LIVE prod biz=1 desde 2026-05-12)
 
