@@ -17,6 +17,8 @@ use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
+use Modules\Financeiro\Models\TituloComment;
+use Spatie\Activitylog\Models\Activity;
 
 /**
  * Tela /financeiro/unificado — Visão Unificada (Cockpit V2).
@@ -297,6 +299,190 @@ class UnificadoController extends Controller
         $msg = $titulo->tipo === 'receber' ? 'Recebimento confirmado' : 'Pagamento confirmado';
 
         return back()->with('success', $msg);
+    }
+
+    // ─────────── Comments + Audit (Onda DB 2026-05-18) ───────────
+
+    /**
+     * GET /financeiro/unificado/{tituloId}/comments
+     *
+     * Lista comments paginated do título — Tier 0 multi-tenant via session
+     * (TituloComment usa BusinessScope trait + filtra titulo via business_id explícito
+     * pra evitar IDOR cross-tenant). Eager load user (first_name, last_name, username)
+     * pra renderizar autor sem N+1.
+     *
+     * Response shape (espelha contrato JSX FinCommentsThread):
+     *   { comments: [{ id, body, author, when, user_id }], total }
+     */
+    public function comments(int $tituloId): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        // Confirma que título pertence ao business antes de listar comments
+        // (defesa-em-profundidade contra IDOR — BusinessScope já filtra, mas
+        // sem o título a UI nem deveria estar mostrando o drawer).
+        $titulo = Titulo::where('business_id', $businessId)->find($tituloId);
+        if (! $titulo) {
+            return response()->json(['comments' => [], 'total' => 0], 404);
+        }
+
+        $rows = TituloComment::query()
+            ->where('business_id', $businessId)
+            ->where('titulo_id', $tituloId)
+            ->with('user:id,first_name,last_name,username')
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        $comments = $rows->map(function (TituloComment $c) {
+            $u = $c->user;
+            $author = $u
+                ? (trim(($u->first_name ?? '').' '.($u->last_name ?? '')) ?: ($u->username ?? 'Usuário'))
+                : 'Usuário removido';
+
+            return [
+                'id' => $c->id,
+                'body' => $c->body,
+                'author' => $author,
+                'user_id' => $c->user_id,
+                'when' => $c->created_at?->locale('pt_BR')->isoFormat('DD/MM HH:mm'),
+                'when_iso' => $c->created_at?->toIso8601String(),
+            ];
+        });
+
+        return response()->json([
+            'comments' => $comments,
+            'total' => $comments->count(),
+        ]);
+    }
+
+    /**
+     * POST /financeiro/unificado/{tituloId}/comments
+     *
+     * Cria comment. Body validado: 1-2000 chars. business_id derivado da session,
+     * user_id do auth user. Idempotência: NÃO aplica — comments append-only,
+     * dupla submissão = 2 rows (Eliana enxerga e remove manualmente se quiser).
+     *
+     * Response shape igual ao GET (1 elemento), pra bridge JS já renderizar
+     * sem refetch.
+     */
+    public function addComment(Request $request, int $tituloId): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $titulo = Titulo::where('business_id', $businessId)->find($tituloId);
+        if (! $titulo) {
+            return response()->json(['error' => 'Título não pertence ao business.'], 404);
+        }
+
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'min:1', 'max:2000'],
+        ]);
+
+        $comment = TituloComment::create([
+            'business_id' => $businessId,
+            'titulo_id' => $tituloId,
+            'user_id' => $request->user()->id,
+            'body' => $validated['body'],
+        ]);
+
+        $u = $request->user();
+        $author = trim(($u->first_name ?? '').' '.($u->last_name ?? '')) ?: ($u->username ?? 'Usuário');
+
+        return response()->json([
+            'comment' => [
+                'id' => $comment->id,
+                'body' => $comment->body,
+                'author' => $author,
+                'user_id' => $comment->user_id,
+                'when' => $comment->created_at?->locale('pt_BR')->isoFormat('DD/MM HH:mm'),
+                'when_iso' => $comment->created_at?->toIso8601String(),
+            ],
+        ], 201);
+    }
+
+    /**
+     * GET /financeiro/unificado/{tituloId}/audit
+     *
+     * Trilha de auditoria read-only — agrega rows da `activity_log` (Spatie
+     * ActivityLog) com subject_type=Titulo + subject_id=$tituloId, filtrado por
+     * business_id pra Tier 0 safety.
+     *
+     * Shape espelha contrato JSX FinAuditTrail (financeiro-curation.jsx):
+     *   [{ when, who, action, diff?: { field, from, to } }]
+     *
+     * Action é derivada do `event` (created|updated|deleted) + `description`.
+     * Diff inferido das properties.old / properties.attributes (Spatie LogsActivity
+     * com logOnly + logOnlyDirty popula essas chaves).
+     */
+    public function auditTrail(int $tituloId): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $titulo = Titulo::where('business_id', $businessId)->find($tituloId);
+        if (! $titulo) {
+            return response()->json(['entries' => [], 'total' => 0], 404);
+        }
+
+        $rows = Activity::query()
+            ->where('subject_type', Titulo::class)
+            ->where('subject_id', $tituloId)
+            ->where('business_id', $businessId)
+            ->with('causer:id,first_name,last_name,username')
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        $entries = $rows->map(function (Activity $a) {
+            $causer = $a->causer;
+            $who = $causer
+                ? (trim(($causer->first_name ?? '').' '.($causer->last_name ?? '')) ?: ($causer->username ?? 'Sistema'))
+                : 'Sistema';
+
+            $action = match ($a->event) {
+                'created' => 'criou',
+                'updated' => 'editou',
+                'deleted' => 'deletou',
+                default => $a->description ?: ($a->event ?? 'alterou'),
+            };
+
+            $entry = [
+                'id' => $a->id,
+                'when' => $a->created_at?->locale('pt_BR')->isoFormat('DD/MM HH:mm'),
+                'when_iso' => $a->created_at?->toIso8601String(),
+                'who' => $who,
+                'action' => $action,
+                'event' => $a->event,
+            ];
+
+            // Diff: Spatie ActivityLog grava ['old' => [...], 'attributes' => [...]]
+            // quando logOnly + logOnlyDirty + auto-tracking ativo no model.
+            // Pegamos primeiro campo alterado (mostra os mais relevantes na UI).
+            $props = is_array($a->properties) ? $a->properties : ($a->properties?->toArray() ?? []);
+            $old = $props['old'] ?? null;
+            $new = $props['attributes'] ?? null;
+
+            if (is_array($old) && is_array($new)) {
+                foreach ($new as $field => $to) {
+                    $from = $old[$field] ?? null;
+                    if ($from !== $to) {
+                        $entry['diff'] = [
+                            'field' => $field,
+                            'from' => $from,
+                            'to' => $to,
+                        ];
+                        break; // primeiro campo alterado representa o evento na UI
+                    }
+                }
+            }
+
+            return $entry;
+        });
+
+        return response()->json([
+            'entries' => $entries,
+            'total' => $entries->count(),
+        ]);
     }
 
     // ─────────── Helpers privados ───────────
