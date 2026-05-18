@@ -673,7 +673,13 @@ export default function SaleSheet({
                   Render frontend determinístico baseado em SaleDetail.
                   Onda 3.5 plugará em sale_stage_history real (ADR 0143 FSM). */}
               <div className="sells-cowork-curadoria">
+                {/* US-SELL-COWORK-R3-CURADORIA Onda 3.5 (PR #1051 plug) —
+                    plugado em sale_stage_history real via endpoint
+                    /sells/{id}/audit (ADR 0143 FSM live prod biz=1).
+                    Em erro/loading, SaleAuditTrail faz fallback
+                    automático pro modo determinístico via prop `venda`. */}
                 <SaleAuditTrail
+                  realApiUrl={`/sells/${data.id}/audit`}
                   venda={
                     {
                       id: data.id,
