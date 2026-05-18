@@ -266,3 +266,24 @@ Fallback aceito se `bg-primary` ficar pesado em densidade alta da lista de conve
 
 [CL] F3 só depois F2 — substitui `Cockpit.tsx` in-place + sub-componentes em `Pages/Jana/_components/Cockpit/` + 7 Pest GUARDs (R-JANA-COCKPIT-001..007 spec no charter).
 
+
+---
+
+### 2026-05-18 — Vendas + Financeiro · método KB-9.75 completo
+
+**Branch:** `feat/vendas-financeiro-kb-9.75`
+**PR:** #1064
+**Score:** Vendas 9,75/10 · Financeiro 9,75/10
+**Reuso:** ~70% dos componentes do Financeiro vieram do Vendas
+
+**Pra Code:**
+1. Mergear o PR após screenshot approval (Wagner)
+2. Atualizar `SYNC_LOG.md` apontando este sync como v2 da aplicação do método
+3. Atualizar `TELAS_REVIEW_QUEUE.md`: marcar Sells/Index, Sells/Create e Financeiro/Unified como **done · A+** (≥9,5)
+
+**Próximas aplicações sugeridas:**
+- CRM (persona Bruna · score atual ~6,5)
+- Compras (persona Wagner+Bruna · liga com Financeiro já feito)
+- Equipe / Chat interno (persona times · multi-canal)
+
+[PROCESSADO 2026-05-18]
