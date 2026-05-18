@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -33,14 +34,21 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class UnificadoController extends Controller
 {
+    use RendersMockCowork;
+
     public function __construct()
     {
         $this->middleware('auth');
         $this->middleware('can:financeiro.dashboard.view');
     }
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        // Wagner 2026-05-18 Mock Cowork Mode (config/financeiro.php).
+        if ($mock = $this->tryRenderMockCowork()) {
+            return $mock;
+        }
+
         $businessId = (int) session('user.business_id');
         $hoje = now()->toDateString();
         $vencendoLimite = now()->addDays(7)->toDateString();

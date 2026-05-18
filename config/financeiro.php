@@ -24,6 +24,58 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mock Cowork Mode — Wagner regra 2026-05-18
+    |--------------------------------------------------------------------------
+    |
+    | "coloque em produção ele por favor. na integra todo financeiro"
+    |
+    | Quando true, todas as rotas GET /financeiro/* retornam o HTML mock
+    | canon do bundle Cowork (public/cowork-preview/<tela>.html) literal,
+    | sem layout Laravel + sem Inertia. Sidebar oimpresso some no
+    | Financeiro (mock tem sidebar próprio canon Cowork).
+    |
+    | Reversível: setar FINANCEIRO_MOCK_COWORK=false no .env (ou commit
+    | mudança aqui pra false) quando quiser voltar pra render Inertia
+    | normal (Pages/Financeiro/Unificado/Index.tsx etc).
+    |
+    | Tier 0 multi-tenant:
+    |   - middleware auth + Spatie permissions continuam no __construct
+    |     dos controllers — só usuário logado com permission acessa
+    |   - Mock NÃO tem business_id real (mostra dados ROTA LIVRE template)
+    |   - POST de baixa/edit continuam funcionando nas rotas reais
+    |     (só GETs renderizam mock)
+    |
+    | Cherry-pick falhou 4× (PR #1085 → #1091 → #1092 → #1094 → #1095).
+    | Adaptação Inertia errou layout o dia inteiro 2026-05-18.
+    | Solução: servir mock canon literal em prod, autorizar mudanças DEPOIS
+    | tela-por-tela.
+    */
+    'mock_cowork_mode' => (bool) env('FINANCEIRO_MOCK_COWORK', true),
+
+    /*
+    | Mapping rota.name → arquivo HTML mock canon servido de
+    | public/cowork-preview/.
+    |
+    | Quando rota não está mapeada, fallback é "Financeiro Unificado.html"
+    | (mock principal que contém sub-rotas via routing client-side React).
+    */
+    'mock_route_map' => [
+        'financeiro.unificado.index'        => 'Financeiro Unificado.html',
+        'financeiro.fluxo.index'            => 'Financeiro Unificado.html',
+        'financeiro.dashboard'              => 'Financeiro Unificado.html',
+        'financeiro.extrato.index'          => 'Financeiro Unificado.html',
+        'financeiro.relatorios.index'       => 'Financeiro Unificado.html',
+        'financeiro.plano-contas.index'     => 'Financeiro Unificado.html',
+        'financeiro.contas-receber.index'   => 'Financeiro Unificado.html',
+        'financeiro.contas-pagar.index'     => 'Financeiro Unificado.html',
+        'financeiro.contas-bancarias.index' => 'Financeiro Unificado.html',
+        'financeiro.assinaturas.index'      => 'Financeiro Unificado.html',
+        'financeiro.categorias.index'       => 'Financeiro Unificado.html',
+        'financeiro.boletos.index'          => 'Boleto e Contas Inter.html',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pluggy — Open Banking Brasil (estado-da-arte W27)
     |--------------------------------------------------------------------------
     |

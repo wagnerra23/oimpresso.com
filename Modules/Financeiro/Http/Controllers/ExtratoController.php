@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\ExtratoLancamento;
 
@@ -25,8 +26,14 @@ use Modules\Financeiro\Models\ExtratoLancamento;
  */
 class ExtratoController extends Controller
 {
-    public function index(Request $request, int $contaBancariaId): Response
+    use RendersMockCowork;
+
+    public function index(Request $request, int $contaBancariaId): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        if ($mock = $this->tryRenderMockCowork()) {
+            return $mock;
+        }
+
         $businessId = (int) $request->session()->get('business.id');
 
         // Conta header é cheap (firstOrFail single row) — fica eager.
