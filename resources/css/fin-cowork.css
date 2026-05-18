@@ -91,6 +91,21 @@
 .fin-curadoria .fin-btn-trilha { color: oklch(0.42 0.18 145); }
 .fin-curadoria .fin-btn-present { color: oklch(0.40 0.13 240); }
 
+/* Onda 7c — badge inline no botão (ex: "📄 Imprimir 3★") */
+.fin-curadoria .fin-btn-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 0 5px;
+  height: 16px;
+  border-radius: 8px;
+  background: oklch(0.93 0.10 75);
+  color: oklch(0.42 0.13 75);
+  margin-left: 4px;
+  line-height: 1;
+}
+
 /* ─────────────────────────────────────────────────────────────
  * KPI Stats grid (hero sparkline + 4 cards)
  * ───────────────────────────────────────────────────────────── */
