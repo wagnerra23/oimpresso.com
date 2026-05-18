@@ -69,6 +69,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->whereNumber('id')
             ->name('unificado.unconferir');
 
+        // Onda 8c 2026-05-18 — sparkline endpoint (saldo dia-a-dia últimos 30d)
+        // Pure-read, JSON, Tier 0 multi-tenant via business_id global scope.
+        Route::get('/unificado/saldo-sparkline', [UnificadoController::class, 'saldoSparkline'])
+            ->name('unificado.saldo-sparkline');
+
         // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
         Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
