@@ -2,7 +2,7 @@
 
 > Visão unificada de AR/AP (Contas a Receber / Contas a Pagar) + Fluxo de Caixa + Boletos + Conciliação. Cockpit V2 persona Eliana [E] (financeiro escritório, densidade alta, atalhos teclado).
 
-**Última atualização:** 2026-05-16 · Wave 18 RETRY saturação 68→97 · Skill `brief-update` (Tier B)
+**Última atualização:** 2026-05-18 · Onda Edit PR #1086 (Edit Sheet inline + Conferido per-user DB + cross-links auto-pop) · Skill `brief-update` (Tier B)
 
 ## Estado consolidado (Wave 18 RETRY — saturação 68→97)
 
@@ -24,6 +24,9 @@
 - **Extrato** — `fin_extrato_lancamentos` para conciliação OFX/CSV (US-FIN futuros).
 - **Plano de Contas BR** — Seeder pronto (`PlanoContasBrSeeder`) + categorização hierárquica `fin_categorias`.
 - **Integrações** — `TransactionObserver` + `TransactionPaymentObserver` propagam vendas core UltimatePOS → Títulos; `CriarTituloDeVendaJob` assíncrono.
+- **Edit Sheet inline (Onda Edit 2026-05-18, PR #1086)** — `TituloEditSheet.tsx` drawer canon edita campos seguros (`cliente_descricao`, `observacoes`, `categoria_id`, `vencimento`, `valor_total` pré-baixa). PUT `/financeiro/unificado/{id}` via `useForm` Inertia. Guard `assertValorMutavel` bloqueia valor pós-baixa (ADR fin-tech/0002). Substitui STUB `<Button>Editar</Button>` linha 706 do Index.tsx.
+- **Conferido per-user DB (Onda Edit, substitui Onda 5 R1 localStorage)** — `fin_titulos.conferido_by` (FK users.id) + `conferido_at` (TIMESTAMP) + index `idx_business_conferido`. Eliana confere ≠ Wagner confere = audit per-user. Routes POST/DELETE `/unificado/{id}/conferir`. `FinConferidoToggle` rewrite: `useFinConferido(lancamentos)` consulta DB-backed via prop array.
+- **Cross-links auto-pop #V-/#PC-** — `TituloAutoService::sincronizarDeTransacaoInternal` enriquece `cliente_descricao` com `{ContactName} · #V-{tx_id}` (vendas) ou `#PC-{tx_id}` (compras) no afterCreate. FinCrossLinkify renderiza pills clicáveis route → Sells/Compras. Preserva edit manual user (não sobrescreve se já preenchido).
 
 ## Multi-tenant Tier 0 (ADR 0093)
 
@@ -38,11 +41,11 @@ Todas Models usam `BusinessScope` trait (`Modules/Financeiro/Models/Concerns/Bus
 
 ## Arquitetura
 
-- **Controllers (13):** Boleto, Categoria, ContaBancaria, ContaPagar, ContaReceber, Dashboard, Data, Extrato, Financeiro, Fluxo, Install, Relatorios, Unificado
-- **Services (4):** FluxoCaixaService (projeção read-side), TituloService (boleto lifecycle), TituloAutoService (origem auto vendas/compras), UnificadoService (facade KPIs cockpit)
+- **Controllers (13):** Boleto, Categoria, ContaBancaria, ContaPagar, ContaReceber, Dashboard, Data, Extrato, Financeiro, Fluxo, Install, Relatorios, Unificado (com `update`+`conferir`+`unconferir` Onda Edit)
+- **Services (4):** FluxoCaixaService (projeção read-side), TituloService (boleto lifecycle), TituloAutoService (origem auto vendas/compras + cross-links #V-/#PC- Onda Edit), UnificadoService (facade KPIs cockpit)
 - **Repositories (2):** TituloRepository (Wave 18), BaixaRepository (Wave 18 RETRY) — singleton, type-safe `businessId:int` 1º param
-- **Models (10):** Titulo, TituloBaixa, CaixaMovimento, Categoria, ContaBancaria, BoletoRemessa, ExtratoLancamento, PlanoConta, AccountsLegacyMap
-- **FormRequests (6):** UpsertCategoriaRequest, UpsertContaBancariaRequest, StoreTransactionRequest, UpdateTransactionRequest, StoreAccountRequest, FluxoFiltroRequest, StoreBaixaRequest (Wave 18 RETRY), UpdateAccountRequest (Wave 18 RETRY)
+- **Models (10):** Titulo (Onda Edit: +`conferidoPor()` BelongsTo App\User), TituloBaixa, CaixaMovimento, Categoria, ContaBancaria, BoletoRemessa, ExtratoLancamento, PlanoConta, AccountsLegacyMap
+- **FormRequests (7):** UpsertCategoriaRequest, UpsertContaBancariaRequest, StoreTransactionRequest, UpdateTransactionRequest, StoreAccountRequest, FluxoFiltroRequest, StoreBaixaRequest, UpdateAccountRequest, UpdateTituloRequest (Onda Edit — guard imutabilidade pós-baixa)
 - **Strategies:** `CnabDirectStrategy` (default boleto via CNAB 240)
 - **Observers:** TransactionObserver, TransactionPaymentObserver (sync vendas core → Títulos)
 - **Pages Inertia (13 charters):** Cockpit V2 padrão; Fluxo, Unificado, ContasReceber, ContasPagar, Boletos validados visualmente
