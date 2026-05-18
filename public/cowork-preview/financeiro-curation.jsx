@@ -345,6 +345,8 @@
       const t = text.trim();
       if (!t) return;
       comments.add(rowId, t, "Eliana");
+      // Onda Comments DB 2026-05-18 — bridge JS escuta este event e faz POST real (try/catch silencioso, mock segue se bridge não carregou).
+      try { window.dispatchEvent(new CustomEvent("oimpresso:fin-comment-add", { detail: { rowId, text: t } })); } catch (e) {}
       setText("");
     };
     return (

@@ -74,6 +74,18 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('/unificado/saldo-sparkline', [UnificadoController::class, 'saldoSparkline'])
             ->name('unificado.saldo-sparkline');
 
+        // Onda Comments + Audit DB 2026-05-18 — persiste comments do FinCommentsThread
+        // em DB + serve audit trail real do Spatie ActivityLog. Tier 0 via session.
+        Route::get('/unificado/{tituloId}/comments', [UnificadoController::class, 'comments'])
+            ->whereNumber('tituloId')
+            ->name('unificado.comments');
+        Route::post('/unificado/{tituloId}/comments', [UnificadoController::class, 'addComment'])
+            ->whereNumber('tituloId')
+            ->name('unificado.comments.add');
+        Route::get('/unificado/{tituloId}/audit', [UnificadoController::class, 'auditTrail'])
+            ->whereNumber('tituloId')
+            ->name('unificado.audit');
+
         // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
         Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
