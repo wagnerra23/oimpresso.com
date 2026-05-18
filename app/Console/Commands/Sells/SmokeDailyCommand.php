@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Sells;
 
+use App\Notifications\SellsSmokeFailedNotification;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
@@ -64,6 +66,7 @@ class SmokeDailyCommand extends Command
             $this->error($msg);
             if ($this->option('notify')) {
                 Log::channel('single')->error($msg);
+                $this->dispatchSlackNotify();
             }
 
             return self::FAILURE;
@@ -229,5 +232,45 @@ class SmokeDailyCommand extends Command
         }
 
         $this->line('  · coworkAggregates: '.(empty($missing) ? 'shape canônico OK' : 'drift detectado'));
+    }
+
+    /**
+     * Dispara notificação Slack via Incoming Webhook (gap Onda 6).
+     *
+     * Só roda se `--notify` foi passado E env `SLACK_SMOKE_WEBHOOK_URL`
+     * estiver setada em `config/services.php` → `slack.smoke_webhook_url`.
+     * Default null = no-op silencioso (smoke ainda loga ALERT no log).
+     *
+     * Falha de rede (Slack down, DNS, timeout) NÃO derruba o smoke —
+     * só loga warning em `Log::channel('single')`. Smoke retorna FAILURE
+     * mesmo sem Slack porque o check falhou — Slack é só broadcast.
+     *
+     * Timeout 5s pra não segurar cron (smoke roda 06:30 BRT antes da equipe).
+     */
+    protected function dispatchSlackNotify(): void
+    {
+        $slackUrl = config('services.slack.smoke_webhook_url');
+        if (empty($slackUrl)) {
+            return;
+        }
+
+        try {
+            $notification = new SellsSmokeFailedNotification($this->failures);
+            $payload = $notification->toSlackPayload();
+
+            $response = Http::timeout(5)->post($slackUrl, $payload);
+
+            if ($response->successful()) {
+                $this->line('  · slack notify enviado ('.$response->status().')');
+            } else {
+                Log::channel('single')->warning(
+                    '[sells:smoke-daily] Slack webhook respondeu HTTP '.$response->status()
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::channel('single')->warning(
+                '[sells:smoke-daily] Slack notify falhou: '.$e->getMessage()
+            );
+        }
     }
 }
