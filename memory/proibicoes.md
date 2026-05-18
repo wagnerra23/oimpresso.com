@@ -110,6 +110,21 @@
   - 2026-04-21: módulo desativado após upgrade 6.7
 - ⛔ **Não criar `Modules/X/Tests/` sem registrar em `phpunit.xml`** — testes ficam no repo mas CI nunca roda → falsa cobertura
 
+## Design System / Pacote Cowork novo (Tier 0 — sessão 2026-05-18 Wagner)
+
+> Catalogado após 3 tentativas falhas no Financeiro ([PR #1085](https://github.com/wagnerra23/oimpresso.com/pull/1085) → [#1091](https://github.com/wagnerra23/oimpresso.com/pull/1091) → [#1092](https://github.com/wagnerra23/oimpresso.com/pull/1092)) onde cherry-pick incremental de classes deixou drawer/painéis quebrados (cores erradas, abas faltando, textos colados). Wagner palavras textuais 2026-05-18: *"não deu certo, acredito que deva copiar o css na integra do financeiro. depois ver o que precisa fazer para integrar. 3 vez que errou. e deu certo nos outros módulos quando na primeiras vez do modulo copiar tudo. e depois customizar."*
+
+- ⛔ **Cherry-pick incremental** de classes CSS do bundle Cowork pra módulo recém-chegando — banido. PRIMEIRA aplicação = COPIAR `styles.css` INTEIRO do bundle direto pro projeto (`resources/css/cowork-<modulo>-bundle.css`). Customização Inertia/React vem DEPOIS. Cherry-pick gasta 3-5 ondas iterando bugs visuais que Wagner reabre.
+- ⛔ **Misturar bundle copy com customização Inertia/React em mesma PR** — separar: 1 PR de bundle copy ("base canônica") + N PRs de customização. Bundle deve passar smoke independente antes de qualquer Edit em `.tsx`.
+- ⛔ **Aplicar bundle Cowork SEM scopear** — bundles trazem classes globais (sem `.fin-curadoria` wrapper). Validar que classes não colidem com outros módulos: se colidir, importar bundle com `@scope` ou `@layer` específico do módulo.
+- ⛔ **Esquecer de validar com Chrome MCP CSS computed** pós-merge bundle copy — `feedback-brave-mcp-primeiro-sempre.md` aplica em dobro: bundles novos exigem screenshot + smoke antes de declarar pronto.
+
+**Detalhe completo (procedimento canônico 7 passos + quando aplicar + validação histórica + o que falhou no Financeiro)** em [`memory/reference/feedback-cowork-bundle-aplicar-inteiro.md`](reference/feedback-cowork-bundle-aplicar-inteiro.md).
+
+**Validado historicamente (referência):** Vendas (Sells/Index, Sells/Create), Pedidos (POS layout v1), Cockpit (AppShellV2) — todos primeira aplicação foi bundle inteiro.
+
+---
+
 ## Memória/governança
 
 - ⛔ **ZERO auto-mem privada legada** ([ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) + [ADR 0131](decisions/0131-tiering-memoria-canonico-local-segredo.md)). Hook `block-automem.ps1` BLOQUEIA `Write/Edit` em `~/.claude/projects/*/memory/*.md`. **Escape valves legítimas (ADR 0131):** (a) `~/.claude/oimpresso-local/**` pra máquina-local pessoal; (b) Vaultwarden pra segredos. Critério: segredo? → Vaultwarden; só seu? → oimpresso-local; time precisa ver? → git canônico
