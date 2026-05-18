@@ -556,6 +556,40 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     []
   );
 
+  // Fix bug "vendas só aparecem até dia 14" (2026-05-18): se filter de data
+  // está ativo (datePreset !== 'all' ou dateFrom/dateTo populado), mostra hint
+  // visível acima das pills. Se dateTo < ontem, alerta como "Filtro antigo".
+  const clearDateFilter = useCallback(() => {
+    setDatePreset('all');
+    setDateFrom('');
+    setDateTo('');
+    lsSet('datePreset', 'all');
+    lsSet('dateFrom', '');
+    lsSet('dateTo', '');
+  }, []);
+
+  const dateFilterActive = datePreset !== 'all' || dateFrom !== '' || dateTo !== '';
+  const dateFilterStale = useMemo(() => {
+    if (!dateTo) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today.getTime() - 86_400_000);
+    const toDate = new Date(dateTo);
+    return !isNaN(toDate.getTime()) && toDate < yesterday;
+  }, [dateTo]);
+
+  const dateFilterLabel = useMemo(() => {
+    if (!dateFilterActive) return '';
+    if (datePreset === 'day') return 'hoje';
+    if (datePreset === 'week') return 'esta semana';
+    if (datePreset === 'month') return 'este mês';
+    if (datePreset === 'year') return 'este ano';
+    if (dateFrom && dateTo) return `${dateFrom} → ${dateTo}`;
+    if (dateTo) return `até ${dateTo}`;
+    if (dateFrom) return `desde ${dateFrom}`;
+    return '';
+  }, [datePreset, dateFrom, dateTo, dateFilterActive]);
+
   // Toggle de visibilidade da barra (default fechado pra não poluir o Cowork visual).
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => lsGet('advancedOpen', '0') === '1');
   useEffect(() => lsSet('advancedOpen', advancedOpen ? '1' : '0'), [advancedOpen]);
@@ -1178,6 +1212,28 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </div>
           )}
         </div>
+
+        {/* Fix bug 2026-05-18: hint visível pra filter de data ativo (proteção
+            contra localStorage stale que escondia vendas dos últimos dias). */}
+        {dateFilterActive && (
+          <div className={'vd-date-filter-hint' + (dateFilterStale ? ' stale' : '')} role="status">
+            <span className="vd-date-filter-hint-ic">{dateFilterStale ? '⚠' : '📅'}</span>
+            <span className="vd-date-filter-hint-tx">
+              {dateFilterStale ? <b>Filtro antigo escondendo vendas novas:</b> : <b>Filtro de data ativo:</b>}
+              {' '}
+              <span className="vd-date-filter-hint-range">{dateFilterLabel}</span>
+              {dateFilterStale && <small> · vendas após {dateTo} ficam ocultas</small>}
+            </span>
+            <button
+              type="button"
+              className="vd-date-filter-hint-clear"
+              onClick={clearDateFilter}
+              title="Limpar filtro de data (mostra todas as vendas)"
+            >
+              Limpar filtro
+            </button>
+          </div>
+        )}
 
         {/* 5 status pills + toggle "Filtros avançados ▾" (PR follow-up) */}
         <div className="vd-tabs-row">
