@@ -51,10 +51,8 @@ class DataController extends Controller
         $user = auth()->user();
         if (!$user->can('governance.dashboard.view')) return;
 
-        // Wagner 2026-05-18: esconder pra biz=4 (ROTA LIVRE Larissa). Ela não
-        // usa governance (audit log + module grade gate são features dev/ops).
-        $business_id = (int) session('user.business_id');
-        if ($business_id === 4) return;
+        // Visibilidade per-business é via subscription package
+        // (Modules/Superadmin/PackagesController). NUNCA hardcode biz=N.
 
         Menu::modify('admin-sidebar-menu', function ($menu) {
             $menu->url(

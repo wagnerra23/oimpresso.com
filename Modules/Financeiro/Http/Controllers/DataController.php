@@ -77,18 +77,14 @@ class DataController extends Controller
             return;
         }
 
-        // Wagner 2026-05-18: liberar pra biz=4 (ROTA LIVRE Larissa, cliente piloto).
-        // Pre-2026-05-18 era SUPERADMIN-ONLY (em desenvolvimento, pedido 2026-04-25).
-        // Após Onda 7 KB-9.75 entregar Curadoria+IA+CrossLink, módulo está em
-        // estado piloto-ready. Larissa vai usar; outros businesses (que ainda
-        // não pediram explicitamente) seguem bloqueados pra evitar confusão.
-        $business_id = (int) session('user.business_id');
-        $piloto_rotalivre = ($business_id === 4);
-        if (
-            ! auth()->user()->can('superadmin')
-            && ! $piloto_rotalivre
-            && ! auth()->user()->can('financeiro.access')
-        ) {
+        // Wagner 2026-05-18: removido gate SUPERADMIN-ONLY (era "em desenvolvimento"
+        // 2026-04-25). Após Onda 7 KB-9.75 (Curadoria+IA+CrossLink) módulo está
+        // piloto-ready. Visibilidade agora controlada pelo pacote subscription
+        // do business (configurável via Modules/Superadmin/PackagesController) +
+        // permissão de usuário `financeiro.access` — pattern UltimatePOS canon
+        // (NÃO hardcode biz=N — Wagner 2026-05-18: "habilitar é compra de
+        // pacote no modulo superadmin").
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('financeiro.access')) {
             return;
         }
 
