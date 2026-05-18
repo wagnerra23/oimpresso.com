@@ -134,8 +134,83 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
   );
 }
 
+/**
+ * Onda 8 KB-9.75 — KPI bar Cowork canon: hero "Saldo previsto" com sparkline
+ * SVG inline + 4 cards secundários. Substitui shadcn KpiCard flat antigo.
+ *
+ * Sparkline mostra trajetória do saldo ao longo do mês (placeholder estático
+ * agora — Onda 8b plugará dados reais via /api/financeiro/saldo-sparkline).
+ */
+function FinSparkline({ tone = 'pos' }: { tone?: 'pos' | 'neg' }) {
+  // Path placeholder estático — Onda 8b: data prop com 30d real.
+  const color = tone === 'pos' ? 'oklch(0.78 0.13 145)' : 'oklch(0.65 0.18 25)';
+  return (
+    <svg className="fin-spark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="finSparkG" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.5" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8 L200,36 L0,36 Z"
+        fill="url(#finSparkG)"
+      />
+      <path
+        d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8"
+        stroke={color}
+        strokeWidth="1.5"
+        fill="none"
+      />
+      <line x1="0" y1="24" x2="200" y2="24" stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
+    </svg>
+  );
+}
+
 function KpiBar({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabId) => void }) {
-  // Drill-down por click — ADR ui/0002 §"Princípios de UX": click no KPI filtra tabela.
+  // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
+  // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
+  const pendente = kpis.a_receber.valor - kpis.a_pagar.valor;
+  return (
+    <div className="fin-stats">
+      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onTabClick('open')} aria-label="Filtrar abertos">
+        <small>Saldo previsto · maio</small>
+        <b>{brl(kpis.saldo_previsto)}</b>
+        <span className="fin-stat-hint">
+          <b className="mono">{brl(kpis.recebido.valor - kpis.pago.valor)}</b> realizado · <span className={pendente >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(pendente)}</span> pendente
+        </span>
+        <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} />
+      </button>
+
+      <button type="button" className="fin-stat" onClick={() => onTabClick('received')} aria-label="Filtrar recebidas">
+        <small>Recebido</small>
+        <b className="fin-num-pos">{brl(kpis.recebido.valor)}</b>
+        <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
+      </button>
+
+      <button type="button" className="fin-stat" onClick={() => onTabClick('rec')} aria-label="Filtrar a receber">
+        <small>A receber</small>
+        <b>{brl(kpis.a_receber.valor)}</b>
+        <span className="fin-stat-hint">{kpis.a_receber.qtd} títulos</span>
+      </button>
+
+      <button type="button" className="fin-stat" onClick={() => onTabClick('paid')} aria-label="Filtrar pagas">
+        <small>Pago</small>
+        <b className="fin-num-neg">{brl(kpis.pago.valor)}</b>
+        <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
+      </button>
+
+      <button type="button" className="fin-stat" onClick={() => onTabClick('pay')} aria-label="Filtrar a pagar">
+        <small>A pagar</small>
+        <b>{brl(kpis.a_pagar.valor)}</b>
+        <span className="fin-stat-hint">{kpis.a_pagar.qtd} títulos</span>
+      </button>
+    </div>
+  );
+}
+
+// Versão antiga (preservada como referência — pode ser removida na Onda 8b polish).
+function _KpiBarLegacy({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabId) => void }) {
   return (
     <div className="mt-4 grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
       <KpiCard
@@ -282,29 +357,55 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
   return (
     <div className="fin-curadoria">
-      <PageHeader
-        icon="coins"
-        title="Financeiro · Visão unificada"
-        description={businessName ? `${periodLabel} · ${businessName}` : periodLabel}
-        action={
-          <div className="flex gap-2 items-center">
-            <button
-              type="button"
-              className="fin-fechamento-trigger"
-              onClick={() => setChecklistOpen(true)}
-              title="Trilha de 12 passos do fechamento mensal"
-            >
-              ☑ Fechamento
-            </button>
-            <Button variant="outline" size="sm" onClick={() => router.visit('/financeiro/extrato')}>
-              Conciliar
-            </Button>
-            <Button size="sm" onClick={() => router.visit('/financeiro/unificado/novo')}>
-              + Novo
-            </Button>
-          </div>
-        }
-      />
+      {/* Onda 8 Cowork: page header canon com h1 + breadcrumb + 7 botões.
+          Substitui PageHeader shadcn legacy (mantido em _KpiBarLegacy + comentário). */}
+      <div className="fin-page-h">
+        <div className="fin-page-h-l">
+          <h1>
+            Financeiro <span className="fin-hero-title-sub">· Visão unificada</span>
+          </h1>
+          <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
+        </div>
+        <div className="fin-page-h-r">
+          <button type="button" className="fin-btn" onClick={() => setPaletteOpen(true)}>
+            🔍 Buscar
+            <kbd>⌘K</kbd>
+          </button>
+          <button
+            type="button"
+            className="fin-btn fin-btn-ai"
+            title="Resumo executivo do mês com IA (Onda 9 — em construção)"
+            onClick={() => alert('Resumir mês: feature Onda 9 — JanaService agent (em construção)')}
+          >
+            ✦ Resumir mês
+          </button>
+          <button
+            type="button"
+            className="fin-btn fin-btn-trilha"
+            onClick={() => setChecklistOpen(true)}
+            title="Trilha de 12 passos do fechamento mensal"
+          >
+            ☑ Fechamento
+          </button>
+          <button
+            type="button"
+            className="fin-btn fin-btn-present"
+            title="Modo apresentação fullscreen (Onda 7b — em construção)"
+            onClick={() => alert('Apresentar: feature Onda 7b — FinPresentationMode (em construção)')}
+          >
+            ▶ Apresentar
+          </button>
+          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/extrato')}>
+            ↺ Conciliar
+          </button>
+          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas — categorias contábeis">
+            📁 Plano de contas
+          </button>
+          <button type="button" className="fin-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
+            + Novo lançamento
+          </button>
+        </div>
+      </div>
 
       <KpiBar kpis={kpis} onTabClick={(tab) => aplicar({ tab })} />
 
@@ -529,13 +630,14 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </CommandList>
       </CommandDialog>
 
-      {/* Footer sticky com atalhos */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-stone-200 bg-white/95 backdrop-blur px-6 py-2 text-[11.5px] text-stone-500 flex gap-4">
-        <span><kbd className="px-1 rounded border border-stone-200 bg-stone-50">⌘K</kbd> palette</span>
-        <span><kbd className="px-1 rounded border border-stone-200 bg-stone-50">/</kbd> buscar</span>
-        <span><kbd className="px-1 rounded border border-stone-200 bg-stone-50">J</kbd>/<kbd className="px-1 rounded border border-stone-200 bg-stone-50">K</kbd> navegar</span>
-        <span><kbd className="px-1 rounded border border-stone-200 bg-stone-50">␣</kbd> selecionar</span>
-        <span className="ml-auto">Densidade: <strong>{filters.densidade}</strong></span>
+      {/* Onda 8 Cowork: footer atalhos canon (oklch tokens via .fin-footer-tips) */}
+      <div className="fin-footer-tips">
+        <span><kbd>⌘K</kbd> palette</span>
+        <span><kbd>/</kbd> buscar</span>
+        <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
+        <span><kbd>␣</kbd> marcar pago/recebido</span>
+        <span className="spacer" />
+        <span>Densidade: <strong>{filters.densidade}</strong></span>
       </div>
 
       {/* Cowork KB-9.75 Onda 7 R3 — Trilha fechamento dialog */}
