@@ -74,6 +74,13 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('/unificado/saldo-sparkline', [UnificadoController::class, 'saldoSparkline'])
             ->name('unificado.saldo-sparkline');
 
+        // Onda #4b 2026-05-18 — sidebar REAL pro Mock Cowork (3 camadas universal).
+        // Bridge JS fetcha com header `X-Inertia: true` (senão middleware
+        // AdminSidebarMenu pula criação do Menu).
+        Route::get('/cowork-sidebar-data',
+            [\Modules\Financeiro\Http\Controllers\CoworkSidebarController::class, 'data']
+        )->name('cowork-sidebar-data');
+
         // Onda Comments + Audit DB 2026-05-18 — persiste comments do FinCommentsThread
         // em DB + serve audit trail real do Spatie ActivityLog. Tier 0 via session.
         Route::get('/unificado/{tituloId}/comments', [UnificadoController::class, 'comments'])
