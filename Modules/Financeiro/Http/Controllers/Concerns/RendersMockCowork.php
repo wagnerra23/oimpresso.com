@@ -130,6 +130,17 @@ trait RendersMockCowork
   <script src="/cowork-preview/_oimpresso-bridge-audit.js"></script>
 HTML;
 
+        // Onda #4 sidebar wrap — opt-in via FINANCEIRO_SIDEBAR_WRAP=true
+        // Default OFF em prod (Wagner valida visual antes de ativar).
+        if (config('financeiro.sidebar_wrap_enabled')) {
+            $injectionHead .= <<<'HTML'
+
+  <!-- Onda #4 oimpresso: sidebar AppShellV2 wrap (Approach C — CSS positioning + JS inject) -->
+  <link rel="stylesheet" href="/cowork-preview/_oimpresso-sidebar-wrapper.css" />
+  <script src="/cowork-preview/_oimpresso-bridge-sidebar.js"></script>
+HTML;
+        }
+
         if (str_contains($html, '<head>')) {
             $html = preg_replace(
                 '/<head>/i',
