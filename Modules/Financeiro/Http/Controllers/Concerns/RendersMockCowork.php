@@ -103,17 +103,23 @@ trait RendersMockCowork
             }
         }
 
+        // Integração #2: CSRF token meta tag pra bridge-posts.js fazer POST autenticado
+        $csrfToken = csrf_token();
         $injectionHead = <<<HTML
 <base href="/cowork-preview/" />
+  <meta name="csrf-token" content="{$csrfToken}" />
   <script>
-    // Mock Cowork Mode (Wagner 2026-05-18 + Integração #1):
+    // Mock Cowork Mode (Wagner 2026-05-18 + Integrações #1+#2):
     // - localStorage.route abre tela correta
     // - __OIMPRESSO_FIN_REAL__ carrega dados Eloquent do business logado
+    // - meta csrf-token pra bridge-posts.js fazer POST baixa
     try {
       localStorage.setItem('oimpresso.route', '{$coworkRouteEscaped}');
     } catch (e) {}
     window.__OIMPRESSO_FIN_REAL__ = {$realDataJson};
   </script>
+  <!-- Integração #2 oimpresso: bridge POSTs reais (Recebi/Paguei → /financeiro/unificado/{id}/baixar) -->
+  <script src="/cowork-preview/_oimpresso-bridge-posts.js"></script>
 HTML;
 
         if (str_contains($html, '<head>')) {
