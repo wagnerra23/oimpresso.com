@@ -146,6 +146,116 @@ if (! $is_enabled) return;
 // (lista permission_formatted definida em Superadmin)
 ```
 
+## Lista de módulos com gate canônico (descoberta em prod 2026-05-18)
+
+24+ chaves consultáveis via UI Superadmin/Packages:
+
+| Módulo | Chave package_details | Permission Spatie principal |
+|---|---|---|
+| Accounting (Contabilidade) | `accounting_module` | `accounting.view_account_summary` |
+| ADS | `ads_module` | `ads.access` |
+| Asset Management (Gestão de Ativos) | `assetmanagement_module` | `asset_management.view_asset` |
+| Auditoria | `auditoria_module` | `auditoria.view` |
+| CRM | `crm_module` | `crm.access` |
+| Comunicação Visual | `comunicacaovisual_module` | `comunicacaovisual.access` |
+| Connector | `connector_module` | `connector.access` |
+| Consulta OS (Portal) | `consultaos_module` | `consultaos.access` |
+| Essentials (Tarefas/Mensagens/Docs) | `essentials_module` | `essentials.access` |
+| Financeiro | `financeiro_module` | `financeiro.access` |
+| **Governance** ★ novo PR #1079 | `governance_module` | `governance.dashboard.view` |
+| Jana / Copiloto | `copiloto_module` | `copiloto.access` |
+| Knowledge Base (KB) | `kb_module` | `kb.access` |
+| Manufacturing (Fabricação) | `manufacturing_module` | `manufacturing.view` |
+| NF-e Brasil | `nfebrasil_module` | `nfebrasil.access` |
+| NFS-e | `nfse_module` | `nfse.access` |
+| Oficina Auto | `oficinaauto_module` | `oficinaauto.access` |
+| Ponto | `ponto_module` | `ponto.access` |
+| Product Catalogue | `productcatalogue_module` | `productcatalogue.access` |
+| Project Mgmt | `projectmgmt_module` | `projectmgmt.access` |
+| Recurring Billing (Cobrança Recorrente) | `recurringbilling_module` | `recurringbilling.access` |
+| Repair (Reparar) | `repair_module` | `repair.access` |
+| WhatsApp | `whatsapp_module` | `whatsapp.access` |
+| Woocommerce | `woocommerce_module` | `woocommerce.access_*` |
+
+**Core UltimatePOS** (gate via `session('business.enabled_modules')` array, configurável também no Package):
+- `expenses` (Despesas)
+- `service_staff` (Pedidos / Restaurant Orders)
+- `kitchen` (Cocina)
+- `tables` (Mesas)
+- `booking` (Reservas)
+- `modifiers` (Modificadores)
+
+## Caso o módulo NÃO tenha gate canônico — como criar (pattern PR #1079)
+
+Se ao auditar um módulo você descobrir que ele **não tem** `superadmin_package()` registrando uma `_module` permission, **adicione** seguindo este pattern (caso Governance PR #1079):
+
+```php
+// Modules/<Nome>/Http/Controllers/DataController.php
+
+use App\Utils\ModuleUtil;
+
+class DataController extends Controller
+{
+    // 1. Registrar permission package — aparece como checkbox em /superadmin/packages
+    public function superadmin_package(): array
+    {
+        return [
+            [
+                'name'    => 'nomemodulo_module',
+                'label'   => __('nomemodulo::nomemodulo.module_label'),
+                'default' => false,  // false = pacotes novos não vêm com módulo ativo
+            ],
+        ];
+    }
+
+    // 2. (opcional) Permissions Spatie do usuário — role-based dentro do business
+    public function user_permissions(): array
+    {
+        return [
+            [ 'value' => 'nomemodulo.access', 'label' => '...', 'default' => false ],
+        ];
+    }
+
+    // 3. modifyAdminMenu() com 3 gates em ordem
+    public function modifyAdminMenu(): void
+    {
+        if (! auth()->check()) return;
+        $module_util = new ModuleUtil();
+
+        // Gate 1: pacote subscription
+        if (auth()->user()->can('superadmin')) {
+            $is_enabled = $module_util->isModuleInstalled('NomeModulo');
+        } else {
+            $business_id = session()->get('user.business_id');
+            $is_enabled = (bool) $module_util->hasThePermissionInSubscription(
+                $business_id, 'nomemodulo_module', 'superadmin_package'
+            );
+        }
+        if (! $is_enabled) return;
+
+        // Gate 2: permission Spatie do usuário
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('nomemodulo.access')) {
+            return;
+        }
+
+        // Gate 3: render menu
+        Menu::modify('admin-sidebar-menu', function ($menu) { /* ... */ });
+    }
+}
+```
+
+E **registrar Pest estrutural** garantindo que NÃO há hardcode (template em `Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php`).
+
+## Defesas técnicas que previnem reincidência
+
+| Camada | Onde | O que faz |
+|---|---|---|
+| 1. Memória canônica | [`memory/proibicoes.md`](../proibicoes.md) §Multi-tenant Tier 0 IRREVOGÁVEL | Carrega em TODA sessão Claude via SessionStart hook |
+| 2. Memória detalhada | Este arquivo + cross-link em `_INDEX.md` | Time MCP (Felipe/Maiara/Eliana/Luiz) consulta via tools MCP |
+| 3. Pest anti-regressão geral | [`tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php`](../../tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php) | Varre TODOS DataControllers + Middlewares + Controllers em CI. Bloqueia merge se qualquer um introduzir `$business_id === N` hardcode |
+| 4. Pest test específico biz=4 | [`tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php`](../../tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php) | Anti-regressão histórica dos 5 arquivos tocados na sessão 2026-05-18 |
+| 5. Pest test específico Governance | `Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php` | Garante que gate canônico permanece + sem hardcode |
+
 ## Refs
 
 - `app/Utils/ModuleUtil.php:143` — `hasThePermissionInSubscription()` (canon)
@@ -153,6 +263,8 @@ if (! $is_enabled) return;
 - `Modules/Superadmin/Entities/Subscription.php` — `active_subscription($business_id)`
 - `Modules/Superadmin/Http/Controllers/PackagesController.php` — CRUD UI
 - ADR 0093 (multi-tenant Tier 0)
+- `memory/proibicoes.md` §"Multi-tenant Tier 0 IRREVOGÁVEL" (Tier 0)
+- `Modules/Auditoria/Http/Controllers/DataController.php` — template canônico de referência
 
 ## Anti-patterns
 
