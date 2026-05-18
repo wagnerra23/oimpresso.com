@@ -59,16 +59,41 @@ class UnificadoController extends Controller
                 'baixas.contaBancaria.account:id,name',
             ]);
 
-        // Tabs
-        match ($filters['tab']) {
-            'open' => $q->whereIn('status', ['aberto', 'parcial']),
-            'rec' => $q->where('tipo', 'receber')->whereIn('status', ['aberto', 'parcial']),
-            'pay' => $q->where('tipo', 'pagar')->whereIn('status', ['aberto', 'parcial']),
-            'received' => $q->where('tipo', 'receber')->where('status', 'quitado'),
-            'paid' => $q->where('tipo', 'pagar')->where('status', 'quitado'),
-            'late' => $q->whereIn('status', ['aberto', 'parcial'])->where('vencimento', '<', $hoje),
-            default => null,
-        };
+        // Onda Polish 2026-05-18 — lifecycle multi-select + toggle overdue independente.
+        // Lifecycle items combinam via OR (union); overdue é AND multiplicativo.
+        // Back-compat: se vazio + tab legacy presente, fallback pro mapping antigo.
+        if (! empty($filters['lifecycle'])) {
+            $q->where(function ($qq) use ($filters) {
+                foreach ($filters['lifecycle'] as $lc) {
+                    $qq->orWhere(function ($qqq) use ($lc) {
+                        match ($lc) {
+                            'ar' => $qqq->where('tipo', 'receber')->whereIn('status', ['aberto', 'parcial']),
+                            're' => $qqq->where('tipo', 'receber')->where('status', 'quitado'),
+                            'ap' => $qqq->where('tipo', 'pagar')->whereIn('status', ['aberto', 'parcial']),
+                            'pa' => $qqq->where('tipo', 'pagar')->where('status', 'quitado'),
+                            default => null,
+                        };
+                    });
+                }
+            });
+        } else {
+            // Back-compat tab legacy (bookmarks/links antigos).
+            match ($filters['tab']) {
+                'open' => $q->whereIn('status', ['aberto', 'parcial']),
+                'rec' => $q->where('tipo', 'receber')->whereIn('status', ['aberto', 'parcial']),
+                'pay' => $q->where('tipo', 'pagar')->whereIn('status', ['aberto', 'parcial']),
+                'received' => $q->where('tipo', 'receber')->where('status', 'quitado'),
+                'paid' => $q->where('tipo', 'pagar')->where('status', 'quitado'),
+                'late' => $q->whereIn('status', ['aberto', 'parcial'])->where('vencimento', '<', $hoje),
+                default => null,
+            };
+        }
+
+        // Toggle "Só atrasados" — AND multiplicativo (combina com lifecycle).
+        if (! empty($filters['overdue'])) {
+            $q->whereIn('status', ['aberto', 'parcial'])
+              ->where('vencimento', '<', $hoje);
+        }
 
         if ($filters['conta']) {
             $q->whereHas('baixas', fn ($qq) => $qq->where('conta_bancaria_id', $filters['conta']));
@@ -269,12 +294,28 @@ class UnificadoController extends Controller
     private function parseFilters(Request $request): array
     {
         $tabsValidas = ['all', 'open', 'rec', 'pay', 'received', 'paid', 'late'];
+        $lifecycleValidos = ['ar', 're', 'ap', 'pa'];
         $densidadesValidas = ['compact', 'comfortable', 'spacious'];
         $periodosValidos = ['mes_atual', 'mes_anterior', '30d', '90d'];
+
+        // Onda Polish 2026-05-18 — lifecycle aceita array OR string CSV ("ar,re").
+        $lifecycleRaw = $request->input('lifecycle', []);
+        if (is_string($lifecycleRaw)) {
+            $lifecycleRaw = $lifecycleRaw === '' ? [] : explode(',', $lifecycleRaw);
+        }
+        if (! is_array($lifecycleRaw)) {
+            $lifecycleRaw = [];
+        }
+        $lifecycle = array_values(array_unique(array_filter(
+            array_map('strval', $lifecycleRaw),
+            fn ($x) => in_array($x, $lifecycleValidos, true)
+        )));
 
         return [
             'tab' => in_array($request->string('tab')->toString(), $tabsValidas, true)
                 ? $request->string('tab')->toString() : 'all',
+            'lifecycle' => $lifecycle,
+            'overdue' => $request->boolean('overdue'),
             'busca' => trim($request->string('busca', '')->toString()),
             'conta' => $request->string('conta', '')->toString(),
             'categoria' => $request->string('categoria', '')->toString(),
