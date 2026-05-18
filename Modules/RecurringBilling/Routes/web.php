@@ -7,6 +7,7 @@ use Modules\RecurringBilling\Http\Controllers\InterWebhookController;
 use Modules\RecurringBilling\Http\Controllers\InvoiceController;
 use Modules\RecurringBilling\Http\Controllers\PlanController;
 use Modules\RecurringBilling\Http\Controllers\RecurringBillingController;
+use Modules\RecurringBilling\Http\Controllers\SubscriptionEventController;
 use Modules\RecurringBilling\Http\Controllers\SubscriptionFavoriteController;
 use Modules\RecurringBilling\Http\Controllers\SubscriptionNoteController;
 
@@ -60,6 +61,19 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('/{subscriptionId}/favorite', [SubscriptionFavoriteController::class, 'toggle'])
             ->whereNumber('subscriptionId')
             ->name('recurring-billing.favorite');
+
+        // Onda 16 v9,75 — Timeline append-only (events + notes humanas no mesmo stream).
+        Route::get('/{subscriptionId}/events', [SubscriptionEventController::class, 'index'])
+            ->whereNumber('subscriptionId')
+            ->name('recurring-billing.events.index');
+        Route::post('/{subscriptionId}/events', [SubscriptionEventController::class, 'store'])
+            ->whereNumber('subscriptionId')
+            ->name('recurring-billing.events.store');
+
+        // Onda 20 v9,75 — Reenviar NFe wire (delega pra NfeBrasil canon endpoint).
+        Route::post('/{subscriptionId}/reenviar-nfe', [RecurringBillingController::class, 'reenviarNfe'])
+            ->whereNumber('subscriptionId')
+            ->name('recurring-billing.reenviar-nfe');
 
         Route::get('/faturas', [InvoiceController::class, 'index'])
             ->name('recurring-billing.faturas.index');
