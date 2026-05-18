@@ -77,29 +77,67 @@ class DataController extends Controller
             return;
         }
 
-        // SUPERADMIN-ONLY (em desenvolvimento) — pedido Wagner 2026-04-25.
-        // Razão: módulo ainda em construção; só Wagner deve ver no menu pra
-        // evitar confusão de usuários comuns com features incompletas.
-        // Quando módulo virar produção, voltar pra:
-        //   auth()->user()->can('superadmin') || auth()->user()->can('financeiro.access')
-        if (! auth()->user()->can('superadmin')) {
+        // Wagner 2026-05-18: liberar pra biz=4 (ROTA LIVRE Larissa, cliente piloto).
+        // Pre-2026-05-18 era SUPERADMIN-ONLY (em desenvolvimento, pedido 2026-04-25).
+        // Após Onda 7 KB-9.75 entregar Curadoria+IA+CrossLink, módulo está em
+        // estado piloto-ready. Larissa vai usar; outros businesses (que ainda
+        // não pediram explicitamente) seguem bloqueados pra evitar confusão.
+        $business_id = (int) session('user.business_id');
+        $piloto_rotalivre = ($business_id === 4);
+        if (
+            ! auth()->user()->can('superadmin')
+            && ! $piloto_rotalivre
+            && ! auth()->user()->can('financeiro.access')
+        ) {
             return;
         }
 
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $segmento_ativo = request()->segment(1) == 'financeiro';
 
-        // Sidebar: link direto pra Visao Unificada (Wagner 2026-05-11 — submenu removido,
-        // "perguntar menos automatizar mais"). Sub-telas (contas-receber, contas-pagar,
-        // contas-bancarias, boletos, conciliacao, categorias, relatorios) continuam
-        // acessiveis via URL direta + navegacao interna do unificado.
-        // Permission gates permanecem nos controllers — sidebar so esconde a entrada.
+        // Sidebar: Wagner 2026-05-18 pediu sub-items DRE/Fluxo de Caixa/Boletos
+        // visíveis pra ROTA LIVRE (cliente piloto vai usar fechamento mensal).
+        // 4 entradas no dropdown — Visão unificada (default) + 3 sub-telas.
+        // Permission gates permanecem nos controllers (sidebar só esconde entrada).
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
-                $menu->url(
-                    url('/financeiro/unificado'),
+                $menu->dropdown(
                     __('financeiro::financeiro.module_label'),
+                    function ($sub) {
+                        $sub->url(
+                            url('/financeiro/unificado'),
+                            __('financeiro::financeiro.module_label'),
+                            [
+                                'icon'   => 'fa fas fa-coins',
+                                'active' => request()->segment(2) == 'unificado' || request()->segment(2) == null,
+                            ]
+                        );
+                        $sub->url(
+                            url('/financeiro/fluxo'),
+                            __('financeiro::financeiro.cashflow_label'),
+                            [
+                                'icon'   => 'fa fas fa-chart-line',
+                                'active' => request()->segment(2) == 'fluxo',
+                            ]
+                        );
+                        $sub->url(
+                            url('/financeiro/relatorios/dre'),
+                            __('financeiro::financeiro.dre_label'),
+                            [
+                                'icon'   => 'fa fas fa-file-invoice-dollar',
+                                'active' => request()->segment(2) == 'relatorios' && request()->segment(3) == 'dre',
+                            ]
+                        );
+                        $sub->url(
+                            url('/financeiro/boletos'),
+                            __('financeiro::financeiro.boletos_label'),
+                            [
+                                'icon'   => 'fa fas fa-barcode',
+                                'active' => request()->segment(2) == 'boletos',
+                            ]
+                        );
+                    },
                     [
                         'icon'   => 'fa fas fa-coins',
                         'style'  => 'background-color:' . $background_color,
