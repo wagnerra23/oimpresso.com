@@ -266,12 +266,23 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/sells/{id}/ai-ask', [SellController::class, 'aiAsk']);
     // US-OFICINA-OS-LINK — Criar OS a partir da venda (modos: auto/single/per_line).
     Route::post('/sells/{id}/create-os', [SellController::class, 'createOs'])->name('sells.create-os');
+    // US-SELL-COWORK-R4-C1 — Transcript PDF server-side via Browsershot Chrome headless.
+    // Substitui window.print() do modal SaleTranscriptPDF.tsx por download forçado.
+    // Fallback 503 estruturado em runtimes sem Chrome (Hostinger shared) — frontend
+    // degrada gracefully ocultando botão (graceful degradation).
+    Route::get('/sells/{sale}/transcript.pdf', [\App\Http\Controllers\SellTranscriptPdfController::class, 'show'])
+        ->whereNumber('sale')
+        ->name('sells.transcript-pdf');
     // US-SELL-016 — Bulk actions (Grade Avançada — multiseleção).
     Route::post('/sells/bulk-print', [SellController::class, 'bulkPrint'])->name('sells.bulk-print');
     Route::post('/sells/bulk-export', [SellController::class, 'bulkExport'])->name('sells.bulk-export');
     // US-SELL-035 — Timeline FSM (sale_stage_history) pra drawer e auditoria.
     Route::get('/api/sells/{id}/history', [\App\Http\Controllers\SaleHistoryController::class, 'index'])
         ->name('sells.history');
+    // US-SELL-COWORK-R3-CURADORIA Onda 3.5 — Audit Trail FSM real (formato flat
+    // amigável pro componente SaleAuditTrail.tsx). Multi-tenant Tier 0.
+    Route::get('/sells/{sale}/audit', [\App\Http\Controllers\SellAuditController::class, 'show'])
+        ->name('sells.audit');
     // Wire-up UI FSM — actions disponíveis no stage atual + execute transição.
     Route::get('/api/sells/{id}/fsm-actions', [\App\Http\Controllers\SaleFsmActionController::class, 'actions'])
         ->name('sells.fsm-actions');

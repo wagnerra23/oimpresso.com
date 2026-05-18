@@ -14,6 +14,21 @@
 /* Sells Cowork Onda 4 R4 Distribuição — transcript PDF A4, presentation fullscreen, WhatsApp preview */
 @import "./sells-cowork-distribuicao.css";
 
+/* Sells/Show Cowork — readonly venda finalizada (espelha família Index) */
+@import "./sells-cowork-show.css";
+
+/* Sells/Quotations Cowork — lista orçamentos (extensões mínimas além da família Index) */
+@import "./sells-cowork-quotations.css";
+
+/* Sells/Drafts Cowork — lista rascunhos (extensões mínimas além da família Index) */
+@import "./sells-cowork-drafts.css";
+
+/* Sells/Edit Cowork — form edição venda (espelha família Index, irmão de Show) */
+@import "./sells-cowork-edit.css";
+
+/* Sells/Subscriptions Cowork — lista assinaturas recorrentes (extensões mínimas além da família Index) */
+@import "./sells-cowork-subscriptions.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 

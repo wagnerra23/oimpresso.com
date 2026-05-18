@@ -83,6 +83,10 @@ interface SaleRow {
   items_count: number;
   payment_method_label: string | null;
   installments: number;
+  // US-SELL-COWORK-COMMISSION — comissionado (gap PR #1043).
+  // Coluna só renderiza se coworkCommissionEnabled=true (setting business.sales_cmsn_agnt ≠ 'disable').
+  commission_agent_id?: number | null;
+  commission_agent_name?: string | null;
 }
 
 interface SellKpis {
@@ -128,6 +132,12 @@ export interface SellsIndexPageProps {
   };
   /** US-SELL-COWORK-R5-POLISH — Inertia::defer prop; undefined enquanto carrega. */
   coworkAggregates?: CoworkAggregates;
+  /**
+   * US-SELL-COWORK-COMMISSION — flag liga/desliga coluna Comissão na grade (gap PR #1043).
+   * true quando business_details.sales_cmsn_agnt ≠ 'disable'; false oculta coluna inteira.
+   * Default false (back-compat: sem setting habilitado, coluna não aparece).
+   */
+  coworkCommissionEnabled?: boolean;
   sells?: {
     viewMode?: {
       default?: string;
@@ -1265,13 +1275,19 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 <th style={{ width: 128 }}>Pagamento</th>
                 <th style={{ width: 110 }}>Total</th>
                 <th style={{ width: 88 }}>Status</th>
+                {/* US-SELL-COWORK-COMMISSION — coluna Comissão (gap PR #1043).
+                    Só renderiza se setting business.sales_cmsn_agnt ≠ 'disable'. */}
+                {props.coworkCommissionEnabled && (
+                  <th style={{ width: 120 }}>Comissão</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading &&
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={`sk${i}`} className="vd-sk-row">
-                    <td colSpan={10}>
+                    {/* US-SELL-COWORK-COMMISSION — colSpan dinâmico (10 base + 1 se Comissão habilitada). */}
+                    <td colSpan={props.coworkCommissionEnabled ? 11 : 10}>
                       <div className="vd-sk-bar" style={{ animationDelay: `${i * 60}ms` }} />
                     </td>
                   </tr>
@@ -1389,12 +1405,39 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                           </button>
                         </div>
                       </td>
+                      {/* US-SELL-COWORK-COMMISSION — célula Comissão (gap PR #1043).
+                          Truncate 12 chars + tooltip nome completo; "—" quando sem comissionado. */}
+                      {props.coworkCommissionEnabled && (
+                        <td className="vd-commission">
+                          {v.commission_agent_name ? (
+                            <span
+                              className="vd-commission-name"
+                              title={v.commission_agent_name}
+                              style={{
+                                display: 'inline-block',
+                                maxWidth: 108,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                verticalAlign: 'middle',
+                              }}
+                            >
+                              {v.commission_agent_name.length > 12
+                                ? v.commission_agent_name.slice(0, 12) + '…'
+                                : v.commission_agent_name}
+                            </span>
+                          ) : (
+                            <span style={{ opacity: 0.5 }}>—</span>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
               {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="os-empty">
+                  {/* US-SELL-COWORK-COMMISSION — colSpan dinâmico (10 base + 1 se Comissão habilitada). */}
+                  <td colSpan={props.coworkCommissionEnabled ? 11 : 10} className="os-empty">
                     {savedViewId === 'atrasadas' && (
                       <>
                         <b>Tudo dentro do prazo ✓</b>
