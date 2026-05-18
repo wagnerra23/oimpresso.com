@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
-  ArrowRightLeft, BarChart3, Barcode, Bell, BookOpen, Bot, Box, Calculator, Calendar,
+  ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   FileSearch, FileSpreadsheet, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
   MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
@@ -68,10 +68,12 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'contas de pagamento': Wallet,
   accounting: Calculator, contabilidade: Calculator,
   financeiro: Wallet,
-  // Wagner 2026-05-18: 3 entradas novas top-level KB-9.75 Financeiro
+  // Wagner 2026-05-18: 3 entradas novas top-level KB-9.75 Financeiro.
+  // "Boletos" renomeado pra "Gateway de Pagamento" — ícone CreditCard
+  // (mais inclusivo: Inter boleto + PIX + Asaas futuro).
   'fluxo de caixa': TrendingUp,
   'dre / relatórios': FileSpreadsheet,
-  boletos: Barcode,
+  'gateway de pagamento': CreditCard,
   'cobrança recorrente': RefreshCw,
   relatórios: BarChart3,
   reservas: Calendar,
@@ -137,9 +139,10 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'fin',
     label: 'FINANCEIRO',
-    // Wagner 2026-05-18: 3 labels novas (Fluxo de Caixa / DRE / Boletos) saíram
+    // Wagner 2026-05-18: 3 labels novas (Fluxo de Caixa / DRE / Gateway) saíram
     // do dropdown popover-2 pra entradas top-level — ficam visíveis sem click.
-    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Boletos', 'Cobrança Recorrente'],
+    // "Boletos" renomeado pra "Gateway de Pagamento" (Inter API + PIX + futuro).
+    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Gateway de Pagamento', 'Cobrança Recorrente'],
   },
   {
     key: 'estoque',

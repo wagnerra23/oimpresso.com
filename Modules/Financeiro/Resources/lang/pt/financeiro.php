@@ -4,7 +4,7 @@ return [
     'module_label' => 'Financeiro',
     'cashflow_label' => 'Fluxo de Caixa',
     'dre_label' => 'DRE / Relatórios',
-    'boletos_label' => 'Boletos',
+    'boletos_label' => 'Gateway de Pagamento',
 
     // Permissões
     'permissao_acesso' => 'Financeiro: acesso ao módulo',

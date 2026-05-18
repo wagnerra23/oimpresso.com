@@ -128,7 +128,15 @@ class DataController extends Controller
     {
         $module_util = new ModuleUtil();
 
-        $business_id = session()->get('user.business_id');
+        $business_id = (int) session()->get('user.business_id');
+
+        // Wagner 2026-05-18: esconder pra biz=4 (ROTA LIVRE Larissa). Vestuário
+        // não tem integração WooCommerce ativa. Pattern unificado com
+        // Despesas + Tarefas + Governança + Pedidos.
+        if ($business_id === 4) {
+            return;
+        }
+
         $is_woo_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'woocommerce_module', 'superadmin_package');
 
         if ($is_woo_enabled && (auth()->user()->can('woocommerce.syc_categories') || auth()->user()->can('woocommerce.sync_products') || auth()->user()->can('woocommerce.sync_orders') || auth()->user()->can('woocommerce.map_tax_rates') || auth()->user()->can('woocommerce.access_woocommerce_api_settings'))) {
