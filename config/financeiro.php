@@ -53,14 +53,18 @@ return [
     'mock_cowork_mode' => (bool) env('FINANCEIRO_MOCK_COWORK', true),
 
     /*
-    | Sidebar wrap (Onda #4) — substitui sidebar Cowork canon por sidebar
-    | oimpresso AppShellV2 (logout, troca business, navegação) via CSS
-    | injection. Wagner valida visual antes de ativar.
+    | Sidebar wrap (Onda #4b — sidebar REAL respeitando 3 camadas via
+    | ShellMenuBuilder + AdminSidebarMenu canon). Wagner ativou 2026-05-18.
     |
-    | Default FALSE em prod — kill-switch IRREVOGÁVEL pra reverter se
-    | quebrar layout. Ligar via: FINANCEIRO_SIDEBAR_WRAP=true no .env.
+    | Default TRUE em prod desde Onda #4b (PR #1113). Bridge JS fetcha
+    | /financeiro/cowork-sidebar-data e renderiza sidebar oimpresso filtrado
+    | por business + user + Spatie permissions.
+    |
+    | Kill-switch IRREVOGÁVEL pra reverter:
+    |   1. FINANCEIRO_SIDEBAR_WRAP=false no .env Hostinger
+    |   2. localStorage.setItem('__OIMPRESSO_SIDEBAR_OFF__', '1') runtime
     */
-    'sidebar_wrap_enabled' => (bool) env('FINANCEIRO_SIDEBAR_WRAP', false),
+    'sidebar_wrap_enabled' => (bool) env('FINANCEIRO_SIDEBAR_WRAP', true),
 
     /*
     | Mapping rota.name → arquivo HTML mock canon servido de
