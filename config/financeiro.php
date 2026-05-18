@@ -59,19 +59,30 @@ return [
     | Quando rota não está mapeada, fallback é "Financeiro Unificado.html"
     | (mock principal que contém sub-rotas via routing client-side React).
     */
+    /*
+    | Cada rota mapeia pra:
+    |   - html: arquivo em public/cowork-preview/ (Oimpresso ERP - Chat.html é
+    |     o SPA shell completo com app.jsx boot que monta TODOS módulos)
+    |   - cowork_route: valor que o trait injeta em localStorage["oimpresso.route"]
+    |     ANTES do app.jsx rodar, pra abrir a tela correta direto. Routes válidas
+    |     no app.jsx Cowork: financeiro / fin-fluxo / fin-dre / boletos
+    |
+    | Usar `Oimpresso ERP - Chat.html` (não Financeiro Unificado.html standalone)
+    | porque o standalone NÃO tem ReactDOM.createRoot() — só o Chat shell tem app.jsx.
+    */
     'mock_route_map' => [
-        'financeiro.unificado.index'        => 'Financeiro Unificado.html',
-        'financeiro.fluxo.index'            => 'Financeiro Unificado.html',
-        'financeiro.dashboard'              => 'Financeiro Unificado.html',
-        'financeiro.extrato.index'          => 'Financeiro Unificado.html',
-        'financeiro.relatorios.index'       => 'Financeiro Unificado.html',
-        'financeiro.plano-contas.index'     => 'Financeiro Unificado.html',
-        'financeiro.contas-receber.index'   => 'Financeiro Unificado.html',
-        'financeiro.contas-pagar.index'     => 'Financeiro Unificado.html',
-        'financeiro.contas-bancarias.index' => 'Financeiro Unificado.html',
-        'financeiro.assinaturas.index'      => 'Financeiro Unificado.html',
-        'financeiro.categorias.index'       => 'Financeiro Unificado.html',
-        'financeiro.boletos.index'          => 'Boleto e Contas Inter.html',
+        'financeiro.unificado.index'        => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.fluxo.index'            => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'fin-fluxo'],
+        'financeiro.dashboard'              => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.extrato.index'          => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.relatorios.index'       => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'fin-dre'],
+        'financeiro.plano-contas.index'     => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.contas-receber.index'   => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.contas-pagar.index'     => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.contas-bancarias.index' => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.assinaturas.index'      => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.categorias.index'       => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'financeiro'],
+        'financeiro.boletos.index'          => ['html' => 'Oimpresso ERP - Chat.html', 'cowork_route' => 'boletos'],
     ],
 
     /*
