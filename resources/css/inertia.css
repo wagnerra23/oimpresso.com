@@ -194,3 +194,61 @@
   min-height: 0;
   overflow: auto;
 }
+
+/* Fix bug 2026-05-18 "vendas até dia 14" — hint visível pra filter stale.
+ * Aparece acima da linha de status pills quando há filter de data ativo. */
+.sells-cowork .vd-date-filter-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid oklch(0.85 0.05 240);
+  background: oklch(0.97 0.04 240);
+  color: oklch(0.36 0.13 240);
+  font-size: 12.5px;
+}
+.sells-cowork .vd-date-filter-hint.stale {
+  border-color: oklch(0.65 0.18 60);
+  background: oklch(0.96 0.07 60);
+  color: oklch(0.40 0.18 60);
+}
+.sells-cowork .vd-date-filter-hint-ic {
+  font-size: 16px;
+  line-height: 1;
+}
+.sells-cowork .vd-date-filter-hint-tx {
+  flex: 1;
+  min-width: 0;
+}
+.sells-cowork .vd-date-filter-hint-tx b {
+  font-weight: 600;
+}
+.sells-cowork .vd-date-filter-hint-range {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+.sells-cowork .vd-date-filter-hint-tx small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.sells-cowork .vd-date-filter-hint-clear {
+  appearance: none;
+  background: white;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s;
+}
+.sells-cowork .vd-date-filter-hint-clear:hover {
+  filter: brightness(0.97);
+}
