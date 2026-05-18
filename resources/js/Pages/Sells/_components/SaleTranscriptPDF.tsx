@@ -9,8 +9,8 @@
 // trail + comentários inline + 2 assinaturas. `window.print()` ativa
 // @media print que esconde tudo menos a página.
 
-import { useEffect, type ReactNode } from 'react';
-import { X, Printer } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { X, Printer, Download } from 'lucide-react';
 
 interface TranscriptLine {
   id: number;
@@ -77,6 +77,12 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function SaleTranscriptPDF({ venda, open, onClose }: Props): ReactNode {
+  // R4 C1 — botão "Baixar PDF" complementar. Server-side PDF via Browsershot
+  // (Chrome headless) é opt-in: se runtime não tiver Browsershot disponível
+  // (ex: Hostinger shared), o endpoint devolve 503 e a UI esconde o botão
+  // graciosamente. Heurística client: tentar HEAD; se 503, hidePdfButton.
+  const [pdfAvailable, setPdfAvailable] = useState<boolean>(true);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -94,6 +100,7 @@ export default function SaleTranscriptPDF({ venda, open, onClose }: Props): Reac
 
   const itemsTotal = venda.lines.reduce((s, l) => s + l.subtotal, 0);
   const status = STATUS_LABEL[venda.payment_status] ?? venda.payment_status.toUpperCase();
+  const pdfUrl = `/sells/${venda.id}/transcript.pdf`;
 
   return (
     <div className="vd-transcript-bd" onClick={onClose}>
@@ -107,6 +114,32 @@ export default function SaleTranscriptPDF({ venda, open, onClose }: Props): Reac
           <Printer size={14} />
           Imprimir
         </button>
+        {pdfAvailable && (
+          <a
+            className="vd-transcript-pdf"
+            href={pdfUrl}
+            target="_blank"
+            rel="noopener"
+            title="Baixar PDF server-side (Chrome headless)"
+            onClick={(e) => {
+              // Probe leve: se servidor devolver 503, esconde o botão na próxima abertura
+              // e degrada pra window.print(). Não bloqueia o click (browser segue download).
+              fetch(pdfUrl, { method: 'HEAD' })
+                .then((r) => {
+                  if (r.status === 503) {
+                    setPdfAvailable(false);
+                    e.preventDefault();
+                  }
+                })
+                .catch(() => {
+                  /* offline: deixa browser tentar mesmo assim */
+                });
+            }}
+          >
+            <Download size={14} />
+            Baixar PDF
+          </a>
+        )}
         <button
           type="button"
           className="vd-transcript-close"
