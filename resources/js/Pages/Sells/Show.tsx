@@ -176,7 +176,10 @@ export default function SellsShow(props: SellsShowPageProps) {
     <>
       <Head title={`Venda #${headline.invoice_no}`} />
 
-      <div className="container mx-auto px-6 py-6 space-y-6">
+      {/* US-SELL-SHOW-COWORK marker — wrapper scoped pra CSS family sells-cowork (KB-9.75).
+          NÃO altera funcionalidade nem props. Apenas habilita tokens visuais oklch/IBM Plex
+          via resources/css/sells-cowork-show.css. Charter Show.charter.md preservado. */}
+      <div className="sells-cowork-show container mx-auto px-6 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-start gap-3">
