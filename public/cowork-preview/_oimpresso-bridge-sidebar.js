@@ -134,13 +134,17 @@
    * Em caso de erro, cai pra fallback hardcoded mínimo (não bloqueia render).
    */
   function fetchShellData() {
+    // PEGADINHA (skill sidebar-menu-arch): AdminSidebarMenu middleware pula
+    // Menu::create se `$request->ajax() && ! $request->header('X-Inertia')`.
+    // - X-Requested-With:XMLHttpRequest → ajax()=true → precisaria X-Inertia
+    // - X-Inertia:true → dispara HandleInertiaRequests version-check → HTTP 409
+    // Solução: SEM headers ajax — middleware vê request normal, cria Menu,
+    // controller retorna JsonResponse explicitamente.
     return fetch('/financeiro/cowork-sidebar-data', {
       method: 'GET',
       credentials: 'same-origin',
       headers: {
         'Accept': 'application/json',
-        'X-Inertia': 'true',
-        'X-Requested-With': 'XMLHttpRequest',
       },
     })
     .then(function (resp) {

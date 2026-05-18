@@ -24,7 +24,7 @@ use Illuminate\Http\Request;
  *   - 3 camadas implícitas via DataController::modifyAdminMenu de cada módulo
  *   - business_id session-derived (sem confusão tenant)
  *
- * PEGADINHA CRÍTICA (catalogada em skill sidebar-menu-arch):
+ * PEGADINHA CRÍTICA (descoberta 2026-05-18 via HTTP 409 em prod):
  *
  *   AdminSidebarMenu middleware pula `Menu::create()` em request AJAX que
  *   NÃO tem header `X-Inertia: true`:
@@ -33,8 +33,17 @@ use Illuminate\Http\Request;
  *         return $next($request);  // ← MENU FICA VAZIO
  *     }
  *
- *   Bridge JS precisa enviar `X-Inertia: true` no fetch pra middleware
- *   popular o Menu antes do controller chamar ShellMenuBuilder.
+ *   MAS se enviar `X-Inertia: true`, o HandleInertiaRequests middleware
+ *   global dispara version-check e retorna HTTP 409 quando bridge JS não
+ *   passa o asset version atual (não tem como — bridge é puro JS sem
+ *   Inertia client).
+ *
+ *   SOLUÇÃO: bridge JS envia request SEM `X-Requested-With:XMLHttpRequest`.
+ *   `$request->ajax()` retorna false → middleware NÃO entra no `if` →
+ *   cria Menu → controller serializa JSON normalmente.
+ *
+ *   Caveat: sem ajax header, redirect 302 (ex: user deslogado) vira HTML
+ *   no fetch. Bridge JS detecta status != 200 e cai pro fallback hardcoded.
  *
  * Rota: GET /financeiro/cowork-sidebar-data com middleware stack canon
  * Financeiro `['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu']`.
