@@ -64,7 +64,7 @@ return [
     |   1. FINANCEIRO_SIDEBAR_WRAP=false no .env Hostinger
     |   2. localStorage.setItem('__OIMPRESSO_SIDEBAR_OFF__', '1') runtime
     */
-    'sidebar_wrap_enabled' => (bool) env('FINANCEIRO_SIDEBAR_WRAP', true),
+    'sidebar_wrap_enabled' => (bool) env('FINANCEIRO_SIDEBAR_WRAP', false),
 
     /*
     | Mapping rota.name → arquivo HTML mock canon servido de
