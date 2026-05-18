@@ -47,22 +47,49 @@ return [
     |
     | Cherry-pick falhou 4× (PR #1085 → #1091 → #1092 → #1094 → #1095).
     | Adaptação Inertia errou layout o dia inteiro 2026-05-18.
-    | Solução: servir mock canon literal em prod, autorizar mudanças DEPOIS
-    | tela-por-tela.
+    | Solução tentada: servir mock canon literal em prod (default true).
+    |
+    | === REVERT 2026-05-18 noite — DEFAULT FALSE ===
+    |
+    | Wagner pediu volta pro AppShellV2 + sidebar antigo (UltimatePOS canônico),
+    | sem o CSS Cowork novo — "para mim ja funcionaria". 3 PRs falhos cherry-pick
+    | (#1085 → #1091 → #1092) + nova Tier 0 hoje "primeira aplicação Cowork =
+    | copiar styles.css INTEIRO, NUNCA cherry-pick" tornaram caminho mock+wrap
+    | inviável até replanejamento.
+    |
+    | Default false ⇒ controllers caem em Inertia::render normal ⇒ Pages/Financeiro/
+    | *.tsx renderizam dentro de AppShellV2 + sidebar UltimatePOS via DataController
+    | (Tier 0 universal — package_details + Spatie permissions decidem o que aparece,
+    | zero hardcode biz). Larissa @ biz=4 vê módulos do package dela; Felipe @ biz=X
+    | vê conforme dele.
+    |
+    | Reversibilidade 5 camadas (se quebrar):
+    |   1. .env Hostinger: FINANCEIRO_MOCK_COWORK=true (volta mock literal)
+    |   2. .env Hostinger: FINANCEIRO_SIDEBAR_WRAP=true (volta wrap se mock on)
+    |   3. localStorage runtime: __OIMPRESSO_SIDEBAR_OFF__='1' (kill switch JS)
+    |   4. git revert deste commit
+    |   5. Branch claude/financeiro-mock-cowork-mode (snapshot pré-revert)
+    |
+    | Quando voltar pro caminho Cowork: regra Tier 0 nova (proibicoes.md §"Design
+    | System / Pacote Cowork novo") — copiar styles.css INTEIRO 1× + customizar
+    | DEPOIS. Cherry-pick incremental: banido.
     */
-    'mock_cowork_mode' => (bool) env('FINANCEIRO_MOCK_COWORK', true),
+    'mock_cowork_mode' => (bool) env('FINANCEIRO_MOCK_COWORK', false),
 
     /*
     | Sidebar wrap (Onda #4b — sidebar REAL respeitando 3 camadas via
-    | ShellMenuBuilder + AdminSidebarMenu canon). Wagner ativou 2026-05-18.
+    | ShellMenuBuilder + AdminSidebarMenu canon). Wagner ativou 2026-05-18
+    | manhã (PR #1113), DESATIVOU 2026-05-18 noite junto com mock_cowork_mode
+    | (revert pro AppShellV2 nu — ver bloco acima).
     |
-    | Default TRUE em prod desde Onda #4b (PR #1113). Bridge JS fetcha
-    | /financeiro/cowork-sidebar-data e renderiza sidebar oimpresso filtrado
-    | por business + user + Spatie permissions.
+    | Default FALSE: bridge JS sidebar wrap NÃO é injetado (controllers nem
+    | servem mock canon). Pages/Financeiro/*.tsx renderizam dentro de
+    | AppShellV2 que já tem sidebar canônico via DataController.
     |
-    | Kill-switch IRREVOGÁVEL pra reverter:
+    | Kill-switch (quando default era true):
     |   1. FINANCEIRO_SIDEBAR_WRAP=false no .env Hostinger
     |   2. localStorage.setItem('__OIMPRESSO_SIDEBAR_OFF__', '1') runtime
+    |      (linha 55 _oimpresso-bridge-sidebar.js)
     */
     'sidebar_wrap_enabled' => (bool) env('FINANCEIRO_SIDEBAR_WRAP', false),
 
