@@ -710,77 +710,90 @@
 }
 
 /* ========================================================================
- * Drawer Cowork v2 — gap report Wagner 2026-05-18
- * Nav tabs Detalhes/✦ IA dentro do <SheetContent>. Substitui scroll vertical
- * monolítico por 2 abas (info+actions vs insights IA).
+ * Drawer Cowork v2.1 — canon align com bundle vendas-financeiro-completo
+ * Anthropic API design fetch 2026-05-18 (Wagner reaplica pacote).
+ *
+ * 3 abas canônicas: Detalhes (verde 145) / ✦ IA (roxo 295) / ✎ Editar (amber 60).
+ * Active state: border-bottom 2px colorido (não box bg). Padding 12px 14px.
  * ======================================================================== */
 
-/* Nav de abas (sticky logo após SheetHeader) */
+/* Nav de abas (Cowork canon: bg-2 + border-bottom + flush, sem gap) */
 .fin-drawer-tabs {
   display: flex;
-  gap: 4px;
-  margin: 12px -6px 0;
-  padding: 0 6px 8px;
+  align-items: center;
+  padding: 0 18px;
+  gap: 0;
   border-bottom: 1px solid oklch(0.92 0.005 80);
-  position: sticky;
-  top: 0;
-  background: white;
-  z-index: 1;
+  background: oklch(0.98 0.003 80);
+  margin: 12px -18px 0;
 }
 
 .fin-drawer-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: oklch(0.50 0.01 80);
+  cursor: pointer;
+  transition: all .12s;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
-  border-radius: 8px 8px 0 0;
-  border: none;
-  background: transparent;
-  color: oklch(0.45 0.01 80);
-  font-size: 12.5px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .12s;
   position: relative;
 }
-.fin-drawer-tab:hover {
-  color: oklch(0.20 0.01 80);
-  background: oklch(0.97 0.005 80);
-}
+.fin-drawer-tab:hover { color: oklch(0.20 0 0); }
 .fin-drawer-tab.on {
-  color: oklch(0.20 0.05 240);
-  background: oklch(0.97 0.02 240);
-}
-.fin-drawer-tab.on::after {
-  content: '';
-  position: absolute;
-  left: 6px; right: 6px; bottom: -9px;
-  height: 2px;
-  background: oklch(0.40 0.13 240);
-  border-radius: 2px 2px 0 0;
+  color: oklch(0.20 0 0);
+  border-bottom-color: oklch(0.55 0.13 145);
+  background: white;
 }
 
-/* Hue IA (roxo 280) pra fin-drawer-tab-ai */
-.fin-drawer-tab-ai { color: oklch(0.45 0.10 280); }
-.fin-drawer-tab-ai:hover { color: oklch(0.30 0.13 280); background: oklch(0.97 0.04 280); }
-.fin-drawer-tab-ai.on {
-  color: oklch(0.32 0.13 280);
-  background: oklch(0.97 0.06 280);
-}
-.fin-drawer-tab-ai.on::after { background: oklch(0.42 0.18 280); }
-
-/* Badge "💬N" dentro do tab Detalhes */
-.fin-drawer-tab-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 10.5px;
+/* Count badge canônico (.fin-drawer-tab-ct — substitui o badge antigo) */
+.fin-drawer-tab-ct {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
   font-weight: 600;
+  background: white;
+  color: oklch(0.50 0.01 80);
   padding: 1px 6px;
-  border-radius: 8px;
-  background: oklch(0.93 0.04 240);
-  color: oklch(0.42 0.13 240);
-  margin-left: 4px;
-  line-height: 1.2;
+  border-radius: 99px;
+}
+.fin-drawer-tab.on .fin-drawer-tab-ct {
+  background: oklch(0.94 0.05 145);
+  color: oklch(0.32 0.13 145);
+}
+
+/* Red dot pra alerta visual (ex: atrasado, anomalia detectada) */
+.fin-drawer-tab-tag {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.55 0.18 25);
+  display: inline-block;
+}
+
+/* Aba IA — canon roxo 295 (não 280) */
+.fin-drawer-tab-ai { color: oklch(0.42 0.13 295); }
+.fin-drawer-tab-ai:hover { color: oklch(0.32 0.18 295); }
+.fin-drawer-tab-ai.on {
+  border-bottom-color: oklch(0.55 0.13 295);
+  color: oklch(0.32 0.18 295);
+  background: oklch(0.98 0.015 295);
+}
+
+/* Aba Editar — canon amber 60 (3ª aba, substitui Sheet separado) */
+.fin-drawer-tab-edit { color: oklch(0.42 0.13 60); }
+.fin-drawer-tab-edit:hover { color: oklch(0.32 0.18 60); }
+.fin-drawer-tab-edit.on {
+  border-bottom-color: oklch(0.55 0.13 60);
+  color: oklch(0.42 0.13 60);
+  background: oklch(0.98 0.02 60);
+}
+.fin-drawer-tab-edit.has-edits:not(.on) {
+  background: oklch(0.96 0.04 60);
 }
 
 /* Drawer wide modifier (espaço pras abas + IA panel — preserva 460px atual) */
@@ -822,14 +835,68 @@
   border-radius: 8px;
 }
 
-/* Edit panel inline (futuro: input edit-mode in-drawer sem sheet separado) */
+/* Edit panel inline (Cowork canon: gradient amber + animate slide-down) */
 .fin-edit-panel {
-  padding: 12px;
-  border-radius: 8px;
-  background: oklch(0.97 0.04 240 / 0.5);
-  border: 1px dashed oklch(0.80 0.06 240);
-  margin-top: 8px;
+  background: linear-gradient(135deg, oklch(0.98 0.025 60), oklch(0.99 0.012 60));
+  border: 1px solid oklch(0.85 0.10 60);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 4px;
+  animation: finEditOpen 0.18s ease-out;
 }
+@keyframes finEditOpen {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.fin-edit-h {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.fin-edit-h h4 {
+  margin: 0; font-size: 13.5px; font-weight: 700;
+  color: oklch(0.32 0.18 60);
+}
+.fin-edit-h small { font-size: 11px; color: oklch(0.50 0.04 60); }
+.fin-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.fin-edit-wide { grid-column: 1 / -1; }
+.fin-edit-grid label {
+  display: block;
+  font-size: 11px; font-weight: 600;
+  color: oklch(0.40 0.04 60); margin-bottom: 4px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.fin-edit-grid input, .fin-edit-grid select, .fin-edit-grid textarea {
+  width: 100%; padding: 6px 10px; border-radius: 6px;
+  border: 1px solid oklch(0.85 0.05 60);
+  background: white; font-size: 12.5px; font-family: inherit;
+  color: oklch(0.18 0 0);
+}
+.fin-edit-grid input:focus, .fin-edit-grid select:focus, .fin-edit-grid textarea:focus {
+  outline: none; border-color: oklch(0.55 0.13 60);
+  box-shadow: 0 0 0 3px oklch(0.55 0.13 60 / 0.15);
+}
+.fin-edit-footer {
+  display: flex; gap: 8px; justify-content: flex-end;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid oklch(0.92 0.02 60);
+}
+.fin-edit-close {
+  background: oklch(0.55 0.13 145); color: white;
+  font-weight: 600;
+  padding: 6px 14px; border: none; border-radius: 6px;
+  font-size: 12.5px; cursor: pointer;
+}
+.fin-edit-close:hover { background: oklch(0.48 0.13 145); }
+.fin-edit-cancel {
+  background: white; color: oklch(0.40 0 0);
+  padding: 6px 14px; border: 1px solid oklch(0.85 0 0);
+  border-radius: 6px; font-size: 12.5px; cursor: pointer;
+}
+.fin-edit-cancel:hover { background: oklch(0.97 0 0); }
 
 /* Anomalia wrapper (Cowork v2 — substitui card flat) */
 .fin-ai-anomalia {

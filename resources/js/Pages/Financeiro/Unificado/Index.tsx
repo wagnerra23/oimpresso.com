@@ -456,9 +456,11 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const favs = useFinFavs(businessName || 'default');
   // Cowork KB-9.75 Onda 9 — Resumir mês dialog (narrativa exec compute-based).
   const [resumoOpen, setResumoOpen] = useState(false);
-  // Drawer Cowork v2 (2026-05-18 gap report Wagner) — nav de abas Detalhes/IA
-  // dentro do drawer detalhe. Reseta pra 'detalhes' ao trocar de linha.
-  const [drawerTab, setDrawerTab] = useState<'detalhes' | 'ia'>('detalhes');
+  // Drawer Cowork v2.1 — canon align com bundle vendas-financeiro-completo
+  // (Anthropic API design fetch 2026-05-18). 3 abas canônicas:
+  //   detalhes (verde 145, default) / ia (roxo 295) / editar (amber 60, inline)
+  // Reset pra 'detalhes' ao trocar de linha.
+  const [drawerTab, setDrawerTab] = useState<'detalhes' | 'ia' | 'editar'>('detalhes');
   useEffect(() => { setDrawerTab('detalhes'); }, [selectedId]);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
@@ -762,7 +764,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 </SheetTitle>
               </SheetHeader>
 
-              {/* Nav de abas — Cowork canon */}
+              {/* Nav de abas — Cowork canon V2.1 (3 abas: Detalhes/IA/Editar) */}
               <nav className="fin-drawer-tabs" role="tablist" aria-label="Visualização do título">
                 <button
                   type="button"
@@ -772,8 +774,11 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                   onClick={() => setDrawerTab('detalhes')}
                 >
                   Detalhes
+                  {selected.status === 'atrasado' && (
+                    <span className="fin-drawer-tab-tag" aria-label="Atrasado" title="Lançamento atrasado" />
+                  )}
                   {comments.countFor(selected.id) > 0 && (
-                    <span className="fin-drawer-tab-badge">💬{comments.countFor(selected.id)}</span>
+                    <span className="fin-drawer-tab-ct">{comments.countFor(selected.id)}</span>
                   )}
                 </button>
                 <button
@@ -784,6 +789,17 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                   onClick={() => setDrawerTab('ia')}
                 >
                   ✦ IA
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={drawerTab === 'editar'}
+                  className={'fin-drawer-tab fin-drawer-tab-edit' + (drawerTab === 'editar' ? ' on' : '')}
+                  onClick={() => setDrawerTab('editar')}
+                  disabled={!selected.valor_mutavel}
+                  title={!selected.valor_mutavel ? 'Valor não-mutável após baixa (ADR fin-tech/0002)' : 'Editar inline'}
+                >
+                  ✎ Editar
                 </button>
               </nav>
 
@@ -874,6 +890,69 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
                   <p className="text-[11.5px] text-stone-500 italic pt-2 border-t border-stone-100">
                     Insights computacionais · pure compute · Fase 2 plugará JanaService LLM
+                  </p>
+                </div>
+              )}
+
+              {/* Aba Editar — V2.1 canon: panel inline amber (substitui Sheet separado) */}
+              {drawerTab === 'editar' && selected.valor_mutavel && (
+                <div className="mt-3 fin-edit-panel">
+                  <div className="fin-edit-h">
+                    <h4>✎ Editar campos do título</h4>
+                    <small>Campos seguros · vencimento, descrição, categoria, observações</small>
+                  </div>
+                  <div className="fin-edit-grid">
+                    <div>
+                      <label htmlFor="fin-edit-vencimento">Vencimento</label>
+                      <input
+                        id="fin-edit-vencimento"
+                        type="date"
+                        defaultValue={selected.vencimento}
+                        readOnly
+                        title="Edição via Sheet separado (TituloEditSheet) — clique Editar para abrir formulário completo"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="fin-edit-categoria">Categoria</label>
+                      <select id="fin-edit-categoria" defaultValue={selected.categoria_id ?? ''} disabled>
+                        <option value="">— sem categoria —</option>
+                        {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="fin-edit-valor">Valor (BRL)</label>
+                      <input id="fin-edit-valor" type="text" defaultValue={brl(selected.valor)} readOnly />
+                    </div>
+                    <div className="fin-edit-wide">
+                      <label htmlFor="fin-edit-desc">Descrição</label>
+                      <input id="fin-edit-desc" type="text" defaultValue={selected.descricao} readOnly />
+                    </div>
+                    <div className="fin-edit-wide">
+                      <label htmlFor="fin-edit-obs">Observações</label>
+                      <textarea id="fin-edit-obs" rows={2} defaultValue={selected.observacao ?? ''} readOnly />
+                    </div>
+                  </div>
+                  <div className="fin-edit-footer">
+                    <button type="button" className="fin-edit-cancel" onClick={() => setDrawerTab('detalhes')}>
+                      Cancelar
+                    </button>
+                    <button type="button" className="fin-edit-close" onClick={() => { setDrawerTab('detalhes'); setEditOpen(true); }}>
+                      Abrir formulário completo →
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] text-stone-500 italic">
+                    Preview inline · edição validada acontece no Sheet separado (TituloEditSheet)
+                  </p>
+                </div>
+              )}
+              {drawerTab === 'editar' && !selected.valor_mutavel && (
+                <div className="mt-3 fin-edit-panel" style={{ background: 'oklch(0.97 0.005 80)', border: '1px dashed oklch(0.85 0.005 80)' }}>
+                  <div className="fin-edit-h">
+                    <h4 style={{ color: 'oklch(0.40 0 0)' }}>Valor não-mutável</h4>
+                    <small>ADR fin-tech/0002</small>
+                  </div>
+                  <p className="text-[12.5px] text-stone-600">
+                    Este lançamento já recebeu uma baixa (parcial ou total). O valor não pode mais ser editado — preserva-se a integridade contábil pós-baixa. Para correções, lance um novo título de ajuste.
                   </p>
                 </div>
               )}
