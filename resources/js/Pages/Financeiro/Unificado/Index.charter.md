@@ -3,13 +3,15 @@ page: /financeiro/unificado
 component: resources/js/Pages/Financeiro/Unificado/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-09
+last_validated: 2026-05-18
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
 related_adrs: [arq/0005, ui/0002, ui/0114, 0093, 0094]
 related_us: [US-FIN-013, US-FIN-020]
 related_prototype: prototipo Cowork "Visao Unificada" (Financeiro.html), aprovado por Wagner 2026-05-09
+canon_method: Cowork KB-9.75 v2 — Onda 5 R1 Curadoria (PR #1064/#1066 + Onda 5 atual)
 tier: A
+charter_version: 2
 ---
 
 # Page Charter — /financeiro/unificado
@@ -27,6 +29,11 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 
 ## Goals — Features (faz)
 
+- **Onda 5 KB-9.75 R1 Curadoria** (2026-05-18):
+  - **Conferido toggle** por Eliana (localStorage `oimpresso.financeiro.conferido`) — pill grande no drawer + badge ✓ silent na linha
+  - **Comentários inline** thread Eliana ↔ Wagner ↔ Bruna (localStorage `oimpresso.financeiro.comments`) — textarea no drawer + badge 💬N silent na linha
+  - **Audit trail determinístico** (5 kinds: create / categorize / edit / concil / alert) derivado do row sem persistência — exibido no drawer
+  - **Frescor pill** 6 estados (paid · overdue · today · warning · soon · fresh) derivado de `vencimento`+`liquidacao` — compact ao lado do StatusPill na linha e full no drawer
 - 5 KPI cards: Saldo previsto · Recebido · A receber · Pago · A pagar (com qtd de baixas/títulos)
 - KPI cards **clicáveis** — cada um filtra a tabela pra tab correspondente (drill-down ADR ui/0002)
 - Filter chips: Todas, Aberto, Receber, Pagar, Recebidas, Pagas, Atraso
