@@ -797,8 +797,11 @@ class AdminSidebarMenu
                 $menu->url(action([\App\Http\Controllers\Restaurant\KitchenController::class, 'index']), __('restaurant.kitchen'), ['icon' => '<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-flame"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z" /></svg>', 'active' => request()->segment(1) == 'modules' && request()->segment(2) == 'kitchen'])->order(70);
             }
 
-            //Service Staff menu
-            if (in_array('service_staff', $enabled_modules)) {
+            //Service Staff menu (Pedidos · restaurant module)
+            // Wagner 2026-05-18 (fix biz=4): "Pedidos" abre tela feia legacy do
+            // service_staff (restaurant); biz=4 ROTA LIVRE não usa restaurante.
+            // Esconde pra biz=4 (mesmo pattern de Despesas + Tarefas + Governança).
+            if (in_array('service_staff', $enabled_modules) && $current_biz !== 4) {
                 $menu->url(action([\App\Http\Controllers\Restaurant\OrderController::class, 'index']), __('restaurant.orders'), ['icon' => 'fa fas fa-list-alt', 'active' => request()->segment(1) == 'modules' && request()->segment(2) == 'orders'])->order(75);
             }
 
