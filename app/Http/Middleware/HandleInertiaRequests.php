@@ -113,6 +113,12 @@ class HandleInertiaRequests extends Middleware
                 // envolve cada count separadamente (módulos podem estar
                 // desinstalados / migrations ausentes).
                 'sidebar_counts' => fn () => $user && $businessId ? $this->sidebarCounts((int) $businessId, $user->id) : null,
+                // Wagner 2026-05-18: visibilidade dos shortcuts topo
+                // (Tarefas / IA / Atendimento). Cliente sem o módulo →
+                // shortcut some do topo. Lazy: só computa quando a página
+                // pede `shell.shortcuts`. Espelha padrão Cockpit do
+                // `prototipo-ui/_cowork-export-2026-05-15/data.jsx`.
+                'shortcuts' => fn () => $user && $businessId ? $this->sidebarShortcuts((int) $businessId) : null,
             ],
             // US-SELL-015 — props de UI específicas do módulo Sells, lazy
             // (só computa quando a Page solicita `sells.*`). ADR 0136:
@@ -315,6 +321,65 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $counts;
+    }
+
+    /**
+     * Visibilidade dos shortcuts topo da Sidebar (Wagner 2026-05-18).
+     *
+     * Retorna 3 booleans pra Sidebar.tsx esconder shortcut quando cliente
+     * não tem o módulo correspondente (regra "cliente não quer módulo →
+     * some do menu"). Espelha padrão Cockpit do protótipo
+     * `prototipo-ui/_cowork-export-2026-05-15/data.jsx`.
+     *
+     *  - `ia`: true se Jana (Copiloto) instalado pra este business
+     *  - `tarefas`: true se MCP tasks disponível (universal — tabela
+     *    `mcp_tasks` existe) — sempre true em prod
+     *  - `atendimento`: true se Whatsapp instalado pra este business
+     *
+     * Multi-tenant Tier 0 (ADR 0093): consulta `module_business_permissions`
+     * filtrado por business_id da sessão via `ModuleUtil`. Try/catch per-key
+     * — qualquer falha vira `true` (back-compat: não esconde shortcut por
+     * causa de erro técnico).
+     */
+    protected function sidebarShortcuts(int $businessId): array
+    {
+        $shortcuts = ['ia' => true, 'tarefas' => true, 'atendimento' => true];
+
+        $moduleUtil = new \App\Utils\ModuleUtil();
+
+        try {
+            // IA: módulo Jana (Copiloto) habilitado pra este business.
+            // Superadmin sempre vê; usuário comum precisa do package.
+            $shortcuts['ia'] = (bool) $moduleUtil->hasThePermissionInSubscription(
+                $businessId,
+                'copiloto_module',
+                'superadmin_package'
+            );
+        } catch (\Throwable $e) {
+            // Subscription/package indisponível — mantém true (back-compat).
+            $shortcuts['ia'] = true;
+        }
+
+        try {
+            // Atendimento: módulo Whatsapp habilitado pra este business.
+            $shortcuts['atendimento'] = (bool) $moduleUtil->hasThePermissionInSubscription(
+                $businessId,
+                'whatsapp_module',
+                'superadmin_package'
+            );
+        } catch (\Throwable $e) {
+            $shortcuts['atendimento'] = true;
+        }
+
+        // Tarefas: universal — MCP tasks system sempre disponível em prod
+        // (`mcp_tasks` table existe desde Sprint 0). Try/catch só pra dev.
+        try {
+            $shortcuts['tarefas'] = \Schema::hasTable('mcp_tasks');
+        } catch (\Throwable $e) {
+            $shortcuts['tarefas'] = true;
+        }
+
+        return $shortcuts;
     }
 
     /**
