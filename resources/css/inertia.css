@@ -38,6 +38,9 @@
 /* Financeiro/Unificado Cowork Onda 7 R3 Output — escopado em .fin-curadoria (CrossLinkify + Checklist Fechamento) */
 @import "./fin-output.css";
 
+/* Financeiro/Unificado Cowork Onda 8 — F1 page rewrite (header + hero KPI sparkline + filter chips coloridos + footer atalhos) */
+@import "./fin-cowork.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
