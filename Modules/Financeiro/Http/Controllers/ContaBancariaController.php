@@ -35,7 +35,7 @@ class ContaBancariaController extends Controller
         '274' => 'asaas',
     ];
 
-    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function index(Request $request): Response|\Illuminate\Http\Response
     {
         if ($mock = $this->tryRenderMockCowork()) {
             return $mock;
