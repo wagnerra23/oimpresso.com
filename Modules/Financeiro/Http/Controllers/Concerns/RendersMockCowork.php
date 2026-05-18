@@ -138,11 +138,17 @@ HTML;
         // pode não ter rodado quando esse script começar.
         $overrideScript = <<<'HTML'
 <script>
-    // Integração #1 Wagner 2026-05-18 — substitui FIN_ROWS mock pelos dados Eloquent
+    // Integração #1 Wagner 2026-05-18 — substitui FIN_ROWS mock pelos dados Eloquent.
+    // Fallback IMPORTANTE: se business logado tem 0 títulos no período, MANTÉM
+    // mock template visual (caso contrário tela fica vazia e Wagner pensa que
+    // mock quebrou). Só substitui quando há dados REAIS no business.
     (function pollOverride() {
       if (!window.FIN_ROWS) { setTimeout(pollOverride, 30); return; }
       var real = window.__OIMPRESSO_FIN_REAL__;
-      if (!real || !Array.isArray(real.FIN_ROWS)) return;
+      if (!real || !Array.isArray(real.FIN_ROWS) || real.FIN_ROWS.length === 0) {
+        console.log('[oimpresso] Mock Cowork: business sem títulos no período, mantém mock template (%d rows)', window.FIN_ROWS.length);
+        return;
+      }
       window.FIN_ROWS = real.FIN_ROWS.map(function (r) {
         return Object.assign({}, r, {
           due: r.due ? new Date(r.due + 'T12:00:00') : null,
