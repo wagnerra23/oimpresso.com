@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
@@ -27,14 +28,20 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class RelatoriosController extends Controller
 {
+    use RendersMockCowork;
+
     public function __construct()
     {
         $this->middleware('auth');
         $this->middleware('can:financeiro.relatorios.view');
     }
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        if ($mock = $this->tryRenderMockCowork()) {
+            return $mock;
+        }
+
         $businessId = (int) session('user.business_id');
         $filters = $this->parseFilters($request);
 

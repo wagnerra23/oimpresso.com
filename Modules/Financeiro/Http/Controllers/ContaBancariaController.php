@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\UpsertContaBancariaRequest;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Strategies\CnabDirectStrategy;
@@ -26,14 +27,20 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  */
 class ContaBancariaController extends Controller
 {
+    use RendersMockCowork;
+
     // Bancos que usam API de gateway (precisam de credenciais)
     private const GATEWAY_BANKS = [
         '077' => 'inter',
         '274' => 'asaas',
     ];
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        if ($mock = $this->tryRenderMockCowork()) {
+            return $mock;
+        }
+
         $businessId = $request->session()->get('business.id');
 
         $accounts = Account::where('accounts.business_id', $businessId)
