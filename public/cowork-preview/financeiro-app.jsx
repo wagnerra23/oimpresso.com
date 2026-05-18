@@ -1023,6 +1023,15 @@ const FinanceiroPage = ({ initialTela = "unified" }) => {
   // refletir mudança de rota
   useEffect(() => { setTela(initialTela); }, [initialTela]);
 
+  // Onda Comments + Audit DB 2026-05-18 — dispatch 'oimpresso:fin-drawer-open'
+  // pros bridges JS (_oimpresso-bridge-comments.js + _oimpresso-bridge-audit.js)
+  // pre-fetcharem comments e audit do título quando drawer abre. Try/catch
+  // silencioso — mock continua funcionando se bridges não estiverem carregados.
+  useEffect(() => {
+    if (!drawerRow || !drawerRow.id) return;
+    try { window.dispatchEvent(new CustomEvent('oimpresso:fin-drawer-open', { detail: { rowId: drawerRow.id } })); } catch (e) {}
+  }, [drawerRow]);
+
   // counts per tab
   const counts = useMemo(() => ({
     all: rows.length,
