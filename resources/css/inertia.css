@@ -23,6 +23,9 @@
 /* Sells/Drafts Cowork — lista rascunhos (extensões mínimas além da família Index) */
 @import "./sells-cowork-drafts.css";
 
+/* Sells/Edit Cowork — form edição venda (espelha família Index, irmão de Show) */
+@import "./sells-cowork-edit.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
