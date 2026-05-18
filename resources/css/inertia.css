@@ -29,6 +29,9 @@
 /* Sells/Subscriptions Cowork — lista assinaturas recorrentes (extensões mínimas além da família Index) */
 @import "./sells-cowork-subscriptions.css";
 
+/* Financeiro/Unificado Cowork Onda 5 R1 Curadoria — escopado em .fin-curadoria (Conferido + Comments + Audit + Frescor) */
+@import "./fin-curadoria.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
