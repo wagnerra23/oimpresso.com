@@ -42,7 +42,7 @@ class UnificadoController extends Controller
         $this->middleware('can:financeiro.dashboard.view');
     }
 
-    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function index(Request $request): Response|\Illuminate\Http\Response
     {
         // Wagner 2026-05-18 Mock Cowork Mode (config/financeiro.php).
         if ($mock = $this->tryRenderMockCowork()) {

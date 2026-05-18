@@ -38,7 +38,7 @@ class FluxoController extends Controller
         $this->middleware('can:financeiro.dashboard.view');
     }
 
-    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function index(Request $request): Response|\Illuminate\Http\Response
     {
         if ($mock = $this->tryRenderMockCowork()) {
             return $mock;
