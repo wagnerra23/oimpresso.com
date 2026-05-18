@@ -1,10 +1,10 @@
 ---
 name: feedback-habilitar-modulo-por-business
-description: Habilitar/desabilitar módulo por business. 2 CAMADAS — (1) Package nWidart via UI Superadmin/Packages; (2) business.enabled_modules core UltimatePOS via /business/settings. NUNCA hardcode `if ($business_id === N) return`. Wagner regra Tier 0 IRREVOGÁVEL 2026-05-18.
+description: Habilitar/desabilitar módulo por business. 3 CAMADAS — (1) Package nWidart via UI Superadmin/Packages; (2) business.enabled_modules core UltimatePOS via /business/settings; (3) Spatie Permissions por user/role via /roles/{id}/edit. NUNCA hardcode `if ($business_id === N) return`. Wagner regra Tier 0 IRREVOGÁVEL 2026-05-18.
 type: feedback
 ---
 
-# Habilitar/desabilitar módulo por business — 2 CAMADAS canônicas
+# Habilitar/desabilitar módulo por business — 3 CAMADAS canônicas
 
 > **Status:** Tier 0 IRREVOGÁVEL — catalogada em [`memory/proibicoes.md`](../proibicoes.md) §"Multi-tenant Tier 0" lado a lado com `business_id` global scope (ADR 0093). Wagner palavras textuais 2026-05-18: *"Regra basica junto com Business_id acho que não porderia ser diferente"*.
 >
@@ -16,12 +16,13 @@ type: feedback
 
 ## TL;DR — 30 segundos
 
-Habilitar/desabilitar visibilidade de módulo pra um business **sempre** via UI canônica (zero deploy code):
+Habilitar/desabilitar visibilidade de módulo pra um business **sempre** via UI canônica (zero deploy code). **3 CAMADAS INDEPENDENTES** — todas precisam estar OK pra item aparecer no sidebar:
 
-| O que esconder | Onde habilita/desabilita | Quem edita |
-|---|---|---|
-| **Módulo nWidart** (`Modules/X/`) — Financeiro, CRM, Woocommerce, Governance, Repair, OficinaAuto, etc | `/superadmin/packages/{id}/edit` → checkbox `X_module` | **Superadmin** (Wagner) — vê todos businesses |
-| **Módulo core UltimatePOS** — Despesas, Pedidos (`service_staff`), Cocina, Mesas, Reservas, etc | `/business/settings` → checkboxes "Habilitar Módulos" | **User do próprio business** (Larissa pra biz=4) — NÃO tem switch business |
+| Camada | O que controla | Onde habilita/desabilita | Quem edita |
+|---|---|---|---|
+| **1** | **Módulo nWidart por BUSINESS** (`Modules/X/`) — Financeiro/CRM/WooCommerce/Governance/Repair/OficinaAuto/etc | `/superadmin/packages/{id}/edit` → checkbox `X_module` | **Superadmin** (Wagner) — vê todos businesses |
+| **2** | **Módulo core UltimatePOS por BUSINESS** — Despesas, Pedidos (`service_staff`), Cocina, Mesas, Reservas, etc | `/business/settings` → checkboxes "Habilitar Módulos" | **User do próprio business** (Larissa pra biz=4). Wagner afirma que existe `/superadmin/business/{id}/settings` — verificar próxima sessão |
+| **3** | **Permission Spatie granular por USER/ROLE** dentro do business (feature-level) — `financeiro.access`, `financeiro.dashboard.view`, `financeiro.contas_receber.baixar`, etc. **260+ permissions** catalogadas em prod | `/roles/{id}/edit` → checkboxes por feature | **Admin do business** (atribui permission a roles) |
 
 **NUNCA** hardcode `if ($business_id === N) return` em DataController ou Middleware. Pest global `tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php` bloqueia no CI.
 
@@ -180,6 +181,99 @@ User da business loga (NÃO superadmin) → /business/settings
 | `types_of_service` | Tipos de serviço | (config) |
 
 **⚠ Pegadinha de label:** `service_staff` no `/business/settings` aparece como "**Responsável pela venda**", mas no sidebar `AdminSidebarMenu` renderiza como **"Pedidos"** via `__('restaurant.orders')`. Mesma key.
+
+---
+
+---
+
+## CAMADA 3 — Permissions Spatie por USER/ROLE (granular feature-level)
+
+### Como funciona
+
+1. Cada **`Modules/X/Http/Controllers/DataController.php`** declara `public function user_permissions(): array` retornando lista de permissions Spatie do módulo (ex: `financeiro.access`, `financeiro.dashboard.view`, `financeiro.contas_receber.baixar`, etc)
+2. **`RoleController`** chama `$this->moduleUtil->getModuleData('user_permissions')` → coleta de TODOS módulos instalados → renderiza checkboxes em `/roles/create` e `/roles/{id}/edit`
+3. Admin do business cria/edita roles atribuindo permissions
+4. Code consulta via Spatie: `auth()->user()->can('financeiro.access')`
+
+### Como editar via UI
+
+```
+Login como admin do business → /roles
+  → Editar role existente (ex: "Cashier", "Gerente") OU criar novo
+  → Lista de 260+ permissions agrupada por módulo
+  → Marcar/desmarcar permissions granulares (view / create / edit / delete / baixar / etc)
+  → Salvar
+  → Users com este role têm permissions atualizadas (cache Spatie automático)
+```
+
+### Permissions canônicas por módulo (amostra — 260+ em prod)
+
+**Financeiro:**
+- `financeiro.access` — acesso ao módulo
+- `financeiro.dashboard.view` — ver dashboard unificado
+- `financeiro.contas_receber.view` / `.create` / `.edit` / `.delete` / `.baixar`
+- `financeiro.contas_pagar.view` / `.create` / `.edit` / `.delete` / `.baixar`
+- `financeiro.contas_bancarias.view` / `.create` / `.edit`
+- `financeiro.boletos.view` / `.cancelar`
+- `financeiro.relatorios.view` / `.export_csv`
+
+**CRM:**
+- `crm.access`
+- `crm.access_contact_login`
+- `crm.access_sources`
+- `crm.access_life_stage`
+- `crm.access_proposal`
+
+**Governance:**
+- `governance.dashboard.view`
+- `governance.policies.edit`
+- `governance.audit.view`
+
+**Padrão geral:** `<modulo>.access` (gate top-level — controla se item aparece no sidebar) + `<modulo>.<feature>.<action>` (gate granular dentro do módulo).
+
+### Como adicionar permission nova quando módulo cresce
+
+```php
+// Modules/<Nome>/Http/Controllers/DataController.php
+public function user_permissions(): array
+{
+    return [
+        ['value' => 'nomemodulo.access', 'label' => 'NomeModulo: acesso ao módulo', 'default' => false],
+        ['value' => 'nomemodulo.dashboard.view', 'label' => 'NomeModulo: ver dashboard', 'default' => false],
+        ['value' => 'nomemodulo.feature_x.view', 'label' => 'NomeModulo: ver feature X', 'default' => false],
+        ['value' => 'nomemodulo.feature_x.create', 'label' => 'NomeModulo: criar feature X', 'default' => false],
+        // ... mais granular
+    ];
+}
+```
+
+Após salvar, próximo `php artisan cache:clear` (ou Quick Sync auto) renderiza permissions novas em `/roles/{id}/edit` automaticamente. Sem migration, sem PR no controller, sem feature flag.
+
+### Anti-padrões Camada 3
+
+- ❌ Definir permission só em DataController mas esquecer de checar `auth()->user()->can()` no Controller real (gate visual mas sem proteção de ação)
+- ❌ Permissions com nome divergente entre módulos (`financeiro.contas_receber.baixar` vs `crm.contact.delete` — manter `<modulo>.<feature>.<action>` consistente)
+- ❌ Mais de 1 permission pra mesma ação (genérico `financeiro.access` + específico `financeiro.view` simultâneo — escolher um)
+- ❌ Hardcode role name em controller (`if ($user->hasRole('Admin'))` em vez de `if ($user->can('feature.action'))`)
+
+---
+
+## Pegadinha — `/superadmin/business/{id}/settings`
+
+Wagner afirma 2026-05-18 *"tem /superadmin/business/{id}/settings"*. Claude investigou:
+
+- ❌ `/superadmin/business/4/settings` → 404 Not Found
+- ❌ `/superadmin/business/4/edit` → 500 Server Error (`BusinessController::edit()` retorna view inexistente `superadmin::edit`)
+- ✅ `/superadmin/business/4` → page "Ver empresa ROTA LIVRE" (show), tem link "Configurações" mas é anchor `#` sem ação clara
+- ✅ `/business/settings` → tela de edit `enabled_modules` MAS só do business do user logado
+
+**Possibilidades a verificar próxima sessão:**
+1. Rota custom não-canônica do oimpresso (diferente do UltimatePOS base)
+2. Pode ter sido implementada e depois removida
+3. Wagner pode estar lembrando de outra URL similar
+4. Pode existir feature pra Wagner switch active business antes de ir em `/business/settings`
+
+Por enquanto, **doc canon registra que Wagner afirma que existe** + Claude documentou as 3 alternativas conhecidas (3 caminhos da Camada 2). Quando rota for confirmada, atualizar aqui.
 
 ---
 
