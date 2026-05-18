@@ -1,0 +1,121 @@
+/* ───────────────────────────────────────────────────────────────────
+ * Sells Cowork — Sells/Subscriptions (assinaturas) extensões mínimas.
+ *
+ * Reusa a família .sells-cowork (tokens canon + paginação + filtros) e
+ * adiciona APENAS os toques específicos da página de assinaturas:
+ *   - badge "Assinatura" (pill destaque indigo/violeta, distinto do
+ *     âmbar de Quotations e do verde de Index)
+ *   - indicador de frequência (mensal / anual / semanal / dias)
+ *   - chip "Próxima fatura" (data calculada — neutro tabular-nums)
+ *   - badge status assinatura (ativa emerald / pausada amber / cancelada slate)
+ *
+ * Importado por resources/css/inertia.css. Scope cumulativo:
+ *   <div class="sells-cowork sells-cowork-subscriptions">
+ * cohabita tokens da família Index sem reescrever nenhum.
+ *
+ * Refs:
+ *  - resources/css/sells-cowork.css (família canon — tokens base)
+ *  - resources/css/sells-cowork-quotations.css (irmão Quotations — modelo)
+ *  - resources/js/Pages/Sells/Subscriptions.charter.md (Mission + Goals)
+ *  - resources/js/Pages/Sells/Subscriptions.tsx (uso)
+ *  - memory/requisitos/Sells/RUNBOOK-subscriptions.md
+ * ─────────────────────────────────────────────────────────────────── */
+
+.sells-cowork-subscriptions {
+  /* Tokens locais — assinatura (indigo/violeta, distinto de orçamento âmbar) */
+  --vd-sub-indigo: oklch(0.58 0.14 280);
+  --vd-sub-indigo-soft: oklch(0.96 0.04 280);
+  --vd-sub-indigo-border: oklch(0.86 0.08 280);
+  --vd-sub-indigo-text: oklch(0.40 0.13 280);
+
+  /* Tokens locais — status assinatura ativa (emerald) */
+  --vd-sub-active: oklch(0.62 0.13 155);
+  --vd-sub-active-soft: oklch(0.96 0.04 155);
+  --vd-sub-active-border: oklch(0.86 0.08 155);
+  --vd-sub-active-text: oklch(0.42 0.12 150);
+
+  /* Tokens locais — status assinatura pausada (amber) */
+  --vd-sub-paused: oklch(0.70 0.13 75);
+  --vd-sub-paused-soft: oklch(0.96 0.04 75);
+  --vd-sub-paused-border: oklch(0.86 0.08 75);
+  --vd-sub-paused-text: oklch(0.45 0.13 70);
+
+  /* Tokens locais — frequência (neutro slate, tabular) */
+  --vd-sub-freq-bg: var(--bg-2, oklch(0.965 0.004 90));
+  --vd-sub-freq-fg: var(--text-dim, oklch(0.50 0.01 80));
+  --vd-sub-freq-border: var(--border, oklch(0.90 0.004 90));
+}
+
+/* ── Badge "Assinatura" — destaque sutil no header da página ── */
+.sells-cowork-subscriptions .vd-sub-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--vd-sub-indigo-soft);
+  border: 1px solid var(--vd-sub-indigo-border);
+  color: var(--vd-sub-indigo-text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ── Indicador de frequência (mensal/anual/semanal) — chip neutro ── */
+.sells-cowork-subscriptions .vd-sub-freq {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--vd-sub-freq-bg);
+  color: var(--vd-sub-freq-fg);
+  border: 1px solid var(--vd-sub-freq-border);
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Chip "Próxima fatura" — data calculada, neutro tabular ── */
+.sells-cowork-subscriptions .vd-sub-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--vd-sub-freq-bg);
+  color: var(--vd-sub-freq-fg);
+  border: 1px solid var(--vd-sub-freq-border);
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.sells-cowork-subscriptions .vd-sub-next.empty {
+  opacity: 0.55;
+  font-style: italic;
+}
+
+/* ── Status badge assinatura (ativa emerald / pausada amber) ── */
+.sells-cowork-subscriptions .vd-sub-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  border: 1px solid transparent;
+}
+.sells-cowork-subscriptions .vd-sub-status.active {
+  background: var(--vd-sub-active-soft);
+  color: var(--vd-sub-active-text);
+  border-color: var(--vd-sub-active-border);
+}
+.sells-cowork-subscriptions .vd-sub-status.paused {
+  background: var(--vd-sub-paused-soft);
+  color: var(--vd-sub-paused-text);
+  border-color: var(--vd-sub-paused-border);
+}
