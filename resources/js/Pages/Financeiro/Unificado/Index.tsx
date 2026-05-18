@@ -38,6 +38,8 @@ import { FinPresentationMode } from './_components/FinPresentationMode';
 // Onda 7c — Folha jurídica imprimível + favoritos pessoais (atalho B).
 import { FinTranscriptPDF } from './_components/FinTranscriptPDF';
 import { useFinFavs, FinFavPin } from './_components/useFinFavs';
+// Onda 9 — Resumo executivo do mês (narrativa compute-based · plug LLM Fase 2).
+import { FinMonthResumeDialog } from './_components/FinMonthResume';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
 
@@ -389,6 +391,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [transcriptOnlyFavs, setTranscriptOnlyFavs] = useState(false);
   const favs = useFinFavs(businessName || 'default');
+  // Cowork KB-9.75 Onda 9 — Resumir mês dialog (narrativa exec compute-based).
+  const [resumoOpen, setResumoOpen] = useState(false);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
 
@@ -456,8 +460,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <button
             type="button"
             className="fin-btn fin-btn-ai"
-            title="Resumo executivo do mês com IA (Onda 9 — em construção)"
-            onClick={() => alert('Resumir mês: feature Onda 9 — JanaService agent (em construção)')}
+            title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
+            onClick={() => setResumoOpen(true)}
           >
             ✦ Resumir mês
           </button>
@@ -782,6 +786,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/unificado/novo'); }}>Novo lançamento</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/extrato'); }}>Conciliar extrato</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); setResumoOpen(true); }}>
+              ✦ Resumir mês (narrativa exec)
+            </CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}>
               📄 Imprimir período (folha jurídica)
             </CommandItem>
@@ -834,6 +841,16 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         periodLabel={periodLabel}
         businessName={businessName}
         onlyFavs={transcriptOnlyFavs ? favs.favs : null}
+      />
+
+      {/* Onda 9 — Resumo executivo do mês (narrativa compute-based, plug LLM Fase 2) */}
+      <FinMonthResumeDialog
+        open={resumoOpen}
+        onClose={() => setResumoOpen(false)}
+        lancamentos={lancamentos}
+        kpis={kpis}
+        periodLabel={periodLabel}
+        businessName={businessName}
       />
 
       {/* Cowork KB-9.75 Onda 7 R3 — Trilha fechamento dialog */}
