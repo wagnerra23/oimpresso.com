@@ -150,26 +150,28 @@ describe('Onda 10 — CSS canon (fin-ageing + fin-subnav)', function () {
     });
 });
 
-describe('Onda 10 — wire-up Index.tsx', function () {
-    it('Index.tsx importa 3 novos componentes', function () {
+describe('Onda 10 — wire-up Index.tsx (REVISADO 2026-05-18 Wagner: FinSubNav/FinAgeing removidos)', function () {
+    it('Index.tsx importa FinEditPanel (FinSubNav e FinAgeing REMOVIDOS — Wagner duplicação)', function () {
         $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
-        expect($src)->toContain("from './_components/FinSubNav'");
-        expect($src)->toContain("from './_components/FinAgeing'");
         expect($src)->toContain("from './_components/FinEditPanel'");
+        // Wagner pediu remoção: sidebar já navega + ageing é insight contextual
+        expect($src)->not->toContain("from './_components/FinSubNav'");
+        expect($src)->not->toContain("from './_components/FinAgeing'");
     });
 
-    it('FinSubNav renderizado ANTES do page header (active=unified)', function () {
+    it('FinSubNav NÃO renderizado no page (sidebar já cobre navegação)', function () {
         $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
-        expect($src)->toContain('<FinSubNav active="unified"');
-        // Ordem: FinSubNav vem antes de fin-page-h
-        $subnavPos = strpos($src, '<FinSubNav active="unified"');
-        $headerPos = strpos($src, 'fin-page-h');
-        expect($subnavPos)->toBeLessThan($headerPos);
+        expect($src)->not->toContain('<FinSubNav');
     });
 
-    it('FinAgeing renderizado APÓS KpiBar (lancamentos como prop)', function () {
+    it('FinAgeing NÃO renderizado no page (insight pertence ao drawer, não strip permanente)', function () {
         $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
-        expect($src)->toContain('<FinAgeing lancamentos={lancamentos} />');
+        expect($src)->not->toContain('<FinAgeing');
+    });
+
+    it('Componentes preservados em _components/ pra fallback (não deletados)', function () {
+        expect(file_exists(FIN_BASE_10 . '/_components/FinSubNav.tsx'))->toBeTrue();
+        expect(file_exists(FIN_BASE_10 . '/_components/FinAgeing.tsx'))->toBeTrue();
     });
 
     it('Aba Editar usa FinEditPanel (form real, não preview readOnly)', function () {
