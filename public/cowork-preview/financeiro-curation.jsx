@@ -141,7 +141,13 @@
           <h4>Editar lançamento</h4>
           <div className="fin-edit-actions">
             {has && <button className="fin-edit-reset" onClick={() => edits.reset(row.id)}>↺ Desfazer</button>}
-            <button className="fin-edit-close" onClick={() => setOpen(false)}>
+            <button className="fin-edit-close" onClick={() => {
+              // Integração #6 oimpresso 2026-05-18 — dispatch evento canon pra bridge JS
+              // persistir via PUT /financeiro/unificado/{id} quando há edits válidos.
+              // Try/catch silencioso: bridge ausente não pode quebrar mock visual.
+              try { if (has) window.dispatchEvent(new CustomEvent('oimpresso:fin-edit', { detail: { id: row.id, fields: edits.get(row.id) || {}, original: row } })); } catch (e) {}
+              setOpen(false);
+            }}>
               {has ? "✓ Salvar" : "Fechar"}
             </button>
           </div>
