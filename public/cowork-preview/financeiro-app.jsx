@@ -1068,6 +1068,8 @@ const FinanceiroPage = ({ initialTela = "unified" }) => {
 
   const handleMark = useCallback((id) => {
     setRows((rs) => rs.map((r) => r.id === id ? { ...r, paid_at: window.FIN_TODAY, status: r.kind === "receivable" ? "recebido" : "pago" } : r));
+    // Integração #2 oimpresso 2026-05-18: dispatch evento pra bridge fazer POST real Laravel
+    try { window.dispatchEvent(new CustomEvent('oimpresso:fin-mark', { detail: { id } })); } catch (e) {}
   }, []);
 
   const handleMarkAll = useCallback(() => {
