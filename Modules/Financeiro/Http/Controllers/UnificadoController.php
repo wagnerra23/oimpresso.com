@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
@@ -53,6 +54,7 @@ class UnificadoController extends Controller
             ->whereIn('status', ['aberto', 'parcial', 'quitado'])
             ->with([
                 'categoria:id,nome',
+                'conferidoPor:id,first_name,last_name,username',
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',
             ]);
@@ -139,6 +141,79 @@ class UnificadoController extends Controller
                 ['label' => 'Novo lançamento', 'href' => null],
             ],
         ]);
+    }
+
+    /**
+     * PUT /financeiro/unificado/{id}
+     * Edit Sheet inline (Onda Edit 2026-05-18). Campos seguros: descricao,
+     * observacoes, categoria_id, vencimento. valor_total mutável só se status
+     * aberto/parcial (ADR fin-tech/0002 imutabilidade pós-baixa).
+     */
+    public function update(UpdateTituloRequest $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
+        $request->assertValorMutavel($titulo);
+
+        $payload = [
+            'cliente_descricao' => $request->input('cliente_descricao'),
+            'observacoes' => $request->input('observacoes'),
+            'categoria_id' => $request->input('categoria_id') ?: null,
+            'vencimento' => $request->date('vencimento')->toDateString(),
+            'updated_by' => $request->user()->id,
+        ];
+
+        if ($request->has('valor_total')) {
+            $valorTotal = (float) $request->input('valor_total');
+            // Recalcula valor_aberto preservando baixas existentes.
+            $somaBaixas = (float) $titulo->baixas()->sum('valor_baixa');
+            $payload['valor_total'] = $valorTotal;
+            $payload['valor_aberto'] = max(0, $valorTotal - $somaBaixas);
+        }
+
+        $titulo->fill($payload)->save();
+
+        return back()->with('success', "Lançamento {$titulo->numero} atualizado.");
+    }
+
+    /**
+     * POST /financeiro/unificado/{id}/conferir
+     * Marca título como conferido pelo user atual (Eliana/Wagner — audit per-user).
+     * Idempotente: re-marcar não altera timestamp original.
+     */
+    public function conferir(Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
+
+        if ($titulo->conferido_by !== null) {
+            return back()->with('info', 'Lançamento já conferido.');
+        }
+
+        $titulo->conferido_by = $request->user()->id;
+        $titulo->conferido_at = now();
+        $titulo->save();
+
+        return back()->with('success', 'Lançamento conferido.');
+    }
+
+    /**
+     * DELETE /financeiro/unificado/{id}/conferir
+     * Desmarca conferido (caso usuário detecte que conferiu por engano).
+     */
+    public function unconferir(Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
+
+        $titulo->conferido_by = null;
+        $titulo->conferido_at = null;
+        $titulo->save();
+
+        return back()->with('success', 'Conferência removida.');
     }
 
     /**
@@ -288,6 +363,11 @@ class UnificadoController extends Controller
         $descricao = $t->cliente_descricao
             ?: ($metadata['descricao'] ?? "Titulo {$t->numero}");
 
+        $conferidoUser = $t->relationLoaded('conferidoPor') ? $t->conferidoPor : null;
+        $conferidoNome = $conferidoUser
+            ? trim(($conferidoUser->first_name ?? '').' '.($conferidoUser->last_name ?? '')) ?: ($conferidoUser->username ?? null)
+            : null;
+
         return [
             'id' => $t->id,
             'kind' => $kind,
@@ -296,6 +376,7 @@ class UnificadoController extends Controller
             'contraparte' => $t->cliente_descricao ?? '—',
             'contraparte_doc' => $metadata['cliente_documento'] ?? null,
             'categoria' => $t->categoria?->nome ?? 'Sem categoria',
+            'categoria_id' => $t->categoria_id,
             'conta_bancaria' => $contaBancariaNome,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
@@ -304,6 +385,10 @@ class UnificadoController extends Controller
             'nfe_numero' => $nfeNumero,
             'canal' => $canal,
             'observacao' => $t->observacoes,
+            'conferido_by' => $t->conferido_by,
+            'conferido_at' => $t->conferido_at?->toIso8601String(),
+            'conferido_user_nome' => $conferidoNome,
+            'valor_mutavel' => ! in_array($t->status, ['quitado', 'cancelado'], true),
         ];
     }
 

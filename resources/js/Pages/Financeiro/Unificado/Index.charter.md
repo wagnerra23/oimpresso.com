@@ -11,7 +11,7 @@ related_us: [US-FIN-013, US-FIN-020]
 related_prototype: prototipo Cowork "Visao Unificada" (Financeiro.html), aprovado por Wagner 2026-05-09
 canon_method: Cowork KB-9.75 v2 — Ondas 5+6+7 (R1 Curadoria + R2 IA + R3 Output · PR #1064/#1066/#1068/#1069 + Onda 7 atual)
 tier: A
-charter_version: 4
+charter_version: 5
 ---
 
 # Page Charter — /financeiro/unificado
@@ -28,6 +28,11 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Onda Edit** (2026-05-18, charter v5):
+  - **TituloEditSheet** — Sheet drawer inline edita campos seguros do título: `cliente_descricao` (texto livre + cross-links `#V-/#OS-/#PC-`), `observacoes`, `categoria_id`, `vencimento`. `valor_total` mutável SOMENTE se `status` aberto/parcial (ADR fin-tech/0002 imutabilidade pós-baixa). PUT `/financeiro/unificado/{id}` via `useForm` Inertia. Wire-up no botão "Editar" do drawer de detalhe.
+  - **Conferido per-user DB** — `FinConferidoToggle` migrado de localStorage para `conferido_by` (FK users.id) + `conferido_at` (timestamp). Substitui Onda 5 R1 storage. Eliana confere ≠ Wagner confere → audit per-user. Routes POST/DELETE `/unificado/{id}/conferir`.
+  - **Cross-links auto-pop** — `TituloAutoService` sintetiza `#V-{transaction_id}` (vendas) e `#PC-{transaction_id}` (compras) em `cliente_descricao` no `afterCreate`. FinCrossLinkify renderiza pills clicáveis.
 
 - **Onda 7 KB-9.75 R3 Output + Cross-link** (2026-05-18):
   - **FinCrossLinkify** — regex parser detecta `#V-` `#BL-` `#PC-` `#OS-` `#R-` `#P-` no `desc` do row → pills coloridas clicáveis que `router.visit` para o módulo apropriado (Sells / Boletos / Compras / Repair / Contas-Receber legacy / Contas-Pagar legacy). Fecha o loop "do Financeiro pra origem do lançamento".
@@ -63,8 +68,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 > Anti-alucinação. Cada item vira Pest GUARD test (Non-Goal violado = CI quebra).
 
 - ❌ Form unificado de novo lançamento inline — F1 é stub picker (Receber/Pagar) em `/unificado/novo`. Roadmap entrega form modal/sheet futuramente
-- ❌ Edição inline de título (cliente/valor/categoria) — drawer leva pra rotas de edição existentes
-- ❌ Cancelamento/estorno — vai por rotas dedicadas
+- ❌ Cancelamento/estorno — vai por rotas dedicadas (`status='cancelado'` via append-only, não delete)
+- ❌ Edição de `tipo`, `origem`, `origem_id`, `status`, `emissao` — imutáveis (anti-corrupção contábil; alterar requer cancelar+criar novo). Onda Edit edita só campos seguros + valor pré-baixa.
 - ❌ Pagination explícita (default `limit(200)` no controller) — paginar quando 1000+ títulos virar dor
 - ❌ Aging buckets <30 / 30-60 / 60-90 / 90+ — ADR ui/0002 previa, F1 simplifica pra status `atrasado` único
 - ❌ Comparação `+12% vs mês anterior` — ADR ui/0002 previa `delta_pct`, F1 não calcula
@@ -105,6 +110,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 - Multi-tenant: `Titulo::where('business_id', $businessId)` em todas as queries
 - 1-clique baixa: POST `/unificado/{id}/baixar` chama método `baixar()` que aplica `TituloBaixaService` (R-FIN-002 audit)
 - Stub `/unificado/novo` redireciona pra `/contas-receber` ou `/contas-pagar` (não implementa form unificado ainda)
+- **Edit Sheet** (Onda Edit 2026-05-18): PUT `/unificado/{id}` → `UnificadoController::update(UpdateTituloRequest)` → guard `assertValorMutavel` se status quitado/cancelado
+- **Conferir per-user**: POST/DELETE `/unificado/{id}/conferir` → `conferido_by` (FK users.id) + `conferido_at` timestamp
 
 ---
 
