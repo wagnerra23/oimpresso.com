@@ -95,55 +95,55 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $segmento_ativo = request()->segment(1) == 'financeiro';
 
-        // Sidebar: Wagner 2026-05-18 pediu sub-items DRE/Fluxo de Caixa/Boletos
-        // visíveis pra ROTA LIVRE (cliente piloto vai usar fechamento mensal).
-        // 4 entradas no dropdown — Visão unificada (default) + 3 sub-telas.
+        // Sidebar: Wagner 2026-05-18 pediu 4 entradas SEPARADAS top-level (não
+        // dropdown popover-2). UX mais visível pra Larissa ROTA LIVRE — não
+        // precisa clicar pra ver Fluxo/DRE/Boletos. Cada item ocupa linha
+        // própria no grupo FINANCEIRO (SIDEBAR_GROUPS em Sidebar.tsx mapeia
+        // as 4 labels pro mesmo grupo visual).
         // Permission gates permanecem nos controllers (sidebar só esconde entrada).
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
-                $menu->dropdown(
+                // 1. Financeiro · Visão unificada (entrada principal)
+                $menu->url(
+                    url('/financeiro/unificado'),
                     __('financeiro::financeiro.module_label'),
-                    function ($sub) {
-                        $sub->url(
-                            url('/financeiro/unificado'),
-                            __('financeiro::financeiro.module_label'),
-                            [
-                                'icon'   => 'fa fas fa-coins',
-                                'active' => request()->segment(2) == 'unificado' || request()->segment(2) == null,
-                            ]
-                        );
-                        $sub->url(
-                            url('/financeiro/fluxo'),
-                            __('financeiro::financeiro.cashflow_label'),
-                            [
-                                'icon'   => 'fa fas fa-chart-line',
-                                'active' => request()->segment(2) == 'fluxo',
-                            ]
-                        );
-                        $sub->url(
-                            url('/financeiro/relatorios/dre'),
-                            __('financeiro::financeiro.dre_label'),
-                            [
-                                'icon'   => 'fa fas fa-file-invoice-dollar',
-                                'active' => request()->segment(2) == 'relatorios' && request()->segment(3) == 'dre',
-                            ]
-                        );
-                        $sub->url(
-                            url('/financeiro/boletos'),
-                            __('financeiro::financeiro.boletos_label'),
-                            [
-                                'icon'   => 'fa fas fa-barcode',
-                                'active' => request()->segment(2) == 'boletos',
-                            ]
-                        );
-                    },
                     [
                         'icon'   => 'fa fas fa-coins',
                         'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'active' => $segmento_ativo && (request()->segment(2) == 'unificado' || request()->segment(2) == null),
                     ]
-                )->order(85); // antes do PontoWr2 (88)
+                )->order(85);
+
+                // 2. Fluxo de Caixa
+                $menu->url(
+                    url('/financeiro/fluxo'),
+                    __('financeiro::financeiro.cashflow_label'),
+                    [
+                        'icon'   => 'fa fas fa-chart-line',
+                        'active' => $segmento_ativo && request()->segment(2) == 'fluxo',
+                    ]
+                )->order(85.1);
+
+                // 3. DRE / Relatórios
+                $menu->url(
+                    url('/financeiro/relatorios/dre'),
+                    __('financeiro::financeiro.dre_label'),
+                    [
+                        'icon'   => 'fa fas fa-file-invoice-dollar',
+                        'active' => $segmento_ativo && request()->segment(2) == 'relatorios' && request()->segment(3) == 'dre',
+                    ]
+                )->order(85.2);
+
+                // 4. Boletos
+                $menu->url(
+                    url('/financeiro/boletos'),
+                    __('financeiro::financeiro.boletos_label'),
+                    [
+                        'icon'   => 'fa fas fa-barcode',
+                        'active' => $segmento_ativo && request()->segment(2) == 'boletos',
+                    ]
+                )->order(85.3);
             }
         );
     }
