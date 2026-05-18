@@ -1,8 +1,13 @@
 // Wave 1 W1-A — MWART /sells/subscriptions (Assinaturas).
-// Refs: ADR 0104, ADR 0149 (pattern reuse Sells/Index), ADR 0110, ADR 0093,
-//        Modules/RecurringBilling integração futura.
+// US-SELL-SUBSCRIPTIONS-COWORK marker — Onda Cowork Sells/Subscriptions (visual reuse família Index).
+// Refs: ADR 0104, ADR 0149 (pattern reuse Sells/Index), ADR 0110, ADR 0143 (FSM), ADR 0093.
 //
 // Vendas recorrentes (status=final + is_recurring=1) com start/stop toggle inline.
+//
+// Visual: wrapper outer reusa família .sells-cowork (tokens canon + filtros + paginação)
+// e adiciona .sells-cowork-subscriptions (extensões mínimas: badge Assinatura, chip
+// frequência, chip próxima fatura, status badge ativa/pausada). Sem mudar Controller /
+// props / funcionalidade.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
@@ -161,7 +166,7 @@ export default function SellsSubscriptions(props: SellsSubscriptionsPageProps) {
     <>
       <Head title="Assinaturas" />
 
-      <div className="container mx-auto px-6 py-6 space-y-6">
+      <div className="sells-cowork sells-cowork-subscriptions container mx-auto px-6 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-start gap-3">
@@ -171,7 +176,10 @@ export default function SellsSubscriptions(props: SellsSubscriptionsPageProps) {
               </Link>
             </Button>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Assinaturas</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-semibold tracking-tight">Assinaturas</h1>
+                <span className="vd-sub-badge" aria-label="Tipo: Assinatura">Assinatura</span>
+              </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Cobranças recorrentes — start/stop e acompanhar próxima fatura.
               </p>
@@ -245,21 +253,28 @@ export default function SellsSubscriptions(props: SellsSubscriptionsPageProps) {
                         {r.subscription_no ?? r.invoice_no}
                       </td>
                       <td className="px-3 py-3">{r.customer_name ?? '—'}</td>
-                      <td className="px-3 py-3 text-muted-foreground">
-                        {intervalLabel(r.recur_interval, r.recur_interval_type)}
+                      <td className="px-3 py-3">
+                        <span className="vd-sub-freq" aria-label="Frequência de cobrança">
+                          {intervalLabel(r.recur_interval, r.recur_interval_type)}
+                        </span>
                       </td>
-                      <td className="px-3 py-3 tabular-nums text-muted-foreground">
-                        {r.upcoming_invoice ?? '—'}
+                      <td className="px-3 py-3">
+                        <span
+                          className={`vd-sub-next${r.upcoming_invoice ? '' : ' empty'}`}
+                          aria-label="Próxima fatura"
+                        >
+                          {r.upcoming_invoice ?? '—'}
+                        </span>
                       </td>
                       <td className="px-3 py-3">
                         {isActive ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
-                            <Play className="h-3 w-3 mr-1" />
+                          <span className="vd-sub-status active">
+                            <Play className="h-3 w-3" />
                             Ativa
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                            <Pause className="h-3 w-3 mr-1" />
+                          <span className="vd-sub-status paused">
+                            <Pause className="h-3 w-3" />
                             Pausada
                           </span>
                         )}
