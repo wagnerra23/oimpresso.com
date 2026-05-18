@@ -481,7 +481,11 @@ class AdminSidebarMenu
             }
 
             //Expense dropdown
-            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense'))) {
+            // Wagner 2026-05-18: esconder pra biz=4 (ROTA LIVRE Larissa). Ela
+            // não usa "Despesas" — vestuário não tem regime fiscal com lançamento
+            // de despesa avulsa por aqui (preferencia Financeiro/Unificado).
+            $current_biz = (int) session('user.business_id');
+            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense')) && $current_biz !== 4) {
                 $menu->dropdown(
                     __('expense.expenses'),
                     function ($sub) {
