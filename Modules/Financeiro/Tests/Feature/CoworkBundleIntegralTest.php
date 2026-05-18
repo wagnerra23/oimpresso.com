@@ -23,6 +23,7 @@ uses(Tests\TestCase::class);
 
 const FIN_BUNDLE = __DIR__ . '/../../../../resources/css/cowork-financeiro-bundle.css';
 const FIN_INERTIA_CSS = __DIR__ . '/../../../../resources/css/inertia.css';
+const FIN_COWORK_JSX_DIR = __DIR__ . '/../../../../resources/js/Pages/Financeiro/_cowork-bundle';
 
 describe('Cowork Bundle Integral — arquivo + header', function () {
     it('cowork-financeiro-bundle.css existe', function () {
@@ -99,5 +100,69 @@ describe('Cowork Bundle Integral — classes canon presentes', function () {
         $count = preg_match_all('/fin-drawer-tabs|fin-conferido-toggle|fin-ai-anomalia|fin-audit-row|fin-frescor/', $src);
         // Wagner: "se <10, foi truncado. Deve retornar 30+"
         expect($count)->toBeGreaterThanOrEqual(10);
+    });
+});
+
+describe('Cowork Bundle Integral — JSX files reference (_cowork-bundle/)', function () {
+    it('Diretório _cowork-bundle/ existe', function () {
+        expect(is_dir(FIN_COWORK_JSX_DIR))->toBeTrue();
+    });
+
+    it('README canon presente com manifest + roadmap adaptação', function () {
+        $readme = file_get_contents(FIN_COWORK_JSX_DIR . '/README.md');
+        expect($readme)->toContain('Bundle Cowork Financeiro INTEGRAL');
+        expect($readme)->toContain('feedback-cowork-bundle-aplicar-inteiro.md');
+        expect($readme)->toContain('NUNCA importar `.jsx` daqui em produção');
+        expect($readme)->toContain('Roadmap de adaptação');
+    });
+
+    it('10 arquivos JSX core copiados (8 financeiro-* + fsm-stepper + shell-*)', function () {
+        $expected = [
+            'financeiro-app.jsx',
+            'financeiro-ai.jsx',
+            'financeiro-curation.jsx',
+            'financeiro-data.jsx',
+            'financeiro-icons.jsx',
+            'financeiro-output.jsx',
+            'financeiro-telas-extras.jsx',
+            'fsm-stepper.jsx',
+            'shell-app.jsx',
+            'shell-data.jsx',
+        ];
+        foreach ($expected as $f) {
+            expect(file_exists(FIN_COWORK_JSX_DIR . '/' . $f))
+                ->toBeTrue("Arquivo {$f} faltando no _cowork-bundle/");
+        }
+    });
+
+    it('financeiro-app.jsx é maior arquivo (>50KB — fonte da Visão Unificada)', function () {
+        $size = filesize(FIN_COWORK_JSX_DIR . '/financeiro-app.jsx');
+        expect($size)->toBeGreaterThan(50_000);
+    });
+
+    it('financeiro-telas-extras.jsx contém telas extras (Fluxo/DRE/Caixa — futuras)', function () {
+        $src = file_get_contents(FIN_COWORK_JSX_DIR . '/financeiro-telas-extras.jsx');
+        // Pelo menos uma das telas (case-insensitive)
+        $hasFluxoOrDre = stripos($src, 'fluxo') !== false
+                     || stripos($src, 'dre') !== false
+                     || stripos($src, 'caixa') !== false;
+        expect($hasFluxoOrDre)->toBeTrue('financeiro-telas-extras.jsx deve referenciar Fluxo/DRE/Caixa');
+    });
+
+    it('fsm-stepper.jsx existe (componente NOVO ainda não portado)', function () {
+        $src = file_get_contents(FIN_COWORK_JSX_DIR . '/fsm-stepper.jsx');
+        expect(strlen($src))->toBeGreaterThan(5_000);
+        // FSM stepper deve mencionar steps/stages (state machine UI)
+        $hasStep = stripos($src, 'step') !== false || stripos($src, 'stage') !== false;
+        expect($hasStep)->toBeTrue();
+    });
+});
+
+describe('Cowork Bundle — discovery Inertia NÃO pega .jsx (underscore prefix)', function () {
+    it('Inertia app.tsx usa glob ./Pages/**/*.tsx (não .jsx)', function () {
+        $src = file_get_contents(__DIR__ . '/../../../../resources/js/app.tsx');
+        expect($src)->toContain("import.meta.glob('./Pages/**/*.tsx')");
+        // NÃO deve haver glob de .jsx (que importaria o bundle por engano)
+        expect($src)->not->toContain('./Pages/**/*.jsx');
     });
 });
