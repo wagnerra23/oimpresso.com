@@ -1,0 +1,107 @@
+/* ───────────────────────────────────────────────────────────────────
+ * Sells Cowork — Sells/Quotations (cotações) extensões mínimas.
+ *
+ * Reusa a família .sells-cowork (tokens canon + paginação + filtros) e
+ * adiciona APENAS os toques específicos da página de cotações:
+ *   - badge "Orçamento" (pill destaque âmbar/dourado vs status pills vendas)
+ *   - botão "Converter em venda" (acento esverdeado — call-to-action)
+ *   - indicador de expiração de orçamento (chip vencido / a vencer)
+ *
+ * Importado por resources/css/inertia.css. Scope cumulativo:
+ *   <div class="sells-cowork sells-cowork-quotations">
+ * cohabita tokens da família Index sem reescrever nenhum.
+ *
+ * Refs:
+ *  - resources/css/sells-cowork.css (família canon — tokens base)
+ *  - resources/js/Pages/Sells/Quotations.charter.md (Mission + Goals)
+ *  - resources/js/Pages/Sells/Quotations.tsx (uso)
+ *  - memory/requisitos/_DesignSystem/RUNBOOK-onda-cowork.md
+ * ─────────────────────────────────────────────────────────────────── */
+
+.sells-cowork-quotations {
+  /* Tokens locais — orçamento (âmbar/dourado, distinto de paga/pendente vendas) */
+  --vd-quote-amber: oklch(0.72 0.14 75);
+  --vd-quote-amber-soft: oklch(0.96 0.05 75);
+  --vd-quote-amber-border: oklch(0.86 0.09 75);
+  --vd-quote-amber-text: oklch(0.42 0.13 70);
+
+  /* Tokens locais — converter em venda (esverdeado CTA, distinto de paga) */
+  --vd-quote-convert: oklch(0.60 0.12 145);
+  --vd-quote-convert-hover: oklch(0.55 0.13 145);
+  --vd-quote-convert-fg: #ffffff;
+
+  /* Tokens locais — expiração (vermelho-suave coerente com vd-delta-dn) */
+  --vd-quote-expired: oklch(0.55 0.16 25);
+  --vd-quote-expired-soft: oklch(0.96 0.04 25);
+  --vd-quote-expiring: oklch(0.62 0.13 60);
+  --vd-quote-expiring-soft: oklch(0.96 0.04 60);
+}
+
+/* ── Badge "Orçamento" — destaque sutil no header da página ── */
+.sells-cowork-quotations .vd-quote-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--vd-quote-amber-soft);
+  border: 1px solid var(--vd-quote-amber-border);
+  color: var(--vd-quote-amber-text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ── Botão "Converter em venda" (CTA verde, distinto de "Enviar") ── */
+.sells-cowork-quotations .vd-quote-convert-btn {
+  appearance: none;
+  background: var(--vd-quote-convert);
+  color: var(--vd-quote-convert-fg);
+  border: 1px solid var(--vd-quote-convert);
+  padding: 5px 11px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background .12s, border-color .12s;
+}
+.sells-cowork-quotations .vd-quote-convert-btn:hover {
+  background: var(--vd-quote-convert-hover);
+  border-color: var(--vd-quote-convert-hover);
+}
+.sells-cowork-quotations .vd-quote-convert-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Chip de expiração (validade do orçamento) ── */
+.sells-cowork-quotations .vd-quote-expiry {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.sells-cowork-quotations .vd-quote-expiry.expired {
+  background: var(--vd-quote-expired-soft);
+  color: var(--vd-quote-expired);
+  border: 1px solid color-mix(in oklch, var(--vd-quote-expired) 30%, transparent);
+}
+.sells-cowork-quotations .vd-quote-expiry.expiring {
+  background: var(--vd-quote-expiring-soft);
+  color: var(--vd-quote-expiring);
+  border: 1px solid color-mix(in oklch, var(--vd-quote-expiring) 30%, transparent);
+}
+.sells-cowork-quotations .vd-quote-expiry.fresh {
+  background: var(--bg-2, oklch(0.965 0.004 90));
+  color: var(--text-dim, oklch(0.50 0.01 80));
+  border: 1px solid var(--border, oklch(0.90 0.004 90));
+}
