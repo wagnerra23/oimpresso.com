@@ -9,9 +9,9 @@ parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
 related_adrs: [arq/0005, ui/0002, ui/0114, 0093, 0094]
 related_us: [US-FIN-013, US-FIN-020]
 related_prototype: prototipo Cowork "Visao Unificada" (Financeiro.html), aprovado por Wagner 2026-05-09
-canon_method: Cowork KB-9.75 v2 — Ondas 5+6 (R1 Curadoria + R2 IA · PR #1064/#1066 + Onda 5 + Onda 6 atual)
+canon_method: Cowork KB-9.75 v2 — Ondas 5+6+7 (R1 Curadoria + R2 IA + R3 Output · PR #1064/#1066/#1068/#1069 + Onda 7 atual)
 tier: A
-charter_version: 3
+charter_version: 4
 ---
 
 # Page Charter — /financeiro/unificado
@@ -29,6 +29,9 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 
 ## Goals — Features (faz)
 
+- **Onda 7 KB-9.75 R3 Output + Cross-link** (2026-05-18):
+  - **FinCrossLinkify** — regex parser detecta `#V-` `#BL-` `#PC-` `#OS-` `#R-` `#P-` no `desc` do row → pills coloridas clicáveis que `router.visit` para o módulo apropriado (Sells / Boletos / Compras / Repair / Contas-Receber legacy / Contas-Pagar legacy). Fecha o loop "do Financeiro pra origem do lançamento".
+  - **FinChecklistFechamento** — trilha 12 passos do fechamento mensal agrupada em 4 (Conciliação / Revisão / Exportação / Comunicação). Persistido em `localStorage[oimpresso.financeiro.fechamento.YYYY-MM]`. Progress bar + timestamp por passo. Trigger ☑ Fechamento no header da página.
 - **Onda 6 KB-9.75 R2 IA** (2026-05-18):
   - **FinAnomalyDetector** — detecta valor outlier vs média histórica da contraparte (threshold ≥25%, severity high/medium/low). Mostrado no drawer quando aplicável. Pure compute, sem LLM.
   - **FinPartyHistory** — stats da contraparte no drawer (count, total, média, on-time%, categoria top, 5 recentes). Detecta isNew (1 lançamento) vs isRecurrent (≥3). Pure compute.
