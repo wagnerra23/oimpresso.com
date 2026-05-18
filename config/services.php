@@ -95,4 +95,25 @@ return [
         'pix_chave' => env('INTER_PIX_CHAVE'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Slack — webhooks de alerta operacional (gap Onda 6 Sells smoke)
+    |--------------------------------------------------------------------------
+    |
+    | Incoming Webhook URL pra notificar time MCP quando smoke automatizado
+    | detecta drift. NÃO usar pra credencial Slack OAuth (App-level token);
+    | aqui é simples HTTP POST sem auth — Slack valida via URL secreta.
+    |
+    | Default null = notificação Slack desabilitada (smoke ainda loga ALERT
+    | em Log::channel('single')->error). Ativar em prod via .env Hostinger:
+    |
+    |     SLACK_SMOKE_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../...
+    |
+    | Compatível com Mattermost e Discord (formato Slack-compatible block kit).
+    | Comando caller: app/Console/Commands/Sells/SmokeDailyCommand.php
+    */
+    'slack' => [
+        'smoke_webhook_url' => env('SLACK_SMOKE_WEBHOOK_URL'),
+    ],
+
 ];
