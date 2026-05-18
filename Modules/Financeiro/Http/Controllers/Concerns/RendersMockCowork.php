@@ -122,6 +122,12 @@ trait RendersMockCowork
   <script src="/cowork-preview/_oimpresso-bridge-posts.js"></script>
   <!-- Integração #5 oimpresso: bridge Conferido (toggle → POST/DELETE /financeiro/unificado/{id}/conferir) -->
   <script src="/cowork-preview/_oimpresso-bridge-conferido.js"></script>
+  <!-- Integração #6 oimpresso: bridge Drawer Edit (Salvar → PUT /financeiro/unificado/{id}) -->
+  <script src="/cowork-preview/_oimpresso-bridge-edit.js"></script>
+  <!-- Comments oimpresso: bridge Comments thread (GET pre-fetch + POST add) -->
+  <script src="/cowork-preview/_oimpresso-bridge-comments.js"></script>
+  <!-- Audit oimpresso: bridge Audit trail (GET via Spatie ActivityLog) -->
+  <script src="/cowork-preview/_oimpresso-bridge-audit.js"></script>
 HTML;
 
         if (str_contains($html, '<head>')) {
