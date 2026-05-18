@@ -3,9 +3,11 @@
 namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -290,6 +292,93 @@ class UnificadoController extends Controller
     }
 
     // ─────────── Helpers privados ───────────
+
+    /**
+     * Onda 8c 2026-05-18 — Endpoint JSON saldo sparkline 30d.
+     *
+     * Retorna array de 30 pontos com saldo cumulativo dia-a-dia (D-29 ... hoje).
+     * Algoritmo:
+     *  1. saldo_atual = SUM(ContaBancaria.saldo_cached)
+     *  2. delta_dia = SUM(receber baixas) - SUM(pagar baixas) por data_baixa
+     *  3. saldo[D-29] = saldo_atual - SUM(delta_dia[D-28..hoje]) + delta_dia[D-29]
+     *     (running sum a partir da baseline 30d atrás)
+     *
+     * Tier 0 Multi-tenant: filtra business_id explícito (não dependo do global scope
+     * via Auth — query é DB direto pra ser barata o suficiente pra request inline).
+     *
+     * Response: { points: [{date: "2026-04-19", saldo: 1234.56, in: 100, out: 50}, ...], saldo_atual: N }
+     */
+    public function saldoSparkline(Request $request): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        if ($businessId <= 0) {
+            return response()->json(['points' => [], 'saldo_atual' => 0.0], 400);
+        }
+
+        $hoje = now()->startOfDay();
+        $inicio = (clone $hoje)->subDays(29); // 30 pontos inclusivo
+        $inicioStr = $inicio->toDateString();
+        $hojeStr = $hoje->toDateString();
+
+        // 1) Saldo atual (snapshot agregado das contas ativas)
+        $saldoAtual = (float) ContaBancaria::where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->sum('saldo_cached');
+
+        // 2) Deltas diários: agrega TituloBaixa por data_baixa + tipo Titulo
+        $rows = DB::table('fin_titulo_baixas as tb')
+            ->join('fin_titulos as t', 't.id', '=', 'tb.titulo_id')
+            ->where('tb.business_id', $businessId)
+            ->whereNull('tb.estorno_de_id')
+            ->whereBetween('tb.data_baixa', [$inicioStr, $hojeStr])
+            ->groupBy('tb.data_baixa', 't.tipo')
+            ->selectRaw('tb.data_baixa as d, t.tipo as tipo, SUM(tb.valor_baixa) as total')
+            ->get();
+
+        // Mapeia date => ['in' => x, 'out' => y]
+        $byDate = [];
+        foreach ($rows as $r) {
+            $date = (string) $r->d;
+            if (! isset($byDate[$date])) {
+                $byDate[$date] = ['in' => 0.0, 'out' => 0.0];
+            }
+            if ($r->tipo === 'receber') {
+                $byDate[$date]['in'] += (float) $r->total;
+            } else {
+                $byDate[$date]['out'] += (float) $r->total;
+            }
+        }
+
+        // 3) Constrói série 30 pontos forward — começamos da baseline (saldo virtual há 30d)
+        // saldoBaseline = saldoAtual - sumNetDelta30d
+        $sumNetDelta = 0.0;
+        foreach ($byDate as $v) {
+            $sumNetDelta += ($v['in'] - $v['out']);
+        }
+        $saldoBaseline = $saldoAtual - $sumNetDelta;
+
+        $points = [];
+        $running = $saldoBaseline;
+        for ($i = 0; $i < 30; $i++) {
+            $date = (clone $inicio)->addDays($i)->toDateString();
+            $in = $byDate[$date]['in'] ?? 0.0;
+            $out = $byDate[$date]['out'] ?? 0.0;
+            $running += ($in - $out);
+            $points[] = [
+                'date' => $date,
+                'saldo' => round($running, 2),
+                'in' => round($in, 2),
+                'out' => round($out, 2),
+            ];
+        }
+
+        return response()->json([
+            'points' => $points,
+            'saldo_atual' => round($saldoAtual, 2),
+            'saldo_baseline_30d' => round($saldoBaseline, 2),
+            'periodo' => ['inicio' => $inicioStr, 'fim' => $hojeStr],
+        ]);
+    }
 
     private function parseFilters(Request $request): array
     {

@@ -178,40 +178,103 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
  * Onda 8 KB-9.75 — KPI bar Cowork canon: hero "Saldo previsto" com sparkline
  * SVG inline + 4 cards secundários. Substitui shadcn KpiCard flat antigo.
  *
- * Sparkline mostra trajetória do saldo ao longo do mês (placeholder estático
- * agora — Onda 8b plugará dados reais via /api/financeiro/saldo-sparkline).
+ * Onda 8c (2026-05-18): plugado em dados reais via /financeiro/unificado/saldo-sparkline.
+ * Quando `points` recebido: gera path SVG normalizado pela faixa min/max. Fallback
+ * mantém placeholder estático (loading/error/sem dados).
  */
-function FinSparkline({ tone = 'pos' }: { tone?: 'pos' | 'neg' }) {
-  // Path placeholder estático — Onda 8b: data prop com 30d real.
+interface SparkPoint { date: string; saldo: number; in: number; out: number }
+
+function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?: SparkPoint[] | null }) {
   const color = tone === 'pos' ? 'oklch(0.78 0.13 145)' : 'oklch(0.65 0.18 25)';
+
+  // Sem dados → fallback placeholder estático (Onda 8 inicial)
+  if (!points || points.length < 2) {
+    return (
+      <svg className="fin-spark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="finSparkG" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.5" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8 L200,36 L0,36 Z" fill="url(#finSparkG)" />
+        <path d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8" stroke={color} strokeWidth="1.5" fill="none" />
+        <line x1="0" y1="24" x2="200" y2="24" stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
+      </svg>
+    );
+  }
+
+  // Gera path a partir dos pontos reais. Normaliza Y entre [4, 32] pra margem visual.
+  const W = 200;
+  const H = 36;
+  const PADDING_Y = 4;
+  const innerH = H - PADDING_Y * 2;
+  const saldos = points.map((p) => p.saldo);
+  const minS = Math.min(...saldos);
+  const maxS = Math.max(...saldos);
+  const range = maxS - minS || 1;
+
+  const linePath = points
+    .map((p, i) => {
+      const x = (i / (points.length - 1)) * W;
+      const y = H - PADDING_Y - ((p.saldo - minS) / range) * innerH;
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  const fillPath = `${linePath} L${W},${H} L0,${H} Z`;
+  const firstSaldo = points[0]?.saldo ?? 0;
+  const baselineY = H - PADDING_Y - ((firstSaldo - minS) / range) * innerH;
+
   return (
-    <svg className="fin-spark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true">
+    <svg className="fin-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="finSparkG" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.5" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path
-        d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8 L200,36 L0,36 Z"
-        fill="url(#finSparkG)"
-      />
-      <path
-        d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8"
-        stroke={color}
-        strokeWidth="1.5"
-        fill="none"
-      />
-      <line x1="0" y1="24" x2="200" y2="24" stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
+      <path d={fillPath} fill="url(#finSparkG)" />
+      <path d={linePath} stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeLinecap="round" />
+      <line x1="0" y1={baselineY} x2={W} y2={baselineY} stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
     </svg>
   );
+}
+
+/** Hook fetch sparkline 30d via endpoint backend (Tier 0 multi-tenant via session). */
+function useSparkline30d(): SparkPoint[] | null {
+  const [points, setPoints] = useState<SparkPoint[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await fetch('/financeiro/unificado/saldo-sparkline', {
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          credentials: 'same-origin',
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!cancelled && Array.isArray(data?.points)) {
+          setPoints(data.points);
+        }
+      } catch {
+        // silencioso — sparkline fica em placeholder
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  return points;
 }
 
 function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
   // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
+  // Onda 8c: sparkline alimentado por endpoint backend (30d real).
   const pendente = kpis.a_receber.valor - kpis.a_pagar.valor;
+  const sparkPoints = useSparkline30d();
   return (
     <div className="fin-stats">
       <button type="button" className="fin-stat fin-stat-hero" onClick={() => onLifecycleSelect(['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
@@ -220,7 +283,7 @@ function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (li
         <span className="fin-stat-hint">
           <b className="mono">{brl(kpis.recebido.valor - kpis.pago.valor)}</b> realizado · <span className={pendente >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(pendente)}</span> pendente
         </span>
-        <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} />
+        <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} points={sparkPoints} />
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['re'])} aria-label="Filtrar recebidas">
