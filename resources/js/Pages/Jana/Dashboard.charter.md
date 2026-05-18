@@ -3,10 +3,10 @@ page: /copiloto/dashboard
 component: resources/js/Pages/Jana/Dashboard.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: 2026-05-18
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
-related_adrs: [0026, 0031, 0035, 0036, 0052, 0093, 0094]
+related_adrs: [0026, 0031, 0035, 0036, 0052, 0093, 0094, 0107, 0114]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
   - resources/js/Pages/Jana/Cockpit.charter.md
@@ -15,7 +15,7 @@ related_specs:
 absorbs_when_live:
   - (futuro) — vira tab `dashboard` dentro de `/jana/cockpit` quando F1.5 ≥80 (ver Cockpit.charter.md)
 tier: A
-charter_version: 1
+charter_version: 2
 permissao: copiloto.access
 ---
 
@@ -35,6 +35,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Goals
 
+- **Header sticky área "JANA"** compartilhado com Chat.tsx — dot da área (hue 220) + label "JANA" à esquerda + tabs `Dashboard | Chat` (navegação Inertia entre `/jana/dashboard` e `/jana`). Componente `JanaAreaHeader` em `Pages/Jana/_components/`. Espelha `prototipo-ui/_cowork-export-2026-05-15/app.jsx` Header function (L247-336 do protótipo Cockpit). Ver `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md` (gate F1.5).
 - Render < 200ms p95 com `Inertia::defer()` em `metas` paginated + `apuracoes` 12 janelas
 - Farol calculado server-side via `MetricasApurador::farol(meta, periodo)` — frontend só consome
 - Click em meta → drilldown `/copiloto/metas/{id}` (US-COPI-011) com série completa
