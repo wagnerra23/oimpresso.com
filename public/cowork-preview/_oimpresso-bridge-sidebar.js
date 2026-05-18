@@ -89,24 +89,93 @@
     return node;
   }
 
-  // ─── Shell data: lê __OIMPRESSO_SHELL__ ou fallback ───────────────
+  // ─── Shell data: Onda #4b — fetch REAL respeitando 3 camadas ──────
 
-  function getShellData() {
-    var s = window.__OIMPRESSO_SHELL__ || {};
-    return {
-      business: s.business || { nome: 'Oimpresso', id: 0 },
-      user: s.user || { nome: 'Usuário', cargo: 'Operador' },
-      // Items hardcoded simplificados — Wagner valida visual primeiro,
-      // depois Onda 4b lê s.menu completo via LegacyMenuAdapter.
-      items: s.items || [
-        { label: 'Dashboard', href: '/home', icon: 'home' },
-        { label: 'Vendas',    href: '/sells', icon: 'cart' },
-        { label: 'Compras',   href: '/purchases', icon: 'truck' },
-        { label: 'Financeiro', href: '/financeiro/unificado', icon: 'wallet', active: true },
-        { label: 'CRM',       href: '/crm', icon: 'users' },
-        { label: 'Cadastros', href: '/contacts', icon: 'folder' },
-      ],
-    };
+  /**
+   * Detecta ícone por keyword no label (heurística — Cowork tem ícones limitados).
+   * Mapeia pros 6 SVG inline definidos abaixo. Default: folder.
+   */
+  function iconForLabel(label) {
+    var l = String(label || '').toLowerCase();
+    if (/financeiro|fluxo|dre|boleto|gateway|recorrent|despesa|conta/.test(l)) return 'wallet';
+    if (/cart|vend|venda|orcament|pos/.test(l)) return 'cart';
+    if (/compr|fornec|estoque/.test(l)) return 'truck';
+    if (/cliente|contat|crm|lead/.test(l)) return 'users';
+    if (/dashboard|home|inicio/.test(l)) return 'home';
+    return 'folder';
+  }
+
+  /**
+   * Mapeia ShellMenuItem (LegacyMenuAdapter) pro shape do bridge.
+   * Item canon: { label, icon, href?, inertia, children? }
+   * Vira: { label, href, icon, active }
+   */
+  function mapMenuItem(item, activeModule) {
+    var label = item.label || '';
+    var href = item.href || (item.children && item.children[0] && item.children[0].href) || '#';
+    var icon = iconForLabel(label);
+    var active = false;
+    if (activeModule && /financeiro/i.test(label) && /financeiro/i.test(activeModule)) {
+      active = true;
+    }
+    return { label: label, href: href, icon: icon, active: active };
+  }
+
+  /**
+   * Onda #4b: fetch endpoint Laravel real que respeita 3 camadas:
+   *   (1) subscription_package via ModuleUtil::hasThePermissionInSubscription
+   *   (2) business.enabled_modules
+   *   (3) Spatie permissions auth()->user()->can('X.access')
+   *
+   * CRÍTICO: precisa header `X-Inertia: true` senão middleware AdminSidebarMenu
+   * pula criação do Menu (skill canon `sidebar-menu-arch` documenta pegadinha).
+   *
+   * Retorna Promise<{ business, user, items[] }>.
+   * Em caso de erro, cai pra fallback hardcoded mínimo (não bloqueia render).
+   */
+  function fetchShellData() {
+    return fetch('/financeiro/cowork-sidebar-data', {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'X-Inertia': 'true',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      var menu = Array.isArray(data.menu) ? data.menu : [];
+      var items = menu.map(function (m) {
+        return mapMenuItem(m, data.active_module);
+      }).filter(function (i) { return i.label && i.href !== '#'; });
+      return {
+        business: { nome: data.business && data.business.name || 'Oimpresso', id: data.business && data.business.id || 0 },
+        user: { nome: data.user && data.user.name || 'Usuário', cargo: data.user && data.user.role || 'Operador' },
+        items: items.length > 0 ? items : fallbackItems(),
+        fromServer: true,
+      };
+    })
+    .catch(function (err) {
+      console.warn('[oimpresso] Sidebar fetch FALHOU, usando fallback:', err && err.message ? err.message : err);
+      return {
+        business: { nome: 'Oimpresso', id: 0 },
+        user: { nome: 'Usuário', cargo: 'Operador' },
+        items: fallbackItems(),
+        fromServer: false,
+      };
+    });
+  }
+
+  function fallbackItems() {
+    return [
+      { label: 'Dashboard', href: '/home', icon: 'home' },
+      { label: 'Vendas',    href: '/sells', icon: 'cart' },
+      { label: 'Financeiro', href: '/financeiro/unificado', icon: 'wallet', active: true },
+    ];
   }
 
   // ─── Icons SVG inline (cinco ícones, simples) ─────────────────────
@@ -211,34 +280,44 @@
 
   // ─── Mount ────────────────────────────────────────────────────────
 
-  function mount() {
+  function mountAsync() {
     // Defensive: já montado?
     if (document.querySelector('.oim-sidebar')) {
       console.log('[oimpresso] Sidebar wrapper já montado, skip duplicate');
       return;
     }
 
-    var data = getShellData();
-    var aside = buildSidebar(data);
+    // Onda #4b: fetch async dos dados REAIS respeitando 3 camadas
+    fetchShellData().then(function (data) {
+      // Re-check defensive (pode ter sido montado durante o fetch)
+      if (document.querySelector('.oim-sidebar')) return;
 
-    // Insere como primeiro filho do body (antes do #app Cowork)
-    if (document.body.firstChild) {
-      document.body.insertBefore(aside, document.body.firstChild);
-    } else {
-      document.body.appendChild(aside);
-    }
+      var aside = buildSidebar(data);
 
-    // Ativa CSS wrapper — html.oim-sidebar-on
-    document.documentElement.classList.add('oim-sidebar-on');
+      // Insere como primeiro filho do body (antes do #app Cowork)
+      if (document.body.firstChild) {
+        document.body.insertBefore(aside, document.body.firstChild);
+      } else {
+        document.body.appendChild(aside);
+      }
 
-    console.log('[oimpresso] Sidebar wrapper montado (Integração #4 / Onda 4): business=%s, items=%d', data.business.nome, data.items.length);
+      // Ativa CSS wrapper — html.oim-sidebar-on
+      document.documentElement.classList.add('oim-sidebar-on');
+
+      console.log(
+        '[oimpresso] Sidebar wrapper montado (Onda #4b): business=%s, items=%d, source=%s',
+        data.business.nome,
+        data.items.length,
+        data.fromServer ? 'server' : 'fallback'
+      );
+    });
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
+    document.addEventListener('DOMContentLoaded', mountAsync);
   } else {
-    mount();
+    mountAsync();
   }
 
-  console.log('[oimpresso] Mock Cowork bridge-sidebar.js carregado (Integração #4 / Onda 4)');
+  console.log('[oimpresso] Mock Cowork bridge-sidebar.js carregado (Onda #4b — fetch real 3 camadas)');
 })();
