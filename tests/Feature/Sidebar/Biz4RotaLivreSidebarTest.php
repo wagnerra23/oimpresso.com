@@ -50,11 +50,24 @@ describe('biz=4 ROTA LIVRE — LIBERAR Financeiro + sub-items', function () {
         expect($src)->toContain('boletos_label');
     });
 
-    it('Lang pt/financeiro tem 3 chaves novas (cashflow_label / dre_label / boletos_label)', function () {
+    it('Lang pt/financeiro tem 3 chaves novas (cashflow_label / dre_label / boletos_label como Gateway)', function () {
         $src = file_get_contents(ROOT . '/Modules/Financeiro/Resources/lang/pt/financeiro.php');
         expect($src)->toContain("'cashflow_label' => 'Fluxo de Caixa'");
         expect($src)->toContain("'dre_label' => 'DRE / Relatórios'");
-        expect($src)->toContain("'boletos_label' => 'Boletos'");
+        // Wagner 2026-05-18 fix: "Boletos" renomeado pra "Gateway de Pagamento"
+        // (Inter API + PIX + futuras integrações). Lang key 'boletos_label'
+        // preservada pra manter URL /financeiro/boletos compatível.
+        expect($src)->toContain("'boletos_label' => 'Gateway de Pagamento'");
+    });
+});
+
+describe('biz=4 ROTA LIVRE — Woocommerce escondido (Wagner 2026-05-18)', function () {
+    it('Woocommerce DataController: return early quando business_id === 4', function () {
+        $src = file_get_contents(ROOT . '/Modules/Woocommerce/Http/Controllers/DataController.php');
+        expect($src)->toContain('$business_id = (int) session()->get(\'user.business_id\')');
+        expect($src)->toContain('if ($business_id === 4)');
+        expect($src)->toContain('Wagner 2026-05-18');
+        expect($src)->toContain('ROTA LIVRE');
     });
 });
 
