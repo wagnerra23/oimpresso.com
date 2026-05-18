@@ -45,6 +45,7 @@ class Titulo extends Model
         'plano_conta_id', 'categoria_id',
         'observacoes', 'metadata',
         'created_by', 'updated_by',
+        'conferido_by', 'conferido_at',
     ];
 
     protected $casts = [
@@ -53,7 +54,13 @@ class Titulo extends Model
         'emissao' => 'date',
         'vencimento' => 'date',
         'metadata' => 'array',
+        'conferido_at' => 'datetime',
     ];
+
+    public function conferidoPor(): BelongsTo
+    {
+        return $this->belongsTo(\App\User::class, 'conferido_by');
+    }
 
     public function planoConta(): BelongsTo
     {

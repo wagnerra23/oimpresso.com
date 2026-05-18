@@ -151,3 +151,142 @@ it('Non-Goal: rota /unificado é GET-only — POST/PUT/DELETE retornam 405', fun
         expect($r->status())->toBeIn([405, 419, 404]);
     }
 });
+
+// ─────────────────────── Onda Edit 2026-05-18 — Edit Sheet + Conferido per-user ───────────────────────
+
+it('Edit Sheet: PUT /unificado/{id} atualiza campos seguros', function () {
+    $user = unificadoBootstrap();
+    $businessId = (int) session('user.business_id');
+
+    $titulo = \Modules\Financeiro\Models\Titulo::where('business_id', $businessId)
+        ->where('status', 'aberto')
+        ->first();
+
+    if (! $titulo) {
+        test()->markTestSkipped('Sem título aberto pra editar neste env.');
+    }
+
+    $payload = [
+        'cliente_descricao' => 'Descrição editada Pest',
+        'observacoes' => 'Editado via test '.now()->toIso8601String(),
+        'categoria_id' => null,
+        'vencimento' => now()->addDays(15)->toDateString(),
+    ];
+
+    $response = $this->actingAs($user)
+        ->from('/financeiro/unificado')
+        ->put("/financeiro/unificado/{$titulo->id}", $payload);
+
+    expect($response->status())->toBeIn([302, 303]);
+
+    $titulo->refresh();
+    expect($titulo->cliente_descricao)->toBe('Descrição editada Pest');
+    expect($titulo->vencimento->toDateString())->toBe(now()->addDays(15)->toDateString());
+});
+
+it('Edit Sheet: valor_total mutável só se status aberto/parcial (ADR fin-tech/0002)', function () {
+    $user = unificadoBootstrap();
+    $businessId = (int) session('user.business_id');
+
+    $quitado = \Modules\Financeiro\Models\Titulo::where('business_id', $businessId)
+        ->where('status', 'quitado')
+        ->first();
+
+    if (! $quitado) {
+        test()->markTestSkipped('Sem título quitado pra testar imutabilidade.');
+    }
+
+    $valorOriginal = (float) $quitado->valor_total;
+
+    $response = $this->actingAs($user)
+        ->from('/financeiro/unificado')
+        ->put("/financeiro/unificado/{$quitado->id}", [
+            'cliente_descricao' => $quitado->cliente_descricao,
+            'observacoes' => $quitado->observacoes,
+            'categoria_id' => $quitado->categoria_id,
+            'vencimento' => $quitado->vencimento->toDateString(),
+            'valor_total' => 99999.99,
+        ]);
+
+    // Espera 422 (abort no assertValorMutavel) ou redirect com error flash
+    expect($response->status())->toBeIn([422, 302, 303]);
+
+    $quitado->refresh();
+    expect((float) $quitado->valor_total)->toBe($valorOriginal);
+});
+
+it('Tier 0: PUT /unificado/{id} retorna 404 quando título pertence a outro business', function () {
+    $user = unificadoBootstrap();
+    $businessId = (int) session('user.business_id');
+
+    // Título de outro business (qualquer ID inexistente neste tenant)
+    $outroTitulo = \Modules\Financeiro\Models\Titulo::query()
+        ->withoutGlobalScope(\Modules\Financeiro\Models\Concerns\BusinessScopeImpl::class)
+        ->where('business_id', '!=', $businessId)
+        ->first();
+
+    if (! $outroTitulo) {
+        test()->markTestSkipped('Apenas 1 business no DB — não há cross-tenant pra testar.');
+    }
+
+    $response = $this->actingAs($user)
+        ->from('/financeiro/unificado')
+        ->put("/financeiro/unificado/{$outroTitulo->id}", [
+            'cliente_descricao' => 'tentativa cross-tenant',
+            'observacoes' => null,
+            'categoria_id' => null,
+            'vencimento' => now()->addDays(7)->toDateString(),
+        ]);
+
+    expect($response->status())->toBe(404);
+});
+
+it('Conferir: POST /unificado/{id}/conferir marca user + timestamp', function () {
+    $user = unificadoBootstrap();
+    $businessId = (int) session('user.business_id');
+
+    $titulo = \Modules\Financeiro\Models\Titulo::where('business_id', $businessId)
+        ->whereNull('conferido_by')
+        ->first();
+
+    if (! $titulo) {
+        test()->markTestSkipped('Todos títulos já conferidos neste env.');
+    }
+
+    $response = $this->actingAs($user)
+        ->from('/financeiro/unificado')
+        ->post("/financeiro/unificado/{$titulo->id}/conferir");
+
+    expect($response->status())->toBeIn([302, 303]);
+
+    $titulo->refresh();
+    expect($titulo->conferido_by)->toBe($user->id);
+    expect($titulo->conferido_at)->not()->toBeNull();
+});
+
+it('Unconferir: DELETE /unificado/{id}/conferir limpa user + timestamp', function () {
+    $user = unificadoBootstrap();
+    $businessId = (int) session('user.business_id');
+
+    $titulo = \Modules\Financeiro\Models\Titulo::where('business_id', $businessId)
+        ->first();
+
+    if (! $titulo) {
+        test()->markTestSkipped('Sem título neste env.');
+    }
+
+    // Marca primeiro pra ter o que limpar.
+    $titulo->conferido_by = $user->id;
+    $titulo->conferido_at = now();
+    $titulo->save();
+
+    $response = $this->actingAs($user)
+        ->from('/financeiro/unificado')
+        ->delete("/financeiro/unificado/{$titulo->id}/conferir");
+
+    expect($response->status())->toBeIn([302, 303]);
+
+    $titulo->refresh();
+    expect($titulo->conferido_by)->toBeNull();
+    expect($titulo->conferido_at)->toBeNull();
+});

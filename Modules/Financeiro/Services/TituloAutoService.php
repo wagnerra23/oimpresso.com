@@ -86,6 +86,20 @@ class TituloAutoService
 
             $numero = $existing?->numero ?? $this->proximoNumero($tx->business_id, $tipo);
 
+            // Onda Edit 2026-05-18 — cross-link auto-pop em `cliente_descricao`.
+            // Formato: "{ContactName} · #V-{txId}" (venda) ou "{ContactName} · #PC-{txId}" (compra).
+            // FinCrossLinkify (frontend) parseia esses tokens e renderiza pills clicáveis
+            // que roteiam pro Sells/Compras de origem. Preserva edit manual do user:
+            // se $existing já tem cliente_descricao preenchido, NÃO sobrescreve.
+            $cliente = $tx->contact_id ? \App\Contact::find($tx->contact_id) : null;
+            $contactName = $cliente?->name ?: ($cliente?->supplier_business_name ?: null);
+            $crossLinkPrefix = $tipo === 'receber' ? 'V' : 'PC';
+            $crossLink = sprintf('#%s-%d', $crossLinkPrefix, $tx->id);
+            $descricaoSugerida = $contactName ? "{$contactName} · {$crossLink}" : $crossLink;
+            $clienteDescricaoFinal = ($existing && ! empty($existing->cliente_descricao))
+                ? $existing->cliente_descricao
+                : $descricaoSugerida;
+
             // SUPERADMIN: idem Observer — updateOrCreate com business_id da Transaction
             return Titulo::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
@@ -101,6 +115,7 @@ class TituloAutoService
                         'tipo' => $tipo,
                         'status' => $valorAberto > 0 ? ($valorPago > 0 ? 'parcial' : 'aberto') : 'quitado',
                         'cliente_id' => $tx->contact_id,
+                        'cliente_descricao' => $clienteDescricaoFinal,
                         'valor_total' => $valorTotal,
                         'valor_aberto' => $valorAberto,
                         'moeda' => 'BRL',
@@ -112,6 +127,7 @@ class TituloAutoService
                         'metadata' => [
                             'auto_created' => true,
                             'transaction_invoice_no' => $tx->invoice_no,
+                            'cross_link' => $crossLink,
                         ],
                     ]
                 );
