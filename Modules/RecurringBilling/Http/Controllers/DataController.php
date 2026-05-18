@@ -10,16 +10,16 @@ use Menu;
 /**
  * DataController do módulo RecurringBilling — sidebar AppShellV2.
  *
- * Descoberto pelo middleware `AdminSidebarMenu` do core UltimatePOS
- * (convenção: Modules\<Nome>\Http\Controllers\DataController@modifyAdminMenu).
- *
+ * Descoberto pelo middleware `AdminSidebarMenu` do core UltimatePOS.
  * Sidebar pattern canon: skill `sidebar-menu-arch`. Item agrupado visualmente
  * em SIDEBAR_GROUPS['fin'] (FINANCEIRO) via lookup label literal `Cobrança
  * Recorrente` em resources/js/Components/cockpit/Sidebar.tsx.
  *
  * Order 86 — entre Financeiro (85) e PontoWr2 (88).
- * Ativado 2026-05-17 (Ondas 3+4+5 — primeiro Page Inertia
- * Pages/RecurringBilling/Index.tsx).
+ *
+ * Ativado 2026-05-17 (Ondas 3+4+5 — primeiro Page Inertia).
+ * Onda 10 v9,75: permissões granulares Spatie + remoção guard SUPERADMIN-only
+ * (agora qualquer user com `recurringbilling.access` vê o item).
  */
 class DataController extends Controller
 {
@@ -34,14 +34,24 @@ class DataController extends Controller
         ];
     }
 
+    /**
+     * Permissions Spatie granulares — Onda 10 v9,75.
+     *
+     * `recurringbilling.access` é a raiz (ver Page + sidebar item).
+     * Demais são granulares pra evolução pós-canary G1 Martinho.
+     */
     public function user_permissions(): array
     {
         return [
-            [
-                'value'   => 'recurringbilling.access',
-                'label'   => __('recurringbilling::recurringbilling.permissao_acesso'),
-                'default' => false,
-            ],
+            ['value' => 'recurringbilling.access',                    'label' => __('recurringbilling::recurringbilling.permissao_acesso'),                    'default' => false],
+            ['value' => 'recurringbilling.subscriptions.manage',      'label' => __('recurringbilling::recurringbilling.permissao_subscriptions_manage'),      'default' => false],
+            ['value' => 'recurringbilling.subscriptions.cancel',      'label' => __('recurringbilling::recurringbilling.permissao_subscriptions_cancel'),      'default' => false],
+            ['value' => 'recurringbilling.plans.manage',              'label' => __('recurringbilling::recurringbilling.permissao_plans_manage'),              'default' => false],
+            ['value' => 'recurringbilling.invoices.view',             'label' => __('recurringbilling::recurringbilling.permissao_invoices_view'),             'default' => false],
+            ['value' => 'recurringbilling.invoices.charge',           'label' => __('recurringbilling::recurringbilling.permissao_invoices_charge'),           'default' => false],
+            ['value' => 'recurringbilling.notes.write',               'label' => __('recurringbilling::recurringbilling.permissao_notes_write'),               'default' => false],
+            ['value' => 'recurringbilling.favorites.write',           'label' => __('recurringbilling::recurringbilling.permissao_favorites_write'),           'default' => false],
+            ['value' => 'recurringbilling.configuracoes.manage',      'label' => __('recurringbilling::recurringbilling.permissao_configuracoes_manage'),      'default' => false],
         ];
     }
 
@@ -50,12 +60,9 @@ class DataController extends Controller
      *
      * Guards canônicos (skill sidebar-menu-arch):
      *  1. Módulo instalado (superadmin via isModuleInstalled, demais via subscription)
-     *  2. Rota nomeada existe (defesa contra deploy parcial — pattern Route::has)
-     *  3. SUPERADMIN-only enquanto em construção (espelha Modules/Financeiro
-     *     DataController.php padrão Wagner 2026-04-25)
-     *
-     * Quando módulo virar produção, trocar guard 3 pra:
-     *   auth()->user()->can('superadmin') || auth()->user()->can('recurringbilling.access')
+     *  2. Rota nomeada existe (defesa contra deploy parcial)
+     *  3. Usuário tem `recurringbilling.access` OR superadmin (Onda 10 v9,75 —
+     *     antes era SUPERADMIN-only).
      */
     public function modifyAdminMenu(): void
     {
@@ -79,7 +86,8 @@ class DataController extends Controller
             return;
         }
 
-        if (! auth()->user()->can('superadmin')) {
+        // Onda 10 v9,75 — pós-cutover. Antes era SUPERADMIN-only.
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('recurringbilling.access')) {
             return;
         }
 

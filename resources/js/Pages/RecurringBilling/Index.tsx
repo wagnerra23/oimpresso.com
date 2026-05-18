@@ -10,11 +10,13 @@ import {
   CreditCard,
   Pause,
   Pencil,
+  Play,
   Plus,
   RefreshCw,
   Search,
   Star,
   TrendingUp,
+  XCircle,
   Zap,
   type LucideIcon,
 } from 'lucide-react';
@@ -410,7 +412,18 @@ export default function RecurringBillingIndex(props: PageProps) {
                   <button
                     key={t.key}
                     type="button"
-                    onClick={() => setTab(t.key)}
+                    onClick={() => {
+                      // Onda 9 v9,75 — tabs navegam pras Pages reais (rotas dedicadas).
+                      if (t.key === 'planos') {
+                        router.visit('/recurring-billing/planos');
+                      } else if (t.key === 'faturas') {
+                        router.visit('/recurring-billing/faturas');
+                      } else if (t.key === 'configuracoes') {
+                        router.visit('/recurring-billing/configuracoes');
+                      } else {
+                        setTab(t.key);
+                      }
+                    }}
                     className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition ${
                       tab === t.key
                         ? 'bg-violet-100 text-violet-900'
@@ -688,6 +701,15 @@ export default function RecurringBillingIndex(props: PageProps) {
 // DETAIL DRAWER (coluna 3)
 // ────────────────────────────────────────────────────────────────
 
+// Onda 9 v9,75 — handlers POST pra ações executáveis do drawer.
+function postAction(url: string, payload: Record<string, unknown> = {}, confirmMsg?: string) {
+  if (confirmMsg && !window.confirm(confirmMsg)) return;
+  router.post(url, payload, {
+    preserveScroll: true,
+    onSuccess: () => router.reload({ only: ['subscriptions', 'kpis'] }),
+  });
+}
+
 function DetailDrawer({ sub }: { sub: SubRow }) {
   const fiscalLabels: Record<FiscalType, { label: string; long: string }> = {
     nfe: { label: 'NFe', long: 'NFe · Nota Fiscal Eletrônica' },
@@ -810,39 +832,66 @@ function DetailDrawer({ sub }: { sub: SubRow }) {
         </div>
       </div>
 
-      {/* Ações stub */}
+      {/* Ações executáveis — Onda 9 v9,75 wiring real. */}
       {sub.status !== 'cancelada' && (
         <div className="flex flex-wrap gap-2 pt-2">
           {sub.status === 'em_dia' && (
             <>
-              <ActionBtn icon={Pencil} label="Editar plano" hint="E" />
-              <ActionBtn icon={Pause} label="Pausar" hint="P" />
+              <ActionBtn
+                icon={Pause}
+                label="Pausar"
+                hint="P"
+                onClick={() => postAction(`/recurring-billing/${sub.id}/pausar`, {}, 'Pausar esta assinatura?')}
+              />
+              <ActionBtn
+                icon={XCircle}
+                label="Cancelar"
+                onClick={() => {
+                  const motivo = window.prompt('Motivo do cancelamento (preço / loja fechou / inadimplência / trocou fornecedor / outro):', 'outro');
+                  if (motivo) postAction(`/recurring-billing/${sub.id}/cancelar`, { churn_reason: motivo });
+                }}
+              />
             </>
           )}
           {(sub.status === 'retentando' || sub.status === 'falhou') && (
             <>
-              <ActionBtn icon={RefreshCw} label="Retentar agora" hint="R" primary />
-              <ActionBtn icon={Pause} label="Pausar" hint="P" />
+              <ActionBtn
+                icon={Pause}
+                label="Pausar"
+                hint="P"
+                onClick={() => postAction(`/recurring-billing/${sub.id}/pausar`, {}, 'Pausar enquanto resolve inadimplência?')}
+              />
+              <ActionBtn
+                icon={XCircle}
+                label="Cancelar"
+                onClick={() => {
+                  const motivo = window.prompt('Motivo do cancelamento:', 'inadimplência');
+                  if (motivo) postAction(`/recurring-billing/${sub.id}/cancelar`, { churn_reason: motivo });
+                }}
+              />
             </>
           )}
           {sub.status === 'pausada' && (
-            <ActionBtn icon={RefreshCw} label="Reativar" hint="R" primary />
+            <ActionBtn
+              icon={Play}
+              label="Reativar"
+              hint="R"
+              primary
+              onClick={() => postAction(`/recurring-billing/${sub.id}/reativar`, {}, 'Reativar esta assinatura?')}
+            />
           )}
         </div>
       )}
-
-      <div className="pt-3 text-[10px] italic text-zinc-400">
-        Ações executáveis em onda futura — botões renderizam, click é no-op por ora.
-      </div>
     </div>
   );
 }
 
-function ActionBtn({ icon: Icon, label, hint, primary = false }: {
+function ActionBtn({ icon: Icon, label, hint, primary = false, onClick }: {
   icon: LucideIcon;
   label: string;
   hint?: string;
   primary?: boolean;
+  onClick?: () => void;
 }) {
   const cls = primary
     ? 'bg-violet-600 text-white hover:bg-violet-700'
@@ -850,8 +899,8 @@ function ActionBtn({ icon: Icon, label, hint, primary = false }: {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${cls}`}
-      title="Em breve"
     >
       <Icon size={12} />
       {label}
