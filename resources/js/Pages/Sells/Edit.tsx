@@ -1,9 +1,12 @@
 // Wave 1 W1-A — MWART /sells/{id}/edit (Editar venda).
+// US-SELL-EDIT-COWORK — Onda Cowork (visual scoped form espelha família .sells-cowork).
 // Refs: ADR 0104 (MWART canon), ADR 0149 (pattern reuse Sells/Create),
 //       ADR 0143 (FSM safety — NUNCA toca current_stage_id), ADR 0093 (multi-tenant).
 //
 // Pattern derivado de Sells/Create — mesmo form layout filter-pills sticky.
 // Diferenças: pre-fill via form deferred; submit PUT; guards canBeEdited/isReturnExist.
+// Visual: classe outer `.sells-cowork-edit` aplica tokens oklch + tipografia IBM Plex
+// (resources/css/sells-cowork-edit.css). Sem mudança funcional — só scope visual.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
@@ -158,7 +161,7 @@ export default function SellsEdit(props: SellsEditPageProps) {
     <>
       <Head title={`Editar venda #${headline.invoice_no}`} />
 
-      <div className="container mx-auto px-6 py-6 space-y-6">
+      <div className="sells-cowork-edit container mx-auto px-6 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-start gap-3">
