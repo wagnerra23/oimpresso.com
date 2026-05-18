@@ -7,6 +7,7 @@ use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Services\FluxoCaixaService;
 
 /**
@@ -29,14 +30,20 @@ use Modules\Financeiro\Services\FluxoCaixaService;
  */
 class FluxoController extends Controller
 {
+    use RendersMockCowork;
+
     public function __construct(private FluxoCaixaService $service)
     {
         $this->middleware('auth');
         $this->middleware('can:financeiro.dashboard.view');
     }
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        if ($mock = $this->tryRenderMockCowork()) {
+            return $mock;
+        }
+
         $businessId = (int) session('user.business_id');
         $dias = $this->resolveDias($request);
 
