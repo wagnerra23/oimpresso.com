@@ -582,7 +582,13 @@ class UnificadoController extends Controller
         $periodosValidos = ['mes_atual', 'mes_anterior', '30d', '90d'];
 
         // Onda Polish 2026-05-18 — lifecycle aceita array OR string CSV ("ar,re").
-        $lifecycleRaw = $request->input('lifecycle', []);
+        // Onda 12.5 (2026-05-19) — default canon REAL: TODOS lifecycle ATIVOS (canon
+        // /cowork-preview/Oimpresso ERP - Chat.html mostra 4 pills `fin-filter-cb on`
+        // por default). Antes era array vazio (todos OFF) — não-paridade visual.
+        // Se request explicit `?lifecycle=` (vazio) — respeitar intenção do user.
+        $lifecycleRaw = $request->has('lifecycle')
+            ? $request->input('lifecycle', [])
+            : ['ar', 're', 'ap', 'pa'];
         if (is_string($lifecycleRaw)) {
             $lifecycleRaw = $lifecycleRaw === '' ? [] : explode(',', $lifecycleRaw);
         }
