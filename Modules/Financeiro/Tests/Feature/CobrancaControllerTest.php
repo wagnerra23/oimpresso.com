@@ -270,3 +270,54 @@ it('POST /cobranca/emitir não aceita vencimento passado', function () {
         ])
         ->assertSessionHasErrors(['vencimento']);
 });
+
+// ─── Onda 4d.6 — cobrarCartao GUARDs ─────────────────────────────────────
+
+it('POST /cobranca/cartao exige campos cartão obrigatórios (token, brand, last4, holder, exp)', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->post('/financeiro/cobranca/cartao', [
+            'valor_centavos' => 50000,
+            'vencimento' => now()->addDays(7)->toDateString(),
+            'account_id' => 1,
+            'payer_name' => 'Pagador X',
+            // sem campos card_*
+        ])
+        ->assertSessionHasErrors(['card_token', 'card_brand', 'card_last4', 'card_holder_name', 'card_exp_month', 'card_exp_year']);
+});
+
+it('POST /cobranca/cartao não aceita brand inválida (só visa/master/amex/elo/hiper/diners)', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->post('/financeiro/cobranca/cartao', [
+            'valor_centavos' => 50000,
+            'vencimento' => now()->addDays(7)->toDateString(),
+            'account_id' => 1,
+            'payer_name' => 'Pagador X',
+            'card_token' => 'tok_test_123',
+            'card_brand' => 'btc', // inválido
+            'card_last4' => '4242',
+            'card_holder_name' => 'TEST CARDHOLDER',
+            'card_exp_month' => '12',
+            'card_exp_year' => '2028',
+        ])
+        ->assertSessionHasErrors(['card_brand']);
+});
+
+it('POST /cobranca/cartao exige card_last4 com exatos 4 dígitos', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->post('/financeiro/cobranca/cartao', [
+            'valor_centavos' => 50000,
+            'vencimento' => now()->addDays(7)->toDateString(),
+            'account_id' => 1,
+            'payer_name' => 'Pagador X',
+            'card_token' => 'tok_test_123',
+            'card_brand' => 'visa',
+            'card_last4' => '42', // < 4 chars
+            'card_holder_name' => 'TEST CARDHOLDER',
+            'card_exp_month' => '12',
+            'card_exp_year' => '2028',
+        ])
+        ->assertSessionHasErrors(['card_last4']);
+});
