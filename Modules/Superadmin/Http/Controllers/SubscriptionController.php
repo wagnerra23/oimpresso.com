@@ -308,7 +308,7 @@ class SubscriptionController extends BaseController
             $contaBancaria = \Modules\Financeiro\Models\ContaBancaria::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', 1)
-                ->whereNotNull('rb_gateway_credential_id')
+                ->whereNotNull('payment_gateway_credential_id')
                 ->where('ativo_para_boleto', true)
                 ->first();
 

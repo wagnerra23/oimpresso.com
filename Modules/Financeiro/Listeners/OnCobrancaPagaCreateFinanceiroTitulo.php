@@ -135,12 +135,13 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
      * Resolve a conta bancária que recebeu a cobrança.
      *
      * Estratégia em camadas — primeira que matchar ganha.
+     * FK canônica nova é payment_gateway_credential_id (Onda 2 ADR 0170).
      */
     private function resolveContaBancaria(Cobranca $cobranca): ?int
     {
         if ($cobranca->payment_gateway_credential_id !== null) {
             $conta = ContaBancaria::where('business_id', 1)
-                ->where('rb_gateway_credential_id', $cobranca->payment_gateway_credential_id)
+                ->where('payment_gateway_credential_id', $cobranca->payment_gateway_credential_id)
                 ->first();
             if ($conta) {
                 return (int) $conta->id;

@@ -161,7 +161,7 @@ class BaseController extends Controller
             $hasCredencial = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', 1)
-                ->where('driver', 'bcb_pix')
+                ->where('gateway_key', 'bcb_pix')
                 ->where('ativo', true)
                 ->exists();
 
@@ -172,7 +172,7 @@ class BaseController extends Controller
             return \Modules\Financeiro\Models\ContaBancaria::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', 1)
-                ->whereNotNull('rb_gateway_credential_id')
+                ->whereNotNull('payment_gateway_credential_id')
                 ->exists();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[onda5] isPaymentGatewayPixAutomaticoConfigured threw', [
