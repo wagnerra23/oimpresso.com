@@ -14,6 +14,10 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from 'react';
+// Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
+// emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
+// (não-canon) + summary numérica footer + KPI hero dark.
+import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen, Download } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -25,10 +29,10 @@ import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
 import { FinCommentsThread, FinCommentsBadge, useFinComments, type UseFinCommentsApi } from './_components/FinCommentsThread';
 import { FinAuditTrail } from './_components/FinAuditTrail';
-// Onda 6 R2 IA — anomaly + party history + month digest (pure compute, sem backend).
+// Onda 6 R2 IA — anomaly + party history (pure compute, sem backend).
+// FinMonthDigest REMOVIDO Onda 12 (paridade canon REAL — não tem sub-header colapsável).
 import { FinAnomalyDetector } from './_components/FinAnomalyDetector';
 import { FinPartyHistory } from './_components/FinPartyHistory';
-import { FinMonthDigest } from './_components/FinMonthDigest';
 // Onda 7 R3 Output — cross-link + checklist fechamento.
 import { FinCrossLinkify } from './_components/FinCrossLinkify';
 import { FinChecklistFechamento } from './_components/FinChecklistFechamento';
@@ -516,6 +520,19 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
   const selected = lancamentos.find(l => l.id === selectedId) ?? null;
 
+  // Onda 12 — Summary numérica no footer (paridade canon REAL):
+  // "N lançamentos · Total entrada: R$ X · Total saída: R$ Y"
+  // Compute client-side a partir de `lancamentos` prop (já tem business_id scope no controller).
+  const footerSummary = useMemo(() => {
+    const entrada = lancamentos
+      .filter((l) => l.kind === 'receivable')
+      .reduce((acc, l) => acc + (l.valor ?? 0), 0);
+    const saida = lancamentos
+      .filter((l) => l.kind === 'payable')
+      .reduce((acc, l) => acc + (l.valor ?? 0), 0);
+    return { count: lancamentos.length, entrada, saida };
+  }, [lancamentos]);
+
   return (
     <div className="fin-curadoria">
       {/* Onda 8 Cowork: page header canon com h1 + breadcrumb + 7 botões.
@@ -529,7 +546,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </div>
         <div className="fin-page-h-r">
           <button type="button" className="fin-btn" onClick={() => setPaletteOpen(true)}>
-            🔍 Buscar
+            <Search size={13} />
+            Buscar
             <kbd>⌘K</kbd>
           </button>
           <button
@@ -538,7 +556,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
             onClick={() => setResumoOpen(true)}
           >
-            ✦ Resumir mês
+            <Sparkles size={13} />
+            Resumir mês
           </button>
           <button
             type="button"
@@ -546,7 +565,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             onClick={() => setChecklistOpen(true)}
             title="Trilha de 12 passos do fechamento mensal"
           >
-            ☑ Fechamento
+            <CheckSquare size={13} />
+            Fechamento
           </button>
           <button
             type="button"
@@ -554,7 +574,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
             onClick={() => setPresentOpen(true)}
           >
-            ▶ Apresentar
+            <Play size={13} />
+            Apresentar
           </button>
           <button
             type="button"
@@ -562,30 +583,43 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
             onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
           >
-            📄 Imprimir
+            <Printer size={13} />
+            Imprimir
             {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
           </button>
           <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/extrato')}>
-            ↺ Conciliar
+            <RefreshCw size={13} />
+            Conciliar
           </button>
           <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas — categorias contábeis">
-            📁 Plano de contas
+            <FolderOpen size={13} />
+            Plano de contas
+          </button>
+          {/* Onda 12 — Download icon-only (paridade canon REAL — botão entre Plano contas e CTA Novo).
+              Onclick stub abre ⌘K palette por enquanto; handler real (Exportar XLSX/PDF) vira US futura. */}
+          <button
+            type="button"
+            className="fin-btn"
+            title="Exportar lançamentos do período (XLSX / PDF)"
+            aria-label="Exportar"
+            onClick={() => setPaletteOpen(true)}
+            style={{ padding: '0 8px' }}
+          >
+            <Download size={13} />
           </button>
           <button type="button" className="fin-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
-            + Novo lançamento
+            <Plus size={13} />
+            Novo lançamento
           </button>
         </div>
       </div>
 
       <KpiBar kpis={kpis} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
 
-      {/* Cowork KB-9.75 Onda 6 R2 IA — Resumo executivo do mês (Eliana 5min sexta) */}
-      <FinMonthDigest
-        lancamentos={lancamentos}
-        kpis={kpis}
-        conferidoSet={new Set(lancamentos.filter((l) => conferido.has(l.id)).map((l) => String(l.id)))}
-        periodLabel={periodLabel}
-      />
+      {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
+          Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
+          que NÃO tem o sub-header "+ Resumo do mês" colapsável (era addition Onda 6 R2 IA).
+          Componente FinMonthDigest preservado em _components/ pra possível US futura. */}
 
       {/* Onda Polish 2026-05-18 — gap analysis Wagner: filtros viraram 4 checkboxes
           lifecycle multi-select + toggle "Só atrasados" independente. Radio (1 escolha)
@@ -947,8 +981,18 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </CommandList>
       </CommandDialog>
 
-      {/* Onda 8 Cowork: footer atalhos canon (oklch tokens via .fin-footer-tips) */}
+      {/* Onda 12 (2026-05-19) — footer canon REAL: summary numérica esquerda + atalhos direita.
+          Match com /cowork-preview/Oimpresso ERP - Chat.html:
+          "29 lançamentos · Total entrada: R$ [redacted Tier 0] · Total saída: R$ [redacted Tier 0]" + atalhos */}
       <div className="fin-footer-tips">
+        <span className="fin-footer-summary">
+          <b>{footerSummary.count}</b> lançamento{footerSummary.count === 1 ? '' : 's'}
+          <span className="fin-footer-sep">·</span>
+          Total entrada: <b>{brl(footerSummary.entrada)}</b>
+          <span className="fin-footer-sep">·</span>
+          Total saída: <b>{brl(footerSummary.saida)}</b>
+        </span>
+        <span className="spacer" />
         <span><kbd>⌘K</kbd> palette</span>
         <span><kbd>/</kbd> buscar</span>
         <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
@@ -956,10 +1000,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         <span><kbd>B</kbd> favoritar linha</span>
         <FinTroubleButton onClick={() => setTroubleOpen(true)} />
         {favs.count > 0 && (
-          <>
-            <span className="spacer" />
-            <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
-          </>
+          <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
         )}
       </div>
 
