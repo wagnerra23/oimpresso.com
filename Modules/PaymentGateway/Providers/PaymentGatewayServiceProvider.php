@@ -30,6 +30,7 @@ class PaymentGatewayServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\PaymentGateway\Console\Commands\MigrateCredentialsCommand::class,
                 \Modules\PaymentGateway\Console\Commands\RegisterPermissionsCommand::class,
+                \Modules\PaymentGateway\Console\Commands\EmitTrialExpiredCobrancasCommand::class,
             ]);
         }
     }
