@@ -304,21 +304,25 @@ class SubscriptionController extends BaseController
                 $subscription->save();
             }
 
-            // 2. Resolve ContaBancaria + Account Wagner em biz=1
-            $contaBancaria = \Modules\Financeiro\Models\ContaBancaria::query()
+            // 2. Resolve Account Wagner via credencial BCB ativa
+            // Canon Onda 5 (Wagner 2026-05-19): direção payment_gateway_credentials.conta_bancaria_id
+            // (capturada pelo wizard step 3). Não depende mais de FK reverso em fin_contas_bancarias.
+            $credBcb = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', 1)
-                ->whereNotNull('payment_gateway_credential_id')
-                ->where('ativo_para_boleto', true)
+                ->where('gateway_key', 'bcb_pix')
+                ->where('ativo', true)
+                ->whereNotNull('conta_bancaria_id')
+                ->orderByDesc('id')
                 ->first();
 
-            if (!$contaBancaria) {
-                throw new \RuntimeException('ContaBancaria com gateway credencial nao configurada em biz=1');
+            if (!$credBcb) {
+                throw new \RuntimeException('Credencial BCB Pix Automatico nao configurada em biz=1 (cadastre em /settings/payment-gateways e vincule Conta destino no step 3)');
             }
 
-            $account = \App\Account::find($contaBancaria->account_id);
+            $account = \App\Account::find($credBcb->conta_bancaria_id);
             if (!$account) {
-                throw new \RuntimeException('Account UltimatePOS nao encontrada pra ContaBancaria #' . $contaBancaria->id);
+                throw new \RuntimeException('Account UltimatePOS nao encontrada pra credencial #' . $credBcb->id);
             }
 
             // 3. Emite PIX Automático (mandato recorrente BCB)

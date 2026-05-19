@@ -50,38 +50,70 @@ class PaymentGatewayService implements PaymentGatewayContract
         'bcb_pix' => BcbPixDriver::class,
     ];
 
+    /**
+     * Resolve credencial ativa pra um Account UPOS.
+     *
+     * Ordem de resolução (Wagner 2026-05-19 — UX em 1 tela só):
+     *   1. CANON: payment_gateway_credentials.conta_bancaria_id = Account.id
+     *      (capturada pelo wizard SheetNovoGateway step 3)
+     *   2. LEGACY 1: fin_contas_bancarias.payment_gateway_credential_id
+     *      (vínculo via tela Financeiro/Contas Bancárias — coexiste pra contas
+     *      pré-Onda 5 sem perder dados)
+     *   3. LEGACY 2: accounts.payment_gateway_credential_id (coluna pode não
+     *      existir em prod — fallback defensivo, geralmente null)
+     */
     public function for(Account $account): self
     {
-        $credentialId = $account->payment_gateway_credential_id ?? null;
-        if ($credentialId === null) {
-            // Fallback: lookup via fin_contas_bancarias.payment_gateway_credential_id
-            $credentialId = \DB::table('fin_contas_bancarias')
-                ->where('id', $account->id)
-                ->value('payment_gateway_credential_id');
-        }
+        $credential = $this->resolveCredentialForAccount($account);
 
-        if ($credentialId === null) {
-            throw new CredentialMisconfiguredException(
-                "Account #{$account->id} não tem payment_gateway_credential_id vinculado. " .
-                "Rode paymentgateway:migrate-credentials --apply OU configure via UI Settings."
-            );
-        }
-
-        $credential = PaymentGatewayCredential::query()->find($credentialId);
         if ($credential === null) {
             throw new CredentialMisconfiguredException(
-                "PaymentGatewayCredential #{$credentialId} não encontrada"
+                "Account #{$account->id} não tem credencial PaymentGateway ativa. " .
+                "Cadastre em /settings/payment-gateways e vincule esta conta no step 3 do wizard."
             );
         }
         if (! $credential->ativo) {
             throw new CredentialMisconfiguredException(
-                "Credential #{$credentialId} ({$credential->gateway_key}) está inativa"
+                "Credential #{$credential->id} ({$credential->gateway_key}) está inativa"
             );
         }
 
         $this->activeCredential = $credential;
 
         return $this;
+    }
+
+    /**
+     * Lookup canon Onda 5 → resolve credencial ATIVA pra Account em 3 níveis.
+     * Retorna null se nenhum FK matchar.
+     */
+    private function resolveCredentialForAccount(Account $account): ?PaymentGatewayCredential
+    {
+        // 1. CANON: payment_gateway_credentials.conta_bancaria_id (wizard step 3)
+        $credential = PaymentGatewayCredential::query()
+            ->where('conta_bancaria_id', $account->id)
+            ->where('ativo', true)
+            ->orderByDesc('id')
+            ->first();
+        if ($credential !== null) {
+            return $credential;
+        }
+
+        // 2. LEGACY 1: fin_contas_bancarias.payment_gateway_credential_id
+        $credentialId = \DB::table('fin_contas_bancarias')
+            ->where('account_id', $account->id)
+            ->value('payment_gateway_credential_id');
+        if ($credentialId !== null) {
+            return PaymentGatewayCredential::query()->find($credentialId);
+        }
+
+        // 3. LEGACY 2: accounts.payment_gateway_credential_id (coluna talvez null/inexistente)
+        $credentialId = $account->payment_gateway_credential_id ?? null;
+        if ($credentialId !== null) {
+            return PaymentGatewayCredential::query()->find($credentialId);
+        }
+
+        return null;
     }
 
     public function emitirBoleto(EmitirCobrancaInput $input): CobrancaEmitidaResult
