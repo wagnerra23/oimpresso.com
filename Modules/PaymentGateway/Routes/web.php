@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\PaymentGateway\Http\Controllers\InstallController;
+use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\AsaasWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\BcbPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\C6WebhookController;
@@ -27,6 +28,28 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('install', [InstallController::class, 'index']);
         Route::get('install/uninstall', [InstallController::class, 'uninstall']);
         Route::get('install/update', [InstallController::class, 'update']);
+    });
+
+// ─── Settings UI (Onda 4d.3 F3 Tela 2) ───────────────────────────────────
+// Persona Wagner / superadmin / owner. Stack canon UPOS auth.
+// Charter: resources/js/Pages/Settings/PaymentGateways/Index.charter.md
+Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->prefix('settings')
+    ->name('settings.')
+    ->group(function () {
+        Route::get('payment-gateways', [PaymentGatewaysController::class, 'index'])
+            ->name('payment-gateways.index');
+
+        Route::post('payment-gateways/health-check', [PaymentGatewaysController::class, 'healthCheck'])
+            ->name('payment-gateways.health-check.all');
+
+        Route::post('payment-gateways/{credentialId}/health-check', [PaymentGatewaysController::class, 'healthCheck'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.health-check');
+
+        Route::post('payment-gateways/{credentialId}/toggle', [PaymentGatewaysController::class, 'toggle'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.toggle');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────
