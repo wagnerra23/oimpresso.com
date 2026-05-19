@@ -125,7 +125,7 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                 <Field label="Código cliente"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
               </div>}
               {d.key === 'bcb_pix' && <>
-                <Field label="CNPJ recebedor"><input placeholder="12.345.678/0001-90" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
+                <Field label="CNPJ recebedor"><input placeholder="00.000.000/0000-00" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
                 <div className="grid grid-cols-2 gap-3">
                   <FileField label="Cert mTLS ICP-Brasil .crt" />
                   <FileField label="Chave mTLS .key" />

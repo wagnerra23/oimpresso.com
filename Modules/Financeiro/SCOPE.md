@@ -5,6 +5,7 @@ contains:
   - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
   - "BoletoController"
   - "CategoriaController"
+  - "CobrancaController — F3 PaymentGateway UI Tela 1 (substitui /financeiro/boletos com escopo expandido boleto+pix+pix_recv+card; ADR 0144 + 0170)"
   - "ContaBancariaController"
   - "ContaPagarController"
   - "ContaReceberController"
