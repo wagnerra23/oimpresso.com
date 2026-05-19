@@ -287,3 +287,48 @@ Fallback aceito se `bg-primary` ficar pesado em densidade alta da lista de conve
 - Equipe / Chat interno (persona times · multi-canal)
 
 [PROCESSADO 2026-05-18]
+
+---
+
+## 2026-05-19 [W] → [CC] · F0 batch PaymentGateway UI
+
+**Tipo:** F0 batch novo (§7 PROTOCOL.md). 3 telas relacionadas em UM pedido único.
+
+**Disparado por:** ADR 0170 PaymentGateway (Onda 0 docs mergeada — PR #1123, originalmente proposto como 0144 pelo Cowork mas renumerado por colisão com `0144-tasks-db-canonico-spec-template.md` existente).
+
+**3 telas:**
+
+1. **`Financeiro/Cobranca/Index`** — rename + expansão de `/financeiro/boletos` · **P0**
+   - Adiciona filtros tipo (boleto/PIX/cob/cobv/recv/card) + gateway (Inter/C6/Asaas/BCB Pix) + origem (sale/invoice/subscription_license/avulsa)
+   - Drawer condicional por tipo (linha digitável vs BR Code QR vs mandato vs cartão)
+   - Botão "Emitir cobrança" Sheet 4 steps
+   - 301 redirect `/financeiro/boletos` → `/financeiro/cobranca` por 60d
+2. **`Settings/PaymentGateways/Index`** — nova tela CRUD credenciais por gateway · **P1**
+   - Lista + ativar/desativar + healthCheck button + último ping latency
+   - Sheet config per gateway (Inter mTLS / Asaas API key / C6 OAuth / BCB Pix certificado)
+   - Substitui edição inline em `boleto-contas-app.jsx` linhas 668-826 (SheetConfigInter atual)
+3. **`Sells/Index drawer + botão "Emitir cobrança"`** — incremento cirúrgico KB-9.75 · **P0**
+   - Botão "Emitir cobrança" no drawer SaleSheet (após "Imprimir" e "Estornar")
+   - Sheet emissor reusa Step 2-4 da Tela 1 (tipo já definido pela venda); idempotency_key=`sale:{id}`
+   - Atalho `C` no drawer foca botão
+
+**Pedido completo:** [`COWORK_NOTES.amendment-paymentgateway-batch.md`](COWORK_NOTES.amendment-paymentgateway-batch.md) — 229 linhas, decisões Wagner F0 vinculadas, contexto canibalização tela-a-tela.
+
+**Decisões Wagner F0 vinculadas:**
+1. PIX Automático = driver BCB direto (Resolução BCB 380/2024)
+2. Subscription Superadmin vira projection — Wagner cobra tenants via Plan em RB no `business_id=1` (dogfooding Onda 5 — POSTERGADA Wagner 2026-05-19: rastrear dependências Connector/Officeimpresso/permissões pacote antes de decidir)
+3. PaymentGateway pode substituir PesaPal (vestigial deprecated Onda 5/6)
+4. Módulo separado por tamanho + ligação cross-module
+
+**Vinculado ADR:** [0170 PaymentGateway](../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md) (canon canônico — não 0144 como original Cowork sugeriu).
+
+**Backend já entregue (Code) 2026-05-19:**
+- Onda 0 docs · PR #1123
+- Onda 1 esqueleto módulo · PR #1125
+- Onda 2 DB+Models · PR #1126
+- Onda 2.5 backfill artisan dry-run · PR #1127
+- Onda 3 webhooks endpoints (shadow, sem cutover) · PR #1128
+- Onda 4a InterDriver real (Http::fake) · PR #1130
+
+**F3 UI = parte da Onda 4 backend** — PaymentGatewayController + CobrancaController + Pages Inertia/React virão depois de F2 (screenshot Wagner aprova). Sequência travada conforme chat11.md Cowork.
+

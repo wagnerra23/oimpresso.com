@@ -871,3 +871,39 @@ curl -fsSL "https://019dcfd3-6ef2-7ee6-8512-b1b0e5544e58.claudeusercontent.com/v
 2. **Onda 3 shadow 7d** está combinado com você? Eu modelei no ADR mas você é quem decide tempo de observação em prod
 3. **Outro batch enquanto Code trabalha?** Posso preparar F0 de outra tela em paralelo (Compras? CRM?) — o pipeline está aceitando trabalho
 
+## User
+
+onda 3 ok, 4 UI esperando
+
+## Assistant
+
+Fechado. Sequência travada:
+
+```
+Code        → Onda 3 webhooks (shadow 7d sandbox antes cutover)
+Cowork [CC] → F1 3 protótipos (paralelo)
+[CD]        → F1.5 mwart-comparative + KB-9.75
+Wagner [W2] → F2 screenshot approval
+─────────── ponto de sincronização ───────────
+Code        → Onda 4 drivers + F3 UI no mesmo PR
+```
+
+## Próximo handoff
+
+Quando Cowork [CC] terminar **F1** (3 protótipos em `prototipos/financeiro-cobranca/`, `settings-payment-gateways/`, `sells-emitir-cobranca-modal/`), alguém precisa rodar **F1.5 critique**. Tem 2 caminhos:
+
+| Quem roda F1.5 | Como |
+|---|---|
+| **Claude Code local** (`design:design-critique` skill) | Você pede pro Code no terminal, ele roda mwart-comparative V4 + KB-9.75 e commita `critique-score.json` |
+| **Eu aqui no chat** | Você cola os 3 `page.tsx` no chat, eu rodo crítica 15 dimensões + benchmark + score 0-100, devolvo arquivo pronto pra commitar |
+
+Recomendação: **Claude Code local** — é skill formal, score fica versionado no PR, mwart-comparative V4 já está embutido. Eu aqui fico melhor pra dúvidas de re-direcionamento ou amendment.
+
+## Tô disponível pra
+
+- **Outro F0 em paralelo** enquanto Code+Cowork trabalham (você não respondeu — sem pressa, levanto se precisar)
+- **Refinos no amendment** se Cowork pedir esclarecimento durante F1
+- **F1.5 critique aqui** se preferir esse caminho ao invés do Code local
+
+Não preciso de nada agora. Avisa quando F1 sair do Cowork ou se algo travar.
+
