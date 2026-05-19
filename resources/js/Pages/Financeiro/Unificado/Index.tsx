@@ -108,12 +108,22 @@ interface Filters {
   densidade: 'compact' | 'comfortable';
 }
 
+// Onda 12.7 (2026-05-19) — Plano de Contas hierárquico substitui Categorias.
+interface PlanoConta {
+  id: number;
+  codigo: string;    // ex "1.1.01.001"
+  nome: string;     // ex "Caixa"
+  tipo: 'ativo'|'passivo'|'patrimonio'|'receita'|'despesa'|'custo';
+  nivel: number;    // 1=raiz, 4=folha
+}
+
 interface Props {
   kpis: Kpi;
   lancamentos: Lancamento[];
   filters: Filters;
   contas: { id: number; nome: string }[];
   categorias: { id: number; nome: string }[];
+  planosConta: PlanoConta[];
   periodLabel: string;
   businessName: string;
 }
@@ -447,7 +457,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 
 // ---------- Página principal ----------
 
-function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, periodLabel, businessName }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
   const [busca, setBusca] = useState(filters.busca ?? '');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -696,14 +706,23 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
         </select>
 
+        {/* Onda 12.7 (2026-05-19) — Wagner: substituir 'Categorias' (tags livres) por
+            'Plano de Contas' (estrutura contábil hierárquica BR). Renderiza com indent
+            visual via `nivel` (4 espaços por nível) pra leitura tipo árvore.
+            Mantém prop `filters.categoria` por back-compat (mesmo querystring). */}
         <select
           className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
           value={filters.categoria}
           onChange={(e) => aplicar({ categoria: e.target.value })}
-          aria-label="Categoria"
+          aria-label="Plano de Contas"
         >
-          <option value="">Todas as categorias</option>
-          {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+          <option value="">Todo o plano de contas</option>
+          {(planosConta ?? []).map((p) => (
+            <option key={p.id} value={p.id} title={`${p.codigo} ${p.nome} (${p.tipo})`}>
+              {'  '.repeat(Math.max(0, p.nivel - 1))}
+              {p.codigo} · {p.nome}
+            </option>
+          ))}
         </select>
 
         <div className="fin-toolbar-r">
