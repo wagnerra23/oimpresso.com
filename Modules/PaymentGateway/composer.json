@@ -1,24 +1,15 @@
 {
-    "name": "nwidart/paymentgateway",
-    "description": "",
-    "authors": [
-        {
-            "name": "Nicolas Widart",
-            "email": "n.widart@gmail.com"
-        }
-    ],
+    "name": "oimpresso/paymentgateway",
+    "description": "Camada técnica de cobrança BR — drivers Inter/C6/Asaas/Pix Automático BCB, webhooks, CNAB, credenciais.",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
     "extra": {
         "laravel": {
-            "providers": [],
-            "aliases": {}
+            "providers": ["Modules\\PaymentGateway\\Providers\\PaymentGatewayServiceProvider"]
         }
     },
     "autoload": {
         "psr-4": {
-            "Modules\\PaymentGateway\\": "",
-            "Modules\\PaymentGateway\\App\\": "app/",
-            "Modules\\PaymentGateway\\Database\\Factories\\": "database/factories/",
-            "Modules\\PaymentGateway\\Database\\Seeders\\": "database/seeders/"
+            "Modules\\PaymentGateway\\": ""
         }
     }
 }
