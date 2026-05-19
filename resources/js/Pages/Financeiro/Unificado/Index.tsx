@@ -665,10 +665,11 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
         <span className="fin-filter-sep" />
 
-        {/* Toggle "Só atrasados" — separado dos checkboxes lifecycle. AND multiplicativo. */}
+        {/* Onda 12.5 (2026-05-19) — Toggle "Só atrasados" usa classe `fin-filter-toggle`
+            (canon REAL DOM forensics) em vez de `fin-filter-cb` que é dos lifecycle.
+            Toggle = on/off independente; lifecycle = multi-select pill colorido. */}
         <label
-          className={'fin-filter-cb' + (filters.overdue ? ' on' : '')}
-          style={filters.overdue ? ({ ['--cb-hue' as string]: 25 } as React.CSSProperties) : undefined}
+          className={'fin-filter-toggle' + (filters.overdue ? ' on' : '')}
           title="AND multiplicativo: combina com lifecycle ativos"
         >
           <input
@@ -677,9 +678,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             checked={filters.overdue}
             onChange={() => aplicar({ overdue: !filters.overdue })}
           />
-          <span className="fin-filter-cb-box" />
           <span>Só atrasados</span>
-          {countOverdue(lancamentos) > 0 && <span className="fin-filter-ct">{countOverdue(lancamentos)}</span>}
+          <span className="fin-filter-ct">{countOverdue(lancamentos)}</span>
         </label>
 
         <span className="fin-filter-sep" />
