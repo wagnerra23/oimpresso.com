@@ -88,10 +88,65 @@ class InterDriver implements PaymentDriverContract
         );
     }
 
+    /**
+     * Inter PIX cobrança imediata (cob) via API Pix v2.
+     *
+     * Onda 4b: apenas tipo 'cob' (imediata, sem vencimento). 'cobv' (com
+     * vencimento) fica pra evolução condicional Onda 4c se cliente pedir.
+     */
     public function emitirPix(EmitirCobrancaInput $input, object $cred, string $tipo): CobrancaEmitidaResult
     {
-        throw new DriverNotSupportedException(
-            'Inter PIX cob chega em Onda 4b. Use Asaas/BCB pra PIX hoje.'
+        if ($tipo !== 'cob') {
+            throw new DriverNotSupportedException(
+                "Inter só suporta PIX 'cob' nesta onda (recebido '{$tipo}'). cobv chega em 4c."
+            );
+        }
+        $this->assertCredential($cred);
+
+        $pixKey = $input->meta['pix_key'] ?? null;
+        if ($pixKey === null) {
+            throw new InvalidPayerException('Inter PIX cob exige meta.pix_key (chave PIX do beneficiário)');
+        }
+
+        $payload = [
+            'calendario' => [
+                'expiracao' => 3600, // 1h padrão
+            ],
+            'devedor' => array_filter([
+                'cpf'  => preg_replace('/\D/', '', $input->meta['payer_cpf_cnpj'] ?? '') ?: null,
+                'nome' => $input->meta['payer_name'] ?? null,
+            ]),
+            'valor' => [
+                'original' => number_format($input->valorCentavos / 100, 2, '.', ''),
+            ],
+            'chave'             => $pixKey,
+            'solicitacaoPagador' => substr($input->descricao, 0, 140),
+        ];
+
+        $response = $this->client($cred)
+            ->put("/pix/v2/cob/{$input->idempotencyKey}", $payload);
+
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "Inter PIX cob falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+
+        $data = $response->json() ?? [];
+        $txid = (string) ($data['txid'] ?? $input->idempotencyKey);
+        $emv = (string) ($data['pixCopiaECola'] ?? '');
+
+        if ($emv === '') {
+            throw new InvalidPayerException('Inter PIX retornou sem pixCopiaECola');
+        }
+
+        return new CobrancaEmitidaResult(
+            cobrancaId: 0,
+            gatewayExternalId: $txid,
+            tipo: 'pix_cob',
+            emitidaEm: new \DateTimeImmutable(),
+            pixEmv: $emv,
+            payloadGateway: $data,
         );
     }
 
