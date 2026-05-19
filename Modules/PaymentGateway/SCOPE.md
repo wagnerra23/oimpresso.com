@@ -11,7 +11,7 @@ contains:
   - "Webhooks/AsaasWebhookController — POST /paymentgateway/webhooks/asaas/{businessId} (Onda 3 sem cutover)"
   - "Webhooks/BcbPixWebhookController — POST /paymentgateway/webhooks/bcb-pix/{businessId} (Onda 3 novo)"
   - "Services/PaymentGatewayService — implementa PaymentGatewayContract; for(Account) resolve credential; idempotência (Onda 4a); DRIVERS mapa atualizado Onda 4b com 3 drivers"
-  - "Services/Drivers/InterDriver — Inter API v3 OAuth2+mTLS (boleto Onda 4a + pix_cob Onda 4b + cancelar + consultar + healthCheck + processWebhook)"
+  - "Services/Drivers/InterDriver — Inter API v3 OAuth2+mTLS (boleto Onda 4a + pix_cob/pix_cobv Onda 4b/4c + refund PIX Onda 4c + cancelar + consultar + healthCheck + processWebhook). Refund de boleto Inter NÃO via API — exige TED reverso manual"
   - "Services/Drivers/AsaasDriver — Asaas REST v3 (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4b"
   - "Services/Drivers/C6Driver — C6 Open Banking PJ OAuth2 (boleto + pix_cob + cancelar + consultar + healthCheck + processWebhook); Onda 4b. CNAB legacy fallback fica em RB"
   - "BoletoService (Onda 4d alto-nível)"
