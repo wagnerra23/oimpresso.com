@@ -331,22 +331,23 @@
 }
 .fin-cowork .fin-curadoria .fin-search-wrap input::placeholder { color: var(--fin-text-mute); }
 /* ─────────────────────────────────────────────────────────────
- * Footer tips (atalhos inline ao final da página — Wagner 2026-05-19,
- * Onda 11 PR seguinte: removido `position: fixed` que flutuava na
- * viewport e parecia desconectado. Agora rola junto com o conteúdo.)
+ * Footer tips (atalhos sticky bottom)
  * ───────────────────────────────────────────────────────────── */
 .fin-cowork .fin-curadoria .fin-footer-tips {
-  margin-top: 24px;
-  padding: 8px 16px;
-  background: oklch(0.99 0.002 240);
-  border: 1px solid var(--fin-line);
-  border-radius: 8px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 24px;
+  background: oklch(0.99 0.002 240 / 0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--fin-line);
   font-size: 11px;
   color: var(--fin-text-mute);
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
+  z-index: 30;
 }
 .fin-cowork .fin-curadoria .fin-footer-tips kbd {
   font-family: ui-monospace, monospace;
