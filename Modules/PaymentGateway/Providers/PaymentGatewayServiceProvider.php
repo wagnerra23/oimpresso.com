@@ -39,6 +39,21 @@ class PaymentGatewayServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+        $this->registerContracts();
+    }
+
+    /**
+     * Binding container Onda 4a — PaymentGatewayContract resolve PaymentGatewayService.
+     *
+     * Drivers (InterDriver/C6Driver/AsaasDriver/BcbPixDriver) NÃO são bindados
+     * por chave aqui — PaymentGatewayService::driverFor() resolve via mapa interno.
+     */
+    protected function registerContracts(): void
+    {
+        $this->app->bind(
+            \Modules\PaymentGateway\Contracts\PaymentGatewayContract::class,
+            \Modules\PaymentGateway\Services\PaymentGatewayService::class,
+        );
     }
 
     /**
