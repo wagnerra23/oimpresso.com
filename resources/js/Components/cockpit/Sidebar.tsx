@@ -141,11 +141,10 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     label: 'FINANCEIRO',
     // Wagner 2026-05-18: 3 labels novas (Fluxo de Caixa / DRE / Cobrança) saíram
     // do dropdown popover-2 pra entradas top-level — ficam visíveis sem click.
-    // Wagner 2026-05-19: "Gateway de Pagamento" → "Cobrança" (F3 PaymentGateway
-    // UI Tela 1 entregue em /financeiro/cobranca — ADR 0144 + 0170). Posição
-    // acima de "Cobrança Recorrente" pra hierarquia visual (cobrança avulsa →
-    // cobrança recorrente RB).
-    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Cobrança', 'Cobrança Recorrente'],
+    // Itens NOVOS (Cobrança, futuros) devem declarar `'group' => 'fin'` no
+    // DataController do módulo em vez de adicionar string aqui — Wagner regra
+    // 2026-05-19: "nunca hardcode label, sempre via DataController do módulo".
+    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Gateway de Pagamento', 'Cobrança Recorrente'],
   },
   {
     key: 'estoque',
@@ -193,12 +192,35 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   },
 ];
 
-function findGroupKey(label: string): string {
-  const norm = label.trim();
+/**
+ * Resolve grupo do sidebar pra um menu item.
+ *
+ * Prioridade (Wagner regra 2026-05-19 — DataController declara, frontend não hardcode):
+ *  1. item.group (declarado pelo DataController via `data['group']`)
+ *  2. Match por label string em SIDEBAR_GROUPS.items[] (legacy compat)
+ *  3. Fallback 'mais' (collapse fechado por default)
+ */
+function findGroupKey(item: ShellMenuItem | string): string {
+  // String legacy pra cobertura backwards-compat (alguns callers passam só label)
+  if (typeof item === 'string') {
+    const norm = item.trim();
+    for (const g of SIDEBAR_GROUPS) {
+      if (g.items.some((i) => i.toLowerCase() === norm.toLowerCase())) return g.key;
+    }
+    return 'mais';
+  }
+
+  // 1. group declarado pelo DataController do módulo
+  if (item.group && SIDEBAR_GROUPS.some((g) => g.key === item.group)) {
+    return item.group;
+  }
+
+  // 2. fallback label match (legacy items que ainda não declararam group)
+  const norm = item.label.trim();
   for (const g of SIDEBAR_GROUPS) {
     if (g.items.some((i) => i.toLowerCase() === norm.toLowerCase())) return g.key;
   }
-  return 'mais';  // fallback — group "MAIS" no final
+  return 'mais';
 }
 
 // ── CompanyPicker ──────────────────────────────────────────────────────
@@ -499,10 +521,11 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
     (i) => !isSuperadminMenu(i.label) && !isUserMenuItem(i.label)
   );
 
-  // Agrupa principais por lookup table (preservando ordem dentro do grupo)
+  // Agrupa principais por (1) item.group declarado pelo DataController OU
+  // (2) lookup table label match (legacy compat)
   const groupedItems: Record<string, ShellMenuItem[]> = {};
   for (const item of principais) {
-    const key = findGroupKey(item.label);
+    const key = findGroupKey(item);
     if (!groupedItems[key]) groupedItems[key] = [];
     groupedItems[key].push(item);
   }
