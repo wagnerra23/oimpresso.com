@@ -5,13 +5,24 @@ namespace Modules\Superadmin\Providers;
 use App\System;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factory;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Modules\PaymentGateway\Events\CobrancaPaga;
+use Modules\PaymentGateway\Events\CobrancaVencida;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\SuperadminFrontendPage;
+use Modules\Superadmin\Listeners\OnCobrancaPagaUpdateSubscription;
+use Modules\Superadmin\Listeners\OnCobrancaVencidaBloqueaSubscription;
 
 class SuperadminServiceProvider extends ServiceProvider
 {
+    /**
+     * Guard contra duplicação do listener — nWidart pode rodar boot() 2x.
+     * Pattern documentado em memory/reference/project-officeimpresso-modulo.md.
+     */
+    private static bool $paymentgatewayListenersRegistered = false;
+
     /**
      * Boot the application events.
      *
@@ -25,6 +36,7 @@ class SuperadminServiceProvider extends ServiceProvider
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->registerScheduleCommands();
+        $this->registerPaymentGatewayListeners();
 
         view::composer('superadmin::layouts.partials.active_subscription', function ($view) {
             $business_id = session()->get('user.business_id');
@@ -65,6 +77,26 @@ class SuperadminServiceProvider extends ServiceProvider
                 $schedule->command('pos:sendSubscriptionExpiryAlert')->daily();
             });
         }
+    }
+
+    /**
+     * ADR 0170 Onda 5 SIMPLIFICADA — escuta eventos canônicos do PaymentGateway
+     * pra renovar/bloquear Superadmin::Subscription do tenant. Cross-tenant
+     * intencional Wagner-only (pattern Subscription.php:30).
+     *
+     * Guard `$paymentgatewayListenersRegistered` evita registro duplicado em
+     * boot() chamado 2x (pegadinha nWidart catalogada).
+     */
+    protected function registerPaymentGatewayListeners(): void
+    {
+        if (self::$paymentgatewayListenersRegistered) {
+            return;
+        }
+
+        Event::listen(CobrancaPaga::class, [OnCobrancaPagaUpdateSubscription::class, 'handle']);
+        Event::listen(CobrancaVencida::class, [OnCobrancaVencidaBloqueaSubscription::class, 'handle']);
+
+        self::$paymentgatewayListenersRegistered = true;
     }
 
     /**

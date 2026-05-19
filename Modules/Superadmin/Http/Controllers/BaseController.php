@@ -53,6 +53,13 @@ class BaseController extends Controller
             $gateways['pesapal'] = 'PesaPal';
         }
 
+        // ADR 0170 Onda 5 — PaymentGateway entra como gateway adicional pra
+        // mensalidade SaaS Oimpresso. Ativo SE há credencial BCB ativa em biz=1
+        // E há conta bancária Financeiro vinculada. Pattern: 6º gateway.
+        if ($this->isPaymentGatewayPixAutomaticoConfigured()) {
+            $gateways['paymentgateway_pix_automatico'] = 'PIX Automático BCB';
+        }
+
         //check if Paystack is configured or not
         $system = System::getCurrency();
         if (in_array($system->country, ['Nigeria', 'Ghana']) && (config('paystack.publicKey') && config('paystack.secretKey'))) {
@@ -135,6 +142,45 @@ class BaseController extends Controller
         }
 
         return $subscription;
+    }
+
+    /**
+     * Verifica se PaymentGateway PIX Automático BCB está configurado pra biz=1.
+     *
+     * ADR 0170 Onda 5 — requer (1) módulo PaymentGateway enabled, (2) credencial
+     * BCB ativa em biz=1, (3) ContaBancaria Financeiro vinculada à credencial.
+     * Falta de qualquer 1 → gateway omitido da listagem (Wagner vê só Pesapal/Stripe/etc).
+     */
+    protected function isPaymentGatewayPixAutomaticoConfigured(): bool
+    {
+        if (!class_exists(\Modules\PaymentGateway\Models\PaymentGatewayCredential::class)) {
+            return false;
+        }
+
+        try {
+            $hasCredencial = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
+                ->withoutGlobalScopes()
+                ->where('business_id', 1)
+                ->where('driver', 'bcb_pix')
+                ->where('ativo', true)
+                ->exists();
+
+            if (!$hasCredencial) {
+                return false;
+            }
+
+            return \Modules\Financeiro\Models\ContaBancaria::query()
+                ->withoutGlobalScopes()
+                ->where('business_id', 1)
+                ->whereNotNull('rb_gateway_credential_id')
+                ->exists();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[onda5] isPaymentGatewayPixAutomaticoConfigured threw', [
+                'exception' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     /**
