@@ -620,60 +620,62 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </div>
       </header>
 
-      {/* Linha 3 — vd-toolbar fora do sticky com 5 ações Onda 5-10.
-          Conciliar saiu daqui pra linha 1 (paridade prototipo canon). */}
-      <div className="vd-toolbar">
-        <div className="vd-toolbar-l">
-          <button
-            type="button"
-            className="vd-toolbar-act"
-            title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
-            onClick={() => setResumoOpen(true)}
-          >
-            <Sparkles size={11} />
-            <span>Resumir mês</span>
-          </button>
-          <button
-            type="button"
-            className="vd-toolbar-act"
-            title="Trilha de 12 passos do fechamento mensal"
-            onClick={() => setChecklistOpen(true)}
-          >
-            <CheckSquare size={11} />
-            <span>Fechamento</span>
-          </button>
-          <button
-            type="button"
-            className="vd-toolbar-act"
-            title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
-            onClick={() => setPresentOpen(true)}
-          >
-            <Play size={11} />
-            <span>Apresentar</span>
-          </button>
-        </div>
+      {/* Linha 3 — toolbar de ações secundárias com pattern Financeiro NATIVO.
+          Wagner 2026-05-19: "era para pegar do projeto o item do financeiro
+          compativel" — bug detectado em prod: classes `vd-toolbar*` (Sells)
+          foram tree-shaken pelo Vite (regras `.fin-cowork .vendas-aplus
+          .vd-toolbar*` removidas do build final). Trocado por `fin-btn` que é
+          o botão canon Financeiro JÁ ATIVO em prod (não tree-shaken). */}
+      <div className="flex items-center gap-2 flex-wrap px-6 pt-3 pb-3 mb-3 border-b border-stone-200">
+        <button
+          type="button"
+          className="fin-btn"
+          title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
+          onClick={() => setResumoOpen(true)}
+        >
+          <Sparkles size={12} />
+          Resumir mês
+        </button>
+        <button
+          type="button"
+          className="fin-btn"
+          title="Trilha de 12 passos do fechamento mensal"
+          onClick={() => setChecklistOpen(true)}
+        >
+          <CheckSquare size={12} />
+          Fechamento
+        </button>
+        <button
+          type="button"
+          className="fin-btn"
+          title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
+          onClick={() => setPresentOpen(true)}
+        >
+          <Play size={12} />
+          Apresentar
+        </button>
 
-        <div className="vd-toolbar-r">
-          <button
-            type="button"
-            className="vd-toolbar-act"
-            title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
-            onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
-          >
-            <Printer size={11} />
-            <span>Imprimir</span>
-            {favs.count > 0 && <kbd className="kbd-hint">{favs.count}★</kbd>}
-          </button>
-          <button
-            type="button"
-            className="vd-toolbar-act"
-            title="Plano de contas — categorias contábeis"
-            onClick={() => router.visit('/financeiro/plano-contas')}
-          >
-            <FolderOpen size={11} />
-            <span>Plano de contas</span>
-          </button>
-        </div>
+        <span className="flex-1" />
+
+        <button
+          type="button"
+          className="fin-btn"
+          title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
+          onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
+        >
+          <Printer size={12} />
+          Imprimir
+          {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
+        </button>
+        <button
+          type="button"
+          className="fin-btn"
+          title="Plano de contas — categorias contábeis"
+          onClick={() => router.visit('/financeiro/plano-contas')}
+        >
+          <FolderOpen size={12} />
+          Plano de contas
+        </button>
       </div>
 
       <KpiBar kpis={kpis} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
