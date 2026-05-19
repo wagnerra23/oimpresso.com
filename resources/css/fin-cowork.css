@@ -112,11 +112,14 @@
 /* ─────────────────────────────────────────────────────────────
  * KPI Stats grid (hero sparkline + 4 cards)
  * ───────────────────────────────────────────────────────────── */
+/* Onda 12.7 (2026-05-19) — KPI strip full width (Wagner): sem padding lateral
+   nem margin, ocupa 100% do container .fin-curadoria. */
 .fin-cowork .fin-curadoria .fin-stats {
   display: grid;
   grid-template-columns: minmax(260px, 1.6fr) repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
   margin: 12px 0 10px;
+  width: 100%;
 }
 .fin-cowork .fin-curadoria .fin-stat {
   background: white;
@@ -363,23 +366,28 @@
 }
 .fin-cowork .fin-curadoria .fin-search-wrap input::placeholder { color: var(--fin-text-mute); }
 /* ─────────────────────────────────────────────────────────────
- * Footer tips (inline ao final da página — Wagner 2026-05-19,
- * comparação com canon REAL /cowork-preview/Oimpresso ERP - Chat.html
- * mostrou footer inline rolando com o conteúdo, não fixed na viewport).
+ * Footer tips — Onda 12.7 (2026-05-19) — Wagner pediu sticky bottom
+ * COLADO (sem flutuar): position:fixed bottom:0 sem backdrop-blur,
+ * background sólido + border-top sólida = sensação "barra colada".
  * ───────────────────────────────────────────────────────────── */
 .fin-cowork .fin-curadoria .fin-footer-tips {
-  margin-top: 24px;
-  padding: 8px 16px;
-  background: oklch(0.99 0.002 240);
-  border: 1px solid var(--fin-line);
-  border-radius: 8px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 24px;
+  background: oklch(0.985 0.003 90);
+  border-top: 1px solid var(--fin-line);
   font-size: 11px;
   color: var(--fin-text-mute);
   display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+  z-index: 30;
 }
+/* Padding-bottom no container pra última linha não ficar atrás do footer. */
+.fin-cowork .fin-curadoria { padding-bottom: 48px; }
 /* Onda 12 — summary numérica esquerda no footer (paridade canon REAL).
    "N lançamentos · Total entrada: R$ X · Total saída: R$ Y" */
 .fin-cowork .fin-curadoria .fin-footer-tips .fin-footer-summary {
