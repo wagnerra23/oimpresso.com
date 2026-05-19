@@ -39,6 +39,10 @@ url_prefixes:
   - /webhooks/c6 (migrado)
   - /webhooks/asaas (migrado)
   - /webhooks/bcb-pix (novo)
+db_tables_owned:
+  - payment_gateway_credentials
+  - cobrancas
+  - gateway_webhook_events
 drift_alerts: []
 ---
 
