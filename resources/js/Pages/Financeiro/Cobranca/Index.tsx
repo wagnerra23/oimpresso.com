@@ -62,7 +62,10 @@ const FUNIL_FALLBACK: CobrancaFunil = {
   mandatos_cancelados: 0,
 };
 
-function CobrancaPage({ cobrancas, kpis, funil, accounts, gateways, filtros, isSaasBusiness, today }: Props) {
+function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], filtros, isSaasBusiness, today }: Props) {
+  // Hotfix Inertia::defer first paint: kpis/funil podem ser undefined até resolver.
+  kpis = kpis ?? KPI_FALLBACK;
+  funil = funil ?? FUNIL_FALLBACK;
   // Persistência localStorage namespace oimpresso.financeiro.cobranca.*
   const [tabStatus, setTabStatus] = useState(() => lsGet<string>('tab', filtros.status || 'all'));
   const [tipoFilter, setTipoFilter] = useState(() => lsGet<string>('tipo', filtros.tipo || 'all'));
@@ -91,8 +94,10 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts, gateways, filtros, isS
     return t === tipoFilter;
   }, [tipoFilter]);
 
+  // Hotfix: cobrancas é Inertia::defer — undefined no primeiro paint até resolver.
+  // Sem o ?? [] o useMemo crasha com "Cannot read properties of undefined (reading 'filter')".
   const filtered = useMemo(() => {
-    return cobrancas.filter(c => {
+    return (cobrancas ?? []).filter(c => {
       if (tabStatus !== 'all' && c.status !== tabStatus) return false;
       if (!tipoMatch(c.tipo)) return false;
       if (gatewayFilter !== 'all' && c.gateway !== gatewayFilter) return false;
@@ -108,9 +113,10 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts, gateways, filtros, isS
   }, [cobrancas, tabStatus, tipoMatch, gatewayFilter, accountFilter, origemFilter, busca]);
 
   const statusCounts = useMemo(() => {
-    const out: Record<string, number> = { all: cobrancas.length };
+    const list = cobrancas ?? [];
+    const out: Record<string, number> = { all: list.length };
     (['emitida', 'paga', 'vencida', 'cancelada', 'erro'] as const).forEach(s => {
-      out[s] = cobrancas.filter(c => c.status === s).length;
+      out[s] = list.filter(c => c.status === s).length;
     });
     return out;
   }, [cobrancas]);
@@ -391,7 +397,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts, gateways, filtros, isS
       {novaOpen && <SheetNovaCobranca accounts={accounts} onClose={() => setNovaOpen(false)} />}
       {remessaOpen && <SheetRemessaRetorno onClose={() => setRemessaOpen(false)} />}
       {cheatOpen && <CheatSheet onClose={() => setCheatOpen(false)} />}
-      {aiOpen && <AiResumoMes kpis={kpis ?? KPI_FALLBACK} cobs={cobrancas ?? []} onClose={() => setAiOpen(false)} />}
+      {aiOpen && <AiResumoMes kpis={kpis} cobs={cobrancas ?? []} onClose={() => setAiOpen(false)} />}
     </div>
   );
 }
