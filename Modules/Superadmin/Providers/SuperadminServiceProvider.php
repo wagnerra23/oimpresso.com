@@ -2,6 +2,7 @@
 
 namespace Modules\Superadmin\Providers;
 
+use App\Business;
 use App\System;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factory;
@@ -14,6 +15,7 @@ use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\SuperadminFrontendPage;
 use Modules\Superadmin\Listeners\OnCobrancaPagaUpdateSubscription;
 use Modules\Superadmin\Listeners\OnCobrancaVencidaBloqueaSubscription;
+use Modules\Superadmin\Observers\BusinessAutoSubscriptionObserver;
 
 class SuperadminServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,11 @@ class SuperadminServiceProvider extends ServiceProvider
      * Pattern documentado em memory/reference/project-officeimpresso-modulo.md.
      */
     private static bool $paymentgatewayListenersRegistered = false;
+
+    /**
+     * Guard contra duplicação do Business observer (mesmo motivo nWidart).
+     */
+    private static bool $businessObserverRegistered = false;
 
     /**
      * Boot the application events.
@@ -37,6 +44,7 @@ class SuperadminServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->registerScheduleCommands();
         $this->registerPaymentGatewayListeners();
+        $this->registerBusinessAutoSubscriptionObserver();
 
         view::composer('superadmin::layouts.partials.active_subscription', function ($view) {
             $business_id = session()->get('user.business_id');
@@ -75,8 +83,25 @@ class SuperadminServiceProvider extends ServiceProvider
             $this->app->booted(function () {
                 $schedule = $this->app->make(Schedule::class);
                 $schedule->command('pos:sendSubscriptionExpiryAlert')->daily();
+                // ADR 0170 Onda 5.B — emite cobrança PIX Automático pra Subscriptions
+                // waiting com trial expirado (auto-onboarding).
+                $schedule->command('paymentgateway:emit-trial-expired')->dailyAt('08:00');
             });
         }
+    }
+
+    /**
+     * ADR 0170 Onda 5.B SIMPLIFICADA — Business::created → Subscription waiting
+     * automática. Cobre UI Superadmin + API Delphi simultaneamente.
+     */
+    protected function registerBusinessAutoSubscriptionObserver(): void
+    {
+        if (self::$businessObserverRegistered) {
+            return;
+        }
+
+        Business::observe(BusinessAutoSubscriptionObserver::class);
+        self::$businessObserverRegistered = true;
     }
 
     /**
