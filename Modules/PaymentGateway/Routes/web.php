@@ -40,6 +40,14 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('payment-gateways', [PaymentGatewaysController::class, 'index'])
             ->name('payment-gateways.index');
 
+        // Onda 5 (2026-05-19) — completa wizard SheetNovoGateway (UI F3 PR #1135).
+        Route::post('payment-gateways', [PaymentGatewaysController::class, 'store'])
+            ->name('payment-gateways.store');
+
+        Route::put('payment-gateways/{credentialId}', [PaymentGatewaysController::class, 'update'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.update');
+
         Route::post('payment-gateways/health-check', [PaymentGatewaysController::class, 'healthCheck'])
             ->name('payment-gateways.health-check.all');
 
