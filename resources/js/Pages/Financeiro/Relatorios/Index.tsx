@@ -14,7 +14,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
-import PageHeader from '@/Components/shared/PageHeader';
+// Onda 14 — PageHeader removido (canon os-page-h direto)
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 
@@ -117,19 +117,19 @@ function FinanceiroRelatorios({ filters, dre, fluxo, resumo }: Props) {
   }, [filters.data_de, filters.data_ate, tab]);
 
   return (
-    <>
-      <PageHeader
-        icon="bar-chart-3"
-        title="Relatórios"
-        description="DRE gerencial, fluxo de caixa projetado vs realizado e resumo do período"
-        action={
-          <a href={csvHref} target="_blank" rel="noopener noreferrer">
-            <Button size="sm" variant="outline">
-              Exportar CSV
-            </Button>
+    <div className="fin-curadoria vendas-aplus">
+      {/* Onda 14 (2026-05-19) — header canon paridade Unificado */}
+      <header className="os-page-h fin-page-h">
+        <div className="os-page-h-l fin-page-h-l">
+          <h1>Relatórios <span className="fin-hero-title-sub">· Financeiro</span></h1>
+          <p>DRE gerencial, fluxo de caixa projetado vs realizado e resumo do período</p>
+        </div>
+        <div className="os-page-h-r fin-page-h-r">
+          <a href={csvHref} target="_blank" rel="noopener noreferrer" className="os-btn ghost">
+            Exportar CSV
           </a>
-        }
-      />
+        </div>
+      </header>
 
       {/* Filtros de período */}
       <Card className="mt-6 mb-4">
@@ -175,7 +175,7 @@ function FinanceiroRelatorios({ filters, dre, fluxo, resumo }: Props) {
       {tab === 'dre'    && <DrePanel dre={dre} />}
       {tab === 'fluxo'  && <FluxoPanel fluxo={fluxo} />}
       {tab === 'resumo' && <ResumoPanel resumo={resumo} />}
-    </>
+    </div>
   );
 }
 
