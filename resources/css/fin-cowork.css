@@ -141,23 +141,40 @@
 }
 .fin-cowork .fin-curadoria .fin-num-pos { color: oklch(0.45 0.18 145); }
 .fin-cowork .fin-curadoria .fin-num-neg { color: oklch(0.50 0.18 25); }
+/* Onda 12 (2026-05-19) — KPI hero card DARK (paridade canon REAL).
+   Canon /cowork-preview/Oimpresso ERP - Chat.html tem card preto puro
+   com sparkline em fundo, não gradient verde. */
 .fin-cowork .fin-curadoria .fin-stat-hero {
   position: relative;
-  background: linear-gradient(135deg, oklch(0.22 0.04 145) 0%, oklch(0.30 0.06 145) 100%);
+  background: oklch(0.16 0.005 240);
   color: white;
   border: 0;
   overflow: hidden;
 }
-.fin-cowork .fin-curadoria .fin-stat-hero small { color: oklch(0.95 0.02 145); opacity: 0.85; }
+.fin-cowork .fin-curadoria .fin-stat-hero small { color: oklch(0.75 0.005 240); opacity: 0.95; font-weight: 600; }
 .fin-cowork .fin-curadoria .fin-stat-hero b { color: white; font-size: 26px; }
-.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.92 0.02 145); opacity: 0.85; }
-.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.85 0.10 25); }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.005 240); opacity: 0.85; }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.78 0.14 25); }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: oklch(0.78 0.14 145); }
 .fin-cowork .fin-curadoria .fin-spark {
   margin-top: 8px;
   width: 100%;
   height: 36px;
   display: block;
 }
+/* Sparkline em fundo absoluto pro KPI hero (atrás do texto) */
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-spark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-top: 0;
+  height: 56px;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+.fin-cowork .fin-curadoria .fin-stat-hero > * { position: relative; z-index: 1; }
 /* ─────────────────────────────────────────────────────────────
  * Toolbar (filter chips + density + search)
  * ───────────────────────────────────────────────────────────── */
@@ -331,24 +348,44 @@
 }
 .fin-cowork .fin-curadoria .fin-search-wrap input::placeholder { color: var(--fin-text-mute); }
 /* ─────────────────────────────────────────────────────────────
- * Footer tips (atalhos sticky bottom)
+ * Footer tips (inline ao final da página — Wagner 2026-05-19,
+ * comparação com canon REAL /cowork-preview/Oimpresso ERP - Chat.html
+ * mostrou footer inline rolando com o conteúdo, não fixed na viewport).
  * ───────────────────────────────────────────────────────────── */
 .fin-cowork .fin-curadoria .fin-footer-tips {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 6px 24px;
-  background: oklch(0.99 0.002 240 / 0.95);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid var(--fin-line);
+  margin-top: 24px;
+  padding: 8px 16px;
+  background: oklch(0.99 0.002 240);
+  border: 1px solid var(--fin-line);
+  border-radius: 8px;
   font-size: 11px;
   color: var(--fin-text-mute);
   display: flex;
   align-items: center;
   gap: 14px;
-  z-index: 30;
+  flex-wrap: wrap;
 }
+/* Onda 12 — summary numérica esquerda no footer (paridade canon REAL).
+   "N lançamentos · Total entrada: R$ X · Total saída: R$ Y" */
+.fin-cowork .fin-curadoria .fin-footer-tips .fin-footer-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--fin-text);
+}
+.fin-cowork .fin-curadoria .fin-footer-tips .fin-footer-summary b {
+  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--fin-text);
+}
+.fin-cowork .fin-curadoria .fin-footer-tips .fin-footer-sep {
+  color: var(--fin-text-mute);
+  opacity: 0.55;
+  margin: 0 2px;
+}
+.fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }
 .fin-cowork .fin-curadoria .fin-footer-tips kbd {
   font-family: ui-monospace, monospace;
   font-size: 10px;
