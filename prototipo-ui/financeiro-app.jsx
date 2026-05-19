@@ -716,26 +716,36 @@ const FooterBar = ({ rows, selected, onClearSelected, onMarkAll }) => {
 const Drawer = ({ row, onClose, onMark }) => {
   const comments = window.useFinComments ? window.useFinComments() : null;
   const conferido = window.useFinConferido ? window.useFinConferido() : null;
+  const edits = window.useFinEdits ? window.useFinEdits() : null;
+  const [tab, setTab] = useState("detalhes");
+  // reset tab when changing row
+  useEffect(() => { setTab("detalhes"); }, [row?.id]);
   if (!row) return null;
-  const isIn = row.kind === "receivable";
-  const settled = !!row.paid_at;
-  const delta = window.FIN_DAYS_FROM_TODAY(row.due);
+  const rawRow = row;
+  // aplica edições se houver — render usa eff em vez de row
+  const eff = edits ? edits.applied(row.id, row) : row;
+  const isIn = eff.kind === "receivable";
+  const settled = !!eff.paid_at;
+  const delta = window.FIN_DAYS_FROM_TODAY(eff.due);
   const Linkify = window.VdLinkify;
   const isConferido = conferido && conferido.has(row.id);
+  const hasEdits = edits && edits.hasEdits(row.id);
+  const commentsCount = comments ? comments.countFor(row.id) : 0;
 
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-40 bg-stone-900/20" />
-      <aside className="fixed top-0 right-0 z-50 h-screen w-[440px] bg-white border-l border-stone-200 shadow-md drawer-shown flex flex-col">
+      <aside className="fixed top-0 right-0 z-50 h-screen w-[560px] max-w-[92vw] bg-white border-l border-stone-200 shadow-md drawer-shown flex flex-col fin-drawer-wide">
         <div className="px-5 h-14 flex items-center gap-3 border-b border-stone-200">
           <DirIcon kind={row.kind} status={row.status} size={16} />
           <div className="flex-1 min-w-0">
             <div className="text-[11px] uppercase tracking-widest text-stone-500 font-medium flex items-center gap-2">
               {isIn ? "A receber" : "A pagar"} · {row.id}
               {isConferido && <span className="fin-conf-pill-inline">✓ conferido</span>}
+              {hasEdits && <span className="fin-edit-pill-inline">✎ editado</span>}
             </div>
             <div className="text-[14px] font-semibold truncate">
-              {Linkify ? <Linkify text={row.desc} onPick={(id) => console.log("→", id)}/> : row.desc}
+              {Linkify ? <Linkify text={eff.desc} onPick={(id) => console.log("→", id)}/> : eff.desc}
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 grid place-items-center rounded text-stone-500 hover:bg-stone-100">
@@ -743,28 +753,54 @@ const Drawer = ({ row, onClose, onMark }) => {
           </button>
         </div>
 
+        <nav className="fin-drawer-tabs">
+          <button className={"fin-drawer-tab" + (tab === "detalhes" ? " on" : "")}
+                  onClick={() => setTab("detalhes")}>
+            Detalhes
+            {commentsCount > 0 && <span className="fin-drawer-tab-ct">💬 {commentsCount}</span>}
+            {hasEdits && <span className="fin-drawer-tab-tag" title="Lançamento editado">·</span>}
+          </button>
+          <button className={"fin-drawer-tab fin-drawer-tab-ai" + (tab === "ia" ? " on" : "")}
+                  onClick={() => setTab("ia")}>
+            ✦ IA
+          </button>
+        </nav>
+
         <div className="flex-1 overflow-y-auto nice-scroll px-5 py-4 space-y-5 text-[13px]">
+          {tab === "detalhes" && <>
           {window.FinAiAnomaliaBanner && <window.FinAiAnomaliaBanner row={row}/>}
           <div>
             <div className={`text-[11px] uppercase tracking-widest font-medium ${
-              row.status === "atrasado" ? "text-rose-700" : row.status === "vencendo" ? "text-amber-700" : "text-stone-500"
+              eff.status === "atrasado" ? "text-rose-700" : eff.status === "vencendo" ? "text-amber-700" : "text-stone-500"
             }`}>
               {settled ? "Liquidado" : "Vencimento"}
             </div>
             <div className="mt-1 flex items-baseline gap-2">
-              <div className="text-[22px] font-semibold tracking-tight num">{fmtDateLong(row.due)}</div>
-              <div className="text-[12px] text-stone-500">{settled ? `pago em ${fmtDateLong(row.paid_at)}` : dayLabel(delta)}</div>
+              <div className="text-[22px] font-semibold tracking-tight num">{fmtDateLong(eff.due)}</div>
+              <div className="text-[12px] text-stone-500">{settled ? `pago em ${fmtDateLong(eff.paid_at)}` : dayLabel(delta)}</div>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
               <div className={`text-[34px] font-semibold tracking-tight num ${isIn ? "text-emerald-700" : "text-stone-900"}`}>
-                {isIn ? "+ " : "− "}{fmtBRL(row.amount)}
+                {isIn ? "+ " : "− "}{fmtBRL(eff.amount)}
               </div>
-              <StatusBadge status={row.status} />
-              {window.FinPillFrescor && <window.FinPillFrescor row={row}/>}
+              <StatusBadge status={eff.status} />
+              {window.FinPillFrescor && <window.FinPillFrescor row={eff}/>}
             </div>
+
+            {/* FSM Financeiro — emitido → conferido → conciliado → liquidado */}
+            {window.FsmStepper && window.finFsmStage && (
+              <div className="mt-3 fin-fsm-wrap">
+                <window.FsmStepper
+                  domain="financeiro"
+                  variant="full-stepper"
+                  current={window.finFsmStage(eff, conferido && [...(conferido.set || []), ...(isConferido ? [row.id] : [])])}/>
+              </div>
+            )}
+
             {conferido && window.FinConferidoToggle && (
-              <div className="mt-3">
+              <div className="mt-3 fin-toggles-row">
                 <window.FinConferidoToggle row={row} conferido={conferido}/>
+                {edits && window.FinEditPanel && <window.FinEditPanel row={row} edits={edits}/>}
               </div>
             )}
           </div>
@@ -772,20 +808,20 @@ const Drawer = ({ row, onClose, onMark }) => {
           <div className="border-t border-stone-100 pt-4 grid grid-cols-2 gap-y-3">
             <div>
               <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Contraparte</div>
-              <div className="mt-0.5 font-medium text-stone-900">{row.party}</div>
+              <div className="mt-0.5 font-medium text-stone-900">{eff.party}</div>
             </div>
             <div>
               <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Categoria</div>
-              <div className="mt-0.5 text-stone-700">{row.category}</div>
+              <div className="mt-0.5 text-stone-700">{eff.category}</div>
             </div>
             <div>
               <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Canal</div>
-              <div className="mt-0.5 text-stone-700">{row.channel}</div>
+              <div className="mt-0.5 text-stone-700">{eff.channel}</div>
             </div>
             <div>
               <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Documento</div>
               <div className="mt-0.5 text-stone-700 font-mono text-[12px]">
-                {Linkify ? <Linkify text={row.invoice} onPick={(id) => console.log("→", id)}/> : row.invoice}
+                {Linkify ? <Linkify text={eff.invoice} onPick={(id) => console.log("→", id)}/> : eff.invoice}
               </div>
             </div>
             <div className="col-span-2">
@@ -832,29 +868,30 @@ const Drawer = ({ row, onClose, onMark }) => {
               <window.FinCommentsThread rowId={row.id} comments={comments}/>
             </div>
           )}
+          </>}
 
-          {window.FinAiPanel && (
-            <div className="border-t border-stone-100 pt-4">
-              <window.FinAiPanel row={row}/>
-            </div>
+          {tab === "ia" && window.FinAiPanel && (
+            <window.FinAiPanel row={row}/>
           )}
         </div>
 
-        <div className="border-t border-stone-200 px-5 h-14 flex items-center gap-2">
+        <div className="border-t border-stone-200 px-5 h-14 flex items-center gap-2 fin-drawer-footer">
           {window.FinTroubleButton && <window.FinTroubleButton row={row}/>}
-          <button className="h-8 px-3 rounded-md border border-stone-200 text-[12.5px] text-stone-700 hover:bg-stone-50 transition-colors duration-150 inline-flex items-center gap-1.5">
-            <I.Eye size={13} />Ver NFe
+          <button className="fin-foot-icon-btn" title="Ver NFe">
+            <I.Eye size={14} />
+            <span>Ver NFe</span>
           </button>
-          <button className="h-8 px-3 rounded-md border border-stone-200 text-[12.5px] text-stone-700 hover:bg-stone-50 transition-colors duration-150 inline-flex items-center gap-1.5">
-            <I.Send size={13} />Cobrar
+          <button className="fin-foot-icon-btn" title="Cobrar">
+            <I.Send size={14} />
+            <span>Cobrar</span>
           </button>
-          <div className="ml-auto" />
           {!settled && (
             <button
-              onClick={() => { onMark(row.id); onClose(); }}
-              className="h-8 px-3.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] inline-flex items-center gap-1.5 transition-colors duration-150"
-            >
-              <I.Check size={13} />Marcar como {isIn ? "recebido" : "pago"}
+              onClick={() => onMark(row.id)}
+              className="fin-foot-mark-btn"
+              title={isIn ? "Marcar como recebido" : "Marcar como pago"}>
+              <I.Check size={14} />
+              <span>{isIn ? "Recebi" : "Paguei"}</span>
             </button>
           )}
         </div>
