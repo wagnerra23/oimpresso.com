@@ -14,6 +14,10 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from 'react';
+// Onda 11 (2026-05-19) — alinhamento Cowork canon do header pra pattern os-head/vd-toolbar
+// (mesmo de Sells/Index). Wagner aprovou caminho "refactor markup do header reusa classes
+// que JÁ existem no bundle cowork-financeiro-bundle.css" — sem cherry-pick de CSS novo.
+import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -517,62 +521,99 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const selected = lancamentos.find(l => l.id === selectedId) ?? null;
 
   return (
-    <div className="fin-curadoria">
-      {/* Onda 8 Cowork: page header canon com h1 + breadcrumb + 7 botões.
-          Substitui PageHeader shadcn legacy (mantido em _KpiBarLegacy + comentário). */}
-      <div className="fin-page-h">
-        <div className="fin-page-h-l">
-          <h1>
-            Financeiro <span className="fin-hero-title-sub">· Visão unificada</span>
-          </h1>
-          <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
+    <div className="fin-curadoria vendas-aplus">
+      {/* Onda 11 (2026-05-19) — header Cowork canon (mesmo pattern de Sells/Index):
+            linha 1 = h1 + subtítulo + ⌘K central + CTA primary "Novo lançamento"
+            linha 2 = vd-toolbar com 6 ações secundárias (Resumir/Fechamento/Apresentar/Imprimir/Conciliar/Plano contas)
+          Wrapper ganhou `vendas-aplus` pra ativar modifiers .vd-head-clean / .vd-cmdk / .vd-toolbar
+          que vivem em cowork-financeiro-bundle.css linhas 5167+ e 8483+ (já importado via inertia.css:63). */}
+      <header className="os-head vd-head-clean">
+        <div className="os-head-l">
+          <h1>Financeiro</h1>
+          <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado · Visão unificada</p>
         </div>
-        <div className="fin-page-h-r">
-          <button type="button" className="fin-btn" onClick={() => setPaletteOpen(true)}>
-            🔍 Buscar
-            <kbd>⌘K</kbd>
-          </button>
+
+        <button type="button" className="vd-cmdk" onClick={() => setPaletteOpen(true)}>
+          <Search size={12} />
+          <span>Buscar lançamento, contraparte, categoria…</span>
+          <kbd>⌘K</kbd>
+        </button>
+
+        <div className="os-head-r">
           <button
             type="button"
-            className="fin-btn fin-btn-ai"
+            className="os-btn primary"
+            onClick={() => router.visit('/financeiro/unificado/novo')}
+          >
+            <Plus size={11} />
+            Novo lançamento
+            <kbd className="kbd-hint">N</kbd>
+          </button>
+        </div>
+      </header>
+
+      {/* Toolbar linha 2 — ações secundárias do header. Cowork canon `vd-toolbar`. */}
+      <div className="vd-toolbar">
+        <div className="vd-toolbar-l">
+          {/* Ações primárias (curadoria + análise) à esquerda */}
+          <button
+            type="button"
+            className="vd-toolbar-act"
             title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
             onClick={() => setResumoOpen(true)}
           >
-            ✦ Resumir mês
+            <Sparkles size={11} />
+            <span>Resumir mês</span>
           </button>
           <button
             type="button"
-            className="fin-btn fin-btn-trilha"
-            onClick={() => setChecklistOpen(true)}
+            className="vd-toolbar-act"
             title="Trilha de 12 passos do fechamento mensal"
+            onClick={() => setChecklistOpen(true)}
           >
-            ☑ Fechamento
+            <CheckSquare size={11} />
+            <span>Fechamento</span>
           </button>
           <button
             type="button"
-            className="fin-btn fin-btn-present"
+            className="vd-toolbar-act"
             title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
             onClick={() => setPresentOpen(true)}
           >
-            ▶ Apresentar
+            <Play size={11} />
+            <span>Apresentar</span>
           </button>
+        </div>
+
+        <div className="vd-toolbar-r">
+          {/* Ações de output/integração à direita */}
           <button
             type="button"
-            className="fin-btn"
+            className="vd-toolbar-act"
             title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
             onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
           >
-            📄 Imprimir
-            {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
+            <Printer size={11} />
+            <span>Imprimir</span>
+            {favs.count > 0 && <kbd className="kbd-hint">{favs.count}★</kbd>}
           </button>
-          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/extrato')}>
-            ↺ Conciliar
+          <button
+            type="button"
+            className="vd-toolbar-act"
+            title="Conciliar extrato bancário"
+            onClick={() => router.visit('/financeiro/extrato')}
+          >
+            <RefreshCw size={11} />
+            <span>Conciliar</span>
           </button>
-          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas — categorias contábeis">
-            📁 Plano de contas
-          </button>
-          <button type="button" className="fin-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
-            + Novo lançamento
+          <button
+            type="button"
+            className="vd-toolbar-act"
+            title="Plano de contas — categorias contábeis"
+            onClick={() => router.visit('/financeiro/plano-contas')}
+          >
+            <FolderOpen size={11} />
+            <span>Plano de contas</span>
           </button>
         </div>
       </div>
