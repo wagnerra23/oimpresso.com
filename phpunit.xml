@@ -19,6 +19,7 @@
             <directory>./Modules/Cms/Tests/Feature</directory>
             <directory>./Modules/Jana/Tests/Feature</directory>
             <directory>./Modules/RecurringBilling/Tests/Feature</directory>
+            <directory>./Modules/PaymentGateway/Tests/Feature</directory>
             <directory>./Modules/Financeiro/Tests/Feature</directory>
             <directory>./Modules/Financeiro/Tests/Unit</directory>
             <directory>./Modules/NfeBrasil/Tests/Feature</directory>
