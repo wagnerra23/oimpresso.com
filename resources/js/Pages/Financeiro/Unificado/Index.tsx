@@ -14,6 +14,11 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from 'react';
+// Onda 11 (2026-05-19) — alinhamento header pra fidelidade ao prototipo canon Financeiro
+// (prototipo-ui/prototipos/financeiro-unificado/cowork-app.jsx:153-208).
+// Wagner escolheu "aproximar do prototipo canon" após comparar (sticky + h1 linha 2 +
+// Bell + date picker), preservando 5 ações Onda 5-10 em toolbar abaixo.
+import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen, Bell, Calendar, ChevronRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -514,65 +519,159 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
     return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }, [lancamentos]);
 
+  // Data atual PT-BR pro date picker do header (formato: "19 mai 2026").
+  // Onda 11 v2 — paridade prototipo canon (cowork-app.jsx:204).
+  const todayLabel = useMemo(() => {
+    const d = new Date();
+    return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+      .format(d)
+      .replace(/\.?\s+de\s+/g, ' ')
+      .replace('.', '');
+  }, []);
+
   const selected = lancamentos.find(l => l.id === selectedId) ?? null;
 
   return (
-    <div className="fin-curadoria">
-      {/* Onda 8 Cowork: page header canon com h1 + breadcrumb + 7 botões.
-          Substitui PageHeader shadcn legacy (mantido em _KpiBarLegacy + comentário). */}
-      <div className="fin-page-h">
-        <div className="fin-page-h-l">
-          <h1>
-            Financeiro <span className="fin-hero-title-sub">· Visão unificada</span>
-          </h1>
-          <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
-        </div>
-        <div className="fin-page-h-r">
-          <button type="button" className="fin-btn" onClick={() => setPaletteOpen(true)}>
-            🔍 Buscar
-            <kbd>⌘K</kbd>
-          </button>
+    <div className="fin-curadoria vendas-aplus">
+      {/* Onda 11 v2 (2026-05-19) — fidelidade ao prototipo canon Financeiro
+          (prototipo-ui/prototipos/financeiro-unificado/cowork-app.jsx:153-208):
+            <header sticky top-0 backdrop-blur>
+              Linha 1 (h-14): breadcrumb · ⌘K · Bell · | · Conciliar · CTA "Novo"
+              Linha 2 (pt-4 pb-3): h1 "Financeiro" + chip período + date picker direita
+            </header>
+            Linha 3 fora do sticky: vd-toolbar com 5 ações Onda 5-10
+              (Resumir / Fechamento / Apresentar · Imprimir · Plano contas) */}
+      <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-stone-200">
+        {/* Linha 1 — barra superior compacta */}
+        <div className="px-6 h-14 flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-[12px] text-stone-500 whitespace-nowrap">
+            <span>Financeiro</span>
+            <ChevronRight size={12} className="text-stone-400" />
+            <span className="text-stone-900 font-medium">Visão unificada</span>
+          </div>
+
+          <div className="flex-1" />
+
           <button
             type="button"
-            className="fin-btn fin-btn-ai"
+            onClick={() => setPaletteOpen(true)}
+            className="h-8 px-3 flex items-center gap-2 rounded-md border border-stone-200 bg-white text-[12.5px] text-stone-500 hover:text-stone-800 hover:border-stone-300 transition-colors duration-150 w-[220px]"
+          >
+            <Search size={14} />
+            <span className="truncate flex-1 text-left">Buscar lançamento…</span>
+            <span className="flex items-center gap-1 text-[11px] text-stone-400 font-mono">
+              <kbd className="px-1.5 py-0.5 rounded border border-stone-200 bg-stone-50">⌘</kbd>
+              <kbd className="px-1.5 py-0.5 rounded border border-stone-200 bg-stone-50">K</kbd>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="h-8 w-8 grid place-items-center rounded-md text-stone-500 hover:bg-stone-100 hover:text-stone-700 transition-colors duration-150 relative shrink-0"
+            title="Notificações financeiras"
+            aria-label="Notificações"
+            onClick={() => setPaletteOpen(true)}
+          >
+            <Bell size={16} />
+            {/* TODO: dot rosa quando houver state real de notificações pendentes (Onda 12+) */}
+          </button>
+
+          <div className="h-5 w-px bg-stone-200 shrink-0" />
+
+          <button
+            type="button"
+            onClick={() => router.visit('/financeiro/extrato')}
+            className="h-8 px-3 flex items-center gap-1.5 rounded-md border border-stone-200 text-[12.5px] text-stone-700 hover:bg-stone-50 transition-colors duration-150 shrink-0 whitespace-nowrap"
+            title="Conciliar extrato bancário"
+          >
+            <RefreshCw size={14} />
+            Conciliar
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.visit('/financeiro/unificado/novo')}
+            className="h-8 px-3 flex items-center gap-1.5 rounded-md bg-stone-900 text-white text-[12.5px] hover:bg-stone-800 transition-colors duration-150 shrink-0 whitespace-nowrap"
+          >
+            <Plus size={14} />
+            Novo
+          </button>
+        </div>
+
+        {/* Linha 2 — h1 + chip período + date picker */}
+        <div className="px-6 pt-4 pb-3 flex items-baseline gap-3">
+          <h1 className="text-[24px] font-semibold tracking-tight leading-none whitespace-nowrap m-0">
+            Financeiro
+          </h1>
+          <span className="text-[11px] uppercase tracking-widest text-stone-500 font-medium whitespace-nowrap">
+            {periodLabel}{businessName ? ` · ${businessName}` : ''}
+          </span>
+          <div className="ml-auto text-[12px] text-stone-500 flex items-center gap-1.5 whitespace-nowrap shrink-0">
+            <Calendar size={13} />
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="text-stone-700 hover:text-stone-900 underline-offset-2 hover:underline"
+              title="Mudar período (⌘K)"
+            >
+              {todayLabel}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Linha 3 — vd-toolbar fora do sticky com 5 ações Onda 5-10.
+          Conciliar saiu daqui pra linha 1 (paridade prototipo canon). */}
+      <div className="vd-toolbar">
+        <div className="vd-toolbar-l">
+          <button
+            type="button"
+            className="vd-toolbar-act"
             title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
             onClick={() => setResumoOpen(true)}
           >
-            ✦ Resumir mês
+            <Sparkles size={11} />
+            <span>Resumir mês</span>
           </button>
           <button
             type="button"
-            className="fin-btn fin-btn-trilha"
-            onClick={() => setChecklistOpen(true)}
+            className="vd-toolbar-act"
             title="Trilha de 12 passos do fechamento mensal"
+            onClick={() => setChecklistOpen(true)}
           >
-            ☑ Fechamento
+            <CheckSquare size={11} />
+            <span>Fechamento</span>
           </button>
           <button
             type="button"
-            className="fin-btn fin-btn-present"
+            className="vd-toolbar-act"
             title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
             onClick={() => setPresentOpen(true)}
           >
-            ▶ Apresentar
+            <Play size={11} />
+            <span>Apresentar</span>
           </button>
+        </div>
+
+        <div className="vd-toolbar-r">
           <button
             type="button"
-            className="fin-btn"
+            className="vd-toolbar-act"
             title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
             onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
           >
-            📄 Imprimir
-            {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
+            <Printer size={11} />
+            <span>Imprimir</span>
+            {favs.count > 0 && <kbd className="kbd-hint">{favs.count}★</kbd>}
           </button>
-          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/extrato')}>
-            ↺ Conciliar
-          </button>
-          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas — categorias contábeis">
-            📁 Plano de contas
-          </button>
-          <button type="button" className="fin-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
-            + Novo lançamento
+          <button
+            type="button"
+            className="vd-toolbar-act"
+            title="Plano de contas — categorias contábeis"
+            onClick={() => router.visit('/financeiro/plano-contas')}
+          >
+            <FolderOpen size={11} />
+            <span>Plano de contas</span>
           </button>
         </div>
       </div>
