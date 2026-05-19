@@ -71,6 +71,130 @@
   window.useFinConferido = useFinConferido;
 
   // ─────────────────────────────────────────────────────────────
+  // EDIÇÃO INLINE de campos do lançamento — Eliana corrige na hora
+  //   Storage: oimpresso.financeiro.edits = { rowId: { amount, dueISO, party, category, channel } }
+  // ─────────────────────────────────────────────────────────────
+  const _finLoadEdits = () => {
+    try { return JSON.parse(localStorage.getItem("oimpresso.financeiro.edits") || "{}"); }
+    catch (e) { return {}; }
+  };
+  const _finSaveEdits = (m) => {
+    try { localStorage.setItem("oimpresso.financeiro.edits", JSON.stringify(m)); } catch (e) {}
+  };
+
+  function useFinEdits() {
+    const [m, setM] = useState(_finLoadEdits);
+    useEffect(() => { _finSaveEdits(m); }, [m]);
+    return {
+      get: (rowId) => m[rowId] || null,
+      set: (rowId, patch) => setM(prev => ({
+        ...prev,
+        [rowId]: { ...(prev[rowId] || {}), ...patch },
+      })),
+      reset: (rowId) => setM(prev => {
+        const next = { ...prev };
+        delete next[rowId];
+        return next;
+      }),
+      // aplica patches num row original e retorna proxy
+      applied: (rowId, original) => {
+        const p = m[rowId];
+        if (!p) return original;
+        const next = { ...original };
+        if (p.amount != null) next.amount = parseFloat(p.amount) || 0;
+        if (p.dueISO) next.due = new Date(p.dueISO + "T12:00:00");
+        if (p.party) next.party = p.party;
+        if (p.category) next.category = p.category;
+        if (p.channel) next.channel = p.channel;
+        return next;
+      },
+      hasEdits: (rowId) => !!m[rowId] && Object.keys(m[rowId]).length > 0,
+    };
+  }
+  window.useFinEdits = useFinEdits;
+
+  const FIN_CATEGORIES_EDIT = ["Banner", "Adesivo", "Fachada", "Placa", "Gráfica rápida", "Insumo", "Aluguel", "Utilidade", "Imposto", "Folha", "Serviço", "Frete", "Outros"];
+  const FIN_CHANNELS_EDIT = ["PIX", "Dinheiro", "Boleto", "Cartão", "Débito automático", "Transferência", "TED"];
+
+  function FinEditPanel({ row, edits }) {
+    const [open, setOpen] = useState(false);
+    const eff = edits.applied(row.id, row);
+    const has = edits.hasEdits(row.id);
+    const _fmtBRL = (n) => (n || 0).toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+    const _dateISO = (d) => d instanceof Date ? d.toISOString().slice(0, 10) : "";
+
+    if (!open) {
+      return (
+        <button className={"fin-edit-btn" + (has ? " has-edits" : "")}
+                onClick={() => setOpen(true)}
+                title="Editar campos deste lançamento">
+          <span className="fin-edit-ic">✎</span>
+          {has ? "Editado · revisar" : "Editar campos"}
+          {has && <span className="fin-edit-tag">·</span>}
+        </button>
+      );
+    }
+
+    return (
+      <div className="fin-edit-panel">
+        <div className="fin-edit-h">
+          <h4>Editar lançamento</h4>
+          <div className="fin-edit-actions">
+            {has && <button className="fin-edit-reset" onClick={() => edits.reset(row.id)}>↺ Desfazer</button>}
+            <button className="fin-edit-close" onClick={() => setOpen(false)}>
+              {has ? "✓ Salvar" : "Fechar"}
+            </button>
+          </div>
+        </div>
+        <div className="fin-edit-grid">
+          <label>
+            <span>Valor</span>
+            <input type="number" step="0.01" min="0"
+                   value={eff.amount}
+                   onChange={e => edits.set(row.id, { amount: e.target.value })}/>
+            {has && eff.amount !== row.amount && (
+              <small className={eff.amount > row.amount ? "pos" : "neg"}>
+                era {_fmtBRL(row.amount)} · {eff.amount > row.amount ? "+" : ""}{(((eff.amount - row.amount) / row.amount) * 100).toFixed(1)}%
+              </small>
+            )}
+          </label>
+          <label>
+            <span>Vencimento</span>
+            <input type="date"
+                   value={_dateISO(eff.due)}
+                   onChange={e => edits.set(row.id, { dueISO: e.target.value })}/>
+            {has && _dateISO(eff.due) !== _dateISO(row.due) && (
+              <small className="neu">era {row.due.toLocaleDateString("pt-BR")}</small>
+            )}
+          </label>
+          <label>
+            <span>Categoria</span>
+            <select value={eff.category} onChange={e => edits.set(row.id, { category: e.target.value })}>
+              {FIN_CATEGORIES_EDIT.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            {has && eff.category !== row.category && <small className="neu">era {row.category}</small>}
+          </label>
+          <label>
+            <span>Forma pgto.</span>
+            <select value={eff.channel} onChange={e => edits.set(row.id, { channel: e.target.value })}>
+              {FIN_CHANNELS_EDIT.map(c => <option key={c} value={c}>{c}</option>)}
+              {!FIN_CHANNELS_EDIT.includes(eff.channel) && <option value={eff.channel}>{eff.channel}</option>}
+            </select>
+            {has && eff.channel !== row.channel && <small className="neu">era {row.channel}</small>}
+          </label>
+          <label className="fin-edit-wide">
+            <span>{row.kind === "receivable" ? "Cliente" : "Fornecedor"}</span>
+            <input type="text" value={eff.party}
+                   onChange={e => edits.set(row.id, { party: e.target.value })}/>
+            {has && eff.party !== row.party && <small className="neu">era {row.party}</small>}
+          </label>
+        </div>
+      </div>
+    );
+  }
+  window.FinEditPanel = FinEditPanel;
+
+  // ─────────────────────────────────────────────────────────────
   // 3) Audit trail determinístico (mock — em produção viria do backend)
   // ─────────────────────────────────────────────────────────────
   function finAuditTrail(row) {
