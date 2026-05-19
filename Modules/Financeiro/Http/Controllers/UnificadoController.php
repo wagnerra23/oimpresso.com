@@ -15,6 +15,7 @@ use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\ContaBancaria;
+use Modules\Financeiro\Models\PlanoConta;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 use Modules\Financeiro\Models\TituloComment;
@@ -110,8 +111,15 @@ class UnificadoController extends Controller
         if ($filters['conta']) {
             $q->whereHas('baixas', fn ($qq) => $qq->where('conta_bancaria_id', $filters['conta']));
         }
+        // Onda 12.7 (2026-05-19) — `filters['categoria']` agora vem da UI como
+        // plano_conta_id (Wagner trocou select Categorias por Plano de Contas).
+        // Filtra por plano_conta_id. Fallback categoria_id mantido pra back-compat
+        // de bookmarks antigos (querystring `categoria=N` onde N é categoria_id).
         if ($filters['categoria']) {
-            $q->where('categoria_id', $filters['categoria']);
+            $q->where(function ($qq) use ($filters) {
+                $qq->where('plano_conta_id', $filters['categoria'])
+                   ->orWhere('categoria_id', $filters['categoria']);
+            });
         }
         if ($filters['busca'] !== '') {
             $busca = '%'.$filters['busca'].'%';
@@ -146,6 +154,15 @@ class UnificadoController extends Controller
             ->orderBy('nome')
             ->get(['id', 'nome']);
 
+        // Onda 12.7 (2026-05-19) — Plano de Contas hierárquico (Wagner pediu trocar
+        // 'categorias livres' por estrutura contábil). Filtra só contas que aceitam
+        // lançamento (folhas) + ativas. Ordenado por código pra hierarquia visual.
+        $planosConta = PlanoConta::where('business_id', $businessId)
+            ->where('ativo', true)
+            ->where('aceita_lancamento', true)
+            ->orderBy('codigo')
+            ->get(['id', 'codigo', 'nome', 'tipo', 'nivel']);
+
         // Header: período em PT-BR (ex "Maio 2026") + nome do business logado.
         // Antes era hardcoded "Maio 2026 · ROTA LIVRE" no .tsx — bug crítico
         // ao logar com biz != ROTA LIVRE (ex: WR2 Sistemas via Wagner).
@@ -158,6 +175,7 @@ class UnificadoController extends Controller
             'filters' => $filters,
             'contas' => $contas,
             'categorias' => $categorias,
+            'planosConta' => $planosConta,
             'periodLabel' => $periodLabel,
             'businessName' => $businessName,
         ]);
