@@ -15,9 +15,22 @@ class PaymentGatewayServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->registerCommands();
         $this->registerTranslations();
         $this->registerConfig();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+    }
+
+    /**
+     * Comandos artisan do módulo.
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\PaymentGateway\Console\Commands\MigrateCredentialsCommand::class,
+            ]);
+        }
     }
 
     /**
