@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\BoletoController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
+use Modules\Financeiro\Http\Controllers\CobrancaController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
@@ -103,11 +104,17 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->whereNumber('tituloId')
             ->name('contas-receber.emitir-boleto');
 
-        // Boletos emitidos (lista + cancelar)
+        // Boletos emitidos (lista + cancelar) — preservado durante 60d
+        // após F3 PaymentGateway UI (ADR 0170). Charter Boletos status: superseded.
         Route::get('/boletos', [BoletoController::class, 'index'])->name('boletos.index');
         Route::post('/boletos/{remessaId}/cancelar', [BoletoController::class, 'cancelar'])
             ->whereNumber('remessaId')
             ->name('boletos.cancelar');
+
+        // Cobrança (F3 PaymentGateway UI Tela 1) — substitui /financeiro/boletos
+        // Cowork F1.5 score 96/100 aprovado [W] 2026-05-19. ADR 0144 + 0170.
+        // Charter: resources/js/Pages/Financeiro/Cobranca/Index.charter.md.
+        Route::get('/cobranca', [CobrancaController::class, 'index'])->name('cobranca.index');
 
         // Contas a pagar (lista + registrar baixa)
         Route::get('/contas-pagar', [ContaPagarController::class, 'index'])->name('contas-pagar.index');
