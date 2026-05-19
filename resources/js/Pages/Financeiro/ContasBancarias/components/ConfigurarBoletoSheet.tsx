@@ -266,7 +266,7 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
                 <Input
                   id="beneficiario_documento"
                   aria-required="true"
-                  placeholder="12.345.678/0001-99"
+                  placeholder="XX.XXX.XXX/XXXX-XX"
                   value={form.data.beneficiario_documento}
                   onChange={(e) => form.setData('beneficiario_documento', e.target.value)}
                 />
