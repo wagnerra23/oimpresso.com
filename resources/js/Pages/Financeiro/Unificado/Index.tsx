@@ -955,9 +955,12 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         <span><kbd>␣</kbd> marcar pago/recebido</span>
         <span><kbd>B</kbd> favoritar linha</span>
         <FinTroubleButton onClick={() => setTroubleOpen(true)} />
-        <span className="spacer" />
-        {favs.count > 0 && <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>}
-        <span>Densidade: <strong>{filters.densidade}</strong></span>
+        {favs.count > 0 && (
+          <>
+            <span className="spacer" />
+            <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
+          </>
+        )}
       </div>
 
       {/* Onda 7b — Dialogs Troubleshooter + Presentation Mode */}
