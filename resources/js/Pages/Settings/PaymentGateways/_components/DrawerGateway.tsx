@@ -179,7 +179,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                     <div><strong>Resolução BCB 380/2024:</strong> exige homologação prévia do CNPJ recebedor + certificado mTLS válido. Sandbox BCB libera o PSP testar antes da homologação production.</div>
                   </div>
                   <Field label="CNPJ recebedor homologado">
-                    <input placeholder="00.000.000/0000-00" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" />
+                    <input placeholder="apenas números" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
                     <FileField label="Certificado mTLS .crt" hint="emitido pela ICP-Brasil" />
