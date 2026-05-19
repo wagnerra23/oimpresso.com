@@ -260,6 +260,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
+    // Onda 4d.5 — Wire-up emissão real via PaymentGatewayContract::emitirX().
+    // Chip "Emitir cobrança" no footer drawer Sells (ADR 0144 + 0170).
+    Route::post('/sells/{id}/emitir-cobranca', [SellController::class, 'emitirCobranca'])
+        ->whereNumber('id')
+        ->name('sells.emitir-cobranca');
     // US-SELL-COWORK-R2-IA — Cowork KB-9.75 Onda 2: painel ✦ IA no drawer SaleSheet.
     // 3 modos: summary|history|suggest. Stub determinístico nesta Onda; Onda 2.5
     // integra Modules/Jana/Ai/Agents/ real.

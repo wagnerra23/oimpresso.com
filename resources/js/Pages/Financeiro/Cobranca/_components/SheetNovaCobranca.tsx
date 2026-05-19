@@ -1,6 +1,8 @@
 // SheetNovaCobranca.tsx — wizard 4 steps (Tipo → Pagador → Valores → Revisar)
-// UI-only F3; emissão real dispara PaymentGatewayContract::emitirX() (Onda 5).
+// Onda 4d.5: wire-up emissão real via POST /financeiro/cobranca/emitir.
 import { useState, useMemo, useEffect, type ReactNode } from 'react';
+import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import {
   X, ChevronRight, ChevronLeft, Plus, Check, Receipt, QrCode, Zap, CreditCard,
 } from 'lucide-react';
@@ -35,6 +37,7 @@ export default function SheetNovaCobranca({ accounts, onClose }: Props) {
     return d.toISOString().slice(0, 10);
   });
   const [account, setAccount] = useState(accounts[0]?.id || 0);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -51,6 +54,40 @@ export default function SheetNovaCobranca({ accounts, onClose }: Props) {
 
   const canNext = step === 1 ? !!tipo : step === 2 ? !!contato : step === 3 ? !!valor && !!vencimento : true;
   const isLast = step === STEPS.length;
+
+  /**
+   * Onda 4d.5 — Submete POST /financeiro/cobranca/emitir.
+   * Idempotência via crypto.randomUUID() (cliente garante unicidade per-submit).
+   */
+  const emitir = async () => {
+    if (!tipo || submitting) return;
+    setSubmitting(true);
+    const valorCentavos = Math.round(parseFloat(valor.replace(',', '.')) * 100);
+    const payload = {
+      tipo,
+      valor_centavos: valorCentavos,
+      vencimento,
+      account_id: account,
+      payer_name: contato || null,
+      idempotency_key: typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    };
+
+    router.post('/financeiro/cobranca/emitir', payload, {
+      preserveScroll: true,
+      preserveState: false,
+      onSuccess: () => {
+        toast.success('Cobrança emitida com sucesso');
+        onClose();
+      },
+      onError: (errors) => {
+        const msg = Object.values(errors)[0] || 'Falha ao emitir cobrança';
+        toast.error(typeof msg === 'string' ? msg : 'Falha ao emitir cobrança');
+      },
+      onFinish: () => setSubmitting(false),
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-30 flex justify-end" onClick={onClose} role="dialog" aria-modal="true" aria-label="Nova cobrança">
@@ -178,8 +215,8 @@ export default function SheetNovaCobranca({ accounts, onClose }: Props) {
             </Btn>
           )}
           {isLast && (
-            <Btn variant="primary" onClick={onClose}>
-              <Plus className="h-3 w-3" />Emitir cobrança
+            <Btn variant="primary" onClick={emitir} disabled={submitting}>
+              <Plus className="h-3 w-3" />{submitting ? 'Emitindo…' : 'Emitir cobrança'}
             </Btn>
           )}
         </div>

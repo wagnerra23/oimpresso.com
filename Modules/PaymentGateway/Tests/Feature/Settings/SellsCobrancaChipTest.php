@@ -137,6 +137,55 @@ it('shape cobranca retorna kind=overdue quando emitida e vencimento passou', fun
         ->assertJsonPath('cobranca.kind', 'overdue');
 });
 
+// ─── Onda 4d.5 — Wire-up emissão GUARDs ──────────────────────────────────
+
+it('POST /sells/{id}/emitir-cobranca retorna 404 quando venda de outro business', function () {
+    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+
+    $otherSale = Transaction::create([
+        'business_id' => $otherBiz->id,
+        'type' => 'sell',
+        'status' => 'final',
+        'payment_status' => 'paid',
+        'invoice_no' => 'INV-CROSS-'.uniqid(),
+        'transaction_date' => now(),
+        'final_total' => 100.00,
+        'tax_amount' => 0,
+        'discount_amount' => 0,
+        'created_by' => $this->user->id,
+    ]);
+
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->postJson("/sells/{$otherSale->id}/emitir-cobranca", [
+            'tipo' => 'boleto',
+            'vencimento' => now()->addDays(7)->toDateString(),
+        ])
+        ->assertNotFound();
+});
+
+it('POST /sells/{id}/emitir-cobranca retorna 422 quando venda sem contact_id', function () {
+    // Sale criado em beforeEach NÃO tem contact_id
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->postJson("/sells/{$this->sale->id}/emitir-cobranca", [
+            'tipo' => 'boleto',
+            'vencimento' => now()->addDays(7)->toDateString(),
+        ])
+        ->assertStatus(422)
+        ->assertJsonPath('error', 'Venda sem cliente vinculado — emita cobrança avulsa.');
+});
+
+it('POST /sells/{id}/emitir-cobranca exige tipo válido', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->postJson("/sells/{$this->sale->id}/emitir-cobranca", [
+            'tipo' => 'cripto_btc',
+            'vencimento' => now()->addDays(7)->toDateString(),
+        ])
+        ->assertStatus(422);
+});
+
 it('Tier 0 IRREVOGÁVEL: cobrança de outro business NÃO aparece na venda', function () {
     $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
 

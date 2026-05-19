@@ -24,9 +24,19 @@ use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use App\Warranty;
 use DB;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Modules\Financeiro\Models\ContaBancaria;
+use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
+use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
+use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
+use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
+use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
+use Modules\PaymentGateway\Exceptions\IdempotencyConflictException;
+use Modules\PaymentGateway\Exceptions\PaymentGatewayException;
 use Modules\PaymentGateway\Models\Cobranca;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
@@ -1725,6 +1735,116 @@ class SellController extends Controller
                 'erro_msg' => null, // payload_gateway pode ter; backlog
             ],
         ];
+    }
+
+    // ─── Onda 4d.5 — Wire-up emissão a partir do drawer Sells ────────────────
+
+    /**
+     * Emite cobrança vinculada à venda — POST /sells/{id}/emitir-cobranca.
+     *
+     * F3 PaymentGateway UI Tela 3 wire-up. Disparado pelo botão "Emitir cobrança"
+     * do CobrancaDrawer (Sells/_components/CobrancaDrawer.tsx) form mode.
+     *
+     * Multi-tenant Tier 0 IRREVOGÁVEL — Transaction filtrada por business_id +
+     * HasBusinessScope no PaymentGatewayCredential/Cobranca.
+     */
+    public function emitirCobranca(Request $request, int $id, PaymentGatewayContract $gateway): JsonResponse
+    {
+        if (! auth()->user()->can('direct_sell.view') &&
+            ! auth()->user()->can('view_own_sell_only')) {
+            abort(403);
+        }
+
+        $businessId = (int) $request->session()->get('user.business_id');
+
+        $sale = \App\Transaction::query()
+            ->where('business_id', $businessId)
+            ->where('type', 'sell')
+            ->whereNull('sub_type')
+            ->find($id);
+
+        if (! $sale) {
+            return response()->json(['error' => 'Venda não encontrada'], 404);
+        }
+
+        $validated = $request->validate([
+            'tipo' => 'required|string|in:boleto,pix_cob,pix_cobv,card',
+            'vencimento' => 'required|date|after_or_equal:today',
+            'account_id' => 'nullable|integer|exists:fin_contas_bancarias,id',
+            'idempotency_key' => 'nullable|string|max:36',
+        ]);
+
+        if (! $sale->contact_id) {
+            return response()->json(['error' => 'Venda sem cliente vinculado — emita cobrança avulsa.'], 422);
+        }
+
+        $contaBancaria = isset($validated['account_id'])
+            ? ContaBancaria::query()->where('business_id', $businessId)->find($validated['account_id'])
+            : ContaBancaria::query()
+                ->where('business_id', $businessId)
+                ->whereNull('deleted_at')
+                ->whereNotNull('payment_gateway_credential_id')
+                ->orderBy('id')
+                ->first();
+
+        if (! $contaBancaria) {
+            return response()->json([
+                'error' => 'Nenhuma conta bancária com gateway ativo. Configure em /settings/payment-gateways.',
+            ], 422);
+        }
+
+        $coreAccount = \App\Account::query()->find($contaBancaria->account_id);
+        if (! $coreAccount) {
+            return response()->json(['error' => 'Conta bancária core inválida'], 422);
+        }
+
+        $valorCentavos = (int) round(((float) $sale->final_total) * 100);
+
+        $input = new EmitirCobrancaInput(
+            businessId: $businessId,
+            contactId: (int) $sale->contact_id,
+            valorCentavos: $valorCentavos,
+            vencimento: new \DateTimeImmutable($validated['vencimento']),
+            descricao: "Venda #{$sale->invoice_no}",
+            idempotencyKey: $validated['idempotency_key'] ?? (string) Str::uuid(),
+            origemType: 'sale',
+            origemId: $sale->id,
+            meta: [
+                'payer_name' => $sale->contact?->supplier_business_name ?: $sale->contact?->name,
+                'payer_cpf_cnpj' => $sale->contact?->tax_number ?? null,
+                'payer_email' => $sale->contact?->email,
+            ],
+        );
+
+        try {
+            $result = match ($validated['tipo']) {
+                'boleto'   => $gateway->for($coreAccount)->emitirBoleto($input),
+                'pix_cob'  => $gateway->for($coreAccount)->emitirPix($input, 'cob'),
+                'pix_cobv' => $gateway->for($coreAccount)->emitirPix($input, 'cobv'),
+                'card'     => null, // exige CardToken — backlog Onda 4d.6
+            };
+
+            if ($result === null) {
+                return response()->json(['error' => 'Cartão exige token — endpoint dedicado em backlog.'], 422);
+            }
+
+            return response()->json([
+                'cobranca_id' => $result->cobrancaId,
+                'gateway_external_id' => $result->gatewayExternalId,
+                'tipo' => $result->tipo,
+                'linha_digitavel' => $result->linhaDigitavel,
+                'pix_emv' => $result->pixEmv,
+            ]);
+        } catch (IdempotencyConflictException $e) {
+            return response()->json(['error' => $e->getMessage()], 409);
+        } catch (CredentialMisconfiguredException | DriverNotSupportedException $e) {
+            return response()->json(['error' => "Gateway inválido: {$e->getMessage()}"], 422);
+        } catch (GatewayUnavailableException $e) {
+            return response()->json(['error' => "Gateway indisponível: {$e->getMessage()}"], 503);
+        } catch (PaymentGatewayException | \Throwable $e) {
+            report($e);
+            return response()->json(['error' => 'Falha ao emitir. Detalhe no log.'], 500);
+        }
     }
 
     /**
