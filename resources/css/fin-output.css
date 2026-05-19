@@ -1,3 +1,4 @@
+/* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
 /* fin-output.css — Cowork KB-9.75 Financeiro Onda 7 R3 Guia + Cross-link
  *
  * Tokens portados de prototipo-ui/styles.css (Refino #3).
@@ -7,12 +8,10 @@
  *   - prototipo-ui/financeiro-output.jsx
  *   - prototipo-ui/vendas-curation.jsx VdLinkify (cross-link pattern)
  */
-
 /* ─────────────────────────────────────────────────────────────
  * Cross-linkify pills — #V- #BL- #PC- #OS- #R- #P-
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-xlink {
+.fin-cowork .fin-curadoria .fin-xlink {
   display: inline-flex;
   align-items: center;
   padding: 0 6px;
@@ -29,45 +28,41 @@
   vertical-align: baseline;
   margin: 0 1px;
 }
-.fin-curadoria .fin-xlink:hover { filter: brightness(0.96); }
-
-.fin-curadoria .fin-xlink-venda {
+.fin-cowork .fin-curadoria .fin-xlink:hover { filter: brightness(0.96); }
+.fin-cowork .fin-curadoria .fin-xlink-venda {
   background: oklch(0.94 0.06 145);
   color: oklch(0.32 0.13 145);
 }
-.fin-curadoria .fin-xlink-boleto {
+.fin-cowork .fin-curadoria .fin-xlink-boleto {
   background: oklch(0.95 0.04 240);
   color: oklch(0.36 0.13 240);
 }
-.fin-curadoria .fin-xlink-compra {
+.fin-cowork .fin-curadoria .fin-xlink-compra {
   background: oklch(0.96 0.05 70);
   color: oklch(0.45 0.13 60);
 }
-.fin-curadoria .fin-xlink-os {
+.fin-cowork .fin-curadoria .fin-xlink-os {
   background: oklch(0.95 0.06 320);
   color: oklch(0.40 0.18 320);
 }
-.fin-curadoria .fin-xlink-receber {
+.fin-cowork .fin-curadoria .fin-xlink-receber {
   background: oklch(0.94 0.05 145);
   color: oklch(0.35 0.13 145);
 }
-.fin-curadoria .fin-xlink-pagar {
+.fin-cowork .fin-curadoria .fin-xlink-pagar {
   background: oklch(0.95 0.04 25);
   color: oklch(0.50 0.18 25);
 }
-
 /* ─────────────────────────────────────────────────────────────
  * Checklist Fechamento — backdrop + dialog + trilha
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-checklist-backdrop {
+.fin-cowork .fin-curadoria .fin-checklist-backdrop {
   position: fixed;
   inset: 0;
   background: oklch(0.20 0.005 240 / 0.55);
   z-index: 100;
 }
-
-.fin-curadoria .fin-checklist-dialog {
+.fin-cowork .fin-curadoria .fin-checklist-dialog {
   position: fixed;
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
@@ -81,26 +76,25 @@
   flex-direction: column;
   overflow: hidden;
 }
-
-.fin-curadoria .fin-checklist-h {
+.fin-cowork .fin-curadoria .fin-checklist-h {
   display: flex;
   align-items: flex-start;
   padding: 16px 20px 12px;
   border-bottom: 1px solid var(--fin-line);
 }
-.fin-curadoria .fin-checklist-h h2 {
+.fin-cowork .fin-curadoria .fin-checklist-h h2 {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
   color: var(--fin-text);
 }
-.fin-curadoria .fin-checklist-h small {
+.fin-cowork .fin-curadoria .fin-checklist-h small {
   display: block;
   margin-top: 2px;
   font-size: 11.5px;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-checklist-x {
+.fin-cowork .fin-curadoria .fin-checklist-x {
   margin-left: auto;
   background: transparent;
   border: 0;
@@ -110,31 +104,28 @@
   padding: 0 8px;
   line-height: 1;
 }
-.fin-curadoria .fin-checklist-x:hover { color: var(--fin-text); }
-
-.fin-curadoria .fin-checklist-progress {
+.fin-cowork .fin-curadoria .fin-checklist-x:hover { color: var(--fin-text); }
+.fin-cowork .fin-curadoria .fin-checklist-progress {
   height: 3px;
   background: var(--fin-bg-soft);
   position: relative;
   overflow: hidden;
 }
-.fin-curadoria .fin-checklist-bar {
+.fin-cowork .fin-curadoria .fin-checklist-bar {
   position: absolute;
   inset: 0 auto 0 0;
   background: linear-gradient(90deg, oklch(0.45 0.18 145), oklch(0.55 0.13 240));
   transition: width .28s ease;
 }
-
-.fin-curadoria .fin-checklist-body {
+.fin-cowork .fin-curadoria .fin-checklist-body {
   flex: 1;
   overflow-y: auto;
   padding: 12px 20px;
 }
-
-.fin-curadoria .fin-checklist-group {
+.fin-cowork .fin-curadoria .fin-checklist-group {
   margin-bottom: 16px;
 }
-.fin-curadoria .fin-checklist-group h3 {
+.fin-cowork .fin-curadoria .fin-checklist-group h3 {
   margin: 0 0 8px;
   font-size: 11px;
   font-weight: 700;
@@ -142,7 +133,7 @@
   letter-spacing: 0.06em;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-checklist-group ul {
+.fin-cowork .fin-curadoria .fin-checklist-group ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -150,8 +141,7 @@
   flex-direction: column;
   gap: 4px;
 }
-
-.fin-curadoria .fin-checklist-step {
+.fin-cowork .fin-curadoria .fin-checklist-step {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -161,11 +151,11 @@
   border-radius: 6px;
   transition: background .12s;
 }
-.fin-curadoria .fin-checklist-step.done {
+.fin-cowork .fin-curadoria .fin-checklist-step.done {
   background: oklch(0.97 0.03 145);
   border-color: oklch(0.78 0.10 145);
 }
-.fin-curadoria .fin-checklist-check {
+.fin-cowork .fin-curadoria .fin-checklist-check {
   display: grid;
   place-items: center;
   width: 20px;
@@ -179,49 +169,45 @@
   font-weight: 700;
   flex-shrink: 0;
 }
-.fin-curadoria .fin-checklist-step.done .fin-checklist-check {
+.fin-cowork .fin-curadoria .fin-checklist-step.done .fin-checklist-check {
   background: oklch(0.45 0.18 145);
   color: white;
   border-color: transparent;
 }
-
-.fin-curadoria .fin-checklist-step-body { flex: 1; min-width: 0; }
-.fin-curadoria .fin-checklist-step-body b {
+.fin-cowork .fin-curadoria .fin-checklist-step-body { flex: 1; min-width: 0; }
+.fin-cowork .fin-curadoria .fin-checklist-step-body b {
   display: block;
   font-size: 13px;
   font-weight: 600;
   color: var(--fin-text);
 }
-.fin-curadoria .fin-checklist-step.done .fin-checklist-step-body b {
+.fin-cowork .fin-curadoria .fin-checklist-step.done .fin-checklist-step-body b {
   text-decoration: line-through;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-checklist-step-body small {
+.fin-cowork .fin-curadoria .fin-checklist-step-body small {
   display: block;
   font-size: 11px;
   color: var(--fin-text-mute);
 }
-
-.fin-curadoria .fin-checklist-when {
+.fin-cowork .fin-curadoria .fin-checklist-when {
   font-size: 10.5px;
   color: var(--fin-text-mute);
   font-family: ui-monospace, monospace;
   flex-shrink: 0;
 }
-
-.fin-curadoria .fin-checklist-f {
+.fin-cowork .fin-curadoria .fin-checklist-f {
   padding: 10px 20px;
   border-top: 1px solid var(--fin-line);
   background: var(--fin-bg-soft);
   text-align: right;
 }
-.fin-curadoria .fin-checklist-f small {
+.fin-cowork .fin-curadoria .fin-checklist-f small {
   font-size: 11.5px;
   color: var(--fin-text-mute);
 }
-
 /* Trigger button no header da página (☑ Fechamento) */
-.fin-curadoria .fin-fechamento-trigger {
+.fin-cowork .fin-curadoria .fin-fechamento-trigger {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -236,8 +222,8 @@
   cursor: pointer;
   transition: background .12s;
 }
-.fin-curadoria .fin-fechamento-trigger:hover { background: var(--fin-bg-soft); }
-.fin-curadoria .fin-fechamento-trigger .fin-fechamento-badge {
+.fin-cowork .fin-curadoria .fin-fechamento-trigger:hover { background: var(--fin-bg-soft); }
+.fin-cowork .fin-curadoria .fin-fechamento-trigger .fin-fechamento-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -250,17 +236,15 @@
   font-size: 10px;
   font-weight: 700;
 }
-
 /* ─────────────────────────────────────────────────────────────
  * FinTroubleshooter — Onda 7b (4 árvores decisão)
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-trouble-backdrop {
+.fin-cowork .fin-curadoria .fin-trouble-backdrop {
   position: fixed; inset: 0;
   background: oklch(0.20 0.005 240 / 0.55);
   z-index: 100;
 }
-.fin-curadoria .fin-trouble-dialog {
+.fin-cowork .fin-curadoria .fin-trouble-dialog {
   position: fixed;
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
@@ -269,21 +253,21 @@
   box-shadow: 0 24px 64px oklch(0.20 0.005 240 / 0.25);
   z-index: 101; display: flex; flex-direction: column; overflow: hidden;
 }
-.fin-curadoria .fin-trouble-h {
+.fin-cowork .fin-curadoria .fin-trouble-h {
   display: flex; align-items: flex-start;
   padding: 16px 20px 12px; border-bottom: 1px solid var(--fin-line);
 }
-.fin-curadoria .fin-trouble-h h2 { margin: 0; font-size: 16px; font-weight: 700; }
-.fin-curadoria .fin-trouble-h small { display: block; margin-top: 2px; font-size: 11.5px; color: var(--fin-text-mute); }
-.fin-curadoria .fin-trouble-x {
+.fin-cowork .fin-curadoria .fin-trouble-h h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.fin-cowork .fin-curadoria .fin-trouble-h small { display: block; margin-top: 2px; font-size: 11.5px; color: var(--fin-text-mute); }
+.fin-cowork .fin-curadoria .fin-trouble-x {
   margin-left: auto; background: transparent; border: 0;
   font-size: 20px; color: var(--fin-text-mute); cursor: pointer; padding: 0 8px; line-height: 1;
 }
-.fin-curadoria .fin-trouble-list {
+.fin-cowork .fin-curadoria .fin-trouble-list {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
   padding: 16px 20px 20px; overflow-y: auto;
 }
-.fin-curadoria .fin-trouble-card {
+.fin-cowork .fin-curadoria .fin-trouble-card {
   --tr-hue: 240;
   position: relative; text-align: left;
   background: white;
@@ -291,178 +275,170 @@
   border-radius: 8px; padding: 14px 16px; cursor: pointer;
   transition: all .15s; display: flex; flex-direction: column; gap: 6px;
 }
-.fin-curadoria .fin-trouble-card:hover {
+.fin-cowork .fin-curadoria .fin-trouble-card:hover {
   background: oklch(0.98 0.02 var(--tr-hue));
   border-color: oklch(0.78 0.10 var(--tr-hue));
   transform: translateY(-1px);
   box-shadow: 0 4px 12px oklch(0.55 0.13 var(--tr-hue) / 0.10);
 }
-.fin-curadoria .fin-trouble-card-equip {
+.fin-cowork .fin-curadoria .fin-trouble-card-equip {
   font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   color: oklch(0.45 0.18 var(--tr-hue));
 }
-.fin-curadoria .fin-trouble-card h3 { margin: 2px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.3; }
-.fin-curadoria .fin-trouble-card small { font-size: 11px; color: var(--fin-text-mute); font-style: italic; }
-.fin-curadoria .fin-trouble-card-arrow {
+.fin-cowork .fin-curadoria .fin-trouble-card h3 { margin: 2px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.fin-cowork .fin-curadoria .fin-trouble-card small { font-size: 11px; color: var(--fin-text-mute); font-style: italic; }
+.fin-cowork .fin-curadoria .fin-trouble-card-arrow {
   position: absolute; right: 12px; bottom: 12px;
   color: oklch(0.55 0.13 var(--tr-hue));
   font-size: 14px; opacity: 0.7;
 }
-
-.fin-curadoria .fin-trouble-flow,
-.fin-curadoria .fin-trouble-resolution { padding: 16px 20px 20px; overflow-y: auto; }
-.fin-curadoria .fin-trouble-flow-h {
+.fin-cowork .fin-curadoria .fin-trouble-flow, .fin-cowork .fin-curadoria .fin-trouble-resolution { padding: 16px 20px 20px; overflow-y: auto; }
+.fin-cowork .fin-curadoria .fin-trouble-flow-h {
   display: flex; align-items: center; gap: 12px;
   margin-bottom: 12px; border-bottom: 1px dashed var(--fin-line); padding-bottom: 10px;
 }
-.fin-curadoria .fin-trouble-flow-h h3 { margin: 0; font-size: 14px; font-weight: 600; color: oklch(0.36 0.13 var(--tr-hue, 240)); flex: 1; }
-.fin-curadoria .fin-trouble-flow-h small { font-size: 11px; color: var(--fin-text-mute); }
-.fin-curadoria .fin-trouble-back {
+.fin-cowork .fin-curadoria .fin-trouble-flow-h h3 { margin: 0; font-size: 14px; font-weight: 600; color: oklch(0.36 0.13 var(--tr-hue, 240)); flex: 1; }
+.fin-cowork .fin-curadoria .fin-trouble-flow-h small { font-size: 11px; color: var(--fin-text-mute); }
+.fin-cowork .fin-curadoria .fin-trouble-back {
   appearance: none; background: transparent; border: 0;
   color: oklch(0.36 0.13 240); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0;
 }
-.fin-curadoria .fin-trouble-back:hover { text-decoration: underline; }
-
-.fin-curadoria .fin-trouble-step {
+.fin-cowork .fin-curadoria .fin-trouble-back:hover { text-decoration: underline; }
+.fin-cowork .fin-curadoria .fin-trouble-step {
   background: var(--fin-bg-soft); border-radius: 8px;
   padding: 20px; text-align: center;
 }
-.fin-curadoria .fin-trouble-q { margin: 0 0 16px; font-size: 15px; font-weight: 600; line-height: 1.4; }
-.fin-curadoria .fin-trouble-answers { display: flex; gap: 10px; justify-content: center; }
-.fin-curadoria .fin-trouble-answer {
+.fin-cowork .fin-curadoria .fin-trouble-q { margin: 0 0 16px; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.fin-cowork .fin-curadoria .fin-trouble-answers { display: flex; gap: 10px; justify-content: center; }
+.fin-cowork .fin-curadoria .fin-trouble-answer {
   appearance: none; background: white; border: 2px solid var(--fin-line);
   border-radius: 6px; padding: 8px 32px;
   font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .12s;
 }
-.fin-curadoria .fin-trouble-answer.yes { border-color: oklch(0.55 0.18 145); color: oklch(0.32 0.13 145); }
-.fin-curadoria .fin-trouble-answer.yes:hover { background: oklch(0.96 0.05 145); }
-.fin-curadoria .fin-trouble-answer.no { border-color: oklch(0.55 0.18 25); color: oklch(0.42 0.13 25); }
-.fin-curadoria .fin-trouble-answer.no:hover { background: oklch(0.96 0.05 25); }
-
-.fin-curadoria .fin-trouble-fix {
+.fin-cowork .fin-curadoria .fin-trouble-answer.yes { border-color: oklch(0.55 0.18 145); color: oklch(0.32 0.13 145); }
+.fin-cowork .fin-curadoria .fin-trouble-answer.yes:hover { background: oklch(0.96 0.05 145); }
+.fin-cowork .fin-curadoria .fin-trouble-answer.no { border-color: oklch(0.55 0.18 25); color: oklch(0.42 0.13 25); }
+.fin-cowork .fin-curadoria .fin-trouble-answer.no:hover { background: oklch(0.96 0.05 25); }
+.fin-cowork .fin-curadoria .fin-trouble-fix {
   display: flex; gap: 12px; padding: 16px;
   background: oklch(0.96 0.05 145); border: 1px solid oklch(0.65 0.13 145);
   border-radius: 8px; align-items: flex-start;
 }
-.fin-curadoria .fin-trouble-fix-ic {
+.fin-cowork .fin-curadoria .fin-trouble-fix-ic {
   --tr-hue: 145;
   display: grid; place-items: center;
   width: 32px; height: 32px; border-radius: 50%;
   background: oklch(0.55 0.18 var(--tr-hue));
   color: white; font-size: 16px; font-weight: 700; flex-shrink: 0;
 }
-.fin-curadoria .fin-trouble-fix p { margin: 0; flex: 1; font-size: 13px; line-height: 1.5; color: oklch(0.22 0.06 145); }
-.fin-curadoria .fin-trouble-footer { display: flex; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--fin-line); }
-.fin-curadoria .fin-trouble-restart {
+.fin-cowork .fin-curadoria .fin-trouble-fix p { margin: 0; flex: 1; font-size: 13px; line-height: 1.5; color: oklch(0.22 0.06 145); }
+.fin-cowork .fin-curadoria .fin-trouble-footer { display: flex; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--fin-line); }
+.fin-cowork .fin-curadoria .fin-trouble-restart {
   appearance: none; background: var(--fin-bg-soft); border: 1px solid var(--fin-line);
   padding: 6px 12px; border-radius: 4px; font-family: inherit; font-size: 12px; cursor: pointer;
 }
-.fin-curadoria .fin-trouble-trigger {
+.fin-cowork .fin-curadoria .fin-trouble-trigger {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 10px; height: 26px; border-radius: 4px;
   border: 1px solid oklch(0.78 0.10 60); background: oklch(0.97 0.04 60);
   color: oklch(0.42 0.13 60); font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer;
 }
-.fin-curadoria .fin-trouble-trigger:hover { background: oklch(0.94 0.06 60); }
-.fin-curadoria .fin-trouble-count {
+.fin-cowork .fin-curadoria .fin-trouble-trigger:hover { background: oklch(0.94 0.06 60); }
+.fin-cowork .fin-curadoria .fin-trouble-count {
   font-family: ui-monospace, monospace; font-size: 10px;
   padding: 1px 5px; border-radius: 99px;
   background: oklch(0.55 0.13 60); color: white;
 }
-
 /* ─────────────────────────────────────────────────────────────
  * FinPresentationMode — Onda 7b (fullscreen reunião sócio)
  * ───────────────────────────────────────────────────────────── */
-
-.fin-present {
+.fin-cowork .fin-present {
   position: fixed; inset: 0; z-index: 200;
   background: linear-gradient(135deg, oklch(0.15 0.04 240) 0%, oklch(0.22 0.06 240) 100%);
   color: white; display: flex; flex-direction: column; overflow: hidden;
 }
-.fin-present-h {
+.fin-cowork .fin-present-h {
   display: flex; align-items: center; gap: 20px;
   padding: 20px 32px; border-bottom: 1px solid oklch(0.40 0.06 240 / 0.4);
 }
-.fin-present-h h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
-.fin-present-h p { margin: 2px 0 0; font-size: 13px; color: oklch(0.85 0.04 240); }
-.fin-present-nav { margin-left: auto; display: flex; gap: 4px; }
-.fin-present-nav button {
+.fin-cowork .fin-present-h h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.fin-cowork .fin-present-h p { margin: 2px 0 0; font-size: 13px; color: oklch(0.85 0.04 240); }
+.fin-cowork .fin-present-nav { margin-left: auto; display: flex; gap: 4px; }
+.fin-cowork .fin-present-nav button {
   appearance: none; background: transparent;
   border: 1px solid oklch(0.45 0.08 240); color: oklch(0.85 0.04 240);
   padding: 6px 14px; border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
 }
-.fin-present-nav button:hover { background: oklch(0.30 0.06 240); }
-.fin-present-nav button.on { background: white; color: oklch(0.22 0.06 240); border-color: white; }
-.fin-present-nav button kbd {
+.fin-cowork .fin-present-nav button:hover { background: oklch(0.30 0.06 240); }
+.fin-cowork .fin-present-nav button.on { background: white; color: oklch(0.22 0.06 240); border-color: white; }
+.fin-cowork .fin-present-nav button kbd {
   font-family: ui-monospace, monospace; font-size: 10px; padding: 0 4px;
   border-radius: 3px; background: oklch(0.40 0.06 240); color: white; border: 0;
 }
-.fin-present-nav button.on kbd { background: oklch(0.92 0.04 240); color: oklch(0.22 0.06 240); }
-.fin-present-close {
+.fin-cowork .fin-present-nav button.on kbd { background: oklch(0.92 0.04 240); color: oklch(0.22 0.06 240); }
+.fin-cowork .fin-present-close {
   appearance: none; background: transparent; border: 0;
   color: white; font-size: 24px; cursor: pointer; padding: 0 8px; line-height: 1; opacity: 0.7;
 }
-.fin-present-close:hover { opacity: 1; }
-.fin-present-body { flex: 1; overflow-y: auto; padding: 40px 32px; }
-.fin-present-overview { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
-.fin-present-hero {
+.fin-cowork .fin-present-close:hover { opacity: 1; }
+.fin-cowork .fin-present-body { flex: 1; overflow-y: auto; padding: 40px 32px; }
+.fin-cowork .fin-present-overview { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+.fin-cowork .fin-present-hero {
   text-align: center; padding: 32px;
   background: oklch(0.30 0.06 240 / 0.5); border: 1px solid oklch(0.45 0.08 240); border-radius: 16px;
 }
-.fin-present-hero small {
+.fin-cowork .fin-present-hero small {
   display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
   color: oklch(0.85 0.04 240); margin-bottom: 8px;
 }
-.fin-present-hero h2 {
+.fin-cowork .fin-present-hero h2 {
   margin: 0; font-size: 64px; font-weight: 700;
   font-family: ui-monospace, monospace; letter-spacing: -0.02em;
 }
-.fin-present-hero h2.pos { color: oklch(0.85 0.18 145); }
-.fin-present-hero h2.neg { color: oklch(0.78 0.20 25); }
-.fin-present-hero p { margin: 16px 0 0; font-size: 16px; color: oklch(0.92 0.02 240); }
-.fin-present-hero b.pos { color: oklch(0.85 0.18 145); }
-.fin-present-hero b.neg { color: oklch(0.78 0.20 25); }
-.fin-present-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-.fin-present-card {
+.fin-cowork .fin-present-hero h2.pos { color: oklch(0.85 0.18 145); }
+.fin-cowork .fin-present-hero h2.neg { color: oklch(0.78 0.20 25); }
+.fin-cowork .fin-present-hero p { margin: 16px 0 0; font-size: 16px; color: oklch(0.92 0.02 240); }
+.fin-cowork .fin-present-hero b.pos { color: oklch(0.85 0.18 145); }
+.fin-cowork .fin-present-hero b.neg { color: oklch(0.78 0.20 25); }
+.fin-cowork .fin-present-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.fin-cowork .fin-present-card {
   background: oklch(0.30 0.06 240 / 0.5); border: 1px solid oklch(0.45 0.08 240);
   border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;
 }
-.fin-present-card small { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: oklch(0.85 0.04 240); }
-.fin-present-card b { font-size: 32px; font-weight: 700; font-family: ui-monospace, monospace; }
-.fin-present-card i { font-style: normal; font-size: 12px; color: oklch(0.85 0.04 240); }
-.fin-present-card.in b { color: oklch(0.85 0.18 145); }
-.fin-present-card.open b { color: oklch(0.92 0.02 240); }
-.fin-present-card.out b { color: oklch(0.85 0.10 240); }
-.fin-present-card.late b { color: oklch(0.78 0.20 25); }
-.fin-present-table { max-width: 1100px; margin: 0 auto; }
-.fin-present-table h2 { margin: 0 0 20px; font-size: 24px; font-weight: 600; }
-.fin-present-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.fin-present-table th {
+.fin-cowork .fin-present-card small { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: oklch(0.85 0.04 240); }
+.fin-cowork .fin-present-card b { font-size: 32px; font-weight: 700; font-family: ui-monospace, monospace; }
+.fin-cowork .fin-present-card i { font-style: normal; font-size: 12px; color: oklch(0.85 0.04 240); }
+.fin-cowork .fin-present-card.in b { color: oklch(0.85 0.18 145); }
+.fin-cowork .fin-present-card.open b { color: oklch(0.92 0.02 240); }
+.fin-cowork .fin-present-card.out b { color: oklch(0.85 0.10 240); }
+.fin-cowork .fin-present-card.late b { color: oklch(0.78 0.20 25); }
+.fin-cowork .fin-present-table { max-width: 1100px; margin: 0 auto; }
+.fin-cowork .fin-present-table h2 { margin: 0 0 20px; font-size: 24px; font-weight: 600; }
+.fin-cowork .fin-present-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.fin-cowork .fin-present-table th {
   text-align: left; padding: 10px 14px; background: oklch(0.30 0.06 240 / 0.5);
   font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   color: oklch(0.85 0.04 240); border-bottom: 1px solid oklch(0.45 0.08 240);
 }
-.fin-present-table td { padding: 12px 14px; border-bottom: 1px solid oklch(0.40 0.06 240 / 0.4); font-family: ui-monospace, monospace; }
-.fin-present-table td b { font-family: ui-sans-serif, system-ui, sans-serif; font-weight: 600; }
-.fin-present-table td.pos { color: oklch(0.85 0.18 145); }
-.fin-present-table td.neg { color: oklch(0.78 0.20 25); }
-.fin-present-f { padding: 12px 32px; border-top: 1px solid oklch(0.40 0.06 240 / 0.4); text-align: center; }
-.fin-present-f small { font-size: 11.5px; color: oklch(0.75 0.04 240); }
-.fin-present-f kbd {
+.fin-cowork .fin-present-table td { padding: 12px 14px; border-bottom: 1px solid oklch(0.40 0.06 240 / 0.4); font-family: ui-monospace, monospace; }
+.fin-cowork .fin-present-table td b { font-family: ui-sans-serif, system-ui, sans-serif; font-weight: 600; }
+.fin-cowork .fin-present-table td.pos { color: oklch(0.85 0.18 145); }
+.fin-cowork .fin-present-table td.neg { color: oklch(0.78 0.20 25); }
+.fin-cowork .fin-present-f { padding: 12px 32px; border-top: 1px solid oklch(0.40 0.06 240 / 0.4); text-align: center; }
+.fin-cowork .fin-present-f small { font-size: 11.5px; color: oklch(0.75 0.04 240); }
+.fin-cowork .fin-present-f kbd {
   font-family: ui-monospace, monospace; font-size: 10px;
   padding: 1px 5px; border-radius: 3px;
   background: oklch(0.30 0.06 240); color: white; margin: 0 2px;
 }
-
 /* ========================================================================
  * Onda 7c — FinTranscriptPDF + FinFavPin
  * Folha jurídica imprimível + estrela favorito.
  * @media print isola só a .fin-transcript-page quando user dá Ctrl+P.
  * ======================================================================== */
-
 /* Pin estrela inline (lista + drawer) */
-.fin-fav-pin {
+.fin-cowork .fin-fav-pin {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -471,37 +447,34 @@
   margin-left: 4px;
   line-height: 1;
 }
-
 /* Overlay fullscreen com barra de ação fixa no topo */
-.fin-transcript-overlay {
+.fin-cowork .fin-transcript-overlay {
   position: fixed; inset: 0; z-index: 80;
   background: oklch(0.95 0.005 80);
   display: flex; flex-direction: column;
   overflow-y: auto;
 }
-
-.fin-transcript-bar {
+.fin-cowork .fin-transcript-bar {
   position: sticky; top: 0; z-index: 2;
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 20px;
   background: oklch(0.99 0 0); border-bottom: 1px solid oklch(0.90 0.005 80);
   box-shadow: 0 1px 4px oklch(0 0 0 / 0.05);
 }
-.fin-transcript-bar-l { display: flex; align-items: baseline; gap: 8px; color: oklch(0.30 0.01 80); }
-.fin-transcript-bar-l strong { font-size: 13.5px; }
-.fin-transcript-bar-l small { font-size: 12px; color: oklch(0.50 0.01 80); }
-.fin-transcript-bar-r { display: flex; gap: 8px; }
-.fin-transcript-btn {
+.fin-cowork .fin-transcript-bar-l { display: flex; align-items: baseline; gap: 8px; color: oklch(0.30 0.01 80); }
+.fin-cowork .fin-transcript-bar-l strong { font-size: 13.5px; }
+.fin-cowork .fin-transcript-bar-l small { font-size: 12px; color: oklch(0.50 0.01 80); }
+.fin-cowork .fin-transcript-bar-r { display: flex; gap: 8px; }
+.fin-cowork .fin-transcript-btn {
   padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 500;
   background: white; color: oklch(0.30 0.01 80); border: 1px solid oklch(0.85 0.005 80);
   cursor: pointer; transition: all 0.12s;
 }
-.fin-transcript-btn:hover { background: oklch(0.97 0.005 80); border-color: oklch(0.75 0.005 80); }
-.fin-transcript-btn.primary { background: oklch(0.30 0.06 240); color: white; border-color: oklch(0.30 0.06 240); }
-.fin-transcript-btn.primary:hover { background: oklch(0.36 0.07 240); }
-
+.fin-cowork .fin-transcript-btn:hover { background: oklch(0.97 0.005 80); border-color: oklch(0.75 0.005 80); }
+.fin-cowork .fin-transcript-btn.primary { background: oklch(0.30 0.06 240); color: white; border-color: oklch(0.30 0.06 240); }
+.fin-cowork .fin-transcript-btn.primary:hover { background: oklch(0.36 0.07 240); }
 /* Folha A4 simulada — sombra leve pra parecer papel */
-.fin-transcript-page {
+.fin-cowork .fin-transcript-page {
   background: white;
   max-width: 760px;
   margin: 24px auto;
@@ -512,101 +485,91 @@
   font-size: 12.5px;
   line-height: 1.55;
 }
-
-.fin-transcript-h {
+.fin-cowork .fin-transcript-h {
   display: flex; justify-content: space-between; align-items: flex-end;
   padding-bottom: 18px; margin-bottom: 24px;
   border-bottom: 2px solid oklch(0.20 0 0);
 }
-.fin-transcript-h h1 {
+.fin-cowork .fin-transcript-h h1 {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.01em;
 }
-.fin-transcript-h p { font-size: 11.5px; color: oklch(0.45 0 0); margin: 4px 0 0; font-family: ui-sans-serif, system-ui; }
-.fin-transcript-totals { text-align: right; }
-.fin-transcript-totals small { display: block; font-size: 10px; color: oklch(0.50 0 0); text-transform: uppercase; letter-spacing: 0.08em; font-family: ui-sans-serif, system-ui; }
-.fin-transcript-totals b {
+.fin-cowork .fin-transcript-h p { font-size: 11.5px; color: oklch(0.45 0 0); margin: 4px 0 0; font-family: ui-sans-serif, system-ui; }
+.fin-cowork .fin-transcript-totals { text-align: right; }
+.fin-cowork .fin-transcript-totals small { display: block; font-size: 10px; color: oklch(0.50 0 0); text-transform: uppercase; letter-spacing: 0.08em; font-family: ui-sans-serif, system-ui; }
+.fin-cowork .fin-transcript-totals b {
   font-size: 22px; font-weight: 700; font-family: ui-monospace, monospace;
   color: oklch(0.18 0 0); letter-spacing: -0.02em;
 }
-
 /* Tabela jurídica clean */
-.fin-transcript-tbl {
+.fin-cowork .fin-transcript-tbl {
   width: 100%; border-collapse: collapse; margin-bottom: 32px;
   font-size: 11.5px; font-family: ui-sans-serif, system-ui, sans-serif;
 }
-.fin-transcript-tbl thead th {
+.fin-cowork .fin-transcript-tbl thead th {
   text-align: left; padding: 8px 6px; border-bottom: 1.5px solid oklch(0.20 0 0);
   font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   color: oklch(0.30 0 0);
 }
-.fin-transcript-tbl tbody td { padding: 7px 6px; border-bottom: 1px solid oklch(0.92 0 0); vertical-align: top; }
-.fin-transcript-tbl tbody tr:hover { background: oklch(0.98 0 0); }
-.fin-transcript-tbl tbody td b { font-weight: 600; }
-.fin-transcript-tbl .mono { font-family: ui-monospace, monospace; font-size: 11px; color: oklch(0.30 0 0); }
-.fin-transcript-tbl .right { text-align: right; }
-.fin-transcript-tbl .pos { color: oklch(0.40 0.13 145); }
-.fin-transcript-tbl .neg { color: oklch(0.50 0.18 25); }
-.fin-transcript-nfe { font-size: 10.5px; color: oklch(0.50 0 0); font-weight: 400; }
-
-.fin-transcript-tbl tfoot td {
+.fin-cowork .fin-transcript-tbl tbody td { padding: 7px 6px; border-bottom: 1px solid oklch(0.92 0 0); vertical-align: top; }
+.fin-cowork .fin-transcript-tbl tbody tr:hover { background: oklch(0.98 0 0); }
+.fin-cowork .fin-transcript-tbl tbody td b { font-weight: 600; }
+.fin-cowork .fin-transcript-tbl .mono { font-family: ui-monospace, monospace; font-size: 11px; color: oklch(0.30 0 0); }
+.fin-cowork .fin-transcript-tbl .right { text-align: right; }
+.fin-cowork .fin-transcript-tbl .pos { color: oklch(0.40 0.13 145); }
+.fin-cowork .fin-transcript-tbl .neg { color: oklch(0.50 0.18 25); }
+.fin-cowork .fin-transcript-nfe { font-size: 10.5px; color: oklch(0.50 0 0); font-weight: 400; }
+.fin-cowork .fin-transcript-tbl tfoot td {
   padding: 8px 6px; border-bottom: none;
   font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
 }
-.fin-transcript-tbl tfoot tr:last-child td {
+.fin-cowork .fin-transcript-tbl tfoot tr:last-child td {
   border-top: 1.5px solid oklch(0.20 0 0); padding-top: 10px; font-size: 13px;
 }
-
 /* Rodapé com 2 assinaturas */
-.fin-transcript-f {
+.fin-cowork .fin-transcript-f {
   display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
   margin-top: 60px; padding-top: 24px;
 }
-.fin-transcript-sig { text-align: center; }
-.fin-transcript-sig-line { height: 1px; background: oklch(0.30 0 0); margin-bottom: 6px; }
-.fin-transcript-sig small {
+.fin-cowork .fin-transcript-sig { text-align: center; }
+.fin-cowork .fin-transcript-sig-line { height: 1px; background: oklch(0.30 0 0); margin-bottom: 6px; }
+.fin-cowork .fin-transcript-sig small {
   font-size: 11px; color: oklch(0.30 0 0); font-family: ui-sans-serif, system-ui;
   text-transform: uppercase; letter-spacing: 0.08em;
 }
-
-.fin-transcript-foot-meta {
+.fin-cowork .fin-transcript-foot-meta {
   margin-top: 32px; padding-top: 12px;
   text-align: center; font-size: 10px; color: oklch(0.55 0 0);
   font-family: ui-sans-serif, system-ui;
   border-top: 1px solid oklch(0.92 0 0);
 }
-
 /* Print isolation — esconde tudo exceto a folha */
 @media print {
-  body * { visibility: hidden; }
-  .fin-transcript-overlay,
-  .fin-transcript-overlay * { visibility: visible; }
-  .fin-transcript-bar { display: none; }
-  .fin-transcript-overlay {
+.fin-cowork body * { visibility: hidden; }
+.fin-cowork .fin-transcript-overlay, .fin-cowork .fin-transcript-overlay * { visibility: visible; }
+.fin-cowork .fin-transcript-bar { display: none; }
+.fin-cowork .fin-transcript-overlay {
     position: static; background: white; overflow: visible;
   }
-  .fin-transcript-page {
+.fin-cowork .fin-transcript-page {
     box-shadow: none; margin: 0; padding: 24mm 18mm;
     max-width: none; width: 100%;
   }
-  .fin-transcript-tbl tbody tr:hover { background: transparent; }
-  @page { size: A4; margin: 0; }
+.fin-cowork .fin-transcript-tbl tbody tr:hover { background: transparent; }
+@page { size: A4; margin: 0; }
 }
-
 /* ========================================================================
  * Onda 9 — FinMonthResume (narrativa exec do mês)
  * Dialog com blocos markdown-style + botão "Copiar pro WhatsApp".
  * ======================================================================== */
-
-.fin-resume-backdrop {
+.fin-cowork .fin-resume-backdrop {
   position: fixed; inset: 0; z-index: 60;
   background: oklch(0 0 0 / 0.50);
   backdrop-filter: blur(2px);
   animation: fin-resume-fade .14s ease-out;
 }
 @keyframes fin-resume-fade { from { opacity: 0; } to { opacity: 1; } }
-
-.fin-resume-dialog {
+.fin-cowork .fin-resume-dialog {
   position: fixed; z-index: 70;
   top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: min(640px, calc(100vw - 32px));
@@ -623,92 +586,87 @@
   from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
-
-.fin-resume-h {
+.fin-cowork .fin-resume-h {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
   padding: 18px 22px 14px;
   border-bottom: 1px solid oklch(0.92 0.005 80);
   background: linear-gradient(135deg, oklch(0.97 0.06 280 / 0.5), oklch(0.99 0 0));
 }
-.fin-resume-h h2 {
+.fin-cowork .fin-resume-h h2 {
   margin: 0; font-size: 15.5px; font-weight: 600;
   color: oklch(0.30 0.10 280); letter-spacing: -0.005em;
 }
-.fin-resume-h small {
+.fin-cowork .fin-resume-h small {
   display: block; margin-top: 3px;
   font-size: 11.5px; color: oklch(0.50 0.04 280); line-height: 1.4;
 }
-.fin-resume-x {
+.fin-cowork .fin-resume-x {
   width: 28px; height: 28px; border-radius: 8px;
   border: none; background: transparent; cursor: pointer;
   color: oklch(0.45 0 0); font-size: 20px; line-height: 1;
   display: grid; place-items: center;
   transition: all .12s;
 }
-.fin-resume-x:hover { background: oklch(0.95 0 0); color: oklch(0.20 0 0); }
-
-.fin-resume-body {
+.fin-cowork .fin-resume-x:hover { background: oklch(0.95 0 0); color: oklch(0.20 0 0); }
+.fin-cowork .fin-resume-body {
   padding: 16px 22px;
   overflow-y: auto;
   flex: 1;
 }
-.fin-resume-block {
+.fin-cowork .fin-resume-block {
   margin-bottom: 18px;
   padding-bottom: 14px;
   border-bottom: 1px dashed oklch(0.92 0.005 80);
 }
-.fin-resume-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-.fin-resume-block h3 {
+.fin-cowork .fin-resume-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.fin-cowork .fin-resume-block h3 {
   margin: 0 0 8px;
   font-size: 12.5px; font-weight: 600;
   color: oklch(0.25 0 0); letter-spacing: -0.003em;
   text-transform: none;
 }
-.fin-resume-block ul {
+.fin-cowork .fin-resume-block ul {
   list-style: none; padding: 0; margin: 0;
   font-size: 13px; line-height: 1.55; color: oklch(0.30 0 0);
 }
-.fin-resume-block li {
+.fin-cowork .fin-resume-block li {
   padding: 3px 0 3px 16px;
   position: relative;
 }
-.fin-resume-block li::before {
+.fin-cowork .fin-resume-block li::before {
   content: '•';
   position: absolute; left: 4px; top: 3px;
   color: oklch(0.55 0.12 280);
   font-weight: 700;
 }
-.fin-resume-block li strong,
-.fin-resume-block li b { color: oklch(0.18 0 0); font-weight: 600; }
-
-.fin-resume-f {
+.fin-cowork .fin-resume-block li strong, .fin-cowork .fin-resume-block li b { color: oklch(0.18 0 0); font-weight: 600; }
+.fin-cowork .fin-resume-f {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; padding: 12px 22px;
   border-top: 1px solid oklch(0.92 0.005 80);
   background: oklch(0.98 0.003 80);
 }
-.fin-resume-f small {
+.fin-cowork .fin-resume-f small {
   font-size: 11px; color: oklch(0.50 0 0); font-style: italic;
 }
-.fin-resume-f-actions { display: flex; gap: 8px; }
-.fin-resume-btn {
+.fin-cowork .fin-resume-f-actions { display: flex; gap: 8px; }
+.fin-cowork .fin-resume-btn {
   padding: 7px 14px; border-radius: 7px;
   font-size: 12.5px; font-weight: 500;
   background: white; color: oklch(0.30 0 0);
   border: 1px solid oklch(0.85 0 0);
   cursor: pointer; transition: all .12s;
 }
-.fin-resume-btn:hover { background: oklch(0.97 0 0); }
-.fin-resume-btn.primary {
+.fin-cowork .fin-resume-btn:hover { background: oklch(0.97 0 0); }
+.fin-cowork .fin-resume-btn.primary {
   background: oklch(0.42 0.18 280); color: white;
   border-color: oklch(0.42 0.18 280);
 }
-.fin-resume-btn.primary:hover { background: oklch(0.36 0.18 280); }
-.fin-resume-btn.primary.copied {
+.fin-cowork .fin-resume-btn.primary:hover { background: oklch(0.36 0.18 280); }
+.fin-cowork .fin-resume-btn.primary.copied {
   background: oklch(0.42 0.18 145);
   border-color: oklch(0.42 0.18 145);
 }
-
 /* ========================================================================
  * Drawer Cowork v2.1 — canon align com bundle vendas-financeiro-completo
  * Anthropic API design fetch 2026-05-18 (Wagner reaplica pacote).
@@ -716,9 +674,8 @@
  * 3 abas canônicas: Detalhes (verde 145) / ✦ IA (roxo 295) / ✎ Editar (amber 60).
  * Active state: border-bottom 2px colorido (não box bg). Padding 12px 14px.
  * ======================================================================== */
-
 /* Nav de abas (Cowork canon: bg-2 + border-bottom + flush, sem gap) */
-.fin-drawer-tabs {
+.fin-cowork .fin-drawer-tabs {
   display: flex;
   align-items: center;
   padding: 0 18px;
@@ -727,8 +684,7 @@
   background: oklch(0.98 0.003 80);
   margin: 12px -18px 0;
 }
-
-.fin-drawer-tab {
+.fin-cowork .fin-drawer-tab {
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -744,15 +700,14 @@
   gap: 6px;
   position: relative;
 }
-.fin-drawer-tab:hover { color: oklch(0.20 0 0); }
-.fin-drawer-tab.on {
+.fin-cowork .fin-drawer-tab:hover { color: oklch(0.20 0 0); }
+.fin-cowork .fin-drawer-tab.on {
   color: oklch(0.20 0 0);
   border-bottom-color: oklch(0.55 0.13 145);
   background: white;
 }
-
 /* Count badge canônico (.fin-drawer-tab-ct — substitui o badge antigo) */
-.fin-drawer-tab-ct {
+.fin-cowork .fin-drawer-tab-ct {
   font-family: ui-monospace, monospace;
   font-size: 10px;
   font-weight: 600;
@@ -761,54 +716,48 @@
   padding: 1px 6px;
   border-radius: 99px;
 }
-.fin-drawer-tab.on .fin-drawer-tab-ct {
+.fin-cowork .fin-drawer-tab.on .fin-drawer-tab-ct {
   background: oklch(0.94 0.05 145);
   color: oklch(0.32 0.13 145);
 }
-
 /* Red dot pra alerta visual (ex: atrasado, anomalia detectada) */
-.fin-drawer-tab-tag {
+.fin-cowork .fin-drawer-tab-tag {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: oklch(0.55 0.18 25);
   display: inline-block;
 }
-
 /* Aba IA — canon roxo 295 (não 280) */
-.fin-drawer-tab-ai { color: oklch(0.42 0.13 295); }
-.fin-drawer-tab-ai:hover { color: oklch(0.32 0.18 295); }
-.fin-drawer-tab-ai.on {
+.fin-cowork .fin-drawer-tab-ai { color: oklch(0.42 0.13 295); }
+.fin-cowork .fin-drawer-tab-ai:hover { color: oklch(0.32 0.18 295); }
+.fin-cowork .fin-drawer-tab-ai.on {
   border-bottom-color: oklch(0.55 0.13 295);
   color: oklch(0.32 0.18 295);
   background: oklch(0.98 0.015 295);
 }
-
 /* Aba Editar — canon amber 60 (3ª aba, substitui Sheet separado) */
-.fin-drawer-tab-edit { color: oklch(0.42 0.13 60); }
-.fin-drawer-tab-edit:hover { color: oklch(0.32 0.18 60); }
-.fin-drawer-tab-edit.on {
+.fin-cowork .fin-drawer-tab-edit { color: oklch(0.42 0.13 60); }
+.fin-cowork .fin-drawer-tab-edit:hover { color: oklch(0.32 0.18 60); }
+.fin-cowork .fin-drawer-tab-edit.on {
   border-bottom-color: oklch(0.55 0.13 60);
   color: oklch(0.42 0.13 60);
   background: oklch(0.98 0.02 60);
 }
-.fin-drawer-tab-edit.has-edits:not(.on) {
+.fin-cowork .fin-drawer-tab-edit.has-edits:not(.on) {
   background: oklch(0.96 0.04 60);
 }
-
 /* Drawer wide modifier (espaço pras abas + IA panel — preserva 460px atual) */
-.fin-drawer-wide {
+.fin-cowork .fin-drawer-wide {
   padding-left: 18px;
   padding-right: 18px;
 }
-
 /* Linha de toggles (pill status + frescor + valor à direita) */
-.fin-toggles-row {
+.fin-cowork .fin-toggles-row {
   padding: 4px 0 2px;
 }
-
 /* Footer ações do drawer (gap + alinhamento canônico) */
-.fin-drawer-footer {
+.fin-cowork .fin-drawer-footer {
   display: flex;
   gap: 8px;
   padding-top: 12px;
@@ -816,27 +765,24 @@
   align-items: center;
   flex-wrap: wrap;
 }
-
 /* Botão Editar — destaque inline azul (Cowork canon, antes era variant outline genérico) */
-.fin-edit-btn {
+.fin-cowork .fin-edit-btn {
   border-color: oklch(0.80 0.06 240) !important;
   color: oklch(0.36 0.13 240) !important;
 }
-.fin-edit-btn:hover {
+.fin-cowork .fin-edit-btn:hover {
   background: oklch(0.97 0.04 240) !important;
   border-color: oklch(0.70 0.10 240) !important;
 }
-
 /* Panel IA (wrapper da aba ✦ IA) — tinge sutilmente o fundo */
-.fin-ai-panel {
+.fin-cowork .fin-ai-panel {
   background: linear-gradient(180deg, oklch(0.99 0.01 280 / 0.3), transparent);
   margin: 0 -8px;
   padding: 8px;
   border-radius: 8px;
 }
-
 /* Edit panel inline (Cowork canon: gradient amber + animate slide-down) */
-.fin-edit-panel {
+.fin-cowork .fin-edit-panel {
   background: linear-gradient(135deg, oklch(0.98 0.025 60), oklch(0.99 0.012 60));
   border: 1px solid oklch(0.85 0.10 60);
   border-radius: 10px;
@@ -848,91 +794,87 @@
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: none; }
 }
-.fin-edit-h {
+.fin-cowork .fin-edit-h {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 12px;
 }
-.fin-edit-h h4 {
+.fin-cowork .fin-edit-h h4 {
   margin: 0; font-size: 13.5px; font-weight: 700;
   color: oklch(0.32 0.18 60);
 }
-.fin-edit-h small { font-size: 11px; color: oklch(0.50 0.04 60); }
-.fin-edit-grid {
+.fin-cowork .fin-edit-h small { font-size: 11px; color: oklch(0.50 0.04 60); }
+.fin-cowork .fin-edit-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
 }
-.fin-edit-wide { grid-column: 1 / -1; }
-.fin-edit-grid label {
+.fin-cowork .fin-edit-wide { grid-column: 1 / -1; }
+.fin-cowork .fin-edit-grid label {
   display: block;
   font-size: 11px; font-weight: 600;
   color: oklch(0.40 0.04 60); margin-bottom: 4px;
   text-transform: uppercase; letter-spacing: 0.04em;
 }
-.fin-edit-grid input, .fin-edit-grid select, .fin-edit-grid textarea {
+.fin-cowork .fin-edit-grid input, .fin-cowork .fin-edit-grid select, .fin-cowork .fin-edit-grid textarea {
   width: 100%; padding: 6px 10px; border-radius: 6px;
   border: 1px solid oklch(0.85 0.05 60);
   background: white; font-size: 12.5px; font-family: inherit;
   color: oklch(0.18 0 0);
 }
-.fin-edit-grid input:focus, .fin-edit-grid select:focus, .fin-edit-grid textarea:focus {
+.fin-cowork .fin-edit-grid input:focus, .fin-cowork .fin-edit-grid select:focus, .fin-cowork .fin-edit-grid textarea:focus {
   outline: none; border-color: oklch(0.55 0.13 60);
   box-shadow: 0 0 0 3px oklch(0.55 0.13 60 / 0.15);
 }
-.fin-edit-footer {
+.fin-cowork .fin-edit-footer {
   display: flex; gap: 8px; justify-content: flex-end;
   margin-top: 12px; padding-top: 12px;
   border-top: 1px solid oklch(0.92 0.02 60);
 }
-.fin-edit-close {
+.fin-cowork .fin-edit-close {
   background: oklch(0.55 0.13 145); color: white;
   font-weight: 600;
   padding: 6px 14px; border: none; border-radius: 6px;
   font-size: 12.5px; cursor: pointer;
 }
-.fin-edit-close:hover { background: oklch(0.48 0.13 145); }
-.fin-edit-cancel {
+.fin-cowork .fin-edit-close:hover { background: oklch(0.48 0.13 145); }
+.fin-cowork .fin-edit-cancel {
   background: white; color: oklch(0.40 0 0);
   padding: 6px 14px; border: 1px solid oklch(0.85 0 0);
   border-radius: 6px; font-size: 12.5px; cursor: pointer;
 }
-.fin-edit-cancel:hover { background: oklch(0.97 0 0); }
-
+.fin-cowork .fin-edit-cancel:hover { background: oklch(0.97 0 0); }
 /* Anomalia wrapper (Cowork v2 — substitui card flat) */
-.fin-ai-anomalia {
+.fin-cowork .fin-ai-anomalia {
   padding: 10px 12px;
   border-radius: 8px;
   background: oklch(0.97 0.06 60 / 0.4);
   border-left: 3px solid oklch(0.65 0.18 60);
 }
-
 /* vd-ai stats grid (Cowork v2 — compartilha prefixo vendas) */
-.vd-ai-stats {
+.fin-cowork .vd-ai-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 6px;
   margin-top: 8px;
 }
-.vd-ai-stat {
+.fin-cowork .vd-ai-stat {
   padding: 6px 8px;
   border-radius: 6px;
   background: white;
   border: 1px solid oklch(0.92 0.005 80);
   font-size: 11px;
 }
-.vd-ai-stat b { display: block; font-size: 13px; color: oklch(0.20 0 0); margin-top: 2px; }
-
+.fin-cowork .vd-ai-stat b { display: block; font-size: 13px; color: oklch(0.20 0 0); margin-top: 2px; }
 /* Comments header + items (Cowork v2 — antes era stack flat) */
-.fin-comments-h {
+.fin-cowork .fin-comments-h {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 8px;
 }
-.fin-comments-h h4 { margin: 0; font-size: 13px; font-weight: 700; color: oklch(0.20 0 0); }
-.fin-comments-h small { font-size: 11px; color: oklch(0.50 0 0); }
-
-.fin-comment {
+.fin-cowork .fin-comments-h h4 { margin: 0; font-size: 13px; font-weight: 700; color: oklch(0.20 0 0); }
+.fin-cowork .fin-comments-h small { font-size: 11px; color: oklch(0.50 0 0); }
+.fin-cowork .fin-comment {
   padding: 6px 10px;
   border-radius: 8px;
   background: oklch(0.97 0.005 80);
@@ -940,11 +882,10 @@
   font-size: 12px;
   line-height: 1.4;
 }
-.fin-comment-author { font-weight: 600; color: oklch(0.20 0 0); margin-right: 6px; }
-.fin-comment-time { font-size: 10.5px; color: oklch(0.50 0 0); }
-
+.fin-cowork .fin-comment-author { font-weight: 600; color: oklch(0.20 0 0); margin-right: 6px; }
+.fin-cowork .fin-comment-time { font-size: 10.5px; color: oklch(0.50 0 0); }
 /* Aliases pill-frescor (Cowork canon ref) — herda do .fin-frescor existente em fin-curadoria.css. */
-.fin-curadoria .fin-pill-frescor { /* alias semântico: pill arredondada de frescor */
+.fin-cowork .fin-curadoria .fin-pill-frescor { /* alias semântico: pill arredondada de frescor */
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -954,53 +895,46 @@
   font-weight: 500;
   line-height: 1.3;
 }
-.fin-pill-frescor-fresh    { background: oklch(0.94 0.04 145); color: oklch(0.42 0.13 145); }
-.fin-pill-frescor-warning  { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60);  }
-.fin-pill-frescor-overdue  { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25);  }
-
+.fin-cowork .fin-pill-frescor-fresh { background: oklch(0.94 0.04 145); color: oklch(0.42 0.13 145); }
+.fin-cowork .fin-pill-frescor-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60);  }
+.fin-cowork .fin-pill-frescor-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25);  }
 /* Mais state vars pra fin-drawer-tabs (pra UX completa) */
-.fin-drawer-tabs[aria-orientation="horizontal"] { flex-direction: row; }
-.fin-drawer-tab[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
-.fin-drawer-tab:focus-visible {
+.fin-cowork .fin-drawer-tabs[aria-orientation="horizontal"] { flex-direction: row; }
+.fin-cowork .fin-drawer-tab[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+.fin-cowork .fin-drawer-tab:focus-visible {
   outline: 2px solid oklch(0.55 0.13 240);
   outline-offset: 1px;
 }
-.fin-drawer-tab-ai:focus-visible { outline-color: oklch(0.55 0.18 280); }
-
+.fin-cowork .fin-drawer-tab-ai:focus-visible { outline-color: oklch(0.55 0.18 280); }
 /* fin-ai-anomalia states */
-.fin-ai-anomalia.severe {
+.fin-cowork .fin-ai-anomalia.severe {
   background: oklch(0.95 0.10 25 / 0.5);
   border-left-color: oklch(0.55 0.20 25);
 }
-.fin-ai-anomalia.info {
+.fin-cowork .fin-ai-anomalia.info {
   background: oklch(0.97 0.04 240 / 0.5);
   border-left-color: oklch(0.55 0.13 240);
 }
-.fin-ai-anomalia .fin-ai-anomalia-title {
+.fin-cowork .fin-ai-anomalia .fin-ai-anomalia-title {
   display: block;
   font-size: 12px;
   font-weight: 600;
   color: oklch(0.30 0 0);
 }
-
 /* fin-audit-row hover state (já existe em fin-curadoria.css, mas reforço pra drawer) */
-.fin-curadoria .fin-audit-row:hover { background: oklch(0.97 0.005 80); }
-
+.fin-cowork .fin-curadoria .fin-audit-row:hover { background: oklch(0.97 0.005 80); }
 /* fin-frescor inside drawer — sutil padding adjustment */
-.fin-drawer-tabs + div .fin-frescor { font-size: 11px; padding: 2px 6px; }
-
+.fin-cowork .fin-drawer-tabs + div .fin-frescor { font-size: 11px; padding: 2px 6px; }
 /* Wide drawer breakpoint — em telas grandes, drawer pode expandir */
 @media (min-width: 1280px) {
-  .fin-drawer-wide { padding-left: 22px; padding-right: 22px; }
+.fin-cowork .fin-drawer-wide { padding-left: 22px; padding-right: 22px; }
 }
-
 /* ========================================================================
  * Onda 10 — Canon 100% Cowork: FinAgeing + FinSubNav
  * Refs: prototipo-ui-patch/vendas-financeiro-completo/financeiro-app.jsx
  * ======================================================================== */
-
 /* FinAgeing — barra horizontal segmentada A receber ageing */
-.fin-ageing {
+.fin-cowork .fin-ageing {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1010,11 +944,11 @@
   border: 1px solid oklch(0.92 0.005 80);
   border-radius: 8px;
 }
-.fin-ageing-l {
+.fin-cowork .fin-ageing-l {
   flex: 0 0 auto;
   min-width: 140px;
 }
-.fin-ageing-l small {
+.fin-cowork .fin-ageing-l small {
   display: block;
   font-size: 10.5px;
   color: oklch(0.50 0 0);
@@ -1022,13 +956,13 @@
   letter-spacing: 0.05em;
   margin-bottom: 2px;
 }
-.fin-ageing-l b {
+.fin-cowork .fin-ageing-l b {
   font-family: ui-monospace, monospace;
   font-size: 14px;
   color: oklch(0.20 0 0);
   letter-spacing: -0.01em;
 }
-.fin-ageing-bar {
+.fin-cowork .fin-ageing-bar {
   flex: 1 1 auto;
   display: flex;
   height: 28px;
@@ -1037,7 +971,7 @@
   background: oklch(0.95 0.005 80);
   gap: 1px;
 }
-.fin-ageing-bar .seg {
+.fin-cowork .fin-ageing-bar .seg {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1050,18 +984,17 @@
   text-overflow: ellipsis;
   transition: filter .12s;
 }
-.fin-ageing-bar .seg:hover { filter: brightness(0.95); }
+.fin-cowork .fin-ageing-bar .seg:hover { filter: brightness(0.95); }
 /* s1 = 0-30d  verde fresh */
-.fin-ageing-bar .seg.s1 { background: oklch(0.85 0.13 145); color: oklch(0.22 0.13 145); }
+.fin-cowork .fin-ageing-bar .seg.s1 { background: oklch(0.85 0.13 145); color: oklch(0.22 0.13 145); }
 /* s2 = 31-60d amber */
-.fin-ageing-bar .seg.s2 { background: oklch(0.85 0.13 70);  color: oklch(0.25 0.13 60); }
+.fin-cowork .fin-ageing-bar .seg.s2 { background: oklch(0.85 0.13 70);  color: oklch(0.25 0.13 60); }
 /* s3 = 61d+   roxo */
-.fin-ageing-bar .seg.s3 { background: oklch(0.75 0.13 280); color: oklch(0.95 0.04 280); }
+.fin-cowork .fin-ageing-bar .seg.s3 { background: oklch(0.75 0.13 280); color: oklch(0.95 0.04 280); }
 /* s4 = late   rose */
-.fin-ageing-bar .seg.s4 { background: oklch(0.65 0.20 25);  color: oklch(0.98 0.02 25); }
-
+.fin-cowork .fin-ageing-bar .seg.s4 { background: oklch(0.65 0.20 25);  color: oklch(0.98 0.02 25); }
 /* FinSubNav — sub-rotas horizontais Cowork canon */
-.fin-subnav {
+.fin-cowork .fin-subnav {
   display: flex;
   gap: 4px;
   align-items: center;
@@ -1071,7 +1004,7 @@
   overflow-x: auto;
   scrollbar-width: thin;
 }
-.fin-subnav-tab {
+.fin-cowork .fin-subnav-tab {
   display: inline-flex;
   align-items: center;
   padding: 9px 14px;
@@ -1087,15 +1020,15 @@
   transition: all .12s;
   white-space: nowrap;
 }
-.fin-subnav-tab:hover {
+.fin-cowork .fin-subnav-tab:hover {
   color: oklch(0.20 0 0);
 }
-.fin-subnav-tab.on {
+.fin-cowork .fin-subnav-tab.on {
   color: oklch(0.20 0 0);
   border-bottom-color: oklch(0.55 0.13 240);
   font-weight: 600;
 }
-.fin-subnav-tab:focus-visible {
+.fin-cowork .fin-subnav-tab:focus-visible {
   outline: 2px solid oklch(0.55 0.13 240);
   outline-offset: 2px;
   border-radius: 4px 4px 0 0;

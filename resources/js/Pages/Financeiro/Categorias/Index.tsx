@@ -192,7 +192,7 @@ function Index({ categorias, planos_conta }: Props) {
 
 Index.layout = (page: React.ReactNode) => (
   <AppShellV2 title="Categorias · Financeiro" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Categorias' }]}>
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 export default Index;

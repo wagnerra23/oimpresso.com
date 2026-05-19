@@ -176,6 +176,10 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
   );
 }
 
-Index.layout = (page: React.ReactNode) => <AppShellV2>{page}</AppShellV2>;
+Index.layout = (page: React.ReactNode) => (
+  <AppShellV2>
+    <div className="fin-cowork">{page}</div>
+  </AppShellV2>
+);
 
 export default Index;

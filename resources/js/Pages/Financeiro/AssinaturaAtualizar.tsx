@@ -82,6 +82,7 @@ export default function AssinaturaAtualizar({ assinaturas }: Props) {
 
   return (
     <AppShellV2 title="Atualizar Cobranca">
+      <div className="fin-cowork">
       <div className="container mx-auto max-w-2xl py-6">
         <Card>
           <CardHeader>
@@ -173,6 +174,7 @@ export default function AssinaturaAtualizar({ assinaturas }: Props) {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </AppShellV2>
   );

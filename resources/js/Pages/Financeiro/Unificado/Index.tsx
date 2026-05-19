@@ -1016,7 +1016,7 @@ FinanceiroUnificado.layout = (page: ReactNode) => (
     title="Financeiro — Visão unificada"
     breadcrumbItems={[{ label: 'Financeiro', href: '/financeiro' }, { label: 'Visão unificada' }]}
   >
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 

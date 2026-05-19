@@ -78,4 +78,8 @@ export default function NovoLancamento() {
   );
 }
 
-NovoLancamento.layout = (page: React.ReactNode) => <AppShellV2>{page}</AppShellV2>;
+NovoLancamento.layout = (page: React.ReactNode) => (
+  <AppShellV2>
+    <div className="fin-cowork">{page}</div>
+  </AppShellV2>
+);
