@@ -422,7 +422,7 @@ FinanceiroBoletos.layout = (page: ReactNode) => (
     title="Financeiro — Boletos"
     breadcrumbItems={[{ label: 'Financeiro', href: '/financeiro' }, { label: 'Boletos' }]}
   >
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 

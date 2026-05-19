@@ -173,7 +173,7 @@ function Index({ accounts, bancos_suportados }: Props) {
 
 Index.layout = (page: React.ReactNode) => (
   <AppShellV2 title="Contas Bancárias · Boleto" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas Bancárias' }]}>
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 export default Index;

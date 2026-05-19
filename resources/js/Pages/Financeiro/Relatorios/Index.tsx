@@ -585,7 +585,7 @@ function EmptyMsg({ text }: { text: string }) {
 
 FinanceiroRelatorios.layout = (page: ReactNode) => (
   <AppShellV2 title="Financeiro — Relatórios" breadcrumbItems={[{ label: 'Financeiro', href: '/financeiro' }, { label: 'Relatórios' }]}>
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 

@@ -440,7 +440,7 @@ function FinanceiroDashboard({
 
 FinanceiroDashboard.layout = (page: ReactNode) => (
   <AppShellV2 title="Financeiro — Dashboard" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Dashboard' }]}>
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 
