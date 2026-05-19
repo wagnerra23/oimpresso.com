@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "IBM Plex Sans", sans-serif; background: #fff; padding: 16px; }
+  .row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .swatch { flex: 1; height: 52px; border-radius: 6px; display: flex; flex-direction: column; justify-content: flex-end; padding: 5px 7px; }
+  .swatch span { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; color: rgba(0,0,0,.55); line-height: 1.3; }
+  .swatch.dark span { color: rgba(255,255,255,.65); }
+  .label { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #888; margin-bottom: 5px; }
+</style>
+</head>
+<body>
+  <div class="label">Accent — azul hue 220</div>
+  <div class="row">
+    <div class="swatch" style="background:oklch(0.97 0.015 220)"><span>soft<br>0.97</span></div>
+    <div class="swatch" style="background:oklch(0.94 0.025 220)"><span>soft-2<br>0.94</span></div>
+    <div class="swatch" style="background:oklch(0.88 0.05 220)"><span>light<br>0.88</span></div>
+    <div class="swatch" style="background:oklch(0.76 0.08 220)"><span>mid<br>0.76</span></div>
+    <div class="swatch dark" style="background:oklch(0.66 0.09 220)"><span>accent-2<br>0.66</span></div>
+    <div class="swatch dark" style="background:oklch(0.58 0.09 220)"><span>accent<br>0.58 ●</span></div>
+    <div class="swatch dark" style="background:oklch(0.48 0.09 220)"><span>dark<br>0.48</span></div>
+    <div class="swatch dark" style="background:oklch(0.36 0.08 220)"><span>deep<br>0.36</span></div>
+  </div>
+  <div class="label">Neutros surface (light)</div>
+  <div class="row">
+    <div class="swatch" style="background:#fff; border:1px solid #eee"><span>surface<br>#fff</span></div>
+    <div class="swatch" style="background:oklch(0.985 0.003 90)"><span>bg<br>0.985</span></div>
+    <div class="swatch" style="background:oklch(0.965 0.004 90)"><span>bg-2<br>0.965</span></div>
+    <div class="swatch" style="background:oklch(0.93 0.004 90)"><span>border-2<br>0.93</span></div>
+    <div class="swatch" style="background:oklch(0.90 0.004 90)"><span>border<br>0.90</span></div>
+    <div class="swatch dark" style="background:oklch(0.65 0.01 80)"><span>text-mute<br>0.65</span></div>
+    <div class="swatch dark" style="background:oklch(0.50 0.01 80)"><span>text-dim<br>0.50</span></div>
+    <div class="swatch dark" style="background:oklch(0.22 0.01 80)"><span>text<br>0.22</span></div>
+  </div>
+  <div class="label">Sidebar (sempre dark)</div>
+  <div class="row">
+    <div class="swatch dark" style="background:oklch(0.18 0 0)"><span>sb-bg-2<br>0.18</span></div>
+    <div class="swatch dark" style="background:oklch(0.21 0 0)"><span>sb-bg<br>0.21</span></div>
+    <div class="swatch dark" style="background:oklch(0.27 0 0)"><span>hover<br>0.27</span></div>
+    <div class="swatch dark" style="background:oklch(0.28 0 0)"><span>border<br>0.28</span></div>
+    <div class="swatch dark" style="background:oklch(0.32 0 0)"><span>active<br>0.32</span></div>
+    <div class="swatch dark" style="background:oklch(0.55 0 0)"><span>text-dim<br>0.55</span></div>
+    <div class="swatch dark" style="background:oklch(0.78 0 0)"><span>text<br>0.78</span></div>
+    <div class="swatch dark" style="background:oklch(0.96 0 0)"><span>text-hi<br>0.96</span></div>
+  </div>
+</body>
+</html>
