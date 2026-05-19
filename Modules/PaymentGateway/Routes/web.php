@@ -48,6 +48,10 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.update');
 
+        Route::delete('payment-gateways/{credentialId}', [PaymentGatewaysController::class, 'destroy'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.destroy');
+
         Route::post('payment-gateways/health-check', [PaymentGatewaysController::class, 'healthCheck'])
             ->name('payment-gateways.health-check.all');
 
