@@ -123,6 +123,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/cobranca/emitir', [CobrancaController::class, 'store'])
             ->name('cobranca.emitir');
 
+        // Onda 4d.6 — Cobrar cartão via CardToken (PCI-DSS SAQ-A, sem PAN local).
+        // Driver suportado: Asaas (BR nativo + 3DS). Inter/C6/BCB lançam
+        // DriverNotSupportedException. Frontend tokeniza no widget Asaas.
+        Route::post('/cobranca/cartao', [CobrancaController::class, 'storeCartao'])
+            ->name('cobranca.cartao');
+
         // Contas a pagar (lista + registrar baixa)
         Route::get('/contas-pagar', [ContaPagarController::class, 'index'])->name('contas-pagar.index');
         Route::post('/contas-pagar/{tituloId}/pagar', [ContaPagarController::class, 'pagar'])

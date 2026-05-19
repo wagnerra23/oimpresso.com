@@ -15,6 +15,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
+use Modules\PaymentGateway\Dto\CardToken;
+use Modules\PaymentGateway\Exceptions\CardDeclinedException;
 use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
 use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
@@ -228,6 +230,90 @@ class CobrancaController extends Controller
         } catch (PaymentGatewayException | Throwable $e) {
             report($e);
             return back()->withErrors(['gateway' => 'Falha ao emitir cobrança. Detalhe registrado no log.']);
+        }
+    }
+
+    /**
+     * Onda 4d.6 — Cobrar cartão (PCI-DSS safe).
+     *
+     * Endpoint dedicado pra cartão pois exige CardToken (referência opaca
+     * gerada pelo widget JS do provedor — Asaas/PesaPal/Stripe). O PAN
+     * bruto NUNCA chega ao backend oimpresso (compliance PCI-DSS escopo
+     * reduzido SAQ-A).
+     *
+     * Frontend integrará widget Asaas (script tag tokenização) numa
+     * sub-onda 4d.6.1 — endpoint backend prono pra consumir token.
+     */
+    public function storeCartao(Request $request, PaymentGatewayContract $gateway): RedirectResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
+
+        $validated = $request->validate([
+            'valor_centavos' => 'required|integer|min:100',
+            'vencimento' => 'required|date|after_or_equal:today',
+            'account_id' => 'required|integer|exists:fin_contas_bancarias,id',
+            'contact_id' => 'nullable|integer|exists:contacts,id',
+            'payer_name' => 'nullable|string|max:255',
+            'payer_cpf_cnpj' => 'nullable|string|max:20',
+            'payer_email' => 'nullable|email|max:255',
+            'descricao' => 'nullable|string|max:500',
+            'origem_type' => 'nullable|string|in:sale,invoice,subscription_license',
+            'origem_id' => 'nullable|integer',
+            'idempotency_key' => 'nullable|string|max:36',
+            // Card token (PCI-DSS — opaque reference do widget tokenização)
+            'card_token' => 'required|string|max:255',
+            'card_brand' => 'required|string|in:visa,mastercard,amex,elo,hipercard,diners',
+            'card_last4' => 'required|string|size:4',
+            'card_holder_name' => 'required|string|max:100',
+            'card_exp_month' => 'required|string|size:2',
+            'card_exp_year' => 'required|string|size:4',
+        ]);
+
+        if (empty($validated['contact_id']) && empty($validated['payer_name'])) {
+            return back()->withErrors(['payer_name' => 'Informe contact_id ou payer_name (LGPD Art. 7º).']);
+        }
+
+        $account = ContaBancaria::query()
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->find($validated['account_id']);
+
+        if (! $account) {
+            return back()->withErrors(['account_id' => 'Conta destino não encontrada neste business.']);
+        }
+
+        $coreAccount = Account::query()->find($account->account_id);
+        if (! $coreAccount) {
+            return back()->withErrors(['account_id' => 'Conta bancária core inválida.']);
+        }
+
+        $token = new CardToken(
+            token: $validated['card_token'],
+            brand: $validated['card_brand'],
+            lastFour: $validated['card_last4'],
+            holderName: $validated['card_holder_name'],
+            expMonth: $validated['card_exp_month'],
+            expYear: $validated['card_exp_year'],
+        );
+
+        try {
+            $input = $this->buildInput($validated, $businessId);
+            $result = $gateway->for($coreAccount)->cobrarCartao($input, $token);
+
+            return back()->with('success', "Cobrança cartão #{$result->cobrancaId} autorizada ({$token->brand} •••• {$token->lastFour}).");
+        } catch (IdempotencyConflictException $e) {
+            return back()->withErrors(['idempotency_key' => $e->getMessage()]);
+        } catch (CardDeclinedException $e) {
+            return back()->withErrors(['card_token' => "Cartão recusado: {$e->getMessage()}"]);
+        } catch (CredentialMisconfiguredException | DriverNotSupportedException $e) {
+            return back()->withErrors(['gateway' => "Driver de cartão indisponível neste gateway. Use Asaas (BR nativo). Erro: {$e->getMessage()}"]);
+        } catch (InvalidPayerException $e) {
+            return back()->withErrors(['payer_name' => "Pagador inválido: {$e->getMessage()}"]);
+        } catch (GatewayUnavailableException $e) {
+            return back()->withErrors(['gateway' => "Gateway indisponível: {$e->getMessage()}"]);
+        } catch (PaymentGatewayException | Throwable $e) {
+            report($e);
+            return back()->withErrors(['gateway' => 'Falha ao cobrar cartão. Detalhe no log.']);
         }
     }
 
