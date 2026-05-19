@@ -8,7 +8,7 @@
 //   tests: Modules/Financeiro/Tests/Feature/MultiTenantIsolationTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router } from '@inertiajs/react';
+import { Deferred, Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -173,69 +173,73 @@ function FinanceiroDashboard({
         }
       />
 
-      {/* KPI Grid (UI-0002) — props CORRETOS: cols, icon string, description, selected, tone */}
-      <KpiGrid cols={4} className="mt-6">
-        <KpiCard
-          icon="arrow-down-circle"
-          tone="success"
-          label="A receber"
-          value={brl(r.valor)}
-          description={
-            r.vencidos_qtd > 0
-              ? `${r.qtd} títulos · ${r.vencidos_qtd} vencidos (${brl(r.vencidos_valor)})`
-              : `${r.qtd} títulos abertos`
-          }
-          onClick={() => aplicarFiltro({ tipo: 'receber', status: 'aberto' })}
-          selected={filters.tipo === 'receber' && filters.status === 'aberto'}
-        />
-        <KpiCard
-          icon="arrow-up-circle"
-          tone={p.vencidos_qtd > 0 ? 'warning' : 'default'}
-          label="A pagar"
-          value={brl(p.valor)}
-          description={
-            p.vencidos_qtd > 0
-              ? `${p.qtd} títulos · ${p.vencidos_qtd} vencidos (${brl(p.vencidos_valor)})`
-              : `${p.qtd} títulos abertos`
-          }
-          onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'aberto' })}
-          selected={filters.tipo === 'pagar' && filters.status === 'aberto'}
-        />
-        <KpiCard
-          icon="check-circle-2"
-          tone="success"
-          label="Recebidos no mês"
-          value={brl(rm.valor)}
-          description={`${rm.qtd} baixas`}
-          onClick={() => aplicarFiltro({ tipo: 'receber', status: 'quitado' })}
-          selected={filters.tipo === 'receber' && filters.status === 'quitado'}
-        />
-        <KpiCard
-          icon="check-circle-2"
-          tone="info"
-          label="Pagos no mês"
-          value={brl(pm.valor)}
-          description={`${pm.qtd} baixas`}
-          onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'quitado' })}
-          selected={filters.tipo === 'pagar' && filters.status === 'quitado'}
-        />
-      </KpiGrid>
+      {/* KPI Grid (UI-0002) — Inertia::defer canon: skeleton no primeiro paint */}
+      <Deferred data="kpis" fallback={<KpiGridSkeleton />}>
+        <KpiGrid cols={4} className="mt-6">
+          <KpiCard
+            icon="arrow-down-circle"
+            tone="success"
+            label="A receber"
+            value={brl(r.valor)}
+            description={
+              r.vencidos_qtd > 0
+                ? `${r.qtd} títulos · ${r.vencidos_qtd} vencidos (${brl(r.vencidos_valor)})`
+                : `${r.qtd} títulos abertos`
+            }
+            onClick={() => aplicarFiltro({ tipo: 'receber', status: 'aberto' })}
+            selected={filters.tipo === 'receber' && filters.status === 'aberto'}
+          />
+          <KpiCard
+            icon="arrow-up-circle"
+            tone={p.vencidos_qtd > 0 ? 'warning' : 'default'}
+            label="A pagar"
+            value={brl(p.valor)}
+            description={
+              p.vencidos_qtd > 0
+                ? `${p.qtd} títulos · ${p.vencidos_qtd} vencidos (${brl(p.vencidos_valor)})`
+                : `${p.qtd} títulos abertos`
+            }
+            onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'aberto' })}
+            selected={filters.tipo === 'pagar' && filters.status === 'aberto'}
+          />
+          <KpiCard
+            icon="check-circle-2"
+            tone="success"
+            label="Recebidos no mês"
+            value={brl(rm.valor)}
+            description={`${rm.qtd} baixas`}
+            onClick={() => aplicarFiltro({ tipo: 'receber', status: 'quitado' })}
+            selected={filters.tipo === 'receber' && filters.status === 'quitado'}
+          />
+          <KpiCard
+            icon="check-circle-2"
+            tone="info"
+            label="Pagos no mês"
+            value={brl(pm.valor)}
+            description={`${pm.qtd} baixas`}
+            onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'quitado' })}
+            selected={filters.tipo === 'pagar' && filters.status === 'quitado'}
+          />
+        </KpiGrid>
+      </Deferred>
 
       {/* Saldo em bancos */}
-      {contas.length > 0 && (
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Saldo em bancos
-            </h2>
-            {saldo_total > 0 && (
-              <span className="text-sm font-medium text-foreground">
-                Total: {brl(saldo_total)}
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {contas.map((c) => (
+      {/* Saldo em bancos — Inertia::defer canon (contas + saldo_total juntos) */}
+      <Deferred data={['contas', 'saldo_total']} fallback={<ContasSkeleton />}>
+        {contas.length > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Saldo em bancos
+              </h2>
+              {saldo_total > 0 && (
+                <span className="text-sm font-medium text-foreground">
+                  Total: {brl(saldo_total)}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {contas.map((c) => (
               <Card key={c.id} className="relative overflow-hidden">
                 <CardContent className="pt-4 pb-3 px-4">
                   <div className="flex items-start justify-between gap-2">
@@ -278,7 +282,8 @@ function FinanceiroDashboard({
             ))}
           </div>
         </div>
-      )}
+        )}
+      </Deferred>
 
       {/* Filtros */}
       <Card className="mt-6 mb-4">
@@ -335,16 +340,17 @@ function FinanceiroDashboard({
         </CardContent>
       </Card>
 
-      {/* Tabela única */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{meta.total} títulos</CardTitle>
-          <CardDescription>
-            Página {meta.current_page} de {meta.last_page}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {titulos.data.length === 0 ? (
+      {/* Tabela única — Inertia::defer canon: skeleton enquanto titulos carrega */}
+      <Deferred data="titulos" fallback={<TabelaSkeleton />}>
+        <Card>
+          <CardHeader>
+            <CardTitle>{meta.total} títulos</CardTitle>
+            <CardDescription>
+              Página {meta.current_page} de {meta.last_page}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {titulos.data.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               Nenhum título encontrado com os filtros atuais.
               <br />
@@ -425,8 +431,9 @@ function FinanceiroDashboard({
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </Deferred>
     </>
   );
 }
@@ -436,5 +443,48 @@ FinanceiroDashboard.layout = (page: ReactNode) => (
     {page}
   </AppShellV2>
 );
+
+// Skeletons canon (skill inertia-defer-default): bg-muted/40 + animate-pulse.
+
+function KpiGridSkeleton(): ReactNode {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6" aria-label="Carregando KPIs…">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="h-24 rounded-lg border bg-muted/40 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+function ContasSkeleton(): ReactNode {
+  return (
+    <div className="mt-6" aria-label="Carregando contas bancárias…">
+      <div className="h-4 w-32 bg-muted/40 rounded animate-pulse mb-3" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-28 rounded-lg border bg-muted/40 animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TabelaSkeleton(): ReactNode {
+  return (
+    <Card aria-label="Carregando títulos…">
+      <CardHeader>
+        <div className="h-5 w-28 bg-muted/40 rounded animate-pulse" />
+        <div className="h-3 w-40 bg-muted/40 rounded animate-pulse mt-2" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <div key={i} className="h-10 bg-muted/30 rounded animate-pulse" />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default FinanceiroDashboard;
