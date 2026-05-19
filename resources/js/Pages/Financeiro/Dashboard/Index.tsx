@@ -89,23 +89,43 @@ interface ContaBancaria {
 }
 
 interface Props {
-  kpis: Kpis;
-  // Inertia::defer no DashboardController — undefined no primeiro paint, preenchido no partial reload.
+  // Wave 17 D6: kpis/titulos/contas/saldo_total são Inertia::defer no DashboardController.
+  // Chegam undefined no primeiro paint, preenchidos no partial reload — opcionais aqui pra
+  // não crashar antes do reload chegar.
+  kpis?: Kpis;
   titulos?: PaginatedTitulos;
   filters: Filters;
-  contas: ContaBancaria[];
-  saldo_total: number;
+  contas?: ContaBancaria[];
+  saldo_total?: number;
 }
+
+const EMPTY_KPI_ABERTO: KpiAberto = { valor: 0, qtd: 0, vencidos_qtd: 0, vencidos_valor: 0 };
+const EMPTY_KPI_MENSAL: KpiMensal = { valor: 0, qtd: 0 };
+const EMPTY_KPIS: Kpis = {
+  receber_aberto: EMPTY_KPI_ABERTO,
+  pagar_aberto: EMPTY_KPI_ABERTO,
+  recebido_mes: EMPTY_KPI_MENSAL,
+  pago_mes: EMPTY_KPI_MENSAL,
+};
 
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
 
-function FinanceiroDashboard({ kpis, titulos: titulosProp, filters, contas, saldo_total }: Props) {
+function FinanceiroDashboard({
+  kpis: kpisProp,
+  titulos: titulosProp,
+  filters,
+  contas: contasProp,
+  saldo_total: saldoTotalProp,
+}: Props) {
   const [busca, setBusca] = useState(filters.busca ?? '');
 
-  // titulos vem como Inertia::defer no DashboardController — chega undefined no primeiro paint.
-  // Fallback vazio mantém a tela renderizada enquanto o partial reload preenche os dados.
+  // Wave 17 D6 — 4 props deferred no Controller chegam undefined no primeiro paint.
+  // Fallbacks mantêm a tela renderizada (com 0s/listas vazias) até o partial reload preencher.
+  const kpis: Kpis = kpisProp ?? EMPTY_KPIS;
   const titulos: PaginatedTitulos = titulosProp ?? { data: [], links: [] };
+  const contas: ContaBancaria[] = contasProp ?? [];
+  const saldo_total: number = saldoTotalProp ?? 0;
 
   // Inertia paginator pode vir achatado (current_page direto) ou em meta
   const meta = titulos.meta ?? {
