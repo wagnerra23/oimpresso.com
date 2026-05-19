@@ -1046,7 +1046,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </CommandList>
       </CommandDialog>
 
-      {/* Onda 8 Cowork: footer atalhos canon (oklch tokens via .fin-footer-tips) */}
+      {/* Onda 11 (2026-05-19) — footer atalhos inline. Wagner removeu "Densidade:
+          comfortable" (linha redundante — `fin-density` toggle já existe no
+          toolbar de filtros com ícones ◰▦▤). Densidade canon Financeiro é
+          TweaksPanel (prototipo cowork-app.jsx:831), não texto stale no rodapé. */}
       <div className="fin-footer-tips">
         <span><kbd>⌘K</kbd> palette</span>
         <span><kbd>/</kbd> buscar</span>
@@ -1054,9 +1057,12 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         <span><kbd>␣</kbd> marcar pago/recebido</span>
         <span><kbd>B</kbd> favoritar linha</span>
         <FinTroubleButton onClick={() => setTroubleOpen(true)} />
-        <span className="spacer" />
-        {favs.count > 0 && <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>}
-        <span>Densidade: <strong>{filters.densidade}</strong></span>
+        {favs.count > 0 && (
+          <>
+            <span className="spacer" />
+            <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
+          </>
+        )}
       </div>
 
       {/* Onda 7b — Dialogs Troubleshooter + Presentation Mode */}
