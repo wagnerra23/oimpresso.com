@@ -1,5 +1,7 @@
 // SheetNovoGateway.tsx — wizard 3 steps (Driver → Credenciais → Vínculo)
+// Onda 5 (2026-05-19): wiring backend POST /settings/payment-gateways
 import { useEffect, useState } from 'react';
+import { router } from '@inertiajs/react';
 import {
   X, ChevronRight, ChevronLeft, Plus, Check, Shield,
 } from 'lucide-react';
@@ -19,6 +21,15 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
   const [step, setStep] = useState(1);
   const [driver, setDriver] = useState<GatewayKey | null>(null);
 
+  // Onda 5: state controlado dos campos
+  const [apelido, setApelido] = useState('');
+  const [config, setConfig] = useState<Record<string, string>>({});
+  const [contaId, setContaId] = useState<string>('');
+  const [ambiente, setAmbiente] = useState<'production' | 'sandbox'>('sandbox');
+  const [ativo, setAtivo] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
@@ -28,6 +39,38 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
   const d = driver ? DRIVERS[driver] : null;
   const canNext = step === 1 ? !!driver : true;
   const isLast = step === STEPS.length;
+
+  function setConfigField(key: string, value: string): void {
+    setConfig(prev => ({ ...prev, [key]: value }));
+  }
+
+  function handleSubmit(): void {
+    if (!driver) return;
+    setError(null);
+    setSubmitting(true);
+
+    const payload = {
+      gateway_key: driver,
+      ambiente,
+      nome_display: apelido || null,
+      conta_bancaria_id: contaId ? Number(contaId) : null,
+      config_json: config,
+      ativo,
+    };
+
+    router.post('/settings/payment-gateways', payload, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setSubmitting(false);
+        onClose();
+      },
+      onError: (errors) => {
+        setSubmitting(false);
+        const firstError = Object.values(errors)[0];
+        setError(typeof firstError === 'string' ? firstError : 'Erro ao criar credencial');
+      },
+    });
+  }
 
   return (
     <div className="fixed inset-0 z-30 flex justify-end" onClick={onClose} role="dialog" aria-modal="true" aria-label="Novo gateway">
@@ -102,44 +145,122 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
           {step === 2 && d && (
             <div className="space-y-3">
               <Field label="Apelido">
-                <input placeholder={`ex: ${d.nome} · Operacional`} className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]" />
+                <input
+                  value={apelido}
+                  onChange={e => setApelido(e.target.value)}
+                  placeholder={`ex: ${d.nome} · Operacional`}
+                  className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                />
               </Field>
               <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11px] text-stone-700 mb-3">
                 <strong>{d.nome}:</strong> {d.cred}
               </div>
               {d.key === 'inter' && <>
-                <Field label="Client ID"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" /></Field>
-                <Field label="Client Secret"><input type="password" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" /></Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <FileField label="Certificado .crt" />
-                  <FileField label="Chave .key" />
+                <Field label="Client ID">
+                  <input
+                    value={config.client_id ?? ''}
+                    onChange={e => setConfigField('client_id', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Client Secret">
+                  <input
+                    type="password"
+                    value={config.client_secret ?? ''}
+                    onChange={e => setConfigField('client_secret', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Webhook secret (opcional)">
+                  <input
+                    type="password"
+                    value={config.webhook_secret ?? ''}
+                    onChange={e => setConfigField('webhook_secret', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[10.5px] text-amber-800">
+                  Certificado mTLS (.crt + .key) ainda não pode ser feito upload pela UI.
+                  Pra sandbox sem mTLS funciona. Pra produção, suba via SSH em <span className="font-mono">storage/app/private/payment-gateway/</span> e referencie em <span className="font-mono">config_json.cert_path</span> manual (próxima onda terá UI de upload).
                 </div>
               </>}
               {d.key === 'asaas' && <>
-                <Field label="API Key"><input type="password" placeholder="$aact_..." className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" /></Field>
-                <Field label="Webhook secret"><input type="password" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" /></Field>
+                <Field label="API Key">
+                  <input
+                    type="password"
+                    value={config.api_key ?? ''}
+                    onChange={e => setConfigField('api_key', e.target.value)}
+                    placeholder="$aact_..."
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Webhook secret">
+                  <input
+                    type="password"
+                    value={config.webhook_secret ?? ''}
+                    onChange={e => setConfigField('webhook_secret', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
               </>}
               {d.key === 'c6' && <div className="grid grid-cols-3 gap-3">
-                <Field label="Agência"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
-                <Field label="Conta"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
-                <Field label="Código cliente"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
+                <Field label="Agência">
+                  <input
+                    value={config.agencia ?? ''}
+                    onChange={e => setConfigField('agencia', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Conta">
+                  <input
+                    value={config.conta ?? ''}
+                    onChange={e => setConfigField('conta', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Código cliente">
+                  <input
+                    value={config.codigo_cliente ?? ''}
+                    onChange={e => setConfigField('codigo_cliente', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                  />
+                </Field>
               </div>}
               {d.key === 'bcb_pix' && <>
-                <Field label="CNPJ recebedor"><input placeholder="apenas números" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <FileField label="Cert mTLS ICP-Brasil .crt" />
-                  <FileField label="Chave mTLS .key" />
+                <Field label="CNPJ recebedor">
+                  <input
+                    value={config.cnpj_recebedor ?? ''}
+                    onChange={e => setConfigField('cnpj_recebedor', e.target.value)}
+                    placeholder="apenas números"
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                  />
+                </Field>
+                <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[10.5px] text-amber-800">
+                  Certificado mTLS ICP-Brasil (.crt + .key + senha) precisa ser cadastrado manual via SSH em <span className="font-mono">storage/app/private/payment-gateway/</span> e referenciado em <span className="font-mono">config_json.cert_path</span> + <span className="font-mono">.cert_password</span>.
                 </div>
-                <Field label="Senha do certificado"><input type="password" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
               </>}
               {d.key === 'pesapal' && <>
-                <Field label="API Key"><input type="password" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" /></Field>
-                <Field label="Consumer Secret"><input type="password" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" /></Field>
+                <Field label="Consumer Key">
+                  <input
+                    type="password"
+                    value={config.consumer_key ?? ''}
+                    onChange={e => setConfigField('consumer_key', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Consumer Secret">
+                  <input
+                    type="password"
+                    value={config.consumer_secret ?? ''}
+                    onChange={e => setConfigField('consumer_secret', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
               </>}
 
               <div className="pt-2 border-t border-stone-200 mt-3 flex items-center gap-2">
-                <Btn variant="outline"><Shield className="h-3 w-3" />Testar conexão</Btn>
-                <span className="text-[10.5px] text-stone-500">verifica credenciais antes de salvar</span>
+                <Btn variant="outline" disabled><Shield className="h-3 w-3" />Testar conexão</Btn>
+                <span className="text-[10.5px] text-stone-500">teste de conexão chega em onda futura — salve e use health check no card</span>
               </div>
             </div>
           )}
@@ -147,7 +268,11 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
           {step === 3 && d && (
             <div className="space-y-3">
               <Field label="Conta destino (FK accounts)">
-                <select className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]">
+                <select
+                  value={contaId}
+                  onChange={e => setContaId(e.target.value)}
+                  className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                >
                   <option value="">— sem vínculo —</option>
                   {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
@@ -155,15 +280,25 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
               <Field label="Ambiente inicial">
                 <div className="inline-flex bg-stone-100 rounded p-0.5 border border-stone-200">
                   {d.ambientes.map(a => (
-                    <button key={a} className={cn(
-                      'h-7 px-3 rounded text-[11.5px] transition',
-                      a === d.ambientes[0] ? 'bg-white shadow-sm font-medium' : 'text-stone-600',
-                    )}>{a === 'production' ? 'produção' : 'sandbox'}</button>
+                    <button
+                      key={a}
+                      type="button"
+                      onClick={() => setAmbiente(a as 'production' | 'sandbox')}
+                      className={cn(
+                        'h-7 px-3 rounded text-[11.5px] transition',
+                        ambiente === a ? 'bg-white shadow-sm font-medium' : 'text-stone-600',
+                      )}
+                    >{a === 'production' ? 'produção' : 'sandbox'}</button>
                   ))}
                 </div>
               </Field>
               <label className="flex items-center gap-3 py-1.5">
-                <input type="checkbox" defaultChecked className="accent-stone-900 w-4 h-4" />
+                <input
+                  type="checkbox"
+                  checked={ativo}
+                  onChange={e => setAtivo(e.target.checked)}
+                  className="accent-stone-900 w-4 h-4"
+                />
                 <div>
                   <div className="text-[12.5px] text-stone-800">Ativar imediatamente</div>
                   <div className="text-[10.5px] text-stone-500">se desligado, gateway fica cadastrado mas não emite cobrança</div>
@@ -173,6 +308,11 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                 Ao confirmar, será criada uma linha em <span className="font-mono">payment_gateway_credentials</span> com <span className="font-mono">business_id</span> do business logado.
                 Webhook URL será gerada automaticamente — cole no painel do {d.nome} após criação.
               </div>
+              {error && (
+                <div className="bg-rose-50 border border-rose-200 rounded p-2.5 text-[11px] text-rose-800">
+                  {error}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -187,8 +327,8 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
             </Btn>
           )}
           {isLast && (
-            <Btn variant="primary" onClick={onClose}>
-              <Plus className="h-3 w-3" />Criar gateway
+            <Btn variant="primary" onClick={handleSubmit} disabled={submitting}>
+              <Plus className="h-3 w-3" />{submitting ? 'Criando…' : 'Criar gateway'}
             </Btn>
           )}
         </div>
