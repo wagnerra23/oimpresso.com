@@ -30,45 +30,41 @@
 @import "./sells-cowork-subscriptions.css";
 
 /* ============================================================================
- * FINANCEIRO — Design System Cowork — DESATIVADO 2026-05-18 noite (Plano B)
+ * FINANCEIRO — Design System Cowork — REATIVADO 2026-05-19 (Plano B canon)
  *
- * Os 5 @import abaixo foram DESLIGADOS porque o bundle
- * cowork-financeiro-bundle.css (9083 LOC) NÃO É ESCOPADO — define GLOBALS
- * (`*`, `html`, `body`, `#app`, `:root`) nas linhas 31/103/104/105 que
- * SOBRESCREVEM o grid 3-colunas do AppShellV2 (260+1fr+320) e quebram o
- * layout de /financeiro/unificado quando rodando fora do mock.
+ * Os 5 @import abaixo foram REATIVADOS após executar o Plano B documentado
+ * no histórico DESATIVADO de 2026-05-18 noite:
+ *   (a) script scripts/scope-fin-cowork-css.py espelha o pattern de
+ *       scope-sells-cowork-css.py — prefixa `.fin-cowork ` em TODOS
+ *       seletores top-level (2350 regras no bundle principal), mapeia
+ *       :root / html / body / * / #app → .fin-cowork (wrapper acts as body),
+ *       preserva @keyframes / @font-face (global by spec), recursa em
+ *       @media / @supports / @container / @layer.
+ *   (b) Pages/Financeiro/**/*.tsx envolvidas em <div className="fin-cowork">
+ *       (mesmo pattern de Sells/Index linha 917 com `.sells-cowork`).
+ *   (c) Build npm + smoke biz=1 (ROTA LIVRE não, ADR 0101) + biz=4 valida
+ *       AppShellV2 grid 3-cols intacto.
  *
- * Diferença com Sells: `sells-cowork*.css` é ESCOPADO em `.sells-cowork`
- * prefix (script scripts/scope-sells-cowork-css.py). Bundle Financeiro
- * chegou inteiro sem prefix por design — pra rodar dentro do mock literal
- * que serve como SHELL próprio (`<base href="/cowork-preview/">`), não
- * dentro do AppShellV2.
+ * Antes (2026-05-18 noite): bundle não-escopado definia GLOBALS
+ * (`*`, `html`, `body`, `#app`, `:root`) que SOBRESCREVIAM o grid
+ * 3-colunas do AppShellV2 (260+1fr+320) e quebravam /financeiro/unificado.
+ * Agora: todos seletores top-level escopados em .fin-cowork — afeta
+ * APENAS conteúdo dentro de <div className="fin-cowork">, AppShellV2 intacto.
  *
- * Plano B canon (memory/reference/feedback-cowork-bundle-aplicar-inteiro.md
- * §Apêndice "Plano B canônico"): primeira aplicação Cowork no Financeiro
- * fica em PR futuro quando estiver pronto pra:
- *   (a) wrap script Python prefixar .fin-cowork em TODAS classes do bundle,
- *   (b) wrap <div className="fin-cowork"> em todas Pages/Financeiro/*.tsx,
- *   (c) smoke biz=1 + biz=4 validando AppShellV2 intacto.
+ * Refs: memory/reference/feedback-cowork-bundle-aplicar-inteiro.md
+ *       §Apêndice "Plano B canônico" — agora executado.
+ * Bug-report Wagner 2026-05-19: /financeiro/unificado renderizava HTML cru
+ * porque imports estavam comentados + Pages sem wrap.
  *
- * Por enquanto Pages/Financeiro/*.tsx renderizam com shadcn/Tailwind nativo
- * (igual Modules/Crm, Cockpit) dentro do AppShellV2 canônico. Classes .fin-*
- * usadas nos JSX (.fin-row, .fin-drawer-tabs, .fin-card-kpi etc) ficam sem
- * estilo até o wrap escopado existir.
- *
- * Arquivos CSS preservados em resources/css/ (NÃO deletados):
- *   - cowork-financeiro-bundle.css (9083 LOC bundle)
- *   - fin-curadoria.css / fin-ia.css / fin-output.css / fin-cowork.css
- *
- * Reativação: descomentar os 5 @import abaixo + adicionar wrap escopado.
+ * Marker idempotente: primeira linha de cada CSS tem `/* SCOPED-OK */ */
+ *  (re-rodar scripts/scope-fin-cowork-css.py é no-op).
  * ============================================================================ */
 
-/* DESATIVADO 2026-05-18 noite — bundle não-escopado quebra AppShellV2 */
-/* @import "./cowork-financeiro-bundle.css"; */
-/* @import "./fin-curadoria.css"; */
-/* @import "./fin-ia.css"; */
-/* @import "./fin-output.css"; */
-/* @import "./fin-cowork.css"; */
+@import "./cowork-financeiro-bundle.css";
+@import "./fin-curadoria.css";
+@import "./fin-ia.css";
+@import "./fin-output.css";
+@import "./fin-cowork.css";
 
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

@@ -250,7 +250,7 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
 
 Index.layout = (page: React.ReactNode) => (
   <AppShellV2 title="Contas a Pagar" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas a Pagar' }]}>
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 export default Index;

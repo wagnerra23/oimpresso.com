@@ -202,7 +202,7 @@ FinanceiroFluxo.layout = (page: ReactNode) => (
     title="Financeiro — Fluxo de caixa"
     breadcrumbItems={[{ label: 'Financeiro', href: '/financeiro' }, { label: 'Fluxo de caixa' }]}
   >
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 
