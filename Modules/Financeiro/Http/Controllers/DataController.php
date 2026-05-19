@@ -132,15 +132,16 @@ class DataController extends Controller
                     ]
                 )->order(85.2);
 
-                // 4. Gateway de Pagamento (renomeado de "Boletos" — Wagner
-                // 2026-05-18: "Boletos" muito restrito; gateway cobre
-                // Inter API + PIX + futuras integrações).
+                // 4. Cobrança (substitui "Boletos" / "Gateway de Pagamento" —
+                // Wagner 2026-05-19: F3 PaymentGateway UI Tela 1 entregue
+                // em /financeiro/cobranca, escopo expandido pra todos tipos
+                // boleto+pix+pix_recv+card. ADR 0144 + 0170).
                 $menu->url(
-                    url('/financeiro/boletos'),
-                    __('financeiro::financeiro.boletos_label'),
+                    url('/financeiro/cobranca'),
+                    __('financeiro::financeiro.cobranca_label'),
                     [
                         'icon'   => 'fa fas fa-credit-card',
-                        'active' => $segmento_ativo && request()->segment(2) == 'boletos',
+                        'active' => $segmento_ativo && request()->segment(2) === 'cobranca',
                     ]
                 )->order(85.3);
             }
