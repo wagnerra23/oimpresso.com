@@ -6,10 +6,8 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Switch } from '@/Components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Textarea } from '@/Components/ui/textarea';
-import { Badge } from '@/Components/ui/badge';
 import { toast } from 'sonner';
-import { Building2, KeyRound, Landmark, Wifi } from 'lucide-react';
+import { Building2, Landmark } from 'lucide-react';
 
 interface Account {
   id: number;
@@ -31,10 +29,6 @@ interface Account {
   beneficiario_cep: string | null;
   ativo_para_boleto: boolean | null;
   tipo_conta: string | null;
-  gateway_banco: string | null;
-  gateway_ambiente: string | null;
-  gateway_ativo: boolean | null;
-  gateway_client_id: string | null;
 }
 
 interface Props {
@@ -68,8 +62,10 @@ const BANCO_NOMES: Record<string, string> = {
   '756': 'Sicoob (Bancoob)',
 };
 
-const GATEWAY_BANKS = ['077', '274'];
-const GATEWAY_ONLY  = ['274']; // sem agência/carteira/CNAB
+// Bancos gateway-only (sem agência/carteira/CNAB). Credenciais API
+// (Inter / Asaas / C6 etc) vivem em /settings/payment-gateways — esta tela
+// cuida só dos dados pra emissão de boleto CNAB direto + beneficiário.
+const GATEWAY_ONLY = ['274'];
 
 // Asterisco vermelho dedicado pra campos obrigatórios. aria-hidden pq o
 // input usa aria-required (a11y via attribute, não texto do label).
@@ -119,19 +115,9 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
     beneficiario_cep: account.beneficiario_cep ?? '',
     ativo_para_boleto: account.ativo_para_boleto ?? true,
     metadata: {} as Record<string, string>,
-    gateway_ambiente: (account.gateway_ambiente ?? 'production') as 'production' | 'sandbox',
-    gateway_client_id: account.gateway_client_id ?? '',
-    gateway_client_secret: '',
-    gateway_certificado_crt: '',
-    gateway_certificado_key: '',
-    gateway_api_key: '',
   });
 
-  const isGatewayBank = GATEWAY_BANKS.includes(form.data.banco_codigo);
   const isGatewayOnly = GATEWAY_ONLY.includes(form.data.banco_codigo);
-  const isInter = form.data.banco_codigo === '077';
-  const isAsaas = form.data.banco_codigo === '274';
-  const hasExistingCredential = Boolean(account.gateway_banco);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -280,7 +266,7 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
                 <Input
                   id="beneficiario_documento"
                   aria-required="true"
-                  placeholder="12.345.678/0001-99"
+                  placeholder="XX.XXX.XXX/XXXX-XX"
                   value={form.data.beneficiario_documento}
                   onChange={(e) => form.setData('beneficiario_documento', e.target.value)}
                 />
@@ -353,134 +339,9 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
             </div>
           </div>
 
-          {/* Credenciais API — gateway banks (Inter 077 / Asaas 274) */}
-          {isGatewayBank && (
-            <div className="border-t pt-5 space-y-4">
-              <SectionHeader
-                icon={KeyRound}
-                title="Credenciais API"
-                eyebrow={isInter ? 'OAuth2 + mTLS' : 'token API'}
-                action={
-                  hasExistingCredential && (
-                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-300 gap-1">
-                      <Wifi className="h-3 w-3" /> Configurado
-                    </Badge>
-                  )
-                }
-              />
-
-              <div>
-                <Label htmlFor="gateway_ambiente">Ambiente</Label>
-                <Select
-                  value={form.data.gateway_ambiente}
-                  onValueChange={(v) => form.setData('gateway_ambiente', v as 'production' | 'sandbox')}
-                >
-                  <SelectTrigger id="gateway_ambiente">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sandbox">Sandbox (testes)</SelectItem>
-                    <SelectItem value="production">Produção</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
-                  Comece em Sandbox pra validar o fluxo; troque pra Produção depois do primeiro boleto OK.
-                </p>
-              </div>
-
-              {isInter && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="gateway_client_id">Client ID</Label>
-                      <Input
-                        id="gateway_client_id"
-                        value={form.data.gateway_client_id}
-                        onChange={(e) => form.setData('gateway_client_id', e.target.value)}
-                        placeholder="ex: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                        className="font-mono text-[13px]"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="gateway_client_secret">
-                        Client Secret
-                        {hasExistingCredential && (
-                          <span className="text-muted-foreground font-normal ml-1">(deixe em branco para manter)</span>
-                        )}
-                      </Label>
-                      <Input
-                        id="gateway_client_secret"
-                        type="password"
-                        value={form.data.gateway_client_secret}
-                        onChange={(e) => form.setData('gateway_client_secret', e.target.value)}
-                        placeholder={hasExistingCredential ? '••••••••' : 'client_secret'}
-                        autoComplete="new-password"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="gateway_certificado_crt">
-                      Certificado mTLS (.crt — PEM)
-                      {hasExistingCredential && (
-                        <span className="text-muted-foreground font-normal ml-1">(deixe em branco para manter)</span>
-                      )}
-                    </Label>
-                    <Textarea
-                      id="gateway_certificado_crt"
-                      rows={5}
-                      value={form.data.gateway_certificado_crt}
-                      onChange={(e) => form.setData('gateway_certificado_crt', e.target.value)}
-                      placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-                      className="font-mono text-[12px]"
-                    />
-                    <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
-                      Certificado emitido pelo Banco Inter pra autenticação OAuth2 mTLS.
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="gateway_certificado_key">
-                      Chave privada (.key — PEM)
-                      {hasExistingCredential && (
-                        <span className="text-muted-foreground font-normal ml-1">(deixe em branco para manter)</span>
-                      )}
-                    </Label>
-                    <Textarea
-                      id="gateway_certificado_key"
-                      rows={5}
-                      value={form.data.gateway_certificado_key}
-                      onChange={(e) => form.setData('gateway_certificado_key', e.target.value)}
-                      placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
-                      className="font-mono text-[12px]"
-                    />
-                  </div>
-                </>
-              )}
-
-              {isAsaas && (
-                <div>
-                  <Label htmlFor="gateway_api_key">
-                    API Key
-                    {hasExistingCredential && (
-                      <span className="text-muted-foreground font-normal ml-1">(deixe em branco para manter)</span>
-                    )}
-                  </Label>
-                  <Input
-                    id="gateway_api_key"
-                    type="password"
-                    value={form.data.gateway_api_key}
-                    onChange={(e) => form.setData('gateway_api_key', e.target.value)}
-                    placeholder={hasExistingCredential ? '••••••••' : '$aact_...'}
-                    autoComplete="new-password"
-                  />
-                  <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
-                    Token API gerado em sua conta Asaas → Configurações → Integrações.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Credenciais API (Inter OAuth2 + mTLS · Asaas token · etc) vivem em
+              /settings/payment-gateways desde 2026-05-19 (PR #1153/#1154).
+              Esta tela cuida só dos dados de boleto + beneficiário. */}
 
           {/* Toggle ativo — card destacado sem border duplicada (bg + radius bastam) */}
           <div className="border-t pt-5">

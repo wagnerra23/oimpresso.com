@@ -4,7 +4,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import { Settings, Plus, AlertTriangle, CheckCircle2, MinusCircle, Wifi } from 'lucide-react';
+import { Settings, Plus, AlertTriangle, CheckCircle2, MinusCircle } from 'lucide-react';
 import { ConfigurarBoletoSheet } from './components/ConfigurarBoletoSheet';
 
 interface Account {
@@ -29,11 +29,6 @@ interface Account {
   beneficiario_cep: string | null;
   ativo_para_boleto: boolean | null;
   tipo_conta: string | null;
-  rb_gateway_credential_id: number | null;
-  gateway_banco: string | null;
-  gateway_ambiente: string | null;
-  gateway_ativo: boolean | null;
-  gateway_client_id: string | null;
   metadata: Record<string, unknown> | null;
 }
 
@@ -41,8 +36,6 @@ interface Props {
   accounts: Account[];
   bancos_suportados: string[];
 }
-
-const GATEWAY_LABEL: Record<string, string> = { inter: 'Inter API', asaas: 'Asaas' };
 
 function StatusBadge({ account }: { account: Account }) {
   if (!account.complemento_id) {
@@ -59,18 +52,9 @@ function StatusBadge({ account }: { account: Account }) {
       </span>
     );
   }
-  if (account.gateway_banco) {
-    const label = GATEWAY_LABEL[account.gateway_banco] ?? account.gateway_banco;
-    const isSandbox = account.gateway_ambiente === 'sandbox';
-    return (
-      <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${isSandbox ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200'}`}>
-        <Wifi className="h-3 w-3" /> {label}{isSandbox ? ' · sandbox' : ''}
-      </span>
-    );
-  }
   return (
     <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200">
-      <CheckCircle2 className="h-3 w-3" /> Ativo · Cart. {account.carteira}
+      <CheckCircle2 className="h-3 w-3" /> Ativo{account.carteira ? ` · Cart. ${account.carteira}` : ''}
     </span>
   );
 }
@@ -85,15 +69,24 @@ function Index({ accounts, bancos_suportados }: Props) {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Contas Bancárias</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Configure os dados específicos para emissão de boleto.
-              Cadastro principal da conta continua no menu &quot;Contas de pagamento&quot; do POS.
+              Dados pra emissão de boleto (banco, agência, beneficiário). Cadastro
+              principal da conta continua em &quot;Contas de pagamento&quot; do POS;
+              credenciais API (Inter, Asaas, C6) ficam em{' '}
+              <a href="/settings/payment-gateways" className="underline underline-offset-2 hover:text-foreground">
+                Gateways de Pagamento
+              </a>.
             </p>
           </div>
-          <Button asChild variant="outline">
-            <a href="/account/account/create">
-              <Plus className="h-4 w-4 mr-2" /> Nova conta no POS
-            </a>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="ghost">
+              <a href="/settings/payment-gateways">Gateways</a>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="/account/account/create">
+                <Plus className="h-4 w-4 mr-2" /> Nova conta no POS
+              </a>
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-md border">
