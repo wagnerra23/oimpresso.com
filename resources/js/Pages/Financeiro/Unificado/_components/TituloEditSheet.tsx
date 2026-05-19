@@ -15,7 +15,7 @@ import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
 
 interface Categoria {
   id: number;
@@ -84,15 +84,18 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias }: Titul
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="w-[460px] sm:max-w-[460px] flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="text-[15px]">Editar lançamento</SheetTitle>
-          <SheetDescription className="text-[12px] text-stone-500">
-            #{lancamento.id} · {lancamento.status === 'quitado' ? 'Já quitado — valor imutável' : 'Campos seguros editáveis'}
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent side="right" className="w-[460px] sm:max-w-[460px] flex flex-col p-0">
+        {/* Onda 13 (2026-05-19) — header canon os-drawer-head paridade canon REAL */}
+        <header className="os-drawer-head">
+          <div className="os-drawer-head-l">
+            <SheetTitle asChild><h2 className="m-0">Editar lançamento</h2></SheetTitle>
+            <SheetDescription asChild>
+              <p>#{lancamento.id} · {lancamento.status === 'quitado' ? 'Já quitado — valor imutável' : 'Campos seguros editáveis'}</p>
+            </SheetDescription>
+          </div>
+        </header>
 
-        <form onSubmit={submit} className="mt-4 space-y-4 text-[13px] flex-1 overflow-y-auto pr-1">
+        <form onSubmit={submit} className="os-drawer-body p-5 space-y-4 text-[13px] flex-1 overflow-y-auto">
           <div className="space-y-1.5">
             <label htmlFor="ed-desc" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
               Descrição / contraparte

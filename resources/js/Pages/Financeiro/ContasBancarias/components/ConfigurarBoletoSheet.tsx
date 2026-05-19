@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -133,19 +133,22 @@ export function ConfigurarBoletoSheet({ account, bancosSuportados, onClose }: Pr
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto px-6">
-        <SheetHeader className="pb-5 border-b px-0">
-          <SheetTitle className="text-xl font-semibold tracking-tight">
-            Configurar boleto
-          </SheetTitle>
-          <SheetDescription className="text-sm text-muted-foreground">
-            {[account.name?.trim(), account.account_number?.trim() && `Conta ${account.account_number}`]
-              .filter(Boolean)
-              .join(' · ') || 'Preencha os dados pra emitir boleto desta conta'}
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto p-0">
+        {/* Onda 13 (2026-05-19) — header canon os-drawer-head paridade Cowork REAL */}
+        <header className="os-drawer-head">
+          <div className="os-drawer-head-l">
+            <SheetTitle asChild><h2 className="m-0">Configurar boleto</h2></SheetTitle>
+            <SheetDescription asChild>
+              <p>
+                {[account.name?.trim(), account.account_number?.trim() && `Conta ${account.account_number}`]
+                  .filter(Boolean)
+                  .join(' · ') || 'Preencha os dados pra emitir boleto desta conta'}
+              </p>
+            </SheetDescription>
+          </div>
+        </header>
 
-        <form onSubmit={submit} className="space-y-5 mt-5 pb-6">
+        <form onSubmit={submit} className="os-drawer-body p-6 space-y-5">
           {/* Conta bancária */}
           <div className="space-y-4">
             <SectionHeader icon={Landmark} title="Conta bancária" eyebrow="dados pra emissão" />
