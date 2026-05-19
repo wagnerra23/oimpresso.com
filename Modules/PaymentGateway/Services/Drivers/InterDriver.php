@@ -50,7 +50,7 @@ class InterDriver implements PaymentDriverContract
 
     public function supports(string $tipo): bool
     {
-        return in_array($tipo, ['boleto'], true);
+        return in_array($tipo, ['boleto', 'pix_cob', 'pix_cobv'], true);
     }
 
     public function emitirBoleto(EmitirCobrancaInput $input, object $cred): CobrancaEmitidaResult
@@ -89,29 +89,30 @@ class InterDriver implements PaymentDriverContract
     }
 
     /**
-     * Inter PIX cobrança imediata (cob) via API Pix v2.
+     * Inter PIX cobrança via API Pix v2.
      *
-     * Onda 4b: apenas tipo 'cob' (imediata, sem vencimento). 'cobv' (com
-     * vencimento) fica pra evolução condicional Onda 4c se cliente pedir.
+     * Onda 4b: tipo 'cob' (imediata).
+     * Onda 4c: tipo 'cobv' (com vencimento) via PUT /pix/v2/cobv/{txid}.
+     *
+     * Diferenças:
+     *   - cob:  calendario.expiracao em segundos (TTL curto, ex 1h)
+     *   - cobv: calendario.dataDeVencimento + validadeAposVencimento (dias)
      */
     public function emitirPix(EmitirCobrancaInput $input, object $cred, string $tipo): CobrancaEmitidaResult
     {
-        if ($tipo !== 'cob') {
+        if (! in_array($tipo, ['cob', 'cobv'], true)) {
             throw new DriverNotSupportedException(
-                "Inter só suporta PIX 'cob' nesta onda (recebido '{$tipo}'). cobv chega em 4c."
+                "Inter PIX suporta 'cob' ou 'cobv', recebido '{$tipo}'"
             );
         }
         $this->assertCredential($cred);
 
         $pixKey = $input->meta['pix_key'] ?? null;
         if ($pixKey === null) {
-            throw new InvalidPayerException('Inter PIX cob exige meta.pix_key (chave PIX do beneficiário)');
+            throw new InvalidPayerException("Inter PIX {$tipo} exige meta.pix_key (chave PIX do beneficiário)");
         }
 
         $payload = [
-            'calendario' => [
-                'expiracao' => 3600, // 1h padrão
-            ],
             'devedor' => array_filter([
                 'cpf'  => preg_replace('/\D/', '', $input->meta['payer_cpf_cnpj'] ?? '') ?: null,
                 'nome' => $input->meta['payer_name'] ?? null,
@@ -123,12 +124,21 @@ class InterDriver implements PaymentDriverContract
             'solicitacaoPagador' => substr($input->descricao, 0, 140),
         ];
 
-        $response = $this->client($cred)
-            ->put("/pix/v2/cob/{$input->idempotencyKey}", $payload);
+        if ($tipo === 'cob') {
+            $payload['calendario'] = ['expiracao' => 3600]; // 1h padrão
+        } else { // cobv
+            $payload['calendario'] = [
+                'dataDeVencimento'         => Carbon::instance($input->vencimento)->toDateString(),
+                'validadeAposVencimento'   => $input->meta['validade_apos_vencimento'] ?? 30,
+            ];
+        }
+
+        $endpoint = "/pix/v2/{$tipo}/{$input->idempotencyKey}";
+        $response = $this->client($cred)->put($endpoint, $payload);
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
-                "Inter PIX cob falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+                "Inter PIX {$tipo} falhou ({$response->status()}): " . substr($response->body(), 0, 200)
             );
         }
 
@@ -137,13 +147,13 @@ class InterDriver implements PaymentDriverContract
         $emv = (string) ($data['pixCopiaECola'] ?? '');
 
         if ($emv === '') {
-            throw new InvalidPayerException('Inter PIX retornou sem pixCopiaECola');
+            throw new InvalidPayerException("Inter PIX {$tipo} retornou sem pixCopiaECola");
         }
 
         return new CobrancaEmitidaResult(
             cobrancaId: 0,
             gatewayExternalId: $txid,
-            tipo: 'pix_cob',
+            tipo: $tipo === 'cob' ? 'pix_cob' : 'pix_cobv',
             emitidaEm: new \DateTimeImmutable(),
             pixEmv: $emv,
             payloadGateway: $data,
@@ -182,11 +192,55 @@ class InterDriver implements PaymentDriverContract
         }
     }
 
+    /**
+     * Inter refund — Onda 4c.
+     *
+     * **PIX cob/cobv:** suportado via POST /pix/v2/cob/{txid}/devolucao/{idDev}
+     * (BCB padrão Pix devolução). Valor opcional pra refund parcial.
+     *
+     * **Boleto:** NÃO suportado via API Inter — banco exige estorno via PIX
+     * recebimento (TED reverso operado pelo operador da conta). Throw
+     * DriverNotSupportedException com mensagem clara.
+     *
+     * O tipo é inferido pelo cobranca->tipo (preenchido pelo Service quando
+     * criou a Cobranca). Se ausente, throw.
+     */
     public function refund(object $cobranca, object $cred, ?int $valorCentavos, string $motivo): void
     {
-        throw new DriverNotSupportedException(
-            'Inter refund parcial chega em Onda 4c. Hoje cancelar antes do pagamento OU manual via UI Inter.'
-        );
+        $this->assertCredential($cred);
+        $tipo = (string) ($cobranca->tipo ?? '');
+        $extId = (string) ($cobranca->gateway_external_id ?? '');
+
+        if ($extId === '') {
+            throw new InvalidPayerException('Cobranca sem gateway_external_id pra refund no Inter');
+        }
+
+        if (! in_array($tipo, ['pix_cob', 'pix_cobv'], true)) {
+            throw new DriverNotSupportedException(
+                "Inter refund só funciona pra PIX (cob/cobv). Tipo recebido '{$tipo}'. " .
+                'Refund de boleto Inter precisa ser feito manualmente via PIX recebimento ' .
+                '(TED reverso operado pelo titular da conta).'
+            );
+        }
+
+        $idDevolucao = (string) ($cobranca->refund_idempotency_key ?? 'devolucao-' . substr(md5($extId . microtime()), 0, 20));
+        $valorReais = $valorCentavos !== null
+            ? number_format($valorCentavos / 100, 2, '.', '')
+            : null;
+
+        $payload = ['valor' => $valorReais ?? '0.00'];
+        if ($motivo !== '') {
+            $payload['descricao'] = substr($motivo, 0, 140);
+        }
+
+        $response = $this->client($cred)
+            ->put("/pix/v2/cob/{$extId}/devolucao/{$idDevolucao}", $payload);
+
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "Inter PIX devolução falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
     }
 
     public function consultar(object $cobranca, object $cred): CobrancaStatus
