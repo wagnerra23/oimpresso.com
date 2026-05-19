@@ -1,9 +1,11 @@
 // CobrancaDrawer.tsx — drawer lateral canon 2 modos (view / form)
 // Port literal pg-vendas-integration.jsx Cowork F1.5 — refator P0 (modal → drawer lateral).
 // ESC + scroll lock + focus trap (WCAG 2.1). ADR 0144 + ADR 0170.
+// Onda 4d.5: wire-up emissão real via POST /sells/{id}/emitir-cobranca.
 
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import { X, Check, RotateCw, ArrowRight } from 'lucide-react';
 import type { CobrancaState, VendaContext } from './CobrancaChip';
 
@@ -51,6 +53,43 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
     d.setDate(d.getDate() + 7);
     return d.toISOString().slice(0, 10);
   });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Onda 4d.5: POST /sells/{id}/emitir-cobranca real
+  const emitir = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    const idempotency = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    try {
+      const response = await fetch(`/sells/${venda.id}/emitir-cobranca`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content || '',
+        },
+        body: JSON.stringify({
+          tipo,
+          vencimento: venc,
+          idempotency_key: idempotency,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error || 'Falha ao emitir cobrança');
+        return;
+      }
+      toast.success(`Cobrança #${data.cobranca_id} emitida via ${data.tipo}`);
+      router.reload({ only: ['cobranca'] });
+      onClose();
+    } catch (e) {
+      toast.error('Erro de rede ao emitir cobrança');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -211,13 +250,13 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
           </button>
           <div className="flex-1" />
           {!isView && (
-            <button onClick={onClose} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md bg-stone-900 text-white hover:bg-stone-800">
-              <Check className="h-3 w-3" />Emitir cobrança
+            <button onClick={emitir} disabled={submitting} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md bg-stone-900 text-white hover:bg-stone-800 disabled:opacity-50">
+              <Check className="h-3 w-3" />{submitting ? 'Emitindo…' : 'Emitir cobrança'}
             </button>
           )}
           {state.kind === 'error' && (
-            <button onClick={onClose} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md bg-stone-900 text-white hover:bg-stone-800">
-              <RotateCw className="h-3 w-3" />Reemitir
+            <button onClick={emitir} disabled={submitting} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md bg-stone-900 text-white hover:bg-stone-800 disabled:opacity-50">
+              <RotateCw className="h-3 w-3" />{submitting ? 'Reemitindo…' : 'Reemitir'}
             </button>
           )}
         </footer>
