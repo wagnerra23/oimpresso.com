@@ -6,7 +6,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import {
@@ -83,12 +83,16 @@ export default function AssinaturaAtualizar({ assinaturas }: Props) {
   return (
     <AppShellV2 title="Atualizar Cobranca">
       <div className="fin-cowork">
-      <div className="container mx-auto max-w-2xl py-6">
+      <div className="fin-curadoria vendas-aplus container mx-auto max-w-2xl py-6">
+        {/* Onda 14 (2026-05-19) — header canon */}
+        <header className="os-page-h fin-page-h">
+          <div className="os-page-h-l fin-page-h-l">
+            <h1>Atualizar cobrança <span className="fin-hero-title-sub">· Assinatura</span></h1>
+            <p>Mude a data de vencimento ou plano de uma assinatura ativa</p>
+          </div>
+        </header>
         <Card>
-          <CardHeader>
-            <CardTitle>Atualizar cobranca de assinatura</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
               <Label htmlFor="assinatura">Assinatura</Label>
               <Select value={selectedId} onValueChange={setSelectedId}>
