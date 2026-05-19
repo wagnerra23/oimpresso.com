@@ -545,14 +545,17 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
         </div>
         <div className="fin-page-h-r">
-          <button type="button" className="fin-btn" onClick={() => setPaletteOpen(true)}>
+          {/* Onda 12.2 — classes `os-btn ghost` (canon REAL: bg transparent, sem borda)
+              em vez de `fin-btn` (que tinha bg branco + borda visível, criando "cartões"
+              em vez de tabs/links discretos). DOM canon DOM forensics confirma. */}
+          <button type="button" className="os-btn ghost" onClick={() => setPaletteOpen(true)}>
             <Search size={13} />
             Buscar
             <kbd>⌘K</kbd>
           </button>
           <button
             type="button"
-            className="fin-btn fin-btn-ai"
+            className="os-btn ghost fin-btn-ai"
             title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
             onClick={() => setResumoOpen(true)}
           >
@@ -561,7 +564,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           </button>
           <button
             type="button"
-            className="fin-btn fin-btn-trilha"
+            className="os-btn ghost fin-btn-trilha"
             onClick={() => setChecklistOpen(true)}
             title="Trilha de 12 passos do fechamento mensal"
           >
@@ -570,7 +573,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           </button>
           <button
             type="button"
-            className="fin-btn fin-btn-present"
+            className="os-btn ghost fin-btn-present"
             title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
             onClick={() => setPresentOpen(true)}
           >
@@ -579,7 +582,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           </button>
           <button
             type="button"
-            className="fin-btn"
+            className="os-btn ghost"
             title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
             onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
           >
@@ -587,11 +590,11 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             Imprimir
             {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
           </button>
-          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/extrato')}>
+          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/extrato')}>
             <RefreshCw size={13} />
             Conciliar
           </button>
-          <button type="button" className="fin-btn" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas — categorias contábeis">
+          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas — categorias contábeis">
             <FolderOpen size={13} />
             Plano de contas
           </button>
@@ -599,7 +602,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
               Onclick stub abre ⌘K palette por enquanto; handler real (Exportar XLSX/PDF) vira US futura. */}
           <button
             type="button"
-            className="fin-btn"
+            className="os-btn ghost"
             title="Exportar lançamentos do período (XLSX / PDF)"
             aria-label="Exportar"
             onClick={() => setPaletteOpen(true)}
@@ -607,7 +610,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           >
             <Download size={13} />
           </button>
-          <button type="button" className="fin-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
+          <button type="button" className="os-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
             <Plus size={13} />
             Novo lançamento
           </button>
