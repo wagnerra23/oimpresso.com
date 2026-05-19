@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
-  X, Copy, Shield, RefreshCw, Zap, Check,
+  X, Copy, Shield, RefreshCw, Zap, Check, Trash2,
 } from 'lucide-react';
 import { Btn, KpiCard } from '../../../Financeiro/Cobranca/_components/atoms';
 import {
@@ -41,6 +41,8 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
   const [certPassword, setCertPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   function setConfigField(key: string, value: string): void {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -75,6 +77,24 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
         setSaving(false);
         const firstError = Object.values(errors)[0];
         setSaveError(typeof firstError === 'string' ? firstError : 'Erro ao salvar');
+      },
+    });
+  }
+
+  function handleDelete(): void {
+    setSaveError(null);
+    setDeleting(true);
+    router.delete(`/settings/payment-gateways/${gateway.id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setDeleting(false);
+        onClose();
+      },
+      onError: (errors) => {
+        setDeleting(false);
+        setConfirmDelete(false);
+        const firstError = Object.values(errors)[0];
+        setSaveError(typeof firstError === 'string' ? firstError : 'Erro ao excluir');
       },
     });
   }
@@ -391,17 +411,42 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
           )}
         </div>
 
-        <div className="border-t border-stone-200 p-3 flex items-center gap-2 bg-stone-50/60">
-          {saveError ? (
-            <div className="text-[11px] text-rose-700 flex-1 truncate">{saveError}</div>
+        <div className="border-t border-stone-200 p-3 bg-stone-50/60">
+          {confirmDelete ? (
+            <div className="flex items-center gap-2">
+              <div className="text-[11.5px] text-rose-700 flex-1">
+                <strong>Excluir credencial #{gateway.id}?</strong> Apaga arquivos cert/key também. Cobranças vinculadas mantêm histórico (FK vira NULL).
+              </div>
+              <Btn variant="outline" onClick={() => setConfirmDelete(false)} disabled={deleting}>Não</Btn>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-[12px] font-medium bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-60"
+              >
+                <Trash2 className="h-3 w-3" />{deleting ? 'Excluindo…' : 'Sim, excluir'}
+              </button>
+            </div>
           ) : (
-            <div className="text-[11px] text-stone-500">Apenas campos preenchidos são atualizados.</div>
+            <div className="flex items-center gap-2">
+              {saveError ? (
+                <div className="text-[11px] text-rose-700 flex-1 truncate">{saveError}</div>
+              ) : (
+                <div className="text-[11px] text-stone-500 flex-1">Apenas campos preenchidos são atualizados.</div>
+              )}
+              <button
+                onClick={() => setConfirmDelete(true)}
+                disabled={saving || deleting}
+                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded text-[11.5px] text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                title="Excluir credencial"
+              >
+                <Trash2 className="h-3 w-3" />Excluir
+              </button>
+              <Btn variant="outline" onClick={onClose} disabled={saving}>Cancelar</Btn>
+              <Btn variant="primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Salvando…' : 'Salvar'}
+              </Btn>
+            </div>
           )}
-          <div className="flex-1" />
-          <Btn variant="outline" onClick={onClose} disabled={saving}>Cancelar</Btn>
-          <Btn variant="primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando…' : 'Salvar'}
-          </Btn>
         </div>
       </div>
     </div>
