@@ -293,6 +293,57 @@ class PaymentGatewaysController extends Controller
     }
 
     /**
+     * Exclui credencial + apaga storage de certs.
+     *
+     * Onda 5+ (Wagner 2026-05-19) — DELETE /settings/payment-gateways/{id}.
+     *
+     * Tier 0: business_id da session — credencial cross-tenant NÃO pode
+     * ser deletada por business não-owner. findOrFail dentro do scope
+     * garante 404 se credential pertence a outro biz.
+     *
+     * Side effects:
+     *   - Apaga arquivos cert.* + key.* em storage/app/private/payment-gateway/{biz}/{cred}/
+     *   - Remove o diretório completo se vazio
+     *
+     * Hard delete (PaymentGatewayCredential não tem soft deletes no schema).
+     * Cobranças vinculadas continuam (FK cobrancas.payment_gateway_credential_id
+     * permanece NULL após delete — não cascateia pra preservar histórico).
+     */
+    public function destroy(Request $request, int $credentialId): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
+
+        $cred = PaymentGatewayCredential::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($credentialId);
+
+        $certDir = 'payment-gateway/' . $businessId . '/' . $cred->id;
+        try {
+            Storage::disk('local')->deleteDirectory($certDir);
+        } catch (\Throwable $e) {
+            Log::warning('[paymentgateway.credential.destroy.storage_cleanup_failed]', [
+                'credential_id' => $cred->id,
+                'business_id'   => $businessId,
+                'exception'     => $e->getMessage(),
+            ]);
+        }
+
+        $cred->delete();
+
+        Log::info('[paymentgateway.credential.destroyed]', [
+            'business_id'   => $businessId,
+            'credential_id' => $credentialId,
+            'gateway_key'   => $cred->gateway_key,
+            'ambiente'      => $cred->ambiente,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'credential_id' => $credentialId,
+        ]);
+    }
+
+    /**
      * Toggle ativo/inativo da credencial (Trust L3 — confirma front-end).
      */
     public function toggle(Request $request, int $credentialId): JsonResponse
