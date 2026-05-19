@@ -55,36 +55,26 @@ class EmitTrialExpiredCobrancasCommand extends Command
             $this->warn('[dry-run] Nenhuma cobrança será emitida.');
         }
 
-        // 1. Pré-condições Wagner biz=1
+        // 1. Pré-condições Wagner biz=1 — canon Onda 5 (Wagner 2026-05-19):
+        // resolve via payment_gateway_credentials.conta_bancaria_id (wizard step 3)
         $credencial = PaymentGatewayCredential::query()
             ->withoutGlobalScopes()
             ->where('business_id', 1)
             ->where('gateway_key', 'bcb_pix')
             ->where('ativo', true)
+            ->whereNotNull('conta_bancaria_id')
+            ->orderByDesc('id')
             ->first();
 
         if (!$credencial) {
-            $this->error('Sem credencial BCB ativa em biz=1. Cadastre em /paymentgateway/credenciais.');
+            $this->error('Sem credencial BCB ativa em biz=1 com Conta destino vinculada. Cadastre em /settings/payment-gateways e vincule Conta destino no step 3.');
 
             return self::FAILURE;
         }
 
-        $contaBancaria = ContaBancaria::query()
-            ->withoutGlobalScopes()
-            ->where('business_id', 1)
-            ->where('payment_gateway_credential_id', $credencial->id)
-            ->where('ativo_para_boleto', true)
-            ->first();
-
-        if (!$contaBancaria) {
-            $this->error('Sem ContaBancaria vinculada à credencial BCB. Configure em /financeiro/contas.');
-
-            return self::FAILURE;
-        }
-
-        $account = Account::find($contaBancaria->account_id);
+        $account = Account::find($credencial->conta_bancaria_id);
         if (!$account) {
-            $this->error('Account UltimatePOS não encontrada (ContaBancaria #' . $contaBancaria->id . ').');
+            $this->error('Account UltimatePOS não encontrada (credencial #' . $credencial->id . ').');
 
             return self::FAILURE;
         }
