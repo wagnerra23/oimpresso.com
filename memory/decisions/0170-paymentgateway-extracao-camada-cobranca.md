@@ -18,7 +18,7 @@ related:
   - '0101'
   - '0114'
   - '0143'
-emends:
+amends:
   - '0017'
 pii: false
 ---
@@ -331,7 +331,7 @@ Cada onda = PR isolada + ADR per-onda (filha desta) + smoke test biz=1 antes de 
 
 2. **Cowork next:** primeira tela F1 `Cobrança` (UI no Cockpit) — substitui `boletos` na sidebar do protótipo, com badges Inter/C6/Asaas/PIX. Pedido entra em `COWORK_NOTES.md` depois deste ADR mergeado.
 
-3. **Próximo ADR (0116):** detalhamento Onda 1 (esqueleto Module + ServiceProvider + Contracts) com critérios de sucesso e checklist de migração.
+3. **Próximo ADR (filho desta — Onda 1):** detalhamento esqueleto Module + ServiceProvider + Contracts com critérios de sucesso e checklist de migração. Número será atribuído na criação (próximo livre após 0170, evitar colisão como aconteceu com 0115/0144).
 
 4. **Health checks:** adicionar `payment_gateway` em `jana:health-check` quando Onda 1 mergear:
    - `payment_gateway.credentials_ativas`

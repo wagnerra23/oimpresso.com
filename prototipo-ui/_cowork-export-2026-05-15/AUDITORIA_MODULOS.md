@@ -7,7 +7,9 @@
 
 | Total no repo | No menu antes | No menu agora | Migrados (React) | Em iteração |
 |---|---|---|---|---|
-| **36** | 14 | **36** | 4 (Financeiro, MemCofre, Copiloto, Cms/Site) | 3 (Ponto WR2, NFSe, NfeBrasil) parciais |
+| **37** | 14 | **36** | 4 (Financeiro, MemCofre, Copiloto, Cms/Site) | 3 (Ponto WR2, NFSe, NfeBrasil) parciais |
+
+> **+1 desde 2026-05-13:** `Modules/PaymentGateway` adicionado em 2026-05-19 (Onda 0 — docs only, ADR 0170). Ainda não no menu (não habilitado).
 
 ## Por grupo no shell
 
