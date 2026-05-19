@@ -8,6 +8,7 @@ contains:
   - "ContaBancariaController"
   - "ContaPagarController"
   - "ContaReceberController"
+  - "CoworkSidebarController — endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
   - "DashboardController"
   - "DataController"
   - "ExtratoController"
