@@ -139,10 +139,13 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'fin',
     label: 'FINANCEIRO',
-    // Wagner 2026-05-18: 3 labels novas (Fluxo de Caixa / DRE / Gateway) saíram
+    // Wagner 2026-05-18: 3 labels novas (Fluxo de Caixa / DRE / Cobrança) saíram
     // do dropdown popover-2 pra entradas top-level — ficam visíveis sem click.
-    // "Boletos" renomeado pra "Gateway de Pagamento" (Inter API + PIX + futuro).
-    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Gateway de Pagamento', 'Cobrança Recorrente'],
+    // Wagner 2026-05-19: "Gateway de Pagamento" → "Cobrança" (F3 PaymentGateway
+    // UI Tela 1 entregue em /financeiro/cobranca — ADR 0144 + 0170). Posição
+    // acima de "Cobrança Recorrente" pra hierarquia visual (cobrança avulsa →
+    // cobrança recorrente RB).
+    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Cobrança', 'Cobrança Recorrente'],
   },
   {
     key: 'estoque',
