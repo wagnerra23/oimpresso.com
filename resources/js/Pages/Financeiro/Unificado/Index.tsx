@@ -643,7 +643,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
               <label
                 key={lc.id}
                 className={'fin-filter-cb' + (on ? ' on' : '')}
-                style={on ? ({ ['--cb-hue' as string]: lc.hue } as React.CSSProperties) : undefined}
+                // Onda 12 refine — hue SEMPRE setada (mesmo OFF) pra borda semântica
+                // persistir (paridade canon REAL: pills coloridos mesmo desligados).
+                style={{ ['--cb-hue' as string]: lc.hue } as React.CSSProperties}
               >
                 <input
                   type="checkbox"
@@ -653,7 +655,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 />
                 <span className="fin-filter-cb-box" />
                 <span>{lc.label}</span>
-                {count > 0 && <span className="fin-filter-ct">{count}</span>}
+                {/* Onda 12 refine — count sempre visível (paridade canon: mostra 0 também). */}
+                <span className="fin-filter-ct">{count}</span>
               </label>
             );
           })}
