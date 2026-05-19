@@ -211,6 +211,13 @@ class SubscriptionController extends BaseController
                 return $this->confirm_pesapal($package_id, $request);
             }
 
+            // ADR 0170 Onda 5 — PaymentGateway PIX Automático é assíncrono
+            // (mandato BCB + webhook posterior). Cria Subscription waiting +
+            // emite cobrança, mostra mensagem "aguardando autorização mandato".
+            if (request()->gateway === 'paymentgateway_pix_automatico') {
+                return $this->confirm_paymentgateway($package_id, $request);
+            }
+
             DB::beginTransaction();
 
             $business_id = request()->session()->get('user.business_id');
@@ -247,6 +254,134 @@ class SubscriptionController extends BaseController
         return redirect()
             ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
             ->with('status', $output);
+    }
+
+    /**
+     * Confirma cobrança via PaymentGateway PIX Automático BCB.
+     *
+     * ADR 0170 Onda 5 SIMPLIFICADA — assíncrono (mandato + webhook):
+     *   1. Cria Subscription status='waiting' (igual Pesapal)
+     *   2. Resolve credencial BCB + Account de Wagner
+     *   3. Emite PIX Automático via PaymentGatewayContract->emitirPixAutomatico
+     *   4. Salva payment_transaction_id (cobranca.id)
+     *   5. Redireciona com "Cobrança enviada — autorize mandato no app banco"
+     *
+     * Webhook BCB posterior dispara CobrancaPaga → OnCobrancaPagaUpdateSubscription
+     * muda status pra 'approved' e desbloqueia business se inadimplente.
+     */
+    protected function confirm_paymentgateway($package_id, $request)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $business_name = request()->session()->get('business.name');
+        $user_id = request()->session()->get('user.id');
+        $package = Package::active()->find($package_id);
+
+        if (!$package) {
+            return redirect()
+                ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
+                ->with('status', ['success' => 0, 'msg' => __('superadmin::lang.package_not_found') ?? 'Pacote nao encontrado']);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Cria Subscription waiting (pattern Pesapal — dates null)
+            $subscription = $this->_add_subscription(
+                $business_id,
+                $package,
+                'paymentgateway_pix_automatico',
+                null,
+                $user_id,
+            );
+
+            // _add_subscription pode ter aprovado direto (price=0 / lookup). Pra
+            // garantir waiting, força refresh.
+            if ($subscription->status !== 'waiting') {
+                $subscription->status = 'waiting';
+                $subscription->start_date = null;
+                $subscription->end_date = null;
+                $subscription->trial_end_date = null;
+                $subscription->save();
+            }
+
+            // 2. Resolve ContaBancaria + Account Wagner em biz=1
+            $contaBancaria = \Modules\Financeiro\Models\ContaBancaria::query()
+                ->withoutGlobalScopes()
+                ->where('business_id', 1)
+                ->whereNotNull('rb_gateway_credential_id')
+                ->where('ativo_para_boleto', true)
+                ->first();
+
+            if (!$contaBancaria) {
+                throw new \RuntimeException('ContaBancaria com gateway credencial nao configurada em biz=1');
+            }
+
+            $account = \App\Account::find($contaBancaria->account_id);
+            if (!$account) {
+                throw new \RuntimeException('Account UltimatePOS nao encontrada pra ContaBancaria #' . $contaBancaria->id);
+            }
+
+            // 3. Emite PIX Automático (mandato recorrente BCB)
+            $contact = $this->resolveTenantPayerContact($business_id);
+            $input = new \Modules\PaymentGateway\Dto\EmitirCobrancaInput(
+                businessId: 1, // Wagner é dono da cobrança (ADR 0170 §G)
+                contactId: $contact?->id ?? 0,
+                valorCentavos: (int) round(((float) $package->price) * 100),
+                vencimento: new \DateTimeImmutable('+7 days'),
+                descricao: 'Mensalidade SaaS — ' . $package->name . ' — ' . ($business_name ?: 'Tenant'),
+                idempotencyKey: 'onda5-sub-' . $subscription->id,
+                origemType: 'subscription_license',
+                origemId: $subscription->id,
+                meta: ['target_business_id' => $business_id, 'subscription_id' => $subscription->id],
+            );
+
+            $result = app(\Modules\PaymentGateway\Contracts\PaymentGatewayContract::class)
+                ->for($account)
+                ->emitirPixAutomatico($input);
+
+            // 4. Salva referência da cobrança na Subscription
+            $subscription->payment_transaction_id = (string) ($result->cobrancaId ?? '');
+            $subscription->save();
+
+            DB::commit();
+
+            return redirect()
+                ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
+                ->with('status', [
+                    'success' => 1,
+                    'msg' => 'Cobrança PIX Automático enviada. Autorize o mandato BCB no app do banco em até 7 dias — a renovação acontece automaticamente todo mês.',
+                ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            $this->_log_emergency_redacted($e, 'SubscriptionController.confirm_paymentgateway');
+
+            return redirect()
+                ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
+                ->with('status', ['success' => 0, 'msg' => 'Falha ao emitir cobrança PIX Automático: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Resolve Contact em biz=1 que representa o tenant pagador (best-effort).
+     * Onda 5 SIMPLIFICADA NÃO faz backfill massivo — se contact não existe,
+     * retorna null e cobrança emite com payer_* derivado de business.name/owner.
+     */
+    protected function resolveTenantPayerContact(int $tenantBusinessId): ?\App\Contact
+    {
+        $business = \App\Business::withoutGlobalScopes()->find($tenantBusinessId);
+        if (!$business) {
+            return null;
+        }
+
+        $tax = $business->tax_number_1 ?? null;
+        if (!$tax) {
+            return null;
+        }
+
+        return \App\Contact::withoutGlobalScopes()
+            ->where('business_id', 1)
+            ->where('tax_number', $tax)
+            ->first();
     }
 
     /**

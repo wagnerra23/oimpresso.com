@@ -29,6 +29,7 @@ class PaymentGatewayServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\PaymentGateway\Console\Commands\MigrateCredentialsCommand::class,
+                \Modules\PaymentGateway\Console\Commands\RegisterPermissionsCommand::class,
             ]);
         }
     }

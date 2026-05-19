@@ -3,10 +3,18 @@
 namespace Modules\Financeiro\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo;
+use Modules\PaymentGateway\Events\CobrancaPaga;
 
 class FinanceiroServiceProvider extends ServiceProvider
 {
+    /**
+     * Guard contra duplicação do listener — nWidart pode rodar boot() 2x.
+     */
+    private static bool $paymentgatewayListenersRegistered = false;
+
     protected string $moduleName = 'Financeiro';
 
     protected string $moduleNameLower = 'financeiro';
@@ -23,6 +31,22 @@ class FinanceiroServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
         $this->registerObservers();
+        $this->registerPaymentGatewayListeners();
+    }
+
+    /**
+     * ADR 0170 Onda 5 SIMPLIFICADA — auto-baixa de Titulo a receber em
+     * fin_titulos quando cobrança SaaS é paga. Apenas business_id=1 (Wagner).
+     */
+    protected function registerPaymentGatewayListeners(): void
+    {
+        if (self::$paymentgatewayListenersRegistered) {
+            return;
+        }
+
+        Event::listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
+
+        self::$paymentgatewayListenersRegistered = true;
     }
 
     /**
