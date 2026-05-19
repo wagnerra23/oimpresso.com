@@ -104,7 +104,8 @@ interface Filters {
   conta: string;
   categoria: string;
   periodo: string;
-  densidade: 'compact' | 'comfortable' | 'spacious';
+  // Onda 12.6 (2026-05-19) — Wagner: removed 'spacious' (não tinha uso real).
+  densidade: 'compact' | 'comfortable';
 }
 
 interface Props {
@@ -153,10 +154,10 @@ function countOverdue(all: Lancamento[]): number {
   return all.filter((l) => l.status === 'atrasado').length;
 }
 
+// Onda 12.6 — apenas 2 modos (Wagner removeu 'spacious').
 const DENSITY = {
   compact:     { row: 'h-8',  text: 'text-[12.5px]' },
   comfortable: { row: 'h-11', text: 'text-[13px]' },
-  spacious:    { row: 'h-14', text: 'text-[13.5px]' },
 };
 
 function statusTone(s: LancamentoStatus): 'success' | 'default' | 'warning' | 'destructive' {
@@ -450,7 +451,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   const [busca, setBusca] = useState(filters.busca ?? '');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const dens = DENSITY[filters.densidade ?? 'comfortable'];
+  // Onda 12.6 — default compact (Wagner pediu: financeiro denso).
+  const dens = DENSITY[filters.densidade ?? 'compact'];
 
   // Cowork KB-9.75 Onda Edit (2026-05-18) — conferido per-user DB (substitui Onda 5 localStorage).
   const conferido = useFinConferido(lancamentos);
@@ -718,17 +720,18 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           </div>
 
           <div className="fin-density" role="group" aria-label="Densidade">
-            {(['compact', 'comfortable', 'spacious'] as const).map((d) => (
+            {/* Onda 12.6 (2026-05-19) — apenas 2 modos: compact (default) + comfortable. */}
+            {(['compact', 'comfortable'] as const).map((d) => (
               <button
                 key={d}
                 type="button"
                 className={filters.densidade === d ? 'on' : ''}
                 onClick={() => aplicar({ densidade: d })}
                 aria-pressed={filters.densidade === d}
-                aria-label={d}
-                title={d}
+                aria-label={d === 'compact' ? 'Compacto' : 'Médio'}
+                title={d === 'compact' ? 'Compacto' : 'Médio'}
               >
-                {d === 'compact' ? '◰' : d === 'comfortable' ? '▦' : '▤'}
+                {d === 'compact' ? '◰' : '▦'}
               </button>
             ))}
           </div>
