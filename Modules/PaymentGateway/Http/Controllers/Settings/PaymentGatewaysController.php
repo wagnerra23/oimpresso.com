@@ -235,6 +235,14 @@ class PaymentGatewaysController extends Controller
     }
 
     /**
+     * Lista contas destino do wizard (step 3).
+     *
+     * Wagner 2026-05-19 — fix bug crítico: id retornado DEVE ser `account_id`
+     * (FK pra `accounts` UPOS), NÃO `fin_contas_bancarias.id`. PaymentGatewayCredential.conta_bancaria_id
+     * aponta pra `accounts.id`. Mismatch anterior causou credencial id=1 ser
+     * vinculada a Account 12 (CAIXA) quando Wagner escolheu fcb_id=12 (que
+     * apontava pra Account 19 - BANCO INTER CNPJ NOVO).
+     *
      * @return array<int, array<string, mixed>>
      */
     private function listarContasDestino(int $businessId): array
@@ -246,11 +254,13 @@ class PaymentGatewaysController extends Controller
             ->orderBy('id')
             ->get()
             ->map(fn (ContaBancaria $c) => [
-                'id' => $c->id,
+                'id' => (int) $c->account_id, // FK pra accounts.id (NÃO fcb.id)
                 'name' => $c->account?->name ?? '(sem nome)',
                 'agencia' => $c->agencia ?? null,
                 'conta' => $c->conta ?? null,
                 'banco' => $c->banco_codigo,
+                // fcb_id exposto pra possíveis usos futuros (atualmente não usado pelo wizard)
+                'fcb_id' => (int) $c->id,
             ])
             ->all();
     }
