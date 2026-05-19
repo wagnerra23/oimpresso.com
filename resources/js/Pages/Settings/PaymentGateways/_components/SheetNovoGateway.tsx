@@ -30,6 +30,11 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Onda 5+: upload cert/key + senha
+  const [certFile, setCertFile] = useState<File | null>(null);
+  const [keyFile, setKeyFile] = useState<File | null>(null);
+  const [certPassword, setCertPassword] = useState('');
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
@@ -49,16 +54,22 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
     setError(null);
     setSubmitting(true);
 
-    const payload = {
-      gateway_key: driver,
-      ambiente,
-      nome_display: apelido || null,
-      conta_bancaria_id: contaId ? Number(contaId) : null,
-      config_json: config,
-      ativo,
-    };
+    const hasFiles = certFile !== null || keyFile !== null;
+    const fd = new FormData();
+    fd.append('gateway_key', driver);
+    fd.append('ambiente', ambiente);
+    if (apelido) fd.append('nome_display', apelido);
+    if (contaId) fd.append('conta_bancaria_id', contaId);
+    fd.append('ativo', ativo ? '1' : '0');
+    Object.entries(config).forEach(([k, v]) => {
+      if (v) fd.append(`config_json[${k}]`, v);
+    });
+    if (certFile) fd.append('cert_file', certFile);
+    if (keyFile) fd.append('key_file', keyFile);
+    if (certPassword) fd.append('cert_password', certPassword);
 
-    router.post('/settings/payment-gateways', payload, {
+    router.post('/settings/payment-gateways', fd, {
+      forceFormData: hasFiles,
       preserveScroll: true,
       onSuccess: () => {
         setSubmitting(false);
@@ -179,9 +190,25 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                     className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
                   />
                 </Field>
-                <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[10.5px] text-amber-800">
-                  Certificado mTLS (.crt + .key) ainda não pode ser feito upload pela UI.
-                  Pra sandbox sem mTLS funciona. Pra produção, suba via SSH em <span className="font-mono">storage/app/private/payment-gateway/</span> e referencie em <span className="font-mono">config_json.cert_path</span> manual (próxima onda terá UI de upload).
+                <div className="grid grid-cols-2 gap-3">
+                  <FileField
+                    label="Certificado .crt"
+                    accept=".crt,.pem,.cer"
+                    onFile={setCertFile}
+                    selectedFileName={certFile?.name}
+                    hint="Inter PJ A1 (32KB max)"
+                  />
+                  <FileField
+                    label="Chave .key"
+                    accept=".key,.pem"
+                    onFile={setKeyFile}
+                    selectedFileName={keyFile?.name}
+                    hint="Chave privada (32KB max)"
+                  />
+                </div>
+                <div className="bg-stone-50 border border-stone-200 rounded p-2.5 text-[10.5px] text-stone-700">
+                  Sandbox aceita sem mTLS. Production exige cert + key ICP-Brasil Inter PJ.
+                  Arquivos salvos em <span className="font-mono">storage/app/private/payment-gateway/{'{biz}/{cred_id}'}/</span> com chmod 0600.
                 </div>
               </>}
               {d.key === 'asaas' && <>
@@ -235,8 +262,30 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                     className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
                   />
                 </Field>
-                <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[10.5px] text-amber-800">
-                  Certificado mTLS ICP-Brasil (.crt + .key + senha) precisa ser cadastrado manual via SSH em <span className="font-mono">storage/app/private/payment-gateway/</span> e referenciado em <span className="font-mono">config_json.cert_path</span> + <span className="font-mono">.cert_password</span>.
+                <div className="grid grid-cols-2 gap-3">
+                  <FileField
+                    label="Cert mTLS ICP-Brasil .crt"
+                    accept=".crt,.pem,.cer"
+                    onFile={setCertFile}
+                    selectedFileName={certFile?.name}
+                  />
+                  <FileField
+                    label="Chave .key"
+                    accept=".key,.pem"
+                    onFile={setKeyFile}
+                    selectedFileName={keyFile?.name}
+                  />
+                </div>
+                <Field label="Senha do certificado (opcional)">
+                  <input
+                    type="password"
+                    value={certPassword}
+                    onChange={e => setCertPassword(e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                  />
+                </Field>
+                <div className="bg-stone-50 border border-stone-200 rounded p-2.5 text-[10.5px] text-stone-700">
+                  Cert ICP-Brasil ⇄ CNPJ recebedor homologado no BCB. Resolução BCB 380/2024.
                 </div>
               </>}
               {d.key === 'pesapal' && <>

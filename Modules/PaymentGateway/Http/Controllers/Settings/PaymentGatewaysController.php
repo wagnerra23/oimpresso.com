@@ -9,7 +9,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -115,6 +117,9 @@ class PaymentGatewaysController extends Controller
             'conta_bancaria_id' => 'nullable|integer|exists:accounts,id',
             'config_json'      => 'required|array',
             'ativo'            => 'sometimes|boolean',
+            'cert_file'        => 'sometimes|file|mimes:crt,pem,cer|max:32',
+            'key_file'         => 'sometimes|file|mimes:key,pem|max:32',
+            'cert_password'    => 'sometimes|nullable|string|max:191',
         ]);
 
         // Tier 0: garantir conta_bancaria_id pertence ao business_id session
@@ -142,23 +147,36 @@ class PaymentGatewaysController extends Controller
             ], 422);
         }
 
+        $configJson = $validated['config_json'];
+
         $cred = PaymentGatewayCredential::create([
             'business_id'        => $businessId,
             'gateway_key'        => $validated['gateway_key'],
             'ambiente'           => $validated['ambiente'],
             'nome_display'       => $validated['nome_display'] ?? null,
             'conta_bancaria_id'  => $validated['conta_bancaria_id'] ?? null,
-            'config_json'        => $validated['config_json'],
+            'config_json'        => $configJson,
             'ativo'              => (bool) ($validated['ativo'] ?? true),
             'health_status'      => 'unknown',
         ]);
+
+        if ($request->hasFile('cert_file') || $request->hasFile('key_file')) {
+            $certPaths = $this->storeCertFiles($request, $cred, $businessId);
+            if (!empty($certPaths)) {
+                $configJson = array_merge($configJson, $certPaths);
+                if (!empty($validated['cert_password'])) {
+                    $configJson['cert_password'] = $validated['cert_password'];
+                }
+                $cred->update(['config_json' => $configJson]);
+            }
+        }
 
         Log::info('[paymentgateway.credential.created]', [
             'business_id'   => $businessId,
             'credential_id' => $cred->id,
             'gateway_key'   => $cred->gateway_key,
             'ambiente'      => $cred->ambiente,
-            // NÃO loga config_json (secrets — LGPD/PCI)
+            'has_cert'      => isset($configJson['certificado_crt']),
         ]);
 
         if ($request->wantsJson()) {
@@ -190,6 +208,9 @@ class PaymentGatewaysController extends Controller
             'config_json'       => 'sometimes|array',
             'ambiente'          => 'sometimes|string|in:production,sandbox',
             'ativo'             => 'sometimes|boolean',
+            'cert_file'         => 'sometimes|file|mimes:crt,pem,cer|max:32',
+            'key_file'          => 'sometimes|file|mimes:key,pem|max:32',
+            'cert_password'     => 'sometimes|nullable|string|max:191',
         ]);
 
         if (!empty($validated['conta_bancaria_id'])) {
@@ -201,18 +222,74 @@ class PaymentGatewaysController extends Controller
             }
         }
 
-        $cred->update($validated);
+        $payload = array_diff_key($validated, array_flip(['cert_file', 'key_file', 'cert_password']));
+
+        if (array_key_exists('config_json', $payload)) {
+            $payload['config_json'] = array_merge($cred->config_json ?? [], $payload['config_json']);
+        }
+
+        if ($request->hasFile('cert_file') || $request->hasFile('key_file')) {
+            $certPaths = $this->storeCertFiles($request, $cred, $businessId);
+            if (!empty($certPaths)) {
+                $existing = $payload['config_json'] ?? ($cred->config_json ?? []);
+                $payload['config_json'] = array_merge($existing, $certPaths);
+                if (!empty($validated['cert_password'])) {
+                    $payload['config_json']['cert_password'] = $validated['cert_password'];
+                }
+            }
+        }
+
+        $cred->update($payload);
 
         Log::info('[paymentgateway.credential.updated]', [
             'business_id'   => $businessId,
             'credential_id' => $cred->id,
-            'fields'        => array_keys($validated),
+            'fields'        => array_keys($payload),
+            'has_cert_upload' => $request->hasFile('cert_file') || $request->hasFile('key_file'),
         ]);
 
         return response()->json([
             'success' => true,
             'credential_id' => $cred->id,
         ]);
+    }
+
+    /**
+     * Salva cert.crt + key.key em storage privado.
+     * Path: storage/app/private/payment-gateway/{biz}/{cred}/{cert,key}.{ext}
+     * Permissions: 0600. Tier 0: business_id no path previne leak.
+     * LGPD/PCI: log nunca emite conteúdo.
+     *
+     * @return array<string, string>
+     */
+    private function storeCertFiles(Request $request, PaymentGatewayCredential $cred, int $businessId): array
+    {
+        $paths = [];
+        $baseDir = 'payment-gateway/' . $businessId . '/' . $cred->id;
+
+        if ($request->hasFile('cert_file')) {
+            /** @var UploadedFile $certFile */
+            $certFile = $request->file('cert_file');
+            $certPath = $certFile->storeAs($baseDir, 'cert.' . $certFile->getClientOriginalExtension(), 'local');
+            $absPath = Storage::disk('local')->path($certPath);
+            if (is_file($absPath)) {
+                @chmod($absPath, 0600);
+            }
+            $paths['certificado_crt'] = $absPath;
+        }
+
+        if ($request->hasFile('key_file')) {
+            /** @var UploadedFile $keyFile */
+            $keyFile = $request->file('key_file');
+            $keyPath = $keyFile->storeAs($baseDir, 'key.' . $keyFile->getClientOriginalExtension(), 'local');
+            $absPath = Storage::disk('local')->path($keyPath);
+            if (is_file($absPath)) {
+                @chmod($absPath, 0600);
+            }
+            $paths['certificado_key'] = $absPath;
+        }
+
+        return $paths;
     }
 
     /**

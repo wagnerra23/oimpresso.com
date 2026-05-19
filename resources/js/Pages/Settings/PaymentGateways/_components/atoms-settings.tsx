@@ -49,14 +49,38 @@ export function Toggle({ on, onConfirm, title }: { on: boolean; onConfirm: (newV
   );
 }
 
-export function FileField({ label, hint, accept }: { label: string; hint?: string; accept?: string }) {
+export function FileField({
+  label,
+  hint,
+  accept,
+  onFile,
+  selectedFileName,
+}: {
+  label: string;
+  hint?: string;
+  accept?: string;
+  onFile?: (file: File | null) => void;
+  selectedFileName?: string;
+}) {
+  const hasFile = !!selectedFileName;
   return (
-    <label className="block">
+    <label className="block cursor-pointer">
       <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium mb-1">{label}</div>
-      <div className="h-8 bg-white border border-stone-300 border-dashed rounded flex items-center gap-2 px-2 text-[11.5px] text-stone-500 hover:border-stone-500 cursor-pointer transition">
+      <div className={cn(
+        'h-8 border rounded flex items-center gap-2 px-2 text-[11.5px] transition',
+        hasFile
+          ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+          : 'bg-white border-stone-300 border-dashed text-stone-500 hover:border-stone-500',
+      )}>
         <Upload className="h-3 w-3" />
-        <span>arrastar arquivo {accept || ''} ou clicar</span>
+        <span className="truncate">{hasFile ? selectedFileName : `arrastar arquivo ${accept || ''} ou clicar`}</span>
       </div>
+      <input
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={e => onFile?.(e.target.files?.[0] ?? null)}
+      />
       {hint && <div className="text-[10.5px] text-stone-500 mt-1">{hint}</div>}
     </label>
   );
