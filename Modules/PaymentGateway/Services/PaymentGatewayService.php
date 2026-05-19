@@ -18,6 +18,7 @@ use Modules\PaymentGateway\Exceptions\IdempotencyConflictException;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\AsaasDriver;
+use Modules\PaymentGateway\Services\Drivers\BcbPixDriver;
 use Modules\PaymentGateway\Services\Drivers\C6Driver;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
 
@@ -38,14 +39,15 @@ class PaymentGatewayService implements PaymentGatewayContract
      * Mapa gateway_key → FQCN do driver.
      *
      * Onda 4a: inter
-     * Onda 4b: + c6, asaas (este PR)
-     * Onda 4d: + bcb_pix
+     * Onda 4b: + c6, asaas
+     * Onda 4d.1: + bcb_pix (este PR — PIX Automático regulado BCB)
      * Onda 5/6: pesapal (deprecated → remoção)
      */
     private const DRIVERS = [
-        'inter' => InterDriver::class,
-        'c6'    => C6Driver::class,
-        'asaas' => AsaasDriver::class,
+        'inter'   => InterDriver::class,
+        'c6'      => C6Driver::class,
+        'asaas'   => AsaasDriver::class,
+        'bcb_pix' => BcbPixDriver::class,
     ];
 
     public function for(Account $account): self
