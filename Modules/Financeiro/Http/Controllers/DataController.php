@@ -151,6 +151,21 @@ class DataController extends Controller
                         'group'  => 'fin',
                     ]
                 )->order(85.3);
+
+                // 5. Contas Bancárias — Wagner 2026-05-19 reportou que /financeiro
+                // não permitia cadastrar conta + vincular credencial gateway.
+                // Página Inertia já existia (Modules/Financeiro/.../ContaBancariaController
+                // → Pages/Financeiro/ContasBancarias/Index.tsx) só faltava
+                // entrada no sidebar. Bloqueia Onda 5 dogfooding sem isso.
+                $menu->url(
+                    url('/financeiro/contas-bancarias'),
+                    'Contas Bancárias',
+                    [
+                        'icon'   => 'fa fas fa-university',
+                        'active' => $segmento_ativo && request()->segment(2) === 'contas-bancarias',
+                        'group'  => 'fin',
+                    ]
+                )->order(85.5);
             }
         );
     }

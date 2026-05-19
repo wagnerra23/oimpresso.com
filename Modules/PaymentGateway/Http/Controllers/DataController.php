@@ -2,20 +2,21 @@
 
 namespace Modules\PaymentGateway\Http\Controllers;
 
+use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
+use Menu;
 
 /**
- * DataController do módulo PaymentGateway — Onda 1 esqueleto.
+ * DataController do módulo PaymentGateway.
  *
  * Descoberto pelo middleware AdminSidebarMenu do core UltimatePOS.
  * Sidebar pattern canon: skill `sidebar-menu-arch`.
  *
- * Onda 1 (esta): apenas superadmin_package + user_permissions registrados
- * pra que Wagner possa habilitar nas 3 camadas (subscription package +
- * business.enabled_modules + Spatie permissions) antes de Onda 4 entregar
- * Page Inertia "Cobrança" no sidebar.
- *
- * modifyAdminMenu vazio nesta onda — ativa em Onda 4 quando tela existir.
+ * Onda 1: apenas superadmin_package + user_permissions registrados.
+ * Onda 5 (2026-05-19): modifyAdminMenu populado — Page Inertia
+ * /settings/payment-gateways entregue na Onda 4d F3 (PR #1135).
+ * Permission gate paymentgateway.access (registrada via
+ * `php artisan paymentgateway:register-permissions`).
  */
 class DataController extends Controller
 {
@@ -57,10 +58,54 @@ class DataController extends Controller
     }
 
     /**
-     * Camada visual sidebar — Onda 1 vazio. Onda 4 ativa quando Page Cobrança nascer.
+     * Camada visual sidebar — Onda 5 (2026-05-19): popular.
+     *
+     * Adiciona entrada "Gateways de Pagamento" apontando pra
+     * /settings/payment-gateways (Page Inertia Onda 4d F3, PR #1135).
+     *
+     * Pattern segue Financeiro DataController.modifyAdminMenu — guard
+     * via isModuleInstalled + permission `paymentgateway.access`.
+     * 'group' => 'fin' agrupa visualmente com Financeiro na sidebar
+     * (Sidebar.tsx SIDEBAR_GROUPS canon ADR sidebar-menu-arch).
      */
     public function modifyAdminMenu(): void
     {
-        // intencionalmente vazio — vide docblock.
+        $module_util = new ModuleUtil();
+
+        if (auth()->user() && auth()->user()->can('superadmin')) {
+            $is_enabled = $module_util->isModuleInstalled('PaymentGateway');
+        } else {
+            $business_id = session('user.business_id');
+            $is_enabled = $business_id
+                ? (bool) $module_util->hasThePermissionInSubscription(
+                    $business_id,
+                    'paymentgateway_module',
+                    'superadmin_package'
+                )
+                : false;
+        }
+
+        if (! $is_enabled) {
+            return;
+        }
+
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('paymentgateway.access')) {
+            return;
+        }
+
+        $segmento_settings = request()->segment(1) === 'settings'
+            && request()->segment(2) === 'payment-gateways';
+
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_settings) {
+            $menu->url(
+                url('/settings/payment-gateways'),
+                __('paymentgateway::paymentgateway.module_label'),
+                [
+                    'icon'   => 'fa fas fa-key',
+                    'active' => $segmento_settings,
+                    'group'  => 'fin',
+                ]
+            )->order(85.4);
+        });
     }
 }
