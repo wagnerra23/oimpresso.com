@@ -90,10 +90,14 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
     (lancamento.valor_mutavel && form.data.valor_total !== lancamento.valor);
 
   return (
-    <form onSubmit={submit} className="fin-edit-panel">
-      <div className="fin-edit-h">
-        <h4>✎ Editar lançamento</h4>
-        <small>Campos editáveis · {lancamento.valor_mutavel ? 'valor mutável' : 'valor IMUTÁVEL (pós-baixa)'}</small>
+    // Onda 15 (2026-05-19) — adiciona classes canon os-drawer-* sem remover fin-edit-*
+    // (back-compat com CSS legacy). Visualmente herda do os-drawer-head canon agora.
+    <form onSubmit={submit} className="fin-edit-panel os-drawer-body">
+      <div className="fin-edit-h os-drawer-head">
+        <div className="os-drawer-head-l">
+          <h2 style={{ margin: 0, fontSize: 16 }}>✎ Editar lançamento</h2>
+          <p style={{ margin: 0, fontSize: 12 }}>Campos editáveis · {lancamento.valor_mutavel ? 'valor mutável' : 'valor IMUTÁVEL (pós-baixa)'}</p>
+        </div>
       </div>
 
       <div className="fin-edit-grid">

@@ -15,8 +15,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
 // Onda 14 — PageHeader removido (canon os-page-h direto)
-import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
 
 type TabId = 'dre' | 'fluxo' | 'resumo';
 
@@ -189,17 +187,24 @@ function DrePanel({ dre }: { dre: Dre }) {
 
   return (
     <>
-      <KpiGrid cols={3} className="mb-6">
-        <KpiCard icon="arrow-down-circle" tone="success" label="Receita (período)"
-                 value={brl(dre.totais.receita)} description="Soma de títulos a receber" />
-        <KpiCard icon="arrow-up-circle"   tone="warning" label="Despesa (período)"
-                 value={brl(dre.totais.despesa)} description="Soma de títulos a pagar" />
-        <KpiCard icon="trending-up"
-                 tone={dre.totais.resultado >= 0 ? 'success' : 'danger'}
-                 label="Resultado"
-                 value={brl(dre.totais.resultado)}
-                 description={dre.totais.resultado >= 0 ? 'Superávit' : 'Déficit'} />
-      </KpiGrid>
+      {/* Onda 15 (2026-05-19) — KPI grid canon fin-stats */}
+      <div className="fin-stats mb-6">
+        <div className="fin-stat">
+          <small>RECEITA (PERÍODO)</small>
+          <b className="fin-num-pos">{brl(dre.totais.receita)}</b>
+          <span className="fin-stat-hint">Soma de títulos a receber</span>
+        </div>
+        <div className="fin-stat">
+          <small>DESPESA (PERÍODO)</small>
+          <b className="fin-num-neg">{brl(dre.totais.despesa)}</b>
+          <span className="fin-stat-hint">Soma de títulos a pagar</span>
+        </div>
+        <div className="fin-stat">
+          <small>RESULTADO</small>
+          <b className={dre.totais.resultado >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(dre.totais.resultado)}</b>
+          <span className="fin-stat-hint">{dre.totais.resultado >= 0 ? 'Superávit' : 'Déficit'}</span>
+        </div>
+      </div>
 
       <Card className="mb-6">
         <CardHeader>
@@ -317,33 +322,42 @@ function FluxoPanel({ fluxo }: { fluxo: Fluxo }) {
 
   return (
     <>
-      <KpiGrid cols={4} className="mb-6">
-        <KpiCard icon="calendar-clock" tone="info"    label="Projetado a receber"
-                 value={brl(fluxo.totais.projetado_receber)} description="Títulos em aberto no período" />
-        <KpiCard icon="calendar-clock" tone="warning" label="Projetado a pagar"
-                 value={brl(fluxo.totais.projetado_pagar)} description="Títulos em aberto no período" />
-        <KpiCard icon="check-circle-2" tone="success" label="Realizado (recebido)"
-                 value={brl(fluxo.totais.realizado_receber)} description="Baixas de receber" />
-        <KpiCard icon="check-circle-2" tone="default" label="Realizado (pago)"
-                 value={brl(fluxo.totais.realizado_pagar)} description="Baixas de pagar" />
-      </KpiGrid>
+      {/* Onda 15 — canon fin-stats */}
+      <div className="fin-stats mb-6">
+        <div className="fin-stat">
+          <small>PROJETADO A RECEBER</small>
+          <b className="fin-num-pos">{brl(fluxo.totais.projetado_receber)}</b>
+          <span className="fin-stat-hint">Títulos em aberto no período</span>
+        </div>
+        <div className="fin-stat">
+          <small>PROJETADO A PAGAR</small>
+          <b className="fin-num-neg">{brl(fluxo.totais.projetado_pagar)}</b>
+          <span className="fin-stat-hint">Títulos em aberto no período</span>
+        </div>
+        <div className="fin-stat">
+          <small>REALIZADO (RECEBIDO)</small>
+          <b className="fin-num-pos">{brl(fluxo.totais.realizado_receber)}</b>
+          <span className="fin-stat-hint">Baixas de receber</span>
+        </div>
+        <div className="fin-stat">
+          <small>REALIZADO (PAGO)</small>
+          <b>{brl(fluxo.totais.realizado_pagar)}</b>
+          <span className="fin-stat-hint">Baixas de pagar</span>
+        </div>
+      </div>
 
-      <KpiGrid cols={2} className="mb-6">
-        <KpiCard
-          icon="trending-up"
-          tone={fluxo.totais.saldo_projetado >= 0 ? 'success' : 'danger'}
-          label="Saldo projetado"
-          value={brl(fluxo.totais.saldo_projetado)}
-          description="Receber − Pagar (em aberto)"
-        />
-        <KpiCard
-          icon="trending-up"
-          tone={fluxo.totais.saldo_realizado >= 0 ? 'success' : 'danger'}
-          label="Saldo realizado"
-          value={brl(fluxo.totais.saldo_realizado)}
-          description="Recebido − Pago (baixas)"
-        />
-      </KpiGrid>
+      <div className="fin-stats mb-6" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+        <div className="fin-stat">
+          <small>SALDO PROJETADO</small>
+          <b className={fluxo.totais.saldo_projetado >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(fluxo.totais.saldo_projetado)}</b>
+          <span className="fin-stat-hint">Receber − Pagar (em aberto)</span>
+        </div>
+        <div className="fin-stat">
+          <small>SALDO REALIZADO</small>
+          <b className={fluxo.totais.saldo_realizado >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(fluxo.totais.saldo_realizado)}</b>
+          <span className="fin-stat-hint">Recebido − Pago (baixas)</span>
+        </div>
+      </div>
 
       <Card>
         <CardHeader>
@@ -404,61 +418,50 @@ function FluxoPanel({ fluxo }: { fluxo: Fluxo }) {
 function ResumoPanel({ resumo }: { resumo: Resumo }) {
   return (
     <>
-      <KpiGrid cols={4} className="mb-6">
-        <KpiCard
-          icon="arrow-down-circle"
-          tone="success"
-          label="A receber (aberto)"
-          value={brl(resumo.a_receber.valor)}
-          description={
-            resumo.a_receber.vencidos_qtd > 0
+      {/* Onda 15 — canon fin-stats */}
+      <div className="fin-stats mb-6">
+        <div className="fin-stat">
+          <small>A RECEBER (ABERTO)</small>
+          <b className="fin-num-pos">{brl(resumo.a_receber.valor)}</b>
+          <span className="fin-stat-hint">
+            {resumo.a_receber.vencidos_qtd > 0
               ? `${resumo.a_receber.qtd} títulos · ${resumo.a_receber.vencidos_qtd} vencidos`
-              : `${resumo.a_receber.qtd} títulos`
-          }
-        />
-        <KpiCard
-          icon="arrow-up-circle"
-          tone={resumo.a_pagar.vencidos_qtd > 0 ? 'warning' : 'default'}
-          label="A pagar (aberto)"
-          value={brl(resumo.a_pagar.valor)}
-          description={
-            resumo.a_pagar.vencidos_qtd > 0
+              : `${resumo.a_receber.qtd} títulos`}
+          </span>
+        </div>
+        <div className="fin-stat">
+          <small>A PAGAR (ABERTO)</small>
+          <b className={resumo.a_pagar.vencidos_qtd > 0 ? 'fin-num-neg' : ''}>{brl(resumo.a_pagar.valor)}</b>
+          <span className="fin-stat-hint">
+            {resumo.a_pagar.vencidos_qtd > 0
               ? `${resumo.a_pagar.qtd} títulos · ${resumo.a_pagar.vencidos_qtd} vencidos`
-              : `${resumo.a_pagar.qtd} títulos`
-          }
-        />
-        <KpiCard
-          icon="check-circle-2"
-          tone="success"
-          label="Recebido no período"
-          value={brl(resumo.recebido_periodo.valor)}
-          description={`${resumo.recebido_periodo.qtd} baixas`}
-        />
-        <KpiCard
-          icon="check-circle-2"
-          tone="info"
-          label="Pago no período"
-          value={brl(resumo.pago_periodo.valor)}
-          description={`${resumo.pago_periodo.qtd} baixas`}
-        />
-      </KpiGrid>
+              : `${resumo.a_pagar.qtd} títulos`}
+          </span>
+        </div>
+        <div className="fin-stat">
+          <small>RECEBIDO NO PERÍODO</small>
+          <b className="fin-num-pos">{brl(resumo.recebido_periodo.valor)}</b>
+          <span className="fin-stat-hint">{resumo.recebido_periodo.qtd} baixas</span>
+        </div>
+        <div className="fin-stat">
+          <small>PAGO NO PERÍODO</small>
+          <b>{brl(resumo.pago_periodo.valor)}</b>
+          <span className="fin-stat-hint">{resumo.pago_periodo.qtd} baixas</span>
+        </div>
+      </div>
 
-      <KpiGrid cols={2} className="mb-6">
-        <KpiCard
-          icon="trending-up"
-          tone={resumo.saldo_aberto >= 0 ? 'success' : 'danger'}
-          label="Saldo em aberto"
-          value={brl(resumo.saldo_aberto)}
-          description="A receber − A pagar"
-        />
-        <KpiCard
-          icon="trending-up"
-          tone={resumo.saldo_periodo >= 0 ? 'success' : 'danger'}
-          label="Saldo do período"
-          value={brl(resumo.saldo_periodo)}
-          description="Recebido − Pago"
-        />
-      </KpiGrid>
+      <div className="fin-stats mb-6" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+        <div className="fin-stat">
+          <small>SALDO EM ABERTO</small>
+          <b className={resumo.saldo_aberto >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(resumo.saldo_aberto)}</b>
+          <span className="fin-stat-hint">A receber − A pagar</span>
+        </div>
+        <div className="fin-stat">
+          <small>SALDO DO PERÍODO</small>
+          <b className={resumo.saldo_periodo >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(resumo.saldo_periodo)}</b>
+          <span className="fin-stat-hint">Recebido − Pago</span>
+        </div>
+      </div>
 
       {(resumo.a_receber.vencidos_qtd > 0 || resumo.a_pagar.vencidos_qtd > 0) && (
         <Card className="border-amber-300 dark:border-amber-700">
