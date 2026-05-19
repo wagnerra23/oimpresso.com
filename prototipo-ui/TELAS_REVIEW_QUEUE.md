@@ -75,6 +75,16 @@
 | `[ ]` | `Site/Pricing` | charter + material ausentes |
 | `[ ]` | `Site/Login` | charter + material ausentes |
 
+## 🟡 F0 batch — PaymentGateway UI (2026-05-19)
+
+> Pedido completo em [`COWORK_NOTES.amendment-paymentgateway-batch.md`](COWORK_NOTES.amendment-paymentgateway-batch.md). Vinculado [ADR 0170](../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md). Backend já mergeado em main (Ondas 0/1/2/2.5/3/4a · PRs #1123/#1125/#1126/#1127/#1128/#1130). F3 UI depende de F2 aprovação Wagner (screenshot) + Onda 4 backend completar.
+
+| Status | Tela | Prioridade | Refs |
+|---|---|---|---|
+| `[~]` | `Financeiro/Cobranca/Index` (rename + expansão `/financeiro/boletos`) | **P0** | F1 em Cowork [CC] em curso (chat11 2026-05-19). Material canon `boleto-contas-app.jsx` linhas 215-557. KB-9.75 mira score Vendas/Financeiro PR #1064. |
+| `[~]` | `Settings/PaymentGateways/Index` (nova CRUD credenciais) | **P1** | F1 em Cowork [CC] em curso. Substitui `SheetConfigInter` inline (linhas 668-826 `boleto-contas-app.jsx`). |
+| `[~]` | `Sells/Index drawer + botão "Emitir cobrança"` (cirúrgico) | **P0** | F1 em Cowork [CC] em curso. Sells/Index já `[x]` done — amendment cirúrgico adiciona drawer step sem rewrite. Atalho `C`. |
+
 ---
 
 ## Critérios pra mover de coluna
