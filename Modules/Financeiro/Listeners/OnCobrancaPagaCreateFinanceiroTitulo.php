@@ -134,12 +134,31 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
     /**
      * Resolve a conta bancária que recebeu a cobrança.
      *
-     * Estratégia em camadas — primeira que matchar ganha.
-     * FK canônica nova é payment_gateway_credential_id (Onda 2 ADR 0170).
+     * Canon Onda 5 (Wagner 2026-05-19) — resolve em 3 camadas:
+     *   1. CANON: payment_gateway_credentials.conta_bancaria_id (wizard step 3)
+     *      → fin_contas_bancarias.account_id matchando
+     *   2. LEGACY: fin_contas_bancarias.payment_gateway_credential_id (FK reverso)
+     *   3. FALLBACK: primeira ContaBancaria ativa em biz=1
      */
     private function resolveContaBancaria(Cobranca $cobranca): ?int
     {
         if ($cobranca->payment_gateway_credential_id !== null) {
+            // 1. Canon: credencial → conta_bancaria_id (Account UPOS) → fin_contas_bancarias
+            $accountId = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
+                ->withoutGlobalScopes()
+                ->where('id', $cobranca->payment_gateway_credential_id)
+                ->value('conta_bancaria_id');
+
+            if ($accountId !== null) {
+                $conta = ContaBancaria::where('business_id', 1)
+                    ->where('account_id', $accountId)
+                    ->first();
+                if ($conta) {
+                    return (int) $conta->id;
+                }
+            }
+
+            // 2. Legacy: FK reverso
             $conta = ContaBancaria::where('business_id', 1)
                 ->where('payment_gateway_credential_id', $cobranca->payment_gateway_credential_id)
                 ->first();
@@ -148,6 +167,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             }
         }
 
+        // 3. Fallback
         $conta = ContaBancaria::where('business_id', 1)
             ->where('ativo_para_boleto', true)
             ->first();

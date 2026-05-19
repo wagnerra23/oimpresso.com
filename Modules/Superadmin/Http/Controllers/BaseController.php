@@ -158,21 +158,15 @@ class BaseController extends Controller
         }
 
         try {
-            $hasCredencial = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
+            // Canon Onda 5 (Wagner 2026-05-19) — credencial BCB ativa que TENHA
+            // conta_bancaria_id vinculada via wizard step 3. Direção UNIFICADA —
+            // não depende mais de FK reverso em fin_contas_bancarias.
+            return \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', 1)
                 ->where('gateway_key', 'bcb_pix')
                 ->where('ativo', true)
-                ->exists();
-
-            if (!$hasCredencial) {
-                return false;
-            }
-
-            return \Modules\Financeiro\Models\ContaBancaria::query()
-                ->withoutGlobalScopes()
-                ->where('business_id', 1)
-                ->whereNotNull('payment_gateway_credential_id')
+                ->whereNotNull('conta_bancaria_id')
                 ->exists();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[onda5] isPaymentGatewayPixAutomaticoConfigured threw', [
