@@ -86,13 +86,20 @@
   border: 1px solid var(--fin-line);
   margin-left: 4px;
 }
-/* Onda Polish 2026-05-18 — hues corrigidos conforme gap analysis Wagner:
-   - ai (✦ Resumir mês)  → roxo  oklch 280 (IA accent)
-   - trilha (☑ Fechamento) → verde-floresta oklch 145 (trilha persistente, antes 240 azul ❌)
-   - present (▶ Apresentar) → azul oklch 240 (read-only mode, antes 145 verde ❌) */
-.fin-cowork .fin-curadoria .fin-btn-ai { color: oklch(0.42 0.18 280); }
-.fin-cowork .fin-curadoria .fin-btn-trilha { color: oklch(0.42 0.18 145); }
-.fin-cowork .fin-curadoria .fin-btn-present { color: oklch(0.40 0.13 240); }
+/* Onda 12.2 (2026-05-19) — hues corrigidos pra match exato canon REAL
+   (DOM forensics: oklch(0.42 0.13 295/145/240) — chroma 0.13 não 0.18,
+   ai hue 295 não 280, trilha hue 145, present hue 240):
+   - ai (✦ Resumir mês)  → roxo  oklch 295 chroma 0.13 (era 280 0.18)
+   - trilha (☑ Fechamento) → verde oklch 145 chroma 0.13 (era 0.18)
+   - present (▶ Apresentar) → azul oklch 240 chroma 0.13 */
+.fin-cowork .fin-curadoria .fin-btn-ai { color: oklch(0.42 0.13 295); }
+.fin-cowork .fin-curadoria .fin-btn-trilha { color: oklch(0.42 0.13 145); }
+.fin-cowork .fin-curadoria .fin-btn-present { color: oklch(0.42 0.13 240); }
+/* Aplica também quando usado em .os-btn ghost (Onda 12.2 markup mudou pra
+   .os-btn ghost fin-btn-ai/trilha/present pra paridade canon). */
+.fin-cowork .fin-curadoria .os-btn.ghost.fin-btn-ai { color: oklch(0.42 0.13 295); }
+.fin-cowork .fin-curadoria .os-btn.ghost.fin-btn-trilha { color: oklch(0.42 0.13 145); }
+.fin-cowork .fin-curadoria .os-btn.ghost.fin-btn-present { color: oklch(0.42 0.13 240); }
 /* Onda 7c — badge inline no botão (ex: "📄 Imprimir 3★") */
 .fin-cowork .fin-curadoria .fin-btn-badge {
   display: inline-flex;
@@ -146,19 +153,20 @@
 }
 .fin-cowork .fin-curadoria .fin-num-pos { color: oklch(0.45 0.18 145); }
 .fin-cowork .fin-curadoria .fin-num-neg { color: oklch(0.50 0.18 25); }
-/* Onda 12 (2026-05-19) — KPI hero card DARK (paridade canon REAL).
-   Canon /cowork-preview/Oimpresso ERP - Chat.html tem card preto puro
-   com sparkline em fundo, não gradient verde. */
+/* Onda 12.2 (2026-05-19) — KPI hero "warm dark" (paridade EXATA canon REAL).
+   DOM forensics canon: oklch(0.22 0.01 80) — marrom/bege escuro warm com
+   leve chroma, dá tom "documento contábil tradicional" suave, não preto puro.
+   Wagner: "sombreamento" = essa tonalidade quente discreta. */
 .fin-cowork .fin-curadoria .fin-stat-hero {
   position: relative;
-  background: oklch(0.16 0.005 240);
+  background: oklch(0.22 0.01 80);
   color: white;
   border: 0;
   overflow: hidden;
 }
-.fin-cowork .fin-curadoria .fin-stat-hero small { color: oklch(0.75 0.005 240); opacity: 0.95; font-weight: 600; }
+.fin-cowork .fin-curadoria .fin-stat-hero small { color: oklch(0.75 0.01 80); opacity: 0.95; font-weight: 600; }
 .fin-cowork .fin-curadoria .fin-stat-hero b { color: white; font-size: 26px; }
-.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.005 240); opacity: 0.85; }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.01 80); opacity: 0.85; }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.78 0.14 25); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: oklch(0.78 0.14 145); }
 .fin-cowork .fin-curadoria .fin-spark {
