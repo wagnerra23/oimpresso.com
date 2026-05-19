@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -67,15 +67,18 @@ export function CategoriaSheet({ categoria, planosConta, onClose }: Props) {
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="pb-4 border-b">
-          <SheetTitle>{isEdit ? 'Editar categoria' : 'Nova categoria'}</SheetTitle>
-          <SheetDescription>
-            Tags livres pra organizar lançamentos. Vínculo ao plano de contas é opcional.
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto p-0">
+        {/* Onda 13 (2026-05-19) — header canon os-drawer-head paridade Cowork REAL */}
+        <header className="os-drawer-head">
+          <div className="os-drawer-head-l">
+            <SheetTitle asChild><h2 className="m-0">{isEdit ? 'Editar categoria' : 'Nova categoria'}</h2></SheetTitle>
+            <SheetDescription asChild>
+              <p>Tags livres pra organizar lançamentos. Vínculo ao plano de contas é opcional.</p>
+            </SheetDescription>
+          </div>
+        </header>
 
-        <form onSubmit={submit} className="space-y-5 mt-4 pb-6">
+        <form onSubmit={submit} className="os-drawer-body p-5 space-y-5">
           <div>
             <Label htmlFor="nome">Nome *</Label>
             <Input
