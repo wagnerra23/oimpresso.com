@@ -12,9 +12,6 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Card } from '@/Components/ui/card';
-import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
-import PageHeader from '@/Components/shared/PageHeader';
 import { useMemo, type ReactNode } from 'react';
 
 interface Dia {
@@ -74,17 +71,31 @@ function FinanceiroFluxo({ saldo_hoje, saldo_30d, pior_dia, margem_minima, conta
         </div>
       </header>
 
-      <KpiGrid columns={4}>
-        <KpiCard label="Saldo hoje" value={brl(saldo_hoje)} caption={conta} dark />
-        <KpiCard
-          label="Projeção 30 dias"
-          value={brl(saldo_30d)}
-          caption={`${saldo_30d >= saldo_hoje ? 'alta' : 'queda'} de ${brl(Math.abs(saldo_30d - saldo_hoje))} vs hoje`}
-          tone={saldo_30d >= saldo_hoje ? 'emerald' : 'rose'}
-        />
-        <KpiCard label="Pior dia previsto" value={brl(pior_dia.saldo)} caption={pior_dia.data_label} tone="amber" />
-        <KpiCard label="Margem mínima" value={brl(margem_minima)} caption="limite definido" />
-      </KpiGrid>
+      {/* Onda 15 (2026-05-19) — KPI grid canon fin-stats (Saldo hoje = hero dark warm) */}
+      <div className="fin-stats">
+        <div className="fin-stat fin-stat-hero">
+          <small>SALDO HOJE</small>
+          <b>{brl(saldo_hoje)}</b>
+          <span className="fin-stat-hint">{conta}</span>
+        </div>
+        <div className="fin-stat">
+          <small>PROJEÇÃO 30 DIAS</small>
+          <b className={saldo_30d >= saldo_hoje ? 'fin-num-pos' : 'fin-num-neg'}>{brl(saldo_30d)}</b>
+          <span className="fin-stat-hint">
+            {saldo_30d >= saldo_hoje ? 'alta' : 'queda'} de {brl(Math.abs(saldo_30d - saldo_hoje))} vs hoje
+          </span>
+        </div>
+        <div className="fin-stat">
+          <small>PIOR DIA PREVISTO</small>
+          <b>{brl(pior_dia.saldo)}</b>
+          <span className="fin-stat-hint">{pior_dia.data_label}</span>
+        </div>
+        <div className="fin-stat">
+          <small>MARGEM MÍNIMA</small>
+          <b>{brl(margem_minima)}</b>
+          <span className="fin-stat-hint">limite definido</span>
+        </div>
+      </div>
 
       <Card className="mx-6 mt-4 p-5">
         <div className="flex items-center justify-between mb-3">

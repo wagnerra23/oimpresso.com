@@ -20,7 +20,7 @@ import {
   Search, Plus, Download, Upload, Copy, MoreHorizontal, Settings, Webhook,
   Check, AlertCircle, Receipt, Zap, Building,
 } from 'lucide-react';
-import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard, PageHeader } from './_components/atoms';
+import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_components/atoms';
 import FunnelStrip from './_components/FunnelStrip';
 import DrawerCobranca from './_components/DrawerCobranca';
 import SheetNovaCobranca from './_components/SheetNovaCobranca';
@@ -174,27 +174,30 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
   }, [tipoFilter, origemFilter, kpis]);
 
   return (
-    <div className="h-full bg-stone-50 flex flex-col font-sans pg-shell-scope">
-      <PageHeader
-        title="Cobrança"
-        breadcrumb={breadcrumb}
-        right={<>
-          <span className="text-[11px] text-stone-500 tabular-nums">{kpis.aberto.qtd} em aberto</span>
-          <button onClick={() => setAiOpen(true)} className="pg-ai-btn" title="Resumir cobranças deste mês — IA" aria-label="Resumir mês (IA)">
-            <span className="pg-ai-glyph">✦</span>
-            <span>Resumir mês</span>
-          </button>
-          <Btn variant="outline" onClick={() => router.visit('/settings/payment-gateways')} title="Configurar gateways">
-            <Settings className="h-3 w-3" />Gateways
-          </Btn>
-          <Btn variant="outline" onClick={() => setRemessaOpen(true)}>
-            <Upload className="h-3 w-3" />Remessa/Retorno
-          </Btn>
-          <Btn variant="primary" onClick={() => setNovaOpen(true)}>
-            <Plus className="h-3 w-3" />Nova cobrança
-          </Btn>
-        </>}
-      />
+    <div className="fin-cowork h-full bg-stone-50 flex flex-col font-sans pg-shell-scope">
+      {/* Onda 15 (2026-05-19) — header canon paridade Unificado (substitui PageHeader pg-*) */}
+      <div className="fin-curadoria vendas-aplus">
+        <header className="os-page-h fin-page-h">
+          <div className="os-page-h-l fin-page-h-l">
+            <h1>Cobrança <span className="fin-hero-title-sub">· Boletos e PIX</span></h1>
+            <p>{kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways</p>
+          </div>
+          <div className="os-page-h-r fin-page-h-r">
+            <button type="button" className="os-btn ghost fin-btn-ai" onClick={() => setAiOpen(true)} title="Resumir cobranças deste mês — IA">
+              <span>✦</span> Resumir mês
+            </button>
+            <button type="button" className="os-btn ghost" onClick={() => router.visit('/settings/payment-gateways')} title="Configurar gateways">
+              <Settings size={13} /> Gateways
+            </button>
+            <button type="button" className="os-btn ghost" onClick={() => setRemessaOpen(true)}>
+              <Upload size={13} /> Remessa/Retorno
+            </button>
+            <button type="button" className="os-btn primary" onClick={() => setNovaOpen(true)}>
+              <Plus size={13} /> Nova cobrança
+            </button>
+          </div>
+        </header>
+      </div>
 
       {/* FUNIL */}
       <div className="px-6 pt-5">

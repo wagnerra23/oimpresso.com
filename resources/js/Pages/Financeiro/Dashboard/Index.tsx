@@ -15,9 +15,6 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import PageHeader from '@/Components/shared/PageHeader';
-import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
 
 interface KpiAberto {
@@ -173,54 +170,38 @@ function FinanceiroDashboard({
         </div>
       </header>
 
-      {/* KPI Grid (UI-0002) — Inertia::defer canon: skeleton no primeiro paint */}
+      {/* Onda 15 (2026-05-19) — KPI grid canon fin-stats (substitui KpiCard shadcn) */}
       <Deferred data="kpis" fallback={<KpiGridSkeleton />}>
-        <KpiGrid cols={4} className="mt-6">
-          <KpiCard
-            icon="arrow-down-circle"
-            tone="success"
-            label="A receber"
-            value={brl(r.valor)}
-            description={
-              r.vencidos_qtd > 0
+        <div className="fin-stats mt-6">
+          <div className="fin-stat cursor-pointer" onClick={() => aplicarFiltro({ tipo: 'receber', status: 'aberto' })}>
+            <small>A RECEBER</small>
+            <b className="fin-num-pos">{brl(r.valor)}</b>
+            <span className="fin-stat-hint">
+              {r.vencidos_qtd > 0
                 ? `${r.qtd} títulos · ${r.vencidos_qtd} vencidos (${brl(r.vencidos_valor)})`
-                : `${r.qtd} títulos abertos`
-            }
-            onClick={() => aplicarFiltro({ tipo: 'receber', status: 'aberto' })}
-            selected={filters.tipo === 'receber' && filters.status === 'aberto'}
-          />
-          <KpiCard
-            icon="arrow-up-circle"
-            tone={p.vencidos_qtd > 0 ? 'warning' : 'default'}
-            label="A pagar"
-            value={brl(p.valor)}
-            description={
-              p.vencidos_qtd > 0
+                : `${r.qtd} títulos abertos`}
+            </span>
+          </div>
+          <div className="fin-stat cursor-pointer" onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'aberto' })}>
+            <small>A PAGAR</small>
+            <b className={p.vencidos_qtd > 0 ? 'fin-num-neg' : ''}>{brl(p.valor)}</b>
+            <span className="fin-stat-hint">
+              {p.vencidos_qtd > 0
                 ? `${p.qtd} títulos · ${p.vencidos_qtd} vencidos (${brl(p.vencidos_valor)})`
-                : `${p.qtd} títulos abertos`
-            }
-            onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'aberto' })}
-            selected={filters.tipo === 'pagar' && filters.status === 'aberto'}
-          />
-          <KpiCard
-            icon="check-circle-2"
-            tone="success"
-            label="Recebidos no mês"
-            value={brl(rm.valor)}
-            description={`${rm.qtd} baixas`}
-            onClick={() => aplicarFiltro({ tipo: 'receber', status: 'quitado' })}
-            selected={filters.tipo === 'receber' && filters.status === 'quitado'}
-          />
-          <KpiCard
-            icon="check-circle-2"
-            tone="info"
-            label="Pagos no mês"
-            value={brl(pm.valor)}
-            description={`${pm.qtd} baixas`}
-            onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'quitado' })}
-            selected={filters.tipo === 'pagar' && filters.status === 'quitado'}
-          />
-        </KpiGrid>
+                : `${p.qtd} títulos abertos`}
+            </span>
+          </div>
+          <div className="fin-stat cursor-pointer" onClick={() => aplicarFiltro({ tipo: 'receber', status: 'quitado' })}>
+            <small>RECEBIDOS NO MÊS</small>
+            <b className="fin-num-pos">{brl(rm.valor)}</b>
+            <span className="fin-stat-hint">{rm.qtd} baixas</span>
+          </div>
+          <div className="fin-stat cursor-pointer" onClick={() => aplicarFiltro({ tipo: 'pagar', status: 'quitado' })}>
+            <small>PAGOS NO MÊS</small>
+            <b>{brl(pm.valor)}</b>
+            <span className="fin-stat-hint">{pm.qtd} baixas</span>
+          </div>
+        </div>
       </Deferred>
 
       {/* Saldo em bancos */}
