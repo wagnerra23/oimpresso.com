@@ -90,7 +90,8 @@ interface ContaBancaria {
 
 interface Props {
   kpis: Kpis;
-  titulos: PaginatedTitulos;
+  // Inertia::defer no DashboardController — undefined no primeiro paint, preenchido no partial reload.
+  titulos?: PaginatedTitulos;
   filters: Filters;
   contas: ContaBancaria[];
   saldo_total: number;
@@ -99,8 +100,12 @@ interface Props {
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
 
-function FinanceiroDashboard({ kpis, titulos, filters, contas, saldo_total }: Props) {
+function FinanceiroDashboard({ kpis, titulos: titulosProp, filters, contas, saldo_total }: Props) {
   const [busca, setBusca] = useState(filters.busca ?? '');
+
+  // titulos vem como Inertia::defer no DashboardController — chega undefined no primeiro paint.
+  // Fallback vazio mantém a tela renderizada enquanto o partial reload preenche os dados.
+  const titulos: PaginatedTitulos = titulosProp ?? { data: [], links: [] };
 
   // Inertia paginator pode vir achatado (current_page direto) ou em meta
   const meta = titulos.meta ?? {
