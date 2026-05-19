@@ -1,7 +1,9 @@
 // DrawerGateway.tsx — drawer 4 tabs (Identificação · Credenciais · Webhook · Health)
+// Onda 5+ (2026-05-19): wiring backend PUT /settings/payment-gateways/{id}
 import { useEffect, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
 import {
-  X, Copy, Shield, RefreshCw, Zap, Check,
+  X, Copy, Shield, RefreshCw, Zap, Check, Trash2,
 } from 'lucide-react';
 import { Btn, KpiCard } from '../../../Financeiro/Cobranca/_components/atoms';
 import {
@@ -28,6 +30,74 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
   const [tab, setTab] = useState<Tab>('identificacao');
   const [revealSecret, setRevealSecret] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'testando' | 'ok' | 'fail'>('idle');
+
+  // Onda 5+: state controlado pra edit
+  const [apelido, setApelido] = useState(gateway.nome);
+  const [ambiente, setAmbiente] = useState<'production' | 'sandbox'>(gateway.ambiente);
+  const [contaId, setContaId] = useState<string>(gateway.account_id ? String(gateway.account_id) : '');
+  const [config, setConfig] = useState<Record<string, string>>({});
+  const [certFile, setCertFile] = useState<File | null>(null);
+  const [keyFile, setKeyFile] = useState<File | null>(null);
+  const [certPassword, setCertPassword] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  function setConfigField(key: string, value: string): void {
+    setConfig(prev => ({ ...prev, [key]: value }));
+  }
+
+  function handleSave(): void {
+    setSaveError(null);
+    setSaving(true);
+
+    const hasFiles = certFile !== null || keyFile !== null;
+    const fd = new FormData();
+    fd.append('_method', 'PUT');
+    fd.append('nome_display', apelido);
+    fd.append('ambiente', ambiente);
+    if (contaId) fd.append('conta_bancaria_id', contaId); else fd.append('conta_bancaria_id', '');
+    // Apenas envia config fields preenchidos — backend faz merge com config_json existente
+    Object.entries(config).forEach(([k, v]) => {
+      if (v) fd.append(`config_json[${k}]`, v);
+    });
+    if (certFile) fd.append('cert_file', certFile);
+    if (keyFile) fd.append('key_file', keyFile);
+    if (certPassword) fd.append('cert_password', certPassword);
+
+    router.post(`/settings/payment-gateways/${gateway.id}`, fd, {
+      forceFormData: hasFiles,
+      preserveScroll: true,
+      onSuccess: () => {
+        setSaving(false);
+        onClose();
+      },
+      onError: (errors) => {
+        setSaving(false);
+        const firstError = Object.values(errors)[0];
+        setSaveError(typeof firstError === 'string' ? firstError : 'Erro ao salvar');
+      },
+    });
+  }
+
+  function handleDelete(): void {
+    setSaveError(null);
+    setDeleting(true);
+    router.delete(`/settings/payment-gateways/${gateway.id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setDeleting(false);
+        onClose();
+      },
+      onError: (errors) => {
+        setDeleting(false);
+        setConfirmDelete(false);
+        const firstError = Object.values(errors)[0];
+        setSaveError(typeof firstError === 'string' ? firstError : 'Erro ao excluir');
+      },
+    });
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -100,7 +170,13 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
 
           {tab === 'identificacao' && (
             <div className="space-y-3">
-              <Field label="Apelido"><input defaultValue={gateway.nome} className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]" /></Field>
+              <Field label="Apelido">
+                <input
+                  value={apelido}
+                  onChange={e => setApelido(e.target.value)}
+                  className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                />
+              </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Driver">
                   <div className="h-8 bg-stone-50 border border-stone-300 rounded px-2 flex items-center gap-2 text-[12.5px]">
@@ -112,16 +188,25 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 <Field label="Ambiente">
                   <div className="inline-flex bg-stone-100 rounded p-0.5 border border-stone-200">
                     {d.ambientes.map(a => (
-                      <button key={a} className={cn(
-                        'h-7 px-3 rounded text-[11.5px] transition',
-                        gateway.ambiente === a ? 'bg-white shadow-sm font-medium' : 'text-stone-600',
-                      )}>{a === 'production' ? 'produção' : 'sandbox'}</button>
+                      <button
+                        key={a}
+                        type="button"
+                        onClick={() => setAmbiente(a as 'production' | 'sandbox')}
+                        className={cn(
+                          'h-7 px-3 rounded text-[11.5px] transition',
+                          ambiente === a ? 'bg-white shadow-sm font-medium' : 'text-stone-600',
+                        )}
+                      >{a === 'production' ? 'produção' : 'sandbox'}</button>
                     ))}
                   </div>
                 </Field>
               </div>
               <Field label="Conta destino">
-                <select defaultValue={gateway.account_id ?? ''} className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]">
+                <select
+                  value={contaId}
+                  onChange={e => setContaId(e.target.value)}
+                  className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                >
                   <option value="">— sem vínculo —</option>
                   {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
@@ -141,35 +226,89 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
 
           {tab === 'credenciais' && (
             <div className="space-y-3">
-              <div className="text-[10.5px] text-stone-500 bg-stone-50 border border-stone-200 rounded px-3 py-2 leading-snug">{d.cred}</div>
+              <div className="text-[10.5px] text-stone-500 bg-stone-50 border border-stone-200 rounded px-3 py-2 leading-snug">
+                {d.cred} <strong>Deixe em branco pra manter o valor atual</strong> — só campos preenchidos são atualizados.
+              </div>
               {d.key === 'inter' && (
                 <>
-                  <Field label="Client ID"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" placeholder="••••••" /></Field>
-                  <Field label="Client Secret">
-                    <div className="flex gap-2">
-                      <input type={revealSecret ? 'text' : 'password'} placeholder="•••••••••••••••• (cifrado)" className="flex-1 h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" />
-                      <Btn variant="outline" size="xs" onClick={() => setRevealSecret(s => !s)}>{revealSecret ? 'Ocultar' : 'Editar'}</Btn>
-                    </div>
+                  <Field label="Client ID (atualizar)">
+                    <input
+                      value={config.client_id ?? ''}
+                      onChange={e => setConfigField('client_id', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                      placeholder="•••••• (digite novo pra trocar)"
+                    />
+                  </Field>
+                  <Field label="Client Secret (atualizar)">
+                    <input
+                      type="password"
+                      value={config.client_secret ?? ''}
+                      onChange={e => setConfigField('client_secret', e.target.value)}
+                      placeholder="•••••••••••••••• (digite novo pra trocar)"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                    />
+                  </Field>
+                  <Field label="Webhook secret (atualizar)">
+                    <input
+                      type="password"
+                      value={config.webhook_secret ?? ''}
+                      onChange={e => setConfigField('webhook_secret', e.target.value)}
+                      placeholder="•••••• (opcional)"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                    />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
-                    <FileField label="Certificado .crt" hint="público · base64 no config_json" />
-                    <FileField label="Chave privada .key" hint="criptografada · nunca exibida" />
+                    <FileField
+                      label="Certificado .crt (substituir)"
+                      accept=".crt,.pem,.cer"
+                      onFile={setCertFile}
+                      selectedFileName={certFile?.name}
+                      hint="Inter PJ A1 (32KB max)"
+                    />
+                    <FileField
+                      label="Chave .key (substituir)"
+                      accept=".key,.pem"
+                      onFile={setKeyFile}
+                      selectedFileName={keyFile?.name}
+                      hint="Chave privada (32KB max)"
+                    />
                   </div>
                 </>
               )}
               {d.key === 'c6' && (
                 <div className="grid grid-cols-3 gap-3">
-                  <Field label="Agência"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
-                  <Field label="Conta"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
-                  <Field label="Código cliente"><input className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" /></Field>
+                  <Field label="Agência">
+                    <input
+                      value={config.agencia ?? ''}
+                      onChange={e => setConfigField('agencia', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
+                  <Field label="Conta">
+                    <input
+                      value={config.conta ?? ''}
+                      onChange={e => setConfigField('conta', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
+                  <Field label="Código cliente">
+                    <input
+                      value={config.codigo_cliente ?? ''}
+                      onChange={e => setConfigField('codigo_cliente', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
                 </div>
               )}
               {d.key === 'asaas' && (
-                <Field label="API Key">
-                  <div className="flex gap-2">
-                    <input type={revealSecret ? 'text' : 'password'} placeholder="$aact_YTU5YTE0M2M2N..." className="flex-1 h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono" />
-                    <Btn variant="outline" size="xs" onClick={() => setRevealSecret(s => !s)}>{revealSecret ? 'Ocultar' : 'Editar'}</Btn>
-                  </div>
+                <Field label="API Key (atualizar)">
+                  <input
+                    type="password"
+                    value={config.api_key ?? ''}
+                    onChange={e => setConfigField('api_key', e.target.value)}
+                    placeholder="$aact_••• (digite novo pra trocar)"
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
                 </Field>
               )}
               {d.key === 'bcb_pix' && (
@@ -178,15 +317,36 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                     <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                     <div><strong>Resolução BCB 380/2024:</strong> exige homologação prévia do CNPJ recebedor + certificado mTLS válido. Sandbox BCB libera o PSP testar antes da homologação production.</div>
                   </div>
-                  <Field label="CNPJ recebedor homologado">
-                    <input placeholder="apenas números" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" />
+                  <Field label="CNPJ recebedor (atualizar)">
+                    <input
+                      value={config.cnpj_recebedor ?? ''}
+                      onChange={e => setConfigField('cnpj_recebedor', e.target.value)}
+                      placeholder="apenas números"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
-                    <FileField label="Certificado mTLS .crt" hint="emitido pela ICP-Brasil" />
-                    <FileField label="Chave mTLS .key" hint="senha em campo separado" />
+                    <FileField
+                      label="Certificado mTLS .crt (substituir)"
+                      accept=".crt,.pem,.cer"
+                      onFile={setCertFile}
+                      selectedFileName={certFile?.name}
+                    />
+                    <FileField
+                      label="Chave mTLS .key (substituir)"
+                      accept=".key,.pem"
+                      onFile={setKeyFile}
+                      selectedFileName={keyFile?.name}
+                    />
                   </div>
-                  <Field label="Senha do certificado">
-                    <input type="password" placeholder="••••••••••" className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono" />
+                  <Field label="Senha do certificado (atualizar)">
+                    <input
+                      type="password"
+                      value={certPassword}
+                      onChange={e => setCertPassword(e.target.value)}
+                      placeholder="••••••••••"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
                   </Field>
                 </>
               )}
@@ -251,11 +411,42 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
           )}
         </div>
 
-        <div className="border-t border-stone-200 p-3 flex items-center gap-2 bg-stone-50/60">
-          <div className="text-[11px] text-stone-500">Alterações em credenciais exigem confirmação extra.</div>
-          <div className="flex-1" />
-          <Btn variant="outline" onClick={onClose}>Cancelar</Btn>
-          <Btn variant="primary">Salvar</Btn>
+        <div className="border-t border-stone-200 p-3 bg-stone-50/60">
+          {confirmDelete ? (
+            <div className="flex items-center gap-2">
+              <div className="text-[11.5px] text-rose-700 flex-1">
+                <strong>Excluir credencial #{gateway.id}?</strong> Apaga arquivos cert/key também. Cobranças vinculadas mantêm histórico (FK vira NULL).
+              </div>
+              <Btn variant="outline" onClick={() => setConfirmDelete(false)} disabled={deleting}>Não</Btn>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-[12px] font-medium bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-60"
+              >
+                <Trash2 className="h-3 w-3" />{deleting ? 'Excluindo…' : 'Sim, excluir'}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {saveError ? (
+                <div className="text-[11px] text-rose-700 flex-1 truncate">{saveError}</div>
+              ) : (
+                <div className="text-[11px] text-stone-500 flex-1">Apenas campos preenchidos são atualizados.</div>
+              )}
+              <button
+                onClick={() => setConfirmDelete(true)}
+                disabled={saving || deleting}
+                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded text-[11.5px] text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                title="Excluir credencial"
+              >
+                <Trash2 className="h-3 w-3" />Excluir
+              </button>
+              <Btn variant="outline" onClick={onClose} disabled={saving}>Cancelar</Btn>
+              <Btn variant="primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Salvando…' : 'Salvar'}
+              </Btn>
+            </div>
+          )}
         </div>
       </div>
     </div>
