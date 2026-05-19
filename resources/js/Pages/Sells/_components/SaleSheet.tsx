@@ -51,6 +51,8 @@ import SaleLinkifier from './SaleLinkifier';
 import SaleTranscriptPDF from './SaleTranscriptPDF';
 import SalePresentationMode from './SalePresentationMode';
 import SaleMessagePreview from './SaleMessagePreview';
+// F3 PaymentGateway UI Tela 3 — chip cobrança vinculada (ADR 0144 + ADR 0170).
+import CobrancaChip, { type CobrancaState } from './CobrancaChip';
 
 interface Customer {
   id: number;
@@ -99,6 +101,8 @@ interface SaleDetail {
     edit: string;
     print: string;
   };
+  /** F3 PaymentGateway — cobrança vinculada (ADR 0144 + 0170). null = não emitida. */
+  cobranca?: CobrancaState | null;
 }
 
 interface Props {
@@ -703,6 +707,18 @@ export default function SaleSheet({
 
             {/* Footer ações sticky */}
             <div className="border-t border-border px-6 py-3 bg-background flex items-center justify-end gap-2 flex-wrap">
+              {/* F3 PaymentGateway UI Tela 3 — chip cobrança vinculada (ADR 0144 + 0170). */}
+              {data.cobranca && (
+                <CobrancaChip
+                  venda={{
+                    id: data.id,
+                    invoice_no: data.invoice_no,
+                    customer_name: data.customer?.name ?? null,
+                    final_total: data.final_total,
+                  }}
+                  state={data.cobranca}
+                />
+              )}
               {/* US-SELL-COWORK-R4-DISTRIBUICAO — Transcript A4 + Apresentar fullscreen */}
               <Button
                 variant="outline"

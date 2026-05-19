@@ -27,6 +27,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Inertia\Inertia;
+use Modules\PaymentGateway\Models\Cobranca;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -1668,7 +1669,62 @@ class SellController extends Controller
                 'edit' => '/sells/' . $sale->id . '/edit',
                 'print' => '/sells/' . $sale->id . '/print',
             ],
+            // F3 PaymentGateway UI Tela 3 — cobrança vinculada à venda (ADR 0144 + 0170).
+            // null = não emitida ainda; UI mostra chip "Emitir cobrança" no footer drawer.
+            'cobranca' => $this->buildCobrancaState($sale),
         ]);
+    }
+
+    /**
+     * F3 PaymentGateway UI Tela 3 — estado da cobrança vinculada à venda.
+     *
+     * Busca Cobranca por origem_type=sale + origem_id=$sale->id (HasBusinessScope
+     * já filtra business_id automaticamente — Tier 0 ADR 0093).
+     *
+     * Retorna shape compatível com `CobrancaState` em
+     * `resources/js/Pages/Sells/_components/CobrancaChip.tsx`:
+     *   - kind: 'paid' | 'pending' | 'overdue' | 'error' | 'none'
+     *   - cob: {id, valor, tipo, gateway, vencimento, paga_em, emitida_em, erro_msg}
+     */
+    private function buildCobrancaState(Transaction $sale): ?array
+    {
+        $cob = Cobranca::query()
+            ->where('origem_type', 'sale')
+            ->where('origem_id', $sale->id)
+            ->with('credential:id,gateway_key')
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $cob) {
+            return ['kind' => 'none'];
+        }
+
+        $hoje = now()->toDateString();
+        $isOverdue = $cob->status === 'emitida'
+            && $cob->vencimento
+            && $cob->vencimento->toDateString() < $hoje;
+
+        $kind = match (true) {
+            $cob->status === 'paga'      => 'paid',
+            $cob->status === 'erro'      => 'error',
+            $isOverdue                   => 'overdue',
+            $cob->status === 'emitida'   => 'pending',
+            default                      => 'none',
+        };
+
+        return [
+            'kind' => $kind,
+            'cob' => [
+                'id' => $cob->id,
+                'valor' => ((int) $cob->valor_centavos) / 100,
+                'tipo' => $cob->tipo,
+                'gateway' => $cob->credential?->gateway_key,
+                'vencimento' => $cob->vencimento?->toDateString(),
+                'paga_em' => $cob->paga_em?->toIso8601String(),
+                'emitida_em' => $cob->created_at?->toIso8601String(),
+                'erro_msg' => null, // payload_gateway pode ter; backlog
+            ],
+        ];
     }
 
     /**
