@@ -59,7 +59,7 @@ class EmitTrialExpiredCobrancasCommand extends Command
         $credencial = PaymentGatewayCredential::query()
             ->withoutGlobalScopes()
             ->where('business_id', 1)
-            ->where('driver', 'bcb_pix')
+            ->where('gateway_key', 'bcb_pix')
             ->where('ativo', true)
             ->first();
 
@@ -72,7 +72,7 @@ class EmitTrialExpiredCobrancasCommand extends Command
         $contaBancaria = ContaBancaria::query()
             ->withoutGlobalScopes()
             ->where('business_id', 1)
-            ->where('rb_gateway_credential_id', $credencial->id)
+            ->where('payment_gateway_credential_id', $credencial->id)
             ->where('ativo_para_boleto', true)
             ->first();
 
