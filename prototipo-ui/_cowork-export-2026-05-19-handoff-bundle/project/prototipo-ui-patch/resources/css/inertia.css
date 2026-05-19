@@ -1,0 +1,263 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Sells/Index Cowork visual — escopado em .sells-cowork (ver scripts/scope-sells-cowork-css.py) */
+@import "./sells-cowork.css";
+
+/* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
+@import "./sells-cowork-ia.css";
+
+/* Sells Cowork Onda 3 R3 Curadoria — escopado em .sells-cowork-curadoria + linkify pills */
+@import "./sells-cowork-curadoria.css";
+
+/* Sells Cowork Onda 4 R4 Distribuição — transcript PDF A4, presentation fullscreen, WhatsApp preview */
+@import "./sells-cowork-distribuicao.css";
+
+/* Sells/Show Cowork — readonly venda finalizada (espelha família Index) */
+@import "./sells-cowork-show.css";
+
+/* Sells/Quotations Cowork — lista orçamentos (extensões mínimas além da família Index) */
+@import "./sells-cowork-quotations.css";
+
+/* Sells/Drafts Cowork — lista rascunhos (extensões mínimas além da família Index) */
+@import "./sells-cowork-drafts.css";
+
+/* Sells/Edit Cowork — form edição venda (espelha família Index, irmão de Show) */
+@import "./sells-cowork-edit.css";
+
+/* Sells/Subscriptions Cowork — lista assinaturas recorrentes (extensões mínimas além da família Index) */
+@import "./sells-cowork-subscriptions.css";
+
+/* ============================================================================
+ * FINANCEIRO — Design System Cowork — REATIVADO 2026-05-19 (Plano B aplicado)
+ *
+ * Os 5 CSS foram reativados após escopar TODAS as regras em `.fin-cowork`
+ * via scripts/scope-fin-cowork-css.py (espelho de scope-sells-cowork-css.py).
+ *
+ * Wrap necessário: <div className="fin-cowork"> em TODAS Pages/Financeiro/*.tsx.
+ * Sem wrap → regras não aplicam → página fica pelada (Wagner 2026-05-18 noite
+ * relatou /financeiro/unificado renderizando HTML cru; raiz foi falta do wrap +
+ * dos imports comentados).
+ * ============================================================================ */
+
+@import "./cowork-financeiro-bundle.css";
+@import "./fin-cowork.css";
+@import "./fin-curadoria.css";
+@import "./fin-ia.css";
+@import "./fin-output.css";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Light (default) — shadcn new-york slate */
+  --color-border: hsl(214.3 31.8% 91.4%);
+  --color-input: hsl(214.3 31.8% 91.4%);
+  --color-ring: hsl(222.2 84% 4.9%);
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+
+  --color-primary: hsl(221.2 83.2% 53.3%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-secondary: hsl(210 40% 96.1%);
+  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --color-accent: hsl(210 40% 96.1%);
+  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(222.2 84% 4.9%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(222.2 84% 4.9%);
+
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+}
+
+/* ==========================================================================
+   Dark mode — ativa quando <html class="dark">
+   Anti-flash: script inline em layouts/inertia.blade.php aplica a classe
+   ANTES do React hidratar, evitando "piscar" branco-para-escuro.
+   ========================================================================== */
+.dark {
+  --color-border: hsl(217.2 32.6% 17.5%);
+  --color-input: hsl(217.2 32.6% 17.5%);
+  --color-ring: hsl(212.7 26.8% 83.9%);
+  --color-background: hsl(222.2 84% 4.9%);
+  --color-foreground: hsl(210 40% 98%);
+
+  --color-primary: hsl(217.2 91.2% 59.8%);
+  --color-primary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-secondary: hsl(217.2 32.6% 17.5%);
+  --color-secondary-foreground: hsl(210 40% 98%);
+  --color-muted: hsl(217.2 32.6% 17.5%);
+  --color-muted-foreground: hsl(215 20.2% 65.1%);
+  --color-accent: hsl(217.2 32.6% 17.5%);
+  --color-accent-foreground: hsl(210 40% 98%);
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-card: hsl(222.2 47.4% 11.2%);
+  --color-card-foreground: hsl(210 40% 98%);
+  --color-popover: hsl(222.2 84% 4.9%);
+  --color-popover-foreground: hsl(210 40% 98%);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+}
+
+/* Sells/Index Cowork — extensões fora do prototype (paginação backend Laravel) */
+.sells-cowork .vd-pagi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.sells-cowork .vd-pagi-btn {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+}
+.sells-cowork .vd-pagi-btn:hover:not(:disabled) { background: var(--bg-2); }
+.sells-cowork .vd-pagi-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* US-SELL-COWORK-R5-POLISH — delta negativo (cor vermelha-suave) */
+.sells-cowork .vd-delta-dn {
+  color: oklch(0.55 0.16 25) !important;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.sells-cowork .vd-kpi-hero .vd-delta-dn { color: oklch(0.65 0.18 25) !important; }
+
+/* PR follow-up — Filtros avançados ▾ (DateFilter + GroupBy + Toggle Lista/Grade) */
+.sells-cowork .vd-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .vd-tabs-grow { flex: 1 1 auto; border-bottom: 0; }
+.sells-cowork .vd-tabs-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.sells-cowork .vd-filters-toggle {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.sells-cowork .vd-filters-toggle:hover { background: var(--bg-2); }
+.sells-cowork .vd-filters-toggle.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.sells-cowork .vd-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .vd-grade-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Fix bug 2026-05-18 "vendas até dia 14" — hint visível pra filter stale.
+ * Aparece acima da linha de status pills quando há filter de data ativo. */
+.sells-cowork .vd-date-filter-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid oklch(0.85 0.05 240);
+  background: oklch(0.97 0.04 240);
+  color: oklch(0.36 0.13 240);
+  font-size: 12.5px;
+}
+.sells-cowork .vd-date-filter-hint.stale {
+  border-color: oklch(0.65 0.18 60);
+  background: oklch(0.96 0.07 60);
+  color: oklch(0.40 0.18 60);
+}
+.sells-cowork .vd-date-filter-hint-ic {
+  font-size: 16px;
+  line-height: 1;
+}
+.sells-cowork .vd-date-filter-hint-tx {
+  flex: 1;
+  min-width: 0;
+}
+.sells-cowork .vd-date-filter-hint-tx b {
+  font-weight: 600;
+}
+.sells-cowork .vd-date-filter-hint-range {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+.sells-cowork .vd-date-filter-hint-tx small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.sells-cowork .vd-date-filter-hint-clear {
+  appearance: none;
+  background: white;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s;
+}
+.sells-cowork .vd-date-filter-hint-clear:hover {
+  filter: brightness(0.97);
+}
