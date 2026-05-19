@@ -7,7 +7,9 @@ namespace Modules\PaymentGateway\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -83,6 +85,134 @@ class PaymentGatewaysController extends Controller
         $results = $svc->checkAll($businessId);
 
         return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Cria nova credencial PaymentGateway.
+     *
+     * Onda 5 (2026-05-19) — completa o wizard SheetNovoGateway (frontend
+     * F3 PR #1135 entregou UI, faltava endpoint backend).
+     *
+     * Trust L3 — secrets em config_json. NÃO cifra automaticamente nesta
+     * onda (config_json cast 'array' — armazena JSON literal). Encryption
+     * automática por field fica em ondas futuras (atualmente .env do prod
+     * é fonte primária; credencial é gestão UI complementar).
+     *
+     * Multi-tenant Tier 0 — business_id derivado de session, NUNCA do payload.
+     */
+    public function store(Request $request): RedirectResponse|JsonResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
+
+        if ($businessId <= 0) {
+            return response()->json(['success' => false, 'msg' => 'Sessão sem business_id'], 403);
+        }
+
+        $validated = $request->validate([
+            'gateway_key'      => 'required|string|in:inter,c6,asaas,bcb_pix,pesapal',
+            'ambiente'         => 'required|string|in:production,sandbox',
+            'nome_display'     => 'nullable|string|max:191',
+            'conta_bancaria_id' => 'nullable|integer|exists:accounts,id',
+            'config_json'      => 'required|array',
+            'ativo'            => 'sometimes|boolean',
+        ]);
+
+        // Tier 0: garantir conta_bancaria_id pertence ao business_id session
+        if (!empty($validated['conta_bancaria_id'])) {
+            $ownsAccount = \App\Account::where('id', $validated['conta_bancaria_id'])
+                ->where('business_id', $businessId)
+                ->exists();
+            if (!$ownsAccount) {
+                return response()->json(['success' => false, 'msg' => 'Conta não pertence ao business'], 403);
+            }
+        }
+
+        // Anti-dupla — (business_id, gateway_key, ambiente) é unique no schema
+        $duplicate = PaymentGatewayCredential::query()
+            ->withoutGlobalScopes()
+            ->where('business_id', $businessId)
+            ->where('gateway_key', $validated['gateway_key'])
+            ->where('ambiente', $validated['ambiente'])
+            ->exists();
+
+        if ($duplicate) {
+            return response()->json([
+                'success' => false,
+                'msg' => sprintf('Já existe credencial %s (%s) em biz=%d. Edite a existente.', $validated['gateway_key'], $validated['ambiente'], $businessId),
+            ], 422);
+        }
+
+        $cred = PaymentGatewayCredential::create([
+            'business_id'        => $businessId,
+            'gateway_key'        => $validated['gateway_key'],
+            'ambiente'           => $validated['ambiente'],
+            'nome_display'       => $validated['nome_display'] ?? null,
+            'conta_bancaria_id'  => $validated['conta_bancaria_id'] ?? null,
+            'config_json'        => $validated['config_json'],
+            'ativo'              => (bool) ($validated['ativo'] ?? true),
+            'health_status'      => 'unknown',
+        ]);
+
+        Log::info('[paymentgateway.credential.created]', [
+            'business_id'   => $businessId,
+            'credential_id' => $cred->id,
+            'gateway_key'   => $cred->gateway_key,
+            'ambiente'      => $cred->ambiente,
+            // NÃO loga config_json (secrets — LGPD/PCI)
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'credential_id' => $cred->id,
+                'gateway_key' => $cred->gateway_key,
+            ], 201);
+        }
+
+        return redirect()->route('settings.payment-gateways.index')
+            ->with('status', ['success' => 1, 'msg' => 'Credencial criada: ' . ($cred->nome_display ?: $cred->gateway_key)]);
+    }
+
+    /**
+     * Atualiza credencial existente. Pattern store — apenas campos enviados.
+     */
+    public function update(Request $request, int $credentialId): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
+
+        $cred = PaymentGatewayCredential::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($credentialId);
+
+        $validated = $request->validate([
+            'nome_display'      => 'sometimes|nullable|string|max:191',
+            'conta_bancaria_id' => 'sometimes|nullable|integer|exists:accounts,id',
+            'config_json'       => 'sometimes|array',
+            'ambiente'          => 'sometimes|string|in:production,sandbox',
+            'ativo'             => 'sometimes|boolean',
+        ]);
+
+        if (!empty($validated['conta_bancaria_id'])) {
+            $ownsAccount = \App\Account::where('id', $validated['conta_bancaria_id'])
+                ->where('business_id', $businessId)
+                ->exists();
+            if (!$ownsAccount) {
+                return response()->json(['success' => false, 'msg' => 'Conta não pertence ao business'], 403);
+            }
+        }
+
+        $cred->update($validated);
+
+        Log::info('[paymentgateway.credential.updated]', [
+            'business_id'   => $businessId,
+            'credential_id' => $cred->id,
+            'fields'        => array_keys($validated),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'credential_id' => $cred->id,
+        ]);
     }
 
     /**
