@@ -48,6 +48,7 @@
 
 ## Legacy & migração
 
+- [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md) — **TIER 0** wire IRREVOGÁVEL (Delphi não vai recompilar) — endpoints Connector+Officeimpresso+Subscription + 3 níveis enforcement bloqueio (empresa/máquina/validade) + builds prod catalogados + matriz permitido/proibido
 - [legacy-delphi-firebird.md](legacy-delphi-firebird.md) — código fonte Delphi WR Comercial (SVN) + 50 bancos Firebird + SYSDBA/masterkey hardcoded {$IFDEF WR2} + fluxo login→registro
 - [project-officeimpresso-modulo.md](project-officeimpresso-modulo.md) — módulo Laravel licença desktop (3.7 restaurado→6.7) + tela licenca_log v3 machine-centric
 - [migracao-officeimpresso-pattern.md](migracao-officeimpresso-pattern.md) — **pattern canônico 4 fases** (Empresas→Vehicles→Vendas→Financeiro) · Python firebird-driver + pymysql · idempotência por legacy_id · audit JSON · anti-patterns Martinho 2026-05-13
