@@ -65,8 +65,14 @@ function FinanceiroFluxo({ saldo_hoje, saldo_30d, pior_dia, margem_minima, conta
   const proxEventos = dias.filter((d) => !d.is_past && d.eventos.length > 0).slice(0, 7);
 
   return (
-    <>
-      <PageHeader title="Fluxo de caixa" subtitle="Projeção 35 dias · saldo, entradas e saídas dia-a-dia" />
+    <div className="fin-curadoria vendas-aplus">
+      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado (substitui PageHeader shared) */}
+      <header className="os-page-h fin-page-h">
+        <div className="os-page-h-l fin-page-h-l">
+          <h1>Fluxo de caixa <span className="fin-hero-title-sub">· Projeção 35 dias</span></h1>
+          <p>Saldo, entradas e saídas dia-a-dia</p>
+        </div>
+      </header>
 
       <KpiGrid columns={4}>
         <KpiCard label="Saldo hoje" value={brl(saldo_hoje)} caption={conta} dark />
@@ -193,7 +199,7 @@ function FinanceiroFluxo({ saldo_hoje, saldo_30d, pior_dia, margem_minima, conta
           </table>
         )}
       </Card>
-    </>
+    </div>
   );
 }
 

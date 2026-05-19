@@ -154,24 +154,24 @@ function FinanceiroDashboard({
   const pm = kpis.pago_mes;
 
   return (
-    <>
-      <PageHeader
-        icon="coins"
-        title="Financeiro"
-        description="Visão geral das contas a pagar e a receber"
-        action={
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
-            >
-              Limpar filtros
-            </Button>
-            <Button size="sm">Novo título</Button>
-          </div>
-        }
-      />
+    <div className="fin-curadoria vendas-aplus">
+      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado (substitui PageHeader shared) */}
+      <header className="os-page-h fin-page-h">
+        <div className="os-page-h-l fin-page-h-l">
+          <h1>Financeiro <span className="fin-hero-title-sub">· Dashboard</span></h1>
+          <p>Visão geral das contas a pagar e a receber</p>
+        </div>
+        <div className="os-page-h-r fin-page-h-r">
+          <button
+            type="button"
+            className="os-btn ghost"
+            onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
+          >
+            Limpar filtros
+          </button>
+          <button type="button" className="os-btn primary">Novo título</button>
+        </div>
+      </header>
 
       {/* KPI Grid (UI-0002) — Inertia::defer canon: skeleton no primeiro paint */}
       <Deferred data="kpis" fallback={<KpiGridSkeleton />}>
@@ -434,7 +434,7 @@ function FinanceiroDashboard({
           </CardContent>
         </Card>
       </Deferred>
-    </>
+    </div>
   );
 }
 

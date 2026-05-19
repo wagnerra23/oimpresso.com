@@ -67,21 +67,21 @@ function Index({ categorias, planos_conta }: Props) {
 
   return (
     <>
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <Tag className="h-6 w-6" /> Categorias
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Tags livres pra organizar lançamentos e relatórios. Complementam o plano de contas
-              (que é fixo/contábil).
-            </p>
+      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado: os-page-h
+          + os-btn primary. Aplicado em telas do Financeiro pra consistência
+          visual depois do bundle copy canon (PR 1164). */}
+      <div className="fin-curadoria vendas-aplus p-6 max-w-5xl mx-auto space-y-6">
+        <header className="os-page-h fin-page-h">
+          <div className="os-page-h-l fin-page-h-l">
+            <h1>Categorias <span className="fin-hero-title-sub">· Tags livres</span></h1>
+            <p>Complementam o plano de contas (que é fixo/contábil) — organizam lançamentos pra relatórios</p>
           </div>
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Nova categoria
-          </Button>
-        </div>
+          <div className="os-page-h-r fin-page-h-r">
+            <button type="button" className="os-btn primary" onClick={() => setCreating(true)}>
+              <Plus size={13} /> Nova categoria
+            </button>
+          </div>
+        </header>
 
         <div className="rounded-md border">
           <table className="w-full text-sm">
