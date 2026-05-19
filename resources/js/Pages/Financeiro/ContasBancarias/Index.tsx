@@ -64,30 +64,23 @@ function Index({ accounts, bancos_suportados }: Props) {
 
   return (
     <>
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Contas Bancárias</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Dados pra emissão de boleto (banco, agência, beneficiário). Cadastro
-              principal da conta continua em &quot;Contas de pagamento&quot; do POS;
-              credenciais API (Inter, Asaas, C6) ficam em{' '}
-              <a href="/settings/payment-gateways" className="underline underline-offset-2 hover:text-foreground">
-                Gateways de Pagamento
-              </a>.
+      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
+      <div className="fin-curadoria vendas-aplus p-6 max-w-6xl mx-auto space-y-6">
+        <header className="os-page-h fin-page-h">
+          <div className="os-page-h-l fin-page-h-l">
+            <h1>Contas Bancárias <span className="fin-hero-title-sub">· Dados de emissão de boleto</span></h1>
+            <p>
+              Banco, agência, beneficiário. Cadastro principal continua em "Contas de pagamento" do POS;
+              credenciais API (Inter, Asaas, C6) ficam em <a href="/settings/payment-gateways" className="underline underline-offset-2">Gateways de Pagamento</a>.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="ghost">
-              <a href="/settings/payment-gateways">Gateways</a>
-            </Button>
-            <Button asChild variant="outline">
-              <a href="/account/account/create">
-                <Plus className="h-4 w-4 mr-2" /> Nova conta no POS
-              </a>
-            </Button>
+          <div className="os-page-h-r fin-page-h-r">
+            <a href="/settings/payment-gateways" className="os-btn ghost">Gateways</a>
+            <a href="/account/account/create" className="os-btn primary">
+              <Plus size={13} /> Nova conta no POS
+            </a>
           </div>
-        </div>
+        </header>
 
         <div className="rounded-md border">
           <table className="w-full text-sm">

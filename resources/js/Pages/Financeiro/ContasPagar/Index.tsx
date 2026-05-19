@@ -160,11 +160,14 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
 
   return (
     <>
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Contas a Pagar</h1>
-          <p className="text-sm text-muted-foreground mt-1">Títulos a pagar (compras, despesas, contratos).</p>
-        </div>
+      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
+      <div className="fin-curadoria vendas-aplus p-6 max-w-6xl mx-auto space-y-6">
+        <header className="os-page-h fin-page-h">
+          <div className="os-page-h-l fin-page-h-l">
+            <h1>Contas a Pagar <span className="fin-hero-title-sub">· Títulos</span></h1>
+            <p>Compras, despesas, contratos</p>
+          </div>
+        </header>
 
         <div className="flex flex-wrap gap-2">
           <span className="text-xs text-muted-foreground self-center mr-2">Filtros:</span>
