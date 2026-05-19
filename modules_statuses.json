@@ -26,6 +26,7 @@
     "NfeBrasil": true,
     "Officeimpresso": true,
     "OficinaAuto": true,
+    "PaymentGateway": true,
     "Ponto": true,
     "ProductCatalogue": true,
     "ProjectMgmt": true,
