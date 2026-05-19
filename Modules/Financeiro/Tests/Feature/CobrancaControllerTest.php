@@ -198,12 +198,13 @@ it('Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope', function (
     expect($payload)->not->toContain('99999');
 });
 
-it('rota /financeiro/boletos continua acessível durante período de coexistência (preservada 60d)', function () {
-    // Não testamos redirect agora — preservado durante transição
+it('rota legacy /financeiro/boletos redireciona 301 → /financeiro/cobranca', function () {
+    // Cleanup 2026-05-19 hotfix sidebar: Pages/Financeiro/Boletos deletado,
+    // GET /boletos virou Route::redirect(301). POST cancelar legacy preservado.
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/financeiro/boletos')
-        ->assertOk();
+        ->assertRedirect('/financeiro/cobranca');
 });
 
 it('não dispara mutação em GET /cobranca (read-only puro)', function () {
