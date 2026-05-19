@@ -193,8 +193,11 @@ class PaymentGatewaysController extends Controller
 
     /**
      * Atualiza credencial existente. Pattern store — apenas campos enviados.
+     *
+     * Resposta dual: Inertia request → redirect (Inertia router espera 302).
+     * Plain JSON request → JSON {success, credential_id} (futuro API).
      */
-    public function update(Request $request, int $credentialId): JsonResponse
+    public function update(Request $request, int $credentialId): RedirectResponse|JsonResponse
     {
         $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
 
@@ -247,6 +250,11 @@ class PaymentGatewaysController extends Controller
             'fields'        => array_keys($payload),
             'has_cert_upload' => $request->hasFile('cert_file') || $request->hasFile('key_file'),
         ]);
+
+        if ($request->header('X-Inertia') || !$request->expectsJson()) {
+            return redirect()->route('settings.payment-gateways.index')
+                ->with('status', ['success' => 1, 'msg' => 'Credencial atualizada']);
+        }
 
         return response()->json([
             'success' => true,
@@ -309,7 +317,7 @@ class PaymentGatewaysController extends Controller
      * Cobranças vinculadas continuam (FK cobrancas.payment_gateway_credential_id
      * permanece NULL após delete — não cascateia pra preservar histórico).
      */
-    public function destroy(Request $request, int $credentialId): JsonResponse
+    public function destroy(Request $request, int $credentialId): RedirectResponse|JsonResponse
     {
         $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
 
@@ -336,6 +344,11 @@ class PaymentGatewaysController extends Controller
             'gateway_key'   => $cred->gateway_key,
             'ambiente'      => $cred->ambiente,
         ]);
+
+        if ($request->header('X-Inertia') || !$request->expectsJson()) {
+            return redirect()->route('settings.payment-gateways.index')
+                ->with('status', ['success' => 1, 'msg' => 'Credencial excluída']);
+        }
 
         return response()->json([
             'success' => true,
