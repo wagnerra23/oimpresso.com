@@ -54,6 +54,7 @@ oimpresso (núcleo comum)
 ├── Modules/Financeiro    (visão unificada AR/AP)
 ├── Modules/NfeBrasil     (NFe/NFC-e/NFSe)
 ├── Modules/RecurringBilling (assinaturas + boletos)
+├── Modules/PaymentGateway   (🟡 Onda 0 docs only — ADR 0170 proposto — drivers Inter/C6/Asaas/PixAuto/CNAB, extração de RecurringBilling, status: later phase=2)
 ├── Modules/MemCofre      (cofre senhas)
 ├── Modules/Repair        (Kanban OS — shared infrastructure entre verticais)
 └── Modules/<Vertical>    ← ESPECIALIZAÇÕES PROFUNDAS
