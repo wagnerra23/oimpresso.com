@@ -331,23 +331,22 @@
 }
 .fin-cowork .fin-curadoria .fin-search-wrap input::placeholder { color: var(--fin-text-mute); }
 /* ─────────────────────────────────────────────────────────────
- * Footer tips (atalhos sticky bottom)
+ * Footer tips (inline ao final da página — Wagner 2026-05-19,
+ * comparação com canon REAL /cowork-preview/Oimpresso ERP - Chat.html
+ * mostrou footer inline rolando com o conteúdo, não fixed na viewport).
  * ───────────────────────────────────────────────────────────── */
 .fin-cowork .fin-curadoria .fin-footer-tips {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 6px 24px;
-  background: oklch(0.99 0.002 240 / 0.95);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid var(--fin-line);
+  margin-top: 24px;
+  padding: 8px 16px;
+  background: oklch(0.99 0.002 240);
+  border: 1px solid var(--fin-line);
+  border-radius: 8px;
   font-size: 11px;
   color: var(--fin-text-mute);
   display: flex;
   align-items: center;
   gap: 14px;
-  z-index: 30;
+  flex-wrap: wrap;
 }
 .fin-cowork .fin-curadoria .fin-footer-tips kbd {
   font-family: ui-monospace, monospace;
