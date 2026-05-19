@@ -104,9 +104,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->whereNumber('tituloId')
             ->name('contas-receber.emitir-boleto');
 
-        // Boletos emitidos (lista + cancelar) — preservado durante 60d
-        // após F3 PaymentGateway UI (ADR 0170). Charter Boletos status: superseded.
-        Route::get('/boletos', [BoletoController::class, 'index'])->name('boletos.index');
+        // Boletos legacy — sidebar agora aponta pra /cobranca (F3 PaymentGateway UI).
+        // GET /boletos → 301 redirect pra /financeiro/cobranca (substitui Inertia
+        // render Pages/Financeiro/Boletos/Index, deletado em hotfix 2026-05-19).
+        // POST cancelar preservado durante 60d pra cancelar BoletoRemessa legacy DB.
+        Route::redirect('/boletos', '/financeiro/cobranca', 301)->name('boletos.index');
         Route::post('/boletos/{remessaId}/cancelar', [BoletoController::class, 'cancelar'])
             ->whereNumber('remessaId')
             ->name('boletos.cancelar');
