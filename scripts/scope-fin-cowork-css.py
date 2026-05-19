@@ -23,6 +23,11 @@ import sys
 from pathlib import Path
 
 FILES = [
+    # Onda 12.3 (2026-05-19) — bundle canon REAL inteiro (9054 LOC) copiado de
+    # public/cowork-preview/styles.css conforme regra Tier 0
+    # feedback-cowork-bundle-aplicar-inteiro.md (Wagner autorizou bundle copy
+    # após 3 tentativas falhas de cherry-pick de classes Cowork sharedas).
+    Path("resources/css/cowork-canon-financeiro-bundle.css"),
     Path("resources/css/cowork-financeiro-bundle.css"),
     Path("resources/css/fin-curadoria.css"),
     Path("resources/css/fin-ia.css"),
