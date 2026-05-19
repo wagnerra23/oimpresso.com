@@ -578,7 +578,9 @@ class UnificadoController extends Controller
     {
         $tabsValidas = ['all', 'open', 'rec', 'pay', 'received', 'paid', 'late'];
         $lifecycleValidos = ['ar', 're', 'ap', 'pa'];
-        $densidadesValidas = ['compact', 'comfortable', 'spacious'];
+        // Onda 12.6 (2026-05-19) — Wagner: default compact + remove spacious.
+        // Financeiro persona Eliana = densidade alta. "Espaçoso" não tinha uso.
+        $densidadesValidas = ['compact', 'comfortable'];
         $periodosValidos = ['mes_atual', 'mes_anterior', '30d', '90d'];
 
         // Onda Polish 2026-05-18 — lifecycle aceita array OR string CSV ("ar,re").
@@ -611,7 +613,7 @@ class UnificadoController extends Controller
             'periodo' => in_array($request->string('periodo')->toString(), $periodosValidos, true)
                 ? $request->string('periodo')->toString() : 'mes_atual',
             'densidade' => in_array($request->string('densidade')->toString(), $densidadesValidas, true)
-                ? $request->string('densidade')->toString() : 'comfortable',
+                ? $request->string('densidade')->toString() : 'compact',
         ];
     }
 
