@@ -1,3 +1,4 @@
+/* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
 /* fin-ia.css — Cowork KB-9.75 Financeiro Onda 6 R2 IA
  *
  * Tokens visuais portados de prototipo-ui/styles.css (Refino #2).
@@ -7,12 +8,10 @@
  *   - prototipo-ui/financeiro-ai.jsx (canonical components)
  *   - resources/css/fin-curadoria.css (Onda 5 — wrapper compartilhado)
  */
-
 /* ─────────────────────────────────────────────────────────────
  * Anomaly card — outlier vs histórico
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-anomaly {
+.fin-cowork .fin-curadoria .fin-anomaly {
   display: flex;
   gap: 10px;
   padding: 10px 12px;
@@ -21,32 +20,31 @@
   margin: 8px 0;
   align-items: flex-start;
 }
-.fin-curadoria .fin-anomaly-high.fin-anomaly-sev-high {
+.fin-cowork .fin-curadoria .fin-anomaly-high.fin-anomaly-sev-high {
   background: oklch(0.96 0.07 60);
   color: oklch(0.42 0.18 60);
 }
-.fin-curadoria .fin-anomaly-high.fin-anomaly-sev-medium {
+.fin-cowork .fin-curadoria .fin-anomaly-high.fin-anomaly-sev-medium {
   background: oklch(0.96 0.05 70);
   color: oklch(0.45 0.13 60);
 }
-.fin-curadoria .fin-anomaly-high.fin-anomaly-sev-low {
+.fin-cowork .fin-curadoria .fin-anomaly-high.fin-anomaly-sev-low {
   background: oklch(0.96 0.04 80);
   color: oklch(0.48 0.10 60);
 }
-.fin-curadoria .fin-anomaly-low.fin-anomaly-sev-high {
+.fin-cowork .fin-curadoria .fin-anomaly-low.fin-anomaly-sev-high {
   background: oklch(0.95 0.04 25);
   color: oklch(0.50 0.18 25);
 }
-.fin-curadoria .fin-anomaly-low.fin-anomaly-sev-medium {
+.fin-cowork .fin-curadoria .fin-anomaly-low.fin-anomaly-sev-medium {
   background: oklch(0.96 0.05 240);
   color: oklch(0.40 0.13 240);
 }
-.fin-curadoria .fin-anomaly-low.fin-anomaly-sev-low {
+.fin-cowork .fin-curadoria .fin-anomaly-low.fin-anomaly-sev-low {
   background: oklch(0.96 0.04 240);
   color: oklch(0.45 0.10 240);
 }
-
-.fin-curadoria .fin-anomaly-ic {
+.fin-cowork .fin-curadoria .fin-anomaly-ic {
   display: grid;
   place-items: center;
   width: 28px;
@@ -57,16 +55,14 @@
   font-weight: 700;
   flex-shrink: 0;
 }
-.fin-curadoria .fin-anomaly-body { flex: 1; min-width: 0; }
-.fin-curadoria .fin-anomaly-body b { display: block; font-size: 12.5px; font-weight: 600; }
-.fin-curadoria .fin-anomaly-body small { display: block; font-size: 11px; opacity: 0.85; }
-.fin-curadoria .fin-anomaly-body i { font-style: normal; font-size: 11px; font-weight: 500; opacity: 0.75; }
-
+.fin-cowork .fin-curadoria .fin-anomaly-body { flex: 1; min-width: 0; }
+.fin-cowork .fin-curadoria .fin-anomaly-body b { display: block; font-size: 12.5px; font-weight: 600; }
+.fin-cowork .fin-curadoria .fin-anomaly-body small { display: block; font-size: 11px; opacity: 0.85; }
+.fin-cowork .fin-curadoria .fin-anomaly-body i { font-style: normal; font-size: 11px; font-weight: 500; opacity: 0.75; }
 /* ─────────────────────────────────────────────────────────────
  * Party history — stats da contraparte
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-party-history {
+.fin-cowork .fin-curadoria .fin-party-history {
   background: var(--fin-bg-soft);
   border: 1px solid var(--fin-line);
   border-radius: 8px;
@@ -74,71 +70,67 @@
   margin: 8px 0;
   font-size: 12px;
 }
-.fin-curadoria .fin-party-h {
+.fin-cowork .fin-curadoria .fin-party-h {
   display: flex;
   align-items: baseline;
   gap: 6px;
   margin-bottom: 8px;
 }
-.fin-curadoria .fin-party-ic {
+.fin-cowork .fin-curadoria .fin-party-ic {
   font-size: 12px;
   color: oklch(0.36 0.13 240);
 }
-.fin-curadoria .fin-party-h h4 {
+.fin-cowork .fin-curadoria .fin-party-h h4 {
   margin: 0;
   font-size: 13px;
   font-weight: 700;
   color: var(--fin-text);
 }
-.fin-curadoria .fin-party-h small { font-size: 11px; color: var(--fin-text-mute); }
-
-.fin-curadoria .fin-party-new p {
+.fin-cowork .fin-curadoria .fin-party-h small { font-size: 11px; color: var(--fin-text-mute); }
+.fin-cowork .fin-curadoria .fin-party-new p {
   margin: 4px 0 0;
   font-size: 12px;
   color: var(--fin-text-mute);
   font-style: italic;
 }
-
-.fin-curadoria .fin-party-stats {
+.fin-cowork .fin-curadoria .fin-party-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   margin: 8px 0;
 }
-.fin-curadoria .fin-party-stat {
+.fin-cowork .fin-curadoria .fin-party-stat {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
-.fin-curadoria .fin-party-stat small {
+.fin-cowork .fin-curadoria .fin-party-stat small {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-party-stat b {
+.fin-cowork .fin-curadoria .fin-party-stat b {
   font-size: 13px;
   font-weight: 600;
   color: var(--fin-text);
   font-family: ui-monospace, monospace;
 }
-.fin-curadoria .fin-party-stat b.pos { color: oklch(0.45 0.18 145); }
-.fin-curadoria .fin-party-stat b.mid { color: oklch(0.55 0.13 60); }
-.fin-curadoria .fin-party-stat b.neg { color: oklch(0.50 0.18 25); }
-
-.fin-curadoria .fin-party-top-cat {
+.fin-cowork .fin-curadoria .fin-party-stat b.pos { color: oklch(0.45 0.18 145); }
+.fin-cowork .fin-curadoria .fin-party-stat b.mid { color: oklch(0.55 0.13 60); }
+.fin-cowork .fin-curadoria .fin-party-stat b.neg { color: oklch(0.50 0.18 25); }
+.fin-cowork .fin-curadoria .fin-party-top-cat {
   margin: 4px 0 0;
   font-size: 11.5px;
   color: var(--fin-text);
 }
-.fin-curadoria .fin-party-top-cat small { color: var(--fin-text-mute); }
-
-.fin-curadoria .fin-party-recent {
+.fin-cowork .fin-curadoria .fin-party-top-cat small { color: var(--fin-text-mute); }
+.fin-cowork .fin-curadoria .fin-party-recent {
   margin-top: 8px;
   border-top: 1px dashed var(--fin-line);
   padding-top: 6px;
 }
-.fin-curadoria .fin-party-recent > small {
+.fin-cowork .fin-curadoria .fin-party-recent > small {
   display: block;
   font-size: 10px;
   text-transform: uppercase;
@@ -146,7 +138,7 @@
   color: var(--fin-text-mute);
   margin-bottom: 4px;
 }
-.fin-curadoria .fin-party-recent ul {
+.fin-cowork .fin-curadoria .fin-party-recent ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -154,14 +146,14 @@
   flex-direction: column;
   gap: 2px;
 }
-.fin-curadoria .fin-party-recent li {
+.fin-cowork .fin-curadoria .fin-party-recent li {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 11.5px;
   padding: 2px 0;
 }
-.fin-curadoria .fin-party-recent-cat {
+.fin-cowork .fin-curadoria .fin-party-recent-cat {
   color: var(--fin-text-mute);
   flex: 1;
   min-width: 0;
@@ -169,12 +161,12 @@
   overflow: hidden;
   white-space: nowrap;
 }
-.fin-curadoria .fin-party-recent-amt {
+.fin-cowork .fin-curadoria .fin-party-recent-amt {
   font-family: ui-monospace, monospace;
   font-weight: 600;
   color: var(--fin-text);
 }
-.fin-curadoria .fin-party-recent-tag {
+.fin-cowork .fin-curadoria .fin-party-recent-tag {
   display: grid;
   place-items: center;
   width: 16px;
@@ -182,30 +174,28 @@
   border-radius: 50%;
   font-size: 10px;
 }
-.fin-curadoria .fin-party-recent-tag.paid {
+.fin-cowork .fin-curadoria .fin-party-recent-tag.paid {
   background: oklch(0.94 0.06 145);
   color: oklch(0.32 0.13 145);
 }
-.fin-curadoria .fin-party-recent-tag.overdue {
+.fin-cowork .fin-curadoria .fin-party-recent-tag.overdue {
   background: oklch(0.95 0.04 25);
   color: oklch(0.50 0.18 25);
 }
-.fin-curadoria .fin-party-recent-tag.open {
+.fin-cowork .fin-curadoria .fin-party-recent-tag.open {
   background: var(--fin-bg-soft);
   color: var(--fin-text-mute);
 }
-
 /* ─────────────────────────────────────────────────────────────
  * Month Digest — 4-card snapshot executivo
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-digest {
+.fin-cowork .fin-curadoria .fin-digest {
   border: 1px solid var(--fin-line);
   border-radius: 8px;
   margin: 6px 0 12px;
   overflow: hidden;
 }
-.fin-curadoria .fin-digest-toggle {
+.fin-cowork .fin-curadoria .fin-digest-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -218,32 +208,30 @@
   text-align: left;
   font-size: 12.5px;
 }
-.fin-curadoria .fin-digest-toggle:hover { background: var(--fin-bg-soft); }
-.fin-curadoria .fin-digest-ic { color: oklch(0.36 0.13 240); }
-.fin-curadoria .fin-digest-toggle b { color: var(--fin-text); font-weight: 700; }
-.fin-curadoria .fin-digest-toggle small {
+.fin-cowork .fin-curadoria .fin-digest-toggle:hover { background: var(--fin-bg-soft); }
+.fin-cowork .fin-curadoria .fin-digest-ic { color: oklch(0.36 0.13 240); }
+.fin-cowork .fin-curadoria .fin-digest-toggle b { color: var(--fin-text); font-weight: 700; }
+.fin-cowork .fin-curadoria .fin-digest-toggle small {
   color: var(--fin-text-mute);
   font-size: 11px;
   font-weight: 500;
 }
-.fin-curadoria .fin-digest-chev {
+.fin-cowork .fin-curadoria .fin-digest-chev {
   margin-left: auto;
   color: var(--fin-text-mute);
   font-size: 11px;
 }
-
-.fin-curadoria .fin-digest-body {
+.fin-cowork .fin-curadoria .fin-digest-body {
   padding: 8px 12px 12px;
   background: var(--fin-bg-soft);
   border-top: 1px solid var(--fin-line);
 }
-
-.fin-curadoria .fin-digest-cards {
+.fin-cowork .fin-curadoria .fin-digest-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
-.fin-curadoria .fin-digest-card {
+.fin-cowork .fin-curadoria .fin-digest-card {
   background: white;
   border-radius: 6px;
   padding: 8px 10px;
@@ -251,36 +239,35 @@
   flex-direction: column;
   gap: 2px;
 }
-.fin-curadoria .fin-digest-card small {
+.fin-cowork .fin-curadoria .fin-digest-card small {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-digest-card b {
+.fin-cowork .fin-curadoria .fin-digest-card b {
   font-size: 16px;
   font-weight: 700;
   font-family: ui-monospace, monospace;
   color: var(--fin-text);
 }
-.fin-curadoria .fin-digest-card i {
+.fin-cowork .fin-curadoria .fin-digest-card i {
   font-style: normal;
   font-size: 10.5px;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-digest-card.in b { color: oklch(0.45 0.18 145); }
-.fin-curadoria .fin-digest-card.out b { color: oklch(0.40 0.005 240); }
-.fin-curadoria .fin-digest-card.net.pos b { color: oklch(0.45 0.18 145); }
-.fin-curadoria .fin-digest-card.net.neg b { color: oklch(0.50 0.18 25); }
-.fin-curadoria .fin-digest-card.late b { color: oklch(0.55 0.18 25); }
-
-.fin-curadoria .fin-digest-tops {
+.fin-cowork .fin-curadoria .fin-digest-card.in b { color: oklch(0.45 0.18 145); }
+.fin-cowork .fin-curadoria .fin-digest-card.out b { color: oklch(0.40 0.005 240); }
+.fin-cowork .fin-curadoria .fin-digest-card.net.pos b { color: oklch(0.45 0.18 145); }
+.fin-cowork .fin-curadoria .fin-digest-card.net.neg b { color: oklch(0.50 0.18 25); }
+.fin-cowork .fin-curadoria .fin-digest-card.late b { color: oklch(0.55 0.18 25); }
+.fin-cowork .fin-curadoria .fin-digest-tops {
   margin-top: 8px;
   display: flex;
   gap: 12px;
   font-size: 11.5px;
 }
-.fin-curadoria .fin-digest-top {
+.fin-cowork .fin-curadoria .fin-digest-top {
   flex: 1;
   background: white;
   border-radius: 6px;
@@ -289,12 +276,12 @@
   flex-direction: column;
   gap: 2px;
 }
-.fin-curadoria .fin-digest-top small {
+.fin-cowork .fin-curadoria .fin-digest-top small {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-digest-top span { font-size: 12px; }
-.fin-curadoria .fin-digest-top.in small { color: oklch(0.45 0.18 145); }
-.fin-curadoria .fin-digest-top.out small { color: oklch(0.55 0.18 25); }
+.fin-cowork .fin-curadoria .fin-digest-top span { font-size: 12px; }
+.fin-cowork .fin-curadoria .fin-digest-top.in small { color: oklch(0.45 0.18 145); }
+.fin-cowork .fin-curadoria .fin-digest-top.out small { color: oklch(0.55 0.18 25); }

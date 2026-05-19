@@ -1,3 +1,4 @@
+/* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
 /* fin-cowork.css — Onda 8 KB-9.75 Financeiro F1 Cowork rewrite (2026-05-18)
  *
  * Tokens visuais portados do prototipo Cowork canon
@@ -10,12 +11,10 @@
  *   - .fin-toolbar → filter bar com chips coloridos + density toggle + search
  *   - .fin-footer-tips → footer atalhos J/K/␣
  */
-
 /* ─────────────────────────────────────────────────────────────
  * Page header (h1 + breadcrumb + buttons row)
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-page-h {
+.fin-cowork .fin-curadoria .fin-page-h {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -24,31 +23,30 @@
   gap: 16px;
   flex-wrap: wrap;
 }
-.fin-curadoria .fin-page-h-l h1 {
+.fin-cowork .fin-curadoria .fin-page-h-l h1 {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
   color: var(--fin-text);
   letter-spacing: -0.01em;
 }
-.fin-curadoria .fin-page-h-l .fin-hero-title-sub {
+.fin-cowork .fin-curadoria .fin-page-h-l .fin-hero-title-sub {
   font-weight: 400;
   color: var(--fin-text-mute);
   font-size: 19px;
 }
-.fin-curadoria .fin-page-h-l p {
+.fin-cowork .fin-curadoria .fin-page-h-l p {
   margin: 2px 0 0;
   font-size: 12.5px;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-page-h-r {
+.fin-cowork .fin-curadoria .fin-page-h-r {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
-
-.fin-curadoria .fin-btn {
+.fin-cowork .fin-curadoria .fin-btn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -65,15 +63,15 @@
   transition: all .12s;
   white-space: nowrap;
 }
-.fin-curadoria .fin-btn:hover { background: var(--fin-bg-soft); border-color: oklch(0.85 0.005 240); }
-.fin-curadoria .fin-btn.on { background: oklch(0.95 0.04 240); border-color: oklch(0.55 0.13 240); color: oklch(0.36 0.13 240); }
-.fin-curadoria .fin-btn.primary {
+.fin-cowork .fin-curadoria .fin-btn:hover { background: var(--fin-bg-soft); border-color: oklch(0.85 0.005 240); }
+.fin-cowork .fin-curadoria .fin-btn.on { background: oklch(0.95 0.04 240); border-color: oklch(0.55 0.13 240); color: oklch(0.36 0.13 240); }
+.fin-cowork .fin-curadoria .fin-btn.primary {
   background: oklch(0.36 0.13 240);
   color: white;
   border-color: transparent;
 }
-.fin-curadoria .fin-btn.primary:hover { background: oklch(0.30 0.13 240); }
-.fin-curadoria .fin-btn kbd {
+.fin-cowork .fin-curadoria .fin-btn.primary:hover { background: oklch(0.30 0.13 240); }
+.fin-cowork .fin-curadoria .fin-btn kbd {
   font-family: ui-monospace, monospace;
   font-size: 10px;
   color: var(--fin-text-mute);
@@ -87,12 +85,11 @@
    - ai (✦ Resumir mês)  → roxo  oklch 280 (IA accent)
    - trilha (☑ Fechamento) → verde-floresta oklch 145 (trilha persistente, antes 240 azul ❌)
    - present (▶ Apresentar) → azul oklch 240 (read-only mode, antes 145 verde ❌) */
-.fin-curadoria .fin-btn-ai { color: oklch(0.42 0.18 280); }
-.fin-curadoria .fin-btn-trilha { color: oklch(0.42 0.18 145); }
-.fin-curadoria .fin-btn-present { color: oklch(0.40 0.13 240); }
-
+.fin-cowork .fin-curadoria .fin-btn-ai { color: oklch(0.42 0.18 280); }
+.fin-cowork .fin-curadoria .fin-btn-trilha { color: oklch(0.42 0.18 145); }
+.fin-cowork .fin-curadoria .fin-btn-present { color: oklch(0.40 0.13 240); }
 /* Onda 7c — badge inline no botão (ex: "📄 Imprimir 3★") */
-.fin-curadoria .fin-btn-badge {
+.fin-cowork .fin-curadoria .fin-btn-badge {
   display: inline-flex;
   align-items: center;
   font-size: 10.5px;
@@ -105,18 +102,16 @@
   margin-left: 4px;
   line-height: 1;
 }
-
 /* ─────────────────────────────────────────────────────────────
  * KPI Stats grid (hero sparkline + 4 cards)
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-stats {
+.fin-cowork .fin-curadoria .fin-stats {
   display: grid;
   grid-template-columns: minmax(260px, 1.6fr) repeat(4, 1fr);
   gap: 10px;
   margin: 12px 0 10px;
 }
-.fin-curadoria .fin-stat {
+.fin-cowork .fin-curadoria .fin-stat {
   background: white;
   border: 1px solid var(--fin-line);
   border-radius: 8px;
@@ -126,50 +121,47 @@
   gap: 2px;
   min-width: 0;
 }
-.fin-curadoria .fin-stat small {
+.fin-cowork .fin-curadoria .fin-stat small {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-stat b {
+.fin-cowork .fin-curadoria .fin-stat b {
   font-size: 22px;
   font-weight: 700;
   font-family: ui-monospace, monospace;
   color: var(--fin-text);
   letter-spacing: -0.01em;
 }
-.fin-curadoria .fin-stat .fin-stat-hint {
+.fin-cowork .fin-curadoria .fin-stat .fin-stat-hint {
   font-size: 11px;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-num-pos { color: oklch(0.45 0.18 145); }
-.fin-curadoria .fin-num-neg { color: oklch(0.50 0.18 25); }
-
-.fin-curadoria .fin-stat-hero {
+.fin-cowork .fin-curadoria .fin-num-pos { color: oklch(0.45 0.18 145); }
+.fin-cowork .fin-curadoria .fin-num-neg { color: oklch(0.50 0.18 25); }
+.fin-cowork .fin-curadoria .fin-stat-hero {
   position: relative;
   background: linear-gradient(135deg, oklch(0.22 0.04 145) 0%, oklch(0.30 0.06 145) 100%);
   color: white;
   border: 0;
   overflow: hidden;
 }
-.fin-curadoria .fin-stat-hero small { color: oklch(0.95 0.02 145); opacity: 0.85; }
-.fin-curadoria .fin-stat-hero b { color: white; font-size: 26px; }
-.fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.92 0.02 145); opacity: 0.85; }
-.fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.85 0.10 25); }
-.fin-curadoria .fin-spark {
+.fin-cowork .fin-curadoria .fin-stat-hero small { color: oklch(0.95 0.02 145); opacity: 0.85; }
+.fin-cowork .fin-curadoria .fin-stat-hero b { color: white; font-size: 26px; }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.92 0.02 145); opacity: 0.85; }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.85 0.10 25); }
+.fin-cowork .fin-curadoria .fin-spark {
   margin-top: 8px;
   width: 100%;
   height: 36px;
   display: block;
 }
-
 /* ─────────────────────────────────────────────────────────────
  * Toolbar (filter chips + density + search)
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-toolbar {
+.fin-cowork .fin-curadoria .fin-toolbar {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -179,15 +171,13 @@
   border-bottom: 1px solid var(--fin-line);
   margin: 6px 0 4px;
 }
-
-.fin-curadoria .fin-filter-group {
+.fin-cowork .fin-curadoria .fin-filter-group {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
 }
-
-.fin-curadoria .fin-filter-cb {
+.fin-cowork .fin-curadoria .fin-filter-cb {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -204,9 +194,9 @@
   user-select: none;
   --cb-hue: 240;
 }
-.fin-curadoria .fin-filter-cb:hover { background: var(--fin-bg-soft); }
-.fin-curadoria .fin-filter-cb input { display: none; }
-.fin-curadoria .fin-filter-cb-box {
+.fin-cowork .fin-curadoria .fin-filter-cb:hover { background: var(--fin-bg-soft); }
+.fin-cowork .fin-curadoria .fin-filter-cb input { display: none; }
+.fin-cowork .fin-curadoria .fin-filter-cb-box {
   width: 12px;
   height: 12px;
   border-radius: 3px;
@@ -214,18 +204,18 @@
   background: white;
   flex-shrink: 0;
 }
-.fin-curadoria .fin-filter-cb.on {
+.fin-cowork .fin-curadoria .fin-filter-cb.on {
   background: oklch(0.96 0.05 var(--cb-hue, 240));
   border-color: oklch(0.65 0.13 var(--cb-hue, 240));
   color: oklch(0.36 0.18 var(--cb-hue, 240));
   font-weight: 600;
 }
-.fin-curadoria .fin-filter-cb.on .fin-filter-cb-box {
+.fin-cowork .fin-curadoria .fin-filter-cb.on .fin-filter-cb-box {
   background: oklch(0.55 0.18 var(--cb-hue, 240));
   border-color: transparent;
   position: relative;
 }
-.fin-curadoria .fin-filter-cb.on .fin-filter-cb-box::after {
+.fin-cowork .fin-curadoria .fin-filter-cb.on .fin-filter-cb-box::after {
   content: "✓";
   position: absolute;
   inset: 0;
@@ -235,7 +225,7 @@
   font-size: 9px;
   font-weight: 700;
 }
-.fin-curadoria .fin-filter-ct {
+.fin-cowork .fin-curadoria .fin-filter-ct {
   font-family: ui-monospace, monospace;
   font-size: 10.5px;
   font-weight: 600;
@@ -244,11 +234,11 @@
   background: oklch(0.95 0.005 240);
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-filter-cb.on .fin-filter-ct {
+.fin-cowork .fin-curadoria .fin-filter-cb.on .fin-filter-ct {
   background: oklch(0.55 0.18 var(--cb-hue, 240));
   color: white;
 }
-.fin-curadoria .fin-filter-clear {
+.fin-cowork .fin-curadoria .fin-filter-clear {
   appearance: none;
   background: transparent;
   border: 0;
@@ -260,17 +250,15 @@
   cursor: pointer;
   text-decoration: underline;
 }
-.fin-curadoria .fin-filter-clear:hover { color: var(--fin-text); }
-
-.fin-curadoria .fin-filter-sep {
+.fin-cowork .fin-curadoria .fin-filter-clear:hover { color: var(--fin-text); }
+.fin-cowork .fin-curadoria .fin-filter-sep {
   display: inline-block;
   width: 1px;
   height: 16px;
   background: var(--fin-line);
   margin: 0 4px;
 }
-
-.fin-curadoria .fin-filter-toggle {
+.fin-cowork .fin-curadoria .fin-filter-toggle {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -285,30 +273,29 @@
   cursor: pointer;
   user-select: none;
 }
-.fin-curadoria .fin-filter-toggle:hover { background: var(--fin-bg-soft); }
-.fin-curadoria .fin-filter-toggle input { display: none; }
-.fin-curadoria .fin-filter-toggle.on.warn {
+.fin-cowork .fin-curadoria .fin-filter-toggle:hover { background: var(--fin-bg-soft); }
+.fin-cowork .fin-curadoria .fin-filter-toggle input { display: none; }
+.fin-cowork .fin-curadoria .fin-filter-toggle.on.warn {
   background: oklch(0.96 0.07 60);
   border-color: oklch(0.65 0.18 60);
   color: oklch(0.42 0.18 60);
   font-weight: 600;
 }
-
 /* Density (3-button toggle) */
-.fin-curadoria .fin-toolbar-r {
+.fin-cowork .fin-curadoria .fin-toolbar-r {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.fin-curadoria .fin-density {
+.fin-cowork .fin-curadoria .fin-density {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--fin-line);
   border-radius: 6px;
   overflow: hidden;
 }
-.fin-curadoria .fin-density button {
+.fin-cowork .fin-curadoria .fin-density button {
   appearance: none;
   background: white;
   border: 0;
@@ -318,12 +305,11 @@
   cursor: pointer;
   color: var(--fin-text-mute);
 }
-.fin-curadoria .fin-density button:last-child { border-right: 0; }
-.fin-curadoria .fin-density button.on { background: oklch(0.95 0.04 240); color: oklch(0.36 0.13 240); }
-.fin-curadoria .fin-density button:hover { background: var(--fin-bg-soft); }
-
+.fin-cowork .fin-curadoria .fin-density button:last-child { border-right: 0; }
+.fin-cowork .fin-curadoria .fin-density button.on { background: oklch(0.95 0.04 240); color: oklch(0.36 0.13 240); }
+.fin-cowork .fin-curadoria .fin-density button:hover { background: var(--fin-bg-soft); }
 /* Search visible */
-.fin-curadoria .fin-search-wrap {
+.fin-cowork .fin-curadoria .fin-search-wrap {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -334,7 +320,7 @@
   background: white;
   width: 240px;
 }
-.fin-curadoria .fin-search-wrap input {
+.fin-cowork .fin-curadoria .fin-search-wrap input {
   flex: 1;
   border: 0;
   outline: 0;
@@ -343,13 +329,11 @@
   font-size: 12.5px;
   color: var(--fin-text);
 }
-.fin-curadoria .fin-search-wrap input::placeholder { color: var(--fin-text-mute); }
-
+.fin-cowork .fin-curadoria .fin-search-wrap input::placeholder { color: var(--fin-text-mute); }
 /* ─────────────────────────────────────────────────────────────
  * Footer tips (atalhos sticky bottom)
  * ───────────────────────────────────────────────────────────── */
-
-.fin-curadoria .fin-footer-tips {
+.fin-cowork .fin-curadoria .fin-footer-tips {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -365,7 +349,7 @@
   gap: 14px;
   z-index: 30;
 }
-.fin-curadoria .fin-footer-tips kbd {
+.fin-cowork .fin-curadoria .fin-footer-tips kbd {
   font-family: ui-monospace, monospace;
   font-size: 10px;
   padding: 1px 5px;
@@ -374,4 +358,4 @@
   border: 1px solid var(--fin-line);
   color: var(--fin-text);
 }
-.fin-curadoria .fin-footer-tips .spacer { flex: 1; }
+.fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }

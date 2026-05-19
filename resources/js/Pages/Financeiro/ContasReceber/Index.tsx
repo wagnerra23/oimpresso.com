@@ -207,7 +207,7 @@ function Index({ titulos, filtros }: Props) {
 
 Index.layout = (page: React.ReactNode) => (
   <AppShellV2 title="Contas a Receber" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas a Receber' }]}>
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 export default Index;
