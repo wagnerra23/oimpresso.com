@@ -66,6 +66,9 @@
 @import "./fin-output.css";
 @import "./fin-cowork.css";
 
+/* PaymentGateway UI F3 Cowork (Cobrança + Settings/Gateways + Sells drawer chip) — escopado em .pg-shell-scope */
+@import "./cowork-payment-gateway-bundle.css";
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
