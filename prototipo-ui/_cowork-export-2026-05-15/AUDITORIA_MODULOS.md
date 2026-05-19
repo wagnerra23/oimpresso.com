@@ -54,7 +54,7 @@
 | `ponto` | `Ponto` (PontoWr2) | partial | F4 |
 | `equipes` | `Officeimpresso/equipes` | later | F5 |
 
-### FINANCEIRO (6)
+### FINANCEIRO (7)
 | Id | Módulo no repo | Status | Fase |
 |---|---|---|---|
 | `financeiro` | `Financeiro` | **done** | F1 ✅ |
@@ -63,6 +63,7 @@
 | `nfe` | `NfeBrasil` | partial | F1 |
 | `accounting` | `Accounting` | later | F1 |
 | `recurring` | `RecurringBilling` | later | F1 |
+| `paymentgateway` | `PaymentGateway` | later | F1 (Onda 0 — ADR 0170 proposto, só docs) |
 
 ### PROJETOS & GESTÃO (6)
 | Id | Módulo no repo | Status | Fase |
