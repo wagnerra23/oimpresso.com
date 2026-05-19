@@ -86,13 +86,14 @@ function Index({ titulos, filtros }: Props) {
 
   return (
     <>
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Contas a Receber</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Títulos a receber gerados de vendas (auto) ou cadastrados manualmente.
-          </p>
-        </div>
+      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
+      <div className="fin-curadoria vendas-aplus p-6 max-w-6xl mx-auto space-y-6">
+        <header className="os-page-h fin-page-h">
+          <div className="os-page-h-l fin-page-h-l">
+            <h1>Contas a Receber <span className="fin-hero-title-sub">· Títulos</span></h1>
+            <p>Gerados de vendas (auto) ou cadastrados manualmente</p>
+          </div>
+        </header>
 
         {/* Filtros simples */}
         <div className="flex flex-wrap gap-2">

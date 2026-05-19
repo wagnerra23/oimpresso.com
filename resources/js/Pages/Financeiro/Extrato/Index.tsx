@@ -53,18 +53,17 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Extrato — {conta.banco_nome}</h1>
-          <p className="text-sm text-muted-foreground">
-            {conta.nome}{conta.numero_conta ? ` · Conta ${conta.numero_conta}` : ''}
-          </p>
+    // Onda 12.8 (2026-05-19) — header canon paridade Unificado
+    <div className="fin-curadoria vendas-aplus p-6 space-y-6">
+      <header className="os-page-h fin-page-h">
+        <div className="os-page-h-l fin-page-h-l">
+          <h1>Extrato <span className="fin-hero-title-sub">· {conta.banco_nome}</span></h1>
+          <p>{conta.nome}{conta.numero_conta ? ` · Conta ${conta.numero_conta}` : ''}</p>
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <a href={route('financeiro.contas-bancarias.index')}>← Voltar pra contas</a>
-        </Button>
-      </div>
+        <div className="os-page-h-r fin-page-h-r">
+          <a href={route('financeiro.contas-bancarias.index')} className="os-btn ghost">← Voltar pra contas</a>
+        </div>
+      </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
