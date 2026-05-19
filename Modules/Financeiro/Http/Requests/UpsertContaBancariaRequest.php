@@ -45,14 +45,10 @@ class UpsertContaBancariaRequest extends FormRequest
             'ativo_para_boleto' => ['boolean'],
             'metadata'          => ['nullable', 'array'],
 
-            // Credenciais de gateway (Inter / Asaas) — todos nullable no request;
-            // o controller decide o que salvar
-            'gateway_ambiente'         => ['nullable', 'string', 'in:production,sandbox'],
-            'gateway_client_id'        => ['nullable', 'string', 'max:200'],
-            'gateway_client_secret'    => ['nullable', 'string', 'max:500'],
-            'gateway_certificado_crt'  => ['nullable', 'string'],
-            'gateway_certificado_key'  => ['nullable', 'string'],
-            'gateway_api_key'          => ['nullable', 'string', 'max:200'],
+            // Credenciais API (Inter OAuth2/mTLS, Asaas token, C6 etc) viviam
+            // aqui até 2026-05-19; migraram pra /settings/payment-gateways com
+            // FK canon payment_gateway_credentials.conta_bancaria_id
+            // (PR #1153/#1154 + ADR 0170).
         ];
     }
 }
