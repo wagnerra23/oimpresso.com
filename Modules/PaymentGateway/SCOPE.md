@@ -14,11 +14,12 @@ contains:
   - "Services/Drivers/InterDriver — Inter API v3 OAuth2+mTLS (boleto Onda 4a + pix_cob/pix_cobv Onda 4b/4c + refund PIX Onda 4c + cancelar + consultar + healthCheck + processWebhook). Refund de boleto Inter NÃO via API — exige TED reverso manual"
   - "Services/Drivers/AsaasDriver — Asaas REST v3 (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4b"
   - "Services/Drivers/C6Driver — C6 Open Banking PJ OAuth2 (boleto + pix_cob + cancelar + consultar + healthCheck + processWebhook); Onda 4b. CNAB legacy fallback fica em RB"
+  - "Services/Drivers/BcbPixDriver — PSP-agnóstico PIX Automático (Resolução BCB 380/2024) — pix_recv (mandato recorrente) + revogar + consultar + healthCheck + processWebhook; Onda 4d.1. base_url configurável via credential"
   - "BoletoService (Onda 4d alto-nível)"
   - "RemessaCnabService (Onda 4d)"
   - "RetornoCnabService (Onda 4d)"
   - "PaymentGatewayCredentialResolver (Onda 4d se realmente precisar)"
-  - "Drivers planejados: BcbPixDriver (4d — PIX Automático regulado), PesaPalDriver (deprecated Onda 5/6)"
+  - "Drivers planejados: PesaPalDriver (deprecated Onda 5/6)"
 not_contains:
   - "Plan / Assinatura / Invoice recorrente → Modules/RecurringBilling (consome este módulo)"
   - "Sale / Transaction de venda → app/ core (consome este módulo via PaymentGatewayContract)"
