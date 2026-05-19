@@ -891,3 +891,111 @@ Substituir hardcode R$ [redacted Tier 0] da margem mínima do `/financeiro/fluxo
 - Pest GUARD: respeita business_setting + fallback default + multi-tenant scope
 
 **Estimate:** 2h
+
+### US-FIN-022 · Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS)
+
+> owner: wagner · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Integrar widget Asaas JS pra tokenização cartão PCI-DSS SAQ-A. Backend POST /financeiro/cobranca/cartao já pronto (Onda 4d.6 — PR #1140 merged 2026-05-19).
+
+Frontend SheetNovaCobranca step 3 quando tipo=card precisa:
+- script tag `<script src="https://www.asaas.com/checkout/asaasTokenization.js">` (sandbox + production URLs via env)
+- Form Asaas tokeniza PAN → retorna card_token opaco
+- Submit form com `{card_token, card_brand, card_last4, card_holder_name, card_exp_month, card_exp_year}` pra POST /financeiro/cobranca/cartao
+
+**Acceptance:**
+- [ ] Script tag carregado dinâmico só quando tipo=card no wizard
+- [ ] Tokenização Asaas funciona em sandbox (sandbox.asaas.com)
+- [ ] Backend recebe token + cobra cartão com sucesso
+- [ ] Pest GUARD: endpoint nunca recebe PAN bruto
+- [ ] PCI-DSS SAQ-A compliance documentado no charter
+
+Refs: ADR 0144 + ADR 0170 + PR #1140
+
+### US-FIN-023 · Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão)
+
+> owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: US-FIN-022
+
+SheetNovaCobranca (`Pages/Financeiro/Cobranca/_components/SheetNovaCobranca.tsx`) hoje aceita tipo=card no step 1 mas step 3 (Valores) NÃO tem campos cartão. Estender UI.
+
+**Mudanças:**
+- Step 3 quando tipo=card mostra campos: holder name + número mask 4-4-4-4 + exp month + exp year + CVV
+- Validation client-side básica (Luhn check) antes de tokenizar
+- Brand auto-detect via prefix (visa/mastercard/amex/elo/hipercard/diners)
+- Submit handler invoca widget Asaas (depende Onda 4d.6.1) → token → POST /financeiro/cobranca/cartao
+- UI consistente (Field component, bundle CSS pg-shell-scope)
+
+**Acceptance:**
+- [ ] Step 3 mostra campos cartão SOMENTE quando tipo=card
+- [ ] Mask número cartão (4-4-4-4) + Luhn validation client
+- [ ] Brand auto-detect via prefix
+- [ ] Submit handler invoca tokenização Asaas
+- [ ] Pest GUARD: tela só renderiza campos cartão pra tipo=card
+
+Refs: ADR 0170 + PR #1140
+
+### US-FIN-024 · Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1)
+
+> owner: wagner · priority: p2 · estimate: 24h · status: todo · type: story
+> blocked_by: —
+
+ADR 0170 §Roadmap Onda 5 — Wagner cobra tenants do oimpresso usando o próprio ERP. Dogfooding stack canônica.
+
+**Escopo:**
+- Plan "SaaS Oimpresso Premium" criado em Modules/RecurringBilling em biz=1
+- Tenants oimpresso (Modules/Superadmin) viram Contact em biz=1
+- Superadmin::Subscription vira projection de Modules/RecurringBilling Subscription
+- PesaPal driver deprecated (legacy UPOS pra cartão internacional → migrar pra Asaas BR nativo)
+- Cobrança PIX Automático BCB pra mensalidade SaaS recorrente
+
+**Acceptance:**
+- [ ] Plan "SaaS Oimpresso Premium" seedado em biz=1 RB
+- [ ] Cada tenant ativo do oimpresso vira Contact biz=1 (migration backfill)
+- [ ] Subscription Superadmin sync com RB Subscription via projection (event listener)
+- [ ] Cobrança recorrente PIX Aut. BCB ativa pra 1 tenant piloto (sandbox)
+- [ ] PesaPal Controller redirect 301 → docs deprecated
+- [ ] LGPD: Contact biz=1 tenants têm opt-in email/whatsapp configurável
+- [ ] Pest cross-tenant: biz=99 não vê Contact biz=1 (Tier 0 ADR 0093)
+- [ ] Audit append-only via Spatie ActivityLog em superadmin.subscription event
+
+**Riscos:** Médio — afeta cobrança SaaS Wagner ↔ tenants reais. Mitigação: feature flag canary 7d + manter Subscription source-of-truth via fallback.
+
+**Estimate:** ~2500 linhas · ~2-3 dias IA-pair · 24h
+
+Refs: ADR 0170 §Roadmap Onda 5 + ADR 0093 + ADR 0144
+
+### US-FIN-025 · Onda 6 — Cleanup colunas legacy + remover redirects 301
+
+> owner: wagner · priority: p3 · estimate: 8h · status: todo · type: story
+> blocked_by: US-FIN-024
+
+ADR 0170 §Roadmap Onda 6 — Cleanup final pós ondas 2-5 estáveis 90d em prod.
+
+**Colunas legacy DDL:**
+- Remover `accounts.rb_gateway_credential_id` (substituída por payment_gateway_credentials.conta_bancaria_id)
+- Remover `accounts.gateway_*` (gateway_key, gateway_token — cobertos pela tabela nova)
+
+**Controllers/rotas legacy:**
+- Remover `Modules/RecurringBilling/Http/Controllers/PesaPalController` (deprecated Onda 5)
+- Remover redirects 301 antigos após 90d:
+  - /financeiro/boletos → /financeiro/cobranca (criado PR #1142)
+  - /webhooks/inter → /paymentgateway/webhooks/inter (Onda 3)
+  - /webhooks/c6 → /paymentgateway/webhooks/c6
+  - /webhooks/asaas → /paymentgateway/webhooks/asaas
+
+**Pré-requisitos:** Ondas 2-5 estáveis 90d em prod (monitorar Sentry/OTel zero erros) + BoletoRemessa legacy migrado pra Cobranca via cron backfill + PesaPal subscriptions ativas migradas (Onda 5).
+
+**Acceptance:**
+- [ ] Migration drop_legacy_columns_accounts testada em sandbox
+- [ ] PesaPalController removido + Pest test deletado
+- [ ] 4 redirects 301 removidos (rotas 404 retornam corretamente)
+- [ ] Smoke prod biz=1 + biz=4 sem regressão (canary 7d)
+- [ ] Documentação SCOPE.md PaymentGateway atualizada (sem refs legacy)
+
+**Riscos:** Baixo se ondas 2-5 estáveis 90d. DDL apenas forward — backup DB pré-migrate obrigatório.
+
+**Estimate:** ~500 linhas · ~1 dia IA-pair · 8h
+
+Refs: ADR 0170 §Roadmap Onda 6
