@@ -217,3 +217,56 @@ it('não dispara mutação em GET /cobranca (read-only puro)', function () {
     $countDepois = Cobranca::withoutGlobalScopes()->count();
     expect($countDepois)->toEqual($countAntes);
 });
+
+// ─── Onda 4d.5 — Wire-up emissão GUARDs ──────────────────────────────────
+
+it('POST /cobranca/emitir retorna validation error sem contact_id nem payer_name (LGPD)', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->post('/financeiro/cobranca/emitir', [
+            'tipo' => 'boleto',
+            'valor_centavos' => 50000,
+            'vencimento' => now()->addDays(7)->toDateString(),
+            'account_id' => 99999, // inexistente — vai falhar exists validation
+        ])
+        ->assertSessionHasErrors(['account_id']);
+});
+
+it('POST /cobranca/emitir exige tipo válido (in:boleto,pix_cob,pix_cobv,pix_recv,card)', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->post('/financeiro/cobranca/emitir', [
+            'tipo' => 'cripto_btc', // inválido
+            'valor_centavos' => 50000,
+            'vencimento' => now()->addDays(7)->toDateString(),
+            'account_id' => 1,
+            'payer_name' => 'Pagador X',
+        ])
+        ->assertSessionHasErrors(['tipo']);
+});
+
+it('POST /cobranca/emitir exige valor_centavos mínimo R$ 1,00 (100 centavos)', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->post('/financeiro/cobranca/emitir', [
+            'tipo' => 'boleto',
+            'valor_centavos' => 50, // < 100
+            'vencimento' => now()->addDays(7)->toDateString(),
+            'account_id' => 1,
+            'payer_name' => 'Pagador X',
+        ])
+        ->assertSessionHasErrors(['valor_centavos']);
+});
+
+it('POST /cobranca/emitir não aceita vencimento passado', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->post('/financeiro/cobranca/emitir', [
+            'tipo' => 'boleto',
+            'valor_centavos' => 50000,
+            'vencimento' => now()->subDay()->toDateString(),
+            'account_id' => 1,
+            'payer_name' => 'Pagador X',
+        ])
+        ->assertSessionHasErrors(['vencimento']);
+});

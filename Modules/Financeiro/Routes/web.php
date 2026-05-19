@@ -116,6 +116,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Charter: resources/js/Pages/Financeiro/Cobranca/Index.charter.md.
         Route::get('/cobranca', [CobrancaController::class, 'index'])->name('cobranca.index');
 
+        // Onda 4d.5 — Wire-up emissão real via PaymentGatewayContract::emitirX().
+        // Idempotência via idempotency_key UUID. Multi-tenant Tier 0 (ADR 0093).
+        Route::post('/cobranca/emitir', [CobrancaController::class, 'store'])
+            ->name('cobranca.emitir');
+
         // Contas a pagar (lista + registrar baixa)
         Route::get('/contas-pagar', [ContaPagarController::class, 'index'])->name('contas-pagar.index');
         Route::post('/contas-pagar/{tituloId}/pagar', [ContaPagarController::class, 'pagar'])
