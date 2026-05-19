@@ -304,6 +304,15 @@ class LegacyMenuAdapter
             'inertia' => $this->isInertiaRoute($url),
         ];
 
+        // Grupo sidebar declarado pelo DataController do módulo via attribute
+        // 'group' OU 'sidebar_group'. Quando presente, frontend Sidebar usa este
+        // valor em findGroupKey antes do label match (evita hardcode de label
+        // string em SIDEBAR_GROUPS pra cada novo item — Wagner 2026-05-19).
+        $group = $props['group'] ?? $props['sidebar_group'] ?? $props['attributes']['group'] ?? null;
+        if (! empty($group)) {
+            $result['group'] = (string) $group;
+        }
+
         if (!empty($children)) {
             $result['children'] = $children;
             // Pais dropdown geralmente não têm URL própria no nwidart — deixamos undef

@@ -90,6 +90,14 @@ export interface ShellMenuItem {
   href?: string;
   icon?: string;
   inertia?: boolean;
+  /**
+   * Grupo sidebar declarado pelo DataController do módulo (data['group']).
+   * Quando presente, findGroupKey usa este valor em vez de match por label —
+   * permite que o módulo declare seu grupo sem hardcode no frontend.
+   * Valores canon: office | oficina-auto | fin | estoque | fiscal | rh |
+   *                conhecimento | dashboard | jana | governanca | plataforma
+   */
+  group?: string;
   children?: ShellMenuItem[];
 }
 

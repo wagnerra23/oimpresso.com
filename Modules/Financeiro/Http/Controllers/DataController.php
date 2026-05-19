@@ -136,12 +136,19 @@ class DataController extends Controller
                 // Wagner 2026-05-19: F3 PaymentGateway UI Tela 1 entregue
                 // em /financeiro/cobranca, escopo expandido pra todos tipos
                 // boleto+pix+pix_recv+card. ADR 0144 + 0170).
+                //
+                // 'group' => 'fin' declara o grupo sidebar — Wagner regra
+                // 2026-05-19: "nunca hardcode label no SIDEBAR_GROUPS frontend,
+                // sempre via DataController do módulo". LegacyMenuAdapter
+                // propaga essa key pro ShellMenuItem.group, Sidebar.tsx
+                // findGroupKey usa antes do label match.
                 $menu->url(
                     url('/financeiro/cobranca'),
                     __('financeiro::financeiro.cobranca_label'),
                     [
                         'icon'   => 'fa fas fa-credit-card',
                         'active' => $segmento_ativo && request()->segment(2) === 'cobranca',
+                        'group'  => 'fin',
                     ]
                 )->order(85.3);
             }
