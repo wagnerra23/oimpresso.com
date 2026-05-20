@@ -446,6 +446,19 @@
  * pega só drawers (Sheet shadcn portal). NÃO afeta .fin-cowork da página
  * principal (já tem vars vindos do .cockpit ancestor com inline style).
  * ============================================================================ */
+
+/* Onda 24 (2026-05-20) — Border bump global pra todas páginas Financeiro/*.
+   `border-stone-100` (oklch 0.97) era quase invisível contra bg-white. Usado
+   em 26 arquivos × 50 ocorrências do projeto inteiro — separador entre seções
+   drawer/grid/card/footer. Override pra oklch 0.92 (= stone-200) só dentro de
+   .fin-cowork wrapper, atinge: Conciliacao, PlanoContas, Unificado, Fluxo,
+   Cobranca, e drawers nestes módulos. Wagner aprovou escopo Financeiro/
+   via AskUser 2026-05-20. Outras áreas (Vendas/Produto/Purchase) decidem
+   caso a caso depois — risco de border-stone-100 ser intencional sutil. */
+.fin-cowork .border-stone-100 {
+  border-color: oklch(0.92 0.005 80) !important;
+}
+
 /* Onda 23 (2026-05-20) — alinhar glyphs Unicode (✦ ✎) com texto nos tabs.
    Glyphs Unicode tem altura visual diferente das letras — wrap em span com
    font-size menor + line-height: 1 + inline-flex align-items: center
