@@ -19,7 +19,7 @@
 
 1. `brief-fetch` → estado consolidado (~3k tokens) — Tier A always-on via hook `SessionStart`
 2. `my-work` → minhas tasks ativas
-3. (S4+) `charter-fetch <page-id>` antes de editar `.tsx` que tenha `.charter.md` ao lado
+3. `charter-fetch <page-id>` antes de editar `.tsx` que tenha `.charter.md` ao lado (ativo desde 2026-05-13 — Onda 4 C1)
 4. Trabalhar (ler código, edit, test)
 5. (S5+) `decide(domain, intent, payload)` se mudança custosa
 6. Commit conventional + `Refs: SPRINT-N PASSO M` (skill `commit-discipline` Tier A)
@@ -34,7 +34,7 @@
 - **commit-discipline** — 1 PR = 1 intent, ≤300 linhas, conventional commits
 - **mwart-process** — único caminho de migração Blade→Inertia (5 fases obrigatórias) — [ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - **mwart-comparative V4** — gate visual F1.5 + F3 estado-da-arte + loop Cowork ↔ Claude Code formalizado em [`prototipo-ui/PROTOCOL.md`](prototipo-ui/PROTOCOL.md). Orquestra Claude Design plugin Anthropic (design-critique + design-system + design-handoff + ux-copy + accessibility-review + research-synthesis). 15 dimensões + Wagner aprova SCREENSHOT (não tabela) — [ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) + [ADR 0107](memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) + [ADR 0109](memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md)
-- (dormente — S4) **charter-first**
+- **charter-first** — ativo desde 2026-05-13 (Onda 4 C1) · tool MCP `charter-fetch` + hook `charter-validate` warning-mode · ver [CHARTER-S4-DOSSIER-2026-05-20.md](memory/requisitos/Jana/CHARTER-S4-DOSSIER-2026-05-20.md)
 - (S5 antecipado pra ~30/maio/2026 — [ADR 0106](memory/decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) **ads-route**
 
 > **Estimates 2026-05-08+:** todos novos SPECs nascem recalibrados ([ADR 0106](memory/decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) — fator 10x em tarefas codáveis com IA-pair + margem 2x; tarefas humano-limitadas (canary 7d, monitor 30d, smoke real) mantém relógio do mundo real.
