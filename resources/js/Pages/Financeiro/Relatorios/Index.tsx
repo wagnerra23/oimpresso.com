@@ -16,30 +16,11 @@ import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
 // Onda 14 — PageHeader removido (canon os-page-h direto)
 
-type TabId = 'dre' | 'fluxo' | 'resumo';
+type TabId = 'fluxo' | 'resumo';
 
 interface Filters {
   data_de: string;
   data_ate: string;
-}
-
-interface DreMes {
-  mes: string;
-  receita: number;
-  despesa: number;
-  resultado: number;
-}
-
-interface DespesaCat {
-  categoria: string;
-  cor: string;
-  total: number;
-}
-
-interface Dre {
-  meses: DreMes[];
-  despesas_por_cat: DespesaCat[];
-  totais: { receita: number; despesa: number; resultado: number };
 }
 
 interface FluxoSemana {
@@ -75,7 +56,6 @@ interface Resumo {
 
 interface Props {
   filters: Filters;
-  dre: Dre;
   fluxo: Fluxo;
   resumo: Resumo;
 }
@@ -83,17 +63,8 @@ interface Props {
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
 
-const fmtMes = (yyyymm: string) => {
-  const parts = yyyymm.split('-');
-  const y = parts[0] ?? '';
-  const m = parts[1] ?? '01';
-  const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-  const i = Math.max(0, Math.min(11, parseInt(m, 10) - 1));
-  return `${meses[i]}/${y.slice(2)}`;
-};
-
-function FinanceiroRelatorios({ filters, dre, fluxo, resumo }: Props) {
-  const [tab, setTab] = useState<TabId>('dre');
+function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
+  const [tab, setTab] = useState<TabId>('fluxo');
   const [dataDe, setDataDe] = useState(filters.data_de);
   const [dataAte, setDataAte] = useState(filters.data_ate);
 
@@ -163,152 +134,40 @@ function FinanceiroRelatorios({ filters, dre, fluxo, resumo }: Props) {
         </CardContent>
       </Card>
 
-      {/* Tabs */}
+      {/* Tabs — Onda DRE-reaplicacao 2026-05-20: tab DRE removida, virou tela dedicada `/financeiro/dre`.
+          PR D wave reaplicação canon (Q8b aprovado Wagner). Banner avisa usuário. */}
+      <div
+        style={{
+          background: 'oklch(0.96 0.04 70)',
+          border: '1px solid oklch(0.85 0.10 70)',
+          borderRadius: 8,
+          padding: '12px 16px',
+          marginBottom: 16,
+          fontSize: 13,
+          color: 'oklch(0.40 0.13 70)',
+        }}
+      >
+        ⓘ DRE gerencial agora é tela dedicada com hierarquia clássica + comparativo mês anterior +
+        % RL + export PDF/Excel.{' '}
+        <Link href="/financeiro/dre" className="font-semibold underline">
+          Abrir DRE →
+        </Link>
+      </div>
+
       <div className="border-b border-border flex gap-1 flex-wrap mb-4">
-        <TabBtn active={tab === 'dre'}    onClick={() => setTab('dre')}>DRE Gerencial</TabBtn>
         <TabBtn active={tab === 'fluxo'}  onClick={() => setTab('fluxo')}>Fluxo de Caixa</TabBtn>
         <TabBtn active={tab === 'resumo'} onClick={() => setTab('resumo')}>Resumo</TabBtn>
       </div>
 
-      {tab === 'dre'    && <DrePanel dre={dre} />}
       {tab === 'fluxo'  && <FluxoPanel fluxo={fluxo} />}
       {tab === 'resumo' && <ResumoPanel resumo={resumo} />}
     </div>
   );
 }
 
-// ──────────────────── DRE ────────────────────
-
-function DrePanel({ dre }: { dre: Dre }) {
-  const max = Math.max(
-    1,
-    ...dre.meses.map((m) => Math.max(m.receita, m.despesa, Math.abs(m.resultado))),
-  );
-
-  return (
-    <>
-      {/* Onda 15 (2026-05-19) — KPI grid canon fin-stats */}
-      <div className="fin-stats mb-6">
-        <div className="fin-stat">
-          <small>RECEITA (PERÍODO)</small>
-          <b className="fin-num-pos">{brl(dre.totais.receita)}</b>
-          <span className="fin-stat-hint">Soma de títulos a receber</span>
-        </div>
-        <div className="fin-stat">
-          <small>DESPESA (PERÍODO)</small>
-          <b className="fin-num-neg">{brl(dre.totais.despesa)}</b>
-          <span className="fin-stat-hint">Soma de títulos a pagar</span>
-        </div>
-        <div className="fin-stat">
-          <small>RESULTADO</small>
-          <b className={dre.totais.resultado >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(dre.totais.resultado)}</b>
-          <span className="fin-stat-hint">{dre.totais.resultado >= 0 ? 'Superávit' : 'Déficit'}</span>
-        </div>
-      </div>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>DRE comparativa — {dre.meses.length} {dre.meses.length === 1 ? 'mês' : 'meses'}</CardTitle>
-          <CardDescription>Regime de competência (competencia_mes do título)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {dre.meses.length === 0 ? (
-            <EmptyMsg text="Sem dados no período selecionado." />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-2 font-medium">Mês</th>
-                    <th className="text-right py-2 px-2 font-medium">Receita</th>
-                    <th className="text-right py-2 px-2 font-medium">Despesa</th>
-                    <th className="text-right py-2 px-2 font-medium">Resultado</th>
-                    <th className="py-2 px-2 font-medium w-[40%]">Comparativo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dre.meses.map((m) => (
-                    <tr key={m.mes} className="border-b hover:bg-muted/40">
-                      <td className="py-2 px-2 font-medium">{fmtMes(m.mes)}</td>
-                      <td className="text-right py-2 px-2 font-mono text-emerald-600 dark:text-emerald-400">
-                        {brl(m.receita)}
-                      </td>
-                      <td className="text-right py-2 px-2 font-mono text-amber-600 dark:text-amber-400">
-                        {brl(m.despesa)}
-                      </td>
-                      <td className={`text-right py-2 px-2 font-mono font-semibold ${
-                        m.resultado >= 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }`}>
-                        {brl(m.resultado)}
-                      </td>
-                      <td className="py-2 px-2">
-                        <DualBar receita={m.receita} despesa={m.despesa} max={max} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 font-semibold">
-                    <td className="py-2 px-2">Total</td>
-                    <td className="text-right py-2 px-2 font-mono">{brl(dre.totais.receita)}</td>
-                    <td className="text-right py-2 px-2 font-mono">{brl(dre.totais.despesa)}</td>
-                    <td className={`text-right py-2 px-2 font-mono ${
-                      dre.totais.resultado >= 0
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                    }`}>
-                      {brl(dre.totais.resultado)}
-                    </td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Despesas por categoria</CardTitle>
-          <CardDescription>Top 10 do período</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {dre.despesas_por_cat.length === 0 ? (
-            <EmptyMsg text="Sem despesas no período." />
-          ) : (
-            <div className="space-y-2">
-              {dre.despesas_por_cat.map((c, i) => {
-                const pct = dre.totais.despesa > 0 ? (c.total / dre.totais.despesa) * 100 : 0;
-                return (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: c.cor }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between text-sm">
-                        <span className="truncate">{c.categoria}</span>
-                        <span className="font-mono ml-2 shrink-0">
-                          {brl(c.total)} <span className="text-muted-foreground">({pct.toFixed(1)}%)</span>
-                        </span>
-                      </div>
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden mt-1">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${Math.min(100, pct)}%`, background: c.cor }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </>
-  );
-}
+// ──────────────────── DRE: removida 2026-05-20 (PR D wave reaplicação canon) ────────────────────
+// DRE agora vive em /financeiro/dre como tela dedicada com hierarquia clássica.
+// Ver: memory/requisitos/Financeiro/dre-visual-comparison.md (status approved).
 
 // ──────────────────── Fluxo ────────────────────
 
@@ -529,35 +388,6 @@ function TabBtn({
     >
       {children}
     </button>
-  );
-}
-
-function DualBar({
-  receita,
-  despesa,
-  max,
-}: {
-  receita: number;
-  despesa: number;
-  max: number;
-}) {
-  const wR = (receita / max) * 100;
-  const wD = (despesa / max) * 100;
-  return (
-    <div className="space-y-1">
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full"
-          style={{ width: `${Math.min(100, wR)}%` }}
-        />
-      </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full bg-amber-500 dark:bg-amber-400 rounded-full"
-          style={{ width: `${Math.min(100, wD)}%` }}
-        />
-      </div>
-    </div>
   );
 }
 
