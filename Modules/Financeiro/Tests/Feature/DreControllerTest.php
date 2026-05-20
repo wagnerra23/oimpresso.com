@@ -256,3 +256,36 @@ it('aceita ?anchor=YYYY-MM e reflete em meta.anchor_mes', function () {
         ->where('meta.prev_mes', '2026-03')
     );
 });
+
+/**
+ * REGRESSION GUARD — hotfix 2026-05-20.
+ *
+ * Erro prod: "TypeError: can't access property 'toFixed', t.pct_rl is undefined"
+ * Causa: DreService::materializarLinhas() só populava `v` e `prev`. Frontend
+ * (Pages/Financeiro/Dre/Index.tsx) acessa `l.pct_rl.toFixed(1)` e `l.delta_pct.toFixed(0)`
+ * em CADA linha (header / item / subtotal). Faltava enrichment pós-baseRL.
+ *
+ * Este guard valida que TODA linha do payload tem `pct_rl` + `delta_pct` numéricos.
+ * Sem ele, a regressão pode voltar silenciosamente.
+ */
+it('cada linha do payload tem pct_rl e delta_pct numericos (regression guard)', function () {
+    $user = dreBootstrap();
+    $response = $this->actingAs($user)->get('/financeiro/dre');
+
+    if (in_array($response->status(), [403, 404], true)) {
+        test()->markTestSkipped('Module gate bloqueia neste env.');
+    }
+
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->has('linhas')
+        ->where('linhas', function (array $linhas) {
+            foreach ($linhas as $i => $linha) {
+                expect($linha)->toHaveKey('pct_rl', "linha[$i] sem pct_rl — frontend vai quebrar com toFixed undefined");
+                expect($linha)->toHaveKey('delta_pct', "linha[$i] sem delta_pct");
+                expect($linha['pct_rl'])->toBeNumeric("linha[$i].pct_rl deve ser numero (não null)");
+                expect($linha['delta_pct'])->toBeNumeric("linha[$i].delta_pct deve ser numero");
+            }
+            return true;
+        })
+    );
+});
