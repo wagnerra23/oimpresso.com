@@ -600,12 +600,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             Imprimir
             {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
           </button>
-          {/* Onda 16 (2026-05-19) — fix links 404:
-              - "Conciliar" /financeiro/extrato (404) → /financeiro/contas-bancarias
-                (lista de contas → usuário escolhe → vai pro extrato/{id})
-              - "Plano de contas" /financeiro/plano-contas (rota não existe) →
-                /financeiro/categorias (que já vincula plano via CategoriaSheet) */}
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/contas-bancarias')} title="Conciliar extrato bancário — escolha uma conta">
+          {/* Onda 19 (2026-05-19) #49 — destino real /financeiro/conciliacao (tela OFX criada) */}
+          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/conciliacao')} title="Conciliação OFX — upload extrato + match com títulos">
             <RefreshCw size={13} />
             Conciliar
           </button>
@@ -989,7 +985,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <CommandEmpty>Sem resultados.</CommandEmpty>
           <CommandGroup heading="Ações">
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/unificado/novo'); }}>Novo lançamento</CommandItem>
-            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/contas-bancarias'); }}>Conciliar extrato</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/conciliacao'); }}>Conciliar extrato (OFX)</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/plano-contas'); }}>Plano de contas</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/categorias'); }}>Categorias livres</CommandItem>

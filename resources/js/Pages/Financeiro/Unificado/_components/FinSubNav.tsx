@@ -25,9 +25,8 @@ interface FinSubItem {
 const FIN_SUB: FinSubItem[] = [
   { id: 'unified', label: 'Visão unificada', href: '/financeiro/unificado' },
   { id: 'fluxo',   label: 'Fluxo de caixa',  href: '/financeiro/fluxo' },
-  // Onda 18 (2026-05-19) — /plano-contas agora EXISTE (tela dedicada criada).
-  // Conciliação ainda aponta pra contas-bancarias (Onda 19 cria /conciliacao).
-  { id: 'concil',  label: 'Conciliação',      href: '/financeiro/contas-bancarias' },
+  // Onda 19 (2026-05-19) — /conciliacao agora EXISTE (OFX upload + match).
+  { id: 'concil',  label: 'Conciliação',      href: '/financeiro/conciliacao' },
   { id: 'dre',     label: 'DRE / Relatórios', href: '/financeiro/relatorios' },
   { id: 'pcontas', label: 'Plano de contas',  href: '/financeiro/plano-contas' },
 ];

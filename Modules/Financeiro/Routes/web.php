@@ -5,6 +5,7 @@ use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\BoletoController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\CobrancaController;
+use Modules\Financeiro\Http\Controllers\ConciliacaoController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
@@ -172,4 +173,17 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // que apontava pra /categorias (Onda 16). Tela hierárquica BR 47 entries.
         Route::get('/plano-contas', [PlanoContaController::class, 'index'])
             ->name('plano-contas.index');
+
+        // Onda 19 (2026-05-19) #49 — Conciliação OFX MVP.
+        // Upload arquivo OFX → parser → linhas pendentes → fuzzy match → user aprova.
+        Route::get('/conciliacao', [ConciliacaoController::class, 'index'])
+            ->name('conciliacao.index');
+        Route::post('/conciliacao/upload', [ConciliacaoController::class, 'upload'])
+            ->name('conciliacao.upload');
+        Route::post('/conciliacao/{lineId}/match', [ConciliacaoController::class, 'match'])
+            ->whereNumber('lineId')
+            ->name('conciliacao.match');
+        Route::post('/conciliacao/{lineId}/ignorar', [ConciliacaoController::class, 'ignorar'])
+            ->whereNumber('lineId')
+            ->name('conciliacao.ignorar');
     });
