@@ -78,14 +78,50 @@ it('contract: OtelHelper::spanBiz wrap com prefix fiscal.sped', function () {
     expect($src)->toContain("'fiscal.sped.gerar'");
 });
 
-it('contract: 13 registros canon EFD-ICMS/IPI presentes', function () {
+it('contract: 23 registros canon EFD-ICMS/IPI presentes (PR #8 + #9 Waves)', function () {
     $reflection = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
     $src = file_get_contents($reflection->getFileName());
 
-    // Registros mínimos válidos do layout v3.1.1
-    foreach (['0000', '0001', '0005', '0150', '0190', '0200', '0990',
-              'C001', 'C100', 'C170', 'C190', 'C990',
-              '9001', '9900', '9990', '9999'] as $reg) {
+    // PR #8: Blocos 0 + C + 9 (16 registros)
+    // PR #9: Bloco E (apuração ICMS) + Bloco H (esqueleto) (+7 = 23 total)
+    $registros = [
+        '0000', '0001', '0005', '0150', '0190', '0200', '0990',         // Bloco 0
+        'C001', 'C100', 'C170', 'C190', 'C990',                          // Bloco C
+        'E001', 'E100', 'E110', 'E116', 'E990',                          // Bloco E (Wave 9)
+        'H001', 'H990',                                                  // Bloco H (Wave 9 esqueleto)
+        '9001', '9900', '9990', '9999',                                  // Bloco 9
+    ];
+    foreach ($registros as $reg) {
         expect($src)->toContain("registro{$reg}", "Registro {$reg} deve ser implementado");
     }
+
+    expect($registros)->toHaveCount(23);
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// PR #9 Wave — Bloco E (apuração ICMS) + Bloco H (esqueleto inventário)
+// ──────────────────────────────────────────────────────────────────────
+
+it('Bloco E: E110 apuração consolida débitos C190 vl_icms', function () {
+    // Defesa estrutural: quando totalizadores C190 têm vl_icms,
+    // o E110 deve refletir o sum como VL_TOT_DEBITOS.
+    $reflection = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
+    $src = file_get_contents($reflection->getFileName());
+
+    expect($src)->toContain("array_sum(array_column(\$totalizadores, 'vl_icms'))");
+});
+
+it('Bloco E: E116 só emitido quando vl_icms_recolher > 0 (anti-zero-line)', function () {
+    $reflection = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
+    $src = file_get_contents($reflection->getFileName());
+
+    expect($src)->toContain("if (\$vlTotalDebitos > 0)");
+});
+
+it('Bloco H: esqueleto sempre IND_MOV=1 (sem dados — exige integração Stock)', function () {
+    // No MVP, Bloco H é sempre placeholder. Source-grep garante.
+    $reflection = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
+    $src = file_get_contents($reflection->getFileName());
+
+    expect($src)->toContain('registroH001(1)');
 });

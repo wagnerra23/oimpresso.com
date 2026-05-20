@@ -211,9 +211,33 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - ❌ **EFD-Contribuições (PIS/COFINS)** — arquivo separado layout próprio, PR dedicada
 - ❌ **Validação contra PVA-EFD CONFAZ** — smoke real biz=1 pós-merge via Pest browser MCP
 
-### US-FISCAL-011 · Gerador SPED Fiscal complete — **backlog PR #9**
+### US-FISCAL-017 · SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave
 
-EFD-Contribuições (PIS/COFINS arquivo separado) + Bloco E apuração ICMS + Bloco H inventário anual. Complementa US-FISCAL-016 MVP entregue em PR #8.
+> **Service:** `SpedIcmsIpiGeneratorService` (expansão do US-FISCAL-016)
+> **Rota:** mesma `GET /fiscal/sped/icms-ipi/{ano}/{mes}` — arquivo gerado agora inclui Bloco E + H
+
+**Como** contador/Eliana
+**Quero** que o TXT EFD-ICMS/IPI baixado já inclua a apuração mensal de ICMS (Bloco E) e o esqueleto de inventário (Bloco H) — assim importo no PVA-EFD CONFAZ sem precisar declarar manualmente "sem inventário" pra meses não-janeiro
+**Para** entregar um arquivo SPED estruturalmente completo (não só registros C de notas) que passe na validação CONFAZ sem erro de "Bloco E ausente"
+
+**DoD:**
+- [x] `SpedIcmsIpiGeneratorService` ganha 7 registros novos:
+  - Bloco E: `E001` (abertura) + `E100` (período apuração) + `E110` (apuração ICMS consolidada — débitos/créditos/saldo) + `E116` (obrigação ICMS a recolher — só se débitos > 0) + `E990` (encerramento)
+  - Bloco H: `H001` (abertura — sempre IND_MOV=1 no MVP) + `H990` (encerramento)
+- [x] E110 calcula débitos via `array_sum(array_column($totalizadores, 'vl_icms'))` — consolidação automática dos C190
+- [x] E116 emitido CONDICIONALMENTE (`if ($vlTotalDebitos > 0)`) — anti-zero-line
+- [x] Bloco 9900 contadores incluem automaticamente os novos 7 tipos (via snapshot `$this->contadores`)
+- [x] Pest `SpedIcmsIpiGeneratorServiceTest` Wave 9 (3 testes novos + 1 atualizado): 23 registros canon, E110 consolidação debitos, E116 condicional, H001 IND_MOV=1
+
+**Non-Goals (próximos PRs):**
+- ❌ **Saldo credor anterior real em E110** — placeholder 0; exige histórico ICMS mês anterior (US-FISCAL-018?)
+- ❌ **Bloco H real (dados inventário)** — declaração 31/12 com produtos; exige integração `Modules/ProductCatalogue/Stock`
+- ❌ **Ajustes E110 (estornos crédito/débito, isenção, etc)** — placeholder 0; exige escrituração detalhada por CST
+- ❌ **EFD-Contribuições PIS/COFINS** — arquivo SPED separado, PR dedicada futura
+
+### US-FISCAL-011 · SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
+
+EFD-Contribuições (PIS/COFINS arquivo separado SPED CONFAZ ADE 20/2012) + saldo credor real em E110 + Bloco H com dados reais inventário 31/12. Complementa US-FISCAL-016/017 entregues em PRs #8/#9.
 
 ### US-FISCAL-012 · Ações mutação NFe + DF-e — ✅ PR #4 Wave
 
@@ -298,8 +322,9 @@ Then deve receber 403 Forbidden
 | #5 #1249 (Wave) | CC-e (110110) + Inutilização faixa | 4h | +4pp | 🟡 review |
 | #6 #1253 (Wave) | Retransmitir NFe rejeitada/denegada | 3h | +3pp | 🟡 review |
 | #7 #1257 (Wave) | ⌘K palette cross-fiscal | 4h | +8pp | 🟡 review |
-| #8 (Wave) | Gerador EFD-ICMS/IPI MVP saídas (v3.1.1 perfil A) | 6h | +6pp | 🟡 em curso |
-| #9 | EFD-Contribuições PIS/COFINS + Bloco E + Bloco H | 1+ semana | +4pp | 🔒 backlog |
+| #8 #1259 (Wave) | Gerador EFD-ICMS/IPI MVP saídas (v3.1.1 perfil A) | 6h | +4pp | 🟡 review |
+| #9 (Wave) | Bloco E (apuração ICMS) + Bloco H (esqueleto) | 2h | +2pp | 🟡 em curso |
+| #10 | EFD-Contribuições PIS/COFINS + saldo credor anterior + Bloco H real | 1+ semana | +3pp | 🔒 backlog |
 
 **Meta:** Score Capterra Fiscal cockpit ≥ **100/100** pós-PR #8 (SPED MVP fecha último gap top-3 Bling/Tiny). Wagner aprova nova meta.
 
@@ -313,6 +338,7 @@ Then deve receber 403 Forbidden
 - **v1.5.0** (2026-05-20) — PR #6 Wave Retransmitir: `NfeService::retransmitir` (UPDATE preservation contract CONFAZ Art. 14). US-FISCAL-014. Meta 88/100.
 - **v1.6.0** (2026-05-20) — PR #7 Wave ⌘K palette: `PaletteSearchController` + `CmdKPalette.tsx` listener global Cmd/Ctrl+K. US-FISCAL-015. Meta 96/100.
 - **v1.7.0** (2026-05-20) — PR #8 Wave SPED MVP: `SpedIcmsIpiGeneratorService` novo (Modules/Fiscal/Services) + SpedController::gerar download TXT EFD-ICMS/IPI v3.1.1 perfil A + Sped.tsx botão habilitado. 16 registros canônicos (Blocos 0+C+9). US-FISCAL-016 adicionada. Meta Capterra **100/100** (gap SPED top-3 Bling/Tiny fechado MVP).
+- **v1.8.0** (2026-05-20) — PR #9 Wave Bloco E + Bloco H: expande `SpedIcmsIpiGeneratorService` com 7 registros adicionais (E001+E100+E110+E116+E990+H001+H990). Apuração ICMS consolidada via `array_sum` dos C190. E116 condicional (só se débitos > 0). Bloco H esqueleto IND_MOV=1 sempre (inventário real depende Stock — backlog). US-FISCAL-017 adicionada. Cobertura SPED EFD-ICMS/IPI: 23 registros canônicos (estrutura completa pra validar no PVA-EFD).
 
 ## Referências
 
