@@ -16,6 +16,7 @@ return [
     'permissao_contas_pagar_view' => 'Financeiro: ver contas a pagar',
     'permissao_contas_pagar_create' => 'Financeiro: criar contas a pagar',
     'permissao_contas_pagar_pagar' => 'Financeiro: pagar contas a pagar',
+    'permissao_titulo_aprovar' => 'Financeiro: aprovar/rejeitar títulos pendentes (workflow)',
     'permissao_caixa_view' => 'Financeiro: ver caixa e fluxo',
     'permissao_contas_bancarias_manage' => 'Financeiro: gerenciar contas bancárias',
     'permissao_conciliacao_manage' => 'Financeiro: conciliação bancária',
