@@ -30,14 +30,17 @@ export default defineConfig({
       '@public': '/public',
     },
   },
+  // Dev server: usado só localmente via `npm run dev` (HMR).
+  // Prod canon = `https://oimpresso.com/` (Hostinger, deploy via quick-sync.yml).
+  // Não há sandbox separado — ver memory/reference/sandbox-hostnames.md.
   server: {
-    allowedHosts: ['oi.wr2.com.br', 'localhost'],
+    allowedHosts: ['oimpresso.com', 'localhost'],
     host: true,
     port: 5173,
     https: true,
     hmr: {
       protocol: 'wss',
-      host: 'oi.wr2.com.br',
+      host: 'oimpresso.com',
       port: 5173,
     },
   },
