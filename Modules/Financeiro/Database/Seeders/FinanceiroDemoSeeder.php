@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
+use Modules\Financeiro\Models\TituloBaixa;
 
 /**
  * FinanceiroDemoSeeder
@@ -73,6 +74,14 @@ class FinanceiroDemoSeeder extends Seeder
                 ->whereNull('deleted_at')
                 ->max(DB::raw('CAST(numero AS UNSIGNED)')) ?? 0);
 
+            // Limpa baixas demo antigas tambem (idempotente).
+            // Onda 2.1 (2026-05-20): se nao limpar, re-rodar gera duplicadas.
+            DB::table('fin_titulo_baixas')
+                ->where('business_id', $businessId)
+                ->where('observacoes', 'LIKE', self::TAG . '%')
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => now()]);
+
             foreach ($rows as $row) {
                 $contadorNumero++;
                 $categoriaId = $categorias[$row['category']] ?? null;
@@ -83,7 +92,7 @@ class FinanceiroDemoSeeder extends Seeder
                 $valorAberto = $isQuitado ? 0 : $valorTotal;
                 $status = $isQuitado ? 'quitado' : 'aberto';
 
-                Titulo::create([
+                $titulo = Titulo::create([
                     'business_id'      => $businessId,
                     'numero'           => str_pad((string) $contadorNumero, 6, '0', STR_PAD_LEFT),
                     'tipo'             => $row['kind'] === 'receivable' ? 'receber' : 'pagar',
@@ -113,6 +122,28 @@ class FinanceiroDemoSeeder extends Seeder
                     ],
                     'created_by'       => $createdBy,
                 ]);
+
+                // Onda 2.1 (2026-05-20): criar TituloBaixa pra titulos quitados.
+                // Sem isso, backend saldoSparkline retorna 30 dias com saldo constante
+                // (TituloBaixa = source of truth dos deltas). Resultado visual:
+                // linha plana invisível no hero card. Wagner pediu sparkline real.
+                if ($isQuitado && $paidAt && $contaBancariaId) {
+                    $meioPagamento = $this->mapChannelToMeio($row['channel'] ?? null);
+                    TituloBaixa::create([
+                        'business_id'      => $businessId,
+                        'titulo_id'        => $titulo->id,
+                        'conta_bancaria_id' => $contaBancariaId,
+                        'valor_baixa'      => $valorTotal,
+                        'juros'            => 0,
+                        'multa'            => 0,
+                        'desconto'         => 0,
+                        'data_baixa'       => $paidAt->format('Y-m-d'),
+                        'meio_pagamento'   => $meioPagamento,
+                        'idempotency_key'  => (string) Str::uuid(),
+                        'observacoes'      => self::TAG . ' :: baixa demo ' . $row['id'],
+                        'created_by'       => $createdBy,
+                    ]);
+                }
             }
 
             $this->command->info("Done. " . count($rows) . " titulos criados em biz={$businessId}.");
@@ -172,6 +203,24 @@ class FinanceiroDemoSeeder extends Seeder
             $map[$nome] = $cat->id;
         }
         return $map;
+    }
+
+    /**
+     * Onda 2.1 — Mapeia channel do mock (PIX / Boleto / Débito autom / Transferência)
+     * pro enum meio_pagamento da migration `fin_titulo_baixas` (dinheiro / pix / boleto /
+     * cartao_credito / cartao_debito / transferencia / cheque / compensacao / outro).
+     */
+    private function mapChannelToMeio(?string $channel): string
+    {
+        $c = strtolower($channel ?? '');
+        return match (true) {
+            str_contains($c, 'pix') => 'pix',
+            str_contains($c, 'boleto') => 'boleto',
+            str_contains($c, 'transfer') => 'transferencia',
+            str_contains($c, 'debito') || str_contains($c, 'débito') => 'cartao_debito',
+            str_contains($c, 'credito') || str_contains($c, 'crédito') => 'cartao_credito',
+            default => 'outro',
+        };
     }
 
     private function corPorNome(string $nome): string
