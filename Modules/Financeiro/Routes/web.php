@@ -12,6 +12,7 @@ use Modules\Financeiro\Http\Controllers\DashboardController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
+use Modules\Financeiro\Http\Controllers\PlanoContaController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
 
@@ -165,4 +166,10 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/categorias/{id}/toggle', [CategoriaController::class, 'toggleAtivo'])
             ->whereNumber('id')
             ->name('categorias.toggle');
+
+        // Onda 18 (2026-05-19) #48 — Plano de Contas tela dedicada.
+        // Resolve workaround do botão "Plano de contas" no header /unificado
+        // que apontava pra /categorias (Onda 16). Tela hierárquica BR 47 entries.
+        Route::get('/plano-contas', [PlanoContaController::class, 'index'])
+            ->name('plano-contas.index');
     });
