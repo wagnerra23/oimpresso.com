@@ -6,7 +6,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { FileSearch, ShieldAlert } from 'lucide-react';
+import { Check, CheckCircle2, Eye, FileSearch, ShieldAlert, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
@@ -59,9 +59,14 @@ const STATUS_META: Record<StatusManifestacao, { label: string; tone: 'ok' | 'war
   nao_realizada: { label: 'Não realizada',    tone: 'bad' },
 };
 
+type ManifestAction = 'cienciar' | 'confirmar' | 'desconhecer' | 'nao_realizada';
+
 export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const dataRows = rows?.data ?? [];
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const [modal, setModal] = useState<{ id: number; acao: 'desconhecer' | 'nao_realizada' } | null>(null);
+  const [justificativa, setJustificativa] = useState('');
 
   const apply = (next: Partial<Filters>) => {
     const merged = { ...filters, ...next };
@@ -72,6 +77,32 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
       preserveState: true,
       preserveScroll: true,
     });
+  };
+
+  const dispatchManifest = (id: number, acao: ManifestAction, justif?: string) => {
+    setBusyId(id);
+    router.post(
+      `/fiscal/acoes/dfe/${id}/${acao}`,
+      justif ? { justificativa: justif } : {},
+      {
+        preserveScroll: true,
+        onFinish: () => {
+          setBusyId(null);
+          setModal(null);
+          setJustificativa('');
+        },
+      },
+    );
+  };
+
+  const openModal = (id: number, acao: 'desconhecer' | 'nao_realizada') => {
+    setModal({ id, acao });
+    setJustificativa('');
+  };
+
+  const confirmModal = () => {
+    if (!modal || justificativa.trim().length < 15) return;
+    dispatchManifest(modal.id, modal.acao, justificativa);
   };
 
   return (
@@ -133,6 +164,7 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
                     <th style={{ width: 90, textAlign: 'center' }}>Prazo</th>
                     <th style={{ width: 120, textAlign: 'right' }}>Valor</th>
                     <th style={{ width: 96 }}>Emissão</th>
+                    <th style={{ width: 180 }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -141,6 +173,8 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
                     const prazoUrgency = d.prazoDias == null ? 'ok'
                       : d.prazoDias < 7 ? 'crit'
                       : d.prazoDias < 30 ? 'warn' : 'ok';
+                    const podeManifestar = ['pendente', 'ciencia'].includes(d.statusManifestacao);
+                    const isBusy = busyId === d.id;
                     return (
                       <tr key={d.id}>
                         <td>
@@ -162,6 +196,38 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
                         </td>
                         <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{brl(d.valor)}</td>
                         <td><small>{d.when ?? '—'}</small></td>
+                        <td onClick={(e) => e.stopPropagation()}>
+                          {podeManifestar ? (
+                            <div style={{ display: 'flex', gap: 4 }}>
+                              <button className="fx-btn ghost" style={{ padding: '3px 6px' }}
+                                disabled={isBusy}
+                                title="Confirmar operação (210200)"
+                                onClick={() => dispatchManifest(d.id, 'confirmar')}>
+                                <CheckCircle2 size={11} />
+                              </button>
+                              <button className="fx-btn ghost" style={{ padding: '3px 6px' }}
+                                disabled={isBusy}
+                                title="Ciência (210210)"
+                                onClick={() => dispatchManifest(d.id, 'cienciar')}>
+                                <Eye size={11} />
+                              </button>
+                              <button className="fx-btn ghost" style={{ padding: '3px 6px', color: 'var(--bad)' }}
+                                disabled={isBusy}
+                                title="Desconhecer (210220 — exige motivo)"
+                                onClick={() => openModal(d.id, 'desconhecer')}>
+                                <XCircle size={11} />
+                              </button>
+                              <button className="fx-btn ghost" style={{ padding: '3px 6px', color: 'var(--warn)' }}
+                                disabled={isBusy}
+                                title="Não realizada (210240 — exige motivo)"
+                                onClick={() => openModal(d.id, 'nao_realizada')}>
+                                <Check size={11} />
+                              </button>
+                            </div>
+                          ) : (
+                            <small style={{ color: 'var(--fx-text-mute)' }}>manifestada</small>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -171,6 +237,70 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
           )}
         </Deferred>
       </FxShell>
+
+      {/* Modal motivo (desconhecer / nao_realizada) */}
+      {modal && (
+        <div className="fx-drawer-bg" onClick={() => busyId == null && setModal(null)}>
+          <div
+            role="dialog"
+            aria-label="Justificar manifestação"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: 10,
+              padding: 22,
+              width: 460,
+              maxWidth: '90vw',
+              margin: '15vh auto',
+              boxShadow: '0 12px 40px rgba(0,0,0,.2)',
+            }}
+          >
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>
+              {modal.acao === 'desconhecer' ? 'Desconhecer operação' : 'Operação não realizada'}
+            </h3>
+            <p style={{ fontSize: 12.5, color: 'var(--fx-text-dim)', margin: '0 0 14px' }}>
+              Justificativa obrigatória (mín. 15 chars — regra SEFAZ).
+              {modal.acao === 'desconhecer'
+                ? ' Esta operação não foi solicitada pela empresa (ex: NF de fornecedor errado).'
+                : ' A operação NÃO se concretizou (ex: mercadoria nunca chegou).'}
+            </p>
+            <textarea
+              value={justificativa}
+              onChange={(e) => setJustificativa(e.target.value)}
+              placeholder={modal.acao === 'desconhecer'
+                ? 'Ex: NF emitida sem solicitação, fornecedor avisou erro'
+                : 'Ex: mercadoria não entregue, pedido cancelado em comum acordo'}
+              rows={3}
+              disabled={busyId !== null}
+              autoFocus
+              style={{
+                width: '100%',
+                padding: 10,
+                fontSize: 12.5,
+                border: '1px solid var(--fx-border)',
+                borderRadius: 7,
+                fontFamily: 'inherit',
+                resize: 'vertical',
+              }}
+            />
+            <div style={{ fontSize: 11, color: 'var(--fx-text-mute)', margin: '4px 0 14px' }}>
+              {justificativa.length}/255 · {justificativa.trim().length < 15 ? `faltam ${15 - justificativa.trim().length} chars` : '✅ ok'}
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button className="fx-btn ghost" onClick={() => setModal(null)} disabled={busyId !== null}>
+                Voltar
+              </button>
+              <button
+                className={`fx-btn ${modal.acao === 'desconhecer' ? 'danger' : 'warn'}`}
+                onClick={confirmModal}
+                disabled={busyId !== null || justificativa.trim().length < 15}
+              >
+                {busyId !== null ? 'Enviando…' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShellV2>
   );
 }
