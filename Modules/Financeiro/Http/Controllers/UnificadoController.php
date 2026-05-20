@@ -742,8 +742,13 @@ class UnificadoController extends Controller
         $nfeNumero = $metadata['nfe_numero'] ?? $metadata['nfe_chave'] ?? null;
         $canal = $metadata['canal'] ?? $t->origem;
 
-        $descricao = $t->cliente_descricao
-            ?: ($metadata['descricao'] ?? "Titulo {$t->numero}");
+        // PR 3 (2026-05-20): metadata['descricao'] tem prioridade sobre cliente_descricao.
+        // Razao: 'descricao' = descricao do ITEM/SERVICO (ex.: "Banner lona 4x1m #V-7831"),
+        // enquanto 'cliente_descricao' = nome do CLIENTE quando nao ha FK contacts.id (vira
+        // 'contraparte' na linha 758). Antes ?:  usava cliente_descricao como descricao →
+        // FinCrossLinkify nao encontrava refs #V-/#OS-/#BL- pq descs viravam nome cliente.
+        $descricao = ($metadata['descricao'] ?? null)
+            ?: ($t->cliente_descricao ?: "Titulo {$t->numero}");
 
         $conferidoUser = $t->relationLoaded('conferidoPor') ? $t->conferidoPor : null;
         $conferidoNome = $conferidoUser
