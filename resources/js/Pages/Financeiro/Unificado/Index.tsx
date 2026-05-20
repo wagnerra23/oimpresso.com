@@ -52,6 +52,8 @@ import { FinEditPanel } from './_components/FinEditPanel';
 import { TituloEditSheet } from './_components/TituloEditSheet';
 // US-FIN-026 (Onda 22) — painel completo de anexos no drawer (GET + upload + download + delete).
 import { FinAnexosPanel } from './_components/FinAnexosPanel';
+// US-FIN-029 (Onda 23) — Sheet OCR boleto (OpenAI Vision API extrai linha digitavel + valor + vencimento).
+import { FinOcrBoletoSheet } from './_components/FinOcrBoletoSheet';
 
 // ---------- Tipos ----------
 
@@ -537,6 +539,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   useEffect(() => { setDrawerTab('detalhes'); }, [selectedId]);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
+  // US-FIN-029 (Onda 23) — Sheet OCR boleto.
+  const [ocrSheetOpen, setOcrSheetOpen] = useState(false);
 
   const aplicar = useCallback((patch: Partial<Filters>) => {
     router.get('/financeiro/unificado', { ...filters, ...patch }, {
@@ -673,6 +677,17 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             style={{ padding: '0 8px' }}
           >
             <Download size={13} />
+          </button>
+          {/* US-FIN-029 (Onda 23) — KILLER OCR boleto: Eliana cola foto → IA extrai campos. */}
+          <button
+            type="button"
+            className="os-btn ghost"
+            title="Importar boleto via foto/PDF (OCR via IA)"
+            aria-label="Importar boleto OCR"
+            onClick={() => setOcrSheetOpen(true)}
+            style={{ padding: '0 8px' }}
+          >
+            📷 OCR boleto
           </button>
           <button type="button" className="os-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
             <Plus size={13} />
@@ -1241,6 +1256,12 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           categorias={categorias}
         />
       )}
+
+      {/* US-FIN-029 (Onda 23) — Sheet OCR boleto KILLER */}
+      <FinOcrBoletoSheet
+        open={ocrSheetOpen}
+        onClose={() => setOcrSheetOpen(false)}
+      />
     </div>
   );
 }
