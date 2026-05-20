@@ -119,6 +119,16 @@ interface Filters {
   // Onda 8 (2026-05-20): sort por coluna via click no thead.
   sort: '' | 'vencimento' | 'valor' | 'status' | 'lancamento' | 'contraparte';
   dir: 'asc' | 'desc';
+  // Onda 13 (2026-05-20): pagination.
+  page: number;
+  per_page: number;
+}
+
+interface Pagination {
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
 }
 
 // Onda 12.7 (2026-05-19) — Plano de Contas hierárquico substitui Categorias.
@@ -133,6 +143,7 @@ interface PlanoConta {
 interface Props {
   kpis: Kpi;
   lancamentos: Lancamento[];
+  pagination?: Pagination; // Onda 13 (2026-05-20)
   filters: Filters;
   contas: { id: number; nome: string }[];
   categorias: { id: number; nome: string }[];
@@ -751,7 +762,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 
 // ---------- Página principal ----------
 
-function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
   // HOTFIX 2026-05-20: shared `auth.can` vem do HandleInertiaRequests.share como
   // OBJETO `Record<string, boolean>` (não array de strings — vide app/Http/Middleware/
@@ -1261,6 +1272,48 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
               )}
             </tbody>
           </table>
+          {/* Onda 13 (2026-05-20): pagination controls (só renderiza se total > per_page) */}
+          {pagination && pagination.total > pagination.per_page && (
+            <div className="px-4 py-2 flex items-center justify-between border-t border-stone-200 text-[12px] text-stone-600 bg-stone-50/50">
+              <span>
+                Página <b>{pagination.page}</b> de <b>{pagination.total_pages}</b>
+                <span className="mx-2 text-stone-400">·</span>
+                <b>{pagination.total}</b> lançamentos total
+                <span className="mx-2 text-stone-400">·</span>
+                <span>{pagination.per_page} por página</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-[12px]"
+                  disabled={pagination.page <= 1}
+                  onClick={() => aplicar({ page: pagination.page - 1 })}
+                  aria-label="Página anterior"
+                >
+                  ← Anterior
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-[12px]"
+                  disabled={pagination.page >= pagination.total_pages}
+                  onClick={() => aplicar({ page: pagination.page + 1 })}
+                  aria-label="Próxima página"
+                >
+                  Próxima →
+                </Button>
+                <select
+                  className="h-7 ml-2 px-1 rounded border border-stone-200 bg-white text-[11px]"
+                  value={pagination.per_page}
+                  onChange={(e) => aplicar({ per_page: parseInt(e.target.value, 10), page: 1 })}
+                  aria-label="Itens por página"
+                >
+                  {[20, 50, 100, 200, 500].map((n) => <option key={n} value={n}>{n}/pág</option>)}
+                </select>
+              </span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
