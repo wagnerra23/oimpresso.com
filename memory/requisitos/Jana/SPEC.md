@@ -950,8 +950,9 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-109 · Onda 4 C1 — Charters S4 ativos (charter-fetch tool + Tier A)
 
-> owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: CYCLE-06
+> owner: wagner · priority: p0 · estimate: ~~12h~~ **4-6h restantes** IA-pair · status: **em-implementacao 75%** · type: story · sprint: CYCLE-06
 > blocked_by: — · spawned_from: JANA-10X-018 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §4)
+> **STATUS REAL (descoberto 2026-05-20 audit-senior-expert):** `CharterFetchTool.php` (415 linhas, registrada `OimpressoMcpServer.php:124`) + skill `charter-first` promovida `tier:A enabled:true` + hook `charter-validate.{ps1,sh}` registrado + 10 Pest + RUNBOOK existem desde **2026-05-13**. **Falta:** (a) fix CLAUDE.md:37 que ainda diz "dormente" — desalinhamento Tier 0 doc bloqueia adoção · (b) `memory/requisitos/_DesignSystem/CHARTERS-INDEX.md` listando 112 charters · (c) ADR amendment proposta NNNN. Ver **[CHARTER-S4-DOSSIER-2026-05-20.md](CHARTER-S4-DOSSIER-2026-05-20.md)** (587 linhas, decomposição 3 PRs ≤200 linhas).
 
 **Como** Claude (agent) + time MCP (Felipe/Maira/Eliana)
 **Quero** tool MCP `charter-fetch <page-id>` exposta + skill `charter-first` Tier A ativa via hook SessionStart, BLOQUEANDO Edit/Write em `resources/js/Pages/**/*.tsx` que tenha `.charter.md` correspondente sem carregar charter primeiro
