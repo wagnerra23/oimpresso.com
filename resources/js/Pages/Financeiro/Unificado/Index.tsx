@@ -259,8 +259,19 @@ interface SparkPoint { date: string; saldo: number; in: number; out: number }
 function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?: SparkPoint[] | null }) {
   const color = tone === 'pos' ? 'oklch(0.78 0.13 145)' : 'oklch(0.65 0.18 25)';
 
-  // Sem dados → fallback placeholder estático (Onda 8 inicial)
-  if (!points || points.length < 2) {
+  // Fallback placeholder estático (canon Cowork v1). Usado quando:
+  //  - sem dados (points null ou < 2)
+  //  - saldos todos iguais (range == 0 → linha plana invisível, ex.: biz novo
+  //    sem baixas no período, ou seeder demo sem TituloBaixa). Wagner pediu
+  //    refazer 2026-05-20: melhor mostrar oscilação visual canon do que linha
+  //    horizontal "morta" no hero card preto.
+  const renderPlaceholder = !points || points.length < 2 || (() => {
+    if (!points || points.length < 2) return true;
+    const saldos = points.map((p) => p.saldo);
+    return Math.max(...saldos) === Math.min(...saldos);
+  })();
+
+  if (renderPlaceholder) {
     return (
       <svg className="fin-spark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true">
         <defs>
