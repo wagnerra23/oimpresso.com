@@ -476,6 +476,17 @@
   margin: 0 !important;
 }
 
+/* Onda 26 (2026-05-20) — Páginas Financeiro/* respiram nas laterais.
+   Page wrapper .fin-curadoria estava com padding:0 — KPI strip, sparkline,
+   filters chips e tabela todos colando no edge esquerdo (sidebar) e direito
+   (viewport). Aplicar px-5 (20px) no .fin-curadoria igual ao que Wagner
+   aprovou no drawer (Onda 25). Wagner aprovou escopo .fin-curadoria via
+   AskUser 2026-05-20. */
+.fin-cowork .fin-curadoria {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 /* Onda 23 (2026-05-20) — alinhar glyphs Unicode (✦ ✎) com texto nos tabs.
    Glyphs Unicode tem altura visual diferente das letras — wrap em span com
    font-size menor + line-height: 1 + inline-flex align-items: center
