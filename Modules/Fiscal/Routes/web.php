@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Fiscal\Http\Controllers\CockpitController;
+use Modules\Fiscal\Http\Controllers\EventosController;
 use Modules\Fiscal\Http\Controllers\InstallController;
 use Modules\Fiscal\Http\Controllers\NfeCockpitController;
+use Modules\Fiscal\Http\Controllers\NfseCockpitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,8 +30,18 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     ->prefix('fiscal')
     ->name('fiscal.')
     ->group(function () {
+        // Cockpit raiz (sub-página 1 do design — PR #2 Wave consolidada).
+        Route::get('/', [CockpitController::class, 'index'])->name('cockpit');
+
         // Cockpit NF-e · NFC-e (sub-página 2 do design — PR #1).
-        // Próximos PRs: /fiscal (cockpit), /fiscal/nfse, /fiscal/dfe, /fiscal/eventos,
-        // /fiscal/config, /fiscal/sped.
         Route::get('/nfe', [NfeCockpitController::class, 'index'])->name('nfe.index');
+
+        // Cockpit NFS-e (sub-página 3 do design — PR #2 Wave consolidada).
+        Route::get('/nfse', [NfseCockpitController::class, 'index'])->name('nfse.index');
+
+        // Eventos timeline (sub-página 5 do design — PR #2 Wave consolidada).
+        // CC-e + Cancelamento + EPEC + Manifestação destinatário.
+        Route::get('/eventos', [EventosController::class, 'index'])->name('eventos.index');
+
+        // Próximos PRs: /fiscal/dfe (sub-página 4), /fiscal/config (6), /fiscal/sped (7).
     });
