@@ -186,4 +186,27 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/conciliacao/{lineId}/ignorar', [ConciliacaoController::class, 'ignorar'])
             ->whereNumber('lineId')
             ->name('conciliacao.ignorar');
+
+        // Onda 20 (2026-05-19) #50 — Anexos NF / comprovante por título.
+        Route::get('/unificado/{id}/anexos', [UnificadoController::class, 'listarAnexos'])
+            ->whereNumber('id')
+            ->name('unificado.anexos.list');
+        Route::post('/unificado/{id}/anexos', [UnificadoController::class, 'anexar'])
+            ->whereNumber('id')
+            ->name('unificado.anexos.store');
+        Route::delete('/unificado/{id}/anexos/{anexoId}', [UnificadoController::class, 'removerAnexo'])
+            ->whereNumber('id')
+            ->whereNumber('anexoId')
+            ->name('unificado.anexos.destroy');
+
+        // Onda 21 (2026-05-19) #55 — Workflow aprovação pagamento.
+        Route::post('/unificado/{id}/solicitar-aprovacao', [UnificadoController::class, 'solicitarAprovacao'])
+            ->whereNumber('id')
+            ->name('unificado.solicitar-aprovacao');
+        Route::post('/unificado/{id}/aprovar', [UnificadoController::class, 'aprovar'])
+            ->whereNumber('id')
+            ->name('unificado.aprovar');
+        Route::post('/unificado/{id}/rejeitar', [UnificadoController::class, 'rejeitar'])
+            ->whereNumber('id')
+            ->name('unificado.rejeitar');
     });
