@@ -32,6 +32,23 @@ class AdminSidebarMenu
             $common_settings = !empty(session('business.common_settings')) ? session('business.common_settings') : [];
             $pos_settings = !empty(session('business.pos_settings')) ? json_decode(session('business.pos_settings'), true) : [];
 
+            // Wagner 2026-05-20 Fase 1 deprecação legacy — quando Modules/Financeiro
+            // está habilitado pro business + user tem permission, esconde dropdowns
+            // core "Despesas" (L498) e "Contas de pagamento" (L534) pra evitar
+            // duplicação de domínio. Dados não somem, deeplinks /expenses e /account
+            // continuam funcionando. Mesmo pattern de gate usado em
+            // Modules/Financeiro/Http/Controllers/DataController::modifyAdminMenu().
+            $financeiro_module_util = new ModuleUtil();
+            if (auth()->user()->can('superadmin')) {
+                $financeiro_enabled = $financeiro_module_util->isModuleInstalled('Financeiro');
+            } else {
+                $financeiro_enabled = (bool) $financeiro_module_util->hasThePermissionInSubscription(
+                    session('user.business_id'),
+                    'financeiro_module',
+                    'superadmin_package'
+                ) && auth()->user()->can('financeiro.access');
+            }
+
             $is_admin = auth()->user()->hasRole('Admin#' . session('business.id')) ? true : false;
             //Home
             //     $menu->url(action([\App\Http\Controllers\HomeController::class, 'index']), __('home.home'), ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -483,7 +500,9 @@ class AdminSidebarMenu
             //Expense dropdown
             // Visibilidade per-business via $enabled_modules (vem do package
             // subscription do business) + permission Spatie. NUNCA hardcode biz=N.
-            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense'))) {
+            // Wagner 2026-05-20 Fase 1: escondido quando Modules/Financeiro habilitado
+            // (substituído por Contas a Pagar + Visão Unificada + Categorias do Financeiro).
+            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense')) && ! $financeiro_enabled) {
                 $menu->dropdown(
                     __('expense.expenses'),
                     function ($sub) {
@@ -519,7 +538,9 @@ class AdminSidebarMenu
                 )->order(45);
             }
             //Accounts dropdown
-            if (auth()->user()->can('account.access') && in_array('account', $enabled_modules)) {
+            // Wagner 2026-05-20 Fase 1: escondido quando Modules/Financeiro habilitado
+            // (substituído por Contas Bancárias + Fluxo de Caixa + DRE do Financeiro).
+            if (auth()->user()->can('account.access') && in_array('account', $enabled_modules) && ! $financeiro_enabled) {
                 $menu->dropdown(
                     __('lang_v1.payment_accounts'),
                     function ($sub) {
