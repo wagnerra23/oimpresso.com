@@ -771,7 +771,12 @@ class UnificadoController extends Controller
             'valor' => (float) $t->valor_total,
             'nfe_numero' => $nfeNumero,
             'canal' => $canal,
-            'observacao' => $t->observacoes,
+            // Onda 3 (2026-05-20): strip prefix de tag interno (SEEDER_DEMO :: , etc)
+            // antes de exibir pro usuario. Tag usado pra idempotencia do seeder
+            // mas nao deve vazar pra UI (Wagner viu no drawer 'SEEDER_DEMO :: ...').
+            'observacao' => $t->observacoes
+                ? preg_replace('/^SEEDER_DEMO\s*::\s*/', '', $t->observacoes)
+                : null,
             'conferido_by' => $t->conferido_by,
             'conferido_at' => $t->conferido_at?->toIso8601String(),
             'conferido_user_nome' => $conferidoNome,
