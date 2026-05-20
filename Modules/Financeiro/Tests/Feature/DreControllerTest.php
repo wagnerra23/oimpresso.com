@@ -287,5 +287,10 @@ it('cada linha do payload tem pct_rl e delta_pct numericos (regression guard)', 
             }
             return true;
         })
+        // Hotfix 2026-05-20 #2: também validar que meta.periodo_label* são
+        // strings (e não cast de float vazado por shadow `$prev` no loop
+        // de enrichment pct_rl). Erro original: "mesLabelPtBr float given".
+        ->where('meta.periodo_label', fn ($v) => is_string($v) && $v !== '')
+        ->where('meta.periodo_label_prev', fn ($v) => is_string($v) && $v !== '')
     );
 });

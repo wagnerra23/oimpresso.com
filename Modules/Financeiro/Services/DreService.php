@@ -253,13 +253,18 @@ class DreService
         // "TypeError: can't access property 'toFixed', t.pct_rl is undefined".
         // Q2 (aprovada Wagner 2026-05-20): % RL com sinal preservado do numerador,
         // base = Receita Líquida (subtotal). Q3: Δ% vs mês anterior literal.
-        foreach ($linhas as &$linha) {
-            $v = (float) ($linha['v'] ?? 0.0);
-            $prev = (float) ($linha['prev'] ?? 0.0);
-            $linha['pct_rl'] = $baseRL != 0.0 ? round(($v / $baseRL) * 100.0, 2) : 0.0;
-            $linha['delta_pct'] = $prev != 0.0 ? round((($v - $prev) / abs($prev)) * 100.0, 2) : 0.0;
+        //
+        // Hotfix 2026-05-20 #2: variáveis locais com nome distinto pra NÃO
+        // shadow `$prev` (Carbon do escopo `montarInternal()`) e `$v` (caso
+        // seja usado depois). O bug "mesLabelPtBr float given" vinha de
+        // `$prev` ter sido sobrescrita pelo último iteration deste loop.
+        foreach ($linhas as &$linhaRef) {
+            $linhaV = (float) ($linhaRef['v'] ?? 0.0);
+            $linhaPrev = (float) ($linhaRef['prev'] ?? 0.0);
+            $linhaRef['pct_rl'] = $baseRL != 0.0 ? round(($linhaV / $baseRL) * 100.0, 2) : 0.0;
+            $linhaRef['delta_pct'] = $linhaPrev != 0.0 ? round((($linhaV - $linhaPrev) / abs($linhaPrev)) * 100.0, 2) : 0.0;
         }
-        unset($linha);
+        unset($linhaRef);
 
         // ───────── 7) Margem operacional ─────────
         $resOpAtual = (float) ($headerTotais['resultado_operacional']['atual'] ?? 0.0);
