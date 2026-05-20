@@ -32,6 +32,7 @@ import {
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import ServiceOrderFsmActionPanel from './ServiceOrderFsmActionPanel';
+import ServiceOrderTimeline from './ServiceOrderTimeline';
 
 type OrderType = 'locacao' | 'manutencao' | null;
 
@@ -119,6 +120,8 @@ export default function ServiceOrderSheet({
   const [data, setData] = useState<ServiceOrderDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Wave 7-C: incrementa a cada transição FSM pra forçar Timeline re-fetch.
+  const [historyVersion, setHistoryVersion] = useState(0);
 
   const fetchData = useCallback(async () => {
     if (!serviceOrderId) return;
@@ -152,6 +155,7 @@ export default function ServiceOrderSheet({
   // Callback estável passada pro FsmActionPanel — evita re-render loop (lição PR #717).
   const handleFsmTransition = useCallback(() => {
     void fetchData();
+    setHistoryVersion((v) => v + 1);
     onOrderChanged?.();
   }, [fetchData, onOrderChanged]);
 
@@ -343,11 +347,13 @@ export default function ServiceOrderSheet({
                 />
               </Section>
 
-              {/* Histórico — placeholder até timeline FSM ser exposta */}
+              {/* Histórico — Wave 7-C timeline FSM auditável (gap #1 estado-da-arte). */}
               <Section title="Histórico" icon={Clock}>
-                <p className="text-xs text-muted-foreground italic">
-                  Em breve — timeline auditável das transições FSM.
-                </p>
+                <ServiceOrderTimeline
+                  key={`timeline-${data.id}-${historyVersion}`}
+                  serviceOrderId={data.id}
+                  enabled={open}
+                />
               </Section>
             </div>
 
