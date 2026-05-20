@@ -48,6 +48,12 @@ class DataController extends Controller
      */
     public function modifyAdminMenu()
     {
+        // Onda 2 ADR 0172 — sidebar oculta; rotas 410 Gone. Permission gates Spatie
+        // permanecem (não revogar perms — outros métodos do controller dependem).
+        // Sidebar entry "Accounting" desaparece em qualquer condição de assinatura/feature.
+        return;
+
+        // @phpstan-ignore-next-line — código abaixo intencionalmente unreachable até Onda 5 (drop).
         $business_id = session()->get('user.business_id');
         $module_util = new ModuleUtil();
         $module_names = get_module_names();
