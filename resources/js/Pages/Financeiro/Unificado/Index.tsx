@@ -116,6 +116,9 @@ interface Filters {
   periodo: string;
   // Onda 12.6 (2026-05-19) — Wagner: removed 'spacious' (não tinha uso real).
   densidade: 'compact' | 'comfortable';
+  // Onda 8 (2026-05-20): sort por coluna via click no thead.
+  sort: '' | 'vencimento' | 'valor' | 'status' | 'lancamento' | 'contraparte';
+  dir: 'asc' | 'desc';
 }
 
 // Onda 12.7 (2026-05-19) — Plano de Contas hierárquico substitui Categorias.
@@ -217,6 +220,49 @@ function statusLabel(s: LancamentoStatus): string {
  *   - 1 selecionada → nome da conta
  *   - >1 selecionada → "N contas"
  */
+/**
+ * Onda 8 (2026-05-20) — Sortable header click toggle.
+ * Click 1: asc · Click 2: desc · Click 3: clear (volta default vencimento asc).
+ */
+function SortableHeader({
+  k,
+  label,
+  filters,
+  aplicar,
+  className,
+  alignRight,
+}: {
+  k: NonNullable<Filters['sort']> | 'lancamento' | 'contraparte';
+  label: string;
+  filters: Filters;
+  aplicar: (f: Partial<Filters>) => void;
+  className?: string;
+  alignRight?: boolean;
+}) {
+  const active = filters.sort === k;
+  const dir = active ? filters.dir : null;
+  const onClick = () => {
+    if (!active) aplicar({ sort: k as Filters['sort'], dir: 'asc' });
+    else if (filters.dir === 'asc') aplicar({ sort: k as Filters['sort'], dir: 'desc' });
+    else aplicar({ sort: '', dir: 'asc' });
+  };
+  return (
+    <th className={className}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`inline-flex items-center gap-1 ${alignRight ? 'justify-end w-full' : ''} ${active ? 'text-stone-900' : 'text-stone-500 hover:text-stone-700'} cursor-pointer select-none transition-colors`}
+        aria-label={`Ordenar por ${label}`}
+      >
+        <span>{label}</span>
+        <span className="text-[8px] opacity-70">
+          {dir === 'asc' ? '▲' : dir === 'desc' ? '▼' : '⇅'}
+        </span>
+      </button>
+    </th>
+  );
+}
+
 function FinMultiSelectContas({
   contas,
   valueCSV,
@@ -1056,15 +1102,14 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             <thead>
               <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
                 <th className="pl-4 pr-2 py-2 w-8"></th>
-                {/* PR 4 (Wagner Fase 4 dim 7/8): coluna VENCIMENTO explicita
-                    pra paridade canon v1. Group headers (sab 02 mai etc) preservados
-                    pra orientacao visual macro; coluna mostra dd/mm + status temporal. */}
-                <th className="px-2 py-2 text-left font-medium w-[110px]">Vencimento</th>
-                <th className="px-2 py-2 text-left font-medium">Lançamento</th>
-                <th className="px-2 py-2 text-left font-medium">Contraparte</th>
+                {/* Onda 8 (2026-05-20): click no header sort + arrow indicator.
+                    Estado: filters.sort + filters.dir (querystring). Click toggle asc/desc. */}
+                <SortableHeader k="vencimento" label="Vencimento" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium w-[110px]" />
+                <SortableHeader k="lancamento" label="Lançamento" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
+                <SortableHeader k="contraparte" label="Contraparte" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <th className="px-2 py-2 text-left font-medium">Categoria</th>
-                <th className="px-2 py-2 text-left font-medium">Status</th>
-                <th className="px-2 py-2 text-right font-medium">Valor</th>
+                <SortableHeader k="status" label="Status" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
+                <SortableHeader k="valor" label="Valor" filters={filters} aplicar={aplicar} className="px-2 py-2 text-right font-medium" alignRight />
                 <th className="pl-2 pr-4 py-2 w-[110px] text-right font-medium"></th>
               </tr>
             </thead>
