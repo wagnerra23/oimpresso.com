@@ -19,6 +19,8 @@ use Modules\Financeiro\Models\PlanoConta;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 use Modules\Financeiro\Models\TituloComment;
+use Modules\Financeiro\Services\BoletoOcrService;
+use Modules\Financeiro\Services\LinhaDigitavelValidator;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -789,6 +791,63 @@ class UnificadoController extends Controller
         }
 
         return 'aberto';
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // Onda 23 (2026-05-20) US-FIN-029 — OCR boleto upload OpenAI Vision.
+    // KILLER feature vs Conta Azul: Eliana cola foto/PDF → sistema extrai
+    // linha digitável + valor + vencimento + beneficiário automaticamente.
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * POST /financeiro/unificado/ocr-boleto
+     * Recebe upload imagem boleto → OCR → retorna campos extraídos editáveis pra UI.
+     * NÃO cria Titulo ainda — UI mostra preview + user confirma + chama POST /unificado (store).
+     */
+    public function ocrBoleto(Request $request, BoletoOcrService $ocr): JsonResponse
+    {
+        $request->validate([
+            'arquivo' => 'required|file|max:5120|mimes:jpg,jpeg,png,pdf',
+        ]);
+
+        $businessId = (int) session('user.business_id');
+        $userId = $request->user()?->id;
+        $file = $request->file('arquivo');
+
+        $result = $ocr->extract($file, $businessId, $userId);
+
+        if (! ($result['success'] ?? false)) {
+            return response()->json([
+                'success' => false,
+                'error' => $result['error'] ?? 'Falha no OCR.',
+            ], 422);
+        }
+
+        $data = $result['data'];
+
+        // Normaliza pra shape esperado pelo frontend TituloEditSheet/Novo.
+        // CNPJ beneficiário NÃO retornado pro client em raw — só visualização parcial pra confirmar.
+        $cnpjBenef = preg_replace('/[^0-9]/', '', $data['beneficiario_cnpj'] ?? '');
+        $cnpjMasked = strlen($cnpjBenef) === 14
+            ? substr($cnpjBenef, 0, 2) . '.' . substr($cnpjBenef, 2, 3) . '.xxx-' . substr($cnpjBenef, 8, 4) . '-xx'
+            : null;
+
+        return response()->json([
+            'success' => true,
+            'from_cache' => $result['from_cache'] ?? false,
+            'cost_usd' => $result['cost_usd'] ?? 0.0,
+            'extracted' => [
+                'linha_digitavel' => $data['linha_digitavel'],
+                'codigo_barras' => LinhaDigitavelValidator::toCodigoBarras($data['linha_digitavel']),
+                'valor' => $data['valor'] ?? null,
+                'vencimento' => $data['vencimento'] ?? null,
+                'beneficiario_nome' => $data['beneficiario_nome'] ?? null,
+                'beneficiario_cnpj_masked' => $cnpjMasked,
+                'beneficiario_cnpj' => $cnpjBenef ?: null, // raw vai pro form mas tela mostra masked
+                'pagador_nome' => $data['pagador_nome'] ?? null,
+                'confidence' => $data['confidence'] ?? null,
+            ],
+        ]);
     }
 
     // ════════════════════════════════════════════════════════════════════════
