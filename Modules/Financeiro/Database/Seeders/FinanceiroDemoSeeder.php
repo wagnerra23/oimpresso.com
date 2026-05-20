@@ -105,6 +105,7 @@ class FinanceiroDemoSeeder extends Seeder
                     'observacoes'      => self::TAG . ' :: ' . $row['desc'],
                     'metadata'         => [
                         'demo_id'      => $row['id'],
+                        'descricao'    => $row['desc'], // PR 3 — item description (com refs #V-/#OS-/#BL-)
                         'channel'      => $row['channel'] ?? null,
                         'invoice'      => $row['invoice'] ?? null,
                         'seeder'       => 'FinanceiroDemoSeeder',
