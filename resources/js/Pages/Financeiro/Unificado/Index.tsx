@@ -31,7 +31,7 @@ import { FinCommentsThread, FinCommentsBadge, useFinComments, type UseFinComment
 import { FinAuditTrail } from './_components/FinAuditTrail';
 // Onda 6 R2 IA — anomaly + party history (pure compute, sem backend).
 // FinMonthDigest REMOVIDO Onda 12 (paridade canon REAL — não tem sub-header colapsável).
-import { FinAnomalyDetector } from './_components/FinAnomalyDetector';
+import { FinAnomalyDetector, finAnomalyDetect } from './_components/FinAnomalyDetector';
 import { FinPartyHistory } from './_components/FinPartyHistory';
 // Onda 7 R3 Output — cross-link + checklist fechamento.
 import { FinCrossLinkify } from './_components/FinCrossLinkify';
@@ -1357,6 +1357,22 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   onClick={() => setDrawerTab('ia')}
                 >
                   ✦ IA
+                  {/* Onda 14 (2026-05-20): badge ! na aba IA quando há anomalia detectada
+                      (ticket alto vs media historica). Permite Eliana ver alerta sem
+                      precisar trocar aba primeiro. */}
+                  {(() => {
+                    const anom = finAnomalyDetect(selected, lancamentos);
+                    if (!anom) return null;
+                    return (
+                      <span
+                        className="fin-drawer-tab-ct"
+                        title={`Anomalia ${anom.severity}: ticket ${anom.kind === 'high' ? 'acima' : 'abaixo'} da média`}
+                        style={{ background: anom.kind === 'high' ? 'oklch(0.62 0.18 60)' : 'oklch(0.65 0.13 240)', color: 'white' }}
+                      >
+                        !
+                      </span>
+                    );
+                  })()}
                 </button>
                 <button
                   type="button"
