@@ -1,0 +1,1810 @@
+/* fin-boletos.css — pequenos ajustes para Financeiro + Boletos seguirem o
+   pattern `.os-page` do shell unificado, com toques específicos:
+   - KPI strip horizontal (.fin-stats) com hero card destacado
+   - Sub-nav de 5 telas internas (.fin-subnav)
+   - Mantém a tabela em Tailwind por enquanto (não vai distoar) */
+
+/* Sub-nav abaixo do .os-page-h ─────────────────────────────────────────── */
+.fin-subnav {
+  display: flex;
+  gap: 4px;
+  padding: 0 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;  /* não pode colapsar dentro do flex column do .os-page */
+}
+.fin-subnav-tab {
+  appearance: none; border: none; background: transparent;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color .12s, border-color .12s;
+}
+.fin-subnav-tab:hover { color: var(--text); }
+.fin-subnav-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Hero stat · Mercury-style (R#1.g) ─────────────────────────────────
+   Big number sem card, sub-metrics inline.
+*/
+.fin-hero {
+  padding: 28px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.fin-hero-label {
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.fin-hero-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.fin-hero-num.pos { color: var(--text); }
+.fin-hero-num.neg { color: oklch(0.45 0.16 25); }
+.fin-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  line-height: 1.55;
+}
+.fin-hero-meta b {
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  margin-right: 3px;
+}
+.fin-hero-meta b.fin-num-pos { color: oklch(0.40 0.13 145); }
+.fin-hero-meta small {
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-left: 2px;
+}
+.fin-hero-meta .sep {
+  color: var(--border);
+  user-select: none;
+}
+.fin-hero-warn b { color: oklch(0.50 0.16 25); }
+.fin-hero-warn { color: oklch(0.40 0.10 25); }
+
+/* Quando viewport aperta, hero compacta */
+@media (max-width: 760px) {
+  .fin-hero { padding: 16px 14px 12px; }
+  .fin-hero-num { font-size: 28px; }
+}
+
+/* Stats horizontais com hero card (LEGACY · R#1.e mantido como fallback) */
+.fin-stats {
+  margin: 16px 24px 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  gap: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03);
+}
+.fin-stats .os-stat {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  border-right: 1px solid var(--border);
+  padding: 14px 18px;
+  min-width: 0;
+}
+.fin-stats .os-stat:last-child { border-right: none; }
+.fin-stats .os-stat small { font-size: 10px; }
+.fin-stats .os-stat b { font-size: 22px; line-height: 1.1; letter-spacing: -0.01em; }
+.fin-stat-hero {
+  background: var(--text) !important;
+  border-right-color: var(--text) !important;
+}
+.fin-stat-hero small { color: oklch(0.78 0.01 80) !important; }
+.fin-stat-hero b { color: var(--surface) !important; }
+.fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.01 80); }
+.fin-stat-hero .fin-stat-hint b { color: var(--surface); font-size: 11.5px; }
+.fin-stat-hint {
+  font-size: 11px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+.fin-stat-hint b { font-weight: 600; color: var(--text-dim); }
+.fin-num-pos { color: oklch(0.46 0.13 145); }
+.fin-num-neg { color: oklch(0.50 0.16 25); }
+[data-theme="dark"] .fin-num-pos { color: oklch(0.74 0.16 145); }
+[data-theme="dark"] .fin-num-neg { color: oklch(0.74 0.18 25); }
+
+/* Hero card com sparkline 30d */
+.fin-stat-hero {
+  position: relative;
+  padding-bottom: 18px !important;
+  min-height: 92px;
+}
+.fin-spark {
+  display: block;
+  width: calc(100% + 24px);
+  margin-left: -12px;
+  margin-top: 8px;
+  height: 32px;
+  opacity: 0.85;
+}
+[data-theme="dark"] .fin-num-neg { color: oklch(0.74 0.18 25); }
+
+/* Corpo do módulo ─────────────────────────────────────────────────────── */
+.fin-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  background: var(--bg);
+}
+.fin-body table { background: var(--surface); }
+
+/* ── Dashboard "Fluxo de caixa" · ageing + sparkline (R#1.g) ─────────── */
+.fin-dashboard-spark {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 30px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.fin-dashboard-ageing {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.fin-dashboard-ageing-l small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.fin-dashboard-ageing-l b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.fin-dashboard-ageing-bar {
+  display: flex;
+  height: 22px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--border-2);
+}
+.fin-dashboard-ageing-bar .seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: white;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fin-dashboard-ageing-bar .seg.s1 { background: oklch(0.50 0.13 145); }
+.fin-dashboard-ageing-bar .seg.s2 { background: oklch(0.62 0.13 70);  }
+.fin-dashboard-ageing-bar .seg.s3 { background: oklch(0.60 0.16 30);  }
+.fin-dashboard-ageing-bar .seg.s4 { background: oklch(0.50 0.18 25);  }
+
+/* Ageing horizontal — barra empilhada de "A receber" (oculto por default no cockpit clean) */
+.fin-ageing {
+  display: none;
+}
+.fin-ageing-l { white-space: nowrap; }
+.fin-ageing-l small { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; display: block; }
+.fin-ageing-l b { font-size: 15px; font-weight: 700; display: block; margin-top: 2px; }
+.fin-ageing-bar { display: flex; height: 24px; border-radius: 5px; overflow: hidden; background: var(--border-2); }
+.fin-ageing-bar .seg { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 0 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: white; font-weight: 600; white-space: nowrap; }
+.fin-ageing-bar .seg.s1 { background: oklch(0.50 0.13 145); }
+.fin-ageing-bar .seg.s2 { background: oklch(0.62 0.13 70); }
+.fin-ageing-bar .seg.s3 { background: oklch(0.60 0.16 30); }
+.fin-ageing-bar .seg.s4 { background: oklch(0.50 0.18 25); }
+
+/* Boletos · funil de cobrança acima dos KPIs */
+.bol-funnel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.bol-funnel-h { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 10px; }
+.bol-funnel-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.bol-funnel-step {
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  padding: 9px 11px;
+  min-width: 0;
+}
+.bol-funnel-step .l { font-size: 10px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.04em; }
+.bol-funnel-step .v { font-size: 18px; font-family: 'IBM Plex Mono', monospace; font-weight: 700; margin-top: 2px; letter-spacing: -0.01em; }
+.bol-funnel-step .vv { font-size: 10px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
+.bol-funnel-step.active { background: oklch(0.97 0.025 220); border-color: oklch(0.90 0.05 220); }
+.bol-funnel-step.alert { background: oklch(0.94 0.05 25); border-color: oklch(0.86 0.08 25); }
+.bol-funnel-step.alert .v { color: oklch(0.50 0.16 25); }
+/* Botões inline dentro de linhas da grid (Financeiro + Boletos) */
+.fin-body table button,
+.bol-root table button {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 11.5px;
+  border-radius: 5px;
+  padding: 3px 8px;
+  height: 26px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.fin-body table button:hover,
+.bol-root table button:hover {
+  background: var(--border-2);
+  color: var(--text);
+}
+/* Botões de ação positiva (Recebi/Paguei) com tinta verde */
+.fin-body table button.text-emerald-700 {
+  color: oklch(0.40 0.13 145);
+  font-weight: 600;
+}
+.fin-body table button.text-emerald-700:hover {
+  background: oklch(0.94 0.05 145);
+  color: oklch(0.32 0.13 145);
+}
+/* Botões icon-only (copy/download/more) com tamanho consistente */
+.bol-root table button[title] {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  justify-content: center;
+  color: var(--text-mute);
+}
+.bol-root table button[title]:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Colunas de data com mono tabular e dia-da-semana sutil */
+.fin-body td.num.whitespace-nowrap,
+.fin-body td:first-of-type {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+.fin-body .text-stone-400.text-\[10\.5px\],
+.fin-body .text-rose-600,
+.fin-body .text-amber-600 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+}
+/* Boletos · células de data */
+.bol-root td .font-medium {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.bol-root td .text-rose-600 {
+  color: oklch(0.50 0.18 25);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  margin-top: 1px;
+  display: block;
+}
+
+/* Date group header (Financeiro · "22 DE ABR. DE 2026 · há 16 dias") */
+.fin-body tr.bg-stone-50\/60 td {
+  background: var(--bg) !important;
+  padding-top: 10px !important;
+  padding-bottom: 4px !important;
+}
+.fin-body tr.bg-stone-50\/60 .text-\[10\.5px\] {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+
+/* Esconder o `Header` interno duplicado do TelaBoletos / TelaContas
+   (mantemos só o hero unificado de .os-page-h) */
+.bol-root .fin-body > header { display: none; }
+
+.fin-toolbar { gap: 8px; padding: 12px 24px 8px; flex-wrap: wrap; }
+.fin-toolbar .os-tabs { gap: 2px; }
+.fin-toolbar .os-btn { height: 30px; padding: 0 10px; }
+.fin-toolbar .os-search { width: 220px; }
+
+/* Tabela do Financeiro: empurra cores Tailwind pra ficar coerente com o
+   stone real do shell (algumas classes Tailwind usam stone do CDN). */
+.fin-body .row-hover:hover { background: var(--bg-2); }
+.fin-body .row-selected { background: var(--accent-soft) !important; }
+.fin-body .num { font-variant-numeric: tabular-nums; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   REFINO #1.a · Aditivos Cockpit V2 (mergeado de fin-boletos-r1a.css)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* fin-boletos-r1a.css ─ aditivos do Refino #1.a (Cockpit V2)
+   Convive com fin-boletos.css original sem sobrescrever — só adiciona:
+   - .fin-cockpit-body (grid 3-col)
+   - .fin-cockpit-left (sub-rotas + filtros + summary)
+   - .fin-cockpit-mid (centro com KPI strip + ledger)
+   - .fin-cockpit-right (detail panel persistente)
+   - .fin-pill-canon (preview da pílula canônica, 5 estados — 7 chega no R#1.c)
+   - kbd genérico dentro do cockpit
+*/
+
+/* ── Cockpit V2 root · single-column (R#1.f: sem sidebar) ────────────── */
+.fin-cockpit .fin-cockpit-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+.fin-cockpit-left { display: none; }
+
+/* ── Coluna esquerda · sub-rotas + filtros + summary ─────────────────── */
+.fin-cockpit-left {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 12px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fin-lc-grp {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 700;
+  padding: 10px 8px 4px;
+}
+.fin-lc-grp:first-child { padding-top: 2px; }
+
+.fin-lc-nav,
+.fin-lc-filts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Sub-rotas (segmented vertical com chip de tecla) */
+.fin-nav-it {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.fin-nav-it:hover {
+  background: var(--bg-2);
+  color: var(--text);
+}
+.fin-nav-it.active {
+  background: var(--fin-soft, oklch(0.94 0.06 145));
+  color: var(--fin, oklch(0.40 0.13 145));
+  font-weight: 600;
+}
+.fin-nav-key {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-mute);
+  flex-shrink: 0;
+}
+.fin-nav-it.active .fin-nav-key {
+  background: oklch(0.50 0.13 145);
+  border-color: oklch(0.50 0.13 145);
+  color: white;
+}
+.fin-nav-label { flex: 1; min-width: 0; }
+.fin-nav-n {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-mute);
+  font-weight: 500;
+}
+.fin-nav-it.active .fin-nav-n {
+  color: oklch(0.40 0.13 145);
+}
+
+/* Filtros (radio + checkbox) */
+.fin-filt {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s, color .12s;
+}
+.fin-filt:hover {
+  background: var(--bg-2);
+  color: var(--text);
+}
+.fin-filt.active {
+  color: var(--text);
+  font-weight: 600;
+  background: var(--bg-2);
+}
+
+.fin-filt-check,
+.fin-filt-radio {
+  flex-shrink: 0;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+}
+.fin-filt-check { border-radius: 2px; }
+.fin-filt-radio { border-radius: 50%; }
+
+.fin-filt.active .fin-filt-check {
+  background: var(--text);
+  border-color: var(--text);
+}
+.fin-filt.active .fin-filt-check::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  color: white;
+  font-size: 9px;
+  line-height: 11px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.fin-filt.active .fin-filt-radio {
+  background: var(--text);
+  border-color: var(--text);
+  border-width: 3px;
+}
+
+.fin-filt-label { flex: 1; min-width: 0; }
+
+/* Summary no rodapé com pílulas canônicas */
+.fin-lc-summary {
+  margin-top: auto;
+  padding: 12px 8px 6px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.fin-lc-summary-h {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+/* Pílula canônica reutilizável · estilo quiet (dot + texto, sem fill) R#1.g */
+.fin-pill-canon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-variant-numeric: tabular-nums;
+  justify-content: flex-start;
+  background: transparent;
+  color: var(--text-dim);
+}
+.fin-pill-canon .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.fin-pill-canon.s-rec  .dot,
+.fin-pill-canon.s-pago .dot { background: oklch(0.55 0.13 145); }
+.fin-pill-canon.s-pen  .dot { background: oklch(0.65 0.01 80); }
+.fin-pill-canon.s-vend .dot { background: oklch(0.62 0.13 60); }
+.fin-pill-canon.s-venc .dot { background: oklch(0.55 0.18 25); }
+.fin-pill-canon.s-conc .dot { background: oklch(0.55 0.13 240); }
+.fin-pill-canon.s-est  .dot { background: oklch(0.55 0.13 295); }
+.fin-pill-canon.s-rec,
+.fin-pill-canon.s-pago { color: oklch(0.40 0.13 145); }
+.fin-pill-canon.s-vend { color: oklch(0.45 0.13 60); }
+.fin-pill-canon.s-venc { color: oklch(0.50 0.18 25); }
+.fin-pill-canon.s-conc { color: oklch(0.42 0.13 240); }
+.fin-pill-canon.s-est  { color: oklch(0.42 0.13 295); }
+.fin-pill-canon.compact { font-size: 11.5px; }
+
+/* ── Coluna central ──────────────────────────────────────────────────── */
+.fin-cockpit-mid {
+  overflow-y: auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* O .fin-body original tinha overflow:auto e flex; aqui já vivemos dentro
+   do .fin-cockpit-mid que cuida do scroll → reset a margem do .fin-stats
+   pra coordenar com a nova largura. */
+.fin-cockpit-mid .fin-stats { margin: 16px 24px 0; }
+.fin-cockpit-mid .fin-ageing { margin: 8px 24px 0; }
+
+/* Cursor visual na row (Frente 1.b implementa o cursor;
+   1.a só prepara a CSS hook) */
+.fin-cockpit .row-cursor td:first-child {
+  box-shadow: inset 2px 0 0 var(--fin, oklch(0.50 0.13 145));
+}
+
+/* ── DetailPanel · overlay (igual Venda) · R#1.b v2 ──────────────────── */
+.fin-detail-back {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.20);
+  z-index: 40;
+  animation: finDetailFade 0.15s ease-out;
+}
+@keyframes finDetailFade { from { opacity: 0; } to { opacity: 1; } }
+.fin-detail-drawer {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 440px;
+  max-width: 92vw;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: finDetailSlide 0.22s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes finDetailSlide {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.fin-detail-drawer .fin-detail-h { flex-shrink: 0; }
+.fin-detail-drawer .fin-detail-body { flex: 1; min-height: 0; overflow-y: auto; }
+.fin-detail-drawer .fin-detail-actions { flex-shrink: 0; }
+.fin-detail-close {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text-mute);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.fin-detail-close:hover { background: var(--bg-2); color: var(--text); }
+
+/* Empty state */
+.fin-detail-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fin-detail-empty-h {
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 700;
+}
+.fin-detail-empty-sub {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.fin-detail-empty-sub small { color: var(--text-mute); }
+
+.fin-detail-sct {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 700;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.fin-detail-sct-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.fin-detail-sct-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.fin-detail-sct-row.dim { opacity: 0.55; }
+.fin-detail-sct-row span { flex: 1; }
+.fin-detail-sct-row span small {
+  color: var(--text-mute);
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* Filled state */
+.fin-detail-h {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.fin-detail-title { flex: 1; min-width: 0; }
+.fin-detail-id {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 700;
+}
+.fin-detail-desc {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.fin-detail-body {
+  flex: 1;
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.fin-detail-due {}
+.fin-detail-section-h {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 700;
+}
+.fin-detail-section-h.warn  { color: oklch(0.45 0.18 25); }
+.fin-detail-section-h.amber { color: oklch(0.42 0.13 60); }
+
+.fin-detail-due-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 4px;
+}
+.fin-detail-due-date {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text);
+}
+.fin-detail-due-rel {
+  font-size: 11.5px;
+  color: var(--text-mute);
+}
+.fin-detail-amount-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.fin-detail-amount {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.fin-detail-amount.in  { color: oklch(0.40 0.13 145); }
+.fin-detail-amount.out { color: var(--text); }
+
+.fin-detail-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-2);
+}
+.fin-detail-meta-it.span2 { grid-column: span 2; }
+.fin-detail-meta-it small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 700;
+}
+.fin-detail-meta-it b {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+  margin-top: 1px;
+  word-break: break-word;
+}
+.fin-detail-meta-it b.mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+}
+
+.fin-detail-section { border-top: 1px solid var(--border-2); padding-top: 14px; }
+
+.fin-detail-conc {
+  margin-top: 8px;
+  border-radius: 5px;
+  padding: 9px 11px;
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+.fin-detail-conc svg { flex-shrink: 0; margin-top: 2px; }
+.fin-detail-conc.match {
+  background: oklch(0.96 0.04 145);
+  border: 1px solid oklch(0.86 0.06 145);
+  color: oklch(0.30 0.13 145);
+}
+.fin-detail-conc.match b { color: oklch(0.26 0.13 145); display: block; }
+.fin-detail-conc.empty {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.fin-detail-conc.empty svg { color: var(--text-mute); }
+
+.fin-detail-tl {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fin-detail-tl li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.fin-detail-tl li > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.fin-detail-tl li > span.ok {
+  background: oklch(0.55 0.13 145);
+}
+.fin-detail-tl li b {
+  color: var(--text);
+  font-weight: 600;
+}
+.fin-detail-tl li small {
+  display: block;
+  color: var(--text-mute);
+  font-size: 10.5px;
+  margin-top: 1px;
+}
+.fin-detail-tl li .mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.fin-detail-actions {
+  border-top: 1px solid var(--border);
+  padding: 12px 18px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--surface);
+}
+.fin-detail-actions .os-btn {
+  font-size: 11.5px;
+  padding: 0 10px;
+  height: 28px;
+}
+
+/* ── KBD genérico no cockpit + empty-state ───────────────────────────── */
+.fin-cockpit kbd,
+.fin-detail-sct-row kbd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--text-dim);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.fin-detail-sct-row.dim kbd { opacity: 0.7; }
+
+/* Row hover/selected refinos (já no fin-boletos.css; reforço local
+   para garantir contraste com a coluna direita persistente) */
+.fin-cockpit .row-selected {
+  background: oklch(0.97 0.018 145) !important;
+}
+.fin-cockpit .row-selected td:first-child {
+  box-shadow: inset 2px 0 0 var(--fin, oklch(0.50 0.13 145));
+}
+
+/* ── Header · padrão de tela (R#1.e) ──────────────────────────────────
+   Estrutura canônica:
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Title block          Sub-routes (tabs)         Action group     │
+   │  H1 + subtitle        ─────                     [icons] | [+ Novo]│
+   └──────────────────────────────────────────────────────────────────┘
+   Replicável em qualquer módulo Oimpresso.
+*/
+.fin-cockpit .fin-page-h {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: end;
+  gap: 24px;
+  padding: 20px 24px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+/* Title block — back to original size */
+.fin-page-title {
+  padding-bottom: 12px;
+  min-width: 0;
+}
+.fin-page-title h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  color: var(--text);
+  line-height: 1.15;
+}
+.fin-page-title p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-mute);
+  line-height: 1.3;
+}
+
+/* Sub-rotas como text tabs com underline (centralizadas) */
+.fin-subroutes {
+  display: flex;
+  gap: 2px;
+  align-self: end;
+  justify-self: center;
+}
+.fin-subroute {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 14px 11px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-mute);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  transition: color .12s, border-color .12s;
+  margin-bottom: -1px;
+}
+.fin-subroute:hover {
+  color: var(--text);
+}
+.fin-subroute.active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--text);
+}
+.fin-subroute-label { line-height: 1; }
+.fin-subroute-n {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-mute);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.fin-subroute.active .fin-subroute-n {
+  color: var(--text-dim);
+}
+
+/* Action group — icons + primary CTA juntos no canto direito */
+.fin-page-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  align-self: end;
+  padding-bottom: 11px;
+}
+.fin-page-actions-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.fin-act {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 6px 10px;
+  height: 30px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background .12s, color .12s, border-color .12s;
+  min-width: 30px;
+  justify-content: center;
+}
+.fin-act:hover {
+  background: var(--bg-2);
+  color: var(--text);
+}
+.fin-act.primary {
+  background: var(--text);
+  color: white;
+  border-color: var(--text);
+  padding: 6px 14px;
+  font-weight: 500;
+}
+.fin-act.primary:hover {
+  background: oklch(0.32 0.01 80);
+  border-color: oklch(0.32 0.01 80);
+}
+.fin-jana-btn {
+  color: oklch(0.42 0.13 295) !important;
+}
+.fin-jana-btn:hover {
+  background: oklch(0.96 0.04 295) !important;
+  color: oklch(0.32 0.13 295) !important;
+}
+
+/* Quando viewport aperta, ações ficam mais compactas */
+@media (max-width: 1180px) {
+  .fin-cockpit .fin-page-h { gap: 16px; padding: 14px 16px 0; }
+  .fin-page-title h1 { font-size: 20px; }
+  .fin-act { padding: 5px 8px; }
+}
+
+/* Reset margem do KPI strip pra coordenar com mid col (sem ml/-mr externos) */
+.fin-cockpit-mid .fin-toolbar {
+  padding: 10px 20px 8px;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.fin-cockpit-mid .fin-stats { margin: 16px 20px 0; }
+.fin-cockpit-mid > div.mx-6 {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+/* KPI strip · ajustes responsive para evitar truncamento abaixo de 1280px */
+.fin-cockpit-mid .fin-stats {
+  grid-template-columns: 1.5fr repeat(4, 1fr);
+}
+.fin-cockpit-mid .fin-stat-hint {
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.35;
+}
+@media (max-width: 1180px) {
+  .fin-cockpit-mid .fin-stats {
+    grid-template-columns: 1.4fr 1fr 1fr;
+  }
+  .fin-cockpit-mid .fin-stats .os-stat:nth-child(n+4) {
+    display: none;
+  }
+}
+
+/* Separador entre quick-pills e os 4 checkboxes */
+.fin-toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Checkbox de tipo (A receber / A pagar / Recebidas / Pagas) */
+.fin-type-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  cursor: pointer;
+  user-select: none;
+  transition: background .12s, color .12s, border-color .12s;
+  position: relative;
+}
+.fin-type-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+.fin-type-check:hover {
+  background: var(--bg-2);
+  color: var(--text);
+}
+.fin-type-check.on {
+  background: var(--bg-2);
+  color: var(--text);
+  font-weight: 500;
+}
+.fin-type-check-box {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 2px;
+  position: relative;
+  flex-shrink: 0;
+}
+.fin-type-check.on .fin-type-check-box {
+  background: var(--text);
+  border-color: var(--text);
+}
+.fin-type-check.on .fin-type-check-box::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  color: white;
+  font-size: 10px;
+  line-height: 13px;
+  text-align: center;
+  font-weight: 700;
+}
+.fin-type-check-label { font-weight: 500; }
+.fin-type-check.on .fin-type-check-label { font-weight: 600; }
+.fin-type-check-n {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-mute);
+  background: var(--bg-2);
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.fin-type-check.on .fin-type-check-n {
+  background: var(--surface);
+  color: var(--text-dim);
+}
+
+/* Toggle de densidade ao lado da busca · R#1.f ────────────────────────── */
+.fin-density-seg {
+  display: inline-flex;
+  gap: 1px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.fin-density-opt {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  padding: 0;
+  width: 24px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.fin-density-opt:hover {
+  color: var(--text);
+}
+.fin-density-opt.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+
+/* "table" interno do ledger fica colado nas bordas da mid col */
+.fin-cockpit-mid > div.mx-6 {
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+/* ── Jana banner · sugestão de conciliação (R#2) ─────────────────────── */
+.fin-jana-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, oklch(0.97 0.025 295), oklch(0.97 0.025 240));
+  border: 1px solid oklch(0.86 0.05 295);
+  border-left: 3px solid oklch(0.55 0.13 295);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.fin-jana-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: oklch(0.55 0.13 295);
+  color: white;
+  flex-shrink: 0;
+}
+.fin-jana-body {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+.fin-jana-body b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: oklch(0.32 0.13 295);
+}
+.fin-jana-body span {
+  display: block;
+  font-size: 11.5px;
+  color: oklch(0.40 0.10 295);
+  margin-top: 1px;
+}
+
+/* ── JanaPanel drawer · copiloto financeiro (R#2) ────────────────────── */
+.fin-jana-btn {
+  color: oklch(0.42 0.13 295) !important;
+}
+.fin-jana-btn:hover {
+  background: oklch(0.96 0.04 295) !important;
+}
+
+.fin-jana-back {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.20);
+  z-index: 45;
+  animation: finDetailFade 0.15s ease-out;
+}
+.fin-jana-drawer {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 480px;
+  max-width: 92vw;
+  background: var(--surface);
+  border-left: 1px solid oklch(0.86 0.05 295);
+  box-shadow: -8px 0 24px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: finDetailSlide 0.22s cubic-bezier(.2,.8,.2,1);
+}
+
+.fin-jana-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, oklch(0.98 0.012 295), var(--surface));
+}
+.fin-jana-h .fin-jana-icon {
+  width: 32px;
+  height: 32px;
+}
+.fin-jana-h-title { flex: 1; min-width: 0; }
+.fin-jana-h-eyebrow {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: oklch(0.42 0.13 295);
+  font-weight: 700;
+}
+.fin-jana-h-title b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 1px;
+}
+
+.fin-jana-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  margin: 12px 14px 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.fin-jana-tab {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.fin-jana-tab:hover { color: var(--text); }
+.fin-jana-tab.active {
+  background: var(--surface);
+  border-color: var(--border);
+  color: oklch(0.32 0.13 295);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+
+.fin-jana-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fin-jana-suggest {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fin-jana-suggest button {
+  appearance: none;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  transition: background .12s, border-color .12s, transform .08s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+.fin-jana-suggest button:hover:not(:disabled) {
+  background: oklch(0.97 0.025 295);
+  border-color: oklch(0.86 0.05 295);
+}
+.fin-jana-suggest button:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.fin-jana-suggest button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.fin-jana-suggest button::before {
+  content: "→";
+  color: oklch(0.55 0.13 295);
+  font-weight: 600;
+}
+
+.fin-jana-ask {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fin-jana-ask textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  resize: vertical;
+  outline: none;
+  line-height: 1.45;
+}
+.fin-jana-ask textarea:focus {
+  border-color: oklch(0.55 0.13 295);
+  box-shadow: 0 0 0 3px oklch(0.94 0.06 295);
+}
+.fin-jana-ask textarea::placeholder { color: var(--text-mute); }
+.fin-jana-ask-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--text-mute);
+}
+.fin-jana-ask-foot kbd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0 4px;
+  margin-right: 2px;
+}
+
+.fin-jana-loading {
+  font-size: 12.5px;
+  color: oklch(0.42 0.13 295);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: oklch(0.97 0.025 295);
+  border: 1px solid oklch(0.86 0.05 295);
+  border-radius: 6px;
+}
+.fin-jana-loading span { animation: finJanaDots 1.4s infinite; opacity: 0; }
+@keyframes finJanaDots { 0%, 20% { opacity: 0; } 40%, 100% { opacity: 1; } }
+
+.fin-jana-response {
+  background: oklch(0.97 0.025 295);
+  border: 1px solid oklch(0.86 0.05 295);
+  border-left: 3px solid oklch(0.55 0.13 295);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.fin-jana-response-h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: oklch(0.55 0.13 295);
+}
+.fin-jana-response-h small {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.fin-jana-response-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.fin-jana-response-foot {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed oklch(0.86 0.05 295);
+}
+
+.fin-jana-foot {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 10.5px;
+  color: var(--text-mute);
+  text-align: center;
+  background: var(--bg-2);
+  flex-shrink: 0;
+}
+
+/* ── DetailPanel · auto-classificação Jana ───────────────────────────── */
+.fin-detail-jana-class {
+  margin-top: 8px;
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: oklch(0.97 0.025 295);
+  border: 1px solid oklch(0.86 0.05 295);
+  border-left: 3px solid oklch(0.55 0.13 295);
+}
+.fin-detail-jana-class.warn {
+  background: oklch(0.96 0.05 60);
+  border-color: oklch(0.86 0.07 60);
+  border-left-color: oklch(0.62 0.13 60);
+}
+.fin-detail-jc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11.5px;
+}
+.fin-detail-jc-l {
+  color: oklch(0.45 0.10 295);
+  font-weight: 500;
+}
+.fin-detail-jana-class.warn .fin-detail-jc-l {
+  color: oklch(0.45 0.10 60);
+}
+.fin-detail-jc-v {
+  color: oklch(0.30 0.13 295);
+  font-weight: 600;
+  font-size: 12px;
+}
+.fin-detail-jana-class.warn .fin-detail-jc-v {
+  color: oklch(0.35 0.13 60);
+}
+.fin-detail-jc-conf {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: white;
+  padding: 1px 6px;
+  border-radius: 99px;
+  margin-left: 6px;
+  color: oklch(0.45 0.13 295);
+  border: 1px solid oklch(0.86 0.05 295);
+}
+.fin-detail-jana-class.warn .fin-detail-jc-conf {
+  color: oklch(0.45 0.13 60);
+  border-color: oklch(0.86 0.07 60);
+}
+.fin-detail-jc-foot {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed oklch(0.86 0.05 295);
+  font-size: 11px;
+  color: oklch(0.40 0.10 295);
+  line-height: 1.4;
+}
+.fin-detail-jana-class.warn .fin-detail-jc-foot {
+  border-top-color: oklch(0.86 0.07 60);
+  color: oklch(0.40 0.10 60);
+}
+
+/* ── Toast ─────────────────────────────────────────────────────────── */
+.fin-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: oklch(0.22 0.01 80);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  z-index: 90;
+  animation: finToastUp 0.22s cubic-bezier(.2,.8,.2,1);
+  font-variant-numeric: tabular-nums;
+}
+@keyframes finToastUp {
+  from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* ── Responsive ≤1280px (single-col, ajustes menores) ────────────────── */
+@media (max-width: 1280px) {
+  .fin-cockpit-mid .fin-stats { margin: 14px 16px 0; }
+  .fin-cockpit-mid > div.mx-6 {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+}
+
+/* ── Responsive ≤1100px (cheat-sheet colapsa) ────────────────────────── */
+@media (max-width: 1100px) {
+  .fin-cheat-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Responsive ≤760px (mobile: sub-rotas scroll horizontal) ─────────── */
+@media (max-width: 760px) {
+  .fin-cockpit .fin-page-h {
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 12px 14px 0;
+  }
+  .fin-subroutes {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .fin-subroutes::-webkit-scrollbar { display: none; }
+  .fin-page-title h1 { font-size: 18px; }
+  .fin-stats { grid-template-columns: 1fr 1fr !important; }
+  .fin-stats .os-stat:nth-child(n+5) { display: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ▼ REFINO #1.b · TECLADO CANÔNICO — adicionado 2026-05-17
+   Cheat-sheet overlay (?), cursor visual J/K, ⌘K com escopos L/C/F/O
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* CheatSheet overlay (tecla ?) */
+.fin-cheat-back {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.20 0.005 80 / 0.45);
+  z-index: 80;
+  display: grid;
+  place-items: start center;
+  padding-top: 80px;
+}
+.fin-cheat {
+  background: oklch(0.20 0.005 80);
+  color: white;
+  border-radius: 10px;
+  padding: 18px 22px 16px;
+  width: 720px;
+  max-width: 92vw;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.30);
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.fin-cheat-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid oklch(0.32 0.01 80);
+}
+.fin-cheat-h b {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: white;
+}
+.fin-cheat-h small {
+  font-size: 10.5px;
+  color: oklch(0.68 0.01 80);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.fin-cheat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 28px;
+}
+.fin-cheat-grp-h {
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: oklch(0.65 0.01 80);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.fin-cheat-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 3px 0;
+  font-size: 12px;
+}
+.fin-cheat-row.dim { opacity: 0.45; }
+.fin-cheat-keys {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+  min-width: 78px;
+}
+.fin-cheat kbd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  background: oklch(0.30 0.01 80);
+  border: 1px solid oklch(0.42 0.01 80);
+  border-radius: 3px;
+  padding: 1px 6px;
+  color: oklch(0.94 0.01 80);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.fin-cheat-desc {
+  color: oklch(0.85 0.01 80);
+  line-height: 1.4;
+}
+.fin-cheat-foot {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid oklch(0.32 0.01 80);
+  font-size: 10.5px;
+  color: oklch(0.65 0.01 80);
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Cursor visual na linha (R#1.b ativa este hook que R#1.a preparou) */
+.fin-cockpit tr.row-cursor {
+  background: oklch(0.97 0.025 145);
+}
+.fin-cockpit tr.row-cursor td:first-child {
+  box-shadow: inset 3px 0 0 oklch(0.50 0.13 145);
+}
+
+/* StatusBadge compact: usa fin-pill-canon mas mais denso */
+.fin-pill-canon.compact {
+  padding: 1px 6px;
+  font-size: 10px;
+}
+.fin-pill-canon.compact .dot { width: 4px; height: 4px; }
+
+/* ⌘K com 4 escopos (chips L/C/F/O) */
+.fin-cmdk-scopes {
+  display: flex;
+  gap: 4px;
+  padding: 6px 12px;
+  background: oklch(0.97 0.003 80);
+  border-bottom: 1px solid oklch(0.90 0.004 80);
+  font-size: 11px;
+}
+.fin-cmdk-scope {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  color: oklch(0.50 0.01 80);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background .12s, color .12s;
+}
+.fin-cmdk-scope:hover { background: oklch(0.93 0.004 80); color: oklch(0.22 0.01 80); }
+.fin-cmdk-scope.active {
+  background: oklch(0.22 0.01 80);
+  color: white;
+}
+.fin-cmdk-scope kbd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  background: oklch(0.94 0.004 80);
+  border: 1px solid oklch(0.88 0.004 80);
+  border-radius: 2px;
+  padding: 0 4px;
+  color: oklch(0.50 0.01 80);
+  line-height: 1.3;
+}
+.fin-cmdk-scope.active kbd {
+  background: oklch(0.32 0.01 80);
+  border-color: oklch(0.42 0.01 80);
+  color: white;
+}
+.fin-cmdk-sect-h {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: oklch(0.55 0.01 80);
+  font-weight: 700;
+  padding: 10px 16px 4px;
+}
+.fin-cmdk-empty {
+  padding: 24px 16px;
+  text-align: center;
+}
+.fin-cmdk-empty-msg {
+  font-size: 12.5px;
+  color: oklch(0.55 0.01 80);
+  margin-bottom: 12px;
+}
+.fin-cmdk-jana {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px dashed oklch(0.78 0.06 145);
+  border-radius: 6px;
+  background: oklch(0.97 0.025 145);
+  color: oklch(0.32 0.13 145);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.fin-cmdk-jana:hover { background: oklch(0.95 0.04 145); }
+.fin-cmdk-jana small { opacity: 0.6; font-size: 10px; margin-left: 4px; }
