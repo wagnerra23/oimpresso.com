@@ -274,3 +274,120 @@ ssh ... 'cd ~/domains/oimpresso.com/public_html && php artisan optimize:clear'
 ```
 
 Refs SSH: hostinger.md (IP, key, repo path).
+
+## 6. Bug latente Controller authorize — Illuminate\Routing\Controller vs App\Http\Controllers\Controller
+
+**Sintoma reproduzido (Wave 7 hotfix PR #1211, 2026-05-20):**
+
+Drawer JSON novo (ServiceOrderSheet via fetch Accept-aware) começou a hitar `show()` que tinha `$this->authorize('view', $order)` desde Wave 15 (Security hardening) — mas sempre via Inertia HTML page, que era servida via outro fluxo de middleware que mascarava a exception. Drawer JSON expôs o crash real:
+
+```
+Method Modules\OficinaAuto\Http\Controllers\ServiceOrderController::authorize does not exist
+```
+
+**Causa raiz:** Controllers em `Modules/<X>/Http/Controllers/*.php` que precisam de `$this->authorize()`, `$this->validate()` OU `$this->dispatch()` DEVEM extender `App\Http\Controllers\Controller` (projeto canon que já inclui os 3 traits via `AuthorizesRequests`, `ValidatesRequests`, `DispatchesJobs`).
+
+**Anti-pattern (FALHA silenciosa até alguém chamar o método):**
+
+```php
+namespace Modules\OficinaAuto\Http\Controllers;
+
+use Illuminate\Routing\Controller;  // ❌ Base raw, sem traits
+
+class ServiceOrderController extends Controller
+{
+    public function show($order)
+    {
+        $this->authorize('view', $order);  // 💥 Method does not exist
+    }
+}
+```
+
+**Fix canônico:**
+
+```php
+namespace Modules\OficinaAuto\Http\Controllers;
+
+use App\Http\Controllers\Controller;  // ✅ Canônico — inclui traits
+
+class ServiceOrderController extends Controller
+{
+    public function show($order)
+    {
+        $this->authorize('view', $order);  // ✅ Funciona
+    }
+}
+```
+
+**Auditoria preventiva:** procure todos os Controllers em `Modules/` que combinam:
+
+```bash
+# Combos que indicam o bug — quando aparecem juntos, FIX OBRIGATÓRIO:
+grep -rln 'use Illuminate\\Routing\\Controller' Modules/ | while read f; do
+  if grep -l 'this->authorize\|this->validate' "$f" >/dev/null; then
+    echo "POSSIVEL BUG: $f"
+  fi
+done
+```
+
+**Lição operacional:** bug latente revelado por feature nova (drawer JSON Wave 7-A) que adicionou novo fetch path numa rota pré-existente. **Smoke browser MCP pós-deploy** (skill `smoke-prod-evidence`) descobre essa categoria de regressão escondida — sem isso, o 500 ficou ~7 dias sem detecção em prod biz=1.
+
+## 7. Pattern try-catch diagnose pra investigar 500 opaco em prod
+
+**Disparo:** endpoint retorna `500 Server Error` sem mensagem, browser DevTools / Network não revela trace, SSH com senha não acessível pra `tail laravel.log`. Adicionar wrapper try-catch temporário no método ofensor retornando exception trace JSON.
+
+**Template canônico (extraído PR #1209 task #24):**
+
+```php
+public function show(Request $request, ServiceOrder $order)
+{
+    if (! $request->wantsJson()) {
+        // Branch Inertia HTML — unchanged
+        return Inertia::render('...');
+    }
+
+    try {
+        // Conteúdo original do branch JSON
+        $this->authorize('view', $order);
+        $order->load([...]);
+        return response()->json([... payload ...]);
+    } catch (\Throwable $e) {
+        \Log::emergency('[diagnose task #N]', [
+            'order_id' => $order->id ?? null,
+            'msg' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'class' => get_class($e),
+        ]);
+
+        return response()->json([
+            '__debug_diagnose_task_N' => true,  // flag pra identificar resposta no smoke
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'class' => get_class($e),
+            'trace' => collect($e->getTrace())
+                ->take(10)
+                ->map(fn ($t) => [
+                    'file' => $t['file'] ?? null,
+                    'line' => $t['line'] ?? null,
+                    'function' => ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? ''),
+                ])
+                ->all(),
+        ], 200);  // 200 pro navegador parsear como JSON
+    }
+}
+```
+
+**Fluxo:**
+
+1. Aplicar wrapper localmente — commit + push branch `hotfix/<modulo>-<endpoint>-diagnose`
+2. PR + merge + Deploy to Hostinger (workflow_dispatch — composer/migrate/cache)
+3. Hit endpoint em prod via browser MCP `mcp__Claude_in_Chrome__javascript_tool` com `fetch(...)` + ler JSON
+4. Identifica causa raiz no trace + file:line
+5. **Hotfix real** em branch separada — corrige causa + REMOVE o wrapper try-catch
+6. PR + merge + Deploy + smoke validando resposta sem `__debug_diagnose_task_N` flag
+
+**Lição:** flag `__debug_diagnose_task_N` no payload + status 200 (não 500) permite distinguir "endpoint corrigido" vs "wrapper ainda ativo" no smoke pós-fix. Caso real PR #1209 (diagnose) → PR #1211 (fix authorize trait).
+
+Refs SSH: hostinger.md (IP, key, repo path).
