@@ -11,7 +11,8 @@ contains:
   - "InstallController"
   - "NfeCockpitController — sub-página 2 (NF-e/NFC-e + drawer SEFAZ guiado)"
   - "NfseCockpitController — sub-página 3 (NFS-e modelo 56 nacional NT 2024-001)"
-  - "SpedController — sub-página 7 (placeholder panorama mensal — gerador real backlog)"
+  - "SpedController — sub-página 7 + endpoint gerar() download EFD-ICMS/IPI MVP (PR #8)"
+  - "Services/SpedIcmsIpiGeneratorService — gerador TXT EFD-ICMS/IPI v3.1.1 perfil A (PR #8 saídas MVP — sem PIS/COFINS, sem Bloco E apuração, sem Bloco H inventário)"
 not_contains:
   - "Emissão fiscal (XML + SEFAZ) → Modules/NfeBrasil (lê via Service)"
   - "NFSe federal LC 214/2025 → Modules/NFSe (futura sub-página 3)"

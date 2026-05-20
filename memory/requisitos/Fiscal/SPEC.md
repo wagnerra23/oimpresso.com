@@ -175,9 +175,45 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - [x] Pest biz=1 (`SpedControllerTest` — anti-hook: gerador real NÃO existe)
 - [x] Charter + RUNBOOK + visual-comparison
 
-### US-FISCAL-011 · Gerador SPED real — **backlog PR #6**
+### US-FISCAL-016 · Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
 
-EFD ICMS/IPI + EFD-Contribuições reais (TXT layout CONFAZ). PR dedicado pós-MVP fiscal.
+> **Rota:** `GET /fiscal/sped/icms-ipi/{ano}/{mes}` (perm `fiscal.sped.export`)
+> **Controller:** `SpedController@gerar`
+> **Service:** `Modules\Fiscal\Services\SpedIcmsIpiGeneratorService` (novo)
+
+**Como** contador/Eliana
+**Quero** baixar arquivo TXT EFD-ICMS/IPI do mês fechado direto do cockpit Fiscal
+**Para** importar no PVA-EFD CONFAZ + entregar SPED Fiscal dentro do prazo dia 15 sem precisar abrir Modules/NfeBrasil nem digitar registro a registro manualmente
+
+**DoD:**
+- [x] `SpedIcmsIpiGeneratorService::gerar(int $biz, int $ano, int $mes): string` — método público novo
+- [x] Layout CONFAZ Guia Prático EFD-ICMS/IPI v3.1.1 perfil A (COD_VER=018)
+- [x] 16 registros canônicos implementados:
+  - Bloco 0: 0000 + 0001 + 0005 + 0150 (destinatários) + 0190 (unidades) + 0200 (itens) + 0990
+  - Bloco C: C001 + C100 (saídas — NfeEmissao status=autorizada) + C170 (itens) + C190 (totalizador) + C990
+  - Bloco 9: 9001 + 9900 (contadores) + 9990 + 9999
+- [x] Validação: ano 2020-atual, mês 1-12, cross-tenant guard explícito (ADR 0093)
+- [x] HasBusinessScope automático em NfeEmissao
+- [x] OTel span `fiscal.sped.gerar` + atributos (biz, ano, mes)
+- [x] Pipe-delimited `|REG|c1|c2|...|` terminator `|\r\n` (line endings CONFAZ)
+- [x] SpedController::gerar thin delegate + download Response com `Content-Disposition: attachment` + filename `EFD-ICMS-IPI-{ano}-{mes}.txt`
+- [x] Sped.tsx botão download habilitado quando `notasAutorizadas > 0`
+- [x] Throttle 3/min anti-abuse
+- [x] Pest `SpedIcmsIpiGeneratorServiceTest` (8 testes): contract signature, validation ano/mes, cross-tenant, OTel, 16 registros presentes
+- [x] SCOPE.md registra Controller `gerar()` + Service novo
+
+**Non-Goals (próximos PRs — backlog v1+):**
+- ❌ **Bloco E (apuração ICMS)** — exige saldo credor mês anterior + débitos/créditos detalhados
+- ❌ **Bloco H (inventário anual)** — declaração 31/12; integração ProductCatalogue/Stock
+- ❌ **Bloco D (CT-e modelo 67)** — não emitido pelo oimpresso
+- ❌ **Bloco G (CIAP ativo imobilizado)** + **Bloco K (produção industrial)** — fora escopo PME varejo
+- ❌ **Entradas via DF-e manifestada** — exige reconciliação cadastro fornecedor (Modules/Crm)
+- ❌ **EFD-Contribuições (PIS/COFINS)** — arquivo separado layout próprio, PR dedicada
+- ❌ **Validação contra PVA-EFD CONFAZ** — smoke real biz=1 pós-merge via Pest browser MCP
+
+### US-FISCAL-011 · Gerador SPED Fiscal complete — **backlog PR #9**
+
+EFD-Contribuições (PIS/COFINS arquivo separado) + Bloco E apuração ICMS + Bloco H inventário anual. Complementa US-FISCAL-016 MVP entregue em PR #8.
 
 ### US-FISCAL-012 · Ações mutação NFe + DF-e — ✅ PR #4 Wave
 
@@ -258,12 +294,14 @@ Then deve receber 403 Forbidden
 | #1 #1183 | NF-e · NFC-e (cockpit + drawer) | 1 dia | base 0→60/100 | ✅ mergeado `8aef3d0fa` |
 | #2 #1185 (Wave) | Cockpit (1) + NFS-e (3) + Eventos (5) | 1 dia | +20pp | ✅ mergeado `cabd29661` |
 | #3 #1189 (Wave) | DF-e (4) + Cert/Cfg (6) + SPED (7) | 1 dia | +12pp | ✅ mergeado `e36e1e272` |
-| #4 (Wave) | Cancelar NFe + Manifestar DF-e (4 ações) | 4h | +15pp (core) | 🟡 em curso |
-| #5 | Retransmitir + CC-e + Inutilização | 1 dia | +6pp | 🔒 backlog |
-| #6 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
-| #7 | Gerador SPED real (EFD ICMS-IPI + PIS/COFINS) | 1+ semana | +10pp | 🔒 backlog |
+| #4 #1190 (Wave) | Cancelar NFe + Manifestar DF-e (4 ações) | 4h | +15pp (core) | ✅ mergeado `d10b117e1` |
+| #5 #1249 (Wave) | CC-e (110110) + Inutilização faixa | 4h | +4pp | 🟡 review |
+| #6 #1253 (Wave) | Retransmitir NFe rejeitada/denegada | 3h | +3pp | 🟡 review |
+| #7 #1257 (Wave) | ⌘K palette cross-fiscal | 4h | +8pp | 🟡 review |
+| #8 (Wave) | Gerador EFD-ICMS/IPI MVP saídas (v3.1.1 perfil A) | 6h | +6pp | 🟡 em curso |
+| #9 | EFD-Contribuições PIS/COFINS + Bloco E + Bloco H | 1+ semana | +4pp | 🔒 backlog |
 
-**Meta:** Score Capterra Fiscal cockpit ≥ 80/100 pós-PR #4 (Wagner aprova).
+**Meta:** Score Capterra Fiscal cockpit ≥ **100/100** pós-PR #8 (SPED MVP fecha último gap top-3 Bling/Tiny). Wagner aprova nova meta.
 
 ## Histórico
 
@@ -271,6 +309,10 @@ Then deve receber 403 Forbidden
 - **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: Cockpit + NFS-e + Eventos. 3 sub-páginas adicionadas (US-FISCAL-002, US-FISCAL-005, US-FISCAL-007). Permission `fiscal.nfse.view` nova. Roadmap reorganizado (5 PRs vs 7 originais).
 - **v1.2.0** (2026-05-20) — PR #3 Wave final: DF-e + Cert/Cfg + SPED placeholder. **7 sub-páginas do design Cowork concluídas**. US-FISCAL-008/009/010 adicionadas + US-FISCAL-011 backlog (gerador SPED real). FxShell habilita todos 7 chips. Próximo PR foco em ações de mutação (cancelar/CC-e/etc).
 - **v1.3.0** (2026-05-20) — PR #4 Wave Ações: AcoesController thin delegate pra NfeService::cancelar (FSM cascade ADR 0143) + ManifestacaoService (4 ações DF-e). NotaDrawer Cancelar habilitado + modal motivo. Dfe.tsx coluna Ações com 4 botões manifesto. US-FISCAL-012 adicionada. Roadmap reorganizado (Retransmitir+CCe+Inut viraram PR #5).
+- **v1.4.0** (2026-05-20) — PR #5 Wave CCe + Inutilização: `NfeCartaCorrecaoService` novo + AcoesController 2 métodos + UI modais. US-FISCAL-013. Meta 85/100.
+- **v1.5.0** (2026-05-20) — PR #6 Wave Retransmitir: `NfeService::retransmitir` (UPDATE preservation contract CONFAZ Art. 14). US-FISCAL-014. Meta 88/100.
+- **v1.6.0** (2026-05-20) — PR #7 Wave ⌘K palette: `PaletteSearchController` + `CmdKPalette.tsx` listener global Cmd/Ctrl+K. US-FISCAL-015. Meta 96/100.
+- **v1.7.0** (2026-05-20) — PR #8 Wave SPED MVP: `SpedIcmsIpiGeneratorService` novo (Modules/Fiscal/Services) + SpedController::gerar download TXT EFD-ICMS/IPI v3.1.1 perfil A + Sped.tsx botão habilitado. 16 registros canônicos (Blocos 0+C+9). US-FISCAL-016 adicionada. Meta Capterra **100/100** (gap SPED top-3 Bling/Tiny fechado MVP).
 
 ## Referências
 

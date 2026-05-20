@@ -2,18 +2,20 @@
 
 namespace Modules\Fiscal\Http\Controllers;
 
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Fiscal\Services\SpedIcmsIpiGeneratorService;
 use Modules\NfeBrasil\Models\NfeEmissao;
 
 /**
  * SPED & Livros (sub-página 7 do design KB-9.75).
  *
- * Placeholder no PR — implementação completa exige integração com gerador
- * SPED Fiscal/EFD (Modules/NfeBrasil futuro). Por agora exibe panorama
- * dos períodos com contagens de notas autorizadas (substituto cru de
- * "competências fechadas").
+ * Wave 8 (PR #8): gerador EFD-ICMS/IPI MVP. Endpoint download .txt CONFAZ layout.
+ * PIS/COFINS (EFD-Contribuições separado) + Bloco E apuração + Bloco H inventário
+ * ficam pra próximas Waves.
  */
 class SpedController extends Controller
 {
@@ -50,7 +52,55 @@ class SpedController extends Controller
 
         return Inertia::render('Fiscal/Sped', [
             'periodos' => $periodos,
-            'notice'   => 'SPED Fiscal (EFD ICMS-IPI) + PIS/COFINS · gerador completo em desenvolvimento. Dados agregados de NfeEmissao mostrados como referência.',
+            'notice'   => 'SPED Fiscal (EFD ICMS-IPI) — gerador MVP saídas v3.1.1 disponível (PR #8). PIS/COFINS + Bloco E apuração + entradas em próximas Waves.',
         ]);
+    }
+
+    /**
+     * GET /fiscal/sped/icms-ipi/{ano}/{mes} — download TXT EFD-ICMS/IPI.
+     *
+     * Layout CONFAZ Guia Prático v3.1.1 (perfil A).
+     * Permissão: fiscal.sped.export.
+     * Multi-tenant Tier 0: businessId via session (ADR 0093 + cross-tenant guard
+     * no Service).
+     */
+    public function gerar(SpedIcmsIpiGeneratorService $service, int $ano, int $mes): HttpResponse
+    {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.sped.export')) {
+            abort(403, 'Sem permissão fiscal.sped.export');
+        }
+
+        $businessId = (int) session('user.business_id');
+
+        try {
+            $conteudo = $service->gerar($businessId, $ano, $mes);
+
+            Log::info('Fiscal.sped.gerar ok', [
+                'business_id' => $businessId,
+                'ano'         => $ano,
+                'mes'         => $mes,
+                'bytes'       => strlen($conteudo),
+                'linhas'      => substr_count($conteudo, "\r\n"),
+            ]);
+
+            $nomeArquivo = sprintf('EFD-ICMS-IPI-%04d-%02d.txt', $ano, $mes);
+
+            return response($conteudo, 200, [
+                'Content-Type'              => 'text/plain; charset=UTF-8',
+                'Content-Disposition'       => 'attachment; filename="' . $nomeArquivo . '"',
+                'Content-Length'            => (string) strlen($conteudo),
+                'X-Sped-Layout-Version'     => '018', // v3.1.1
+                'X-Robots-Tag'              => 'noindex',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Fiscal.sped.gerar falhou', [
+                'business_id' => $businessId,
+                'ano'         => $ano,
+                'mes'         => $mes,
+                'error'       => $e->getMessage(),
+            ]);
+
+            return response("Erro na geração SPED: {$e->getMessage()}", 500, ['Content-Type' => 'text/plain']);
+        }
     }
 }

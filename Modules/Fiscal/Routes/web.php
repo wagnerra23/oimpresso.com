@@ -56,6 +56,15 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // SPED & Livros (sub-página 7 — PR #3 Wave final, placeholder).
         Route::get('/sped', [SpedController::class, 'index'])->name('sped.index');
 
+        // ─── PR #8 Wave: SPED Fiscal EFD-ICMS/IPI ────────────────────────
+        // Download TXT layout CONFAZ v3.1.1 (perfil A) por ano+mês.
+        // Throttle 3/min (gera arquivo pesado; evita abuso).
+        Route::get('/sped/icms-ipi/{ano}/{mes}', [SpedController::class, 'gerar'])
+            ->whereNumber('ano')
+            ->whereNumber('mes')
+            ->middleware('throttle:3,1')
+            ->name('sped.icms-ipi');
+
         // ─── PR #4 Wave Ações Mutação ──────────────────────────────────
         // Cancelar NFe/NFC-e (delega NfeService::cancelar — FSM cascade ADR 0143).
         // Throttle 30/min anti-DOS (pattern Modules/NfeBrasil — protege SEFAZ).
