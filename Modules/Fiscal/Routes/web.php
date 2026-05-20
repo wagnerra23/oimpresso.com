@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Fiscal\Http\Controllers\AcoesController;
 use Modules\Fiscal\Http\Controllers\CockpitController;
 use Modules\Fiscal\Http\Controllers\ConfigController;
 use Modules\Fiscal\Http\Controllers\DfeController;
@@ -54,4 +55,20 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // SPED & Livros (sub-página 7 — PR #3 Wave final, placeholder).
         Route::get('/sped', [SpedController::class, 'index'])->name('sped.index');
+
+        // ─── PR #4 Wave Ações Mutação ──────────────────────────────────
+        // Cancelar NFe/NFC-e (delega NfeService::cancelar — FSM cascade ADR 0143).
+        // Throttle 30/min anti-DOS (pattern Modules/NfeBrasil — protege SEFAZ).
+        Route::post('/acoes/nfe/{emissao}/cancelar', [AcoesController::class, 'cancelarNfe'])
+            ->whereNumber('emissao')
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.cancelar');
+
+        // Manifestar DF-e (cienciar/confirmar/desconhecer/nao_realizada).
+        // Delega ManifestacaoService Modules/NfeBrasil.
+        Route::post('/acoes/dfe/{recebido}/{acao}', [AcoesController::class, 'manifestarDfe'])
+            ->whereNumber('recebido')
+            ->where('acao', 'cienciar|confirmar|desconhecer|nao_realizada')
+            ->middleware('throttle:30,1')
+            ->name('acoes.dfe.manifestar');
     });
