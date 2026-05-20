@@ -2,11 +2,19 @@
 
 > Visão unificada de AR/AP (Contas a Receber / Contas a Pagar) + Fluxo de Caixa + Boletos + Conciliação OFX + Plano de Contas BR + Workflow Aprovação. Cockpit V2 persona Eliana [E] (financeiro escritório, densidade alta, atalhos teclado).
 
-**Última atualização:** 2026-05-20 madrugada · **20 PRs Ondas 12-21** ([#1158→#1180](https://github.com/wagnerra23/oimpresso.com/pulls)) · Bundle copy CSS canon 9054 LOC · 7 funções novas · paridade canon 4.8→**9.5/10** · cobertura funcional 75%→**87%**.
+**Última atualização:** 2026-05-20 tarde · **27 PRs Ondas 12-26** ([#1158→#1252](https://github.com/wagnerra23/oimpresso.com/pulls)) · Bundle copy CSS canon 9054 LOC · 7 funções novas · paridade canon 4.8→**9.8/10** · drawer detalhe **10/10** · cobertura funcional 75%→**87%**.
 
-## Estado UI 2026-05-20 madrugada — Canon Cowork TOTAL ✅
+## Estado UI 2026-05-20 tarde — Drawer canon 10/10 ✅
 
-`/financeiro/*` (12 telas) com **paridade visual 9.5/10** vs canon `Oimpresso ERP - Chat.html`. Bundle CSS de **9054 LOC** importado inteiro em `resources/css/cowork-canon-financeiro-bundle.css` (regra Tier 0 [`feedback-cowork-bundle-aplicar-inteiro`](../../reference/feedback-cowork-bundle-aplicar-inteiro.md) validada 4ª vez). Todos componentes usam classes canon: `os-page-h` / `os-btn ghost` / `fin-stat` / `fin-stat-hero` / `os-drawer-head` / `fin-footer-tips`.
+`/financeiro/*` (12 telas) com **paridade visual 9.8/10** vs canon `financeiro-app.jsx`. Bundle CSS de **9054 LOC** importado inteiro em `resources/css/cowork-canon-financeiro-bundle.css` (regra Tier 0 [`feedback-cowork-bundle-aplicar-inteiro`](../../reference/feedback-cowork-bundle-aplicar-inteiro.md) validada 4ª vez).
+
+**Ondas 22-26 hoje (~40min) — drawer detalhe canon parity 100%** ([session log](../../sessions/2026-05-20-financeiro-drawer-canon-ondas-22-26.md)):
+- **22/22b** PR [#1243](https://github.com/wagnerra23/oimpresso.com/pull/1243) [#1245](https://github.com/wagnerra23/oimpresso.com/pull/1245) — `fin-cowork` no SheetContent (Portal scope) + bg branco + CSS vars no portal (root cause: Sheet shadcn Portal renderiza fora do wrapper `.fin-cowork` → regras prefixadas não aplicavam)
+- **17/18/19/21** PR [#1247](https://github.com/wagnerra23/oimpresso.com/pull/1247) — drawer body canon: header DirIcon + UPPERCASE "A receber · #ID" + date 22px + amount 34px + grid 2-col (Contraparte/Categoria/Canal/Documento + Conta col-span-2) + bloco Conciliação extrato + footer Ver NFe/Cobrar/Recebi-Paguei verde
+- **23** PR [#1248](https://github.com/wagnerra23/oimpresso.com/pull/1248) — glyph tabs align (✦ ✎ wrap em span com inline-flex)
+- **24** PR [#1250](https://github.com/wagnerra23/oimpresso.com/pull/1250) — bordas globais Financeiro/* (border-stone-100 → oklch 0.92 dentro de `.fin-cowork`)
+- **25** PR [#1251](https://github.com/wagnerra23/oimpresso.com/pull/1251) — drawer overflow horizontal (nav margin negativo + `px-5` body)
+- **26** PR [#1252](https://github.com/wagnerra23/oimpresso.com/pull/1252) — `px-5` page wrapper `.fin-curadoria` (KPI strip + sparkline + filters + tabela respiram do edge)
 
 **Plano B AppShellV2 nu** (2026-05-18 noite) preservado mas inativo — `mock_cowork_mode=false` + `sidebar_wrap_enabled=false` default. Reversibilidade 5 camadas mantida.
 
@@ -71,10 +79,11 @@ Lançamentos CRUD + 1-clique baixa + filtros lifecycle multi-select + densidade 
 
 ## Roadmap próximas Ondas (P0/P1)
 
-- **22**: UI lista anexos GET no drawer + coluna `aprovacao_status` na tabela + permissions Spatie `financeiro.titulo.aprovar`
-- **23**: ConciliacaoService dedicated CNAB + Open Banking API real
-- **24**: Aging buckets <30/30-60/60-90/90+
-- **25**: Notificações vencimento próximo (e-mail/WhatsApp)
+- **27**: UI lista anexos GET no drawer + coluna `aprovacao_status` na tabela + permissions Spatie `financeiro.titulo.aprovar` (era Onda 22 original — slot tomado por canon parity drawer)
+- **28**: ConciliacaoService dedicated CNAB + Open Banking API real
+- **29**: Aging buckets <30/30-60/60-90/90+
+- **30**: Notificações vencimento próximo (e-mail/WhatsApp)
+- **31**: Border bump global em outras áreas (Vendas/Produto/Purchase — escopo decidido caso a caso)
 
 ---
 
