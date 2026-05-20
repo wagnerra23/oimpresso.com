@@ -309,17 +309,32 @@ function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?:
   const firstSaldo = points[0]?.saldo ?? 0;
   const baselineY = H - PADDING_Y - ((firstSaldo - minS) / range) * innerH;
 
+  // Onda 6 (2026-05-20): hover tooltip via SVG <title> nativo + circles invisíveis
+  // por ponto (clickable area). Mouseover → browser mostra "DD/MM · R$ X,XX (+R$ Y in / -R$ Z out)"
+  const fmtBR = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(v ?? 0);
   return (
-    <svg className="fin-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+    <svg className="fin-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
       <defs>
         <linearGradient id="finSparkG" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.5" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={fillPath} fill="url(#finSparkG)" />
-      <path d={linePath} stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeLinecap="round" />
-      <line x1="0" y1={baselineY} x2={W} y2={baselineY} stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
+      <path d={fillPath} fill="url(#finSparkG)" aria-hidden="true" />
+      <path d={linePath} stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true" />
+      <line x1="0" y1={baselineY} x2={W} y2={baselineY} stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" aria-hidden="true" />
+      {/* Hotspots invisíveis por ponto — hover mostra title nativo do browser */}
+      {points.map((p, i) => {
+        const x = (i / (points.length - 1)) * W;
+        const y = H - PADDING_Y - ((p.saldo - minS) / range) * innerH;
+        const dateStr = p.date.split('-').reverse().slice(0, 2).join('/'); // YYYY-MM-DD → DD/MM
+        const ioStr = (p.in > 0 ? ` · +${fmtBR(p.in)}` : '') + (p.out > 0 ? ` · -${fmtBR(p.out)}` : '');
+        return (
+          <circle key={i} cx={x} cy={y} r={4} fill="transparent" style={{ pointerEvents: 'auto', cursor: 'help' }}>
+            <title>{`${dateStr} · saldo ${fmtBR(p.saldo)}${ioStr}`}</title>
+          </circle>
+        );
+      })}
     </svg>
   );
 }
