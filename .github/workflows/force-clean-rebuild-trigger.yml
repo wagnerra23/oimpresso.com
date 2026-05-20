@@ -114,12 +114,15 @@ jobs:
           "
 
       - name: Re-cache config
+        # view:cache pode falhar se config aponta pra custom_views/ que nao
+        # existe no Hostinger (config opcional UltimatePOS legacy). Failure
+        # do view:cache nao afeta runtime — Laravel cai pra render JIT.
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             php artisan config:cache &&
             php artisan route:cache &&
-            php artisan view:cache &&
+            (php artisan view:cache 2>&1 || echo '[warn] view:cache skipped (likely custom_views/ missing — non-fatal)') &&
             php artisan package:discover --ansi
           "
 
