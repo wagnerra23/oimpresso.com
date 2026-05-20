@@ -739,6 +739,8 @@ class UnificadoController extends Controller
             'conferido_at' => $t->conferido_at?->toIso8601String(),
             'conferido_user_nome' => $conferidoNome,
             'valor_mutavel' => ! in_array($t->status, ['quitado', 'cancelado'], true),
+            // Onda 21 #55 — Workflow aprovação (nullable: títulos sem fluxo)
+            'aprovacao_status' => $t->aprovacao_status ?? null,
         ];
     }
 
@@ -757,5 +759,164 @@ class UnificadoController extends Controller
         }
 
         return 'aberto';
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // Onda 20 (2026-05-19) #50 — Anexos NF / comprovante por título.
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Listar anexos de um título.
+     * GET /financeiro/unificado/{id}/anexos
+     */
+    public function listarAnexos(int $id): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $anexos = \Modules\Financeiro\Models\TituloAnexo::query()
+            ->where('business_id', $businessId)
+            ->where('titulo_id', $id)
+            ->orderByDesc('created_at')
+            ->get(['id', 'nome', 'mime', 'tamanho_bytes', 'uploaded_by', 'created_at']);
+
+        return response()->json(['anexos' => $anexos]);
+    }
+
+    /**
+     * Anexar arquivo a um título.
+     * POST /financeiro/unificado/{id}/anexos (multipart com `arquivo`).
+     */
+    public function anexar(Request $request, int $id): RedirectResponse
+    {
+        $request->validate([
+            'arquivo' => 'required|file|max:10240', // 10 MB
+        ]);
+
+        $businessId = (int) session('user.business_id');
+        $userId = $request->user()?->id;
+
+        // Validar título existe + scope multi-tenant.
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
+
+        $file = $request->file('arquivo');
+        $hash = hash_file('sha256', $file->getPathname());
+
+        // Idempotência: se já existe anexo com mesmo hash, não duplica.
+        $existente = \Modules\Financeiro\Models\TituloAnexo::query()
+            ->where('business_id', $businessId)
+            ->where('hash_sha256', $hash)
+            ->first();
+        if ($existente) {
+            return back()->with('warning', 'Arquivo já anexado previamente.');
+        }
+
+        // Storage local privado.
+        $relativePath = "financeiro/anexos/{$businessId}/{$id}/" . uniqid() . '_' . $file->getClientOriginalName();
+        \Illuminate\Support\Facades\Storage::disk('local')->put($relativePath, file_get_contents($file->getPathname()));
+
+        \Modules\Financeiro\Models\TituloAnexo::create([
+            'business_id' => $businessId,
+            'titulo_id' => $titulo->id,
+            'nome' => $file->getClientOriginalName(),
+            'path' => $relativePath,
+            'mime' => $file->getMimeType(),
+            'tamanho_bytes' => $file->getSize(),
+            'hash_sha256' => $hash,
+            'uploaded_by' => $userId,
+        ]);
+
+        return back()->with('success', 'Anexo adicionado.');
+    }
+
+    /**
+     * Remover anexo.
+     * DELETE /financeiro/unificado/{id}/anexos/{anexoId}
+     */
+    public function removerAnexo(Request $request, int $id, int $anexoId): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $anexo = \Modules\Financeiro\Models\TituloAnexo::query()
+            ->where('business_id', $businessId)
+            ->where('titulo_id', $id)
+            ->findOrFail($anexoId);
+
+        // Soft-delete (preserva audit trail).
+        $anexo->delete();
+
+        return back()->with('success', 'Anexo removido.');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // Onda 21 (2026-05-19) #55 — Workflow aprovação pagamento.
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Marcar título pra aprovação (Eliana cria → status pendente).
+     * POST /financeiro/unificado/{id}/solicitar-aprovacao
+     */
+    public function solicitarAprovacao(Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
+
+        // Apenas títulos a PAGAR em aberto/parcial podem requerer aprovação.
+        if ($titulo->tipo !== 'pagar' || ! in_array($titulo->status, ['aberto', 'parcial'])) {
+            return back()->with('error', 'Aprovação só pra títulos a pagar abertos.');
+        }
+
+        $titulo->update(['aprovacao_status' => 'pendente']);
+
+        return back()->with('success', 'Título marcado pra aprovação.');
+    }
+
+    /**
+     * Aprovar título (Wagner ou owner de permissão `financeiro.titulo.aprovar`).
+     * POST /financeiro/unificado/{id}/aprovar
+     */
+    public function aprovar(Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = $request->user()?->id;
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
+
+        if ($titulo->aprovacao_status !== 'pendente') {
+            return back()->with('error', 'Só títulos pendentes podem ser aprovados.');
+        }
+
+        $titulo->update([
+            'aprovacao_status' => 'aprovado',
+            'aprovado_by' => $userId,
+            'aprovado_at' => now(),
+            'aprovacao_motivo' => null,
+        ]);
+
+        return back()->with('success', 'Título aprovado.');
+    }
+
+    /**
+     * Rejeitar título com motivo obrigatório.
+     * POST /financeiro/unificado/{id}/rejeitar com {motivo}.
+     */
+    public function rejeitar(Request $request, int $id): RedirectResponse
+    {
+        $request->validate(['motivo' => 'required|string|max:500']);
+
+        $businessId = (int) session('user.business_id');
+        $userId = $request->user()?->id;
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
+
+        if ($titulo->aprovacao_status !== 'pendente') {
+            return back()->with('error', 'Só títulos pendentes podem ser rejeitados.');
+        }
+
+        $titulo->update([
+            'aprovacao_status' => 'rejeitado',
+            'aprovado_by' => $userId,
+            'aprovado_at' => now(),
+            'aprovacao_motivo' => $request->string('motivo'),
+        ]);
+
+        return back()->with('success', 'Título rejeitado.');
     }
 }

@@ -78,6 +78,8 @@ interface Lancamento {
   conferido_at: string | null;
   conferido_user_nome: string | null;
   valor_mutavel: boolean;
+  // Onda 21 (2026-05-19) #55 — Workflow aprovação pra títulos a pagar.
+  aprovacao_status: 'pendente' | 'aprovado' | 'rejeitado' | null;
 }
 
 interface Kpi {
@@ -916,6 +918,59 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                     <FinCommentsThread rowId={selected.id} comments={comments} />
                   </div>
 
+                  {/* Onda 21 (2026-05-19) #55 — Workflow aprovação pra títulos a pagar abertos. */}
+                  {selected.kind === 'payable' && (selected.status === 'aberto' || selected.status === 'atrasado' || selected.status === 'vencendo') && (
+                    <div className="border-t border-stone-200 pt-4">
+                      <div className="text-[11px] uppercase tracking-widest text-stone-500 font-medium mb-2">Aprovação</div>
+                      {!(selected.aprovacao_status) && (
+                        <button
+                          type="button"
+                          className="os-btn ghost"
+                          onClick={() => router.post(`/financeiro/unificado/${selected.id}/solicitar-aprovacao`, {}, { preserveScroll: true })}
+                        >
+                          ⏳ Solicitar aprovação
+                        </button>
+                      )}
+                      {selected.aprovacao_status === 'pendente' && (
+                        <div className="flex flex-wrap gap-2">
+                          <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-amber-50 text-amber-700 border-amber-200">
+                            ⏳ Pendente aprovação
+                          </span>
+                          <button
+                            type="button"
+                            className="os-btn ghost fin-btn-trilha"
+                            onClick={() => router.post(`/financeiro/unificado/${selected.id}/aprovar`, {}, { preserveScroll: true })}
+                          >
+                            ✓ Aprovar
+                          </button>
+                          <button
+                            type="button"
+                            className="os-btn ghost"
+                            style={{ color: 'oklch(0.55 0.10 25)' }}
+                            onClick={() => {
+                              const motivo = window.prompt('Motivo da rejeição:');
+                              if (motivo) {
+                                router.post(`/financeiro/unificado/${selected.id}/rejeitar`, { motivo }, { preserveScroll: true });
+                              }
+                            }}
+                          >
+                            ✗ Rejeitar
+                          </button>
+                        </div>
+                      )}
+                      {selected.aprovacao_status === 'aprovado' && (
+                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200">
+                          ✓ Aprovado — liberado pra pagamento
+                        </span>
+                      )}
+                      {selected.aprovacao_status === 'rejeitado' && (
+                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-rose-50 text-rose-700 border-rose-200">
+                          ✗ Rejeitado — bloqueado pra pagamento
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   <div className="fin-drawer-footer">
                     {(selected.status !== 'recebido' && selected.status !== 'pago') && (
                       <Button onClick={() => onBaixar(selected.id)}>
@@ -930,7 +985,29 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                     >
                       {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
                     </Button>
-                    <Button variant="outline" className="ml-auto">Anexar</Button>
+                    {/* Onda 20 (2026-05-19) #50 — Anexar arquivo (NF / comprovante) ao título. */}
+                    <Button
+                      variant="outline"
+                      className="ml-auto"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.pdf,.png,.jpg,.jpeg,.xml';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          const formData = new FormData();
+                          formData.append('arquivo', file);
+                          router.post(`/financeiro/unificado/${selected.id}/anexos`, formData, {
+                            forceFormData: true,
+                            preserveScroll: true,
+                          });
+                        };
+                        input.click();
+                      }}
+                    >
+                      📎 Anexar
+                    </Button>
                   </div>
                 </div>
               )}
