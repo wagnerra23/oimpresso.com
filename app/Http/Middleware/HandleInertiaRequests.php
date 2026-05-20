@@ -73,6 +73,14 @@ class HandleInertiaRequests extends Middleware
                     'ui_sidebar_collapsed'  => (bool) ($user->ui_sidebar_collapsed ?? false),
                 ] : null,
                 'can' => $user ? $this->userPermissions($user) : [],
+                // Wagner 2026-05-20: superadmin "Sign in as user" (ManageUserController::signInAsUser)
+                // grava previous_user_id/previous_username na sessao. Expor pro React permite
+                // AppShellV2 mostrar banner "Voltar para X" em todas as telas Inertia (antes
+                // so funcionava em telas Blade via header.blade.php).
+                'switched_from' => $session->get('previous_user_id') ? [
+                    'user_id'  => (int) $session->get('previous_user_id'),
+                    'username' => (string) $session->get('previous_username'),
+                ] : null,
             ],
             'business' => $businessPayload,
             'ai' => [
