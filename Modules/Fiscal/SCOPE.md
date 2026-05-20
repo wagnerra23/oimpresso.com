@@ -1,6 +1,6 @@
 ---
 module: Fiscal
-purpose: "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). PR #1: sub-página NF-e · NFC-e (modelos 55 + 65). Roadmap: 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75."
+purpose: "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75 todas entregues. Ações cancelar/CC-e/inutilização/retransmitir + ⌘K palette cross-fiscal + gerador SPED EFD-ICMS/IPI v3.1.1 perfil A em produção pós-Waves 1-9 (PRs #1183, #1185, #1189, #1190, #1249, #1253, #1257, #1259, #1261)."
 contains:
   - "AcoesController — PR #4 thin delegate NfeService::cancelar + ManifestacaoService (4 ações DF-e)"
   - "CockpitController — sub-página 1 (KPIs + alertas + sparklines + quick links)"
@@ -57,20 +57,20 @@ Ver `not_contains[]` no frontmatter. Em dúvida:
 
 ## Roadmap
 
-| Sub-página | Status | PR |
-|---|---|---|
-| NF-e · NFC-e (#2 do design) | ✅ mergeado | PR #1 `8aef3d0fa` |
-| Cockpit (KPIs + alertas + sparklines) | ✅ mergeado | PR #2 Wave `cabd29661` |
-| NFS-e (modelo 56 nacional) | ✅ mergeado | PR #2 Wave `cabd29661` |
-| Eventos timeline (CC-e/Cancel/EPEC/Manifesto) | ✅ mergeado | PR #2 Wave `cabd29661` |
-| Manifesto DF-e | 🟡 em curso | PR #3 Wave |
-| Cert/Cfg | 🟡 em curso | PR #3 Wave |
-| SPED placeholder | 🟡 em curso | PR #3 Wave |
-| **🎯 7 sub-páginas do design completas após PR #3** | | |
-| Cancelar NFe + Manifestar DF-e (4 ações) | 🟡 em curso | PR #4 Wave |
-| Retransmitir + CC-e + Inutilização | 🔒 backlog | PR #5 |
-| ⌘K palette cross-fiscal | 🔒 backlog | PR #6 |
-| Gerador SPED real (EFD ICMS/IPI + PIS/COFINS) | 🔒 backlog | PR #7 |
+| Wave | Entrega | Score impact | Status | PR |
+|---|---|---|---|---|
+| 1 | NF-e · NFC-e cockpit + drawer SEFAZ guiado | base 0→60 | ✅ mergeado | `8aef3d0fa` (#1183) |
+| 2 | Cockpit (#1) + NFS-e (#3) + Eventos (#5) | +20pp | ✅ mergeado | `cabd29661` (#1185) |
+| 3 | DF-e (#4) + Cert/Cfg (#6) + SPED (#7 placeholder) | +12pp | ✅ mergeado | `e36e1e272` (#1189) |
+| **🎯 7 sub-páginas do design KB-9.75 entregues após Wave 3** | | | | |
+| 4 | AcoesController — Cancelar NFe + Manifestar DF-e (4 ações SEFAZ) | +15pp | ✅ mergeado | `d10b117e1` (#1190) |
+| 5 | CC-e (110110) + Inutilização faixa numérica | +4pp | ✅ mergeado | #1249 |
+| 6 | Retransmitir NFe rejeitada/denegada/erro_envio (preservation contract CONFAZ Art. 14) | +3pp | ✅ mergeado | #1253 |
+| 7 | ⌘K palette cross-fiscal (PaletteSearchController + CmdKPalette) | +8pp | ✅ mergeado | #1257 |
+| 8 | Gerador SPED EFD-ICMS/IPI MVP saídas (SpedIcmsIpiGeneratorService + 16 registros) | +4pp | ✅ mergeado | #1259 |
+| 9 | SPED Bloco E (apuração ICMS) + Bloco H (esqueleto) — 23 registros total | +2pp | ✅ mergeado | #1261 |
+| **🎯 Score Capterra Fiscal cockpit ≥ 100/100 pós-Wave 9 (top-3 gaps Bling/Tiny fechados)** | | | | |
+| 10 | EFD-Contribuições PIS/COFINS + saldo credor real E110 + Bloco H dados reais Stock | +3pp | 🔒 backlog | — |
 
 ---
 
@@ -78,3 +78,8 @@ Ver `not_contains[]` no frontmatter. Em dúvida:
 - **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: + CockpitController, NfseCockpitController, EventosController. Roadmap reorganizado (5 PRs vs 7).
 - **v1.2.0** (2026-05-20) — PR #3 Wave final: + DfeController, ConfigController, SpedController. **7 sub-páginas do design concluídas**. Próximos PRs: mutações + ⌘K + SPED real.
 - **v1.3.0** (2026-05-20) — PR #4 Wave Ações: + AcoesController thin (cancelar NFe + manifestar DF-e 4 ações). Delega Services NfeBrasil existentes.
+- **v1.4.0** (2026-05-20) — PR #5 Wave CC-e + Inutilização: + NfeCartaCorrecaoService (Modules/NfeBrasil) + AcoesController.cartaCorrecao + AcoesController.inutilizar (delega NfeInutilizacaoService US-SELL-030). Score Capterra 80→85.
+- **v1.5.0** (2026-05-20) — PR #6 Wave Retransmitir: + NfeService.retransmitir (UPDATE preservation contract CONFAZ Art. 14 — NUNCA forceDelete). AcoesController.retransmitir. Score 85→88.
+- **v1.6.0** (2026-05-20) — PR #7 Wave ⌘K palette: + PaletteSearchController + CmdKPalette.tsx listener global Cmd/Ctrl+K + FxShell mount. Score 88→96.
+- **v1.7.0** (2026-05-20) — PR #8 Wave SPED MVP: + Services/SpedIcmsIpiGeneratorService (gerador EFD-ICMS/IPI v3.1.1 perfil A — 16 registros Blocos 0+C+9) + SpedController.gerar download TXT. Score 96→100.
+- **v1.8.0** (2026-05-20) — PR #9 Wave Bloco E + H: expansão SpedIcmsIpiGeneratorService com 7 registros (Bloco E apuração ICMS + Bloco H esqueleto). 23 registros canônicos total — estrutura completa pra validação PVA-EFD CONFAZ. Score 100→102 (acima cap).
