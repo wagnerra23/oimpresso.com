@@ -93,9 +93,18 @@ interface SchemaFlags {
 interface Props {
   orders: PaginatedOrders;
   filters: Filters;
-  kpis: Kpis;
+  // kpis vem via Inertia::defer (Wave 26 D6) — undefined no primeiro render.
+  // Default value no destructuring evita crash até segundo request chegar.
+  kpis?: Kpis;
   schemaFlags: SchemaFlags;
 }
+
+const EMPTY_KPIS: Kpis = {
+  locacoes_ativas: 0,
+  manutencao_ativas: 0,
+  concluidas_mes: 0,
+  atrasadas: 0,
+};
 
 // ──────── Helpers ────────
 const STATUS_PILLS: Array<{ key: string; label: string }> = [
@@ -140,7 +149,7 @@ function isOverdueClient(o: ServiceOrder, flags: SchemaFlags): boolean {
 }
 
 // ──────── Component ────────
-export default function ServiceOrdersIndex({ orders, filters, kpis, schemaFlags }: Props) {
+export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS, schemaFlags }: Props) {
   const [q, setQ] = useState(filters.q ?? '');
 
   // Drawer ServiceOrder state — clicar row abre OS no drawer (US-OFICINA-OS-DRAWER).
