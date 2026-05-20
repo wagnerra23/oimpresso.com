@@ -9,6 +9,9 @@ na_justified_v3:
   D1.c: "Job `CriarTituloDeVendaJob` é `@deprecated` órfão (Onda 2, 2026-04-25) e nunca foi dispatched em produção; sincronização canônica de títulos a partir de transactions ocorre via `TituloAutoService::sincronizarDeTransacao` chamado diretamente pelo `TransactionObserver`. O constructor do Job recebe apenas `$transactionId` e extrai `business_id` da Eloquent (pattern legítimo de Job-por-ID), portanto a checagem `$businessId` no constructor não se aplica ao módulo."
 pii: false
 updated_at: 2026-05-16
+last_updated: 2026-05-19
+version: 1.1
+owner: wagner
 ---
 
 # Especificação funcional — Financeiro
@@ -26,7 +29,7 @@ updated_at: 2026-05-16
 
 (Vocabulário completo: [GLOSSARY.md](GLOSSARY.md))
 
-## 2. User stories
+## User stories
 
 ### US-FIN-001 · Listar Contas a Receber em aberto
 
@@ -574,7 +577,7 @@ Trade-off arquitetural: persistir PDF base64 inline na coluna (`pdf_base64` long
 ## Out of scope (NÃO fazer aqui)
 
 - ❌ Boleto C6/Asaas auto-emissão — driver existe, mas wiring é fatia separada (Factory já abstrai)
-- ❌ NFe55 automática pós-pagamento — US-RECURRINGBILLING-001 já existe separada
+- ❌ NFe55 automática pós-pagamento — US-RB-001 já existe separada
 - ❌ Conciliação webhook Inter pagou → baixa titulo — `ProcessInterWebhookJob` já existe; integração com Titulo é fatia separada (na real é US-RB-041)
 - ❌ PIX cob — `InterPixCobDriver` separado, fatia futura
 - ❌ Régua cobrança quando boleto vence — US-RB-031 separado
@@ -585,7 +588,7 @@ Trade-off arquitetural: persistir PDF base64 inline na coluna (`pdf_base64` long
 
 - [Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php) — base
 - [memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md](../RecurringBilling/RUNBOOK-inter-pj.md) — config homolog
-- [memory/requisitos/RecurringBilling/SPEC.md](../RecurringBilling/SPEC.md) §US-RECURRINGBILLING-001 — peça seguinte (NFe55)
+- [memory/requisitos/RecurringBilling/SPEC.md](../RecurringBilling/SPEC.md) §US-RB-001 — peça seguinte (NFe55)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 IRREVOGÁVEL
 - US-RB-045 — Inter PJ Banking API (bloqueador homolog)
 - US-RB-040 — Cobertura Pest 3 drivers (relacionado, deve seguir junto)
