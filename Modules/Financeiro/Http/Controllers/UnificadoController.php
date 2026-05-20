@@ -163,10 +163,24 @@ class UnificadoController extends Controller
         $sortCol = $sortColMap[$filters['sort']] ?? 'vencimento';
         $sortDir = $filters['dir'] === 'desc' ? 'desc' : 'asc';
 
+        // Onda 13 (2026-05-20): pagination via per_page + page. Default 100 per_page
+        // (cobre maioria dos mes pra Eliana sem scroll infinito). Antes era limit(500)
+        // fixo — biz grande passaria desse limite e perderia dados visualmente.
+        $perPage = max(20, min(500, (int) ($filters['per_page'] ?? 100)));
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $totalRows = (clone $q)->count();
         $rows = $q->orderBy($sortCol, $sortDir)
-            ->limit(500)
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
             ->get()
             ->map(fn (Titulo $t) => $this->shapeTitulo($t, $hoje, $vencendoLimite));
+
+        $pagination = [
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $totalRows,
+            'total_pages' => max(1, (int) ceil($totalRows / $perPage)),
+        ];
 
         // ───────────────── KPIs ─────────────────
         $kpis = $this->kpis($businessId, $start, $end);
@@ -205,6 +219,7 @@ class UnificadoController extends Controller
         return Inertia::render('Financeiro/Unificado/Index', [
             'kpis' => $kpis,
             'lancamentos' => $rows,
+            'pagination' => $pagination, // Onda 13 (2026-05-20)
             'filters' => $filters,
             'contas' => $contas,
             'categorias' => $categorias,
@@ -685,6 +700,11 @@ class UnificadoController extends Controller
             // no input). 'sort' default vazio → orderBy vencimento; 'dir' default asc.
             'sort' => $request->string('sort', '')->toString(),
             'dir' => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
+            // Onda 13 (2026-05-20): pagination. Defaults page 1, per_page 100.
+            // Backend clampa per_page entre 20-500. Frontend mostra controls
+            // se total > per_page.
+            'page' => max(1, (int) $request->integer('page', 1)),
+            'per_page' => max(20, min(500, (int) $request->integer('per_page', 100))),
         ];
     }
 
