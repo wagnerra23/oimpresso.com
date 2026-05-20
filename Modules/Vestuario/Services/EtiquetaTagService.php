@@ -6,6 +6,7 @@ namespace Modules\Vestuario\Services;
 
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Modules\Vestuario\Services\VestuarioSettingsResolver;
 
 /**
  * EtiquetaTagService — geração de etiquetas térmicas TAG (Zebra ZPL) pra peças
@@ -33,10 +34,20 @@ class EtiquetaTagService
 {
     /**
      * Default: etiqueta TAG 50×30mm @ 203 dpi (padrão Argox/Elgin BR).
+     * Sobrescrevíveis via vestuario_settings.etiqueta.{width_dots,height_dots,dpi,margin_dots,qr_enabled}.
      */
     private const DEFAULT_WIDTH_DOTS = 400;
     private const DEFAULT_HEIGHT_DOTS = 240;
     private const DEFAULT_DPI = 203;
+    private const DEFAULT_MARGIN_DOTS = 10;
+    private const DEFAULT_QR_ENABLED = false;
+    private const DEFAULT_QR_DATA_TEMPLATE = 'https://oimpresso.com/p/{ean13}';
+
+    public function __construct(
+        private ?VestuarioSettingsResolver $settings = null,
+    ) {
+        // Resolver opcional — testes existentes passam sem injetar (backward-compat Wave 27).
+    }
 
     /**
      * Gera 1 etiqueta TAG em formato ZPL pra 1 product variation.
@@ -72,6 +83,7 @@ class EtiquetaTagService
         }
 
         $businessId = $opts['businessId'] ?? $this->resolveBusinessId();
+        $cfg = $this->resolveConfig($businessId);
 
         $zpl = $this->buildZpl(
             nome:    $this->truncate($nome, 30),
@@ -81,6 +93,7 @@ class EtiquetaTagService
             preco:   $preco,
             sku:     $sku,
             ean13:   $ean13,
+            cfg:     $cfg,
         );
 
         Log::info('vestuario.etiqueta.gerada', [
@@ -99,9 +112,15 @@ class EtiquetaTagService
                 'product_id'   => $productId,
                 'variation_id' => $variationId,
                 'business_id'  => $businessId,
-                'width_dots'   => self::DEFAULT_WIDTH_DOTS,
-                'height_dots'  => self::DEFAULT_HEIGHT_DOTS,
-                'dpi'          => self::DEFAULT_DPI,
+                'width_dots'   => $cfg['width_dots'],
+                'height_dots'  => $cfg['height_dots'],
+                'dpi'          => $cfg['dpi'],
+                'qr_enabled'   => $cfg['qr_enabled'],
+                'nome'         => $nome,
+                'tamanho'      => $tamanho,
+                'cor'          => $cor,
+                'colecao'      => $colecao,
+                'preco'        => $preco,
             ],
         ];
     }
@@ -253,34 +272,106 @@ class EtiquetaTagService
         float  $preco,
         string $sku,
         string $ean13,
+        ?array $cfg = null,
     ): string {
-        $w = self::DEFAULT_WIDTH_DOTS;
-        $h = self::DEFAULT_HEIGHT_DOTS;
+        $cfg = $cfg ?? $this->defaultConfig();
+        $w = $cfg['width_dots'];
+        $h = $cfg['height_dots'];
+        $m = $cfg['margin_dots'];
 
         $precoFmt = 'R$ '.number_format($preco, 2, ',', '.');
 
-        // ZPL II — sintaxe Zebra. Validado em https://labelary.com/viewer.html
-        return implode("\n", [
+        $lines = [
             '^XA',                                          // start label
             "^PW{$w}",                                      // print width
             "^LL{$h}",                                      // label length
             '^CI28',                                        // UTF-8 encoding
-            '^LH0,0',                                       // label home
+            "^LH{$m},{$m}",                                 // label home com margin
             // Nome produto (top, fonte 0 height 28)
-            "^FO10,10^A0N,28,28^FD{$nome}^FS",
+            "^FO0,0^A0N,28,28^FD{$nome}^FS",
             // Tamanho + Cor (linha 2)
-            "^FO10,45^A0N,22,22^FDTAM: {$tamanho}^FS",
-            "^FO140,45^A0N,22,22^FDCOR: {$cor}^FS",
+            "^FO0,35^A0N,22,22^FDTAM: {$tamanho}^FS",
+            "^FO130,35^A0N,22,22^FDCOR: {$cor}^FS",
             // Coleção (linha 3)
-            "^FO10,75^A0N,20,20^FD{$colecao}^FS",
+            "^FO0,65^A0N,20,20^FD{$colecao}^FS",
             // Preço destaque (right-aligned-ish)
-            "^FO240,100^A0N,32,32^FD{$precoFmt}^FS",
+            "^FO230,90^A0N,32,32^FD{$precoFmt}^FS",
             // EAN-13 barcode (^BE = EAN-13)
-            "^FO40,130^BY2,2,60^BEN,60,Y,N^FD{$ean13}^FS",
-            // SKU pequeno (rodapé)
-            "^FO10,215^A0N,16,16^FDSKU: {$sku}^FS",
-            '^XZ',                                          // end label
-        ]);
+            "^FO30,120^BY2,2,60^BEN,60,Y,N^FD{$ean13}^FS",
+        ];
+
+        // QR Code opcional (^BQ — Zebra ZPL II QR Code)
+        if ($cfg['qr_enabled']) {
+            $qrData = str_replace('{ean13}', $ean13, $cfg['qr_data_template']);
+            // Posição direita do EAN-13. Model 2, magnification 4 (compacto pra 50×30mm)
+            $lines[] = "^FO250,120^BQN,2,4^FDLA,{$qrData}^FS";
+        }
+
+        // SKU pequeno (rodapé)
+        $lines[] = "^FO0,205^A0N,16,16^FDSKU: {$sku}^FS";
+        $lines[] = '^XZ';                                   // end label
+
+        // ZPL II — sintaxe Zebra. Validado em https://labelary.com/viewer.html
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Expõe config atual (defaults + override per business) pro frontend/preview.
+     * Não inclui qr_data_template (pode conter URL custom).
+     *
+     * @return array{width_dots:int, height_dots:int, dpi:int, margin_dots:int, qr_enabled:bool}
+     */
+    public function getPublicConfig(?int $businessId = null): array
+    {
+        $cfg = $this->resolveConfig($businessId);
+        return [
+            'width_dots'  => $cfg['width_dots'],
+            'height_dots' => $cfg['height_dots'],
+            'dpi'         => $cfg['dpi'],
+            'margin_dots' => $cfg['margin_dots'],
+            'qr_enabled'  => $cfg['qr_enabled'],
+        ];
+    }
+
+    /**
+     * Resolve config etiqueta combinando defaults + vestuario_settings per business.
+     *
+     * @return array{width_dots:int, height_dots:int, dpi:int, margin_dots:int, qr_enabled:bool, qr_data_template:string}
+     */
+    private function resolveConfig(?int $businessId = null): array
+    {
+        $defaults = $this->defaultConfig();
+
+        // Sem resolver injetado OU sem business → defaults
+        if ($this->settings === null || $businessId === null) {
+            return $defaults;
+        }
+
+        $resolver = $this->settings->forBusiness($businessId);
+
+        return [
+            'width_dots'       => $resolver->getInt('etiqueta.width_dots', $defaults['width_dots'], 100, 2000),
+            'height_dots'      => $resolver->getInt('etiqueta.height_dots', $defaults['height_dots'], 100, 2000),
+            'dpi'              => $resolver->getInt('etiqueta.dpi', $defaults['dpi'], 100, 600),
+            'margin_dots'      => $resolver->getInt('etiqueta.margin_dots', $defaults['margin_dots'], 0, 100),
+            'qr_enabled'       => $resolver->getBool('etiqueta.qr_enabled', $defaults['qr_enabled']),
+            'qr_data_template' => (string) $resolver->get('etiqueta.qr_data_template', $defaults['qr_data_template']),
+        ];
+    }
+
+    /**
+     * @return array{width_dots:int, height_dots:int, dpi:int, margin_dots:int, qr_enabled:bool, qr_data_template:string}
+     */
+    private function defaultConfig(): array
+    {
+        return [
+            'width_dots'       => self::DEFAULT_WIDTH_DOTS,
+            'height_dots'      => self::DEFAULT_HEIGHT_DOTS,
+            'dpi'              => self::DEFAULT_DPI,
+            'margin_dots'      => self::DEFAULT_MARGIN_DOTS,
+            'qr_enabled'       => self::DEFAULT_QR_ENABLED,
+            'qr_data_template' => self::DEFAULT_QR_DATA_TEMPLATE,
+        ];
     }
 
     private function resolveBusinessId(): ?int
