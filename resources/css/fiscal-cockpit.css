@@ -1,0 +1,487 @@
+/* fiscal-cockpit.css — port focado do design fiscal-page.css
+ * Scoped sob `.fx-page` (raiz do FxShell) para não vazar.
+ * Tokens reaproveitam variáveis globais do app.css; fallback inline.
+ *
+ * Origem: prototipo-ui/Oimpresso ERP Conunicação Visual. Ultimotopo/fiscal-page.css (R#1 KB-9.75).
+ * Versão port: PR #1 Fiscal/Nfe — apenas selectors usados em Nfe.tsx + FxShell + NotaDrawer.
+ * Próximos PRs portarão CSS extra (sparklines, KPIs, alertas) conforme novas sub-páginas.
+ */
+
+.fx-page {
+  --fis:       oklch(0.52 0.16 30);
+  --fis-soft:  oklch(0.95 0.06 30);
+  --ok:        oklch(0.55 0.13 145);
+  --ok-soft:   oklch(0.94 0.06 145);
+  --warn:      oklch(0.62 0.13 60);
+  --warn-soft: oklch(0.96 0.05 60);
+  --bad:       oklch(0.55 0.18 25);
+  --bad-soft:  oklch(0.95 0.04 25);
+  --fx-border: oklch(0.90 0.004 90);
+  --fx-border-2: oklch(0.93 0.004 90);
+  --fx-bg-2:   oklch(0.965 0.004 90);
+  --fx-text:   oklch(0.22 0.01 80);
+  --fx-text-dim: oklch(0.50 0.01 80);
+  --fx-text-mute: oklch(0.65 0.01 80);
+
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  color: var(--fx-text);
+  font-size: 13.5px;
+  line-height: 1.5;
+  padding: 18px 24px 0;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-page kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 1px 5px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--fx-bg-2);
+  border: 1px solid var(--fx-border);
+  border-radius: 4px;
+  color: var(--fx-text-dim);
+}
+
+/* ─── HERO ─────────────────────────────────────────────────────── */
+.fx-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--fx-border);
+}
+.fx-hero-l { flex: 1; min-width: 0; }
+.fx-hero-l h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.015em; }
+.fx-hero-crumb { display: block; font-size: 12px; color: var(--fx-text-mute); margin-top: 2px; }
+.fx-hero-r { display: flex; align-items: center; gap: 8px; }
+
+.fx-env {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.fx-env.ok   { background: var(--ok-soft);   color: var(--ok); }
+.fx-env.warn { background: var(--warn-soft); color: var(--warn); }
+.fx-env.bad  { background: var(--bad-soft);  color: var(--bad); }
+
+/* ─── BUTTONS ──────────────────────────────────────────────────── */
+.fx-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--fx-text);
+  color: white;
+  border: 1px solid var(--fx-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.fx-btn:hover:not(:disabled) { opacity: .85; }
+.fx-btn:disabled { opacity: .4; cursor: not-allowed; }
+.fx-btn.ghost   { background: transparent; color: var(--fx-text); border-color: var(--fx-border); }
+.fx-btn.primary { background: var(--fis); color: white; border-color: var(--fis); }
+.fx-btn.danger  { background: var(--bad); color: white; border-color: var(--bad); }
+.fx-btn.warn    { background: var(--warn); color: white; border-color: var(--warn); }
+
+.fx-kbd-inline { margin-left: 4px; opacity: .7; }
+
+/* ─── SUB-NAV ──────────────────────────────────────────────────── */
+.fx-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 14px 0 18px;
+  padding: 4px;
+  background: var(--fx-bg-2);
+  border-radius: 10px;
+}
+.fx-subnav-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--fx-text-dim);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.fx-subnav-chip:hover:not(.disabled):not(.active) {
+  background: white;
+  color: var(--fx-text);
+}
+.fx-subnav-chip.active {
+  background: white;
+  color: var(--fis);
+  border-color: var(--fx-border);
+  font-weight: 600;
+}
+.fx-subnav-chip.disabled { opacity: .45; cursor: not-allowed; }
+.fx-subnav-chip .n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 0 5px;
+  height: 18px;
+  background: var(--bad);
+  color: white;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* ─── BODY ─────────────────────────────────────────────────────── */
+.fx-body { flex: 1; }
+
+/* ─── SUB-TABS (modelo NFe/NFCe/Entrada) ──────────────────────── */
+.fx-subtabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--fx-border);
+  margin-bottom: 14px;
+}
+.fx-subtab {
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--fx-text-dim);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fx-subtab.active {
+  color: var(--fis);
+  border-bottom-color: var(--fis);
+  font-weight: 600;
+}
+.fx-subtab .n {
+  padding: 1px 6px;
+  background: var(--fx-bg-2);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fx-text-dim);
+}
+
+/* ─── FILTROS (search + chips) ────────────────────────────────── */
+.fx-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.fx-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 240px;
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid var(--fx-border);
+  border-radius: 7px;
+}
+.fx-search input {
+  flex: 1;
+  font-size: 12.5px;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+.fx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: white;
+  color: var(--fx-text-dim);
+  border: 1px solid var(--fx-border);
+  border-radius: 99px;
+  cursor: pointer;
+}
+.fx-chip:hover { border-color: var(--fx-text-dim); color: var(--fx-text); }
+.fx-chip.active { background: var(--fis); color: white; border-color: var(--fis); }
+.fx-chip.danger:not(.active) { color: var(--bad); border-color: var(--bad-soft); }
+.fx-chip.danger.active { background: var(--bad); border-color: var(--bad); color: white; }
+.fx-chip.warn:not(.active)   { color: var(--warn); border-color: var(--warn-soft); }
+.fx-chip.warn.active   { background: var(--warn); border-color: var(--warn); color: white; }
+.fx-chip span {
+  background: rgba(0,0,0,.08);
+  padding: 0 5px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 2px;
+}
+.fx-chip.active span { background: rgba(255,255,255,.25); }
+
+/* ─── TABLE ────────────────────────────────────────────────────── */
+.fx-table {
+  background: white;
+  border: 1px solid var(--fx-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.fx-table table { width: 100%; border-collapse: collapse; }
+.fx-table thead th {
+  background: var(--fx-bg-2);
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fx-text-mute);
+  border-bottom: 1px solid var(--fx-border);
+}
+.fx-table tbody td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--fx-border-2);
+  font-size: 12.5px;
+  vertical-align: top;
+  cursor: pointer;
+}
+.fx-table tbody tr:last-child td { border-bottom: none; }
+.fx-table tbody tr:hover td { background: var(--fx-bg-2); }
+.fx-table tbody tr.fx-row-focus td {
+  background: var(--fis-soft);
+  outline: 2px solid var(--fis);
+  outline-offset: -2px;
+}
+.fx-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.fx-mono b { font-size: 13.5px; display: block; line-height: 1.2; }
+.fx-mono small { font-size: 10.5px; color: var(--fx-text-mute); }
+.fx-strong { font-weight: 700; color: var(--fx-text); }
+.fx-cell-key {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--fx-text-mute);
+}
+.fx-link { color: var(--fis); cursor: pointer; text-decoration: none; }
+.fx-link:hover { text-decoration: underline; }
+
+/* ─── SEFAZ pill + Time pill ──────────────────────────────────── */
+.fx-sefaz {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.fx-sefaz.ok   { background: var(--ok-soft);   color: var(--ok); }
+.fx-sefaz.warn { background: var(--warn-soft); color: var(--warn); }
+.fx-sefaz.bad  { background: var(--bad-soft);  color: var(--bad); }
+.fx-sefaz .code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-weight: 700;
+}
+.fx-sefaz .lbl { font-weight: 500; }
+.fx-sefaz.compact .lbl { display: none; }
+
+.fx-timepill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+.fx-timepill.u-ok   { background: var(--ok-soft);   color: var(--ok); }
+.fx-timepill.u-warn { background: var(--warn-soft); color: var(--warn); }
+.fx-timepill.u-crit { background: var(--bad-soft);  color: var(--bad); }
+.fx-timepill b { font-weight: 700; }
+
+/* ─── EMPTY state ──────────────────────────────────────────────── */
+.fx-empty {
+  background: white;
+  border: 1px dashed var(--fx-border);
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+}
+.fx-empty b { display: block; font-size: 14px; margin-bottom: 4px; }
+.fx-empty p { margin: 4px 0; font-size: 12.5px; color: var(--fx-text-dim); }
+.fx-empty small { display: block; margin-top: 8px; font-size: 11px; color: var(--fx-text-mute); }
+
+/* ─── CHEAT SHEET (footer) ────────────────────────────────────── */
+.fx-shell-foot {
+  position: sticky;
+  bottom: 0;
+  margin-top: 20px;
+  padding: 8px 0;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--fx-border);
+}
+.fx-cheatsheet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--fx-text-mute);
+}
+.fx-cs-item { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ─── DRAWER ───────────────────────────────────────────────────── */
+.fx-drawer-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 90;
+  animation: fx-fade .15s;
+}
+.fx-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 480px;
+  max-width: 92vw;
+  background: white;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 24px rgba(0,0,0,.12);
+  animation: fx-slide .18s cubic-bezier(.16,1,.3,1);
+}
+@keyframes fx-fade  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fx-slide { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.fx-drawer-h {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--fx-border);
+}
+.fx-drawer-h > div:first-child { flex: 1; min-width: 0; }
+.fx-drawer-h small { font-size: 11px; color: var(--fx-text-mute); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.fx-drawer-h h2 { margin: 2px 0 4px; font-size: 18px; font-weight: 700; }
+.fx-drawer-key {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--fx-text-mute);
+  word-break: break-all;
+}
+.fx-drawer-x {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--fx-border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--fx-text-dim);
+}
+.fx-drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.fx-drawer-sec { margin-bottom: 18px; }
+.fx-drawer-sec h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fx-text-mute);
+}
+.fx-drawer-status-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fx-drawer-hint { margin: 8px 0 0; font-size: 12px; color: var(--fx-text-dim); }
+.fx-drawer-rej {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--bad-soft);
+  color: var(--bad);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.fx-kv { display: grid; grid-template-columns: 100px 1fr; gap: 4px 12px; margin: 0; font-size: 12.5px; }
+.fx-kv dt { color: var(--fx-text-mute); }
+.fx-kv dd { margin: 0; color: var(--fx-text); }
+
+.fx-drawer-f {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--fx-border);
+  background: var(--fx-bg-2);
+}
+.fx-drawer-f-r { margin-left: auto; display: flex; gap: 6px; }
+
+/* ─── ACTION CARD (Jana sugere) ──────────────────────────────── */
+.fx-action-card {
+  margin: 12px 0 18px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--fis-soft), white);
+  border: 1px solid var(--fis);
+  border-radius: 10px;
+}
+.fx-action-h { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.fx-action-spark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: var(--fis);
+  color: white;
+  border-radius: 7px;
+}
+.fx-action-h b { display: block; font-size: 13px; color: var(--fis); }
+.fx-action-h small { display: block; font-size: 11.5px; color: var(--fx-text-dim); margin-top: 1px; }
+.fx-action-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fx-action-steps li { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.45; }
+.fx-action-n {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  background: var(--fis);
+  color: white;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+.fx-action-btns { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.fx-action-foot { display: block; margin-top: 10px; font-size: 10.5px; color: var(--fx-text-mute); font-style: italic; }
