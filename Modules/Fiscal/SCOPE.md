@@ -2,9 +2,12 @@
 module: Fiscal
 purpose: "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). PR #1: sub-página NF-e · NFC-e (modelos 55 + 65). Roadmap: 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75."
 contains:
+  - "CockpitController — sub-página 1 (KPIs + alertas + sparklines + quick links)"
   - "DataController"
+  - "EventosController — sub-página 5 (timeline append-only CC-e/Cancel/EPEC/Manifesto)"
   - "InstallController"
-  - "NfeCockpitController"
+  - "NfeCockpitController — sub-página 2 (NF-e/NFC-e + drawer SEFAZ guiado)"
+  - "NfseCockpitController — sub-página 3 (NFS-e modelo 56 nacional NT 2024-001)"
 not_contains:
   - "Emissão fiscal (XML + SEFAZ) → Modules/NfeBrasil (lê via Service)"
   - "NFSe federal LC 214/2025 → Modules/NFSe (futura sub-página 3)"
@@ -50,14 +53,15 @@ Ver `not_contains[]` no frontmatter. Em dúvida:
 
 | Sub-página | Status | PR |
 |---|---|---|
-| NF-e · NFC-e (#2 do design) | ✅ PR #1 em curso | #1183 |
-| Cockpit (KPIs + alertas) | 🔒 backlog | PR #2 |
-| ⌘K palette cross-fiscal | 🔒 backlog | PR #3 |
+| NF-e · NFC-e (#2 do design) | ✅ mergeado | PR #1 (8aef3d0fa) |
+| Cockpit (KPIs + alertas + sparklines) | 🟡 em curso | PR #2 Wave |
+| NFS-e (modelo 56 nacional) | 🟡 em curso | PR #2 Wave |
+| Eventos timeline (CC-e/Cancel/EPEC/Manifesto) | 🟡 em curso | PR #2 Wave |
+| Manifesto DF-e + Cert/Cfg + SPED | 🔒 backlog | PR #3 |
 | Ações mutação (cancelar/retransmitir/CC-e/inutilizar) | 🔒 backlog | PR #4 |
-| NFS-e | 🔒 backlog | PR #5 |
-| Manifesto DF-e | 🔒 backlog | PR #6 |
-| Eventos + Config + SPED | 🔒 backlog | PR #7 |
+| ⌘K palette cross-fiscal | 🔒 backlog | PR #5 |
 
 ---
 
 - **v1.0.0** (2026-05-20) — SCOPE.md inicial. Módulo Fiscal criado em PR #1183 como thin agregador (sub-página NF-e · NFC-e).
+- **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: + CockpitController, NfseCockpitController, EventosController. Roadmap reorganizado (5 PRs vs 7).

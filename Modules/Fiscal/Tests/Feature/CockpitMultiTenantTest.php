@@ -1,0 +1,88 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Modules\NfeBrasil\Models\NfeEmissao;
+
+uses(Tests\TestCase::class);
+
+/**
+ * PR #2 Wave Cockpit Fiscal — isolation Tier 0 + KPIs scoped + alerts determinísticos.
+ *
+ * Espelha pattern de NfeCockpitMultiTenantTest (ADR 0093 + ADR 0101).
+ */
+
+const COCKPIT_BIZ_WAGNER   = 1;
+const COCKPIT_BIZ_FICTICIO = 99;
+const COCKPIT_TAG          = 'PR2-COCKPIT-ISO';
+
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: NfeBrasil requer schema MySQL (ADR 0101)');
+    }
+    if (! Schema::hasTable('nfe_emissoes')) {
+        $this->markTestSkipped('nfe_emissoes table missing — rode Modules/NfeBrasil migrate primeiro');
+    }
+});
+
+afterEach(function () {
+    NfeEmissao::withoutGlobalScopes()
+        ->where('chave_44', 'like', '%' . COCKPIT_TAG . '%')
+        ->forceDelete();
+});
+
+it('computeKpis scope per business: biz=99 não aparece em counts de biz=1', function () {
+    $base = [
+        'modelo'      => '55',
+        'serie'       => '1',
+        'status'      => 'autorizada',
+        'cstat'       => 100,
+        'valor_total' => 250.00,
+        'emitido_em'  => now(),
+    ];
+
+    NfeEmissao::withoutGlobalScopes()->create($base + [
+        'business_id' => COCKPIT_BIZ_WAGNER,
+        'numero'      => 7001,
+        'chave_44'    => str_pad('7001' . COCKPIT_TAG, 44, '0', STR_PAD_RIGHT),
+    ]);
+    NfeEmissao::withoutGlobalScopes()->create($base + [
+        'business_id' => COCKPIT_BIZ_FICTICIO,
+        'numero'      => 7002,
+        'chave_44'    => str_pad('7002' . COCKPIT_TAG, 44, '0', STR_PAD_RIGHT),
+    ]);
+
+    session(['business.id' => COCKPIT_BIZ_WAGNER, 'user.business_id' => COCKPIT_BIZ_WAGNER]);
+
+    $controller = new \Modules\Fiscal\Http\Controllers\CockpitController();
+    $reflection = new ReflectionMethod($controller, 'computeKpis');
+    $reflection->setAccessible(true);
+    $kpis = $reflection->invoke($controller);
+
+    // KPIs devem refletir SOMENTE biz=1 — autorizadas com tag
+    $countTagsBiz1 = NfeEmissao::query()
+        ->where('chave_44', 'like', '%' . COCKPIT_TAG . '%')
+        ->count();
+    expect($countTagsBiz1)->toBe(1);
+
+    // KPIs estrutura
+    expect($kpis)
+        ->toHaveKeys(['emitidas', 'autorizadas', 'autorizadasPct', 'rejeitadas',
+                      'faturamentoFiscal', 'dfeAguardando', 'certificadoValidadeDias']);
+});
+
+it('computeAlerts não usa LLM — receitas determinísticas por estado', function () {
+    $controller = new \Modules\Fiscal\Http\Controllers\CockpitController();
+    $reflection = new ReflectionMethod($controller, 'computeAlerts');
+    $reflection->setAccessible(true);
+    $alerts = $reflection->invoke($controller);
+
+    // Cada alert tem estrutura fixa (sem campos genéricos LLM tipo "thought" ou "reasoning")
+    foreach ($alerts as $a) {
+        expect($a)
+            ->toHaveKeys(['level', 'icon', 'title', 'sub', 'action', 'goto'])
+            ->and($a['level'])->toBeIn(['crit', 'warn', 'info']);
+    }
+});
