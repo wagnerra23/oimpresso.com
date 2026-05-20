@@ -527,6 +527,26 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
           {isIn ? '↘' : '↗'}
         </span>
       </td>
+      {/* PR 4 (Wagner Fase 4 dim 7/8): coluna VENCIMENTO explicita
+          formato canon: "dd/mm" + label temporal (paid_at / "ha N dias" / "vencendo"). */}
+      <td className="px-2 text-stone-700 text-[12px] whitespace-nowrap">
+        <div className="font-medium text-stone-900">
+          {(() => {
+            const parts = row.vencimento.split('-');
+            const dd = parts[2] ?? '01';
+            const mm = parts[1] ?? '01';
+            return `${dd}/${mm}`;
+          })()}
+        </div>
+        {row.liquidacao && (
+          <div className="text-[10px] text-stone-500">pago {row.liquidacao}</div>
+        )}
+        {!row.liquidacao && (row.status === 'atrasado' || row.status === 'vencendo') && (
+          <div className={`text-[10px] ${row.status === 'atrasado' ? 'text-rose-600' : 'text-amber-600'}`}>
+            {row.status === 'atrasado' ? 'em atraso' : 'vencendo'}
+          </div>
+        )}
+      </td>
       <td className="px-2">
         <div className="font-medium text-stone-900 truncate max-w-[260px] flex items-center gap-1.5">
           <FinCrossLinkify text={row.descricao} className="truncate" />
@@ -932,6 +952,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             <thead>
               <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
                 <th className="pl-4 pr-2 py-2 w-8"></th>
+                {/* PR 4 (Wagner Fase 4 dim 7/8): coluna VENCIMENTO explicita
+                    pra paridade canon v1. Group headers (sab 02 mai etc) preservados
+                    pra orientacao visual macro; coluna mostra dd/mm + status temporal. */}
+                <th className="px-2 py-2 text-left font-medium w-[110px]">Vencimento</th>
                 <th className="px-2 py-2 text-left font-medium">Lançamento</th>
                 <th className="px-2 py-2 text-left font-medium">Contraparte</th>
                 <th className="px-2 py-2 text-left font-medium">Categoria</th>
@@ -945,7 +969,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 const [, label] = key.split('|');
                 return (
                   <React.Fragment key={key}>
-                    <tr><td colSpan={7} className="bg-stone-50/70 border-b border-stone-200">
+                    <tr><td colSpan={8} className="bg-stone-50/70 border-b border-stone-200">
                       <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
                         <span>{label}</span>
                         <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
@@ -966,7 +990,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 );
               })}
               {grupos.length === 0 && (
-                <tr><td colSpan={7} className="py-16">
+                <tr><td colSpan={8} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
                     <div className="text-sm text-stone-600">
                       {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
