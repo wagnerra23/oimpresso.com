@@ -999,3 +999,232 @@ ADR 0170 §Roadmap Onda 6 — Cleanup final pós ondas 2-5 estáveis 90d em prod
 **Estimate:** ~500 linhas · ~1 dia IA-pair · 8h
 
 Refs: ADR 0170 §Roadmap Onda 6
+
+---
+
+## Ondas 22-30 — backlog pós-Capterra-inventario 2026-05-19
+
+> Origem: skill `/comparativo Financeiro` rodada 2026-05-19. Estado pós-Ondas 12-21: score 74/100, 87% cobertura funcional, 9.5/10 paridade canon. Wagner aprovou batch P0+P1+P2 (11 US) em sessão de aprovação. Detalhes em [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md).
+
+### US-FIN-026 · UI lista anexos GET no drawer Unificado + thumbnail PDF + delete
+
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Fecha workflow Anexos NF da Onda 20 (atualmente só POST upload — GET lista + thumbnail + delete faltam).
+
+**Acceptance criteria:**
+- [ ] `GET /financeiro/unificado/{id}/anexos` retorna lista paginada (id, filename, mime, size, hash_sha256, uploaded_by, uploaded_at)
+- [ ] `DELETE /financeiro/unificado/{id}/anexos/{anexoId}` soft delete + audit
+- [ ] UI drawer mostra lista com thumbnail PDF (pdf-thumbnail-js OU primeira pagina via Spatie pdf-to-image) ou fallback ícone Lucide FileText
+- [ ] Download via signed URL 5min TTL
+- [ ] Pest cobre: business_id scope, soft delete, signed URL expiry, permission `financeiro.titulo.anexos.view`/`delete`
+- [ ] biz=1 Pest (não biz=4 cliente — ADR 0101)
+
+**Refs:** AUDIT-FUNCOES-2026-05-19.md pendência H · CAPTERRA-INVENTARIO bucket 🟡 P1
+**LOC estimado:** ~80
+
+### US-FIN-027 · Pill aprovacao_status na tabela Unificado + filtro workflow
+
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Pendência I do AUDIT-FUNCOES — coluna aprovacao_status existe em fin_titulos (Onda 21 ALTER) e drawer mostra, mas tabela Unificado linha não tem indicador visível.
+
+**Acceptance criteria:**
+- [ ] Coluna pill em `Pages/Financeiro/Unificado/Index.tsx` mostrando estado (`pendente` amarelo / `aprovado` verde / `rejeitado` vermelho / NULL invisível back-compat)
+- [ ] Filtro novo "Aprovação" no header com chips multi-select (Todas / Pendentes / Aprovadas / Rejeitadas)
+- [ ] UnificadoController.parseFilters aceita `aprovacao_status[]`
+- [ ] Pest filtro retorna apenas títulos do status pedido + business_id scope
+- [ ] biz=1 cross-tenant
+
+**Refs:** AUDIT-FUNCOES-2026-05-19.md pendência I · CAPTERRA-INVENTARIO bucket 🟡 P2
+**LOC estimado:** ~50
+
+### US-FIN-028 · Spatie permission financeiro.titulo.aprovar + gate UI
+
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 1.5h · status: todo · type: story
+> blocked_by: —
+
+Endpoint POST /unificado/{id}/aprovar existe (Onda 21) mas sem permission Spatie registrada — qualquer user do biz aprova hoje. Pendência J do AUDIT.
+
+**Acceptance criteria:**
+- [ ] Permission `financeiro.titulo.aprovar` registrada em PermissionsSeeder ou DataController.user_permissions()
+- [ ] Endpoint aprovar/rejeitar usa `$this->authorize('financeiro.titulo.aprovar')` ou Spatie middleware
+- [ ] UI drawer botão Aprovar/Rejeitar usa `can('financeiro.titulo.aprovar')` — esconde se Eliana, mostra se Wagner
+- [ ] Pest cobre: 403 sem permission, 200 com permission, solicitação NÃO precisa permission especial (qualquer user solicita)
+- [ ] biz=1 cross-tenant
+
+**Refs:** AUDIT-FUNCOES-2026-05-19.md pendência J · CAPTERRA-INVENTARIO bucket 🟡 P3 · Skill multi-tenant-patterns
+**LOC estimado:** ~30
+
+### US-FIN-029 · OCR boleto upload — OpenAI Vision API extrai linha digitável + valor + vencimento
+
+> owner: — · sprint: Onda 23 · priority: p1 · estimate: 9h · status: todo · type: story
+> blocked_by: —
+
+**KILLER feature** Conta Azul — Eliana cola foto/PDF do boleto recebido → sistema extrai linha digitável (44 dígitos) + valor + vencimento + beneficiário CNPJ automaticamente, pré-preenche form Novo Título.
+
+Mata #1 feedback Capterra Conta Azul ("OCR salva muito tempo"). Fecha gap mercado P0. +3pp no score.
+
+**Acceptance criteria:**
+- [ ] Endpoint POST `/financeiro/unificado/ocr-boleto` recebe upload PDF/JPG/PNG max 5MB
+- [ ] Service `BoletoOcrService::extract(file)` chama OpenAI Vision API (gpt-4o) com prompt estruturado (`linha_digitavel`, `valor`, `vencimento`, `beneficiario_nome`, `beneficiario_cnpj`, `pagador_nome`) — retorna JSON
+- [ ] Fallback AWS Textract se OpenAI quota exceeded (config switch)
+- [ ] Idempotência: hash SHA-256 do arquivo evita re-processar mesmo boleto
+- [ ] Validação linha digitável (módulo 11 dígito verificador) — rejeita lixo OCR
+- [ ] UI Sheet "Importar boleto" em Unificado/Novo: upload + spinner OCR + preview campos extraídos editáveis + 1-click confirma cria titulo_pagar
+- [ ] Custo audit: log `ai_usage_log` com cost_usd por chamada (ADR Jana token tracking)
+- [ ] Pest cobre: extract sucesso fixture, falha rate-limit OpenAI fallback Textract, linha digitável inválida 422, business_id scope
+- [ ] biz=1
+
+**Refs:** CAPTERRA-INVENTARIO bucket ❌ A1 (KILLER) · COMPARATIVO_CONCORRENCIA matriz "OCR boleto upload P0"
+**LOC estimado:** ~300
+
+### US-FIN-030 · Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro
+
+> owner: — · sprint: Onda 24 · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Hoje só `FinPillFrescor` per-linha (6 estados visuais por título). Falta agregação header KPI somando R$ por bucket + filtro pra clicar e drill-down.
+
+Charter v5 Non-Goal F1 — mover pra Goal pós-Ondas 12-21 (Eliana precisa pra cobrança priorizada).
+
+**Acceptance criteria:**
+- [ ] Service `AgingBucketService::compute(business_id, filters)` retorna `{'<30': R$, '30-60': R$, '60-90': R$, '90-180': R$, '>180': R$}`
+- [ ] KPI cards no header Unificado mostram 4 buckets (a receber atrasado) com R$ + count badge
+- [ ] Click no card filtra tabela por bucket
+- [ ] UnificadoController.parseFilters aceita `aging_bucket` enum
+- [ ] DRE Aging report endpoint `GET /relatorios/aging-detalhado` por contraparte (CSV export)
+- [ ] Pest cobre buckets corretos com fixtures (5 títulos em datas controladas), business_id scope
+- [ ] biz=1
+
+**Refs:** CAPTERRA-INVENTARIO bucket 🟡 P4 · SPEC.md US-FIN-012 (já listada) · COMPARATIVO matriz "Aging visual P1"
+**LOC estimado:** ~50
+
+### US-FIN-031 · Bulk actions tabela Unificado — checkbox + select-all + ações em lote
+
+> owner: — · sprint: Onda 25 · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Crítico fechamento mês com 200+ títulos. Hoje precisa 1-clique por linha = 200 cliques. Conta Azul/Tiny/Bling têm bulk.
+
+**Acceptance criteria:**
+- [ ] Coluna checkbox primeira na tabela Unificado + checkbox header select-all (página atual ou TODOS via filtro)
+- [ ] Footer sticky aparece com N selecionados quando >0
+- [ ] Ações disponíveis: Baixar selecionadas / Alterar categoria em lote / Alterar plano de contas em lote / Cancelar lote / Exportar CSV seleção
+- [ ] Modal confirma ação destructive (cancelar) com texto "Você está cancelando N títulos totalizando R$ X"
+- [ ] Endpoint `POST /unificado/bulk` recebe `{action, ids: [], payload: {}}` valida ownership business_id de TODOS ids
+- [ ] Limite 500 por chamada (UX warning se >500 — sugere refinar filtro)
+- [ ] Audit trail registra ação bulk com user + ids + timestamp
+- [ ] Pest cobre cross-tenant (200 do biz=1 + 1 do biz=99 → bulk rejeita 422), todas 5 ações
+- [ ] biz=1
+
+**Refs:** CAPTERRA-INVENTARIO bucket ❌ A3 · COMPARATIVO matriz "Bulk actions P1"
+**LOC estimado:** ~200
+
+### US-FIN-032 · Inter API webhook PIX recebido → titulo auto-pago (auto-conciliação)
+
+> owner: — · sprint: Onda 26 · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Fecha ciclo PaymentGateway Onda 5 dogfooding. InterDriver mTLS cert upload funciona, falta receber webhook quando cliente paga PIX → matar título automático.
+
+**Acceptance criteria:**
+- [ ] Endpoint POST `/webhooks/inter/{credentialId}` autentica via HMAC signature header `x-inter-signature` + Vaultwarden secret
+- [ ] Job `ProcessarWebhookPixInterJob` (queue) recebe payload `{txid, valor, dataPagamento, pagador.cpfCnpj}` → busca PixCobranca por txid → marca status `pago` + cria `fin_titulo_baixa` automática
+- [ ] FSM transition titulo `aberto→quitado` via ExecuteStageActionService (NÃO update direto — ADR 0143 trait GuardsFsmTransitions)
+- [ ] Idempotência: txid unique constraint
+- [ ] Notifica WhatsApp/email cliente "Recebemos seu pagamento R$ X" (opt-in via Contact.canReceive*Notification)
+- [ ] Pest cobre: signature inválida 401, txid duplicado idempotente, business_id correto pelo credentialId
+- [ ] Health-check entry `webhook_inter_lag_24h` (alerta se >5min latência)
+- [ ] biz=1
+
+**Refs:** CAPTERRA-INVENTARIO bucket 🟡 P7 · ADR 0143 FSM Pipeline · ADR 0170 PaymentGateway
+**LOC estimado:** ~80
+
+### US-FIN-033 · Notificações vencimento próximo (e-mail + WhatsApp X dias antes)
+
+> owner: — · sprint: Onda 27 · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Schedule diário avisa cliente X dias antes vencimento (cobrar antes de atrasar) + lembra Eliana de pagar boletos PJ próprios.
+
+**Acceptance criteria:**
+- [ ] Comando artisan `financeiro:notificar-vencimentos` em Console/Kernel daily 08:00 BRT
+- [ ] Config per-business `fin_settings.dias_aviso_antecipado` (default 3, configurável 1-30)
+- [ ] Envia email pra Contact.email (LGPD opt-in via canReceiveEmailNotification — NULL=permite back-compat, FALSE=skip)
+- [ ] Envia WhatsApp via Modules/Whatsapp Meta Cloud API direto (ADR 0096 emenda 4) com template "boleto-vencimento-proximo" aprovado WABA
+- [ ] Template variáveis: {cliente_nome}, {valor}, {vencimento_dia}, {linha_digitavel_opcional}
+- [ ] Idempotência: tabela `fin_notificacoes_enviadas` UNIQUE (titulo_id, tipo, data_envio) evita spam dupla
+- [ ] UI config em /financeiro (gear icon) — toggles per-tipo (email/WA) + dias antecipados
+- [ ] Pest cobre: notifica títulos venc=hoje+3, NÃO notifica quitados, respect opt-out, business_id scope
+- [ ] biz=1
+
+**Refs:** CAPTERRA-INVENTARIO bucket ❌ A4 · COMPARATIVO matriz "Notificações P1"
+**LOC estimado:** ~100
+
+### US-FIN-034 · Importação massiva CSV/Excel — mapping wizard + dry-run + commit
+
+> owner: — · sprint: Onda 28 · priority: p2 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje só digitação manual = friction adoption mortal pra clientes médios.
+
+**Acceptance criteria:**
+- [ ] Sheet "Importar CSV" no Unificado/Novo: upload .csv/.xlsx max 5MB
+- [ ] Parser usa `maatwebsite/excel` (já no composer? checar) ou `league/csv` lightweight
+- [ ] Wizard 3 steps: Upload → Mapping (preview 5 linhas, dropdown coluna CSV → campo título: cliente_nome, valor, vencimento, descricao, categoria_id opcional, plano_conta_id opcional) → Dry-run (mostra N válidos / N erros com linha+motivo) → Commit
+- [ ] Erros não bloqueiam: import parcial commit válidos + retorna CSV erros download
+- [ ] Idempotência: hash do arquivo + business_id evita re-import acidental (warning "Arquivo já importado em DD/MM HH:MM, deseja substituir?")
+- [ ] Limite 10k linhas/upload (acima fragmenta)
+- [ ] Pest cobre: CSV válido 100 linhas, header mapping, valor negativo rejeita, business_id scope, idempotência
+- [ ] biz=1
+
+**Refs:** CAPTERRA-INVENTARIO bucket ❌ A5 · COMPARATIVO matriz "Importação massiva P2"
+**LOC estimado:** ~150
+
+### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
+
+> owner: — · sprint: Onda 29 · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+2 UX boosters pareados — recorrentes manuais e autocomplete contraparte.
+
+**Acceptance criteria — Repetir:**
+- [ ] Botão "Duplicar para próximo mês" no drawer Unificado (titulo existente) + dropdown "próximas 12 ocorrências mensais"
+- [ ] Cria N títulos com vencimento + 1 mês, 2 meses... preserva valor/categoria/plano_conta/descricao
+- [ ] Marker `titulo_pai_id` linka pra original
+- [ ] Permite editar/cancelar individual sem afetar outros (não-FSM, soft delete cascade=false)
+- [ ] Pest cobre duplicação 3x, edit isolado, business_id
+
+**Acceptance criteria — Combobox:**
+- [ ] Refatorar input "Cliente/Contraparte" em Novo/Edit Sheet pra usar `<Combobox>` shadcn com search async (debounce 250ms)
+- [ ] Endpoint `GET /unificado/contrapartes/search?q=Ban` retorna top 20 matches por similaridade (Contact + ContaBancaria + Vendor) com type icon
+- [ ] Suporta "criar novo" inline se nenhum match
+- [ ] Charter v5 Non-Goal F1 → mover Goal
+- [ ] Pest cobre fuzzy match, business_id scope, criar inline
+
+**Refs:** CAPTERRA-INVENTARIO bucket ❌ A6+A7 · COMPARATIVO matriz "Repetir/Combobox P2"
+**LOC estimado:** ~120 (60 + 60)
+
+### US-FIN-036 · PWA básico Financeiro — manifest + service worker + offline cache + install prompt
+
+> owner: — · sprint: Onda 30 · priority: p2 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+Mata gap mobile (score 4/10 vs Conta Azul 9/10) sem custo de app nativo. Wagner/Eliana fora do escritório acessa do celular via PWA install.
+
+**Acceptance criteria:**
+- [ ] `public/manifest.webmanifest` com name/icons (192+512+maskable)/theme_color #006/start_url /financeiro
+- [ ] Service worker `public/sw-financeiro.js` registra GET cache pra rotas read (dashboard, unificado index defer skeletons funcionam offline)
+- [ ] Strategy: stale-while-revalidate pra index, network-first pra detail (não cachear baixas/edits)
+- [ ] Install prompt UI: banner no /financeiro top "Instalar app no celular" (suprime se já standalone)
+- [ ] Funciona iOS (Add to Home Screen) + Android (Chrome install)
+- [ ] Sem dados sensíveis em cache (sanitizar antes do put, ADR LGPD)
+- [ ] Lighthouse PWA score ≥90
+- [ ] Smoke real prod: instalar no celular Larissa biz=4 + abrir offline / online toggle
+- [ ] Pest cobre manifest válido + sw registration
+
+**Refs:** CAPTERRA-INVENTARIO bucket ❌ A2 · COMPARATIVO matriz "App mobile P2-P3"
+**LOC estimado:** ~150
