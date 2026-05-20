@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Financeiro\Http\Controllers\Advisor\AdvisorAuthController;
+use Modules\Financeiro\Http\Controllers\Advisor\AdvisorPortalController;
+use Modules\Financeiro\Http\Controllers\AdvisorAccessController;
 use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\BoletoController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
@@ -214,4 +217,42 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/unificado/{id}/rejeitar', [UnificadoController::class, 'rejeitar'])
             ->whereNumber('id')
             ->name('unificado.rejeitar');
+
+        // Onda 31 (2026-05-20) #57 US-FIN-037 — Portal Advisor (Fase 1 MVP).
+        // Tela admin onde owner do business adiciona seu contador (grant access).
+        // Permission gate `financeiro.advisor.grant` enforce no Controller.
+        Route::get('/configuracoes/contador', [AdvisorAccessController::class, 'index'])
+            ->name('configuracoes.contador.index');
+        Route::post('/configuracoes/contador/grant', [AdvisorAccessController::class, 'grant'])
+            ->name('configuracoes.contador.grant');
+        Route::delete('/configuracoes/contador/{accessId}', [AdvisorAccessController::class, 'revoke'])
+            ->whereNumber('accessId')
+            ->name('configuracoes.contador.revoke');
+    });
+
+// ════════════════════════════════════════════════════════════════════════════
+// Onda 31 (2026-05-20) #57 US-FIN-037 — Portal Advisor (login isolado).
+// Guard `web-advisor` (config/auth.php) — NÃO usa stack UltimatePOS
+// (SetSessionData/AdminSidebarMenu/CheckUserLogin) porque advisor não tem
+// business_id e nem sidebar do POS.
+// ════════════════════════════════════════════════════════════════════════════
+Route::middleware(['web'])
+    ->prefix('advisor')
+    ->name('advisor.')
+    ->group(function () {
+        // Login (guest only).
+        Route::get('/login', [AdvisorAuthController::class, 'showLogin'])
+            ->middleware('guest:web-advisor')
+            ->name('login.show');
+        Route::post('/login', [AdvisorAuthController::class, 'login'])
+            ->middleware('guest:web-advisor')
+            ->name('login');
+
+        // Logout + dashboard (auth-only).
+        Route::post('/logout', [AdvisorAuthController::class, 'logout'])
+            ->middleware('auth:web-advisor')
+            ->name('logout');
+        Route::get('/', [AdvisorPortalController::class, 'index'])
+            ->middleware('auth:web-advisor')
+            ->name('dashboard');
     });

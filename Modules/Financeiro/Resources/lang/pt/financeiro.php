@@ -23,6 +23,7 @@ return [
     'permissao_relatorios_view' => 'Financeiro: ver relatórios',
     'permissao_relatorios_share' => 'Financeiro: compartilhar relatórios (link público)',
     'permissao_extrato_view' => 'Financeiro: ver extrato bancário sincronizado da API',
+    'permissao_advisor_grant' => 'Financeiro: conceder acesso ao contador parceiro (Portal Advisor)',
 
     // Menu
     'menu' => [
