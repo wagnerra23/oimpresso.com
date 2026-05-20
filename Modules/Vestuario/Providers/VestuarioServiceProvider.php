@@ -31,6 +31,7 @@ class VestuarioServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'vestuario');
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -46,5 +47,13 @@ class VestuarioServiceProvider extends ServiceProvider
         // Sprint 2 ADR 0121 §P7 — outros módulos consultam via DI ao invés de
         // importar VestuarioSetting Model direto.
         $this->app->singleton(\Modules\Vestuario\Services\VestuarioSettingsResolver::class);
+
+        // EtiquetaTagService — US-VEST-020. Constructor opcional aceita resolver
+        // (backward-compat com Wave 27 tests).
+        $this->app->singleton(\Modules\Vestuario\Services\EtiquetaTagService::class, function ($app) {
+            return new \Modules\Vestuario\Services\EtiquetaTagService(
+                $app->make(\Modules\Vestuario\Services\VestuarioSettingsResolver::class)
+            );
+        });
     }
 }
