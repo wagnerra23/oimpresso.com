@@ -64,6 +64,9 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/unificado/{id}/baixar', [UnificadoController::class, 'baixar'])
             ->whereNumber('id')
             ->name('unificado.baixar');
+        // Onda 15 (2026-05-20): bulk update categoria em lote
+        Route::post('/unificado/bulk-update-categoria', [UnificadoController::class, 'bulkUpdateCategoria'])
+            ->name('unificado.bulk-update-categoria');
         // Onda Edit 2026-05-18 — edit Sheet inline + conferido per-user DB.
         Route::put('/unificado/{id}', [UnificadoController::class, 'update'])
             ->whereNumber('id')
