@@ -109,6 +109,51 @@ gh run list --workflow=quick-sync.yml --limit 5
 
 **Lição:** após qualquer merge importante que cria tela nova / adiciona entry topnav / modifica controller, **sempre verificar `gh run list --workflow=quick-sync.yml --limit 1` ANTES** de dizer "tá em prod" pro Wagner. Falha silenciosa do workflow é o pattern dominante de "tela não aparece".
 
+### 2.2 Quick-sync vs Deploy: quando precisa composer install em prod
+
+**Disparo:** PR mergeado, `quick-sync.yml` rodou success, mas rotas do módulo afetado retornam **500 Server Error**. Outras rotas funcionam normalmente.
+
+**Causa raiz:** `quick-sync.yml` **NÃO roda** `composer install` nem `php artisan migrate` — só faz `git pull` + `npm run build:inertia` + `optimize:clear`. Quando PR adiciona método novo em Controller existente, classe nova, ou novo binding de FQCN, o **composer autoload** de prod fica desatualizado → Laravel não consegue resolver classes → ServiceProvider crash → 500 cascateando em todo módulo.
+
+**Sintomas catalogados (Wave 7-C 2026-05-20):**
+- `oimpresso.com/oficina-auto/ordens-servico` → 500
+- `oimpresso.com/oficina-auto/veiculos` → 500
+- `oimpresso.com/home` → 200 (rotas que não dependem do método novo continuam)
+- `Force Clean Rebuild` workflow falha em `view:cache` com erro `Symfony\Component\Finder\DirectoryNotFoundException` (sintoma secundário do autoload quebrado)
+
+**Fix canônico:**
+
+```bash
+# Disparar Deploy to Hostinger workflow_dispatch (full deploy: composer + migrate + cache)
+gh workflow run "Deploy to Hostinger" --ref main
+
+# Aguardar com watch
+$run = (gh run list --workflow=deploy.yml --limit 1 --json databaseId | ConvertFrom-Json).databaseId
+gh run watch $run --interval 20
+```
+
+**Quando usar Deploy vs Quick-sync — matriz de decisão:**
+
+| Mudança do PR | Quick-sync basta? | Por quê |
+|---|---|---|
+| Só `.tsx`/`.ts`/`.css` frontend | ✅ Sim | npm run build:inertia regenera bundles |
+| `.blade.php` view edit | ✅ Sim | view:clear no quick-sync |
+| Controller — método novo OU classe nova OU trait composition | ❌ **Não** — usar Deploy | composer autoload precisa regenerar |
+| Adicionar dependency em `composer.json` | ❌ **Não** — usar Deploy | composer install obrigatório |
+| Migration nova (`*_create_*.php` em Database/Migrations) | ❌ **Não** — usar Deploy | artisan migrate obrigatório |
+| ServiceProvider/binding/Module.json alteração | ❌ **Não** — usar Deploy | package:discover + composer dump-autoload |
+| Documentação `memory/*.md` puramente | ✅ Sim (irrelevante — não muda runtime) | git pull basta |
+
+**Lição executiva:** **toda PR `feat()` que adiciona método novo em Controller existente DEVE ser deployada via `Deploy to Hostinger` workflow_dispatch**, não confiar no quick-sync auto-trigger. Quick-sync é OK pra hotfix `.tsx` puro ou docs. Validar via matriz acima antes de declarar "tá em prod".
+
+**Caso real 2026-05-20 (Wave 7-C):**
+- PR #1195 adicionou `ServiceOrderFsmActionController::history()` (método novo)
+- Quick-sync trigger automático mergou → SSH `git reset --hard` → tentou recompor índice
+- Erro: `unable to create file ServiceOrderSheet.tsx: File exists` (filesystem Linux case-sensitive vs Windows case-insensitive — bug secundário)
+- Mesmo após chore-vite quick-sync subsequente "limpar" o estado git, autoload Composer ficou stale
+- Todo `Modules/OficinaAuto/*` 500 até `Deploy to Hostinger` rodar composer install + migrate + cache rebuild
+- Skill `smoke-prod-evidence` detectou via browser MCP — sem ela, falha silenciosa porque quick-sync workflow reportava success
+
 ## 3. Tela branca Inertia pós optimize:clear = cache stale do bundle
 
 **Não é regressão real** — tab Chrome com bundle JS antigo trava após `optimize:clear`.
