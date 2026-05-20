@@ -1,0 +1,199 @@
+# CODE_NOTES.md.append — Auditoria GAPS_v4 Financeiro (4 telas extras)
+
+**Data:** 2026-05-20
+**Branch:** `fix/financeiro-v4-sync-prototipo`
+**Origem:** `GAPS_v4_FINANCEIRO_PRA_CODE.md` (Cowork)
+
+---
+
+## TL;DR
+
+🟢 **Visual sync (PARTE 1):** no-op confirmado — `prototipo-ui/financeiro*.{css,jsx}` + `fsm-stepper.jsx` já estavam **byte-por-byte idênticos** ao gold standard do Cowork. `diff -q` em todos os 9: `IDÊNTICO`.
+
+🟢 **Auditoria 4 telas extras (PARTE 2):** TODAS as 4 telas (Fluxo / Conciliação / DRE / Plano de contas) já têm **rota + controller + Page TSX** em prod. **Zero gap de scaffolding.**
+
+🟢 **Bundle de prod regenerado** hoje 2026-05-20 11:09:57 GMT via Quick Sync (run 26158665592). Hash entry inalterado é correto: Vite content-based hashing, source não mudou no main entry.
+
+🟡 **Bug visual remanescente em `/financeiro/unificado` (se existir) não é de scaffolding nem de visual sync** — pode estar em algum `_component .tsx` específico ou cache de browser. Investigar separado, fora deste PR.
+
+---
+
+## PARTE 1 — Visual sync (verificação curl + diff)
+
+Re-baixei os 9 arquivos canônicos do Cowork (URLs do GAPS_v4 zero-touch) e comparei com os locais:
+
+```
+financeiro.css            : IDÊNTICO (44277 bytes, 1295 linhas)
+financeiro-app.jsx        : IDÊNTICO (58677 bytes, 1133 linhas)
+financeiro-data.jsx       : IDÊNTICO (8197 bytes)
+financeiro-telas-extras.jsx: IDÊNTICO (37161 bytes)
+financeiro-curation.jsx   : IDÊNTICO (18203 bytes)
+financeiro-ai.jsx         : IDÊNTICO (17670 bytes)
+financeiro-output.jsx     : IDÊNTICO (21875 bytes)
+financeiro-icons.jsx      : IDÊNTICO (5855 bytes)
+fsm-stepper.jsx           : IDÊNTICO (7095 bytes)
+```
+
+Checks de marker passaram:
+- `grep -c "fin-drawer-tabs|fin-conferido-toggle|fin-ai-anomalia|fin-audit-row|fin-frescor" prototipo-ui/financeiro.css` → **32** (esperado ≥30 ✓)
+- `grep -c "TelaFluxo|TelaConciliacao|TelaDRE|TelaPContas" prototipo-ui/financeiro-telas-extras.jsx` → **8** (esperado ≥4 ✓)
+
+Discrepância `wc -l` esperado 1296/1134 vs real 1295/1133 é **trailing-newline cosmético** (provavelmente CRLF/LF). Sem impacto funcional.
+
+**Bundle real em runtime:** `resources/css/cowork-canon-financeiro-bundle.css` (8629 linhas, 32 markers v2) — sincronizado com prototipo-ui via PR #1164 (`da578c039 feat(financeiro/unificado): bundle copy canon CSS inteiro (Onda 12.3 — regra Tier 0)`).
+
+---
+
+## PARTE 2 — Status por tela
+
+### Visão Unificada (`/financeiro/unificado`)
+
+| Item | Status | Path |
+|---|---|---|
+| Page TSX | ✅ | `resources/js/Pages/Financeiro/Unificado/Index.tsx` (+ `Novo.tsx`) |
+| Controller | ✅ | `Modules/Financeiro/Http/Controllers/UnificadoController.php` |
+| Rota | ✅ | `Route::get('/unificado', [UnificadoController::class, 'index'])->name('unificado.index')` (Routes/web.php:62) |
+| Componentes drawer v2 | ✅ | `_components/FinConferidoToggle`, `FinAuditTrail`, `FinAnomalyDetector`, `FinCommentsThread`, `FinPillFrescor`, etc |
+| ADR/SPEC | US-FIN-013/020 — protótipo Cowork 2026-05-09 |
+
+PR #1192 hotfix recente (`ed24f9111 hotfix(financeiro/unificado): tela branca prod — auth.can é objeto não array`) já está em prod.
+
+### Fluxo de Caixa (`/financeiro/fluxo`)
+
+| Item | Status | Path |
+|---|---|---|
+| Page TSX | ✅ | `resources/js/Pages/Financeiro/Fluxo/Index.tsx` |
+| Controller | ✅ | `Modules/Financeiro/Http/Controllers/FluxoController.php` |
+| Rota | ✅ | `Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index')` (Routes/web.php:104) |
+
+### Conciliação (`/financeiro/conciliacao`)
+
+| Item | Status | Path |
+|---|---|---|
+| Page TSX | ✅ | `resources/js/Pages/Financeiro/Conciliacao/Index.tsx` |
+| Controller | ✅ | `Modules/Financeiro/Http/Controllers/ConciliacaoController.php` |
+| Rotas | ✅ | `GET /conciliacao`, `POST /conciliacao/upload`, `POST /conciliacao/{lineId}/match` (Routes/web.php:182-186) |
+| ADR | Onda 19 — OFX MVP (`8b0bfd128`) |
+
+### DRE / Relatórios (`/financeiro/relatorios`)
+
+| Item | Status | Path |
+|---|---|---|
+| Page TSX | ✅ | `resources/js/Pages/Financeiro/Relatorios/Index.tsx` |
+| Controller | ✅ | `Modules/Financeiro/Http/Controllers/RelatoriosController.php` |
+| Rotas | ✅ | `GET /relatorios`, `GET /relatorios/export-csv` (Routes/web.php:155-156) |
+
+**Nota Cowork:** GAPS_v4 esperava `DREController` + `/financeiro/dre`. No código real, **DRE está mapeado como Relatorios** (`RelatoriosController` + `/financeiro/relatorios`). Sem gap funcional — só nomenclatura. Se Cowork quer URL `/dre` como alias, vira PR separado (rota adicional apontando pro mesmo controller).
+
+### Plano de Contas (`/financeiro/plano-contas`)
+
+| Item | Status | Path |
+|---|---|---|
+| Page TSX | ✅ | `resources/js/Pages/Financeiro/PlanoContas/Index.tsx` |
+| Controller | ✅ | `Modules/Financeiro/Http/Controllers/PlanoContaController.php` (singular) |
+| Rota | ✅ | `Route::get('/plano-contas', [PlanoContaController::class, 'index'])` (Routes/web.php:177) |
+| ADR | PR #1178 — `feat(financeiro): tela /plano-contas dedicada` |
+
+**Nota Cowork:** GAPS_v4 esperava `PlanoContasController` (plural). Real é `PlanoContaController` (singular). Sem gap funcional.
+
+---
+
+## Conclusão da auditoria
+
+**Diagnóstico do GAPS_v4 (4 telas faltam scaffolding) está INCORRETO** — as 4 telas extras já têm:
+- ✅ Rota com middleware stack canônica (`web/auth/language/timezone/AdminSidebarMenu`)
+- ✅ Controller próprio com `business_id` scope (R-FIN-001)
+- ✅ Page TSX em `resources/js/Pages/Financeiro/<Nome>/Index.tsx`
+
+**Próxima ação recomendada (NÃO neste PR):**
+
+1. **Cowork:** atualizar gold standard pra refletir nomenclatura real (`Relatorios` ≠ `DRE`, `PlanoConta` singular)
+2. **Code:** investigar bug visual em `/financeiro/unificado` em prod via:
+   - Browser MCP autenticado (carregar a tela e capturar console errors)
+   - Comparar `_components/FinPillFrescor.tsx` / `FinConferidoToggle.tsx` com protótipo JSX equivalente
+   - Verificar que `FinAuditTrail.tsx` renderiza `.fin-audit-row` corretamente
+
+---
+
+## ROUTES AUDIT (raw)
+
+### routes/web.php (root) — financeiro hits:
+
+```
+153:    Route::get('/tarefas', fn () => inertia('Tarefas/Index'))->name('tarefas.index');
+```
+
+(Tarefas é cross-módulo, não Financeiro — não aparece em routes core direto, vem via DataController/middleware.)
+
+### Modules/Financeiro/Routes/web.php — controllers mapeados:
+
+| Controller | Rota base | Linhas Routes/web.php |
+|---|---|---|
+| `InstallController` | `install/*` | 35-38 |
+| `AssinaturaController` | `assinaturas/*` | 47-52 |
+| `DashboardController` | `/` (raiz) | 60 |
+| `UnificadoController` | `/unificado/*` | 62-77 |
+| `FluxoController` | `/fluxo` | 104 |
+| `RelatoriosController` | `/relatorios`, `export-csv` | 155-156 |
+| `PlanoContaController` | `/plano-contas` | 177 |
+| `ConciliacaoController` | `/conciliacao/*` | 182-186 |
+| `ContaPagarController` / `ContaReceberController` | (vários) | — |
+| `CategoriaController` | `categorias/*` | — |
+| `ContaBancariaController` | `contas-bancarias/*` | — |
+| `BoletoController` | `boletos/*` | — |
+| `ExtratoController` | `extrato/*` | — |
+| `CobrancaController` | `/cobranca/*` | — |
+| `Advisor/*Controller` | `/advisor/*` | — |
+
+---
+
+## ENTITIES / MODELS reais (não inventar)
+
+```
+Modules/Financeiro/Entities/
+  - Titulo.php             ← Model principal (kind=receivable|payable)
+  - TituloBaixa.php        ← Baixa/liquidação parcial ou total
+  - ContaBancaria.php      ← Conta bancária PJ do tenant
+  - Categoria.php          ← Categoria contábil
+  - ConferenciaUsuario.php ← Per-user "conferido" toggle
+  - ConciliacaoMatch.php   ← Match OFX → Titulo
+```
+
+**Regras hereditárias (LICOES_F3_FINANCEIRO_REJEITADO.md):**
+- ❌ NÃO inventar nome de Model (são esses os reais)
+- ❌ NÃO criar middleware `tenant` (usar stack literal `web,auth,language,timezone,AdminSidebarMenu`)
+- ❌ NÃO sobrescrever `UnificadoController.php` (PRs #355/#358 são gold)
+- ❌ NÃO commitar `business_id` hardcode (R-FIN-001 Tier 0 — sempre `auth()->user()->business_id`)
+
+---
+
+## REGRAS DE OURO (não negociáveis — herdadas do v4)
+
+- ❌ NÃO criar Models / Controllers / Migrations neste PR — **respeitado**
+- ❌ NÃO mexer em `UnificadoController.php` — **respeitado**
+- ❌ NÃO criar Seeder neste PR — **respeitado**
+- ❌ NÃO marcar PR como "F3 completo" — **respeitado** (este é audit + visual no-op)
+- ✅ Reportar gaps por escrito em CODE_NOTES.md.append — **feito** (este arquivo)
+
+---
+
+## PRÓXIMOS PRs (a partir deste audit)
+
+Cowork pode decidir, mas baseado na auditoria:
+
+- **PR-B (recomendado):** Investigar bug visual em `/financeiro/unificado` em prod com browser MCP autenticado, comparar render vs protótipo JSX
+- **PR-C (opcional):** Alias rota `/financeiro/dre` → mesma view de Relatorios, se branding "DRE" for valioso
+- **PR-D (separado):** `FinanceiroDemoSeeder` (mock Maio 2026 — distribuição 60/40, 50% liquidado, 10-15% atrasado)
+- **PR-E (separado):** F3.5 Acessibilidade — WCAG 2.1 AA via `accessibility-review`
+
+---
+
+## Anexo — Deploy/Build executado nesta sessão (pré-PR)
+
+| Workflow | Run | Status | Tempo |
+|---|---|---|---|
+| Deploy to Hostinger | [26158363738](https://github.com/wagnerra23/oimpresso.com/actions/runs/26158363738) | ✅ | 4m |
+| Quick Sync (workflow_dispatch) | [26158665592](https://github.com/wagnerra23/oimpresso.com/actions/runs/26158665592) | ✅ | 42s |
+
+Bundle de prod após recompile: `Last-Modified: Wed, 20 May 2026 11:09:57 GMT` ✓
+Bundle hashes em prod: `inertia-O1DPyekN.css` (863 KB), `app-BA4hR46q.js` (560 KB) — inalterados desde Quick Sync de 10:42 UTC porque o entry principal não mudou (commits recentes mexeram só em `Pages/OficinaAuto/*.tsx` = code-split chunks).
