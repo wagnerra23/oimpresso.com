@@ -32,6 +32,7 @@ import {
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import ServiceOrderFsmActionPanel from './ServiceOrderFsmActionPanel';
+import ServiceOrderStagePipeline from './ServiceOrderStagePipeline';
 import ServiceOrderTimeline from './ServiceOrderTimeline';
 
 type OrderType = 'locacao' | 'manutencao' | null;
@@ -338,8 +339,17 @@ export default function ServiceOrderSheet({
                 </Section>
               )}
 
-              {/* Pipeline FSM — ações disponíveis (Wave 7-A backend) */}
-              <Section title="Pipeline FSM" icon={CheckCircle2}>
+              {/* Mini-grafo horizontal stages (Wave 7-E — gap #2 estado-da-arte). */}
+              <Section title="Pipeline" icon={CheckCircle2}>
+                <ServiceOrderStagePipeline
+                  serviceOrderId={data.id}
+                  enabled={open}
+                  refreshKey={historyVersion}
+                />
+              </Section>
+
+              {/* Ações FSM (Wave 7-A backend) */}
+              <Section title="Ações disponíveis" icon={CheckCircle2}>
                 <ServiceOrderFsmActionPanel
                   serviceOrderId={data.id}
                   enabled={open}
