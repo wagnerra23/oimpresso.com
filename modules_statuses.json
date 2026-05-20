@@ -16,6 +16,7 @@
     "Essentials": true,
     "FieldForce": true,
     "Financeiro": true,
+    "Fiscal": true,
     "Governance": true,
     "Hms": true,
     "InboxReport": true,
