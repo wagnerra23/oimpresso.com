@@ -1,10 +1,84 @@
 # BRIEFING — Modules/Financeiro
 
-> Visão unificada de AR/AP (Contas a Receber / Contas a Pagar) + Fluxo de Caixa + Boletos + Conciliação. Cockpit V2 persona Eliana [E] (financeiro escritório, densidade alta, atalhos teclado).
+> Visão unificada de AR/AP (Contas a Receber / Contas a Pagar) + Fluxo de Caixa + Boletos + Conciliação OFX + Plano de Contas BR + Workflow Aprovação. Cockpit V2 persona Eliana [E] (financeiro escritório, densidade alta, atalhos teclado).
 
-**Última atualização:** 2026-05-18 noite · **PR [#1115](https://github.com/wagnerra23/oimpresso.com/pull/1115) — Revert Plano B AppShellV2 nu** (default `mock_cowork_mode=false` + `sidebar_wrap_enabled=false`) · Skill `brief-update` (Tier B)
+**Última atualização:** 2026-05-20 madrugada · **20 PRs Ondas 12-21** ([#1158→#1180](https://github.com/wagnerra23/oimpresso.com/pulls)) · Bundle copy CSS canon 9054 LOC · 7 funções novas · paridade canon 4.8→**9.5/10** · cobertura funcional 75%→**87%**.
 
-## Estado UI 2026-05-18 noite — AppShellV2 nu (Plano B canon)
+## Estado UI 2026-05-20 madrugada — Canon Cowork TOTAL ✅
+
+`/financeiro/*` (12 telas) com **paridade visual 9.5/10** vs canon `Oimpresso ERP - Chat.html`. Bundle CSS de **9054 LOC** importado inteiro em `resources/css/cowork-canon-financeiro-bundle.css` (regra Tier 0 [`feedback-cowork-bundle-aplicar-inteiro`](../../reference/feedback-cowork-bundle-aplicar-inteiro.md) validada 4ª vez). Todos componentes usam classes canon: `os-page-h` / `os-btn ghost` / `fin-stat` / `fin-stat-hero` / `os-drawer-head` / `fin-footer-tips`.
+
+**Plano B AppShellV2 nu** (2026-05-18 noite) preservado mas inativo — `mock_cowork_mode=false` + `sidebar_wrap_enabled=false` default. Reversibilidade 5 camadas mantida.
+
+## Telas em prod (12 canon)
+
+| Rota | Onda | Nota | Funções |
+|---|---|---|---|
+| `/financeiro` (Dashboard) | 12.8+15 | 9/10 | KPI defer + saldo bancos + filtros tabela |
+| `/financeiro/unificado` (baseline) | 12-17 | **10/10** | KPI hero warm + 4 lifecycle pills + drawer Aprovação/Anexos + ⌘K |
+| `/financeiro/unificado/novo` | 13 | 9.5/10 | Picker Receber/Pagar 2 cards canon |
+| `/financeiro/contas-receber` | 12.8 | 8.5/10 | CRUD + emitir boleto |
+| `/financeiro/contas-pagar` | 12.8 | 8.5/10 | CRUD + 1-clique pagar |
+| `/financeiro/contas-bancarias` | 12.8 | 9/10 | Configurar boleto wizard 3 steps |
+| `/financeiro/categorias` | 12.8+13 | 9/10 | Categorias livres + vínculo opcional Plano Contas |
+| `/financeiro/extrato/{contaId}` | 12.8 | 8.5/10 | Movimento bancário |
+| `/financeiro/fluxo` | 12.8+15+18 | 9/10 | Projeção 35d + banner CTA sem conta |
+| `/financeiro/relatorios` | 14+15 | 9/10 | DRE comparativo + Fluxo realizado + Resumo |
+| `/financeiro/cobranca` | 15 híbrido pg-shell | 8/10 | Gateways recorrentes |
+| **`/financeiro/plano-contas`** (Onda 18) | 18 | 9/10 | **Hierárquica BR 49 entries** |
+| **`/financeiro/conciliacao`** (Onda 19) | 19 | 9/10 | **OFX upload + fuzzy match** |
+| `/financeiro/assinaturas/atualizar` | 14 | 8/10 | Valor/ciclo/forma pgto |
+
+## Funções (53/61 = 87% cobertura)
+
+### Ondas 12-21 adicionou 7 funções novas
+1. Tela **Plano de Contas** hierárquica BR
+2. Tela **Conciliação OFX MVP**
+3. Upload OFX + parser STMTTRN regex
+4. Fuzzy match automático (score 85%)
+5. Confirmar/ignorar match
+6. **Anexos NF** storage local idempotência SHA-256
+7. **Workflow aprovação** (solicitar/aprovar/rejeitar)
+
+### Backbone (46 prévias)
+Lançamentos CRUD + 1-clique baixa + filtros lifecycle multi-select + densidade + Plano Contas filtro + ⌘K palette + cross-link + Anomaly + Party history + Frescor + Conferido + Comentários + Audit trail + Sparkline + Inertia::defer + Categorias CRUD + Configurar boleto + Emitir boleto + Cobrança gateways + DRE + Resumo + Export CSV + Atalhos + Modo apresentação + Checklist + Folha jurídica + Favoritos.
+
+## Tabelas DB (3 novas Ondas 19-21 + 8 existentes)
+
+**Novas:** `fin_bank_statement_lines` · `fin_titulo_anexos` · `fin_titulos` ALTER `aprovacao_*` campos.
+
+**Existentes:** `fin_titulos` (47K+ rows MARTINHO) · `fin_titulo_baixas` · `fin_titulo_comments` · `fin_contas_bancarias` · `fin_planos_conta` (49 BR seedados) · `fin_categorias` · `fin_extrato_lancamentos` · `fin_boleto_remessas`.
+
+## Métricas pós-Ondas 12-21
+
+| Métrica | Pré-Onda 12 | Pós-Onda 21 |
+|---|---|---|
+| Funções implementadas | 46/61 (75%) | **53/61 (87%)** |
+| Coerência canon visual | 4.8/10 | **9.5/10** |
+| Coerência inter-telas | 50% | **95%** |
+| Rotas validadas | 26 (14 GET + 12 POST) | **33** (15+18) |
+| Telas canon | 10 | **12** |
+| 404 ativos | 4 | **0** |
+| Bundle CSS | cherry-pick fragmentado | **9054 LOC canon** |
+
+## Inconsistências catalogadas
+
+📄 [`AUDIT-FUNCOES-2026-05-19.md`](AUDIT-FUNCOES-2026-05-19.md) — inventário completo 46 funções + 15 faltantes + 7 inconsistências.
+
+✅ **Resolvidas Ondas 12-21:** A (DRE Maio MARTINHO) · D (botão Plano contas 404) · E (botão Conciliar 404) · F (KpiCard shadcn) · 6 inconsistências menores.
+
+⏳ **Pendentes (Ondas 22-27):** B (Fluxo sem conta MARTINHO — UI cadastro) · C (Categorias vs Plano contas — decisão produto) · G (AssinaturaAtualizar cosmético) · H (UI lista anexos GET) · I (Pill aprovacao_status na tabela) · J (Permissions Spatie aprovar).
+
+## Roadmap próximas Ondas (P0/P1)
+
+- **22**: UI lista anexos GET no drawer + coluna `aprovacao_status` na tabela + permissions Spatie `financeiro.titulo.aprovar`
+- **23**: ConciliacaoService dedicated CNAB + Open Banking API real
+- **24**: Aging buckets <30/30-60/60-90/90+
+- **25**: Notificações vencimento próximo (e-mail/WhatsApp)
+
+---
+
+## Estado histórico — AppShellV2 nu (Plano B canon, 2026-05-18 noite)
 
 `/financeiro/*` voltou pro **AppShellV2 + sidebar UltimatePOS canônico** via `DataController` + `package_details` + Spatie permissions (Tier 0 universal, zero hardcode biz). Pages Inertia `Pages/Financeiro/*.tsx` renderizam direto — controllers caem em `Inertia::render` normal porque trait `RendersMockCowork::tryRenderMockCowork()` retorna `null`.
 
