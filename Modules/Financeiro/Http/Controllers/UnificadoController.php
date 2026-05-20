@@ -102,6 +102,20 @@ class UnificadoController extends Controller
             };
         }
 
+        // US-FIN-027 (Onda 22) — Filtro workflow aprovação multi-select. AND com lifecycle.
+        // 'sem_workflow' = títulos SEM aprovacao_status (NULL); demais filtram pelo valor.
+        if (! empty($filters['aprovacao_status'])) {
+            $q->where(function ($qq) use ($filters) {
+                foreach ($filters['aprovacao_status'] as $st) {
+                    if ($st === 'sem_workflow') {
+                        $qq->orWhereNull('aprovacao_status');
+                    } else {
+                        $qq->orWhere('aprovacao_status', $st);
+                    }
+                }
+            });
+        }
+
         // Toggle "Só atrasados" — AND multiplicativo (combina com lifecycle).
         if (! empty($filters['overdue'])) {
             $q->whereIn('status', ['aberto', 'parcial'])
@@ -596,6 +610,8 @@ class UnificadoController extends Controller
     {
         $tabsValidas = ['all', 'open', 'rec', 'pay', 'received', 'paid', 'late'];
         $lifecycleValidos = ['ar', 're', 'ap', 'pa'];
+        // US-FIN-027 (Onda 22) — workflow aprovação. Default vazio = sem filtro (mostra todos).
+        $aprovacaoValidos = ['pendente', 'aprovado', 'rejeitado', 'sem_workflow'];
         // Onda 12.6 (2026-05-19) — Wagner: default compact + remove spacious.
         // Financeiro persona Eliana = densidade alta. "Espaçoso" não tinha uso.
         $densidadesValidas = ['compact', 'comfortable'];
@@ -620,10 +636,24 @@ class UnificadoController extends Controller
             fn ($x) => in_array($x, $lifecycleValidos, true)
         )));
 
+        // US-FIN-027 (Onda 22) — parse aprovacao_status[] (CSV ou array).
+        $aprovacaoRaw = $request->input('aprovacao_status', []);
+        if (is_string($aprovacaoRaw)) {
+            $aprovacaoRaw = $aprovacaoRaw === '' ? [] : explode(',', $aprovacaoRaw);
+        }
+        if (! is_array($aprovacaoRaw)) {
+            $aprovacaoRaw = [];
+        }
+        $aprovacao = array_values(array_unique(array_filter(
+            array_map('strval', $aprovacaoRaw),
+            fn ($x) => in_array($x, $aprovacaoValidos, true)
+        )));
+
         return [
             'tab' => in_array($request->string('tab')->toString(), $tabsValidas, true)
                 ? $request->string('tab')->toString() : 'all',
             'lifecycle' => $lifecycle,
+            'aprovacao_status' => $aprovacao,
             'overdue' => $request->boolean('overdue'),
             'busca' => trim($request->string('busca', '')->toString()),
             'conta' => $request->string('conta', '')->toString(),
@@ -829,6 +859,31 @@ class UnificadoController extends Controller
     }
 
     /**
+     * Download anexo (stream binário via Storage::disk(local), business_id scope).
+     * GET /financeiro/unificado/{id}/anexos/{anexoId}/download
+     *
+     * US-FIN-026 (Onda 22) — antes da Onda 22 anexos só upload+remove; agora
+     * lista + baixa também. Stream direto evita signed URL extra (S3-style)
+     * porque disco é local privado — controller scope + auth resolvem segurança.
+     */
+    public function baixarAnexo(Request $request, int $id, int $anexoId)
+    {
+        $businessId = (int) session('user.business_id');
+
+        $anexo = \Modules\Financeiro\Models\TituloAnexo::query()
+            ->where('business_id', $businessId)
+            ->where('titulo_id', $id)
+            ->findOrFail($anexoId);
+
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        abort_unless($disk->exists($anexo->path), 404, 'Arquivo não encontrado no storage.');
+
+        return $disk->download($anexo->path, $anexo->nome, [
+            'Content-Type' => $anexo->mime ?: 'application/octet-stream',
+        ]);
+    }
+
+    /**
      * Remover anexo.
      * DELETE /financeiro/unificado/{id}/anexos/{anexoId}
      */
@@ -876,6 +931,14 @@ class UnificadoController extends Controller
      */
     public function aprovar(Request $request, int $id): RedirectResponse
     {
+        // US-FIN-028 (Onda 22) — gate Spatie. Solicitar continua aberto (qualquer
+        // user do biz solicita), aprovar/rejeitar precisa permissão dedicada.
+        abort_unless(
+            $request->user()?->can('financeiro.titulo.aprovar') || $request->user()?->can('superadmin'),
+            403,
+            'Sem permissão pra aprovar títulos financeiros.'
+        );
+
         $businessId = (int) session('user.business_id');
         $userId = $request->user()?->id;
         $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
@@ -900,6 +963,13 @@ class UnificadoController extends Controller
      */
     public function rejeitar(Request $request, int $id): RedirectResponse
     {
+        // US-FIN-028 (Onda 22) — mesma gate Spatie que aprovar.
+        abort_unless(
+            $request->user()?->can('financeiro.titulo.aprovar') || $request->user()?->can('superadmin'),
+            403,
+            'Sem permissão pra rejeitar títulos financeiros.'
+        );
+
         $request->validate(['motivo' => 'required|string|max:500']);
 
         $businessId = (int) session('user.business_id');
