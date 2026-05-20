@@ -10,15 +10,16 @@
 <link rel="stylesheet" href="styles.css"/>
 <link rel="stylesheet" href="compras-page.css"/>
 <link rel="stylesheet" href="oficina-page.css"/>
-<link rel="stylesheet" href="fin-boletos.css"/>
 <link rel="stylesheet" href="mockup-pages.css"/>
 <link rel="stylesheet" href="crm-page.css"/>
 <link rel="stylesheet" href="whatsapp-page.css"/>
 <link rel="stylesheet" href="prod-page-extras.css"/>
 <link rel="stylesheet" href="prod-mec.css"/>
 <link rel="stylesheet" href="chat-jana.css"/>
-<link rel="stylesheet" href="fin-polish.css"/>
 <link rel="stylesheet" href="fiscal-page.css"/>
+<!-- FINANCEIRO REMOVIDO 2026-05-20 (ordem Wagner): fin-polish.css e fin-boletos.css
+     foram retirados pra NAO atrapalhar o Financeiro v1 (erp-shell/). v2 fica
+     APENAS pra Jana + Cobranca Recorrente + Fiscal. -->
 <!-- Tailwind CDN (preflight desligado pra não sobrescrever o styles.css do shell) -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -61,13 +62,9 @@
 <script type="text/babel" src="orc-page.jsx"></script>
 <script type="text/babel" src="prod-page.jsx"></script>
 <script type="text/babel" src="producao-page.jsx"></script>
-<!-- Módulo Financeiro (migrado de Financeiro Unificado.html) -->
-<script type="text/babel" src="financeiro-icons.jsx"></script>
-<script type="text/babel" src="financeiro-data.jsx"></script>
-<script type="text/babel" src="financeiro-telas-extras.jsx"></script>
-<script type="text/babel" src="financeiro-app.jsx"></script>
-<!-- Módulo Boletos (migrado de Boleto e Contas Inter.html) -->
-<script type="text/babel" src="boleto-contas-app.jsx"></script>
+<!-- ⛔ MÓDULO FINANCEIRO + BOLETOS REMOVIDOS 2026-05-20 (ordem Wagner):
+     financeiro-{icons,data,telas-extras,app}.jsx + boleto-contas-app.jsx foram retirados.
+     v2 NÃO deve influenciar o Financeiro v1 (erp-shell/). -->
 <!-- Módulo Compras (migrado de Compras.html) -->
 <script type="text/babel" src="compras-page.jsx"></script>
 <!-- Módulo Oficina Auto (migrado de Produção Oficina - Tela.html) -->
