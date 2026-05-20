@@ -124,16 +124,32 @@ class DataController extends Controller
                     ]
                 )->order(85.1);
 
-                // 3. DRE / Relatórios — Wagner 2026-05-18 fix: rota era
-                // /relatorios/dre (não existia) → corrigido pra /relatorios.
+                // 3. DRE gerencial — Wagner 2026-05-20 PR C reaplicação canon.
+                // Tela dedicada `/financeiro/dre` (TelaDRE hierárquica clássica:
+                // Receita bruta → Deduções → Receita líquida → Custos → Lucro bruto
+                // → Despesas → Resultado operacional). Substitui tab DRE da
+                // antiga `/financeiro/relatorios` (que ficará só com Fluxo+Resumo,
+                // cleanup em PR D).
                 $menu->url(
-                    url('/financeiro/relatorios'),
+                    url('/financeiro/dre'),
                     __('financeiro::financeiro.dre_label'),
                     [
                         'icon'   => 'fa fas fa-file-invoice-dollar',
-                        'active' => $segmento_ativo && request()->segment(2) == 'relatorios',
+                        'active' => $segmento_ativo && request()->segment(2) == 'dre',
                     ]
                 )->order(85.2);
+
+                // 3.1. Relatórios (resumo + fluxo agregado) — entrada legada.
+                // Mantida até PR D (cleanup tab DRE de Relatorios/Index.tsx);
+                // avaliar absorção em Dashboard depois.
+                $menu->url(
+                    url('/financeiro/relatorios'),
+                    __('financeiro::financeiro.relatorios_label'),
+                    [
+                        'icon'   => 'fa fas fa-chart-pie',
+                        'active' => $segmento_ativo && request()->segment(2) == 'relatorios',
+                    ]
+                )->order(85.25);
 
                 // 4. Cobrança (substitui "Boletos" / "Gateway de Pagamento" —
                 // Wagner 2026-05-19: F3 PaymentGateway UI Tela 1 entregue
