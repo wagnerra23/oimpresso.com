@@ -16,6 +16,7 @@ contains:
   - "CoworkSidebarController — endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
   - "DashboardController"
   - "DataController"
+  - "DreController — Wave reaplicação canon 2026-05-20 US-FIN-014a (tela dedicada /financeiro/dre, hierarquia clássica header/item/subtotal com highlight, % RL sinal preservado, Δ% mês ant., export PDF/Excel/CSV; substitui tab DRE legada em RelatoriosController)"
   - "ExtratoController"
   - "FinanceiroController"
   - "FluxoController"
