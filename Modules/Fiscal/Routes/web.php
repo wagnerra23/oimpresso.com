@@ -83,4 +83,11 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/acoes/nfe/inutilizar', [AcoesController::class, 'inutilizar'])
             ->middleware('throttle:30,1')
             ->name('acoes.nfe.inutilizar');
+
+        // ─── PR #6 Wave: Retransmitir NFe rejeitada/denegada ─────────────
+        // Delega NfeService::retransmitir (UPDATE preservation contract CONFAZ Art. 14).
+        Route::post('/acoes/nfe/{emissao}/retransmitir', [AcoesController::class, 'retransmitir'])
+            ->whereNumber('emissao')
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.retransmitir');
     });
