@@ -132,6 +132,13 @@ Audit entry registrada em `sale_stage_history` com `action_id=NULL` + `payload.p
 
 - **`quick-sync.yml` NÃO regenera composer autoload** — método novo em `ServiceOrderFsmActionController` (Wave 7-C) deu 500 em todo módulo até `Deploy to Hostinger` (workflow_dispatch) rodar `composer install`. Detalhe em [memory/reference/deploy-recovery-patterns.md §2.2](../../reference/deploy-recovery-patterns.md#22-quick-sync-vs-deploy-quando-precisa-composer-install-em-prod).
 - **`Inertia::defer` no payload `kpis`/`stages` exige frontend tipar opcional + default** — sem isso `kpis.locacoes_ativas` no primeiro render crasha tela branca. Hotfix PR #1197. Detalhe em [skill inertia-defer-default §Antipattern](../../../.claude/skills/inertia-defer-default/SKILL.md).
+- **`$this->authorize()` exige `extends App\Http\Controllers\Controller`** — `ServiceOrderController` + `VehicleController` extendiam `Illuminate\Routing\Controller` (base raw, sem trait `AuthorizesRequests`). Drawer JSON Wave 7-A começou a hitar `show()` → `Method authorize does not exist` → HTTP 500 em todas 5 OS. Hotfix PR #1211 (depois de diagnose PR #1209 com try-catch trace JSON). Detalhe em [memory/reference/deploy-recovery-patterns.md §6](../../reference/deploy-recovery-patterns.md#6-bug-latente-controller-authorize--illuminateroutingcontroller-vs-apphttpcontrollerscontroller).
+- **Bug latente revelado por feature nova** — `show()` JSON nunca foi chamado em prod até drawer Wave 7-A. Sintomas: Inertia HTML page funcionava normal (outro fluxo de middleware mascarava), mas fetch JSON quebrou. **Smoke browser MCP pós-deploy** (skill `smoke-prod-evidence`) descobre essa categoria — sem ele, o 500 ficaria silencioso. Auditar Controllers via grep antes de adicionar novos endpoints JSON sobre rotas existentes:
+  ```bash
+  grep -rln 'use Illuminate\\Routing\\Controller' Modules/<X>/Http/Controllers/ | while read f; do
+    grep -l 'this->authorize\|this->validate' "$f" >/dev/null && echo "BUG LATENTE: $f"
+  done
+  ```
 
 ## Pest tests canon
 
