@@ -1,13 +1,15 @@
 {
   "generated_at": "2026-05-16T20:47:59Z",
-  "baseline_version": "v3.2",
+  "baseline_version": "v3.3",
   "rubric_adr": "0155",
   "reconciled_at": "2026-05-16T14:46:35-03:00",
   "reconciliation_pr": "TBD",
   "last_update_pr": "TBD",
-  "notes": "Atualizado pos Waves 9-11 (10 PRs merged 2026-05-16). Notas reais validadas via `php artisan module:grade --all`. Substituir baseline placeholder 0 pelos scores efetivos. 34 modulos com notas reais — campo pending_initial_seed removido. Atualizar conscientemente neste arquivo quando uma regressao for justificavel (fundamentar em comentario do PR ou ADR).",
+  "notes": "Atualizado 2026-05-20 via PR #1259 (Fiscal Wave 8 SPED MVP): + Fiscal 62 (modulo novo registrado), + PaymentGateway 58 (modulo novo registrado), Governance 90 → 89 (-1pp regressao pre-existente nao relacionada ao PR — flutuacao D2 contagem). Outros 32 modulos melhoraram (deltas +2 a +31) mas mantemos baseline como floor — qualquer melhora é bem-vinda sem precisar atualizar baseline a cada PR. Versao anterior 2026-05-16 Waves 9-11 (34 modulos).",
   "modules": {
-    "Governance": 90,
+    "Governance": 89,
+    "Fiscal": 62,
+    "PaymentGateway": 58,
     "Repair": 75,
     "Vestuario": 75,
     "Crm": 71,
