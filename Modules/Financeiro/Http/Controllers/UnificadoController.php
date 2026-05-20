@@ -151,7 +151,19 @@ class UnificadoController extends Controller
             });
         }
 
-        $rows = $q->orderBy('vencimento')
+        // Onda 8 (2026-05-20): sort dinamico whitelist (anti SQL injection).
+        // Default: vencimento ASC (canon). Override via filters.sort + filters.dir.
+        $sortColMap = [
+            'vencimento' => 'vencimento',
+            'valor' => 'valor_total',
+            'status' => 'status',
+            'lancamento' => 'numero',
+            'contraparte' => 'cliente_descricao',
+        ];
+        $sortCol = $sortColMap[$filters['sort']] ?? 'vencimento';
+        $sortDir = $filters['dir'] === 'desc' ? 'desc' : 'asc';
+
+        $rows = $q->orderBy($sortCol, $sortDir)
             ->limit(500)
             ->get()
             ->map(fn (Titulo $t) => $this->shapeTitulo($t, $hoje, $vencendoLimite));
@@ -669,6 +681,10 @@ class UnificadoController extends Controller
                 ? $request->string('periodo')->toString() : 'mes_atual',
             'densidade' => in_array($request->string('densidade')->toString(), $densidadesValidas, true)
                 ? $request->string('densidade')->toString() : 'compact',
+            // Onda 8 (2026-05-20): sort + dir. Whitelist forçada na query (não confia
+            // no input). 'sort' default vazio → orderBy vencimento; 'dir' default asc.
+            'sort' => $request->string('sort', '')->toString(),
+            'dir' => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
         ];
     }
 
