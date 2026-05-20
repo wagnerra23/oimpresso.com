@@ -12,7 +12,7 @@
 // Tokens: emerald=entrada/recebido, rose=saida/atrasado, amber=vencendo, stone=neutro.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from 'react';
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
@@ -50,6 +50,8 @@ import { FinMonthResumeDialog } from './_components/FinMonthResume';
 import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
+// US-FIN-026 (Onda 22) — painel completo de anexos no drawer (GET + upload + download + delete).
+import { FinAnexosPanel } from './_components/FinAnexosPanel';
 
 // ---------- Tipos ----------
 
@@ -97,10 +99,14 @@ type TabId = 'all' | 'open' | 'rec' | 'pay' | 'received' | 'paid' | 'late';
 //  ap = A pagar   (kind=payable, status aberto/parcial/atrasado/vencendo)
 //  pa = Pagas     (kind=payable, status quitado)
 type LifecycleId = 'ar' | 're' | 'ap' | 'pa';
+// US-FIN-027 (Onda 22) — workflow aprovação multi-select.
+//  pendente / aprovado / rejeitado / sem_workflow (NULL aprovacao_status)
+type ApprovalStatusId = 'pendente' | 'aprovado' | 'rejeitado' | 'sem_workflow';
 
 interface Filters {
   tab: TabId;              // Legacy — preservado pra back-compat de bookmarks.
   lifecycle: LifecycleId[]; // Onda Polish — multi-select.
+  aprovacao_status: ApprovalStatusId[]; // US-FIN-027 (Onda 22).
   overdue: boolean;        // Toggle "Só atrasados" independente.
   busca: string;
   conta: string;
@@ -166,6 +172,20 @@ function countOverdue(all: Lancamento[]): number {
   return all.filter((l) => l.status === 'atrasado').length;
 }
 
+// US-FIN-027 (Onda 22) — chips workflow aprovação. Hue semântico:
+//  amber = pendente / emerald = aprovado / rose = rejeitado / stone = sem workflow.
+const FILTER_APPROVAL: { id: ApprovalStatusId; label: string; hue: number }[] = [
+  { id: 'pendente',     label: '⏳ Pendente',  hue: 60  },
+  { id: 'aprovado',     label: '✓ Aprovado',   hue: 145 },
+  { id: 'rejeitado',    label: '✗ Rejeitado',  hue: 25  },
+  { id: 'sem_workflow', label: 'Sem workflow', hue: 220 },
+];
+
+function countByApproval(id: ApprovalStatusId, all: Lancamento[]): number {
+  if (id === 'sem_workflow') return all.filter((l) => !l.aprovacao_status).length;
+  return all.filter((l) => l.aprovacao_status === id).length;
+}
+
 // Onda 12.6 — apenas 2 modos (Wagner removeu 'spacious').
 const DENSITY = {
   compact:     { row: 'h-8',  text: 'text-[12.5px]' },
@@ -198,6 +218,28 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
   return (
     <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[11px] font-medium ${cls}`}>
       {statusLabel(s)}
+    </span>
+  );
+}
+
+/**
+ * US-FIN-027 (Onda 22) — Pill workflow aprovação na linha da tabela.
+ * NULL invisível (back-compat — maioria dos títulos não tem workflow).
+ */
+function ApprovalPill({ s }: { s: 'pendente' | 'aprovado' | 'rejeitado' | null }) {
+  if (!s) return null;
+  const map = {
+    pendente:  { cls: 'bg-amber-50 text-amber-700 border-amber-200', icon: '⏳', label: 'Aprov?' },
+    aprovado:  { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: '✓', label: 'Aprov.' },
+    rejeitado: { cls: 'bg-rose-50 text-rose-700 border-rose-200', icon: '✗', label: 'Rejeit.' },
+  }[s];
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[10.5px] font-medium ${map.cls}`}
+      title={`Workflow aprovação: ${map.label}`}
+    >
+      <span>{map.icon}</span>
+      <span>{map.label}</span>
     </span>
   );
 }
@@ -440,7 +482,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       </td>
       <td className="px-2 text-stone-700 truncate max-w-[160px]">{row.contraparte}</td>
       <td className="px-2 text-stone-500 truncate max-w-[140px]">{row.categoria}</td>
-      <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /></div></td>
+      <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-stone-900'}`}>
         <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
@@ -460,6 +502,13 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 // ---------- Página principal ----------
 
 function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
+  // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
+  // shared auth.can vem do HandleInertiaRequests.share (array de permissions).
+  const pageProps = (usePage() as any).props ?? {};
+  const userCanList: string[] = pageProps?.auth?.can ?? [];
+  const canApprove = userCanList.includes('financeiro.titulo.aprovar')
+    || userCanList.includes('superadmin');
+
   const [busca, setBusca] = useState(filters.busca ?? '');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -701,6 +750,46 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
         <span className="fin-filter-sep" />
 
+        {/* US-FIN-027 (Onda 22) — Chips workflow aprovação multi-select.
+            AND com lifecycle (combina filtros). Hidden se nenhum titulo
+            tem aprovacao_status (zero workflow ainda usado em prod). */}
+        {lancamentos.some((l) => l.aprovacao_status !== null) && (
+          <>
+            <div className="fin-filter-group" role="group" aria-label="Filtros por workflow de aprovação">
+              {FILTER_APPROVAL.map((af) => {
+                const on = filters.aprovacao_status.includes(af.id);
+                const count = countByApproval(af.id, lancamentos);
+                if (count === 0 && !on) return null; // esconde chip vazio
+                const toggle = () => {
+                  const next = on
+                    ? filters.aprovacao_status.filter((x) => x !== af.id)
+                    : [...filters.aprovacao_status, af.id];
+                  aplicar({ aprovacao_status: next });
+                };
+                return (
+                  <label
+                    key={af.id}
+                    className={'fin-filter-cb' + (on ? ' on' : '')}
+                    style={{ ['--cb-hue' as string]: af.hue } as React.CSSProperties}
+                  >
+                    <input
+                      type="checkbox"
+                      name={`fin-aprov-${af.id}`}
+                      checked={on}
+                      onChange={toggle}
+                    />
+                    <span className="fin-filter-cb-box" />
+                    <span>{af.label}</span>
+                    <span className="fin-filter-ct">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <span className="fin-filter-sep" />
+          </>
+        )}
+
         <select
           className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
           value={filters.conta}
@@ -936,26 +1025,37 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                           <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-amber-50 text-amber-700 border-amber-200">
                             ⏳ Pendente aprovação
                           </span>
-                          <button
-                            type="button"
-                            className="os-btn ghost fin-btn-trilha"
-                            onClick={() => router.post(`/financeiro/unificado/${selected.id}/aprovar`, {}, { preserveScroll: true })}
-                          >
-                            ✓ Aprovar
-                          </button>
-                          <button
-                            type="button"
-                            className="os-btn ghost"
-                            style={{ color: 'oklch(0.55 0.10 25)' }}
-                            onClick={() => {
-                              const motivo = window.prompt('Motivo da rejeição:');
-                              if (motivo) {
-                                router.post(`/financeiro/unificado/${selected.id}/rejeitar`, { motivo }, { preserveScroll: true });
-                              }
-                            }}
-                          >
-                            ✗ Rejeitar
-                          </button>
+                          {/* US-FIN-028 (Onda 22) — gate Spatie: só users com
+                              `financeiro.titulo.aprovar` veem botões aprovar/rejeitar.
+                              Demais users veem apenas a pill pendente. */}
+                          {canApprove ? (
+                            <>
+                              <button
+                                type="button"
+                                className="os-btn ghost fin-btn-trilha"
+                                onClick={() => router.post(`/financeiro/unificado/${selected.id}/aprovar`, {}, { preserveScroll: true })}
+                              >
+                                ✓ Aprovar
+                              </button>
+                              <button
+                                type="button"
+                                className="os-btn ghost"
+                                style={{ color: 'oklch(0.55 0.10 25)' }}
+                                onClick={() => {
+                                  const motivo = window.prompt('Motivo da rejeição:');
+                                  if (motivo) {
+                                    router.post(`/financeiro/unificado/${selected.id}/rejeitar`, { motivo }, { preserveScroll: true });
+                                  }
+                                }}
+                              >
+                                ✗ Rejeitar
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-[11px] text-stone-500 italic">
+                              Aguardando aprovação de quem tem permissão.
+                            </span>
+                          )}
                         </div>
                       )}
                       {selected.aprovacao_status === 'aprovado' && (
@@ -985,30 +1085,12 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                     >
                       {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
                     </Button>
-                    {/* Onda 20 (2026-05-19) #50 — Anexar arquivo (NF / comprovante) ao título. */}
-                    <Button
-                      variant="outline"
-                      className="ml-auto"
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = '.pdf,.png,.jpg,.jpeg,.xml';
-                        input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (!file) return;
-                          const formData = new FormData();
-                          formData.append('arquivo', file);
-                          router.post(`/financeiro/unificado/${selected.id}/anexos`, formData, {
-                            forceFormData: true,
-                            preserveScroll: true,
-                          });
-                        };
-                        input.click();
-                      }}
-                    >
-                      📎 Anexar
-                    </Button>
+                    {/* Onda 22 US-FIN-026 — botão Anexar inline removido, agora vive no
+                        FinAnexosPanel completo (lista + upload + download + delete) abaixo. */}
                   </div>
+
+                  {/* US-FIN-026 (Onda 22) — painel completo Anexos (substitui botão upload-only Onda 20). */}
+                  <FinAnexosPanel tituloId={selected.id} />
                 </div>
               )}
 

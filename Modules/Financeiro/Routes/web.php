@@ -194,6 +194,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/unificado/{id}/anexos', [UnificadoController::class, 'anexar'])
             ->whereNumber('id')
             ->name('unificado.anexos.store');
+        // US-FIN-026 (Onda 22) — download stream binário (business_id scope no Controller).
+        Route::get('/unificado/{id}/anexos/{anexoId}/download', [UnificadoController::class, 'baixarAnexo'])
+            ->whereNumber('id')
+            ->whereNumber('anexoId')
+            ->name('unificado.anexos.download');
         Route::delete('/unificado/{id}/anexos/{anexoId}', [UnificadoController::class, 'removerAnexo'])
             ->whereNumber('id')
             ->whereNumber('anexoId')
