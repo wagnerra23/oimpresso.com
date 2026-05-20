@@ -397,3 +397,79 @@ Com esse retorno (~30min de Wagner), libera-se passar pra E1 (promover as 2 ADRs
 - [ADR 0170 PaymentGateway Cobranca](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md)
 - [memory/proibicoes.md](../../proibicoes.md)
 - [memory/reference/cliente-rotalivre.md](../../reference/cliente-rotalivre.md) — Larissa biz=4 (Simples Nacional confirmado Wagner 2026-05-20)
+
+---
+
+## ERRATA 2026-05-20 — Audit prod confirma ZERO dados; Ondas 3+4 SKIP (ADR 0174)
+
+> **Append-only — não edita seções acima** (ADR 0094 princípio 7). Apenas adiciona nova realidade descoberta pelo audit empírico do mesmo dia.
+
+### Status real do plano (2026-05-20 tarde, pós-PRs #1244 #1246 + audit MySQL Hostinger)
+
+| Onda | Item original do plano | Estado real |
+|---|---|---|
+| **Onda 0** | Audit produção (3 SQLs + verdade de campo Larissa) | ✅ **DONE** — [session log audit](../../sessions/2026-05-20-audit-accounting-prod-zero-rows.md) confirma 6 tabelas core com ZERO rows |
+| **E1** | Promover ADR 0172 + 0173 `proposals/` → `accepted` | ✅ **DONE** — commit `2bd2bedcb` (PR #1234) mergeado |
+| **— (não no plano)** | Errata BRIEFING (US-ACCO-011, banner deprecação + 2 ERRATA refutando claims falsos) | ✅ **DONE** — PR #1244 mergeado `eef793ffe` |
+| **E2** | PHPDoc `@deprecated` Controllers/Services/Entities | ⏭️ **SKIP simplificado** — pulado pra E3 direto (ROI baixo de PHPDoc num código que vai sair em 30d) |
+| **E3** | UI freeze: sidebar oculta + routes 410 + Pest | ✅ **DONE** — PR #1246 mergeado `d88bf9e1e`, smoke prod 410 LIVE validado via curl |
+| **~~Onda 3~~** (DEPREC-ACC-005 migration script) | ~~Migrar dados `accounts_legacy_map` → `fin_*`~~ | ❌ **SKIP** (ADR 0174) — origem vazia (0 rows); `accounts_legacy_map` JÁ é Financeiro infra |
+| **~~Onda 4 (E4)~~** (DEPREC-ACC-006 view bridge) | ~~Bridge view `accounting_*` → `fin_*` 60d rollback window~~ | ❌ **SKIP** (ADR 0174) — zero código fora de Modules/Accounting consulta essas tabelas (inspeção §6); bridge sem leitor |
+| **Canary 30d** | Monitor logs `/accounting/*` em prod | ⏳ **iniciado 2026-05-20 17:44 UTC** — Onda 5 destrava em 2026-06-19 (`d88bf9e1e` + 30d) |
+| **Onda 5 (E5)** | `git rm Modules/Accounting/` + `modules_statuses=false` + cleanup permissions seeder + drop entry providers.php | ⏳ pending canary 30d |
+| **Onda 6 (E6)** | DROP TABLE 6 vazias + ARCHIVE 2 seed (account_subtypes/account_detail_types) | ⏳ pending Onda 5 + 90d wait |
+
+### Achados do audit que motivam SKIP
+
+```
++-----------------------------------------+------------+
+| tabela                                  | rows_total |
++-----------------------------------------+------------+
+| chart_of_accounts                       |          0 |
+| journal_entries                         |          0 |
+| budgets                                 |          0 |
+| transfers                               |          0 |
+| payment_details                         |          0 |
+| branch_capital                          |          0 |
+| account_subtypes                        |         15 |   ← seed GAAP
+| account_detail_types                    |        139 |   ← seed GAAP
+| accounts_legacy_map                     |         19 |   ← Financeiro infra (biz=1 wr-comercial-delphi)
+| accounts (UltimatePOS core)             |         26 |   ← PRESERVE
+| account_transactions (UltimatePOS core) |      11884 |   ← PRESERVE (biz=4: 11.862)
++-----------------------------------------+------------+
+```
+
+Mais: **zero subscriptions ativas em prod com `accounting_module` no `package_details` JSON.** Match perfeito com inspeção forense §1 ("claim espinha dorsal = falso").
+
+### Subscriptions (estado das 3 principais)
+
+- **sub#118 biz=1 Wagner WR2** — UPDATE aplicado 2026-05-20 17:56 UTC: `JSON_SET(package_details, '$.financeiro_module', '1')`. Wagner agora vê Financeiro na sidebar dele.
+- **sub#153 biz=4 Larissa ROTALIVRE** — já tinha `financeiro_module:"1"` desde sub creation.
+- **sub#116 biz=164 Martinho** — package_details snapshot legacy só tem connector+manufacturing+project. Sem `financeiro_module` (embora package#11 entity catalog tenha). Aguarda decisão Wagner se libera.
+
+### Cronograma compressed
+
+- 2026-05-20: Ondas 0-2 done (1 dia útil real)
+- 2026-05-20 → 2026-06-19: **canary 30d** (humano-limitado wait, monitor logs `/accounting/*`)
+- 2026-06-19 → 2026-06-21: **Onda 5** (~2d trabalho — `git rm` + cleanup seeder + provider)
+- 2026-06-21 → 2026-09-19: **wait 90d** Onda 5 estável
+- 2026-09-19 → 2026-09-21: **Onda 6** (~2d trabalho — DROP TABLE + ARCHIVE mysqldump 5y retention)
+
+**Total trabalho ativo: ~5d úteis** (vs ~18d planejados originalmente — -72%).
+**Total tempo corrido: ~17-18 semanas** (vs ~26 semanas planejadas — -33%).
+
+### Critérios de reverter SKIP durante canary
+
+Detalhados em [ADR 0174 §Critérios pra reverter SKIP](../../decisions/0174-errata-deprecation-plan-accounting-ondas-3-4-skip.md#critérios-pra-reverter-skip). Critério único objetivo: dados aparecendo em `chart_of_accounts`/`journal_entries` durante canary (não esperado).
+
+### Ações pendentes Wagner
+
+1. **Validar sidebar biz=1** (logout+login) — entry "Financeiro" deve aparecer pós UPDATE sub#118
+2. **biz=164 Martinho libera `financeiro_module:"1"`?** — decisão pendente
+3. **Rotacionar senha MySQL `u906587222_oimpresso`** (exposta no contexto Claude via tailscale ssh + grep) — hPanel + Vaultwarden + atualizar `/opt/whatsapp-baileys/build/.env` CT 100 + `.env` Hostinger
+4. **Acompanhar canary 30d** — re-rodar audit semanalmente (suficiente: query "0 rows nas 6 tabelas"). Skill `loop` automatizável.
+
+### Refs adicionais
+
+- [ADR 0174](../../decisions/0174-errata-deprecation-plan-accounting-ondas-3-4-skip.md) — esta errata canon
+- [Session log audit](../../sessions/2026-05-20-audit-accounting-prod-zero-rows.md) — raw output das queries
