@@ -25,10 +25,11 @@ interface FinSubItem {
 const FIN_SUB: FinSubItem[] = [
   { id: 'unified', label: 'Visão unificada', href: '/financeiro/unificado' },
   { id: 'fluxo',   label: 'Fluxo de caixa',  href: '/financeiro/fluxo' },
-  // Onda 16 (2026-05-19) — fix 404: extrato exige conta_id; plano-contas não existe.
+  // Onda 18 (2026-05-19) — /plano-contas agora EXISTE (tela dedicada criada).
+  // Conciliação ainda aponta pra contas-bancarias (Onda 19 cria /conciliacao).
   { id: 'concil',  label: 'Conciliação',      href: '/financeiro/contas-bancarias' },
   { id: 'dre',     label: 'DRE / Relatórios', href: '/financeiro/relatorios' },
-  { id: 'pcontas', label: 'Plano de contas',  href: '/financeiro/categorias' },
+  { id: 'pcontas', label: 'Plano de contas',  href: '/financeiro/plano-contas' },
 ];
 
 export function FinSubNav({ active }: { active: FinSubItem['id'] }) {

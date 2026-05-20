@@ -609,7 +609,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             <RefreshCw size={13} />
             Conciliar
           </button>
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/categorias')} title="Categorias contábeis (vínculo opcional ao plano de contas)">
+          {/* Onda 18 (2026-05-19) — destino real /financeiro/plano-contas (tela dedicada criada).
+              Antes apontava pra /categorias (workaround Onda 16). */}
+          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas hierárquico BR (Receita Federal/DCASP)">
             <FolderOpen size={13} />
             Plano de contas
           </button>
@@ -989,7 +991,8 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/unificado/novo'); }}>Novo lançamento</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/contas-bancarias'); }}>Conciliar extrato</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
-            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/categorias'); }}>Plano de contas / Categorias</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/plano-contas'); }}>Plano de contas</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/categorias'); }}>Categorias livres</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); setResumoOpen(true); }}>
               ✦ Resumir mês (narrativa exec)
             </CommandItem>
