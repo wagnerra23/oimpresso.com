@@ -6,6 +6,7 @@ use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\AsaasWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\BcbPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\C6WebhookController;
+use Modules\PaymentGateway\Http\Controllers\Webhooks\InterPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterWebhookController;
 
 /*
@@ -85,4 +86,16 @@ Route::middleware(['web'])
         Route::post('bcb-pix/{businessId}', [BcbPixWebhookController::class, 'handle'])
             ->whereNumber('businessId')
             ->name('paymentgateway.webhooks.bcb-pix');
+    });
+
+// ─── Webhook PIX Inter US-FIN-032 (Onda 26) ──────────────────────────────
+// Endpoint dedicado /webhooks/inter/{credentialId} com HMAC signature
+// obrigatória (header x-inter-signature) + idempotência por (cred_id, txid)
+// + Job worker enfileirado pra resolver cobranca → titulo.
+// SEM auth — chamado pelo Inter externamente.
+Route::middleware(['web'])
+    ->group(function () {
+        Route::post('webhooks/inter/{credentialId}', [InterPixWebhookController::class, 'handle'])
+            ->whereNumber('credentialId')
+            ->name('paymentgateway.webhooks.inter.pix');
     });
