@@ -1,6 +1,8 @@
 ---
 module: Fiscal
 status: em-implementacao (PR #1 NF-e cockpit)
+version: 1.0.0
+last_updated: 2026-05-20
 piloto: oimpresso biz=1 (Wagner empresa) — depende de NfeBrasil já produção
 last_review: 2026-05-20
 owner: wagner
@@ -27,7 +29,7 @@ na_justified:
 
 Vocabulário completo NFe/NFSe em [NfeBrasil/GLOSSARY.md](../NfeBrasil/GLOSSARY.md).
 
-## 2. User stories
+## User stories
 
 ### US-FISCAL-001 · Cockpit NF-e · NFC-e (sub-página 2)
 
@@ -126,7 +128,7 @@ Then deve receber 403 Forbidden
 - JOIN com `transactions`/`contacts` pra dest_name correto (fallback `metadata->dest_name` neste PR)
 - NFS-e, DF-e, SPED, Cert/Cfg, Eventos (sub-páginas separadas)
 
-## 5. Roadmap PRs
+## Backlog ativo (Roadmap PRs)
 
 | PR | Sub-página(s) | Esforço IA-pair | Score impact |
 |---|---|---|---|
@@ -140,6 +142,18 @@ Then deve receber 403 Forbidden
 
 **Meta:** Score Capterra Fiscal cockpit ≥ 80/100 pós-PR #4 (Wagner aprova).
 
----
+## Histórico
 
 - **v1.0.0** (2026-05-20) — SPEC.md inicial criado em PR #1183 (Fiscal cockpit NF-e). Módulo novo thin agregador.
+
+## Referências
+
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
+- [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
+- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1
+- [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — MWART canônico
+- [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — Cowork loop
+- [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM cancel cascade
+- SCOPE: [`Modules/Fiscal/SCOPE.md`](../../../Modules/Fiscal/SCOPE.md)
+- RUNBOOK: [`RUNBOOK-nfe.md`](RUNBOOK-nfe.md)
+- Visual comparison: [`nfe-visual-comparison.md`](nfe-visual-comparison.md)
