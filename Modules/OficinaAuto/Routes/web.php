@@ -99,6 +99,15 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [ServiceOrderFsmActionController::class, 'startPipeline'])
             ->middleware('throttle:30,1')
             ->name('oficinaauto.service_orders.fsm.start-pipeline');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Wave 7-C — Timeline FSM auditável (gap #1 estado-da-arte FSM screen).
+        // Frontend ServiceOrderTimeline.tsx consome via drawer ServiceOrderSheet.
+        // Espelha GET /api/sells/{id}/history (SaleHistoryController).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('service-orders/{order}/history',
+            [ServiceOrderFsmActionController::class, 'history'])
+            ->name('oficinaauto.service_orders.history');
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
