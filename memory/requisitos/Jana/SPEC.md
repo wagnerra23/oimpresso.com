@@ -861,4 +861,116 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ---
 
-**Última atualização:** 2026-05-15 — US-COPI-106 adicionada (goal #4 CYCLE-06 Jana V2 demo).
+## Roadmap de Ondas (pós-Onda 3, planejado 2026-05-13 — apendado SPEC 2026-05-20)
+
+> Cruza [GAP-ANALYSIS-91-100](GAP-ANALYSIS-91-100-2026-05-13.md) + [ONDA-5-DOSSIER](ONDA-5-DOSSIER-2026-05-13.md). Ondas 1-3 entregues (70%→91% maturidade). Ondas 4-6 ainda não iniciadas — Onda 4 = candidato CYCLE-06 (8d restantes em 2026-05-20).
+
+| Onda | US (nesta SPEC) | Esforço IA-pair | Δ score global | Status | Meta cumulativa |
+|---|---|---:|---:|---|---:|
+| **Onda 1** (bugs MCP sync) | múltiplas COPI legacy | 4d | +10pp (70→80%) | ✅ entregue 2026-05-13 | 80% |
+| **Onda 2** (KB + handoffs) | múltiplas COPI legacy | 12d | +7pp (80→87%) | ✅ entregue 2026-05-13 | 87% |
+| **Onda 3** (consolidação — Reranker RRF + backlinks + RAGAS gate + weekly digest) | múltiplas COPI legacy | 25d (~1d real IA-pair) | +4pp (87→91%) | ✅ entregue 2026-05-13 | 91% |
+| **Onda 4** P0 (R1+L1+C1 — destrava medição honesta) | **US-COPI-107 + 108 + 109** | 5d (~3d real) | +4pp (91→95%) | 🟡 SPEC pronto, tasks MCP pendentes Wagner | 95% |
+| **Onda 5** P1 (K1+V1+H1+S1 — estruturais) | US-COPI-110..113 (pendentes apender) | 9d (~5d real) | +3pp (95→98%) | 🔒 backlog ADR 0144-hibernado, gate Langfuse |  98% |
+| **Onda 6** P2-P3 (A1+M1+G1+F1+L2 — saturação) | n/a (gate sinal qualificado) | 27d (~10d real) | +2pp (98→100%) | ❌ NÃO entrar sem sinal cliente externo (ADR 0105) | 100% (teto não-pragmático) |
+
+**Pré-requisito Onda 4 → Onda 5:** L1 (Langfuse) fechado E rodando ≥14d em prod com métricas live antes de Onda 5 começar — sem isso, Ondas 5-6 viram "subjetivas" (princípio 4 Constituição v2 "Loop fechado por métrica").
+
+**Teto pragmático recomendado:** 97-98% (parar pós-Onda 5). Onda 6 custa 13.5 d/pp e time de 5 não tem dor real — só ativa se cliente externo pedir feature específica via [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
+
+### US-COPI-107 · Onda 4 R1 — Reranker BGE-v2-m3 self-host CT 100
+
+> owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: CYCLE-06
+> blocked_by: — · spawned_from: US-JANA-10X-016 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §2)
+
+**Como** time IA Jana
+**Quero** reranker cross-encoder (BGE-reranker-v2-m3 self-host CT 100) plugado em `MeilisearchDriver` após hybrid recall (Onda 3 RRF)
+**Para** elevar NDCG@10 em ≥6pp medido no dataset 50 queries Wagner, fechando gap Knowledge R3 (60%→90%) e habilitando medição de impacto K1 (time-decay) e L1 (Langfuse) downstream
+
+**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` (novo passo `rerank` opcional via env `JANA_RERANKER_URL`) + container Docker CT 100 (`bge-reranker-v2-m3` via TEI ou Ollama-compat)
+
+**Definition of Done:**
+- [ ] Container CT 100 expõe endpoint reranker (`POST /rerank` → array re-ordenado) — TEI (Text Embeddings Inference HuggingFace) ou alternativa Ollama-compat
+- [ ] `MeilisearchDriver::recall()` chama reranker quando `JANA_RERANKER_URL` setado (opt-in por env, fallback gracioso pra hybrid puro)
+- [ ] Latência p95 <600ms para top-20→top-5 rerank (medido `RetrievalSpan` OTel)
+- [ ] NDCG@10 +6pp validado vs baseline pré-reranker (dataset 50 queries em `Modules/Jana/Tests/Fixtures/RetrievalGoldenSet.php`)
+- [ ] Pest `RerankerIntegrationTest::it preserves business_id scope ao rerankar` (ADR 0093 Tier 0)
+- [ ] Skill `runtime-rules-hostinger-ct100` respeitada (container vai CT 100, NÃO Hostinger — ADR 0062)
+- [ ] Documentação `RETRIEVAL-ESTADO-ARTE-2026-05.md` atualizada com config + métricas observadas
+
+**Non-Goals:**
+- ❌ Reranker hosted SaaS (Cohere Rerank 3.5) — preserva contrato self-host CT 100
+- ❌ Fine-tune do reranker — usar baseline BGE-v2-m3 como-é
+- ❌ Re-treinar Meilisearch embeddings — só camada de re-ranking pós-hybrid
+
+**Refs:** [GAP-ANALYSIS §R1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §2](ONDA-5-DOSSIER-2026-05-13.md) · [BGE-v2-m3 vs Cohere benchmark](https://agentset.ai/rerankers/compare/baaibge-reranker-v2-m3-vs-cohere-rerank-35) · [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+
+---
+
+### US-COPI-108 · Onda 4 L1 — Langfuse v3 self-host CT 100 (MULTIPLICADOR)
+
+> owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · status: todo · type: story · sprint: CYCLE-06
+> blocked_by: — · spawned_from: US-JANA-10X-017 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §3)
+
+**Como** time IA Jana + Wagner (governança custo)
+**Quero** Langfuse v3 self-host em CT 100 (docker-compose: web + worker + ClickHouse + Postgres + Redis + MinIO) instrumentando 100% das chamadas LLM em prod (BriefDiarioAgent + kb-answer + recall + RAGAS gate)
+**Para** ter observability LLM real (trace + cost + latency + RAGAS metrics) — sem isso, claims de "95%+" são não-falsificáveis (princípio 4 Constituição v2). Destrava medição de R1 (reranker NDCG), K1 (time-decay impact), A1 (auto-summary ROI), RAGAS gate trend semanal
+
+**Implementado em:** `infra/ct100/langfuse/docker-compose.yml` (novo) + `Modules/Jana/Ai/Services/LangfuseClient.php` (já existe wrapper) instrumentado em `BriefDiarioAgent` + `KbAnswerService` + `MeilisearchDriver` + Console Command `jana:rag-eval` (RAGAS gate)
+
+**Definition of Done:**
+- [ ] Stack Langfuse v3 rodando CT 100 atrás Traefik HTTPS (subdomínio `langfuse.oimpresso.com` interno) — receita `proxmox-docker-host` skill
+- [ ] `business_id` propagado como TAG em todo trace (ADR 0093 Tier 0) — verificação no UI
+- [ ] BriefDiarioAgent emite trace `brief.gerar` com spans: prompt build / OpenAI call / parse / persist (cost OpenAI USD inline)
+- [ ] kb-answer (tool MCP) emite trace `kb.answer` com spans: hybrid recall / rerank (se US-COPI-107 fechada) / synth
+- [ ] RAGAS gate CI emite traces em batch (`jana:rag-eval` 200 queries/dia)
+- [ ] Dashboard "Custo Brain B por business" filtra por TAG `business_id` (validação isolation)
+- [ ] ADR 0096 superseded por nova "Langfuse v3 self-host CT 100 canon" (substitui claude-code-usage-self standalone)
+- [ ] Skill `runtime-rules-hostinger-ct100` respeitada (NÃO instalar em Hostinger — ADR 0062)
+- [ ] Smoke 7d em prod com Wagner uso real biz=1 antes de declarar fechado
+
+**Non-Goals:**
+- ❌ Langfuse cloud SaaS (preserva soberania + LGPD + custo)
+- ❌ Substituir OTel local (`RetrievalSpan`) — Langfuse complementa, não substitui
+- ❌ Instrumentar 100% módulos não-IA (escopo: chamadas LLM + retrieval)
+
+**Refs:** [GAP-ANALYSIS §L1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [Langfuse v3 self-host docs](https://langfuse.com/self-hosting) · [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0091](../../decisions/0091-daily-brief.md)
+
+---
+
+### US-COPI-109 · Onda 4 C1 — Charters S4 ativos (charter-fetch tool + Tier A)
+
+> owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: CYCLE-06
+> blocked_by: — · spawned_from: US-JANA-10X-018 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §4)
+
+**Como** Claude (agent) + time MCP (Felipe/Maira/Eliana)
+**Quero** tool MCP `charter-fetch <page-id>` exposta + skill `charter-first` Tier A ativa via hook SessionStart, BLOQUEANDO Edit/Write em `resources/js/Pages/**/*.tsx` que tenha `.charter.md` correspondente sem carregar charter primeiro
+**Para** transformar 26 charters hoje dormentes em contrato vivo (resolve dor recorrente "Edit `.tsx` sem ler charter primeiro" + fecha Knowledge G7 + Handoff onboarding)
+
+**Implementado em:** `Modules/Jana/Mcp/Tools/CharterFetchTool.php` (novo) + `.claude/skills/charter-first/SKILL.md` (já existe — promover Tier A) + hook `~/.claude/hooks/charter-preflight-warning.ps1` (espelha `modulo-preflight-warning.ps1`) + ADR 0094 amend "S4 charters live"
+
+**Definition of Done:**
+- [ ] Tool MCP `charter-fetch` retorna frontmatter + Goals + Non-Goals + Anti-hooks + UX targets (JSON)
+- [ ] Skill `charter-first` promovida Tier A (SessionStart auto-load) — atualizar [SKILL.md](.claude/skills/charter-first/SKILL.md) tier + CLAUDE.md raiz lista Tier A
+- [ ] Hook `charter-preflight-warning.ps1` BLOQUEIA Edit em `resources/js/Pages/**/*.tsx` se charter existe mas tool MCP não foi chamada na sessão
+- [ ] ADR 0094 (Constituição v2) recebe amendment "S4 charters live" — escrever ADR nova superseding parcial
+- [ ] Pest `CharterFetchToolTest::it returns parsed charter for valid page-id` + `::it 404s for unknown page-id`
+- [ ] 26 charters validados via tool — listar em `memory/requisitos/_DesignSystem/CHARTERS-INDEX.md` (novo)
+- [ ] Smoke: editar `Cockpit.tsx` Jana e verificar charter-fetch foi chamado (auto-mem trace)
+
+**Non-Goals:**
+- ❌ Migrar charters legacy (formato `.md` ao lado `.tsx` já é canon — ADR 0114)
+- ❌ Auto-gerar charters faltantes (`charter-write` skill já cobre isso sob demanda)
+- ❌ Bloquear sessão inteira se charter ausente — só warning se charter EXISTE mas não foi consumido
+
+**Refs:** [GAP-ANALYSIS §C1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §4](ONDA-5-DOSSIER-2026-05-13.md) · [Agent Charter governance 2026](https://www.iamagazine.com/2026/05/12/agent-charter-creating-an-ai-governance-framework-to-ensure-operational-reliance/) · [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
+
+---
+
+## Histórico (Roadmap de Ondas)
+
+- **v2.0.0** (2026-05-20) — Apendado seção "Roadmap de Ondas" + US-COPI-107/108/109 (Onda 4 P0: Reranker BGE-v2-m3 + Langfuse v3 + Charters S4). Cruza [GAP-ANALYSIS-91-100](GAP-ANALYSIS-91-100-2026-05-13.md) + [ONDA-5-DOSSIER](ONDA-5-DOSSIER-2026-05-13.md). Mapping: US-COPI-107=US-JANA-10X-016 (R1) · US-COPI-108=US-JANA-10X-017 (L1) · US-COPI-109=US-JANA-10X-018 (C1). Ondas 5-6 ficam como backlog visível na tabela — entrarão como US-COPI-110..113 quando Onda 4 fechar + Langfuse rodar 14d. Tasks MCP NÃO criadas — Wagner aprova batch.
+
+---
+
+**Última atualização:** 2026-05-20 — v2.0.0 Roadmap de Ondas + Onda 4 P0 (US-COPI-107/108/109) apendados (Escopo B aprovado por Wagner).
