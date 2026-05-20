@@ -459,6 +459,23 @@
   border-color: oklch(0.92 0.005 80) !important;
 }
 
+/* Onda 25 (2026-05-20) — Drawer overflow horizontal fix.
+   Sintoma: "Internet + telefonia maio", "Conciliado com extr...", "R$ [redacted Tier 0]"
+   cortados na borda direita do drawer; tabs Editar cortado.
+   Root cause (via JS check em prod):
+   - SheetContent shadcn tem padding:0 (sem px-5 lateral)
+   - fin-output.css:685 define `.fin-cowork .fin-drawer-tabs { margin: 12px -18px 0 }`
+     — esse margin negativo era pra "sangrar" o nav até as bordas quando o
+     aside parent tinha px-5. Mas SheetContent sem padding → nav vai PRA FORA
+     do drawer (width 595px vs drawer 559px).
+   - Body div `mt-3 space-y-5` sem px lateral → conteúdo cola na borda.
+   Fix em duas frentes:
+   (a) Override CSS aqui — zerar margin negativo do nav DENTRO do portal
+   (b) Adicionar px-5 no body div via Edit no Index.tsx (commit separado abaixo) */
+[role="dialog"].fin-cowork .fin-drawer-tabs {
+  margin: 0 !important;
+}
+
 /* Onda 23 (2026-05-20) — alinhar glyphs Unicode (✦ ✎) com texto nos tabs.
    Glyphs Unicode tem altura visual diferente das letras — wrap em span com
    font-size menor + line-height: 1 + inline-flex align-items: center

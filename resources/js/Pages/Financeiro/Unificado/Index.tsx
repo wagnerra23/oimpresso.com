@@ -1438,7 +1438,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
               {/* Aba Detalhes — info + audit + comments + actions */}
               {drawerTab === 'detalhes' && (
-                <div className="mt-3 space-y-5 text-[13px]">
+                <div className="mt-3 px-5 space-y-5 text-[13px]">
                   {/* Onda 17 (2026-05-20) — Hierarquia visual canon: UPPERCASE label colorido
                       por status + date 22px BIG + amount 34px BIG (verde se receivable, stone
                       se payable) + StatusPill + FrescorPill inline.
@@ -1658,7 +1658,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
               {/* Aba IA — insights computacionais (Anomaly + Party History) */}
               {drawerTab === 'ia' && (
-                <div className="mt-3 space-y-4 text-[13px] fin-ai-panel">
+                <div className="mt-3 px-5 space-y-4 text-[13px] fin-ai-panel">
                   <FinAnomalyDetector
                     row={{
                       id: selected.id,
@@ -1686,7 +1686,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
               {/* Aba Editar — Onda 10 canon 100%: form INLINE real (PUT /financeiro/unificado/{id}) */}
               {drawerTab === 'editar' && (
-                <div className="mt-3">
+                <div className="mt-3 px-5">
                   <FinEditPanel
                     lancamento={selected}
                     categorias={categorias}
