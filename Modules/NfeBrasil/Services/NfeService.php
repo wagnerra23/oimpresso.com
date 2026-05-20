@@ -840,6 +840,138 @@ class NfeService
         });
     }
 
+    /**
+     * US-FISCAL-014 — Retransmite NFe rejeitada/denegada/erro_envio via SEFAZ.
+     *
+     * Contexto: quando SEFAZ recusa emissão (cstat ≠ 100 — ex 539 duplicidade,
+     * 778 CSTUF inválido, 691 NCM divergente) ou o request falha (erro_envio
+     * por timeout/rede), a NfeEmissao fica com número "perdido" (não declarado
+     * oficialmente). Retransmitir = pegar próximo número novo + re-enviar pra
+     * SEFAZ com payload re-derivado da Transaction associada.
+     *
+     * Estratégia:
+     *  1. Valida emissao status in [rejeitada, denegada, erro_envio]
+     *  2. Cross-tenant guard
+     *  3. Verifica transaction_id != null (emissões manuais sem TX exigem
+     *     scope dedicado — fora deste PR)
+     *  4. `forceDelete()` na NfeEmissao antiga (libera UNIQUE constraint
+     *     business_id+transaction_id). Audit preservado via Spatie LogsActivity
+     *     (Wave 18 D7 — log captura status/cstat/motivo/numero/chave_44).
+     *  5. Chama `emitirParaTransaction($tx, $modelo)` que cria NfeEmissao NOVA
+     *     com próximo número (proximoNumeroLocked withTrashed = sequencial
+     *     fiscal monotônico, sem reuso).
+     *
+     * Side-effect crítico: o número fiscal da NfeEmissao antiga NÃO é
+     * inutilizado SEFAZ aqui — fica como "buraco" no sequencial. Cliente deve
+     * rodar inutilização SEFAZ (US-SELL-030 / PR #5 inutilizar faixa) pra
+     * fechar buracos anualmente. Documentado em SPEC US-FISCAL-014 Non-Goals.
+     *
+     * Limitações conhecidas:
+     *  - Só funciona pra NfeEmissao com transaction_id != null (NFC-e PDV
+     *    + NF-e B2B Sells canon)
+     *  - Não corrige causa raiz da rejeição — se cstat foi 691 (NCM divergente),
+     *    é responsabilidade do usuário corrigir cadastro produto ANTES de
+     *    retransmitir (mapa "Jana sugere" no NotaDrawer guia a receita).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): businessId session via cross-tenant guard.
+     *
+     * @throws InvalidArgumentException   Status não-retransmissível
+     * @throws UnauthorizedActionException Cross-tenant
+     * @throws RuntimeException           Sem transaction_id / TX não encontrada
+     */
+    public function retransmitir(
+        int $businessId,
+        int $nfeEmissaoId,
+    ): NfeEmissao {
+        return OtelHelper::spanBiz('nfe.retransmitir', function () use ($businessId, $nfeEmissaoId): NfeEmissao {
+            return $this->retransmitirInterno($businessId, $nfeEmissaoId);
+        }, [
+            'module'         => 'NfeBrasil',
+            'nfe_emissao_id' => $nfeEmissaoId,
+        ]);
+    }
+
+    private function retransmitirInterno(int $businessId, int $nfeEmissaoId): NfeEmissao
+    {
+        // ── 1. Carrega NfeEmissao sem global scope (cross-tenant guard explícito) ──
+        $emissao = NfeEmissao::withoutGlobalScopes()->find($nfeEmissaoId);
+        if (! $emissao) {
+            throw new RuntimeException("NfeEmissao {$nfeEmissaoId} não encontrada.");
+        }
+
+        // ── 2. Cross-tenant guard ──────────────────────────────────────────
+        if ((int) $emissao->business_id !== $businessId) {
+            throw new UnauthorizedActionException(
+                "Cross-tenant attempt: business {$businessId} tentou retransmitir NfeEmissao "
+                . "{$nfeEmissaoId} de business {$emissao->business_id}."
+            );
+        }
+
+        // ── 3. Valida status retransmissível ───────────────────────────────
+        $statusValidos = ['rejeitada', 'denegada', 'erro_envio'];
+        if (! in_array($emissao->status, $statusValidos, true)) {
+            throw new InvalidArgumentException(
+                "Retransmissão só aplica em NFe rejeitada/denegada/erro_envio. "
+                . "Status atual: {$emissao->status}."
+            );
+        }
+
+        // ── 4. Verifica transaction_id (manual emissions exigem scope dedicado) ──
+        if ($emissao->transaction_id === null) {
+            throw new RuntimeException(
+                "NfeEmissao {$emissao->id} sem transaction_id (emissão manual). "
+                . 'Retransmissão de emissões manuais sem TX exige scope dedicado.'
+            );
+        }
+
+        $tx = Transaction::find($emissao->transaction_id);
+        if (! $tx) {
+            throw new RuntimeException(
+                "Transaction {$emissao->transaction_id} (vinculada NfeEmissao {$emissao->id}) "
+                . 'não encontrada. Não é possível re-derivar payload.'
+            );
+        }
+
+        $modelo = (string) $emissao->modelo;
+        $numeroOriginal = $emissao->numero;
+        $serieOriginal = $emissao->serie;
+        $statusOriginal = $emissao->status;
+        $cstatOriginal = $emissao->cstat;
+
+        Log::info('NfeService.retransmitir: iniciando retransmissão', [
+            'business_id'    => $businessId,
+            'nfe_emissao_id' => $emissao->id,
+            'numero_antigo'  => $numeroOriginal,
+            'serie_antigo'   => $serieOriginal,
+            'status_antigo'  => $statusOriginal,
+            'cstat_antigo'   => $cstatOriginal,
+            'transaction_id' => $tx->id,
+        ]);
+
+        // ── 5. forceDelete antigo (libera UNIQUE biz+tx; audit via Spatie) ──
+        // Spatie LogsActivity (Wave 18 D7) já registrou 'updated' nas mudanças
+        // status anteriores. O 'deleted' event aqui não loga payload completo
+        // (logOnly em getActivitylogOptions captura apenas chave_44/numero/etc).
+        // Pra audit fiscal trail: activity_log + NfeEvento (eventos SEFAZ associados).
+        $emissao->forceDelete();
+
+        // ── 6. Re-emite via fluxo canon emitirParaTransaction ──────────────
+        // Cria NfeEmissao NOVA com próximo número (proximoNumeroLocked
+        // withTrashed = sequencial monotônico — não reusa numero antigo).
+        $nova = $this->emitirParaTransaction($tx, $modelo);
+
+        Log::info('NfeService.retransmitir: retransmissão concluída', [
+            'business_id'    => $businessId,
+            'transaction_id' => $tx->id,
+            'numero_antigo'  => $numeroOriginal,
+            'numero_novo'    => $nova->numero,
+            'status_novo'    => $nova->status,
+            'cstat_novo'     => $nova->cstat,
+        ]);
+
+        return $nova;
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // Privados
     // ────────────────────────────────────────────────────────────────────────

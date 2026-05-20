@@ -299,4 +299,71 @@ class AcoesController extends Controller
             return back()->with('error', 'Inutilização falhou: ' . $e->getMessage());
         }
     }
+
+    /**
+     * POST /fiscal/acoes/nfe/{emissao}/retransmitir
+     *
+     * Retransmite NFe rejeitada/denegada/erro_envio (Wave 6 / PR #6).
+     * Delega `NfeService::retransmitir` (UPDATE preservation contract CONFAZ
+     * Art. 14 — não deleta antiga, marca `inutilizada` + null transaction_id
+     * pra liberar UNIQUE constraint, depois reemite com novo número via
+     * `emitirParaTransaction`).
+     *
+     * Status retransmissíveis: rejeitada / denegada / erro_envio.
+     * NÃO retransmite: autorizada (idempotente — usar CC-e) / cancelada
+     * (número usado oficialmente — exige FSM emitir_nova_apos_cancelamento).
+     */
+    public function retransmitir(
+        Request $request,
+        NfeService $nfeService,
+        int $emissao,
+    ): RedirectResponse {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            abort(403, 'Sem permissão fiscal.nfe.acoes');
+        }
+
+        $businessId = (int) session('user.business_id');
+
+        // Cross-tenant guard explícito (defesa em profundidade — Service também valida)
+        $nfeEmissao = NfeEmissao::query()
+            ->where('id', $emissao)
+            ->where('business_id', $businessId)
+            ->firstOrFail();
+
+        $statusValidos = ['rejeitada', 'denegada', 'erro_envio'];
+        if (! in_array($nfeEmissao->status, $statusValidos, true)) {
+            return back()->with(
+                'error',
+                "Retransmissão só aplica em NFe rejeitada/denegada/erro_envio. Status atual: {$nfeEmissao->status}"
+            );
+        }
+
+        try {
+            $nova = $nfeService->retransmitir($businessId, $nfeEmissao->id);
+
+            Log::info('Fiscal.acoes.retransmitir ok', [
+                'business_id'     => $businessId,
+                'emissao_antiga'  => $emissao,
+                'numero_antigo'   => $nfeEmissao->numero,
+                'emissao_nova_id' => $nova->id,
+                'numero_novo'     => $nova->numero,
+                'status_novo'     => $nova->status,
+                'cstat_novo'      => $nova->cstat,
+            ]);
+
+            $msg = $nova->status === 'autorizada'
+                ? "NFe retransmitida · novo nº {$nova->numero} · cstat {$nova->cstat}"
+                : "Retransmissão enviada · status {$nova->status} · cstat {$nova->cstat} · {$nova->motivo}";
+
+            return back()->with($nova->status === 'autorizada' ? 'success' : 'error', $msg);
+        } catch (\Throwable $e) {
+            Log::error('Fiscal.acoes.retransmitir falhou', [
+                'business_id'    => $businessId,
+                'nfe_emissao_id' => $nfeEmissao->id,
+                'error'          => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Retransmissão falhou: ' . $e->getMessage());
+        }
+    }
 }

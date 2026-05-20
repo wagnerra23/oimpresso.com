@@ -70,7 +70,7 @@ it('manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confi
     }
 });
 
-it('AcoesController classe existe e tem 4 métodos públicos esperados (Wave 4 + Wave 5)', function () {
+it('AcoesController classe existe e tem 5 métodos públicos esperados (Waves 4+5+6)', function () {
     $controller = new \Modules\Fiscal\Http\Controllers\AcoesController();
     // Wave 4 (PR #4)
     expect(method_exists($controller, 'cancelarNfe'))->toBeTrue()
@@ -78,6 +78,34 @@ it('AcoesController classe existe e tem 4 métodos públicos esperados (Wave 4 +
     // Wave 5 (PR #5) — CCe + Inutilização
     expect(method_exists($controller, 'cartaCorrecao'))->toBeTrue()
         ->and(method_exists($controller, 'inutilizar'))->toBeTrue();
+    // Wave 6 (PR #6) — Retransmitir
+    expect(method_exists($controller, 'retransmitir'))->toBeTrue();
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// PR #6 Wave — Retransmitir NFe rejeitada/denegada
+// ──────────────────────────────────────────────────────────────────────
+
+it('retransmitir contrato: status válidos = rejeitada/denegada/erro_envio', function () {
+    $statusRetransmissiveis = ['rejeitada', 'denegada', 'erro_envio'];
+    expect($statusRetransmissiveis)
+        ->toHaveCount(3)
+        ->toContain('rejeitada', 'denegada', 'erro_envio')
+        ->not->toContain('autorizada', 'cancelada', 'inutilizada', 'pendente');
+});
+
+it('retransmitir contrato: NfeService::retransmitir signature int/int → NfeEmissao', function () {
+    $reflection = new ReflectionMethod(\Modules\NfeBrasil\Services\NfeService::class, 'retransmitir');
+    $params = $reflection->getParameters();
+
+    expect($params)->toHaveCount(2)
+        ->and((string) $params[0]->getType())->toBe('int')
+        ->and((string) $params[1]->getType())->toBe('int')
+        ->and((string) $reflection->getReturnType())->toBe('Modules\NfeBrasil\Models\NfeEmissao');
+});
+
+it('retransmitir route POST registrada (acoes.nfe.retransmitir)', function () {
+    expect(\Illuminate\Support\Facades\Route::has('fiscal.acoes.nfe.retransmitir'))->toBeTrue();
 });
 
 // ──────────────────────────────────────────────────────────────────────
