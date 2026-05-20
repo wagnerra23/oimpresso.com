@@ -967,14 +967,20 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             <tbody>
               {grupos.map(([key, rows]) => {
                 const [, label] = key.split('|');
+                // Wagner 2026-05-20: modo compact NAO mostra agrupador (linha por data
+                // ja tem coluna VENCIMENTO explicita), comfortable mantem header
+                // pra orientacao macro em listas longas.
+                const showGroupHeader = filters.densidade === 'comfortable';
                 return (
                   <React.Fragment key={key}>
-                    <tr><td colSpan={8} className="bg-stone-50/70 border-b border-stone-200">
-                      <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
-                        <span>{label}</span>
-                        <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
-                      </div>
-                    </td></tr>
+                    {showGroupHeader && (
+                      <tr><td colSpan={8} className="bg-stone-50/70 border-b border-stone-200">
+                        <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+                          <span>{label}</span>
+                          <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
+                        </div>
+                      </td></tr>
+                    )}
                     {rows.map(r => (
                       <LinhaTabela
                         key={r.id} row={r} dens={dens}
