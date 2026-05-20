@@ -78,6 +78,7 @@ const TOPNAV_ICON_MAP: Record<string, LucideIcon> = {
 
 import { useAutoModuleNav } from '@/Hooks/usePageProps';
 import CommandPalette from '@/Components/CommandPalette';
+import PwaInstallBanner from '@/Components/shared/PwaInstallBanner';
 
 import '../../css/cockpit.css';
 
@@ -389,6 +390,9 @@ export default function AppShellV2({
   return (
     <>
       {title && <Head title={title} />}
+      {/* PWA install banner (US-FIN-036) — auto-detecta rota /financeiro/* e
+          beforeinstallprompt; fora desse contexto renderiza null. */}
+      <PwaInstallBanner />
       <div
         className="cockpit"
         data-linked={!conversaFoco || linkedCollapsed ? 'off' : 'on'}
