@@ -1349,10 +1349,34 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <SheetContent side="right" className="fin-cowork fin-drawer-wide w-[560px] sm:max-w-[560px]">
           {selected && (
             <>
+              {/* Onda 17 (2026-05-20) — Header canon match prototype financeiro-app.jsx:739-754.
+                  Pre-title UPPERCASE "A receber/A pagar · #ID" + DirIcon + conferido inline.
+                  Descrição main title bold 14px linkified. */}
               <SheetHeader>
-                <SheetTitle className="text-[16px]">
-                  <FinCrossLinkify text={selected.descricao} />
-                </SheetTitle>
+                <div className="flex items-start gap-2.5">
+                  <span
+                    className={
+                      'inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ' +
+                      (selected.kind === 'receivable'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-stone-100 text-stone-700 border border-stone-200')
+                    }
+                    aria-hidden
+                  >
+                    {selected.kind === 'receivable' ? '↑' : '↓'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium flex items-center gap-2">
+                      <span>{selected.kind === 'receivable' ? 'A receber' : 'A pagar'} · #{selected.id}</span>
+                      {selected.conferido_at && (
+                        <span className="text-[10px] text-emerald-700 font-medium normal-case tracking-normal">✓ conferido</span>
+                      )}
+                    </div>
+                    <SheetTitle className="text-[14px] font-semibold mt-0.5 truncate">
+                      <FinCrossLinkify text={selected.descricao} />
+                    </SheetTitle>
+                  </div>
+                </div>
               </SheetHeader>
 
               {/* Nav de abas — Cowork canon V2.1 (3 abas: Detalhes/IA/Editar) */}
@@ -1412,27 +1436,101 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
               {/* Aba Detalhes — info + audit + comments + actions */}
               {drawerTab === 'detalhes' && (
-                <div className="mt-3 space-y-4 text-[13px]">
-                  <div className="flex items-center gap-2 fin-toggles-row">
-                    <StatusPill s={selected.status} />
-                    <FinPillFrescor row={{ due: selected.vencimento, paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null, vencimento: selected.vencimento }} />
-                    <span className="ml-auto font-semibold tabular-nums text-[16px]">{brl(selected.valor)}</span>
-                  </div>
+                <div className="mt-3 space-y-5 text-[13px]">
+                  {/* Onda 17 (2026-05-20) — Hierarquia visual canon: UPPERCASE label colorido
+                      por status + date 22px BIG + amount 34px BIG (verde se receivable, stone
+                      se payable) + StatusPill + FrescorPill inline.
+                      Match prototype financeiro-app.jsx:772-806. */}
+                  {(() => {
+                    const settled = selected.status === 'recebido' || selected.status === 'pago';
+                    const labelTone =
+                      selected.status === 'atrasado' ? 'text-rose-700'
+                      : selected.status === 'vencendo' ? 'text-amber-700'
+                      : 'text-stone-500';
+                    return (
+                      <div>
+                        <div className={`text-[11px] uppercase tracking-widest font-medium ${labelTone}`}>
+                          {settled ? 'Liquidado' : 'Vencimento'}
+                        </div>
+                        <div className="mt-1 flex items-baseline gap-2">
+                          <div className="text-[22px] font-semibold tracking-tight tabular-nums">
+                            {settled && selected.liquidacao ? selected.liquidacao : selected.vencimento_label}
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-baseline gap-2 flex-wrap">
+                          <div className={`text-[34px] font-semibold tracking-tight tabular-nums ${selected.kind === 'receivable' ? 'text-emerald-700' : 'text-stone-900'}`}>
+                            {selected.kind === 'receivable' ? '+ ' : '− '}{brl(selected.valor)}
+                          </div>
+                          <StatusPill s={selected.status} />
+                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <FinConferidoToggle rowId={selected.id} conferido={conferido} />
 
-                  <dl className="grid grid-cols-2 gap-y-2 text-[12.5px]">
-                    <dt className="text-stone-500">Contraparte</dt><dd>{selected.contraparte}{selected.contraparte_doc && <span className="block text-stone-500">{selected.contraparte_doc}</span>}</dd>
-                    <dt className="text-stone-500">Categoria</dt><dd>{selected.categoria}</dd>
-                    <dt className="text-stone-500">Conta</dt><dd>{selected.conta_bancaria}</dd>
-                    <dt className="text-stone-500">Vencimento</dt><dd>{selected.vencimento_label}</dd>
-                    {selected.liquidacao && <><dt className="text-stone-500">Liquidação</dt><dd>{selected.liquidacao}</dd></>}
-                    {selected.nfe_numero && <><dt className="text-stone-500">NF-e</dt><dd>{selected.nfe_numero}</dd></>}
-                    {selected.canal && <><dt className="text-stone-500">Canal</dt><dd>{selected.canal}</dd></>}
-                  </dl>
+                  {/* Onda 18 (2026-05-20) — Grid 2-col canon match prototype financeiro-app.jsx:808-831.
+                      Cells: Contraparte / Categoria / Canal / Documento (col-1) + Conta col-span-2
+                      com bank icon. Labels UPPERCASE tracking-widest text-stone-500. */}
+                  <div className="border-t border-stone-100 pt-4 grid grid-cols-2 gap-y-3 gap-x-3">
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Contraparte</div>
+                      <div className="mt-0.5 font-medium text-stone-900">{selected.contraparte}</div>
+                      {selected.contraparte_doc && <div className="text-[11px] text-stone-500 font-mono">{selected.contraparte_doc}</div>}
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Categoria</div>
+                      <div className="mt-0.5 text-stone-700">{selected.categoria || '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Canal</div>
+                      <div className="mt-0.5 text-stone-700">{selected.canal || 'manual'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Documento</div>
+                      <div className="mt-0.5 text-stone-700 font-mono text-[12px]">{selected.nfe_numero || '—'}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conta</div>
+                      <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
+                        <span className="text-stone-400" aria-hidden>🏦</span>
+                        <span>{selected.conta_bancaria || '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {selected.observacao && (
                     <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
                   )}
+
+                  {/* Onda 19 (2026-05-20) — Bloco Conciliação extrato canon match prototype
+                      financeiro-app.jsx:833-851. Settled = green card "Conciliado com extrato",
+                      not settled = stone card "Sem match. Ao liquidar...". */}
+                  {(() => {
+                    const settled = selected.status === 'recebido' || selected.status === 'pago';
+                    return (
+                      <div className="border-t border-stone-100 pt-4">
+                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conciliação extrato</div>
+                        {settled ? (
+                          <div className="mt-2 rounded-md border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 flex items-start gap-2.5">
+                            <span className="text-emerald-700 mt-0.5" aria-hidden>🔗</span>
+                            <div className="text-[12.5px]">
+                              <div className="text-emerald-800 font-medium">Conciliado com extrato bancário</div>
+                              <div className="text-emerald-700/80">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-2 rounded-md border border-stone-200 px-3 py-2.5 text-[12.5px] text-stone-600 flex items-start gap-2.5">
+                            <span className="text-stone-500 mt-0.5" aria-hidden>✦</span>
+                            <div>
+                              Sem match no extrato. Ao liquidar, o sistema procura linhas próximas (±R$ [redacted Tier 0] e ±2 dias) e sugere conciliação automática.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div className="border-t border-stone-200 pt-4">
                     <FinAuditTrail row={{
@@ -1518,22 +1616,37 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     </div>
                   )}
 
+                  {/* Onda 21 (2026-05-20) — Footer canon match prototype financeiro-app.jsx:878-897.
+                      Sequência: Ver NFe (se houver) → Cobrar (receivable não-quitado) →
+                      Recebi/Paguei (primary verde grande) → Editar → Favoritar. */}
                   <div className="fin-drawer-footer">
-                    {(selected.status !== 'recebido' && selected.status !== 'pago') && (
-                      <Button onClick={() => onBaixar(selected.id)}>
-                        {selected.kind === 'receivable' ? 'Marcar recebido' : 'Marcar pago'}
+                    {selected.nfe_numero && (
+                      <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Ver NFe" onClick={() => router.visit(`/fiscal/nfe?numero=${selected.nfe_numero}`)}>
+                        <span aria-hidden>👁</span>
+                        <span className="ml-1">Ver NFe</span>
                       </Button>
                     )}
-                    <Button variant="outline" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
+                    {selected.kind === 'receivable' && (selected.status !== 'recebido') && (
+                      <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Cobrar contraparte" onClick={() => router.visit(`/cobranca/recorrente/nova?titulo=${selected.id}`)}>
+                        <span aria-hidden>✉</span>
+                        <span className="ml-1">Cobrar</span>
+                      </Button>
+                    )}
+                    {(selected.status !== 'recebido' && selected.status !== 'pago') && (
+                      <Button onClick={() => onBaixar(selected.id)} className="fin-foot-mark-btn">
+                        <span aria-hidden>✓</span>
+                        <span className="ml-1">{selected.kind === 'receivable' ? 'Recebi' : 'Paguei'}</span>
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => favs.toggle(selected.id)}
                       title="Atalho: B (com a linha selecionada)"
                     >
                       {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
                     </Button>
-                    {/* Onda 22 US-FIN-026 — botão Anexar inline removido, agora vive no
-                        FinAnexosPanel completo (lista + upload + download + delete) abaixo. */}
                   </div>
 
                   {/* US-FIN-026 (Onda 22) — painel completo Anexos (substitui botão upload-only Onda 20). */}
