@@ -3,15 +3,15 @@ page: /financeiro/unificado
 component: resources/js/Pages/Financeiro/Unificado/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-18
+last_validated: 2026-05-20
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
 related_adrs: [arq/0005, ui/0002, ui/0114, 0093, 0094]
-related_us: [US-FIN-013, US-FIN-020]
-related_prototype: prototipo Cowork "Visao Unificada" (Financeiro.html), aprovado por Wagner 2026-05-09
-canon_method: Cowork KB-9.75 v2 — Ondas 5+6+7 (R1 Curadoria + R2 IA + R3 Output · PR #1064/#1066/#1068/#1069 + Onda 7 atual)
+related_us: [US-FIN-013, US-FIN-020, US-FIN-050-anexos, US-FIN-055-aprovacao]
+related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)
+canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 tier: A
-charter_version: 5
+charter_version: 6
 ---
 
 # Page Charter — /financeiro/unificado
@@ -28,6 +28,33 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Ondas 12-21 KB CANON CSS BUNDLE COMPLETO** (2026-05-20, charter v6):
+  - **Bundle copy CSS 9054 LOC** — `resources/css/cowork-canon-financeiro-bundle.css` importado inteiro escopado em `.fin-cowork` (regra Tier 0 `feedback-cowork-bundle-aplicar-inteiro`). Substitui cherry-pick fragmentado.
+  - **Markup canon EXATO**: `os-page-h fin-page-h` (header) + `os-page-h-l/r` (left/right) + `fin-stat fin-stat-hero` (KPI hero warm dark hue 80) + `os-btn ghost` (botões transparentes) + `os-drawer-head` (drawer header) + `fin-footer-tips sticky` (footer atalhos+summary).
+  - **Plano de Contas filtro** (Onda 12.7) — substitui Categorias livres no dropdown filtro. Backend: `where('plano_conta_id', $id)` com fallback OR categoria_id. Hierárquico BR (47 entries Receita Federal/DCASP seedados via `PlanoContasBrSeeder`).
+  - **Filtros lifecycle default ON** (Onda 12.5) — pills coloridos hue semântico (verde 145 receber/recebidas · rosa 25 a pagar · azul 240 pagas). Toggle "Só atrasados" classe distinta `fin-filter-toggle` (não `fin-filter-cb`).
+  - **Densidade compact default** (Onda 12.6) — remove modo "spacious" (não usado). Apenas 2 modos: compacto/médio.
+  - **Footer sticky bottom** colado na viewport com summary numérica (`N lançamentos · entrada R$ X · saída R$ Y`) + atalhos teclado.
+  - **KPI strip full width** (Onda 12.7) — grid 5 cards 100% container.
+  - **Hue accent custom via localStorage** — `cockpit.theme.accentHue` default 220 azul canon (Wagner pode mudar via picker UI).
+
+- **Onda 20 #50 — Anexos NF/comprovante** (2026-05-20, charter v6):
+  - **Botão `📎 Anexar`** no drawer dispara file input invisible → POST `/financeiro/unificado/{id}/anexos` (multipart 10MB max)
+  - **Storage local privado** `storage/app/private/financeiro/anexos/{biz_id}/{titulo_id}/` (não public)
+  - **Idempotência SHA-256** — não duplica upload do mesmo arquivo (toast warning)
+  - **Aceita** .pdf, .png, .jpg, .jpeg, .xml (NF eletrônica)
+  - **Backend**: `TituloAnexo` model + 3 endpoints (listarAnexos GET + anexar POST + removerAnexo DELETE) + tabela `fin_titulo_anexos`
+
+- **Onda 21 #55 — Workflow aprovação pagamento** (2026-05-20, charter v6):
+  - **Visível só pra título kind=payable + status=aberto/atrasado/vencendo** (não aplica receivable)
+  - **3 estados condicionais**:
+    - `null` (default — sem fluxo): botão "⏳ Solicitar aprovação" → POST `/solicitar-aprovacao`
+    - `'pendente'`: pill amber + botões "✓ Aprovar" / "✗ Rejeitar (motivo)"
+    - `'aprovado'`: pill emerald "liberado pra pagamento"
+    - `'rejeitado'`: pill rose "bloqueado pra pagamento"
+  - **Backend**: 3 endpoints + 4 campos novos em `fin_titulos` (aprovacao_status enum + aprovado_by + aprovado_at + aprovacao_motivo)
+  - **Backward compat**: títulos antigos com `aprovacao_status=NULL` seguem fluxo direto (sem aprovação obrigatória)
 
 - **Onda Edit** (2026-05-18, charter v5):
   - **TituloEditSheet** — Sheet drawer inline edita campos seguros do título: `cliente_descricao` (texto livre + cross-links `#V-/#OS-/#PC-`), `observacoes`, `categoria_id`, `vencimento`. `valor_total` mutável SOMENTE se `status` aberto/parcial (ADR fin-tech/0002 imutabilidade pós-baixa). PUT `/financeiro/unificado/{id}` via `useForm` Inertia. Wire-up no botão "Editar" do drawer de detalhe.
