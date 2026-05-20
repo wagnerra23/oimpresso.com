@@ -259,8 +259,19 @@ interface SparkPoint { date: string; saldo: number; in: number; out: number }
 function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?: SparkPoint[] | null }) {
   const color = tone === 'pos' ? 'oklch(0.78 0.13 145)' : 'oklch(0.65 0.18 25)';
 
-  // Sem dados → fallback placeholder estático (Onda 8 inicial)
-  if (!points || points.length < 2) {
+  // Fallback placeholder estático (canon Cowork v1). Usado quando:
+  //  - sem dados (points null ou < 2)
+  //  - saldos todos iguais (range == 0 → linha plana invisível, ex.: biz novo
+  //    sem baixas no período, ou seeder demo sem TituloBaixa). Wagner pediu
+  //    refazer 2026-05-20: melhor mostrar oscilação visual canon do que linha
+  //    horizontal "morta" no hero card preto.
+  const renderPlaceholder = !points || points.length < 2 || (() => {
+    if (!points || points.length < 2) return true;
+    const saldos = points.map((p) => p.saldo);
+    return Math.max(...saldos) === Math.min(...saldos);
+  })();
+
+  if (renderPlaceholder) {
     return (
       <svg className="fin-spark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true">
         <defs>
@@ -340,13 +351,46 @@ function useSparkline30d(): SparkPoint[] | null {
   return points;
 }
 
-function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
+function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancamentos: Lancamento[]; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
   // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
   // Onda 8c: sparkline alimentado por endpoint backend (30d real).
+  // PR 2/5 (2026-05-20): breakdown rico KPIs (Wagner Fase 4 gap dim 4):
+  //  - "A receber" agora mostra "R$ X em atraso" (canon: 6 entradas /
+  //     R$ 7.738,00 em atraso). Calc client-side filtra status=atrasado.
+  //  - "A pagar" agora mostra "próx. <dia mes> · <contraparte>" (canon:
+  //     "próx. 10 mai · Suprigraf"). Calc client-side ordena payables
+  //     abertos por vencimento.
   const pendente = kpis.a_receber.valor - kpis.a_pagar.valor;
   const sparkPoints = useSparkline30d();
+
+  // PR 2 — hint rico A receber: valor atrasado (subset de a_receber).
+  const atrasadoReceber = useMemo(() => {
+    return lancamentos
+      .filter((l) => l.kind === 'receivable' && l.status === 'atrasado')
+      .reduce((acc, l) => acc + (l.valor ?? 0), 0);
+  }, [lancamentos]);
+
+  // PR 2 — hint rico A pagar: próximo vencimento + contraparte.
+  // Filtra payables abertos/vencendo/atrasado, ordena por vencimento ASC,
+  // pega o primeiro. Atrasado conta também pq "próx" semanticamente = "próximo
+  // que vc precisa pagar agora" (canon).
+  const proxPagar = useMemo(() => {
+    const candidates = lancamentos
+      .filter((l) => l.kind === 'payable' && (l.status === 'aberto' || l.status === 'vencendo' || l.status === 'atrasado'))
+      .sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+    const first = candidates[0];
+    if (!first) return null;
+    // Format "10 mai" pt-BR
+    const parts = first.vencimento.split('-');
+    const mm = parts[1] ?? '01';
+    const dd = parts[2] ?? '01';
+    const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const mesAbrev = MES[parseInt(mm, 10) - 1] ?? '???';
+    return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte };
+  }, [lancamentos]);
+
   return (
     <div className="fin-stats">
       <button type="button" className="fin-stat fin-stat-hero" onClick={() => onLifecycleSelect(['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
@@ -367,7 +411,12 @@ function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (li
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ar'])} aria-label="Filtrar a receber">
         <small>A receber</small>
         <b>{brl(kpis.a_receber.valor)}</b>
-        <span className="fin-stat-hint">{kpis.a_receber.qtd} títulos</span>
+        {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
+        <span className="fin-stat-hint">
+          {atrasadoReceber > 0
+            ? <><span className="fin-num-neg mono">{brl(atrasadoReceber)}</span> em atraso</>
+            : <>{kpis.a_receber.qtd} títulos</>}
+        </span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['pa'])} aria-label="Filtrar pagas">
@@ -379,7 +428,12 @@ function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (li
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ap'])} aria-label="Filtrar a pagar">
         <small>A pagar</small>
         <b>{brl(kpis.a_pagar.valor)}</b>
-        <span className="fin-stat-hint">{kpis.a_pagar.qtd} títulos</span>
+        {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
+        <span className="fin-stat-hint">
+          {proxPagar
+            ? <>próx. <b>{proxPagar.label}</b> · {proxPagar.contraparte}</>
+            : <>{kpis.a_pagar.qtd} títulos</>}
+        </span>
       </button>
     </div>
   );
@@ -701,7 +755,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
         </div>
       </div>
 
-      <KpiBar kpis={kpis} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
+      <KpiBar kpis={kpis} lancamentos={lancamentos} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
 
       {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
           Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
