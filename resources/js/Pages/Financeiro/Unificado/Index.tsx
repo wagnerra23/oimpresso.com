@@ -712,7 +712,13 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         {row.nfe_numero && <div className="text-[11px] text-stone-500">NF-e {row.nfe_numero}</div>}
       </td>
       <td className="px-2 text-stone-700 truncate max-w-[160px]">{row.contraparte}</td>
-      <td className="px-2 text-stone-500 truncate max-w-[140px]">{row.categoria}</td>
+      {/* Onda 9 (2026-05-20): categoria pill com cor semantica (in=verde, out=âmbar)
+          pra visual scan rapido por kind sem ler valor. */}
+      <td className="px-2 truncate max-w-[140px]">
+        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-medium border ${isIn ? 'bg-emerald-50/60 text-emerald-700 border-emerald-100' : 'bg-amber-50/60 text-amber-700 border-amber-100'}`}>
+          {row.categoria}
+        </span>
+      </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-stone-900'}`}>
         <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
