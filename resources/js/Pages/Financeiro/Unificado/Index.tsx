@@ -1340,7 +1340,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         {/* Onda 5 (2026-05-20): width 560px paridade canon (erp-shell/financeiro-app.jsx:738
             'w-[560px] max-w-[92vw]'). Era 460px — drawer mais espaçoso pra
             Histórico + Anexos + Conferido sem cortar texto. */}
-        <SheetContent side="right" className="fin-drawer-wide w-[560px] sm:max-w-[560px]">
+        {/* Onda 22 (2026-05-20) — Portal Sheet renderiza fora de .fin-cowork wrapper,
+            então CSS canon prefixado nao aplica (audit-trail, drawer-tabs, comments-thread,
+            conferido-toggle). Adicionar `fin-cowork` aqui ativa todas regras canon
+            DENTRO do drawer (CSS vars + grid layouts + spacing). Root cause descoberto
+            via JS check: drawerInsideFinCowork=false, audit-row display=list-item
+            (deveria ser grid). */}
+        <SheetContent side="right" className="fin-cowork fin-drawer-wide w-[560px] sm:max-w-[560px]">
           {selected && (
             <>
               <SheetHeader>
@@ -1692,7 +1698,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
       {/* Onda 15 (2026-05-20): Sheet modal pra bulk edit categoria em lote.
           Renderiza só quando bulkCategoriaOpen=true. */}
       <Sheet open={bulkCategoriaOpen} onOpenChange={(o) => !o && setBulkCategoriaOpen(false)}>
-        <SheetContent side="right" className="w-[440px] sm:max-w-[440px]">
+        <SheetContent side="right" className="fin-cowork w-[440px] sm:max-w-[440px]">
           <SheetHeader>
             <SheetTitle>Categorizar em lote</SheetTitle>
           </SheetHeader>
