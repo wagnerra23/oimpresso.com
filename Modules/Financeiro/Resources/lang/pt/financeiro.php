@@ -3,7 +3,8 @@
 return [
     'module_label' => 'Financeiro',
     'cashflow_label' => 'Fluxo de Caixa',
-    'dre_label' => 'DRE / Relatórios',
+    'dre_label' => 'DRE', // Wagner 2026-05-20 PR C — split em duas entradas sidebar (DRE dedicado + Relatórios legado).
+    'relatorios_label' => 'Relatórios', // Onda PR C (2026-05-20) — entrada separada pra `/financeiro/relatorios` legado (fluxo+resumo).
     'boletos_label' => 'Gateway de Pagamento', // mantido pra back-compat menu legacy
     'cobranca_label' => 'Cobrança',
 
