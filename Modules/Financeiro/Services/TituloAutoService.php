@@ -243,25 +243,27 @@ class TituloAutoService
                 return $existenteAtiva;
             }
 
+            // ADR 0175 (2026-05-20) — conta_bancaria_id agora é nullable em fin_titulo_baixas
+            // e fin_caixa_movimentos. Bridge dispara mesmo sem fin_contas_bancarias cadastrada
+            // (cenário PME que opera só PIX/dinheiro — caso real Larissa biz=4 ROTA LIVRE).
+            // UI mostra pill "conta indefinida" + CTA "vincular conta agora".
+            // Reconciliação pós-cadastro: `php artisan financeiro:vincular-baixas-sem-conta {biz} {conta_id}`.
             $contaBancaria = $this->resolverContaBancaria($tx->business_id, $tp->account_id);
+
             if (! $contaBancaria) {
-                // Business ainda não cadastrou conta no Financeiro. No-op gracioso
-                // pra não bloquear o save do pagamento no core UltimatePOS. O lançamento
-                // financeiro pode ser reconciliado depois via comando manual.
-                // D7.a Wave 14 — log via FinanceiroAuditLogger pra redacionar PII
-                // (observacoes/note podem conter CPF/email do cliente).
+                // D7.a Wave 14 — log informativo via FinanceiroAuditLogger (PII redacted).
+                // NÃO é mais no-op — apenas registra que baixa será criada sem conta vinculada.
                 app(FinanceiroAuditLogger::class)->info(
-                    'TituloAutoService.registrarPagamento: skip — biz sem fin_contas_bancarias',
+                    'TituloAutoService.registrarPagamento: baixa sem conta — biz sem fin_contas_bancarias (ADR 0175)',
                     [
                         'business_id' => $tx->business_id,
                         'tp_id' => $tp->id,
                         'tx_id' => $tx->id,
                         'invoice_no' => $tx->invoice_no,
-                        'note' => $tp->note,
                     ]
                 );
-                return null;
             }
+
             $valor = (float) $tp->amount;
 
             // SUPERADMIN: Observer TransactionPayment registrarPagamento — INSERT TituloBaixa com business_id da Transaction
@@ -270,7 +272,7 @@ class TituloAutoService
                 ->create([
                     'business_id' => $tx->business_id,
                     'titulo_id' => $titulo->id,
-                    'conta_bancaria_id' => $contaBancaria->id,
+                    'conta_bancaria_id' => $contaBancaria?->id,
                     'valor_baixa' => $valor,
                     'data_baixa' => $tp->paid_on
                         ? Carbon::parse($tp->paid_on, config('app.timezone'))->toDateString()
@@ -287,11 +289,12 @@ class TituloAutoService
 
             // SUPERADMIN: Observer TransactionPayment — INSERT CaixaMovimento com business_id da Transaction
             // Cria CaixaMovimento — entrada se receber (venda paga), saída se pagar (compra paga).
+            // ADR 0175: conta_bancaria_id pode ser null se biz não tem fin_contas_bancarias cadastrada.
             CaixaMovimento::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
                 ->create([
                     'business_id' => $tx->business_id,
-                    'conta_bancaria_id' => $contaBancaria->id,
+                    'conta_bancaria_id' => $contaBancaria?->id,
                     'tipo' => $origem === 'venda' ? 'entrada' : 'saida',
                     'valor' => $valor,
                     'data' => $baixa->data_baixa,
