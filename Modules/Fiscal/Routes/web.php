@@ -2,10 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Fiscal\Http\Controllers\CockpitController;
+use Modules\Fiscal\Http\Controllers\ConfigController;
+use Modules\Fiscal\Http\Controllers\DfeController;
 use Modules\Fiscal\Http\Controllers\EventosController;
 use Modules\Fiscal\Http\Controllers\InstallController;
 use Modules\Fiscal\Http\Controllers\NfeCockpitController;
 use Modules\Fiscal\Http\Controllers\NfseCockpitController;
+use Modules\Fiscal\Http\Controllers\SpedController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,5 +46,12 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // CC-e + Cancelamento + EPEC + Manifestação destinatário.
         Route::get('/eventos', [EventosController::class, 'index'])->name('eventos.index');
 
-        // Próximos PRs: /fiscal/dfe (sub-página 4), /fiscal/config (6), /fiscal/sped (7).
+        // Manifesto DF-e (sub-página 4 — PR #3 Wave final).
+        Route::get('/dfe', [DfeController::class, 'index'])->name('dfe.index');
+
+        // Cert/Cfg fiscal (sub-página 6 — PR #3 Wave final).
+        Route::get('/config', [ConfigController::class, 'index'])->name('config.index');
+
+        // SPED & Livros (sub-página 7 — PR #3 Wave final, placeholder).
+        Route::get('/sped', [SpedController::class, 'index'])->name('sped.index');
     });

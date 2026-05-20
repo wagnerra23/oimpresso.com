@@ -130,9 +130,54 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - [x] Pest biz=1 (`EventosCockpitMultiTenantTest`)
 - [x] Charter + RUNBOOK + visual-comparison
 
-### US-FISCAL-008 · Cert/Cfg + SPED + DF-e — **backlog PR #3**
+### US-FISCAL-008 · DF-e manifesto (sub-página 4) — ✅ PR #3 Wave
 
-Sub-páginas 4 (DF-e), 6 (Cert/Cfg), 7 (SPED). PR único ou subdividido conforme escopo.
+> **Rota:** `GET /fiscal/dfe` · **Permissão:** `fiscal.dfe.manage`
+
+**Como** contador
+**Quero** lista de NF-e emitidas CONTRA o CNPJ com filtros + pílula de prazo 90d
+**Para** manifestar dentro do prazo legal (CONFAZ)
+
+**DoD:**
+- [x] Lista paginada NfeDfeRecebido (HasBusinessScope)
+- [x] 5 chips status + busca chave/CNPJ/nome
+- [x] Pílula temporal prazo (crit <7d / warn <30d / ok)
+- [x] Pest biz=1 (`DfeControllerTest`) + Charter + RUNBOOK + visual-comparison
+
+### US-FISCAL-009 · Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
+
+> **Rota:** `GET /fiscal/config` · **Permissão:** `fiscal.config.edit`
+
+**Como** admin
+**Quero** visão consolidada do cert A1 + regime + tributação default
+**Para** confirmar status sem abrir múltiplas telas NfeBrasil
+
+**DoD:**
+- [x] Status cert A1 (NfeCertificado — `encrypted_password` $hidden)
+- [x] Regime + auto_emission + tributacao_default
+- [x] Tone urgência cert (bad ≤7d, warn ≤60d)
+- [x] Read-only by design (link "Editar" → NfeBrasil canon)
+- [x] Pest biz=1 (`ConfigControllerTest`) + Charter + RUNBOOK + visual-comparison
+
+### US-FISCAL-010 · SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
+
+> **Rota:** `GET /fiscal/sped` · **Permissão:** `fiscal.sped.export`
+
+**Como** contador
+**Quero** panorama dos últimos 5 meses com status apuração + contagem agregada
+**Para** ter referência cru enquanto gerador SPED canônico não existe
+
+**DoD:**
+- [x] Tabela 5 últimos meses (NfeEmissao autorizadas agregadas)
+- [x] Status heurístico (aberto/pronto/entregue) + prazo entrega
+- [x] Notice claro "em desenvolvimento"
+- [x] Export buttons disabled (anti-hook charter)
+- [x] Pest biz=1 (`SpedControllerTest` — anti-hook: gerador real NÃO existe)
+- [x] Charter + RUNBOOK + visual-comparison
+
+### US-FISCAL-011 · Gerador SPED real — **backlog PR #4+**
+
+EFD ICMS/IPI + EFD-Contribuições reais (TXT layout CONFAZ). PR dedicado pós-MVP fiscal.
 
 ## 3. Regras Gherkin
 
@@ -184,11 +229,12 @@ Then deve receber 403 Forbidden
 
 | PR | Sub-página(s) | Esforço IA-pair | Score impact | Status |
 |---|---|---|---|---|
-| #1 #1183 | NF-e · NFC-e (cockpit + drawer) | 1 dia | base 0→60/100 | ✅ mergeado 8aef3d0fa |
-| #2 (Wave) | Cockpit (1) + NFS-e (3) + Eventos (5) | 1 dia | +20pp | 🟡 em curso |
-| #3 | DF-e manifesto + Cert/Cfg + SPED | 1-2 dias | +12pp | 🔒 backlog |
+| #1 #1183 | NF-e · NFC-e (cockpit + drawer) | 1 dia | base 0→60/100 | ✅ mergeado `8aef3d0fa` |
+| #2 #1185 (Wave) | Cockpit (1) + NFS-e (3) + Eventos (5) | 1 dia | +20pp | ✅ mergeado `cabd29661` |
+| #3 (Wave) | DF-e (4) + Cert/Cfg (6) + SPED (7) | 1 dia | +12pp | 🟡 em curso |
 | #4 | Ações mutação (cancelar/retx/CC-e/inut) | 1-2 dias | +15pp (core) | 🔒 backlog |
 | #5 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
+| #6 | Gerador SPED real (EFD ICMS-IPI + PIS/COFINS) | 1+ semana | +10pp | 🔒 backlog |
 
 **Meta:** Score Capterra Fiscal cockpit ≥ 80/100 pós-PR #4 (Wagner aprova).
 
@@ -196,6 +242,7 @@ Then deve receber 403 Forbidden
 
 - **v1.0.0** (2026-05-20) — SPEC.md inicial criado em PR #1183 (Fiscal cockpit NF-e). Módulo novo thin agregador.
 - **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: Cockpit + NFS-e + Eventos. 3 sub-páginas adicionadas (US-FISCAL-002, US-FISCAL-005, US-FISCAL-007). Permission `fiscal.nfse.view` nova. Roadmap reorganizado (5 PRs vs 7 originais).
+- **v1.2.0** (2026-05-20) — PR #3 Wave final: DF-e + Cert/Cfg + SPED placeholder. **7 sub-páginas do design Cowork concluídas**. US-FISCAL-008/009/010 adicionadas + US-FISCAL-011 backlog (gerador SPED real). FxShell habilita todos 7 chips. Próximo PR foco em ações de mutação (cancelar/CC-e/etc).
 
 ## Referências
 
