@@ -1,6 +1,6 @@
 {
     "ADS": true,
-    "Accounting": true,
+    "Accounting": false,
     "Admin": true,
     "Arquivos": true,
     "AssetManagement": true,
