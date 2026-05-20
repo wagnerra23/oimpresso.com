@@ -2,8 +2,9 @@
 // Port do design fiscal-page.jsx §5 (NotaDrawer + SefazActionCard)
 // "Jana sugere": receita determinística por cstat — substitui IA real (R#2 KB-9.75)
 
+import { router } from '@inertiajs/react';
 import { Bot, FileText, RefreshCw, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   brl,
@@ -144,15 +145,43 @@ function SefazActionCard({ cstat }: { cstat: number }) {
 }
 
 export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProps) {
-  // ESC fecha
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [motivo, setMotivo] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  // ESC fecha (drawer ou modal cancel)
   useEffect(() => {
     if (!nota) return;
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (cancelOpen) setCancelOpen(false);
+        else onClose();
+      }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [nota, onClose]);
+  }, [nota, onClose, cancelOpen]);
+
+  // Reset modal state quando trocar de nota
+  useEffect(() => {
+    setCancelOpen(false);
+    setMotivo('');
+  }, [nota?.id]);
+
+  const handleCancelar = () => {
+    if (motivo.trim().length < 15) return;
+    if (!nota) return;
+    setBusy(true);
+    router.post(`/fiscal/acoes/nfe/${nota.id}/cancelar`, { motivo }, {
+      preserveScroll: true,
+      onFinish: () => {
+        setBusy(false);
+        setCancelOpen(false);
+        setMotivo('');
+        onClose();
+      },
+    });
+  };
 
   if (!nota) return null;
 
@@ -244,17 +273,82 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
             <button className="fx-btn" disabled title="PR seguinte">XML</button>
             <button className="fx-btn" disabled title="PR seguinte">DANFE</button>
             {nota.status === 'autorizada' && cancel && (
-              <button className="fx-btn danger" disabled title="PR seguinte">
+              <button
+                className="fx-btn danger"
+                onClick={() => setCancelOpen(true)}
+                disabled={busy}
+                title="Cancela NFe — FSM cascade ADR 0143"
+              >
                 Cancelar <kbd className="fx-kbd-inline">X</kbd>
               </button>
             )}
             {['rejeitada', 'denegada'].includes(nota.status) && (
-              <button className="fx-btn primary" disabled title="PR seguinte">
+              <button className="fx-btn primary" disabled title="Retransmitir em PR seguinte">
                 Retransmitir <kbd className="fx-kbd-inline">⏎</kbd>
               </button>
             )}
           </div>
         </footer>
+
+        {/* Modal cancel motivo */}
+        {cancelOpen && (
+          <div className="fx-drawer-bg" onClick={() => !busy && setCancelOpen(false)}>
+            <div
+              role="dialog"
+              aria-label="Confirmar cancelamento"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: 'white',
+                borderRadius: 10,
+                padding: 22,
+                width: 440,
+                maxWidth: '90vw',
+                margin: '15vh auto',
+                boxShadow: '0 12px 40px rgba(0,0,0,.2)',
+              }}
+            >
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>
+                Cancelar {nota.modelo === 65 ? 'NFC-e' : 'NF-e'} {nota.num}
+              </h3>
+              <p style={{ fontSize: 12.5, color: 'var(--fx-text-dim)', margin: '0 0 14px' }}>
+                Justificativa obrigatória (mín. 15 chars · regra CONFAZ).
+                Cancelamento aciona FSM cascade ADR 0143 — refund gateway + notif cliente (se biz=1).
+              </p>
+              <textarea
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                placeholder="Ex: cliente desistiu pós-emissão, refaturado em V-NNNN"
+                rows={3}
+                disabled={busy}
+                autoFocus
+                style={{
+                  width: '100%',
+                  padding: 10,
+                  fontSize: 12.5,
+                  border: '1px solid var(--fx-border)',
+                  borderRadius: 7,
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                }}
+              />
+              <div style={{ fontSize: 11, color: 'var(--fx-text-mute)', margin: '4px 0 14px' }}>
+                {motivo.length}/255 · {motivo.trim().length < 15 ? `faltam ${15 - motivo.trim().length} chars` : '✅ ok'}
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button className="fx-btn ghost" onClick={() => setCancelOpen(false)} disabled={busy}>
+                  Voltar
+                </button>
+                <button
+                  className="fx-btn danger"
+                  onClick={handleCancelar}
+                  disabled={busy || motivo.trim().length < 15}
+                >
+                  {busy ? 'Cancelando…' : 'Confirmar cancelamento'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </aside>
     </>
   );
