@@ -1,3 +1,13 @@
+---
+module: Jana
+status: em-implementacao (Onda 4 P0 — US-COPI-107..109)
+version: 2.0.0
+last_updated: 2026-05-20
+owner: wagner
+parent_adr: 0094
+related_adrs: [0035, 0048, 0052, 0053, 0061, 0062, 0091, 0093, 0094, 0095, 0101, 0104, 0106, 0114, 0119, 0130, 0131]
+---
+
 # Especificação funcional — Jana
 
 ## 1. Personas
@@ -861,7 +871,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ---
 
-## Roadmap de Ondas (pós-Onda 3, planejado 2026-05-13 — apendado SPEC 2026-05-20)
+## Backlog ativo — Roadmap de Ondas (pós-Onda 3, planejado 2026-05-13 — apendado SPEC 2026-05-20)
 
 > Cruza [GAP-ANALYSIS-91-100](GAP-ANALYSIS-91-100-2026-05-13.md) + [ONDA-5-DOSSIER](ONDA-5-DOSSIER-2026-05-13.md). Ondas 1-3 entregues (70%→91% maturidade). Ondas 4-6 ainda não iniciadas — Onda 4 = candidato CYCLE-06 (8d restantes em 2026-05-20).
 
@@ -881,7 +891,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 ### US-COPI-107 · Onda 4 R1 — Reranker BGE-v2-m3 self-host CT 100
 
 > owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: CYCLE-06
-> blocked_by: — · spawned_from: US-JANA-10X-016 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §2)
+> blocked_by: — · spawned_from: JANA-10X-016 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §2)
 
 **Como** time IA Jana
 **Quero** reranker cross-encoder (BGE-reranker-v2-m3 self-host CT 100) plugado em `MeilisearchDriver` após hybrid recall (Onda 3 RRF)
@@ -910,7 +920,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 ### US-COPI-108 · Onda 4 L1 — Langfuse v3 self-host CT 100 (MULTIPLICADOR)
 
 > owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · status: todo · type: story · sprint: CYCLE-06
-> blocked_by: — · spawned_from: US-JANA-10X-017 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §3)
+> blocked_by: — · spawned_from: JANA-10X-017 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §3)
 
 **Como** time IA Jana + Wagner (governança custo)
 **Quero** Langfuse v3 self-host em CT 100 (docker-compose: web + worker + ClickHouse + Postgres + Redis + MinIO) instrumentando 100% das chamadas LLM em prod (BriefDiarioAgent + kb-answer + recall + RAGAS gate)
@@ -941,7 +951,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 ### US-COPI-109 · Onda 4 C1 — Charters S4 ativos (charter-fetch tool + Tier A)
 
 > owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: CYCLE-06
-> blocked_by: — · spawned_from: US-JANA-10X-018 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §4)
+> blocked_by: — · spawned_from: JANA-10X-018 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §4)
 
 **Como** Claude (agent) + time MCP (Felipe/Maira/Eliana)
 **Quero** tool MCP `charter-fetch <page-id>` exposta + skill `charter-first` Tier A ativa via hook SessionStart, BLOQUEANDO Edit/Write em `resources/js/Pages/**/*.tsx` que tenha `.charter.md` correspondente sem carregar charter primeiro
@@ -969,7 +979,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ## Histórico (Roadmap de Ondas)
 
-- **v2.0.0** (2026-05-20) — Apendado seção "Roadmap de Ondas" + US-COPI-107/108/109 (Onda 4 P0: Reranker BGE-v2-m3 + Langfuse v3 + Charters S4). Cruza [GAP-ANALYSIS-91-100](GAP-ANALYSIS-91-100-2026-05-13.md) + [ONDA-5-DOSSIER](ONDA-5-DOSSIER-2026-05-13.md). Mapping: US-COPI-107=US-JANA-10X-016 (R1) · US-COPI-108=US-JANA-10X-017 (L1) · US-COPI-109=US-JANA-10X-018 (C1). Ondas 5-6 ficam como backlog visível na tabela — entrarão como US-COPI-110..113 quando Onda 4 fechar + Langfuse rodar 14d. Tasks MCP NÃO criadas — Wagner aprova batch.
+- **v2.0.0** (2026-05-20) — Apendado seção "Roadmap de Ondas" + US-COPI-107/108/109 (Onda 4 P0: Reranker BGE-v2-m3 + Langfuse v3 + Charters S4). Cruza [GAP-ANALYSIS-91-100](GAP-ANALYSIS-91-100-2026-05-13.md) + [ONDA-5-DOSSIER](ONDA-5-DOSSIER-2026-05-13.md). Mapping: US-COPI-107=JANA-10X-016 (R1) · US-COPI-108=JANA-10X-017 (L1) · US-COPI-109=JANA-10X-018 (C1). Ondas 5-6 ficam como backlog visível na tabela — entrarão como US-COPI-110..113 quando Onda 4 fechar + Langfuse rodar 14d. Tasks MCP NÃO criadas — Wagner aprova batch.
 
 ---
 

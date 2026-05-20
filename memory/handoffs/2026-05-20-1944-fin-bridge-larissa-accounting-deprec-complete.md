@@ -82,7 +82,7 @@ Plus: UPDATE `subscriptions.id=118` biz=1 (Wagner) `$.package_details.financeiro
 | **A receber visível** | R$ 12.227 (36 títulos noise) | **R$ 418.986,59 (1.671 títulos)** |
 | **A pagar visível** | – | **R$ 242.041,04 (96 títulos)** |
 | activity_log cobertura biz=4 | 0.3% | **100%** |
-| Top inadimplente | (não visível) | CASA OCRE TUBARÃO SC R$ 4.605 (893d atraso, tel 48988552511) |
+| Top inadimplente | (não visível) | CASA OCRE TUBARÃO SC R$ 4.605 (893d atraso, tel [REDACTED-LGPD]) |
 | Top 3 devedores agregados | (não visível) | ANDREIA FERNANDES 3 títulos R$ 6.172 |
 
 Spot-check cross-validation: fin_titulos R$ 418.986,59 vs calc direto via `transactions(payment_status IN ('due','partial'))` R$ 417.546,33 = diferença 0.34% (R$ 1.440) explicada por refunds/cancelados parciais.
