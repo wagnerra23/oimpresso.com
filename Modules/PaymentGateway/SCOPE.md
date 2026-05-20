@@ -11,6 +11,7 @@ contains:
   - "Webhooks/C6WebhookController — POST /paymentgateway/webhooks/c6/{businessId} (Onda 3 sem cutover)"
   - "Webhooks/AsaasWebhookController — POST /paymentgateway/webhooks/asaas/{businessId} (Onda 3 sem cutover)"
   - "Webhooks/BcbPixWebhookController — POST /paymentgateway/webhooks/bcb-pix/{businessId} (Onda 3 novo)"
+  - "Webhooks/InterPixWebhookController — POST /webhooks/inter/{credentialId} (Onda 26 US-FIN-032 PIX recebido → titulo auto-pago)"
   - "Services/PaymentGatewayService — implementa PaymentGatewayContract; for(Account) resolve credential; idempotência (Onda 4a); DRIVERS mapa atualizado Onda 4b com 3 drivers"
   - "Services/Drivers/InterDriver — Inter API v3 OAuth2+mTLS (boleto Onda 4a + pix_cob/pix_cobv Onda 4b/4c + refund PIX Onda 4c + cancelar + consultar + healthCheck + processWebhook). Refund de boleto Inter NÃO via API — exige TED reverso manual"
   - "Services/Drivers/AsaasDriver — Asaas REST v3 (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4b"
