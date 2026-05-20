@@ -13,6 +13,7 @@ use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DashboardController;
+use Modules\Financeiro\Http\Controllers\DreController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
@@ -105,6 +106,14 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
         Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
+
+        // DRE gerencial hierárquica — Cockpit V2 (US-FIN-014a, reaplicação canon).
+        // Wagner aprovou 2026-05-20 (Q1-Q8b em memory/requisitos/Financeiro/
+        // dre-visual-comparison.md). Read-only. Ver Pages/Financeiro/Dre/Index.charter.md.
+        Route::get('/dre', [DreController::class, 'index'])->name('dre.index');
+        Route::get('/dre/export-pdf', [DreController::class, 'exportPdf'])->name('dre.export-pdf');
+        Route::get('/dre/export-xlsx', [DreController::class, 'exportXlsx'])->name('dre.export-xlsx');
+        Route::get('/dre/export-csv', [DreController::class, 'exportCsv'])->name('dre.export-csv');
 
         // Contas a receber (lista + emitir boleto)
         Route::get('/contas-receber', [ContaReceberController::class, 'index'])->name('contas-receber.index');
