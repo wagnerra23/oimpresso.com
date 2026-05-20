@@ -446,6 +446,26 @@
  * pega só drawers (Sheet shadcn portal). NÃO afeta .fin-cowork da página
  * principal (já tem vars vindos do .cockpit ancestor com inline style).
  * ============================================================================ */
+/* Onda 23 (2026-05-20) — alinhar glyphs Unicode (✦ ✎) com texto nos tabs.
+   Glyphs Unicode tem altura visual diferente das letras — wrap em span com
+   font-size menor + line-height: 1 + inline-flex align-items: center
+   normaliza baseline. Sem isso, "✦ IA" e "✎ Editar" sobem ~2px vs "Detalhes". */
+[role="dialog"].fin-cowork .fin-drawer-tab-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  min-width: 12px;
+}
+
+/* Onda 23 — borders mais firmes entre seções do drawer body (stone-200
+   em vez de stone-100 que ficava quase invisível). Match Cowork canon
+   prototype `border-stone-200`. */
+[role="dialog"].fin-cowork .border-stone-100 {
+  border-color: oklch(0.92 0.005 80) !important;
+}
+
 [role="dialog"].fin-cowork {
   /* Surface */
   --bg:           oklch(0.985 0.003 90);
