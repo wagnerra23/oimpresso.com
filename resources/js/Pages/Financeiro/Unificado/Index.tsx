@@ -790,6 +790,23 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
     });
   }, []);
   const clearSelection = useCallback(() => setSelectedRows(new Set()), []);
+  // Onda 15 (2026-05-20): bulk edit categoria modal state
+  const [bulkCategoriaOpen, setBulkCategoriaOpen] = useState(false);
+  const [bulkCategoriaId, setBulkCategoriaId] = useState<number | null>(null);
+  const submitBulkCategoria = useCallback(() => {
+    if (!bulkCategoriaId || selectedRows.size === 0) return;
+    router.post('/financeiro/unificado/bulk-update-categoria', {
+      ids: Array.from(selectedRows),
+      categoria_id: bulkCategoriaId,
+    }, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setBulkCategoriaOpen(false);
+        setBulkCategoriaId(null);
+        clearSelection();
+      },
+    });
+  }, [bulkCategoriaId, selectedRows, clearSelection]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   // Onda 12.6 — default compact (Wagner pediu: financeiro denso).
   const dens = DENSITY[filters.densidade ?? 'compact'];
@@ -1628,6 +1645,15 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             >
               Marcar pago/recebido ({selectedRows.size})
             </Button>
+            {/* Onda 15 (2026-05-20): bulk edit categoria em lote */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-[12px]"
+              onClick={() => setBulkCategoriaOpen(true)}
+            >
+              Categorizar lote
+            </Button>
             <Button
               size="sm"
               variant="outline"
@@ -1662,6 +1688,44 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
       {/* Onda 7b — Dialogs Troubleshooter + Presentation Mode */}
       <FinTroubleshooterDialog open={troubleOpen} onClose={() => setTroubleOpen(false)} />
+
+      {/* Onda 15 (2026-05-20): Sheet modal pra bulk edit categoria em lote.
+          Renderiza só quando bulkCategoriaOpen=true. */}
+      <Sheet open={bulkCategoriaOpen} onOpenChange={(o) => !o && setBulkCategoriaOpen(false)}>
+        <SheetContent side="right" className="w-[440px] sm:max-w-[440px]">
+          <SheetHeader>
+            <SheetTitle>Categorizar em lote</SheetTitle>
+          </SheetHeader>
+          <div className="px-1 py-4 space-y-4">
+            <div className="text-sm text-stone-600">
+              Selecione a categoria a aplicar aos <b>{selectedRows.size}</b> lançamento{selectedRows.size === 1 ? '' : 's'} selecionado{selectedRows.size === 1 ? '' : 's'}:
+            </div>
+            <select
+              className="w-full h-9 px-2 rounded-md border border-stone-200 bg-white text-sm"
+              value={bulkCategoriaId ?? ''}
+              onChange={(e) => setBulkCategoriaId(e.target.value ? parseInt(e.target.value, 10) : null)}
+              aria-label="Categoria"
+            >
+              <option value="">— escolher categoria —</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>{c.nome}</option>
+              ))}
+            </select>
+            <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+              <Button
+                size="sm"
+                disabled={!bulkCategoriaId || selectedRows.size === 0}
+                onClick={submitBulkCategoria}
+              >
+                Aplicar ({selectedRows.size})
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setBulkCategoriaOpen(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
       <FinPresentationMode
         open={presentOpen}
         onClose={() => setPresentOpen(false)}

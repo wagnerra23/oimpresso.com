@@ -282,6 +282,42 @@ class UnificadoController extends Controller
 
     /**
      * POST /financeiro/unificado/{id}/conferir
+     * Onda 15 (2026-05-20) — Bulk update categoria em lote.
+     * POST /financeiro/unificado/bulk-update-categoria
+     * Body: { ids: number[], categoria_id: number }
+     *
+     * Tier 0 multi-tenant: business_id scope explicito (R-FIN-001).
+     * Whitelist categoria pertence ao business (anti cross-tenant via ID guess).
+     */
+    public function bulkUpdateCategoria(Request $request): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1|max:500',
+            'ids.*' => 'integer|min:1',
+            'categoria_id' => 'required|integer|min:1',
+        ]);
+
+        // Whitelist: categoria precisa pertencer ao business (anti SQL injection
+        // via ID arbitrario que vaze pra outro tenant).
+        $catExists = Categoria::where('business_id', $businessId)
+            ->where('id', $validated['categoria_id'])
+            ->whereNull('deleted_at')
+            ->exists();
+        if (! $catExists) {
+            return back()->withErrors(['categoria_id' => 'Categoria inválida pra este business.']);
+        }
+
+        $count = Titulo::where('business_id', $businessId)
+            ->whereIn('id', $validated['ids'])
+            ->whereNull('deleted_at')
+            ->update(['categoria_id' => $validated['categoria_id']]);
+
+        return back()->with('flash', "$count lançamentos categorizados em lote.");
+    }
+
+    /**
      * Marca título como conferido pelo user atual (Eliana/Wagner — audit per-user).
      * Idempotente: re-marcar não altera timestamp original.
      */
