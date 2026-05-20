@@ -50,6 +50,14 @@ return [
             'driver' => 'session',
             'provider' => 'contacts',
         ],
+
+        // Onda 31 (2026-05-20) US-FIN-037 — guard isolado do Portal Advisor
+        // (contadores parceiros). Tabela `advisors` é GLOBAL (sem business_id);
+        // login NÃO mistura com user UltimatePOS — Tier 0 isolation.
+        'web-advisor' => [
+            'driver' => 'session',
+            'provider' => 'advisors',
+        ],
     ],
 
     /*
@@ -78,6 +86,12 @@ return [
         'contacts' => [
             'driver' => 'eloquent',
             'model' => App\Contact::class,
+        ],
+
+        // Onda 31 (2026-05-20) US-FIN-037 — provider Advisor (contadores parceiros).
+        'advisors' => [
+            'driver' => 'eloquent',
+            'model' => Modules\Financeiro\Models\Advisor::class,
         ],
 
         // 'users' => [
