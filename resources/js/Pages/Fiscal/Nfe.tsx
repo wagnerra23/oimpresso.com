@@ -14,10 +14,11 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { FileSearch, Plus, RefreshCw } from 'lucide-react';
+import { Eraser, FileSearch, Plus, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import InutilizacaoModal from './_components/InutilizacaoModal';
 import NotaDrawer, { type NotaRow } from './_components/NotaDrawer';
 import {
   brl,
@@ -63,6 +64,7 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [opened, setOpened] = useState<NotaRow | null>(null);
   const [cursor, setCursor] = useState(0);
+  const [inutOpen, setInutOpen] = useState(false);
 
   const dataRows: NotaRow[] = rows?.data ?? [];
 
@@ -133,6 +135,14 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
           <>
             <button className="fx-btn ghost" disabled title="PR seguinte">
               Importar XML
+            </button>
+            <button
+              type="button"
+              className="fx-btn warn"
+              onClick={() => setInutOpen(true)}
+              title="Inutiliza faixa numérica de NFe (SEFAZ cstat=102 — fecha buracos fiscais)"
+            >
+              <Eraser size={12}/> Inutilizar faixa
             </button>
             <button className="fx-btn primary" disabled title="PR seguinte">
               <Plus size={12}/> Emitir <kbd className="fx-kbd-inline">E</kbd>
@@ -293,6 +303,11 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
       </FxShell>
 
       <NotaDrawer nota={opened} sefazCodes={sefazCodes} onClose={() => setOpened(null)} />
+      <InutilizacaoModal
+        open={inutOpen}
+        onClose={() => setInutOpen(false)}
+        defaultModelo={filters.tab === 'saida_nfce' ? '65' : '55'}
+      />
     </AppShellV2>
   );
 }

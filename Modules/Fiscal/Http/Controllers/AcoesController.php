@@ -8,6 +8,8 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\Manifestacao\ManifestacaoService;
+use Modules\NfeBrasil\Services\NfeCartaCorrecaoService;
+use Modules\NfeBrasil\Services\NfeInutilizacaoService;
 use Modules\NfeBrasil\Services\NfeService;
 
 /**
@@ -30,9 +32,11 @@ use Modules\NfeBrasil\Services\NfeService;
  * Throttle 30/min anti-DOS herda do pattern Modules/NfeBrasil/Routes/web.php
  * (proteção SEFAZ — disparos descontrolados podem ban IP no webservice).
  *
- * NÃO inclui CC-e + Inutilização + Retransmitir neste PR — esses exigem UI
- * adicional (texto correção / faixa numérica / re-build payload) e ficam
- * em PR seguinte conforme Non-Goals do charter Fiscal/Nfe.
+ * Wave 5 (PR #5) adicionou:
+ *  - cartaCorrecao (CCe 110110) → NfeCartaCorrecaoService
+ *  - inutilizar (faixa numérica) → NfeInutilizacaoService
+ *
+ * Retransmitir nota rejeitada permanece backlog PR #6 (re-build payload).
  */
 class AcoesController extends Controller
 {
@@ -164,6 +168,135 @@ class AcoesController extends Controller
             ]);
 
             return back()->with('error', 'Manifestação falhou: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * POST /fiscal/acoes/nfe/{emissao}/cce
+     *
+     * Aplica Carta de Correção Eletrônica (CCe — tpEvento 110110).
+     *
+     * Regras CONFAZ Ajuste SINIEF 07/2005 Art. 14:
+     *  - Texto correção: 15-1000 caracteres
+     *  - Janela: 720h (30d) após autorização
+     *  - Sequência: 1-20 por NFe
+     *  - NFe deve estar 'autorizada'
+     */
+    public function cartaCorrecao(
+        Request $request,
+        NfeCartaCorrecaoService $service,
+        int $emissao,
+    ): RedirectResponse {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            abort(403, 'Sem permissão fiscal.nfe.acoes');
+        }
+
+        $data = $request->validate([
+            'texto_correcao' => ['required', 'string', 'min:15', 'max:1000'],
+            'n_seq_evento'   => ['required', 'integer', 'min:1', 'max:20'],
+        ]);
+
+        $businessId = (int) session('user.business_id');
+
+        $nfeEmissao = NfeEmissao::query()
+            ->where('id', $emissao)
+            ->where('business_id', $businessId)
+            ->firstOrFail();
+
+        if ($nfeEmissao->status !== 'autorizada') {
+            return back()->with('error', "CCe só aplica em NFe autorizada. Status atual: {$nfeEmissao->status}");
+        }
+
+        try {
+            $evento = $service->aplicar(
+                $businessId,
+                $nfeEmissao->id,
+                $data['texto_correcao'],
+                (int) $data['n_seq_evento'],
+            );
+
+            Log::info('Fiscal.acoes.cartaCorrecao ok', [
+                'business_id'    => $businessId,
+                'nfe_emissao_id' => $nfeEmissao->id,
+                'n_seq_evento'   => $data['n_seq_evento'],
+                'evento_id'      => $evento->id,
+                'cstat_evento'   => $evento->cstat_evento,
+            ]);
+
+            return back()->with('success', "CCe aplicada · NFe {$nfeEmissao->numero} seq {$data['n_seq_evento']} · cstat {$evento->cstat_evento}");
+        } catch (\Throwable $e) {
+            Log::error('Fiscal.acoes.cartaCorrecao falhou', [
+                'business_id'    => $businessId,
+                'nfe_emissao_id' => $nfeEmissao->id,
+                'n_seq_evento'   => $data['n_seq_evento'],
+                'error'          => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'CCe falhou: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * POST /fiscal/acoes/nfe/inutilizar
+     *
+     * Inutiliza faixa numérica de NFe (SEFAZ cstat=102) — fecha "buracos"
+     * fiscais por números pegos no banco mas sem autorização SEFAZ.
+     *
+     * Delega NfeInutilizacaoService::inutilizar (Service já existente US-SELL-030).
+     */
+    public function inutilizar(
+        Request $request,
+        NfeInutilizacaoService $service,
+    ): RedirectResponse {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            abort(403, 'Sem permissão fiscal.nfe.acoes');
+        }
+
+        $data = $request->validate([
+            'modelo'        => ['required', 'string', 'in:55,65'],
+            'serie'         => ['required', 'string', 'max:3'],
+            'numero_de'     => ['required', 'integer', 'min:1'],
+            'numero_ate'    => ['required', 'integer', 'min:1', 'gte:numero_de'],
+            'justificativa' => ['required', 'string', 'min:15', 'max:255'],
+        ]);
+
+        $businessId = (int) session('user.business_id');
+
+        try {
+            $inut = $service->inutilizar(
+                $businessId,
+                $data['modelo'],
+                $data['serie'],
+                (int) $data['numero_de'],
+                (int) $data['numero_ate'],
+                $data['justificativa'],
+            );
+
+            Log::info('Fiscal.acoes.inutilizar ok', [
+                'business_id'     => $businessId,
+                'modelo'          => $data['modelo'],
+                'serie'           => $data['serie'],
+                'faixa'           => "[{$data['numero_de']}..{$data['numero_ate']}]",
+                'inutilizacao_id' => $inut->id,
+                'cstat'           => $inut->cstat,
+                'status'          => $inut->status,
+            ]);
+
+            $msg = $inut->status === 'autorizado'
+                ? "Faixa [{$data['numero_de']}..{$data['numero_ate']}] inutilizada · cstat {$inut->cstat}"
+                : "Inutilização rejeitada · cstat {$inut->cstat}";
+
+            return back()->with($inut->status === 'autorizado' ? 'success' : 'error', $msg);
+        } catch (\Throwable $e) {
+            Log::error('Fiscal.acoes.inutilizar falhou', [
+                'business_id' => $businessId,
+                'modelo'      => $data['modelo'],
+                'serie'       => $data['serie'],
+                'faixa'       => "[{$data['numero_de']}..{$data['numero_ate']}]",
+                'error'       => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Inutilização falhou: ' . $e->getMessage());
         }
     }
 }
