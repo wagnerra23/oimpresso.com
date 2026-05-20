@@ -58,9 +58,26 @@ Vocabulário completo NFe/NFSe em [NfeBrasil/GLOSSARY.md](../NfeBrasil/GLOSSARY.
 - [x] Charter `Nfe.charter.md` com Goals + Non-Goals + Anti-hooks
 - [x] CSS scoped `.fx-page` (não vaza tokens fiscais pra outras telas)
 
-### US-FISCAL-002 · Cockpit (sub-página 1) — **backlog PR #2**
+### US-FISCAL-002 · Cockpit (sub-página 1) — ✅ PR #2 Wave
 
-KPIs + alertas + quick links + mini-sparklines. Detalhe quando entregar.
+> **Rota:** `GET /fiscal`
+> **Controller:** `CockpitController@index`
+> **Permissão:** `fiscal.access`
+> **Page:** `resources/js/Pages/Fiscal/Cockpit.tsx`
+
+**Como** contador (Eliana) ou operador (Wagner)
+**Quero** visão consolidada do estado fiscal do mês em <3s (KPIs + sparklines + alertas + quick links)
+**Para** identificar pendências sem precisar abrir 6 telas
+
+**Definition of Done:**
+- [x] 6 KPIs eager (emitidas/autorizadas/rejeitadas/faturamento/dfe/cert)
+- [x] Sparklines SVG inline 14d (4 séries)
+- [x] Alertas determinísticos PHP (3 níveis crit/warn/info — sem LLM)
+- [x] 6 quick-link cards (4 ativos sub-pages 2/3/5 + 3 disabled)
+- [x] HasBusinessScope nos 4 Models (NfeEmissao/NfseEmissao/NfeDfeRecebido/NfeCertificado)
+- [x] Permissão `fiscal.access`
+- [x] Pest biz=1 (`CockpitMultiTenantTest`)
+- [x] Charter + RUNBOOK + visual-comparison
 
 ### US-FISCAL-003 · ⌘K palette cross-fiscal — **backlog PR #3**
 
@@ -70,17 +87,52 @@ Busca global em notas + DF-e + ações rápidas. Detalhe quando entregar.
 
 Cancelar / Retransmitir / CC-e / Inutilizar. Chama Services `Modules/NfeBrasil` existentes via Job. NOT habilitado neste PR #1 (botões disabled no drawer).
 
-### US-FISCAL-005 · NFS-e (sub-página 3) — **backlog PR #5**
+### US-FISCAL-005 · NFS-e (sub-página 3) — ✅ PR #2 Wave
 
-Lê `Modules/NFSe/Models/NfseEmissao`. Mesma arquitetura thin.
+> **Rota:** `GET /fiscal/nfse`
+> **Controller:** `NfseCockpitController@index`
+> **Permissão:** `fiscal.nfse.view`
+> **Page:** `resources/js/Pages/Fiscal/Nfse.tsx`
+
+**Como** contador
+**Quero** lista de NFS-e (modelo 56 nacional NT 2024-001) com filtros status + competência + busca
+**Para** conferir emissões do mês sem abrir o módulo NFSe legacy
+
+**Definition of Done:**
+- [x] Lista paginada `NfseEmissao` (HasBusinessScope) — modelo 56 nacional
+- [x] 5 chips status + month picker + search (núm/cód.verificação/CPF/CNPJ tomador)
+- [x] Inertia::defer em rows
+- [x] Permissão `fiscal.nfse.view` (nova)
+- [x] Pest biz=1 (`NfseCockpitMultiTenantTest`)
+- [x] Charter + RUNBOOK + visual-comparison
 
 ### US-FISCAL-006 · Manifesto DF-e (sub-página 4) — **backlog PR #6**
 
 Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
-### US-FISCAL-007 · Eventos + Cert/Cfg + SPED — **backlog PR #7**
+### US-FISCAL-007 · Eventos (sub-página 5) — ✅ PR #2 Wave
 
-Sub-páginas 5, 6, 7 — podem ser PR único ou subdivididas.
+> **Rota:** `GET /fiscal/eventos`
+> **Controller:** `EventosController@index`
+> **Permissão:** `fiscal.access`
+> **Page:** `resources/js/Pages/Fiscal/Eventos.tsx`
+
+**Como** contador
+**Quero** timeline de eventos SEFAZ aplicados (CC-e + Cancelamento + EPEC + Manifestação)
+**Para** auditoria LGPD Art. 37 + revisão fiscal
+
+**Definition of Done:**
+- [x] Timeline append-only `NfeEvento` (HasBusinessScope — `UPDATED_AT = null`)
+- [x] Filtros por tipo (todos/cce/cancel/epec/manifest) + período 7/30/90d
+- [x] Eager `with('emissao')` pra link cross-página
+- [x] Inertia::defer em rows
+- [x] Permissão `fiscal.access` (gate único — eventos são audit)
+- [x] Pest biz=1 (`EventosCockpitMultiTenantTest`)
+- [x] Charter + RUNBOOK + visual-comparison
+
+### US-FISCAL-008 · Cert/Cfg + SPED + DF-e — **backlog PR #3**
+
+Sub-páginas 4 (DF-e), 6 (Cert/Cfg), 7 (SPED). PR único ou subdividido conforme escopo.
 
 ## 3. Regras Gherkin
 
@@ -130,21 +182,20 @@ Then deve receber 403 Forbidden
 
 ## Backlog ativo (Roadmap PRs)
 
-| PR | Sub-página(s) | Esforço IA-pair | Score impact |
-|---|---|---|---|
-| #1 ✅ aberto #1183 | NF-e · NFC-e (cockpit + drawer) | 1 dia | base 0→60/100 |
-| #2 | Cockpit (KPIs + alertas + quick) | 4h | +10pp |
-| #3 | ⌘K palette cross-fiscal | 6h | +8pp |
-| #4 | Ações mutação (cancelar/retx/CC-e/inut) | 1-2 dias | +15pp (core valor) |
-| #5 | NFS-e | 4h | +5pp |
-| #6 | Manifesto DF-e | 4h | +4pp |
-| #7 | Eventos + Cert/Cfg + SPED | 1 dia | +8pp |
+| PR | Sub-página(s) | Esforço IA-pair | Score impact | Status |
+|---|---|---|---|---|
+| #1 #1183 | NF-e · NFC-e (cockpit + drawer) | 1 dia | base 0→60/100 | ✅ mergeado 8aef3d0fa |
+| #2 (Wave) | Cockpit (1) + NFS-e (3) + Eventos (5) | 1 dia | +20pp | 🟡 em curso |
+| #3 | DF-e manifesto + Cert/Cfg + SPED | 1-2 dias | +12pp | 🔒 backlog |
+| #4 | Ações mutação (cancelar/retx/CC-e/inut) | 1-2 dias | +15pp (core) | 🔒 backlog |
+| #5 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
 
 **Meta:** Score Capterra Fiscal cockpit ≥ 80/100 pós-PR #4 (Wagner aprova).
 
 ## Histórico
 
 - **v1.0.0** (2026-05-20) — SPEC.md inicial criado em PR #1183 (Fiscal cockpit NF-e). Módulo novo thin agregador.
+- **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: Cockpit + NFS-e + Eventos. 3 sub-páginas adicionadas (US-FISCAL-002, US-FISCAL-005, US-FISCAL-007). Permission `fiscal.nfse.view` nova. Roadmap reorganizado (5 PRs vs 7 originais).
 
 ## Referências
 

@@ -45,6 +45,7 @@ class DataController extends Controller
             ['value' => 'fiscal.access',           'label' => __('fiscal::fiscal.permissao_acesso'),      'default' => false],
             ['value' => 'fiscal.nfe.view',         'label' => __('fiscal::fiscal.permissao_nfe_view'),    'default' => false],
             ['value' => 'fiscal.nfe.acoes',        'label' => __('fiscal::fiscal.permissao_nfe_acoes'),   'default' => false],
+            ['value' => 'fiscal.nfse.view',        'label' => __('fiscal::fiscal.permissao_nfse_view'),   'default' => false],
             ['value' => 'fiscal.dfe.manage',       'label' => __('fiscal::fiscal.permissao_dfe_manage'),  'default' => false],
             ['value' => 'fiscal.sped.export',      'label' => __('fiscal::fiscal.permissao_sped_export'), 'default' => false],
             ['value' => 'fiscal.config.edit',      'label' => __('fiscal::fiscal.permissao_config_edit'), 'default' => false],
@@ -87,10 +88,9 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
-                // Entrada top-level "Fiscal" — leva direto a /fiscal/nfe no PR #1.
-                // Quando PR #2 entregar cockpit, mudar URL para /fiscal.
+                // Entrada top-level "Fiscal" — leva ao Cockpit (PR #2 Wave consolidada).
                 $menu->url(
-                    url('/fiscal/nfe'),
+                    url('/fiscal'),
                     __('fiscal::fiscal.module_label'),
                     [
                         'icon'   => 'fa fas fa-file-invoice',
