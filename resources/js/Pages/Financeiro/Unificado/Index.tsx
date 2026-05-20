@@ -600,11 +600,16 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
             Imprimir
             {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
           </button>
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/extrato')}>
+          {/* Onda 16 (2026-05-19) — fix links 404:
+              - "Conciliar" /financeiro/extrato (404) → /financeiro/contas-bancarias
+                (lista de contas → usuário escolhe → vai pro extrato/{id})
+              - "Plano de contas" /financeiro/plano-contas (rota não existe) →
+                /financeiro/categorias (que já vincula plano via CategoriaSheet) */}
+          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/contas-bancarias')} title="Conciliar extrato bancário — escolha uma conta">
             <RefreshCw size={13} />
             Conciliar
           </button>
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas — categorias contábeis">
+          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/categorias')} title="Categorias contábeis (vínculo opcional ao plano de contas)">
             <FolderOpen size={13} />
             Plano de contas
           </button>
@@ -982,8 +987,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <CommandEmpty>Sem resultados.</CommandEmpty>
           <CommandGroup heading="Ações">
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/unificado/novo'); }}>Novo lançamento</CommandItem>
-            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/extrato'); }}>Conciliar extrato</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/contas-bancarias'); }}>Conciliar extrato</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/categorias'); }}>Plano de contas / Categorias</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); setResumoOpen(true); }}>
               ✦ Resumir mês (narrativa exec)
             </CommandItem>
