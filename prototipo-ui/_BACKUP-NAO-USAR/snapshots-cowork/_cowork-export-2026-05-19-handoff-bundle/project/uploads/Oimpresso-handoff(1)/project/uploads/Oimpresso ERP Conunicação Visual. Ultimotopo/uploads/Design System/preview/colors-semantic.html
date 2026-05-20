@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "IBM Plex Sans", sans-serif; background: #fff; padding: 16px; font-size: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .token { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #eee; border-radius: 6px; }
+  .dot { width: 24px; height: 24px; border-radius: 4px; flex: 0 0 auto; border: 1px solid rgba(0,0,0,.07); }
+  .meta { min-width: 0; }
+  .meta b { display: block; font-size: 11px; font-weight: 600; }
+  .meta small { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; color: #888; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="token"><div class="dot" style="background:oklch(0.72 0.18 145)"></div><div class="meta"><b>Online / success</b><small>oklch(0.72 0.18 145)</small></div></div>
+    <div class="token"><div class="dot" style="background:oklch(0.55 0.18 25)"></div><div class="meta"><b>Urgente / danger</b><small>oklch(0.55 0.18 25)</small></div></div>
+    <div class="token"><div class="dot" style="background:oklch(0.78 0.16 75)"></div><div class="meta"><b>Unread / warning</b><small>oklch(0.78 0.16 75)</small></div></div>
+    <div class="token"><div class="dot" style="background:oklch(0.55 0.15 30)"></div><div class="meta"><b>Badge alert</b><small>oklch(0.55 0.15 30)</small></div></div>
+    <div class="token"><div class="dot" style="background:oklch(0.58 0.09 220)"></div><div class="meta"><b>Accent / primary</b><small>--accent</small></div></div>
+    <div class="token"><div class="dot" style="background:oklch(0.94 0.025 220)"></div><div class="meta"><b>Accent soft</b><small>--accent-soft</small></div></div>
+    <div class="token"><div class="dot" style="background:oklch(0.96 0.04 80); border:1px dashed oklch(0.80 0.08 80)"></div><div class="meta"><b>Note bubble</b><small>oklch(0.96 0.04 80)</small></div></div>
+    <div class="token"><div class="dot" style="background:oklch(0.94 0.02 220)"></div><div class="meta"><b>File icon bg</b><small>oklch(0.94 0.02 220)</small></div></div>
+  </div>
+</body>
+</html>
