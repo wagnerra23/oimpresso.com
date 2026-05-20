@@ -276,6 +276,96 @@ class ServiceOrderFsmActionController extends Controller
     }
 
     /**
+     * Timeline FSM auditável da OS (Wave 7-C — gap #1 estado-da-arte FSM screen).
+     *
+     * Espelha SaleHistoryController->index() mas discrimina entries de ServiceOrder
+     * vs Sale via process_key cacamba_* (ServiceOrder reusa sale_stage_history
+     * armazenando $order->id no campo transaction_id — subject_id polimórfico,
+     * ver ExecuteStageActionService::executeInternal linha 122).
+     *
+     * Entries de startPipeline têm action_id NULL — discriminadas via
+     * payload_snapshot.pipeline_started=true (ver método startPipeline linha 256).
+     *
+     * Permissão reusa `oficinaauto.service_order.view` — quem vê a OS vê histórico
+     * FSM (não há PII adicional além do já visível no show).
+     */
+    public function history(ServiceOrder $order): JsonResponse
+    {
+        if (! auth()->check()) {
+            abort(Response::HTTP_UNAUTHORIZED);
+        }
+
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.service_order.view'),
+            Response::HTTP_FORBIDDEN
+        );
+
+        $businessId = (int) $order->business_id;
+        $processKeys = array_values(self::ORDER_TYPE_TO_PROCESS);
+
+        $items = SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->where('transaction_id', $order->id)
+            ->where(function ($q) use ($processKeys) {
+                $q->whereHas('action.stage.process', function ($p) use ($processKeys) {
+                    $p->whereIn('key', $processKeys);
+                })->orWhere(function ($q2) {
+                    $q2->whereNull('action_id')
+                        ->whereJsonContains('payload_snapshot->pipeline_started', true);
+                });
+            })
+            ->with([
+                'action:id,key,label,target_stage_id,side_effect_class,event_class',
+                'fromStage:id,key,name,color',
+                'toStage:id,key,name,color',
+            ])
+            ->orderByDesc('executed_at')
+            ->limit(200)
+            ->get();
+
+        $userIds = $items->pluck('user_id')->filter()->unique()->values();
+        $userNames = \DB::table('users')
+            ->whereIn('id', $userIds)
+            ->pluck('username', 'id')
+            ->toArray();
+
+        $payload = $items->map(function (SaleStageHistory $h) use ($userNames): array {
+            return [
+                'id' => $h->id,
+                'executed_at' => $h->executed_at?->toIso8601String(),
+                'user' => [
+                    'id' => $h->user_id,
+                    'name' => $h->user_id ? ($userNames[$h->user_id] ?? null) : null,
+                ],
+                'action' => $h->action ? [
+                    'key' => $h->action->key,
+                    'label' => $h->action->label,
+                    'has_side_effect' => ! empty($h->action->side_effect_class),
+                    'has_event' => ! empty($h->action->event_class),
+                ] : null,
+                'from_stage' => $h->fromStage ? [
+                    'key' => $h->fromStage->key,
+                    'name' => $h->fromStage->name,
+                    'color' => $h->fromStage->color,
+                ] : null,
+                'to_stage' => $h->toStage ? [
+                    'key' => $h->toStage->key,
+                    'name' => $h->toStage->name,
+                    'color' => $h->toStage->color,
+                ] : null,
+                'payload' => $h->payload_snapshot,
+            ];
+        });
+
+        return response()->json([
+            'service_order_id' => $order->id,
+            'count' => $items->count(),
+            'items' => $payload,
+        ]);
+    }
+
+    /**
      * Resolve process_key a partir do order_type da OS.
      */
     private function resolveProcessKey(ServiceOrder $order): ?string
