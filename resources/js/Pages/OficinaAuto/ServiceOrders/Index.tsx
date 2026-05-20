@@ -68,6 +68,7 @@ interface PaginatedOrders {
 interface Filters {
   status: string;
   type: string;
+  stage: string;
   q: string;
 }
 
@@ -78,6 +79,16 @@ interface Kpis {
   atrasadas: number;
 }
 
+// Gap #3 estado-da-arte FSM screen — chips por stage estilo Linear (Wave 7-D).
+interface Stage {
+  key: string;
+  name: string;
+  color: string | null;
+  count: number;
+  is_terminal: boolean;
+  process_key: string;
+}
+
 interface SchemaFlags {
   has_order_type: boolean;
   has_return_date: boolean;
@@ -86,6 +97,7 @@ interface SchemaFlags {
   has_number: boolean;
   has_started_at: boolean;
   has_contact: boolean;
+  has_current_stage: boolean;
   has_vehicle_number: boolean;
   has_capacity_m3: boolean;
 }
@@ -96,6 +108,8 @@ interface Props {
   // kpis vem via Inertia::defer (Wave 26 D6) — undefined no primeiro render.
   // Default value no destructuring evita crash até segundo request chegar.
   kpis?: Kpis;
+  // stages vem via Inertia::defer (Gap #3 Wave 7-D) — undefined antes do segundo request.
+  stages?: Stage[];
   schemaFlags: SchemaFlags;
 }
 
@@ -148,8 +162,28 @@ function isOverdueClient(o: ServiceOrder, flags: SchemaFlags): boolean {
   return target < today;
 }
 
+// Gap #3 — paleta de cores Tailwind por stage.color (vinda do seeder OficinaAutoFsmSeeder).
+const STAGE_CHIP_FALLBACK = {
+  idle: 'border-gray-200 text-gray-700 hover:bg-gray-50',
+  active: 'border-gray-400 bg-gray-100 text-gray-900',
+};
+const STAGE_CHIP_COLOR_MAP: Record<string, { idle: string; active: string }> = {
+  gray:    { idle: 'border-gray-200 text-gray-700 hover:bg-gray-50',         active: 'border-gray-400 bg-gray-100 text-gray-900' },
+  blue:    { idle: 'border-blue-200 text-blue-700 hover:bg-blue-50',         active: 'border-blue-400 bg-blue-100 text-blue-900' },
+  cyan:    { idle: 'border-cyan-200 text-cyan-700 hover:bg-cyan-50',         active: 'border-cyan-400 bg-cyan-100 text-cyan-900' },
+  amber:   { idle: 'border-amber-200 text-amber-700 hover:bg-amber-50',      active: 'border-amber-400 bg-amber-100 text-amber-900' },
+  yellow:  { idle: 'border-yellow-200 text-yellow-700 hover:bg-yellow-50',   active: 'border-yellow-400 bg-yellow-100 text-yellow-900' },
+  violet:  { idle: 'border-violet-200 text-violet-700 hover:bg-violet-50',   active: 'border-violet-400 bg-violet-100 text-violet-900' },
+  indigo:  { idle: 'border-indigo-200 text-indigo-700 hover:bg-indigo-50',   active: 'border-indigo-400 bg-indigo-100 text-indigo-900' },
+  emerald: { idle: 'border-emerald-200 text-emerald-700 hover:bg-emerald-50', active: 'border-emerald-400 bg-emerald-100 text-emerald-900' },
+  green:   { idle: 'border-green-200 text-green-700 hover:bg-green-50',      active: 'border-green-400 bg-green-100 text-green-900' },
+  red:     { idle: 'border-red-200 text-red-700 hover:bg-red-50',            active: 'border-red-400 bg-red-100 text-red-900' },
+  rose:    { idle: 'border-rose-200 text-rose-700 hover:bg-rose-50',         active: 'border-rose-400 bg-rose-100 text-rose-900' },
+  slate:   { idle: 'border-slate-200 text-slate-700 hover:bg-slate-50',      active: 'border-slate-400 bg-slate-100 text-slate-900' },
+};
+
 // ──────── Component ────────
-export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS, schemaFlags }: Props) {
+export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS, stages, schemaFlags }: Props) {
   const [q, setQ] = useState(filters.q ?? '');
 
   // Drawer ServiceOrder state — clicar row abre OS no drawer (US-OFICINA-OS-DRAWER).
@@ -158,8 +192,8 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
     if (!open) setOpenOsId(null);
   }, []);
   const handleOrderChanged = useCallback(() => {
-    // Refresh listagem após transição FSM (status/atrasada/valor mudam)
-    router.reload({ only: ['orders', 'kpis'], preserveScroll: true, preserveState: true });
+    // Refresh listagem + contadores stages após transição FSM (status/stage/valor mudam)
+    router.reload({ only: ['orders', 'kpis', 'stages'], preserveScroll: true, preserveState: true });
   }, []);
 
   // Live search com debounce 300ms
@@ -306,13 +340,61 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
           </form>
         </div>
 
+        {/* Gap #3 — chips de stage FSM estilo Linear (Wave 7-D). */}
+        {schemaFlags.has_current_stage && stages && stages.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mr-1">
+              Estágio FSM:
+            </span>
+            <button
+              type="button"
+              onClick={() => applyFilter({ stage: 'all' })}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors',
+                (filters.stage || 'all') === 'all'
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border text-muted-foreground hover:bg-muted/50',
+              )}
+            >
+              Todos
+            </button>
+            {stages.map((stage) => {
+              const active = filters.stage === stage.key;
+              const colors = STAGE_CHIP_COLOR_MAP[stage.color ?? 'gray'] ?? STAGE_CHIP_FALLBACK;
+              return (
+                <button
+                  key={`${stage.process_key}-${stage.key}`}
+                  type="button"
+                  onClick={() => applyFilter({ stage: stage.key })}
+                  title={stage.is_terminal ? `${stage.name} (terminal)` : stage.name}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors',
+                    active ? colors.active : colors.idle,
+                    stage.is_terminal && !active && 'opacity-70',
+                  )}
+                >
+                  <span>{stage.name}</span>
+                  <span
+                    className={cn(
+                      'inline-flex min-w-[18px] justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums',
+                      active ? 'bg-background/40' : 'bg-background',
+                    )}
+                  >
+                    {stage.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Tabela / Empty state */}
         {orders.data.length === 0 ? (
           <EmptyState
             icon={<Wrench className="size-12" />}
             title="Nenhuma OS encontrada"
             description={
-              filters.status || filters.type || filters.q
+              filters.status || filters.type || filters.stage || filters.q
                 ? 'Ajuste os filtros ou crie uma nova ordem de serviço.'
                 : 'Crie a primeira ordem de serviço para acompanhar o fluxo da oficina.'
             }
@@ -514,5 +596,6 @@ function currentFiltersExceptQ(filters: Filters): Record<string, string> {
   const out: Record<string, string> = {};
   if (filters.status && filters.status !== 'all') out.status = filters.status;
   if (filters.type && filters.type !== 'all') out.type = filters.type;
+  if (filters.stage && filters.stage !== 'all') out.stage = filters.stage;
   return out;
 }
