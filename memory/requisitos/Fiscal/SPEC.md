@@ -175,7 +175,40 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - [x] Pest biz=1 (`SpedControllerTest` — anti-hook: gerador real NÃO existe)
 - [x] Charter + RUNBOOK + visual-comparison
 
-### US-FISCAL-011 · Gerador SPED real — **backlog PR #6**
+### US-FISCAL-013 · CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
+
+> **Rotas:**
+> - `POST /fiscal/acoes/nfe/{emissao}/cce` (perm `fiscal.nfe.acoes`)
+> - `POST /fiscal/acoes/nfe/inutilizar` (perm `fiscal.nfe.acoes`)
+> **Controller:** `AcoesController@cartaCorrecao`, `AcoesController@inutilizar`
+> **Services:** `NfeCartaCorrecaoService` (novo), `NfeInutilizacaoService` (já existia US-SELL-030)
+
+**Como** contador/operador
+**Quero** aplicar Carta de Correção em NF-e autorizada (sem alterar valores) e inutilizar faixa numérica de notas rejeitadas direto do cockpit Fiscal
+**Para** corrigir erros textuais (endereço/info compl) sem cancelar+reemitir, e fechar buracos no sequencial fiscal sem multa anual
+
+**DoD:**
+- [x] `NfeCartaCorrecaoService::aplicar(biz, emissaoId, textoCorrecao, nSeqEvento)` — novo Service espelhado em `NfeInutilizacaoService` (não inflar `NfeService` 900 linhas)
+- [x] Validação texto correção 15-1000 chars (CONFAZ SINIEF 07/2005 Art. 14)
+- [x] Validação `n_seq_evento` 1-20 (regra SEFAZ — máx 20 CC-e por NFe)
+- [x] Janela 720h (30d) da autorização (`emitido_em`)
+- [x] Idempotência (emissao_id, n_seq_evento) — re-chamar mesma sequência retorna evento existente
+- [x] Cross-tenant guard explícito + global scope (ADR 0093)
+- [x] Persistência `NfeEvento(tipo='110110', justificativa=textoCorrecao, payload_json.n_seq_evento)`
+- [x] OTel span `nfe.cce` + atributos (biz, emissao_id, n_seq_evento)
+- [x] Inutilização delega `NfeInutilizacaoService::inutilizar` (Service já validado US-SELL-030)
+- [x] Throttle 30/min anti-DOS (protege webservice SEFAZ)
+- [x] UI: NotaDrawer botão CC-e habilitado pra `status='autorizada'` + modal texto correção
+- [x] UI: Nfe.tsx header botão "Inutilizar faixa" + modal modelo/série/range/justificativa (componente extraído `_components/InutilizacaoModal.tsx`)
+- [x] Pest `AcoesControllerTest` cobre validação CC-e + Inutilização + métodos
+- [x] Pest `NfeCartaCorrecaoServiceTest` cobre Service contract (validarEntrada + cross-tenant)
+
+**Non-Goals (futuro PR):**
+- ❌ Retransmitir nota rejeitada (exige re-build payload — PR #6 dedicado)
+- ❌ CC-e UI listar histórico de sequências aplicadas (next iter — drawer mostra só ação atual)
+- ❌ Inutilização batch (faixa única por submit; ranges múltiplos = N submits)
+
+### US-FISCAL-011 · Gerador SPED real — **backlog PR #7**
 
 EFD ICMS/IPI + EFD-Contribuições reais (TXT layout CONFAZ). PR dedicado pós-MVP fiscal.
 
@@ -258,12 +291,13 @@ Then deve receber 403 Forbidden
 | #1 #1183 | NF-e · NFC-e (cockpit + drawer) | 1 dia | base 0→60/100 | ✅ mergeado `8aef3d0fa` |
 | #2 #1185 (Wave) | Cockpit (1) + NFS-e (3) + Eventos (5) | 1 dia | +20pp | ✅ mergeado `cabd29661` |
 | #3 #1189 (Wave) | DF-e (4) + Cert/Cfg (6) + SPED (7) | 1 dia | +12pp | ✅ mergeado `e36e1e272` |
-| #4 (Wave) | Cancelar NFe + Manifestar DF-e (4 ações) | 4h | +15pp (core) | 🟡 em curso |
-| #5 | Retransmitir + CC-e + Inutilização | 1 dia | +6pp | 🔒 backlog |
-| #6 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
-| #7 | Gerador SPED real (EFD ICMS-IPI + PIS/COFINS) | 1+ semana | +10pp | 🔒 backlog |
+| #4 #1190 (Wave) | Cancelar NFe + Manifestar DF-e (4 ações) | 4h | +15pp (core) | ✅ mergeado `d10b117e1` |
+| #5 (Wave) | CC-e (110110) + Inutilização faixa | 4h | +4pp | 🟡 em curso |
+| #6 | Retransmitir nota rejeitada (re-build payload) | 1 dia | +3pp | 🔒 backlog |
+| #7 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
+| #8 | Gerador SPED real (EFD ICMS-IPI + PIS/COFINS) | 1+ semana | +10pp | 🔒 backlog |
 
-**Meta:** Score Capterra Fiscal cockpit ≥ 80/100 pós-PR #4 (Wagner aprova).
+**Meta:** Score Capterra Fiscal cockpit ≥ 85/100 pós-PR #5 (CC-e fecha gap clássico Bling/Tiny). Wagner aprova nova meta.
 
 ## Histórico
 
@@ -271,6 +305,7 @@ Then deve receber 403 Forbidden
 - **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: Cockpit + NFS-e + Eventos. 3 sub-páginas adicionadas (US-FISCAL-002, US-FISCAL-005, US-FISCAL-007). Permission `fiscal.nfse.view` nova. Roadmap reorganizado (5 PRs vs 7 originais).
 - **v1.2.0** (2026-05-20) — PR #3 Wave final: DF-e + Cert/Cfg + SPED placeholder. **7 sub-páginas do design Cowork concluídas**. US-FISCAL-008/009/010 adicionadas + US-FISCAL-011 backlog (gerador SPED real). FxShell habilita todos 7 chips. Próximo PR foco em ações de mutação (cancelar/CC-e/etc).
 - **v1.3.0** (2026-05-20) — PR #4 Wave Ações: AcoesController thin delegate pra NfeService::cancelar (FSM cascade ADR 0143) + ManifestacaoService (4 ações DF-e). NotaDrawer Cancelar habilitado + modal motivo. Dfe.tsx coluna Ações com 4 botões manifesto. US-FISCAL-012 adicionada. Roadmap reorganizado (Retransmitir+CCe+Inut viraram PR #5).
+- **v1.4.0** (2026-05-20) — PR #5 Wave CCe + Inutilização: `NfeCartaCorrecaoService` novo (espelhado em `NfeInutilizacaoService` — não inflar NfeService 900 linhas). 2 rotas + 2 métodos no AcoesController. NotaDrawer botão CC-e habilitado + modal texto correção 15-1000. Nfe.tsx header "Inutilizar faixa" + `InutilizacaoModal.tsx` (componente extraído). US-FISCAL-013 adicionada. Retransmitir nota rejeitada permanece backlog PR #6 (re-build payload exige scope dedicado). Meta Capterra Fiscal ≥85/100.
 
 ## Referências
 

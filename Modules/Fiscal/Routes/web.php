@@ -71,4 +71,16 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->where('acao', 'cienciar|confirmar|desconhecer|nao_realizada')
             ->middleware('throttle:30,1')
             ->name('acoes.dfe.manifestar');
+
+        // ─── PR #5 Wave: CCe + Inutilização ──────────────────────────────
+        // Carta de Correção (tpEvento 110110) — delega NfeCartaCorrecaoService.
+        Route::post('/acoes/nfe/{emissao}/cce', [AcoesController::class, 'cartaCorrecao'])
+            ->whereNumber('emissao')
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.cce');
+
+        // Inutilização faixa numérica (SEFAZ cstat=102) — delega NfeInutilizacaoService.
+        Route::post('/acoes/nfe/inutilizar', [AcoesController::class, 'inutilizar'])
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.inutilizar');
     });

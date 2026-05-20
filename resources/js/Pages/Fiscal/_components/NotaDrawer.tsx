@@ -1,10 +1,11 @@
 // NotaDrawer.tsx — slide-in lateral com detalhe da nota + mapa SEFAZ guiado
 // Port do design fiscal-page.jsx §5 (NotaDrawer + SefazActionCard)
 // "Jana sugere": receita determinística por cstat — substitui IA real (R#2 KB-9.75)
+// PR #5 Wave (Wave 5): CCe modal (tpEvento 110110) habilitada.
 
 import { router } from '@inertiajs/react';
-import { Bot, FileText, RefreshCw, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Bot, FileText, PenLine, RefreshCw, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   brl,
@@ -146,26 +147,31 @@ function SefazActionCard({ cstat }: { cstat: number }) {
 
 export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [cceOpen, setCceOpen] = useState(false);
   const [motivo, setMotivo] = useState('');
+  const [textoCce, setTextoCce] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // ESC fecha (drawer ou modal cancel)
+  // ESC fecha modais → drawer
   useEffect(() => {
     if (!nota) return;
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (cancelOpen) setCancelOpen(false);
+        else if (cceOpen) setCceOpen(false);
         else onClose();
       }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [nota, onClose, cancelOpen]);
+  }, [nota, onClose, cancelOpen, cceOpen]);
 
   // Reset modal state quando trocar de nota
   useEffect(() => {
     setCancelOpen(false);
+    setCceOpen(false);
     setMotivo('');
+    setTextoCce('');
   }, [nota?.id]);
 
   const handleCancelar = () => {
@@ -181,6 +187,28 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
         onClose();
       },
     });
+  };
+
+  // CCe — próxima sequência derivada da contagem local (server valida 1-20)
+  const proximaSequenciaCCe = useMemo(() => 1, [nota?.id]);
+
+  const handleCCe = () => {
+    if (textoCce.trim().length < 15) return;
+    if (!nota) return;
+    setBusy(true);
+    router.post(
+      `/fiscal/acoes/nfe/${nota.id}/cce`,
+      { texto_correcao: textoCce, n_seq_evento: proximaSequenciaCCe },
+      {
+        preserveScroll: true,
+        onFinish: () => {
+          setBusy(false);
+          setCceOpen(false);
+          setTextoCce('');
+          onClose();
+        },
+      },
+    );
   };
 
   if (!nota) return null;
@@ -272,6 +300,16 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
           <div className="fx-drawer-f-r">
             <button className="fx-btn" disabled title="PR seguinte">XML</button>
             <button className="fx-btn" disabled title="PR seguinte">DANFE</button>
+            {nota.status === 'autorizada' && cce && (
+              <button
+                className="fx-btn warn"
+                onClick={() => setCceOpen(true)}
+                disabled={busy}
+                title="Carta de Correção Eletrônica (CONFAZ Art. 14 — janela 30d)"
+              >
+                <PenLine size={12}/> CC-e <kbd className="fx-kbd-inline">C</kbd>
+              </button>
+            )}
             {nota.status === 'autorizada' && cancel && (
               <button
                 className="fx-btn danger"
@@ -283,12 +321,72 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
               </button>
             )}
             {['rejeitada', 'denegada'].includes(nota.status) && (
-              <button className="fx-btn primary" disabled title="Retransmitir em PR seguinte">
+              <button className="fx-btn primary" disabled title="Retransmitir em PR #6 (re-build payload)">
                 Retransmitir <kbd className="fx-kbd-inline">⏎</kbd>
               </button>
             )}
           </div>
         </footer>
+
+        {/* Modal CCe — texto correção (PR #5 Wave) */}
+        {cceOpen && (
+          <div className="fx-drawer-bg" onClick={() => !busy && setCceOpen(false)}>
+            <div
+              role="dialog"
+              aria-label="Carta de Correção Eletrônica"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: 'white',
+                borderRadius: 10,
+                padding: 22,
+                width: 480,
+                maxWidth: '90vw',
+                margin: '12vh auto',
+                boxShadow: '0 12px 40px rgba(0,0,0,.2)',
+              }}
+            >
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>
+                Carta de Correção · NF-e {nota.num}
+              </h3>
+              <p style={{ fontSize: 12.5, color: 'var(--fx-text-dim)', margin: '0 0 14px' }}>
+                Descreva a correção (15-1000 chars · CONFAZ Art. 14 — janela 30d da autorização).
+                Não pode alterar: valores, base cálculo, alíquota, emit/dest, data, número/série.
+              </p>
+              <textarea
+                value={textoCce}
+                onChange={(e) => setTextoCce(e.target.value.slice(0, 1000))}
+                placeholder="Ex: Onde se lê 'Rua A, 123', leia-se 'Rua A, 1234'. Erro de digitação no endereço de entrega."
+                rows={5}
+                disabled={busy}
+                autoFocus
+                style={{
+                  width: '100%',
+                  padding: 10,
+                  fontSize: 12.5,
+                  border: '1px solid var(--fx-border)',
+                  borderRadius: 7,
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                }}
+              />
+              <div style={{ fontSize: 11, color: 'var(--fx-text-mute)', margin: '4px 0 14px' }}>
+                {textoCce.length}/1000 · {textoCce.trim().length < 15 ? `faltam ${15 - textoCce.trim().length} chars` : '✅ ok'}
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button className="fx-btn ghost" onClick={() => setCceOpen(false)} disabled={busy}>
+                  Voltar
+                </button>
+                <button
+                  className="fx-btn warn"
+                  onClick={handleCCe}
+                  disabled={busy || textoCce.trim().length < 15}
+                >
+                  {busy ? 'Enviando…' : 'Enviar CC-e'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal cancel motivo */}
         {cancelOpen && (
