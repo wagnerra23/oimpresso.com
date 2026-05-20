@@ -181,10 +181,10 @@ Pequenos, baixo risco, fecha workflow corporativo do US-FIN-021 (Aprovação) e 
 - Aprovação multi-step FSM (3+ aprovadores) — depende cliente médio porte
 - Conciliação CNAB 240/400 retorno parser dedicado
 
-### 🟢 Decisões produto pendentes (Wagner aprovar)
+### 🟢 Decisões produto resolvidas (Wagner 2026-05-19)
 
-- **Decisão DC**: Categorias livres viram deprecated em favor de Plano de Contas? Ou ficam paralelos com vínculo opcional?
-- **Decisão DC**: Customer service network (advisor contadores) — modelo Conta Azul ou pulamos?
+- **DC1 ✅ RESOLVIDA**: Categorias e Plano de Contas ficam **PARALELOS** com vínculo opcional. Categorias livres permanecem (UX rápida lançamento). Plano de Contas é vista contábil/fiscal para o contador. Nenhum dos dois deprecated. CategoriaSheet mantém dropdown "Plano de Contas (opcional)".
+- **DC2 ✅ APROVADA**: Customer service network (advisor contadores) **VAI ROLAR** — US-FIN-037 criada. Fase 1 MVP ~400 LOC (portal advisor + grant readonly access biz→contador + multi-business view). Fase 2 (referral commission 15% + marketplace + white-label) em US separadas.
 
 ---
 

@@ -1231,3 +1231,35 @@ Mata gap mobile (score 4/10 vs Conta Azul 9/10) sem custo de app nativo. Wagner/
 
 **Refs:** CAPTERRA-INVENTARIO bucket ❌ A2 · COMPARATIVO matriz "App mobile P2-P3"
 **LOC estimado:** ~150
+
+### US-FIN-037 · Customer service network — Portal Advisor Contadores parceiros (referral + acesso compartilhado)
+
+> owner: — · sprint: Onda 31 · priority: p2 · estimate: 14h · status: todo · type: story
+> blocked_by: —
+
+Diferencial Conta Azul KILLER que ataca direto seu moat de mercado: network de contadores parceiros que recomendam o oimpresso ao cliente PJ. Wagner aprovou DC2 em 2026-05-19 — "pode fazer".
+
+**Modelo conceitual:**
+- Contador cadastra-se grátis no portal `/advisors/login` (separado do biz)
+- Cliente PJ adiciona seu contador no Financeiro → grant read-only access a /relatorios + /unificado (zero credenciais compartilhadas)
+- Contador vê N clientes seus num dashboard único (multi-business view limitado)
+- oimpresso paga 15% recurring commission ao contador por cliente PJ ativo referenciado (campanha lançamento)
+- Sistema referral code (contador.cnpj) que cliente cola no checkout signup
+
+**Acceptance criteria — Fase 1 (MVP, este card):**
+- [ ] Tabela `advisors` (cnpj_contador, nome, email, telefone, referral_code, criado_at, ativo)
+- [ ] Tabela `advisor_business_access` (advisor_id, business_id, granted_at, revoked_at, scope JSON readonly_view)
+- [ ] Tela `/financeiro/configuracoes/contador` no biz: admin grant acesso ao seu contador via email/cnpj
+- [ ] Portal advisor `/advisor` separado com login isolado (não-business user) — dashboard com cards "Meus clientes" linkados a /relatorios?advisor_view=1&business_id=X
+- [ ] Middleware `AdvisorViewScope` força readonly (POST/PUT/DELETE 403)
+- [ ] Pest cobre: advisor login isolado, grant/revoke acesso, readonly enforce, business_id correto por grant
+- [ ] LGPD: advisor consente termos antes de ver dados; biz pode revogar a qualquer momento
+- [ ] biz=1 cross-tenant + isolamento entre advisors (advisor A não vê clientes do advisor B)
+
+**Fase 2 (futuro, US separada):**
+- Sistema referral code + comissão 15% recurring tracking
+- Marketplace de contadores certificados (pesquisa por cidade/especialidade)
+- White-label leve (contador adiciona logo no portal advisor)
+
+**Refs:** Wagner aprovou DC2 em sessão 2026-05-19 · CAPTERRA-INVENTARIO bucket ❌ Customer service network · COMPARATIVO_CONCORRENCIA Pros líder (Conta Azul) #1 "Network de contadores é diferencial"
+**LOC estimado Fase 1:** ~400 · estratégico, alto impacto comercial
