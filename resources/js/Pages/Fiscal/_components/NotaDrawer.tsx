@@ -1,7 +1,8 @@
 // NotaDrawer.tsx — slide-in lateral com detalhe da nota + mapa SEFAZ guiado
 // Port do design fiscal-page.jsx §5 (NotaDrawer + SefazActionCard)
 // "Jana sugere": receita determinística por cstat — substitui IA real (R#2 KB-9.75)
-// PR #5 Wave (Wave 5): CCe modal (tpEvento 110110) habilitada.
+// PR #5 Wave: CCe modal (tpEvento 110110) habilitada.
+// PR #6 Wave: Retransmitir modal habilitado (status rejeitada/denegada/erro_envio).
 
 import { router } from '@inertiajs/react';
 import { Bot, FileText, PenLine, RefreshCw, X } from 'lucide-react';
@@ -148,6 +149,7 @@ function SefazActionCard({ cstat }: { cstat: number }) {
 export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cceOpen, setCceOpen] = useState(false);
+  const [retransmitOpen, setRetransmitOpen] = useState(false);
   const [motivo, setMotivo] = useState('');
   const [textoCce, setTextoCce] = useState('');
   const [busy, setBusy] = useState(false);
@@ -159,17 +161,19 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
       if (e.key === 'Escape') {
         if (cancelOpen) setCancelOpen(false);
         else if (cceOpen) setCceOpen(false);
+        else if (retransmitOpen) setRetransmitOpen(false);
         else onClose();
       }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [nota, onClose, cancelOpen, cceOpen]);
+  }, [nota, onClose, cancelOpen, cceOpen, retransmitOpen]);
 
   // Reset modal state quando trocar de nota
   useEffect(() => {
     setCancelOpen(false);
     setCceOpen(false);
+    setRetransmitOpen(false);
     setMotivo('');
     setTextoCce('');
   }, [nota?.id]);
@@ -209,6 +213,20 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
         },
       },
     );
+  };
+
+  // PR #6 Wave: Retransmitir rejeitada/denegada/erro_envio
+  const handleRetransmitir = () => {
+    if (!nota) return;
+    setBusy(true);
+    router.post(`/fiscal/acoes/nfe/${nota.id}/retransmitir`, {}, {
+      preserveScroll: true,
+      onFinish: () => {
+        setBusy(false);
+        setRetransmitOpen(false);
+        onClose();
+      },
+    });
   };
 
   if (!nota) return null;
@@ -320,8 +338,13 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
                 Cancelar <kbd className="fx-kbd-inline">X</kbd>
               </button>
             )}
-            {['rejeitada', 'denegada'].includes(nota.status) && (
-              <button className="fx-btn primary" disabled title="Retransmitir em PR #6 (re-build payload)">
+            {['rejeitada', 'denegada', 'erro_envio'].includes(nota.status) && (
+              <button
+                className="fx-btn primary"
+                onClick={() => setRetransmitOpen(true)}
+                disabled={busy}
+                title="Retransmite NFe — gera novo número fiscal + nova chave de acesso"
+              >
                 Retransmitir <kbd className="fx-kbd-inline">⏎</kbd>
               </button>
             )}
@@ -382,6 +405,54 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
                   disabled={busy || textoCce.trim().length < 15}
                 >
                   {busy ? 'Enviando…' : 'Enviar CC-e'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Retransmitir confirm (PR #6 Wave) */}
+        {retransmitOpen && (
+          <div className="fx-drawer-bg" onClick={() => !busy && setRetransmitOpen(false)}>
+            <div
+              role="dialog"
+              aria-label="Confirmar retransmissão"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: 'white',
+                borderRadius: 10,
+                padding: 22,
+                width: 460,
+                maxWidth: '90vw',
+                margin: '15vh auto',
+                boxShadow: '0 12px 40px rgba(0,0,0,.2)',
+              }}
+            >
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>
+                Retransmitir {nota.modelo === 65 ? 'NFC-e' : 'NF-e'} {nota.num}
+              </h3>
+              <p style={{ fontSize: 12.5, color: 'var(--fx-text-dim)', margin: '0 0 10px' }}>
+                Status atual: <b>{nota.status}</b>
+                {nota.motivo && <> · {nota.motivo}</>}
+              </p>
+              <div style={{ background: 'var(--fx-bg-2, #fafafa)', borderRadius: 7, padding: 12, fontSize: 12.5, marginBottom: 14 }}>
+                <b style={{ display: 'block', marginBottom: 4 }}>O que vai acontecer:</b>
+                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.55 }}>
+                  <li>Novo número fiscal será reservado (sequência monotônica)</li>
+                  <li>cNF + chave de acesso 44 dígitos serão regenerados</li>
+                  <li>Payload re-derivado da Venda associada (cadastro atual)</li>
+                  <li>NFe antiga (nº {nota.num}) sai do registro — fica "buraco" no sequencial até inutilização SEFAZ formal</li>
+                </ul>
+              </div>
+              <p style={{ fontSize: 11.5, color: 'var(--fx-text-mute)', margin: '0 0 14px' }}>
+                ⚠️ Se a rejeição foi por cadastro (NCM/CST/CFOP/dest), corrija ANTES de retransmitir — caso contrário a SEFAZ vai rejeitar de novo com mesma causa.
+              </p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button className="fx-btn ghost" onClick={() => setRetransmitOpen(false)} disabled={busy}>
+                  Voltar
+                </button>
+                <button className="fx-btn primary" onClick={handleRetransmitir} disabled={busy}>
+                  {busy ? 'Retransmitindo…' : 'Confirmar retransmissão'}
                 </button>
               </div>
             </div>

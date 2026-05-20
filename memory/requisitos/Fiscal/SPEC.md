@@ -208,6 +208,30 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - ❌ CC-e UI listar histórico de sequências aplicadas (next iter — drawer mostra só ação atual)
 - ❌ Inutilização batch (faixa única por submit; ranges múltiplos = N submits)
 
+### US-FISCAL-014 · Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave
+
+> **Rota:** `POST /fiscal/acoes/nfe/{emissao}/retransmitir` (perm `fiscal.nfe.acoes`)
+> **Controller:** `AcoesController@retransmitir` · **Service:** `NfeService::retransmitir` (novo método público)
+
+**Como** contador/operador
+**Quero** retransmitir NFe rejeitada/denegada/erro_envio direto do cockpit
+**Para** corrigir erros transientes (rede/timeout/duplicidade) ou pós-correção de cadastro sem refazer venda
+
+**DoD:**
+- [x] `NfeService::retransmitir(int $biz, int $emissaoId): NfeEmissao` método público novo
+- [x] Whitelist status: `rejeitada` / `denegada` / `erro_envio`
+- [x] Estratégia (Tier 0 CONFAZ Art. 14 preservation contract — Wave26/27 saturation): UPDATE antiga `status='inutilizada'` + `transaction_id=null` + metadata.original_transaction_id (libera UNIQUE biz+tx) + `emitirParaTransaction` novo número
+- [x] NUNCA usa `->forceDelete()` — documento fiscal imutável CONFAZ Art. 14
+- [x] Audit via Spatie LogsActivity D7
+- [x] OTel span `nfe.retransmitir`
+- [x] NotaDrawer botão Retransmitir habilitado pra rejeitada/denegada/erro_envio + modal confirm explicativo
+- [x] Pest contracts + signature + route registered
+
+**Non-Goals:**
+- ❌ Inutilização SEFAZ formal do número antigo (cliente roda Inutilizar faixa PR #5)
+- ❌ Retransmissão de emissões manuais (transaction_id null)
+- ❌ Correção automática de cstat-causa-raiz (usuário corrige cadastro antes)
+
 ### US-FISCAL-011 · Gerador SPED real — **backlog PR #7**
 
 EFD ICMS/IPI + EFD-Contribuições reais (TXT layout CONFAZ). PR dedicado pós-MVP fiscal.
@@ -292,12 +316,12 @@ Then deve receber 403 Forbidden
 | #2 #1185 (Wave) | Cockpit (1) + NFS-e (3) + Eventos (5) | 1 dia | +20pp | ✅ mergeado `cabd29661` |
 | #3 #1189 (Wave) | DF-e (4) + Cert/Cfg (6) + SPED (7) | 1 dia | +12pp | ✅ mergeado `e36e1e272` |
 | #4 #1190 (Wave) | Cancelar NFe + Manifestar DF-e (4 ações) | 4h | +15pp (core) | ✅ mergeado `d10b117e1` |
-| #5 (Wave) | CC-e (110110) + Inutilização faixa | 4h | +4pp | 🟡 em curso |
-| #6 | Retransmitir nota rejeitada (re-build payload) | 1 dia | +3pp | 🔒 backlog |
+| #5 #1249 (Wave) | CC-e (110110) + Inutilização faixa | 4h | +4pp | ✅ mergeado |
+| #6 (Wave) | Retransmitir NFe rejeitada/denegada | 3h | +3pp | 🟡 em curso |
 | #7 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
 | #8 | Gerador SPED real (EFD ICMS-IPI + PIS/COFINS) | 1+ semana | +10pp | 🔒 backlog |
 
-**Meta:** Score Capterra Fiscal cockpit ≥ 85/100 pós-PR #5 (CC-e fecha gap clássico Bling/Tiny). Wagner aprova nova meta.
+**Meta:** Score Capterra Fiscal cockpit ≥ 88/100 pós-PR #6 (Retransmitir fecha gap workflow Bling). Wagner aprova nova meta.
 
 ## Histórico
 
@@ -306,6 +330,7 @@ Then deve receber 403 Forbidden
 - **v1.2.0** (2026-05-20) — PR #3 Wave final: DF-e + Cert/Cfg + SPED placeholder. **7 sub-páginas do design Cowork concluídas**. US-FISCAL-008/009/010 adicionadas + US-FISCAL-011 backlog (gerador SPED real). FxShell habilita todos 7 chips. Próximo PR foco em ações de mutação (cancelar/CC-e/etc).
 - **v1.3.0** (2026-05-20) — PR #4 Wave Ações: AcoesController thin delegate pra NfeService::cancelar (FSM cascade ADR 0143) + ManifestacaoService (4 ações DF-e). NotaDrawer Cancelar habilitado + modal motivo. Dfe.tsx coluna Ações com 4 botões manifesto. US-FISCAL-012 adicionada. Roadmap reorganizado (Retransmitir+CCe+Inut viraram PR #5).
 - **v1.4.0** (2026-05-20) — PR #5 Wave CCe + Inutilização: `NfeCartaCorrecaoService` novo (espelhado em `NfeInutilizacaoService` — não inflar NfeService 900 linhas). 2 rotas + 2 métodos no AcoesController. NotaDrawer botão CC-e habilitado + modal texto correção 15-1000. Nfe.tsx header "Inutilizar faixa" + `InutilizacaoModal.tsx` (componente extraído). US-FISCAL-013 adicionada. Retransmitir nota rejeitada permanece backlog PR #6 (re-build payload exige scope dedicado). Meta Capterra Fiscal ≥85/100.
+- **v1.5.0** (2026-05-20) — PR #6 Wave Retransmitir: `NfeService::retransmitir` método novo (UPDATE antiga `status=inutilizada` + `transaction_id=null` preservation contract CONFAZ Art. 14 — NUNCA forceDelete + `emitirParaTransaction` novo número). AcoesController método retransmitir + rota POST. NotaDrawer botão Retransmitir habilitado + modal confirm explicativo. US-FISCAL-014 adicionada. Meta Capterra ≥88/100.
 
 ## Referências
 
