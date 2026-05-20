@@ -1403,7 +1403,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   className={'fin-drawer-tab fin-drawer-tab-ai' + (drawerTab === 'ia' ? ' on' : '')}
                   onClick={() => setDrawerTab('ia')}
                 >
-                  ✦ IA
+                  <span className="fin-drawer-tab-glyph" aria-hidden>✦</span>
+                  <span>IA</span>
                   {/* Onda 14 (2026-05-20): badge ! na aba IA quando há anomalia detectada
                       (ticket alto vs media historica). Permite Eliana ver alerta sem
                       precisar trocar aba primeiro. */}
@@ -1430,7 +1431,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   disabled={!selected.valor_mutavel}
                   title={!selected.valor_mutavel ? 'Valor não-mutável após baixa (ADR fin-tech/0002)' : 'Editar inline'}
                 >
-                  ✎ Editar
+                  <span className="fin-drawer-tab-glyph" aria-hidden>✎</span>
+                  <span>Editar</span>
                 </button>
               </nav>
 
