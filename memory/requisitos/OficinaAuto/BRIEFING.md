@@ -3,8 +3,9 @@ module: OficinaAuto
 status: em-construcao
 cnae_principal: "4520-0/01"
 piloto: Martinho Caçambas (locação) + Vargas Recapagem (manutenção complexa)
-ultima_atualizacao: 2026-05-16
+ultima_atualizacao: 2026-05-20
 nota_capterra: 63 (Bom)
+nota_fsm_screen: 80 (estado-da-arte gaps #1+#2+#3 LIVE 2026-05-20)
 related_adrs: [0137, 0121, 0129, 0143, 0093, 0094, 0101]
 owner: [W]
 ---
@@ -19,6 +20,12 @@ Vertical especializado pra **oficinas mecânicas + locação de equipamentos aut
 
 ## Capacidades atuais (V0 — done)
 
+- **FSM screen tríade MVP Martinho LIVE 2026-05-20** ([RUNBOOK-fsm-pipeline.md](RUNBOOK-fsm-pipeline.md)):
+  - **Timeline auditável** drawer ServiceOrderSheet (gap #1 — PR #1195) — quem/quando/motivo/side-effects via `GET /history`
+  - **Mini-grafo horizontal stages** (gap #2 — PR #1205) — bullets conectados estilo Linear, current ring + passados check + variantes laterais (manutencao/cancelada)
+  - **Chips por stage Index** (gap #3 — PR #1203) — filtro `?stage=X` com contador bulk `GROUP BY`
+  - 12 Pest specs novos (history, stages, pipeline) com cobertura multi-tenant Tier 0
+  - Grade 15 dimensões FSM screen evoluiu **65→~80/100** (auditoria estado-da-arte [memory/sessions/2026-05-20-arte-tela-fsm-workflow.md](../../sessions/2026-05-20-arte-tela-fsm-workflow.md))
 - **8 peças nWidart canônicas** (module.json, ServiceProvider, RouteServiceProvider, InstallController, DataController, Routes, Config, composer)
 - **Wave 18 saturação D4/D9** — 2 Services novos stateless (`VehicleQueryService`, `ServiceOrderSummaryService`) com OtelHelper canon (9 spans `oficinaauto.*` mensurados em prod) + spans D9.a em `AprovacaoOsService` (gerar_token/validar_token/validar_pin); 2 Pest novos (ServicesObservabilityTest 8 cenários + AprovacaoOsTokenTest 8 cenários edge); README.md público; CHANGELOG.md canônico; module.json com bloco `governance.fsm_canonico=true` apontando ADR 0143.
 - **Schema multi-tenant Tier 0** (ADR 0093) — `vehicles` (multi-placa nullable, legacy_id pra mapping Firebird) + `service_orders` (vehicle_id FK + transaction_id nullable UltimatePOS + order_type locacao/manutencao)
