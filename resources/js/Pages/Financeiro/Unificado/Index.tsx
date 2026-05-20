@@ -209,6 +209,100 @@ function statusLabel(s: LancamentoStatus): string {
 
 // ---------- Componentes ----------
 
+/**
+ * Onda 7 (2026-05-20) — Multi-select de contas bancárias.
+ * Renderiza trigger texto compacto + Popover com lista de checkboxes.
+ * Label dinâmico:
+ *   - vazio       → "Todas as contas"
+ *   - 1 selecionada → nome da conta
+ *   - >1 selecionada → "N contas"
+ */
+function FinMultiSelectContas({
+  contas,
+  valueCSV,
+  onChange,
+}: {
+  contas: { id: number; nome: string }[];
+  valueCSV: string;
+  onChange: (csv: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  const selectedIds = useMemo(
+    () => (valueCSV ? valueCSV.split(',').map(Number).filter(Boolean) : []),
+    [valueCSV],
+  );
+
+  // Fechar ao clicar fora
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [open]);
+
+  const toggle = (id: number) => {
+    const next = selectedIds.includes(id)
+      ? selectedIds.filter((x) => x !== id)
+      : [...selectedIds, id];
+    onChange(next.join(','));
+  };
+
+  const label =
+    selectedIds.length === 0
+      ? 'Todas as contas'
+      : selectedIds.length === 1
+        ? contas.find((c) => c.id === selectedIds[0])?.nome ?? `Conta ${selectedIds[0]}`
+        : `${selectedIds.length} contas`;
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        type="button"
+        className={`h-7 px-2 rounded-md border text-[12px] bg-white flex items-center gap-1 ${selectedIds.length > 0 ? 'border-stone-300 text-stone-800' : 'border-stone-200 text-stone-600'}`}
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Conta bancária multi-select"
+        aria-expanded={open}
+      >
+        <span>{label}</span>
+        <span className="text-stone-400 text-[10px]">▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-50 top-[110%] left-0 min-w-[220px] max-h-[320px] overflow-y-auto rounded-md border border-stone-200 bg-white shadow-lg p-1">
+          <button
+            type="button"
+            className="w-full text-left px-2 py-1.5 text-[12px] text-stone-600 hover:bg-stone-50 rounded"
+            onClick={() => onChange('')}
+          >
+            <span className="inline-flex items-center gap-2">
+              <input type="checkbox" checked={selectedIds.length === 0} readOnly className="accent-stone-700" />
+              Todas as contas
+            </span>
+          </button>
+          <div className="h-px bg-stone-100 my-1" />
+          {contas.map((c) => {
+            const checked = selectedIds.includes(c.id);
+            return (
+              <button
+                key={c.id}
+                type="button"
+                className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-stone-50 rounded flex items-center gap-2"
+                onClick={() => toggle(c.id)}
+              >
+                <input type="checkbox" checked={checked} readOnly className="accent-stone-700" />
+                <span className={checked ? 'text-stone-900 font-medium' : 'text-stone-700'}>{c.nome}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StatusPill({ s }: { s: LancamentoStatus }) {
   const tone = statusTone(s);
   const cls = {
@@ -899,15 +993,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           </>
         )}
 
-        <select
-          className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
-          value={filters.conta}
-          onChange={(e) => aplicar({ conta: e.target.value })}
-          aria-label="Conta bancária"
-        >
-          <option value="">Todas as contas</option>
-          {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-        </select>
+        {/* Onda 7 (2026-05-20): multi-select de contas via Popover + Checkbox.
+            Backend aceita CSV "1,3,5" via filters.conta. Frontend mostra label
+            agregado: "Todas as contas" / "Conta X" / "N contas". */}
+        <FinMultiSelectContas contas={contas} valueCSV={filters.conta} onChange={(csv) => aplicar({ conta: csv })} />
 
         {/* Onda 12.7 (2026-05-19) — Wagner: substituir 'Categorias' (tags livres) por
             'Plano de Contas' (estrutura contábil hierárquica BR). Renderiza com indent
