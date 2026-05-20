@@ -821,7 +821,16 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
     });
   };
 
-  // Atalhos: Cmd+K → palette, / → busca, B → toggle favorito da linha selecionada
+  // Atalhos keyboard:
+  //   ⌘K/Ctrl+K → palette
+  //   / → busca focus
+  //   J / ↓ → próxima linha
+  //   K / ↑ → linha anterior
+  //   ␣ (Space) → toggle baixar (pago/recebido) da linha focada
+  //   Enter → abre drawer da linha focada
+  //   B → toggle favorito (Onda 7c)
+  //   Esc → fecha drawer / limpa bulk
+  // Onda 11 (2026-05-20 Wagner): J/K/␣/Esc adicionados — Eliana-persona power-user.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -834,11 +843,56 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
       if (e.key === 'b' && !inEditable && selectedId !== null) {
         e.preventDefault();
         favs.toggle(selectedId);
+        return;
+      }
+      // Onda 11 — J/K (ou ↓/↑) navegar linhas
+      if (!inEditable && (e.key === 'j' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const ids = lancamentos.map((l) => l.id);
+        if (ids.length === 0) return;
+        const currentIdx = selectedId !== null ? ids.indexOf(selectedId) : -1;
+        const nextIdx = currentIdx < 0 ? 0 : Math.min(currentIdx + 1, ids.length - 1);
+        setSelectedId(ids[nextIdx] ?? null);
+        return;
+      }
+      if (!inEditable && (e.key === 'k' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const ids = lancamentos.map((l) => l.id);
+        if (ids.length === 0) return;
+        const currentIdx = selectedId !== null ? ids.indexOf(selectedId) : -1;
+        const prevIdx = currentIdx <= 0 ? 0 : currentIdx - 1;
+        setSelectedId(ids[prevIdx] ?? null);
+        return;
+      }
+      // Onda 11 — ␣ (Space) marcar pago/recebido da linha focada
+      if (!inEditable && e.key === ' ' && selectedId !== null) {
+        e.preventDefault();
+        const row = lancamentos.find((l) => l.id === selectedId);
+        if (row && (row.status === 'aberto' || row.status === 'atrasado' || row.status === 'vencendo')) {
+          onBaixar(selectedId);
+        }
+        return;
+      }
+      // Onda 11 — Esc fecha drawer OU limpa bulk selection
+      if (!inEditable && e.key === 'Escape') {
+        if (selectedRows.size > 0) {
+          e.preventDefault();
+          clearSelection();
+        } else if (selectedId !== null) {
+          e.preventDefault();
+          setSelectedId(null);
+        }
+        return;
+      }
+      // Onda 11 — Enter abre drawer da linha focada (se não tem drawer aberto)
+      if (!inEditable && e.key === 'Enter' && selectedId !== null) {
+        // selectedId já tá setado → drawer já abre. No-op se já aberto.
+        return;
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, favs]);
+  }, [selectedId, favs, lancamentos, selectedRows, clearSelection, onBaixar]);
 
   // Agrupamento por data de vencimento
   const grupos = useMemo(() => {
