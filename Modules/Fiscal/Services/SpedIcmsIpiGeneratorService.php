@@ -12,18 +12,24 @@ use Modules\NfeBrasil\Models\NfeEmissao;
 use RuntimeException;
 
 /**
- * US-FISCAL-016 — Gerador SPED Fiscal EFD-ICMS/IPI (PR #8 Wave MVP).
+ * US-FISCAL-016 / US-FISCAL-017 — Gerador SPED Fiscal EFD-ICMS/IPI.
  *
  * Gera TXT EFD-ICMS/IPI conforme Guia Prático EFD-ICMS/IPI v3.1.1 (CONFAZ).
  *
- * Escopo MVP (este PR):
- *  - Bloco 0: 0000 (abertura) + 0001 + 0005 + 0150 (destinatários) + 0190 (unidades) + 0200 (itens) + 0990
+ * Escopo entregue:
+ *  - PR #8 (Wave): Blocos 0 + C + 9 — 16 registros (MVP saídas)
+ *  - PR #9 (Wave): Bloco E (apuração ICMS) + Bloco H (esqueleto) — +6 registros
+ *
+ * Cobertura atual (22 registros):
+ *  - Bloco 0: 0000 + 0001 + 0005 + 0150 (destinatários) + 0190 (unidades) + 0200 (itens) + 0990
  *  - Bloco C: C001 + C100 (saídas — NfeEmissao status=autorizada) + C170 (itens) + C190 (totalizador) + C990
+ *  - Bloco E: E001 + E100 (período) + E110 (apuração) + E116 (obrigações se > 0) + E990
+ *  - Bloco H: H001 + H990 (esqueleto sempre vazio — inventário anual exige integração Stock)
  *  - Bloco 9: 9001 + 9900 (contadores) + 9990 + 9999
  *
  * Non-Goals (próximos PRs):
- *  - Bloco E (apuração ICMS) — exige saldo credor mês anterior (complexidade)
- *  - Bloco H (inventário anual) — declaração 31/12
+ *  - Saldo credor anterior real em E110 (exige histórico ICMS — placeholder 0)
+ *  - Bloco H com dados reais (Modules/ProductCatalogue/Stock integração — declaração 31/12)
  *  - Bloco D (CT-e prestações de serviço transporte) — modelo 67
  *  - Bloco G (ativo imobilizado CIAP)
  *  - Bloco K (controle produção/estoque industrial)
@@ -116,6 +122,34 @@ class SpedIcmsIpiGeneratorService
         }
 
         $linhas[] = $this->registroC990(count($linhas) - $bloco_c_inicio + 1);
+
+        // ── Bloco E: Apuração ICMS (PR #9 Wave) ──────────────────────────
+        // Layout v3.1.1 — sempre presente (até com IND_MOV=1 sem dados ICMS).
+        // MVP: débitos = sum C190 do mês. Créditos placeholder=0 (entradas
+        // backlog PR futura). Saldo anterior placeholder=0 (exige histórico
+        // ICMS — backlog).
+        $bloco_e_inicio = count($linhas);
+        $linhas[] = $this->registroE001(empty($emissoes) ? 1 : 0);
+        $linhas[] = $this->registroE100($periodoIni, $periodoFim);
+
+        $vlTotalDebitos = array_sum(array_column($totalizadores, 'vl_icms'));
+        // Quando totalizadores não têm vl_icms (MVP simples nacional CST 102),
+        // débito é zero. E110 reflete a realidade fiscal (sem ICMS próprio
+        // a recolher pra Simples Nacional CST 102).
+        $linhas[] = $this->registroE110($vlTotalDebitos);
+
+        if ($vlTotalDebitos > 0) {
+            $linhas[] = $this->registroE116($vlTotalDebitos, $periodoIni);
+        }
+
+        $linhas[] = $this->registroE990(count($linhas) - $bloco_e_inicio + 1);
+
+        // ── Bloco H: Inventário (esqueleto — declaração 31/12 só em janeiro) ──
+        // MVP: sempre vazio (IND_MOV=1). Mês janeiro real exige integração
+        // Modules/ProductCatalogue/Stock — backlog PR dedicado.
+        $bloco_h_inicio = count($linhas);
+        $linhas[] = $this->registroH001(1); // sempre 1 (sem dados) no MVP
+        $linhas[] = $this->registroH990(count($linhas) - $bloco_h_inicio + 1);
 
         // ── Bloco 9: Encerramento + contadores ───────────────────────────
         // Estratégia: registros 9900 contam TODOS os tipos do arquivo final
@@ -390,6 +424,100 @@ class SpedIcmsIpiGeneratorService
     {
         return $this->linha('C990', [(string) $qtd]);
     }
+
+    // ────────────────────────────────────────────────────────────────────
+    // Bloco E — Apuração ICMS (PR #9 Wave)
+    // ────────────────────────────────────────────────────────────────────
+
+    private function registroE001(int $indMov): string
+    {
+        return $this->linha('E001', [(string) $indMov]);
+    }
+
+    /**
+     * E100 — Período de apuração do ICMS (mensal).
+     */
+    private function registroE100(CarbonImmutable $ini, CarbonImmutable $fim): string
+    {
+        return $this->linha('E100', [
+            $ini->format('dmY'), // DT_INI
+            $fim->format('dmY'), // DT_FIN
+        ]);
+    }
+
+    /**
+     * E110 — Apuração ICMS própria (consolidado).
+     *
+     * Campos 1-14 conforme layout v3.1.1. MVP: créditos = 0 (sem entradas),
+     * saldo credor anterior = 0 (sem histórico), débitos = sum C190 vl_icms.
+     */
+    private function registroE110(float $vlTotalDebitos): string
+    {
+        $vlSaldoApurado = $vlTotalDebitos; // débitos - créditos (créditos=0)
+        $vlIcmsRecolher = $vlSaldoApurado > 0 ? $vlSaldoApurado : 0;
+        $vlSaldoCredorTransportar = $vlSaldoApurado < 0 ? abs($vlSaldoApurado) : 0;
+
+        return $this->linha('E110', [
+            number_format($vlTotalDebitos, 2, ',', ''),        // VL_TOT_DEBITOS
+            '0,00',                                            // VL_AJ_DEBITOS
+            '0,00',                                            // VL_TOT_AJ_DEBITOS
+            '0,00',                                            // VL_ESTORNOS_CRED
+            '0,00',                                            // VL_TOT_CREDITOS
+            '0,00',                                            // VL_AJ_CREDITOS
+            '0,00',                                            // VL_TOT_AJ_CREDITOS
+            '0,00',                                            // VL_ESTORNOS_DEB
+            '0,00',                                            // VL_SLD_CREDOR_ANT
+            number_format($vlSaldoApurado, 2, ',', ''),        // VL_SLD_APURADO
+            '0,00',                                            // VL_TOT_DED
+            number_format($vlIcmsRecolher, 2, ',', ''),        // VL_ICMS_RECOLHER
+            number_format($vlSaldoCredorTransportar, 2, ',', ''), // VL_SLD_CREDOR_TRANSPORTAR
+            '0,00',                                            // DEB_ESP
+        ]);
+    }
+
+    /**
+     * E116 — Obrigações ICMS a recolher (DARF/GNRE).
+     * Só emitido quando há ICMS a recolher (E110 VL_ICMS_RECOLHER > 0).
+     */
+    private function registroE116(float $vlIcmsRecolher, CarbonImmutable $periodoIni): string
+    {
+        $dtVcto = $periodoIni->copy()->addMonth()->setDay(20); // 20 do mês seguinte (placeholder)
+
+        return $this->linha('E116', [
+            '000',                                             // COD_OR (000=ICMS normal)
+            number_format($vlIcmsRecolher, 2, ',', ''),        // VL_OR
+            $dtVcto->format('dmY'),                            // DT_VCTO
+            '000',                                             // COD_REC (000=ICMS)
+            '',                                                // NUM_PROC
+            '',                                                // IND_PROC
+            '',                                                // PROC
+            '',                                                // TXT_COMPL
+            $periodoIni->format('mY'),                         // MES_REF
+        ]);
+    }
+
+    private function registroE990(int $qtd): string
+    {
+        return $this->linha('E990', [(string) $qtd]);
+    }
+
+    // ────────────────────────────────────────────────────────────────────
+    // Bloco H — Inventário (PR #9 Wave — esqueleto sem dados no MVP)
+    // ────────────────────────────────────────────────────────────────────
+
+    private function registroH001(int $indMov): string
+    {
+        return $this->linha('H001', [(string) $indMov]);
+    }
+
+    private function registroH990(int $qtd): string
+    {
+        return $this->linha('H990', [(string) $qtd]);
+    }
+
+    // ────────────────────────────────────────────────────────────────────
+    // Bloco 9 — Encerramento
+    // ────────────────────────────────────────────────────────────────────
 
     private function registro9001(int $indMov): string
     {
