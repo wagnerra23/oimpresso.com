@@ -2,9 +2,9 @@
 
 namespace Modules\OficinaAuto\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -371,27 +371,18 @@ class ServiceOrderController extends Controller
 
     public function show(Request $request, ServiceOrder $order)
     {
-        // HOTFIX DIAGNOSE 2026-05-20 (task #24) — drawer ServiceOrderSheet recebe HTTP 500
-        // em todas 5 OS biz=1 sem detalhe. Envolve show() JSON em try-catch retornando
-        // exception trace pra diagnosticar causa raiz. Remover este wrapper quando bug
-        // for identificado e corrigido (próximo commit hotfix).
-        if (! $request->wantsJson()) {
-            // Inertia HTML branch (unchanged) — só wrap JSON.
-            $this->authorize('view', $order);
-            $order->load(['vehicle', 'contact:id,name,mobile']);
+        // D8 Security Wave 15: Policy multi-tenant sameTenant guard.
+        // Causa raiz #25 (2026-05-20): ServiceOrderController extendia Illuminate\Routing\Controller
+        // (sem trait AuthorizesRequests) — $this->authorize() não existia. Fixed: extends
+        // App\Http\Controllers\Controller (projeto canon que já usa AuthorizesRequests).
+        $this->authorize('view', $order);
 
-            return Inertia::render('OficinaAuto/ServiceOrders/Show', [
-                'order' => $order,
-            ]);
-        }
+        $order->load(['vehicle', 'contact:id,name,mobile']);
 
-        try {
-            // D8 Security Wave 15: Policy multi-tenant sameTenant guard.
-            $this->authorize('view', $order);
-
-            $order->load(['vehicle', 'contact:id,name,mobile']);
-
-            // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
+        // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
+        // Hotfix Wave 7+ — drawer chamava /oficina-auto/service-orders/{id} esperando
+        // JSON mas show() só retornava Inertia HTML (HTTP 404 percebido por drawer).
+        if ($request->wantsJson()) {
             return response()->json([
                 'id'                    => $order->id,
                 'number'                => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
@@ -423,32 +414,11 @@ class ServiceOrderController extends Controller
                     'edit' => '/oficina-auto/ordens-servico/' . $order->id . '/edit',
                 ],
             ]);
-        } catch (\Throwable $e) {
-            \Log::emergency('[OS show JSON 500 diagnose task #24]', [
-                'order_id' => $order->id ?? null,
-                'msg' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'class' => get_class($e),
-            ]);
-
-            return response()->json([
-                '__debug_diagnose_task_24' => true,
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'class' => get_class($e),
-                'order_id' => $order->id ?? null,
-                'trace' => collect($e->getTrace())
-                    ->take(10)
-                    ->map(fn ($t) => [
-                        'file' => $t['file'] ?? null,
-                        'line' => $t['line'] ?? null,
-                        'function' => ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? ''),
-                    ])
-                    ->all(),
-            ], 200);
         }
+
+        return Inertia::render('OficinaAuto/ServiceOrders/Show', [
+            'order' => $order,
+        ]);
     }
 
     public function edit(ServiceOrder $order): Response
