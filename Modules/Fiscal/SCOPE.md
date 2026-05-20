@@ -3,11 +3,14 @@ module: Fiscal
 purpose: "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). PR #1: sub-página NF-e · NFC-e (modelos 55 + 65). Roadmap: 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75."
 contains:
   - "CockpitController — sub-página 1 (KPIs + alertas + sparklines + quick links)"
+  - "ConfigController — sub-página 6 (Cert A1 + regime + tributação default read-only)"
   - "DataController"
+  - "DfeController — sub-página 4 (Manifesto DF-e + prazo 90d)"
   - "EventosController — sub-página 5 (timeline append-only CC-e/Cancel/EPEC/Manifesto)"
   - "InstallController"
   - "NfeCockpitController — sub-página 2 (NF-e/NFC-e + drawer SEFAZ guiado)"
   - "NfseCockpitController — sub-página 3 (NFS-e modelo 56 nacional NT 2024-001)"
+  - "SpedController — sub-página 7 (placeholder panorama mensal — gerador real backlog)"
 not_contains:
   - "Emissão fiscal (XML + SEFAZ) → Modules/NfeBrasil (lê via Service)"
   - "NFSe federal LC 214/2025 → Modules/NFSe (futura sub-página 3)"
@@ -53,15 +56,20 @@ Ver `not_contains[]` no frontmatter. Em dúvida:
 
 | Sub-página | Status | PR |
 |---|---|---|
-| NF-e · NFC-e (#2 do design) | ✅ mergeado | PR #1 (8aef3d0fa) |
-| Cockpit (KPIs + alertas + sparklines) | 🟡 em curso | PR #2 Wave |
-| NFS-e (modelo 56 nacional) | 🟡 em curso | PR #2 Wave |
-| Eventos timeline (CC-e/Cancel/EPEC/Manifesto) | 🟡 em curso | PR #2 Wave |
-| Manifesto DF-e + Cert/Cfg + SPED | 🔒 backlog | PR #3 |
+| NF-e · NFC-e (#2 do design) | ✅ mergeado | PR #1 `8aef3d0fa` |
+| Cockpit (KPIs + alertas + sparklines) | ✅ mergeado | PR #2 Wave `cabd29661` |
+| NFS-e (modelo 56 nacional) | ✅ mergeado | PR #2 Wave `cabd29661` |
+| Eventos timeline (CC-e/Cancel/EPEC/Manifesto) | ✅ mergeado | PR #2 Wave `cabd29661` |
+| Manifesto DF-e | 🟡 em curso | PR #3 Wave |
+| Cert/Cfg | 🟡 em curso | PR #3 Wave |
+| SPED placeholder | 🟡 em curso | PR #3 Wave |
+| **🎯 7 sub-páginas do design completas após PR #3** | | |
 | Ações mutação (cancelar/retransmitir/CC-e/inutilizar) | 🔒 backlog | PR #4 |
 | ⌘K palette cross-fiscal | 🔒 backlog | PR #5 |
+| Gerador SPED real (EFD ICMS/IPI + PIS/COFINS) | 🔒 backlog | PR #6 |
 
 ---
 
 - **v1.0.0** (2026-05-20) — SCOPE.md inicial. Módulo Fiscal criado em PR #1183 como thin agregador (sub-página NF-e · NFC-e).
 - **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: + CockpitController, NfseCockpitController, EventosController. Roadmap reorganizado (5 PRs vs 7).
+- **v1.2.0** (2026-05-20) — PR #3 Wave final: + DfeController, ConfigController, SpedController. **7 sub-páginas do design concluídas**. Próximos PRs: mutações + ⌘K + SPED real.
