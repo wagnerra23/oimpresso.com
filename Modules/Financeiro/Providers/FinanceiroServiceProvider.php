@@ -93,6 +93,10 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\InstallCommand::class,
                 // Wave 17 D9.c — Health check do módulo (governance v3 saturação 66→81).
                 \Modules\Financeiro\Console\Commands\FinanceiroHealthCommand::class,
+                // Backfill plano_conta_id em titulos NULL — DRE depende disso.
+                // Wagner 2026-05-20: 18.054 titulos biz=4 com plano_conta_id NULL
+                // (criados antes do schema fin_planos_conta). DRE renderiza vazia.
+                \Modules\Financeiro\Console\Commands\BackfillPlanoContaCommand::class,
             ]);
         }
     }
