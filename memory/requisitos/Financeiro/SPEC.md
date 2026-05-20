@@ -1263,3 +1263,111 @@ Diferencial Conta Azul KILLER que ataca direto seu moat de mercado: network de c
 
 **Refs:** Wagner aprovou DC2 em sessão 2026-05-19 · CAPTERRA-INVENTARIO bucket ❌ Customer service network · COMPARATIVO_CONCORRENCIA Pros líder (Conta Azul) #1 "Network de contadores é diferencial"
 **LOC estimado Fase 1:** ~400 · estratégico, alto impacto comercial
+
+---
+
+## Follow-ups pos-sessao 2026-05-20 (Larissa biz=4 bridge recovery)
+
+### US-FIN-038 · UI label 'Conta indefinida' + CTA 'vincular conta' nas linhas com conta_bancaria_id NULL
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Pos-ADR 0175 (Observer permite baixa sem fin_contas_bancarias), drawer/list Financeiro/ContasReceber + Financeiro/Unificado + Financeiro/Cobranca devem mostrar pill cinza 'Conta indefinida' nas linhas onde `fin_titulo_baixas.conta_bancaria_id IS NULL`, com CTA pra modal de cadastro fin_contas_bancarias.
+
+Acceptance:
+- Tooltip: 'Pagamento registrado sem vinculação bancária. Cadastre conta pra organizar caixa.'
+- Pill cinza-amarelado (warning leve, não vermelho de erro)
+- Click no CTA abre `/financeiro/contas-bancarias/create` em modal ou nova rota
+- Pos-cadastro, oferecer artisan-equivalente UI: 'Vincular automaticamente N baixas órfãs?' (executa `financeiro:vincular-baixas-sem-conta {biz} {conta}` via fila/job)
+- Pest GUARD: titulo com baixa conta_bancaria_id NULL renderiza pill 'indefinida'
+- Smoke browser Brave biz=4 Larissa apos PR mergeada: deve aparecer pill nos 15.412 baixas backfill SQL ja existentes + nos NOVAS pos-pagamento
+
+Refs ADR 0175, sessao 2026-05-20-financeiro-bridge-larissa-backfill-recovery.md.
+
+### US-FIN-039 · Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior
+
+> owner: — · priority: p2 · estimate: 1.5h · status: todo · type: story
+> blocked_by: —
+
+Comando Laravel que recebe `{biz_id}` + `{conta_bancaria_id}` e faz UPDATE em massa de `fin_titulo_baixas` + `fin_caixa_movimentos` onde `conta_bancaria_id IS NULL AND business_id = ?` setando o `conta_bancaria_id` fornecido.
+
+Pareado com ADR 0175 - quando cliente cadastrar `fin_contas_bancarias` apos ja ter baixas com NULL, executa o vinculo retroativo.
+
+Uso `php artisan financeiro:vincular-baixas-sem-conta 4 20`. Output esperado `15.412 fin_titulo_baixas + 15.412 fin_caixa_movimentos atualizados (biz=4 -> conta_bancaria_id=20)`.
+
+Acceptance:
+- Signature `financeiro:vincular-baixas-sem-conta {biz : Business ID} {conta_id : fin_contas_bancarias.id}`
+- Pre-check: confirma `conta_id` pertence ao `biz_id` (Tier 0 ADR 0093)
+- UPDATE idempotente: só atualiza onde conta_bancaria_id IS NULL
+- Output: count antes + depois
+- Pest GUARD: cria conta, gera 3 baixas sem conta, roda comando, asserta 3 baixas vinculadas
+- Tag `metadata.reconciled_at` em cada row atualizado (auditoria)
+
+Refs ADR 0175, RUNBOOK bridge-sells-titulos-backfill.md.
+
+### US-FIN-040 · Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Health-check que roda 5 queries canonicas detectando os 3 gaps documentados em RUNBOOK-bridge-sells-titulos-backfill.md cross-business. Alerta Slack/log quando gap > threshold.
+
+Signature `financeiro:health-check [--biz=*] [--alert] [--json]`.
+
+Gaps detectados:
+- Gap A: business com `fin_titulo_baixas` mas zero `fin_contas_bancarias` (no-op residual pre-ADR 0175)
+- Gap B: `transactions(type IN (sell,purchase), status=final)` sem `fin_titulos` correspondente (Observer nao retroativo)
+- Gap C: `fin_titulos.cliente_descricao IS NULL` em > 5% titulos (campo desnormalizado nao populado)
+
+Acceptance:
+- Output formato tabela ou JSON com 5 metricas por biz
+- Exit code 0 = zero gaps, 1 = pelo menos 1 gap encontrado (CI/cron usa)
+- Flag `--alert` envia Slack webhook quando gap > 0 (env `SLACK_FIN_HEALTH_WEBHOOK_URL`)
+- Schedule daily 06:00 BRT (espelha pattern `sells:smoke-daily`)
+- Pest GUARD: cria biz com gap, roda command, asserta exit 1 + Slack message
+- Tier 0 ADR 0093 respeitado em todas queries
+
+Refs ADR 0175, agent financeiro-bridge-auditor.md.
+
+### US-FIN-041 · Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Onda 6 final da deprecacao Accounting (ADR 0172) - executar apos canary 30d (destrava 2026-06-19).
+
+Pre-cond:
+- 30d desde merge PR #1258 (drop Modules/Accounting) sem incidente
+- Smoke prod confirma zero log error apontando `/accounting/*`
+- Wagner aprovacao final
+
+Acao SQL (ARCHIVE mysqldump LGPD 5y primeiro, depois DROP TABLE 8 + DELETE permissions accounting.* + UPDATE packages.custom_permissions JSON_REMOVE accounting_module).
+
+Acceptance:
+- 8 tabelas DROPed (`chart_of_accounts`, `journal_entries`, `budgets`, `transfers`, `payment_details`, `branch_capital`, `account_subtypes`, `account_detail_types`)
+- 13 permissions accounting.* removidas
+- mysqldump archive em governance/archive/accounting-YYYY-MM-DD.sql.gz (LGPD 5y)
+- Pest GUARD existe: `Pest test schema accounting tables removidas`
+- Smoke `gh pr view 1258 mergedAt + 30d >= today` validado
+
+Refs ADR 0172/0174, DEPRECATION-PLAN.md Onda 6.
+
+### US-FIN-042 · Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL
+
+> owner: — · priority: p3 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+Aplica o mesmo backfill `cliente_descricao` do biz=4 (sessao 2026-05-20) em biz=1 Wagner WR2. Auditoria daquela sessao apontou 0% NULL em biz=1, mas tem casos isolados se aparecer drift futuro.
+
+UPDATE idempotente (mesma logica do Observer TituloAutoService linha 19 Onda Edit 2026-05-18) — JOIN contacts c ON c.id = ft.cliente_id, SET cliente_descricao = CONCAT(nome, ' . #', V/PC, '-', origem_id), WHERE business_id=1 AND cliente_descricao IS NULL.
+
+Acceptance:
+- Pre-check conta `count(*) where cliente_descricao IS NULL business_id=1` (esperado: 0 ou poucos)
+- Pos-check 100% titulos biz=1 tem cliente_descricao populado
+- Tier 0 ADR 0093: WHERE business_id=1 explicito
+- Idempotente (NOT NULL guard)
+
+Pode ser executado sob demanda quando Wagner pedir, OU agendado via `financeiro:health-check` apos detectar Gap C.
+
+Refs RUNBOOK-bridge-sells-titulos-backfill.md fase 2d.
