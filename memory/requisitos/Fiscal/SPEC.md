@@ -252,9 +252,27 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
 **Non-Goals:** ações inline no palette, histórico de buscas, busca semântica/fuzzy.
 
-### US-FISCAL-011 · Gerador SPED real — **backlog PR #8**
+### US-FISCAL-016 · Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
 
-EFD ICMS/IPI + EFD-Contribuições reais (TXT layout CONFAZ). PR dedicado pós-MVP fiscal.
+> **Rota:** `GET /fiscal/sped/icms-ipi/{ano}/{mes}` (perm `fiscal.sped.export`)
+> **Controller:** `SpedController@gerar` · **Service:** `Modules\Fiscal\Services\SpedIcmsIpiGeneratorService` (novo)
+
+**Como** contador/Eliana
+**Quero** baixar arquivo TXT EFD-ICMS/IPI direto do cockpit pra importar no PVA-EFD CONFAZ
+**Para** entregar SPED Fiscal dentro do prazo dia 15
+
+**DoD:**
+- [x] Layout CONFAZ Guia Prático v3.1.1 perfil A (COD_VER=018)
+- [x] 16 registros canônicos: Bloco 0 + Bloco C + Bloco 9
+- [x] HasBusinessScope + cross-tenant guard (ADR 0093)
+- [x] OTel span `fiscal.sped.gerar` + throttle 3/min
+- [x] Sped.tsx botão Download habilitado quando notasAutorizadas > 0
+
+**Non-Goals:** Bloco E, Bloco H, Bloco D, entradas DF-e, PIS/COFINS.
+
+### US-FISCAL-011 · Gerador SPED Fiscal complete — **backlog PR #9**
+
+EFD-Contribuições (PIS/COFINS arquivo separado) + Bloco E apuração ICMS + Bloco H inventário anual.
 
 ### US-FISCAL-012 · Ações mutação NFe + DF-e — ✅ PR #4 Wave
 
@@ -352,6 +370,7 @@ Then deve receber 403 Forbidden
 - **v1.4.0** (2026-05-20) — PR #5 Wave CCe + Inutilização: `NfeCartaCorrecaoService` novo (espelhado em `NfeInutilizacaoService` — não inflar NfeService 900 linhas). 2 rotas + 2 métodos no AcoesController. NotaDrawer botão CC-e habilitado + modal texto correção 15-1000. Nfe.tsx header "Inutilizar faixa" + `InutilizacaoModal.tsx` (componente extraído). US-FISCAL-013 adicionada. Retransmitir nota rejeitada permanece backlog PR #6 (re-build payload exige scope dedicado). Meta Capterra Fiscal ≥85/100.
 - **v1.5.0** (2026-05-20) — PR #6 Wave Retransmitir: `NfeService::retransmitir` método novo (UPDATE antiga `status=inutilizada` + `transaction_id=null` preservation contract CONFAZ Art. 14 — NUNCA forceDelete + `emitirParaTransaction` novo número). AcoesController método retransmitir + rota POST. NotaDrawer botão Retransmitir habilitado + modal confirm explicativo. US-FISCAL-014 adicionada. Meta Capterra ≥88/100.
 - **v1.6.0** (2026-05-20) — PR #7 Wave ⌘K palette: `PaletteSearchController` + `CmdKPalette.tsx` listener global Cmd/Ctrl+K + endpoint JSON 2 categorias (notas + dfe). FxShell mount global + botão Buscar habilitado. US-FISCAL-015 adicionada. Meta Capterra ≥96/100.
+- **v1.7.0** (2026-05-20) — PR #8 Wave SPED MVP: `SpedIcmsIpiGeneratorService` novo + SpedController::gerar download TXT EFD-ICMS/IPI v3.1.1 perfil A + Sped.tsx botão habilitado. 16 registros canônicos (Blocos 0+C+9). US-FISCAL-016 adicionada. Meta Capterra **100/100**.
 
 ## Referências
 
