@@ -503,11 +503,16 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 
 function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
-  // shared auth.can vem do HandleInertiaRequests.share (array de permissions).
+  // HOTFIX 2026-05-20: shared `auth.can` vem do HandleInertiaRequests.share como
+  // OBJETO `Record<string, boolean>` (não array de strings — vide app/Http/Middleware/
+  // HandleInertiaRequests.php::userPermissions). Onda 22 assumiu array → .includes()
+  // em objeto crasheia ("N.includes is not a function") → tela branca prod.
+  // Defesa: aceita ambas formas (objeto OU array legacy) por segurança.
   const pageProps = (usePage() as any).props ?? {};
-  const userCanList: string[] = pageProps?.auth?.can ?? [];
-  const canApprove = userCanList.includes('financeiro.titulo.aprovar')
-    || userCanList.includes('superadmin');
+  const userCanRaw = pageProps?.auth?.can ?? {};
+  const canApprove = Array.isArray(userCanRaw)
+    ? (userCanRaw.includes('financeiro.titulo.aprovar') || userCanRaw.includes('superadmin'))
+    : (userCanRaw['financeiro.titulo.aprovar'] === true || userCanRaw['superadmin'] === true);
 
   const [busca, setBusca] = useState(filters.busca ?? '');
   const [selectedId, setSelectedId] = useState<number | null>(null);
