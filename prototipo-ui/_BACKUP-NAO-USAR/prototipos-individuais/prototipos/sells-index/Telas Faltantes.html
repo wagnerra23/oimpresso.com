@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Telas Faltantes · Oimpresso ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.98 0.005 80);
+    --surface: #fff;
+    --text: oklch(0.20 0.01 80);
+    --text-dim: oklch(0.40 0.01 80);
+    --text-mute: oklch(0.55 0.01 80);
+    --border: oklch(0.92 0.005 80);
+    --border-2: oklch(0.95 0.005 80);
+    --accent: oklch(0.58 0.12 220);
+    --accent-soft: oklch(0.94 0.05 220);
+    --ok: oklch(0.55 0.13 145);
+    --ok-soft: oklch(0.94 0.05 145);
+    --warn: oklch(0.62 0.13 70);
+    --warn-soft: oklch(0.94 0.06 70);
+    --bad: oklch(0.55 0.18 25);
+    --bad-soft: oklch(0.94 0.05 25);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; background: var(--bg);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    color: var(--text); font-size: 13px; line-height: 1.5;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 40px 32px 80px; }
+
+  .doc-h { margin-bottom: 40px; }
+  .doc-h .meta { display: flex; gap: 12px; align-items: center; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .doc-h .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .doc-h .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-mute); }
+  .doc-h h1 { margin: 6px 0 12px; font-size: 38px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+  .doc-h p { margin: 0; font-size: 15px; color: var(--text-dim); max-width: 720px; }
+
+  .screen { margin-bottom: 48px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+  .screen-h { padding: 18px 24px; display: flex; align-items: center; gap: 14px; background: oklch(0.97 0.005 80); border-bottom: 1px solid var(--border); }
+  .screen-h .num { width: 30px; height: 30px; border-radius: 7px; background: var(--text); color: var(--surface); display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; }
+  .screen-h h2 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .screen-h .role { margin-left: auto; font-size: 11px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; background: var(--border-2); padding: 4px 10px; border-radius: 99px; }
+
+  .m-hero { padding: 22px 28px 18px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 14px; }
+  .m-hero h3 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.015em; }
+  .m-hero .crumb { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); }
+  .m-hero .ctas { margin-left: auto; display: flex; gap: 6px; }
+  .btn { height: 28px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .btn.primary { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
+  .btn.sm { height: 24px; padding: 0 8px; font-size: 11px; }
+  .btn.accent { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 99px; background: var(--border-2); color: var(--text-dim); }
+  .badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .badge.warn { background: var(--warn-soft); color: oklch(0.42 0.12 60); }
+  .badge.bad { background: var(--bad-soft); color: var(--bad); }
+  .badge.accent { background: var(--accent-soft); color: var(--accent); }
+
+  .diff-note { background: oklch(0.97 0.013 145); border-left: 3px solid var(--ok); padding: 10px 14px; margin: 14px 24px 18px; font-size: 12.5px; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+  .diff-note b { color: var(--ok); }
+
+  /* ─── CRM kanban ─── */
+  .crm-kanban { margin: 16px 24px 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .crm-col { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 280px; }
+  .crm-col-h { display: flex; align-items: baseline; gap: 6px; padding: 4px 4px 10px; border-bottom: 1px solid var(--border-2); margin-bottom: 8px; }
+  .crm-col-h b { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .crm-col-h small { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-mute); margin-left: auto; }
+  .crm-col-h .val { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text); font-weight: 600; }
+  .crm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 10px; margin-bottom: 7px; }
+  .crm-card .top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .crm-card .av { width: 22px; height: 22px; border-radius: 50%; background: oklch(0.85 0.04 250); color: oklch(0.30 0.06 250); display: grid; place-items: center; font-size: 10px; font-weight: 600; }
+  .crm-card b { font-size: 12px; font-weight: 600; }
+  .crm-card .meta { font-size: 10.5px; color: var(--text-mute); margin-top: 1px; }
+  .crm-card .val { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; margin-top: 6px; }
+  .crm-card .foot { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 10.5px; color: var(--text-mute); }
+  .crm-stats { margin: 16px 24px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .stat small { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; display: block; margin-bottom: 4px; }
+  .stat b { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .stat .delta { font-size: 10.5px; color: var(--ok); margin-top: 3px; }
+  .stat.hero { background: var(--text); color: white; border-color: var(--text); }
+  .stat.hero small { color: oklch(0.65 0.01 80); }
+
+  /* ─── WhatsApp split ─── */
+  .wa { margin: 16px 24px; display: grid; grid-template-columns: 280px 1fr 240px; gap: 10px; height: 360px; }
+  .wa-list, .wa-thread, .wa-side { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .wa-h { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); display: flex; align-items: center; gap: 6px; }
+  .wa-h small { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+  .wa-list ul { list-style: none; margin: 0; padding: 4px; flex: 1; overflow: auto; }
+  .wa-list li { padding: 8px 10px; border-radius: 6px; display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; cursor: pointer; }
+  .wa-list li.sel { background: var(--accent-soft); }
+  .wa-list .av { width: 28px; height: 28px; border-radius: 50%; background: oklch(0.60 0.12 145); color: white; display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+  .wa-list .av.b { background: oklch(0.60 0.12 30); }
+  .wa-list .av.c { background: oklch(0.60 0.12 220); }
+  .wa-list .av.d { background: oklch(0.60 0.12 295); }
+  .wa-list b { font-size: 12px; }
+  .wa-list small { display: block; font-size: 10.5px; color: var(--text-mute); margin-top: 1px; }
+  .wa-list .un { background: var(--accent); color: white; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 99px; }
+  .wa-thread .msgs { flex: 1; padding: 12px; overflow: auto; display: flex; flex-direction: column; gap: 6px; background: oklch(0.97 0.012 145); }
+  .bub { padding: 7px 10px; border-radius: 8px; max-width: 75%; font-size: 12px; }
+  .bub.me { background: oklch(0.75 0.13 145); color: oklch(0.18 0.10 145); align-self: flex-end; }
+  .bub.them { background: white; align-self: flex-start; border: 1px solid var(--border-2); }
+  .bub small { display: block; font-size: 9.5px; color: var(--text-mute); margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .wa-thread .input { padding: 8px 10px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+  .wa-thread .input input { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font: inherit; font-size: 12px; }
+  .wa-side .kv { padding: 8px 12px; font-size: 11.5px; border-bottom: 1px solid var(--border-2); }
+  .wa-side .kv small { color: var(--text-mute); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px; font-weight: 600; }
+  .wa-side .kv b { font-size: 12px; }
+  .wa-side .actions { padding: 8px 12px; display: flex; flex-direction: column; gap: 5px; }
+
+  /* ─── Comunicação Visual gallery ─── */
+  .cv-grid { margin: 16px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .cv-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .cv-thumb { aspect-ratio: 16/10; background: linear-gradient(135deg, oklch(0.78 0.13 30), oklch(0.55 0.16 25)); display: grid; place-items: center; color: white; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; position: relative; }
+  .cv-card.b1 .cv-thumb { background: linear-gradient(135deg, oklch(0.78 0.13 220), oklch(0.55 0.16 250)); }
+  .cv-card.b2 .cv-thumb { background: linear-gradient(135deg, oklch(0.85 0.10 90), oklch(0.65 0.13 60)); }
+  .cv-card.b3 .cv-thumb { background: linear-gradient(135deg, oklch(0.78 0.13 145), oklch(0.55 0.13 145)); }
+  .cv-card.b4 .cv-thumb { background: oklch(0.32 0.02 80); color: oklch(0.80 0.06 60); }
+  .cv-card.b5 .cv-thumb { background: linear-gradient(135deg, oklch(0.80 0.10 295), oklch(0.55 0.13 295)); }
+  .cv-card.b6 .cv-thumb { background: repeating-linear-gradient(45deg, oklch(0.85 0.02 80) 0 12px, oklch(0.80 0.02 80) 12px 24px); color: oklch(0.30 0.01 80); }
+  .cv-card.b7 .cv-thumb { background: linear-gradient(135deg, oklch(0.50 0.16 25), oklch(0.30 0.18 20)); }
+  .cv-card.b8 .cv-thumb { background: linear-gradient(135deg, oklch(0.95 0.04 70), oklch(0.85 0.06 60)); color: oklch(0.40 0.10 60); }
+  .cv-thumb .dim { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.5); padding: 1px 6px; border-radius: 3px; font-size: 9.5px; }
+  .cv-info { padding: 10px 12px; }
+  .cv-info b { font-size: 12.5px; font-weight: 600; }
+  .cv-info small { display: block; font-size: 10.5px; color: var(--text-mute); margin-top: 1px; }
+  .cv-info .price { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+  .cv-info .price small { color: var(--text-mute); font-size: 10px; margin: 0; }
+
+  /* ─── Relatórios ─── */
+  .bi-grid { margin: 16px 24px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; }
+  .bi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .bi-card h4 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); font-weight: 600; }
+  .bi-card .big { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 700; letter-spacing: -0.015em; }
+  .bi-card .delta { font-size: 11px; color: var(--ok); margin-top: 2px; }
+  .bi-chart { height: 120px; margin-top: 12px; position: relative; }
+  .bi-chart svg { width: 100%; height: 100%; }
+  .bi-list { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 0 24px; }
+  .bi-list h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); font-weight: 600; }
+  .bi-row { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border-2); font-size: 12.5px; }
+  .bi-row:last-child { border-bottom: none; }
+  .bi-row .bar { width: 100px; height: 5px; background: var(--border-2); border-radius: 3px; overflow: hidden; }
+  .bi-row .bar div { height: 100%; background: var(--accent); }
+  .bi-row .v { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 12px; }
+
+  /* ─── NF-e / NFS-e ─── */
+  .fis-stats { margin: 16px 24px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .fis-table { margin: 16px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .fis-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .fis-table thead th { background: var(--bg); padding: 8px 12px; text-align: left; font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); border-bottom: 1px solid var(--border); }
+  .fis-table tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border-2); }
+  .fis-table tbody tr:last-child td { border-bottom: none; }
+  .fis-table .ch { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-mute); }
+  .fis-table .num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+  .fis-tabs { padding: 10px 24px 0; display: flex; gap: 6px; }
+  .fis-tab { padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; color: var(--text-dim); border: 1px solid transparent; }
+  .fis-tab.active { background: var(--surface); border-color: var(--border); color: var(--text); font-weight: 500; }
+
+  /* ─── Patrimônio ─── */
+  .pat-grid { margin: 16px 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .pat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .pat-img { aspect-ratio: 4/3; background: linear-gradient(135deg, oklch(0.85 0.02 250), oklch(0.65 0.04 250)); display: grid; place-items: center; color: white; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .pat-card.eq2 .pat-img { background: linear-gradient(135deg, oklch(0.85 0.04 60), oklch(0.55 0.10 30)); }
+  .pat-card.eq3 .pat-img { background: linear-gradient(135deg, oklch(0.85 0.02 30), oklch(0.55 0.04 30)); }
+  .pat-info { padding: 12px 14px; }
+  .pat-info b { font-size: 13px; font-weight: 600; display: block; }
+  .pat-info .sub { font-size: 11px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; margin: 1px 0 8px; }
+  .pat-kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 11px; margin-bottom: 8px; }
+  .pat-kv dt { color: var(--text-mute); }
+  .pat-kv dd { margin: 0; color: var(--text); font-family: 'IBM Plex Mono', monospace; text-align: right; }
+  .pat-foot { display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px dashed var(--border-2); }
+
+  /* ─── Cobrança recorrente ─── */
+  .rec-grid { margin: 16px 24px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; }
+  .rec-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .plan { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-2); font-size: 12.5px; }
+  .plan b { font-size: 13px; }
+  .plan .sub { font-size: 11px; color: var(--text-mute); }
+  .plan .v { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .calend-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; }
+  .calend-day { aspect-ratio: 1; border-radius: 5px; background: var(--bg); border: 1px solid var(--border-2); display: flex; flex-direction: column; padding: 4px 5px; font-size: 9.5px; font-family: 'IBM Plex Mono', monospace; color: var(--text-mute); }
+  .calend-day.has-event { background: var(--accent-soft); color: var(--accent); border-color: oklch(0.85 0.05 220); }
+  .calend-day.has-event b { display: block; color: var(--text); font-size: 10px; margin-top: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-h">
+    <div class="meta"><span class="dot"></span><span>Telas Faltantes · módulos novos</span><span>·</span><span>13 mai 2026</span></div>
+    <div class="eyebrow">Oimpresso ERP · Volume 4</div>
+    <h1>Construção das telas faltantes</h1>
+    <p>
+      Mockups de 6 módulos ainda não implementados — cada um desenhado adotando a perspectiva
+      de um especialista do domínio. Mantém o pattern <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">.os-page</code>
+      do shell unificado, IBM Plex, tokens da identidade visual v1.0.
+    </p>
+  </header>
+
+
+  <!-- 1. CRM -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#1</div>
+      <h2>CRM · funil de vendas</h2>
+      <span class="role">especialista: SDR/closer</span>
+    </div>
+    <div class="m-hero">
+      <h3>CRM</h3>
+      <span class="crumb">Comercial · funil · maio 2026</span>
+      <div class="ctas">
+        <button class="btn ghost">Ver tabela</button>
+        <button class="btn">Importar leads</button>
+        <button class="btn primary">+ Novo lead</button>
+      </div>
+    </div>
+
+    <div class="crm-stats">
+      <div class="stat hero"><small>Pipeline ativo</small><b>R$ [redacted Tier 0]</b><div class="delta">42 oportunidades</div></div>
+      <div class="stat"><small>Ganhas no mês</small><b style="color: var(--ok);">R$ [redacted Tier 0]</b><div class="delta">8 deals · ticket R$ [redacted Tier 0]</div></div>
+      <div class="stat"><small>Taxa conversão</small><b>22%</b><div class="delta">↑ 4pp vs abr</div></div>
+      <div class="stat"><small>Tempo ciclo médio</small><b>12 dias</b><div class="delta" style="color: var(--text-mute);">lead → venda</div></div>
+    </div>
+
+    <div class="crm-kanban">
+      <div class="crm-col">
+        <div class="crm-col-h"><b>Lead</b><span class="val">R$ [redacted Tier 0]k</span><small>14</small></div>
+        <div class="crm-card"><div class="top"><span class="av">PE</span><b>Padaria Estrela</b></div><div class="meta">Renato · WhatsApp</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge">novo</span><span style="margin-left:auto;">há 2h</span></div></div>
+        <div class="crm-card"><div class="top"><span class="av">MV</span><b>Clínica Vida Plena</b></div><div class="meta">Marcos · indicação</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge accent">indicação</span><span style="margin-left:auto;">ontem</span></div></div>
+        <div class="crm-card"><div class="top"><span class="av">JR</span><b>João Reis (PF)</b></div><div class="meta">site · formulário</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span style="margin-left:auto;">há 3d</span></div></div>
+      </div>
+      <div class="crm-col">
+        <div class="crm-col-h"><b>Qualificado</b><span class="val">R$ [redacted Tier 0]k</span><small>8</small></div>
+        <div class="crm-card"><div class="top"><span class="av">AC</span><b>Acme Comércio</b></div><div class="meta">Camila · ligou hoje</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge ok">orçamento ok</span></div></div>
+        <div class="crm-card"><div class="top"><span class="av">TP</span><b>TechPro</b></div><div class="meta">Diego · 50 adesivos</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge warn">aguarda decisão</span></div></div>
+      </div>
+      <div class="crm-col">
+        <div class="crm-col-h"><b>Proposta</b><span class="val">R$ [redacted Tier 0]k</span><small>9</small></div>
+        <div class="crm-card"><div class="top"><span class="av">CV</span><b>Construtora Vértice</b></div><div class="meta">enviada 09/05</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge warn">3 dias sem resp.</span></div></div>
+        <div class="crm-card"><div class="top"><span class="av">MU</span><b>Mercado União</b></div><div class="meta">orçamento revisado</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge accent">negociação</span></div></div>
+      </div>
+      <div class="crm-col">
+        <div class="crm-col-h"><b>Negociação</b><span class="val">R$ [redacted Tier 0]k</span><small>7</small></div>
+        <div class="crm-card"><div class="top"><span class="av">PF</span><b>Posto BR Centro</b></div><div class="meta">desconto 10% pedido</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge bad">decisão sexta</span></div></div>
+        <div class="crm-card"><div class="top"><span class="av">IH</span><b>Imobiliária Horizonte</b></div><div class="meta">contrato anual</div><div class="val">R$ [redacted Tier 0]</div><div class="foot"><span class="badge ok">fechando hoje</span></div></div>
+      </div>
+      <div class="crm-col">
+        <div class="crm-col-h"><b>Ganho</b><span class="val" style="color:var(--ok);">R$ [redacted Tier 0]k</span><small>8</small></div>
+        <div class="crm-card" style="background: var(--ok-soft);"><div class="top"><span class="av">SF</span><b>Studio Foco</b></div><div class="meta">✓ contrato assinado</div><div class="val" style="color: var(--ok);">R$ [redacted Tier 0]</div></div>
+        <div class="crm-card" style="background: var(--ok-soft);"><div class="top"><span class="av">FA</span><b>Farmácia Saúde Total</b></div><div class="meta">✓ NFe emitida</div><div class="val" style="color: var(--ok);">R$ [redacted Tier 0]</div></div>
+      </div>
+    </div>
+    <div class="diff-note">
+      <b>Padrão ·</b> Kanban 5 colunas · KPI hero "pipeline ativo" · cards com avatar + valor + última atividade + badge contextual. Drag-drop entre estágios. Hover mostra ações inline.
+    </div>
+  </article>
+
+
+  <!-- 2. WhatsApp -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#2</div>
+      <h2>WhatsApp · atendimento integrado</h2>
+      <span class="role">especialista: SAC</span>
+    </div>
+    <div class="m-hero">
+      <h3>WhatsApp</h3>
+      <span class="crumb">Comercial · cloud api · 14 conversas abertas</span>
+      <div class="ctas">
+        <button class="btn ghost">Templates</button>
+        <button class="btn">Broadcast</button>
+        <button class="btn primary">+ Nova conversa</button>
+      </div>
+    </div>
+
+    <div class="wa">
+      <div class="wa-list">
+        <div class="wa-h">Conversas <small>14</small></div>
+        <ul>
+          <li class="sel"><span class="av">RL</span><div><b>Renato Lopes</b><small>Posso retirar amanhã 9h?</small></div><span class="un">2</span></li>
+          <li><span class="av b">CD</span><div><b>Camila Diniz</b><small>Você: arte aprovada ✓</small></div><span></span></li>
+          <li><span class="av c">DV</span><div><b>Diego Vasconcellos</b><small>Quanto fica em 200un?</small></div><span class="un">1</span></li>
+          <li><span class="av d">MV</span><div><b>Marcos Vital</b><small>Obrigado! Recebi.</small></div><span></span></li>
+          <li><span class="av">JL</span><div><b>Joana Lima</b><small>Boa tarde, posso ver?</small></div><span></span></li>
+        </ul>
+      </div>
+      <div class="wa-thread">
+        <div class="wa-h">Renato Lopes · Padaria Estrela <small style="font-family:'IBM Plex Mono',monospace;">cliente · OS #4819</small></div>
+        <div class="msgs">
+          <div class="bub them">Boa tarde! Os cardápios ficaram prontos?<small>ontem 16:20</small></div>
+          <div class="bub me">Sim Renato! Estão prontos. Pode passar quando quiser.<small>ontem 16:25 ✓✓</small></div>
+          <div class="bub them">Posso passar pra retirar amanhã 9h?<small>hoje 11:48</small></div>
+          <div class="bub me">Perfeito 👍 Vou avisar a equipe.<small>agora ✓</small></div>
+        </div>
+        <div class="input">
+          <input placeholder="Mensagem ou /comando…"/>
+          <button class="btn primary sm">↑</button>
+        </div>
+      </div>
+      <div class="wa-side">
+        <div class="wa-h">Contexto</div>
+        <div class="kv"><small>OS vinculada</small><b>#4819 · Cardápios A4</b></div>
+        <div class="kv"><small>Saldo cliente</small><b>R$ [redacted Tier 0] a receber</b></div>
+        <div class="kv"><small>Histórico</small><b>4 pedidos · R$ [redacted Tier 0] LTV</b></div>
+        <div class="kv"><small>Último contato</small><b>11:48 hoje</b></div>
+        <div class="actions">
+          <button class="btn sm">Abrir OS</button>
+          <button class="btn sm">Emitir cobrança</button>
+          <button class="btn sm">Marcar resolvido</button>
+        </div>
+      </div>
+    </div>
+    <div class="diff-note">
+      <b>Padrão ·</b> 3 colunas (lista · thread · contexto). Coluna direita liga conversa ao ERP — vê OS vinculada, saldo, histórico, LTV. Ações contextuais. Templates Cloud API no botão superior.
+    </div>
+  </article>
+
+
+  <!-- 3. Comunicação Visual -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#3</div>
+      <h2>Comunicação Visual · catálogo de templates</h2>
+      <span class="role">especialista: design ops</span>
+    </div>
+    <div class="m-hero">
+      <h3>Comunicação Visual</h3>
+      <span class="crumb">Templates · banners · adesivos · fachadas</span>
+      <div class="ctas">
+        <button class="btn ghost">Filtrar</button>
+        <button class="btn">Importar do canva</button>
+        <button class="btn primary">+ Novo template</button>
+      </div>
+    </div>
+
+    <div class="cv-grid">
+      <div class="cv-card b1"><div class="cv-thumb">BANNER LONA<span class="dim">3×2m</span></div><div class="cv-info"><b>Banner Acme Promo</b><small>440g · sangria 3mm</small><div class="price">R$ [redacted Tier 0] <small>· 14 vendas/mês</small></div></div></div>
+      <div class="cv-card b2"><div class="cv-thumb">ADESIVO VINIL<span class="dim">8×8cm</span></div><div class="cv-info"><b>Adesivo TechPro</b><small>recortado · 200un</small><div class="price">R$ [redacted Tier 0] <small>· 8 vendas/mês</small></div></div></div>
+      <div class="cv-card b3"><div class="cv-thumb">FACHADA ACM<span class="dim">2×6m</span></div><div class="cv-info"><b>Fachada Bella Moda</b><small>ACM + instalação</small><div class="price">R$ [redacted Tier 0] <small>· 3 vendas/mês</small></div></div></div>
+      <div class="cv-card b4"><div class="cv-thumb">ENVELOPAMENTO<span class="dim">VEÍCULO</span></div><div class="cv-info"><b>Envelopamento Hilux</b><small>frota · 12 veículos</small><div class="price">R$ [redacted Tier 0] <small>· 1 venda/mês</small></div></div></div>
+      <div class="cv-card b5"><div class="cv-thumb">WIND BANNER<span class="dim">2.5m</span></div><div class="cv-info"><b>Wind Banner Std</b><small>+ base + bolsa</small><div class="price">R$ [redacted Tier 0] <small>· 6 vendas/mês</small></div></div></div>
+      <div class="cv-card b6"><div class="cv-thumb">PLACA OBRA<span class="dim">100×60</span></div><div class="cv-info"><b>Placa de Obra</b><small>+ suporte · 8 unid</small><div class="price">R$ [redacted Tier 0] <small>· 2 vendas/mês</small></div></div></div>
+      <div class="cv-card b7"><div class="cv-thumb">BACKDROP EVENTO<span class="dim">3×2m</span></div><div class="cv-info"><b>Backdrop Show</b><small>lona + ilhós</small><div class="price">R$ [redacted Tier 0] <small>· 12 vendas/mês</small></div></div></div>
+      <div class="cv-card b8"><div class="cv-thumb">CARTÃO VISITA<span class="dim">4×4 cores</span></div><div class="cv-info"><b>Cartão 4000un</b><small>laminado · couché 250g</small><div class="price">R$ [redacted Tier 0] <small>· 22 vendas/mês</small></div></div></div>
+    </div>
+    <div class="diff-note">
+      <b>Padrão ·</b> Galeria visual com thumb gradient (preview ilustrativo do produto), dim no canto (medida), preço + tração mensal. Click no card abre editor / clona / cria OS direto. Filtros por tipo, vendabilidade, ticket.
+    </div>
+  </article>
+
+
+  <!-- 4. Relatórios -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#4</div>
+      <h2>Relatórios · BI</h2>
+      <span class="role">especialista: controller</span>
+    </div>
+    <div class="m-hero">
+      <h3>Relatórios</h3>
+      <span class="crumb">Maio 2026 · ROTA LIVRE</span>
+      <div class="ctas">
+        <button class="btn ghost">Período ▾</button>
+        <button class="btn">Exportar PDF</button>
+        <button class="btn primary">Compartilhar</button>
+      </div>
+    </div>
+
+    <div class="bi-grid">
+      <div class="bi-card">
+        <h4>Receita por categoria · maio</h4>
+        <div class="big" style="color: var(--ok);">R$ [redacted Tier 0]</div>
+        <div class="delta">↑ 22% vs abril</div>
+        <div class="bi-chart">
+          <svg viewBox="0 0 320 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="oklch(0.55 0.13 145)" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="oklch(0.55 0.13 145)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,90 L30,80 L60,70 L90,75 L120,60 L150,55 L180,50 L210,45 L240,30 L270,38 L300,25 L320,20 L320,120 L0,120 Z" fill="url(#g1)"/>
+            <path d="M0,90 L30,80 L60,70 L90,75 L120,60 L150,55 L180,50 L210,45 L240,30 L270,38 L300,25 L320,20" stroke="oklch(0.55 0.13 145)" stroke-width="2" fill="none"/>
+            <g font-family="'IBM Plex Mono', monospace" font-size="7" fill="oklch(0.55 0.01 80)">
+              <text x="0" y="118">01/05</text>
+              <text x="100" y="118">10/05</text>
+              <text x="200" y="118">20/05</text>
+              <text x="295" y="118">31/05</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div class="bi-card">
+        <h4>Margem operacional</h4>
+        <div class="big">10.1%</div>
+        <div class="delta">↑ 6.1pp vs abril</div>
+        <div class="bi-chart">
+          <svg viewBox="0 0 320 120" preserveAspectRatio="none">
+            <g>
+              <rect x="20" y="80" width="35" height="40" fill="oklch(0.85 0.04 220)"/>
+              <rect x="65" y="70" width="35" height="50" fill="oklch(0.78 0.06 220)"/>
+              <rect x="110" y="55" width="35" height="65" fill="oklch(0.65 0.10 220)"/>
+              <rect x="155" y="60" width="35" height="60" fill="oklch(0.65 0.10 220)"/>
+              <rect x="200" y="40" width="35" height="80" fill="oklch(0.55 0.12 220)"/>
+              <rect x="245" y="30" width="35" height="90" fill="var(--accent)"/>
+              <line x1="0" y1="35" x2="320" y2="35" stroke="var(--bad)" stroke-width="1" stroke-dasharray="3,3"/>
+              <text x="0" y="33" font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--bad)">meta 12%</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bi-list">
+      <h4>Top 8 clientes · receita acumulada</h4>
+      <div class="bi-row"><span><b>Acme Comércio Ltda</b></span><span class="bar"><div style="width: 92%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+      <div class="bi-row"><span>Construtora Vértice</span><span class="bar"><div style="width: 78%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+      <div class="bi-row"><span>TechPro Equipamentos</span><span class="bar"><div style="width: 64%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+      <div class="bi-row"><span>Transporte Veloz</span><span class="bar"><div style="width: 58%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+      <div class="bi-row"><span>Cervejaria Lupulada</span><span class="bar"><div style="width: 55%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+      <div class="bi-row"><span>Loja Bella Moda</span><span class="bar"><div style="width: 50%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+      <div class="bi-row"><span>Auto Posto Trevo</span><span class="bar"><div style="width: 42%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+      <div class="bi-row"><span>Clínica Vida Plena</span><span class="bar"><div style="width: 36%"></div></span><span class="v">R$ [redacted Tier 0]</span></div>
+    </div>
+    <div class="diff-note">
+      <b>Padrão ·</b> 2 charts grandes lado a lado + lista ranqueada. Sempre delta vs período anterior. Sparkline + barras + comparação contra meta. Sem pizza chart (notoriamente ruim em decisão).
+    </div>
+  </article>
+
+
+  <!-- 5. NF-e / NFS-e -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#5</div>
+      <h2>Fiscal · NF-e + NFS-e</h2>
+      <span class="role">especialista: contador</span>
+    </div>
+    <div class="m-hero">
+      <h3>Fiscal</h3>
+      <span class="crumb">Emissão · SEFAZ · maio 2026</span>
+      <div class="ctas">
+        <button class="btn ghost">Manifestar lote</button>
+        <button class="btn">Exportar SPED</button>
+        <button class="btn primary">+ Emitir NF</button>
+      </div>
+    </div>
+
+    <div class="fis-tabs">
+      <div class="fis-tab active">NF-e (produto)</div>
+      <div class="fis-tab">NFS-e (serviço)</div>
+      <div class="fis-tab">NFC-e (consumidor)</div>
+      <div class="fis-tab">Inutilizações</div>
+      <div class="fis-tab">Eventos</div>
+    </div>
+
+    <div class="fis-stats">
+      <div class="stat hero"><small>Emitidas · maio</small><b>184</b><div class="delta">↑ 12 vs abr</div></div>
+      <div class="stat"><small>Autorizadas (100)</small><b style="color: var(--ok);">181</b><div class="delta">98.4%</div></div>
+      <div class="stat"><small>Rejeitadas</small><b style="color: var(--bad);">3</b><div class="delta" style="color: var(--bad);">requer ação</div></div>
+      <div class="stat"><small>Contingência</small><b>0</b><div class="delta">offline SEFAZ ok</div></div>
+    </div>
+
+    <div class="fis-table">
+      <table>
+        <thead><tr><th>Número</th><th>Chave de acesso</th><th>Destinatário</th><th>Status SEFAZ</th><th>Emissão</th><th class="num" style="text-align:right;">Valor</th></tr></thead>
+        <tbody>
+          <tr><td><b>NFe 8428</b></td><td class="ch">35260534…097190</td><td>Imobiliária Horizonte</td><td><span class="badge ok">100 · autorizada</span></td><td>09/05 14:20</td><td class="num">R$ [redacted Tier 0]</td></tr>
+          <tr><td><b>NFe 8427</b></td><td class="ch">35260512…018990</td><td>Imobiliária Horizonte</td><td><span class="badge ok">100</span></td><td>09/05 11:05</td><td class="num">R$ [redacted Tier 0]</td></tr>
+          <tr><td><b>NFe 8426</b></td><td class="ch">35260534…044190</td><td>Restaurante Sabor & Cia</td><td><span class="badge ok">100</span></td><td>09/05 09:42</td><td class="num">R$ [redacted Tier 0]</td></tr>
+          <tr><td><b>NFe 8425</b></td><td class="ch">35260534…086020</td><td>Construtora Vértice</td><td><span class="badge bad">220 · duplicidade</span></td><td>08/05 17:30</td><td class="num">R$ [redacted Tier 0]</td></tr>
+          <tr><td><b>NFe 8424</b></td><td class="ch">35260512…016230</td><td>Maria Aparecida (PF)</td><td><span class="badge ok">100</span></td><td>08/05 16:18</td><td class="num">R$ [redacted Tier 0]</td></tr>
+          <tr><td><b>NFe 8423</b></td><td class="ch">35260534…062970</td><td>Academia Movimento</td><td><span class="badge warn">processando</span></td><td>08/05 15:00</td><td class="num">R$ [redacted Tier 0]</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="diff-note">
+      <b>Padrão ·</b> Tabs por tipo de documento. Chave de acesso truncada (mono) — hover mostra completa. Status SEFAZ com código + descrição. KPI hero "emitidas" + alerta visual em rejeitadas. Manifestar em lote.
+    </div>
+  </article>
+
+
+  <!-- 6. Patrimônio -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#6</div>
+      <h2>Patrimônio · equipamentos</h2>
+      <span class="role">especialista: gestor industrial</span>
+    </div>
+    <div class="m-hero">
+      <h3>Patrimônio</h3>
+      <span class="crumb">23 itens · próx. manutenção 4d</span>
+      <div class="ctas">
+        <button class="btn ghost">Manutenções</button>
+        <button class="btn">Depreciação</button>
+        <button class="btn primary">+ Novo ativo</button>
+      </div>
+    </div>
+
+    <div class="pat-grid">
+
+      <div class="pat-card">
+        <div class="pat-img">📷 ROLAND 540</div>
+        <div class="pat-info">
+          <b>Plotter Roland 540</b>
+          <div class="sub">ATIVO-008 · 2021 · NF 4421</div>
+          <dl class="pat-kv">
+            <dt>Valor compra</dt><dd>R$ [redacted Tier 0]</dd>
+            <dt>Depreciado</dt><dd>R$ [redacted Tier 0] · 20%</dd>
+            <dt>Valor atual</dt><dd>R$ [redacted Tier 0]</dd>
+            <dt>Horas uso/mês</dt><dd>148h</dd>
+          </dl>
+          <div class="pat-foot">
+            <span class="badge ok">Operando</span>
+            <span style="margin-left:auto; font-size:11px; color:var(--text-mute);">próx. manut. 12/06</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pat-card eq2">
+        <div class="pat-img">📷 HP LATEX</div>
+        <div class="pat-info">
+          <b>HP Latex 365</b>
+          <div class="sub">ATIVO-012 · 2023 · NF 7711</div>
+          <dl class="pat-kv">
+            <dt>Valor compra</dt><dd>R$ [redacted Tier 0]</dd>
+            <dt>Depreciado</dt><dd>R$ [redacted Tier 0] · 10%</dd>
+            <dt>Valor atual</dt><dd>R$ [redacted Tier 0]</dd>
+            <dt>Horas uso/mês</dt><dd>92h</dd>
+          </dl>
+          <div class="pat-foot">
+            <span class="badge warn">Manutenção em 4d</span>
+            <span style="margin-left:auto; font-size:11px; color:var(--text-mute);">13/05</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pat-card eq3">
+        <div class="pat-img">📷 PLOTTER CORTE</div>
+        <div class="pat-info">
+          <b>Plotter Corte Graphtec</b>
+          <div class="sub">ATIVO-018 · 2020 · NF 2284</div>
+          <dl class="pat-kv">
+            <dt>Valor compra</dt><dd>R$ [redacted Tier 0]</dd>
+            <dt>Depreciado</dt><dd>R$ [redacted Tier 0] · 60%</dd>
+            <dt>Valor atual</dt><dd>R$ [redacted Tier 0]</dd>
+            <dt>Horas uso/mês</dt><dd>62h</dd>
+          </dl>
+          <div class="pat-foot">
+            <span class="badge bad">Manutenção atrasada 2d</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="diff-note">
+      <b>Padrão ·</b> Cards visuais com placeholder foto. Valor de compra, depreciação acumulada (Receita Federal), valor atual, horas/mês. Badge de manutenção próxima ou atrasada. Drill in: histórico de OSes que usaram o equipamento.
+    </div>
+  </article>
+
+
+  <!-- 7. Cobrança recorrente -->
+  <article class="screen">
+    <div class="screen-h">
+      <div class="num">#7</div>
+      <h2>Cobrança recorrente · assinaturas</h2>
+      <span class="role">especialista: subscription ops</span>
+    </div>
+    <div class="m-hero">
+      <h3>Cobrança recorrente</h3>
+      <span class="crumb">12 assinantes · MRR R$ [redacted Tier 0]</span>
+      <div class="ctas">
+        <button class="btn ghost">Logs</button>
+        <button class="btn">+ Plano</button>
+        <button class="btn primary">+ Assinatura</button>
+      </div>
+    </div>
+
+    <div class="crm-stats">
+      <div class="stat hero"><small>MRR · receita recorrente</small><b>R$ [redacted Tier 0]</b><div class="delta">↑ R$ [redacted Tier 0] vs abril</div></div>
+      <div class="stat"><small>Churn maio</small><b>1 cancelamento</b><div class="delta">taxa 8.3%</div></div>
+      <div class="stat"><small>Próxima cobrança</small><b>amanhã</b><div class="delta">R$ [redacted Tier 0] · 4 boletos</div></div>
+      <div class="stat"><small>Retentado falhos</small><b style="color: var(--bad);">2</b><div class="delta" style="color: var(--bad);">requer ação</div></div>
+    </div>
+
+    <div class="rec-grid">
+      <div class="rec-card">
+        <h4 style="margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); font-weight: 600;">Planos ativos</h4>
+        <div class="plan"><div><b>Padaria Estrela</b><div class="sub">cardápios mensais · 50un</div></div><span class="v">R$ [redacted Tier 0] / mês</span></div>
+        <div class="plan"><div><b>Acme Comércio</b><div class="sub">banner promo · 4 trocas/mês</div></div><span class="v">R$ [redacted Tier 0] / mês</span></div>
+        <div class="plan"><div><b>Imobiliária Horizonte</b><div class="sub">wind banner 5 lojas</div></div><span class="v">R$ [redacted Tier 0] / mês</span></div>
+        <div class="plan"><div><b>Mercado União</b><div class="sub">fachada + faixa promocional</div></div><span class="v">R$ [redacted Tier 0] / mês</span></div>
+        <div class="plan"><div><b>Cervejaria Lupulada</b><div class="sub">rótulos perolados 2000un</div></div><span class="v">R$ [redacted Tier 0] / mês</span></div>
+      </div>
+      <div class="rec-card">
+        <h4 style="margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); font-weight: 600;">Calendário · maio 2026</h4>
+        <div class="calend-grid">
+          <div class="calend-day">D</div><div class="calend-day">S</div><div class="calend-day">T</div><div class="calend-day">Q</div><div class="calend-day">Q</div><div class="calend-day">S</div><div class="calend-day">S</div>
+          <div class="calend-day">1</div><div class="calend-day">2</div><div class="calend-day">3</div><div class="calend-day">4</div><div class="calend-day has-event">5<b>R$ [redacted Tier 0]</b></div><div class="calend-day">6</div><div class="calend-day">7</div>
+          <div class="calend-day">8</div><div class="calend-day">9</div><div class="calend-day has-event">10<b>R$ [redacted Tier 0]</b></div><div class="calend-day">11</div><div class="calend-day">12</div><div class="calend-day">13</div><div class="calend-day">14</div>
+          <div class="calend-day">15</div><div class="calend-day has-event">16<b>R$ [redacted Tier 0]</b></div><div class="calend-day">17</div><div class="calend-day">18</div><div class="calend-day">19</div><div class="calend-day">20</div><div class="calend-day">21</div>
+          <div class="calend-day">22</div><div class="calend-day">23</div><div class="calend-day has-event">24<b>R$ [redacted Tier 0]</b></div><div class="calend-day">25</div><div class="calend-day">26</div><div class="calend-day">27</div><div class="calend-day">28</div>
+          <div class="calend-day">29</div><div class="calend-day has-event">30<b>R$ [redacted Tier 0]</b></div><div class="calend-day">31</div>
+        </div>
+      </div>
+    </div>
+    <div class="diff-note">
+      <b>Padrão ·</b> MRR como hero + churn + próxima cobrança como KPIs principais. Lista de planos ativos lado a lado com calendário mensal mostrando quando cada uma vai cobrar. Re-tentativa visual de falhas.
+    </div>
+  </article>
+
+
+  <p style="margin-top: 32px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 12.5px; color: var(--text-dim);">
+    <b style="color: var(--text);">Especialistas adotados ·</b>
+    SDR/closer (CRM) · SAC (WhatsApp) · design ops (Comunicação Visual) · controller (Relatórios) ·
+    contador (Fiscal) · gestor industrial (Patrimônio) · subscription ops (Recorrente). Cada tela
+    segue o pattern <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 4px;border-radius:3px;">.os-page</code>
+    do shell e tokens da identidade visual v1.0.
+  </p>
+
+</div>
+</body>
+</html>

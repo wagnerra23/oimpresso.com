@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap');
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:"IBM Plex Sans",sans-serif; background:#fff; padding:16px; color:oklch(0.22 0.01 80); -webkit-font-smoothing:antialiased; }
+  .section{ margin-bottom:12px; }
+  .label{ font-size:9.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:oklch(0.65 0.01 80); margin-bottom:7px; }
+  .row{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+
+  .badge{
+    display:inline-flex; align-items:center;
+    font-size:11px; font-weight:600;
+    padding:2px 8px; border-radius:999px;
+    border:1px solid transparent;
+  }
+  .badge.outline{ background:transparent; border-color:oklch(0.90 0.004 90); color:oklch(0.50 0.01 80); }
+  .badge.secondary{ background:oklch(0.93 0.004 90); color:oklch(0.40 0.01 80); }
+  .badge.success{ background:oklch(0.52 0.18 145); color:#fff; }
+  .badge.danger{ background:oklch(0.55 0.18 25); color:#fff; }
+  .badge.warning{ background:oklch(0.68 0.16 75); color:#fff; }
+  .badge.blue{ background:oklch(0.52 0.10 220); color:#fff; }
+  .badge.amber{ background:oklch(0.65 0.14 70); color:#fff; }
+
+  /* origin badge */
+  .origin{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10px; font-weight:700; letter-spacing:.04em;
+    padding:2px 7px; border-radius:4px;
+  }
+
+  /* tk-filter */
+  .filter{
+    appearance:none; border:0;
+    background:transparent; color:oklch(0.50 0.01 80);
+    font-family:inherit; font-size:11.5px;
+    padding:3px 9px; border-radius:999px; cursor:default;
+  }
+  .filter.active{ background:oklch(0.22 0.01 80); color:#fff; font-weight:500; }
+</style>
+</head>
+<body>
+  <div class="section">
+    <div class="label">Status — Intercorrência / Aprovação</div>
+    <div class="row">
+      <span class="badge outline">Rascunho</span>
+      <span class="badge secondary">Pendente</span>
+      <span class="badge success">Aprovada</span>
+      <span class="badge danger">Rejeitada</span>
+      <span class="badge blue">Aplicada</span>
+      <span class="badge outline">Cancelada</span>
+      <span class="badge danger" style="animation:pulse 1s infinite">Urgente ●</span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="label">Status — Financeiro / Pagamento</div>
+    <div class="row">
+      <span class="badge secondary">Aberto</span>
+      <span class="badge amber">Parcial</span>
+      <span class="badge success">Quitado</span>
+      <span class="badge danger">Vencido</span>
+      <span class="badge outline">Cancelado</span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="label">Origin Badges (mono)</div>
+    <div class="row">
+      <span class="origin" style="background:oklch(0.93 0.07 70);color:oklch(0.40 0.10 60)">OS</span>
+      <span class="origin" style="background:oklch(0.92 0.06 220);color:oklch(0.40 0.10 220)">CRM</span>
+      <span class="origin" style="background:oklch(0.93 0.07 145);color:oklch(0.36 0.10 145)">FIN</span>
+      <span class="origin" style="background:oklch(0.93 0.06 295);color:oklch(0.40 0.10 295)">PNT</span>
+      <span class="origin" style="background:oklch(0.93 0.05 30);color:oklch(0.40 0.10 30)">MFG</span>
+      <span style="font-size:11px;color:oklch(0.65 0.01 80)">— usados em tasks, linked blocks e thread context</span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="label">Filtros de lista (tk-filter)</div>
+    <div class="row">
+      <button class="filter active">Todos</button>
+      <button class="filter">OS</button>
+      <button class="filter">CRM</button>
+      <button class="filter">FIN</button>
+      <button class="filter">PNT</button>
+    </div>
+  </div>
+</body>
+</html>
