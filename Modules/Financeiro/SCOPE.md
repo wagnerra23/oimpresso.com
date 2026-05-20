@@ -6,6 +6,7 @@ contains:
   - "BoletoController"
   - "CategoriaController"
   - "CobrancaController — F3 PaymentGateway UI Tela 1 (substitui /financeiro/boletos com escopo expandido boleto+pix+pix_recv+card; ADR 0144 + 0170)"
+  - "ConciliacaoController — Onda 19 OFX MVP upload + parser STMTTRN + fuzzy match (US-FIN-009)"
   - "ContaBancariaController"
   - "ContaPagarController"
   - "ContaReceberController"
@@ -16,6 +17,7 @@ contains:
   - "FinanceiroController"
   - "FluxoController"
   - "InstallController"
+  - "PlanoContaController — Onda 18 tela /plano-contas dedicada hierárquica BR (49 entries Receita Federal/DCASP)"
   - "RelatoriosController"
   - "UnificadoController"
 not_contains:
