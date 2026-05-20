@@ -246,6 +246,21 @@ class DreService
         $baseRL = (float) ($headerTotais['receita_liquida']['atual'] ?? 0.0);
         $baseRLPrev = (float) ($headerTotais['receita_liquida']['prev'] ?? 0.0);
 
+        // ───────── 6.5) Enriquecer linhas com pct_rl + delta_pct ─────────
+        // Hotfix 2026-05-20: frontend (Pages/Financeiro/Dre/Index.tsx) acessa
+        // `l.pct_rl.toFixed(1)` e `l.delta_pct.toFixed(0)` em CADA linha.
+        // `materializarLinhas()` só popula `v` + `prev` — sem isso, prod gera
+        // "TypeError: can't access property 'toFixed', t.pct_rl is undefined".
+        // Q2 (aprovada Wagner 2026-05-20): % RL com sinal preservado do numerador,
+        // base = Receita Líquida (subtotal). Q3: Δ% vs mês anterior literal.
+        foreach ($linhas as &$linha) {
+            $v = (float) ($linha['v'] ?? 0.0);
+            $prev = (float) ($linha['prev'] ?? 0.0);
+            $linha['pct_rl'] = $baseRL != 0.0 ? round(($v / $baseRL) * 100.0, 2) : 0.0;
+            $linha['delta_pct'] = $prev != 0.0 ? round((($v - $prev) / abs($prev)) * 100.0, 2) : 0.0;
+        }
+        unset($linha);
+
         // ───────── 7) Margem operacional ─────────
         $resOpAtual = (float) ($headerTotais['resultado_operacional']['atual'] ?? 0.0);
         $resOpPrev = (float) ($headerTotais['resultado_operacional']['prev'] ?? 0.0);
