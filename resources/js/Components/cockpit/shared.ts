@@ -160,7 +160,13 @@ export type SidebarMode = 'expanded' | 'rail';
 export const SIDEBAR_GROUP_HUE: Record<string, number> = {
   office: 60,
   oficina: 350,
-  fin: 145,
+  // Família verde — 3 sub-grupos do Financeiro com hue próximo (operação 145
+  // canônico, análise 155 levemente azulado, ajustes 135 levemente amarelado).
+  // Wagner 2026-05-20: Opção B sub-grupos visuais Operação/Análise/Ajustes.
+  'fin-op': 145,
+  'fin-analise': 155,
+  'fin-config': 135,
+  fin: 145, // legacy compat — core UltimatePOS Despesas/Contas de pagamento até deprecação F1
   estoque: 30,
   fiscal: 200,
   rh: 295,

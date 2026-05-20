@@ -136,15 +136,33 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     label: 'OFICINA AUTO',
     items: ['Oficina Auto'],
   },
+  // Wagner 2026-05-20: Opção B — Financeiro dividido em 3 sub-grupos visuais
+  // pra melhor descoberta (12 entradas em 1 grupo flat era denso demais).
+  // Cada entrada declara `'group' => 'fin-op|fin-analise|fin-config'` no
+  // DataController — frontend NUNCA hardcode labels (Wagner regra 2026-05-19).
+  // Grupo `fin` legacy mantido pra core UltimatePOS Despesas/Contas de pagamento
+  // até Fase 1 de deprecação (esconder no middleware quando Financeiro instalado).
+  {
+    key: 'fin-op',
+    label: 'FINANCEIRO · OPERAÇÃO',
+    items: [], // backend-declared via 'group' => 'fin-op'
+  },
+  {
+    key: 'fin-analise',
+    label: 'FINANCEIRO · ANÁLISE',
+    items: [], // backend-declared via 'group' => 'fin-analise'
+  },
+  {
+    key: 'fin-config',
+    label: 'FINANCEIRO · AJUSTES',
+    items: [], // backend-declared via 'group' => 'fin-config'
+  },
   {
     key: 'fin',
     label: 'FINANCEIRO',
-    // Wagner 2026-05-18: 3 labels novas (Fluxo de Caixa / DRE / Cobrança) saíram
-    // do dropdown popover-2 pra entradas top-level — ficam visíveis sem click.
-    // Itens NOVOS (Cobrança, futuros) devem declarar `'group' => 'fin'` no
-    // DataController do módulo em vez de adicionar string aqui — Wagner regra
-    // 2026-05-19: "nunca hardcode label, sempre via DataController do módulo".
-    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Gateway de Pagamento', 'Cobrança Recorrente'],
+    // Legacy compat — labels do core UltimatePOS (Expenses + Account dropdowns
+    // em AdminSidebarMenu.php:486,522). Sai daqui na Fase 1 de deprecação.
+    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Gateway de Pagamento', 'Cobrança Recorrente'],
   },
   {
     key: 'estoque',
@@ -574,7 +592,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={g.key === 'office'}
+          defaultOpen={g.key === 'office' || g.key === 'fin-op'}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
