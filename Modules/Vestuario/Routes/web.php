@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Vestuario\Http\Controllers\EtiquetaTagController;
 use Modules\Vestuario\Http\Controllers\InstallController;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,6 +19,15 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('install/update',    [InstallController::class, 'update']);
     });
 
-// Modules/Vestuario — rotas web. Sprint 1: scaffold vazio.
-// Routes reais (Pages Inertia, Controllers) entram Sprint 2+ conforme
-// sinal qualificado [ADR 0105].
+// ─────────────────────────────────────────────────────────────────────────────
+// US-VEST-020 — Etiqueta TAG vestuário (ZPL Argox/Zebra + PDF DomPDF)
+// RUNBOOK: memory/requisitos/Vestuario/RUNBOOK-etiqueta-tag.md
+// ─────────────────────────────────────────────────────────────────────────────
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('vestuario/etiquetas')
+    ->name('vestuario.etiquetas.')
+    ->group(function () {
+        Route::get('/',         [EtiquetaTagController::class, 'index'])->name('index');
+        Route::post('lote/zpl', [EtiquetaTagController::class, 'storeZpl'])->name('lote.zpl');
+        Route::post('lote/pdf', [EtiquetaTagController::class, 'storePdf'])->name('lote.pdf');
+    });
