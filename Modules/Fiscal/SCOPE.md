@@ -11,6 +11,7 @@ contains:
   - "InstallController"
   - "NfeCockpitController — sub-página 2 (NF-e/NFC-e + drawer SEFAZ guiado)"
   - "NfseCockpitController — sub-página 3 (NFS-e modelo 56 nacional NT 2024-001)"
+  - "PaletteSearchController — PR #7 ⌘K palette cross-fiscal (US-FISCAL-015 — busca global notas + DF-e)"
   - "SpedController — sub-página 7 (placeholder panorama mensal — gerador real backlog)"
 not_contains:
   - "Emissão fiscal (XML + SEFAZ) → Modules/NfeBrasil (lê via Service)"

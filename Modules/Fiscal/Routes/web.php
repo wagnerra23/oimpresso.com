@@ -9,6 +9,7 @@ use Modules\Fiscal\Http\Controllers\EventosController;
 use Modules\Fiscal\Http\Controllers\InstallController;
 use Modules\Fiscal\Http\Controllers\NfeCockpitController;
 use Modules\Fiscal\Http\Controllers\NfseCockpitController;
+use Modules\Fiscal\Http\Controllers\PaletteSearchController;
 use Modules\Fiscal\Http\Controllers\SpedController;
 
 /*
@@ -90,4 +91,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->whereNumber('emissao')
             ->middleware('throttle:30,1')
             ->name('acoes.nfe.retransmitir');
+
+        // ─── PR #7 Wave: ⌘K palette cross-fiscal ────────────────────────
+        // Busca global em notas + DF-e (throttle 60/min — usuário digita rápido).
+        Route::get('/palette/search', [PaletteSearchController::class, 'search'])
+            ->middleware('throttle:60,1')
+            ->name('palette.search');
     });
