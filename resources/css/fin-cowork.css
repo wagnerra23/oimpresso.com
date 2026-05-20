@@ -428,4 +428,51 @@
   border: 1px solid var(--fin-line);
   color: var(--fin-text);
 }
+
+/* ============================================================================
+ * Onda 22b (2026-05-20) — Drawer portal scope fix
+ *
+ * <Sheet> shadcn renderiza via Portal direto no <body> — fora do .fin-cowork
+ * wrapper da página. Quando adicionamos `fin-cowork` no SheetContent (Onda 22),
+ * descobrimos 2 problemas:
+ *   (1) CSS vars (--bg, --text, --accent, --border) definidos no
+ *       cowork-canon-financeiro-bundle.css NÃO sobreviveram ao build vite —
+ *       só .sells-cowork-show e .sells-cowork-edit têm essas vars no bundle.
+ *   (2) bg-background do Tailwind colide com .fin-cowork {background:#fff !important}
+ *       e o computed style ficou rgba(0,0,0,0) (transparent), deixando a
+ *       tabela atrás visível ATRAVÉS do drawer.
+ *
+ * Fix: redefinir os vars + bg branco com seletor de alta especificidade que
+ * pega só drawers (Sheet shadcn portal). NÃO afeta .fin-cowork da página
+ * principal (já tem vars vindos do .cockpit ancestor com inline style).
+ * ============================================================================ */
+[role="dialog"].fin-cowork {
+  /* Surface */
+  --bg:           oklch(0.985 0.003 90);
+  --bg-2:         oklch(0.965 0.004 90);
+  --surface:      #ffffff;
+  --border:       oklch(0.90 0.004 90);
+  --border-2:     oklch(0.93 0.004 90);
+  --text:         oklch(0.22 0.01 80);
+  --text-dim:     oklch(0.50 0.01 80);
+  --text-mute:    oklch(0.65 0.01 80);
+
+  --accent:       oklch(0.58 0.09 220);
+  --accent-2:     oklch(0.66 0.09 220);
+  --accent-soft:  oklch(0.94 0.025 220);
+  --accent-fg:    #ffffff;
+
+  --radius:       8px;
+  --radius-sm:    6px;
+  --shadow-pop:   0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft:  0 1px 2px rgba(0,0,0,.04);
+
+  --row-h:        30px;
+  --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Force opaque white background — sobrescreve Tailwind bg-background colision */
+  background: #ffffff !important;
+  color: var(--text);
+}
 .fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }
