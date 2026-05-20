@@ -75,12 +75,15 @@ class FinanceiroDemoSeeder extends Seeder
                 ->max(DB::raw('CAST(numero AS UNSIGNED)')) ?? 0);
 
             // Limpa baixas demo antigas tambem (idempotente).
-            // Onda 2.1 (2026-05-20): se nao limpar, re-rodar gera duplicadas.
+            // Onda 2.1 fix (2026-05-20): fin_titulo_baixas e append-only schema
+            // (NAO TEM coluna deleted_at — confirmado via debug-fin-counts run
+            // 26171435188 que retornou QueryException SQL 1054 'Unknown column'.).
+            // Usamos HARD DELETE pra demo — seguro porque filtra via tag
+            // SEEDER_DEMO que so nosso seeder produz.
             DB::table('fin_titulo_baixas')
                 ->where('business_id', $businessId)
                 ->where('observacoes', 'LIKE', self::TAG . '%')
-                ->whereNull('deleted_at')
-                ->update(['deleted_at' => now()]);
+                ->delete();
 
             foreach ($rows as $row) {
                 $contadorNumero++;
