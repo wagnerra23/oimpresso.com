@@ -124,8 +124,13 @@ class UnificadoController extends Controller
               ->where('vencimento', '<', $hoje);
         }
 
+        // Onda 7 (2026-05-20): multi-conta — filters['conta'] agora aceita CSV
+        // "1,3,5" (back-compat: 1 single vira "1"). Backend faz whereIn.
         if ($filters['conta']) {
-            $q->whereHas('baixas', fn ($qq) => $qq->where('conta_bancaria_id', $filters['conta']));
+            $contaIds = array_filter(array_map('intval', explode(',', $filters['conta'])));
+            if (! empty($contaIds)) {
+                $q->whereHas('baixas', fn ($qq) => $qq->whereIn('conta_bancaria_id', $contaIds));
+            }
         }
         // Onda 12.7 (2026-05-19) — `filters['categoria']` agora vem da UI como
         // plano_conta_id (Wagner trocou select Categorias por Plano de Contas).
