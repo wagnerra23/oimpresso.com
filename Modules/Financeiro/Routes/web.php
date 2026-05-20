@@ -190,6 +190,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->whereNumber('lineId')
             ->name('conciliacao.ignorar');
 
+        // Onda 23 (2026-05-20) US-FIN-029 — OCR boleto upload (OpenAI Vision).
+        // KILLER feature vs Conta Azul. Endpoint não cria titulo direto —
+        // retorna campos extraídos pra UI preview/confirm → user envia POST /unificado.
+        Route::post('/unificado/ocr-boleto', [UnificadoController::class, 'ocrBoleto'])
+            ->name('unificado.ocr-boleto');
+
         // Onda 20 (2026-05-19) #50 — Anexos NF / comprovante por título.
         Route::get('/unificado/{id}/anexos', [UnificadoController::class, 'listarAnexos'])
             ->whereNumber('id')
