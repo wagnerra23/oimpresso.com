@@ -3,7 +3,7 @@ slug: 0175-fix-observer-conta-bancaria-opcional
 number: 175
 title: "Fix arquitetural — Observer Financeiro permite baixa sem fin_contas_bancarias (remove guard no-op)"
 type: adr
-status: proposto
+status: accepted
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
@@ -20,7 +20,7 @@ related:
 pii: false
 review_triggers:
   - "Próximo cliente piloto onboarding sem fin_contas_bancarias"
-  - "Wagner aprovar PR de implementação"
+  - "Pos-deploy validar Larissa biz=4 — próximo TransactionPayment dispara fin_titulo_baixa com conta_bancaria_id NULL"
 amends_implicitly:
   - commit 540a26a41 (2026-05-08 — guard no-op original)
 ref_session: memory/sessions/2026-05-20-financeiro-bridge-larissa-backfill-recovery.md
@@ -28,11 +28,11 @@ ref_runbook: memory/requisitos/Financeiro/RUNBOOK-bridge-sells-titulos-backfill.
 ref_feedback: memory/reference/feedback-fin-bridge-no-op-account-gap.md
 ---
 
-# ADR 0175 (proposta) — Fix arquitetural Observer Financeiro: baixa sem fin_contas_bancarias
+# ADR 0175 — Fix arquitetural Observer Financeiro: baixa sem fin_contas_bancarias
 
 ## Status
 
-**proposed** — Wagner aprova após validar Larissa em prod + planejar sprint próxima.
+**accepted** (Wagner 2026-05-20 pos-sessão recovery Larissa biz=4 — "pode continuar deixe a senha por enquanto"). Implementação canonical entregue mesma sessão.
 
 ## Contexto
 
