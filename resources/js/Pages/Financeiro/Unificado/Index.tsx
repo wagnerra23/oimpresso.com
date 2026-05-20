@@ -642,11 +642,14 @@ function _KpiBarLegacy({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabI
   );
 }
 
-function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comments, isFav }: {
+function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comments, isFav, bulkSelected, onToggleBulk }: {
   row: Lancamento; dens: typeof DENSITY[keyof typeof DENSITY]; selected: boolean;
   onSelect: () => void; onBaixar: () => void;
   conferido: UseFinConferidoApi; comments: UseFinCommentsApi;
   isFav: boolean;
+  // Onda 12 (2026-05-20): bulk-select checkbox state.
+  bulkSelected: boolean;
+  onToggleBulk: () => void;
 }) {
   const isIn = row.kind === 'receivable';
   const settled = row.status === 'recebido' || row.status === 'pago';
@@ -658,10 +661,20 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   };
   return (
     <tr
-      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''}`}
+      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-blue-50/50' : ''}`}
       onClick={onSelect}
     >
-      <td className="pl-4 pr-2">
+      {/* Onda 12 (2026-05-20): checkbox bulk-select. stopPropagation pra nao abrir drawer. */}
+      <td className="pl-4 pr-1" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={bulkSelected}
+          onChange={onToggleBulk}
+          aria-label={`Selecionar lançamento ${row.descricao}`}
+          className="accent-stone-700 cursor-pointer"
+        />
+      </td>
+      <td className="pl-1 pr-2">
         {/* Onda 8b Cowork canon: direction arrow com bg pill semântico.
             Receivable = ↘ entrada (emerald), Payable = ↗ saída (rose).
             Settled tem opacidade reduzida (cor "tomada"). */}
@@ -753,6 +766,19 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
   const [busca, setBusca] = useState(filters.busca ?? '');
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  // Onda 12 (2026-05-20): bulk select multi-row via checkbox.
+  // Canon: footer mostra "N selecionados · +totalIn / -totalOut · Editar lote · Limpar"
+  // quando há items selecionados (substitui summary numérica padrão).
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const toggleRow = useCallback((id: number) => {
+    setSelectedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+  const clearSelection = useCallback(() => setSelectedRows(new Set()), []);
   const [paletteOpen, setPaletteOpen] = useState(false);
   // Onda 12.6 — default compact (Wagner pediu: financeiro denso).
   const dens = DENSITY[filters.densidade ?? 'compact'];
@@ -1107,9 +1133,20 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <table className="w-full border-collapse">
             <thead>
               <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
-                <th className="pl-4 pr-2 py-2 w-8"></th>
-                {/* Onda 8 (2026-05-20): click no header sort + arrow indicator.
-                    Estado: filters.sort + filters.dir (querystring). Click toggle asc/desc. */}
+                {/* Onda 12 (2026-05-20): checkbox select-all (referencia: visible rows). */}
+                <th className="pl-4 pr-1 py-2 w-7">
+                  <input
+                    type="checkbox"
+                    aria-label="Selecionar todos lançamentos visíveis"
+                    className="accent-stone-700 cursor-pointer"
+                    checked={lancamentos.length > 0 && lancamentos.every((l) => selectedRows.has(l.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedRows(new Set(lancamentos.map((l) => l.id)));
+                      else clearSelection();
+                    }}
+                  />
+                </th>
+                <th className="pl-1 pr-2 py-2 w-7"></th>
                 <SortableHeader k="vencimento" label="Vencimento" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium w-[110px]" />
                 <SortableHeader k="lancamento" label="Lançamento" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <SortableHeader k="contraparte" label="Contraparte" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
@@ -1129,7 +1166,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                 return (
                   <React.Fragment key={key}>
                     {showGroupHeader && (
-                      <tr><td colSpan={8} className="bg-stone-50/70 border-b border-stone-200">
+                      <tr><td colSpan={9} className="bg-stone-50/70 border-b border-stone-200">
                         <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
                           <span>{label}</span>
                           <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
@@ -1145,13 +1182,15 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                         conferido={conferido}
                         comments={comments}
                         isFav={favs.has(r.id)}
+                        bulkSelected={selectedRows.has(r.id)}
+                        onToggleBulk={() => toggleRow(r.id)}
                       />
                     ))}
                   </React.Fragment>
                 );
               })}
               {grupos.length === 0 && (
-                <tr><td colSpan={8} className="py-16">
+                <tr><td colSpan={9} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
                     <div className="text-sm text-stone-600">
                       {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
@@ -1437,22 +1476,64 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           Match com /cowork-preview/Oimpresso ERP - Chat.html:
           "29 lançamentos · Total entrada: R$ [redacted Tier 0] · Total saída: R$ [redacted Tier 0]" + atalhos */}
       <div className="fin-footer-tips">
-        <span className="fin-footer-summary">
-          <b>{footerSummary.count}</b> lançamento{footerSummary.count === 1 ? '' : 's'}
-          <span className="fin-footer-sep">·</span>
-          Total entrada: <b>{brl(footerSummary.entrada)}</b>
-          <span className="fin-footer-sep">·</span>
-          Total saída: <b>{brl(footerSummary.saida)}</b>
-        </span>
-        <span className="spacer" />
-        <span><kbd>⌘K</kbd> palette</span>
-        <span><kbd>/</kbd> buscar</span>
-        <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
-        <span><kbd>␣</kbd> marcar pago/recebido</span>
-        <span><kbd>B</kbd> favoritar linha</span>
-        <FinTroubleButton onClick={() => setTroubleOpen(true)} />
-        {favs.count > 0 && (
-          <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
+        {/* Onda 12 (2026-05-20): footer condicional — quando há bulk select, mostra
+            summary dos selecionados + ações em lote. Senão, summary do periodo. */}
+        {selectedRows.size > 0 ? (
+          <>
+            {(() => {
+              const selectedLancs = lancamentos.filter((l) => selectedRows.has(l.id));
+              const totalIn = selectedLancs.filter((l) => l.kind === 'receivable').reduce((s, l) => s + (l.valor ?? 0), 0);
+              const totalOut = selectedLancs.filter((l) => l.kind === 'payable').reduce((s, l) => s + (l.valor ?? 0), 0);
+              return (
+                <span className="fin-footer-summary">
+                  <b>{selectedRows.size}</b> selecionado{selectedRows.size === 1 ? '' : 's'}
+                  <span className="fin-footer-sep">·</span>
+                  {totalIn > 0 && <><span className="text-emerald-700"><b>+{brl(totalIn)}</b></span>{totalOut > 0 && <span className="fin-footer-sep">·</span>}</>}
+                  {totalOut > 0 && <span className="text-stone-900"><b>−{brl(totalOut)}</b></span>}
+                </span>
+              );
+            })()}
+            <span className="spacer" />
+            <Button
+              size="sm"
+              variant="default"
+              className="h-7 px-3 text-[12px]"
+              onClick={() => {
+                selectedRows.forEach((id) => onBaixar(id));
+                clearSelection();
+              }}
+            >
+              Marcar pago/recebido ({selectedRows.size})
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-[12px]"
+              onClick={clearSelection}
+            >
+              Limpar
+            </Button>
+          </>
+        ) : (
+          <>
+            <span className="fin-footer-summary">
+              <b>{footerSummary.count}</b> lançamento{footerSummary.count === 1 ? '' : 's'}
+              <span className="fin-footer-sep">·</span>
+              Total entrada: <b>{brl(footerSummary.entrada)}</b>
+              <span className="fin-footer-sep">·</span>
+              Total saída: <b>{brl(footerSummary.saida)}</b>
+            </span>
+            <span className="spacer" />
+            <span><kbd>⌘K</kbd> palette</span>
+            <span><kbd>/</kbd> buscar</span>
+            <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
+            <span><kbd>␣</kbd> marcar pago/recebido</span>
+            <span><kbd>B</kbd> favoritar linha</span>
+            <FinTroubleButton onClick={() => setTroubleOpen(true)} />
+            {favs.count > 0 && (
+              <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
+            )}
+          </>
         )}
       </div>
 
