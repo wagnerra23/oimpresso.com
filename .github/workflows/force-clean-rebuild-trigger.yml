@@ -1,0 +1,149 @@
+name: Force Clean Rebuild (one-shot)
+
+# One-shot workflow pra forçar clean rebuild do Hostinger.
+# Dispara automático em push pra branch `chore/force-clean-rebuild-trigger`.
+#
+# Diferença vs Quick Sync:
+# - rm -rf public/build-inertia/* (limpa hashes antigos)
+# - rm -rf node_modules/.vite/ (limpa cache do Vite)
+# - rm -rf bootstrap/cache/* (limpa cache compilado Laravel)
+# - npm ci --force (ignora lock parcial)
+#
+# Wagner 2026-05-20: criado porque deploys recompilando produziam
+# hashes idênticos (source não mudou). Esta é a opção nuclear quando
+# há suspeita de cache stale em qualquer camada.
+
+on:
+  push:
+    branches:
+      - chore/force-clean-rebuild-trigger
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  force-rebuild:
+    name: Force clean rebuild Hostinger
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: SSH helper
+        run: |
+          cat > /tmp/ssh_exec.sh <<'EOF'
+          #!/bin/bash
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=20 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "$@"
+          EOF
+          chmod +x /tmp/ssh_exec.sh
+
+      - name: Pre-clean inventory
+        run: |
+          echo "=== BEFORE CLEAN ==="
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            echo '--- public/build-inertia/ ---' &&
+            ls public/build-inertia/assets/ | head -20 &&
+            echo '--- node_modules/.vite/ ---' &&
+            (ls node_modules/.vite/ 2>/dev/null | head -5 || echo '(no vite cache)') &&
+            echo '--- bootstrap/cache/ ---' &&
+            ls bootstrap/cache/
+          "
+
+      - name: Force clean caches
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            rm -rf public/build-inertia/* &&
+            rm -rf public/build/* 2>/dev/null || true &&
+            rm -rf node_modules/.vite/ &&
+            rm -rf bootstrap/cache/*.php &&
+            php artisan view:clear &&
+            php artisan config:clear &&
+            php artisan route:clear &&
+            php artisan cache:clear &&
+            echo 'Clean done.'
+          "
+
+      - name: Git pull (garantir source main)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            rm -f .git/index.lock .git/HEAD.lock .git/refs/heads/main.lock 2>/dev/null || true &&
+            for i in 1 2 3; do
+              git fetch origin && break || (echo 'fetch try '\$i' failed, sleeping 3s'; sleep 3);
+            done &&
+            git checkout main &&
+            git reset --hard origin/main &&
+            git log --oneline -1
+          "
+
+      - name: npm ci (force)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            npm ci --no-audit --no-fund 2>&1 | tail -10
+          "
+
+      - name: Build Inertia bundles (cold)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            npm run build:inertia 2>&1 | tail -20
+          "
+
+      - name: Build Tailwind Blade legacy (cold)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            npm run build 2>&1 | tail -10
+          "
+
+      - name: Re-cache config
+        # view:cache pode falhar se config aponta pra custom_views/ que nao
+        # existe no Hostinger (config opcional UltimatePOS legacy). Failure
+        # do view:cache nao afeta runtime — Laravel cai pra render JIT.
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            php artisan config:cache &&
+            php artisan route:cache &&
+            (php artisan view:cache 2>&1 || echo '[warn] view:cache skipped (likely custom_views/ missing — non-fatal)') &&
+            php artisan package:discover --ansi
+          "
+
+      - name: Post-clean inventory
+        run: |
+          echo "=== AFTER CLEAN ==="
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            echo '--- new public/build-inertia/assets/ ---' &&
+            ls -la public/build-inertia/assets/ | head -20 &&
+            echo '--- manifest.json head ---' &&
+            head -c 500 public/build-inertia/manifest.json &&
+            echo ''
+          "
+
+      - name: Smoke test
+        run: |
+          echo "=== HTTP test ==="
+          curl -sL -o /dev/null -w "HTTP %{http_code} (%{time_total}s)\n" https://oimpresso.com/login
+          echo "=== Bundle refs em prod ==="
+          curl -s https://oimpresso.com/login | grep -oE '/assets/(inertia|app)-[a-zA-Z0-9_-]+\.(js|css)' | sort -u
+
+      - name: Done
+        run: echo "Force clean rebuild concluido. Bundle hashes podem ter mudado se Vite gerou IDs novos."
