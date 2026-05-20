@@ -1,7 +1,7 @@
 ---
 module: Jana
 status: em-implementacao (Onda 4 P0 — US-COPI-107..109)
-version: 2.0.0
+version: 3.0.0
 last_updated: 2026-05-20
 owner: wagner
 parent_adr: 0094
@@ -881,7 +881,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 | **Onda 2** (KB + handoffs) | múltiplas COPI legacy | 12d | +7pp (80→87%) | ✅ entregue 2026-05-13 | 87% |
 | **Onda 3** (consolidação — Reranker RRF + backlinks + RAGAS gate + weekly digest) | múltiplas COPI legacy | 25d (~1d real IA-pair) | +4pp (87→91%) | ✅ entregue 2026-05-13 | 91% |
 | **Onda 4** P0 (R1+L1+C1 — destrava medição honesta) | **US-COPI-107 + 108 + 109** | 5d (~3d real) | +4pp (91→95%) | 🟡 SPEC pronto, tasks MCP pendentes Wagner | 95% |
-| **Onda 5** P1 (K1+V1+H1+S1 — estruturais) | US-COPI-110..113 (pendentes apender) | 9d (~5d real) | +3pp (95→98%) | 🔒 backlog ADR 0144-hibernado, gate Langfuse |  98% |
+| **Onda 5** P1 (K1+V1+H1+S1 — estruturais) | **US-COPI-110 + 111 + 112 + 113** | 9d (~5d real) | +3pp (95→98%) | 🟡 SPEC pronto, gate Langfuse (Onda 4 L1 rodar 14d antes) | 98% |
 | **Onda 6** P2-P3 (A1+M1+G1+F1+L2 — saturação) | n/a (gate sinal qualificado) | 27d (~10d real) | +2pp (98→100%) | ❌ NÃO entrar sem sinal cliente externo (ADR 0105) | 100% (teto não-pragmático) |
 
 **Pré-requisito Onda 4 → Onda 5:** L1 (Langfuse) fechado E rodando ≥14d em prod com métricas live antes de Onda 5 começar — sem isso, Ondas 5-6 viram "subjetivas" (princípio 4 Constituição v2 "Loop fechado por métrica").
@@ -977,10 +977,141 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ---
 
-## Histórico (Roadmap de Ondas)
+### US-COPI-110 · Onda 5 K1 — Time-decay weighting recall (boost recente + decay historical)
 
-- **v2.0.0** (2026-05-20) — Apendado seção "Roadmap de Ondas" + US-COPI-107/108/109 (Onda 4 P0: Reranker BGE-v2-m3 + Langfuse v3 + Charters S4). Cruza [GAP-ANALYSIS-91-100](GAP-ANALYSIS-91-100-2026-05-13.md) + [ONDA-5-DOSSIER](ONDA-5-DOSSIER-2026-05-13.md). Mapping: US-COPI-107=JANA-10X-016 (R1) · US-COPI-108=JANA-10X-017 (L1) · US-COPI-109=JANA-10X-018 (C1). Ondas 5-6 ficam como backlog visível na tabela — entrarão como US-COPI-110..113 quando Onda 4 fechar + Langfuse rodar 14d. Tasks MCP NÃO criadas — Wagner aprova batch.
+> owner: wagner · priority: p1 · estimate: 20h IA-pair (2.5d) · status: todo · type: story · sprint: pós-Onda 4 (gate Langfuse)
+> blocked_by: **US-COPI-107 (R1 Reranker) + US-COPI-108 (L1 Langfuse) — sem Langfuse, ganho NDCG é fé teórica** · spawned_from: JANA-10X-019 (ONDA-5-DOSSIER §2)
+
+**Como** time IA Jana
+**Quero** `MeilisearchDriver` retornar score composto (relevance × 0.6 + recency × 0.3 com half-life 90d + importance × 0.1) com decay rate 0 pra ADR `lifecycle: accepted` e 0.5 pra `historical`/superseded
+**Para** documentos canônicos recentes vencerem antigos no recall — fechando gap Knowledge R5 (0%→75%) que hoje mistura regras vigentes com revogadas em queries multi-dia
+
+**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` — novo método `applyTemporalScoring()` aplicado após reranker (US-COPI-107) na chain hybrid recall
+
+**Definition of Done:**
+- [ ] Função composite `score = relevance×0.6 + recency_decay(age_days, lifecycle)×0.3 + importance×0.1` documentada
+- [ ] `recency_decay()`: `exp(-age_days / half_life)` com half_life=90d default · multiplica por `(1 - decay_rate)` se `lifecycle` ∈ {historical, superseded, deprecated}
+- [ ] Frontmatter `lifecycle` lido do MeiliSearch document metadata (pré-indexado via webhook GitHub→MCP)
+- [ ] NDCG@10 multi-dia +15pp medido em dataset 50 queries (validação no Langfuse dashboard — US-COPI-108)
+- [ ] Pest `TemporalScoringTest::it ranks recent accepted ADR above old superseded ADR for same query`
+- [ ] Pest `TemporalScoringTest::it preserves business_id scope` (ADR 0093 Tier 0)
+- [ ] Trace OTel `recall.temporal_scoring` com atributos (age_days, lifecycle, decay_applied) pra debug
+- [ ] Feature flag `JANA_TEMPORAL_SCORING_ENABLED` default false (canary 7d biz=1 antes de prod)
+- [ ] [RETRIEVAL-ESTADO-ARTE-2026-05.md](RETRIEVAL-ESTADO-ARTE-2026-05.md) atualizado com config + métricas
+
+**Non-Goals:**
+- ❌ Temporal Knowledge Graph (Graphiti/Zep) — opção EVOLUIR Onda 6 backlog
+- ❌ Per-query decay tuning UI — escopo só backend
+- ❌ Re-indexar Meilisearch (decay é runtime, não index-time)
+
+**Refs:** [GAP-ANALYSIS §K1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §2](ONDA-5-DOSSIER-2026-05-13.md) · [Towards Data Science — RAG is Blind to Time](https://towardsdatascience.com/rag-is-blind-to-time-i-built-a-temporal-layer-to-fix-it-in-production/) · [Zep/Graphiti temporal KG](https://github.com/getzep/graphiti) · [ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)
 
 ---
 
-**Última atualização:** 2026-05-20 — v2.0.0 Roadmap de Ondas + Onda 4 P0 (US-COPI-107/108/109) apendados (Escopo B aprovado por Wagner).
+### US-COPI-111 · Onda 5 V1 — Roadmap timeline UI (SVAR Gantt MIT + sub-issues)
+
+> owner: wagner · priority: p1 · estimate: 32h IA-pair (4d) · status: todo · type: story · sprint: pós-Onda 4
+> blocked_by: — (independente, mas C1 charter US-COPI-109 ajuda template) · spawned_from: JANA-10X-022 (ONDA-5-DOSSIER §3)
+
+**Como** Wagner (planejamento) + time MCP (Felipe/Maira/Eliana/Luiz)
+**Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
+**Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
+
+**Implementado em:** novo `Modules/Copiloto/Http/Controllers/Admin/RoadmapController.php` + `Modules/Copiloto/Http/Resources/RoadmapTaskResource.php` + `resources/js/Pages/Admin/Roadmap/Index.tsx` + `_components/RoadmapGantt.tsx` + `_components/SubIssuesPanel.tsx` + `Index.charter.md`
+
+**Definition of Done:**
+- [ ] npm dep `@svar-widgets/react-gantt` (MIT, ~80KB, React 19 nativo — rejeitado DHTMLX/Bryntum/Frappe por licença ou bundle)
+- [ ] `RoadmapController@index` lê `mcp_tasks` + `mcp_cycles` + `mcp_task_links` (blocked_by[]) com HasBusinessScope (ADR 0093)
+- [ ] `RoadmapTaskResource` shape compatível SVAR (id, text, start_date, end_date, parent, dependencies[])
+- [ ] Migration `mcp_tasks.parent_task_id` nullable (se não existe — auditar primeiro)
+- [ ] Page Inertia: Gantt full-width + sidebar sub-issues panel + filtro chip cycle (default current) + lazy load cycles passados
+- [ ] DataController hook ou sidebar.blade.php — entry "Roadmap" sob Copiloto/admin (skill `sidebar-menu-arch`)
+- [ ] Rota `Route::get('/copiloto/admin/roadmap')` middleware `web,auth,permission:copiloto.admin.roadmap`
+- [ ] Feature flag `feature.roadmap_hierarchy_enabled` default false (flat first, ativar nested iterativamente)
+- [ ] Charter `Index.charter.md` Goals/Non-Goals/UX-targets (consumir via charter-fetch — US-COPI-109)
+- [ ] Pest `RoadmapTest::it renders only business_id current tasks` (Tier 0) + `::it groups by cycle sorts by due_date` + `::it serializes blocked_by[] as SVAR dependencies` + `::it handles tasks without due_date (backlog lane)`
+- [ ] RUNBOOK `memory/requisitos/Copiloto/RUNBOOK-roadmap.md` (skill `cockpit-runbook`)
+- [ ] Smoke 1280px monitor (Larissa) — sem scroll horizontal, filtro current cycle default não polui Gantt
+
+**Non-Goals:**
+- ❌ Substituir tools MCP `tasks-list`/`my-work` (Gantt é viz adicional, não replace)
+- ❌ Editar tasks inline no Gantt (clicar abre drawer → futuro)
+- ❌ Custom fields typed (JANA-10X-026 / Onda 6 P3)
+- ❌ Comentários inline timeline (next iter)
+
+**Refs:** [GAP-ANALYSIS §V1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [SVAR React Gantt MIT](https://svar.dev/react/gantt/) · [SVAR Gantt 2.4 release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde) · [Linear roadmap timeline](https://linear.app/changelog/2021-05-27-linear-preview-roadmap-timeline) · [GitHub Projects Hierarchy GA mar/2026](https://github.blog/changelog/2026-03-19-hierarchy-view-in-github-projects-is-now-generally-available/) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0110](../../decisions/0110-cockpit-layout-v2-padrao.md)
+
+---
+
+### US-COPI-112 · Onda 5 H1 — Auto-skeleton handoff-draft (tool MCP)
+
+> owner: wagner · priority: p1 · estimate: 8h IA-pair (1d) · status: todo · type: story · sprint: pós-Onda 4
+> blocked_by: — (H3 `handoff-diff` Onda 3 já em prod desde 2026-05-13) · spawned_from: JANA-10X-020 (ONDA-5-DOSSIER §4)
+
+**Como** Wagner + time MCP (Felipe/Maira/Eliana/Luiz) escrevendo handoffs
+**Quero** tool MCP `handoff-draft` que lê `git log origin/main..HEAD` + `cycles-active` + `tasks-list status:doing` + `handoff-diff` (Onda 3) → 1 chamada `gpt-4o-mini` rascunha `.md` template canônico ADR 0130 que eu reviso + completo + Write final
+**Para** reduzir ~1h/dia que Wagner gasta escrevendo handoff manual (~10-20min × várias/dia) — fechar Handoff #4 auto-capture (30%→80%)
+
+**Implementado em:** novo `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (JSON-RPC schema: cycle_id?, since_hours? default 24, format? default md) + novo `Modules/Jana/Services/Handoff/HandoffDrafterService.php` + edit `Modules/Jana/Providers/OimpressoMcpServer.php` (registrar tool)
+
+**Definition of Done:**
+- [ ] Tool MCP `handoff-draft` exposta com schema documentado
+- [ ] `HandoffDrafterService` orquestra git log (via Process) + `CyclesActiveTool::handle()` + `TasksListTool::handle(filters: {status:doing})` + `HandoffDiffTool::handle()` → monta prompt LLM
+- [ ] Mock mode `HandoffDrafterService::enableMock($skeleton)` obrigatório pra Pest sem chave OpenAI (`RAGAS_FORCE_MOCK` pattern existente)
+- [ ] Output respeita template canon ADR 0130: frontmatter YAML + `## Estado MCP no momento do fechamento` + `## Próximos passos` + `## Bloqueios`
+- [ ] **APPEND-ONLY:** tool RASCUNHA mas NUNCA escreve `.md` — Wagner copia output e cria handoff manual (ADR 0130 §append-only)
+- [ ] Prompt enforce "ONLY use facts from git log + tools output below; do NOT infer commits not present" (anti-hallucination)
+- [ ] Cap git log 100 commits (cost guard)
+- [ ] Cache 5min por `(business_id, since_hours)` — chamadas repetidas retornam cached
+- [ ] Custo medido ~R$ 0.004/handoff (input ~6k tokens; output ~800 tokens) — instrumentado Langfuse (US-COPI-108)
+- [ ] Pest cobre: frontmatter ADR 0130 compliant · seção "Estado MCP" presente · business_id global scope (ADR 0093 Tier 0) · empty git log gracefully · mock determinístico · cap 100 commits
+- [ ] [how-trabalhar.md §Ao terminar uma sessão](../../how-trabalhar.md) atualizado: novo passo "0. (opcional) `handoff-draft` rascunha — você revisa + completa + Write"
+
+**Non-Goals:**
+- ❌ Pre-commit hook Git auto-handoff (rejeitado: bloqueia commits comuns; viola "Wagner revisa")
+- ❌ PreCompact hook Claude Code custom (rejeitado: só dentro de sessão Claude Code; Eliana usa Cursor)
+- ❌ AgentDiff bridge Python (rejeitado: Python-only; integration custom)
+- ❌ CrewAI Memory + Mem0 refactor (rejeitado: viola CONSOLIDAR Constituição v2)
+
+**Refs:** [GAP-ANALYSIS §H1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §4](ONDA-5-DOSSIER-2026-05-13.md) · [AgentDiff (Sunil Mallya)](https://github.com/sunilmallya/agentdiff) · [Session Handoff skill (softaworks)](https://github.com/softaworks/agent-toolkit/blob/main/skills/session-handoff/README.md) · [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) · [ADR 0130](../../decisions/0130-handoff-append-only-mcp-first.md)
+
+---
+
+### US-COPI-113 · Onda 5 S1 — Schema rígido CI validation (SPEC/RUNBOOK/Session/Handoff/Charter)
+
+> owner: wagner · priority: p1 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: pós-Onda 4
+> blocked_by: — (estende `adr-lint.yml` + `validate-memory-schema.sh` existentes) · spawned_from: JANA-10X-021 (ONDA-5-DOSSIER §5)
+
+**Como** Wagner + governança canon
+**Quero** workflow CI `memory-schema-lint.yml` matrix-strategy validando frontmatter de TODOS tipos `.md` canon (ADR + SPEC + RUNBOOK + session + handoff + charter) via JSON Schema 2020-12 + artisan command `jana:validate-memory` rodando daily 06:30 BRT pra detectar drift fora-de-PR
+**Para** fechar gap Knowledge S4 (40%→90%) — hoje só ADR é validado via `adr-lint.yml`; SPEC/RUNBOOK/session/handoff têm drift silencioso (ex: ADR sem `lifecycle:` passa, `decisions-search` devolve doc malformado)
+
+**Implementado em:** novos `memory/schemas/{adr,spec,runbook,session,handoff,charter}.schema.json` + `memory/schemas/README.md` + `.github/workflows/memory-schema-lint.yml` + `package.json` (root) com `remark-lint-frontmatter-schema` + novo `app/Console/Commands/Jana/ValidateMemorySchemas.php` artisan + edit `app/Console/Kernel.php` schedule
+
+**Definition of Done:**
+- [ ] 6 JSON Schemas 2020-12 declarados em `memory/schemas/` (adr, spec, runbook, session, handoff, charter) — required minimalista (só `title`, `type`, `decided_at`/`last_updated`), demais opcionais com defaults documentados
+- [ ] Workflow `memory-schema-lint.yml` matrix: cada schema valida seu glob (`memory/decisions/*.md` → adr, `memory/requisitos/**/SPEC.md` → spec, `memory/requisitos/**/RUNBOOK*.md` → runbook, etc) — AJV via Node
+- [ ] Artisan `jana:validate-memory` PHP usa `mnapoli/FrontYAML` + `opis/json-schema` — integra `jana:health-check` daily 06:30
+- [ ] Flag `JANA_VALIDATE_MEMORY_STRICT=false` default 14d — emite warning sem bloquear merge (grace period migração docs antigos)
+- [ ] Flag `--strict` (CLI) força exit 1 em violation
+- [ ] `--exclude` glob pra docs `lifecycle: historical` (não bloquear histórico)
+- [ ] Pest `ValidateMemorySchemasTest`: flags missing required ADR field · passes valid ADR · flags invalid lifecycle enum · respects --strict · graceful em unknown type
+- [ ] Update `memory/decisions/_SCHEMA.md` + `memory/sessions/_INDEX.md` + `memory/handoffs/_TEMPLATE.md` referenciando schemas formais
+
+**Non-Goals:**
+- ❌ Migrar docs históricos malformados (grace period 14d + warning-only resolve org)
+- ❌ Pre-commit hook local (rejeitado: não enforça em devs externos sem setup)
+- ❌ Schema dinâmico runtime (overkill — JSON Schema estático suficiente)
+
+**Refs:** [GAP-ANALYSIS §S1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §5](ONDA-5-DOSSIER-2026-05-13.md) · [adr-architecture-kit](https://github.com/egallmann/adr-architecture-kit) · [remark-lint-frontmatter-schema](https://github.com/JulianCataldo/remark-lint-frontmatter-schema) · [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
+
+---
+
+## Histórico (Roadmap de Ondas)
+
+- **v2.0.0** (2026-05-20) — Apendado seção "Roadmap de Ondas" + US-COPI-107/108/109 (Onda 4 P0: Reranker BGE-v2-m3 + Langfuse v3 + Charters S4). Cruza [GAP-ANALYSIS-91-100](GAP-ANALYSIS-91-100-2026-05-13.md) + [ONDA-5-DOSSIER](ONDA-5-DOSSIER-2026-05-13.md). Mapping: US-COPI-107=JANA-10X-016 (R1) · US-COPI-108=JANA-10X-017 (L1) · US-COPI-109=JANA-10X-018 (C1). Ondas 5-6 ficam como backlog visível na tabela — entrarão como US-COPI-110..113 quando Onda 4 fechar + Langfuse rodar 14d. Tasks MCP NÃO criadas — Wagner aprova batch.
+- **v3.0.0** (2026-05-20) — Apendado **Onda 5 P1 inteira** (US-COPI-110/111/112/113): K1 Time-decay weighting + V1 Roadmap Gantt UI + H1 Auto-skeleton handoff-draft + S1 Schema CI memory-schema-lint. Mapping: US-COPI-110=JANA-10X-019 (K1) · US-COPI-111=JANA-10X-022 (V1) · US-COPI-112=JANA-10X-020 (H1) · US-COPI-113=JANA-10X-021 (S1). Tabela Roadmap atualizada: Onda 5 vai de "🔒 backlog" pra "🟡 SPEC pronto, gate Langfuse". **Bloqueio explícito:** US-COPI-110 (K1) depende de US-COPI-107 (R1) + US-COPI-108 (L1) — sem reranker E Langfuse rodando 14d em prod, ganho NDCG temporal é fé teórica. US-COPI-111/112/113 são independentes. Onda 6 (JANA-10X-023..027) permanece backlog ADR feature-wish gate ADR 0105.
+
+---
+
+**Última atualização:** 2026-05-20 — v3.0.0 Onda 5 P1 inteira (US-COPI-110/111/112/113) apendada em paralelo (Escopo A aprovado por Wagner — continue paralelo). Agent `audit-senior-expert` em background pesquisa Charter S4 dossier executável pra US-COPI-109 detalhar implementação.
