@@ -2,6 +2,9 @@
 module: Financeiro
 purpose: "Contas a pagar/receber, fluxo de caixa, DRE BR."
 contains:
+  - "AdvisorAccessController — Onda 31 US-FIN-037 grant/revoke acesso contador parceiro (biz-side, consent LGPD)"
+  - "Advisor/AdvisorAuthController — Onda 31 US-FIN-037 login/logout guard web-advisor isolado"
+  - "Advisor/AdvisorPortalController — Onda 31 US-FIN-037 dashboard /advisor (cards Meus clientes)"
   - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
   - "BoletoController"
   - "CategoriaController"
