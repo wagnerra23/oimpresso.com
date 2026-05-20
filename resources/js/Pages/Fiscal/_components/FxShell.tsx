@@ -1,10 +1,12 @@
 // FxShell.tsx — wrapper das 7 páginas do módulo Fiscal
 // Port do design fiscal-page.jsx §6 FxShell (sub-nav horizontal + footer cheats)
-// ⌘K palette + atalhos 1-7 são placeholders no PR #1 (entrega completa em PR #3).
+// ⌘K palette habilitada em PR #7 Wave (US-FISCAL-015) — busca cross-fiscal.
 
 import { router } from '@inertiajs/react';
 import { Archive, FileText, Receipt, RefreshCw, Search, Shield, ShieldAlert } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
+
+import CmdKPalette from './CmdKPalette';
 
 interface FxPage {
   id: string;
@@ -39,7 +41,7 @@ interface FxShellProps {
 }
 
 const DEFAULT_CHEATS = [
-  { keys: ['⌘', 'K'], label: 'buscar tudo (em breve)' },
+  { keys: ['⌘', 'K'], label: 'buscar tudo' },
   { keys: ['2'],      label: 'NF-e' },
   { keys: ['J', 'K'], label: 'navegar lista' },
   { keys: ['?'],      label: 'todos os atalhos' },
@@ -83,7 +85,15 @@ export default function FxShell({
         </div>
         <div className="fx-hero-r">
           {env && <span className={`fx-env ${envTone}`}>{env}</span>}
-          <button className="fx-btn ghost fx-cmdk-btn" disabled title="Em PR #3">
+          <button
+            type="button"
+            className="fx-btn ghost fx-cmdk-btn"
+            onClick={() => {
+              // Dispara o listener Cmd/Ctrl+K do CmdKPalette via synthetic event.
+              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+            }}
+            title="Busca global fiscal (Cmd/Ctrl+K)"
+          >
             <Search size={13}/>
             <span>Buscar</span>
             <kbd>⌘K</kbd>
@@ -127,6 +137,9 @@ export default function FxShell({
           ))}
         </div>
       </footer>
+
+      {/* PR #7 Wave — Cmd+K palette cross-fiscal (US-FISCAL-015) */}
+      <CmdKPalette />
     </div>
   );
 }

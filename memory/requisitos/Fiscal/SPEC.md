@@ -232,7 +232,27 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - ❌ Retransmissão de emissões manuais (transaction_id null)
 - ❌ Correção automática de cstat-causa-raiz (usuário corrige cadastro antes)
 
-### US-FISCAL-011 · Gerador SPED real — **backlog PR #7**
+### US-FISCAL-015 · ⌘K palette cross-fiscal — ✅ PR #7 Wave
+
+> **Rota:** `GET /fiscal/palette/search?q={query}` (perm `fiscal.access`)
+> **Controller:** `PaletteSearchController@search` · **Component:** `CmdKPalette.tsx`
+
+**Como** contador/operador
+**Quero** buscar instantaneamente qualquer NF-e/NFC-e ou DF-e via Cmd+K (Mac) ou Ctrl+K (Win/Linux)
+**Para** chegar em <2s na nota errada sem navegar entre sub-páginas
+
+**DoD:**
+- [x] Endpoint JSON validação 2-50 chars + permission gate + throttle 60/min
+- [x] Multi-tenant via HasBusinessScope (ADR 0093)
+- [x] 2 categorias top 5 (notas + dfe), LIKE em colunas indexáveis
+- [x] `CmdKPalette.tsx` listener global Cmd/Ctrl+K + modal debounced 200ms
+- [x] Atalhos ⌘K abre/fecha · Esc fecha · ↑↓ navega · Enter abre URL
+- [x] FxShell mount global + botão Buscar habilitado
+- [x] Pest contracts (validation + class + route)
+
+**Non-Goals:** ações inline no palette, histórico de buscas, busca semântica/fuzzy.
+
+### US-FISCAL-011 · Gerador SPED real — **backlog PR #8**
 
 EFD ICMS/IPI + EFD-Contribuições reais (TXT layout CONFAZ). PR dedicado pós-MVP fiscal.
 
@@ -331,6 +351,7 @@ Then deve receber 403 Forbidden
 - **v1.3.0** (2026-05-20) — PR #4 Wave Ações: AcoesController thin delegate pra NfeService::cancelar (FSM cascade ADR 0143) + ManifestacaoService (4 ações DF-e). NotaDrawer Cancelar habilitado + modal motivo. Dfe.tsx coluna Ações com 4 botões manifesto. US-FISCAL-012 adicionada. Roadmap reorganizado (Retransmitir+CCe+Inut viraram PR #5).
 - **v1.4.0** (2026-05-20) — PR #5 Wave CCe + Inutilização: `NfeCartaCorrecaoService` novo (espelhado em `NfeInutilizacaoService` — não inflar NfeService 900 linhas). 2 rotas + 2 métodos no AcoesController. NotaDrawer botão CC-e habilitado + modal texto correção 15-1000. Nfe.tsx header "Inutilizar faixa" + `InutilizacaoModal.tsx` (componente extraído). US-FISCAL-013 adicionada. Retransmitir nota rejeitada permanece backlog PR #6 (re-build payload exige scope dedicado). Meta Capterra Fiscal ≥85/100.
 - **v1.5.0** (2026-05-20) — PR #6 Wave Retransmitir: `NfeService::retransmitir` método novo (UPDATE antiga `status=inutilizada` + `transaction_id=null` preservation contract CONFAZ Art. 14 — NUNCA forceDelete + `emitirParaTransaction` novo número). AcoesController método retransmitir + rota POST. NotaDrawer botão Retransmitir habilitado + modal confirm explicativo. US-FISCAL-014 adicionada. Meta Capterra ≥88/100.
+- **v1.6.0** (2026-05-20) — PR #7 Wave ⌘K palette: `PaletteSearchController` + `CmdKPalette.tsx` listener global Cmd/Ctrl+K + endpoint JSON 2 categorias (notas + dfe). FxShell mount global + botão Buscar habilitado. US-FISCAL-015 adicionada. Meta Capterra ≥96/100.
 
 ## Referências
 
