@@ -37,6 +37,7 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
+  Undo2,
   Users,
   Wrench,
   Zap,
@@ -225,13 +226,20 @@ export default function AppShellV2({
       menu?: ShellMenuItem[];
       cockpit?: CockpitShellPropsRaw;
     };
-    auth?: { user?: { ui_theme?: 'light' | 'dark' | null } };
+    auth?: {
+      user?: { ui_theme?: 'light' | 'dark' | null };
+      switched_from?: { user_id: number; username: string } | null;
+    };
   };
   const shellProps = allProps?.shell;
   const shellMenu: ShellMenuItem[] = shellProps?.menu ?? [];
   // Tema do user — aplicado no .cockpit pra cores ficarem coerentes com
   // shadcn (que usa dark mode automatico via classe 'dark' no <html>).
   const userTheme = allProps?.auth?.user?.ui_theme ?? 'light';
+  // Wagner 2026-05-20: superadmin switched para conta de outro user (Modules/Superadmin
+  // "Sign in as user"). Banner "Voltar para X" no topo de toda tela Inertia, espelha
+  // link Blade em resources/views/layouts/partials/header.blade.php (linha 47-49).
+  const switchedFrom = allProps?.auth?.switched_from ?? null;
   const superadminItems = shellMenu.filter((i) => isSuperadminMenu(i.label));
   const userMenuItems = shellMenu.filter((i) => isUserMenuItem(i.label));
 
@@ -393,6 +401,30 @@ export default function AppShellV2({
       {/* PWA install banner (US-FIN-036) — auto-detecta rota /financeiro/* e
           beforeinstallprompt; fora desse contexto renderiza null. */}
       <PwaInstallBanner />
+      {switchedFrom && (
+        <a
+          href={`/sign-in-as-user/${switchedFrom.user_id}`}
+          role="alert"
+          aria-label={`Voltar para ${switchedFrom.username}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: '6px 16px',
+            background: '#dc2626',
+            color: '#fff',
+            fontSize: 12.5,
+            fontWeight: 600,
+            textDecoration: 'none',
+            position: 'relative',
+            zIndex: 9999,
+          }}
+        >
+          <Undo2 size={14} />
+          Voltar para {switchedFrom.username}
+        </a>
+      )}
       <div
         className="cockpit"
         data-linked={!conversaFoco || linkedCollapsed ? 'off' : 'on'}
