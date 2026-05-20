@@ -1,0 +1,26 @@
+{
+    "name": "Fiscal",
+    "alias": "fiscal",
+    "description": "Cockpit fiscal unificado — agrega NF-e/NFC-e (Modules/NfeBrasil) + NFS-e (Modules/NFSe) + Manifesto DF-e + Eventos (CC-e/Cancelamento/Inutilização) + Certificado/Config + SPED em uma só visão. Não duplica backend — Controllers thin agregam Services existentes.",
+    "keywords": ["fiscal", "cockpit", "nf-e", "nfc-e", "nfs-e", "df-e", "sped", "sefaz", "certificado-a1"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Fiscal\\Providers\\FiscalServiceProvider"
+    ],
+    "files": [],
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-20",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Cockpit fiscal cross-vertical (NF-e + NFS-e + DF-e + SPED) útil em qualquer empresa BR emissora. Foundation horizontal sem dono cliente único — espelho do padrão Modules/Financeiro/Unificado.",
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Fiscal é cockpit agregador sem estado próprio. State machine vive em NfeEmissao.status (NfeBrasil) e NfseEmissao.status (NFSe) — Fiscal só lê e exibe."
+    },
+    "retention_days": 1826,
+    "lgpd_compliance": {
+        "pii_fields_tracked": [],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": false,
+        "policy_doc": "memory/requisitos/NfeBrasil/PII-LGPD-FISCAL.md"
+    }
+}
