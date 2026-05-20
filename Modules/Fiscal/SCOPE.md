@@ -2,6 +2,7 @@
 module: Fiscal
 purpose: "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). PR #1: sub-página NF-e · NFC-e (modelos 55 + 65). Roadmap: 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75."
 contains:
+  - "AcoesController — PR #4 thin delegate NfeService::cancelar + ManifestacaoService (4 ações DF-e)"
   - "CockpitController — sub-página 1 (KPIs + alertas + sparklines + quick links)"
   - "ConfigController — sub-página 6 (Cert A1 + regime + tributação default read-only)"
   - "DataController"
@@ -64,12 +65,14 @@ Ver `not_contains[]` no frontmatter. Em dúvida:
 | Cert/Cfg | 🟡 em curso | PR #3 Wave |
 | SPED placeholder | 🟡 em curso | PR #3 Wave |
 | **🎯 7 sub-páginas do design completas após PR #3** | | |
-| Ações mutação (cancelar/retransmitir/CC-e/inutilizar) | 🔒 backlog | PR #4 |
-| ⌘K palette cross-fiscal | 🔒 backlog | PR #5 |
-| Gerador SPED real (EFD ICMS/IPI + PIS/COFINS) | 🔒 backlog | PR #6 |
+| Cancelar NFe + Manifestar DF-e (4 ações) | 🟡 em curso | PR #4 Wave |
+| Retransmitir + CC-e + Inutilização | 🔒 backlog | PR #5 |
+| ⌘K palette cross-fiscal | 🔒 backlog | PR #6 |
+| Gerador SPED real (EFD ICMS/IPI + PIS/COFINS) | 🔒 backlog | PR #7 |
 
 ---
 
 - **v1.0.0** (2026-05-20) — SCOPE.md inicial. Módulo Fiscal criado em PR #1183 como thin agregador (sub-página NF-e · NFC-e).
 - **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: + CockpitController, NfseCockpitController, EventosController. Roadmap reorganizado (5 PRs vs 7).
 - **v1.2.0** (2026-05-20) — PR #3 Wave final: + DfeController, ConfigController, SpedController. **7 sub-páginas do design concluídas**. Próximos PRs: mutações + ⌘K + SPED real.
+- **v1.3.0** (2026-05-20) — PR #4 Wave Ações: + AcoesController thin (cancelar NFe + manifestar DF-e 4 ações). Delega Services NfeBrasil existentes.

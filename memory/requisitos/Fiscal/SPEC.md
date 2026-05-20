@@ -175,9 +175,35 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - [x] Pest biz=1 (`SpedControllerTest` — anti-hook: gerador real NÃO existe)
 - [x] Charter + RUNBOOK + visual-comparison
 
-### US-FISCAL-011 · Gerador SPED real — **backlog PR #4+**
+### US-FISCAL-011 · Gerador SPED real — **backlog PR #6**
 
 EFD ICMS/IPI + EFD-Contribuições reais (TXT layout CONFAZ). PR dedicado pós-MVP fiscal.
+
+### US-FISCAL-012 · Ações mutação NFe + DF-e — ✅ PR #4 Wave
+
+> **Rotas:**
+> - `POST /fiscal/acoes/nfe/{emissao}/cancelar` (perm `fiscal.nfe.acoes`)
+> - `POST /fiscal/acoes/dfe/{recebido}/{acao}` (perm `fiscal.dfe.manage`, acao=cienciar|confirmar|desconhecer|nao_realizada)
+> **Controller:** `AcoesController`
+
+**Como** contador/operador
+**Quero** cancelar NFe autorizada (FSM cascade ADR 0143) e manifestar DF-e (4 ações SEFAZ) direto do cockpit Fiscal
+**Para** não precisar abrir Modules/NfeBrasil canon pra ações operacionais
+
+**DoD:**
+- [x] AcoesController thin que delega NfeService::cancelar + ManifestacaoService
+- [x] Validação motivo/justificativa ≥15 chars (regra CONFAZ SINIEF 07/2005)
+- [x] Whitelist acao DF-e (4 valores) + guard 404
+- [x] Throttle 30/min anti-DOS (protege SEFAZ webservice)
+- [x] NotaDrawer botão Cancelar habilitado + modal motivo
+- [x] Dfe.tsx coluna Ações com 4 botões + modal para desconhecer/nao_realizada
+- [x] Pest `AcoesControllerTest` (validação + whitelist + métodos existentes)
+- [x] back()->with('flash') — usuário fica na tela Fiscal
+
+**Non-Goals (futuro PR):**
+- ❌ Retransmitir nota rejeitada (exige re-build payload — Service NfeBrasil)
+- ❌ Carta de Correção (CC-e) (exige texto correção 15-1000 + sequência)
+- ❌ Inutilização faixa numérica (exige modal faixa início/fim + validação SEFAZ)
 
 ## 3. Regras Gherkin
 
@@ -231,10 +257,11 @@ Then deve receber 403 Forbidden
 |---|---|---|---|---|
 | #1 #1183 | NF-e · NFC-e (cockpit + drawer) | 1 dia | base 0→60/100 | ✅ mergeado `8aef3d0fa` |
 | #2 #1185 (Wave) | Cockpit (1) + NFS-e (3) + Eventos (5) | 1 dia | +20pp | ✅ mergeado `cabd29661` |
-| #3 (Wave) | DF-e (4) + Cert/Cfg (6) + SPED (7) | 1 dia | +12pp | 🟡 em curso |
-| #4 | Ações mutação (cancelar/retx/CC-e/inut) | 1-2 dias | +15pp (core) | 🔒 backlog |
-| #5 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
-| #6 | Gerador SPED real (EFD ICMS-IPI + PIS/COFINS) | 1+ semana | +10pp | 🔒 backlog |
+| #3 #1189 (Wave) | DF-e (4) + Cert/Cfg (6) + SPED (7) | 1 dia | +12pp | ✅ mergeado `e36e1e272` |
+| #4 (Wave) | Cancelar NFe + Manifestar DF-e (4 ações) | 4h | +15pp (core) | 🟡 em curso |
+| #5 | Retransmitir + CC-e + Inutilização | 1 dia | +6pp | 🔒 backlog |
+| #6 | ⌘K palette cross-fiscal | 6h | +8pp | 🔒 backlog |
+| #7 | Gerador SPED real (EFD ICMS-IPI + PIS/COFINS) | 1+ semana | +10pp | 🔒 backlog |
 
 **Meta:** Score Capterra Fiscal cockpit ≥ 80/100 pós-PR #4 (Wagner aprova).
 
@@ -243,6 +270,7 @@ Then deve receber 403 Forbidden
 - **v1.0.0** (2026-05-20) — SPEC.md inicial criado em PR #1183 (Fiscal cockpit NF-e). Módulo novo thin agregador.
 - **v1.1.0** (2026-05-20) — PR #2 Wave consolidada: Cockpit + NFS-e + Eventos. 3 sub-páginas adicionadas (US-FISCAL-002, US-FISCAL-005, US-FISCAL-007). Permission `fiscal.nfse.view` nova. Roadmap reorganizado (5 PRs vs 7 originais).
 - **v1.2.0** (2026-05-20) — PR #3 Wave final: DF-e + Cert/Cfg + SPED placeholder. **7 sub-páginas do design Cowork concluídas**. US-FISCAL-008/009/010 adicionadas + US-FISCAL-011 backlog (gerador SPED real). FxShell habilita todos 7 chips. Próximo PR foco em ações de mutação (cancelar/CC-e/etc).
+- **v1.3.0** (2026-05-20) — PR #4 Wave Ações: AcoesController thin delegate pra NfeService::cancelar (FSM cascade ADR 0143) + ManifestacaoService (4 ações DF-e). NotaDrawer Cancelar habilitado + modal motivo. Dfe.tsx coluna Ações com 4 botões manifesto. US-FISCAL-012 adicionada. Roadmap reorganizado (Retransmitir+CCe+Inut viraram PR #5).
 
 ## Referências
 
