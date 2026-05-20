@@ -1019,7 +1019,10 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
       {/* Drawer detalhe — Cowork v2 (gap report 2026-05-18):
           nav `fin-drawer-tabs` separa Detalhes (info+actions) de ✦ IA (insights). */}
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
-        <SheetContent side="right" className="fin-drawer-wide w-[460px] sm:max-w-[460px]">
+        {/* Onda 5 (2026-05-20): width 560px paridade canon (erp-shell/financeiro-app.jsx:738
+            'w-[560px] max-w-[92vw]'). Era 460px — drawer mais espaçoso pra
+            Histórico + Anexos + Conferido sem cortar texto. */}
+        <SheetContent side="right" className="fin-drawer-wide w-[560px] sm:max-w-[560px]">
           {selected && (
             <>
               <SheetHeader>
