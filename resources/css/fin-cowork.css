@@ -173,28 +173,25 @@
   height: 36px;
   display: block;
 }
-/* Sparkline em fundo absoluto pro KPI hero (atrás do texto) */
-/* Onda 6 (2026-05-20): pointer-events none no SVG container PERMITE click-through
-   no hero card MAS hotspot circles por ponto têm pointer-events:auto inline,
-   ativam title nativo do browser ao hover (tooltip "DD/MM · saldo X · +in / -out"). */
+/* Onda 9 (2026-05-20 Wagner "encaixar melhor"): sparkline volta pro FLOW NORMAL
+   ABAIXO do hint (não mais absolute background). Match canon fin-boletos.css:96:
+     width calc(100% + 24px); margin-left -12px (sangra bordas card);
+     margin-top 8px; height 32px; opacity 0.85 (VISÍVEL como info-graphic).
+   Anterior era position absolute bottom 0 opacity 0.35 — escondido atrás do texto. */
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-spark {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin-top: 0;
-  height: 56px;
-  opacity: 0.35;
-  pointer-events: none;
-  z-index: 0;
+  position: relative;
+  width: calc(100% + 24px);
+  margin: 8px -12px 0;
+  height: 32px;
+  opacity: 0.85;
+  display: block;
 }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-spark circle {
   pointer-events: auto;
 }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-spark:hover {
-  opacity: 0.55;
+  opacity: 1;
 }
-.fin-cowork .fin-curadoria .fin-stat-hero > * { position: relative; z-index: 1; }
 /* ─────────────────────────────────────────────────────────────
  * Toolbar (filter chips + density + search)
  * ───────────────────────────────────────────────────────────── */
