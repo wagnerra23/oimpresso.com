@@ -94,12 +94,31 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $segmento_ativo = request()->segment(1) == 'financeiro';
 
-        // Sidebar: Wagner 2026-05-18 pediu 4 entradas SEPARADAS top-level (não
-        // dropdown popover-2). UX mais visível pra Larissa ROTA LIVRE — não
-        // precisa clicar pra ver Fluxo/DRE/Boletos. Cada item ocupa linha
-        // própria no grupo FINANCEIRO (SIDEBAR_GROUPS em Sidebar.tsx mapeia
-        // as 4 labels pro mesmo grupo visual).
-        // Permission gates permanecem nos controllers (sidebar só esconde entrada).
+        // Sidebar: Wagner 2026-05-20 expandiu pra 10 entradas top-level ordenadas
+        // por jornada (diário → mensal → config) — UX Larissa ROTA LIVRE não
+        // precisa clicar pra descobrir Conciliação / Plano de Contas / Categorias
+        // / Contador (antes invisíveis no sidebar mesmo já entregues nas
+        // Ondas 18/19/31). Wave DRE 2026-05-20 (PRs #1266/1272/1276/1269/1277/1278)
+        // separou em tela dedicada `/financeiro/dre` + legacy `/financeiro/relatorios`.
+        //
+        // Ordem canônica:
+        //   85.0  Financeiro (unificada)   — diário
+        //   85.1  Fluxo de Caixa           — diário
+        //   85.2  Cobrança                 — diário/semanal
+        //   85.3  Conciliação              — mensal
+        //   85.4  DRE                      — mensal
+        //   85.5  Relatórios               — mensal (legacy, cleanup PR D)
+        //   85.6  Contas Bancárias         — config
+        //   85.7  Plano de Contas          — config
+        //   85.8  Categorias               — config
+        //   85.9  Contador (Advisor)       — config
+        //
+        // Permission gates permanecem no gate global `financeiro.access`
+        // (linha 90) — sidebar só esconde a entrada se módulo desligado.
+        // Itens NOVOS declaram 'group' => 'fin' (Wagner regra 2026-05-19:
+        // nunca hardcode label no SIDEBAR_GROUPS frontend, sempre via
+        // DataController). LegacyMenuAdapter propaga essa key pro
+        // ShellMenuItem.group, Sidebar.tsx findGroupKey usa antes do label match.
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
@@ -124,7 +143,33 @@ class DataController extends Controller
                     ]
                 )->order(85.1);
 
-                // 3. DRE gerencial — Wagner 2026-05-20 PR C reaplicação canon.
+                // 3. Cobrança (substitui "Boletos" / "Gateway de Pagamento" —
+                // Wagner 2026-05-19: F3 PaymentGateway UI Tela 1 entregue
+                // em /financeiro/cobranca, escopo expandido pra todos tipos
+                // boleto+pix+pix_recv+card. ADR 0144 + 0170).
+                $menu->url(
+                    url('/financeiro/cobranca'),
+                    __('financeiro::financeiro.cobranca_label'),
+                    [
+                        'icon'   => 'fa fas fa-credit-card',
+                        'active' => $segmento_ativo && request()->segment(2) === 'cobranca',
+                        'group'  => 'fin',
+                    ]
+                )->order(85.2);
+
+                // 4. Conciliação OFX (Onda 19 #49 entregue 2026-05-19 — antes
+                // descoberta só via deeplink). Tarefa mensal de alto valor.
+                $menu->url(
+                    url('/financeiro/conciliacao'),
+                    'Conciliação',
+                    [
+                        'icon'   => 'fa fas fa-exchange-alt',
+                        'active' => $segmento_ativo && request()->segment(2) === 'conciliacao',
+                        'group'  => 'fin',
+                    ]
+                )->order(85.3);
+
+                // 5. DRE gerencial — Wave DRE 2026-05-20 PR C (#1272) reaplicação canon.
                 // Tela dedicada `/financeiro/dre` (TelaDRE hierárquica clássica:
                 // Receita bruta → Deduções → Receita líquida → Custos → Lucro bruto
                 // → Despesas → Resultado operacional). Substitui tab DRE da
@@ -137,9 +182,9 @@ class DataController extends Controller
                         'icon'   => 'fa fas fa-file-invoice-dollar',
                         'active' => $segmento_ativo && request()->segment(2) == 'dre',
                     ]
-                )->order(85.2);
+                )->order(85.4);
 
-                // 3.1. Relatórios (resumo + fluxo agregado) — entrada legada.
+                // 6. Relatórios (resumo + fluxo agregado) — entrada legada.
                 // Mantida até PR D (cleanup tab DRE de Relatorios/Index.tsx);
                 // avaliar absorção em Dashboard depois.
                 $menu->url(
@@ -149,29 +194,9 @@ class DataController extends Controller
                         'icon'   => 'fa fas fa-chart-pie',
                         'active' => $segmento_ativo && request()->segment(2) == 'relatorios',
                     ]
-                )->order(85.25);
+                )->order(85.5);
 
-                // 4. Cobrança (substitui "Boletos" / "Gateway de Pagamento" —
-                // Wagner 2026-05-19: F3 PaymentGateway UI Tela 1 entregue
-                // em /financeiro/cobranca, escopo expandido pra todos tipos
-                // boleto+pix+pix_recv+card. ADR 0144 + 0170).
-                //
-                // 'group' => 'fin' declara o grupo sidebar — Wagner regra
-                // 2026-05-19: "nunca hardcode label no SIDEBAR_GROUPS frontend,
-                // sempre via DataController do módulo". LegacyMenuAdapter
-                // propaga essa key pro ShellMenuItem.group, Sidebar.tsx
-                // findGroupKey usa antes do label match.
-                $menu->url(
-                    url('/financeiro/cobranca'),
-                    __('financeiro::financeiro.cobranca_label'),
-                    [
-                        'icon'   => 'fa fas fa-credit-card',
-                        'active' => $segmento_ativo && request()->segment(2) === 'cobranca',
-                        'group'  => 'fin',
-                    ]
-                )->order(85.3);
-
-                // 5. Contas Bancárias — Wagner 2026-05-19 reportou que /financeiro
+                // 7. Contas Bancárias — Wagner 2026-05-19 reportou que /financeiro
                 // não permitia cadastrar conta + vincular credencial gateway.
                 // Página Inertia já existia (Modules/Financeiro/.../ContaBancariaController
                 // → Pages/Financeiro/ContasBancarias/Index.tsx) só faltava
@@ -184,7 +209,49 @@ class DataController extends Controller
                         'active' => $segmento_ativo && request()->segment(2) === 'contas-bancarias',
                         'group'  => 'fin',
                     ]
-                )->order(85.5);
+                )->order(85.6);
+
+                // 8. Plano de Contas (Onda 18 #48 entregue 2026-05-19 — antes
+                // só acessível via botão dentro de /unificado).
+                $menu->url(
+                    url('/financeiro/plano-contas'),
+                    'Plano de Contas',
+                    [
+                        'icon'   => 'fa fas fa-sitemap',
+                        'active' => $segmento_ativo && request()->segment(2) === 'plano-contas',
+                        'group'  => 'fin',
+                    ]
+                )->order(85.7);
+
+                // 9. Categorias — CRUD livre complementar ao Plano de Contas.
+                $menu->url(
+                    url('/financeiro/categorias'),
+                    'Categorias',
+                    [
+                        'icon'   => 'fa fas fa-tags',
+                        'active' => $segmento_ativo && request()->segment(2) === 'categorias',
+                        'group'  => 'fin',
+                    ]
+                )->order(85.8);
+
+                // 10. Contador (Portal Advisor) — Onda 31 #57 US-FIN-037 MVP
+                // 2026-05-20. Owner concede acesso somente-leitura ao contador
+                // parceiro (CNPJ + LGPD consent + escopo Unificado/Relatórios).
+                // Permission gate `financeiro.advisor.grant` enforce no
+                // AdvisorAccessController; sidebar não filtra por permissão
+                // (pattern consistente com demais entradas — gate global
+                // `financeiro.access` na linha 90 cobre o módulo).
+                $menu->url(
+                    url('/financeiro/configuracoes/contador'),
+                    'Contador',
+                    [
+                        'icon'   => 'fa fas fa-user-tie',
+                        'active' => $segmento_ativo
+                            && request()->segment(2) === 'configuracoes'
+                            && request()->segment(3) === 'contador',
+                        'group'  => 'fin',
+                    ]
+                )->order(85.9);
             }
         );
     }
