@@ -29,6 +29,7 @@ Fecha os 3 gaps urgentes da auditoria estado-da-arte FSM screen ([memory/session
 ### Fixed
 
 - **Hotfix tela branca Index.tsx** ([PR #1197](https://github.com/wagnerra23/oimpresso.com/pull/1197) `ac84ac8d1`): `kpis: Kpis` (não-opcional) crashava com `Inertia::defer`. Fix: `kpis?: Kpis` + `EMPTY_KPIS` default no destructuring. Pattern catalogado em [skill inertia-defer-default §Antipattern](../../../.claude/skills/inertia-defer-default/SKILL.md).
+- **Hotfix authorize() trait missing** ([PR #1211](https://github.com/wagnerra23/oimpresso.com/pull/1211) `21676447d`): `ServiceOrderController` + `VehicleController` extendiam `Illuminate\Routing\Controller` (base raw sem trait `AuthorizesRequests`). Drawer JSON Wave 7-A começou a hitar `show()` → `Method authorize does not exist` → HTTP 500 em todas 5 OS biz=1. Diagnose via [PR #1209](https://github.com/wagnerra23/oimpresso.com/pull/1209) try-catch trace JSON. Fix: `extends App\Http\Controllers\Controller` (projeto canon com traits). Bug latente catalogado em [memory/reference/deploy-recovery-patterns.md §6](../../reference/deploy-recovery-patterns.md#6-bug-latente-controller-authorize--illuminateroutingcontroller-vs-apphttpcontrollerscontroller).
 
 ### Operational lessons (canon — todos módulos)
 

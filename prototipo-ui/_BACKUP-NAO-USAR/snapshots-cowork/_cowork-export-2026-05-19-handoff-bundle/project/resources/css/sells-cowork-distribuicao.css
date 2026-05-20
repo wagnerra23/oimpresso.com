@@ -1,0 +1,439 @@
+/* ───────────────────────────────────────────────────────────────────
+ * Sells Cowork — Onda 4 R4 Distribuição (KB-9.75 chat10 2026-05-16 +0.55)
+ * Adaptado de prototipo-ui/.../styles.css linhas 6932+ (transcript + apresentação
+ * fullscreen + WhatsApp message bubble).
+ *
+ * Importado por resources/css/inertia.css.
+ * Scoped sob .sells-cowork-distribuicao (drawer) + globais @media print (pra
+ * transcript A4 imprimir corretamente).
+ *
+ * Refs:
+ *  - prototipo-ui/prototipos/sells-index/vendas-output.jsx
+ *  - SaleTranscriptPDF.tsx · SalePresentationMode.tsx · SaleMessagePreview.tsx
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ── Transcript A4 print-friendly ── */
+.vd-transcript-bd {
+  position: fixed; inset: 0;
+  background: oklch(0.40 0 0 / 0.55);
+  z-index: 60;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}
+.vd-transcript-toolbar {
+  position: fixed; top: 20px; right: 20px;
+  display: flex; gap: 8px;
+  z-index: 61;
+}
+.vd-transcript-print,
+.vd-transcript-close {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid oklch(0.85 0 0);
+  border-radius: 6px;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  cursor: pointer;
+  color: oklch(0.22 0.01 80);
+}
+.vd-transcript-print:hover { background: oklch(0.96 0 0); }
+.vd-transcript-close { padding: 6px 8px; }
+.vd-transcript-close:hover { background: oklch(0.95 0.04 25); color: oklch(0.50 0.18 25); }
+
+.vd-transcript-page {
+  width: 794px; max-width: 100%;
+  min-height: 1123px;
+  background: white;
+  padding: 60px 56px;
+  box-shadow: 0 12px 40px oklch(0.20 0 0 / 0.20);
+  margin: 0;
+  color: oklch(0.18 0.01 80);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.vd-transcript-page .vd-tr-h {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 22px;
+  border-bottom: 2px solid oklch(0.20 0 0);
+}
+.vd-transcript-page .vd-tr-h h1 {
+  margin: 0; font-size: 20px; font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.vd-transcript-page .vd-tr-h-l small {
+  display: block; margin-top: 2px;
+  font-size: 11px; color: oklch(0.50 0.01 80);
+}
+.vd-transcript-page .vd-tr-h-r {
+  text-align: right;
+}
+.vd-transcript-page .vd-tr-h-r h2 {
+  margin: 0; font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: oklch(0.50 0.01 80);
+}
+.vd-transcript-page .vd-tr-h-r p {
+  margin: 4px 0 0; font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+}
+
+.vd-transcript-page .vd-tr-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  background: oklch(0.97 0.004 90);
+  border: 1px solid oklch(0.93 0.004 90);
+  border-radius: 6px;
+}
+.vd-transcript-page .vd-tr-grid > div {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.vd-transcript-page .vd-tr-grid small {
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: oklch(0.55 0.01 80);
+}
+.vd-transcript-page .vd-tr-grid b {
+  font-size: 13px; font-weight: 600;
+}
+.vd-transcript-page .vd-tr-grid b.vd-tr-total {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 15px; font-weight: 700;
+}
+.vd-transcript-page .vd-tr-grid span {
+  font-size: 11px; color: oklch(0.50 0.01 80);
+}
+
+.vd-transcript-page table.vd-tr-items {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+.vd-transcript-page .vd-tr-items th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid oklch(0.20 0 0);
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: oklch(0.50 0.01 80);
+}
+.vd-transcript-page .vd-tr-items th.num,
+.vd-transcript-page .vd-tr-items td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.vd-transcript-page .vd-tr-items td {
+  padding: 10px;
+  border-bottom: 1px solid oklch(0.93 0.004 90);
+}
+.vd-transcript-page .vd-tr-items td small {
+  display: block; font-size: 10.5px; color: oklch(0.55 0.01 80);
+  font-family: "IBM Plex Mono", monospace;
+}
+.vd-transcript-page .vd-tr-items tfoot td {
+  padding: 12px 10px;
+  border-top: 2px solid oklch(0.20 0 0);
+  border-bottom: 0;
+  font-size: 14px;
+}
+
+.vd-transcript-page .vd-tr-fiscal {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: oklch(0.97 0.03 145);
+  border: 1px solid oklch(0.85 0.08 145);
+  border-radius: 6px;
+}
+.vd-transcript-page .vd-tr-fiscal h3 {
+  margin: 0 0 6px; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: oklch(0.40 0.13 145);
+}
+.vd-transcript-page .vd-tr-chave {
+  display: inline-block; padding: 4px 8px;
+  background: white; border: 1px solid oklch(0.90 0.004 90);
+  border-radius: 4px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; letter-spacing: 0.02em;
+}
+
+.vd-transcript-page .vd-tr-notes {
+  margin-bottom: 24px;
+  padding: 12px 14px;
+  background: oklch(0.97 0.005 90);
+  border-left: 3px solid oklch(0.55 0.10 80);
+  border-radius: 0 4px 4px 0;
+}
+.vd-transcript-page .vd-tr-notes h3 {
+  margin: 0 0 4px; font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: oklch(0.50 0.10 80);
+}
+.vd-transcript-page .vd-tr-notes p {
+  margin: 0; font-size: 12px; line-height: 1.5;
+}
+
+.vd-transcript-page .vd-tr-sigs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin: 60px 0 24px;
+}
+.vd-transcript-page .vd-tr-sig {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.vd-transcript-page .vd-tr-sig-line {
+  display: block;
+  border-bottom: 1px solid oklch(0.20 0 0);
+  height: 26px;
+}
+.vd-transcript-page .vd-tr-sig small {
+  font-size: 11px; color: oklch(0.50 0.01 80);
+  text-align: center;
+}
+
+.vd-transcript-page .vd-tr-f {
+  border-top: 1px solid oklch(0.93 0.004 90);
+  padding-top: 12px;
+  margin-top: 20px;
+  text-align: center;
+}
+.vd-transcript-page .vd-tr-f small {
+  font-size: 10px; color: oklch(0.55 0.01 80);
+}
+
+/* ── Print: esconde toolbar + ajustes papel ── */
+@media print {
+  body { background: white !important; }
+  .vd-transcript-bd {
+    position: static; background: white !important;
+    padding: 0 !important; overflow: visible;
+  }
+  .vd-transcript-toolbar { display: none !important; }
+  .vd-transcript-page {
+    box-shadow: none !important;
+    padding: 40px 30px !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  /* esconde tudo do app fora do transcript */
+  body > *:not(.vd-transcript-bd) { display: none !important; }
+}
+
+/* ── Presentation Mode fullscreen 4 slides ── */
+.vd-presentation-bd {
+  position: fixed; inset: 0;
+  background: oklch(0.18 0.005 240);
+  z-index: 70;
+  display: flex; flex-direction: column;
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  color: oklch(0.95 0 0);
+}
+.vd-presentation-close {
+  position: absolute; top: 24px; right: 24px;
+  width: 44px; height: 44px;
+  background: oklch(0.95 0 0 / 0.10);
+  border: 1px solid oklch(0.95 0 0 / 0.15);
+  color: white;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background .12s;
+}
+.vd-presentation-close:hover { background: oklch(0.95 0 0 / 0.20); }
+
+.vd-presentation-stage {
+  flex: 1; display: grid; place-items: center;
+  padding: 80px 60px;
+}
+.vd-presentation-bd .vd-slide {
+  text-align: center; max-width: 1000px;
+}
+.vd-presentation-bd .vd-slide small {
+  display: block; font-size: 14px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: oklch(0.65 0 0);
+  margin-bottom: 16px;
+}
+.vd-presentation-bd .vd-slide h1 {
+  margin: 0; font-size: 64px; font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.vd-presentation-bd .vd-slide h2 {
+  margin: 0 0 32px; font-size: 36px; font-weight: 600;
+}
+.vd-presentation-bd .vd-slide p {
+  margin: 16px 0 0; font-size: 22px; color: oklch(0.80 0 0);
+}
+.vd-presentation-bd .vd-slide-total {
+  font-size: 96px !important;
+  background: linear-gradient(135deg, oklch(0.72 0.10 155), oklch(0.85 0.08 145));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.vd-presentation-bd .vd-slide-items ul {
+  list-style: none; margin: 0; padding: 0;
+  text-align: left;
+}
+.vd-presentation-bd .vd-slide-items li {
+  display: grid; grid-template-columns: 60px 1fr auto;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid oklch(0.95 0 0 / 0.15);
+  font-size: 22px;
+  align-items: center;
+}
+.vd-presentation-bd .vd-slide-item-q {
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 700; color: oklch(0.72 0.10 155);
+}
+.vd-presentation-bd .vd-slide-item-v {
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 700;
+}
+.vd-presentation-bd .vd-slide-next ol {
+  text-align: left; max-width: 720px;
+  margin: 0 auto; padding-left: 40px;
+}
+.vd-presentation-bd .vd-slide-next li {
+  font-size: 22px; line-height: 1.5; margin-bottom: 12px;
+  color: oklch(0.85 0 0);
+}
+
+.vd-presentation-nav {
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px;
+  padding: 32px;
+}
+.vd-presentation-arr {
+  width: 48px; height: 48px;
+  background: oklch(0.95 0 0 / 0.10);
+  border: 1px solid oklch(0.95 0 0 / 0.15);
+  color: white;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background .12s;
+}
+.vd-presentation-arr:hover:not(:disabled) { background: oklch(0.95 0 0 / 0.20); }
+.vd-presentation-arr:disabled { opacity: 0.30; cursor: not-allowed; }
+.vd-presentation-dots {
+  display: flex; gap: 10px;
+}
+.vd-presentation-dot {
+  width: 10px; height: 10px;
+  background: oklch(0.95 0 0 / 0.30);
+  border-radius: 50%;
+  transition: background .12s;
+}
+.vd-presentation-dot.on {
+  background: oklch(0.72 0.10 155);
+}
+
+/* ── Message Preview (WhatsApp bubble) ── */
+.sells-cowork-distribuicao .vd-msg,
+.sells-cowork-ia-panel .vd-msg {
+  display: flex; flex-direction: column; gap: 10px;
+  background: white;
+  border: 1px solid oklch(0.90 0.004 90);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: inherit;
+}
+.sells-cowork-distribuicao .vd-msg-tabs,
+.sells-cowork-ia-panel .vd-msg-tabs {
+  display: flex; gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid oklch(0.93 0.004 90);
+}
+.sells-cowork-distribuicao .vd-msg-tab,
+.sells-cowork-ia-panel .vd-msg-tab {
+  appearance: none;
+  background: oklch(0.97 0.005 90);
+  border: 1px solid oklch(0.90 0.004 90);
+  color: oklch(0.50 0.01 80);
+  padding: 5px 10px;
+  border-radius: 99px;
+  font-family: inherit; font-size: 11.5px; font-weight: 500;
+  cursor: pointer;
+  transition: all .12s;
+}
+.sells-cowork-distribuicao .vd-msg-tab:hover,
+.sells-cowork-ia-panel .vd-msg-tab:hover { background: oklch(0.94 0.005 90); }
+.sells-cowork-distribuicao .vd-msg-tab.on,
+.sells-cowork-ia-panel .vd-msg-tab.on {
+  background: oklch(0.55 0.13 145);
+  border-color: oklch(0.55 0.13 145);
+  color: white;
+}
+
+.sells-cowork-distribuicao .vd-msg-vars,
+.sells-cowork-ia-panel .vd-msg-vars {
+  font-size: 10.5px; color: oklch(0.55 0.01 80);
+}
+.sells-cowork-distribuicao .vd-msg-vars kbd,
+.sells-cowork-ia-panel .vd-msg-vars kbd {
+  display: inline-block; padding: 1px 5px;
+  background: oklch(0.96 0.005 90);
+  border: 1px solid oklch(0.90 0.004 90);
+  border-radius: 3px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: oklch(0.32 0.13 145);
+  margin: 0 2px;
+}
+
+.sells-cowork-distribuicao .vd-msg-bubble,
+.sells-cowork-ia-panel .vd-msg-bubble {
+  align-self: flex-start;
+  max-width: 90%;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, oklch(0.95 0.06 145), oklch(0.94 0.06 145));
+  border-radius: 14px 14px 14px 4px;
+  position: relative;
+}
+.sells-cowork-distribuicao .vd-msg-bubble p,
+.sells-cowork-ia-panel .vd-msg-bubble p {
+  margin: 0; font-size: 12.5px; line-height: 1.55;
+  color: oklch(0.22 0.01 80);
+  white-space: pre-wrap;
+}
+.sells-cowork-distribuicao .vd-msg-time,
+.sells-cowork-ia-panel .vd-msg-time {
+  display: block; margin-top: 4px;
+  font-size: 10px; color: oklch(0.45 0.05 145);
+  text-align: right;
+}
+
+.sells-cowork-distribuicao .vd-msg-actions,
+.sells-cowork-ia-panel .vd-msg-actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding-top: 4px;
+}
+.sells-cowork-distribuicao .vd-msg-copy,
+.sells-cowork-ia-panel .vd-msg-copy,
+.sells-cowork-distribuicao .vd-msg-wa,
+.sells-cowork-ia-panel .vd-msg-wa {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-family: inherit; font-size: 11.5px; font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .12s;
+}
+.sells-cowork-distribuicao .vd-msg-copy,
+.sells-cowork-ia-panel .vd-msg-copy {
+  background: oklch(0.97 0.005 90);
+  border: 1px solid oklch(0.90 0.004 90);
+  color: oklch(0.40 0.01 80);
+}
+.sells-cowork-distribuicao .vd-msg-copy:hover,
+.sells-cowork-ia-panel .vd-msg-copy:hover { background: oklch(0.94 0.005 90); }
+.sells-cowork-distribuicao .vd-msg-wa,
+.sells-cowork-ia-panel .vd-msg-wa {
+  background: oklch(0.55 0.13 145); color: white;
+  border: 0;
+}
+.sells-cowork-distribuicao .vd-msg-wa:hover { background: oklch(0.49 0.13 145); }
