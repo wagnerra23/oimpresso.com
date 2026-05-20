@@ -66,11 +66,13 @@ class ServiceOrderController extends Controller
         $hasNumber      = Schema::hasColumn('service_orders', 'number');
         $hasStartedAt   = Schema::hasColumn('service_orders', 'started_at');
         $hasContact     = Schema::hasColumn('service_orders', 'contact_id');
+        $hasCurrentStage = Schema::hasColumn('service_orders', 'current_stage_id');
         $hasVehicleNumber = Schema::hasColumn('vehicles', 'vehicle_number');
         $hasCapacityM3  = Schema::hasColumn('vehicles', 'capacity_m3');
 
         $statusFilter = $request->string('status')->toString();
         $typeFilter   = $request->string('type')->toString();
+        $stageFilter  = $request->string('stage')->toString();
         $q            = $request->string('q')->toString();
 
         // ──────── Base query (multi-tenant via global scope) ────────
@@ -135,6 +137,23 @@ class ServiceOrderController extends Controller
             $qb->where('order_type', $typeFilter);
         });
 
+        // ──────── Filter stage (Gap #3 — chips por current_stage_id estilo Linear) ────────
+        // UI manda stage.key (ex 'disponivel'), backend resolve pra stage_id via JOIN
+        // com sale_process_stages dos processos cacamba_*. Multi-tenant Tier 0 (ADR 0093)
+        // preservado via global scope ServiceOrder + filter business_id em SaleProcess.
+        $base->when($stageFilter !== '' && $stageFilter !== 'all' && $hasCurrentStage, function ($qb) use ($stageFilter) {
+            $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+            $stageIds = \App\Domain\Fsm\Models\SaleProcessStage::query()
+                ->whereHas('process', function ($p) use ($businessId) {
+                    $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                        ->where('business_id', $businessId)
+                        ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
+                })
+                ->where('key', $stageFilter)
+                ->pluck('id');
+            $qb->whereIn('current_stage_id', $stageIds);
+        });
+
         // ──────── Search ────────
         $base->when($q !== '', function ($qb) use ($q, $hasNumber, $hasContact) {
             $like = '%' . $q . '%';
@@ -184,9 +203,13 @@ class ServiceOrderController extends Controller
             'filters' => [
                 'status' => $statusFilter,
                 'type'   => $typeFilter,
+                'stage'  => $stageFilter,
                 'q'      => $q,
             ],
             'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate)),
+            // Gap #3 estado-da-arte FSM screen — chips por stage estilo Linear.
+            // Defer porque é COUNT por stage (~8 stages × cacamba_* processos).
+            'stages' => Inertia::defer(fn () => $this->buildStagesPayload($hasCurrentStage)),
             // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager
             'schemaFlags' => [
                 'has_order_type'      => $hasOrderType,
@@ -196,10 +219,57 @@ class ServiceOrderController extends Controller
                 'has_number'          => $hasNumber,
                 'has_started_at'      => $hasStartedAt,
                 'has_contact'         => $hasContact,
+                'has_current_stage'   => $hasCurrentStage,
                 'has_vehicle_number'  => $hasVehicleNumber,
                 'has_capacity_m3'     => $hasCapacityM3,
             ],
         ]);
+    }
+
+    /**
+     * Stages payload pros chips de filtro (Gap #3 estado-da-arte FSM screen).
+     *
+     * Retorna lista de stages dos processos cacamba_locacao + cacamba_manutencao
+     * do business atual com contador de OS em cada stage. Multi-tenant Tier 0
+     * (ADR 0093) via global scope ServiceOrder + filter business_id em SaleProcess.
+     *
+     * @return list<array{key:string, name:string, color:string|null, count:int, is_terminal:bool, process_key:string}>
+     */
+    private function buildStagesPayload(bool $hasCurrentStage): array
+    {
+        if (! $hasCurrentStage) {
+            return [];
+        }
+
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+
+        $stages = \App\Domain\Fsm\Models\SaleProcessStage::query()
+            ->whereHas('process', function ($p) use ($businessId) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                    ->where('business_id', $businessId)
+                    ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
+            })
+            ->with(['process' => function ($p) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class);
+            }])
+            ->orderBy('sort_order')
+            ->get();
+
+        // 1 query bulk: counts por stage_id (multi-tenant via global scope ServiceOrder)
+        $countsByStageId = ServiceOrder::query()
+            ->whereIn('current_stage_id', $stages->pluck('id'))
+            ->selectRaw('current_stage_id, COUNT(*) as total')
+            ->groupBy('current_stage_id')
+            ->pluck('total', 'current_stage_id');
+
+        return $stages->map(fn ($stage) => [
+            'key'         => $stage->key,
+            'name'        => $stage->name,
+            'color'       => $stage->color,
+            'count'       => (int) ($countsByStageId[$stage->id] ?? 0),
+            'is_terminal' => (bool) $stage->is_terminal,
+            'process_key' => $stage->process->key,
+        ])->all();
     }
 
     /**
