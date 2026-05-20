@@ -43,7 +43,6 @@
             <directory>./Modules/NFSe/Tests/Feature</directory>
             <directory>./Modules/Fiscal/Tests/Feature</directory>
             <directory>./Modules/Connector/Tests/Feature</directory>
-            <directory>./Modules/Accounting/Tests/Feature</directory>
             <directory>./Modules/Superadmin/Tests/Feature</directory>
             <directory>./Modules/Officeimpresso/Tests/Feature</directory>
             <directory>./Modules/SRS/Tests/Feature</directory>

@@ -39,7 +39,6 @@
     "Ponto": 58,
     "SRS": 58,
     "ProductCatalogue": 57,
-    "Accounting": 56,
     "Essentials": 53
   },
   "renames": {
@@ -57,6 +56,15 @@
       "new_name": "ProjectMgmt",
       "reason": "Dir fisico canonico e Modules/ProjectMgmt (promovido modulo proprio 2026-05-04 ADR 0070, supersede absorcao em TeamMcp). module.json name=ProjectMgmt.",
       "renamed_at": "2026-05-16T14:46:35-03:00"
+    }
+  },
+  "deprecated_modules": {
+    "Accounting": {
+      "score_v3_at_drop": 56,
+      "reason": "Modules/Accounting deletado em 2026-05-20 via Onda 5 da deprecacao (ADR 0172, ADR 0174). Audit prod confirmou ZERO rows nas 6 tabelas core + ZERO subscriptions com accounting_module ativo + ZERO cross-imports do namespace. Substituto canonico: Modules/Financeiro (Conciliacao OFX + AR/AP automatico via Observer + Portal Advisor US-FIN-037). Onda 6 (DROP TABLE) deferred.",
+      "dropped_at": "2026-05-20",
+      "supersede_adr": "0172",
+      "errata_adr": "0174"
     }
   },
   "deprecated_pending_decision": {
