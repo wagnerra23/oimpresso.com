@@ -221,10 +221,10 @@ export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
             <small>NT 2024-001 · LC 214/2025</small>
             <kbd className="fx-quick-kbd">3</kbd>
           </div>
-          <div className="fx-quick-card" style={{ opacity: 0.55 }}>
+          <div className="fx-quick-card" onClick={() => goto('/fiscal/dfe')}>
             <div className="top"><ShieldAlert size={13} /> Manifesto DF-e</div>
             <b>{kpis.dfeAguardando} aguardando</b>
-            <small>NF-e contra nosso CNPJ · prazo 90d (em breve)</small>
+            <small>NF-e contra nosso CNPJ · prazo 90d</small>
             <kbd className="fx-quick-kbd">4</kbd>
           </div>
           <div className="fx-quick-card" onClick={() => goto('/fiscal/eventos')}>
@@ -233,16 +233,16 @@ export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
             <small>CC-e · cancelamento · manifestação</small>
             <kbd className="fx-quick-kbd">5</kbd>
           </div>
-          <div className="fx-quick-card" style={{ opacity: 0.55 }}>
+          <div className="fx-quick-card" onClick={() => goto('/fiscal/config')}>
             <div className="top"><Shield size={13} /> Certif. & cfg.</div>
             <b>{kpis.certificadoValidadeDias != null ? `A1 vence em ${kpis.certificadoValidadeDias}d` : 'Sem cert ativo'}</b>
-            <small>Configuração fiscal (em breve)</small>
+            <small>Status read-only · edição via NfeBrasil</small>
             <kbd className="fx-quick-kbd">6</kbd>
           </div>
-          <div className="fx-quick-card" style={{ opacity: 0.55 }}>
+          <div className="fx-quick-card" onClick={() => goto('/fiscal/sped')}>
             <div className="top"><Archive size={13} /> SPED & livros</div>
             <b>EFD ICMS/IPI · PIS/COFINS</b>
-            <small>Apuração mensal (em breve)</small>
+            <small>Panorama mensal (gerador em dev)</small>
             <kbd className="fx-quick-kbd">7</kbd>
           </div>
         </div>

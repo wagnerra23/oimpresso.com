@@ -1,0 +1,117 @@
+<?php
+
+namespace Modules\Fiscal\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\NfeBrasil\Models\NfeDfeRecebido;
+
+/**
+ * Manifesto DF-e (sub-página 4 do design KB-9.75).
+ *
+ * Lista NF-e emitidas CONTRA nosso CNPJ (recebidas via NSU SEFAZ). Prazo
+ * legal 90 dias pra manifestação (confirmar/desconhecer/não-realizada/ciência).
+ *
+ * HasBusinessScope (ADR 0093). Mutações (ações manifestar) em PR futuro
+ * — esta PR é leitura + filtros only.
+ */
+class DfeController extends Controller
+{
+    public function index(Request $request): Response
+    {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.dfe.manage')) {
+            abort(403, 'Sem permissão fiscal.dfe.manage');
+        }
+
+        $filters = [
+            'status' => (string) $request->input('status', 'pendentes'),
+            'search' => (string) $request->input('search', ''),
+        ];
+
+        return Inertia::render('Fiscal/Dfe', [
+            'filters' => $filters,
+            'counts'  => $this->computeCounts(),
+            'rows'    => Inertia::defer(fn () => $this->buildRowsPayload($filters)),
+        ]);
+    }
+
+    protected function computeCounts(): array
+    {
+        $base = NfeDfeRecebido::query();
+
+        return [
+            'total'        => (clone $base)->count(),
+            'pendentes'    => (clone $base)->whereIn('status_manifestacao', [
+                NfeDfeRecebido::STATUS_PENDENTE,
+                NfeDfeRecebido::STATUS_CIENCIA,
+            ])->count(),
+            'confirmadas'  => (clone $base)->where('status_manifestacao', NfeDfeRecebido::STATUS_CONFIRMADA)->count(),
+            'desconhecidas'=> (clone $base)->where('status_manifestacao', NfeDfeRecebido::STATUS_DESCONHECIDA)->count(),
+            'naoRealizadas'=> (clone $base)->where('status_manifestacao', NfeDfeRecebido::STATUS_NAO_REALIZADA)->count(),
+            'valorPendente'=> (float) (clone $base)
+                ->whereIn('status_manifestacao', [NfeDfeRecebido::STATUS_PENDENTE, NfeDfeRecebido::STATUS_CIENCIA])
+                ->sum('valor_total'),
+        ];
+    }
+
+    protected function buildRowsPayload(array $filters): array
+    {
+        $query = NfeDfeRecebido::query()->orderByDesc('data_emissao');
+
+        match ($filters['status']) {
+            'pendentes'      => $query->whereIn('status_manifestacao', [
+                NfeDfeRecebido::STATUS_PENDENTE,
+                NfeDfeRecebido::STATUS_CIENCIA,
+            ]),
+            'confirmadas'    => $query->where('status_manifestacao', NfeDfeRecebido::STATUS_CONFIRMADA),
+            'desconhecidas'  => $query->where('status_manifestacao', NfeDfeRecebido::STATUS_DESCONHECIDA),
+            'nao_realizadas' => $query->where('status_manifestacao', NfeDfeRecebido::STATUS_NAO_REALIZADA),
+            'todas'          => $query,
+            default          => $query,
+        };
+
+        if ($filters['search'] !== '') {
+            $s = preg_replace('/\D/', '', $filters['search']);
+            $raw = $filters['search'];
+            $query->where(function ($q) use ($s, $raw) {
+                $q->where('chave_44', 'like', "%{$s}%")
+                  ->orWhere('cnpj_emitente', 'like', "%{$s}%")
+                  ->orWhere('nome_emitente', 'like', "%{$raw}%");
+            });
+        }
+
+        $paginator = $query->paginate(50);
+        $hoje = now()->startOfDay();
+
+        return [
+            'data' => $paginator->getCollection()->map(function (NfeDfeRecebido $d) use ($hoje) {
+                $prazoDias = $d->prazo_confirmacao_em
+                    ? (int) $hoje->diffInDays($d->prazo_confirmacao_em, false)
+                    : null;
+
+                return [
+                    'id'                  => $d->id,
+                    'chave'               => $d->chave_44,
+                    'nsu'                 => $d->nsu,
+                    'cnpjEmitente'        => $d->cnpj_emitente,
+                    'nomeEmitente'        => $d->nome_emitente,
+                    'valor'               => (float) $d->valor_total,
+                    'numProtocolo'        => $d->num_protocolo,
+                    'dataEmissaoIso'      => $d->data_emissao?->toIso8601String(),
+                    'when'                => $d->data_emissao?->format('d/m H:i'),
+                    'statusManifestacao'  => $d->status_manifestacao,
+                    'manifestadoEmIso'    => $d->manifestado_em?->toIso8601String(),
+                    'prazoDias'           => $prazoDias,
+                ];
+            })->all(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page'    => $paginator->lastPage(),
+                'total'        => $paginator->total(),
+                'per_page'     => $paginator->perPage(),
+            ],
+        ];
+    }
+}
