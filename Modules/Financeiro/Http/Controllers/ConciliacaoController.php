@@ -49,7 +49,11 @@ class ConciliacaoController extends Controller
             'ignorados'   => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'ignorado')->whereNull('deleted_at')->count(),
         ];
 
-        $contas = ContaBancaria::where('business_id', $businessId)->get(['id', 'nome']);
+        // ContaBancaria.nome é accessor que lê de Account.name (eager load needed)
+        $contas = ContaBancaria::where('business_id', $businessId)
+            ->with('account:id,name')
+            ->get(['id', 'account_id'])
+            ->map(fn ($c) => ['id' => $c->id, 'nome' => $c->nome]);
 
         return Inertia::render('Financeiro/Conciliacao/Index', [
             'linhas' => $linhas,
