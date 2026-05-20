@@ -88,7 +88,7 @@ class Advisor extends Model implements Authenticatable
 
     /**
      * CNPJ mascarado pra log/UI (LGPD-safe).
-     * Ex: "12345678000190" → "12.345.***/0001-**"
+     * Exemplo: 14 digitos "12345678000190" vira "12.345.xxx-0001-xx" (com x no lugar de digito sensivel).
      */
     public function getCnpjMaskedAttribute(): string
     {
