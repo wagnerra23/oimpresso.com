@@ -5,6 +5,8 @@ namespace Modules\Financeiro\Providers;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Financeiro\Events\CashRegisterClosed;
+use Modules\Financeiro\Listeners\OnCashRegisterClosedCreateFinanceiroTitulo;
 use Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 
@@ -46,6 +48,9 @@ class FinanceiroServiceProvider extends ServiceProvider
 
         Event::listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
 
+        // ADR 0183 — Ponte cash_registers → fin_titulos (multi-caixa canon)
+        Event::listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
+
         self::$paymentgatewayListenersRegistered = true;
     }
 
@@ -59,6 +64,8 @@ class FinanceiroServiceProvider extends ServiceProvider
     {
         \App\Transaction::observe(\Modules\Financeiro\Observers\TransactionObserver::class);
         \App\TransactionPayment::observe(\Modules\Financeiro\Observers\TransactionPaymentObserver::class);
+        // ADR 0183 — observa cash_registers pra detectar fechamento e disparar event
+        \App\CashRegister::observe(\Modules\Financeiro\Observers\CashRegisterObserver::class);
     }
 
     /**
