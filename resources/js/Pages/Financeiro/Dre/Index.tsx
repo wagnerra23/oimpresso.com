@@ -2,17 +2,17 @@
 //   tela: /financeiro/dre
 //   module: Financeiro
 //   status: live
-//   stories: US-FIN-014a
+//   stories: US-FIN-014a, US-FIN-014d (balanco), US-FIN-014e (balancete)
 //   adrs: ui/0114, 0093, 0104, 0107, 0109
-//   tests: Modules/Financeiro/Tests/Feature/DreControllerTest
+//   tests: Modules/Financeiro/Tests/Feature/DreControllerTest, DreBalancoBalanceteTest
 //
 // Canon: public/cowork-preview/erp-shell/financeiro-telas-extras.jsx (TelaDRE linha 361-483)
 // Visual-comparison: memory/requisitos/Financeiro/dre-visual-comparison.md (status: approved 2026-05-20)
 // Charter: ./Index.charter.md (entregue via PR A #1266)
 //
-// Reaplicação canon DRE — PR C (frontend). PR B (backend DreController + DreService
-// + rotas) é paralelo e merge antes deste virar runtime-ativo. Sem PR B, esta Page
-// nunca recebe Props (rota /financeiro/dre não existe ainda).
+// Fase 4 deprecação legacy (2026-05-21): tabs Balanço + Balancete absorvem
+// telas legacy `/account/balance-sheet` e `/account/trial-balance` (redirects
+// 301 via PR #1283). Versão GERENCIAL — banner obrigatório.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
@@ -27,6 +27,8 @@ import {
   Download,
   Plus,
 } from 'lucide-react';
+import { BalancoView, type BalancoData } from './_components/BalancoView';
+import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
 
 // ---------- Tipos das linhas (espelha DRE_LINES canon TelaDRE) ----------
 
@@ -62,6 +64,9 @@ interface LinhaSubtotal {
 
 type Linha = LinhaH | LinhaI | LinhaSubtotal;
 
+// Fase 4 (2026-05-21): tabs Demonstrativo / Balanço / Balancete
+type AbaAtiva = 'demonstrativo' | 'balanco' | 'balancete';
+
 // ---------- Props vindas do DreController (PR B) ----------
 
 interface Props {
@@ -80,6 +85,10 @@ interface Props {
     delta_pp: number;
   };
   top_categorias_receita: { label: string; valor: number; pct: number }[];
+  // Fase 4 — opcionais (só preenche tab ativa)
+  aba?: AbaAtiva;
+  balanco?: BalancoData | null;
+  balancete?: BalanceteData | null;
 }
 
 // ---------- Helpers ----------
@@ -102,6 +111,57 @@ function shortMesAno(periodoLabel: string): string {
   return `${mes}/${ano}`;
 }
 
+// ---------- Tab Switcher ----------
+
+function TabSwitcher({ aba }: { aba: AbaAtiva }) {
+  // Fase 4 — pill segmented control consistente com Fluxo/Index.tsx pattern.
+  // router.visit preserva scroll + replace na URL (?aba=X) pra deep-link funcionar.
+  const trocaAba = (alvo: AbaAtiva) => {
+    if (alvo === aba) return;
+    router.visit(`/financeiro/dre?aba=${alvo}`, {
+      preserveScroll: true,
+      replace: true,
+    });
+  };
+
+  const items: { id: AbaAtiva; label: string; hint: string }[] = [
+    { id: 'demonstrativo', label: 'Demonstrativo', hint: 'DRE' },
+    { id: 'balanco', label: 'Balanço', hint: 'patrimonial' },
+    { id: 'balancete', label: 'Balancete', hint: 'verificação' },
+  ];
+
+  return (
+    <div className="px-6 pt-3 pb-1">
+      <div className="inline-flex bg-stone-100/80 rounded-md p-0.5 border border-stone-200">
+        {items.map((it) => (
+          <button
+            key={it.id}
+            type="button"
+            onClick={() => trocaAba(it.id)}
+            className={
+              'h-8 px-4 rounded text-[12.5px] flex items-center gap-2 transition tabular-nums ' +
+              (aba === it.id
+                ? 'bg-white shadow-sm font-medium text-stone-900'
+                : 'text-stone-600 hover:text-stone-800')
+            }
+            aria-pressed={aba === it.id}
+          >
+            <span>{it.label}</span>
+            <span
+              className={
+                'text-[10px] uppercase tracking-wider ' +
+                (aba === it.id ? 'text-stone-500' : 'text-stone-400')
+              }
+            >
+              {it.hint}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Page ----------
 
 function FinanceiroDre({
@@ -109,10 +169,14 @@ function FinanceiroDre({
   linhas,
   margem_operacional,
   top_categorias_receita,
+  aba,
+  balanco,
+  balancete,
 }: Props) {
   // F1: só "mes" funcional. Demais opções renderizam disabled com tooltip
   // "Em breve" (Q4 do visual-comparison; backlog US-FIN-DRE-PERIODOS).
   const [periodoTab] = useState<'mes' | 'trimestre' | 'ano' | '12m'>('mes');
+  const abaAtiva: AbaAtiva = aba ?? 'demonstrativo';
 
   return (
     <div className="fin-curadoria vendas-aplus">
@@ -122,7 +186,15 @@ function FinanceiroDre({
       <header className="os-page-h fin-page-h">
         <div className="os-page-h-l fin-page-h-l">
           <h1>
-            Financeiro <span className="fin-hero-title-sub">· DRE / Relatórios</span>
+            Financeiro{' '}
+            <span className="fin-hero-title-sub">
+              ·{' '}
+              {abaAtiva === 'balanco'
+                ? 'Balanço Patrimonial'
+                : abaAtiva === 'balancete'
+                  ? 'Balancete de Verificação'
+                  : 'DRE / Relatórios'}
+            </span>
           </h1>
           <p>
             {meta.periodo_label} · {meta.business_name} · caixa unificado
@@ -212,6 +284,13 @@ function FinanceiroDre({
         </div>
       </header>
 
+      <TabSwitcher aba={abaAtiva} />
+
+      {abaAtiva === 'balanco' && <BalancoView balanco={balanco ?? null} />}
+      {abaAtiva === 'balancete' && <BalanceteView balancete={balancete ?? null} />}
+
+      {abaAtiva === 'demonstrativo' && (
+        <>
       {meta.aviso_sem_mapping && (
         <div
           style={{
@@ -496,6 +575,8 @@ function FinanceiroDre({
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

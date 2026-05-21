@@ -59,12 +59,33 @@ class DreController extends Controller
 
         $businessId = (int) session('user.business_id');
         [$periodoTipo, $anchorMes] = $this->parseQuery($request);
+        $aba = $this->resolveAba($request);
+        $anchorData = $this->resolveAnchorData($request);
 
-        return OtelHelper::spanBiz('financeiro.dre.index', function () use ($businessId, $periodoTipo, $anchorMes) {
+        return OtelHelper::spanBiz('financeiro.dre.index', function () use ($businessId, $periodoTipo, $anchorMes, $aba, $anchorData) {
+            // Tab Demonstrativo: comportamento atual preservado 100%.
+            // Tabs Balanço + Balancete: payloads adicionais lazy carregados
+            // só quando aba específica está ativa (perf — evita query custosa).
+            //
+            // Fase 4 deprecação legacy (2026-05-21): /account/balance-sheet
+            // e /account/trial-balance legacy → 301 → /financeiro/dre desde
+            // PR #1283. Esta tela absorve as duas via tabs.
             $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes);
 
-            return Inertia::render('Financeiro/Dre/Index', $shape);
-        }, ['op' => 'index', 'periodo_tipo' => $periodoTipo]);
+            $balanco = $aba === 'balanco'
+                ? $this->service->montarBalanco($businessId, $anchorData)
+                : null;
+
+            $balancete = $aba === 'balancete'
+                ? $this->service->montarBalancete($businessId, $periodoTipo, $anchorMes)
+                : null;
+
+            return Inertia::render('Financeiro/Dre/Index', array_merge($shape, [
+                'aba'       => $aba,
+                'balanco'   => $balanco,
+                'balancete' => $balancete,
+            ]));
+        }, ['op' => 'index', 'periodo_tipo' => $periodoTipo, 'aba' => $aba]);
     }
 
     /**
@@ -205,6 +226,33 @@ class DreController extends Controller
         }
 
         return [$periodo, $anchorMes];
+    }
+
+    /**
+     * Fase 4 (2026-05-21): tab=demonstrativo (default) | balanco | balancete.
+     * Qualquer outro valor cai pro default — clamp defensivo anti-injection.
+     */
+    private function resolveAba(Request $request): string
+    {
+        $aba = (string) $request->query('aba', 'demonstrativo');
+
+        return in_array($aba, ['demonstrativo', 'balanco', 'balancete'], true)
+            ? $aba
+            : 'demonstrativo';
+    }
+
+    /**
+     * Fase 4: anchor_data 'YYYY-MM-DD' pro Balanço (snapshot). Default null →
+     * Service usa today().
+     */
+    private function resolveAnchorData(Request $request): ?string
+    {
+        $anchor = $request->query('anchor_data');
+        if (is_string($anchor) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $anchor)) {
+            return $anchor;
+        }
+
+        return null;
     }
 
     /**
