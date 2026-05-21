@@ -8,7 +8,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
   ArrowDown,
@@ -19,9 +19,11 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Clock,
+  CornerDownLeft,
   CreditCard,
   Edit,
   Eye,
+  Keyboard,
   Layers,
   Loader2,
   MoreVertical,
@@ -169,6 +171,13 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [openContactId, setOpenContactId] = useState<number | null>(null);
 
+  // KB-9.75 N2/N3/P2 — Slice A (Wagner approved 2026-05-21):
+  // ⌘K (palette) · ? (cheat-sheet) · J/K (row nav) · Enter (open) · / (focus search)
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [cheatOpen, setCheatOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+
   useEffect(() => {
     try {
       window.localStorage.setItem(STATUS_FILTER_STORAGE_KEY, statusFilter);
@@ -196,6 +205,78 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     }
     return r;
   }, [rows, statusFilter, search]);
+
+  // KB-9.75 Slice A — reset row focus when the result set shrinks/changes.
+  useEffect(() => {
+    setFocusedIndex(null);
+  }, [search, statusFilter, sortKey, sortDir, page]);
+
+  // KB-9.75 Slice A — global keydown listener (Tier A skill "Charter Anti-pattern: no sessionStorage")
+  // Gates: skip when typing in inputs/textareas and when any modal is open (palette/cheat have own handlers).
+  useEffect(() => {
+    const isTypingTarget = (target: EventTarget | null): boolean => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+      if (target.isContentEditable) return true;
+      return false;
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      // ⌘K / Ctrl+K — global trigger, even inside inputs (matches Slack/Linear/GitHub).
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(true);
+        return;
+      }
+
+      // Suspend all other shortcuts while a modal is open OR while typing in form fields.
+      if (paletteOpen || cheatOpen) return;
+      if (isTypingTarget(e.target)) return;
+
+      if (e.key === '?') {
+        e.preventDefault();
+        setCheatOpen(true);
+        return;
+      }
+
+      if (e.key === '/') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+        return;
+      }
+
+      if (e.key === 'j' || e.key === 'J') {
+        if (filteredRows.length === 0) return;
+        e.preventDefault();
+        setFocusedIndex((i) => (i === null ? 0 : Math.min(i + 1, filteredRows.length - 1)));
+        return;
+      }
+
+      if (e.key === 'k' || e.key === 'K') {
+        if (filteredRows.length === 0) return;
+        e.preventDefault();
+        setFocusedIndex((i) => (i === null ? filteredRows.length - 1 : Math.max(i - 1, 0)));
+        return;
+      }
+
+      if (e.key === 'Enter' && focusedIndex !== null) {
+        e.preventDefault();
+        const row = filteredRows[focusedIndex];
+        if (row) setOpenContactId(row.id);
+        return;
+      }
+
+      if (e.key === 'Escape' && focusedIndex !== null) {
+        setFocusedIndex(null);
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [paletteOpen, cheatOpen, filteredRows, focusedIndex]);
 
   const handleSort = useCallback((key: SortKey) => {
     setSortKey((prevKey) => {
@@ -307,10 +388,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
+              ref={searchInputRef}
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar por nome, CNPJ/CPF, telefone…"
+              placeholder="Buscar por nome, CNPJ/CPF, telefone… (/ pra focar · ⌘K busca global)"
               className="pl-9 pr-9 h-9"
               aria-label="Buscar cliente"
             />
@@ -352,16 +434,24 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                       </td>
                     </tr>
                   ) : (
-                    filteredRows.map((row) => {
+                    filteredRows.map((row, idx) => {
                       const isOpen = openContactId === row.id;
+                      const isFocused = focusedIndex === idx;
                       return (
                         <tr
                           key={row.id}
                           className={
                             'border-b border-border cursor-pointer transition-colors ' +
-                            (isOpen ? 'bg-blue-50/60 dark:bg-blue-950/30' : 'hover:bg-muted/40')
+                            (isOpen
+                              ? 'bg-blue-50/60 dark:bg-blue-950/30'
+                              : isFocused
+                                ? 'bg-blue-50/30 dark:bg-blue-950/20 ring-2 ring-inset ring-blue-300 dark:ring-blue-700'
+                                : 'hover:bg-muted/40')
                           }
-                          onClick={() => setOpenContactId(row.id)}
+                          onClick={() => {
+                            setFocusedIndex(idx);
+                            setOpenContactId(row.id);
+                          }}
                         >
                           <td className="px-4 py-3">
                             <Avatar initial={avatarInitial(row.name)} />
@@ -417,6 +507,35 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           if (!open) setOpenContactId(null);
         }}
       />
+
+      {/* KB-9.75 Slice A — Command Palette + Cheat-sheet + FAB. State efêmero, sem persistência. */}
+      {paletteOpen && (
+        <CommandPalette
+          rows={rows}
+          onClose={() => setPaletteOpen(false)}
+          onSelectContact={(id) => {
+            setPaletteOpen(false);
+            setOpenContactId(id);
+          }}
+          onClearFilters={() => {
+            setStatusFilter('');
+            setSearchInput('');
+            setSearch('');
+            setFocusedIndex(null);
+          }}
+        />
+      )}
+      {cheatOpen && <CheatSheet onClose={() => setCheatOpen(false)} />}
+      <button
+        type="button"
+        onClick={() => setCheatOpen(true)}
+        aria-label="Atalhos de teclado"
+        title="Atalhos de teclado (?)"
+        className="fixed bottom-4 right-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
+      >
+        <Keyboard size={14} />
+        <Kbd>?</Kbd>
+      </button>
     </div>
   );
 }
@@ -767,5 +886,286 @@ function PageBtn({
     >
       {children}
     </button>
+  );
+}
+
+// ─── KB-9.75 Slice A subcomponents ──────────────────────────────────────────
+// Ref: prototipo-ui/prototipos/clientes/clientes-975.jsx (CommandPalette · CheatSheet)
+// Charter: Pages/Cliente/Index.charter.md (Slice A não introduz Non-Goal nem Anti-hook).
+
+type PaletteAction = {
+  id: string;
+  label: string;
+  icon: typeof Plus;
+  href?: string;
+  action?: () => void;
+};
+
+function CommandPalette({
+  rows,
+  onClose,
+  onSelectContact,
+  onClearFilters,
+}: {
+  rows: ClienteRow[];
+  onClose: () => void;
+  onSelectContact: (id: number) => void;
+  onClearFilters: () => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  const results = useMemo(() => {
+    if (!query.trim()) return rows.slice(0, 8);
+    const q = query.toLowerCase();
+    return rows
+      .filter(
+        (r) =>
+          r.name.toLowerCase().includes(q) ||
+          (r.tax_number_masked ?? '').toLowerCase().includes(q) ||
+          (r.mobile ?? '').includes(q),
+      )
+      .slice(0, 8);
+  }, [rows, query]);
+
+  const actions: PaletteAction[] = [
+    { id: 'novo', label: 'Novo cliente', icon: Plus, href: '/contacts/create?type=customer' },
+    { id: 'importar', label: 'Importar clientes', icon: Upload, href: '/contacts/import' },
+    { id: 'clear', label: 'Limpar filtros desta página', icon: X, action: onClearFilters },
+  ];
+
+  // Combined navigable items: rows first, then actions. Index is absolute.
+  const totalItems = results.length + actions.length;
+
+  useEffect(() => {
+    setSelectedIdx(0);
+  }, [query]);
+
+  const activate = useCallback(
+    (absIdx: number) => {
+      if (absIdx < results.length) {
+        const r = results[absIdx];
+        if (r) onSelectContact(r.id);
+        return;
+      }
+      const a = actions[absIdx - results.length];
+      if (!a) return;
+      if (a.href) {
+        window.location.href = a.href;
+      } else if (a.action) {
+        a.action();
+        onClose();
+      }
+    },
+    [results, actions, onSelectContact, onClose],
+  );
+
+  const onInputKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIdx((i) => Math.min(i + 1, Math.max(totalItems - 1, 0)));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      activate(selectedIdx);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Busca rápida"
+    >
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="relative w-full max-w-2xl rounded-xl border border-border bg-background shadow-2xl mx-4">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <Search size={16} className="text-muted-foreground" aria-hidden="true" />
+          <input
+            type="text"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={onInputKey}
+            placeholder="Buscar cliente por nome, CNPJ/CPF, telefone — ou escolha uma ação…"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+            aria-label="Termo de busca"
+          />
+          <Kbd>Esc</Kbd>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-2">
+          {results.length > 0 && (
+            <>
+              <div className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Clientes {query.trim() ? `(${results.length})` : '(recentes)'}
+              </div>
+              {results.map((r, idx) => {
+                const sel = selectedIdx === idx;
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => activate(idx)}
+                    onMouseEnter={() => setSelectedIdx(idx)}
+                    className={
+                      'w-full text-left flex items-center gap-3 rounded-md px-3 py-2 transition-colors ' +
+                      (sel ? 'bg-muted text-foreground' : 'hover:bg-muted/50')
+                    }
+                    aria-selected={sel}
+                  >
+                    <Avatar initial={avatarInitial(r.name)} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-foreground truncate">{r.name}</div>
+                      <div className="text-[11px] text-muted-foreground tabular-nums truncate">
+                        {r.tax_number_masked ?? '—'}
+                        {r.mobile ? ` · ${r.mobile}` : ''}
+                      </div>
+                    </div>
+                    <StatusBadge status={r.status} />
+                  </button>
+                );
+              })}
+            </>
+          )}
+
+          {query.trim() && results.length === 0 && (
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+              Sem clientes pra <span className="font-medium text-foreground">"{query}"</span>.
+              Tente outro termo ou crie um novo cliente abaixo.
+            </div>
+          )}
+
+          <div className="mt-2 pt-2 border-t border-border">
+            <div className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Ações
+            </div>
+            {actions.map((a, idx) => {
+              const absIdx = results.length + idx;
+              const sel = selectedIdx === absIdx;
+              const Icon = a.icon;
+              const cls =
+                'w-full text-left flex items-center gap-3 rounded-md px-3 py-2 transition-colors ' +
+                (sel ? 'bg-muted text-foreground' : 'hover:bg-muted/50 text-muted-foreground');
+              if (a.href) {
+                return (
+                  <a key={a.id} href={a.href} onMouseEnter={() => setSelectedIdx(absIdx)} className={cls} aria-selected={sel}>
+                    <Icon size={14} />
+                    <span className="text-sm">{a.label}</span>
+                  </a>
+                );
+              }
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => activate(absIdx)}
+                  onMouseEnter={() => setSelectedIdx(absIdx)}
+                  className={cls}
+                  aria-selected={sel}
+                >
+                  <Icon size={14} />
+                  <span className="text-sm">{a.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 border-t border-border px-4 py-2 text-[10px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <Kbd>↑</Kbd>
+            <Kbd>↓</Kbd> navegar
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Kbd>
+              <CornerDownLeft size={10} />
+            </Kbd>{' '}
+            abrir
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Kbd>Esc</Kbd> fechar
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CheatSheet({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const items: Array<{ keys: ReactNode[]; label: string }> = [
+    { keys: [<Kbd key="meta">⌘</Kbd>, <Kbd key="k">K</Kbd>], label: 'Busca rápida (Command Palette)' },
+    { keys: [<Kbd key="slash">/</Kbd>], label: 'Focar busca da página' },
+    { keys: [<Kbd key="j">J</Kbd>], label: 'Próxima linha' },
+    { keys: [<Kbd key="k2">K</Kbd>], label: 'Linha anterior' },
+    { keys: [<Kbd key="enter">Enter</Kbd>], label: 'Abrir cliente focado' },
+    { keys: [<Kbd key="esc">Esc</Kbd>], label: 'Fechar modal ou cancelar foco' },
+    { keys: [<Kbd key="q">?</Kbd>], label: 'Mostrar atalhos (este painel)' },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Atalhos de teclado"
+    >
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="relative w-full max-w-md rounded-xl border border-border bg-background shadow-2xl mx-4">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Keyboard size={16} className="text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Atalhos de teclado</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar painel de atalhos"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <ul className="p-2 space-y-0.5">
+          {items.map((it) => (
+            <li
+              key={it.label}
+              className="flex items-center justify-between gap-3 rounded-md px-3 py-2 hover:bg-muted/40"
+            >
+              <span className="text-sm text-foreground">{it.label}</span>
+              <span className="flex items-center gap-1">{it.keys}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="border-t border-border px-4 py-2 text-[10px] text-muted-foreground">
+          Atalhos pausam quando você está digitando em um campo. <Kbd>⌘K</Kbd> sempre funciona.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Kbd({ children }: { children: ReactNode }) {
+  return (
+    <kbd className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground tabular-nums">
+      {children}
+    </kbd>
   );
 }
