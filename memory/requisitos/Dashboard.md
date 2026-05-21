@@ -1,39 +1,28 @@
 ---
 module: Dashboard
-status: ausente_branch_atual
-action_required: decidir_ressuscitar_ou_deprecar
-present_in_branches: [main-wip-2026-04-22, origin/3.7-com-nfe]
-last_generated: 2026-04-22
+status: ressuscitado
+phase: F6 Soft wrapper Inertia
+ressuscitado_em: 2026-05-21
+last_generated: 2026-05-21
 ---
 
-# Requisitos funcionais — Dashboard _(legado)_
+# Dashboard `/home` — landing page pós-login
 
-> ⚠️ **Módulo não existe no branch atual (`6.7-react`).**
-> Decidir entre **ressuscitar** ou **deprecar** antes de escrever
-> requisitos completos.
+> **Ressuscitado em 2026-05-21** pelo caminho Soft wrapper Inertia (ADR 0104 §F6). Documentação canônica vive agora em [`Dashboard/`](Dashboard/) folder.
 
-## O que fazer com este módulo?
+## Onde está agora
 
-- [ ] **Ressuscitar** — trazer do branch X, atualizar stack, migrar React
-- [ ] **Deprecar** — decisão de não trazer; apagar spec obsoleta
-- [ ] **Adiar** — congelado até próxima revisão
+- [Dashboard/SPEC.md](Dashboard/SPEC.md) — User Stories US-DASH-*
+- [Dashboard/RUNBOOK-home-index.md](Dashboard/RUNBOOK-home-index.md) — runbook MWART F6 Soft
+- [Dashboard/BRIEFING.md](Dashboard/BRIEFING.md) — 1-pager executivo
 
-## Histórico
+## Decisão de ressuscitar (vs deprecar)
 
-Presente em: main-wip-2026-04-22, origin/3.7-com-nfe
-
-## Se ressuscitar, preencher:
-
-1. **Objetivo** — que valor entregava?
-2. **Áreas funcionais** — telas/fluxos
-3. **Motivação da volta**
-4. **Integrações** — módulos atuais que tocaria
-5. **Critérios de aceite** — quando considerar pronto
-
-## Referências
-
-- Spec técnica (se existir): `memory/modulos/Dashboard.md`
-- Recomendações: `memory/modulos/RECOMENDACOES.md`
+Aprovada por Wagner 2026-05-21 — caminho A Soft wrapper. Justificativa:
+- `/home` é a landing pós-login (blast radius alto, todo usuário cai aqui)
+- Blade legacy 1.4k LOC + jQuery DataTables + ECharts PHP wrapper → carregamento ~3s
+- Soft wrapper Inertia preserva mecanismo Blade legacy via `?legacy=1`
+- Precedente PR [#1288 Caixa](https://github.com/wagnerra23/oimpresso.com/pull/1288) (mergeado mesmo dia)
 
 ---
-_Gerado por `module:requirements` em 2026-04-22 16:34_
+_Atualizado por execução MWART F6 Soft em 2026-05-21._
