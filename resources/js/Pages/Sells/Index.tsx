@@ -16,6 +16,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import { usePage } from '@inertiajs/react';
 import {
   Archive,
   CheckCircle2,
@@ -167,22 +168,37 @@ const fmtTime = (iso: string | null) => {
   return m ? `${m[1]}:${m[2]}` : '';
 };
 
-const LS_PREFIX = 'oimpresso.sells.';
-function lsGet(k: string, d = ''): string {
-  if (typeof window === 'undefined') return d;
-  try {
-    return window.localStorage.getItem(LS_PREFIX + k) ?? d;
-  } catch (_) {
-    return d;
-  }
-}
-function lsSet(k: string, v: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(LS_PREFIX + k, v);
-  } catch (_) {
-    /* localStorage indisponível */
-  }
+// Tier 0 multi-tenant (ADR 0093): preferências de UI da Sells escopo
+// per-business pra não vazar entre tenants no mesmo browser (Wagner WR2 biz=1
+// ↔ Larissa biz=4). Chave: `oimpresso.sells.b<businessId>.<k>` ou `.guest.<k>`.
+// Sinal: Larissa @ ROTA LIVRE biz=4 reportou filtro abrindo em "Caixa" em vez
+// de "Todas" 2026-05-21 (ADR 0105 cliente-sinal).
+function useBizStorage() {
+  const page = usePage<{ auth?: { user?: { business_id?: number } } }>();
+  const bizId = page.props.auth?.user?.business_id ?? null;
+  const prefix = `oimpresso.sells.${bizId ? `b${bizId}` : 'guest'}.`;
+  return useMemo(
+    () => ({
+      get: (k: string, d = ''): string => {
+        if (typeof window === 'undefined') return d;
+        try {
+          return window.localStorage.getItem(prefix + k) ?? d;
+        } catch (_) {
+          return d;
+        }
+      },
+      set: (k: string, v: string): void => {
+        if (typeof window === 'undefined') return;
+        try {
+          window.localStorage.setItem(prefix + k, v);
+        } catch (_) {
+          /* localStorage indisponível */
+        }
+      },
+      key: (k: string): string => prefix + k,
+    }),
+    [prefix],
+  );
 }
 
 // SLA pill — mirrors backend sla_kind but supports rendering when ausente.
@@ -437,30 +453,35 @@ const SAVED_VIEWS: SavedView[] = [
 // MAIN — SellsIndex
 // ──────────────────────────────────────────────────────────────
 export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
+  // Tier 0 multi-tenant: storage scoped per business_id (ver useBizStorage acima).
+  const ls = useBizStorage();
+
   // FOCO segmented control (vista) — Caixa / Faturamento / Comissão (afeta 4º KPI).
   const [foco, setFoco] = useState<FocoKey>(() => {
-    const v = lsGet('foco', 'caixa');
+    const v = ls.get('foco', 'caixa');
     return (['caixa', 'faturamento', 'comissao'] as const).includes(v as FocoKey)
       ? (v as FocoKey)
       : 'caixa';
   });
-  useEffect(() => lsSet('foco', foco), [foco]);
+  useEffect(() => ls.set('foco', foco), [foco]);
 
   // Saved view dropdown (Hoje / Pendentes / Atrasadas / etc).
+  // Default 'todas' — Larissa @ ROTA LIVRE biz=4 reportou 2026-05-21 abrir em
+  // "Caixa" não bate com a operação dela (ADR 0105 sinal qualificado).
   const [savedViewId, setSavedViewId] = useState<SavedViewId>(() => {
-    const v = lsGet('savedView', 'hoje');
-    return SAVED_VIEWS.find((s) => s.id === v)?.id ?? 'hoje';
+    const v = ls.get('savedView', 'todas');
+    return SAVED_VIEWS.find((s) => s.id === v)?.id ?? 'todas';
   });
-  useEffect(() => lsSet('savedView', savedViewId), [savedViewId]);
+  useEffect(() => ls.set('savedView', savedViewId), [savedViewId]);
 
   // 5-pill status filter.
   const [pillFilter, setPillFilter] = useState<PillKey>(() => {
-    const v = lsGet('pill', 'todas');
+    const v = ls.get('pill', 'todas');
     return (['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as const).includes(v as PillKey)
       ? (v as PillKey)
       : 'todas';
   });
-  useEffect(() => lsSet('pill', pillFilter), [pillFilter]);
+  useEffect(() => ls.set('pill', pillFilter), [pillFilter]);
 
   // Data fetch state.
   const [rows, setRows] = useState<SaleRow[]>([]);
@@ -474,55 +495,55 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // dateField (7 opções: emissão/atualização/nfe/faturamento/envio/competência/prometido),
   // groupBy (none/customer/payment_status/emission_month), sortKey/Dir.
   const [viewMode, setViewMode] = useState<SellsViewMode>(() => {
-    const v = lsGet('viewMode', 'lista');
+    const v = ls.get('viewMode', 'lista');
     return (['lista', 'grade-avancada'] as const).includes(v as SellsViewMode)
       ? (v as SellsViewMode)
       : 'lista';
   });
-  useEffect(() => lsSet('viewMode', viewMode), [viewMode]);
+  useEffect(() => ls.set('viewMode', viewMode), [viewMode]);
 
   const [datePreset, setDatePreset] = useState<DateFilterPreset>(() => {
-    const v = lsGet('datePreset', 'all');
+    const v = ls.get('datePreset', 'all');
     return (['day', 'week', 'month', 'year', 'custom', 'all'] as const).includes(
       v as DateFilterPreset
     )
       ? (v as DateFilterPreset)
       : 'all';
   });
-  useEffect(() => lsSet('datePreset', datePreset), [datePreset]);
+  useEffect(() => ls.set('datePreset', datePreset), [datePreset]);
 
   const [dateFrom, setDateFrom] = useState<string>(() => {
-    const stored = lsGet('datePreset', 'all') as DateFilterPreset;
+    const stored = ls.get('datePreset', 'all') as DateFilterPreset;
     if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateFrom;
-    return lsGet('dateFrom', '');
+    return ls.get('dateFrom', '');
   });
   const [dateTo, setDateTo] = useState<string>(() => {
-    const stored = lsGet('datePreset', 'all') as DateFilterPreset;
+    const stored = ls.get('datePreset', 'all') as DateFilterPreset;
     if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateTo;
-    return lsGet('dateTo', '');
+    return ls.get('dateTo', '');
   });
-  useEffect(() => lsSet('dateFrom', dateFrom), [dateFrom]);
-  useEffect(() => lsSet('dateTo', dateTo), [dateTo]);
+  useEffect(() => ls.set('dateFrom', dateFrom), [dateFrom]);
+  useEffect(() => ls.set('dateTo', dateTo), [dateTo]);
 
   const [dateField, setDateField] = useState<
     'transaction_date' | 'updated_at' | 'nfe_issued_at' | 'invoiced_at'
     | 'invoice_sent_at' | 'competence_date' | 'due_date'
   >(() => {
-    const v = lsGet('dateField', 'transaction_date');
+    const v = ls.get('dateField', 'transaction_date');
     const allowed = [
       'transaction_date', 'updated_at', 'nfe_issued_at', 'invoiced_at',
       'invoice_sent_at', 'competence_date', 'due_date',
     ] as const;
     return (allowed as readonly string[]).includes(v) ? (v as typeof allowed[number]) : 'transaction_date';
   });
-  useEffect(() => lsSet('dateField', dateField), [dateField]);
+  useEffect(() => ls.set('dateField', dateField), [dateField]);
 
   const [groupBy, setGroupBy] = useState<GroupByField>(() => {
-    const v = lsGet('groupBy', 'none');
+    const v = ls.get('groupBy', 'none');
     const allowed = ['none', 'customer_name', 'payment_status', 'emission_month'] as const;
     return (allowed as readonly string[]).includes(v) ? (v as GroupByField) : 'none';
   });
-  useEffect(() => lsSet('groupBy', groupBy), [groupBy]);
+  useEffect(() => ls.set('groupBy', groupBy), [groupBy]);
 
   type SortKey = 'transaction_date' | 'invoice_no' | 'customer_name' | 'final_total' | 'payment_status';
   const [sortKey, setSortKey] = useState<SortKey>('transaction_date');
@@ -563,9 +584,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     setDatePreset('all');
     setDateFrom('');
     setDateTo('');
-    lsSet('datePreset', 'all');
-    lsSet('dateFrom', '');
-    lsSet('dateTo', '');
+    ls.set('datePreset', 'all');
+    ls.set('dateFrom', '');
+    ls.set('dateTo', '');
   }, []);
 
   const dateFilterActive = datePreset !== 'all' || dateFrom !== '' || dateTo !== '';
@@ -591,14 +612,14 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   }, [datePreset, dateFrom, dateTo, dateFilterActive]);
 
   // Toggle de visibilidade da barra (default fechado pra não poluir o Cowork visual).
-  const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => lsGet('advancedOpen', '0') === '1');
-  useEffect(() => lsSet('advancedOpen', advancedOpen ? '1' : '0'), [advancedOpen]);
+  const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => ls.get('advancedOpen', '0') === '1');
+  useEffect(() => ls.set('advancedOpen', advancedOpen ? '1' : '0'), [advancedOpen]);
 
   // Selection + favorites + focus row (J/K navigation).
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
   const [favSet, setFavSet] = useState<Set<number>>(() => {
     try {
-      const v = window.localStorage.getItem(LS_PREFIX + 'favs');
+      const v = window.localStorage.getItem(ls.key('favs'));
       return new Set(JSON.parse(v ?? '[]'));
     } catch (_) {
       return new Set();
@@ -799,7 +820,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
       if (next.has(id)) next.delete(id);
       else next.add(id);
       try {
-        window.localStorage.setItem(LS_PREFIX + 'favs', JSON.stringify([...next]));
+        window.localStorage.setItem(ls.key('favs'), JSON.stringify([...next]));
       } catch (_) {
         /* ls indisponível */
       }
