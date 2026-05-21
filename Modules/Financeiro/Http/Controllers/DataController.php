@@ -164,7 +164,7 @@ class DataController extends Controller
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [
-                            ['key' => 'unificado',         'label' => 'Unificado',         'href' => '/financeiro/unificado'],
+                            ['key' => 'unificado',         'label' => 'Financeiro',        'href' => '/financeiro/unificado'],
                             ['key' => 'contas-receber',    'label' => 'Contas a Receber',  'href' => '/financeiro/contas-receber'],
                             ['key' => 'contas-pagar',      'label' => 'Contas a Pagar',    'href' => '/financeiro/contas-pagar'],
                             ['key' => 'fluxo',             'label' => 'Fluxo de Caixa',    'href' => '/financeiro/fluxo'],
