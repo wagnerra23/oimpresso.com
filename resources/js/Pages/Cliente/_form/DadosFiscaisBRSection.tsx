@@ -13,9 +13,26 @@
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { FileText } from 'lucide-react';
-import { type ReactNode } from 'react';
-import { formatCpfCnpj, INDICADOR_IE_OPTIONS, REGIME_TRIBUTARIO_OPTIONS } from '@/Lib/format-br';
+import { Button } from '@/Components/ui/button';
+import { FileText, Search, Loader2 } from 'lucide-react';
+import { type ReactNode, useState } from 'react';
+import { formatCpfCnpj, unmaskDigits, INDICADOR_IE_OPTIONS, REGIME_TRIBUTARIO_OPTIONS } from '@/Lib/format-br';
+
+/**
+ * Payload retornado por GET /contacts/lookup/cnpj/{cnpj}.
+ * Schema espelha BrasilApiService::lookupCnpj normalized output.
+ */
+export interface BrasilApiCnpjData {
+  cnpj: string;
+  razao_social: string | null;
+  nome_fantasia: string | null;
+  cep: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  bairro: string | null;
+  municipio: string | null;
+  uf: string | null;
+}
 
 /**
  * Campos BR usados nos dois forms (Create + Edit). Espelha colunas da
@@ -45,6 +62,15 @@ interface Props<T extends DadosFiscaisBRData> {
   errors: DadosFiscaisBRErrors;
   /** Quando o tipo do contato é 'PF' a UI esconde campos PJ-only (IE, IM, suframa, nome fantasia). */
   isJuridica: boolean;
+  /**
+   * Callback Slice 5a — chamado quando lookup BrasilAPI retorna sucesso.
+   * O pai (Create/Edit) deve preencher campos que NÃO estão no DadosFiscaisBRData
+   * (supplier_business_name = razao_social, endereço completo).
+   *
+   * O próprio DadosFiscaisBRSection preenche apenas `nome_fantasia` (que está
+   * em DadosFiscaisBRData).
+   */
+  onCnpjLookup?: (data: BrasilApiCnpjData) => void;
 }
 
 export default function DadosFiscaisBRSection<T extends DadosFiscaisBRData>({
@@ -52,7 +78,59 @@ export default function DadosFiscaisBRSection<T extends DadosFiscaisBRData>({
   setData,
   errors,
   isJuridica,
+  onCnpjLookup,
 }: Props<T>) {
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [lookupSuccess, setLookupSuccess] = useState<string | null>(null);
+
+  const cpfCnpjDigits = unmaskDigits(data.cpf_cnpj);
+  const isCnpjComplete = isJuridica && cpfCnpjDigits.length === 14;
+
+  const handleLookupCnpj = async () => {
+    if (cpfCnpjDigits.length !== 14) {
+      setLookupError('Digite o CNPJ completo (14 dígitos).');
+      return;
+    }
+    setLookupLoading(true);
+    setLookupError(null);
+    setLookupSuccess(null);
+
+    try {
+      const resp = await fetch(`/contacts/lookup/cnpj/${cpfCnpjDigits}`, {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+      });
+
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => ({}));
+        setLookupError(j.message ?? `CNPJ não encontrado (HTTP ${resp.status}).`);
+        return;
+      }
+
+      const json = await resp.json();
+      const api = json?.data as BrasilApiCnpjData | undefined;
+      if (!api) {
+        setLookupError('Resposta inesperada da BrasilAPI.');
+        return;
+      }
+
+      // Preenche nome_fantasia (campo deste componente).
+      if (api.nome_fantasia) {
+        setData('nome_fantasia' as keyof T, api.nome_fantasia as T[keyof T]);
+      }
+
+      // Delega pro pai preencher supplier_business_name + endereço.
+      onCnpjLookup?.(api);
+
+      setLookupSuccess(`Dados preenchidos: ${api.razao_social ?? 'razão social'}.`);
+    } catch (e) {
+      setLookupError('Erro de rede ao consultar BrasilAPI.');
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   return (
     <section className="rounded-lg border border-border bg-background p-5">
       <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -65,19 +143,53 @@ export default function DadosFiscaisBRSection<T extends DadosFiscaisBRData>({
           label={isJuridica ? 'CNPJ' : 'CPF'}
           error={errors.cpf_cnpj}
         >
-          <Input
-            type="text"
-            inputMode="numeric"
-            value={formatCpfCnpj(data.cpf_cnpj)}
-            onChange={(e) => {
-              // Persiste sempre formatado pro re-render manter máscara consistente.
-              // Backend normaliza com Util::onlyNumbers via Rule BR\CpfCnpj.
-              setData('cpf_cnpj' as keyof T, formatCpfCnpj(e.target.value) as T[keyof T]);
-            }}
-            placeholder={isJuridica ? '00.000.000/0000-00' : '000.000.000-00'}
-            maxLength={18}
-            autoComplete="off"
-          />
+          <div className="flex items-stretch gap-2">
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={formatCpfCnpj(data.cpf_cnpj)}
+              onChange={(e) => {
+                // Persiste sempre formatado pro re-render manter máscara consistente.
+                // Backend normaliza com Util::onlyNumbers via Rule BR\CpfCnpj.
+                setData('cpf_cnpj' as keyof T, formatCpfCnpj(e.target.value) as T[keyof T]);
+                // Reset feedback ao editar manualmente.
+                if (lookupError) setLookupError(null);
+                if (lookupSuccess) setLookupSuccess(null);
+              }}
+              placeholder={isJuridica ? '00.000.000/0000-00' : '000.000.000-00'}
+              maxLength={18}
+              autoComplete="off"
+              className="flex-1"
+            />
+            {isJuridica && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleLookupCnpj}
+                disabled={!isCnpjComplete || lookupLoading}
+                title={
+                  isCnpjComplete
+                    ? 'Buscar dados na BrasilAPI'
+                    : 'Digite o CNPJ completo (14 dígitos) pra habilitar'
+                }
+                className="shrink-0 px-3"
+              >
+                {lookupLoading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Search size={14} />
+                )}
+                <span className="ml-1.5 hidden sm:inline">Buscar CNPJ</span>
+              </Button>
+            )}
+          </div>
+          {lookupError && (
+            <p className="text-xs text-rose-600 mt-1">{lookupError}</p>
+          )}
+          {lookupSuccess && !lookupError && (
+            <p className="text-xs text-emerald-600 mt-1">{lookupSuccess}</p>
+          )}
         </Field>
 
         {!isJuridica && (
