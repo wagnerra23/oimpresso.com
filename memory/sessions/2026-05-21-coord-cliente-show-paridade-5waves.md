@@ -1,5 +1,5 @@
 ---
-date: 2026-05-21
+date: "2026-05-21"
 hour: "07:46 BRT"
 duration: 1.5h
 topic: "Coord-paralelo paridade Cliente/Show 5 tabs (US-CRM-063..067) — wiring Show.tsx + ContactController + 12 arquivos novos"
@@ -12,7 +12,13 @@ outcomes:
   - Paridade ~40% → ~85% pronta pra reativação MWART_CLIENTE_SHOW=true pós-merge
 prs: [1298]
 us: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067]
-related_adrs: [0093, 0094, 0104, 0107, 0114, 0149]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0107-emendation-0104-visual-comparison-gate-f3
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0149-mwart-screen-pattern-reuse-cowork
 ---
 
 # Coord-Paralelo: Paridade `/cliente/{id}` Wave A-E (US-CRM-063..067)
