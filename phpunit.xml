@@ -53,6 +53,7 @@
             <directory>./Modules/ConsultaOs/Tests/Feature</directory>
             <directory>./Modules/Brief/Tests/Feature</directory>
             <directory>./Modules/Woocommerce/Tests/Feature</directory>
+            <directory>./Modules/Compras/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
