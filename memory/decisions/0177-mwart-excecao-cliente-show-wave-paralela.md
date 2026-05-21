@@ -1,6 +1,6 @@
 ---
-slug: 0176-mwart-excecao-cliente-show-wave-paralela
-number: 176
+slug: 0177-mwart-excecao-cliente-show-wave-paralela
+number: 177
 title: "MWART exceção — Cliente/Show Wave paralela paridade tabs (visual regression override)"
 type: adr
 status: aceito
@@ -8,7 +8,7 @@ authority: reference
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-21"
-module: Cliente
+module: core
 related:
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
@@ -17,7 +17,7 @@ related:
   - 0149-mwart-screen-pattern-reuse-cowork
 ---
 
-# ADR 0176 — MWART exceção: Cliente/Show Wave paralela paridade tabs
+# ADR 0177 — MWART exceção: Cliente/Show Wave paralela paridade tabs
 
 ## Contexto
 
