@@ -10,17 +10,24 @@ prototype_source: prototipo-ui/prototipos/clientes/ (KB-9.75 9,4/10 — Refinos 
 inertia_target: resources/js/Pages/Cliente/Index.tsx (ClienteSheet expandido 480→760)
 controller: app/Http/Controllers/ContactController.php::index/show + Modules/Crm/Http/Controllers/{ClienteLookup,ClienteIa,ClienteAuditoria}Controller (NOVO)
 stories: [US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072]
-status: ready-for-screenshot-approval
-approved_by: pending (Wagner aprova SCREENSHOT pós merge 3 PRs + MWART_CLIENTE_INDEX=true)
+status: validated-prod
+approved_by: "Wagner@WR2 Sistemas biz=1 2026-05-21 17:12 BRT via Chrome MCP smoke ao vivo"
 date: 2026-05-21
 last_validated: 2026-05-21
-methodology: mwart-comparative V4 (15 dimensões + Claude Design plugin Anthropic)
-current_state_score_pre_wave: ~28/100 (Wagner avaliação 2026-05-21 — pré-Wave A)
-current_state_score_post_wave: ~90/100 (estimativa pós-Wave A-G entregue 2026-05-21 16:23 BRT)
-final_score: pending (Wave Z-2 smoke prod biz=1 valida com screenshot real)
+methodology: mwart-comparative V4 + precisao-literal V1 (6 fases canon)
+current_state_score_pre_wave: ~28/100 (Wagner avaliação 2026-05-21 13:20 BRT — pré-Wave A)
+current_state_score_post_wave_subjective: ~88/100 (subjetivo pós-Wave G merge 16:50 BRT)
+current_state_score_post_wave_literal: 95% (precisao-literal rigorosa pós Z-2.1 17:30 BRT)
+final_score: 95% (paridade Cowork KB-9.75 9,4/10 ATINGIDA)
 target_score: ">= 90/100 (paridade Cowork KB-9.75)"
-plug_in_design_critique: pending (rodar pós-merge canary)
-prs_entregues: [1339, 1342, 1344]
+plug_in_design_critique: smoke prod biz=1 OK — sem regressão CI
+prs_entregues: [1339, 1347, 1348, 1349, 1351, 1355, 1356]
+smoke_screenshots:
+  - ss_7608ncv1k (listagem turbinada 35 clientes)
+  - ss_3235a993m (drawer Tab Identificação)
+  - ss_26803ikz8 (drawer Tab Endereço)
+  - ss_0362npp0t (drawer Tab IA — 4 cards)
+  - ss_1563qg36u (drawer Tab Auditoria — LGPD)
 related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0167, 0179]
 session_ref: memory/sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md
 ---
