@@ -1,0 +1,29 @@
+{
+    "name": "nwidart/compras",
+    "description": "Modules/Compras — cockpit de compras + import XML DF-e + entrada matricial",
+    "authors": [
+        {
+            "name": "Office Impresso",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Compras\\": "",
+            "Modules\\Compras\\App\\": "app/",
+            "Modules\\Compras\\Database\\Factories\\": "database/factories/",
+            "Modules\\Compras\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Compras\\Tests\\": "tests/"
+        }
+    }
+}
