@@ -1,3 +1,20 @@
+---
+date: 2026-05-21
+hour: "07:46 BRT"
+duration: 1.5h
+topic: "Coord-paralelo paridade Cliente/Show 5 tabs (US-CRM-063..067) — wiring Show.tsx + ContactController + 12 arquivos novos"
+authors: [W, C]
+outcomes:
+  - 5 sub-components entregues em isolamento (_show/PaymentsTab + LedgerTab + SalesTab + DocumentsTab + ActionsMenu + AddDiscountModal)
+  - 5 testes Pest novos (33 testes, 196 assertions) + Wave1Show*Test atualizados
+  - Show.tsx refactor com tab nav + Show.charter.md v2 status live
+  - ContactController@show expanded permissions + buildClienteSalesPaginator helper Tier 0
+  - Paridade ~40% → ~85% pronta pra reativação MWART_CLIENTE_SHOW=true pós-merge
+prs: [1298]
+us: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067]
+related_adrs: [0093, 0094, 0104, 0107, 0114, 0149]
+---
+
 # Coord-Paralelo: Paridade `/cliente/{id}` Wave A-E (US-CRM-063..067)
 
 **Data:** 2026-05-21
