@@ -3,7 +3,7 @@ module: Dashboard
 status: live
 phase: F6 Soft wrapper (entrega 2026-05-21)
 parent_route: /home
-version: 1
+version: 1.0.0
 owner: wagner
 last_updated: 2026-05-21
 last_validated: 2026-05-21
@@ -58,7 +58,7 @@ Servir como **landing page pós-login** do oimpresso — saudação, filtros glo
 
 | Data | Versão | Mudança |
 |---|---|---|
-| 2026-05-21 | 1 | Ressuscitar módulo + US-DASH-001 Soft wrapper Inertia entregue (PR #1297). Charts e widgets pluggable preservados via `?legacy=1`. |
+| 2026-05-21 | 1.0.0 | Ressuscitar módulo + US-DASH-001 Soft wrapper Inertia entregue (PR #1297). Charts e widgets pluggable preservados via `?legacy=1`. |
 | 2026-04-22 | — | Stub `ausente_branch_atual` criado pelo `module:requirements`. Decisão de ressuscitar/deprecar pendente. |
 
 ## Referências
