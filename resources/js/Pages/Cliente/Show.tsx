@@ -41,6 +41,7 @@ import ActivitiesTab, { type ActivityItem } from './_show/ActivitiesTab';
 import PessoasContatoTab, { type ContactPerson } from './_show/PessoasContatoTab';
 import SubscriptionsTab, { type SubscriptionItem } from './_show/SubscriptionsTab';
 import RewardPointsTab, { type RewardPointsPayload } from './_show/RewardPointsTab';
+import RiscoClienteCard from './_show/RiscoClienteCard';
 
 interface ContactInfo {
   id: number;
@@ -216,6 +217,8 @@ export default function ClienteShow(props: ClienteShowPageProps) {
             </div>
 
             <DadosFiscaisBRCard contact={contact} />
+
+            <RiscoClienteCard contact={contact} stats={props.stats} />
           </aside>
 
           <section className="md:col-span-2">
