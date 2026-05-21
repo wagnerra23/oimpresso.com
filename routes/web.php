@@ -218,6 +218,17 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         if (! $ok) {
             abort(404);
         }
+
+        // Wave B ADR 0179: paradigma drawer 760px substitui Show.tsx full-page.
+        // Quando cliente_index liga, /cliente/{id} redirect 302 -> Index com
+        // deeplink ?contact_id={id}&tab=identificacao (drawer abre on-load).
+        // Tab opcional via ?tab= preserva navegacao especifica do Copiloto/Slack.
+        // Fallback legacy (canary biz=1 rollback): cliente_show liga -> Show.tsx.
+        if (config('mwart.cliente_index.enabled')) {
+            $tab = (string) (request()->query('tab') ?: 'identificacao');
+            return redirect()->to("/cliente?contact_id={$id}&tab={$tab}");
+        }
+
         return $c->show($id);
     })->name('cliente.show')->whereNumber('id');
 
