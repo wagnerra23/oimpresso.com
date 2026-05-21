@@ -1,15 +1,25 @@
-// W1-B3 Cliente/Show — detalhe do cliente Inertia/React (MWART F3).
+// Cliente/Show — detalhe do cliente Inertia/React (MWART F3 — paridade /contacts/{id} legacy).
 // Pattern reuse ADR 0149 — deriva blueprint Cowork clientes.
 // Backend: ContactController::show($id) — Inertia::render dual via config('mwart.cliente_show.enabled')
+//
+// Wiring 5 waves (US-CRM-063..067) — 2026-05-21:
+//   - LedgerTab (W-B / US-064): extrato com range + formato + export
+//   - SalesTab (W-C / US-065): paginação server-side + filtros via Inertia partial reload
+//   - PaymentsTab (W-A / US-063): self-fetch via AJAX /contacts/payments/{id}
+//   - DocumentsTab (W-D / US-066): upload + notas, self-fetch via AJAX
+//   - ActionsMenu + AddDiscountModal (W-E / US-067): dropdown ações header
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
-import { type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
+  Banknote,
   ChevronLeft,
   CreditCard,
   Edit,
+  FileText,
+  ListChecks,
   Mail,
   MapPin,
   Phone,
@@ -17,12 +27,18 @@ import {
   User2,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import PaymentsTab from './_show/PaymentsTab';
+import LedgerTab from './_show/LedgerTab';
+import SalesTab, { type SalesPaginator } from './_show/SalesTab';
+import DocumentsTab from './_show/DocumentsTab';
+import ActionsMenu from './_show/ActionsMenu';
 
 interface ContactInfo {
   id: number;
   name: string;
   supplier_business_name: string | null;
-  type: string;
+  type: 'customer' | 'supplier' | 'both';
+  is_active: boolean;
   tax_number_masked: string | null;
   mobile: string | null;
   landline: string | null;
@@ -40,39 +56,42 @@ interface ContactStats {
   opening_balance: number;
 }
 
-interface ContactTransaction {
-  id: number;
-  invoice_no: string;
-  transaction_date: string;
-  final_total: number;
-  payment_status: string;
+interface Permissions {
+  update: boolean;
+  pay_due: boolean;
+  delete: boolean;
+  toggle_status: boolean;
+  add_discount: boolean;
+  upload: boolean;
+  delete_document: boolean;
+  edit_note: boolean;
+  view_sell: boolean;
 }
+
+type TabKey = 'ledger' | 'sales' | 'payments' | 'documents';
 
 interface ClienteShowPageProps {
   contact: ContactInfo;
+  initialTab: TabKey;
   stats: ContactStats;
-  transactions: ContactTransaction[];
-  permissions: {
-    update: boolean;
-  };
+  sales?: SalesPaginator;
+  locations: Array<{ id: number; name: string }>;
+  permissions: Permissions;
 }
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-const formatDate = (iso: string | null) => {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(d);
-};
-
 export default function ClienteShow(props: ClienteShowPageProps) {
-  const { contact } = props;
+  const { contact, permissions } = props;
+  const [activeTab, setActiveTab] = useState<TabKey>(props.initialTab ?? 'ledger');
+
+  const tabs: Array<{ key: TabKey; label: string; icon: typeof User2 }> = [
+    { key: 'ledger', label: 'Extrato', icon: ListChecks },
+    { key: 'sales', label: 'Vendas', icon: ReceiptText },
+    { key: 'payments', label: 'Pagamentos', icon: Banknote },
+    { key: 'documents', label: 'Documentos & Notas', icon: FileText },
+  ];
 
   return (
     <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
@@ -80,7 +99,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-6xl">
           <div className="flex items-center gap-3 mb-2">
             <a
-              href="/contacts/customer"
+              href="/cliente"
               className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft size={14} className="mr-1" />
@@ -100,22 +119,46 @@ export default function ClienteShow(props: ClienteShowPageProps) {
                     {contact.type}
                   </span>
                 )}
+                {!contact.is_active && (
+                  <span className="ml-2 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-700 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+                    Inativo
+                  </span>
+                )}
               </p>
             </div>
-            {props.permissions.update && (
-              <Button asChild>
-                <a href={`/contacts/${contact.id}/edit`}>
-                  <Edit className="mr-1.5 h-4 w-4" />
-                  Editar
-                </a>
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {permissions.update && (
+                <Button asChild>
+                  <a href={`/contacts/${contact.id}/edit`}>
+                    <Edit className="mr-1.5 h-4 w-4" />
+                    Editar
+                  </a>
+                </Button>
+              )}
+              <ActionsMenu
+                contactId={contact.id}
+                contactName={contact.name}
+                contactType={contact.type}
+                isActive={contact.is_active}
+                permissions={{
+                  pay_due: permissions.pay_due,
+                  delete: permissions.delete,
+                  toggle_status: permissions.toggle_status,
+                  add_discount: permissions.add_discount,
+                }}
+              />
+            </div>
           </div>
 
           <Deferred data="stats" fallback={<StatsSkeleton />}>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
               <StatCard label="Total vendido" value={formatBRL(props.stats?.total_invoice ?? 0)} icon={ReceiptText} />
-              <StatCard label="A receber" value={formatBRL(props.stats?.invoice_due ?? 0)} icon={CreditCard} danger={(props.stats?.invoice_due ?? 0) > 0} />
+              <StatCard
+                label="A receber"
+                value={formatBRL(props.stats?.invoice_due ?? 0)}
+                icon={CreditCard}
+                danger={(props.stats?.invoice_due ?? 0) > 0}
+              />
               <StatCard label="Total comprado" value={formatBRL(props.stats?.total_purchase ?? 0)} icon={ReceiptText} />
               <StatCard label="Saldo abertura" value={formatBRL(props.stats?.opening_balance ?? 0)} icon={User2} />
             </div>
@@ -142,48 +185,61 @@ export default function ClienteShow(props: ClienteShowPageProps) {
           </aside>
 
           <section className="md:col-span-2">
-            <div className="rounded-lg border border-border bg-background overflow-hidden">
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground">Histórico de transações</h3>
-                <a
-                  href={`/contacts/ledger?contact_id=${contact.id}`}
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  Ver extrato completo →
-                </a>
-              </div>
-              <Deferred data="transactions" fallback={<div className="p-8 text-center text-xs text-muted-foreground">Carregando…</div>}>
-                {(props.transactions?.length ?? 0) === 0 ? (
-                  <div className="p-8 text-center text-xs text-muted-foreground">
-                    Nenhuma transação registrada.
-                  </div>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50">
-                      <tr className="border-b border-border">
-                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Data</th>
-                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Nº Fatura</th>
-                        <th className="text-right px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total</th>
-                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {props.transactions.map((tx) => (
-                        <tr key={tx.id} className="border-b border-border hover:bg-muted/40">
-                          <td className="px-4 py-3 text-xs text-muted-foreground tabular-nums">{formatDate(tx.transaction_date)}</td>
-                          <td className="px-4 py-3 font-medium">
-                            <a href={`/sells/${tx.id}`} className="text-foreground hover:underline">{tx.invoice_no}</a>
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums text-foreground">{formatBRL(tx.final_total)}</td>
-                          <td className="px-4 py-3">
-                            <PaymentBadge status={tx.payment_status} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </Deferred>
+            <div className="border-b border-border mb-4 flex gap-1 overflow-x-auto">
+              {tabs.map((t) => {
+                const Icon = t.icon;
+                const isActive = activeTab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setActiveTab(t.key)}
+                    className={
+                      'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ' +
+                      (isActive
+                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                        : 'border-transparent text-muted-foreground hover:text-foreground')
+                    }
+                    aria-selected={isActive}
+                    role="tab"
+                  >
+                    <Icon size={16} />
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div role="tabpanel" className="rounded-lg border border-border bg-background">
+              {activeTab === 'ledger' && (
+                <LedgerTab
+                  contactId={contact.id}
+                  contactName={contact.name}
+                  locations={props.locations}
+                />
+              )}
+              {activeTab === 'sales' && (
+                <Deferred data="sales" fallback={<TabSkeleton />}>
+                  <SalesTab
+                    contactId={contact.id}
+                    sales={props.sales}
+                    endpoint={`/cliente/${contact.id}`}
+                  />
+                </Deferred>
+              )}
+              {activeTab === 'payments' && (
+                <PaymentsTab contactId={contact.id} canViewSell={permissions.view_sell} />
+              )}
+              {activeTab === 'documents' && (
+                <DocumentsTab
+                  contactId={contact.id}
+                  permissions={{
+                    upload: permissions.upload,
+                    delete_document: permissions.delete_document,
+                    edit_note: permissions.edit_note,
+                  }}
+                />
+              )}
             </div>
           </section>
         </div>
@@ -204,7 +260,21 @@ function StatsSkeleton() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, danger }: { label: string; value: string; icon: typeof User2; danger?: boolean }) {
+function TabSkeleton() {
+  return <div className="p-8 text-center text-xs text-muted-foreground">Carregando…</div>;
+}
+
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  danger,
+}: {
+  label: string;
+  value: string;
+  icon: typeof User2;
+  danger?: boolean;
+}) {
   return (
     <div
       className={
@@ -214,11 +284,21 @@ function StatCard({ label, value, icon: Icon, danger }: { label: string; value: 
           : 'border-border bg-background')
       }
     >
-      <div className={'text-[11px] font-semibold uppercase tracking-widest ' + (danger ? 'text-rose-700 dark:text-rose-400' : 'text-muted-foreground')}>
+      <div
+        className={
+          'text-[11px] font-semibold uppercase tracking-widest ' +
+          (danger ? 'text-rose-700 dark:text-rose-400' : 'text-muted-foreground')
+        }
+      >
         {label}
       </div>
       <div className="flex items-end justify-between mt-2">
-        <div className={'text-xl font-semibold tabular-nums ' + (danger ? 'text-rose-700 dark:text-rose-300' : 'text-foreground')}>
+        <div
+          className={
+            'text-xl font-semibold tabular-nums ' +
+            (danger ? 'text-rose-700 dark:text-rose-300' : 'text-foreground')
+          }
+        >
           {value}
         </div>
         <Icon size={20} className={danger ? 'text-rose-400' : 'text-muted-foreground/60'} strokeWidth={1.5} />
@@ -239,24 +319,5 @@ function ContactRow({ icon: Icon, label, value }: { icon: typeof Phone; label: s
   );
 }
 
-function PaymentBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    due: 'bg-amber-50 text-amber-700 border-amber-200',
-    partial: 'bg-blue-50 text-blue-700 border-blue-200',
-  };
-  const labels: Record<string, string> = {
-    paid: 'Pago',
-    due: 'A receber',
-    partial: 'Parcial',
-  };
-  const cls = styles[status] ?? 'bg-muted text-muted-foreground border-border';
-  return (
-    <span className={'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ' + cls}>
-      {labels[status] ?? status}
-    </span>
-  );
-}
-
-// Eslint hint: keep AlertTriangle imported in case canary surfaces overdue badge later.
+// Eslint hint: AlertTriangle reservado pra futuro badge "Em atraso".
 export const _kept = AlertTriangle;
