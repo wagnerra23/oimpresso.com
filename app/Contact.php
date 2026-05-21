@@ -59,6 +59,12 @@ class Contact extends Authenticatable
         'whatsapp_consent' => 'bool',
         'email_consent' => 'bool',
         'consent_updated_at' => 'datetime',
+        // Campos BR restaurados — migration 2026_05_21_140000 (regressão UPOS 6.7).
+        // Em v3.7 eram integer default 1; modernizamos pra boolean.
+        // Cast cobre legado: int 1/0 → bool true/false transparente.
+        'consumidor_final' => 'bool',
+        'contribuinte' => 'bool',
+        'indicador_ie' => 'integer',
     ];
 
     /**
