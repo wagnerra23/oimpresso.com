@@ -1067,7 +1067,7 @@ class ContactController extends Controller
                     'state' => $contact->state ?? null,
                     'address_line_1' => $contact->address_line_1 ?? null,
                 ],
-                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents'], true) ? $tab : 'ledger',
+                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities'], true) ? $tab : 'ledger',
                 'stats' => Inertia::defer(fn () => [
                     'total_invoice' => (float) ($contact->total_invoice ?? 0),
                     'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
@@ -1105,6 +1105,24 @@ class ContactController extends Controller
                         'name' => (string) $c->name,
                         'contact_id' => $c->contact_id,
                         'supplier_business_name' => $c->supplier_business_name,
+                    ])
+                    ->all()),
+                // Onda Final.B — Tab Atividades: activity log Spatie\Activitylog do contact.
+                // Multi-tenant Tier 0 (ADR 0093): Activity::forSubject já scope por subject_id.
+                'activities' => Inertia::defer(fn () => Activity::forSubject($contact)
+                    ->with(['causer'])
+                    ->latest()
+                    ->limit(100)
+                    ->get()
+                    ->map(fn ($a) => [
+                        'id' => (int) $a->id,
+                        'created_at' => optional($a->created_at)->toIso8601String(),
+                        'description' => (string) ($a->description ?? ''),
+                        'description_label' => (string) __('lang_v1.' . ($a->description ?? '')),
+                        'causer_name' => $a->causer->user_full_name ?? null,
+                        'from_api' => $a->getExtraProperty('from_api') ?? null,
+                        'is_automatic' => (bool) $a->getExtraProperty('is_automatic'),
+                        'update_note' => is_string($a->getExtraProperty('update_note')) ? $a->getExtraProperty('update_note') : null,
                     ])
                     ->all()),
                 'permissions' => [
