@@ -146,7 +146,51 @@ class DataController extends Controller
             Menu::modify(
                 'admin-sidebar-menu',
                 function ($menu) {
-                    $menu->url(action([\Modules\Crm\Http\Controllers\CrmDashboardController::class, 'index']), __('crm::lang.crm'), ['icon' => 'fas fa fa-broadcast-tower', 'style' => config('app.env') == 'demo' ? 'background-color: #8CAFD4;' : '', 'active' => request()->segment(1) == 'crm' || request()->get('type') == 'life_stage' || request()->get('type') == 'source'])->order(86);
+                    // ADR 0180 Fase 4 Wave A VENDER (2026-05-21): entry principal CRM
+                    // declara atributos extras propagados pelo LegacyMenuAdapter pro
+                    // frontend Sidebar.tsx (v3 5 grupos canon):
+                    //  - `shortcut` G C → atalho kbd canônico (overlay visual em Fase 8)
+                    //  - `primary`     → botão "+ Novo lead" colorido (PageHeaderTabs Fase 5)
+                    //  - `ghosts`      → 9 sub-views CRM canon (espelha nav.blade.php)
+                    //
+                    // group: 'crm' legacy → LEGACY_GROUP_MAP normaliza pra 'vender' v3
+                    // junto com Customers/Sells/POS (mental model Wagner 2026-05-20).
+                    //
+                    // Ghosts espelham nav.blade.php do módulo CRM (sub-vistas legadas):
+                    //   dashboard / leads / follow-ups / campaigns / contacts-login /
+                    //   call-log / reports / proposals / settings
+                    // hrefs absolutos (não usa url() pra evitar interpretação no
+                    // LegacyMenuAdapter::toRelative). Permission gates específicos
+                    // (crm.access_all_leads, crm.access_own_schedule, etc) continuam
+                    // enforce nos Controllers — gate global hasThePermissionInSubscription
+                    // já cobre módulo on/off na entry principal.
+                    $menu->url(
+                        action([\Modules\Crm\Http\Controllers\CrmDashboardController::class, 'index']),
+                        __('crm::lang.crm'),
+                        [
+                            'icon'     => 'fas fa fa-broadcast-tower',
+                            'style'    => config('app.env') == 'demo' ? 'background-color: #8CAFD4;' : '',
+                            'active'   => request()->segment(1) == 'crm' || request()->get('type') == 'life_stage' || request()->get('type') == 'source',
+                            'group'    => 'crm',
+                            'shortcut' => 'G C',
+                            'primary'  => [
+                                'label'    => 'Novo lead',
+                                'href'     => '/crm/leads/create',
+                                'shortcut' => 'N',
+                            ],
+                            'ghosts'   => [
+                                ['key' => 'dashboard',      'label' => 'Dashboard',      'href' => '/crm/dashboard'],
+                                ['key' => 'leads',          'label' => 'Leads',          'href' => '/crm/leads'],
+                                ['key' => 'follow-ups',     'label' => 'Follow-ups',     'href' => '/crm/follow-ups'],
+                                ['key' => 'campaigns',      'label' => 'Campanhas',      'href' => '/crm/campaigns'],
+                                ['key' => 'contacts-login', 'label' => 'Contatos Login', 'href' => '/crm/all-contacts-login'],
+                                ['key' => 'call-log',       'label' => 'Call Log',       'href' => '/crm/call-log'],
+                                ['key' => 'reports',        'label' => 'Relatórios',     'href' => '/crm/reports'],
+                                ['key' => 'proposals',      'label' => 'Propostas',      'href' => '/crm/proposals'],
+                                ['key' => 'settings',       'label' => 'Configurações',  'href' => '/crm/settings'],
+                            ],
+                        ]
+                    )->order(86);
                 }
             );
 
