@@ -16,6 +16,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Card } from '@/Components/ui/card';
 import { router } from '@inertiajs/react';
 import { useMemo, type ReactNode } from 'react';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 interface Dia {
   data: string;
@@ -520,6 +521,10 @@ function FinanceiroFluxo(props: Props) {
               ? 'Entradas e saídas confirmadas, agrupadas por mês'
               : 'Saldo, entradas e saídas dia-a-dia'}
           </p>
+        </div>
+        <div className="os-page-h-r fin-page-h-r">
+          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+          <FinanceiroSubNav active="fluxo" />
         </div>
       </header>
 

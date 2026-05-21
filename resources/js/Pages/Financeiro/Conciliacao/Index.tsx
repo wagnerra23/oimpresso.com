@@ -10,6 +10,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
 import { Upload, Check, X, Search } from 'lucide-react';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 interface Linha {
   id: number;
@@ -89,6 +90,10 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
         <div className="os-page-h-l fin-page-h-l">
           <h1>Conciliação <span className="fin-hero-title-sub">· OFX bancário</span></h1>
           <p>Importe extrato OFX → parser detecta transações → fuzzy match com títulos abertos → aprovar manualmente</p>
+        </div>
+        <div className="os-page-h-r fin-page-h-r">
+          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+          <FinanceiroSubNav active="conciliacao" />
         </div>
       </header>
 

@@ -6,6 +6,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Settings, Plus, AlertTriangle, CheckCircle2, MinusCircle } from 'lucide-react';
 import { ConfigurarBoletoSheet } from './components/ConfigurarBoletoSheet';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 interface Account {
   id: number;
@@ -75,6 +76,8 @@ function Index({ accounts, bancos_suportados }: Props) {
             </p>
           </div>
           <div className="os-page-h-r fin-page-h-r">
+            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+            <FinanceiroSubNav active="contas-bancarias" />
             <a href="/settings/payment-gateways" className="os-btn ghost">Gateways</a>
             <a href="/account/account/create" className="os-btn primary">
               <Plus size={13} /> Nova conta no POS

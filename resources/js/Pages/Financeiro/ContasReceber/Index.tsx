@@ -6,6 +6,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Receipt, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 interface BoletoInfo {
   id: number;
@@ -92,6 +93,10 @@ function Index({ titulos, filtros }: Props) {
           <div className="os-page-h-l fin-page-h-l">
             <h1>Contas a Receber <span className="fin-hero-title-sub">· Títulos</span></h1>
             <p>Gerados de vendas (auto) ou cadastrados manualmente</p>
+          </div>
+          <div className="os-page-h-r fin-page-h-r">
+            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+            <FinanceiroSubNav active="contas-receber" />
           </div>
         </header>
 

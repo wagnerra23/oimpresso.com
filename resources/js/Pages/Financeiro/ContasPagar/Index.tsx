@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/Components/ui/textarea';
 import { CreditCard, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 interface Titulo {
   id: number;
@@ -166,6 +167,10 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
           <div className="os-page-h-l fin-page-h-l">
             <h1>Contas a Pagar <span className="fin-hero-title-sub">· Títulos</span></h1>
             <p>Compras, despesas, contratos</p>
+          </div>
+          <div className="os-page-h-r fin-page-h-r">
+            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+            <FinanceiroSubNav active="contas-pagar" />
           </div>
         </header>
 
