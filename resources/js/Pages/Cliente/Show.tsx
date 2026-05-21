@@ -55,6 +55,17 @@ interface ContactInfo {
   city: string | null;
   state: string | null;
   address_line_1: string | null;
+  // Dados Fiscais BR — payload do backend (migration 2026_05_21_140000).
+  // cpf_cnpj entregue MASCARADO via maskTaxNumber (Show.charter Anti-hook LGPD).
+  cpf_cnpj_masked?: string | null;
+  inscricao_estadual?: string | null;
+  inscricao_municipal?: string | null;
+  indicador_ie?: number | null;
+  nome_fantasia?: string | null;
+  consumidor_final?: boolean;
+  contribuinte?: boolean;
+  regime?: string | null;
+  suframa?: string | null;
 }
 
 interface ContactStats {
@@ -203,6 +214,8 @@ export default function ClienteShow(props: ClienteShowPageProps) {
                 />
               </dl>
             </div>
+
+            <DadosFiscaisBRCard contact={contact} />
           </aside>
 
           <section className="md:col-span-2">
@@ -356,6 +369,117 @@ function ContactRow({ icon: Icon, label, value }: { icon: typeof Phone; label: s
         <dt className="text-xs text-muted-foreground">{label}</dt>
         <dd className="text-sm text-foreground truncate">{value ?? '—'}</dd>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Bloco "Dados Fiscais BR" — Slice 3 da restauração dos campos BR.
+ *
+ * Charter Show.tsx Anti-hook LGPD: cpf_cnpj exibido MASCARADO via
+ * `cpf_cnpj_masked` (backend aplica `maskTaxNumber`). Frontend nunca recebe
+ * `cpf_cnpj` plain.
+ *
+ * Não renderiza se contato não tem nenhum campo BR populado (mantém UI
+ * limpa pra clientes legacy que ainda só têm tax_number genérico).
+ */
+function DadosFiscaisBRCard({ contact }: { contact: ContactInfo }) {
+  const hasAnyField =
+    contact.cpf_cnpj_masked ||
+    contact.inscricao_estadual ||
+    contact.inscricao_municipal ||
+    contact.indicador_ie != null ||
+    contact.nome_fantasia ||
+    contact.regime ||
+    contact.suframa;
+
+  if (!hasAnyField) return null;
+
+  const indicadorIeLabel: Record<number, string> = {
+    1: 'Contribuinte ICMS',
+    2: 'Isento de IE',
+    9: 'Não contribuinte',
+  };
+
+  const regimeLabel: Record<string, string> = {
+    simples: 'Simples Nacional',
+    presumido: 'Lucro Presumido',
+    real: 'Lucro Real',
+    mei: 'MEI',
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-background p-5">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+        Dados fiscais BR
+      </h3>
+      <dl className="space-y-2 text-sm">
+        {contact.cpf_cnpj_masked && (
+          <FiscalRow label="CPF / CNPJ" value={contact.cpf_cnpj_masked} mono />
+        )}
+        {contact.nome_fantasia && (
+          <FiscalRow label="Nome fantasia" value={contact.nome_fantasia} />
+        )}
+        {contact.inscricao_estadual && (
+          <FiscalRow label="IE" value={contact.inscricao_estadual} mono />
+        )}
+        {contact.inscricao_municipal && (
+          <FiscalRow label="IM" value={contact.inscricao_municipal} mono />
+        )}
+        {contact.indicador_ie != null && (
+          <FiscalRow
+            label="Indicador IE"
+            value={`${contact.indicador_ie} — ${indicadorIeLabel[contact.indicador_ie] ?? '—'}`}
+          />
+        )}
+        {contact.regime && (
+          <FiscalRow label="Regime" value={regimeLabel[contact.regime] ?? contact.regime} />
+        )}
+        {contact.suframa && <FiscalRow label="SUFRAMA" value={contact.suframa} mono />}
+        <FiscalFlags
+          contribuinte={contact.contribuinte ?? true}
+          consumidorFinal={contact.consumidor_final ?? false}
+        />
+      </dl>
+    </div>
+  );
+}
+
+function FiscalRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <dt className="text-xs text-muted-foreground flex-shrink-0">{label}</dt>
+      <dd className={'text-sm text-foreground text-right truncate ' + (mono ? 'tabular-nums' : '')}>
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function FiscalFlags({
+  contribuinte,
+  consumidorFinal,
+}: {
+  contribuinte: boolean;
+  consumidorFinal: boolean;
+}) {
+  return (
+    <div className="pt-2 mt-2 border-t border-border flex flex-wrap gap-2">
+      <span
+        className={
+          'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ' +
+          (contribuinte
+            ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-300'
+            : 'border-stone-200 bg-stone-50 text-stone-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300')
+        }
+      >
+        {contribuinte ? '✓ Contribuinte ICMS' : '✗ Não contribuinte'}
+      </span>
+      {consumidorFinal && (
+        <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300">
+          Consumidor final
+        </span>
+      )}
     </div>
   );
 }
