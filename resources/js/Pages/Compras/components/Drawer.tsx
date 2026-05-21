@@ -92,6 +92,8 @@ export interface CompraDetalhe {
 interface DrawerProps {
   compra: CompraDetalhe;
   onClose: () => void;
+  /** Tab inicial. Default 'resumo'. Usado por "Ver pagamentos" pra abrir já no tab certo. */
+  initialTab?: TabId;
 }
 
 function fmtMoney(v: number | null | undefined): string {
@@ -149,8 +151,8 @@ function methodAbbr(m: string | null): string {
   return map[m.toLowerCase()] ?? m.slice(0, 3).toUpperCase();
 }
 
-export default function Drawer({ compra, onClose }: DrawerProps) {
-  const [tab, setTab] = useState<TabId>('resumo');
+export default function Drawer({ compra, onClose, initialTab = 'resumo' }: DrawerProps) {
+  const [tab, setTab] = useState<TabId>(initialTab);
   const idx = stageIdx(compra.status);
 
   const supplierName = compra.contact?.supplier_business_name || compra.contact?.name || 'Sem fornecedor';

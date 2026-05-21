@@ -7,6 +7,7 @@ import { Deferred, router } from '@inertiajs/react';
 import { ReactNode, useMemo, useState } from 'react';
 
 import '../../../css/cowork-compras-bundle.css';
+import AcoesDropdown from './components/AcoesDropdown';
 import Drawer, { type CompraDetalhe } from './components/Drawer';
 
 type Stage = 'rascunho' | 'pedido' | 'transito' | 'recebido' | 'conferido' | 'pago' | 'cancelada';
@@ -77,11 +78,13 @@ function dueAmount(row: Row): number {
 
 function ComprasIndex({ filters, selected_id, kpis, rows, compra_detalhe }: Props) {
   const [localFilter, setLocalFilter] = useState<string>(filters.stage || 'all');
+  const [drawerInitialTab, setDrawerInitialTab] = useState<'resumo' | 'pagamentos'>('resumo');
 
-  const openDrawer = (row: Row) => {
+  const openDrawer = (compraId: number, tab: 'resumo' | 'pagamentos' = 'resumo') => {
+    setDrawerInitialTab(tab);
     router.get(
       '/compras',
-      { q: filters.q, stage: filters.stage, compra_id: row.id },
+      { q: filters.q, stage: filters.stage, compra_id: compraId },
       {
         only: ['compra_detalhe', 'selected_id'],
         preserveState: true,
@@ -90,6 +93,8 @@ function ComprasIndex({ filters, selected_id, kpis, rows, compra_detalhe }: Prop
       }
     );
   };
+
+  const openDrawerFromRow = (row: Row) => openDrawer(row.id, 'resumo');
 
   const closeDrawer = () => {
     router.get(
@@ -211,7 +216,12 @@ function ComprasIndex({ filters, selected_id, kpis, rows, compra_detalhe }: Prop
 
             <Deferred data="rows" fallback={<TableSkeleton />}>
               {rows ? (
-                <TableCompras rows={filteredRows} selectedId={selected_id} onSelect={openDrawer} />
+                <TableCompras
+                  rows={filteredRows}
+                  selectedId={selected_id}
+                  onSelect={openDrawerFromRow}
+                  onOpenDrawer={openDrawer}
+                />
               ) : (
                 <TableSkeleton />
               )}
@@ -222,7 +232,7 @@ function ComprasIndex({ filters, selected_id, kpis, rows, compra_detalhe }: Prop
           {drawerOpen && (
             <Deferred data="compra_detalhe" fallback={<DrawerSkeleton onClose={closeDrawer} />}>
               {compra_detalhe ? (
-                <Drawer compra={compra_detalhe} onClose={closeDrawer} />
+                <Drawer compra={compra_detalhe} onClose={closeDrawer} initialTab={drawerInitialTab} />
               ) : (
                 <DrawerSkeleton onClose={closeDrawer} />
               )}
@@ -296,10 +306,12 @@ function TableCompras({
   rows,
   selectedId,
   onSelect,
+  onOpenDrawer,
 }: {
   rows: Row[];
   selectedId: number | null;
   onSelect: (r: Row) => void;
+  onOpenDrawer: (compraId: number, tab?: 'resumo' | 'pagamentos') => void;
 }) {
   if (rows.length === 0) {
     return (
@@ -314,6 +326,7 @@ function TableCompras({
       <table className="purchases">
         <thead>
           <tr>
+            <th style={{ width: '90px' }}>Ação</th>
             <th style={{ width: '100px' }}>Compra</th>
             <th>Fornecedor</th>
             <th style={{ width: '95px' }}>Data</th>
@@ -330,8 +343,20 @@ function TableCompras({
               <tr
                 key={p.id}
                 className={selectedId === p.id ? 'sel' : ''}
-                onClick={() => onSelect(p)}
+                onClick={(e) => {
+                  // Click no body da linha abre drawer — botões internos chamam stopPropagation
+                  if ((e.target as HTMLElement).closest('button')) return;
+                  onSelect(p);
+                }}
               >
+                <td onClick={(e) => e.stopPropagation()} style={{ cursor: 'default' }}>
+                  <AcoesDropdown
+                    compraId={p.id}
+                    status={p.status}
+                    paymentStatus={p.payment_status}
+                    onOpenDrawer={onOpenDrawer}
+                  />
+                </td>
                 <td className="mono">
                   <b>#{p.id}</b>
                   {p.ref_no && <small>{p.ref_no}</small>}
