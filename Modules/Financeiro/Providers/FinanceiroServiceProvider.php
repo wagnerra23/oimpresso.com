@@ -97,6 +97,10 @@ class FinanceiroServiceProvider extends ServiceProvider
                 // Wagner 2026-05-20: 18.054 titulos biz=4 com plano_conta_id NULL
                 // (criados antes do schema fin_planos_conta). DRE renderiza vazia.
                 \Modules\Financeiro\Console\Commands\BackfillPlanoContaCommand::class,
+                // Wagner 2026-05-21 Fase 5 deprecação legacy — bridge transactions
+                // tipo expense (core UltimatePOS) → fin_titulos AP (Financeiro).
+                // Idempotente via UNIQUE(business_id, origem, origem_id, parcela_numero).
+                \Modules\Financeiro\Console\Commands\BridgeExpenseToTitulosCommand::class,
             ]);
         }
     }
