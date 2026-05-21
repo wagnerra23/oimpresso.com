@@ -195,10 +195,13 @@ class ContactController extends Controller
                   ->where('transactions.due_date', '<', now());
             })
             ->count();
+        // FIX 2026-05-21: `transactions.total_paid` NÃO existe no schema UltimatePOS.
+        // Pagamentos estão em `transaction_payments.amount` (1:N). Subquery scalar.
+        $totalPaidSub = '(SELECT COALESCE(SUM(amount), 0) FROM transaction_payments WHERE transaction_payments.transaction_id = transactions.id)';
         $valor_total_aberto = (float) Transaction::where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->whereIn('transactions.payment_status', ['due', 'partial'])
-            ->sum(DB::raw('final_total - COALESCE(total_paid, 0)'));
+            ->sum(DB::raw("final_total - {$totalPaidSub}"));
 
         return [
             'total' => (int) $total,
@@ -239,7 +242,8 @@ class ContactController extends Controller
                 DB::raw('COUNT(*) AS total_os'),
                 DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN 1 ELSE 0 END) AS os_abertas'),
                 DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') AND due_date IS NOT NULL AND due_date < NOW() THEN 1 ELSE 0 END) AS os_atrasadas'),
-                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN (final_total - COALESCE(total_paid, 0)) ELSE 0 END) AS valor_aberto'),
+                // FIX 2026-05-21: subquery em transaction_payments (total_paid NÃO existe no schema).
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN (final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id)) ELSE 0 END) AS valor_aberto'),
                 DB::raw('MAX(transaction_date) AS last_os_at'),
             )
             ->groupBy('contact_id')
