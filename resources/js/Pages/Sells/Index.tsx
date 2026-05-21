@@ -967,18 +967,13 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   return (
     <div className="sells-cowork">
       <div className="os-page vendas-page vendas-aplus" data-vista={foco}>
-        {/* HEADER linha 1: h1 + ⌘K + CTA primário */}
+        {/* HEADER linha 1: h1 + CTA primário (busca ⌘K movida pra barra de
+            tabs ao lado de Filtros avançados — Wagner 2026-05-21). */}
         <header className="os-head vd-head-clean">
           <div className="os-head-l">
             <h1>Vendas</h1>
             <p>Pedidos · faturamento · NF-e/NFS-e</p>
           </div>
-
-          <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
-            <Search size={12} />
-            <span>Buscar venda, cliente, chave SEFAZ…</span>
-            <kbd>⌘K</kbd>
-          </button>
 
           <div className="os-head-r">
             {props.permissions.create && (
@@ -1302,10 +1297,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             ))}
           </div>
           <div className="vd-tabs-actions">
-            {/* ADR 0178 PR6 cutover — tabs Visão sempre visíveis. SellsToggleViewMode
-                (Lista | Grade Avançada) mantido 30d como fallback rollback enquanto
-                Grade Avançada ainda existe pra cliente OfficeImpresso migrar. */}
+            {/* ADR 0178 — tabs Visão sempre visíveis (Operacional/Financeira/Produção). */}
             <SellsTabsVisao visao={visao} onChange={setVisao} />
+            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
+                fica próxima dos filtros, contextualmente coerente. */}
+            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
+              <Search size={12} />
+              <span>Buscar venda, cliente, chave SEFAZ…</span>
+              <kbd>⌘K</kbd>
+            </button>
             <button
               type="button"
               className={'vd-filters-toggle' + (advancedOpen ? ' on' : '')}
