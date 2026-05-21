@@ -2,7 +2,7 @@
 //
 // Tab 7 do drawer 760px Cliente. Copiloto IA com 4 cards:
 //   1. Resumo do relacionamento (LLM, POST /cliente/{id}/ia/resumo)
-//   2. Reavaliar segmento + tags (LLM structured, POST .../ia/segmento)
+//   2. Reavaliar segmento & tags (LLM structured, POST .../ia/segmento)
 //   3. Proxima acao sugerida   (LLM structured, POST .../ia/proxima-acao)
 //   4. Score de risco          (deterministico -- usa RiscoClienteCard existente)
 //
@@ -221,11 +221,11 @@ export default function IATab({ contact, stats }: IATabProps) {
         )}
       </IaCard>
 
-      {/* Card 2 -- Reavaliar segmento + tags */}
+      {/* Card 2 -- Reavaliar segmento & tags */}
       <IaCard
         testid="ia-card-segmento"
         icon={<Tag size={14} className="text-violet-600" />}
-        title="Reavaliar segmento + tags"
+        title="Reavaliar segmento & tags"
         description="A IA olha o historico real (cidade, ticket, OSs) e propoe segmento + tags. Voce revisa antes de aplicar."
         buttonLabel="Analisar"
         state={segmento}
@@ -284,10 +284,17 @@ export default function IATab({ contact, stats }: IATabProps) {
         )}
       </IaCard>
 
-      {/* Card 4 -- Score de risco (deterministico, zero LLM) */}
-      {/* REUSA componente existente RiscoClienteCard (Slice B KB-9.75) que ja
-          calcula score local via useMemo com 8 sinais canon. */}
-      <RiscoClienteCard contact={contact} stats={stats} />
+      {/* Card 4 -- Score de relacionamento (deterministico, zero LLM) */}
+      {/* Z-2.1: rotulo "Score de relacionamento" alinhado ao protótipo Cowork
+          (semantica positiva — "cliente fiel" no topo). REUSA RiscoClienteCard
+          (Slice B KB-9.75) que calcula score local via useMemo com 8 sinais canon. */}
+      <div className="rounded-lg border border-border bg-background p-4" data-testid="ia-card-score">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles size={14} className="text-emerald-600 dark:text-emerald-400" />
+          <h4 className="text-sm font-semibold text-foreground">Score de relacionamento</h4>
+        </div>
+        <RiscoClienteCard contact={contact} stats={stats} />
+      </div>
     </div>
   );
 }
