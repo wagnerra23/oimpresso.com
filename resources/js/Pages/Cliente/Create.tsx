@@ -9,6 +9,8 @@ import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
+import DadosFiscaisBRSection, { type DadosFiscaisBRData } from './_form/DadosFiscaisBRSection';
+import { unmaskDigits } from '@/Lib/format-br';
 
 interface ClienteCreatePageProps {
   types: Record<string, string>;
@@ -21,7 +23,7 @@ interface ClienteCreatePageProps {
   };
 }
 
-type ClienteFormData = {
+type ClienteFormData = DadosFiscaisBRData & {
   type: string;
   contact_type_radio: string;
   prefix: string;
@@ -43,7 +45,7 @@ type ClienteFormData = {
 };
 
 export default function ClienteCreate(props: ClienteCreatePageProps) {
-  const { data, setData, post, processing, errors } = useForm<ClienteFormData>({
+  const { data, setData, post, processing, errors, transform } = useForm<ClienteFormData>({
     type: props.selected_type ?? 'customer',
     contact_type_radio: 'person',
     prefix: '',
@@ -62,7 +64,28 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
     customer_group_id: '',
     opening_balance: '0',
     credit_limit: '',
+    // Dados Fiscais BR — migration 2026_05_21_140000.
+    cpf_cnpj: '',
+    rg: '',
+    inscricao_estadual: '',
+    inscricao_municipal: '',
+    indicador_ie: '',
+    nome_fantasia: '',
+    consumidor_final: false,
+    contribuinte: true,
+    regime: '',
+    suframa: '',
   });
+
+  const isJuridica = data.contact_type_radio === 'business';
+
+  // Normaliza cpf_cnpj pra dígitos puros antes do submit — backend Rule\BR\CpfCnpj
+  // já chama Util::onlyNumbers internamente mas mandamos limpo pra evitar
+  // pontuação persistida no banco (consistência cross-driver).
+  transform((payload) => ({
+    ...payload,
+    cpf_cnpj: unmaskDigits(payload.cpf_cnpj),
+  }));
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -148,16 +171,23 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
                   maxLength={100}
                 />
               </Field>
-              <Field label="CNPJ / CPF" error={errors.tax_number}>
+              <Field label="Tax number (legado UPOS)" error={errors.tax_number}>
                 <Input
                   type="text"
                   value={data.tax_number}
                   onChange={(e) => setData('tax_number', e.target.value)}
-                  placeholder="00.000.000/0000-00"
+                  placeholder="Use CPF / CNPJ abaixo (este campo é legacy)"
                 />
               </Field>
             </div>
           </Section>
+
+          <DadosFiscaisBRSection<ClienteFormData>
+            data={data}
+            setData={setData}
+            errors={errors}
+            isJuridica={isJuridica}
+          />
 
           <Section title="Contato">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

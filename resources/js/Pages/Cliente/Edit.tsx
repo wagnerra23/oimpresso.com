@@ -9,6 +9,8 @@ import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
+import DadosFiscaisBRSection, { type DadosFiscaisBRData } from './_form/DadosFiscaisBRSection';
+import { unmaskDigits } from '@/Lib/format-br';
 
 interface ContactInfo {
   id: number;
@@ -30,6 +32,17 @@ interface ContactInfo {
   zip_code: string | null;
   customer_group_id: number | null;
   credit_limit: string | null;
+  // Campos BR (migration 2026_05_21_140000). Backend pode mandar null em legacy.
+  cpf_cnpj?: string | null;
+  rg?: string | null;
+  inscricao_estadual?: string | null;
+  inscricao_municipal?: string | null;
+  indicador_ie?: number | null;
+  nome_fantasia?: string | null;
+  consumidor_final?: boolean | null;
+  contribuinte?: boolean | null;
+  regime?: string | null;
+  suframa?: string | null;
 }
 
 interface ClienteEditPageProps {
@@ -39,7 +52,7 @@ interface ClienteEditPageProps {
   opening_balance: string;
 }
 
-type ClienteFormData = {
+type ClienteFormData = DadosFiscaisBRData & {
   type: string;
   contact_type_radio: string;
   first_name: string;
@@ -61,7 +74,7 @@ type ClienteFormData = {
 
 export default function ClienteEdit(props: ClienteEditPageProps) {
   const c = props.contact;
-  const { data, setData, put, processing, errors } = useForm<ClienteFormData>({
+  const { data, setData, put, processing, errors, transform } = useForm<ClienteFormData>({
     type: c.type ?? 'customer',
     contact_type_radio: c.contact_type ?? 'person',
     first_name: c.first_name ?? c.name ?? '',
@@ -79,7 +92,26 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
     customer_group_id: c.customer_group_id ? String(c.customer_group_id) : '',
     opening_balance: props.opening_balance ?? '0',
     credit_limit: c.credit_limit ?? '',
+    // Dados Fiscais BR — pré-preenchidos do contact carregado pelo backend.
+    cpf_cnpj: c.cpf_cnpj ?? '',
+    rg: c.rg ?? '',
+    inscricao_estadual: c.inscricao_estadual ?? '',
+    inscricao_municipal: c.inscricao_municipal ?? '',
+    indicador_ie: c.indicador_ie != null ? String(c.indicador_ie) : '',
+    nome_fantasia: c.nome_fantasia ?? '',
+    consumidor_final: c.consumidor_final === true,
+    contribuinte: c.contribuinte !== false, // default true se null/undefined (legacy)
+    regime: c.regime ?? '',
+    suframa: c.suframa ?? '',
   });
+
+  const isJuridica = data.contact_type_radio === 'business';
+
+  // Mesma normalização de Create — backend Rule\BR\CpfCnpj re-aplica onlyNumbers.
+  transform((payload) => ({
+    ...payload,
+    cpf_cnpj: unmaskDigits(payload.cpf_cnpj),
+  }));
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -152,11 +184,18 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
               <Field label="Sobrenome" error={errors.last_name}>
                 <Input value={data.last_name} onChange={(e) => setData('last_name', e.target.value)} maxLength={100} />
               </Field>
-              <Field label="CNPJ / CPF" error={errors.tax_number}>
-                <Input value={data.tax_number} onChange={(e) => setData('tax_number', e.target.value)} />
+              <Field label="Tax number (legado UPOS)" error={errors.tax_number}>
+                <Input value={data.tax_number} onChange={(e) => setData('tax_number', e.target.value)} placeholder="Use CPF / CNPJ abaixo (este campo é legacy)" />
               </Field>
             </div>
           </Section>
+
+          <DadosFiscaisBRSection<ClienteFormData>
+            data={data}
+            setData={setData}
+            errors={errors}
+            isJuridica={isJuridica}
+          />
 
           <Section title="Contato">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1069,6 +1069,18 @@ class ContactController extends Controller
                     'city' => $contact->city ?? null,
                     'state' => $contact->state ?? null,
                     'address_line_1' => $contact->address_line_1 ?? null,
+                    // Dados Fiscais BR (migration 2026_05_21_140000). cpf_cnpj formatado
+                    // via maskTaxNumber (canon Show.charter Automation Anti-hook) — NAO
+                    // entrega plain pro frontend.
+                    'cpf_cnpj_masked' => $this->maskTaxNumber($contact->cpf_cnpj ?? null),
+                    'inscricao_estadual' => $contact->inscricao_estadual ?? null,
+                    'inscricao_municipal' => $contact->inscricao_municipal ?? null,
+                    'indicador_ie' => $contact->indicador_ie ?? null,
+                    'nome_fantasia' => $contact->nome_fantasia ?? null,
+                    'consumidor_final' => (bool) ($contact->consumidor_final ?? false),
+                    'contribuinte' => (bool) ($contact->contribuinte ?? true),
+                    'regime' => $contact->regime ?? null,
+                    'suframa' => $contact->suframa ?? null,
                 ],
                 'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons', 'subscriptions', 'rewards'], true) ? $tab : 'ledger',
                 'stats' => Inertia::defer(fn () => [
