@@ -1371,3 +1371,91 @@ Acceptance:
 Pode ser executado sob demanda quando Wagner pedir, OU agendado via `financeiro:health-check` apos detectar Gap C.
 
 Refs RUNBOOK-bridge-sells-titulos-backfill.md fase 2d.
+
+### US-FIN-043 · Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara)
+
+> owner: maiara · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Vamos migrar o Financeiro (FINANCEIRO + MENSALIDADE_FINANCEIRO + CONTRATO + BOLETOS + PESSOAS) de cada cliente legacy Delphi/Firebird pro oimpresso (`fin_titulos` + `fin_titulo_baixas` + `contacts` + `transaction_boletos`). Antes de codar o importer Python, Maiara coleta o que falta — regras de negocio que sao por cliente, nao estao no schema.
+
+**LGPD: LIBERADO por Wagner 2026-05-21** — dados PII podem migrar.
+
+## O que voce precisa fazer, Maiara
+
+Segue passo-a-passo no guia: [MAIARA-GUIA-COLETA-CLIENTE.md](MAIARA-GUIA-COLETA-CLIENTE.md)
+
+Resumo:
+
+1. **Pre-flight (10min):** identifica cliente, business_id, conecta no Firebird, conta volume
+2. **Extrai mappings automaticos (30min):** roda 4 queries SQL pra gerar 3 CSVs (planocontas, tipopagto, codbanco) + 3 samples (pessoas, financeiro, contrato)
+3. **Call com cliente (60-90min):** roteiro com 14 perguntas nos 6 Blocos (A-F) — guia tem o texto pronto
+4. **Preenche checklist (30min):** copia [MIGRATION-CHECKLIST-LEGACY.md](MIGRATION-CHECKLIST-LEGACY.md) e responde
+5. **Entrega na task (status: review):** posta os 7 anexos + lista duvidas pendentes pra Wagner/Felipe
+
+## Entregaveis (acceptance criteria)
+
+- [ ] `MIGRATION-CHECKLIST-LEGACY-<cliente>.md` preenchido (Blocos A-F)
+- [ ] `mapping-planocontas-<cliente>.csv` com coluna `oimpresso_codigo` preenchida
+- [ ] `mapping-tipopagto-<cliente>.csv` com coluna `oimpresso_enum` (1 dos 9 valores)
+- [ ] `mapping-codbanco-<cliente>.csv` com `febraban_codigo` preenchido
+- [ ] Sample 20 registros PESSOAS/FINANCEIRO/CONTRATO (3 CSVs)
+- [ ] Volume estimado anotado no cabecalho
+- [ ] Data target cutover sugerida pelo cliente
+- [ ] Status `review` na task MCP
+
+## Cliente piloto
+
+**Cliente piloto fixado: Martinho (biz=164)** — decisao Wagner 2026-05-21.
+
+- Fases 1 + 2 (contacts + vehicles) ja migradas em 2026-05-13 (91 vehicles, placeholder `#EQ{codigo}` pros 4 sem placa)
+- Falta APENAS Financeiro (esta task)
+- Path Firebird: `servidor-crm:D:\DadosClientes\Martinho\Dados\BANCO.FDB`
+
+Pre-flight Martinho:
+
+```bash
+# Confirmar nome biz=164
+ssh hostinger 'cd /home/u613912490/domains/oimpresso.com/public_html && php artisan tinker --execute="echo App\Business::find(164)->name;"'
+
+# Contar fin_titulos Martinho ja importado (esperado: 0)
+ssh hostinger 'cd /home/u613912490/domains/oimpresso.com/public_html && php artisan tinker --execute="echo DB::table(\"fin_titulos\")->where(\"business_id\", 164)->count();"'
+# Se != 0: PARAR + investigar (auditar quem importou antes via git log + audit JSON em scripts/legacy-migration/output/)
+```
+
+## Quando travar
+
+- SQL Firebird nao conecta → @felipe
+- Cliente nao responde 48h → comenta + @wagner
+- Mapping ambiguo → comenta + @felipe
+- Regra de negocio incerta → comenta + @wagner
+
+## Cronograma sugerido
+
+3-5h espalhadas em 2-3 dias (call cliente precisa janela 24-48h):
+
+| Dia | Atividade |
+|---|---|
+| Dia 1 manha | Passo 1 + Passo 2 |
+| Dia 1 tarde | Passo 3 (call cliente, agendar 24-48h antes) |
+| Dia 2 | Passo 4 + Passo 5 |
+
+## Depois desta task — owner: Wagner (decisao 2026-05-21)
+
+Quando Maiara entregar `review`, Daily Brief avisa Wagner automatic. NAO criar task pro Felipe — Wagner roda pessoalmente:
+
+1. Wagner valida coleta da Maiara (~30min)
+2. Wagner cria/roda `scripts/legacy-migration/import-financeiro.py --dry-run` com mappings da Maiara (~2h)
+3. Wagner valida tabela reconciliation side-by-side Firebird×MySQL (secao "Reconciliation pos-import" no [MIGRATION-CHECKLIST-LEGACY.md](MIGRATION-CHECKLIST-LEGACY.md))
+4. Cutover live + audit JSON arquivado (~1h)
+5. Wagner abre proxima task `tasks-create` pra Maiara — proximo cliente
+
+## Refs
+
+- Schema canon: [memory/requisitos/Officeimpresso/OFFICEIMPRESSO-FIREBIRD-SCHEMA.md](../Officeimpresso/OFFICEIMPRESSO-FIREBIRD-SCHEMA.md)
+- Pattern migracao validado 3 clientes: [memory/reference/migracao-officeimpresso-pattern.md](../../reference/migracao-officeimpresso-pattern.md)
+- ADR 0093 multi-tenant Tier 0 (business_id obrigatorio)
+- ADR 0118 segregacao dominios externos (bridge table `accounts_legacy_map`)
+- ADR 0120 PII redaction em audit JSON (legacy_metadata redacted)
