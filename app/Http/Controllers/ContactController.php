@@ -56,11 +56,86 @@ class ContactController extends Controller
      * branches que retornam JSON (DataTable/autocomplete/contact lookup). Inertia
      * envia header `X-Inertia: true` que diferencia das XHR legacy.
      *
-     * Ver: PR fix/contact-controller-inertia-ajax-collision (2026-05-21).
+     * Ver: PR #1299 fix/contact-controller-inertia-ajax-collision (2026-05-21).
      */
     private function isLegacyAjax(): bool
     {
         return request()->ajax() && ! request()->hasHeader('X-Inertia');
+    }
+
+    /**
+     * Wave C US-CRM-065 — Paginador de vendas do contato pra SalesTab React.
+     * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório em TODO query.
+     * Espelha shape esperado pelo `SalesPaginator` em resources/js/Pages/Cliente/_show/SalesTab.tsx.
+     */
+    private function buildClienteSalesPaginator(int $contactId, int $businessId, Request $req): array
+    {
+        $startDate = $req->query('customer_sales_start');
+        $endDate = $req->query('customer_sales_end');
+        $status = $req->query('customer_sales_status');
+        $q = trim((string) $req->query('customer_sales_q', ''));
+        $page = max(1, (int) $req->query('customer_sales_page', 1));
+
+        $query = Transaction::where('transactions.business_id', $businessId)
+            ->where('contact_id', $contactId)
+            ->where('type', 'sell')
+            ->where('status', '!=', 'draft')
+            ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
+            ->select(
+                'transactions.id',
+                'transactions.invoice_no',
+                'transactions.ref_no',
+                'transactions.transaction_date',
+                'transactions.final_total',
+                'transactions.total_paid',
+                'transactions.payment_status',
+                'transactions.status',
+                'bl.name as location_name',
+            );
+
+        if ($startDate) {
+            $query->whereDate('transactions.transaction_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('transactions.transaction_date', '<=', $endDate);
+        }
+        if ($status && in_array($status, ['paid', 'due', 'partial', 'overdue'], true)) {
+            $query->where('transactions.payment_status', $status);
+        }
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('transactions.invoice_no', 'like', "%{$q}%")
+                    ->orWhere('transactions.ref_no', 'like', "%{$q}%");
+            });
+        }
+
+        $paginator = $query->orderByDesc('transactions.transaction_date')
+            ->paginate(20, ['*'], 'customer_sales_page', $page);
+
+        return [
+            'data' => $paginator->getCollection()->map(fn ($tx) => [
+                'id' => (int) $tx->id,
+                'invoice_no' => (string) $tx->invoice_no,
+                'ref_no' => $tx->ref_no,
+                'transaction_date' => optional($tx->transaction_date)->toIso8601String(),
+                'final_total' => (float) $tx->final_total,
+                'total_paid' => (float) $tx->total_paid,
+                'total_due' => (float) (((float) $tx->final_total) - ((float) $tx->total_paid)),
+                'payment_status' => (string) $tx->payment_status,
+                'status' => (string) $tx->status,
+                'location_name' => $tx->location_name,
+            ])->all(),
+            'total' => $paginator->total(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+            'links' => collect($paginator->linkCollection() ?? $paginator->toArray()['links'] ?? [])->map(fn ($l) => [
+                'url' => $l['url'] ?? null,
+                'label' => (string) ($l['label'] ?? ''),
+                'active' => (bool) ($l['active'] ?? false),
+            ])->all(),
+        ];
     }
 
     /**
@@ -967,12 +1042,20 @@ class ContactController extends Controller
 
         // W1-B3 MWART branch — Inertia render quando flag cliente_show liga.
         if ($this->shouldRenderInertiaCliente('cliente_show', (int) $business_id)) {
+            $req = request();
+            $tab = (string) ($req->query('tab') ?? 'ledger');
+            $contact_type = (string) ($contact->type ?? 'customer');
+            $user = auth()->user();
+            $can_customer_update = $user->can('customer.update');
+            $can_supplier_update = $user->can('supplier.update');
+
             return Inertia::render('Cliente/Show', [
                 'contact' => [
                     'id' => (int) $contact->id,
                     'name' => (string) $contact->name,
                     'supplier_business_name' => $contact->supplier_business_name ?? null,
-                    'type' => (string) ($contact->type ?? 'customer'),
+                    'type' => $contact_type,
+                    'is_active' => (bool) ($contact->contact_status === 'active'),
                     'tax_number_masked' => $this->maskTaxNumber($contact->tax_number ?? null),
                     'mobile' => $contact->mobile ?? null,
                     'landline' => $contact->landline ?? null,
@@ -981,6 +1064,7 @@ class ContactController extends Controller
                     'state' => $contact->state ?? null,
                     'address_line_1' => $contact->address_line_1 ?? null,
                 ],
+                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents'], true) ? $tab : 'ledger',
                 'stats' => Inertia::defer(fn () => [
                     'total_invoice' => (float) ($contact->total_invoice ?? 0),
                     'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
@@ -1002,8 +1086,19 @@ class ContactController extends Controller
                         'payment_status' => (string) $tx->payment_status,
                     ])
                     ->all()),
+                // Inertia::defer roda em request separado (partial reload only:['sales']) — usa request() corrente, NÃO $req capturado.
+                'sales' => Inertia::defer(fn () => $this->buildClienteSalesPaginator((int) $contact->id, (int) $business_id, request())),
+                'locations' => $business_locations->map(fn ($name, $id) => ['id' => (int) $id, 'name' => (string) $name])->values()->all(),
                 'permissions' => [
-                    'update' => auth()->user()->can('customer.update') || auth()->user()->can('supplier.update'),
+                    'update' => $can_customer_update || $can_supplier_update,
+                    'pay_due' => $user->can('purchase.payments') || $user->can('sell.payments'),
+                    'delete' => $user->can('customer.delete') || $user->can('supplier.delete'),
+                    'toggle_status' => $can_customer_update || $can_supplier_update,
+                    'add_discount' => $user->can('discount.access'),
+                    'upload' => $can_customer_update || $can_supplier_update,
+                    'delete_document' => $can_customer_update || $can_supplier_update,
+                    'edit_note' => $can_customer_update || $can_supplier_update,
+                    'view_sell' => $user->can('view_own_sell_only') || $user->can('sell.view') || $user->can('direct_sell.view'),
                 ],
             ]);
         }

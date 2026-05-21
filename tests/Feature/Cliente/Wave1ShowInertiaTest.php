@@ -12,8 +12,26 @@ test('Cliente/Show.tsx — structure + AppShellV2 + Deferred', function () {
         ->toContain('export default function ClienteShow')
         ->toContain('<Deferred')
         ->toContain('data="stats"')
-        ->toContain('data="transactions"')
+        // Wave 2026-05-21 paridade 5 tabs (US-CRM-063..067): transactions deferred substituído
+        // por sales deferred (SalesTab é a tab Vendas — paginação via Inertia partial reload only:['sales']).
+        ->toContain('data="sales"')
         ->not->toContain(': any');
+});
+
+test('Cliente/Show.tsx — 4 tabs canon (Extrato/Vendas/Pagamentos/Documentos)', function () {
+    $tsxPath = __DIR__ . '/../../../resources/js/Pages/Cliente/Show.tsx';
+    $contents = file_get_contents($tsxPath);
+
+    expect($contents)
+        ->toContain("label: 'Extrato'")
+        ->toContain("label: 'Vendas'")
+        ->toContain("label: 'Pagamentos'")
+        ->toContain("label: 'Documentos & Notas'")
+        ->toContain('LedgerTab')
+        ->toContain('SalesTab')
+        ->toContain('PaymentsTab')
+        ->toContain('DocumentsTab')
+        ->toContain('ActionsMenu');
 });
 
 test('Cliente/Show.charter.md — ADR 0149 YAML', function () {
