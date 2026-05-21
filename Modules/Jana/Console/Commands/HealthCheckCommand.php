@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Log;
  *   6. Procedure drift (US-COPI-092) — hash deployed vs migration canônica
  *   7. Spec ID drift (ADR 0134) — colisão DB↔SPEC.md (mesmo ID, title diferente)
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
+ *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
+ *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
  *
  * Uso:
  *   php artisan jana:health-check
@@ -49,6 +51,7 @@ class HealthCheckCommand extends Command
             $this->checkProcedureDrift(),
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
+            $this->checkMcpWebhookHealth2h(),
         ];
 
         $allOk = collect($checks)->every(fn ($c) => $c['ok']);
@@ -459,6 +462,102 @@ class HealthCheckCommand extends Command
         }
     }
 
+    /**
+     * Check 9 — MCP webhook health nas últimas 2h (US-FIN-043 incident 2026-05-21).
+     *
+     * Detecta entregas do webhook GitHub → /api/mcp/sync-memory retornando 5xx.
+     * Causa raiz do incident: config cache stale + `'mcp' => [...]` duplicado no
+     * Modules/Jana/Config/config.php fez `config('copiloto.mcp.sync_webhook_token')`
+     * retornar NULL → controller responde {"error":"Misconfigured"} 500.
+     *
+     * Como funciona: lê últimas 50 entregas via GitHub API (gh CLI tem token salvo
+     * em $env:GH_TOKEN ou via gh auth status), conta 5xx nas últimas 2h.
+     *
+     * Tolerância: 0. Qualquer 5xx significa que SPEC.md/memory pushados
+     * NÃO chegaram no DB MCP — Maiara/Felipe/Eliana ficam sem ver tasks atribuídas.
+     *
+     * Skip silencioso se `GH_TOKEN` ausente OU `COPILOTO_MCP_WEBHOOK_ID` não setado
+     * (dev/CI/test environments — só faz sentido em prod live).
+     */
+    protected function checkMcpWebhookHealth2h(): array
+    {
+        $webhookId = env('COPILOTO_MCP_WEBHOOK_ID');
+        $ghToken = env('GH_TOKEN') ?: env('GITHUB_TOKEN');
+        $repo = env('COPILOTO_GITHUB_REPO', 'wagnerra23/oimpresso.com');
+
+        if (! $webhookId || ! $ghToken) {
+            return [
+                'name' => 'mcp_webhook_5xx_2h',
+                'ok' => true,
+                'value' => 'n/a',
+                'threshold' => 0,
+                'message' => 'Skipped (COPILOTO_MCP_WEBHOOK_ID ou GH_TOKEN ausente — dev/CI)',
+            ];
+        }
+
+        try {
+            $url = "https://api.github.com/repos/{$repo}/hooks/{$webhookId}/deliveries?per_page=50";
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                    "Authorization: Bearer {$ghToken}",
+                    'Accept: application/vnd.github+json',
+                    'User-Agent: jana-health-check',
+                ],
+                CURLOPT_TIMEOUT => 10,
+            ]);
+            $body = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200) {
+                return [
+                    'name' => 'mcp_webhook_5xx_2h',
+                    'ok' => false,
+                    'value' => null,
+                    'threshold' => 0,
+                    'message' => "GitHub API retornou {$httpCode} — checar GH_TOKEN scopes (precisa admin:repo_hook)",
+                ];
+            }
+
+            $deliveries = json_decode((string) $body, true) ?: [];
+            $cutoff = now()->subHours(2);
+            $count5xx = 0;
+            $sample = null;
+
+            foreach ($deliveries as $d) {
+                $deliveredAt = isset($d['delivered_at']) ? \Carbon\Carbon::parse($d['delivered_at']) : null;
+                if (! $deliveredAt || $deliveredAt->lt($cutoff)) {
+                    continue;
+                }
+                $code = (int) ($d['status_code'] ?? 0);
+                if ($code >= 500 && $code < 600) {
+                    $count5xx++;
+                    $sample ??= "id={$d['id']} {$code} @ {$d['delivered_at']}";
+                }
+            }
+
+            return [
+                'name' => 'mcp_webhook_5xx_2h',
+                'ok' => $count5xx === 0,
+                'value' => $count5xx,
+                'threshold' => 0,
+                'message' => $count5xx === 0
+                    ? 'Webhook GitHub MCP saudável nas últimas 2h'
+                    : "ALERTA: {$count5xx} entrega(s) 5xx em 2h — SPEC.md push pode não estar virando task no DB (ex: {$sample})",
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => 'mcp_webhook_5xx_2h',
+                'ok' => false,
+                'value' => null,
+                'threshold' => 0,
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
     protected function renderTable(array $checks, bool $allOk): void
     {
         $this->newLine();
@@ -479,7 +578,7 @@ class HealthCheckCommand extends Command
 
         $this->newLine();
         if ($allOk) {
-            $this->info('✓ Todos os 8 checks passaram. Sistema saudável.');
+            $this->info('✓ Todos os 9 checks passaram. Sistema saudável.');
         } else {
             $failed = collect($checks)->where('ok', false)->count();
             $this->error("✗ {$failed} check(s) falharam — investigar acima.");
