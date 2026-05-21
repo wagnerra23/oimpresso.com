@@ -3,7 +3,8 @@ name: Estado-da-arte — entrada matricial tam × cor (compra vestuário)
 description: Pesquisa 8 concorrentes/refs + comparação com oimpresso (Larissa biz=4) + recomendação de componente pra Onda 1 Compras
 type: arte
 status: draft
-created: 2026-05-21
+date: 2026-05-21
+topic: estado-da-arte entrada matricial tam x cor vestuario PME — 8 concorrentes + recomendacao componente Onda 1 Compras
 related:
   - memory/requisitos/Compras/DISCOVERY-LARISSA-COMPRAS.md
   - memory/reference/cliente-rotalivre.md

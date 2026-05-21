@@ -1,3 +1,14 @@
+---
+date: 2026-05-21
+topic: como-integrar — migração purchase legacy → Modules/Compras greenfield (caminho B híbrido)
+type: como-integrar
+authors: ["C"]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+---
+
 # Como-integrar — migração `purchase/*` legacy → `Modules/Compras/` greenfield
 
 > **Data:** 2026-05-21
