@@ -96,7 +96,7 @@ function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
         </div>
         <div className="os-page-h-r fin-page-h-r">
           {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-          <FinanceiroSubNav active="relatorios" />
+          <FinanceiroSubNav active="relatorios" hidePrimary />
           <a href={csvHref} target="_blank" rel="noopener noreferrer" className="os-btn ghost">
             Exportar CSV
           </a>
