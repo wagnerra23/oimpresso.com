@@ -6,6 +6,7 @@ use Modules\Financeiro\Http\Controllers\Advisor\AdvisorPortalController;
 use Modules\Financeiro\Http\Controllers\AdvisorAccessController;
 use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\BoletoController;
+use Modules\Financeiro\Http\Controllers\CaixaController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\CobrancaController;
 use Modules\Financeiro\Http\Controllers\ConciliacaoController;
@@ -169,6 +170,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
 
         // Alias canonical: /financeiro/dashboard → /financeiro (URL canônica é a raiz)
         Route::redirect('/dashboard', '/financeiro', 301)->name('dashboard.alias');
+
+        // Wagner 2026-05-21 Fase 6 Soft (wrapper Inertia) — caixa do turno read-only.
+        // Lifecycle (abrir/fechar) continua na header POS via CashRegisterController core;
+        // esta tela é só descoberta + histórico no Financeiro.
+        // Permission gate `view_cash_register` no Controller.
+        Route::get('/caixa', [CaixaController::class, 'index'])->name('caixa.index');
 
         // Categorias livres (CRUD complementar ao plano de contas)
         Route::get('/categorias', [CategoriaController::class, 'index'])->name('categorias.index');
