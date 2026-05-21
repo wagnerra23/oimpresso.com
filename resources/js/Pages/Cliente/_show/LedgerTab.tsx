@@ -7,6 +7,7 @@
 // Pattern reuse: Cliente/Ledger.tsx (standalone) — versão inline simplificada pra tab.
 
 import { useState } from 'react';
+import { router } from '@inertiajs/react';
 import { Calendar, Download, Filter, Mail, Printer, FileText } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -100,8 +101,11 @@ export default function LedgerTab({
     return `/contacts/ledger?${params.toString()}`;
   };
 
+  // Onda Final.F — usa Inertia router.visit em vez de window.location.href.
+  // Garante SPA navigation (mantém AppShellV2) e renderiza /contacts/ledger
+  // (Cliente/Ledger.tsx React, já validada em prod via Onda 1.D) com filtros aplicados.
   const applyFilters = () => {
-    window.location.href = buildUrl();
+    router.visit(buildUrl(), { preserveScroll: false });
   };
 
   const printPdf = () => {
