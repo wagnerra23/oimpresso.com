@@ -43,10 +43,11 @@ class Kernel extends HttpKernel
             // /expenses /account/* e 301 pra telas Financeiro canônicas.
             // Early return rápido em path desconhecido (99% dos requests).
             \App\Http\Middleware\RedirectLegacyFinanceiro::class,
-            // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — DESABILITADO
-            // INICIALMENTE. Middleware existe em app/Http/Middleware/RedirectLegacyContacts.php
-            // mas NÃO entra no pipeline até Wagner aprovar canary. Pra ativar, descomente:
-            // \App\Http\Middleware\RedirectLegacyContacts::class,
+            // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — ATIVADO pra todos
+            // os businesses (sem BIZ_IDS no .env = sem restrição). Espelha
+            // RedirectLegacyFinanceiro (PR #1283). Middleware short-circuita rápido
+            // em paths fora de /contacts/* (early return).
+            \App\Http\Middleware\RedirectLegacyContacts::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
         ],
 
