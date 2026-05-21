@@ -165,6 +165,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
             type="submit"
             className="os-btn primary"
             disabled={!uploadForm.data.arquivo || uploadForm.processing}
+            style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
           >
             <Upload size={13} />
             {uploadForm.processing ? 'Processando…' : 'Importar OFX'}

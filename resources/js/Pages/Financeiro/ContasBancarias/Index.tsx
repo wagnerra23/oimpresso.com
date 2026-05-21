@@ -85,8 +85,12 @@ function Index({ accounts, bancos_suportados }: Props) {
                 { key: 'gateways', label: 'Gateways', icon: <Settings size={13} />, onClick: () => { window.location.href = '/settings/payment-gateways'; }, title: 'Credenciais API gateways de pagamento' },
               ]}
             />
-            <a href="/account/account/create" className="os-btn primary">
-              <Plus size={13} /> Nova conta no POS
+            <a
+              href="/account/account/create"
+              className="os-btn primary"
+              style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
+            >
+              <Plus size={13} /> Nova conta
             </a>
           </div>
         </header>

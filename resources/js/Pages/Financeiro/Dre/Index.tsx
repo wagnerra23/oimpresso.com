@@ -28,6 +28,7 @@ import {
 import { BalancoView, type BalancoData } from './_components/BalancoView';
 import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 
 // ---------- Tipos das linhas (espelha DRE_LINES canon TelaDRE) ----------
 
@@ -214,13 +215,9 @@ function FinanceiroDre({
               { key: 'exportar',   label: 'Exportar',    icon: <Download size={13} />,    onClick: () => { /* stub F1 */ },                                       title: 'Exportar DRE (XLSX / PDF)' },
             ]}
           />
-          <button
-            type="button"
-            className="os-btn primary"
-            onClick={() => router.visit('/financeiro/unificado/novo')}
-          >
-            <Plus size={13} /> Novo lançamento
-          </button>
+          <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo')}>
+            Novo lançamento
+          </FinanceiroPrimaryButton>
         </div>
       </header>
 

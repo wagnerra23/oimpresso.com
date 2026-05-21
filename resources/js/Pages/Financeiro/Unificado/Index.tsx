@@ -25,6 +25,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sh
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
@@ -982,11 +983,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               { key: 'ocr',        label: 'OCR boleto',      icon: <span>📷</span>,            onClick: () => setOcrSheetOpen(true),                                title: 'Importar boleto via foto/PDF (OCR via IA)' },
             ]}
           />
-          {/* Primary "+ Novo título" — canto direito, separado dos ghosts (Wagner 2026-05-21) */}
-          <button type="button" className="os-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
-            <Plus size={13} />
+          {/* Primary "+ Novo título" — canto direito, hue 145 financas (ADR 0182) */}
+          <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo')}>
             Novo título
-          </button>
+          </FinanceiroPrimaryButton>
         </div>
       </div>
 

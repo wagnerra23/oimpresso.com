@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_components/atoms';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import FunnelStrip from './_components/FunnelStrip';
 import DrawerCobranca from './_components/DrawerCobranca';
 import SheetNovaCobranca from './_components/SheetNovaCobranca';
@@ -195,9 +196,9 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
                 { key: 'remessa',  label: 'Remessa/Retorno', icon: <Upload size={13} />,   onClick: () => setRemessaOpen(true) },
               ]}
             />
-            <button type="button" className="os-btn primary" onClick={() => setNovaOpen(true)}>
-              <Plus size={13} /> Nova cobrança
-            </button>
+            <FinanceiroPrimaryButton onClick={() => setNovaOpen(true)}>
+              Nova cobrança
+            </FinanceiroPrimaryButton>
           </div>
         </header>
       </div>
