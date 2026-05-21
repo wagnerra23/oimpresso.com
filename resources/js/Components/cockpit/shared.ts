@@ -157,24 +157,38 @@ export type SidebarMode = 'expanded' | 'rail';
 // Hue OKLCH por grupo (espelha GROUP_META do prototipo Cowork
 // _cowork-export-2026-05-15/data.jsx). Aplicado via CSS var --gh nos
 // elementos sb-group (dot + label) e sb-rail-group (tooltip + ícone).
+//
+// Sidebar v3 (ADR 0180, 2026-05-21): 8 keys canon (3 topo + 5 grupos).
+// Keys v2 preservadas durante migração faseada — Sidebar.tsx normaliza
+// via LEGACY_GROUP_MAP, mas alguns callers leem hue direto pela key
+// declarada. Cleanup das keys v2 vai na Fase 9.
 export const SIDEBAR_GROUP_HUE: Record<string, number> = {
-  office: 60,
-  oficina: 350,
-  // Família verde — 3 sub-grupos do Financeiro com hue próximo (operação 145
-  // canônico, análise 155 levemente azulado, ajustes 135 levemente amarelado).
-  // Wagner 2026-05-20: Opção B sub-grupos visuais Operação/Análise/Ajustes.
-  'fin-op': 145,
-  'fin-analise': 155,
-  'fin-config': 135,
-  fin: 145, // legacy compat — core UltimatePOS Despesas/Contas de pagamento até deprecação F1
-  estoque: 30,
-  fiscal: 200,
-  rh: 295,
-  conhecimento: 80,
-  rel: 240,
-  ia: 220,
-  governanca: 270,
-  plataforma: 200,
+  // ── Topo v3 (3 fixos) ──
+  ia: 220,           // azul — Copiloto/Jana
+  atendimento: 30,   // laranja — WhatsApp/Inbox
+  equipe: 270,       // roxo — Team MCP
+
+  // ── 5 grupos canônicos v3 ──
+  vender: 60,        // amarelo — energia comercial
+  operar: 350,       // magenta — OS/Produção/Estoque
+  financas: 145,     // verde — financeiro + fiscal
+  pessoas: 295,      // roxo claro — RH
+  sistema: 200,      // azul-acinzentado — governança + plataforma
+
+  // ── Legacy v2 (preservadas durante migração faseada — removidas na F9) ──
+  office: 60,             // → vender
+  oficina: 350,           // → operar
+  'fin-op': 145,          // → financas
+  'fin-analise': 155,     // → financas
+  'fin-config': 135,      // → financas
+  fin: 145,               // → financas
+  estoque: 350,           // → operar
+  fiscal: 145,            // → financas (era 200, conflitava com sistema)
+  rh: 295,                // → pessoas
+  conhecimento: 220,      // → ia
+  rel: 220,               // → ia
+  governanca: 200,        // → sistema (era 270, conflitava com equipe)
+  plataforma: 200,        // → sistema
 };
 
 // ── helpers ─────────────────────────────────────────────────────────────
