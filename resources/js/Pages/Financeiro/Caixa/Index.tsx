@@ -6,6 +6,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, usePage } from '@inertiajs/react';
 import { ReactNode, useMemo } from 'react';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 interface CaixaRow {
   id: number;
@@ -93,6 +94,10 @@ function Caixa({ caixas, stats, filters, links }: Props) {
             </a>
             .
           </p>
+        </div>
+        <div className="os-page-h-r fin-page-h-r">
+          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+          <FinanceiroSubNav active="caixa" />
         </div>
       </header>
 
