@@ -24,7 +24,7 @@ import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
-import PageHeaderTabs, { type PageHeaderGhost, type PageHeaderPrimary, type PageHeaderOverflowItem } from '@/Components/shared/PageHeaderTabs';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
@@ -761,54 +761,8 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   );
 }
 
-// ---------- FinanceiroSubNav (ADR 0180 Fase 5 piloto) ----------
-//
-// Lê primary/ghosts da entry "Financeiro" do shell.menu (Inertia shared prop
-// populado via LegacyMenuAdapter — Fase 4 piloto declarou attrs no
-// Modules/Financeiro/Http/Controllers/DataController). Renderiza ghost tabs
-// ARIA tablist abaixo do header `os-page-h` custom da tela.
-//
-// Active prop = key do ghost atual (ex 'unificado' nesta tela, 'pagar' em
-// ContasPagar/Index.tsx quando essa tela adotar tbm). Fallback: nada renderiza
-// se shell.menu não tem entry "Financeiro" com ghosts (ex usuário sem permissão
-// financeiro.access ou Modules/Financeiro desinstalado).
-interface FinanceiroSubNavProps {
-  active: string;
-  /** Ações features-específicas (Resumir/Fechamento/Apresentar/etc) que vão pro overflow `⋯ Mais` */
-  extraOverflowItems?: PageHeaderOverflowItem[];
-  /** Quando true, omite primary (renderiza só ghosts + overflow). Caller renderiza primary separado à direita. */
-  hidePrimary?: boolean;
-}
-
-function FinanceiroSubNav({ active, extraOverflowItems, hidePrimary }: FinanceiroSubNavProps) {
-  const sharedShell = (usePage().props as any)?.shell as {
-    menu?: Array<{ label: string; group?: string; primary?: PageHeaderPrimary; ghosts?: PageHeaderGhost[] }>;
-  } | undefined;
-
-  const finItem = sharedShell?.menu?.find(
-    (m) => m.group === 'fin-op' || m.group === 'financas' || m.label?.toLowerCase() === 'financeiro',
-  );
-
-  if (!finItem?.ghosts?.length) return null;
-
-  // ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — primary `+ Novo título` renderiza
-  // SEPARADO no canto direito do header pelo caller (`hidePrimary=true`); os
-  // botões action features-específicas (Resumir/Fechamento/Apresentar/Imprimir/
-  // Download/OCR/Buscar) entram NO overflow `⋯ Mais` (via `extraOverflowItems`).
-  // Resultado: única linha = ghost tabs (esquerda) + ⋯ Mais + primary (direita).
-  return (
-    <PageHeaderTabs
-      primary={hidePrimary ? undefined : finItem.primary}
-      ghosts={finItem.ghosts}
-      activeGhostKey={active}
-      group="financas"
-      maxVisible={5}
-      extraOverflowItems={extraOverflowItems}
-    />
-  );
-}
-
 // ---------- Página principal ----------
+// (FinanceiroSubNav extraído pra `_shared/FinanceiroSubNav.tsx` 2026-05-21 — ADR 0180 Fase 5 propagação)
 
 function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.

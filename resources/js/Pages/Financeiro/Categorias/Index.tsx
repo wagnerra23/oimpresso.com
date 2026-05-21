@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Tag, Plus, Pencil, Trash2, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { CategoriaSheet } from './components/CategoriaSheet';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 interface Categoria {
   id: number;
@@ -77,6 +78,8 @@ function Index({ categorias, planos_conta }: Props) {
             <p>Complementam o plano de contas (que é fixo/contábil) — organizam lançamentos pra relatórios</p>
           </div>
           <div className="os-page-h-r fin-page-h-r">
+            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+            <FinanceiroSubNav active="categorias" />
             <button type="button" className="os-btn primary" onClick={() => setCreating(true)}>
               <Plus size={13} /> Nova categoria
             </button>

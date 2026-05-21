@@ -21,6 +21,7 @@ import {
   Check, AlertCircle, Receipt, Zap, Building,
 } from 'lucide-react';
 import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_components/atoms';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import FunnelStrip from './_components/FunnelStrip';
 import DrawerCobranca from './_components/DrawerCobranca';
 import SheetNovaCobranca from './_components/SheetNovaCobranca';
@@ -183,6 +184,8 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
             <p>{kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways</p>
           </div>
           <div className="os-page-h-r fin-page-h-r">
+            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+            <FinanceiroSubNav active="cobranca" />
             <button type="button" className="os-btn ghost fin-btn-ai" onClick={() => setAiOpen(true)} title="Resumir cobranças deste mês — IA">
               <span>✦</span> Resumir mês
             </button>

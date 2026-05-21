@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { BalancoView, type BalancoData } from './_components/BalancoView';
 import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 // ---------- Tipos das linhas (espelha DRE_LINES canon TelaDRE) ----------
 
@@ -201,6 +202,8 @@ function FinanceiroDre({
           </p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
+          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+          <FinanceiroSubNav active="dre" />
           <button
             type="button"
             className="os-btn ghost"

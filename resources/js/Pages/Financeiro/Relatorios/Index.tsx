@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
 // Onda 14 — PageHeader removido (canon os-page-h direto)
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 type TabId = 'fluxo' | 'resumo';
 
@@ -94,6 +95,8 @@ function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
           <p>DRE gerencial, fluxo de caixa projetado vs realizado e resumo do período</p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
+          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+          <FinanceiroSubNav active="relatorios" />
           <a href={csvHref} target="_blank" rel="noopener noreferrer" className="os-btn ghost">
             Exportar CSV
           </a>
