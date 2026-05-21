@@ -19,7 +19,13 @@ use Modules\Financeiro\Models\TituloBaixa;
  * Origens suportadas:
  *  - 'venda'   — Transaction type='sell'     + payment_status in ('due','partial')
  *  - 'compra'  — Transaction type='purchase' + payment_status in ('due','partial')
- *  - 'despesa' — Transaction type='expense'  (futuro / onda 3)
+ *  - 'despesa' — Transaction type='expense'  (Fase 5.5 deprecação legacy, 2026-05-21)
+ *
+ * Diferença EXPENSE vs SELL/PURCHASE no payment_status:
+ *  - sell/purchase com payment_status='paid' → cancelarSeExistir (não vira título)
+ *  - expense com payment_status='paid' → cria fin_titulo com status='quitado',
+ *    valor_aberto=0 (Eliana DRE precisa ver despesa histórica paga ou não).
+ *    Mesma filosofia do BridgeExpenseToTitulosCommand (Fase 5).
  *
  * Numeração: sequencial business-isolado com prefixo (R000001 receber / P000001 pagar),
  * gerado com lockForUpdate pra evitar dupla numeração em concorrência.
@@ -29,14 +35,19 @@ use Modules\Financeiro\Models\TituloBaixa;
  *
  * Onda 2 (2026-04-25): + suporte purchase + numeração R/P + baixa automática
  * via registrarPagamento/cancelarPagamento (TransactionPayment).
+ * Fase 5.5 (2026-05-21): + suporte expense → Observer cobre novas expenses
+ * automaticamente (F5 backfill cobre histórico via comando artisan).
  */
 class TituloAutoService
 {
     /**
-     * Cria ou atualiza Titulo a partir de Transaction (sell ou purchase).
-     * No-op se transaction não for sell/purchase ou se já estiver paga.
+     * Cria ou atualiza Titulo a partir de Transaction (sell, purchase ou expense).
+     * No-op se transaction não for sell/purchase/expense.
+     * Para sell/purchase quitada no caixa (payment_status='paid'), cancela o título.
+     * Para expense quitada, cria com status='quitado' (Eliana DRE precisa ver paga).
      *
      * Onda 2: este é o ponto de entrada canônico (renomeado de sincronizarDeVenda).
+     * Fase 5.5: + type='expense'.
      */
     public function sincronizarDeTransacao(Transaction $tx): ?Titulo
     {
@@ -55,6 +66,7 @@ class TituloAutoService
         $tipo = match ($tx->type) {
             'sell' => 'receber',
             'purchase' => 'pagar',
+            'expense' => 'pagar',
             default => null,
         };
 
@@ -62,15 +74,29 @@ class TituloAutoService
             return null;
         }
 
-        // Transação paga em dia (status='paid') não gera título financeiro.
-        if (! in_array($tx->payment_status, ['due', 'partial'], true)) {
+        // Filosofia divergente sell/purchase vs expense (Fase 5.5 2026-05-21):
+        //  - sell/purchase com payment_status='paid' → cancelarSeExistir (não vira título;
+        //    "pagou no caixa, não cria conta a receber/pagar pendente")
+        //  - expense com payment_status='paid' → cria fin_titulo com status='quitado'
+        //    pra Eliana ver DRE histórica (mesma regra do BridgeExpenseToTitulosCommand F5)
+        if ($tx->type !== 'expense' && ! in_array($tx->payment_status, ['due', 'partial'], true)) {
             return $this->cancelarSeExistir($tx, motivo: 'transação quitada no caixa');
         }
 
-        $origem = $tx->type === 'sell' ? 'venda' : 'compra';
+        $origem = match ($tx->type) {
+            'sell' => 'venda',
+            'purchase' => 'compra',
+            'expense' => 'despesa',
+        };
 
         $valorTotal = (float) $tx->final_total;
-        $valorAberto = (float) ($tx->total_remaining_amount ?? $tx->final_total);
+        // Pra expense paga: valor_aberto = 0 (mesma regra do bridge F5).
+        // Pra sell/purchase paga/parcial: usa total_remaining_amount.
+        if ($tx->type === 'expense' && $tx->payment_status === 'paid') {
+            $valorAberto = 0.0;
+        } else {
+            $valorAberto = (float) ($tx->total_remaining_amount ?? $tx->final_total);
+        }
         $valorPago = $valorTotal - $valorAberto;
 
         return DB::transaction(function () use ($tx, $tipo, $origem, $valorTotal, $valorAberto, $valorPago) {
@@ -87,13 +113,18 @@ class TituloAutoService
             $numero = $existing?->numero ?? $this->proximoNumero($tx->business_id, $tipo);
 
             // Onda Edit 2026-05-18 — cross-link auto-pop em `cliente_descricao`.
-            // Formato: "{ContactName} · #V-{txId}" (venda) ou "{ContactName} · #PC-{txId}" (compra).
+            // Formato: "{ContactName} · #V-{txId}" (venda), "{ContactName} · #PC-{txId}" (compra),
+            // "{ContactName} · #E-{txId}" (despesa, Fase 5.5).
             // FinCrossLinkify (frontend) parseia esses tokens e renderiza pills clicáveis
-            // que roteiam pro Sells/Compras de origem. Preserva edit manual do user:
+            // que roteiam pro Sells/Compras/Expenses de origem. Preserva edit manual do user:
             // se $existing já tem cliente_descricao preenchido, NÃO sobrescreve.
             $cliente = $tx->contact_id ? \App\Contact::find($tx->contact_id) : null;
             $contactName = $cliente?->name ?: ($cliente?->supplier_business_name ?: null);
-            $crossLinkPrefix = $tipo === 'receber' ? 'V' : 'PC';
+            $crossLinkPrefix = match ($tx->type) {
+                'sell' => 'V',
+                'purchase' => 'PC',
+                'expense' => 'E',
+            };
             $crossLink = sprintf('#%s-%d', $crossLinkPrefix, $tx->id);
             $descricaoSugerida = $contactName ? "{$contactName} · {$crossLink}" : $crossLink;
             $clienteDescricaoFinal = ($existing && ! empty($existing->cliente_descricao))
@@ -154,6 +185,7 @@ class TituloAutoService
         $origem = match ($tx->type) {
             'sell' => 'venda',
             'purchase' => 'compra',
+            'expense' => 'despesa',
             default => null,
         };
 
