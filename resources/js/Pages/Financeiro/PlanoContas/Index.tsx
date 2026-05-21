@@ -10,7 +10,9 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { type ReactNode, useMemo, useState } from 'react';
 import { Lock, FileText, Search } from 'lucide-react';
+import { router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 
 interface PlanoConta {
   id: number;
@@ -72,8 +74,10 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
           <p>{stats.total} contas hierárquicas (Receita Federal/DCASP) — Eliana classifica lançamentos pelo plano</p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
           <FinanceiroSubNav active="plano-contas" hidePrimary />
+          <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/plano-contas/create')}>
+            Nova conta
+          </FinanceiroPrimaryButton>
         </div>
       </header>
 
