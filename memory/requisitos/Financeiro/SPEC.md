@@ -1408,7 +1408,22 @@ Resumo:
 
 ## Cliente piloto
 
-Aguardando Wagner definir qual cliente comeca (Vargas / Martinho biz=164 / Extreme / Fixar / Mhundo / outro).
+**Cliente piloto fixado: Martinho (biz=164)** — decisao Wagner 2026-05-21.
+
+- Fases 1 + 2 (contacts + vehicles) ja migradas em 2026-05-13 (91 vehicles, placeholder `#EQ{codigo}` pros 4 sem placa)
+- Falta APENAS Financeiro (esta task)
+- Path Firebird: `servidor-crm:D:\DadosClientes\Martinho\Dados\BANCO.FDB`
+
+Pre-flight Martinho:
+
+```bash
+# Confirmar nome biz=164
+ssh hostinger 'cd /home/u613912490/domains/oimpresso.com/public_html && php artisan tinker --execute="echo App\Business::find(164)->name;"'
+
+# Contar fin_titulos Martinho ja importado (esperado: 0)
+ssh hostinger 'cd /home/u613912490/domains/oimpresso.com/public_html && php artisan tinker --execute="echo DB::table(\"fin_titulos\")->where(\"business_id\", 164)->count();"'
+# Se != 0: PARAR + investigar (auditar quem importou antes via git log + audit JSON em scripts/legacy-migration/output/)
+```
 
 ## Quando travar
 
@@ -1427,13 +1442,14 @@ Aguardando Wagner definir qual cliente comeca (Vargas / Martinho biz=164 / Extre
 | Dia 1 tarde | Passo 3 (call cliente, agendar 24-48h antes) |
 | Dia 2 | Passo 4 + Passo 5 |
 
-## Depois desta task
+## Depois desta task — owner: Wagner (decisao 2026-05-21)
 
-Quando Maiara entregar `review`:
-1. Wagner valida coleta (~30min)
-2. Felipe roda importer Python `--dry-run` com mappings (~2h)
-3. Wagner valida relatorio reconciliation (tabela side-by-side Firebird×MySQL — secao "Reconciliation pos-import" no checklist)
-4. Cutover live (Felipe, ~1h)
+Quando Maiara entregar `review`, Daily Brief avisa Wagner automatic. NAO criar task pro Felipe — Wagner roda pessoalmente:
+
+1. Wagner valida coleta da Maiara (~30min)
+2. Wagner cria/roda `scripts/legacy-migration/import-financeiro.py --dry-run` com mappings da Maiara (~2h)
+3. Wagner valida tabela reconciliation side-by-side Firebird×MySQL (secao "Reconciliation pos-import" no [MIGRATION-CHECKLIST-LEGACY.md](MIGRATION-CHECKLIST-LEGACY.md))
+4. Cutover live + audit JSON arquivado (~1h)
 5. Wagner abre proxima task `tasks-create` pra Maiara — proximo cliente
 
 ## Refs
