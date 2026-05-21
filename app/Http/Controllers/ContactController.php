@@ -1067,7 +1067,7 @@ class ContactController extends Controller
                     'state' => $contact->state ?? null,
                     'address_line_1' => $contact->address_line_1 ?? null,
                 ],
-                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities'], true) ? $tab : 'ledger',
+                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons'], true) ? $tab : 'ledger',
                 'stats' => Inertia::defer(fn () => [
                     'total_invoice' => (float) ($contact->total_invoice ?? 0),
                     'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
@@ -1123,6 +1123,22 @@ class ContactController extends Controller
                         'from_api' => $a->getExtraProperty('from_api') ?? null,
                         'is_automatic' => (bool) $a->getExtraProperty('is_automatic'),
                         'update_note' => is_string($a->getExtraProperty('update_note')) ? $a->getExtraProperty('update_note') : null,
+                    ])
+                    ->all()),
+                // Onda Final.C — Tab Pessoas de contato: usuários CRM com crm_contact_id = $contact->id.
+                // Feature do Modules/Crm — fica vazio se CRM module não habilitado pra biz. Multi-tenant Tier 0.
+                'contact_persons' => Inertia::defer(fn () => User::where('business_id', $business_id)
+                    ->where('crm_contact_id', $contact->id)
+                    ->orderBy('first_name')
+                    ->limit(200)
+                    ->get(['id', 'username', 'email', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation'])
+                    ->map(fn ($u) => [
+                        'id' => (int) $u->id,
+                        'username' => (string) ($u->username ?? ''),
+                        'email' => $u->email,
+                        'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
+                        'department' => $u->crm_department,
+                        'designation' => $u->crm_designation,
                     ])
                     ->all()),
                 'permissions' => [
