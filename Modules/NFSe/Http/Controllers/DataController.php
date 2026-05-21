@@ -100,6 +100,10 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry NFSe
+                // é ghost do módulo principal Fiscal/NfeBrasil — sem shortcut próprio
+                // (apenas NfeBrasil G X). Primary action "Emitir NFSe" + ghosts
+                // espelham sub-views próprias declarados pro frontend Sidebar.tsx.
                 $menu->dropdown(
                     'NFSe',
                     function ($sub) {
@@ -138,9 +142,19 @@ class DataController extends Controller
                         }
                     },
                     [
-                        'icon'   => 'fa fas fa-file-invoice',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'    => 'fa fas fa-file-invoice',
+                        'style'   => 'background-color:' . $background_color,
+                        'active'  => $segmento_ativo,
+                        'primary' => [
+                            'label'    => 'Emitir NFSe',
+                            'href'     => '/nfse/emitir',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'notas-emitidas', 'label' => 'Notas Emitidas', 'href' => '/nfse'],
+                            ['key' => 'emitir',         'label' => 'Emitir NFSe',    'href' => '/nfse/emitir'],
+                            ['key' => 'config',         'label' => 'Configurações',  'href' => '/nfse/config'],
+                        ],
                     ]
                 )->order(96);
             }

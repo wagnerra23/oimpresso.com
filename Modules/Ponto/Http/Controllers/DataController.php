@@ -119,6 +119,10 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry Ponto
+                // é ghost do módulo principal Essentials/HRM (G H) — sem shortcut
+                // próprio. Primary "Bater ponto" + ghosts 9 sub-views próprias
+                // espelham nav do dropdown atual, declarados pro frontend Sidebar.tsx.
                 $menu->dropdown(
                     __('pontowr2::ponto.module_label'),
                     function ($sub) {
@@ -219,9 +223,26 @@ class DataController extends Controller
                         }
                     },
                     [
-                        'icon'  => 'fa fas fa-business-time',
-                        'style' => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'    => 'fa fas fa-business-time',
+                        'style'   => 'background-color:' . $background_color,
+                        'active'  => $segmento_ativo,
+                        'primary' => [
+                            'label'    => 'Bater ponto',
+                            'href'     => '/ponto',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'dashboard',       'label' => 'Dashboard',        'href' => '/ponto'],
+                            ['key' => 'espelho',         'label' => 'Espelho',          'href' => '/ponto/espelho'],
+                            ['key' => 'aprovacoes',      'label' => 'Aprovações',       'href' => '/ponto/aprovacoes'],
+                            ['key' => 'intercorrencias', 'label' => 'Intercorrências',  'href' => '/ponto/intercorrencias'],
+                            ['key' => 'banco-horas',     'label' => 'Banco de Horas',   'href' => '/ponto/banco-horas'],
+                            ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas'],
+                            ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes'],
+                            ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios'],
+                            ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores'],
+                            ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes'],
+                        ],
                     ]
                 )->order(88); // logo abaixo do HRM/Essentials (order=87)
             }

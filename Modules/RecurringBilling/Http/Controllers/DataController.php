@@ -97,13 +97,25 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry é ghost
+                // do módulo principal Financeiro (G F) — sem shortcut próprio. Primary
+                // "Nova assinatura" + ghost single-element pra mantér shape contratual
+                // (Wave A ProductCatalogue precedent — Sidebar.tsx aceita array 1-elem).
                 $menu->url(
                     route('recurring-billing.index'),
                     'Cobrança Recorrente',
                     [
-                        'icon'   => 'fa fas fa-sync-alt',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'    => 'fa fas fa-sync-alt',
+                        'style'   => 'background-color:' . $background_color,
+                        'active'  => $segmento_ativo,
+                        'primary' => [
+                            'label'    => 'Nova assinatura',
+                            'href'     => '/recurring-billing/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'recurring-billing', 'label' => 'Cobrança Recorrente', 'href' => '/recurring-billing'],
+                        ],
                     ]
                 )->order(86);
             }
