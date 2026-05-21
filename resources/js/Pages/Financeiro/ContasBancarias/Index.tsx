@@ -76,9 +76,15 @@ function Index({ accounts, bancos_suportados }: Props) {
             </p>
           </div>
           <div className="os-page-h-r fin-page-h-r">
-            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-            <FinanceiroSubNav active="contas-bancarias" hidePrimary />
-            <a href="/settings/payment-gateways" className="os-btn ghost">Gateways</a>
+            {/* ADR 0180 Fase 5 refine Wagner 2026-05-21 — botão "Gateways" vai pro ⋯ Mais;
+                primary "Nova conta no POS" mantém-se canto direito (canon Unificado) */}
+            <FinanceiroSubNav
+              active="contas-bancarias"
+              hidePrimary
+              extraOverflowItems={[
+                { key: 'gateways', label: 'Gateways', icon: <Settings size={13} />, onClick: () => { window.location.href = '/settings/payment-gateways'; }, title: 'Credenciais API gateways de pagamento' },
+              ]}
+            />
             <a href="/account/account/create" className="os-btn primary">
               <Plus size={13} /> Nova conta no POS
             </a>
