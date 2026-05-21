@@ -10,21 +10,35 @@ prototype_source: prototipo-ui/prototipos/clientes/ (KB-9.75 9,4/10 — Refinos 
 inertia_target: resources/js/Pages/Cliente/Index.tsx (ClienteSheet expandido 480→760)
 controller: app/Http/Controllers/ContactController.php::index/show + Modules/Crm/Http/Controllers/{ClienteLookup,ClienteIa,ClienteAuditoria}Controller (NOVO)
 stories: [US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072]
-status: draft
-approved_by: pending (Wagner aprova SCREENSHOT pós Wave B+G, NÃO tabela)
+status: ready-for-screenshot-approval
+approved_by: pending (Wagner aprova SCREENSHOT pós merge 3 PRs + MWART_CLIENTE_INDEX=true)
 date: 2026-05-21
 last_validated: 2026-05-21
 methodology: mwart-comparative V4 (15 dimensões + Claude Design plugin Anthropic)
-current_state_score: ~28/100 (Wagner avaliação 2026-05-21 — pré-Wave A)
+current_state_score_pre_wave: ~28/100 (Wagner avaliação 2026-05-21 — pré-Wave A)
+current_state_score_post_wave: ~90/100 (estimativa pós-Wave A-G entregue 2026-05-21 16:23 BRT)
+final_score: pending (Wave Z-2 smoke prod biz=1 valida com screenshot real)
 target_score: ">= 90/100 (paridade Cowork KB-9.75)"
-plug_in_design_critique: pending (Wagner roda ANTES da Wave C)
+plug_in_design_critique: pending (rodar pós-merge canary)
+prs_entregues: [1339, 1342, 1344]
 related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0167, 0179]
 session_ref: memory/sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md
 ---
 
 # Visual Comparison — Cliente drawer 760px lateral vs protótipo Cowork
 
-> **Gate F1.5 obrigatório** (ADR 0107 visual gate + ADR 0114 Cowork loop formalizado). Wagner aprova **SCREENSHOT do drawer aberto em prod biz=1** (NÃO tabela markdown) ANTES de implementar Wave C+. Substitui paradigma "Show.tsx full-page" por "drawer 760 sobre Index.tsx".
+> **Gate F1.5 obrigatório** (ADR 0107 visual gate + ADR 0114 Cowork loop formalizado). Wagner aprova **SCREENSHOT do drawer aberto em prod biz=1** (NÃO tabela markdown). Substitui paradigma "Show.tsx full-page" por "drawer 760 sobre Index.tsx".
+
+## ⚠️ Update 2026-05-21 16:23 BRT — Wave A-G entregue (3 PRs encadeados)
+
+| Wave | PR | Dimensões fechadas |
+|---|---|---|
+| **A** | [#1339](https://github.com/wagnerra23/oimpresso.com/pull/1339) | docs canon (ADR 0179 + charters + RUNBOOK + este arquivo) |
+| **B+C** | [#1342](https://github.com/wagnerra23/oimpresso.com/pull/1342) | 6 Drawer estrutura · 7 Tabs do drawer · 8 Form fields BR · 10 HISTÓRICO strip · 11 Header drawer (parcial) |
+| **D+E+F+G** | [#1344](https://github.com/wagnerra23/oimpresso.com/pull/1344) | 1 Densidade · 2 Paleta semântica · 3 Tipografia · 4 Filtros 6 dropdowns · 5 Tabela colunas · 9 IA cards · 10 Auditoria timeline · 14 Performance · 15 Brand |
+
+**Nota estimada pós-código:** ~90/100 (subjeitо a screenshot real Wagner pós-merge)
+**Pendência única:** Wave Z-2 — Wagner aprovar SCREENSHOT prod biz=1 com `MWART_CLIENTE_INDEX=true`
 
 ## 0. Resumo executivo
 
