@@ -29,6 +29,7 @@ use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
 use Modules\Whatsapp\Console\Commands\MetricsAggregateCommand;
 use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
 use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
+use Modules\Whatsapp\Console\Commands\RetryRecentMediaDownloadsCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
 use Modules\Whatsapp\Console\Commands\SlaScanCommand;
 use Modules\Whatsapp\Entities\Message;
@@ -96,6 +97,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
                 ReparseMediaFromPayloadCommand::class,  // Bonus — extrai meta de payload pré-PR #664
+                RetryRecentMediaDownloadsCommand::class, // PR #882 — cron horário retry mídia recente (cron em app/Console/Kernel.php:657)
                 AutoLinkConversationContactsCommand::class, // US-WA-078 — backfill auto-link Contact CRM
                 ImportHistoryCommand::class,            // US-WA-080 — import histórico Baileys 90d
                 LidBackfillCommand::class,              // US-WA-093 P1 — backfill LID→phone de messages.payload histórico
