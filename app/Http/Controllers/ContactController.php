@@ -1067,7 +1067,7 @@ class ContactController extends Controller
                     'state' => $contact->state ?? null,
                     'address_line_1' => $contact->address_line_1 ?? null,
                 ],
-                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons', 'subscriptions'], true) ? $tab : 'ledger',
+                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons', 'subscriptions', 'rewards'], true) ? $tab : 'ledger',
                 'stats' => Inertia::defer(fn () => [
                     'total_invoice' => (float) ($contact->total_invoice ?? 0),
                     'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
@@ -1141,6 +1141,39 @@ class ContactController extends Controller
                         'designation' => $u->crm_designation,
                     ])
                     ->all()),
+                // Onda Final.E — Tab Reward Points: pontos fidelidade do contact.
+                // Condicional business.enable_rp (passa null se desligado).
+                'reward_points' => Inertia::defer(fn () => ($req->session()->get('business.enable_rp') == 1 && in_array($contact->type, ['customer', 'both'], true))
+                    ? [
+                        'enabled' => true,
+                        'rp_name' => (string) ($req->session()->get('business.rp_name') ?? 'Pontos'),
+                        'summary' => [
+                            'total_earned' => (int) ($contact->total_rp ?? 0),
+                            'total_used' => (int) ($contact->total_rp_used ?? 0),
+                            'total_expired' => (int) ($contact->total_rp_expired ?? 0),
+                            'balance' => (int) (((int) ($contact->total_rp ?? 0)) - ((int) ($contact->total_rp_used ?? 0)) - ((int) ($contact->total_rp_expired ?? 0))),
+                        ],
+                        'history' => Transaction::where('transactions.business_id', $business_id)
+                            ->where('transactions.contact_id', $contact->id)
+                            ->where(function ($q) {
+                                $q->where('transactions.rp_earned', '>', 0)
+                                  ->orWhere('transactions.rp_redeemed', '>', 0);
+                            })
+                            ->orderByDesc('transactions.transaction_date')
+                            ->limit(100)
+                            ->get(['id', 'invoice_no', 'transaction_date', 'final_total', 'rp_earned', 'rp_redeemed', 'rp_redeemed_amount'])
+                            ->map(fn ($tx) => [
+                                'id' => (int) $tx->id,
+                                'invoice_no' => (string) ($tx->invoice_no ?? ''),
+                                'transaction_date' => optional($tx->transaction_date)->toIso8601String(),
+                                'final_total' => (float) $tx->final_total,
+                                'rp_earned' => (int) ($tx->rp_earned ?? 0),
+                                'rp_redeemed' => (int) ($tx->rp_redeemed ?? 0),
+                                'rp_redeemed_amount' => (float) ($tx->rp_redeemed_amount ?? 0),
+                            ])
+                            ->all(),
+                    ]
+                    : ['enabled' => false, 'rp_name' => '', 'summary' => null, 'history' => []]),
                 // Onda Final.D — Tab Assinaturas: transactions is_recurring=1 do contact (recur_parent_id NULL = pai da série).
                 // Multi-tenant Tier 0 (ADR 0093): business_id + contact_id scope obrigatório.
                 'subscriptions' => Inertia::defer(fn () => Transaction::where('transactions.business_id', $business_id)
