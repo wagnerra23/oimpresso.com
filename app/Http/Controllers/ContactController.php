@@ -1052,6 +1052,17 @@ class ContactController extends Controller
            ->latest()
            ->get();
 
+        // Wave B ADR 0179 — paradigma drawer 760px substitui Show.tsx full-page.
+        // Quando cliente_index liga, redireciona 302 -> Index com deeplink
+        // ?contact_id={id}&tab=identificacao. Tem prioridade sobre cliente_show
+        // branch abaixo (cliente_show vira fallback legacy emergencial).
+        // Multi-tenant: $contact ja foi resolvido com Contact::find($id) acima
+        // sob session('user.business_id') -- chegou aqui = cross-tenant safe.
+        if (config('mwart.cliente_index.enabled')) {
+            $tab = (string) (request()->query('tab') ?: 'identificacao');
+            return redirect()->to("/cliente?contact_id={$contact->id}&tab={$tab}");
+        }
+
         // W1-B3 MWART branch — Inertia render quando flag cliente_show liga.
         if ($this->shouldRenderInertiaCliente('cliente_show', (int) $business_id)) {
             $req = request();
