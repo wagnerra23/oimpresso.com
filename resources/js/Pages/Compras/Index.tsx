@@ -7,6 +7,9 @@ import { Deferred, router } from '@inertiajs/react';
 import { ReactNode, useMemo, useState } from 'react';
 
 import '../../../css/cowork-compras-bundle.css';
+import AcoesDropdown from './components/AcoesDropdown';
+import Drawer, { type CompraDetalhe } from './components/Drawer';
+import VisibilidadeColunas, { type ColumnDef, useColumnVisibility } from './components/VisibilidadeColunas';
 
 type Stage = 'rascunho' | 'pedido' | 'transito' | 'recebido' | 'conferido' | 'pago' | 'cancelada';
 
@@ -41,14 +44,47 @@ interface RowsPayload {
   };
 }
 
+interface Summary {
+  total: number;
+  pago: number;
+  a_pagar: number;
+  reembolso: number;
+}
+
 interface Props {
   filters: {
     q: string;
     stage: string;
+    sort: string;
+    dir: 'asc' | 'desc';
+    per_page: number;
   };
+  selected_id: number | null;
   kpis: Kpis | null;
   rows: RowsPayload | null;
+  summary: Summary | null;
+  compra_detalhe: CompraDetalhe | null;
 }
+
+const COLUMNS: ColumnDef[] = [
+  { id: 'acao', label: 'Ação', required: true },
+  { id: 'compra', label: 'Compra (ref)', required: true },
+  { id: 'fornecedor', label: 'Fornecedor' },
+  { id: 'data', label: 'Data' },
+  { id: 'estagio', label: 'Estágio' },
+  { id: 'total', label: 'Total' },
+  { id: 'a_pagar', label: 'A pagar' },
+];
+
+const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
+  acao: true,
+  compra: true,
+  fornecedor: true,
+  data: true,
+  estagio: true,
+  total: true,
+  a_pagar: true,
+};
 
 const STAGES: { id: Stage; l: string; ic: string }[] = [
   { id: 'rascunho', l: 'Rascunho', ic: '○' },
@@ -72,9 +108,79 @@ function dueAmount(row: Row): number {
   return Math.max(0, Number(row.final_total ?? 0) - Number(row.amount_paid ?? 0));
 }
 
-function ComprasIndex({ filters, kpis, rows }: Props) {
-  const [selected, setSelected] = useState<Row | null>(null);
+function ComprasIndex({ filters, selected_id, kpis, rows, summary, compra_detalhe }: Props) {
   const [localFilter, setLocalFilter] = useState<string>(filters.stage || 'all');
+  const [drawerInitialTab, setDrawerInitialTab] = useState<'resumo' | 'pagamentos'>('resumo');
+  const [colVisibility, setColVisibility] = useColumnVisibility('compras-cols-v1', DEFAULT_COL_VISIBILITY);
+
+  const navigateWithFilters = (overrides: Record<string, string | number | undefined>) => {
+    const next = {
+      q: filters.q,
+      stage: filters.stage,
+      sort: filters.sort,
+      dir: filters.dir,
+      per_page: filters.per_page,
+      ...overrides,
+    };
+    // Limpa keys undefined pra não poluir URL
+    const cleaned: Record<string, string | number> = {};
+    for (const [k, v] of Object.entries(next)) {
+      if (v !== undefined && v !== '' && v !== null) cleaned[k] = v;
+    }
+    router.get('/compras', cleaned, {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true,
+    });
+  };
+
+  const handleSort = (col: string) => {
+    const isCurrent = filters.sort === col;
+    const nextDir = isCurrent && filters.dir === 'asc' ? 'desc' : 'asc';
+    navigateWithFilters({ sort: col, dir: nextDir });
+  };
+
+  const handlePerPage = (value: number) => {
+    navigateWithFilters({ per_page: value });
+  };
+
+  const openExportBlade = (_format: 'csv' | 'excel' | 'pdf' | 'print') => {
+    // Bridge mode — Blade legacy DataTables tem exports nativos via buttons plugin.
+    // PR seguinte substitui por endpoints Compras nativos respeitando filtros.
+    // _format ignorado: Blade legacy mostra todos os 4 botões na mesma tela.
+    window.open('/purchases', '_blank', 'noopener,noreferrer');
+  };
+
+  const openDrawer = (compraId: number, tab: 'resumo' | 'pagamentos' = 'resumo') => {
+    setDrawerInitialTab(tab);
+    router.get(
+      '/compras',
+      { q: filters.q, stage: filters.stage, compra_id: compraId },
+      {
+        only: ['compra_detalhe', 'selected_id'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      }
+    );
+  };
+
+  const openDrawerFromRow = (row: Row) => openDrawer(row.id, 'resumo');
+
+  const closeDrawer = () => {
+    router.get(
+      '/compras',
+      { q: filters.q, stage: filters.stage },
+      {
+        only: ['compra_detalhe', 'selected_id'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      }
+    );
+  };
+
+  const drawerOpen = selected_id != null;
 
   const filteredRows = useMemo<Row[]>(() => {
     if (!rows) return [];
@@ -172,28 +278,56 @@ function ComprasIndex({ filters, kpis, rows }: Props) {
         </nav>
 
         {/* BODY */}
-        <div className={`bd ${selected ? 'with-drawer' : ''}`}>
+        <div className={`bd ${drawerOpen ? 'with-drawer' : ''}`}>
           {/* LISTA */}
           <main className="list">
             <Deferred data="kpis" fallback={<KpisSkeleton />}>
               {kpis ? <KpisGrid k={kpis} /> : <KpisSkeleton />}
             </Deferred>
 
+            <Toolbar
+              perPage={filters.per_page}
+              total={rows?.meta.total ?? 0}
+              colVisibility={colVisibility}
+              setColVisibility={setColVisibility}
+              onPerPageChange={handlePerPage}
+              onExport={openExportBlade}
+            />
+
             <Deferred data="rows" fallback={<TableSkeleton />}>
               {rows ? (
                 <TableCompras
                   rows={filteredRows}
-                  selectedId={selected?.id ?? null}
-                  onSelect={setSelected}
+                  selectedId={selected_id}
+                  onSelect={openDrawerFromRow}
+                  onOpenDrawer={openDrawer}
+                  sortCol={filters.sort}
+                  sortDir={filters.dir}
+                  onSort={handleSort}
+                  colVisibility={colVisibility}
                 />
               ) : (
                 <TableSkeleton />
               )}
             </Deferred>
+
+            <Deferred data="summary" fallback={null}>
+              {summary && rows ? (
+                <SummaryFooter summary={summary} meta={rows.meta} onPageChange={(p) => navigateWithFilters({ page: p })} />
+              ) : null}
+            </Deferred>
           </main>
 
-          {/* DRAWER */}
-          {selected && <DrawerSimple row={selected} onClose={() => setSelected(null)} />}
+          {/* DRAWER 5 tabs sobre grid */}
+          {drawerOpen && (
+            <Deferred data="compra_detalhe" fallback={<DrawerSkeleton onClose={closeDrawer} />}>
+              {compra_detalhe ? (
+                <Drawer compra={compra_detalhe} onClose={closeDrawer} initialTab={drawerInitialTab} />
+              ) : (
+                <DrawerSkeleton onClose={closeDrawer} />
+              )}
+            </Deferred>
+          )}
         </div>
 
         {/* FOOTER */}
@@ -258,14 +392,55 @@ function KpisSkeleton() {
   );
 }
 
+function SortHeader({
+  col,
+  label,
+  sortCol,
+  sortDir,
+  onSort,
+  align = 'left',
+  style,
+}: {
+  col: string;
+  label: string;
+  sortCol: string;
+  sortDir: 'asc' | 'desc';
+  onSort: (col: string) => void;
+  align?: 'left' | 'right';
+  style?: React.CSSProperties;
+}) {
+  const active = sortCol === col;
+  const arrow = active ? (sortDir === 'asc' ? '↑' : '↓') : '⇅';
+  return (
+    <th
+      style={{ ...style, cursor: 'pointer', textAlign: align, userSelect: 'none' }}
+      onClick={() => onSort(col)}
+      title={`Ordenar por ${label}`}
+    >
+      {label}{' '}
+      <span style={{ opacity: active ? 1 : 0.4, fontSize: 11, marginLeft: 2 }}>{arrow}</span>
+    </th>
+  );
+}
+
 function TableCompras({
   rows,
   selectedId,
   onSelect,
+  onOpenDrawer,
+  sortCol,
+  sortDir,
+  onSort,
+  colVisibility,
 }: {
   rows: Row[];
   selectedId: number | null;
   onSelect: (r: Row) => void;
+  onOpenDrawer: (compraId: number, tab?: 'resumo' | 'pagamentos') => void;
+  sortCol: string;
+  sortDir: 'asc' | 'desc';
+  onSort: (col: string) => void;
+  colVisibility: Record<string, boolean>;
 }) {
   if (rows.length === 0) {
     return (
@@ -275,17 +450,75 @@ function TableCompras({
     );
   }
 
+  const v = colVisibility;
+
   return (
     <div className="tbl">
       <table className="purchases">
         <thead>
           <tr>
-            <th style={{ width: '100px' }}>Compra</th>
-            <th>Fornecedor</th>
-            <th style={{ width: '95px' }}>Data</th>
-            <th style={{ width: '100px' }}>Estágio</th>
-            <th style={{ width: '100px', textAlign: 'right' }}>Total</th>
-            <th style={{ width: '100px', textAlign: 'right' }}>A pagar</th>
+            {v.acao && <th style={{ width: '90px' }}>Ação</th>}
+            {v.compra && (
+              <SortHeader
+                col="ref_no"
+                label="Compra"
+                sortCol={sortCol}
+                sortDir={sortDir}
+                onSort={onSort}
+                style={{ width: '100px' }}
+              />
+            )}
+            {v.fornecedor && (
+              <SortHeader
+                col="contact_name"
+                label="Fornecedor"
+                sortCol={sortCol}
+                sortDir={sortDir}
+                onSort={onSort}
+              />
+            )}
+            {v.data && (
+              <SortHeader
+                col="transaction_date"
+                label="Data"
+                sortCol={sortCol}
+                sortDir={sortDir}
+                onSort={onSort}
+                style={{ width: '95px' }}
+              />
+            )}
+            {v.estagio && (
+              <SortHeader
+                col="status"
+                label="Estágio"
+                sortCol={sortCol}
+                sortDir={sortDir}
+                onSort={onSort}
+                style={{ width: '100px' }}
+              />
+            )}
+            {v.total && (
+              <SortHeader
+                col="final_total"
+                label="Total"
+                sortCol={sortCol}
+                sortDir={sortDir}
+                onSort={onSort}
+                align="right"
+                style={{ width: '100px', textAlign: 'right' }}
+              />
+            )}
+            {v.a_pagar && (
+              <SortHeader
+                col="payment_status"
+                label="A pagar"
+                sortCol={sortCol}
+                sortDir={sortDir}
+                onSort={onSort}
+                align="right"
+                style={{ width: '100px', textAlign: 'right' }}
+              />
+            )}
           </tr>
         </thead>
         <tbody>
@@ -296,41 +529,258 @@ function TableCompras({
               <tr
                 key={p.id}
                 className={selectedId === p.id ? 'sel' : ''}
-                onClick={() => onSelect(p)}
+                onClick={(e) => {
+                  // Click no body da linha abre drawer — botões internos chamam stopPropagation
+                  if ((e.target as HTMLElement).closest('button')) return;
+                  onSelect(p);
+                }}
               >
-                <td className="mono">
-                  <b>#{p.id}</b>
-                  {p.ref_no && <small>{p.ref_no}</small>}
-                </td>
-                <td>
-                  <b>{p.supplier_business_name || p.name || '—'}</b>
-                  <small>{p.location_name}</small>
-                </td>
-                <td className="mono">{fmtDate(p.transaction_date)}</td>
-                <td>
-                  {stageInfo ? (
-                    <span className={`pill ${p.status}`}>{stageInfo.l}</span>
-                  ) : (
-                    <span className="pill">{p.status}</span>
-                  )}
-                </td>
-                <td className="num">
-                  <b>{fmtMoney(p.final_total)}</b>
-                </td>
-                <td
-                  className="num"
-                  style={{
-                    color: due > 0 ? 'var(--cmp-warn)' : 'var(--cmp-ok)',
-                    fontWeight: 600,
-                  }}
-                >
-                  {due > 0 ? fmtMoney(due) : '✓'}
-                </td>
+                {v.acao && (
+                  <td onClick={(e) => e.stopPropagation()} style={{ cursor: 'default' }}>
+                    <AcoesDropdown
+                      compraId={p.id}
+                      status={p.status}
+                      paymentStatus={p.payment_status}
+                      onOpenDrawer={onOpenDrawer}
+                    />
+                  </td>
+                )}
+                {v.compra && (
+                  <td className="mono">
+                    <b>#{p.id}</b>
+                    {p.ref_no && <small>{p.ref_no}</small>}
+                  </td>
+                )}
+                {v.fornecedor && (
+                  <td>
+                    <b>{p.supplier_business_name || p.name || '—'}</b>
+                    <small>{p.location_name}</small>
+                  </td>
+                )}
+                {v.data && <td className="mono">{fmtDate(p.transaction_date)}</td>}
+                {v.estagio && (
+                  <td>
+                    {stageInfo ? (
+                      <span className={`pill ${p.status}`}>{stageInfo.l}</span>
+                    ) : (
+                      <span className="pill">{p.status}</span>
+                    )}
+                  </td>
+                )}
+                {v.total && (
+                  <td className="num">
+                    <b>{fmtMoney(p.final_total)}</b>
+                  </td>
+                )}
+                {v.a_pagar && (
+                  <td
+                    className="num"
+                    style={{
+                      color: due > 0 ? 'var(--cmp-warn)' : 'var(--cmp-ok)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {due > 0 ? fmtMoney(due) : '✓'}
+                  </td>
+                )}
               </tr>
             );
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function Toolbar({
+  perPage,
+  total,
+  colVisibility,
+  setColVisibility,
+  onPerPageChange,
+  onExport,
+}: {
+  perPage: number;
+  total: number;
+  colVisibility: Record<string, boolean>;
+  setColVisibility: (next: Record<string, boolean>) => void;
+  onPerPageChange: (n: number) => void;
+  onExport: (format: 'csv' | 'excel' | 'pdf' | 'print') => void;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 10,
+        padding: '8px 12px',
+        background: '#fff',
+        border: '1px solid var(--cmp-line)',
+        borderRadius: 5,
+        flexWrap: 'wrap',
+      }}
+    >
+      <label style={{ fontSize: 11.5, color: 'var(--cmp-ink-2)', display: 'flex', alignItems: 'center', gap: 6 }}>
+        Mostrar
+        <select
+          value={perPage}
+          onChange={(e) => onPerPageChange(Number(e.target.value))}
+          style={{
+            padding: '3px 6px',
+            border: '1px solid var(--cmp-line)',
+            borderRadius: 4,
+            background: '#fbf9f3',
+            fontSize: 11.5,
+          }}
+        >
+          {[10, 25, 50, 100].map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+        entradas
+      </label>
+
+      <span style={{ color: 'var(--cmp-ink-3)', fontSize: 11.5, fontFamily: 'var(--cmp-mono)' }}>
+        · {total} total
+      </span>
+
+      <div style={{ flex: 1 }}></div>
+
+      <button className="btn sm" onClick={() => onExport('csv')} title="Exportar CSV (Blade legacy nova aba)">
+        ↓ CSV
+      </button>
+      <button className="btn sm" onClick={() => onExport('excel')} title="Exportar Excel (Blade legacy nova aba)">
+        ↓ Excel
+      </button>
+      <button className="btn sm" onClick={() => onExport('print')} title="Imprimir (Blade legacy nova aba)">
+        ⎙ Imprimir
+      </button>
+      <VisibilidadeColunas columns={COLUMNS} value={colVisibility} onChange={setColVisibility} />
+      <button className="btn sm" onClick={() => onExport('pdf')} title="Exportar PDF (Blade legacy nova aba)">
+        ↓ PDF
+      </button>
+    </div>
+  );
+}
+
+function SummaryFooter({
+  summary,
+  meta,
+  onPageChange,
+}: {
+  summary: Summary;
+  meta: RowsPayload['meta'];
+  onPageChange: (page: number) => void;
+}) {
+  const start = (meta.current_page - 1) * meta.per_page + 1;
+  const end = Math.min(meta.current_page * meta.per_page, meta.total);
+
+  return (
+    <div
+      style={{
+        marginTop: 10,
+        padding: '10px 12px',
+        background: '#fff',
+        border: '1px solid var(--cmp-line)',
+        borderRadius: 5,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        flexWrap: 'wrap',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+        <SummaryCell label="Total" value={fmtMoney(summary.total)} />
+        <SummaryCell label="Pago" value={fmtMoney(summary.pago)} accent="ok" />
+        <SummaryCell label="A pagar" value={fmtMoney(summary.a_pagar)} accent="warn" />
+        <SummaryCell label="Reembolsado" value={fmtMoney(summary.reembolso)} accent="err" />
+      </div>
+
+      <div style={{ flex: 1 }}></div>
+
+      <div style={{ fontSize: 11.5, color: 'var(--cmp-ink-3)' }}>
+        Mostrando <b>{start}</b>–<b>{end}</b> de <b>{meta.total}</b>
+      </div>
+
+      <div style={{ display: 'flex', gap: 4 }}>
+        <button
+          className="btn sm"
+          disabled={meta.current_page <= 1}
+          onClick={() => onPageChange(meta.current_page - 1)}
+        >
+          ← Anterior
+        </button>
+        <span
+          style={{
+            padding: '3px 10px',
+            background: 'var(--cmp-accent-soft)',
+            border: '1px solid #c9d6e8',
+            borderRadius: 4,
+            fontSize: 11.5,
+            color: 'var(--cmp-accent)',
+            fontWeight: 600,
+            fontFamily: 'var(--cmp-mono)',
+          }}
+        >
+          {meta.current_page} / {meta.last_page}
+        </span>
+        <button
+          className="btn sm"
+          disabled={meta.current_page >= meta.last_page}
+          onClick={() => onPageChange(meta.current_page + 1)}
+        >
+          Próximo →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SummaryCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: 'ok' | 'warn' | 'err';
+}) {
+  const color =
+    accent === 'ok'
+      ? 'var(--cmp-ok)'
+      : accent === 'warn'
+        ? 'var(--cmp-warn)'
+        : accent === 'err'
+          ? 'var(--cmp-err)'
+          : 'var(--cmp-ink)';
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 9.5,
+          textTransform: 'uppercase',
+          letterSpacing: '.05em',
+          color: 'var(--cmp-ink-3)',
+          fontWeight: 600,
+          marginBottom: 2,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 700,
+          fontFamily: 'var(--cmp-mono)',
+          fontVariantNumeric: 'tabular-nums',
+          color,
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }
@@ -343,71 +793,27 @@ function TableSkeleton() {
   );
 }
 
-function DrawerSimple({ row, onClose }: { row: Row; onClose: () => void }) {
-  const due = dueAmount(row);
-  const stageInfo = STAGES.find((x) => x.id === row.status);
-
+function DrawerSkeleton({ onClose }: { onClose: () => void }) {
   return (
     <aside className="drawer">
       <div className="drw-head">
         <div>
-          <h2>{row.supplier_business_name || row.name || 'Sem fornecedor'}</h2>
-          <div style={{ fontSize: 11.5, color: 'var(--cmp-ink-3)', marginTop: 2 }}>
-            {row.location_name} · {fmtDate(row.transaction_date)}
-          </div>
-          <span className="mono">
-            #{row.id}
-            {row.ref_no ? ` · ${row.ref_no}` : ''}
-          </span>
+          <h2 style={{ color: 'var(--cmp-ink-3)' }}>Carregando…</h2>
+          <span className="mono">aguarde</span>
         </div>
         <button className="x" onClick={onClose} aria-label="Fechar">
           ✕
         </button>
       </div>
-
       <div className="drw-body">
         <div className="sec">
-          <h4>Resumo</h4>
-          <div className="card">
-            <div className="field-grid">
-              <div className="f">
-                <label>Estágio</label>
-                <span>{stageInfo?.l ?? row.status}</span>
-              </div>
-              <div className="f">
-                <label>Status pagamento</label>
-                <span>{row.payment_status}</span>
-              </div>
-              <div className="f">
-                <label>Total</label>
-                <span className="mono">{fmtMoney(row.final_total)}</span>
-              </div>
-              <div className="f">
-                <label>A pagar</label>
-                <span className="mono" style={{ color: due > 0 ? 'var(--cmp-warn)' : 'var(--cmp-ok)' }}>
-                  {fmtMoney(due)}
-                </span>
-              </div>
-            </div>
+          <div
+            className="card"
+            style={{ textAlign: 'center', color: 'var(--cmp-ink-3)', padding: 24 }}
+          >
+            Buscando detalhe da compra…
           </div>
         </div>
-
-        <div className="sec">
-          <h4>Detalhe completo</h4>
-          <div className="card" style={{ color: 'var(--cmp-ink-3)', fontSize: 11.5 }}>
-            Itens, pagamentos e timeline chegam na Wave 6 (endpoint <span className="mono">show</span> + DrawerView 5 tabs).
-          </div>
-        </div>
-      </div>
-
-      <div className="drw-foot">
-        <div className="total">
-          Total
-          <b>{fmtMoney(row.final_total)}</b>
-        </div>
-        <button className="btn ghost" onClick={onClose}>
-          Fechar
-        </button>
       </div>
     </aside>
   );
