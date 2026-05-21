@@ -109,8 +109,23 @@ export default function PageHeaderTabs({
   const hue = group ? SIDEBAR_GROUP_HUE[group] : undefined;
   const hueStyle = hue !== undefined ? ({ '--gh': hue } as React.CSSProperties) : undefined;
 
-  const visibleGhosts = ghosts.slice(0, maxVisible);
-  const overflowGhosts = ghosts.slice(maxVisible);
+  // ADR 0182 / Wagner 2026-05-21: auto-promove o ghost ativo pra zona visível
+  // (inline) mesmo se ele estiver depois de maxVisible. Sem isso, telas como
+  // Conciliação/DRE/Bancos ficavam com active escondido no overflow `⋯ Mais`
+  // — usuário não sabia em qual ghost estava.
+  const ghostsOrdered = (() => {
+    if (!activeGhostKey) return ghosts;
+    const activeIdx = ghosts.findIndex((g) => g.key === activeGhostKey);
+    if (activeIdx < 0 || activeIdx < maxVisible) return ghosts;
+    // Active está no overflow → move pra última posição visível (maxVisible-1)
+    const reordered = [...ghosts];
+    const [active] = reordered.splice(activeIdx, 1);
+    reordered.splice(maxVisible - 1, 0, active);
+    return reordered;
+  })();
+
+  const visibleGhosts = ghostsOrdered.slice(0, maxVisible);
+  const overflowGhosts = ghostsOrdered.slice(maxVisible);
 
   // ── Keyboard nav (left/right/home/end) ──────────────────────────────
   const tablistRef = React.useRef<HTMLDivElement>(null);
