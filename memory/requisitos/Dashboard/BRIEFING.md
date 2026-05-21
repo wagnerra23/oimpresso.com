@@ -25,17 +25,21 @@ Welcome banner · 4 KPI cards (Total Sells / Net / Invoice Due / Total Expense) 
 
 Reusa `transactions` + `business_locations` + `users` (core UltimatePOS). **Zero migration nova.**
 
-## Métricas pós-F6 Soft
+## Métricas pós-F6 Soft (deploy 2026-05-21)
 
 - p95 first-paint Inertia ~ 800ms (target) vs ~3s legacy
-- 0 erros JS console (Pest GUARD valida)
+- 0 erros JS console no Inertia `/home` (validado smoke prod Chrome MCP)
+- 4 errors console no `?legacy=1` (SyntaxError + CSRF) — **pré-existentes** Blade `home/index.blade.php:1641`, não causados pelo F6 Soft
 - Blast radius baixo — fallback Blade ativo via `?legacy=1`
+- Smoke prod 2026-05-21 validou `/home` + `/home?legacy=1` + `/sells` + `/financeiro/fluxo` — AppShellV2 + topnav intactos
+- **Issue cosmético detectado** (não bloqueante): texto welcome banner com baixo contraste — classes Tailwind `primary-800/900` do gradient não renderizam escuro no React. Backlog ajuste cosmético PR separado.
 
 ## Backlog (post-F6)
 
 - **US-DASH-002 — Charts ECharts em Inertia** — Rewrite Cockpit V2 wave (F1→F4 com protótipo Cowork)
 - **US-DASH-003 — Widget registry pluggable React** — ADR nova obrigatória (mecanismo Blade-only `getModuleData('dashboard_widget')`)
-- **US-DASH-004 — KPI defer com filtro datas + loja persistido** — hoje range default fixo (mês corrente)
+- **US-DASH-004 — KPI defer com filtro datas + loja persistido** — hoje range default fixo (FY corrente)
+- **US-DASH-005 — Cosmético gradient welcome banner** — classes `primary-800/900` não aplicam no React; usar fallback `from-indigo-800 to-indigo-900` ou shared `<PageHeader>` cockpit V2
 
 ## Refs
 
