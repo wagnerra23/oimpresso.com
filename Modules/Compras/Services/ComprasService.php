@@ -24,8 +24,25 @@ class ComprasService
     public function __construct(protected TransactionUtil $transactionUtil) {}
 
     /**
-     * Lista paginada de compras com filtros + joins canônicos.
+     * Mapping coluna virtual frontend → coluna SQL real (segurança anti SQL injection).
      *
+     * SOMENTE colunas dessa lista podem entrar em orderBy. Caller passa nome
+     * de coluna virtual; service decide qual coluna SQL real usar.
+     */
+    private const SORT_MAP = [
+        'transaction_date' => 'transactions.transaction_date',
+        'ref_no' => 'transactions.ref_no',
+        'contact_name' => 'contacts.supplier_business_name',
+        'location_name' => 'BS.name',
+        'status' => 'transactions.status',
+        'payment_status' => 'transactions.payment_status',
+        'final_total' => 'transactions.final_total',
+    ];
+
+    /**
+     * Lista paginada de compras com filtros + sort dinâmico + joins canônicos.
+     *
+     * @param  array{q?:string, stage?:string, sort?:string, dir?:string}  $filters
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
      */
     public function listarCompras(int $businessId, array $filters = [])
@@ -45,7 +62,56 @@ class ComprasService
             $query->where('transactions.status', $filters['stage']);
         }
 
-        return $query->orderBy('transactions.transaction_date', 'desc');
+        $sortCol = $filters['sort'] ?? 'transaction_date';
+        $sortDir = strtolower($filters['dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+        $sqlCol = self::SORT_MAP[$sortCol] ?? 'transactions.transaction_date';
+
+        return $query->orderBy($sqlCol, $sortDir);
+    }
+
+    /**
+     * Sumário agregado pra footer da tabela — total / pago / a pagar / reembolsado.
+     *
+     * Tier 0 ADR 0093 — business_id scope explícito.
+     */
+    public function calcularSummary(int $businessId, array $filters = []): array
+    {
+        $base = Transaction::where('business_id', $businessId)
+            ->where('type', 'purchase');
+
+        // Aplica mesmos filtros que listarCompras (q + stage) pra coerência
+        if (! empty($filters['q'])) {
+            $q = $filters['q'];
+            $base->where(function ($w) use ($q) {
+                $w->where('ref_no', 'like', "%{$q}%");
+            });
+        }
+        if (! empty($filters['stage']) && $filters['stage'] !== 'all') {
+            $base->where('status', $filters['stage']);
+        }
+
+        $total = (clone $base)->sum('final_total');
+
+        $totalPago = (float) (clone $base)
+            ->leftJoin('transaction_payments AS TP', 'transactions.id', '=', 'TP.transaction_id')
+            ->where(function ($w) {
+                $w->whereNull('TP.is_return')->orWhere('TP.is_return', 0);
+            })
+            ->sum('TP.amount');
+
+        $totalReembolso = (float) (clone $base)
+            ->leftJoin('transaction_payments AS TP', 'transactions.id', '=', 'TP.transaction_id')
+            ->where('TP.is_return', 1)
+            ->sum('TP.amount');
+
+        $aPagar = max(0, ((float) $total) - $totalPago);
+
+        return [
+            'total' => (float) $total,
+            'pago' => $totalPago,
+            'a_pagar' => $aPagar,
+            'reembolso' => $totalReembolso,
+        ];
     }
 
     /**

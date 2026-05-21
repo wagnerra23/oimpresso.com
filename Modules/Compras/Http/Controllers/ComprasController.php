@@ -41,9 +41,16 @@ class ComprasController extends Controller
         }
 
         $businessId = (int) session('user.business_id');
+
+        $perPage = (int) $request->query('per_page', 25);
+        $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 25;
+
         $filters = [
             'q' => $request->query('q', ''),
             'stage' => $request->query('stage', 'all'),
+            'sort' => $request->query('sort', 'transaction_date'),
+            'dir' => $request->query('dir', 'desc'),
+            'per_page' => $perPage,
         ];
 
         $compraId = (int) $request->query('compra_id', 0);
@@ -59,6 +66,10 @@ class ComprasController extends Controller
 
             'rows' => Inertia::defer(
                 fn () => $this->buildRowsPayload($businessId, $filters)
+            ),
+
+            'summary' => Inertia::defer(
+                fn () => $this->comprasService->calcularSummary($businessId, $filters)
             ),
 
             'compra_detalhe' => Inertia::defer(
@@ -99,9 +110,10 @@ class ComprasController extends Controller
      */
     private function buildRowsPayload(int $businessId, array $filters): array
     {
+        $perPage = (int) ($filters['per_page'] ?? 25);
         $paginator = $this->comprasService
             ->listarCompras($businessId, $filters)
-            ->paginate(25);
+            ->paginate($perPage);
 
         return [
             'data' => $paginator->items(),
