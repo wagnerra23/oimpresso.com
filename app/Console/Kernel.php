@@ -428,6 +428,22 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // MCP tasks:sync — rede de proteção pra task sync (US-FIN-043 incident 2026-05-21).
+        // Webhook handler (SyncMemoryWebhookController::handle) chama
+        // TaskParserService::syncAll() quando SPEC.md muda — mas se o webhook
+        // retornar 5xx (env stale, network), as tasks NUNCA chegam no DB MCP.
+        // Cron everyTenMinutes cobre essa falha. Idempotente: parser usa hash do SPEC.
+        $schedule->command('mcp:tasks:sync')
+            ->everyTenMinutes()
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/mcp-tasks-cron.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule mcp:tasks:sync FALHOU — tasks SPEC.md podem nao estar no DB'
+                );
+            });
+
         // GAP D7 #2 (auditoria memoria-senior 2026-05-15) — Freshness pipeline ativo.
         // Complementa `mcp:sync-memory` (every5min): classifica docs em 4 níveis
         // (FRESH/WARM/STALE/CRITICAL), detecta drift DB↔git, alerta CRITICAL em
