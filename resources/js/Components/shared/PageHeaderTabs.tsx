@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { SIDEBAR_GROUP_HUE } from '@/Components/cockpit/shared';
@@ -61,6 +62,22 @@ export interface PageHeaderGhost {
   href: string;
 }
 
+/**
+ * Item extra (não-navegacional) anexado ao overflow `⋯ Mais` depois dos ghosts
+ * excedentes. Pra ações features-específicas que não cabem inline no header
+ * (Wagner 2026-05-21 tweak Fase 5 — feature-buttons do Financeiro/Unificado).
+ *
+ * Renderiza-se como `<DropdownMenuItem onClick={...}>` (não link/href). Use
+ * pra ações que abrem dialog/sheet/modal, não pra navegação entre páginas.
+ */
+export interface PageHeaderOverflowItem {
+  key: string;
+  label: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  title?: string;
+}
+
 interface Props {
   primary?: PageHeaderPrimary;
   ghosts?: PageHeaderGhost[];
@@ -71,6 +88,11 @@ interface Props {
   onGhostChange?: (key: string) => void;
   /** Quantos ghosts visíveis inline antes do overflow ⋯ Mais. Default 5. */
   maxVisible?: number;
+  /**
+   * Ações extras renderizadas dentro do overflow `⋯ Mais` (depois dos ghosts
+   * excedentes, separadas por divider). Wagner 2026-05-21 tweak Fase 5.
+   */
+  extraOverflowItems?: PageHeaderOverflowItem[];
   className?: string;
 }
 
@@ -81,6 +103,7 @@ export default function PageHeaderTabs({
   group,
   onGhostChange,
   maxVisible = 5,
+  extraOverflowItems = [],
   className,
 }: Props) {
   const hue = group ? SIDEBAR_GROUP_HUE[group] : undefined;
@@ -197,8 +220,8 @@ export default function PageHeaderTabs({
             );
           })}
 
-          {/* ── Overflow ⋯ Mais ── */}
-          {overflowGhosts.length > 0 && (
+          {/* ── Overflow ⋯ Mais (ghosts excedentes + ações extras) ── */}
+          {(overflowGhosts.length > 0 || extraOverflowItems.length > 0) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -208,15 +231,28 @@ export default function PageHeaderTabs({
                     'hover:bg-accent hover:text-accent-foreground shrink-0',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   )}
-                  aria-label={`Mais ${overflowGhosts.length} visões`}
+                  aria-label={`Mais ${overflowGhosts.length + extraOverflowItems.length} opções`}
                 >
                   <MoreHorizontal size={16} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-40">
+              <DropdownMenuContent align="end" className="min-w-44">
                 {overflowGhosts.map((ghost) => (
                   <DropdownMenuItem key={ghost.key} asChild>
                     <Link href={ghost.href}>{ghost.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+                {overflowGhosts.length > 0 && extraOverflowItems.length > 0 && (
+                  <DropdownMenuSeparator />
+                )}
+                {extraOverflowItems.map((item) => (
+                  <DropdownMenuItem
+                    key={item.key}
+                    onClick={item.onClick}
+                    title={item.title}
+                  >
+                    {item.icon && <span className="mr-2 inline-flex">{item.icon}</span>}
+                    {item.label}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
