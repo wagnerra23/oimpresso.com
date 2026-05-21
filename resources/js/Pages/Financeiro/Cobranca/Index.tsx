@@ -185,7 +185,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
           </div>
           <div className="os-page-h-r fin-page-h-r">
             {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-            <FinanceiroSubNav active="cobranca" />
+            <FinanceiroSubNav active="cobranca" hidePrimary />
             <button type="button" className="os-btn ghost fin-btn-ai" onClick={() => setAiOpen(true)} title="Resumir cobranças deste mês — IA">
               <span>✦</span> Resumir mês
             </button>
