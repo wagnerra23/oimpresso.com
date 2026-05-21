@@ -24,7 +24,7 @@ import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
-import PageHeaderTabs, { type PageHeaderGhost, type PageHeaderPrimary } from '@/Components/shared/PageHeaderTabs';
+import PageHeaderTabs, { type PageHeaderGhost, type PageHeaderPrimary, type PageHeaderOverflowItem } from '@/Components/shared/PageHeaderTabs';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
@@ -772,7 +772,15 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 // ContasPagar/Index.tsx quando essa tela adotar tbm). Fallback: nada renderiza
 // se shell.menu não tem entry "Financeiro" com ghosts (ex usuário sem permissão
 // financeiro.access ou Modules/Financeiro desinstalado).
-function FinanceiroSubNav({ active }: { active: string }) {
+interface FinanceiroSubNavProps {
+  active: string;
+  /** Ações features-específicas (Resumir/Fechamento/Apresentar/etc) que vão pro overflow `⋯ Mais` */
+  extraOverflowItems?: PageHeaderOverflowItem[];
+  /** Quando true, omite primary (renderiza só ghosts + overflow). Caller renderiza primary separado à direita. */
+  hidePrimary?: boolean;
+}
+
+function FinanceiroSubNav({ active, extraOverflowItems, hidePrimary }: FinanceiroSubNavProps) {
   const sharedShell = (usePage().props as any)?.shell as {
     menu?: Array<{ label: string; group?: string; primary?: PageHeaderPrimary; ghosts?: PageHeaderGhost[] }>;
   } | undefined;
@@ -783,16 +791,19 @@ function FinanceiroSubNav({ active }: { active: string }) {
 
   if (!finItem?.ghosts?.length) return null;
 
-  // ADR 0180 Fase 5 tweak Wagner 2026-05-21 — render INLINE no header `os-page-h-r`
-  // (sem padding/margin externa). PageHeaderTabs já é flex row interno; herda
-  // alinhamento do parent flex do `os-page-h-r`.
+  // ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — primary `+ Novo título` renderiza
+  // SEPARADO no canto direito do header pelo caller (`hidePrimary=true`); os
+  // botões action features-específicas (Resumir/Fechamento/Apresentar/Imprimir/
+  // Download/OCR/Buscar) entram NO overflow `⋯ Mais` (via `extraOverflowItems`).
+  // Resultado: única linha = ghost tabs (esquerda) + ⋯ Mais + primary (direita).
   return (
     <PageHeaderTabs
-      primary={finItem.primary}
+      primary={hidePrimary ? undefined : finItem.primary}
       ghosts={finItem.ghosts}
       activeGhostKey={active}
       group="financas"
       maxVisible={5}
+      extraOverflowItems={extraOverflowItems}
     />
   );
 }
@@ -998,77 +1009,29 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 tweak Wagner 2026-05-21 — ghost tabs ARIA pra navegação
-              contextual entre 13 sub-views do Financeiro vão AGORA dentro do header
-              `os-page-h-r` (não numa row separada abaixo). Substitui botões action
-              redundantes (Conciliar/Plano de contas/Novo lançamento) — todos já são
-              ghosts ou primary do PageHeaderTabs. Botões features-específicas mantidos
-              (Buscar/Resumir mês/Fechamento/Apresentar/Imprimir/OCR boleto). */}
-          <FinanceiroSubNav active="unificado" />
-          <button type="button" className="os-btn ghost" onClick={() => setPaletteOpen(true)}>
-            <Search size={13} />
-            Buscar
-            <kbd>⌘K</kbd>
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-ai"
-            title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
-            onClick={() => setResumoOpen(true)}
-          >
-            <Sparkles size={13} />
-            Resumir mês
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-trilha"
-            onClick={() => setChecklistOpen(true)}
-            title="Trilha de 12 passos do fechamento mensal"
-          >
-            <CheckSquare size={13} />
-            Fechamento
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-present"
-            title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
-            onClick={() => setPresentOpen(true)}
-          >
-            <Play size={13} />
-            Apresentar
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost"
-            title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
-            onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
-          >
-            <Printer size={13} />
-            Imprimir
-            {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
-          </button>
-          {/* Onda 12 — Download icon-only (paridade canon REAL — botão entre Plano contas e CTA Novo).
-              Onclick stub abre ⌘K palette por enquanto; handler real (Exportar XLSX/PDF) vira US futura. */}
-          <button
-            type="button"
-            className="os-btn ghost"
-            title="Exportar lançamentos do período (XLSX / PDF)"
-            aria-label="Exportar"
-            onClick={() => setPaletteOpen(true)}
-            style={{ padding: '0 8px' }}
-          >
-            <Download size={13} />
-          </button>
-          {/* US-FIN-029 (Onda 23) — KILLER OCR boleto: Eliana cola foto → IA extrai campos. */}
-          <button
-            type="button"
-            className="os-btn ghost"
-            title="Importar boleto via foto/PDF (OCR via IA)"
-            aria-label="Importar boleto OCR"
-            onClick={() => setOcrSheetOpen(true)}
-            style={{ padding: '0 8px' }}
-          >
-            📷 OCR boleto
+          {/* ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — header em UMA linha:
+                ghost tabs (esquerda) + ⋯ Mais (botões action features) + primary "+ Novo" (direita)
+              - Ghost tabs ARIA navegação entre 13 sub-views do Financeiro
+              - Primary "+ Novo título" SEPARADO no canto direito (Wagner pediu lado oposto)
+              - Botões action features-específicas (Buscar/Resumir/Fechamento/Apresentar/
+                Imprimir/Download/OCR) entram no overflow `⋯ Mais` (Wagner: "atuais entram no ⋯") */}
+          <FinanceiroSubNav
+            active="unificado"
+            hidePrimary
+            extraOverflowItems={[
+              { key: 'buscar',     label: 'Buscar (⌘K)',     icon: <Search size={13} />,      onClick: () => setPaletteOpen(true) },
+              { key: 'resumir',    label: 'Resumir mês',     icon: <Sparkles size={13} />,    onClick: () => setResumoOpen(true),                                  title: 'Resumo executivo do mês (narrativa compute-based · Onda 9 v1)' },
+              { key: 'fechamento', label: 'Fechamento',      icon: <CheckSquare size={13} />, onClick: () => setChecklistOpen(true),                               title: 'Trilha de 12 passos do fechamento mensal' },
+              { key: 'apresentar', label: 'Apresentar',      icon: <Play size={13} />,        onClick: () => setPresentOpen(true),                                 title: 'Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)' },
+              { key: 'imprimir',   label: favs.count > 0 ? `Imprimir (${favs.count}★)` : 'Imprimir', icon: <Printer size={13} />, onClick: () => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }, title: 'Folha jurídica imprimível' },
+              { key: 'exportar',   label: 'Exportar XLSX/PDF',icon: <Download size={13} />,   onClick: () => setPaletteOpen(true),                                 title: 'Exportar lançamentos do período' },
+              { key: 'ocr',        label: 'OCR boleto',      icon: <span>📷</span>,            onClick: () => setOcrSheetOpen(true),                                title: 'Importar boleto via foto/PDF (OCR via IA)' },
+            ]}
+          />
+          {/* Primary "+ Novo título" — canto direito, separado dos ghosts (Wagner 2026-05-21) */}
+          <button type="button" className="os-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
+            <Plus size={13} />
+            Novo título
           </button>
         </div>
       </div>
