@@ -395,6 +395,8 @@ class ContactController extends Controller
                 'uf' => $contact->state,
                 'saldo_devedor' => round($saldoDevedor, 2),
                 'last_purchase_at' => $lastPurchaseAt,
+                // Z-2.1: subtitle drawer "Pessoa jurídica · cadastrado há Xd".
+                'created_at' => optional($contact->created_at)->toIso8601String(),
             ];
 
             // Wave G — campos opcionais quando migration Wave B rodou.
