@@ -133,14 +133,51 @@ class DataController extends Controller
                 // ═══════════════════════════════════════════════════════════
 
                 // Visão Unificada — cockpit AR+AP (entrada principal).
+                //
+                // ADR 0180 Fase 4 piloto Financeiro (2026-05-21): entry principal
+                // declara atributos extras que LegacyMenuAdapter propaga pro frontend:
+                //  - `shortcut` G F → atalho kbd canônico (overlay visual em Fase 8)
+                //  - `primary`     → botão "+ Novo título" colorido (PageHeaderTabs)
+                //  - `ghosts`      → 13 tabs ARIA da tela /financeiro/unificado
+                //
+                // As outras 12 entries continuam exibidas no sidebar (Wagner Opção B
+                // 2026-05-20 — sub-grupos visuais Operação/Análise/Ajustes preservada).
+                // Quando Fase 5 entregar PageHeaderTabs nas telas, a navegação
+                // contextual entre sub-views vai espelhar este shape — sidebar pode
+                // então enxugar pras 1 entry canon em PR futuro sem quebrar UX.
+                //
+                // hrefs dos ghosts usam path absoluto (url() seria interpretado pelo
+                // LegacyMenuAdapter::toRelative). Espelha contrato
+                // App\Sidebar\SidebarGhost (kebab-case key + label + path absoluto).
                 $menu->url(
                     url('/financeiro/unificado'),
                     __('financeiro::financeiro.module_label'),
                     [
-                        'icon'   => 'fa fas fa-coins',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo && (request()->segment(2) == 'unificado' || request()->segment(2) == null),
-                        'group'  => 'fin-op',
+                        'icon'     => 'fa fas fa-coins',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $segmento_ativo && (request()->segment(2) == 'unificado' || request()->segment(2) == null),
+                        'group'    => 'fin-op',
+                        'shortcut' => 'G F',
+                        'primary'  => [
+                            'label'    => 'Novo título',
+                            'href'     => '/financeiro/lancamentos/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'unificado',         'label' => 'Unificado',         'href' => '/financeiro/unificado'],
+                            ['key' => 'contas-receber',    'label' => 'Contas a Receber',  'href' => '/financeiro/contas-receber'],
+                            ['key' => 'contas-pagar',      'label' => 'Contas a Pagar',    'href' => '/financeiro/contas-pagar'],
+                            ['key' => 'fluxo',             'label' => 'Fluxo de Caixa',    'href' => '/financeiro/fluxo'],
+                            ['key' => 'cobranca',          'label' => 'Cobrança',          'href' => '/financeiro/cobranca'],
+                            ['key' => 'caixa',             'label' => 'Caixa do turno',    'href' => '/financeiro/caixa'],
+                            ['key' => 'conciliacao',       'label' => 'Conciliação',       'href' => '/financeiro/conciliacao'],
+                            ['key' => 'dre',               'label' => 'DRE',               'href' => '/financeiro/dre'],
+                            ['key' => 'relatorios',        'label' => 'Relatórios',        'href' => '/financeiro/relatorios'],
+                            ['key' => 'contas-bancarias',  'label' => 'Contas Bancárias',  'href' => '/financeiro/contas-bancarias'],
+                            ['key' => 'plano-contas',      'label' => 'Plano de Contas',   'href' => '/financeiro/plano-contas'],
+                            ['key' => 'categorias',        'label' => 'Categorias',        'href' => '/financeiro/categorias'],
+                            ['key' => 'contador',          'label' => 'Contador',          'href' => '/financeiro/configuracoes/contador'],
+                        ],
                     ]
                 )->order(85.00);
 
