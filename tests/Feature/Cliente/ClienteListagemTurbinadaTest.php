@@ -23,22 +23,24 @@ use Illuminate\Support\Facades\Schema;
 
 // ─── GUARD 1: Avatar.tsx HSL hash deterministico criado ──────────────────────
 
-test('GUARD 1 — Components/clientes/Avatar.tsx existe com HSL hash deterministico', function () {
+test('GUARD 1 — Components/clientes/Avatar.tsx tem gradients oklch deterministicos', function () {
     $path = __DIR__ . '/../../../resources/js/Components/clientes/Avatar.tsx';
     expect($path)->toBeReadableFile();
 
     $contents = file_get_contents($path);
     expect($contents)
-        // Algoritmo HSL hash (id + 12 hues distribuidas).
+        // Z-2.1: gradients oklch (alinhado ao protótipo Cowork — 12 cores vivas).
         ->toContain('hashStr')
-        ->toContain('colorForName')
-        ->toContain('hsl(')
-        // 12 hues = distribuicao circular cromatica 0/30/60.../330.
-        ->toContain('% 12) * 30')
+        ->toContain('gradientForName')
+        ->toContain('oklch(')
+        ->toContain('AVATAR_GRADIENTS')
+        ->toContain('linear-gradient(135deg')
         // Avatar initials helper (1-2 letras maiusculas — espelha Cowork).
         ->toContain('avatarInitial')
-        // Default size 32px (linha tabela) + suporte size custom (header 56px).
-        ->toContain('size = 32');
+        // Z-2.1: shape circle pra drawer header (Cowork 40px round).
+        ->toContain("shape === 'circle'")
+        // Default size 28px (linha tabela Cowork) — drawer header passa size={40}.
+        ->toContain('size = 28');
 });
 
 // ─── GUARD 2: Pills.tsx tem 4 componentes Wave G ─────────────────────────────

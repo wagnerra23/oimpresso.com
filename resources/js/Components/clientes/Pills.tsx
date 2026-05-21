@@ -105,10 +105,11 @@ export type FrescorState = 'fresc' | 'recente' | 'distante' | 'frio';
 
 /**
  * Calcula frescor por dias desde last_purchase_at.
- *   ≤14d  → fresc    (verde — recência alta, cliente quente)
- *   ≤60d  → recente  (azul — atividade nas últimas 8 semanas)
- *   ≤180d → distante (âmbar — sem compra há 2-6 meses, atenção)
- *   >180d → frio     (cinza — risco de churn; ação Wave E IA sugere reativação)
+ * Z-2.1 alinhado ao protótipo Cowork `clientes-975.jsx::FrescorPill`:
+ *   <30d  → fresc    (verde — cliente quente, saudável)
+ *   <90d  → recente  (âmbar — atenção, está esfriando)
+ *   <180d → frio     (cinza — sem atividade há 3-6 meses)
+ *   ≥180d → distante (rosa — provável churn, ação IA sugere reativação)
  *   null  → frio     (sem histórico)
  */
 export function calcFrescor(iso: string | null | undefined): FrescorState {
@@ -116,21 +117,21 @@ export function calcFrescor(iso: string | null | undefined): FrescorState {
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return 'frio';
   const days = Math.floor((Date.now() - t) / 86400000);
-  if (days <= 14) return 'fresc';
-  if (days <= 60) return 'recente';
-  if (days <= 180) return 'distante';
-  return 'frio';
+  if (days < 30) return 'fresc';
+  if (days < 90) return 'recente';
+  if (days < 180) return 'frio';
+  return 'distante';
 }
 
 const FRESCOR_STYLE: Record<FrescorState, string> = {
   fresc:
     'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/40',
   recente:
-    'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900/40',
-  distante:
     'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/40',
   frio:
     'bg-stone-50 text-stone-600 border-stone-200 dark:bg-stone-950/40 dark:text-stone-400 dark:border-stone-800',
+  distante:
+    'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/40',
 };
 
 const FRESCOR_LABEL: Record<FrescorState, string> = {
