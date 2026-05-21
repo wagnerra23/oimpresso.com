@@ -41,13 +41,24 @@ class ComprasController extends Controller
         }
 
         $businessId = (int) session('user.business_id');
+
+        $perPage = (int) $request->query('per_page', 25);
+        $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 25;
+
         $filters = [
             'q' => $request->query('q', ''),
             'stage' => $request->query('stage', 'all'),
+            'sort' => $request->query('sort', 'transaction_date'),
+            'dir' => $request->query('dir', 'desc'),
+            'per_page' => $perPage,
         ];
+
+        $compraId = (int) $request->query('compra_id', 0);
 
         return Inertia::render('Compras/Index', [
             'filters' => $filters,
+
+            'selected_id' => $compraId ?: null,
 
             'kpis' => Inertia::defer(
                 fn () => $this->comprasService->calcularKpis($businessId)
@@ -56,7 +67,39 @@ class ComprasController extends Controller
             'rows' => Inertia::defer(
                 fn () => $this->buildRowsPayload($businessId, $filters)
             ),
+
+            'summary' => Inertia::defer(
+                fn () => $this->comprasService->calcularSummary($businessId, $filters)
+            ),
+
+            'compra_detalhe' => Inertia::defer(
+                fn () => $compraId ? $this->comprasService->buscarDetalhe($compraId, $businessId) : null
+            ),
         ]);
+    }
+
+    /**
+     * Detalhe single — Wave 5 endpoint pra DrawerView 5 tabs.
+     *
+     * Partial reload via `router.get('/compras', { compra_id: X }, { only: ['compra_detalhe'] })`
+     * mantém a tabela em cache cliente-side; só `compra_detalhe` chega da rede.
+     *
+     * Tier 0 ADR 0093 — business_id scope no Service ANTES de qualquer fetch.
+     */
+    public function show(Request $request, int $id)
+    {
+        if (! auth()->user()->can('compras.view')) {
+            abort(403);
+        }
+
+        $businessId = (int) session('user.business_id');
+        $detalhe = $this->comprasService->buscarDetalhe($id, $businessId);
+
+        if (! $detalhe) {
+            abort(404);
+        }
+
+        return response()->json($detalhe);
     }
 
     /**
@@ -67,9 +110,10 @@ class ComprasController extends Controller
      */
     private function buildRowsPayload(int $businessId, array $filters): array
     {
+        $perPage = (int) ($filters['per_page'] ?? 25);
         $paginator = $this->comprasService
             ->listarCompras($businessId, $filters)
-            ->paginate(25);
+            ->paginate($perPage);
 
         return [
             'data' => $paginator->items(),
