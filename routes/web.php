@@ -189,6 +189,15 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/contacts/check-contacts-id', [ContactController::class, 'checkContactId']);
     Route::get('/contacts/customers', [ContactController::class, 'getCustomers']);
     Route::get('/contacts/create-page', [ContactController::class, 'createPage']);
+
+    // Slice 5a — BrasilAPI lookup CNPJ. Proxy AJAX informativo (gov.br público).
+    // Permission check + Rule\BR\CpfCnpj (mod-11) no controller.
+    // Mantido ANTES de `Route::resource('contacts', …)` pra evitar match em /contacts/{id}.
+    Route::get(
+        '/contacts/lookup/cnpj/{cnpj}',
+        [\App\Http\Controllers\Cliente\ContactLookupController::class, 'cnpj']
+    )->where('cnpj', '[0-9./\\-]+');
+
     Route::resource('contacts', ContactController::class);
 
     // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — URLs canon /cliente.
