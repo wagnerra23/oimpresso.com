@@ -289,6 +289,11 @@ export default function SellsGradeAvancada({
                 <SortableTh sortKey="final_total" current={sortKey} dir={sortDir} onSort={onSort} align="right" className="w-28">Total</SortableTh>
                 <Th className="text-right w-28">Pago</Th>
                 <Th className="text-right w-28">A receber</Th>
+                {/* US-SELL-041 follow-up #1314 — Larissa @ ROTA LIVRE biz=4 reportou
+                    2026-05-21 (ADR 0105) método de pagamento sumindo da Grade Avançada.
+                    PR #1314 cobriu o path TanStack (com agrupamento); aqui cobrimos
+                    a tabela HTML default (sem agrupamento) — o caminho mais visto. */}
+                <Th className="w-32">Pagamento</Th>
                 <SortableTh sortKey="payment_status" current={sortKey} dir={sortDir} onSort={onSort} className="w-32">Status</SortableTh>
                 {/* US-SELL-023 — coluna "Produção" badge FSM (Grade Avançada only,
                     Lista mode é enxuto e não mostra esta coluna). Default visível. */}
@@ -298,14 +303,14 @@ export default function SellsGradeAvancada({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="text-center py-12 text-muted-foreground text-xs">
+                  <td colSpan={11} className="text-center py-12 text-muted-foreground text-xs">
                     <Loader2 className="inline-block mr-2 h-3.5 w-3.5 animate-spin" />
                     Carregando…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="text-center py-12 text-muted-foreground text-xs">
+                  <td colSpan={11} className="text-center py-12 text-muted-foreground text-xs">
                     Nenhuma venda encontrada nesse filtro.
                   </td>
                 </tr>
@@ -364,6 +369,14 @@ export default function SellsGradeAvancada({
                       <td className="px-3 py-2.5 text-right tabular-nums text-foreground">{formatBRL(row.final_total)}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums text-emerald-700 dark:text-emerald-300">{formatBRL(row.total_paid)}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums text-amber-700 dark:text-amber-300">{formatBRL(due)}</td>
+                      {/* US-SELL-041 follow-up #1314 — método de pagamento + parcelas
+                          (PIX/Cartão/Boleto/Dinheiro/...). NULL/empty cai em "—" silencioso. */}
+                      <td className="px-3 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+                        {row.payment_method_label ?? '—'}
+                        {row.installments > 1 && (
+                          <span className="ml-1 text-muted-foreground/70">· {row.installments}×</span>
+                        )}
+                      </td>
                       <td className="px-3 py-2.5">
                         <PaymentStatusBadge status={row.payment_status} overdue={row.is_overdue} />
                       </td>
