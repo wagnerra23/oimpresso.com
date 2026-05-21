@@ -659,19 +659,22 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // linha sem abrir drawer). Agora via QuickPaymentPopover anchored em cada
   // row (state local ao componente — sem lift-up).
 
-  // Onda Unificação PR2/6 (ADR 0178) — tabs Visão Operacional/Financeira/Produção.
-  // Feature-flagged via URL `?tabs=1` — visível só pra Wagner em testes; default off
-  // não impacta Larissa biz=4. PR4 (este) introduz `?unificada=1` que troca a
-  // tabela inline da Lista pelo SellsTabelaUnificada quando ON, mapeando visão →
-  // visibleColumns. PR5 cutover; PR6 cleanup flags.
-  const search = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const tabsFlagOn = search?.get('tabs') === '1';
-  const unificadaFlagOn = search?.get('unificada') === '1';
+  // Onda Unificação PR6/6 (ADR 0178) — cutover: tabs Visão sempre ON +
+  // SellsTabelaUnificada sempre renderizada (Lista inline aposentada via
+  // viewMode legado preservado pra fallback "Grade Avançada" durante 30d).
+  // Migration silenciosa localStorage `viewMode → visao` (PR1 #1311 mantém
+  // chaves Tier 0 per-business `oimpresso.sells.b<bizId>.*`).
   const [visao, setVisao] = useState<SellsVisao>(() => {
-    const v = ls.get('visao', 'operacional');
-    return (['operacional', 'financeira', 'producao'] as const).includes(v as SellsVisao)
-      ? (v as SellsVisao)
-      : 'operacional';
+    // Migration: se já tem chave visao salva, usa. Senão, deriva do viewMode
+    // legado: 'lista' → 'operacional' (default), 'grade-avancada' → 'financeira'
+    // (heurística — quem usava Grade buscava Pago/A receber/totalizador).
+    const stored = ls.get('visao', '');
+    if (stored && (['operacional', 'financeira', 'producao'] as const).includes(stored as SellsVisao)) {
+      return stored as SellsVisao;
+    }
+    const legacyViewMode = ls.get('viewMode', 'lista');
+    if (legacyViewMode === 'grade-avancada') return 'financeira';
+    return 'operacional';
   });
   useEffect(() => ls.set('visao', visao), [visao]);
 
@@ -1315,9 +1318,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             ))}
           </div>
           <div className="vd-tabs-actions">
-            {tabsFlagOn && (
-              <SellsTabsVisao visao={visao} onChange={setVisao} />
-            )}
+            {/* ADR 0178 PR6 cutover — tabs Visão sempre visíveis. SellsToggleViewMode
+                (Lista | Grade Avançada) mantido 30d como fallback rollback enquanto
+                Grade Avançada ainda existe pra cliente OfficeImpresso migrar. */}
+            <SellsTabsVisao visao={visao} onChange={setVisao} />
             <SellsToggleViewMode viewMode={viewMode} onChange={setViewMode} />
             <button
               type="button"
@@ -1377,10 +1381,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               onPaySuccess={() => setRefetchToken((t) => t + 1)}
             />
           </div>
-        ) : unificadaFlagOn ? (
-          /* ADR 0178 PR4/6 — caminho unificado (flag ?unificada=1). Renderiza
-             SellsTabelaUnificada com visibleColumns derivado de visão. PR5
-             remove o ternário (caminho unificado vira default). */
+        ) : (
+          /* ADR 0178 PR6 cutover — SellsTabelaUnificada agora é o caminho
+             default da Lista. Markup inline aposentado (delete em PR follow-up
+             quando confirmado zero rollback necessário). */
           <div className="os-table-wrap">
             <SellsTabelaUnificada
               rows={filtered as UnifiedSaleRow[]}
@@ -1397,232 +1401,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               onPaySuccess={() => setRefetchToken((t) => t + 1)}
             />
           </div>
-        ) : (
-        <div className="os-table-wrap">
-          <table className="os-table vendas-table vd-aplus-table">
-            <thead>
-              <tr>
-                <th style={{ width: 24, padding: '0 0 0 12px' }}>
-                  <input
-                    type="checkbox"
-                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
-                    onChange={toggleAll}
-                    aria-label="Selecionar todas"
-                  />
-                </th>
-                <th style={{ width: 82 }}>Venda</th>
-                <th style={{ width: 80 }}>Data</th>
-                <th>Cliente</th>
-                <th style={{ width: 168 }}>Atendido por</th>
-                <th style={{ width: 128 }}>Pipeline</th>
-                <th style={{ width: 148 }}>Fiscal</th>
-                <th style={{ width: 128 }}>Pagamento</th>
-                <th style={{ width: 110 }}>Total</th>
-                <th style={{ width: 88 }}>Status</th>
-                {/* US-SELL-COWORK-COMMISSION — coluna Comissão (gap PR #1043).
-                    Só renderiza se setting business.sales_cmsn_agnt ≠ 'disable'. */}
-                {props.coworkCommissionEnabled && (
-                  <th style={{ width: 120 }}>Comissão</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {loading &&
-                Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={`sk${i}`} className="vd-sk-row">
-                    {/* US-SELL-COWORK-COMMISSION — colSpan dinâmico (10 base + 1 se Comissão habilitada). */}
-                    <td colSpan={props.coworkCommissionEnabled ? 11 : 10}>
-                      <div className="vd-sk-bar" style={{ animationDelay: `${i * 60}ms` }} />
-                    </td>
-                  </tr>
-                ))}
-              {!loading &&
-                filtered.map((v, ri) => {
-                  const sel = selectedIds.has(v.id);
-                  const isFocused = ri === focusIdx;
-                  const isFav = favSet.has(v.id);
-                  const isUrgent = v.sla_kind === 'overdue';
-                  const pill = classifyPill(v);
-                  const pillStyle: Record<PillKey, { bg: string; fg: string; label: string }> = {
-                    todas: { bg: 'var(--vd-neutral-soft)', fg: 'var(--vd-neutral)', label: '—' },
-                    paga: { bg: 'var(--vd-ok-soft)', fg: 'var(--vd-ok)', label: 'Paga' },
-                    pendente: { bg: 'var(--vd-warn-soft)', fg: 'var(--vd-warn)', label: 'Pendente' },
-                    faturada: { bg: 'var(--accent-soft)', fg: 'var(--accent)', label: 'Faturada' },
-                    cancelada: { bg: 'var(--bg-2)', fg: 'var(--text-mute)', label: 'Cancelada' },
-                  };
-                  const ps = pillStyle[pill] ?? pillStyle.todas;
-                  return (
-                    <tr
-                      key={v.id}
-                      ref={(el) => {
-                        rowsRef.current[ri] = el;
-                      }}
-                      className={
-                        'os-row' +
-                        (isUrgent ? ' urgent' : '') +
-                        (sel ? ' selected' : '') +
-                        (isFocused ? ' row-focused' : '')
-                      }
-                      onClick={() => {
-                        setFocusIdx(ri);
-                        setOpenSaleId(v.id);
-                      }}
-                    >
-                      <td className="vd-chk" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={sel}
-                          onChange={() => toggleSel(v.id)}
-                          aria-label={`Selecionar venda ${v.invoice_no}`}
-                        />
-                      </td>
-                      <td className="vd-id">
-                        {isFav && (
-                          <span className="vd-fav" title="Favorita (B)">
-                            ★
-                          </span>
-                        )}
-                        #{v.invoice_no}
-                      </td>
-                      <td className="vd-date">
-                        <div>{fmtDateDM(v.display_date ?? v.transaction_date)}</div>
-                        <div className="vd-time">{fmtTime(v.display_date ?? v.transaction_date)}</div>
-                      </td>
-                      <td className="vd-client">
-                        <div className="vd-client-name">{v.customer_name ?? '—'}</div>
-                        {v.items_summary && <div className="vd-notes">{v.items_summary}</div>}
-                      </td>
-                      <td className="vd-seller-cell">
-                        {v.seller_abbr ? (
-                          <>
-                            <span className={`vd-av vd-av-${avatarPaletteFor(v.seller_id)}`}>
-                              {v.seller_abbr}
-                            </span>
-                            <span className="vd-seller-info">
-                              <b>{(v.seller_name ?? '').split(' ')[0]}</b>
-                              <small>{v.seller_origin}</small>
-                            </span>
-                          </>
-                        ) : (
-                          <span style={{ opacity: 0.5 }}>—</span>
-                        )}
-                      </td>
-                      <td>
-                        <PipelineDots row={v} />
-                      </td>
-                      <td>
-                        <FiscalBadgesCell row={v} />
-                      </td>
-                      <td className="vd-pay">
-                        <div className="vd-pay-top">
-                          <span>{v.payment_method_label ?? '—'}</span>
-                          {v.installments > 1 && <span className="vd-inst">{v.installments}×</span>}
-                        </div>
-                        <div className="vd-pay-sla">
-                          <SaleSlaPill row={v} compact />
-                        </div>
-                      </td>
-                      <td className="vd-total">{fmt(v.final_total)}</td>
-                      <td>
-                        <span
-                          className="os-stage"
-                          style={{
-                            background: ps.bg,
-                            color: ps.fg,
-                          }}
-                        >
-                          {ps.label}
-                        </span>
-                        <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
-                          {/* US-SELL-042 / Onda Unif PR5 — botão Pagar via Popover
-                              em-place anchored (substitui modal full; preserva contexto
-                              da linha). Só pra vendas com saldo devedor. */}
-                          {v.payment_status !== 'paid' && (
-                            <QuickPaymentPopover
-                              saleId={v.id}
-                              invoiceNo={v.invoice_no}
-                              dueAmount={Math.max(0, v.final_total - v.total_paid)}
-                              onSuccess={() => setRefetchToken((t) => t + 1)}
-                              trigger={
-                                <button className="vd-row-act" title="Registrar pagamento" type="button">
-                                  <DollarSign size={11} />
-                                </button>
-                              }
-                            />
-                          )}
-                          {v.fiscal_status === 'autorizada' && (
-                            <button className="vd-row-act" title="Baixar DANFE PDF" type="button">
-                              <Archive size={11} />
-                            </button>
-                          )}
-                          {v.fiscal_status === 'autorizada' && (
-                            <button className="vd-row-act" title="Baixar XML" type="button">
-                              <FileText size={11} />
-                            </button>
-                          )}
-                          <button className="vd-row-act" title="Imprimir recibo (R)" type="button">
-                            <Printer size={11} />
-                          </button>
-                        </div>
-                      </td>
-                      {/* US-SELL-COWORK-COMMISSION — célula Comissão (gap PR #1043).
-                          Truncate 12 chars + tooltip nome completo; "—" quando sem comissionado. */}
-                      {props.coworkCommissionEnabled && (
-                        <td className="vd-commission">
-                          {v.commission_agent_name ? (
-                            <span
-                              className="vd-commission-name"
-                              title={v.commission_agent_name}
-                              style={{
-                                display: 'inline-block',
-                                maxWidth: 108,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                verticalAlign: 'middle',
-                              }}
-                            >
-                              {v.commission_agent_name.length > 12
-                                ? v.commission_agent_name.slice(0, 12) + '…'
-                                : v.commission_agent_name}
-                            </span>
-                          ) : (
-                            <span style={{ opacity: 0.5 }}>—</span>
-                          )}
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              {!loading && filtered.length === 0 && (
-                <tr>
-                  {/* US-SELL-COWORK-COMMISSION — colSpan dinâmico (10 base + 1 se Comissão habilitada). */}
-                  <td colSpan={props.coworkCommissionEnabled ? 11 : 10} className="os-empty">
-                    {savedViewId === 'atrasadas' && (
-                      <>
-                        <b>Tudo dentro do prazo ✓</b>
-                        <br />
-                        <small>Nenhuma venda atrasada. Bom trabalho.</small>
-                      </>
-                    )}
-                    {savedViewId === 'rejeitadas' && (
-                      <>
-                        <b>Zero rejeições da SEFAZ ✓</b>
-                        <br />
-                        <small>Todos os documentos fiscais autorizados.</small>
-                      </>
-                    )}
-                    {!['atrasadas', 'rejeitadas'].includes(savedViewId) && (
-                      <>
-                        Nenhuma venda encontrada. Use <kbd>N</kbd> pra criar ou <kbd>⌘K</kbd> pra buscar.
-                      </>
-                    )}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
         )}
 
         {/* Pagination compacta (preserva contrato US-SELL-008) */}
