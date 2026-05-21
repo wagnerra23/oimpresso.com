@@ -50,6 +50,12 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/Components/ui/sheet';
+// Wave C-FE — 5 tabs cadastrais com autosave on blur (ADR 0179).
+import IdentificacaoTab from './_drawer/IdentificacaoTab';
+import ContatoTab from './_drawer/ContatoTab';
+import EnderecoTab from './_drawer/EnderecoTab';
+import ComercialTab from './_drawer/ComercialTab';
+import ClassificacaoTab from './_drawer/ClassificacaoTab';
 
 interface ClienteKpis {
   total: number;
@@ -63,6 +69,7 @@ interface ClienteRow {
   name: string;
   // PII mascarado server-side — nunca plain digits no client.
   tax_number_masked: string | null;
+  cpf_cnpj_masked?: string | null;
   contact_id: string | null;
   mobile: string | null;
   total_os: number;
@@ -71,6 +78,40 @@ interface ClienteRow {
   valor_aberto: number;
   status: 'late' | 'active' | 'idle';
   last_os_at: string | null;
+  // Wave C — campos cadastrais opcionais propagados pelo ContactController::index
+  // payload defer customers (Wave G expandirá full coverage). Cada Tab usa
+  // fallback ?? '' / null nos campos missing.
+  tipo?: 'PF' | 'PJ' | null;
+  fantasia?: string | null;
+  ie?: string | null;
+  rg?: string | null;
+  nascimento?: string | null;
+  contato?: string | null;
+  cargo?: string | null;
+  tel?: string | null;
+  tel2?: string | null;
+  landline?: string | null;
+  email?: string | null;
+  site?: string | null;
+  canal?: 'whatsapp' | 'email' | 'telefone' | 'presencial' | null;
+  cep?: string | null;
+  endereco?: string | null;
+  address_line_1?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  city?: string | null;
+  uf?: string | null;
+  state?: string | null;
+  limite_credito?: number | null;
+  prazo_padrao_dias?: number | null;
+  tabela_preco_padrao?: string | null;
+  pgto_padrao?: string | null;
+  obs_comercial?: string | null;
+  segmento?: string | null;
+  tags?: string[] | null;
+  vip?: boolean | null;
 }
 
 interface ListMeta {
@@ -741,6 +782,60 @@ function ActionsMenu({ row, onView }: { row: ClienteRow; onView: () => void }) {
   );
 }
 
+// ─── Wave B (ADR 0179) ─────────────────────────────────────────────────────
+// ClienteSheet: drawer 480 → 760 + 8 tabs cadastrais (Identificacao, Contato,
+// Endereco, Comercial, Classificacao, OSs, IA, Auditoria).
+//
+// Tabs cadastrais (1-5): importadas de `./_drawer/*Tab.tsx` (Agent C-FE Wave C
+// produz). Placeholder enquanto Wave C nao mergeia.
+// Tabs operacionais (6 OSs, 7 IA, 8 Auditoria): placeholders pra Wave D/E/F.
+//
+// Header rico (Cowork blueprint score 9,4/10):
+//   - Avatar grande (TODO Wave G: HSL hash deterministico)
+//   - Toggle PF/PJ + nome + "cadastrado ha Xd"
+//   - Badge Ativo/Inativo (status semantico Cockpit V2)
+//   - Botoes "Imprimir ficha" (window.print) + "Falar com Copiloto -> /jana/chat"
+//
+// KB-9.75 atalhos preservados (linhas 174-280, 892+) -- ClienteSheet nao
+// toca em key handlers globais; o Sheet Radix ja faz Esc-to-close nativo.
+
+type DrawerTab =
+  | 'identificacao'
+  | 'contato'
+  | 'endereco'
+  | 'comercial'
+  | 'classificacao'
+  | 'oss'
+  | 'ia'
+  | 'auditoria';
+
+const DRAWER_TABS: Array<{ key: DrawerTab; label: string }> = [
+  { key: 'identificacao', label: 'Identificação' },
+  { key: 'contato',       label: 'Contato' },
+  { key: 'endereco',      label: 'Endereço' },
+  { key: 'comercial',     label: 'Comercial' },
+  { key: 'classificacao', label: 'Classificação' },
+  { key: 'oss',           label: 'OSs' },
+  { key: 'ia',            label: 'IA' },
+  { key: 'auditoria',     label: 'Auditoria' },
+];
+
+function relativeDate(iso: string | null | undefined): string {
+  // "cadastrado ha Xd" -- usa created_at do contact. Fallback "—" se ausente.
+  // Wave G troca por relDate util (Lib/relDate.ts).
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  const diffMs = Date.now() - d.getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days < 1) return 'hoje';
+  if (days < 30) return `há ${days}d`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `há ${months}m`;
+  const years = Math.floor(months / 12);
+  return `há ${years}a`;
+}
+
 function ClienteSheet({
   contactId,
   open,
@@ -753,48 +848,248 @@ function ClienteSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const contact = useMemo(() => rows.find((r) => r.id === contactId) ?? null, [rows, contactId]);
+  const [activeTab, setActiveTab] = useState<DrawerTab>('identificacao');
+  // Toggle PF/PJ -- estado local. Wave C persiste via autosave on blur PATCH.
+  // Placeholder no payload ClienteRow nao tem `tipo` ainda (Migration Wave B
+  // adiciona; ContactController nao pro frontend ainda nesta wave).
+  const [tipo, setTipo] = useState<'PF' | 'PJ'>('PJ');
+
+  // Reset tab ao abrir contact diferente. Drawer abre default em "Identificação".
+  useEffect(() => {
+    if (open && contactId) {
+      setActiveTab('identificacao');
+    }
+  }, [open, contactId]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[480px] sm:max-w-[480px]">
-        <SheetHeader>
-          <SheetTitle>{contact?.name ?? 'Cliente'}</SheetTitle>
-          <SheetDescription>
-            {contact?.tax_number_masked ?? 'Documento não informado'}
-          </SheetDescription>
-        </SheetHeader>
-        {contact && (
-          <div className="mt-6 space-y-5">
-            <section className="grid grid-cols-2 gap-3">
-              <SheetKpi label="Total OS" value={contact.total_os.toString()} />
-              <SheetKpi label="Em aberto" value={contact.os_abertas.toString()} />
-              <SheetKpi label="Atrasadas" value={contact.os_atrasadas.toString()} danger={contact.os_atrasadas > 0} />
-              <SheetKpi label="Valor" value={formatBRL(contact.valor_aberto)} />
-            </section>
-            <section className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contato</h4>
-              <dl className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Telefone</dt>
-                  <dd className="text-foreground">{contact.mobile ?? '—'}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Última OS</dt>
-                  <dd className="text-foreground tabular-nums">{formatDate(contact.last_os_at)}</dd>
-                </div>
-              </dl>
-            </section>
-            <section className="flex gap-2">
-              <Button asChild variant="outline" className="flex-1">
-                <a href={`/contacts/${contact.id}`}>Página completa</a>
-              </Button>
-              <Button asChild className="flex-1">
-                <a href={`/contacts/${contact.id}/edit`}>Editar</a>
-              </Button>
-            </section>
+      <SheetContent
+        side="right"
+        // 760px conforme ADR 0179 + Cowork blueprint. Larissa biz=4 1280x1024:
+        // 760 + AppShellV2 sidebar 240 + main padding ~= 1024px (cabe sem
+        // scroll horizontal). Pest Wave B asserta `w-[760px]` no HTML.
+        className="w-[760px] sm:max-w-[760px] p-0 flex flex-col"
+      >
+        {/* ─── Header rico ─────────────────────────────────────────────── */}
+        <SheetHeader className="border-b border-border px-6 py-4 space-y-3">
+          <div className="flex items-start gap-4">
+            {/* TODO Wave G: Avatar HSL hash determinístico via id (Components/clientes/Avatar.tsx) */}
+            <div className="flex-shrink-0 h-14 w-14 rounded-md bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-stone-600 dark:text-stone-300 text-lg font-semibold">
+              {contact ? avatarInitial(contact.name) : '?'}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              {/* Toggle PF/PJ -- radio group simples. Wave C planta PATCH on blur. */}
+              <div
+                className="inline-flex items-center gap-1 rounded-md bg-muted/60 p-0.5 text-xs"
+                role="radiogroup"
+                aria-label="Tipo de pessoa"
+              >
+                {(['PF', 'PJ'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    role="radio"
+                    aria-checked={tipo === t}
+                    onClick={() => setTipo(t)}
+                    className={
+                      'rounded px-2 py-0.5 transition-colors ' +
+                      (tipo === t
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground')
+                    }
+                  >
+                    {t === 'PF' ? 'Pessoa física' : 'Pessoa jurídica'}
+                  </button>
+                ))}
+              </div>
+
+              <SheetTitle className="text-lg font-semibold leading-tight mt-1.5">
+                {contact?.name ?? 'Cliente'}
+              </SheetTitle>
+
+              <SheetDescription className="mt-0.5 text-xs">
+                {tipo === 'PJ' ? 'Pessoa jurídica' : 'Pessoa física'}
+                {' · cadastrado '}
+                {/* TODO Wave C: contact.created_at vem do controller; aqui fallback '—' */}
+                {relativeDate(null)}
+              </SheetDescription>
+            </div>
+
+            {/* Badge status -- "Ativo" se contact.status !== 'idle'; placeholder.
+                Wave G adiciona Inativo/Bloqueado via segmentStatus campo novo. */}
+            <span
+              className={
+                'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ' +
+                (contact?.status === 'idle'
+                  ? 'bg-stone-50 text-stone-700 border-stone-200 dark:bg-stone-950/40 dark:text-stone-300'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300')
+              }
+            >
+              {contact?.status === 'idle' ? 'Sem OS' : 'Ativo'}
+            </span>
           </div>
-        )}
+
+          {/* Botoes acao -- Imprimir + Copiloto. */}
+          <div className="flex items-center gap-2 pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Placeholder Wave B -- window.print() abre dialogo print do navegador.
+                // Wave G implementa CSS @media print + layout dedicado.
+                if (typeof window !== 'undefined') window.print();
+              }}
+              className="text-xs h-7"
+            >
+              Imprimir ficha
+            </Button>
+            <Button asChild size="sm" className="text-xs h-7">
+              <a
+                href={contact ? `/jana/chat?context=cliente:${contact.id}` : '#'}
+                title="Abre o Copiloto (Jana) com contexto deste cliente"
+              >
+                Falar com Copiloto →
+              </a>
+            </Button>
+          </div>
+        </SheetHeader>
+
+        {/* ─── 8 Tabs (pattern Show.tsx canon -- border-b-2 + overflow-x-auto) */}
+        <nav
+          className="border-b border-border px-6 flex gap-1 overflow-x-auto"
+          role="tablist"
+          aria-label="Tabs do cliente"
+        >
+          {DRAWER_TABS.map((t) => {
+            const isActive = activeTab === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setActiveTab(t.key)}
+                className={
+                  'inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ' +
+                  (isActive
+                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                    : 'border-transparent text-muted-foreground hover:text-foreground')
+                }
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ─── Tab content scrollable ──────────────────────────────────── */}
+        <div
+          role="tabpanel"
+          className="flex-1 overflow-y-auto px-6 py-5"
+          data-testid="cliente-drawer-tabpanel"
+        >
+          {contact && (
+            <>
+              {/* Tabs cadastrais 1-5 — Wave C-FE plugadas com autosave on blur. */}
+              {activeTab === 'identificacao' && (
+                <IdentificacaoTab contact={contact} />
+              )}
+              {activeTab === 'contato' && (
+                <ContatoTab contact={contact} />
+              )}
+              {activeTab === 'endereco' && (
+                <EnderecoTab contact={contact} />
+              )}
+              {activeTab === 'comercial' && (
+                <ComercialTab contact={contact} />
+              )}
+              {activeTab === 'classificacao' && (
+                <ClassificacaoTab contact={contact} />
+              )}
+              {activeTab === 'oss' && (
+                <DrawerTabPlaceholder
+                  title="OSs"
+                  body="Wave D: wrapper das 8 sub-tabs Wave Final 2026-05-21 (LedgerTab, SalesTab, PaymentsTab, DocumentsTab, ActivitiesTab, PessoasContatoTab, SubscriptionsTab, RewardPointsTab) via sub-tabs aninhadas verticais OU dropdown 'Ver: [SalesTab ▼]'."
+                  wave="D"
+                />
+              )}
+              {activeTab === 'ia' && (
+                <DrawerTabPlaceholder
+                  title="IA"
+                  body="Wave E: 4 cards Copiloto (Resumo relacionamento, Reavaliar segmento+tags, Próxima ação, Score risco determinístico) via Modules/Jana LaravelAiSdkDriver. Default ON para todos (sem gate quota inicial)."
+                  wave="E"
+                />
+              )}
+              {activeTab === 'auditoria' && (
+                <DrawerTabPlaceholder
+                  title="Auditoria"
+                  body="Wave F: timeline Spatie ActivityLog v4.8 com 6+ tipos eventos (created, updated, deleted, restored, custom) + botão Exportar log LGPD Art. 18. forSubject(Contact) filtrado por business_id."
+                  wave="F"
+                />
+              )}
+            </>
+          )}
+        </div>
+
+        {/* ─── Footer ──────────────────────────────────────────────────── */}
+        <div className="border-t border-border px-6 py-3 flex items-center justify-between">
+          <div className="text-xs text-muted-foreground">
+            {/* Placeholder pendencias -- Wave G calcula contagem real. */}
+            <span className="inline-flex items-center gap-1.5">
+              <AlertTriangle size={12} className="text-amber-500" />
+              1 pendência
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              className="text-xs h-7"
+            >
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                // Placeholder Wave B -- Wave C dispara PATCH autosave on blur.
+                // router.reload only:['contact'] refresca payload sem rerender total.
+                // TODO Wave C: substituir por toast "Salvo" + reload partial.
+                onOpenChange(false);
+              }}
+              className="text-xs h-7"
+            >
+              Salvar
+            </Button>
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/**
+ * Placeholder visual para tabs Wave C/D/E/F nao implementadas ainda.
+ * Wave C/D/E/F substituem por componente real importado de `./_drawer/*Tab`.
+ */
+function DrawerTabPlaceholder({
+  title,
+  body,
+  wave,
+}: {
+  title: string;
+  body: string;
+  wave: 'C' | 'D' | 'E' | 'F';
+}) {
+  return (
+    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6">
+      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Wave {wave} pendente
+      </div>
+      <h3 className="text-base font-semibold text-foreground mt-1.5">{title}</h3>
+      <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{body}</p>
+    </div>
   );
 }
 
