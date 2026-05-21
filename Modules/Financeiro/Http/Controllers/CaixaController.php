@@ -51,10 +51,20 @@ class CaixaController extends Controller
             $limit = (int) ($request->query('limit') ?? 50);
             $limit = max(10, min(200, $limit)); // clamp [10, 200]
 
+            // Fix Wagner 2026-05-21: `cash_registers` core UltimatePOS NÃO tem
+            // coluna `location_id` (migration 2018_01_30_181442 — só business_id +
+            // user_id + status + closed_at + closing_amount + total_card_slips +
+            // total_cheques + closing_note + timestamps). leftJoin com
+            // `business_locations as bl ON bl.id = cr.location_id` causava
+            // SQLSTATE[42S22] Unknown column → 500 server error em prod.
+            //
+            // Localização do caixa não é rastreada nesta tabela legacy. Quando
+            // US-FIN-CAIXA-LOCATION migrar, adicionar coluna + reintroduzir JOIN.
+            // Por enquanto: payload omite location_id/location_name (front cobre
+            // com fallback '—').
             $query = DB::table('cash_registers as cr')
                 ->where('cr.business_id', $businessId)
                 ->leftJoin('users as u', 'u.id', '=', 'cr.user_id')
-                ->leftJoin('business_locations as bl', 'bl.id', '=', 'cr.location_id')
                 ->select(
                     'cr.id',
                     'cr.status',
@@ -65,9 +75,7 @@ class CaixaController extends Controller
                     'cr.total_cheques',
                     'cr.closing_note',
                     'cr.user_id',
-                    DB::raw("TRIM(CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,''))) as user_name"),
-                    'cr.location_id',
-                    'bl.name as location_name'
+                    DB::raw("TRIM(CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,''))) as user_name")
                 );
 
             if ($statusFilter === 'open' || $statusFilter === 'close') {
@@ -102,8 +110,11 @@ class CaixaController extends Controller
                         'closing_note' => $row->closing_note,
                         'user_id' => (int) ($row->user_id ?? 0),
                         'user_name' => trim((string) ($row->user_name ?? '')) ?: '—',
-                        'location_id' => (int) ($row->location_id ?? 0),
-                        'location_name' => $row->location_name ?? '—',
+                        // location_id/location_name omitidos — coluna não existe
+                        // em cash_registers core (migration 2018). Front cobre
+                        // com fallback '—' via default opcional no .tsx.
+                        'location_id' => 0,
+                        'location_name' => '—',
                     ];
                 });
 
