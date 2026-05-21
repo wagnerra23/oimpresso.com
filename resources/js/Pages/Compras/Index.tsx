@@ -7,6 +7,7 @@ import { Deferred, router } from '@inertiajs/react';
 import { ReactNode, useMemo, useState } from 'react';
 
 import '../../../css/cowork-compras-bundle.css';
+import Drawer, { type CompraDetalhe } from './components/Drawer';
 
 type Stage = 'rascunho' | 'pedido' | 'transito' | 'recebido' | 'conferido' | 'pago' | 'cancelada';
 
@@ -46,8 +47,10 @@ interface Props {
     q: string;
     stage: string;
   };
+  selected_id: number | null;
   kpis: Kpis | null;
   rows: RowsPayload | null;
+  compra_detalhe: CompraDetalhe | null;
 }
 
 const STAGES: { id: Stage; l: string; ic: string }[] = [
@@ -72,9 +75,36 @@ function dueAmount(row: Row): number {
   return Math.max(0, Number(row.final_total ?? 0) - Number(row.amount_paid ?? 0));
 }
 
-function ComprasIndex({ filters, kpis, rows }: Props) {
-  const [selected, setSelected] = useState<Row | null>(null);
+function ComprasIndex({ filters, selected_id, kpis, rows, compra_detalhe }: Props) {
   const [localFilter, setLocalFilter] = useState<string>(filters.stage || 'all');
+
+  const openDrawer = (row: Row) => {
+    router.get(
+      '/compras',
+      { q: filters.q, stage: filters.stage, compra_id: row.id },
+      {
+        only: ['compra_detalhe', 'selected_id'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      }
+    );
+  };
+
+  const closeDrawer = () => {
+    router.get(
+      '/compras',
+      { q: filters.q, stage: filters.stage },
+      {
+        only: ['compra_detalhe', 'selected_id'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      }
+    );
+  };
+
+  const drawerOpen = selected_id != null;
 
   const filteredRows = useMemo<Row[]>(() => {
     if (!rows) return [];
@@ -172,7 +202,7 @@ function ComprasIndex({ filters, kpis, rows }: Props) {
         </nav>
 
         {/* BODY */}
-        <div className={`bd ${selected ? 'with-drawer' : ''}`}>
+        <div className={`bd ${drawerOpen ? 'with-drawer' : ''}`}>
           {/* LISTA */}
           <main className="list">
             <Deferred data="kpis" fallback={<KpisSkeleton />}>
@@ -181,19 +211,23 @@ function ComprasIndex({ filters, kpis, rows }: Props) {
 
             <Deferred data="rows" fallback={<TableSkeleton />}>
               {rows ? (
-                <TableCompras
-                  rows={filteredRows}
-                  selectedId={selected?.id ?? null}
-                  onSelect={setSelected}
-                />
+                <TableCompras rows={filteredRows} selectedId={selected_id} onSelect={openDrawer} />
               ) : (
                 <TableSkeleton />
               )}
             </Deferred>
           </main>
 
-          {/* DRAWER */}
-          {selected && <DrawerSimple row={selected} onClose={() => setSelected(null)} />}
+          {/* DRAWER 5 tabs sobre grid */}
+          {drawerOpen && (
+            <Deferred data="compra_detalhe" fallback={<DrawerSkeleton onClose={closeDrawer} />}>
+              {compra_detalhe ? (
+                <Drawer compra={compra_detalhe} onClose={closeDrawer} />
+              ) : (
+                <DrawerSkeleton onClose={closeDrawer} />
+              )}
+            </Deferred>
+          )}
         </div>
 
         {/* FOOTER */}
@@ -343,71 +377,27 @@ function TableSkeleton() {
   );
 }
 
-function DrawerSimple({ row, onClose }: { row: Row; onClose: () => void }) {
-  const due = dueAmount(row);
-  const stageInfo = STAGES.find((x) => x.id === row.status);
-
+function DrawerSkeleton({ onClose }: { onClose: () => void }) {
   return (
     <aside className="drawer">
       <div className="drw-head">
         <div>
-          <h2>{row.supplier_business_name || row.name || 'Sem fornecedor'}</h2>
-          <div style={{ fontSize: 11.5, color: 'var(--cmp-ink-3)', marginTop: 2 }}>
-            {row.location_name} · {fmtDate(row.transaction_date)}
-          </div>
-          <span className="mono">
-            #{row.id}
-            {row.ref_no ? ` · ${row.ref_no}` : ''}
-          </span>
+          <h2 style={{ color: 'var(--cmp-ink-3)' }}>Carregando…</h2>
+          <span className="mono">aguarde</span>
         </div>
         <button className="x" onClick={onClose} aria-label="Fechar">
           ✕
         </button>
       </div>
-
       <div className="drw-body">
         <div className="sec">
-          <h4>Resumo</h4>
-          <div className="card">
-            <div className="field-grid">
-              <div className="f">
-                <label>Estágio</label>
-                <span>{stageInfo?.l ?? row.status}</span>
-              </div>
-              <div className="f">
-                <label>Status pagamento</label>
-                <span>{row.payment_status}</span>
-              </div>
-              <div className="f">
-                <label>Total</label>
-                <span className="mono">{fmtMoney(row.final_total)}</span>
-              </div>
-              <div className="f">
-                <label>A pagar</label>
-                <span className="mono" style={{ color: due > 0 ? 'var(--cmp-warn)' : 'var(--cmp-ok)' }}>
-                  {fmtMoney(due)}
-                </span>
-              </div>
-            </div>
+          <div
+            className="card"
+            style={{ textAlign: 'center', color: 'var(--cmp-ink-3)', padding: 24 }}
+          >
+            Buscando detalhe da compra…
           </div>
         </div>
-
-        <div className="sec">
-          <h4>Detalhe completo</h4>
-          <div className="card" style={{ color: 'var(--cmp-ink-3)', fontSize: 11.5 }}>
-            Itens, pagamentos e timeline chegam na Wave 6 (endpoint <span className="mono">show</span> + DrawerView 5 tabs).
-          </div>
-        </div>
-      </div>
-
-      <div className="drw-foot">
-        <div className="total">
-          Total
-          <b>{fmtMoney(row.final_total)}</b>
-        </div>
-        <button className="btn ghost" onClick={onClose}>
-          Fechar
-        </button>
       </div>
     </aside>
   );
