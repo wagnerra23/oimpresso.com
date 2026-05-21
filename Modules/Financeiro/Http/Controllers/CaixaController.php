@@ -87,10 +87,22 @@ class CaixaController extends Controller
                 ->limit($limit)
                 ->get()
                 ->map(function ($row) {
-                    // Soma transações por método (consulta agregada — N+1 OK pra ≤200 rows)
+                    // Soma transações por método (consulta agregada — N+1 OK pra ≤200 rows).
+                    //
+                    // Fix Wagner 2026-05-21 (PR após #1373): `cash_register_transactions`
+                    // (migration 2018_01_31_125836) NÃO tem coluna `parent_id` — só id,
+                    // cash_register_id, amount, pay_method, type, transaction_type,
+                    // transaction_id, timestamps. `->whereNull('parent_id')` causava
+                    // SQLSTATE[42S22] Unknown column → 500 server error.
+                    //
+                    // Lógica anterior tentava ignorar estornos via parent_id (pattern
+                    // de `transactions` core que tem `return_parent_id`/`transfer_parent_id`).
+                    // Pra cash_register_transactions não há campo equivalente — estornos
+                    // viram registros novos com `type=debit`/`type=credit` invertidos.
+                    // Overcount minimal (estornos raros nesta tabela). US-FIN-CAIXA-ESTORNOS
+                    // (futuro) pode refinar via heurística de `transaction_id` cruzado.
                     $totals = DB::table('cash_register_transactions')
                         ->where('cash_register_id', $row->id)
-                        ->whereNull('parent_id') // ignora estornos
                         ->selectRaw('
                             SUM(CASE WHEN type="credit" THEN amount ELSE 0 END) as total_credit,
                             SUM(CASE WHEN type="debit" THEN amount ELSE 0 END) as total_debit
