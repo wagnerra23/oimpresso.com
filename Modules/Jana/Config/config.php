@@ -142,10 +142,17 @@ return [
     | compartilhada com auth, RBAC, audit log e quotas.
     */
     'mcp' => [
+        // === MCP Client (ADR 0056) — Copiloto/Laravel chama mcp.oimpresso.com ===
+        'url'              => env('COPILOTO_MCP_URL', 'https://mcp.oimpresso.com/api/mcp'),
+        'system_token'     => env('COPILOTO_MCP_SYSTEM_TOKEN', ''),
+        'timeout_seconds'  => env('COPILOTO_MCP_TIMEOUT', 5),
+
+        // === Webhook GitHub → endpoint sync-memory (TeamMcp/SyncMemoryWebhookController) ===
         // Token shared-secret entre GitHub webhook e endpoint sync-memory.
         // Setar em .env: COPILOTO_MCP_SYNC_TOKEN=...
         'sync_webhook_token' => env('COPILOTO_MCP_SYNC_TOKEN'),
 
+        // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),
 
@@ -376,25 +383,6 @@ return [
         'model'             => env('JANA_AUTO_SUMMARIZER_MODEL', 'gpt-4o-mini'),
         'max_cost_brl'      => (float) env('JANA_SUMMARIZER_MAX_COST_BRL', 10),
         'anthropic_cache_breakpoints' => (bool) env('JANA_SUMMARIZER_ANTHROPIC_CACHE_BREAKPOINTS', true),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | MEM-MEM-MCP-1 — MCP server como fonte única de memória (ADR 0056)
-    |--------------------------------------------------------------------------
-    | Copiloto chat web (Laravel) consulta MCP server pra recall de memória.
-    | Mesma camada usada pelo Claude Code do Wagner — governança unificada.
-    |
-    | Pra ativar: COPILOTO_MEMORIA_DRIVER=mcp + COPILOTO_MCP_SYSTEM_TOKEN=mcp_xxx
-    | Token system gerado via /copiloto/admin/team (1× pra Wagner).
-    |
-    | Fallback: se MCP indisponível, degrada pra MeilisearchDriver direto
-    | (configurado no provider). Sem indisponibilidade do chat.
-    */
-    'mcp' => [
-        'url'              => env('COPILOTO_MCP_URL', 'https://mcp.oimpresso.com/api/mcp'),
-        'system_token'     => env('COPILOTO_MCP_SYSTEM_TOKEN', ''),
-        'timeout_seconds'  => env('COPILOTO_MCP_TIMEOUT', 5),
     ],
 
     /*
