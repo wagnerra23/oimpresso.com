@@ -63,12 +63,29 @@ class DataController extends Controller
         }
 
         Menu::modify('admin-sidebar-menu', function ($menu) {
+            // ADR 0180 Fase 4 Wave E — Officeimpresso é ghost virtual de
+            // Plataforma no grupo canon `sistema` v3. Superadmin-only (gestão
+            // de licenças desktop WR Comercial). Sem `shortcut` (acoplado em
+            // Governança); `primary` = "Novo cliente" (criação via
+            // ClientController create); `ghosts` = Computadores + Clientes
+            // + Logs (sub-views gestão de licenças).
             $menu->url(
                 action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores']),
                 __('officeimpresso::lang.officeimpresso'),
                 [
-                    'icon'   => 'fa fas fa-plug',
-                    'active' => request()->segment(1) == 'officeimpresso',
+                    'icon'    => 'fa fas fa-plug',
+                    'active'  => request()->segment(1) == 'officeimpresso',
+                    'primary' => [
+                        'label'    => 'Novo cliente',
+                        'href'     => '/officeimpresso/client/create',
+                        'shortcut' => 'N',
+                    ],
+                    'ghosts'  => [
+                        ['key' => 'computadores',       'label' => 'Computadores', 'href' => '/officeimpresso/computadores'],
+                        ['key' => 'client',             'label' => 'Clientes',     'href' => '/officeimpresso/client'],
+                        ['key' => 'licenca_computador', 'label' => 'Licenças',     'href' => '/officeimpresso/licenca_computador'],
+                        ['key' => 'licenca_log',        'label' => 'Logs',         'href' => '/officeimpresso/licenca_log'],
+                    ],
                 ]
             )->order(2);
         });

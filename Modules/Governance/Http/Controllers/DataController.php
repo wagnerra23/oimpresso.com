@@ -80,10 +80,34 @@ class DataController extends Controller
         if (!$user->can('governance.dashboard.view')) return;
 
         Menu::modify('admin-sidebar-menu', function ($menu) {
+            // ADR 0180 Fase 4 Wave E — entry principal Governance declara:
+            //  - `shortcut` G G → atalho kbd canônico (overlay visual em Fase 8)
+            //  - `primary`     → botão "Gerenciar policies" (PageHeaderTabs Fase 5)
+            //  - `ghosts`      → 5 sub-views consolidadas (dashboard/policies/audit/drift/module-grades)
+            //
+            // ADR 0180 v3 — entry vive no grupo canon `sistema` (acoplado em Governança
+            // visual no frontend). ADS/Auditoria/Cms/Connector/Officeimpresso são ghosts
+            // virtuais agrupados pela Sidebar.tsx no mesmo cabeçalho `sistema`.
             $menu->url(
                 action(['\\Modules\\Governance\\Http\\Controllers\\DashboardController', 'index']),
                 __('governance::governance.governance'),
-                ['icon' => 'fa fa-shield', 'active' => request()->is('governance*')]
+                [
+                    'icon'     => 'fa fa-shield',
+                    'active'   => request()->is('governance*'),
+                    'shortcut' => 'G G',
+                    'primary'  => [
+                        'label'    => 'Gerenciar policies',
+                        'href'     => '/governance/policies',
+                        'shortcut' => 'P',
+                    ],
+                    'ghosts'   => [
+                        ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance'],
+                        ['key' => 'policies',      'label' => 'Policies',        'href' => '/governance/policies'],
+                        ['key' => 'audit',         'label' => 'Audit log',       'href' => '/governance/audit'],
+                        ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],
+                        ['key' => 'module-grades', 'label' => 'Module Grades',   'href' => '/governance/module-grades'],
+                    ],
+                ]
             )->order(199);
         });
     }

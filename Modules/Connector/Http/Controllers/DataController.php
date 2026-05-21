@@ -70,7 +70,23 @@ class DataController extends Controller
                             ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'docs']
                         );
                     },
-                    ['icon' => 'fas fa-plug']
+                    [
+                        'icon'    => 'fas fa-plug',
+                        // ADR 0180 Fase 4 Wave E — Connector é ghost virtual de
+                        // Plataforma no grupo canon `sistema` v3. Sem `shortcut`
+                        // (acoplado em Governança); `primary` = "Novo client OAuth"
+                        // (criação via ClientController create); `ghosts` = Clients
+                        // + Documentation (2 sub-views existentes).
+                        'primary' => [
+                            'label'    => 'Novo API client',
+                            'href'     => '/connector/client/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'clients', 'label' => 'API Clients',   'href' => '/connector/api'],
+                            ['key' => 'docs',    'label' => 'Documentação',  'href' => '/docs'],
+                        ],
+                    ]
                 )->order(6);
             });
         }
