@@ -22,6 +22,8 @@ use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ContactCreatedOrModified;
+use App\Http\Requests\Cliente\StoreContactRequest;
+use App\Http\Requests\Cliente\UpdateContactRequest;
 use Inertia\Inertia;
 
 class ContactController extends Controller
@@ -910,10 +912,14 @@ class ContactController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Slice 7 — type-hint StoreContactRequest wira App\Rules\BR\CpfCnpj +
+     * regras canon BR (indicador_ie 1/2/9, regime simples/presumido/real/mei).
+     * Authorize já roda no FormRequest; abort(403) abaixo é defensividade legacy.
+     *
+     * @param  \App\Http\Requests\Cliente\StoreContactRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreContactRequest $request)
     {
         if (! auth()->user()->can('supplier.create') && ! auth()->user()->can('customer.create') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
             abort(403, 'Unauthorized action.');
@@ -1358,11 +1364,16 @@ class ContactController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Slice 7 — type-hint UpdateContactRequest wira App\Rules\BR\CpfCnpj.
+     * Cobre o path legacy (isLegacyAjax) e o futuro Inertia — validação roda
+     * antes da action, antes do branch isLegacyAjax. Authorize duplo (FormRequest
+     * + abort manual) por defensividade durante migração Wave 1.
+     *
+     * @param  \App\Http\Requests\Cliente\UpdateContactRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateContactRequest $request, $id)
     {
         if (! auth()->user()->can('supplier.update') && ! auth()->user()->can('customer.update') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
             abort(403, 'Unauthorized action.');
