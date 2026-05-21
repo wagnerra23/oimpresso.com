@@ -1,37 +1,40 @@
-// QuickPaymentDialog — Modal pra registrar pagamento rápido inline na linha da
-// listagem de vendas. Reusa o endpoint POST /sells/{id}/quick-payment que já
-// alimenta o "Adicionar pagamento" inline do SaleSheet (drawer), evitando
-// duplicação. Larissa @ ROTA LIVRE biz=4 pediu 2026-05-21 "adicionar
-// pagamentos como antigamente" (UltimatePOS Blade legacy tinha botão "Add
-// Payment" na linha) — ADR 0105 sinal qualificado.
+// QuickPaymentPopover — versão em-place (anchored ao botão "Pagar" na row)
+// do antigo QuickPaymentDialog (modal full). Onda Unificação PR5/6 — Wagner
+// pediu UX moderna estilo Linear/Notion: popover compacto ao lado da linha
+// preservando contexto da tabela (sem overlay full que tirava visibilidade
+// do row clicado).
 //
-// @deprecated Substituído por QuickPaymentPopover (Onda Unificação PR5/6) em
-// em-place anchored ao botão DollarSign. Modal full overlay tirava contexto
-// da linha. Mantido aqui como backup compat caso algum lugar referencie —
-// pode ser removido em onda futura quando sells/Index.tsx + Grade Avançada
-// estiverem 100% migrados pro Popover (confirmar grep no codebase).
+// Decisões de design:
+//  - Mesma fonte de verdade do POST /sells/{id}/quick-payment (idêntico ao
+//    Dialog antigo e ao SaleSheet inline) — zero mudança backend.
+//  - Trigger é injetado de fora via prop `trigger: React.ReactNode` pra
+//    permitir que cada call-site (Lista row-actions, Grade Avançada tbody)
+//    controle o estilo do botão. Wraps com PopoverTrigger asChild.
+//  - shadcn Popover (Radix primitive) já traz Esc-close + click-outside-close
+//    + focus trap default — não precisa lógica manual.
+//  - Lógica de submit/draft/error copiada 1:1 do QuickPaymentDialog antigo;
+//    QuickPaymentDialog.tsx fica marcado @deprecated mas não é removido
+//    (backup compat caso algum lugar referencie).
 //
 // Refs:
-//  - QuickPaymentPopover.tsx (substituto — em-place anchored)
-//  - SaleSheet.tsx linhas 195-276 (padrão original do form inline)
-//  - ADR 0093 multi-tenant Tier 0 (saleId vem do payload do tenant logado)
+//  - QuickPaymentDialog.tsx (predecessor — Onda Unificação PR3/6 #1320)
+//  - ADR 0178 Onda Unificação tabs Visão supersede 0136
+//  - ADR 0093 multi-tenant Tier 0 (saleId vem do payload tenant logado)
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/Components/ui/dialog';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/Components/ui/popover';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 
-// Mesma fonte canônica de SaleSheet (UltimatePOS armazena chaves curtas
-// custom_pay_1=PIX/custom_pay_2=Boleto/custom_pay_3=Crediário — labels PT-BR
+// Mesma fonte canônica de SaleSheet + QuickPaymentDialog (UltimatePOS
+// armazena chaves curtas custom_pay_1=PIX/custom_pay_2=Boleto — labels PT-BR
 // no SellController::inertiaList match cases linha 1287-1298).
 const PAYMENT_METHODS_OPTIONS = [
   { value: 'cash', label: 'Dinheiro' },
@@ -53,23 +56,27 @@ function getCsrfToken(): string {
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-interface QuickPaymentDialogProps {
-  saleId: number | null;
+interface QuickPaymentPopoverProps {
+  saleId: number;
   invoiceNo: string;
   dueAmount: number;
-  open: boolean;
-  onClose: () => void;
   onSuccess: () => void;
+  /**
+   * Botão (ou qualquer trigger) que abre o popover. É clonado via Radix
+   * PopoverTrigger asChild — então precisa aceitar ref + onClick. Em geral
+   * um <button> simples já basta.
+   */
+  trigger: ReactNode;
 }
 
-export default function QuickPaymentDialog({
+export default function QuickPaymentPopover({
   saleId,
   invoiceNo,
   dueAmount,
-  open,
-  onClose,
   onSuccess,
-}: QuickPaymentDialogProps) {
+  trigger,
+}: QuickPaymentPopoverProps) {
+  const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [draft, setDraft] = useState({
@@ -79,8 +86,8 @@ export default function QuickPaymentDialog({
     note: '',
   });
 
-  // Reseta o draft toda vez que o modal abre — evita carregar valor de outra
-  // venda quando o user fechou sem submeter e abriu em outra linha.
+  // Reseta o draft toda vez que o popover abre — evita carregar valor de
+  // outra venda quando o user fechou sem submeter e abriu em outra linha.
   useEffect(() => {
     if (open) {
       setDraft({
@@ -124,7 +131,7 @@ export default function QuickPaymentDialog({
         return;
       }
       onSuccess();
-      onClose();
+      setOpen(false);
     } catch (err) {
       setPaymentError(String((err as Error)?.message || err));
     } finally {
@@ -133,21 +140,28 @@ export default function QuickPaymentDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-base">Registrar pagamento</DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      <PopoverContent
+        className="w-80 p-3"
+        align="end"
+        // stopPropagation evita que click no form abra o drawer da venda
+        // (row tem onClick que abre SaleSheet — ver Index.tsx vd-row).
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-2">
+          <div className="text-sm font-medium leading-none">Registrar pagamento</div>
+          <div className="mt-1 text-xs text-muted-foreground">
             Venda #{invoiceNo} · saldo devedor{' '}
             <span className="font-medium text-foreground tabular-nums">{formatBRL(dueAmount)}</span>
-          </DialogDescription>
-        </DialogHeader>
+          </div>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="qpd-amount" className="text-xs">Valor</Label>
+              <Label htmlFor="qpp-amount" className="text-xs">Valor</Label>
               <Input
-                id="qpd-amount"
+                id="qpp-amount"
                 type="text"
                 inputMode="decimal"
                 value={draft.amount}
@@ -155,15 +169,16 @@ export default function QuickPaymentDialog({
                 placeholder="0,00"
                 required
                 autoFocus
+                className="h-8 text-sm"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="qpd-method" className="text-xs">Forma</Label>
+              <Label htmlFor="qpp-method" className="text-xs">Forma</Label>
               <select
-                id="qpd-method"
+                id="qpp-method"
                 value={draft.method}
                 onChange={(e) => setDraft({ ...draft, method: e.target.value })}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
               >
                 {PAYMENT_METHODS_OPTIONS.map((m) => (
                   <option key={m.value} value={m.value}>{m.label}</option>
@@ -172,19 +187,20 @@ export default function QuickPaymentDialog({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="qpd-date" className="text-xs">Data</Label>
+            <Label htmlFor="qpp-date" className="text-xs">Data</Label>
             <Input
-              id="qpd-date"
+              id="qpp-date"
               type="date"
               value={draft.paid_on}
               onChange={(e) => setDraft({ ...draft, paid_on: e.target.value })}
               required
+              className="h-8 text-sm"
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="qpd-note" className="text-xs">Observação (opcional)</Label>
+            <Label htmlFor="qpp-note" className="text-xs">Observação (opcional)</Label>
             <Textarea
-              id="qpd-note"
+              id="qpp-note"
               value={draft.note}
               onChange={(e) => setDraft({ ...draft, note: e.target.value })}
               rows={2}
@@ -201,7 +217,7 @@ export default function QuickPaymentDialog({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={() => setOpen(false)}
               disabled={submitting}
             >
               <X size={14} className="mr-1" />
@@ -217,7 +233,7 @@ export default function QuickPaymentDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   );
 }

@@ -31,7 +31,7 @@ import {
   X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
-import QuickPaymentDialog from './_components/QuickPaymentDialog';
+import QuickPaymentPopover from './_components/QuickPaymentPopover';
 // PR follow-up Cowork — filtros legacy reintegrados via barra colapsável "Filtros avançados ▾".
 // Refs: Index.charter.md v2 Goals · feedback-design-literal-copy §How to apply #5.
 import SellsDateFilter, {
@@ -649,8 +649,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
   // US-SELL-042 — Larissa @ ROTA LIVRE biz=4 (ADR 0105) pediu 2026-05-21
   // "adicionar pagamentos como antigamente" (botão direto na linha sem abrir
-  // drawer). Estado do modal QuickPayment compartilhado entre Lista e Grade.
-  const [payDialog, setPayDialog] = useState<{ saleId: number; invoiceNo: string; dueAmount: number } | null>(null);
+  // drawer). Onda Unificação PR5 — Dialog modal full foi trocado por Popover
+  // anchored (em-place). Cada row renderiza seu próprio Popover; estado é
+  // local ao componente, sem lift-up (Grade idem).
 
   // Onda Unificação PR2/6 (ADR 0178) — tabs Visão Operacional/Financeira/Produção.
   // Feature-flagged via URL `?tabs=1` — visível só pra Wagner em testes; default off
@@ -1351,7 +1352,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               onSort={handleSort}
               groupBy={groupBy}
               onGroupByChange={setGroupBy}
-              onPayClick={(saleId, invoiceNo, dueAmount) => setPayDialog({ saleId, invoiceNo, dueAmount })}
+              onPaySuccess={() => setRefetchToken((t) => t + 1)}
             />
           </div>
         ) : (
@@ -1493,20 +1494,24 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                         <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
                           {/* US-SELL-042 — botão "Pagar" inline (sem abrir drawer) pra
                               vendas com saldo devedor. Equivalente ao "Add Payment" do
-                              UltimatePOS Blade legacy que Larissa biz=4 sentiu falta. */}
+                              UltimatePOS Blade legacy que Larissa biz=4 sentiu falta.
+                              Onda Unificação PR5 — Popover em-place (modal full sumiu). */}
                           {v.payment_status !== 'paid' && (
-                            <button
-                              className="vd-row-act"
-                              title="Registrar pagamento"
-                              type="button"
-                              onClick={() => setPayDialog({
-                                saleId: v.id,
-                                invoiceNo: v.invoice_no,
-                                dueAmount: Math.max(0, v.final_total - v.total_paid),
-                              })}
-                            >
-                              <DollarSign size={11} />
-                            </button>
+                            <QuickPaymentPopover
+                              saleId={v.id}
+                              invoiceNo={v.invoice_no}
+                              dueAmount={Math.max(0, v.final_total - v.total_paid)}
+                              onSuccess={() => setRefetchToken((t) => t + 1)}
+                              trigger={
+                                <button
+                                  className="vd-row-act"
+                                  title="Registrar pagamento"
+                                  type="button"
+                                >
+                                  <DollarSign size={11} />
+                                </button>
+                              }
+                            />
                           )}
                           {v.fiscal_status === 'autorizada' && (
                             <button className="vd-row-act" title="Baixar DANFE PDF" type="button">
@@ -1764,16 +1769,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         initialAiOpen={aiTriggered}
       />
 
-      {/* US-SELL-042 — modal "Registrar pagamento" inline (atalho rápido sem
-          abrir o drawer). Lista e Grade Avançada disparam via setPayDialog. */}
-      <QuickPaymentDialog
-        saleId={payDialog?.saleId ?? null}
-        invoiceNo={payDialog?.invoiceNo ?? ''}
-        dueAmount={payDialog?.dueAmount ?? 0}
-        open={payDialog !== null}
-        onClose={() => setPayDialog(null)}
-        onSuccess={() => setRefetchToken((t) => t + 1)}
-      />
+      {/* US-SELL-042 — Onda Unificação PR5: o antigo <QuickPaymentDialog>
+          global foi removido daqui. Cada row da Lista/Grade renderiza seu
+          próprio <QuickPaymentPopover> em-place (anchored ao botão DollarSign),
+          preservando contexto da linha sem overlay full. */}
     </div>
   );
 }
