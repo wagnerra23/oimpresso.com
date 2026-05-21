@@ -3,11 +3,13 @@ slug: 0179-cliente-drawer-760px-substitui-show-fullpage
 number: 179
 title: "Cliente — drawer lateral 760px substitui Show.tsx full-page (paradigma cadastral 8 tabs)"
 type: adr
-status: proposed
+status: accepted
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-21"
+accepted_at: "2026-05-21"
+accepted_via: "Wagner aprovou em sessão Wave A-G+Z 2026-05-21 16:40 BRT — comando exato: 'aprovado merge'"
 quarter: 2026-Q2
 module: crm
 tags: [paradigma, cliente, drawer, mwart, cowork-blueprint, tier-A, multi-tenant]
