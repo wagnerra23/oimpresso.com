@@ -69,11 +69,32 @@ class DataController extends Controller
 
         if ($is_mfg_enabled && (auth()->user()->can('manufacturing.access_recipe') || auth()->user()->can('manufacturing.access_production'))) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
+                // ADR 0180 Fase 4 Wave B (2026-05-21): entry principal declara
+                // atalho kbd + primary action + ghosts tabs.
+                //  - `shortcut` G P → atalho overlay (Produção)
+                //  - `primary`     → "Nova ordem de produção" via ProductionController@create
+                //  - `ghosts`      → Receitas, Produções, Relatório, Configurações
                 $menu->url(
-                        action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index']),
-                        __('manufacturing::lang.manufacturing'),
-                        ['icon' => 'fa fas fa-industry', 'style' => config('app.env') == 'demo' ? 'background-color: #ff851b;' : '', 'active' => request()->segment(1) == 'manufacturing']
-                    )
+                    action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index']),
+                    __('manufacturing::lang.manufacturing'),
+                    [
+                        'icon'     => 'fa fas fa-industry',
+                        'style'    => config('app.env') == 'demo' ? 'background-color: #ff851b;' : '',
+                        'active'   => request()->segment(1) == 'manufacturing',
+                        'shortcut' => 'G P',
+                        'primary'  => [
+                            'label'    => 'Nova ordem de produção',
+                            'href'     => '/manufacturing/production/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'recipe',     'label' => 'Receitas',        'href' => '/manufacturing/recipe'],
+                            ['key' => 'production', 'label' => 'Produções',       'href' => '/manufacturing/production'],
+                            ['key' => 'report',     'label' => 'Relatório',       'href' => '/manufacturing/report'],
+                            ['key' => 'settings',   'label' => 'Configurações',   'href' => '/manufacturing/settings'],
+                        ],
+                    ]
+                )
                 ->order(21);
             });
         }

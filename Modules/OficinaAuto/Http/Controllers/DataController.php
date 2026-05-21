@@ -130,6 +130,12 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($segmento_ativo) {
+                // ADR 0180 Fase 4 Wave B (2026-05-21): dropdown principal declara
+                // atalho kbd + primary action + ghosts tabs no `attributes`.
+                //  - `shortcut` G Y → atalho overlay (não-conflito com Repair G O)
+                //  - `primary`     → "Nova OS" via ServiceOrderController@create
+                //  - `ghosts`      → Veículos, Ordens de Serviço, Produção (Kanban
+                //    caçambas Martinho 2026-05-13)
                 $menu->dropdown(
                     'Oficina Auto',
                     function ($sub) {
@@ -146,8 +152,19 @@ class DataController extends Controller
                         ]);
                     },
                     [
-                        'icon'   => 'fa fas fa-wrench',
-                        'active' => $segmento_ativo,
+                        'icon'     => 'fa fas fa-wrench',
+                        'active'   => $segmento_ativo,
+                        'shortcut' => 'G Y',
+                        'primary'  => [
+                            'label'    => 'Nova OS',
+                            'href'     => '/oficina-auto/ordens-servico/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'veiculos',          'label' => 'Veículos',           'href' => '/oficina-auto/veiculos'],
+                            ['key' => 'ordens-servico',    'label' => 'Ordens de Serviço',  'href' => '/oficina-auto/ordens-servico'],
+                            ['key' => 'producao-oficina',  'label' => 'Produção',           'href' => '/oficina-auto/producao-oficina'],
+                        ],
                     ]
                 )->order(56);
             }
