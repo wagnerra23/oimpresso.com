@@ -62,6 +62,26 @@ class BackfillCpfCnpjCommand extends Command
             $this->info("Limite: {$limit} registros");
         }
 
+        // --- Safety report INICIAL (Wagner pediu 2026-05-21 — "verifique antes
+        // de matar a informação, acho que antes era cpf_cnpj que eu já usava").
+        // Mostra panorama ANTES de qualquer mudança pra confirmar que existing
+        // cpf_cnpj NAO sera tocado.
+        $scopeQuery = DB::table('contacts');
+        if ($businessId !== null) {
+            $scopeQuery->where('business_id', $businessId);
+        }
+        $scopeTotal = (clone $scopeQuery)->count();
+        $cpfCnpjJaPopulado = (clone $scopeQuery)->whereNotNull('cpf_cnpj')->where('cpf_cnpj', '!=', '')->count();
+        $semTaxNumber = (clone $scopeQuery)->where(function ($q) {
+            $q->whereNull('tax_number')->orWhere('tax_number', '=', '');
+        })->whereNull('cpf_cnpj')->count();
+
+        $this->newLine();
+        $this->info('=== ESTADO ATUAL (antes do backfill) ===');
+        $this->info("Total contacts no escopo:                {$scopeTotal}");
+        $this->line("  - cpf_cnpj JA populado (skip silencioso): <fg=green>{$cpfCnpjJaPopulado}</> — NUNCA sobrescritos");
+        $this->line("  - sem tax_number nem cpf_cnpj (skip):     <fg=gray>{$semTaxNumber}</> — nada a fazer");
+
         $baseQuery = DB::table('contacts')
             ->whereNotNull('tax_number')
             ->where('tax_number', '!=', '')
@@ -72,7 +92,14 @@ class BackfillCpfCnpjCommand extends Command
         }
 
         $total = (clone $baseQuery)->count();
-        $this->info("Eligible contacts: {$total}");
+        $this->line("  - elegiveis pra backfill (tax_number presente, cpf_cnpj vazio): <fg=yellow>{$total}</>");
+        $this->newLine();
+
+        if ($cpfCnpjJaPopulado > 0) {
+            $this->info("🛡  Proteção ativa: {$cpfCnpjJaPopulado} cadastros com cpf_cnpj já preenchido");
+            $this->info('   continuam INTOCADOS (filtro `WHERE cpf_cnpj IS NULL` na query).');
+            $this->newLine();
+        }
 
         if ($total === 0) {
             $this->warn('Nada elegível — exit.');
@@ -166,12 +193,17 @@ class BackfillCpfCnpjCommand extends Command
             'timestamp' => now()->toIso8601String(),
             'business_id_filter' => $businessId,
             'limit' => $limit,
-            'total_eligible' => $total,
+            'scope_snapshot_before' => [
+                'total_in_scope' => $scopeTotal,
+                'cpf_cnpj_already_populated' => $cpfCnpjJaPopulado,
+                'no_tax_number_no_cpf_cnpj' => $semTaxNumber,
+                'eligible_for_backfill' => $total,
+            ],
             'processed' => $processed,
             'valid_mod11' => $valid,
             'invalid_mod11' => $invalid,
             'invalid_sample_first_50' => $invalidSample,
-            'note' => 'PII redacted — tax_number values NOT logged. Use IDs to investigate.',
+            'note' => 'PII redacted — tax_number values NOT logged. Use IDs to investigate. Contacts with pre-existing cpf_cnpj NEVER touched (whereNull guard).',
         ];
         file_put_contents($logPath, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $this->info("Log: {$logPath}");

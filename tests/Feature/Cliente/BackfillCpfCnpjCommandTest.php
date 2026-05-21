@@ -160,6 +160,37 @@ it('respeita filtro --business-id (Tier 0)', function () {
     expect(DB::table('contacts')->where('id', $this->cpfValidoId)->value('cpf_cnpj'))->toBe('11144477735');
 });
 
+it('NAO sobrescreve cpf_cnpj ja populado (Wagner guard 2026-05-21)', function () {
+    // Cria contact com cpf_cnpj JA populado (cenario Wagner: v3.7 usava cpf_cnpj
+    // e os dados sobreviveram ao upgrade UPOS 6.7 em prod).
+    $existingValue = '99999999999'; // valor arbitrario — nao precisa ser mod-11 valido
+    $contactComCpfCnpjPopuladoId = DB::table('contacts')->insertGetId([
+        'business_id' => $this->business->id,
+        'created_by' => $this->user->id,
+        'type' => 'customer',
+        'name' => 'Contact com cpf_cnpj LEGADO populado',
+        'tax_number' => '111.444.777-35', // CPF valido — TENTARIA backfill, mas tem cpf_cnpj
+        'cpf_cnpj' => $existingValue,
+        'mobile' => '11777777777',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Roda backfill em modo execute.
+    $this->artisan('cliente:backfill-cpf-cnpj', [
+        '--execute' => true,
+        '--business-id' => $this->business->id,
+    ])->assertExitCode(0);
+
+    // CRITICO: o cpf_cnpj pre-existente NAO foi sobrescrito (nem com tax_number valido).
+    $valorFinal = DB::table('contacts')->where('id', $contactComCpfCnpjPopuladoId)->value('cpf_cnpj');
+    expect($valorFinal)->toBe($existingValue);
+
+    // E o tax_number original tambem preservado (back-compat).
+    $taxNumberFinal = DB::table('contacts')->where('id', $contactComCpfCnpjPopuladoId)->value('tax_number');
+    expect($taxNumberFinal)->toBe('111.444.777-35');
+});
+
 it('log JSON nao grava tax_number plain (LGPD)', function () {
     // Captura logs gerados após execute.
     $logsBefore = glob(storage_path('logs').'/backfill-cpfcnpj-*.json') ?: [];
