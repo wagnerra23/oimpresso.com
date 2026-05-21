@@ -155,9 +155,32 @@ class DataController extends Controller
                         ]);
                     },
                     [
-                        'icon'   => 'fa fas fa-microchip',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'    => 'fa fas fa-microchip',
+                        'style'   => 'background-color:' . $background_color,
+                        'active'  => $segmento_ativo,
+                        // ADR 0180 Fase 4 Wave E — ADS é ghost virtual de
+                        // Governança no grupo canon `sistema` v3. Sem `shortcut`
+                        // (não tem atalho próprio); `primary` aponta para
+                        // Decisões pendentes (operação mais comum HiTL-2/3);
+                        // `ghosts` consolida as 10 sub-views (Estratégia,
+                        // Decisão, Conhecimento, Governança, Medição).
+                        'primary' => [
+                            'label'    => 'Decisões pendentes',
+                            'href'     => '/ads/admin/decisoes',
+                            'shortcut' => 'D',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'projects',     'label' => 'Projects',        'href' => '/ads/admin/projects'],
+                            ['key' => 'decisoes',     'label' => 'Decisões',        'href' => '/ads/admin/decisoes'],
+                            ['key' => 'kb',           'label' => 'Knowledge Base',  'href' => '/ads/admin/kb'],
+                            ['key' => 'skills',       'label' => 'Skills',          'href' => '/ads/admin/skills'],
+                            ['key' => 'tools',        'label' => 'Tools',           'href' => '/ads/admin/tools'],
+                            ['key' => 'graph',        'label' => 'Knowledge Graph', 'href' => '/ads/admin/graph'],
+                            ['key' => 'meta-skills',  'label' => 'Meta-skills',     'href' => '/ads/admin/meta-skills'],
+                            ['key' => 'team-scopes',  'label' => 'Team Scopes',     'href' => '/ads/admin/team-scopes'],
+                            ['key' => 'policy',       'label' => 'Policy',          'href' => '/ads/admin/policy'],
+                            ['key' => 'metricas',     'label' => 'Métricas',        'href' => '/ads/admin/metricas'],
+                        ],
                     ]
                 )->order(98);
             }
