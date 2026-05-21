@@ -13,6 +13,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import {
+  Activity,
   AlertTriangle,
   Banknote,
   ChevronLeft,
@@ -33,6 +34,7 @@ import SalesTab, { type SalesPaginator } from './_show/SalesTab';
 import DocumentsTab from './_show/DocumentsTab';
 import ActionsMenu from './_show/ActionsMenu';
 import ContactPicker, { type ContactDropdownItem } from './_show/ContactPicker';
+import ActivitiesTab, { type ActivityItem } from './_show/ActivitiesTab';
 
 interface ContactInfo {
   id: number;
@@ -69,7 +71,7 @@ interface Permissions {
   view_sell: boolean;
 }
 
-type TabKey = 'ledger' | 'sales' | 'payments' | 'documents';
+type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities';
 
 interface ClienteShowPageProps {
   contact: ContactInfo;
@@ -79,6 +81,7 @@ interface ClienteShowPageProps {
   locations: Array<{ id: number; name: string }>;
   permissions: Permissions;
   contact_dropdown?: ContactDropdownItem[];
+  activities?: ActivityItem[];
 }
 
 const formatBRL = (value: number) =>
@@ -93,6 +96,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
     { key: 'sales', label: 'Vendas', icon: ReceiptText },
     { key: 'payments', label: 'Pagamentos', icon: Banknote },
     { key: 'documents', label: 'Documentos & Notas', icon: FileText },
+    { key: 'activities', label: 'Atividades', icon: Activity },
   ];
 
   return (
@@ -244,6 +248,11 @@ export default function ClienteShow(props: ClienteShowPageProps) {
                     edit_note: permissions.edit_note,
                   }}
                 />
+              )}
+              {activeTab === 'activities' && (
+                <Deferred data="activities" fallback={<TabSkeleton />}>
+                  <ActivitiesTab activities={props.activities} />
+                </Deferred>
               )}
             </div>
           </section>
