@@ -130,6 +130,21 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave C TOPO (2026-05-21): entry dropdown principal
+                // declara atributos extras propagados pelo LegacyMenuAdapter pro
+                // frontend Sidebar.tsx (v3 — grupo 'ia' no TOPO):
+                //  - `shortcut` G I → atalho kbd canônico (overlay Fase 8)
+                //  - `primary`     → "Conversar com Jana" (entry-point IA do módulo)
+                //  - `ghosts`      → 6 sub-views (conversar/dashboard/metas/alertas/custos/plataforma)
+                //
+                // group: 'ia' canon — LegacyMenuAdapter propaga pro Sidebar.tsx,
+                // que renderiza Jana no TOPO junto com KB/Brief/SRS (ghosts de IA).
+                //
+                // hrefs absolutos (não usa route() helper aqui pra evitar interpretação
+                // no LegacyMenuAdapter::toRelative). Permission gates específicos
+                // (jana.chat, jana.metas.manage, jana.admin.custos.view, jana.superadmin)
+                // permanecem enforce nos Controllers individuais — gate global
+                // hasThePermissionInSubscription já cobre módulo on/off na entry.
                 $menu->dropdown(
                     __('copiloto::copiloto.module_label'),
                     function ($sub) {
@@ -204,9 +219,24 @@ class DataController extends Controller
                         }
                     },
                     [
-                        'icon'   => 'fa fas fa-compass',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'     => 'fa fas fa-compass',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $segmento_ativo,
+                        'group'    => 'ia',
+                        'shortcut' => 'G I',
+                        'primary'  => [
+                            'label'    => 'Conversar com Jana',
+                            'href'     => '/jana',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'conversar',  'label' => 'Conversar',  'href' => '/jana'],
+                            ['key' => 'dashboard',  'label' => 'Dashboard',  'href' => '/jana/dashboard'],
+                            ['key' => 'metas',      'label' => 'Metas',      'href' => '/jana/metas'],
+                            ['key' => 'alertas',    'label' => 'Alertas',    'href' => '/jana/alertas'],
+                            ['key' => 'custos',     'label' => 'Custos IA',  'href' => '/jana/admin/custos'],
+                            ['key' => 'plataforma', 'label' => 'Plataforma', 'href' => '/jana/superadmin/metas'],
+                        ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)
             }

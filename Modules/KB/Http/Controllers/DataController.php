@@ -101,6 +101,12 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave C TOPO (2026-05-21): entry KB declara
+                // `group: 'ia'` pro frontend Sidebar.tsx (v3) renderizar KB
+                // no TOPO junto com Jana (ghost de IA). KB NÃO declara shortcut
+                // próprio (instrução Wave C — ghost de Jana, atalho G I cobre).
+                // KB é módulo single-page admin (apenas /kb), então ghosts é
+                // omitido (LegacyMenuAdapter já trata array vazio como ausente).
                 $menu->url(
                     route('kb.index'),
                     __('kb::kb.module_label'),
@@ -108,6 +114,7 @@ class DataController extends Controller
                         'icon'   => 'fa fas fa-book-open',
                         'style'  => 'background-color:' . $background_color,
                         'active' => $segmento_ativo,
+                        'group'  => 'ia',
                     ]
                 )->order(91); // Logo após Copiloto (90)
             }
