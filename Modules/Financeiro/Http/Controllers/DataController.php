@@ -107,6 +107,7 @@ class DataController extends Controller
         //     85.20  Contas a Pagar        /financeiro/contas-pagar         ← novo no sidebar
         //     85.30  Fluxo de Caixa        /financeiro/fluxo
         //     85.40  Cobrança              /financeiro/cobranca
+        //     85.45  Caixa do turno        /financeiro/caixa (Fase 6 Soft)
         //   FINANCEIRO · ANÁLISE (fechado — mensal)
         //     85.50  Conciliação           /financeiro/conciliacao
         //     85.60  DRE                   /financeiro/dre
@@ -193,6 +194,23 @@ class DataController extends Controller
                         'group'  => 'fin-op',
                     ]
                 )->order(85.40);
+
+                // Caixa do turno — Wagner 2026-05-21 Fase 6 Soft (wrapper Inertia).
+                // Tela read-only sobre cash_registers core UltimatePOS; lifecycle
+                // abrir/fechar continua na header POS. Larissa descobre histórico
+                // de fechamentos sem precisar voltar à tela POS.
+                // Permission gate `view_cash_register` enforce no CaixaController.
+                if (auth()->user()->can('view_cash_register')) {
+                    $menu->url(
+                        url('/financeiro/caixa'),
+                        'Caixa do turno',
+                        [
+                            'icon'   => 'fa fas fa-cash-register',
+                            'active' => $segmento_ativo && request()->segment(2) === 'caixa',
+                            'group'  => 'fin-op',
+                        ]
+                    )->order(85.45);
+                }
 
                 // ═══════════════════════════════════════════════════════════
                 // SUB-GRUPO 2: FINANCEIRO · ANÁLISE (fechado por default)
