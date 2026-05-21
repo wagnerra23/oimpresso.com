@@ -1,3 +1,18 @@
+---
+slug: show-visual-comparison
+title: "Cliente — Comparativo visual /cliente/{id} React vs /contacts/{id} Blade (Wave 5 paralela)"
+type: visual-comparison
+module: Cliente
+status: approved
+approved_by: wagner
+date: 2026-05-21
+canon_reference: resources/views/contact/show.blade.php (Blade legacy — 10 tabs + dropdown + Add Discount)
+inertia_target: resources/js/Pages/Cliente/Show.tsx (charter v2)
+controller: app/Http/Controllers/ContactController.php::show($id)
+stories: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067]
+related_adrs: [0093, 0094, 0104, 0107, 0149]
+---
+
 # Visual Comparison — `/cliente/{id}` vs `/contacts/{id}` (Blade legacy)
 
 > Esta comparação é um **redirect canon** pra `memory/requisitos/Crm/cliente-show-visual-comparison.md`. Page React = `resources/js/Pages/Cliente/Show.tsx`; módulo canônico = Crm (ADR 0149). Não duplicar conteúdo aqui.
