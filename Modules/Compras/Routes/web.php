@@ -27,10 +27,13 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('install/update', [InstallController::class, 'update']);
     });
 
-// Rotas operacionais — Wave 1 só Index (stub Inertia).
+// Rotas operacionais.
 Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('compras')
     ->name('compras.')
     ->group(function () {
         Route::get('/', [ComprasController::class, 'index'])->name('index');
+        Route::get('/{id}/detalhe', [ComprasController::class, 'show'])
+            ->where('id', '[0-9]+')
+            ->name('show');
     });
