@@ -21,6 +21,7 @@ import {
   classifyPill,
   avatarPaletteFor,
 } from '../Index';
+import QuickPaymentPopover from './QuickPaymentPopover';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — sub-conjunto do SaleRow do Index.tsx (mantido independente
@@ -159,7 +160,7 @@ interface SellsTabelaUnificadaProps {
   onToggleSel: (id: number) => void;
   onToggleAll: () => void;
   onRowClick: (id: number, ri: number) => void;
-  onPayClick: (saleId: number, invoiceNo: string, dueAmount: number) => void;
+  onPaySuccess: () => void;
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -177,7 +178,7 @@ export default function SellsTabelaUnificada({
   onToggleSel,
   onToggleAll,
   onRowClick,
-  onPayClick,
+  onPaySuccess,
 }: SellsTabelaUnificadaProps): ReactNode {
   const colSpan = visibleColumns.length;
 
@@ -236,7 +237,7 @@ export default function SellsTabelaUnificada({
                   }
                   onClick={() => onRowClick(v.id, ri)}
                 >
-                  {visibleColumns.map((id) => renderCell(id, v, { sel, isFav, ps, due, onToggleSel, onPayClick }))}
+                  {visibleColumns.map((id) => renderCell(id, v, { sel, isFav, ps, due, onToggleSel, onPaySuccess }))}
                 </tr>
               );
             })}
@@ -255,9 +256,11 @@ interface CellCtx {
   ps: { bg: string; fg: string; label: string };
   due: number;
   onToggleSel: (id: number) => void;
-  onPayClick: (saleId: number, invoiceNo: string, dueAmount: number) => void;
+  onPaySuccess: () => void;
 }
 
+// Renderiza célula por ColumnId. Helpers maiores (PipelineDots etc) vêm via
+// re-export do Index.tsx; pequenos (formatBRL, fmtDateDM) ficam locais.
 function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
   switch (id) {
     case 'check':
@@ -336,14 +339,17 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
           <span className="os-stage" style={{ background: ctx.ps.bg, color: ctx.ps.fg }}>{ctx.ps.label}</span>
           <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
             {v.payment_status !== 'paid' && (
-              <button
-                className="vd-row-act"
-                title="Registrar pagamento"
-                type="button"
-                onClick={() => ctx.onPayClick(v.id, v.invoice_no, ctx.due)}
-              >
-                <DollarSign size={11} />
-              </button>
+              <QuickPaymentPopover
+                saleId={v.id}
+                invoiceNo={v.invoice_no}
+                dueAmount={ctx.due}
+                onSuccess={ctx.onPaySuccess}
+                trigger={
+                  <button className="vd-row-act" title="Registrar pagamento" type="button">
+                    <DollarSign size={11} />
+                  </button>
+                }
+              />
             )}
             {v.fiscal_status === 'autorizada' && (
               <button className="vd-row-act" title="Baixar DANFE PDF" type="button"><Archive size={11} /></button>

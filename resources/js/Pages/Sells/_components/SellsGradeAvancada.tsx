@@ -33,6 +33,7 @@ import {
   type ExpandedState,
 } from '@tanstack/react-table';
 import { Checkbox } from '@/Components/ui/checkbox';
+import QuickPaymentPopover from './QuickPaymentPopover';
 import SellsBulkActionsBar from './SellsBulkActionsBar';
 import SellsTotalsRow, { type SellsTotals } from './SellsTotalsRow';
 import SellsGroupByDropdown, { type GroupByField } from './SellsGroupByDropdown';
@@ -120,10 +121,10 @@ interface SellsGradeAvancadaProps {
   // US-SELL-019 — agrupamento (state lifted up).
   groupBy: GroupByField;
   onGroupByChange: (g: GroupByField) => void;
-  // US-SELL-042 — botão "Pagar" inline (opcional: views que querem expor a
-  // ação rápida de registrar pagamento sem abrir o drawer). Quando ausente,
-  // a coluna Ações simplesmente não renderiza o botão.
-  onPayClick?: (saleId: number, invoiceNo: string, dueAmount: number) => void;
+  // US-SELL-042 / Onda Unificação PR5 — quando passado, renderiza coluna
+  // Ações com botão "Pagar" inline (Popover em-place anchored). Callback
+  // dispara refetch após registrar com sucesso.
+  onPaySuccess?: () => void;
 }
 
 const formatBRL = (value: number) =>
@@ -186,7 +187,7 @@ export default function SellsGradeAvancada({
   onSort,
   groupBy,
   onGroupByChange,
-  onPayClick,
+  onPaySuccess,
 }: SellsGradeAvancadaProps) {
   const allRowsSelected = useMemo(() => {
     if (rows.length === 0) return false;
@@ -304,21 +305,21 @@ export default function SellsGradeAvancada({
                 {/* US-SELL-023 — coluna "Produção" badge FSM (Grade Avançada only,
                     Lista mode é enxuto e não mostra esta coluna). Default visível. */}
                 <Th className="w-32">Produção</Th>
-                {/* US-SELL-042 — coluna "Ações" rápidas (só renderiza se onPayClick passado). */}
-                {onPayClick && <Th className="w-12 text-center">·</Th>}
+                {/* US-SELL-042 — coluna "Ações" rápidas (só renderiza se onPaySuccess passado). */}
+                {onPaySuccess && <Th className="w-12 text-center">·</Th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={onPayClick ? 12 : 11} className="text-center py-12 text-muted-foreground text-xs">
+                  <td colSpan={onPaySuccess ? 12 : 11} className="text-center py-12 text-muted-foreground text-xs">
                     <Loader2 className="inline-block mr-2 h-3.5 w-3.5 animate-spin" />
                     Carregando…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={onPayClick ? 12 : 11} className="text-center py-12 text-muted-foreground text-xs">
+                  <td colSpan={onPaySuccess ? 12 : 11} className="text-center py-12 text-muted-foreground text-xs">
                     Nenhuma venda encontrada nesse filtro.
                   </td>
                 </tr>
@@ -395,17 +396,24 @@ export default function SellsGradeAvancada({
                       {/* US-SELL-042 — botão "Pagar" inline (Larissa biz=4 ADR 0105).
                           Só renderiza pra vendas com saldo devedor. stopPropagation
                           evita abrir o drawer ao clicar. */}
-                      {onPayClick && (
+                      {onPaySuccess && (
                         <td className="px-2 py-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                           {row.payment_status !== 'paid' && (
-                            <button
-                              type="button"
-                              title="Registrar pagamento"
-                              onClick={() => onPayClick(row.id, row.invoice_no, Math.max(0, row.final_total - row.total_paid))}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <DollarSign size={13} />
-                            </button>
+                            <QuickPaymentPopover
+                              saleId={row.id}
+                              invoiceNo={row.invoice_no}
+                              dueAmount={Math.max(0, row.final_total - row.total_paid)}
+                              onSuccess={onPaySuccess}
+                              trigger={
+                                <button
+                                  type="button"
+                                  title="Registrar pagamento"
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  <DollarSign size={13} />
+                                </button>
+                              }
+                            />
                           )}
                         </td>
                       )}
