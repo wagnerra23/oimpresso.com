@@ -170,7 +170,7 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
           </div>
           <div className="os-page-h-r fin-page-h-r">
             {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-            <FinanceiroSubNav active="contas-pagar" />
+            <FinanceiroSubNav active="contas-pagar" hidePrimary />
           </div>
         </header>
 

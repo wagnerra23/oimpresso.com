@@ -93,7 +93,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
         </div>
         <div className="os-page-h-r fin-page-h-r">
           {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-          <FinanceiroSubNav active="conciliacao" />
+          <FinanceiroSubNav active="conciliacao" hidePrimary />
         </div>
       </header>
 

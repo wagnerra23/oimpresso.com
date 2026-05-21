@@ -96,7 +96,7 @@ function Index({ titulos, filtros }: Props) {
           </div>
           <div className="os-page-h-r fin-page-h-r">
             {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-            <FinanceiroSubNav active="contas-receber" />
+            <FinanceiroSubNav active="contas-receber" hidePrimary />
           </div>
         </header>
 

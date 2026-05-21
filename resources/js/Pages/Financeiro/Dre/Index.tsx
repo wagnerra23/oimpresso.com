@@ -203,7 +203,7 @@ function FinanceiroDre({
         </div>
         <div className="os-page-h-r fin-page-h-r">
           {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-          <FinanceiroSubNav active="dre" />
+          <FinanceiroSubNav active="dre" hidePrimary />
           <button
             type="button"
             className="os-btn ghost"
