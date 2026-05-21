@@ -76,6 +76,9 @@ class ContactController extends Controller
         $q = trim((string) $req->query('customer_sales_q', ''));
         $page = max(1, (int) $req->query('customer_sales_page', 1));
 
+        // FIX 2026-05-21: `transactions.total_paid` NÃO existe no schema UltimatePOS.
+        // Pagamentos vivem em `transaction_payments.amount` (1:N). Subquery scalar inline.
+        $totalPaidExpr = '(SELECT COALESCE(SUM(amount), 0) FROM transaction_payments WHERE transaction_payments.transaction_id = transactions.id)';
         $query = Transaction::where('transactions.business_id', $businessId)
             ->where('contact_id', $contactId)
             ->where('type', 'sell')
@@ -87,7 +90,7 @@ class ContactController extends Controller
                 'transactions.ref_no',
                 'transactions.transaction_date',
                 'transactions.final_total',
-                'transactions.total_paid',
+                DB::raw("{$totalPaidExpr} AS total_paid"),
                 'transactions.payment_status',
                 'transactions.status',
                 'bl.name as location_name',
