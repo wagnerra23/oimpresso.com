@@ -14,6 +14,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
+import { Download } from 'lucide-react';
 // Onda 14 — PageHeader removido (canon os-page-h direto)
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
@@ -95,11 +96,15 @@ function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
           <p>DRE gerencial, fluxo de caixa projetado vs realizado e resumo do período</p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-          <FinanceiroSubNav active="relatorios" hidePrimary />
-          <a href={csvHref} target="_blank" rel="noopener noreferrer" className="os-btn ghost">
-            Exportar CSV
-          </a>
+          {/* ADR 0180 Fase 5 refine Wagner 2026-05-21 — "Exportar CSV" move pra ⋯ Mais;
+              tela não tem primary "Novo X" (Relatorios é só leitura) */}
+          <FinanceiroSubNav
+            active="relatorios"
+            hidePrimary
+            extraOverflowItems={[
+              { key: 'export-csv', label: 'Exportar CSV', icon: <Download size={13} />, onClick: () => { window.open(csvHref, '_blank', 'noopener,noreferrer'); }, title: 'Exportar relatório do período em CSV' },
+            ]}
+          />
         </div>
       </header>
 

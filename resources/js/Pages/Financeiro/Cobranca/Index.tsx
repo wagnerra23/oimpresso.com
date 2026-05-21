@@ -184,17 +184,17 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
             <p>{kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways</p>
           </div>
           <div className="os-page-h-r fin-page-h-r">
-            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-            <FinanceiroSubNav active="cobranca" hidePrimary />
-            <button type="button" className="os-btn ghost fin-btn-ai" onClick={() => setAiOpen(true)} title="Resumir cobranças deste mês — IA">
-              <span>✦</span> Resumir mês
-            </button>
-            <button type="button" className="os-btn ghost" onClick={() => router.visit('/settings/payment-gateways')} title="Configurar gateways">
-              <Settings size={13} /> Gateways
-            </button>
-            <button type="button" className="os-btn ghost" onClick={() => setRemessaOpen(true)}>
-              <Upload size={13} /> Remessa/Retorno
-            </button>
+            {/* ADR 0180 Fase 5 refine Wagner 2026-05-21 — botões action movem pra ⋯ Mais;
+                primary "Nova cobrança" fica separado no canto direito (canon Unificado) */}
+            <FinanceiroSubNav
+              active="cobranca"
+              hidePrimary
+              extraOverflowItems={[
+                { key: 'resumir',  label: 'Resumir mês',     icon: <span>✦</span>,         onClick: () => setAiOpen(true),                            title: 'Resumir cobranças deste mês — IA' },
+                { key: 'gateways', label: 'Gateways',        icon: <Settings size={13} />, onClick: () => router.visit('/settings/payment-gateways'), title: 'Configurar gateways' },
+                { key: 'remessa',  label: 'Remessa/Retorno', icon: <Upload size={13} />,   onClick: () => setRemessaOpen(true) },
+              ]}
+            />
             <button type="button" className="os-btn primary" onClick={() => setNovaOpen(true)}>
               <Plus size={13} /> Nova cobrança
             </button>
