@@ -234,7 +234,7 @@ const STATUS_LABEL: Record<PillKey, string> = {
 };
 
 // classifier — what pill does a row belong to (frontend cheap derivation).
-function classifyPill(r: SaleRow): PillKey {
+export function classifyPill(r: SaleRow): PillKey {
   if (r.fiscal_status === 'cancelada') return 'cancelada';
   if (r.fiscal_status === 'autorizada') return 'faturada';
   if (r.payment_status === 'paid') return 'paga';
@@ -243,7 +243,7 @@ function classifyPill(r: SaleRow): PillKey {
 
 // avatar palette index by seller_id (consistent across renders).
 const AVATAR_PALETTES = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
-function avatarPaletteFor(sellerId: number | null): string {
+export function avatarPaletteFor(sellerId: number | null): string {
   if (sellerId == null) return AVATAR_PALETTES[0];
   return AVATAR_PALETTES[sellerId % AVATAR_PALETTES.length] ?? AVATAR_PALETTES[0];
 }
@@ -251,7 +251,7 @@ function avatarPaletteFor(sellerId: number | null): string {
 // ──────────────────────────────────────────────────────────────
 // SLA pill — pílula fresco/atrasando/estourado/paga
 // ──────────────────────────────────────────────────────────────
-function SaleSlaPill({ row, compact = false }: { row: SaleRow; compact?: boolean }): ReactNode {
+export function SaleSlaPill({ row, compact = false }: { row: SaleRow; compact?: boolean }): ReactNode {
   const kind = row.sla_kind ?? 'fresh';
   const days = row.days_to_due;
   const label = slaLabel(kind, days);
@@ -266,7 +266,7 @@ function SaleSlaPill({ row, compact = false }: { row: SaleRow; compact?: boolean
 // ──────────────────────────────────────────────────────────────
 // Pipeline dots — stepper FSM ●●●○ + label curta
 // ──────────────────────────────────────────────────────────────
-function PipelineDots({ row }: { row: SaleRow }): ReactNode {
+export function PipelineDots({ row }: { row: SaleRow }): ReactNode {
   const step = row.pipeline_step ?? null;
   const total = row.pipeline_total ?? 5;
   if (step == null) {
@@ -302,7 +302,7 @@ const FBADGE_CLASS: Record<string, { cls: string; ic: string; tip: string }> = {
   cancelada:  { cls: 'canc', ic: '⊘', tip: 'Cancelada' },
 };
 
-function FiscalBadgesCell({ row }: { row: SaleRow }): ReactNode {
+export function FiscalBadgesCell({ row }: { row: SaleRow }): ReactNode {
   if (!row.fiscal_status) {
     return (
       <span className="vd-fc">
