@@ -60,6 +60,12 @@ interface SaleRow {
     | string | null;
   // US-SELL-024 — boolean explícito "venda agrupada" (Delphi CODFINANCEIRO_GRUPO).
   is_grouped_invoice: boolean;
+  // US-SELL-041 — método de pagamento + parcelas (regressão Cowork KB-9.75:
+  // info estava na grade Lista mas sumiu da Grade Avançada). Larissa @ ROTA
+  // LIVRE biz=4 reportou 2026-05-21 (ADR 0105 sinal qualificado).
+  // Backend popula via SellController::inertiaList (match cases linha 1287-1298).
+  payment_method_label: string | null;
+  installments: number;
 }
 
 // US-SELL-023 — Mapping stage_key FSM → badge PT-BR + cor semantic.
@@ -431,6 +437,22 @@ function GroupedTable({
       accessorFn: (row) => row.payment_status,
       header: 'Status',
       cell: ({ getValue }) => PAYMENT_STATUS_LABEL[String(getValue())] ?? String(getValue()),
+      aggregationFn: 'count',
+    },
+    {
+      // US-SELL-041 — Larissa @ ROTA LIVRE biz=4 reportou 2026-05-21 (ADR 0105)
+      // que método de pagamento sumiu da Grade Avançada. A coluna existe na
+      // Lista (Index.tsx <td vd-pay>) desde Cowork KB-9.75 mas faltou portar
+      // pra esta view alternativa. Mostra label PT-BR (Dinheiro/PIX/Cartão/...)
+      // + Nx quando parcelado (installments > 1).
+      id: 'payment_method_label',
+      accessorFn: (row) => row.payment_method_label ?? '—',
+      header: 'Pagamento',
+      cell: ({ row }) => {
+        const label = row.original.payment_method_label ?? '—';
+        const inst = row.original.installments;
+        return inst > 1 ? `${label} · ${inst}×` : label;
+      },
       aggregationFn: 'count',
     },
     {
