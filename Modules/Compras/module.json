@@ -1,0 +1,17 @@
+{
+    "name": "Compras",
+    "alias": "compras",
+    "description": "Compras como cockpit operacional: FSM 6 estágios (rascunho/pedido/trânsito/recebido/conferido/pago), import XML DF-e, entrada matricial tam×cor pra vestuário. Substitui Blade legacy purchase/*.",
+    "keywords": ["compras", "purchase", "dfe", "fornecedor", "estoque", "nfe-recebimento", "vestuario"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Compras\\Providers\\ComprasServiceProvider"
+    ],
+    "files": [],
+    "governance": {
+        "bucket": "process_horizontal",
+        "bucket_assigned_at": "2026-05-21",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Compras é workflow operacional cross-vertical (qualquer empresa compra de fornecedor + recebe XML DF-e + concilia financeiro). Não tem dono cliente único — Larissa biz=4 vestuário é o primeiro stakeholder mas o módulo serve qualquer business."
+    }
+}
