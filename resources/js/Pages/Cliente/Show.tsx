@@ -20,6 +20,7 @@ import {
   CreditCard,
   Edit,
   FileText,
+  Gift,
   ListChecks,
   Mail,
   MapPin,
@@ -39,6 +40,7 @@ import ContactPicker, { type ContactDropdownItem } from './_show/ContactPicker';
 import ActivitiesTab, { type ActivityItem } from './_show/ActivitiesTab';
 import PessoasContatoTab, { type ContactPerson } from './_show/PessoasContatoTab';
 import SubscriptionsTab, { type SubscriptionItem } from './_show/SubscriptionsTab';
+import RewardPointsTab, { type RewardPointsPayload } from './_show/RewardPointsTab';
 
 interface ContactInfo {
   id: number;
@@ -75,7 +77,7 @@ interface Permissions {
   view_sell: boolean;
 }
 
-type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities' | 'persons' | 'subscriptions';
+type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities' | 'persons' | 'subscriptions' | 'rewards';
 
 interface ClienteShowPageProps {
   contact: ContactInfo;
@@ -88,6 +90,7 @@ interface ClienteShowPageProps {
   activities?: ActivityItem[];
   contact_persons?: ContactPerson[];
   subscriptions?: SubscriptionItem[];
+  reward_points?: RewardPointsPayload;
 }
 
 const formatBRL = (value: number) =>
@@ -105,6 +108,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
     { key: 'activities', label: 'Atividades', icon: Activity },
     { key: 'persons', label: 'Pessoas', icon: Users },
     { key: 'subscriptions', label: 'Assinaturas', icon: Recycle },
+    { key: 'rewards', label: 'Pontos', icon: Gift },
   ];
 
   return (
@@ -270,6 +274,11 @@ export default function ClienteShow(props: ClienteShowPageProps) {
               {activeTab === 'subscriptions' && (
                 <Deferred data="subscriptions" fallback={<TabSkeleton />}>
                   <SubscriptionsTab subscriptions={props.subscriptions} />
+                </Deferred>
+              )}
+              {activeTab === 'rewards' && (
+                <Deferred data="reward_points" fallback={<TabSkeleton />}>
+                  <RewardPointsTab reward_points={props.reward_points} />
                 </Deferred>
               )}
             </div>
