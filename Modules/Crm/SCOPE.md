@@ -4,6 +4,8 @@ purpose: "UltimatePOS herdado (CRM core)."
 contains:
   - "CallLogController"
   - "CampaignController"
+  - "ClienteAuditoriaController"   # Wave F LGPD (#1344 merged 2026-05-21)
+  - "ClienteIaController"          # Wave E IA cards (#1344 merged 2026-05-21)
   - "ContactBookingController"
   - "ContactLoginController"
   - "CrmDashboardController"
