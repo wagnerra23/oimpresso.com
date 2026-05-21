@@ -3,6 +3,9 @@ module: Dashboard
 status: live
 phase: F6 Soft wrapper (entrega 2026-05-21)
 parent_route: /home
+version: 1
+owner: wagner
+last_updated: 2026-05-21
 last_validated: 2026-05-21
 related_adrs: [0093, 0094, 0101, 0104]
 ---
@@ -51,10 +54,20 @@ Servir como **landing page pós-login** do oimpresso — saudação, filtros glo
 - ❌ NÃO mexe em `getCalendar` (rota `/calendar` preservada)
 - ❌ NÃO mexe em customer dashboard (`Modules/Crm/Http/Controllers/DashboardController`)
 
-## Refs
+## Histórico
+
+| Data | Versão | Mudança |
+|---|---|---|
+| 2026-05-21 | 1 | Ressuscitar módulo + US-DASH-001 Soft wrapper Inertia entregue (PR #1297). Charts e widgets pluggable preservados via `?legacy=1`. |
+| 2026-04-22 | — | Stub `ausente_branch_atual` criado pelo `module:requirements`. Decisão de ressuscitar/deprecar pendente. |
+
+## Referências
 
 - [RUNBOOK-home-index.md](RUNBOOK-home-index.md) — runbook MWART F6 Soft
 - [BRIEFING.md](BRIEFING.md) — 1-pager executivo
 - [Pages/Home/Index.charter.md](../../../resources/js/Pages/Home/Index.charter.md) — contrato vivo da página
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
-- [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART
+- [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
+- [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART canônico
+- PR [#1288 Caixa Soft wrapper](https://github.com/wagnerra23/oimpresso.com/pull/1288) — pattern precedente
+- PR [#1297 Dashboard Soft wrapper](https://github.com/wagnerra23/oimpresso.com/pull/1297) — entrega US-DASH-001
