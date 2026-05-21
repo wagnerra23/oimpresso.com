@@ -94,10 +94,30 @@ class DataController extends Controller
         }
 
         \Menu::modify('admin-sidebar-menu', function ($menu) {
+            // ADR 0180 Fase 4 Wave B (2026-05-21): entry principal declara
+            // atalho kbd + primary action + ghosts tabs.
+            //  - `shortcut` G S → atalho overlay (Suprimentos/Estoque)
+            //  - `primary`     → "Nova compra" (rota /compras/create chega na Wave 3
+            //    do scaffold — declarado pra contrato sidebar v3, frontend pode
+            //    exibir 404/coming-soon enquanto não migra)
+            //  - `ghosts`      → Lista (index Wave 1); demais sub-views (importar XML,
+            //    NF entrada, etc) entram nas Waves 3-6 do SPEC.
             $menu->url(
                 action([\Modules\Compras\Http\Controllers\ComprasController::class, 'index']),
                 'Compras',
-                ['icon' => 'fa fas fa-shopping-cart', 'active' => request()->is('compras*')]
+                [
+                    'icon'     => 'fa fas fa-shopping-cart',
+                    'active'   => request()->is('compras*'),
+                    'shortcut' => 'G S',
+                    'primary'  => [
+                        'label'    => 'Nova compra',
+                        'href'     => '/compras/create',
+                        'shortcut' => 'N',
+                    ],
+                    'ghosts'   => [
+                        ['key' => 'lista', 'label' => 'Lista', 'href' => '/compras'],
+                    ],
+                ]
             )->order(45);
         });
     }
