@@ -3,20 +3,22 @@ page: /sells
 component: resources/js/Pages/Sells/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-17
+last_validated: 2026-05-21
 parent_module: Sells
-related_adrs: [0110, 0107, 0109, 0104, 0093, 0114, 0143]
+related_adrs: [0093, 0094, 0104, 0107, 0109, 0110, 0114, 0136, 0143, 0178]
 tier: A
-charter_version: 3
+charter_version: 4
 visual_source: prototipo-ui/prototipos/sells-index/vendas-page.jsx
-canon_method: Cowork KB-9.75 (chat10, score 9.75/10)
+canon_method: Cowork KB-9.75 (chat10, score 9.75/10) + Unificação tabs Visão (ADR 0178)
 ---
 
-# Page Charter — /sells (v2 · Cowork rewrite)
+# Page Charter — /sells (v4 · Unificação tabs Visão)
 
-> **Status:** live · rewrite Cowork em curso 2026-05-17 (sessão `stupefied-noether-89f83d`). Charter v1 (Cockpit V2 puro) preservado historicamente em [`Index.tsx.bak.cowork-rewrite-2026-05-17`](Index.tsx.bak.cowork-rewrite-2026-05-17).
+> **Status:** live · evolução v3→v4 acordada 2026-05-21 — Larissa @ ROTA LIVRE biz=4 reportou Lista vs Grade Avançada "conflitando informações" (sinal qualificado ADR 0105). Decisão arquitetural: tabs verticais Operacional / Financeira / Produção sobre tabela unificada — ver [ADR 0178](../../../../memory/decisions/0178-sells-unified-tabs-visao-supersede-0136.md) (supersede ADR 0136).
 >
-> **Origem v2:** prototype Claude Design `Kf6GHQu6fkwlh0vnL30Oog` (handoff 2026-05-16). Visual-comparison: [`memory/requisitos/Sells/index-r1-visual-comparison.md`](../../../memory/requisitos/Sells/index-r1-visual-comparison.md). Decisão de cópia integral: [`memory/reference/feedback-design-literal-copy-quando-aprovado.md`](../../../memory/reference/feedback-design-literal-copy-quando-aprovado.md).
+> **Histórico:** v2 (Cowork rewrite 2026-05-17 sessão `stupefied-noether-89f83d`) → v3 (Grade Avançada toggle live ADR 0136) → **v4 (este — unificação tabs Visão pós-PR4)**. Backup v3 retido em `Index.tsx.bak.charter-v3-pre-unification-2026-05-21` quando PR4 mergeado.
+>
+> **Origem v2:** prototype Claude Design `Kf6GHQu6fkwlh0vnL30Oog` (handoff 2026-05-16). Visual-comparison v2: [`index-r1-visual-comparison.md`](../../../memory/requisitos/Sells/index-r1-visual-comparison.md). Visual-comparison v4: [`Index-r2-unified-visual-comparison.md`](../../../memory/requisitos/Sells/Index-r2-unified-visual-comparison.md). Decisão de cópia integral: [`feedback-design-literal-copy-quando-aprovado.md`](../../../memory/reference/feedback-design-literal-copy-quando-aprovado.md).
 
 ---
 
@@ -55,7 +57,7 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 - ❌ Print direto (rota Blade `/sells/{id}/print`)
 - ❌ Filtros avançados de data range / location / customer / source — Visões dropdown atende parcialmente; refator futuro
 - ❌ Date field dropdown (7 opções) e Group-by — features Cockpit V2 não migradas (eram do legacy Index.tsx pré-Cowork; reavaliar valor)
-- ❌ ViewMode toggle `lista | grade-avancada` — Cowork tem visual unificado; Grade Avançada legacy permanece no _components/ mas não está montada
+- ❌ Toggle `viewMode = lista | grade-avancada` — **substituído por tabs `visao = operacional | financeira | produção`** ([ADR 0178](../../../../memory/decisions/0178-sells-unified-tabs-visao-supersede-0136.md), supersede ADR 0136). Migração silenciosa localStorage `viewMode` → `visao` no PR4 da Onda Unificação
 - ❌ Real-time updates (WebSocket/Centrifugo) — backlog
 - ❌ Migrar `index()` Blade view por completo — fallback `request()->ajax()` mantido
 - ❌ R3 comentários inline, R4 transcript PDF + apresentação fullscreen — refinos opcionais KB-9.75 (backlog Ondas 3-4)
@@ -109,6 +111,15 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 ## Refs
 
 - [Design.md §16 Cockpit V2](../../../../Design.md)
+- [ADR 0178 — Unificação tabs Visão (supersede 0136)](../../../../memory/decisions/0178-sells-unified-tabs-visao-supersede-0136.md) — **canon ativo da v4**
+- [ADR 0136 — Sells split Lista/Grade (superseded)](../../../../memory/decisions/0136-sells-grade-avancada-modo-toggle.md)
 - [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- PR #261 (commit `cfa7930a` + hotfix `0b5a09d5`) — implementação inicial
+- [ADR 0105 Cliente como sinal qualificado](../../../../memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — Larissa biz=4 sinal 2026-05-21
+- PRs canon da onda de unificação:
+  - [#1311 default `'todas'` + Tier 0 per-business localStorage](https://github.com/wagnerra23/oimpresso.com/pull/1311) — merged 2026-05-21
+  - [#1314 Pagamento Grade TanStack](https://github.com/wagnerra23/oimpresso.com/pull/1314) — merged 2026-05-21
+  - [#1317 Pagamento Grade HTML default](https://github.com/wagnerra23/oimpresso.com/pull/1317) — merged 2026-05-21
+  - [#1320 Pagar inline (QuickPaymentDialog)](https://github.com/wagnerra23/oimpresso.com/pull/1320) — merged 2026-05-21
+- PR #261 (commit `cfa7930a` + hotfix `0b5a09d5`) — implementação Cowork inicial
+- [Dossiê wagner-understand 2026-05-21](../../../../memory/sessions/2026-05-21-understand-sells-unificar-lista-grade.md) — matriz 26 dimensões + 6 PRs atômicos
