@@ -9,6 +9,11 @@ import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
+import DadosFiscaisBRSection, {
+  type DadosFiscaisBRData,
+  type BrasilApiCnpjData,
+} from './_form/DadosFiscaisBRSection';
+import { unmaskDigits } from '@/Lib/format-br';
 
 interface ClienteCreatePageProps {
   types: Record<string, string>;
@@ -21,7 +26,7 @@ interface ClienteCreatePageProps {
   };
 }
 
-type ClienteFormData = {
+type ClienteFormData = DadosFiscaisBRData & {
   type: string;
   contact_type_radio: string;
   prefix: string;
@@ -43,7 +48,7 @@ type ClienteFormData = {
 };
 
 export default function ClienteCreate(props: ClienteCreatePageProps) {
-  const { data, setData, post, processing, errors } = useForm<ClienteFormData>({
+  const { data, setData, post, processing, errors, transform } = useForm<ClienteFormData>({
     type: props.selected_type ?? 'customer',
     contact_type_radio: 'person',
     prefix: '',
@@ -62,7 +67,51 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
     customer_group_id: '',
     opening_balance: '0',
     credit_limit: '',
+    // Dados Fiscais BR — migration 2026_05_21_140000.
+    cpf_cnpj: '',
+    rg: '',
+    inscricao_estadual: '',
+    inscricao_municipal: '',
+    indicador_ie: '',
+    nome_fantasia: '',
+    consumidor_final: false,
+    contribuinte: true,
+    regime: '',
+    suframa: '',
   });
+
+  const isJuridica = data.contact_type_radio === 'business';
+
+  // Slice 5a — callback chamado quando DadosFiscaisBRSection recebe sucesso do
+  // /contacts/lookup/cnpj/{cnpj}. Preenche aqui os campos que NÃO vivem em
+  // DadosFiscaisBRData (supplier_business_name = razão social + endereço).
+  const handleCnpjLookup = (api: BrasilApiCnpjData) => {
+    if (api.razao_social) {
+      setData('supplier_business_name', api.razao_social);
+      // Se primeiro_nome estiver vazio, usa razao_social como base — fluxo comum
+      // de cadastrar PJ pela primeira vez.
+      if (!data.first_name) {
+        setData('first_name', api.razao_social);
+      }
+    }
+    // Endereço — só sobrescreve se vier valor da API (preserva o que user já digitou).
+    if (api.logradouro) {
+      const numero = api.numero ? `, ${api.numero}` : '';
+      const bairro = api.bairro ? ` — ${api.bairro}` : '';
+      setData('address_line_1', `${api.logradouro}${numero}${bairro}`);
+    }
+    if (api.municipio) setData('city', api.municipio);
+    if (api.uf) setData('state', api.uf);
+    if (api.cep) setData('zip_code', api.cep);
+  };
+
+  // Normaliza cpf_cnpj pra dígitos puros antes do submit — backend Rule\BR\CpfCnpj
+  // já chama Util::onlyNumbers internamente mas mandamos limpo pra evitar
+  // pontuação persistida no banco (consistência cross-driver).
+  transform((payload) => ({
+    ...payload,
+    cpf_cnpj: unmaskDigits(payload.cpf_cnpj),
+  }));
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -148,16 +197,24 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
                   maxLength={100}
                 />
               </Field>
-              <Field label="CNPJ / CPF" error={errors.tax_number}>
+              <Field label="Tax number (legado UPOS)" error={errors.tax_number}>
                 <Input
                   type="text"
                   value={data.tax_number}
                   onChange={(e) => setData('tax_number', e.target.value)}
-                  placeholder="00.000.000/0000-00"
+                  placeholder="Use CPF / CNPJ abaixo (este campo é legacy)"
                 />
               </Field>
             </div>
           </Section>
+
+          <DadosFiscaisBRSection<ClienteFormData>
+            data={data}
+            setData={setData}
+            errors={errors}
+            isJuridica={isJuridica}
+            onCnpjLookup={handleCnpjLookup}
+          />
 
           <Section title="Contato">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

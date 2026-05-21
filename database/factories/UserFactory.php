@@ -28,10 +28,17 @@ class UserFactory extends Factory
     {
         static $password;
 
+        // Schema UltimatePOS — sem coluna `name`. Surname é título (CHAR(10)
+        // em 2018_02_26_130519_modify_users_table_for_sales_cmmsn_agnt),
+        // first_name/last_name carregam o nome real.
         return [
-            'name' => $this->faker->name(),
+            'surname' => 'Mr',
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
+            'username' => $this->faker->unique()->userName(),
             'email' => $this->faker->unique()->safeEmail(),
             'password' => $password ?: $password = Hash::make('secret'),
+            'language' => 'en',
             'remember_token' => Str::random(10),
         ];
     }

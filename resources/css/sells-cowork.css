@@ -2239,7 +2239,10 @@
 .sells-cowork .os-table .os-th-num { width: 90px; }
 .sells-cowork .os-table .os-th-val { text-align: right; }
 .sells-cowork .os-table tbody td {
-  padding: 10px 12px;
+  /* Wagner 2026-05-21 — densidade compacta. Linha ~32px (de ~42px) mostra
+     ~30% mais vendas por viewport (Larissa 1280px) sem comprometer leitura.
+     Estilo Linear/Notion. */
+  padding: 6px 12px;
   border-bottom: 1px solid var(--border-2);
   vertical-align: middle;
   color: var(--text);
@@ -4589,7 +4592,7 @@
   background:oklch(0.98 0.005 250);
   border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
 }
-.sells-cowork .os-table td { padding:10px 12px; border-bottom:1px solid oklch(0.96 0.01 250); font-size:13px; vertical-align:top; }
+.sells-cowork .os-table td { padding:6px 12px; border-bottom:1px solid oklch(0.96 0.01 250); font-size:13px; vertical-align:middle; }
 .sells-cowork .os-table tbody tr:last-child td { border-bottom:none; }
 .sells-cowork .os-row { cursor:pointer; transition:background .1s; }
 .sells-cowork .os-row:hover { background:oklch(0.98 0.01 var(--accent-h, 220)); }
@@ -5303,7 +5306,10 @@
   font-weight: 600; padding: 9px 12px;
 }
 .sells-cowork .vendas-aplus .vd-aplus-table tbody td {
-  padding: 10px 12px; vertical-align: middle;
+  /* Wagner 2026-05-21 — densidade compacta v2 (era 10px). Esta regra com 3
+     classes vence em especificidade sobre .sells-cowork .os-table tbody td
+     (2 classes) do PR #1337 — fix de density. */
+  padding: 6px 12px; vertical-align: middle;
 }
 .sells-cowork .vendas-aplus .vd-aplus-table .vd-chk { padding: 0 0 0 12px; width: 24px; }
 .sells-cowork .vendas-aplus .vd-aplus-table .os-row.selected td { background: var(--vd-green-soft); }
