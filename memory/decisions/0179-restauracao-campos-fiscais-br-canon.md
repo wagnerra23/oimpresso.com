@@ -1,6 +1,6 @@
 ---
-slug: 0178-restauracao-campos-fiscais-br-canon
-number: 178
+slug: 0179-restauracao-campos-fiscais-br-canon
+number: 179
 title: "Restauração dos campos fiscais BR em `contacts` (regressão UPOS 6.7)"
 type: adr
 status: aceito
@@ -15,7 +15,9 @@ related:
   - 0127-fsm-canonico
 ---
 
-# ADR 0178 — Restauração dos campos fiscais BR em `contacts` (regressão UPOS 6.7)
+# ADR 0179 — Restauração dos campos fiscais BR em `contacts` (regressão UPOS 6.7)
+
+> **Nota histórica:** originalmente criado como **0178** no PR #1324 (mergeado 2026-05-21). Em paralelo, o PR #1323 (Sells unified tabs Visão) mergeou ~2h antes reservando o número 0178 (`authority: canonical`). Renumerado pra 0179 neste PR pra resolver o drift preservando o canonical do Sells.
 
 ## Contexto
 
