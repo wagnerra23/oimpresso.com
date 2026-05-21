@@ -76,21 +76,24 @@ class ComprasService
      */
     public function calcularSummary(int $businessId, array $filters = []): array
     {
-        $base = Transaction::where('business_id', $businessId)
-            ->where('type', 'purchase');
+        // Tier 0 ADR 0093 — prefix `transactions.` em todas colunas pra evitar
+        // "Column 'business_id' in where clause is ambiguous" no MySQL quando
+        // leftJoin com `transaction_payments` (tabela que também tem `business_id`).
+        $base = Transaction::where('transactions.business_id', $businessId)
+            ->where('transactions.type', 'purchase');
 
         // Aplica mesmos filtros que listarCompras (q + stage) pra coerência
         if (! empty($filters['q'])) {
             $q = $filters['q'];
             $base->where(function ($w) use ($q) {
-                $w->where('ref_no', 'like', "%{$q}%");
+                $w->where('transactions.ref_no', 'like', "%{$q}%");
             });
         }
         if (! empty($filters['stage']) && $filters['stage'] !== 'all') {
-            $base->where('status', $filters['stage']);
+            $base->where('transactions.status', $filters['stage']);
         }
 
-        $total = (clone $base)->sum('final_total');
+        $total = (clone $base)->sum('transactions.final_total');
 
         $totalPago = (float) (clone $base)
             ->leftJoin('transaction_payments AS TP', 'transactions.id', '=', 'TP.transaction_id')
