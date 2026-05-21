@@ -108,10 +108,32 @@ class DataController extends Controller
 
         if ($is_asset_enabled && (auth()->user()->can('superadmin') || auth()->user()->can('asset.view') || auth()->user()->can('asset.view_own_maintenance') || auth()->user()->can('asset.view_all_maintenance'))) {
             Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color) {
+                // ADR 0180 Fase 4 Wave E — AssetManagement é ghost virtual de
+                // Estoque no grupo canon `operar` v3. Sem `shortcut` (acoplado em
+                // Estoque); `primary` = "Novo ativo" (criação via AssetController
+                // create); `ghosts` = Painel + Ativos + Alocações + Manutenção
+                // + Configurações (sub-views gestão de patrimônio).
                 $menu->url(
                             action([\Modules\AssetManagement\Http\Controllers\AssetController::class, 'dashboard']),
                             __('assetmanagement::lang.asset_management'),
-                            ['icon' => 'fas fa fa-boxes', 'active' => request()->segment(1) == 'asset', 'style' => 'background-color:'.$background_color]
+                            [
+                                'icon'    => 'fas fa fa-boxes',
+                                'active'  => request()->segment(1) == 'asset',
+                                'style'   => 'background-color:'.$background_color,
+                                'primary' => [
+                                    'label'    => 'Novo ativo',
+                                    'href'     => '/asset/assets/create',
+                                    'shortcut' => 'N',
+                                ],
+                                'ghosts'  => [
+                                    ['key' => 'dashboard',         'label' => 'Painel',         'href' => '/asset/dashboard'],
+                                    ['key' => 'assets',            'label' => 'Ativos',         'href' => '/asset/assets'],
+                                    ['key' => 'allocation',        'label' => 'Alocações',      'href' => '/asset/allocation'],
+                                    ['key' => 'revocation',        'label' => 'Devoluções',     'href' => '/asset/revocation'],
+                                    ['key' => 'asset-maintenance', 'label' => 'Manutenção',     'href' => '/asset/asset-maintenance'],
+                                    ['key' => 'settings',          'label' => 'Configurações',  'href' => '/asset/settings'],
+                                ],
+                            ]
                         )
                 ->order(87);
             });

@@ -82,6 +82,11 @@ class DataController extends Controller
         $segmento_ativo = request()->segment(1) === 'auditoria';
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
+            // ADR 0180 Fase 4 Wave E — Auditoria é ghost virtual de Governança
+            // no grupo canon `sistema` v3. Sem `shortcut` (acoplado em Governança);
+            // sem `primary` (auditoria é read-only/revert — não há ação de criar);
+            // sem `ghosts` (única sub-view canônica: timeline /auditoria; detalhe
+            // /auditoria/{id} é drill-down, não navegação ARIA-tab).
             $menu->url(url('/auditoria'), 'Auditoria', [
                 'icon'   => 'fa fa-shield',
                 'active' => $segmento_ativo,
