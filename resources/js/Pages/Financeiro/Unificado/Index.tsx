@@ -17,7 +17,14 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen, Download } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -980,13 +987,37 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               { key: 'apresentar', label: 'Apresentar',      icon: <Play size={13} />,        onClick: () => setPresentOpen(true),                                 title: 'Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)' },
               { key: 'imprimir',   label: favs.count > 0 ? `Imprimir (${favs.count}★)` : 'Imprimir', icon: <Printer size={13} />, onClick: () => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }, title: 'Folha jurídica imprimível' },
               { key: 'exportar',   label: 'Exportar XLSX/PDF',icon: <Download size={13} />,   onClick: () => setPaletteOpen(true),                                 title: 'Exportar lançamentos do período' },
-              { key: 'ocr',        label: 'OCR boleto',      icon: <span>📷</span>,            onClick: () => setOcrSheetOpen(true),                                title: 'Importar boleto via foto/PDF (OCR via IA)' },
+              // OCR boleto movido pro dropdown "Novo título" (entry-point de criação,
+              // não ação features) — Wagner 2026-05-21 split-button popup menu.
             ]}
           />
-          {/* Primary "+ Novo título" — canto direito, hue 145 financas (ADR 0182) */}
-          <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo')}>
-            Novo título
-          </FinanceiroPrimaryButton>
+          {/* Primary "+ Novo título" — canto direito, hue 145 financas (ADR 0182).
+              Wagner 2026-05-21: Unificado é caso especial — mostra ambos receivable+
+              payable. Click do "+ Novo título" abre dropdown menu com escolha explícita
+              (Receber/Pagar/OCR boleto) em vez de levar pra form genérico ambíguo. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="os-btn primary"
+                style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
+              >
+                <Plus size={13} /> Novo título <ChevronDown size={11} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuItem onClick={() => router.visit('/financeiro/unificado/novo?kind=receivable')}>
+                <TrendingUp size={13} className="mr-2 text-emerald-600" /> Novo recebimento
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.visit('/financeiro/unificado/novo?kind=payable')}>
+                <TrendingDown size={13} className="mr-2 text-rose-600" /> Novo pagamento
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setOcrSheetOpen(true)} title="Importar boleto via foto/PDF (OCR via IA)">
+                <span className="mr-2">📷</span> Importar boleto OCR
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
