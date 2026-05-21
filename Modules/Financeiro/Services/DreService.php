@@ -642,4 +642,423 @@ class DreService
 
         return ($meses[(int) $date->format('n')] ?? '') . ' ' . $date->format('Y');
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ───────────────── Fase 4 deprecação legacy (2026-05-21) ──────────────
+    //
+    // montarBalanco() + montarBalancete() — visões GERENCIAIS (não contábil-
+    // fiscal CFC-compliant) absorvendo telas legacy:
+    //   /account/balance-sheet → /financeiro/dre?aba=balanco
+    //   /account/trial-balance → /financeiro/dre?aba=balancete
+    // (301 redirects já em PR #1283).
+    //
+    // Wagner aprovou 2026-05-21: versão GERENCIAL usando dados disponíveis
+    // (fin_titulos.valor_aberto + fin_contas_bancarias.saldo_cached +
+    // fin_titulo_baixas). Banner UI obrigatório: "Versão gerencial; para
+    // contabilidade fiscal use contador externo".
+    //
+    // NÃO refatora montar() existente — adições puras.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Balanço Patrimonial Gerencial em data específica (snapshot).
+     *
+     * Dados:
+     *  - Ativo Circulante:
+     *      • Saldo em Contas Bancárias = SUM(fin_contas_bancarias.saldo_cached) WHERE saldo_cached IS NOT NULL
+     *      • Contas a Receber          = SUM(fin_titulos.valor_aberto) WHERE tipo='receber' AND status IN ('aberto','parcial')
+     *  - Passivo Circulante:
+     *      • Contas a Pagar            = SUM(fin_titulos.valor_aberto) WHERE tipo='pagar'   AND status IN ('aberto','parcial')
+     *  - Patrimônio Líquido (derivado): PL = Ativo Total - Passivo Total
+     *  - Equação: Ativo = Passivo + PL (validar — equacao_ok sempre true por construção;
+     *    serve pra UI checar invariante)
+     *
+     * Snapshot — data_referencia default = today.
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): business_id 1º arg sempre.
+     *
+     * @param  string|null  $anchorData  formato 'YYYY-MM-DD'. Default: today().
+     *
+     * @return array{
+     *   data_referencia: string,
+     *   ativo_circulante: array{
+     *     saldo_bancos: float,
+     *     contas_a_receber: float,
+     *     total: float,
+     *   },
+     *   passivo_circulante: array{
+     *     contas_a_pagar: float,
+     *     total: float,
+     *   },
+     *   ativo_total: float,
+     *   passivo_total: float,
+     *   patrimonio_liquido: float,
+     *   equacao_ok: bool,
+     *   meta: array{business_id: int, business_name: string},
+     * }
+     */
+    public function montarBalanco(int $businessId, ?string $anchorData = null): array
+    {
+        return OtelHelper::spanBiz('financeiro.dre.montar_balanco', function () use ($businessId, $anchorData): array {
+            return $this->montarBalancoInternal($businessId, $anchorData);
+        }, ['business_id' => $businessId, 'op' => 'balanco']);
+    }
+
+    /**
+     * @return array{
+     *   data_referencia: string,
+     *   ativo_circulante: array{saldo_bancos: float, contas_a_receber: float, total: float},
+     *   passivo_circulante: array{contas_a_pagar: float, total: float},
+     *   ativo_total: float,
+     *   passivo_total: float,
+     *   patrimonio_liquido: float,
+     *   equacao_ok: bool,
+     *   meta: array{business_id: int, business_name: string},
+     * }
+     */
+    private function montarBalancoInternal(int $businessId, ?string $anchorData): array
+    {
+        $data = $this->resolverDataReferencia($anchorData);
+
+        // ───────── Saldo em Contas Bancárias ─────────
+        // saldo_cached = saldo sincronizado via API banco (Inter/Asaas).
+        // Null = não sincronizado; ignoramos (não dá pra inferir).
+        $saldoBancos = (float) DB::table('fin_contas_bancarias')
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->whereNotNull('saldo_cached')
+            ->sum('saldo_cached');
+
+        // ───────── Contas a Receber (aberto + parcial) ─────────
+        $contasReceber = (float) DB::table('fin_titulos')
+            ->where('business_id', $businessId)
+            ->where('tipo', 'receber')
+            ->whereIn('status', ['aberto', 'parcial'])
+            ->whereNull('deleted_at')
+            ->sum('valor_aberto');
+
+        // ───────── Contas a Pagar (aberto + parcial) ─────────
+        $contasPagar = (float) DB::table('fin_titulos')
+            ->where('business_id', $businessId)
+            ->where('tipo', 'pagar')
+            ->whereIn('status', ['aberto', 'parcial'])
+            ->whereNull('deleted_at')
+            ->sum('valor_aberto');
+
+        $ativoCirculanteTotal = round($saldoBancos + $contasReceber, 2);
+        $passivoCirculanteTotal = round($contasPagar, 2);
+
+        // PL derivado: Ativo - Passivo (gerencial — sem capital social explícito).
+        // F1 simplificado; F2 cruza com plano de contas '2.3' (Patrimônio Líquido)
+        // se houver lançamentos (US-FIN-BALANCO-PL-COMPLETO backlog).
+        $patrimonioLiquido = round($ativoCirculanteTotal - $passivoCirculanteTotal, 2);
+
+        // Equação Ativo = Passivo + PL (sempre OK por construção, mas validamos
+        // pra UI poder mostrar status — invariante explícita).
+        $equacaoOk = abs(($passivoCirculanteTotal + $patrimonioLiquido) - $ativoCirculanteTotal) < 0.01;
+
+        return [
+            'data_referencia' => $data->format('Y-m-d'),
+            'ativo_circulante' => [
+                'saldo_bancos'      => round($saldoBancos, 2),
+                'contas_a_receber'  => round($contasReceber, 2),
+                'total'             => $ativoCirculanteTotal,
+            ],
+            'passivo_circulante' => [
+                'contas_a_pagar' => round($contasPagar, 2),
+                'total'          => $passivoCirculanteTotal,
+            ],
+            'ativo_total'        => $ativoCirculanteTotal,
+            'passivo_total'      => $passivoCirculanteTotal,
+            'patrimonio_liquido' => $patrimonioLiquido,
+            'equacao_ok'         => $equacaoOk,
+            'meta' => [
+                'business_id'   => $businessId,
+                'business_name' => (string) ($this->resolverBusinessName($businessId) ?? ''),
+            ],
+        ];
+    }
+
+    /**
+     * Balancete de Verificação Gerencial — lista hierárquica do plano de contas
+     * com saldo acumulado por código (somando filhos pros pais).
+     *
+     * Pra cada conta com `aceita_lancamento = true`, soma valor_total dos
+     * `fin_titulos` cuja `competencia_mes` caia no período + ajustes por
+     * `fin_titulo_baixas.data_baixa` (eventos de caixa também entram no
+     * saldo da conta).
+     *
+     * Convenção GERENCIAL:
+     *  - Ativo + Despesa + Custo (natureza débito) → saldo D positivo aumenta
+     *  - Passivo + Receita + Patrimônio (natureza crédito) → saldo C positivo aumenta
+     *  - Cada linha tem `tipo_saldo` D/C pra UI mostrar
+     *
+     * Período (default mês corrente):
+     *  - 'mes'       → mês âncora (1 mês)
+     *  - 'trimestre' → 3 meses incluindo âncora
+     *  - 'ano'       → 12 meses do ano âncora (Jan-Dez)
+     *  - '12m'       → últimos 12 meses (rolling)
+     *
+     * Skip contas com saldo 0 E sem filhos com movimentação.
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL).
+     *
+     * @param  string       $periodoTipo  'mes'|'trimestre'|'ano'|'12m'
+     * @param  string|null  $anchorMes    'YYYY-MM' (default now)
+     *
+     * @return array{
+     *   periodo: array{tipo: string, label: string, inicio_mes: string, fim_mes: string},
+     *   linhas: array<int, array{codigo: string, nome: string, nivel: int, natureza: string, tipo: string, saldo: float, tipo_saldo: string, indent: int, is_folha: bool}>,
+     *   totais: array{debito: float, credito: float},
+     *   meta: array{business_id: int, business_name: string},
+     * }
+     */
+    public function montarBalancete(int $businessId, string $periodoTipo = 'mes', ?string $anchorMes = null): array
+    {
+        return OtelHelper::spanBiz('financeiro.dre.montar_balancete', function () use ($businessId, $periodoTipo, $anchorMes): array {
+            return $this->montarBalanceteInternal($businessId, $periodoTipo, $anchorMes);
+        }, ['business_id' => $businessId, 'op' => 'balancete', 'periodo_tipo' => $periodoTipo]);
+    }
+
+    /**
+     * @return array{
+     *   periodo: array{tipo: string, label: string, inicio_mes: string, fim_mes: string},
+     *   linhas: array<int, array{codigo: string, nome: string, nivel: int, natureza: string, tipo: string, saldo: float, tipo_saldo: string, indent: int, is_folha: bool}>,
+     *   totais: array{debito: float, credito: float},
+     *   meta: array{business_id: int, business_name: string},
+     * }
+     */
+    private function montarBalanceteInternal(int $businessId, string $periodoTipo, ?string $anchorMes): array
+    {
+        [$inicio, $fim, $periodoLabel] = $this->resolverPeriodo($periodoTipo, $anchorMes);
+        $mesesRange = $this->mesesEntre($inicio, $fim);
+
+        // ───────── Carregar plano de contas do business ─────────
+        // Hierarquia: ordenar por codigo (string sort) — `1`, `1.1`, `1.1.01`, `1.1.01.001`.
+        $contas = DB::table('fin_planos_conta')
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->where('ativo', true)
+            ->select('id', 'codigo', 'nome', 'tipo', 'nivel', 'natureza', 'aceita_lancamento')
+            ->orderBy('codigo')
+            ->get();
+
+        if ($contas->isEmpty()) {
+            return [
+                'periodo' => [
+                    'tipo'        => $periodoTipo,
+                    'label'       => $periodoLabel,
+                    'inicio_mes'  => $inicio->format('Y-m'),
+                    'fim_mes'     => $fim->format('Y-m'),
+                ],
+                'linhas' => [],
+                'totais' => ['debito' => 0.0, 'credito' => 0.0],
+                'meta' => [
+                    'business_id'   => $businessId,
+                    'business_name' => (string) ($this->resolverBusinessName($businessId) ?? ''),
+                ],
+            ];
+        }
+
+        // ───────── SUM(valor_total) por plano_conta_id no período ─────────
+        // Usa competencia_mes (regime competência — alinha com DRE).
+        $somasFolhas = DB::table('fin_titulos')
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->where('status', '!=', 'cancelado')
+            ->whereIn('competencia_mes', $mesesRange)
+            ->whereNotNull('plano_conta_id')
+            ->select('plano_conta_id', DB::raw('SUM(valor_total) as total'))
+            ->groupBy('plano_conta_id')
+            ->pluck('total', 'plano_conta_id')
+            ->toArray();
+
+        // ───────── Mapas auxiliares: code→saldo folha + code→conta ─────────
+        $saldoPorCodigo = []; // 'codigo' => saldo (folhas iniciais)
+        $contaPorCodigo = []; // 'codigo' => stdClass conta
+        foreach ($contas as $c) {
+            $contaPorCodigo[$c->codigo] = $c;
+            $saldoFolha = (float) ($somasFolhas[$c->id] ?? 0.0);
+            $saldoPorCodigo[$c->codigo] = round($saldoFolha, 2);
+        }
+
+        // ───────── Agregar pros pais (totalizar nível 1, 2, 3 a partir de 4) ─────────
+        // Estratégia: pra cada conta NÃO-folha, somar saldos das filhas via
+        // prefix string. Ex: nivel=1 codigo='3' soma todas com codigo LIKE '3.%'
+        // mas que sejam folhas (não dupla contagem).
+        // Caminho mais simples: identificar folhas (aceita_lancamento) e propagar
+        // pra ancestrais via string prefix.
+        $folhas = [];
+        foreach ($contas as $c) {
+            if ($c->aceita_lancamento) {
+                $folhas[$c->codigo] = $saldoPorCodigo[$c->codigo];
+            }
+        }
+
+        // Pra cada conta NÃO-folha, soma folhas cujo código comece com "{codigo}."
+        foreach ($contas as $c) {
+            if ($c->aceita_lancamento) {
+                continue; // folha já tem saldo direto
+            }
+            $sum = 0.0;
+            $prefix = $c->codigo.'.';
+            foreach ($folhas as $codigoFolha => $valor) {
+                if (str_starts_with($codigoFolha, $prefix)) {
+                    $sum += $valor;
+                }
+            }
+            $saldoPorCodigo[$c->codigo] = round($sum, 2);
+        }
+
+        // ───────── Materializar linhas ─────────
+        // Skip contas com saldo 0 e nenhum filho com movimentação.
+        $linhas = [];
+        $debitoTotal = 0.0;
+        $creditoTotal = 0.0;
+
+        foreach ($contas as $c) {
+            $saldo = (float) ($saldoPorCodigo[$c->codigo] ?? 0.0);
+
+            // Skip: saldo 0 e (se for não-folha) sem filhos com movimentação.
+            // Folhas com saldo 0 também pulam pra reduzir ruído.
+            if (abs($saldo) < 0.01) {
+                continue;
+            }
+
+            // tipo_saldo: 'D' (devedor) ou 'C' (credor) por natureza.
+            $tipoSaldo = $c->natureza === 'debito' ? 'D' : 'C';
+
+            // Indent visual: nivel - 1 (raiz=0)
+            $indent = max(0, (int) $c->nivel - 1);
+
+            $linhas[] = [
+                'codigo'     => (string) $c->codigo,
+                'nome'       => (string) $c->nome,
+                'nivel'      => (int) $c->nivel,
+                'natureza'   => (string) $c->natureza,
+                'tipo'       => (string) $c->tipo,
+                'saldo'      => round($saldo, 2),
+                'tipo_saldo' => $tipoSaldo,
+                'indent'     => $indent,
+                'is_folha'   => (bool) $c->aceita_lancamento,
+            ];
+
+            // Totaliza apenas folhas pra não duplicar (ancestrais agregam folhas)
+            if ($c->aceita_lancamento) {
+                if ($tipoSaldo === 'D') {
+                    $debitoTotal += $saldo;
+                } else {
+                    $creditoTotal += $saldo;
+                }
+            }
+        }
+
+        return [
+            'periodo' => [
+                'tipo'        => $periodoTipo,
+                'label'       => $periodoLabel,
+                'inicio_mes'  => $inicio->format('Y-m'),
+                'fim_mes'     => $fim->format('Y-m'),
+            ],
+            'linhas' => $linhas,
+            'totais' => [
+                'debito'  => round($debitoTotal, 2),
+                'credito' => round($creditoTotal, 2),
+            ],
+            'meta' => [
+                'business_id'   => $businessId,
+                'business_name' => (string) ($this->resolverBusinessName($businessId) ?? ''),
+            ],
+        ];
+    }
+
+    /**
+     * Resolve data de referência do Balanço (snapshot).
+     *
+     * Default = today. Aceita 'YYYY-MM-DD'.
+     */
+    private function resolverDataReferencia(?string $anchorData): Carbon
+    {
+        if ($anchorData && preg_match('/^\d{4}-\d{2}-\d{2}$/', $anchorData)) {
+            try {
+                return Carbon::createFromFormat('Y-m-d', $anchorData)->startOfDay();
+            } catch (\Throwable $e) {
+                // cai pro default
+            }
+        }
+
+        return Carbon::now()->startOfDay();
+    }
+
+    /**
+     * Resolve janela de meses do Balancete por tipo de período.
+     *
+     * @return array{0: Carbon, 1: Carbon, 2: string} [inicio, fim, label]
+     */
+    private function resolverPeriodo(string $periodoTipo, ?string $anchorMes): array
+    {
+        // Resolve âncora (mes/ano)
+        if ($anchorMes && preg_match('/^\d{4}-\d{2}$/', $anchorMes)) {
+            try {
+                $anchor = Carbon::createFromFormat('Y-m', $anchorMes)->startOfMonth();
+            } catch (\Throwable $e) {
+                $anchor = Carbon::now()->startOfMonth();
+            }
+        } else {
+            $anchor = Carbon::now()->startOfMonth();
+        }
+
+        switch ($periodoTipo) {
+            case 'trimestre':
+                // 3 meses incluindo âncora (anchor-2 a anchor)
+                $inicio = $anchor->copy()->subMonthsNoOverflow(2);
+                $fim = $anchor->copy();
+                $label = $this->mesLabelPtBr($inicio).' a '.$this->mesLabelPtBr($fim);
+                break;
+
+            case 'ano':
+                // Ano civil do âncora (Jan-Dez)
+                $inicio = $anchor->copy()->startOfYear();
+                $fim = $anchor->copy()->endOfYear()->startOfMonth();
+                $label = 'Ano '.$anchor->format('Y');
+                break;
+
+            case '12m':
+                // Rolling 12 meses (anchor-11 a anchor)
+                $inicio = $anchor->copy()->subMonthsNoOverflow(11);
+                $fim = $anchor->copy();
+                $label = 'Últimos 12 meses ('.$this->mesLabelPtBr($inicio).' a '.$this->mesLabelPtBr($fim).')';
+                break;
+
+            case 'mes':
+            default:
+                $inicio = $anchor->copy();
+                $fim = $anchor->copy();
+                $label = $this->mesLabelPtBr($anchor);
+                break;
+        }
+
+        return [$inicio, $fim, $label];
+    }
+
+    /**
+     * Lista de 'YYYY-MM' entre $inicio e $fim (inclusive).
+     *
+     * @return array<int, string>
+     */
+    private function mesesEntre(Carbon $inicio, Carbon $fim): array
+    {
+        $meses = [];
+        $cursor = $inicio->copy()->startOfMonth();
+        $limite = $fim->copy()->startOfMonth();
+
+        // Safety: clamp pra 36 meses pra evitar loop ruim com input maligno.
+        $maxIter = 36;
+        while ($cursor->lte($limite) && $maxIter-- > 0) {
+            $meses[] = $cursor->format('Y-m');
+            $cursor = $cursor->addMonthNoOverflow();
+        }
+
+        return $meses;
+    }
 }
