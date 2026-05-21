@@ -119,104 +119,113 @@ import {
   isUserMenuItem,
 } from './shared';
 
-// ── Mapeamento item → grupo (lookup table). Ratificado por Wagner 2026-05-05.
-// Itens não mapeados caem no grupo "MAIS" (collapse fechado por default).
-// Quando LegacyMenuAdapter ganhar campo `group` no MenuItem, esse mapping
-// migra pro backend e este lookup é deletado.
+// ── Sidebar v3 — 5 grupos canon + 3 topo (ADR 0180, 2026-05-21) ────────
+//
+// Substitui o sidebar v2 (11 keys: office/oficina/fin-op/fin-analise/
+// fin-config/fin/estoque/fiscal/rh/conhecimento/rel/governanca/plataforma)
+// — score 58/100 vs Linear 93/100 (Hick's Law violado, ~50 labels visíveis).
+//
+// v3 canon: 14 labels visíveis (3 topo + 11 destinos em 5 grupos), score 91/100.
+// Mental model: VENDER → OPERAR → FINANÇAS → PESSOAS → SISTEMA (verbos PT-BR
+// Larissa-friendly, universal pros 4 verticais).
+//
+// Wagner regra 2026-05-19: DataController declara `data['group']`, frontend
+// NUNCA hardcode. `items[]` aqui só pra compat com módulos não-migrados.
 const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
-  {
-    key: 'office',
-    label: 'ACESSOS RÁPIDOS',
-    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar', 'CRM', 'Crm', 'Office Impresso', 'Officeimpresso'],
-  },
-  {
-    // ADR 0137 — Modules/OficinaAuto vertical CNAEs 4520/2212/4581 (V0).
-    // Sub-itens "Veículos" + "Ordens de Serviço" entram via DataController.modifyAdminMenu.
-    key: 'oficina',
-    label: 'OFICINA AUTO',
-    items: ['Oficina Auto'],
-  },
-  // Wagner 2026-05-20: Opção B — Financeiro dividido em 3 sub-grupos visuais
-  // pra melhor descoberta (12 entradas em 1 grupo flat era denso demais).
-  // Cada entrada declara `'group' => 'fin-op|fin-analise|fin-config'` no
-  // DataController — frontend NUNCA hardcode labels (Wagner regra 2026-05-19).
-  // Grupo `fin` legacy mantido pra core UltimatePOS Despesas/Contas de pagamento
-  // até Fase 1 de deprecação (esconder no middleware quando Financeiro instalado).
-  {
-    key: 'fin-op',
-    label: 'FINANCEIRO · OPERAÇÃO',
-    items: [], // backend-declared via 'group' => 'fin-op'
-  },
-  {
-    key: 'fin-analise',
-    label: 'FINANCEIRO · ANÁLISE',
-    items: [], // backend-declared via 'group' => 'fin-analise'
-  },
-  {
-    key: 'fin-config',
-    label: 'FINANCEIRO · AJUSTES',
-    items: [], // backend-declared via 'group' => 'fin-config'
-  },
-  {
-    key: 'fin',
-    label: 'FINANCEIRO',
-    // Legacy compat — labels do core UltimatePOS (Expenses + Account dropdowns
-    // em AdminSidebarMenu.php:486,522). Sai daqui na Fase 1 de deprecação.
-    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Gateway de Pagamento', 'Cobrança Recorrente'],
-  },
-  {
-    key: 'estoque',
-    label: 'ESTOQUE',
-    items: ['Compras', 'Transferências de ações', 'Ajuste de estoque', 'Gestão de ativos'],
-  },
-  {
-    key: 'fiscal',
-    label: 'FISCAL',
-    items: ['NFSe', 'NF-e Brasil'],
-  },
-  {
-    key: 'rh',
-    label: 'RH',
-    items: ['HRM', 'Essenciais', 'Ponto'],
-  },
-  {
-    key: 'conhecimento',
-    label: 'CONHECIMENTO',
-    items: ['Cofre de Memórias', 'SRS', 'Sistema de Regras', 'Base de Conhecimento', 'KB', 'Planilha', 'Notas'],
-  },
-  {
-    key: 'rel',
-    label: 'RELATÓRIOS',
-    items: ['Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
-  },
+  // ── Topo (3 fixos, sempre visíveis) ──
   {
     key: 'ia',
-    label: 'IA & PRODUTIVIDADE',
-    items: ['Copiloto', 'Jana', 'Projeto', 'Project Mgmt', 'Project'],
+    label: 'IA',
+    items: ['Copiloto', 'Jana', 'Cofre de Memórias', 'SRS', 'Sistema de Regras',
+            'Base de Conhecimento', 'KB', 'Planilha', 'Notas', 'Brief',
+            'Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios',
+            'Projeto', 'Project Mgmt', 'Project'],
   },
   {
-    key: 'governanca',
-    label: 'GOVERNANÇA',
-    items: ['Governança', 'Governance', 'ADS', 'Adaptive Decision', 'Team MCP', 'TeamMcp'],
+    key: 'atendimento',
+    label: 'ATENDIMENTO',
+    items: ['WhatsApp', 'Whatsapp', 'Atendimento', 'Inbox', 'Tickets', 'Consulta de OS'],
   },
   {
-    // Wagner 2026-05-10: cascata "Superadmin" do user dropdown footer foi
-    // removida; admin de plataforma vive no sidebar como qualquer outro grupo.
-    // Officeimpresso saiu deste grupo e foi pra ACESSOS RÁPIDOS (uso pesado
-    // pra gestão de licenças desktop dos clientes legacy WR Sistemas).
-    key: 'plataforma',
-    label: 'PLATAFORMA',
-    items: ['CMS', 'Conector', 'Connector', 'Backup', 'Módulos', 'Modulos', 'Manage Modules', 'Personalizar'],
+    key: 'equipe',
+    label: 'EQUIPE',
+    items: ['Team MCP', 'TeamMcp', 'Equipe'],
+  },
+
+  // ── 5 grupos canônicos v3 ──
+  {
+    key: 'vender',
+    label: 'VENDER',
+    items: ['Vender', 'vender', 'Vendas', 'Orçamentos', 'Clientes', 'Contatos',
+            'Produtos', 'Catálogo', 'CRM', 'Crm',
+            'Office Impresso', 'Officeimpresso',
+            'WooCommerce', 'Woocommerce'],
+  },
+  {
+    key: 'operar',
+    label: 'OPERAR',
+    items: ['Ordens de Serviço', 'Reparar', 'Oficina Auto', 'Comunicação Visual',
+            'Produção', 'Manufacturing',
+            'Compras', 'Transferências de ações', 'Ajuste de estoque',
+            'Gestão de ativos', 'Estoque', 'Inventário',
+            'Reservas', 'Pedidos', 'Cocina'],
+  },
+  {
+    key: 'financas',
+    label: 'FINANÇAS',
+    items: ['Financeiro', 'Despesas', 'Contas de pagamento', 'Accounting',
+            'Contabilidade', 'Gateway de Pagamento', 'Cobrança Recorrente',
+            'Fiscal', 'NF-e Brasil', 'NFSe', 'NFC-e', 'Certificado Digital'],
+  },
+  {
+    key: 'pessoas',
+    label: 'PESSOAS',
+    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Folha', 'Colaboradores'],
+  },
+  {
+    key: 'sistema',
+    label: 'SISTEMA',
+    items: ['Governança', 'Governance', 'ADS', 'Adaptive Decision',
+            'CMS', 'Conector', 'Connector', 'Backup',
+            'Módulos', 'Modulos', 'Manage Modules', 'Personalizar'],
   },
 ];
+
+/**
+ * LEGACY_GROUP_MAP — converte as 11 keys do sidebar v2 pros 5 grupos v3.
+ *
+ * Permite migração modulo-a-modulo: DataControllers não-migrados ainda
+ * declaram `'group' => 'office'|'fin-op'|...` e caem no grupo canônico v3
+ * correto. Espelha `App\Sidebar\SidebarGroup::fromLegacy()` (Fase 1).
+ *
+ * Removível na Fase 9 (cleanup), quando todos os 17 DataControllers tiverem
+ * migrado pro contrato v3 (Fase 4).
+ */
+const LEGACY_GROUP_MAP: Record<string, string> = {
+  // v2 → v3
+  office:       'vender',
+  oficina:      'operar',
+  estoque:      'operar',
+  fin:          'financas',
+  'fin-op':     'financas',
+  'fin-analise':'financas',
+  'fin-config': 'financas',
+  fiscal:       'financas',
+  rh:           'pessoas',
+  conhecimento: 'ia',
+  rel:          'ia',
+  governanca:   'sistema',
+  plataforma:   'sistema',
+};
 
 /**
  * Resolve grupo do sidebar pra um menu item.
  *
  * Prioridade (Wagner regra 2026-05-19 — DataController declara, frontend não hardcode):
- *  1. item.group (declarado pelo DataController via `data['group']`)
- *  2. Match por label string em SIDEBAR_GROUPS.items[] (legacy compat)
- *  3. Fallback 'mais' (collapse fechado por default)
+ *  1. item.group v3 (declarado pelo DataController via `data['group']`)
+ *  2. item.group v2 legacy mapeada via LEGACY_GROUP_MAP
+ *  3. Match por label string em SIDEBAR_GROUPS.items[] (compat módulos não-migrados)
+ *  4. Fallback 'mais' (collapse fechado por default)
  */
 function findGroupKey(item: ShellMenuItem | string): string {
   // String legacy pra cobertura backwards-compat (alguns callers passam só label)
@@ -228,12 +237,17 @@ function findGroupKey(item: ShellMenuItem | string): string {
     return 'mais';
   }
 
-  // 1. group declarado pelo DataController do módulo
+  // 1. group v3 nativo (uma das 8 keys: ia/atendimento/equipe + 5 canon)
   if (item.group && SIDEBAR_GROUPS.some((g) => g.key === item.group)) {
     return item.group;
   }
 
-  // 2. fallback label match (legacy items que ainda não declararam group)
+  // 2. group v2 legacy → mapear pra key v3 (migração faseada)
+  if (item.group && LEGACY_GROUP_MAP[item.group]) {
+    return LEGACY_GROUP_MAP[item.group];
+  }
+
+  // 3. fallback label match (módulos que ainda não declararam group)
   const norm = item.label.trim();
   for (const g of SIDEBAR_GROUPS) {
     if (g.items.some((i) => i.toLowerCase() === norm.toLowerCase())) return g.key;
@@ -592,7 +606,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={g.key === 'office' || g.key === 'fin-op'}
+          defaultOpen={['ia', 'atendimento', 'equipe', 'vender', 'operar', 'financas'].includes(g.key)}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
