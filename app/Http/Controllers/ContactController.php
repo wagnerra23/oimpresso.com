@@ -1092,6 +1092,21 @@ class ContactController extends Controller
                 // Inertia::defer roda em request separado (partial reload only:['sales']) — usa request() corrente, NÃO $req capturado.
                 'sales' => Inertia::defer(fn () => $this->buildClienteSalesPaginator((int) $contact->id, (int) $business_id, request())),
                 'locations' => $business_locations->map(fn ($name, $id) => ['id' => (int) $id, 'name' => (string) $name])->values()->all(),
+                // Onda Final.A — Contact picker header: lista clientes (customer+both) ativos do biz pro dropdown trocar contato sem voltar.
+                // Defer porque pode ser custoso em business com muitos contatos. Multi-tenant Tier 0 (ADR 0093).
+                'contact_dropdown' => Inertia::defer(fn () => Contact::where('contacts.business_id', $business_id)
+                    ->whereIn('contacts.type', ['customer', 'both'])
+                    ->where('contacts.contact_status', 'active')
+                    ->orderBy('name')
+                    ->limit(500)
+                    ->get(['id', 'name', 'contact_id', 'supplier_business_name'])
+                    ->map(fn ($c) => [
+                        'id' => (int) $c->id,
+                        'name' => (string) $c->name,
+                        'contact_id' => $c->contact_id,
+                        'supplier_business_name' => $c->supplier_business_name,
+                    ])
+                    ->all()),
                 'permissions' => [
                     'update' => $can_customer_update || $can_supplier_update,
                     'pay_due' => $user->can('purchase.payments') || $user->can('sell.payments'),

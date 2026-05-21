@@ -32,6 +32,7 @@ import LedgerTab from './_show/LedgerTab';
 import SalesTab, { type SalesPaginator } from './_show/SalesTab';
 import DocumentsTab from './_show/DocumentsTab';
 import ActionsMenu from './_show/ActionsMenu';
+import ContactPicker, { type ContactDropdownItem } from './_show/ContactPicker';
 
 interface ContactInfo {
   id: number;
@@ -77,6 +78,7 @@ interface ClienteShowPageProps {
   sales?: SalesPaginator;
   locations: Array<{ id: number; name: string }>;
   permissions: Permissions;
+  contact_dropdown?: ContactDropdownItem[];
 }
 
 const formatBRL = (value: number) =>
@@ -97,7 +99,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
     <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
       <div className="border-b border-border bg-background">
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-6xl">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center justify-between gap-3 mb-2">
             <a
               href="/cliente"
               className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -105,6 +107,9 @@ export default function ClienteShow(props: ClienteShowPageProps) {
               <ChevronLeft size={14} className="mr-1" />
               Voltar para clientes
             </a>
+            <Deferred data="contact_dropdown" fallback={<ContactPicker currentContactId={contact.id} />}>
+              <ContactPicker currentContactId={contact.id} contacts={props.contact_dropdown} />
+            </Deferred>
           </div>
           <div className="flex items-start gap-4">
             <div className="h-14 w-14 rounded-md bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-800 dark:to-stone-700 flex items-center justify-center text-lg font-semibold text-stone-700 dark:text-stone-200">
