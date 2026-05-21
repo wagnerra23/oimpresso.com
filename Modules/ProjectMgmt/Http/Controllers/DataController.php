@@ -79,6 +79,18 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave C TOPO (2026-05-21): entry dropdown ProjectMgmt
+                // declara `group: 'equipe'` pro frontend Sidebar.tsx (v3) renderizar
+                // ProjectMgmt no TOPO junto com TeamMcp (ghost de Equipe).
+                //
+                // ProjectMgmt NÃO declara shortcut próprio (instrução Wave C —
+                // ghost de Equipe, atalho G E do TeamMcp cobre).
+                // NÃO declara `primary` — primary canon do grupo Equipe é "Nova task"
+                // mas vive em TeamMcp (tabela tasks). Quando module-grades elevar
+                // ProjectMgmt pra primário do grupo, mover primary aqui.
+                //
+                // Ghosts canônicos espelham as 6 sub-views do dropdown atual:
+                //   my-work / board / backlog / roadmap / activity / burndown
                 $menu->dropdown(
                     'Project Mgmt',
                     function ($sub) {
@@ -135,6 +147,15 @@ class DataController extends Controller
                         'icon'   => 'fa fas fa-project-diagram',
                         'style'  => 'background-color:' . $background_color,
                         'active' => $segmento_ativo,
+                        'group'  => 'equipe',
+                        'ghosts' => [
+                            ['key' => 'my-work',  'label' => 'My Work',  'href' => '/project-mgmt/my-work'],
+                            ['key' => 'board',    'label' => 'Board',    'href' => '/project-mgmt/board'],
+                            ['key' => 'backlog',  'label' => 'Backlog',  'href' => '/project-mgmt/backlog'],
+                            ['key' => 'roadmap',  'label' => 'Roadmap',  'href' => '/project-mgmt/roadmap'],
+                            ['key' => 'activity', 'label' => 'Activity', 'href' => '/project-mgmt/activity'],
+                            ['key' => 'burndown', 'label' => 'Burndown', 'href' => '/project-mgmt/burndown'],
+                        ],
                     ]
                 )->order(92); // Logo após TeamMcp (91)
             }

@@ -28,6 +28,12 @@ class DataController extends Controller
         }
 
         Menu::modify('admin-sidebar-menu', function ($menu) {
+            // ADR 0180 Fase 4 Wave C TOPO (2026-05-21): entry SRS/memcofre
+            // declara `group: 'ia'` pro frontend Sidebar.tsx renderizar no TOPO
+            // (ghost de IA). SRS NÃO declara shortcut próprio — é ghost de Jana.
+            // Ghosts canônicos espelham as 3 sub-views do dropdown atual:
+            //   /memcofre (dashboard) · /memcofre/ingest · /memcofre/inbox
+            // hrefs absolutos (LegacyMenuAdapter::toRelative já normaliza).
             $menu->dropdown(
                 __('memcofre::memcofre.docvault'),
                 function ($sub) {
@@ -38,6 +44,12 @@ class DataController extends Controller
                 [
                     'icon'   => 'fa fas fa-folder-open',
                     'active' => request()->segment(1) == 'memcofre',
+                    'group'  => 'ia',
+                    'ghosts' => [
+                        ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/memcofre'],
+                        ['key' => 'ingest',    'label' => 'Ingest',    'href' => '/memcofre/ingest'],
+                        ['key' => 'inbox',     'label' => 'Inbox',     'href' => '/memcofre/inbox'],
+                    ],
                 ]
             )->order(95);
         });
