@@ -23,6 +23,11 @@ interface CaixaRow {
   user_name: string;
   location_id: number;
   location_name: string;
+  // ADR 0183 PR C — ponte fin_titulos status integração
+  fin_titulo_id: number | null;
+  fin_titulo_status: string | null;
+  fin_titulo_valor: number | null;
+  integracao_status: 'lancado' | 'pendente' | 'nao_aplicavel';
 }
 
 interface Stats {
@@ -198,6 +203,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
                 <th className="px-4 py-2 font-medium text-right">Entradas</th>
                 <th className="px-4 py-2 font-medium text-right">Saídas</th>
                 <th className="px-4 py-2 font-medium text-right">Fechou em</th>
+                <th className="px-4 py-2 font-medium">Financeiro</th>
               </tr>
             </thead>
             <tbody>
@@ -225,6 +231,37 @@ function Caixa({ caixas, stats, filters, links }: Props) {
                     </td>
                     <td className="px-4 py-3 text-right font-medium">
                       {c.status === 'open' ? '—' : fmtMoney(c.closing_amount)}
+                    </td>
+                    {/* ADR 0183 PR C — status integração ponte fin_titulos */}
+                    <td className="px-4 py-3">
+                      {c.integracao_status === 'lancado' && c.fin_titulo_id && (
+                        <a
+                          href={`/financeiro/unificado?titulo=${c.fin_titulo_id}`}
+                          className="inline-flex items-center gap-1 text-emerald-700 hover:underline text-xs"
+                          title={`fin_titulo #${c.fin_titulo_id} · ${c.fin_titulo_status} · ${c.fin_titulo_valor ? fmtMoney(c.fin_titulo_valor) : '—'}`}
+                        >
+                          ✅ #{c.fin_titulo_id}
+                        </a>
+                      )}
+                      {c.integracao_status === 'pendente' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!confirm(`Lançar fin_titulo retroativo pra caixa #${c.id}? (idempotente — re-clicar não duplica)`)) return;
+                            router.post(`/financeiro/caixa/${c.id}/lancar`, {}, {
+                              preserveScroll: true,
+                              onSuccess: () => router.reload({ only: ['caixas'] }),
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 text-amber-700 hover:bg-amber-50 px-2 py-1 rounded border border-amber-300 text-xs"
+                          title="Caixa fechado sem fin_titulo — clique pra lançar retroativo"
+                        >
+                          ⚠️ Lançar agora
+                        </button>
+                      )}
+                      {c.integracao_status === 'nao_aplicavel' && (
+                        <span className="text-stone-400 text-xs">—</span>
+                      )}
                     </td>
                   </tr>
                 );
