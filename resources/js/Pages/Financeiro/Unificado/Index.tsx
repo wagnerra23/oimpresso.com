@@ -24,6 +24,7 @@ import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
+import PageHeaderTabs, { type PageHeaderGhost, type PageHeaderPrimary } from '@/Components/shared/PageHeaderTabs';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
@@ -760,6 +761,41 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   );
 }
 
+// ---------- FinanceiroSubNav (ADR 0180 Fase 5 piloto) ----------
+//
+// Lê primary/ghosts da entry "Financeiro" do shell.menu (Inertia shared prop
+// populado via LegacyMenuAdapter — Fase 4 piloto declarou attrs no
+// Modules/Financeiro/Http/Controllers/DataController). Renderiza ghost tabs
+// ARIA tablist abaixo do header `os-page-h` custom da tela.
+//
+// Active prop = key do ghost atual (ex 'unificado' nesta tela, 'pagar' em
+// ContasPagar/Index.tsx quando essa tela adotar tbm). Fallback: nada renderiza
+// se shell.menu não tem entry "Financeiro" com ghosts (ex usuário sem permissão
+// financeiro.access ou Modules/Financeiro desinstalado).
+function FinanceiroSubNav({ active }: { active: string }) {
+  const sharedShell = (usePage().props as any)?.shell as {
+    menu?: Array<{ label: string; group?: string; primary?: PageHeaderPrimary; ghosts?: PageHeaderGhost[] }>;
+  } | undefined;
+
+  const finItem = sharedShell?.menu?.find(
+    (m) => m.group === 'fin-op' || m.group === 'financas' || m.label?.toLowerCase() === 'financeiro',
+  );
+
+  if (!finItem?.ghosts?.length) return null;
+
+  return (
+    <div className="mt-2 px-3">
+      <PageHeaderTabs
+        primary={finItem.primary}
+        ghosts={finItem.ghosts}
+        activeGhostKey={active}
+        group="financas"
+        maxVisible={6}
+      />
+    </div>
+  );
+}
+
 // ---------- Página principal ----------
 
 function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
@@ -1043,6 +1079,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           </button>
         </div>
       </div>
+
+      {/* ADR 0180 Fase 5 piloto — ghost tabs ARIA pra navegação contextual entre
+          as 13 sub-views do Financeiro. Lê primary/ghosts do shell.menu (declarados
+          em Modules/Financeiro/Http/Controllers/DataController na Fase 4 piloto,
+          propagados via LegacyMenuAdapter). Active = "unificado" (tela atual).
+          Convive com o header `os-page-h` custom acima — não substitui. */}
+      <FinanceiroSubNav active="unificado" />
 
       <KpiBar kpis={kpis} lancamentos={lancamentos} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
 
