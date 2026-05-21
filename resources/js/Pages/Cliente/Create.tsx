@@ -9,7 +9,10 @@ import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
-import DadosFiscaisBRSection, { type DadosFiscaisBRData } from './_form/DadosFiscaisBRSection';
+import DadosFiscaisBRSection, {
+  type DadosFiscaisBRData,
+  type BrasilApiCnpjData,
+} from './_form/DadosFiscaisBRSection';
 import { unmaskDigits } from '@/Lib/format-br';
 
 interface ClienteCreatePageProps {
@@ -78,6 +81,29 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
   });
 
   const isJuridica = data.contact_type_radio === 'business';
+
+  // Slice 5a — callback chamado quando DadosFiscaisBRSection recebe sucesso do
+  // /contacts/lookup/cnpj/{cnpj}. Preenche aqui os campos que NÃO vivem em
+  // DadosFiscaisBRData (supplier_business_name = razão social + endereço).
+  const handleCnpjLookup = (api: BrasilApiCnpjData) => {
+    if (api.razao_social) {
+      setData('supplier_business_name', api.razao_social);
+      // Se primeiro_nome estiver vazio, usa razao_social como base — fluxo comum
+      // de cadastrar PJ pela primeira vez.
+      if (!data.first_name) {
+        setData('first_name', api.razao_social);
+      }
+    }
+    // Endereço — só sobrescreve se vier valor da API (preserva o que user já digitou).
+    if (api.logradouro) {
+      const numero = api.numero ? `, ${api.numero}` : '';
+      const bairro = api.bairro ? ` — ${api.bairro}` : '';
+      setData('address_line_1', `${api.logradouro}${numero}${bairro}`);
+    }
+    if (api.municipio) setData('city', api.municipio);
+    if (api.uf) setData('state', api.uf);
+    if (api.cep) setData('zip_code', api.cep);
+  };
 
   // Normaliza cpf_cnpj pra dígitos puros antes do submit — backend Rule\BR\CpfCnpj
   // já chama Util::onlyNumbers internamente mas mandamos limpo pra evitar
@@ -187,6 +213,7 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
             setData={setData}
             errors={errors}
             isJuridica={isJuridica}
+            onCnpjLookup={handleCnpjLookup}
           />
 
           <Section title="Contato">

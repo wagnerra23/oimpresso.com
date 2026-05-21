@@ -9,7 +9,10 @@ import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
-import DadosFiscaisBRSection, { type DadosFiscaisBRData } from './_form/DadosFiscaisBRSection';
+import DadosFiscaisBRSection, {
+  type DadosFiscaisBRData,
+  type BrasilApiCnpjData,
+} from './_form/DadosFiscaisBRSection';
 import { unmaskDigits } from '@/Lib/format-br';
 
 interface ContactInfo {
@@ -107,6 +110,22 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
 
   const isJuridica = data.contact_type_radio === 'business';
 
+  // Slice 5a — preenche campos não-fiscais quando BrasilAPI retorna sucesso.
+  // No Edit, preservar valores existentes é mais sensível — só sobrescreve se API trouxe valor.
+  const handleCnpjLookup = (api: BrasilApiCnpjData) => {
+    if (api.razao_social) {
+      setData('supplier_business_name', api.razao_social);
+    }
+    if (api.logradouro) {
+      const numero = api.numero ? `, ${api.numero}` : '';
+      const bairro = api.bairro ? ` — ${api.bairro}` : '';
+      setData('address_line_1', `${api.logradouro}${numero}${bairro}`);
+    }
+    if (api.municipio) setData('city', api.municipio);
+    if (api.uf) setData('state', api.uf);
+    if (api.cep) setData('zip_code', api.cep);
+  };
+
   // Mesma normalização de Create — backend Rule\BR\CpfCnpj re-aplica onlyNumbers.
   transform((payload) => ({
     ...payload,
@@ -195,6 +214,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
             setData={setData}
             errors={errors}
             isJuridica={isJuridica}
+            onCnpjLookup={handleCnpjLookup}
           />
 
           <Section title="Contato">
