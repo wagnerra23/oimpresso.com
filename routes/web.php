@@ -191,6 +191,27 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/contacts/create-page', [ContactController::class, 'createPage']);
     Route::resource('contacts', ContactController::class);
 
+    // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — URLs canon /cliente.
+    // INDEX+SHOW canary (read-only). Wrappers thin que reusam ContactController.
+    // Multi-tenant Tier 0: type=customer injetado pra Index; guard customer/both
+    // pra Show (supplier NUNCA cai aqui). Ver app/Http/Middleware/RedirectLegacyContacts.php.
+    Route::get('/cliente', function (ContactController $c) {
+        request()->merge(['type' => 'customer']);
+        return $c->index();
+    })->name('cliente.index');
+
+    Route::get('/cliente/{id}', function (int $id, ContactController $c) {
+        $bizId = (int) session('user.business_id');
+        $ok = \App\Contact::where('business_id', $bizId)
+            ->where('id', $id)
+            ->whereIn('type', ['customer', 'both'])
+            ->exists();
+        if (! $ok) {
+            abort(404);
+        }
+        return $c->show($id);
+    })->name('cliente.show')->whereNumber('id');
+
     Route::get('taxonomies-ajax-index-page', [TaxonomyController::class, 'getTaxonomyIndexPage']);
     Route::resource('taxonomies', TaxonomyController::class);
 
