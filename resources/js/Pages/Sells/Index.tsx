@@ -21,6 +21,7 @@ import {
   Archive,
   CheckCircle2,
   ChevronDown,
+  DollarSign,
   FileText,
   Folder,
   Plus,
@@ -30,6 +31,7 @@ import {
   X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
+import QuickPaymentDialog from './_components/QuickPaymentDialog';
 // PR follow-up Cowork — filtros legacy reintegrados via barra colapsável "Filtros avançados ▾".
 // Refs: Index.charter.md v2 Goals · feedback-design-literal-copy §How to apply #5.
 import SellsDateFilter, {
@@ -643,6 +645,11 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
   // Refetch trigger (independente de filtros) — disparado por onSaleChanged do drawer.
   const [refetchToken, setRefetchToken] = useState(0);
+
+  // US-SELL-042 — Larissa @ ROTA LIVRE biz=4 (ADR 0105) pediu 2026-05-21
+  // "adicionar pagamentos como antigamente" (botão direto na linha sem abrir
+  // drawer). Estado do modal QuickPayment compartilhado entre Lista e Grade.
+  const [payDialog, setPayDialog] = useState<{ saleId: number; invoiceNo: string; dueAmount: number } | null>(null);
 
   // UI overlays.
   const [cheatOpen, setCheatOpen] = useState(false);
@@ -1328,6 +1335,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               onSort={handleSort}
               groupBy={groupBy}
               onGroupByChange={setGroupBy}
+              onPayClick={(saleId, invoiceNo, dueAmount) => setPayDialog({ saleId, invoiceNo, dueAmount })}
             />
           </div>
         ) : (
@@ -1467,6 +1475,23 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                           {ps.label}
                         </span>
                         <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
+                          {/* US-SELL-042 — botão "Pagar" inline (sem abrir drawer) pra
+                              vendas com saldo devedor. Equivalente ao "Add Payment" do
+                              UltimatePOS Blade legacy que Larissa biz=4 sentiu falta. */}
+                          {v.payment_status !== 'paid' && (
+                            <button
+                              className="vd-row-act"
+                              title="Registrar pagamento"
+                              type="button"
+                              onClick={() => setPayDialog({
+                                saleId: v.id,
+                                invoiceNo: v.invoice_no,
+                                dueAmount: Math.max(0, v.final_total - v.total_paid),
+                              })}
+                            >
+                              <DollarSign size={11} />
+                            </button>
+                          )}
                           {v.fiscal_status === 'autorizada' && (
                             <button className="vd-row-act" title="Baixar DANFE PDF" type="button">
                               <Archive size={11} />
@@ -1721,6 +1746,17 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         }}
         onSaleChanged={() => setRefetchToken((t) => t + 1)}
         initialAiOpen={aiTriggered}
+      />
+
+      {/* US-SELL-042 — modal "Registrar pagamento" inline (atalho rápido sem
+          abrir o drawer). Lista e Grade Avançada disparam via setPayDialog. */}
+      <QuickPaymentDialog
+        saleId={payDialog?.saleId ?? null}
+        invoiceNo={payDialog?.invoiceNo ?? ''}
+        dueAmount={payDialog?.dueAmount ?? 0}
+        open={payDialog !== null}
+        onClose={() => setPayDialog(null)}
+        onSuccess={() => setRefetchToken((t) => t + 1)}
       />
     </div>
   );
