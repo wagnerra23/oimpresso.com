@@ -1067,7 +1067,7 @@ class ContactController extends Controller
                     'state' => $contact->state ?? null,
                     'address_line_1' => $contact->address_line_1 ?? null,
                 ],
-                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons'], true) ? $tab : 'ledger',
+                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons', 'subscriptions'], true) ? $tab : 'ledger',
                 'stats' => Inertia::defer(fn () => [
                     'total_invoice' => (float) ($contact->total_invoice ?? 0),
                     'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
@@ -1139,6 +1139,39 @@ class ContactController extends Controller
                         'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
                         'department' => $u->crm_department,
                         'designation' => $u->crm_designation,
+                    ])
+                    ->all()),
+                // Onda Final.D — Tab Assinaturas: transactions is_recurring=1 do contact (recur_parent_id NULL = pai da série).
+                // Multi-tenant Tier 0 (ADR 0093): business_id + contact_id scope obrigatório.
+                'subscriptions' => Inertia::defer(fn () => Transaction::where('transactions.business_id', $business_id)
+                    ->where('transactions.contact_id', $contact->id)
+                    ->where('transactions.is_recurring', 1)
+                    ->whereNull('transactions.recur_parent_id')
+                    ->leftJoin('business_locations as bl_sub', 'transactions.location_id', '=', 'bl_sub.id')
+                    ->orderByDesc('transactions.transaction_date')
+                    ->limit(100)
+                    ->get([
+                        'transactions.id',
+                        'transactions.subscription_no',
+                        'transactions.transaction_date',
+                        'transactions.recur_interval',
+                        'transactions.recur_interval_type',
+                        'transactions.recur_repetitions',
+                        'transactions.recur_stopped_on',
+                        'bl_sub.name as location_name',
+                    ])
+                    ->map(fn ($s) => [
+                        'id' => (int) $s->id,
+                        'subscription_no' => (string) ($s->subscription_no ?? ''),
+                        'transaction_date' => optional($s->transaction_date)->toIso8601String(),
+                        'recur_interval' => (int) ($s->recur_interval ?? 0),
+                        'recur_interval_type' => (string) ($s->recur_interval_type ?? ''),
+                        'recur_repetitions' => (int) ($s->recur_repetitions ?? 0),
+                        'recur_stopped_on' => optional($s->recur_stopped_on)->toIso8601String(),
+                        'location_name' => $s->location_name,
+                        'generated_count' => (int) Transaction::where('business_id', $business_id)
+                            ->where('recur_parent_id', $s->id)
+                            ->count(),
                     ])
                     ->all()),
                 'permissions' => [
