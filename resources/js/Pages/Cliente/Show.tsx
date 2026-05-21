@@ -25,6 +25,7 @@ import {
   MapPin,
   Phone,
   ReceiptText,
+  Recycle,
   User2,
   Users,
 } from 'lucide-react';
@@ -37,6 +38,7 @@ import ActionsMenu from './_show/ActionsMenu';
 import ContactPicker, { type ContactDropdownItem } from './_show/ContactPicker';
 import ActivitiesTab, { type ActivityItem } from './_show/ActivitiesTab';
 import PessoasContatoTab, { type ContactPerson } from './_show/PessoasContatoTab';
+import SubscriptionsTab, { type SubscriptionItem } from './_show/SubscriptionsTab';
 
 interface ContactInfo {
   id: number;
@@ -73,7 +75,7 @@ interface Permissions {
   view_sell: boolean;
 }
 
-type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities' | 'persons';
+type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities' | 'persons' | 'subscriptions';
 
 interface ClienteShowPageProps {
   contact: ContactInfo;
@@ -85,6 +87,7 @@ interface ClienteShowPageProps {
   contact_dropdown?: ContactDropdownItem[];
   activities?: ActivityItem[];
   contact_persons?: ContactPerson[];
+  subscriptions?: SubscriptionItem[];
 }
 
 const formatBRL = (value: number) =>
@@ -101,6 +104,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
     { key: 'documents', label: 'Documentos & Notas', icon: FileText },
     { key: 'activities', label: 'Atividades', icon: Activity },
     { key: 'persons', label: 'Pessoas', icon: Users },
+    { key: 'subscriptions', label: 'Assinaturas', icon: Recycle },
   ];
 
   return (
@@ -261,6 +265,11 @@ export default function ClienteShow(props: ClienteShowPageProps) {
               {activeTab === 'persons' && (
                 <Deferred data="contact_persons" fallback={<TabSkeleton />}>
                   <PessoasContatoTab contactId={contact.id} contact_persons={props.contact_persons} />
+                </Deferred>
+              )}
+              {activeTab === 'subscriptions' && (
+                <Deferred data="subscriptions" fallback={<TabSkeleton />}>
+                  <SubscriptionsTab subscriptions={props.subscriptions} />
                 </Deferred>
               )}
             </div>
