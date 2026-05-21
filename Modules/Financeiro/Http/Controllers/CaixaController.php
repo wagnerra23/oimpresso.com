@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Financeiro\Http\Controllers;
 
+use App\CashRegister;
 use App\Http\Controllers\Controller;
 use App\Util\OtelHelper;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Services\TituloAutoService;
 
 /**
  * Tela /financeiro/caixa — wrapper Inertia sobre cash_registers core UltimatePOS.
@@ -82,11 +85,24 @@ class CaixaController extends Controller
                 $query->where('cr.status', $statusFilter);
             }
 
+            // ADR 0183 PR C — pre-fetch fin_titulos gerados (origem='caixa') pra
+            // mostrar status integração ✅/⚠️ por caixa sem N+1. Single query
+            // agregada por business + IDs de caixas listados.
+            $caixaIds = $query->pluck('cr.id');
+            $titulosByCaixa = DB::table('fin_titulos')
+                ->where('business_id', $businessId)
+                ->where('origem', 'caixa')
+                ->whereIn('origem_id', $caixaIds)
+                ->whereNull('deleted_at')
+                ->select('id', 'origem_id', 'status', 'valor_total')
+                ->get()
+                ->keyBy('origem_id');
+
             $caixas = $query
                 ->orderByDesc('cr.created_at')
                 ->limit($limit)
                 ->get()
-                ->map(function ($row) {
+                ->map(function ($row) use ($titulosByCaixa) {
                     // Soma transações por método (consulta agregada — N+1 OK pra ≤200 rows).
                     //
                     // Fix Wagner 2026-05-21 (PR após #1373): `cash_register_transactions`
@@ -127,6 +143,16 @@ class CaixaController extends Controller
                         // com fallback '—' via default opcional no .tsx.
                         'location_id' => 0,
                         'location_name' => '—',
+                        // ADR 0183 PR C — status integração com fin_titulos
+                        'fin_titulo_id'      => isset($titulosByCaixa[$row->id]) ? (int) $titulosByCaixa[$row->id]->id : null,
+                        'fin_titulo_status'  => isset($titulosByCaixa[$row->id]) ? (string) $titulosByCaixa[$row->id]->status : null,
+                        'fin_titulo_valor'   => isset($titulosByCaixa[$row->id]) ? (float) $titulosByCaixa[$row->id]->valor_total : null,
+                        // 'lancado' = ✅ ja gerou fin_titulo
+                        // 'pendente' = ⚠️ caixa fechado mas sem fin_titulo (pre-Observer ou skip silencioso)
+                        // 'nao_aplicavel' = caixa aberto (lifecycle ainda não fechou)
+                        'integracao_status'  => isset($titulosByCaixa[$row->id])
+                            ? 'lancado'
+                            : ((string) $row->status === 'close' ? 'pendente' : 'nao_aplicavel'),
                     ];
                 });
 
@@ -158,5 +184,45 @@ class CaixaController extends Controller
                 ],
             ]);
         }, ['op' => 'index']);
+    }
+
+    /**
+     * ADR 0183 PR C — Backfill manual de caixas antigos pré-Observer.
+     *
+     * POST /financeiro/caixa/{id}/lancar
+     *
+     * Lança 1 fin_titulo retroativo pra um caixa específico que está fechado
+     * mas não foi processado pelo Observer (P5 — caixa pré-deploy do ADR 0183).
+     *
+     * Idempotente — re-clicar não duplica (TituloAutoService skip se já existe).
+     *
+     * Permission: financeiro.lancamentos.create (R7 do ADR).
+     */
+    public function lancar(Request $request, int $id, TituloAutoService $service): RedirectResponse
+    {
+        abort_unless(
+            auth()->user()->can('financeiro.lancamentos.create')
+            || auth()->user()->can('superadmin'),
+            403,
+            'Sem permissão pra lançar título manualmente'
+        );
+
+        $businessId = (int) session('user.business_id');
+
+        $cr = CashRegister::where('business_id', $businessId)
+            ->where('id', $id)
+            ->where('status', 'close')
+            ->first();
+
+        abort_unless($cr, 404, 'Caixa não encontrado ou não está fechado');
+
+        $titulo = $service->sincronizarDeCashRegister($cr);
+
+        return back()->with(
+            'success',
+            $titulo
+                ? "fin_titulo #{$titulo->id} criado/encontrado pra caixa #{$cr->id}"
+                : 'Caixa vazio ou sem movimentação — nenhum título gerado'
+        );
     }
 }
