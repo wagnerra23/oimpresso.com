@@ -1,11 +1,18 @@
 ---
-status: accepted
-date: 2026-05-21
-deciders: [wagner, claude]
-adr_number: 0178
-related: [0093, 0104, 0127]
-supersedes: []
-superseded_by: []
+slug: 0178-restauracao-campos-fiscais-br-canon
+number: 178
+title: "Restauração dos campos fiscais BR em `contacts` (regressão UPOS 6.7)"
+type: adr
+status: aceito
+authority: reference
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-21"
+module: core
+related:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0127-fsm-canonico
 ---
 
 # ADR 0178 — Restauração dos campos fiscais BR em `contacts` (regressão UPOS 6.7)
