@@ -163,20 +163,24 @@ class DataController extends Controller
                             'href'     => '/financeiro/lancamentos/create',
                             'shortcut' => 'N',
                         ],
+                        // ADR 0182 + Wagner 2026-05-21 review: labels CURTOS pra caber mais
+                        // ghost tabs inline. Label original completa preservada como tooltip
+                        // futuro (F3 PageHeader). Mental model Larissa: "Receber/Pagar/Fluxo/
+                        // Bancos/Plano" — verbos+substantivos contextualizados.
                         'ghosts'   => [
-                            ['key' => 'unificado',         'label' => 'Financeiro',        'href' => '/financeiro/unificado'],
-                            ['key' => 'contas-receber',    'label' => 'Contas a Receber',  'href' => '/financeiro/contas-receber'],
-                            ['key' => 'contas-pagar',      'label' => 'Contas a Pagar',    'href' => '/financeiro/contas-pagar'],
-                            ['key' => 'fluxo',             'label' => 'Fluxo de Caixa',    'href' => '/financeiro/fluxo'],
-                            ['key' => 'cobranca',          'label' => 'Cobrança',          'href' => '/financeiro/cobranca'],
-                            ['key' => 'caixa',             'label' => 'Caixa do turno',    'href' => '/financeiro/caixa'],
-                            ['key' => 'conciliacao',       'label' => 'Conciliação',       'href' => '/financeiro/conciliacao'],
-                            ['key' => 'dre',               'label' => 'DRE',               'href' => '/financeiro/dre'],
-                            ['key' => 'relatorios',        'label' => 'Relatórios',        'href' => '/financeiro/relatorios'],
-                            ['key' => 'contas-bancarias',  'label' => 'Contas Bancárias',  'href' => '/financeiro/contas-bancarias'],
-                            ['key' => 'plano-contas',      'label' => 'Plano de Contas',   'href' => '/financeiro/plano-contas'],
-                            ['key' => 'categorias',        'label' => 'Categorias',        'href' => '/financeiro/categorias'],
-                            ['key' => 'contador',          'label' => 'Contador',          'href' => '/financeiro/configuracoes/contador'],
+                            ['key' => 'unificado',         'label' => 'Financeiro',   'href' => '/financeiro/unificado'],
+                            ['key' => 'contas-receber',    'label' => 'Receber',      'href' => '/financeiro/contas-receber'],
+                            ['key' => 'contas-pagar',      'label' => 'Pagar',        'href' => '/financeiro/contas-pagar'],
+                            ['key' => 'fluxo',             'label' => 'Fluxo',        'href' => '/financeiro/fluxo'],
+                            ['key' => 'cobranca',          'label' => 'Cobrança',     'href' => '/financeiro/cobranca'],
+                            ['key' => 'caixa',             'label' => 'Caixa',        'href' => '/financeiro/caixa'],
+                            ['key' => 'conciliacao',       'label' => 'Conciliação',  'href' => '/financeiro/conciliacao'],
+                            ['key' => 'dre',               'label' => 'DRE',          'href' => '/financeiro/dre'],
+                            ['key' => 'relatorios',        'label' => 'Relatórios',   'href' => '/financeiro/relatorios'],
+                            ['key' => 'contas-bancarias',  'label' => 'Bancos',       'href' => '/financeiro/contas-bancarias'],
+                            ['key' => 'plano-contas',      'label' => 'Plano',        'href' => '/financeiro/plano-contas'],
+                            ['key' => 'categorias',        'label' => 'Categorias',   'href' => '/financeiro/categorias'],
+                            ['key' => 'contador',          'label' => 'Contador',     'href' => '/financeiro/configuracoes/contador'],
                         ],
                     ]
                 )->order(85.00);
