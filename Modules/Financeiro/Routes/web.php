@@ -176,6 +176,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // esta tela é só descoberta + histórico no Financeiro.
         // Permission gate `view_cash_register` no Controller.
         Route::get('/caixa', [CaixaController::class, 'index'])->name('caixa.index');
+        // ADR 0183 PR C — backfill manual: lança fin_titulo retroativo pra caixa
+        // fechado pré-Observer. Idempotente. Permission financeiro.lancamentos.create.
+        Route::post('/caixa/{id}/lancar', [CaixaController::class, 'lancar'])
+            ->whereNumber('id')
+            ->name('caixa.lancar');
 
         // Categorias livres (CRUD complementar ao plano de contas)
         Route::get('/categorias', [CategoriaController::class, 'index'])->name('categorias.index');
