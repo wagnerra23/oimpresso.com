@@ -88,14 +88,26 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry Fiscal
+                // (cockpit unificado /fiscal) é ghost do módulo principal NfeBrasil
+                // (G X) — sem shortcut próprio. Primary "Ver NF-e" + ghost
+                // single-element pra mantér shape contratual (Wave A precedent).
                 // Entrada top-level "Fiscal" — leva ao Cockpit (PR #2 Wave consolidada).
                 $menu->url(
                     url('/fiscal'),
                     __('fiscal::fiscal.module_label'),
                     [
-                        'icon'   => 'fa fas fa-file-invoice',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'    => 'fa fas fa-file-invoice',
+                        'style'   => 'background-color:' . $background_color,
+                        'active'  => $segmento_ativo,
+                        'primary' => [
+                            'label'    => 'Ver NF-e',
+                            'href'     => '/fiscal/nfe',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'cockpit', 'label' => 'Cockpit Fiscal', 'href' => '/fiscal'],
+                        ],
                     ]
                 )->order(84);
             }

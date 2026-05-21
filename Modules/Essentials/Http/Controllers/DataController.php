@@ -335,11 +335,44 @@ class DataController extends Controller
         // - Base de Conhecimento (top-level, extraído do dropdown) → grupo CONHECIMENTO
         if ($is_essentials_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
-                // HRM (área /hrm/*)
+                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry HRM é
+                // principal do grupo PESSOAS — declara atalho kbd + primary action
+                // + ghosts tabs no `attributes` propagados pelo LegacyMenuAdapter
+                // pro frontend Sidebar.tsx (v3 5 grupos canon).
+                //  - `shortcut` G H → atalho overlay (H = HRM)
+                //  - `primary`     → "Novo colaborador" via /users/create core
+                //    (UltimatePOS gerencia users no core, Essentials estende com
+                //    department/designation/payroll)
+                //  - `ghosts`      → sub-views da área /hrm/* + dashboard core users
+                //
+                // hrefs absolutos. Permission gates específicos (essentials.crud_*,
+                // essentials.approve_leave, etc) continuam enforce nos Controllers.
+                //
+                // HRM (área /hrm/*) — entry principal do grupo pessoas
                 $menu->url(
                         action([\Modules\Essentials\Http\Controllers\DashboardController::class, 'hrmDashboard']),
                         __('essentials::lang.hrm'),
-                        ['icon' => 'fa fas fa-users', 'active' => request()->segment(1) == 'hrm', 'style' => config('app.env') == 'demo' ? 'background-color: #605ca8 !important;' : '']
+                        [
+                            'icon'     => 'fa fas fa-users',
+                            'active'   => request()->segment(1) == 'hrm',
+                            'style'    => config('app.env') == 'demo' ? 'background-color: #605ca8 !important;' : '',
+                            'shortcut' => 'G H',
+                            'primary'  => [
+                                'label'    => 'Novo colaborador',
+                                'href'     => '/users/create',
+                                'shortcut' => 'N',
+                            ],
+                            'ghosts'   => [
+                                ['key' => 'dashboard',    'label' => 'Dashboard HRM',  'href' => '/hrm/dashboard'],
+                                ['key' => 'colaboradores','label' => 'Colaboradores',  'href' => '/users'],
+                                ['key' => 'leave',        'label' => 'Solicitações',   'href' => '/hrm/leave'],
+                                ['key' => 'leave-type',   'label' => 'Tipos de Folga', 'href' => '/hrm/leave-type'],
+                                ['key' => 'attendance',   'label' => 'Presença',       'href' => '/hrm/attendance'],
+                                ['key' => 'holiday',      'label' => 'Feriados',       'href' => '/hrm/holiday'],
+                                ['key' => 'payroll',      'label' => 'Folha',          'href' => '/hrm/payroll'],
+                                ['key' => 'settings',     'label' => 'Configurações',  'href' => '/hrm/settings'],
+                            ],
+                        ]
                     )
                 ->order(87);
 

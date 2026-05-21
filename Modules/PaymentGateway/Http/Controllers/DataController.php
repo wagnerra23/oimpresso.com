@@ -97,13 +97,26 @@ class DataController extends Controller
             && request()->segment(2) === 'payment-gateways';
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_settings) {
+            // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry é ghost
+            // do módulo principal Financeiro (G F) — sem shortcut próprio. Primary
+            // "Conectar gateway" + ghost single-element pra mante shape contratual
+            // (Wave A ProductCatalogue precedent — Sidebar.tsx aceita array 1-elem).
+            // group: 'fin' legacy preservado — LEGACY_GROUP_MAP cobre fin→financas v3.
             $menu->url(
                 url('/settings/payment-gateways'),
                 __('paymentgateway::paymentgateway.module_label'),
                 [
-                    'icon'   => 'fa fas fa-key',
-                    'active' => $segmento_settings,
-                    'group'  => 'fin',
+                    'icon'    => 'fa fas fa-key',
+                    'active'  => $segmento_settings,
+                    'group'   => 'fin',
+                    'primary' => [
+                        'label'    => 'Conectar gateway',
+                        'href'     => '/settings/payment-gateways',
+                        'shortcut' => 'N',
+                    ],
+                    'ghosts'  => [
+                        ['key' => 'payment-gateways', 'label' => 'Gateways de Pagamento', 'href' => '/settings/payment-gateways'],
+                    ],
                 ]
             )->order(85.4);
         });
