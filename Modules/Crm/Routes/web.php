@@ -132,3 +132,78 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
                 ->name('lookup.cnpj');
         });
     });
+
+// Wave E -- Tab IA endpoints (ADR 0179 Q4 Default ON pra todos).
+//
+// 3 endpoints POST LLM (resumo/segmento/proxima-acao via Modules/Crm/Ai/Agents)
+// + 1 endpoint GET deterministico (score-risco, zero LLM -- 8 sinais canon
+// que espelham resources/js/Pages/Cliente/_show/RiscoClienteCard.tsx).
+//
+// Middleware stack canon UPOS Admin (copiada LITERAL do grupo /cliente Wave C
+// linha 101 acima -- NAO inventamos middleware 'tenant'). Pre-flight LICOES
+// F3 T-AP-3 (middleware fantasma) -- usa setData+SetSessionData canon pra
+// popular session('user.business_id') que ClienteIaController usa em todo
+// query (Tier 0 ADR 0093 IRREVOGAVEL).
+//
+// Throttle defensivo 30/min anti-abuso custo Brain B (Wagner regride pra
+// gate copiloto.admin.custos se hit rate alto). Q4 explicito: sem gate
+// quota inicial -- Default ON pra todos.
+//
+// Refs:
+//   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md §Q4
+//   - Modules/Crm/Http/Controllers/ClienteIaController.php
+//   - Modules/Crm/Ai/Agents/Cliente*Agent.php
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('cliente')
+    ->name('cliente.')
+    ->group(function () {
+        Route::middleware('throttle:30,1')->group(function () {
+            Route::post('{id}/ia/resumo', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'resumo'])
+                ->whereNumber('id')
+                ->name('ia.resumo');
+            Route::post('{id}/ia/segmento', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'segmento'])
+                ->whereNumber('id')
+                ->name('ia.segmento');
+            Route::post('{id}/ia/proxima-acao', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'proximaAcao'])
+                ->whereNumber('id')
+                ->name('ia.proxima-acao');
+            Route::get('{id}/ia/score-risco', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'scoreRisco'])
+                ->whereNumber('id')
+                ->name('ia.score-risco');
+        });
+    });
+
+// Wave F -- Tab Auditoria endpoints (ADR 0179 -- LGPD Art. 18)
+//
+// Timeline Spatie ActivityLog v4.8 (subject_type=App\Contact + subject_id +
+// scope explicito where('activity_log.business_id', $bizId) defesa Tier 0
+// ADR 0093 IRREVOGAVEL) + CSV export UTF-8 BOM (Excel BR abre acentos certo).
+//
+// 2 endpoints:
+//   GET /cliente/{id}/auditoria          -> timeline paginada JSON (20/pg, max 100)
+//   GET /cliente/{id}/auditoria/export   -> download CSV streaming chunk(500)
+//
+// Reusa MESMO middleware stack canon UPOS Admin (copia literal do grupo Wave C
+// linha 101 acima): 'setData','auth','SetSessionData','language','timezone',
+// 'AdminSidebarMenu','CheckUserLogin'. `setData` popula session('user.business_id')
+// que ClienteAuditoriaController usa em todo query Tier 0.
+//
+// Permission gate amplo (LGPD Art. 18 direito de acesso): customer.view OU
+// supplier.view OU equivalente .view_own. NAO exige .update (leitura).
+//
+// Refs:
+//   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md §Wave F
+//   - resources/js/Pages/Cliente/_drawer/AuditoriaTab.tsx
+//   - Modules/Crm/Http/Controllers/ClienteAuditoriaController.php
+//   - prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md §6
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('cliente')
+    ->name('cliente.')
+    ->group(function () {
+        Route::get('{id}/auditoria', [\Modules\Crm\Http\Controllers\ClienteAuditoriaController::class, 'index'])
+            ->whereNumber('id')
+            ->name('auditoria.index');
+        Route::get('{id}/auditoria/export', [\Modules\Crm\Http\Controllers\ClienteAuditoriaController::class, 'export'])
+            ->whereNumber('id')
+            ->name('auditoria.export');
+    });
