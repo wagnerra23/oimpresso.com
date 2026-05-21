@@ -783,16 +783,17 @@ function FinanceiroSubNav({ active }: { active: string }) {
 
   if (!finItem?.ghosts?.length) return null;
 
+  // ADR 0180 Fase 5 tweak Wagner 2026-05-21 — render INLINE no header `os-page-h-r`
+  // (sem padding/margin externa). PageHeaderTabs já é flex row interno; herda
+  // alinhamento do parent flex do `os-page-h-r`.
   return (
-    <div className="mt-2 px-3">
-      <PageHeaderTabs
-        primary={finItem.primary}
-        ghosts={finItem.ghosts}
-        activeGhostKey={active}
-        group="financas"
-        maxVisible={6}
-      />
-    </div>
+    <PageHeaderTabs
+      primary={finItem.primary}
+      ghosts={finItem.ghosts}
+      activeGhostKey={active}
+      group="financas"
+      maxVisible={5}
+    />
   );
 }
 
@@ -997,6 +998,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
+          {/* ADR 0180 Fase 5 tweak Wagner 2026-05-21 — ghost tabs ARIA pra navegação
+              contextual entre 13 sub-views do Financeiro vão AGORA dentro do header
+              `os-page-h-r` (não numa row separada abaixo). Substitui botões action
+              redundantes (Conciliar/Plano de contas/Novo lançamento) — todos já são
+              ghosts ou primary do PageHeaderTabs. Botões features-específicas mantidos
+              (Buscar/Resumir mês/Fechamento/Apresentar/Imprimir/OCR boleto). */}
+          <FinanceiroSubNav active="unificado" />
           <button type="button" className="os-btn ghost" onClick={() => setPaletteOpen(true)}>
             <Search size={13} />
             Buscar
@@ -1039,17 +1047,6 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             Imprimir
             {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
           </button>
-          {/* Onda 19 (2026-05-19) #49 — destino real /financeiro/conciliacao (tela OFX criada) */}
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/conciliacao')} title="Conciliação OFX — upload extrato + match com títulos">
-            <RefreshCw size={13} />
-            Conciliar
-          </button>
-          {/* Onda 18 (2026-05-19) — destino real /financeiro/plano-contas (tela dedicada criada).
-              Antes apontava pra /categorias (workaround Onda 16). */}
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas hierárquico BR (Receita Federal/DCASP)">
-            <FolderOpen size={13} />
-            Plano de contas
-          </button>
           {/* Onda 12 — Download icon-only (paridade canon REAL — botão entre Plano contas e CTA Novo).
               Onclick stub abre ⌘K palette por enquanto; handler real (Exportar XLSX/PDF) vira US futura. */}
           <button
@@ -1073,19 +1070,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           >
             📷 OCR boleto
           </button>
-          <button type="button" className="os-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
-            <Plus size={13} />
-            Novo lançamento
-          </button>
         </div>
       </div>
-
-      {/* ADR 0180 Fase 5 piloto — ghost tabs ARIA pra navegação contextual entre
-          as 13 sub-views do Financeiro. Lê primary/ghosts do shell.menu (declarados
-          em Modules/Financeiro/Http/Controllers/DataController na Fase 4 piloto,
-          propagados via LegacyMenuAdapter). Active = "unificado" (tela atual).
-          Convive com o header `os-page-h` custom acima — não substitui. */}
-      <FinanceiroSubNav active="unificado" />
 
       <KpiBar kpis={kpis} lancamentos={lancamentos} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
 
