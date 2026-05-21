@@ -151,6 +151,20 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry
+                // principal NF-e Brasil (módulo principal do grupo FISCAL) declara
+                // atalho kbd + primary action + ghosts tabs no `attributes` do
+                // dropdown — LegacyMenuAdapter propaga pro frontend Sidebar.tsx.
+                //  - `shortcut` G X → atalho overlay (X = fisXal, evita conflito
+                //    com G F/G S/G C/G O/G Y/G P já usados em outras ondas)
+                //  - `primary`     → "Emitir NF-e / NFC-e" (ação canon do módulo)
+                //  - `ghosts`      → 8 sub-views da tela /nfebrasil/* + manifestação
+                //
+                // hrefs absolutos (LegacyMenuAdapter::toRelative espera path string).
+                // Permission gates específicos (nfebrasil.emit.manage, .consult.view,
+                // .sped.view, .settings.manage, .configuracao.manage, .tributacao.manage,
+                // .manifestacao.*) continuam enforce nos Controllers — gate global
+                // hasThePermissionInSubscription já cobre módulo on/off na entry.
                 $menu->dropdown(
                     'NF-e Brasil',
                     function ($sub) {
@@ -246,9 +260,25 @@ class DataController extends Controller
                         }
                     },
                     [
-                        'icon'   => 'fa fas fa-file-invoice-dollar',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'     => 'fa fas fa-file-invoice-dollar',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $segmento_ativo,
+                        'shortcut' => 'G X',
+                        'primary'  => [
+                            'label'    => 'Emitir NF-e',
+                            'href'     => '/nfebrasil/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'painel',        'label' => 'Painel',                'href' => '/nfebrasil'],
+                            ['key' => 'emitir',        'label' => 'Emitir NF-e / NFC-e',   'href' => '/nfebrasil/create'],
+                            ['key' => 'consultar',     'label' => 'Consultar Notas',       'href' => '/nfebrasil?status=emitidas'],
+                            ['key' => 'sped',          'label' => 'SPED Fiscal',           'href' => '/nfebrasil/sped'],
+                            ['key' => 'settings',      'label' => 'Configurações Fiscais', 'href' => '/nfebrasil/settings'],
+                            ['key' => 'certificado',   'label' => 'Certificado A1',        'href' => '/nfe-brasil/configuracao/certificado'],
+                            ['key' => 'tributacao',    'label' => 'Tributação',            'href' => '/nfe-brasil/tributacao'],
+                            ['key' => 'manifestacao',  'label' => 'Notas recebidas',       'href' => '/nfe-brasil/manifestacao'],
+                        ],
                     ]
                 )->order(95);
             }
