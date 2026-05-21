@@ -78,3 +78,57 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::post('save-marketplace', [Modules\Crm\Http\Controllers\CrmMarketplaceController::class, 'save']);
     Route::get('import-leads', [Modules\Crm\Http\Controllers\CrmMarketplaceController::class, 'importLeads']);
 });
+
+// ADR 0179 Wave C-BE -- Cliente drawer cadastro autosave + lookups BR.
+//
+// Stack middleware canon UPOS Admin (copiada literal do grupo /cliente raiz
+// em routes/web.php:132): 'setData','auth','SetSessionData','language',
+// 'timezone','AdminSidebarMenu','CheckUserLogin'. Pre-flight LICOES F3
+// T-AP-3 (middleware fantasma) -- NAO inventamos middleware 'tenant'.
+//
+// `setData` = popula `session('user.business_id')` que ClienteAutosaveController
+// usa pra multi-tenant scope (ADR 0093 IRREVOGAVEL). `CheckUserLogin` recusa
+// usuarios sem business_id valido.
+//
+// 5 endpoints PATCH cadastrais + 2 endpoints GET lookup (BrLookupService
+// proxy ViaCEP/BrasilAPI com cache Redis -- evita rate limit federal pra
+// Larissa biz=4 ~30 cadastros/dia em pico).
+//
+// Refs:
+//   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md
+//   - memory/requisitos/Crm/RUNBOOK-Cliente-drawer-760px.md §4 Wave C
+//   - resources/js/Pages/Cliente/Index.charter.md v3
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('cliente')
+    ->name('cliente.')
+    ->group(function () {
+        // 5 endpoints autosave (Q2 inline -- debounce 800ms client-side).
+        Route::patch('{id}/identificacao', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'identificacao'])
+            ->whereNumber('id')
+            ->name('autosave.identificacao');
+        Route::patch('{id}/contato', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'contato'])
+            ->whereNumber('id')
+            ->name('autosave.contato');
+        Route::patch('{id}/endereco', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'endereco'])
+            ->whereNumber('id')
+            ->name('autosave.endereco');
+        Route::patch('{id}/comercial', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'comercial'])
+            ->whereNumber('id')
+            ->name('autosave.comercial');
+        Route::patch('{id}/classificacao', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'classificacao'])
+            ->whereNumber('id')
+            ->name('autosave.classificacao');
+
+        // 2 endpoints lookup (cache Redis: CEP 90d, CNPJ 30d).
+        // Wave 15 D8 Security -- throttle 60/min anti-abuso pro caso de
+        // Auth bypassado em prod (defensivo): Larissa biz=4 ~30 cadastros/dia
+        // = ~5 lookup/min em pico = cabe folgado em 60/min.
+        Route::middleware('throttle:60,1')->group(function () {
+            Route::get('lookup/cep/{cep}', [\Modules\Crm\Http\Controllers\ClienteLookupController::class, 'cep'])
+                ->where('cep', '\d{5}-?\d{3}|\d{8}')
+                ->name('lookup.cep');
+            Route::get('lookup/cnpj/{cnpj}', [\Modules\Crm\Http\Controllers\ClienteLookupController::class, 'cnpj'])
+                ->where('cnpj', '[\d./\-]{14,18}')
+                ->name('lookup.cnpj');
+        });
+    });
