@@ -44,6 +44,26 @@ class ContactController extends Controller
     }
 
     /**
+     * Detecta XHR LEGACY (DataTable Yajra, jQuery AJAX, autocomplete) — exclui
+     * Inertia partial reload que ALSO seta X-Requested-With: XMLHttpRequest.
+     *
+     * Bug pré-existente 2026-05-21: ativar MWART_CLIENTE_INDEX=true expôs collision —
+     * Inertia partial reload pra carregar Inertia::defer caía nos branches
+     * `if (request()->ajax())` retornando DataTable JSON cru → Inertia client erra
+     * "All Inertia requests must receive a valid Inertia response".
+     *
+     * Fix: usar este helper em vez de `request()->ajax()` direto em TODOS os
+     * branches que retornam JSON (DataTable/autocomplete/contact lookup). Inertia
+     * envia header `X-Inertia: true` que diferencia das XHR legacy.
+     *
+     * Ver: PR fix/contact-controller-inertia-ajax-collision (2026-05-21).
+     */
+    private function isLegacyAjax(): bool
+    {
+        return request()->ajax() && ! request()->hasHeader('X-Inertia');
+    }
+
+    /**
      * W1-B3 — Mascara CNPJ/CPF pra display client-side.
      * NUNCA enviar plain digits — ADR 0093 PII §LGPD Art.7.
      */
@@ -109,7 +129,7 @@ class ContactController extends Controller
             return redirect()->back();
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             if ($type == 'supplier') {
                 return $this->indexSupplier();
             } elseif ($type == 'customer') {
@@ -1000,7 +1020,7 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
             $contact = Contact::where('business_id', $business_id)->find($id);
 
@@ -1116,7 +1136,7 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             try {
                 $input = $request->only(['type', 'supplier_business_name', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'address_line_1', 'address_line_2', 'zip_code', 'dob', 'alternate_number', 'city', 'state', 'country', 'landline', 'customer_group_id', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'shipping_custom_field_details', 'export_custom_field_1', 'export_custom_field_2', 'export_custom_field_3', 'export_custom_field_4', 'export_custom_field_5',
                     'export_custom_field_6', 'assigned_to_users', ]);
@@ -1193,7 +1213,7 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             try {
                 $business_id = request()->user()->business_id;
 
@@ -1247,7 +1267,7 @@ class ContactController extends Controller
      */
     public function getCustomers()
     {
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $term = request()->input('q', '');
 
             $business_id = request()->session()->get('user.business_id');
@@ -1963,7 +1983,7 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
             $contact = Contact::where('business_id', $business_id)->find($id);
             $contact->contact_status = $contact->contact_status == 'active' ? 'inactive' : 'active';
@@ -2033,7 +2053,7 @@ class ContactController extends Controller
     public function getContactPayments($contact_id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $payments = TransactionPayment::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
             ->leftjoin('transaction_payments as parent_payment', 'transaction_payments.parent_id', '=', 'parent_payment.id')
             ->where('transaction_payments.business_id', $business_id)
@@ -2073,7 +2093,7 @@ class ContactController extends Controller
 
     public function getContactDue($contact_id)
     {
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
             $due = $this->transactionUtil->getContactDue($contact_id, $business_id);
 
