@@ -14,6 +14,8 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -21,15 +23,16 @@ import {
   Clock,
   CornerDownLeft,
   CreditCard,
+  Download,
   Edit,
   Eye,
   Keyboard,
-  Layers,
   Loader2,
   MoreVertical,
   Phone,
   Plus,
   Search,
+  Star,
   Trash2,
   Upload,
   Users,
@@ -56,6 +59,13 @@ import ContatoTab from './_drawer/ContatoTab';
 import EnderecoTab from './_drawer/EnderecoTab';
 import ComercialTab from './_drawer/ComercialTab';
 import ClassificacaoTab from './_drawer/ClassificacaoTab';
+// Wave D/E/F — OSs wrapper, IA 4 cards, Auditoria timeline LGPD (ADR 0179).
+import OssTab from './_drawer/OssTab';
+import IATab from './_drawer/IATab';
+import AuditoriaTab from './_drawer/AuditoriaTab';
+// Wave G — listagem turbinada (avatar HSL hash + Pills semânticos).
+import { Avatar as ClienteAvatar } from '@/Components/clientes/Avatar';
+import { TipoPill, TagChip, FrescorPill, SaldoCell } from '@/Components/clientes/Pills';
 
 interface ClienteKpis {
   total: number;
@@ -112,6 +122,10 @@ interface ClienteRow {
   segmento?: string | null;
   tags?: string[] | null;
   vip?: boolean | null;
+  // Wave G — listagem turbinada (ADR 0179). Server-side em ContactController::buildClienteIndexCustomers.
+  avatar_hash_seed?: string | null;     // string p/ HSL determinístico — default = name
+  saldo_devedor?: number | null;        // valor_aberto - balance (positivo = cliente nos deve)
+  last_purchase_at?: string | null;     // ISO; FrescorPill calcula 4 estados client-side
 }
 
 interface ListMeta {
@@ -197,6 +211,78 @@ function avatarInitial(name: string): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
+// ─── Wave G — Constantes filtros + hook useFavoritos ─────────────────────────
+
+const TIPO_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'PF', label: 'Pessoa física' },
+  { value: 'PJ', label: 'Pessoa jurídica' },
+];
+
+const UF_OPTIONS = [
+  'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
+  'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO',
+];
+
+const TAG_OPTIONS = [
+  'varejo','atacado','corporativo','evento','parceiro','agência','governo','vip','reincidente',
+];
+
+const STALE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '15', label: '15 dias' },
+  { value: '30', label: '30 dias' },
+  { value: '90', label: '90 dias' },
+  { value: '180', label: '6 meses' },
+  { value: '365', label: '1 ano' },
+];
+
+const SALDO_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'devedor', label: 'Em débito' },
+  { value: 'zerado', label: 'Sem saldo' },
+];
+
+const FAVORITOS_STORAGE_KEY = 'oimpresso.cliente.favoritos';
+
+/**
+ * Wave G — Hook Star pessoal localStorage.
+ *
+ * Per-USER per-BROWSER (Q1 wave-G decisão: client-only, sem sync server).
+ * Coluna `favorito_users` JSON em Contact existe (Wave B migration) mas é
+ * reservada pra futura sync server-side opcional. Por ora, localStorage cobre
+ * 100% da UX da Larissa biz=4 ROTA LIVRE (1 usuário só).
+ *
+ * Edge: SSR / localStorage indisponível → Set vazio (não quebra render).
+ */
+function useFavoritos(): { favs: Set<number>; toggle: (id: number) => void; isFav: (id: number) => boolean } {
+  const [favs, setFavs] = useState<Set<number>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = window.localStorage.getItem(FAVORITOS_STORAGE_KEY);
+      if (!raw) return new Set();
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return new Set();
+      return new Set(parsed.filter((x) => typeof x === 'number'));
+    } catch {
+      return new Set();
+    }
+  });
+
+  const toggle = useCallback((id: number) => {
+    setFavs((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try {
+        window.localStorage.setItem(FAVORITOS_STORAGE_KEY, JSON.stringify([...next]));
+      } catch (_) { /* localStorage indisponível — silencia */ }
+      return next;
+    });
+  }, []);
+
+  const isFav = useCallback((id: number) => favs.has(id), [favs]);
+
+  return { favs, toggle, isFav };
+}
+
 export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => readStoredStatusFilter());
   const [searchInput, setSearchInput] = useState('');
@@ -211,6 +297,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [openContactId, setOpenContactId] = useState<number | null>(null);
+
+  // Wave G — 5 filtros adicionais (Status legacy já tratado em statusFilter).
+  // Tipo PF/PJ · UF (27) · Tags (multi) · Sem compra há (5 ranges) · Saldo (devedor/zerado).
+  const [tipoFilter, setTipoFilter] = useState<string>('');
+  const [ufFilter, setUfFilter] = useState<string>('');
+  const [tagsFilter, setTagsFilter] = useState<string[]>([]);
+  const [staleFilter, setStaleFilter] = useState<string>('');
+  const [saldoFilter, setSaldoFilter] = useState<string>('');
+
+  // Wave G — Star pessoal localStorage (per-user per-browser).
+  const { toggle: toggleFav, isFav } = useFavoritos();
 
   // KB-9.75 N2/N3/P2 — Slice A (Wagner approved 2026-05-21):
   // ⌘K (palette) · ? (cheat-sheet) · J/K (row nav) · Enter (open) · / (focus search)
@@ -227,7 +324,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
 
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, search, sortKey, sortDir, perPage]);
+  }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter]);
 
   const rows = props.customers?.data ?? [];
   const meta = props.customers?.meta ?? null;
@@ -244,8 +341,41 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         (x.mobile ?? '').includes(q),
       );
     }
+    // Wave G — filtros novos. Cada um é AND independente (espelha protótipo Cowork).
+    if (tipoFilter) r = r.filter((x) => x.tipo === tipoFilter);
+    if (ufFilter) r = r.filter((x) => (x.uf ?? x.state ?? '') === ufFilter);
+    if (tagsFilter.length > 0) {
+      // Multi-select: cliente deve ter TODAS as tags marcadas (AND, não OR).
+      // Espelha protótipo Cowork (clientes-table.jsx: `fTags.every(t => c.tags.includes(t))`).
+      r = r.filter((x) => {
+        const xt = x.tags ?? [];
+        return tagsFilter.every((t) => xt.includes(t));
+      });
+    }
+    if (staleFilter) {
+      const days = parseInt(staleFilter, 10);
+      if (!Number.isNaN(days)) {
+        const cutoff = Date.now() - days * 86400000;
+        r = r.filter((x) => {
+          // "Sem compra há X dias" — last_purchase_at deve ser anterior ao cutoff
+          // OU não existir (cliente sem histórico = inclui no filtro stale).
+          if (!x.last_purchase_at) return true;
+          const t = new Date(x.last_purchase_at).getTime();
+          if (Number.isNaN(t)) return true;
+          return t < cutoff;
+        });
+      }
+    }
+    if (saldoFilter === 'devedor') {
+      r = r.filter((x) => (x.saldo_devedor ?? x.valor_aberto ?? 0) > 0);
+    } else if (saldoFilter === 'zerado') {
+      r = r.filter((x) => {
+        const s = x.saldo_devedor ?? x.valor_aberto ?? 0;
+        return s <= 0;
+      });
+    }
     return r;
-  }, [rows, statusFilter, search]);
+  }, [rows, statusFilter, search, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter]);
 
   // KB-9.75 Slice A — reset row focus when the result set shrinks/changes.
   useEffect(() => {
@@ -332,12 +462,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     });
   }, [sortKey]);
 
-  const pills: Array<{ key: StatusFilter; label: string; icon: typeof Layers; count: number; danger?: boolean }> = [
-    { key: '',       label: 'Todos',      icon: Layers,        count: kpis?.total ?? 0 },
-    { key: 'active', label: 'Ativos',     icon: Users,         count: kpis?.com_os_aberta ?? 0 },
-    { key: 'late',   label: 'Atrasados',  icon: AlertTriangle, count: kpis?.com_atraso ?? 0, danger: true },
-    { key: 'idle',   label: 'Sem OS',     icon: Clock,         count: Math.max(0, (kpis?.total ?? 0) - (kpis?.com_os_aberta ?? 0)) },
-  ];
+  // Wave G — pills array removido (substituído por 6 FilterDropdown — ver nav acima).
+  // KPIs/contadores ficam no header (subtítulo inline) + count "X de Y" ao lado dos filtros.
 
   return (
     <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
@@ -346,8 +472,19 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           <div className="flex items-start gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">Clientes</h1>
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Lista de clientes com KPIs de relacionamento e drawer de detalhes ao clicar.
+              {/* Wave G — subtítulo verbose substituído por contador inline (paridade Cowork). */}
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed tabular-nums">
+                {(kpis?.total ?? 0).toLocaleString('pt-BR')} cadastrados
+                {' · '}
+                {(kpis?.com_os_aberta ?? 0).toLocaleString('pt-BR')} ativos
+                {(kpis?.com_atraso ?? 0) > 0 && (
+                  <>
+                    {' · '}
+                    <span className="text-rose-700 dark:text-rose-400">
+                      {(kpis.com_atraso).toLocaleString('pt-BR')} com saldo
+                    </span>
+                  </>
+                )}
               </p>
             </div>
             <div className="flex-shrink-0 flex items-center gap-2">
@@ -356,6 +493,15 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   <a href="/contacts/import">
                     <Upload className="mr-1.5 h-4 w-4" />
                     Importar
+                  </a>
+                </Button>
+              )}
+              {/* Wave G — Exportar CSV (server-side stream, BOM UTF-8 Excel-BR). */}
+              {props.permissions.view && (
+                <Button asChild variant="outline">
+                  <a href="/cliente/export" title="Baixar CSV de clientes (UTF-8)">
+                    <Download className="mr-1.5 h-4 w-4" />
+                    Exportar
                   </a>
                 </Button>
               )}
@@ -379,47 +525,57 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             </div>
           </Deferred>
 
-          <nav className="flex items-center gap-2 mt-6 flex-wrap" aria-label="Filtro de status">
-            {pills.map((pill) => {
-              const isActive = statusFilter === pill.key;
-              const Icon = pill.icon;
-              const danger = pill.danger && pill.count > 0;
-              return (
-                <button
-                  key={pill.key || 'all'}
-                  type="button"
-                  onClick={() => setStatusFilter(pill.key)}
-                  className={
-                    'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ' +
-                    (isActive
-                      ? danger
-                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200'
-                        : 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
-                      : danger
-                        ? 'bg-rose-50/60 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-300'
-                        : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground')
-                  }
-                  aria-current={isActive ? 'true' : undefined}
-                >
-                  <Icon size={13} />
-                  {pill.label}
-                  {pill.count > 0 && (
-                    <span
-                      className={
-                        'ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] tabular-nums ' +
-                        (isActive
-                          ? danger
-                            ? 'bg-rose-200/80 dark:bg-rose-900/60'
-                            : 'bg-blue-100 dark:bg-blue-900/60'
-                          : 'bg-background')
-                      }
-                    >
-                      {pill.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          {/* Wave G — 6 dropdowns substituem 4 pills radio (paridade Cowork blueprint).
+              Pills antigas conservam-se aria-label="Filtro de status" como semântica.
+              Cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
+          <nav className="flex items-center gap-2 mt-6 flex-wrap" aria-label="Filtros de cliente">
+            <FilterDropdown
+              label="Status"
+              value={statusFilter}
+              onChange={(v) => setStatusFilter(v as StatusFilter)}
+              options={[
+                { value: 'active', label: 'Ativo (com OS aberta)' },
+                { value: 'late', label: 'Atrasado' },
+                { value: 'idle', label: 'Sem OS' },
+              ]}
+            />
+            <FilterDropdown
+              label="Tipo"
+              value={tipoFilter}
+              onChange={setTipoFilter}
+              options={TIPO_OPTIONS}
+            />
+            <FilterDropdown
+              label="UF"
+              value={ufFilter}
+              onChange={setUfFilter}
+              options={UF_OPTIONS.map((u) => ({ value: u, label: u }))}
+            />
+            <FilterDropdown
+              label="Tags"
+              value={tagsFilter}
+              onChange={(v) => setTagsFilter(v as string[])}
+              options={TAG_OPTIONS.map((t) => ({ value: t, label: t }))}
+              multi
+            />
+            <FilterDropdown
+              label="Sem compra há"
+              value={staleFilter}
+              onChange={setStaleFilter}
+              options={STALE_OPTIONS}
+            />
+            <FilterDropdown
+              label="Saldo"
+              value={saldoFilter}
+              onChange={setSaldoFilter}
+              options={SALDO_OPTIONS}
+            />
+            {/* Contagem inline "X de Y clientes" — Wave G UX paridade Cowork. */}
+            <span className="text-xs text-muted-foreground tabular-nums ml-1">
+              {filteredRows.length === rows.length
+                ? `${rows.length.toLocaleString('pt-BR')} cliente${rows.length !== 1 ? 's' : ''}`
+                : `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')} clientes`}
+            </span>
           </nav>
         </div>
       </div>
@@ -453,24 +609,29 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <Deferred data="customers" fallback={<TableSkeleton />}>
           <div className="rounded-lg border border-border bg-background overflow-hidden">
             <div className="overflow-x-auto">
+              {/* Wave G — Tabela turbinada (paridade Cowork blueprint score 9,4/10).
+                  Colunas: Avatar HSL · Cliente+sub · Tipo · Documento · Cidade/UF ·
+                  Frescor · Saldo (vermelho devedor) · OS · Tags+Star · Ações. */}
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr className="border-b border-border">
-                    <Th className="w-8">&nbsp;</Th>
+                    <Th className="w-10">&nbsp;</Th>
                     <SortableTh sortKey="name" current={sortKey} dir={sortDir} onSort={handleSort}>Cliente</SortableTh>
-                    <Th>Contato</Th>
-                    <SortableTh sortKey="total_os" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-20">OS</SortableTh>
-                    <Th className="w-20 text-right">Abertas</Th>
-                    <SortableTh sortKey="valor_aberto" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-32">Valor aberto</SortableTh>
-                    <Th className="w-24">Status</Th>
-                    <SortableTh sortKey="last_os_at" current={sortKey} dir={sortDir} onSort={handleSort} className="w-24">Última OS</SortableTh>
-                    <Th className="w-12 text-right pr-4">&nbsp;</Th>
+                    <Th className="w-14">Tipo</Th>
+                    <Th className="w-32">Documento</Th>
+                    <Th className="w-28">Cidade/UF</Th>
+                    <SortableTh sortKey="last_os_at" current={sortKey} dir={sortDir} onSort={handleSort} className="w-36">Frescor</SortableTh>
+                    <SortableTh sortKey="valor_aberto" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-28">Saldo</SortableTh>
+                    <SortableTh sortKey="total_os" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-14">OS</SortableTh>
+                    <Th>Tags</Th>
+                    <Th className="w-10">&nbsp;</Th>
+                    <Th className="w-10 text-right pr-4">&nbsp;</Th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRows.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="text-center py-12 text-muted-foreground text-xs">
+                      <td colSpan={11} className="text-center py-12 text-muted-foreground text-xs">
                         Nenhum cliente encontrado nesse filtro.
                       </td>
                     </tr>
@@ -478,6 +639,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     filteredRows.map((row, idx) => {
                       const isOpen = openContactId === row.id;
                       const isFocused = focusedIndex === idx;
+                      const tags = row.tags ?? [];
+                      const tagsVisible = tags.slice(0, 2);
+                      const tagsExtra = Math.max(0, tags.length - 2);
+                      const isFavorito = isFav(row.id);
+                      // Saldo p/ exibir: prefere saldo_devedor (Wave G computed) e cai p/ valor_aberto legacy.
+                      const saldoExibir = row.saldo_devedor ?? row.valor_aberto ?? 0;
                       return (
                         <tr
                           key={row.id}
@@ -494,35 +661,112 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                             setOpenContactId(row.id);
                           }}
                         >
-                          <td className="px-4 py-3">
-                            <Avatar initial={avatarInitial(row.name)} />
+                          <td className="px-4 py-2.5">
+                            {/* Wave G — Avatar HSL hash determinístico (Components/clientes/Avatar.tsx). */}
+                            <ClienteAvatar
+                              name={row.name}
+                              size={32}
+                              seed={row.avatar_hash_seed ?? row.name}
+                            />
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="text-foreground font-medium leading-tight">{row.name}</div>
-                            {row.tax_number_masked && (
-                              <div className="text-xs text-muted-foreground tabular-nums leading-tight mt-0.5">
-                                {row.tax_number_masked}
+                          <td className="px-4 py-2.5">
+                            <div className="text-foreground font-medium leading-tight flex items-center gap-1.5">
+                              {row.name}
+                              {row.vip && (
+                                <span
+                                  className="inline-flex items-center rounded bg-yellow-100 px-1 py-0 text-[9px] font-semibold text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300"
+                                  title="Cliente VIP"
+                                >
+                                  VIP
+                                </span>
+                              )}
+                            </div>
+                            {/* Sub-nome: fantasia (PJ) ou telefone (contato rápido). */}
+                            {(row.fantasia || row.mobile) && (
+                              <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5 flex items-center gap-1">
+                                {row.fantasia ? (
+                                  <span className="truncate">{row.fantasia}</span>
+                                ) : (
+                                  <>
+                                    <Phone size={9} className="opacity-60" />
+                                    <span className="tabular-nums">{row.mobile}</span>
+                                  </>
+                                )}
                               </div>
                             )}
                           </td>
-                          <td className="px-4 py-3">
-                            {row.mobile ? (
-                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                <Phone size={11} />
-                                {row.mobile}
+                          <td className="px-4 py-2.5">
+                            <TipoPill tipo={row.tipo ?? null} />
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <span className="text-xs text-muted-foreground tabular-nums">
+                              {row.tax_number_masked ?? '—'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5">
+                            {(row.cidade ?? row.city) ? (
+                              <span className="text-xs text-foreground">
+                                {row.cidade ?? row.city}
+                                {(row.uf ?? row.state) && (
+                                  <span className="text-muted-foreground">/{row.uf ?? row.state}</span>
+                                )}
                               </span>
                             ) : (
                               <span className="text-xs text-muted-foreground/50">—</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right tabular-nums text-foreground">{row.total_os}</td>
-                          <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{row.os_abertas}</td>
-                          <td className="px-4 py-3 text-right tabular-nums text-foreground">{formatBRL(row.valor_aberto)}</td>
-                          <td className="px-4 py-3">
-                            <StatusBadge status={row.status} />
+                          <td className="px-4 py-2.5">
+                            <FrescorPill lastPurchaseAt={row.last_purchase_at ?? row.last_os_at ?? null} />
                           </td>
-                          <td className="px-4 py-3 text-xs text-muted-foreground tabular-nums">{formatDate(row.last_os_at)}</td>
-                          <td className="px-2 py-3 text-right pr-4" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-4 py-2.5 text-right">
+                            <SaldoCell valor={saldoExibir} />
+                          </td>
+                          <td className="px-4 py-2.5 text-right tabular-nums text-foreground">{row.total_os}</td>
+                          <td className="px-4 py-2.5">
+                            {tags.length === 0 ? (
+                              <span className="text-xs text-muted-foreground/50">—</span>
+                            ) : (
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {tagsVisible.map((t) => (
+                                  <TagChip key={t} tag={t} />
+                                ))}
+                                {tagsExtra > 0 && (
+                                  <span
+                                    className="text-[10px] text-muted-foreground tabular-nums"
+                                    title={tags.slice(2).join(', ')}
+                                  >
+                                    +{tagsExtra}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          {/* Star pessoal localStorage — toggle não abre drawer. */}
+                          <td
+                            className="px-2 py-2.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => toggleFav(row.id)}
+                              aria-label={isFavorito ? 'Remover dos favoritos' : 'Marcar como favorito'}
+                              aria-pressed={isFavorito}
+                              title={isFavorito ? 'Favorito (clique pra remover)' : 'Marcar como favorito'}
+                              className={
+                                'inline-flex h-7 w-7 items-center justify-center rounded transition-colors ' +
+                                (isFavorito
+                                  ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40'
+                                  : 'text-muted-foreground/40 hover:text-amber-500 hover:bg-muted')
+                              }
+                            >
+                              <Star
+                                size={14}
+                                fill={isFavorito ? 'currentColor' : 'none'}
+                                strokeWidth={2}
+                              />
+                            </button>
+                          </td>
+                          <td className="px-2 py-2.5 text-right pr-4" onClick={(e) => e.stopPropagation()}>
                             <ActionsMenu row={row} onView={() => setOpenContactId(row.id)} />
                           </td>
                         </tr>
@@ -602,6 +846,151 @@ function TableSkeleton() {
         <Loader2 className="inline-block h-4 w-4 animate-spin mr-2" />
         Carregando clientes…
       </div>
+    </div>
+  );
+}
+
+// ─── Wave G — FilterDropdown ──────────────────────────────────────────────────
+// Componente filtro dropdown com suporte single/multi-select + Limpar option.
+// Espelha protótipo Cowork (clientes-listagem.jsx::FilterDropdown).
+// Mouse-out fecha popover; tecla Esc fecha; click fora fecha.
+
+interface FilterDropdownOption {
+  value: string;
+  label: string;
+}
+
+interface FilterDropdownProps {
+  label: string;
+  value: string | string[];
+  options: FilterDropdownOption[];
+  onChange: (v: string | string[]) => void;
+  multi?: boolean;
+}
+
+function FilterDropdown({ label, value, options, onChange, multi = false }: FilterDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const arrayValue = multi ? (Array.isArray(value) ? value : []) : [];
+  const singleValue = !multi ? (typeof value === 'string' ? value : '') : '';
+  const hasSel = multi ? arrayValue.length > 0 : !!singleValue;
+
+  // Label exibido no botão.
+  const displayLabel = (() => {
+    if (multi) {
+      if (arrayValue.length === 0) return label;
+      if (arrayValue.length === 1) return `${label}: ${arrayValue[0]}`;
+      return `${label} (${arrayValue.length})`;
+    }
+    if (!singleValue) return label;
+    const opt = options.find((o) => o.value === singleValue);
+    return opt ? `${label}: ${opt.label}` : `${label}: ${singleValue}`;
+  })();
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={
+          'inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
+          (hasSel
+            ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+            : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground')
+        }
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span>{displayLabel}</span>
+        <ChevronDown size={11} className="opacity-70" />
+      </button>
+      {open && (
+        <div
+          className="absolute z-50 top-full mt-1 left-0 min-w-[180px] max-h-[320px] overflow-y-auto rounded-md border border-border bg-background shadow-lg p-1"
+          role="listbox"
+        >
+          {!multi && singleValue && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange('');
+                setOpen(false);
+              }}
+              className="w-full text-left rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted border-b border-border mb-0.5"
+            >
+              Limpar
+            </button>
+          )}
+          {multi && arrayValue.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="w-full text-left rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted border-b border-border mb-0.5"
+            >
+              Limpar tudo
+            </button>
+          )}
+          {options.map((opt) => {
+            const isOn = multi ? arrayValue.includes(opt.value) : singleValue === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="option"
+                aria-selected={isOn}
+                onClick={() => {
+                  if (multi) {
+                    onChange(isOn ? arrayValue.filter((x) => x !== opt.value) : [...arrayValue, opt.value]);
+                  } else {
+                    onChange(isOn ? '' : opt.value);
+                    setOpen(false);
+                  }
+                }}
+                className={
+                  'w-full text-left rounded px-2 py-1.5 text-xs flex items-center gap-2 transition-colors ' +
+                  (isOn
+                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                    : 'text-foreground hover:bg-muted')
+                }
+              >
+                {multi && (
+                  <span
+                    className={
+                      'inline-flex h-3.5 w-3.5 items-center justify-center rounded border ' +
+                      (isOn
+                        ? 'border-blue-500 bg-blue-500 text-white'
+                        : 'border-border bg-background')
+                    }
+                  >
+                    {isOn && <Check size={9} strokeWidth={3} />}
+                  </span>
+                )}
+                <span className="flex-1">{opt.label}</span>
+                {!multi && isOn && <Check size={11} className="text-blue-600" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1008,25 +1397,13 @@ function ClienteSheet({
                 <ClassificacaoTab contact={contact} />
               )}
               {activeTab === 'oss' && (
-                <DrawerTabPlaceholder
-                  title="OSs"
-                  body="Wave D: wrapper das 8 sub-tabs Wave Final 2026-05-21 (LedgerTab, SalesTab, PaymentsTab, DocumentsTab, ActivitiesTab, PessoasContatoTab, SubscriptionsTab, RewardPointsTab) via sub-tabs aninhadas verticais OU dropdown 'Ver: [SalesTab ▼]'."
-                  wave="D"
-                />
+                <OssTab contact={{ id: contact.id, name: contact.name }} />
               )}
               {activeTab === 'ia' && (
-                <DrawerTabPlaceholder
-                  title="IA"
-                  body="Wave E: 4 cards Copiloto (Resumo relacionamento, Reavaliar segmento+tags, Próxima ação, Score risco determinístico) via Modules/Jana LaravelAiSdkDriver. Default ON para todos (sem gate quota inicial)."
-                  wave="E"
-                />
+                <IATab contact={{ id: contact.id, name: contact.name }} />
               )}
               {activeTab === 'auditoria' && (
-                <DrawerTabPlaceholder
-                  title="Auditoria"
-                  body="Wave F: timeline Spatie ActivityLog v4.8 com 6+ tipos eventos (created, updated, deleted, restored, custom) + botão Exportar log LGPD Art. 18. forSubject(Contact) filtrado por business_id."
-                  wave="F"
-                />
+                <AuditoriaTab contact={{ id: contact.id }} />
               )}
             </>
           )}
