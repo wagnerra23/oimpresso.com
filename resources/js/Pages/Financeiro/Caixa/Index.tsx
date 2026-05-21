@@ -97,7 +97,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
         </div>
         <div className="os-page-h-r fin-page-h-r">
           {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-          <FinanceiroSubNav active="caixa" />
+          <FinanceiroSubNav active="caixa" hidePrimary />
         </div>
       </header>
 
