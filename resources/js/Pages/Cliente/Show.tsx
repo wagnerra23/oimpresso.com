@@ -26,6 +26,7 @@ import {
   Phone,
   ReceiptText,
   User2,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import PaymentsTab from './_show/PaymentsTab';
@@ -35,6 +36,7 @@ import DocumentsTab from './_show/DocumentsTab';
 import ActionsMenu from './_show/ActionsMenu';
 import ContactPicker, { type ContactDropdownItem } from './_show/ContactPicker';
 import ActivitiesTab, { type ActivityItem } from './_show/ActivitiesTab';
+import PessoasContatoTab, { type ContactPerson } from './_show/PessoasContatoTab';
 
 interface ContactInfo {
   id: number;
@@ -71,7 +73,7 @@ interface Permissions {
   view_sell: boolean;
 }
 
-type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities';
+type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities' | 'persons';
 
 interface ClienteShowPageProps {
   contact: ContactInfo;
@@ -82,6 +84,7 @@ interface ClienteShowPageProps {
   permissions: Permissions;
   contact_dropdown?: ContactDropdownItem[];
   activities?: ActivityItem[];
+  contact_persons?: ContactPerson[];
 }
 
 const formatBRL = (value: number) =>
@@ -97,6 +100,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
     { key: 'payments', label: 'Pagamentos', icon: Banknote },
     { key: 'documents', label: 'Documentos & Notas', icon: FileText },
     { key: 'activities', label: 'Atividades', icon: Activity },
+    { key: 'persons', label: 'Pessoas', icon: Users },
   ];
 
   return (
@@ -252,6 +256,11 @@ export default function ClienteShow(props: ClienteShowPageProps) {
               {activeTab === 'activities' && (
                 <Deferred data="activities" fallback={<TabSkeleton />}>
                   <ActivitiesTab activities={props.activities} />
+                </Deferred>
+              )}
+              {activeTab === 'persons' && (
+                <Deferred data="contact_persons" fallback={<TabSkeleton />}>
+                  <PessoasContatoTab contactId={contact.id} contact_persons={props.contact_persons} />
                 </Deferred>
               )}
             </div>
