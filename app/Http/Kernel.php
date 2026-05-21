@@ -39,6 +39,10 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            // Wagner 2026-05-20 Fase 2 deprecação legacy — captura bookmarks
+            // /expenses /account/* e 301 pra telas Financeiro canônicas.
+            // Early return rápido em path desconhecido (99% dos requests).
+            \App\Http\Middleware\RedirectLegacyFinanceiro::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
         ],
 
