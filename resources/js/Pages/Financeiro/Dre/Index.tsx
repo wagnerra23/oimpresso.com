@@ -22,8 +22,6 @@ import {
   Sparkles,
   CheckSquare,
   Play,
-  RefreshCw,
-  FolderOpen,
   Download,
   Plus,
 } from 'lucide-react';
@@ -202,81 +200,20 @@ function FinanceiroDre({
           </p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
-          <FinanceiroSubNav active="dre" hidePrimary />
-          <button
-            type="button"
-            className="os-btn ghost"
-            // TODO US-FIN-TOPNAV-COMPONENT: integrar Cmd palette compartilhada.
-            onClick={() => {
-              /* stub F1 — Cmd palette compartilhada vira F2 */
-            }}
-          >
-            <Search size={13} /> Buscar <kbd>⌘K</kbd>
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-ai"
-            title="Resumo executivo do mês (narrativa DRE compute-based)"
-            // TODO US-FIN-DRE-RESUMO: extender FinMonthResumeDialog pra payload DRE.
-            onClick={() => {
-              /* stub F1 — narrativa DRE vira F2 */
-            }}
-          >
-            <Sparkles size={13} /> Resumir mês
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-trilha"
-            title="Trilha de 12 passos do fechamento mensal"
-            // TODO US-FIN-DRE-FECHAMENTO: integrar FinChecklistFechamento.
-            onClick={() => {
-              /* stub F1 — checklist fechamento vira F2 */
-            }}
-          >
-            <CheckSquare size={13} /> Fechamento
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-present"
-            title="Modo apresentação fullscreen (Esc fecha)"
-            // TODO US-FIN-DRE-PRESENT: integrar FinPresentationMode com payload DRE.
-            onClick={() => {
-              /* stub F1 — modo apresentação vira F2 */
-            }}
-          >
-            <Play size={13} /> Apresentar
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost"
-            title="Conciliação OFX — upload extrato + match com títulos"
-            onClick={() => router.visit('/financeiro/conciliacao')}
-          >
-            <RefreshCw size={13} /> Conciliar
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost"
-            title="Plano de contas hierárquico BR (Receita Federal/DCASP)"
-            onClick={() => router.visit('/financeiro/plano-contas')}
-          >
-            <FolderOpen size={13} /> Plano de contas
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost"
-            title="Exportar DRE (XLSX / PDF)"
-            aria-label="Exportar"
-            // Atalho rápido — duplica os botões Exportar do Card pro padrão canon
-            // (stub F1; F2 abre Cmd palette com opções de export).
-            onClick={() => {
-              /* stub F1 */
-            }}
-            style={{ padding: '0 8px' }}
-          >
-            <Download size={13} />
-          </button>
+          {/* ADR 0180 Fase 5 refine Wagner 2026-05-21 — botões action features → ⋯ Mais;
+              "Conciliar" + "Plano de contas" REMOVIDOS (duplicados com ghosts);
+              primary "Novo lançamento" fica no canto direito (canon Unificado) */}
+          <FinanceiroSubNav
+            active="dre"
+            hidePrimary
+            extraOverflowItems={[
+              { key: 'buscar',     label: 'Buscar (⌘K)', icon: <Search size={13} />,     onClick: () => { /* stub F1 — Cmd palette compartilhada vira F2 */ } },
+              { key: 'resumir',    label: 'Resumir mês', icon: <Sparkles size={13} />,   onClick: () => { /* stub F1 — narrativa DRE vira F2 */ },                title: 'Resumo executivo do mês (narrativa DRE compute-based)' },
+              { key: 'fechamento', label: 'Fechamento',  icon: <CheckSquare size={13} />, onClick: () => { /* stub F1 — checklist fechamento vira F2 */ },        title: 'Trilha de 12 passos do fechamento mensal' },
+              { key: 'apresentar', label: 'Apresentar',  icon: <Play size={13} />,        onClick: () => { /* stub F1 — modo apresentação vira F2 */ },           title: 'Modo apresentação fullscreen (Esc fecha)' },
+              { key: 'exportar',   label: 'Exportar',    icon: <Download size={13} />,    onClick: () => { /* stub F1 */ },                                       title: 'Exportar DRE (XLSX / PDF)' },
+            ]}
+          />
           <button
             type="button"
             className="os-btn primary"
