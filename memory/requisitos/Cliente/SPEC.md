@@ -1,3 +1,12 @@
+---
+module: Cliente
+version: "1.0"
+status: ativo
+owners: [W]
+last_updated: 2026-05-21
+us_count: 5
+---
+
 # SPEC — Tela `/cliente/{id}` (Cliente Show React)
 
 > Esta SPEC é um **redirect canon** pro módulo `Crm/` — historicamente as US relacionadas a contato/cliente vivem em `memory/requisitos/Crm/SPEC.md` (ADR 0149 pattern reuse, módulo Modules/Crm). Não duplicar conteúdo aqui.
