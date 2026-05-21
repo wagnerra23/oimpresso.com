@@ -65,6 +65,7 @@ import IATab from './_drawer/IATab';
 import AuditoriaTab from './_drawer/AuditoriaTab';
 // Wave G — listagem turbinada (avatar HSL hash + Pills semânticos).
 import { Avatar as ClienteAvatar } from '@/Components/clientes/Avatar';
+import { ActiveChip } from '@/Components/clientes/ActiveChip';
 import { TipoPill, TagChip, FrescorPill, SaldoCell } from '@/Components/clientes/Pills';
 
 interface ClienteKpis {
@@ -91,6 +92,8 @@ interface ClienteRow {
   // Wave C — campos cadastrais opcionais propagados pelo ContactController::index
   // payload defer customers (Wave G expandirá full coverage). Cada Tab usa
   // fallback ?? '' / null nos campos missing.
+  // Z-2.1: created_at pra subtitle drawer "cadastrado há Xd".
+  created_at?: string | null;
   tipo?: 'PF' | 'PJ' | null;
   fantasia?: string | null;
   ie?: string | null;
@@ -577,6 +580,49 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 : `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')} clientes`}
             </span>
           </nav>
+
+          {/* Z-2.1 — ActiveChips removíveis (alinhado ao protótipo Cowork). */}
+          {(tipoFilter || statusFilter || ufFilter || tagsFilter.length > 0 || staleFilter || saldoFilter) && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-3" aria-label="Filtros ativos">
+              {tipoFilter && (
+                <ActiveChip label="Tipo" value={tipoFilter} onRemove={() => setTipoFilter('')} />
+              )}
+              {statusFilter && (
+                <ActiveChip label="Status" value={statusFilter} onRemove={() => setStatusFilter('')} />
+              )}
+              {ufFilter && (
+                <ActiveChip label="UF" value={ufFilter} onRemove={() => setUfFilter('')} />
+              )}
+              {tagsFilter.length > 0 && (
+                <ActiveChip label="Tags" value={tagsFilter} onRemove={() => setTagsFilter([])} />
+              )}
+              {staleFilter && (
+                <ActiveChip label="Sem compra há" value={staleFilter} onRemove={() => setStaleFilter('')} />
+              )}
+              {saldoFilter && (
+                <ActiveChip
+                  label="Saldo"
+                  value={saldoFilter}
+                  variant={saldoFilter === 'devedor' ? 'danger' : 'default'}
+                  onRemove={() => setSaldoFilter('')}
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setTipoFilter('');
+                  setStatusFilter('');
+                  setUfFilter('');
+                  setTagsFilter([]);
+                  setStaleFilter('');
+                  setSaldoFilter('');
+                }}
+                className="text-[10px] text-muted-foreground underline-offset-2 hover:underline hover:text-foreground ml-1"
+              >
+                limpar tudo
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1250,6 +1296,32 @@ function ClienteSheet({
     }
   }, [open, contactId]);
 
+  // Z-2.1: Atalho 1-8 troca tab quando drawer aberto. Alinhado ao protótipo Cowork.
+  // Pulado quando user está digitando em input/textarea (form fields cadastrais).
+  useEffect(() => {
+    if (!open) return;
+    const TAB_ORDER: DrawerTab[] = [
+      'identificacao', 'contato', 'endereco', 'comercial',
+      'classificacao', 'oss', 'ia', 'auditoria',
+    ];
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target;
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        if (target.isContentEditable) return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const n = parseInt(e.key, 10);
+      if (!Number.isNaN(n) && n >= 1 && n <= 8) {
+        e.preventDefault();
+        setActiveTab(TAB_ORDER[n - 1]);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -1262,10 +1334,13 @@ function ClienteSheet({
         {/* ─── Header rico ─────────────────────────────────────────────── */}
         <SheetHeader className="border-b border-border px-6 py-4 space-y-3">
           <div className="flex items-start gap-4">
-            {/* TODO Wave G: Avatar HSL hash determinístico via id (Components/clientes/Avatar.tsx) */}
-            <div className="flex-shrink-0 h-14 w-14 rounded-md bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-stone-600 dark:text-stone-300 text-lg font-semibold">
-              {contact ? avatarInitial(contact.name) : '?'}
-            </div>
+            {/* Z-2.1: drawer header avatar 40px round gradient oklch (alinhado ao protótipo Cowork). */}
+            <ClienteAvatar
+              name={contact?.name ?? '?'}
+              seed={contact?.avatar_hash_seed ?? String(contact?.id ?? 0)}
+              size={40}
+              shape="circle"
+            />
 
             <div className="flex-1 min-w-0">
               {/* Toggle PF/PJ -- radio group simples. Wave C planta PATCH on blur. */}
@@ -1300,8 +1375,8 @@ function ClienteSheet({
               <SheetDescription className="mt-0.5 text-xs">
                 {tipo === 'PJ' ? 'Pessoa jurídica' : 'Pessoa física'}
                 {' · cadastrado '}
-                {/* TODO Wave C: contact.created_at vem do controller; aqui fallback '—' */}
-                {relativeDate(null)}
+                {/* Z-2.1: ContactController::index payload inclui created_at. */}
+                {relativeDate(contact?.created_at ?? null)}
               </SheetDescription>
             </div>
 

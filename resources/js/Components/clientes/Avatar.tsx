@@ -16,22 +16,36 @@
 import { useMemo } from 'react';
 
 // Hash determinístico djb2-like. Resultado positivo, sem overflow JS int.
+// Z-2.1: alinhado ao protótipo Cowork `clientes-icons.jsx::avatarFor`:
+//   `(h * 31 + name.charCodeAt(i)) >>> 0`  (unsigned shift)
 function hashStr(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) {
-    h = (h * 31 + s.charCodeAt(i)) | 0;
+    h = ((h * 31 + s.charCodeAt(i)) >>> 0);
   }
-  return Math.abs(h);
+  return h;
 }
 
-// 12 hues distribuídas em círculo cromático. Saturação alta (60%) + luminosidade
-// média (88% bg / 30% fg) garantem contraste e leveza.
-function colorForName(name: string): { bg: string; fg: string } {
-  const hue = (hashStr(name) % 12) * 30; // 0, 30, 60, 90, ... 330
-  return {
-    bg: `hsl(${hue}, 60%, 88%)`,
-    fg: `hsl(${hue}, 55%, 30%)`,
-  };
+// Z-2.1 alinhado ao protótipo: 12 gradients oklch distinctos + texto branco.
+// Estilo Stripe/Linear/Notion (vivos, legíveis). NÃO pastel chapado HSL.
+// Ref: prototipo-ui/prototipos/clientes/clientes-icons.jsx:128-146 AV_GRADS.
+const AVATAR_GRADIENTS: ReadonlyArray<string> = [
+  'linear-gradient(135deg, oklch(0.65 0.18 25),   oklch(0.55 0.20 350))', // rosa-vermelho
+  'linear-gradient(135deg, oklch(0.65 0.18 60),   oklch(0.55 0.20 30))',  // âmbar-vermelho
+  'linear-gradient(135deg, oklch(0.65 0.18 110),  oklch(0.55 0.20 80))',  // lima-âmbar
+  'linear-gradient(135deg, oklch(0.65 0.18 150),  oklch(0.55 0.20 130))', // verde-lima
+  'linear-gradient(135deg, oklch(0.65 0.18 180),  oklch(0.55 0.20 170))', // teal-verde
+  'linear-gradient(135deg, oklch(0.65 0.18 210),  oklch(0.55 0.20 200))', // azul-teal
+  'linear-gradient(135deg, oklch(0.65 0.18 240),  oklch(0.55 0.20 270))', // azul-violeta
+  'linear-gradient(135deg, oklch(0.65 0.18 290),  oklch(0.55 0.20 320))', // violeta-magenta
+  'linear-gradient(135deg, oklch(0.55 0.15 47),   oklch(0.65 0.15 107))', // marrom-amarelo (Cowork)
+  'linear-gradient(135deg, oklch(0.55 0.15 280),  oklch(0.65 0.15 340))', // roxo-rosa (Cowork)
+  'linear-gradient(135deg, oklch(0.55 0.15 200),  oklch(0.65 0.15 160))', // azul-verde
+  'linear-gradient(135deg, oklch(0.55 0.15 0),    oklch(0.65 0.15 60))',  // vermelho-âmbar
+];
+
+function gradientForName(name: string): string {
+  return AVATAR_GRADIENTS[hashStr(name) % AVATAR_GRADIENTS.length];
 }
 
 // 1 letra se uma palavra, 2 letras (primeira + última) se mais.
@@ -47,32 +61,44 @@ export function avatarInitial(name: string): string {
 
 export interface AvatarProps {
   name: string;
-  /** Tamanho em px. Default 32 (linha tabela); drawer header usa 56. */
+  /** Tamanho em px. Default 28 (linha tabela Cowork); drawer header usa 40. */
   size?: number;
   className?: string;
   /** Seed alternativa (ex: id numérico do contact em string). Default = name. */
   seed?: string;
+  /** Z-2.1: forma. `'rounded'` = rounded-md (legacy); `'circle'` = full round (drawer Cowork). */
+  shape?: 'rounded' | 'circle';
 }
 
 /**
- * Avatar colorido HSL hash determinístico.
+ * Avatar colorido com gradient oklch determinístico, texto branco.
+ * Z-2.1 alinhado ao protótipo Cowork `clientes-listagem.jsx::Avatar`:
+ *   - Background: `linear-gradient(135deg, oklch...)` (12 gradients)
+ *   - Color: `#fff`
+ *   - Default size: 28px (tabela) — drawer header passa size={40}
  *
  * Exemplo de uso:
- *   <Avatar name="João da Silva" />          → linha tabela 32px
- *   <Avatar name="Acme" size={56} />          → drawer header 56px
- *   <Avatar name="Acme" seed={id.toString()}  → cor estável mesmo se name mudar
+ *   <Avatar name="João da Silva" />                      → linha tabela 28px (rounded-md)
+ *   <Avatar name="Acme" size={40} shape="circle" />       → drawer header 40px circle (Cowork)
+ *   <Avatar name="Acme" seed={id.toString()} />           → cor estável mesmo se name mudar
  */
-export function Avatar({ name, size = 32, className = '', seed }: AvatarProps) {
-  const { bg, fg } = useMemo(() => colorForName(seed ?? name), [name, seed]);
+export function Avatar({
+  name,
+  size = 28,
+  className = '',
+  seed,
+  shape = 'rounded',
+}: AvatarProps) {
+  const background = useMemo(() => gradientForName(seed ?? name), [name, seed]);
   const initials = useMemo(() => avatarInitial(name), [name]);
   const fontSize = Math.round(size * 0.4);
+  const radiusClass = shape === 'circle' ? 'rounded-full' : 'rounded-md';
 
   return (
     <div
-      className={'rounded-md flex items-center justify-center font-semibold flex-shrink-0 ' + className}
+      className={radiusClass + ' flex items-center justify-center font-semibold flex-shrink-0 text-white ' + className}
       style={{
-        background: bg,
-        color: fg,
+        background,
         width: size,
         height: size,
         fontSize,
