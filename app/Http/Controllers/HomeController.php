@@ -19,6 +19,7 @@ use Datatables;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
+use Inertia\Inertia;
 
 class HomeController extends Controller
 {
@@ -60,6 +61,12 @@ class HomeController extends Controller
     /**
      * Show the application dashboard.
      *
+     * F6 Soft wrapper Inertia (US-DASH-001 — 2026-05-21).
+     * `?legacy=1` força Blade original (charts ECharts + widgets pluggable).
+     * Default = Inertia React shell minimal (welcome + 4 KPI cards + filtro loja).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): business_id de session.
+     *
      * @return \Illuminate\Http\Response
      */
     public function index()
@@ -73,6 +80,67 @@ class HomeController extends Controller
 
         $is_admin = $this->businessUtil->is_admin(auth()->user());
 
+        // F6 Soft fallback: ?legacy=1 → Blade original (charts + widgets pluggable)
+        if (request()->query('legacy') === '1') {
+            return $this->indexLegacy($business_id, $is_admin);
+        }
+
+        $can_dashboard_data = (bool) auth()->user()->can('dashboard.data');
+
+        $all_locations = BusinessLocation::forDropdown($business_id)->toArray();
+
+        $totals = null;
+        if ($can_dashboard_data) {
+            $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
+            $start = $fy['start'];
+            $end = $fy['end'];
+
+            $sell_details = $this->transactionUtil->getSellTotals($business_id, $start, $end);
+            $purchase_details = $this->transactionUtil->getPurchaseTotals($business_id, $start, $end);
+
+            $total_ledger_discount = $this->transactionUtil->getTotalLedgerDiscount($business_id, $start, $end);
+
+            $transaction_totals = $this->transactionUtil->getTransactionTotals(
+                $business_id,
+                ['expense'],
+                $start,
+                $end
+            );
+
+            $total_sell = (float) ($sell_details['total_sell_inc_tax'] ?? 0);
+            $invoice_due = (float) (($sell_details['invoice_due'] ?? 0) - ($total_ledger_discount['total_sell_discount'] ?? 0));
+            $total_expense = (float) ($transaction_totals['total_expense'] ?? 0);
+
+            $totals = [
+                'total_sell' => $total_sell,
+                'net' => $total_sell - $invoice_due - $total_expense,
+                'invoice_due' => $invoice_due,
+                'total_expense' => $total_expense,
+            ];
+        }
+
+        return Inertia::render('Home/Index', [
+            'user_name' => (string) request()->session()->get('user.first_name', ''),
+            'is_admin' => (bool) $is_admin,
+            'can_dashboard_data' => $can_dashboard_data,
+            'all_locations' => $all_locations,
+            'totals' => $totals,
+            'legacy_url' => '/home?legacy=1',
+            'endpoints' => [
+                'totals' => '/home/get-totals',
+                'stock_alert' => '/home/product-stock-alert',
+                'purchase_dues' => '/home/purchase-payment-dues',
+                'sales_dues' => '/home/sales-payment-dues',
+            ],
+        ]);
+    }
+
+    /**
+     * Blade legacy fallback (`?legacy=1`) — preserva charts ECharts + widgets pluggable.
+     * Mesma lógica original do index() pré-F6 Soft.
+     */
+    private function indexLegacy(int $business_id, bool $is_admin)
+    {
         if (! auth()->user()->can('dashboard.data')) {
             return view('home.index');
         }
