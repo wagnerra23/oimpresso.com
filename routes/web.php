@@ -209,6 +209,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         return $c->index();
     })->name('cliente.index');
 
+    // Wave G (ADR 0179) — Export CSV da listagem.
+    // Multi-tenant Tier 0 scope automático via session('user.business_id') no controller.
+    // Mantido ANTES de `/cliente/{id}` pra evitar match (`export` cair em {id} regex).
+    Route::get('/cliente/export', [ContactController::class, 'clienteExport'])
+        ->name('cliente.export');
+
     Route::get('/cliente/{id}', function (int $id, ContactController $c) {
         $bizId = (int) session('user.business_id');
         $ok = \App\Contact::where('business_id', $bizId)

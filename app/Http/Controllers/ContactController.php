@@ -300,15 +300,37 @@ class ContactController extends Controller
         $perPage = (int) request()->input('per_page', 50);
         $perPage = max(10, min($perPage, 100));
 
+        // Wave G (ADR 0179) — payload expandido com campos cadastrais p/ tabela turbinada.
+        // SELECT defensivo: usa hasColumn pra cada campo Wave B (migration aditiva
+        // idempotente — em ambientes onde migration ainda não rodou, evita SQL error).
+        // Campos canon UPOS (sempre presentes): id, name, tax_number, contact_id, mobile,
+        // city, state, address_line_1, balance. Campos Wave B adicionados via migration
+        // 2026_05_22_000000: tipo, fantasia, tags, segmento, vip, favorito_users, etc.
+        $hasWaveBCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'tipo');
+        $selectCols = [
+            'contacts.id',
+            'contacts.name',
+            'contacts.tax_number',
+            'contacts.contact_id',
+            'contacts.mobile',
+            'contacts.city',
+            'contacts.state',
+            'contacts.balance',
+            'contacts.created_at',
+        ];
+        if ($hasWaveBCols) {
+            $selectCols = array_merge($selectCols, [
+                'contacts.tipo',
+                'contacts.fantasia',
+                'contacts.tags',
+                'contacts.segmento',
+                'contacts.vip',
+            ]);
+        }
+
         $contacts = Contact::where('contacts.business_id', $business_id)
             ->whereIn('contacts.type', ['customer', 'both'])
-            ->select(
-                'contacts.id',
-                'contacts.name',
-                'contacts.tax_number',
-                'contacts.contact_id',
-                'contacts.mobile',
-            )
+            ->select($selectCols)
             ->orderBy('contacts.name', 'asc')
             ->paginate($perPage);
 
@@ -325,21 +347,34 @@ class ContactController extends Controller
                 // FIX 2026-05-21: subquery em transaction_payments (total_paid NÃO existe no schema).
                 DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN (final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id)) ELSE 0 END) AS valor_aberto'),
                 DB::raw('MAX(transaction_date) AS last_os_at'),
+                // Wave G — última compra real (qualquer status, não só due/partial) pra FrescorPill.
+                // Distingue de last_os_at que é última OS aberta. Wave G FrescorPill calcula
+                // dias desde last_purchase pra classificar fresc/recente/distante/frio.
+                DB::raw('MAX(CASE WHEN status != \'draft\' THEN transaction_date ELSE NULL END) AS last_purchase_at'),
             )
             ->groupBy('contact_id')
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
             $atrasadas = $row ? (int) $row->os_atrasadas : 0;
             $valorAberto = $row ? (float) $row->valor_aberto : 0.0;
             $lastOsAt = $row ? $row->last_os_at : null;
+            $lastPurchaseAt = $row ? $row->last_purchase_at : null;
             $status = $atrasadas > 0 ? 'late' : ($abertas > 0 ? 'active' : 'idle');
 
-            return [
+            // Wave G — saldo devedor convenção CRM (positivo = cliente nos deve).
+            // Combina valor_aberto (OS due/partial) - contacts.balance (adiantamento +).
+            // UPOS: contacts.balance >0 = cliente tem crédito conosco (positivo p/
+            // ele). Convertendo p/ frame "devedor do CRM": subtraímos.
+            $balance = (float) ($contact->balance ?? 0);
+            $saldoDevedor = $valorAberto - $balance;
+
+            // Wave G — payload base sempre presente.
+            $payload = [
                 'id' => (int) $contact->id,
                 'name' => (string) $contact->name,
                 'tax_number_masked' => $this->maskTaxNumber($contact->tax_number),
@@ -351,7 +386,35 @@ class ContactController extends Controller
                 'valor_aberto' => $valorAberto,
                 'status' => $status,
                 'last_os_at' => $lastOsAt,
+                // Wave G novos campos cadastrais.
+                // avatar_hash_seed = name (HSL hash determinístico Components/clientes/Avatar.tsx).
+                // Frontend usa name por default mas seed explícito permite estabilidade
+                // mesmo se name mudar futuramente.
+                'avatar_hash_seed' => (string) $contact->name,
+                'cidade' => $contact->city,
+                'uf' => $contact->state,
+                'saldo_devedor' => round($saldoDevedor, 2),
+                'last_purchase_at' => $lastPurchaseAt,
             ];
+
+            // Wave G — campos opcionais quando migration Wave B rodou.
+            // Compatibilidade: ambientes em produção podem ter rodado migration
+            // Wave B ainda não (graceful — null em vez de erro SQL no select).
+            if ($hasWaveBCols) {
+                $payload['tipo'] = $contact->tipo;
+                $payload['fantasia'] = $contact->fantasia;
+                $payload['tags'] = is_array($contact->tags) ? $contact->tags : [];
+                $payload['segmento'] = $contact->segmento;
+                $payload['vip'] = (bool) $contact->vip;
+            } else {
+                $payload['tipo'] = null;
+                $payload['fantasia'] = null;
+                $payload['tags'] = [];
+                $payload['segmento'] = null;
+                $payload['vip'] = false;
+            }
+
+            return $payload;
         })->all();
 
         return [
@@ -367,6 +430,89 @@ class ContactController extends Controller
                 'dir' => 'asc',
             ],
         ];
+    }
+
+    /**
+     * Wave G (ADR 0179) — Export CSV da listagem de clientes.
+     *
+     * Endpoint: GET /cliente/export
+     *
+     * - Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): scope business_id obrigatório.
+     * - PII LGPD: tax_number sai mascarado no CSV (CPF.***.***.000-XX), nunca plain.
+     * - BOM UTF-8 \xEF\xBB\xBF p/ Excel-BR abrir acentuação OK.
+     * - Streamed via chunk(500) — evita memory blow em biz=4 Larissa (30+ clientes/dia
+     *   ROTA LIVRE, exports periódicos contábeis).
+     * - Permission: customer.view (lista) — sem permission de export separada porque
+     *   listar = ver = exportar (mesmo recorte de dados).
+     *
+     * Não acopla com BizzImport/BizzExport — esse é um CSV simples PT-BR p/ Excel/
+     * Sheets, sem header machine-readable.
+     */
+    public function clienteExport(Request $request)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')) {
+            abort(403, 'Sem permissão pra exportar clientes.');
+        }
+
+        $businessId = (int) $request->session()->get('user.business_id');
+        if (! $businessId) {
+            abort(403, 'Sessão sem business_id.');
+        }
+
+        $filename = 'clientes-' . now()->format('Y-m-d-His') . '.csv';
+
+        // Checa colunas Wave B (graceful — em ambiente onde migration não rodou,
+        // colunas ficam vazias no CSV em vez de erro SQL).
+        $hasWaveBCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'tipo');
+
+        return response()->stream(function () use ($businessId, $hasWaveBCols) {
+            $out = fopen('php://output', 'w');
+            // BOM UTF-8 — Excel-BR abre acentuação OK (Larissa biz=4 usa Excel local).
+            fwrite($out, "\xEF\xBB\xBF");
+
+            // Cabeçalho PT-BR. Separador ; (CSV Brasil padrão), não vírgula.
+            fputcsv($out, [
+                'Nome',
+                'Tipo',
+                'Documento',
+                'Email',
+                'Telefone',
+                'Cidade',
+                'UF',
+                'Segmento',
+                'Tags',
+                'VIP',
+            ], ';');
+
+            Contact::where('business_id', $businessId)
+                ->whereIn('type', ['customer', 'both'])
+                ->orderBy('name', 'asc')
+                ->chunk(500, function ($contacts) use ($out, $hasWaveBCols) {
+                    foreach ($contacts as $c) {
+                        $tags = $hasWaveBCols && is_array($c->tags ?? null) ? implode(',', $c->tags) : '';
+                        fputcsv($out, [
+                            $c->name ?? '',
+                            $hasWaveBCols ? ($c->tipo ?? '') : '',
+                            // PII LGPD — documento mascarado, NUNCA plain.
+                            $this->maskTaxNumber($c->tax_number) ?? '',
+                            $c->email ?? '',
+                            $c->mobile ?? '',
+                            $c->city ?? '',
+                            $c->state ?? '',
+                            $hasWaveBCols ? ($c->segmento ?? '') : '',
+                            $tags,
+                            $hasWaveBCols && $c->vip ? 'Sim' : 'Não',
+                        ], ';');
+                    }
+                });
+
+            fclose($out);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+        ]);
     }
 
     /**
