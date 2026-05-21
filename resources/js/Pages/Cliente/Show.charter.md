@@ -2,18 +2,23 @@
 page: /cliente/{id} (canon) · /contacts/{id} (legacy dual-render)
 component: resources/js/Pages/Cliente/Show.tsx
 owner: wagner
-status: live
+status: superseded
 last_validated: 2026-05-21
 parent_module: Cliente
 related_adrs: [0110, 0107, 0093, 0094, 0104, 0149]
 tier: A
 charter_version: 2
+superseded_by: [Pages/Cliente/Index.charter.md v3]
+superseded_at: 2026-05-21
+superseded_reason: "Paradigma cadastral 8 tabs drawer 760px lateral substitui página full-page operacional (ADR 0179)"
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/prototipos/clientes/"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Show]
   divergence_from_blueprint: "tab-based content area (não no blueprint Cowork original)"
 ---
+
+> **⚠️ CHARTER SUPERSEDED 2026-05-21** — Esta versão v2 é mantida pra histórico append-only. O paradigma de detalhe de Cliente foi invertido pela [ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md): de página full-page para drawer lateral 760px abrindo de `Index.tsx`. Charter ativo agora é [`Index.charter.md`](Index.charter.md) v3.
 
 # Page Charter — /cliente/{id}
 
