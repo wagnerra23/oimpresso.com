@@ -83,6 +83,11 @@ const ADRS_LEGACY_SKIP = [
     '0126-vault-chunked-encryption-sprint-2',
     '0127-modules-auditoria-undo-activity-log',
     '0128-smoke-testing-e2e-pos-cycle',
+    // Pre-existentes em main 2026-05-21 (Wagner Financeiro/Accounting deprec sprint):
+    // ambos sem frontmatter YAML canon. Append-only Tier 0 — não editar.
+    // Backlog migração: Wave 30+ junto com 0122-0128.
+    '0172-deprecar-modulo-accounting-fundir-financeiro',
+    '0173-errata-arq-0005-tabelas-accounting-sem-prefixo',
 ];
 
 /**
