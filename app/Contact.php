@@ -65,6 +65,12 @@ class Contact extends Authenticatable
         'consumidor_final' => 'bool',
         'contribuinte' => 'bool',
         'indicador_ie' => 'integer',
+        // ADR 0179 Wave B/C — Cliente drawer 760px. Campos JSON + bool + date
+        // adicionados pela migration 2026_05_22_000000_extend_contacts_for_cliente_drawer.
+        'tags' => 'array',
+        'favorito_users' => 'array',
+        'vip' => 'bool',
+        'nascimento' => 'date',
     ];
 
     /**
