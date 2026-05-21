@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-21"
-module: cockpit
+module: core
 quarter: 2026-Q2
 tags: [ux, navigation, sidebar, hicks-law, persona-larissa, datacontroller, cmd-k, multi-tenant-tier-0, ADR-0093-tier0, ADR-0094-constituicao, ADR-0178-tabs-padrao, anthropic-design-plugin]
 supersedes: []
