@@ -39,6 +39,7 @@ import SellsDateFilter, {
   type DateFilterPreset,
 } from './_components/SellsDateFilter';
 import SellsToggleViewMode, { type SellsViewMode } from './_components/SellsToggleViewMode';
+import SellsTabsVisao, { type SellsVisao } from './_components/SellsTabsVisao';
 import SellsGroupByDropdown, { type GroupByField } from './_components/SellsGroupByDropdown';
 import SellsGradeAvancada from './_components/SellsGradeAvancada';
 import type { SellsTotals } from './_components/SellsTotalsRow';
@@ -650,6 +651,18 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // "adicionar pagamentos como antigamente" (botão direto na linha sem abrir
   // drawer). Estado do modal QuickPayment compartilhado entre Lista e Grade.
   const [payDialog, setPayDialog] = useState<{ saleId: number; invoiceNo: string; dueAmount: number } | null>(null);
+
+  // Onda Unificação PR2/6 (ADR 0178) — tabs Visão Operacional/Financeira/Produção.
+  // Feature-flagged via URL `?tabs=1` — visível só pra Wagner em testes; default off
+  // não impacta Larissa biz=4. PR3 conecta visão → visibleColumns; PR4 faz cutover.
+  const tabsFlagOn = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tabs') === '1';
+  const [visao, setVisao] = useState<SellsVisao>(() => {
+    const v = ls.get('visao', 'operacional');
+    return (['operacional', 'financeira', 'producao'] as const).includes(v as SellsVisao)
+      ? (v as SellsVisao)
+      : 'operacional';
+  });
+  useEffect(() => ls.set('visao', visao), [visao]);
 
   // UI overlays.
   const [cheatOpen, setCheatOpen] = useState(false);
@@ -1279,6 +1292,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             ))}
           </div>
           <div className="vd-tabs-actions">
+            {tabsFlagOn && (
+              <SellsTabsVisao visao={visao} onChange={setVisao} />
+            )}
             <SellsToggleViewMode viewMode={viewMode} onChange={setViewMode} />
             <button
               type="button"
