@@ -3,7 +3,7 @@ slug: 0185-drawer-760-canon-entidades-cadastrais
 number: 185
 title: "Drawer 760 escala pra entidades cadastrais do projeto — substitui Edit.tsx/Create.tsx separados (amends ADR 0179)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
