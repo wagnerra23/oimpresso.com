@@ -89,7 +89,7 @@ test('PATCH /cliente/{id}/identificacao -- payload valido retorna 200 + persiste
 
 test('PATCH /cliente/{id}/identificacao -- tax_number mod 11 invalido retorna 422', function () {
     $response = $this->patchJson("/cliente/{$this->contactId}/identificacao", [
-        'tax_number' => '111.111.111-11', // sequencia trivial CPF -- rejeita
+        'tax_number' => '111.111.111-11', // sequencia trivial CPF -- rejeita # pii-allowlist
     ]);
 
     $response->assertStatus(422)
@@ -99,7 +99,7 @@ test('PATCH /cliente/{id}/identificacao -- tax_number mod 11 invalido retorna 42
 test('PATCH /cliente/{id}/identificacao -- CPF valido mod 11 aceito', function () {
     $response = $this->patchJson("/cliente/{$this->contactId}/identificacao", [
         'tipo' => 'PF',
-        'tax_number' => '111.444.777-35', // CPF valido mod 11
+        'tax_number' => '111.444.777-35', // CPF valido mod 11 # pii-allowlist
     ]);
 
     $response->assertStatus(200)
