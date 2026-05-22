@@ -171,8 +171,12 @@ class DataController extends Controller
                         'ghosts'   => [
                             ['key' => 'notas',         'label' => 'Notas fiscais',     'href' => '/nfebrasil'],
                             ['key' => 'manifestacao',  'label' => 'Manifestação',      'href' => '/nfe-brasil/manifestacao'],
-                            // Wagner 2026-05-22: Certificado Digital adicionado como 3º ghost canon.
                             ['key' => 'certificado',   'label' => 'Certificado Digital','href' => '/nfe-brasil/configuracao/certificado'],
+                            // Wagner 2026-05-22 P1: +4 ghosts pra zerar órfãs Fiscal.
+                            ['key' => 'tributacao',    'label' => 'Tributação',        'href' => '/nfe-brasil/tributacao'],
+                            ['key' => 'sped',          'label' => 'SPED',              'href' => '/nfebrasil/sped'],
+                            ['key' => 'settings',      'label' => 'Configurações',     'href' => '/nfebrasil/settings'],
+                            ['key' => 'nfse',          'label' => 'NFSe',              'href' => '/nfse'],
                         ],
                     ]
                 )->order(95);
