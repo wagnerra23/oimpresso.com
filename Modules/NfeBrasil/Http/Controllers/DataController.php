@@ -168,8 +168,10 @@ class DataController extends Controller
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [
-                            ['key' => 'notas',         'label' => 'Notas fiscais', 'href' => '/nfebrasil'],
-                            ['key' => 'manifestacao',  'label' => 'Manifestação',  'href' => '/nfe-brasil/manifestacao'],
+                            ['key' => 'notas',         'label' => 'Notas fiscais',     'href' => '/nfebrasil'],
+                            ['key' => 'manifestacao',  'label' => 'Manifestação',      'href' => '/nfe-brasil/manifestacao'],
+                            // Wagner 2026-05-22: Certificado Digital adicionado como 3º ghost canon.
+                            ['key' => 'certificado',   'label' => 'Certificado Digital','href' => '/nfe-brasil/configuracao/certificado'],
                         ],
                     ]
                 )->order(95);
