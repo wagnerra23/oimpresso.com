@@ -138,6 +138,9 @@ import {
 // Wagner regra 2026-05-19: DataController declara `data['group']`, frontend
 // NUNCA hardcode. `items[]` aqui só pra compat com módulos não-migrados (Fase 4
 // ADR 0180 — 17 DataControllers migram em onda separada).
+// Wagner 2026-05-22 ordem canon: CADASTRO → COMERCIAL → FINANÇAS → PRODUÇÃO
+// → ESTOQUE → RH → SISTEMA. ("Financeiro abaixo do comercial" + "estoque
+// acima do RH").
 const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'cadastro',
@@ -152,12 +155,9 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     items: ['Crm', 'CRM', 'Vendas'],
   },
   {
-    key: 'estoque',
-    label: 'ESTOQUE',
-    // Wagner 2026-05-22: Reservas/Cocina/Pedidos/ComVisual/OficinaAuto/Reparar
-    // SAEM do ESTOQUE → vão pro grupo PRODUÇÃO novo.
-    items: ['Compras', 'Compra', 'Transferências de ações', 'Transferência',
-            'Ajuste de estoque', 'Gestão de ativos', 'Estoque', 'Inventário'],
+    key: 'financas',
+    label: 'FINANÇAS',
+    items: ['Financeiro', 'Fiscal'],
   },
   {
     key: 'producao',
@@ -170,9 +170,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
             'Ordens de Serviço', 'Manufacturing', 'Produção'],
   },
   {
-    key: 'financas',
-    label: 'FINANÇAS',
-    items: ['Financeiro', 'Fiscal'],
+    key: 'estoque',
+    label: 'ESTOQUE',
+    // Wagner 2026-05-22: Reservas/Cocina/Pedidos/ComVisual/OficinaAuto/Reparar
+    // SAEM do ESTOQUE → vão pro grupo PRODUÇÃO novo.
+    items: ['Compras', 'Compra', 'Transferências de ações', 'Transferência',
+            'Ajuste de estoque', 'Gestão de ativos', 'Estoque', 'Inventário'],
   },
   {
     key: 'pessoas',
