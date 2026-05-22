@@ -176,13 +176,15 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   },
   {
     key: 'pessoas',
-    label: 'PESSOAS',
-    items: ['RH'],
+    // Wagner 2026-05-22: PESSOAS renomeado RH (popular com HRM + Ponto).
+    label: 'RH',
+    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Folha', 'Colaboradores'],
   },
   {
     key: 'sistema',
     label: 'SISTEMA',
-    items: ['Governança', 'Plataforma'],
+    // Wagner 2026-05-22: Auditoria adicionada (era módulo solto em MAIS).
+    items: ['Governança', 'Plataforma', 'Auditoria'],
   },
 ];
 

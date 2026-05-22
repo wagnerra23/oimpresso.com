@@ -93,6 +93,13 @@ class DataController extends Controller
             return;
         }
 
+        // Wagner 2026-05-22: ADS entry REMOVIDA do sidebar — virou ghost
+        // do hub IA/Jana (Modules/Jana DataController). Tela /ads continua
+        // acessível via URL direta + ghost no header /ia. Espelha pattern
+        // NFSe/Fiscal/RecurringBilling (consolidação ADR 0180).
+        return;
+
+        // ↓ Código legacy preservado pra retomada futura se necessário ↓
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
         $segmento_ativo   = request()->segment(1) === 'ads';
 

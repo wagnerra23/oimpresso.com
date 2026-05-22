@@ -248,6 +248,8 @@ class DataController extends Controller
                             ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
                             ['key' => 'metas',     'label' => 'Metas',     'href' => '/ia/metas'],
                             ['key' => 'custos',    'label' => 'Custos',    'href' => '/ia/admin/custos'],
+                            // Wagner 2026-05-22: ADS vai pra dentro da Jana (entry sidebar removida).
+                            ['key' => 'ads',       'label' => 'ADS',       'href' => '/ads'],
                         ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)
