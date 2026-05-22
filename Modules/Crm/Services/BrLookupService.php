@@ -116,9 +116,22 @@ class BrLookupService
      * chamada. Agora IdentificacaoTab.handleCnpjLookup propaga endereco
      * pra PATCH /cliente/{id}/endereco no mesmo fluxo.
      *
+     * Politica de preenchimento client-side (Wagner 2026-05-22, ver
+     * memory/reference/feedback-lookup-cnpj-sobrescreve-dados.md):
+     *   - Dados cadastrais oficiais (razao_social, fantasia, endereco,
+     *     city_code IBGE) -> SOBRESCREVE no contact (Receita e fonte da
+     *     verdade pra esses campos).
+     *   - Contatos pessoais (email, mobile) -> SO PREENCHE se vazio
+     *     (telefone publico da Receita pode estar desatualizado/diferente
+     *     do contato real digitado pelo user).
+     *
+     * IE: BrasilAPI NAO retorna IE (responsabilidade Sintegra/SEFAZ -- 27
+     * sistemas estaduais diferentes). ie=null sempre. ADR futura avalia
+     * provider pago (cnpj.ws / CNPJa! / ReceitaWS Plus ~R$ 89/mes 5k consultas).
+     *
      * @param  string  $cnpj  CNPJ em qualquer formato (so digitos sao usados)
-     * @return array{razao_social:string,fantasia:string,ie:string|null,situacao:string,zip_code:string,address_line_1:string,neighborhood:string,city:string,state:string}|null
-     *                                                                                                                                                                       null = CNPJ invalido (formato), CNPJ nao existe, ou erro upstream
+     * @return array{razao_social:string,fantasia:string,ie:string|null,situacao:string,zip_code:string,address_line_1:string,neighborhood:string,city:string,state:string,city_code:string,email:string,mobile:string}|null
+     *                                                                                                                                                                                                              null = CNPJ invalido (formato), CNPJ nao existe, ou erro upstream
      */
     public function lookupCnpj(string $cnpj): ?array
     {
@@ -161,6 +174,22 @@ class BrLookupService
                     $cepRaw = (string) ($response->json('cep') ?? '');
                     $zipCode = preg_replace('/\D/', '', $cepRaw) ?? '';
 
+                    // city_code IBGE: BrasilAPI retorna `codigo_municipio`
+                    // como inteiro 7 digitos (ex 3550308 = SP). Defensivo:
+                    // normaliza pra string so com digitos. Wagner 2026-05-22:
+                    // obrigatorio em NFe/NFSe (campos enderEmit/cMun, enderDest/cMun).
+                    $cityCodeRaw = $response->json('codigo_municipio');
+                    $cityCode = '';
+                    if (is_numeric($cityCodeRaw) || is_string($cityCodeRaw)) {
+                        $cityCode = preg_replace('/\D/', '', (string) $cityCodeRaw) ?? '';
+                    }
+
+                    // Telefone: BrasilAPI retorna ddd_telefone_1 como string
+                    // sem mascara (ex "1133334444" ou "11933334444"). Front
+                    // aplica maskCellPhone/maskPhone na exibicao.
+                    $mobile = trim((string) ($response->json('ddd_telefone_1') ?? ''));
+                    $mobileDigits = preg_replace('/\D/', '', $mobile) ?? '';
+
                     return [
                         'razao_social' => (string) ($response->json('razao_social') ?? ''),
                         // BrasilAPI usa `nome_fantasia` (snake_case), Cowork blueprint
@@ -168,16 +197,25 @@ class BrLookupService
                         'fantasia' => (string) ($response->json('nome_fantasia') ?? ''),
                         // BrasilAPI nao retorna IE (responsabilidade Sintegra/SEFAZ).
                         // Front mostra campo IE manual quando lookupCnpj responde.
+                        // ADR futura avalia provider pago (cnpj.ws / CNPJa! / ReceitaWS Plus).
                         'ie' => null,
                         'situacao' => (string) ($response->json('descricao_situacao_cadastral') ?? ''),
                         // Endereco -- chaves canon ClienteAutosaveController::endereco.
                         // Wagner 2026-05-22 -- preenchimento automatico tab Endereco do
-                        // drawer 760 a partir do lookup CNPJ.
+                        // drawer 760 a partir do lookup CNPJ. SOBRESCREVE no client.
                         'zip_code' => $zipCode,
                         'address_line_1' => $addressLine1,
                         'neighborhood' => trim((string) ($response->json('bairro') ?? '')),
                         'city' => trim((string) ($response->json('municipio') ?? '')),
                         'state' => trim((string) ($response->json('uf') ?? '')),
+                        // Codigo IBGE municipio (7 digitos) -- obrigatorio NFe/NFSe.
+                        // Migration 2026_05_22_180000 adiciona coluna `city_code`.
+                        'city_code' => $cityCode,
+                        // Contatos -- regra so-vazio no front. BrasilAPI traz dados
+                        // publicos da Receita; pode estar desatualizado/diferente do
+                        // contato real digitado pelo user (Wagner 2026-05-22).
+                        'email' => trim((string) ($response->json('email') ?? '')),
+                        'mobile' => $mobileDigits,
                     ];
                 } catch (\Throwable $e) {
                     Log::warning('BrLookupService::lookupCnpj exception', [
