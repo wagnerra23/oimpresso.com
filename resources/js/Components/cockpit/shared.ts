@@ -175,10 +175,12 @@ export const SIDEBAR_GROUP_HUE: Record<string, number> = {
   pessoas: 295,      // roxo claro — RH (legacy key)
   sistema: 200,      // azul-acinzentado — governança + plataforma
 
-  // ── 7 grupos canon Wagner 2026-05-22 (CADASTRO·COMERCIAL·FINANÇAS·PRODUÇÃO·
-  //     ESTOQUE·RH·SISTEMA). Cores semanticamente mapeadas pra mental model PME-BR.
+  // ── 8 grupos canon Wagner 2026-05-22 (CADASTRO·COMERCIAL·FINANÇAS·FISCAL·
+  //     PRODUÇÃO·ESTOQUE·RH·SISTEMA). Cores semanticamente mapeadas pra mental
+  //     model PME-BR.
   cadastro: 220,     // azul — dados/registro
   comercial: 60,     // amarelo — energia comercial (= vender legacy)
+  fiscal: 165,       // verde-azulado — NF-e/NFSe/SPED (distinto de financas)
   producao: 350,     // magenta — fábrica/atividade (= operar legacy)
   estoque: 280,      // roxo profundo — caixas/inventory
 

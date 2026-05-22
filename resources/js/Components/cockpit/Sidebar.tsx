@@ -114,6 +114,7 @@ const GROUP_ICON_MAP: Record<string, LucideIcon> = {
   cadastro:  BookOpen,      // cadastros/dados base
   comercial: ShoppingCart,  // vendas
   financas:  Wallet,        // dinheiro
+  fiscal:    FileText,      // NF-e/NFSe/SPED (Wagner 2026-05-22)
   producao:  Factory,       // fábrica/produção
   estoque:   Package,       // caixas/inventory
   pessoas:   Users,         // RH
@@ -173,7 +174,16 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'financas',
     label: 'FINANÇAS',
-    items: ['Financeiro', 'Fiscal'],
+    // Wagner 2026-05-22: Fiscal SAI de FINANÇAS → vira grupo próprio FISCAL abaixo.
+    items: ['Financeiro'],
+  },
+  {
+    key: 'fiscal',
+    label: 'FISCAL',
+    // Wagner 2026-05-22: grupo FISCAL separado (8º grupo). Items via shell.menu
+    // do hub Fiscal (Modules/NfeBrasil declara group:'fiscal' agora).
+    items: ['Fiscal', 'Notas fiscais', 'NFSe', 'NF-e Brasil', 'NF-e',
+            'NFC-e', 'Manifestação', 'Certificado Digital'],
   },
   {
     key: 'producao',
@@ -661,7 +671,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={['cadastro', 'comercial', 'estoque', 'producao', 'financas'].includes(g.key)}
+          defaultOpen={['cadastro', 'comercial', 'financas', 'fiscal', 'producao', 'estoque'].includes(g.key)}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
