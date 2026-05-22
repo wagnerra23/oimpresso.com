@@ -90,7 +90,7 @@ afterEach(function () {
 
 it('redireciona pra login se usuário não estiver autenticado', function () {
     // Sem actingAs — request anônima
-    $response = $this->get('/jana/admin/roadmap');
+    $response = $this->get('/ia/admin/roadmap');
 
     // Padrão Laravel: 302 redirect pra /login
     expect($response->status())->toBeIn([302, 401]);
@@ -101,7 +101,7 @@ it('responde 403 pra usuário sem permission jana.mcp.tasks.read', function () {
     roadmapRevokePerm($user);
 
     $this->actingAs($user);
-    $response = $this->get('/jana/admin/roadmap');
+    $response = $this->get('/ia/admin/roadmap');
 
     expect($response->status())->toBe(403);
 });
@@ -119,7 +119,7 @@ it('responde 200 e renderiza Inertia component Jana/Admin/Roadmap com permission
         'X-Inertia'         => 'true',
         'X-Inertia-Version' => $version,
         'Accept'            => 'text/html',
-    ])->get('/jana/admin/roadmap');
+    ])->get('/ia/admin/roadmap');
 
     expect($response->status())->toBe(200);
 
@@ -188,7 +188,7 @@ it('aceita filtro por cycle_id via query param', function () {
         'X-Inertia'         => 'true',
         'X-Inertia-Version' => $version,
         'Accept'            => 'text/html',
-    ])->get('/jana/admin/roadmap?cycle='.$cycleId);
+    ])->get('/ia/admin/roadmap?cycle='.$cycleId);
 
     expect($response->status())->toBe(200);
 
@@ -240,7 +240,7 @@ it('filtra tasks por module via query param', function () {
         'X-Inertia'         => 'true',
         'X-Inertia-Version' => $version,
         'Accept'            => 'text/html',
-    ])->get('/jana/admin/roadmap?module=ModuloAlpha');
+    ])->get('/ia/admin/roadmap?module=ModuloAlpha');
 
     expect($response->status())->toBe(200);
 
@@ -283,7 +283,7 @@ it('respeita global scope multi-tenant (mcp_tasks é canon cross-business — n�
         'business.id'      => $outroBusiness->id,
     ]);
 
-    $response = $this->get('/jana/admin/roadmap');
+    $response = $this->get('/ia/admin/roadmap');
 
     // User de biz=outro sem permission → 403 (não vê roadmap canon)
     expect($response->status())->toBe(403);
@@ -303,7 +303,7 @@ it('renderiza com lista de tasks vazia sem quebrar (estado inicial DB limpo)', f
         'X-Inertia'         => 'true',
         'X-Inertia-Version' => $version,
         'Accept'            => 'text/html',
-    ])->get('/jana/admin/roadmap?owner=__nonexistent_owner_xyz__');
+    ])->get('/ia/admin/roadmap?owner=__nonexistent_owner_xyz__');
 
     expect($response->status())->toBe(200);
 

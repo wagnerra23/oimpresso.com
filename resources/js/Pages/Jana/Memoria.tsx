@@ -68,7 +68,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
   const rel = memoria.metadata?.relevancia as number | undefined
 
   const onSalvar = () => {
-    patch(`/jana/memoria/${memoria.id}`, {
+    patch(`/ia/memoria/${memoria.id}`, {
       preserveScroll: true,
       onSuccess: () => setEditando(false),
     })
@@ -76,7 +76,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
 
   const onEsquecer = () => {
     if (!confirm('Tem certeza? Essa memória será esquecida e não voltará.')) return
-    router.delete(`/jana/memoria/${memoria.id}`, { preserveScroll: true })
+    router.delete(`/ia/memoria/${memoria.id}`, { preserveScroll: true })
   }
 
   return (

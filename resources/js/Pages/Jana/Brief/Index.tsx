@@ -1,4 +1,4 @@
-// Stub /jana/brief — ghost canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21).
+// Stub /ia/brief — ghost canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21).
 // Brief executive diário é gerado pelo BriefDiarioAgent + exposto via MCP tool
 // `brief-fetch`. UI dedicada vem em onda futura; este stub mantém o ghost
 // clicável e explica onde achar o brief enquanto isso.
@@ -57,13 +57,13 @@ export default function BriefIndex({ businessId }: Props) {
               e te explica em linguagem natural.
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
-              <Link href="/jana">
+              <Link href="/ia">
                 <Button size="sm" className="gap-2">
                   <MessageSquare className="h-4 w-4" />
                   Pedir brief à Jana
                 </Button>
               </Link>
-              <Link href="/jana/painel">
+              <Link href="/ia/painel">
                 <Button size="sm" variant="outline" className="gap-2">
                   <FileText className="h-4 w-4" />
                   Ver painel V2

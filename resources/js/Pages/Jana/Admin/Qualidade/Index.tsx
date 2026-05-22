@@ -137,7 +137,7 @@ function QualidadeIndex(props: Props) {
   function applyFilter() {
     const params: Record<string, string | number> = { dias: Number(diasFilter) };
     if (businessFilter !== '__all__') params.business_id = Number(businessFilter);
-    router.get('/jana/admin/qualidade', params, { preserveScroll: true, preserveState: true });
+    router.get('/ia/admin/qualidade', params, { preserveScroll: true, preserveState: true });
   }
 
   const allMetrics = [

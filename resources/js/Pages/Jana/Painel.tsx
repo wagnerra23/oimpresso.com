@@ -1,5 +1,5 @@
 // @memcofre
-//   tela: /jana/painel
+//   tela: /ia/painel
 //   stories: US-JANA-PAINEL-001 (Onda A1)
 //   adrs: 0035 stack-ai, 0039 ui-cockpit-pattern, 0093 multi-tenant, 0114 cowork-loop
 //   visual-canon: prototipo-ui/cowork-snapshot/chat-jana.jsx (491 ln IIFE window.JanaCockpit)

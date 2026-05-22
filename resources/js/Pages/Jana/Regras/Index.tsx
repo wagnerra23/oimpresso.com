@@ -1,7 +1,7 @@
-// Stub /jana/regras — ghost canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21).
+// Stub /ia/regras — ghost canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21).
 // "Regras" cobre policies do PolicyEngine ADS (ALLOW_BRAIN_A / REQUIRE_HUMAN_REVIEW
 // etc.) + governance MCP cross-team. UI dedicada vem em onda futura; este stub
-// mantém o ghost clicável e aponta pra /jana/admin/governanca enquanto isso.
+// mantém o ghost clicável e aponta pra /ia/admin/governanca enquanto isso.
 
 import React from 'react'
 import { Head, Link } from '@inertiajs/react'
@@ -56,7 +56,7 @@ export default function RegrasIndex({ businessId }: Props) {
               Enquanto a tela dedicada não está pronta, consulte o painel de Governança da Jana.
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
-              <Link href="/jana/admin/governanca">
+              <Link href="/ia/admin/governanca">
                 <Button size="sm" className="gap-2">
                   <ScrollText className="h-4 w-4" />
                   Ver governança
