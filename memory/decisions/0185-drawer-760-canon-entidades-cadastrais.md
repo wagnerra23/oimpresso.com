@@ -3,11 +3,13 @@ slug: 0185-drawer-760-canon-entidades-cadastrais
 number: 185
 title: "Drawer 760 escala pra entidades cadastrais do projeto — substitui Edit.tsx/Create.tsx separados (amends ADR 0179)"
 type: adr
-status: proposed
+status: accepted
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-22"
+accepted_at: "2026-05-22"
+accepted_via: "Wagner aprovou em sessão `frosty-greider-83ab2f` 2026-05-22 — comando exato: 'eu gostei pode salvar'"
 module: core
 quarter: 2026-Q2
 tags: [paradigma, drawer-760, cadastral, mwart, cowork-blueprint, persona-larissa, multi-tenant, autosave, ADR-0179-cliente-drawer, ADR-0182-pageheader, ADR-0093-tier0]
@@ -113,6 +115,28 @@ Pages/<Modulo>/
 - Deeplink `/{modulo}/{id}` → redirect 302 → `/{modulo}?contact_id={id}&tab=identificacao` (URL compartilhável)
 - Pest charter test obrigatório em viewport 1280×1024 sem scroll horizontal
 
+### Q5 — Largura do drawer pode variar pra encaixar informação?
+
+**Não. 760px é fixo (canon imutável).** Quando tab tem muito conteúdo, usar 1 dos 3 mecanismos canônicos pra encaixar:
+
+| Mecanismo | Quando aplicar | Exemplo de referência |
+|---|---|---|
+| **Sub-tabs aninhadas** (vertical pills 120px + content 640px) | Tab com 4+ visões operacionais distintas | Cliente tab "OSs" com Ledger/Sales/Payments/Docs/Activities/Pessoas/Subscriptions/Rewards |
+| **Scroll horizontal interno** | Tabela com >5 colunas dentro de uma tab | Produto tab "Variações" com SKU/cor/tamanho/preço/estoque/foto |
+| **Cards colapsáveis** (`<Accordion>` shadcn) | Seções long-form opcionais ou raramente usadas | Produto tab "Fiscal" com NCM/CFOP/CST/CSOSN/Regime colapsado por default |
+
+**Razão pragmática:**
+- Paridade visual entre 7 entidades quebra se largura varia — Larissa decora 1× e re-aprende em cada
+- Toggle "expandir" adiciona estado UI persistente (cognitive load + edge cases de sync entre devices)
+- **Se realmente não cabe em 760**, é sinal de **mismatch de pattern** → entidade é workflow, não cadastral → migra pra **FOCO V2** (matriz de elegibilidade já cobre)
+- Sub-tabs aninhadas têm precedente validado (Cliente tab "OSs" comporta 8 sub-tabs em 640px content)
+
+**Anti-pattern Tier 0 nesta ADR:**
+- ❌ Drawer expansível 760→1040 on-demand
+- ❌ Drawer largura per-entidade (Produto 900, Cliente 760)
+- ❌ Largura responsiva por viewport (mobile 100% / desktop 760)
+- ❌ Modal/Sheet centralizado em vez de drawer lateral
+
 ### Tabs canônicas reutilizáveis (template DRY)
 
 Esta ADR oficializa **4 tabs reutilizáveis** que TODA entidade cadastral DEVE ter (template = Cliente):
@@ -195,39 +219,124 @@ Tabs específicas por entidade (5-8 típico): cada sub-agent identifica conforme
 - Spatie ActivityLog v4.8 instalado, zero código novo audit log.
 - Spec já provada — Cliente Wave A-G entregou em 3h elapsed (fator 10x IA-pair).
 
+## Preocupações adicionais — armadilhas catalogadas pra sub-agents
+
+Sub-agent que pegar qualquer Wave DEVE conferir estas armadilhas ANTES de codar:
+
+### Técnicas
+
+| Armadilha | Fix canon |
+|---|---|
+| **Conflito de concorrência autosave** — Maiara + Wagner editam mesmo registro simultâneo | Optimistic locking via `updated_at` check no PATCH; HTTP 409 retorna toast "Outro usuário editou — recarregue"; opcional merge UI |
+| **Cache stale na lista após autosave** — usuário salva, fecha drawer, nome não atualiza | Inertia partial reload `only:['<modulo>s']` no `onBlur` save success |
+| **Migration aditiva acumula colunas NULL na tabela core UPOS** — 7 entidades × 5-8 cols na mesma tabela `transactions`/`contacts` | Auditar tamanho tabela antes Wave; se >100 cols ou >1MB row size, considerar tabela paralela `<entidade>_meta` JSON |
+| **N+1 queries Tab IA** — cada card chama endpoint Brain B; 4 cards × N entidades em lista = latência ruim | Tab IA carrega apenas quando drawer aberto + tab IA ativa (`Inertia::defer` por tab, lazy) |
+| **Browser back button quebra drawer** — Inertia router default volta página inteira | `window.history.replaceState` + custom handler `popstate` fecha drawer antes de navegação |
+| **Inertia::defer + autosave race** — defer carrega dados depois do mount; autosave dispara antes campos default | Bloquear `onBlur` save até deferred props resolverem (flag `isHydrated` em state) |
+| **Mobile <1024px** — pattern não cobre | Fora de escopo desta ADR; futuro: drawer vira modal fullscreen em viewport <1024 |
+| **Print/Export PDF** — drawer 760 não imprime bem | Rota `/print` separada por entidade (gera Blade legacy ou Browsershot PDF); botão no header drawer |
+
+### UX
+
+| Armadilha | Fix canon |
+|---|---|
+| **Como abre drawer?** | Clique linha tabela = abre drawer; coluna "ação" final tem ícone `…`; atalhos `J/K` navegam linhas; `Enter` abre; `Esc` fecha |
+| **Filtros lista + drawer aberto** | Filtros persistem (localStorage namespace `oimpresso.<modulo>.filtros.*`); drawer abre POR CIMA da lista, não substitui |
+| **Notificação de mudança em background** | Polling 30s ou Centrifugo channel `<modulo>:<biz_id>:<entity_id>:updated` → alert "Outro usuário modificou X campo — atualizar?" |
+| **WCAG accessibility** | Drawer foca 1º campo input ao abrir; `Esc` fecha; `Tab` move; trap focus dentro drawer; aria-labels nas tabs |
+| **Modo dark/light** | Tabs usam tokens `oklch(--bg-card)` e `oklch(--fg-default)`; testar `data-theme="dark"` no smoke MCP |
+
+### Negócio
+
+| Armadilha | Fix canon |
+|---|---|
+| **Permissões granulares per-tab** — Maiara vê Auditoria mas não IA? | Permission Spatie por tab (ex `cliente.tab.ia.view` + `cliente.tab.auditoria.view`); `<{Modulo}Drawer>` renderiza tabs filtradas; Wagner decide gates per-business |
+| **Auditoria autosave dispara N eventos** | Spatie `LogsActivity` config `logOnlyDirty=true` + `submitEmptyLogs=false`; batch por blur (1 evento por field group) |
+| **LGPD esquecimento — registro anonimizado** | Drawer detecta `deleted_at` ou flag `anonymized_at` → renderiza modo readonly + tab Auditoria mostra eventos pré-anonimização com PII redacted |
+| **Off-line — Larissa internet ruim Cabo Frio** | LocalStorage queue de PATCH não-confirmados; retry automático ao reconectar; toast "X mudanças pendentes" |
+
+### Arquitetura
+
+| Armadilha | Fix canon |
+|---|---|
+| **FSM no drawer (ServiceOrder/Order)** — botão "Avançar status" inline? | Header drawer mostra `<StatusBadge>` atual + dropdown "Avançar pra: [próximo stage ▼]" no canto direito; FSM transition disparada por endpoint separado (não autosave); recarrega drawer após transition |
+| **Workflow-cadastral híbrido** (ServiceOrder, Order) — é cadastral OU workflow? | Critério: se entidade tem ≥3 tabs **identitárias** (Identif/Contato/Endereço/Comercial) → DRAWER 760. Se tem grid de itens >50 linhas OU upload >5MB → FOCO V2. ServiceOrder: ✅ cadastral. NF-e Emitir: ✅ workflow. |
+| **Dependências entre tabs** — Tab Endereço afeta cálculo frete Tab Comercial | Autosave PATCH retorna `recalculated_fields[]` no JSON; frontend atualiza state local + toast informativo "Frete recalculado: R$ X" |
+| **Validação multi-campo** — CPF inválido bloqueia save mas outro campo já salvou | Validação 2 camadas: blur-level (FormRequest single field) + commit-level (FormRequest multi-field no `<Drawer>.commit()` opcional); inválido marca campo + bloqueia transition FSM |
+
+### Performance
+
+| Armadilha | Fix canon |
+|---|---|
+| **Drawer carrega 8 tabs upfront** — bundle JS grande | Lazy load tabs via `React.lazy()` + `Suspense fallback={<TabSkeleton/>}` |
+| **Stream IA cards** — Brain B leva 2-5s, bloqueia blur de outro campo | Cards IA usam React 19 `<Suspense>` + AsyncBoundary; falha em 1 card não derruba os outros 3 |
+| **Lista re-render quando drawer fecha** | Inertia partial reload `only:['<modulo>s']` em vez de full reload; localStorage persiste posição scroll |
+
+### Ecosistema
+
+| Armadilha | Fix canon |
+|---|---|
+| **Skill `como-integrar` ativa** quando agent quer reusar tab IA em entidade nova | Wave plan inclui ativação manual da skill; copy `Cliente/_drawer/IATab.tsx` + adaptar prompts Brain B |
+| **Cypress/Playwright smoke** — pattern testes pra drawer multi-tab | RUNBOOK `RUNBOOK-drawer-smoke-MCP.md` canon (template = `RUNBOOK-Cliente-drawer-760px.md`) por entidade |
+| **Browser MCP smoke** — validar drawer abre/fecha/8 tabs/autosave | Script JS canon na skill `pageheader-canon` Fase 5 expandido pra incluir checks D1-D6 (drawer abre / 8 tabs / autosave / Auditoria / IA cards / Esc fecha) |
+| **PR template** — checklist específico Drawer 760 | `.github/pull_request_template.md` ganha section "## Drawer 760 (ADR 0185)" com 10 checks obrigatórios |
+
 ## Plano de execução
+
+### Estimates v2 — refinados conforme Wagner pergunta 2026-05-22 "e o trabalho que vai dar?"
+
+Estimate v1 (15h Produto / 12h ServiceOrders) era otimista — não considerava armadilhas catalogadas (concorrência autosave, FSM no drawer, workflow-cadastral híbrido, validação multi-campo, sub-tabs aninhadas). Refinamento +15-30% por entidade:
+
+| Wave | Entidade | Estimate v1 | **Estimate v2 realista** | Razão do ajuste |
+|---|---|---|---|---|
+| **VENDER** | Produto | 15h | **20-25h** | 8 tabs fiscais complexas (NCM/CFOP/CST/variações/imagens upload) |
+| **OPERAR** | OficinaAuto/ServiceOrders | 12h | **22-28h** | FSM 13 stages + itens grid + workflow-cadastral híbrido |
+| **OPERAR** | OficinaAuto/Vehicles | 8h | **10-12h** | 6 tabs simples (Identif/Proprietário/Técnico/Histórico/IA/Audit) |
+| **OPERAR** | Repair/DeviceModels | 6h | **8-10h** | 4 tabs técnicas |
+| **FINANÇAS** | RecurringBilling/Planos | 10h | **12-15h** | Ciclo cobrança + integração Inter |
+| **FINANÇAS** | TransactionPayment | 6h | **8-10h** | 4 tabs simples |
+| **F4 CI gate** | `drawer:health` | 3h | **4-6h** | Inclui PR template + Pest cobertura |
+| **Total IA-pair** | 6 entidades + gate | 75-100h | **85-110h** | +15% safety |
+
+**Plus relógio real:**
+- Wagner aprovar cada wave (sleep, smoke prod, decisões): ~2-4h × 4 waves = **8-16h relógio**
+- Smoke browser MCP por wave (skill `pageheader-canon` Fase 5 + RUNBOOK-drawer-smoke): 30min × 4 = **2h**
+- Re-trabalho pós-smoke (bugs descobertos em prod biz=1 canary): **10-15% safety buffer**
+
+**Estimate consolidado:** **85-110h IA-pair + ~4-6 dias relógio real paralelizado + ~1 dia Wagner aprovações cumulativo.**
 
 ### Wave VENDER (entidades cadastrais grupo vender hue 60)
 - **Produto/Create + Edit** → Drawer 760 com 8 tabs (Identif/Estoque/Preços/Variações/Fiscal/Imagens/IA/Auditoria)
-- Estimate: ~15h IA-pair (Produto tem mais complexidade — variações, fiscal NCM/CFOP, imagens)
+- Estimate v2: **20-25h IA-pair** (variações + fiscal NCM/CFOP/CST + imagens upload)
 - Owner: sub-agent paralelo
+- Armadilhas críticas: scroll horizontal interno na tab Variações; cards colapsáveis na tab Fiscal; upload Browsershot na tab Imagens
 
 ### Wave OPERAR (entidades cadastrais grupo operar hue 350)
-- **OficinaAuto/ServiceOrders/Create + Edit** → Drawer 760 com 7 tabs
+- **OficinaAuto/ServiceOrders/Create + Edit** → Drawer 760 com 7 tabs (incl FSM dropdown no header)
 - **OficinaAuto/Vehicles/Create + Edit** → Drawer 760 com 6 tabs
-- **Repair/DeviceModels/Create + Edit** → Drawer 760 com 4 tabs (cadastro técnico-cadastral híbrido)
-- Estimate: ~25h IA-pair (3 entidades paralelas, base já em prod)
+- **Repair/DeviceModels/Create + Edit** → Drawer 760 com 4 tabs
+- Estimate v2: **40-50h IA-pair** (3 entidades, base já em prod)
 - Owner: sub-agent paralelo
+- Armadilhas críticas ServiceOrders: FSM dropdown header + workflow-cadastral matriz (validar entidade É cadastral antes de codar) + dependências Tab Veículo → Tab Itens
 
 ### Wave FINANÇAS (entidades cadastrais grupo financas hue 145)
 - **RecurringBilling/Planos/Create + Edit** → Drawer 760 com 5 tabs
 - **TransactionPayment/Edit** → Drawer 760 com 4 tabs
-- Estimate: ~12h IA-pair
+- Estimate v2: **20-25h IA-pair**
 - Owner: sub-agent paralelo
+- Armadilhas críticas: integração Inter na tab Ciclo (RecurringBilling); cache stale lista Pagamentos pós-autosave
 
 ### Wave PESSOAS (avaliar elegibilidade caso a caso)
 - **Essentials/Knowledge** — Wagner decide se KB é cadastral (drawer) ou workflow (FOCO)
-- Estimate: ~8h IA-pair (depende decisão Wagner)
+- Estimate v2: **8-12h IA-pair** (depende decisão Wagner)
 
 ### Sequência sugerida
 
-1. **F0 — Esta ADR aceita** (1h Wagner review + push status `accepted`)
-2. **F1 — Wave piloto Produto** (single entity, agent paralelo, smoke MCP prod biz=1) — ~15h
-3. **F2 — Wave OPERAR + FINANÇAS paralelas** após F1 validado — ~25h+12h = 37h em ~1.5 dia elapsed
-4. **F3 — Wave PESSOAS decisão Wagner Knowledge** — ~8h
-5. **F4 — CI gate `drawer:health`** — valida `<Drawer{Modulo}>` em `Pages/<Modulo>/Index.tsx` das entidades elegíveis — warn-only inicial, hard após backfill — ~3h
-
-**Total estimado: 75-100h IA-pair / 4-6 dias elapsed paralelizado.**
+1. **F0 — Esta ADR aceita** ✅ aceita 2026-05-22 por Wagner ("eu gostei pode salvar")
+2. **F1 — Wave piloto Produto** (single entity, agent paralelo, smoke MCP prod biz=1) — **20-25h IA-pair**
+3. **F2 — Wave OPERAR + FINANÇAS paralelas** após F1 validado — **60-75h IA-pair** em ~2 dias elapsed
+4. **F3 — Wave PESSOAS decisão Wagner Knowledge** — **8-12h**
+5. **F4 — CI gate `drawer:health`** — valida `<Drawer{Modulo}>` em `Pages/<Modulo>/Index.tsx` das entidades elegíveis — warn-only inicial, hard após backfill — **4-6h**
 
 ## Multi-tenant Tier 0 ([ADR 0093](0093-multi-tenant-isolation-tier-0.md))
 
@@ -266,10 +375,18 @@ Tabs específicas por entidade (5-8 típico): cada sub-agent identifica conforme
 - PR #1381 Wave Ponto (FOCO V1 — fora do escopo desta ADR, mantém pattern atual)
 - Wagner decisão 2026-05-22 "Cliente Drawer 760 pra TUDO (escalar ADR 0179)" + "está sendo migrado para novo padrão mais bonito" — sessão `frosty-greider-83ab2f`
 
-## Como aceitar esta ADR
+## Aceitação
 
-1. **Wagner revisa** este draft completo
-2. **Wagner aprova** OU edita matriz de elegibilidade (7 entidades) OU rejeita patterns específicos
-3. **Wagner muda `status: proposed` → `status: accepted`** + adiciona `accepted_at: "YYYY-MM-DD"` + `accepted_via: "comando exato Wagner"`
-4. **PR separado mergeia esta ADR** (commit-discipline ≤300 LOC já cumpre)
-5. **Sub-agents subsequentes** podem iniciar Wave Produto (F1) seguindo template Cliente
+✅ **Aceita 2026-05-22 por Wagner** em sessão `frosty-greider-83ab2f` — comando exato: *"eu gostei pode salvar"*.
+
+Sub-agents podem agora iniciar **Wave Produto (F1)** seguindo template Cliente + matriz de armadilhas catalogadas nesta ADR.
+
+### Antes de cada Wave começar — checklist obrigatório do sub-agent
+
+1. Ler esta ADR completa + skill [`pageheader-canon`](../../.claude/skills/pageheader-canon/SKILL.md) Fase 4-bis
+2. Confirmar entidade É cadastral conforme matriz (≥5 campos identitários + IA/Auditoria fazem sentido)
+3. Listar tabs propostas + estrutura `_drawer/` antes de codar (apresentar pra Wagner aprovar)
+4. Verificar armadilhas críticas da seção "Preocupações adicionais" que se aplicam à entidade
+5. Estimate realista por entidade conforme tabela v2 (NÃO usar estimate v1 otimista)
+6. Skill `wagner-understand` pré-implementação OBRIGATÓRIA pra Waves >15h IA-pair
+7. PR atômico por entidade (commit-discipline; encadear PRs como Wave A-G Cliente fez)
