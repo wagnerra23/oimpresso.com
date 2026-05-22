@@ -175,11 +175,11 @@ Route::middleware(['web'])->group(function () {
 });
 
 // Ghosts canon ADR 0182 — aliases pros destinos reais (Wagner 2026-05-22):
-//   /jana/memorias → /jana/memoria (KB MemoriaController; já existe)
-//   /jana/kb       → /knowledge-base (Essentials KnowledgeBaseController; já existe)
+//   /jana/memorias → /jana/memoria              (KB MemoriaController; já existe)
+//   /jana/kb       → /essentials/knowledge-base (Essentials KnowledgeBaseController; já existe)
 // Mantém ghost clicável + nome curto no header sem duplicar tela.
-Route::redirect('/jana/memorias', '/jana/memoria',   302);
-Route::redirect('/jana/kb',       '/knowledge-base', 302);
+Route::redirect('/jana/memorias', '/jana/memoria',              302);
+Route::redirect('/jana/kb',       '/essentials/knowledge-base', 302);
 
 // ===========================================================================
 // 2) Rotas de instalação 1-clique — prefixo /jana/install (canônico após rename)
