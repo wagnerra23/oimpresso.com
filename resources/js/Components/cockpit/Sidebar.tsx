@@ -148,8 +148,8 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'comercial',
     label: 'COMERCIAL',
-    items: ['Crm', 'CRM', 'Vendas', 'Orçamentos',
-            'WooCommerce', 'Woocommerce'],
+    // Wagner 2026-05-22: só Crm + Vendas (Woocommerce REMOVIDO).
+    items: ['Crm', 'CRM', 'Vendas'],
   },
   {
     key: 'estoque',
