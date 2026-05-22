@@ -84,6 +84,14 @@ Route::group([
     'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
     'prefix'     => 'atendimento',
 ], function () {
+    // Rota raiz /atendimento — entry-point canon do hub Atendimento (ADR 0180
+    // sidebar v3 — shortcut topo "Atendimento" aponta /atendimento zero-hop).
+    // Alias pra CaixaUnificadaController@index pra evitar 1 redirect extra.
+    // Wagner 2026-05-22: vertical-slice Atendimento piloto sidebar v3.
+    Route::get('/', [CaixaUnificadaController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.index');
+
     // CUTOVER 2026-05-15: GET /inbox redireciona pra Caixa Unificada V4 (301 permanent).
     // Inventário §6 do INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md.
     // - Route name `atendimento.inbox.index` preservado (compat Pest + frontend legacy)

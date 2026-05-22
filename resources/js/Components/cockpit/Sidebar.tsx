@@ -465,7 +465,7 @@ function SidebarShortcuts({
         </a>
       )}
       {showAtendimento && (
-        <a href="/atendimento/inbox" className="sb-shortcut">
+        <a href="/atendimento" className="sb-shortcut">
           <MessageCircle size={13} />
           <span className="label">Atendimento</span>
           {!!atendimentoCount && <span className="badge">{atendimentoCount}</span>}
@@ -687,7 +687,7 @@ function SidebarMenuRail({
       )}
       {showAtendimento && (
         <a
-          href="/atendimento/inbox"
+          href="/atendimento"
           className="sb-rail-btn"
           data-tip="Atendimento"
           onClick={() => setFlyout(null)}
