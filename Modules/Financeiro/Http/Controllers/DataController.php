@@ -94,269 +94,53 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $segmento_ativo = request()->segment(1) == 'financeiro';
 
-        // Sidebar: Wagner 2026-05-20 evoluiu pra 12 entradas em 3 SUB-GRUPOS
-        // visuais (Opção B "melhor usabilidade"). Cada entrada declara o
-        // sub-grupo via `'group' => 'fin-op|fin-analise|fin-config'`.
-        // SIDEBAR_GROUPS no frontend (Sidebar.tsx) renderiza 3 cabeçalhos
-        // colapsáveis separados — Operação abre por default (uso diário).
+        // Wagner 2026-05-22 direção canon: 1 entry sidebar + 4 ghosts canon
+        // (Caixa · Cobrança · Financeiro · Relatório). Remove 12 entries
+        // duplicadas que poluíam o grupo FINANÇAS. Sub-items são absorvidos
+        // como tabs/seções DENTRO dos 4 hubs canon (acessíveis via header
+        // PageHeaderTabs ARIA + URL direta).
         //
-        // Ordem canônica (12 entradas):
-        //   FINANCEIRO · OPERAÇÃO (aberto por default — diário)
-        //     85.00  Visão Unificada       /financeiro/unificado
-        //     85.10  Contas a Receber      /financeiro/contas-receber       ← novo no sidebar
-        //     85.20  Contas a Pagar        /financeiro/contas-pagar         ← novo no sidebar
-        //     85.30  Fluxo de Caixa        /financeiro/fluxo
-        //     85.40  Cobrança              /financeiro/cobranca
-        //     85.45  Caixa do turno        /financeiro/caixa (Fase 6 Soft)
-        //   FINANCEIRO · ANÁLISE (fechado — mensal)
-        //     85.50  Conciliação           /financeiro/conciliacao
-        //     85.60  DRE                   /financeiro/dre
-        //     85.70  Relatórios            /financeiro/relatorios (legacy, cleanup PR D)
-        //   FINANCEIRO · AJUSTES (fechado — config)
-        //     85.80  Contas Bancárias      /financeiro/contas-bancarias
-        //     85.85  Plano de Contas       /financeiro/plano-contas
-        //     85.90  Categorias            /financeiro/categorias
-        //     85.95  Contador (Advisor)    /financeiro/configuracoes/contador
+        // Mapping canon (Wagner 2026-05-22):
+        //   Caixa     → /financeiro/caixa      (absorve Conciliação + Contas Bancárias)
+        //   Cobrança  → /financeiro/cobranca   (absorve Contas a Receber)
+        //   Financeiro → /financeiro/unificado (default — absorve Contas a Pagar + Fluxo)
+        //   Relatório → /financeiro/relatorios (absorve DRE)
         //
-        // Permission gates permanecem no gate global `financeiro.access`
-        // (linha 90) — sidebar só esconde a entrada se módulo desligado.
-        // Itens NOVOS declaram 'group' => 'fin' (Wagner regra 2026-05-19:
-        // nunca hardcode label no SIDEBAR_GROUPS frontend, sempre via
-        // DataController). LegacyMenuAdapter propaga essa key pro
-        // ShellMenuItem.group, Sidebar.tsx findGroupKey usa antes do label match.
+        // TODO Fase 4 user menu cascade (Wagner aprovou 2026-05-22):
+        //   Plano de Contas + Categorias + Contador vão pra cascade
+        //   "Configurações do business" no user menu (rodapé). Por ora,
+        //   acessíveis via URL direta /financeiro/plano-contas, /categorias,
+        //   /configuracoes/contador (rotas continuam existindo).
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
-                // ═══════════════════════════════════════════════════════════
-                // SUB-GRUPO 1: FINANCEIRO · OPERAÇÃO (aberto por default)
-                // Uso diário — Larissa @ ROTA LIVRE vê sem clicar.
-                // ═══════════════════════════════════════════════════════════
-
-                // Visão Unificada — cockpit AR+AP (entrada principal).
+                // Entry única — hub Financeiro com 4 ghosts canon no header.
                 //
-                // ADR 0180 Fase 4 piloto Financeiro (2026-05-21): entry principal
-                // declara atributos extras que LegacyMenuAdapter propaga pro frontend:
-                //  - `shortcut` G F → atalho kbd canônico (overlay visual em Fase 8)
-                //  - `primary`     → botão "+ Novo título" colorido (PageHeaderTabs)
-                //  - `ghosts`      → 13 tabs ARIA da tela /financeiro/unificado
-                //
-                // As outras 12 entries continuam exibidas no sidebar (Wagner Opção B
-                // 2026-05-20 — sub-grupos visuais Operação/Análise/Ajustes preservada).
-                // Quando Fase 5 entregar PageHeaderTabs nas telas, a navegação
-                // contextual entre sub-views vai espelhar este shape — sidebar pode
-                // então enxugar pras 1 entry canon em PR futuro sem quebrar UX.
-                //
-                // hrefs dos ghosts usam path absoluto (url() seria interpretado pelo
-                // LegacyMenuAdapter::toRelative). Espelha contrato
-                // App\Sidebar\SidebarGhost (kebab-case key + label + path absoluto).
+                // ADR 0180 + Wagner 2026-05-22 direção: reduz 13→4 ghosts.
+                // PageHeaderTabs renderiza inline (Caixa/Cobrança/Financeiro/
+                // Relatório), todos visíveis sem overflow.
                 $menu->url(
                     url('/financeiro/unificado'),
                     __('financeiro::financeiro.module_label'),
                     [
                         'icon'     => 'fa fas fa-coins',
                         'style'    => 'background-color:' . $background_color,
-                        'active'   => $segmento_ativo && (request()->segment(2) == 'unificado' || request()->segment(2) == null),
-                        'group'    => 'fin-op',
+                        'active'   => $segmento_ativo,
+                        'group'    => 'financas',
                         'shortcut' => 'G F',
                         'primary'  => [
                             'label'    => 'Novo título',
                             'href'     => '/financeiro/lancamentos/create',
                             'shortcut' => 'N',
                         ],
-                        // ADR 0182 + Wagner 2026-05-21 review: labels CURTOS pra caber mais
-                        // ghost tabs inline. Label original completa preservada como tooltip
-                        // futuro (F3 PageHeader). Mental model Larissa: "Receber/Pagar/Fluxo/
-                        // Bancos/Plano" — verbos+substantivos contextualizados.
                         'ghosts'   => [
-                            ['key' => 'unificado',         'label' => 'Financeiro',   'href' => '/financeiro/unificado'],
-                            ['key' => 'contas-receber',    'label' => 'Receber',      'href' => '/financeiro/contas-receber'],
-                            ['key' => 'contas-pagar',      'label' => 'Pagar',        'href' => '/financeiro/contas-pagar'],
-                            ['key' => 'fluxo',             'label' => 'Fluxo',        'href' => '/financeiro/fluxo'],
-                            ['key' => 'cobranca',          'label' => 'Cobrança',     'href' => '/financeiro/cobranca'],
-                            ['key' => 'caixa',             'label' => 'Caixa',        'href' => '/financeiro/caixa'],
-                            ['key' => 'conciliacao',       'label' => 'Conciliação',  'href' => '/financeiro/conciliacao'],
-                            ['key' => 'dre',               'label' => 'DRE',          'href' => '/financeiro/dre'],
-                            ['key' => 'relatorios',        'label' => 'Relatórios',   'href' => '/financeiro/relatorios'],
-                            ['key' => 'contas-bancarias',  'label' => 'Bancos',       'href' => '/financeiro/contas-bancarias'],
-                            ['key' => 'plano-contas',      'label' => 'Plano',        'href' => '/financeiro/plano-contas'],
-                            ['key' => 'categorias',        'label' => 'Categorias',   'href' => '/financeiro/categorias'],
-                            ['key' => 'contador',          'label' => 'Contador',     'href' => '/financeiro/configuracoes/contador'],
+                            ['key' => 'caixa',      'label' => 'Caixa',      'href' => '/financeiro/caixa'],
+                            ['key' => 'cobranca',   'label' => 'Cobrança',   'href' => '/financeiro/cobranca'],
+                            ['key' => 'financeiro', 'label' => 'Financeiro', 'href' => '/financeiro/unificado'],
+                            ['key' => 'relatorio',  'label' => 'Relatório',  'href' => '/financeiro/relatorios'],
                         ],
                     ]
                 )->order(85.00);
-
-                // Contas a Receber — Wagner 2026-05-20: cliente PME pede recorte
-                // dedicado (mental model contábil BR). Tela já existia em
-                // Pages/Financeiro/ContasReceber/Index.tsx, só faltava sidebar.
-                $menu->url(
-                    url('/financeiro/contas-receber'),
-                    'Contas a Receber',
-                    [
-                        'icon'   => 'fa fas fa-hand-holding-usd',
-                        'active' => $segmento_ativo && request()->segment(2) === 'contas-receber',
-                        'group'  => 'fin-op',
-                    ]
-                )->order(85.10);
-
-                // Contas a Pagar — idem (par CR/CP é padrão de mercado BR:
-                // Conta Azul, Bling, Omie, Tiny, ContaSimples todos têm visíveis).
-                $menu->url(
-                    url('/financeiro/contas-pagar'),
-                    'Contas a Pagar',
-                    [
-                        'icon'   => 'fa fas fa-money-bill-wave',
-                        'active' => $segmento_ativo && request()->segment(2) === 'contas-pagar',
-                        'group'  => 'fin-op',
-                    ]
-                )->order(85.20);
-
-                // Fluxo de Caixa — projetado por vencimento dos títulos abertos.
-                // (Cash Flow legacy do core UltimatePOS = realizado histórico,
-                // será absorvido em Fase 3 com tabs Projetado/Realizado.)
-                $menu->url(
-                    url('/financeiro/fluxo'),
-                    __('financeiro::financeiro.cashflow_label'),
-                    [
-                        'icon'   => 'fa fas fa-chart-line',
-                        'active' => $segmento_ativo && request()->segment(2) == 'fluxo',
-                        'group'  => 'fin-op',
-                    ]
-                )->order(85.30);
-
-                // Cobrança — F3 PaymentGateway UI Tela 1 (ADR 0144 + 0170)
-                // Wagner 2026-05-19: substitui "Boletos" / "Gateway de Pagamento"
-                // legacy. Escopo expandido pra boleto+pix+pix_recv+card.
-                $menu->url(
-                    url('/financeiro/cobranca'),
-                    __('financeiro::financeiro.cobranca_label'),
-                    [
-                        'icon'   => 'fa fas fa-credit-card',
-                        'active' => $segmento_ativo && request()->segment(2) === 'cobranca',
-                        'group'  => 'fin-op',
-                    ]
-                )->order(85.40);
-
-                // Caixa do turno — Wagner 2026-05-21 Fase 6 Soft (wrapper Inertia).
-                // Tela read-only sobre cash_registers core UltimatePOS; lifecycle
-                // abrir/fechar continua na header POS. Larissa descobre histórico
-                // de fechamentos sem precisar voltar à tela POS.
-                // Permission gate `view_cash_register` enforce no CaixaController.
-                if (auth()->user()->can('view_cash_register')) {
-                    $menu->url(
-                        url('/financeiro/caixa'),
-                        'Caixa do turno',
-                        [
-                            'icon'   => 'fa fas fa-cash-register',
-                            'active' => $segmento_ativo && request()->segment(2) === 'caixa',
-                            'group'  => 'fin-op',
-                        ]
-                    )->order(85.45);
-                }
-
-                // ═══════════════════════════════════════════════════════════
-                // SUB-GRUPO 2: FINANCEIRO · ANÁLISE (fechado por default)
-                // Uso mensal — relatórios + reconciliação.
-                // ═══════════════════════════════════════════════════════════
-
-                // Conciliação OFX (Onda 19 #49 entregue 2026-05-19 — antes
-                // descoberta só via deeplink). Tarefa mensal de alto valor.
-                $menu->url(
-                    url('/financeiro/conciliacao'),
-                    'Conciliação',
-                    [
-                        'icon'   => 'fa fas fa-exchange-alt',
-                        'active' => $segmento_ativo && request()->segment(2) === 'conciliacao',
-                        'group'  => 'fin-analise',
-                    ]
-                )->order(85.50);
-
-                // DRE gerencial — Wave DRE 2026-05-20 PR C (#1272) reaplicação canon.
-                // Tela dedicada `/financeiro/dre` (TelaDRE hierárquica clássica:
-                // Receita bruta → Deduções → Receita líquida → Custos → Lucro bruto
-                // → Despesas → Resultado operacional). Substitui tab DRE da
-                // antiga `/financeiro/relatorios` (que ficará só com Fluxo+Resumo,
-                // cleanup em PR D).
-                $menu->url(
-                    url('/financeiro/dre'),
-                    __('financeiro::financeiro.dre_label'),
-                    [
-                        'icon'   => 'fa fas fa-file-invoice-dollar',
-                        'active' => $segmento_ativo && request()->segment(2) == 'dre',
-                        'group'  => 'fin-analise',
-                    ]
-                )->order(85.60);
-
-                // Relatórios (resumo + fluxo agregado) — entrada legada,
-                // mantida até PR D (cleanup tab DRE de Relatorios/Index.tsx);
-                // avaliar absorção em Dashboard depois.
-                $menu->url(
-                    url('/financeiro/relatorios'),
-                    __('financeiro::financeiro.relatorios_label'),
-                    [
-                        'icon'   => 'fa fas fa-chart-pie',
-                        'active' => $segmento_ativo && request()->segment(2) == 'relatorios',
-                        'group'  => 'fin-analise',
-                    ]
-                )->order(85.70);
-
-                // ═══════════════════════════════════════════════════════════
-                // SUB-GRUPO 3: FINANCEIRO · AJUSTES (fechado por default)
-                // Setup — usuário cadastra 1× e esquece.
-                // ═══════════════════════════════════════════════════════════
-
-                // Contas Bancárias — Wagner 2026-05-19 reportou que /financeiro
-                // não permitia cadastrar conta + vincular credencial gateway.
-                $menu->url(
-                    url('/financeiro/contas-bancarias'),
-                    'Contas Bancárias',
-                    [
-                        'icon'   => 'fa fas fa-university',
-                        'active' => $segmento_ativo && request()->segment(2) === 'contas-bancarias',
-                        'group'  => 'fin-config',
-                    ]
-                )->order(85.80);
-
-                // Plano de Contas (Onda 18 #48 entregue 2026-05-19 — antes
-                // só acessível via botão dentro de /unificado).
-                $menu->url(
-                    url('/financeiro/plano-contas'),
-                    'Plano de Contas',
-                    [
-                        'icon'   => 'fa fas fa-sitemap',
-                        'active' => $segmento_ativo && request()->segment(2) === 'plano-contas',
-                        'group'  => 'fin-config',
-                    ]
-                )->order(85.85);
-
-                // Categorias — CRUD livre complementar ao Plano de Contas.
-                $menu->url(
-                    url('/financeiro/categorias'),
-                    'Categorias',
-                    [
-                        'icon'   => 'fa fas fa-tags',
-                        'active' => $segmento_ativo && request()->segment(2) === 'categorias',
-                        'group'  => 'fin-config',
-                    ]
-                )->order(85.90);
-
-                // Contador (Portal Advisor) — Onda 31 #57 US-FIN-037 MVP
-                // 2026-05-20. Owner concede acesso somente-leitura ao contador
-                // parceiro (CNPJ + LGPD consent + escopo Unificado/Relatórios).
-                // Permission gate `financeiro.advisor.grant` enforce no
-                // AdvisorAccessController; sidebar não filtra por permissão
-                // (pattern consistente — gate global `financeiro.access`
-                // linha 90 cobre o módulo).
-                $menu->url(
-                    url('/financeiro/configuracoes/contador'),
-                    'Contador',
-                    [
-                        'icon'   => 'fa fas fa-user-tie',
-                        'active' => $segmento_ativo
-                            && request()->segment(2) === 'configuracoes'
-                            && request()->segment(3) === 'contador',
-                        'group'  => 'fin-config',
-                    ]
-                )->order(85.95);
             }
         );
     }
