@@ -91,73 +91,11 @@ class DataController extends Controller
             return;
         }
 
-        // Agrupamento visual em "FISCAL" acontece no frontend (SIDEBAR_GROUPS
-        // em resources/js/Components/cockpit/Sidebar.tsx). DataController
-        // publica o dropdown standalone do módulo.
-        $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-        $segmento_ativo   = request()->segment(1) == 'nfse';
-
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry NFSe
-                // é ghost do módulo principal Fiscal/NfeBrasil — sem shortcut próprio
-                // (apenas NfeBrasil G X). Primary action "Emitir NFSe" + ghosts
-                // espelham sub-views próprias declarados pro frontend Sidebar.tsx.
-                $menu->dropdown(
-                    'NFSe',
-                    function ($sub) {
-                        // Listagem (US-NFSE-008)
-                        $sub->url(
-                            url('/nfse'),
-                            'Notas Emitidas',
-                            [
-                                'icon'   => 'fa fas fa-list',
-                                'active' => request()->segment(1) == 'nfse' && ! request()->segment(2),
-                            ]
-                        );
-
-                        // Emissão (US-NFSE-009)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfse.emit')) {
-                            $sub->url(
-                                url('/nfse/emitir'),
-                                'Emitir NFSe',
-                                [
-                                    'icon'   => 'fa fas fa-plus-circle',
-                                    'active' => request()->segment(2) == 'emitir',
-                                ]
-                            );
-                        }
-
-                        // Configurações (US-NFSE-014)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfse.settings')) {
-                            $sub->url(
-                                url('/nfse/config'),
-                                'Configurações',
-                                [
-                                    'icon'   => 'fa fas fa-cog',
-                                    'active' => request()->segment(2) == 'config',
-                                ]
-                            );
-                        }
-                    },
-                    [
-                        'icon'    => 'fa fas fa-file-invoice',
-                        'style'   => 'background-color:' . $background_color,
-                        'active'  => $segmento_ativo,
-                        'primary' => [
-                            'label'    => 'Emitir NFSe',
-                            'href'     => '/nfse/emitir',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'  => [
-                            ['key' => 'notas-emitidas', 'label' => 'Notas Emitidas', 'href' => '/nfse'],
-                            ['key' => 'emitir',         'label' => 'Emitir NFSe',    'href' => '/nfse/emitir'],
-                            ['key' => 'config',         'label' => 'Configurações',  'href' => '/nfse/config'],
-                        ],
-                    ]
-                )->order(96);
-            }
-        );
+        // Wagner 2026-05-22: NFSe entry REMOVIDA do sidebar. Hub canon "Fiscal"
+        // (Modules/NfeBrasil) cobre NF-e + NFSe via tabs internas na tela
+        // /nfebrasil. NFSe continua acessível via URL direta /nfse (rotas
+        // intactas) e em ghost futuro do hub Fiscal quando unificarmos telas.
+        //
+        // Pattern espelha Modules/Fiscal e Modules/RecurringBilling (anteriores).
     }
 }

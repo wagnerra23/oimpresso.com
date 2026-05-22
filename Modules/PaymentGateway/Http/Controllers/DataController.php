@@ -96,26 +96,27 @@ class DataController extends Controller
         $segmento_settings = request()->segment(1) === 'settings'
             && request()->segment(2) === 'payment-gateways';
 
+        // Wagner 2026-05-22 fix: label hardcoded literal pra resolver bug i18n
+        // que mostrava 'paymentgateway:paymentga...' no sidebar. Lang file existe
+        // mas namespace `paymentgateway::` não carregava (OPcache Hostinger ou
+        // module discovery). Hardcode é exceção pragmática à regra "frontend
+        // não hardcode label" — DataController PHP pode hardcode quando lang
+        // resolve quebra em prod. group: 'financas' canon v3.
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_settings) {
-            // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry é ghost
-            // do módulo principal Financeiro (G F) — sem shortcut próprio. Primary
-            // "Conectar gateway" + ghost single-element pra mante shape contratual
-            // (Wave A ProductCatalogue precedent — Sidebar.tsx aceita array 1-elem).
-            // group: 'fin' legacy preservado — LEGACY_GROUP_MAP cobre fin→financas v3.
             $menu->url(
                 url('/settings/payment-gateways'),
-                __('paymentgateway::paymentgateway.module_label'),
+                'Gateway de Pagamento',
                 [
                     'icon'    => 'fa fas fa-key',
                     'active'  => $segmento_settings,
-                    'group'   => 'fin',
+                    'group'   => 'financas',
                     'primary' => [
                         'label'    => 'Conectar gateway',
                         'href'     => '/settings/payment-gateways',
                         'shortcut' => 'N',
                     ],
                     'ghosts'  => [
-                        ['key' => 'payment-gateways', 'label' => 'Gateways de Pagamento', 'href' => '/settings/payment-gateways'],
+                        ['key' => 'payment-gateways', 'label' => 'Gateway de Pagamento', 'href' => '/settings/payment-gateways'],
                     ],
                 ]
             )->order(85.4);
