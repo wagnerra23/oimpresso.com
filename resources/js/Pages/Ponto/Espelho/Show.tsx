@@ -8,6 +8,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/EspelhoShowTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import {
@@ -97,22 +98,19 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
     <>
       <Head title={`Espelho · ${colaborador.nome} · ${mes}`} />
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <ClipboardList size={22} /> Espelho de Ponto
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              <strong>{colaborador.nome}</strong>
-              {colaborador.matricula && <span className="ml-2">mat. {colaborador.matricula}</span>}
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Espelho <span className="text-stone-400 font-normal">· {colaborador.nome}</span></h1>
+            <p>
+              {colaborador.matricula && <span>mat. {colaborador.matricula}</span>}
               {colaborador.escala && <span className="ml-2">· Escala: {colaborador.escala}</span>}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="os-page-h-r">
+            <PontoSubNav active="espelho" hidePrimary />
             <Button variant="outline" size="sm" asChild>
-              <Link href="/ponto/espelho">
-                <ArrowLeft size={14} className="mr-1.5" /> Voltar
-              </Link>
+              <Link href="/ponto/espelho"><ArrowLeft size={14} className="mr-1.5" /> Voltar</Link>
             </Button>
             <Button size="sm" asChild>
               <a href={`/ponto/espelho/${colaborador.id}/imprimir?mes=${mes}`} target="_blank" rel="noreferrer">

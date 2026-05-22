@@ -15,7 +15,8 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
 
-import PageHeader from '@/Components/shared/PageHeader';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
 import EmptyState from '@/Components/shared/EmptyState';
 
 interface Escala {
@@ -43,18 +44,19 @@ export default function EscalasIndex({ escalas }: Props) {
   return (
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <PageHeader
-          icon="calendar-days"
-          title="Escalas"
-          description="Padrões de jornada (fixa, flexível, 12x36, etc.). Cada escala tem turnos por dia da semana."
-          action={
-            <Button asChild>
-              <Link href="/ponto/escalas/create">
-                <Plus size={14} className="mr-1.5" /> Nova escala
-              </Link>
-            </Button>
-          }
-        />
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Escalas <span className="text-stone-400 font-normal">· Padrões de jornada</span></h1>
+            <p>Fixa, flexível, 12x36, etc. Cada escala tem turnos por dia da semana.</p>
+          </div>
+          <div className="os-page-h-r">
+            <PontoSubNav active="escalas" hidePrimary />
+            <PontoPrimaryButton onClick={() => router.visit('/ponto/escalas/create')}>
+              Nova escala
+            </PontoPrimaryButton>
+          </div>
+        </header>
 
         <Card>
           <CardContent className="p-0">

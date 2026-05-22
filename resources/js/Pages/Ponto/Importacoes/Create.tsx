@@ -47,15 +47,17 @@ export default function ImportacoesCreate() {
   return (
     <>
       <div className="mx-auto max-w-2xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <FileUp size={22} /> Nova importação
-            </h1>
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Nova importação <span className="text-stone-400 font-normal">· AFD/AFDT</span></h1>
+            <p>Envie arquivo AFD (Portaria MTP 671/2021) ou AFDT gerado pelo REP.</p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <a href="/ponto/importacoes"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
-          </Button>
+          <div className="os-page-h-r">
+            <Button variant="outline" size="sm" asChild>
+              <a href="/ponto/importacoes"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
+            </Button>
+          </div>
         </header>
 
         <Alert>
