@@ -134,10 +134,12 @@ class DataController extends Controller
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [
-                            ['key' => 'caixa',      'label' => 'Caixa',      'href' => '/financeiro/caixa'],
-                            ['key' => 'cobranca',   'label' => 'Cobrança',   'href' => '/financeiro/cobranca'],
-                            ['key' => 'financeiro', 'label' => 'Financeiro', 'href' => '/financeiro/unificado'],
-                            ['key' => 'relatorio',  'label' => 'Relatório',  'href' => '/financeiro/relatorios'],
+                            ['key' => 'caixa',              'label' => 'Caixa',              'href' => '/financeiro/caixa'],
+                            ['key' => 'cobranca',           'label' => 'Cobrança',           'href' => '/financeiro/cobranca'],
+                            ['key' => 'financeiro',         'label' => 'Financeiro',         'href' => '/financeiro/unificado'],
+                            ['key' => 'relatorio',          'label' => 'Relatório',          'href' => '/financeiro/relatorios'],
+                            // Wagner 2026-05-22: Cobrança Recorrente vai pro ÚLTIMO no Financeiro.
+                            ['key' => 'cobranca-recorrente','label' => 'Cobrança Recorrente','href' => '/recurring-billing'],
                         ],
                     ]
                 )->order(85.00);
