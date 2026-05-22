@@ -8,6 +8,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesShowTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
 import { AlertTriangle, ArrowLeft, Download, FileUp } from 'lucide-react';
@@ -54,19 +55,19 @@ export default function ImportacoesShow({ importacao: i }: Props) {
     <>
       <Head title={`Importação #${i.id}`} />
       <div className="mx-auto max-w-4xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <FileUp size={22} /> Importação #{i.id}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Importação #{i.id} <span className="text-stone-400 font-normal">· AFD</span></h1>
+            <p className="flex items-center gap-2">
               <Badge variant={estadoVariant[i.estado] ?? 'outline'} className="text-[10px]">
                 {(i.estado ?? '').replace('ESTADO_', '')}
               </Badge>
               <span>{i.nome_arquivo}</span>
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="os-page-h-r">
+            <PontoSubNav active="importacoes" hidePrimary />
             <Button variant="outline" size="sm" asChild>
               <a href="/ponto/importacoes"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
             </Button>

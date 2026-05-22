@@ -16,7 +16,8 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
 
-import PageHeader from '@/Components/shared/PageHeader';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -117,21 +118,28 @@ export default function DashboardIndex({
   return (
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <PageHeader
-          icon="layout-dashboard"
-          title="Dashboard"
-          description={`Visão geral do ponto eletrônico — hoje, ${new Date().toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-          })}`}
-          action={
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
-              <span>atualizado agora · {server_time}</span>
-            </span>
-          }
-        />
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>
+              Dashboard <span className="text-stone-400 font-normal">· Ponto eletrônico</span>
+            </h1>
+            <p>
+              {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+              {' · atualizado '}
+              <span className="inline-flex items-center gap-1 text-emerald-600">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+                {server_time}
+              </span>
+            </p>
+          </div>
+          <div className="os-page-h-r">
+            <PontoSubNav active="dashboard" hidePrimary />
+            <PontoPrimaryButton onClick={() => router.visit('/ponto')}>
+              Bater ponto
+            </PontoPrimaryButton>
+          </div>
+        </header>
 
         {/* KPIs */}
         <KpiGrid cols={6}>
