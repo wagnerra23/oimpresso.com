@@ -193,6 +193,8 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     items: ['Governança', 'Plataforma', 'Auditoria',
             'Modelos de notificação', 'Modelo de notificação',
             'Relatórios', 'Dashboard',
+            // Wagner 2026-05-22: Planilha vai pra SISTEMA.
+            'Planilha', 'Spreadsheet',
             // Superadmin top-level entry removida (PR #1407) — mantém alias
             // pra futuros DataControllers que ainda declarem com esse label.
             'Superadmin'],
