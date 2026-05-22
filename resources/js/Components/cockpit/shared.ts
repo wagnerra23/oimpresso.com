@@ -169,11 +169,18 @@ export const SIDEBAR_GROUP_HUE: Record<string, number> = {
   equipe: 270,       // roxo — Team MCP
 
   // ── 5 grupos canônicos v3 ──
-  vender: 60,        // amarelo — energia comercial
-  operar: 350,       // magenta — OS/Produção/Estoque
+  vender: 60,        // amarelo — energia comercial (legacy)
+  operar: 350,       // magenta — OS/Produção/Estoque (legacy)
   financas: 145,     // verde — financeiro + fiscal
-  pessoas: 295,      // roxo claro — RH
+  pessoas: 295,      // roxo claro — RH (legacy key)
   sistema: 200,      // azul-acinzentado — governança + plataforma
+
+  // ── 7 grupos canon Wagner 2026-05-22 (CADASTRO·COMERCIAL·FINANÇAS·PRODUÇÃO·
+  //     ESTOQUE·RH·SISTEMA). Cores semanticamente mapeadas pra mental model PME-BR.
+  cadastro: 220,     // azul — dados/registro
+  comercial: 60,     // amarelo — energia comercial (= vender legacy)
+  producao: 350,     // magenta — fábrica/atividade (= operar legacy)
+  estoque: 280,      // roxo profundo — caixas/inventory
 
   // ── Legacy v2 (preservadas durante migração faseada — removidas na F9) ──
   office: 60,             // → vender
