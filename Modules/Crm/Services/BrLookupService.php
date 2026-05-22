@@ -108,9 +108,17 @@ class BrLookupService
     /**
      * Consulta CNPJ via BrasilAPI com cache Redis 30 dias.
      *
+     * Retorno inclui dados de endereco normalizados pro contrato
+     * ClienteAutosaveController::endereco (canon UPOS: zip_code,
+     * address_line_1, neighborhood, city, state). Wagner 2026-05-22 --
+     * antes so trazia razao_social/fantasia, drawer 760 ficava com aba
+     * Endereco vazia mesmo a BrasilAPI tendo respondido tudo na mesma
+     * chamada. Agora IdentificacaoTab.handleCnpjLookup propaga endereco
+     * pra PATCH /cliente/{id}/endereco no mesmo fluxo.
+     *
      * @param  string  $cnpj  CNPJ em qualquer formato (so digitos sao usados)
-     * @return array{razao_social:string,fantasia:string,ie:string|null,situacao:string}|null
-     *                                                                                       null = CNPJ invalido (formato), CNPJ nao existe, ou erro upstream
+     * @return array{razao_social:string,fantasia:string,ie:string|null,situacao:string,zip_code:string,address_line_1:string,neighborhood:string,city:string,state:string}|null
+     *                                                                                                                                                                       null = CNPJ invalido (formato), CNPJ nao existe, ou erro upstream
      */
     public function lookupCnpj(string $cnpj): ?array
     {
@@ -138,6 +146,21 @@ class BrLookupService
                         return null;
                     }
 
+                    // Endereco: BrasilAPI retorna logradouro + numero separados,
+                    // backend UPOS guarda combinado em address_line_1 ("Rua X, 123").
+                    $logradouro = trim((string) ($response->json('logradouro') ?? ''));
+                    $numero = trim((string) ($response->json('numero') ?? ''));
+                    $addressLine1 = match (true) {
+                        $logradouro !== '' && $numero !== '' => "{$logradouro}, {$numero}",
+                        $logradouro !== '' => $logradouro,
+                        default => '',
+                    };
+
+                    // CEP: BrasilAPI ja retorna 8 digitos sem formatacao mas
+                    // garantimos normalizacao defensiva.
+                    $cepRaw = (string) ($response->json('cep') ?? '');
+                    $zipCode = preg_replace('/\D/', '', $cepRaw) ?? '';
+
                     return [
                         'razao_social' => (string) ($response->json('razao_social') ?? ''),
                         // BrasilAPI usa `nome_fantasia` (snake_case), Cowork blueprint
@@ -147,6 +170,14 @@ class BrLookupService
                         // Front mostra campo IE manual quando lookupCnpj responde.
                         'ie' => null,
                         'situacao' => (string) ($response->json('descricao_situacao_cadastral') ?? ''),
+                        // Endereco -- chaves canon ClienteAutosaveController::endereco.
+                        // Wagner 2026-05-22 -- preenchimento automatico tab Endereco do
+                        // drawer 760 a partir do lookup CNPJ.
+                        'zip_code' => $zipCode,
+                        'address_line_1' => $addressLine1,
+                        'neighborhood' => trim((string) ($response->json('bairro') ?? '')),
+                        'city' => trim((string) ($response->json('municipio') ?? '')),
+                        'state' => trim((string) ($response->json('uf') ?? '')),
                     ];
                 } catch (\Throwable $e) {
                     Log::warning('BrLookupService::lookupCnpj exception', [

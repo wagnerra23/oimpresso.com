@@ -97,7 +97,21 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
     setSavedField(null);
     setCepLookup('idle');
     setCepLookupMsg(null);
-  }, [contact.id]);
+    // Deps incluem campos endereco pra ressincronizar quando o pai
+    // (ClienteSheet) faz router.reload({ only: ['rows'] }) apos lookup CNPJ
+    // ter persistido endereco em /cliente/{id}/endereco. Wagner 2026-05-22.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    contact.id,
+    contact.cep,
+    contact.endereco,
+    contact.address_line_1,
+    contact.bairro,
+    contact.cidade,
+    contact.city,
+    contact.uf,
+    contact.state,
+  ]);
 
   const cepError = useMemo<string | null>(() => {
     const v = validateCEP(cep);

@@ -127,13 +127,19 @@ test('GET /cliente/lookup/cep/{cep} -- upstream rate limit (429) retorna 404 gra
 // CNPJ
 // ---------------------------------------------------------------------
 
-test('GET /cliente/lookup/cnpj/{cnpj} -- cache MISS hits BrasilAPI e retorna razao_social', function () {
+test('GET /cliente/lookup/cnpj/{cnpj} -- cache MISS hits BrasilAPI e retorna razao_social + endereco', function () {
     Http::fake([
         'brasilapi.com.br/api/cnpj/v1/11222333000181' => Http::response([
             'cnpj' => '11222333000181',
             'razao_social' => 'ACME COMERCIO LTDA',
             'nome_fantasia' => 'ACME',
             'descricao_situacao_cadastral' => 'ATIVA',
+            'cep' => '01310100',
+            'logradouro' => 'Avenida Paulista',
+            'numero' => '1578',
+            'bairro' => 'Bela Vista',
+            'municipio' => 'Sao Paulo',
+            'uf' => 'SP',
         ], 200),
     ]);
 
@@ -145,9 +151,64 @@ test('GET /cliente/lookup/cnpj/{cnpj} -- cache MISS hits BrasilAPI e retorna raz
             'fantasia' => 'ACME',
             'ie' => null,
             'situacao' => 'ATIVA',
+            // Wagner 2026-05-22 -- endereco chaves canon ClienteAutosaveController::endereco
+            // logradouro + numero combinados em address_line_1 ("Rua, 123") porque
+            // backend UPOS guarda no mesmo campo.
+            'zip_code' => '01310100',
+            'address_line_1' => 'Avenida Paulista, 1578',
+            'neighborhood' => 'Bela Vista',
+            'city' => 'Sao Paulo',
+            'state' => 'SP',
         ]);
 
     Http::assertSentCount(1);
+});
+
+test('GET /cliente/lookup/cnpj/{cnpj} -- BrasilAPI sem numero retorna address_line_1 so com logradouro', function () {
+    Http::fake([
+        'brasilapi.com.br/api/cnpj/v1/11222333000181' => Http::response([
+            'razao_social' => 'ACME COMERCIO LTDA',
+            'nome_fantasia' => 'ACME',
+            'descricao_situacao_cadastral' => 'ATIVA',
+            'cep' => '01310100',
+            'logradouro' => 'Avenida Paulista',
+            // numero ausente -- caso real CNPJ sem cadastro de numero na Receita
+            'bairro' => 'Bela Vista',
+            'municipio' => 'Sao Paulo',
+            'uf' => 'SP',
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/cliente/lookup/cnpj/11222333000181');
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'address_line_1' => 'Avenida Paulista',
+            'neighborhood' => 'Bela Vista',
+        ]);
+});
+
+test('GET /cliente/lookup/cnpj/{cnpj} -- BrasilAPI sem endereco retorna campos endereco vazios', function () {
+    Http::fake([
+        'brasilapi.com.br/api/cnpj/v1/11222333000181' => Http::response([
+            'razao_social' => 'ACME COMERCIO LTDA',
+            'nome_fantasia' => 'ACME',
+            'descricao_situacao_cadastral' => 'ATIVA',
+            // sem cep/logradouro/numero/bairro/municipio/uf
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/cliente/lookup/cnpj/11222333000181');
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'razao_social' => 'ACME COMERCIO LTDA',
+            'zip_code' => '',
+            'address_line_1' => '',
+            'neighborhood' => '',
+            'city' => '',
+            'state' => '',
+        ]);
 });
 
 test('GET /cliente/lookup/cnpj/{cnpj} -- cache HIT NAO bate BrasilAPI segunda vez', function () {

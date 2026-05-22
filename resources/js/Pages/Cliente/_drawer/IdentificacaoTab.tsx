@@ -34,11 +34,32 @@ export interface ContactInfo {
   nascimento?: string | null;
   contato?: string | null;
   cargo?: string | null;
+  // Endereco -- usado pra decidir se lookup CNPJ deve sobrescrever (so
+  // preenche vazio, Wagner 2026-05-22). ClienteRow propaga frontend names
+  // (cep/endereco/bairro/cidade/uf) E backend names (address_line_1/city/state),
+  // por isso aceitamos ambos no input.
+  cep?: string | null;
+  zip_code?: string | null;
+  endereco?: string | null;
+  address_line_1?: string | null;
+  bairro?: string | null;
+  neighborhood?: string | null;
+  cidade?: string | null;
+  city?: string | null;
+  uf?: string | null;
+  state?: string | null;
 }
 
 export interface IdentificacaoTabProps {
   contact: ContactInfo;
   onSaved?: (field: string, value: unknown) => void;
+  /**
+   * Callback disparado APOS lookup CNPJ persistir endereco com sucesso. Pai
+   * (ClienteSheet) usa pra `router.reload({ only: ['rows'] })` -- refresca
+   * contact em rows pra EnderecoTab re-renderizar com os campos preenchidos.
+   * Wagner 2026-05-22.
+   */
+  onCnpjEnderecoPersisted?: () => void;
   disabled?: boolean;
 }
 
@@ -52,7 +73,12 @@ function getCsrfToken(): string {
   );
 }
 
-export default function IdentificacaoTab({ contact, onSaved, disabled = false }: IdentificacaoTabProps) {
+export default function IdentificacaoTab({
+  contact,
+  onSaved,
+  onCnpjEnderecoPersisted,
+  disabled = false,
+}: IdentificacaoTabProps) {
   // ── State local (optimistic UI — atualiza ANTES do fetch) ────────────
   const [tipo, setTipo] = useState<'PF' | 'PJ'>(contact.tipo ?? 'PJ');
   const [nome, setNome] = useState<string>(contact.name ?? '');
@@ -255,8 +281,61 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
         setIe(novoIe);
         performSave('ie', novoIe, '');
       }
+
+      // Endereço (Wagner 2026-05-22) — só preenche campos vazios no contact
+      // atual, não sobrescreve digitado. Persiste via PATCH /cliente/{id}/endereco
+      // (canon names UPOS) e dispara callback pra pai refrescar EnderecoTab.
+      const enderecoCandidato: Record<string, string> = {};
+      const zip = (json?.zip_code as string) ?? '';
+      const addr1 = (json?.address_line_1 as string) ?? '';
+      const neigh = (json?.neighborhood as string) ?? '';
+      const cityVal = (json?.city as string) ?? '';
+      const stateVal = (json?.state as string) ?? '';
+      // Aceita frontend OU backend name no contact prop (ClienteRow propaga
+      // os 2 jeitos -- ex contact.cep ou contact.zip_code dependendo do payload).
+      const temCep = !!(contact.cep ?? contact.zip_code);
+      const temEndereco = !!(contact.endereco ?? contact.address_line_1);
+      const temBairro = !!(contact.bairro ?? contact.neighborhood);
+      const temCidade = !!(contact.cidade ?? contact.city);
+      const temUf = !!(contact.uf ?? contact.state);
+      if (zip && !temCep) enderecoCandidato.zip_code = zip;
+      if (addr1 && !temEndereco) enderecoCandidato.address_line_1 = addr1;
+      if (neigh && !temBairro) enderecoCandidato.neighborhood = neigh;
+      if (cityVal && !temCidade) enderecoCandidato.city = cityVal;
+      if (stateVal && !temUf) enderecoCandidato.state = stateVal;
+
+      let enderecoPreenchido = false;
+      if (Object.keys(enderecoCandidato).length > 0) {
+        try {
+          const re = await fetch(`/cliente/${contact.id}/endereco`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify(enderecoCandidato),
+          });
+          if (re.ok) {
+            enderecoPreenchido = true;
+            onCnpjEnderecoPersisted?.();
+          } else {
+            // eslint-disable-next-line no-console
+            console.warn('[IdentificacaoTab] PATCH endereco pos-CNPJ falhou', re.status);
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[IdentificacaoTab] PATCH endereco network', err);
+        }
+      }
+
       setCnpjLookup('ok');
-      setCnpjLookupMsg('Dados preenchidos pela Receita.');
+      setCnpjLookupMsg(
+        enderecoPreenchido
+          ? 'Dados e endereço preenchidos pela Receita.'
+          : 'Dados preenchidos pela Receita.'
+      );
       setTimeout(() => {
         setCnpjLookup('idle');
         setCnpjLookupMsg(null);
@@ -267,7 +346,7 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
       // eslint-disable-next-line no-console
       console.error('[IdentificacaoTab] cnpj lookup failed', err);
     }
-  }, [doc, nome, fantasia, ie, performSave]);
+  }, [doc, nome, fantasia, ie, performSave, contact, onCnpjEnderecoPersisted]);
 
   // ── Render ───────────────────────────────────────────────────────────
   const isPJ = tipo === 'PJ';
