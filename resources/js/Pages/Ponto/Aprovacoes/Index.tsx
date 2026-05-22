@@ -42,7 +42,7 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 
-import PageHeader from '@/Components/shared/PageHeader';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import PageFilters from '@/Components/shared/PageFilters';
@@ -233,11 +233,16 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
   return (
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <PageHeader
-          icon="check-check"
-          title="Aprovações"
-          description="Fila de intercorrências aguardando decisão do RH / gestor."
-        />
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Aprovações <span className="text-stone-400 font-normal">· Intercorrências</span></h1>
+            <p>Fila de intercorrências aguardando decisão do RH / gestor.</p>
+          </div>
+          <div className="os-page-h-r">
+            <PontoSubNav active="aprovacoes" />
+          </div>
+        </header>
 
         {/* KPIs por estado — cada card filtra quando clicado */}
         <KpiGrid cols={6}>
