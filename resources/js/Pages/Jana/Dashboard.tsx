@@ -166,7 +166,7 @@ function MetaCard({ meta }: { meta: Meta }) {
         )}
 
         <Link
-          href={`/jana/metas/${meta.id}`}
+          href={`/ia/metas/${meta.id}`}
           className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
         >
           Ver detalhe <ExternalLink className="h-3 w-3" />
@@ -240,7 +240,7 @@ function ProximaAcaoCard() {
           Quando houver sinal claro nas metas, a Jana vai sugerir aqui o próximo passo prático — sem você precisar perguntar.
         </p>
         <div className="mt-3">
-          <Link href="/jana">
+          <Link href="/ia">
             <Button size="sm" variant="outline" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar agora
@@ -281,7 +281,7 @@ export default function Dashboard({ metas }: Props) {
             </div>
           </div>
 
-          <Link href="/jana">
+          <Link href="/ia">
             <Button className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar com a Jana
@@ -305,7 +305,7 @@ export default function Dashboard({ metas }: Props) {
                   Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
                 </p>
               </div>
-              <Link href="/jana">
+              <Link href="/ia">
                 <Button className="gap-2">
                   <MessageSquare className="h-4 w-4" />
                   Pergunte algo a Jana
@@ -322,7 +322,7 @@ export default function Dashboard({ metas }: Props) {
         )}
       </div>
 
-      <FabJana contextRoute="/jana/dashboard" />
+      <FabJana contextRoute="/ia/dashboard" />
     </>
   )
 }

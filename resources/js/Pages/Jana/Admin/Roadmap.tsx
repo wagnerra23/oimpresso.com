@@ -1,5 +1,5 @@
 // @memcofre
-//   tela: /jana/admin/roadmap
+//   tela: /ia/admin/roadmap
 //   module: Jana
 //   ondas: Onda 5 V1 (Roadmap timeline UI)
 //   adrs: 0070 (Jira-style tasks), 0093 (multi-tenant Tier 0), 0110 (Cockpit V2)
@@ -352,7 +352,7 @@ function RoadmapIndex(props: Props) {
   const aplicarFiltro = useCallback(
     (patch: Partial<Filters>) => {
       router.get(
-        '/jana/admin/roadmap',
+        '/ia/admin/roadmap',
         { ...filters, ...patch },
         { preserveState: true, preserveScroll: true, replace: true },
       );

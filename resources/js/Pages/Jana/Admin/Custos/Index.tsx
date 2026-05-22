@@ -194,7 +194,7 @@ function CustosIaIndex(props: Props) {
   );
 
   const aplicar = (patch: Partial<Filters>) => {
-    router.get('/jana/admin/custos', { ...filters, ...patch }, {
+    router.get('/ia/admin/custos', { ...filters, ...patch }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,

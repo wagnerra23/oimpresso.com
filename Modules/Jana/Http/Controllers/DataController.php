@@ -226,7 +226,7 @@ class DataController extends Controller
                         'shortcut' => 'G I',
                         'primary'  => [
                             'label'    => 'Conversar com Jana',
-                            'href'     => '/jana',
+                            'href'     => '/ia',
                             'shortcut' => 'N',
                         ],
                         // ADR 0182 + GUIA-SIDEBAR-V3 Wagner 2026-05-21: hub IA com
@@ -234,17 +234,20 @@ class DataController extends Controller
                         // + ghosts internos Jana (Dashboard/Metas/Custos).
                         // Labels CURTOS (≤2 palavras). PageHeaderTabs auto-promove ghost
                         // ativo inline mesmo se index >= maxVisible.
+                        //
+                        // Wagner 2026-05-22: hrefs /jana → /ia (vertical-slice IA piloto
+                        // sidebar v3 — URL canon casa com label "IA" do topo).
                         'ghosts'   => [
                             // 5 destinos canon do guia
-                            ['key' => 'copiloto',  'label' => 'Copiloto',  'href' => '/jana'],
-                            ['key' => 'brief',     'label' => 'Brief',     'href' => '/jana/brief'],
-                            ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/jana/memorias'],
-                            ['key' => 'kb',        'label' => 'KB',        'href' => '/jana/kb'],
-                            ['key' => 'regras',    'label' => 'Regras',    'href' => '/jana/regras'],
+                            ['key' => 'copiloto',  'label' => 'Copiloto',  'href' => '/ia'],
+                            ['key' => 'brief',     'label' => 'Brief',     'href' => '/ia/brief'],
+                            ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
+                            ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
+                            ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],
                             // Operacional interno (descoberta admin)
-                            ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/jana/dashboard'],
-                            ['key' => 'metas',     'label' => 'Metas',     'href' => '/jana/metas'],
-                            ['key' => 'custos',    'label' => 'Custos',    'href' => '/jana/admin/custos'],
+                            ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
+                            ['key' => 'metas',     'label' => 'Metas',     'href' => '/ia/metas'],
+                            ['key' => 'custos',    'label' => 'Custos',    'href' => '/ia/admin/custos'],
                         ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)
