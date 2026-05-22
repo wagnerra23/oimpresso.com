@@ -13,17 +13,22 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ===========================================================================
-// 1) Rotas web — prefixo /copiloto
+// 1) Rotas web — prefixo /ia (canon ADR 0180 sidebar v3 — label "IA" no topo)
 // ===========================================================================
 // D8.a (Wave 14 governance v3) — throttle:120,1 por user (auth) reforça defesa
 // abuse contra rotas Jana mesmo já sendo Tailscale-only no CT 100. 120 req/min
 // é folgado pra UX chat real (mensagens + sugestões + sidebar polling) e ainda
 // bloqueia bot scraping. Rotas SSE/stream pesadas têm throttle agressivo extra
 // inline abaixo (60,1). Referência: ADR 0093 + segurança fail-secure.
+//
+// Rename /jana → /ia (Wagner 2026-05-22, ADR 0180 vertical-slice IA piloto):
+// label do sidebar v3 é "IA" → URL casa. Route names `jana.*` preservados
+// (route('jana.x') resolve automático pro novo prefix). Redirect 301
+// /jana/* → /ia/* no fim deste arquivo cobre bookmarks externos.
 Route::group(
     [
         'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:120,1'],
-        'prefix'     => 'jana',
+        'prefix'     => 'ia',
         'namespace'  => 'Modules\Jana\Http\Controllers',
     ],
     function () {
@@ -175,32 +180,32 @@ Route::middleware(['web'])->group(function () {
 });
 
 // Ghosts canon ADR 0182 — aliases pros destinos reais (Wagner 2026-05-22):
-//   /jana/memorias → /jana/memoria  (KB MemoriaController; já existe)
-//   /jana/kb       → /kb            (Modules/KB canon ADR 0180 Wave C; 660+ docs sync via webhook GitHub)
+//   /ia/memorias → /ia/memoria  (KB MemoriaController; já existe)
+//   /ia/kb       → /kb          (Modules/KB canon ADR 0180 Wave C; 660+ docs sync via webhook GitHub)
 // Mantém ghost clicável + nome curto no header sem duplicar tela.
 //
-// 2026-05-22: /jana/kb mudou de `/essentials/knowledge-base` (Essentials legacy,
+// 2026-05-22: /ia/kb mudou de `/essentials/knowledge-base` (Essentials legacy,
 // renderizava branco fora do pacote essentials_module) para `/kb` (canon Wave C).
 // Mesma decisão arquitetural do PR #1387 que escondeu a entrada Essentials no
 // sidebar quando KB canon está instalado.
-Route::redirect('/jana/memorias', '/jana/memoria', 302);
-Route::redirect('/jana/kb',       '/kb',           302);
+Route::redirect('/ia/memorias', '/ia/memoria', 302);
+Route::redirect('/ia/kb',       '/kb',         302);
 
 // ===========================================================================
-// 2) Rotas de instalação 1-clique — prefixo /jana/install (canônico após rename)
+// 2) Rotas de instalação 1-clique — prefixo /ia/install (canônico após rename)
 // ===========================================================================
 // Padrão BaseModuleInstallController + ADR memory/decisions/0023.
 // Disparado pelo /manage-modules (superadmin); roda migrations + seta version.
 //
 // Fix da regressão do PR #97 (Fase 3.7 PR-2): botão Install em /manage-modules
 // usa action(\Modules\Jana\...\InstallController), que precisa pegar o nome
-// novo /jana/install pra ficar consistente com o nome do módulo. URL antiga
-// /copiloto/install/* mantida via 301 redirect logo abaixo.
+// novo /ia/install pra ficar consistente com o sidebar v3 label "IA". URLs
+// antigas /copiloto/install/* e /jana/install/* mantidas via 301 redirect.
 Route::group(
     [
         'middleware' => ['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
         'namespace'  => 'Modules\Jana\Http\Controllers',
-        'prefix'     => 'jana/install',
+        'prefix'     => 'ia/install',
     ],
     function () {
         Route::get('/',          'InstallController@index')->name('jana.install.index');
@@ -210,10 +215,13 @@ Route::group(
     }
 );
 
-// 301 das URLs antigas /copiloto/install/* → /jana/install/* (compat bookmarks)
-Route::redirect('/copiloto/install',           '/jana/install',           301);
-Route::redirect('/copiloto/install/uninstall', '/jana/install/uninstall', 301);
-Route::redirect('/copiloto/install/update',    '/jana/install/update',    301);
+// 301 das URLs antigas /copiloto/install/* → /ia/install/* (compat bookmarks)
+Route::redirect('/copiloto/install',           '/ia/install',           301);
+Route::redirect('/copiloto/install/uninstall', '/ia/install/uninstall', 301);
+Route::redirect('/copiloto/install/update',    '/ia/install/update',    301);
+Route::redirect('/jana/install',               '/ia/install',           301);
+Route::redirect('/jana/install/uninstall',     '/ia/install/uninstall', 301);
+Route::redirect('/jana/install/update',        '/ia/install/update',    301);
 
 // ===========================================================================
 // 3) MCP server endpoints (ADR 0053) — prefixo /api/mcp
@@ -276,14 +284,23 @@ if (config('mcp.tools_exposed')) {
 }
 
 // ===========================================================================
-// 1.c) Redirects 301 — /copiloto/* → /jana/* (Fase 2b Jana naming alignment)
+// 1.c) Redirects 301 — /copiloto/* e /jana/* → /ia/* (sidebar v3 ADR 0180)
 // ===========================================================================
-// Wagner 2026-05-09: rename URLs /copiloto → /jana com 301 pra preservar
-// bookmarks de users + zero-break em integrações externas.
+// Wagner 2026-05-09: rename /copiloto → /jana (Fase 2b Jana naming alignment).
+// Wagner 2026-05-22: rename /jana → /ia (vertical-slice IA piloto sidebar v3 —
+// label do topo é "IA" → URL canon casa).
 //
-// IMPORTANTE: este redirect generic vem APÓS os específicos do bloco 1.b
-// (TeamMcp, KB) — Laravel matching é first-wins; manter ordem.
+// Cadeia: /copiloto/X → 301 /jana/X → 301 /ia/X. Browser segue 2 hops apenas
+// pra bookmarks antigos do /copiloto; bookmarks /jana fazem 1 hop direto pro
+// canon /ia. Sem latency em URLs canon.
+//
+// IMPORTANTE: estes redirects genéricos vêm APÓS os específicos do bloco 1.b
+// (TeamMcp, KB) e dos ghost aliases — Laravel matching é first-wins; manter
+// ordem.
 //
 // `where('any', '.*')` permite path com qualquer profundidade incluindo barras.
 Route::redirect('/copiloto/{any?}', '/jana/{any?}', 301)
+    ->where('any', '.*');
+
+Route::redirect('/jana/{any?}', '/ia/{any?}', 301)
     ->where('any', '.*');

@@ -200,7 +200,7 @@ function GovernancaIndex(props: Props) {
   }, []);
 
   const aplicar = (patch: Partial<Filters>) => {
-    router.get('/jana/admin/governanca', { ...filters, ...patch }, {
+    router.get('/ia/admin/governanca', { ...filters, ...patch }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,

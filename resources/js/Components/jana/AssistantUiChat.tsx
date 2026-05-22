@@ -347,7 +347,7 @@ export function JanaAssistantUiChat({
       abortRef.current = ctrl;
 
       try {
-        const resp = await fetch(`/jana/conversas/${conversaId}/mensagens/stream`, {
+        const resp = await fetch(`/ia/conversas/${conversaId}/mensagens/stream`, {
           method: 'POST',
           signal: ctrl.signal,
           headers: {

@@ -458,7 +458,7 @@ function SidebarShortcuts({
         </a>
       )}
       {showIa && (
-        <a href="/jana" className="sb-shortcut">
+        <a href="/ia" className="sb-shortcut">
           <Bot size={13} />
           <span className="label">IA</span>
           {!!chatCount && <span className="badge">{chatCount}</span>}
@@ -676,7 +676,7 @@ function SidebarMenuRail({
       )}
       {showIa && (
         <a
-          href="/jana"
+          href="/ia"
           className="sb-rail-btn"
           data-tip="IA"
           onClick={() => setFlyout(null)}
