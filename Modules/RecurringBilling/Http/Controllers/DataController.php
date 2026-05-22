@@ -114,7 +114,11 @@ class DataController extends Controller
                             'shortcut' => 'N',
                         ],
                         'ghosts'  => [
-                            ['key' => 'recurring-billing', 'label' => 'Cobrança Recorrente', 'href' => '/recurring-billing'],
+                            ['key' => 'recurring-billing', 'label' => 'Assinaturas',    'href' => '/recurring-billing'],
+                            // Wagner 2026-05-22 P1: +3 ghosts pra zerar órfãs RecurringBilling.
+                            ['key' => 'planos',            'label' => 'Planos',         'href' => '/recurring-billing/planos'],
+                            ['key' => 'faturas',           'label' => 'Faturas',        'href' => '/recurring-billing/faturas'],
+                            ['key' => 'configuracoes',     'label' => 'Configurações',  'href' => '/recurring-billing/configuracoes'],
                         ],
                     ]
                 )->order(86);

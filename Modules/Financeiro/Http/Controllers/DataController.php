@@ -134,10 +134,23 @@ class DataController extends Controller
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [
+                            // 4 ghosts canon (Wagner 2026-05-22) — visíveis inline.
                             ['key' => 'caixa',      'label' => 'Caixa',      'href' => '/financeiro/caixa'],
                             ['key' => 'cobranca',   'label' => 'Cobrança',   'href' => '/financeiro/cobranca'],
                             ['key' => 'financeiro', 'label' => 'Financeiro', 'href' => '/financeiro/unificado'],
                             ['key' => 'relatorio',  'label' => 'Relatório',  'href' => '/financeiro/relatorios'],
+                            // Wagner 2026-05-22 P1: +11 ghosts pra zerar órfãs (vão pro overflow ⋯ Mais).
+                            ['key' => 'contas-receber',   'label' => 'Contas a Receber', 'href' => '/financeiro/contas-receber'],
+                            ['key' => 'contas-pagar',     'label' => 'Contas a Pagar',   'href' => '/financeiro/contas-pagar'],
+                            ['key' => 'fluxo',            'label' => 'Fluxo de Caixa',   'href' => '/financeiro/fluxo'],
+                            ['key' => 'conciliacao',      'label' => 'Conciliação',      'href' => '/financeiro/conciliacao'],
+                            ['key' => 'dre',              'label' => 'DRE',              'href' => '/financeiro/dre'],
+                            ['key' => 'contas-bancarias', 'label' => 'Contas Bancárias', 'href' => '/financeiro/contas-bancarias'],
+                            ['key' => 'plano-contas',     'label' => 'Plano de Contas',  'href' => '/financeiro/plano-contas'],
+                            ['key' => 'categorias',       'label' => 'Categorias',       'href' => '/financeiro/categorias'],
+                            ['key' => 'dashboard',        'label' => 'Dashboard',        'href' => '/financeiro/dashboard'],
+                            ['key' => 'extrato',          'label' => 'Extrato',          'href' => '/financeiro/extrato'],
+                            ['key' => 'contador',         'label' => 'Contador',         'href' => '/financeiro/configuracoes/contador'],
                         ],
                     ]
                 )->order(85.00);
