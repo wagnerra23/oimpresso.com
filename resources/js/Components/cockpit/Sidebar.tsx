@@ -154,11 +154,20 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'estoque',
     label: 'ESTOQUE',
+    // Wagner 2026-05-22: Reservas/Cocina/Pedidos/ComVisual/OficinaAuto/Reparar
+    // SAEM do ESTOQUE → vão pro grupo PRODUÇÃO novo.
     items: ['Compras', 'Compra', 'Transferências de ações', 'Transferência',
-            'Ajuste de estoque', 'Gestão de ativos', 'Estoque', 'Inventário',
-            'Reparar', 'Ordens de Serviço', 'Oficina Auto',
-            'Manufacturing', 'Produção', 'Comunicação Visual',
-            'Reservas', 'Pedidos', 'Cocina'],
+            'Ajuste de estoque', 'Gestão de ativos', 'Estoque', 'Inventário'],
+  },
+  {
+    key: 'producao',
+    label: 'PRODUÇÃO',
+    // Wagner 2026-05-22: novo grupo canon. Reservas/Cocina/Pedidos vêm do
+    // restaurant module legacy. ComVisual/OficinaAuto/Reparar são módulos
+    // verticais de produção/OS (Repair pattern).
+    items: ['Reservas', 'Cocina', 'Cozinha', 'Pedidos',
+            'Comunicação Visual', 'Oficina Auto', 'Reparar',
+            'Ordens de Serviço', 'Manufacturing', 'Produção'],
   },
   {
     key: 'financas',
@@ -198,13 +207,13 @@ const HIDDEN_GROUP = '__hidden__';
  * migrado pro contrato v3 (Fase 4) com group canon.
  */
 const LEGACY_GROUP_MAP: Record<string, string> = {
-  // v2 → v3 canon (Wagner 2026-05-22: 6 grupos — CADASTRO/COMERCIAL/ESTOQUE
-  // substituíram VENDER/OPERAR. FINANÇAS/PESSOAS/SISTEMA mantidos).
+  // v2 → v3 canon (Wagner 2026-05-22: 7 grupos — CADASTRO/COMERCIAL/ESTOQUE/
+  // PRODUÇÃO substituíram VENDER/OPERAR. FINANÇAS/PESSOAS/SISTEMA mantidos).
   office:       'comercial',  // VENDER virou COMERCIAL (Crm/Vendas)
   vender:       'comercial',  // alias antigo canon
-  oficina:      'estoque',    // OFICINA AUTO → ESTOQUE (verticais de OS)
-  operar:       'estoque',    // OPERAR virou ESTOQUE (Compra/Transferência)
-  estoque:      'estoque',    // mantém
+  oficina:      'producao',   // OFICINA AUTO → PRODUÇÃO (Wagner 2026-05-22)
+  operar:       'producao',   // OPERAR antigo → PRODUÇÃO (verticais OS)
+  estoque:      'estoque',    // mantém — só Compras/Transferências/Ajuste/Estoque
   fin:          'financas',
   'fin-op':     'financas',
   'fin-analise':'financas',
@@ -613,7 +622,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={['cadastro', 'comercial', 'estoque', 'financas'].includes(g.key)}
+          defaultOpen={['cadastro', 'comercial', 'estoque', 'producao', 'financas'].includes(g.key)}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
