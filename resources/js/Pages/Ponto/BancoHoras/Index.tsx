@@ -15,7 +15,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
 
-import PageHeader from '@/Components/shared/PageHeader';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -52,11 +52,16 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
   return (
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <PageHeader
-          icon="piggy-bank"
-          title="Banco de Horas"
-          description="Saldo consolidado por colaborador. Ledger append-only — ajustes são movimentos, nunca updates."
-        />
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Banco de Horas <span className="text-stone-400 font-normal">· Ledger append-only</span></h1>
+            <p>Saldo consolidado por colaborador — ajustes são movimentos, nunca updates.</p>
+          </div>
+          <div className="os-page-h-r">
+            <PontoSubNav active="banco-horas" />
+          </div>
+        </header>
 
         <KpiGrid cols={4}>
           <KpiCard

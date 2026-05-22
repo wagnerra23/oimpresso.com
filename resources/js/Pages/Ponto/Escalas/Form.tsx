@@ -72,15 +72,17 @@ export default function EscalaForm({ escala }: Props) {
     <>
       <Head title={isEdit ? `Editar ${escala!.nome}` : 'Nova escala'} />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <CalendarDays size={22} /> {isEdit ? 'Editar escala' : 'Nova escala'}
-            </h1>
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>{isEdit ? 'Editar escala' : 'Nova escala'} <span className="text-stone-400 font-normal">· Padrão de jornada</span></h1>
+            <p>{isEdit ? `Edição de ${escala!.nome}` : 'Crie um novo padrão de jornada (turnos por dia da semana).'}</p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <a href="/ponto/escalas"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
-          </Button>
+          <div className="os-page-h-r">
+            <Button variant="outline" size="sm" asChild>
+              <a href="/ponto/escalas"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
+            </Button>
+          </div>
         </header>
 
         <form onSubmit={submit}>

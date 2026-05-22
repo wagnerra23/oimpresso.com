@@ -7,6 +7,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Clock, FileSpreadsheet, PiggyBank, Settings, ShieldCheck } from 'lucide-react';
@@ -55,18 +56,18 @@ export default function ConfiguracoesIndex({ config }: Props) {
   return (
     <>
       <div className="mx-auto max-w-6xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <Settings size={22} /> Configurações
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Parâmetros CLT e do módulo (read-only por enquanto). Para alterar, edite <code>config/pontowr2.php</code>.
-            </p>
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Configurações <span className="text-stone-400 font-normal">· CLT + módulo</span></h1>
+            <p>Parâmetros (read-only por enquanto). Para alterar, edite <code>config/pontowr2.php</code>.</p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/ponto/configuracoes/reps">Gerenciar REPs</Link>
-          </Button>
+          <div className="os-page-h-r">
+            <PontoSubNav active="configuracoes" hidePrimary />
+            <Button asChild variant="outline">
+              <Link href="/ponto/configuracoes/reps">Gerenciar REPs</Link>
+            </Button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

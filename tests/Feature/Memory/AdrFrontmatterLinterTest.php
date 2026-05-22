@@ -88,6 +88,11 @@ const ADRS_LEGACY_SKIP = [
     // Backlog migração: Wave 30+ junto com 0122-0128.
     '0172-deprecar-modulo-accounting-fundir-financeiro',
     '0173-errata-arq-0005-tabelas-accounting-sem-prefixo',
+    // Aceita 2026-05-21 antes do CI rodar este check com vocabulário module strict.
+    // `module: crm` legacy (MODULE_VALIDOS não lista 'crm' nem 'Crm' como canon —
+    // Modules/Crm é módulo real do projeto; backlog adicionar à enum em PR
+    // dedicado quando outras ADRs precisarem). Append-only Tier 0 — não editar.
+    '0179-cliente-drawer-760px-substitui-show-fullpage',
 ];
 
 /**
