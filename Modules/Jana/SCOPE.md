@@ -18,6 +18,9 @@ contains:
   - "PeriodosController — períodos de apuração"
   # Alertas
   - "AlertasController — alerts gerenciados pela IA"
+  # Ghosts canon hub IA (stubs ADR 0182 + GUIA-SIDEBAR-V3)
+  - "BriefController — stub /jana/brief (UI dedicada Onda C; brief gerado por BriefDiarioAgent)"
+  - "RegrasController — stub /jana/regras (UI dedicada futura; policies PolicyEngine ADS + governance MCP)"
   # Boilerplate
   - "DataController — sidebar/permissions"
   - "InstallController — install/uninstall hooks"
