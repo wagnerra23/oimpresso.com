@@ -80,7 +80,7 @@ export function JanaAreaHeader({ active }: { active: JanaAreaTab }): ReactNode {
 
       {/* Right — primary "Conversar" hue 220 azul (canon ADR 0182) */}
       <div className="shrink-0">
-        <JanaPrimaryButton onClick={() => router.visit('/jana')}>
+        <JanaPrimaryButton onClick={() => router.visit('/ia')}>
           Conversar
         </JanaPrimaryButton>
       </div>

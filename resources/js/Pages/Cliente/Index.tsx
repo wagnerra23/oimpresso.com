@@ -1229,7 +1229,7 @@ function ActionsMenu({ row, onView }: { row: ClienteRow; onView: () => void }) {
 //   - Avatar grande (TODO Wave G: HSL hash deterministico)
 //   - Toggle PF/PJ + nome + "cadastrado ha Xd"
 //   - Badge Ativo/Inativo (status semantico Cockpit V2)
-//   - Botoes "Imprimir ficha" (window.print) + "Falar com Copiloto -> /jana/chat"
+//   - Botoes "Imprimir ficha" (window.print) + "Falar com Copiloto -> /ia/chat"
 //
 // KB-9.75 atalhos preservados (linhas 174-280, 892+) -- ClienteSheet nao
 // toca em key handlers globais; o Sheet Radix ja faz Esc-to-close nativo.
@@ -1410,7 +1410,7 @@ function ClienteSheet({
             </Button>
             <Button asChild size="sm" className="text-xs h-7">
               <a
-                href={contact ? `/jana/chat?context=cliente:${contact.id}` : '#'}
+                href={contact ? `/ia/chat?context=cliente:${contact.id}` : '#'}
                 title="Abre o Copiloto (Jana) com contexto deste cliente"
               >
                 Falar com Copiloto →

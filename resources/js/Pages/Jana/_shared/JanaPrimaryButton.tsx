@@ -13,7 +13,7 @@ import { SIDEBAR_GROUP_HUE } from '@/Components/cockpit/shared';
  *
  * Uso:
  *
- *   <JanaPrimaryButton onClick={() => router.visit('/jana')}>
+ *   <JanaPrimaryButton onClick={() => router.visit('/ia')}>
  *     Conversar com Jana
  *   </JanaPrimaryButton>
  */
