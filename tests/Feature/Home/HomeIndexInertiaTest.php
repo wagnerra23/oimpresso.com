@@ -8,7 +8,8 @@ use App\User;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class);
+// `uses(TestCase::class)` é aplicado globalmente em tests/Pest.php pra toda pasta Feature/.
+// Re-declarar aqui (como estava antes) gerava "TestCase can not be used. The folder already uses..." (Pest TestRepository).
 
 /**
  * US-DASH-001 — guard da tela /home (F6 Soft wrapper).
@@ -166,4 +167,24 @@ it('Tier 0 multi-tenant — não vaza locations de outro business', function () 
 
     // Cleanup
     \DB::table('business_locations')->where('id', $locBId)->delete();
+});
+
+it('totals expõe 8 campos canônicos (guard charter v2)', function () {
+    $user = homeBootstrap();
+
+    $response = $this->actingAs($user)->get('/home');
+
+    $response->assertStatus(200);
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Home/Index')
+        ->where('can_dashboard_data', true)
+        ->has('totals.total_sell')
+        ->has('totals.net')
+        ->has('totals.invoice_due')
+        ->has('totals.total_expense')
+        ->has('totals.total_purchase')
+        ->has('totals.purchase_due')
+        ->has('totals.total_sell_return')
+        ->has('totals.total_purchase_return')
+    );
 });

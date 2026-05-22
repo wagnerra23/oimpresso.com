@@ -377,12 +377,25 @@ class DataController extends Controller
                 ->order(87);
 
                 // Base de Conhecimento — top-level (vai pra grupo CONHECIMENTO no frontend)
-                $menu->url(
-                        action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index']),
-                        __('essentials::lang.knowledge_base'),
-                        ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'knowledge-base']
-                    )
-                ->order(89);
+                //
+                // 2026-05-22: módulo `KB` canon (ADR 0180 Wave C, route /kb) declara
+                // o MESMO label "Base de Conhecimento" via Modules/KB/Http/Controllers/
+                // DataController@modifyAdminMenu — causa item duplicado na sidebar
+                // pra subscribers que têm os dois módulos ativos. Solução:
+                //   - Quando KB está instalado, escondemos a entrada Essentials (KB
+                //     vira o canon visível e mantém o histórico do Essentials acessível
+                //     via /knowledge-base direto, sem quebrar bookmarks/links).
+                //   - Quando só Essentials está ativo (cliente legacy sem KB),
+                //     mantemos a entrada original — comportamento pré-mudança.
+                $kb_canon_ativo = (new ModuleUtil())->isModuleInstalled('KB');
+                if (! $kb_canon_ativo) {
+                    $menu->url(
+                            action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index']),
+                            __('essentials::lang.knowledge_base'),
+                            ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'knowledge-base']
+                        )
+                    ->order(89);
+                }
 
                 // Dropdown "Essentials" — Tarefas, Mensagens, Documentos, Lembretes
                 $menu->dropdown(
