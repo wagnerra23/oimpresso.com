@@ -357,6 +357,28 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                   <Btn variant="outline" size="xs" className="mt-2 !border-amber-300 !text-amber-800">Iniciar migração</Btn>
                 </div>
               )}
+              {d.key === 'pagarme' && (
+                <>
+                  <Field label="Secret Key (atualizar)">
+                    <input
+                      type="password"
+                      value={config.secret_key ?? ''}
+                      onChange={e => setConfigField('secret_key', e.target.value)}
+                      placeholder="sk_test_••• ou sk_live_••• (digite novo pra trocar)"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                    />
+                  </Field>
+                  <Field label="Webhook Secret (atualizar)">
+                    <input
+                      type="password"
+                      value={config.webhook_secret ?? ''}
+                      onChange={e => setConfigField('webhook_secret', e.target.value)}
+                      placeholder="whsec_••• (HMAC X-Hub-Signature-256)"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                    />
+                  </Field>
+                </>
+              )}
             </div>
           )}
 
