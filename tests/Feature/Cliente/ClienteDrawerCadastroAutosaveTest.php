@@ -169,6 +169,112 @@ test('PATCH /cliente/{id}/endereco -- UF valido + CEP 8 digitos persiste', funct
         ->assertJsonPath('contact.city', 'Sao Paulo');
 });
 
+// Cobertura per-campo do bug fix 2026-05-22 — frontend EnderecoTab faz autosave
+// field-a-field; cada um precisa REALMENTE persistir no DB (nao so retornar
+// 200 vazio). Regression do bug: validator descartava nomes PT-BR e o usuario
+// via "Salvo" sem nada indo pra DB.
+
+test('PATCH /endereco field-a-field -- zip_code persiste no DB', function () {
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'zip_code' => '01310-100',
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.zip_code', '01310-100');
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'zip_code' => '01310-100']);
+});
+
+test('PATCH /endereco field-a-field -- address_line_1 persiste no DB', function () {
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'address_line_1' => 'Av Paulista',
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.address_line_1', 'Av Paulista');
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'address_line_1' => 'Av Paulista']);
+});
+
+test('PATCH /endereco field-a-field -- address_line_2 persiste no DB', function () {
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'address_line_2' => 'Conj 1502, bloco B',
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.address_line_2', 'Conj 1502, bloco B');
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'address_line_2' => 'Conj 1502, bloco B']);
+});
+
+test('PATCH /endereco field-a-field -- numero persiste no DB (canon BR coluna)', function () {
+    // Skip se migration 2026_05_22_120000 ainda nao rodou neste ambiente.
+    if (! \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'numero')) {
+        $this->markTestSkipped('Migration 2026_05_22_120000_add_numero_to_contacts ainda nao rodou.');
+    }
+
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'numero' => '1578',
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.numero', '1578');
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'numero' => '1578']);
+});
+
+test('PATCH /endereco field-a-field -- numero aceita formato BR nao-numerico (s/n, km, Lt)', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'numero')) {
+        $this->markTestSkipped('Migration 2026_05_22_120000_add_numero_to_contacts ainda nao rodou.');
+    }
+
+    // BR aceita "s/n", "km 8", "Lt 12", "1578-A". Validator e nullable|string|max:20.
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'numero' => 's/n',
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.numero', 's/n');
+});
+
+test('PATCH /endereco field-a-field -- neighborhood persiste no DB + retorna na response', function () {
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'neighborhood' => 'Bela Vista',
+    ]);
+    $response->assertStatus(200)
+        // shapeContactResponse deve incluir neighborhood (bug colateral fixado).
+        ->assertJsonPath('contact.neighborhood', 'Bela Vista');
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'neighborhood' => 'Bela Vista']);
+});
+
+test('PATCH /endereco field-a-field -- city persiste no DB', function () {
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'city' => 'Sao Paulo',
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.city', 'Sao Paulo');
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'city' => 'Sao Paulo']);
+});
+
+test('PATCH /endereco field-a-field -- state persiste no DB', function () {
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'state' => 'SP',
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.state', 'SP');
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'state' => 'SP']);
+});
+
+test('PATCH /endereco -- naming PT-BR (cep, endereco, bairro, cidade, uf) e descartado silenciosamente (regression)', function () {
+    // Documenta o bug original — frontend antigo enviava nomes PT-BR. Backend
+    // valida apenas canon (whitelist), entao Validator::validated() retorna
+    // array vazio e nada persiste. Response e 200 OK (validator nao falha porque
+    // todos os campos canon sao nullable), mas DB nao muda. Frontend 2026-05-22
+    // renomeia state pra canon e elimina o gap.
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'cep' => '01310-100',
+        'endereco' => 'Av Paulista',
+        'bairro' => 'Bela Vista',
+        'cidade' => 'Sao Paulo',
+        'uf' => 'SP',
+    ]);
+
+    $response->assertStatus(200);
+    // Nada persistiu — todos os 5 nomes PT-BR foram ignorados.
+    $this->assertDatabaseHas('contacts', [
+        'id' => $this->contactId,
+        'zip_code' => null,
+        'address_line_1' => null,
+        'neighborhood' => null,
+        'city' => null,
+        'state' => null,
+    ]);
+});
+
 test('PATCH /cliente/{id}/endereco -- UF invalida (XX) retorna 422', function () {
     $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
         'state' => 'XX', // fora enum 27 UFs
