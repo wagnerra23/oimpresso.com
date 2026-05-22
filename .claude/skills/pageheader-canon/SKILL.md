@@ -283,9 +283,51 @@ Pra CADA botão do header pre-pattern, decidir destino:
    - ROI: replicação 90% via reuse Cliente templates `_drawer/*Tab.tsx` + endpoints autosave (ADR 0149 pattern reuse)
    - Wave PESSOAS+FISCAL próxima: Essentials/Knowledge avaliar caso a caso
 
-   ### ⚠️ Decisão arquitetural pendente — ADR formal
+   ### ✅ Decisão arquitetural formalizada (2026-05-22)
 
-   Wagner decisão 2026-05-22 "Drawer 760 escala pra projeto inteiro" merece **ADR formal amends [ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)** antes de implementar nos 32 backlog. Sub-agent que pegar próxima wave Drawer 760 NÃO INICIA sem ADR `accepted`. Sugerido número: **ADR 0185 — Drawer 760 escala pra entidades cadastrais do projeto** (amends 0179).
+   [**ADR 0185**](../../../memory/decisions/0185-drawer-760-canon-entidades-cadastrais.md) — Drawer 760 escala pra entidades cadastrais (amends [ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)) — **aceita 2026-05-22 por Wagner** ("eu gostei pode salvar" + "registre o padrão eu adoro esse estilo").
+
+   Auditoria estado-da-arte 2026-05-22: pattern Drawer 760 recebeu nota ponderada **76,4 / 100** vs mundo (Notion/Linear/HubSpot/Stripe/Salesforce/Bling/Tiny/Omie). Dossier: [memory/sessions/2026-05-22-arte-drawer-760-vs-mundo.md](../../../memory/sessions/2026-05-22-arte-drawer-760-vs-mundo.md).
+
+   **1-pager executivo:** [memory/reference/drawer-760-pattern-canon.md](../../../memory/reference/drawer-760-pattern-canon.md) — Wagner mostra pra Felipe/Maiara/Eliana.
+
+   ### 🚨 Wave H — pré-requisito OBRIGATÓRIO antes de replicar nas 6 entidades
+
+   Auditoria 2026-05-22 identificou 4 gaps P0 que **devem ser aplicados no template Cliente PRIMEIRO** (15h IA-pair), senão escalam 7×. Sub-agent que pegar **Wave Produto/ServiceOrders/Vehicles/DeviceModels/Planos/TransactionPayment** DEVE verificar que Wave H já está mergeada antes de iniciar.
+
+   | Gap | Effort | Status |
+   |---|---|---|
+   | #1 Optimistic locking (`updated_at` + 409 toast) | 6h | _pendente_ |
+   | #2 React.lazy + Inertia::defer per-tab | 4h | _pendente_ |
+   | #3 popstate handler back button | 2h | _pendente_ |
+   | #5 Focus trap + Esc + autofocus WCAG 2.2 AA | 3h | _pendente_ |
+
+   **Output Wave H:** template Cliente sobe nota 76,4 → 88/100 (mundo-classe). Replicação herda baseline 88.
+
+   **Como confirmar Wave H aplicada (sub-agent verifica):**
+   ```bash
+   grep -l "updated_at.*check\|optimistic.*lock" Modules/Crm/Http/Controllers/ClienteAutosaveController.php
+   grep -l "React.lazy\|Inertia::defer" resources/js/Pages/Cliente/Index.tsx
+   grep -l "popstate\|usePopState" resources/js/Pages/Cliente/Index.tsx
+   grep -l "focus-lock\|focusTrap" resources/js/Pages/Cliente/Index.tsx
+   ```
+
+   Se algum gap ausente → **STOP**. Sub-agent NÃO INICIA replicação. Aplicar Wave H primeiro.
+
+   ### 4 tabs reutilizáveis canon (template DRY = Cliente)
+
+   Pra cada nova entidade cadastral, sub-agent DEVE copiar e adaptar estas 4 tabs:
+
+   | Tab canon | Source template Cliente | O que adaptar | O que mantém |
+   |---|---|---|---|
+   | **IdentificacaoTab** | `Pages/Cliente/_drawer/IdentificacaoTab.tsx` (611 linhas) | Campos identidade per-entidade (CPF/CNPJ vs SKU/Placa) | Pattern autosave debounce 800ms + optimistic + rollback + masks BR |
+   | **EnderecoTab** | `Pages/Cliente/_drawer/EnderecoTab.tsx` | Nada (CEP+endereço universal) | Tudo — reusa `BrLookupService` cache Redis 90d |
+   | **IATab** | `Pages/Cliente/_drawer/IATab.tsx` | Prompts Brain B per-entidade | Pattern 3-4 cards + `LaravelAiSdkDriver` + Suspense |
+   | **AuditoriaTab** | `Pages/Cliente/_drawer/AuditoriaTab.tsx` (~290 linhas) | Nada (Spatie ActivityLog é polimórfico) | Tudo — `forSubject(Entity)` + LGPD Art 18 |
+
+   Tabs específicas por entidade (5-8 típico) — sub-agent identifica conforme Cowork blueprint do módulo OU propõe estrutura no `wagner-understand` pré-implementação.
+
+   **ROI de replicação:** 90% das tabs IA/Auditoria/Endereço copy-paste. ~10h IA-pair de adaptação por entidade nova (vs 80-120h se começasse do zero).
 
 5. **Split-button** (apenas onde primary tem multi-tipo, ex Unificado Financeiro):
    - `<DropdownMenu>` shadcn com trigger custom estilizado verde do grupo

@@ -333,10 +333,60 @@ Estimate v1 (15h Produto / 12h ServiceOrders) era otimista — não considerava 
 ### Sequência sugerida
 
 1. **F0 — Esta ADR aceita** ✅ aceita 2026-05-22 por Wagner ("eu gostei pode salvar")
-2. **F1 — Wave piloto Produto** (single entity, agent paralelo, smoke MCP prod biz=1) — **20-25h IA-pair**
-3. **F2 — Wave OPERAR + FINANÇAS paralelas** após F1 validado — **60-75h IA-pair** em ~2 dias elapsed
-4. **F3 — Wave PESSOAS decisão Wagner Knowledge** — **8-12h**
-5. **F4 — CI gate `drawer:health`** — valida `<Drawer{Modulo}>` em `Pages/<Modulo>/Index.tsx` das entidades elegíveis — warn-only inicial, hard após backfill — **4-6h**
+2. **F0.5 — Wave H técnica OBRIGATÓRIA** (15h IA-pair, ANTES das replicações) — gaps P0 da auditoria 2026-05-22 (nota 76,4/100 → 88) aplicados no template Cliente. Ver seção "Wave H — Consolidação técnica" abaixo. SEM Wave H, gap escala 7× (replica defeito em 6 entidades novas).
+3. **F1 — Wave piloto Produto** (single entity, agent paralelo, smoke MCP prod biz=1) — **20-25h IA-pair**
+4. **F2 — Wave OPERAR + FINANÇAS paralelas** após F1 validado — **60-75h IA-pair** em ~2 dias elapsed
+5. **F3 — Wave PESSOAS decisão Wagner Knowledge** — **8-12h**
+6. **F4 — Wave I evolução pós-replicação** (14h IA-pair) — gaps P1 CI gate + Centrifugo realtime + offline queue (eleva nota 88 → 92)
+
+### Wave H — Consolidação técnica (15h IA-pair, PRÉ-replicação)
+
+**Decisão Wagner 2026-05-22:** após auditoria estado-da-arte (nota ponderada 76,4/100, faixa "bom"), inserir Wave H técnica ANTES das Waves de replicação. Aplicar 4 gaps P0 **NO TEMPLATE CLIENTE** primeiro — replicação posterior herda nota baseline 88 (mundo-classe).
+
+**Justificativa estratégica:** sem Wave H, cada gap se multiplica por 7 entidades. Custo de retrofit pós-replicação >> custo de Wave H hoje. Auditoria dossier em [memory/sessions/2026-05-22-arte-drawer-760-vs-mundo.md](../sessions/2026-05-22-arte-drawer-760-vs-mundo.md).
+
+| Gap | Effort | Onde aplicar | Sistema-ref |
+|---|---|---|---|
+| **#1 Optimistic locking** | 6h | `Modules/Crm/Http/Controllers/ClienteAutosaveController.php` — `updated_at` check; HTTP 409 + toast frontend "outro usuário editou — recarregue"; opcional merge UI. Extrair middleware genérico pra reuso. | HubSpot, Linear |
+| **#2 React.lazy + Inertia::defer per-tab** | 4h | `resources/js/Pages/Cliente/Index.tsx` — wrap 8 tabs em `React.lazy()` + `<Suspense fallback={<TabSkeleton/>}/>`; Inertia::defer per-tab payload. Bundle drawer 118KB → ~30KB initial. | Linear, Stripe |
+| **#3 popstate handler** | 2h | `resources/js/Pages/Cliente/Index.tsx` — `useEffect` listen `popstate` → fecha drawer antes navegar pra outra rota; preserve filtros lista via `replaceState`. | GitHub, Linear |
+| **#5 Focus trap + Esc + autofocus** | 3h | `resources/js/Pages/Cliente/Index.tsx` — Radix Dialog/Sheet primitives ou `react-focus-lock`; foca 1ª input do drawer ao abrir; `Esc` fecha; `Tab`/`Shift+Tab` trap dentro drawer. | Linear, Radix |
+
+**Output Wave H:**
+- Template Cliente fica nota **76,4 → 88/100** (mundo-classe)
+- Pattern reuso garantido nas 6 entidades subsequentes (Produto/ServiceOrders/Vehicles/DeviceModels/RecBilling-Planos/TransactionPayment)
+- Pest charter test obrigatório por gap (4 testes novos no `tests/Feature/Cliente/`)
+- 1 PR atômico Wave H (commit-discipline ≤300 LOC respeitado se cada gap = commit separado)
+- Smoke MCP biz=1 valida cada gap individualmente antes Wave VENDER iniciar
+
+**Owner Wave H:** sub-agent foreground (não paralelo — sequencial pra agent garantir gap-a-gap). Estimate IA-pair: 15h.
+
+### Wave I — Evolução pós-replicação (14h IA-pair, OPCIONAL)
+
+Aplicar **após Wave PESSOAS** entregar. Eleva nota 88 → 92.
+
+| Gap | Effort | Razão pós-replicação |
+|---|---|---|
+| **#4 CI gate `drawer:health`** | 5h | Precisa entidades migradas pra ter o que validar |
+| **#6 Centrifugo realtime channel** | 6h | Precisa subscriber pattern provado em produção |
+| **#7 Offline queue localStorage** | 8h | Sinal qualificado Larissa Cabo Frio (ADR 0105) |
+
+### Adiados (P2/P3) — esperar sinal qualificado
+
+Gaps #8 (permissões per-tab Spatie), #9 (rota /print PDF), #10 (mobile <1024 modal fullscreen) — esperar requisição explícita Wagner ou cliente piloto antes de implementar.
+
+### Estimate total atualizado
+
+| Fase | Effort IA-pair | Wagner relógio |
+|---|---|---|
+| F0.5 Wave H (pré-replicação) | **15h** | 1h aprovar |
+| F1 Produto (VENDER) | 20-25h | 2-4h aprovar |
+| F2 OPERAR + FINANÇAS paralelas | 60-75h | 4-8h aprovar |
+| F3 PESSOAS Knowledge | 8-12h | 1-2h decidir |
+| F4 Wave I evolução | 14h | 1-2h aprovar |
+| **Total** | **117-141h IA-pair** | **9-17h relógio** |
+
+**Estimate consolidado:** **100-140h IA-pair + ~6-8 dias relógio real paralelizado + ~1.5 dia Wagner aprovações cumulativo.**
 
 ## Multi-tenant Tier 0 ([ADR 0093](0093-multi-tenant-isolation-tier-0.md))
 
