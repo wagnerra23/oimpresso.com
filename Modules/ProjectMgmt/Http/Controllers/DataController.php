@@ -73,6 +73,12 @@ class DataController extends Controller
             return;
         }
 
+        // Wagner 2026-05-22 P0: ProjectMgmt entry REMOVIDA — virou 6 ghosts
+        // do hub Equipe (Modules/TeamMcp DataController). Zera 6 órfãs.
+        // Tela /project-mgmt/* continua acessível via URL direta + ghost.
+        return;
+
+        // ↓ Código legacy preservado pra retomada futura se necessário ↓
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
         $segmento_ativo = request()->segment(1) == 'project-mgmt';
 
