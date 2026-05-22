@@ -91,34 +91,9 @@ class DataController extends Controller
             return;
         }
 
-        $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
-        $segmento_ativo = request()->segment(1) === 'recurring-billing';
-
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry é ghost
-                // do módulo principal Financeiro (G F) — sem shortcut próprio. Primary
-                // "Nova assinatura" + ghost single-element pra mantér shape contratual
-                // (Wave A ProductCatalogue precedent — Sidebar.tsx aceita array 1-elem).
-                $menu->url(
-                    route('recurring-billing.index'),
-                    'Cobrança Recorrente',
-                    [
-                        'icon'    => 'fa fas fa-sync-alt',
-                        'style'   => 'background-color:' . $background_color,
-                        'active'  => $segmento_ativo,
-                        'primary' => [
-                            'label'    => 'Nova assinatura',
-                            'href'     => '/recurring-billing/create',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'  => [
-                            ['key' => 'recurring-billing', 'label' => 'Cobrança Recorrente', 'href' => '/recurring-billing'],
-                        ],
-                    ]
-                )->order(86);
-            }
-        );
+        // Wagner 2026-05-22: Cobrança Recorrente vira ÚLTIMO ghost do hub
+        // Financeiro (5º ghost: Caixa·Cobrança·Financeiro·Relatório·Cobrança
+        // Recorrente). Entry própria REMOVIDA do sidebar pra evitar duplicação.
+        // Acessível via Financeiro→ghost ou URL direta /recurring-billing.
     }
 }
