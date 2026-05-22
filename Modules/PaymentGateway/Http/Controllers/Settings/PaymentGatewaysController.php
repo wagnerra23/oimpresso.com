@@ -111,7 +111,7 @@ class PaymentGatewaysController extends Controller
         }
 
         $validated = $request->validate([
-            'gateway_key'      => 'required|string|in:inter,c6,asaas,bcb_pix,pesapal,pagarme',
+            'gateway_key'      => 'required|string|in:inter,c6,asaas,bcb_pix,pesapal',
             'ambiente'         => 'required|string|in:production,sandbox',
             'nome_display'     => 'nullable|string|max:191',
             'conta_bancaria_id' => 'nullable|integer|exists:accounts,id',
