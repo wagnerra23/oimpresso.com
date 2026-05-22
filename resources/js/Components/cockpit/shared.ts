@@ -163,26 +163,27 @@ export type SidebarMode = 'expanded' | 'rail';
 // via LEGACY_GROUP_MAP, mas alguns callers leem hue direto pela key
 // declarada. Cleanup das keys v2 vai na Fase 9.
 export const SIDEBAR_GROUP_HUE: Record<string, number> = {
-  // ── Topo v3 (3 fixos) ──
-  ia: 220,           // azul — Copiloto/Jana
-  atendimento: 30,   // laranja — WhatsApp/Inbox
-  equipe: 270,       // roxo — Team MCP
+  // ── Topo v3 (3 fixos) — cores brand fixas ──
+  ia: 215,           // azul brand — calma/inteligência
+  atendimento: 30,   // laranja — acolhedor
+  equipe: 275,       // roxo — colaboração
 
-  // ── 5 grupos canônicos v3 ──
-  vender: 60,        // amarelo — energia comercial (legacy)
-  operar: 350,       // magenta — OS/Produção/Estoque (legacy)
-  financas: 145,     // verde — financeiro + fiscal
-  pessoas: 295,      // roxo claro — RH (legacy key)
-  sistema: 200,      // azul-acinzentado — governança + plataforma
+  // ── 8 grupos canon Wagner 2026-05-22 — ESCALA CANON espaçada no círculo
+  //     cromático pra distinção visual ≥25° entre cada grupo. Ordem semântica:
+  //     vermelho (energia) → âmbar (vendas) → verde (dinheiro) → ciano (técnico)
+  //     → azul (dados) → índigo (sistema) → magenta (organização).
+  producao: 8,       // vermelho — energia/atividade intensa (fábrica/OS)
+  comercial: 55,     // âmbar/ouro — dinheiro/vendas
+  pessoas: 88,       // verde-limão — calor humano/crescimento (RH)
+  financas: 145,     // verde — dinheiro/finance
+  fiscal: 175,       // turquesa — oficial/técnico (NF-e/SPED)
+  cadastro: 202,     // ciano — dados/registro
+  sistema: 245,      // índigo — autoridade/configuração
+  estoque: 315,      // magenta — organização/inventory
 
-  // ── 8 grupos canon Wagner 2026-05-22 (CADASTRO·COMERCIAL·FINANÇAS·FISCAL·
-  //     PRODUÇÃO·ESTOQUE·RH·SISTEMA). Cores semanticamente mapeadas pra mental
-  //     model PME-BR.
-  cadastro: 220,     // azul — dados/registro
-  comercial: 60,     // amarelo — energia comercial (= vender legacy)
-  fiscal: 165,       // verde-azulado — NF-e/NFSe/SPED (distinto de financas)
-  producao: 350,     // magenta — fábrica/atividade (= operar legacy)
-  estoque: 280,      // roxo profundo — caixas/inventory
+  // ── Legacy v2 aliases (preservadas durante migração — removíveis na F9) ──
+  vender: 55,        // → comercial
+  operar: 8,         // → producao
 
   // ── Legacy v2 (preservadas durante migração faseada — removidas na F9) ──
   office: 60,             // → vender
