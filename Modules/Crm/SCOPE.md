@@ -5,7 +5,9 @@ contains:
   - "CallLogController"
   - "CampaignController"
   - "ClienteAuditoriaController"   # Wave F LGPD (#1344 merged 2026-05-21)
+  - "ClienteAutosaveController"    # Drawer 760 autosave draft (Wave A-G refinada #1382)
   - "ClienteIaController"          # Wave E IA cards (#1344 merged 2026-05-21)
+  - "ClienteLookupController"      # Drawer 760 endpoint lookup CEP/CNPJ (Wave A-G refinada #1382)
   - "ContactBookingController"
   - "ContactLoginController"
   - "CrmDashboardController"
