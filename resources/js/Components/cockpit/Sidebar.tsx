@@ -119,90 +119,75 @@ import {
   isUserMenuItem,
 } from './shared';
 
-// ── Sidebar v3 — 5 grupos canon + 3 topo (ADR 0180, 2026-05-21) ────────
+// ── Sidebar v3 — 5 grupos canon AUTORIZADOS (ADR 0180, 2026-05-22) ────────
 //
-// Substitui o sidebar v2 (11 keys: office/oficina/fin-op/fin-analise/
-// fin-config/fin/estoque/fiscal/rh/conhecimento/rel/governanca/plataforma)
-// — score 58/100 vs Linear 93/100 (Hick's Law violado, ~50 labels visíveis).
+// Wagner direção 2026-05-22: "não deve existir grupo IA, só tem 5 grupos
+// autorizados". IA/Atendimento/Equipe são SHORTCUTS TOPO fixos (SidebarShortcuts),
+// NÃO grupos. Items com group: 'ia'/'atendimento'/'equipe' são escondidos do
+// sidebar (acessíveis via shortcut topo + PageHeader ghosts canon).
 //
-// v3 canon: 14 labels visíveis (3 topo + 11 destinos em 5 grupos), score 91/100.
+// Items legacy que não casam nos 5 canon caem automaticamente em MAIS (fallback
+// no fim do sidebar, collapse fechado por default — fora do caminho).
+//
+// Substitui sidebar v2 (11 keys misturadas, ~50 labels visíveis) e a tentativa
+// inicial v3 (8 keys com IA/Atendimento/Equipe duplicando shortcuts topo).
+//
 // Mental model: VENDER → OPERAR → FINANÇAS → PESSOAS → SISTEMA (verbos PT-BR
-// Larissa-friendly, universal pros 4 verticais).
+// Larissa-friendly, universal pros 4 verticais vestuário/oficina/gráfica/conserto).
 //
 // Wagner regra 2026-05-19: DataController declara `data['group']`, frontend
-// NUNCA hardcode. `items[]` aqui só pra compat com módulos não-migrados.
+// NUNCA hardcode. `items[]` aqui só pra compat com módulos não-migrados (Fase 4
+// ADR 0180 — 17 DataControllers migram em onda separada).
 const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
-  // ── Topo (3 fixos, sempre visíveis) ──
-  {
-    key: 'ia',
-    label: 'IA',
-    items: ['Copiloto', 'Jana', 'Cofre de Memórias', 'SRS', 'Sistema de Regras',
-            'Base de Conhecimento', 'KB', 'Planilha', 'Notas', 'Brief',
-            'Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios',
-            'Projeto', 'Project Mgmt', 'Project'],
-  },
-  {
-    key: 'atendimento',
-    label: 'ATENDIMENTO',
-    items: ['WhatsApp', 'Whatsapp', 'Atendimento', 'Inbox', 'Tickets', 'Consulta de OS'],
-  },
-  {
-    key: 'equipe',
-    label: 'EQUIPE',
-    items: ['Team MCP', 'TeamMcp', 'Equipe'],
-  },
-
-  // ── 5 grupos canônicos v3 ──
   {
     key: 'vender',
     label: 'VENDER',
-    items: ['Vender', 'vender', 'Vendas', 'Orçamentos', 'Clientes', 'Contatos',
-            'Produtos', 'Catálogo', 'CRM', 'Crm',
-            'Office Impresso', 'Officeimpresso',
-            'WooCommerce', 'Woocommerce'],
+    items: ['Vendas', 'Clientes', 'Catálogo'],
   },
   {
     key: 'operar',
     label: 'OPERAR',
-    items: ['Ordens de Serviço', 'Reparar', 'Oficina Auto', 'Comunicação Visual',
-            'Produção', 'Manufacturing',
-            'Compras', 'Transferências de ações', 'Ajuste de estoque',
-            'Gestão de ativos', 'Estoque', 'Inventário',
-            'Reservas', 'Pedidos', 'Cocina'],
+    items: ['Ordens de Serviço', 'Produção', 'Estoque'],
   },
   {
     key: 'financas',
     label: 'FINANÇAS',
-    items: ['Financeiro', 'Despesas', 'Contas de pagamento', 'Accounting',
-            'Contabilidade', 'Gateway de Pagamento', 'Cobrança Recorrente',
-            'Fiscal', 'NF-e Brasil', 'NFSe', 'NFC-e', 'Certificado Digital'],
+    items: ['Financeiro', 'Fiscal'],
   },
   {
     key: 'pessoas',
     label: 'PESSOAS',
-    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Folha', 'Colaboradores'],
+    items: ['RH'],
   },
   {
     key: 'sistema',
     label: 'SISTEMA',
-    items: ['Governança', 'Governance', 'ADS', 'Adaptive Decision',
-            'CMS', 'Conector', 'Connector', 'Backup',
-            'Módulos', 'Modulos', 'Manage Modules', 'Personalizar'],
+    items: ['Governança', 'Plataforma'],
   },
 ];
 
 /**
- * LEGACY_GROUP_MAP — converte as 11 keys do sidebar v2 pros 5 grupos v3.
+ * SENTINEL pra items com group ia/atendimento/equipe — esses são SHORTCUTS TOPO
+ * (Wagner 2026-05-22: "não deve existir grupo IA, só tem 5 grupos autorizados").
+ * Render filtra `__hidden__` pra não duplicar com shortcut topo.
+ */
+const HIDDEN_GROUP = '__hidden__';
+
+/**
+ * LEGACY_GROUP_MAP — converte keys do sidebar v2 pros 5 grupos v3 canon
+ * (Wagner 2026-05-22: 5 grupos autorizados — VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA).
  *
  * Permite migração modulo-a-modulo: DataControllers não-migrados ainda
  * declaram `'group' => 'office'|'fin-op'|...` e caem no grupo canônico v3
  * correto. Espelha `App\Sidebar\SidebarGroup::fromLegacy()` (Fase 1).
  *
+ * Keys `ia`/`atendimento`/`equipe` → `__hidden__` (shortcuts topo cobrem).
+ *
  * Removível na Fase 9 (cleanup), quando todos os 17 DataControllers tiverem
- * migrado pro contrato v3 (Fase 4).
+ * migrado pro contrato v3 (Fase 4) com group canon.
  */
 const LEGACY_GROUP_MAP: Record<string, string> = {
-  // v2 → v3
+  // v2 → v3 canon (5 grupos)
   office:       'vender',
   oficina:      'operar',
   estoque:      'operar',
@@ -212,20 +197,25 @@ const LEGACY_GROUP_MAP: Record<string, string> = {
   'fin-config': 'financas',
   fiscal:       'financas',
   rh:           'pessoas',
-  conhecimento: 'ia',
-  rel:          'ia',
+  conhecimento: 'sistema',   // Wagner 2026-05-22: KB/Spreadsheet vão pra SISTEMA → Plataforma
+  rel:          HIDDEN_GROUP, // Relatórios cross-domínio → IA/Brief (não vira grupo no sidebar)
   governanca:   'sistema',
   plataforma:   'sistema',
+  // Shortcuts topo — items com esses groups são ESCONDIDOS do sidebar
+  ia:           HIDDEN_GROUP,
+  atendimento:  HIDDEN_GROUP,
+  equipe:       HIDDEN_GROUP,
 };
 
 /**
  * Resolve grupo do sidebar pra um menu item.
  *
  * Prioridade (Wagner regra 2026-05-19 — DataController declara, frontend não hardcode):
- *  1. item.group v3 (declarado pelo DataController via `data['group']`)
- *  2. item.group v2 legacy mapeada via LEGACY_GROUP_MAP
- *  3. Match por label string em SIDEBAR_GROUPS.items[] (compat módulos não-migrados)
- *  4. Fallback 'mais' (collapse fechado por default)
+ *  1. item.group v3 canon (uma das 5 keys vender/operar/financas/pessoas/sistema)
+ *  2. item.group ia/atendimento/equipe → HIDDEN (shortcut topo cobre)
+ *  3. item.group v2 legacy mapeada via LEGACY_GROUP_MAP
+ *  4. Match por label string em SIDEBAR_GROUPS.items[] (compat módulos não-migrados)
+ *  5. Fallback 'mais' (collapse fechado por default, FIM do sidebar)
  */
 function findGroupKey(item: ShellMenuItem | string): string {
   // String legacy pra cobertura backwards-compat (alguns callers passam só label)
@@ -237,14 +227,14 @@ function findGroupKey(item: ShellMenuItem | string): string {
     return 'mais';
   }
 
-  // 1. group v3 nativo (uma das 8 keys: ia/atendimento/equipe + 5 canon)
-  if (item.group && SIDEBAR_GROUPS.some((g) => g.key === item.group)) {
-    return item.group;
-  }
-
-  // 2. group v2 legacy → mapear pra key v3 (migração faseada)
-  if (item.group && LEGACY_GROUP_MAP[item.group]) {
-    return LEGACY_GROUP_MAP[item.group];
+  // 1+2. group declarado: 5 canon → grupo · ia/atendimento/equipe → HIDDEN · legacy → map
+  if (item.group) {
+    if (SIDEBAR_GROUPS.some((g) => g.key === item.group)) {
+      return item.group;
+    }
+    if (LEGACY_GROUP_MAP[item.group] !== undefined) {
+      return LEGACY_GROUP_MAP[item.group];
+    }
   }
 
   // 3. fallback label match (módulos que ainda não declararam group)
@@ -443,25 +433,25 @@ function SidebarShortcuts({
   atendimentoCount?: number;
   shortcuts?: SidebarShortcutsShared;
 }) {
-  // Default true (back-compat) — quando shared prop não veio ainda
-  const showTarefas = shortcuts?.tarefas ?? true;
+  // Wagner 2026-05-22: Tarefas REMOVIDO (módulo ainda não definido).
+  // Sequência canon TOPO: IA → Equipe → Atendimento.
   const showIa = shortcuts?.ia ?? true;
+  const showEquipe = true; // TeamMcp interno do oimpresso, sempre visível
   const showAtendimento = shortcuts?.atendimento ?? true;
 
   return (
     <div className="sb-shortcuts">
-      {showTarefas && (
-        <a href="/tarefas" className="sb-shortcut">
-          <Inbox size={13} />
-          <span className="label">Tarefas</span>
-          {!!tarefasCount && <span className="badge">{tarefasCount}</span>}
-        </a>
-      )}
       {showIa && (
         <a href="/ia" className="sb-shortcut">
           <Bot size={13} />
           <span className="label">IA</span>
           {!!chatCount && <span className="badge">{chatCount}</span>}
+        </a>
+      )}
+      {showEquipe && (
+        <a href="/team-mcp/team" className="sb-shortcut">
+          <Users size={13} />
+          <span className="label">Equipe</span>
         </a>
       )}
       {showAtendimento && (
@@ -554,15 +544,18 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
   );
 
   // Agrupa principais por (1) item.group declarado pelo DataController OU
-  // (2) lookup table label match (legacy compat)
+  // (2) lookup table label match (legacy compat).
+  // Items com group ia/atendimento/equipe caem em __hidden__ (Wagner 2026-05-22 —
+  // shortcuts topo já cobrem, não duplicar) e são descartados depois.
   const groupedItems: Record<string, ShellMenuItem[]> = {};
   for (const item of principais) {
     const key = findGroupKey(item);
+    if (key === HIDDEN_GROUP) continue; // skip — shortcut topo cobre
     if (!groupedItems[key]) groupedItems[key] = [];
     groupedItems[key].push(item);
   }
 
-  // Items não mapeados caem em "mais"
+  // 5 grupos canon (autorizados) + MAIS fallback no fim (collapse fechado)
   const groupsToRender = [
     ...SIDEBAR_GROUPS.filter((g) => groupedItems[g.key]?.length),
     ...(groupedItems.mais?.length
@@ -606,7 +599,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={['ia', 'atendimento', 'equipe', 'vender', 'operar', 'financas'].includes(g.key)}
+          defaultOpen={['vender', 'operar', 'financas'].includes(g.key)}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
@@ -632,8 +625,9 @@ function SidebarMenuRail({
   counts: SidebarCountsShared;
   shortcuts?: SidebarShortcutsShared;
 }) {
-  const showTarefas = shortcuts?.tarefas ?? true;
+  // Wagner 2026-05-22: Tarefas REMOVIDO, sequência IA → Equipe → Atendimento
   const showIa = shortcuts?.ia ?? true;
+  const showEquipe = true;
   const showAtendimento = shortcuts?.atendimento ?? true;
   const [flyout, setFlyout] = useState<string | null>(null);
   const [flyoutPos, setFlyoutPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -663,17 +657,6 @@ function SidebarMenuRail({
 
   return (
     <div className="sb-menu-rail">
-      {showTarefas && (
-        <a
-          href="/tarefas"
-          className="sb-rail-btn"
-          data-tip="Tarefas"
-          onClick={() => setFlyout(null)}
-        >
-          <Inbox size={18} className="ic" />
-          {!!counts.tarefas && <span className="sb-rail-dot-badge" />}
-        </a>
-      )}
       {showIa && (
         <a
           href="/ia"
@@ -683,6 +666,16 @@ function SidebarMenuRail({
         >
           <Bot size={18} className="ic" />
           {!!counts.chat && <span className="sb-rail-dot-badge" />}
+        </a>
+      )}
+      {showEquipe && (
+        <a
+          href="/team-mcp/team"
+          className="sb-rail-btn"
+          data-tip="Equipe"
+          onClick={() => setFlyout(null)}
+        >
+          <Users size={18} className="ic" />
         </a>
       )}
       {showAtendimento && (
