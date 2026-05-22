@@ -501,7 +501,7 @@ export default function IdentificacaoTab({
             <Input
               id="id-doc"
               value={doc}
-              placeholder={isPJ ? '00.000.000/0000-00' : '000.000.000-00'}
+              placeholder={isPJ ? '00.000.000/0000-00' : '000.000.000-00'} // pii-allowlist máscara visual de input
               disabled={disabled}
               inputMode="numeric"
               aria-invalid={!!docError}
