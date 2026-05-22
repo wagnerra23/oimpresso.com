@@ -3,22 +3,22 @@ page: /home
 component: resources/js/Pages/Home/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-21
+last_validated: 2026-05-22
 parent_module: Dashboard
 parent_spec: memory/requisitos/Dashboard/SPEC.md
 related_adrs: [0093, 0094, 0101, 0104]
-related_us: [US-DASH-001]
+related_us: [US-DASH-001, US-DASH-006]
 related_prototype: n/a (F6 Soft wrapper — sem protótipo Cowork; reusa session+queries core UltimatePOS)
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /home
 
-> **Status:** Fase 6 Soft wrapper entregue 2026-05-21 (Wagner aprovou caminho A).
+> **Status v2:** Fase 6 Soft expandida 2026-05-22 (Wagner aprovou caminho B). 8 KPIs em 2 grupos (Vendas / Compras & Custos), PageHeader canon ADR 0180 substituindo gradient hardcoded (fix contraste WCAG AA). Charter v1 entregue 2026-05-21.
 > Persona: **Larissa [L]** (dona PME vestuário ROTA LIVRE biz=4) + qualquer user logado UPOS. Desktop ≥1024px.
 >
-> **Read-only:** todo dado vem de queries existentes do core UltimatePOS (`TransactionUtil::getSellTotals`, `BusinessLocation::forDropdown`). Mutations (registrar venda etc.) continuam nas telas dedicadas (`/sells/pos`, `/expense`, etc.).
+> **Read-only:** todo dado vem de queries existentes do core UltimatePOS (`TransactionUtil::getSellTotals` + `getPurchaseTotals` + `getTransactionTotals`, `BusinessLocation::forDropdown`). Mutations (registrar venda etc.) continuam nas telas dedicadas (`/sells/pos`, `/expense`, etc.).
 >
 > **Fallback Blade preservado:** `?legacy=1` força `view('home.index')` original com charts ECharts + widgets pluggable de outros módulos.
 
@@ -26,15 +26,18 @@ charter_version: 1
 
 ## Mission (1 frase)
 
-Servir como **landing pós-login** do oimpresso entregando KPIs de operação (Total Sells / Net / Invoice Due / Total Expense) em ≤800ms numa shell Inertia React, com fallback discreto pra Blade legacy quando o usuário precisa de gráficos ou widgets pluggable de outros módulos.
+Servir como **landing pós-login** do oimpresso entregando 8 KPIs de operação em 2 grupos (Vendas / Compras & Custos) em ≤800ms numa shell Inertia React, com fallback discreto pra Blade legacy quando o usuário precisa de gráficos ou widgets pluggable de outros módulos.
 
 ---
 
 ## Goals — Features (faz)
 
 - AppShellV2 layout com breadcrumb único `Início`
-- Welcome banner ("Bem-vindo, {primeiro_nome}") preservado do legacy
-- 4 KPI cards: **Total Sells** (sky), **Net** (emerald), **Invoice Due** (amber), **Total Expense** (rose)
+- Welcome banner ("Bem-vindo, {primeiro_nome}") em superfície clara (PageHeader canon ADR 0180) com ícone `layout-dashboard`
+- **8 KPI cards** em 2 grupos:
+  - **Vendas:** Total Vendas (sky) · Líquido (emerald) · A Receber (amber) · Devoluções Venda (rose)
+  - **Compras & Custos:** Total Compras (violet) · A Pagar (orange) · Reembolso Compra (teal) · Despesas (stone)
+- Cada card tem ícone Lucide semântico + tooltip explicando o cálculo
 - Filtro loja dropdown quando `all_locations.length > 1 && is_admin`
 - Banner discreto no rodapé: "Ver versão completa com gráficos e widgets" → `/home?legacy=1`
 - Permission gate `dashboard.data` — sem permission, KPI cards somem (shell minimal)
@@ -42,6 +45,7 @@ Servir como **landing pós-login** do oimpresso entregando KPIs de operação (T
 - Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL — `session('user.business_id')` em todas queries
 - `?legacy=1` força Blade original (canário + acesso aos widgets pluggable)
 - Range default = mês corrente (do início do FY ao end calculado por `BusinessUtil::getCurrentFinancialYear`)
+- Totais derivados todos do mesmo `getTransactionTotals` + `getSellTotals` + `getPurchaseTotals` — sem AJAX extra
 
 ---
 
@@ -89,6 +93,7 @@ Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php`:
 3. ✅ `sem permission dashboard.data → totals é null` (shell minimal)
 4. ✅ `?legacy=1 retorna Blade (não Inertia)`
 5. ✅ `Tier 0 multi-tenant — não vaza locations de outro business` — invariante ADR 0093
+6. ✅ `totals expõe 8 campos canônicos` — guard charter v2 (total_sell, net, invoice_due, total_expense, total_purchase, purchase_due, total_sell_return, total_purchase_return)
 
 ---
 

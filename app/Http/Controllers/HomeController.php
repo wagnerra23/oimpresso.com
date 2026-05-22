@@ -102,7 +102,7 @@ class HomeController extends Controller
 
             $transaction_totals = $this->transactionUtil->getTransactionTotals(
                 $business_id,
-                ['expense'],
+                ['expense', 'sell_return', 'purchase_return'],
                 $start,
                 $end
             );
@@ -111,11 +111,20 @@ class HomeController extends Controller
             $invoice_due = (float) (($sell_details['invoice_due'] ?? 0) - ($total_ledger_discount['total_sell_discount'] ?? 0));
             $total_expense = (float) ($transaction_totals['total_expense'] ?? 0);
 
+            $total_purchase = (float) ($purchase_details['total_purchase_inc_tax'] ?? 0);
+            $purchase_due = (float) (($purchase_details['purchase_due'] ?? 0) - ($total_ledger_discount['total_purchase_discount'] ?? 0));
+            $total_sell_return = (float) ($transaction_totals['total_sell_return_inc_tax'] ?? 0);
+            $total_purchase_return = (float) ($transaction_totals['total_purchase_return_inc_tax'] ?? 0);
+
             $totals = [
                 'total_sell' => $total_sell,
                 'net' => $total_sell - $invoice_due - $total_expense,
                 'invoice_due' => $invoice_due,
                 'total_expense' => $total_expense,
+                'total_purchase' => $total_purchase,
+                'purchase_due' => $purchase_due,
+                'total_sell_return' => $total_sell_return,
+                'total_purchase_return' => $total_purchase_return,
             ];
         }
 
