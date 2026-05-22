@@ -147,6 +147,14 @@ class DataController extends Controller
                             ['key' => 'team',        'label' => 'Team',        'href' => '/team-mcp/team'],
                             ['key' => 'tasks',       'label' => 'Tasks',       'href' => '/team-mcp/tasks'],
                             ['key' => 'cc-sessions', 'label' => 'CC Sessions', 'href' => '/team-mcp/cc-sessions'],
+                            // Wagner 2026-05-22 P0: ProjectMgmt absorvido como ghosts do hub Equipe.
+                            // Zera 6 órfãs da matriz. PageHeaderTabs auto-overflow após 5 ghosts.
+                            ['key' => 'board',       'label' => 'Board',       'href' => '/project-mgmt/board'],
+                            ['key' => 'my-work',     'label' => 'My Work',     'href' => '/project-mgmt/my-work'],
+                            ['key' => 'backlog',     'label' => 'Backlog',     'href' => '/project-mgmt/backlog'],
+                            ['key' => 'activity',    'label' => 'Activity',    'href' => '/project-mgmt/activity'],
+                            ['key' => 'burndown',    'label' => 'Burndown',    'href' => '/project-mgmt/burndown'],
+                            ['key' => 'roadmap',     'label' => 'Roadmap',     'href' => '/project-mgmt/roadmap'],
                         ],
                     ]
                 )->order(91); // Logo após Copiloto (90)
