@@ -1,6 +1,6 @@
 ---
 name: pageheader-canon
-description: ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182) em módulo novo — user pede "aplicar pageheader canon no módulo X", "padronizar header do <Modulo>", "/pageheader-canon <Modulo>", "header v3 nas telas Y", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>/Index.tsx` que tenha sub-navegação (sub-views no DataController). Skill carrega — (1) **algoritmo de descoberta** do módulo (cruzar DataController.php + Pages/<Mod>/**/*.tsx pra mapear sub-views + primary contextual + ações features), (2) **tabela de decisão** dos botões (duplicado-com-ghost REMOVE / features → extraOverflowItems / primary "Nova X" → Zona R / per-linha INTACTO), (3) **naming convention** de labels (≤2 palavras, sem repetir nome do módulo), (4) **hue OKLCH per-grupo** canon (financas=145, vender=60, operar=350, pessoas=295, sistema=200, ia=220, atendimento=30, equipe=270), (5) **validação POST-implementação OBRIGATÓRIA** via browser MCP (script JS valida labels curtos + auto-promove + cor primary correta + bg NÃO magenta 330) e (6) **gate ✓/⚠️** que FALHA o PR se alguma tela não passar. Tier B auto-trigger por description.
+description: ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182) em módulo novo — user pede "aplicar pageheader canon no módulo X", "padronizar header do <Modulo>", "/pageheader-canon <Modulo>", "header v3 nas telas Y", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>/Index.tsx` que tenha sub-navegação (sub-views no DataController). **2 modos** — (A) **Index/Show modo NAV** com SubNav+PrimaryButton (3 zonas) e (B) **Edit/Create modo FOCO** sem SubNav (página de form sem distração lateral, pattern Notion/Linear, Fase 4-bis). Skill carrega — (1) **algoritmo de descoberta** do módulo (cruzar DataController.php + Pages/<Mod>/**/*.tsx pra mapear sub-views + primary contextual + ações features), (2) **tabela de decisão** dos botões (duplicado-com-ghost REMOVE / features → extraOverflowItems / primary "Nova X" → Zona R / per-linha INTACTO), (3) **naming convention** de labels (≤2 palavras, sem repetir nome do módulo), (4) **hue OKLCH per-grupo** canon (financas=145, vender=60, operar=350, pessoas=295, sistema=200, ia=220, atendimento=30, equipe=270), (5) **validação POST-implementação OBRIGATÓRIA** via browser MCP (script JS valida labels curtos + auto-promove + cor primary correta + bg NÃO magenta 330 — checks C2/C3/C6 NÃO se aplicam a Edit/Create FOCO) e (6) **gate ✓/⚠️** que FALHA o PR se alguma tela não passar. Tier B auto-trigger por description.
 ---
 
 # Skill `pageheader-canon` — Protocolo do agente pra aplicar header v3
@@ -13,6 +13,16 @@ description: ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182)
 - Edit em `Pages/<Modulo>/<Tela>/Index.tsx` com sub-navegação (DataController declara ghosts)
 - Refactor de tela legacy com `<button class="os-btn primary">` magenta inline
 - Tela nova sendo criada num módulo já canonizado (Financeiro/futuro Vendas/etc)
+- Edit em `Pages/<Modulo>/<X>/{Edit,Create,Form,Novo,Emitir}.tsx` — aplicar **modo FOCO** (Fase 4-bis, sem SubNav)
+
+## 2 modos do PageHeader canon
+
+| Modo | Quando | Zona L (esq) | Zona C (meio) | Zona R (dir) | Decisão Wagner |
+|---|---|---|---|---|---|
+| **NAV** (Index/Show) | Listagem + visualização | h1 + subtítulo + descrição | `<{Modulo}SubNav active="key" hidePrimary />` | `<{Modulo}PrimaryButton>+ Novo X</>` (Index) OR Voltar/Imprimir (Show) | ADR 0182 base |
+| **FOCO** (Edit/Create/Form) | Preenchimento form | h1 contextual + subtítulo + descrição | **VAZIO** (sem SubNav) | **VAZIO** OR só `<Button outline>← Voltar</>` | Wagner 2026-05-22 |
+
+**Regra de ouro**: se o arquivo é `Index.tsx` ou `Show.tsx` → modo NAV. Se é `Edit.tsx`/`Create.tsx`/`Form.tsx`/`Novo.tsx`/`Emitir.tsx` → modo FOCO. Ghost tabs ARIA são feature pra navegar entre SEÇÕES do módulo, não pra ficar visível enquanto usuário preenche form.
 
 ---
 
@@ -135,12 +145,86 @@ Pra CADA botão do header pre-pattern, decidir destino:
    - Background `oklch(0.55 0.15 <hue_do_grupo>)` — NUNCA magenta 330
    - Default ícone `<Plus/>`, override `hideIcon` se workflow não-create
 
-4. **Telas Pages/<Modulo>/<X>/Index.tsx**:
+4. **Telas Pages/<Modulo>/<X>/Index.tsx** (LISTAGEM):
    - Import `<{Modulo}SubNav>` + `<{Modulo}PrimaryButton>`
    - Header em 3 zonas (`os-page-h` + `os-page-h-l` + `os-page-h-r`)
    - `<{Modulo}SubNav active="<key>" hidePrimary extraOverflowItems={[...]}/>`
    - `<{Modulo}PrimaryButton onClick={...}>Verbo+X</{Modulo}PrimaryButton>` (omitir se read-only)
    - Botões legacy: aplicar Fase 2 tabela de decisão
+
+4-bis. **Telas Pages/<Modulo>/<X>/Edit.tsx + Create.tsx + Form.tsx** (FOCO mode — Wagner regra 2026-05-22):
+
+   **NUNCA** importar `<{Modulo}SubNav>` em Edit/Create/Form. Edit/Create são páginas FOCO — usuário está preenchendo formulário, ghost tabs lateral viram distração (pattern Notion/Linear/Stripe forms 2026).
+
+   **Pattern canon** — Zona L cheia + Zona R opcional com SECONDARY action:
+
+   ```tsx
+   <header className="os-page-h">
+     <div className="os-page-h-l">
+       <h1>{isEdit ? 'Editar escala' : 'Nova escala'} <span className="text-stone-400 font-normal">· {subtitulo_contextual}</span></h1>
+       <p>{isEdit ? `Edição de ${entity.nome}` : 'Descrição da ação.'}</p>
+     </div>
+     <div className="os-page-h-r">
+       {/* Zona R apenas SECONDARY (Voltar). Sem PrimaryButton (já estamos criando/editando). Sem SubNav. */}
+       <Button variant="outline" size="sm" asChild>
+         <a href="/{modulo}/{listagem}"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
+       </Button>
+     </div>
+   </header>
+   ```
+
+   **Variantes permitidas** (escolher 1 por tela):
+
+   | Variante | Quando aplicar | Zona R |
+   |---|---|---|
+   | **V1 Voltar inline** | Caso default — Edit/Create com botão voltar acessível | `<Button outline>← Voltar</Button>` |
+   | **V2 Sem Zona R** | Form longo (>10 campos) onde header limpo é prioridade. Voltar fica no rodapé do form. | (vazia) |
+   | **V3 Voltar + Action secundária** | Show.tsx com ações Imprimir/Exportar/Duplicar relevantes (raro em Edit/Create puros) | `<Button outline>← Voltar</Button> <Button outline>Imprimir</Button>` |
+
+   **PROIBIDO** em Edit/Create/Form (anti-pattern Tier 0):
+   - ❌ `<{Modulo}SubNav>` — quebra modo FOCO, traz distração lateral
+   - ❌ `<{Modulo}PrimaryButton>` "Nova X" — já estamos criando/editando UM X
+   - ❌ Ghost tabs ARIA inline — desfocaliza usuário
+   - ❌ Múltiplos botões action no header (>2) — campo do form é o foco
+   - ❌ Tabs internas dentro do form sem indicação clara (use accordion ou wizard se precisar)
+
+   **Show.tsx caso especial** (visualização read-only, não-form):
+   - **PODE** incluir `<{Modulo}SubNav active="<key>" hidePrimary />` — Show é "navegação dentro do registro" não "preenchimento"
+   - Pattern híbrido aceito: SubNav + ações Voltar/Imprimir/Duplicar
+   - Exceção do FOCO mode porque Show é leitura, não ação focada
+
+   **Razão pragmática:**
+   - Hick's Law: form com 10+ campos + tabs laterais = >15 elementos competindo por atenção. FOCO mode reduz pra 1 form + 1 botão Voltar = 2 elementos.
+   - Larissa @ ROTA LIVRE biz=4 1280×1024: tela apertada, ghost tabs ocupam viewport útil do form.
+   - Pattern Notion/Linear/Stripe/Vercel 2026: pages de edição minimalistas, navegação fica fora.
+   - Reduz cognitive load no momento crítico (preencher campo certo, validar dados).
+
+   **Exemplos canônicos no repo:**
+   - ✅ `resources/js/Pages/Financeiro/Unificado/Novo.tsx` (V2 sem Zona R)
+   - ✅ `resources/js/Pages/Ponto/Escalas/Form.tsx` (V1 Voltar inline) — pós Wave Ponto 2026-05-22
+   - ✅ `resources/js/Pages/Ponto/Colaboradores/Edit.tsx` (V1)
+   - ✅ `resources/js/Pages/Ponto/Importacoes/Create.tsx` (V1)
+   - ✅ `resources/js/Pages/Ponto/Intercorrencias/Create.tsx` (V1)
+
+   **Backlog Edit/Create do projeto** (32 telas mapeadas 2026-05-22 — aplicar quando wave do módulo chegar):
+
+   | Módulo | Tela | Pattern atual | Ação na próxima wave |
+   |---|---|---|---|
+   | Cliente | Create + Edit | sem header padrão | aplicar FOCO V1 |
+   | Essentials | Knowledge Create+Edit, Todo Create+Edit | sem header padrão | FOCO V1 |
+   | Financeiro | Unificado/Novo | ✅ FOCO V2 (canon) | manter |
+   | NFSe | Emitir | PageHeader simples | FOCO V1 |
+   | OficinaAuto | ServiceOrders Create+Edit, Vehicles Create+Edit | PageHeader simples | FOCO V1 |
+   | Produto | Create + Edit | sem header padrão | FOCO V1 |
+   | Purchase | Create + Edit | PageHeader simples | FOCO V1 (form fat — talvez V2) |
+   | RecurringBilling | Planos Create + Edit | sem header padrão | FOCO V1 |
+   | Repair | DeviceModels Create+Edit, JobSheet Create+Edit | PageHeader simples | FOCO V1 |
+   | Sells | Create + Edit | PageHeader simples (Create) / sem (Edit) | FOCO V2 (POS fat) |
+   | StockAdjustment | Create | PageHeader simples | FOCO V1 |
+   | StockTransfer | Create | PageHeader simples | FOCO V1 |
+   | TransactionPayment | Edit | sem header padrão | FOCO V1 |
+   | ads | Skills/Edit | PageHeader simples | FOCO V1 |
+   | Ponto | Colaboradores/Edit, Escalas/Form, Importacoes/Create, Intercorrencias/Create | ✅ FOCO V1 (Wave 22/05) | manter |
 
 5. **Split-button** (apenas onde primary tem multi-tipo, ex Unificado Financeiro):
    - `<DropdownMenu>` shadcn com trigger custom estilizado verde do grupo
@@ -204,31 +288,70 @@ JSON.stringify({
 
 ### 5.3 Gate de aprovação canon (✓/⚠️ por tela)
 
-Pra cada tela do módulo, agente DEVE confirmar:
+Pra cada tela do módulo, agente DEVE confirmar conforme o **modo** da tela:
+
+#### Modo NAV (Index/Show) — 6 checks
+
+| Check | Critério | Aplica em | ✓ |
+|---|---|---|---|
+| C1 Tabs renderizam | `tabs.length > 0` | NAV | |
+| C2 Active visible | `active_inline === true` | NAV | |
+| C3 Labels curtos | `labels_short === true` | NAV | |
+| C4 Primary hue correto | TODO primary tem `hue_correct=true` E `not_magenta=true` | NAV (Index com PrimaryButton) | |
+| C5 Sem 500 server error | `document.querySelector('h1')?.textContent !== 'Server Error'` | NAV + FOCO | |
+| C6 Overflow funcional | `overflow_present === true` (se >5 ghosts ou extras) | NAV | |
+
+#### Modo FOCO (Edit/Create/Form) — 4 checks (C2/C3/C6 não aplicam — não há SubNav)
 
 | Check | Critério | ✓ |
 |---|---|---|
-| C1 Tabs renderizam | `tabs.length > 0` | |
-| C2 Active visible | `active_inline === true` | |
-| C3 Labels curtos | `labels_short === true` | |
-| C4 Primary hue correto | TODO primary tem `hue_correct=true` E `not_magenta=true` | |
+| F1 Header renderiza | `document.querySelector('header.os-page-h')` existe | |
+| F2 NÃO tem SubNav | `document.querySelectorAll('[role="tab"]').length === 0` (canon: Edit/Create sem ghost tabs) | |
+| F3 NÃO tem PrimaryButton "+ Nova X" | `document.querySelector('.os-btn.primary')` ausente OR só botões secundários outline | |
 | C5 Sem 500 server error | `document.querySelector('h1')?.textContent !== 'Server Error'` | |
-| C6 Overflow funcional | `overflow_present === true` (se >5 ghosts ou extras) | |
 
-**Se qualquer C falhar**: agente reporta tabela ⚠️ + propõe fix + abre novo PR pequeno. NÃO encerra "OK" se há ⚠️.
+Script JS adaptado pra FOCO:
+
+```javascript
+JSON.stringify({
+  url: location.pathname,
+  module: '<MODULO_AQUI>',
+  mode: 'FOCO', // edit/create/form
+
+  // F1 — Header canon presente
+  header_present: !!document.querySelector('header.os-page-h'),
+
+  // F2 — NÃO há SubNav (ghost tabs ARIA)
+  no_subnav: document.querySelectorAll('[role="tab"]').length === 0,
+
+  // F3 — NÃO há PrimaryButton "+ Nova X" (canon: já estamos criando X)
+  no_primary_create: !document.querySelector('.os-btn.primary'),
+
+  // C5 — Sem 500
+  no_server_error: document.querySelector('h1')?.textContent !== 'Server Error',
+})
+```
+
+**Se qualquer check falhar** (NAV ou FOCO): agente reporta tabela ⚠️ + propõe fix + abre novo PR pequeno. NÃO encerra "OK" se há ⚠️.
 
 ### 5.4 Output esperado do agente
 
 ```
 ## Validação visual pós-implementação (Módulo X)
 
-| Tela | C1 | C2 | C3 | C4 | C5 | C6 |
-|---|---|---|---|---|---|---|
-| /x/dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| /x/sub1     | ✅ | ✅ | ✅ | ⚠️ magenta | ✅ | ✅ |
-...
+### Modo NAV (Index/Show)
+| Tela | Mode | C1 | C2 | C3 | C4 | C5 | C6 |
+|---|---|---|---|---|---|---|---|
+| /x/dashboard      | NAV | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| /x/sub1           | NAV | ✅ | ✅ | ✅ | ⚠️ magenta | ✅ | ✅ |
 
-⚠️ 1 tela com primary magenta → criando PR fix...
+### Modo FOCO (Edit/Create/Form)
+| Tela | Mode | F1 header | F2 sem SubNav | F3 sem PrimaryBtn | C5 |
+|---|---|---|---|---|---|
+| /x/sub1/create    | FOCO | ✅ | ✅ | ✅ | ✅ |
+| /x/sub1/{id}/edit | FOCO | ✅ | ⚠️ tem SubNav errado | ✅ | ✅ |
+
+⚠️ 1 tela NAV com primary magenta + 1 tela FOCO com SubNav indevido → criando PR fix...
 ```
 
 ---
@@ -244,6 +367,10 @@ Pra cada tela do módulo, agente DEVE confirmar:
 | Primary multi-tipo único | Tela mostra ambos types mas só 1 primary genérico | `<DropdownMenu>` split-button (caso Unificado Financeiro) |
 | Tela read-only com primary forçado | Pattern aplicado cegamente | OK omitir primary (Fluxo/Relatórios) |
 | Cor hue invertida entre módulos | Sub-agent não conferiu tabela 1.1 | Validar via Fase 5 — gate barra ⚠️ |
+| **SubNav em Edit/Create** (Wagner 2026-05-22) | Sub-agent aplicou pattern Index cegamente em Edit/Create | Modo FOCO Fase 4-bis: sem SubNav, sem PrimaryButton, só Voltar opcional |
+| **PrimaryButton "+ Nova X" em Create** | Sub-agent não percebeu que já estamos criando X | Remover — Create já é a ação de criar UM X (PrimaryButton só faz sentido em Index) |
+| **Ghost tabs ARIA visíveis durante preenchimento form** | Distrai usuário em campo crítico (Larissa 1280×1024 perde viewport útil) | Modo FOCO: Zona C vazia em Edit/Create |
+| **Botão "Voltar" no rodapé do form em vez do header** | Pattern legacy UPOS — usuário precisa scroll pra cancelar | Voltar fica em Zona R do `os-page-h` (acessível imediatamente) |
 
 ---
 
