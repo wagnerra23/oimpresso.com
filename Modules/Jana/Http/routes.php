@@ -95,6 +95,14 @@ Route::group(
         Route::patch('/memoria/{id}',                      [\Modules\KB\Http\Controllers\MemoriaController::class, 'update'])->name('jana.memoria.update');
         Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('jana.memoria.destroy');
 
+        // ---- Ghosts canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21) -----
+        // 5 destinos canon do hub IA: Copiloto / Brief / Memórias / KB / Regras.
+        // Brief e Regras são stubs "Em construção" (telas dedicadas vêm em onda
+        // futura); Memórias e KB redirecionam pras rotas existentes preservando
+        // o ghost clicável no header canon.
+        Route::get('/brief',                               'BriefController@index')->name('jana.brief.index');
+        Route::get('/regras',                              'RegrasController@index')->name('jana.regras.index');
+
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('jana.superadmin.metas');
 
@@ -165,6 +173,13 @@ Route::middleware(['web'])->group(function () {
     Route::redirect('/copiloto/admin/memoria/{slug}/history', '/kb/{slug}/history', 301)
         ->where('slug', '[A-Za-z0-9\-_]+');
 });
+
+// Ghosts canon ADR 0182 — aliases pros destinos reais (Wagner 2026-05-22):
+//   /jana/memorias → /jana/memoria (KB MemoriaController; já existe)
+//   /jana/kb       → /knowledge-base (Essentials KnowledgeBaseController; já existe)
+// Mantém ghost clicável + nome curto no header sem duplicar tela.
+Route::redirect('/jana/memorias', '/jana/memoria',   302);
+Route::redirect('/jana/kb',       '/knowledge-base', 302);
 
 // ===========================================================================
 // 2) Rotas de instalação 1-clique — prefixo /jana/install (canônico após rename)
