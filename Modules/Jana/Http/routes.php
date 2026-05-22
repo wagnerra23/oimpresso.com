@@ -175,11 +175,16 @@ Route::middleware(['web'])->group(function () {
 });
 
 // Ghosts canon ADR 0182 — aliases pros destinos reais (Wagner 2026-05-22):
-//   /jana/memorias → /jana/memoria              (KB MemoriaController; já existe)
-//   /jana/kb       → /essentials/knowledge-base (Essentials KnowledgeBaseController; já existe)
+//   /jana/memorias → /jana/memoria  (KB MemoriaController; já existe)
+//   /jana/kb       → /kb            (Modules/KB canon ADR 0180 Wave C; 660+ docs sync via webhook GitHub)
 // Mantém ghost clicável + nome curto no header sem duplicar tela.
-Route::redirect('/jana/memorias', '/jana/memoria',              302);
-Route::redirect('/jana/kb',       '/essentials/knowledge-base', 302);
+//
+// 2026-05-22: /jana/kb mudou de `/essentials/knowledge-base` (Essentials legacy,
+// renderizava branco fora do pacote essentials_module) para `/kb` (canon Wave C).
+// Mesma decisão arquitetural do PR #1387 que escondeu a entrada Essentials no
+// sidebar quando KB canon está instalado.
+Route::redirect('/jana/memorias', '/jana/memoria', 302);
+Route::redirect('/jana/kb',       '/kb',           302);
 
 // ===========================================================================
 // 2) Rotas de instalação 1-clique — prefixo /jana/install (canônico após rename)
