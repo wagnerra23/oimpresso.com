@@ -160,7 +160,8 @@ class DataController extends Controller
                         'icon'     => 'fa fas fa-file-invoice-dollar',
                         'style'    => 'background-color:' . $background_color,
                         'active'   => $segmento_ativo,
-                        'group'    => 'financas',
+                        // Wagner 2026-05-22: FISCAL virou grupo próprio (era ghost de FINANÇAS).
+                        'group'    => 'fiscal',
                         'shortcut' => 'G X',
                         'primary'  => [
                             'label'    => 'Emitir NF-e',
