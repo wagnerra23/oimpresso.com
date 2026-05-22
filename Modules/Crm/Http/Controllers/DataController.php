@@ -190,7 +190,9 @@ class DataController extends Controller
                                 ['key' => 'settings',       'label' => 'Configurações',  'href' => '/crm/settings'],
                             ],
                         ]
-                    )->order(86);
+                    )->order(29); // Wagner 2026-05-22: Crm ACIMA de Vendas core (order 30)
+                    // Antes order 86 — caía após Vendas. ADR 0180 sidebar v3 ordem canon
+                    // COMERCIAL: Crm primeiro, Vendas depois (mental model lead → conversão).
                 }
             );
 
