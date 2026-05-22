@@ -11,7 +11,7 @@ import { usePage } from '@inertiajs/react';
 import {
   ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
-  FileSearch, FileSpreadsheet, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
+  Factory, FileSearch, FileSpreadsheet, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
   MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
@@ -107,6 +107,19 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
 function findMenuIcon(label: string): LucideIcon {
   return MENU_ICON_MAP[label.trim().toLowerCase()] ?? Hash;
 }
+
+// Ícone Lucide por grupo canon (Wagner 2026-05-22 — capricho visual).
+// Renderizado no header SidebarGroup ao lado do dot OKLCH + label uppercase.
+const GROUP_ICON_MAP: Record<string, LucideIcon> = {
+  cadastro:  BookOpen,      // cadastros/dados base
+  comercial: ShoppingCart,  // vendas
+  financas:  Wallet,        // dinheiro
+  producao:  Factory,       // fábrica/produção
+  estoque:   Package,       // caixas/inventory
+  pessoas:   Users,         // RH
+  sistema:   Settings,      // configurações
+  mais:      Hash,          // fallback
+};
 
 import {
   BusinessOpt,
@@ -541,6 +554,9 @@ function SidebarGroup({
     return <div className="sb-group sb-group-noheader">{children}</div>;
   }
 
+  // Wagner 2026-05-22: ícone Lucide por grupo (capricho visual).
+  const GroupIcon = GROUP_ICON_MAP[groupKey];
+
   return (
     <div className={`sb-group ${expanded ? 'is-open' : ''}`} style={groupStyle}>
       <button
@@ -557,7 +573,15 @@ function SidebarGroup({
             transition: 'transform 150ms',
           }}
         />
-        {hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
+        {GroupIcon && (
+          <GroupIcon
+            size={12}
+            className="sb-group-ic"
+            aria-hidden="true"
+            style={hue !== undefined ? { color: `oklch(0.65 0.15 ${hue})` } : undefined}
+          />
+        )}
+        {!GroupIcon && hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
         <span className="sb-group-l">{label}</span>
       </button>
       {expanded && <div className="sb-group-body">{children}</div>}
