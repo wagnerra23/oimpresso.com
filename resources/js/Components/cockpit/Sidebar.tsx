@@ -140,14 +140,25 @@ import {
 // ADR 0180 — 17 DataControllers migram em onda separada).
 const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
-    key: 'vender',
-    label: 'VENDER',
-    items: ['Vendas', 'Clientes', 'Catálogo'],
+    key: 'cadastro',
+    label: 'CADASTRO',
+    items: ['Contatos', 'Clientes', 'Produtos', 'Produto/Serviço', 'Catálogo',
+            'Equipamentos/Veículos', 'Equipamentos', 'Veículos'],
   },
   {
-    key: 'operar',
-    label: 'OPERAR',
-    items: ['Ordens de Serviço', 'Produção', 'Estoque'],
+    key: 'comercial',
+    label: 'COMERCIAL',
+    items: ['Crm', 'CRM', 'Vendas', 'Orçamentos',
+            'WooCommerce', 'Woocommerce'],
+  },
+  {
+    key: 'estoque',
+    label: 'ESTOQUE',
+    items: ['Compras', 'Compra', 'Transferências de ações', 'Transferência',
+            'Ajuste de estoque', 'Gestão de ativos', 'Estoque', 'Inventário',
+            'Reparar', 'Ordens de Serviço', 'Oficina Auto',
+            'Manufacturing', 'Produção', 'Comunicação Visual',
+            'Reservas', 'Pedidos', 'Cocina'],
   },
   {
     key: 'financas',
@@ -187,18 +198,21 @@ const HIDDEN_GROUP = '__hidden__';
  * migrado pro contrato v3 (Fase 4) com group canon.
  */
 const LEGACY_GROUP_MAP: Record<string, string> = {
-  // v2 → v3 canon (5 grupos)
-  office:       'vender',
-  oficina:      'operar',
-  estoque:      'operar',
+  // v2 → v3 canon (Wagner 2026-05-22: 6 grupos — CADASTRO/COMERCIAL/ESTOQUE
+  // substituíram VENDER/OPERAR. FINANÇAS/PESSOAS/SISTEMA mantidos).
+  office:       'comercial',  // VENDER virou COMERCIAL (Crm/Vendas)
+  vender:       'comercial',  // alias antigo canon
+  oficina:      'estoque',    // OFICINA AUTO → ESTOQUE (verticais de OS)
+  operar:       'estoque',    // OPERAR virou ESTOQUE (Compra/Transferência)
+  estoque:      'estoque',    // mantém
   fin:          'financas',
   'fin-op':     'financas',
   'fin-analise':'financas',
   'fin-config': 'financas',
   fiscal:       'financas',
   rh:           'pessoas',
-  conhecimento: 'sistema',   // Wagner 2026-05-22: KB/Spreadsheet vão pra SISTEMA → Plataforma
-  rel:          HIDDEN_GROUP, // Relatórios cross-domínio → IA/Brief (não vira grupo no sidebar)
+  conhecimento: 'sistema',
+  rel:          HIDDEN_GROUP,
   governanca:   'sistema',
   plataforma:   'sistema',
   // Shortcuts topo — items com esses groups são ESCONDIDOS do sidebar
@@ -599,7 +613,7 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={['vender', 'operar', 'financas'].includes(g.key)}
+          defaultOpen={['cadastro', 'comercial', 'estoque', 'financas'].includes(g.key)}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
