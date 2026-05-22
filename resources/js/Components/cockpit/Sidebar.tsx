@@ -145,14 +145,17 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'cadastro',
     label: 'CADASTRO',
+    // Wagner 2026-05-22: Fabricação adicionada em CADASTRO (cadastro de receitas/BOM).
     items: ['Contatos', 'Clientes', 'Produtos', 'Produto/Serviço', 'Catálogo',
-            'Equipamentos/Veículos', 'Equipamentos', 'Veículos'],
+            'Equipamentos/Veículos', 'Equipamentos', 'Veículos',
+            'Fabricação', 'Manufacturing', 'Produção'],
   },
   {
     key: 'comercial',
     label: 'COMERCIAL',
-    // Wagner 2026-05-22: Crm + Vendas + Catalogue QR (Woocommerce removido).
-    items: ['Crm', 'CRM', 'Vendas', 'Catalogue QR', 'Catálogo QR'],
+    // Wagner 2026-05-22: Crm + Vendas + Catalogue QR + Woocommerce (canal venda).
+    items: ['Crm', 'CRM', 'Vendas', 'Catalogue QR', 'Catálogo QR',
+            'WooCommerce', 'Woocommerce'],
   },
   {
     key: 'financas',
@@ -162,12 +165,11 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'producao',
     label: 'PRODUÇÃO',
-    // Wagner 2026-05-22: novo grupo canon. Reservas/Cocina/Pedidos vêm do
-    // restaurant module legacy. ComVisual/OficinaAuto/Reparar são módulos
-    // verticais de produção/OS (Repair pattern).
+    // Wagner 2026-05-22: Fabricação/Manufacturing/Produção MOVIDOS pra CADASTRO
+    // (Wagner direção pm). Grupo PRODUÇÃO mantém só verticais OS + restaurant.
     items: ['Reservas', 'Cocina', 'Cozinha', 'Pedidos',
             'Comunicação Visual', 'Oficina Auto', 'Reparar',
-            'Ordens de Serviço', 'Manufacturing', 'Produção'],
+            'Ordens de Serviço'],
   },
   {
     key: 'estoque',
