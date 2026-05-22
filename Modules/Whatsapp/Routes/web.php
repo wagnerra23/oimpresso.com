@@ -84,6 +84,13 @@ Route::group([
     'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
     'prefix'     => 'atendimento',
 ], function () {
+    // Wagner 2026-05-22 (refaz #1392): rota raiz /atendimento → Caixa Unificada V4
+    // (entry-point canon do hub Atendimento). Shortcut topo Sidebar.tsx aponta
+    // /atendimento zero-hop em vez de /atendimento/inbox que faz 301.
+    Route::get('/', [CaixaUnificadaController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.index');
+
     // CUTOVER 2026-05-15: GET /inbox redireciona pra Caixa Unificada V4 (301 permanent).
     // Inventário §6 do INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md.
     // - Route name `atendimento.inbox.index` preservado (compat Pest + frontend legacy)
