@@ -152,79 +152,140 @@ Pra CADA botão do header pre-pattern, decidir destino:
    - `<{Modulo}PrimaryButton onClick={...}>Verbo+X</{Modulo}PrimaryButton>` (omitir se read-only)
    - Botões legacy: aplicar Fase 2 tabela de decisão
 
-4-bis. **Telas Pages/<Modulo>/<X>/Edit.tsx + Create.tsx + Form.tsx** (FOCO mode — Wagner regra 2026-05-22):
+4-bis. **Telas Edit.tsx + Create.tsx + Form.tsx** — **Drawer 760 default (Wagner regra 2026-05-22, escala ADR 0179)**:
 
-   **NUNCA** importar `<{Modulo}SubNav>` em Edit/Create/Form. Edit/Create são páginas FOCO — usuário está preenchendo formulário, ghost tabs lateral viram distração (pattern Notion/Linear/Stripe forms 2026).
+   Wagner decidiu 2026-05-22 escalar o pattern **Cliente Drawer 760** ([ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)) pra TODO o projeto. Edit/Create deixam de ser Pages separadas e viram **drawer lateral 760px** dentro do Index.tsx do módulo, com **tabs cadastrais** internas + **autosave on blur** (debounce 800ms) + **redirect 302** de URLs `/{modulo}/{id}/edit` → `/{modulo}?contact_id={id}&tab={tab}`.
 
-   **Pattern canon** — Zona L cheia + Zona R opcional com SECONDARY action:
+   **3 padrões canônicos por tipo de tela** (matriz de decisão):
+
+   | Tipo de tela | Pattern canon | Exemplo de referência | Quando usar |
+   |---|---|---|---|
+   | **Entidade cadastral** (Cliente/Fornecedor/Produto/Funcionário/Veículo) | **DRAWER 760** lateral em Index + N tabs cadastrais + autosave | `Pages/Cliente/Index.tsx` v3 (PR #1339-#1358) | Cadastro com ≥5 campos relacionados, alta freq edição, possível IA/Auditoria |
+   | **Workflow transacional** (Venda/Compra/OS/NF-e/Importação) | **PAGE inteira FOCO** mode (form fat, sem SubNav) | `Pages/Financeiro/Unificado/Novo.tsx` (V2) · `Pages/Sells/Create.tsx` POS | Form >20 campos OU layout >1024px OU upload OU wizard multi-step |
+   | **Cadastro técnico** (Escala/REP/Categoria/Plano/Status) | **FOCO V1** (página separada com Voltar inline) | `Pages/Ponto/Escalas/Form.tsx` (PR #1381) | Cadastro simples ≤10 campos, baixa freq edição, sem IA/Auditoria |
+
+   ### Pattern A — DRAWER 760 (preferido pra entidades cadastrais)
+
+   **Estrutura obrigatória** (espelha [ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)):
+
+   ```
+   Pages/<Modulo>/
+   ├── Index.tsx                       # Listagem + <Drawer{Modulo}> lateral 760px
+   ├── Index.charter.md                # status: live · drawer_pattern: 760px-lateral
+   ├── _drawer/
+   │   ├── IdentificacaoTab.tsx        # Tab 1 — campos identidade (CPF/CNPJ/Nome)
+   │   ├── ContatoTab.tsx              # Tab 2 — tel/email/whatsapp
+   │   ├── EnderecoTab.tsx             # Tab 3 — CEP+lookup ViaCEP
+   │   ├── ComercialTab.tsx            # Tab 4 — tabela preço/condição pgto
+   │   ├── ClassificacaoTab.tsx        # Tab 5 — tags/segmento/VIP
+   │   ├── {Especifica1}Tab.tsx        # Tabs N — operacionais (OSs/Vendas/etc) por entidade
+   │   ├── IATab.tsx                   # Tab IA — Brain B com 3-4 cards Jana
+   │   └── AuditoriaTab.tsx            # Tab Auditoria — Spatie ActivityLog LGPD Art 18
+   └── _shared/
+       ├── <Modulo>SubNav.tsx          # SubNav do Index (modo NAV — não muda)
+       └── <Modulo>PrimaryButton.tsx   # PrimaryButton "+ Novo X" no Index header
+   ```
+
+   **Backend obrigatório:**
+   - N endpoints PATCH autosave (`/{modulo}/{id}/identificacao`, `/contato`, etc) com debounce 800ms + optimistic UI + rollback 4xx/5xx
+   - Endpoint redirect 302 `/{modulo}/{id}/edit` → `/{modulo}?contact_id={id}&tab=identificacao`
+   - Endpoint redirect 302 `/{modulo}/{id}` (Show legacy) → `/{modulo}?contact_id={id}&tab=identificacao`
+   - 2 endpoints lookup BR (CEP/CNPJ) com cache Redis 90d/30d
+   - 3-4 endpoints IA (`/ia/resumo`, `/ia/segmento`, `/ia/proxima-acao`) usando `LaravelAiSdkDriver`
+   - 1 endpoint Auditoria pull Spatie ActivityLog `forSubject(Entity)`
+   - Migration aditiva ALTER TABLE (NULL columns reversíveis — NÃO criar tabela paralela)
+
+   **Header do Index com drawer ABERTO** (Zona R inclui ações contextuais ao registro):
 
    ```tsx
    <header className="os-page-h">
      <div className="os-page-h-l">
-       <h1>{isEdit ? 'Editar escala' : 'Nova escala'} <span className="text-stone-400 font-normal">· {subtitulo_contextual}</span></h1>
-       <p>{isEdit ? `Edição de ${entity.nome}` : 'Descrição da ação.'}</p>
+       <h1>{entity.nome} <span className="text-stone-400 font-normal">· {tipo_label}</span></h1>
+       <p>{entity.documento} · cadastrado há {dias}d</p>
      </div>
      <div className="os-page-h-r">
-       {/* Zona R apenas SECONDARY (Voltar). Sem PrimaryButton (já estamos criando/editando). Sem SubNav. */}
-       <Button variant="outline" size="sm" asChild>
-         <a href="/{modulo}/{listagem}"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
-       </Button>
+       <{Modulo}SubNav active="lista" hidePrimary />
+       <Button outline onClick={() => fecharDrawer()}>← Voltar à lista</Button>
+       {/* PrimaryButton só quando drawer FECHADO (modo Index "Novo X"). NÃO quando drawer aberto editando. */}
      </div>
    </header>
    ```
 
-   **Variantes permitidas** (escolher 1 por tela):
+   **PROIBIDO** em Drawer 760:
+   - ❌ Criar arquivo `Edit.tsx` ou `Create.tsx` separado — apaga ou redireciona
+   - ❌ Botão "Salvar" — autosave on blur (sem botão; toast confirma)
+   - ❌ Modal/Sheet centralizado em vez de drawer lateral — quebra paradigma
+   - ❌ Largura ≠ 760px — viewport Larissa biz=4 1280×1024 (760+240 sidebar+260 lista = 1260px sem scroll)
+   - ❌ Mais de ~10 tabs — overflow ⋯ Mais (mesmo limite ADR 0182)
+   - ❌ Tab "Novo X" — drawer abre-fechado modo create OU drawer abre populated modo edit (1 paradigma)
+   - ❌ Show.tsx full-page convivendo com drawer — sunset zero (Wagner Q1 ADR 0179)
 
-   | Variante | Quando aplicar | Zona R |
+   ### Pattern B — PAGE FOCO mode (workflow fat / POS)
+
+   Quando drawer 760 não cabe (form >20 campos, layout >1024px, upload+progress, wizard multi-step). Estrutura Page inteira com header `os-page-h` minimal:
+
+   ```tsx
+   <header className="os-page-h">
+     <div className="os-page-h-l">
+       <h1>{isEdit ? 'Editar venda' : 'Nova venda'} <span className="text-stone-400 font-normal">· POS</span></h1>
+       <p>{isEdit ? `Edição de #${id}` : 'Selecione produtos e cliente.'}</p>
+     </div>
+     {/* Zona C VAZIA (sem SubNav). Zona R OPCIONAL Voltar — em form fat Voltar fica no rodapé do form. */}
+   </header>
+   ```
+
+   **3 variantes Pattern B:**
+
+   | Variante | Quando | Zona R |
    |---|---|---|
-   | **V1 Voltar inline** | Caso default — Edit/Create com botão voltar acessível | `<Button outline>← Voltar</Button>` |
-   | **V2 Sem Zona R** | Form longo (>10 campos) onde header limpo é prioridade. Voltar fica no rodapé do form. | (vazia) |
-   | **V3 Voltar + Action secundária** | Show.tsx com ações Imprimir/Exportar/Duplicar relevantes (raro em Edit/Create puros) | `<Button outline>← Voltar</Button> <Button outline>Imprimir</Button>` |
+   | **V1 Voltar inline** | Cadastro técnico ≤10 campos | `<Button outline>← Voltar</Button>` |
+   | **V2 Sem Zona R** | Form fat (>20 campos), Voltar no rodapé | (vazia) |
+   | **V3 Voltar + Action** | Show puro com Imprimir/Duplicar | `<Button outline>← Voltar</Button> <Button outline>Imprimir</Button>` |
 
-   **PROIBIDO** em Edit/Create/Form (anti-pattern Tier 0):
-   - ❌ `<{Modulo}SubNav>` — quebra modo FOCO, traz distração lateral
-   - ❌ `<{Modulo}PrimaryButton>` "Nova X" — já estamos criando/editando UM X
-   - ❌ Ghost tabs ARIA inline — desfocaliza usuário
-   - ❌ Múltiplos botões action no header (>2) — campo do form é o foco
-   - ❌ Tabs internas dentro do form sem indicação clara (use accordion ou wizard se precisar)
+   ### Pattern C — FOCO V1 fallback (cadastro técnico simples)
 
-   **Show.tsx caso especial** (visualização read-only, não-form):
-   - **PODE** incluir `<{Modulo}SubNav active="<key>" hidePrimary />` — Show é "navegação dentro do registro" não "preenchimento"
-   - Pattern híbrido aceito: SubNav + ações Voltar/Imprimir/Duplicar
-   - Exceção do FOCO mode porque Show é leitura, não ação focada
+   Cadastros técnicos onde drawer 760 seria overhead (não há IA/Auditoria/tabs cadastrais — só 1 form ≤10 campos). Página separada `Pages/<Modulo>/<X>/Form.tsx` ou `Create.tsx` com `<header os-page-h>` + título + Voltar inline.
 
-   **Razão pragmática:**
-   - Hick's Law: form com 10+ campos + tabs laterais = >15 elementos competindo por atenção. FOCO mode reduz pra 1 form + 1 botão Voltar = 2 elementos.
-   - Larissa @ ROTA LIVRE biz=4 1280×1024: tela apertada, ghost tabs ocupam viewport útil do form.
-   - Pattern Notion/Linear/Stripe/Vercel 2026: pages de edição minimalistas, navegação fica fora.
-   - Reduz cognitive load no momento crítico (preencher campo certo, validar dados).
+   ### Backlog 32 telas Edit/Create — decisão por tela
 
-   **Exemplos canônicos no repo:**
-   - ✅ `resources/js/Pages/Financeiro/Unificado/Novo.tsx` (V2 sem Zona R)
-   - ✅ `resources/js/Pages/Ponto/Escalas/Form.tsx` (V1 Voltar inline) — pós Wave Ponto 2026-05-22
-   - ✅ `resources/js/Pages/Ponto/Colaboradores/Edit.tsx` (V1)
-   - ✅ `resources/js/Pages/Ponto/Importacoes/Create.tsx` (V1)
-   - ✅ `resources/js/Pages/Ponto/Intercorrencias/Create.tsx` (V1)
+   Mapeamento 2026-05-22 — sub-agent aplicando wave do módulo decide pattern conforme tabela:
 
-   **Backlog Edit/Create do projeto** (32 telas mapeadas 2026-05-22 — aplicar quando wave do módulo chegar):
-
-   | Módulo | Tela | Pattern atual | Ação na próxima wave |
+   | Módulo | Tela | Pattern atual | Pattern canon recomendado |
    |---|---|---|---|
-   | Cliente | Create + Edit | sem header padrão | aplicar FOCO V1 |
-   | Essentials | Knowledge Create+Edit, Todo Create+Edit | sem header padrão | FOCO V1 |
-   | Financeiro | Unificado/Novo | ✅ FOCO V2 (canon) | manter |
-   | NFSe | Emitir | PageHeader simples | FOCO V1 |
-   | OficinaAuto | ServiceOrders Create+Edit, Vehicles Create+Edit | PageHeader simples | FOCO V1 |
-   | Produto | Create + Edit | sem header padrão | FOCO V1 |
-   | Purchase | Create + Edit | PageHeader simples | FOCO V1 (form fat — talvez V2) |
-   | RecurringBilling | Planos Create + Edit | sem header padrão | FOCO V1 |
-   | Repair | DeviceModels Create+Edit, JobSheet Create+Edit | PageHeader simples | FOCO V1 |
-   | Sells | Create + Edit | PageHeader simples (Create) / sem (Edit) | FOCO V2 (POS fat) |
-   | StockAdjustment | Create | PageHeader simples | FOCO V1 |
-   | StockTransfer | Create | PageHeader simples | FOCO V1 |
-   | TransactionPayment | Edit | sem header padrão | FOCO V1 |
-   | ads | Skills/Edit | PageHeader simples | FOCO V1 |
-   | Ponto | Colaboradores/Edit, Escalas/Form, Importacoes/Create, Intercorrencias/Create | ✅ FOCO V1 (Wave 22/05) | manter |
+   | **Cliente** | Create + Edit | sem header padrão | **DRAWER 760** ✅ (já aplicado Wave A-G PR #1339-#1358) |
+   | **Essentials/Knowledge** | Create + Edit | sem header | **DRAWER 760** (Wagner avalia: KB é entidade cadastral?) |
+   | **Essentials/Todo** | Create + Edit | sem header | **FOCO V1** (cadastro técnico ≤5 campos) |
+   | **Financeiro/Unificado** | Novo | ✅ FOCO V2 | **manter FOCO V2** (workflow Receber/Pagar/OCR — drawer não cabe) |
+   | **NFSe** | Emitir | PageHeader simples | **FOCO V2** (workflow fiscal fat) |
+   | **OficinaAuto/ServiceOrders** | Create + Edit | PageHeader simples | **DRAWER 760** (OS = entidade cadastral; tabs Identif/Veículo/Itens/Status/IA/Audit) |
+   | **OficinaAuto/Vehicles** | Create + Edit | PageHeader simples | **DRAWER 760** (Veículo = entidade cadastral) |
+   | **Produto** | Create + Edit | sem header | **DRAWER 760** (Produto entidade cadastral; tabs Identif/Estoque/Preços/Variações/Fiscal/IA/Audit) |
+   | **Purchase** | Create + Edit | PageHeader simples | **FOCO V2** (workflow compra fat com itens grid) |
+   | **RecurringBilling/Planos** | Create + Edit | sem header | **DRAWER 760** (Plano = entidade cadastral; tabs Identif/Itens/Preço/Ciclo) |
+   | **Repair/DeviceModels** | Create + Edit | PageHeader simples | **DRAWER 760** (Modelo = entidade técnica; tabs Identif/Defeitos/Peças) |
+   | **Repair/JobSheet** | Create + Edit | PageHeader simples | **FOCO V2** (Ordem técnica fat com peças+atividades) |
+   | **Sells** | Create + Edit | PageHeader (Create) / sem (Edit) | **FOCO V2** (POS tela inteira ADR 0110) |
+   | **StockAdjustment** | Create | PageHeader simples | **FOCO V2** (workflow estoque com itens grid) |
+   | **StockTransfer** | Create | PageHeader simples | **FOCO V2** (workflow transferência com itens) |
+   | **TransactionPayment** | Edit | sem header | **DRAWER 760** (Payment = entidade cadastral; tabs Identif/Origem/Comprovante) |
+   | **ads/Skills** | Edit | PageHeader simples | **FOCO V1** (config técnica simples) |
+   | **Ponto/{Colaboradores,Escalas,Importacoes,Intercorrencias}** | Edit/Form/Create | ✅ FOCO V1 (PR #1381) | **manter FOCO V1** (cadastros técnicos simples — refator pra drawer fica opcional) |
+
+   **Razão pragmática da escala Drawer 760:**
+   - Larissa @ ROTA LIVRE biz=4 1280×1024 — drawer 760 + sidebar 240 + lista 260 = 1260px (cabe sem scroll horizontal)
+   - **1 paradigma único** por persona — usuário decora drawer 1 vez e transfere conhecimento entre módulos
+   - Autosave on blur elimina botão "Salvar" → menos ansiedade, menos UX-debt
+   - Spatie ActivityLog já instalado — Tab Auditoria zero código novo, LGPD Art 18 cumprido
+   - Spec já provada em Cliente Wave A-G ([ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md), PR #1358 Z-2 smoke validated biz=1 prod)
+
+   **Custo do refator** (sub-agent que pegar próxima wave precisa estimar):
+   - Entidade cadastral média: ~80-120h IA-pair (8-9 endpoints autosave + 5-8 TabComponents + Tab IA + Tab Auditoria + migration aditiva + Charter + Pest)
+   - ROI: replicação 90% via reuse Cliente templates `_drawer/*Tab.tsx` + endpoints autosave (ADR 0149 pattern reuse)
+   - Wave PESSOAS+FISCAL próxima: Essentials/Knowledge avaliar caso a caso
+
+   ### ⚠️ Decisão arquitetural pendente — ADR formal
+
+   Wagner decisão 2026-05-22 "Drawer 760 escala pra projeto inteiro" merece **ADR formal amends [ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)** antes de implementar nos 32 backlog. Sub-agent que pegar próxima wave Drawer 760 NÃO INICIA sem ADR `accepted`. Sugerido número: **ADR 0185 — Drawer 760 escala pra entidades cadastrais do projeto** (amends 0179).
 
 5. **Split-button** (apenas onde primary tem multi-tipo, ex Unificado Financeiro):
    - `<DropdownMenu>` shadcn com trigger custom estilizado verde do grupo
@@ -367,7 +428,11 @@ JSON.stringify({
 | Primary multi-tipo único | Tela mostra ambos types mas só 1 primary genérico | `<DropdownMenu>` split-button (caso Unificado Financeiro) |
 | Tela read-only com primary forçado | Pattern aplicado cegamente | OK omitir primary (Fluxo/Relatórios) |
 | Cor hue invertida entre módulos | Sub-agent não conferiu tabela 1.1 | Validar via Fase 5 — gate barra ⚠️ |
-| **SubNav em Edit/Create** (Wagner 2026-05-22) | Sub-agent aplicou pattern Index cegamente em Edit/Create | Modo FOCO Fase 4-bis: sem SubNav, sem PrimaryButton, só Voltar opcional |
+| **SubNav em Edit/Create** (Wagner 2026-05-22) | Sub-agent aplicou pattern Index cegamente em Edit/Create | Fase 4-bis: drawer 760 ou FOCO mode conforme matriz |
+| **Edit.tsx/Create.tsx separados pra entidade cadastral** (Wagner 2026-05-22 escala ADR 0179) | Pattern legacy MWART V1 — criava 2 arquivos quando 1 drawer cabe | Refator pra Drawer 760 dentro do Index + autosave on blur + redirect 302 |
+| **Drawer largura ≠ 760px** | Sub-agent escolheu 600 ou 900 sem justificativa | 760px obrigatório (cabe Larissa biz=4 1280×1024 sem scroll horizontal — ADR 0179) |
+| **Modal/Sheet centralizado pra Edit/Create** | Sub-agent usou Sheet shadcn default | Drawer LATERAL 760 — paradigma canon, NÃO modal central |
+| **Botão "Salvar" em drawer 760** | Sub-agent copiou Edit.tsx legacy | Autosave on blur debounce 800ms (toast confirma) — sem botão Salvar |
 | **PrimaryButton "+ Nova X" em Create** | Sub-agent não percebeu que já estamos criando X | Remover — Create já é a ação de criar UM X (PrimaryButton só faz sentido em Index) |
 | **Ghost tabs ARIA visíveis durante preenchimento form** | Distrai usuário em campo crítico (Larissa 1280×1024 perde viewport útil) | Modo FOCO: Zona C vazia em Edit/Create |
 | **Botão "Voltar" no rodapé do form em vez do header** | Pattern legacy UPOS — usuário precisa scroll pra cancelar | Voltar fica em Zona R do `os-page-h` (acessível imediatamente) |
