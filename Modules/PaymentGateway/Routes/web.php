@@ -8,7 +8,6 @@ use Modules\PaymentGateway\Http\Controllers\Webhooks\BcbPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\C6WebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterWebhookController;
-use Modules\PaymentGateway\Http\Controllers\Webhooks\PagarmeWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -87,12 +86,6 @@ Route::middleware(['web'])
         Route::post('bcb-pix/{businessId}', [BcbPixWebhookController::class, 'handle'])
             ->whereNumber('businessId')
             ->name('paymentgateway.webhooks.bcb-pix');
-
-        // Onda 4e — driver Pagar.me v5 (Stone group)
-        // HMAC signature X-Hub-Signature-256 validada no controller.
-        Route::post('pagarme/{businessId}', [PagarmeWebhookController::class, 'handle'])
-            ->whereNumber('businessId')
-            ->name('paymentgateway.webhooks.pagarme');
     });
 
 // ─── Webhook PIX Inter US-FIN-032 (Onda 26) ──────────────────────────────
