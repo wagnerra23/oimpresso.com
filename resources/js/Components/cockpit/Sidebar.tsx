@@ -151,8 +151,8 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'comercial',
     label: 'COMERCIAL',
-    // Wagner 2026-05-22: só Crm + Vendas (Woocommerce REMOVIDO).
-    items: ['Crm', 'CRM', 'Vendas'],
+    // Wagner 2026-05-22: Crm + Vendas + Catalogue QR (Woocommerce removido).
+    items: ['Crm', 'CRM', 'Vendas', 'Catalogue QR', 'Catálogo QR'],
   },
   {
     key: 'financas',
@@ -186,8 +186,14 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'sistema',
     label: 'SISTEMA',
-    // Wagner 2026-05-22: Auditoria adicionada (era módulo solto em MAIS).
-    items: ['Governança', 'Plataforma', 'Auditoria'],
+    // Wagner 2026-05-22: Auditoria/Modelos de notificação/Relatórios/Dashboard
+    // adicionados (eram módulos soltos em MAIS).
+    items: ['Governança', 'Plataforma', 'Auditoria',
+            'Modelos de notificação', 'Modelo de notificação',
+            'Relatórios', 'Dashboard',
+            // Superadmin top-level entry removida (PR #1407) — mantém alias
+            // pra futuros DataControllers que ainda declarem com esse label.
+            'Superadmin'],
   },
 ];
 
