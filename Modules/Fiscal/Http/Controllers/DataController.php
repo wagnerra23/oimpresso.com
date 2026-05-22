@@ -85,32 +85,14 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $segmento_ativo = request()->segment(1) == 'fiscal';
 
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry Fiscal
-                // (cockpit unificado /fiscal) é ghost do módulo principal NfeBrasil
-                // (G X) — sem shortcut próprio. Primary "Ver NF-e" + ghost
-                // single-element pra mantér shape contratual (Wave A precedent).
-                // Entrada top-level "Fiscal" — leva ao Cockpit (PR #2 Wave consolidada).
-                $menu->url(
-                    url('/fiscal'),
-                    __('fiscal::fiscal.module_label'),
-                    [
-                        'icon'    => 'fa fas fa-file-invoice',
-                        'style'   => 'background-color:' . $background_color,
-                        'active'  => $segmento_ativo,
-                        'primary' => [
-                            'label'    => 'Ver NF-e',
-                            'href'     => '/fiscal/nfe',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'  => [
-                            ['key' => 'cockpit', 'label' => 'Cockpit Fiscal', 'href' => '/fiscal'],
-                        ],
-                    ]
-                )->order(84);
-            }
-        );
+        // Wagner 2026-05-22: Modules/Fiscal entry REMOVIDA do sidebar. Hub
+        // canon "Fiscal" agora vem de Modules/NfeBrasil (consolidação ADR 0180
+        // — 1 entry + 2 ghosts Notas fiscais·Manifestação). Modules/Fiscal
+        // continua existindo (cockpit /fiscal acessível via URL direta), só
+        // não declara entry própria pra evitar duplicação visual.
+        //
+        // Retomar quando PR #2 Wave consolidada entregar cockpit real /fiscal
+        // — então renomear/promover entry pra principal e mover NfeBrasil pra
+        // ghost. Por ora, NfeBrasil é o canonical Fiscal hub.
     }
 }
