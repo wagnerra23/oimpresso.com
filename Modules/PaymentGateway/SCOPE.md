@@ -12,13 +12,11 @@ contains:
   - "Webhooks/AsaasWebhookController — POST /paymentgateway/webhooks/asaas/{businessId} (Onda 3 sem cutover)"
   - "Webhooks/BcbPixWebhookController — POST /paymentgateway/webhooks/bcb-pix/{businessId} (Onda 3 novo)"
   - "Webhooks/InterPixWebhookController — POST /webhooks/inter/{credentialId} (Onda 26 US-FIN-032 PIX recebido → titulo auto-pago)"
-  - "Webhooks/PagarmeWebhookController — POST /paymentgateway/webhooks/pagarme/{businessId} (Onda 4e) — HMAC-SHA256 via header X-Hub-Signature-256"
   - "Services/PaymentGatewayService — implementa PaymentGatewayContract; for(Account) resolve credential; idempotência (Onda 4a); DRIVERS mapa atualizado Onda 4b com 3 drivers"
   - "Services/Drivers/InterDriver — Inter API v3 OAuth2+mTLS (boleto Onda 4a + pix_cob/pix_cobv Onda 4b/4c + refund PIX Onda 4c + cancelar + consultar + healthCheck + processWebhook). Refund de boleto Inter NÃO via API — exige TED reverso manual"
   - "Services/Drivers/AsaasDriver — Asaas REST v3 (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4b"
   - "Services/Drivers/C6Driver — C6 Open Banking PJ OAuth2 (boleto + pix_cob + cancelar + consultar + healthCheck + processWebhook); Onda 4b. CNAB legacy fallback fica em RB"
   - "Services/Drivers/BcbPixDriver — PSP-agnóstico PIX Automático (Resolução BCB 380/2024) — pix_recv (mandato recorrente) + revogar + consultar + healthCheck + processWebhook; Onda 4d.1. base_url configurável via credential"
-  - "Services/Drivers/PagarmeDriver — Pagar.me v5 REST (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4e. HTTP Basic Auth via secret_key, sandbox via prefixo sk_test_*"
   - "BoletoService (Onda 4d alto-nível)"
   - "RemessaCnabService (Onda 4d)"
   - "RetornoCnabService (Onda 4d)"
@@ -48,7 +46,6 @@ url_prefixes:
   - /webhooks/c6 (migrado)
   - /webhooks/asaas (migrado)
   - /webhooks/bcb-pix (novo)
-  - /webhooks/pagarme (Onda 4e)
 db_tables_owned:
   - payment_gateway_credentials
   - cobrancas
