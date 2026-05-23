@@ -503,6 +503,78 @@ class PaymentGatewaysController extends Controller
     }
 
     /**
+     * GET /settings/payment-gateways/{credentialId}/quota
+     *
+     * Quota tracking MVP — contagem de cobranças emitidas no mês corrente,
+     * agrupada por `tipo` (boleto / pix_cob / pix_cobv / pix_recv / card).
+     *
+     * Gap P1 catalogado em auditoria 2026-05-23: Wagner só descobre que
+     * estourou cota grátis do banco (Inter 250 boletos/mês, C6 200/2000)
+     * quando vê tarifa cobrada. UI passa a mostrar "Cota usada: X" no
+     * DrawerGateway tab Health.
+     *
+     * MVP: query agregada em `cobrancas` (sem contador persistido). OK até
+     * ~10k cobranças/mês per credencial — índice
+     * `(business_id, payment_gateway_credential_id)` em created_at via
+     * `cobrancas_biz_status_venc` cobre prefix da query.
+     *
+     * Tier 0 (ADR 0093): credencial precisa ser do business_id da sessão;
+     * count herda mesmo filtro via FK + business_id explícito (defense in
+     * depth, mesmo com HasBusinessScope no model).
+     *
+     * Limite per driver (Inter 250 / C6 200|2000) NÃO é avaliado aqui —
+     * UI mostra apenas total + breakdown; warning amber/rose fica em
+     * follow-up (parse complexo de DRIVERS[*].pricing).
+     *
+     * Shape:
+     *   {
+     *     "month": "2026-05",
+     *     "counts": {"boleto": 142, "pix_cob": 8, "card": 0},
+     *     "total": 150,
+     *     "gateway_key": "inter"
+     *   }
+     *
+     * Onda 4e gap #3 — Refs: ADR 0170 + audit 2026-05-23.
+     */
+    public function quota(Request $request, int $credentialId): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
+
+        $credential = PaymentGatewayCredential::query()
+            ->where('business_id', $businessId)
+            ->find($credentialId);
+
+        if (! $credential) {
+            return response()->json([
+                'month'       => CarbonImmutable::now()->format('Y-m'),
+                'counts'      => [],
+                'total'       => 0,
+                'gateway_key' => null,
+            ], 404);
+        }
+
+        $now = CarbonImmutable::now();
+
+        $counts = Cobranca::query()
+            ->where('business_id', $businessId)
+            ->where('payment_gateway_credential_id', $credentialId)
+            ->whereYear('created_at', $now->year)
+            ->whereMonth('created_at', $now->month)
+            ->selectRaw('tipo, COUNT(*) as total')
+            ->groupBy('tipo')
+            ->pluck('total', 'tipo')
+            ->map(fn ($v) => (int) $v)
+            ->toArray();
+
+        return response()->json([
+            'month'       => $now->format('Y-m'),
+            'counts'      => $counts,
+            'total'       => array_sum($counts),
+            'gateway_key' => $credential->gateway_key,
+        ]);
+    }
+
+    /**
      * Toggle ativo/inativo da credencial (Trust L3 — confirma front-end).
      */
     public function toggle(Request $request, int $credentialId): JsonResponse
