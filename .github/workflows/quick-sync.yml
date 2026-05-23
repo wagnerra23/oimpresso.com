@@ -150,9 +150,19 @@ jobs:
         # cache:clear adicionado 2026-05-18 pós bug "Financeiro dropdown invisivel
         # apos sync biz=4" — DataController novo não era visto sem cache:clear.
 
-      - name: Smoke test
+      - name: Smoke test (strict + log tail on fail)
         run: |
-          curl -sL -o /dev/null -w "HTTP %{http_code} (%{time_total}s)\n" https://oimpresso.com/login
+          set -uo pipefail
+          HTTP_CODE=$(curl -sL -o /dev/null -w "%{http_code}|%{time_total}" https://oimpresso.com/login)
+          CODE="${HTTP_CODE%%|*}"
+          TIME="${HTTP_CODE##*|}"
+          echo "HTTP $CODE (${TIME}s)"
+          if [ "$CODE" != "200" ] && [ "$CODE" != "302" ]; then
+            echo "::error::Quick-sync smoke FAILED — HTTP $CODE pra /login"
+            echo "=== Last 60 lines de storage/logs/laravel.log ==="
+            /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && tail -60 storage/logs/laravel.log 2>&1 || true"
+            exit 1
+          fi
 
       - name: Sync concluido
         run: echo "Quick sync deployado. Para mudancas pesadas use deploy.yml (backup + composer + migrate)."
