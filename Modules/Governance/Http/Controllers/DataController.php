@@ -88,12 +88,17 @@ class DataController extends Controller
             // ADR 0180 v3 — entry vive no grupo canon `sistema` (acoplado em Governança
             // visual no frontend). ADS/Auditoria/Cms/Connector/Officeimpresso são ghosts
             // virtuais agrupados pela Sidebar.tsx no mesmo cabeçalho `sistema`.
+            // Wagner 2026-05-22 P2: hub Governance canon entry em SISTEMA + ghost
+            // dashboard ajustado pra /governance/dashboard (legacy preservado), pq
+            // /governance raiz virou redirect pra /ia (PR #1403).
+            // URL principal volta a apontar /governance/dashboard pra evitar redirect.
             $menu->url(
-                action(['\\Modules\\Governance\\Http\\Controllers\\DashboardController', 'index']),
+                '/governance/dashboard',
                 __('governance::governance.governance'),
                 [
                     'icon'     => 'fa fa-shield',
                     'active'   => request()->is('governance*'),
+                    'group'    => 'sistema',
                     'shortcut' => 'G G',
                     'primary'  => [
                         'label'    => 'Gerenciar policies',
@@ -101,7 +106,7 @@ class DataController extends Controller
                         'shortcut' => 'P',
                     ],
                     'ghosts'   => [
-                        ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance'],
+                        ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance/dashboard'],
                         ['key' => 'policies',      'label' => 'Policies',        'href' => '/governance/policies'],
                         ['key' => 'audit',         'label' => 'Audit log',       'href' => '/governance/audit'],
                         ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],

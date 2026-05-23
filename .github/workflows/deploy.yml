@@ -66,6 +66,15 @@ jobs:
           /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && grep '\"laravel/framework\"' composer.json"
           echo "=== Disco livre ==="
           /tmp/ssh_exec.sh "df -h /home/u906587222 | tail -1"
+          echo "=== Maintenance status ==="
+          /tmp/ssh_exec.sh "ls -la /home/u906587222/domains/oimpresso.com/public_html/storage/framework/down 2>&1 || echo 'no down file'"
+
+      - name: Cleanup stale locks (git + maintenance órfãos de runs anteriores)
+        run: |
+          echo "=== Removendo .git/index.lock se existir ==="
+          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
+          echo "=== Forçando maintenance OFF caso preso de deploy anterior ==="
+          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up 2>&1 || rm -f storage/framework/down 2>&1; echo OK"
 
       - name: Backup (arquivos + DB)
         if: ${{ inputs.skip_backup != 'true' }}
@@ -134,11 +143,35 @@ jobs:
       - name: Maintenance mode OFF
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up"
 
-      - name: Smoke test — HTTPS home
+      - name: Smoke test — HTTPS home (strict)
+        id: smoke
         run: |
+          set -uo pipefail
           echo "=== curl https://oimpresso.com/login ==="
-          curl -sL -o /dev/null -w "HTTP %{http_code} (%{time_total}s)\n" https://oimpresso.com/login
-          curl -sL https://oimpresso.com/login | grep -i "Login to your\|Bem-vindo\|Username" | head -3 || echo "⚠️  marker nao encontrado (pode ser redirect)"
+          HTTP_CODE=$(curl -sL -o /tmp/smoke.html -w "%{http_code}|%{time_total}" https://oimpresso.com/login)
+          CODE="${HTTP_CODE%%|*}"
+          TIME="${HTTP_CODE##*|}"
+          echo "HTTP $CODE (${TIME}s)"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          if [ "$CODE" != "200" ] && [ "$CODE" != "302" ]; then
+            echo "::error::Smoke test FAILED — HTTP $CODE pra /login (esperado 200 ou 302)"
+            echo "smoke_failed=true" >> "$GITHUB_OUTPUT"
+            exit 0   # NÃO falhar aqui — deixa Tail laravel.log rodar primeiro pra dar contexto
+          fi
+          # Validação de marker (warn-only)
+          grep -i "Login to your\|Bem-vindo\|Username" /tmp/smoke.html | head -3 || echo "⚠️  marker nao encontrado (pode ser redirect)"
+
+      - name: Tail laravel.log (sempre — diagnose smoke + post-mortem)
+        if: always()
+        run: |
+          echo "=== Last 80 lines de storage/logs/laravel.log ==="
+          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && tail -80 storage/logs/laravel.log 2>&1 || echo '(log vazio ou ausente)'"
+
+      - name: Falha smoke (após log já visível)
+        if: steps.smoke.outputs.smoke_failed == 'true'
+        run: |
+          echo "::error::Smoke test FAILED — HTTP ${{ steps.smoke.outputs.code }}. Ver step 'Tail laravel.log' acima pra causa raiz."
+          exit 1
 
       - name: Verify Laravel version deployed
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan --version"

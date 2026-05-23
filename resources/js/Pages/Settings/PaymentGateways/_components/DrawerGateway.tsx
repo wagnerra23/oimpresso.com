@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
-  X, Copy, Shield, RefreshCw, Zap, Check, Trash2,
+  X, Copy, Shield, RefreshCw, Zap, Check, Trash2, History, Plus, Minus,
 } from 'lucide-react';
 import { Btn, KpiCard } from '../../../Financeiro/Cobranca/_components/atoms';
 import {
@@ -14,7 +14,29 @@ import {
 } from '../_lib/gateway-shared';
 import type { SettingsGateway, Account } from '../_lib/gateway-shared';
 
-type Tab = 'identificacao' | 'credenciais' | 'webhook' | 'health';
+type Tab = 'identificacao' | 'credenciais' | 'webhook' | 'health' | 'historico';
+
+interface HistoryEntry {
+  id: number;
+  when: string;
+  when_iso: string;
+  who: string;
+  action: string;
+  event: string;
+  diff?: { field: string; from: unknown; to: unknown };
+}
+
+interface WebhookEvent {
+  id: number;
+  when: string;
+  when_iso: string;
+  evento: string | null;
+  gateway_event_id: string | null;
+  signature_valid: boolean;
+  processed_at: string | null;
+  error_message: string | null;
+  cobranca_id: number | null;
+}
 
 interface Props {
   gateway: SettingsGateway;
@@ -43,6 +65,56 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Onda 4e.UI (gap P0 estado-da-arte 2026-05-23): histórico de auditoria
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  // Onda 4e.UI #2: eventos webhook recebidos (lista read-only — replay em backlog)
+  const [webhookEvents, setWebhookEvents] = useState<WebhookEvent[] | null>(null);
+  const [webhookEventsLoading, setWebhookEventsLoading] = useState(false);
+  const [webhookEventsError, setWebhookEventsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (tab !== 'webhook' || webhookEvents !== null || webhookEventsLoading) return;
+    setWebhookEventsLoading(true);
+    setWebhookEventsError(null);
+    fetch(`/settings/payment-gateways/${gateway.id}/webhook-events`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((data: { events: WebhookEvent[] }) => {
+        setWebhookEvents(data.events ?? []);
+        setWebhookEventsLoading(false);
+      })
+      .catch(err => {
+        setWebhookEventsError(String(err));
+        setWebhookEvents([]);
+        setWebhookEventsLoading(false);
+      });
+  }, [tab, gateway.id, webhookEvents, webhookEventsLoading]);
+
+  useEffect(() => {
+    if (tab !== 'historico' || historyEntries !== null || historyLoading) return;
+    setHistoryLoading(true);
+    setHistoryError(null);
+    fetch(`/settings/payment-gateways/${gateway.id}/history`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((data: { entries: HistoryEntry[] }) => {
+        setHistoryEntries(data.entries ?? []);
+        setHistoryLoading(false);
+      })
+      .catch(err => {
+        setHistoryError(String(err));
+        setHistoryEntries([]);
+        setHistoryLoading(false);
+      });
+  }, [tab, gateway.id, historyEntries, historyLoading]);
 
   function setConfigField(key: string, value: string): void {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -156,6 +228,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
               { id: 'credenciais',   label: 'Credenciais' },
               { id: 'webhook',       label: 'Webhook' },
               { id: 'health',        label: 'Health' },
+              { id: 'historico',     label: 'Histórico' },
             ] as const).map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} role="tab" aria-selected={tab === t.id}
                 className={cn(
@@ -357,6 +430,28 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                   <Btn variant="outline" size="xs" className="mt-2 !border-amber-300 !text-amber-800">Iniciar migração</Btn>
                 </div>
               )}
+              {d.key === 'pagarme' && (
+                <>
+                  <Field label="Secret Key (atualizar)">
+                    <input
+                      type="password"
+                      value={config.secret_key ?? ''}
+                      onChange={e => setConfigField('secret_key', e.target.value)}
+                      placeholder="sk_test_••• ou sk_live_••• (digite novo pra trocar)"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                    />
+                  </Field>
+                  <Field label="Webhook Secret (atualizar)">
+                    <input
+                      type="password"
+                      value={config.webhook_secret ?? ''}
+                      onChange={e => setConfigField('webhook_secret', e.target.value)}
+                      placeholder="whsec_••• (HMAC X-Hub-Signature-256)"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                    />
+                  </Field>
+                </>
+              )}
             </div>
           )}
 
@@ -381,7 +476,63 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 </div>
               </div>
 
-              <div className="pt-2 text-[10.5px] text-stone-500">Estatísticas de eventos recebidos em backlog (Onda 5).</div>
+              <div className="pt-3 border-t border-stone-200">
+                <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium mb-2">Eventos recebidos (últimos 50)</div>
+
+                {webhookEventsLoading && (
+                  <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11.5px] text-stone-600 flex items-center gap-2">
+                    <RefreshCw className="h-3 w-3 animate-spin" /> Carregando eventos…
+                  </div>
+                )}
+
+                {webhookEventsError && (
+                  <div className="bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
+                    Erro ao carregar eventos: {webhookEventsError}
+                  </div>
+                )}
+
+                {!webhookEventsLoading && !webhookEventsError && webhookEvents && webhookEvents.length === 0 && (
+                  <div className="bg-stone-50 border border-stone-200 rounded p-4 text-center text-[11.5px] text-stone-500">
+                    Nenhum evento recebido ainda. Quando o {d.nome} enviar webhook, aparecerá aqui.
+                  </div>
+                )}
+
+                {!webhookEventsLoading && webhookEvents && webhookEvents.length > 0 && (
+                  <ol className="space-y-1.5">
+                    {webhookEvents.map((e) => (
+                      <li key={e.id} className="bg-white border border-stone-200 rounded px-2.5 py-1.5 text-[11.5px]">
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            'inline-flex items-center justify-center w-4 h-4 rounded-full text-white text-[9px] shrink-0',
+                            e.processed_at && !e.error_message ? 'bg-emerald-500'
+                              : e.error_message ? 'bg-rose-500'
+                              : 'bg-amber-500',
+                          )} title={e.processed_at && !e.error_message ? 'Processado' : e.error_message ? 'Erro' : 'Pendente'}>
+                            {e.processed_at && !e.error_message ? <Check className="h-2.5 w-2.5" /> : e.error_message ? <X className="h-2.5 w-2.5" /> : '·'}
+                          </span>
+                          <span className="font-mono text-stone-900 truncate flex-1">{e.evento ?? '(unknown)'}</span>
+                          {!e.signature_valid && (
+                            <span className="text-[10px] bg-amber-50 text-amber-700 px-1 rounded shrink-0" title="HMAC signature inválida ou ausente">!HMAC</span>
+                          )}
+                          {e.cobranca_id && (
+                            <span className="text-[10px] text-stone-400 shrink-0 font-mono">cob #{e.cobranca_id}</span>
+                          )}
+                          <span className="text-[10px] text-stone-400 tabular-nums shrink-0" title={e.when_iso}>{e.when}</span>
+                        </div>
+                        {e.error_message && (
+                          <div className="mt-1 ml-6 text-[10.5px] text-rose-700 truncate" title={e.error_message}>
+                            {e.error_message}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                <div className="mt-2 text-[10px] text-stone-400">
+                  Replay individual em backlog Onda 4e.UI #3 — necessita orquestração de dispatch CobrancaPaga.
+                </div>
+              </div>
             </div>
           )}
 
@@ -406,6 +557,65 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 <div className="bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
                   Falha no health check — verifique credenciais e tente novamente.
                 </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'historico' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[10.5px] text-stone-500">
+                <History className="h-3 w-3" />
+                Últimas 50 mudanças — quem editou o quê e quando (auditoria LGPD/PCI sem segredos).
+              </div>
+
+              {historyLoading && (
+                <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[12px] text-stone-600 flex items-center gap-2">
+                  <RefreshCw className="h-3 w-3 animate-spin" /> Carregando histórico…
+                </div>
+              )}
+
+              {historyError && (
+                <div className="bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
+                  Erro ao carregar histórico: {historyError}
+                </div>
+              )}
+
+              {!historyLoading && !historyError && historyEntries && historyEntries.length === 0 && (
+                <div className="bg-stone-50 border border-stone-200 rounded p-4 text-center text-[12px] text-stone-500">
+                  Sem mudanças registradas ainda. Auditoria começou em 2026-05 (Spatie LogsActivity).
+                </div>
+              )}
+
+              {!historyLoading && historyEntries && historyEntries.length > 0 && (
+                <ol className="space-y-2">
+                  {historyEntries.map((e) => (
+                    <li key={e.id} className="bg-white border border-stone-200 rounded p-2.5 text-[12px]">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          'inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-[10px]',
+                          e.event === 'created' ? 'bg-emerald-500'
+                            : e.event === 'deleted' ? 'bg-rose-500'
+                            : 'bg-stone-500',
+                        )}>
+                          {e.event === 'created' ? <Plus className="h-3 w-3" />
+                            : e.event === 'deleted' ? <Minus className="h-3 w-3" />
+                            : <RefreshCw className="h-3 w-3" />}
+                        </span>
+                        <span className="font-medium text-stone-900">{e.who}</span>
+                        <span className="text-stone-500">{e.action}</span>
+                        <span className="ml-auto text-[10.5px] text-stone-400 tabular-nums" title={e.when_iso}>{e.when}</span>
+                      </div>
+                      {e.diff && (
+                        <div className="mt-1.5 ml-7 text-[11px] text-stone-600 font-mono">
+                          <span className="text-stone-400">{e.diff.field}:</span>{' '}
+                          <span className="bg-rose-50 text-rose-700 px-1 rounded">{e.diff.from === null || e.diff.from === '' ? '∅' : String(e.diff.from)}</span>
+                          {' → '}
+                          <span className="bg-emerald-50 text-emerald-700 px-1 rounded">{e.diff.to === null || e.diff.to === '' ? '∅' : String(e.diff.to)}</span>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ol>
               )}
             </div>
           )}

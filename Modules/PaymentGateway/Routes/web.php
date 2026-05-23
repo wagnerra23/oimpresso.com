@@ -8,6 +8,7 @@ use Modules\PaymentGateway\Http\Controllers\Webhooks\BcbPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\C6WebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterWebhookController;
+use Modules\PaymentGateway\Http\Controllers\Webhooks\PagarmeWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +64,16 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('payment-gateways/{credentialId}/toggle', [PaymentGatewaysController::class, 'toggle'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.toggle');
+
+        // Onda 4e.UI (gap P0 estado-da-arte 2026-05-23): audit trail per credential.
+        Route::get('payment-gateways/{credentialId}/history', [PaymentGatewaysController::class, 'history'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.history');
+
+        // Onda 4e.UI #2 (gap P0 estado-da-arte 2026-05-23): webhook events per credential.
+        Route::get('payment-gateways/{credentialId}/webhook-events', [PaymentGatewaysController::class, 'webhookEvents'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.webhook-events');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────
@@ -86,6 +97,12 @@ Route::middleware(['web'])
         Route::post('bcb-pix/{businessId}', [BcbPixWebhookController::class, 'handle'])
             ->whereNumber('businessId')
             ->name('paymentgateway.webhooks.bcb-pix');
+
+        // Onda 4e — driver Pagar.me v5 (Stone group)
+        // HMAC signature X-Hub-Signature-256 validada no controller.
+        Route::post('pagarme/{businessId}', [PagarmeWebhookController::class, 'handle'])
+            ->whereNumber('businessId')
+            ->name('paymentgateway.webhooks.pagarme');
     });
 
 // ─── Webhook PIX Inter US-FIN-032 (Onda 26) ──────────────────────────────

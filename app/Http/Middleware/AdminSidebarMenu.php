@@ -282,13 +282,18 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'purchase-order']
                             );
                         }
-                        if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\PurchaseController::class, 'index']),
-                                __('purchase.list_purchase'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'purchases' && request()->segment(2) == null]
-                            );
-                        }
+                        // Wagner 2026-05-22 P3: entry "List Purchase" → /purchases REMOVIDA.
+                        // Duplicava com Modules/Compras canon (entry "Compras" → /compras).
+                        // Rota /purchases continua funcionando (tela Blade legacy + sub-rotas
+                        // create/edit/return/etc preservadas abaixo). Apenas o item no menu
+                        // some pra evitar 2 "Compras" no sidebar.
+                        // if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
+                        //     $sub->url(
+                        //         action([\App\Http\Controllers\PurchaseController::class, 'index']),
+                        //         __('purchase.list_purchase'),
+                        //         ['icon' => '', 'active' => request()->segment(1) == 'purchases' && request()->segment(2) == null]
+                        //     );
+                        // }
                         if (auth()->user()->can('purchase.create')) {
                             $sub->url(
                                 action([\App\Http\Controllers\PurchaseController::class, 'create']),

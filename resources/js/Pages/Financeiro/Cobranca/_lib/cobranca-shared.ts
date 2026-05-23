@@ -4,7 +4,7 @@
 export type CobrancaTipo = 'boleto' | 'pix_cob' | 'pix_cobv' | 'pix_recv' | 'card';
 export type CobrancaStatus = 'emitida' | 'paga' | 'vencida' | 'cancelada' | 'erro' | 'pending';
 export type OrigemType = 'sale' | 'invoice' | 'subscription_license';
-export type GatewayKey = 'inter' | 'c6' | 'asaas' | 'bcb_pix' | 'pesapal';
+export type GatewayKey = 'inter' | 'c6' | 'asaas' | 'bcb_pix' | 'pesapal' | 'pagarme';
 
 export interface Cobranca {
   id: number;
@@ -141,6 +141,13 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     cred: 'api_key + consumer_secret',
     deprecated: true,
     deprecatedReason: 'Migrar pra Asaas (cartão BR nativo + 3DS)',
+  },
+  pagarme: {
+    key: 'pagarme', nome: 'Pagar.me', sigla: 'PG',
+    dot: 'bg-rose-500', bg: 'bg-rose-50', fg: 'text-rose-700', border: 'border-rose-200',
+    tipos: ['boleto', 'pix_cob', 'card'],
+    ambientes: ['sandbox', 'production'],
+    cred: 'secret_key + webhook_secret · HMAC SHA256 (X-Hub-Signature-256)',
   },
 };
 

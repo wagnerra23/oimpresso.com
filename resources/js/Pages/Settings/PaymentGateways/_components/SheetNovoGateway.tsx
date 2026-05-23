@@ -306,6 +306,29 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                   />
                 </Field>
               </>}
+              {d.key === 'pagarme' && <>
+                <Field label="Secret Key">
+                  <input
+                    type="password"
+                    value={config.secret_key ?? ''}
+                    onChange={e => setConfigField('secret_key', e.target.value)}
+                    placeholder="sk_test_... ou sk_live_..."
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Webhook Secret">
+                  <input
+                    type="password"
+                    value={config.webhook_secret ?? ''}
+                    onChange={e => setConfigField('webhook_secret', e.target.value)}
+                    placeholder="whsec_••• (validação HMAC X-Hub-Signature-256)"
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <div className="bg-stone-50 border border-stone-200 rounded p-2.5 text-[10.5px] text-stone-700">
+                  Sandbox via prefixo <span className="font-mono">sk_test_</span> · Production via <span className="font-mono">sk_live_</span>. Webhook secret é configurado no dashboard Pagar.me em Integrações → Webhooks.
+                </div>
+              </>}
 
               <div className="pt-2 border-t border-stone-200 mt-3 flex items-center gap-2">
                 <Btn variant="outline" disabled><Shield className="h-3 w-3" />Testar conexão</Btn>
