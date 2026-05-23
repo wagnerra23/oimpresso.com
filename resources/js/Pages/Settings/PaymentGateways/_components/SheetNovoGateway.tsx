@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
-  X, ChevronRight, ChevronLeft, Plus, Check, Shield,
+  X, ChevronRight, ChevronLeft, Plus, Check, Shield, ExternalLink,
 } from 'lucide-react';
 import { Btn } from '../../../Financeiro/Cobranca/_components/atoms';
 import { DriverChip, FileField, Field } from './atoms-settings';
@@ -197,6 +197,22 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
               <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11px] text-stone-700 mb-3">
                 <strong>{d.nome}:</strong> {d.cred}
               </div>
+
+              {/* Onda 4e.UI #5 — deep-link pro painel do PSP onde gerar credencial */}
+              {d.credentialSource && (
+                <a
+                  href={d.credentialSource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 bg-sky-50 border border-sky-200 rounded p-2.5 text-[11px] text-sky-900 hover:bg-sky-100 hover:border-sky-300 transition mb-3"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Onde gerar a credencial</div>
+                    <div className="text-sky-700">{d.credentialSource.label}</div>
+                  </div>
+                </a>
+              )}
               {d.key === 'inter' && <>
                 <Field label="Client ID">
                   <input

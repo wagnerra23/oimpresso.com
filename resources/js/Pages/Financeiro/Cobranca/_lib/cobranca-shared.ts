@@ -112,6 +112,9 @@ export interface DriverToken {
   pricing?: DriverPricing;
   requirements?: string[];
   recommendedFor?: string;
+  // Onda 4e.UI #5 (gap P2 estado-da-arte): deep-link pro painel do PSP
+  // onde Wagner/Larissa gera a credencial. Reduz fricção do onboarding wizard.
+  credentialSource?: { url: string; label: string };
   deprecated?: boolean;
   deprecatedReason?: string;
 }
@@ -130,6 +133,7 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     },
     requirements: ['Conta PJ Inter ativa', 'mTLS ICP-Brasil + client_id/secret', 'Onboarding via app Inter Empresas'],
     recommendedFor: 'PJ que já tem Inter como banco principal · alta vazão boleto/PIX recebido',
+    credentialSource: { url: 'https://contadigital.inter.co', label: 'Inter Empresas → API Banking' },
   },
   c6: {
     key: 'c6', nome: 'C6 Bank', sigla: 'C6',
@@ -143,6 +147,7 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     },
     requirements: ['Conta PJ C6 ≥ 6 meses OU CNPJ ≥ 1 ano', 'Cadastro CNAB 240 via Web Banking', 'Sem PIX/cartão (só boleto)'],
     recommendedFor: 'Emissão massiva boleto via CNAB · sem cartão necessário',
+    credentialSource: { url: 'https://www.c6bank.com.br/boletocobranca/', label: 'C6 Bank → Boleto Cobrança → CNAB 240' },
   },
   asaas: {
     key: 'asaas', nome: 'Asaas', sigla: 'AS',
@@ -158,6 +163,7 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     },
     requirements: ['Cadastro online self-service (sem KYC enterprise)', 'Sem mensalidade · sem adesão'],
     recommendedFor: 'PME multi-meio (boleto + PIX + cartão) com setup rápido · sandbox público',
+    credentialSource: { url: 'https://www.asaas.com/customerApiAccessToken/index', label: 'Asaas → Integrações → API Access Token' },
   },
   bcb_pix: {
     key: 'bcb_pix', nome: 'BCB · PIX Automático', sigla: 'BC',
@@ -171,6 +177,7 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     },
     requirements: ['Homologação BCB recebedor (Res. 380/2024)', 'mTLS ICP-Brasil', 'Mandato autorizado pagador-a-pagador'],
     recommendedFor: 'Mensalidade recorrente PIX (SaaS, plano gym) · cobrança autorizada 1× pelo cliente',
+    credentialSource: { url: 'https://www.bcb.gov.br/estabilidadefinanceira/pix', label: 'BCB → PIX Automático → Homologação recebedor' },
   },
   pesapal: {
     key: 'pesapal', nome: 'PesaPal', sigla: 'PP',
@@ -195,6 +202,7 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     },
     requirements: ['KYC PJ Stone (1-3d homologação)', 'sk_test_* sandbox após approval', 'Webhook dashboard separado'],
     recommendedFor: 'Marketplace + parcelamento longo · grupo Stone · split de pagamentos',
+    credentialSource: { url: 'https://dashboard.pagar.me', label: 'Pagar.me Dashboard → Configurações → Chaves' },
   },
 };
 
