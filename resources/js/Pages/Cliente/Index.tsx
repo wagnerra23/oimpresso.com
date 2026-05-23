@@ -7,7 +7,7 @@
 // Backend: ContactController::index() — Inertia::render dual via config('mwart.cliente_index.enabled')
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
@@ -1457,7 +1457,12 @@ function ClienteSheet({
             <>
               {/* Tabs cadastrais 1-5 — Wave C-FE plugadas com autosave on blur. */}
               {activeTab === 'identificacao' && (
-                <IdentificacaoTab contact={contact} />
+                <IdentificacaoTab
+                  contact={contact}
+                  onCnpjEnderecoPersisted={() =>
+                    router.reload({ only: ['rows'], preserveScroll: true, preserveState: true })
+                  }
+                />
               )}
               {activeTab === 'contato' && (
                 <ContatoTab contact={contact} />
