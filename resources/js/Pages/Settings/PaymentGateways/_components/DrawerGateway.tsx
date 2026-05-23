@@ -26,6 +26,18 @@ interface HistoryEntry {
   diff?: { field: string; from: unknown; to: unknown };
 }
 
+interface WebhookEvent {
+  id: number;
+  when: string;
+  when_iso: string;
+  evento: string | null;
+  gateway_event_id: string | null;
+  signature_valid: boolean;
+  processed_at: string | null;
+  error_message: string | null;
+  cobranca_id: number | null;
+}
+
 interface Props {
   gateway: SettingsGateway;
   accounts: Account[];
@@ -58,6 +70,31 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
   const [historyEntries, setHistoryEntries] = useState<HistoryEntry[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+
+  // Onda 4e.UI #2: eventos webhook recebidos (lista read-only — replay em backlog)
+  const [webhookEvents, setWebhookEvents] = useState<WebhookEvent[] | null>(null);
+  const [webhookEventsLoading, setWebhookEventsLoading] = useState(false);
+  const [webhookEventsError, setWebhookEventsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (tab !== 'webhook' || webhookEvents !== null || webhookEventsLoading) return;
+    setWebhookEventsLoading(true);
+    setWebhookEventsError(null);
+    fetch(`/settings/payment-gateways/${gateway.id}/webhook-events`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((data: { events: WebhookEvent[] }) => {
+        setWebhookEvents(data.events ?? []);
+        setWebhookEventsLoading(false);
+      })
+      .catch(err => {
+        setWebhookEventsError(String(err));
+        setWebhookEvents([]);
+        setWebhookEventsLoading(false);
+      });
+  }, [tab, gateway.id, webhookEvents, webhookEventsLoading]);
 
   useEffect(() => {
     if (tab !== 'historico' || historyEntries !== null || historyLoading) return;
@@ -439,7 +476,63 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 </div>
               </div>
 
-              <div className="pt-2 text-[10.5px] text-stone-500">Estatísticas de eventos recebidos em backlog (Onda 5).</div>
+              <div className="pt-3 border-t border-stone-200">
+                <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium mb-2">Eventos recebidos (últimos 50)</div>
+
+                {webhookEventsLoading && (
+                  <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11.5px] text-stone-600 flex items-center gap-2">
+                    <RefreshCw className="h-3 w-3 animate-spin" /> Carregando eventos…
+                  </div>
+                )}
+
+                {webhookEventsError && (
+                  <div className="bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
+                    Erro ao carregar eventos: {webhookEventsError}
+                  </div>
+                )}
+
+                {!webhookEventsLoading && !webhookEventsError && webhookEvents && webhookEvents.length === 0 && (
+                  <div className="bg-stone-50 border border-stone-200 rounded p-4 text-center text-[11.5px] text-stone-500">
+                    Nenhum evento recebido ainda. Quando o {d.nome} enviar webhook, aparecerá aqui.
+                  </div>
+                )}
+
+                {!webhookEventsLoading && webhookEvents && webhookEvents.length > 0 && (
+                  <ol className="space-y-1.5">
+                    {webhookEvents.map((e) => (
+                      <li key={e.id} className="bg-white border border-stone-200 rounded px-2.5 py-1.5 text-[11.5px]">
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            'inline-flex items-center justify-center w-4 h-4 rounded-full text-white text-[9px] shrink-0',
+                            e.processed_at && !e.error_message ? 'bg-emerald-500'
+                              : e.error_message ? 'bg-rose-500'
+                              : 'bg-amber-500',
+                          )} title={e.processed_at && !e.error_message ? 'Processado' : e.error_message ? 'Erro' : 'Pendente'}>
+                            {e.processed_at && !e.error_message ? <Check className="h-2.5 w-2.5" /> : e.error_message ? <X className="h-2.5 w-2.5" /> : '·'}
+                          </span>
+                          <span className="font-mono text-stone-900 truncate flex-1">{e.evento ?? '(unknown)'}</span>
+                          {!e.signature_valid && (
+                            <span className="text-[10px] bg-amber-50 text-amber-700 px-1 rounded shrink-0" title="HMAC signature inválida ou ausente">!HMAC</span>
+                          )}
+                          {e.cobranca_id && (
+                            <span className="text-[10px] text-stone-400 shrink-0 font-mono">cob #{e.cobranca_id}</span>
+                          )}
+                          <span className="text-[10px] text-stone-400 tabular-nums shrink-0" title={e.when_iso}>{e.when}</span>
+                        </div>
+                        {e.error_message && (
+                          <div className="mt-1 ml-6 text-[10.5px] text-rose-700 truncate" title={e.error_message}>
+                            {e.error_message}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                <div className="mt-2 text-[10px] text-stone-400">
+                  Replay individual em backlog Onda 4e.UI #3 — necessita orquestração de dispatch CobrancaPaga.
+                </div>
+              </div>
             </div>
           )}
 
