@@ -132,11 +132,14 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                     opt.deprecated && 'opacity-70',
                   )}>
                     <span className={cn('w-9 h-9 rounded-md grid place-items-center text-white text-[13px] font-bold shrink-0', opt.dot)}>{opt.sigla}</span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <div className="text-[13px] font-semibold">{opt.nome}</div>
                         {opt.deprecated && <span className="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">deprecated</span>}
+                        {opt.key === 'bcb_pix' && <span className="text-[9px] uppercase tracking-widest font-bold text-violet-700">novo</span>}
+                        {opt.key === 'pagarme' && <span className="text-[9px] uppercase tracking-widest font-bold text-rose-700">Onda 4e</span>}
                       </div>
+
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {opt.tipos.map(t => {
                           const tp = TIPOS[t];
@@ -144,11 +147,39 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                         })}
                         <span className="text-[10px] text-stone-400 ml-1">· {opt.ambientes.join(' / ')}</span>
                       </div>
-                      <div className="text-[10.5px] text-stone-500 mt-1.5">{opt.cred}</div>
+
+                      {/* Onda 4e.UI #3: comparativo drivers (taxa/settlement/requirements) */}
+                      {opt.pricing && !opt.deprecated && (
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-[10.5px]">
+                          {opt.pricing.boleto && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">Boleto:</span><span className="text-stone-700 truncate" title={opt.pricing.boleto}>{opt.pricing.boleto}</span></div>
+                          )}
+                          {opt.pricing.pix && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">PIX:</span><span className="text-stone-700 truncate" title={opt.pricing.pix}>{opt.pricing.pix}</span></div>
+                          )}
+                          {opt.pricing.card && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">Cartão:</span><span className="text-stone-700 truncate" title={opt.pricing.card}>{opt.pricing.card}</span></div>
+                          )}
+                          {opt.pricing.settlement && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">Liquidação:</span><span className="text-stone-700 truncate" title={opt.pricing.settlement}>{opt.pricing.settlement}</span></div>
+                          )}
+                        </div>
+                      )}
+
+                      {opt.recommendedFor && !opt.deprecated && (
+                        <div className="mt-1.5 text-[10px] text-stone-500 italic">
+                          ↳ {opt.recommendedFor}
+                        </div>
+                      )}
+
+                      <div className="text-[10px] text-stone-400 mt-1.5 font-mono truncate" title={opt.cred}>{opt.cred}</div>
                     </div>
-                    {opt.key === 'bcb_pix' && <span className="text-[9px] uppercase tracking-widest font-bold text-violet-700 self-start">novo</span>}
                   </button>
                 ))}
+
+                <div className="text-[10px] text-stone-400 italic pt-1">
+                  Valores REFERENCE 2026 (sites oficiais + docs públicas) — negociáveis com PSP em volume alto.
+                </div>
               </div>
             </div>
           )}
