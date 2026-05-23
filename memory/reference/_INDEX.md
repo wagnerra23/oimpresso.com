@@ -80,6 +80,7 @@
 - [feedback-daemon-qrfest.md](feedback-daemon-qrfest.md) — Daemon rebuild = QR-fest; PR #685 mitiga após primeiro pair
 - [feedback-eloquent-array-cast-inertia.md](feedback-eloquent-array-cast-inertia.md) — `(array) $eloquent` quebra Inertia; usar `->toArray()`
 - [feedback-legacy-migration-importer.md](feedback-legacy-migration-importer.md) — Migração Delphi → oimpresso via Python importer canônico
+- [feedback-lookup-cnpj-sobrescreve-dados.md](feedback-lookup-cnpj-sobrescreve-dados.md) — Lookup CNPJ/CEP/integrações fonte oficial: sobrescreve dados cadastrais, contatos só se vazio
 - [feedback-migrate-pos-deploy.md](feedback-migrate-pos-deploy.md) — `php artisan migrate` manual obrigatório pós-quick-sync Hostinger
 - [feedback-module-audit-approach.md](feedback-module-audit-approach.md) — Skill `module-completeness-audit` Tier B (8 dims governança)
 - [feedback-nunca-publicar-credenciais.md](feedback-nunca-publicar-credenciais.md) — NUNCA ecoar valor literal credencial no chat

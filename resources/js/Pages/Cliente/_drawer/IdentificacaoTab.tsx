@@ -34,11 +34,39 @@ export interface ContactInfo {
   nascimento?: string | null;
   contato?: string | null;
   cargo?: string | null;
+  // Endereco -- politica Wagner 2026-05-22: lookup CNPJ SOBRESCREVE dados
+  // cadastrais oficiais (Receita e fonte da verdade). NAO checamos vazio
+  // pra endereco/IBGE -- sempre escreve quando lookup tem valor.
+  // ClienteRow propaga frontend names E backend canon, mantemos ambos por
+  // compat na leitura (futura migration unifica).
+  cep?: string | null;
+  zip_code?: string | null;
+  endereco?: string | null;
+  address_line_1?: string | null;
+  bairro?: string | null;
+  neighborhood?: string | null;
+  cidade?: string | null;
+  city?: string | null;
+  uf?: string | null;
+  state?: string | null;
+  city_code?: string | null; // IBGE 7 digitos (NFe/NFSe)
+  // Contatos -- politica Wagner 2026-05-22: lookup CNPJ SO preenche se vazio
+  // (telefone/email da Receita pode diferir do contato real digitado pelo user).
+  mobile?: string | null;
+  tel?: string | null;
+  email?: string | null;
 }
 
 export interface IdentificacaoTabProps {
   contact: ContactInfo;
   onSaved?: (field: string, value: unknown) => void;
+  /**
+   * Callback disparado APOS lookup CNPJ persistir endereco e/ou contato com
+   * sucesso. Pai (ClienteSheet) usa pra `router.reload({ only: ['rows'] })`
+   * -- refresca contact em rows pra EnderecoTab/ContatoTab re-renderizarem
+   * com os campos preenchidos. Wagner 2026-05-22.
+   */
+  onCnpjEnderecoPersisted?: () => void;
   disabled?: boolean;
 }
 
@@ -52,7 +80,12 @@ function getCsrfToken(): string {
   );
 }
 
-export default function IdentificacaoTab({ contact, onSaved, disabled = false }: IdentificacaoTabProps) {
+export default function IdentificacaoTab({
+  contact,
+  onSaved,
+  onCnpjEnderecoPersisted,
+  disabled = false,
+}: IdentificacaoTabProps) {
   // ── State local (optimistic UI — atualiza ANTES do fetch) ────────────
   const [tipo, setTipo] = useState<'PF' | 'PJ'>(contact.tipo ?? 'PJ');
   const [nome, setNome] = useState<string>(contact.name ?? '');
@@ -240,23 +273,118 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
         return;
       }
       const json = await r.json();
+
+      // ── Política Wagner 2026-05-22 (feedback-lookup-cnpj-sobrescreve-dados):
+      //    Dados cadastrais oficiais → SOBRESCREVE (Receita é fonte da verdade).
+      //    Contatos pessoais → SÓ se vazio (preserva contato real do user).
+      // ── Identificação (sobrescreve) ────────────────────────────────────
       const novoNome = (json?.razao_social as string) ?? '';
       const novaFantasia = (json?.fantasia as string) ?? '';
       const novoIe = (json?.ie as string) ?? '';
-      if (novoNome && !nome) {
+      if (novoNome) {
         setNome(novoNome);
-        performSave('nome', novoNome, '');
+        performSave('nome', novoNome, nome);
       }
-      if (novaFantasia && !fantasia) {
+      if (novaFantasia) {
         setFantasia(novaFantasia);
-        performSave('fantasia', novaFantasia, '');
+        performSave('fantasia', novaFantasia, fantasia);
       }
-      if (novoIe && !ie) {
+      // IE vem null da BrasilAPI hoje (só sobrescreve se algum dia provider trouxer).
+      if (novoIe) {
         setIe(novoIe);
-        performSave('ie', novoIe, '');
+        performSave('ie', novoIe, ie);
       }
+
+      // ── Endereço + IBGE (sobrescreve) ──────────────────────────────────
+      // Não checamos vazio: Receita é canônica. Wagner 2026-05-22.
+      // Persiste via PATCH /cliente/{id}/endereco (chaves canon UPOS).
+      const enderecoCandidato: Record<string, string> = {};
+      const zip = (json?.zip_code as string) ?? '';
+      const addr1 = (json?.address_line_1 as string) ?? '';
+      const neigh = (json?.neighborhood as string) ?? '';
+      const cityVal = (json?.city as string) ?? '';
+      const stateVal = (json?.state as string) ?? '';
+      const cityCode = (json?.city_code as string) ?? '';
+      if (zip) enderecoCandidato.zip_code = zip;
+      if (addr1) enderecoCandidato.address_line_1 = addr1;
+      if (neigh) enderecoCandidato.neighborhood = neigh;
+      if (cityVal) enderecoCandidato.city = cityVal;
+      if (stateVal) enderecoCandidato.state = stateVal;
+      if (cityCode) enderecoCandidato.city_code = cityCode;
+
+      let enderecoPreenchido = false;
+      if (Object.keys(enderecoCandidato).length > 0) {
+        try {
+          const re = await fetch(`/cliente/${contact.id}/endereco`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify(enderecoCandidato),
+          });
+          if (re.ok) {
+            enderecoPreenchido = true;
+          } else {
+            // eslint-disable-next-line no-console
+            console.warn('[IdentificacaoTab] PATCH endereco pos-CNPJ falhou', re.status);
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[IdentificacaoTab] PATCH endereco network', err);
+        }
+      }
+
+      // ── Contatos (só se vazio) ─────────────────────────────────────────
+      // Preserva contato real digitado pelo user. Wagner 2026-05-22.
+      const contatoCandidato: Record<string, string> = {};
+      const novoEmail = (json?.email as string) ?? '';
+      const novoMobile = (json?.mobile as string) ?? '';
+      if (novoEmail && !contact.email) contatoCandidato.email = novoEmail;
+      if (novoMobile && !(contact.mobile ?? contact.tel)) contatoCandidato.mobile = novoMobile;
+
+      let contatoPreenchido = false;
+      if (Object.keys(contatoCandidato).length > 0) {
+        try {
+          const rc = await fetch(`/cliente/${contact.id}/contato`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify(contatoCandidato),
+          });
+          if (rc.ok) {
+            contatoPreenchido = true;
+          } else {
+            // eslint-disable-next-line no-console
+            console.warn('[IdentificacaoTab] PATCH contato pos-CNPJ falhou', rc.status);
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[IdentificacaoTab] PATCH contato network', err);
+        }
+      }
+
+      // Refresca rows pro pai (EnderecoTab + ContatoTab re-renderizarem)
+      // se persistimos algum campo via PATCH /endereco ou /contato.
+      if (enderecoPreenchido || contatoPreenchido) {
+        onCnpjEnderecoPersisted?.();
+      }
+
       setCnpjLookup('ok');
-      setCnpjLookupMsg('Dados preenchidos pela Receita.');
+      const msgPartes: string[] = ['Dados preenchidos pela Receita'];
+      if (enderecoPreenchido) msgPartes.push('endereço');
+      if (contatoPreenchido) msgPartes.push('contato');
+      setCnpjLookupMsg(
+        msgPartes.length === 1
+          ? `${msgPartes[0]}.`
+          : `${msgPartes[0]} + ${msgPartes.slice(1).join(' e ')}.`
+      );
       setTimeout(() => {
         setCnpjLookup('idle');
         setCnpjLookupMsg(null);
@@ -267,7 +395,7 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
       // eslint-disable-next-line no-console
       console.error('[IdentificacaoTab] cnpj lookup failed', err);
     }
-  }, [doc, nome, fantasia, ie, performSave]);
+  }, [doc, nome, fantasia, ie, performSave, contact, onCnpjEnderecoPersisted]);
 
   // ── Render ───────────────────────────────────────────────────────────
   const isPJ = tipo === 'PJ';
@@ -373,7 +501,7 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
             <Input
               id="id-doc"
               value={doc}
-              placeholder={isPJ ? '00.000.000/0000-00' : '000.000.000-00'}
+              placeholder={isPJ ? '00.000.000/0000-00' : '000.000.000-00'} // pii-allowlist máscara visual de input
               disabled={disabled}
               inputMode="numeric"
               aria-invalid={!!docError}
