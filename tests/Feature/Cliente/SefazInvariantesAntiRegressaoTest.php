@@ -238,6 +238,52 @@ test('INVARIANTE 10: Service gera alertas severity high pra cSit cancelado/baixa
 });
 
 // ---------------------------------------------------------------------
+// Invariante #11 — Timeout enforcement backend + frontend (anti-hang)
+// ---------------------------------------------------------------------
+
+test('INVARIANTE 11a: Service aplica timeout via $tools->soap->timeout()', function () {
+    $arquivo = $this->base . '/Modules/NfeBrasil/Services/SefazConsultaCadastroService.php';
+    $conteudo = file_get_contents($arquivo);
+
+    // Service chama $tools->soap->timeout(N) ANTES de sefazCadastro.
+    expect($conteudo)->toContain('$tools->soap->timeout(');
+    // Valor lido do config (não hardcoded).
+    expect($conteudo)->toContain("config('fiscal.sefaz_consulta_cadastro_timeout_seconds'");
+});
+
+test('INVARIANTE 11b: config tem timeout_seconds + frontend_timeout_ms', function () {
+    $conf = $this->base . '/config/fiscal.php';
+    $conteudo = file_get_contents($conf);
+
+    expect($conteudo)->toContain('sefaz_consulta_cadastro_timeout_seconds');
+    expect($conteudo)->toContain('sefaz_consulta_cadastro_frontend_timeout_ms');
+});
+
+test('INVARIANTE 11c: frontend handleCnpjLookup usa AbortController + signal nos fetches', function () {
+    $arquivo = $this->base . '/resources/js/Pages/Cliente/_drawer/IdentificacaoTab.tsx';
+    $conteudo = file_get_contents($arquivo);
+
+    // AbortController instanciado.
+    expect($conteudo)->toContain('new AbortController()');
+    // setTimeout cancela após N ms.
+    expect($conteudo)->toMatch('/setTimeout\(\s*\(\s*\)\s*=>\s*\w+\.abort\(\)/');
+    // fetch usa signal.
+    expect($conteudo)->toContain('signal: brasilApiCtrl.signal');
+    expect($conteudo)->toContain('signal: sefazCtrl.signal');
+    // Trata AbortError graceful.
+    expect($conteudo)->toContain("AbortError");
+});
+
+test('INVARIANTE 11d: badge UI tem mensagem específica pra timeout SEFAZ', function () {
+    $arquivo = $this->base . '/resources/js/Pages/Cliente/_drawer/IdentificacaoTab.tsx';
+    $conteudo = file_get_contents($arquivo);
+
+    expect($conteudo)->toContain('sefazTimeoutFlag');
+    // Mensagem do badge contém "demorou" pra orientar usuário.
+    expect($conteudo)->toMatch('/demorou.*tente.*novo|demorou.*preencha/i');
+});
+
+// ---------------------------------------------------------------------
 // Meta-invariante — ADR existe e está marcada IRREVOGÁVEL
 // ---------------------------------------------------------------------
 

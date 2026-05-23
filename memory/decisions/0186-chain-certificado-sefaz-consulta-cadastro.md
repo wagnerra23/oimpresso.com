@@ -167,6 +167,8 @@ const [brasilApiR, sefazR] = await Promise.all([
 
 10. **Warning antecipado UI quando `cSit ≠ habilitado` é compromisso de UX**. Cliente cancelado/suspenso mostra badge severity high pra evitar perder venda + rejeição NFe. Remover warning silenciosamente é regressão.
 
+11. **Timeout enforcement (anti-hang)** — backend SEFAZ SOAP usa `Tools::soap->timeout(4)` (4s connect + 24s total). Frontend usa `AbortController` com 8s pra cada fetch SEFAZ. Drawer NUNCA fica travado em loading state. Mensagem visual diferenciada quando timeout: "SEFAZ-XX demorou — tente de novo ou preencha IE manual". Valores são config-driven (`fiscal.sefaz_consulta_cadastro_timeout_seconds` + `fiscal.sefaz_consulta_cadastro_frontend_timeout_ms`). Remover timeout = regressão (UX trava em SEFAZ lenta).
+
 ## Guardas anti-regressão
 
 Pest tests obrigatórios em `tests/Feature/Cliente/SefazConsultaCadastroChainTest.php` + `tests/Feature/Cliente/SefazInvariantesAntiRegressaoTest.php` (NOVO):
@@ -183,6 +185,7 @@ Pest tests obrigatórios em `tests/Feature/Cliente/SefazConsultaCadastroChainTes
 | 8 (migration idempotente) | `migration_sefaz_é_idempotente` — roda duas vezes sem erro | ✅ |
 | 9 (enum ind_ie_dest) | `ind_ie_dest_rejeita_fora_enum_1_2_9` — já implementado | ✅ |
 | 10 (warning cSit) | `cSit_diferente_habilitado_gera_alerta_high_severity` — mock SEFAZ ret cSit=2, asserta alertas[0].severity=='medium' (e cSit=3 → high) | ✅ |
+| 11 (timeout enforcement) | `service_aplica_timeout_via_tools_soap` + `frontend_usa_abortcontroller_com_timeout` — grep `$tools->soap->timeout(` no Service e `new AbortController()` + `signal:` no TSX | ✅ |
 
 Workflow CI `governance-gate.yml` roda `pest --filter SefazInvariantesAntiRegressao --stop-on-failure` — falha bloqueia merge.
 

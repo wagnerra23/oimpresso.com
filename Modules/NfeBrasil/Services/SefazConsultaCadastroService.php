@@ -191,6 +191,17 @@ class SefazConsultaCadastroService
                     );
                     $tools->loadCertificate($certificate);
 
+                    // ADR 0186 §Invariante #11 (hardening 2026-05-23) — timeout
+                    // backend agressivo: 4s connect + 24s total (sped-common
+                    // adiciona +20s ao soaptimeout pro CURLOPT_TIMEOUT total).
+                    // Default era 20s/40s — drawer travava em SEFAZ lerda.
+                    // Frontend complementa com AbortController 8s (cancela ANTES
+                    // do backend terminar se SEFAZ conectou mas demora demais).
+                    $timeoutSeconds = (int) config('fiscal.sefaz_consulta_cadastro_timeout_seconds', 4);
+                    if (isset($tools->soap) && method_exists($tools->soap, 'timeout')) {
+                        $tools->soap->timeout($timeoutSeconds);
+                    }
+
                     $iest = '';
                     $cpf = '';
                     $response = $tools->sefazCadastro($uf, $cnpjDigits, $iest, $cpf);

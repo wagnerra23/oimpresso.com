@@ -249,23 +249,49 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
       'X-CSRF-TOKEN': getCsrfToken(),
     } as const;
 
+    // ADR 0186 §Invariante #11 — timeout frontend (hardening 2026-05-23).
+    // AbortController cancela fetch após N ms. Drawer NUNCA fica preso em
+    // loading state. Padrão 8s — mais longo que SEFAZ típico (~1-3s) com folga.
+    // Configurável via config('fiscal.sefaz_consulta_cadastro_frontend_timeout_ms').
+    const FRONTEND_TIMEOUT_MS = 8000;
+
     try {
       // UF inicial — pre-SEFAZ. Se cadastro pré-existente tem UF, dispara SEFAZ
       // em paralelo com BrasilAPI. Senão espera BrasilAPI retornar com UF.
       const ufInicial = (contact.state ?? contact.uf ?? '').toUpperCase();
 
+      // AbortControllers — 1 por fetch. Cancela após FRONTEND_TIMEOUT_MS.
+      const brasilApiCtrl = new AbortController();
+      const sefazCtrl = new AbortController();
+      const brasilApiTimer = setTimeout(() => brasilApiCtrl.abort(), FRONTEND_TIMEOUT_MS);
+      const sefazTimer = setTimeout(() => sefazCtrl.abort(), FRONTEND_TIMEOUT_MS);
+
       // Promise BrasilAPI — sempre dispara.
-      const brasilApiP = fetch(`/cliente/lookup/cnpj/${digits}`, { headers });
+      const brasilApiP = fetch(`/cliente/lookup/cnpj/${digits}`, {
+        headers,
+        signal: brasilApiCtrl.signal,
+      }).finally(() => clearTimeout(brasilApiTimer));
 
       // Promise SEFAZ — só dispara se já temos UF inicial supported.
       // Se não, vamos disparar após BrasilAPI revelar a UF do alvo.
-      const sefazP = ufInicial.length === 2
-        ? fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${encodeURIComponent(ufInicial)}`, { headers })
+      // Retorna Response | {aborted:true} | null pra distinguir timeout.
+      type SefazFetchResult = Response | { aborted: true } | null;
+      const sefazP: Promise<SefazFetchResult> = ufInicial.length === 2
+        ? fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${encodeURIComponent(ufInicial)}`, {
+            headers,
+            signal: sefazCtrl.signal,
+          })
+            .then((r) => r as SefazFetchResult)
             .catch((e) => {
+              if (e?.name === 'AbortError') {
+                console.info('[IdentificacaoTab] SEFAZ inicial timeout 8s (graceful)');
+                return { aborted: true } as SefazFetchResult;
+              }
               console.warn('[IdentificacaoTab] SEFAZ inicial falhou (graceful)', e);
-              return null as Response | null;
+              return null;
             })
-        : Promise.resolve(null as Response | null);
+            .finally(() => clearTimeout(sefazTimer))
+        : (clearTimeout(sefazTimer), Promise.resolve(null as SefazFetchResult));
 
       const [brasilApiR, sefazInicialR] = await Promise.all([brasilApiP, sefazP]);
 
@@ -284,27 +310,45 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
       // Parse SEFAZ inicial (se disparou + sucesso).
       let sefazData: Record<string, unknown> | null = null;
       let sefazReason: 'unsupported' | 'no_cert' | 'sefaz_or_cert_error' | null = null;
-      if (sefazInicialR && sefazInicialR.ok) {
+      let sefazTimeoutFlag = false;
+      const isAbortedResult = (r: SefazFetchResult): r is { aborted: true } =>
+        r !== null && !('status' in r) && (r as { aborted?: boolean }).aborted === true;
+
+      if (isAbortedResult(sefazInicialR)) {
+        sefazTimeoutFlag = true;
+      } else if (sefazInicialR && sefazInicialR.ok) {
         sefazData = await sefazInicialR.json().catch(() => null);
-      } else if (sefazInicialR && sefazInicialR.status === 404) {
+      } else if (sefazInicialR && 'status' in sefazInicialR && sefazInicialR.status === 404) {
         const errJson = await sefazInicialR.json().catch(() => ({}));
         sefazReason = (errJson?.reason as 'unsupported' | 'no_cert' | 'sefaz_or_cert_error') ?? null;
       }
 
       // Se SEFAZ inicial não rodou (UF inicial vazia) MAS BrasilAPI revelou UF,
-      // dispara SEFAZ agora sequencial — segunda chance.
+      // dispara SEFAZ agora sequencial — segunda chance com AbortController.
       const ufFinal = ufBrasilApi || ufInicial;
       if (!sefazData && sefazReason !== 'unsupported' && ufFinal.length === 2 && ufFinal !== ufInicial) {
+        const sefaz2Ctrl = new AbortController();
+        const sefaz2Timer = setTimeout(() => sefaz2Ctrl.abort(), FRONTEND_TIMEOUT_MS);
         try {
-          const rs2 = await fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${encodeURIComponent(ufFinal)}`, { headers });
+          const rs2 = await fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${encodeURIComponent(ufFinal)}`, {
+            headers,
+            signal: sefaz2Ctrl.signal,
+          });
           if (rs2.ok) {
             sefazData = await rs2.json();
           } else if (rs2.status === 404) {
             const errJson = await rs2.json().catch(() => ({}));
             sefazReason = (errJson?.reason as typeof sefazReason) ?? null;
           }
-        } catch (e) {
-          console.warn('[IdentificacaoTab] SEFAZ pós-BrasilAPI falhou (graceful)', e);
+        } catch (e: any) {
+          if (e?.name === 'AbortError') {
+            sefazTimeoutFlag = true;
+            console.info('[IdentificacaoTab] SEFAZ segunda chance timeout 8s (graceful)');
+          } else {
+            console.warn('[IdentificacaoTab] SEFAZ pós-BrasilAPI falhou (graceful)', e);
+          }
+        } finally {
+          clearTimeout(sefaz2Timer);
         }
       }
 
@@ -356,12 +400,15 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
         sefazSource = 'no_cert';
       }
 
-      // ── Badge UI — Técnica C 4 estados + alertas SEFAZ ──────────────────
+      // ── Badge UI — Técnica C 5 estados + alertas SEFAZ ──────────────────
+      // 5º estado adicionado 2026-05-23 (hardening invariante #11): timeout.
       let mensagemBadge = 'Dados preenchidos pela Receita.';
       if (sefazSource === 'primary') {
         mensagemBadge = `Receita + SEFAZ-${ufFinal} via seu certificado.`;
       } else if (sefazSource === 'institutional') {
         mensagemBadge = `Receita + SEFAZ-${ufFinal} via cert oimpresso (configure o seu em /fiscal/config).`;
+      } else if (sefazTimeoutFlag) {
+        mensagemBadge = `Receita preencheu. SEFAZ-${ufFinal} demorou (8s) — tente de novo ou preencha IE manual.`;
       } else if (sefazSource === 'unsupported') {
         mensagemBadge = `Receita preencheu. SEFAZ-${ufFinal} não disponível — preencha IE manualmente.`;
       } else if (sefazSource === 'no_cert') {

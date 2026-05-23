@@ -86,6 +86,35 @@ return [
 
     /*
     |---------------------------------------------------------------------------
+    | Timeout SEFAZ ConsultaCadastro (ADR 0186 §Invariante #11 — hardening 2026-05-23)
+    |---------------------------------------------------------------------------
+    |
+    | Connect timeout em segundos. sped-common adiciona +20s ao soaptimeout pro
+    | CURLOPT_TIMEOUT total. Valor 4 = conecta em 4s OU falha + total request 24s.
+    |
+    | Default sped-common era 20 (conecta 20s + total 40s) — drawer 760 travava
+    | em SEFAZ-RS lerda. Frontend complementa com AbortController 8s
+    | (IdentificacaoTab.handleCnpjLookup) — cancela ANTES do backend terminar
+    | se SEFAZ conectou mas está demorando demais.
+    |
+    */
+    'sefaz_consulta_cadastro_timeout_seconds' => env('FISCAL_SEFAZ_TIMEOUT_S', 4),
+
+    /*
+    |---------------------------------------------------------------------------
+    | Timeout frontend AbortController (ms) — IdentificacaoTab.handleCnpjLookup
+    |---------------------------------------------------------------------------
+    |
+    | Drawer 760 abort do fetch SEFAZ após N ms. Limite UX — se SEFAZ não
+    | responder, drawer mostra badge "demorou demais" + usuário preenche manual.
+    |
+    | Exposto via Inertia share() pro front consumir.
+    |
+    */
+    'sefaz_consulta_cadastro_frontend_timeout_ms' => env('FISCAL_SEFAZ_FRONTEND_TIMEOUT_MS', 8000),
+
+    /*
+    |---------------------------------------------------------------------------
     | Health-check cert (ADR 0186 fase 6 — não obrigatório no PR inicial)
     |---------------------------------------------------------------------------
     |
