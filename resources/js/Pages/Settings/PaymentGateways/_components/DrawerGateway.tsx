@@ -38,6 +38,14 @@ interface WebhookEvent {
   cobranca_id: number | null;
 }
 
+// Onda 4e gap #3 (audit 2026-05-23): quota tracking MVP.
+interface QuotaPayload {
+  month: string;        // "2026-05"
+  counts: Record<string, number>;
+  total: number;
+  gateway_key: string | null;
+}
+
 interface Props {
   gateway: SettingsGateway;
   accounts: Account[];
@@ -76,6 +84,10 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
   const [webhookEventsLoading, setWebhookEventsLoading] = useState(false);
   const [webhookEventsError, setWebhookEventsError] = useState<string | null>(null);
 
+  // Onda 4e gap #3 (audit 2026-05-23): quota tracking — lazy fetch quando tab Health ativada
+  const [quota, setQuota] = useState<QuotaPayload | null>(null);
+  const [quotaLoading, setQuotaLoading] = useState(false);
+
   useEffect(() => {
     if (tab !== 'webhook' || webhookEvents !== null || webhookEventsLoading) return;
     setWebhookEventsLoading(true);
@@ -95,6 +107,25 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
         setWebhookEventsLoading(false);
       });
   }, [tab, gateway.id, webhookEvents, webhookEventsLoading]);
+
+  // Onda 4e gap #3: lazy fetch quota quando tab Health ativada
+  useEffect(() => {
+    if (tab !== 'health' || quota !== null || quotaLoading) return;
+    setQuotaLoading(true);
+    fetch(`/settings/payment-gateways/${gateway.id}/quota`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((data: QuotaPayload) => {
+        setQuota(data);
+        setQuotaLoading(false);
+      })
+      .catch(() => {
+        setQuota({ month: '', counts: {}, total: 0, gateway_key: null });
+        setQuotaLoading(false);
+      });
+  }, [tab, gateway.id, quota, quotaLoading]);
 
   useEffect(() => {
     if (tab !== 'historico' || historyEntries !== null || historyLoading) return;
@@ -560,10 +591,30 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
 
           {tab === 'health' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <KpiCard label="Último check" value={gateway.last_check ? gateway.last_check.slice(11, 16) : '—'} sub={gateway.last_check ? fmtDate(gateway.last_check.slice(0, 10)) : 'nunca testado'} icon={<RefreshCw className="h-3 w-3" />} />
                 <KpiCard label="Latência" value={gateway.latencia ? `${gateway.latencia}ms` : '—'} sub={gateway.latencia && gateway.latencia > 500 ? 'acima do SLA (<500ms)' : 'dentro do SLA'} tone={gateway.latencia && gateway.latencia > 500 ? 'rose' : 'emerald'} icon={<Zap className="h-3 w-3" />} />
                 <KpiCard label="Status" value={gateway.health} sub={gateway.warn || 'sem alertas'} tone={gateway.health === 'ok' ? 'emerald' : gateway.health === 'down' ? 'rose' : 'default'} icon={<Shield className="h-3 w-3" />} />
+                {/* Onda 4e gap #3 (audit 2026-05-23): cota mensal — limite per banco fica em follow-up */}
+                <KpiCard
+                  label="Cota mês"
+                  value={quotaLoading ? '…' : String(quota?.total ?? 0)}
+                  sub={(() => {
+                    if (quotaLoading) return 'carregando…';
+                    if (!quota || quota.total === 0) return 'sem cobranças no mês';
+                    const c = quota.counts;
+                    const parts: string[] = [];
+                    const boleto = c.boleto ?? 0;
+                    const pix = (c.pix_cob ?? 0) + (c.pix_cobv ?? 0) + (c.pix_recv ?? 0);
+                    const card = c.card ?? 0;
+                    if (boleto) parts.push(`boleto: ${boleto}`);
+                    if (pix) parts.push(`pix: ${pix}`);
+                    if (card) parts.push(`card: ${card}`);
+                    return parts.join(' · ') || '—';
+                  })()}
+                  tone="emerald"
+                  icon={<Zap className="h-3 w-3" />}
+                />
               </div>
 
               <Btn variant="outline" onClick={testar} disabled={testStatus === 'testando'}>
