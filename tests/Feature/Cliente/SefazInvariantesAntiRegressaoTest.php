@@ -287,21 +287,29 @@ test('INVARIANTE 11d: badge UI tem mensagem específica pra timeout SEFAZ', func
 // Meta-invariante — ADR existe e está marcada IRREVOGÁVEL
 // ---------------------------------------------------------------------
 
-test('META: ADR 0186 existe + frontmatter lifecycle=irrevogavel + status=aceito', function () {
+test('META: ADR 0186 existe + frontmatter canon + irrevogabilidade via tags + invariantes documentadas', function () {
     $adr = $this->base . '/memory/decisions/0186-chain-certificado-sefaz-consulta-cadastro.md';
     expect(file_exists($adr))->toBeTrue();
 
     $conteudo = file_get_contents($adr);
 
-    // Frontmatter Tier 0.
-    expect($conteudo)->toContain('lifecycle: irrevogavel');
+    // Frontmatter canon strict (schema _SCHEMA.md: lifecycle = ativo|arquivado|substituido).
+    // Irrevogabilidade é convenção semântica via tags + warning topo + title marker,
+    // não via field lifecycle (que tem vocabulário controlado pela linter).
     expect($conteudo)->toContain('status: aceito');
     expect($conteudo)->toContain('authority: canonical');
+    expect($conteudo)->toContain('lifecycle: ativo');
 
-    // Tags obrigatórios.
+    // Tags marcam irrevogabilidade pra busca decisions-search.
     expect($conteudo)->toContain('tier-zero');
     expect($conteudo)->toContain('irrevogavel');
     expect($conteudo)->toContain('no-regression');
+
+    // Title contém marker visual IRREVOGÁVEL.
+    expect($conteudo)->toMatch('/title:.*IRREVOG[ÁA]VEL/');
+
+    // Warning topo declara status irrevogável.
+    expect($conteudo)->toContain('STATUS: IRREVOGÁVEL');
 
     // Seções obrigatórias.
     expect($conteudo)->toContain('## Invariantes');

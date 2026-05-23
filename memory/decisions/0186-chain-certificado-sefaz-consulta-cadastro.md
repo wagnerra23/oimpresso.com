@@ -5,7 +5,7 @@ title: "Chain de certificado A1 + SEFAZ ConsultaCadastro merge paralelo — IRRE
 type: adr
 status: aceito
 authority: canonical
-lifecycle: irrevogavel
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-23
 module: NfeBrasil
