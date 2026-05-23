@@ -69,12 +69,41 @@ test('GET /cliente/lookup/cep/{cep} -- cache MISS hits ViaCEP e retorna logradou
     $response->assertStatus(200)
         ->assertJson([
             'logradouro' => 'Avenida Paulista',
+            // Gap fechado 2026-05-23 -- ViaCEP retorna `complemento` em CEPs
+            // de avenida/rua com faixa numerica (ex "lado impar 612 a 1510").
+            // Frontend mapeia pra `address_line_2` (canon UPOS).
+            'complemento' => 'lado impar',
             'bairro' => 'Bela Vista',
             'cidade' => 'Sao Paulo',
             'uf' => 'SP',
         ]);
 
     Http::assertSentCount(1);
+});
+
+test('GET /cliente/lookup/cep/{cep} -- complemento vazio quando ViaCEP nao retorna (CEP residencial)', function () {
+    // CEPs residenciais (rua sem faixa numerica em avenida) tipicamente nao
+    // tem `complemento` na resposta ViaCEP. Service deve retornar string vazia,
+    // nao null, pra contrato consistente. Gap fechado 2026-05-23.
+    Http::fake([
+        'viacep.com.br/ws/04567000/json/*' => Http::response([
+            'cep' => '04567-000',
+            'logradouro' => 'Rua Vergueiro',
+            // complemento ausente na resposta
+            'bairro' => 'Vila Mariana',
+            'localidade' => 'Sao Paulo',
+            'uf' => 'SP',
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/cliente/lookup/cep/04567000');
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'logradouro' => 'Rua Vergueiro',
+            'complemento' => '', // vazio mas presente no contrato
+            'bairro' => 'Vila Mariana',
+        ]);
 });
 
 test('GET /cliente/lookup/cep/{cep} -- segunda chamada e cache HIT (NAO bate ViaCEP)', function () {
@@ -127,13 +156,24 @@ test('GET /cliente/lookup/cep/{cep} -- upstream rate limit (429) retorna 404 gra
 // CNPJ
 // ---------------------------------------------------------------------
 
-test('GET /cliente/lookup/cnpj/{cnpj} -- cache MISS hits BrasilAPI e retorna razao_social', function () {
+test('GET /cliente/lookup/cnpj/{cnpj} -- cache MISS hits BrasilAPI e retorna razao_social + endereco + IBGE + contatos', function () {
     Http::fake([
         'brasilapi.com.br/api/cnpj/v1/11222333000181' => Http::response([
             'cnpj' => '11222333000181',
             'razao_social' => 'ACME COMERCIO LTDA',
             'nome_fantasia' => 'ACME',
             'descricao_situacao_cadastral' => 'ATIVA',
+            'cep' => '01310100',
+            'logradouro' => 'Avenida Paulista',
+            'numero' => '1578',
+            'bairro' => 'Bela Vista',
+            'municipio' => 'Sao Paulo',
+            'uf' => 'SP',
+            // BrasilAPI retorna codigo_municipio como int 7 digitos (IBGE).
+            // Sao Paulo capital = 3550308.
+            'codigo_municipio' => 3550308,
+            'ddd_telefone_1' => '1133334444',
+            'email' => 'contato@acme.com.br',
         ], 200),
     ]);
 
@@ -145,9 +185,98 @@ test('GET /cliente/lookup/cnpj/{cnpj} -- cache MISS hits BrasilAPI e retorna raz
             'fantasia' => 'ACME',
             'ie' => null,
             'situacao' => 'ATIVA',
+            // Wagner 2026-05-22 -- endereco chaves canon ClienteAutosaveController::endereco
+            // logradouro + numero combinados em address_line_1 ("Rua, 123") porque
+            // backend UPOS guarda no mesmo campo.
+            'zip_code' => '01310100',
+            'address_line_1' => 'Avenida Paulista, 1578',
+            'neighborhood' => 'Bela Vista',
+            'city' => 'Sao Paulo',
+            'state' => 'SP',
+            // city_code IBGE obrigatorio NFe/NFSe (Wagner 2026-05-22).
+            'city_code' => '3550308',
+            // Contatos -- regra so-vazio aplicada no client, service so retorna.
+            'mobile' => '1133334444',
+            'email' => 'contato@acme.com.br',
         ]);
 
     Http::assertSentCount(1);
+});
+
+test('GET /cliente/lookup/cnpj/{cnpj} -- BrasilAPI sem numero retorna address_line_1 so com logradouro', function () {
+    Http::fake([
+        'brasilapi.com.br/api/cnpj/v1/11222333000181' => Http::response([
+            'razao_social' => 'ACME COMERCIO LTDA',
+            'nome_fantasia' => 'ACME',
+            'descricao_situacao_cadastral' => 'ATIVA',
+            'cep' => '01310100',
+            'logradouro' => 'Avenida Paulista',
+            // numero ausente -- caso real CNPJ sem cadastro de numero na Receita
+            'bairro' => 'Bela Vista',
+            'municipio' => 'Sao Paulo',
+            'uf' => 'SP',
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/cliente/lookup/cnpj/11222333000181');
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'address_line_1' => 'Avenida Paulista',
+            'neighborhood' => 'Bela Vista',
+        ]);
+});
+
+test('GET /cliente/lookup/cnpj/{cnpj} -- BrasilAPI sem endereco/contato retorna campos vazios', function () {
+    Http::fake([
+        'brasilapi.com.br/api/cnpj/v1/11222333000181' => Http::response([
+            'razao_social' => 'ACME COMERCIO LTDA',
+            'nome_fantasia' => 'ACME',
+            'descricao_situacao_cadastral' => 'ATIVA',
+            // sem cep/logradouro/numero/bairro/municipio/uf/codigo_municipio/email/telefone
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/cliente/lookup/cnpj/11222333000181');
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'razao_social' => 'ACME COMERCIO LTDA',
+            'zip_code' => '',
+            'address_line_1' => '',
+            'neighborhood' => '',
+            'city' => '',
+            'state' => '',
+            'city_code' => '',
+            'mobile' => '',
+            'email' => '',
+        ]);
+});
+
+test('GET /cliente/lookup/cnpj/{cnpj} -- codigo_municipio nao numerico vira string vazia (defensive)', function () {
+    Http::fake([
+        'brasilapi.com.br/api/cnpj/v1/11222333000181' => Http::response([
+            'razao_social' => 'ACME COMERCIO LTDA',
+            'nome_fantasia' => 'ACME',
+            'descricao_situacao_cadastral' => 'ATIVA',
+            // BrasilAPI as vezes retorna codigo_municipio como string "3550308"
+            // (CNPJ antigo) ou ate null. Service normaliza pra digits.
+            'codigo_municipio' => '3550308',
+            'ddd_telefone_1' => '(11) 3333-4444', // formato com mascara
+            'email' => 'CONTATO@ACME.COM.BR ',     // upper + trailing space
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/cliente/lookup/cnpj/11222333000181');
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'city_code' => '3550308',
+            // Service tira mascara do telefone (so digitos).
+            'mobile' => '1133334444',
+            // Email trim mas NAO lowercase (Receita pode usar maiuscula corporativa).
+            'email' => 'CONTATO@ACME.COM.BR',
+        ]);
 });
 
 test('GET /cliente/lookup/cnpj/{cnpj} -- cache HIT NAO bate BrasilAPI segunda vez', function () {

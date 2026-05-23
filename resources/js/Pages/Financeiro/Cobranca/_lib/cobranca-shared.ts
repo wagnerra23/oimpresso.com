@@ -89,6 +89,13 @@ export interface CobrancaFiltros {
   busca: string | null;
 }
 
+export interface DriverPricing {
+  boleto?: string;
+  pix?: string;
+  card?: string;
+  settlement?: string;
+}
+
 export interface DriverToken {
   key: GatewayKey;
   nome: string;
@@ -100,6 +107,14 @@ export interface DriverToken {
   tipos: CobrancaTipo[];
   ambientes: Array<'sandbox' | 'production'>;
   cred: string;
+  // Onda 4e.UI #3 (gap P0 estado-da-arte 2026-05-23): comparativo drivers no wizard.
+  // Valores REFERENCE 2026 (sites oficiais + docs públicas). Negociáveis com PSP.
+  pricing?: DriverPricing;
+  requirements?: string[];
+  recommendedFor?: string;
+  // Onda 4e.UI #5 (gap P2 estado-da-arte): deep-link pro painel do PSP
+  // onde Wagner/Larissa gera a credencial. Reduz fricção do onboarding wizard.
+  credentialSource?: { url: string; label: string };
   deprecated?: boolean;
   deprecatedReason?: string;
 }
@@ -111,6 +126,14 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     tipos: ['boleto', 'pix_cob', 'pix_cobv'],
     ambientes: ['sandbox', 'production'],
     cred: 'mTLS · client_id+secret · cert.crt + cert.key',
+    pricing: {
+      boleto: '250 grátis/mês · depois R$ 1,99',
+      pix: 'grátis (chave) · QR dinâmico pode ter tarifa',
+      settlement: 'D+0 (mesma data útil)',
+    },
+    requirements: ['Conta PJ Inter ativa', 'mTLS ICP-Brasil + client_id/secret', 'Onboarding via app Inter Empresas'],
+    recommendedFor: 'PJ que já tem Inter como banco principal · alta vazão boleto/PIX recebido',
+    credentialSource: { url: 'https://contadigital.inter.co', label: 'Inter Empresas → API Banking' },
   },
   c6: {
     key: 'c6', nome: 'C6 Bank', sigla: 'C6',
@@ -118,6 +141,13 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     tipos: ['boleto'],
     ambientes: ['production'],
     cred: 'agência + conta + código_cliente · CNAB 240',
+    pricing: {
+      boleto: '200 grátis Web · 2.000 grátis CNAB',
+      settlement: 'D+0 (até 13h30)',
+    },
+    requirements: ['Conta PJ C6 ≥ 6 meses OU CNPJ ≥ 1 ano', 'Cadastro CNAB 240 via Web Banking', 'Sem PIX/cartão (só boleto)'],
+    recommendedFor: 'Emissão massiva boleto via CNAB · sem cartão necessário',
+    credentialSource: { url: 'https://www.c6bank.com.br/boletocobranca/', label: 'C6 Bank → Boleto Cobrança → CNAB 240' },
   },
   asaas: {
     key: 'asaas', nome: 'Asaas', sigla: 'AS',
@@ -125,6 +155,15 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     tipos: ['boleto', 'pix_cob', 'card'],
     ambientes: ['sandbox', 'production'],
     cred: 'api_key + webhook_secret',
+    pricing: {
+      boleto: 'R$ 0,99 (3 meses) · depois R$ 1,99',
+      pix: '100 grátis/mês · depois R$ 0,99 → R$ 1,99',
+      card: '1,99% + R$ 0,49 (3 meses) · depois 2,99%',
+      settlement: 'PIX imediato · cartão D+30',
+    },
+    requirements: ['Cadastro online self-service (sem KYC enterprise)', 'Sem mensalidade · sem adesão'],
+    recommendedFor: 'PME multi-meio (boleto + PIX + cartão) com setup rápido · sandbox público',
+    credentialSource: { url: 'https://www.asaas.com/customerApiAccessToken/index', label: 'Asaas → Integrações → API Access Token' },
   },
   bcb_pix: {
     key: 'bcb_pix', nome: 'BCB · PIX Automático', sigla: 'BC',
@@ -132,6 +171,13 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     tipos: ['pix_recv'],
     ambientes: ['sandbox', 'production'],
     cred: 'mTLS BCB + CNPJ recebedor homologado · Resolução BCB 380/2024',
+    pricing: {
+      pix: 'Pagador: grátis (regulado) · Recebedor: free agreement c/ PSP',
+      settlement: 'Imediato',
+    },
+    requirements: ['Homologação BCB recebedor (Res. 380/2024)', 'mTLS ICP-Brasil', 'Mandato autorizado pagador-a-pagador'],
+    recommendedFor: 'Mensalidade recorrente PIX (SaaS, plano gym) · cobrança autorizada 1× pelo cliente',
+    credentialSource: { url: 'https://www.bcb.gov.br/estabilidadefinanceira/pix', label: 'BCB → PIX Automático → Homologação recebedor' },
   },
   pesapal: {
     key: 'pesapal', nome: 'PesaPal', sigla: 'PP',
@@ -148,6 +194,15 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     tipos: ['boleto', 'pix_cob', 'card'],
     ambientes: ['sandbox', 'production'],
     cred: 'secret_key + webhook_secret · HMAC SHA256 (X-Hub-Signature-256)',
+    pricing: {
+      boleto: 'R$ 3,49 por boleto pago',
+      pix: '1,19% por transação',
+      card: '4,39% à vista · até 25,29% parcelado 12×',
+      settlement: 'PIX imediato · cartão D+30',
+    },
+    requirements: ['KYC PJ Stone (1-3d homologação)', 'sk_test_* sandbox após approval', 'Webhook dashboard separado'],
+    recommendedFor: 'Marketplace + parcelamento longo · grupo Stone · split de pagamentos',
+    credentialSource: { url: 'https://dashboard.pagar.me', label: 'Pagar.me Dashboard → Configurações → Chaves' },
   },
 };
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
-  X, Copy, Shield, RefreshCw, Zap, Check, Trash2,
+  X, Copy, Shield, RefreshCw, Zap, Check, Trash2, History, Plus, Minus, ExternalLink,
 } from 'lucide-react';
 import { Btn, KpiCard } from '../../../Financeiro/Cobranca/_components/atoms';
 import {
@@ -14,7 +14,37 @@ import {
 } from '../_lib/gateway-shared';
 import type { SettingsGateway, Account } from '../_lib/gateway-shared';
 
-type Tab = 'identificacao' | 'credenciais' | 'webhook' | 'health';
+type Tab = 'identificacao' | 'credenciais' | 'webhook' | 'health' | 'historico';
+
+interface HistoryEntry {
+  id: number;
+  when: string;
+  when_iso: string;
+  who: string;
+  action: string;
+  event: string;
+  diff?: { field: string; from: unknown; to: unknown };
+}
+
+interface WebhookEvent {
+  id: number;
+  when: string;
+  when_iso: string;
+  evento: string | null;
+  gateway_event_id: string | null;
+  signature_valid: boolean;
+  processed_at: string | null;
+  error_message: string | null;
+  cobranca_id: number | null;
+}
+
+// Onda 4e gap #3 (audit 2026-05-23): quota tracking MVP.
+interface QuotaPayload {
+  month: string;        // "2026-05"
+  counts: Record<string, number>;
+  total: number;
+  gateway_key: string | null;
+}
 
 interface Props {
   gateway: SettingsGateway;
@@ -43,6 +73,79 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Onda 4e.UI (gap P0 estado-da-arte 2026-05-23): histórico de auditoria
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  // Onda 4e.UI #2: eventos webhook recebidos (lista read-only — replay em backlog)
+  const [webhookEvents, setWebhookEvents] = useState<WebhookEvent[] | null>(null);
+  const [webhookEventsLoading, setWebhookEventsLoading] = useState(false);
+  const [webhookEventsError, setWebhookEventsError] = useState<string | null>(null);
+
+  // Onda 4e gap #3 (audit 2026-05-23): quota tracking — lazy fetch quando tab Health ativada
+  const [quota, setQuota] = useState<QuotaPayload | null>(null);
+  const [quotaLoading, setQuotaLoading] = useState(false);
+
+  useEffect(() => {
+    if (tab !== 'webhook' || webhookEvents !== null || webhookEventsLoading) return;
+    setWebhookEventsLoading(true);
+    setWebhookEventsError(null);
+    fetch(`/settings/payment-gateways/${gateway.id}/webhook-events`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((data: { events: WebhookEvent[] }) => {
+        setWebhookEvents(data.events ?? []);
+        setWebhookEventsLoading(false);
+      })
+      .catch(err => {
+        setWebhookEventsError(String(err));
+        setWebhookEvents([]);
+        setWebhookEventsLoading(false);
+      });
+  }, [tab, gateway.id, webhookEvents, webhookEventsLoading]);
+
+  // Onda 4e gap #3: lazy fetch quota quando tab Health ativada
+  useEffect(() => {
+    if (tab !== 'health' || quota !== null || quotaLoading) return;
+    setQuotaLoading(true);
+    fetch(`/settings/payment-gateways/${gateway.id}/quota`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((data: QuotaPayload) => {
+        setQuota(data);
+        setQuotaLoading(false);
+      })
+      .catch(() => {
+        setQuota({ month: '', counts: {}, total: 0, gateway_key: null });
+        setQuotaLoading(false);
+      });
+  }, [tab, gateway.id, quota, quotaLoading]);
+
+  useEffect(() => {
+    if (tab !== 'historico' || historyEntries !== null || historyLoading) return;
+    setHistoryLoading(true);
+    setHistoryError(null);
+    fetch(`/settings/payment-gateways/${gateway.id}/history`, {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then((data: { entries: HistoryEntry[] }) => {
+        setHistoryEntries(data.entries ?? []);
+        setHistoryLoading(false);
+      })
+      .catch(err => {
+        setHistoryError(String(err));
+        setHistoryEntries([]);
+        setHistoryLoading(false);
+      });
+  }, [tab, gateway.id, historyEntries, historyLoading]);
 
   function setConfigField(key: string, value: string): void {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -156,6 +259,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
               { id: 'credenciais',   label: 'Credenciais' },
               { id: 'webhook',       label: 'Webhook' },
               { id: 'health',        label: 'Health' },
+              { id: 'historico',     label: 'Histórico' },
             ] as const).map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} role="tab" aria-selected={tab === t.id}
                 className={cn(
@@ -229,6 +333,22 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
               <div className="text-[10.5px] text-stone-500 bg-stone-50 border border-stone-200 rounded px-3 py-2 leading-snug">
                 {d.cred} <strong>Deixe em branco pra manter o valor atual</strong> — só campos preenchidos são atualizados.
               </div>
+
+              {/* Onda 4e.UI #5 — deep-link pro painel do PSP onde gerar/rotacionar */}
+              {d.credentialSource && !d.deprecated && (
+                <a
+                  href={d.credentialSource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 bg-sky-50 border border-sky-200 rounded p-2.5 text-[11px] text-sky-900 hover:bg-sky-100 hover:border-sky-300 transition"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Onde gerar/rotacionar a credencial</div>
+                    <div className="text-sky-700">{d.credentialSource.label}</div>
+                  </div>
+                </a>
+              )}
               {d.key === 'inter' && (
                 <>
                   <Field label="Client ID (atualizar)">
@@ -353,8 +473,14 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
               {d.key === 'pesapal' && (
                 <div className="bg-amber-50 border border-amber-200 rounded p-3 text-[11.5px] text-amber-900">
                   <div className="font-medium mb-1">Driver deprecated</div>
-                  <p>PesaPal foi UltimatePOS legacy pra cartão internacional. Hoje recomenda-se <strong>Asaas</strong> (BR nativo + 3DS + PIX). Migração: criar Asaas → desativar PesaPal → backfill subscriptions ativas.</p>
-                  <Btn variant="outline" size="xs" className="mt-2 !border-amber-300 !text-amber-800">Iniciar migração</Btn>
+                  <p className="mb-2">PesaPal foi UltimatePOS legacy pra cartão internacional. Hoje recomenda-se <strong>Asaas</strong> (BR nativo + 3DS + PIX).</p>
+                  <div className="font-medium text-[11px] mt-2 mb-1">Migrar manualmente:</div>
+                  <ol className="list-decimal list-inside space-y-0.5 text-[11px]">
+                    <li>Clique em <strong>+ Novo gateway</strong> na tela principal → escolha <strong>Asaas</strong></li>
+                    <li>Cadastre credencial Asaas (sandbox primeiro, depois production)</li>
+                    <li>Reaponte Subscriptions/cobranças ativas pra Asaas no módulo Recurring</li>
+                    <li>Desative este PesaPal aqui (toggle no header)</li>
+                  </ol>
                 </div>
               )}
               {d.key === 'pagarme' && (
@@ -403,16 +529,92 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 </div>
               </div>
 
-              <div className="pt-2 text-[10.5px] text-stone-500">Estatísticas de eventos recebidos em backlog (Onda 5).</div>
+              <div className="pt-3 border-t border-stone-200">
+                <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium mb-2">Eventos recebidos (últimos 50)</div>
+
+                {webhookEventsLoading && (
+                  <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11.5px] text-stone-600 flex items-center gap-2">
+                    <RefreshCw className="h-3 w-3 animate-spin" /> Carregando eventos…
+                  </div>
+                )}
+
+                {webhookEventsError && (
+                  <div className="bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
+                    Erro ao carregar eventos: {webhookEventsError}
+                  </div>
+                )}
+
+                {!webhookEventsLoading && !webhookEventsError && webhookEvents && webhookEvents.length === 0 && (
+                  <div className="bg-stone-50 border border-stone-200 rounded p-4 text-center text-[11.5px] text-stone-500">
+                    Nenhum evento recebido ainda. Quando o {d.nome} enviar webhook, aparecerá aqui.
+                  </div>
+                )}
+
+                {!webhookEventsLoading && webhookEvents && webhookEvents.length > 0 && (
+                  <ol className="space-y-1.5">
+                    {webhookEvents.map((e) => (
+                      <li key={e.id} className="bg-white border border-stone-200 rounded px-2.5 py-1.5 text-[11.5px]">
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            'inline-flex items-center justify-center w-4 h-4 rounded-full text-white text-[9px] shrink-0',
+                            e.processed_at && !e.error_message ? 'bg-emerald-500'
+                              : e.error_message ? 'bg-rose-500'
+                              : 'bg-amber-500',
+                          )} title={e.processed_at && !e.error_message ? 'Processado' : e.error_message ? 'Erro' : 'Pendente'}>
+                            {e.processed_at && !e.error_message ? <Check className="h-2.5 w-2.5" /> : e.error_message ? <X className="h-2.5 w-2.5" /> : '·'}
+                          </span>
+                          <span className="font-mono text-stone-900 truncate flex-1">{e.evento ?? '(unknown)'}</span>
+                          {!e.signature_valid && (
+                            <span className="text-[10px] bg-amber-50 text-amber-700 px-1 rounded shrink-0" title="HMAC signature inválida ou ausente">!HMAC</span>
+                          )}
+                          {e.cobranca_id && (
+                            <span className="text-[10px] text-stone-400 shrink-0 font-mono">cob #{e.cobranca_id}</span>
+                          )}
+                          <span className="text-[10px] text-stone-400 tabular-nums shrink-0" title={e.when_iso}>{e.when}</span>
+                        </div>
+                        {e.error_message && (
+                          <div className="mt-1 ml-6 text-[10.5px] text-rose-700 truncate" title={e.error_message}>
+                            {e.error_message}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                <div className="mt-2 text-[10px] text-stone-400">
+                  Replay individual em backlog Onda 4e.UI #3 — necessita orquestração de dispatch CobrancaPaga.
+                </div>
+              </div>
             </div>
           )}
 
           {tab === 'health' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <KpiCard label="Último check" value={gateway.last_check ? gateway.last_check.slice(11, 16) : '—'} sub={gateway.last_check ? fmtDate(gateway.last_check.slice(0, 10)) : 'nunca testado'} icon={<RefreshCw className="h-3 w-3" />} />
                 <KpiCard label="Latência" value={gateway.latencia ? `${gateway.latencia}ms` : '—'} sub={gateway.latencia && gateway.latencia > 500 ? 'acima do SLA (<500ms)' : 'dentro do SLA'} tone={gateway.latencia && gateway.latencia > 500 ? 'rose' : 'emerald'} icon={<Zap className="h-3 w-3" />} />
                 <KpiCard label="Status" value={gateway.health} sub={gateway.warn || 'sem alertas'} tone={gateway.health === 'ok' ? 'emerald' : gateway.health === 'down' ? 'rose' : 'default'} icon={<Shield className="h-3 w-3" />} />
+                {/* Onda 4e gap #3 (audit 2026-05-23): cota mensal — limite per banco fica em follow-up */}
+                <KpiCard
+                  label="Cota mês"
+                  value={quotaLoading ? '…' : String(quota?.total ?? 0)}
+                  sub={(() => {
+                    if (quotaLoading) return 'carregando…';
+                    if (!quota || quota.total === 0) return 'sem cobranças no mês';
+                    const c = quota.counts;
+                    const parts: string[] = [];
+                    const boleto = c.boleto ?? 0;
+                    const pix = (c.pix_cob ?? 0) + (c.pix_cobv ?? 0) + (c.pix_recv ?? 0);
+                    const card = c.card ?? 0;
+                    if (boleto) parts.push(`boleto: ${boleto}`);
+                    if (pix) parts.push(`pix: ${pix}`);
+                    if (card) parts.push(`card: ${card}`);
+                    return parts.join(' · ') || '—';
+                  })()}
+                  tone="emerald"
+                  icon={<Zap className="h-3 w-3" />}
+                />
               </div>
 
               <Btn variant="outline" onClick={testar} disabled={testStatus === 'testando'}>
@@ -428,6 +630,65 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 <div className="bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
                   Falha no health check — verifique credenciais e tente novamente.
                 </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'historico' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[10.5px] text-stone-500">
+                <History className="h-3 w-3" />
+                Últimas 50 mudanças — quem editou o quê e quando (auditoria LGPD/PCI sem segredos).
+              </div>
+
+              {historyLoading && (
+                <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[12px] text-stone-600 flex items-center gap-2">
+                  <RefreshCw className="h-3 w-3 animate-spin" /> Carregando histórico…
+                </div>
+              )}
+
+              {historyError && (
+                <div className="bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
+                  Erro ao carregar histórico: {historyError}
+                </div>
+              )}
+
+              {!historyLoading && !historyError && historyEntries && historyEntries.length === 0 && (
+                <div className="bg-stone-50 border border-stone-200 rounded p-4 text-center text-[12px] text-stone-500">
+                  Sem mudanças registradas ainda. Auditoria começou em 2026-05 (Spatie LogsActivity).
+                </div>
+              )}
+
+              {!historyLoading && historyEntries && historyEntries.length > 0 && (
+                <ol className="space-y-2">
+                  {historyEntries.map((e) => (
+                    <li key={e.id} className="bg-white border border-stone-200 rounded p-2.5 text-[12px]">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          'inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-[10px]',
+                          e.event === 'created' ? 'bg-emerald-500'
+                            : e.event === 'deleted' ? 'bg-rose-500'
+                            : 'bg-stone-500',
+                        )}>
+                          {e.event === 'created' ? <Plus className="h-3 w-3" />
+                            : e.event === 'deleted' ? <Minus className="h-3 w-3" />
+                            : <RefreshCw className="h-3 w-3" />}
+                        </span>
+                        <span className="font-medium text-stone-900">{e.who}</span>
+                        <span className="text-stone-500">{e.action}</span>
+                        <span className="ml-auto text-[10.5px] text-stone-400 tabular-nums" title={e.when_iso}>{e.when}</span>
+                      </div>
+                      {e.diff && (
+                        <div className="mt-1.5 ml-7 text-[11px] text-stone-600 font-mono">
+                          <span className="text-stone-400">{e.diff.field}:</span>{' '}
+                          <span className="bg-rose-50 text-rose-700 px-1 rounded">{e.diff.from === null || e.diff.from === '' ? '∅' : String(e.diff.from)}</span>
+                          {' → '}
+                          <span className="bg-emerald-50 text-emerald-700 px-1 rounded">{e.diff.to === null || e.diff.to === '' ? '∅' : String(e.diff.to)}</span>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ol>
               )}
             </div>
           )}
