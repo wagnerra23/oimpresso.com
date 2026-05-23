@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
-  X, Copy, Shield, RefreshCw, Zap, Check, Trash2, History, Plus, Minus,
+  X, Copy, Shield, RefreshCw, Zap, Check, Trash2, History, Plus, Minus, ExternalLink,
 } from 'lucide-react';
 import { Btn, KpiCard } from '../../../Financeiro/Cobranca/_components/atoms';
 import {
@@ -302,6 +302,22 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
               <div className="text-[10.5px] text-stone-500 bg-stone-50 border border-stone-200 rounded px-3 py-2 leading-snug">
                 {d.cred} <strong>Deixe em branco pra manter o valor atual</strong> — só campos preenchidos são atualizados.
               </div>
+
+              {/* Onda 4e.UI #5 — deep-link pro painel do PSP onde gerar/rotacionar */}
+              {d.credentialSource && !d.deprecated && (
+                <a
+                  href={d.credentialSource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 bg-sky-50 border border-sky-200 rounded p-2.5 text-[11px] text-sky-900 hover:bg-sky-100 hover:border-sky-300 transition"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Onde gerar/rotacionar a credencial</div>
+                    <div className="text-sky-700">{d.credentialSource.label}</div>
+                  </div>
+                </a>
+              )}
               {d.key === 'inter' && (
                 <>
                   <Field label="Client ID (atualizar)">
@@ -426,8 +442,14 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
               {d.key === 'pesapal' && (
                 <div className="bg-amber-50 border border-amber-200 rounded p-3 text-[11.5px] text-amber-900">
                   <div className="font-medium mb-1">Driver deprecated</div>
-                  <p>PesaPal foi UltimatePOS legacy pra cartão internacional. Hoje recomenda-se <strong>Asaas</strong> (BR nativo + 3DS + PIX). Migração: criar Asaas → desativar PesaPal → backfill subscriptions ativas.</p>
-                  <Btn variant="outline" size="xs" className="mt-2 !border-amber-300 !text-amber-800">Iniciar migração</Btn>
+                  <p className="mb-2">PesaPal foi UltimatePOS legacy pra cartão internacional. Hoje recomenda-se <strong>Asaas</strong> (BR nativo + 3DS + PIX).</p>
+                  <div className="font-medium text-[11px] mt-2 mb-1">Migrar manualmente:</div>
+                  <ol className="list-decimal list-inside space-y-0.5 text-[11px]">
+                    <li>Clique em <strong>+ Novo gateway</strong> na tela principal → escolha <strong>Asaas</strong></li>
+                    <li>Cadastre credencial Asaas (sandbox primeiro, depois production)</li>
+                    <li>Reaponte Subscriptions/cobranças ativas pra Asaas no módulo Recurring</li>
+                    <li>Desative este PesaPal aqui (toggle no header)</li>
+                  </ol>
                 </div>
               )}
               {d.key === 'pagarme' && (
