@@ -52,9 +52,15 @@ class BrLookupService
     /**
      * Consulta CEP via ViaCEP com cache Redis 90 dias.
      *
+     * `complemento` adicionado 2026-05-23 -- ViaCEP retorna pra CEPs com
+     * faixas de numeracao (ex 01310-100 "lado impar 612 a 1510" SP, comum
+     * em Av Paulista / Rua Augusta). Cobre gap 80% -> 100% aderência ViaCEP.
+     * Politica feedback-lookup-cnpj-sobrescreve-dados: dado oficial publico
+     * -> SOBRESCREVE (Receita/Correios e fonte da verdade pro endereco).
+     *
      * @param  string  $cep  CEP em qualquer formato (so digitos sao usados)
-     * @return array{logradouro:string,bairro:string,cidade:string,uf:string}|null
-     *                                                                              null = CEP invalido (formato), CEP nao existe, ou erro upstream
+     * @return array{logradouro:string,complemento:string,bairro:string,cidade:string,uf:string}|null
+     *                                                                                              null = CEP invalido (formato), CEP nao existe, ou erro upstream
      */
     public function lookupCep(string $cep): ?array
     {
@@ -89,6 +95,10 @@ class BrLookupService
 
                     return [
                         'logradouro' => (string) ($response->json('logradouro') ?? ''),
+                        // `complemento` ViaCEP -- ex "lado impar 612 a 1510",
+                        // "do km 12 ao km 18", "lote 4". Frontend EnderecoTab
+                        // mapeia pra `address_line_2` (canon UPOS).
+                        'complemento' => (string) ($response->json('complemento') ?? ''),
                         'bairro' => (string) ($response->json('bairro') ?? ''),
                         'cidade' => (string) ($response->json('localidade') ?? ''),
                         'uf' => (string) ($response->json('uf') ?? ''),

@@ -69,12 +69,41 @@ test('GET /cliente/lookup/cep/{cep} -- cache MISS hits ViaCEP e retorna logradou
     $response->assertStatus(200)
         ->assertJson([
             'logradouro' => 'Avenida Paulista',
+            // Gap fechado 2026-05-23 -- ViaCEP retorna `complemento` em CEPs
+            // de avenida/rua com faixa numerica (ex "lado impar 612 a 1510").
+            // Frontend mapeia pra `address_line_2` (canon UPOS).
+            'complemento' => 'lado impar',
             'bairro' => 'Bela Vista',
             'cidade' => 'Sao Paulo',
             'uf' => 'SP',
         ]);
 
     Http::assertSentCount(1);
+});
+
+test('GET /cliente/lookup/cep/{cep} -- complemento vazio quando ViaCEP nao retorna (CEP residencial)', function () {
+    // CEPs residenciais (rua sem faixa numerica em avenida) tipicamente nao
+    // tem `complemento` na resposta ViaCEP. Service deve retornar string vazia,
+    // nao null, pra contrato consistente. Gap fechado 2026-05-23.
+    Http::fake([
+        'viacep.com.br/ws/04567000/json/*' => Http::response([
+            'cep' => '04567-000',
+            'logradouro' => 'Rua Vergueiro',
+            // complemento ausente na resposta
+            'bairro' => 'Vila Mariana',
+            'localidade' => 'Sao Paulo',
+            'uf' => 'SP',
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/cliente/lookup/cep/04567000');
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'logradouro' => 'Rua Vergueiro',
+            'complemento' => '', // vazio mas presente no contrato
+            'bairro' => 'Vila Mariana',
+        ]);
 });
 
 test('GET /cliente/lookup/cep/{cep} -- segunda chamada e cache HIT (NAO bate ViaCEP)', function () {

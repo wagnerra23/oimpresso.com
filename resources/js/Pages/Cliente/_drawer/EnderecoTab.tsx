@@ -221,6 +221,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
       }
       const json = await r.json();
       const logradouro = (json?.logradouro as string) ?? '';
+      const novoComplemento = (json?.complemento as string) ?? '';
       const novoBairro = (json?.bairro as string) ?? '';
       const novaCidade = (json?.cidade as string) ?? '';
       const novaUf = (json?.uf as string) ?? '';
@@ -228,6 +229,31 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
       if (logradouro) {
         setEndereco(logradouro);
         performSave('endereco', logradouro, endereco);
+      }
+      // `complemento` ViaCEP (ex "lado impar 612 a 1510" SP) -- gap fechado
+      // 2026-05-23. Politica feedback-lookup-cnpj-sobrescreve-dados: dado
+      // oficial publico -> SOBRESCREVE. PATCH direto canon (`address_line_2`)
+      // porque performSave('complemento', ...) seria descartado pelo backend
+      // que valida so canon UPOS. Quando PR #1422 (naming canon EnderecoTab)
+      // mergear, este PATCH direto vira redundante -- handleCepLookup vai
+      // reescrever via performSave('address_line_2', ...).
+      if (novoComplemento) {
+        setComplemento(novoComplemento);
+        try {
+          await fetch(`/cliente/${contact.id}/endereco`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': getCsrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ address_line_2: novoComplemento }),
+          });
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[EnderecoTab] PATCH address_line_2 (complemento) falhou', err);
+        }
       }
       if (novoBairro) {
         setBairro(novoBairro);
