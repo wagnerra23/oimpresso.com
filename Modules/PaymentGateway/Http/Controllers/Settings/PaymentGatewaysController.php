@@ -16,6 +16,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\PaymentGateway\Models\Cobranca;
+use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\HealthCheckService;
 use Spatie\Activitylog\Models\Activity;
@@ -443,6 +444,61 @@ class PaymentGatewaysController extends Controller
         return response()->json([
             'entries' => $entries,
             'total'   => $entries->count(),
+        ]);
+    }
+
+    /**
+     * GET /settings/payment-gateways/{credentialId}/webhook-events
+     *
+     * Lista eventos de webhook recebidos pra esta credencial (últimos 50, DESC).
+     *
+     * Tier 0 (ADR 0093): credential precisa ser do business_id da sessão; eventos
+     * herdam mesmo filtro via FK payment_gateway_credential_id + business_id explícito.
+     *
+     * Shape (espelha contract HistoryEntry pra reuso UI pattern):
+     *   { events: [{ id, when, when_iso, evento, gateway_event_id, signature_valid,
+     *                processed_at, error_message, cobranca_id }], total }
+     *
+     * LGPD/PCI: payload completo NÃO retorna (pode conter PII redacted-via-PiiRedactor
+     * na hora de gravar, mas evita re-exposição). Só metadados.
+     *
+     * Onda 4e.UI #2 (gap P0 catalogado em estado-da-arte 2026-05-23) — fecha visibilidade
+     * do `gateway_webhook_events` que já existia no DB desde Onda 2 mas nunca foi exposto.
+     */
+    public function webhookEvents(Request $request, int $credentialId): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
+
+        $credential = PaymentGatewayCredential::query()
+            ->where('business_id', $businessId)
+            ->find($credentialId);
+
+        if (! $credential) {
+            return response()->json(['events' => [], 'total' => 0], 404);
+        }
+
+        $rows = GatewayWebhookEvent::query()
+            ->where('business_id', $businessId)
+            ->where('payment_gateway_credential_id', $credentialId)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        $events = $rows->map(fn (GatewayWebhookEvent $e) => [
+            'id'                => $e->id,
+            'when'              => $e->created_at?->locale('pt_BR')->isoFormat('DD/MM HH:mm:ss'),
+            'when_iso'          => $e->created_at?->toIso8601String(),
+            'evento'            => $e->evento,
+            'gateway_event_id'  => $e->gateway_event_id,
+            'signature_valid'   => (bool) $e->signature_valid,
+            'processed_at'      => $e->processed_at?->toIso8601String(),
+            'error_message'     => $e->error_message,
+            'cobranca_id'       => $e->cobranca_id,
+        ]);
+
+        return response()->json([
+            'events' => $events,
+            'total'  => $events->count(),
         ]);
     }
 

@@ -69,6 +69,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('payment-gateways/{credentialId}/history', [PaymentGatewaysController::class, 'history'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.history');
+
+        // Onda 4e.UI #2 (gap P0 estado-da-arte 2026-05-23): webhook events per credential.
+        Route::get('payment-gateways/{credentialId}/webhook-events', [PaymentGatewaysController::class, 'webhookEvents'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.webhook-events');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────
