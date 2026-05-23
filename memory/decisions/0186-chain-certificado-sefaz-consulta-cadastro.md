@@ -1,16 +1,16 @@
 ---
 slug: 0186-chain-certificado-sefaz-consulta-cadastro
 number: 186
-title: "Chain de certificado A1 pra SEFAZ ConsultaCadastro — cert do business primário + institucional fallback"
+title: "Chain de certificado A1 + SEFAZ ConsultaCadastro merge paralelo — IRREVOGÁVEL"
 type: adr
 status: aceito
 authority: canonical
-lifecycle: ativo
+lifecycle: irrevogavel
 decided_by: [W]
 decided_at: 2026-05-23
 module: NfeBrasil
 quarter: 2026-Q2
-tags: [multi-tenant, fiscal, cert-a1, sefaz, lookup-cnpj]
+tags: [multi-tenant, fiscal, cert-a1, sefaz, lookup-cnpj, tier-zero, irrevogavel, no-regression]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
@@ -20,231 +20,254 @@ related:
   - 0179-cliente-drawer-760px-substitui-show-fullpage
   - 0178-restauracao-campos-fiscais-br-canon
   - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0094-constituicao-v2-7-camadas-8-principios
 pii: false
 review_triggers:
-  - oimpresso ganhar 10+ businesses ativos com cert (avaliar custo SEFAZ rate-limit no fallback institucional)
-  - SEFAZ-RS/SP/PR mudar protocolo ou endpoint
-  - cert oimpresso institucional próximo de vencimento (cron alerta)
+  - SEFAZ-RS/SP/PR mudar protocolo XML ou endpoint do WS ConsultaCadastro2
+  - oimpresso ganhar 10+ businesses ativos sem cert próprio (avaliar custo SEFAZ rate-limit no fallback institucional)
+  - cert oimpresso institucional próximo de vencimento (cron alerta — não-regressão de invariante #5)
+  - Wagner decidir adotar provider pago FiscalAPI/CNPJa como provider adicional (NÃO substitui SEFAZ — adiciona)
 ---
 
-# ADR 0186 — Chain de certificado A1 pra SEFAZ ConsultaCadastro
+# ADR 0186 — Chain de certificado A1 + SEFAZ ConsultaCadastro merge paralelo
+
+> **STATUS: IRREVOGÁVEL.** Esta ADR é canon Tier 0 — invariantes listados na §Invariantes NÃO podem regredir. Pest guardas (§Guardas anti-regressão) bloqueiam merge em violações detectadas. Mudança em qualquer invariante exige nova ADR com `supersedes: [186]` + aprovação Wagner.
 
 ## Contexto
 
-Drawer 760 Cliente ([ADR 0179](0179-cliente-drawer-760px-substitui-show-fullpage.md)) faz lookup CNPJ ([PR #1419](https://github.com/wagnerra23/oimpresso.com/pull/1419)) via BrasilAPI gratuita. Limitação inerente: BrasilAPI **não retorna IE (Inscrição Estadual)** — Sintegra/SEFAZ é responsabilidade estadual (27 sistemas distintos). Larissa @ ROTA LIVRE (biz=4, vestuário RS, ~30 cadastros/dia) precisa IE pra emitir NFe.
+Drawer 760 Cliente ([ADR 0179](0179-cliente-drawer-760px-substitui-show-fullpage.md)) precisa preencher IE + dados fiscais automaticamente pra emissão de NFe. **BrasilAPI gratuita não retorna IE** (Sintegra/SEFAZ é responsabilidade estadual, 27 sistemas distintos). Larissa @ ROTA LIVRE (biz=4, vestuário RS, ~30 cadastros/dia) é cliente piloto — feedback "IE não vem" foi gatilho da auditoria.
 
-**Auditoria de mercado 2026-05-23** ([sessions/2026-05-23-arte-busca-cliente-cnpj-ie.md](../sessions/2026-05-23-arte-busca-cliente-cnpj-ie.md)) descobriu:
+[Auditoria fiscal 2026-05-23](../sessions/2026-05-23-arte-busca-cliente-cnpj-ie.md) avaliou **3 técnicas** com nota:
 
-1. **Nenhum ERP BR grande (Bling/Tiny/Omie/Conta Azul) traz IE automática no flow padrão.** Mercado tolera IE manual. oimpresso está em paridade.
-2. **Providers pagos** (FiscalAPI R$130/mês 2000 req, CNPJa, SintegraWS) unificam IE em 27 UFs — opção custo recorrente.
-3. **SEFAZ ConsultaCadastro direto** via `nfephp-org/sped-nfe::sefazCadastro` (NfeService::consultaCadastro linha 580 já existe legacy) — zero custo, mas só ~6 UFs funcionam (RS/SP/PR/MG/BA/SC) e requer certificado A1 do **consumidor**.
+| Técnica | Estratégia | Nota | Decisão |
+|---|---|---:|---|
+| A | BrasilAPI sequencial + SEFAZ só pra IE | 82/100 | superseded |
+| B | SEFAZ-RS first + BrasilAPI fallback | 65/100 | rejeitada (cobertura ruim cliente PJ não-RS + PF) |
+| **C** | **Merge paralelo BrasilAPI + SEFAZ com autoridade por campo** | **95/100** | **aceita IRREVOGÁVEL** |
 
-**Insight Wagner (reframe arquitetural):**
+**6 das 10 rejeições NFe mais comuns** dependem de campos que **só SEFAZ retorna** (`IE`, `cSit`, `indCredNFe`). Catálogo: 207 (CNPJ inválido), **233/235/487/770 (IE inválida/inativa/sem cadastro)**, 478 (não habilitado), 656 (endereço divergente fiscal), 778 (cMun inválido), 215 (schema XML).
 
-> "se o cliente já tira nota ele vai ter o certificado válido dentro do sistema também. então dá pra ver qual usar. o meu como fallback?"
+Cert A1 já é canon `nfe_certificados` ([Modules/NfeBrasil](../../Modules/NfeBrasil/), [ADR 0090](0090-cert-legacy-nfe-brasil-coexistence.md)). **Maioria dos clientes oimpresso JÁ emite NFe → JÁ tem cert válido** — reusa em vez de comprar provider pago. Cert oimpresso institucional (biz=1) atende clientes recém-cadastrados sem cert próprio ainda.
 
-Verdade — oimpresso é ERP fiscal. **Maioria dos businesses já emite NFe → já tem certificado A1 ativo em `nfe_certificados`** (canon `Modules/NfeBrasil`, multi-tenant business_id, encrypted-at-rest). Não precisa "comprar SEFAZ" pra ninguém — reusa o cert que o business já paga (~R$ 80-300/ano) pra emitir nota.
+## Decisão canônica (Técnica C)
 
-Cert do oimpresso operacional (biz=1) serve como **fallback institucional** quando o business consumidor não tem cert próprio ativo (cliente recém-cadastrado, cert em renovação, etc).
+### 1. Chain de 3 camadas pra carregar cert A1
 
-## Decisão
+`Modules\NfeBrasil\Services\CertificadoService::carregarParaSefazComFallback(int $businessId)`:
 
-### Chain de 3 camadas pra carregar cert A1 quando precisar consultar SEFAZ ConsultaCadastro
+```
+1. Cert PRIMÁRIO business consumidor (nfe_certificados business-scoped)
+   NfeCertificado::where('business_id', $businessId)->where('ativo', true)
+                ->where('valido_ate', '>', now())->first()
 
-Novo método `Modules\NfeBrasil\Services\CertificadoService::carregarParaSefazComFallback(int $businessId)` estende `carregarParaSefaz` ([ADR 0090](0090-cert-legacy-nfe-brasil-coexistence.md) já cobre primário + legado):
+2. Cert LEGADO `business.certificado` BLOB ([ADR 0090](0090-cert-legacy-nfe-brasil-coexistence.md) coexistência)
 
-1. **Primário** — cert do business consultando (canon `nfe_certificados` business-scoped):
-   ```php
-   NfeCertificado::where('business_id', $businessId)
-                ->where('ativo', true)
-                ->where('valido_ate', '>', now())
-                ->first()
-   ```
+3. Cert INSTITUCIONAL oimpresso operacional
+   config('fiscal.fallback_business_id', 1)
+   NfeCertificado::withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $fallbackBusinessId)
+                ->where('ativo', true)->where('valido_ate', '>', now())->first()
+   + audit log mcp_audit_log event='sefaz.cert.fallback_institutional_used'
+     metadata.cnpj_hash = sha256(cnpj) // LGPD Art. 6º III minimização
 
-2. **Fallback legado** — `business.certificado` BLOB ([ADR 0090](0090-cert-legacy-nfe-brasil-coexistence.md)) durante coexistência migration:
-   ```php
-   CertificadoService::lerCertLegado($businessId)
-   ```
-
-3. **Fallback institucional** (NOVO) — cert do oimpresso operacional via `config('fiscal.fallback_business_id')` (default 1):
-   ```php
-   NfeCertificado::withoutGlobalScope(HasBusinessScope::class)
-                ->where('business_id', config('fiscal.fallback_business_id', 1))
-                ->where('ativo', true)
-                ->where('valido_ate', '>', now())
-                ->first()
-   ```
-
-   **Tier 0 compliance:** `withoutGlobalScope` aqui é INTENCIONAL e AUDITADO. Cada uso loga em `mcp_audit_log`:
-   ```php
-   AuditLog::create([
-       'business_id' => $businessId, // business CONSUMIDOR
-       'event' => 'sefaz.cert.fallback_institutional_used',
-       'metadata' => [
-           'cert_business_id' => 1,
-           'cnpj_consulted_hash' => sha256($cnpj),
-           'uf' => $uf,
-           'reason' => 'business_sem_cert_ativo',
-       ],
-   ]);
-   ```
-
-4. **Sem cert nenhum** — lança `RuntimeException` graceful que vira badge UI "Configure certificado em Modules/Fiscal".
-
-### Matriz UFs suportadas — config canônica
-
-`config/fiscal.php`:
-```php
-return [
-    'fallback_business_id' => env('FISCAL_FALLBACK_BUSINESS_ID', 1),
-    'sefaz_consulta_cadastro_ufs_supported' => [
-        'RS' => ['endpoint' => 'svrs', 'status' => 'production'],
-        'SP' => ['endpoint' => 'sp', 'status' => 'production'],
-        'PR' => ['endpoint' => 'pr', 'status' => 'production'],
-        'MG' => ['endpoint' => 'mg', 'status' => 'production'],
-        'BA' => ['endpoint' => 'ba', 'status' => 'production'],
-        'SC' => ['endpoint' => 'svrs', 'status' => 'production'],
-        // demais 21 UFs: skip — BrasilAPI baseline + IE manual + badge UI
-    ],
-];
+4. RuntimeException → frontend renderiza badge UI "configure cert"
 ```
 
-### Endpoint canônico novo — `Modules/Crm/Http/Controllers/ClienteLookupController::cnpjSefaz`
+**Ordem das camadas IMUTÁVEL.** Fallback institucional NUNCA precede primário (invariante #1).
 
-Separado do `::cnpj` (BrasilAPI puro) pra desacoplar:
-- `GET /cliente/lookup/cnpj/{cnpj}` — BrasilAPI (atual, sem mudança)
-- `GET /cliente/lookup/cnpj/{cnpj}/sefaz?uf=RS` — chama `SefazConsultaCadastroService` → IE oficial
+### 2. SEFAZ ConsultaCadastro paralelo (Promise.all)
 
-Frontend (`IdentificacaoTab.handleCnpjLookup`):
-1. Chama BrasilAPI (já existente) — preenche tudo MENOS IE
-2. SE `uf_alvo` ∈ supported UFs E business tem qualquer cert na chain:
-   chama endpoint SEFAZ → preenche IE + badge fonte
-3. SENÃO:
-   IE em branco + badge contextual
+`SefazConsultaCadastroService::consultar($cnpj, $uf, $businessId)` retorna **contrato fixo**:
 
-### Badges UI (4 estados)
+```php
+[
+    // Base — sempre presente.
+    'ie'               => string|null,
+    'situacao'         => string|null,    // cSit raw
+    'situacao_label'   => string|null,    // PT-BR canônico
+    'nome'             => string|null,
+    'uf'               => string,
+    'fonte'            => 'sefaz_' . strtolower($uf),
+    'cert_source'      => 'nfe_brasil'|'business_legado'|'institutional_fallback',
+    'cert_business_id' => int,
+    // Técnica C — derivações fiscais.
+    'ind_ie_dest'      => 1|2|9,           // NFe <dest>/<indIEDest> obrigatório
+    'ind_cred_nfe'     => 0|1|2|3|4|null,
+    'regime_apuracao'  => string|null,
+    'endereco_sefaz'   => array,           // logradouro/numero/bairro/cmun/cep/uf
+    'alertas'          => array,           // [['code', 'severity', 'msg'], ...]
+    'consultado_em'    => string,          // ISO8601
+]
+```
 
-| Estado | Cor | Mensagem |
+`alertas[].severity`: `high` (cancelado/baixado/não habilitado), `medium` (suspenso), `low` (não credenciado emissão).
+
+`derivarIndIeDest($ie, $cSit)` regra fixa:
+- IE = `ISENTO` (case-insensitive) → `2`
+- IE válida + cSit ∈ {`0`,`2`,`4`} → `1`
+- sem IE OR IE=`0` OR cSit ∈ {`3`,`5`} → `9`
+
+### 3. Matriz UFs supported em `config/fiscal.php`
+
+6 UFs com WS SEFAZ ConsultaCadastro2 funcionando em produção: **RS, SP, PR, MG, BA, SC**. Config-driven — adicionar UF nova não exige deploy. UFs fora retornam `404 reason=uf_unsupported` → badge UI "preencha manual".
+
+### 4. Persistência dos campos derivados (contacts schema)
+
+Migration `2026_05_23_120000_add_sefaz_consulta_fields_to_contacts` adiciona:
+- `ind_ie_dest` tinyint(1) — enum 1/2/9
+- `sefaz_cad_sit` varchar(20) — enum `habilitado|nao_habilitado|suspenso|cancelado|paralisado|baixado`
+- `sefaz_cad_ind_cred_nfe` tinyint(1) — enum 0-4
+- `sefaz_cad_consultado_em` timestamp
+
+`ClienteAutosaveController::identificacao` validator aceita os 4 campos. `shapeContactResponse` retorna.
+
+### 5. Frontend `IdentificacaoTab.handleCnpjLookup` (Promise.all)
+
+```ts
+const [brasilApiR, sefazR] = await Promise.all([
+  fetch(`/cliente/lookup/cnpj/${digits}`),
+  ufInicial ? fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${ufInicial}`) : null,
+]);
+// Segunda chance SEFAZ se ufInicial vazia + BrasilAPI revelar state.
+// Merge por autoridade:
+//   - IE → SEFAZ (única fonte)
+//   - razão social → SEFAZ se presente, senão BrasilAPI
+//   - fantasia, QSA, telefone, email → BrasilAPI (SEFAZ não retorna)
+// PATCH batch dos 4 campos derivados em /identificacao após sucesso.
+// Badge UI 4 estados + append alerta SEFAZ severity high.
+```
+
+## Invariantes (NÃO podem regredir)
+
+> **Lista numerada de invariantes Tier 0.** Cada um tem **guarda Pest** (§Guardas) bloqueando merge em violação.
+
+1. **Ordem da chain de cert é imutável**: primário → legado → institucional. Fallback institucional NUNCA é tentado antes do primário. Qualquer commit que inverta a ordem em `CertificadoService::carregarParaSefazComFallback` é regressão.
+
+2. **`withoutGlobalScope(ScopeByBusiness)` em `NfeCertificado` é restrito UMA chamada** — somente na camada #3 (fallback institucional). Multi-tenant Tier 0 [ADR 0093](0093-multi-tenant-isolation-tier-0.md) IRREVOGÁVEL. Qualquer outra ocorrência no codebase é bug.
+
+3. **Audit log obrigatório no fallback institucional** — `mcp_audit_log` recebe entry com `event='sefaz.cert.fallback_institutional_used'` toda vez que camada #3 é acionada. Audit graceful (try/catch) mas tentativa é obrigatória. CNPJ no audit log SEMPRE como `sha256(cnpj)` — nunca plain (LGPD Art. 6º III).
+
+4. **Promise.all paralelo BrasilAPI + SEFAZ NÃO pode virar sequencial**. Latência única é parte da decisão. Refactor que volte `await brasilApi; await sefaz;` é regressão. Validado por lint do código de `IdentificacaoTab.handleCnpjLookup`.
+
+5. **Merge campo-a-campo respeita autoridade fixa**:
+   - `ie` → SEFAZ sempre (BrasilAPI NÃO retorna)
+   - `ind_ie_dest` → SEFAZ derivado (única fonte canônica)
+   - `sefaz_cad_sit`, `sefaz_cad_ind_cred_nfe`, `regime_apuracao` → SEFAZ (única fonte)
+   - `nome_fantasia`, `qsa`, `capital_social`, `telefone`, `email`, `simples_optante` → BrasilAPI (SEFAZ não retorna)
+   - `razao_social`, `endereco` → SEFAZ se presente, BrasilAPI fallback
+   - Inverter autoridade (ex: priorizar BrasilAPI pra IE) é regressão.
+
+6. **Contrato de retorno `SefazConsultaCadastroService::consultar` é estável**. Os 13 campos listados na §Decisão #2 são parte do contrato público. Remover campo = breaking change que exige nova ADR. Adicionar campo opcional = OK sem ADR.
+
+7. **Matriz UFs supported é config-driven (`config/fiscal.php`)** — hardcoded em código é regressão. Permite ligar UF nova sem deploy quando SEFAZ publicar.
+
+8. **Migration `2026_05_23_120000` é idempotente** (Schema::hasColumn check). Não pode ser modificada — apenas append em nova migration. ADR 0093 §append-only respeitado.
+
+9. **Validator `ind_ie_dest` aceita APENAS enum {1,2,9}** — outros valores rejeitados 422. NFe XML `<indIEDest>` admite só esses 3 valores na spec SEFAZ.
+
+10. **Warning antecipado UI quando `cSit ≠ habilitado` é compromisso de UX**. Cliente cancelado/suspenso mostra badge severity high pra evitar perder venda + rejeição NFe. Remover warning silenciosamente é regressão.
+
+## Guardas anti-regressão
+
+Pest tests obrigatórios em `tests/Feature/Cliente/SefazConsultaCadastroChainTest.php` + `tests/Feature/Cliente/SefazInvariantesAntiRegressaoTest.php` (NOVO):
+
+| # Invariante | Guarda Pest | Falha → bloqueia merge? |
 |---|---|---|
-| IE preenchida via cert primário | 🟢 verde | "IE via SEFAZ-RS (certificado da empresa)" |
-| IE preenchida via cert institucional | 🟠 laranja | "IE via SEFAZ-RS (certificado oimpresso — renove o seu em /fiscal/config)" |
-| UF não suportada | ⚪ cinza | "SEFAZ-GO não disponível — preencha IE manualmente" |
-| Sem cert nenhum | 🔴 vermelho | "Configure certificado em /fiscal/config pra preencher IE automaticamente" |
+| 1 (ordem chain) | `chain_cert_primario_antes_de_institucional` — mock primário disponível, asserta que institucional NÃO é chamado | ✅ |
+| 2 (withoutGlobalScope único) | `apenas_carregarParaSefazComFallback_usa_withoutGlobalScope_em_nfe_certificados` — grep no codebase | ✅ |
+| 3 (audit log fallback) | `fallback_institucional_grava_mcp_audit_log_com_sha256` — mock chain falhar primário+legado, asserta DB insert | ✅ |
+| 4 (paralelo TS) | `frontend_usa_promise_all_no_handleCnpjLookup` — grep `Promise.all(\[brasilApiP, sefazP\])` no `IdentificacaoTab.tsx` | ✅ |
+| 5 (autoridade merge) | `merge_autoridade_ie_sempre_sefaz` — mock SEFAZ ret IE='X', BrasilAPI ret IE='Y' (improvável), state final = 'X' | ✅ |
+| 6 (contrato Service) | `sefaz_service_retorna_13_campos_canonicos` — chamada com mock SEFAZ válido, asserta keys do array | ✅ |
+| 7 (config UFs) | `matriz_ufs_é_config_driven_não_hardcoded` — grep `'RS' \|\| 'SP' \|\|` no Service (proibido fora do config) | ✅ |
+| 8 (migration idempotente) | `migration_sefaz_é_idempotente` — roda duas vezes sem erro | ✅ |
+| 9 (enum ind_ie_dest) | `ind_ie_dest_rejeita_fora_enum_1_2_9` — já implementado | ✅ |
+| 10 (warning cSit) | `cSit_diferente_habilitado_gera_alerta_high_severity` — mock SEFAZ ret cSit=2, asserta alertas[0].severity=='medium' (e cSit=3 → high) | ✅ |
 
-### Refactor obrigatório legacy
-
-`app/Http/Controllers/NfeController::consultaCadastro` (linha 686) atual é endpoint legacy não-Inertia (`echo $json` direto) usando `Business::find->certificado` (não-canon). Marcar como `@deprecated` apontando pro novo endpoint canon `ClienteLookupController::cnpjSefaz`. Remoção em ADR futura quando consumidores legacy migrarem.
+Workflow CI `governance-gate.yml` roda `pest --filter SefazInvariantesAntiRegressao --stop-on-failure` — falha bloqueia merge.
 
 ## Justificativa
 
-**Por que chain em vez de só primário ou só institucional:**
+**Por que Técnica C é IRREVOGÁVEL e não as outras:**
 
-- **Só primário:** business novo (recém cadastrado, sem cert ainda) não tem IE auto. UX ruim no first-use — Larissa hoje teria IE auto, mas cliente novo de Wagner amanhã não.
-- **Só institucional:** todos passam pelo cert oimpresso → rate limit SEFAZ por UF (1-3 req/s típico) vira gargalo em escala; multi-tenant fica sketchy (1 cert pra todos viola intent ADR 0093).
-- **Chain primário→legado→institucional:** business com cert paga zero overhead pro oimpresso (escala linear); business sem cert tem fallback graceful (UX boa) até configurar próprio cert; audit log mantém Tier 0 limpo.
+| Caso real Larissa | A (sequential) | B (SEFAZ-RS first) | **C (paralelo)** |
+|---|---|---|---|
+| Cliente PJ RS contribuinte | 🟢 (latência 2x) | 🟢 | 🟢 (latência única) |
+| Cliente PJ SP contribuinte | 🟢 (latência 2x) | 🟡 (SEFAZ-RS não conhece SP) | 🟢 (latência única + SEFAZ-SP) |
+| Cliente PJ GO contribuinte | 🟡 (BrasilAPI sem IE) | 🟡 | 🟡 |
+| Cliente PJ RS isento | parcial | 🟢 | 🟢 (`ind_ie_dest=2` auto) |
+| Cliente PJ RS cancelado | sem alerta | sem alerta | 🟢 **warning evita NFe rejeitada** |
+| Cliente PF | 🟢 | 🔴 (SEFAZ desperdiça consulta) | 🟢 (SEFAZ skip explicit) |
 
-**Por que matriz UFs explícita em config (não hardcoded):**
-
-Comunidade nfephp-org + SAP confirmam que cobertura SEFAZ ConsultaCadastro varia ao longo do tempo. UF que funciona hoje pode quebrar; UF que não funciona pode entrar em produção. Config-driven permite ligar/desligar UFs sem deploy.
-
-**Por que NÃO partir pra provider pago FiscalAPI/CNPJa agora:**
-
-- Larissa biz=4 está em RS — SEFAZ-RS funciona excelente (SVRS é a referência).
-- Cliente atual = 1 ([ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) — cliente como sinal).
-- Custo recorrente R$130/mês sem necessidade comprovada é over-engineering.
-- Provider pago fica como opção futura **quando** o sinal aparecer (cliente piloto fora de RS/SP/PR/MG/BA/SC pedindo IE auto).
-
-**Por que reabrir essa ADR:** ver `review_triggers` no frontmatter.
+**Por que esta ADR é IRREVOGÁVEL e não só "aceita":**
+- 6/10 rejeições NFe mais comuns dependem de dados aqui persistidos. Regressão = vendedor recebe rejeição que poderia ter evitado.
+- Multi-tenant Tier 0 ([ADR 0093](0093-multi-tenant-isolation-tier-0.md)) é IRREVOGÁVEL — o `withoutGlobalScope` autorizado neste serviço é exceção controlada que não pode vazar (invariante #2).
+- Cert oimpresso institucional é compromisso operacional com clientes ativos — desligar sem aviso quebra cadastros em produção.
+- A complexidade de Técnica C vs A é justificada pela auditoria das 3 técnicas (95 vs 82) — voltar pra A é regressão fiscal mensurável.
 
 ## Consequências
 
 ### Positivas
 
-- **Larissa biz=4 RS:** IE auto desde dia 1 via cert dela mesma. Zero custo.
-- **Cliente novo sem cert ainda:** IE auto via fallback institucional (cert oimpresso) — UX first-use boa.
-- **Multi-tenant Tier 0 limpo:** `withoutGlobalScope` apenas no fallback institucional, intencional + auditado em `mcp_audit_log`. Felipe/Maíra entendem via `decisions-search`.
-- **Reusa canon existente:** `nfe_certificados` table + `CertificadoService` ([ADR 0090](0090-cert-legacy-nfe-brasil-coexistence.md)) + `nfephp-org/sped-nfe::sefazCadastro` (`NFeService::consultaCadastro` linha 580). Zero deps novas.
-- **Custo recorrente: R$0.** Cert que cada business já paga pra NFe é reusado pra ConsultaCadastro (mesma assinatura WS SEFAZ).
-- **Refactor entrega tira dívida técnica** do `NfeController::consultaCadastro` legacy `echo $json`.
-- **Bate mercado em design** — Bling/Tiny/Omie deixam IE manual. oimpresso resolve auto pras 6 UFs principais.
+- **Custo recorrente R$ 0** — reusa cert que cada business já paga pra NFe.
+- **Larissa biz=4 RS**: IE auto + warnings antecipados desde dia 1 via cert dela mesma.
+- **Cliente novo sem cert**: IE auto via fallback institucional — UX first-use boa.
+- **6 das 10 rejeições NFe comuns evitadas** via warning antecipado UI antes da emissão.
+- **Bate Bling/Tiny/Omie em design fiscal** — nenhum exibe `cSit` ou warnings no cadastro.
+- **Multi-tenant Tier 0 limpo**: `withoutGlobalScope` único, intencional, auditado.
+- **Reusa canon existente** `nfe_certificados` + `CertificadoService` + `nfephp-org/sped-nfe`.
 
 ### Negativas / Trade-offs
 
-- **Cobertura limitada a ~6 UFs.** Outras 21 UFs vêm com badge "preencha manual". Tolerável (mesmo Bling/Tiny não resolvem).
-- **Cert institucional oimpresso vira ponto crítico operacional.** Wagner precisa renovar antes de vencer. Mitigação: cron health-check daily com alerta ≤30 dias.
-- **Rate limit SEFAZ por UF.** Se oimpresso escalar pra 10+ businesses sem cert próprio todos consultando via fallback, rate-limit SEFAZ-RS pode bater. Mitigação: cache Redis 30d por `(cnpj, uf)` no `SefazConsultaCadastroService`. Provider pago vira opção quando sinal de saturação aparecer.
-- **`withoutGlobalScope` é code smell** se mal usado em outro lugar. Mitigação: comment explícito + Pest test garantindo que essa é a única query no codebase com `withoutGlobalScope(HasBusinessScope::class)` apontando pra `nfe_certificados`.
-- **UI badge laranja "cert institucional usado"** pode confundir cliente novo ("por que estão usando cert de outra empresa?"). Mitigação: copy claro "preenchimento automático cortesia oimpresso enquanto você configura o seu — clique aqui pra configurar".
+- **Cobertura UFs limitada (6/27)**. Outras 21 UFs vêm com badge "preencha manual". Tolerável (Bling/Tiny também não cobrem).
+- **Cert institucional oimpresso é ponto crítico operacional**. Mitigação: cron health-check daily com alerta ≤30 dias (fase 6 deste ADR).
+- **Complexidade Técnica C > Técnica A** — mais código, mais Pest. Mitigado por guardas anti-regressão automatizadas (§Guardas).
+- **Rate-limit SEFAZ por UF** pode bater em escala (10+ businesses sem cert próprio usando fallback). Mitigação: cache Redis 30d compartilhado + escalação pra provider pago como aditivo quando sinal aparecer ([ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md)).
 
-### Riscos mitigados
+### Riscos mitigados via invariantes + guardas
 
-- ❌ ~~Cert business expira → drawer quebra silencioso~~ → ✅ fallback institucional graceful + cron alerta vencimento ≤30 dias.
-- ❌ ~~Multi-tenant viola ADR 0093~~ → ✅ `withoutGlobalScope` apenas no fallback institucional, intencional, log auditoria por uso.
-- ❌ ~~SEFAZ-XX cai temporariamente~~ → ✅ try/catch + IE em branco + badge "SEFAZ indisponível, tente novamente" + cache Redis serve resposta anterior se houver.
-- ❌ ~~LGPD: oimpresso ver CNPJ consultado pelo cliente~~ → ✅ audit log armazena `sha256(cnpj)` (não plain), proporcional ao princípio de minimização LGPD Art. 6º III.
+- ❌ ~~Cert business expira → drawer quebra~~ → ✅ fallback institucional + cron alerta (invariante #5 review_trigger)
+- ❌ ~~`withoutGlobalScope` vaza pra outro lugar~~ → ✅ guarda Pest invariante #2 bloqueia merge
+- ❌ ~~Audit log esquecido no fallback~~ → ✅ guarda Pest invariante #3
+- ❌ ~~Refactor volta sequential mata UX~~ → ✅ guarda lint invariante #4
+- ❌ ~~Alguém prioriza BrasilAPI pra IE~~ → ✅ guarda Pest invariante #5
+- ❌ ~~UF hardcoded fora do config~~ → ✅ guarda grep invariante #7
+- ❌ ~~Warning UI removido silenciosamente~~ → ✅ guarda Pest invariante #10
+- ❌ ~~LGPD: CNPJ plain em audit~~ → ✅ invariante #3 + guarda Pest sha256 obrigatório
 
-## Implementação faseada
+## Implementação faseada (status)
 
-| Fase | Escopo | Esforço (IA-pair ADR 0106 10x) |
+| Fase | Escopo | Status |
 |---|---|---|
-| 1 | `CertificadoService::carregarParaSefazComFallback` + audit log | 1-2h |
-| 2 | `Modules/NfeBrasil/Services/SefazConsultaCadastroService` + cache Redis 30d | 2-3h |
-| 3 | `ClienteLookupController::cnpjSefaz` endpoint + refactor `IdentificacaoTab.handleCnpjLookup` cross-tab | 1-2h |
-| 4 | UI badges 4 estados em `IdentificacaoTab` + tooltip explicativo | 1h |
-| 5 | Pest cobertura: 4 estados de cert + cache hit/miss + UFs supported/not + cross-tenant Tier 0 | 1-2h |
-| 6 | Cron `php artisan fiscal:cert-health-check` daily 06:00 BRT alerta ≤30d | 1h |
-| 7 | Deprecate `NfeController::consultaCadastro` legacy + redirect docs | 30min |
-
-**Total: 7.5-11.5h IA-pair.** Reversível por fase (feature-flag `fiscal.sefaz_consulta_cadastro_enabled`).
-
-## Evolução 2026-05-23 — Técnica C (merge paralelo + warnings antecipados)
-
-Após implementação inicial e [auditoria fiscal das 3 técnicas](../sessions/2026-05-23-arte-busca-cliente-cnpj-ie.md), Wagner aprovou evolução pra **Técnica C** — merge paralelo BrasilAPI + SEFAZ campo-a-campo com prioridade por autoridade.
-
-| Técnica | Nota | Decisão |
-|---|---:|---|
-| A — BrasilAPI + SEFAZ sequencial (impl inicial) | 82/100 | superseded por C |
-| B — SEFAZ-RS first + BrasilAPI fallback (proposta Wagner inicial) | 65/100 | rejeitada (cobertura ruim cliente PJ não-RS + PF) |
-| **C — Merge paralelo inteligente** | **95/100** | **aceita** |
-
-### Diferenças vs implementação inicial
-
-1. **Promise.all** dispara BrasilAPI + SEFAZ em paralelo (latência única em vez de 2x sequencial).
-2. **Retorno SEFAZ expandido** — `SefazConsultaCadastroService::consultar` agora retorna além de IE+cSit:
-   - `ind_ie_dest` derivado (1/2/9) — pronto pro XML NFe `<dest>/<indIEDest>` (obrigatório)
-   - `ind_cred_nfe` (0-4) — informativo
-   - `regime_apuracao` (xRegApur)
-   - `endereco_sefaz` (logradouro/numero/bairro/cmun/cep — pode diferir da Receita; SEFAZ é mais atual fiscalmente)
-   - `alertas[]` — gatilhos UI severity high/medium/low pra evitar rejeição NFe
-   - `situacao_label` — label PT-BR canônico (`habilitado`, `suspenso`, `cancelado`, etc) pra persistir
-3. **Migration nova** `2026_05_23_120000_add_sefaz_consulta_fields_to_contacts`:
-   - `contacts.ind_ie_dest` tinyint(1) — XML NFe `<dest>/<indIEDest>` (obrigatório)
-   - `contacts.sefaz_cad_sit` varchar(20) — situação cadastral SEFAZ persistida (UX sem fetch novo)
-   - `contacts.sefaz_cad_ind_cred_nfe` tinyint(1) — credenciamento NFe destinatário
-   - `contacts.sefaz_cad_consultado_em` timestamp — última consulta SEFAZ bem-sucedida
-4. **Warnings antecipados** UI — quando `cSit ≠ habilitado` ou `indCredNFe = 4`, drawer mostra:
-   - 🔴 high: cad_nao_habilitado (rej. 478/487), cad_cancelado (rej. 770), cad_baixado
-   - 🟡 medium: cad_suspenso
-   - 🔵 low: nao_credenciado_nfe (cliente recebe normal, só não emite)
-5. **Frontend** faz PATCH batch dos 4 campos derivados em `/cliente/{id}/identificacao` após consulta bem-sucedida.
-
-### Justificativa da evolução
-
-**6 das 10 rejeições NFe mais comuns** dependem de `cSit` + IE (catalogadas na auditoria 2026-05-23). Persistir esses dados + mostrar warning antecipado **evita venda perdida + emissão rejeitada** — Larissa descobre cliente com IE cancelada no cadastro, não no momento da emissão.
-
-Custo: +2-3h IA-pair vs impl inicial. ROI fiscal direto. Bate Bling/Tiny/Omie em design fiscal — nenhum exibe `cSit` ou warnings de rejeição no cadastro.
+| 1 | `CertificadoService::carregarParaSefazComFallback` + audit log | ✅ commit `c46790922` |
+| 2 | `SefazConsultaCadastroService` + cache Redis 30d + retorno expandido + `derivarIndIeDest` + alertas | ✅ commits `c46790922` + `db0240304` |
+| 3 | `ClienteLookupController::cnpjSefaz` endpoint | ✅ commit `c46790922` |
+| 4 | UI badges 4 estados + warnings severity | ✅ commit `db0240304` |
+| 5 | Pest cobertura básica + invariantes guardas | ⏳ parcial — guardas anti-regressão pendentes |
+| 5b | **Guardas anti-regressão completas** (§Guardas table) | ⏳ a implementar nesta consolidação |
+| 6 | Cron `php artisan fiscal:cert-health-check` daily — alerta ≤30d | ⏳ PR seguinte |
+| 7 | Deprecate `NfeController::consultaCadastro` legacy | ⏳ PR seguinte |
 
 ## Referências
 
 - [ADR 0093](0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL (justifica `withoutGlobalScope` auditado)
-- [ADR 0090](0090-cert-legacy-nfe-brasil-coexistence.md) — Cert legacy `business.certificado` BLOB → `nfe_certificados` migration coexistence
+- [ADR 0094](0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (princípio duro #6 multi-tenant)
+- [ADR 0090](0090-cert-legacy-nfe-brasil-coexistence.md) — Cert legacy coexistence
 - [ADR 0179](0179-cliente-drawer-760px-substitui-show-fullpage.md) — Drawer 760 Cliente
-- [ADR 0178](0178-restauracao-campos-fiscais-br-canon.md) — Campos fiscais BR (precedente reframe regressão UPOS 6.7)
-- [ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) — Cliente como sinal (justifica não comprar provider pago agora)
-- [Sessão estado-da-arte 2026-05-23](../sessions/2026-05-23-arte-busca-cliente-cnpj-ie.md) — Comparativo concorrentes BR + providers + SEFAZ
-- [feedback-lookup-cnpj-sobrescreve-dados.md](../reference/feedback-lookup-cnpj-sobrescreve-dados.md) — Política Wagner sobrescrita dados oficiais
-- [PR #1419](https://github.com/wagnerra23/oimpresso.com/pull/1419) — Implementação parcial CNPJ lookup expandido
-- [PR #1422](https://github.com/wagnerra23/oimpresso.com/pull/1422) — Naming canon EnderecoTab + coluna `numero` BR
+- [ADR 0178](0178-restauracao-campos-fiscais-br-canon.md) — Restauração campos fiscais BR
+- [ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) — Cliente como sinal
+- [Sessão estado-da-arte 2026-05-23](../sessions/2026-05-23-arte-busca-cliente-cnpj-ie.md) — Comparativo concorrentes BR + providers + SEFAZ + 3 técnicas
+- [feedback-lookup-cnpj-sobrescreve-dados.md](../reference/feedback-lookup-cnpj-sobrescreve-dados.md) — Política sobrescrita dados oficiais
+- [PR #1431](https://github.com/wagnerra23/oimpresso.com/pull/1431) — Implementação canônica
 - `nfephp-org/sped-nfe::sefazCadastro` — biblioteca WS SEFAZ ConsultaCadastro2
-- `app/Services/NFeService.php:580` — `consultaCadastro` legacy a refatorar
-- `Modules/NfeBrasil/Services/CertificadoService::carregarParaSefaz` — interface base a estender
+- `Modules/NfeBrasil/Services/CertificadoService::carregarParaSefazComFallback` — chain
+- `Modules/NfeBrasil/Services/SefazConsultaCadastroService::consultar` — merge service
+- `Modules/Crm/Http/Controllers/ClienteLookupController::cnpjSefaz` — endpoint
+- `resources/js/Pages/Cliente/_drawer/IdentificacaoTab.tsx::handleCnpjLookup` — frontend paralelo
+
+---
+
+**Histórico de evolução** (mantido pra rastreio, não modifica decisão canônica acima):
+
+- **2026-05-23 v1** — Técnica A (BrasilAPI + SEFAZ sequencial só pra IE). Nota 82/100.
+- **2026-05-23 v2 (esta versão CANON)** — Auditoria fiscal 3 técnicas → Técnica C (merge paralelo + warnings antecipados + derivação `ind_ie_dest` + persistência 4 colunas). Nota 95/100. **IRREVOGÁVEL.**
