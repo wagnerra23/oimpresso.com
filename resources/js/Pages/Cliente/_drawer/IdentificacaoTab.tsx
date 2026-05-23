@@ -34,11 +34,10 @@ export interface ContactInfo {
   nascimento?: string | null;
   contato?: string | null;
   cargo?: string | null;
-  // Endereco -- politica Wagner 2026-05-22: lookup CNPJ SOBRESCREVE dados
-  // cadastrais oficiais (Receita e fonte da verdade). NAO checamos vazio
-  // pra endereco/IBGE -- sempre escreve quando lookup tem valor.
-  // ClienteRow propaga frontend names E backend canon, mantemos ambos por
-  // compat na leitura (futura migration unifica).
+  // Endereço completo — política Wagner 2026-05-22 (#1419 mergeado):
+  // lookup CNPJ SOBRESCREVE dados cadastrais oficiais (Receita é fonte da
+  // verdade). ContactInfo aceita PT-BR e canon UPOS pra compat dual na leitura.
+  // UF (state/uf) usada também pra SEFAZ ConsultaCadastro (ADR 0186 #1431).
   cep?: string | null;
   zip_code?: string | null;
   endereco?: string | null;
@@ -50,7 +49,7 @@ export interface ContactInfo {
   uf?: string | null;
   state?: string | null;
   city_code?: string | null; // IBGE 7 digitos (NFe/NFSe)
-  // Contatos -- politica Wagner 2026-05-22: lookup CNPJ SO preenche se vazio
+  // Contatos — política Wagner 2026-05-22: lookup CNPJ SÓ preenche se vazio
   // (telefone/email da Receita pode diferir do contato real digitado pelo user).
   mobile?: string | null;
   tel?: string | null;
@@ -256,23 +255,81 @@ export default function IdentificacaoTab({
     [tipo, performSave]
   );
 
-  // ── Lookup CNPJ — loader inline, NÃO modal (anti-padrão T-AP-15) ────
+  // ── Lookup CNPJ — Técnica C ADR 0186: BrasilAPI + SEFAZ em PARALELO ──
+  //
+  // Promise.all dispara ambas as APIs simultaneamente. Merge por autoridade:
+  //   - IE, cSit, indIEDest derivado → SEFAZ (única fonte autoritativa)
+  //   - razão social → SEFAZ se presente, senão BrasilAPI
+  //   - fantasia, QSA, telefone, email → BrasilAPI (SEFAZ não retorna)
+  // UF do CNPJ alvo:
+  //   - Inicial: contact.state (cadastro pré-existente) ou skip SEFAZ
+  //   - Após BrasilAPI: usa json.state se chegou (BrasilAPI sempre retorna)
+  // Warnings antecipados (ADR 0186 evolução): cSit≠habilitado → badge alerta
+  // pra evitar rejeição NFe (478/487/770).
   const handleCnpjLookup = useCallback(async () => {
     const digits = onlyDigits(doc);
     if (digits.length !== 14) return;
     setCnpjLookup('loading');
     setCnpjLookupMsg(null);
+
+    const headers = {
+      Accept: 'application/json',
+      'X-CSRF-TOKEN': getCsrfToken(),
+    } as const;
+
+    // ADR 0186 §Invariante #11 — timeout frontend (hardening 2026-05-23).
+    // AbortController cancela fetch após N ms. Drawer NUNCA fica preso em
+    // loading state. Padrão 8s — mais longo que SEFAZ típico (~1-3s) com folga.
+    // Configurável via config('fiscal.sefaz_consulta_cadastro_frontend_timeout_ms').
+    const FRONTEND_TIMEOUT_MS = 8000;
+
     try {
-      const r = await fetch(`/cliente/lookup/cnpj/${digits}`, {
-        method: 'GET',
-        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
-      });
-      if (!r.ok) {
+      // UF inicial — pre-SEFAZ. Se cadastro pré-existente tem UF, dispara SEFAZ
+      // em paralelo com BrasilAPI. Senão espera BrasilAPI retornar com UF.
+      const ufInicial = (contact.state ?? contact.uf ?? '').toUpperCase();
+
+      // AbortControllers — 1 por fetch. Cancela após FRONTEND_TIMEOUT_MS.
+      const brasilApiCtrl = new AbortController();
+      const sefazCtrl = new AbortController();
+      const brasilApiTimer = setTimeout(() => brasilApiCtrl.abort(), FRONTEND_TIMEOUT_MS);
+      const sefazTimer = setTimeout(() => sefazCtrl.abort(), FRONTEND_TIMEOUT_MS);
+
+      // Promise BrasilAPI — sempre dispara.
+      const brasilApiP = fetch(`/cliente/lookup/cnpj/${digits}`, {
+        headers,
+        signal: brasilApiCtrl.signal,
+      }).finally(() => clearTimeout(brasilApiTimer));
+
+      // Promise SEFAZ — só dispara se já temos UF inicial supported.
+      // Se não, vamos disparar após BrasilAPI revelar a UF do alvo.
+      // Retorna Response | {aborted:true} | null pra distinguir timeout.
+      type SefazFetchResult = Response | { aborted: true } | null;
+      const sefazP: Promise<SefazFetchResult> = ufInicial.length === 2
+        ? fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${encodeURIComponent(ufInicial)}`, {
+            headers,
+            signal: sefazCtrl.signal,
+          })
+            .then((r) => r as SefazFetchResult)
+            .catch((e) => {
+              if (e?.name === 'AbortError') {
+                console.info('[IdentificacaoTab] SEFAZ inicial timeout 8s (graceful)');
+                return { aborted: true } as SefazFetchResult;
+              }
+              console.warn('[IdentificacaoTab] SEFAZ inicial falhou (graceful)', e);
+              return null;
+            })
+            .finally(() => clearTimeout(sefazTimer))
+        : (clearTimeout(sefazTimer), Promise.resolve(null as SefazFetchResult));
+
+      const [brasilApiR, sefazInicialR] = await Promise.all([brasilApiP, sefazP]);
+
+      // Parse BrasilAPI primeiro (sempre primário, mesmo que SEFAZ não funcione).
+      if (!brasilApiR.ok) {
         setCnpjLookup('error');
-        setCnpjLookupMsg(r.status === 404 ? 'CNPJ não encontrado na Receita.' : `Erro ${r.status}.`);
+        setCnpjLookupMsg(brasilApiR.status === 404 ? 'CNPJ não encontrado na Receita.' : `Erro ${brasilApiR.status}.`);
         return;
       }
-      const json = await r.json();
+      const json = await brasilApiR.json();
 
       // ── Política Wagner 2026-05-22 (feedback-lookup-cnpj-sobrescreve-dados):
       //    Dados cadastrais oficiais → SOBRESCREVE (Receita é fonte da verdade).
@@ -280,24 +337,72 @@ export default function IdentificacaoTab({
       // ── Identificação (sobrescreve) ────────────────────────────────────
       const novoNome = (json?.razao_social as string) ?? '';
       const novaFantasia = (json?.fantasia as string) ?? '';
-      const novoIe = (json?.ie as string) ?? '';
-      if (novoNome) {
-        setNome(novoNome);
-        performSave('nome', novoNome, nome);
+      const ieBrasilApi = (json?.ie as string) ?? '';
+      const ufBrasilApi = ((json?.state as string) ?? '').toUpperCase();
+
+      // ── Parse SEFAZ inicial (Técnica C — paralelo) + detect timeout ─────
+      let sefazData: Record<string, unknown> | null = null;
+      let sefazReason: 'unsupported' | 'no_cert' | 'sefaz_or_cert_error' | null = null;
+      let sefazTimeoutFlag = false;
+      const isAbortedResult = (r: SefazFetchResult): r is { aborted: true } =>
+        r !== null && !('status' in r) && (r as { aborted?: boolean }).aborted === true;
+
+      if (isAbortedResult(sefazInicialR)) {
+        sefazTimeoutFlag = true;
+      } else if (sefazInicialR && sefazInicialR.ok) {
+        sefazData = await sefazInicialR.json().catch(() => null);
+      } else if (sefazInicialR && 'status' in sefazInicialR && sefazInicialR.status === 404) {
+        const errJson = await sefazInicialR.json().catch(() => ({}));
+        sefazReason = (errJson?.reason as 'unsupported' | 'no_cert' | 'sefaz_or_cert_error') ?? null;
       }
+
+      // ── 2ª chance SEFAZ se BrasilAPI revelou UF nova ─────────────────────
+      const ufFinal = ufBrasilApi || ufInicial;
+      if (!sefazData && sefazReason !== 'unsupported' && ufFinal.length === 2 && ufFinal !== ufInicial) {
+        const sefaz2Ctrl = new AbortController();
+        const sefaz2Timer = setTimeout(() => sefaz2Ctrl.abort(), FRONTEND_TIMEOUT_MS);
+        try {
+          const rs2 = await fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${encodeURIComponent(ufFinal)}`, {
+            headers,
+            signal: sefaz2Ctrl.signal,
+          });
+          if (rs2.ok) {
+            sefazData = await rs2.json();
+          } else if (rs2.status === 404) {
+            const errJson = await rs2.json().catch(() => ({}));
+            sefazReason = (errJson?.reason as typeof sefazReason) ?? null;
+          }
+        } catch (e: any) {
+          if (e?.name === 'AbortError') {
+            sefazTimeoutFlag = true;
+            console.info('[IdentificacaoTab] SEFAZ segunda chance timeout 8s (graceful)');
+          } else {
+            console.warn('[IdentificacaoTab] SEFAZ pós-BrasilAPI falhou (graceful)', e);
+          }
+        } finally {
+          clearTimeout(sefaz2Timer);
+        }
+      }
+
+      // ── Merge autoridade — razão social: SEFAZ primeiro, BrasilAPI fallback
+      const nomeFinal = (sefazData?.nome as string) || novoNome;
+      if (nomeFinal) {
+        setNome(nomeFinal);
+        performSave('nome', nomeFinal, nome);
+      }
+      // Fantasia: só BrasilAPI tem.
       if (novaFantasia) {
         setFantasia(novaFantasia);
         performSave('fantasia', novaFantasia, fantasia);
       }
-      // IE vem null da BrasilAPI hoje (só sobrescreve se algum dia provider trouxer).
-      if (novoIe) {
-        setIe(novoIe);
-        performSave('ie', novoIe, ie);
+      // ── IE — SEFAZ é autoridade (Técnica C); BrasilAPI fallback geralmente vazia
+      const ieFinal = ((sefazData?.ie as string) || ieBrasilApi || '').trim();
+      if (ieFinal) {
+        setIe(ieFinal);
+        performSave('ie', ieFinal, ie);
       }
 
-      // ── Endereço + IBGE (sobrescreve) ──────────────────────────────────
-      // Não checamos vazio: Receita é canônica. Wagner 2026-05-22.
-      // Persiste via PATCH /cliente/{id}/endereco (chaves canon UPOS).
+      // ── Endereço + IBGE (#1419 cross-tab fill — Receita é canônica, SOBRESCREVE)
       const enderecoCandidato: Record<string, string> = {};
       const zip = (json?.zip_code as string) ?? '';
       const addr1 = (json?.address_line_1 as string) ?? '';
@@ -317,28 +422,17 @@ export default function IdentificacaoTab({
         try {
           const re = await fetch(`/cliente/${contact.id}/endereco`, {
             method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-              'X-CSRF-TOKEN': getCsrfToken(),
-              'X-Requested-With': 'XMLHttpRequest',
-            },
+            headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify(enderecoCandidato),
           });
-          if (re.ok) {
-            enderecoPreenchido = true;
-          } else {
-            // eslint-disable-next-line no-console
-            console.warn('[IdentificacaoTab] PATCH endereco pos-CNPJ falhou', re.status);
-          }
+          enderecoPreenchido = re.ok;
+          if (!re.ok) console.warn('[IdentificacaoTab] PATCH endereco pos-CNPJ falhou', re.status);
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.warn('[IdentificacaoTab] PATCH endereco network', err);
         }
       }
 
-      // ── Contatos (só se vazio) ─────────────────────────────────────────
-      // Preserva contato real digitado pelo user. Wagner 2026-05-22.
+      // ── Contatos (#1419 — só se vazio, preserva contato real digitado)
       const contatoCandidato: Record<string, string> = {};
       const novoEmail = (json?.email as string) ?? '';
       const novoMobile = (json?.mobile as string) ?? '';
@@ -350,45 +444,88 @@ export default function IdentificacaoTab({
         try {
           const rc = await fetch(`/cliente/${contact.id}/contato`, {
             method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-              'X-CSRF-TOKEN': getCsrfToken(),
-              'X-Requested-With': 'XMLHttpRequest',
-            },
+            headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify(contatoCandidato),
           });
-          if (rc.ok) {
-            contatoPreenchido = true;
-          } else {
-            // eslint-disable-next-line no-console
-            console.warn('[IdentificacaoTab] PATCH contato pos-CNPJ falhou', rc.status);
-          }
+          contatoPreenchido = rc.ok;
+          if (!rc.ok) console.warn('[IdentificacaoTab] PATCH contato pos-CNPJ falhou', rc.status);
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.warn('[IdentificacaoTab] PATCH contato network', err);
         }
       }
 
-      // Refresca rows pro pai (EnderecoTab + ContatoTab re-renderizarem)
-      // se persistimos algum campo via PATCH /endereco ou /contato.
+      // ── Campos derivados SEFAZ (#1431 Técnica C) — gatilhos NFe + UX warnings
+      const certSrc = (sefazData?.cert_source as string) || '';
+      let sefazSource: 'none' | 'primary' | 'institutional' | 'unsupported' | 'no_cert' = 'none';
+      const alertasSefaz = (sefazData?.alertas as Array<{ code: string; severity: string; msg: string }>) ?? [];
+
+      if (sefazData) {
+        sefazSource = certSrc === 'institutional_fallback' ? 'institutional' : 'primary';
+
+        // Persist derivados via PATCH /identificacao (ADR 0186 §Decisão).
+        const sefazPersist: Record<string, unknown> = {};
+        if (sefazData.ind_ie_dest != null) sefazPersist.ind_ie_dest = sefazData.ind_ie_dest;
+        if (sefazData.situacao_label != null) sefazPersist.sefaz_cad_sit = sefazData.situacao_label;
+        if (sefazData.ind_cred_nfe != null) sefazPersist.sefaz_cad_ind_cred_nfe = sefazData.ind_cred_nfe;
+        if (sefazData.consultado_em != null) sefazPersist.sefaz_cad_consultado_em = sefazData.consultado_em;
+        if (Object.keys(sefazPersist).length > 0) {
+          fetch(`/cliente/${contact.id}/identificacao`, {
+            method: 'PATCH',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(sefazPersist),
+          }).catch((e) => console.warn('[IdentificacaoTab] PATCH SEFAZ persist falhou', e));
+        }
+      } else if (sefazReason === 'uf_unsupported') {
+        sefazSource = 'unsupported';
+      } else if (sefazReason === 'no_cert' || sefazReason === 'sefaz_or_cert_error') {
+        sefazSource = 'no_cert';
+      }
+
+      // Refresca rows pro parent (EnderecoTab/ContatoTab re-renderizar) — #1419 callback
       if (enderecoPreenchido || contatoPreenchido) {
         onCnpjEnderecoPersisted?.();
       }
 
-      setCnpjLookup('ok');
-      const msgPartes: string[] = ['Dados preenchidos pela Receita'];
-      if (enderecoPreenchido) msgPartes.push('endereço');
-      if (contatoPreenchido) msgPartes.push('contato');
-      setCnpjLookupMsg(
-        msgPartes.length === 1
-          ? `${msgPartes[0]}.`
-          : `${msgPartes[0]} + ${msgPartes.slice(1).join(' e ')}.`
-      );
+      // ── Badge UI — combina endereço/contato persistidos + SEFAZ source + alertas + timeout
+      const fontesPartes: string[] = ['Receita'];
+      if (enderecoPreenchido) fontesPartes.push('endereço');
+      if (contatoPreenchido) fontesPartes.push('contato');
+      const fontesMsg = fontesPartes.length === 1
+        ? fontesPartes[0]
+        : `${fontesPartes[0]} + ${fontesPartes.slice(1).join(' e ')}`;
+
+      let mensagemBadge = `${fontesMsg} preenchidos.`;
+      if (sefazSource === 'primary') {
+        mensagemBadge = `${fontesMsg} + SEFAZ-${ufFinal} (seu certificado).`;
+      } else if (sefazSource === 'institutional') {
+        mensagemBadge = `${fontesMsg} + SEFAZ-${ufFinal} (cert oimpresso — configure o seu em /fiscal/config).`;
+      } else if (sefazTimeoutFlag) {
+        mensagemBadge = `${fontesMsg} preenchidos. SEFAZ-${ufFinal} demorou (8s) — tente de novo pra IE.`;
+      } else if (sefazSource === 'unsupported') {
+        mensagemBadge = `${fontesMsg} preenchidos. SEFAZ-${ufFinal} não disponível — preencha IE manual.`;
+      } else if (sefazSource === 'no_cert') {
+        mensagemBadge = `${fontesMsg} preenchidos. Configure cert A1 em /fiscal/config pra IE automática.`;
+      }
+
+      // Append alerta SEFAZ severity high/medium (evitar rejeição NFe antes da emissão).
+      if (alertasSefaz.length > 0) {
+        const alertaHigh = alertasSefaz.find((a) => a.severity === 'high');
+        const alertaMed = alertasSefaz.find((a) => a.severity === 'medium');
+        const principal = alertaHigh ?? alertaMed ?? alertasSefaz[0];
+        if (principal) {
+          mensagemBadge += ` ⚠️ ${principal.msg}`;
+          setCnpjLookup('error');
+        } else {
+          setCnpjLookup('ok');
+        }
+      } else {
+        setCnpjLookup('ok');
+      }
+      setCnpjLookupMsg(mensagemBadge);
       setTimeout(() => {
         setCnpjLookup('idle');
         setCnpjLookupMsg(null);
-      }, 2800);
+      }, 6000); // alerta SEFAZ merece 6s pra leitura
     } catch (err) {
       setCnpjLookup('error');
       setCnpjLookupMsg('Falha ao consultar Receita.');
