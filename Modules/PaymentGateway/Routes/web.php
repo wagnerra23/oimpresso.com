@@ -74,6 +74,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('payment-gateways/{credentialId}/webhook-events', [PaymentGatewaysController::class, 'webhookEvents'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.webhook-events');
+
+        // Onda 4e gap #3 (audit 2026-05-23): quota tracking MVP — count
+        // cobrancas/mês per credencial agrupado por tipo. Sem contador persistido.
+        Route::get('payment-gateways/{credentialId}/quota', [PaymentGatewaysController::class, 'quota'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.quota');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────
