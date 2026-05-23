@@ -5,15 +5,24 @@
 // Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx::SectionEndereco
 //
 // Contrato:
-//   PATCH /cliente/{id}/endereco  body: { cep, endereco, numero, complemento, bairro, cidade, uf }
-//   GET   /cliente/lookup/cep/{cep} → { logradouro, bairro, cidade, uf }
+//   PATCH /cliente/{id}/endereco
+//     body canon: { zip_code, address_line_1, address_line_2, numero, neighborhood, city, state }
+//   GET   /cliente/lookup/cep/{cep} → { logradouro, bairro, cidade, uf } (PT-BR ViaCEP)
+//
+// Bug fix 2026-05-22 — naming canon:
+//   - Antes: body usava PT-BR (cep/endereco/numero/complemento/bairro/cidade/uf).
+//     Backend valida só canon EN (whitelist), descartava tudo silenciosamente.
+//     Autosave mostrava "Salvo" mas nada persistia no DB.
+//   - Agora: state + PATCH body usam canon do schema. Labels visuais PT-BR
+//     preservados (UX BR não muda).
+//   - `numero` BR canon restaurado pela migration 2026_05_22_120000_add_numero_to_contacts
+//     (regressão UPOS 6.7 — mesma situação de ADR 0178 pros campos fiscais).
 //
 // Pegadinhas:
 //  - Autosave on blur (debounce 800ms) + optimistic UI + rollback 4xx/5xx
 //  - "Buscar CEP" é loader inline (anti-padrão T-AP-15 modal aninhado)
 //  - ViaCEP server-side proxy obrigatório (ADR 0179 — biz=4 Larissa rate limit)
 //  - UF: select 27 valores oficiais BR
-//  - Endereço/Número/Bairro/Cidade ficam editáveis após lookup (user pode corrigir)
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Search, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -32,16 +41,21 @@ import { validateCEP } from '@/Lib/br-validate';
 
 export interface ContactInfo {
   id: number;
+  // Canon UPOS (preferido — vem do backend autosave response).
+  zip_code?: string | null;
+  address_line_1?: string | null;
+  address_line_2?: string | null;
+  numero?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  // Aliases PT-BR (legado — listagem em /cliente emite assim hoje).
   cep?: string | null;
   endereco?: string | null;
-  address_line_1?: string | null;
-  numero?: string | null;
   complemento?: string | null;
   bairro?: string | null;
   cidade?: string | null;
-  city?: string | null;
   uf?: string | null;
-  state?: string | null;
 }
 
 export interface EnderecoTabProps {
@@ -68,13 +82,15 @@ function getCsrfToken(): string {
 }
 
 export default function EnderecoTab({ contact, onSaved, disabled = false }: EnderecoTabProps) {
-  const [cep, setCep] = useState<string>(maskCEP(contact.cep ?? ''));
-  const [endereco, setEndereco] = useState<string>(contact.endereco ?? contact.address_line_1 ?? '');
+  // Inicialização — preferir canon UPOS, fallback PT-BR legado pra graceful com
+  // a listagem (Index.tsx ainda emite cidade/uf PT-BR no payload da tabela).
+  const [zipCode, setZipCode] = useState<string>(maskCEP(contact.zip_code ?? contact.cep ?? ''));
+  const [addressLine1, setAddressLine1] = useState<string>(contact.address_line_1 ?? contact.endereco ?? '');
   const [numero, setNumero] = useState<string>(contact.numero ?? '');
-  const [complemento, setComplemento] = useState<string>(contact.complemento ?? '');
-  const [bairro, setBairro] = useState<string>(contact.bairro ?? '');
-  const [cidade, setCidade] = useState<string>(contact.cidade ?? contact.city ?? '');
-  const [uf, setUf] = useState<string>(contact.uf ?? contact.state ?? '');
+  const [addressLine2, setAddressLine2] = useState<string>(contact.address_line_2 ?? contact.complemento ?? '');
+  const [neighborhood, setNeighborhood] = useState<string>(contact.neighborhood ?? contact.bairro ?? '');
+  const [city, setCity] = useState<string>(contact.city ?? contact.cidade ?? '');
+  const [stateUf, setStateUf] = useState<string>(contact.state ?? contact.uf ?? '');
 
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
@@ -86,33 +102,60 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
   const previousValuesRef = useRef<Record<string, unknown>>({});
 
   useEffect(() => {
-    setCep(maskCEP(contact.cep ?? ''));
-    setEndereco(contact.endereco ?? contact.address_line_1 ?? '');
+    setZipCode(maskCEP(contact.zip_code ?? contact.cep ?? ''));
+    setAddressLine1(contact.address_line_1 ?? contact.endereco ?? '');
     setNumero(contact.numero ?? '');
-    setComplemento(contact.complemento ?? '');
-    setBairro(contact.bairro ?? '');
-    setCidade(contact.cidade ?? contact.city ?? '');
-    setUf(contact.uf ?? contact.state ?? '');
+    setAddressLine2(contact.address_line_2 ?? contact.complemento ?? '');
+    setNeighborhood(contact.neighborhood ?? contact.bairro ?? '');
+    setCity(contact.city ?? contact.cidade ?? '');
+    setStateUf(contact.state ?? contact.uf ?? '');
     setErrorField(null);
     setSavedField(null);
     setCepLookup('idle');
     setCepLookupMsg(null);
-  }, [contact.id]);
+    // Deps expandidas (PR #1419 + #1422) — ressincroniza quando parent
+    // (ClienteSheet) faz router.reload({ only: ['rows'] }) após lookup CNPJ
+    // ter persistido endereço em /cliente/{id}/endereco. Inclui canon EN
+    // (zip_code, address_line_1, address_line_2, numero, neighborhood) + aliases
+    // PT-BR legados (cep, endereco, complemento, bairro, cidade, uf) pra graceful
+    // com listagem que ainda emite PT-BR.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    contact.id,
+    // Canon EN (preferidos).
+    contact.zip_code,
+    contact.address_line_1,
+    contact.address_line_2,
+    contact.numero,
+    contact.neighborhood,
+    contact.city,
+    contact.state,
+    // Aliases PT-BR (legado listagem).
+    contact.cep,
+    contact.endereco,
+    contact.complemento,
+    contact.bairro,
+    contact.cidade,
+    contact.uf,
+  ]);
 
   const cepError = useMemo<string | null>(() => {
-    const v = validateCEP(cep);
+    const v = validateCEP(zipCode);
     if (v === false) return 'CEP precisa ter 8 dígitos.';
     return null;
-  }, [cep]);
+  }, [zipCode]);
 
+  // Field key = nome canon do schema (zip_code, address_line_1, ...).
+  // Setter por field pra rollback em caso de 4xx/5xx.
   const rollbackField = useCallback((field: string, prev: unknown) => {
-    if (field === 'cep') setCep((prev as string) ?? '');
-    else if (field === 'endereco') setEndereco((prev as string) ?? '');
-    else if (field === 'numero') setNumero((prev as string) ?? '');
-    else if (field === 'complemento') setComplemento((prev as string) ?? '');
-    else if (field === 'bairro') setBairro((prev as string) ?? '');
-    else if (field === 'cidade') setCidade((prev as string) ?? '');
-    else if (field === 'uf') setUf((prev as string) ?? '');
+    const s = (prev as string) ?? '';
+    if (field === 'zip_code') setZipCode(s);
+    else if (field === 'address_line_1') setAddressLine1(s);
+    else if (field === 'address_line_2') setAddressLine2(s);
+    else if (field === 'numero') setNumero(s);
+    else if (field === 'neighborhood') setNeighborhood(s);
+    else if (field === 'city') setCity(s);
+    else if (field === 'state') setStateUf(s);
   }, []);
 
   const performSave = useCallback(
@@ -178,7 +221,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
 
   const handleBlur = useCallback(
     (field: string, value: unknown) => {
-      if (field === 'cep' && cepError) return;
+      if (field === 'zip_code' && cepError) return;
       const prev = previousValuesRef.current[field];
       if (debounceTimersRef.current[field]) {
         clearTimeout(debounceTimersRef.current[field]);
@@ -191,7 +234,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
 
   // ── Lookup CEP — loader inline ───────────────────────────────────────
   const handleCepLookup = useCallback(async () => {
-    const digits = onlyDigits(cep);
+    const digits = onlyDigits(zipCode);
     if (digits.length !== 8) return;
     setCepLookup('loading');
     setCepLookupMsg(null);
@@ -206,26 +249,36 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
         return;
       }
       const json = await r.json();
-      const logradouro = (json?.logradouro as string) ?? '';
+      // ViaCEP retorna PT-BR (logradouro/complemento/bairro/cidade/uf).
+      // Mapeamos pra canon do schema (PR #1422). `complemento` adicionado
+      // 2026-05-23 (PR #1419) — fecha gap 80% → 100% aderência ViaCEP.
+      const novoLogr = (json?.logradouro as string) ?? '';
+      const novoComplemento = (json?.complemento as string) ?? '';
       const novoBairro = (json?.bairro as string) ?? '';
       const novaCidade = (json?.cidade as string) ?? '';
       const novaUf = (json?.uf as string) ?? '';
 
-      if (logradouro) {
-        setEndereco(logradouro);
-        performSave('endereco', logradouro, endereco);
+      if (novoLogr) {
+        setAddressLine1(novoLogr);
+        performSave('address_line_1', novoLogr, addressLine1);
+      }
+      // Complemento ViaCEP (ex "lado impar 612 a 1510" SP) — SOBRESCREVE
+      // (política feedback-lookup-cnpj-sobrescreve-dados: dado oficial público).
+      if (novoComplemento) {
+        setAddressLine2(novoComplemento);
+        performSave('address_line_2', novoComplemento, addressLine2);
       }
       if (novoBairro) {
-        setBairro(novoBairro);
-        performSave('bairro', novoBairro, bairro);
+        setNeighborhood(novoBairro);
+        performSave('neighborhood', novoBairro, neighborhood);
       }
       if (novaCidade) {
-        setCidade(novaCidade);
-        performSave('cidade', novaCidade, cidade);
+        setCity(novaCidade);
+        performSave('city', novaCidade, city);
       }
       if (novaUf) {
-        setUf(novaUf);
-        performSave('uf', novaUf, uf);
+        setStateUf(novaUf);
+        performSave('state', novaUf, stateUf);
       }
       setCepLookup('ok');
       setCepLookupMsg('Endereço preenchido pelo ViaCEP.');
@@ -239,16 +292,16 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
       // eslint-disable-next-line no-console
       console.error('[EnderecoTab] cep lookup failed', err);
     }
-  }, [cep, endereco, bairro, cidade, uf, performSave]);
+  }, [zipCode, addressLine1, neighborhood, city, stateUf, performSave]);
 
   const handleUfChange = useCallback(
     (v: string) => {
-      const prev = uf;
+      const prev = stateUf;
       if (prev === v) return;
-      setUf(v);
-      performSave('uf', v, prev);
+      setStateUf(v);
+      performSave('state', v, prev);
     },
-    [uf, performSave]
+    [stateUf, performSave]
   );
 
   return (
@@ -261,20 +314,20 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
           <div className="flex gap-2">
             <Input
               id="ed-cep"
-              value={cep}
+              value={zipCode}
               placeholder="00000-000"
               disabled={disabled}
               inputMode="numeric"
               aria-invalid={!!cepError}
               aria-describedby={cepError ? 'ed-cep-error' : undefined}
               onChange={(e) => {
-                const prev = cep;
+                const prev = zipCode;
                 const v = maskCEP(e.target.value);
-                setCep(v);
-                scheduleAutosave('cep', v, prev);
+                setZipCode(v);
+                scheduleAutosave('zip_code', v, prev);
               }}
               onBlur={(e) => {
-                handleBlur('cep', e.target.value);
+                handleBlur('zip_code', e.target.value);
                 if (onlyDigits(e.target.value).length === 8) {
                   handleCepLookup();
                 }
@@ -285,7 +338,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
               type="button"
               variant="outline"
               size="sm"
-              disabled={disabled || cepLookup === 'loading' || onlyDigits(cep).length !== 8}
+              disabled={disabled || cepLookup === 'loading' || onlyDigits(zipCode).length !== 8}
               onClick={handleCepLookup}
               className="shrink-0"
               aria-label="Buscar CEP no ViaCEP"
@@ -317,9 +370,9 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
           <FieldStatus
             error={cepError}
             errorId="ed-cep-error"
-            saving={savingField === 'cep'}
-            saved={savedField === 'cep'}
-            backendError={errorField?.field === 'cep' ? errorField.message : null}
+            saving={savingField === 'zip_code'}
+            saved={savedField === 'zip_code'}
+            backendError={errorField?.field === 'zip_code' ? errorField.message : null}
           />
         </div>
 
@@ -353,21 +406,21 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
           </Label>
           <Input
             id="ed-endereco"
-            value={endereco}
+            value={addressLine1}
             placeholder="Rua, avenida, alameda…"
             disabled={disabled}
             onChange={(e) => {
-              const prev = endereco;
+              const prev = addressLine1;
               const v = e.target.value;
-              setEndereco(v);
-              scheduleAutosave('endereco', v, prev);
+              setAddressLine1(v);
+              scheduleAutosave('address_line_1', v, prev);
             }}
-            onBlur={(e) => handleBlur('endereco', e.target.value)}
+            onBlur={(e) => handleBlur('address_line_1', e.target.value)}
           />
           <FieldStatus
-            saving={savingField === 'endereco'}
-            saved={savedField === 'endereco'}
-            backendError={errorField?.field === 'endereco' ? errorField.message : null}
+            saving={savingField === 'address_line_1'}
+            saved={savedField === 'address_line_1'}
+            backendError={errorField?.field === 'address_line_1' ? errorField.message : null}
           />
         </div>
 
@@ -377,21 +430,21 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
           </Label>
           <Input
             id="ed-complemento"
-            value={complemento}
+            value={addressLine2}
             placeholder="Apto, conjunto, sala…"
             disabled={disabled}
             onChange={(e) => {
-              const prev = complemento;
+              const prev = addressLine2;
               const v = e.target.value;
-              setComplemento(v);
-              scheduleAutosave('complemento', v, prev);
+              setAddressLine2(v);
+              scheduleAutosave('address_line_2', v, prev);
             }}
-            onBlur={(e) => handleBlur('complemento', e.target.value)}
+            onBlur={(e) => handleBlur('address_line_2', e.target.value)}
           />
           <FieldStatus
-            saving={savingField === 'complemento'}
-            saved={savedField === 'complemento'}
-            backendError={errorField?.field === 'complemento' ? errorField.message : null}
+            saving={savingField === 'address_line_2'}
+            saved={savedField === 'address_line_2'}
+            backendError={errorField?.field === 'address_line_2' ? errorField.message : null}
           />
         </div>
 
@@ -401,21 +454,21 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
           </Label>
           <Input
             id="ed-bairro"
-            value={bairro}
+            value={neighborhood}
             placeholder=""
             disabled={disabled}
             onChange={(e) => {
-              const prev = bairro;
+              const prev = neighborhood;
               const v = e.target.value;
-              setBairro(v);
-              scheduleAutosave('bairro', v, prev);
+              setNeighborhood(v);
+              scheduleAutosave('neighborhood', v, prev);
             }}
-            onBlur={(e) => handleBlur('bairro', e.target.value)}
+            onBlur={(e) => handleBlur('neighborhood', e.target.value)}
           />
           <FieldStatus
-            saving={savingField === 'bairro'}
-            saved={savedField === 'bairro'}
-            backendError={errorField?.field === 'bairro' ? errorField.message : null}
+            saving={savingField === 'neighborhood'}
+            saved={savedField === 'neighborhood'}
+            backendError={errorField?.field === 'neighborhood' ? errorField.message : null}
           />
         </div>
 
@@ -425,21 +478,21 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
           </Label>
           <Input
             id="ed-cidade"
-            value={cidade}
+            value={city}
             placeholder=""
             disabled={disabled}
             onChange={(e) => {
-              const prev = cidade;
+              const prev = city;
               const v = e.target.value;
-              setCidade(v);
-              scheduleAutosave('cidade', v, prev);
+              setCity(v);
+              scheduleAutosave('city', v, prev);
             }}
-            onBlur={(e) => handleBlur('cidade', e.target.value)}
+            onBlur={(e) => handleBlur('city', e.target.value)}
           />
           <FieldStatus
-            saving={savingField === 'cidade'}
-            saved={savedField === 'cidade'}
-            backendError={errorField?.field === 'cidade' ? errorField.message : null}
+            saving={savingField === 'city'}
+            saved={savedField === 'city'}
+            backendError={errorField?.field === 'city' ? errorField.message : null}
           />
         </div>
 
@@ -447,7 +500,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
           <Label htmlFor="ed-uf" className="text-xs font-medium">
             UF
           </Label>
-          <Select value={uf} onValueChange={handleUfChange} disabled={disabled}>
+          <Select value={stateUf} onValueChange={handleUfChange} disabled={disabled}>
             <SelectTrigger id="ed-uf" className="w-full">
               <SelectValue placeholder="UF" />
             </SelectTrigger>
@@ -460,9 +513,9 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
             </SelectContent>
           </Select>
           <FieldStatus
-            saving={savingField === 'uf'}
-            saved={savedField === 'uf'}
-            backendError={errorField?.field === 'uf' ? errorField.message : null}
+            saving={savingField === 'state'}
+            saved={savedField === 'state'}
+            backendError={errorField?.field === 'state' ? errorField.message : null}
           />
         </div>
       </div>

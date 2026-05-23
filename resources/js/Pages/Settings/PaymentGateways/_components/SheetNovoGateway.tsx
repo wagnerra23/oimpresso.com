@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
-  X, ChevronRight, ChevronLeft, Plus, Check, Shield,
+  X, ChevronRight, ChevronLeft, Plus, Check, Shield, ExternalLink,
 } from 'lucide-react';
 import { Btn } from '../../../Financeiro/Cobranca/_components/atoms';
 import { DriverChip, FileField, Field } from './atoms-settings';
@@ -180,6 +180,31 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                 <div className="text-[10px] text-stone-400 italic pt-1">
                   Valores REFERENCE 2026 (sites oficiais + docs públicas) — negociáveis com PSP em volume alto.
                 </div>
+
+                {/* Onda 4e.UI #6 (estado-da-arte 2026-05-23) — pointer pros 21 bancos eduardokum/CNAB.
+                    Backend já funciona via Modules/Financeiro/Strategies/CnabDirectStrategy.
+                    Cadastro vive em /financeiro/contas-bancarias (fluxo legado UPOS validado). */}
+                <a
+                  href="/financeiro/contas-bancarias"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full text-left rounded-md border border-dashed border-stone-300 p-3 transition flex items-start gap-3 hover:border-stone-500 hover:bg-stone-50"
+                >
+                  <span className="w-9 h-9 rounded-md grid place-items-center text-stone-700 text-[12px] font-bold shrink-0 bg-stone-100 border border-stone-300">BC</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="text-[13px] font-semibold">Boleto bancário tradicional (CNAB)</div>
+                      <span className="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded bg-stone-100 text-stone-600">21 bancos</span>
+                    </div>
+                    <div className="text-[10.5px] text-stone-600 mt-1.5 leading-snug">
+                      BB · Bradesco · Itaú · Sicredi · Sicoob · Cresol · Ailos · Caixa · Santander · Banrisul · BNB · BTG · Fibra · HSBC · Delbank · Rendimento · Pine · Ourinvest · Unicred · Inter · C6
+                    </div>
+                    <div className="text-[10px] text-stone-500 mt-1.5">
+                      Cadastrar via <span className="font-mono">/financeiro/contas-bancarias</span> (CNAB 240/400 · sem webhook real-time · settlement T+1 mín · upload/download arquivo)
+                    </div>
+                  </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-stone-400 self-start mt-1" />
+                </a>
               </div>
             </div>
           )}
@@ -197,6 +222,22 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
               <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11px] text-stone-700 mb-3">
                 <strong>{d.nome}:</strong> {d.cred}
               </div>
+
+              {/* Onda 4e.UI #5 — deep-link pro painel do PSP onde gerar credencial */}
+              {d.credentialSource && (
+                <a
+                  href={d.credentialSource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 bg-sky-50 border border-sky-200 rounded p-2.5 text-[11px] text-sky-900 hover:bg-sky-100 hover:border-sky-300 transition mb-3"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Onde gerar a credencial</div>
+                    <div className="text-sky-700">{d.credentialSource.label}</div>
+                  </div>
+                </a>
+              )}
               {d.key === 'inter' && <>
                 <Field label="Client ID">
                   <input

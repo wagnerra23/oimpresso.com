@@ -163,8 +163,16 @@ class ClienteAutosaveController extends Controller
     /**
      * PATCH /cliente/{id}/endereco
      *
-     * Campos: zip_code, address_line_1, address_line_2, neighborhood, city, state.
-     * Validacao especial: state em enum 27 UFs; zip_code 8 digitos.
+     * Campos: zip_code, address_line_1, address_line_2, numero, neighborhood, city, state, city_code.
+     * Validacao especial: state em enum 27 UFs; zip_code 8 digitos; city_code 7 digitos IBGE.
+     *
+     * `numero` (BR canon) restaurado em 2026-05-22 via migration
+     * 2026_05_22_120000_add_numero_to_contacts (regressao UPOS 6.7, mesma situacao
+     * de ADR 0178 mas pro endereco). PR #1422.
+     *
+     * `city_code` (IBGE municipio 7 digitos) adicionado 2026-05-22 (PR #1419) --
+     * preenchido pelo lookup CNPJ (BrasilAPI `codigo_municipio`). Obrigatorio
+     * pra emissao NFe/NFSe (enderEmit/cMun, enderDest/cMun do XML).
      */
     public function endereco(Request $request, int $id): JsonResponse
     {
@@ -177,11 +185,16 @@ class ClienteAutosaveController extends Controller
             'zip_code' => ['nullable', 'string', 'max:10'],
             'address_line_1' => ['nullable', 'string', 'max:255'],
             'address_line_2' => ['nullable', 'string', 'max:255'],
+            // `numero` (BR canon) — string porque enderecos BR aceitam "1578-A",
+            // "s/n", "km 8", "Lt 12" etc. Migration 2026_05_22_120000.
+            'numero' => ['nullable', 'string', 'max:20'],
             // `neighborhood` mapeia pra `colony` em alguns plugins UPOS;
             // mantemos nome canonico do request.
             'neighborhood' => ['nullable', 'string', 'max:120'],
             'city' => ['nullable', 'string', 'max:120'],
             'state' => ['nullable', 'string', 'in:' . implode(',', self::UFS)],
+            // city_code IBGE (7 digitos numericos) -- Wagner 2026-05-22.
+            'city_code' => ['nullable', 'string', 'max:7'],
         ], $this->messages());
 
         // Validacao customizada CEP 8 digitos quando preenchido.
@@ -191,6 +204,14 @@ class ClienteAutosaveController extends Controller
                 $digits = preg_replace('/\D/', '', (string) $zip);
                 if (strlen((string) $digits) !== 8) {
                     $v->errors()->add('zip_code', 'CEP deve ter 8 digitos.');
+                }
+            }
+            // city_code IBGE: exatamente 7 digitos quando preenchido.
+            $cityCode = $request->input('city_code');
+            if ($cityCode !== null && $cityCode !== '') {
+                $digits = preg_replace('/\D/', '', (string) $cityCode);
+                if (strlen((string) $digits) !== 7) {
+                    $v->errors()->add('city_code', 'Codigo IBGE deve ter 7 digitos.');
                 }
             }
         });
@@ -356,6 +377,8 @@ class ClienteAutosaveController extends Controller
             'zip_code' => $contact->zip_code ?? null,
             'address_line_1' => $contact->address_line_1 ?? null,
             'address_line_2' => $contact->address_line_2 ?? null,
+            'numero' => $contact->numero ?? null,
+            'neighborhood' => $contact->neighborhood ?? null,
             'city' => $contact->city ?? null,
             'state' => $contact->state ?? null,
             'credit_limit' => $contact->credit_limit !== null ? (float) $contact->credit_limit : null,
