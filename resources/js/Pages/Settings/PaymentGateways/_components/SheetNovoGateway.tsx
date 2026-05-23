@@ -200,11 +200,12 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                       BB · Bradesco · Itaú · Sicredi · Sicoob · Cresol · Ailos · Caixa · Santander · Banrisul · BNB · BTG · Fibra · HSBC · Delbank · Rendimento · Pine · Ourinvest · Unicred · Inter · C6
                     </div>
 
-                    {/* Onda 4e.UI #7 — destaque bancos com API REST moderna (futuros drivers nativos PaymentGateway Onda 4f).
+                    {/* Onda 4e.UI #7 — destaque bancos com API moderna disponível (futuros drivers nativos PaymentGateway Onda 4f).
                         Tier S de maturidade Open Finance + Pix Cobrança REST, dados de WebSearch oficial 2026-05-23. */}
                     <div className="mt-2 bg-amber-50/60 border border-amber-200 rounded px-2 py-1.5 text-[10px] text-amber-900 leading-snug">
-                      <span className="font-medium">Com API REST moderna disponível</span> (drivers nativos backlog Onda 4f):
-                      <div className="font-semibold mt-0.5">Bradesco · Itaú · BB · Sicredi · Sicoob · Santander · Caixa · BTG</div>
+                      <span className="font-medium">Bancos com API moderna disponível</span> (futuros drivers nativos):
+                      <div className="font-semibold mt-0.5">🔥 Bradesco · Itaú · BB · Sicredi · Sicoob · Santander · Caixa · BTG</div>
+                      <div className="text-[9.5px] text-amber-700 mt-0.5 italic">(hoje via CNAB — driver nativo + webhook em backlog Onda 4f)</div>
                     </div>
 
                     <div className="text-[10px] text-stone-500 mt-1.5">
