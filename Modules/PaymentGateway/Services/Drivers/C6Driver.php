@@ -18,6 +18,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\HttpClientFactory;
 
 /**
  * Driver C6 Bank — Open Banking C6 API.
@@ -64,8 +65,8 @@ class C6Driver implements PaymentDriverContract
     {
         $this->assertCredential($cred);
 
-        $response = $this->client($cred)
-            ->post('/cobrancas', $this->buildBoletoPayload($input));
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->post('/cobrancas', $this->buildBoletoPayload($input)));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -98,8 +99,8 @@ class C6Driver implements PaymentDriverContract
         }
         $this->assertCredential($cred);
 
-        $response = $this->client($cred)
-            ->post('/pix/cobrancas', $this->buildPixPayload($input));
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->post('/pix/cobrancas', $this->buildPixPayload($input)));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -145,8 +146,8 @@ class C6Driver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra cancelar no C6');
         }
 
-        $response = $this->client($cred)
-            ->delete("/cobrancas/{$extId}", ['motivo' => $motivo]);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->delete("/cobrancas/{$extId}", ['motivo' => $motivo]));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -170,7 +171,7 @@ class C6Driver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra consultar no C6');
         }
 
-        $response = $this->client($cred)->get("/cobrancas/{$extId}");
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/cobrancas/{$extId}"));
         if ($response->failed()) {
             throw new GatewayUnavailableException(
                 "C6 consultar falhou ({$response->status()}): " . substr($response->body(), 0, 200)
@@ -274,13 +275,16 @@ class C6Driver implements PaymentDriverContract
             : self::API_BASE_PRODUCTION;
     }
 
+    /**
+     * Cliente principal — com retry + 429 handler via HttpClientFactory
+     * (Auditoria 2026-05-23 Onda 4e gap #1+#2).
+     */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
-        return Http::baseUrl($this->baseUrl($cred))
-            ->withToken($this->getAccessToken($cred))
-            ->acceptJson()
-            ->asJson()
-            ->timeout(30);
+        return HttpClientFactory::make(
+            baseUrl: $this->baseUrl($cred),
+            timeoutSec: 30,
+        )->withToken($this->getAccessToken($cred));
     }
 
     private function getAccessToken(PaymentGatewayCredential $cred): string

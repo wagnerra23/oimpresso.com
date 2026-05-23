@@ -31,6 +31,7 @@ class PaymentGatewayServiceProvider extends ServiceProvider
                 \Modules\PaymentGateway\Console\Commands\MigrateCredentialsCommand::class,
                 \Modules\PaymentGateway\Console\Commands\RegisterPermissionsCommand::class,
                 \Modules\PaymentGateway\Console\Commands\EmitTrialExpiredCobrancasCommand::class,
+                \Modules\PaymentGateway\Console\Commands\RetryOrphanWebhookCommand::class,
             ]);
         }
     }
