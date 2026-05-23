@@ -246,10 +246,15 @@ class DataController extends Controller
                             ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],
                             // Operacional interno (descoberta admin)
                             ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
-                            ['key' => 'metas',     'label' => 'Metas',     'href' => '/ia/metas'],
+                            // Wagner 2026-05-23: ghost 'metas' removido — MetasController@index ainda
+                            // retorna Blade view ('copiloto::metas.index'), o que faz Inertia Link no
+                            // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController
+                            // for migrado pra Inertia::render via MWART.
                             ['key' => 'custos',    'label' => 'Custos',    'href' => '/ia/admin/custos'],
                             // Wagner 2026-05-22: ADS vai pra dentro da Jana (entry sidebar removida).
-                            ['key' => 'ads',       'label' => 'ADS',       'href' => '/ads'],
+                            // Wagner 2026-05-23 fix: href '/ads' não existe (rota raiz ausente em
+                            // Modules/ADS/Routes/web.php). Entry-point real do módulo é a tela Decisões.
+                            ['key' => 'ads',       'label' => 'ADS',       'href' => '/ads/admin/decisoes'],
                             // Wagner 2026-05-22 P2: zera 2 órfãs (telas Jana Admin Governança + Qualidade).
                             ['key' => 'governanca-jana', 'label' => 'Governança Jana', 'href' => '/ia/admin/governanca'],
                             ['key' => 'qualidade-jana',  'label' => 'Qualidade IA',    'href' => '/ia/admin/qualidade'],
