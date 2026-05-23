@@ -66,6 +66,15 @@ jobs:
           /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && grep '\"laravel/framework\"' composer.json"
           echo "=== Disco livre ==="
           /tmp/ssh_exec.sh "df -h /home/u906587222 | tail -1"
+          echo "=== Maintenance status ==="
+          /tmp/ssh_exec.sh "ls -la /home/u906587222/domains/oimpresso.com/public_html/storage/framework/down 2>&1 || echo 'no down file'"
+
+      - name: Cleanup stale locks (git + maintenance órfãos de runs anteriores)
+        run: |
+          echo "=== Removendo .git/index.lock se existir ==="
+          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
+          echo "=== Forçando maintenance OFF caso preso de deploy anterior ==="
+          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up 2>&1 || rm -f storage/framework/down 2>&1; echo OK"
 
       - name: Backup (arquivos + DB)
         if: ${{ inputs.skip_backup != 'true' }}
