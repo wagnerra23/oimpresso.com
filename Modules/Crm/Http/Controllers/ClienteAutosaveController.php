@@ -109,6 +109,11 @@ class ClienteAutosaveController extends Controller
             'rg' => ['nullable', 'string', 'max:20'],
             'nascimento' => ['nullable', 'date', 'before:today'],
             'cargo' => ['nullable', 'string', 'max:80'],
+            // ADR 0186 Técnica C — campos derivados da SEFAZ ConsultaCadastro.
+            'ind_ie_dest' => ['nullable', 'integer', 'in:1,2,9'],
+            'sefaz_cad_sit' => ['nullable', 'string', 'in:habilitado,nao_habilitado,suspenso,cancelado,paralisado,baixado'],
+            'sefaz_cad_ind_cred_nfe' => ['nullable', 'integer', 'between:0,4'],
+            'sefaz_cad_consultado_em' => ['nullable', 'date'],
         ], $this->messages());
 
         // Validacao customizada mod 11 quando tax_number presente.
@@ -334,6 +339,12 @@ class ClienteAutosaveController extends Controller
             'fantasia' => $contact->fantasia ?? null,
             'tax_number_masked' => $this->maskTaxNumber($contact->tax_number ?? null),
             'ie' => $contact->ie ?? null,
+            // ADR 0186 Técnica C — campos derivados da SEFAZ.
+            'ind_ie_dest' => $contact->ind_ie_dest !== null ? (int) $contact->ind_ie_dest : null,
+            'sefaz_cad_sit' => $contact->sefaz_cad_sit ?? null,
+            'sefaz_cad_ind_cred_nfe' => $contact->sefaz_cad_ind_cred_nfe !== null
+                ? (int) $contact->sefaz_cad_ind_cred_nfe : null,
+            'sefaz_cad_consultado_em' => $contact->sefaz_cad_consultado_em ?? null,
             'rg' => $contact->rg ?? null,
             'nascimento' => $contact->nascimento ?? null,
             'cargo' => $contact->cargo ?? null,

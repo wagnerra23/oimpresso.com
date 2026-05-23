@@ -197,6 +197,43 @@ Comunidade nfephp-org + SAP confirmam que cobertura SEFAZ ConsultaCadastro varia
 
 **Total: 7.5-11.5h IA-pair.** Reversível por fase (feature-flag `fiscal.sefaz_consulta_cadastro_enabled`).
 
+## Evolução 2026-05-23 — Técnica C (merge paralelo + warnings antecipados)
+
+Após implementação inicial e [auditoria fiscal das 3 técnicas](../sessions/2026-05-23-arte-busca-cliente-cnpj-ie.md), Wagner aprovou evolução pra **Técnica C** — merge paralelo BrasilAPI + SEFAZ campo-a-campo com prioridade por autoridade.
+
+| Técnica | Nota | Decisão |
+|---|---:|---|
+| A — BrasilAPI + SEFAZ sequencial (impl inicial) | 82/100 | superseded por C |
+| B — SEFAZ-RS first + BrasilAPI fallback (proposta Wagner inicial) | 65/100 | rejeitada (cobertura ruim cliente PJ não-RS + PF) |
+| **C — Merge paralelo inteligente** | **95/100** | **aceita** |
+
+### Diferenças vs implementação inicial
+
+1. **Promise.all** dispara BrasilAPI + SEFAZ em paralelo (latência única em vez de 2x sequencial).
+2. **Retorno SEFAZ expandido** — `SefazConsultaCadastroService::consultar` agora retorna além de IE+cSit:
+   - `ind_ie_dest` derivado (1/2/9) — pronto pro XML NFe `<dest>/<indIEDest>` (obrigatório)
+   - `ind_cred_nfe` (0-4) — informativo
+   - `regime_apuracao` (xRegApur)
+   - `endereco_sefaz` (logradouro/numero/bairro/cmun/cep — pode diferir da Receita; SEFAZ é mais atual fiscalmente)
+   - `alertas[]` — gatilhos UI severity high/medium/low pra evitar rejeição NFe
+   - `situacao_label` — label PT-BR canônico (`habilitado`, `suspenso`, `cancelado`, etc) pra persistir
+3. **Migration nova** `2026_05_23_120000_add_sefaz_consulta_fields_to_contacts`:
+   - `contacts.ind_ie_dest` tinyint(1) — XML NFe `<dest>/<indIEDest>` (obrigatório)
+   - `contacts.sefaz_cad_sit` varchar(20) — situação cadastral SEFAZ persistida (UX sem fetch novo)
+   - `contacts.sefaz_cad_ind_cred_nfe` tinyint(1) — credenciamento NFe destinatário
+   - `contacts.sefaz_cad_consultado_em` timestamp — última consulta SEFAZ bem-sucedida
+4. **Warnings antecipados** UI — quando `cSit ≠ habilitado` ou `indCredNFe = 4`, drawer mostra:
+   - 🔴 high: cad_nao_habilitado (rej. 478/487), cad_cancelado (rej. 770), cad_baixado
+   - 🟡 medium: cad_suspenso
+   - 🔵 low: nao_credenciado_nfe (cliente recebe normal, só não emite)
+5. **Frontend** faz PATCH batch dos 4 campos derivados em `/cliente/{id}/identificacao` após consulta bem-sucedida.
+
+### Justificativa da evolução
+
+**6 das 10 rejeições NFe mais comuns** dependem de `cSit` + IE (catalogadas na auditoria 2026-05-23). Persistir esses dados + mostrar warning antecipado **evita venda perdida + emissão rejeitada** — Larissa descobre cliente com IE cancelada no cadastro, não no momento da emissão.
+
+Custo: +2-3h IA-pair vs impl inicial. ROI fiscal direto. Bate Bling/Tiny/Omie em design fiscal — nenhum exibe `cSit` ou warnings de rejeição no cadastro.
+
 ## Referências
 
 - [ADR 0093](0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL (justifica `withoutGlobalScope` auditado)

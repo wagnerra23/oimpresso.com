@@ -160,6 +160,110 @@ test('SefazConsultaCadastroService retorna null pra CNPJ menor que 14 digitos', 
 });
 
 // ---------------------------------------------------------------------
+// Técnica C (ADR 0186 §Evolução) — derivação indIeDest + warnings + persist
+// ---------------------------------------------------------------------
+
+test('derivarIndIeDest retorna 1 pra IE valida + cSit habilitado', function () {
+    // Pra testar metodo privado, usar ReflectionMethod. Mas como o service
+    // expoe via consultar(), testamos via stub do mock SEFAZ response.
+    // Aqui validamos a logica pura usando Reflection.
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $ref = new ReflectionMethod($svc, 'derivarIndIeDest');
+    $ref->setAccessible(true);
+
+    expect($ref->invoke($svc, '110042490114', '0'))->toBe(1); // IE valida + habilitado = contribuinte
+});
+
+test('derivarIndIeDest retorna 2 pra IE = ISENTO', function () {
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $ref = new ReflectionMethod($svc, 'derivarIndIeDest');
+    $ref->setAccessible(true);
+
+    expect($ref->invoke($svc, 'ISENTO', '0'))->toBe(2);
+    expect($ref->invoke($svc, 'isento', '0'))->toBe(2); // case-insensitive
+});
+
+test('derivarIndIeDest retorna 9 pra sem IE OU cancelado/baixado', function () {
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $ref = new ReflectionMethod($svc, 'derivarIndIeDest');
+    $ref->setAccessible(true);
+
+    expect($ref->invoke($svc, '', '0'))->toBe(9); // sem IE
+    expect($ref->invoke($svc, '0', '0'))->toBe(9); // IE = "0"
+    expect($ref->invoke($svc, '110042490114', '3'))->toBe(9); // IE valida mas cSit=3 cancelado
+    expect($ref->invoke($svc, '110042490114', '5'))->toBe(9); // IE valida mas cSit=5 baixado
+});
+
+test('PATCH /identificacao aceita ind_ie_dest 1/2/9', function () {
+    if (! Schema::hasColumn('contacts', 'ind_ie_dest')) {
+        $this->markTestSkipped('Migration 2026_05_23_120000 ainda nao rodou.');
+    }
+
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => $this->business->id,
+        'created_by' => $this->user->id,
+        'type' => 'customer',
+        'name' => 'Cliente IE Test',
+        'mobile' => '11999999999',
+        'contact_status' => 'active',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    foreach ([1, 2, 9] as $valor) {
+        $r = $this->patchJson("/cliente/{$contactId}/identificacao", ['ind_ie_dest' => $valor]);
+        $r->assertStatus(200)->assertJsonPath('contact.ind_ie_dest', $valor);
+        $this->assertDatabaseHas('contacts', ['id' => $contactId, 'ind_ie_dest' => $valor]);
+    }
+});
+
+test('PATCH /identificacao rejeita ind_ie_dest fora enum (1/2/9)', function () {
+    if (! Schema::hasColumn('contacts', 'ind_ie_dest')) {
+        $this->markTestSkipped('Migration 2026_05_23_120000 ainda nao rodou.');
+    }
+
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => $this->business->id,
+        'created_by' => $this->user->id,
+        'type' => 'customer',
+        'name' => 'Cliente IE Invalido',
+        'mobile' => '11000000000',
+        'contact_status' => 'active',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // ind_ie_dest = 3 esta fora do enum 1/2/9.
+    $r = $this->patchJson("/cliente/{$contactId}/identificacao", ['ind_ie_dest' => 3]);
+    $r->assertStatus(422)->assertJsonStructure(['errors' => ['ind_ie_dest']]);
+});
+
+test('PATCH /identificacao aceita sefaz_cad_sit valido + rejeita invalido', function () {
+    if (! Schema::hasColumn('contacts', 'sefaz_cad_sit')) {
+        $this->markTestSkipped('Migration 2026_05_23_120000 ainda nao rodou.');
+    }
+
+    $contactId = DB::table('contacts')->insertGetId([
+        'business_id' => $this->business->id,
+        'created_by' => $this->user->id,
+        'type' => 'customer',
+        'name' => 'Cliente CSit Test',
+        'mobile' => '11888888888',
+        'contact_status' => 'active',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Valor valido.
+    $this->patchJson("/cliente/{$contactId}/identificacao", ['sefaz_cad_sit' => 'habilitado'])
+        ->assertStatus(200);
+
+    // Valor fora enum.
+    $this->patchJson("/cliente/{$contactId}/identificacao", ['sefaz_cad_sit' => 'inventado'])
+        ->assertStatus(422);
+});
+
+// ---------------------------------------------------------------------
 // Multi-tenant Tier 0 — invariante withoutGlobalScope (ADR 0186 §camada #3)
 // ---------------------------------------------------------------------
 
