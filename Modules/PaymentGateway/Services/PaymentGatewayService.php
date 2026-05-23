@@ -21,6 +21,7 @@ use Modules\PaymentGateway\Services\Drivers\AsaasDriver;
 use Modules\PaymentGateway\Services\Drivers\BcbPixDriver;
 use Modules\PaymentGateway\Services\Drivers\C6Driver;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
+use Modules\PaymentGateway\Services\Drivers\PagarmeDriver;
 
 /**
  * Implementação do PaymentGatewayContract — coordena drivers + persistência.
@@ -40,7 +41,8 @@ class PaymentGatewayService implements PaymentGatewayContract
      *
      * Onda 4a: inter
      * Onda 4b: + c6, asaas
-     * Onda 4d.1: + bcb_pix (este PR — PIX Automático regulado BCB)
+     * Onda 4d.1: + bcb_pix (PIX Automático regulado BCB)
+     * Onda 4e: + pagarme (Pagar.me v5 — Stone group — boleto/pix_cob/card)
      * Onda 5/6: pesapal (deprecated → remoção)
      */
     private const DRIVERS = [
@@ -48,6 +50,7 @@ class PaymentGatewayService implements PaymentGatewayContract
         'c6'      => C6Driver::class,
         'asaas'   => AsaasDriver::class,
         'bcb_pix' => BcbPixDriver::class,
+        'pagarme' => PagarmeDriver::class,
     ];
 
     /**
