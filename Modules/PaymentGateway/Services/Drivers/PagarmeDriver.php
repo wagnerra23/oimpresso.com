@@ -6,7 +6,6 @@ namespace Modules\PaymentGateway\Services\Drivers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Dto\CobrancaEmitidaResult;
@@ -19,6 +18,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\HttpClientFactory;
 
 /**
  * Driver Pagar.me — API v5 (Stone group).
@@ -137,7 +137,7 @@ class PagarmeDriver implements PaymentDriverContract
             ],
         ]);
 
-        $response = $this->client($cred)->post('/orders', $payload);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/orders', $payload));
 
         // Pagar.me v5: 400 = invalid_request (cartão recusado vem como
         // status='failed' na charge dentro de 200 OK também). Tratamos ambos.
@@ -186,7 +186,7 @@ class PagarmeDriver implements PaymentDriverContract
         }
 
         // DELETE /charges/{id} sem amount = cancela total
-        $response = $this->client($cred)->delete("/charges/{$extId}");
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->delete("/charges/{$extId}"));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -209,9 +209,9 @@ class PagarmeDriver implements PaymentDriverContract
             $payload['amount'] = $valorCentavos; // Pagar.me usa centavos como int
         }
 
-        $response = $this->client($cred)
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
             ->withBody(json_encode($payload, JSON_UNESCAPED_UNICODE), 'application/json')
-            ->delete("/charges/{$extId}");
+            ->delete("/charges/{$extId}"));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -228,7 +228,7 @@ class PagarmeDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra consultar no Pagar.me');
         }
 
-        $response = $this->client($cred)->get("/charges/{$extId}");
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/charges/{$extId}"));
         if ($response->failed()) {
             throw new GatewayUnavailableException(
                 "Pagar.me consultar falhou ({$response->status()}): " . substr($response->body(), 0, 200)
@@ -253,7 +253,8 @@ class PagarmeDriver implements PaymentDriverContract
 
         try {
             // GET /balance é o ping canônico (endpoint barato, exige auth válida)
-            $response = $this->client($cred)->get('/balance');
+            // Usa clientHealth (sem retry) — 1 fail = down do dashboard
+            $response = $this->clientHealth($cred)->get('/balance');
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
             if ($response->successful()) {
@@ -344,7 +345,7 @@ class PagarmeDriver implements PaymentDriverContract
         };
 
         $payload = $this->buildOrderPayload($input, [$paymentBlock]);
-        $response = $this->client($cred)->post('/orders', $payload);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/orders', $payload));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -453,15 +454,32 @@ class PagarmeDriver implements PaymentDriverContract
         }
     }
 
+    /**
+     * Cliente principal — com retry + 429 handler via HttpClientFactory
+     * (Auditoria 2026-05-23 Onda 4e gap #1+#2).
+     */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
         $secret = (string) ($cred->config_json['secret_key'] ?? '');
 
-        return Http::baseUrl(self::API_BASE)
-            ->withBasicAuth($secret, '')
-            ->acceptJson()
-            ->asJson()
-            ->timeout(30);
+        return HttpClientFactory::make(
+            baseUrl: self::API_BASE,
+            timeoutSec: 30,
+        )->withBasicAuth($secret, '');
+    }
+
+    /**
+     * Cliente healthcheck — SEM retry (1 fail = down).
+     */
+    private function clientHealth(PaymentGatewayCredential $cred): PendingRequest
+    {
+        $secret = (string) ($cred->config_json['secret_key'] ?? '');
+
+        return HttpClientFactory::make(
+            baseUrl: self::API_BASE,
+            timeoutSec: 30,
+            withRetry: false,
+        )->withBasicAuth($secret, '');
     }
 
     /**
