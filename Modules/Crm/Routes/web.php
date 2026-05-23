@@ -130,6 +130,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
             Route::get('lookup/cnpj/{cnpj}', [\Modules\Crm\Http\Controllers\ClienteLookupController::class, 'cnpj'])
                 ->where('cnpj', '[\d./\-]{14,18}')
                 ->name('lookup.cnpj');
+            // Lookup SEFAZ ConsultaCadastro (ADR 0186) -- chain de cert + IE oficial.
+            // Throttle compartilhado (60/min) -- mesma franquia que CEP/CNPJ
+            // (fluxo unico de cadastro). Query param obrigatorio ?uf=XX.
+            Route::get('lookup/cnpj/{cnpj}/sefaz', [\Modules\Crm\Http\Controllers\ClienteLookupController::class, 'cnpjSefaz'])
+                ->where('cnpj', '[\d./\-]{14,18}')
+                ->name('lookup.cnpj.sefaz');
         });
     });
 

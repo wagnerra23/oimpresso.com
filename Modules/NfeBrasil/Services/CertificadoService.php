@@ -189,6 +189,111 @@ class CertificadoService
     }
 
     /**
+     * Carrega cert pra SEFAZ com chain de 3 camadas (ADR 0186).
+     *
+     * Estende `carregarParaSefaz` adicionando 3ª camada de fallback:
+     * cert institucional do oimpresso operacional (config `fiscal.fallback_business_id`,
+     * default biz=1) quando o business consumidor não tem cert próprio ativo nem
+     * legado. Usado pelo `SefazConsultaCadastroService` no drawer 760 Cliente
+     * (lookup CNPJ → IE automática via SEFAZ ConsultaCadastro).
+     *
+     * Chain:
+     *   1. cert primário business (`nfe_certificados`)
+     *   2. cert legado `business.certificado` BLOB (ADR 0090)
+     *   3. cert institucional (config fiscal.fallback_business_id)
+     *   4. RuntimeException — caller renderiza badge UI "configure cert"
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): camada #3 usa
+     * `withoutGlobalScope(ScopeByBusiness::class)` INTENCIONAL — única query
+     * em `nfe_certificados` autorizada a escapar do scope. Cada uso loga em
+     * audit log com `sha256(cnpj_consultado)` (LGPD Art. 6º III — minimização).
+     *
+     * @return array{pfx_binary: string, senha: string, valido_ate: ?\DateTimeInterface, source: string, cert_business_id: int}
+     * @throws RuntimeException Quando nenhuma das 3 camadas retorna cert
+     */
+    public function carregarParaSefazComFallback(int $businessId, ?string $contextoConsulta = null): array
+    {
+        // Camada 1+2: cert primário ou legado (delega pro método existente).
+        try {
+            $cert = $this->carregarParaSefaz($businessId);
+            $cert['cert_business_id'] = $businessId;
+            return $cert;
+        } catch (RuntimeException $e) {
+            // Cai pra camada 3 — fallback institucional.
+        }
+
+        // Camada 3: cert institucional do oimpresso operacional.
+        $fallbackBusinessId = (int) config('fiscal.fallback_business_id', 1);
+
+        if ($fallbackBusinessId === $businessId) {
+            // Próprio business já é o institucional E não tem cert → não há fallback adicional.
+            throw new RuntimeException(
+                "Business institucional {$businessId} não tem certificado A1 ativo. Configure em /fiscal/config."
+            );
+        }
+
+        // ⚠️ withoutGlobalScope INTENCIONAL — ADR 0186 §Decisão camada #3.
+        // Único lugar autorizado no codebase a escapar do tenant scope em nfe_certificados.
+        // Pest test `CertificadoFallbackInstitucionalTest` valida que não há outras
+        // ocorrências de `withoutGlobalScope(ScopeByBusiness::class)` apontando pra esse model.
+        $certInstitucional = NfeCertificado::withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+            ->where('business_id', $fallbackBusinessId)
+            ->where('ativo', true)
+            ->where('valido_ate', '>', now())
+            ->first();
+
+        if (! $certInstitucional) {
+            throw new RuntimeException(
+                "Business {$businessId} sem cert ativo E cert institucional fallback (biz={$fallbackBusinessId}) também ausente/vencido."
+            );
+        }
+
+        $diskPath = sprintf('%d/cert/%s.pfx.enc', $fallbackBusinessId, $certInstitucional->uuid);
+        if (! Storage::disk('nfe_certs')->exists($diskPath)) {
+            throw new RuntimeException(
+                "Cert institucional registrado mas arquivo ausente em disco: {$diskPath}"
+            );
+        }
+
+        // Audit log — ADR 0186 §Decisão camada #3. LGPD Art. 6º III: sha256(cnpj), nunca plain.
+        // `mcp_audit_log` table existe pelo schema MCP (ADR 0053). Graceful skip se não disponível.
+        try {
+            DB::table('mcp_audit_log')->insert([
+                'business_id' => $businessId,
+                'event' => 'sefaz.cert.fallback_institutional_used',
+                'metadata' => json_encode([
+                    'cert_business_id' => $fallbackBusinessId,
+                    'reason' => 'business_sem_cert_ativo_nem_legado',
+                    'contexto_consulta_hash' => $contextoConsulta !== null
+                        ? hash('sha256', $contextoConsulta)
+                        : null,
+                ]),
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $auditErr) {
+            // Audit log graceful — não bloqueia consulta se MCP audit falhar.
+            Log::warning('CertificadoService: audit log fallback institucional falhou', [
+                'business_id' => $businessId,
+                'cert_business_id' => $fallbackBusinessId,
+                'audit_error' => $auditErr->getMessage(),
+            ]);
+        }
+
+        Log::info('CertificadoService: FALLBACK_INSTITUCIONAL usado', [
+            'business_id' => $businessId,
+            'cert_business_id' => $fallbackBusinessId,
+        ]);
+
+        return [
+            'pfx_binary' => Crypt::decrypt(Storage::disk('nfe_certs')->get($diskPath)),
+            'senha'      => Crypt::decryptString($certInstitucional->encrypted_password),
+            'valido_ate' => $certInstitucional->valido_ate,
+            'source'     => 'institutional_fallback',
+            'cert_business_id' => $fallbackBusinessId,
+        ];
+    }
+
+    /**
      * Lê cert do legado `business.certificado` (BLOB) + `business.senha_certificado` (base64).
      * Retorna null se ausente. ADR 0090.
      *
