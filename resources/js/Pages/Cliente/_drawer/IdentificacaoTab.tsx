@@ -34,6 +34,10 @@ export interface ContactInfo {
   nascimento?: string | null;
   contato?: string | null;
   cargo?: string | null;
+  // UF do alvo — necessário pra SEFAZ ConsultaCadastro (ADR 0186).
+  // Aceita ambos naming (PT-BR e canon UPOS) — fallback dual no consumer.
+  state?: string | null;
+  uf?: string | null;
 }
 
 export interface IdentificacaoTabProps {
@@ -255,19 +259,66 @@ export default function IdentificacaoTab({ contact, onSaved, disabled = false }:
         setIe(novoIe);
         performSave('ie', novoIe, '');
       }
+
+      // ── SEFAZ ConsultaCadastro pra IE (ADR 0186 chain de cert) ──────────
+      // Chamado APÓS BrasilAPI porque é dependente da UF do CNPJ alvo. Quando
+      // PR #1419 mergear, UF virá do response BrasilAPI (json.state).
+      // Fallback aqui: contact.state ?? contact.uf do cadastro pré-existente.
+      // Se nenhum disponível, skip SEFAZ — IE fica como veio da BrasilAPI (vazio).
+      const ufAlvo = (json?.state as string) ?? contact.state ?? contact.uf ?? '';
+      let sefazSource: 'none' | 'primary' | 'institutional' | 'unsupported' | 'no_cert' = 'none';
+      if (ufAlvo && ufAlvo.length === 2) {
+        try {
+          const rs = await fetch(`/cliente/lookup/cnpj/${digits}/sefaz?uf=${encodeURIComponent(ufAlvo)}`, {
+            method: 'GET',
+            headers: { Accept: 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+          });
+          if (rs.ok) {
+            const sefaz = await rs.json();
+            const ieSefaz = (sefaz?.ie as string) ?? '';
+            const certSrc = (sefaz?.cert_source as string) ?? '';
+            if (ieSefaz) {
+              // SOBRESCREVE (política feedback-lookup-cnpj-sobrescreve-dados:
+              // dado oficial SEFAZ supera qualquer manual prévio).
+              setIe(ieSefaz);
+              performSave('ie', ieSefaz, ie);
+              sefazSource = certSrc === 'institutional_fallback' ? 'institutional' : 'primary';
+            }
+          } else if (rs.status === 404) {
+            const errJson = await rs.json().catch(() => ({}));
+            sefazSource = errJson?.reason === 'uf_unsupported' ? 'unsupported' : 'no_cert';
+          }
+        } catch (sefazErr) {
+          // eslint-disable-next-line no-console
+          console.warn('[IdentificacaoTab] SEFAZ lookup falhou (graceful)', sefazErr);
+        }
+      }
+
+      // Badge contextual — ADR 0186 §UI 4 estados.
+      let mensagemBadge = 'Dados preenchidos pela Receita.';
+      if (sefazSource === 'primary') {
+        mensagemBadge = `Dados pela Receita + IE pela SEFAZ-${ufAlvo} (certificado da empresa).`;
+      } else if (sefazSource === 'institutional') {
+        mensagemBadge = `Dados pela Receita + IE pela SEFAZ-${ufAlvo} (certificado oimpresso — configure o seu em /fiscal/config).`;
+      } else if (sefazSource === 'unsupported') {
+        mensagemBadge = `Dados pela Receita. SEFAZ-${ufAlvo} não disponível — preencha IE manualmente.`;
+      } else if (sefazSource === 'no_cert') {
+        mensagemBadge = 'Dados pela Receita. Configure certificado A1 em /fiscal/config pra preencher IE automaticamente.';
+      }
+
       setCnpjLookup('ok');
-      setCnpjLookupMsg('Dados preenchidos pela Receita.');
+      setCnpjLookupMsg(mensagemBadge);
       setTimeout(() => {
         setCnpjLookup('idle');
         setCnpjLookupMsg(null);
-      }, 2800);
+      }, 4500); // 4.5s — badge ADR 0186 tem mais texto que o anterior
     } catch (err) {
       setCnpjLookup('error');
       setCnpjLookupMsg('Falha ao consultar Receita.');
       // eslint-disable-next-line no-console
       console.error('[IdentificacaoTab] cnpj lookup failed', err);
     }
-  }, [doc, nome, fantasia, ie, performSave]);
+  }, [doc, nome, fantasia, ie, performSave, contact.state, contact.uf]);
 
   // ── Render ───────────────────────────────────────────────────────────
   const isPJ = tipo === 'PJ';
