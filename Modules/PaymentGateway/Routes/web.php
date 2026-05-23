@@ -64,6 +64,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('payment-gateways/{credentialId}/toggle', [PaymentGatewaysController::class, 'toggle'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.toggle');
+
+        // Onda 4e.UI (gap P0 estado-da-arte 2026-05-23): audit trail per credential.
+        Route::get('payment-gateways/{credentialId}/history', [PaymentGatewaysController::class, 'history'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.history');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────

@@ -18,6 +18,7 @@ use Modules\Financeiro\Models\ContaBancaria;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\HealthCheckService;
+use Spatie\Activitylog\Models\Activity;
 
 /**
  * Tela /settings/payment-gateways — F3 PaymentGateway UI Tela 2.
@@ -353,6 +354,95 @@ class PaymentGatewaysController extends Controller
         return response()->json([
             'success' => true,
             'credential_id' => $credentialId,
+        ]);
+    }
+
+    /**
+     * GET /settings/payment-gateways/{credentialId}/history
+     *
+     * Trilha de auditoria read-only — agrega rows da `activity_log` (Spatie
+     * ActivityLog) com subject_type=PaymentGatewayCredential + subject_id=$credentialId,
+     * filtrado por business_id pra Tier 0 safety (ADR 0093).
+     *
+     * Shape espelha contrato Financeiro `auditTrail` pra reuso de componente UI:
+     *   { entries: [{ id, when, when_iso, who, action, event, diff?: {field, from, to} }], total }
+     *
+     * LGPD/PCI: `config_json` (segredos) NÃO está em `logOnly` do model (linhas 50-58),
+     * portanto NUNCA aparece em properties.old/attributes — diff só expõe gateway_key,
+     * ambiente, ativo, nome_display, conta_bancaria_id, health_status, health_checked_at.
+     *
+     * Onda 4e.UI (gap P0 catalogado em estado-da-arte 2026-05-23 — nota 78/100 → 82+).
+     */
+    public function history(Request $request, int $credentialId): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id', $request->session()->get('business.id', 0));
+
+        // Tier 0: credential precisa ser do business da sessão; senão 404
+        $credential = PaymentGatewayCredential::query()
+            ->where('business_id', $businessId)
+            ->find($credentialId);
+
+        if (! $credential) {
+            return response()->json(['entries' => [], 'total' => 0], 404);
+        }
+
+        $rows = Activity::query()
+            ->where('subject_type', PaymentGatewayCredential::class)
+            ->where('subject_id', $credentialId)
+            ->where('business_id', $businessId)
+            ->with('causer:id,first_name,last_name,username')
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        $entries = $rows->map(function (Activity $a) {
+            $causer = $a->causer;
+            $who = $causer
+                ? (trim(($causer->first_name ?? '').' '.($causer->last_name ?? '')) ?: ($causer->username ?? 'Sistema'))
+                : 'Sistema';
+
+            $action = match ($a->event) {
+                'created' => 'criou',
+                'updated' => 'editou',
+                'deleted' => 'deletou',
+                default => $a->description ?: ($a->event ?? 'alterou'),
+            };
+
+            $entry = [
+                'id'       => $a->id,
+                'when'     => $a->created_at?->locale('pt_BR')->isoFormat('DD/MM HH:mm'),
+                'when_iso' => $a->created_at?->toIso8601String(),
+                'who'      => $who,
+                'action'   => $action,
+                'event'    => $a->event,
+            ];
+
+            // Diff: Spatie LogsActivity grava ['old' => [...], 'attributes' => [...]]
+            // quando logOnly + logOnlyDirty ativo (este model usa, line 50-58).
+            $props = is_array($a->properties) ? $a->properties : ($a->properties?->toArray() ?? []);
+            $old = $props['old'] ?? null;
+            $new = $props['attributes'] ?? null;
+
+            if (is_array($old) && is_array($new)) {
+                foreach ($new as $field => $to) {
+                    $from = $old[$field] ?? null;
+                    if ($from !== $to) {
+                        $entry['diff'] = [
+                            'field' => $field,
+                            'from'  => $from,
+                            'to'    => $to,
+                        ];
+                        break; // primeiro campo alterado representa o evento na UI
+                    }
+                }
+            }
+
+            return $entry;
+        });
+
+        return response()->json([
+            'entries' => $entries,
+            'total'   => $entries->count(),
         ]);
     }
 
