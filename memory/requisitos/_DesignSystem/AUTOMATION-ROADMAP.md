@@ -132,37 +132,70 @@ ACTUAL=$(rg -o "\-\-origin-(\w+)-bg" cockpit.css | sort -u)
 
 ---
 
-## 🌊 Onda 3 — Descoberta MCP + visual regression (~4-6h) · sobe 75→85%
+## 🌊 Onda 3 — Descoberta + notif (~1h entregue · 75→85%) — **EXECUTADA · PARCIAL**
 
-### Item 3.1 · Webhook GitHub → MCP-notif
+> **Descoberta 2026-05-24:** investigação revelou que **2/3 do escopo Onda 3 já existem**:
+> - `SyncMemoryWebhookController` ([ADR 0053](../../decisions/0053-...)) — webhook GitHub indexa `memory/` no MCP server em push
+> - `visual-regression.yml` ([ADR 0108](../../decisions/0108-regressao-visual-pest-browser-tier-2.md)) — Pest 4 Browser + Playwright valida snapshot pixel-diff (INFRA-ONLY mode atualmente, mas estrutura existe)
+> Onda 3 reduzida pra entregar APENAS notificação proativa **complementar** sem duplicar infra.
 
-**O que faz:** quando PR mergeia tocando `memory/requisitos/_DesignSystem/`, `Pages/` ou `Components/shared/`, dispara notificação para o time MCP (Felipe/Maiara/Eliana/Luiz) via tool MCP `team-notify` ou Slack canal #design-system.
+### Item 3.1 · Workflow `ui-canon-notify.yml` (ENTREGUE 2026-05-24)
 
-**Mensagem:**
+**Status:** ✅ live em [.github/workflows/ui-canon-notify.yml](../../../.github/workflows/ui-canon-notify.yml)
+
+**Trigger:** push pra main tocando:
+- `memory/requisitos/_DesignSystem/**`
+- `memory/decisions/**`
+- `resources/js/Pages/**`
+- `resources/js/Components/shared/**`
+- `resources/css/cockpit.css` ou `inertia.css`
+- `.claude/skills/constituicao-ui-aware/**`
+
+**Payload JSON gerado:**
+```json
+{
+  "event": "ui_canon_changed",
+  "commit": { "sha", "url", "author", "message" },
+  "stats": { "total_files", "ds_docs", "adrs", "pages", "shared_components", "css_canon", "skill_aware" },
+  "refs": { "constituicao_ui_v2", "automation_roadmap" }
+}
 ```
-🎨 UI canônica atualizada · PR #NNNN
-Tocou: <arquivos>
-ADR aplicável: <UI-XXXX>
-Próxima brief-fetch reflete · ou acesse: <link PR>
-```
 
-**Esforço:** 4h · `.github/workflows/notify-mcp.yml` + endpoint MCP-notif (precisa existir ou criar) + template mensagem
+**Configuração (opcional):**
+- Secret `UI_NOTIF_WEBHOOK_URL` no repo GitHub
+- Compatível: Slack incoming webhook, Discord webhook, MCP team-notify endpoint (futuro), GitHub Discussions API
+- Sem secret → workflow loga warning e exit 0 (não-bloqueante)
 
-**Dependência externa:** endpoint MCP `team-notify` precisa existir no mcp-server. Hoje provavelmente **não existe** — precisa scope MCP-server primeiro.
+**Esforço real:** 1h (não 4h originalmente estimado · reusa infra GitHub Actions + workflow_dispatch pra teste manual)
 
-### Item 3.2 · Visual regression (Playwright trace OU Percy/Chromatic free tier)
+### Item 3.2 · Visual regression — **JÁ EXISTE (ADR 0108)**
 
-**O que faz:** snapshot pixel-diff de telas críticas em PR. Rejeita drift visual silencioso. Implementação:
-- Playwright trace built-in (gratuito, runs em CI) — screenshots de 5-10 telas-âncora pré e pós-merge
-- OU Percy/Chromatic free tier (até 5k snapshots/mês free) — mais maduro, integração GitHub nativa
+[.github/workflows/visual-regression.yml](../../../.github/workflows/visual-regression.yml) implementado · Pest 4 Browser + Playwright:
+- Dispara em PR que toca `Pages/`, `Layouts/`, `Components/`, `tests/Browser/`
+- MySQL service + Playwright chromium auto-install
+- `vendor/bin/pest tests/Browser/ --parallel`
+- Falha PR + comenta com diff de screenshot se regressão >0.1%
+- Override: comentário `/mwart-override <razão>`
 
-**Telas-âncora:** Sells/Index, Cliente/Index, Financeiro, Fiscal (4 telas-lista representativas) + Cliente drawer aberto (PT-02 quando existir)
+**Estado:** INFRA-ONLY mode (`continue-on-error: true`) — workflow valida infra mas tests reais bloqueados por migration order issue UltimatePOS legacy.
 
-**Esforço:** 6-8h · CI infrastructure + baseline screenshots + auto-update workflow
+**Esforço pendente:** 6-8h pra fixar migration order + criar tests Browser dos telas-âncora — escopo SEPARADO em ADR 0108, NÃO faz parte deste roadmap.
 
-**Dependência:** Playwright já instalado? Verificar `package.json`. Se não, scope = adicionar dep + setup primeiro.
+### Item 3.3 (FUTURO) · MCP team-notify endpoint custom (~2h)
 
-**Onde Ondas 3.x:** branches separadas — `feat/webhook-mcp-notif` e `feat/visual-regression-playwright`
+**Quando ativar:** quando time MCP tiver ≥3 actors ativos OU Wagner quiser audit-trail formal de UI canon changes.
+
+**O que faz:** endpoint `POST /api/mcp/ui-canon-notify` em `Modules/TeamMcp/Http/Controllers/Mcp/`. Recebe payload do `ui-canon-notify.yml`, grava em `mcp_audit_log`, gera `mcp_notifications` pros actors com permission. Tool MCP `my-inbox` retorna essas notifs.
+
+**Esforço:** 2h · controller + migration `mcp_notifications` + extensão tool `my-inbox`
+
+**Status:** scope only · não implementado em Onda 3 inicial. Branch sugerida: `feat/mcp-team-notify-endpoint`
+
+### Onde Ondas 3.x: branches separadas
+
+- ✅ `feat/ui-automation-onda-3` — workflow `ui-canon-notify.yml` (entregue PR pendente)
+- ⏳ `feat/visual-regression-real-tests` — quando fixar INFRA-ONLY mode ADR 0108
+- ⏳ `feat/mcp-team-notify-endpoint` — quando time MCP ≥3 actors
 
 ---
 
