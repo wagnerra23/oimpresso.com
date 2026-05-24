@@ -3,10 +3,10 @@ page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.client
 component: resources/js/Pages/Cliente/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-21
-charter_version: 3
+last_validated: 2026-05-24
+charter_version: 4
 parent_module: Cliente / Crm
-related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0179]
+related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0179, 0187]
 supersedes: [Pages/Cliente/Show.charter.md v2]
 tier: A
 mwart_pattern_reuse:
@@ -36,6 +36,7 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - KB-9.75 Slice A atalhos (`⌘K` · `?` · `J/K` · Enter · `/`) — preservar PR #1309
 - "32 clientes encontrados" count inline
 - Inertia::defer em customers + kpis (skill `inertia-defer-default`)
+- **PTDP Onda 1 (v4 · 2026-05-24):** `<BrunaGreeting>` saudação operador mockada + `<SavedViews>` 4 pills fixas (Pra ligar hoje · Sem compra 90d · VIPs · Inadimplentes) + atalho `g + 1..4` · localStorage `oimpresso.cliente.savedViews.active` · critério-âncora "Bruna acha cliente em ≤3 clicks"
 
 ## Goals (Drawer 760px — 8 tabs)
 
