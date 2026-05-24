@@ -637,11 +637,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           {/* ADR 0188 — Slot 2 PT-01 ModuleTopNav (sub-tabs ghost). 4 papéis + "Todos".
               Active state diferenciado por `?type=X` (não path) · render inline pq
               `<TabLink>` legacy strip `?query` (incompatível com ContactController
-              `?type=X` filter). Tier 0 multi-tenant preservado server-side. */}
+              `?type=X` filter). Tier 0 multi-tenant preservado server-side.
+
+              A11y (correção judge LLM PR Onda 3): nav real (diferentes URLs), NÃO tabs
+              in-page. WAI-ARIA correto é `<nav aria-label>` + `aria-current="page"`,
+              NÃO `role="tablist"`/`role="tab"` (esses exigem tabpanel + arrow-key nav
+              que aqui não existem · screen reader anunciaria "tab 1 of 5" misleading).
+              Active state reforça com `font-semibold` (contraste WCAG AA pra
+              low-vision) + `focus-visible:ring` (teclado). */}
           <nav
             className="flex items-center gap-1 mt-5 -mb-px border-b border-border"
             aria-label="Tipo de contato"
-            role="tablist"
           >
             {SLOT2_TABS.map(({ key, label, href, Icon }) => {
               const isActive = activeType === key;
@@ -649,17 +655,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 <a
                   key={key}
                   href={href}
-                  role="tab"
-                  aria-selected={isActive}
                   aria-current={isActive ? 'page' : undefined}
+                  aria-label={`Filtrar por ${label}`}
                   className={
-                    'group inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ' +
+                    'group inline-flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 transition-colors ' +
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 rounded-sm ' +
                     (isActive
-                      ? 'border-primary text-foreground'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border')
+                      ? 'border-primary text-foreground font-semibold'
+                      : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:border-border')
                   }
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4" aria-hidden="true" />
                   {label}
                 </a>
               );
