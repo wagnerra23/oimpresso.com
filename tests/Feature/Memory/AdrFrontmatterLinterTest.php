@@ -56,6 +56,7 @@ const MODULE_VALIDOS    = [
     // Legacy/Wave variants (case-sensitive em ADRs aceitas pre-migração — append-only Tier 0)
     'Sells', 'Autopecas', 'Comissao', 'Pcp', 'Governance', 'ADS',
     'Infra', 'jana', 'sells', 'design-system', 'Sells',
+    'NfeBrasil',    // ADR 0186 mergeada com case canônico do path Modules/NfeBrasil/ — append-only impede fix
 ];
 
 const CAMPOS_OBRIGATORIOS = [
@@ -93,6 +94,10 @@ const ADRS_LEGACY_SKIP = [
     // Modules/Crm é módulo real do projeto; backlog adicionar à enum em PR
     // dedicado quando outras ADRs precisarem). Append-only Tier 0 — não editar.
     '0179-cliente-drawer-760px-substitui-show-fullpage',
+    // Pre-existente em main · frontmatter incompleto (sem slug/number/type/authority/
+    // lifecycle/decided_at). Append-only Tier 0 — não editar. Backlog migração junto
+    // com 0122-0128 + 0172-0173 em Wave 30+.
+    '0170-onda5-simplificada',
 ];
 
 /**
