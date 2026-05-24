@@ -221,3 +221,11 @@ HomeIndex.layout = (page: ReactNode) => (
 );
 
 export default HomeIndex;
+
+// SMOKE TEST do enforcement UI v2 · será revertido após validação CI
+// Esperado: ui-lint.yml falha (Δ R1+R3) · pr-ui-judge.yml comenta com violações
+const SmokeTest = () => (
+  <div className="bg-blue-500 text-red-700 p-4">
+    Teste de regressão · ícone fora canon 🚀 🔥 · cor crua proposital
+  </div>
+);
