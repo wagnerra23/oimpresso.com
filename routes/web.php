@@ -212,8 +212,17 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // INDEX+SHOW canary (read-only). Wrappers thin que reusam ContactController.
     // Multi-tenant Tier 0: type=customer injetado pra Index; guard customer/both
     // pra Show (supplier NUNCA cai aqui). Ver app/Http/Middleware/RedirectLegacyContacts.php.
+    //
+    // ADR 0188 (2026-05-24) — Slot 2 PT-01 multi-type: `/cliente?type=X` aceita
+    // whitelist 5 valores (customer/supplier/employee/representative/all). Default
+    // 'customer' se ausente ou inválido pra retrocompat com bookmarks/links externos.
     Route::get('/cliente', function (ContactController $c) {
-        request()->merge(['type' => 'customer']);
+        $allowed = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        $type = (string) request()->query('type', 'customer');
+        if (! in_array($type, $allowed, true)) {
+            $type = 'customer';
+        }
+        request()->merge(['type' => $type]);
         return $c->index();
     })->name('cliente.index');
 

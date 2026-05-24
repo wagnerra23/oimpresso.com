@@ -53,6 +53,7 @@ const MODULE_VALIDOS    = [
     'autopecas',    // ADR 0125 — Modules/Autopecas feature-wish (Vargas sinal qualificado)
     'comissao',     // ADR 0151 — Modules/Comissao feature-wish (cross-vertical)
     'pcp',          // ADR 0152 — Modules/Pcp feature-wish (apontamento producao)
+    'crm',          // ADR 0188 — Modules/Crm contatos multi-type (acquaintance Wagner 2026-05-24)
     // Legacy/Wave variants (case-sensitive em ADRs aceitas pre-migração — append-only Tier 0)
     'Sells', 'Autopecas', 'Comissao', 'Pcp', 'Governance', 'ADS',
     'Infra', 'jana', 'sells', 'design-system', 'Sells',

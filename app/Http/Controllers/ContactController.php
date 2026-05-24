@@ -229,10 +229,16 @@ class ContactController extends Controller
         }
 
         // W1-B3 MWART branch — Inertia render quando flag cliente_index liga.
-        if ($type === 'customer' && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
+        // ADR 0188 — Slot 2 PT-01 multi-type: aceita 4 papéis + 'all'. Permissões
+        // Spatie permanecem mapeadas pra 'customer.*' (UPOS legacy) por simplicidade
+        // operacional — Wagner expande pra 'supplier.*' etc em ondas futuras se time
+        // pedir granularidade por papel.
+        $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        if (in_array($type, $inertiaTypes, true) && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
             return Inertia::render('Cliente/Index', [
-                'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id)),
-                'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id)),
+                'activeType' => $type,
+                'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type)),
+                'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id, $type)),
                 'permissions' => [
                     'create' => auth()->user()->can('customer.create'),
                     'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
@@ -246,13 +252,55 @@ class ContactController extends Controller
     }
 
     /**
+     * ADR 0188 — Aplica filtro por papel canônico em Builder · prefere flags `is_X`
+     * aditivas (migration 2026_05_24_200000) com fallback `type` enum UPOS legacy
+     * pra ambientes pré-migration ou se a coluna for dropada por rollback.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $q
+     * @return mixed Builder com filter aplicado (encadeável).
+     */
+    private function applyContactTypeFilter($q, string $type)
+    {
+        $flagColumn = [
+            'customer' => 'is_customer',
+            'supplier' => 'is_supplier',
+            'employee' => 'is_employee',
+            'representative' => 'is_representative',
+        ];
+
+        if ($type === 'all') {
+            return $q; // Sem filtro · todos papéis
+        }
+
+        $flag = $flagColumn[$type] ?? null;
+        if ($flag === null) {
+            // Fallback defensivo · tipo inválido cai pra customer (já validado em /cliente route).
+            return $q->where('contacts.type', 'customer');
+        }
+
+        // Prefere flag se a coluna existir (post-migration).
+        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', $flag)) {
+            return $q->where("contacts.{$flag}", 1);
+        }
+
+        // Fallback legacy: type enum UPOS. Mapeia 'customer' ↔ 'both' (UPOS legacy convention).
+        if ($type === 'customer') {
+            return $q->whereIn('contacts.type', ['customer', 'both']);
+        }
+
+        return $q->where('contacts.type', $type);
+    }
+
+    /**
      * W1-B3 — Constrói KPIs da listagem de clientes pra Inertia/React.
      * Multi-tenant: scoped por `business_id` ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
      */
-    private function buildClienteIndexKpis(int $business_id): array
+    private function buildClienteIndexKpis(int $business_id, string $type = 'customer'): array
     {
-        $base = Contact::where('contacts.business_id', $business_id)
-            ->whereIn('type', ['customer', 'both']);
+        $base = Contact::where('contacts.business_id', $business_id);
+        // ADR 0188 — filtra via flag aditiva `is_X` se a coluna existir (migration
+        // rodou). Fallback `type` enum legacy UPOS pra ambientes pré-migration.
+        $base = $this->applyContactTypeFilter($base, $type);
 
         $total = (clone $base)->count();
         $com_os_aberta = (clone $base)
@@ -295,7 +343,7 @@ class ContactController extends Controller
      * W1-B3 — Constrói lista paginada de clientes pra Inertia/React.
      * Multi-tenant scope obrigatório ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
      */
-    private function buildClienteIndexCustomers(int $business_id): array
+    private function buildClienteIndexCustomers(int $business_id, string $type = 'customer'): array
     {
         $perPage = (int) request()->input('per_page', 50);
         $perPage = max(10, min($perPage, 100));
@@ -328,8 +376,10 @@ class ContactController extends Controller
             ]);
         }
 
-        $contacts = Contact::where('contacts.business_id', $business_id)
-            ->whereIn('contacts.type', ['customer', 'both'])
+        // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
+        $contactsQuery = Contact::where('contacts.business_id', $business_id);
+        $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
+        $contacts = $contactsQuery
             ->select($selectCols)
             ->orderBy('contacts.name', 'asc')
             ->paginate($perPage);
