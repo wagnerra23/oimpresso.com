@@ -18,6 +18,8 @@ related: [AUTOMATION-ROADMAP Onda 1.2]
 | **R1** | Cor crua — `#hex` literal (exceto `#fff`/`#000`) ou `bg-COR-NNN` Tailwind literal | regex em arquivos `.tsx`/`.jsx` |
 | **R2** | FontAwesome (lucide-only · [UI-0003](adr/ui/0003-lucide-react-como-unica-iconografia.md)) | grep `@fortawesome`, `FontAwesomeIcon` |
 | **R3** | Emoji em UI de produto · use lucide icon | Unicode ranges `1F300-1F9FF`, `1F600-1F64F`, `1F1E6-1F1FF`, `1FA70-1FAFF` (exclui ✓ ✗ ⚠ text-style) |
+| **R4** | PT-01 Lista · `Pages/<X>/Index.tsx` sem `<PageHeader>` (Slot 1) OU sem `<DataTable>` (Slot 5) shared | regex em imports `@/Components/shared/` + presença de `<PageHeader>` / `<DataTable>` JSX |
+| **R5** | Origens canon · CSS canon (`cockpit.css`, `inertia.css`) tem só 5 origins (OS/CRM/FIN/PNT/MFG) | grep `--origin-<X>-` em arquivos CSS canon |
 
 ## Comandos típicos
 
@@ -58,27 +60,26 @@ Estado inicial registrado em `config/ui-lint-baseline.json`:
 
 > Esse não é um "fail" — é o estado atual aceito. Modo ratchet (`--baseline=...`) **só falha em regressão**. Pra reduzir baseline, refatorar arquivo + rodar `--write-baseline=...` pra registrar novo estado aceito.
 
-## Workflow CI sugerido (Onda 2)
+## Workflow CI (Onda 2.1 · entregue)
 
-```yaml
-# .github/workflows/ui-lint.yml (a criar em Onda 2.1)
-on: pull_request
-jobs:
-  ui-lint:
-    steps:
-      - uses: actions/checkout@v4
-      - run: composer install --no-dev
-      - run: php artisan ui:lint --changed-only --baseline=config/ui-lint-baseline.json --strict
-```
+Workflow ativo em [`.github/workflows/ui-lint.yml`](../../../.github/workflows/ui-lint.yml). Dispara em PRs que tocam `resources/js/`, `resources/css/`, `app/Console/Commands/UiLintCommand.php`, ou `config/ui-lint-baseline.json`. Roda `ui:lint --baseline --strict` e falha PR em regressão. Step "Diagnóstico em caso de falha" mostra próximos passos quando vermelho.
 
-## Workflow pre-commit (Onda 2.2)
+## Pre-commit hook (Onda 2.2 · entregue)
+
+Hook apendado em [`.githooks/pre-commit`](../../../.githooks/pre-commit) (GUARDA Anti-Drift). Roda `ui:lint --changed-only --baseline=config/ui-lint-baseline.json` em arquivos staged. **Modo default = warning** (não bloqueia). Pra bloquear em regressão UI:
 
 ```bash
-# .git/hooks/pre-commit (a criar em Onda 2.2)
-#!/bin/bash
-php artisan ui:lint --changed-only --baseline=config/ui-lint-baseline.json --strict
-exit $?
+# Uma vez no clone:
+git config core.hooksPath .githooks
+
+# Habilitar strict UI lint (opt-in):
+export OIMPRESSO_UI_LINT_STRICT=1
+
+# Daí qualquer git commit roda ui:lint pre-commit
+# Se hits aumentaram vs baseline, commit é BLOQUEADO
 ```
+
+Pular hook em emergência: `git commit --no-verify`.
 
 ## Limites conhecidos (Onda 1.2)
 
