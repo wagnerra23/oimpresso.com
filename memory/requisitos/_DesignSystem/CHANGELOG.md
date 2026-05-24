@@ -1,5 +1,46 @@
 # Changelog · Design System
 
+## [0.6.5] - 2026-05-24 · Onda 3 executada · ui-canon-notify workflow
+
+### Added
+
+- **`.github/workflows/ui-canon-notify.yml`**: Notificação proativa pro time MCP quando UI canon muda em main. Trigger em push tocando `memory/requisitos/_DesignSystem/`, `memory/decisions/`, `Pages/`, `Components/shared/`, `cockpit.css`/`inertia.css`, ou skill `constituicao-ui-aware`. Payload JSON estruturado (commit + stats + refs). Secret opcional `UI_NOTIF_WEBHOOK_URL` (Slack/Discord/MCP/Discussions). Sem secret = no-op warning (não-bloqueante).
+- **Suporte `workflow_dispatch`**: trigger manual com mensagem custom pra teste local.
+
+### Descoberta importante (2026-05-24)
+
+Investigação pré-Onda 3 revelou que **2/3 do escopo original já existem** no projeto:
+
+1. **`SyncMemoryWebhookController`** (ADR 0053) — webhook GitHub que indexa `memory/` no MCP server automaticamente em push pra main. JÁ FAZ a sincronização canon→MCP. Onda 3 inicial planejada criar "webhook MCP-notif" do zero — desnecessário.
+2. **`visual-regression.yml`** (ADR 0108) — Pest 4 Browser + Playwright snapshot pixel-diff já implementado. INFRA-ONLY mode (migration order issue UltimatePOS legacy bloqueia tests reais), mas estrutura está pronta. Não precisa Playwright/Percy paralelo.
+
+**AUTOMATION-ROADMAP atualizado** marcando 3.2 visual regression como "já existe (ADR 0108)" + adicionando Item 3.3 (futuro · MCP team-notify endpoint custom · ~2h quando time ≥3 actors).
+
+### Status enforcement automatizado
+
+- Antes Onda 3: ~75%
+- Pós-Onda 3: ~85% (push notif + visual regression existente referenciada)
+- Próximo (Onda 4 ~1-2d · sob demanda): ~90% (agente CI LLM-as-judge pr-ui-judge)
+
+### Esforço real vs estimado
+
+- Onda 3 estimada: 4-6h
+- Onda 3 real: ~1h (graças à descoberta de infra existente)
+- Lição: investigar **antes** de criar · reduz duplicação
+
+### Não regrediu
+
+- Nenhum código de produção modificado
+- Workflows existentes intactos (visual-regression.yml ADR 0108 · SyncMemoryWebhookController ADR 0053)
+- ADRs UI-0001..UI-0014 + ADR 0187 permanecem
+
+### Próximo passo Wagner (ativar notif)
+
+1. Decidir endpoint webhook: Slack incoming webhook · Discord · ou criar MCP team-notify (Item 3.3 futuro)
+2. Adicionar secret `UI_NOTIF_WEBHOOK_URL` em GitHub Repo Settings → Secrets → Actions
+3. Validar workflow via `workflow_dispatch` manual antes do primeiro push real
+4. Time MCP começa a receber notif push (não-pull) de UI canon changes
+
 ## [0.6.4] - 2026-05-24 · Onda 2 executada · CI gate + pre-commit hook + R4/R5
 
 ### Added
