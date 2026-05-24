@@ -235,12 +235,18 @@ class UiJudgePrCommand extends Command
 
     private function runAgent(array $prData, string $diff): ?string
     {
-        // Pre-flight: validar API key antes de fazer HTTP call inútil
-        $apiKey = (string) (config('ai.providers.anthropic.key') ?? env('ANTHROPIC_API_KEY') ?? '');
-        if ($apiKey === '') {
-            $this->error('ANTHROPIC_API_KEY ausente em .env (ou config/ai.php)');
-            $this->line('  Adicionar em .env: ANTHROPIC_API_KEY=sk-ant-...');
-            $this->line('  Pegar key em: https://console.anthropic.com/settings/keys');
+        // Pre-flight: validar API key do provider configurado no PrUiJudgeAgent.
+        // Default PrUiJudgeAgent = OpenAI gpt-4o-mini (consistente com BriefDiarioAgent
+        // etc). Wagner pode trocar pra Anthropic editando o @Provider/@Model do agent.
+        $openaiKey = (string) (config('ai.providers.openai.key') ?? env('OPENAI_API_KEY') ?? '');
+        $anthropicKey = (string) (config('ai.providers.anthropic.key') ?? env('ANTHROPIC_API_KEY') ?? '');
+
+        if ($openaiKey === '' && $anthropicKey === '') {
+            $this->error('Nenhuma API key configurada (OPENAI_API_KEY nem ANTHROPIC_API_KEY)');
+            $this->line('  Adicionar em .env: OPENAI_API_KEY=sk-... (default do PrUiJudgeAgent)');
+            $this->line('  OU: ANTHROPIC_API_KEY=sk-ant-... (upgrade pra Claude Sonnet 4.5)');
+            $this->line('  Pegar key em: https://platform.openai.com/api-keys (OpenAI)');
+            $this->line('                https://console.anthropic.com/settings/keys (Anthropic)');
             $this->line('  Depois: php artisan config:clear');
 
             return null;

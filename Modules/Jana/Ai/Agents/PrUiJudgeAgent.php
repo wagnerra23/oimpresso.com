@@ -14,8 +14,9 @@ use Stringable;
 /**
  * PrUiJudgeAgent — Onda 4.1 do AUTOMATION-ROADMAP.
  *
- * Agente LLM (Anthropic Claude Sonnet 4.5) que avalia PRs Inertia/React
- * contra a Constituição UI v2 (ADR UI-0013). Carrega no system prompt:
+ * Agente LLM (OpenAI gpt-4o-mini · consistente com BriefDiarioAgent etc) que
+ * avalia PRs Inertia/React contra a Constituição UI v2 (ADR UI-0013). Carrega
+ * no system prompt:
  *  - Hierarquia 4 camadas (Fundações → Shell → PT → Módulo)
  *  - Regra-mestre pedido vago
  *  - PT-01 Lista (6 slots canônicos)
@@ -36,16 +37,21 @@ use Stringable;
  * "copy não-PT-BR em string template", "PT-01 violado em essência mesmo
  * importando PageHeader (uso fora do slot 1)".
  *
- * Custo estimado por PR: ~10k tokens input (Constituição + diff médio) +
- * ~1k tokens output (review) = $0.034/PR (Claude Sonnet 4.5 @ $3/M input
- * + $15/M output). Prompt caching reduz pra ~$0.005/PR após primeira run.
+ * Custo estimado por PR: ~10k tokens input + ~1k tokens output = $0.002/PR
+ * (gpt-4o-mini @ $0.15/M input + $0.60/M output).
+ *
+ * UPGRADE PRA ANTHROPIC: trocar `#[Provider('openai')]` por
+ * `#[Provider('anthropic')]` + `#[Model('claude-sonnet-4-5-20250929')]` se
+ * `ANTHROPIC_API_KEY` for configurada (config/ai.php já provider 'anthropic'
+ * registrado). Sonnet 4.5 dá review de qualidade superior · custo ~15x maior
+ * ($0.034/PR) mas com prompt caching cai pra ~$0.005/PR.
  *
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4.1)
  * @see memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  */
-#[Provider('anthropic')]
-#[Model('claude-sonnet-4-5-20250929')]
+#[Provider('openai')]
+#[Model('gpt-4o-mini')]
 #[MaxSteps(3)]
 class PrUiJudgeAgent implements Agent
 {
