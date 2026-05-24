@@ -47,6 +47,7 @@ export default function FinanceiroPrimaryButton({
       className={`os-btn primary ${className}`.trim()}
       style={{
         backgroundColor: `oklch(0.55 0.15 ${hue})`,
+        borderColor: `oklch(0.45 0.15 ${hue})`,
         color: 'oklch(0.99 0 0)',
         ...style,
       }}
