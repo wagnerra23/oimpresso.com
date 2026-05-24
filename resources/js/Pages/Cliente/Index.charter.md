@@ -4,7 +4,7 @@ component: resources/js/Pages/Cliente/Index.tsx
 owner: wagner
 status: live
 last_validated: 2026-05-24
-charter_version: 5
+charter_version: 6
 parent_module: Cliente / Crm
 related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0179, 0187]
 supersedes: [Pages/Cliente/Show.charter.md v2]
@@ -36,8 +36,8 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - KB-9.75 Slice A atalhos (`⌘K` · `?` · `J/K` · Enter · `/`) — preservar PR #1309
 - "32 clientes encontrados" count inline
 - Inertia::defer em customers + kpis (skill `inertia-defer-default`)
-- **PTDP Onda 1 (v4 · 2026-05-24):** `<BrunaGreeting>` saudação operador mockada + `<SavedViews>` 4 pills fixas (Pra ligar hoje · Sem compra 90d · VIPs · Inadimplentes) + atalho `g + 1..4` · localStorage `oimpresso.cliente.savedViews.active` · critério-âncora "Bruna acha cliente em ≤3 clicks"
-- **PTDP Onda 2 (v5 · 2026-05-24):** `<KpiStripClickable>` 5 cards-filtro (Clientes ativos · VIPs · Com saldo · Sem compra 90d · Novos este mês) substitui 4 KpiCard estáticos Wave G · clique aplica filtro substitutivo · toggle 2x desativa · mutuamente exclusivo com saved views · counts client-side pros estimados (vips/sem90/novos · Onda 3 plug backend dedicado)
+- ~~**PTDP Onda 1 (v4 · 2026-05-24):**~~ ❌ **REVOGADA (v6 · 2026-05-24)** · Wagner reprovou BrunaGreeting + SavedViews em validação visual produção · removidos `Components/clientes/BrunaGreeting.tsx` e `SavedViews.tsx` · charter mantém histórico (append-only)
+- **PTDP Onda 2 (v5 · 2026-05-24):** `<KpiStripClickable>` 5 cards-filtro (Clientes ativos · VIPs · Com saldo · Sem compra 90d · Novos este mês) substitui 4 KpiCard estáticos Wave G · clique aplica filtro substitutivo · toggle 2x desativa · counts client-side pros estimados (vips/sem90/novos · Onda 3 plug backend dedicado). **v6 nota:** mutex com SavedViews removido (não há mais SavedViews)
 
 ## Goals (Drawer 760px — 8 tabs)
 
