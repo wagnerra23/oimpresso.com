@@ -103,3 +103,68 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - Backend: `app/Http/Controllers/ContactController.php` + `Modules/Crm/Http/Controllers/ClienteLookupController.php` (NOVO) + `ClienteIaController.php` (NOVO) + `ClienteAuditoriaController.php` (NOVO)
 - Wave Final 2026-05-21: PRs #1298-1307 (paridade Blade — preservados via OssTab wrapper)
 - KB-9.75 Slice A: PR #1309 (⌘K + cheat-sheet + J/K nav — preservado)
+
+---
+
+## v7 · 2026-05-24 · Onda 3 PTDP — Slot 2 PT-01 multi-type contatos (append-only)
+
+**Trigger:** Wagner 2026-05-24 ROTA LIVRE biz=4 validação visual `/cliente`:
+> "no Delphi (WR Comercial legacy) tenho cadastro de tipo de contato, mesmo contato pode ser classificado como cliente, fornecedor, funcionário — evita ter o mesmo cadastro em tabelas separadas"
+
+3 caminhos arquiteturais (UPOS single-type vs Delphi multi-flag) analisados. Wagner aprovou **Opção B** ("pode fazer") — flags aditivas backward-compat.
+
+### Goals novos (append-only · v6 preservados)
+
+- **Slot 2 PT-01 ModuleTopNav (sub-tabs ghost)** entre PageHeader e KpiStrip — 5 tabs:
+  - Clientes (`?type=customer`) · ícone Users
+  - Fornecedores (`?type=supplier`) · ícone Truck
+  - Funcionários (`?type=employee`) · ícone Briefcase
+  - Representantes (`?type=representative`) · ícone UserCheck
+  - Todos (`?type=all`) · ícone List (leitura agregada · sem CTA "Novo")
+- **Title H1 + subtítulo + CTA "Novo X"** mudam por papel ativo (`ROLE_TITLE` map)
+- **Backend filter** `is_X=1` (com fallback `type='X'` durante migration roll-out)
+- **Backward-compat UPOS** total — `contacts.type` enum permanece authoritative pra Sells/Compras/Folha legacy
+- **Pre-fill CTA "Novo X"** abre `/contacts/create?type=customer|supplier|employee|representative` (rota UPOS Blade legacy preservada)
+
+### Schema novo (ADR 0188)
+
+Migration aditiva `2026_05_24_200000_add_role_flags_to_contacts.php`:
+
+```sql
+ALTER TABLE contacts ADD is_customer       TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE contacts ADD is_supplier       TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE contacts ADD is_employee       TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE contacts ADD is_representative TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Backfill papel principal
+UPDATE contacts SET is_customer=1 WHERE type='customer'; -- (idem outros)
+
+-- Índices compostos Tier 0 (ADR 0093 IRREVOGÁVEL)
+CREATE INDEX idx_contacts_biz_customer ON contacts(business_id, is_customer);
+-- (idem supplier/employee/representative)
+```
+
+### Invariantes (Tier 0 IRREVOGÁVEL — ADR 0188)
+
+1. `type` enum **permanece** (UPOS legacy 200+ telas Blade)
+2. Backfill **one-way** `type=X` → `is_X=1` (idempotente)
+3. Flags **aditivas, nunca exclusivas** — Wagner Rocha cliente+representante = `is_customer=1 AND is_representative=1` (mesma row)
+4. Índices compostos `(business_id, is_X)` — multi-tenant Tier 0 IRREVOGÁVEL [ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+5. Slot 2 `?type=all` é **leitura agregada** — CTA "Novo" não renderiza (Wagner escolhe papel explícito)
+
+### Non-Goals v7
+
+- ❌ **Pivot `contact_types` table** (Opção C rejeitada · ROI baixo em PME 100 cadastros/mês)
+- ❌ **Drawer 760 seção "Papéis" com 4 checkboxes** — Onda 4 futura (scope-only · ADR 0188 §Plano-8)
+- ❌ **Merge automático de cadastros duplicados** (Wagner Rocha id=42 cliente + id=99 repr) — script manual futuro
+- ❌ **Reescrita queries UPOS legacy** (Sells/Compras/Folha continuam `WHERE type='X'`)
+
+### Refs v7
+
+- [ADR 0188 · Contatos multi-type · flags aditivas](../../../memory/decisions/0188-contacts-multi-type-flag-aditiva.md) (canonical, aceita Wagner 2026-05-24)
+- [Migration `2026_05_24_200000_add_role_flags_to_contacts.php`](../../../database/migrations/2026_05_24_200000_add_role_flags_to_contacts.php)
+- [ADR UI-0013 · Constituição UI v2 · 4 camadas](../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) (Slot 2 PT-01 canônico)
+- [PT-01 · Lista canônica](../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)
+- [ADR 0040 · ModuleTopNav sub-tabs ghost](../../../memory/decisions/0040-moduletopnav-subtabs-ghost.md)
+- Delphi WR Comercial · flags bool por papel (pattern legacy 15 anos)
+- HANDOFF_CLIENTES.md (Cowork chat1 + validação produção Wagner 2026-05-24)

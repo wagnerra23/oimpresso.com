@@ -14,6 +14,7 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  Briefcase,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -27,6 +28,7 @@ import {
   Edit,
   Eye,
   Keyboard,
+  List,
   Loader2,
   MoreVertical,
   Phone,
@@ -34,7 +36,9 @@ import {
   Search,
   Star,
   Trash2,
+  Truck,
   Upload,
+  UserCheck,
   Users,
   X,
 } from 'lucide-react';
@@ -148,7 +152,42 @@ interface ListMeta {
   dir: SortDir;
 }
 
+/** ADR 0188 — Slot 2 PT-01 multi-type. 5 valores aceitos. Default `'customer'`. */
+export type ContactRoleType = 'customer' | 'supplier' | 'employee' | 'representative' | 'all';
+
+/**
+ * ADR 0188 — Slot 2 PT-01 ModuleTopNav (sub-tabs ghost).
+ *
+ * Title H1 + label "Novo X" + count noun mudam por papel. `all` é leitura agregada
+ * (sem CTA "Novo") · papéis específicos têm CTA pra criar com pre-fill correto.
+ *
+ * Pegadinha: `?type=X` no `<a href>` casa com `Route::get('/cliente')` que merge
+ * em `request()->query` antes de chamar `ContactController::index()` (routes/web.php).
+ */
+const SLOT2_TABS: Array<{
+  key: ContactRoleType;
+  label: string;
+  href: string;
+  Icon: typeof Users;
+}> = [
+  { key: 'customer',       label: 'Clientes',       href: '/cliente?type=customer',       Icon: Users },
+  { key: 'supplier',       label: 'Fornecedores',   href: '/cliente?type=supplier',       Icon: Truck },
+  { key: 'employee',       label: 'Funcionários',   href: '/cliente?type=employee',       Icon: Briefcase },
+  { key: 'representative', label: 'Representantes', href: '/cliente?type=representative', Icon: UserCheck },
+  { key: 'all',            label: 'Todos',          href: '/cliente?type=all',            Icon: List },
+];
+
+const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; collective: string }> = {
+  customer:       { title: 'Clientes',       singular: 'cliente',       collective: 'cadastrados' },
+  supplier:       { title: 'Fornecedores',   singular: 'fornecedor',    collective: 'cadastrados' },
+  employee:       { title: 'Funcionários',   singular: 'funcionário',   collective: 'cadastrados' },
+  representative: { title: 'Representantes', singular: 'representante', collective: 'cadastrados' },
+  all:            { title: 'Contatos',       singular: 'contato',       collective: 'cadastros'   },
+};
+
 export interface ClienteIndexPageProps {
+  /** ADR 0188 — papel ativo (vindo do `?type=X` URL · backend valida whitelist). */
+  activeType?: ContactRoleType;
   kpis: ClienteKpis;
   customers: {
     data: ClienteRow[];
@@ -362,6 +401,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const rows = props.customers?.data ?? [];
   const meta = props.customers?.meta ?? null;
   const kpis = props.kpis;
+  // ADR 0188 — Slot 2 PT-01 multi-type. Backend valida whitelist + default 'customer'.
+  const activeType: ContactRoleType = props.activeType ?? 'customer';
 
   const filteredRows = useMemo(() => {
     let r = rows;
@@ -543,10 +584,13 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">
           <div className="flex items-start gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Clientes</h1>
-              {/* Wave G — subtítulo verbose substituído por contador inline (paridade Cowork). */}
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {ROLE_TITLE[activeType].title}
+              </h1>
+              {/* Wave G — subtítulo verbose substituído por contador inline (paridade Cowork).
+                  ADR 0188 — singular/collective mudam por papel. */}
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed tabular-nums">
-                {(kpis?.total ?? 0).toLocaleString('pt-BR')} cadastrados
+                {(kpis?.total ?? 0).toLocaleString('pt-BR')} {ROLE_TITLE[activeType].collective}
                 {' · '}
                 {(kpis?.com_os_aberta ?? 0).toLocaleString('pt-BR')} ativos
                 {(kpis?.com_atraso ?? 0) > 0 && (
@@ -571,22 +615,56 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               {/* Wave G — Exportar CSV (server-side stream, BOM UTF-8 Excel-BR). */}
               {props.permissions.view && (
                 <Button asChild variant="outline">
-                  <a href="/cliente/export" title="Baixar CSV de clientes (UTF-8)">
+                  <a href="/cliente/export" title="Baixar CSV de contatos (UTF-8)">
                     <Download className="mr-1.5 h-4 w-4" />
                     Exportar
                   </a>
                 </Button>
               )}
-              {props.permissions.create && (
+              {/* ADR 0188 — `all` é leitura agregada (sem CTA "Novo" — Wagner escolhe papel
+                  explicitamente). Demais papéis abrem `/contacts/create?type=X` UPOS legacy. */}
+              {props.permissions.create && activeType !== 'all' && (
                 <Button asChild>
-                  <a href="/contacts/create?type=customer">
+                  <a href={`/contacts/create?type=${activeType}`}>
                     <Plus className="mr-1.5 h-4 w-4" />
-                    Novo cliente
+                    Novo {ROLE_TITLE[activeType].singular}
                   </a>
                 </Button>
               )}
             </div>
           </div>
+
+          {/* ADR 0188 — Slot 2 PT-01 ModuleTopNav (sub-tabs ghost). 4 papéis + "Todos".
+              Active state diferenciado por `?type=X` (não path) · render inline pq
+              `<TabLink>` legacy strip `?query` (incompatível com ContactController
+              `?type=X` filter). Tier 0 multi-tenant preservado server-side. */}
+          <nav
+            className="flex items-center gap-1 mt-5 -mb-px border-b border-border"
+            aria-label="Tipo de contato"
+            role="tablist"
+          >
+            {SLOT2_TABS.map(({ key, label, href, Icon }) => {
+              const isActive = activeType === key;
+              return (
+                <a
+                  key={key}
+                  href={href}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={
+                    'group inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ' +
+                    (isActive
+                      ? 'border-primary text-foreground'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border')
+                  }
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </a>
+              );
+            })}
+          </nav>
 
           {/* PTDP Onda 2 — KPI strip clicável (5 cards-filtro). Substitui os 4 KpiCard
               estáticos do Wave G. Counts: Ativos + ComSaldo usam `kpis` real do backend;
