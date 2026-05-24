@@ -172,11 +172,11 @@ const SLOT2_TABS: Array<{
   href: string;
   Icon: typeof Users;
 }> = [
+  { key: 'all',            label: 'Todos',          href: '/cliente?type=all',            Icon: List },
   { key: 'customer',       label: 'Clientes',       href: '/cliente?type=customer',       Icon: Users },
   { key: 'supplier',       label: 'Fornecedores',   href: '/cliente?type=supplier',       Icon: Truck },
   { key: 'employee',       label: 'Funcionários',   href: '/cliente?type=employee',       Icon: Briefcase },
   { key: 'representative', label: 'Representantes', href: '/cliente?type=representative', Icon: UserCheck },
-  { key: 'all',            label: 'Todos',          href: '/cliente?type=all',            Icon: List },
 ];
 
 const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; collective: string }> = {
@@ -584,7 +584,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
       <div className="border-b border-border bg-background">
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">
-          <div className="flex items-start gap-4">
+          <div className="flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                 {ROLE_TITLE[activeType].title}
@@ -605,6 +605,38 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 )}
               </p>
             </div>
+            {/* PT-01 Slot 2 inline — Wagner 2026-05-24 sessao header descricao:
+                tabs ficam na MESMA LINHA do titulo (igual /financeiro/cobranca canon
+                PageHeader 3 zonas L/C/R) em vez de quebrar pra segunda linha.
+                Ordem reordenada: [Todos, Clientes, Fornecedores, Funcionarios,
+                Representantes] — Todos primeiro como ponto de entrada agregado.
+                A11y: nav real (URLs diferentes), `aria-current="page"`. */}
+            <nav
+              className="hidden md:flex items-center gap-1 shrink-0 self-stretch"
+              aria-label="Tipo de contato"
+            >
+              {SLOT2_TABS.map(({ key, label, href, Icon }) => {
+                const isActive = activeType === key;
+                return (
+                  <a
+                    key={key}
+                    href={href}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={`Filtrar por ${label}`}
+                    className={
+                      'group inline-flex items-center gap-1.5 px-3 h-9 text-sm border-b-2 transition-colors ' +
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 rounded-sm ' +
+                      (isActive
+                        ? 'border-primary text-foreground font-semibold'
+                        : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:border-border')
+                    }
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {label}
+                  </a>
+                );
+              })}
+            </nav>
             <div className="flex-shrink-0 flex items-center gap-2">
               {/* Wagner 2026-05-24 (sessão pós-merge ADR 0188): Importar/Exportar movidos
                   pra overflow menu (MoreVertical · 3 pontinhos). Libera espaço pra
@@ -679,20 +711,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             </div>
           </div>
 
-          {/* ADR 0188 — Slot 2 PT-01 ModuleTopNav (sub-tabs ghost). 4 papéis + "Todos".
-              Active state diferenciado por `?type=X` (não path) · render inline pq
-              `<TabLink>` legacy strip `?query` (incompatível com ContactController
-              `?type=X` filter). Tier 0 multi-tenant preservado server-side.
-
-              A11y (correção judge LLM PR Onda 3): nav real (diferentes URLs), NÃO tabs
-              in-page. WAI-ARIA correto é `<nav aria-label>` + `aria-current="page"`,
-              NÃO `role="tablist"`/`role="tab"` (esses exigem tabpanel + arrow-key nav
-              que aqui não existem · screen reader anunciaria "tab 1 of 5" misleading).
-              Active state reforça com `font-semibold` (contraste WCAG AA pra
-              low-vision) + `focus-visible:ring` (teclado). */}
+          {/* Mobile fallback: tabs como segunda linha quando viewport <md
+              (no md+ ficam inline na Zona C do header acima). */}
           <nav
-            className="flex items-center gap-1 mt-5 -mb-px border-b border-border"
-            aria-label="Tipo de contato"
+            className="md:hidden flex items-center gap-1 mt-4 -mb-px border-b border-border overflow-x-auto"
+            aria-label="Tipo de contato (mobile)"
           >
             {SLOT2_TABS.map(({ key, label, href, Icon }) => {
               const isActive = activeType === key;
@@ -703,7 +726,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={`Filtrar por ${label}`}
                   className={
-                    'group inline-flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 transition-colors ' +
+                    'group inline-flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 transition-colors shrink-0 ' +
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 rounded-sm ' +
                     (isActive
                       ? 'border-primary text-foreground font-semibold'
