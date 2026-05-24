@@ -81,6 +81,44 @@ export OIMPRESSO_UI_LINT_STRICT=1
 
 Pular hook em emergência: `git commit --no-verify`.
 
+## Smoke tests validados (2026-05-24)
+
+### Smoke 1 · `ui:lint` baseline ratchet (Onda 1/2)
+
+**Status:** ✅ **CONFIÁVEL**
+
+Validado por regressão sintética:
+1. Adicionado `bg-blue-500 text-red-700` em `Pages/Home/Index.tsx`
+2. `php artisan ui:lint --baseline=config/ui-lint-baseline.json --strict`
+3. Output: `Baseline 7307 · Atual 7309 · Delta +2 · REGRESSÃO · exit 1` ✓
+4. Reverter regressão → Delta +0 · exit 0 ✓
+
+**CI gate L3 vai bloquear** PR de regressão sintática de verdade.
+
+### Smoke 2 · `ui:judge-pr` LLM real (Onda 4)
+
+**Status:** ⚠️ **SCAFFOLD VALIDADO · falta API key no .env**
+
+Tentativa real em PR #1437 (1 arquivo .tsx, 2KB diff):
+1. `php artisan ui:judge-pr 1437`
+2. Command rodou ✓ · `gh pr view` ✓ · `gh pr diff` ✓ · diff filtrado ✓
+3. Falhou em `agent->prompt()` com `HTTP 401: x-api-key header is required`
+4. Diagnóstico: `.env` tem `ANTHROPIC_API_KEY=` (declarada **sem valor**)
+5. Aprimoramento aplicado: command agora detecta key vazia ANTES de fazer HTTP request inútil + mensagem com instruções claras
+
+**Pra ativar:**
+```bash
+# 1. Pegar key em https://console.anthropic.com/settings/keys
+# 2. Editar .env:
+ANTHROPIC_API_KEY=sk-ant-api03-...
+# 3. Limpar cache:
+php artisan config:clear
+# 4. Retestar:
+php artisan ui:judge-pr 1437
+```
+
+Estimativa de custo na primeira run real: ~$0.03 (PR pequeno).
+
 ## Limites conhecidos (Onda 1.2)
 
 - ❌ Não detecta `<style>` inline com cor crua (raro em React, mas existe)
