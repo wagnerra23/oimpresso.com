@@ -95,29 +95,27 @@ Validado por regressão sintética:
 
 **CI gate L3 vai bloquear** PR de regressão sintática de verdade.
 
-### Smoke 2 · `ui:judge-pr` LLM real (Onda 4)
+### Smoke 2 · `ui:judge-pr` LLM real (Onda 4) — **FUNCIONOU**
 
-**Status:** ⚠️ **SCAFFOLD VALIDADO · falta API key no .env**
+**Status:** ✅ **CONFIRMADO FUNCIONAL** com OpenAI gpt-4o-mini
 
-Tentativa real em PR #1437 (1 arquivo .tsx, 2KB diff):
-1. `php artisan ui:judge-pr 1437`
-2. Command rodou ✓ · `gh pr view` ✓ · `gh pr diff` ✓ · diff filtrado ✓
-3. Falhou em `agent->prompt()` com `HTTP 401: x-api-key header is required`
-4. Diagnóstico: `.env` tem `ANTHROPIC_API_KEY=` (declarada **sem valor**)
-5. Aprimoramento aplicado: command agora detecta key vazia ANTES de fazer HTTP request inútil + mensagem com instruções claras
+PR #1437 (1 arquivo .tsx, 2043 bytes diff):
+1. `php artisan ui:judge-pr 1437 --save-to=storage/smoke-judge-1437-openai.json`
+2. **Score: 30/100 · Verdict: request_changes**
+3. 9 dimensões avaliadas
+4. **1 violação real detectada:** emoji 🔥 em `SheetNovoGateway.tsx:203`
+   - Linha real era 207 (±4 imprecisão · arquivo correto)
+   - Cross-confirmado por `ui:lint --rule=R3` (mesmo hit em linha 207)
+   - **LLM adicionou contexto semântico:** sugestão substituir por lucide icon + revisar copy
+5. 2 sugestões + 2 lembretes
+6. JSON output em `storage/smoke-judge-1437-openai.json` (gitignored)
+7. Custo real: ~$0.001-0.002 (gpt-4o-mini)
 
-**Pra ativar:**
-```bash
-# 1. Pegar key em https://console.anthropic.com/settings/keys
-# 2. Editar .env:
-ANTHROPIC_API_KEY=sk-ant-api03-...
-# 3. Limpar cache:
-php artisan config:clear
-# 4. Retestar:
-php artisan ui:judge-pr 1437
-```
+**Path evolutivo da configuração:**
+- ✅ **OpenAI gpt-4o-mini** (atual default) — `OPENAI_API_KEY` em `.env` (já estava)
+- ⚠️ **Anthropic Claude Sonnet 4.5** (upgrade opcional) — adicionar `ANTHROPIC_API_KEY` em `.env` + editar `@Provider('anthropic') @Model('claude-sonnet-4-5-20250929')` em `PrUiJudgeAgent.php`. Custo ~15x maior ($0.034/PR vs $0.002) mas qualidade superior em raciocínio multi-passos.
 
-Estimativa de custo na primeira run real: ~$0.03 (PR pequeno).
+**Discrepância LLM vs lint:** LLM pega o mesmo emoji mas adiciona "sugestão de refactor". Onda 4 é **complementar** ao L3 sintático, não substituto. Pra emoji simples, `ui:lint` resolve. Pra "drawer modal sobre modal" ou "layout PT-01 quebrado em essência", só LLM.
 
 ## Limites conhecidos (Onda 1.2)
 

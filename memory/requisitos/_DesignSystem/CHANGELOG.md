@@ -1,5 +1,47 @@
 # Changelog · Design System
 
+## [0.6.8] - 2026-05-24 · Smoke real OpenAI · LLM judge funciona + pegou drift real
+
+### Smoke real Onda 4 — CONFIRMADO FUNCIONAL
+
+PrUiJudgeAgent trocado de Anthropic Sonnet 4.5 → OpenAI gpt-4o-mini (consistência com BriefDiarioAgent etc · `OPENAI_API_KEY` já configurada em `.env` local + Hostinger). Smoke real em PR #1437:
+
+- ✅ Command rodou end-to-end (gh CLI · agent · JSON parse · save · render)
+- ✅ Output JSON estrito (9 dimensões + verdict + violações + sugestões)
+- ✅ **Detectou drift real:** emoji 🔥 em `SheetNovoGateway.tsx:203` introduzido pelo PR #1437 que já mergeou em main
+- ✅ Cross-confirmado por `ui:lint --rule=R3` (linha 207 · ±4 imprecisão LLM)
+- Score 30/100 · Verdict: request_changes
+- Custo real: ~$0.001-0.002 (gpt-4o-mini)
+- JSON salvo em `storage/smoke-judge-1437-openai.json` (gitignored)
+
+### Insight do smoke real
+
+LLM judge **complementa** L3 sintático, não substitui:
+- `ui:lint` R3 pegou o emoji direto · 0 falso positivo
+- LLM judge pegou o mesmo emoji + adicionou **sugestão semântica**: "substituir por lucide icon + revisar padrão de copy"
+- Pra detecção sintática (cor crua, FA, emoji): `ui:lint` resolve gratuitamente
+- Pra detecção semântica ("drawer modal sobre modal", "PT-01 quebrado em essência"): só LLM
+
+### Changed
+
+- **`Modules/Jana/Ai/Agents/PrUiJudgeAgent.php`**: provider `anthropic` → `openai` · model `claude-sonnet-4-5-20250929` → `gpt-4o-mini`. Documenta path de upgrade pra Anthropic (editar 2 linhas + adicionar `ANTHROPIC_API_KEY`).
+- **`app/Console/Commands/UiJudgePrCommand.php`**: pre-flight check aceita OpenAI OU Anthropic key · diagnóstico ajustado.
+- **[UI-LINT-USAGE.md](UI-LINT-USAGE.md)** seção "Smoke 2" atualizada com resultado real funcional.
+
+### Custos reais
+
+| Provider | Modelo | Custo médio/PR |
+|---|---|---|
+| **OpenAI (default atual)** | gpt-4o-mini | ~$0.002 |
+| Anthropic (upgrade futuro) | claude-sonnet-4-5 | ~$0.034 |
+| Anthropic + cache | claude-sonnet-4-5 cached | ~$0.005 |
+
+### Não regrediu
+
+- Nenhum código `resources/js/*` ou tokens CSS modificado
+- ADRs UI-0001..UI-0014 + 0187 permanecem
+- L1-L3 + L5-L7 enforcement intactos
+
 ## [0.6.7] - 2026-05-24 · Smoke real Onda 1 + Onda 4 + ONBOARDING-TIME-UI
 
 ### Smoke testing validado
