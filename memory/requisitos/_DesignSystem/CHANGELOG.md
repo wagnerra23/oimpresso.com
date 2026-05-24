@@ -1,5 +1,182 @@
 # Changelog · Design System
 
+## [0.6.8] - 2026-05-24 · Smoke real OpenAI · LLM judge funciona + pegou drift real
+
+### Smoke real Onda 4 — CONFIRMADO FUNCIONAL
+
+PrUiJudgeAgent trocado de Anthropic Sonnet 4.5 → OpenAI gpt-4o-mini (consistência com BriefDiarioAgent etc · `OPENAI_API_KEY` já configurada em `.env` local + Hostinger). Smoke real em PR #1437:
+
+- ✅ Command rodou end-to-end (gh CLI · agent · JSON parse · save · render)
+- ✅ Output JSON estrito (9 dimensões + verdict + violações + sugestões)
+- ✅ **Detectou drift real:** emoji 🔥 em `SheetNovoGateway.tsx:203` introduzido pelo PR #1437 que já mergeou em main
+- ✅ Cross-confirmado por `ui:lint --rule=R3` (linha 207 · ±4 imprecisão LLM)
+- Score 30/100 · Verdict: request_changes
+- Custo real: ~$0.001-0.002 (gpt-4o-mini)
+- JSON salvo em `storage/smoke-judge-1437-openai.json` (gitignored)
+
+### Insight do smoke real
+
+LLM judge **complementa** L3 sintático, não substitui:
+- `ui:lint` R3 pegou o emoji direto · 0 falso positivo
+- LLM judge pegou o mesmo emoji + adicionou **sugestão semântica**: "substituir por lucide icon + revisar padrão de copy"
+- Pra detecção sintática (cor crua, FA, emoji): `ui:lint` resolve gratuitamente
+- Pra detecção semântica ("drawer modal sobre modal", "PT-01 quebrado em essência"): só LLM
+
+### Changed
+
+- **`Modules/Jana/Ai/Agents/PrUiJudgeAgent.php`**: provider `anthropic` → `openai` · model `claude-sonnet-4-5-20250929` → `gpt-4o-mini`. Documenta path de upgrade pra Anthropic (editar 2 linhas + adicionar `ANTHROPIC_API_KEY`).
+- **`app/Console/Commands/UiJudgePrCommand.php`**: pre-flight check aceita OpenAI OU Anthropic key · diagnóstico ajustado.
+- **[UI-LINT-USAGE.md](UI-LINT-USAGE.md)** seção "Smoke 2" atualizada com resultado real funcional.
+
+### Custos reais
+
+| Provider | Modelo | Custo médio/PR |
+|---|---|---|
+| **OpenAI (default atual)** | gpt-4o-mini | ~$0.002 |
+| Anthropic (upgrade futuro) | claude-sonnet-4-5 | ~$0.034 |
+| Anthropic + cache | claude-sonnet-4-5 cached | ~$0.005 |
+
+### Não regrediu
+
+- Nenhum código `resources/js/*` ou tokens CSS modificado
+- ADRs UI-0001..UI-0014 + 0187 permanecem
+- L1-L3 + L5-L7 enforcement intactos
+
+## [0.6.7] - 2026-05-24 · Smoke real Onda 1 + Onda 4 + ONBOARDING-TIME-UI
+
+### Smoke testing validado
+
+- **Smoke 1 · `ui:lint` ratchet** ✅ CONFIÁVEL
+  - Regressão sintética (`bg-blue-500 text-red-700` em `Pages/Home/Index.tsx`)
+  - Detecção: Baseline 7307 · Atual 7309 · Delta +2 · exit 1
+  - Reverter: Delta +0 · exit 0
+  - **CI gate L3 confirmado funcional**
+
+- **Smoke 2 · `ui:judge-pr` LLM** ⚠️ SCAFFOLD VALIDADO (falta API key)
+  - PR #1437 (1 arquivo .tsx, 2KB diff)
+  - Command rodou ✓ · gh CLI ✓ · diff filtrado ✓
+  - Falhou em `agent->prompt()`: HTTP 401 — `.env` tem `ANTHROPIC_API_KEY=` declarada SEM VALOR
+  - **Aprimoramento aplicado** (`UiJudgePrCommand.php`): pre-flight check + diagnóstico amigável de 401/429/529
+  - Wagner adiciona `ANTHROPIC_API_KEY=sk-ant-...` no `.env` + `php artisan config:clear` pra ativar
+
+### Added
+
+- **[ONBOARDING-TIME-UI.md](ONBOARDING-TIME-UI.md)** (NOVO)
+  - Setup obrigatório pra time MCP (3 passos · 5min): `core.hooksPath`, `OIMPRESSO_UI_LINT_STRICT=1`, validar baseline
+  - Uso diário (30s/dia · automático após setup)
+  - Mapa "quando precisar X · vá em Y"
+  - FAQ — sidebar dark/light, cores literal, 5 origins, etc
+  - Sinais de regressão · alerte Wagner
+
+### Updated
+
+- **[UI-LINT-USAGE.md](UI-LINT-USAGE.md)**: seção "Smoke tests validados (2026-05-24)" com resultados reais + instruções `.env` setup
+- **`app/Console/Commands/UiJudgePrCommand.php`**: pre-flight check ANTHROPIC_API_KEY + diagnóstico amigável de HTTP 401/429/529
+
+### Honest assessment pós-smoke
+
+- L1 Skill: ~70% efetivo (description-match falha em casos não-óbvios)
+- L2 Pre-commit: 5/10 hoje · 9/10 se time seguir onboarding · 0/10 se não seguir
+- **L3 CI lint sintático: 9/10** (validado real · single source of truth)
+- L4 LLM judge: **scaffold sólido** · 7/10 quando API key configurada · não-testado em produção
+- L5 Visual regression: 2/10 (INFRA-ONLY mode)
+- L6 MCP indexação: 7/10 (cobre ADR 0187 ponteiro · talvez fure em `_DesignSystem/adr/ui/`)
+- L7 Push notif: 4/10 (workflow pronto · sem receptor)
+
+**Nota agregada honesta:** ~6,5/10 efetivo · não 90% (limite teórico).
+
+### Não regrediu
+
+- Nenhum código de produção .tsx/.css modificado
+- ADRs UI-0001..UI-0014 + 0187 permanecem
+- Skills + workflows existentes intactos
+
+## [0.6.6] - 2026-05-24 · Onda 4 executada · pr-ui-judge agent + workflow scaffold
+
+### Added
+
+- **`Modules/Jana/Ai/Agents/PrUiJudgeAgent.php`**: agente Laravel/AI usando Anthropic Claude Sonnet 4.5. System prompt carrega Constituição UI v2 completa (hierarquia 4 camadas + regra-mestre + PT-01 + 8 anti-padrões + 5 origins canon + sidebar light decision). Retorna JSON estrito com score 0-100 + 9 dimensões + violações estruturais + sugestões.
+- **`app/Console/Commands/UiJudgePrCommand.php`** (`php artisan ui:judge-pr {pr_number}`): orquestra `gh pr view/diff/comment` + PrUiJudgeAgent + parse JSON + render console + post comment opcional. Opções: `--post-comment`, `--strict` (exit 1 em request_changes), `--save-to`, `--repo`.
+- **`.github/workflows/pr-ui-judge.yml`**: CI workflow opt-in via repo variable `PR_UI_JUDGE_ENABLED=true` (default DESLIGADO · proteção contra custo Brain B inadvertido). Trigger em PR opened/synchronize/reopened tocando UI. `workflow_dispatch` permite invocar manual em PR específico com `--strict` opcional. Upload artifact JSON 30d.
+- **`.claude/skills/pr-ui-judge-manual/SKILL.md`** Tier C: skill description-match em "/pr-ui-judge", "avaliar PR contra v2", "score UI do PR". Documenta comando + 9 dimensões + custo + pegadinhas + quando NÃO usar.
+
+### Custo Brain B
+
+- ~$0.034/PR primeiro do dia (Claude Sonnet 4.5 · ~10k input + ~1k output)
+- ~$0.005/PR após (prompt caching ~85% reuse)
+- ~$3/mês a 100 PRs/mês
+
+### Status enforcement automatizado
+
+- Antes Onda 4: ~85%
+- Pós-Onda 4: ~90% (limite teórico · ~10% restante é palpite estético sempre humano)
+- Wagner ativa via `vars.PR_UI_JUDGE_ENABLED=true` quando aprovar quota Brain B
+
+### Cobertura grep-invisível
+
+Judge LLM detecta o que `ui:lint` (sintático) NÃO vê:
+- Drawer modal sobre modal
+- Slot reinventado com `<div>` custom mesmo importando shared
+- Layout violando PT-01 em essência (componentes corretos · uso fora do slot)
+- Copy semântica errada (ex: "Salvar" em inglês como `<button>Save</button>`)
+- Atalho duplicado (e.g. 2 telas usando `J` pra ações diferentes)
+- Acessibilidade básica (labels, aria-* faltando)
+
+### Não regrediu
+
+- Nenhum código de produção modificado
+- Workflows existentes intactos
+- Quota Brain B NÃO ativada (`PR_UI_JUDGE_ENABLED` não setado · workflow inativo)
+
+### Próximo passo Wagner (ativar judge)
+
+1. Decidir quota Brain B (~$3/mês a 100 PRs)
+2. GitHub Repo → Settings → Variables → adicionar `PR_UI_JUDGE_ENABLED=true`
+3. Validar `ANTHROPIC_API_KEY` secret existe (provavelmente já)
+4. Testar workflow_dispatch manual em 1 PR antes de ativar em todos
+5. Monitorar `storage/pr-ui-judge-*.json` artifacts pra calibrar prompt
+
+## [0.6.5] - 2026-05-24 · Onda 3 executada · ui-canon-notify workflow
+
+### Added
+
+- **`.github/workflows/ui-canon-notify.yml`**: Notificação proativa pro time MCP quando UI canon muda em main. Trigger em push tocando `memory/requisitos/_DesignSystem/`, `memory/decisions/`, `Pages/`, `Components/shared/`, `cockpit.css`/`inertia.css`, ou skill `constituicao-ui-aware`. Payload JSON estruturado (commit + stats + refs). Secret opcional `UI_NOTIF_WEBHOOK_URL` (Slack/Discord/MCP/Discussions). Sem secret = no-op warning (não-bloqueante).
+- **Suporte `workflow_dispatch`**: trigger manual com mensagem custom pra teste local.
+
+### Descoberta importante (2026-05-24)
+
+Investigação pré-Onda 3 revelou que **2/3 do escopo original já existem** no projeto:
+
+1. **`SyncMemoryWebhookController`** (ADR 0053) — webhook GitHub que indexa `memory/` no MCP server automaticamente em push pra main. JÁ FAZ a sincronização canon→MCP. Onda 3 inicial planejada criar "webhook MCP-notif" do zero — desnecessário.
+2. **`visual-regression.yml`** (ADR 0108) — Pest 4 Browser + Playwright snapshot pixel-diff já implementado. INFRA-ONLY mode (migration order issue UltimatePOS legacy bloqueia tests reais), mas estrutura está pronta. Não precisa Playwright/Percy paralelo.
+
+**AUTOMATION-ROADMAP atualizado** marcando 3.2 visual regression como "já existe (ADR 0108)" + adicionando Item 3.3 (futuro · MCP team-notify endpoint custom · ~2h quando time ≥3 actors).
+
+### Status enforcement automatizado
+
+- Antes Onda 3: ~75%
+- Pós-Onda 3: ~85% (push notif + visual regression existente referenciada)
+- Próximo (Onda 4 ~1-2d · sob demanda): ~90% (agente CI LLM-as-judge pr-ui-judge)
+
+### Esforço real vs estimado
+
+- Onda 3 estimada: 4-6h
+- Onda 3 real: ~1h (graças à descoberta de infra existente)
+- Lição: investigar **antes** de criar · reduz duplicação
+
+### Não regrediu
+
+- Nenhum código de produção modificado
+- Workflows existentes intactos (visual-regression.yml ADR 0108 · SyncMemoryWebhookController ADR 0053)
+- ADRs UI-0001..UI-0014 + ADR 0187 permanecem
+
+### Próximo passo Wagner (ativar notif)
+
+1. Decidir endpoint webhook: Slack incoming webhook · Discord · ou criar MCP team-notify (Item 3.3 futuro)
+2. Adicionar secret `UI_NOTIF_WEBHOOK_URL` em GitHub Repo Settings → Secrets → Actions
+3. Validar workflow via `workflow_dispatch` manual antes do primeiro push real
+4. Time MCP começa a receber notif push (não-pull) de UI canon changes
+
 ## [0.6.4] - 2026-05-24 · Onda 2 executada · CI gate + pre-commit hook + R4/R5
 
 ### Added

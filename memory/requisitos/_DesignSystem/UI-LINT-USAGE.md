@@ -81,6 +81,42 @@ export OIMPRESSO_UI_LINT_STRICT=1
 
 Pular hook em emergência: `git commit --no-verify`.
 
+## Smoke tests validados (2026-05-24)
+
+### Smoke 1 · `ui:lint` baseline ratchet (Onda 1/2)
+
+**Status:** ✅ **CONFIÁVEL**
+
+Validado por regressão sintética:
+1. Adicionado `bg-blue-500 text-red-700` em `Pages/Home/Index.tsx`
+2. `php artisan ui:lint --baseline=config/ui-lint-baseline.json --strict`
+3. Output: `Baseline 7307 · Atual 7309 · Delta +2 · REGRESSÃO · exit 1` ✓
+4. Reverter regressão → Delta +0 · exit 0 ✓
+
+**CI gate L3 vai bloquear** PR de regressão sintática de verdade.
+
+### Smoke 2 · `ui:judge-pr` LLM real (Onda 4) — **FUNCIONOU**
+
+**Status:** ✅ **CONFIRMADO FUNCIONAL** com OpenAI gpt-4o-mini
+
+PR #1437 (1 arquivo .tsx, 2043 bytes diff):
+1. `php artisan ui:judge-pr 1437 --save-to=storage/smoke-judge-1437-openai.json`
+2. **Score: 30/100 · Verdict: request_changes**
+3. 9 dimensões avaliadas
+4. **1 violação real detectada:** emoji 🔥 em `SheetNovoGateway.tsx:203`
+   - Linha real era 207 (±4 imprecisão · arquivo correto)
+   - Cross-confirmado por `ui:lint --rule=R3` (mesmo hit em linha 207)
+   - **LLM adicionou contexto semântico:** sugestão substituir por lucide icon + revisar copy
+5. 2 sugestões + 2 lembretes
+6. JSON output em `storage/smoke-judge-1437-openai.json` (gitignored)
+7. Custo real: ~$0.001-0.002 (gpt-4o-mini)
+
+**Path evolutivo da configuração:**
+- ✅ **OpenAI gpt-4o-mini** (atual default) — `OPENAI_API_KEY` em `.env` (já estava)
+- ⚠️ **Anthropic Claude Sonnet 4.5** (upgrade opcional) — adicionar `ANTHROPIC_API_KEY` em `.env` + editar `@Provider('anthropic') @Model('claude-sonnet-4-5-20250929')` em `PrUiJudgeAgent.php`. Custo ~15x maior ($0.034/PR vs $0.002) mas qualidade superior em raciocínio multi-passos.
+
+**Discrepância LLM vs lint:** LLM pega o mesmo emoji mas adiciona "sugestão de refactor". Onda 4 é **complementar** ao L3 sintático, não substituto. Pra emoji simples, `ui:lint` resolve. Pra "drawer modal sobre modal" ou "layout PT-01 quebrado em essência", só LLM.
+
 ## Limites conhecidos (Onda 1.2)
 
 - ❌ Não detecta `<style>` inline com cor crua (raro em React, mas existe)
