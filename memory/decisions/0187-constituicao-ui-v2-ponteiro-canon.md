@@ -10,7 +10,7 @@ decided_by: [W]
 decided_at: "2026-05-24"
 accepted_at: "2026-05-24"
 accepted_via: "Wagner aprovou explícito em sessão `frosty-greider-83ab2f` 2026-05-24 — comando exato: 'eu aporvo' (UI-0013) + 'eu realmente gosto como esta hoje. não gostaria de mudar' (sidebar opção A → UI-0014)"
-module: _DesignSystem
+module: design-system
 quarter: 2026-Q2
 tags: [constituicao-ui, design-system, governança, hierarquia-camadas, ui-0013, ui-0014, mcp-discoverable, ponteiro-adr, multi-agent]
 supersedes: []
