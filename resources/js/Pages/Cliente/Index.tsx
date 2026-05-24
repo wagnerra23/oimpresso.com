@@ -70,6 +70,12 @@ import { TipoPill, TagChip, FrescorPill, SaldoCell } from '@/Components/clientes
 // PTDP Onda 1 — Bruna greeting + saved views (Cowork chat1).
 import { BrunaGreeting } from '@/Components/clientes/BrunaGreeting';
 import { SavedViews, type SavedView } from '@/Components/clientes/SavedViews';
+// PTDP Onda 2 — KPI strip clicável (5 cards-filtro · substitui 4 KpiCard estáticos).
+import {
+  KpiStripClickable,
+  type KpiCardDef,
+  type KpiKey,
+} from '@/Components/clientes/KpiStripClickable';
 
 interface ClienteKpis {
   total: number;
@@ -316,6 +322,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   // `null` = nenhuma view ativa (filtros manuais). Aplicar view substitui filtros.
   const [activeViewKey, setActiveViewKey] = useState<string | null>(null);
 
+  // PTDP Onda 2 — KPI strip clicável (5 cards-filtro).
+  // Filtros adicionais (não cobertos pelos 6 FilterDropdown): novos do mês.
+  const [activeKpiKey, setActiveKpiKey] = useState<KpiKey | null>(null);
+  const [recentMonthFilter, setRecentMonthFilter] = useState(false);
+
   // PTDP Onda 1 — handler aplicar/desaplicar saved view.
   // Substitui filtros (não soma). Toggle: clique 2x na mesma desativa.
   const applySavedView = useCallback((view: SavedView | null) => {
@@ -334,6 +345,31 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     setTagsFilter(view.filters.tagsFilter ?? []);
     setStaleFilter(view.filters.staleFilter ?? '');
     setSaldoFilter(view.filters.saldoFilter ?? '');
+    // KPI mutuamente exclusivo (clica saved view = limpa kpi card ativo).
+    setActiveKpiKey(null);
+    setRecentMonthFilter(false);
+  }, []);
+
+  // PTDP Onda 2 — handler aplicar/desaplicar KPI card.
+  // Mutuamente exclusivo com saved views (clicar KPI desativa view ativa).
+  const applyKpiCard = useCallback((card: KpiCardDef | null) => {
+    if (!card) {
+      setActiveKpiKey(null);
+      setStatusFilter('');
+      setTagsFilter([]);
+      setStaleFilter('');
+      setSaldoFilter('');
+      setRecentMonthFilter(false);
+      return;
+    }
+    setActiveKpiKey(card.key);
+    setStatusFilter((card.filters.statusFilter ?? '') as StatusFilter);
+    setTagsFilter(card.filters.tagsFilter ?? []);
+    setStaleFilter(card.filters.staleFilter ?? '');
+    setSaldoFilter(card.filters.saldoFilter ?? '');
+    setRecentMonthFilter(card.filters.recentMonthFilter ?? false);
+    // Saved view mutuamente exclusivo.
+    setActiveViewKey(null);
   }, []);
 
   // Wave G — Star pessoal localStorage (per-user per-browser).
@@ -354,7 +390,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
 
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter]);
+  }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
 
   const rows = props.customers?.data ?? [];
   const meta = props.customers?.meta ?? null;
@@ -404,8 +440,47 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         return s <= 0;
       });
     }
+    // PTDP Onda 2 — KPI "Novos este mês" · client-side via created_at.
+    if (recentMonthFilter) {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const startTs = monthStart.getTime();
+      r = r.filter((x) => {
+        if (!x.created_at) return false;
+        const t = new Date(x.created_at).getTime();
+        return !Number.isNaN(t) && t >= startTs;
+      });
+    }
     return r;
-  }, [rows, statusFilter, search, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter]);
+  }, [rows, statusFilter, search, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
+
+  // PTDP Onda 2 — counts pros 5 KPI cards. Ativos + ComSaldo usam `kpis`
+  // reais do backend; VIPs + Sem90 + Novos vêm estimados das `rows` da página
+  // atual (Onda 3 plug backend dedicado quando volume de cadastros pedir).
+  const kpiCounts = useMemo(() => {
+    const now = Date.now();
+    const cutoff90 = now - 90 * 86400000;
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const monthStartTs = monthStart.getTime();
+    let vipsCount = 0;
+    let sem90Count = 0;
+    let novosCount = 0;
+    for (const x of rows) {
+      if (x.vip) vipsCount++;
+      if (x.last_purchase_at) {
+        const t = new Date(x.last_purchase_at).getTime();
+        if (!Number.isNaN(t) && t < cutoff90) sem90Count++;
+      }
+      if (x.created_at) {
+        const t = new Date(x.created_at).getTime();
+        if (!Number.isNaN(t) && t >= monthStartTs) novosCount++;
+      }
+    }
+    return { vipsCount, sem90Count, novosCount };
+  }, [rows]);
 
   // KB-9.75 Slice A — reset row focus when the result set shrinks/changes.
   useEffect(() => {
@@ -552,13 +627,21 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           {/* PTDP Onda 1 — Saved views fixas + atalho `g + 1..4`. */}
           <SavedViews activeKey={activeViewKey} onApply={applySavedView} />
 
+          {/* PTDP Onda 2 — KPI strip clicável (5 cards-filtro). Substitui os 4 KpiCard
+              estáticos do Wave G. Counts: Ativos + ComSaldo usam `kpis` real do backend;
+              VIPs + Sem90 + Novos estimados client-side de `rows` (Onda 3 plug backend
+              dedicado quando volume de cadastros pedir). `KpiSkeleton` continua via
+              `<Deferred>` enquanto kpis carrega. */}
           <Deferred data="kpis" fallback={<KpiSkeleton />}>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
-              <KpiCard label="Total" value={kpis?.total ?? 0} icon={Users} />
-              <KpiCard label="Com OS aberta" value={kpis?.com_os_aberta ?? 0} icon={Clock} />
-              <KpiCard label="Com atraso" value={kpis?.com_atraso ?? 0} icon={AlertTriangle} danger={(kpis?.com_atraso ?? 0) > 0} />
-              <KpiCard label="Valor aberto" valueBRL={kpis?.valor_total_aberto ?? 0} icon={CreditCard} />
-            </div>
+            <KpiStripClickable
+              ativos={kpis?.com_os_aberta ?? 0}
+              comSaldo={kpis?.com_atraso ?? 0}
+              vips={kpiCounts.vipsCount}
+              sem90={kpiCounts.sem90Count}
+              novos={kpiCounts.novosCount}
+              activeKey={activeKpiKey}
+              onApply={applyKpiCard}
+            />
           </Deferred>
 
           {/* Wave G — 6 dropdowns substituem 4 pills radio (paridade Cowork blueprint).
