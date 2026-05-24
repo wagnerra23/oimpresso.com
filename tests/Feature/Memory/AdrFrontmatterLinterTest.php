@@ -56,6 +56,7 @@ const MODULE_VALIDOS    = [
     // Legacy/Wave variants (case-sensitive em ADRs aceitas pre-migração — append-only Tier 0)
     'Sells', 'Autopecas', 'Comissao', 'Pcp', 'Governance', 'ADS',
     'Infra', 'jana', 'sells', 'design-system', 'Sells',
+    'NfeBrasil',    // ADR 0186 mergeada com case canônico do path Modules/NfeBrasil/ — append-only impede fix
 ];
 
 const CAMPOS_OBRIGATORIOS = [
