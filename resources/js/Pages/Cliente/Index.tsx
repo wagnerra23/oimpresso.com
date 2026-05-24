@@ -28,6 +28,7 @@ import {
   Edit,
   Eye,
   Keyboard,
+  Layers,
   List,
   Loader2,
   MoreVertical,
@@ -48,6 +49,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import {
@@ -622,7 +624,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuContent align="end" className="w-52">
                     {props.permissions.import && (
                       <DropdownMenuItem asChild>
                         <a href="/contacts/import">
@@ -639,6 +641,21 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                         </a>
                       </DropdownMenuItem>
                     )}
+                    {/* Wagner 2026-05-24 pediu "cadastro tipo de contato nos ..."
+                        UPOS legacy admin: customer_groups (Cliente VIP, Atacado,
+                        Varejo, Premium etc) — rota /customer-group (CustomerGroup
+                        Controller). Atualmente biz=4 ROTA LIVRE tem 0 cadastros,
+                        link facilita o primeiro cadastro. Separator visual entre
+                        ações de dados (importar/exportar) e cadastro auxiliar. */}
+                    {(props.permissions.import || props.permissions.view) && (
+                      <DropdownMenuSeparator />
+                    )}
+                    <DropdownMenuItem asChild>
+                      <a href="/customer-group" title="Cadastrar grupos/tipos de cliente (VIP, atacado, varejo, etc)">
+                        <Layers className="mr-2 h-4 w-4" />
+                        Grupos de clientes
+                      </a>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
