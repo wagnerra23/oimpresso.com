@@ -1,8 +1,8 @@
 {
     "_meta": {
-        "generated_at": "2026-05-24T14:53:26-03:00",
+        "generated_at": "2026-05-24T16:18:29-03:00",
         "tool": "ui:lint",
-        "files_scanned": 486,
+        "files_scanned": 488,
         "total_violations": 7307,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
@@ -13,1001 +13,1001 @@
         }
     },
     "files": {
-        "resources\\js\\app.tsx": {
+        "resources\/js\/app.tsx": {
             "R1": 1
         },
-        "resources\\js\\Components\\board\\BoardColumn.tsx": {
+        "resources\/js\/Components\/board\/BoardColumn.tsx": {
             "R1": 2
         },
-        "resources\\js\\Components\\board\\TaskCard.tsx": {
+        "resources\/js\/Components\/board\/TaskCard.tsx": {
             "R1": 10
         },
-        "resources\\js\\Components\\clientes\\ActiveChip.tsx": {
+        "resources\/js\/Components\/clientes\/ActiveChip.tsx": {
             "R1": 12
         },
-        "resources\\js\\Components\\clientes\\Pills.tsx": {
+        "resources\/js\/Components\/clientes\/Pills.tsx": {
             "R1": 117
         },
-        "resources\\js\\Components\\CommandPalette.tsx": {
+        "resources\/js\/Components\/CommandPalette.tsx": {
             "R1": 5
         },
-        "resources\\js\\Components\\ConsultaOs\\OsPipeline.tsx": {
+        "resources\/js\/Components\/ConsultaOs\/OsPipeline.tsx": {
             "R1": 5
         },
-        "resources\\js\\Components\\ConsultaOs\\OsStageBadge.tsx": {
+        "resources\/js\/Components\/ConsultaOs\/OsStageBadge.tsx": {
             "R1": 15
         },
-        "resources\\js\\Components\\shared\\EmptyState.tsx": {
+        "resources\/js\/Components\/shared\/EmptyState.tsx": {
             "R1": 6
         },
-        "resources\\js\\Components\\shared\\KpiCard.tsx": {
+        "resources\/js\/Components\/shared\/KpiCard.tsx": {
             "R1": 17
         },
-        "resources\\js\\Components\\shared\\ponto\\ActivityFeed.tsx": {
+        "resources\/js\/Components\/shared\/ponto\/ActivityFeed.tsx": {
             "R1": 9
         },
-        "resources\\js\\Components\\shared\\ponto\\AlertInbox.tsx": {
+        "resources\/js\/Components\/shared\/ponto\/AlertInbox.tsx": {
             "R1": 11
         },
-        "resources\\js\\Components\\shared\\ponto\\MonthHeatmap.tsx": {
+        "resources\/js\/Components\/shared\/ponto\/MonthHeatmap.tsx": {
             "R1": 12
         },
-        "resources\\js\\Components\\shared\\ponto\\PresenceStrip.tsx": {
+        "resources\/js\/Components\/shared\/ponto\/PresenceStrip.tsx": {
             "R1": 6
         },
-        "resources\\js\\Components\\shared\\PwaInstallBanner.tsx": {
+        "resources\/js\/Components\/shared\/PwaInstallBanner.tsx": {
             "R1": 7
         },
-        "resources\\js\\Components\\shared\\StatusBadge.tsx": {
+        "resources\/js\/Components\/shared\/StatusBadge.tsx": {
             "R1": 39
         },
-        "resources\\js\\Components\\Site\\DashboardMockup.tsx": {
+        "resources\/js\/Components\/Site\/DashboardMockup.tsx": {
             "R1": 4
         },
-        "resources\\js\\Components\\Site\\FeatureGrid.tsx": {
+        "resources\/js\/Components\/Site\/FeatureGrid.tsx": {
             "R3": 7
         },
-        "resources\\js\\Components\\Site\\GoogleIcon.tsx": {
+        "resources\/js\/Components\/Site\/GoogleIcon.tsx": {
             "R1": 4
         },
-        "resources\\js\\Components\\Site\\MicrosoftIcon.tsx": {
+        "resources\/js\/Components\/Site\/MicrosoftIcon.tsx": {
             "R1": 4
         },
-        "resources\\js\\Components\\Site\\SiteFooter.tsx": {
+        "resources\/js\/Components\/Site\/SiteFooter.tsx": {
             "R3": 2
         },
-        "resources\\js\\Components\\Site\\SocialProof.tsx": {
+        "resources\/js\/Components\/Site\/SocialProof.tsx": {
             "R3": 5
         },
-        "resources\\js\\Components\\ui\\resizable.tsx": {
+        "resources\/js\/Components\/ui\/resizable.tsx": {
             "R1": 1
         },
-        "resources\\js\\Layouts\\AppShellV2.tsx": {
+        "resources\/js\/Layouts\/AppShellV2.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Admin\\FeatureFlags\\Index.tsx": {
+        "resources\/js\/Pages\/Admin\/FeatureFlags\/Index.tsx": {
             "R1": 9
         },
-        "resources\\js\\Pages\\Admin\\FeatureFlags\\Show.tsx": {
+        "resources\/js\/Pages\/Admin\/FeatureFlags\/Show.tsx": {
             "R1": 6,
             "R3": 4
         },
-        "resources\\js\\Pages\\Admin\\GovernanceV4Dashboard.tsx": {
+        "resources\/js\/Pages\/Admin\/GovernanceV4Dashboard.tsx": {
             "R1": 71
         },
-        "resources\\js\\Pages\\Admin\\Index.tsx": {
+        "resources\/js\/Pages\/Admin\/Index.tsx": {
             "R1": 28,
             "R4": 1
         },
-        "resources\\js\\Pages\\Admin\\RagQualityDashboard.tsx": {
+        "resources\/js\/Pages\/Admin\/RagQualityDashboard.tsx": {
             "R1": 43
         },
-        "resources\\js\\Pages\\Admin\\ScreenReviewDashboard.tsx": {
+        "resources\/js\/Pages\/Admin\/ScreenReviewDashboard.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Admin\\_components\\AiSuggestionPanel.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/AiSuggestionPanel.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\Admin\\_components\\DimensionProgressBar.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/DimensionProgressBar.tsx": {
             "R1": 14
         },
-        "resources\\js\\Pages\\Admin\\_components\\DriftAlertBanner.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/DriftAlertBanner.tsx": {
             "R1": 7
         },
-        "resources\\js\\Pages\\Admin\\_components\\HealthPanelV4.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/HealthPanelV4.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Admin\\_components\\InitiativeBadge.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/InitiativeBadge.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Admin\\_components\\ModuleList.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/ModuleList.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\Admin\\_components\\ModuleReader.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/ModuleReader.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Admin\\_components\\ReviewReader.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/ReviewReader.tsx": {
             "R1": 14
         },
-        "resources\\js\\Pages\\Admin\\_components\\RoundBadge.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/RoundBadge.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Admin\\_components\\ScreenList.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/ScreenList.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Admin\\_components\\ScreenReviewSidebar.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/ScreenReviewSidebar.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetAdrTier0.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetAdrTier0.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetBrainBCost.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetBrainBCost.tsx": {
             "R1": 13
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetBrief.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetBrief.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetCurador.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetCurador.tsx": {
             "R1": 29
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetCycles.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetCycles.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetHealth.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetHealth.tsx": {
             "R1": 11,
             "R3": 3
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetInfraStatus.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetInfraStatus.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetMcpServer.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetMcpServer.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetMutations.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetMutations.tsx": {
             "R1": 21
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetSessions.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetSessions.tsx": {
             "R1": 7
         },
-        "resources\\js\\Pages\\Admin\\_components\\WidgetVaultwarden.tsx": {
+        "resources\/js\/Pages\/Admin\/_components\/WidgetVaultwarden.tsx": {
             "R1": 10
         },
-        "resources\\js\\Pages\\ads\\Admin\\Confidence.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Confidence.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\ads\\Admin\\Conflicts.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Conflicts.tsx": {
             "R1": 17
         },
-        "resources\\js\\Pages\\ads\\Admin\\DecisaoShow.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/DecisaoShow.tsx": {
             "R1": 20,
             "R3": 1
         },
-        "resources\\js\\Pages\\ads\\Admin\\Decisoes.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Decisoes.tsx": {
             "R1": 10
         },
-        "resources\\js\\Pages\\ads\\Admin\\Graph.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Graph.tsx": {
             "R1": 28,
             "R3": 6
         },
-        "resources\\js\\Pages\\ads\\Admin\\Learning.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Learning.tsx": {
             "R1": 30
         },
-        "resources\\js\\Pages\\ads\\Admin\\MetaSkills.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/MetaSkills.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\ads\\Admin\\Metricas.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Metricas.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\ads\\Admin\\Patterns.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Patterns.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\ads\\Admin\\Policy.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Policy.tsx": {
             "R1": 9
         },
-        "resources\\js\\Pages\\ads\\Admin\\Projects.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Projects.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\ads\\Admin\\ProjectShow.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/ProjectShow.tsx": {
             "R1": 28,
             "R3": 1
         },
-        "resources\\js\\Pages\\ads\\Admin\\Skills\\Edit.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Skills\/Edit.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\ads\\Admin\\Skills\\Index.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Skills\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\ads\\Admin\\Skills\\Review.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Skills\/Review.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\ads\\Admin\\Skills\\Show.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Skills\/Show.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\ads\\Admin\\Skills\\Test.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Skills\/Test.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\ads\\Admin\\TeamScopes.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/TeamScopes.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\ads\\Admin\\Tools.tsx": {
+        "resources\/js\/Pages\/ads\/Admin\/Tools.tsx": {
             "R1": 13
         },
-        "resources\\js\\Pages\\Atendimento\\CaixaUnificada\\Index.tsx": {
+        "resources\/js\/Pages\/Atendimento\/CaixaUnificada\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Atendimento\\CaixaUnificada\\_components\\ComposerV4.tsx": {
+        "resources\/js\/Pages\/Atendimento\/CaixaUnificada\/_components\/ComposerV4.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Atendimento\\CaixaUnificada\\_components\\ConversationThreadV4.tsx": {
+        "resources\/js\/Pages\/Atendimento\/CaixaUnificada\/_components\/ConversationThreadV4.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Atendimento\\Channels\\Index.tsx": {
+        "resources\/js\/Pages\/Atendimento\/Channels\/Index.tsx": {
             "R1": 16,
             "R3": 1
         },
-        "resources\\js\\Pages\\Atendimento\\Channels\\Show.tsx": {
+        "resources\/js\/Pages\/Atendimento\/Channels\/Show.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Atendimento\\Csat\\Index.tsx": {
+        "resources\/js\/Pages\/Atendimento\/Csat\/Index.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Atendimento\\Inbox\\_components\\ChannelSelector.tsx": {
+        "resources\/js\/Pages\/Atendimento\/Inbox\/_components\/ChannelSelector.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Atendimento\\Macros\\Index.tsx": {
+        "resources\/js\/Pages\/Atendimento\/Macros\/Index.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\Atendimento\\Macros\\Variants.tsx": {
+        "resources\/js\/Pages\/Atendimento\/Macros\/Variants.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Atendimento\\Metricas\\Index.tsx": {
+        "resources\/js\/Pages\/Atendimento\/Metricas\/Index.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\Auditoria\\Detail.tsx": {
+        "resources\/js\/Pages\/Auditoria\/Detail.tsx": {
             "R1": 9
         },
-        "resources\\js\\Pages\\Auditoria\\Index.tsx": {
+        "resources\/js\/Pages\/Auditoria\/Index.tsx": {
             "R1": 34,
             "R4": 1
         },
-        "resources\\js\\Pages\\Cliente\\Create.tsx": {
+        "resources\/js\/Pages\/Cliente\/Create.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Cliente\\Edit.tsx": {
+        "resources\/js\/Pages\/Cliente\/Edit.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Cliente\\Import.tsx": {
+        "resources\/js\/Pages\/Cliente\/Import.tsx": {
             "R1": 16
         },
-        "resources\\js\\Pages\\Cliente\\Index.tsx": {
+        "resources\/js\/Pages\/Cliente\/Index.tsx": {
             "R1": 88,
             "R4": 2
         },
-        "resources\\js\\Pages\\Cliente\\Ledger.tsx": {
+        "resources\/js\/Pages\/Cliente\/Ledger.tsx": {
             "R1": 10
         },
-        "resources\\js\\Pages\\Cliente\\Map.tsx": {
+        "resources\/js\/Pages\/Cliente\/Map.tsx": {
             "R1": 9
         },
-        "resources\\js\\Pages\\Cliente\\Show.tsx": {
+        "resources\/js\/Pages\/Cliente\/Show.tsx": {
             "R1": 43
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\AuditoriaTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/AuditoriaTab.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\ClassificacaoTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/ClassificacaoTab.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\ComercialTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/ComercialTab.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\ContatoTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/ContatoTab.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\EnderecoTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/EnderecoTab.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\IATab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/IATab.tsx": {
             "R1": 31
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\IdentificacaoTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/IdentificacaoTab.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\Cliente\\_drawer\\OssTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_drawer\/OssTab.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\Cliente\\_form\\DadosFiscaisBRSection.tsx": {
+        "resources\/js\/Pages\/Cliente\/_form\/DadosFiscaisBRSection.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\Cliente\\_show\\ActionsMenu.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/ActionsMenu.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Cliente\\_show\\AddDiscountModal.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/AddDiscountModal.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Cliente\\_show\\ContactPicker.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/ContactPicker.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Cliente\\_show\\DocumentsTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/DocumentsTab.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Cliente\\_show\\LedgerTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/LedgerTab.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Cliente\\_show\\PaymentsTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/PaymentsTab.tsx": {
             "R1": 7
         },
-        "resources\\js\\Pages\\Cliente\\_show\\RewardPointsTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/RewardPointsTab.tsx": {
             "R1": 7
         },
-        "resources\\js\\Pages\\Cliente\\_show\\RiscoClienteCard.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/RiscoClienteCard.tsx": {
             "R1": 22
         },
-        "resources\\js\\Pages\\Cliente\\_show\\SalesTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/SalesTab.tsx": {
             "R1": 32
         },
-        "resources\\js\\Pages\\Cliente\\_show\\SubscriptionsTab.tsx": {
+        "resources\/js\/Pages\/Cliente\/_show\/SubscriptionsTab.tsx": {
             "R1": 13
         },
-        "resources\\js\\Pages\\Compras\\components\\AcoesDropdown.tsx": {
+        "resources\/js\/Pages\/Compras\/components\/AcoesDropdown.tsx": {
             "R1": 8,
             "R3": 5
         },
-        "resources\\js\\Pages\\Compras\\components\\GradeMatrixInput.tsx": {
+        "resources\/js\/Pages\/Compras\/components\/GradeMatrixInput.tsx": {
             "R1": 35
         },
-        "resources\\js\\Pages\\Compras\\components\\VisibilidadeColunas.tsx": {
+        "resources\/js\/Pages\/Compras\/components\/VisibilidadeColunas.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\Compras\\Index.tsx": {
+        "resources\/js\/Pages\/Compras\/Index.tsx": {
             "R1": 2,
             "R4": 2
         },
-        "resources\\js\\Pages\\ComunicacaoVisual\\Index.tsx": {
+        "resources\/js\/Pages\/ComunicacaoVisual\/Index.tsx": {
             "R1": 2,
             "R4": 2
         },
-        "resources\\js\\Pages\\ConsultaOs\\Index.tsx": {
+        "resources\/js\/Pages\/ConsultaOs\/Index.tsx": {
             "R1": 2,
             "R4": 2
         },
-        "resources\\js\\Pages\\Essentials\\Todo\\Index.tsx": {
+        "resources\/js\/Pages\/Essentials\/Todo\/Index.tsx": {
             "R1": 28
         },
-        "resources\\js\\Pages\\Essentials\\Todo\\Show.tsx": {
+        "resources\/js\/Pages\/Essentials\/Todo\/Show.tsx": {
             "R1": 28
         },
-        "resources\\js\\Pages\\Financeiro\\Advisor\\Dashboard.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Advisor\/Dashboard.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Financeiro\\Advisor\\Login.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Advisor\/Login.tsx": {
             "R1": 10
         },
-        "resources\\js\\Pages\\Financeiro\\Caixa\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Caixa\/Index.tsx": {
             "R1": 43,
             "R3": 1
         },
-        "resources\\js\\Pages\\Financeiro\\Categorias\\components\\CategoriaSheet.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Categorias\/components\/CategoriaSheet.tsx": {
             "R1": 15
         },
-        "resources\\js\\Pages\\Financeiro\\Categorias\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Categorias\/Index.tsx": {
             "R1": 14
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/Index.tsx": {
             "R1": 62
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\_components\\AiResumoMes.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/AiResumoMes.tsx": {
             "R1": 21
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\_components\\atoms.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/atoms.tsx": {
             "R1": 37
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\_components\\CheatSheet.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/CheatSheet.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\_components\\DrawerCobranca.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/DrawerCobranca.tsx": {
             "R1": 68
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\_components\\FunnelStrip.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/FunnelStrip.tsx": {
             "R1": 15
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\_components\\SheetNovaCobranca.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/SheetNovaCobranca.tsx": {
             "R1": 48
         },
-        "resources\\js\\Pages\\Financeiro\\Cobranca\\_components\\SheetRemessaRetorno.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/SheetRemessaRetorno.tsx": {
             "R1": 17
         },
-        "resources\\js\\Pages\\Financeiro\\Conciliacao\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Conciliacao\/Index.tsx": {
             "R1": 30,
             "R3": 1
         },
-        "resources\\js\\Pages\\Financeiro\\Configuracoes\\Contador.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Configuracoes\/Contador.tsx": {
             "R1": 20
         },
-        "resources\\js\\Pages\\Financeiro\\ContasBancarias\\components\\ConfigurarBoletoSheet.tsx": {
+        "resources\/js\/Pages\/Financeiro\/ContasBancarias\/components\/ConfigurarBoletoSheet.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\Financeiro\\ContasBancarias\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/ContasBancarias\/Index.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Financeiro\\ContasPagar\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/ContasPagar\/Index.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Financeiro\\ContasReceber\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/ContasReceber\/Index.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Financeiro\\Dashboard\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Dashboard\/Index.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Financeiro\\Dre\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Dre\/Index.tsx": {
             "R1": 65
         },
-        "resources\\js\\Pages\\Financeiro\\Dre\\_components\\BalanceteView.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Dre\/_components\/BalanceteView.tsx": {
             "R1": 23
         },
-        "resources\\js\\Pages\\Financeiro\\Dre\\_components\\BalancoView.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Dre\/_components\/BalancoView.tsx": {
             "R1": 43
         },
-        "resources\\js\\Pages\\Financeiro\\Extrato\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Extrato\/Index.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Financeiro\\Fluxo\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Fluxo\/Index.tsx": {
             "R1": 77
         },
-        "resources\\js\\Pages\\Financeiro\\PlanoContas\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/PlanoContas\/Index.tsx": {
             "R1": 24,
             "R3": 1
         },
-        "resources\\js\\Pages\\Financeiro\\Relatorios\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Relatorios\/Index.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\Index.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/Index.tsx": {
             "R1": 143,
             "R3": 6
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\Novo.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/Novo.tsx": {
             "R1": 9
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\FinAnexosPanel.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinAnexosPanel.tsx": {
             "R1": 12,
             "R3": 5
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\FinChecklistFechamento.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinChecklistFechamento.tsx": {
             "R3": 1
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\FinCommentsThread.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinCommentsThread.tsx": {
             "R3": 1
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\FinEditPanel.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinEditPanel.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\FinMonthResume.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinMonthResume.tsx": {
             "R3": 9
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\FinOcrBoletoSheet.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinOcrBoletoSheet.tsx": {
             "R1": 27,
             "R3": 4
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\FinTranscriptPDF.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinTranscriptPDF.tsx": {
             "R1": 2,
             "R3": 2
         },
-        "resources\\js\\Pages\\Financeiro\\Unificado\\_components\\TituloEditSheet.tsx": {
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/TituloEditSheet.tsx": {
             "R1": 17,
             "R3": 1
         },
-        "resources\\js\\Pages\\Financeiro\\_cowork-bundle\\financeiro-app.jsx": {
+        "resources\/js\/Pages\/Financeiro\/_cowork-bundle\/financeiro-app.jsx": {
             "R1": 207,
             "R3": 1
         },
-        "resources\\js\\Pages\\Financeiro\\_cowork-bundle\\financeiro-telas-extras.jsx": {
+        "resources\/js\/Pages\/Financeiro\/_cowork-bundle\/financeiro-telas-extras.jsx": {
             "R1": 194
         },
-        "resources\\js\\Pages\\Financeiro\\_cowork-bundle\\shell-app.jsx": {
+        "resources\/js\/Pages\/Financeiro\/_cowork-bundle\/shell-app.jsx": {
             "R3": 2
         },
-        "resources\\js\\Pages\\Financeiro\\_cowork-bundle\\shell-data.jsx": {
+        "resources\/js\/Pages\/Financeiro\/_cowork-bundle\/shell-data.jsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Fiscal\\Config.tsx": {
+        "resources\/js\/Pages\/Fiscal\/Config.tsx": {
             "R3": 2
         },
-        "resources\\js\\Pages\\Fiscal\\Sped.tsx": {
+        "resources\/js\/Pages\/Fiscal\/Sped.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\Fiscal\\_components\\CmdKPalette.tsx": {
+        "resources\/js\/Pages\/Fiscal\/_components\/CmdKPalette.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\Fiscal\\_components\\NotaDrawer.tsx": {
+        "resources\/js\/Pages\/Fiscal\/_components\/NotaDrawer.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\governance\\Audit.tsx": {
+        "resources\/js\/Pages\/governance\/Audit.tsx": {
             "R1": 34
         },
-        "resources\\js\\Pages\\governance\\Dashboard.tsx": {
+        "resources\/js\/Pages\/governance\/Dashboard.tsx": {
             "R1": 79,
             "R3": 14
         },
-        "resources\\js\\Pages\\governance\\DriftAlerts.tsx": {
+        "resources\/js\/Pages\/governance\/DriftAlerts.tsx": {
             "R1": 19
         },
-        "resources\\js\\Pages\\governance\\ModuleGrades\\Index.tsx": {
+        "resources\/js\/Pages\/governance\/ModuleGrades\/Index.tsx": {
             "R1": 62
         },
-        "resources\\js\\Pages\\governance\\ModuleGrades\\Show.tsx": {
+        "resources\/js\/Pages\/governance\/ModuleGrades\/Show.tsx": {
             "R1": 129
         },
-        "resources\\js\\Pages\\governance\\Policies.tsx": {
+        "resources\/js\/Pages\/governance\/Policies.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Home\\Index.tsx": {
+        "resources\/js\/Pages\/Home\/Index.tsx": {
             "R1": 48
         },
-        "resources\\js\\Pages\\Jana\\Admin\\Governanca\\Index.tsx": {
+        "resources\/js\/Pages\/Jana\/Admin\/Governanca\/Index.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Jana\\Admin\\Qualidade\\Index.tsx": {
+        "resources\/js\/Pages\/Jana\/Admin\/Qualidade\/Index.tsx": {
             "R1": 15,
             "R3": 1
         },
-        "resources\\js\\Pages\\Jana\\Admin\\Roadmap.tsx": {
+        "resources\/js\/Pages\/Jana\/Admin\/Roadmap.tsx": {
             "R1": 9
         },
-        "resources\\js\\Pages\\Jana\\Brief\\Index.tsx": {
+        "resources\/js\/Pages\/Jana\/Brief\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Jana\\Chat.tsx": {
+        "resources\/js\/Pages\/Jana\/Chat.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Jana\\Cockpit.tsx": {
+        "resources\/js\/Pages\/Jana\/Cockpit.tsx": {
             "R1": 45,
             "R3": 10
         },
-        "resources\\js\\Pages\\Jana\\Dashboard.tsx": {
+        "resources\/js\/Pages\/Jana\/Dashboard.tsx": {
             "R1": 19
         },
-        "resources\\js\\Pages\\Jana\\Memoria.tsx": {
+        "resources\/js\/Pages\/Jana\/Memoria.tsx": {
             "R1": 14
         },
-        "resources\\js\\Pages\\Jana\\Painel.tsx": {
+        "resources\/js\/Pages\/Jana\/Painel.tsx": {
             "R3": 3
         },
-        "resources\\js\\Pages\\Jana\\Regras\\Index.tsx": {
+        "resources\/js\/Pages\/Jana\/Regras\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\kb\\Graph.tsx": {
+        "resources\/js\/Pages\/kb\/Graph.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\kb\\Index.tsx": {
+        "resources\/js\/Pages\/kb\/Index.tsx": {
             "R1": 32,
             "R3": 6,
             "R4": 1
         },
-        "resources\\js\\Pages\\kb\\_components\\BlockRenderer.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/BlockRenderer.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\kb\\_components\\CategorySidebar.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/CategorySidebar.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\kb\\_components\\GraphCanvas.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/GraphCanvas.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\kb\\_components\\HealthPanel.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/HealthPanel.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\kb\\_components\\KbFavStar.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/KbFavStar.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\kb\\_components\\NodeList.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/NodeList.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\kb\\_components\\NodeReader.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/NodeReader.tsx": {
             "R1": 22
         },
-        "resources\\js\\Pages\\kb\\_components\\PathsDialog.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/PathsDialog.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\kb\\_components\\TroubleshooterDialog.tsx": {
+        "resources\/js\/Pages\/kb\/_components\/TroubleshooterDialog.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Manufacturing\\Index.tsx": {
+        "resources\/js\/Pages\/Manufacturing\/Index.tsx": {
             "R1": 27,
             "R4": 2
         },
-        "resources\\js\\Pages\\MemCofre\\Dashboard.tsx": {
+        "resources\/js\/Pages\/MemCofre\/Dashboard.tsx": {
             "R1": 17
         },
-        "resources\\js\\Pages\\MemCofre\\Memoria.tsx": {
+        "resources\/js\/Pages\/MemCofre\/Memoria.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\MemCofre\\Modulo.tsx": {
+        "resources\/js\/Pages\/MemCofre\/Modulo.tsx": {
             "R1": 15
         },
-        "resources\\js\\Pages\\Modules\\Index.tsx": {
+        "resources\/js\/Pages\/Modules\/Index.tsx": {
             "R1": 52
         },
-        "resources\\js\\Pages\\NfeBrasil\\Configuracao\\Certificado.tsx": {
+        "resources\/js\/Pages\/NfeBrasil\/Configuracao\/Certificado.tsx": {
             "R1": 34
         },
-        "resources\\js\\Pages\\NfeBrasil\\Manifestacao\\Index.tsx": {
+        "resources\/js\/Pages\/NfeBrasil\/Manifestacao\/Index.tsx": {
             "R1": 41
         },
-        "resources\\js\\Pages\\NfeBrasil\\Manifestacao\\_components\\LinkedHistorico.tsx": {
+        "resources\/js\/Pages\/NfeBrasil\/Manifestacao\/_components\/LinkedHistorico.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\NfeBrasil\\Tributacao\\ImportCsv.tsx": {
+        "resources\/js\/Pages\/NfeBrasil\/Tributacao\/ImportCsv.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\NfeBrasil\\Tributacao\\Index.tsx": {
+        "resources\/js\/Pages\/NfeBrasil\/Tributacao\/Index.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Nfse\\Emitir.tsx": {
+        "resources\/js\/Pages\/Nfse\/Emitir.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\OficinaAuto\\AprovacaoPublica.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/AprovacaoPublica.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\OficinaAuto\\ProducaoOficina\\Index.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/Index.tsx": {
             "R1": 42
         },
-        "resources\\js\\Pages\\OficinaAuto\\ProducaoOficina\\_components\\CacambaCard.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/CacambaCard.tsx": {
             "R1": 84
         },
-        "resources\\js\\Pages\\OficinaAuto\\ProducaoOficina\\_components\\CacambaKanbanColumn.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/CacambaKanbanColumn.tsx": {
             "R1": 17
         },
-        "resources\\js\\Pages\\OficinaAuto\\ProducaoOficina\\_components\\CacambaProducaoSheet.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/CacambaProducaoSheet.tsx": {
             "R1": 29
         },
-        "resources\\js\\Pages\\OficinaAuto\\ProducaoOficina\\_components\\DragConfirmDialog.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/DragConfirmDialog.tsx": {
             "R1": 19
         },
-        "resources\\js\\Pages\\OficinaAuto\\ProducaoOficina\\_components\\KanbanDndProvider.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/KanbanDndProvider.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\OficinaAuto\\ProducaoOficina\\_components\\MercosulPlate.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/MercosulPlate.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\OficinaAuto\\ServiceOrders\\Index.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Index.tsx": {
             "R1": 95
         },
-        "resources\\js\\Pages\\OficinaAuto\\ServiceOrders\\_components\\ServiceOrderFsmActionPanel.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderFsmActionPanel.tsx": {
             "R1": 46
         },
-        "resources\\js\\Pages\\OficinaAuto\\ServiceOrders\\_components\\ServiceOrderSheet.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderSheet.tsx": {
             "R1": 38
         },
-        "resources\\js\\Pages\\OficinaAuto\\ServiceOrders\\_components\\ServiceOrderStagePipeline.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderStagePipeline.tsx": {
             "R1": 52
         },
-        "resources\\js\\Pages\\OficinaAuto\\ServiceOrders\\_components\\ServiceOrderStatusBadge.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderStatusBadge.tsx": {
             "R1": 33
         },
-        "resources\\js\\Pages\\OficinaAuto\\ServiceOrders\\_components\\ServiceOrderTimeline.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderTimeline.tsx": {
             "R1": 54
         },
-        "resources\\js\\Pages\\OficinaAuto\\Vehicles\\Index.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/Vehicles\/Index.tsx": {
             "R1": 53
         },
-        "resources\\js\\Pages\\OficinaAuto\\Vehicles\\_components\\VehicleStatusBadge.tsx": {
+        "resources\/js\/Pages\/OficinaAuto\/Vehicles\/_components\/VehicleStatusBadge.tsx": {
             "R1": 36
         },
-        "resources\\js\\Pages\\Ponto\\Aprovacoes\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Aprovacoes\/Index.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Ponto\\BancoHoras\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/BancoHoras\/Index.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\Ponto\\BancoHoras\\Show.tsx": {
+        "resources\/js\/Pages\/Ponto\/BancoHoras\/Show.tsx": {
             "R1": 9
         },
-        "resources\\js\\Pages\\Ponto\\Colaboradores\\Edit.tsx": {
+        "resources\/js\/Pages\/Ponto\/Colaboradores\/Edit.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Colaboradores\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Colaboradores\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Configuracoes\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Configuracoes\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Configuracoes\\Reps.tsx": {
+        "resources\/js\/Pages\/Ponto\/Configuracoes\/Reps.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Dashboard\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Dashboard\/Index.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Ponto\\Escalas\\Form.tsx": {
+        "resources\/js\/Pages\/Ponto\/Escalas\/Form.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Escalas\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Escalas\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Espelho\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Espelho\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Espelho\\Show.tsx": {
+        "resources\/js\/Pages\/Ponto\/Espelho\/Show.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\Ponto\\Importacoes\\Create.tsx": {
+        "resources\/js\/Pages\/Ponto\/Importacoes\/Create.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Importacoes\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Importacoes\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Importacoes\\Show.tsx": {
+        "resources\/js\/Pages\/Ponto\/Importacoes\/Show.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Intercorrencias\\Create.tsx": {
+        "resources\/js\/Pages\/Ponto\/Intercorrencias\/Create.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Ponto\\Intercorrencias\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Intercorrencias\/Index.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Ponto\\Intercorrencias\\Show.tsx": {
+        "resources\/js\/Pages\/Ponto\/Intercorrencias\/Show.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\Ponto\\Relatorios\\Index.tsx": {
+        "resources\/js\/Pages\/Ponto\/Relatorios\/Index.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\Ponto\\Welcome.tsx": {
+        "resources\/js\/Pages\/Ponto\/Welcome.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Produto\\BulkEdit.tsx": {
+        "resources\/js\/Pages\/Produto\/BulkEdit.tsx": {
             "R1": 21
         },
-        "resources\\js\\Pages\\Produto\\Create.tsx": {
+        "resources\/js\/Pages\/Produto\/Create.tsx": {
             "R1": 11
         },
-        "resources\\js\\Pages\\Produto\\Edit.tsx": {
+        "resources\/js\/Pages\/Produto\/Edit.tsx": {
             "R1": 10
         },
-        "resources\\js\\Pages\\Produto\\Index.tsx": {
+        "resources\/js\/Pages\/Produto\/Index.tsx": {
             "R1": 60,
             "R4": 2
         },
-        "resources\\js\\Pages\\Produto\\SellingPrices.tsx": {
+        "resources\/js\/Pages\/Produto\/SellingPrices.tsx": {
             "R1": 23
         },
-        "resources\\js\\Pages\\Produto\\Show.tsx": {
+        "resources\/js\/Pages\/Produto\/Show.tsx": {
             "R1": 41
         },
-        "resources\\js\\Pages\\Produto\\StockHistory.tsx": {
+        "resources\/js\/Pages\/Produto\/StockHistory.tsx": {
             "R1": 16
         },
-        "resources\\js\\Pages\\Produto\\Unificado\\Index.tsx": {
+        "resources\/js\/Pages\/Produto\/Unificado\/Index.tsx": {
             "R1": 74
         },
-        "resources\\js\\Pages\\ProjectMgmt\\Activity\\Index.tsx": {
+        "resources\/js\/Pages\/ProjectMgmt\/Activity\/Index.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\ProjectMgmt\\Backlog\\Index.tsx": {
+        "resources\/js\/Pages\/ProjectMgmt\/Backlog\/Index.tsx": {
             "R1": 7
         },
-        "resources\\js\\Pages\\ProjectMgmt\\Board\\DetailSheet.tsx": {
+        "resources\/js\/Pages\/ProjectMgmt\/Board\/DetailSheet.tsx": {
             "R1": 61
         },
-        "resources\\js\\Pages\\ProjectMgmt\\Board\\Index.tsx": {
+        "resources\/js\/Pages\/ProjectMgmt\/Board\/Index.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\ProjectMgmt\\Burndown\\Index.tsx": {
+        "resources\/js\/Pages\/ProjectMgmt\/Burndown\/Index.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\ProjectMgmt\\MyWork\\Index.tsx": {
+        "resources\/js\/Pages\/ProjectMgmt\/MyWork\/Index.tsx": {
             "R1": 4,
             "R3": 1
         },
-        "resources\\js\\Pages\\ProjectMgmt\\Roadmap\\Index.tsx": {
+        "resources\/js\/Pages\/ProjectMgmt\/Roadmap\/Index.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\Purchase\\Create.tsx": {
+        "resources\/js\/Pages\/Purchase\/Create.tsx": {
             "R1": 40
         },
-        "resources\\js\\Pages\\Purchase\\Edit.tsx": {
+        "resources\/js\/Pages\/Purchase\/Edit.tsx": {
             "R1": 36
         },
-        "resources\\js\\Pages\\Purchase\\Index.tsx": {
+        "resources\/js\/Pages\/Purchase\/Index.tsx": {
             "R1": 40,
             "R4": 1
         },
-        "resources\\js\\Pages\\Purchase\\Show.tsx": {
+        "resources\/js\/Pages\/Purchase\/Show.tsx": {
             "R1": 77
         },
-        "resources\\js\\Pages\\RecurringBilling\\Configuracoes\\Index.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/Configuracoes\/Index.tsx": {
             "R1": 121
         },
-        "resources\\js\\Pages\\RecurringBilling\\Faturas\\Index.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/Faturas\/Index.tsx": {
             "R1": 125
         },
-        "resources\\js\\Pages\\RecurringBilling\\Index.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/Index.tsx": {
             "R1": 210,
             "R4": 2
         },
-        "resources\\js\\Pages\\RecurringBilling\\Planos\\Create.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/Planos\/Create.tsx": {
             "R1": 61
         },
-        "resources\\js\\Pages\\RecurringBilling\\Planos\\Edit.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/Planos\/Edit.tsx": {
             "R1": 64
         },
-        "resources\\js\\Pages\\RecurringBilling\\Planos\\Index.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/Planos\/Index.tsx": {
             "R1": 100
         },
-        "resources\\js\\Pages\\RecurringBilling\\_components\\CheatSheet.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/_components\/CheatSheet.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\RecurringBilling\\_components\\CmdPalette.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/_components\/CmdPalette.tsx": {
             "R1": 32
         },
-        "resources\\js\\Pages\\RecurringBilling\\_components\\JanaPanel.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/_components\/JanaPanel.tsx": {
             "R1": 19
         },
-        "resources\\js\\Pages\\RecurringBilling\\_components\\PresentationMode.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/_components\/PresentationMode.tsx": {
             "R1": 16
         },
-        "resources\\js\\Pages\\RecurringBilling\\_components\\TourOnboarding.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/_components\/TourOnboarding.tsx": {
             "R1": 20
         },
-        "resources\\js\\Pages\\RecurringBilling\\_components\\TroubleshooterOverlay.tsx": {
+        "resources\/js\/Pages\/RecurringBilling\/_components\/TroubleshooterOverlay.tsx": {
             "R1": 36
         },
-        "resources\\js\\Pages\\Repair\\DeviceModels\\Create.tsx": {
+        "resources\/js\/Pages\/Repair\/DeviceModels\/Create.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Repair\\DeviceModels\\Edit.tsx": {
+        "resources\/js\/Pages\/Repair\/DeviceModels\/Edit.tsx": {
             "R1": 5
         },
-        "resources\\js\\Pages\\Repair\\Index.tsx": {
+        "resources\/js\/Pages\/Repair\/Index.tsx": {
             "R1": 21,
             "R4": 1
         },
-        "resources\\js\\Pages\\Repair\\JobSheet\\Index.tsx": {
+        "resources\/js\/Pages\/Repair\/JobSheet\/Index.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\Repair\\JobSheet\\Show.tsx": {
+        "resources\/js\/Pages\/Repair\/JobSheet\/Show.tsx": {
             "R1": 30
         },
-        "resources\\js\\Pages\\Repair\\ProducaoOficina\\Index.tsx": {
+        "resources\/js\/Pages\/Repair\/ProducaoOficina\/Index.tsx": {
             "R1": 92,
             "R3": 1
         },
-        "resources\\js\\Pages\\Repair\\Show.tsx": {
+        "resources\/js\/Pages\/Repair\/Show.tsx": {
             "R1": 12
         },
-        "resources\\js\\Pages\\Repair\\Status\\Index.tsx": {
+        "resources\/js\/Pages\/Repair\/Status\/Index.tsx": {
             "R1": 2
         },
-        "resources\\js\\Pages\\Sells\\Create.tsx": {
+        "resources\/js\/Pages\/Sells\/Create.tsx": {
             "R1": 27
         },
-        "resources\\js\\Pages\\Sells\\Index.tsx": {
+        "resources\/js\/Pages\/Sells\/Index.tsx": {
             "R3": 1,
             "R4": 2
         },
-        "resources\\js\\Pages\\Sells\\Show.tsx": {
+        "resources\/js\/Pages\/Sells\/Show.tsx": {
             "R1": 15
         },
-        "resources\\js\\Pages\\Sells\\_components\\CobrancaDrawer.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/CobrancaDrawer.tsx": {
             "R1": 61
         },
-        "resources\\js\\Pages\\Sells\\_components\\CriarOsButton.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/CriarOsButton.tsx": {
             "R1": 1
         },
-        "resources\\js\\Pages\\Sells\\_components\\FiscalSection.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/FiscalSection.tsx": {
             "R1": 40
         },
-        "resources\\js\\Pages\\Sells\\_components\\FsmActionPanel.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/FsmActionPanel.tsx": {
             "R1": 42
         },
-        "resources\\js\\Pages\\Sells\\_components\\QuickPaymentDialog.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/QuickPaymentDialog.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Sells\\_components\\QuickPaymentPopover.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/QuickPaymentPopover.tsx": {
             "R1": 6
         },
-        "resources\\js\\Pages\\Sells\\_components\\SaleAiPanel.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/SaleAiPanel.tsx": {
             "R3": 3
         },
-        "resources\\js\\Pages\\Sells\\_components\\SaleItemComments.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/SaleItemComments.tsx": {
             "R3": 1
         },
-        "resources\\js\\Pages\\Sells\\_components\\SaleMessagePreview.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/SaleMessagePreview.tsx": {
             "R3": 1
         },
-        "resources\\js\\Pages\\Sells\\_components\\SaleSheet.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/SaleSheet.tsx": {
             "R1": 53
         },
-        "resources\\js\\Pages\\Sells\\_components\\SaleTimeline.tsx": {
+        "resources\/js\/Pages\/Sells\/_components\/SaleTimeline.tsx": {
             "R1": 44
         },
-        "resources\\js\\Pages\\Settings\\PaymentGateways\\Index.tsx": {
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/Index.tsx": {
             "R1": 41
         },
-        "resources\\js\\Pages\\Settings\\PaymentGateways\\_components\\atoms-settings.tsx": {
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/_components\/atoms-settings.tsx": {
             "R1": 16
         },
-        "resources\\js\\Pages\\Settings\\PaymentGateways\\_components\\CheatSheetSettings.tsx": {
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/_components\/CheatSheetSettings.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\Settings\\PaymentGateways\\_components\\ConfirmToggleModal.tsx": {
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/_components\/ConfirmToggleModal.tsx": {
             "R1": 20
         },
-        "resources\\js\\Pages\\Settings\\PaymentGateways\\_components\\DrawerGateway.tsx": {
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/_components\/DrawerGateway.tsx": {
             "R1": 116
         },
-        "resources\\js\\Pages\\Settings\\PaymentGateways\\_components\\SheetNovoGateway.tsx": {
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/_components\/SheetNovoGateway.tsx": {
             "R1": 105,
             "R3": 1
         },
-        "resources\\js\\Pages\\Site\\Pricing.tsx": {
+        "resources\/js\/Pages\/Site\/Pricing.tsx": {
             "R1": 2,
             "R3": 3
         },
-        "resources\\js\\Pages\\StockAdjustment\\Create.tsx": {
+        "resources\/js\/Pages\/StockAdjustment\/Create.tsx": {
             "R1": 31
         },
-        "resources\\js\\Pages\\StockAdjustment\\Index.tsx": {
+        "resources\/js\/Pages\/StockAdjustment\/Index.tsx": {
             "R1": 22,
             "R4": 1
         },
-        "resources\\js\\Pages\\StockTransfer\\Create.tsx": {
+        "resources\/js\/Pages\/StockTransfer\/Create.tsx": {
             "R1": 33
         },
-        "resources\\js\\Pages\\StockTransfer\\Index.tsx": {
+        "resources\/js\/Pages\/StockTransfer\/Index.tsx": {
             "R1": 29,
             "R4": 1
         },
-        "resources\\js\\Pages\\superadmin\\Usuario360\\Show.tsx": {
+        "resources\/js\/Pages\/superadmin\/Usuario360\/Show.tsx": {
             "R1": 20,
             "R3": 9
         },
-        "resources\\js\\Pages\\Tarefas\\Index.tsx": {
+        "resources\/js\/Pages\/Tarefas\/Index.tsx": {
             "R4": 2
         },
-        "resources\\js\\Pages\\team-mcp\\CcSessions\\Index.tsx": {
+        "resources\/js\/Pages\/team-mcp\/CcSessions\/Index.tsx": {
             "R1": 52,
             "R3": 2
         },
-        "resources\\js\\Pages\\team-mcp\\Tasks\\Index.tsx": {
+        "resources\/js\/Pages\/team-mcp\/Tasks\/Index.tsx": {
             "R1": 34
         },
-        "resources\\js\\Pages\\team-mcp\\Team\\Index.tsx": {
+        "resources\/js\/Pages\/team-mcp\/Team\/Index.tsx": {
             "R1": 12,
             "R3": 4
         },
-        "resources\\js\\Pages\\TransactionPayment\\Edit.tsx": {
+        "resources\/js\/Pages\/TransactionPayment\/Edit.tsx": {
             "R1": 3
         },
-        "resources\\js\\Pages\\TransactionPayment\\Index.tsx": {
+        "resources\/js\/Pages\/TransactionPayment\/Index.tsx": {
             "R1": 12,
             "R4": 2
         },
-        "resources\\js\\Pages\\Whatsapp\\Templates\\Index.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/Templates\/Index.tsx": {
             "R1": 66
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\ContactPickerModal.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/ContactPickerModal.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\ConversationList.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/ConversationList.tsx": {
             "R1": 18
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\ConversationSidebar.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/ConversationSidebar.tsx": {
             "R1": 110
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\ConversationThread.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/ConversationThread.tsx": {
             "R1": 112
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\CustomerMemoryBlock.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/CustomerMemoryBlock.tsx": {
             "R1": 13
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\InteractiveMessageDialog.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/InteractiveMessageDialog.tsx": {
             "R1": 4
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\MicRecorder.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/MicRecorder.tsx": {
             "R1": 17
         },
-        "resources\\js\\Pages\\Whatsapp\\_components\\TemplatePicker.tsx": {
+        "resources\/js\/Pages\/Whatsapp\/_components\/TemplatePicker.tsx": {
             "R1": 8
         },
-        "resources\\js\\Pages\\_Showcase\\Components.tsx": {
+        "resources\/js\/Pages\/_Showcase\/Components.tsx": {
             "R1": 2
         }
     }

@@ -216,9 +216,11 @@ class UiLintCommand extends Command
         $abs = base_path($filename);
 
         // Group: file → rule → count
+        // PATH NORMALIZATION: gravar paths sempre com forward-slash pra cross-platform
+        // (Windows gera `\`, Linux/CI gera `/` · sem normalização baseline não bate em CI).
         $grouped = [];
         foreach ($violations as $v) {
-            $key = $v['file'];
+            $key = $this->normalizePath($v['file']);
             $grouped[$key][$v['rule']] = ($grouped[$key][$v['rule']] ?? 0) + 1;
         }
 
@@ -607,9 +609,12 @@ class UiLintCommand extends Command
     private function reportRatchet(array $violations, int $filesScanned, bool $strict, bool $detail, array $baseline): int
     {
         // Current: file → rule → count
+        // PATH NORMALIZATION: força forward-slash pra match com baseline gravado
+        // cross-platform (Windows local vs Linux CI).
         $current = [];
         foreach ($violations as $v) {
-            $current[$v['file']][$v['rule']] = ($current[$v['file']][$v['rule']] ?? 0) + 1;
+            $file = $this->normalizePath($v['file']);
+            $current[$file][$v['rule']] = ($current[$file][$v['rule']] ?? 0) + 1;
         }
 
         $regressions = [];
