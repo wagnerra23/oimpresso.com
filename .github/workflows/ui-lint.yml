@@ -1,0 +1,100 @@
+name: UI Lint (Constituição UI v2)
+
+# Onda 2.1 do AUTOMATION-ROADMAP (memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md).
+# Bloqueia PR que introduzir regressão UI vs config/ui-lint-baseline.json.
+#
+# Regras (ADR UI-0013):
+#   R1 cor crua (hex / bg-COR-NNN Tailwind literal em arquivo Page)
+#   R2 FontAwesome (lucide-only · UI-0003)
+#   R3 emoji em UI de produto (use lucide icon)
+#
+# Modo ratchet: só falha se hits AUMENTAREM vs baseline aceito.
+# Comando manual local: php artisan ui:lint --baseline=config/ui-lint-baseline.json --strict
+
+on:
+  push:
+    branches: [main, 6.7-react]
+    paths:
+      - 'resources/js/**'
+      - 'resources/css/**'
+      - 'app/Console/Commands/UiLintCommand.php'
+      - 'config/ui-lint-baseline.json'
+      - '.github/workflows/ui-lint.yml'
+  pull_request:
+    paths:
+      - 'resources/js/**'
+      - 'resources/css/**'
+      - 'app/Console/Commands/UiLintCommand.php'
+      - 'config/ui-lint-baseline.json'
+      - '.github/workflows/ui-lint.yml'
+
+concurrency:
+  group: ui-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-lint:
+    name: UI Lint · ratchet vs baseline
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-ui-lint-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-ui-lint-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare storage dirs + .env mínimo
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-ui-lint
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          EOF
+          php artisan key:generate
+
+      - name: ui:lint ratchet (falha só em regressão vs baseline)
+        run: |
+          php artisan ui:lint \
+            --path=resources/js \
+            --baseline=config/ui-lint-baseline.json \
+            --strict
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ ui:lint detectou REGRESSÃO vs config/ui-lint-baseline.json"
+          echo ""
+          echo "Próximos passos:"
+          echo "  1. Local: php artisan ui:lint --detail · vê quais arquivos regrediram"
+          echo "  2. Refatorar PR pra usar tokens semânticos (--accent, --foreground, etc)"
+          echo "     OU lucide-react ao invés de FontAwesome/emoji"
+          echo "  3. Se regressão intencional/aceita, atualizar baseline em commit separado:"
+          echo "       php artisan ui:lint --write-baseline=config/ui-lint-baseline.json"
+          echo "     (commit + justificativa no PR — vai aparecer no diff do JSON)"
+          echo ""
+          echo "Refs: ADR UI-0013 · PRE-MERGE-UI.md · UI-LINT-USAGE.md"
