@@ -662,7 +662,14 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               {/* ADR 0188 — `all` é leitura agregada (sem CTA "Novo" — Wagner escolhe papel
                   explicitamente). Demais papéis abrem `/contacts/create?type=X` UPOS legacy. */}
               {props.permissions.create && activeType !== 'all' && (
-                <Button asChild>
+                <Button
+                  asChild
+                  style={{
+                    backgroundColor: 'oklch(0.55 0.15 202)',
+                    borderColor: 'oklch(0.45 0.15 202)',
+                    color: 'oklch(0.99 0 0)',
+                  }}
+                >
                   <a href={`/contacts/create?type=${activeType}`}>
                     <Plus className="mr-1.5 h-4 w-4" />
                     Novo {ROLE_TITLE[activeType].singular}
