@@ -604,22 +604,43 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               </p>
             </div>
             <div className="flex-shrink-0 flex items-center gap-2">
-              {props.permissions.import && (
-                <Button asChild variant="outline">
-                  <a href="/contacts/import">
-                    <Upload className="mr-1.5 h-4 w-4" />
-                    Importar
-                  </a>
-                </Button>
-              )}
-              {/* Wave G — Exportar CSV (server-side stream, BOM UTF-8 Excel-BR). */}
-              {props.permissions.view && (
-                <Button asChild variant="outline">
-                  <a href="/cliente/export" title="Baixar CSV de contatos (UTF-8)">
-                    <Download className="mr-1.5 h-4 w-4" />
-                    Exportar
-                  </a>
-                </Button>
+              {/* Wagner 2026-05-24 (sessão pós-merge ADR 0188): Importar/Exportar movidos
+                  pra overflow menu (MoreVertical · 3 pontinhos). Libera espaço pra
+                  CTA primária "Novo X" em destaque. Pattern Linear/Stripe — actions
+                  secundárias em menu dropdown, primária explícita.
+                  PT-01 Slot 1 § DNA Header: Importar/Exportar continuam ações do
+                  PageHeader, mas como secundárias (menu) em vez de outline buttons. */}
+              {(props.permissions.import || props.permissions.view) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label="Mais ações"
+                      title="Mais ações (Importar/Exportar)"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    {props.permissions.import && (
+                      <DropdownMenuItem asChild>
+                        <a href="/contacts/import">
+                          <Upload className="mr-2 h-4 w-4" />
+                          Importar
+                        </a>
+                      </DropdownMenuItem>
+                    )}
+                    {props.permissions.view && (
+                      <DropdownMenuItem asChild>
+                        <a href="/cliente/export" title="Baixar CSV de contatos (UTF-8)">
+                          <Download className="mr-2 h-4 w-4" />
+                          Exportar CSV
+                        </a>
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {/* ADR 0188 — `all` é leitura agregada (sem CTA "Novo" — Wagner escolhe papel
                   explicitamente). Demais papéis abrem `/contacts/create?type=X` UPOS legacy. */}
@@ -689,58 +710,92 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             />
           </Deferred>
 
-          {/* Wave G — 6 dropdowns substituem 4 pills radio (paridade Cowork blueprint).
-              Pills antigas conservam-se aria-label="Filtro de status" como semântica.
-              Cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
-          <nav className="flex items-center gap-2 mt-6 flex-wrap" aria-label="Filtros de cliente">
-            <FilterDropdown
-              label="Status"
-              value={statusFilter}
-              onChange={(v) => setStatusFilter(v as StatusFilter)}
-              options={[
-                { value: 'active', label: 'Ativo (com OS aberta)' },
-                { value: 'late', label: 'Atrasado' },
-                { value: 'idle', label: 'Sem OS' },
-              ]}
-            />
-            <FilterDropdown
-              label="Tipo"
-              value={tipoFilter}
-              onChange={setTipoFilter}
-              options={TIPO_OPTIONS}
-            />
-            <FilterDropdown
-              label="UF"
-              value={ufFilter}
-              onChange={setUfFilter}
-              options={UF_OPTIONS.map((u) => ({ value: u, label: u }))}
-            />
-            <FilterDropdown
-              label="Tags"
-              value={tagsFilter}
-              onChange={(v) => setTagsFilter(v as string[])}
-              options={TAG_OPTIONS.map((t) => ({ value: t, label: t }))}
-              multi
-            />
-            <FilterDropdown
-              label="Sem compra há"
-              value={staleFilter}
-              onChange={setStaleFilter}
-              options={STALE_OPTIONS}
-            />
-            <FilterDropdown
-              label="Saldo"
-              value={saldoFilter}
-              onChange={setSaldoFilter}
-              options={SALDO_OPTIONS}
-            />
-            {/* Contagem inline "X de Y clientes" — Wave G UX paridade Cowork. */}
-            <span className="text-xs text-muted-foreground tabular-nums ml-1">
-              {filteredRows.length === rows.length
-                ? `${rows.length.toLocaleString('pt-BR')} cliente${rows.length !== 1 ? 's' : ''}`
-                : `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')} clientes`}
-            </span>
-          </nav>
+          {/* PT-01 Slot 3 Toolbar (Wagner 2026-05-24 sessão pós-Slot 2): busca + 6
+              filtros + contagem TODOS NA MESMA LINHA. Layout canônico Linear/Stripe:
+              busca à esquerda (flex-1 max-w-md) · filtros à direita (flex-shrink-0
+              gap-2). Wrap controlado (em 1280px Larissa cabe tudo · viewport <1100px
+              wraps graciosamente). PT-01 §62 "saved views · separador · filtros (chips)
+              · busca local" — todos juntos no Slot 3. */}
+          <div className="flex items-center gap-3 mt-6 flex-wrap" aria-label="Filtros e busca de contato">
+            {/* Busca à esquerda — Slot 3 PT-01 (canônico flex-1 com max). */}
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                ref={searchInputRef}
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar nome, CNPJ/CPF, telefone… (/ pra focar · ⌘K global)"
+                className="pl-9 pr-9 h-9"
+                aria-label="Buscar contato"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => setSearchInput('')}
+                  aria-label="Limpar busca"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Filtros combobox à direita — 6 FilterDropdown.
+                Cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
+            <nav
+              className="flex items-center gap-2 flex-wrap flex-shrink-0"
+              aria-label="Filtros de contato"
+            >
+              <FilterDropdown
+                label="Status"
+                value={statusFilter}
+                onChange={(v) => setStatusFilter(v as StatusFilter)}
+                options={[
+                  { value: 'active', label: 'Ativo (com OS aberta)' },
+                  { value: 'late', label: 'Atrasado' },
+                  { value: 'idle', label: 'Sem OS' },
+                ]}
+              />
+              <FilterDropdown
+                label="Tipo"
+                value={tipoFilter}
+                onChange={setTipoFilter}
+                options={TIPO_OPTIONS}
+              />
+              <FilterDropdown
+                label="UF"
+                value={ufFilter}
+                onChange={setUfFilter}
+                options={UF_OPTIONS.map((u) => ({ value: u, label: u }))}
+              />
+              <FilterDropdown
+                label="Tags"
+                value={tagsFilter}
+                onChange={(v) => setTagsFilter(v as string[])}
+                options={TAG_OPTIONS.map((t) => ({ value: t, label: t }))}
+                multi
+              />
+              <FilterDropdown
+                label="Sem compra há"
+                value={staleFilter}
+                onChange={setStaleFilter}
+                options={STALE_OPTIONS}
+              />
+              <FilterDropdown
+                label="Saldo"
+                value={saldoFilter}
+                onChange={setSaldoFilter}
+                options={SALDO_OPTIONS}
+              />
+              {/* Contagem inline "X de Y" — Wave G UX paridade Cowork. */}
+              <span className="text-xs text-muted-foreground tabular-nums ml-1">
+                {filteredRows.length === rows.length
+                  ? `${rows.length.toLocaleString('pt-BR')} ${rows.length !== 1 ? 'registros' : 'registro'}`
+                  : `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')}`}
+              </span>
+            </nav>
+          </div>
 
           {/* Z-2.1 — ActiveChips removíveis (alinhado ao protótipo Cowork). */}
           {(tipoFilter || statusFilter || ufFilter || tagsFilter.length > 0 || staleFilter || saldoFilter) && (
@@ -788,30 +843,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       </div>
 
       <div className="container mx-auto px-8 py-6 max-w-7xl">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              ref={searchInputRef}
-              type="search"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar por nome, CNPJ/CPF, telefone… (/ pra focar · ⌘K busca global)"
-              className="pl-9 pr-9 h-9"
-              aria-label="Buscar cliente"
-            />
-            {searchInput && (
-              <button
-                type="button"
-                onClick={() => setSearchInput('')}
-                aria-label="Limpar busca"
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Busca + filtros: agora vivem no Slot 3 Toolbar do header (uma linha só · PT-01). */}
 
         <Deferred data="customers" fallback={<TableSkeleton />}>
           <div className="rounded-lg border border-border bg-background overflow-hidden">
