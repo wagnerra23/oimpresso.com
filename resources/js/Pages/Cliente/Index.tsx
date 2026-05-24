@@ -67,6 +67,9 @@ import AuditoriaTab from './_drawer/AuditoriaTab';
 import { Avatar as ClienteAvatar } from '@/Components/clientes/Avatar';
 import { ActiveChip } from '@/Components/clientes/ActiveChip';
 import { TipoPill, TagChip, FrescorPill, SaldoCell } from '@/Components/clientes/Pills';
+// PTDP Onda 1 — Bruna greeting + saved views (Cowork chat1).
+import { BrunaGreeting } from '@/Components/clientes/BrunaGreeting';
+import { SavedViews, type SavedView } from '@/Components/clientes/SavedViews';
 
 interface ClienteKpis {
   total: number;
@@ -309,6 +312,30 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [staleFilter, setStaleFilter] = useState<string>('');
   const [saldoFilter, setSaldoFilter] = useState<string>('');
 
+  // PTDP Onda 1 — saved view ativa (`g+1..4` ou clique pill).
+  // `null` = nenhuma view ativa (filtros manuais). Aplicar view substitui filtros.
+  const [activeViewKey, setActiveViewKey] = useState<string | null>(null);
+
+  // PTDP Onda 1 — handler aplicar/desaplicar saved view.
+  // Substitui filtros (não soma). Toggle: clique 2x na mesma desativa.
+  const applySavedView = useCallback((view: SavedView | null) => {
+    if (!view) {
+      setActiveViewKey(null);
+      // Limpa filtros que vieram de saved view (mantém busca/UF/tipo manuais).
+      setStatusFilter('');
+      setTagsFilter([]);
+      setStaleFilter('');
+      setSaldoFilter('');
+      return;
+    }
+    setActiveViewKey(view.key);
+    // Aplicação subsitutiva: limpa filtros conflitantes, aplica os da view.
+    setStatusFilter((view.filters.statusFilter ?? '') as StatusFilter);
+    setTagsFilter(view.filters.tagsFilter ?? []);
+    setStaleFilter(view.filters.staleFilter ?? '');
+    setSaldoFilter(view.filters.saldoFilter ?? '');
+  }, []);
+
   // Wave G — Star pessoal localStorage (per-user per-browser).
   const { toggle: toggleFav, isFav } = useFavoritos();
 
@@ -518,6 +545,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               )}
             </div>
           </div>
+
+          {/* PTDP Onda 1 — Bruna greeting (mockado · próxima onda puxa de TaskProvider/Crm). */}
+          <BrunaGreeting />
+
+          {/* PTDP Onda 1 — Saved views fixas + atalho `g + 1..4`. */}
+          <SavedViews activeKey={activeViewKey} onApply={applySavedView} />
 
           <Deferred data="kpis" fallback={<KpiSkeleton />}>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
