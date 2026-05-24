@@ -73,6 +73,9 @@ jobs:
           QUEUE_CONNECTION=sync
           SESSION_DRIVER=array
           MAIL_MAILER=array
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          BCRYPT_ROUNDS=4
           EOF
           php artisan key:generate
 
