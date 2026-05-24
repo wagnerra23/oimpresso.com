@@ -1,5 +1,28 @@
 # Changelog · Design System
 
+## [0.6.2] - 2026-05-24 · AUTOMATION-ROADMAP planejado (4 ondas · 30→90%)
+
+### Added
+
+- **[AUTOMATION-ROADMAP.md](AUTOMATION-ROADMAP.md)**: plano executável de 4 ondas pra subir enforcement da Constituição UI v2 de **~30% automatizado** (hoje) pra **~90%** (alvo).
+  - **Onda 1** (1h30 · sobe 30→50%): skill `constituicao-ui-aware` Tier A + artisan `php artisan ui:lint` esqueleto com 3 regras (cor crua, FontAwesome, emoji UI)
+  - **Onda 2** (2-3h · sobe 50→75%): GitHub Actions `ui-lint.yml` + hook pre-commit + regras PT-01 + "não introduzir 6ª origin"
+  - **Onda 3** (4-6h · sobe 75→85%): webhook GitHub → MCP-notif + visual regression (Playwright/Percy)
+  - **Onda 4** (1-2d · sobe 85→90%): agente CI `pr-ui-judge` (LLM Brain B Sonnet ~$3/mês a 100 PRs)
+- Critério de start explícito por onda (não cronograma — sinal real, e.g. "primeira regressão de cor crua aparece")
+- 10-20% sempre humano declarado (palpite estético · desempate ADR · voice&tone · Larissa-fit)
+
+### Status
+
+- Plano: **planejado · zero ondas executadas**
+- Quando: sob demanda · ondas independentes · cada uma vira PR isolado
+- Wagner decide ordem · pode pular ondas se sinal não justificar (Onda 3 depende time MCP >3 ativos)
+
+### Não regrediu
+
+- Nenhum código de produção tocado nesta entrega
+- ADRs UI-0013 + UI-0014 + ADR 0187 + PT-01 + PRE-MERGE-UI permanecem vigentes
+
 ## [0.6.1] - 2026-05-24 · Wagner aprova v2 + desempate sidebar (opção A · light mantido)
 
 ### Changed
