@@ -55,6 +55,8 @@ class UiLintCommand extends Command
         'R1' => 'cor crua (hex literal ou bg-COR-NNN em Page)',
         'R2' => 'FontAwesome (lucide-only · ADR UI-0003)',
         'R3' => 'emoji em UI de produto (use lucide icon)',
+        'R4' => 'PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable shared',
+        'R5' => 'origens canon · CSS define apenas 5 origins (OS/CRM/FIN/PNT/MFG)',
     ];
 
     /**
@@ -145,6 +147,14 @@ class UiLintCommand extends Command
             if ($this->ruleEnabled('R3', $ruleFilter)) {
                 $violations = [...$violations, ...$this->checkR3($relPath, $content)];
             }
+            if ($this->ruleEnabled('R4', $ruleFilter)) {
+                $violations = [...$violations, ...$this->checkR4($relPath, $content)];
+            }
+        }
+
+        // R5 — origens canon CSS (escaneia 1 vez, não por arquivo .tsx)
+        if ($this->ruleEnabled('R5', $ruleFilter)) {
+            $violations = [...$violations, ...$this->checkR5()];
         }
 
         // --write-baseline: grava estado atual como baseline aceito
@@ -384,6 +394,138 @@ class UiLintCommand extends Command
                 'match' => $char,
                 'detail' => 'Emoji em UI · use lucide icon (Constituição UI v2 · sem emoji em produto)',
             ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * R4 · PT-01 Lista · arquivos `Pages/<X>/Index.tsx` devem importar PageHeader
+     * (Slot 1) e DataTable shared (Slot 5). Componentes shared ficam em
+     * `@/Components/shared/` — import path tem que aparecer no source.
+     *
+     * Detecta apenas Index.tsx (não Show/Edit/Create/etc — esses são outros PTs).
+     * Não roda se arquivo não está em Pages/ direto (ex: nested _drawer, _form).
+     *
+     * @return array<int, array{rule:string, file:string, line:int, match:string, detail:string}>
+     */
+    private function checkR4(string $relPath, string $content): array
+    {
+        $out = [];
+        $normalized = $this->normalizePath($relPath);
+
+        // Apenas Pages/<X>/Index.tsx (não nested _drawer/_form/_show)
+        if (! preg_match('#^resources/js/Pages/[^/]+/Index\.tsx$#', $normalized)) {
+            return $out;
+        }
+
+        // Permite alguns Index.tsx sem PT-01 (módulos que não são lista):
+        // - Pages/Home/Index.tsx (dashboard, PT-04 futuro)
+        // - Pages/Jana/Index.tsx (chat, custom)
+        $skipPaths = [
+            'resources/js/Pages/Home/Index.tsx',
+            'resources/js/Pages/Jana/Index.tsx',
+            'resources/js/Pages/Settings/Index.tsx',
+            'resources/js/Pages/Modules/Index.tsx',
+        ];
+        if (in_array($normalized, $skipPaths, true)) {
+            return $out;
+        }
+
+        $hasPageHeader = $this->hasSharedImport($content, 'PageHeader')
+            || str_contains($content, '<PageHeader');
+        $hasDataTable = $this->hasSharedImport($content, 'DataTable')
+            || str_contains($content, '<DataTable');
+
+        if (! $hasPageHeader) {
+            $out[] = [
+                'rule' => 'R4',
+                'file' => $relPath,
+                'line' => 1,
+                'match' => 'no <PageHeader>',
+                'detail' => 'PT-01 Slot 1 ausente · Index.tsx tem que importar PageHeader (Components/shared)',
+            ];
+        }
+        if (! $hasDataTable) {
+            $out[] = [
+                'rule' => 'R4',
+                'file' => $relPath,
+                'line' => 1,
+                'match' => 'no <DataTable>',
+                'detail' => 'PT-01 Slot 5 ausente · Index.tsx tem que importar DataTable (Components/shared) OU justificar via .charter.md',
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Helper · verifica se arquivo importa componente do shared.
+     * Aceita variantes:
+     *   - `import { PageHeader } from '@/Components/shared/...'`
+     *   - `import { PageHeader } from "@/Components/shared/PageHeader"`
+     *   - `import PageHeader from '...'`
+     */
+    private function hasSharedImport(string $content, string $component): bool
+    {
+        $patterns = [
+            '/import\s+\{[^}]*\b'.preg_quote($component, '/').'\b[^}]*\}\s+from\s+[\'"]@\/Components\/shared/',
+            '/import\s+'.preg_quote($component, '/').'\s+from\s+[\'"]@\/Components\/shared/',
+        ];
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $content)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * R5 · CSS canon (`resources/css/cockpit.css` + `inertia.css`) define
+     * apenas 5 origins canônicas: OS, CRM, FIN, PNT, MFG. Qualquer `--origin-<X>-`
+     * com X diferente disso é violação.
+     *
+     * @return array<int, array{rule:string, file:string, line:int, match:string, detail:string}>
+     */
+    private function checkR5(): array
+    {
+        $out = [];
+        $expected = ['OS', 'CRM', 'FIN', 'PNT', 'MFG'];
+        $cssFiles = [
+            'resources/css/cockpit.css',
+            'resources/css/inertia.css',
+        ];
+
+        foreach ($cssFiles as $cssPath) {
+            $abs = base_path($cssPath);
+            if (! is_file($abs)) {
+                continue;
+            }
+
+            $content = file_get_contents($abs);
+            $lines = explode("\n", $content);
+
+            foreach ($lines as $i => $line) {
+                // Procura --origin-<X>-bg ou --origin-<X>-fg ou --origin-<X>-border
+                if (preg_match_all('/--origin-([A-Z0-9_]+)-(bg|fg|border|soft)\b/', $line, $matches)) {
+                    foreach ($matches[1] as $idx => $origin) {
+                        if (! in_array($origin, $expected, true)) {
+                            $out[] = [
+                                'rule' => 'R5',
+                                'file' => $cssPath,
+                                'line' => $i + 1,
+                                'match' => '--origin-'.$origin.'-'.$matches[2][$idx],
+                                'detail' => sprintf(
+                                    'Origin "%s" fora do canon · permitidos: %s',
+                                    $origin,
+                                    implode(', ', $expected)
+                                ),
+                            ];
+                        }
+                    }
+                }
+            }
         }
 
         return $out;
