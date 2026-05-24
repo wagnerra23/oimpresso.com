@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-23
-module: NfeBrasil
+module: nfebrasil
 quarter: 2026-Q2
 tags: [multi-tenant, fiscal, cert-a1, sefaz, lookup-cnpj, tier-zero, irrevogavel, no-regression]
 supersedes: []
