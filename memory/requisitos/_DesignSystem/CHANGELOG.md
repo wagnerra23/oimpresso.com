@@ -1,5 +1,34 @@
 # Changelog · Design System
 
+## [0.6.3] - 2026-05-24 · Onda 1 executada · skill + ui:lint + baseline
+
+### Added
+
+- **Skill `constituicao-ui-aware` Tier A** ([SKILL.md](../../../.claude/skills/constituicao-ui-aware/SKILL.md)): description-match em Edit/Write em `resources/js/Pages/`, `Components/shared/`, `cockpit.css`, `inertia.css`. Carrega no contexto antes de codar — Hierarquia 4 camadas + regra-mestre + PT aplicável + 8 anti-padrões AP1-AP8. Substitui leitura repetida de UI-0013 + PT-01 + PRE-MERGE-UI a cada sessão.
+- **`app/Console/Commands/UiLintCommand.php`** (`php artisan ui:lint`): 3 regras críticas (R1 cor crua, R2 FontAwesome, R3 emoji UI) + modo `--baseline` ratchet + `--changed-only` pra pre-commit hook + `--write-baseline` pra atualizar estado aceito.
+- **`config/ui-lint-baseline.json`**: snapshot inicial 2026-05-24 — 7280 violações (R1: 6859 · R2: 0 · R3: 119) em 317 arquivos. Modo ratchet só falha em **regressão** vs esse baseline. (Versionado em `config/` porque `/storage/` é gitignored.)
+- **[UI-LINT-USAGE.md](UI-LINT-USAGE.md)**: doc curto de uso do command + workflow CI sugerido (Onda 2) + workflow pre-commit (Onda 2.2).
+
+### Status enforcement automatizado
+
+- Antes Onda 1: ~30% (CLAUDE.md SessionStart + skills Tier A + Module Grades Gate CI)
+- Pós-Onda 1: ~50% (adiciona skill always-on + lint sob demanda local)
+- Próximo (Onda 2 ~2-3h): ~75% (CI lint automático + pre-commit hook + PT-01 + origens lock)
+
+### Validação experimental (teste pré-commit)
+
+- R2 (FontAwesome): **0 hits em 408 arquivos** ✓ — projeto já é lucide-only, ADR UI-0003 confirmada na prática
+- R1 (cor crua): 6859 hits — alta, mas é estado atual aceito · refator gradual via baseline ratchet
+- R3 (emoji): 119 hits (de 313 inicial · -62% após excluir ✓ ✗ ⚠ text-style)
+- Modo ratchet validado: baseline 7280 · current 7280 · delta +0 · exit 0 ✓
+
+### Não regrediu
+
+- Nenhum código `resources/js/Pages/` ou `Components/shared/` tocado nesta onda (só leu pra gerar baseline)
+- Nenhum token CSS modificado
+- ADRs UI-0001..UI-0014 permanecem aceitas
+- Skills Tier A existentes (`brief-first`, `mcp-first`, `multi-tenant-patterns`, `commit-discipline`, `mwart-process` v1.2) intactas — `constituicao-ui-aware` é a **5ª** skill Tier A
+
 ## [0.6.2] - 2026-05-24 · AUTOMATION-ROADMAP planejado (4 ondas · 30→90%)
 
 ### Added
