@@ -199,7 +199,9 @@ ACTUAL=$(rg -o "\-\-origin-(\w+)-bg" cockpit.css | sort -u)
 
 ---
 
-## 🌊 Onda 4 — LLM-as-judge (~1-2 dias) · sobe 85→90%
+## 🌊 Onda 4 — LLM-as-judge (~3h entregue · 85→90%) — **EXECUTADA**
+
+> **Entregue 2026-05-24** · scaffold completo com workflow CI default DESLIGADO. Wagner ativa via `vars.PR_UI_JUDGE_ENABLED=true` quando aprovar quota Brain B (~$3/mês a 100 PRs).
 
 ### Item 4.1 · Agente CI `pr-ui-judge`
 
