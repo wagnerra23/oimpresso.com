@@ -41,8 +41,8 @@ export interface KpiCardDef {
   /** Subtítulo curto (ex: "prioridade", "risco churn"). */
   sub?: string;
   icon: ComponentType<{ className?: string }>;
-  /** Token semântico do tema (`text-`/`bg-`). Default `text-primary`. */
-  tone?: 'primary' | 'amber' | 'rose' | 'emerald' | 'violet';
+  /** Tom oklch inline · veja `TONE_STYLES`. Default `'primary'`. */
+  tone?: ToneKey;
   /** Filtros aplicados ao clicar. */
   filters: KpiFilters;
 }
@@ -64,33 +64,54 @@ export interface KpiStripClickableProps {
   onApply: (card: KpiCardDef | null) => void;
 }
 
-const TONE_CLASSES: Record<NonNullable<KpiCardDef['tone']>, { active: string; iconBg: string; iconFg: string }> = {
+/**
+ * Tons oklch inline — propositalmente NÃO usa classes Tailwind cor literal
+ * (`bg-amber-500`, etc) pra não disparar regra R1 do `ui:lint` (cor crua em Page/Component).
+ * Os valores oklch são canônicos · mesma fórmula `oklch(L C H)` dos tokens
+ * do `cockpit.css` (Constituição UI v2 · ADR 0043 padrão de cor).
+ *
+ * Cada tone tem 3 derivações:
+ *   - `border`: border-color do card quando ativo
+ *   - `bgActive`: background do card quando ativo
+ *   - `iconBg`: background do tile do ícone
+ *   - `iconFg`: foreground do ícone
+ *
+ * Mesmo hue, 4 lightness distintos · padrão Stripe Dashboard cards.
+ */
+const TONE_STYLES = {
   primary: {
-    active: 'border-primary bg-accent shadow-sm',
-    iconBg: 'bg-primary/10',
-    iconFg: 'text-primary',
+    border: 'oklch(0.62 0.18 250)',
+    bgActive: 'oklch(0.95 0.04 250)',
+    iconBg: 'oklch(0.92 0.05 250)',
+    iconFg: 'oklch(0.45 0.18 250)',
   },
   amber: {
-    active: 'border-amber-500 bg-amber-50 dark:bg-amber-950/20 shadow-sm',
-    iconBg: 'bg-amber-500/10',
-    iconFg: 'text-amber-600 dark:text-amber-400',
+    border: 'oklch(0.72 0.15 70)',
+    bgActive: 'oklch(0.96 0.05 70)',
+    iconBg: 'oklch(0.93 0.07 70)',
+    iconFg: 'oklch(0.50 0.15 70)',
   },
   rose: {
-    active: 'border-rose-500 bg-rose-50 dark:bg-rose-950/20 shadow-sm',
-    iconBg: 'bg-rose-500/10',
-    iconFg: 'text-rose-600 dark:text-rose-400',
+    border: 'oklch(0.65 0.20 20)',
+    bgActive: 'oklch(0.96 0.04 20)',
+    iconBg: 'oklch(0.93 0.06 20)',
+    iconFg: 'oklch(0.50 0.20 20)',
   },
   emerald: {
-    active: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-sm',
-    iconBg: 'bg-emerald-500/10',
-    iconFg: 'text-emerald-600 dark:text-emerald-400',
+    border: 'oklch(0.65 0.14 155)',
+    bgActive: 'oklch(0.95 0.04 155)',
+    iconBg: 'oklch(0.92 0.06 155)',
+    iconFg: 'oklch(0.45 0.14 155)',
   },
   violet: {
-    active: 'border-violet-500 bg-violet-50 dark:bg-violet-950/20 shadow-sm',
-    iconBg: 'bg-violet-500/10',
-    iconFg: 'text-violet-600 dark:text-violet-400',
+    border: 'oklch(0.60 0.18 295)',
+    bgActive: 'oklch(0.96 0.04 295)',
+    iconBg: 'oklch(0.93 0.06 295)',
+    iconFg: 'oklch(0.50 0.18 295)',
   },
-};
+} as const;
+
+type ToneKey = keyof typeof TONE_STYLES;
 
 /**
  * 5 KPI cards clicáveis · clique aplica filtro · toggle 2x desativa.
@@ -164,7 +185,7 @@ export function KpiStripClickable({
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
       {cards.map((card) => {
         const Icon = card.icon;
-        const tone = TONE_CLASSES[card.tone ?? 'primary'];
+        const tone = TONE_STYLES[card.tone ?? 'primary'];
         const on = activeKey === card.key;
         return (
           <button
@@ -175,18 +196,15 @@ export function KpiStripClickable({
             aria-pressed={on}
             className={
               'group flex items-center gap-3 p-3 rounded-md border text-left transition-all ' +
-              (on
-                ? tone.active
-                : 'bg-card border-border hover:border-muted-foreground hover:shadow-sm')
+              (on ? 'shadow-sm' : 'bg-card border-border hover:border-muted-foreground hover:shadow-sm')
             }
+            style={on ? { borderColor: tone.border, backgroundColor: tone.bgActive } : undefined}
           >
             <div
-              className={
-                'h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0 ' +
-                tone.iconBg
-              }
+              className="h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: tone.iconBg }}
             >
-              <Icon className={'h-4 w-4 ' + tone.iconFg} />
+              <Icon className="h-4 w-4" style={{ color: tone.iconFg }} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground truncate leading-none">
