@@ -1,5 +1,50 @@
 # Changelog · Design System
 
+## [0.6.6] - 2026-05-24 · Onda 4 executada · pr-ui-judge agent + workflow scaffold
+
+### Added
+
+- **`Modules/Jana/Ai/Agents/PrUiJudgeAgent.php`**: agente Laravel/AI usando Anthropic Claude Sonnet 4.5. System prompt carrega Constituição UI v2 completa (hierarquia 4 camadas + regra-mestre + PT-01 + 8 anti-padrões + 5 origins canon + sidebar light decision). Retorna JSON estrito com score 0-100 + 9 dimensões + violações estruturais + sugestões.
+- **`app/Console/Commands/UiJudgePrCommand.php`** (`php artisan ui:judge-pr {pr_number}`): orquestra `gh pr view/diff/comment` + PrUiJudgeAgent + parse JSON + render console + post comment opcional. Opções: `--post-comment`, `--strict` (exit 1 em request_changes), `--save-to`, `--repo`.
+- **`.github/workflows/pr-ui-judge.yml`**: CI workflow opt-in via repo variable `PR_UI_JUDGE_ENABLED=true` (default DESLIGADO · proteção contra custo Brain B inadvertido). Trigger em PR opened/synchronize/reopened tocando UI. `workflow_dispatch` permite invocar manual em PR específico com `--strict` opcional. Upload artifact JSON 30d.
+- **`.claude/skills/pr-ui-judge-manual/SKILL.md`** Tier C: skill description-match em "/pr-ui-judge", "avaliar PR contra v2", "score UI do PR". Documenta comando + 9 dimensões + custo + pegadinhas + quando NÃO usar.
+
+### Custo Brain B
+
+- ~$0.034/PR primeiro do dia (Claude Sonnet 4.5 · ~10k input + ~1k output)
+- ~$0.005/PR após (prompt caching ~85% reuse)
+- ~$3/mês a 100 PRs/mês
+
+### Status enforcement automatizado
+
+- Antes Onda 4: ~85%
+- Pós-Onda 4: ~90% (limite teórico · ~10% restante é palpite estético sempre humano)
+- Wagner ativa via `vars.PR_UI_JUDGE_ENABLED=true` quando aprovar quota Brain B
+
+### Cobertura grep-invisível
+
+Judge LLM detecta o que `ui:lint` (sintático) NÃO vê:
+- Drawer modal sobre modal
+- Slot reinventado com `<div>` custom mesmo importando shared
+- Layout violando PT-01 em essência (componentes corretos · uso fora do slot)
+- Copy semântica errada (ex: "Salvar" em inglês como `<button>Save</button>`)
+- Atalho duplicado (e.g. 2 telas usando `J` pra ações diferentes)
+- Acessibilidade básica (labels, aria-* faltando)
+
+### Não regrediu
+
+- Nenhum código de produção modificado
+- Workflows existentes intactos
+- Quota Brain B NÃO ativada (`PR_UI_JUDGE_ENABLED` não setado · workflow inativo)
+
+### Próximo passo Wagner (ativar judge)
+
+1. Decidir quota Brain B (~$3/mês a 100 PRs)
+2. GitHub Repo → Settings → Variables → adicionar `PR_UI_JUDGE_ENABLED=true`
+3. Validar `ANTHROPIC_API_KEY` secret existe (provavelmente já)
+4. Testar workflow_dispatch manual em 1 PR antes de ativar em todos
+5. Monitorar `storage/pr-ui-judge-*.json` artifacts pra calibrar prompt
+
 ## [0.6.5] - 2026-05-24 · Onda 3 executada · ui-canon-notify workflow
 
 ### Added
