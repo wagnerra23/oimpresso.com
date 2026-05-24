@@ -48,4 +48,29 @@ if [ $EXIT_CODE -ne 0 ]; then
     fi
 fi
 
+# ── UI Lint (Onda 2.2 AUTOMATION-ROADMAP · Constituição UI v2 · ADR UI-0013) ──
+# Roda ui:lint --changed-only só se PHP disponível e baseline existe.
+# Strict bloqueia em regressão. Default: warning.
+if [ -f "config/ui-lint-baseline.json" ]; then
+    UI_STRICT=""
+    if [ "${OIMPRESSO_UI_LINT_STRICT:-0}" = "1" ]; then
+        UI_STRICT="--strict"
+    fi
+
+    "$PHP_BIN" artisan ui:lint \
+        --changed-only \
+        --baseline=config/ui-lint-baseline.json \
+        $UI_STRICT 2>/dev/null
+
+    UI_EXIT=$?
+    if [ $UI_EXIT -ne 0 ] && [ "${OIMPRESSO_UI_LINT_STRICT:-0}" = "1" ]; then
+        echo ""
+        echo "UI LINT: regressão UI detectada em modo strict — commit BLOQUEADO."
+        echo "Use 'php artisan ui:lint --detail' pra ver detalhes."
+        echo "Refs: ADR UI-0013 · UI-LINT-USAGE.md · PRE-MERGE-UI.md"
+        echo "Pra forçar (último caso): git commit --no-verify"
+        exit 1
+    fi
+fi
+
 exit 0

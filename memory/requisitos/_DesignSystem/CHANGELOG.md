@@ -1,5 +1,39 @@
 # Changelog · Design System
 
+## [0.6.4] - 2026-05-24 · Onda 2 executada · CI gate + pre-commit hook + R4/R5
+
+### Added
+
+- **`.github/workflows/ui-lint.yml`**: CI gate · dispara em PRs que tocam `resources/js/`, `resources/css/`, `app/Console/Commands/UiLintCommand.php`, `config/ui-lint-baseline.json`. Roda `ui:lint --baseline --strict` · falha PR em regressão. Step "Diagnóstico em caso de falha" mostra próximos passos.
+- **`.githooks/pre-commit`** apendado: bloco `ui:lint --changed-only --baseline=...` opt-in via `OIMPRESSO_UI_LINT_STRICT=1`. Default = warning. Pular emergência: `git commit --no-verify`.
+- **Regra R4 PT-01** em `UiLintCommand`: detecta `Pages/<X>/Index.tsx` sem `<PageHeader>` (Slot 1) OU sem `<DataTable>` (Slot 5) shared. **27 hits em 17 arquivos** detectados (Sells/Cliente/Compras/Repair/etc usam `<h1>` próprio ao invés de shared). Excluded: Home/Jana/Settings/Modules (não-PT-01).
+- **Regra R5 origens canon** em `UiLintCommand`: scaneia `cockpit.css` + `inertia.css` por `--origin-<X>-(bg|fg|border|soft)` · permite só OS/CRM/FIN/PNT/MFG. **0 hits** — confirmação que projeto respeita 5 origins canon, rejeita 11 hues da v2 externa.
+
+### Status enforcement automatizado
+
+- Antes Onda 2: ~50% (skill always-on + lint sob demanda local)
+- Pós-Onda 2: ~75% (CI gate em PR + pre-commit hook + R4/R5 estrutural)
+- Próximo (Onda 3 ~4-6h · sob demanda time MCP >3 ativos): ~85% (webhook MCP-notif + visual regression)
+
+### Baseline atualizado
+
+- 7280 → 7307 (+27 R4 hits, R5 = 0)
+- Snapshot em `config/ui-lint-baseline.json`
+- Modo ratchet validado: delta +0 · exit 0 ✓
+
+### Sinais positivos (oimpresso já respeita parte da v2)
+
+- **R2 FontAwesome:** 0 hits em 408 arquivos · projeto 100% lucide-only ✓ (UI-0003 confirmada)
+- **R5 5 origins:** 0 hits · CSS canon respeita decisão Wagner de manter 5 origins ✓
+- **R4 PT-01 Slot 5 DataTable:** ausente em maioria · sinal: padrão emergente é `<table>` direto, não componente shared · próxima evolução PR consolidar `<DataTable>` shared ou aceitar como justificável
+
+### Não regrediu
+
+- Nenhum código `resources/js/Pages/` ou `Components/shared/` modificado nesta onda
+- ADRs UI-0001..UI-0014 e ADR 0187 permanecem
+- `.githooks/pre-commit` ganhou bloco apendado · check-scope.php intacto
+- Skill `constituicao-ui-aware` v1.0 intacta (Onda 1)
+
 ## [0.6.3] - 2026-05-24 · Onda 1 executada · skill + ui:lint + baseline
 
 ### Added
