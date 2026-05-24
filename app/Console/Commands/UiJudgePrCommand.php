@@ -235,6 +235,17 @@ class UiJudgePrCommand extends Command
 
     private function runAgent(array $prData, string $diff): ?string
     {
+        // Pre-flight: validar API key antes de fazer HTTP call inútil
+        $apiKey = (string) (config('ai.providers.anthropic.key') ?? env('ANTHROPIC_API_KEY') ?? '');
+        if ($apiKey === '') {
+            $this->error('ANTHROPIC_API_KEY ausente em .env (ou config/ai.php)');
+            $this->line('  Adicionar em .env: ANTHROPIC_API_KEY=sk-ant-...');
+            $this->line('  Pegar key em: https://console.anthropic.com/settings/keys');
+            $this->line('  Depois: php artisan config:clear');
+
+            return null;
+        }
+
         $userPrompt = sprintf(
             "Avalie este PR contra a Constituição UI v2.\n\n## Metadata\nPR #%d · %s\n\n## Descrição\n%s\n\n## Diff UI (.tsx/.jsx/.css)\n```diff\n%s\n```\n\nRetorne JSON estrito conforme schema do system prompt.",
             $prData['number'],
@@ -249,7 +260,20 @@ class UiJudgePrCommand extends Command
 
             return (string) $response;
         } catch (\Throwable $e) {
-            $this->error("PrUiJudgeAgent falhou: {$e->getMessage()}");
+            $msg = $e->getMessage();
+
+            // Diagnóstico amigável pra erros comuns
+            if (str_contains($msg, '401') || str_contains($msg, 'x-api-key') || str_contains($msg, 'authentication')) {
+                $this->error('ANTHROPIC_API_KEY inválida ou expirada (HTTP 401)');
+                $this->line('  Verificar valor em .env · regenerar key em https://console.anthropic.com');
+                $this->line('  Depois: php artisan config:clear');
+            } elseif (str_contains($msg, '429') || str_contains($msg, 'rate_limit')) {
+                $this->error('Rate limit Anthropic (HTTP 429) · aguardar 60s e tentar novamente');
+            } elseif (str_contains($msg, '529') || str_contains($msg, 'overloaded')) {
+                $this->error('Anthropic overloaded (HTTP 529) · tentar novamente em alguns minutos');
+            } else {
+                $this->error("PrUiJudgeAgent falhou: {$msg}");
+            }
 
             return null;
         }

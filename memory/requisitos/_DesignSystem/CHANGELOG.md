@@ -1,5 +1,54 @@
 # Changelog · Design System
 
+## [0.6.7] - 2026-05-24 · Smoke real Onda 1 + Onda 4 + ONBOARDING-TIME-UI
+
+### Smoke testing validado
+
+- **Smoke 1 · `ui:lint` ratchet** ✅ CONFIÁVEL
+  - Regressão sintética (`bg-blue-500 text-red-700` em `Pages/Home/Index.tsx`)
+  - Detecção: Baseline 7307 · Atual 7309 · Delta +2 · exit 1
+  - Reverter: Delta +0 · exit 0
+  - **CI gate L3 confirmado funcional**
+
+- **Smoke 2 · `ui:judge-pr` LLM** ⚠️ SCAFFOLD VALIDADO (falta API key)
+  - PR #1437 (1 arquivo .tsx, 2KB diff)
+  - Command rodou ✓ · gh CLI ✓ · diff filtrado ✓
+  - Falhou em `agent->prompt()`: HTTP 401 — `.env` tem `ANTHROPIC_API_KEY=` declarada SEM VALOR
+  - **Aprimoramento aplicado** (`UiJudgePrCommand.php`): pre-flight check + diagnóstico amigável de 401/429/529
+  - Wagner adiciona `ANTHROPIC_API_KEY=sk-ant-...` no `.env` + `php artisan config:clear` pra ativar
+
+### Added
+
+- **[ONBOARDING-TIME-UI.md](ONBOARDING-TIME-UI.md)** (NOVO)
+  - Setup obrigatório pra time MCP (3 passos · 5min): `core.hooksPath`, `OIMPRESSO_UI_LINT_STRICT=1`, validar baseline
+  - Uso diário (30s/dia · automático após setup)
+  - Mapa "quando precisar X · vá em Y"
+  - FAQ — sidebar dark/light, cores literal, 5 origins, etc
+  - Sinais de regressão · alerte Wagner
+
+### Updated
+
+- **[UI-LINT-USAGE.md](UI-LINT-USAGE.md)**: seção "Smoke tests validados (2026-05-24)" com resultados reais + instruções `.env` setup
+- **`app/Console/Commands/UiJudgePrCommand.php`**: pre-flight check ANTHROPIC_API_KEY + diagnóstico amigável de HTTP 401/429/529
+
+### Honest assessment pós-smoke
+
+- L1 Skill: ~70% efetivo (description-match falha em casos não-óbvios)
+- L2 Pre-commit: 5/10 hoje · 9/10 se time seguir onboarding · 0/10 se não seguir
+- **L3 CI lint sintático: 9/10** (validado real · single source of truth)
+- L4 LLM judge: **scaffold sólido** · 7/10 quando API key configurada · não-testado em produção
+- L5 Visual regression: 2/10 (INFRA-ONLY mode)
+- L6 MCP indexação: 7/10 (cobre ADR 0187 ponteiro · talvez fure em `_DesignSystem/adr/ui/`)
+- L7 Push notif: 4/10 (workflow pronto · sem receptor)
+
+**Nota agregada honesta:** ~6,5/10 efetivo · não 90% (limite teórico).
+
+### Não regrediu
+
+- Nenhum código de produção .tsx/.css modificado
+- ADRs UI-0001..UI-0014 + 0187 permanecem
+- Skills + workflows existentes intactos
+
 ## [0.6.6] - 2026-05-24 · Onda 4 executada · pr-ui-judge agent + workflow scaffold
 
 ### Added
