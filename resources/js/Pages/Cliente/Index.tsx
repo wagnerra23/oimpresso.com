@@ -67,9 +67,6 @@ import AuditoriaTab from './_drawer/AuditoriaTab';
 import { Avatar as ClienteAvatar } from '@/Components/clientes/Avatar';
 import { ActiveChip } from '@/Components/clientes/ActiveChip';
 import { TipoPill, TagChip, FrescorPill, SaldoCell } from '@/Components/clientes/Pills';
-// PTDP Onda 1 — Bruna greeting + saved views (Cowork chat1).
-import { BrunaGreeting } from '@/Components/clientes/BrunaGreeting';
-import { SavedViews, type SavedView } from '@/Components/clientes/SavedViews';
 // PTDP Onda 2 — KPI strip clicável (5 cards-filtro · substitui 4 KpiCard estáticos).
 import {
   KpiStripClickable,
@@ -318,40 +315,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [staleFilter, setStaleFilter] = useState<string>('');
   const [saldoFilter, setSaldoFilter] = useState<string>('');
 
-  // PTDP Onda 1 — saved view ativa (`g+1..4` ou clique pill).
-  // `null` = nenhuma view ativa (filtros manuais). Aplicar view substitui filtros.
-  const [activeViewKey, setActiveViewKey] = useState<string | null>(null);
-
   // PTDP Onda 2 — KPI strip clicável (5 cards-filtro).
   // Filtros adicionais (não cobertos pelos 6 FilterDropdown): novos do mês.
   const [activeKpiKey, setActiveKpiKey] = useState<KpiKey | null>(null);
   const [recentMonthFilter, setRecentMonthFilter] = useState(false);
 
-  // PTDP Onda 1 — handler aplicar/desaplicar saved view.
-  // Substitui filtros (não soma). Toggle: clique 2x na mesma desativa.
-  const applySavedView = useCallback((view: SavedView | null) => {
-    if (!view) {
-      setActiveViewKey(null);
-      // Limpa filtros que vieram de saved view (mantém busca/UF/tipo manuais).
-      setStatusFilter('');
-      setTagsFilter([]);
-      setStaleFilter('');
-      setSaldoFilter('');
-      return;
-    }
-    setActiveViewKey(view.key);
-    // Aplicação subsitutiva: limpa filtros conflitantes, aplica os da view.
-    setStatusFilter((view.filters.statusFilter ?? '') as StatusFilter);
-    setTagsFilter(view.filters.tagsFilter ?? []);
-    setStaleFilter(view.filters.staleFilter ?? '');
-    setSaldoFilter(view.filters.saldoFilter ?? '');
-    // KPI mutuamente exclusivo (clica saved view = limpa kpi card ativo).
-    setActiveKpiKey(null);
-    setRecentMonthFilter(false);
-  }, []);
-
   // PTDP Onda 2 — handler aplicar/desaplicar KPI card.
-  // Mutuamente exclusivo com saved views (clicar KPI desativa view ativa).
   const applyKpiCard = useCallback((card: KpiCardDef | null) => {
     if (!card) {
       setActiveKpiKey(null);
@@ -368,8 +337,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     setStaleFilter(card.filters.staleFilter ?? '');
     setSaldoFilter(card.filters.saldoFilter ?? '');
     setRecentMonthFilter(card.filters.recentMonthFilter ?? false);
-    // Saved view mutuamente exclusivo.
-    setActiveViewKey(null);
   }, []);
 
   // Wave G — Star pessoal localStorage (per-user per-browser).
@@ -620,12 +587,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               )}
             </div>
           </div>
-
-          {/* PTDP Onda 1 — Bruna greeting (mockado · próxima onda puxa de TaskProvider/Crm). */}
-          <BrunaGreeting />
-
-          {/* PTDP Onda 1 — Saved views fixas + atalho `g + 1..4`. */}
-          <SavedViews activeKey={activeViewKey} onApply={applySavedView} />
 
           {/* PTDP Onda 2 — KPI strip clicável (5 cards-filtro). Substitui os 4 KpiCard
               estáticos do Wave G. Counts: Ativos + ComSaldo usam `kpis` real do backend;
