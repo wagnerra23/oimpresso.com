@@ -1,13 +1,15 @@
 {
     "_meta": {
-        "generated_at": "2026-05-24T14:41:55-03:00",
+        "generated_at": "2026-05-24T14:53:26-03:00",
         "tool": "ui:lint",
         "files_scanned": 486,
-        "total_violations": 7280,
+        "total_violations": 7307,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
-            "R3": "emoji em UI de produto (use lucide icon)"
+            "R3": "emoji em UI de produto (use lucide icon)",
+            "R4": "PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable shared",
+            "R5": "origens canon · CSS define apenas 5 origins (OS\/CRM\/FIN\/PNT\/MFG)"
         }
     },
     "files": {
@@ -94,7 +96,8 @@
             "R1": 71
         },
         "resources\\js\\Pages\\Admin\\Index.tsx": {
-            "R1": 28
+            "R1": 28,
+            "R4": 1
         },
         "resources\\js\\Pages\\Admin\\RagQualityDashboard.tsx": {
             "R1": 43
@@ -264,7 +267,8 @@
             "R1": 9
         },
         "resources\\js\\Pages\\Auditoria\\Index.tsx": {
-            "R1": 34
+            "R1": 34,
+            "R4": 1
         },
         "resources\\js\\Pages\\Cliente\\Create.tsx": {
             "R1": 1
@@ -276,7 +280,8 @@
             "R1": 16
         },
         "resources\\js\\Pages\\Cliente\\Index.tsx": {
-            "R1": 88
+            "R1": 88,
+            "R4": 2
         },
         "resources\\js\\Pages\\Cliente\\Ledger.tsx": {
             "R1": 10
@@ -355,13 +360,16 @@
             "R1": 4
         },
         "resources\\js\\Pages\\Compras\\Index.tsx": {
-            "R1": 2
+            "R1": 2,
+            "R4": 2
         },
         "resources\\js\\Pages\\ComunicacaoVisual\\Index.tsx": {
-            "R1": 2
+            "R1": 2,
+            "R4": 2
         },
         "resources\\js\\Pages\\ConsultaOs\\Index.tsx": {
-            "R1": 2
+            "R1": 2,
+            "R4": 2
         },
         "resources\\js\\Pages\\Essentials\\Todo\\Index.tsx": {
             "R1": 28
@@ -572,7 +580,8 @@
         },
         "resources\\js\\Pages\\kb\\Index.tsx": {
             "R1": 32,
-            "R3": 6
+            "R3": 6,
+            "R4": 1
         },
         "resources\\js\\Pages\\kb\\_components\\BlockRenderer.tsx": {
             "R1": 18
@@ -602,7 +611,8 @@
             "R1": 8
         },
         "resources\\js\\Pages\\Manufacturing\\Index.tsx": {
-            "R1": 27
+            "R1": 27,
+            "R4": 2
         },
         "resources\\js\\Pages\\MemCofre\\Dashboard.tsx": {
             "R1": 17
@@ -752,7 +762,8 @@
             "R1": 10
         },
         "resources\\js\\Pages\\Produto\\Index.tsx": {
-            "R1": 60
+            "R1": 60,
+            "R4": 2
         },
         "resources\\js\\Pages\\Produto\\SellingPrices.tsx": {
             "R1": 23
@@ -795,7 +806,8 @@
             "R1": 36
         },
         "resources\\js\\Pages\\Purchase\\Index.tsx": {
-            "R1": 40
+            "R1": 40,
+            "R4": 1
         },
         "resources\\js\\Pages\\Purchase\\Show.tsx": {
             "R1": 77
@@ -807,7 +819,8 @@
             "R1": 125
         },
         "resources\\js\\Pages\\RecurringBilling\\Index.tsx": {
-            "R1": 210
+            "R1": 210,
+            "R4": 2
         },
         "resources\\js\\Pages\\RecurringBilling\\Planos\\Create.tsx": {
             "R1": 61
@@ -843,7 +856,8 @@
             "R1": 5
         },
         "resources\\js\\Pages\\Repair\\Index.tsx": {
-            "R1": 21
+            "R1": 21,
+            "R4": 1
         },
         "resources\\js\\Pages\\Repair\\JobSheet\\Index.tsx": {
             "R1": 4
@@ -865,7 +879,8 @@
             "R1": 27
         },
         "resources\\js\\Pages\\Sells\\Index.tsx": {
-            "R3": 1
+            "R3": 1,
+            "R4": 2
         },
         "resources\\js\\Pages\\Sells\\Show.tsx": {
             "R1": 15
@@ -930,17 +945,22 @@
             "R1": 31
         },
         "resources\\js\\Pages\\StockAdjustment\\Index.tsx": {
-            "R1": 22
+            "R1": 22,
+            "R4": 1
         },
         "resources\\js\\Pages\\StockTransfer\\Create.tsx": {
             "R1": 33
         },
         "resources\\js\\Pages\\StockTransfer\\Index.tsx": {
-            "R1": 29
+            "R1": 29,
+            "R4": 1
         },
         "resources\\js\\Pages\\superadmin\\Usuario360\\Show.tsx": {
             "R1": 20,
             "R3": 9
+        },
+        "resources\\js\\Pages\\Tarefas\\Index.tsx": {
+            "R4": 2
         },
         "resources\\js\\Pages\\team-mcp\\CcSessions\\Index.tsx": {
             "R1": 52,
@@ -957,7 +977,8 @@
             "R1": 3
         },
         "resources\\js\\Pages\\TransactionPayment\\Index.tsx": {
-            "R1": 12
+            "R1": 12,
+            "R4": 2
         },
         "resources\\js\\Pages\\Whatsapp\\Templates\\Index.tsx": {
             "R1": 66
