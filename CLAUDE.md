@@ -20,9 +20,10 @@
 1. `brief-fetch` → estado consolidado (~3k tokens) — Tier A always-on via hook `SessionStart`
 2. `my-work` → minhas tasks ativas
 3. (S4+) `charter-fetch <page-id>` antes de editar `.tsx` que tenha `.charter.md` ao lado
-4. Trabalhar (ler código, edit, test)
-5. (S5+) `decide(domain, intent, payload)` se mudança custosa
-6. Commit conventional + `Refs: SPRINT-N PASSO M` (skill `commit-discipline` Tier A)
+4. **Antes de tocar UI** (Pages/Components/css): ler [Constituição UI v2 · ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [PT aplicável](memory/requisitos/_DesignSystem/padroes-tela/) + rodar [PRE-MERGE-UI](memory/requisitos/_DesignSystem/PRE-MERGE-UI.md)
+5. Trabalhar (ler código, edit, test)
+6. (S5+) `decide(domain, intent, payload)` se mudança custosa
+7. Commit conventional + `Refs: SPRINT-N PASSO M` (skill `commit-discipline` Tier A)
 
 @memory/how-trabalhar.md
 
@@ -51,6 +52,14 @@ Princípios duros:
 1. Context as a product · 2. Tiered cost · 3. Charter > Spec · 4. Loop fechado por métrica · 5. SoC brutal · 6. **Multi-tenant Tier 0 IRREVOGÁVEL** · 7. Transparência · 8. Confiabilidade com fallback
 
 Lista completa de ADRs canon via tool MCP `decisions-search` (default: só ativas — convenção lifecycle [ADR 0095](memory/decisions/0095-skills-tiers-convencao-interna.md)).
+
+## Constituição UI v2 (4 camadas · UI-0013)
+
+Documento mãe UI: **[ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)** (accepted 2026-05-24).
+
+Hierarquia: **Fundações** (tokens cor/tipo/espaço · imutável via ADR) → **Shell** (AppShellV2 + PageHeader · 1× pro app) → **Padrão de Tela** ([PT-01 Lista](memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md) · 5-7 templates) → **Módulo** (varia). Camada superior **herda** das inferiores e **nunca contradiz**.
+
+Regra-mestre: pedido vago = agente **pergunta** antes de implementar (skill `wagner-request-refiner` + agente `wagner-understand` operacionalizam). Sidebar permanece light ([UI-0009](memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md) — Wagner-explícito).
 
 ## Proibições (Tier 0 — sem ADR mãe nova é proibido)
 @memory/proibicoes.md
@@ -92,4 +101,6 @@ Se algum falhar → investigar `storage/logs/laravel.log` ALERT entries.
 - Reportar bug: https://github.com/anthropics/claude-code/issues
 
 ---
-**Última atualização:** 2026-05-06 — Constituição v2 ([ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)) aceita. CLAUDE.md reescrito de 289 → ~85 linhas (Anthropic 2026 best-practice).
+**Última atualização:** 2026-05-24 — Constituição UI v2 ([ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) aceita. Adicionado passo 4 protocolo UI + seção Hierarquia UI.
+
+**2026-05-06** — Constituição v2 ([ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)) aceita. CLAUDE.md reescrito de 289 → ~85 linhas (Anthropic 2026 best-practice).

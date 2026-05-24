@@ -1,5 +1,85 @@
 # Changelog · Design System
 
+## [0.6.2] - 2026-05-24 · AUTOMATION-ROADMAP planejado (4 ondas · 30→90%)
+
+### Added
+
+- **[AUTOMATION-ROADMAP.md](AUTOMATION-ROADMAP.md)**: plano executável de 4 ondas pra subir enforcement da Constituição UI v2 de **~30% automatizado** (hoje) pra **~90%** (alvo).
+  - **Onda 1** (1h30 · sobe 30→50%): skill `constituicao-ui-aware` Tier A + artisan `php artisan ui:lint` esqueleto com 3 regras (cor crua, FontAwesome, emoji UI)
+  - **Onda 2** (2-3h · sobe 50→75%): GitHub Actions `ui-lint.yml` + hook pre-commit + regras PT-01 + "não introduzir 6ª origin"
+  - **Onda 3** (4-6h · sobe 75→85%): webhook GitHub → MCP-notif + visual regression (Playwright/Percy)
+  - **Onda 4** (1-2d · sobe 85→90%): agente CI `pr-ui-judge` (LLM Brain B Sonnet ~$3/mês a 100 PRs)
+- Critério de start explícito por onda (não cronograma — sinal real, e.g. "primeira regressão de cor crua aparece")
+- 10-20% sempre humano declarado (palpite estético · desempate ADR · voice&tone · Larissa-fit)
+
+### Status
+
+- Plano: **planejado · zero ondas executadas**
+- Quando: sob demanda · ondas independentes · cada uma vira PR isolado
+- Wagner decide ordem · pode pular ondas se sinal não justificar (Onda 3 depende time MCP >3 ativos)
+
+### Não regrediu
+
+- Nenhum código de produção tocado nesta entrega
+- ADRs UI-0013 + UI-0014 + ADR 0187 + PT-01 + PRE-MERGE-UI permanecem vigentes
+
+## [0.6.1] - 2026-05-24 · Wagner aprova v2 + desempate sidebar (opção A · light mantido)
+
+### Changed
+
+- **ADR UI-0013** status `proposed` → `accepted`. Wagner aprovou explícito ("eu aporvo") em 2026-05-24. Constituição UI v2 oficialmente adotada (hierarquia 4 camadas + regra-mestre + vocabulário + PT-01 + PRE-MERGE-UI).
+- **proposal [sidebar-dark-vs-light](../../decisions/proposals/2026-05-24-sidebar-dark-vs-light.md)** status `discussion` → `decided`. Opção **A** escolhida (manter UI-0009 light). Comando Wagner: *"eu realmente gosto como esta hoje. não gostaria de mudar"*.
+
+### Added
+
+- **ADR UI-0014** [sidebar-light-mantida-v2-parcial](adr/ui/0014-sidebar-light-mantida-v2-parcial.md): formaliza desempate. Constituição UI v2 adotada **integralmente exceto trecho "sidebar dark sempre"**. UI-0009 (sidebar light padrão) confirmada vigente. v2 ADR 0041 externa entra como referência rejeitada. Zero refactor de código — `cockpit.css` intacto.
+
+### Não regrediu
+
+- Nenhum token `--sb-*` movido — UI-0009 segue vigente.
+- Nenhuma página Inertia tocada.
+- UI-0008 (Cockpit layout-mãe) e UI-0009 (sidebar light) **permanecem aceitas** — UI-0014 confirma, não substitui.
+
+### Não fez (intencional)
+
+- Migração 5 origin badges → 11 hues semânticos v2 — sem ADR específica (próxima decisão Wagner se quiser)
+- PT-02..PT-05 — abrem ADR cada um quando ≥2 módulos pedirem
+- Update `CLAUDE.md` raiz citando UI-0013 Tier A — pendente, Wagner pode pedir
+- Voice & tone formalizado · animação tokens — sem dor que justifique ainda
+
+## [0.6.0] - 2026-05-24 · Constituição UI v2 incorporada
+
+### Added
+
+- **ADR UI-0013**: Constituição UI v2 — hierarquia de 4 camadas (Fundações → Shell → Padrão de Tela → Módulo) com princípio "camada superior herda e nunca contradiz". Regra-mestre "não-gastar-tokens-com-pedido-vago" + vocabulário canônico de pedido. Status: `proposed` (aguarda Wagner). Origem: handoff Claude Design 2026-05-24 (sessão chat8 projeto Cowork "Constituição UI v2").
+- **`padroes-tela/PT-01-Lista.md`** (NOVA PASTA `padroes-tela/` + primeiro doc canônico): template de 6 slots (PageHeader, ModuleTopNav, Toolbar, BulkBar, Table, Drawer) com DNA por slot, regras de ouro, estados obrigatórios, atalhos canônicos, snippet pronto. Documenta paridade de 12 telas-lista que JÁ implementam o padrão (Sells/Cliente/Compras/Purchase/Repair/etc) — não introduz mudança visual.
+- **`PRE-MERGE-UI.md`**: checklist obrigatório por camada (1-Fundações/2-Shell/3-PT/4-Módulo/5-Protocolo/6-ADR) antes de PR que toca UI. Anti-padrões AP1-AP8 (cor hardcoded, componente reinventado, localStorage sem prefixo, ícone fora lucide, gradient decorativo, emoji UI, bg-fill status badge, copy não-PT-BR). Sinais de regressão "alerte Wagner, não corrija silenciosamente".
+- **`memory/decisions/proposals/2026-05-24-sidebar-dark-vs-light.md`** (proposal, não ADR ainda): conflito formal entre v2 ADR 0041 (dark sempre) vs UI-0009 vigente (light padrão). 4 opções (A manter light · B adotar dark · C híbrido toggle · D postergar) com recomendação A ou B explícito. Wagner desempata.
+
+### Changed
+
+- **`README.md`** (DS root) — adicionada seção "Hierarquia de 4 camadas" + ponteiros pra UI-0013, PT-01, PRE-MERGE-UI. Índice expandido. Mantém estrutura anterior.
+
+### Não regrediu
+
+- Nenhuma ADR UI-0001..UI-0012 alterada — UI-0013 é **aditiva**.
+- Nenhum token CSS canon (`cockpit.css`, `inertia.css`) tocado nesta entrega.
+- Nenhuma Page Inertia ou Component shared modificado.
+- Sidebar UI-0009 (light) permanece vigente até Wagner decidir proposal.
+
+### Não fez (lacunas explícitas)
+
+- PT-02 Form/Drawer · PT-03 Detalhe · PT-04 Dashboard · PT-05 Config — abrir ADR quando ≥2 módulos pedirem
+- Migração 5 origin badges → 11 hues semânticos da v2 — sem ADR específica
+- Voice & tone formalizado · iconografia stroke sizes · animação tokens — sem dor que justifique
+
+### Skills correlatas (não tocadas, só citadas)
+
+- `mwart-process` (Tier A) — segue válida, ganha referência futura à PT-01
+- `charter-first` (Tier A · dormente S4) — segue válida
+- `wagner-request-refiner` + agente `wagner-understand` — operacionalizam regra-mestre da UI-0013
+- `commit-discipline` (Tier A) — aplicada nesta entrega (1 PR = 1 intent, ≤300 linhas, conventional commits)
+
 ## [0.5.0] - 2026-05-05 (tarde)
 
 ### Added
