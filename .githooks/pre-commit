@@ -15,14 +15,26 @@
 
 set -e
 
-# Procura PHP executável (prioriza Herd no Windows)
+# Procura PHP executável (prioriza Herd no Windows).
+# Nota: usar -f (existe) ao invés de -x (executable) — arquivos .bat no
+# Windows Git Bash não têm bit POSIX executable mesmo rodando via cmd.exe.
 PHP_BIN=""
 if command -v php >/dev/null 2>&1; then
     PHP_BIN="php"
-elif [ -x "/c/Users/$USER/.config/herd/bin/php.bat" ]; then
-    PHP_BIN="/c/Users/$USER/.config/herd/bin/php.bat"
-elif [ -x "$HOME/.config/herd/bin/php.bat" ]; then
+elif [ -f "$HOME/.config/herd/bin/php.bat" ]; then
     PHP_BIN="$HOME/.config/herd/bin/php.bat"
+elif [ -n "$USERNAME" ] && [ -f "/c/Users/$USERNAME/.config/herd/bin/php.bat" ]; then
+    PHP_BIN="/c/Users/$USERNAME/.config/herd/bin/php.bat"
+elif [ -n "$USER" ] && [ -f "/c/Users/$USER/.config/herd/bin/php.bat" ]; then
+    PHP_BIN="/c/Users/$USER/.config/herd/bin/php.bat"
+else
+    # Última tentativa: enumerar /c/Users/*/.config/herd/bin/php.bat
+    for CANDIDATE in /c/Users/*/.config/herd/bin/php.bat; do
+        if [ -f "$CANDIDATE" ]; then
+            PHP_BIN="$CANDIDATE"
+            break
+        fi
+    done
 fi
 
 if [ -z "$PHP_BIN" ]; then
