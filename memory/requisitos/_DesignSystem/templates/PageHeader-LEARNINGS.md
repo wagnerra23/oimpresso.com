@@ -178,6 +178,41 @@ protótipo mas QUEBRARAM em prod por ignorância de contexto.
 5. Resolver counter das tabs via Controller (server-side counts) ou KPI strip já existente
 6. Substituir KpiStripClickable por 4-cards-strip canon v3.1 (ou adaptar)
 
+### Anti-padrão #18 — `rows.filter()` sobre dados já server-side filtered
+
+**O que aconteceu (smoke prod 2026-05-25):**
+- Counter de cada tab mostrava `0` exceto a tab ativa: `Todos 31 · Clientes 0 · Fornec. 0 · Equipe 0 · Repr. 0`
+- Wagner perguntou "tem alguma divergência nas regras?" — não tinha divergência, era bug puro
+- Causa raiz: meu código `tabCounts.customer = rows.filter(r => r.type === 'customer').length`
+- Em prod, `rows` traz APENAS o tipo ativo (filtrado server-side via `?type=X`)
+- Filtrar por outros tipos sobre dados já filtrados retorna 0
+
+**Por que isso é grave:**
+- Bug visível, vergonhoso — 4 zeros do lado de tabs claramente populadas
+- Confundiu o usuário ("achei que os nomes já estavam decididos") — bug visual escondeu bug funcional
+- Eu cataloguei como "bug do counter" no smoke mas não corrigi — Wagner teve que apontar
+
+**Regra dura pra próxima:**
+> Quando frontend precisa de count POR CATEGORIA, e backend filtra POR CATEGORIA,
+> os counts SÓ podem vir do BACKEND (`Inertia::defer` props.tab_counts).
+> NUNCA `rows.filter()` no frontend sobre dados server-side filtered — isso é
+> tentar reconstruir verdade de uma amostra parcial.
+>
+> Sintoma de detecção: se um valor que deveria ser fixo (count global por tipo)
+> muda quando você muda outro filtro (`?type=X`) — é esse bug.
+
+**Como detectar antes:**
+1. Test plan: trocar `?type=customer` → `?type=supplier`; counter "Customer" deve continuar igual
+2. Pest browser test: assert counters batem em 3 views consecutivas
+3. Code review checklist: "Esse `filter()` no frontend opera sobre lista completa OU filtrada?"
+4. Padrão arquitetural: backend devolve TODOS os counts (de uma SQL `COUNT() GROUP BY`), frontend só renderiza
+
+**Fix aplicado:**
+- `ContactController::buildClienteIndexTabCounts(business_id)` — 5 queries COUNT scoped business_id
+- `Inertia::defer(fn () => $this->buildClienteIndexTabCounts(...))` no payload
+- Frontend: `const tabCounts = props.tab_counts ?? {all:0, customer:0, ...}` (fallback enquanto defer carrega)
+- Performance: 5 COUNT queries paralelas via defer · OK com índice `(business_id, is_X)` ou `(business_id, type)`
+
 ---
 
 <!-- Próximas sessões abaixo desta linha. NUNCA editar sessões anteriores. -->

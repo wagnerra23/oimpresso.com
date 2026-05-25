@@ -192,6 +192,13 @@ export interface ClienteIndexPageProps {
   /** ADR 0188 — papel ativo (vindo do `?type=X` URL · backend valida whitelist). */
   activeType?: ContactRoleType;
   kpis: ClienteKpis;
+  /**
+   * ADR 0189 v3.1 + LEARNINGS AP18 (2026-05-25): counter por papel canon do
+   * subnav Zona C. Backend devolve via deferred prop — `undefined` enquanto
+   * carrega. NUNCA recalcular via `rows.filter(r => r.type === X)` — rows
+   * traz só tipo ativo server-side filtered → outros retornariam 0 (bug).
+   */
+  tab_counts?: Record<ContactRoleType, number>;
   customers: {
     data: ClienteRow[];
     meta: ListMeta;
@@ -589,14 +596,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const primarySoft = `oklch(0.96 0.03 ${PRIMARY_HUE})`;
   const primaryTxt  = `oklch(0.35 0.15 ${PRIMARY_HUE})`;
 
-  // Counter por tab — `all` usa total geral, demais usam contagem por tipo (computada client-side).
-  // ADR 0189 v3.1: tabs ABREVIADAS via shortLabel + counter inline.
-  const tabCounts: Record<ContactRoleType, number> = {
+  // ADR 0189 v3.1 + LEARNINGS AP18 (2026-05-25): counter por tab vem do
+  // backend via `props.tab_counts` (deferred). NUNCA via `rows.filter`
+  // porque rows traz só tipo ativo (server-side filtered) → outros
+  // tipos retornariam 0 (bug detectado em prod 2026-05-25).
+  // Fallback {0,0,0,0,0} enquanto deferred carrega.
+  const tabCounts: Record<ContactRoleType, number> = props.tab_counts ?? {
     all:            kpis?.total ?? 0,
-    customer:       rows.filter(r => r.type === 'customer').length,
-    supplier:       rows.filter(r => r.type === 'supplier').length,
-    employee:       rows.filter(r => r.type === 'employee').length,
-    representative: rows.filter(r => r.type === 'representative').length,
+    customer:       0,
+    supplier:       0,
+    employee:       0,
+    representative: 0,
   };
 
   return (
