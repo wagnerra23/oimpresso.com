@@ -1,23 +1,33 @@
 ---
 slug: 0190-primary-button-roxo-universal-295
-number: 0190
+number: 190
 title: "Primary button interno = roxo médio universal oklch(0.55 0.15 295) — hue per grupo APENAS pra agrupamento visual sidebar"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-25
-accepted_at: 2026-05-25
+decided_at: "2026-05-25"
+accepted_at: "2026-05-25"
 accepted_via: "Wagner aprovou em sessão `frosty-greider-83ab2f` 2026-05-25 — comando exato: 'deixe os grupos como estão, internos são 295 roxo médio'"
 module: _DesignSystem
 quarter: 2026-Q2
 tags: [design-system, primary-button, roxo, hue-per-grupo, sidebar, page-header, reconciliacao]
 supersedes: []
-supersedes_partially: [0182, 0189]
-amends: [0182, 0189]
+supersedes_partially:
+  - "0182-pageheadertabs-canon-pattern-telas"
+  - "0189-pageheader-canon-v3-1-cadastro-roxo"
+amends:
+  - "0182-pageheadertabs-canon-pattern-telas"
+  - "0189-pageheader-canon-v3-1-cadastro-roxo"
 superseded_by: []
-related: [0094, 0104, 0114, 0180, 0182, 0189]
+related:
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0104-processo-mwart-canonico-unico-caminho"
+  - "0114-prototipo-ui-cowork-loop-formalizado"
+  - "0180-sidebar-v3-5-grupos-ghosts-header"
+  - "0182-pageheadertabs-canon-pattern-telas"
+  - "0189-pageheader-canon-v3-1-cadastro-roxo"
 pii: false
 review_triggers:
   - Larissa biz=4 testar 7d e relatar saturação visual com roxo em todas telas
