@@ -11,12 +11,19 @@
 // Substitui o stub /unificado/novo (Non-Goal #1 do charter v6).
 
 import { useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
 import { PlanoContaCombobox, type PlanoConta } from './PlanoContaCombobox';
+
+// PR I (2026-05-25) G5 — sugestão de valor último/médio por contraparte.
+interface ValorSugerido {
+  count: number;
+  ultimo_valor: number | null;
+  media_valor: number | null;
+}
 
 interface Categoria {
   id: number;
@@ -36,6 +43,8 @@ const hojeIso = () => new Date().toISOString().slice(0, 10);
 export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: TituloCreateSheetProps) {
   const kind = tipo === 'receber' ? 'receivable' : 'payable';
   const accentHue = tipo === 'receber' ? 145 : 25; // verde / rose
+
+  const [sugestao, setSugestao] = useState<ValorSugerido | null>(null);
 
   const form = useForm({
     tipo,
@@ -108,12 +117,39 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
               id="cr-desc"
               value={form.data.cliente_descricao}
               onChange={(e) => form.setData('cliente_descricao', e.target.value)}
+              onBlur={async (e) => {
+                const val = e.target.value.trim();
+                if (val.length < 3) { setSugestao(null); return; }
+                try {
+                  const r = await fetch(`/financeiro/unificado/sugerir-valor?contraparte=${encodeURIComponent(val)}&tipo=${tipo}`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                  });
+                  if (! r.ok) return;
+                  const data: ValorSugerido = await r.json();
+                  if (data.count > 0) setSugestao(data);
+                } catch { /* silent */ }
+              }}
               placeholder={tipo === 'receber' ? 'Ex: Cliente João Silva · sublocação' : 'Ex: Fornecedor papelaria XYZ'}
               maxLength={255}
               autoFocus
             />
             {form.errors.cliente_descricao && (
               <p className="text-[11px] text-destructive">{form.errors.cliente_descricao}</p>
+            )}
+            {/* PR I G5 — sugestão de valor baseada em histórico contraparte */}
+            {sugestao && sugestao.ultimo_valor !== null && (
+              <p className="text-[11px] text-muted-foreground">
+                Histórico: {sugestao.count} lançamento{sugestao.count > 1 ? 's' : ''} ·
+                último <b>R$ {sugestao.ultimo_valor.toFixed(2)}</b> ·
+                média <b>R$ {sugestao.media_valor?.toFixed(2)}</b>
+                <button
+                  type="button"
+                  className="ml-2 underline hover:text-foreground"
+                  onClick={() => form.setData('valor_total', sugestao.ultimo_valor ?? 0)}
+                >
+                  usar último
+                </button>
+              </p>
             )}
           </div>
 
