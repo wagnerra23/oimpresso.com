@@ -54,6 +54,18 @@ Migration `add_caixa_bridge_to_fin_titulos_and_contas` (ADR 0183 caixa físico b
   - `OS-{id}` → `/repair/producao-oficina?os=OS-N`
   - `SO-{id}` → `/oficina-auto/producao-oficina?os=SO-N`
 
+### Reorg sidebar Oficina Auto (#1540 · `6bd57d217`)
+Wagner pediu durante tour: "Oficina Auto deve ir para comercial abaixo de vendas, e os dois itens (sub-popover) vão para topnav".
+
+- **Backend** `Modules/OficinaAuto/Http/Controllers/DataController.php`: troca `Menu::dropdown` (popover com sub-items Veículos+Ordens de Serviço) por `Menu::url` href direto canon ADR 0180+. Sub-popover ELIMINADO — 3 ghosts (Veículos · Ordens de Serviço · Produção) já estavam no `attributes['ghosts']` · viram tabs PageHeader v3 quando page consume.
+- `->order(56)` → `->order(31)` (entre Vendas=30 e Catalogue QR=32+).
+- **Frontend** `resources/js/Components/cockpit/Sidebar.tsx::SIDEBAR_GROUPS`: adiciona `'Oficina Auto'` no array `'comercial'` items entre `'Vendas'` e `'Catalogue QR'`.
+- **Resultado UI confirmado em prod biz=164 MARTINHO via Chrome MCP:**
+  - **COMERCIAL:** Vendas · Crm · **Oficina Auto** ✨ · Catalogue QR · Woocommerce
+  - **PRODUÇÃO:** Comunicação Visual · Reparar (Oficina Auto saiu)
+  - Click "Oficina Auto" no sidebar → vai DIRETO `/oficina-auto/producao-oficina` (sem popover)
+- **Gap conhecido (backlog Wave futura):** ghosts não renderizam como tabs visíveis nas pages legacy (`/oficina-auto/veiculos`, `/oficina-auto/producao-oficina`) — pages usam headers próprios em vez de PageHeader v3 canon. Migration ADR 0180 Fase 4 Wave C cobre.
+
 ## Cobertura final Wave Z-2 (após 3 fixes)
 
 | # | Origem | Entity | Observer | `os_ref` prefix | URL drawer kanban |
