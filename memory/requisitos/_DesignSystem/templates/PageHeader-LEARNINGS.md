@@ -178,6 +178,103 @@ protótipo mas QUEBRARAM em prod por ignorância de contexto.
 5. Resolver counter das tabs via Controller (server-side counts) ou KPI strip já existente
 6. Substituir KpiStripClickable por 4-cards-strip canon v3.1 (ou adaptar)
 
+### Decisão canon #4 — BLOCO 1 header card · pattern final consolidado v3.2
+
+**Contexto:**
+Após várias iterações com Wagner (padding 16 → 24, h1 16→22, rounded full → rounded-t-lg), o
+pattern final do BLOCO 1 header card está consolidado. Wagner comparou com `/sells` canon
+Cowork em várias rodadas pra definir cada detalhe.
+
+**Pattern canônico final (gravar aqui — fonte da verdade do BLOCO 1):**
+
+```jsx
+{/* BLOCO 1 — Header card (canon v3.2 final · 2026-05-25) */}
+<header
+  className="bg-background border border-border rounded-t-lg overflow-visible"
+  role="banner"
+>
+  <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
+    {/* ZONA L · identidade */}
+    <div className="flex-1 min-w-0">
+      <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-snug">
+        {title}
+      </h1>
+      <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+        {subtitle}
+      </p>
+    </div>
+
+    {/* ZONA C · subnav inline (md+ apenas) */}
+    <nav
+      className="hidden md:flex items-center gap-0 shrink-0 self-stretch ml-2"
+      aria-label="Sub-navegação"
+    >
+      {/* tabs com ícone Lucide 16/1.75/non-scaling-stroke + label abreviado */}
+    </nav>
+
+    {/* ZONA R · actions (⋮ ghost + primary roxo 295) */}
+    <div className="flex-shrink-0 flex items-center gap-1.5">
+      <Button variant="ghost" size="icon" className="h-8 w-8 border-0">
+        <MoreVertical className="h-4 w-4 shrink-0" strokeWidth={1.75}
+                      style={{ vectorEffect: 'non-scaling-stroke' }} />
+      </Button>
+      <PageHeaderPrimary label={`Novo ${entidade}`} href={`/criar`} />
+    </div>
+  </div>
+
+  {/* Mobile fallback: tabs em 2ª linha quando <md */}
+  <nav className="md:hidden flex items-center gap-0 border-t border-border overflow-x-auto px-4">
+    {/* tabs touch-target h-11 */}
+  </nav>
+</header>
+```
+
+**Especificação token-a-token:**
+
+| Atributo | Classe Tailwind | Valor computed | Razão |
+|---|---|---|---|
+| Background | `bg-background` | white slate-50 herdado | base canon shadcn |
+| Border | `border border-border` | 1px slate-200 | card visual distinto do bg-page |
+| **Border-radius** | **`rounded-t-lg`** | **8px topo · 0 bottom** | bottom reta conecta visualmente com BLOCO 2 KPI (decisão Wagner 2026-05-25) |
+| Overflow | `overflow-visible` | — | permite dropdown ⋮ escapar do card |
+| Padding inner | `pt-6 px-6 pb-3.5` | 24/24/14 | espelha `/sells` canon Cowork |
+| Min-height | `min-h-[60px]` | 60px | 1 linha conteúdo mínimo |
+| Flex container | `flex items-center gap-4` | items-center · gap 16px | 3 zonas L/C/R alinhadas verticalmente |
+| **H1** | **`text-[22px] font-bold tracking-tight text-foreground leading-snug`** | 22px/700/-0.55px/30.25px | peso Vendas canon Cowork |
+| Subtitle | `text-xs text-muted-foreground mt-0.5 tabular-nums` | 12px/muted/2px margin/tabular | métricas legíveis |
+
+**Razão do `rounded-t-lg` (não rounded full nem flat total):**
+- Vendas canon Cowork é totalmente flat (border-radius 0px, bg transparent)
+- Cliente v3.1/3.2 era card fechado (rounded-lg 4 cantos)
+- Meio-termo: mantém card visual (border + bg) mas bottom reta conecta com KPI strip abaixo
+- Wagner aprovou esse meio-termo após inspecionar /sells e comparar
+
+**Regra dura pra próximas Index (Wave 2+):**
+> Header card canon v3.2 = `bg-background border border-border rounded-t-lg overflow-visible`.
+> Padding interno SEMPRE `pt-6 px-6 pb-3.5` (24/24/14 espelhando Vendas).
+> H1 SEMPRE 22px font-bold tracking-tight leading-snug (peso Vendas).
+> Bottom reta (`rounded-t-lg`, NÃO `rounded-lg`) — conecta com BLOCO 2 sem "salto" visual.
+
+**Iterações que levaram a esse pattern (histórico):**
+1. v3.1 inicial: `bg-background border rounded-lg` + `pt-6 px-6 pb-3.5` + h1 16/600 — apertado, h1 magrinho
+2. PR #1474 Wagner pediu px-4: virou pt-4 px-4 pb-3.5 — ficou MAIS apertado (px-4 < px-6)
+3. PR #1475 reverteu pro Vendas: pt-6 px-6 pb-3.5 — folga OK
+4. PR #1477 H1 22/700: peso visual alinhou com Vendas
+5. PR #1478 rounded-t-lg: bottom reta conecta com BLOCO 2
+
+**Comparativo com Vendas canon Cowork (referência absoluta):**
+
+| Aspecto | Vendas (`os-head vd-head-clean`) | Cliente v3.2 canon final |
+|---|---|---|
+| Card | flat (sem border, sem bg, sem radius) | card (border + bg-background + rounded-t-lg) |
+| Padding | 24/24/14 | 24/24/14 ✅ |
+| H1 | 22px/700 | 22px/700 ✅ |
+| H1 color | warm `oklch(0.22 0.01 80)` | cool `slate-950` |
+| Primary | azul-marinho `rgb(31,58,95)` | roxo 295 universal (ADR 0190) |
+
+Cliente é "Modern SaaS + card visual" enquanto Vendas é "Cowork flat + warm". Mesmo peso de h1
+e padding, mas estética inteira diferente (canon v3.2 Modern SaaS vs canon Cowork legacy).
+
 ### Decisão canon #3 — Canon v3.2 (h1 peso Vendas + padding 24/24/14)
 
 **Contexto:**
