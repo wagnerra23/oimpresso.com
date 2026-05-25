@@ -960,8 +960,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
 
         <Deferred data="customers" fallback={<TableSkeleton />}>
           {/* canon v3.6 (Wagner 2026-05-25): tabela FLAT — `rounded-lg` removido pra
-              parar com aparencia de card. Lista usa borders retas igual /sells. */}
-          <div className="border border-border bg-background overflow-hidden">
+              parar com aparencia de card. Lista usa borders retas igual /sells.
+              canon v3.7 (Wagner 2026-05-25): `mt-1` (4px) gap entre toolbar e tabela
+              pra evitar borders coladas. */}
+          <div className="mt-1 border border-border bg-background overflow-hidden">
             <div className="overflow-x-auto">
               {/* Wave G — Tabela turbinada (paridade Cowork blueprint score 9,4/10).
                   Colunas: Avatar HSL · Cliente+sub · Tipo · Documento · Cidade/UF ·
