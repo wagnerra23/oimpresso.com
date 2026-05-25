@@ -147,14 +147,19 @@ class DataController extends Controller
         // Sub-items (Emitir/SPED/Settings/Certificado/Tributação) ficam
         // acessíveis via URL direta ou tabs internas das telas (TODO Fase 4).
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-        $segmento_ativo = request()->segment(1) == 'nfebrasil'
-            || request()->segment(1) == 'nfe-brasil';
+        // Wagner 2026-05-25: entry "Fiscal" aponta /fiscal (cockpit unificado
+        // Modules/Fiscal — implementado, funcional, 7 abas) em vez de
+        // /nfebrasil (controller chama view('create') que não existe → 500).
+        // Highlight inclui /fiscal + rotas legacy /nfebrasil ainda usadas pelos
+        // ghosts (Notas fiscais, Tributação, Certificado etc — discussão UX
+        // separada pra eventual repointed pros equivalentes /fiscal/*).
+        $segmento_ativo = in_array(request()->segment(1), ['fiscal', 'nfebrasil', 'nfe-brasil'], true);
 
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
                 $menu->url(
-                    url('/nfebrasil'),
+                    url('/fiscal'),
                     'Fiscal',
                     [
                         'icon'     => 'fa fas fa-file-invoice-dollar',
