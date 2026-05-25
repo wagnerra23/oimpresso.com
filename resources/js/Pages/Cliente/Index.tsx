@@ -1254,6 +1254,14 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           if (!open) setDraftContact(null);
           if (!open) setOpenContactId(null);
         }}
+        onContactUpdated={(patched) => {
+          // Fix 2026-05-25 — atualiza draftContact com campos PATCHados (endereço,
+          // contato, name, fantasia). EnderecoTab re-renderiza no próximo ciclo.
+          setDraftContact((prev) => {
+            if (!prev || prev.id !== openContactId) return prev;
+            return { ...prev, ...patched } as ClienteRow;
+          });
+        }}
       />
 
       {/* KB-9.75 Slice A — Command Palette + Cheat-sheet + FAB. State efêmero, sem persistência. */}
@@ -1699,6 +1707,7 @@ function ClienteSheet({
   rows,
   draftContact,
   onOpenChange,
+  onContactUpdated,
 }: {
   contactId: number | null;
   open: boolean;
@@ -1708,6 +1717,10 @@ function ClienteSheet({
    * draft recém-criado pode estar fora da página paginada da listagem). */
   draftContact?: ClienteRow | null;
   onOpenChange: (open: boolean) => void;
+  /** Fix 2026-05-25 — IdentificacaoTab chama isso após PATCH endereço/contato
+   * sucesso pra atualizar draftContact no Index.tsx DIRETO (sem router.reload
+   * que pode não popular paginação). EnderecoTab re-renderiza com campos novos. */
+  onContactUpdated?: (patched: Record<string, unknown>) => void;
 }) {
   const contact = useMemo(() => {
     // Prioridade: draftContact (modo novo) → rows.find (modo edit).
@@ -1873,6 +1886,7 @@ function ClienteSheet({
                   onCnpjEnderecoPersisted={() =>
                     router.reload({ only: ['rows'], preserveScroll: true, preserveState: true })
                   }
+                  onContactUpdated={onContactUpdated}
                 />
               )}
               {activeTab === 'contato' && (
