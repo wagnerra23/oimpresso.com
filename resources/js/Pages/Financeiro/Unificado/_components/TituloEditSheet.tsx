@@ -147,7 +147,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
 
           {/* Onda 24 (2026-05-25) US-FIN-021 — Plano de Contas BR DCASP filtrado por kind. */}
           <div className="space-y-1.5">
-            <label htmlFor="ed-plano" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+            <label htmlFor="ed-plano" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Plano de contas
             </label>
             <PlanoContaCombobox
@@ -158,11 +158,11 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
               onChange={(id) => form.setData('plano_conta_id', id)}
               placeholder={lancamento.kind === 'receivable' ? 'Receita ou ativo' : 'Despesa, custo ou passivo'}
             />
-            <p className="text-[11px] text-stone-500">
+            <p className="text-[11px] text-muted-foreground">
               Filtrado por tipo do título (DRE entra direto na classificação certa).
             </p>
             {form.errors.plano_conta_id && (
-              <p className="text-[11px] text-rose-600">{form.errors.plano_conta_id}</p>
+              <p className="text-[11px] text-destructive">{form.errors.plano_conta_id}</p>
             )}
           </div>
 

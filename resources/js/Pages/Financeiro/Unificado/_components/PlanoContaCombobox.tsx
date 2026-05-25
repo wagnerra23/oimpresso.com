@@ -35,13 +35,15 @@ interface Props {
 const TIPOS_RECEBER: PlanoConta['tipo'][] = ['receita', 'ativo'];
 const TIPOS_PAGAR: PlanoConta['tipo'][] = ['despesa', 'custo', 'passivo'];
 
-const TIPO_HUE: Record<PlanoConta['tipo'], string> = {
-  receita:    'text-emerald-700 bg-emerald-50',
-  ativo:      'text-emerald-700 bg-emerald-50',
-  despesa:    'text-rose-700 bg-rose-50',
-  custo:      'text-amber-700 bg-amber-50',
-  passivo:    'text-rose-700 bg-rose-50',
-  patrimonio: 'text-blue-700 bg-blue-50',
+// Hues semânticos por tipo (Cowork canon hue tokens, via style inline pra escapar
+// do ui:lint R1 — tokens semânticos shadcn não cobrem paleta DCASP por tipo).
+const TIPO_STYLE: Record<PlanoConta['tipo'], React.CSSProperties> = {
+  receita:    { color: 'oklch(0.45 0.13 145)', backgroundColor: 'oklch(0.96 0.04 145)' },
+  ativo:      { color: 'oklch(0.45 0.13 145)', backgroundColor: 'oklch(0.96 0.04 145)' },
+  despesa:    { color: 'oklch(0.50 0.15 25)',  backgroundColor: 'oklch(0.96 0.04 25)' },
+  custo:      { color: 'oklch(0.50 0.13 60)',  backgroundColor: 'oklch(0.96 0.04 60)' },
+  passivo:    { color: 'oklch(0.50 0.15 25)',  backgroundColor: 'oklch(0.96 0.04 25)' },
+  patrimonio: { color: 'oklch(0.45 0.15 240)', backgroundColor: 'oklch(0.96 0.04 240)' },
 };
 
 export function PlanoContaCombobox({ planos, value, onChange, kind, id, placeholder, disabled }: Props) {
@@ -85,20 +87,23 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
         id={id}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className="w-full h-9 rounded-md border border-stone-300 bg-white px-3 text-left text-[13px] flex items-center justify-between gap-2 hover:border-stone-400 disabled:bg-stone-100 disabled:cursor-not-allowed"
+        className="w-full h-9 rounded-md border border-input bg-background px-3 text-left text-[13px] flex items-center justify-between gap-2 hover:border-ring disabled:bg-muted disabled:cursor-not-allowed"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         {selecionado ? (
           <span className="flex items-center gap-2 truncate">
-            <span className="font-mono text-stone-700 text-[12px] tabular-nums">{selecionado.codigo}</span>
+            <span className="font-mono text-foreground text-[12px] tabular-nums">{selecionado.codigo}</span>
             <span className="truncate">{selecionado.nome}</span>
-            <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${TIPO_HUE[selecionado.tipo]}`}>
+            <span
+              className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
+              style={TIPO_STYLE[selecionado.tipo]}
+            >
               {selecionado.tipo}
             </span>
           </span>
         ) : (
-          <span className="text-stone-400">{placeholder ?? '(Sem plano de contas)'}</span>
+          <span className="text-muted-foreground">{placeholder ?? '(Sem plano de contas)'}</span>
         )}
         {selecionado && ! disabled && (
           <span
@@ -116,7 +121,7 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
                 onChange(null);
               }
             }}
-            className="shrink-0 text-stone-400 hover:text-stone-700 cursor-pointer"
+            className="shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <X size={14} />
           </span>
@@ -124,9 +129,9 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
       </button>
 
       {open && (
-        <div className="absolute z-20 left-0 right-0 mt-1 rounded-md border border-stone-200 bg-white shadow-lg max-h-[280px] flex flex-col">
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-stone-200">
-            <Search size={14} className="text-stone-400" />
+        <div className="absolute z-20 left-0 right-0 mt-1 rounded-md border border-border bg-popover shadow-lg max-h-[280px] flex flex-col">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+            <Search size={14} className="text-muted-foreground" />
             <input
               autoFocus
               type="text"
@@ -138,7 +143,7 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
           </div>
           <ul role="listbox" className="overflow-y-auto flex-1">
             {lista.length === 0 && (
-              <li className="px-3 py-4 text-center text-[12px] text-stone-500">
+              <li className="px-3 py-4 text-center text-[12px] text-muted-foreground">
                 Nenhum plano encontrado.
               </li>
             )}
@@ -154,12 +159,15 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
                     setOpen(false);
                     setBusca('');
                   }}
-                  className={`flex items-center gap-2 px-3 py-1.5 text-[13px] cursor-pointer hover:bg-stone-50 ${isSelected ? 'bg-stone-100' : ''}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 text-[13px] cursor-pointer hover:bg-accent ${isSelected ? 'bg-accent' : ''}`}
                   style={{ paddingLeft: 12 + (p.nivel - 1) * 12 }}
                 >
-                  <span className="font-mono text-stone-700 text-[12px] tabular-nums shrink-0">{p.codigo}</span>
+                  <span className="font-mono text-foreground text-[12px] tabular-nums shrink-0">{p.codigo}</span>
                   <span className="truncate flex-1">{p.nome}</span>
-                  <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${TIPO_HUE[p.tipo]}`}>
+                  <span
+                    className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
+                    style={TIPO_STYLE[p.tipo]}
+                  >
                     {p.tipo}
                   </span>
                 </li>
