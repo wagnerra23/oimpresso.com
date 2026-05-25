@@ -16,6 +16,8 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+// ADR 0192 Onda 2 follow-up — editor commission_split mecânico/balcão.
+import CommissionSplitEditor, { type CommissionSplitValue } from '@/Pages/Sells/_components/CommissionSplitEditor';
 
 interface Headline {
   id: number;
@@ -46,6 +48,8 @@ interface EditFormPayload {
     invoice_scheme_id: number | null;
     pay_term_number: number | null;
     pay_term_type: string | null;
+    // ADR 0192 Onda 2 follow-up — split de comissão mecânico/balcão (JSON nullable).
+    commission_split: CommissionSplitValue | null;
   };
   sellDetails: unknown[];
   taxes: Record<number, string>;
@@ -73,7 +77,7 @@ export interface SellsEditPageProps {
   headline: Headline;
   form?: EditFormPayload;  // deferred
   permissions: { editPrice: boolean; editDiscount: boolean; update: boolean };
-  urls: { submit: string; cancel: string; back: string };
+  urls: { submit: string; cancel: string; back: string; commission_split?: string };
 }
 
 function FormSkeleton() {
@@ -313,6 +317,16 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
           />
         </div>
       </section>
+
+      {/* Bloco Comissão (ADR 0192 Onda 2 follow-up) — só renderiza se backend expôs URL. */}
+      {urls.commission_split && form.users && (
+        <CommissionSplitEditor
+          value={form.transaction.commission_split ?? null}
+          users={form.users as Record<number, string>}
+          saveUrl={urls.commission_split}
+          disabled={!permissions.update}
+        />
+      )}
 
       {/* Bloco Frete (colapsável simples) */}
       <details className="rounded-lg border border-border bg-card">
