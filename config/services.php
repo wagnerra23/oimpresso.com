@@ -116,4 +116,14 @@ return [
         'smoke_webhook_url' => env('SLACK_SMOKE_WEBHOOK_URL'),
     ],
 
+    /*
+    | Consent banner LGPD (ADR 0191) — pré-req Microsoft Clarity / GA4 / Pixel.
+    | Versionar `cookie_name` (_v1 → _v2) força reapresentação do banner.
+    */
+    'consent' => [
+        'cookie_name'     => 'oimpresso_consent_v1',
+        'cookie_ttl_days' => (int) env('CONSENT_COOKIE_TTL_DAYS', 365),
+        'categories'      => ['necessary', 'analytics', 'marketing'],
+    ],
+
 ];
