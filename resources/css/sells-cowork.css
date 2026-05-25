@@ -4244,6 +4244,58 @@
 .sells-cowork .vc-counter-summary dt { color:oklch(0.50 0.02 250); }
 .sells-cowork .vc-counter-summary dd { margin:0; font-variant-numeric:tabular-nums; text-align:right; }
 .sells-cowork .vc-counter-summary .strong { font-weight:600; font-size:14px; padding-top:6px; border-top:1px solid oklch(0.90 0.01 250); }
+/* ──── CAIXA · POR ORIGEM (Onda 6 · ADR 0192 A1 KB-9.75) ──── */
+.sells-cowork .vc-card-source { padding:6px 0 12px; }
+.sells-cowork .vc-empty {
+  margin:0; padding:18px 16px; font-size:12px; color:oklch(0.55 0.02 250);
+  text-align:center; line-height:1.5;
+}
+.sells-cowork .vc-empty a { color:oklch(0.45 0.13 230); text-decoration:underline; }
+.sells-cowork .vc-empty small { color:oklch(0.60 0.02 250); }
+.sells-cowork .vc-src-row {
+  padding:10px 16px;
+  border-bottom:1px solid oklch(0.96 0.01 250);
+  font-size:12px;
+}
+.sells-cowork .vc-src-row:last-child { border-bottom:none; }
+.sells-cowork .vc-src-h {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:6px;
+}
+.sells-cowork .vc-src-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.sells-cowork .vc-src-balcao  .vc-src-dot { background: var(--vd-src-balcao); }
+.sells-cowork .vc-src-oficina .vc-src-dot { background: var(--vd-src-oficina); }
+.sells-cowork .vc-src-online  .vc-src-dot { background: var(--vd-src-online); }
+.sells-cowork .vc-src-h b { font-weight:600; color:oklch(0.25 0.02 250); }
+.sells-cowork .vc-src-ct {
+  color:oklch(0.50 0.02 250); font-size:11px; margin-left:4px;
+}
+.sells-cowork .vc-src-tot {
+  margin-left:auto; font-weight:600; font-variant-numeric:tabular-nums;
+}
+.sells-cowork .vc-src-bar {
+  height:6px; background:oklch(0.95 0.01 250); border-radius:3px;
+  overflow:hidden; margin-bottom:5px;
+}
+.sells-cowork .vc-src-balcao  .vc-src-bar > div { background: var(--vd-src-balcao); }
+.sells-cowork .vc-src-oficina .vc-src-bar > div { background: var(--vd-src-oficina); }
+.sells-cowork .vc-src-online  .vc-src-bar > div { background: var(--vd-src-online); }
+.sells-cowork .vc-src-bar > div { height:100%; border-radius:3px; transition:width 200ms ease; }
+.sells-cowork .vc-src-meta {
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:11px; color:oklch(0.55 0.02 250);
+}
+.sells-cowork .vc-src-refs a {
+  color: var(--vd-src-oficina); text-decoration:none;
+  font-family:var(--font-mono); font-size:11px;
+}
+.sells-cowork .vc-src-refs a:hover { text-decoration:underline; }
+/* Responsive: esconde refs OS abaixo de 1100px (mesmo break Sells/Index) */
+@media (max-width: 1100px) {
+  .sells-cowork .vc-src-refs { display:none; }
+}
 /* ──── DEVOLUÇÕES ──── */
 .sells-cowork .vd-dev-page .vdv-reason { font-size:13px; margin:0; }
 .sells-cowork .vdv-timeline { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; font-size:12px; }
