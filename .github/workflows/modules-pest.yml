@@ -101,8 +101,13 @@ jobs:
           CACHE_DRIVER: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
+        # Wagner 2026-05-25: remove --stop-on-failure. Comportamento anterior
+        # escondia failures subsequentes quando 1 test falhava primeiro (ex:
+        # PR #1544 13 tests novos não rodaram pq Wave26SaturationTest forceDelete
+        # pre-existing falhou). Sem flag, CI mostra relatório completo de TODOS
+        # failures pra atacar de uma vez. Trade-off: +1-2min CI quando muitos
+        # tests quebram (raro). Vale pelo ganho de transparência.
         run: |
           vendor/bin/pest Modules/${{ matrix.module }}/Tests \
-            --stop-on-failure \
             --no-coverage \
             --colors=always
