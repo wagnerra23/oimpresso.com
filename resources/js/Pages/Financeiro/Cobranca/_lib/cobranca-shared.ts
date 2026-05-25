@@ -4,7 +4,7 @@
 export type CobrancaTipo = 'boleto' | 'pix_cob' | 'pix_cobv' | 'pix_recv' | 'card';
 export type CobrancaStatus = 'emitida' | 'paga' | 'vencida' | 'cancelada' | 'erro' | 'pending';
 export type OrigemType = 'sale' | 'invoice' | 'subscription_license';
-export type GatewayKey = 'inter' | 'c6' | 'asaas' | 'bcb_pix' | 'pesapal' | 'pagarme';
+export type GatewayKey = 'inter' | 'c6' | 'asaas' | 'bcb_pix' | 'pagarme';
 
 export interface Cobranca {
   id: number;
@@ -178,15 +178,6 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     requirements: ['Homologação BCB recebedor (Res. 380/2024)', 'mTLS ICP-Brasil', 'Mandato autorizado pagador-a-pagador'],
     recommendedFor: 'Mensalidade recorrente PIX (SaaS, plano gym) · cobrança autorizada 1× pelo cliente',
     credentialSource: { url: 'https://www.bcb.gov.br/estabilidadefinanceira/pix', label: 'BCB → PIX Automático → Homologação recebedor' },
-  },
-  pesapal: {
-    key: 'pesapal', nome: 'PesaPal', sigla: 'PP',
-    dot: 'bg-purple-500', bg: 'bg-purple-50', fg: 'text-purple-700', border: 'border-purple-200',
-    tipos: ['card'],
-    ambientes: ['production'],
-    cred: 'api_key + consumer_secret',
-    deprecated: true,
-    deprecatedReason: 'Migrar pra Asaas (cartão BR nativo + 3DS)',
   },
   pagarme: {
     key: 'pagarme', nome: 'Pagar.me', sigla: 'PG',
