@@ -94,6 +94,12 @@ interface SaleRow {
   // Coluna só renderiza se coworkCommissionEnabled=true (setting business.sales_cmsn_agnt ≠ 'disable').
   commission_agent_id?: number | null;
   commission_agent_name?: string | null;
+  // Integração Vendas × Oficina (Onda 3+4 · ADR 0192) — payload `/sells-list-json`
+  // devolve desde Onda 2 commit e98649989. source default 'balcao' retroativo
+  // (migration default · zero breaking change com vendas legacy).
+  source?: 'balcao' | 'oficina' | 'online' | string;
+  source_label?: string;
+  os_ref?: string | null;
 }
 
 interface SellKpis {
@@ -1341,7 +1347,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
         {/* TABLE — SellsTabelaUnificada com visibleColumns derivado da tab Visão
             (ADR 0178). Grade Avançada + toggle Lista/Grade Avançada deletados
-            2026-05-21 (cleanup pós-Onda Unificação — Wagner aprovou delete). */}
+            2026-05-21 (cleanup pós-Onda Unificação — Wagner aprovou delete).
+            Onda 3+4 (ADR 0192): coluna Origem entra no preset Operacional/Produção
+            + onPickOs navega pra Repair quando user clica ↗ #OS-NNNN. */}
         <div className="os-table-wrap">
           <SellsTabelaUnificada
             rows={filtered as UnifiedSaleRow[]}
@@ -1356,6 +1364,11 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             onToggleAll={toggleAll}
             onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
             onPaySuccess={() => setRefetchToken((t) => t + 1)}
+            onPickOs={(osRef) => {
+              // Cross-módulo Onda 3: clique no link OS-NNNN da pill VdSource navega pro
+              // Repair/ProducaoOficina (Worker B Onda 5 vai abrir drawer da OS direto).
+              window.location.href = `/repair/producao-oficina?os=${encodeURIComponent(osRef)}`;
+            }}
           />
         </div>
 

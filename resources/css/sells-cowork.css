@@ -7335,3 +7335,135 @@
   --vd-green: oklch(0.52 0.14 60);
   --vd-green-soft: oklch(0.95 0.06 60);
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Integração Vendas × Oficina (Ondas 3-4 · ADR 0192)
+   Refs: prototipo-ui/vendas.css L1651-1775 verbatim (escopo .sells-cowork)
+   Tokens source (balcao/oficina/online) + .vd-src-* pill + .vd-row-oficina
+   stripe + .vd-kpi-breakdown (KPI hero quando foco=faturamento).
+   ────────────────────────────────────────────────────────────── */
+.sells-cowork .vendas-aplus {
+  --vd-src-balcao:       oklch(0.50 0.13 155);
+  --vd-src-balcao-soft:  oklch(0.94 0.06 155);
+  --vd-src-oficina:      oklch(0.50 0.13 230);
+  --vd-src-oficina-soft: oklch(0.94 0.06 230);
+  --vd-src-online:       oklch(0.58 0.15 50);
+  --vd-src-online-soft:  oklch(0.94 0.07 50);
+}
+
+/* Source pill — célula Origem */
+.sells-cowork .vd-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  max-width: 100%;
+}
+.sells-cowork .vd-src-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sells-cowork .vd-src-lbl { flex-shrink: 0; }
+.sells-cowork .vd-src-os {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.85;
+  margin-left: 2px;
+  white-space: nowrap;
+}
+.sells-cowork .vd-src-os:hover { opacity: 1; }
+.sells-cowork .vd-src-balcao  { background: var(--vd-src-balcao-soft);  color: var(--vd-src-balcao); }
+.sells-cowork .vd-src-balcao  .vd-src-dot { background: var(--vd-src-balcao); }
+.sells-cowork .vd-src-oficina { background: var(--vd-src-oficina-soft); color: var(--vd-src-oficina); }
+.sells-cowork .vd-src-oficina .vd-src-dot { background: var(--vd-src-oficina); }
+.sells-cowork .vd-src-online  { background: var(--vd-src-online-soft);  color: var(--vd-src-online); }
+.sells-cowork .vd-src-online  .vd-src-dot { background: var(--vd-src-online); }
+
+/* Stripe sutil na linha vinda da Oficina — assinatura visual cross-módulo */
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.vd-row-oficina td:first-child {
+  box-shadow: inset 2px 0 0 var(--vd-src-oficina);
+}
+
+/* Header da coluna Origem */
+.sells-cowork .vendas-aplus .vd-aplus-table th.vd-col-source,
+.sells-cowork .vendas-aplus .vd-aplus-table td.vd-col-source {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* KPI Hero — breakdown por source (vista=Faturamento) */
+.sells-cowork .vd-kpi-tag {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.7;
+  margin-left: 4px;
+}
+.sells-cowork .vd-kpi-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+.sells-cowork .vd-kpi-b {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 2px solid;
+  border-radius: 3px;
+  min-width: 0;
+}
+.sells-cowork .vd-kpi-b small {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: oklch(0.78 0.01 80);
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sells-cowork .vd-kpi-b b {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+.sells-cowork .vd-kpi-b.balcao  { border-left-color: var(--vd-src-balcao); }
+.sells-cowork .vd-kpi-b.oficina { border-left-color: var(--vd-src-oficina); }
+.sells-cowork .vd-kpi-b.online  { border-left-color: var(--vd-src-online); }
+
+/* Tree row · l1 com source dot embutido no label (saved tree "Por origem") */
+.sells-cowork .vendas-aplus .vd-tree-row.l1 .vd-tree-lbl {
+  font-size: 11.5px;
+}
+
+/* Responsive — abaixo de 1280, esconder #osRef pra não quebrar layout */
+@media (max-width: 1280px) {
+  .sells-cowork .vd-src-os { display: none; }
+}
+@media (max-width: 1100px) {
+  .sells-cowork .vendas-aplus .vd-aplus-table th.vd-col-source,
+  .sells-cowork .vendas-aplus .vd-aplus-table td.vd-col-source {
+    display: none;
+  }
+  .sells-cowork .vendas-aplus .vd-aplus-table .os-row.vd-row-oficina td:first-child {
+    box-shadow: inset 2px 0 0 var(--vd-src-oficina);
+  }
+}
