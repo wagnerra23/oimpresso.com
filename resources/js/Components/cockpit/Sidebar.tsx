@@ -516,7 +516,10 @@ function SidebarShortcuts({
   return (
     <div className="sb-shortcuts">
       {showIa && (
-        <a href="/ia" className="sb-shortcut">
+        // Wagner 2026-05-25: sidebar IA aponta /ia/dashboard (Dashboard =
+        // primeira aba canon da Jana + destino pós-login). Chat acessível
+        // via aba "Copiloto" do PageHeader + FAB.
+        <a href="/ia/dashboard" className="sb-shortcut">
           <Bot size={13} />
           <span className="label">IA</span>
           {!!chatCount && <span className="badge">{chatCount}</span>}
@@ -743,8 +746,9 @@ function SidebarMenuRail({
   return (
     <div className="sb-menu-rail">
       {showIa && (
+        // Wagner 2026-05-25: rail collapsed IA aponta /ia/dashboard (espelha sb-shortcut acima).
         <a
-          href="/ia"
+          href="/ia/dashboard"
           className="sb-rail-btn"
           data-tip="IA"
           onClick={() => setFlyout(null)}

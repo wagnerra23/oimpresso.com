@@ -43,9 +43,20 @@ class CustosController extends Controller
             $request->get('ate'),
         );
 
-        // D6.a Wave 17: painel é DB-bound + foreach pesado → deferred.
-        // Build helper closure pra evitar chamar service 4× (1 por prop).
-        $painelDeferred = Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim']));
+        // Wagner 2026-05-25 HOTFIX: removido `Inertia::defer` em kpis/
+        // por_usuario/serie_diaria. Causa: Custos/Index.tsx (linha 186)
+        // destruct `{kpis, por_usuario, serie_diaria}` direto e linha 192
+        // chama `serie_diaria.reduce(...)` sem wrap `<Deferred>` nem
+        // fallback. Defer entrega undefined no primeiro render → TypeError
+        // crasha (tela branca em prod). Mesmo bug do Dashboard.tsx (fix
+        // anterior PR #1550). Reintroduzir defer quando frontend ganhar
+        // `<Deferred data="kpis,por_usuario,serie_diaria" fallback={...}>`
+        // wrap (refactor MWART futuro).
+        //
+        // Painel é DB-bound + foreach pesado, mas 1 chamada eager é melhor
+        // que tela branca. Chamada única (não 4×) — destructure em vars
+        // locais antes do render.
+        $painel = $service->painel($businessId, $range['inicio'], $range['fim']);
 
         return Inertia::render('Jana/Admin/Custos/Index', [
             'periodo'      => $range,  // eager — range resolvido sem DB
@@ -58,10 +69,9 @@ class CustosController extends Controller
                 'modelo_default' => config('copiloto.ai.pricing_default_model'),
                 'cambio_brl_usd' => (float) config('copiloto.ai.cambio_brl_usd'),
             ],
-            // D6.a Wave 17 — payloads pesados defer'd. Front wrap em <Deferred data="kpis,por_usuario,serie_diaria" fallback={skeleton}>.
-            'kpis'         => Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim'])['kpis']),
-            'por_usuario'  => Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim'])['por_usuario']),
-            'serie_diaria' => Inertia::defer(fn () => $service->painel($businessId, $range['inicio'], $range['fim'])['serie_diaria']),
+            'kpis'         => $painel['kpis'],
+            'por_usuario'  => $painel['por_usuario'],
+            'serie_diaria' => $painel['serie_diaria'],
         ]);
     }
 }
