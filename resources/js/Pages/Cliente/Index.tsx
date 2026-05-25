@@ -363,46 +363,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [openContactId, setOpenContactId] = useState<number | null>(null);
 
   // ADR 0179 evolução 2026-05-25 — "Novo cliente" via drawer 760 modo 'novo'.
-  // POST /cliente/draft cria placeholder vazio + retorna id, drawer abre sobre ele,
-  // autosave on blur preenche conforme user digita. Substitui /contacts/create Blade
-  // (que tinha bugs Inertia handler + validation errors invisíveis na Blade).
+  // State declarado aqui; callback (que depende de activeType) está DEPOIS
+  // da declaração de activeType pra evitar Temporal Dead Zone (TDZ).
   const [creatingDraft, setCreatingDraft] = useState(false);
-
-  const createNewContactDraft = useCallback(async () => {
-    if (creatingDraft) return;
-    setCreatingDraft(true);
-    try {
-      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
-      const draftType = activeType === 'fornecedor' ? 'supplier' : 'customer';
-      const r = await fetch('/cliente/draft', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrf,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({ type: draftType }),
-      });
-      if (!r.ok) {
-        // eslint-disable-next-line no-console
-        console.error('[ClienteIndex] POST /cliente/draft falhou', r.status);
-        alert('Não foi possível criar novo cliente. Tente de novo ou contate suporte.');
-        return;
-      }
-      const json = await r.json();
-      const newId = Number(json?.id ?? 0);
-      if (newId > 0) {
-        setOpenContactId(newId);
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('[ClienteIndex] POST /cliente/draft network', err);
-      alert('Falha de rede ao criar cliente. Verifique sua conexão e tente de novo.');
-    } finally {
-      setCreatingDraft(false);
-    }
-  }, [activeType, creatingDraft]);
 
   // Wave G — 5 filtros adicionais (Status legacy já tratado em statusFilter).
   // Tipo PF/PJ · UF (27) · Tags (multi) · Sem compra há (5 ranges) · Saldo (devedor/zerado).
@@ -461,6 +424,47 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const kpis = props.kpis;
   // ADR 0188 — Slot 2 PT-01 multi-type. Backend valida whitelist + default 'customer'.
   const activeType: ContactRoleType = props.activeType ?? 'customer';
+
+  // ADR 0179 evolução 2026-05-25 — "Novo cliente" via drawer 760 modo 'novo'.
+  // POST /cliente/draft cria placeholder vazio + retorna id, drawer abre sobre ele,
+  // autosave on blur preenche conforme user digita. Substitui /contacts/create Blade
+  // (que tinha bugs Inertia handler + validation errors invisíveis na Blade).
+  // Declarado AQUI (após activeType) pra evitar Temporal Dead Zone — hotfix TDZ.
+  const createNewContactDraft = useCallback(async () => {
+    if (creatingDraft) return;
+    setCreatingDraft(true);
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+      const draftType = activeType === 'fornecedor' ? 'supplier' : 'customer';
+      const r = await fetch('/cliente/draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ type: draftType }),
+      });
+      if (!r.ok) {
+        // eslint-disable-next-line no-console
+        console.error('[ClienteIndex] POST /cliente/draft falhou', r.status);
+        alert('Não foi possível criar novo cliente. Tente de novo ou contate suporte.');
+        return;
+      }
+      const json = await r.json();
+      const newId = Number(json?.id ?? 0);
+      if (newId > 0) {
+        setOpenContactId(newId);
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[ClienteIndex] POST /cliente/draft network', err);
+      alert('Falha de rede ao criar cliente. Verifique sua conexão e tente de novo.');
+    } finally {
+      setCreatingDraft(false);
+    }
+  }, [activeType, creatingDraft]);
 
   const filteredRows = useMemo(() => {
     let r = rows;
