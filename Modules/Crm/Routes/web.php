@@ -102,6 +102,13 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     ->prefix('cliente')
     ->name('cliente.')
     ->group(function () {
+        // POST /cliente/draft -- cria placeholder vazio + retorna id pro drawer
+        // 760 abrir em modo "novo cliente" (substitui /contacts/create Blade legacy).
+        // Throttle 30/min anti-abuso (Larissa biz=4 max ~30 cadastros/dia).
+        Route::post('draft', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'draft'])
+            ->middleware('throttle:30,1')
+            ->name('draft.create');
+
         // 5 endpoints autosave (Q2 inline -- debounce 800ms client-side).
         Route::patch('{id}/identificacao', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'identificacao'])
             ->whereNumber('id')

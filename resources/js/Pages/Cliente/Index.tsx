@@ -362,6 +362,48 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [openContactId, setOpenContactId] = useState<number | null>(null);
 
+  // ADR 0179 evolução 2026-05-25 — "Novo cliente" via drawer 760 modo 'novo'.
+  // POST /cliente/draft cria placeholder vazio + retorna id, drawer abre sobre ele,
+  // autosave on blur preenche conforme user digita. Substitui /contacts/create Blade
+  // (que tinha bugs Inertia handler + validation errors invisíveis na Blade).
+  const [creatingDraft, setCreatingDraft] = useState(false);
+
+  const createNewContactDraft = useCallback(async () => {
+    if (creatingDraft) return;
+    setCreatingDraft(true);
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+      const draftType = activeType === 'fornecedor' ? 'supplier' : 'customer';
+      const r = await fetch('/cliente/draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ type: draftType }),
+      });
+      if (!r.ok) {
+        // eslint-disable-next-line no-console
+        console.error('[ClienteIndex] POST /cliente/draft falhou', r.status);
+        alert('Não foi possível criar novo cliente. Tente de novo ou contate suporte.');
+        return;
+      }
+      const json = await r.json();
+      const newId = Number(json?.id ?? 0);
+      if (newId > 0) {
+        setOpenContactId(newId);
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[ClienteIndex] POST /cliente/draft network', err);
+      alert('Falha de rede ao criar cliente. Verifique sua conexão e tente de novo.');
+    } finally {
+      setCreatingDraft(false);
+    }
+  }, [activeType, creatingDraft]);
+
   // Wave G — 5 filtros adicionais (Status legacy já tratado em statusFilter).
   // Tipo PF/PJ · UF (27) · Tags (multi) · Sem compra há (5 ranges) · Saldo (devedor/zerado).
   const [tipoFilter, setTipoFilter] = useState<string>('');
@@ -769,7 +811,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             {props.permissions.create && activeType !== 'all' && (
               <PageHeaderPrimary
                 label={`Novo ${ROLE_TITLE[activeType].singular}`}
-                href={`/contacts/create?type=${activeType}`}
+                onClick={createNewContactDraft}
+                disabled={creatingDraft}
               />
             )}
           </div>
@@ -1178,6 +1221,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             setSearch('');
             setFocusedIndex(null);
           }}
+          onCreateDraft={createNewContactDraft}
         />
       )}
       {cheatOpen && <CheatSheet onClose={() => setCheatOpen(false)} />}
@@ -1966,11 +2010,13 @@ function CommandPalette({
   onClose,
   onSelectContact,
   onClearFilters,
+  onCreateDraft,
 }: {
   rows: ClienteRow[];
   onClose: () => void;
   onSelectContact: (id: number) => void;
   onClearFilters: () => void;
+  onCreateDraft: () => void;
 }) {
   const [query, setQuery] = useState('');
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -1989,7 +2035,7 @@ function CommandPalette({
   }, [rows, query]);
 
   const actions: PaletteAction[] = [
-    { id: 'novo', label: 'Novo cliente', icon: Plus, href: '/contacts/create?type=customer' },
+    { id: 'novo', label: 'Novo cliente', icon: Plus, action: () => { onClose(); onCreateDraft(); } },
     { id: 'importar', label: 'Importar clientes', icon: Upload, href: '/contacts/import' },
     { id: 'clear', label: 'Limpar filtros desta página', icon: X, action: onClearFilters },
   ];
