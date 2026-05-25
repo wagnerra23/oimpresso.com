@@ -1254,6 +1254,30 @@ class ContactController extends Controller
             ];
         }
 
+        // Inertia-aware response (bug fix 2026-05-25 -- Wagner reportou modal
+        // "All Inertia requests must receive a valid Inertia response, however
+        // a plain JSON response was received" ao salvar cliente novo via
+        // /contacts/create). Tela Inertia espera redirect com headers proprios;
+        // retornar array vira JSON puro e Inertia client lanca modal de erro.
+        //
+        // Detecta via X-Inertia header e converte pra Inertia-friendly:
+        //   sucesso -> redirect()->route('contacts.index') com flash
+        //   erro    -> back()->withInput()->withErrors([...])
+        //
+        // Legacy AJAX/cURL sem header X-Inertia mantem JSON UPOS pra
+        // back-compat com integracoes externas.
+        if ($request->header('X-Inertia')) {
+            if (! empty($output['success'])) {
+                return redirect()
+                    ->route('contacts.index')
+                    ->with('status', $output['msg'] ?? __('contact.added_success'));
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors(['msg' => $output['msg'] ?? __('messages.something_went_wrong')]);
+        }
+
         return $output;
     }
 
