@@ -39,7 +39,7 @@ Visão de produção em **kanban de 5 colunas** (Recepção → Diagnóstico →
 - **Onda 5 — Integração Vendas × Oficina** ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)): drawer renderiza card `Esta OS gerou a venda #V-NNNN` quando OS está na coluna `pronto` (= FSM `entregue_completo`) AND tem `venda_derivada` (Transaction `source='oficina'` criada pelo `JobSheetObserver`). Card mostra total + data + 3 atalhos:
   - **Abrir #V-NNNN** → dispatch `window.CustomEvent('oimpresso:open-venda', { detail: { venda_id } })` — listener em `Sells/Index.tsx` (Worker A Onda 4) abre drawer SaleSheet (loose coupling)
   - **Imprimir recibo** → `window.open('/sells/{venda_id}/print', '_blank')` (rota Blade legacy preservada)
-  - **Compartilhar** → placeholder TODO (botão visível · ver Non-Goals)
+  - **Compartilhar** → Web Share API nativa (mobile/PWA share-sheet) com fallback `navigator.clipboard.writeText()` + toast Sonner (desktop). Payload `Venda #V-NNNN · R$ XX,XX · DD/MM/YYYY` + URL `/sells/{id}`. `AbortError` (user cancelou) tratado silenciosamente. (Onda 5 follow-up Worker 3 · 2026-05-25)
 - Vocabulário shared multi-vertical preservado ([ADR 0121 §P8](../../../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md)) — `venda_derivada` é cross-vertical (OficinaAuto, ComunicacaoVisual, Vestuario)
 
 ---
@@ -56,7 +56,7 @@ Visão de produção em **kanban de 5 colunas** (Recepção → Diagnóstico →
 - ❌ Edição inline em qualquer card
 - ❌ Tela específica per-vertical (Vestuario/ComVisual/OficinaAuto NÃO tem `/vestuario/producao-oficina` — todas usam `/repair/producao-oficina` parametrizado por `business.repair_settings`)
 - ❌ **Onda 5 placeholder TODOs (charter aceita explícito):**
-  - Botão "Compartilhar" no card da venda derivada **sem ação por ora** (visível mas `onClick` no-op). Backlog wave futura: copy-to-clipboard link · WhatsApp template · email PDF
+  - ~~Botão "Compartilhar" no card da venda derivada **sem ação por ora**~~ → **entregue Onda 5 follow-up Worker 3 (2026-05-25)** via Web Share API nativa + clipboard fallback + toast Sonner
   - Breakdown peças/serviço no card (Cowork F1 tem mas payload `venda_derivada` Onda 2 não entrega esses fields — adiada pra wave futura quando Sells expor `itemsList`)
   - Badges fiscais NF-e/NFS-e no card (wave futura · payload Onda 2 não entrega `fiscal` ainda)
   - Edição inline da venda derivada (drawer só lê · CRUD vai pra `/sells/{id}/edit`)
