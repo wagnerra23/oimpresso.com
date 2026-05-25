@@ -78,13 +78,15 @@
 ## ✅ A1 cross-module — Integração Vendas × Oficina (2026-05-25)
 
 > Pedido completo em [`INTEGRACAO_VENDAS_OFICINA.md`](INTEGRACAO_VENDAS_OFICINA.md). Pré-requisito A1 do método KB-9.75 (sobe Vendas 9,0 → 9,3). F1 entregue Cowork + F2 aprovado por Wagner em 2026-05-25 (screenshot pre-merge). PR #1493 mergeado em main `b2fcabbf2` (squash --admin · 4/4 CI verde). 5 pontos de costura entre Sells/Index e Repair/ProducaoOficina sem reescrever módulos (cross-link bidirecional via evento `oimpresso:open-venda`).
+>
+> **Wave Z-2 mergeada 2026-05-25 (10 PRs · Onda 0 + 1 + 2 + 3+4 + 5 + W1 + W2 + W3 + W4 + W5):** F3 traduzido pra Inertia/React real · Backend `JobSheetObserver` substitui mock window event · Schema canon migrations aplicadas · Pendente smoke prod biz=1 ([checklist 8 blocos A-H](../memory/sessions/2026-05-25-wave-z2-smoke-checklist.md) · [script deploy](../scripts/deploy-wave-z2-integracao-vendas-oficina.sh)) · Larissa biz=4 ROTA LIVRE só após 7d canary biz=1 verde.
 
 | Status | Tela | Prioridade | Refs |
 |---|---|---|---|
-| `[~]` | `Sells/Index` + coluna Origem (Balcão · Oficina · Online) | **P0 F3** | F1+F2 done · F3 pendente traduzir `vendas-page.jsx` (`VdSource` + tree branch `origem` + listener cross-módulo + KPI hero breakdown) pra Inertia/React |
-| `[~]` | `Repair/ProducaoOficina` drawer card "Esta OS gerou venda #V-NNNN" | **P0 F3** | F1+F2 done · F3 pendente traduzir `oficina-page.jsx` (`.ofc-venda-card` quando stage=pronto + dispatch `oimpresso:open-venda`) pra Inertia/React |
-| `[~]` | `Sells/Caixa` seção "Por origem" | **P1 F3** | F1+F2 done · F3 pendente traduzir `vendas-extras.jsx` (`VendasCaixaPage` com bySource + barras de progresso por source + refs) pra Inertia/React |
-| `[!]` | Backend `OsObserver@updated` (auto-faturar OS→Venda) | **Bloqueador F3** | Substitui mock `window.dispatchEvent('oimpresso:open-venda')` do protótipo. Aguarda ADR registrar decisão de auto-faturar como evento. Decisões Wagner: auto-faturar (sem click manual) · split comissão mecânico/balcão · OS sem nota vira venda mesmo (`fiscal: {}`) · Felipe vê tudo com filtro `Por origem · Oficina` pré-aplicado |
+| `[~]` | `Sells/Index` + coluna Origem (Balcão · Oficina · Online) | **P0 F3** | F1+F2+F3 done (Ondas 3+4 `e40289010`) · `VdSource` pill + tree branch `origem` + KPI breakdown + listener `oimpresso:open-venda` em Inertia/React · **aguarda smoke prod biz=1** |
+| `[~]` | `Repair/ProducaoOficina` drawer card "Esta OS gerou venda #V-NNNN" | **P0 F3** | F1+F2+F3 done (Onda 5 PR #1505 `94300b057` + W2 expand PR #1510 + W3 Compartilhar PR #1508) · card + breakdown peças/serviço/fiscal + atalhos Abrir/Imprimir/Compartilhar (Web Share API + clipboard fallback) · **aguarda smoke prod biz=1** |
+| `[~]` | `Sells/Caixa` seção "Por origem" (rota nova `/vendas/caixa`) | **P1 F3** | F1+F2+F3 done (W1 PR #1513 `4483ae855`) · `VendasCaixaPage` com bySource + barras de progresso por source + refs em Inertia/React · coexiste com Index legacy · **aguarda smoke prod biz=1** |
+| `[x]` | Backend `JobSheetObserver@updated` (auto-faturar OS→Venda) | **Bloqueador F3 RESOLVIDO** | Onda 2 mergeada `e98649989` · ADR 0192 accepted 542b11ccf · Observer pattern síncrono + idempotência `(business_id, os_ref)` · W5 reverse hook `2d86ee55a` (OS reaberta → `cancelled_at`) · W4 `commission_split` editor `166791e8d` · 2 migrations aditivas (`source/os_ref/commission_split` + `cancelled_at`) · Pest GUARDs cobrindo CREATE/REVERSE/NO-OP/multi-tenant |
 
 ---
 
