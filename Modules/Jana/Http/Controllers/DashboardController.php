@@ -23,13 +23,15 @@ class DashboardController extends Controller
         // antigo "sem metas → chat" criava loop UX: login → /ia/dashboard →
         // bounce pra /ia (chat). Removido — frontend renderiza empty card.
 
-        // D6.a (Wave 14 governance v3) — Inertia::defer no payload `metas`.
-        // Eager loads (periodoAtual + ultimaApuracao + apuracoes×12) podem
-        // ficar custosos com N metas. Closure só executa em segundo round
-        // partial-reload, mantendo TTFB inicial baixo e exibindo skeleton.
-        // Multi-tenant scope preservado dentro do closure (business_id capturado).
+        // Wagner 2026-05-25 HOTFIX pós-PR #1547: removido `Inertia::defer` no
+        // payload `metas`. Causa: Dashboard.tsx (linha 279/296/318) lê
+        // `metas.length` direto sem wrap `<Deferred>` nem fallback — defer
+        // entrega `undefined` no primeiro render e quebra com TypeError em
+        // prod. Bug pré-existia mascarado pelo redirect "sem metas → chat".
+        // Reintroduzir defer quando frontend ganhar `<Deferred data="metas"
+        // fallback={<Skeleton />}>` wrap (refactor MWART futuro).
         return Inertia::render('Jana/Dashboard', [
-            'metas' => Inertia::defer(fn () => $this->buildMetasPayload($businessId)),
+            'metas' => $this->buildMetasPayload($businessId),
         ]);
     }
 
