@@ -3,22 +3,22 @@ page: /sells
 component: resources/js/Pages/Sells/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-21
+last_validated: 2026-05-25
 parent_module: Sells
-related_adrs: [0093, 0094, 0104, 0107, 0109, 0110, 0114, 0136, 0143, 0178]
+related_adrs: [0093, 0094, 0104, 0107, 0109, 0110, 0114, 0136, 0143, 0178, 0192]
 tier: A
-charter_version: 4
-visual_source: prototipo-ui/prototipos/sells-index/vendas-page.jsx
-canon_method: Cowork KB-9.75 (chat10, score 9.75/10) + Unificação tabs Visão (ADR 0178)
+charter_version: 5
+visual_source: prototipo-ui/vendas-page.jsx (Integração Vendas × Oficina · 2026-05-25)
+canon_method: Cowork KB-9.75 + Unificação tabs Visão (ADR 0178) + Integração Vendas × Oficina A1 (ADR 0192)
 ---
 
-# Page Charter — /sells (v4 · Unificação tabs Visão)
+# Page Charter — /sells (v5 · Integração Vendas × Oficina)
 
-> **Status:** live · evolução v3→v4 acordada 2026-05-21 — Larissa @ ROTA LIVRE biz=4 reportou Lista vs Grade Avançada "conflitando informações" (sinal qualificado ADR 0105). Decisão arquitetural: tabs verticais Operacional / Financeira / Produção sobre tabela unificada — ver [ADR 0178](../../../../memory/decisions/0178-sells-unified-tabs-visao-supersede-0136.md) (supersede ADR 0136).
+> **Status:** live · evolução v4→v5 acordada 2026-05-25 — entrega da A1 KB-9.75 (Integração Vendas × Oficina) sobe nota Vendas de 9,0 → 9,3. Backend Ondas 0-2 mergeadas (ADR 0192 + migration `transactions.source/os_ref/commission_split` + `JobSheetObserver@updated` + payload endpoints). Frontend Ondas 3-4 (este charter) adiciona coluna Origem + saved tree "Por origem ▾" + KPI hero breakdown quando Foco=Faturamento + listener cross-módulo `oimpresso:open-venda`.
 >
-> **Histórico:** v2 (Cowork rewrite 2026-05-17 sessão `stupefied-noether-89f83d`) → v3 (Grade Avançada toggle live ADR 0136) → **v4 (este — unificação tabs Visão pós-PR4)**. Backup v3 retido em `Index.tsx.bak.charter-v3-pre-unification-2026-05-21` quando PR4 mergeado.
+> **Histórico:** v2 (Cowork rewrite 2026-05-17) → v3 (Grade Avançada toggle ADR 0136) → v4 (Unificação tabs Visão ADR 0178 · 2026-05-21) → **v5 (este — Integração Vendas × Oficina ADR 0192 · 2026-05-25)**.
 >
-> **Origem v2:** prototype Claude Design `Kf6GHQu6fkwlh0vnL30Oog` (handoff 2026-05-16). Visual-comparison v2: [`index-r1-visual-comparison.md`](../../../memory/requisitos/Sells/index-r1-visual-comparison.md). Visual-comparison v4: [`Index-r2-unified-visual-comparison.md`](../../../memory/requisitos/Sells/Index-r2-unified-visual-comparison.md). Decisão de cópia integral: [`feedback-design-literal-copy-quando-aprovado.md`](../../../memory/reference/feedback-design-literal-copy-quando-aprovado.md).
+> **Origem v2:** prototype Claude Design `Kf6GHQu6fkwlh0vnL30Oog` (handoff 2026-05-16). Visual-comparison v2: [`index-r1-visual-comparison.md`](../../../memory/requisitos/Sells/index-r1-visual-comparison.md). Visual-comparison v4: [`Index-r2-unified-visual-comparison.md`](../../../memory/requisitos/Sells/Index-r2-unified-visual-comparison.md). Visual-comparison v5: [`Index-r3-integracao-vendas-oficina-visual-comparison.md`](../../../memory/requisitos/Sells/Index-r3-integracao-vendas-oficina-visual-comparison.md).
 
 ---
 
@@ -48,6 +48,16 @@ Listar vendas com filtros por status de pagamento e abrir detalhes em drawer lat
 - Endpoint REST canon: `GET /sells-list-json` (50 por page, agora retorna +14 campos derivados)
 - Multi-tenant Tier 0: `business_id` global scope + permission gate (`direct_sell.view` + variants)
 - Paginator compacta no rodapé (preserva contrato existente)
+
+### Goals adicionados v5 — Integração Vendas × Oficina (Ondas 3-4 · ADR 0192)
+
+- Coluna **Origem** (entre "Atendido por" e "Pipeline") nos presets `COLUMNS_OPERACIONAL` e `COLUMNS_PRODUCAO` da `SellsTabelaUnificada` — pill colorida `<VdSource>` Balcão (verde 155) / Oficina (azul 230) / Online (âmbar 50) + link `↗ #OS-NNNN` clicável quando `source='oficina'` (navega pra `/repair/producao-oficina?os=OS-NNNN`)
+- Stripe sutil border-left azul (`.vd-row-oficina` / `data-source="oficina"`) em linhas vindas da Oficina — assinatura visual cross-módulo
+- Saved tree branch **"Por origem ▾"** no dropdown Visões — expansível, filhos Balcão/Oficina/Online com contadores derivados; filtra client-side; persiste seleção em `localStorage[oimpresso.sells.b<bizId>.visao_origem]` (Tier 0 per-business)
+- KPI hero **breakdown por source** quando `Foco === 'faturamento'` E há ≥1 venda oficina/online hoje — header ganha tag "· todas origens" + linha `● Balcão R$ X · ● Oficina R$ Y · ● Online R$ Z` (vd-kpi-breakdown grid)
+- Listener `window.addEventListener('oimpresso:open-venda', e => setOpenSaleId(e.detail.venda_id))` — Repair drawer card "Esta OS gerou venda #V-NNNN" (Worker B Onda 5) dispara o evento; Sells/Index abre o drawer SaleSheet da venda derivada cross-módulo
+- Backend endpoint `/sells-list-json` devolve `source` + `source_label` (PT-BR derivado server-side) + `os_ref` desde Onda 2 (commit `e98649989`)
+- Multi-tenant Tier 0 preservado: `source` ENUM scoped por `business_id` (índice composto `idx_transactions_source` na migration Onda 1); `JobSheetObserver` herda `business_id` da OS pra criar Transaction derivada (nunca cross-tenant)
 
 ---
 

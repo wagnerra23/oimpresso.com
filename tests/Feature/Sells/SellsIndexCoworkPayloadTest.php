@@ -107,3 +107,30 @@ it('preserva campos legacy do US-SELL-008/021/023/024', function () {
         ->toContain("'is_grouped_invoice'")
         ->toContain("'display_date'");
 });
+
+// ──────────────────────────────────────────────────────────────
+// Onda 3 (ADR 0192) — Integração Vendas × Oficina
+// Backend payload `/sells-list-json` devolve `source` + `source_label` + `os_ref`
+// pra frontend `VdSource` pill renderizar Balcão/Oficina/Online + link OS.
+// ──────────────────────────────────────────────────────────────
+
+it('payload expõe source (Onda 3 ADR 0192 · default balcao retroativo)', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'source' => (string) (\$r->source ?? 'balcao')");
+});
+
+it('payload expõe source_label PT-BR derivado server-side (não vaza enum bruto)', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'source_label'")
+        ->toContain("'oficina' => 'Oficina'")
+        ->toContain("'online'  => 'Online'")
+        ->toContain("default   => 'Balcão'");
+});
+
+it('payload expõe os_ref pra cross-link Sells → Repair (link ↗ #OS-NNNN)', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'os_ref' => \$r->os_ref");
+});

@@ -22,6 +22,7 @@ import {
   avatarPaletteFor,
 } from '../Index';
 import QuickPaymentPopover from './QuickPaymentPopover';
+import VdSource, { type VdSourceKind } from './VdSource';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — sub-conjunto do SaleRow do Index.tsx (mantido independente
@@ -67,6 +68,11 @@ export interface SaleRow {
   installments: number;
   commission_agent_id?: number | null;
   commission_agent_name?: string | null;
+  // Integração Vendas × Oficina (Onda 3 · ADR 0192) — backend devolve no payload
+  // /sells-list-json desde Onda 2. source default 'balcao' retroativo.
+  source?: VdSourceKind | string;
+  source_label?: string;
+  os_ref?: string | null;
 }
 
 // Identificadores canônicos das colunas. Ordem desta enumeração = ordem default
@@ -77,6 +83,7 @@ export type ColumnId =
   | 'date'
   | 'client'
   | 'seller'
+  | 'source'
   | 'pipeline'
   | 'fiscal'
   | 'payment'
@@ -88,14 +95,17 @@ export type ColumnId =
   | 'commission';
 
 // 3 presets canônicos (ADR 0178) — exportados pra PR4 importar.
+// Onda 3 (ADR 0192) — coluna 'source' entre 'seller' e 'pipeline' nas visões
+// Operacional/Produção (cross-source signal). Financeira NÃO ganha — foco é
+// $$/comissão, não origem (decisão pragmática: 10 cols já no limite 1280px).
 export const COLUMNS_OPERACIONAL: ColumnId[] = [
-  'check', 'invoice', 'date', 'client', 'seller', 'pipeline', 'fiscal', 'payment', 'total', 'status',
+  'check', 'invoice', 'date', 'client', 'seller', 'source', 'pipeline', 'fiscal', 'payment', 'total', 'status',
 ];
 export const COLUMNS_FINANCEIRA: ColumnId[] = [
   'check', 'invoice', 'date', 'client', 'total', 'paid', 'due', 'payment', 'status', 'commission',
 ];
 export const COLUMNS_PRODUCAO: ColumnId[] = [
-  'check', 'invoice', 'date', 'client', 'location', 'pipeline', 'payment', 'total', 'status',
+  'check', 'invoice', 'date', 'client', 'location', 'source', 'pipeline', 'payment', 'total', 'status',
 ];
 
 // ──────────────────────────────────────────────────────────────
@@ -128,12 +138,13 @@ const PILL_STYLE: Record<PillKey, { bg: string; fg: string; label: string }> = {
 // ──────────────────────────────────────────────────────────────
 // COLUMN DEFS — header + cell por ColumnId
 // ──────────────────────────────────────────────────────────────
-const COL_HEADERS: Record<ColumnId, { label: string; width?: number; style?: React.CSSProperties }> = {
+const COL_HEADERS: Record<ColumnId, { label: string; width?: number; style?: React.CSSProperties; className?: string }> = {
   check:      { label: '', width: 24, style: { padding: '0 0 0 12px' } },
   invoice:    { label: 'Venda', width: 82 },
   date:       { label: 'Data', width: 80 },
   client:     { label: 'Cliente' },
   seller:     { label: 'Atendido por', width: 168 },
+  source:     { label: 'Origem', width: 138, className: 'vd-col-source' },
   pipeline:   { label: 'Pipeline', width: 128 },
   fiscal:     { label: 'Fiscal', width: 148 },
   payment:    { label: 'Pagamento', width: 128 },
@@ -161,6 +172,12 @@ interface SellsTabelaUnificadaProps {
   onToggleAll: () => void;
   onRowClick: (id: number, ri: number) => void;
   onPaySuccess: () => void;
+  /**
+   * Onda 3 (ADR 0192) — callback quando user clica em `↗ #OS-NNNN` na pill VdSource.
+   * Default: navega pra `/repair/producao-oficina?os=OS-NNNN`. Onda 5 (Repair drawer)
+   * intercepta pra abrir o drawer da OS direto.
+   */
+  onPickOs?: (osRef: string) => void;
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -179,8 +196,21 @@ export default function SellsTabelaUnificada({
   onToggleAll,
   onRowClick,
   onPaySuccess,
+  onPickOs,
 }: SellsTabelaUnificadaProps): ReactNode {
   const colSpan = visibleColumns.length;
+
+  // Default handler: navega pra /repair/producao-oficina com ?os=OS-NNNN.
+  // Onda 5 (Worker B) intercepta no Repair pra abrir drawer da OS direto.
+  const handlePickOs = (osRef: string): void => {
+    if (onPickOs) {
+      onPickOs(osRef);
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = `/repair/producao-oficina?os=${encodeURIComponent(osRef)}`;
+    }
+  };
 
   return (
     <div className="os-table-wrap">
@@ -202,7 +232,13 @@ export default function SellsTabelaUnificada({
                 );
               }
               return (
-                <th key={id} style={h.width ? { width: h.width } : undefined}>{h.label}</th>
+                <th
+                  key={id}
+                  className={h.className}
+                  style={h.width ? { width: h.width } : undefined}
+                >
+                  {h.label}
+                </th>
               );
             })}
           </tr>
@@ -225,6 +261,8 @@ export default function SellsTabelaUnificada({
               const pill = classifyPill(v);
               const ps = PILL_STYLE[pill] ?? PILL_STYLE.todas;
               const due = Math.max(0, v.final_total - v.total_paid);
+              // Onda 3 (ADR 0192) — stripe sutil border-left azul quando origem=oficina
+              const isFromOficina = v.source === 'oficina';
               return (
                 <tr
                   key={v.id}
@@ -233,11 +271,13 @@ export default function SellsTabelaUnificada({
                     'os-row' +
                     (isUrgent ? ' urgent' : '') +
                     (sel ? ' selected' : '') +
-                    (isFocused ? ' row-focused' : '')
+                    (isFocused ? ' row-focused' : '') +
+                    (isFromOficina ? ' vd-row-oficina' : '')
                   }
+                  data-source={v.source ?? 'balcao'}
                   onClick={() => onRowClick(v.id, ri)}
                 >
-                  {visibleColumns.map((id) => renderCell(id, v, { sel, isFav, ps, due, onToggleSel, onPaySuccess }))}
+                  {visibleColumns.map((id) => renderCell(id, v, { sel, isFav, ps, due, onToggleSel, onPaySuccess, onPickOs: handlePickOs }))}
                 </tr>
               );
             })}
@@ -257,6 +297,7 @@ interface CellCtx {
   due: number;
   onToggleSel: (id: number) => void;
   onPaySuccess: () => void;
+  onPickOs: (osRef: string) => void;
 }
 
 // Renderiza célula por ColumnId. Helpers maiores (PipelineDots etc) vêm via
@@ -309,6 +350,19 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
           ) : (
             <span style={{ opacity: 0.5 }}>—</span>
           )}
+        </td>
+      );
+    case 'source':
+      // Onda 3 (ADR 0192) — pill colorida Balcão/Oficina/Online + link ↗ #OS-NNNN clicável.
+      // Defesa: se backend não devolveu source (rota legacy), default 'balcao' (zero crash).
+      return (
+        <td key={id} className="vd-col-source" onClick={(e) => e.stopPropagation()}>
+          <VdSource
+            source={v.source ?? 'balcao'}
+            sourceLabel={v.source_label ?? 'Balcão'}
+            osRef={v.os_ref ?? null}
+            onPickOs={ctx.onPickOs}
+          />
         </td>
       );
     case 'pipeline':
