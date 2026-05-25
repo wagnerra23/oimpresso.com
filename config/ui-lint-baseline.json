@@ -2,8 +2,8 @@
     "_meta": {
         "generated_at": "2026-05-25T15:11:26-03:00",
         "tool": "ui:lint",
-        "files_scanned": 491,
-        "total_violations": 7328,
+        "files_scanned": 492,
+        "total_violations": 7359,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -60,6 +60,9 @@
         },
         "resources\/js\/Components\/shared\/StatusBadge.tsx": {
             "R1": 39
+        },
+        "resources\/js\/Components\/shared\/VendaDerivadaCard.tsx": {
+            "R1": 53
         },
         "resources\/js\/Components\/Site\/DashboardMockup.tsx": {
             "R1": 4
@@ -675,7 +678,7 @@
             "R1": 46
         },
         "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderSheet.tsx": {
-            "R1": 38
+            "R1": 40
         },
         "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderStagePipeline.tsx": {
             "R1": 52
@@ -866,7 +869,7 @@
             "R1": 30
         },
         "resources\/js\/Pages\/Repair\/ProducaoOficina\/Index.tsx": {
-            "R1": 116,
+            "R1": 92,
             "R3": 1
         },
         "resources\/js\/Pages\/Repair\/Show.tsx": {
