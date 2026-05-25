@@ -183,15 +183,10 @@ class DataController extends Controller
                             );
                         }
 
-                        // Alertas
-                        $sub->url(
-                            route('jana.alertas.index'),
-                            __('copiloto::copiloto.menu.alertas'),
-                            [
-                                'icon'   => 'fa fas fa-bell',
-                                'active' => request()->segment(2) == 'alertas',
-                            ]
-                        );
+                        // Alertas — REMOVIDO do dropdown legacy (Wagner 2026-05-25).
+                        // Tela /ia/alertas é STUB ("spec-ready ver US-COPI-060") sem
+                        // implementação real. Reativar quando US-COPI-060 entregar.
+                        // Rota e Controller mantidos pra não quebrar bookmarks externos.
 
                         // Custos de IA (admin do business — US-COPI-070)
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.admin.custos.view')) {
