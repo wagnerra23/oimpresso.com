@@ -49,11 +49,11 @@ export default function ConsentBanner() {
       <div
         role="region"
         aria-label="Aviso de cookies"
-        className="fixed bottom-0 inset-x-0 z-[9998] border-t border-zinc-200 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]"
+        className="fixed bottom-0 inset-x-0 z-[9998] border-t border-border bg-card shadow-[0_-2px_8px_rgba(0,0,0,0.04)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-zinc-700 leading-relaxed max-w-3xl">
+          <p className="text-sm text-foreground leading-relaxed max-w-3xl">
             Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência.
             Dados sensíveis (CPF, email, telefone) <strong>não são capturados</strong>.
           </p>
@@ -62,7 +62,7 @@ export default function ConsentBanner() {
               type="button"
               onClick={() => setOpen(true)}
               disabled={submitting}
-              className="text-sm text-zinc-600 underline-offset-4 hover:underline disabled:opacity-50"
+              className="text-sm text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
             >Personalizar</button>
             <Button variant="ghost" size="sm" onClick={() => submit(false, false)} disabled={submitting}>
               Só essenciais
@@ -88,21 +88,21 @@ export default function ConsentBanner() {
               <Checkbox checked disabled className="mt-0.5" />
               <div className="grid gap-1">
                 <span className="text-sm font-medium">Essenciais (obrigatório)</span>
-                <span className="text-xs text-zinc-500">Sessão, login, segurança CSRF. Sem isso o sistema não funciona.</span>
+                <span className="text-xs text-muted-foreground">Sessão, login, segurança CSRF. Sem isso o sistema não funciona.</span>
               </div>
             </label>
             <label className="flex items-start gap-3 cursor-pointer">
               <Checkbox checked={analytics} onCheckedChange={(v) => setAnalytics(v === true)} className="mt-0.5" />
               <div className="grid gap-1">
                 <span className="text-sm font-medium">Análise de uso</span>
-                <span className="text-xs text-zinc-500">Mapas de calor e replays anonimizados. Dados sensíveis são mascarados.</span>
+                <span className="text-xs text-muted-foreground">Mapas de calor e replays anonimizados. Dados sensíveis são mascarados.</span>
               </div>
             </label>
             <label className="flex items-start gap-3 cursor-pointer">
               <Checkbox checked={marketing} onCheckedChange={(v) => setMarketing(v === true)} className="mt-0.5" />
               <div className="grid gap-1">
                 <span className="text-sm font-medium">Marketing</span>
-                <span className="text-xs text-zinc-500">Pixels e tags pra mensurar campanhas (caso ativemos no futuro).</span>
+                <span className="text-xs text-muted-foreground">Pixels e tags pra mensurar campanhas (caso ativemos no futuro).</span>
               </div>
             </label>
           </div>
