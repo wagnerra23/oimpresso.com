@@ -17,7 +17,8 @@ import { Badge } from '@/Components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Label } from '@/Components/ui/label';
 import { ScrollArea } from '@/Components/ui/scroll-area';
-import PageHeader from '@/Components/shared/PageHeader';
+import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader';
+import { TrendingUp } from 'lucide-react';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 
@@ -153,11 +154,18 @@ function QualidadeIndex(props: Props) {
 
   return (
     <>
-      <PageHeader
-        icon="trending-up"
-        title="Qualidade IA"
-        description={`Trend ${filtros.dias}d das 8 métricas obrigatórias + 3 RAGAS. Gates ADR 0049/0050. Eval contra gabarito ${gabarito_total} perguntas.`}
-      />
+      <JanaAreaHeader active="qualidade-jana" />
+
+      {/* Title local da tela — preservado pós-migração JanaAreaHeader (Wagner 2026-05-25) */}
+      <div className="px-6 pt-6 flex items-center gap-3">
+        <TrendingUp className="size-6 text-primary" />
+        <div>
+          <h1 className="text-xl font-semibold">Qualidade IA</h1>
+          <p className="text-sm text-muted-foreground">
+            Trend {filtros.dias}d das 8 métricas obrigatórias + 3 RAGAS. Gates ADR 0049/0050. Eval contra gabarito {gabarito_total} perguntas.
+          </p>
+        </div>
+      </div>
 
       <Card className="mt-4">
         <CardContent className="py-3 flex flex-wrap items-end gap-3">
