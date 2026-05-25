@@ -184,11 +184,14 @@ class BrLookupService
                     $cepRaw = (string) ($response->json('cep') ?? '');
                     $zipCode = preg_replace('/\D/', '', $cepRaw) ?? '';
 
-                    // city_code IBGE: BrasilAPI retorna `codigo_municipio`
-                    // como inteiro 7 digitos (ex 3550308 = SP). Defensivo:
-                    // normaliza pra string so com digitos. Wagner 2026-05-22:
-                    // obrigatorio em NFe/NFSe (campos enderEmit/cMun, enderDest/cMun).
-                    $cityCodeRaw = $response->json('codigo_municipio');
+                    // city_code IBGE: BrasilAPI retorna `codigo_municipio_ibge` como
+                    // inteiro 7 digitos (ex 3550308 = Sao Paulo). NAO confundir com
+                    // `codigo_municipio` (4 digitos -- codigo interno Receita Federal,
+                    // p.ex. 7107 pra SP). Backend valida exatamente 7 digitos por causa
+                    // do XML NFe (enderEmit/cMun, enderDest/cMun). Bug fix 2026-05-23
+                    // descoberto via smoke prod -- PATCH /endereco retornava 422 silencioso
+                    // pois city_code chegava como '7107' em vez de '3550308'.
+                    $cityCodeRaw = $response->json('codigo_municipio_ibge');
                     $cityCode = '';
                     if (is_numeric($cityCodeRaw) || is_string($cityCodeRaw)) {
                         $cityCode = preg_replace('/\D/', '', (string) $cityCodeRaw) ?? '';
