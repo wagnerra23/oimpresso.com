@@ -119,6 +119,13 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
             ->whereNumber('id')
             ->name('autosave.classificacao');
 
+        // ADR 0188 Onda 4 -- multi-type papeis (4 flags is_X · Drawer secao "Papeis").
+        // Contato pode ter N papeis simultaneos sem duplicar cadastro (insight Delphi
+        // WR Comercial). Backend invariante: >=1 papel ativo (anti soft-delete acidental).
+        Route::patch('{id}/papeis', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'papeis'])
+            ->whereNumber('id')
+            ->name('autosave.papeis');
+
         // 2 endpoints lookup (cache Redis: CEP 90d, CNPJ 30d).
         // Wave 15 D8 Security -- throttle 60/min anti-abuso pro caso de
         // Auth bypassado em prod (defensivo): Larissa biz=4 ~30 cadastros/dia
