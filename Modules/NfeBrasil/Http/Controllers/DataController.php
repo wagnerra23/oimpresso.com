@@ -163,19 +163,24 @@ class DataController extends Controller
                         // Wagner 2026-05-22: FISCAL virou grupo próprio (era ghost de FINANÇAS).
                         'group'    => 'fiscal',
                         'shortcut' => 'G X',
+                        // Wagner 2026-05-25 repoint: rotas /nfebrasil/{create,sped,settings}
+                        // sao stub do scaffold nWidart (View not found => 500). Repointado
+                        // pros cockpits funcionais /fiscal/*. Ghosts c/ rota legacy 200
+                        // (manifestacao, certificado, tributacao, /nfse) mantem destino
+                        // legacy pq sao telas especializadas funcionais.
                         'primary'  => [
                             'label'    => 'Emitir NF-e',
-                            'href'     => '/nfebrasil/create',
+                            'href'     => '/fiscal/nfe',
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [
-                            ['key' => 'notas',         'label' => 'Notas fiscais',     'href' => '/nfebrasil'],
+                            ['key' => 'notas',         'label' => 'Notas fiscais',     'href' => '/fiscal/nfe'],
                             ['key' => 'manifestacao',  'label' => 'Manifestação',      'href' => '/nfe-brasil/manifestacao'],
                             ['key' => 'certificado',   'label' => 'Certificado Digital','href' => '/nfe-brasil/configuracao/certificado'],
                             // Wagner 2026-05-22 P1: +4 ghosts pra zerar órfãs Fiscal.
                             ['key' => 'tributacao',    'label' => 'Tributação',        'href' => '/nfe-brasil/tributacao'],
-                            ['key' => 'sped',          'label' => 'SPED',              'href' => '/nfebrasil/sped'],
-                            ['key' => 'settings',      'label' => 'Configurações',     'href' => '/nfebrasil/settings'],
+                            ['key' => 'sped',          'label' => 'SPED',              'href' => '/fiscal/sped'],
+                            ['key' => 'settings',      'label' => 'Configurações',     'href' => '/fiscal/config'],
                             ['key' => 'nfse',          'label' => 'NFSe',              'href' => '/nfse'],
                         ],
                     ]
