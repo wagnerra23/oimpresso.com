@@ -619,7 +619,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
      <div className="w-full px-6 space-y-3">
       {/* ───── BLOCO 1 · HEADER FECHADO (ADR 0189 v3.1) ───── */}
       <header
-        className="bg-background border border-border rounded-lg overflow-visible"
+        className="bg-background border border-border rounded-t-lg overflow-visible"
         role="banner"
       >
         {/* Wagner 2026-05-25: BLOCO 1 header padding canon Vendas (referência /sells):
