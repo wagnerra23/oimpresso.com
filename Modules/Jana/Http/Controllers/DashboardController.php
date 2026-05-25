@@ -17,20 +17,11 @@ class DashboardController extends Controller
     {
         $businessId = $request->session()->get('user.business_id');
 
-        // Pré-check rápido (count) pra decidir redirect antes de hidratar payload.
-        // Anti-pattern evitado: get() completo só pra ver isEmpty() — desperdiça
-        // a query pesada com eager loads quando user não tem meta ativa.
-        $temMetas = Meta::where('ativo', true)
-            ->where(function ($q) use ($businessId) {
-                $q->where('business_id', $businessId)
-                  ->orWhereNull('business_id');
-            })
-            ->exists();
-
-        if (! $temMetas) {
-            return redirect()->route('jana.chat.index')
-                ->with('status', 'Nenhuma meta ativa. Converse com o Copiloto pra criar a primeira.');
-        }
+        // Wagner 2026-05-25: Dashboard é PRIMEIRA ABA canon da Jana + destino
+        // pós-login (`/home → /ia/dashboard`). Empty state já implementado em
+        // Dashboard.tsx (linha 296) com CTA "Pergunte algo a Jana". O redirect
+        // antigo "sem metas → chat" criava loop UX: login → /ia/dashboard →
+        // bounce pra /ia (chat). Removido — frontend renderiza empty card.
 
         // D6.a (Wave 14 governance v3) — Inertia::defer no payload `metas`.
         // Eager loads (periodoAtual + ultimaApuracao + apuracoes×12) podem

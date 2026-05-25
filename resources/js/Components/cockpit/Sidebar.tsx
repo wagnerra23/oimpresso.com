@@ -224,7 +224,9 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     label: 'SISTEMA',
     // Wagner 2026-05-22: Auditoria/Modelos de notificação/Relatórios/Dashboard
     // adicionados (eram módulos soltos em MAIS).
-    items: ['Governança', 'Plataforma', 'Auditoria',
+    // Wagner 2026-05-25: 'Governança' REMOVIDO — entry sidebar desligada no
+    // Modules/Governance/DataController.modifyAdminMenu (acesso via URL direta).
+    items: ['Plataforma', 'Auditoria',
             'Modelos de notificação', 'Modelo de notificação',
             'Relatórios', 'Dashboard',
             // Wagner 2026-05-22: Planilha vai pra SISTEMA.
