@@ -663,7 +663,13 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   }
                   style={isActive ? { borderBottomColor: primaryBg } : undefined}
                 >
-                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {/* Ícone canon LEARNINGS Decisão #2: size 16 + stroke 1.75 + vector-effect + shrink-0 (anti-borrão Lucide DPR=1) */}
+                  <Icon
+                    className="h-4 w-4 shrink-0"
+                    aria-hidden="true"
+                    strokeWidth={1.75}
+                    style={{ vectorEffect: 'non-scaling-stroke' }}
+                  />
                   <span>{shortLabel}</span>
                   <span
                     className="ml-1 px-1.5 py-px text-[11px] font-medium rounded-full tabular-nums"
@@ -684,14 +690,19 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             {(props.permissions.import || props.permissions.view) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
+                  {/* AP17 LEARNINGS: ghost puro (border-0) · Decisão #2 ícones: size 16 stroke 1.75 vector-effect */}
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
                     aria-label="Mais ações"
                     title="Importar / Exportar / Grupos"
-                    className="h-8 w-8"
+                    className="h-8 w-8 border-0"
                   >
-                    <MoreVertical className="h-3.5 w-3.5" />
+                    <MoreVertical
+                      className="h-4 w-4 shrink-0"
+                      strokeWidth={1.75}
+                      style={{ vectorEffect: 'non-scaling-stroke' }}
+                    />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -704,7 +715,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                       {props.permissions.import && (
                         <DropdownMenuItem asChild>
                           <a href="/contacts/import">
-                            <Upload className="mr-2 h-3.5 w-3.5" />
+                            <Upload className="mr-2 h-4 w-4 shrink-0" strokeWidth={1.75} style={{ vectorEffect: 'non-scaling-stroke' }} />
                             Importar
                           </a>
                         </DropdownMenuItem>
@@ -712,7 +723,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                       {props.permissions.view && (
                         <DropdownMenuItem asChild>
                           <a href="/cliente/export" title="Baixar CSV de contatos (UTF-8)">
-                            <Download className="mr-2 h-3.5 w-3.5" />
+                            <Download className="mr-2 h-4 w-4 shrink-0" strokeWidth={1.75} style={{ vectorEffect: 'non-scaling-stroke' }} />
                             Exportar CSV
                           </a>
                         </DropdownMenuItem>
@@ -726,7 +737,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   </div>
                   <DropdownMenuItem asChild>
                     <a href="/customer-group" title="Cadastrar grupos/tipos de cliente (VIP, atacado, varejo, etc)">
-                      <Layers className="mr-2 h-3.5 w-3.5" />
+                      <Layers className="mr-2 h-4 w-4 shrink-0" strokeWidth={1.75} style={{ vectorEffect: 'non-scaling-stroke' }} />
                       Grupos de clientes
                     </a>
                   </DropdownMenuItem>
@@ -767,7 +778,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 }
                 style={isActive ? { borderBottomColor: primaryBg } : undefined}
               >
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <Icon
+                  className="h-4 w-4 shrink-0"
+                  aria-hidden="true"
+                  strokeWidth={1.75}
+                  style={{ vectorEffect: 'non-scaling-stroke' }}
+                />
                 <span>{shortLabel}</span>
                 <span
                   className="ml-1 px-1.5 py-px text-[11px] font-medium rounded-full tabular-nums"
