@@ -619,8 +619,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
      {/* Fluid layout — Wagner 2026-05-25: tabela contatos usa 100% da largura disponível
          (pattern Linear/Notion/Stripe Dashboard em listas). `w-full px-6` (24px respiro
          lateral) + `py-4` (16px respiro topo+rodapé) — Wagner pediu "respiro nas laterais
-         e em cima". space-y-3 mantém gap entre blocos. */}
-     <div className="w-full px-6 space-y-3">
+         e em cima".
+         canon v3.8 (Wagner 2026-05-25): space-y-3 (12px) → space-y-4 (16px) — gaps maiores
+         entre blocos (Header→KPI→Toolbar→Tabela) pra cada um respirar melhor. */}
+     <div className="w-full px-6 space-y-4">
       {/* ───── BLOCO 1 · HEADER TRANSPARENTE + border-b warm (canon v3.4 polish · 2026-05-25) ─────
           Wagner pediu remover `bg-background border rounded-t-lg` pra header herdar
           o cream `--color-page-cream` do parent — espelha `/sells` canon Cowork exato.
@@ -889,7 +891,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               </span>
             </nav>
 
-            {/* Busca a direita (Wagner v3.5): `ml-auto` empurra pra direita extrema. */}
+            {/* Busca a direita (Wagner v3.5): `ml-auto` empurra pra direita extrema.
+                canon v3.8: h-9 → h-8 (mais fina) + bg-background (destaque branco sobre cream)
+                + border warm `oklch(0.9 0.004 90)` (afinidade familia cream). Placeholder
+                simplificado: tira meta-info "(/ pra focar · ⌘K global)" — atalhos no cheat-sheet. */}
             <div className="relative ml-auto min-w-[200px] max-w-md w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
@@ -897,8 +902,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 type="search"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Buscar nome, CNPJ/CPF, telefone… (/ pra focar · ⌘K global)"
-                className="pl-9 pr-9 h-9"
+                placeholder="Buscar nome, CNPJ/CPF, contato, telefone, cidade..."
+                className="pl-9 pr-9 h-8 bg-background"
+                style={{ borderColor: 'oklch(0.9 0.004 90)' }}
                 aria-label="Buscar contato"
               />
               {searchInput && (
