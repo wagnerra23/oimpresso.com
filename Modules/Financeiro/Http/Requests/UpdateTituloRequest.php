@@ -3,6 +3,7 @@
 namespace Modules\Financeiro\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\PlanoConta;
@@ -110,6 +111,19 @@ class UpdateTituloRequest extends FormRequest
             : ['despesa', 'custo', 'passivo'];
 
         if (! in_array($plano->tipo, $permitidos, true)) {
+            // PR D — G12 audit log violação coerência. Se taxa > 0.1% sinaliza
+            // bug UI (frontend filter quebrado) OU tentativa tampering.
+            Log::warning('financeiro.plano_coerencia.violada', [
+                'route'        => 'update',
+                'business_id'  => $titulo->business_id,
+                'titulo_id'    => $titulo->id,
+                'tipo_titulo'  => $titulo->tipo,
+                'plano_id'     => $plano->id,
+                'plano_codigo' => $plano->codigo,
+                'plano_tipo'   => $plano->tipo,
+                'user_id'      => $this->user()?->id,
+                'ip'           => $this->ip(),
+            ]);
             abort(422, "Plano de contas '{$plano->codigo} {$plano->nome}' (tipo {$plano->tipo}) é incompatível com título tipo '{$titulo->tipo}'.");
         }
     }
