@@ -178,6 +178,65 @@ protótipo mas QUEBRARAM em prod por ignorância de contexto.
 5. Resolver counter das tabs via Controller (server-side counts) ou KPI strip já existente
 6. Substituir KpiStripClickable por 4-cards-strip canon v3.1 (ou adaptar)
 
+### Decisão canon #2 — Preferência ícones · Phosphor (longo prazo) + Lucide com 5 fixes (interim)
+
+**Contexto:**
+Wagner inspecionou `/financeiro/unificado` em 2026-05-25 e reclamou que ícones do topnav "estão feios
+e desfocados". Inspeção técnica via browser MCP revelou 4 causas:
+
+1. **`stroke-width: 2px`** em viewBox 24x24 renderizado em **13-14px** → stroke real 1.16px em tela →
+   subpixel rendering em DPR=1 → antialiasing borra
+2. **`vector-effect: none`** (não tem `non-scaling-stroke`) → stroke desproporcional ao escalar
+3. **Tamanhos ímpares** (13px, 14px, 10px) → pixel snapping ruim em DPR=1 (não múltiplos de 4)
+4. **Cor `oklch(0.78 0.005 90)` chroma 0.005** → cinza-quente muito sutil → "lavado" em monitor não-OLED
+
+**Grade comparativa de 8 bibliotecas (pontuação ponderada 6 dimensões):**
+
+| Biblioteca | Total ponderado | Posição |
+|---|---|---|
+| **Phosphor Icons** (`@phosphor-icons/react`) | 9.4 | 🥇 1º |
+| Heroicons | 8.1 | 🥈 2º (limitado 300 ícones) |
+| **Lucide React** (atual) | 8.0 | 🥉 3º empate Tabler |
+| Tabler Icons | 8.0 | 3º empate |
+| Iconoir | 7.8 | 5º |
+| Radix Icons | 7.5 | 6º |
+| Iconsax | 7.3 | 7º |
+| Material Symbols | 6.5 | 8º (Google-flavored datado) |
+
+**Decisão Wagner 2026-05-25:**
+- **CURTO PRAZO (interim) — Lucide com 5 fixes técnicos:**
+  - `size={16}` (não 14) — múltiplo de 4
+  - `strokeWidth={1.75}` (não 2) — evita subpixel
+  - `vector-effect="non-scaling-stroke"` — stroke firme em escalas
+  - `color: oklch(0.40 0 0)` — cinza puro mais firme (chroma 0, não 0.005)
+  - `className="shrink-0"` — evita squish flex
+- **LONGO PRAZO (preferência) — migrar pra Phosphor Icons** (`@phosphor-icons/react`):
+  - 6 weights (thin/light/regular/bold/fill/duotone) — escolher por contexto
+  - Pixel-perfect em 16px (calibração específica small sizes)
+  - 9000+ ícones (vs 1400 Lucide)
+  - Visual Linear/Notion-tier
+  - Bundle ~50KB tree-shakeable (vs ~20KB Lucide — aceitável)
+
+**Regra dura pra próximo agente:**
+> Quando renderizar ícone em tamanho ≤16px:
+> 1. SEMPRE `size` múltiplo de 4 (preferir 16, 20, 24 — evitar 13, 14)
+> 2. SEMPRE `strokeWidth={1.75}` ou `{1.5}` em viewBox 24x24 (nunca 2 em <16px)
+> 3. SEMPRE `vector-effect: non-scaling-stroke` no SVG ou em style
+> 4. SEMPRE cor firme (chroma 0 ou ≥0.05) — evitar `oklch(0.78 0.005 X)` lavado
+> 5. SEMPRE `shrink-0` className em flex containers
+>
+> Em código novo (Wave 2+), preferir Phosphor `weight="regular"` 16px.
+
+**Como detectar antes:**
+- Inspecionar DevTools: SVG width/height ≤14 + strokeWidth 2 = candidato a borrão
+- Pest browser test: `expect(getComputedStyle(svg).strokeWidth).toBe('1.5px')` ou similar
+- Visual regression: comparar screenshot zoom 200% — se ícone "vibra" no contorno = subpixel
+
+**Não decidido (review trigger):**
+- Migração full Phosphor: pendente piloto Wagner aprovar (estimar 4-6h pra 1400+ imports atuais)
+- Bundle size +30KB aceitável? Lighthouse perf budget validar
+- Casos onde Phosphor não tem ícone — fallback Lucide ou criar custom?
+
 ### Decisão canon #1 — Primary universal roxo 295 (ADR 0190 · supersede parcial 0182/0189)
 
 **Contexto:**
