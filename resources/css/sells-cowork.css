@@ -7453,6 +7453,11 @@
 .sells-cowork .vendas-aplus .vd-tree-row.l1 .vd-tree-lbl {
   font-size: 11.5px;
 }
+/* Onda 4 (ADR 0192) — dot standalone nos filhos do branch "Por origem ▾"
+   (fora do flex container .vd-src; força size + cor herdada do token). */
+.sells-cowork .vd-tree-row .vd-src-dot.vd-src-balcao  { width: 6px; height: 6px; border-radius: 50%; background: var(--vd-src-balcao); }
+.sells-cowork .vd-tree-row .vd-src-dot.vd-src-oficina { width: 6px; height: 6px; border-radius: 50%; background: var(--vd-src-oficina); }
+.sells-cowork .vd-tree-row .vd-src-dot.vd-src-online  { width: 6px; height: 6px; border-radius: 50%; background: var(--vd-src-online); }
 
 /* Responsive — abaixo de 1280, esconder #osRef pra não quebrar layout */
 @media (max-width: 1280px) {
