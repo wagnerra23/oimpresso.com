@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-25T14:48:04-03:00",
+        "generated_at": "2026-05-25T15:11:26-03:00",
         "tool": "ui:lint",
-        "files_scanned": 490,
-        "total_violations": 7304,
+        "files_scanned": 491,
+        "total_violations": 7328,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -866,7 +866,7 @@
             "R1": 30
         },
         "resources\/js\/Pages\/Repair\/ProducaoOficina\/Index.tsx": {
-            "R1": 92,
+            "R1": 116,
             "R3": 1
         },
         "resources\/js\/Pages\/Repair\/Show.tsx": {

@@ -32,7 +32,22 @@ export interface ContactInfo {
   tags?: string[] | null;
   status?: 'ativo' | 'inativo' | 'bloqueado' | string | null;
   vip?: boolean | null;
+  // ADR 0188 Onda 4 — flags multi-papel (Wagner 2026-05-25 UX refactor:
+  // movido de IdentificacaoTab pra cá · papel é classificação semântica).
+  is_customer?: boolean | null;
+  is_supplier?: boolean | null;
+  is_employee?: boolean | null;
+  is_representative?: boolean | null;
 }
+
+/** 4 papéis canônicos ADR 0188. Ordem visual estável (Cliente primeiro · papel
+ *  mais comum em PME ROTA LIVRE biz=4). */
+const PAPEL_OPTIONS: Array<{ flag: 'is_customer' | 'is_supplier' | 'is_employee' | 'is_representative'; label: string }> = [
+  { flag: 'is_customer',       label: 'Cliente' },
+  { flag: 'is_supplier',       label: 'Fornecedor' },
+  { flag: 'is_employee',       label: 'Funcionário' },
+  { flag: 'is_representative', label: 'Representante' },
+];
 
 export interface ClassificacaoTabProps {
   contact: ContactInfo;
@@ -78,6 +93,11 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
   const [tags, setTags] = useState<string[]>(Array.isArray(contact.tags) ? contact.tags : []);
   const [status, setStatus] = useState<string>(contact.status ?? 'ativo');
   const [vip, setVip] = useState<boolean>(!!contact.vip);
+  // ADR 0188 Onda 4 — 4 flags multi-papel (Wagner 2026-05-25 UX refactor).
+  const [isCustomer, setIsCustomer] = useState<boolean>(Boolean(contact.is_customer));
+  const [isSupplier, setIsSupplier] = useState<boolean>(Boolean(contact.is_supplier));
+  const [isEmployee, setIsEmployee] = useState<boolean>(Boolean(contact.is_employee));
+  const [isRepresentative, setIsRepresentative] = useState<boolean>(Boolean(contact.is_representative));
 
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
@@ -90,6 +110,10 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
     setTags(Array.isArray(contact.tags) ? contact.tags : []);
     setStatus(contact.status ?? 'ativo');
     setVip(!!contact.vip);
+    setIsCustomer(Boolean(contact.is_customer));
+    setIsSupplier(Boolean(contact.is_supplier));
+    setIsEmployee(Boolean(contact.is_employee));
+    setIsRepresentative(Boolean(contact.is_representative));
     setErrorField(null);
     setSavedField(null);
   }, [contact.id]);
@@ -189,9 +213,128 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
     [vip, performSave]
   );
 
+  // ADR 0188 Onda 4 — toggle papel via endpoint /papeis separado (não
+  // /classificacao) pra isolar invariante ">=1 papel ativo" no backend.
+  // Optimistic UI: troca state imediato + PATCH paralelo. Rollback no 4xx/5xx.
+  const handlePapelToggle = useCallback(
+    async (
+      flag: 'is_customer' | 'is_supplier' | 'is_employee' | 'is_representative',
+    ) => {
+      if (disabled) return;
+
+      const setters = {
+        is_customer: setIsCustomer,
+        is_supplier: setIsSupplier,
+        is_employee: setIsEmployee,
+        is_representative: setIsRepresentative,
+      };
+      const currentValues = {
+        is_customer: isCustomer,
+        is_supplier: isSupplier,
+        is_employee: isEmployee,
+        is_representative: isRepresentative,
+      };
+      const newValue = !currentValues[flag];
+
+      setters[flag](newValue);
+      setSavingField(flag);
+      setErrorField(null);
+
+      try {
+        const r = await fetch(`/cliente/${contact.id}/papeis`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': getCsrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ [flag]: newValue }),
+        });
+
+        if (!r.ok) {
+          setters[flag](currentValues[flag]);
+          let msg = `Erro ${r.status} ao salvar papel.`;
+          if (r.status === 422) {
+            const j = await r.json().catch(() => ({}));
+            msg = j?.errors?.[flag]?.[0] ?? j?.errors?.is_customer?.[0] ?? msg;
+          } else if (r.status === 403) {
+            msg = 'Sem permissão pra editar papéis.';
+          }
+          setErrorField({ field: flag, message: msg });
+          // eslint-disable-next-line no-console
+          console.error(`[ClassificacaoTab] papeis ${flag} falhou`, { status: r.status });
+          return;
+        }
+
+        setSavedField(flag);
+        setTimeout(() => setSavedField((c) => (c === flag ? null : c)), 1800);
+        onSaved?.(flag, newValue);
+      } catch (err) {
+        setters[flag](currentValues[flag]);
+        setErrorField({ field: flag, message: 'Falha de rede. Tente de novo.' });
+        // eslint-disable-next-line no-console
+        console.error(`[ClassificacaoTab] papeis ${flag} network`, err);
+      } finally {
+        setSavingField((c) => (c === flag ? null : c));
+      }
+    },
+    [contact.id, disabled, isCustomer, isSupplier, isEmployee, isRepresentative, onSaved],
+  );
+
+  // Helper pra map flag → state local (usado no JSX dos chips).
+  const papelValue = (flag: typeof PAPEL_OPTIONS[number]['flag']): boolean => {
+    if (flag === 'is_customer') return isCustomer;
+    if (flag === 'is_supplier') return isSupplier;
+    if (flag === 'is_employee') return isEmployee;
+    return isRepresentative;
+  };
+
   return (
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
+        {/* ADR 0188 Onda 4 — Papéis (4 chips toggleáveis · Wagner 2026-05-25
+            UX feedback: chips estilo TagChip canon · padrão Stripe/Linear).
+            Permite N papéis simultâneos no mesmo cadastro (insight Delphi).
+            Backend invariante: ≥1 papel ativo (anti soft-delete acidental). */}
+        <div className="md:col-span-2">
+          <Label className="text-xs font-medium">
+            Papéis <span className="text-muted-foreground font-normal">(clique pra alternar)</span>
+          </Label>
+          <div
+            className="mt-1 flex flex-wrap gap-1.5"
+            role="group"
+            aria-label="Papéis do contato"
+          >
+            {PAPEL_OPTIONS.map(({ flag, label }) => {
+              const checked = papelValue(flag);
+              return (
+                <button
+                  key={flag}
+                  type="button"
+                  onClick={() => handlePapelToggle(flag)}
+                  disabled={disabled || savingField === flag}
+                  aria-pressed={checked}
+                  className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                    checked
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-input bg-background text-muted-foreground hover:border-muted-foreground/40 hover:text-foreground'
+                  } ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <FieldStatus
+            saving={['is_customer', 'is_supplier', 'is_employee', 'is_representative'].includes(savingField ?? '')}
+            saved={['is_customer', 'is_supplier', 'is_employee', 'is_representative'].includes(savedField ?? '')}
+            backendError={
+              errorField?.field?.startsWith('is_') ? errorField.message : null
+            }
+          />
+        </div>
+
         {/* Segmento — radio 6 valores */}
         <div className="md:col-span-2">
           <Label className="text-xs font-medium">Segmento</Label>

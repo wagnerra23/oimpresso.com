@@ -1668,32 +1668,12 @@ function ClienteSheet({
             />
 
             <div className="flex-1 min-w-0">
-              {/* Toggle PF/PJ -- radio group simples. Wave C planta PATCH on blur. */}
-              <div
-                className="inline-flex items-center gap-1 rounded-md bg-muted/60 p-0.5 text-xs"
-                role="radiogroup"
-                aria-label="Tipo de pessoa"
-              >
-                {(['PF', 'PJ'] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    role="radio"
-                    aria-checked={tipo === t}
-                    onClick={() => setTipo(t)}
-                    className={
-                      'rounded px-2 py-0.5 transition-colors ' +
-                      (tipo === t
-                        ? 'bg-background text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground')
-                    }
-                  >
-                    {t === 'PF' ? 'Pessoa física' : 'Pessoa jurídica'}
-                  </button>
-                ))}
-              </div>
-
-              <SheetTitle className="text-lg font-semibold leading-tight mt-1.5">
+              {/* Wagner 2026-05-25 UX feedback: toggle PF/PJ duplicado removido.
+                  Toggle fantasma aqui no header só mudava state local (não persistia
+                  PATCH) · gerava confusão "qual está valendo?". Toggle REAL fica em
+                  IdentificacaoTab (`handleTipoChange` → PATCH /cliente/{id}/identificacao
+                  com autosave on blur). Aqui mantemos só o subtitle informativo. */}
+              <SheetTitle className="text-lg font-semibold leading-tight">
                 {contact?.name ?? 'Cliente'}
               </SheetTitle>
 
