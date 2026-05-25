@@ -1,11 +1,11 @@
 # PageHeader Canon v3.1 — Template Oficial
 
 > **Status:** proposto · pending Larissa biz=4 validação 7d
-> **Origem:** [ADR 0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md)
+> **Origem:** [ADR 0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) + [ADR 0190](../../../decisions/0190-primary-button-roxo-universal-295.md) (primary universal)
 > **Supersedes parcialmente:** [ADR 0180](../../../decisions/0180-pageheader-canon-3-zonas.md), [ADR 0182](../../../decisions/0182-pageheader-canon-hue-per-grupo.md)
 > **Protótipo visual:** [prototipo-ui/prototipos/pageheader-canon-v3/](../../../../prototipo-ui/prototipos/pageheader-canon-v3/)
 > **Diário evolutivo:** [PageHeader-LEARNINGS.md](./PageHeader-LEARNINGS.md)
-> **Última atualização:** 2026-05-24
+> **Última atualização:** 2026-05-25 (ADR 0190 primary universal)
 
 ---
 
@@ -80,7 +80,12 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
   --border-soft:    #e2e8f0;   /* slate-200 */
   --border-mid:     #cbd5e1;   /* slate-300 */
   
-  /* PRIMARY ROXO MEDIO (hue 295) */
+  /* PRIMARY ROXO MEDIO UNIVERSAL (hue 295) — ADR 0190
+     Aplica-se a TODOS os módulos, independente do grupo.
+     NÃO confundir com SIDEBAR_GROUP_HUE no shared.ts — aquele é APENAS
+     pra agrupamento visual do sidebar (header de grupo, ícones), NÃO
+     pro primary das telas. ADR 0190 (2026-05-25) supersede pattern
+     hue-per-grupo do primary que vinha de ADR 0182. */
   --primary:                oklch(0.55 0.15 295);
   --primary-dark:           oklch(0.45 0.15 295);
   --primary-soft:           oklch(0.96 0.03 295);   /* bg active/hover light */

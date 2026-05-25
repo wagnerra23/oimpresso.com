@@ -15,7 +15,9 @@ supersedes: []
 supersedes_partially: []
 amends:
   - "0180-sidebar-v3-5-grupos-ghosts-header"
-superseded_by: []
+superseded_by:
+  - "0189-pageheader-canon-v3-1-cadastro-roxo"   # superseded parcial 2026-05-24 — layout v3.1 (3 blocos fechados)
+  - "0190-primary-button-roxo-universal-295"     # superseded parcial 2026-05-25 — primary universal roxo 295 (não mais hue per grupo)
 related:
   - "0093-multi-tenant-isolation-tier-0"
   - "0094-constituicao-v2-7-camadas-8-principios"
