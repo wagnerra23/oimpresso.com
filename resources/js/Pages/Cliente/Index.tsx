@@ -823,42 +823,21 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         />
       </Deferred>
 
-      {/* ───── BLOCO 3 · TOOLBAR + LISTA (toolbar como header do card da tabela) ───── */}
-      <div className="bg-background border border-border rounded-lg overflow-hidden">
-        {/* PT-01 Slot 3 Toolbar (Wagner 2026-05-25): movida pra header do BLOCO 3 pra
-            evitar 2º card-dentro-de-card no BLOCO 2 (sessão "tem dois fundos"). busca + 6
-            filtros + contagem todos juntos · ActiveChips removíveis logo abaixo · separado
-            da tabela por `border-b border-border`. Linear/Stripe pattern. */}
-        <div className="border-b border-border px-4 py-3">
+      {/* ───── BLOCO 3 · TOOLBAR transparente + LISTA card warm (canon v3.5 · 2026-05-25) ─────
+          Wagner sessao polish #4: toolbar transparente herda cream do parent (espelha
+          /sells `.vd-tabs-row` bg `rgba(0,0,0,0)`). Busca AGORA a direita (ml-auto),
+          filtros a esquerda. Linha divisora warm `oklch(0.93 0.004 90)` igual a linha
+          entre BLOCO 1 e BLOCO 2 (consistencia visual canon v3.4). */}
+      <div className="overflow-visible">
+        <div
+          className="px-4 py-3 border-b"
+          style={{ borderBottomColor: 'oklch(0.93 0.004 90)' }}
+        >
           <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca de contato">
-            {/* Busca à esquerda — Slot 3 PT-01 (canônico flex-1 com max). */}
-            <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                ref={searchInputRef}
-                type="search"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Buscar nome, CNPJ/CPF, telefone… (/ pra focar · ⌘K global)"
-                className="pl-9 pr-9 h-9"
-                aria-label="Buscar contato"
-              />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={() => setSearchInput('')}
-                  aria-label="Limpar busca"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Filtros combobox à direita — 6 FilterDropdown.
+            {/* Filtros combobox a esquerda — 6 FilterDropdown.
                 Cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
             <nav
-              className="flex items-center gap-2 flex-wrap flex-shrink-0"
+              className="flex items-center gap-2 flex-wrap"
               aria-label="Filtros de contato"
             >
               <FilterDropdown
@@ -909,6 +888,30 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   : `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')}`}
               </span>
             </nav>
+
+            {/* Busca a direita (Wagner v3.5): `ml-auto` empurra pra direita extrema. */}
+            <div className="relative ml-auto min-w-[200px] max-w-md w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                ref={searchInputRef}
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar nome, CNPJ/CPF, telefone… (/ pra focar · ⌘K global)"
+                className="pl-9 pr-9 h-9"
+                aria-label="Buscar contato"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => setSearchInput('')}
+                  aria-label="Limpar busca"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Z-2.1 — ActiveChips removíveis (alinhado ao protótipo Cowork). */}
