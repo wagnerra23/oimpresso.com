@@ -52,25 +52,22 @@ class QualidadeController extends Controller
             'cross_tenant_violations' => ['op' => '==', 'alvo' => 0,  'unit' => '',  'label' => 'Cross-tenant'],
         ];
 
-        // D6.a Inertia::defer (Wave 17) — payloads pesados (DB-bound + foreach
-        // O(n×rows)) viram closures lazy. Ver RUNBOOK-inertia-defer-pattern.md.
+        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (5 props).
+        // Causa: Qualidade/Index.tsx destruct direto sem wrap <Deferred>
+        // (TypeError `undefined.filter` capturado no smoke browser MCP).
+        // Mesmo padrão dos PRs #1550 / #1552 / fix batch nesta onda.
+        // Reintroduzir defer quando frontend ganhar `<Deferred>` wrap.
         return Inertia::render('Jana/Admin/Qualidade/Index', [
             'filtros' => ['dias' => $dias, 'business_id' => $businessId],
             'gates'   => $gates,
-
-            // Trend série + KPIs deferred (query GET MemoriaMetrica + agregação).
-            'series' => Inertia::defer(fn () => $this->buildSeriesPayload($dias, $businessId)),
-            'kpis'   => Inertia::defer(fn () => $this->buildKpisPayload($dias, $businessId)),
-
-            // Gabarito count deferred (COUNT + GROUP BY)
-            'gabarito_total' => Inertia::defer(
-                fn () => DB::table('jana_memoria_gabarito')->where('ativo', true)->count()
-            ),
-            'gabarito_por_categoria' => Inertia::defer(fn () => DB::table('jana_memoria_gabarito')
+            'series'  => $this->buildSeriesPayload($dias, $businessId),
+            'kpis'    => $this->buildKpisPayload($dias, $businessId),
+            'gabarito_total' => DB::table('jana_memoria_gabarito')->where('ativo', true)->count(),
+            'gabarito_por_categoria' => DB::table('jana_memoria_gabarito')
                 ->where('ativo', true)
                 ->select('categoria', DB::raw('COUNT(*) as c'))
                 ->groupBy('categoria')
-                ->pluck('c', 'categoria')),
+                ->pluck('c', 'categoria'),
         ]);
     }
 

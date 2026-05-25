@@ -42,10 +42,16 @@ class GovernancaController extends Controller
             $request->get('ate'),
         );
 
-        // D6.a Wave 17 — painel pesado (7 agregações cross-team) defer'd em chunks.
-        // Cada agregação roda em closure separada pra Inertia partial reload funcionar.
-        // Front wrap em `<Deferred data="kpis,por_status,..." fallback={skeleton}>`.
-        $painelCallable = fn () => $service->painel($range['inicio'], $range['fim']);
+        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (7 props).
+        // Causa: Governanca/Index.tsx destruct direto sem wrap <Deferred> nem
+        // fallback (TypeError `undefined.find` capturado no smoke browser
+        // MCP). Mesmo padrão dos PRs #1550 / #1552 / fix Painel/Qualidade/
+        // Roadmap nesta onda. Chama service UMA vez (não 7×) e passa
+        // payloads direto. Perde TTFB otimizado, mas evita 100% das renders
+        // crasharem em prod. Reintroduzir defer quando frontend ganhar
+        // `<Deferred data="kpis,por_status,..." fallback={...}>` wrap
+        // (refactor MWART futuro).
+        $painel = $service->painel($range['inicio'], $range['fim']);
 
         return Inertia::render('Jana/Admin/Governanca/Index', [
             'periodo' => $range,  // eager — sem DB
@@ -54,14 +60,13 @@ class GovernancaController extends Controller
                 'de'     => $request->get('de'),
                 'ate'    => $request->get('ate'),
             ],
-            // D6.a Wave 17 — 7 props deferred (todas DB-bound).
-            'kpis'              => Inertia::defer(fn () => $painelCallable()['kpis']),
-            'por_status'        => Inertia::defer(fn () => $painelCallable()['por_status']),
-            'latency'           => Inertia::defer(fn () => $painelCallable()['latency']),
-            'top_tools'         => Inertia::defer(fn () => $painelCallable()['top_tools']),
-            'top_users'         => Inertia::defer(fn () => $painelCallable()['top_users']),
-            'denied_por_codigo' => Inertia::defer(fn () => $painelCallable()['denied_por_codigo']),
-            'serie_diaria'      => Inertia::defer(fn () => $painelCallable()['serie_diaria']),
+            'kpis'              => $painel['kpis'],
+            'por_status'        => $painel['por_status'],
+            'latency'           => $painel['latency'],
+            'top_tools'         => $painel['top_tools'],
+            'top_users'         => $painel['top_users'],
+            'denied_por_codigo' => $painel['denied_por_codigo'],
+            'serie_diaria'      => $painel['serie_diaria'],
         ]);
     }
 }

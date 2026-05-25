@@ -37,18 +37,21 @@ class PainelController extends Controller
         $businessId = $request->session()->get('user.business_id');
         $business   = $request->session()->get('business');
 
-        // D6.a (Wave 14 governance v3) — Inertia::defer no payload pesado do
-        // painel. Render inicial só carrega `business` (lightweight). O closure
-        // `painel` roda numa segunda requisição partial-reload, mantendo TTFB
-        // baixo e permitindo skeleton no frontend (charter Painel.charter.md).
-        // Referência: memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md
+        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer no payload
+        // `painel`. Causa: Painel.tsx lê `painel.person` direto sem wrap
+        // <Deferred> nem fallback — defer entrega undefined no primeiro
+        // render → TypeError crasha (tela branca em prod). Mesmo padrão
+        // dos PRs #1550 (Dashboard) e #1552 (Custos). Reintroduzir defer
+        // quando frontend ganhar `<Deferred>` wrap (refactor MWART).
+        //
+        // Onda A1: payload é mock estático — cost de chamada zero.
         return Inertia::render('Jana/Painel', [
             'business' => [
                 'id'      => $businessId,
                 'name'    => $business['name'] ?? 'OIMPRESSO',
                 'version' => 'v1404 legacy migrado',
             ],
-            'painel' => Inertia::defer(fn () => $this->buildMockPayload()),
+            'painel' => $this->buildMockPayload(),
         ]);
     }
 

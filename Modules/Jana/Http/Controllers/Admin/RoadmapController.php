@@ -112,20 +112,24 @@ class RoadmapController extends Controller
             ->limit(500)
             ->get();
 
-        // 4+5) Owners/Modules distintos — D6.a Wave 17: deferred (DISTINCT cross-table).
-        $ownersDeferred = Inertia::defer(fn () => DB::table('mcp_tasks')
+        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (owners + modules).
+        // Causa: Roadmap.tsx destruct direto sem wrap <Deferred> (TypeError
+        // `undefined.map` no smoke browser MCP). Mesmo padrão dos PRs #1550 /
+        // #1552 / fix batch nesta onda. Reintroduzir defer quando Roadmap.tsx
+        // ganhar `<Deferred data="owners,modules" fallback={skeleton}>` wrap.
+        $owners = DB::table('mcp_tasks')
             ->select('owner')
             ->whereNotNull('owner')
             ->distinct()
             ->orderBy('owner')
-            ->pluck('owner'));
+            ->pluck('owner');
 
-        $modulesDeferred = Inertia::defer(fn () => DB::table('mcp_tasks')
+        $modules = DB::table('mcp_tasks')
             ->select('module')
             ->whereNotNull('module')
             ->distinct()
             ->orderBy('module')
-            ->pluck('module'));
+            ->pluck('module');
 
         return Inertia::render('Jana/Admin/Roadmap', [
             'cycles' => $cycles->map(function ($c) {
@@ -170,8 +174,8 @@ class RoadmapController extends Controller
                 'priority' => $priorityFilter,
                 'module'   => $moduleFilter,
             ],
-            'owners'  => $ownersDeferred,
-            'modules' => $modulesDeferred,
+            'owners'  => $owners,
+            'modules' => $modules,
             'active_cycle_id' => $activeCycle?->id,
         ]);
     }
