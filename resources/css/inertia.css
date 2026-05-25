@@ -75,6 +75,7 @@
 @import "./fin-ia.css";
 @import "./fin-output.css";
 @import "./fin-cowork.css";
+@import "./fin-mobile.css";
 
 /* PaymentGateway UI F3 Cowork (Cobrança + Settings/Gateways + Sells drawer chip) — escopado em .pg-shell-scope */
 @import "./cowork-payment-gateway-bundle.css";

@@ -53,10 +53,8 @@ class QualidadeController extends Controller
         ];
 
         // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (5 props).
-        // Causa: Qualidade/Index.tsx destruct direto sem wrap <Deferred>
-        // (TypeError `undefined.filter` capturado no smoke browser MCP).
-        // Mesmo padrão dos PRs #1550 / #1552 / fix batch nesta onda.
-        // Reintroduzir defer quando frontend ganhar `<Deferred>` wrap.
+        // Qualidade/Index.tsx destruct direto — TypeError `undefined.filter`
+        // em prod. Mesmo padrão PR #1550/#1552.
         return Inertia::render('Jana/Admin/Qualidade/Index', [
             'filtros' => ['dias' => $dias, 'business_id' => $businessId],
             'gates'   => $gates,

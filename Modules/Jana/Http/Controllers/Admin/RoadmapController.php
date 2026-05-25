@@ -112,11 +112,9 @@ class RoadmapController extends Controller
             ->limit(500)
             ->get();
 
-        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (owners + modules).
-        // Causa: Roadmap.tsx destruct direto sem wrap <Deferred> (TypeError
-        // `undefined.map` no smoke browser MCP). Mesmo padrão dos PRs #1550 /
-        // #1552 / fix batch nesta onda. Reintroduzir defer quando Roadmap.tsx
-        // ganhar `<Deferred data="owners,modules" fallback={skeleton}>` wrap.
+        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (owners+modules).
+        // Roadmap.tsx destruct direto — TypeError `undefined.map` em prod.
+        // Mesmo padrão PR #1550/#1552.
         $owners = DB::table('mcp_tasks')
             ->select('owner')
             ->whereNotNull('owner')

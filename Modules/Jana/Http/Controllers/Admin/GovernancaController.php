@@ -43,18 +43,12 @@ class GovernancaController extends Controller
         );
 
         // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (7 props).
-        // Causa: Governanca/Index.tsx destruct direto sem wrap <Deferred> nem
-        // fallback (TypeError `undefined.find` capturado no smoke browser
-        // MCP). Mesmo padrão dos PRs #1550 / #1552 / fix Painel/Qualidade/
-        // Roadmap nesta onda. Chama service UMA vez (não 7×) e passa
-        // payloads direto. Perde TTFB otimizado, mas evita 100% das renders
-        // crasharem em prod. Reintroduzir defer quando frontend ganhar
-        // `<Deferred data="kpis,por_status,..." fallback={...}>` wrap
-        // (refactor MWART futuro).
+        // Governanca/Index.tsx destruct direto — TypeError `undefined.find`
+        // em prod. Chama service UMA vez (não 7×). Mesmo padrão PR #1550/#1552.
         $painel = $service->painel($range['inicio'], $range['fim']);
 
         return Inertia::render('Jana/Admin/Governanca/Index', [
-            'periodo' => $range,  // eager — sem DB
+            'periodo' => $range,
             'filters' => [
                 'preset' => $preset,
                 'de'     => $request->get('de'),
