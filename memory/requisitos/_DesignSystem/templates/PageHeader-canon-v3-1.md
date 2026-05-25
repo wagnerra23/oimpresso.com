@@ -521,6 +521,72 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
 
 Discussão dessas decisões vai em [PageHeader-LEARNINGS.md](./PageHeader-LEARNINGS.md) → vira ADR quando bater.
 
+## 10b. Ícones — preferência canon (LEARNINGS decisão #2 · 2026-05-25)
+
+> **Atual:** `lucide-react` (1400+ ícones, ~20KB tree-shakeable)
+> **Preferência longo prazo:** **Phosphor Icons** (`@phosphor-icons/react`)
+> **Interim:** Lucide com 5 fixes técnicos abaixo
+
+### Por que Phosphor é preferência
+
+6 weights (thin/light/regular/bold/fill/duotone), 9000+ ícones, calibração pixel-perfect em 16px, visual Linear/Notion-tier. Bundle ~50KB tree-shakeable (+30KB vs Lucide — aceitável).
+
+Pontuação ponderada vs alternativas em [LEARNINGS Decisão #2](./PageHeader-LEARNINGS.md):
+
+| Biblioteca | Total ponderado |
+|---|---|
+| Phosphor Icons | **9.4** |
+| Heroicons (limitado 300) | 8.1 |
+| Lucide (atual) | 8.0 |
+| Tabler | 8.0 |
+
+### Regra dura pra ícones em qualquer canon
+
+Quando renderizar ícone em tamanho ≤16px (todas zonas L/C/R do PageHeader):
+
+1. **`size` múltiplo de 4** — preferir 16, 20, 24. EVITAR 13, 14 (pixel snap ruim em DPR=1)
+2. **`strokeWidth={1.75}`** em viewBox 24×24 — nunca `2` (= subpixel borra em DPR=1)
+3. **`vector-effect: non-scaling-stroke`** sempre (atributo SVG ou inline style)
+4. **Cor firme** — `oklch(0.40 0 0)` ou `currentColor` herdando text-foreground. NUNCA chroma <0.05 (lavado)
+5. **`className="shrink-0"`** sempre em flex containers (evita squish)
+
+### Snippet canon Lucide (interim, antes de migrar pra Phosphor)
+
+```tsx
+import { Plus, Funnel, MagnifyingGlass } from 'lucide-react';
+
+// ❌ Anti-padrão (atual em prod, borra)
+<Plus size={14} className="text-muted-foreground" />
+
+// ✅ Canon
+<Plus
+  size={16}
+  strokeWidth={1.75}
+  className="shrink-0"
+  style={{
+    color: 'oklch(0.40 0 0)',
+    vectorEffect: 'non-scaling-stroke',
+  }}
+/>
+```
+
+### Snippet canon Phosphor (preferência longo prazo)
+
+```tsx
+import { Plus, Funnel, MagnifyingGlass } from '@phosphor-icons/react';
+
+<Plus size={16} weight="regular" className="shrink-0" />
+<Funnel size={16} weight="regular" className="shrink-0" />
+<MagnifyingGlass size={14} weight="bold" className="shrink-0" />  // bold só pra ênfase
+```
+
+### Migration plan (quando Wagner aprovar)
+
+1. `pnpm add @phosphor-icons/react`
+2. Codemod automático: `lucide-react` → `@phosphor-icons/react` (nomes 95% coincidem · Phosphor usa `MagnifyingGlass` em vez de `Search`, `Funnel` em vez de `Filter`)
+3. Wave por wave (mesmas 4 waves de ADR 0189 §9)
+4. Manter Lucide como dep até último import migrar — depois remover
+
 ## 11. Componente React `<PageHeader>` (skeleton — implementar Wave 1)
 
 ```tsx
