@@ -102,11 +102,10 @@ export default function IdentificacaoTab({
   const [nascimento, setNascimento] = useState<string>(contact.nascimento ?? '');
   const [contatoNome, setContatoNome] = useState<string>(contact.contato ?? '');
   const [cargo, setCargo] = useState<string>(contact.cargo ?? '');
-  // ADR 0188 Onda 4 — flags multi-papel. Default false se ausente (contato pre-migration).
-  const [isCustomer, setIsCustomer] = useState<boolean>(Boolean(contact.is_customer));
-  const [isSupplier, setIsSupplier] = useState<boolean>(Boolean(contact.is_supplier));
-  const [isEmployee, setIsEmployee] = useState<boolean>(Boolean(contact.is_employee));
-  const [isRepresentative, setIsRepresentative] = useState<boolean>(Boolean(contact.is_representative));
+  // ADR 0188 Onda 4 — flags multi-papel migradas pra ClassificacaoTab (UX
+  // refactor Wagner 2026-05-25 · papel é classificação, não identidade).
+  // Mantemos tipo definido em ContactInfo só pra retrocompat de quem ainda
+  // lê do prop, mas state local foi removido daqui.
 
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
@@ -128,10 +127,6 @@ export default function IdentificacaoTab({
     setNascimento(contact.nascimento ?? '');
     setContatoNome(contact.contato ?? '');
     setCargo(contact.cargo ?? '');
-    setIsCustomer(Boolean(contact.is_customer));
-    setIsSupplier(Boolean(contact.is_supplier));
-    setIsEmployee(Boolean(contact.is_employee));
-    setIsRepresentative(Boolean(contact.is_representative));
     setErrorField(null);
     setSavedField(null);
     setCnpjLookup('idle');
@@ -271,86 +266,8 @@ export default function IdentificacaoTab({
     [tipo, performSave]
   );
 
-  // ADR 0188 Onda 4 — toggle papel (4 checkboxes is_X). Endpoint /papeis separado
-  // (não /identificacao) pra isolar invariante "≥1 papel ativo" no backend.
-  //
-  // Optimistic UI: troca state imediato + PATCH em paralelo. Rollback no 4xx/5xx.
-  // Sem debounce (checkbox toggle é discreto, não digitação).
-  const handlePapelToggle = useCallback(
-    async (
-      flag: 'is_customer' | 'is_supplier' | 'is_employee' | 'is_representative',
-      newValue: boolean,
-    ) => {
-      if (disabled) return;
-
-      // Optimistic UI — troca state local imediato.
-      const setters = {
-        is_customer: setIsCustomer,
-        is_supplier: setIsSupplier,
-        is_employee: setIsEmployee,
-        is_representative: setIsRepresentative,
-      };
-      const previousValues = {
-        is_customer: isCustomer,
-        is_supplier: isSupplier,
-        is_employee: isEmployee,
-        is_representative: isRepresentative,
-      };
-      setters[flag](newValue);
-
-      setSavingField(flag);
-      setErrorField(null);
-
-      try {
-        const r = await fetch(`/cliente/${contact.id}/papeis`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-CSRF-TOKEN': getCsrfToken(),
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: JSON.stringify({ [flag]: newValue }),
-        });
-
-        if (!r.ok) {
-          // Rollback optimistic UI
-          setters[flag](previousValues[flag]);
-          let msg = `Erro ${r.status} ao salvar papel.`;
-          if (r.status === 422) {
-            const j = await r.json().catch(() => ({}));
-            msg = j?.errors?.[flag]?.[0] ?? j?.errors?.is_customer?.[0] ?? msg;
-          } else if (r.status === 403) {
-            msg = 'Sem permissão pra editar papéis.';
-          }
-          setErrorField({ field: flag, message: msg });
-          // eslint-disable-next-line no-console
-          console.error(`[IdentificacaoTab] papeis ${flag} falhou`, { status: r.status, msg });
-          return;
-        }
-
-        setSavedField(flag);
-        setTimeout(() => setSavedField((current) => (current === flag ? null : current)), 1800);
-        onSaved?.(flag, newValue);
-      } catch (err) {
-        setters[flag](previousValues[flag]);
-        setErrorField({ field: flag, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
-        console.error(`[IdentificacaoTab] papeis ${flag} network error`, err);
-      } finally {
-        setSavingField((current) => (current === flag ? null : current));
-      }
-    },
-    [
-      contact.id,
-      disabled,
-      isCustomer,
-      isSupplier,
-      isEmployee,
-      isRepresentative,
-      onSaved,
-    ],
-  );
+  // ADR 0188 Onda 4 — handler `handlePapelToggle` migrado pra ClassificacaoTab
+  // (UX refactor Wagner 2026-05-25 · papel é classificação, não identidade).
 
   // ── Lookup CNPJ — Técnica C ADR 0186: BrasilAPI + SEFAZ em PARALELO ──
   //
@@ -668,51 +585,11 @@ export default function IdentificacaoTab({
         </button>
       </div>
 
-      {/* ADR 0188 Onda 4 — Seção Papéis (multi-type flags).
-          Permite que 1 contato tenha N papéis simultâneos (Wagner Rocha cliente+
-          representante = mesma row · sem duplicar cadastro como acontecia no UPOS
-          single-type). Insight Delphi WR Comercial — flag bool por papel.
-          Backend invariante: ≥1 papel ativo (não permite desmarcar todos). */}
-      <fieldset className="rounded-md border border-input bg-muted/20 p-3">
-        <legend className="px-1.5 text-xs font-medium text-muted-foreground">
-          Papéis <span className="font-normal">(marque todos que se aplicam)</span>
-        </legend>
-        <div className="grid grid-cols-2 gap-2 mt-1">
-          {([
-            { flag: 'is_customer' as const,       value: isCustomer,       label: 'Cliente',       Icon: User },
-            { flag: 'is_supplier' as const,       value: isSupplier,       label: 'Fornecedor',    Icon: Building2 },
-            { flag: 'is_employee' as const,       value: isEmployee,       label: 'Funcionário',   Icon: User },
-            { flag: 'is_representative' as const, value: isRepresentative, label: 'Representante', Icon: User },
-          ]).map(({ flag, value, label, Icon }) => (
-            <label
-              key={flag}
-              className={
-                'inline-flex items-center gap-2 px-2 py-1.5 text-sm rounded-md cursor-pointer transition-colors ' +
-                'hover:bg-background focus-within:ring-2 focus-within:ring-primary/40 ' +
-                (value ? 'text-foreground font-medium' : 'text-muted-foreground')
-              }
-            >
-              <input
-                type="checkbox"
-                checked={value}
-                disabled={disabled}
-                onChange={(e) => handlePapelToggle(flag, e.target.checked)}
-                aria-label={label}
-                className="h-4 w-4 rounded border-input accent-primary cursor-pointer disabled:opacity-50"
-              />
-              <Icon size={14} aria-hidden className={value ? 'text-primary' : ''} />
-              {label}
-              {savingField === flag && <Loader2 size={11} className="animate-spin ml-auto" aria-hidden />}
-              {savedField === flag && <CheckCircle2 size={11} className="ml-auto text-primary" aria-hidden />}
-            </label>
-          ))}
-        </div>
-        {errorField?.field?.startsWith('is_') && (
-          <p className="mt-2 inline-flex items-center gap-1 text-xs text-destructive" role="alert">
-            <AlertCircle size={11} aria-hidden /> {errorField.message}
-          </p>
-        )}
-      </fieldset>
+      {/* Wagner 2026-05-25 UX feedback: secao "Papeis" movida pra
+          ClassificacaoTab (semantica correta — papel e categorizacao, nao
+          identidade). Identificacao agora foca em PF/PJ + nome + CPF/CNPJ
+          (quem o contato e), e Classificacao trata todos os papeis cadastrais
+          (como o sistema categoriza esse contato). */}
 
       {/* Linha 1: Nome/Razão social */}
       <div className="grid gap-4 md:grid-cols-2">
