@@ -622,10 +622,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         className="bg-background border border-border rounded-lg overflow-visible"
         role="banner"
       >
-        {/* Wagner 2026-05-25: BLOCO 1 header padding pt-4 px-4 (16px topo+lateral) — antes
-            era px-6 py-3.5. Mantém bottom levemente menor pra underline da tab ativa
-            casar com border-bottom do card (pattern -mb-px). */}
-        <div className="flex items-center gap-4 pt-4 px-4 pb-3.5 min-h-[60px]">
+        {/* Wagner 2026-05-25: BLOCO 1 header padding canon Vendas (referência /sells):
+            pt-6 px-6 pb-3.5 (24px topo+lateral · 14px rodapé). Bottom menor pra underline
+            da tab ativa casar com border-bottom do card via -mb-px (pattern canon). */}
+        <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
           {/* ZONA L · identidade */}
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-semibold tracking-tight text-foreground leading-snug">
