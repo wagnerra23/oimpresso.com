@@ -73,6 +73,16 @@ export interface IdentificacaoTabProps {
    * com os campos preenchidos. Wagner 2026-05-22.
    */
   onCnpjEnderecoPersisted?: () => void;
+  /**
+   * Callback disparado após PATCH endereço/contato sucesso pra atualizar o
+   * `draftContact` ou row no parent state DIRETAMENTE — sem depender de
+   * router.reload (que pode não popular rows se paginação excluir o draft).
+   *
+   * Fix 2026-05-25 — Wagner reportou tab Endereço vazia após Buscar CNPJ.
+   * Causa: contact prop em EnderecoTab vinha do draftContact placeholder
+   * (vazio); PATCH /endereco salvava DB mas React state não atualizava.
+   */
+  onContactUpdated?: (patched: Record<string, unknown>) => void;
   disabled?: boolean;
 }
 
@@ -90,6 +100,7 @@ export default function IdentificacaoTab({
   contact,
   onSaved,
   onCnpjEnderecoPersisted,
+  onContactUpdated,
   disabled = false,
 }: IdentificacaoTabProps) {
   // ── State local (optimistic UI — atualiza ANTES do fetch) ────────────
@@ -495,6 +506,28 @@ export default function IdentificacaoTab({
         sefazSource = 'no_cert';
       }
 
+      // Fix 2026-05-25 — sincronizar contact state no parent direto (sem depender
+      // de router.reload). Mantém compatibilidade com onCnpjEnderecoPersisted antigo.
+      // Acumula campos PATCHados pra emitir 1 callback batch.
+      const contactPatch: Record<string, unknown> = {};
+      if (enderecoPreenchido) {
+        if (zip) contactPatch.zip_code = zip;
+        if (addr1) contactPatch.address_line_1 = addr1;
+        if (neigh) contactPatch.neighborhood = neigh;
+        if (cityVal) contactPatch.city = cityVal;
+        if (stateVal) contactPatch.state = stateVal;
+        if (cityCode) contactPatch.city_code = cityCode;
+      }
+      if (contatoPreenchido) {
+        if (contatoCandidato.email) contactPatch.email = contatoCandidato.email;
+        if (contatoCandidato.mobile) contactPatch.mobile = contatoCandidato.mobile;
+      }
+      if (novoNome) contactPatch.name = novoNome;
+      if (novaFantasia) contactPatch.fantasia = novaFantasia;
+      if (Object.keys(contactPatch).length > 0) {
+        onContactUpdated?.(contactPatch);
+      }
+
       // Refresca rows pro parent (EnderecoTab/ContatoTab re-renderizar) — #1419 callback
       if (enderecoPreenchido || contatoPreenchido) {
         onCnpjEnderecoPersisted?.();
@@ -546,7 +579,7 @@ export default function IdentificacaoTab({
       // eslint-disable-next-line no-console
       console.error('[IdentificacaoTab] cnpj lookup failed', err);
     }
-  }, [doc, nome, fantasia, ie, performSave, contact, onCnpjEnderecoPersisted]);
+  }, [doc, nome, fantasia, ie, performSave, contact, onCnpjEnderecoPersisted, onContactUpdated]);
 
   // ── Render ───────────────────────────────────────────────────────────
   const isPJ = tipo === 'PJ';
