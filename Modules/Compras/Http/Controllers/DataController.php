@@ -97,11 +97,13 @@ class DataController extends Controller
             // ADR 0180 Fase 4 Wave B (2026-05-21): entry principal declara
             // atalho kbd + primary action + ghosts tabs.
             //  - `shortcut` G S → atalho overlay (Suprimentos/Estoque)
-            //  - `primary`     → "Nova compra" (rota /compras/create chega na Wave 3
-            //    do scaffold — declarado pra contrato sidebar v3, frontend pode
-            //    exibir 404/coming-soon enquanto não migra)
+            //  - `primary`     → "Nova compra" delega trilho A Purchase MWART
+            //    Wave 2 B5 via /purchases/create Inertia (ADR
+            //    compras-purchase-convergencia-c1 · 2026-05-25). Frontend usa
+            //    router.visit pra injetar header X-Inertia e disparar dual-path
+            //    no PurchaseController:400 → Purchase/Create.tsx React.
             //  - `ghosts`      → Lista (index Wave 1); demais sub-views (importar XML,
-            //    NF entrada, etc) entram nas Waves 3-6 do SPEC.
+            //    NF entrada, etc) entram nas Waves 6+ do SPEC.
             $menu->url(
                 action([\Modules\Compras\Http\Controllers\ComprasController::class, 'index']),
                 'Compras',
@@ -111,7 +113,7 @@ class DataController extends Controller
                     'shortcut' => 'G S',
                     'primary'  => [
                         'label'    => 'Nova compra',
-                        'href'     => '/compras/create',
+                        'href'     => '/purchases/create',
                         'shortcut' => 'N',
                     ],
                     'ghosts'   => [

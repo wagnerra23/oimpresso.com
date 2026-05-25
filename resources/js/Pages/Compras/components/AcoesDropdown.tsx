@@ -1,10 +1,12 @@
 // AcoesDropdown.tsx — paridade Blade /purchases dropdown "Ações" (9 opções).
-// US-COM-001 — Wave 5b.
+// US-COM-001 — Wave 5b + C1 convergência (ADR compras-purchase-convergencia-c1).
 //
-// Bridge mode: ações que JÁ EXISTEM no Inertia (Ver / Ver pagamentos / Excluir)
-// rodam nativo; ações que ainda dependem do Blade legacy (Editar, Imprimir,
-// Rótulos, Reembolso, Atualizar status, Notif. pendente) abrem rota Blade
-// preservando UX legacy enquanto migração progride.
+// Bridge mode evoluído (2026-05-25):
+//   - Editar / Atualizar status / Notif. pendente → router.visit Inertia
+//     (dispara X-Inertia header em PurchaseController:928 → Purchase/Edit.tsx
+//     React, NÃO Blade legacy)
+//   - Ver / Ver pagamentos / Excluir → nativo Inertia desde Wave 5b
+//   - Impressão / Rótulos / Reembolso → seguem Blade legacy (não migrados)
 
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -112,7 +114,12 @@ export default function AcoesDropdown({
       label: 'Editar',
       icon: '✎',
       hidden: !visibility.canEdit,
-      onClick: () => navigateBlade(`/purchases/${compraId}/edit`),
+      // C1 convergência — router.visit injeta X-Inertia automaticamente,
+      // dispara dual-path em PurchaseController:928 → Purchase/Edit.tsx React.
+      onClick: () => {
+        router.visit(`/purchases/${compraId}/edit`);
+        setOpen(false);
+      },
     },
     {
       id: 'excluir',
@@ -150,16 +157,22 @@ export default function AcoesDropdown({
       label: 'Atualizar status',
       icon: '↻',
       onClick: () => {
-        // Wave 8 substitui por modal Inertia. Bridge: abre tela de edição
-        // que já tem o select de status no form Blade.
-        navigateBlade(`/purchases/${compraId}/edit#status`);
+        // C1 convergência — Inertia Purchase/Edit.tsx React (hash #status
+        // serve como anchor pro scroll inicial). Wave 8 prometia modal
+        // separado, cancelada via ADR compras-purchase-convergencia-c1.
+        router.visit(`/purchases/${compraId}/edit#status`);
+        setOpen(false);
       },
     },
     {
       id: 'notify',
       label: 'Elementos pendentes de notificação',
       icon: '✉',
-      onClick: () => navigateBlade(`/purchases/${compraId}/edit#notify-pending`),
+      // C1 convergência — Inertia Purchase/Edit.tsx React.
+      onClick: () => {
+        router.visit(`/purchases/${compraId}/edit#notify-pending`);
+        setOpen(false);
+      },
     },
   ];
 
