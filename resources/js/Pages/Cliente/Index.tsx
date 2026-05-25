@@ -794,33 +794,32 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         </nav>
       </header>
 
-      {/* ───── BLOCO 2 · KPI STRIP SEPARADO (gap 12px do header) ───── */}
+      {/* ───── BLOCO 2 · KPI STRIP FLUTUANTE (sem moldura · 5 cards autossuficientes) ─────
+          Wagner 2026-05-25: removido wrapper externo `bg-background border rounded-lg` pra
+          eliminar "duplo fundo" (wrapper branco com 5 cards branco internos cada um já com
+          border + rounded próprios). Pattern Linear/Notion · cards flutuam direto · respiro
+          lateral vem do parent `<div w-full px-6>`. Toolbar de busca/filtros foi pra header
+          do BLOCO 3 (header do card da tabela, separada por border-b). */}
+      <Deferred data="kpis" fallback={<KpiSkeleton />}>
+        <KpiStripClickable
+          ativos={kpis?.com_os_aberta ?? 0}
+          comSaldo={kpis?.com_atraso ?? 0}
+          vips={kpiCounts.vipsCount}
+          sem90={kpiCounts.sem90Count}
+          novos={kpiCounts.novosCount}
+          activeKey={activeKpiKey}
+          onApply={applyKpiCard}
+        />
+      </Deferred>
+
+      {/* ───── BLOCO 3 · TOOLBAR + LISTA (toolbar como header do card da tabela) ───── */}
       <div className="bg-background border border-border rounded-lg overflow-hidden">
-
-          {/* PTDP Onda 2 — KPI strip clicável (5 cards-filtro). Substitui os 4 KpiCard
-              estáticos do Wave G. Counts: Ativos + ComSaldo usam `kpis` real do backend;
-              VIPs + Sem90 + Novos estimados client-side de `rows` (Onda 3 plug backend
-              dedicado quando volume de cadastros pedir). `KpiSkeleton` continua via
-              `<Deferred>` enquanto kpis carrega. */}
-          <Deferred data="kpis" fallback={<KpiSkeleton />}>
-            <KpiStripClickable
-              ativos={kpis?.com_os_aberta ?? 0}
-              comSaldo={kpis?.com_atraso ?? 0}
-              vips={kpiCounts.vipsCount}
-              sem90={kpiCounts.sem90Count}
-              novos={kpiCounts.novosCount}
-              activeKey={activeKpiKey}
-              onApply={applyKpiCard}
-            />
-          </Deferred>
-
-          {/* PT-01 Slot 3 Toolbar (Wagner 2026-05-24 sessão pós-Slot 2): busca + 6
-              filtros + contagem TODOS NA MESMA LINHA. Layout canônico Linear/Stripe:
-              busca à esquerda (flex-1 max-w-md) · filtros à direita (flex-shrink-0
-              gap-2). Wrap controlado (em 1280px Larissa cabe tudo · viewport <1100px
-              wraps graciosamente). PT-01 §62 "saved views · separador · filtros (chips)
-              · busca local" — todos juntos no Slot 3. */}
-          <div className="flex items-center gap-3 mt-6 flex-wrap" aria-label="Filtros e busca de contato">
+        {/* PT-01 Slot 3 Toolbar (Wagner 2026-05-25): movida pra header do BLOCO 3 pra
+            evitar 2º card-dentro-de-card no BLOCO 2 (sessão "tem dois fundos"). busca + 6
+            filtros + contagem todos juntos · ActiveChips removíveis logo abaixo · separado
+            da tabela por `border-b border-border`. Linear/Stripe pattern. */}
+        <div className="border-b border-border px-4 py-3">
+          <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca de contato">
             {/* Busca à esquerda — Slot 3 PT-01 (canônico flex-1 com max). */}
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -943,10 +942,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               </button>
             </div>
           )}
-      </div>
+        </div>
 
-      {/* ───── BLOCO 3 · LISTA (tabela) ───── */}
-      <div className="bg-background border border-border rounded-lg overflow-hidden">
         <Deferred data="customers" fallback={<TableSkeleton />}>
           <div className="rounded-lg border border-border bg-background overflow-hidden">
             <div className="overflow-x-auto">
