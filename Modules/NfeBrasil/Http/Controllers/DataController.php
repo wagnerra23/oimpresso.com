@@ -142,44 +142,52 @@ class DataController extends Controller
             return;
         }
 
-        // Wagner 2026-05-22 direção canon: 1 entry "Fiscal" + 2 ghosts
-        // (Notas fiscais · Manifestação). Substitui 8 entries duplicadas.
-        // Sub-items (Emitir/SPED/Settings/Certificado/Tributação) ficam
-        // acessíveis via URL direta ou tabs internas das telas (TODO Fase 4).
+        // Wagner 2026-05-25: 3 entries flat no grupo FISCAL (sem item "Fiscal"
+        // raiz, sem ghosts no PageHeader). Substitui a tentativa 1-entry+ghosts
+        // de 2026-05-22 — usuário (Larissa/Martinho) acessa direto Notas Fiscais
+        // (cockpit NF-e/NFC-e), Manifestação (DF-e legacy), Certificado (A1).
+        // Cockpit /fiscal raiz continua acessível via URL direta + popmenu
+        // "+ Emitir" no PageHeader (NF-e/NFC-e/NFS-e — Pages/Fiscal/Cockpit.tsx).
         $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-        $segmento_ativo = request()->segment(1) == 'nfebrasil'
-            || request()->segment(1) == 'nfe-brasil';
 
         Menu::modify(
             'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
+            function ($menu) use ($background_color) {
+                // Entry 1 — Notas Fiscais (cockpit NF-e/NFC-e funcional).
                 $menu->url(
-                    url('/nfebrasil'),
-                    'Fiscal',
+                    url('/fiscal/nfe'),
+                    'Notas Fiscais',
                     [
-                        'icon'     => 'fa fas fa-file-invoice-dollar',
-                        'style'    => 'background-color:' . $background_color,
-                        'active'   => $segmento_ativo,
-                        // Wagner 2026-05-22: FISCAL virou grupo próprio (era ghost de FINANÇAS).
-                        'group'    => 'fiscal',
-                        'shortcut' => 'G X',
-                        'primary'  => [
-                            'label'    => 'Emitir NF-e',
-                            'href'     => '/nfebrasil/create',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'   => [
-                            ['key' => 'notas',         'label' => 'Notas fiscais',     'href' => '/nfebrasil'],
-                            ['key' => 'manifestacao',  'label' => 'Manifestação',      'href' => '/nfe-brasil/manifestacao'],
-                            ['key' => 'certificado',   'label' => 'Certificado Digital','href' => '/nfe-brasil/configuracao/certificado'],
-                            // Wagner 2026-05-22 P1: +4 ghosts pra zerar órfãs Fiscal.
-                            ['key' => 'tributacao',    'label' => 'Tributação',        'href' => '/nfe-brasil/tributacao'],
-                            ['key' => 'sped',          'label' => 'SPED',              'href' => '/nfebrasil/sped'],
-                            ['key' => 'settings',      'label' => 'Configurações',     'href' => '/nfebrasil/settings'],
-                            ['key' => 'nfse',          'label' => 'NFSe',              'href' => '/nfse'],
-                        ],
+                        'icon'   => 'fa fas fa-receipt',
+                        'style'  => 'background-color:' . $background_color,
+                        'active' => request()->segment(1) == 'fiscal' && request()->segment(2) == 'nfe',
+                        'group'  => 'fiscal',
                     ]
                 )->order(95);
+
+                // Entry 2 — Manifestação DF-e (tela legacy NfeBrasil funcional).
+                $menu->url(
+                    url('/nfe-brasil/manifestacao'),
+                    'Manifestação',
+                    [
+                        'icon'   => 'fa fas fa-inbox',
+                        'style'  => 'background-color:' . $background_color,
+                        'active' => request()->segment(1) == 'nfe-brasil' && request()->segment(2) == 'manifestacao',
+                        'group'  => 'fiscal',
+                    ]
+                )->order(96);
+
+                // Entry 3 — Certificado A1 (tela legacy NfeBrasil funcional, US-NFE-041).
+                $menu->url(
+                    url('/nfe-brasil/configuracao/certificado'),
+                    'Certificado',
+                    [
+                        'icon'   => 'fa fas fa-shield-alt',
+                        'style'  => 'background-color:' . $background_color,
+                        'active' => request()->segment(1) == 'nfe-brasil' && request()->segment(2) == 'configuracao',
+                        'group'  => 'fiscal',
+                    ]
+                )->order(97);
             }
         );
     }
