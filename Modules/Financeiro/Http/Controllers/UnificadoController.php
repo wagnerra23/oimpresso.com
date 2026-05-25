@@ -684,6 +684,50 @@ class UnificadoController extends Controller
         ]);
     }
 
+    /**
+     * GET /financeiro/unificado/sugerir-valor
+     *
+     * PR I (2026-05-25) G5 auditoria — sugere valor pra novo Titulo manual
+     * baseado em histórico do par (contraparte + tipo). Retorna último valor +
+     * média + count pra UI mostrar "geralmente cobra R$ X (N lançamentos)".
+     *
+     * Query params:
+     *   - contraparte: string (cliente_descricao, like %)
+     *   - tipo: 'receber' | 'pagar'
+     *
+     * Multi-tenant Tier 0 (ADR 0093): scope business_id obrigatório.
+     */
+    public function sugerirValor(Request $request): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $contraparte = trim($request->string('contraparte', '')->toString());
+        $tipo = $request->string('tipo', '')->toString();
+
+        if ($contraparte === '' || ! in_array($tipo, ['receber', 'pagar'], true)) {
+            return response()->json(['count' => 0, 'ultimo_valor' => null, 'media_valor' => null]);
+        }
+
+        // Match permissivo: like %contraparte% (case insensitive via collation default)
+        $base = Titulo::where('business_id', $businessId)
+            ->where('tipo', $tipo)
+            ->where('cliente_descricao', 'like', "%{$contraparte}%")
+            ->whereNotIn('status', ['cancelado']);
+
+        $count = (clone $base)->count();
+        if ($count === 0) {
+            return response()->json(['count' => 0, 'ultimo_valor' => null, 'media_valor' => null]);
+        }
+
+        $ultimo = (clone $base)->orderByDesc('id')->first(['valor_total']);
+        $media = (float) (clone $base)->avg('valor_total');
+
+        return response()->json([
+            'count'        => $count,
+            'ultimo_valor' => (float) $ultimo->valor_total,
+            'media_valor'  => round($media, 2),
+        ]);
+    }
+
     // ─────────── Helpers privados ───────────
 
     /**

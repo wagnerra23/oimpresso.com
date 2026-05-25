@@ -90,6 +90,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('/unificado/saldo-sparkline', [UnificadoController::class, 'saldoSparkline'])
             ->name('unificado.saldo-sparkline');
 
+        // PR I (2026-05-25) G5 auditoria — sugere valor pra novo Titulo manual
+        // baseado em histórico contraparte (último valor + média + count).
+        Route::get('/unificado/sugerir-valor', [UnificadoController::class, 'sugerirValor'])
+            ->name('unificado.sugerir-valor');
+
         // Onda #4b 2026-05-18 — sidebar REAL pro Mock Cowork (3 camadas universal).
         // Bridge JS fetcha com header `X-Inertia: true` (senão middleware
         // AdminSidebarMenu pula criação do Menu).
