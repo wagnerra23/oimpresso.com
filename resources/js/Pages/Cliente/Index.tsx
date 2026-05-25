@@ -142,6 +142,11 @@ interface ClienteRow {
   avatar_hash_seed?: string | null;     // string p/ HSL determinístico — default = name
   saldo_devedor?: number | null;        // valor_aberto - balance (positivo = cliente nos deve)
   last_purchase_at?: string | null;     // ISO; FrescorPill calcula 4 estados client-side
+  // ADR 0188 Onda 4 — flags multi-papel (Drawer seção "Papéis").
+  is_customer?: boolean | null;
+  is_supplier?: boolean | null;
+  is_employee?: boolean | null;
+  is_representative?: boolean | null;
 }
 
 interface ListMeta {
