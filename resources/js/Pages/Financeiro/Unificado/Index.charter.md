@@ -7,11 +7,12 @@ last_validated: 2026-05-20
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
 related_adrs: [arq/0005, ui/0002, ui/0114, 0093, 0094]
-related_us: [US-FIN-013, US-FIN-020, US-FIN-050-anexos, US-FIN-055-aprovacao]
+related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
+runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 8
+charter_version: 9
 ---
 
 # Page Charter — /financeiro/unificado
@@ -28,6 +29,11 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **PR C — GUARD + RUNBOOK** (2026-05-25, charter v9, US-FIN-027 parcial + G1/G3 auditoria):
+  - **`UnificadoPlanoContaGuardTest`** — 7 GUARDs Tier 0 anti-regressão pra `plano_conta_id`: prop Inertia `planosConta`, shape 3 campos (`plano_conta_id` + `_codigo` + `_nome`), eager-load preserva (anti N+1), Update persiste, coerência tipo↔plano (Edit), Store persiste, cross-tenant rejeitado em ambos. Cada Δ = CI quebra.
+  - **`RUNBOOK-unificado.md`** — doc canon Cockpit (ADR 0039) 12 seções (quando usar, permissões, rotas, componentes, filtros, atalhos, edit/insert, plano de contas, multi-tenant, pegadinhas, troubleshoot, refs).
+  - **Frontmatter `runbook:` linkado** — descoberta automática via tooling MCP.
 
 - **Onda 25 — Insert manual inline** (2026-05-25, charter v8, US-FIN-021 completa):
   - **TituloCreateSheet** reusa `PlanoContaCombobox` da Onda 24. Drawer abre via DropdownMenu existente "+ Novo título" → "Novo recebimento" (verde 145) ou "Novo pagamento" (rose 25), com `tipo` pré-fixado e não editável (Opção A do design: usuário escolhe tipo ANTES do form).
