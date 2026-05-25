@@ -1413,9 +1413,11 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 </button>
               </nav>
 
-              {/* Aba Detalhes — info + audit + comments + actions */}
+              {/* Aba Detalhes — info + audit + comments + actions
+                  Wagner 2026-05-25: body com flex-1 + overflow-y-auto + min-h-0
+                  permite o footer (irmão, fora do scroll) ficar sticky-bottom. */}
               {drawerTab === 'detalhes' && (
-                <div className="mt-3 px-5 space-y-5 text-[13px]">
+                <div className="mt-3 px-5 pb-4 space-y-5 text-[13px] flex-1 overflow-y-auto min-h-0">
                   {/* Onda 17 (2026-05-20) — Hierarquia visual canon: UPPERCASE label colorido
                       por status + date 22px BIG + amount 34px BIG (verde se receivable, stone
                       se payable) + StatusPill + FrescorPill inline.
@@ -1595,41 +1597,44 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     </div>
                   )}
 
-                  {/* Onda 21 (2026-05-20) — Footer canon match prototype financeiro-app.jsx:878-897.
-                      Sequência: Ver NFe (se houver) → Cobrar (receivable não-quitado) →
-                      Recebi/Paguei (primary verde grande) → Editar → Favoritar. */}
-                  <div className="fin-drawer-footer">
-                    {selected.nfe_numero && (
-                      <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Ver NFe" onClick={() => router.visit(`/fiscal/nfe?numero=${selected.nfe_numero}`)}>
-                        <span aria-hidden>👁</span>
-                        <span className="ml-1">Ver NFe</span>
-                      </Button>
-                    )}
-                    {selected.kind === 'receivable' && (selected.status !== 'recebido') && (
-                      <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Cobrar contraparte" onClick={() => router.visit(`/cobranca/recorrente/nova?titulo=${selected.id}`)}>
-                        <span aria-hidden>✉</span>
-                        <span className="ml-1">Cobrar</span>
-                      </Button>
-                    )}
-                    {(selected.status !== 'recebido' && selected.status !== 'pago') && (
-                      <Button onClick={() => onBaixar(selected.id)} className="fin-foot-mark-btn">
-                        <span aria-hidden>✓</span>
-                        <span className="ml-1">{selected.kind === 'receivable' ? 'Recebi' : 'Paguei'}</span>
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => favs.toggle(selected.id)}
-                      title="Atalho: B (com a linha selecionada)"
-                    >
-                      {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
-                    </Button>
-                  </div>
-
                   {/* US-FIN-026 (Onda 22) — painel completo Anexos (substitui botão upload-only Onda 20). */}
                   <FinAnexosPanel tituloId={selected.id} />
+                </div>
+              )}
+
+              {/* Onda 21 (2026-05-20) + Wagner 2026-05-25 — Footer sticky-bottom.
+                  Irmão do body scrollable (não filho) pra ficar fixado no rodapé
+                  do SheetContent flex-col h-full. Sequência canon:
+                  Ver NFe → Cobrar → Recebi/Paguei → Editar → Favoritar. */}
+              {drawerTab === 'detalhes' && (
+                <div className="fin-drawer-footer fin-drawer-footer-sticky">
+                  {selected.nfe_numero && (
+                    <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Ver NFe" onClick={() => router.visit(`/fiscal/nfe?numero=${selected.nfe_numero}`)}>
+                      <span aria-hidden>👁</span>
+                      <span className="ml-1">Ver NFe</span>
+                    </Button>
+                  )}
+                  {selected.kind === 'receivable' && (selected.status !== 'recebido') && (
+                    <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Cobrar contraparte" onClick={() => router.visit(`/cobranca/recorrente/nova?titulo=${selected.id}`)}>
+                      <span aria-hidden>✉</span>
+                      <span className="ml-1">Cobrar</span>
+                    </Button>
+                  )}
+                  {(selected.status !== 'recebido' && selected.status !== 'pago') && (
+                    <Button onClick={() => onBaixar(selected.id)} className="fin-foot-mark-btn">
+                      <span aria-hidden>✓</span>
+                      <span className="ml-1">{selected.kind === 'receivable' ? 'Recebi' : 'Paguei'}</span>
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => favs.toggle(selected.id)}
+                    title="Atalho: B (com a linha selecionada)"
+                  >
+                    {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
+                  </Button>
                 </div>
               )}
 

@@ -7587,6 +7587,17 @@
   gap: 6px !important;
   padding: 0 14px !important;
 }
+/* Wagner 2026-05-25 — Footer sticky-bottom (irmão do body scrollable).
+   Padrão drawer canon: header fixo + body scroll + footer fixo. */
+.fin-cowork .fin-drawer-footer-sticky {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px !important;
+  border-top: 1px solid var(--border, oklch(0.93 0.01 250));
+  background: white;
+  box-shadow: 0 -1px 0 0 oklch(0.96 0.005 250 / 0.5);
+}
 .fin-cowork .fin-foot-icon-btn {
   display: inline-flex; align-items: center; gap: 5px;
   height: 32px; padding: 0 10px;
