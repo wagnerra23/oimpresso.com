@@ -2,8 +2,8 @@
     "_meta": {
         "generated_at": "2026-05-25T15:11:26-03:00",
         "tool": "ui:lint",
-        "files_scanned": 492,
-        "total_violations": 7359,
+        "files_scanned": 493,
+        "total_violations": 7366,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -878,6 +878,9 @@
         "resources\/js\/Pages\/Repair\/Status\/Index.tsx": {
             "R1": 2
         },
+        "resources\/js\/Pages\/Sells\/Caixa\/Index.tsx": {
+            "R3": 6
+        },
         "resources\/js\/Pages\/Sells\/Create.tsx": {
             "R1": 27
         },
@@ -890,6 +893,9 @@
         },
         "resources\/js\/Pages\/Sells\/_components\/CobrancaDrawer.tsx": {
             "R1": 61
+        },
+        "resources\/js\/Pages\/Sells\/_components\/CommissionSplitEditor.tsx": {
+            "R1": 1
         },
         "resources\/js\/Pages\/Sells\/_components\/CriarOsButton.tsx": {
             "R1": 1
