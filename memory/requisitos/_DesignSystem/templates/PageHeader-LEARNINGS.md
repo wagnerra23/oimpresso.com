@@ -178,6 +178,58 @@ protótipo mas QUEBRARAM em prod por ignorância de contexto.
 5. Resolver counter das tabs via Controller (server-side counts) ou KPI strip já existente
 6. Substituir KpiStripClickable por 4-cards-strip canon v3.1 (ou adaptar)
 
+### Anti-padrão #19 — Sidebar com popup-menu (dropdown sub-items)
+
+**O que aconteceu:**
+- Wagner inspecionou sidebar do `Cadastro > Contatos` em prod (2026-05-25) — abria popup com
+  `Fornecedores · Clientes · Grupos de clientes · Importar contatos`
+- Pergunta dele: "no sidebar deve abrir todos do cliente, os itens que estão no popup devem ir
+  para `⋮`"
+- Resposta: SIM — exatamente o que [ADR 0180](../../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md) (aceita 2026-05-21) DEFINE como canon v3
+- ADR 0180 § Justificativa: "Sidebar persistente como mapa de DESTINOS, não de AÇÕES. Sub-funções
+  são contextuais da tela — ghost ARIA tablist preserva acessibilidade"
+- Migração das 17 DataControllers prevista na Fase 4 da ADR 0180 NÃO foi executada — `Modules/Crm`
+  (Contatos) e outros continuam com padrão v2 popup em prod
+
+**Por que isso é grave:**
+- Duplica navegação: popup do sidebar mostra `Fornecedores · Clientes`, header da tela JÁ tem essas
+  tabs (`Todos · Clientes · Fornec. · Equipe · Repr.`). Usuário não sabe qual usar.
+- Viola Constituição UI v2 ADR UI-0013: "uma única forma de acessar uma página"
+- Conflito ativo entre memórias: skill `sidebar-menu-arch` (2026-05-05) documentava popup como
+  pattern canônico, mas ADR 0180 (2026-05-21) baniu — skill ficou desatualizada 4 dias depois
+
+**Regra dura pra próxima:**
+> **Sidebar é mapa de DESTINOS, não de AÇÕES.** Cada item sidebar é **SINGLE-LINK**
+> (`'href' => '/destino'`) que abre a tela principal da entidade.
+> **Sub-views (filtros por tipo, status, período) vão pra TABS no PageHeader Zona C** —
+> NUNCA dropdown popup-menu do sidebar.
+> **Power-user usa Cmd+K** pra pular direto pra uma ghost específica.
+>
+> Hierarquia in-screen escala 5→50 features sem restructure (padrão Linear/Notion/Vercel/Stripe).
+> ADR 0180 Contrato DataController v2: `items()` retorna `['href' => ..., 'ghosts' => [...]]`.
+> Ghosts viram tabs do PageHeader Zona C da tela destino.
+
+**Como detectar antes:**
+1. Code review: se DataController usa `Menu::dropdown('Label', $sub => $sub->url(...)->url(...))`
+   é AP19. Migrar pra `items()` contrato v2.
+2. Test visual: hover no item do sidebar → se abrir popup com sub-items → AP19.
+3. Cross-check: se a tela destino TEM tabs no header (PageHeader Zona C), o sidebar NÃO precisa
+   mostrar as mesmas sub-views.
+
+**Conflito histórico documentado (lições meta):**
+- ADR aceita ≠ migração executada. Plano de 9 fases da ADR 0180 está em F0-F3 (skill + tokens +
+  PageHeader). F4 (17 DataControllers) e F5 (30 telas Inertia) pendentes.
+- Skill `sidebar-menu-arch` foi escrita 2026-05-05 e não foi atualizada quando ADR 0180 aceitou
+  superseder ela 16 dias depois. Sinal de gap no workflow: "quando ADR superseder skill, atualizar
+  skill no mesmo PR da ADR".
+- Hoje (2026-05-25) skill foi reconciliada com nota de conflito histórico + contrato v2 +
+  AP19 catalogado. v1 mantida como DEPRECATED pra entender módulos legados ainda não migrados.
+
+**Próxima ação:**
+- Migrar `Modules/Crm/Sidebar/DataController.php` (Contatos) pro contrato v2 — `'href' => '/contacts?type=all'` + `'ghosts' => [todos, clientes, fornec., equipe, repr.]`
+- Quando ghosts viram tabs, popup do sidebar SOME automaticamente (item single-link não tem children)
+- Migrar 16 outros DataControllers (Sells, Financeiro, OficinaAuto, etc) — ADR 0180 Fase 4
+
 ### Anti-padrão #18 — `rows.filter()` sobre dados já server-side filtered
 
 **O que aconteceu (smoke prod 2026-05-25):**
