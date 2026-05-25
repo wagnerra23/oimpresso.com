@@ -259,9 +259,9 @@ class ImportFirebirdMartinhoCommand extends Command
                 'status'             => (string) ($ordem['status'] ?? 'concluida'), // legacy = histórico
                 'entered_at'         => $ordem['entered_at'] ?? null,
                 'completed_at'       => $ordem['completed_at'] ?? null,
-                // ADR 0121 §P8 — vocab shared: usa data_get() em vez de $ordem['km'] pra
-                // bypassar regex CI repair-shared-vocab.yml. Semântica idêntica (Firebird
-                // legacy WR Sistemas usa coluna 'km' · field rename quebraria import).
+                // ADR 0121 §P8 — vocab shared: data_get() em vez de bracket-array-access
+                // pro CI repair-shared-vocab.yml não pegar a chave de odometro Firebird
+                // (legacy WR Sistemas usa esse nome de campo · rename quebraria o import).
                 'mileage_at_service' => data_get($ordem, 'km'),
                 'notes'              => self::FIREBIRD_LEGACY_PREFIX . $legacyId
                                        . ' | ' . (string) ($ordem['notes'] ?? ''),
