@@ -470,6 +470,19 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                   </Field>
                 </>
               )}
+              {d.key === 'pesapal' && (
+                <div className="bg-amber-50 border border-amber-200 rounded p-3 text-[11.5px] text-amber-900">
+                  <div className="font-medium mb-1">Driver deprecated</div>
+                  <p className="mb-2">PesaPal foi UltimatePOS legacy pra cartão internacional. Hoje recomenda-se <strong>Asaas</strong> (BR nativo + 3DS + PIX).</p>
+                  <div className="font-medium text-[11px] mt-2 mb-1">Migrar manualmente:</div>
+                  <ol className="list-decimal list-inside space-y-0.5 text-[11px]">
+                    <li>Clique em <strong>+ Novo gateway</strong> na tela principal → escolha <strong>Asaas</strong></li>
+                    <li>Cadastre credencial Asaas (sandbox primeiro, depois production)</li>
+                    <li>Reaponte Subscriptions/cobranças ativas pra Asaas no módulo Recurring</li>
+                    <li>Desative este PesaPal aqui (toggle no header)</li>
+                  </ol>
+                </div>
+              )}
               {d.key === 'pagarme' && (
                 <>
                   <Field label="Secret Key (atualizar)">

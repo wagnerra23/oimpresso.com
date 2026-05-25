@@ -369,6 +369,24 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                   Cert ICP-Brasil ⇄ CNPJ recebedor homologado no BCB. Resolução BCB 380/2024.
                 </div>
               </>}
+              {d.key === 'pesapal' && <>
+                <Field label="Consumer Key">
+                  <input
+                    type="password"
+                    value={config.consumer_key ?? ''}
+                    onChange={e => setConfigField('consumer_key', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Consumer Secret">
+                  <input
+                    type="password"
+                    value={config.consumer_secret ?? ''}
+                    onChange={e => setConfigField('consumer_secret', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+              </>}
               {d.key === 'pagarme' && <>
                 <Field label="Secret Key">
                   <input
