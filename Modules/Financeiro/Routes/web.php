@@ -95,6 +95,10 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('/unificado/sugerir-valor', [UnificadoController::class, 'sugerirValor'])
             ->name('unificado.sugerir-valor');
 
+        // PR J (2026-05-25) US-FIN-024 — Combobox cliente autocomplete server-side.
+        Route::get('/unificado/buscar-cliente', [UnificadoController::class, 'buscarCliente'])
+            ->name('unificado.buscar-cliente');
+
         // Onda #4b 2026-05-18 — sidebar REAL pro Mock Cowork (3 camadas universal).
         // Bridge JS fetcha com header `X-Inertia: true` (senão middleware
         // AdminSidebarMenu pula criação do Menu).
