@@ -178,6 +178,40 @@ protótipo mas QUEBRARAM em prod por ignorância de contexto.
 5. Resolver counter das tabs via Controller (server-side counts) ou KPI strip já existente
 6. Substituir KpiStripClickable por 4-cards-strip canon v3.1 (ou adaptar)
 
+### Decisão canon #3 — Canon v3.2 (h1 peso Vendas + padding 24/24/14)
+
+**Contexto:**
+Após aplicar canon v3.1 em prod (Cliente/Index PR #1457 + iterações), Wagner inspecionou
+e usou `/sells` como referência visual de "peso". Mediu via browser MCP:
+
+| Aspecto | `/sells` (Vendas canon Cowork) | v3.1 (Cliente atual) | Decisão v3.2 |
+|---|---|---|---|
+| H1 font-size | 22px | 16px (`text-base`) | **22px** (`text-[22px]`) |
+| H1 font-weight | 700 | 600 (`font-semibold`) | **700** (`font-bold`) |
+| H1 line-height | 33px | `leading-snug` 1.375 | mantido `leading-snug` (ratio similar pra 22px) |
+| Padding header inner | 24px 24px 14px | 16px 16px 14px (após PR #1474 pediu px-4) | **24px 24px 14px** (`pt-6 px-6 pb-3.5`) |
+
+**Razão da revisão v3.1 → v3.2:**
+- v3.1 era density compact demais pra entidade principal da página
+- H1 ficou "magrinho" comparado com /sells canon Cowork
+- Padding 16/16/14 ficou apertado (Wagner pediu px-4, mas era reducir vs px-6 original)
+- v3.2 alinha peso visual com Vendas (canon Cowork validado em prod há meses)
+
+**Regra dura pra próxima:**
+> Quando comparar visual entre telas, MEDIR antes de mudar:
+> `getComputedStyle(h1).fontSize` + `fontWeight` + `padding` da tela referência.
+> Aplicar mesmos valores na tela target. NÃO inventar (16/600 era invenção da v3.1).
+
+**Mudanças aplicadas v3.2:**
+- `Cliente/Index.tsx` H1: `text-base font-semibold` → `text-[22px] font-bold`
+- `Cliente/Index.tsx` header inner: `pt-4 px-4 pb-3.5` → `pt-6 px-6 pb-3.5`
+- SPEC PageHeader-canon-v3-1.md: tokens + §4.2 atualizados (v3.2 amendment)
+- Demais aspectos canon v3.1 + ADR 0190 (3 blocos · roxo 295 · system fonts · etc) mantidos
+
+**Status:**
+- Cliente/Index v3.2 em prod (PR #1475 padding · este PR h1 peso)
+- Outras telas canon v3.1 (Wave 2 pendente) — quando migrar usar v3.2 direto
+
 ### Decisão canon #2 — Preferência ícones · Phosphor (longo prazo) + Lucide com 5 fixes (interim)
 
 **Contexto:**
