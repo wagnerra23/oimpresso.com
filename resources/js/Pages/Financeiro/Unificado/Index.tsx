@@ -78,6 +78,9 @@ interface Lancamento {
   contraparte_doc: string | null;
   categoria: string;
   categoria_id: number | null;
+  plano_conta_id: number | null;
+  plano_conta_codigo: string | null;
+  plano_conta_nome: string | null;
   conta_bancaria: string;
   vencimento: string;            // ISO yyyy-mm-dd
   vencimento_label: string;      // "qua, 14 mai"
@@ -1882,6 +1885,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           onClose={() => setEditOpen(false)}
           lancamento={selected}
           categorias={categorias}
+          planos={planosConta}
         />
       )}
 

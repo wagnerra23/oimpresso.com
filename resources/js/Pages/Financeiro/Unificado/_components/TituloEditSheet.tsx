@@ -5,6 +5,7 @@
 //   - cliente_descricao (texto livre — pode renomear/anotar contraparte)
 //   - observacoes (texto livre)
 //   - categoria_id (dropdown de Categoria do business)
+//   - plano_conta_id (combobox DCASP BR filtrado por kind — Onda 24 US-FIN-021)
 //   - vencimento (date)
 //   - valor_total (number — SOMENTE se status aberto/parcial; bloqueado se quitado/cancelado)
 //
@@ -16,6 +17,7 @@ import { useEffect } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
+import { PlanoContaCombobox, type PlanoConta } from './PlanoContaCombobox';
 
 interface Categoria {
   id: number;
@@ -24,10 +26,14 @@ interface Categoria {
 
 interface Lancamento {
   id: number;
+  kind: 'receivable' | 'payable';
   descricao: string;
   contraparte: string;
   categoria: string;
   categoria_id: number | null;
+  plano_conta_id: number | null;
+  plano_conta_codigo: string | null;
+  plano_conta_nome: string | null;
   vencimento: string;
   valor: number;
   observacao: string | null;
@@ -40,13 +46,15 @@ interface TituloEditSheetProps {
   onClose: () => void;
   lancamento: Lancamento;
   categorias: Categoria[];
+  planos: PlanoConta[];
 }
 
-export function TituloEditSheet({ open, onClose, lancamento, categorias }: TituloEditSheetProps) {
+export function TituloEditSheet({ open, onClose, lancamento, categorias, planos }: TituloEditSheetProps) {
   const form = useForm({
     cliente_descricao: lancamento.contraparte === '—' ? '' : lancamento.contraparte,
     observacoes: lancamento.observacao ?? '',
     categoria_id: lancamento.categoria_id ?? '',
+    plano_conta_id: lancamento.plano_conta_id as number | null,
     vencimento: lancamento.vencimento,
     valor_total: lancamento.valor,
   });
@@ -57,6 +65,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias }: Titul
       cliente_descricao: lancamento.contraparte === '—' ? '' : lancamento.contraparte,
       observacoes: lancamento.observacao ?? '',
       categoria_id: lancamento.categoria_id ?? '',
+      plano_conta_id: lancamento.plano_conta_id as number | null,
       vencimento: lancamento.vencimento,
       valor_total: lancamento.valor,
     });
@@ -70,6 +79,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias }: Titul
       cliente_descricao: form.data.cliente_descricao || null,
       observacoes: form.data.observacoes || null,
       categoria_id: form.data.categoria_id === '' ? null : form.data.categoria_id,
+      plano_conta_id: form.data.plano_conta_id ?? null,
       vencimento: form.data.vencimento,
     };
     if (lancamento.valor_mutavel) {
@@ -132,6 +142,27 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias }: Titul
             </select>
             {form.errors.categoria_id && (
               <p className="text-[11px] text-rose-600">{form.errors.categoria_id}</p>
+            )}
+          </div>
+
+          {/* Onda 24 (2026-05-25) US-FIN-021 — Plano de Contas BR DCASP filtrado por kind. */}
+          <div className="space-y-1.5">
+            <label htmlFor="ed-plano" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+              Plano de contas
+            </label>
+            <PlanoContaCombobox
+              id="ed-plano"
+              planos={planos}
+              kind={lancamento.kind}
+              value={form.data.plano_conta_id}
+              onChange={(id) => form.setData('plano_conta_id', id)}
+              placeholder={lancamento.kind === 'receivable' ? 'Receita ou ativo' : 'Despesa, custo ou passivo'}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Filtrado por tipo do título (DRE entra direto na classificação certa).
+            </p>
+            {form.errors.plano_conta_id && (
+              <p className="text-[11px] text-destructive">{form.errors.plano_conta_id}</p>
             )}
           </div>
 
