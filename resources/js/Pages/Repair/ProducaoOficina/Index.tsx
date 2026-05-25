@@ -17,6 +17,18 @@ import { useEffect, useMemo, useState } from 'react';
 
 type Tone = 'slate' | 'blue' | 'amber' | 'violet' | 'emerald';
 
+// Onda 5 — Integração Vendas × Oficina (ADR 0192).
+// Quando OS está em coluna 'pronto' (= FSM `entregue_completo` · is_completed_status=true)
+// AND tem Transaction derivada (source='oficina'), o Controller (Onda 2) anexa este
+// shape ao card. Frontend renderiza card "Esta OS gerou venda" no drawer.
+// Vocabulário shared (ADR 0121 §P8): zero termos automotivos · cross-vertical.
+interface VendaDerivada {
+  id: number;
+  invoice_no: string;
+  final_total: number;
+  transaction_date: string | null;  // ISO date 'YYYY-MM-DD'
+}
+
 interface Card {
   id?: number;                    // presente em live data; ausente em mock (drag-drop só local)
   code: string;                   // genérico: placa (auto) | nº OS (com.visual) | código serviço (vestuario)
@@ -31,11 +43,12 @@ interface Card {
   area?: string | null;           // elevador (auto) | área impressão (com.visual)
   eta?: string;
   pending_approval?: boolean;
-  approved?: boolean;
+  approved?: boolean;             // true quando coluna='pronto' (is_completed_status)
   status_label?: string;
   quote_total?: number;
   quote_items?: number;
   quote_status?: string;
+  venda_derivada?: VendaDerivada | null;  // Onda 5 · ADR 0192
 }
 
 interface Column {
@@ -506,6 +519,15 @@ function JobDrawer({ card, labelOverrides, onClose }: { card: Card; labelOverrid
       )}
 
       <div className="flex-1 overflow-y-auto">
+        {/* Onda 5 (ADR 0192) — Integração Vendas × Oficina A1 KB-9.75.
+            Card renderiza quando OS está em coluna 'pronto' (= FSM `entregue_completo` ·
+            is_completed_status=true) AND o JobSheetObserver criou Transaction derivada
+            (source='oficina'). Loose coupling via window.CustomEvent — Sells/Index
+            (Worker A Onda 4) registra listener pra abrir drawer SaleSheet. */}
+        {card.approved && card.venda_derivada && (
+          <VendaDerivadaCard venda={card.venda_derivada} />
+        )}
+
         <DrawerSection title="Sintoma reportado">
           <p className="text-sm text-slate-800">
             Cliente relata barulho na suspensão dianteira ao passar em buraco. Volante puxa pra direita em
@@ -603,5 +625,112 @@ function TimelineEvent({
         <div className="text-xs text-slate-500">{meta}</div>
       </div>
     </li>
+  );
+}
+
+// Onda 5 (ADR 0192) — Integração Vendas × Oficina A1 KB-9.75.
+//
+// Card "Esta OS gerou venda #V-NNNN" renderizado no topo do drawer body quando
+// `card.approved === true` AND `card.venda_derivada !== null`. Mapeamento direto
+// do protótipo Cowork `oficina-page.jsx` linhas 392-458 + `oficina-page.css`
+// linhas 465-598 (.ofc-venda-* tokens preservados verbatim).
+//
+// Vocabulário shared (ADR 0121 §P8): zero termos automotivos.
+// Multi-tenant Tier 0 (ADR 0093): payload já scopado backend, frontend só lê.
+//
+// 3 CTAs:
+//  1. "Abrir #V-NNNN" → dispatch CustomEvent 'oimpresso:open-venda' (Worker A
+//     Sells/Index listener Onda 4 abre drawer SaleSheet · loose coupling)
+//  2. "Imprimir recibo" → window.open rota Blade legacy preservada
+//  3. "Compartilhar" → placeholder TODO · charter Non-Goal por ora
+//
+// Breakdown peças/serviço + badges fiscais NF-e/NFS-e do Cowork ficam pra wave
+// futura (charter Non-Goal · payload backend Onda 2 não entrega esses fields).
+function VendaDerivadaCard({ venda }: { venda: VendaDerivada }) {
+  const handleAbrir = () => {
+    window.dispatchEvent(
+      new CustomEvent('oimpresso:open-venda', {
+        detail: { venda_id: venda.id },
+      }),
+    );
+  };
+
+  const handleImprimirRecibo = () => {
+    window.open(`/sells/${venda.id}/print`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCompartilhar = () => {
+    // TODO Onda futura — backlog item (charter Non-Goal por ora).
+    // Possibilidades: copy-to-clipboard link · WhatsApp template · email PDF.
+  };
+
+  const totalBR = venda.final_total.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+
+  const dataBR = venda.transaction_date
+    ? new Date(venda.transaction_date + 'T00:00:00').toLocaleDateString('pt-BR')
+    : '—';
+
+  return (
+    <div className="ofc-venda-card relative mx-5 mt-4 mb-2 rounded-[10px] border border-emerald-600/70 bg-gradient-to-br from-emerald-50 to-amber-50/30 px-5 pt-5 pb-4">
+      <div className="ofc-venda-flag absolute -top-2.5 left-4 rounded-full bg-emerald-600 px-2.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-white">
+        Integração Vendas × Oficina
+      </div>
+
+      <div className="ofc-venda-head mb-3">
+        <div className="text-sm font-bold leading-tight text-slate-900">
+          Esta OS gerou a venda{' '}
+          <code className="ml-0.5 rounded border border-emerald-200 bg-white px-2 py-0.5 font-mono text-[12.5px] font-bold text-emerald-700">
+            #{venda.invoice_no}
+          </code>
+        </div>
+        <div className="mt-1 text-[11px] font-medium text-emerald-800/80">
+          Auto-criada na transição para "Pronto" (ADR 0192)
+        </div>
+      </div>
+
+      <div className="ofc-venda-grid mb-3 grid grid-cols-2 gap-2">
+        <div className="rounded-md bg-white/65 px-3 py-2">
+          <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">
+            Total
+          </div>
+          <div className="mt-0.5 text-sm font-semibold text-slate-900">{totalBR}</div>
+        </div>
+        <div className="rounded-md bg-white/65 px-3 py-2">
+          <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">
+            Data
+          </div>
+          <div className="mt-0.5 text-sm font-semibold text-slate-900">{dataBR}</div>
+        </div>
+      </div>
+
+      <div className="ofc-venda-actions flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={handleAbrir}
+          aria-label={`Abrir venda ${venda.invoice_no}`}
+          className="ofc-venda-cta primary inline-flex items-center gap-1 rounded-[5px] border border-emerald-600 bg-emerald-600 px-3 py-1.5 text-[11.5px] font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+        >
+          Abrir #{venda.invoice_no} ↗
+        </button>
+        <button
+          type="button"
+          onClick={handleImprimirRecibo}
+          className="ofc-venda-cta inline-flex items-center gap-1 rounded-[5px] border border-emerald-200 bg-white px-3 py-1.5 text-[11.5px] font-semibold text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+        >
+          Imprimir recibo
+        </button>
+        <button
+          type="button"
+          onClick={handleCompartilhar}
+          title="Em breve · backlog wave futura"
+          className="ofc-venda-cta inline-flex items-center gap-1 rounded-[5px] border border-emerald-200 bg-white px-3 py-1.5 text-[11.5px] font-semibold text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+        >
+          Compartilhar
+        </button>
+      </div>
+    </div>
   );
 }

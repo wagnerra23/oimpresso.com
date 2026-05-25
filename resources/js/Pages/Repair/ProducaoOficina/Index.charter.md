@@ -5,7 +5,7 @@ owner: wagner
 status: rascunho
 last_validated: 2026-05-10
 parent_module: Repair
-related_adrs: [0094, 0101, 0114, 0121, 0093]
+related_adrs: [0094, 0101, 0114, 0121, 0093, 0192]
 related_prototype: prototipo-ui/prototipos/producao-oficina/F1.html
 tier: A
 ---
@@ -36,6 +36,11 @@ Visão de produção em **kanban de 5 colunas** (Recepção → Diagnóstico →
 - Cabe em monitor 1280px sem scroll horizontal (Larissa quirk crítico — aplicado a outros clientes 1280px também)
 - AppShellV2 + topnav Repair (`KanbanSquare` icon)
 - **Multi-tenant Tier 0** ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) preservado: queries `JobSheet` scopadas por `business_id` global scope; endpoint `/move` valida `business_id` antes de mutação
+- **Onda 5 — Integração Vendas × Oficina** ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)): drawer renderiza card `Esta OS gerou a venda #V-NNNN` quando OS está na coluna `pronto` (= FSM `entregue_completo`) AND tem `venda_derivada` (Transaction `source='oficina'` criada pelo `JobSheetObserver`). Card mostra total + data + 3 atalhos:
+  - **Abrir #V-NNNN** → dispatch `window.CustomEvent('oimpresso:open-venda', { detail: { venda_id } })` — listener em `Sells/Index.tsx` (Worker A Onda 4) abre drawer SaleSheet (loose coupling)
+  - **Imprimir recibo** → `window.open('/sells/{venda_id}/print', '_blank')` (rota Blade legacy preservada)
+  - **Compartilhar** → placeholder TODO (botão visível · ver Non-Goals)
+- Vocabulário shared multi-vertical preservado ([ADR 0121 §P8](../../../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md)) — `venda_derivada` é cross-vertical (OficinaAuto, ComunicacaoVisual, Vestuario)
 
 ---
 
@@ -50,6 +55,12 @@ Visão de produção em **kanban de 5 colunas** (Recepção → Diagnóstico →
 - ❌ Aprovação cliente *via* esta tela (botão "Reenviar" no drawer só dispara WhatsApp template — sem UI de aprovar/recusar aqui)
 - ❌ Edição inline em qualquer card
 - ❌ Tela específica per-vertical (Vestuario/ComVisual/OficinaAuto NÃO tem `/vestuario/producao-oficina` — todas usam `/repair/producao-oficina` parametrizado por `business.repair_settings`)
+- ❌ **Onda 5 placeholder TODOs (charter aceita explícito):**
+  - Botão "Compartilhar" no card da venda derivada **sem ação por ora** (visível mas `onClick` no-op). Backlog wave futura: copy-to-clipboard link · WhatsApp template · email PDF
+  - Breakdown peças/serviço no card (Cowork F1 tem mas payload `venda_derivada` Onda 2 não entrega esses fields — adiada pra wave futura quando Sells expor `itemsList`)
+  - Badges fiscais NF-e/NFS-e no card (wave futura · payload Onda 2 não entrega `fiscal` ainda)
+  - Edição inline da venda derivada (drawer só lê · CRUD vai pra `/sells/{id}/edit`)
+  - Botão "Ver no Caixa do dia" (Sells/Caixa.tsx é Onda 6 wave separada · fora deste plano)
 
 ---
 
@@ -115,3 +126,4 @@ Vertical decide o que faz sentido. Vestuário pode ter `slots: [{key: "rack", la
 - ✅ **US-REPA-002** — Caminho A refactor vocabulário shared (este charter atualizado)
 - ⏳ **US-REPA-003** — CI workflow `repair-shared-vocab.yml` que falha se `placa|vehicle|km|mecanico|elevador|box` voltar em `Modules/Repair/**` ou `resources/js/Pages/Repair/**`
 - ⏳ **US-REPA-004** — Vestuario/ComVisual/OficinaAuto seeders `RepairSettingsSeeder` populando `business.repair_settings` per-vertical
+- ✅ **US-REPA-INT-VND-5** — Onda 5 Integração Vendas × Oficina A1 KB-9.75 ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)): drawer card "Esta OS gerou venda #V-NNNN" + 3 CTAs (Abrir dispatch / Imprimir recibo / Compartilhar TODO). Adição cirúrgica preservando kanban + drag-drop + filtros + demais drawer sections.
