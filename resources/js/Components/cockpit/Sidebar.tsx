@@ -168,7 +168,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     key: 'comercial',
     label: 'COMERCIAL',
     // Wagner 2026-05-22: Crm + Vendas + Catalogue QR + Woocommerce (canal venda).
-    items: ['Crm', 'CRM', 'Vendas', 'Catalogue QR', 'Catálogo QR',
+    // Wagner 2026-05-25: Oficina Auto MOVE pra COMERCIAL abaixo de Vendas
+    // (operação de oficina = atividade comercial, não PRODUÇÃO). Sub-popover
+    // legacy (Veículos + Ordens de Serviço) virou ghosts no PageHeader v3.
+    // Companion DataController OficinaAuto.modifyAdminMenu order(31) (entre
+    // Vendas=30 e Catalogue QR=32+).
+    items: ['Crm', 'CRM', 'Vendas', 'Oficina Auto', 'Catalogue QR', 'Catálogo QR',
             'WooCommerce', 'Woocommerce'],
   },
   {
