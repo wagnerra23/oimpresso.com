@@ -34,7 +34,9 @@ declare(strict_types=1);
 
 uses(Tests\TestCase::class);
 
-const PRODUCAO_OFICINA_INDEX_TSX_FASE_B = 'resources/js/Pages/Repair/ProducaoOficina/Index.tsx';
+// Componente VendaDerivadaCard extraído pra @/Components/shared (feat/shared-venda-derivada-card)
+// — cross-módulo Repair + OficinaAuto. Guards estruturais FASE B agora apontam pro shared.
+const PRODUCAO_OFICINA_INDEX_TSX_FASE_B = 'resources/js/Components/shared/VendaDerivadaCard.tsx';
 
 function faseBReadIndex(): string
 {
