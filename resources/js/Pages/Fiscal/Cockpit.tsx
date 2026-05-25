@@ -149,31 +149,17 @@ export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
         actions={
           <>
             <button className="fx-btn ghost" disabled title="PR seguinte">Exportar SPED</button>
-            <div ref={emitirRef} style={{ position: 'relative', display: 'inline-block' }}>
+            <div ref={emitirRef} className="fx-popmenu-wrap">
               <button
                 className="fx-btn primary"
                 onClick={() => setEmitirOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={emitirOpen}
               >
-                <Plus size={12} /> Emitir <ChevronDown size={11} style={{ marginLeft: 2 }} />
+                <Plus size={12} /> Emitir <ChevronDown size={11} className="fx-popmenu-chev" />
               </button>
               {emitirOpen && (
-                <div
-                  role="menu"
-                  style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 4px)',
-                    right: 0,
-                    minWidth: 180,
-                    background: 'var(--fx-bg, #fff)',
-                    border: '1px solid var(--fx-border, #e2e8f0)',
-                    borderRadius: 6,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                    padding: '4px 0',
-                    zIndex: 100,
-                  }}
-                >
+                <div role="menu" className="fx-popmenu">
                   <button role="menuitem" className="fx-popmenu-item" onClick={() => { setEmitirOpen(false); goto('/fiscal/nfe'); }}>
                     <Receipt size={13} /> NF-e
                   </button>
