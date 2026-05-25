@@ -377,7 +377,15 @@ class ServiceOrderController extends Controller
         // App\Http\Controllers\Controller (projeto canon que já usa AuthorizesRequests).
         $this->authorize('view', $order);
 
-        $order->load(['vehicle', 'contact:id,name,mobile']);
+        // ADR 0192 — Integração Vendas × Oficina A1 KB-9.75. Carrega Transaction
+        // derivada (criada pelo ServiceOrderObserver na transição status='concluida'
+        // · PR #1530) pra renderizar VendaDerivadaCard no drawer. Eager 1 query FK
+        // barata — multi-tenant Tier 0 herdado via belongsTo + global scope Transaction.
+        $order->load([
+            'vehicle',
+            'contact:id,name,mobile',
+            'transaction:id,business_id,invoice_no,final_total,transaction_date',
+        ]);
 
         // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
         // Hotfix Wave 7+ — drawer chamava /oficina-auto/service-orders/{id} esperando
@@ -409,6 +417,14 @@ class ServiceOrderController extends Controller
                     'id'   => $order->contact->id,
                     'name' => $order->contact->name,
                 ] : null,
+                // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
+                // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
+                // que já existe no equivalente Modules/Repair/ProducaoOficinaController
+                // (`buildVendaDerivadaPayload`). Quando trouxer pra OficinaAuto, extrair
+                // helper compartilhado pra App\Services\VendaDerivadaPayloadService.
+                'venda_derivada' => $order->transaction
+                    ? $this->shapeVendaDerivada($order->transaction)
+                    : null,
                 'urls' => [
                     'show' => '/oficina-auto/ordens-servico/' . $order->id,
                     'edit' => '/oficina-auto/ordens-servico/' . $order->id . '/edit',
@@ -466,6 +482,31 @@ class ServiceOrderController extends Controller
 
         return redirect('/oficina-auto/ordens-servico')
             ->with('status', ['success' => 1, 'msg' => 'OS removida (soft delete).']);
+    }
+
+    /**
+     * Shape mínimo do payload `venda_derivada` consumido pelo VendaDerivadaCard
+     * shared (resources/js/Components/shared/VendaDerivadaCard.tsx).
+     *
+     * V0 core (Onda 5 ADR 0192): id + invoice_no + final_total + transaction_date.
+     * Items breakdown + badge fiscal NF-e ficam pra wave futura (paridade com
+     * Modules/Repair `buildVendaDerivadaPayload`).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): Transaction já vem scopada por business_id
+     * via belongsTo + global scope herdado. Frontend só lê.
+     */
+    private function shapeVendaDerivada(\App\Transaction $t): array
+    {
+        return [
+            'id'               => (int) $t->id,
+            'invoice_no'       => (string) ($t->invoice_no ?? $t->id),
+            'final_total'      => (float) $t->final_total,
+            'transaction_date' => $t->transaction_date
+                ? (is_string($t->transaction_date)
+                    ? substr($t->transaction_date, 0, 10)
+                    : $t->transaction_date->toDateString())
+                : null,
+        ];
     }
 
     /**
