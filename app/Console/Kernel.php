@@ -799,6 +799,39 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // PR G (2026-05-25) G11 auditoria pós Ondas 24/25 — Backfill plano_conta_id
+        // weekly pra businesses ativos. Cobre auto-criação Observer venda/compra
+        // que cria Titulo sem classificação (não-Observer caminho dá DRE zerada).
+        // Idempotente: só toca rows ainda NULL.
+        //
+        // Domingo 04:00 BRT: baixa carga, depois fsm:scan-drift (03:00) e antes
+        // do horário comercial. withoutOverlapping(60) cobre business com 50k+
+        // títulos (ROTA LIVRE biz=4 tinha 18054 backfilled 2026-05-20).
+        $schedule->call(function () {
+            try {
+                $businesses = \App\Business::query()->pluck('id');
+                foreach ($businesses as $bizId) {
+                    \Illuminate\Support\Facades\Artisan::call('financeiro:backfill-plano-conta', [
+                        '--business' => $bizId,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule financeiro:backfill-plano-conta FALHOU: '.$e->getMessage()
+                );
+            }
+        })
+            ->name('financeiro-backfill-plano-conta-weekly')
+            ->weeklyOn(0, '04:00') // Domingo 04:00
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping(60)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule financeiro:backfill-plano-conta FALHOU — DRE pode zerar pra business sem classificação'
+                );
+            });
+
         // US-RB-045 — Sincroniza saldo Asaas/Inter pra contas_bancarias.saldo_cached.
         // Sem este schedule, dashboard /financeiro mostra "—" (saldo_cached NULL).
         // Hourly: latência aceitável vs custo de chamadas API gateways.
