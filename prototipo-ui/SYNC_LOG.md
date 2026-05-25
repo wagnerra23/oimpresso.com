@@ -134,3 +134,15 @@
 2026-05-25 13:56 [CL] PR #1493 feat/integracao-vendas-oficina — 8 arquivos prototipo-ui/ (+12985 LOC) · hooks ui:lint 0 violações · 4/4 CI checks PASS (PHP Pest · Vite build · module-grades-gate · bucket detection)
 2026-05-25 13:58 [W2] merged PR #1493 squash --admin (REVIEW_REQUIRED bypassed; F2-screenshot pre-aprovação documentada) — main b2fcabbf2
 2026-05-25 ~14:00 [CL] pós-merge pendente F3 — traduzir cross-source pra resources/js/Pages/Sells/Index.tsx + Oficina/Show.tsx em Inertia/React real · Backend OsObserver@updated dispara venda derivada quando os.status=entregue · F3.5 accessibility-review cross-módulo
+2026-05-25 ~14:15 [W]  approved 4 decisões pós-PR #1497 plano F3 via AskUserQuestion (Onda 6 wave separada · Observer trigger entregue_completo · commission_split shape mecanico/balcao total=100 · merge review manual)
+2026-05-25 ~14:30 [CL] Onda 0 ADR 0192 mergeado main 542b11ccf — JobSheetObserver pattern + schema canon documentado
+2026-05-25 ~15:00 [CL] Onda 1 PR #1500 mergeado main f11f10eeb — migration `transactions.source` ENUM + `os_ref` VARCHAR(20) + `commission_split` JSON + idx composto (business_id, source, transaction_date)
+2026-05-25 ~15:15 [CL] Onda 2 mergeado main e98649989 — JobSheetObserver@updated CREATE em terminal transition + endpoints payload (SellController::getSellsListJson + ProducaoOficinaController::index expand)
+2026-05-25 ~15:20 [CL] W2 PR #1510 mergeado main 2f6f10fc8 — payload expand items_list + fiscal pra drawer card breakdown
+2026-05-25 ~15:25 [CL] W4 PR #1511 mergeado main 166791e8d — commission_split editor UI Sells/Edit (2 selects + 2 inputs %) + validation server-side total=100
+2026-05-25 ~15:31 [CL] W5 PR #1509 mergeado main 2d86ee55a — reverse hook JobSheetObserver (OS reaberta → cancelled_at) + migration cancelled_at TIMESTAMP NULL + 4 Pest GUARDs novos
+2026-05-25 ~15:35 [CL] Ondas 3+4 mergeado main e40289010 — Sells/Index coluna Origem (VdSource pill) + saved tree "Por origem" + KPI hero breakdown 3-cards + listener cross-módulo oimpresso:open-venda
+2026-05-25 ~15:40 [CL] Onda 5 PR #1505 mergeado main 94300b057 — Repair drawer card "Esta OS gerou venda #V-NNNN" + breakdown peças/serviço/fiscal badge + atalhos Abrir/Imprimir
+2026-05-25 ~15:42 [CL] W1 PR #1513 mergeado main 4483ae855 — Sells/Caixa.tsx criada (rota /vendas/caixa) + seção "Por origem" com barras de progresso + drill-down
+2026-05-25 ~15:45 [CL] W3 PR #1508 mergeado main 129dab230 — botão Compartilhar Web Share API + clipboard fallback drawer card
+2026-05-25 ~15:50 [CL] Wave Z-2 pacote smoke entregue — scripts/deploy-wave-z2-integracao-vendas-oficina.sh (bash idempotente 6 passos com gates Y/N + dump MySQL + rollback) + memory/sessions/2026-05-25-wave-z2-smoke-checklist.md (8 blocos A-H · 60+ items marcáveis · evidence column) + BRIEFING.md Repair atualizado + BRIEFING.md Sells criado. Aguarda Wagner SSH Hostinger biz=1 canary
