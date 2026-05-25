@@ -366,6 +366,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   // State declarado aqui; callback (que depende de activeType) está DEPOIS
   // da declaração de activeType pra evitar Temporal Dead Zone (TDZ).
   const [creatingDraft, setCreatingDraft] = useState(false);
+  // Draft placeholder otimista — alimenta ClienteSheet com row sintética pro
+  // drawer renderizar tabs ANTES do router.reload trazer a row real do backend.
+  // Sem isso, ClienteSheet faz rows.find(id) que retorna null pra draft recém
+  // criado fora da página paginada da listagem → tabs vazias.
+  const [draftContact, setDraftContact] = useState<ClienteRow | null>(null);
 
   // Wave G — 5 filtros adicionais (Status legacy já tratado em statusFilter).
   // Tipo PF/PJ · UF (27) · Tags (multi) · Sem compra há (5 ranges) · Saldo (devedor/zerado).
@@ -455,28 +460,45 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       const json = await r.json();
       const newId = Number(json?.id ?? 0);
       if (newId > 0) {
-        // Hotfix 2026-05-25 — bug reportado Wagner "endereço não traz, drawer tab
-        // vazia". Causa: ClienteSheet faz `rows.find(r => r.id === contactId)` mas
-        // o draft recém-criado NÃO está em rows (snapshot listagem). Resultado:
-        // contact = null → IdentificacaoTab.contact = undefined → tab vazia.
-        //
-        // Fix: router.reload({only:['customers']}) PRIMEIRO pra puxar a row nova
-        // do backend, AÍ setOpenContactId quando rows estão atualizados. Inertia
-        // garante sequência via callback onSuccess.
+        // Hotfix 2026-05-25 v2 — bug Wagner reportou "endereço não traz, tab vazia".
+        // Solução: passar contact SINTÉTICO direto pro ClienteSheet via state
+        // `draftContact`. Drawer renderiza tabs IMEDIATAMENTE sem esperar reload.
+        // Quando user digitar e autosave persistir, router.reload({only:['rows']})
+        // (já dentro do IdentificacaoTab/EnderecoTab) substitui o sintético pelo real.
+        const placeholderContact: ClienteRow = {
+          id: newId,
+          name: '',
+          tax_number_masked: null,
+          contact_id: null,
+          mobile: null,
+          total_os: 0,
+          os_abertas: 0,
+          os_atrasadas: 0,
+          valor_aberto: 0,
+          status: 'idle',
+          last_os_at: null,
+          avatar_hash_seed: '',
+          cidade: null,
+          uf: null,
+          saldo_devedor: 0,
+          last_purchase_at: null,
+          created_at: new Date().toISOString(),
+          tipo: null,
+          fantasia: null,
+          tags: [],
+          segmento: null,
+          vip: false,
+        } as unknown as ClienteRow;
+        setDraftContact(placeholderContact);
+        setOpenContactId(newId);
+
+        // Em paralelo: reload customers do backend pra sincronizar listagem com o
+        // novo draft (aparece "Cliente" no topo alfabético, name vazio). Não bloqueia
+        // a abertura do drawer.
         router.reload({
           only: ['customers'],
           preserveScroll: true,
           preserveState: true,
-          onSuccess: () => {
-            setOpenContactId(newId);
-          },
-          onError: () => {
-            // Mesmo se reload falhar, abre drawer — autosave on blur ainda persiste,
-            // só que header mostra "Cliente" placeholder até user digitar nome.
-            // eslint-disable-next-line no-console
-            console.warn('[ClienteIndex] router.reload pós-draft falhou — abrindo drawer com fallback');
-            setOpenContactId(newId);
-          },
         });
       }
     } catch (err) {
@@ -1227,7 +1249,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         contactId={openContactId}
         open={openContactId !== null}
         rows={rows}
+        draftContact={draftContact}
         onOpenChange={(open) => {
+          if (!open) setDraftContact(null);
           if (!open) setOpenContactId(null);
         }}
       />
@@ -1673,14 +1697,23 @@ function ClienteSheet({
   contactId,
   open,
   rows,
+  draftContact,
   onOpenChange,
 }: {
   contactId: number | null;
   open: boolean;
   rows: ClienteRow[];
+  /** Hotfix 2026-05-25 — modo 'novo cliente' passa contact placeholder direto
+   * via state Index.tsx pra não depender do `rows.find()` (que falha porque
+   * draft recém-criado pode estar fora da página paginada da listagem). */
+  draftContact?: ClienteRow | null;
   onOpenChange: (open: boolean) => void;
 }) {
-  const contact = useMemo(() => rows.find((r) => r.id === contactId) ?? null, [rows, contactId]);
+  const contact = useMemo(() => {
+    // Prioridade: draftContact (modo novo) → rows.find (modo edit).
+    if (draftContact && draftContact.id === contactId) return draftContact;
+    return rows.find((r) => r.id === contactId) ?? null;
+  }, [rows, contactId, draftContact]);
   const [activeTab, setActiveTab] = useState<DrawerTab>('identificacao');
   // Toggle PF/PJ -- estado local. Wave C persiste via autosave on blur PATCH.
   // Placeholder no payload ClienteRow nao tem `tipo` ainda (Migration Wave B
