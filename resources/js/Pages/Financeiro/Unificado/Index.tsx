@@ -601,18 +601,18 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
     return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte };
   }, [lancamentos]);
 
-  // PR H (2026-05-25) US-FIN-023 — render badge delta_pct (↑+12% verde / ↓-5% rose / — null).
+  // PR H (2026-05-25) US-FIN-023 — render badge delta_pct (↑+12% verde / ↓-5% rose / → 0% neutro).
+  // Cores via classes canon `fin-num-pos`/`fin-num-neg`/`text-muted-foreground` (AP1 PRE-MERGE-UI).
   const DeltaBadge = ({ pct }: { pct: number | null | undefined }) => {
     if (pct === null || pct === undefined) return null;
-    const isUp = pct > 0;
     const isZero = Math.abs(pct) < 0.05;
-    const hue = isZero ? 0 : (isUp ? 145 : 25);
+    const isUp = pct > 0;
+    const colorClass = isZero ? 'text-muted-foreground' : (isUp ? 'fin-num-pos' : 'fin-num-neg');
     const arrow = isZero ? '→' : (isUp ? '↑' : '↓');
     const sign = pct > 0 ? '+' : '';
     return (
       <span
-        className="fin-delta-pct ml-1 text-[10px] font-medium tabular-nums"
-        style={{ color: `oklch(0.50 0.15 ${hue})` }}
+        className={`fin-delta-pct ml-1 text-[10px] font-medium tabular-nums ${colorClass}`}
         title={`vs mês anterior (${pct > 0 ? 'subiu' : 'caiu'} ${Math.abs(pct)}%)`}
       >
         {arrow}{sign}{pct.toFixed(1)}%
