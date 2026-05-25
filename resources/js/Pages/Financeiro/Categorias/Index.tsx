@@ -9,6 +9,7 @@ import { Tag, Plus, Pencil, Trash2, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { CategoriaSheet } from './components/CategoriaSheet';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 
 interface Categoria {
@@ -73,19 +74,19 @@ function Index({ categorias, planos_conta }: Props) {
           + os-btn primary. Aplicado em telas do Financeiro pra consistência
           visual depois do bundle copy canon (PR 1164). */}
       <div className="fin-curadoria vendas-aplus p-6 max-w-5xl mx-auto space-y-6">
-        <header className="os-page-h fin-page-h">
-          <div className="os-page-h-l fin-page-h-l">
-            <h1>Categorias <span className="fin-hero-title-sub">· Tags livres</span></h1>
-            <p>Complementam o plano de contas (que é fixo/contábil) — organizam lançamentos pra relatórios</p>
-          </div>
-          <div className="os-page-h-r fin-page-h-r">
-            {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+        {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+        <PageHeader
+          title="Categorias"
+          suffix=" · Tags livres"
+          subtitle={<>Complementam o plano de contas (que é fixo/contábil) — organizam lançamentos pra relatórios</>}
+        >
+          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav active="categorias" hidePrimary />
             <FinanceiroPrimaryButton onClick={() => setCreating(true)}>
               Nova categoria
             </FinanceiroPrimaryButton>
           </div>
-        </header>
+        </PageHeader>
 
         <div className="rounded-md border">
           <table className="w-full text-sm">
