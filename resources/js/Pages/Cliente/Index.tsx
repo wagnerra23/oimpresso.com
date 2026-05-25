@@ -628,7 +628,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
           {/* ZONA L · identidade */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold tracking-tight text-foreground leading-snug">
+            {/* H1 canon v3.2 (LEARNINGS Decisao #3 · 2026-05-25): 22px font-weight 700 —
+                peso espelhando /sells canon Cowork. v3.1 anterior era 16px/600 (compact
+                demais pra entidade principal da pagina). */}
+            <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-snug">
               {ROLE_TITLE[activeType].title}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
