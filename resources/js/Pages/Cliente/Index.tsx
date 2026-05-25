@@ -627,7 +627,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
          e em cima".
          canon v3.8 (Wagner 2026-05-25): space-y-3 (12px) → space-y-4 (16px) — gaps maiores
          entre blocos (Header→KPI→Toolbar→Tabela) pra cada um respirar melhor. */}
-     <div className="w-full px-6 space-y-4">
+     <div className="w-full px-6 space-y-2">
       {/* ───── BLOCO 1 · HEADER TRANSPARENTE + border-b warm (canon v3.4 polish · 2026-05-25) ─────
           Wagner pediu remover `bg-background border rounded-t-lg` pra header herdar
           o cream `--color-page-cream` do parent — espelha `/sells` canon Cowork exato.
@@ -973,8 +973,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           {/* canon v3.6 (Wagner 2026-05-25): tabela FLAT — `rounded-lg` removido pra
               parar com aparencia de card. Lista usa borders retas igual /sells.
               canon v3.7 (Wagner 2026-05-25): `mt-1` (4px) gap entre toolbar e tabela
-              pra evitar borders coladas. */}
-          <div className="mt-1 border border-border bg-background overflow-hidden">
+              pra evitar borders coladas.
+              canon v3.9 (Wagner 2026-05-25 polish #5): `mt-0` — lista COLADA na
+              linha separadora da toolbar (Wagner: "remova o espaço entre lista
+              e a linha, cole nela"). 0px gap · borders compartilham · cleaner. */}
+          <div className="border border-border bg-background overflow-hidden">
             <div className="overflow-x-auto">
               {/* Wave G — Tabela turbinada (paridade Cowork blueprint score 9,4/10).
                   Colunas: Avatar HSL · Cliente+sub · Tipo · Documento · Cidade/UF ·
