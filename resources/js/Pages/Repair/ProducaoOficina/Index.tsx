@@ -14,6 +14,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 type Tone = 'slate' | 'blue' | 'amber' | 'violet' | 'emerald';
 
@@ -642,7 +643,8 @@ function TimelineEvent({
 //  1. "Abrir #V-NNNN" → dispatch CustomEvent 'oimpresso:open-venda' (Worker A
 //     Sells/Index listener Onda 4 abre drawer SaleSheet · loose coupling)
 //  2. "Imprimir recibo" → window.open rota Blade legacy preservada
-//  3. "Compartilhar" → placeholder TODO · charter Non-Goal por ora
+//  3. "Compartilhar" → Web Share API nativa (mobile/PWA) + fallback
+//     navigator.clipboard.writeText() + toast Sonner (desktop · pattern Repair/JobSheet)
 //
 // Breakdown peças/serviço + badges fiscais NF-e/NFS-e do Cowork ficam pra wave
 // futura (charter Non-Goal · payload backend Onda 2 não entrega esses fields).
@@ -659,9 +661,43 @@ function VendaDerivadaCard({ venda }: { venda: VendaDerivada }) {
     window.open(`/sells/${venda.id}/print`, '_blank', 'noopener,noreferrer');
   };
 
-  const handleCompartilhar = () => {
-    // TODO Onda futura — backlog item (charter Non-Goal por ora).
-    // Possibilidades: copy-to-clipboard link · WhatsApp template · email PDF.
+  // Onda 5 follow-up (Worker 3 · 2026-05-25) — share real.
+  // Decisão Wagner: Web Share API nativa (mobile/PWA share-sheet) + fallback
+  // navigator.clipboard.writeText() + toast Sonner (pattern já em uso no projeto,
+  // ver Modules/Repair Pages/Repair/JobSheet/Show.tsx). Sem dependência nova.
+  // - AbortError (user cancelou share-sheet) NÃO loga erro (UX silencioso).
+  // - canShare check protege Safari iOS quirks (sem text-only sem url).
+  const handleCompartilhar = async () => {
+    const url = `${window.location.origin}/sells/${venda.id}`;
+    const text = `Venda #${venda.invoice_no} · ${venda.final_total.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })}${venda.transaction_date ? ` · ${new Date(venda.transaction_date + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''}`;
+    const shareData = { title: `Venda #${venda.invoice_no}`, text, url };
+
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      const canShare = typeof navigator.canShare === 'function' ? navigator.canShare(shareData) : true;
+      if (canShare) {
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (err) {
+          // AbortError = user dismissed share-sheet · não logar nem mostrar toast erro.
+          if ((err as DOMException)?.name === 'AbortError') return;
+          // Outros erros → cair pro fallback clipboard.
+          console.error('Web Share falhou, caindo pro clipboard:', err);
+        }
+      }
+    }
+
+    // Fallback clipboard + toast Sonner (pattern projeto).
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      toast.success('Link da venda copiado');
+    } catch (err) {
+      console.error('Clipboard falhou:', err);
+      toast.error('Não foi possível copiar o link');
+    }
   };
 
   const totalBR = venda.final_total.toLocaleString('pt-BR', {
@@ -725,7 +761,7 @@ function VendaDerivadaCard({ venda }: { venda: VendaDerivada }) {
         <button
           type="button"
           onClick={handleCompartilhar}
-          title="Em breve · backlog wave futura"
+          aria-label={`Compartilhar venda ${venda.invoice_no}`}
           className="ofc-venda-cta inline-flex items-center gap-1 rounded-[5px] border border-emerald-200 bg-white px-3 py-1.5 text-[11.5px] font-semibold text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
         >
           Compartilhar
