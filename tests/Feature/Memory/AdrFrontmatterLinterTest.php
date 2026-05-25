@@ -58,6 +58,7 @@ const MODULE_VALIDOS    = [
     'Sells', 'Autopecas', 'Comissao', 'Pcp', 'Governance', 'ADS',
     'Infra', 'jana', 'sells', 'design-system', 'Sells',
     'NfeBrasil',    // ADR 0186 mergeada com case canônico do path Modules/NfeBrasil/ — append-only impede fix
+    '_DesignSystem', // ADRs 0189/0190 mergeadas com prefixo underscore (era convenção early-design-system) — append-only impede fix; convenção futura: design-system (lowercase)
 ];
 
 const CAMPOS_OBRIGATORIOS = [
