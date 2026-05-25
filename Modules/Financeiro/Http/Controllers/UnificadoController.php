@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Events\TituloCriado;
 use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\StoreTituloRequest;
 use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
@@ -300,6 +301,11 @@ class UnificadoController extends Controller
         });
 
         $label = $titulo->tipo === 'receber' ? 'a receber' : 'a pagar';
+
+        // PR F (2026-05-25) G9 — Event TituloCriado abre caminho de extensão
+        // (notify fornecedor, recalcular cache KPIs, sincronizar accounting).
+        // Listener canônico inicial: OnTituloCriadoLog (audit log INFO).
+        TituloCriado::dispatch($titulo);
 
         return back()->with('success', "Lançamento {$titulo->numero} ({$label}) criado.");
     }

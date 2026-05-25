@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\Financeiro\Events\CashRegisterClosed;
+use Modules\Financeiro\Events\TituloCriado;
 use Modules\Financeiro\Listeners\OnCashRegisterClosedCreateFinanceiroTitulo;
 use Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo;
+use Modules\Financeiro\Listeners\OnTituloCriadoLog;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 
 class FinanceiroServiceProvider extends ServiceProvider
@@ -50,6 +52,11 @@ class FinanceiroServiceProvider extends ServiceProvider
 
         // ADR 0183 — Ponte cash_registers → fin_titulos (multi-caixa canon)
         Event::listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
+
+        // PR F (2026-05-25) G9 — Event TituloCriado dispatched no store() manual
+        // (UnificadoController). Listener stub log INFO + abre caminho extensão
+        // (notify, cache, accounting). Não dispara em auto-criação observers.
+        Event::listen(TituloCriado::class, [OnTituloCriadoLog::class, 'handle']);
 
         self::$paymentgatewayListenersRegistered = true;
     }
