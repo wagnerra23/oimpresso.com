@@ -1,6 +1,6 @@
 {
     "_meta": {
-        "generated_at": "2026-05-24T16:18:29-03:00",
+        "generated_at": "2026-05-25T10:29:55-03:00",
         "tool": "ui:lint",
         "files_scanned": 488,
         "total_violations": 7307,
@@ -280,8 +280,8 @@
             "R1": 16
         },
         "resources\/js\/Pages\/Cliente\/Index.tsx": {
-            "R1": 88,
-            "R4": 2
+            "R1": 89,
+            "R4": 1
         },
         "resources\/js\/Pages\/Cliente\/Ledger.tsx": {
             "R1": 10
