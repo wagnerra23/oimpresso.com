@@ -14,7 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import PageHeader from '@/Components/shared/PageHeader';
+import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader';
+import { ShieldCheck } from 'lucide-react';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -217,17 +218,24 @@ function GovernancaIndex(props: Props) {
 
   return (
     <>
-      <PageHeader
-        icon="shield-check"
-        title="Governança MCP"
-        description={`Consumo cross-team do MCP server — ${periodo.label}`}
-        action={
-          <div className="text-xs text-muted-foreground text-right">
-            <div>Endpoint: <span className="font-mono">mcp.oimpresso.com</span></div>
-            <div>Audit: <span className="font-mono">mcp_audit_log</span> (append-only)</div>
+      <JanaAreaHeader active="governanca-mcp" />
+
+      {/* Title local da tela — preservado pós-migração JanaAreaHeader (Wagner 2026-05-25) */}
+      <div className="px-6 pt-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="size-6 text-primary" />
+          <div>
+            <h1 className="text-xl font-semibold">Governança MCP</h1>
+            <p className="text-sm text-muted-foreground">
+              Consumo cross-team do MCP server — {periodo.label}
+            </p>
           </div>
-        }
-      />
+        </div>
+        <div className="text-xs text-muted-foreground text-right shrink-0">
+          <div>Endpoint: <span className="font-mono">mcp.oimpresso.com</span></div>
+          <div>Audit: <span className="font-mono">mcp_audit_log</span> (append-only)</div>
+        </div>
+      </div>
 
       {/* Sub-navegação por seção — variante underline */}
       <SubNav
