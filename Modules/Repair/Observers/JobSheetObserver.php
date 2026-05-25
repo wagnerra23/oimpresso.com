@@ -23,11 +23,20 @@ use Modules\Repair\Entities\RepairStatus;
  * Cria Transaction (type=sell · source='oficina' · os_ref='OS-{id}') herdando
  * business_id da OS (multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL).
  *
- * Idempotência: skip se Transaction já existe pra essa OS, via 2 chaves
+ * Idempotência: skip se Transaction ATIVA já existe pra essa OS, via 2 chaves
  * (defesa-em-profundidade):
  *   (a) `repair_job_sheet_id = $jobSheet->id` (FK UPOS legacy desde 2020-08)
  *   (b) `os_ref = "OS-{$jobSheet->id}"` (string canonical UI cross-link · ADR 0192)
  * Ambas scopadas por `business_id` pra impedir cross-tenant.
+ * Filtro `whereNull('cancelled_at')` ignora cancelamentos prévios (reverse hook)
+ * pra permitir re-completion criar NOVA Transaction (ADR 0192 follow-up).
+ *
+ * Reverse hook (ADR 0192 follow-up · 2026-05-25 review trigger):
+ *   OS terminal → não-terminal (reaberta) → marca Transaction derivada como
+ *   cancelada (`cancelled_at = now()`) preservando audit trail · NÃO delete.
+ *   Caminho B' (cancelled_at TIMESTAMP NULL) escolhido sobre Caminho A
+ *   (SoftDeletes) porque `Transaction` UPOS legacy não usa trait e Caminho B
+ *   (status='cancelled') exigiria ALTER TABLE no ENUM rígido.
  *
  * OS sem nota fiscal vira venda mesmo assim (`fiscal: {}` vazio · sem badge
  * SEFAZ na UI) — fluxo informal não bloqueia auto-faturar (Wagner 2026-05-25).
@@ -53,14 +62,35 @@ class JobSheetObserver
             ->where('id', $jobSheet->status_id)
             ->first();
 
-        if (! $newStatus || ! (bool) $newStatus->is_completed_status) {
+        $isTerminal = $newStatus && (bool) $newStatus->is_completed_status;
+
+        // Lookup do status anterior pra detectar transição terminal → não-terminal (reverse).
+        $oldStatusId = $jobSheet->getOriginal('status_id');
+        $oldStatus = $oldStatusId
+            ? RepairStatus::where('business_id', $jobSheet->business_id)
+                ->where('id', $oldStatusId)
+                ->first()
+            : null;
+        $wasTerminal = $oldStatus && (bool) $oldStatus->is_completed_status;
+
+        // REVERSE hook (ADR 0192 follow-up): OS reaberta · marca Transaction como cancelada.
+        if ($wasTerminal && ! $isTerminal) {
+            $this->reverseTransaction($jobSheet);
+
             return;
         }
 
-        // Idempotência: skip se já existe Transaction derivada.
+        // Nada a fazer se transição não termina em terminal (não-terminal → não-terminal).
+        if (! $isTerminal) {
+            return;
+        }
+
+        // Idempotência: skip se já existe Transaction derivada ATIVA (cancelled_at NULL).
         // Defesa-em-profundidade: 2 chaves (repair_job_sheet_id FK + os_ref string).
+        // Filtro whereNull('cancelled_at') permite re-completion pós-cancelamento criar NOVA.
         $osRef = $this->buildOsRef($jobSheet);
         $exists = Transaction::where('business_id', $jobSheet->business_id)
+            ->whereNull('cancelled_at')
             ->where(function ($q) use ($jobSheet, $osRef) {
                 $q->where('repair_job_sheet_id', $jobSheet->id)
                     ->orWhere('os_ref', $osRef);
@@ -117,5 +147,55 @@ class JobSheetObserver
     private function buildOsRef(JobSheet $jobSheet): string
     {
         return "OS-{$jobSheet->id}";
+    }
+
+    /**
+     * Marca Transaction derivada como cancelada quando OS é reaberta.
+     *
+     * Caminho B' (cancelled_at TIMESTAMP NULL) — preserva row + audit trail
+     * Spatie. Idempotente: já-cancelada vira no-op (whereNull filtra).
+     * Multi-tenant Tier 0: filtro `business_id` impede cross-tenant.
+     *
+     * Não-bloqueante: erro vira Log::error (pattern existente · não interrompe FSM).
+     */
+    private function reverseTransaction(JobSheet $jobSheet): void
+    {
+        $osRef = $this->buildOsRef($jobSheet);
+
+        try {
+            $tx = Transaction::where('business_id', $jobSheet->business_id)
+                ->whereNull('cancelled_at')
+                ->where(function ($q) use ($jobSheet, $osRef) {
+                    $q->where('repair_job_sheet_id', $jobSheet->id)
+                        ->orWhere('os_ref', $osRef);
+                })
+                ->first();
+
+            if (! $tx) {
+                Log::info('JobSheetObserver: reverse skip · sem Transaction ativa pra cancelar', [
+                    'os_ref' => $osRef,
+                    'job_sheet_id' => $jobSheet->id,
+                    'business_id' => $jobSheet->business_id,
+                ]);
+
+                return;
+            }
+
+            $tx->forceFill(['cancelled_at' => Carbon::now()])->save();
+
+            Log::info('JobSheetObserver: Transaction derivada cancelada (OS reaberta)', [
+                'transaction_id' => $tx->id,
+                'os_ref' => $osRef,
+                'job_sheet_id' => $jobSheet->id,
+                'business_id' => $jobSheet->business_id,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('JobSheetObserver: falha ao cancelar Transaction derivada', [
+                'os_ref' => $osRef,
+                'job_sheet_id' => $jobSheet->id,
+                'business_id' => $jobSheet->business_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
