@@ -56,6 +56,7 @@ class Transaction extends Model
         'sales_order_ids' => 'array',
         'export_custom_fields_info' => 'array',
         'purchase_requisition_ids' => 'array',
+        'commission_split' => 'array', // ADR 0192 · { mecanico_id, mecanico_pct, balcao_id, balcao_pct }
     ];
 
     /**
