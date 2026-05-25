@@ -99,4 +99,85 @@ de nomes de tabs.
 
 ---
 
+## SESSÃO 2026-05-25 — Postmortem Wave 1 piloto (Cliente/Index)
+
+### Contexto
+
+Apliquei canon v3.1 em `Pages/Cliente/Index.tsx` (PR #1457) e Wagner inspecionou em prod
+(`/contacts?type=customer`). 2 anti-padrões aparentemente "pequenos" que pareciam OK no
+protótipo mas QUEBRARAM em prod por ignorância de contexto.
+
+### Anti-padrão #16 — Font herdada de AppShellV2 (NUNCA mais confiar em herança)
+
+**O que aconteceu:**
+- Spec v3.1 §3 dizia `font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI"`
+- Meu protótipo standalone `b-v2-roxo-kpis.html` renderizou CORRETAMENTE (sem wrapper)
+- Em prod com AppShellV2, font ficou **`"IBM Plex Sans"`** porque o app define isso globalmente
+- Não forcei inline → herdou o IBM Plex global → quebrou a paridade com Cowork canon real
+
+**Por que isso é grave:**
+- Wagner escolheu família B Modern SaaS comparando 3 famílias visualmente (sessão 2026-05-24)
+- B usava system fonts → ficou diferente do que ele aprovou
+- "Quase certo" é diferente de "certo" — fidelidade ao spec é o ponto
+
+**Regra dura pra próxima:**
+> Quando spec define **font-family, color, sizing crítico** num componente isolado,
+> SEMPRE force inline OU via `className` específica. Nunca confie que vai herdar.
+> Especialmente em React+Inertia onde o wrapper (`<AppShellV2>`) pode redefinir tudo.
+
+**Como detectar antes:**
+1. Protótipo standalone roda SEM AppShellV2 → pode mascarar overrides
+2. Antes de codar, abrir uma tela QUALQUER do projeto + DevTools → ver font computed real
+3. Se font do app ≠ font do spec → spec precisa forçar OU canon precisa atualizar pra herdar
+4. Pest browser test deveria assertar `getComputedStyle(h1).fontFamily.includes('ui-sans-serif')`
+
+### Anti-padrão #17 — Overflow ⋮ com border (deve ser GHOST puro)
+
+**O que aconteceu:**
+- Usei `<Button variant="outline" size="icon">` do shadcn
+- `variant="outline"` aplica `border border-input` (slate-200 visível)
+- Em prod ficou um quadradinho com border ao lado do primary — peso visual alto demais
+- Wagner corrigiu: `⋮` deve ser **GHOST puro** (transparent, NO border)
+
+**Por que isso é grave:**
+- O `⋮` é ação de DESCOBERTA secundária — usuário só nota quando precisa
+- Border puxa atenção indevida — visualmente compete com primary que tem border colorida
+- Pattern Linear/Stripe/Notion: `⋮` é sempre invisível até hover (ghost real)
+
+**Regra dura pra próxima:**
+> Overflow `⋮` no header é SEMPRE `variant="ghost"` (transparent, sem border).
+> Outline button (com border) é pra ações secundárias EXPLÍCITAS (ex: "Cancelar" num modal).
+> Hierarquia visual no header: **primary colorido** + **secondary ghost** (sem nada entre).
+
+**Como detectar antes:**
+1. Protótipo HTML que fiz tinha `.btn.icon-only` COM border — copiei o defeito
+2. Cowork real medido (`Venda por Estagio FSM.html`) — não tinha overflow `⋮` visível pra comparar
+3. Spec v3.1 §4.4 dizia "ghost-outline" — ambíguo (ghost OU outline?) — termo confuso
+4. Pest browser test: `expect(getComputedStyle(overflow).border).toBe('1px solid transparent')`
+
+### Update aplicado ao SPEC (v3.1 stays, micro-fixes)
+
+- §3 (tokens canon): adicionar `--font-stack` explícito + nota "FORÇAR inline em React, não herdar"
+- §4.5 (overflow): mudar de "icon-only ghost-outline" para "**icon-only GHOST puro · NO border · transparent bg**"
+- §10 (decisões em aberto): adicionar "como override de font global do app (Tailwind config)"
+- §30 (anti-padrões catalogados — protótipo SPEC): adicionar AP16 (font herdada) + AP17 (overflow com border)
+
+### Outras métricas da sessão
+
+- PRs Wave 1: 1 (#1457) — mergeado mas com 6 bugs detectados em prod
+- Bugs encontrados: 6 (counter=0, KPI 5-cards legacy, header sem padding, border-duplo, toolbar separada, sufixo sumiu) + 2 desta sessão (font, overflow) = **8 bugs total**
+- Quick Sync infra falha: 1 (lock órfão Hostinger — resolveu com rerun)
+- Tempo até primeira validação visual em prod: ~10min após merge
+
+### Próxima sessão deve
+
+1. Aplicar fix dos 8 bugs num PR só (atomic) — não 8 PRs
+2. ANTES de codar, abrir DevTools em uma tela existente do projeto pra MEDIR a font real
+3. Forçar `style={{ fontFamily: ... }}` no `<header>` canon
+4. Trocar overflow pra `variant="ghost"` + `className="border-0"` se shadcn ghost ainda tem border
+5. Resolver counter das tabs via Controller (server-side counts) ou KPI strip já existente
+6. Substituir KpiStripClickable por 4-cards-strip canon v3.1 (ou adaptar)
+
+---
+
 <!-- Próximas sessões abaixo desta linha. NUNCA editar sessões anteriores. -->

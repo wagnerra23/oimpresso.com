@@ -1274,6 +1274,8 @@ Baselines em `tests/Browser/baselines/pageheader/*.png`. Diff threshold 0.1%. PR
 | AP13 | Underline sem `-mb-px` | Underline flutua 1px acima da linha base | `margin-bottom: -1px` sempre |
 | AP14 | Sem skip-link | Falha WCAG 2.4.1 | `<a href="#main-content" class="sr-only focus:not-sr-only">` |
 | AP15 | Primary sem disabled state quando offline | Usuário clica e nada acontece, frustração | `disabled={!online}` + visual feedback |
+| **AP16** | **Font herdada de AppShellV2 / Tailwind config global** | Spec dizia `ui-sans-serif`, prod ficou `IBM Plex Sans` (herdou wrapper). Protótipo standalone NÃO detectou pq não tem wrapper. Quebra paridade com Cowork canon real. | SEMPRE forçar `style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif' }}` no `<header>` canon. Pest browser test: assert `getComputedStyle(h1).fontFamily.includes('ui-sans-serif')` |
+| **AP17** | **Overflow `⋮` com border (shadcn `variant="outline"`)** | `variant="outline"` aplica `border border-input` slate-200 visível. ⋮ é ação de DESCOBERTA secundária, border puxa atenção indevida e compete com primary. | SEMPRE `variant="ghost"` + `className="border-0"` (caso shadcn ghost ainda aplique border). Pattern Linear/Stripe/Notion: ⋮ é invisível até hover. |
 
 ---
 

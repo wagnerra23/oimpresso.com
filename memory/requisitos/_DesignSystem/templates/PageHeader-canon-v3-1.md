@@ -61,6 +61,9 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
 
 ## 3. Tokens canon (CSS variables `:root`)
 
+> **Regra dura — fonte:** AppShellV2 carrega `IBM Plex Sans` globalmente. Canon REJEITA herança.
+> SEMPRE forçar via `style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif' }}` no `<header>` do canon. Anti-padrão AP16 (LEARNINGS sessão 2026-05-25).
+
 ```css
 :root {
   /* superfícies */
@@ -90,7 +93,11 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
   --amber-text:  #b45309;
   --emerald-text:#047857;
   
-  /* tipografia */
+  /* tipografia — ATENÇÃO crítica:
+     AppShellV2 (Tailwind config) define IBM Plex Sans GLOBALMENTE.
+     PageHeader canon REJEITA herança — sempre FORÇAR via inline style
+     OU via classe `.page-header-canon` que reseta font-family.
+     Anti-padrão AP16 (PageHeader-LEARNINGS.md sessão 2026-05-25). */
   --font-stack:    ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --fs-h1:         16px;
   --fs-sub:        12px;
@@ -257,7 +264,49 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
 1. **`⋮` overflow** (icon-only ghost-outline) — abre Radix DropdownMenu com ações secundárias
 2. **Primary** roxo médio — ação principal `+ Novo {entidade}`
 
-### 4.5 Overflow menu (estrutura padrão)
+### 4.5 Overflow `⋮` button (estilo — GHOST PURO)
+
+> **Regra dura:** overflow `⋮` é GHOST puro — `bg: transparent` + `border: 0` (NÃO outline, NÃO soft).
+> Anti-padrão AP17 (LEARNINGS sessão 2026-05-25 — usar `variant="outline"` shadcn quebra).
+>
+> Em React: usar `variant="ghost"` + **forçar `className="border-0"`** se shadcn ghost ainda aplicar border.
+
+```css
+.btn.icon-only-ghost {
+  width: var(--btn-h);
+  height: var(--btn-h);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--btn-radius);
+  transition: background 120ms cubic-bezier(0.4, 0, 0.2, 1), color 120ms;
+}
+.btn.icon-only-ghost:hover {
+  background: hsl(var(--accent));
+  color: var(--text-strong);
+}
+```
+
+```jsx
+{/* React equivalente */}
+<DropdownMenuTrigger asChild>
+  <button
+    type="button"
+    aria-label="Mais ações"
+    aria-haspopup="menu"
+    className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-transparent border-0 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+  >
+    <MoreVertical className="h-4 w-4" />
+  </button>
+</DropdownMenuTrigger>
+```
+
+### 4.6 Overflow menu (estrutura interna padrão)
 
 ```jsx
 <DropdownMenu>
