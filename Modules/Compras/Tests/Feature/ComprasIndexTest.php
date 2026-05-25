@@ -25,9 +25,15 @@ class ComprasIndexTest extends TestCase
         parent::setUp();
 
         // Suffix #1 (biz_id=1) — convenção UltimatePOS spatie/laravel-permission.
-        $perm = Permission::firstOrCreate(['name' => 'compras.view', 'guard_name' => 'web']);
+        $permView = Permission::firstOrCreate(['name' => 'compras.view', 'guard_name' => 'web']);
+        // C1 convergência (ADR compras-purchase-convergencia-c1) — botão "+ Nova
+        // compra" + AcoesDropdown Editar/Excluir gateiam por purchase.* (trilho
+        // A MWART), não compras.*. Admin#1 recebe todas pras smoke tests.
+        $permPurchaseCreate = Permission::firstOrCreate(['name' => 'purchase.create', 'guard_name' => 'web']);
+        $permPurchaseUpdate = Permission::firstOrCreate(['name' => 'purchase.update', 'guard_name' => 'web']);
+        $permPurchaseDelete = Permission::firstOrCreate(['name' => 'purchase.delete', 'guard_name' => 'web']);
         $role = Role::firstOrCreate(['name' => 'admin#1', 'guard_name' => 'web']);
-        $role->givePermissionTo($perm);
+        $role->givePermissionTo([$permView, $permPurchaseCreate, $permPurchaseUpdate, $permPurchaseDelete]);
 
         $this->admin = User::factory()->create(['business_id' => 1]);
         $this->admin->assignRole($role);
@@ -62,5 +68,62 @@ class ComprasIndexTest extends TestCase
             ->get('/compras');
 
         $response->assertStatus(403);
+    }
+
+    /**
+     * C1 convergência — prop `permissions.create` vem de `purchase.create` (trilho A
+     * MWART), não `compras.create`. Frontend usa o gate pra mostrar/ocultar botão
+     * "+ Nova compra" que delega `/purchases/create` via `router.visit`.
+     *
+     * ADR `compras-purchase-convergencia-c1` review trigger #4 ativa SE gap reportado:
+     * user com `compras.view` mas SEM `purchase.create` vê cockpit sem o botão.
+     */
+    public function test_c1_prop_permissions_create_resolve_via_purchase_create(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->withSession(['user' => ['business_id' => 1, 'id' => $this->admin->id]])
+            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->get('/compras');
+
+        $response->assertStatus(200);
+
+        // Payload Inertia JSON: 'permissions' deve estar presente com create=true
+        // (admin#1 tem purchase.create no setUp).
+        $payload = $response->json();
+        $this->assertArrayHasKey('props', $payload);
+        $this->assertArrayHasKey('permissions', $payload['props']);
+        $this->assertTrue(
+            $payload['props']['permissions']['create'],
+            'admin#1 com purchase.create deve ver permissions.create=true'
+        );
+        $this->assertTrue($payload['props']['permissions']['update']);
+        $this->assertTrue($payload['props']['permissions']['delete']);
+    }
+
+    /**
+     * C1 convergência — user com `compras.view` SEM `purchase.create` vê cockpit
+     * mas prop `permissions.create=false` (botão "+ Nova compra" oculto no frontend).
+     */
+    public function test_c1_user_sem_purchase_create_recebe_permissions_create_false(): void
+    {
+        $permView = Permission::firstOrCreate(['name' => 'compras.view', 'guard_name' => 'web']);
+        $roleViewer = Role::firstOrCreate(['name' => 'viewer-only#1', 'guard_name' => 'web']);
+        $roleViewer->givePermissionTo($permView);
+
+        $viewer = User::factory()->create(['business_id' => 1]);
+        $viewer->assignRole($roleViewer);
+
+        $response = $this->actingAs($viewer)
+            ->withSession(['user' => ['business_id' => 1, 'id' => $viewer->id]])
+            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->get('/compras');
+
+        $response->assertStatus(200);
+
+        $payload = $response->json();
+        $this->assertFalse(
+            $payload['props']['permissions']['create'],
+            'viewer sem purchase.create deve ver permissions.create=false (esconde botão)'
+        );
     }
 }
