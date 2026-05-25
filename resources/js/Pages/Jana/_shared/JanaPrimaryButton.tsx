@@ -1,21 +1,24 @@
 import * as React from 'react';
 import { Plus } from 'lucide-react';
-import { SIDEBAR_GROUP_HUE } from '@/Components/cockpit/shared';
 
 /**
- * JanaPrimaryButton — botão primary canon das telas do módulo IA (Jana).
+ * @deprecated ADR 0190 (2026-05-25) — primary INTERNO das telas é SEMPRE roxo médio
+ * universal `oklch(0.55 0.15 295)`, independente do grupo. Use
+ * `<PageHeaderPrimary>` de `@/Components/PageHeader` em código novo.
  *
- * ADR 0182 + GUIA-SIDEBAR-V3: hue OKLCH 220 (azul — grupo `ia` topo)
- * em vez do magenta canon UPOS legacy. Visualmente harmônico com ghost
- * tabs ARIA do JanaSubNav + sidebar v3.
+ * Este wrapper continua funcionando nas telas Jana legadas — agora RENDERIZA
+ * ROXO 295 universal (não mais azul 220 do grupo `ia`). API preservada pra compat.
  *
- * Mesma API de `<button>` HTML — aceita `onClick`, `disabled`, etc.
+ * Comportamento NOVO (ADR 0190):
+ *   bg:     oklch(0.55 0.15 295)   roxo médio universal
+ *   border: oklch(0.45 0.15 295)   roxo escuro
+ *   color:  oklch(0.99 0 0)        branco
  *
- * Uso:
+ * Migrar de:
+ *   <JanaPrimaryButton onClick={x}>Conversar com Jana</JanaPrimaryButton>
  *
- *   <JanaPrimaryButton onClick={() => router.visit('/ia')}>
- *     Conversar com Jana
- *   </JanaPrimaryButton>
+ * Pra:
+ *   <PageHeaderPrimary label="Conversar com Jana" onClick={x} />
  */
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   hideIcon?: boolean;
@@ -28,14 +31,15 @@ export default function JanaPrimaryButton({
   style,
   ...rest
 }: Props) {
-  const hue = SIDEBAR_GROUP_HUE['ia'] ?? 220;
   return (
     <button
       type="button"
       className={`os-btn primary ${className}`.trim()}
       style={{
-        backgroundColor: `oklch(0.55 0.15 ${hue})`,
+        backgroundColor: 'oklch(0.55 0.15 295)',  // ADR 0190 roxo universal
+        borderColor: 'oklch(0.45 0.15 295)',
         color: 'oklch(0.99 0 0)',
+        fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
         ...style,
       }}
       {...rest}

@@ -3,51 +3,49 @@ import { Plus } from 'lucide-react';
 import { SIDEBAR_GROUP_HUE } from '@/Components/cockpit/shared';
 
 /**
- * PontoPrimaryButton — botão primary canon das telas Ponto.
+ * @deprecated ADR 0190 (2026-05-25) — primary INTERNO das telas é SEMPRE roxo médio
+ * universal `oklch(0.55 0.15 295)`, independente do grupo. Use
+ * `<PageHeaderPrimary>` de `@/Components/PageHeader` em código novo.
  *
- * ADR 0182 + Wave Ponto 2026-05-22: o `.os-btn.primary` canon UltimatePOS
- * usa magenta `oklch(0.58 0.12 330)` que NÃO harmoniza com o hue 295 (roxo
- * claro pessoas) dos ghost tabs ARIA. Resultado: header com botão "rosa"
- * conflitando com sidebar/ghosts roxos.
+ * Este wrapper continua funcionando nas 4 telas Ponto legadas — agora RENDERIZA
+ * ROXO 295 universal (era `pessoas=88 limão` no canon SIDEBAR_GROUP_HUE atual).
+ * Prop `group` mantida na assinatura por compat mas IGNORADA.
  *
- * Este componente sobrescreve o background-color do `.os-btn.primary` pelo
- * hue do grupo `pessoas` (295) lido de SIDEBAR_GROUP_HUE — fica visualmente
- * harmônico com sidebar v3 + ghost tabs.
+ * Comportamento NOVO (ADR 0190):
+ *   bg:     oklch(0.55 0.15 295)   roxo médio universal
+ *   border: oklch(0.45 0.15 295)   roxo escuro
+ *   color:  oklch(0.99 0 0)        branco
  *
- * Mesma assinatura de `<button>` HTML — pode usar `onClick`, `disabled`,
- * `type`, etc. Conteúdo `children` renderiza ao lado do ícone Plus (passe
- * sem `<Plus/>` próprio).
+ * Migrar de:
+ *   <PontoPrimaryButton onClick={x}>Bater ponto</PontoPrimaryButton>
  *
- * Uso canon nas telas Ponto (sempre no canto direito do header,
- * depois do `<PontoSubNav hidePrimary .../>` — Zona R ADR 0182):
- *
- *   <PontoPrimaryButton onClick={() => router.visit('/ponto')}>
- *     Bater ponto
- *   </PontoPrimaryButton>
+ * Pra:
+ *   <PageHeaderPrimary label="Bater ponto" onClick={x} />
  */
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Esconde o ícone Plus (default render). */
   hideIcon?: boolean;
-  /** Override do hue (default: 295 pessoas). Útil pra primary de outros grupos no futuro. */
+  /** @deprecated ADR 0190 — hue per grupo não se aplica mais ao primary. Prop ignorada. */
   group?: keyof typeof SIDEBAR_GROUP_HUE;
 }
 
 export default function PontoPrimaryButton({
   children,
   hideIcon,
-  group = 'pessoas',
+  group: _group,  // ADR 0190 — ignorado (compat de assinatura)
   className = '',
   style,
   ...rest
 }: Props) {
-  const hue = SIDEBAR_GROUP_HUE[group] ?? 295;
   return (
     <button
       type="button"
       className={`os-btn primary ${className}`.trim()}
       style={{
-        backgroundColor: `oklch(0.55 0.15 ${hue})`,
+        backgroundColor: 'oklch(0.55 0.15 295)',  // ADR 0190 roxo universal
+        borderColor: 'oklch(0.45 0.15 295)',
         color: 'oklch(0.99 0 0)',
+        fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
         ...style,
       }}
       {...rest}
