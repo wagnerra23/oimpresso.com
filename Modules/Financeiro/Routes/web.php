@@ -73,6 +73,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::put('/unificado/{id}', [UnificadoController::class, 'update'])
             ->whereNumber('id')
             ->name('unificado.update');
+        // Onda 25 (2026-05-25) US-FIN-021 — Insert manual via TituloCreateSheet
+        // (substitui stub /unificado/novo). Multi-tenant Tier 0 + idempotência
+        // via lockForUpdate no numero sequencial business-isolado.
+        Route::post('/unificado', [UnificadoController::class, 'store'])
+            ->name('unificado.store');
         Route::post('/unificado/{id}/conferir', [UnificadoController::class, 'conferir'])
             ->whereNumber('id')
             ->name('unificado.conferir');

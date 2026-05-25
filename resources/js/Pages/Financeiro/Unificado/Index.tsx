@@ -59,6 +59,7 @@ import { FinMonthResumeDialog } from './_components/FinMonthResume';
 import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
+import { TituloCreateSheet } from './_components/TituloCreateSheet';
 // US-FIN-026 (Onda 22) — painel completo de anexos no drawer (GET + upload + download + delete).
 import { FinAnexosPanel } from './_components/FinAnexosPanel';
 // US-FIN-029 (Onda 23) — Sheet OCR boleto (OpenAI Vision API extrai linha digitavel + valor + vencimento).
@@ -846,6 +847,9 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
   useEffect(() => { setDrawerTab('detalhes'); }, [selectedId]);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
+  // Onda 25 (2026-05-25) US-FIN-021 — Insert manual via TituloCreateSheet.
+  // `createTipo` controla qual variante abre (receber=verde · pagar=rose).
+  const [createTipo, setCreateTipo] = useState<'receber' | 'pagar' | null>(null);
   // US-FIN-029 (Onda 23) — Sheet OCR boleto.
   const [ocrSheetOpen, setOcrSheetOpen] = useState(false);
 
@@ -1009,10 +1013,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-48">
-              <DropdownMenuItem onClick={() => router.visit('/financeiro/unificado/novo?kind=receivable')}>
+              <DropdownMenuItem onClick={() => setCreateTipo('receber')}>
                 <TrendingUp size={13} className="mr-2 text-emerald-600" /> Novo recebimento
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.visit('/financeiro/unificado/novo?kind=payable')}>
+              <DropdownMenuItem onClick={() => setCreateTipo('pagar')}>
                 <TrendingDown size={13} className="mr-2 text-rose-600" /> Novo pagamento
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -1884,6 +1888,17 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           open={editOpen}
           onClose={() => setEditOpen(false)}
           lancamento={selected}
+          categorias={categorias}
+          planos={planosConta}
+        />
+      )}
+
+      {/* Onda 25 (2026-05-25) US-FIN-021 — Sheet Insert manual (substitui stub /unificado/novo) */}
+      {createTipo && (
+        <TituloCreateSheet
+          open={createTipo !== null}
+          onClose={() => setCreateTipo(null)}
+          tipo={createTipo}
           categorias={categorias}
           planos={planosConta}
         />
