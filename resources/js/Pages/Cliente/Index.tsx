@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
+import { PageHeaderPrimary } from '@/Components/PageHeader';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -732,22 +733,13 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            {/* Primary roxo (ADR 0189 v3.1) — `all` não tem CTA pq é leitura agregada */}
+            {/* Primary roxo universal (ADR 0190) — `all` não tem CTA pq é leitura agregada.
+                ADR 0190 supersede pattern hue-per-grupo · usa PageHeaderPrimary canon. */}
             {props.permissions.create && activeType !== 'all' && (
-              <Button
-                asChild
-                className="h-8 px-3 text-[12.5px] font-medium"
-                style={{
-                  backgroundColor: primaryBg,
-                  borderColor: primaryDk,
-                  color: 'oklch(0.99 0 0)',
-                }}
-              >
-                <a href={`/contacts/create?type=${activeType}`}>
-                  <Plus className="mr-1 h-3.5 w-3.5" />
-                  Novo {ROLE_TITLE[activeType].singular}
-                </a>
-              </Button>
+              <PageHeaderPrimary
+                label={`Novo ${ROLE_TITLE[activeType].singular}`}
+                href={`/contacts/create?type=${activeType}`}
+              />
             )}
           </div>
         </div>
