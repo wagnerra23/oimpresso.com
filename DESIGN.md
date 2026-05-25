@@ -25,15 +25,19 @@
 
 ## 2. Workflow padrão de design (Wagner usa hoje)
 
+**Loop formalizado** em [`prototipo-ui/PROTOCOL.md`](prototipo-ui/PROTOCOL.md) ([ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) — 6 papéis + 7 fases (F0 brief → F1 design → F1.5 critique → F2 screenshot Wagner → F3 code → F3.5 a11y → F4 merge) com gates ratchet automatizados.
+
 ```
-1. Wagner abre claude.ai/design (ou continua sessão "Oimpresso ERP Comunicação Visual")
-2. Cola o template de prompt da §9 do BRIEFING_CLAUDE_DESIGN.md como 1ª mensagem
-3. Anexa o BRIEFING_CLAUDE_DESIGN.md à conversa
-4. Itera com Claude Design — recebe zip com HTML + manuais por módulo
-5. Manda o zip pro Claude Code (sessão Code do desktop) — esse porta pro repo
-   (cria ou ajusta Page Inertia React + componentes shared)
-6. Code abre PR ou commita direto (depende do escopo)
+F0 BRIEF       [W]   pedido em COWORK_NOTES.md
+F1 DESIGN      [CC]  protótipo visual em prototipos/<tela>/page.tsx
+F1.5 CRITIQUE  [CD]  score ≥80 ok / 70-79 1 round refator / <70 discussão
+F2 SCREENSHOT  [W]   aprovação visual síncrona (não tabela)
+F3 CODE        [CL]  refator Inertia em <Tela>.tsx + .charter.md
+F3.5 A11Y      [CA]  accessibility-review WCAG 2.1 AA
+F4 MERGE       [W]   PR merge se F3.5 passou
 ```
+
+Skill orquestradora: [`mwart-comparative V4`](.claude/skills/mwart-comparative/SKILL.md) ([ADR 0109](memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md)) integra Claude Design plugin Anthropic (design-critique + design-system + design-handoff + ux-copy + accessibility-review + research-synthesis).
 
 ---
 
@@ -86,16 +90,33 @@ Wagner é o aprovador final em divergências de padrão. Cliente (WR2 Sistemas /
 
 ## 7. Hierarquia de decisões de UI
 
-Em ordem de precedência (de cima pra baixo, regra mais alta vence em conflito):
+**Documento mãe canônico:** [**ADR UI-0013 Constituição UI v2**](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) (accepted 2026-05-24) — define hierarquia de **4 camadas** que **camada superior herda das inferiores e nunca contradiz**:
+
+```
+Fundações (tokens cor/tipo/espaço · imutável via ADR)
+  ↓
+Shell (AppShellV2 + PageHeader · 1× pro app)
+  ↓
+Padrão de Tela (PT-01 Lista + PT-02..N · 5-7 templates)
+  ↓
+Módulo (varia)
+```
+
+Em ordem de precedência (regra mais alta vence em conflito):
 
 1. **Stack-target do projeto** (Inertia v3 + React 19 + TS + Tailwind 4) — não muda sem ADR.
-2. **Canon visual Cowork 2026-04-27** ([_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)) — `os-page.jsx`/`tasks.jsx`/`viewers.jsx`/`chat.jsx`. Não muda sem ADR substitutivo.
-3. **Layout-mãe "Chat Cockpit"** ([ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) + [_DS UI-0008](memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)) — não muda sem ADR substitutivo.
-4. **Sidebar light por padrão** ([_DS UI-0009](memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)) — sobrevive ao canon Cowork (Wagner explícito 2026-05-05).
-5. **Padrão Jana** ([ADR 0011](memory/decisions/0011-alinhamento-padrao-jana.md)) — UltimatePOS-like estrutura modular; vale pra DataController/Install/módulos (não-visual).
-6. **Componentes shared do projeto** (`PageHeader`, `DataTable`, `PageFilters`, `KpiCard`, `ModuleTopNav`, `StatusBadge`, `EmptyState`) — usar antes de criar novo.
-7. **Convenções 04** (`memory/04-conventions.md`) — naming PHP, rotas, blade.
-8. **Bom gosto do designer** — em última instância, Claude decide visual sem perguntar; mas registra a decisão no session log.
+2. **Constituição UI v2** ([UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)) — mãe atual das 4 camadas.
+3. **Tokens canon** ([ADR 0190](memory/decisions/0190-primary-button-roxo-medio-canon.md) primary roxo 295) — `oklch(0.55 0.15 295)` bg + `oklch(0.45 0.15 295)` border, universal cross-módulo.
+4. **PageHeader canon v3** ([ADR 0180](memory/decisions/0180-pageheader-canon-href-direto-ghost-rapido.md) / [0182](memory/decisions/0182-pageheader-3-zonas-esq-centro-dir.md) / [0189](memory/decisions/0189-pageheader-modo-foco-edit-create.md)) — modo NAV (Index/Show) vs modo FOCO (Edit/Create) + 3 zonas Esq/Centro/Dir.
+5. **PT-01 Lista** ([padrão de tela canônico](memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)) — anatomia + DNA + slots de listagem operacional.
+6. **Cockpit Pattern V2** ([ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)) — list+detail consolidado (ver §16).
+7. **Canon visual Cowork 2026-04-27** ([_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)) — UI Kit `os-page.jsx`/`tasks.jsx`/`viewers.jsx`/`chat.jsx`.
+8. **Layout-mãe "Chat Cockpit"** ([ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) + [_DS UI-0008](memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)).
+9. **Sidebar light por padrão** ([_DS UI-0009](memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) — sobrevive a UI v2 (Wagner explícito).
+10. **Padrão Jana** ([ADR 0011](memory/decisions/0011-alinhamento-padrao-jana.md)) — UltimatePOS-like estrutura modular; vale pra DataController/Install (não-visual).
+11. **Componentes shared** (`PageHeader`, `DataTable`, `PageFilters`, `KpiCard`, `ModuleTopNav`, `StatusBadge`, `EmptyState`) — usar antes de criar novo.
+12. **Convenções 04** (`memory/04-conventions.md`) — naming PHP, rotas, blade.
+13. **Bom gosto do designer** — em última instância, Claude decide visual sem perguntar; mas registra no session log + abre ADR se quebrou padrão.
 
 ## 8. Layout obrigatório de tela nova
 
@@ -114,7 +135,7 @@ Para tela em modo **CRUD clássico** (cadastro, listagem, edição), siga padrã
 
 ## 9. Tokens visuais
 
-Use **sempre** as variáveis CSS do shell (definidas em `resources/css/app.css`):
+Use **sempre** as variáveis CSS do shell (definidas em [`resources/css/cockpit.css`](resources/css/cockpit.css) + [`resources/css/inertia.css`](resources/css/inertia.css)):
 
 ```
 --bg, --bg-2, --panel, --panel-2, --border, --border-2
@@ -123,7 +144,18 @@ Use **sempre** as variáveis CSS do shell (definidas em `resources/css/app.css`)
 --row-h, --card-pad, --card-gap
 ```
 
-**Não invente cor solta.** Se precisar de uma cor nova, derive via `oklch()` a partir de `--accent` ou da origem do módulo.
+### Primary universal (ADR 0190 — 2026-05-25)
+
+Botões primários cross-módulo: **roxo 295 canônico**.
+
+```css
+background: oklch(0.55 0.15 295);  /* fill */
+border:     oklch(0.45 0.15 295);  /* border */
+```
+
+Aceitos no `bg-primary` shadcn. Vetado: hue-per-grupo (rosa/magenta 330 banido) — universalidade reduz custo cognitivo do usuário trocando entre módulos.
+
+**Não invente cor solta.** Se precisar de uma cor nova, derive via `oklch()` a partir de `--accent` ou da origem do módulo. Lint automático: `php artisan ui:lint` (ratchet mode) + workflow `ui-lint.yml` em CI bloqueia hex/RGB/HSL literal.
 
 ## 10. Apps Vinculados (coluna direita)
 
@@ -188,16 +220,32 @@ Padrão muda por ADR, nunca por commit solto.
 
 ## 15. Checklist mínimo antes de PR
 
+**Checklist canônico completo:** [`memory/requisitos/_DesignSystem/PRE-MERGE-UI.md`](memory/requisitos/_DesignSystem/PRE-MERGE-UI.md) (6 camadas + anti-padrões AP1-AP8). Roda mental ~3min antes de PR.
+
+Quick-check resumido:
+
 - [ ] Tela vive dentro de `AppShellV2`
-- [ ] Tokens CSS do shell (sem cor hardcoded)
+- [ ] Tokens CSS do shell (sem cor hardcoded) — AP1
 - [ ] Coluna direita "Apps Vinculados" entregue se houver contexto vinculado
 - [ ] Atalhos J/K/E/A ativos se for master/detail
 - [ ] Estado persistido em `localStorage` com prefixo `oimpresso.`
-- [ ] Componentes shared reusados antes de criar novo
-- [ ] PT-BR em todo label/copy/comentário
+- [ ] Componentes shared reusados antes de criar novo — AP2
+- [ ] PT-BR em todo label/copy/comentário — AP8
 - [ ] Se inbox de módulo → `TaskProvider` em vez de tela nova
 - [ ] Session log atualizado em `memory/sessions/`
 - [ ] ADR nova se quebrou padrão
+- [ ] Charter `.charter.md` ao lado do `.tsx` se MWART migração (skill `charter-first`)
+
+### Gates automáticos em CI
+
+| Workflow | O que bloqueia |
+|---|---|
+| `ui-lint.yml` (Onda 2.1) | Hex/RGB/HSL crua, FontAwesome, emoji em UI (ratchet vs baseline) |
+| `visual-regression.yml` ([ADR 0108](memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)) | Diff de screenshots Pest 4 Browser > threshold (atualmente INFRA-ONLY, ver [US-INFRA-012](memory/requisitos/Infra/SPEC.md)) |
+| `pr-ui-judge.yml` (Onda 4.1) | Claude Sonnet 4.5 avalia PR contra Constituição UI v2 — score 0-100 + 9 dimensões + sugestões cirúrgicas (~$3/mês a 100 PRs) |
+| `mwart-gate.yml` | `<tela>-visual-comparison.md` obrigatório se Page Inertia nova (ADR 0107 §F1.5) |
+| `charter-gate.yml` | `.charter.md` obrigatório ao lado de `.tsx` em paths MWART |
+| `module-grades-gate.yml` ([ADR 0155](memory/decisions/0155-rubrica-module-grade-v3.md)) | Regressão de nota módulo vs baseline |
 
 ---
 
@@ -332,5 +380,6 @@ Tests automatizados:
 
 ---
 
-> **Última atualização:** 2026-05-08 — §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, ProjectMgmt/Board/Index.
-> **Próxima revisão sugerida:** quando próximo módulo (Compras, Repair JobSheet, Despesas) migrar pra V2.
+> **Última atualização:** 2026-05-25 — patch §2/§7/§9/§15 refletindo evolução pós-2026-05-08: ADR UI-0013 Constituição UI v2 (4 camadas — mãe atual em §7) · ADR 0190 primary roxo universal 295 (§9) · ADR 0114 prototipo-ui/PROTOCOL.md loop formalizado (§2) · ADR 0180/0182/0189 PageHeader canon v3 (§7) · pr-ui-judge.yml ligado (§15 gates CI) · PRE-MERGE-UI.md link canônico (§15). Fecha US-_DESIGNSYSTEM-001 (era redundante — este arquivo já existia).
+> **2026-05-08:** §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, ProjectMgmt/Board/Index.
+> **Próxima revisão sugerida:** quando US-_DESIGNSYSTEM-002 (`/dev/components` Inertia) e US-INFRA-012 (visual-regression strict mode) fecharem.
