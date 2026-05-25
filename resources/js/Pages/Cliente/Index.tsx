@@ -959,7 +959,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         </div>
 
         <Deferred data="customers" fallback={<TableSkeleton />}>
-          <div className="rounded-lg border border-border bg-background overflow-hidden">
+          {/* canon v3.6 (Wagner 2026-05-25): tabela FLAT — `rounded-lg` removido pra
+              parar com aparencia de card. Lista usa borders retas igual /sells. */}
+          <div className="border border-border bg-background overflow-hidden">
             <div className="overflow-x-auto">
               {/* Wave G — Tabela turbinada (paridade Cowork blueprint score 9,4/10).
                   Colunas: Avatar HSL · Cliente+sub · Tipo · Documento · Cidade/UF ·
@@ -1264,11 +1266,14 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        // canon v3.6 (Wagner 2026-05-25): FILTRO INATIVO ghost/flat — `border-transparent
+        // bg-transparent` (zero peso visual, herda fundo cream do toolbar). FILTRO ATIVO
+        // mantido como antes — border-blue + bg-blue + text-blue (estado claro de selecionado).
         className={
           'inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
           (hasSel
             ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
-            : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground')
+            : 'border-transparent bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground')
         }
         aria-haspopup="listbox"
         aria-expanded={open}
