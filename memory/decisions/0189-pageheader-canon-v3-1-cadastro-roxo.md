@@ -14,7 +14,8 @@ tags: [design-system, page-header, ui-canon, modern-saas, kpi-strip, overflow-me
 supersedes: []
 supersedes_partially: [0180, 0182]
 superseded_by: []
-related: [0094, 0104, 0114, 0180, 0182, 0185, 0187]
+amended_by: [0190]
+related: [0094, 0104, 0114, 0180, 0182, 0185, 0187, 0190]
 pii: false
 review_triggers:
   - Larissa biz=4 testar a v3.1 em prod e dar feedback negativo
@@ -23,6 +24,12 @@ review_triggers:
 ---
 
 # ADR 0189 — PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo médio cadastro
+
+> **AMENDED 2026-05-25 por [ADR 0190](0190-primary-button-roxo-universal-295.md):**
+> Esta ADR introduziu primary roxo médio `oklch(0.55 0.15 295)` **só no escopo Cadastro**.
+> ADR 0190 generalizou — roxo 295 vira PRIMARY UNIVERSAL pra TODOS os módulos. Hue per grupo
+> (SIDEBAR_GROUP_HUE) continua existindo APENAS pra agrupamento visual no sidebar (não mais pro
+> primary das telas).
 
 ## Contexto
 

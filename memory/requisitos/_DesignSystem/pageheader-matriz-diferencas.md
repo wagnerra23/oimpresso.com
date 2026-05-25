@@ -1,8 +1,20 @@
 # PageHeader Canon — Matriz de Diferenças Técnicas e Pontos Permitidos
 
-> Referência canônica de **o que DEVE ser igual** e **o que PODE variar** entre telas que adotam o pattern do header `os-page-h` da ADR 0180/0182. Use esta matriz como checklist de revisão de PR e fonte da skill `pageheader-canon`.
+> Referência canônica de **o que DEVE ser igual** e **o que PODE variar** entre telas que adotam o pattern do header `os-page-h` (ADR 0180/0182/**0189**/**0190**). Use esta matriz como checklist de revisão de PR e fonte da skill `pageheader-canon`.
 
 **Origem:** Wagner 2026-05-21 review smoke prod das 12 telas Financeiro → pediu matriz + skill pra padronização escalável.
+
+> ⚠️ **RECONCILIADA 2026-05-25 — 2 supersedes parciais:**
+> - [ADR 0189](../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) — canon v3.1 (3 blocos fechados separados, modern saas, font system, density compact 32px, tabs abreviadas)
+> - [ADR 0190](../../decisions/0190-primary-button-roxo-universal-295.md) — primary INTERNO universal roxo 295 (não mais hue per grupo). Hue per grupo APENAS pra agrupamento visual sidebar.
+>
+> Mudanças nas dimensões fixas (vs versão original):
+> - **F1** layout flat 3 zonas → **3 BLOCOS fechados separados** (header card + KPI strip + tabela) gap 12px (ADR 0189)
+> - **F7** hue per grupo reescrito pra refletir `cockpit/shared.ts SIDEBAR_GROUP_HUE` real (11 hues atuais)
+> - **F8** primary cor era "hue do grupo" → **SEMPRE roxo 295 universal** (ADR 0190)
+> - **F13** font-family NOVO — sempre forçar inline `ui-sans-serif` (AP16 LEARNINGS)
+> - **F14** overflow `⋮` NOVO — sempre ghost puro `border-0` (AP17)
+> - **F15** sidebar single-link NOVO — sub-views vão pra tabs do header, NÃO popup do sidebar (AP19)
 
 ---
 
@@ -10,18 +22,22 @@
 
 | # | Dimensão | Valor canon | Source of truth |
 |---|---|---|---|
-| F1 | Estrutura 3 zonas | L (`os-page-h-l` título+sub) · C (`os-page-h-r` ghosts+overflow) · R (`os-page-h-r` primary) | [ADR 0182](../../decisions/0182-pageheadertabs-canon-pattern-telas.md) |
-| F2 | Componente ghost tabs | `<{Modulo}SubNav active="X" hidePrimary extraOverflowItems={[]}/>` | Wrapper por módulo em `_shared/` |
-| F3 | ARIA tablist | `role="tablist"` + cada ghost `role="tab"` + `aria-selected` | `PageHeaderTabs.tsx` |
-| F4 | Keyboard nav | ArrowLeft/Right/Home/End wrap-around | `PageHeaderTabs.tsx` |
-| F5 | Overflow `⋯ Mais` | `DropdownMenu` shadcn quando ghosts > maxVisible OU extraOverflowItems > 0 | `PageHeaderTabs.tsx` |
-| F6 | Ghost ativo **sempre visível** | Auto-promoção pra index < maxVisible mesmo se declarado depois | `PageHeaderTabs.tsx` (ADR 0182 patch 2026-05-21) |
-| F7 | Hue OKLCH per-grupo | financas=145 · vender=60 · operar=350 · pessoas=295 · sistema=200 · ia=220 · atendimento=30 · equipe=270 | `cockpit/shared.ts SIDEBAR_GROUP_HUE` |
-| F8 | Primary cor | `oklch(0.55 0.15 {hue_grupo})` — verde 145 pra Financeiro | `FinanceiroPrimaryButton.tsx` ou inline style canon |
-| F9 | Labels CURTOS | 1-2 palavras (verbo ou substantivo único) — não "Contas a X" | DataController `data['ghosts']['label']` |
-| F10 | Tipografia título h1 | `text-xl md:text-2xl font-semibold tracking-tight` | [ADR 0110](../../decisions/0110-tipografia-canon-h1-subtitle.md) |
+| F1 | Estrutura **3 BLOCOS fechados separados** (ADR 0189 v3.1) | **BLOCO 1** Header card (`bg-background border rounded-lg` + Zona L/C/R inline) · **BLOCO 2** KPI strip card · **BLOCO 3** Lista card · gap 12px entre eles via `space-y-3` | [ADR 0189](../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) |
+| F2 | Componente ghost tabs inline | `<nav aria-label="Sub-navegação">` com `<a aria-current="page">` + counter pill via `<span>` | inline no Index.tsx (ainda sem wrapper React shared) |
+| F3 | ARIA real (nav navegação) | `<nav aria-label="...">` + `aria-current="page"` na tab ativa — NÃO `role="tablist"` (esse exige tabpanel) | Index.tsx |
+| F4 | Keyboard nav | ArrowLeft/Right/Home/End wrap-around (Wave 2 — pendente) | futuro `<PageHeader>` componente |
+| F5 | Overflow `⋮` (Zona R) | Radix DropdownMenu — 3 seções canon: FILTROS · DADOS · CONFIGURAÇÃO | ADR 0189 §4.6 |
+| F6 | Ghost ativo **sempre visível** | Reordenar SLOT_TABS pra tipo mais usado no topo após "Todos" | ADR 0189 §4.3 |
+| F7 | Hue OKLCH per-grupo (**APENAS sidebar — ADR 0190**) | Espelha `cockpit/shared.ts SIDEBAR_GROUP_HUE` real (11 hues): `cadastro=202 · vender/comercial=55 · producao=8 · fiscal=175 · financas=145 · pessoas=88 · estoque=315 · sistema=245 · ia=215 · atendimento=30 · equipe=275` | `cockpit/shared.ts` (source of truth) |
+| F8 | **Primary cor UNIVERSAL** (ADR 0190) | **`bg: oklch(0.55 0.15 295)` · `border: oklch(0.45 0.15 295)` · `color: oklch(0.99 0 0)`** — roxo médio universal, independente do grupo do módulo | [ADR 0190](../../decisions/0190-primary-button-roxo-universal-295.md) |
+| F9 | Labels CURTOS abreviados | Nomes ≥9 chars abreviar com ponto (`Fornec.`, `Repr.`) OU sinônimo completo curto (`Equipe` em vez de `Funcionários`) + `title="{nome completo}"` sempre | ADR 0189 §4.3 |
+| F10 | Tipografia título h1 | `text-base font-semibold tracking-tight` (16px / 600 / -0.011em) density compact ADR 0189 — substitui `text-xl md:text-2xl` legacy | [ADR 0189](../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) |
 | F11 | Multi-tenant Tier 0 | `shell.menu` filtra por `business_id`; SubNav retorna null se módulo desinstalado | [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) |
 | F12 | Botões duplicados-com-ghost | **proibido** — botão que navega pra outra tela que já é ghost = remover | ADR 0182 |
+| **F13** | **Font-family forçada inline (AP16)** | SEMPRE `style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif' }}` no `<header>` canon. Nunca herdar IBM Plex de AppShellV2 | LEARNINGS sessão 2026-05-25 AP16 |
+| **F14** | **Overflow `⋮` ghost puro (AP17)** | SEMPRE `variant="ghost"` + `className="border-0"` (caso shadcn ghost ainda aplicar border). NUNCA `variant="outline"` | LEARNINGS AP17 |
+| **F15** | **Sidebar single-link (AP19)** | Item sidebar = `'href' => '/destino'` direto. Sub-views (filtros por tipo/status) vão pra tabs do PageHeader Zona C — NUNCA popup-menu dropdown do sidebar | LEARNINGS AP19 + [ADR 0180](../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md) |
+| **F16** | **Counter de tab via backend** (AP18) | `tab_counts` vem do Controller via `Inertia::defer`. NUNCA `rows.filter()` no frontend sobre dados server-side filtered | LEARNINGS AP18 |
 
 ---
 

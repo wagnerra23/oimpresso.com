@@ -178,6 +178,33 @@ protótipo mas QUEBRARAM em prod por ignorância de contexto.
 5. Resolver counter das tabs via Controller (server-side counts) ou KPI strip já existente
 6. Substituir KpiStripClickable por 4-cards-strip canon v3.1 (ou adaptar)
 
+### Decisão canon #1 — Primary universal roxo 295 (ADR 0190 · supersede parcial 0182/0189)
+
+**Contexto:**
+Audit de conflito de memória 2026-05-25 revelou 4 fontes divergentes sobre hue per grupo
+(código `shared.ts`, skill `pageheader-canon`, matriz `pageheader-matriz-diferencas.md`, ADR 0182/0189).
+Wagner esclareceu de forma definitiva:
+
+> *"deixe os grupos como estão, internos são 295 roxo médio"*
+
+**Regra canon:**
+- **Hue per grupo (SIDEBAR_GROUP_HUE)** continua existindo APENAS pra agrupamento visual no sidebar
+  (header de grupo, ícones, dot indicator decorativo). 11 hues atuais permanecem inalterados no código.
+- **Primary INTERNO das telas** = SEMPRE `oklch(0.55 0.15 295)` roxo médio universal —
+  independente do grupo do módulo (Financeiro/Cadastro/Vendas/Produção/etc).
+- Componentes legacy hue-per-grupo (`FinanceiroPrimaryButton` 145, `JanaPrimaryButton` 215,
+  `PontoPrimaryButton` 88) ficam DEPRECATED — migrar pra roxo universal.
+
+**Por que é importante:**
+- Reconcilia 4 fontes conflitantes em 1 regra única
+- Pattern Linear/Notion/Vercel/Stripe: sidebar varia, primary CTA = única cor
+- Identidade visual diferenciada vs concorrentes BR (Bling/Tiny/Omie azul)
+- Manutenção: 1 token CSS canon em vez de 11 wrappers
+
+**Sintoma de detecção pra próximo agente:**
+Se encontrar código `style={{ backgroundColor: 'oklch(0.55 0.15 ' + hueDoGrupo + ')' }}` ou similar
+no primary button, é pattern PRÉ-ADR-0190. Migrar pra `oklch(0.55 0.15 295)` hard-coded.
+
 ### Anti-padrão #19 — Sidebar com popup-menu (dropdown sub-items)
 
 **O que aconteceu:**
