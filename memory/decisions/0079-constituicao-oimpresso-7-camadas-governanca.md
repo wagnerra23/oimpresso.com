@@ -1,13 +1,13 @@
 ---
 slug: 0079-constituicao-oimpresso-7-camadas-governanca
-number: 0079
+number: 79
 title: "Constituição do Oimpresso ERP — 10 artigos supremos sobre 7 camadas de governança"
 type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 superseded_at: 2026-05-06
 superseded_by_adr: '0094'
 module: governance

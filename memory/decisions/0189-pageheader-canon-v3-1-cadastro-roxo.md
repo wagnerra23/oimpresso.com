@@ -1,21 +1,21 @@
 ---
 slug: 0189-pageheader-canon-v3-1-cadastro-roxo
-number: 0189
+number: 189
 title: "PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo médio cadastro"
 type: adr
 status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-24
+decided_at: "2026-05-24"
 module: _DesignSystem
 quarter: 2026-Q2
 tags: [design-system, page-header, ui-canon, modern-saas, kpi-strip, overflow-menu]
 supersedes: []
-supersedes_partially: [0180, 0182]
+supersedes_partially: ["0180-drift-numero-adr-0178-conflito-paralelo", "0182-pageheadertabs-canon-pattern-telas"]
 superseded_by: []
 amended_by: [0190]
-related: [0094, 0104, 0114, 0180, 0182, 0185, 0187, 0190]
+related: ["0094-constituicao-v2-7-camadas-8-principios", "0104-processo-mwart-canonico-unico-caminho", "0114-prototipo-ui-cowork-loop-formalizado", "0180-drift-numero-adr-0178-conflito-paralelo", "0182-pageheadertabs-canon-pattern-telas", "0185-drawer-760-canon-entidades-cadastrais", "0187-constituicao-ui-v2-ponteiro-canon", "0190-primary-button-roxo-universal-295"]
 pii: false
 review_triggers:
   - Larissa biz=4 testar a v3.1 em prod e dar feedback negativo

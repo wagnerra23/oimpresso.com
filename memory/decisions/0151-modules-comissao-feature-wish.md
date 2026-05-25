@@ -3,11 +3,11 @@ slug: 0151-modules-comissao-feature-wish
 number: 151
 title: "Modules/Comissao como feature-wish — aguarda cliente que reporta dor real"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
 lifecycle: feature_wish
 decided_by: [W]
-decided_at: 2026-05-15
+decided_at: "2026-05-15"
 module: Comissao
 quarter: 2026-Q4
 tags: [arquitetura, modular, cross-vertical, comissao, feature-wish, sinal-qualificado, adr-0105]
@@ -15,7 +15,7 @@ supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0105, 0121, 0093, 0094, 0125, 0143, 0106]
+related: ["0105-cliente-como-sinal-guiar-sem-mandar", "0121-oimpresso-modular-especializado-por-vertical", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0125-modules-autopecas-feature-wish", "0143-fsm-pipeline-live-prod-marco-2026-05-12", "0106-recalibracao-velocidade-fator-10x-ia-pair"]
 pii: false
 review_triggers:
   - "Larissa (ROTA LIVRE biz=4) reportar que planilha paralela de comissão Eliana[E] está custando >1h/mês OU pedir explicitamente automação"

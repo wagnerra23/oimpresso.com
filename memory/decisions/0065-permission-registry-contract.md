@@ -1,20 +1,20 @@
 ---
 slug: 0065-permission-registry-contract
-number: 0065
+number: 65
 title: "Permission Registry — contrato declarativo de permissions per-módulo"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-04
+decided_at: "2026-05-04"
 module: null
 quarter: 2026-Q2
 tags: [permission, iam, governance, modularização, superadmin, registry, auto-discovery]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0064, 0027, 0053]
+related: ["0064-modularizacao-split-teammcp-kb-superadmin360", "0027-gestao-memoria-roles-claros", "0053-mcp-server-governanca-como-produto"]
 pii: false
 review_triggers:
   - "Quando um módulo precisar permissions com lifecycle (expira, supersede) → adicionar campos status/expires_at no contrato"

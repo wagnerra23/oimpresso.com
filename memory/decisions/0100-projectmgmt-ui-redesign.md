@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-07
+decided_at: "2026-05-07"
 module: governance
 quarter: 2026-Q2
 tags: [projectmgmt, ui, redesign, capterra-driven, jira-like, linear-style]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0058, 0070, 0079, 0080, 0086, 0089, 0093, 0094, 0099]
+related: ["0058-reverb-substituido-por-centrifugo-frankenphp", "0070-jira-style-task-management-current-md-removed", "0079-constituicao-oimpresso-7-camadas-governanca", "0080-trust-tiers-operacional-audit-findings", "0086-fase-5-mvp-governance-actiongate-warn", "0089-capterra-driven-module-evolution", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0099-project-legacy-discovery-pre-deletion"]
 pii: false
 review_triggers: ["Após Fase 1 mergeada (drag-drop + Cmd+K) reavaliar Fase 2 com base em uso real do time", "Se time não adotar Cmd+K em 14d, reconsiderar prioridade Fase 1"]
 ---

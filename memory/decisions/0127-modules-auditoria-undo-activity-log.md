@@ -1,8 +1,8 @@
 ---
-adr: 0127
+number: 127
 title: Modules/Auditoria — UI rica + undo sobre activity_log existente
-status: accepted
-date: 2026-05-10
+status: aceito
+date: "2026-05-10"
 deciders: [Wagner]
 supersedes: []
 references:

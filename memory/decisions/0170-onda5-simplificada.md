@@ -3,8 +3,8 @@ adr: 0170-onda5-simplificada
 title: "PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via 6º gateway adicional"
 status: aceito
 decided_by: [W]
-date: 2026-05-19
-related: [0017, 0093, 0094, 0105, 0170]
+date: "2026-05-19"
+related: ["0017-officeimpresso-restaurado-superadmin-exclusivo", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0105-cliente-como-sinal-guiar-sem-mandar", "0170-onda5-simplificada"]
 supersedes: []
 amends: [0170]
 tipo: amendment

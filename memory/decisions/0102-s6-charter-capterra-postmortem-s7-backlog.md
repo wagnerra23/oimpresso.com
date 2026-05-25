@@ -7,13 +7,13 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: 2026-Q2
-decided_at: 2026-05-08
+decided_at: "2026-05-08"
 decided_by: [W]
-accepted_at: 2026-05-08
-accepted_by: wagner
+accepted_at: "2026-05-08"
+decided_by: [W]
 module: governance
 tier: CANON
-related_adrs: [0089, 0094, 0095, 0101]
+related_adrs: ["0089-capterra-driven-module-evolution", "0094-constituicao-v2-7-camadas-8-principios", "0095-skills-tiers-convencao-interna", "0101-sistema-charter-capterra-governanca-escopo"]
 parent_charter: mission.charter-system
 authors: [wagner, opus]
 ---

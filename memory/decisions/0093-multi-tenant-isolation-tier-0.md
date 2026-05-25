@@ -7,21 +7,21 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 decided_by: [W]
 module: governance
 tier: CANON
 trust_level: tier-0-irrevogavel
 last_reviewed: 2026-05-06
 review_due: 2027-05-06
-related_adrs: [0006, 0053, 0057, 0059, 0066, 0070, 0072, 0073, 0074, 0076, 0078, 0084, 0089]
+related_adrs: ["0006-multi-tenancy-logica", "0053-mcp-server-governanca-como-produto", "0057-tela-team-admin-regras-governanca-tokens-mcp", "0059-governanca-memoria-estilo-anthropic-team", "0066-format-date-shift-3h-preservado-legacy-clientes", "0070-jira-style-task-management-current-md-removed", "0072-maturacao-memoria-team-mcp-openclaw-soa-2026", "0073-team-mcp-skills-policies-entidades-governadas", "0074-temporal-validity-bi-temporal-time-travel", "0076-skills-db-primary-git-destino-drift-alert", "0078-constituicao-uma-frase-skill-unidade-evolucao", "0084-triggers-mysql-imutabilidade-mcp-audit-log", "0089-capterra-driven-module-evolution"]
 parent_charter: mission.constituicao-v2  # criada em S3
 supersedes: []
 referenced_by: []
 authors: [wagner, sonnet]
 draft_origin: ROTEIRO-MESTRE.md §12 (rascunho 2026-05-06)
-accepted_at: 2026-05-06
-accepted_by: wagner
+accepted_at: "2026-05-06"
+decided_by: [W]
 ---
 
 # ADR 0093 — Multi-tenant isolation by default (Tier 0, IRREVOGÁVEL)

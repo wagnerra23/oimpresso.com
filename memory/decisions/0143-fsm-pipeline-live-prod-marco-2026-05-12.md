@@ -3,18 +3,18 @@ slug: 0143-fsm-pipeline-live-prod-marco-2026-05-12
 number: 143
 title: "FSM Pipeline Canônico LIVE em prod biz=1 — marco 2026-05-12 (40+ PRs em ~10h)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: canon
 decided_by: [W]
-decided_at: 2026-05-12
+decided_at: "2026-05-12"
 module: Sells
 tags: [marco, fsm, pipeline-canon, live-prod, sells, repair, nfse, refund, lgpd, paralelizacao-agents, audit-trail, multi-tenant]
 supersedes: []
 supersedes_partially: []
 amends: [0129]
 superseded_by: []
-related: [0129, 0093, 0094, 0104, 0107, 0136, 0117, 0093, 0094, 0106]
+related: ["0129-state-machine-canonica-fsm-rbac", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0104-processo-mwart-canonico-unico-caminho", "0107-emendation-0104-visual-comparison-gate-f3", "0136-sells-grade-avancada-modo-toggle", "0117-multiplos-numeros-whatsapp-por-business", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0106-recalibracao-velocidade-fator-10x-ia-pair"]
 pii: false
 review_triggers:
   - "Próximo cliente além de WR2/ROTA LIVRE ativar o pipeline FSM completo — revisar mapping status legacy → stage"

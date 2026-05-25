@@ -3,18 +3,18 @@ slug: 0132-langfuse-self-host-ct100
 number: 132
 title: "Langfuse self-host CT 100 — observabilidade GenAI canônica oimpresso"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: canon
 decided_by: [W]
-decided_at: 2026-05-10
+decided_at: "2026-05-10"
 module: Infra
 tags: [infra, observabilidade, otel, langfuse, ct100, proxmox, jana, custo-genai]
 supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0035, 0051, 0053, 0058, 0062, 0067, 0094]
+related: ["0035-stack-ai-canonica-wagner-2026-04-26", "0051-schema-proprio-adapter-otel-genai", "0053-mcp-server-governanca-como-produto", "0058-reverb-substituido-por-centrifugo-frankenphp", "0062-separacao-runtime-hostinger-ct100", "0067-sprint8-mcp-memory-document-searchable-retrieval", "0094-constituicao-v2-7-camadas-8-principios"]
 pii: false
 review_triggers:
   - "Langfuse OSS v4 sair com breaking change → reavaliar self-host vs Cloud paid"

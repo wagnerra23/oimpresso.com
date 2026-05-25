@@ -1,6 +1,6 @@
 ---
 title: "Sessão maratona 2026-05-14 — F3 Fluxo + Jana amendment V2 + fix routes + F3 Boletos"
-date: 2026-05-14
+date: "2026-05-14"
 slug: 2026-05-14-1130-saga-maratona-fluxo-jana-routes-boletos
 type: handoff
 session_start: 2026-05-14 06:21 (extração Oimpresso-handoff.zip Claude Design)

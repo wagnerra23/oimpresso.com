@@ -1,5 +1,5 @@
 ---
-date: 2026-05-20
+date: "2026-05-20"
 time: "20:00"
 slug: fiscal-waves-5-9-mergeadas-score-102
 authors: [wagner, claude]

@@ -3,11 +3,11 @@ slug: 0175-fix-observer-conta-bancaria-opcional
 number: 175
 title: "Fix arquitetural — Observer Financeiro permite baixa sem fin_contas_bancarias (remove guard no-op)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-20
+decided_at: "2026-05-20"
 module: financeiro
 quarter: 2026-Q2
 tags: [financeiro, observer, fix-arquitetural, debito-tecnico, multi-tenant]

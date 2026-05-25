@@ -7,12 +7,12 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-15
+decided_at: "2026-05-15"
 quarter: 2026-Q2
 module: design-system
 tags: [mwart, cowork, design-system, pattern-reuse, governance, wave-massiva]
 supersedes: []
-related: [0104, 0114, 0107, 0109]
+related: ["0104-processo-mwart-canonico-unico-caminho", "0114-prototipo-ui-cowork-loop-formalizado", "0107-emendation-0104-visual-comparison-gate-f3", "0109-claude-design-plugin-integrado-processo-mwart"]
 amended-by: []
 ---
 

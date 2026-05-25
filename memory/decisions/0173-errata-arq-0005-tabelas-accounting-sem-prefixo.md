@@ -1,10 +1,10 @@
 ---
-adr: 0173
+number: 173
 title: "Errata ARQ-0005 — tabelas Accounting usam nomes nus (não prefixo `accounting_*`)"
-status: accepted
-date: 2026-05-20
-accepted_at: 2026-05-20
-accepted_by: wagner
+status: aceito
+date: "2026-05-20"
+accepted_at: "2026-05-20"
+decided_by: [W]
 authors: [wagner]
 errata_de:
   - memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md

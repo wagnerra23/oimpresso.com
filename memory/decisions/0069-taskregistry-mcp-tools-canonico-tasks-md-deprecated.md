@@ -7,12 +7,12 @@ status: superseded
 authority: canonical
 lifecycle: substituido
 quarter: Q2-2026
-decided_at: 2026-05-04
+decided_at: "2026-05-04"
 decided_by: [W]
 module: governance
 supersedes: []
-superseded_by: [0070]
-related: [0027, 0053, 0064, 0070]
+superseded_by: ["0070-jira-style-task-management-current-md-removed"]
+related: ["0027-gestao-memoria-roles-claros", "0053-mcp-server-governanca-como-produto", "0064-modularizacao-split-teammcp-kb-superadmin360", "0070-jira-style-task-management-current-md-removed"]
 tags: [governance, tasks, mcp, taskregistry, policy]
 ---
 

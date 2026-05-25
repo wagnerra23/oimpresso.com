@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-11
+decided_at: "2026-05-11"
 module: copiloto
 tags: [produto-comercial, saas, ia, vizra, jana, atendimento, pricing, go-to-market, monetizacao]
 supersedes: []
 supersedes_partially: []
 amends: [0022]
 superseded_by: []
-related: [0035, 0048, 0053, 0093, 0094, 0096, 0105, 0135]
+related: ["0035-stack-ai-canonica-wagner-2026-04-26", "0048-framework-agentes-laravel-ai-vizra-rejeitada", "0053-mcp-server-governanca-como-produto", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0096-modulo-whatsapp-meta-cloud-api-direto", "0105-cliente-como-sinal-guiar-sem-mandar", "0135-omnichannel-inbox-arquitetura"]
 pii: false
 review_triggers:
   - "<5 clientes pagantes em 90d pós-GA → reavaliar pricing/posicionamento"

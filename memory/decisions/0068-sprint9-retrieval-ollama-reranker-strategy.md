@@ -7,12 +7,12 @@ status: rascunho
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-04
+decided_at: "2026-05-04"
 decided_by: [W]
 module: copiloto
 supersedes: []
 superseded_by: []
-related: [0067, 0037, 0053, 0036]
+related: ["0067-sprint8-mcp-memory-document-searchable-retrieval", "0037-roadmap-evolucao-tier-7-plus", "0053-mcp-server-governanca-como-produto", "0036-replanejamento-meilisearch-first"]
 tags: [retrieval, meilisearch, ollama, reranker, ragas, eval, copiloto]
 ---
 

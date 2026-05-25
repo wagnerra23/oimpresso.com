@@ -1,22 +1,22 @@
 ---
 slug: 0155-module-grade-v3-sub-dimensoes-gate-ci
-number: 0155
+number: 155
 title: "module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability) + reweight + gate CI anti-regressão"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
-accepted_at: 2026-05-16
+decided_at: "2026-05-16"
+accepted_at: "2026-05-16"
 review_at: 2026-05-23
 module: Governance
 quarter: 2026-Q2
 tags: [governance, qualidade, audit, dashboard, dim-9-pesos-100-normalizado, gate-ci, anti-regressao, performance, lgpd, security, observability]
 supersedes: []
-supersedes_partially: [0153, 0154]
+supersedes_partially: ["0153-module-grade-rubrica-v1", "0154-module-grade-v2-na-justificado"]
 superseded_by: []
-related: [0093, 0094, 0101, 0105, 0143, 0153, 0154]
+related: ["0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0101-sistema-charter-capterra-governanca-escopo", "0105-cliente-como-sinal-guiar-sem-mandar", "0143-fsm-pipeline-live-prod-marco-2026-05-12", "0153-module-grade-rubrica-v1", "0154-module-grade-v2-na-justificado"]
 pii: false
 review_triggers:
   - Quando média projeto bater 90+ (sinal v3 saturou — precisa v4 com financial/ROI dims)

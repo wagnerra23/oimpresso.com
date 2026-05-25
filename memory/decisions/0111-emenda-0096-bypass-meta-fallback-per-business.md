@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-08
-accepted_at: 2026-05-08
-accepted_by: wagner
+decided_at: "2026-05-08"
+accepted_at: "2026-05-08"
+decided_by: [W]
 module: whatsapp
 quarter: 2026-Q2
 tier: CANON
 tags: [whatsapp, zapi, gating-tier-0, bypass-piloto, smoke, biz-1]
-related_adrs: [0094, 0096, 0093]
+related_adrs: ["0094-constituicao-v2-7-camadas-8-principios", "0096-modulo-whatsapp-meta-cloud-api-direto", "0093-multi-tenant-isolation-tier-0"]
 parent_charter: null
 parent_adr: 0096
 supersedes: []

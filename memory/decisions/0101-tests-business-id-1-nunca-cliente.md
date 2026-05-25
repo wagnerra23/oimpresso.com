@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-07
+decided_at: "2026-05-07"
 module: governance
 quarter: 2026-Q2
 tags: [multi-tenant, tests, governance, security, lgpd, biz-isolation]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0070, 0093, 0094]
+related: ["0070-jira-style-task-management-current-md-removed", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios"]
 pii: false
 review_triggers: ["Se aparecer 3+ falsos-positivos do BusinessIdGuardTest em PRs legítimos, revisar regex patterns", "Se chegar dev novo sem onboarding, validar que skill `multi-tenant-patterns` cobre regra"]
 ---

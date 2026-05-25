@@ -2,12 +2,12 @@
 id: 0125
 slug: mcp-jira-projects-modulos-verticais
 title: Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no MCP
-status: proposed
-date: 2026-05-10
+status: proposto
+date: "2026-05-10"
 deciders: [wagner]
 supersedes: []
 superseded_by: []
-related: [0070, 0094, 0105, 0121]
+related: ["0070-jira-style-task-management-current-md-removed", "0094-constituicao-v2-7-camadas-8-principios", "0105-cliente-como-sinal-guiar-sem-mandar", "0121-oimpresso-modular-especializado-por-vertical"]
 lifecycle: canon
 ---
 

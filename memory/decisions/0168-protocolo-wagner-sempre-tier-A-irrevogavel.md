@@ -1,20 +1,20 @@
 ---
 slug: 0168-protocolo-wagner-sempre-tier-A-irrevogavel
-number: 0168
+number: 168
 title: "PROTOCOLO WAGNER SEMPRE — 10 regras canon Tier A always-on (Constituição v2 emenda)"
 type: adr
 status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 module: null
 quarter: 2026-Q2
 tags: [governance, constituicao, skills-tier-A, wagner-protocol, automation]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0094, 0095, 0061, 0093, 0101, 0104, 0106, 0114, 0143, 0167]
+related: ["0094-constituicao-v2-7-camadas-8-principios", "0095-skills-tiers-convencao-interna", "0061-conhecimento-canonico-git-mcp-zero-automem", "0093-multi-tenant-isolation-tier-0", "0101-sistema-charter-capterra-governanca-escopo", "0104-processo-mwart-canonico-unico-caminho", "0106-recalibracao-velocidade-fator-10x-ia-pair", "0114-prototipo-ui-cowork-loop-formalizado", "0143-fsm-pipeline-live-prod-marco-2026-05-12", "0167-errata-0130-indice-handoff-historico-longo"]
 pii: false
 review_triggers:
   - "Wagner pergunta 'o que eu sempre solicito?' em 2+ sessões diferentes"

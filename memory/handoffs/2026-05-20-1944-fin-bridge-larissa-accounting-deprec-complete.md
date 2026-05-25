@@ -1,7 +1,7 @@
 ---
 slug: 2026-05-20-1944-fin-bridge-larissa-accounting-deprec-complete
 title: "Handoff sessão tarde — Accounting deprec Ondas 0-5 + Larissa biz=4 bridge recovery R$ 12k→R$ 418k + canon"
-date: 2026-05-20
+date: "2026-05-20"
 hour_utc: 19:44
 owner: claude
 session_id: frosty-greider-83ab2f

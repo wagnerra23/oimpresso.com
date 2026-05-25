@@ -7,14 +7,14 @@ status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-09
+decided_at: "2026-05-09"
 module: null
 quarter: 2026-Q2
 tags: [knowledge-management, ddd, bounded-context, anticorruption-layer, legacy-migration, multi-tenant]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0061, 0070, 0093, 0094, 0113]
+related: ["0061-conhecimento-canonico-git-mcp-zero-automem", "0070-jira-style-task-management-current-md-removed", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0113-integracao-delphi-laravel-ads-3-caminhos"]
 pii: false
 review_triggers:
   - "terceira integração externa surgir (atualmente: Delphi WR Comercial; previstas: Bling/Tiny/Asaas APIs)"

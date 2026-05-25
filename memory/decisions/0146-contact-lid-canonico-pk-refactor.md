@@ -7,7 +7,7 @@ status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-15
+decided_at: "2026-05-15"
 module: whatsapp
 quarter: 2026-Q2
 tags: [whatsapp, identity, lid, refactor, feature-wish]

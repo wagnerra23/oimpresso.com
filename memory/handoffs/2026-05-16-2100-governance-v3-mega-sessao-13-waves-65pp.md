@@ -2,11 +2,11 @@
 slug: 2026-05-16-2100-governance-v3-mega-sessao-13-waves-65pp
 title: "Governance v3 mega-sessão completa — 13 Waves · ~85 agents · 12 PRs · média 49→65.9pp"
 type: handoff
-date: 2026-05-16
+date: "2026-05-16"
 time: "21:00"
 participants: [W, claude]
 related_prs: [973, 974, 975, 976, 977, 978, 979, 980, 981, 982]
-related_adrs: [0155, 0156, 0157, 0158, 0093, 0094, 0130]
+related_adrs: ["0155-module-grade-v3-sub-dimensoes-gate-ci", "0156-module-grade-v3-errata-otel-helper-na-justified", "0157-module-grade-v3-d2-detection-hardening", "0158-module-grade-v3-d1-heuristica-hardening", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0130-handoff-append-only-mcp-first"]
 pii: false
 ---
 

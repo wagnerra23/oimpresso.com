@@ -10,18 +10,18 @@ renumbered_reason: "Conflito de numeração — PR #308 (ADRs 0115-Gold + 0116-G
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-09
-accepted_at: 2026-05-09
-accepted_by: wagner
+decided_at: "2026-05-09"
+accepted_at: "2026-05-09"
+decided_by: [W]
 module: whatsapp
 quarter: 2026-Q2
 tier: CANON
 tags: [whatsapp, multi-numeros, driver-per-phone, multi-tenant, schema-change, sprint-4]
-related_adrs: [0093, 0094, 0096, 0105, 0111]
+related_adrs: ["0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0096-modulo-whatsapp-meta-cloud-api-direto", "0105-cliente-como-sinal-guiar-sem-mandar", "0111-emenda-0096-bypass-meta-fallback-per-business"]
 parent_charter: resources/js/Pages/Whatsapp/Settings.charter.md
 parent_adr: 0096
 supersedes: []
-supersedes_partially: [0096]
+supersedes_partially: ["0096-modulo-whatsapp-meta-cloud-api-direto"]
 superseded_by: []
 authors: [wagner, opus-4.7]
 pii: false

@@ -7,18 +7,18 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 decided_by: [W]
 module: governance
 tier: CANON
 trust_level: tier-0-irrevogavel
-related_adrs: [0035, 0040, 0053, 0061, 0062, 0070, 0079, 0091, 0093, 0095]
+related_adrs: ["0035-stack-ai-canonica-wagner-2026-04-26", "0040-policy-publicacao-claude-supervisiona", "0053-mcp-server-governanca-como-produto", "0061-conhecimento-canonico-git-mcp-zero-automem", "0062-separacao-runtime-hostinger-ct100", "0070-jira-style-task-management-current-md-removed", "0079-constituicao-oimpresso-7-camadas-governanca", "0091-daily-brief", "0093-multi-tenant-isolation-tier-0", "0095-skills-tiers-convencao-interna"]
 parent_charter: mission.constituicao-v2
-supersedes: [0078, 0079]
+supersedes: ["0078-constituicao-uma-frase-skill-unidade-evolucao", "0079-constituicao-oimpresso-7-camadas-governanca"]
 referenced_by: []
 authors: [wagner, sonnet]
-accepted_at: 2026-05-06
-accepted_by: wagner
+accepted_at: "2026-05-06"
+decided_by: [W]
 ---
 
 # ADR 0094 — Constituição v2 Oimpresso (mãe das 7 camadas)

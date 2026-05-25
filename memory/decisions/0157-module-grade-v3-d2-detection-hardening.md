@@ -1,22 +1,22 @@
 ---
 slug: 0157-module-grade-v3-d2-detection-hardening
-number: 0157
+number: 157
 title: "module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas Pest)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
-accepted_at: 2026-05-16
+decided_at: "2026-05-16"
+accepted_at: "2026-05-16"
 review_at: 2026-05-23
 module: Governance
 quarter: 2026-Q2
 tags: [governance, rubrica, d2-pest-coverage, hardening, anti-gaming]
 supersedes: []
-supersedes_partially: [0155]
+supersedes_partially: ["0155-module-grade-v3-sub-dimensoes-gate-ci"]
 superseded_by: []
-related: [0155, 0156, 0154, 0153, 0094, 0070, 0093, 0101]
+related: ["0155-module-grade-v3-sub-dimensoes-gate-ci", "0156-module-grade-v3-errata-otel-helper-na-justified", "0154-module-grade-v2-na-justificado", "0153-module-grade-rubrica-v1", "0094-constituicao-v2-7-camadas-8-principios", "0070-jira-style-task-management-current-md-removed", "0093-multi-tenant-isolation-tier-0", "0101-sistema-charter-capterra-governanca-escopo"]
 pii: false
 review_triggers:
   - Se >5 módulos baixarem nota >5 pts após adoção (sinal que baseline estava ENTUPIDO de inflação)

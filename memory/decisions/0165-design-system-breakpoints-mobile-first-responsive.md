@@ -1,13 +1,13 @@
 ---
 slug: 0165-design-system-breakpoints-mobile-first-responsive
-number: 0165
+number: 165
 title: "Design System — breakpoints canon + regra mobile-first em todas as Pages Inertia"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 accepted_at: null
 review_at: 2026-11-17
 module: Governance
@@ -16,7 +16,7 @@ tags: [design-system, responsive, mobile-first, breakpoints, tailwind, charter, 
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0104, 0107, 0110, 0114, 0094, 0093, 0066]
+related: ["0104-processo-mwart-canonico-unico-caminho", "0107-emendation-0104-visual-comparison-gate-f3", "0110-cockpit-pattern-v2-canon-list-detail", "0114-prototipo-ui-cowork-loop-formalizado", "0094-constituicao-v2-7-camadas-8-principios", "0093-multi-tenant-isolation-tier-0", "0066-format-date-shift-3h-preservado-legacy-clientes"]
 pii: false
 review_triggers:
   - Quando ≥5 telas falharem viewport smoke 2x consecutivo → revisar breakpoints canon (sinal que escolha está mal calibrada vs parque real)

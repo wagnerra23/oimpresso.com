@@ -1,5 +1,5 @@
 ---
-date: 2026-05-19
+date: "2026-05-19"
 time: '18:05'
 slug: f3-paymentgateway-ui-completa-prod
 authors: [W, CL]

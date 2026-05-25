@@ -1,6 +1,6 @@
 ---
 title: Handoff 2026-05-11 — Sells Grade Avançada + Modules/OficinaAuto qualificada + 5 agents paralelos
-date: 2026-05-11
+date: "2026-05-11"
 cycle: CYCLE-05 (D1 — primeiro dia)
 sessao_owner: Wagner [W] + Claude (IA-pair)
 duracao: ~6h wallclock (com paralelização agents)

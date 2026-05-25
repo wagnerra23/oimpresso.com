@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-20
+decided_at: "2026-05-20"
 module: null
 quarter: 2026-Q2
 tags: [oficina-auto, piloto, ativacao, martinho-cacambas, cliente-sinal, add-on-faturavel, migracao-faseada]
@@ -15,7 +15,7 @@ supersedes: []
 supersedes_partially: []
 amends: [0137]
 superseded_by: []
-related: [0105, 0137, 0143, 0094, 0121, 0106, 0119]
+related: ["0105-cliente-como-sinal-guiar-sem-mandar", "0137-modules-oficinaauto-qualificada", "0143-fsm-pipeline-live-prod-marco-2026-05-12", "0094-constituicao-v2-7-camadas-8-principios", "0121-oimpresso-modular-especializado-por-vertical", "0106-recalibracao-velocidade-fator-10x-ia-pair", "0119-migration-factory-capacidade-institucional"]
 pii: false
 review_triggers:
   - "Martinho Caçambas churn antes de 90d pós-ativação (sinal de modelo faseado mal calibrado)"

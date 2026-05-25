@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-11
+decided_at: "2026-05-11"
 module: copiloto
 tags: [governance, mcp, tasks, spec, drift, prevention]
 supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0053, 0070, 0093, 0094]
+related: ["0053-mcp-server-governanca-como-produto", "0070-jira-style-task-management-current-md-removed", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios"]
 pii: false
 review_triggers:
   - "Detectado ≥1 drift duro em jana:health-check spec_id_drift por ≥3 dias consecutivos → reavaliar política (auto-renumerar? bloquear push?)"

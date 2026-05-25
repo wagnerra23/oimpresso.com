@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-11
+decided_at: "2026-05-11"
 module: sells
 tags: [migration, ux, legacy, officeimpresso, comunicacao-visual, grid, power-user, ADR-0105-cliente-sinal, ADR-0121-modular-vertical]
 supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0094, 0104, 0105, 0107, 0121]
+related: ["0094-constituicao-v2-7-camadas-8-principios", "0104-processo-mwart-canonico-unico-caminho", "0105-cliente-como-sinal-guiar-sem-mandar", "0107-emendation-0104-visual-comparison-gate-f3", "0121-oimpresso-modular-especializado-por-vertical"]
 pii: false
 review_triggers:
   - "≥3 clientes OfficeImpresso migrados reclamarem da Lista padrão → acelerar US Grade Avançada"

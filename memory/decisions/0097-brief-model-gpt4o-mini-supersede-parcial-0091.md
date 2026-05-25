@@ -7,18 +7,18 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-07
+decided_at: "2026-05-07"
 decided_by: [W]
 module: governance
 tier: CANON
-related_adrs: [0091, 0036, 0094]
+related_adrs: ["0091-daily-brief", "0036-replanejamento-meilisearch-first", "0094-constituicao-v2-7-camadas-8-principios"]
 parent_charter: mission.constituicao-v2
 parent_adr: 0091
 supersedes: []
 referenced_by: []
 authors: [wagner, opus]
-accepted_at: 2026-05-07
-accepted_by: wagner
+accepted_at: "2026-05-07"
+decided_by: [W]
 ---
 
 # ADR 0097 — BRIEF generator usa gpt-4o-mini (supersede parcial ADR 0091)

@@ -2,11 +2,11 @@
 slug: 2026-05-17-0700-governance-v4-final-ondas-19-28
 title: "Governance v4 final · 10 Ondas W19-W28 · 25 PRs · ~100 agents · média 78+ · 4/4 buckets meta atingida"
 type: handoff
-date: 2026-05-17
+date: "2026-05-17"
 time: "07:00"
 participants: [W, claude]
 related_prs: [973, 974, 975, 976, 977, 978, 979, 980, 981, 982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 993, 994, 995, 996, 997, 998, 999]
-related_adrs: [0155, 0156, 0157, 0158, 0159, 0160, 0161, 0162, 0163, 0094, 0105, 0130]
+related_adrs: ["0155-module-grade-v3-sub-dimensoes-gate-ci", "0156-module-grade-v3-errata-otel-helper-na-justified", "0157-module-grade-v3-d2-detection-hardening", "0158-module-grade-v3-d1-heuristica-hardening", "0159-module-grade-v3-errata-meta-97-realismo", "0160-governance-v4-scoped-scorecards-buckets", "0161-governance-v4-aposentar-hacks-0159-redundantes", "0162-otel-collector-prod-observability", "0163-governance-v4-metas-alcancadas-ondas-19-28", "0094-constituicao-v2-7-camadas-8-principios", "0105-cliente-como-sinal-guiar-sem-mandar", "0130-handoff-append-only-mcp-first"]
 pii: false
 ---
 

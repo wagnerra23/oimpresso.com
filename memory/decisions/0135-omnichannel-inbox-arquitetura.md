@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-11
+decided_at: "2026-05-11"
 module: whatsapp
 tags: [omnichannel, inbox, channel, driver-pattern, atendimento, whatsapp, instagram, messenger, email, mercadolivre]
 supersedes: []
 supersedes_partially: []
 amends: [0096, 0117]
 superseded_by: []
-related: [0093, 0094, 0096, 0105, 0117]
+related: ["0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0096-modulo-whatsapp-meta-cloud-api-direto", "0105-cliente-como-sinal-guiar-sem-mandar", "0117-multiplos-numeros-whatsapp-por-business"]
 pii: false
 review_triggers:
   - "≥1 cliente pagante reportar necessidade de Mercado Livre ou Email inbox → ativar Fase 2/3"

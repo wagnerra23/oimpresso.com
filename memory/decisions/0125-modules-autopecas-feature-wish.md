@@ -3,11 +3,11 @@ slug: 0125-modules-autopecas-feature-wish
 number: 125
 title: "Modules/Autopecas como feature-wish — Vargas é sinal qualificado"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
 lifecycle: feature_wish
 decided_by: [W]
-decided_at: 2026-05-10
+decided_at: "2026-05-10"
 module: Autopecas
 quarter: 2026-Q4
 tags: [arquitetura, modular, multi-vertical, autopecas, vargas, feature-wish, sinal-qualificado]
@@ -15,7 +15,7 @@ supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0121, 0105, 0103, 0119, 0011, 0094, 0093, 0106]
+related: ["0121-oimpresso-modular-especializado-por-vertical", "0105-cliente-como-sinal-guiar-sem-mandar", "0103-eventos-fiscais-separados-por-modelo", "0119-migration-factory-capacidade-institucional", "0011-alinhamento-padrao-jana", "0094-constituicao-v2-7-camadas-8-principios", "0093-multi-tenant-isolation-tier-0", "0106-recalibracao-velocidade-fator-10x-ia-pair"]
 pii: false
 review_triggers:
   - "Vargas assinar contrato Enterprise pioneer (R$ 1.499/m grandfathered) → mover pra ADR de ativação `em_construcao`"

@@ -2,11 +2,11 @@
 slug: 2026-05-16-1640-governance-v3-completion-3prs-abertos
 title: "Governance module-grade v3 completion — Wave 2-3-4-5 · 3 PRs abertos"
 type: handoff
-date: 2026-05-16
+date: "2026-05-16"
 time: "16:40"
 participants: [W, claude]
 related_prs: [973, 974, 975, 976]
-related_adrs: [0155, 0156, 0154, 0153, 0094]
+related_adrs: ["0155-module-grade-v3-sub-dimensoes-gate-ci", "0156-module-grade-v3-errata-otel-helper-na-justified", "0154-module-grade-v2-na-justificado", "0153-module-grade-rubrica-v1", "0094-constituicao-v2-7-camadas-8-principios"]
 pii: false
 ---
 

@@ -1,10 +1,10 @@
 ---
-adr: 0172
+number: 172
 title: "Deprecar Modules/Accounting e consolidar contabilidade operacional no Modules/Financeiro"
-status: accepted
-date: 2026-05-20
-accepted_at: 2026-05-20
-accepted_by: wagner
+status: aceito
+date: "2026-05-20"
+accepted_at: "2026-05-20"
+decided_by: [W]
 authors: [wagner]
 supersedes:
   - memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md

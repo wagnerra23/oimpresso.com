@@ -1,8 +1,8 @@
 ---
-adr: 0123
+number: 123
 title: Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui)
-status: proposed
-date: 2026-05-09
+status: proposto
+date: "2026-05-09"
 deciders: [Wagner]
 supersedes: []
 references:

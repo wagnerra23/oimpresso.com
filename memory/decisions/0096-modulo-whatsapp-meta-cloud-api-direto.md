@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-07
-accepted_at: 2026-05-07
-accepted_by: wagner
+decided_at: "2026-05-07"
+accepted_at: "2026-05-07"
+decided_by: [W]
 module: whatsapp
 quarter: 2026-Q2
 tier: CANON
 tags: [whatsapp, integracao, meta, zapi, baileys, multi-tenant, modulo-novo, evolution-proibido, custom-driver-sprint-3]
-related_adrs: [0011, 0024, 0035, 0048, 0058, 0062, 0093, 0094]
+related_adrs: ["0011-alinhamento-padrao-jana", "0024-instalacao-1-clique-modulos", "0035-stack-ai-canonica-wagner-2026-04-26", "0048-framework-agentes-laravel-ai-vizra-rejeitada", "0058-reverb-substituido-por-centrifugo-frankenphp", "0062-separacao-runtime-hostinger-ct100", "0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios"]
 parent_charter: null
 parent_adr: 0094
 supersedes: []

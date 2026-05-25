@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-11
+decided_at: "2026-05-11"
 module: infra
 tags: [skill, mwart, blade, react, inertia, migracao, cowork, escala-massiva]
 supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0093, 0094, 0095, 0104, 0106, 0107, 0109, 0114]
+related: ["0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0095-skills-tiers-convencao-interna", "0104-processo-mwart-canonico-unico-caminho", "0106-recalibracao-velocidade-fator-10x-ia-pair", "0107-emendation-0104-visual-comparison-gate-f3", "0109-claude-design-plugin-integrado-processo-mwart", "0114-prototipo-ui-cowork-loop-formalizado"]
 pii: false
 review_triggers:
   - "Pós-piloto Crm/Compras (16 views) — paridade real <95% medida em smoke biz=4 → reabrir STEP 1 snapshot"

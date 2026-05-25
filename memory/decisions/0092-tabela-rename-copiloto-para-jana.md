@@ -6,12 +6,12 @@ type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 decided_by: [W]
 module: copiloto
 quarter: 2026-Q2
 supersedes: ["0088#db"]
-related: ["0084", "0087", "0088"]
+related: ["0084-triggers-mysql-imutabilidade-mcp-audit-log", "0087-drift-resolution-sem-mover-url", "0088-module-rename-php-only"]
 authors: [wagner, claude]
 ---
 

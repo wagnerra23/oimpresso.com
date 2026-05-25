@@ -7,12 +7,12 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 decided_by: [W]
 module: governance
 supersedes: []
 superseded_by: []
-related: [0035, 0040, 0048, 0053, 0061, 0070]
+related: ["0035-stack-ai-canonica-wagner-2026-04-26", "0040-policy-publicacao-claude-supervisiona", "0048-framework-agentes-laravel-ai-vizra-rejeitada", "0053-mcp-server-governanca-como-produto", "0061-conhecimento-canonico-git-mcp-zero-automem", "0070-jira-style-task-management-current-md-removed"]
 tags: [governance, mcp, daily-brief, context-engineering, constituicao-v2, l7]
 ---
 

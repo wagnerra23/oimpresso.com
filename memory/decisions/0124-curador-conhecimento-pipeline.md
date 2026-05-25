@@ -1,8 +1,8 @@
 ---
-adr: 0124
+number: 124
 title: Curador — pipeline canônico de ingestão de conhecimento (computador → empresa → MCP)
-status: proposed
-date: 2026-05-09
+status: proposto
+date: "2026-05-09"
 deciders: [Wagner]
 supersedes: []
 references:

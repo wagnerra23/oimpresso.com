@@ -7,18 +7,18 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 decided_by: [W]
 module: governance
 tier: CANON
-related_adrs: [0094, 0091, 0093]
+related_adrs: ["0094-constituicao-v2-7-camadas-8-principios", "0091-daily-brief", "0093-multi-tenant-isolation-tier-0"]
 parent_charter: mission.constituicao-v2
 parent_adr: 0094
 supersedes: []
 referenced_by: []
 authors: [wagner, sonnet]
-accepted_at: 2026-05-06
-accepted_by: wagner
+accepted_at: "2026-05-06"
+decided_by: [W]
 ---
 
 # ADR 0095 — Skills Tier A/B/C (convenção interna)
