@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_components/atoms';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import FunnelStrip from './_components/FunnelStrip';
 import DrawerCobranca from './_components/DrawerCobranca';
@@ -177,43 +178,33 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
 
   return (
     <div className="fin-cowork h-full bg-stone-50 flex flex-col font-sans pg-shell-scope">
-      {/* BLOCO 1 — Header card canon v3.2 (LEARNINGS Decisao #4 · 2026-05-25)
-          rounded-t-lg + pt-6 px-6 pb-3.5 + h1 22/700 espelha Vendas canon Cowork.
-          Substitui header Cowork legacy (os-page-h fin-page-h) por canon Tailwind.
-          FinanceiroSubNav + FinanceiroPrimaryButton mantidos como wrappers legacy
-          até Wave 2 refactor pra <PageHeaderPrimary> universal (ADR 0190). */}
+      {/* BLOCO 1 — Header canon v3.8 via <PageHeader> componente compartilhado.
+          Wave 2 (2026-05-25): refactor pra usar `<PageHeader>` de @/Components/PageHeader.
+          Antes era inline JSX duplicado · agora 1 componente serve 13+ telas Financeiro.
+          FinanceiroSubNav + FinanceiroPrimaryButton mantidos (Wave 3 vai unificar). */}
       <div className="fin-curadoria vendas-aplus">
-        <header
-          className="bg-background border border-border rounded-t-lg overflow-visible"
-          role="banner"
+        <PageHeader
+          title="Cobrança"
+          suffix=" · Boletos e PIX"
+          subtitle={<>{kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways</>}
         >
-          <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-snug">
-                Cobrança<span className="font-semibold text-muted-foreground"> · Boletos e PIX</span>
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-                {kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways
-              </p>
-            </div>
-            <div className="flex-shrink-0 flex items-center gap-1.5">
-              {/* ADR 0180 Fase 5 — SubNav com 12 ghosts Financeiro + extraOverflow contextual */}
-              <FinanceiroSubNav
-                active="cobranca"
-                hidePrimary
-                extraOverflowItems={[
-                  { key: 'resumir',  label: 'Resumir mês',     icon: <span>✦</span>,         onClick: () => setAiOpen(true),                            title: 'Resumir cobranças deste mês — IA' },
-                  { key: 'gateways', label: 'Gateways',        icon: <Settings size={13} />, onClick: () => router.visit('/settings/payment-gateways'), title: 'Configurar gateways' },
-                  { key: 'remessa',  label: 'Remessa/Retorno', icon: <Upload size={13} />,   onClick: () => setRemessaOpen(true) },
-                ]}
-              />
-              {/* FinanceiroPrimaryButton ja eh shim DEPRECATED -> roxo 295 universal (ADR 0190 + PR #1462) */}
-              <FinanceiroPrimaryButton onClick={() => setNovaOpen(true)}>
-                Nova cobrança
-              </FinanceiroPrimaryButton>
-            </div>
+          {/* Children = Zona R custom: SubNav 12 ghosts + extraOverflow + Primary */}
+          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+            <FinanceiroSubNav
+              active="cobranca"
+              hidePrimary
+              extraOverflowItems={[
+                { key: 'resumir',  label: 'Resumir mês',     icon: <span>✦</span>,         onClick: () => setAiOpen(true),                            title: 'Resumir cobranças deste mês — IA' },
+                { key: 'gateways', label: 'Gateways',        icon: <Settings size={13} />, onClick: () => router.visit('/settings/payment-gateways'), title: 'Configurar gateways' },
+                { key: 'remessa',  label: 'Remessa/Retorno', icon: <Upload size={13} />,   onClick: () => setRemessaOpen(true) },
+              ]}
+            />
+            {/* FinanceiroPrimaryButton ja eh shim DEPRECATED -> roxo 295 universal (ADR 0190 + PR #1462) */}
+            <FinanceiroPrimaryButton onClick={() => setNovaOpen(true)}>
+              Nova cobrança
+            </FinanceiroPrimaryButton>
           </div>
-        </header>
+        </PageHeader>
       </div>
 
       {/* FUNIL */}
