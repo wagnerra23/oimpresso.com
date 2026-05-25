@@ -202,9 +202,14 @@ export function KpiStripClickable({
             aria-pressed={on}
             className={
               'group flex items-center gap-3 p-3 rounded-md border text-left transition-all ' +
-              (on ? 'shadow-sm' : 'bg-card border-border hover:border-muted-foreground hover:shadow-sm')
+              (on ? 'shadow-sm' : 'bg-card hover:shadow-sm')
             }
-            style={on ? { borderColor: tone.border, backgroundColor: tone.bgActive } : undefined}
+            // canon v3.4 polish (Wagner 2026-05-25): border warm `oklch(0.9 0.004 90)`
+            // (cream-deeper · familia hue 90) substitui `border-border` cool slate-200.
+            // Espelha /sells `.os-kpi` exato. Afinidade visual com fundo cream.
+            style={on
+              ? { borderColor: tone.border, backgroundColor: tone.bgActive }
+              : { borderColor: 'oklch(0.9 0.004 90)' }}
           >
             <div
               className="h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0"
