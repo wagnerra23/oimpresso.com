@@ -694,6 +694,161 @@ class SellController extends Controller
     }
 
     /**
+     * Onda 6 (ADR 0192 A1 KB-9.75) — Caixa do dia Inertia em rota nova /vendas/caixa.
+     *
+     * Coexiste com legacy /cash-register/* Blade (decisão Wagner 2026-05-25 ~15h —
+     * pattern Cliente Wave A-G drawer 760 · rollback trivial).
+     *
+     * Retorna props pré-agregadas pelo controller (defesa Tier 0 — sem query no frontend):
+     *  - porFormaPagamento: array [{ key, label, icon, clearing, count, total }]
+     *  - porOrigem: array [{ source, label, count, total, refs:[{id,invoice_no,os_ref}] }]
+     *  - caixaAberto: bool
+     *  - cashRegisterId: int|null (pra link "Fechar caixa" navegar legacy)
+     *  - totalDia: float
+     *  - countDia: int
+     *  - dateSelected: 'Y-m-d' (default hoje)
+     *
+     * Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL: where('business_id', $business_id)
+     * explícito em todo Eloquent (defesa em profundidade além do global scope).
+     *
+     * Permission gate: direct_sell.view (paridade Sells/Index · Caixa é leitura).
+     */
+    public function inertiaCaixa(\Illuminate\Http\Request $request)
+    {
+        // Gate canonical UPOS (paridade Sells/Index — Caixa é leitura).
+        if (! auth()->user()->can('direct_sell.view') &&
+            ! auth()->user()->can('view_own_sell_only') &&
+            ! auth()->user()->can('view_commission_agent_sell')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) $request->session()->get('user.business_id');
+
+        // Date selected — default hoje (timezone biz session já aplicado por middleware).
+        $dateInput = (string) $request->input('date', '');
+        $date = \Carbon::createFromFormat('Y-m-d', $dateInput ?: now()->format('Y-m-d'));
+        $dayStart = (clone $date)->startOfDay();
+        $dayEnd = (clone $date)->endOfDay();
+
+        // Base query Transactions vendas final do dia (Tier 0 multi-tenant).
+        $base = \App\Transaction::where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final')
+            ->whereNull('transactions.sub_type')
+            ->whereBetween('transactions.transaction_date', [$dayStart, $dayEnd]);
+
+        // Total/count dia.
+        $totalDia = (float) (clone $base)->sum('transactions.final_total');
+        $countDia = (int) (clone $base)->count();
+
+        // ── Por forma de pagamento ─────────────────────────────────────────────
+        // Agrega via transaction_payments (canonical UPOS — pay_method por linha).
+        $payMethodLabels = [
+            'cash' => ['label' => 'Dinheiro', 'icon' => 'cash', 'clearing' => 'imediato'],
+            'card' => ['label' => 'Cartão', 'icon' => 'card', 'clearing' => 'D+1'],
+            'cheque' => ['label' => 'Cheque', 'icon' => 'cheque', 'clearing' => 'compensação'],
+            'bank_transfer' => ['label' => 'Transferência', 'icon' => 'transfer', 'clearing' => 'D+0'],
+            'other' => ['label' => 'Outro', 'icon' => 'other', 'clearing' => '—'],
+            'advance' => ['label' => 'Adiantamento', 'icon' => 'advance', 'clearing' => '—'],
+        ];
+
+        $payRows = \DB::table('transaction_payments as tp')
+            ->join('transactions as t', 't.id', '=', 'tp.transaction_id')
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'sell')
+            ->where('t.status', 'final')
+            ->whereNull('t.sub_type')
+            ->whereBetween('t.transaction_date', [$dayStart, $dayEnd])
+            ->where('tp.is_return', 0)
+            ->selectRaw('tp.method as method, COUNT(DISTINCT tp.transaction_id) as cnt, SUM(tp.amount) as tot')
+            ->groupBy('tp.method')
+            ->get();
+
+        $porFormaPagamento = $payRows->map(function ($r) use ($payMethodLabels) {
+            $key = (string) $r->method;
+            $meta = $payMethodLabels[$key] ?? ['label' => ucfirst(str_replace('_', ' ', $key)), 'icon' => 'other', 'clearing' => '—'];
+
+            return [
+                'key' => $key,
+                'label' => $meta['label'],
+                'icon' => $meta['icon'],
+                'clearing' => $meta['clearing'],
+                'count' => (int) $r->cnt,
+                'total' => (float) $r->tot,
+            ];
+        })->values()->all();
+
+        // ── Por origem (A1 KB-9.75 · ADR 0192) ─────────────────────────────────
+        // Agrupa por transactions.source (default 'balcao' retroativo · migration default).
+        $sourceLabels = [
+            'balcao' => 'Balcão',
+            'oficina' => 'Oficina',
+            'online' => 'Online',
+        ];
+
+        $sourceRows = (clone $base)
+            ->select(
+                \DB::raw("COALESCE(transactions.source, 'balcao') as source"),
+                \DB::raw('COUNT(*) as cnt'),
+                \DB::raw('SUM(transactions.final_total) as tot')
+            )
+            ->groupBy(\DB::raw("COALESCE(transactions.source, 'balcao')"))
+            ->get();
+
+        // Refs por source (id + invoice_no + os_ref) — limit 10 por source pro payload leve.
+        $refsBySource = (clone $base)
+            ->select(
+                'transactions.id',
+                'transactions.invoice_no',
+                'transactions.os_ref',
+                \DB::raw("COALESCE(transactions.source, 'balcao') as source")
+            )
+            ->whereNotNull('transactions.os_ref')
+            ->orderBy('transactions.id', 'desc')
+            ->limit(50)
+            ->get()
+            ->groupBy('source')
+            ->map(fn ($g) => $g->take(10)->map(fn ($r) => [
+                'id' => (int) $r->id,
+                'invoice_no' => (string) $r->invoice_no,
+                'os_ref' => (string) $r->os_ref,
+            ])->values()->all());
+
+        $porOrigem = $sourceRows->map(function ($r) use ($sourceLabels, $refsBySource) {
+            $source = (string) $r->source;
+
+            return [
+                'source' => $source,
+                'label' => $sourceLabels[$source] ?? ucfirst($source),
+                'count' => (int) $r->cnt,
+                'total' => (float) $r->tot,
+                'refs' => $refsBySource->get($source, []),
+            ];
+        })->values()->all();
+
+        // ── Caixa aberto (UPOS canonical) ──────────────────────────────────────
+        $openCashRegister = \App\CashRegister::where('business_id', $business_id)
+            ->where('user_id', auth()->user()->id)
+            ->where('status', 'open')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        return \Inertia\Inertia::render('Sells/Caixa/Index', [
+            'porFormaPagamento' => $porFormaPagamento,
+            'porOrigem' => $porOrigem,
+            'totalDia' => $totalDia,
+            'countDia' => $countDia,
+            'caixaAberto' => $openCashRegister !== null,
+            'cashRegisterId' => $openCashRegister?->id,
+            'dateSelected' => $date->format('Y-m-d'),
+            'permissions' => [
+                'view' => true, // Já passou o gate acima
+                'close' => auth()->user()->can('close_cash_register'),
+            ],
+        ]);
+    }
+
+    /**
      * US-SELL-COWORK-R5-POLISH — agregados pra cards Cowork da Sells/Index.
      *
      * Retorna:
