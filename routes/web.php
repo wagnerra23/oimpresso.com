@@ -330,6 +330,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-SELL-008 — Sells/Index.tsx Inertia endpoints (lista JSON + drawer detail).
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
+    // Onda 6 (ADR 0192 A1 KB-9.75) — Caixa do dia Inertia em rota nova.
+    // COEXISTE com /cash-register/* Blade legacy (decisão Wagner 2026-05-25 ~15h).
+    // Permission gate dentro do controller (direct_sell.view + variants).
+    Route::get('/vendas/caixa', [SellController::class, 'inertiaCaixa'])->name('vendas.caixa');
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
     // Onda 4d.5 — Wire-up emissão real via PaymentGatewayContract::emitirX().
     // Chip "Emitir cobrança" no footer drawer Sells (ADR 0144 + 0170).
