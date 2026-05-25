@@ -728,6 +728,49 @@ class UnificadoController extends Controller
         ]);
     }
 
+    /**
+     * GET /financeiro/unificado/buscar-cliente
+     *
+     * PR J (2026-05-25) US-FIN-024 — Combobox cliente autocomplete.
+     * Busca contacts (clientes + fornecedores) por nome, supplier_business_name,
+     * mobile, email ou contact_id (CPF/CNPJ).
+     *
+     * Multi-tenant Tier 0: scope business_id obrigatório.
+     */
+    public function buscarCliente(Request $request): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $q = trim($request->string('q', '')->toString());
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['contacts' => []]);
+        }
+
+        $like = "%{$q}%";
+        $contacts = \App\Contact::where('business_id', $businessId)
+            ->where(function ($w) use ($like) {
+                $w->where('name', 'like', $like)
+                  ->orWhere('supplier_business_name', 'like', $like)
+                  ->orWhere('mobile', 'like', $like)
+                  ->orWhere('email', 'like', $like)
+                  ->orWhere('contact_id', 'like', $like);
+            })
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'supplier_business_name', 'mobile', 'type', 'contact_id'])
+            ->map(fn ($c) => [
+                'id'    => $c->id,
+                'name'  => $c->name,
+                'biz'   => $c->supplier_business_name,
+                'mobile' => $c->mobile,
+                'type'  => $c->type,
+                'doc'   => $c->contact_id,
+            ]);
+
+        return response()->json(['contacts' => $contacts]);
+    }
+
     // ─────────── Helpers privados ───────────
 
     /**
