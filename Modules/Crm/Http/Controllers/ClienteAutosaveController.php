@@ -88,6 +88,79 @@ class ClienteAutosaveController extends Controller
     private const CONTACT_STATUSES = ['active', 'inactive', 'blocked'];
 
     /**
+     * POST /cliente/draft
+     *
+     * Cria um Contact placeholder vazio multi-tenant + retorna o `id` pro
+     * frontend abrir o drawer 760 em modo 'novo cliente'. Pattern Linear/Notion:
+     * usuário NÃO preenche form antes de salvar — drawer abre direto com row
+     * pré-criada, autosave on blur preenche conforme ele digita.
+     *
+     * Substitui o fluxo legacy Blade /contacts/create que tem 2 problemas:
+     *   1. Render de erros Inertia em Blade legacy falha (bug fix #1517 sintoma)
+     *   2. UX descontinua entre criar (form full-page) e editar (drawer 760)
+     *
+     * Body: opcional. Aceita `type` ('customer'|'supplier'|'both') pra
+     * pré-classificar; default 'customer'.
+     *
+     * Response: 201 + {id, success:true}
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id forçado session('user.business_id').
+     * Permission: customer.create OR supplier.create OR ambos (depende do type).
+     * Created_by: session('user.id').
+     *
+     * NÃO chama event `ContactCreatedOrModified` aqui — disparado quando autosave
+     * preenche os primeiros campos significativos (name não vazio).
+     *
+     * @see Modules\Crm\Http\Controllers\ClienteAutosaveController::identificacao
+     * @see resources/js/Pages/Cliente/Index.tsx — botão 'Novo cliente' chama esta rota
+     */
+    public function draft(Request $request): JsonResponse
+    {
+        $type = (string) $request->input('type', 'customer');
+        if (! in_array($type, ['customer', 'supplier', 'both'], true)) {
+            $type = 'customer';
+        }
+
+        // Permission gate matricial — coerente com locateContact().
+        $user = auth()->user();
+        $canCustomer = $user->can('customer.create');
+        $canSupplier = $user->can('supplier.create');
+
+        $allowed = match ($type) {
+            'supplier' => $canSupplier,
+            'customer' => $canCustomer,
+            'both' => ($canCustomer && $canSupplier),
+            default => false,
+        };
+
+        if (! $allowed) {
+            return response()->json(['message' => 'Sem permissao pra criar contato deste tipo'], 403);
+        }
+
+        $businessId = (int) $request->session()->get('user.business_id');
+        if ($businessId <= 0) {
+            return response()->json(['message' => 'Sessao sem business_id'], 403);
+        }
+
+        $userId = (int) $request->session()->get('user.id');
+
+        // Cria placeholder vazio — `name` vazio sinaliza modo 'novo' pro frontend.
+        // contact_status='active' pra aparecer na listagem default + index.
+        $contact = Contact::create([
+            'business_id' => $businessId,
+            'created_by' => $userId,
+            'type' => $type,
+            'name' => '',
+            'contact_status' => 'active',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'id' => (int) $contact->id,
+        ], 201);
+    }
+
+    /**
      * PATCH /cliente/{id}/identificacao
      *
      * Campos permitidos: tipo, name, fantasia, tax_number, ie, rg, nascimento, cargo.
