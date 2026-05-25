@@ -3,10 +3,10 @@ module: OficinaAuto
 status: em-construcao
 cnae_principal: "4520-0/01"
 piloto: Martinho Caçambas (locação) + Vargas Recapagem (manutenção complexa)
-ultima_atualizacao: 2026-05-20
+ultima_atualizacao: 2026-05-25
 nota_capterra: 63 (Bom)
 nota_fsm_screen: 80 (estado-da-arte gaps #1+#2+#3 LIVE 2026-05-20)
-related_adrs: [0137, 0121, 0129, 0143, 0093, 0094, 0101]
+related_adrs: [0137, 0121, 0129, 0143, 0093, 0094, 0101, 0192]
 owner: [W]
 ---
 
@@ -36,6 +36,13 @@ Vertical especializado pra **oficinas mecânicas + locação de equipamentos aut
 - **8 Pages Inertia** (Vehicles + ServiceOrders × Index/Create/Show/Edit) + **Kanban ProducaoOficina** (drag-drop @dnd-kit, placa Mercosul visual)
 - **3 Pest tests Feature** (ServiceOrderCrudTest, VehicleCrudTest, VehicleMultiTenantTest) — biz=1 vs biz=99 (ADR 0101)
 - **9 permissions registradas** + sidebar via DataController
+- **Auto-faturar OS→Venda derivada** (extensão ADR 0192 · Wave Z-2 · 2026-05-25 LIVE prod biz=164 MARTINHO):
+  - `Modules/OficinaAuto/Observers/ServiceOrderObserver.php` hook `updated` quando `status='concluida'`
+  - Cria Transaction `source='oficina'` + `os_ref='SO-{id}'` (prefix SO distingue OficinaAuto vs Repair `OS-{id}`)
+  - Completa 1-1 `service_orders.transaction_id` (FK já existia ADR 0137)
+  - Idempotência defesa-em-profundidade (transaction_id check + os_ref exists + saveQuietly anti-loop)
+  - Cross-link bidirecional `/sells` ↔ `/oficina-auto/producao-oficina` (PR #1531 routing por prefix)
+  - Cálculo `final_total`: locação = `daily_rate × dias_locacao` (accessor `valor_receber`) · manutenção = 0 (Wagner edita manual V0)
 
 ## Gaps conhecidos (P0-P1 ativos)
 
