@@ -1532,9 +1532,16 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
             onPaySuccess={() => setRefetchToken((t) => t + 1)}
             onPickOs={(osRef) => {
-              // Cross-módulo Onda 3: clique no link OS-NNNN da pill VdSource navega pro
-              // Repair/ProducaoOficina (Worker B Onda 5 vai abrir drawer da OS direto).
-              window.location.href = `/repair/producao-oficina?os=${encodeURIComponent(osRef)}`;
+              // Cross-módulo Onda 3 + extensão ServiceOrderObserver 2026-05-25:
+              // Roteia por prefix do os_ref pra evitar levar SO-NNNN pra Repair
+              // (que só conhece JobSheet · resultaria em kanban vazio).
+              //   OS-{id}  → Modules/Repair/JobSheet         → /repair/producao-oficina
+              //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/producao-oficina
+              const isOficinaAuto = osRef.startsWith('SO-');
+              const targetPath = isOficinaAuto
+                ? '/oficina-auto/producao-oficina'
+                : '/repair/producao-oficina';
+              window.location.href = `${targetPath}?os=${encodeURIComponent(osRef)}`;
             }}
           />
         </div>
