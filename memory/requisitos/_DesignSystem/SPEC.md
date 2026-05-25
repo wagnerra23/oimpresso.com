@@ -1,3 +1,14 @@
+---
+slug: design-system
+title: "Especificação funcional · Design System"
+type: spec
+module: DesignSystem
+status: ativo
+owner: wagner
+version: "1.1"
+last_updated: 2026-05-25
+---
+
 # Especificação funcional · Design System
 
 ## 1. Escopo
@@ -198,3 +209,136 @@ E nunca chaves sem prefixo (colide com outras libs)
 **Por quê**: F5 não pode trocar a UX. Wagner exigiu em 2026-04-26 (ver auto-memória `preference_cache_estado_preservado`).
 
 **Testado em:** chaves `oimpresso.cockpit.{sidebar.tab,chat.tab,linked.collapsed,conv,tweaks.{vibe,density,accentHue,open}}` + `oimpresso.linked.{os,client,fin,att,hist}.collapsed`.
+
+---
+
+## User stories
+
+### US-_DESIGNSYSTEM-001 · DESIGN.md root TOC executivo apontando pros docs canon
+
+> owner: wagner · priority: p1 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Dev humano novo (Felipe/Maiara/Eliana/Luiz) e agente Claude novo caem no repo e não acham o design system fragmentado em `memory/requisitos/_DesignSystem/` + ADRs UI. Falta 1 página executiva no root pra bater o olho em 60s.
+
+Origem: conversa Wagner 2026-05-25 — Claude do chat (claude.ai) propôs "DESIGN.md canônico" sem saber que oimpresso já tem Constituição UI v2 + PRE-MERGE-UI + prototipo-ui/PROTOCOL.md. Validamos que gap real é só o TOC root.
+
+## Acceptance Criteria
+
+- [ ] Criar `/DESIGN.md` no root do repo (≤200 linhas)
+- [ ] TOC apontando pros docs canon existentes:
+  - Constituição UI v2 (ADR UI-0013) — 4 camadas Fundações→Shell→PT→Módulo
+  - PT-01 Lista (`memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md`)
+  - PRE-MERGE-UI (`memory/requisitos/_DesignSystem/PRE-MERGE-UI.md`) — checklist 6 camadas + AP1-AP8
+  - `prototipo-ui/PROTOCOL.md` — loop Cowork ↔ Claude Code 7 fases
+  - Tokens (`resources/css/cockpit.css`, `inertia.css`, primary roxo 295 ADR 0190)
+  - Componentes shared (`resources/js/Components/shared/` + `Components/ui/` shadcn)
+  - PageHeader canon (ADR 0180/0182/0189/0190)
+  - Workflows visuais (visual-regression.yml, ui-lint.yml, pr-ui-judge.yml, mwart-gate.yml)
+- [ ] Seção "Onde começar" por persona (dev novo · agente Claude novo · Wagner)
+- [ ] Link no `README.md` raiz pra `DESIGN.md`
+- [ ] CHANGELOG `_DesignSystem` apendado
+
+## Não-objetivos
+
+- ❌ NÃO duplicar conteúdo dos docs canon (só apontar)
+- ❌ NÃO criar regras novas (só consolidar discovery)
+- ❌ NÃO substituir CLAUDE.md (CLAUDE.md = primer pra agente; DESIGN.md = primer pra humano de UI)
+
+---
+
+### US-_DESIGNSYSTEM-002 · Catálogo navegável de componentes (rota Inertia /dev/components)
+
+> owner: wagner · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Inventário hoje: 21 componentes em `Components/shared/` + 20 em `Components/ui/` (shadcn) + dezenas em `Components/{cockpit,clientes,jana,PageHeader,Site,...}/`. Descoberta atual via `grep` no `Components/`. Time MCP (Felipe/Maiara/Eliana/Luiz) reinventa componente porque não acha o shared.
+
+Decisão arquitetural recomendada: **rota Inertia `/dev/components` em vez de Storybook**. Razões:
+- Zero dependency nova (alinhado com skill `oimpresso-stack` — Laravel/Inertia/React monolito)
+- Renderiza com tokens oklch reais (ADR 0190 primary roxo 295) — não simulação
+- Multi-tenant Tier 0 fácil (esconde com `@can('superadmin')`)
+- Funciona com auth/CSRF/etc do app real
+
+Storybook valeria se time crescer pra 10+ devs frontend (não é o caso 2026).
+
+## Acceptance Criteria
+
+- [ ] Rota `GET /dev/components` (gate `@can('superadmin')` ou env=local) — Wagner decide gating
+- [ ] Página Inertia `Pages/Dev/Components/Index.tsx` com sidebar por categoria (shared · ui · cockpit · clientes · jana · ...)
+- [ ] Pra cada componente: nome · path · variants/states visíveis · snippet de uso · link pra `.charter.md` se existir
+- [ ] Filtro busca por nome
+- [ ] Indicador "✅ shared canon" vs "⚠️ módulo-específico" (anti-padrão AP2 PRE-MERGE-UI)
+- [ ] Seed inicial cobre top 10 componentes mais usados (PageHeader, DataTable, EmptyState, StatusBadge, etc — medir via `grep -r import` ranking)
+- [ ] Pest test rota retorna 200 + 403 sem perm
+
+## Não-objetivos
+
+- ❌ NÃO adicionar Storybook como dep (decisão arquitetural)
+- ❌ NÃO documentar TODOS os componentes na v1 (top 10 + estrutura extensível)
+- ❌ NÃO exigir charter pra todo componente (charter é por Page, não Component — ADR 0119)
+
+## Trade-off explícito
+
+Storybook tem ecossistema (addons a11y, viewport, dark mode toggle), mas custo de manutenção MDX/CSF e build extra. Rota Inertia tem custo zero novo mas reinventa addons. Wagner decide se v2 vira Storybook se time crescer.
+
+---
+
+### US-_DESIGNSYSTEM-003 · Decidir e ligar pr-ui-judge.yml (Claude Sonnet 4.5 review automático ~$3/mês)
+
+> owner: wagner · priority: p2 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Workflow `.github/workflows/pr-ui-judge.yml` (Onda 4.1 AUTOMATION-ROADMAP) está PRONTO mas DESLIGADO via kill switch `vars.PR_UI_JUDGE_ENABLED == 'true'`. Avalia PR Inertia/React contra Constituição UI v2 (ADR UI-0013) com Claude Sonnet 4.5, posta comentário inline com:
+
+- Score 0-100
+- 9 dimensões (tipografia · cores · espaçamento · componentes · header/nav · estados · ícones · bordas · responsividade)
+- Violações estruturais (drawer modal sobre modal, slot reinventado, layout violando PT-01)
+- Sugestões cirúrgicas
+
+Custo real validado no YAML:
+- ~$0.034/PR (primeiro do dia)
+- ~$0.005/PR (subsequentes com prompt caching ~85% reuse)
+- ~$3/mês a 100 PRs/mês
+
+Complementa (não substitui) `ui-lint.yml` (sintático grep) com análise semântica que grep não vê.
+
+## Decisão Wagner
+
+Liga ou deixa desligado? Tabela trade-off:
+
+| Liga (✅) | Deixa desligado (❌) |
+|---|---|
+| Review automático em todo PR Inertia | $0 mês |
+| Pega regressões semânticas que `ui-lint` não vê | Wagner mantém revisão manual |
+| Time MCP recebe feedback estruturado sem esperar Wagner | Risco de regressão silenciosa |
+| ~$3/mês a 100 PRs (irrelevante vs custo Brain B Jana) | — |
+| Score 0-100 vira métrica histórica de saúde UI | — |
+
+## Acceptance Criteria (se Wagner aprovar)
+
+- [ ] Confirmar `ANTHROPIC_API_KEY` já existe em GitHub Secrets (provavelmente sim)
+- [ ] `gh variable set PR_UI_JUDGE_ENABLED --body true --repo wagnerra/oimpresso` (ou via UI Settings → Variables)
+- [ ] Abrir 1 PR teste pequeno em `resources/js/Pages/` pra validar funcionamento (comentário deve aparecer em 5min)
+- [ ] Monitorar primeiros 5 PRs — verificar custo real bate com estimado ($0.034 → $0.005)
+- [ ] Apendar evento ADR UI-0013 ou ADR de governança UI com data de ativação + métricas iniciais
+- [ ] Se score médio < 70 nos primeiros 10 PRs, abrir cycle de remediação (gap entre código e Constituição maior que esperado)
+
+## Não-objetivos
+
+- ❌ NÃO usar `--strict` (exit 1) na v1 — começa em modo "feedback advisory", Wagner decide upgrade depois
+- ❌ NÃO ligar sem comunicar time MCP (Felipe/Maiara/Eliana/Luiz vão receber comentários Brain B em todo PR)
+
+## Estimate
+
+0h código (já pronto). 30min decisão + ativação + smoke test. Custo recorrente ~$3/mês.
+
+---
+
+**Última atualização:** 2026-05-25 — adicionadas US-001/002/003 (batch validação design system pós-conversa Wagner com Claude do chat — 4 tasks no MCP US-_DESIGNSYSTEM-001/002/003 + US-INFRA-012)
