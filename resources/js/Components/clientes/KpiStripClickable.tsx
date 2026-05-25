@@ -181,8 +181,10 @@ export function KpiStripClickable({
     },
   ];
 
+  // mt-* removido (Wagner 2026-05-25): gap vertical entre blocos vem do `space-y-3`
+  // do parent (Cliente/Index.tsx) — 12px canon `--gap-blocos`.
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {cards.map((card) => {
         const Icon = card.icon;
         const tone = TONE_STYLES[card.tone ?? 'primary'];
