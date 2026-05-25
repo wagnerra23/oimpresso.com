@@ -101,7 +101,7 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
 
         <form onSubmit={submit} className="os-drawer-body p-5 space-y-4 text-[13px] flex-1 overflow-y-auto">
           <div className="space-y-1.5">
-            <label htmlFor="cr-desc" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+            <label htmlFor="cr-desc" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Descrição / contraparte
             </label>
             <Input
@@ -113,13 +113,13 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
               autoFocus
             />
             {form.errors.cliente_descricao && (
-              <p className="text-[11px] text-rose-600">{form.errors.cliente_descricao}</p>
+              <p className="text-[11px] text-destructive">{form.errors.cliente_descricao}</p>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label htmlFor="cr-valor" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+              <label htmlFor="cr-valor" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
                 Valor (R$)
               </label>
               <Input
@@ -132,12 +132,12 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
                 placeholder="0,00"
               />
               {form.errors.valor_total && (
-                <p className="text-[11px] text-rose-600">{form.errors.valor_total}</p>
+                <p className="text-[11px] text-destructive">{form.errors.valor_total}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="cr-venc" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+              <label htmlFor="cr-venc" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
                 Vencimento
               </label>
               <Input
@@ -147,20 +147,20 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
                 onChange={(e) => form.setData('vencimento', e.target.value)}
               />
               {form.errors.vencimento && (
-                <p className="text-[11px] text-rose-600">{form.errors.vencimento}</p>
+                <p className="text-[11px] text-destructive">{form.errors.vencimento}</p>
               )}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="cr-cat" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+            <label htmlFor="cr-cat" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Categoria
             </label>
             <select
               id="cr-cat"
               value={form.data.categoria_id as string | number}
               onChange={(e) => form.setData('categoria_id', e.target.value as unknown as number | '')}
-              className="w-full h-9 rounded-md border border-stone-300 bg-white px-3 text-[13px]"
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-[13px]"
             >
               <option value="">(Sem categoria)</option>
               {categorias.map((c) => (
@@ -168,12 +168,12 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
               ))}
             </select>
             {form.errors.categoria_id && (
-              <p className="text-[11px] text-rose-600">{form.errors.categoria_id}</p>
+              <p className="text-[11px] text-destructive">{form.errors.categoria_id}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="cr-plano" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+            <label htmlFor="cr-plano" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Plano de contas
             </label>
             <PlanoContaCombobox
@@ -184,16 +184,16 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
               onChange={(id) => form.setData('plano_conta_id', id)}
               placeholder={tipo === 'receber' ? 'Receita ou ativo' : 'Despesa, custo ou passivo'}
             />
-            <p className="text-[11px] text-stone-500">
+            <p className="text-[11px] text-muted-foreground">
               Opcional. Se vazio, BackfillPlanoContaCommand atribui &quot;(a classificar)&quot; depois.
             </p>
             {form.errors.plano_conta_id && (
-              <p className="text-[11px] text-rose-600">{form.errors.plano_conta_id}</p>
+              <p className="text-[11px] text-destructive">{form.errors.plano_conta_id}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="cr-obs" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+            <label htmlFor="cr-obs" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Observações
             </label>
             <textarea
@@ -202,15 +202,15 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
               onChange={(e) => form.setData('observacoes', e.target.value)}
               maxLength={2000}
               rows={3}
-              className="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-[13px] resize-none"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-[13px] resize-none"
               placeholder="Notas internas (opcional)…"
             />
             {form.errors.observacoes && (
-              <p className="text-[11px] text-rose-600">{form.errors.observacoes}</p>
+              <p className="text-[11px] text-destructive">{form.errors.observacoes}</p>
             )}
           </div>
 
-          <div className="flex gap-2 pt-3 border-t border-stone-200 mt-auto">
+          <div className="flex gap-2 pt-3 border-t border-border mt-auto">
             <Button
               type="submit"
               disabled={form.processing}
