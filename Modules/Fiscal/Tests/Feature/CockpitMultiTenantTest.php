@@ -28,6 +28,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // Guard SQLite (Wagner 2026-05-25): cleanup só roda quando tabela existe.
+    // beforeEach skipa tests que precisam dela, mas afterEach roda sempre —
+    // sem guard, CI Pest SQLite (modules-pest.yml) quebra com QueryException
+    // 'no such table: nfe_emissoes'.
+    if (! Schema::hasTable('nfe_emissoes')) {
+        return;
+    }
     NfeEmissao::withoutGlobalScopes()
         ->where('chave_44', 'like', '%' . COCKPIT_TAG . '%')
         ->forceDelete();
