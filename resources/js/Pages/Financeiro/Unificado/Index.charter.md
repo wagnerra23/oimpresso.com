@@ -11,7 +11,7 @@ related_us: [US-FIN-013, US-FIN-020, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 tier: A
-charter_version: 6
+charter_version: 7
 ---
 
 # Page Charter — /financeiro/unificado
@@ -28,6 +28,13 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Onda 24 — Plano de Contas no Edit** (2026-05-25, charter v7, US-FIN-021 parcial):
+  - **TituloEditSheet** ganha campo `plano_conta_id` via `PlanoContaCombobox` reusável (searchable, hierárquico DCASP indentado por `nivel`).
+  - **Combobox filtra por `kind` do título**: `receivable` → tipo IN (receita, ativo); `payable` → tipo IN (despesa, custo, passivo). Patrimônio fora (não é título corrente).
+  - **Backend defesa em profundidade**: `UpdateTituloRequest::assertPlanoCoerente()` revalida coerência tipo↔plano (anti tampering) + `Rule::exists` scope business + ativo + aceita_lancamento.
+  - **shapeTitulo expõe** `plano_conta_id`, `plano_conta_codigo`, `plano_conta_nome` (eager-load `planoConta:id,codigo,nome,tipo`).
+  - **DRE consequência**: títulos editados passam a alimentar Dre/Index diretamente sem precisar de `BackfillPlanoContaCommand` (que continua cobrindo auto-criação via Observer).
 
 - **Ondas 12-21 KB CANON CSS BUNDLE COMPLETO** (2026-05-20, charter v6):
   - **Bundle copy CSS 9054 LOC** — `resources/css/cowork-canon-financeiro-bundle.css` importado inteiro escopado em `.fin-cowork` (regra Tier 0 `feedback-cowork-bundle-aplicar-inteiro`). Substitui cherry-pick fragmentado.
@@ -57,7 +64,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
   - **Backward compat**: títulos antigos com `aprovacao_status=NULL` seguem fluxo direto (sem aprovação obrigatória)
 
 - **Onda Edit** (2026-05-18, charter v5):
-  - **TituloEditSheet** — Sheet drawer inline edita campos seguros do título: `cliente_descricao` (texto livre + cross-links `#V-/#OS-/#PC-`), `observacoes`, `categoria_id`, `vencimento`. `valor_total` mutável SOMENTE se `status` aberto/parcial (ADR fin-tech/0002 imutabilidade pós-baixa). PUT `/financeiro/unificado/{id}` via `useForm` Inertia. Wire-up no botão "Editar" do drawer de detalhe.
+  - **TituloEditSheet** — Sheet drawer inline edita campos seguros do título: `cliente_descricao` (texto livre + cross-links `#V-/#OS-/#PC-`), `observacoes`, `categoria_id`, `plano_conta_id` (Onda 24), `vencimento`. `valor_total` mutável SOMENTE se `status` aberto/parcial (ADR fin-tech/0002 imutabilidade pós-baixa). PUT `/financeiro/unificado/{id}` via `useForm` Inertia. Wire-up no botão "Editar" do drawer de detalhe.
   - **Conferido per-user DB** — `FinConferidoToggle` migrado de localStorage para `conferido_by` (FK users.id) + `conferido_at` (timestamp). Substitui Onda 5 R1 storage. Eliana confere ≠ Wagner confere → audit per-user. Routes POST/DELETE `/unificado/{id}/conferir`.
   - **Cross-links auto-pop** — `TituloAutoService` sintetiza `#V-{transaction_id}` (vendas) e `#PC-{transaction_id}` (compras) em `cliente_descricao` no `afterCreate`. FinCrossLinkify renderiza pills clicáveis.
 
