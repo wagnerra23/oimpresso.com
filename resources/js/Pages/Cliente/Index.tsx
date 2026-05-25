@@ -646,7 +646,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           >
             {SLOT2_TABS.map(({ key, label, shortLabel, href, Icon }) => {
               const isActive = activeType === key;
-              const count    = tabCounts[key];
               return (
                 <a
                   key={key}
@@ -671,15 +670,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     style={{ vectorEffect: 'non-scaling-stroke' }}
                   />
                   <span>{shortLabel}</span>
-                  <span
-                    className="ml-1 px-1.5 py-px text-[11px] font-medium rounded-full tabular-nums"
-                    style={isActive
-                      ? { color: primaryTxt, background: primarySoft }
-                      : { color: 'hsl(215 16% 60%)', background: 'hsl(210 40% 96%)' }
-                    }
-                  >
-                    {count}
-                  </span>
+                  {/* Wagner 2026-05-25: counter REMOVIDO da tab — duplicava info do KPI strip abaixo.
+                      Contador continua sendo computado backend via props.tab_counts (defer paralelo
+                      sem custo extra) — fica disponível pra future re-add ou outras telas. */}
                 </a>
               );
             })}
@@ -762,7 +755,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         >
           {SLOT2_TABS.map(({ key, label, shortLabel, href, Icon }) => {
             const isActive = activeType === key;
-            const count    = tabCounts[key];
             return (
               <a
                 key={key}
@@ -785,15 +777,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
                 <span>{shortLabel}</span>
-                <span
-                  className="ml-1 px-1.5 py-px text-[11px] font-medium rounded-full tabular-nums"
-                  style={isActive
-                    ? { color: primaryTxt, background: primarySoft }
-                    : { color: 'hsl(215 16% 60%)', background: 'hsl(210 40% 96%)' }
-                  }
-                >
-                  {count}
-                </span>
+                {/* Wagner 2026-05-25: counter removido — duplicava KPI strip */}
               </a>
             );
           })}
