@@ -43,6 +43,12 @@ Vertical especializado pra **oficinas mecânicas + locação de equipamentos aut
   - Idempotência defesa-em-profundidade (transaction_id check + os_ref exists + saveQuietly anti-loop)
   - Cross-link bidirecional `/sells` ↔ `/oficina-auto/producao-oficina` (PR #1531 routing por prefix)
   - Cálculo `final_total`: locação = `daily_rate × dias_locacao` (accessor `valor_receber`) · manutenção = 0 (Wagner edita manual V0)
+- **Card "Esta OS gerou venda #V-NNNN" no drawer ServiceOrderSheet** (Onda 7 · PR #1534 · 2026-05-25 17:47 BRT):
+  - Componente shared cross-módulo `@/Components/shared/VendaDerivadaCard.tsx` (extraído verbatim do Repair PR #1504 + FASE B PR #1516 · gradiente verde emerald + 3 CTAs Abrir/Imprimir/Compartilhar Web Share API)
+  - Backend `ServiceOrderController::show()` eager-loads `transaction` + entrega payload `venda_derivada` (V0 core: id/invoice_no/final_total/transaction_date) no JSON `wantsJson()`
+  - V0 sem breakdown items + fiscal NF-e (FASE B pra OficinaAuto exige extrair `App\Services\VendaDerivadaPayloadService` shared — wave futura)
+  - 3 Pest GUARDs estruturais + 3 feature tests MySQL (null / populated / multi-tenant biz=1 vs biz=2)
+  - Repair `ProducaoOficina/Index.tsx` refatorado pra importar shared (24 tests guards preservados)
 
 ## Gaps conhecidos (P0-P1 ativos)
 
