@@ -15,6 +15,7 @@ on:
     paths:
       - 'Modules/Arquivos/**'
       - 'Modules/ComunicacaoVisual/**'
+      - 'Modules/Fiscal/**'
       - 'Modules/NfeBrasil/**'
       - 'Modules/Repair/**'
       - 'Modules/Vestuario/**'
@@ -26,6 +27,7 @@ on:
     paths:
       - 'Modules/Arquivos/**'
       - 'Modules/ComunicacaoVisual/**'
+      - 'Modules/Fiscal/**'
       - 'Modules/NfeBrasil/**'
       - 'Modules/Repair/**'
       - 'Modules/Vestuario/**'
@@ -44,6 +46,7 @@ jobs:
         module:
           - Arquivos
           - ComunicacaoVisual
+          - Fiscal
           - NfeBrasil
           - Repair
           - Vestuario
