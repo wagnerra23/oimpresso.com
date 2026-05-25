@@ -216,8 +216,10 @@ E nunca chaves sem prefixo (colide com outras libs)
 
 ### US-_DESIGNSYSTEM-001 · DESIGN.md root TOC executivo apontando pros docs canon
 
-> owner: wagner · priority: p1 · estimate: 0.5h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 0.5h · status: done · type: story
 > blocked_by: —
+> closed_at: 2026-05-25
+> closed_reason: REDUNDANTE — `/Design.md` (336 linhas) já existe desde 2026-05-08 e cumpre exatamente o papel proposto (TOC executivo §1 "O que você quer fazer?" + 16 seções de regras canon). Investigação durante PR #1563 expôs que a US foi criada sem inventariar `ls D:/oimpresso.com/*.md` adequadamente (falha de exploração inicial). Fix concreto entregue neste mesmo PR: 4 patches incrementais no Design.md atualizando §2 (workflow → prototipo-ui/PROTOCOL.md ADR 0114) + §7 (hierarquia → ADR UI-0013 Constituição UI v2 mãe atual) + §9 (tokens → ADR 0190 primary roxo 295) + §15 (checklist → link PRE-MERGE-UI + gates CI). Aprendizado canon: SEMPRE `ls root` antes de "criar TOC executivo".
 
 ## Contexto
 
