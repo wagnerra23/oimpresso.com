@@ -93,16 +93,18 @@ return new class extends Migration
             }
 
             // 3a. Cria accounts dummy (core UPOS) — pra satisfazer FK 1-1
+            // Schema real UPOS (oimpresso): coluna é `account_type_id` FK pra `account_types` (nullable),
+            // NÃO `account_type` enum como assumia versão anterior desta migration (fix 2026-05-25).
             $accountId = DB::table('accounts')->insertGetId([
-                'business_id'    => $biz->id,
-                'name'           => 'Caixa Loja',
-                'account_number' => 'CAIXA-' . $biz->id,
-                'account_type'   => null, // UPOS enum: saving_current|capital|null — caixa fica null
-                'note'           => 'Conta-mãe consolidadora de fechamentos de caixa físico (ADR 0183)',
-                'created_by'     => 1, // System / Wagner-default
-                'is_closed'      => 0,
-                'created_at'     => now(),
-                'updated_at'     => now(),
+                'business_id'     => $biz->id,
+                'name'            => 'Caixa Loja',
+                'account_number'  => 'CAIXA-' . $biz->id,
+                'account_type_id' => null, // FK opcional — caixa não bate em saving/capital tipos
+                'note'            => 'Conta-mãe consolidadora de fechamentos de caixa físico (ADR 0183)',
+                'created_by'      => 1, // System / Wagner-default
+                'is_closed'       => 0,
+                'created_at'      => now(),
+                'updated_at'      => now(),
             ]);
 
             // 3b. Cria fin_contas_bancarias linkada a essa accounts
