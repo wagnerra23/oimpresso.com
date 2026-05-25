@@ -126,6 +126,35 @@ class UnificadoController extends Controller
               ->where('vencimento', '<', $hoje);
         }
 
+        // PR E (2026-05-25) US-FIN-022 — Aging buckets multi-select. AND com lifecycle.
+        // Buckets canon BR financeiro: lt30 / 30-60 / 60-90 / gt90 / gt180 dias vencidos.
+        // Cada bucket vira range de vencimento absoluto (data hoje - N dias).
+        if (! empty($filters['aging'])) {
+            $today = now();
+            $q->whereIn('status', ['aberto', 'parcial'])
+              ->where('vencimento', '<', $hoje)
+              ->where(function ($qq) use ($filters, $today) {
+                  foreach ($filters['aging'] as $bucket) {
+                      $qq->orWhere(function ($qqq) use ($bucket, $today) {
+                          [$min, $max] = match ($bucket) {
+                              'lt30' => [0, 29],
+                              '30-60' => [30, 59],
+                              '60-90' => [60, 89],
+                              'gt90' => [90, 179],
+                              'gt180' => [180, 99999],
+                              default => [null, null],
+                          };
+                          if ($min === null) {
+                              return;
+                          }
+                          $maxDate = (clone $today)->subDays($min)->toDateString();
+                          $minDate = (clone $today)->subDays($max + 1)->toDateString();
+                          $qqq->whereBetween('vencimento', [$minDate, $maxDate]);
+                      });
+                  }
+              });
+        }
+
         // Onda 7 (2026-05-20): multi-conta — filters['conta'] agora aceita CSV
         // "1,3,5" (back-compat: 1 single vira "1"). Backend faz whereIn.
         if ($filters['conta']) {
@@ -226,6 +255,8 @@ class UnificadoController extends Controller
             'contas' => $contas,
             'categorias' => $categorias,
             'planosConta' => $planosConta,
+            // PR E (2026-05-25) US-FIN-022 — aging breakdown pra chips de filtro
+            'agingBreakdown' => $this->agingBreakdown($businessId),
             'periodLabel' => $periodLabel,
             'businessName' => $businessName,
         ]);
@@ -779,11 +810,26 @@ class UnificadoController extends Controller
             fn ($x) => in_array($x, $aprovacaoValidos, true)
         )));
 
+        // PR E (2026-05-25) US-FIN-022 — parse aging[] (CSV ou array). 5 buckets canon BR.
+        $agingValidos = ['lt30', '30-60', '60-90', 'gt90', 'gt180'];
+        $agingRaw = $request->input('aging', []);
+        if (is_string($agingRaw)) {
+            $agingRaw = $agingRaw === '' ? [] : explode(',', $agingRaw);
+        }
+        if (! is_array($agingRaw)) {
+            $agingRaw = [];
+        }
+        $aging = array_values(array_unique(array_filter(
+            array_map('strval', $agingRaw),
+            fn ($x) => in_array($x, $agingValidos, true)
+        )));
+
         return [
             'tab' => in_array($request->string('tab')->toString(), $tabsValidas, true)
                 ? $request->string('tab')->toString() : 'all',
             'lifecycle' => $lifecycle,
             'aprovacao_status' => $aprovacao,
+            'aging' => $aging,
             'overdue' => $request->boolean('overdue'),
             'busca' => trim($request->string('busca', '')->toString()),
             'conta' => $request->string('conta', '')->toString(),
@@ -812,6 +858,37 @@ class UnificadoController extends Controller
             '90d' => [now()->subDays(90)->startOfDay(), now()->endOfDay()],
             default => [now()->startOfMonth(), now()->endOfMonth()],
         };
+    }
+
+    /**
+     * PR E (2026-05-25) US-FIN-022 — Aging breakdown.
+     * Conta títulos vencidos (status aberto/parcial + vencimento < hoje) por
+     * bucket BR canon. Usado pra chips de filtro mostrarem contagem visível
+     * — "lt30 (5) · 30-60 (3) · 60-90 (1) · gt90 (0) · gt180 (0)".
+     *
+     * Multi-tenant Tier 0: scope business_id obrigatório.
+     */
+    private function agingBreakdown(int $businessId): array
+    {
+        $hoje = now()->toDateString();
+        $base = Titulo::where('business_id', $businessId)
+            ->whereIn('status', ['aberto', 'parcial'])
+            ->where('vencimento', '<', $hoje);
+
+        $today = now();
+        $bucketRange = function (int $minDays, int $maxDays) use ($today) {
+            $maxDate = (clone $today)->subDays($minDays)->toDateString();
+            $minDate = (clone $today)->subDays($maxDays + 1)->toDateString();
+            return [$minDate, $maxDate];
+        };
+
+        return [
+            'lt30'  => (clone $base)->whereBetween('vencimento', $bucketRange(0, 29))->count(),
+            '30-60' => (clone $base)->whereBetween('vencimento', $bucketRange(30, 59))->count(),
+            '60-90' => (clone $base)->whereBetween('vencimento', $bucketRange(60, 89))->count(),
+            'gt90'  => (clone $base)->whereBetween('vencimento', $bucketRange(90, 179))->count(),
+            'gt180' => (clone $base)->whereBetween('vencimento', $bucketRange(180, 99999))->count(),
+        ];
     }
 
     private function kpis(int $businessId, Carbon $start, Carbon $end): array
