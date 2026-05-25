@@ -929,6 +929,21 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     return () => window.removeEventListener('oimpresso:open-venda', onOpenVenda as EventListener);
   }, []);
 
+  // Onda 6 (ADR 0192) — deep-link `?open=ID` cross-página.
+  // Sells/Caixa/Index navega `router.visit('/sells?open=ID')` quando user clica
+  // link `↗ #OS-NNNN` na seção "Por origem". Pattern padrão deep-link Inertia.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const openParam = params.get('open');
+    if (openParam) {
+      const id = Number(openParam);
+      if (Number.isFinite(id) && id > 0) {
+        setOpenSaleId(id);
+      }
+    }
+  }, []);
+
   // Keyboard handler — J/K nav, ?, N, B, R, F, E, X, ⌘K, Esc.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
