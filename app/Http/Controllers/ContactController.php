@@ -203,7 +203,11 @@ class ContactController extends Controller
 
         $type = request()->get('type');
 
-        $types = ['supplier', 'customer'];
+        // ADR 0188 (multi-type 2026-05-24) + Wagner 2026-05-25: whitelist canon canônica
+        // alinhada com $inertiaTypes abaixo (linha ~237). Antes era ['supplier', 'customer']
+        // UPOS legacy → /contacts?type=all/employee/representative caía em redirect()->back()
+        // (bug: usuário em /sells clicava em "Contatos" sidebar → voltava pra /sells).
+        $types = ['supplier', 'customer', 'employee', 'representative', 'all'];
 
         if (empty($type) || ! in_array($type, $types)) {
             return redirect()->back();
@@ -215,6 +219,8 @@ class ContactController extends Controller
             } elseif ($type == 'customer') {
                 return $this->indexCustomer();
             } else {
+                // ADR 0188 — papéis novos (employee/representative/all) caem no branch
+                // Inertia abaixo. AJAX legacy não suporta esses tipos.
                 exit('Not Found');
             }
         }
