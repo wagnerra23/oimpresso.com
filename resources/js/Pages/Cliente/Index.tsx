@@ -621,14 +621,16 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
          lateral) + `py-4` (16px respiro topo+rodapé) — Wagner pediu "respiro nas laterais
          e em cima". space-y-3 mantém gap entre blocos. */}
      <div className="w-full px-6 space-y-3">
-      {/* ───── BLOCO 1 · HEADER TRANSPARENTE (canon v3.4 final · 2026-05-25) ─────
+      {/* ───── BLOCO 1 · HEADER TRANSPARENTE + border-b warm (canon v3.4 polish · 2026-05-25) ─────
           Wagner pediu remover `bg-background border rounded-t-lg` pra header herdar
-          o cream `--color-page-cream` do parent — espelha `/sells` canon Cowork exato
-          (`<header class="os-head vd-head-clean">` sem bg, border, ou radius).
-          BLOCO 1 dissolve no fundo cream · KPI strip vira primeiro elemento destacado. */}
+          o cream `--color-page-cream` do parent — espelha `/sells` canon Cowork exato.
+          v3.4 polish: adicionado `border-b` warm `oklch(0.93 0.004 90)` pra criar linha
+          divisora visual entre BLOCO 1 e BLOCO 2 (espelha `.vd-toolbar` border-bottom
+          em /sells). Mesmo hue 90 da familia cream — afinidade visual com fundo. */}
       <header
-        className="overflow-visible"
+        className="border-b overflow-visible"
         role="banner"
+        style={{ borderBottomColor: 'oklch(0.93 0.004 90)' }}
       >
         {/* Wagner 2026-05-25: BLOCO 1 header padding canon Vendas (referência /sells):
             pt-6 px-6 pb-3.5 (24px topo+lateral · 14px rodapé). Bottom menor pra underline
@@ -965,7 +967,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     <Th className="w-10">&nbsp;</Th>
                     <SortableTh sortKey="name" current={sortKey} dir={sortDir} onSort={handleSort}>Cliente</SortableTh>
                     <Th className="w-14">Tipo</Th>
-                    <Th className="w-32">Documento</Th>
+                    <Th className="w-44">Documento</Th>
                     <Th className="w-28">Cidade/UF</Th>
                     <SortableTh sortKey="last_os_at" current={sortKey} dir={sortDir} onSort={handleSort} className="w-36">Frescor</SortableTh>
                     <SortableTh sortKey="valor_aberto" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-28">Saldo</SortableTh>
@@ -1046,7 +1048,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                             <TipoPill tipo={row.tipo ?? null} />
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className="text-xs text-muted-foreground tabular-nums">
+                            <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
                               {row.tax_number_masked ?? '—'}
                             </span>
                           </td>
