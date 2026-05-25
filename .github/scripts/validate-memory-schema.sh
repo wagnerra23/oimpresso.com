@@ -123,9 +123,11 @@ has_frontmatter() {
 }
 
 # Procura seção markdown via regex (case-insensitive, captura `## Title`).
+# Wagner 2026-05-25: aceita prefixo numerado opcional `## 2. Title` que é
+# convenção dos SPECs do projeto (## 1. Glossário · ## 2. User stories · ## 3. ...).
 has_section() {
   local file="$1" pattern="$2"
-  grep -qiE "^##\s+${pattern}" "$file" 2>/dev/null
+  grep -qiE "^##\s+([0-9]+\.\s+)?${pattern}" "$file" 2>/dev/null
 }
 
 # Valida que pelo menos uma das seções está presente.
@@ -192,11 +194,13 @@ validate_spec() {
     fi
   done
 
-  # 3. module deve ser PascalCase.
+  # 3. module deve ser PascalCase (ou _PascalCase pra pseudo-módulos cross-cutting).
+  # Wagner 2026-05-25: aceita prefixo `_` opcional pra módulos pseudo-cross-cutting
+  # do tipo _DesignSystem (não é nWidart Modules/ — é cross-cutting design system).
   local module
   module="$(extract_frontmatter_field "$file" "module")"
-  if [[ -n "$module" ]] && ! [[ "$module" =~ ^[A-Z][a-zA-Z0-9]+$ ]]; then
-    add_violation "$file" "error" "SPEC module '${module}' não é PascalCase válido (ex: Jana, NfeBrasil, RecurringBilling)"
+  if [[ -n "$module" ]] && ! [[ "$module" =~ ^_?[A-Z][a-zA-Z0-9]+$ ]]; then
+    add_violation "$file" "error" "SPEC module '${module}' não é PascalCase válido (ex: Jana, NfeBrasil, RecurringBilling, _DesignSystem)"
   fi
 
   # 4. last_updated YYYY-MM-DD.
