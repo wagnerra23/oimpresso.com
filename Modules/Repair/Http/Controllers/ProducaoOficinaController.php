@@ -246,18 +246,33 @@ class ProducaoOficinaController extends Controller
             $columns[$tpl['id']] = $tpl + ['cards' => []];
         }
 
+        // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75).
+        // Batch lookup das Transactions derivadas (source='oficina') por job_sheet_id pra
+        // exibir card "Esta OS gerou venda #V-NNNN" no drawer (frontend Onda 5).
+        // 1 query única (anti-N+1) scopada por business_id (Tier 0 ADR 0093).
+        $businessId = (int) request()->session()->get('user.business_id');
+        $vendaDerivadaByOs = collect();
+        $osIds = $jobSheets->pluck('id')->all();
+        if (! empty($osIds)) {
+            $vendaDerivadaByOs = \App\Transaction::where('business_id', $businessId)
+                ->where('source', 'oficina')
+                ->whereIn('repair_job_sheet_id', $osIds)
+                ->get(['id', 'repair_job_sheet_id', 'invoice_no', 'final_total', 'transaction_date'])
+                ->keyBy('repair_job_sheet_id');
+        }
+
         foreach ($jobSheets as $js) {
             $columnId = $statusToColumn[$js->status_id] ?? null;
             if ($columnId === null || ! isset($columns[$columnId])) {
                 continue;
             }
-            $columns[$columnId]['cards'][] = $this->jobSheetToCard($js);
+            $columns[$columnId]['cards'][] = $this->jobSheetToCard($js, $vendaDerivadaByOs->get($js->id));
         }
 
         return array_values($columns);
     }
 
-    private function jobSheetToCard(JobSheet $js): array
+    private function jobSheetToCard(JobSheet $js, ?\App\Transaction $vendaDerivada = null): array
     {
         $tech = $js->technician;
         $brand = $js->Brand;
@@ -294,6 +309,15 @@ class ProducaoOficinaController extends Controller
             'approved' => $isCompleted,
             'status_label' => $isCompleted ? 'Aguardando retirada' : null,
             'quote_total' => $estimated,
+            // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75).
+            // Card "Esta OS gerou venda #V-NNNN" renderizado no drawer Onda 5
+            // quando coluna='pronto' AND venda_derivada !== null.
+            'venda_derivada' => $vendaDerivada ? [
+                'id' => $vendaDerivada->id,
+                'invoice_no' => $vendaDerivada->invoice_no,
+                'final_total' => (float) $vendaDerivada->final_total,
+                'transaction_date' => $vendaDerivada->transaction_date?->toDateString(),
+            ] : null,
         ];
     }
 

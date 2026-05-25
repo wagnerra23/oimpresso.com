@@ -1216,6 +1216,10 @@ class SellController extends Controller
                 // US-SELL-COWORK — pagamento: método dominante (último registrado) + número de parcelas (count > 0 amount).
                 \DB::raw('(SELECT method FROM transaction_payments tp_m WHERE tp_m.transaction_id = transactions.id AND tp_m.is_return = 0 ORDER BY tp_m.id DESC LIMIT 1) as last_payment_method'),
                 \DB::raw('(SELECT COUNT(*) FROM transaction_payments tp_i WHERE tp_i.transaction_id = transactions.id AND tp_i.is_return = 0 AND tp_i.amount > 0) as installments_count'),
+                // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75): coluna Origem.
+                // COALESCE pra default 'balcao' retroativo (vendas legacy sem source).
+                \DB::raw("COALESCE(transactions.source, 'balcao') as source"),
+                'transactions.os_ref',
             ], 'page', $page);
         $rows = $paginator->getCollection();
 
@@ -1363,6 +1367,17 @@ class SellController extends Controller
 
                     'payment_method_label' => $paymentMethodLabel,
                     'installments' => (int) ($r->installments_count ?? 0),
+
+                    // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75).
+                    // Frontend Sells/Index Onda 3 renderiza VdSource pill (Balcão/Oficina/Online)
+                    // + link ↗ #OS-NNNN clicável quando source='oficina'.
+                    'source' => (string) ($r->source ?? 'balcao'),
+                    'source_label' => match ((string) ($r->source ?? 'balcao')) {
+                        'oficina' => 'Oficina',
+                        'online'  => 'Online',
+                        default   => 'Balcão',
+                    },
+                    'os_ref' => $r->os_ref,
                 ];
             });
 

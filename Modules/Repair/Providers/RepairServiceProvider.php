@@ -24,6 +24,11 @@ class RepairServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->registerScheduleCommands();
 
+        // ADR 0192 — Auto-faturar OS → Venda derivada quando JobSheet.status_id
+        // transiciona pra RepairStatus com is_completed_status=true.
+        // Multi-tenant Tier 0 (ADR 0093) preservado · idempotente via (business_id, os_ref).
+        \Modules\Repair\Entities\JobSheet::observe(\Modules\Repair\Observers\JobSheetObserver::class);
+
         //TODO:Remove sidebar
         view::composer(['repair::layouts.partials.sidebar',
             'repair::layouts.partials.invoice_layout_settings',
