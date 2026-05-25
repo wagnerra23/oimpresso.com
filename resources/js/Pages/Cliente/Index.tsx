@@ -45,7 +45,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
-import { PageHeaderPrimary } from '@/Components/PageHeader';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import {
   DropdownMenu,
   DropdownMenuContent,
