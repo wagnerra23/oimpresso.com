@@ -414,6 +414,19 @@ class ContactController extends Controller
             ]);
         }
 
+        // ADR 0188 Onda 4 — incluir flags multi-papel se a migration rodou.
+        // Graceful degradation: hasColumn check evita erro SQL em ambiente
+        // pre-migration. Front recebe null/false → Drawer trata como unchecked.
+        $hasOnda4Cols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'is_customer');
+        if ($hasOnda4Cols) {
+            $selectCols = array_merge($selectCols, [
+                'contacts.is_customer',
+                'contacts.is_supplier',
+                'contacts.is_employee',
+                'contacts.is_representative',
+            ]);
+        }
+
         // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
         $contactsQuery = Contact::where('contacts.business_id', $business_id);
         $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
@@ -503,6 +516,13 @@ class ContactController extends Controller
                 $payload['segmento'] = null;
                 $payload['vip'] = false;
             }
+
+            // ADR 0188 Onda 4 — flags multi-papel pro Drawer 760 seção "Papéis".
+            // Bool no payload (front cast direto · MySQL int 0/1 → React bool).
+            $payload['is_customer'] = (bool) ($contact->is_customer ?? false);
+            $payload['is_supplier'] = (bool) ($contact->is_supplier ?? false);
+            $payload['is_employee'] = (bool) ($contact->is_employee ?? false);
+            $payload['is_representative'] = (bool) ($contact->is_representative ?? false);
 
             return $payload;
         })->all();
