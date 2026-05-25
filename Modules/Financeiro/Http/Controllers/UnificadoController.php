@@ -899,6 +899,32 @@ class UnificadoController extends Controller
 
     private function kpis(int $businessId, Carbon $start, Carbon $end): array
     {
+        $atual = $this->kpisCore($businessId, $start, $end);
+
+        // PR H (2026-05-25) US-FIN-023 — delta_pct vs mês anterior.
+        // Calcula KPIs do período equivalente do mês anterior pra comparativo
+        // visual ("Recebido R$ [redacted Tier 0] ↑+12%" — Eliana vê tendência).
+        $startPrior = (clone $start)->subMonth();
+        $endPrior = (clone $end)->subMonth();
+        $anterior = $this->kpisCore($businessId, $startPrior, $endPrior);
+
+        $atual['delta_pct'] = [
+            'saldo_previsto' => $this->deltaPct($anterior['saldo_previsto'], $atual['saldo_previsto']),
+            'recebido'       => $this->deltaPct($anterior['recebido']['valor'], $atual['recebido']['valor']),
+            'a_receber'      => $this->deltaPct($anterior['a_receber']['valor'], $atual['a_receber']['valor']),
+            'pago'           => $this->deltaPct($anterior['pago']['valor'], $atual['pago']['valor']),
+            'a_pagar'        => $this->deltaPct($anterior['a_pagar']['valor'], $atual['a_pagar']['valor']),
+        ];
+
+        return $atual;
+    }
+
+    /**
+     * PR H (2026-05-25) — core dos KPIs (sem delta_pct).
+     * Extraído pra reuso: `kpis()` chama 2x (atual + anterior) pra delta_pct.
+     */
+    private function kpisCore(int $businessId, Carbon $start, Carbon $end): array
+    {
         $base = Titulo::where('business_id', $businessId)
             ->whereBetween('vencimento', [$start->toDateString(), $end->toDateString()]);
 
@@ -908,7 +934,6 @@ class UnificadoController extends Controller
         $aReceber = (clone $rec)->whereIn('status', ['aberto', 'parcial']);
         $aPagar = (clone $pay)->whereIn('status', ['aberto', 'parcial']);
 
-        // Recebido/Pago no período: soma TituloBaixa.valor_baixa via data_baixa.
         $recebido = TituloBaixa::where('business_id', $businessId)
             ->whereBetween('data_baixa', [$start->toDateString(), $end->toDateString()])
             ->whereNull('estorno_de_id')
@@ -943,6 +968,19 @@ class UnificadoController extends Controller
                 'qtd' => (clone $aPagar)->count(),
             ],
         ];
+    }
+
+    /**
+     * PR H (2026-05-25) US-FIN-023 — calcula delta percentual seguro.
+     * Retorna null se denominador zero/negativo (evita divisão por zero e
+     * +infinito visual quando KPI nasce do zero).
+     */
+    private function deltaPct(float $anterior, float $atual): ?float
+    {
+        if ($anterior <= 0) {
+            return null;
+        }
+        return round((($atual - $anterior) / $anterior) * 100, 1);
     }
 
     /**
