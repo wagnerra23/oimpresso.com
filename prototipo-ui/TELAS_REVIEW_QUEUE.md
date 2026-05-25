@@ -75,6 +75,19 @@
 | `[ ]` | `Site/Pricing` | charter + material ausentes |
 | `[ ]` | `Site/Login` | charter + material ausentes |
 
+## ✅ A1 cross-module — Integração Vendas × Oficina (2026-05-25)
+
+> Pedido completo em [`INTEGRACAO_VENDAS_OFICINA.md`](INTEGRACAO_VENDAS_OFICINA.md). Pré-requisito A1 do método KB-9.75 (sobe Vendas 9,0 → 9,3). F1 entregue Cowork + F2 aprovado por Wagner em 2026-05-25 (screenshot pre-merge). PR #1493 mergeado em main `b2fcabbf2` (squash --admin · 4/4 CI verde). 5 pontos de costura entre Sells/Index e Repair/ProducaoOficina sem reescrever módulos (cross-link bidirecional via evento `oimpresso:open-venda`).
+
+| Status | Tela | Prioridade | Refs |
+|---|---|---|---|
+| `[~]` | `Sells/Index` + coluna Origem (Balcão · Oficina · Online) | **P0 F3** | F1+F2 done · F3 pendente traduzir `vendas-page.jsx` (`VdSource` + tree branch `origem` + listener cross-módulo + KPI hero breakdown) pra Inertia/React |
+| `[~]` | `Repair/ProducaoOficina` drawer card "Esta OS gerou venda #V-NNNN" | **P0 F3** | F1+F2 done · F3 pendente traduzir `oficina-page.jsx` (`.ofc-venda-card` quando stage=pronto + dispatch `oimpresso:open-venda`) pra Inertia/React |
+| `[~]` | `Sells/Caixa` seção "Por origem" | **P1 F3** | F1+F2 done · F3 pendente traduzir `vendas-extras.jsx` (`VendasCaixaPage` com bySource + barras de progresso por source + refs) pra Inertia/React |
+| `[!]` | Backend `OsObserver@updated` (auto-faturar OS→Venda) | **Bloqueador F3** | Substitui mock `window.dispatchEvent('oimpresso:open-venda')` do protótipo. Aguarda ADR registrar decisão de auto-faturar como evento. Decisões Wagner: auto-faturar (sem click manual) · split comissão mecânico/balcão · OS sem nota vira venda mesmo (`fiscal: {}`) · Felipe vê tudo com filtro `Por origem · Oficina` pré-aplicado |
+
+---
+
 ## 🟡 F0 batch — PaymentGateway UI (2026-05-19)
 
 > Pedido completo em [`COWORK_NOTES.amendment-paymentgateway-batch.md`](COWORK_NOTES.amendment-paymentgateway-batch.md). Vinculado [ADR 0170](../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md). Backend já mergeado em main (Ondas 0/1/2/2.5/3/4a · PRs #1123/#1125/#1126/#1127/#1128/#1130). F3 UI depende de F2 aprovação Wagner (screenshot) + Onda 4 backend completar.
