@@ -118,10 +118,14 @@ type LifecycleId = 'ar' | 're' | 'ap' | 'pa';
 //  pendente / aprovado / rejeitado / sem_workflow (NULL aprovacao_status)
 type ApprovalStatusId = 'pendente' | 'aprovado' | 'rejeitado' | 'sem_workflow';
 
+// PR E (2026-05-25) US-FIN-022 — Aging buckets BR canon
+type AgingBucketId = 'lt30' | '30-60' | '60-90' | 'gt90' | 'gt180';
+
 interface Filters {
   tab: TabId;              // Legacy — preservado pra back-compat de bookmarks.
   lifecycle: LifecycleId[]; // Onda Polish — multi-select.
   aprovacao_status: ApprovalStatusId[]; // US-FIN-027 (Onda 22).
+  aging: AgingBucketId[];  // PR E US-FIN-022 — vencidos por bucket
   overdue: boolean;        // Toggle "Só atrasados" independente.
   busca: string;
   conta: string;
@@ -153,6 +157,14 @@ interface PlanoConta {
   nivel: number;    // 1=raiz, 4=folha
 }
 
+interface AgingBreakdown {
+  lt30: number;
+  '30-60': number;
+  '60-90': number;
+  gt90: number;
+  gt180: number;
+}
+
 interface Props {
   kpis: Kpi;
   lancamentos: Lancamento[];
@@ -161,6 +173,7 @@ interface Props {
   contas: { id: number; nome: string }[];
   categorias: { id: number; nome: string }[];
   planosConta: PlanoConta[];
+  agingBreakdown?: AgingBreakdown; // PR E US-FIN-022
   periodLabel: string;
   businessName: string;
 }
@@ -178,6 +191,16 @@ const FILTER_LIFECYCLE: { id: LifecycleId; label: string; hue: number }[] = [
   { id: 're', label: 'Recebidas',  hue: 145 }, // verde (lifecycle complementar)
   { id: 'ap', label: 'A pagar',    hue: 25  }, // rose
   { id: 'pa', label: 'Pagas',      hue: 240 }, // azul (saída liquidada)
+];
+
+// PR E (2026-05-25) US-FIN-022 — Aging buckets canon BR. Hue rose escala
+// crescente conforme dias vencidos (alerta visual mais agressivo).
+const FILTER_AGING: { id: AgingBucketId; label: string; hue: number }[] = [
+  { id: 'lt30',  label: '< 30d',   hue: 60  },  // amber suave
+  { id: '30-60', label: '30-60d',  hue: 40  },  // amber escuro
+  { id: '60-90', label: '60-90d',  hue: 25  },  // rose
+  { id: 'gt90',  label: '> 90d',   hue: 15  },  // rose escuro
+  { id: 'gt180', label: '> 180d',  hue: 0   },  // vermelho crítico
 ];
 
 /**
@@ -776,7 +799,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 // ---------- Página principal ----------
 // (FinanceiroSubNav extraído pra `_shared/FinanceiroSubNav.tsx` 2026-05-21 — ADR 0180 Fase 5 propagação)
 
-function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, agingBreakdown, periodLabel, businessName }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
   // HOTFIX 2026-05-20: shared `auth.can` vem do HandleInertiaRequests.share como
   // OBJETO `Record<string, boolean>` (não array de strings — vide app/Http/Middleware/
@@ -1096,6 +1119,45 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         </label>
 
         <span className="fin-filter-sep" />
+
+        {/* PR E (2026-05-25) US-FIN-022 — Aging buckets chips.
+            Apenas visível se houver algum vencido (evita poluição quando saudável).
+            AND com lifecycle: filtra vencidos por bucket BR canon. */}
+        {agingBreakdown && (agingBreakdown.lt30 + agingBreakdown['30-60'] + agingBreakdown['60-90'] + agingBreakdown.gt90 + agingBreakdown.gt180) > 0 && (
+          <>
+            <div className="fin-filter-group" role="group" aria-label="Filtros por aging (dias vencidos)">
+              {FILTER_AGING.map((ag) => {
+                const on = (filters.aging ?? []).includes(ag.id);
+                const count = agingBreakdown[ag.id];
+                if (count === 0 && !on) return null;
+                const toggle = () => {
+                  const cur = filters.aging ?? [];
+                  const next = on ? cur.filter((x) => x !== ag.id) : [...cur, ag.id];
+                  aplicar({ aging: next });
+                };
+                return (
+                  <label
+                    key={ag.id}
+                    className={'fin-filter-cb' + (on ? ' on' : '')}
+                    style={{ ['--cb-hue' as string]: ag.hue } as React.CSSProperties}
+                    title={`Títulos vencidos ${ag.label} (atrasados não pagos)`}
+                  >
+                    <input
+                      type="checkbox"
+                      name={`fin-aging-${ag.id}`}
+                      checked={on}
+                      onChange={toggle}
+                    />
+                    <span className="fin-filter-cb-box" />
+                    <span>{ag.label}</span>
+                    <span className="fin-filter-ct">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <span className="fin-filter-sep" />
+          </>
+        )}
 
         {/* US-FIN-027 (Onda 22) — Chips workflow aprovação multi-select.
             AND com lifecycle (combina filtros). Hidden se nenhum titulo
