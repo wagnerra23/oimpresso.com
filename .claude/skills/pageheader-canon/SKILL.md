@@ -1,7 +1,22 @@
 ---
 name: pageheader-canon
-description: ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182) em módulo novo — user pede "aplicar pageheader canon no módulo X", "padronizar header do <Modulo>", "/pageheader-canon <Modulo>", "header v3 nas telas Y", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>/Index.tsx` que tenha sub-navegação (sub-views no DataController). **2 modos** — (A) **Index/Show modo NAV** com SubNav+PrimaryButton (3 zonas) e (B) **Edit/Create modo FOCO** sem SubNav (página de form sem distração lateral, pattern Notion/Linear, Fase 4-bis). Skill carrega — (1) **algoritmo de descoberta** do módulo (cruzar DataController.php + Pages/<Mod>/**/*.tsx pra mapear sub-views + primary contextual + ações features), (2) **tabela de decisão** dos botões (duplicado-com-ghost REMOVE / features → extraOverflowItems / primary "Nova X" → Zona R / per-linha INTACTO), (3) **naming convention** de labels (≤2 palavras, sem repetir nome do módulo), (4) **hue OKLCH per-grupo** canon (financas=145, vender=60, operar=350, pessoas=295, sistema=200, ia=220, atendimento=30, equipe=270), (5) **validação POST-implementação OBRIGATÓRIA** via browser MCP (script JS valida labels curtos + auto-promove + cor primary correta + bg NÃO magenta 330 — checks C2/C3/C6 NÃO se aplicam a Edit/Create FOCO) e (6) **gate ✓/⚠️** que FALHA o PR se alguma tela não passar. Tier B auto-trigger por description.
+description: ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182/0189/0190) em módulo novo — user pede "aplicar pageheader canon no módulo X", "padronizar header do <Modulo>", "/pageheader-canon <Modulo>", "header v3 nas telas Y", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>/Index.tsx` que tenha sub-navegação (sub-views no DataController). **2 modos** — (A) **Index/Show modo NAV** com SubNav + primary roxo universal (3 zonas) e (B) **Edit/Create modo FOCO** sem SubNav (página de form sem distração lateral, pattern Notion/Linear, Fase 4-bis). Skill carrega — (1) **algoritmo de descoberta** do módulo (cruzar DataController.php + Pages/<Mod>/**/*.tsx pra mapear sub-views + primary contextual + ações features), (2) **tabela de decisão** dos botões (duplicado-com-ghost REMOVE / features → extraOverflowItems / primary "Nova X" → Zona R / per-linha INTACTO), (3) **naming convention** de labels (≤2 palavras, sem repetir nome do módulo), (4) **PRIMARY UNIVERSAL ROXO 295** — `oklch(0.55 0.15 295)` bg + `oklch(0.45 0.15 295)` border (ADR 0190 2026-05-25 supersede hue-per-grupo do primary), (5) **validação POST-implementação OBRIGATÓRIA** via browser MCP (script JS valida labels curtos + auto-promove + primary roxo 295 NÃO outro hue + bg NÃO magenta 330) e (6) **gate ✓/⚠️** que FALHA o PR se alguma tela não passar. Tier B auto-trigger por description.
+supersedes_partially_via_adr: [0180, 0190]
 ---
+
+> ⚠️ **RECONCILIADO 2026-05-25 — ADR 0190 supersede parcial:** Esta skill anteriormente
+> documentava "primary com hue per grupo" (financas=verde, pessoas=roxo claro, etc).
+> [ADR 0190](../../../memory/decisions/0190-primary-button-roxo-universal-295.md) (aceita 2026-05-25)
+> redefiniu: **primary INTERNO das telas é SEMPRE roxo médio universal `oklch(0.55 0.15 295)`.**
+> Hue per grupo (SIDEBAR_GROUP_HUE no `shared.ts`) continua existindo APENAS pra agrupamento visual
+> do sidebar (headers de grupo, ícones decorativos) — NÃO se aplica mais ao primary das telas.
+>
+> Componentes legacy `FinanceiroPrimaryButton` (verde 145), `JanaPrimaryButton` (azul 215),
+> `PontoPrimaryButton` (limão 88) estão DEPRECATED — usar roxo universal direto via inline style
+> ou wrapper único `<PageHeaderPrimary>` futuro.
+>
+> Razão (ADR 0190 § Justificativa): "Consistência funcional — usuário aprende UMA cor de ação
+> principal em todo app. Pattern Linear/Notion/Vercel/Stripe: sidebar varia, primary CTA é única cor."
 
 # Skill `pageheader-canon` — Protocolo do agente pra aplicar header v3
 
@@ -34,18 +49,27 @@ Agente precisa **entender o módulo** antes de propor mudanças. 5 passos:
 
 Lê `Modules/<Modulo>/Http/Controllers/DataController.php` e procura:
 - `'group' => '<key>'` declarado nas entries `Menu::modify(...)`
-- Match com tabela canon:
+- Match com tabela canon (HUE per grupo — APENAS pra agrupamento visual sidebar, ADR 0190).
 
-| Módulo (exemplos) | Grupo v3 | Hue OKLCH |
+**⚠️ HUE per grupo APLICA APENAS NO SIDEBAR (agrupamento visual). PRIMARY das telas é SEMPRE roxo 295 universal (ADR 0190).**
+
+Tabela canon hue per grupo (espelha `cockpit/shared.ts SIDEBAR_GROUP_HUE` — code é source of truth):
+
+| Módulo (exemplos) | Grupo v3 | Hue OKLCH (sidebar APENAS) |
 |---|---|---|
-| Sells / Crm / ProductCatalogue / Vestuario / Woocommerce | `vender` | **60** (amarelo) |
-| Repair / OficinaAuto / Manufacturing / Compras / AssetManagement | `operar` | **350** (magenta) |
-| Financeiro / NfeBrasil / NFSe / PaymentGateway / RecurringBilling / Fiscal | `financas` | **145** (verde) |
-| Essentials / Ponto | `pessoas` | **295** (roxo claro) |
-| Governance / ADS / Auditoria / Cms / Connector / Officeimpresso / Superadmin | `sistema` | **200** (azul-acinzentado) |
-| Jana / KB / Brief / SRS | `ia` | **220** (azul) — TOPO |
-| Whatsapp / ConsultaOs | `atendimento` | **30** (laranja) — TOPO |
-| TeamMcp / ProjectMgmt | `equipe` | **270** (roxo) — TOPO |
+| Sells / Crm / ProductCatalogue / Vestuario / Woocommerce | `vender` / `comercial` | **55** (âmbar/ouro) |
+| Repair / OficinaAuto / Manufacturing | `producao` | **8** (vermelho — energia/atividade) |
+| Compras / AssetManagement / (estoque) | `estoque` | **315** (magenta — organização) |
+| Cliente / Crm-Contatos / Produto | `cadastro` | **202** (ciano — dados/registro) |
+| Financeiro / PaymentGateway / RecurringBilling | `financas` | **145** (verde — dinheiro) |
+| NfeBrasil / NFSe | `fiscal` | **175** (turquesa — oficial/técnico) |
+| Essentials / Ponto / HRM | `pessoas` | **88** (verde-limão — calor humano/RH) |
+| Governance / ADS / Auditoria / Cms / Connector / Officeimpresso / Superadmin | `sistema` | **245** (índigo — autoridade) |
+| Jana / KB / Brief / SRS | `ia` | **215** (azul brand — calma/inteligência) — TOPO |
+| Whatsapp / ConsultaOs | `atendimento` | **30** (laranja — acolhedor) — TOPO |
+| TeamMcp / ProjectMgmt | `equipe` | **275** (roxo — colaboração) — TOPO |
+
+> **Primary button INTERNO das telas (ADR 0190):** SEMPRE `oklch(0.55 0.15 295)` bg + `oklch(0.45 0.15 295)` border + branco texto. **Independente do grupo do módulo.**
 
 Se o módulo NÃO tem `group` declarado, agente PARA e pede aprovação de qual grupo aplicar.
 
@@ -140,9 +164,12 @@ Pra CADA botão do header pre-pattern, decidir destino:
    - Lê `shell.menu` via `usePage()`, procura entry com `group === '<grupo_v3>'`
    - Retorna `null` se módulo desinstalado (Tier 0)
 
-3. **Frontend primary** (`Pages/<Modulo>/_shared/<Modulo>PrimaryButton.tsx`):
-   - Template = `Pages/Financeiro/_shared/FinanceiroPrimaryButton.tsx`
-   - Background `oklch(0.55 0.15 <hue_do_grupo>)` — NUNCA magenta 330
+3. **Frontend primary** — ADR 0190 (2026-05-25) supersede pattern hue-per-grupo:
+   - **ROXO 295 UNIVERSAL** — `style={{ backgroundColor: 'oklch(0.55 0.15 295)', borderColor: 'oklch(0.45 0.15 295)', color: 'oklch(0.99 0 0)' }}`
+   - **Independente do grupo do módulo** — Financeiro/Cadastro/Vendas/Produção: TODOS usam mesmo roxo
+   - Componentes legacy `FinanceiroPrimaryButton/JanaPrimaryButton/PontoPrimaryButton` DEPRECATED — migrar pra roxo universal
+   - NUNCA magenta 330 (canon UPOS legado), NUNCA hue do grupo (canon v3 pré-0190)
+   - Próximo PR canon: extrair `<PageHeaderPrimary>` componente único universal
    - Default ícone `<Plus/>`, override `hideIcon` se workflow não-create
 
 4. **Telas Pages/<Modulo>/<X>/Index.tsx** (LISTAGEM):
