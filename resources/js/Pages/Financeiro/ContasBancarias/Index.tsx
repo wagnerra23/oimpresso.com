@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Settings, Plus, AlertTriangle, CheckCircle2, MinusCircle } from 'lucide-react';
 import { ConfigurarBoletoSheet } from './components/ConfigurarBoletoSheet';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 
 interface Account {
   id: number;
@@ -67,17 +68,18 @@ function Index({ accounts, bancos_suportados }: Props) {
     <>
       {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
       <div className="fin-curadoria vendas-aplus p-6 max-w-6xl mx-auto space-y-6">
-        <header className="os-page-h fin-page-h">
-          <div className="os-page-h-l fin-page-h-l">
-            <h1>Contas Bancárias <span className="fin-hero-title-sub">· Dados de emissão de boleto</span></h1>
-            <p>
+        {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+        <PageHeader
+          title="Contas Bancárias"
+          suffix=" · Dados de emissão de boleto"
+          subtitle={
+            <>
               Banco, agência, beneficiário. Cadastro principal continua em "Contas de pagamento" do POS;
               credenciais API (Inter, Asaas, C6) ficam em <a href="/settings/payment-gateways" className="underline underline-offset-2">Gateways de Pagamento</a>.
-            </p>
-          </div>
-          <div className="os-page-h-r fin-page-h-r">
-            {/* ADR 0180 Fase 5 refine Wagner 2026-05-21 — botão "Gateways" vai pro ⋯ Mais;
-                primary "Nova conta no POS" mantém-se canto direito (canon Unificado) */}
+            </>
+          }
+        >
+          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav
               active="contas-bancarias"
               hidePrimary
@@ -85,15 +87,16 @@ function Index({ accounts, bancos_suportados }: Props) {
                 { key: 'gateways', label: 'Gateways', icon: <Settings size={13} />, onClick: () => { window.location.href = '/settings/payment-gateways'; }, title: 'Credenciais API gateways de pagamento' },
               ]}
             />
+            {/* TODO Wave 5: migrar pra <PageHeaderPrimary> (este inline ainda é verde 145 legacy) */}
             <a
               href="/account/account/create"
               className="os-btn primary"
-              style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
+              style={{ backgroundColor: 'oklch(0.55 0.15 295)', borderColor: 'oklch(0.45 0.15 295)', color: 'oklch(0.99 0 0)' }}
             >
               <Plus size={13} /> Nova conta
             </a>
           </div>
-        </header>
+        </PageHeader>
 
         <div className="rounded-md border">
           <table className="w-full text-sm">

@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Receipt, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 
 interface BoletoInfo {
@@ -90,18 +91,19 @@ function Index({ titulos, filtros }: Props) {
     <>
       {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
       <div className="fin-curadoria vendas-aplus p-6 max-w-6xl mx-auto space-y-6">
-        <header className="os-page-h fin-page-h">
-          <div className="os-page-h-l fin-page-h-l">
-            <h1>Contas a Receber <span className="fin-hero-title-sub">· Títulos</span></h1>
-            <p>Gerados de vendas (auto) ou cadastrados manualmente</p>
-          </div>
-          <div className="os-page-h-r fin-page-h-r">
+        {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 (PR #1496) */}
+        <PageHeader
+          title="Contas a Receber"
+          suffix=" · Títulos"
+          subtitle={<>Gerados de vendas (auto) ou cadastrados manualmente</>}
+        >
+          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav active="contas-receber" hidePrimary />
             <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo?kind=receivable')}>
               Novo recebimento
             </FinanceiroPrimaryButton>
           </div>
-        </header>
+        </PageHeader>
 
         {/* Filtros simples */}
         <div className="flex flex-wrap gap-2">

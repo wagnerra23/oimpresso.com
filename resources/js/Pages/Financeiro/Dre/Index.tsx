@@ -28,6 +28,7 @@ import {
 import { BalancoView, type BalancoData } from './_components/BalancoView';
 import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 
 // ---------- Tipos das linhas (espelha DRE_LINES canon TelaDRE) ----------
@@ -183,27 +184,21 @@ function FinanceiroDre({
       {/* Topnav contextual módulo — copy-paste inline do bloco `os-page-h` de
           Unificado/Index.tsx:956-1043, adaptando handlers DRE-specific.
           Extração `<FinModuleTopnav>` shared = backlog US-FIN-TOPNAV-COMPONENT (Q8a). */}
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>
-            Financeiro{' '}
-            <span className="fin-hero-title-sub">
-              ·{' '}
-              {abaAtiva === 'balanco'
-                ? 'Balanço Patrimonial'
-                : abaAtiva === 'balancete'
-                  ? 'Balancete de Verificação'
-                  : 'DRE / Relatórios'}
-            </span>
-          </h1>
-          <p>
-            {meta.periodo_label} · {meta.business_name} · caixa unificado
-          </p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 refine Wagner 2026-05-21 — botões action features → ⋯ Mais;
-              "Conciliar" + "Plano de contas" REMOVIDOS (duplicados com ghosts);
-              primary "Novo lançamento" fica no canto direito (canon Unificado) */}
+      {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+      <PageHeader
+        title="Financeiro"
+        suffix={
+          ' · ' +
+          (abaAtiva === 'balanco'
+            ? 'Balanço Patrimonial'
+            : abaAtiva === 'balancete'
+              ? 'Balancete de Verificação'
+              : 'DRE / Relatórios')
+        }
+        subtitle={<>{meta.periodo_label} · {meta.business_name} · caixa unificado</>}
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+          {/* ADR 0180 Fase 5 refine — botões features → ⋯ Mais; primary `Novo lançamento` separado */}
           <FinanceiroSubNav
             active="dre"
             hidePrimary
@@ -219,7 +214,7 @@ function FinanceiroDre({
             Novo lançamento
           </FinanceiroPrimaryButton>
         </div>
-      </header>
+      </PageHeader>
 
       <TabSwitcher aba={abaAtiva} />
 

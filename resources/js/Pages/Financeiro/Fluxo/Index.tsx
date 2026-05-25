@@ -17,6 +17,7 @@ import { Card } from '@/Components/ui/card';
 import { router } from '@inertiajs/react';
 import { useMemo, type ReactNode } from 'react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 
 interface Dia {
   data: string;
@@ -511,22 +512,22 @@ function FinanceiroFluxo(props: Props) {
   return (
     <div className="fin-curadoria vendas-aplus">
       {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>
-            Fluxo de caixa <span className="fin-hero-title-sub">· {headerSub}</span>
-          </h1>
-          <p>
+      {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+      <PageHeader
+        title="Fluxo de caixa"
+        suffix={' · ' + headerSub}
+        subtitle={
+          <>
             {tab === 'realizado'
               ? 'Entradas e saídas confirmadas, agrupadas por mês'
               : 'Saldo, entradas e saídas dia-a-dia'}
-          </p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+          </>
+        }
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
           <FinanceiroSubNav active="fluxo" hidePrimary />
         </div>
-      </header>
+      </PageHeader>
 
       <TabSwitcher tab={tab} />
 
