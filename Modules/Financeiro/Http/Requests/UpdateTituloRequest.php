@@ -5,6 +5,7 @@ namespace Modules\Financeiro\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Financeiro\Models\Categoria;
+use Modules\Financeiro\Models\PlanoConta;
 use Modules\Financeiro\Models\Titulo;
 
 /**
@@ -44,6 +45,14 @@ class UpdateTituloRequest extends FormRequest
                     ->where('business_id', $businessId)
                     ->whereNull('deleted_at'),
             ],
+            'plano_conta_id' => [
+                'nullable', 'integer',
+                Rule::exists((new PlanoConta)->getTable(), 'id')
+                    ->where('business_id', $businessId)
+                    ->where('ativo', true)
+                    ->where('aceita_lancamento', true)
+                    ->whereNull('deleted_at'),
+            ],
             'vencimento' => ['required', 'date'],
             'valor_total' => ['sometimes', 'numeric', 'min:0.01', 'max:9999999999.99'],
         ];
@@ -53,6 +62,7 @@ class UpdateTituloRequest extends FormRequest
     {
         return [
             'categoria_id.exists' => 'Categoria não pertence a este negócio.',
+            'plano_conta_id.exists' => 'Plano de contas inválido (inexistente, inativo ou sintético).',
             'vencimento.required' => 'Vencimento obrigatório.',
             'valor_total.min' => 'Valor deve ser positivo.',
         ];
@@ -69,6 +79,38 @@ class UpdateTituloRequest extends FormRequest
         }
         if (in_array($titulo->status, ['quitado', 'cancelado'], true)) {
             abort(422, "Valor de título {$titulo->status} é imutável (preserva histórico contábil).");
+        }
+    }
+
+    /**
+     * Defesa em profundidade: garante que `plano_conta_id` é coerente com `titulo.tipo`.
+     * Plano de Contas BR (DCASP) tem natureza fixa por código:
+     *   - receber → só plano tipo IN (receita, ativo)
+     *   - pagar   → só plano tipo IN (despesa, custo, passivo)
+     * Patrimônio fica de fora — não é título corrente, é encerramento exercício.
+     *
+     * Frontend já filtra o combobox, mas back-end re-valida (anti tampering).
+     */
+    public function assertPlanoCoerente(Titulo $titulo): void
+    {
+        if (! $this->filled('plano_conta_id')) {
+            return;
+        }
+
+        $plano = PlanoConta::query()
+            ->where('business_id', $titulo->business_id)
+            ->find($this->input('plano_conta_id'));
+
+        if (! $plano) {
+            return; // exists rule já tratou — defesa redundante
+        }
+
+        $permitidos = $titulo->tipo === 'receber'
+            ? ['receita', 'ativo']
+            : ['despesa', 'custo', 'passivo'];
+
+        if (! in_array($plano->tipo, $permitidos, true)) {
+            abort(422, "Plano de contas '{$plano->codigo} {$plano->nome}' (tipo {$plano->tipo}) é incompatível com título tipo '{$titulo->tipo}'.");
         }
     }
 }

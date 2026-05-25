@@ -69,6 +69,7 @@ class UnificadoController extends Controller
             ->whereIn('status', ['aberto', 'parcial', 'quitado'])
             ->with([
                 'categoria:id,nome',
+                'planoConta:id,codigo,nome,tipo',
                 'conferidoPor:id,first_name,last_name,username',
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',
@@ -258,11 +259,13 @@ class UnificadoController extends Controller
 
         $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
         $request->assertValorMutavel($titulo);
+        $request->assertPlanoCoerente($titulo);
 
         $payload = [
             'cliente_descricao' => $request->input('cliente_descricao'),
             'observacoes' => $request->input('observacoes'),
             'categoria_id' => $request->input('categoria_id') ?: null,
+            'plano_conta_id' => $request->input('plano_conta_id') ?: null,
             'vencimento' => $request->date('vencimento')->toDateString(),
             'updated_by' => $request->user()->id,
         ];
@@ -841,6 +844,9 @@ class UnificadoController extends Controller
             'contraparte_doc' => $metadata['cliente_documento'] ?? null,
             'categoria' => $t->categoria?->nome ?? 'Sem categoria',
             'categoria_id' => $t->categoria_id,
+            'plano_conta_id' => $t->plano_conta_id,
+            'plano_conta_codigo' => $t->planoConta?->codigo,
+            'plano_conta_nome' => $t->planoConta?->nome,
             'conta_bancaria' => $contaBancariaNome,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
