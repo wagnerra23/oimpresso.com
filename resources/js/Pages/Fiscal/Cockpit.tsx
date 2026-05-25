@@ -11,7 +11,8 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
-import { Archive, FileText, Plus, Receipt, RefreshCw, Shield, ShieldAlert } from 'lucide-react';
+import { Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw, Shield, ShieldAlert } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 import FxShell from './_components/FxShell';
 import { brl } from './_lib/fiscal-helpers';
@@ -116,6 +117,19 @@ export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
   const certColor = (kpis.certificadoValidadeDias ?? 999) <= 30 ? 'var(--bad)'
     : (kpis.certificadoValidadeDias ?? 999) <= 60 ? 'var(--warn)' : 'var(--fx-text-dim)';
 
+  // Wagner 2026-05-25: popmenu "+ Emitir" com NF-e/NFC-e/NFS-e (3 opcoes).
+  // Click-outside fecha. Keyboard shortcut E abre/foca.
+  const [emitirOpen, setEmitirOpen] = useState(false);
+  const emitirRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!emitirOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (emitirRef.current && !emitirRef.current.contains(e.target as Node)) setEmitirOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [emitirOpen]);
+
   return (
     <AppShellV2>
       <Head title="Fiscal · Cockpit" />
@@ -135,9 +149,29 @@ export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
         actions={
           <>
             <button className="fx-btn ghost" disabled title="PR seguinte">Exportar SPED</button>
-            <button className="fx-btn primary" disabled title="PR seguinte">
-              <Plus size={12} /> Emitir <kbd className="fx-kbd-inline">E</kbd>
-            </button>
+            <div ref={emitirRef} className="fx-popmenu-wrap">
+              <button
+                className="fx-btn primary"
+                onClick={() => setEmitirOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={emitirOpen}
+              >
+                <Plus size={12} /> Emitir <ChevronDown size={11} className="fx-popmenu-chev" />
+              </button>
+              {emitirOpen && (
+                <div role="menu" className="fx-popmenu">
+                  <button role="menuitem" className="fx-popmenu-item" onClick={() => { setEmitirOpen(false); goto('/fiscal/nfe'); }}>
+                    <Receipt size={13} /> NF-e
+                  </button>
+                  <button role="menuitem" className="fx-popmenu-item" onClick={() => { setEmitirOpen(false); goto('/fiscal/nfe?modelo=65'); }}>
+                    <Receipt size={13} /> NFC-e
+                  </button>
+                  <button role="menuitem" className="fx-popmenu-item" onClick={() => { setEmitirOpen(false); goto('/nfse'); }}>
+                    <FileText size={13} /> NFS-e
+                  </button>
+                </div>
+              )}
+            </div>
           </>
         }
       >
