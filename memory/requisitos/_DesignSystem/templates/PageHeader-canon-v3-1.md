@@ -383,7 +383,13 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
 
 **3 seções canon:** Filtros / Dados / Configuração — sempre nessa ordem, separadas por `<DropdownMenuSeparator />`.
 
-### 4.6 KPI strip card
+### 4.6 KPI strip card (pattern original strip-conectado · 4 cards)
+
+> ⚠️ **2026-05-25 v3.3 amendment:** este pattern continua válido pra Index com **exatamente 4 KPIs**
+> + canon Linear-style (cards conectados por divisores 1px). Pra Index com **5+ KPIs** OU pattern
+> Stripe-style (cards flutuantes), ver **§4.6-BIS** abaixo. Pattern Wave G Cliente/Index usa §4.6-BIS.
+>
+> Não há conflito — coexistem. Escolha baseada em (a) número de KPIs, (b) estética alvo (Linear vs Stripe).
 
 ```css
 .kpi-strip {
@@ -439,12 +445,139 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
 }
 ```
 
-**KPI strip rules:**
+**KPI strip rules (§4.6 original — strip-conectado):**
 - SEMPRE 4 cards (não 3, não 5) — grid `repeat(4, 1fr)`
 - Cards são CLICÁVEIS (filtro click-to-apply) — usar `<button>` semântico, não `<div>`
 - `aria-pressed="true"` quando o filtro do card está ativo
 - Cards "alert" usam bg rose pra chamar atenção (uso parcimonioso — máx 1 alert por strip)
 - Em viewport `< 768px`: cair pra grid 2×2 via media query
+
+### 4.6-BIS KPI strip Stripe-style flutuante (canon v3.3 final · 5 cards · 2026-05-25)
+
+> **Origem:** Wave G Cliente/Index PTDP Onda 2 precisou 5 KPIs semânticos. PR #1481/#1482/#1483
+> consolidaram pattern. Detalhes iterativos em [PageHeader-LEARNINGS.md](./PageHeader-LEARNINGS.md)
+> Decisão canon #5.
+>
+> **Use quando:** (a) Index precisa de 5+ KPIs OU (b) prefere estética Stripe-style (cards "elevados"
+> com gap visual) em vez de strip-conectado Linear-style do §4.6 original.
+
+**JSX canon (copiar-colar):**
+
+```jsx
+{/* BLOCO 2 — KPI strip FLUTUANTE (NÃO envolver em wrapper card · cards autossuficientes) */}
+<Deferred data="kpis" fallback={<KpiSkeleton />}>
+  <KpiStripClickable
+    {...kpiCounts}
+    activeKey={activeKpiKey}
+    onApply={applyKpiCard}
+  />
+</Deferred>
+```
+
+E DENTRO do componente que renderiza os cards:
+
+```jsx
+{/* mx-6: respiro lateral 24px de cada lado (recuo vs BLOCO 1 e BLOCO 3).
+    Espelha `px-6` (24px) do parent — KPI strip fica "duplo-aninhado".
+    NÃO usar `mt-*` — gap vertical via `space-y-3` (12px canon) do parent. */}
+<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mx-6">
+  {cards.map((card) => (
+    <button
+      type="button"
+      onClick={() => onApply(active ? null : card)}
+      aria-pressed={active}
+      className="group flex items-center gap-3 p-3 rounded-md border text-left transition-all
+                 bg-card border-border hover:border-muted-foreground hover:shadow-sm"
+      style={active ? { borderColor: tone.border, backgroundColor: tone.bgActive } : undefined}
+    >
+      <div className="h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0"
+           style={{ backgroundColor: tone.iconBg }}>
+        <Icon className="h-4 w-4" style={{ color: tone.iconFg }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground truncate leading-none">
+          {card.label}
+        </p>
+        <p className="text-lg font-semibold text-foreground tabular-nums leading-tight mt-1">
+          {card.value.toLocaleString('pt-BR')}
+        </p>
+        {card.sub && (
+          <p className="text-[10px] text-muted-foreground truncate leading-none mt-0.5">
+            {card.sub}
+          </p>
+        )}
+      </div>
+    </button>
+  ))}
+</div>
+```
+
+**Especificação token-a-token (§4.6-BIS):**
+
+| Atributo | Classe / Valor | Razão |
+|---|---|---|
+| **Wrapper externo** | **NENHUM** | cards autossuficientes (cada um com border + radius próprio) — evita duplo fundo |
+| Grid | `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3` | responsive 2→3→5 cols · gap 12px |
+| **Margem lateral** | **`mx-6` (24px)** | recuo em relação ao BLOCO 1/3 (que usam só `px-6` parent) · total 48px viewport edge |
+| Margem vertical | nenhuma | gap vertical = `space-y-3` (12px) do parent Cliente/Index.tsx |
+| Card box | `bg-card border border-border rounded-md p-3` | branco · slate-200 border · 6px radius · 12px padding |
+| Card active | inline `borderColor` + `backgroundColor` por tone | aria-pressed=true · tone oklch específico |
+| Ícone tile | `h-9 w-9 rounded-md` + inline bg `tone.iconBg` | 36x36 colorido (hierarquia visual) |
+| Label | `text-[10px] font-semibold tracking-wider uppercase text-muted-foreground` | 10px uppercase semântico |
+| Value | `text-lg font-semibold text-foreground tabular-nums` | 18px tabular-nums métricas |
+| Sub | `text-[10px] text-muted-foreground leading-none mt-0.5` | 10px hint subtítulo opcional |
+
+**3 quebras propositais vs §4.6 original:**
+
+1. **5 cards (não 4):** `lg:grid-cols-5` — Wave G+ precisou 5 KPIs semânticos
+2. **Cards flutuantes (não strip-conectado):** `gap-3` (12px) com cards separados — pattern Stripe Dashboard
+3. **Sem moldura externa:** zero wrapper externo — evita duplo fundo (cards já têm bg + border próprios)
+
+**Tons oklch por card (Wave G Cliente — exemplo aplicável):**
+
+| Tone | Border | bgActive | iconBg | iconFg | Uso semântico |
+|---|---|---|---|---|---|
+| `primary` | `oklch(0.62 0.18 250)` | `oklch(0.95 0.04 250)` | `oklch(0.92 0.05 250)` | `oklch(0.45 0.18 250)` | Ativos (azul) |
+| `amber` | `oklch(0.72 0.15 70)` | `oklch(0.96 0.05 70)` | `oklch(0.93 0.07 70)` | `oklch(0.50 0.15 70)` | VIPs (dourado) |
+| `rose` | `oklch(0.65 0.20 20)` | `oklch(0.96 0.04 20)` | `oklch(0.93 0.06 20)` | `oklch(0.50 0.20 20)` | Com saldo (alerta) |
+| `emerald` | `oklch(0.65 0.14 155)` | `oklch(0.95 0.04 155)` | `oklch(0.92 0.06 155)` | `oklch(0.45 0.14 155)` | Sem 90d (churn neutro) |
+| `violet` | `oklch(0.60 0.18 295)` | `oklch(0.96 0.04 295)` | `oklch(0.93 0.06 295)` | `oklch(0.50 0.18 295)` | Novos (novidade) |
+
+**Toolbar (busca + filtros + chips) — NÃO fica no BLOCO 2:**
+
+Canon v3.3 manda mover toolbar pra **header do BLOCO 3** (mesmo card da tabela), separada por
+`border-b border-border px-4 py-3`. Razão: BLOCO 2 = só KPI strip por canon §1. Pattern Linear/Stripe
+agrupa search+filter+chips junto da data list que eles filtram.
+
+```jsx
+{/* BLOCO 3 = toolbar + tabela num só card */}
+<div className="bg-background border border-border rounded-lg overflow-hidden">
+  {/* Toolbar header: busca + N filtros + contagem + chips */}
+  <div className="border-b border-border px-4 py-3">
+    <div className="flex items-center gap-3 flex-wrap">
+      {/* search input + FilterDropdown[] + count span */}
+    </div>
+    {/* ActiveChips removíveis (condicional) */}
+  </div>
+  {/* Tabela */}
+  <Deferred data="customers" fallback={<TableSkeleton />}>
+    <table>...</table>
+  </Deferred>
+</div>
+```
+
+**Anti-padrão AP21 (catalogado §30) — wrapper externo no BLOCO 2:**
+```jsx
+{/* ❌ NUNCA — duplo fundo (wrapper branco com cards brancos internos) */}
+<div className="bg-background border border-border rounded-lg overflow-hidden">
+  <KpiStripClickable ... />
+</div>
+
+{/* ✅ Canon v3.3 — cards flutuantes direto */}
+<Deferred data="kpis">
+  <KpiStripClickable ... />
+</Deferred>
+```
 
 ## 5. Estados completos
 
@@ -669,5 +802,7 @@ interface PageHeaderProps {
 | v1 | 2026-04-XX | PageHeader canon 3 zonas inicial | [0180](../../../decisions/0180-pageheader-canon-3-zonas.md) |
 | v2 | 2026-05-21 | Hue per grupo (cadastro=202, financas=145, etc) | [0182](../../../decisions/0182-pageheader-canon-hue-per-grupo.md) |
 | **v3.1** | **2026-05-24** | **Modern SaaS + roxo médio 295 + KPI separado + ⋮ overflow + bloco fechado + tabs abreviadas** | **[0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md)** |
+| **v3.2** | **2026-05-25** | **BLOCO 1 final · h1 22px/700 peso Vendas + padding `pt-6 px-6 pb-3.5` + `rounded-t-lg` (bottom reta) · primary universal 295 (sem hue per grupo)** | **[0190](../../../decisions/0190-primary-button-roxo-universal-295.md)** + LEARNINGS Decisões #1 (primary universal) + #3 (h1 peso) + #4 (BLOCO 1 pattern final) |
+| **v3.3** | **2026-05-25** | **BLOCO 2 KPI strip Stripe-style flutuante · 5 cards autossuficientes · `mx-6` (24px respiro) · sem wrapper externo · toolbar move pra header BLOCO 3 · AP21 catalogado** | LEARNINGS Decisão #5 + PRs [#1481](https://github.com/wagnerra23/oimpresso.com/pull/1481), [#1482](https://github.com/wagnerra23/oimpresso.com/pull/1482), [#1483](https://github.com/wagnerra23/oimpresso.com/pull/1483) |
 
 Iterações INTRA-versão (sem ADR formal) ficam em [PageHeader-LEARNINGS.md](./PageHeader-LEARNINGS.md).

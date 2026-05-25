@@ -482,6 +482,138 @@ no primary button, é pattern PRÉ-ADR-0190. Migrar pra `oklch(0.55 0.15 295)` h
 - Frontend: `const tabCounts = props.tab_counts ?? {all:0, customer:0, ...}` (fallback enquanto defer carrega)
 - Performance: 5 COUNT queries paralelas via defer · OK com índice `(business_id, is_X)` ou `(business_id, type)`
 
+### Decisão canon #5 — BLOCO 2 KPI strip · pattern flutuante Stripe-style (NÃO strip-conectado canon §4.6)
+
+**Contexto:**
+Wagner inspecionou Cliente/Index em prod (2026-05-25 sessão "tem dois fundos, falta folga lateral").
+Apontou 2 problemas no BLOCO 2:
+
+1. **Duplo fundo:** wrapper externo `bg-background border border-border rounded-lg overflow-hidden`
+   envolvia 5 cards que JÁ tinham `bg-card border border-border rounded-md` próprios. Resultado:
+   card-dentro-de-card branco com 2 fundos sobrepostos.
+2. **Sem respiro lateral:** cards encostavam nas bordas do wrapper externo.
+
+Iteração em 3 PRs sequenciais (#1481, #1482, #1483) fechou o pattern final.
+
+**Pattern canônico final v3.3 (gravar aqui — fonte da verdade do BLOCO 2):**
+
+```jsx
+{/* BLOCO 2 — KPI strip FLUTUANTE (canon v3.3 final · 2026-05-25) */}
+{/* NUNCA envolver em wrapper `<div bg-background border rounded-lg>` —
+    cards são autossuficientes (cada um já tem bg + border + radius próprios). */}
+<Deferred data="kpis" fallback={<KpiSkeleton />}>
+  <KpiStripClickable
+    ...counts...
+    activeKey={activeKpiKey}
+    onApply={applyKpiCard}
+  />
+</Deferred>
+```
+
+E DENTRO do `<KpiStripClickable>`:
+
+```jsx
+{/* mx-6: respiro lateral 24px de cada lado pra recuar do BLOCO 1 e BLOCO 3.
+    Espelha `px-6` (24px) do parent — KPI strip fica "duplo-aninhado".
+    NÃO usar `mt-*` interno — gap vertical vem do `space-y-3` (12px) do parent. */}
+<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mx-6">
+  {cards.map((card) => (
+    <button
+      className="group flex items-center gap-3 p-3 rounded-md border text-left transition-all
+                 bg-card border-border hover:border-muted-foreground hover:shadow-sm"
+      ...
+    >
+      {/* ícone tile 36x36 + label uppercase 10px + value 18px + sub 10px */}
+    </button>
+  ))}
+</div>
+```
+
+**Especificação token-a-token (BLOCO 2 v3.3):**
+
+| Atributo | Classe Tailwind | Valor | Razão |
+|---|---|---|---|
+| Wrapper | NENHUM | sem moldura externa | cards autossuficientes (cada um com border próprio) |
+| Grid | `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3` | gap 12px entre cards | responsive 2→3→5 cols |
+| **Margem lateral** | **`mx-6`** | **24px de cada lado** | recuo em relação ao BLOCO 1/3 (que usam só `px-6` parent) |
+| Margem topo | nenhuma | 0 | gap vertical = `space-y-3` (12px) do parent |
+| Card | `bg-card border border-border rounded-md p-3` | branco · border slate-200 · radius 6px · padding 12px | autossuficiente |
+| Card active | `style={{ borderColor: tone.border, backgroundColor: tone.bgActive }}` | tone oklch inline | aria-pressed=true |
+| Ícone tile | `h-9 w-9 rounded-md` + bg tone.iconBg | 36x36 com bg colorido | hierarquia visual |
+| Label | `text-[10px] font-semibold tracking-wider uppercase text-muted-foreground` | 10px uppercase | label semântico curto |
+| Value | `text-lg font-semibold text-foreground tabular-nums` | 18px tabular | métricas legíveis |
+| Sub | `text-[10px] text-muted-foreground` | 10px contexto | hint subtítulo |
+
+**Razão das 3 quebras vs canon §4.6 original:**
+
+1. **5 cards (não 4):** canon §4.6 dizia `repeat(4, 1fr)`. Wave G Cliente PTDP precisou de 5 KPIs
+   semânticos (Ativos + VIPs + Com saldo + Sem 90d + Novos). `lg:grid-cols-5` ok em 1280px Larissa.
+2. **Cards flutuantes (não strip-conectado):** canon §4.6 usava `gap: 1px` com background slate-200
+   pra criar divisores finos entre cards. Versão Wave G usa `gap-3` (12px) com cards separados
+   — pattern Stripe Dashboard (cards "elevados") em vez de strip Linear-style.
+3. **Sem moldura externa:** §4.6 implícito tinha border + radius no `.kpi-strip` (wrapper). v3.3 final
+   remove wrapper porque os 5 cards já têm bg + border + radius próprios → duplo fundo elimina.
+
+**Iterações que levaram ao pattern (histórico):**
+
+1. **PR #1481** (commit `bd0968e1a`): remove wrapper externo `<div bg-background border rounded-lg>`
+   do BLOCO 2 + move toolbar (busca + 6 filtros + chips) pra header do BLOCO 3 (`border-b border-border
+   px-4 py-3` separando da tabela · pattern Linear/Stripe). Tira `mt-4` interno do KpiStripClickable
+   pra `space-y-3` governar gap vertical canon 12px.
+2. **PR #1482** (commit `9cc7a5c1c`): adiciona `mx-3` (12px respiro lateral). Match canon `--gap-blocos`.
+3. **PR #1483** (commit `577bafeab`): aumenta pra `mx-6` (24px) — espelha `px-6` parent. Wagner aprovou
+   como pattern final.
+
+**Comparativo BLOCO 1 vs BLOCO 2 vs BLOCO 3 (canon v3.3 final):**
+
+| Bloco | Card visual | Padding inner | Margem lateral total viewport |
+|---|---|---|---|
+| **BLOCO 1 (Header)** | `bg-background border rounded-t-lg overflow-visible` | `pt-6 px-6 pb-3.5` | 24px (só `px-6` parent) |
+| **BLOCO 2 (KPI strip)** | SEM wrapper — 5 cards autossuficientes flutuantes | cards têm `p-3` | **48px** (24px parent + 24px `mx-6` KPI) |
+| **BLOCO 3 (Toolbar + Tabela)** | `bg-background border border-border rounded-lg overflow-hidden` | toolbar `px-4 py-3` + tabela `px-4 py-2.5` | 24px (só `px-6` parent) |
+
+KPI strip é o ÚNICO bloco com recuo lateral extra — cria diferenciação visual sem voltar a ter
+wrapper-card-dentro-de-card. Pattern Stripe Dashboard.
+
+**Regra dura pra próximas Index (Wave 2+):**
+> BLOCO 2 KPI strip canon v3.3 = **SEM wrapper externo** + **`mx-6`** (24px lateral) + **SEM `mt-*` interno**.
+> Toolbar (busca + filtros + chips) vai pra HEADER do BLOCO 3 (mesmo card da tabela, separada por `border-b`).
+> 5 cards flutuantes (não strip-conectado) é o pattern Wave G+ — `lg:grid-cols-5 gap-3` + `bg-card border rounded-md`.
+
+**Sintoma de detecção pra próximo agente:**
+Se encontrar Index com `<div className="bg-background border border-border rounded-lg overflow-hidden">`
+envolvendo `<KpiStripClickable>` (ou similar 4/5 cards), é pattern PRÉ-v3.3. Remover wrapper +
+adicionar `mx-6` ao grid + mover toolbar pra BLOCO 3.
+
+**Não decidido (review trigger):**
+- 5 cards é Wave G específico ou pattern canon Wave 2+? — Larissa biz=4 7d feedback decide.
+- `mx-6` é universal ou varia por viewport? — testar 1024px e 1920px (Wagner usa 1568px hoje).
+- Como adaptar quando `<3 KPIs` (ex Modules de Comercial puro)? — provavelmente cair pra 3 cards centered.
+
+### Anti-padrão #20 — Comentário JSX `{/* */}` solto entre `return (` e elemento root
+
+**O que aconteceu:**
+- No PR #1481 adicionei comentário documentando `mt-4` removido como `{/* ... */}` JSX entre
+  `return (` e `<div className="grid ...">` do KpiStripClickable
+- Vite build CI falhou: `Expected ")" but found "className"` na linha 187
+- JSX `return (...)` precisa retornar UMA expressão (1 elemento root). Comentário JSX `{/* */}`
+  SOZINHO ali NÃO é JSX válido — só vale DENTRO de outro elemento como filho
+
+**Por que isso é grave:**
+- CI Vite quebrou o PR principal — precisei push commit #2 (`c2acec4d8`) só pra fix sintaxe
+- Visual local não pega — `npm run dev` (HMR) é mais permissivo que `vite build` produção
+- Esbuild produção é mais estrito
+
+**Regra dura pra próxima:**
+> Comentários documentando código DENTRO de função React vão como `// ...` JS regular
+> ANTES do `return (...)`, NÃO como `{/* ... */}` JSX entre `return (` e o elemento root.
+> JSX `{/* */}` SÓ vale DENTRO de outro elemento JSX (como filho).
+
+**Como detectar antes:**
+- `npm run build:inertia` local antes de push (mais rápido que esperar CI 40s)
+- Lint regra: `eslint-plugin-react/no-unknown-property` ou `jsx-no-comments-near-return` (custom)
+- Code review: se vê `{/* ... */}` na linha LOGO acima de `<element>` que abre o return, suspeitar
+
 ---
 
 <!-- Próximas sessões abaixo desta linha. NUNCA editar sessões anteriores. -->
