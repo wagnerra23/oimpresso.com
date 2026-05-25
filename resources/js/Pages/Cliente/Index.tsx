@@ -168,15 +168,16 @@ export type ContactRoleType = 'customer' | 'supplier' | 'employee' | 'representa
  */
 const SLOT2_TABS: Array<{
   key: ContactRoleType;
-  label: string;
+  label: string;        // nome completo (mobile + screen reader title)
+  shortLabel: string;   // ADR 0189 v3.1: nome encurtado p/ desktop md+
   href: string;
   Icon: typeof Users;
 }> = [
-  { key: 'all',            label: 'Todos',          href: '/cliente?type=all',            Icon: List },
-  { key: 'customer',       label: 'Clientes',       href: '/cliente?type=customer',       Icon: Users },
-  { key: 'supplier',       label: 'Fornecedores',   href: '/cliente?type=supplier',       Icon: Truck },
-  { key: 'employee',       label: 'Funcionários',   href: '/cliente?type=employee',       Icon: Briefcase },
-  { key: 'representative', label: 'Representantes', href: '/cliente?type=representative', Icon: UserCheck },
+  { key: 'all',            label: 'Todos',          shortLabel: 'Todos',    href: '/cliente?type=all',            Icon: List },
+  { key: 'customer',       label: 'Clientes',       shortLabel: 'Clientes', href: '/cliente?type=customer',       Icon: Users },
+  { key: 'supplier',       label: 'Fornecedores',   shortLabel: 'Fornec.',  href: '/cliente?type=supplier',       Icon: Truck },
+  { key: 'employee',       label: 'Funcionários',   shortLabel: 'Equipe',   href: '/cliente?type=employee',       Icon: Briefcase },
+  { key: 'representative', label: 'Representantes', shortLabel: 'Repr.',    href: '/cliente?type=representative', Icon: UserCheck },
 ];
 
 const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; collective: string }> = {
@@ -580,165 +581,209 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   // Wave G — pills array removido (substituído por 6 FilterDropdown — ver nav acima).
   // KPIs/contadores ficam no header (subtítulo inline) + count "X de Y" ao lado dos filtros.
 
+  // PageHeader canon v3.1 (ADR 0189): primary roxo medio + 3 blocos fechados.
+  // Tokens inline (skel componente <PageHeader> ainda nao codificado em Wave 1).
+  const PRIMARY_HUE = 295;
+  const primaryBg   = `oklch(0.55 0.15 ${PRIMARY_HUE})`;
+  const primaryDk   = `oklch(0.45 0.15 ${PRIMARY_HUE})`;
+  const primarySoft = `oklch(0.96 0.03 ${PRIMARY_HUE})`;
+  const primaryTxt  = `oklch(0.35 0.15 ${PRIMARY_HUE})`;
+
+  // Counter por tab — `all` usa total geral, demais usam contagem por tipo (computada client-side).
+  // ADR 0189 v3.1: tabs ABREVIADAS via shortLabel + counter inline.
+  const tabCounts: Record<ContactRoleType, number> = {
+    all:            kpis?.total ?? 0,
+    customer:       rows.filter(r => r.type === 'customer').length,
+    supplier:       rows.filter(r => r.type === 'supplier').length,
+    employee:       rows.filter(r => r.type === 'employee').length,
+    representative: rows.filter(r => r.type === 'representative').length,
+  };
+
   return (
-    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
-      <div className="border-b border-border bg-background">
-        <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">
-          <div className="flex items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                {ROLE_TITLE[activeType].title}
-              </h1>
-              {/* Wave G — subtítulo verbose substituído por contador inline (paridade Cowork).
-                  ADR 0188 — singular/collective mudam por papel. */}
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed tabular-nums">
-                {(kpis?.total ?? 0).toLocaleString('pt-BR')} {ROLE_TITLE[activeType].collective}
-                {' · '}
-                {(kpis?.com_os_aberta ?? 0).toLocaleString('pt-BR')} ativos
-                {(kpis?.com_atraso ?? 0) > 0 && (
-                  <>
-                    {' · '}
-                    <span className="text-rose-700 dark:text-rose-400">
-                      {(kpis.com_atraso).toLocaleString('pt-BR')} com saldo
-                    </span>
-                  </>
-                )}
-              </p>
-            </div>
-            {/* PT-01 Slot 2 inline — Wagner 2026-05-24 sessao header descricao:
-                tabs ficam na MESMA LINHA do titulo (igual /financeiro/cobranca canon
-                PageHeader 3 zonas L/C/R) em vez de quebrar pra segunda linha.
-                Ordem reordenada: [Todos, Clientes, Fornecedores, Funcionarios,
-                Representantes] — Todos primeiro como ponto de entrada agregado.
-                A11y: nav real (URLs diferentes), `aria-current="page"`. */}
-            <nav
-              className="hidden md:flex items-center gap-1 shrink-0 self-stretch"
-              aria-label="Tipo de contato"
-            >
-              {SLOT2_TABS.map(({ key, label, href, Icon }) => {
-                const isActive = activeType === key;
-                return (
-                  <a
-                    key={key}
-                    href={href}
-                    aria-current={isActive ? 'page' : undefined}
-                    aria-label={`Filtrar por ${label}`}
-                    className={
-                      'group inline-flex items-center gap-1.5 px-3 h-9 text-sm border-b-2 transition-colors ' +
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 rounded-sm ' +
-                      (isActive
-                        ? 'border-primary text-foreground font-semibold'
-                        : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:border-border')
-                    }
-                  >
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                    {label}
-                  </a>
-                );
-              })}
-            </nav>
-            <div className="flex-shrink-0 flex items-center gap-2">
-              {/* Wagner 2026-05-24 (sessão pós-merge ADR 0188): Importar/Exportar movidos
-                  pra overflow menu (MoreVertical · 3 pontinhos). Libera espaço pra
-                  CTA primária "Novo X" em destaque. Pattern Linear/Stripe — actions
-                  secundárias em menu dropdown, primária explícita.
-                  PT-01 Slot 1 § DNA Header: Importar/Exportar continuam ações do
-                  PageHeader, mas como secundárias (menu) em vez de outline buttons. */}
-              {(props.permissions.import || props.permissions.view) && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      aria-label="Mais ações"
-                      title="Mais ações (Importar/Exportar)"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52">
-                    {props.permissions.import && (
-                      <DropdownMenuItem asChild>
-                        <a href="/contacts/import">
-                          <Upload className="mr-2 h-4 w-4" />
-                          Importar
-                        </a>
-                      </DropdownMenuItem>
-                    )}
-                    {props.permissions.view && (
-                      <DropdownMenuItem asChild>
-                        <a href="/cliente/export" title="Baixar CSV de contatos (UTF-8)">
-                          <Download className="mr-2 h-4 w-4" />
-                          Exportar CSV
-                        </a>
-                      </DropdownMenuItem>
-                    )}
-                    {/* Wagner 2026-05-24 pediu "cadastro tipo de contato nos ..."
-                        UPOS legacy admin: customer_groups (Cliente VIP, Atacado,
-                        Varejo, Premium etc) — rota /customer-group (CustomerGroup
-                        Controller). Atualmente biz=4 ROTA LIVRE tem 0 cadastros,
-                        link facilita o primeiro cadastro. Separator visual entre
-                        ações de dados (importar/exportar) e cadastro auxiliar. */}
-                    {(props.permissions.import || props.permissions.view) && (
-                      <DropdownMenuSeparator />
-                    )}
-                    <DropdownMenuItem asChild>
-                      <a href="/customer-group" title="Cadastrar grupos/tipos de cliente (VIP, atacado, varejo, etc)">
-                        <Layers className="mr-2 h-4 w-4" />
-                        Grupos de clientes
-                      </a>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+    <div className="-m-6 bg-slate-50 min-h-[calc(100vh-3rem)] py-3">
+     <div className="max-w-7xl mx-auto px-3 space-y-3">
+      {/* ───── BLOCO 1 · HEADER FECHADO (ADR 0189 v3.1) ───── */}
+      <header
+        className="bg-background border border-border rounded-lg overflow-visible"
+        role="banner"
+      >
+        <div className="flex items-center gap-4 px-6 py-3.5 min-h-[60px]">
+          {/* ZONA L · identidade */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-semibold tracking-tight text-foreground leading-snug">
+              {ROLE_TITLE[activeType].title}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+              {(kpis?.total ?? 0).toLocaleString('pt-BR')} {ROLE_TITLE[activeType].collective}
+              {' · '}
+              {(kpis?.com_os_aberta ?? 0).toLocaleString('pt-BR')} ativos
+              {(kpis?.com_atraso ?? 0) > 0 && (
+                <>
+                  {' · '}
+                  <strong className="text-rose-700 dark:text-rose-400 font-medium">
+                    {(kpis.com_atraso).toLocaleString('pt-BR')} com saldo
+                  </strong>
+                </>
               )}
-              {/* ADR 0188 — `all` é leitura agregada (sem CTA "Novo" — Wagner escolhe papel
-                  explicitamente). Demais papéis abrem `/contacts/create?type=X` UPOS legacy. */}
-              {props.permissions.create && activeType !== 'all' && (
-                <Button
-                  asChild
-                  style={{
-                    backgroundColor: 'oklch(0.55 0.15 202)',
-                    borderColor: 'oklch(0.45 0.15 202)',
-                    color: 'oklch(0.99 0 0)',
-                  }}
-                >
-                  <a href={`/contacts/create?type=${activeType}`}>
-                    <Plus className="mr-1.5 h-4 w-4" />
-                    Novo {ROLE_TITLE[activeType].singular}
-                  </a>
-                </Button>
-              )}
-            </div>
+            </p>
           </div>
 
-          {/* Mobile fallback: tabs como segunda linha quando viewport <md
-              (no md+ ficam inline na Zona C do header acima). */}
+          {/* ZONA C · subnav inline (md+) com tabs abreviadas + counter */}
           <nav
-            className="md:hidden flex items-center gap-1 mt-4 -mb-px border-b border-border overflow-x-auto"
-            aria-label="Tipo de contato (mobile)"
+            className="hidden md:flex items-center gap-0 shrink-0 self-stretch ml-2"
+            aria-label="Tipo de contato"
           >
-            {SLOT2_TABS.map(({ key, label, href, Icon }) => {
+            {SLOT2_TABS.map(({ key, label, shortLabel, href, Icon }) => {
               const isActive = activeType === key;
+              const count    = tabCounts[key];
               return (
                 <a
                   key={key}
                   href={href}
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={`Filtrar por ${label}`}
+                  title={label}
                   className={
-                    'group inline-flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 transition-colors shrink-0 ' +
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 rounded-sm ' +
+                    'group inline-flex items-center gap-1.5 px-3 h-9 text-[12.5px] border-b-2 -mb-px transition-colors ' +
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ' +
                     (isActive
-                      ? 'border-primary text-foreground font-semibold'
-                      : 'border-transparent text-muted-foreground font-medium hover:text-foreground hover:border-border')
+                      ? 'text-foreground font-medium'
+                      : 'border-transparent text-muted-foreground font-normal hover:text-foreground')
                   }
+                  style={isActive ? { borderBottomColor: primaryBg } : undefined}
                 >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                  {label}
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{shortLabel}</span>
+                  <span
+                    className="ml-1 px-1.5 py-px text-[11px] font-medium rounded-full tabular-nums"
+                    style={isActive
+                      ? { color: primaryTxt, background: primarySoft }
+                      : { color: 'hsl(215 16% 60%)', background: 'hsl(210 40% 96%)' }
+                    }
+                  >
+                    {count}
+                  </span>
                 </a>
               );
             })}
           </nav>
+
+          {/* ZONA R · actions (apenas ⋮ + primary roxo) */}
+          <div className="flex-shrink-0 flex items-center gap-1.5">
+            {(props.permissions.import || props.permissions.view) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Mais ações"
+                    title="Importar / Exportar / Grupos"
+                    className="h-8 w-8"
+                  >
+                    <MoreVertical className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {/* SEÇÃO DADOS — ADR 0189 v3.1 SPEC §4.5 */}
+                  {(props.permissions.import || props.permissions.view) && (
+                    <>
+                      <div className="px-2 pt-2 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Dados
+                      </div>
+                      {props.permissions.import && (
+                        <DropdownMenuItem asChild>
+                          <a href="/contacts/import">
+                            <Upload className="mr-2 h-3.5 w-3.5" />
+                            Importar
+                          </a>
+                        </DropdownMenuItem>
+                      )}
+                      {props.permissions.view && (
+                        <DropdownMenuItem asChild>
+                          <a href="/cliente/export" title="Baixar CSV de contatos (UTF-8)">
+                            <Download className="mr-2 h-3.5 w-3.5" />
+                            Exportar CSV
+                          </a>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {/* SEÇÃO CONFIGURAÇÃO */}
+                  <div className="px-2 pt-1 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Configuração
+                  </div>
+                  <DropdownMenuItem asChild>
+                    <a href="/customer-group" title="Cadastrar grupos/tipos de cliente (VIP, atacado, varejo, etc)">
+                      <Layers className="mr-2 h-3.5 w-3.5" />
+                      Grupos de clientes
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {/* Primary roxo (ADR 0189 v3.1) — `all` não tem CTA pq é leitura agregada */}
+            {props.permissions.create && activeType !== 'all' && (
+              <Button
+                asChild
+                className="h-8 px-3 text-[12.5px] font-medium"
+                style={{
+                  backgroundColor: primaryBg,
+                  borderColor: primaryDk,
+                  color: 'oklch(0.99 0 0)',
+                }}
+              >
+                <a href={`/contacts/create?type=${activeType}`}>
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  Novo {ROLE_TITLE[activeType].singular}
+                </a>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile fallback: tabs em 2ª linha quando <md (no md+ ficam inline acima) */}
+        <nav
+          className="md:hidden flex items-center gap-0 border-t border-border overflow-x-auto px-4"
+          aria-label="Tipo de contato (mobile)"
+        >
+          {SLOT2_TABS.map(({ key, label, shortLabel, href, Icon }) => {
+            const isActive = activeType === key;
+            const count    = tabCounts[key];
+            return (
+              <a
+                key={key}
+                href={href}
+                aria-current={isActive ? 'page' : undefined}
+                aria-label={`Filtrar por ${label}`}
+                title={label}
+                className={
+                  'group inline-flex items-center gap-1.5 px-3 h-11 text-[12.5px] border-b-2 -mb-px shrink-0 transition-colors ' +
+                  (isActive
+                    ? 'text-foreground font-medium'
+                    : 'border-transparent text-muted-foreground font-normal')
+                }
+                style={isActive ? { borderBottomColor: primaryBg } : undefined}
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{shortLabel}</span>
+                <span
+                  className="ml-1 px-1.5 py-px text-[11px] font-medium rounded-full tabular-nums"
+                  style={isActive
+                    ? { color: primaryTxt, background: primarySoft }
+                    : { color: 'hsl(215 16% 60%)', background: 'hsl(210 40% 96%)' }
+                  }
+                >
+                  {count}
+                </span>
+              </a>
+            );
+          })}
+        </nav>
+      </header>
+
+      {/* ───── BLOCO 2 · KPI STRIP SEPARADO (gap 12px do header) ───── */}
+      <div className="bg-background border border-border rounded-lg overflow-hidden">
 
           {/* PTDP Onda 2 — KPI strip clicável (5 cards-filtro). Substitui os 4 KpiCard
               estáticos do Wave G. Counts: Ativos + ComSaldo usam `kpis` real do backend;
@@ -886,12 +931,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               </button>
             </div>
           )}
-        </div>
       </div>
 
-      <div className="container mx-auto px-8 py-6 max-w-7xl">
-        {/* Busca + filtros: agora vivem no Slot 3 Toolbar do header (uma linha só · PT-01). */}
-
+      {/* ───── BLOCO 3 · LISTA (tabela) ───── */}
+      <div className="bg-background border border-border rounded-lg overflow-hidden">
         <Deferred data="customers" fallback={<TableSkeleton />}>
           <div className="rounded-lg border border-border bg-background overflow-hidden">
             <div className="overflow-x-auto">
@@ -1107,6 +1150,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <Keyboard size={14} />
         <Kbd>?</Kbd>
       </button>
+     </div>
     </div>
   );
 }
