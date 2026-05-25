@@ -48,7 +48,10 @@ class PainelController extends Controller
                 'name'    => $business['name'] ?? 'OIMPRESSO',
                 'version' => 'v1404 legacy migrado',
             ],
-            'painel' => Inertia::defer(fn () => $this->buildMockPayload()),
+            // Wagner 2026-05-25 HOTFIX: removido Inertia::defer. Painel.tsx
+            // lê `painel.person` direto sem wrap <Deferred> — TypeError em
+            // prod (smoke browser MCP). Mesmo padrão PR #1550/#1552.
+            'painel' => $this->buildMockPayload(),
         ]);
     }
 
