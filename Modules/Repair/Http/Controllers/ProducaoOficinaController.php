@@ -365,7 +365,9 @@ class ProducaoOficinaController extends Controller
             'id' => $tx->id,
             'invoice_no' => $tx->invoice_no,
             'final_total' => (float) $tx->final_total,
-            'transaction_date' => $tx->transaction_date?->toDateString(),
+            // Defensive cast: select específico (linha 272) NÃO dispara model casts auto-Carbon
+            // → $tx->transaction_date vem como string. Carbon::parse handle both cases.
+            'transaction_date' => $tx->transaction_date ? \Carbon\Carbon::parse($tx->transaction_date)->toDateString() : null,
             'items_list' => $itemsList,
             'items_summary' => [
                 'products_count' => $productsCount,
