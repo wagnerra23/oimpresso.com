@@ -250,15 +250,42 @@ class ProducaoOficinaController extends Controller
         // Batch lookup das Transactions derivadas (source='oficina') por job_sheet_id pra
         // exibir card "Esta OS gerou venda #V-NNNN" no drawer (frontend Onda 5).
         // 1 query única (anti-N+1) scopada por business_id (Tier 0 ADR 0093).
+        //
+        // Onda 3 (Wave Z-2 backend): eager-load sell_lines.product pra expandir
+        // payload com items_list (produto/serviço) + items_summary (counts/totals).
+        // Sem este eager-load, cada card faria N queries (anti-N+1).
         $businessId = (int) request()->session()->get('user.business_id');
         $vendaDerivadaByOs = collect();
         $osIds = $jobSheets->pluck('id')->all();
+        $nfeByTx = collect();
         if (! empty($osIds)) {
             $vendaDerivadaByOs = \App\Transaction::where('business_id', $businessId)
                 ->where('source', 'oficina')
                 ->whereIn('repair_job_sheet_id', $osIds)
+                ->with(['sell_lines' => function ($q) {
+                    $q->select([
+                        'id', 'transaction_id', 'product_id',
+                        'quantity', 'unit_price_inc_tax', 'unit_price',
+                        'item_tax', 'line_discount_amount', 'line_discount_type',
+                    ]);
+                }, 'sell_lines.product:id,name,enable_stock,type'])
                 ->get(['id', 'repair_job_sheet_id', 'invoice_no', 'final_total', 'transaction_date'])
                 ->keyBy('repair_job_sheet_id');
+
+            // Onda 3 (Wave Z-2 backend): batch lookup nfe_emissoes por transaction_id.
+            // Padrão idêntico a SellController::inertiaList (linha 1226+).
+            // Tier 0 ADR 0093: scoped por business_id (cross-tenant não vaza).
+            // Precedence: pega emissão mais recente (orderByDesc id) — autorizada
+            // sobrepõe pendente sobrepõe rejeitada quando há retentativa.
+            $txIds = $vendaDerivadaByOs->pluck('id')->all();
+            if (! empty($txIds) && class_exists(\Modules\NfeBrasil\Models\NfeEmissao::class)) {
+                $nfeByTx = \Modules\NfeBrasil\Models\NfeEmissao::where('business_id', $businessId)
+                    ->whereIn('transaction_id', $txIds)
+                    ->orderByDesc('id')
+                    ->get(['id', 'transaction_id', 'modelo', 'status', 'chave_44'])
+                    ->groupBy('transaction_id')
+                    ->map(fn ($group) => $group->first());
+            }
         }
 
         foreach ($jobSheets as $js) {
@@ -266,13 +293,98 @@ class ProducaoOficinaController extends Controller
             if ($columnId === null || ! isset($columns[$columnId])) {
                 continue;
             }
-            $columns[$columnId]['cards'][] = $this->jobSheetToCard($js, $vendaDerivadaByOs->get($js->id));
+            $tx = $vendaDerivadaByOs->get($js->id);
+            $nfe = $tx ? $nfeByTx->get($tx->id) : null;
+            $columns[$columnId]['cards'][] = $this->jobSheetToCard($js, $tx, $nfe);
         }
 
         return array_values($columns);
     }
 
-    private function jobSheetToCard(JobSheet $js, ?\App\Transaction $vendaDerivada = null): array
+    /**
+     * Onda 3 (Wave Z-2 backend) — expand `venda_derivada` com breakdown
+     * items_list / items_summary / fiscal pro drawer Cowork-styled.
+     *
+     * Backward compat: se sell_lines vazio retorna items_list=[] + summary zerado
+     * (não quebra Worker B Onda 5 que checa só presença de venda_derivada).
+     */
+    private function buildVendaDerivadaPayload(\App\Transaction $tx, $nfe = null): array
+    {
+        $itemsList = [];
+        $productsCount = 0;
+        $productsTotal = 0.0;
+        $servicesCount = 0;
+        $servicesTotal = 0.0;
+        $taxTotal = 0.0;
+        $discountTotal = 0.0;
+
+        foreach ($tx->sell_lines ?? [] as $line) {
+            // Convenção UltimatePOS — enable_stock=1 → produto físico, 0 → serviço.
+            // Ver app/Utils/ProductUtil.php:361/406 (uso histórico canonical).
+            $product = $line->product;
+            $isService = $product ? ((int) $product->enable_stock === 0) : false;
+            $type = $isService ? 'service' : 'product';
+
+            $qty = (float) ($line->quantity ?? 0);
+            $unitPrice = (float) ($line->unit_price_inc_tax ?? $line->unit_price ?? 0);
+            $subtotal = round($qty * $unitPrice, 2);
+
+            // Discount per-line (line_discount_amount * qty se fixed; % se percentage).
+            $lineDiscount = 0.0;
+            if (! empty($line->line_discount_amount) && ! empty($line->line_discount_type)) {
+                if ($line->line_discount_type === 'fixed') {
+                    $lineDiscount = (float) $line->line_discount_amount * $qty;
+                } elseif ($line->line_discount_type === 'percentage') {
+                    $lineDiscount = ($subtotal * (float) $line->line_discount_amount) / 100;
+                }
+            }
+
+            // Tax per-line (item_tax é por 1 unidade — multiplica por qty).
+            $lineTax = (float) ($line->item_tax ?? 0) * $qty;
+
+            $itemsList[] = [
+                'type' => $type,
+                'name' => $product?->name ?? '—',
+                'qty' => $qty,
+                'unit_price' => $unitPrice,
+                'subtotal' => $subtotal,
+            ];
+
+            if ($isService) {
+                $servicesCount++;
+                $servicesTotal += $subtotal;
+            } else {
+                $productsCount++;
+                $productsTotal += $subtotal;
+            }
+            $taxTotal += $lineTax;
+            $discountTotal += $lineDiscount;
+        }
+
+        return [
+            'id' => $tx->id,
+            'invoice_no' => $tx->invoice_no,
+            'final_total' => (float) $tx->final_total,
+            'transaction_date' => $tx->transaction_date?->toDateString(),
+            'items_list' => $itemsList,
+            'items_summary' => [
+                'products_count' => $productsCount,
+                'products_total' => round($productsTotal, 2),
+                'services_count' => $servicesCount,
+                'services_total' => round($servicesTotal, 2),
+                'tax_total' => round($taxTotal, 2),
+                'discount_total' => round($discountTotal, 2),
+            ],
+            'fiscal' => $nfe ? [
+                'status' => $nfe->status,
+                'modelo' => $nfe->modelo !== null ? (string) $nfe->modelo : null,
+                'chave' => $nfe->chave_44,
+                'danfe_url' => '/danfe/'.$nfe->id,
+            ] : null,
+        ];
+    }
+
+    private function jobSheetToCard(JobSheet $js, ?\App\Transaction $vendaDerivada = null, $nfe = null): array
     {
         $tech = $js->technician;
         $brand = $js->Brand;
@@ -312,12 +424,11 @@ class ProducaoOficinaController extends Controller
             // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75).
             // Card "Esta OS gerou venda #V-NNNN" renderizado no drawer Onda 5
             // quando coluna='pronto' AND venda_derivada !== null.
-            'venda_derivada' => $vendaDerivada ? [
-                'id' => $vendaDerivada->id,
-                'invoice_no' => $vendaDerivada->invoice_no,
-                'final_total' => (float) $vendaDerivada->final_total,
-                'transaction_date' => $vendaDerivada->transaction_date?->toDateString(),
-            ] : null,
+            //
+            // Onda 3 (Wave Z-2 backend) expand: items_list / items_summary / fiscal
+            // pra breakdown Cowork. Backward compat: keys core (id/invoice_no/
+            // final_total/transaction_date) preservadas — Worker B Onda 5 segue OK.
+            'venda_derivada' => $vendaDerivada ? $this->buildVendaDerivadaPayload($vendaDerivada, $nfe) : null,
         ];
     }
 
