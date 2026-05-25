@@ -130,27 +130,26 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($segmento_ativo) {
-                // ADR 0180 Fase 4 Wave B (2026-05-21): dropdown principal declara
-                // atalho kbd + primary action + ghosts tabs no `attributes`.
+                // ADR 0180 Fase 4 Wave B (2026-05-21) + Wagner 2026-05-25:
+                // Pattern canon v3: href DIRETO (não mais `Menu::dropdown` com sub-items
+                // popover) + ghosts no PageHeader (viram tabs/atalhos secundários da página).
+                //
+                // Order 31: COMERCIAL abaixo de Vendas (order 30) — Wagner 2026-05-25
+                // pediu "Oficina Auto vai pra comercial abaixo de vendas" (operação
+                // de oficina é atividade comercial · não produção como fluxo Repair).
+                // Frontend SIDEBAR_GROUPS (Components/cockpit/Sidebar.tsx) reconhece
+                // label 'Oficina Auto' no grupo 'comercial' (PR companion).
+                //
+                // Sub-popover legacy (Veículos + Ordens de Serviço) ELIMINADO:
+                // viraram ghosts (tabs PageHeader v3) — 3 atalhos visíveis na própria
+                // página /oficina-auto/* sem precisar hover sidebar.
+                //
                 //  - `shortcut` G Y → atalho overlay (não-conflito com Repair G O)
                 //  - `primary`     → "Nova OS" via ServiceOrderController@create
-                //  - `ghosts`      → Veículos, Ordens de Serviço, Produção (Kanban
-                //    caçambas Martinho 2026-05-13)
-                $menu->dropdown(
+                //  - `ghosts`      → Veículos, Ordens de Serviço, Produção (tabs PageHeader)
+                $menu->url(
+                    url('/oficina-auto/producao-oficina'),
                     'Oficina Auto',
-                    function ($sub) {
-                        $segment2 = request()->segment(2);
-
-                        $sub->url(url('/oficina-auto/veiculos'), 'Veículos', [
-                            'icon'   => 'fa fas fa-car',
-                            'active' => $segment2 === 'veiculos',
-                        ]);
-
-                        $sub->url(url('/oficina-auto/ordens-servico'), 'Ordens de Serviço', [
-                            'icon'   => 'fa fas fa-tools',
-                            'active' => $segment2 === 'ordens-servico',
-                        ]);
-                    },
                     [
                         'icon'     => 'fa fas fa-wrench',
                         'active'   => $segmento_ativo,
@@ -166,7 +165,7 @@ class DataController extends Controller
                             ['key' => 'producao-oficina',  'label' => 'Produção',           'href' => '/oficina-auto/producao-oficina'],
                         ],
                     ]
-                )->order(56);
+                )->order(31);
             }
         );
     }
