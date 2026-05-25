@@ -152,7 +152,31 @@ class HandleInertiaRequests extends Middleware
                 'consultaOs'   => \Route::has('consulta-os.index'),
                 'repairStatus' => \Route::has('repair-status'),
             ],
+            // ADR 0191 — consent banner LGPD (pré-req Microsoft Clarity).
+            // Lido em ConsentBanner.tsx pra decidir se mostra a barra. Cookie
+            // é HttpOnly (JS não enxerga) — share é o canal pro frontend.
+            'consent' => $this->consentShare($request),
         ]);
+    }
+
+    /**
+     * Estado do consent LGPD pro frontend (ADR 0191). Cookie é fonte de verdade;
+     * needs_banner=true quando ausente OU JSON corrompido.
+     */
+    protected function consentShare(Request $request): array
+    {
+        $raw = $request->cookie((string) config('services.consent.cookie_name', 'oimpresso_consent_v1'));
+        $decoded = $raw ? json_decode((string) $raw, true) : null;
+
+        if (! is_array($decoded)) {
+            return ['needs_banner' => true, 'analytics_accepted' => false, 'marketing_accepted' => false];
+        }
+
+        return [
+            'needs_banner'       => false,
+            'analytics_accepted' => (bool) ($decoded['analytics'] ?? false),
+            'marketing_accepted' => (bool) ($decoded['marketing'] ?? false),
+        ];
     }
 
     /**
