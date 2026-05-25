@@ -31,7 +31,7 @@ related_adrs: [0105, 0106, 0153, 0154, 0155, 0156]
 - **Feature flag system** — GrowthBook self-hosted no CT 100, percentage rollout + segmentação
 - **CT 100** — container Proxmox que hospeda daemons (Centrifugo, Meilisearch, MCP, agora GrowthBook)
 
-## 2. User stories
+## User stories
 
 ### US-INFRA-001 · GrowthBook self-hosted (feature flag system)
 

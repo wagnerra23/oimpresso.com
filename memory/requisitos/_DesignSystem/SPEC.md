@@ -2,7 +2,7 @@
 slug: design-system
 title: "Especificação funcional · Design System"
 type: spec
-module: _DesignSystem
+module: DesignSystem
 status: ativo
 owner: wagner
 version: "1.1"
@@ -212,7 +212,7 @@ E nunca chaves sem prefixo (colide com outras libs)
 
 ---
 
-## 3. User stories
+## User stories
 
 ### US-_DESIGNSYSTEM-001 · DESIGN.md root TOC executivo apontando pros docs canon
 
