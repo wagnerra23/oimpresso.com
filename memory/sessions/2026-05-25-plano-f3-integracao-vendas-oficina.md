@@ -1,7 +1,7 @@
 ---
 session: 2026-05-25 plano F3 — Integração Vendas × Oficina (A1 KB-9.75)
-status: rascunho · aguarda aprovação Wagner antes de F2 (Backend) + F3 (Frontend)
-parent_prs: [#1493 (código F1 protótipo · b2fcabbf2), #1495 (docs SYNC_LOG · 11484114d)]
+status: aprovado · Wagner respondeu 4 decisões 2026-05-25 ~14:15
+parent_prs: [#1493 (código F1 protótipo · b2fcabbf2), #1495 (docs SYNC_LOG · 11484114d), #1497 (este plano)]
 related_adrs: [0093, 0094, 0104, 0107, 0114, 0143, 0178]
 charter_refs: [resources/js/Pages/Sells/Index.charter.md (v4), resources/js/Pages/Repair/ProducaoOficina/Index.charter.md]
 ---
@@ -121,25 +121,38 @@ charter_refs: [resources/js/Pages/Sells/Index.charter.md (v4), resources/js/Page
 
 ---
 
-## Decisões pendentes pra Wagner aprovar antes de F2 (Backend) começar
+## Decisões Wagner (aprovadas 2026-05-25 ~14:15)
 
-1. **Onda 6 (`Sells/Caixa.tsx`):** entra nesta integração OU vai pra wave separada? Charter novo é trabalho > 250 LOC + substituição de tela Blade legacy (CashRegisterController). Recomendo **wave separada** pra manter PRs atômicos ≤300 LOC.
+1. **Onda 6 (`Sells/Caixa.tsx`):** **wave separada.** Sai do escopo desta integração. PR atômico ≤300 LOC mantido. Backlog item: charter `Sells/Caixa.charter.md` + componente novo + substituição de `CashRegisterController` Blade legacy.
+2. **Observer trigger FSM:** **`entregue_completo`** (terminal · ADR 0143). Conservador — venda registra quando cliente buscou OS e dinheiro entrou (não em `pronto_para_retirar` que pode ter cliente desistindo).
+3. **`commission_split` JSON shape:** **`{ mecanico_id: int, mecanico_pct: float, balcao_id: int|null, balcao_pct: float }`** total=100 validado server-side. Balcão NULL quando só mecânico (mecanico_pct=100). Cobre 95% dos casos. Estrutura array flex `[{user_id, role, pct}]` fica pro futuro se sinal aparecer.
+4. **Branch protection:** **review manual a cada onda.** Wagner aprova + mergeia cada PR no GitHub. 5 PRs principais (Ondas 0-5). Mais seguro pra prod.
 
-2. **ADR Auto-faturar (Onda 0):** PR só com ADR markdown (sem código), você aprova via merge da PR ou aprovação prévia em comment? Recomendo PR-ADR (mais auditável).
+(Decisões 2 e 5 não perguntadas explicitamente — defaults: PR-ADR auditável · sem `--admin` exceto plan PR #1497.)
 
-3. **`commission_split` JSON schema:** estrutura proposta `{ mecanico_id: int, mecanico_pct: float, balcao_id: int|null, balcao_pct: float }` — total deve somar 100. OK assim ou prefere outro shape?
+---
 
-4. **Status FSM canonical "Pronto" → "Entregue":** Observer dispara quando OS transiciona pra `is_completed_status=true`. ADR 0143 FSM define `entregue_completo` como terminal. Disparar no stage `pronto_para_retirar` (cliente vai buscar) OU em `entregue_completo` (cliente buscou)? Decisão impacta timing da venda.
+## Execução paralela aprovada (Wagner 2026-05-25 ~14:15)
 
-5. **Branch protection:** posso usar `gh pr merge --admin` em cada onda OU prefere review manual a cada PR? Recomendo **review manual** já que são 5+ PRs e cada um toca prod.
+```
+FASE 1 (serial · backend gate):
+  Onda 0 ADR → Wagner merge → Onda 1 Migration → Wagner merge → Onda 2 Observer+payload → Wagner merge
+
+FASE 2 (2 sub-agents paralelos via coordenador-paralelo):
+  ┌─ Worker A (sequencial dentro): Onda 3 (coluna Origem) → Wagner merge → Onda 4 (tree + KPI + listener) → Wagner merge
+  └─ Worker B (isolado):          Onda 5 (Repair/ProducaoOficina drawer card) → Wagner merge
+
+Onda 6 (Sells/Caixa.tsx): wave separada futura — fora deste plano.
+```
+
+Worker A sequencial porque tocam mesmo arquivo `Sells/Index.tsx` (merge conflict garantido se paralelo).
+Worker B independente — `Repair/ProducaoOficina/Index.tsx` é arquivo disjunto.
+Ganho estimado: Fase 2 fecha em max(A_total, B) em vez de A+B → ~40% redução.
 
 ---
 
 ## Próximo passo
 
-🛑 **STOP.** Aguardo aprovação Wagner pra:
-- (A) Iniciar Onda 0 (PR só com ADR auto-faturar)
-- (B) Responder as 5 decisões pendentes acima
-- (C) Confirmar se Onda 6 entra ou vai separado
+✅ Plano aprovado. **Iniciando Onda 0 (ADR auto-faturar OS→Venda)** em paralelo com merge do plan PR #1497.
 
-Após aprovação → mwart-process 5 fases por onda + visual-comparison.md por tela tocada (skill mwart-comparative V4) + Pest GUARDs antes de cada Edit em prod.
+Cada onda seguirá mwart-process 5 fases (PLAN → BACKEND BASELINE → FRONTEND INCREMENTAL → QA → CUTOVER) com visual-comparison.md por tela tocada (skill mwart-comparative V4) + Pest GUARDs antes de Edit em prod.
