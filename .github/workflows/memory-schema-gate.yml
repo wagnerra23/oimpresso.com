@@ -7,9 +7,13 @@ name: Memory schema gate (ONDA 5 S1)
 # Schemas: scripts/memory-schemas/*.schema.json
 # Mapa glob→schema: scripts/memory-schemas/README.md
 #
-# Grace period 14d:
-# - var JANA_VALIDATE_MEMORY_STRICT=false default → continue-on-error
-# - var JANA_VALIDATE_MEMORY_STRICT=true (após Wagner sign-off) → fail merge
+# 2026-05-25 (Wagner "endureça"): mudança de regra — gate valida APENAS
+# arquivos modificados/criados no PR vs base (não toda a árvore memory/).
+# Strict mode ON por default pra esses. Append-only canon (ADR 0095 +
+# Constituição v2 Art. 3) impede edição retroativa de ADRs/handoffs
+# aceitos — logo, legacy debt forever fica em estado "ignorado" pelo gate
+# (não bloqueia mas também não some). Workflow novo + arquivos novos
+# precisam estar válidos.
 #
 # Trigger: PR que toca memory/**/*.md OU charter ao lado de Page Inertia.
 
@@ -63,6 +67,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 2026-05-25 (Wagner "endureça"): precisa do main pra git diff
 
       - name: Setup Node 20
         uses: actions/setup-node@v4
@@ -81,11 +87,27 @@ jobs:
       - name: Compute strict mode flag
         id: strict
         run: |
-          # var/secret JANA_VALIDATE_MEMORY_STRICT controla bloqueio
-          # default false durante grace period 14d (Wagner sign-off pra ligar)
-          STRICT="${{ vars.JANA_VALIDATE_MEMORY_STRICT || 'false' }}"
+          # 2026-05-25 (Wagner "endureça"): default STRICT=true pra arquivos
+          # NOVOS/MODIFICADOS. Override via var JANA_VALIDATE_MEMORY_STRICT=false
+          # caso precise emergência (downgrade pra warning).
+          STRICT="${{ vars.JANA_VALIDATE_MEMORY_STRICT || 'true' }}"
           echo "value=$STRICT" >> "$GITHUB_OUTPUT"
           echo "Strict mode: $STRICT (false=warning, true=fail merge)"
+
+      - name: Compute changed files (diff vs base)
+        id: changed
+        run: |
+          # PR: diff vs base (origin/main em geral)
+          # Push main: diff vs HEAD~1
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+            git fetch origin "${{ github.base_ref }}" --depth=50 2>/dev/null || true
+            CHANGED=$(git diff --name-only --diff-filter=AM "$BASE...HEAD" 2>/dev/null || true)
+          else
+            CHANGED=$(git diff --name-only --diff-filter=AM HEAD~1...HEAD 2>/dev/null || true)
+          fi
+          echo "$CHANGED" > changed-files.txt
+          echo "Total changed: $(wc -l < changed-files.txt)"
 
       - name: Validate frontmatter against schema
         id: validate
@@ -112,11 +134,26 @@ jobs:
           addFormats(ajv);
           const validate = ajv.compile(schema);
 
-          const files = globSync(pattern, { ignore: ['**/_*.md', '**/README.md', '**/INDEX.md'] });
+          // 2026-05-25 (Wagner "endureça"): valida APENAS changed files que
+          // batem o glob da matriz. Legacy debt em ADRs/handoffs antigos não
+          // é re-avaliada (append-only canon — ADR 0095 + Constituição Art. 3
+          // proíbe edição retroativa pra fix de schema).
+          const changedRaw = fs.existsSync('changed-files.txt')
+            ? fs.readFileSync('changed-files.txt', 'utf8').trim().split('\n').filter(Boolean)
+            : [];
+
+          // Glob match — usa globSync com pattern original + intersect com changed
+          const allMatching = globSync(pattern, { ignore: ['**/_*.md', '**/README.md', '**/INDEX.md'] });
+          const allMatchingSet = new Set(allMatching);
+
+          const files = changedRaw.filter(f => allMatchingSet.has(f));
+
           if (files.length === 0) {
-            console.log(`[OK] nenhum arquivo bate ${pattern}`);
+            console.log(`[OK] nenhum arquivo NOVO/MODIFICADO bate ${pattern}`);
+            console.log(`(${changedRaw.length} arquivos no diff, ${allMatching.length} bateriam glob, mas nenhum interseccão)`);
             process.exit(0);
           }
+          console.log(`Validando ${files.length} arquivo(s) novo(s)/modificado(s) que batem ${pattern}`);
 
           let failed = 0;
           const violations = [];
@@ -139,7 +176,7 @@ jobs:
             }
           }
 
-          console.log(`Arquivos validados: ${files.length}`);
+          console.log(`Arquivos validados: ${files.length} (apenas novos/modificados)`);
           console.log(`Falharam (erro): ${failed}`);
           console.log(`Avisos (legacy sem frontmatter): ${violations.filter((v) => v.level === 'warn').length}`);
 
@@ -182,13 +219,15 @@ jobs:
               `### Memory schema gate — ${label}`,
               '',
               strict === 'true'
-                ? `**STRICT mode ligado** — ${errors.length} violação(ões) BLOQUEIA merge.`
+                ? `**STRICT mode ligado** (escopo: apenas arquivos novos/modificados deste PR) — ${errors.length} violação(ões) BLOQUEIA merge.`
                 : `**Grace period (strict=false)** — ${errors.length} violação(ões) reportada(s) como warning.`,
               '',
               ...lines,
               errors.length > 20 ? `\n_...mais ${errors.length - 20} omitidas (ver job logs)._` : '',
               '',
               `Schema: \`${'${{ matrix.schema }}'}\``,
+              '',
+              '> 2026-05-25 (Wagner "endureça"): legacy debt em ADRs/handoffs antigos NÃO é re-avaliada pra fix retroativo (append-only canon — ADR 0095 + Constituição Art. 3). Gate valida apenas novos.',
               '',
               'Como corrigir → ver [scripts/memory-schemas/README.md](../tree/${{ github.head_ref }}/scripts/memory-schemas/README.md).',
             ].join('\n');
