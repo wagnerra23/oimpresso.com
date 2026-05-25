@@ -126,4 +126,28 @@ return [
         'categories'      => ['necessary', 'analytics', 'marketing'],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Microsoft Clarity (session replay + heatmaps) — ADR 0191 LGPD-compliant
+    |--------------------------------------------------------------------------
+    |
+    | Setup: criar projeto em https://clarity.microsoft.com → anotar PROJECT_ID
+    | Ativação: CLARITY_ENABLED=true + CLARITY_PROJECT_ID=xxx em .env produção
+    | Default OFF — sem ativação manual Wagner, snippet NÃO carrega em lugar
+    | nenhum (zero risco de tracking sem opt-in).
+    |
+    | Multi-tenant: 1 projeto Clarity global + custom tag `business_id` no JS
+    | (filtragem nativa no dashboard). NUNCA criar 1 projeto por business.
+    |
+    | mask_strategy:
+    |   - 'mask-all' (default LGPD-safe) → mascarariza TODO texto/input;
+    |     unmask seletivo via `data-clarity-unmask="True"` em elementos seguros.
+    |   - 'mask-none' → captura tudo (NÃO usar em prod com PII de cliente).
+    */
+    'clarity' => [
+        'enabled'       => (bool) env('CLARITY_ENABLED', false),
+        'project_id'    => env('CLARITY_PROJECT_ID'),
+        'mask_strategy' => env('CLARITY_MASK_STRATEGY', 'mask-all'),
+    ],
+
 ];

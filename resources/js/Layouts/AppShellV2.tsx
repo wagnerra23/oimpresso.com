@@ -479,7 +479,11 @@ export default function AppShellV2({
         {/* MAIN COLUMN */}
         <div className="main" data-topbar={hideTopbar ? 'hidden' : 'on'}>
           {!hideTopbar && (
-          <header className="topbar">
+          /* ADR 0191 — data-clarity-unmask: breadcrumb + topnav são contexto
+             de navegação não-PII; desmascarar pra heatmap fazer sentido
+             visual no dashboard Clarity. Forms/listagens com dados de
+             cliente seguem mascarados pelo mask-all default. */
+          <header className="topbar" data-clarity-unmask="True">
             <div className="bc">
               {crumb.map((part, i) => (
                 <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>

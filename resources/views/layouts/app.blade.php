@@ -136,6 +136,10 @@
         {{-- ADR 0191 — consent banner LGPD pra Blade legacy --}}
         @include('layouts.partials.consent-banner')
 
+        {{-- ADR 0191 — Microsoft Clarity session replay (Blade legacy).
+             Guard server-side decide se renderiza. --}}
+        @include('layouts.partials.clarity')
+
         <div class="modal fade view_modal" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel"></div>
 
         @if (!empty($__additional_views) && is_array($__additional_views))
