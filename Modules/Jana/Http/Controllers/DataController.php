@@ -265,9 +265,19 @@ class DataController extends Controller
                             // Wagner 2026-05-23 fix: href '/ads' não existe (rota raiz ausente em
                             // Modules/ADS/Routes/web.php). Entry-point real do módulo é a tela Decisões.
                             ['key' => 'ads',       'label' => 'ADS',       'href' => '/ads/admin/decisoes'],
+                            // Wagner 2026-05-25: promovidas pra ghosts após audit Jana
+                            // (browser MCP smoke detectou 3 Pages órfãs sem link).
+                            //  - cockpit: Jana V2 Analista IA (Brief + KPIs + análises) — Pages/Jana/Cockpit.tsx
+                            //  - roadmap: Timeline Gantt das tasks MCP — Pages/Jana/Admin/Roadmap.tsx
+                            // Painel.tsx fica acessível só por URL (mock Onda A1, sobreposto ao Cockpit).
+                            ['key' => 'cockpit',  'label' => 'Cockpit',  'href' => '/ia/cockpit'],
+                            ['key' => 'roadmap',  'label' => 'Roadmap',  'href' => '/ia/admin/roadmap'],
                             // Wagner 2026-05-22 P2: zera 2 órfãs (telas Jana Admin Governança + Qualidade).
-                            ['key' => 'governanca-jana', 'label' => 'Governança Jana', 'href' => '/ia/admin/governanca'],
-                            ['key' => 'qualidade-jana',  'label' => 'Qualidade IA',    'href' => '/ia/admin/qualidade'],
+                            // Wagner 2026-05-25: rename 'Governança Jana' → 'Governança MCP' (alinha
+                            // com topnav.php que já chama de MCP — clarifica vs ghost 'governanca'
+                            // canon que aponta /governance/dashboard outro módulo).
+                            ['key' => 'governanca-mcp', 'label' => 'Governança MCP', 'href' => '/ia/admin/governanca'],
+                            ['key' => 'qualidade-jana', 'label' => 'Qualidade IA',   'href' => '/ia/admin/qualidade'],
                         ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)
