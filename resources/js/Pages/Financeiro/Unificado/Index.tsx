@@ -1323,7 +1323,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             DENTRO do drawer (CSS vars + grid layouts + spacing). Root cause descoberto
             via JS check: drawerInsideFinCowork=false, audit-row display=list-item
             (deveria ser grid). */}
-        <SheetContent side="right" className="fin-cowork fin-drawer-wide w-[560px] sm:max-w-[560px]">
+        <SheetContent side="right" className="fin-cowork fin-curadoria fin-drawer-wide w-[560px] sm:max-w-[560px]">
           {selected && (
             <>
               {/* Onda 17 (2026-05-20) — Header canon match prototype financeiro-app.jsx:739-754.
@@ -1633,29 +1633,39 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 </div>
               )}
 
-              {/* Aba IA — insights computacionais (Anomaly + Party History) */}
+              {/* Aba IA — insights computacionais (Anomaly + Party History)
+                  Wagner 2026-05-25: section headers `<h3>` ativam CSS canon
+                  `.fin-cowork .fin-ai-panel h3 { uppercase purple 295 }` que estava
+                  no-op por falta de markup. Wrapper `fin-curadoria` no
+                  SheetContent ativa background/border de .fin-anomaly/.fin-party-history. */}
               {drawerTab === 'ia' && (
-                <div className="mt-3 px-5 space-y-4 text-[13px] fin-ai-panel">
-                  <FinAnomalyDetector
-                    row={{
-                      id: selected.id,
-                      contraparte: selected.contraparte,
-                      categoria: selected.categoria,
-                      valor: selected.valor,
-                      vencimento: selected.vencimento,
-                      liquidacao: selected.liquidacao,
-                      status: selected.status,
-                      kind: selected.kind,
-                    }}
-                    all={lancamentos}
-                  />
+                <div className="mt-3 px-5 text-[13px] fin-ai-panel">
+                  <section>
+                    <h3>Anomalia de valor</h3>
+                    <FinAnomalyDetector
+                      row={{
+                        id: selected.id,
+                        contraparte: selected.contraparte,
+                        categoria: selected.categoria,
+                        valor: selected.valor,
+                        vencimento: selected.vencimento,
+                        liquidacao: selected.liquidacao,
+                        status: selected.status,
+                        kind: selected.kind,
+                      }}
+                      all={lancamentos}
+                    />
+                  </section>
 
-                  <FinPartyHistory
-                    currentRow={{ id: selected.id, contraparte: selected.contraparte }}
-                    all={lancamentos}
-                  />
+                  <section>
+                    <h3>Histórico com a contraparte</h3>
+                    <FinPartyHistory
+                      currentRow={{ id: selected.id, contraparte: selected.contraparte }}
+                      all={lancamentos}
+                    />
+                  </section>
 
-                  <p className="text-[11.5px] text-stone-500 italic pt-2 border-t border-stone-100">
+                  <p className="text-[11.5px] text-stone-500 italic pt-3 mt-3 border-t border-stone-100">
                     Insights computacionais · pure compute · Fase 2 plugará JanaService LLM
                   </p>
                 </div>
