@@ -34,6 +34,11 @@ class OficinaAutoServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->registerCommands();
         $this->registerPolicies();
+
+        // ADR 0192 (extensão pra OficinaAuto vertical) — Auto-faturar OS → Venda derivada
+        // quando ServiceOrder.status transiciona pra 'concluida' (terminal sucesso).
+        // Multi-tenant Tier 0 (ADR 0093) preservado · idempotente via (business_id, os_ref="SO-{id}").
+        ServiceOrder::observe(\Modules\OficinaAuto\Observers\ServiceOrderObserver::class);
     }
 
     /**
