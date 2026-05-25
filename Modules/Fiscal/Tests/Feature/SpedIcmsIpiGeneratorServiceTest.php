@@ -92,7 +92,11 @@ it('contract: 23 registros canon EFD-ICMS/IPI presentes (PR #8 + #9 Waves)', fun
         '9001', '9900', '9990', '9999',                                  // Bloco 9
     ];
     foreach ($registros as $reg) {
-        expect($src)->toContain("registro{$reg}", "Registro {$reg} deve ser implementado");
+        // Wagner 2026-05-25: Pest toContain($needle1, $needle2) checa AMBOS
+        // (não é message como PHPUnit assertContains). 2 args fazia test sempre
+        // falhar procurando string "Registro NNNN deve ser implementado" no
+        // source. Fix: 1 needle só + msg via PHPUnit Assert::assertStringContainsString.
+        expect($src)->toContain("registro{$reg}");
     }
 
     expect($registros)->toHaveCount(23);
