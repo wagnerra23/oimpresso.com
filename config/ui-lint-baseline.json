@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-25T10:29:55-03:00",
+        "generated_at": "2026-05-25T14:48:04-03:00",
         "tool": "ui:lint",
-        "files_scanned": 488,
-        "total_violations": 7307,
+        "files_scanned": 490,
+        "total_violations": 7304,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -280,7 +280,7 @@
             "R1": 16
         },
         "resources\/js\/Pages\/Cliente\/Index.tsx": {
-            "R1": 89,
+            "R1": 88,
             "R4": 1
         },
         "resources\/js\/Pages\/Cliente\/Ledger.tsx": {
@@ -384,7 +384,7 @@
             "R1": 10
         },
         "resources\/js\/Pages\/Financeiro\/Caixa\/Index.tsx": {
-            "R1": 43,
+            "R1": 44,
             "R3": 1
         },
         "resources\/js\/Pages\/Financeiro\/Categorias\/components\/CategoriaSheet.tsx": {
@@ -394,7 +394,7 @@
             "R1": 14
         },
         "resources\/js\/Pages\/Financeiro\/Cobranca\/Index.tsx": {
-            "R1": 62
+            "R1": 63
         },
         "resources\/js\/Pages\/Financeiro\/Cobranca\/_components\/AiResumoMes.tsx": {
             "R1": 21
@@ -434,7 +434,7 @@
             "R1": 12
         },
         "resources\/js\/Pages\/Financeiro\/ContasReceber\/Index.tsx": {
-            "R1": 12
+            "R1": 13
         },
         "resources\/js\/Pages\/Financeiro\/Dashboard\/Index.tsx": {
             "R1": 12
@@ -931,10 +931,10 @@
             "R1": 20
         },
         "resources\/js\/Pages\/Settings\/PaymentGateways\/_components\/DrawerGateway.tsx": {
-            "R1": 116
+            "R1": 113
         },
         "resources\/js\/Pages\/Settings\/PaymentGateways\/_components\/SheetNovoGateway.tsx": {
-            "R1": 105,
+            "R1": 103,
             "R3": 1
         },
         "resources\/js\/Pages\/Site\/Pricing.tsx": {
