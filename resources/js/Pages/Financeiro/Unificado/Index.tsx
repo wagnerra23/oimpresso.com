@@ -913,6 +913,20 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         favs.toggle(selectedId);
         return;
       }
+      // PR G (2026-05-25) G6 auditoria — N/R/P atalhos novo lançamento.
+      //   N = Novo recebimento (default — mais comum em ERP gráfico)
+      //   R = Receber explícito
+      //   P = Pagar explícito
+      if ((e.key === 'n' || e.key === 'r') && !inEditable) {
+        e.preventDefault();
+        setCreateTipo('receber');
+        return;
+      }
+      if (e.key === 'p' && !inEditable) {
+        e.preventDefault();
+        setCreateTipo('pagar');
+        return;
+      }
       // Onda 11 — J/K (ou ↓/↑) navegar linhas
       if (!inEditable && (e.key === 'j' || e.key === 'ArrowDown')) {
         e.preventDefault();
