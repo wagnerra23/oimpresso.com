@@ -126,6 +126,13 @@ Route::middleware(['setData'])->group(function () {
     Route::post('/confirm-payment/{id}', [SellPosController::class, 'confirmPayment'])
         ->middleware('throttle:10,1')
         ->name('confirm_payment');
+
+    // ADR 0191 — banner LGPD consent (pré-requisito Microsoft Clarity).
+    // Público (sem auth) — banner aparece pra anônimo na landing tambem.
+    // throttle:30,1 — UX gentil + freio contra abuso.
+    Route::post('/api/consent', [\App\Http\Controllers\ConsentController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('consent.store');
 });
 
 //Routes for authenticated users only

@@ -80,6 +80,7 @@ const TOPNAV_ICON_MAP: Record<string, LucideIcon> = {
 import { useAutoModuleNav } from '@/Hooks/usePageProps';
 import CommandPalette from '@/Components/CommandPalette';
 import PwaInstallBanner from '@/Components/shared/PwaInstallBanner';
+import ConsentBanner from '@/Components/shared/ConsentBanner';
 
 import '../../css/cockpit.css';
 
@@ -401,6 +402,10 @@ export default function AppShellV2({
       {/* PWA install banner (US-FIN-036) — auto-detecta rota /financeiro/* e
           beforeinstallprompt; fora desse contexto renderiza null. */}
       <PwaInstallBanner />
+      {/* Consent banner LGPD (ADR 0191) — portão pra analytics/tracking.
+          Auto-detecta `consent.needs_banner` via Inertia share; fora desse
+          contexto renderiza null. */}
+      <ConsentBanner />
       {switchedFrom && (
         <a
           href={`/sign-in-as-user/${switchedFrom.user_id}`}
