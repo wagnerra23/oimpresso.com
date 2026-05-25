@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Brain, Trash2, Pencil, Save, X } from 'lucide-react'
 import FabJana from './components/FabJana'
+import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader'
 
 interface MemoriaFato {
   id: number
@@ -143,6 +144,11 @@ function Memoria({ memorias }: Props) {
 
   return (
     <>
+      {/* Wagner 2026-05-25: JanaAreaHeader adicionado pós-audit browser MCP —
+          /ia/memoria estava sem header da área Jana (vs Brief/Dashboard/etc).
+          Consistência UX entre todos os ghosts. */}
+      <JanaAreaHeader active="memoria" />
+
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div className="flex items-center gap-3">
           <Brain className="size-7 text-primary" />
