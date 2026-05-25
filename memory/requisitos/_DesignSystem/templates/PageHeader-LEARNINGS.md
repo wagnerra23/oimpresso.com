@@ -614,6 +614,166 @@ adicionar `mx-6` ao grid + mover toolbar pra BLOCO 3.
 - Lint regra: `eslint-plugin-react/no-unknown-property` ou `jsx-no-comments-near-return` (custom)
 - Code review: se vê `{/* ... */}` na linha LOGO acima de `<element>` que abre o return, suspeitar
 
+### Decisão canon #6 — Canon v3.4: fundo cream + BLOCO 1 transparente + paridade /sells
+
+**Contexto:**
+Wagner inspecionou Cliente/Index após canon v3.3 e apontou que a tela ainda não tinha
+"contraste exelente" do `/sells` Cowork. Inspeção via browser MCP `getComputedStyle`
+revelou que `/sells .cockpit` usa fundo CREAM `oklch(0.985 0.003 90)` (warm hue 90),
+enquanto Cliente usava `bg-slate-50` `oklch(0.984 0.003 247.858)` cool hue 248.
+
+Mesma luminosidade (98.5%) e chroma (0.003) — **só o hue muda**. Cream tem afinidade
+visual com cards brancos (mesma família temperatura) sem competir com filtros coloridos.
+
+**Pattern canônico v3.4 (gravar aqui — fonte da verdade):**
+
+```jsx
+{/* PÁGINA — fundo cream herdado de --color-page-cream */}
+<div className="-m-6 bg-page-cream min-h-[calc(100vh-3rem)] py-4">
+  <div className="w-full px-6 space-y-3">
+
+    {/* BLOCO 1 — Header TRANSPARENTE com linha warm divisora */}
+    <header
+      className="border-b overflow-visible"
+      role="banner"
+      style={{ borderBottomColor: 'oklch(0.93 0.004 90)' }}
+    >
+      {/* identidade + subnav + actions — herda cream do parent */}
+    </header>
+
+    {/* BLOCO 2 — KPI strip Stripe-style flutuante (canon v3.3 mantido) */}
+    <Deferred data="kpis"><KpiStripClickable ... /></Deferred>
+
+    {/* BLOCO 3 — Tabela card branca com border warm */}
+    <div className="bg-background border border-border rounded-lg overflow-hidden">
+      <table>...</table>
+    </div>
+  </div>
+</div>
+```
+
+**Token canônico novo em `resources/css/inertia.css` `@theme`:**
+
+```css
+/* canon v3.4: fundo cream warm hue 90 (espelha .cockpit em /sells).
+   Tailwind v4 gera utility .bg-page-cream automaticamente. */
+--color-page-cream: oklch(0.985 0.003 90);
+
+/* dark mode: cream warm não inverte coerente — usa slate-950 neutro */
+.dark { --color-page-cream: hsl(222.2 84% 4.9%); }
+```
+
+**3 mudanças canon v3.4:**
+
+1. **Fundo página cream** (PR #1485 · commit `61337856a`)
+   - `bg-slate-50` (cool 248) → `bg-page-cream` (warm 90)
+   - Token Tailwind v4 `--color-page-cream` gera utility auto
+2. **BLOCO 1 header transparente** (PR #1486 · commit `9c0a0ac41`)
+   - Removido `bg-background border border-border rounded-t-lg`
+   - Header herda cream do parent — espelha `/sells .os-head.vd-head-clean` exato
+3. **Polish paridade /sells** (PR #1487 · commit `62c934876`)
+   - Coluna Documento: `w-32` → `w-44` + `whitespace-nowrap` (CNPJ "22.274.502/0001-14" em 1 linha)
+   - Linha warm BLOCO 1↔2: `border-b: 1px oklch(0.93 0.004 90)` no `<header>`
+   - Border cards KPI warm: `oklch(0.9 0.004 90)` em vez de `slate-200` cool (KpiStripClickable.tsx)
+
+**Especificação token-a-token (canon v3.4):**
+
+| Token | Valor | Onde |
+|---|---|---|
+| `--color-page-cream` | `oklch(0.985 0.003 90)` | `@theme` light — fundo página |
+| `--color-page-cream` dark | `hsl(222.2 84% 4.9%)` | `.dark` — fallback slate-950 |
+| Header border-bottom | `oklch(0.93 0.004 90)` (hue 90 família cream) | inline `<header>` BLOCO 1 |
+| KPI card border default | `oklch(0.9 0.004 90)` (cream-deeper warm) | KpiStripClickable inline |
+| KPI card border active | tone oklch específico (primary/amber/rose/emerald/violet) | mantido para semântica |
+
+**Regra dura pra próximas Index (Wave 2+):**
+
+> Pattern canon v3.4 — fundo página `bg-page-cream` (warm hue 90) · BLOCO 1 transparente herda cream
+> com `border-b: 1px oklch(0.93 0.004 90)` warm divisora · KPI strip Stripe-flutuante com border
+> warm `oklch(0.9 0.004 90)` · BLOCO 3 tabela continua card branco com border slate.
+>
+> Espelha `/sells` Cowork canon (Vendas) sem reescrever — mesma família temperatura cream.
+
+**Sintoma de detecção pra próximo agente:**
+
+Se encontrar Index com `<div className="-m-6 bg-slate-50 ...">` no outer page wrapper, é
+pattern PRÉ-v3.4. Trocar `bg-slate-50` → `bg-page-cream`. Pode requerer também:
+- Remover `bg-background border` do `<header>` BLOCO 1
+- Adicionar `border-b` warm `oklch(0.93 0.004 90)` no `<header>`
+- Trocar border `slate-200` cool → warm `oklch(0.9 0.004 90)` em cards KPI
+
+### Decisão canon #7 — Canon v3.5: toolbar transparente + busca direita + linha warm
+
+**Contexto:**
+Após v3.4 cream aplicado, Wagner inspecionou a toolbar (header BLOCO 3 com busca + 6
+FilterDropdowns + contagem) e apontou 3 itens:
+
+> *"agora o Filtro, deve ter transparência e ser cream, a busca na direita sempre,
+>   a linha que divide a lista e os filtros igual a divisão do bloco 1 e 2"*
+
+Inspeção em `/sells .vd-tabs-row` confirmou pattern de referência:
+- bg: `rgba(0,0,0,0)` transparente · herda cream
+- border-bottom: `1px oklch(0.9 0.004 90)` warm
+
+**Pattern canônico v3.5 (toolbar header BLOCO 3):**
+
+```jsx
+{/* BLOCO 3 — wrapper SEM moldura (toolbar transparente sobre cream) */}
+<div className="overflow-visible">
+  {/* Toolbar transparente · borda warm igual BLOCO 1↔2 */}
+  <div
+    className="px-4 py-3 border-b"
+    style={{ borderBottomColor: 'oklch(0.93 0.004 90)' }}
+  >
+    <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca">
+      {/* Filtros a ESQUERDA */}
+      <nav className="flex items-center gap-2 flex-wrap" aria-label="Filtros">
+        <FilterDropdown label="Status" ... />
+        {/* ... outros filtros + count */}
+      </nav>
+
+      {/* Busca a DIREITA com ml-auto (Wagner v3.5: search sempre direita) */}
+      <div className="relative ml-auto min-w-[200px] max-w-md w-full sm:w-auto">
+        <Input ref={searchInputRef} ... />
+      </div>
+    </div>
+    {/* ActiveChips condicionais */}
+  </div>
+
+  {/* Tabela continua card branco com border slate */}
+  <Deferred data="customers">
+    <div className="rounded-lg border border-border bg-background overflow-hidden">
+      <table>...</table>
+    </div>
+  </Deferred>
+</div>
+```
+
+**3 mudanças canon v3.5 (PR #1488 · commit `b634ddc7b`):**
+
+1. **Toolbar transparente** — removido `bg-background border border-border rounded-lg overflow-hidden`
+   do wrapper BLOCO 3. Toolbar flutua sobre cream — espelha `/sells .vd-tabs-row` `bg: rgba(0,0,0,0)`.
+
+2. **Busca à direita sempre** — inverte ordem anterior (busca esquerda · filtros direita).
+   - Filtros `<nav>` agora vem primeiro (esquerda)
+   - Busca `<div>` vem depois com `ml-auto` (empurra pra direita extrema)
+   - Pattern Linear/Stripe Dashboard
+
+3. **Linha warm divisora** — consistência visual com BLOCO 1↔2.
+   - `border-b border-border` (cool slate-200) → warm `oklch(0.93 0.004 90)` inline
+   - Mesma cor da linha entre BLOCO 1 e BLOCO 2 (canon v3.4)
+
+**Regra dura pra próximas Index (Wave 2+):**
+
+> Toolbar header BLOCO 3 canon v3.5 = **transparente** (sem `bg-background`/`border`/`rounded`) +
+> **filtros à esquerda · busca à direita com `ml-auto`** + **`border-b: 1px oklch(0.93 0.004 90)`** warm.
+> Tabela interna mantém card branco (`bg-background border border-border rounded-lg`).
+
+**Sintoma de detecção pra próximo agente:**
+
+Se encontrar Index com toolbar dentro de wrapper `<div className="bg-background border border-border rounded-lg overflow-hidden">`
+E ordem busca-esquerda/filtros-direita, é pattern PRÉ-v3.5. Aplicar 3 mudanças acima.
+
 ---
 
 <!-- Próximas sessões abaixo desta linha. NUNCA editar sessões anteriores. -->
