@@ -250,6 +250,12 @@ class DataController extends Controller
                             ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
                             ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
                             ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],
+                            // Wagner 2026-05-25: Governança canon (Modules/Governance · policies/audit/
+                            // drift/module-grades) entra como ghost da Jana — "governança é da IA".
+                            // Entry sidebar foi desligada no mesmo dia (Modules/Governance/DataController
+                            // modifyAdminMenu early-return). Sub-views Dashboard/Policies/Audit/Drift/
+                            // Module Grades navegáveis pelo PageHeader da própria Governança.
+                            ['key' => 'governanca', 'label' => 'Governança', 'href' => '/governance/dashboard'],
                             // Wagner 2026-05-23: ghost 'metas' removido — MetasController@index ainda
                             // retorna Blade view ('copiloto::metas.index'), o que faz Inertia Link no
                             // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController
