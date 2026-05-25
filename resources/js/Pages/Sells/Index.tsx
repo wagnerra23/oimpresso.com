@@ -94,6 +94,12 @@ interface SaleRow {
   // Coluna só renderiza se coworkCommissionEnabled=true (setting business.sales_cmsn_agnt ≠ 'disable').
   commission_agent_id?: number | null;
   commission_agent_name?: string | null;
+  // Integração Vendas × Oficina (Onda 3+4 · ADR 0192) — payload `/sells-list-json`
+  // devolve desde Onda 2 commit e98649989. source default 'balcao' retroativo
+  // (migration default · zero breaking change com vendas legacy).
+  source?: 'balcao' | 'oficina' | 'online' | string;
+  source_label?: string;
+  os_ref?: string | null;
 }
 
 interface SellKpis {
@@ -489,6 +495,23 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   });
   useEffect(() => ls.set('pill', pillFilter), [pillFilter]);
 
+  // Onda 4 (ADR 0192) — saved tree branch "Por origem ▾" no dropdown Visões.
+  // Filhos Balcão/Oficina/Online filtram client-side; persiste em
+  // localStorage Tier 0 per-business (Larissa biz=4 ≠ Wagner biz=1).
+  // Vazio = sem filtro de origem (semântica neutra). Felipe (mecânico) abre
+  // direto em 'oficina' via setting backend `user.profile_default === 'mecanico'`
+  // — UI-only, sem ACL hard (ADR 0192 decisão Wagner).
+  type VisaoOrigemKind = '' | 'balcao' | 'oficina' | 'online';
+  const [visaoOrigem, setVisaoOrigem] = useState<VisaoOrigemKind>(() => {
+    const v = ls.get('visao_origem', '');
+    return (['', 'balcao', 'oficina', 'online'] as const).includes(v as VisaoOrigemKind)
+      ? (v as VisaoOrigemKind)
+      : '';
+  });
+  useEffect(() => ls.set('visao_origem', visaoOrigem), [visaoOrigem]);
+  // Branch tree expand/collapse state (não persiste — UX volátil).
+  const [origemExpanded, setOrigemExpanded] = useState<boolean>(false);
+
   // Data fetch state.
   const [rows, setRows] = useState<SaleRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -742,8 +765,22 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     let out = rows.filter(currentSavedView.filter);
     if (pillFilter === 'faturada') out = out.filter((r) => r.fiscal_status === 'autorizada');
     else if (pillFilter === 'cancelada') out = out.filter((r) => r.fiscal_status === 'cancelada');
+    // Onda 4 (ADR 0192) — saved tree "Por origem" filtra cliente-side por source.
+    if (visaoOrigem) out = out.filter((r) => (r.source ?? 'balcao') === visaoOrigem);
     return out;
-  }, [rows, currentSavedView, pillFilter]);
+  }, [rows, currentSavedView, pillFilter, visaoOrigem]);
+
+  // Onda 4 (ADR 0192) — contadores por source dos rows server-loaded.
+  // Alimenta os filhos do branch "Por origem" no dropdown saved tree e o
+  // breakdown line do KPI hero quando foco='faturamento'.
+  const sourceCounts = useMemo(() => {
+    const acc = { balcao: 0, oficina: 0, online: 0 };
+    rows.forEach((r) => {
+      const k = (r.source ?? 'balcao') as 'balcao' | 'oficina' | 'online';
+      if (k === 'oficina' || k === 'online' || k === 'balcao') acc[k]++;
+    });
+    return acc;
+  }, [rows]);
 
   // Counts per pill (sobre rows server-loaded).
   const countByPill = useCallback(
@@ -787,6 +824,20 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     const total = today.reduce((s, r) => s + r.final_total, 0);
     const ticket = today.length ? total / today.length : 0;
     return { total, count: today.length, ticket };
+  }, [rows, todayIso]);
+
+  // Onda 4 (ADR 0192) — breakdown por source do KPI hero "Faturado hoje".
+  // Soma final_total dos rows do dia agrupado por source. Renderiza apenas
+  // quando foco='faturamento' E há pelo menos 1 row de oficina OU online
+  // (paridade Cowork: condicional pra não poluir tela em biz só-balcão).
+  const kpiTodayBySource = useMemo(() => {
+    const acc = { balcao: 0, oficina: 0, online: 0 };
+    rows.forEach((r) => {
+      if (r.transaction_date?.slice(0, 10) !== todayIso) return;
+      const k = (r.source ?? 'balcao') as 'balcao' | 'oficina' | 'online';
+      if (k === 'oficina' || k === 'online' || k === 'balcao') acc[k] += r.final_total;
+    });
+    return acc;
   }, [rows, todayIso]);
 
   // A receber — soma de final_total - total_paid sobre rows não-pagas.
@@ -856,6 +907,26 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
       }
       return next;
     });
+  }, []);
+
+  // Onda 4 (ADR 0192) — listener cross-módulo `oimpresso:open-venda`.
+  // Worker B (Onda 5) Repair drawer card "Esta OS gerou venda #V-NNNN" dispara
+  // `window.dispatchEvent(new CustomEvent('oimpresso:open-venda', { detail: { venda_id } }))`
+  // quando user clica "Abrir #V-NNNN". Aqui Sells/Index escuta + abre o drawer
+  // SaleSheet da venda derivada. Sem fetch redundante — backend já filtra
+  // tenancy via /sells/{id}/sheet-data (Tier 0 ADR 0093).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onOpenVenda = (e: Event) => {
+      const detail = (e as CustomEvent<{ venda_id?: number; vendaId?: number; id?: number }>).detail;
+      // Tolera 3 nomes de campo pro contrato eventual ficar resiliente.
+      const vendaId = detail?.venda_id ?? detail?.vendaId ?? detail?.id ?? null;
+      if (vendaId != null && Number.isFinite(vendaId)) {
+        setOpenSaleId(Number(vendaId));
+      }
+    };
+    window.addEventListener('oimpresso:open-venda', onOpenVenda as EventListener);
+    return () => window.removeEventListener('oimpresso:open-venda', onOpenVenda as EventListener);
   }, []);
 
   // Keyboard handler — J/K nav, ?, N, B, R, F, E, X, ⌘K, Esc.
@@ -1055,6 +1126,60 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                       </div>
                     );
                   })}
+                  {/* Onda 4 (ADR 0192) — branch expansível "Por origem ▾" com
+                      filhos Balcão/Oficina/Online + contadores derivados de
+                      sourceCounts. Filtro client-side via visaoOrigem state +
+                      localStorage Tier 0 per-business `oimpresso.sells.b*.visao_origem`.
+                      Só renderiza filhos se há pelo menos 1 row da origem. */}
+                  <div className="vd-views-sep" />
+                  <div
+                    className={`vd-tree-row l0 ${visaoOrigem ? 'active' : ''}`}
+                    onClick={(e) => {
+                      // Click no label: limpa filtro (toggle off) ou expande pra ver filhos.
+                      if (visaoOrigem) {
+                        setVisaoOrigem('');
+                      } else {
+                        setOrigemExpanded((v) => !v);
+                      }
+                      e.stopPropagation();
+                    }}
+                  >
+                    <span
+                      className={`vd-tree-arr ${origemExpanded ? 'open' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOrigemExpanded((v) => !v);
+                      }}
+                    >
+                      ›
+                    </span>
+                    <span className="vd-tree-lbl">Por origem</span>
+                    <span className="ct">{rows.length}</span>
+                  </div>
+                  {origemExpanded &&
+                    (['balcao', 'oficina', 'online'] as const)
+                      .filter((k) => sourceCounts[k] > 0)
+                      .map((k) => {
+                        const label = k === 'balcao' ? 'Balcão' : k === 'oficina' ? 'Oficina' : 'Online';
+                        const isActiveChild = visaoOrigem === k;
+                        return (
+                          <div
+                            key={k}
+                            className={`vd-tree-row l1 ${isActiveChild ? 'active' : ''}`}
+                            onClick={() => {
+                              setVisaoOrigem(k);
+                              setViewsOpen(false);
+                            }}
+                          >
+                            <span className="vd-tree-arr empty" />
+                            <span className="vd-tree-lbl">
+                              <span className={`vd-src-dot vd-src-${k}`} style={{ display: 'inline-block', marginRight: 6 }} />
+                              {label}
+                            </span>
+                            <span className="ct">{sourceCounts[k]}</span>
+                          </div>
+                        );
+                      })}
                 </div>
               )}
             </div>
@@ -1121,7 +1246,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         <div className="os-kpis vd-kpis">
           {/* Hero: Faturado hoje + sparkline (delta real US-SELL-COWORK-R5) */}
           <div className="os-kpi vd-kpi-hero">
-            <span className="os-kpi-label">Faturado hoje</span>
+            <span className="os-kpi-label">
+              Faturado hoje
+              {/* Onda 4 (ADR 0192) — tag "· todas origens" só aparece quando
+                  Foco=Faturamento (paridade Cowork). Sinaliza que o breakdown
+                  abaixo distribui o total por source (Balcão/Oficina/Online). */}
+              {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
+                <small className="vd-kpi-tag"> · todas origens</small>
+              )}
+            </span>
             <span className="os-kpi-value">{fmtShort(kpiToday.total)}</span>
             <span
               className={
@@ -1138,6 +1271,31 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 ? `— · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`
                 : `${deltaRevenue >= 0 ? '↑ +' : '↓ '}${deltaRevenue}% vs ontem · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`}
             </span>
+            {/* Onda 4 (ADR 0192) — breakdown por source quando Foco=Faturamento
+                E há pelo menos 1 venda oficina OU online hoje (evita poluir
+                tela em biz só-balcão · paridade Cowork vendas-page.jsx L817-838). */}
+            {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
+              <div className="vd-kpi-breakdown">
+                {kpiTodayBySource.balcao > 0 && (
+                  <div className="vd-kpi-b balcao">
+                    <small>● Balcão</small>
+                    <b>{fmtShort(kpiTodayBySource.balcao)}</b>
+                  </div>
+                )}
+                {kpiTodayBySource.oficina > 0 && (
+                  <div className="vd-kpi-b oficina">
+                    <small>● Oficina</small>
+                    <b>{fmtShort(kpiTodayBySource.oficina)}</b>
+                  </div>
+                )}
+                {kpiTodayBySource.online > 0 && (
+                  <div className="vd-kpi-b online">
+                    <small>● Online</small>
+                    <b>{fmtShort(kpiTodayBySource.online)}</b>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="vd-spark">
               <Sparkline data={sparkData} color="oklch(0.72 0.10 155)" />
             </div>
@@ -1341,7 +1499,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
         {/* TABLE — SellsTabelaUnificada com visibleColumns derivado da tab Visão
             (ADR 0178). Grade Avançada + toggle Lista/Grade Avançada deletados
-            2026-05-21 (cleanup pós-Onda Unificação — Wagner aprovou delete). */}
+            2026-05-21 (cleanup pós-Onda Unificação — Wagner aprovou delete).
+            Onda 3+4 (ADR 0192): coluna Origem entra no preset Operacional/Produção
+            + onPickOs navega pra Repair quando user clica ↗ #OS-NNNN. */}
         <div className="os-table-wrap">
           <SellsTabelaUnificada
             rows={filtered as UnifiedSaleRow[]}
@@ -1356,6 +1516,11 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             onToggleAll={toggleAll}
             onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
             onPaySuccess={() => setRefetchToken((t) => t + 1)}
+            onPickOs={(osRef) => {
+              // Cross-módulo Onda 3: clique no link OS-NNNN da pill VdSource navega pro
+              // Repair/ProducaoOficina (Worker B Onda 5 vai abrir drawer da OS direto).
+              window.location.href = `/repair/producao-oficina?os=${encodeURIComponent(osRef)}`;
+            }}
           />
         </div>
 
