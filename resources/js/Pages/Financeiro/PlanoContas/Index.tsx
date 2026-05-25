@@ -12,6 +12,7 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { Lock, FileText, Search } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 
 interface PlanoConta {
@@ -68,18 +69,19 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
   return (
     <div className="fin-curadoria vendas-aplus">
       {/* Onda 18 — header canon paridade Unificado */}
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>Plano de Contas <span className="fin-hero-title-sub">· Estrutura contábil BR</span></h1>
-          <p>{stats.total} contas hierárquicas (Receita Federal/DCASP) — Eliana classifica lançamentos pelo plano</p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
+      {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+      <PageHeader
+        title="Plano de Contas"
+        suffix=" · Estrutura contábil BR"
+        subtitle={<>{stats.total} contas hierárquicas (Receita Federal/DCASP) — Eliana classifica lançamentos pelo plano</>}
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
           <FinanceiroSubNav active="plano-contas" hidePrimary />
           <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/plano-contas/create')}>
             Nova conta
           </FinanceiroPrimaryButton>
         </div>
-      </header>
+      </PageHeader>
 
       {/* KPI strip canon */}
       <div className="fin-stats">
