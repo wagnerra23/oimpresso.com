@@ -30,24 +30,33 @@ export type JanaAreaTab =
   | 'chat'      // = copiloto
   | 'dashboard'
   | 'memoria'   // = memorias
-  | 'cockpit'   // = copiloto (consolidado)
+  | 'cockpit'   // ghost canon próprio (DataController Wagner 2026-05-25)
   | 'custos'
   | 'metas'
   | 'brief'
   | 'kb'
   | 'regras'
   | 'copiloto'
-  | 'memorias';
+  | 'memorias'
+  // Wagner 2026-05-25 (propagação JanaAreaHeader pra 6 telas faltantes):
+  | 'painel'
+  | 'roadmap'
+  | 'governanca-mcp'
+  | 'qualidade-jana';
 
-// Map retrocompat — telas antigas passam 'chat'/'memoria'/etc; convertemos pro
-// ghost key canon do DataController Jana.
+// Map retrocompat — telas antigas passam 'chat'/'memoria'; convertemos pro
+// ghost key canon do DataController Jana. NOTA: 'cockpit' tem ghost próprio
+// desde Wagner 2026-05-25 (DataController linha 268), não cai mais em 'copiloto'.
 function mapActiveToGhostKey(active: JanaAreaTab): string {
   switch (active) {
     case 'chat':
-    case 'cockpit':
       return 'copiloto';
     case 'memoria':
       return 'memorias';
+    case 'painel':
+      // Painel.tsx é mock Onda A1 (sobreposto ao Cockpit). Não tem ghost próprio
+      // — usa 'copiloto' como destaque ativo (Wagner avalia se promove a ghost).
+      return 'copiloto';
     default:
       return active;
   }

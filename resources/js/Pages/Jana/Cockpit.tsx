@@ -20,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { BusinessOpt } from '@/Components/cockpit/shared';
+import { JanaAreaHeader } from './components/JanaAreaHeader';
 
 // ─── Tipos ─────────────────────────────────────────────────────────────
 
@@ -954,6 +955,7 @@ export default function Cockpit({
       }}
     >
       <Head title="Jana · Cockpit" />
+      <JanaAreaHeader active="cockpit" />
       <div className="px-6 py-5 max-w-[1280px] mx-auto">
         <JanaHeader data={jana} businessNome={businessNome} />
 

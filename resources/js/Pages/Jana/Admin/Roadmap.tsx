@@ -14,7 +14,8 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useMemo, useState, useCallback } from 'react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader';
+import { GitBranch } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
   Select,
@@ -379,28 +380,33 @@ function RoadmapIndex(props: Props) {
 
   return (
     <>
-      <PageHeader
-        icon="git-branch"
-        title="Roadmap"
-        description={
-          cycleAtual
-            ? `${cycleAtual.key} — ${cycleAtual.goal ?? 'sem goal definido'}`
-            : 'Visão cronológica de cycles e tasks (MCP)'
-        }
-        action={
-          <div className="text-xs text-muted-foreground text-right">
-            <div>
-              {tasks.length} task{tasks.length === 1 ? '' : 's'} no filtro atual
-            </div>
-            {active_cycle_id && (
-              <div className="text-[10px]">
-                Cycle ativo:{' '}
-                {cycles.find((c) => c.id === active_cycle_id)?.key ?? '—'}
-              </div>
-            )}
+      <JanaAreaHeader active="roadmap" />
+
+      {/* Title local da tela — preservado pós-migração JanaAreaHeader (Wagner 2026-05-25) */}
+      <div className="px-6 pt-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <GitBranch className="size-6 text-primary" />
+          <div>
+            <h1 className="text-xl font-semibold">Roadmap</h1>
+            <p className="text-sm text-muted-foreground">
+              {cycleAtual
+                ? `${cycleAtual.key} — ${cycleAtual.goal ?? 'sem goal definido'}`
+                : 'Visão cronológica de cycles e tasks (MCP)'}
+            </p>
           </div>
-        }
-      />
+        </div>
+        <div className="text-xs text-muted-foreground text-right shrink-0">
+          <div>
+            {tasks.length} task{tasks.length === 1 ? '' : 's'} no filtro atual
+          </div>
+          {active_cycle_id && (
+            <div className="text-[10px]">
+              Cycle ativo:{' '}
+              {cycles.find((c) => c.id === active_cycle_id)?.key ?? '—'}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Filtros */}
       <Card className="mt-6 mb-4">
