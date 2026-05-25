@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
+use Modules\Financeiro\Http\Requests\StoreTituloRequest;
 use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -245,6 +246,62 @@ class UnificadoController extends Controller
                 ['label' => 'Novo lançamento', 'href' => null],
             ],
         ]);
+    }
+
+    /**
+     * POST /financeiro/unificado
+     * Onda 25 (2026-05-25) US-FIN-021 — Insert manual de título via TituloCreateSheet.
+     * Substitui stub `/unificado/novo` (Non-Goal #1 do charter v6).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): business_id da session, nunca
+     * do payload (anti tampering). Numero sequencial business-isolado via
+     * `lockForUpdate` (R-FIN-002 idempotência).
+     */
+    public function store(StoreTituloRequest $request): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = $request->user()->id;
+        $request->assertPlanoCoerente();
+
+        $titulo = DB::transaction(function () use ($request, $businessId, $userId) {
+            // Numero sequencial business-isolado.
+            // Padrão: receber → R-0001, R-0002… · pagar → P-0001, P-0002…
+            $prefixo = $request->input('tipo') === 'receber' ? 'R' : 'P';
+            $proximoNumero = (int) Titulo::where('business_id', $businessId)
+                ->where('numero', 'like', "{$prefixo}-%")
+                ->lockForUpdate()
+                ->selectRaw("MAX(CAST(SUBSTRING(numero, 3) AS UNSIGNED)) as max_n")
+                ->value('max_n');
+            $proximoNumero = max(1, $proximoNumero + 1);
+            $numero = sprintf('%s-%05d', $prefixo, $proximoNumero);
+
+            $valor = (float) $request->input('valor_total');
+
+            return Titulo::create([
+                'business_id'       => $businessId,
+                'numero'            => $numero,
+                'tipo'              => $request->input('tipo'),
+                'status'            => 'aberto',
+                'cliente_descricao' => $request->input('cliente_descricao'),
+                'valor_total'       => $valor,
+                'valor_aberto'      => $valor,
+                'moeda'             => 'BRL',
+                'emissao'           => now()->toDateString(),
+                'vencimento'        => $request->date('vencimento')->toDateString(),
+                'competencia_mes'   => now()->format('Y-m'),
+                'origem'            => 'manual',
+                'origem_id'         => null,
+                'categoria_id'      => $request->input('categoria_id') ?: null,
+                'plano_conta_id'    => $request->input('plano_conta_id') ?: null,
+                'observacoes'       => $request->input('observacoes'),
+                'created_by'        => $userId,
+                'updated_by'        => $userId,
+            ]);
+        });
+
+        $label = $titulo->tipo === 'receber' ? 'a receber' : 'a pagar';
+
+        return back()->with('success', "Lançamento {$titulo->numero} ({$label}) criado.");
     }
 
     /**
