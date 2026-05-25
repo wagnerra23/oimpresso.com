@@ -319,3 +319,49 @@ Refs feedback-nunca-publicar-credenciais.md + reference/hostinger-remote-mysql.m
 ---
 
 **Última atualização (US-INFRA-011):** 2026-05-20 — adicionada rotação senha MySQL pós-exposição sessão tarde Larissa biz=4
+
+---
+
+### US-INFRA-012 · Resolver migration order legacy pra visual-regression.yml sair de INFRA-ONLY (ADR 0108)
+
+> owner: wagner · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Workflow `.github/workflows/visual-regression.yml` (Pest 4 Browser + Playwright snapshot, ADR 0108) está em **INFRA-ONLY MODE** com `continue-on-error: true` em 3 steps (Setup Laravel, Build Inertia, Run Pest Browser). Comentário no YAML linha 102-110:
+
+> "Setup MySQL+migrate full em CI fica pra PR separado — permite job verde mesmo se migrate quebrar por ordem de migration UltimatePOS legacy (ex: ALTER TABLE contacts ADD regime AFTER contribuinte falha porque contribuinte é adicionado por migration posterior)."
+
+Resultado: workflow EXISTE mas **não bloqueia** regressão visual real. ADR 0108 vira teatro.
+
+Wagner mencionou em 2026-05-25 que isso é dívida técnica conhecida ("você lembra dessa?"). Validar com ele se ainda é prioridade.
+
+## Acceptance Criteria
+
+- [ ] Investigar quais migrations UltimatePOS legacy estão fora de ordem (provável: `ALTER TABLE contacts ADD regime AFTER contribuinte` antes da migration que adiciona `contribuinte`)
+- [ ] 2 caminhos possíveis — Wagner decide:
+  - **A**: Reorganizar migrations legacy (renomeação timestamp) — IRREVERSÍVEL em prod, alto risco multi-tenant Tier 0
+  - **B**: Criar migration consolidada `2026_*_fix_contacts_schema_for_ci.php` que roda antes em ambiente fresh CI
+- [ ] Tirar `continue-on-error: true` de `visual-regression.yml` (3 steps)
+- [ ] Estabilizar baseline screenshots (rodar `--update-snapshots` local, commit batch inicial)
+- [ ] Confirmar gate bloqueia: abrir PR teste com regressão visual deliberada, deve falhar
+- [ ] Apendar nota em ADR 0108 marcando saída de INFRA-ONLY (status pode virar `accepted` strict)
+
+## Não-objetivos
+
+- ❌ NÃO mexer em migrations já aplicadas em prod (Tier 0 IRREVOGÁVEL ADR 0093)
+- ❌ NÃO tirar continue-on-error sem baseline estabilizada (vai bloquear todo PR Inertia)
+
+## Riscos
+
+- Flakes de Playwright em CI (rendering timing) — mitigar com `await page.waitForLoadState('networkidle')`
+- Diff threshold 0.1% muito apertado pode gerar falso positivo (antialiasing) — calibrar pós-baseline
+
+## Estimate
+
+Codável IA-pair: 8h (investigação migration + fix + estabilizar baseline). Humano-limitado: ~3 dias real pra calibrar threshold + reduzir flakes (relógio do mundo real, ADR 0106 fator 10x não aplica).
+
+---
+
+**Última atualização (US-INFRA-012):** 2026-05-25 — adicionada resolução migration order legacy visual-regression.yml (batch validação design system pós-conversa Wagner com Claude do chat)
