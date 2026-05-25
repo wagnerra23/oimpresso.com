@@ -106,56 +106,31 @@ class AdminSidebarMenu
                 )->order(10);
             }
 
-            //Contacts dropdown
+            // Contatos single-link (ADR 0180 + AP19 LEARNINGS 2026-05-25):
+            // Era dropdown popup-menu com sub-items (Fornecedores/Clientes/Grupos/Importar/Map)
+            // → migrado pra SINGLE-LINK apontando pra `/contacts?type=all` (aba Todos).
+            // Sub-views (filtros por tipo) viraram tabs no PageHeader Zona C da própria tela.
+            // Ações secundárias (Importar/Exportar/Grupos) viraram items no overflow `⋮` do header.
+            // "Sidebar é mapa de DESTINOS, não AÇÕES" (ADR 0180 § Justificativa).
             if (auth()->user()->can('supplier.view') || auth()->user()->can('customer.view') || auth()->user()->can('supplier.view_own') || auth()->user()->can('customer.view_own')) {
-                $menu->dropdown(
+                $menu->url(
+                    action([\App\Http\Controllers\ContactController::class, 'index'], ['type' => 'all']),
                     __('contact.contacts'),
-                    function ($sub) {
-                        if (auth()->user()->can('supplier.view') || auth()->user()->can('supplier.view_own')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'index'], ['type' => 'supplier']),
-                                __('report.supplier'),
-                                ['icon' => '', 'active' => request()->input('type') == 'supplier']
-                            );
-                        }
-                        if (auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'index'], ['type' => 'customer']),
-                                __('report.customer'),
-                                ['icon' => '', 'active' => request()->input('type') == 'customer']
-                            );
-                            $sub->url(
-                                action([\App\Http\Controllers\CustomerGroupController::class, 'index']),
-                                __('lang_v1.customer_groups'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'customer-group']
-                            );
-                        }
-                        if (auth()->user()->can('supplier.create') || auth()->user()->can('customer.create')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'getImportContacts']),
-                                __('lang_v1.import_contacts'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'contacts' && request()->segment(2) == 'import']
-                            );
-                        }
-
-                        if (!empty(env('GOOGLE_MAP_API_KEY'))) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'contactMap']),
-                                __('lang_v1.map'),
-                                ['icon' => 'fa fas fa-map-marker-alt', 'active' => request()->segment(1) == 'contacts' && request()->segment(2) == 'map']
-                            );
-                        }
-                    },
-                    ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z"></path>
-                    <path d="M10 16h6"></path>
-                    <path d="M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                    <path d="M4 8h3"></path>
-                    <path d="M4 12h3"></path>
-                    <path d="M4 16h3"></path>
-                  </svg>', 'id' => 'tour_step4']
+                    [
+                        'icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z"></path>
+                            <path d="M10 16h6"></path>
+                            <path d="M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M4 8h3"></path>
+                            <path d="M4 12h3"></path>
+                            <path d="M4 16h3"></path>
+                          </svg>',
+                        'active' => request()->segment(1) == 'contacts'
+                                    || request()->segment(1) == 'cliente'
+                                    || request()->segment(1) == 'customer-group',
+                        'id' => 'tour_step4',
+                    ]
                 )->order(15);
             }
 
