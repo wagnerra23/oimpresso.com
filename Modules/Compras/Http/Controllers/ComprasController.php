@@ -55,10 +55,23 @@ class ComprasController extends Controller
 
         $compraId = (int) $request->query('compra_id', 0);
 
+        // C1 convergência (ADR compras-purchase-convergencia-c1) — botão "+ Nova
+        // compra" e AcoesDropdown "Editar/Excluir" delegam /purchases/* Inertia
+        // via router.visit. Permissions vêm do trilho A (Purchase MWART Wave 2
+        // B5), não compras.* — alias só em V2 se Wagner mantiver módulo como
+        // conceito separado.
+        $user = auth()->user();
+
         return Inertia::render('Compras/Index', [
             'filters' => $filters,
 
             'selected_id' => $compraId ?: null,
+
+            'permissions' => [
+                'create' => $user->can('purchase.create'),
+                'update' => $user->can('purchase.update'),
+                'delete' => $user->can('purchase.delete'),
+            ],
 
             'kpis' => Inertia::defer(
                 fn () => $this->comprasService->calcularKpis($businessId)

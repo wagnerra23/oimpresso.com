@@ -51,6 +51,19 @@ interface Summary {
   reembolso: number;
 }
 
+/**
+ * Permissions C1 — ADR compras-purchase-convergencia-c1 (2026-05-25).
+ *
+ * Backend `ComprasController::index()` resolve via `purchase.create/update/delete`
+ * (não `compras.*` — alias V2 se Wagner mantiver módulo separado). User com
+ * `compras.view` mas SEM `purchase.create` vê cockpit sem botão "+ Nova compra".
+ */
+interface PermissionsC1 {
+  create: boolean;
+  update: boolean;
+  delete: boolean;
+}
+
 interface Props {
   filters: {
     q: string;
@@ -60,6 +73,7 @@ interface Props {
     per_page: number;
   };
   selected_id: number | null;
+  permissions: PermissionsC1;
   kpis: Kpis | null;
   rows: RowsPayload | null;
   summary: Summary | null;
@@ -108,7 +122,7 @@ function dueAmount(row: Row): number {
   return Math.max(0, Number(row.final_total ?? 0) - Number(row.amount_paid ?? 0));
 }
 
-function ComprasIndex({ filters, selected_id, kpis, rows, summary, compra_detalhe }: Props) {
+function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, compra_detalhe }: Props) {
   const [localFilter, setLocalFilter] = useState<string>(filters.stage || 'all');
   const [drawerInitialTab, setDrawerInitialTab] = useState<'resumo' | 'pagamentos'>('resumo');
   const [colVisibility, setColVisibility] = useColumnVisibility('compras-cols-v1', DEFAULT_COL_VISIBILITY);
@@ -237,9 +251,16 @@ function ComprasIndex({ filters, selected_id, kpis, rows, summary, compra_detalh
           <button className="btn" disabled title="Disponível na Wave 6 (importar XML DF-e)">
             ↓ Importar XML
           </button>
-          <button className="btn primary" disabled title="Disponível na Wave 8 (form de criação)">
-            + Nova compra
-          </button>
+          {permissions.create && (
+            <button
+              className="btn primary"
+              type="button"
+              title="Nova compra (delega /purchases/create · ADR compras-purchase-convergencia-c1)"
+              onClick={() => router.visit('/purchases/create')}
+            >
+              + Nova compra
+            </button>
+          )}
         </header>
 
         {/* TABS */}
