@@ -74,9 +74,16 @@ export function PageHeaderPrimary({
     fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
   };
 
+  // Ícone canon LEARNINGS Decisão #2: size 16 + stroke 1.75 + vector-effect + shrink-0
+  // (anti-borrão Lucide DPR=1). Stroke 2 default da Lucide vira subpixel em DPR=1.
   const content = (
     <>
-      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      <Icon
+        className="h-4 w-4 shrink-0"
+        aria-hidden="true"
+        strokeWidth={1.75}
+        style={{ vectorEffect: 'non-scaling-stroke' }}
+      />
       {label}
     </>
   );
