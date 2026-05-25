@@ -238,6 +238,11 @@ class ContactController extends Controller
             return Inertia::render('Cliente/Index', [
                 'activeType' => $type,
                 'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type)),
+                // ADR 0189 v3.1 + LEARNINGS AP18 (2026-05-25): counters por papel canon
+                // pro PageHeader Zona C subnav. Backend devolve count(*) por tipo;
+                // frontend NUNCA recalcula via rows.filter (rows traz só tipo ativo,
+                // server-side filtered → outros tipos retornariam 0 — bug visível).
+                'tab_counts' => Inertia::defer(fn () => $this->buildClienteIndexTabCounts((int) $business_id)),
                 'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id, $type)),
                 'permissions' => [
                     'create' => auth()->user()->can('customer.create'),
@@ -337,6 +342,33 @@ class ContactController extends Controller
             'com_atraso' => (int) $com_atraso,
             'valor_total_aberto' => $valor_total_aberto,
         ];
+    }
+
+    /**
+     * ADR 0189 PageHeader canon v3.1 + LEARNINGS AP18 (2026-05-25):
+     * counters por papel pro Zona C subnav. Backend devolve 5 counts canônicos
+     * (all + 4 papeis ADR 0188), frontend NUNCA recalcula via rows.filter
+     * — rows traz só tipo ativo (server-side filtered) → outros retornariam 0.
+     *
+     * Multi-tenant Tier 0: scoped por `business_id` ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+     * Perf: 5 queries COUNT — OK com índice `(business_id, is_X)` ou `(business_id, type)`.
+     *
+     * @return array{all:int,customer:int,supplier:int,employee:int,representative:int}
+     */
+    private function buildClienteIndexTabCounts(int $business_id): array
+    {
+        $base = Contact::where('contacts.business_id', $business_id);
+
+        $counts = [
+            'all' => (int) (clone $base)->count(),
+        ];
+
+        foreach (['customer', 'supplier', 'employee', 'representative'] as $tipo) {
+            $q = clone $base;
+            $counts[$tipo] = (int) $this->applyContactTypeFilter($q, $tipo)->count();
+        }
+
+        return $counts;
     }
 
     /**
