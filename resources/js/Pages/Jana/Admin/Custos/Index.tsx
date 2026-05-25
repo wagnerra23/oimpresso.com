@@ -14,7 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import PageHeader from '@/Components/shared/PageHeader';
+import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader';
+import { Coins } from 'lucide-react';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 
@@ -208,19 +209,26 @@ function CustosIaIndex(props: Props) {
 
   return (
     <>
-      <PageHeader
-        icon="coins"
-        title="Custos de IA"
-        description={`Visão de consumo do Copiloto — ${periodo.label}`}
-        action={
-          <div className="text-xs text-muted-foreground text-right">
-            <div>
-              Modelo base: <span className="font-mono">{pricing.modelo_default}</span>
-            </div>
-            <div>Câmbio: R$ {pricing.cambio_brl_usd.toFixed(2)} / US$</div>
+      <JanaAreaHeader active="custos" />
+
+      {/* Title local da tela — preservado pós-migração JanaAreaHeader (Wagner 2026-05-25) */}
+      <div className="px-6 pt-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Coins className="size-6 text-primary" />
+          <div>
+            <h1 className="text-xl font-semibold">Custos de IA</h1>
+            <p className="text-sm text-muted-foreground">
+              Visão de consumo do Copiloto — {periodo.label}
+            </p>
           </div>
-        }
-      />
+        </div>
+        <div className="text-xs text-muted-foreground text-right shrink-0">
+          <div>
+            Modelo base: <span className="font-mono">{pricing.modelo_default}</span>
+          </div>
+          <div>Câmbio: R$ {pricing.cambio_brl_usd.toFixed(2)} / US$</div>
+        </div>
+      </div>
 
       <KpiGrid cols={4} className="mt-6">
         <KpiCard

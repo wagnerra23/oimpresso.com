@@ -10,6 +10,7 @@
 import React from 'react'
 import { Head } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
+import { JanaAreaHeader } from './components/JanaAreaHeader'
 
 interface BriefData {
   greeting: string
@@ -74,6 +75,7 @@ export default function Painel({ business, painel }: Props) {
   return (
     <AppShellV2 title="Jana · Painel">
       <Head title="Jana · Painel" />
+      <JanaAreaHeader active="painel" />
 
       <div className="jc-page" data-screen-label="Jana — Dashboard">
         <header className="jc-header">
