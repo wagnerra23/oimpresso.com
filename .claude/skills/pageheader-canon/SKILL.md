@@ -169,7 +169,19 @@ Pra CADA botão do header pre-pattern, decidir destino:
    - **Independente do grupo do módulo** — Financeiro/Cadastro/Vendas/Produção: TODOS usam mesmo roxo
    - Componentes legacy `FinanceiroPrimaryButton/JanaPrimaryButton/PontoPrimaryButton` DEPRECATED — migrar pra roxo universal
    - NUNCA magenta 330 (canon UPOS legado), NUNCA hue do grupo (canon v3 pré-0190)
-   - Próximo PR canon: extrair `<PageHeaderPrimary>` componente único universal
+   - **Já implementado:** `<PageHeaderPrimary>` componente único universal em `@/Components/PageHeader` (PR #1462)
+
+4. **Ícones — preferência canon (LEARNINGS decisão #2):**
+   - **Atual:** `lucide-react` (1400+ ícones)
+   - **Preferência longo prazo:** **Phosphor Icons** (`@phosphor-icons/react`) — 9000+ ícones, 6 weights, pixel-perfect em 16px
+   - **Interim Lucide com 5 fixes (anti-borrão):**
+     * `size={16}` (não 14) — múltiplo de 4
+     * `strokeWidth={1.75}` (não 2) — evita subpixel
+     * `vector-effect: non-scaling-stroke` no SVG
+     * `color: oklch(0.40 0 0)` — chroma 0 firme, não 0.005 lavado
+     * `className="shrink-0"` em flex
+   - SPEC completa: [PageHeader-canon-v3-1.md §10b](../../../memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md)
+   - Detalhes: [PageHeader-LEARNINGS Decisão #2](../../../memory/requisitos/_DesignSystem/templates/PageHeader-LEARNINGS.md)
    - Default ícone `<Plus/>`, override `hideIcon` se workflow não-create
 
 4. **Telas Pages/<Modulo>/<X>/Index.tsx** (LISTAGEM):
