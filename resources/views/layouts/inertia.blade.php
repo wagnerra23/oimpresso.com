@@ -54,5 +54,9 @@
 </head>
 <body class="bg-background text-foreground antialiased">
     @inertia
+
+    {{-- Microsoft Clarity session replay (ADR 0191) — guard server-side decide
+         se renderiza. NÃO mover pro <head> (snippet oficial Microsoft é async). --}}
+    @include('layouts.partials.clarity')
 </body>
 </html>

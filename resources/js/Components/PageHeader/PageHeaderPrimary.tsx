@@ -89,6 +89,8 @@ export function PageHeaderPrimary({
   );
 
   // Render como <a> quando tem href e não desabilitado
+  // ADR 0191 — data-clarity-unmask: label é verbo de ação ("Novo cliente",
+  // "Pagar") — não-PII; desmascarar pra rage-click heatmap fazer sentido.
   if (href && !disabled) {
     return (
       <a
@@ -98,6 +100,7 @@ export function PageHeaderPrimary({
         title={title}
         aria-label={ariaLabel}
         data-testid={dataTestId}
+        data-clarity-unmask="True"
       >
         {content}
       </a>
@@ -115,6 +118,7 @@ export function PageHeaderPrimary({
       title={title}
       aria-label={ariaLabel}
       data-testid={dataTestId}
+      data-clarity-unmask="True"
     >
       {content}
     </button>
