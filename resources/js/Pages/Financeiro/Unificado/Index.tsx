@@ -1140,7 +1140,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             visual via `nivel` (4 espaços por nível) pra leitura tipo árvore.
             Mantém prop `filters.categoria` por back-compat (mesmo querystring). */}
         <select
-          className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
+          className="fin-filter-select"
           value={filters.categoria}
           onChange={(e) => aplicar({ categoria: e.target.value })}
           aria-label="Plano de Contas"
