@@ -98,6 +98,22 @@
 
 .fx-kbd-inline { margin-left: 4px; opacity: .7; }
 
+/* Wagner 2026-05-25: popmenu "+ Emitir" no Cockpit (NF-e/NFC-e/NFS-e). */
+.fx-popmenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font-size: 13px;
+  color: var(--fx-text);
+  cursor: pointer;
+}
+.fx-popmenu-item:hover { background: var(--fx-bg-hover, #f1f5f9); }
+
 /* ─── SUB-NAV ──────────────────────────────────────────────────── */
 .fx-subnav {
   display: flex;

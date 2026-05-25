@@ -99,6 +99,10 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'project mgmt': ClipboardList,
   nfse: FileText,
   'nf-e brasil': FileText,
+  // Wagner 2026-05-25: 3 entries flat do grupo FISCAL (substitui 1 entry "Fiscal").
+  'notas fiscais': Receipt,
+  'manifestação': Inbox,
+  certificado: ShieldCheck,
   'cofre de memórias': Vault,
   'base de conhecimento': BookOpen,
   planilha: Sheet,
@@ -180,10 +184,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
     key: 'fiscal',
     label: 'FISCAL',
-    // Wagner 2026-05-22: grupo FISCAL separado (8º grupo). Items via shell.menu
-    // do hub Fiscal (Modules/NfeBrasil declara group:'fiscal' agora).
-    items: ['Fiscal', 'Notas fiscais', 'NFSe', 'NF-e Brasil', 'NF-e',
-            'NFC-e', 'Manifestação', 'Certificado Digital'],
+    // Wagner 2026-05-25: 3 entries flat — Notas Fiscais, Manifestação, Certificado.
+    // (Substitui 1 entry "Fiscal" + ghosts PageHeader). Labels legacy mantidos
+    // pra compat com módulos não-migrados ainda apontando labels antigos.
+    items: ['Notas Fiscais', 'Manifestação', 'Certificado',
+            'Notas fiscais', 'NFSe', 'NF-e Brasil', 'NF-e', 'NFC-e',
+            'Certificado Digital', 'Fiscal'],
   },
   {
     key: 'producao',
