@@ -88,3 +88,28 @@ it('cenario 9: rotas install/uninstall estão registradas (Wagner aprova superad
     expect(collect($routes))->toContain('crm/install');
     expect(collect($routes))->toContain('crm/install/uninstall');
 });
+
+it('cenario 10: rota PATCH cliente/{id}/papeis registrada (ADR 0188 Onda 4)', function () {
+    // ADR 0188 §Plano-8 — Drawer 760 secao "Papeis" com 4 checkboxes is_X.
+    // Endpoint separado pra isolar invariante ">=1 papel ativo" no backend.
+    expect(\Route::has('cliente.autosave.papeis'))->toBeTrue(
+        'Rota cliente.autosave.papeis deveria existir per Routes/web.php (PATCH /cliente/{id}/papeis)'
+    );
+
+    $route = \Route::getRoutes()->getByName('cliente.autosave.papeis');
+    expect($route)->not->toBeNull();
+    expect($route->methods())->toContain('PATCH');
+    expect($route->uri())->toBe('cliente/{id}/papeis');
+});
+
+it('cenario 11: rota papeis mantem stack canonico multi-tenant (Tier 0)', function () {
+    // ADR 0093 IRREVOGAVEL — todas rotas autenticadas precisam de
+    // SetSessionData + auth + CheckUserLogin pra business_id scope correto.
+    $route = \Route::getRoutes()->getByName('cliente.autosave.papeis');
+    expect($route)->not->toBeNull();
+
+    $middlewares = $route->gatherMiddleware();
+    expect($middlewares)->toContain('auth');
+    expect($middlewares)->toContain('SetSessionData');
+    expect($middlewares)->toContain('CheckUserLogin');
+});
