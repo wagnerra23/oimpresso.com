@@ -238,14 +238,24 @@ class DataController extends Controller
                         // Wagner 2026-05-22: hrefs /jana → /ia (vertical-slice IA piloto
                         // sidebar v3 — URL canon casa com label "IA" do topo).
                         'ghosts'   => [
-                            // 5 destinos canon do guia
+                            // Wagner 2026-05-25: Dashboard PROMOVIDO pra primeira aba canon
+                            // da Jana — destino pós-login (`/home → /ia/dashboard`). Charter
+                            // Pages/Jana/Dashboard.charter.md já cobre empty state. Substitui
+                            // Copiloto (chat) como entry-point default da Jana — chat continua
+                            // acessível em 2ª aba e via FAB. Tentativas anteriores travaram em
+                            // DashboardController@index redirect "sem metas → chat" (removido).
+                            ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
                             ['key' => 'copiloto',  'label' => 'Copiloto',  'href' => '/ia'],
                             ['key' => 'brief',     'label' => 'Brief',     'href' => '/ia/brief'],
                             ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
                             ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
                             ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],
-                            // Operacional interno (descoberta admin)
-                            ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
+                            // Wagner 2026-05-25: Governança canon (Modules/Governance · policies/audit/
+                            // drift/module-grades) entra como ghost da Jana — "governança é da IA".
+                            // Entry sidebar foi desligada no mesmo dia (Modules/Governance/DataController
+                            // modifyAdminMenu early-return). Sub-views Dashboard/Policies/Audit/Drift/
+                            // Module Grades navegáveis pelo PageHeader da própria Governança.
+                            ['key' => 'governanca', 'label' => 'Governança', 'href' => '/governance/dashboard'],
                             // Wagner 2026-05-23: ghost 'metas' removido — MetasController@index ainda
                             // retorna Blade view ('copiloto::metas.index'), o que faz Inertia Link no
                             // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController

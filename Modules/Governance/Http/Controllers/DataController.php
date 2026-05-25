@@ -52,6 +52,15 @@ class DataController extends Controller
 
     public function modifyAdminMenu()
     {
+        // Wagner 2026-05-25: entry sidebar de Governança REMOVIDA — módulo
+        // continua acessível por URL direta (/governance/dashboard, /policies,
+        // /audit, /drift, /module-grades) mas não aparece no sidebar. Roteamento
+        // canon agora é via Jana: login pós-redirect → /ia/dashboard (primeira
+        // aba). Permissions/package/rotas preservadas — só desligamos o
+        // Menu::modify pra parar de renderizar entry no AppShellV2.
+        return;
+
+        // ↓ DEAD CODE preservado pra histórico (até ADR formalizar a remoção).
         if (!auth()->check()) return;
 
         $module_util = new ModuleUtil();

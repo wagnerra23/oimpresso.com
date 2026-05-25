@@ -159,14 +159,15 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // (TaskProvider interface + TaskRegistry agregando providers de cada módulo).
     Route::get('/tarefas', fn () => inertia('Tarefas/Index'))->name('tarefas.index');
 
-    // Wagner 2026-05-22: /home redireciona pra /ia (entry-point canon do
-    // oimpresso é o hub IA/Jana — sidebar v3 ADR 0180). Dashboard legacy
+    // Wagner 2026-05-22: /home redireciona pra hub IA/Jana — sidebar v3 ADR 0180.
+    // Wagner 2026-05-25: alvo passou de /ia (chat) pra /ia/dashboard (Dashboard
+    // Jana = primeira aba canon, com farol das metas + KPIs do business). Chat
+    // continua entry-point IA conversacional via aba 2 e FAB. Dashboard legacy
     // UltimatePOS (HomeController@index com cards Total Vendas/Líquido/A
-    // Receber) ainda acessível via /dashboard-legacy se precisar de tela
-    // específica futuramente. Name `home` preservado pra compat com
-    // `route('home')` chamado em ~30 lugares (post-login redirect, breadcrumbs,
-    // links externos UltimatePOS core).
-    Route::get('/home', fn () => redirect('/ia', 302))->name('home');
+    // Receber) ainda acessível via /dashboard-legacy se precisar. Name `home`
+    // preservado pra compat com `route('home')` chamado em ~30 lugares
+    // (post-login redirect, breadcrumbs, links externos UltimatePOS core).
+    Route::get('/home', fn () => redirect('/ia/dashboard', 302))->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);
