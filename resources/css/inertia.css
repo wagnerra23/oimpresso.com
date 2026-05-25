@@ -89,6 +89,13 @@
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(222.2 84% 4.9%);
 
+  /* canon v3.4 (Wagner 2026-05-25): fundo cream warm hue 90 pra Index canon v3.x.
+     Espelha `.cockpit` em /sells (Cowork canon · oklch(0.985 0.003 90)).
+     Substitui `bg-slate-50` cool hue 248. Cria afinidade visual com cards brancos
+     (mesma família temperatura) sem competir com filtros coloridos.
+     Gera utility `bg-page-cream` automaticamente via Tailwind v4. */
+  --color-page-cream: oklch(0.985 0.003 90);
+
   --color-primary: hsl(221.2 83.2% 53.3%);
   --color-primary-foreground: hsl(210 40% 98%);
   --color-secondary: hsl(210 40% 96.1%);
@@ -120,6 +127,9 @@
   --color-ring: hsl(212.7 26.8% 83.9%);
   --color-background: hsl(222.2 84% 4.9%);
   --color-foreground: hsl(210 40% 98%);
+
+  /* canon v3.4 dark mode: cream warm não inverte coerente — usa slate-950 neutro */
+  --color-page-cream: hsl(222.2 84% 4.9%);
 
   --color-primary: hsl(217.2 91.2% 59.8%);
   --color-primary-foreground: hsl(222.2 47.4% 11.2%);
