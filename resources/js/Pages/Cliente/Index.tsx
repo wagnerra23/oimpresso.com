@@ -621,9 +621,13 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
          lateral) + `py-4` (16px respiro topo+rodapé) — Wagner pediu "respiro nas laterais
          e em cima". space-y-3 mantém gap entre blocos. */}
      <div className="w-full px-6 space-y-3">
-      {/* ───── BLOCO 1 · HEADER FECHADO (ADR 0189 v3.1) ───── */}
+      {/* ───── BLOCO 1 · HEADER TRANSPARENTE (canon v3.4 final · 2026-05-25) ─────
+          Wagner pediu remover `bg-background border rounded-t-lg` pra header herdar
+          o cream `--color-page-cream` do parent — espelha `/sells` canon Cowork exato
+          (`<header class="os-head vd-head-clean">` sem bg, border, ou radius).
+          BLOCO 1 dissolve no fundo cream · KPI strip vira primeiro elemento destacado. */}
       <header
-        className="bg-background border border-border rounded-t-lg overflow-visible"
+        className="overflow-visible"
         role="banner"
       >
         {/* Wagner 2026-05-25: BLOCO 1 header padding canon Vendas (referência /sells):
@@ -762,9 +766,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           </div>
         </div>
 
-        {/* Mobile fallback: tabs em 2ª linha quando <md (no md+ ficam inline acima) */}
+        {/* Mobile fallback: tabs em 2ª linha quando <md (no md+ ficam inline acima).
+            canon v3.4: removido `border-t border-border` — consistência com header transparente. */}
         <nav
-          className="md:hidden flex items-center gap-0 border-t border-border overflow-x-auto px-4"
+          className="md:hidden flex items-center gap-0 overflow-x-auto px-4"
           aria-label="Tipo de contato (mobile)"
         >
           {SLOT2_TABS.map(({ key, label, shortLabel, href, Icon }) => {
