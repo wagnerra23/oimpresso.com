@@ -13,6 +13,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { CreditCard, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 
 interface Titulo {
@@ -164,18 +165,19 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
     <>
       {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
       <div className="fin-curadoria vendas-aplus p-6 max-w-6xl mx-auto space-y-6">
-        <header className="os-page-h fin-page-h">
-          <div className="os-page-h-l fin-page-h-l">
-            <h1>Contas a Pagar <span className="fin-hero-title-sub">· Títulos</span></h1>
-            <p>Compras, despesas, contratos</p>
-          </div>
-          <div className="os-page-h-r fin-page-h-r">
+        {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+        <PageHeader
+          title="Contas a Pagar"
+          suffix=" · Títulos"
+          subtitle={<>Compras, despesas, contratos</>}
+        >
+          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav active="contas-pagar" hidePrimary />
             <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo?kind=payable')}>
               Novo pagamento
             </FinanceiroPrimaryButton>
           </div>
-        </header>
+        </PageHeader>
 
         <div className="flex flex-wrap gap-2">
           <span className="text-xs text-muted-foreground self-center mr-2">Filtros:</span>

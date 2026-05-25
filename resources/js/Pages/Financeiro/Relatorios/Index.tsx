@@ -17,6 +17,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Download } from 'lucide-react';
 // Onda 14 — PageHeader removido (canon os-page-h direto)
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 
 type TabId = 'fluxo' | 'resumo';
 
@@ -90,14 +91,13 @@ function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
   return (
     <div className="fin-curadoria vendas-aplus">
       {/* Onda 14 (2026-05-19) — header canon paridade Unificado */}
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>Relatórios <span className="fin-hero-title-sub">· Financeiro</span></h1>
-          <p>DRE gerencial, fluxo de caixa projetado vs realizado e resumo do período</p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 refine Wagner 2026-05-21 — "Exportar CSV" move pra ⋯ Mais;
-              tela não tem primary "Novo X" (Relatorios é só leitura) */}
+      {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+      <PageHeader
+        title="Relatórios"
+        suffix=" · Financeiro"
+        subtitle={<>DRE gerencial, fluxo de caixa projetado vs realizado e resumo do período</>}
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
           <FinanceiroSubNav
             active="relatorios"
             hidePrimary
@@ -106,7 +106,7 @@ function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
             ]}
           />
         </div>
-      </header>
+      </PageHeader>
 
       {/* Filtros de período */}
       <Card className="mt-6 mb-4">

@@ -7,6 +7,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, usePage } from '@inertiajs/react';
 import { ReactNode, useMemo } from 'react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 
 interface CaixaRow {
   id: number;
@@ -86,25 +87,25 @@ function Caixa({ caixas, stats, filters, links }: Props) {
 
   return (
     <div className="fin-curadoria p-6 max-w-7xl mx-auto space-y-6">
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>
-            Caixa do turno <span className="fin-hero-title-sub">· Histórico e fechamentos</span>
-          </h1>
-          <p>
+      {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 (PR #1496) */}
+      <PageHeader
+        title="Caixa do turno"
+        suffix=" · Histórico e fechamentos"
+        subtitle={
+          <>
             Visão read-only dos turnos de caixa (abertura e fechamento) feitos pela equipe via tela
             POS. Para abrir ou fechar um caixa, use os botões na header da{' '}
             <a href={links.pos_create} className="underline text-emerald-700">
               tela de venda
             </a>
             .
-          </p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
-          {/* ADR 0180 Fase 5 propagação — ghost tabs Financeiro + primary `+ Novo título` */}
+          </>
+        }
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
           <FinanceiroSubNav active="caixa" hidePrimary />
         </div>
-      </header>
+      </PageHeader>
 
       {/* Banner explicativo — esta tela é WRAPPER, não substitui POS */}
       <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
