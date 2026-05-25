@@ -1,3 +1,14 @@
+---
+slug: design-system
+title: "Especificação funcional · Design System"
+type: spec
+module: _DesignSystem
+status: ativo
+owner: wagner
+version: "1.1"
+last_updated: 2026-05-25
+---
+
 # Especificação funcional · Design System
 
 ## 1. Escopo
@@ -201,7 +212,7 @@ E nunca chaves sem prefixo (colide com outras libs)
 
 ---
 
-## 3. Backlog (User Stories)
+## 3. User stories
 
 ### US-_DESIGNSYSTEM-001 · DESIGN.md root TOC executivo apontando pros docs canon
 
