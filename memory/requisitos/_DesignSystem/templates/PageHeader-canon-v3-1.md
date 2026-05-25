@@ -125,24 +125,60 @@ escopo Cadastro (hue per grupo de ADR 0182 fica em modo de espera até decisão 
 
 ## 4. Componentes — specs detalhadas
 
-### 4.1 Header card
+### 4.1 BLOCO 1 — Header card (canon v3.2 final · 2026-05-25)
+
+> **Pattern consolidado após Wagner iterar 6 vezes (PRs #1457 → #1478):**
+> `bg-background border border-border rounded-t-lg overflow-visible` no card +
+> `pt-6 px-6 pb-3.5` no inner flex.
+
+**JSX canon (copiar-colar pra outras Index):**
+
+```jsx
+<header
+  className="bg-background border border-border rounded-t-lg overflow-visible"
+  role="banner"
+>
+  <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
+    {/* Zona L · identidade · flex-1 min-w-0 */}
+    {/* Zona C · subnav inline · hidden md:flex shrink-0 self-stretch ml-2 */}
+    {/* Zona R · actions · flex-shrink-0 flex items-center gap-1.5 */}
+  </div>
+  {/* mobile fallback nav (md:hidden) — só se houver subnav */}
+</header>
+```
+
+**CSS canon equivalente (pra projetos sem Tailwind):**
 
 ```css
 .page-header-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--card-radius);
-  overflow: hidden;
-  margin-bottom: var(--gap-blocos);
+  background: var(--bg-card);                    /* white */
+  border: 1px solid var(--border-soft);          /* slate-200 */
+  border-top-left-radius: var(--card-radius);    /* 8px */
+  border-top-right-radius: var(--card-radius);   /* 8px */
+  border-bottom-left-radius: 0;                  /* RETA — conecta visualmente com BLOCO 2 KPI */
+  border-bottom-right-radius: 0;                 /* RETA */
+  overflow: visible;                              /* dropdown ⋮ escapa */
+  margin-bottom: var(--gap-blocos);              /* gap 12px pro BLOCO 2 */
 }
 .os-page-h {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: var(--page-h-py) var(--page-h-px);
+  gap: 16px;                                      /* gap-4 entre zonas */
+  padding: 24px 24px 14px;                        /* pt-6 px-6 pb-3.5 — espelha Vendas */
   min-height: 60px;
 }
 ```
+
+**Razão do `rounded-t-lg` (não `rounded-lg` nem `rounded-none`):**
+- Vendas canon Cowork é flat puro (`border-radius: 0`)
+- Card fechado 4 cantos arredondados criava "salto" visual com BLOCO 2 KPI abaixo
+- Meio-termo: topo curvo (estética card) + bottom reta (conecta com KPI strip via gap 12px)
+- Wagner aprovou após inspecionar `/sells` (PR #1478)
+
+**Padding decisão final:**
+- 24px top + 24px laterais — folga "respira" igual Vendas
+- 14px bottom — underline da tab ativa (`-mb-px`) pousa na border-bottom do card
+- Bottom MENOR que top é proposital (pattern canon LEARNINGS Decisão #1)
 
 ### 4.2 Zona L — Identidade
 
