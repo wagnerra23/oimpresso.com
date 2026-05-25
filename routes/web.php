@@ -366,6 +366,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('sells.fsm-execute');
     Route::post('/sells/{id}/fsm-start-pipeline', [\App\Http\Controllers\SaleFsmActionController::class, 'startPipeline'])
         ->name('sells.fsm-start-pipeline');
+    // ADR 0192 Onda 2 follow-up — Editor UI do split de comissão (mecânico/balcão).
+    // Endpoint dedicado pra preservar SoC (não cruza com SellPosController::update).
+    Route::patch('/sells/{id}/commission-split', [\App\Http\Controllers\SellCommissionSplitController::class, 'update'])
+        ->whereNumber('id')
+        ->name('sells.commission-split.update');
     Route::resource('sells', SellController::class)->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 

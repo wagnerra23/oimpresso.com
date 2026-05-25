@@ -2809,6 +2809,8 @@ class SellController extends Controller
                         'invoice_scheme_id' => $transaction->invoice_scheme_id ? (int) $transaction->invoice_scheme_id : null,
                         'pay_term_number' => $transaction->pay_term_number,
                         'pay_term_type' => $transaction->pay_term_type ? (string) $transaction->pay_term_type : null,
+                        // ADR 0192 Onda 2 follow-up — editor UI de comissão mecânico/balcão.
+                        'commission_split' => $transaction->commission_split, // array | null (cast em Transaction.php)
                     ],
                     'sellDetails' => $sell_details,
                     'taxes' => $taxes,
@@ -2850,6 +2852,8 @@ class SellController extends Controller
                     'submit' => '/sells/' . $id,
                     'cancel' => '/sells/' . $id,
                     'back' => '/sells',
+                    // ADR 0192 Onda 2 follow-up — endpoint dedicado pra salvar commission_split.
+                    'commission_split' => '/sells/' . $id . '/commission-split',
                 ],
             ]);
         }
