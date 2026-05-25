@@ -611,11 +611,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   };
 
   return (
-    <div className="-m-6 bg-slate-50 min-h-[calc(100vh-3rem)] py-3">
+    <div className="-m-6 bg-slate-50 min-h-[calc(100vh-3rem)] py-4">
      {/* Fluid layout — Wagner 2026-05-25: tabela contatos usa 100% da largura disponível
-         (pattern Linear/Notion/Stripe Dashboard em listas). `w-full px-4` em vez do
-         `max-w-7xl mx-auto px-3` que limitava em 1280px. space-y-3 mantém gap entre blocos. */}
-     <div className="w-full px-4 space-y-3">
+         (pattern Linear/Notion/Stripe Dashboard em listas). `w-full px-6` (24px respiro
+         lateral) + `py-4` (16px respiro topo+rodapé) — Wagner pediu "respiro nas laterais
+         e em cima". space-y-3 mantém gap entre blocos. */}
+     <div className="w-full px-6 space-y-3">
       {/* ───── BLOCO 1 · HEADER FECHADO (ADR 0189 v3.1) ───── */}
       <header
         className="bg-background border border-border rounded-lg overflow-visible"
