@@ -105,6 +105,14 @@ interface Kpi {
   a_receber: { valor: number; qtd: number };
   pago: { valor: number; qtd: number };
   a_pagar: { valor: number; qtd: number };
+  // PR H (2026-05-25) US-FIN-023 — delta_pct vs mês anterior (null se anterior=0)
+  delta_pct?: {
+    saldo_previsto: number | null;
+    recebido: number | null;
+    a_receber: number | null;
+    pago: number | null;
+    a_pagar: number | null;
+  };
 }
 
 type TabId = 'all' | 'open' | 'rec' | 'pay' | 'received' | 'paid' | 'late';
@@ -593,11 +601,30 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
     return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte };
   }, [lancamentos]);
 
+  // PR H (2026-05-25) US-FIN-023 — render badge delta_pct (↑+12% verde / ↓-5% rose / → 0% neutro).
+  // Cores via classes canon `fin-num-pos`/`fin-num-neg`/`text-muted-foreground` (AP1 PRE-MERGE-UI).
+  const DeltaBadge = ({ pct }: { pct: number | null | undefined }) => {
+    if (pct === null || pct === undefined) return null;
+    const isZero = Math.abs(pct) < 0.05;
+    const isUp = pct > 0;
+    const colorClass = isZero ? 'text-muted-foreground' : (isUp ? 'fin-num-pos' : 'fin-num-neg');
+    const arrow = isZero ? '→' : (isUp ? '↑' : '↓');
+    const sign = pct > 0 ? '+' : '';
+    return (
+      <span
+        className={`fin-delta-pct ml-1 text-[10px] font-medium tabular-nums ${colorClass}`}
+        title={`vs mês anterior (${pct > 0 ? 'subiu' : 'caiu'} ${Math.abs(pct)}%)`}
+      >
+        {arrow}{sign}{pct.toFixed(1)}%
+      </span>
+    );
+  };
+
   return (
     <div className="fin-stats">
       <button type="button" className="fin-stat fin-stat-hero" onClick={() => onLifecycleSelect(['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
         <small>Saldo previsto · maio</small>
-        <b>{brl(kpis.saldo_previsto)}</b>
+        <b>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} /></b>
         <span className="fin-stat-hint">
           <b className="mono">{brl(kpis.recebido.valor - kpis.pago.valor)}</b> realizado · <span className={pendente >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(pendente)}</span> pendente
         </span>
@@ -606,13 +633,13 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['re'])} aria-label="Filtrar recebidas">
         <small>Recebido</small>
-        <b className="fin-num-pos">{brl(kpis.recebido.valor)}</b>
+        <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} /></b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ar'])} aria-label="Filtrar a receber">
         <small>A receber</small>
-        <b>{brl(kpis.a_receber.valor)}</b>
+        <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} /></b>
         {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
         <span className="fin-stat-hint">
           {atrasadoReceber > 0
@@ -623,13 +650,13 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['pa'])} aria-label="Filtrar pagas">
         <small>Pago</small>
-        <b className="fin-num-neg">{brl(kpis.pago.valor)}</b>
+        <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} /></b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ap'])} aria-label="Filtrar a pagar">
         <small>A pagar</small>
-        <b>{brl(kpis.a_pagar.valor)}</b>
+        <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} /></b>
         {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
         <span className="fin-stat-hint">
           {proxPagar
