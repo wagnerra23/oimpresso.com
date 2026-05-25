@@ -455,7 +455,29 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       const json = await r.json();
       const newId = Number(json?.id ?? 0);
       if (newId > 0) {
-        setOpenContactId(newId);
+        // Hotfix 2026-05-25 — bug reportado Wagner "endereço não traz, drawer tab
+        // vazia". Causa: ClienteSheet faz `rows.find(r => r.id === contactId)` mas
+        // o draft recém-criado NÃO está em rows (snapshot listagem). Resultado:
+        // contact = null → IdentificacaoTab.contact = undefined → tab vazia.
+        //
+        // Fix: router.reload({only:['customers']}) PRIMEIRO pra puxar a row nova
+        // do backend, AÍ setOpenContactId quando rows estão atualizados. Inertia
+        // garante sequência via callback onSuccess.
+        router.reload({
+          only: ['customers'],
+          preserveScroll: true,
+          preserveState: true,
+          onSuccess: () => {
+            setOpenContactId(newId);
+          },
+          onError: () => {
+            // Mesmo se reload falhar, abre drawer — autosave on blur ainda persiste,
+            // só que header mostra "Cliente" placeholder até user digitar nome.
+            // eslint-disable-next-line no-console
+            console.warn('[ClienteIndex] router.reload pós-draft falhou — abrindo drawer com fallback');
+            setOpenContactId(newId);
+          },
+        });
       }
     } catch (err) {
       // eslint-disable-next-line no-console
