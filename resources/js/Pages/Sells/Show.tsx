@@ -36,6 +36,7 @@ import VdNfeEmitModal, { type NfeEmitVenda } from './_components/VdNfeEmitModal'
 import VdNfseEmitModal, { type NfseEmitVenda } from './_components/VdNfseEmitModal';
 import SaleReciboPrint80mm from './_components/SaleReciboPrint80mm';
 import SaleOrcamentoA4 from './_components/SaleOrcamentoA4';
+import SellsCheatSheet, { SELLS_SHOW_SHORTCUTS } from './_components/SellsCheatSheet';
 
 // Modos de impressão KB-9.75 Cowork bundle 2026-05-26 P2 gaps #8 + #9
 type CoworkPrintMode = 'recibo-80mm' | 'orcamento-a4' | null;
@@ -162,6 +163,8 @@ export default function SellsShow(props: SellsShowPageProps) {
   const [emitModalKind, setEmitModalKind] = useState<'nfe' | 'nfse' | null>(null);
   // KB-9.75 P2 gaps #8/#9 — printMode controla render dos overlays Cowork (Recibo 80mm + Orçamento A4)
   const [printMode, setPrintMode] = useState<CoworkPrintMode>(null);
+  // KB-9.75 P3 gap #12 — cheat-sheet overlay '?' (Cowork bundle 2026-05-26).
+  const [cheatOpen, setCheatOpen] = useState(false);
 
   // /sells/{id}/print só responde a AJAX (SellPosController::printInvoice).
   // Render via iframe oculto + CSS legacy (Bootstrap 3 + .print_section) — pattern equivale
@@ -191,13 +194,22 @@ export default function SellsShow(props: SellsShowPageProps) {
 
   const handleCoworkPrintClose = useCallback(() => setPrintMode(null), []);
 
-  // Atalhos teclado E (edit) + P (print) + Esc (back)
+  // Atalhos teclado E (edit) + P (print) + ? (cheat-sheet KB-9.75 gap #12) + Esc (back/close).
+  // Quando cheatOpen, todos os outros atalhos ficam suprimidos — o próprio
+  // SellsCheatSheet possui seu listener pra Esc/? (fecha o overlay).
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
       ) {
+        return;
+      }
+      // Suprime atalhos enquanto cheat-sheet aberta — o overlay tem listener próprio.
+      if (cheatOpen) return;
+      if (e.key === '?') {
+        e.preventDefault();
+        setCheatOpen(true);
         return;
       }
       if (e.key === 'e' && permissions.edit) {
@@ -215,7 +227,7 @@ export default function SellsShow(props: SellsShowPageProps) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [permissions.edit, permissions.print, urls.edit, urls.back, handlePrint]);
+  }, [cheatOpen, permissions.edit, permissions.print, urls.edit, urls.back, handlePrint]);
 
   const totalFalta = Math.max(0, headline.final_total - headline.total_paid);
   const paymentStatusLabel = PAYMENT_STATUS_LABEL[headline.payment_status] ?? headline.payment_status;
@@ -397,6 +409,16 @@ export default function SellsShow(props: SellsShowPageProps) {
             </section>
           </aside>
         </div>
+
+        {/* KB-9.75 P3 gap #12 — cheat-sheet overlay '?' (Cowork bundle 2026-05-26).
+            Lista canon SELLS_SHOW_SHORTCUTS exporta os atalhos da tela Detalhe. */}
+        <SellsCheatSheet
+          open={cheatOpen}
+          onClose={() => setCheatOpen(false)}
+          shortcuts={SELLS_SHOW_SHORTCUTS}
+          title="Atalhos · Detalhe da venda"
+          footerLeft="Vendas opera sem mouse — atalhos persistem em Lista, Caixa, Detalhe e Edição."
+        />
       </div>
 
       {/* KB-9.75 P0 gaps #2/#3 — emit modals abertos pelo gate fiscal do VdNextActionPanel.
