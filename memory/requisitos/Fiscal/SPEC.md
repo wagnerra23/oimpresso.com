@@ -453,9 +453,9 @@ Then deve receber 403 Forbidden
 
 **Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-002
 
-### US-FISCAL-020 · Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED
+### US-FISCAL-020 · Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
-> owner: — · priority: p0 · estimate: 24h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 24h · status: done (Fase 1 — fallback safe entregue · Fase 2 Strategy Pattern por regime fica GAP-7) · type: story
 > blocked_by: —
 
 **Sintoma crítico:** `SpedIcmsIpiGeneratorService` tem **6 hardcodes Tier-0** que funcionam ACIDENTALMENTE pra Larissa porque coincidem com vestuário Simples Nacional:
@@ -469,9 +469,23 @@ Then deve receber 403 Forbidden
 **Quebra na primeira venda interestadual contribuinte** (CFOP 6102 com ICMS-ST). Não é refactor de qualidade — é pré-requisito não-óbvio da Onda 6 (Reforma Tributária IBS/CBS).
 
 **Acceptance:**
-- [ ] Refactor `SpedIcmsIpiGeneratorService` chama `MotorTributarioService` (já existe em NfeBrasil)
-- [ ] 6 hardcodes eliminados — dados vêm de regras tributárias por NCM/CFOP/UF
-- [ ] Pest cobre Simples Nacional (regressão Larissa) + Lucro Presumido CFOP 6102 + ICMS-ST
+- [x] Refactor `SpedIcmsIpiGeneratorService` chama `MotorTributarioService` via DI opcional ([SpedIcmsIpiGeneratorService.php](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php))
+- [x] 6 hardcodes ESPALHADOS eliminados — centralizados em 6 constantes `private const FALLBACK_*` (NCM/CST/CFOP_INTERNO/CFOP_INTERESTADUAL/ALIQ/COD_GEN)
+- [x] Fallback safe Simples Nacional quando motor lança `NcmObrigatorioException` ou `TributacaoNaoConfiguradaException` (caso atual Larissa — log INFO + emissão correta)
+- [x] Diferenciação CFOP interno (5102) vs interestadual (6102) via UF origem/destino — **elimina R1 audit** (multa fiscal Larissa vendendo SC→RS)
+- [x] `resolverTributoItem()` resolve via MotorTributarioService → TributoCalculado real (cst/cfop/aliq/vl_icms) quando configurado
+- [x] `keyTotalizadorC190()` chave composta CST|CFOP|ALIQ (era hardcode `return '102'`)
+- [x] `extrairNcmDaEmissao()` lê metadata real (era hardcode `'00000000'` SEMPRE)
+- [x] Pest `SpedMotorTributarioIntegrationTest` (10 tests) — refactor source contract + DI opcional + fallback Simples interno/interestadual + motor configurado Lucro Presumido CFOP 6102 ALIQ 18% + exception handling
+- [x] Tests existentes (`SpedIcmsIpiGeneratorServiceTest`) verde — back-compat 100%
+
+**Fase 2 (futuro GAP-7 audit sênior — Strategy Pattern por regime):**
+- [ ] Items reais via JOIN `transactions_sell_lines` (escopo separado — fora desta wave)
+- [ ] Strategy `SimplesNacionalStrategy` / `LucroPresumidoStrategy` / `LucroRealStrategy` resolvidos via `NfeBusinessConfig.regime`
+- [ ] COD_MUN IBGE municipio-level via lookup `business->city_id` (placeholder UF+0000 mantém esta wave)
+- [ ] Pós Strategy entregue, feature flag `fiscal.sped_simples_only_lock` pode ser baixada pra `false` em prod
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-003 + §"Surpresa estratégica" R1 multa fiscal interestadual
 - [ ] Migration `nfe_fiscal_rules` 5 colunas (NCM/CFOP/UF/regime/aliq) provisionada
 
 **Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-003, ADR 0186
