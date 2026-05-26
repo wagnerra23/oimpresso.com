@@ -30,6 +30,8 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { printSaleReceipt, type PrintSaleMode } from '@/Lib/printSaleReceipt';
+import VdNextActionPanel from './_components/VdNextActionPanel';
+import FsmActionPanel from './_components/FsmActionPanel';
 
 interface Customer {
   id: number;
@@ -327,16 +329,34 @@ export default function SellsShow(props: SellsShowPageProps) {
             </Deferred>
           </div>
 
-          {/* COLUNA DIREITA — FSM action panel + timeline */}
+          {/* COLUNA DIREITA — Próxima ação hero + Pipeline FSM completo + Atalhos */}
           <aside className="lg:col-span-4 space-y-4">
-            {/* FSM action panel — reuso shared (apenas se stage_key existe) */}
+            {/* VdNextActionPanel — KB-9.75 Cowork 2026-05-26 P0 gap #1.
+                Próxima ação contextual + gates fiscais ("emita NF antes de faturar").
+                Glossário BR corrigido: Faturar (emit NF + título) ≠ Receber (baixa título). */}
+            {headline.current_stage_key !== null && (
+              <VdNextActionPanel
+                saleId={headline.id}
+                paymentStatus={headline.payment_status}
+                currentStageKey={headline.current_stage_key}
+                onTransition={() => {
+                  // Refresh sheet — Inertia partial reload do detail
+                  router.reload({ only: ['detail', 'headline'] });
+                }}
+              />
+            )}
+
+            {/* Pipeline — todas transições disponíveis (FsmActionPanel completo) */}
             {headline.current_stage_key !== null && (
               <section className="rounded-lg border border-border bg-card p-4">
-                <h2 className="font-semibold text-sm mb-3">Pipeline</h2>
-                {/* FsmActionPanel já existe em _components/ — reuso quando integrável */}
-                <p className="text-xs text-muted-foreground">
-                  Stage atual: <span className="font-mono">{headline.current_stage_key}</span>
-                </p>
+                <h2 className="font-semibold text-sm mb-3">Todas as transições</h2>
+                <FsmActionPanel
+                  saleId={headline.id}
+                  enabled={true}
+                  onTransition={() => {
+                    router.reload({ only: ['detail', 'headline'] });
+                  }}
+                />
               </section>
             )}
 
