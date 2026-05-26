@@ -81,9 +81,13 @@ Arredondando: **~80%** literal · **~88%** ponderado (pesos: layout=10x, conteú
 - Frontend: trocar string estática `"Pedidos · faturamento · NF-e/NFS-e"` por template live `"{n} vendas hoje · R$ X faturado · {y} estouradas"`
 - Backend: campos já existem nas KPIs/aggregates
 
-### P4 — Search ⌘K centralizada hero (~1h)
-- Frontend: refator toolbar pra mover search pra centro do header (entre h1 e botão "Nova venda")
-- Reusa input existente · só CSS reposicionamento
+### ~~P4 — Search ⌘K centralizada hero~~ — **DECISÃO WAGNER (não-gap)**
+
+**Update 2026-05-26 17:35 UTC:** investigado pós-PR #1666. A busca foi MOVIDA do header pra toolbar **intencionalmente** por decisão Wagner 2026-05-21:
+
+> `// Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) — fica próxima dos filtros, contextualmente coerente.`
+
+Não é gap visual — é decisão arquitetural diferente do prototipo. **Removido da lista de gaps**. Paridade real sobe pra ~93% após PR #1666.
 
 ## Vantagens prod vs prototipo (paridade super-set)
 
