@@ -11,17 +11,17 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
- * ServiceOrder — Ordem de Serviço da oficina automotiva OU locação caçamba (Martinho).
+ * ServiceOrder — Ordem de Serviço da oficina automotiva (mecânica pesada caminhão basculante · Martinho LIVE prod · sub-vertical 4 ADR 0194).
  *
- * Schema ADR 0137 §"Escopo arquitetural V0":
+ * Schema ADR 0137 §"Escopo arquitetural V0" (amendado por ADR 0194 2026-05-26):
  * - 1 OS = 1 venda (transaction_id FK UltimatePOS transactions, nullable durante draft)
  * - status: string livre na V0; FSM canônica chega em US-OFICINA-003 (ADR 0129)
- *   - OS Simples (Martinho): aberta → em_servico → concluida
- *   - OS Complexa (Vargas, V1): aberta → orcamento → aprovada → em_producao → concluida → entregue
+ *   - OS Simples (Martinho · sub-vertical 4 mecânica pesada caminhão basculante): aberta → em_servico → concluida
+ *   - OS Complexa (Vargas · sub-vertical 2 recapagem · V1): aberta → orcamento → aprovada → em_producao → concluida → entregue
  *
- * Locação (extension migration 2026_05_12_220002):
- * - order_type=locacao → fluxo Martinho (caçamba avulsa)
- * - order_type=manutencao → fluxo oficina automotiva genérica (default)
+ * order_type extension migration 2026_05_12_220002 (schema preservado nullable pós-ADR 0194):
+ * - order_type=manutencao → fluxo Martinho mecânica pesada (predominante prod biz=164) — sub-vertical 4 default
+ * - order_type=locacao → schema sub-vertical 3 hipotético locação caçamba container (sem cliente real ancorado pós-ADR 0194 — pré-correção dizia "fluxo Martinho caçamba avulsa")
  *
  * Multi-tenant Tier 0 (ADR 0093): global scope obrigatório.
  *

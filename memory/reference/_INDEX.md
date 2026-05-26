@@ -20,16 +20,22 @@
 - [infra-rede-empresa.md](infra-rede-empresa.md) — TP-Link 192.168.0.1, IP público 177.74.67.30, DHCP reservas, 16 port forwards, Issabel VoIP CentOS 7 EOL
 - [vaultwarden-credenciais.md](vaultwarden-credenciais.md) — vault.oimpresso.com self-hosted, fonte canônica de TODAS senhas/tokens infra
 - [local-dev-setup.md](local-dev-setup.md) — Herd 8.4 + MySQL Laragon + worktrees
+- [gotcha-worktree-junction-vendor-rm.md](gotcha-worktree-junction-vendor-rm.md) — **Pegadinha 2026-05-26:** `git worktree remove --force` segue `mklink /J` e deleta vendor real. Prevenção: remover junção antes do worktree remove. Recovery: `composer install` ~5min
 
 ## Stack & integração
 
 - [ultimatepos-integracao.md](ultimatepos-integracao.md) — DataController hooks, multi-tenant via session, tabelas core, FK business.id é unsignedInteger, DataTables locale, payload SellPosController@store, events
 - [financeiro-integracao.md](financeiro-integracao.md) — Hooks DataController + Observer Transaction + retro-vínculo transaction_payment; tela unificada US-FIN-013
 - [modules-cms-landing.md](modules-cms-landing.md) — Modules/Cms = landing/blog do oimpresso.com (ausente no worktree, vive em produção)
+- [pattern-sidebar-ghost-no-op-modify-admin-menu.md](pattern-sidebar-ghost-no-op-modify-admin-menu.md) — Pattern emergente Wagner 2026-05-26: módulo X vira ghost de hub Y → DataController.modifyAdminMenu vira NO-OP, hub Y ganha ghost via attribute. 4 aplicações catalogadas (PaymentGateway/ProductCatalogue/Woocommerce/Fiscal cockpit)
 
 ## MCP & Jana
 
 - [mcp-endpoints.md](mcp-endpoints.md) — `mcp.oimpresso.com` (CT 100/FrankenPHP) canônico; `oimpresso.com/api/mcp` (Hostinger) só CRUD admin
+
+## LGPD & Privacidade
+
+- [lgpd-mapa-tratamento.md](lgpd-mapa-tratamento.md) — **Registro de Operações Art. 37 LGPD** (canon). Catalogadas Op-01 a Op-07 (ERP, Clarity, WhatsApp, Jana IA, Asaas, NFe, e-mail) + 12 subprocessadores (Hostinger, Proxmox, Microsoft Clarity SCC EUA, OpenAI/Anthropic/Gemini/Cohere/Groq, GitHub, Asaas BR, Mailgun, Meta). Encarregado: Wagner. Revisão trimestral. Origem: gap G1 [ADR 0191](../decisions/0191-microsoft-clarity-session-replay-lgpd.md).
 
 ## WhatsApp / Atendimento
 
@@ -86,6 +92,7 @@
 - [feedback-nunca-publicar-credenciais.md](feedback-nunca-publicar-credenciais.md) — NUNCA ecoar valor literal credencial no chat
 - [feedback-outbound-markdown-over-mcp.md](feedback-outbound-markdown-over-mcp.md) — Outbound/sales tracking via markdown, não MCP tasks granulares
 - [feedback-pesquisar-versao-lib.md](feedback-pesquisar-versao-lib.md) — Antes reverter lib externa, pesquisar GitHub issues + versões intermediárias
+- [feedback-recomendado-quando-tecnico.md](feedback-recomendado-quando-tecnico.md) — Seguir `(Recommended)` em decisão técnica sem perguntar; perguntar só escopo/intenção/UX
 - [feedback-revert-isolar-client.md](feedback-revert-isolar-client.md) — Antes reverter PR em prod, isolar client-side primeiro
 - [feedback-tenancy-pest-local.md](feedback-tenancy-pest-local.md) — Mudanças tenancy exigem Pest verde local antes de PR
 - [feedback-test-biz-99-cross-tenant.md](feedback-test-biz-99-cross-tenant.md) — biz=1 default; biz=99 cross-tenant (não biz=4 cliente real)

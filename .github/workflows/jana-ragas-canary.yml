@@ -1,0 +1,244 @@
+name: Jana RAGAS Canary (daily 06:00 UTC)
+
+# US-COPI-116 — Canary diário RAGAS Jana detectando drift fora-de-PR.
+#
+# Diferença vs workflows RAGAS existentes:
+#   - jana-ragas-gate.yml (W28-2) — PR-triggered + weekly Mon cron, BLOQUEANTE só threshold absoluto
+#   - ragas-gate.yml (W22 MVP)   — workflow_dispatch + weekly cron, ALERTA (não bloqueia)
+#   - jana-ragas-canary.yml (US-116) — DAILY cron 06:00 UTC, detecta REGRESSÃO RELATIVA
+#                                       vs governance/jana-ragas-baseline.json (>5% drift = fail)
+#
+# Estado-da-arte 2026 (Premai blog / DataVLab / Kalibra Mar/2026):
+#   "Quality gates should be set at your baseline plus a small improvement target,
+#    rather than jumping directly to recommended thresholds. Start lower, establish
+#    baselines, then tighten thresholds iteratively."
+#
+# Reutiliza `php artisan jana:ragas-ci-eval --json` (sem reinventar — SoC brutal §5
+# Constituição v2). Python runner scripts/jana-ragas-runner.py é adapter fino que:
+#   1. Chama o artisan command (PHP é fonte da verdade)
+#   2. Lê baseline JSON
+#   3. Calcula delta percentual por métrica
+#   4. Falha se ANY métrica regrediu > REGRESSION_THRESHOLD_PCT
+#
+# Custo prod estimado (mock default):
+#   - Daily 06:00 UTC × mock = $0/dia
+#   - Real mode (workflow_dispatch): ~$0.06/run × 30 dias = ~$1.80/mês (aceitável)
+#
+# Workflow_dispatch input `update_baseline: true` regrava baseline com run atual
+# (Wagner usa pra estabelecer baseline inicial + recalibrar após improvements aprovados).
+
+on:
+  schedule:
+    # 06:00 UTC = 03:00 BRT — antes do brief:generate daily (06:00 BRT).
+    # Não conflita com jana-ragas-gate weekly Mon 08:00 UTC nem ragas-gate Mon 09:00 UTC.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'mock (zero $) | real (consome LLM ~$0.06)'
+        required: false
+        default: 'mock'
+        type: choice
+        options:
+          - mock
+          - real
+      update_baseline:
+        description: 'Sobrescreve governance/jana-ragas-baseline.json com scores deste run (Wagner: use após calibrar)'
+        required: false
+        default: false
+        type: boolean
+      regression_threshold_pct:
+        description: 'Tolerância de regressão por métrica (default 5.0 = 5%)'
+        required: false
+        default: '5.0'
+
+concurrency:
+  group: jana-ragas-canary-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write   # Pra commit baseline atualizado (workflow_dispatch)
+  issues: write     # Pra abrir issue auto-alert em fail
+
+jobs:
+  ragas-canary:
+    name: Jana RAGAS Canary (diff vs baseline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, tokenizer, xml, zip, opentelemetry
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Composer install
+        run: composer install --no-progress --prefer-dist --no-interaction --no-scripts
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Stdlib-only runner — sem pip install (ver scripts/jana-ragas-runner.py header).
+      # Nada de instalar `ragas` lib aqui: a métrica é calculada PHP-side via RagasJudgeService
+      # (mock ou real OpenAI). Runner Python só lê JSON + compara baseline.
+
+      - name: Prepare Laravel storage dirs
+        run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/ragas bootstrap/cache
+
+      - name: Create .env (mock-safe default)
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-jana-canary' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=false' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' \
+            'RAGAS_ENABLED=true' \
+            'RAGAS_FORCE_MOCK=true' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Run canary (PHP eval + Python diff vs baseline)
+        id: canary
+        env:
+          RAGAS_MODE: ${{ github.event.inputs.mode || 'mock' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REGRESSION_THRESHOLD_PCT: ${{ github.event.inputs.regression_threshold_pct || '5.0' }}
+        run: |
+          set -o pipefail
+          python3 scripts/jana-ragas-runner.py \
+            --mode="${RAGAS_MODE}" \
+            --baseline=governance/jana-ragas-baseline.json \
+            --threshold-pct="${REGRESSION_THRESHOLD_PCT}" \
+            --output=canary-result.json
+          # Echo do resultado pra logs
+          cat canary-result.json
+
+      - name: Render GITHUB_STEP_SUMMARY
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          out = pathlib.Path('canary-result.json')
+          if not out.exists():
+              print('canary-result.json ausente — runner falhou antes de gerar output')
+              raise SystemExit(0)
+          r = json.loads(out.read_text())
+          gate = 'PASS' if r.get('gate_status') == 'pass' else 'FAIL'
+          icon = ':white_check_mark:' if gate == 'PASS' else ':x:'
+          lines = [
+              f"## {icon} Jana RAGAS Canary — {gate}",
+              "",
+              f"- Modo: `{r.get('mode')}` (custo `${r.get('cost_usd', 0)}`)",
+              f"- Threshold regressão: `{r.get('regression_threshold_pct')}%`",
+              f"- Perguntas avaliadas: `{r.get('n_questions')}` (baseline: `{r.get('baseline_n_questions', 'N/A')}`)",
+              "",
+              "| Métrica | Atual | Baseline | Delta % | Status |",
+              "|---|---|---|---|---|",
+          ]
+          for m in r.get('metrics_diff', []):
+              lines.append(
+                  f"| {m['metric']} | {m['current']:.4f} | {m['baseline']:.4f} "
+                  f"| {m['delta_pct']:+.2f}% | {':white_check_mark:' if m['status']=='ok' else ':rotating_light:'} |"
+              )
+          if r.get('regressions'):
+              lines.append("")
+              lines.append(f"### :rotating_light: Regressões detectadas ({len(r['regressions'])})")
+              for reg in r['regressions']:
+                  lines.append(f"- `{reg['metric']}`: {reg['delta_pct']:+.2f}% (limite -{r['regression_threshold_pct']}%)")
+          summary = os.environ.get('GITHUB_STEP_SUMMARY')
+          if summary:
+              pathlib.Path(summary).write_text('\n'.join(lines), encoding='utf-8')
+          print('\n'.join(lines))
+          PY
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jana-ragas-canary-${{ github.run_id }}
+          path: |
+            canary-result.json
+            ragas-eval.json
+          retention-days: 90
+
+      - name: Update baseline (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.update_baseline == 'true' && steps.canary.outcome == 'success'
+        run: |
+          # Sobrescreve baseline com scores deste run (Wagner aprovou via dispatch flag)
+          python3 scripts/jana-ragas-runner.py \
+            --mode="${{ github.event.inputs.mode || 'mock' }}" \
+            --baseline=governance/jana-ragas-baseline.json \
+            --threshold-pct="${{ github.event.inputs.regression_threshold_pct || '5.0' }}" \
+            --output=canary-result.json \
+            --update-baseline
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add governance/jana-ragas-baseline.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(ragas): update canary baseline via workflow_dispatch (run ${{ github.run_id }})"
+            git push
+          else
+            echo "Baseline já estava em paridade com run — nada a commitar."
+          fi
+
+      - name: Auto-open issue on regression (scheduled only)
+        if: github.event_name == 'schedule' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = {};
+            try { report = JSON.parse(fs.readFileSync('canary-result.json', 'utf8')); } catch (e) { report = {error: String(e)}; }
+            const regressions = (report.regressions || []).map(r =>
+              `- \`${r.metric}\`: ${r.delta_pct.toFixed(2)}% (atual ${r.current.toFixed(4)} / baseline ${r.baseline.toFixed(4)})`
+            ).join('\n') || 'N/A';
+            const title = `:rotating_light: RAGAS canary regrediu > ${report.regression_threshold_pct || 5}% (${new Date().toISOString().slice(0,10)})`;
+            const body = [
+              `Workflow run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              ``,
+              `Modo: \`${report.mode || 'unknown'}\` · Threshold: \`${report.regression_threshold_pct || 5}%\``,
+              ``,
+              `## Regressões`,
+              regressions,
+              ``,
+              `## Próximos passos`,
+              `1. Investigar últimas mudanças em \`Modules/Jana/\` e \`Modules/Copiloto/\` (RAG pipeline)`,
+              `2. Rodar \`php artisan jana:ragas-ci-eval --mode=real\` local pra reproduzir`,
+              `3. Se regressão é esperada (ex: trade-off aceito) → \`workflow_dispatch\` com \`update_baseline=true\``,
+              `4. Se regressão é bug → rollback + reabrir story`,
+              ``,
+              `Ver RUNBOOK: \`memory/requisitos/Jana/RUNBOOK-ragas-canary.md\``,
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['ragas-regression', 'P0', 'jana']
+            });
