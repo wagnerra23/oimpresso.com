@@ -1214,6 +1214,8 @@ class ContactController extends Controller
                 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'address_line_1', 'address_line_2', 'customer_group_id', 'zip_code', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'dob', 'shipping_custom_field_details', 'assigned_to_users',
                 // Campos BR restaurados — migration 2026_05_21_140000 (regressão UPOS 6.7).
                 'cpf_cnpj', 'rg', 'inscricao_estadual', 'inscricao_municipal', 'indicador_ie', 'nome_fantasia', 'consumidor_final', 'contribuinte', 'regime', 'suframa',
+                // Onda 1 PR B' (Daniela @ Martinho) — emails extras (migration 2026_05_26_140000).
+                'email_billing', 'email_nfe',
             ]);
 
             $name_array = [];
