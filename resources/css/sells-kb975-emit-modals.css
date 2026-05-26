@@ -1,6 +1,6 @@
 /* sells-kb975-emit-modals.css — KB-9.75 Cowork bundle 2026-05-26 P0 gaps #2/#3/#4
  * Modais emit NF-e/NFS-e 3-step + bulk emit progress tricolor
- * NÃO escopado em .sells-cowork — modal é fullscreen global (z-index 50)
+ * NÃO escopado em .sells-cowork — modal é fullscreen global (z-index 100)
  * Refs:
  *   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md
  *   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas.css (.vd-emit-*)
@@ -18,7 +18,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  /* z-index 100 acima do shadcn Sheet drawer z-50 — bug-fix smoke real 2026-05-26 */
+  z-index: 100;
   padding: 20px;
   animation: vd-emit-fade-in 160ms ease-out;
 }
