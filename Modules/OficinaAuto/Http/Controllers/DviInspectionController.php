@@ -6,10 +6,13 @@ namespace Modules\OficinaAuto\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Modules\Arquivos\Entities\Arquivo;
+use Modules\Arquivos\Services\ArquivosService;
 use Modules\OficinaAuto\Entities\OaInspectionItem;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Http\Requests\StoreDviRequest;
 use Modules\OficinaAuto\Http\Requests\UpdateDviRequest;
+use Modules\OficinaAuto\Http\Requests\UploadDviPhotoRequest;
 use Modules\OficinaAuto\Services\DviInspectionService;
 
 /**
@@ -32,8 +35,10 @@ use Modules\OficinaAuto\Services\DviInspectionService;
  */
 class DviInspectionController extends Controller
 {
-    public function __construct(private DviInspectionService $service)
-    {
+    public function __construct(
+        private DviInspectionService $service,
+        private ArquivosService $arquivos,
+    ) {
     }
 
     /**
@@ -84,6 +89,89 @@ class DviInspectionController extends Controller
         $item->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Gap 1 (2026-05-26) — upload foto pra item DVI via Modules/Arquivos backbone.
+     *
+     * Pattern AutoVitals/Tekmetric 2026: foto inline em CADA item DVI (não anexo
+     * solto da OS). Caminhão basculante Martinho biz=164 — motorista leva foto
+     * antes/depois pra ressarcir transportadora 3a (sub-vertical 4 ADR 0194).
+     *
+     * Multi-tenant Tier 0 ([ADR 0093]):
+     *  1. Policy `update(ServiceOrder)` — Spatie + sameTenant guard
+     *  2. abort_unless cross-OS — item DEVE pertencer à OS da rota
+     *  3. ArquivosService::attach lê business_id da sessão e propaga global scope
+     *
+     * 201 Created + `{arquivo: {id, original_name, mime_type, size_bytes,
+     * display_url}}` pra UI atualizar grid sem refetch da OS inteira.
+     */
+    public function uploadPhoto(UploadDviPhotoRequest $request, ServiceOrder $order, OaInspectionItem $item): JsonResponse
+    {
+        $this->authorize('update', $order);
+
+        // Cross-OS guard: item PRECISA pertencer à OS da rota (defesa em profundidade
+        // mesmo dentro do mesmo business — espelha pattern update/destroy acima).
+        abort_unless((int) $item->service_order_id === (int) $order->id, 404);
+
+        $arquivo = $this->arquivos->attach(
+            $item,
+            $request->file('photo'),
+            ['context' => 'oficina-auto-dvi-photo'],
+        );
+
+        return response()->json([
+            'arquivo' => $this->shapeArquivo($arquivo),
+        ], 201);
+    }
+
+    /**
+     * Gap 1 (2026-05-26) — soft-delete foto de item DVI.
+     *
+     * Defesa em profundidade:
+     *  1. Policy `update(ServiceOrder)`
+     *  2. Cross-OS guard — item pertence à OS da rota
+     *  3. Cross-item guard — arquivo `arquivable` PRECISA ser este item (não outro)
+     *  4. Global scope Arquivo (business_id) já garante cross-tenant
+     *
+     * ArquivosService::softDelete grava audit-log + emite OTel span.
+     */
+    public function deletePhoto(ServiceOrder $order, OaInspectionItem $item, Arquivo $arquivo): JsonResponse
+    {
+        $this->authorize('update', $order);
+
+        abort_unless((int) $item->service_order_id === (int) $order->id, 404);
+
+        // Cross-item guard: arquivo morphTo PRECISA ser este OaInspectionItem.
+        abort_unless(
+            $arquivo->arquivable_type === OaInspectionItem::class
+            && (int) $arquivo->arquivable_id === (int) $item->id,
+            404
+        );
+
+        $this->arquivos->softDelete($arquivo);
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Shape canônico de Arquivo pra JSON API (espelha frontend DviPhotoGrid).
+     *
+     * NÃO expõe storage_path/MD5/business_id (defesa em profundidade — display_url
+     * é signed quando bucket=sensitive, asset() direto caso contrário).
+     *
+     * @return array{id:int, original_name:string, mime_type:string, size_bytes:int, display_url:string, created_at:string|null}
+     */
+    private function shapeArquivo(Arquivo $arquivo): array
+    {
+        return [
+            'id'             => (int) $arquivo->id,
+            'original_name'  => (string) ($arquivo->original_name ?? ''),
+            'mime_type'      => (string) $arquivo->mime_type,
+            'size_bytes'     => (int) $arquivo->size_bytes,
+            'display_url'    => (string) $arquivo->display_url,
+            'created_at'     => $arquivo->created_at?->toIso8601String(),
+        ];
     }
 
     /**
