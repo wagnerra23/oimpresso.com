@@ -4,8 +4,10 @@ owner: [W]
 module: Governance
 status: aceito
 authority: canonical
+version: "1.0"
+last_updated: 2026-05-25
 created_at: 2026-05-16
-updated_at: 2026-05-16
+updated_at: 2026-05-25
 related_adrs: [0086, 0094, 0101, 0147, 0153, 0154]
 parent_charter: mission.constituicao-v2
 tags: [governance, enforcement, actiongate, audit, policies, module-grade]
