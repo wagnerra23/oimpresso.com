@@ -24,7 +24,7 @@
 //       (-145 LOC líquidas + consistência ESC/a11y).
 //       Onda 2.1 — focus trap + aria-modal + return focus (P1 polimento).
 
-import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), ' +
@@ -70,6 +70,13 @@ export interface DrawerBaseProps {
    * Concatenado com "fx-drawer".
    */
   extraAsideClassName?: string;
+  /**
+   * Quando muda, força re-rodar focus management effect. Útil pra consumers
+   * com `data` async (SendToContabilDrawer monta DrawerBase com data=null,
+   * depois re-monta quando data chega) — passar dataReady={data} resolve
+   * race do foco inicial não entrar no drawer.
+   */
+  dataReady?: unknown;
 }
 
 export default function DrawerBase({
@@ -84,6 +91,7 @@ export default function DrawerBase({
   closeOnEsc = true,
   bodyRef,
   extraAsideClassName,
+  dataReady,
 }: DrawerBaseProps) {
   const asideRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -101,12 +109,17 @@ export default function DrawerBase({
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose, closeOnEsc]);
 
-  // Focus management — Onda 2.1 P1.
+  // Focus management — Onda 2.1 P1 + 2.1.2.
   //   1. Ao abrir: salva elemento ativo prévio + foca primeiro focusable do drawer
   //   2. Ao fechar: restaura foco pro elemento que disparou (trigger original)
   //   3. Tab/Shift+Tab cyclam dentro do drawer (focus trap)
   // Quando closeOnEsc=false (modal nested aberto), trap desliga pro modal cuidar.
-  useEffect(() => {
+  //
+  // useLayoutEffect (sync após DOM commit) em vez de useEffect (async) elimina
+  // race quando consumer tem data async — SendToContabilDrawer monta DrawerBase
+  // quando data chega, useLayoutEffect dispara IMEDIATAMENTE após aside no DOM
+  // (antes do browser paint), antes de qualquer focus-restore concorrente.
+  useLayoutEffect(() => {
     if (!open) return;
 
     // Salva elemento ativo antes de focar dentro do drawer
@@ -119,19 +132,17 @@ export default function DrawerBase({
     // toda a cascata de re-render.
     const aside = asideRef.current;
     if (aside) {
-      const firstFocusable = aside.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
       // Tira foco do trigger imediatamente — evita race com React focus-restore
       previousFocusRef.current?.blur?.();
-      let raf1 = 0;
-      let raf2 = 0;
-      raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(() => {
-          (firstFocusable ?? aside).focus({ preventScroll: true });
-        });
-      });
+      // setTimeout 50ms é mais robusto que RAF: alguns triggers (button chip do
+      // PageHeader em consumers com data async) têm cascata de re-renders que
+      // ultrapassa 2 RAFs. 50ms é imperceptível pro usuário mas dá folga total.
+      const timeoutId = window.setTimeout(() => {
+        const firstFocusable = aside.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+        (firstFocusable ?? aside).focus({ preventScroll: true });
+      }, 50);
       return () => {
-        cancelAnimationFrame(raf1);
-        cancelAnimationFrame(raf2);
+        window.clearTimeout(timeoutId);
         // Cleanup ao fechar: restaura foco anterior (se ainda no DOM e visível)
         const prev = previousFocusRef.current;
         if (prev && document.body.contains(prev)) {
@@ -139,7 +150,8 @@ export default function DrawerBase({
         }
       };
     }
-  }, [open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, dataReady]);
 
   // Focus trap — Tab/Shift+Tab cyclam dentro do drawer.
   // Separado do ESC handler porque trap só desliga em closeOnEsc=false
