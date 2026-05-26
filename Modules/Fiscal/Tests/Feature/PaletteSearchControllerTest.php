@@ -23,31 +23,32 @@ beforeEach(function () {
     }
 });
 
-it('search rejeita query < 2 chars (anti-scan full table)', function () {
-    $validator = validator(
-        ['q' => 'a'],
-        ['q' => ['required', 'string', 'min:2', 'max:50']],
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('q'))->toBeTrue();
+it('search rejeita query < 3 chars (anti-DOS leading wildcard — GAP-FISCAL-002)', function () {
+    foreach (['a', 'ab'] as $q) {
+        $validator = validator(
+            ['q' => $q],
+            ['q' => ['required', 'string', 'min:3', 'max:50']],
+        );
+        expect($validator->fails())->toBeTrue("q='{$q}' deveria falhar (anti-DOS leading wildcard)")
+            ->and($validator->errors()->has('q'))->toBeTrue();
+    }
 });
 
 it('search rejeita query > 50 chars (defesa anti-abuse)', function () {
     $validator = validator(
         ['q' => str_repeat('x', 51)],
-        ['q' => ['required', 'string', 'min:2', 'max:50']],
+        ['q' => ['required', 'string', 'min:3', 'max:50']],
     );
 
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->has('q'))->toBeTrue();
 });
 
-it('search aceita query válida 2-50 chars', function () {
-    foreach (['ab', 'numero 123', str_repeat('x', 50)] as $q) {
+it('search aceita query válida 3-50 chars', function () {
+    foreach (['abc', 'numero 123', str_repeat('x', 50)] as $q) {
         $validator = validator(
             ['q' => $q],
-            ['q' => ['required', 'string', 'min:2', 'max:50']],
+            ['q' => ['required', 'string', 'min:3', 'max:50']],
         );
         expect($validator->fails())->toBeFalse("q='{$q}' deveria passar");
     }

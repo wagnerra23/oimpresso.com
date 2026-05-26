@@ -142,53 +142,17 @@ class DataController extends Controller
             return;
         }
 
-        // Wagner 2026-05-25: 3 entries flat no grupo FISCAL (sem item "Fiscal"
-        // raiz, sem ghosts no PageHeader). Substitui a tentativa 1-entry+ghosts
-        // de 2026-05-22 — usuário (Larissa/Martinho) acessa direto Notas Fiscais
-        // (cockpit NF-e/NFC-e), Manifestação (DF-e legacy), Certificado (A1).
-        // Cockpit /fiscal raiz continua acessível via URL direta + popmenu
-        // "+ Emitir" no PageHeader (NF-e/NFC-e/NFS-e — Pages/Fiscal/Cockpit.tsx).
-        $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color) {
-                // Entry 1 — Notas Fiscais (cockpit NF-e/NFC-e funcional).
-                $menu->url(
-                    url('/fiscal/nfe'),
-                    'Notas Fiscais',
-                    [
-                        'icon'   => 'fa fas fa-receipt',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => request()->segment(1) == 'fiscal' && request()->segment(2) == 'nfe',
-                        'group'  => 'fiscal',
-                    ]
-                )->order(95);
-
-                // Entry 2 — Manifestação DF-e (tela legacy NfeBrasil funcional).
-                $menu->url(
-                    url('/nfe-brasil/manifestacao'),
-                    'Manifestação',
-                    [
-                        'icon'   => 'fa fas fa-inbox',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => request()->segment(1) == 'nfe-brasil' && request()->segment(2) == 'manifestacao',
-                        'group'  => 'fiscal',
-                    ]
-                )->order(96);
-
-                // Entry 3 — Certificado A1 (tela legacy NfeBrasil funcional, US-NFE-041).
-                $menu->url(
-                    url('/nfe-brasil/configuracao/certificado'),
-                    'Certificado',
-                    [
-                        'icon'   => 'fa fas fa-shield-alt',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => request()->segment(1) == 'nfe-brasil' && request()->segment(2) == 'configuracao',
-                        'group'  => 'fiscal',
-                    ]
-                )->order(97);
-            }
-        );
+        // 2026-05-25 — Onda ESTABILIZAR Fiscal: NfeBrasil NÃO publica mais entries
+        // no sidebar. Wagner apontou em sessão 2026-05-25 que "fiscal manifestação
+        // certificado tem telas competindo" — as 3 entries que viviam aqui foram
+        // movidas pra Modules/Fiscal/DataController (cockpit Fiscal vira hub
+        // canon). NfeBrasil continua sendo o motor real (Services + rotas backend
+        // /nfe-brasil/* ainda existem pra superadmin troubleshooting + ações
+        // cross-fiscal que delegam ManifestacaoService/CertificadoService).
+        //
+        // Rotas /nfe-brasil/manifestacao + /nfe-brasil/configuracao/certificado
+        // permanecem funcionais — só não há link visível no sidebar do user comum.
+        // Quem chega lá: superadmin via URL direta OU /fiscal/config "Editar" link
+        // que delega upload cert pra NfeBrasil (Fiscal é read-only).
     }
 }
