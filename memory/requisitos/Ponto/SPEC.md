@@ -1,8 +1,25 @@
+---
+module: Ponto
+status: ativo
+version: 1.1.0
+last_updated: "2026-05-25"
+owners: [W, E]
+parent_adr: 0094-constituicao-v2-7-camadas-8-principios
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0101-tests-business-id-1-nunca-cliente
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0155-rubrica-module-grade-v3
+piloto: biz=1 WR2 Sistemas (Wagner operador interno — time CLT real) — NÃO biz=4 (Larissa vestuário <20 empregados Art. 74 CLT desobriga)
+prazo_regulatorio_critico: AEJ canon Portaria 671/2021 Anexo VI (substitui AFDT) + eSocial S-2230 novo formato afastamento 2026
+---
+
 # SPEC — Modules/Ponto
 
 > Modulo de controle eletronico de ponto eletronico do oimpresso, fundacao legal CLT + Portaria MTP 671/2021. Originalmente nasceu como Ponto WR2 (legacy Delphi/Firebird) e foi reimplementado em Laravel modular como prova-conceito de modulo Tier 1 com compliance forte.
 >
-> **Status atual (2026-05-16):** Backbone funcional (marcacao + REP-P + apuracao + intercorrencia + banco horas). Nota auditoria 35/100 (D1 6/30, D3 0/15, D5 3/15) — exige cobertura Pest + briefing canon + ADRs.
+> **Status atual (2026-05-25):** Backbone funcional (marcacao + REP-P + apuracao + intercorrencia + banco horas). Nota module-grade-v3 = **69/100**. Audit sênior 2026-05-25 identificou 5 gaps P0 + revelou que **AFDT está OUTDATED** (Portaria 671/2021 substituiu por AEJ canon — ver US-PONTO-006 + US-PONTO-009 nova).
 > **Cliente piloto:** WR2 Sistemas (interno, biz=1) — homologa pre-cliente externo.
 > **Multi-tenant:** Tier 0 IRREVOGAVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 
@@ -88,17 +105,47 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - Tolerancia 10min/dia (5min entrada + 5min saida) — Art. 58 §1o CLT
 - **Status:** wip (ApuracaoDia + apuracao service parcial — calculos HE 100% feriado wip)
 
-### US-PONTO-006 · Geracao AFD/AFDT pra fiscalizacao MTE
-**Como** RH,
-**quero** gerar arquivo AFD/AFDT a qualquer momento,
-**para que** auditor MTE possa exportar e verificar conformidade.
+### US-PONTO-006 · Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+**Como** RH com REP-A legacy,
+**quero** gerar arquivo AFD a qualquer momento,
+**para que** auditor MTE possa exportar e verificar conformidade transitiva.
 **Aceitacao:**
-- Layout AFDT (Portaria 671/2021 Anexo I) — campos: tipo registro, NSR, identificador empregador, identificador empregado, momento, hash
+- Layout AFD (Portaria 1.510/2009 Anexo I) — REP-A homologado INMETRO ainda valido transitivamente
 - Periodo selecionavel (dia, mes, intervalo custom)
 - Filtro por REP e por colaborador
 - Download em `.txt` UTF-8 sem BOM
-- Hash SHA-256 do arquivo final exibido na tela (Anexo I 5.6)
-- **Status:** backlog (RelatorioController estrutura pronta, gerador AFDT por implementar)
+- Hash SHA-256 do arquivo final exibido na tela
+- **Status:** backlog (RelatorioController estrutura pronta, gerador AFD legacy por implementar — baixa prioridade hoje, AEJ canon prioritário)
+- **⚠️ Audit sênior 2026-05-25:** AFDT REMOVIDO desta US — Portaria 671/2021 substituiu AFDT + ACJEF por **AEJ** (Anexo VI). Ver US-PONTO-009 nova.
+
+### US-PONTO-009 · Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+**Como** RH,
+**quero** gerar arquivo AEJ (Arquivo Eletronico de Jornada) com assinatura CAdES `.p7s`,
+**para que** fiscalizacao MTE aceite auditoria (REP-P canon pos-2021).
+**Aceitacao:**
+- Layout AEJ Anexo VI Portaria 671/2021 — ASCII ISO 8859-1
+- Assinatura digital CAdES detached `.p7s` (lib `phpseclib` ou equivalente)
+- Cert A1 oimpresso institucional reutilizado (ADR 0186 chain Fiscal)
+- 5 tipos de registro: cabecalho, identificacao empregador, marcacoes, ajustes, trailer
+- Periodo selecionavel + filtro REP + colaborador
+- Download ZIP contendo `.txt` AEJ + `.p7s` assinatura
+- Pest fixtures fiscal MTE compliance + smoke biz=1 WR2 (Wagner operador interno CLT real)
+- **Status:** backlog (GAP-PONTO-001 audit senior 2026-05-25 — Onda 1 prioridade #1 regulatoria)
+- **Eliana revisao OBRIGATORIA** ANTES implementacao (regulatorio CLT — risco R1 alta probabilidade × alto impacto)
+- **Esforco estimado:** 3-5 dev-days IA-pair (fator 10x ADR 0106)
+- **Pre-req:** ADR formal "Ponto = compliance CLT append-only" + revisao Eliana SPEC AEJ vs ACJEF antigo
+
+### US-PONTO-010 · Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+**Como** colaborador,
+**quero** baixar comprovante PDF da minha marcacao com QR Code verificavel,
+**para que** posso provar registro perante terceiros (sindicato, processo trabalhista).
+**Aceitacao:**
+- PDF gerado server-side (dompdf ou similar) com PAdES (assinatura embedded)
+- QR Code contem hash SHA-256 da marcacao + URL publica de verificacao
+- Endpoint publico GET /ponto/comprovante/{hash}/verificar (sem auth — verificacao 3os)
+- Pest verifica hash em QR match com banco
+- **Status:** backlog (GAP-PONTO-002 audit senior 2026-05-25)
+- **Pre-req:** US-PONTO-009 (cert A1 chain + assinatura CAdES estabelecida primeiro)
 
 ### US-PONTO-007 · Multi-tenant isolation (Tier 0 IRREVOGAVEL)
 **Como** plataforma SaaS,
@@ -150,7 +197,8 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 ## Referencias legais
 
 - **CLT** Art. 58 §1o (tolerancia 10min), Art. 59 (HE + banco horas §5o validade 6m), Art. 66 (interjornada 11h), Art. 71 §1o (intrajornada 1h se >6h), Art. 74 §2o (registro obrigatorio >20 empregados)
-- **Portaria MTP 671/2021** Anexo I (AFDT, integridade hash, comprovante QR Code, fiscalizacao online)
+- **Portaria MTP 671/2021** Anexo I (integridade hash, comprovante QR Code, fiscalizacao online) + **Anexo VI (AEJ — Arquivo Eletronico de Jornada)** — substitui AFDT + ACJEF pos-2021
 - **Portaria MTE 1.510/2009** (AFD legacy — REP-A homologado INMETRO — ainda valido transitivamente)
+- **⚠️ AFDT está deprecated regulatoriamente** (Portaria 671/2021 substituiu por AEJ). US-PONTO-006 atualizada 2026-05-25 — AFDT removido, AFD legacy mantido pra REP-A, AEJ canon vira US-PONTO-009 nova.
 - **LGPD** Art. 7o II (cumprimento obrigacao legal — base legal pra tratamento de dado de jornada)
 - **CF/88** Art. 7o XVI (adicional 50% HE)

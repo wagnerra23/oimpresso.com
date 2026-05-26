@@ -6,6 +6,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Modules\Compras\Http\Requests\ListarComprasRequest;
 use Modules\Compras\Services\ComprasService;
 
 /**
@@ -33,34 +34,38 @@ class ComprasController extends Controller
 
     /**
      * Cockpit Compras — lista paginada + 4 KPIs FSM (aberto/transito/mes/fornec).
+     *
+     * Tier 0 defense-in-depth (audit sênior 2026-05-25 Gap #2):
+     *  - business_id vem de `auth()->user()->business_id` (não session — defesa
+     *    contra session spoofing). Layer 1 do pattern Laravel SaaS 2026.
+     *  - `abort_if($businessId <= 0)` guard explícito — `(int) null = 0` não
+     *    passa silencioso.
+     *  - Cross-check session === auth pra detectar drift.
+     *
+     * Validação inline substituída por `ListarComprasRequest` (Gap #4) —
+     * whitelist allow-only de filters/sort/dir/per_page anti-SQLi.
      */
-    public function index(Request $request)
+    public function index(ListarComprasRequest $request)
     {
-        if (! auth()->user()->can('compras.view')) {
-            abort(403);
+        $user = auth()->user();
+        $businessId = (int) ($user->business_id ?? 0);
+
+        abort_if($businessId <= 0, 403, 'Business inválido — usuário sem business associado');
+
+        // Cross-check defense-in-depth (layer 2)
+        $sessionBiz = (int) session('user.business_id', 0);
+        if ($sessionBiz > 0 && $sessionBiz !== $businessId) {
+            abort(403, "Business drift detectado (auth={$businessId}, session={$sessionBiz})");
         }
 
-        $businessId = (int) session('user.business_id');
-
-        $perPage = (int) $request->query('per_page', 25);
-        $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 25;
-
-        $filters = [
-            'q' => $request->query('q', ''),
-            'stage' => $request->query('stage', 'all'),
-            'sort' => $request->query('sort', 'transaction_date'),
-            'dir' => $request->query('dir', 'desc'),
-            'per_page' => $perPage,
-        ];
-
-        $compraId = (int) $request->query('compra_id', 0);
+        $filters = $request->filtros();
+        $compraId = $request->compraId();
 
         // C1 convergência (ADR compras-purchase-convergencia-c1) — botão "+ Nova
         // compra" e AcoesDropdown "Editar/Excluir" delegam /purchases/* Inertia
         // via router.visit. Permissions vêm do trilho A (Purchase MWART Wave 2
         // B5), não compras.* — alias só em V2 se Wagner mantiver módulo como
         // conceito separado.
-        $user = auth()->user();
 
         return Inertia::render('Compras/Index', [
             'filters' => $filters,
@@ -105,9 +110,14 @@ class ComprasController extends Controller
             abort(403);
         }
 
-        $businessId = (int) session('user.business_id');
+        // Tier 0 defense-in-depth (audit sênior 2026-05-25 Gap #2)
+        $businessId = (int) (auth()->user()->business_id ?? 0);
+        abort_if($businessId <= 0, 403, 'Business inválido');
+
         $detalhe = $this->comprasService->buscarDetalhe($id, $businessId);
 
+        // Defense-in-depth: 404 (não 403) — não revelar existência de compra
+        // de outro business (pattern Tier 0 audit sênior §3.1.4)
         if (! $detalhe) {
             abort(404);
         }
