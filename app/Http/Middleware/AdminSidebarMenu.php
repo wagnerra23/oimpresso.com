@@ -406,13 +406,29 @@ class AdminSidebarMenu
                             );
                         }
                     },
-                    ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    [
+                        'icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                     <path d="M12 15v-12"></path>
                     <path d="M16 7l-4 -4l-4 4"></path>
                     <path d="M3 12a9 9 0 0 0 18 0"></path>
-                  </svg>', 'id' => 'tour_step7']
+                  </svg>',
+                        'id' => 'tour_step7',
+                        // Wagner 2026-05-26: ghosts canon ADR 0180 — canais de venda
+                        // (Catálogo QR + WooCommerce) viraram ghosts do hub Vendas.
+                        // Antes eram entries top-level no grupo COMERCIAL (orders
+                        // 88 + 95). Movidos pra cá pra reduzir poluição visual da
+                        // sidebar; acessíveis via PageHeader overflow [...] da
+                        // tela /sells. Companion: Modules/ProductCatalogue +
+                        // Modules/Woocommerce DataController.modifyAdminMenu
+                        // viraram NO-OP nesta mesma onda.
+                        'group'  => 'comercial',
+                        'ghosts' => [
+                            ['key' => 'catalogue-qr', 'label' => 'Catálogo QR', 'href' => '/product-catalogue/catalogue-qr'],
+                            ['key' => 'woocommerce',  'label' => 'WooCommerce', 'href' => '/woocommerce'],
+                        ],
+                    ]
                 )->order(30);
             }
 
