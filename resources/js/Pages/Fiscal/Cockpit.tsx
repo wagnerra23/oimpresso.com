@@ -1,21 +1,25 @@
 // @memcofre
 //   tela: /fiscal
 //   module: Fiscal (cockpit unificado)
-//   status: em-implementacao
+//   status: em-implementacao (Wave Cowork "Notas Fiscais" visual)
 //   stories: US-FISCAL-002 (Cockpit sub-página 1 do design KB-9.75)
 //   rules: R-FIN-001 (multi-tenant), R-FISCAL-001 (HasBusinessScope ADR 0093)
 //   adrs: 0093, 0094, 0101, 0104, 0114
 //   tests: Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest
 //
-// Origem: design Cowork fiscal-page.jsx §8 FiscalCockpit. Persona: Eliana (contadora).
+// Origem: design Cowork fiscal-page.jsx §3 FiscalCockpit + KpiRibbon + NotasUnifiedTab.
+// Substitui o visual 6-KPI grid + quick links pelo padrão "Notas Fiscais"
+// (header chips + ribbon estreito + tabela unificada NF-e/NFC-e/NFS-e).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
-import { Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw, Shield, ShieldAlert } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import {
+  Archive, Bot, ChevronDown, FileText, Plus, Receipt, RefreshCw,
+} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import FxShell from './_components/FxShell';
-import { brl } from './_lib/fiscal-helpers';
+import { brl, truncKey } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -46,79 +50,159 @@ interface Alert {
   focus?: string;
 }
 
+type Tipo = 'NF-e' | 'NFC-e' | 'NFS-e';
+type StatusKind = 'sefaz' | 'nfse';
+
+interface NotaRow {
+  id: string;
+  tipo: Tipo;
+  kind: 'nfe' | 'nfse';
+  num: string;
+  serie: string | null;
+  when: string;
+  cliente: string;
+  doc: string;
+  uf: string;
+  venda: string | null;
+  ref: string | null;
+  keyOrCode: string;
+  iss?: number;
+  status: number | string;
+  statusKind: StatusKind;
+  rejMsg: string | null;
+  modelo: number | null;
+  value: number;
+  prazoCancel: { label: string; urgency: 'ok' | 'warn' | 'crit' } | null;
+  prazoCce: { label: string; urgency: 'ok' | 'warn' | 'crit' } | null;
+}
+
+interface SavedViewCounts {
+  todas: number;
+  resolver: number;
+  janela24: number;
+  processando: number;
+  nfse: number;
+  nfce: number;
+}
+
+interface SefazStatus {
+  uf: string;
+  operacional: boolean;
+  label: string;
+}
+
 interface CockpitProps {
   kpis: Kpis;
   sparklines: Sparklines;
   alerts: Alert[];
+  notasMock: NotaRow[];
+  savedViewCounts: SavedViewCounts;
+  sefazStatus: SefazStatus;
 }
 
-function MiniSparkline({
-  data,
-  width = 76,
-  height = 24,
-  color = 'currentColor',
-  fill = true,
-}: {
-  data: number[];
-  width?: number;
-  height?: number;
-  color?: string;
-  fill?: boolean;
-}) {
-  if (!data?.length) return null;
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const range = max - min || 1;
-  const pad = 2;
-  const innerW = width - pad * 2;
-  const innerH = height - pad * 2;
-  const step = innerW / (data.length - 1);
-  const pts = data.map<[number, number]>((v, i) => [pad + i * step, pad + innerH - ((v - min) / range) * innerH]);
-  const path = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  const area = path + ` L${pad + innerW},${pad + innerH} L${pad},${pad + innerH} Z`;
-  const last = pts[pts.length - 1];
-  return (
-    <svg className="fx-spark" viewBox={`0 0 ${width} ${height}`} width={width} height={height} aria-hidden="true">
-      {fill && <path d={area} fill={color} fillOpacity={0.12} />}
-      <path d={path} stroke={color} strokeWidth={1.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={last[0]} cy={last[1]} r={2.2} fill={color} />
-    </svg>
-  );
+type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
+type TipoFilter = 'todos' | Tipo;
+type StatusFilter = 'todos' | 'autorizadas' | 'rejeitadas' | 'processando' | 'cancelaveis';
+type Density = 'compact' | 'comfort' | 'relax';
+
+const REJECTED_NFE_CODES = [110, 204, 220, 539, 691, 778];
+
+function isRejected(n: NotaRow): boolean {
+  if (n.statusKind === 'sefaz') return REJECTED_NFE_CODES.includes(n.status as number);
+  return n.status === 'rejeitada';
+}
+function isProcessing(n: NotaRow): boolean {
+  return n.statusKind === 'sefaz' ? n.status === 999 : n.status === 'processando';
+}
+function isAuthorized(n: NotaRow): boolean {
+  if (n.statusKind === 'sefaz') return n.status === 100;
+  return n.status === 'autorizada';
 }
 
-const ICON: Record<string, React.ComponentType<{ size?: number }>> = {
-  audit: ShieldAlert,
-  shield: Shield,
-  receipt: Receipt,
-  refresh: RefreshCw,
+const SAVED_VIEWS: Array<{ id: Exclude<ViewId, 'custom'>; label: string; tipo: TipoFilter; status: StatusFilter; tone?: 'ok' | 'warn' | 'bad' }> = [
+  { id: 'todas',       label: 'Todas',                tipo: 'todos', status: 'todos' },
+  { id: 'resolver',    label: 'Pra resolver hoje',    tipo: 'todos', status: 'rejeitadas',  tone: 'bad' },
+  { id: 'janela24',    label: 'Janela 24h aberta',    tipo: 'todos', status: 'cancelaveis', tone: 'warn' },
+  { id: 'processando', label: 'Aguardando SEFAZ',     tipo: 'todos', status: 'processando' },
+  { id: 'nfse',        label: 'Só serviço (NFS-e)',   tipo: 'NFS-e', status: 'todos' },
+  { id: 'nfce',        label: 'Só balcão (NFC-e)',    tipo: 'NFC-e', status: 'todos' },
+];
+
+const STATUS_LABEL: Record<number, string> = {
+  100: 'Autorizada',
+  110: 'Rejeição',
+  204: 'Duplicidade',
+  220: 'NF-e numérica',
+  539: 'Dest. inválido',
+  691: 'Item rejeitado',
+  778: 'XML inválido',
+  999: 'Processando',
 };
 
-function AlertRow({ alert }: { alert: Alert }) {
-  const Ic = ICON[alert.icon] ?? ShieldAlert;
-  const target = alert.goto === 'nfe' ? '/fiscal/nfe'
-    : alert.goto === 'dfe' ? '#'
-    : alert.goto === 'fiscal_config' ? '#'
-    : '#';
-
-  return (
-    <div className={`fx-alert ${alert.level}`} onClick={() => target !== '#' && router.visit(target)}>
-      <div className="fx-alert-ic"><Ic size={14} /></div>
-      <div className="fx-alert-body">
-        <b>{alert.title}</b>
-        <span className="sub">{alert.sub}</span>
-      </div>
-      <span className="fx-alert-act">{alert.action} →</span>
-    </div>
-  );
-}
-
-export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
+export default function Cockpit({
+  kpis, alerts, notasMock, savedViewCounts, sefazStatus,
+}: CockpitProps) {
   const goto = (path: string) => router.visit(path);
-  const certColor = (kpis.certificadoValidadeDias ?? 999) <= 30 ? 'var(--bad)'
-    : (kpis.certificadoValidadeDias ?? 999) <= 60 ? 'var(--warn)' : 'var(--fx-text-dim)';
 
-  // Wagner 2026-05-25: popmenu "+ Emitir" com NF-e/NFC-e/NFS-e (3 opcoes).
-  // Click-outside fecha. Keyboard shortcut E abre/foca.
+  // Filtros locais (PR seguinte: sync via URL + server-side filter).
+  const [search, setSearch] = useState('');
+  const [tipo, setTipo] = useState<TipoFilter>('todos');
+  const [status, setStatus] = useState<StatusFilter>('todos');
+  const [view, setView] = useState<ViewId>('todas');
+  const [density, setDensity] = useState<Density>('comfort');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [clienteFilter, setClienteFilter] = useState<string | null>(null);
+
+  const applyView = (vid: Exclude<ViewId, 'custom'>) => {
+    const v = SAVED_VIEWS.find((x) => x.id === vid);
+    if (!v) return;
+    setView(v.id);
+    setTipo(v.tipo);
+    setStatus(v.status);
+    setClienteFilter(null);
+    setSearch('');
+  };
+
+  const handleManualFilter = (kind: 'tipo' | 'status', val: string) => {
+    if (kind === 'tipo') setTipo(val as TipoFilter);
+    if (kind === 'status') setStatus(val as StatusFilter);
+    if (view !== 'custom') setView('custom');
+  };
+
+  const rows = useMemo<NotaRow[]>(() => {
+    let r = notasMock;
+    if (tipo !== 'todos') r = r.filter((n) => n.tipo === tipo);
+    if (status === 'autorizadas') r = r.filter(isAuthorized);
+    if (status === 'rejeitadas')  r = r.filter(isRejected);
+    if (status === 'processando') r = r.filter(isProcessing);
+    if (status === 'cancelaveis') r = r.filter((n) => n.kind === 'nfe' && n.prazoCancel != null);
+    if (clienteFilter) r = r.filter((n) => n.cliente === clienteFilter);
+    if (search) {
+      const s = search.toLowerCase();
+      const sNum = s.replace(/\D/g, '');
+      r = r.filter((n) =>
+        n.num.includes(s) ||
+        n.cliente.toLowerCase().includes(s) ||
+        (sNum.length >= 3 && n.keyOrCode.includes(sNum))
+      );
+    }
+    return r;
+  }, [notasMock, tipo, status, clienteFilter, search]);
+
+  // Limpa seleção quando filtra
+  useEffect(() => { setSelected(new Set()); }, [tipo, status, search, clienteFilter]);
+
+  const toggleSel = (id: string) => {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setSelected(next);
+  };
+  const selectAll = () => {
+    if (selected.size === rows.length) setSelected(new Set());
+    else setSelected(new Set(rows.map((r) => r.id)));
+  };
+
+  // Popmenu "+ Emitir" (preservado do visual anterior — Wagner 2026-05-25).
   const [emitirOpen, setEmitirOpen] = useState(false);
   const emitirRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -130,33 +214,50 @@ export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, [emitirOpen]);
 
+  const totalRej = kpis.rejeitadas + (alerts.filter((a) => a.level === 'crit').length);
+  const crumb = `Maio 2026 · ${kpis.emitidas} notas · ${totalRej} requerem ação`;
+
   return (
     <AppShellV2>
-      <Head title="Fiscal · Cockpit" />
+      <Head title="Fiscal · Notas Fiscais" />
 
       <FxShell
         route="fiscal"
-        title="Cockpit fiscal"
-        crumb={`${kpis.emitidas} emitidas no mês · ${kpis.rejeitadas} rejeitadas`}
-        env={alerts.length === 0 ? 'SEFAZ-SP operacional' : `${alerts.filter((a) => a.level === 'crit').length} críticos`}
-        envTone={alerts.some((a) => a.level === 'crit') ? 'bad' : 'ok'}
+        title="Notas Fiscais"
+        crumb={crumb}
+        env={sefazStatus.label}
+        envTone={sefazStatus.operacional ? 'ok' : 'bad'}
         cheats={[
-          { keys: ['⌘', 'K'], label: 'buscar (em breve)' },
-          { keys: ['2'], label: 'NF-e' },
-          { keys: ['3'], label: 'NFS-e' },
+          { keys: ['⌘', 'K'], label: 'buscar' },
+          { keys: ['N'], label: 'emitir' },
+          { keys: ['J', 'K'], label: 'navegar' },
           { keys: ['?'], label: 'mais atalhos' },
         ]}
-        actions={
-          <>
-            <button className="fx-btn ghost" disabled title="PR seguinte">Exportar SPED</button>
+      >
+        {/* Linha de chips ação (substitui actions do PageHeader anterior) */}
+        <div className="fx-local-header">
+          <h2>Notas Fiscais</h2>
+          <span className="crumb">{crumb}</span>
+          <div className="fx-chips-action">
+            <span className="fx-chip-action ok-tag">{sefazStatus.label}</span>
+            <button type="button" className="fx-chip-action" disabled title="Jana fiscal — TODO[CL] integrar com Jana/BrainB">
+              <Bot size={12} /> Jana resume o mês
+            </button>
+            <button type="button" className="fx-chip-action" onClick={() => goto('/fiscal/eventos')}>
+              <RefreshCw size={12} /> Eventos
+            </button>
+            <button type="button" className="fx-chip-action" disabled title="Drawer 'Enviar p/ contabilidade' — TODO[CL]">
+              <Archive size={12} /> Enviar p/ contabilidade
+            </button>
             <div ref={emitirRef} className="fx-popmenu-wrap">
               <button
-                className="fx-btn primary"
+                type="button"
+                className="fx-chip-action primary"
                 onClick={() => setEmitirOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={emitirOpen}
               >
-                <Plus size={12} /> Emitir <ChevronDown size={11} className="fx-popmenu-chev" />
+                <Plus size={12} /> Emitir <ChevronDown size={11} />
               </button>
               {emitirOpen && (
                 <div role="menu" className="fx-popmenu">
@@ -172,114 +273,242 @@ export default function Cockpit({ kpis, sparklines, alerts }: CockpitProps) {
                 </div>
               )}
             </div>
-          </>
-        }
-      >
-        {/* KPIs */}
-        <div className="fx-kpis-cockpit">
-          <div className="fx-kpi hero">
-            <div className="fx-kpi-top">
-              <small>Emitidas · mês corrente</small>
-              <MiniSparkline data={sparklines.emitidas} color="#ffffff" />
-            </div>
-            <b>{kpis.emitidas}</b>
-            <span className="delta">últimos 14 dias</span>
-          </div>
-          <div className="fx-kpi ok">
-            <div className="fx-kpi-top">
-              <small>Autorizadas</small>
-              <MiniSparkline data={sparklines.autorizadas} color="oklch(0.55 0.13 145)" />
-            </div>
-            <b>{kpis.autorizadas}</b>
-            <span className="delta">{kpis.autorizadasPct}% do total</span>
-          </div>
-          <div className={`fx-kpi bad${kpis.rejeitadas > 0 ? ' pulse' : ''}`}>
-            <div className="fx-kpi-top">
-              <small>Rejeitadas</small>
-              <MiniSparkline data={sparklines.rejeitadas} color="oklch(0.55 0.18 25)" fill={false} />
-            </div>
-            <b>{kpis.rejeitadas}</b>
-            <span className="delta" style={{ color: 'var(--bad)' }}>
-              {kpis.rejeitadas > 0 ? 'requer ação' : 'sem rejeições'}
-            </span>
-          </div>
-          <div className="fx-kpi">
-            <div className="fx-kpi-top">
-              <small>Faturado fiscal</small>
-              <MiniSparkline data={sparklines.faturamento} color="var(--fis)" />
-            </div>
-            <b>{brl(kpis.faturamentoFiscal)}</b>
-            <span className="delta">autorizadas no mês</span>
-          </div>
-          <div className="fx-kpi warn">
-            <small>DF-e p/ manifestar</small>
-            <b>{kpis.dfeAguardando}</b>
-            <span className="delta">prazo 90d legal</span>
-          </div>
-          <div className="fx-kpi">
-            <small>Certificado A1</small>
-            <b>{kpis.certificadoValidadeDias ?? '—'}{kpis.certificadoValidadeDias != null ? 'd' : ''}</b>
-            <span className="delta" style={{ color: certColor }}>
-              {kpis.certificadoValidadeDias == null ? 'sem cert ativo'
-                : kpis.certificadoValidadeDias <= 0 ? 'EXPIRADO'
-                : `vence em ${kpis.certificadoValidadeDias}d`}
-            </span>
           </div>
         </div>
 
-        {/* Alertas */}
-        {alerts.length > 0 && (
-          <div className="fx-alerts">
-            <div className="fx-alerts-h">
-              <ShieldAlert size={14} />
-              <h3>Pendências fiscais</h3>
-              <span className="count">
-                {alerts.length} · {alerts.filter((a) => a.level === 'crit').length} críticos · {alerts.filter((a) => a.level === 'warn').length} atenção · {alerts.filter((a) => a.level === 'info').length} info
-              </span>
-            </div>
-            {alerts.map((a, i) => <AlertRow key={i} alert={a} />)}
+        {/* KPI ribbon estreito (substitui fx-kpis-cockpit 6-card grid) */}
+        <div className="fx-ribbon" role="region" aria-label="KPIs fiscais">
+          <span className="fx-ribbon-item">
+            <small>Emitidas</small>
+            <b>{kpis.emitidas}</b>
+            <em className="up">↑ 12 vs abr</em>
+          </span>
+          <span className="fx-ribbon-item">
+            <small>Autorizadas</small>
+            <b className="ok-text">{kpis.autorizadas}</b>
+            <em>{kpis.autorizadasPct}%</em>
+          </span>
+          <span className="fx-ribbon-item">
+            <small>Rejeitadas</small>
+            <b className={kpis.rejeitadas > 0 ? 'emph' : ''}>{kpis.rejeitadas}</b>
+            {kpis.rejeitadas > 0 && <em className="down">requer ação</em>}
+          </span>
+          <span className="fx-ribbon-item">
+            <small>DF-e p/ manifestar</small>
+            <b>{kpis.dfeAguardando}</b>
+            <em>prazo 90d</em>
+          </span>
+          <span className="fx-ribbon-item">
+            <small>Certif. A1</small>
+            <b>{kpis.certificadoValidadeDias != null ? `${kpis.certificadoValidadeDias}d` : '—'}</b>
+            <em>{kpis.certificadoValidadeDias != null && kpis.certificadoValidadeDias <= 30 ? 'renovar' : 'vigente'}</em>
+          </span>
+          <span className="fx-ribbon-item">
+            <small>Faturado fiscal</small>
+            <b>{brl(kpis.faturamentoFiscal).replace('R$ ', 'R$ ')}</b>
+          </span>
+          <button type="button" className="fx-ribbon-cta" onClick={() => goto('/fiscal/sped')}>
+            Fechar mês →
+          </button>
+        </div>
+
+        {/* Toolbar minimalista — search + 3 selects + density */}
+        <div className="fx-notas-toolbar">
+          <div className="fx-search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="search"
+              placeholder="Buscar nº, cliente, CNPJ, chave…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <select className="fx-combo" value={view} onChange={(e) => {
+            const id = e.target.value as ViewId;
+            if (id !== 'custom') applyView(id as Exclude<ViewId, 'custom'>);
+          }}>
+            {SAVED_VIEWS.map((v) => (
+              <option key={v.id} value={v.id}>{v.label} · {savedViewCounts[v.id] ?? 0}</option>
+            ))}
+            {view === 'custom' && <option value="custom">Filtro custom · {rows.length}</option>}
+          </select>
+
+          <select className="fx-combo" value={tipo} onChange={(e) => handleManualFilter('tipo', e.target.value)}>
+            <option value="todos">Todos os tipos · {notasMock.length}</option>
+            <option value="NF-e">NF-e · {notasMock.filter((n) => n.tipo === 'NF-e').length}</option>
+            <option value="NFC-e">NFC-e · {notasMock.filter((n) => n.tipo === 'NFC-e').length}</option>
+            <option value="NFS-e">NFS-e · {notasMock.filter((n) => n.tipo === 'NFS-e').length}</option>
+          </select>
+
+          <select className="fx-combo" value={status} onChange={(e) => handleManualFilter('status', e.target.value)}>
+            <option value="todos">Todos status · {notasMock.length}</option>
+            <option value="autorizadas">Autorizadas · {notasMock.filter(isAuthorized).length}</option>
+            <option value="rejeitadas">Rejeitadas · {notasMock.filter(isRejected).length}</option>
+            <option value="cancelaveis">Janela 24h · {notasMock.filter((n) => n.kind === 'nfe' && n.prazoCancel != null).length}</option>
+            <option value="processando">Processando · {notasMock.filter(isProcessing).length}</option>
+          </select>
+
+          <div className="fx-density" role="radiogroup" aria-label="Densidade da tabela">
+            <button type="button" className={density === 'compact' ? 'active' : ''} onClick={() => setDensity('compact')} title="Compacto" aria-pressed={density === 'compact'}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="6" width="18" height="2" /><rect x="3" y="11" width="18" height="2" /><rect x="3" y="16" width="18" height="2" /></svg>
+            </button>
+            <button type="button" className={density === 'comfort' ? 'active' : ''} onClick={() => setDensity('comfort')} title="Confortável" aria-pressed={density === 'comfort'}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="3" /><rect x="3" y="10" width="18" height="3" /><rect x="3" y="16" width="18" height="3" /></svg>
+            </button>
+            <button type="button" className={density === 'relax' ? 'active' : ''} onClick={() => setDensity('relax')} title="Relaxado" aria-pressed={density === 'relax'}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="5" /><rect x="3" y="11" width="18" height="5" /></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Chip de cliente filtrado */}
+        {clienteFilter && (
+          <div className="fx-active-filter">
+            <span>Filtrando por cliente:</span>
+            <b>{clienteFilter}</b>
+            <button onClick={() => setClienteFilter(null)} title="Limpar filtro" aria-label="Limpar filtro">×</button>
           </div>
         )}
 
-        {/* Quick links */}
-        <div className="fx-quick">
-          <div className="fx-quick-card" onClick={() => goto('/fiscal/nfe')}>
-            <div className="top"><Receipt size={13} /> NF-e · NFC-e (saída)</div>
-            <b>{kpis.emitidas} no mês</b>
-            <small>Modelo 55 + 65 · {kpis.rejeitadas} rejeitadas</small>
-            <kbd className="fx-quick-kbd">2</kbd>
+        {/* Bulk action bar */}
+        {selected.size > 0 && (
+          <div className="fx-bulk-bar" role="region" aria-label="Ações em lote">
+            <span><b>{selected.size}</b> nota{selected.size > 1 ? 's' : ''} selecionada{selected.size > 1 ? 's' : ''}</span>
+            <button type="button" className="fx-btn">Baixar XMLs (ZIP)</button>
+            <button type="button" className="fx-btn">Baixar DANFEs (PDF)</button>
+            <button type="button" className="fx-btn">Reenviar por e-mail</button>
+            <button type="button" className="fx-btn" onClick={() => setSelected(new Set())}>Limpar seleção</button>
           </div>
-          <div className="fx-quick-card" onClick={() => goto('/fiscal/nfse')}>
-            <div className="top"><FileText size={13} /> NFS-e (serviço)</div>
-            <b>Sistema Nacional</b>
-            <small>NT 2024-001 · LC 214/2025</small>
-            <kbd className="fx-quick-kbd">3</kbd>
+        )}
+
+        {/* Tabela unificada */}
+        {rows.length === 0 ? (
+          <div className="fx-empty">
+            <b>Nenhuma nota pra esses filtros</b>
+            <small>Tente outro preset ou limpe a busca.</small>
           </div>
-          <div className="fx-quick-card" onClick={() => goto('/fiscal/dfe')}>
-            <div className="top"><ShieldAlert size={13} /> Manifesto DF-e</div>
-            <b>{kpis.dfeAguardando} aguardando</b>
-            <small>NF-e contra nosso CNPJ · prazo 90d</small>
-            <kbd className="fx-quick-kbd">4</kbd>
+        ) : (
+          <div className={`fx-density-${density}`}>
+            <div className="fx-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: 36 }}>
+                      <input
+                        type="checkbox"
+                        checked={selected.size === rows.length && rows.length > 0}
+                        onChange={selectAll}
+                        aria-label="Selecionar todas"
+                      />
+                    </th>
+                    <th style={{ width: 90 }}>Tipo</th>
+                    <th style={{ width: 80 }}>Número</th>
+                    <th>Cliente / chave</th>
+                    <th style={{ width: 160 }}>Status</th>
+                    <th style={{ width: 130 }}>Prazo</th>
+                    <th style={{ width: 130, textAlign: 'right' }}>Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((n) => {
+                    const tipoCls = n.tipo === 'NF-e' ? 't-nfe' : n.tipo === 'NFC-e' ? 't-nfce' : 't-nfse';
+                    const rejected = isRejected(n);
+                    return (
+                      <tr key={n.id}>
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selected.has(n.id)}
+                            onChange={() => toggleSel(n.id)}
+                            aria-label={`Selecionar nota ${n.num}`}
+                          />
+                        </td>
+                        <td><span className={`fx-tipo-dot ${tipoCls}`}>{n.tipo}</span></td>
+                        <td className="fx-mono">
+                          <b>{n.num}</b>
+                          {n.serie && <small>série {n.serie}</small>}
+                          {!n.serie && <small>{n.when.split(' ')[0]}</small>}
+                        </td>
+                        <td>
+                          <a
+                            className="fx-link"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setClienteFilter(n.cliente);
+                            }}
+                            title="Filtrar por este cliente"
+                          >
+                            <b>{n.cliente}</b>
+                          </a>
+                          <div style={{ fontSize: 11, color: 'var(--fx-text-mute)' }}>
+                            {n.doc} · {n.uf}
+                            {n.venda && <> · <span className="fx-link">{n.venda}</span></>}
+                            {n.ref && !n.venda && <> · <span className="fx-link">{n.ref}</span></>}
+                          </div>
+                          {n.keyOrCode && (
+                            <code className="fx-cell-key" title={n.keyOrCode}>
+                              {n.kind === 'nfe' ? truncKey(n.keyOrCode) : `cód. ${n.keyOrCode}`}
+                              {n.kind === 'nfse' && n.iss && ` · ${n.iss}% ISS`}
+                            </code>
+                          )}
+                        </td>
+                        <td>
+                          {n.statusKind === 'sefaz' ? (
+                            <>
+                              <span className={`fx-sefaz ${isAuthorized(n) ? 'ok' : rejected ? 'bad' : 'warn'}`}>
+                                <span className="lbl">
+                                  {STATUS_LABEL[n.status as number] || `Status ${n.status}`}
+                                </span>
+                              </span>
+                              {n.rejMsg && <div style={{ fontSize: 11, color: 'var(--bad)', marginTop: 3 }}>↳ {n.rejMsg}</div>}
+                            </>
+                          ) : (
+                            <>
+                              <span className={`fx-sefaz ${isAuthorized(n) ? 'ok' : rejected ? 'bad' : 'warn'}`}>
+                                <span className="lbl">
+                                  {String(n.status).charAt(0).toUpperCase() + String(n.status).slice(1)}
+                                </span>
+                              </span>
+                              {n.rejMsg && <div style={{ fontSize: 11, color: 'var(--bad)', marginTop: 3 }}>↳ {n.rejMsg}</div>}
+                            </>
+                          )}
+                        </td>
+                        <td>
+                          {n.prazoCancel ? (
+                            <span className={`fx-timepill u-${n.prazoCancel.urgency}`}>
+                              <RefreshCw size={9} /> cancelar em <b>{n.prazoCancel.label}</b>
+                            </span>
+                          ) : n.prazoCce ? (
+                            <span className={`fx-timepill u-${n.prazoCce.urgency}`}>
+                              CC-e <b>{n.prazoCce.label}</b>
+                            </span>
+                          ) : rejected ? (
+                            <span className="fx-timepill u-crit"><b>ação</b></span>
+                          ) : (
+                            <span style={{ color: 'var(--fx-text-mute)' }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
+                            <span className="fx-row-actions" onClick={(e) => e.stopPropagation()}>
+                              <button type="button" className="fx-row-act" title="Baixar XML">XML</button>
+                              <button type="button" className="fx-row-act" title="Baixar DANFE">PDF</button>
+                              {rejected && <button type="button" className="fx-row-act danger" title="Retransmitir">↻</button>}
+                            </span>
+                            <span className="fx-strong">{brl(n.value)}</span>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="fx-quick-card" onClick={() => goto('/fiscal/eventos')}>
-            <div className="top"><RefreshCw size={13} /> Eventos</div>
-            <b>Timeline</b>
-            <small>CC-e · cancelamento · manifestação</small>
-            <kbd className="fx-quick-kbd">5</kbd>
-          </div>
-          <div className="fx-quick-card" onClick={() => goto('/fiscal/config')}>
-            <div className="top"><Shield size={13} /> Certif. & cfg.</div>
-            <b>{kpis.certificadoValidadeDias != null ? `A1 vence em ${kpis.certificadoValidadeDias}d` : 'Sem cert ativo'}</b>
-            <small>Status read-only · edição via NfeBrasil</small>
-            <kbd className="fx-quick-kbd">6</kbd>
-          </div>
-          <div className="fx-quick-card" onClick={() => goto('/fiscal/sped')}>
-            <div className="top"><Archive size={13} /> SPED & livros</div>
-            <b>EFD ICMS/IPI · PIS/COFINS</b>
-            <small>Panorama mensal (gerador em dev)</small>
-            <kbd className="fx-quick-kbd">7</kbd>
-          </div>
-        </div>
+        )}
       </FxShell>
     </AppShellV2>
   );
