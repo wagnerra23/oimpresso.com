@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
+import VdBulkEmitModal, { type BulkEmitItem } from './_components/VdBulkEmitModal';
+import { toast } from 'sonner';
 // PR follow-up Cowork — filtros legacy reintegrados via barra colapsável "Filtros avançados ▾".
 // Refs: Index.charter.md v2 Goals · feedback-design-literal-copy §How to apply #5.
 import SellsDateFilter, {
@@ -662,6 +664,12 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // visível + painel IA. Esta flag sincroniza com SaleSheet via prop initialAiOpen.
   const [aiTriggered, setAiTriggered] = useState(false);
 
+  // KB-9.75 P0 #4 bulk emit modal state — wire-up BulkActionBar onClick
+  // (bug-fix smoke real 2026-05-26 — PR #1644 entregou componente mas wire-up
+  // incompleto deixou 3 botões decorativos sem handler).
+  const [openBulk, setOpenBulk] = useState(false);
+  const [bulkKind, setBulkKind] = useState<'nfe' | 'nfse'>('nfe');
+
   // Fetch /sells-list-json sempre que filtros mudam.
   useEffect(() => {
     let cancelled = false;
@@ -847,6 +855,19 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     if (selectedIds.size === filtered.length) setSelectedIds(new Set());
     else setSelectedIds(new Set(filtered.map((v) => v.id)));
   }, [selectedIds.size, filtered]);
+
+  // KB-9.75 P0 #4 — mapeia selecionadas → BulkEmitItem pro VdBulkEmitModal.
+  // Lê rows (state local feed via /sells-list-json) + filtra pelos IDs selecionados.
+  const buildBulkItems = useCallback((): BulkEmitItem[] => {
+    return rows
+      .filter((r) => selectedIds.has(r.id))
+      .map((r) => ({
+        id: r.id,
+        invoice_no: r.invoice_no,
+        customer_name: r.customer_name,
+        kind: bulkKind,
+      }));
+  }, [rows, selectedIds, bulkKind]);
 
   // Favorites helpers (persist localStorage).
   const toggleFav = useCallback((id: number) => {
@@ -1532,15 +1553,30 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         {selectedIds.size > 0 && (
           <div className="vd-bulk on">
             <span className="vd-bulk-ct">{selectedIds.size} selecionada{selectedIds.size > 1 ? 's' : ''}</span>
-            <button className="vd-bulk-btn primary" type="button">
+            <button
+              className="vd-bulk-btn primary"
+              type="button"
+              onClick={() => {
+                setBulkKind('nfe');
+                setOpenBulk(true);
+              }}
+            >
               <Folder size={11} />
               Emitir NF-e em lote
             </button>
-            <button className="vd-bulk-btn" type="button">
+            <button
+              className="vd-bulk-btn"
+              type="button"
+              onClick={() => toast.info('Marcar como pagas em lote · Em breve V2')}
+            >
               <CheckCircle2 size={11} />
               Marcar como pagas
             </button>
-            <button className="vd-bulk-btn" type="button">
+            <button
+              className="vd-bulk-btn"
+              type="button"
+              onClick={() => toast.info('Exportar XML/PDF em lote · Em breve V2')}
+            >
               <Archive size={11} />
               Exportar XML/PDF
             </button>
@@ -1685,6 +1721,18 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         }}
         onSaleChanged={() => setRefetchToken((t) => t + 1)}
         initialAiOpen={aiTriggered}
+      />
+
+      {/* KB-9.75 P0 #4 — Faturar em lote NF-e/NFS-e (wire-up bug-fix 2026-05-26).
+          VdBulkEmitModal monta só quando openBulk=true; items derivados de selectedIds. */}
+      <VdBulkEmitModal
+        open={openBulk}
+        items={buildBulkItems()}
+        onClose={() => setOpenBulk(false)}
+        onCompleted={(okCount, badCount) => {
+          if (okCount > 0) setRefetchToken((t) => t + 1);
+          if (badCount === 0) setSelectedIds(new Set());
+        }}
       />
 
       {/* QuickPaymentPopover agora vive ANCORADO em cada row (state local). O
