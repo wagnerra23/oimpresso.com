@@ -179,3 +179,75 @@ Como Larissa criando compra de modelo `type='variable'` no `/compras/create`, qu
 - [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) Cowork loop
 - Precedente Soft wrapper PR [#1288 Caixa](https://github.com/wagnerra23/oimpresso.com/pull/1288) + PR [#1297 Home](https://github.com/wagnerra23/oimpresso.com/pull/1297)
 - Protótipo canon: `public/cowork-preview/erp-shell-v2/compras-page.{jsx,css}` + `Compras.html`
+
+## 8. Onda Audit Sênior 2026-05-25
+
+> Origem: [`AUDIT-SENIOR-2026-05-25.md`](AUDIT-SENIOR-2026-05-25.md). Compras 38/100 Crítico — sai pra ~63/100 pós PR-0 Estabilizar (Tier 0 + Sec + Cliente).
+> Bypass MCP `tasks-create` (mcp_jira_projects ainda não tem entry "Compras") — webhook sincroniza no próximo push.
+
+### US-COM-006 · Pest cross-tenant biz=1 vs biz=99 (4 testes)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Acceptance:**
+- [ ] 4 testes Pest em `Modules/Compras/Tests/Feature/MultiTenantTest.php`
+- [ ] cenários: list/create/show/update de compras isolados biz=1 vs biz=99
+- [ ] cobertura mínima: ComprasController + ServicesPurchase + Repository
+- [ ] CI verde
+
+**Pré-req:** MySQL local online (atual OFFLINE detectado em module:grade)
+**Refs:** ADR 0093 (Multi-tenant Tier 0 IRREVOGÁVEL), AUDIT-SENIOR-2026-05-25.md §3.1
+
+### US-COM-007 · Fix business_id source: auth() em vez de session() + abort_if
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Acceptance:**
+- [ ] Trocar `session('user.business_id')` → `auth()->user()->business_id` em todos Controllers Compras
+- [ ] Adicionar `abort_if($entity->business_id !== auth()->user()->business_id, 404)` em show/edit/update/destroy
+- [ ] Pest cobre cenário cross-tenant (404 esperado)
+
+**Breaking risk:** mudança comportamental — Wagner sign-off se código legacy depende exclusivo da session
+**Refs:** [Laracopilot 2026](https://laracopilot.com/blog/laravel-multi-tenancy-saas-guide/), AUDIT-SENIOR-2026-05-25.md §3.2
+
+### US-COM-008 · Throttle 60/1 em /compras + FormRequest ListarComprasRequest
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Acceptance:**
+- [ ] `Route::middleware(['web', 'throttle:60,1'])` em route group `/compras`
+- [ ] FormRequest `ListarComprasRequest` com validação de filtros (period, status, supplier_id)
+- [ ] Pest cobre rate limit (61º request → 429)
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §3.3
+
+### US-COM-009 · Validar JOIN scope contacts.business_id em TransactionUtil::getListPurchases (R1 leak)
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Sintoma potencial:** `TransactionUtil::getListPurchases` faz JOIN com `contacts` table sem scope `contacts.business_id = X` — vazamento cross-tenant em listagem de fornecedores.
+
+**Acceptance:**
+- [ ] Auditar query em `app/Utils/TransactionUtil.php` (6435 LOC compartilhadas com Sells/Expense — mexer com cuidado)
+- [ ] Se vazamento confirmado: hotfix imediato + Pest regressão
+- [ ] Adicionar scope explícito `contacts.business_id = ?` em todas JOIN com contacts
+
+**Atenção:** mexe em arquivo compartilhado — coordenar com módulos Sells/Expense
+**Refs:** AUDIT-SENIOR-2026-05-25.md §3.4 (Risk Register R1) — blast radius MÁXIMO
+
+### US-COM-010 · Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando)
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Acceptance:**
+- [ ] Adicionar entry Compras em `config/governance/module_clients.yaml`
+- [ ] Larissa @ ROTA LIVRE biz=4 como `piloto_reportando_dor` (+8 pts D5)
+- [ ] Sinal qualificado já CONFIRMADO no DISCOVERY 2026-05-21 ("ela compra e tem entrada por grade")
+- [ ] Pós Onda CONSOLIDAR: promover pra `biz_4_rota_livre_prod` (+15 pts) via canary 7d
+
+**Refs:** ADR 0105 (Cliente como sinal qualificado), AUDIT-SENIOR-2026-05-25.md §6
