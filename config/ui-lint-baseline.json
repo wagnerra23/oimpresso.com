@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-26T04:56:16-03:00",
+        "generated_at": "2026-05-26T06:00:30-03:00",
         "tool": "ui:lint",
         "files_scanned": 498,
-        "total_violations": 7411,
+        "total_violations": 7425,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -367,7 +367,7 @@
             "R4": 2
         },
         "resources\/js\/Pages\/ComunicacaoVisual\/Index.tsx": {
-            "R1": 2,
+            "R1": 17,
             "R4": 2
         },
         "resources\/js\/Pages\/ConsultaOs\/Index.tsx": {
@@ -513,7 +513,7 @@
             "R1": 12
         },
         "resources\/js\/Pages\/Fiscal\/Config.tsx": {
-            "R3": 2
+            "R3": 1
         },
         "resources\/js\/Pages\/Fiscal\/Sped.tsx": {
             "R1": 3
