@@ -3,7 +3,7 @@ slug: 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 number: 194
 title: "Correção domínio OficinaAuto Martinho — mecânica pesada caminhão basculante (não locação caçamba container)"
 type: adr
-status: proposed
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
@@ -28,7 +28,7 @@ review_triggers:
 
 ## Status
 
-`proposed` 2026-05-26 — aguardando Wagner aceitar formalmente.
+`aceito` 2026-05-26 — Wagner aceitou no PR #1593 (mesma sessão da identificação do erro).
 
 ## Contexto
 

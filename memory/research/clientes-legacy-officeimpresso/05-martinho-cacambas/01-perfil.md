@@ -16,7 +16,7 @@ banco_alias_firebird: 192.168.0.55:D:\DadosClientes\MartinhoCacamba\Dados\BANCO.
 
 # Perfil — `Cliente_731814` (peças hidráulicas basculante + oficina autorizada · Capivari de Baixo/SC)
 
-> **Correção 2026-05-26:** entendimento original neste perfil (e em [ADR 0137](../../../decisions/0137-modules-oficinaauto-qualificada.md) + [BRIEFING OficinaAuto](../../../requisitos/OficinaAuto/BRIEFING.md)) descrevia Martinho como "locação de caçamba estacionária pra entulho/obra (CNAE 4581-4/00)". Wagner identificou o erro de leitura — Martinho é **loja de peças hidráulicas pra caminhão basculante + oficina autorizada** (CNAE 4520-0/01). Correção formal via [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (pendente aceite).
+> **Correção 2026-05-26:** entendimento original neste perfil (e em [ADR 0137](../../../decisions/0137-modules-oficinaauto-qualificada.md) + [BRIEFING OficinaAuto](../../../requisitos/OficinaAuto/BRIEFING.md)) descrevia Martinho como "locação de caçamba estacionária pra entulho/obra (CNAE 4581-4/00)". Wagner identificou o erro de leitura — Martinho é **loja de peças hidráulicas pra caminhão basculante + oficina autorizada** (CNAE 4520-0/01). Correção formal via [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (aceito 2026-05-26).
 
 ## 1. Identificação
 
@@ -106,7 +106,7 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
 |-----|---------|--------|
 | [0137](../../../decisions/0137-modules-oficinaauto-qualificada.md) | OficinaAuto qualificada (Vargas + Martinho) | aceito (com erro de domínio Martinho — amendado por 0194) |
 | [0171](../../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md) | Ativação piloto Martinho faseada | aceito (amendado por 0194) |
-| [0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) | Correção domínio Martinho mecânica pesada (não locação) | **proposed 2026-05-26** |
+| [0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) | Correção domínio Martinho mecânica pesada (não locação) | **aceito 2026-05-26** |
 
 ## 9. Histórico
 
@@ -127,7 +127,7 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
 - Wagner identificou erro: NÃO é locação caçamba container — é **loja de peça hidráulica basculante + oficina autorizada** (Capivari de Baixo/SC). Empresa do filho; pai (Martinho da Caçamba Tubarão) é empresa separada (transportadora resíduo, **não cliente**).
 - WebSearch confirmou: Martinho Caçambas (Rua Antonia de Bitencourt Barcelos, Capivari de Baixo SC) vende peça hidráulica pra Polli-guindaste / munck / plataforma / basculante.
 - Tork (Tomadas de Força, Capivari) entra na cadeia como fornecedor PTO indústria — perfil prospect em [clientes-prospect/tork-tomadas-forca/](../../clientes-prospect/tork-tomadas-forca/01-perfil.md).
-- [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) proposed formaliza correção (aguarda aceite Wagner).
+- [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) formaliza correção (aceito Wagner 2026-05-26 no PR #1593).
 
 ## 10. Refs
 
@@ -136,7 +136,7 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
 - [discovery Martinho reunião 2026-05-13](../../../requisitos/OficinaAuto/demo-martinho-2026-05-13/discovery-martinho.md)
 - [ADR 0137](../../../decisions/0137-modules-oficinaauto-qualificada.md) — qualificação OficinaAuto (com erro de leitura domínio Martinho)
 - [ADR 0171](../../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md) — ativação piloto faseada
-- [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — correção domínio (proposed)
+- [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — correção domínio (aceito 2026-05-26)
 - [Perfil prospect Tork PTO](../../clientes-prospect/tork-tomadas-forca/01-perfil.md)
 - [Dicionário domínios §"Sub-vertical 4"](../../../reference/dominios-verticais-oimpresso.md)
 - WebSearch fontes 2026-05-26:
