@@ -136,6 +136,11 @@ class OimpressoMcpServer extends Server
         Tools\FlagSetTool::class,
         Tools\FlagEnvToggleTool::class,
         Tools\FlagCacheClearTool::class,
+        // G1 P0 AUDIT-SENIOR-2026-05-25 §6 — D7.e DSR LGPD Art. 18 §VI.
+        // Executa direito de eliminação pra titular identificado por CPF/CNPJ.
+        // Anonymize default (LGPD-preferred) · hard delete opt-in. Confirm obrigatório.
+        // Audit trail append-only via jana.audit.lgpd.eliminacao (severity=critical).
+        Tools\LgpdEsquecerTitularTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
