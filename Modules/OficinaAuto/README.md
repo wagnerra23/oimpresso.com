@@ -15,7 +15,7 @@ Sistema operacional pra oficina/locadora pequena+média BR que UltimatePOS núcl
 
 ## Cliente piloto
 
-**Martinho Caçambas** (sinal qualificado CYCLE-06 — ADR 0105). Caso de uso primário: locação de caçambas com manutenção esporádica.
+**Martinho Caçambas LTDA biz=164 Capivari de Baixo SC** (sinal qualificado CYCLE-06 — ADR 0105). Caso de uso primário: **mecânica pesada caminhão basculante + loja peça hidráulica + oficina autorizada** (sub-vertical 4 CNAE 4520 · ADR 0194 — pré-correção dizia "locação de caçambas com manutenção esporádica"). Caminhões DE CLIENTES entram pra peça/serviço; não frota Martinho.
 
 Candidatos secundários: Vargas (recapagem complexa fluxo 5 estados).
 
