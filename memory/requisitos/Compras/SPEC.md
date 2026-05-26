@@ -3,15 +3,26 @@ slug: compras
 title: "Especificação funcional — Compras"
 type: spec
 module: Compras
-status: proposed
-related_adrs: [0093, 0094, 0101, 0104, 0105, 0106, 0107, 0114, 0141, 0143, 0149]
+status: ativo
+related_adrs:
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0101-tests-business-id-1-nunca-cliente"
+  - "0104-processo-mwart-canonico-unico-caminho"
+  - "0105-cliente-como-sinal-guiar-sem-mandar"
+  - "0106-recalibracao-velocidade-fator-10x-ia-pair"
+  - "0107-emendation-0104-visual-comparison-gate-f3"
+  - "0114-prototipo-ui-cowork-loop-formalizado"
+  - "0141-skill-migracao-blade-react"
+  - "0143-fsm-pipeline-live-prod-marco-2026-05-12"
+  - "0149-mwart-screen-pattern-reuse-cowork"
 related_proposals:
   - "compras-modulo-greenfield-hibrido"
   - "compras-purchase-convergencia-c1"
 pii: false
-updated_at: 2026-05-25
-last_updated: 2026-05-25
-version: 0.2
+updated_at: "2026-05-25"
+last_updated: "2026-05-25"
+version: "0.2"
 owner: wagner
 ---
 
