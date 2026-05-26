@@ -8,7 +8,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   CreditCard,
@@ -23,6 +23,7 @@ import {
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
+import { printSaleReceipt } from '@/Lib/printSaleReceipt';
 
 interface Customer {
   id: number;
@@ -141,6 +142,23 @@ function DetailSkeleton() {
 
 export default function SellsShow(props: SellsShowPageProps) {
   const { headline, urls, permissions } = props;
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  // /sells/{id}/print só responde a AJAX (SellPosController::printInvoice).
+  // Abrir <a target="_blank"> devolvia tela em branco — agora fetch + nova janela com window.print().
+  // Pattern equivalente ao legacy public/js/app.js:1656 (a.print-invoice → __print_receipt).
+  const handlePrint = useCallback(async () => {
+    if (!permissions.print || isPrinting) return;
+    setIsPrinting(true);
+    try {
+      await printSaleReceipt({ printUrl: urls.print, invoiceNo: headline.invoice_no });
+    } catch (err) {
+      console.error('Falha ao imprimir venda', err);
+      window.alert(err instanceof Error ? err.message : 'Erro ao gerar o recibo.');
+    } finally {
+      setIsPrinting(false);
+    }
+  }, [headline.invoice_no, isPrinting, permissions.print, urls.print]);
 
   // Atalhos teclado E (edit) + P (print) + Esc (back)
   useEffect(() => {
@@ -157,7 +175,7 @@ export default function SellsShow(props: SellsShowPageProps) {
       }
       if (e.key === 'p' && permissions.print) {
         e.preventDefault();
-        window.open(urls.print, '_blank');
+        handlePrint();
       }
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -166,7 +184,7 @@ export default function SellsShow(props: SellsShowPageProps) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [permissions.edit, permissions.print, urls.edit, urls.print, urls.back]);
+  }, [permissions.edit, permissions.print, urls.edit, urls.back, handlePrint]);
 
   const totalFalta = Math.max(0, headline.final_total - headline.total_paid);
   const paymentStatusLabel = PAYMENT_STATUS_LABEL[headline.payment_status] ?? headline.payment_status;
@@ -201,11 +219,9 @@ export default function SellsShow(props: SellsShowPageProps) {
 
           <div className="flex items-center gap-2">
             {permissions.print && (
-              <Button variant="outline" size="sm" asChild>
-                <a href={urls.print} target="_blank" rel="noopener noreferrer">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Imprimir
-                </a>
+              <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPrinting}>
+                <Printer className="h-4 w-4 mr-2" />
+                {isPrinting ? 'Gerando…' : 'Imprimir'}
               </Button>
             )}
             {permissions.edit && (
