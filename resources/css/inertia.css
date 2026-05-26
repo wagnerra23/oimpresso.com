@@ -8,6 +8,9 @@
 /* Sells KB-9.75 NextActionPanel + validações fiscais BR (Cowork bundle 2026-05-26 P0 gaps #1/#5) */
 @import "./sells-kb975-next-action.css";
 
+/* Sells KB-9.75 Emit modals NF-e/NFS-e/Bulk (Cowork bundle 2026-05-26 P0 gaps #2/#3/#4 — fullscreen modal global) */
+@import "./sells-kb975-emit-modals.css";
+
 /* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
 @import "./sells-cowork-ia.css";
 
