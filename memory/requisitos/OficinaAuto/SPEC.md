@@ -6,8 +6,8 @@ status: ativo
 lifecycle: ativo
 piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
 piloto_previsao: V0 scaffold 2026-05-11 (PR US-OFICINA-001); V1 importer Martinho Sprint 2+
-cnae_principal: "4520-0/01" (serviços de manutenção e reparação mecânica de veículos automotores)
-cnaes_cobertos: ["4520-0/01", "2212-9/00", "4581-4/00"]
+cnae_principal: '4520-0/01 (serviços de manutenção e reparação mecânica de veículos automotores)'
+cnaes_cobertos: ['4520-0/01', '2212-9/00', '4581-4/00']
 related_adrs: [0137, 0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0119, 0129]
 related_proposals: [proposals/gap-repair-vs-oficina-auto.md]
 last_review: 2026-05-26
