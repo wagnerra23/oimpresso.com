@@ -3,6 +3,7 @@
 namespace Modules\Compras\Services;
 
 use App\Transaction;
+use App\Util\OtelHelper;
 use App\Utils\TransactionUtil;
 use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
@@ -46,6 +47,23 @@ class ComprasService
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
      */
     public function listarCompras(int $businessId, array $filters = [])
+    {
+        // Audit sênior 2026-05-25 Gap #11 — OTel span custom (D9.a +1).
+        // spanBiz wrap captura latência + tenant_id automaticamente quando OTel
+        // habilitado; zero-cost path quando desabilitado (OtelHelper::span line 64).
+        return OtelHelper::spanBiz('compras.listarCompras', function () use ($businessId, $filters) {
+            return $this->listarComprasInterno($businessId, $filters);
+        }, [
+            'module' => 'Compras',
+            'q_len' => strlen((string) ($filters['q'] ?? '')),
+            'stage' => (string) ($filters['stage'] ?? 'all'),
+        ]);
+    }
+
+    /**
+     * @internal Wrapped pelo span OTel em listarCompras.
+     */
+    private function listarComprasInterno(int $businessId, array $filters)
     {
         $query = $this->transactionUtil->getListPurchases($businessId);
 
@@ -129,6 +147,17 @@ class ComprasService
      */
     public function calcularKpis(int $businessId): array
     {
+        // Audit sênior 2026-05-25 Gap #11 — OTel span KPIs (D9.a +1)
+        return OtelHelper::spanBiz('compras.calcularKpis', function () use ($businessId): array {
+            return $this->calcularKpisInterno($businessId);
+        }, ['module' => 'Compras']);
+    }
+
+    /**
+     * @internal Wrapped pelo span OTel em calcularKpis.
+     */
+    private function calcularKpisInterno(int $businessId): array
+    {
         $base = Transaction::where('business_id', $businessId)
             ->where('type', 'purchase');
 
@@ -167,6 +196,20 @@ class ComprasService
      * Retorna null se não achar (caller responde 404).
      */
     public function buscarDetalhe(int $id, int $businessId): ?array
+    {
+        // Audit sênior 2026-05-25 Gap #11 — OTel span detalhe (D9.a +1)
+        return OtelHelper::spanBiz('compras.buscarDetalhe', function () use ($id, $businessId): ?array {
+            return $this->buscarDetalheInterno($id, $businessId);
+        }, [
+            'module' => 'Compras',
+            'compra_id' => $id,
+        ]);
+    }
+
+    /**
+     * @internal Wrapped pelo span OTel em buscarDetalhe.
+     */
+    private function buscarDetalheInterno(int $id, int $businessId): ?array
     {
         $compra = Transaction::where('business_id', $businessId)
             ->where('id', $id)
