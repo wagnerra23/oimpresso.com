@@ -7,7 +7,13 @@
  * Próximos PRs portarão CSS extra (sparklines, KPIs, alertas) conforme novas sub-páginas.
  */
 
-.fx-page {
+/* Tokens canon Fiscal — cascadeam pros 5 drawers que renderizam como
+ * siblings de .fx-page (FORA dela). Sem este split, var(--fx-text) etc
+ * ficam undefined nos drawers → visual quebrado (descoberto 2026-05-26
+ * smoke prod Wagner). Split mantém scope (não polui :root) mas garante
+ * que drawers herdam os mesmos tokens. */
+.fx-page,
+.fx-drawer {
   --fis:       oklch(0.52 0.16 30);
   --fis-soft:  oklch(0.95 0.06 30);
   --ok:        oklch(0.55 0.13 145);
@@ -22,7 +28,9 @@
   --fx-text:   oklch(0.22 0.01 80);
   --fx-text-dim: oklch(0.50 0.01 80);
   --fx-text-mute: oklch(0.65 0.01 80);
+}
 
+.fx-page {
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   color: var(--fx-text);
   font-size: 13.5px;
