@@ -14,6 +14,9 @@
 /* Sells KB-9.75 Recibo térmico 80mm + Orçamento A4 (Cowork bundle 2026-05-26 P2 gaps #8/#9) */
 @import "./sells-kb975-print.css";
 
+/* Sells KB-9.75 Cheat-sheet overlay '?' (Cowork bundle 2026-05-26 gap P3 #12 — fullscreen global, fora .sells-cowork) */
+@import "./sells-kb975-cheatsheet.css";
+
 /* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
 @import "./sells-cowork-ia.css";
 

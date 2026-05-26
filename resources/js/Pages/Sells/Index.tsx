@@ -28,7 +28,6 @@ import {
   Printer,
   Search,
   SlidersHorizontal,
-  X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
@@ -46,6 +45,7 @@ import SellsTabelaUnificada, {
   type ColumnId,
   type SaleRow as UnifiedSaleRow,
 } from './_components/SellsTabelaUnificada';
+import SellsCheatSheet, { SELLS_INDEX_SHORTCUTS } from './_components/SellsCheatSheet';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS
@@ -386,61 +386,10 @@ function Sparkline({
 }
 
 // ──────────────────────────────────────────────────────────────
-// Cheat sheet overlay (?)
+// Cheat sheet overlay (?) — extraído pra _components/SellsCheatSheet.tsx
+// (gap P3 #12 KB-9.75 Cowork bundle 2026-05-26). Lista canônica de atalhos
+// em SELLS_INDEX_SHORTCUTS no mesmo módulo.
 // ──────────────────────────────────────────────────────────────
-function SellsCheatSheet({ onClose }: { onClose: () => void }): ReactNode {
-  return (
-    <div className="vd-cheat-bd" onClick={onClose}>
-      <div className="vd-cheat" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Atalhos">
-        <header className="vd-cheat-h">
-          <span className="vd-cheat-ic">⌨</span>
-          <h2>Atalhos · Lista de vendas</h2>
-          <button className="vd-cheat-x" onClick={onClose} aria-label="Fechar">
-            <X size={14} />
-          </button>
-        </header>
-        <div className="vd-cheat-body">
-          <section className="vd-cheat-grp">
-            <h3>Navegar</h3>
-            <ul>
-              <li><kbd>J</kbd> <kbd>K</kbd> linha anterior/próxima</li>
-              <li><kbd>Enter</kbd> abrir detalhes</li>
-              <li><kbd>Esc</kbd> fechar drawer / palette</li>
-            </ul>
-          </section>
-          <section className="vd-cheat-grp">
-            <h3>Ações</h3>
-            <ul>
-              <li><kbd>N</kbd> nova venda</li>
-              <li><kbd>B</kbd> favoritar linha em foco ★</li>
-              <li><kbd>R</kbd> imprimir recibo</li>
-              <li><kbd>F</kbd> faturar (emitir NF)</li>
-              <li><kbd>X</kbd> marcar pra ação em lote</li>
-              <li><kbd>E</kbd> editar venda</li>
-            </ul>
-          </section>
-          <section className="vd-cheat-grp">
-            <h3>⌘K palette</h3>
-            <ul>
-              <li><kbd>⌘K</kbd> abrir busca rápida</li>
-              <li><kbd>/</kbd> ações</li>
-              <li><kbd>#</kbd> ID da venda</li>
-              <li><kbd>@</kbd> vendedor</li>
-              <li><kbd>$</kbd> valor mínimo</li>
-            </ul>
-          </section>
-          <section className="vd-cheat-grp">
-            <h3>Sair</h3>
-            <ul>
-              <li><kbd>?</kbd> abre/fecha este painel</li>
-              <li><kbd>Esc</kbd> fechar</li>
-            </ul>
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ──────────────────────────────────────────────────────────────
 // Saved views — Hoje / Pendentes / Atrasadas / Rejeitadas / Faturadas / Favoritas
@@ -1607,7 +1556,13 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         )}
 
         {/* CHEAT-SHEET (?) */}
-        {cheatOpen && <SellsCheatSheet onClose={() => setCheatOpen(false)} />}
+        <SellsCheatSheet
+          open={cheatOpen}
+          onClose={() => setCheatOpen(false)}
+          shortcuts={SELLS_INDEX_SHORTCUTS}
+          title="Atalhos · Lista de vendas"
+          footerLeft="Atalhos persistem em toda sub-rota de Vendas (Lista · Caixa · Devoluções · Comissões · Relatórios)."
+        />
 
         {/* ⌘K palette — versão simplificada (backend search + recent + actions) */}
         {palOpen && (
