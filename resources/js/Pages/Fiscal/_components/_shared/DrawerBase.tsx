@@ -24,7 +24,7 @@
 //       (-145 LOC líquidas + consistência ESC/a11y).
 //       Onda 2.1 — focus trap + aria-modal + return focus (P1 polimento).
 
-import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), ' +
@@ -101,12 +101,17 @@ export default function DrawerBase({
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose, closeOnEsc]);
 
-  // Focus management — Onda 2.1 P1.
+  // Focus management — Onda 2.1 P1 + 2.1.2.
   //   1. Ao abrir: salva elemento ativo prévio + foca primeiro focusable do drawer
   //   2. Ao fechar: restaura foco pro elemento que disparou (trigger original)
   //   3. Tab/Shift+Tab cyclam dentro do drawer (focus trap)
   // Quando closeOnEsc=false (modal nested aberto), trap desliga pro modal cuidar.
-  useEffect(() => {
+  //
+  // useLayoutEffect (sync após DOM commit) em vez de useEffect (async) elimina
+  // race quando consumer tem data async — SendToContabilDrawer monta DrawerBase
+  // quando data chega, useLayoutEffect dispara IMEDIATAMENTE após aside no DOM
+  // (antes do browser paint), antes de qualquer focus-restore concorrente.
+  useLayoutEffect(() => {
     if (!open) return;
 
     // Salva elemento ativo antes de focar dentro do drawer
