@@ -34,7 +34,7 @@ Próximo passo técnico: **US-OFICINA-002** (importer `EQUIPAMENTO_VEICULO` → 
 
 ## Vocabulário Martinho (CORRIGIDO 2026-05-26 pós-ADR 0194)
 
-> **⚠️ Correção factual (Wagner 2026-05-26 + [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)):** vocabulário original capturado neste discovery 2026-05-13 estava errado por leitura errada do Firebird. **Sub-vertical real do Martinho é 4 — mecânica pesada / autorizada caminhão basculante CNAE 4520** (Capivari de Baixo/SC), NÃO locação caçamba container CNAE 4581 como inferido.
+> **⚠️ Correção factual (Wagner 2026-05-26 + [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) + errata endereço pós-smoke prod):** vocabulário original capturado neste discovery 2026-05-13 estava errado por leitura errada do Firebird. **Sub-vertical real do Martinho é 4 — mecânica pesada / autorizada caminhão basculante CNAE 4520** (**Tubarão/SC Humaitá de Cima**, NÃO Capivari de Baixo como inicialmente inferido via WebSearch), NÃO locação caçamba container CNAE 4581 como inferido.
 
 ### Vocabulário canon CORRETO (sub-vertical 4 mecânica pesada caminhão basculante)
 
@@ -54,7 +54,7 @@ Próximo passo técnico: **US-OFICINA-002** (importer `EQUIPAMENTO_VEICULO` → 
 
 - 96% PLACA Firebird = caminhões de clientes que entram pra peça/serviço (caçamba container estacionária NÃO tem placa)
 - Faturamento R$ 1M+/mês compatível com mecânica pesada autorizada · não com locação container ticket R$ 200-500/diária
-- WebSearch 2026-05-26 confirmou: Martinho Caçambas Capivari de Baixo SC vende peça hidráulica pra Polli/munck/plataforma/basculante
+- WebSearch 2026-05-26 identificou entidade Martinho Caçambas (URL Listatudo seção Tubarão · perfil peça hidráulica Polli/munck/plataforma/basculante). Endereço cadastrado prod biz=164 (Location BL0001) confirmou **Tubarão SC Humaitá de Cima** (errata 2026-05-26 — anterior dizia Capivari de Baixo).
 - Entidade do filho — pai (Martinho da Caçamba Tubarão SC) é transportadora resíduo separada, NÃO é cliente oimpresso
 - Cadeia comercial: [Tork PTO (fábrica Capivari)](../../../research/clientes-prospect/tork-tomadas-forca/01-perfil.md) → Martinho (revenda + instala) → frota basculante terceiro
 

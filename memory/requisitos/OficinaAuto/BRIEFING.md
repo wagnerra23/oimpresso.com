@@ -2,7 +2,7 @@
 module: OficinaAuto
 status: em-uso
 cnae_principal: "4520-0/01"
-piloto: Martinho Caçambas LTDA biz=164 Capivari de Baixo SC (sub-vertical 4 mecânica pesada) + Vargas Recapagem (sub-vertical 2 V1)
+piloto: Martinho Caçambas LTDA biz=164 Tubarão SC Humaitá de Cima (sub-vertical 4 mecânica pesada · errata endereço 2026-05-26 confirmou Tubarão via smoke prod) + Vargas Recapagem (sub-vertical 2 V1)
 ultima_atualizacao: 2026-05-26
 nota_capterra: 63 (a recalibrar via US-OFICINA-034 vs concorrentes corretos pós-ADR 0194)
 nota_fsm_screen: 80 (estado-da-arte gaps #1+#2+#3 LIVE 2026-05-20)
@@ -25,7 +25,7 @@ Vertical especializado pra **oficinas de manutenção/reparação mecânica de v
 | 1. Mecânica geral | 4520-0/01 | a aguardar sinal | proposed |
 | 2. Recapagem pneus | 2212-9/00 | Vargas (Cliente_874398, V1) | qualified ADR 0137 |
 | 3. Locação caçamba container | 4581-4/00 | hipótese sem cliente real | hypothesis (schema preservado) |
-| **4. Mecânica pesada + autorizada caminhão basculante** | **4520-0/01** | **Martinho Caçambas LTDA biz=164 Capivari/SC** | **🟢 LIVE prod** ADR 0171 |
+| **4. Mecânica pesada + autorizada caminhão basculante** | **4520-0/01** | **Martinho Caçambas LTDA biz=164 Tubarão/SC** (Humaitá de Cima · errata 2026-05-26) | **🟢 LIVE prod** ADR 0171 |
 
 Cliente piloto **Martinho biz=164** opera em prod desde 2026-05-13: 91 caminhões de clientes importados + 44.709 vendas Firebird + 103k títulos. Faturamento estimado R$ 1M+/mês. Pacote oimpresso R$ 850/mês inclui núcleo + OficinaAuto + NFe + NFSe (grandfathered ADR 0171). Add-on WhatsApp R$ 99/instância beta 30d.
 

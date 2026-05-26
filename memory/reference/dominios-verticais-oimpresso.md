@@ -59,7 +59,7 @@ type: reference
 
 #### Sub-vertical 4 — Mecânica pesada / autorizada caminhão basculante · CNAE 4520-0/01 · qualificado por Martinho (NOVO 2026-05-26)
 
-- **Cliente piloto:** **Martinho Caçambas LTDA** (Cliente_731814, biz=164 prod, Capivari de Baixo/SC) — 91 placas de caminhões de CLIENTES + 44.709 vendas Firebird + R$ 1M+/mês estimado
+- **Cliente piloto:** **Martinho Caçambas LTDA** (Cliente_731814, biz=164 prod, **Tubarão/SC · Humaitá de Cima** · Location BL0001 — errata endereço 2026-05-26 pós-smoke prod; pré-correção dizia Capivari de Baixo via WebSearch que apontou entidade diferente) — 91 placas de caminhões de CLIENTES + 44.709 vendas Firebird + R$ 1M+/mês estimado
 - **Razão social / fantasia:** MARTINHO CAÇAMBAS LTDA / Martinho Caçambas (do filho — pai é "Martinho da Caçamba" em Tubarão, transportadora resíduo, NÃO é cliente)
 - **Unidades primárias:**
   - **peça hidráulica** — PTO (tomada de força), kit hidráulico, bomba, válvula, mangueira
