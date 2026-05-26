@@ -76,6 +76,19 @@ class OaInspectionItem extends Model
         self::SEVERITY_CRITICO,
     ];
 
+    // Gap 2 PR 2b — tracking aprovação cliente item-a-item via mobile (US-OFICINA-035 Wave 3b)
+    public const CLIENT_DECISION_PENDING = 'pending';
+
+    public const CLIENT_DECISION_APPROVED = 'approved';
+
+    public const CLIENT_DECISION_REJECTED = 'rejected';
+
+    public const CLIENT_DECISIONS_VALIDAS = [
+        self::CLIENT_DECISION_PENDING,
+        self::CLIENT_DECISION_APPROVED,
+        self::CLIENT_DECISION_REJECTED,
+    ];
+
     protected $fillable = [
         'business_id',
         'service_order_id',
@@ -87,6 +100,8 @@ class OaInspectionItem extends Model
         'metadata',
         'photo_url',
         'sort_order',
+        'client_decision',
+        'client_decided_at',
     ];
 
     protected $casts = [
@@ -95,6 +110,7 @@ class OaInspectionItem extends Model
         'valor_recomendado' => 'decimal:2',
         'metadata'          => 'array',
         'sort_order'        => 'integer',
+        'client_decided_at' => 'datetime',
     ];
 
     // ------------------------------------------------------------------
@@ -165,6 +181,8 @@ class OaInspectionItem extends Model
                 'recomendacao',
                 'valor_recomendado',
                 'sort_order',
+                'client_decision',
+                'client_decided_at',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
