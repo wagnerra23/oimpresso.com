@@ -144,6 +144,60 @@ class ContactController extends Controller
     }
 
     /**
+     * Wave Onda 1 PR D 2026-05-26 — Paginador de veículos do contato (frota Martinho).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório.
+     * Reutiliza schema `vehicles` do Modules/OficinaAuto (ADR 0137) — coluna
+     * `contact_id` já liga veículo ao cliente. Sem migration nova.
+     *
+     * Caller (show()) é responsável por gate `oficinaauto_enabled` —
+     * este helper NÃO checa o módulo (pra facilitar reuso futuro em outros contextos).
+     *
+     * Query string: `vehicles_q` (LIKE placa/secondary_plate/chassis), `vehicles_page`.
+     */
+    private function buildClienteVehiclesPaginator(int $contactId, int $businessId, Request $req): array
+    {
+        $q = trim((string) $req->query('vehicles_q', ''));
+        $page = max(1, (int) $req->query('vehicles_page', 1));
+
+        $query = \Modules\OficinaAuto\Entities\Vehicle::where('business_id', $businessId)
+            ->where('contact_id', $contactId);
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('plate', 'like', "%{$q}%")
+                    ->orWhere('secondary_plate', 'like', "%{$q}%")
+                    ->orWhere('chassis', 'like', "%{$q}%");
+            });
+        }
+
+        $paginator = $query->orderByDesc('id')->paginate(20, ['*'], 'vehicles_page', $page);
+
+        return [
+            'data' => $paginator->getCollection()->map(fn ($v) => [
+                'id' => (int) $v->id,
+                'plate' => (string) $v->plate,
+                'secondary_plate' => $v->secondary_plate,
+                'chassis' => $v->chassis,
+                'manufacture_year' => $v->manufacture_year,
+                'model_year' => $v->model_year,
+                'renavam' => $v->renavam,
+                'vehicle_type' => (string) ($v->vehicle_type ?? ''),
+                'current_status' => (string) ($v->current_status ?? ''),
+                'color' => $v->color,
+                'fuel_type' => $v->fuel_type,
+                'mileage_at_entry' => $v->mileage_at_entry,
+                'notes' => $v->notes,
+            ])->all(),
+            'total' => $paginator->total(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+        ];
+    }
+
+    /**
      * W1-B3 — Mascara CNPJ/CPF pra display client-side.
      * NUNCA enviar plain digits — ADR 0093 PII §LGPD Art.7.
      */
@@ -1401,7 +1455,18 @@ class ContactController extends Controller
                     'regime' => $contact->regime ?? null,
                     'suframa' => $contact->suframa ?? null,
                 ],
-                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons', 'subscriptions', 'rewards'], true) ? $tab : 'ledger',
+                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons', 'subscriptions', 'rewards', 'vehicles'], true) ? $tab : 'ledger',
+                'modules' => [
+                    // Onda 1 PR D 2026-05-26 — frontend gate pra tab Veículos.
+                    // Daniela (Martinho cliente piloto) precisa enxergar frota do cliente
+                    // direto do cadastro. Schema `vehicles` (ADR 0137) já tem contact_id.
+                    'oficinaauto_enabled' => (bool) $this->moduleUtil->isModuleInstalled('OficinaAuto'),
+                ],
+                // Defer só quando módulo instalado pra evitar referenciar Modules\OficinaAuto\Entities\Vehicle
+                // em business que não tem o módulo (autoload do nWidart só registra Modules ativos).
+                'vehicles' => $this->moduleUtil->isModuleInstalled('OficinaAuto')
+                    ? Inertia::defer(fn () => $this->buildClienteVehiclesPaginator((int) $contact->id, (int) $business_id, request()))
+                    : null,
                 'stats' => Inertia::defer(fn () => [
                     'total_invoice' => (float) ($contact->total_invoice ?? 0),
                     'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
