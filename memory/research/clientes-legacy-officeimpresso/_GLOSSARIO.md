@@ -67,7 +67,8 @@ audience: time interno + IA-pair (sobretudo IA nova que não viveu o legacy)
 | **Comunicação visual** | 7320-5/00 ou 1813-0/01 | `DT_PROMETIDO` > 50% preenchido + `VENDA.SITUACAO` distinct >= 5 + zero PCP + zero veículos |
 | **Oficina auto** (genérica) | 4520-0/01 | `EQUIPAMENTO_VEICULO.PLACA` > 30% + sem multi-placa |
 | **Oficina recapagem caminhão** | 2212-9/00 (recapagem) | `EQUIPAMENTO_VEICULO` com PLACA2/CHASSI2 > 5% (cavalo+reboque) + média itens/venda > 2 |
-| **Oficina caçamba avulsa** | 4581-4/00 (locação) | `EQUIPAMENTO_VEICULO.PLACA` > 90% E PLACA2 = 0% + média itens/venda ~1 |
+| **Mecânica pesada caminhão basculante** (Martinho · ADR 0194) | 4520-0/01 (manutenção/reparação) | `EQUIPAMENTO_VEICULO.PLACA` > 90% E PLACA2 = 0% + média itens/venda ~1 + caminhões DE CLIENTES (não frota própria) |
+| ~~Oficina caçamba avulsa~~ (hipótese sub-vertical 3 sem cliente real) | 4581-4/00 (locação) | container estacionária sem placa — incompatível com PLACA Firebird 96% Martinho |
 
 ## ROTA LIVRE — separação importante
 
