@@ -103,12 +103,107 @@ it('SellsInsightsView renderiza brief diário Jana + 4 análises grid', function
     expect($src)
         ->toContain('vd-insights-brief')
         ->toContain('vd-insights-grid')
-        ->toContain('Jana · Analista IA')
+        // V2 onda gaps r5: nome Jana agora dentro de h2 com span.dot (não literal "Jana · Analista IA")
+        ->toContain('vd-insights-jh-id')
+        ->toContain('Analista IA')
         // 4 análises
         ->toContain('Inadimplência')
         ->toContain('Faturamento')
         ->toContain('Top 5 clientes')
         ->toContain('Métodos de pagamento');
+});
+
+// ── V2 onda gaps r5 — header Jana + KPIs + H2 + Ações ────────────────────────
+
+it('SellsInsightsView V2 — GAP 3 JanaHeader dedicado com avatar + tenant breadcrumb', function () {
+    $src = tabsReadInsightsView();
+    expect($src)
+        ->toContain('vd-insights-jh')
+        ->toContain('vd-insights-jh-av')
+        ->toContain('vd-insights-jh-tenant')
+        ->toContain('vd-insights-jh-updated')
+        ->toContain('Configurar')
+        ->toContain('Exportar');
+});
+
+it('SellsInsightsView V2 — GAP 4 Brief header com 📅 + IA pill + Ouvir áudio', function () {
+    $src = tabsReadInsightsView();
+    expect($src)
+        ->toContain('vd-insights-brief-h-l')
+        ->toContain('Brief diário')
+        ->toContain('vd-insights-pill ia')
+        ->toContain('vd-insights-audio')
+        ->toContain('Ouvir áudio');
+});
+
+it('SellsInsightsView V2 — GAP 1 KPIs row dedicado Jana (4 cards próprios)', function () {
+    $src = tabsReadInsightsView();
+    expect($src)
+        ->toContain('vd-insights-kpis')
+        ->toContain('vd-insights-kpi-h')
+        ->toContain('vd-insights-kpi-v')
+        ->toContain('Faturamento mês')
+        ->toContain('Inadimplência total')
+        ->toContain('Ticket médio')
+        ->toContain('PIX hoje');
+});
+
+it('SellsInsightsView V2 — GAP 5 H2 separadores hierárquicos', function () {
+    $src = tabsReadInsightsView();
+    expect($src)
+        ->toContain('vd-insights-h2')
+        ->toContain('ANÁLISES PRINCIPAIS')
+        ->toContain('SUGERE');
+});
+
+it('SellsInsightsView V2 — GAP 2 Lista AÇÕES sugeridas estruturadas (AcaoRow)', function () {
+    $src = tabsReadInsightsView();
+    expect($src)
+        ->toContain('vd-insights-acoes')
+        ->toContain('vd-insights-acao')
+        ->toContain('vd-insights-acao-ic')
+        ->toContain('vd-insights-acao-text')
+        ->toContain('vd-insights-cta')
+        // 5 sinais geradores de ação
+        ->toContain('regua-whatsapp')
+        ->toContain('negociar-top')
+        ->toContain('investigar-ticket')
+        ->toContain('pix-adocao')
+        ->toContain('preventivo-pendentes');
+});
+
+it('SellsInsightsView V2 — sparkline range labels D-N e hoje', function () {
+    $src = tabsReadInsightsView();
+    expect($src)->toContain('vd-insights-spark-range');
+});
+
+it('Index.tsx passa businessName + businessId pro SellsInsightsView', function () {
+    $src = tabsReadIndexTsx();
+    expect($src)
+        ->toContain('businessName={businessName}')
+        ->toContain('businessId={businessIdShared}')
+        ->toContain('sharedPage.props.business?.name');
+});
+
+it('sells-cowork-insights.css define tokens V2 (JanaHeader + KPIs + H2 + Ações)', function () {
+    $src = tabsReadInsightsCss();
+    expect($src)
+        // GAP 3 JanaHeader
+        ->toContain('.sells-cowork .vd-insights-jh')
+        ->toContain('.sells-cowork .vd-insights-jh-av')
+        ->toContain('.sells-cowork .vd-insights-jh-btn')
+        // GAP 4 Brief header
+        ->toContain('.sells-cowork .vd-insights-pill.ia')
+        ->toContain('.sells-cowork .vd-insights-audio')
+        // GAP 1 KPIs row
+        ->toContain('.sells-cowork .vd-insights-kpis')
+        ->toContain('.sells-cowork .vd-insights-kpi-v')
+        // GAP 5 H2 separadores
+        ->toContain('.sells-cowork .vd-insights-h2')
+        // GAP 2 Ações
+        ->toContain('.sells-cowork .vd-insights-acoes')
+        ->toContain('.sells-cowork .vd-insights-acao.tone-rose')
+        ->toContain('.sells-cowork .vd-insights-cta.danger');
 });
 
 it('SellsInsightsView trata empty states sem crash', function () {

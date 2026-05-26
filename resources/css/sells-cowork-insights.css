@@ -411,3 +411,406 @@
   font-style: italic;
   text-align: center;
 }
+
+/* ============================================================
+ * V2 · Onda gaps r5 (PR #1685) — header dedicado + KPIs Jana + H2 + Ações
+ * Refs:
+ *   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/chat-jana.css
+ *   - memory/requisitos/Sells/Sells-r5-cowork-vs-prod-2026-05-26.md
+ * ============================================================ */
+
+/* ── GAP 3 — JanaHeader dedicado (avatar grande + tenant breadcrumb) ── */
+.sells-cowork .vd-insights-jh {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sells-cowork .vd-insights-jh-l {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sells-cowork .vd-insights-jh-av {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, oklch(0.62 0.18 285), oklch(0.48 0.20 280));
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sells-cowork .vd-insights-jh-id h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: oklch(0.18 0.01 250);
+}
+
+.sells-cowork .vd-insights-jh-id h2 .dot {
+  color: oklch(0.55 0.01 250);
+  margin: 0 2px;
+}
+
+.sells-cowork .vd-insights-jh-id p {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: oklch(0.55 0.01 250);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: 0.02em;
+}
+
+.sells-cowork .vd-insights-jh-tenant {
+  font-weight: 600;
+  color: oklch(0.30 0.01 250);
+}
+
+.sells-cowork .vd-insights-jh-sep {
+  margin: 0 6px;
+  opacity: 0.4;
+}
+
+.sells-cowork .vd-insights-jh-r {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sells-cowork .vd-insights-jh-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: oklch(0.40 0.01 250);
+  margin-right: 6px;
+}
+
+.sells-cowork .vd-insights-jh-updated .d {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: oklch(0.55 0.16 145);
+}
+
+.sells-cowork .vd-insights-jh-btn {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid oklch(0.90 0.005 250);
+  background: #fff;
+  color: oklch(0.20 0.01 250);
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.sells-cowork .vd-insights-jh-btn.ghost {
+  background: transparent;
+}
+
+.sells-cowork .vd-insights-jh-btn:hover {
+  background: oklch(0.97 0.005 250);
+  border-color: oklch(0.85 0.005 250);
+}
+
+.sells-cowork .vd-insights-jh-btn.dark {
+  background: oklch(0.18 0.01 250);
+  color: #fff;
+  border-color: oklch(0.18 0.01 250);
+}
+
+.sells-cowork .vd-insights-jh-btn.dark:hover {
+  background: oklch(0.12 0.01 250);
+  border-color: oklch(0.12 0.01 250);
+}
+
+/* ── GAP 4 — Brief header refinements (📅 + IA pill + Ouvir áudio) ── */
+.sells-cowork .vd-insights-brief-h-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: oklch(0.40 0.01 250);
+}
+
+.sells-cowork .vd-insights-brief-h-l b {
+  color: oklch(0.18 0.01 250);
+  font-weight: 600;
+}
+
+.sells-cowork .vd-insights-brief-h-l .sep {
+  margin: 0 4px;
+  opacity: 0.5;
+}
+
+.sells-cowork .vd-insights-pill.ia {
+  background: oklch(0.94 0.05 285);
+  color: oklch(0.48 0.20 280);
+}
+
+.sells-cowork .vd-insights-audio {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  margin-left: auto;
+  font: inherit;
+  font-size: 12px;
+  color: oklch(0.40 0.01 250);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: color 120ms ease;
+}
+
+.sells-cowork .vd-insights-audio:hover {
+  color: oklch(0.48 0.20 280);
+  background: oklch(0.96 0.02 280 / 0.3);
+}
+
+.sells-cowork .vd-insights-brief-greet strong {
+  font-size: 14px;
+}
+
+/* ── GAP 1 — KPIs row dedicado Jana (4 cards próprios) ── */
+.sells-cowork .vd-insights-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 980px) {
+  .sells-cowork .vd-insights-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sells-cowork .vd-insights-kpi {
+  background: #fff;
+  border: 1px solid oklch(0.92 0.005 250);
+  border-radius: 10px;
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sells-cowork .vd-insights-kpi.emph {
+  border-color: oklch(0.85 0.08 28);
+  background: oklch(0.99 0.015 28);
+}
+
+.sells-cowork .vd-insights-kpi-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: oklch(0.55 0.01 250);
+  margin-bottom: 4px;
+}
+
+.sells-cowork .vd-insights-kpi-ic {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.sells-cowork .vd-insights-kpi-v {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: oklch(0.18 0.01 250);
+  font-variant-numeric: tabular-nums;
+}
+
+.sells-cowork .vd-insights-kpi-v.red {
+  color: oklch(0.50 0.18 25);
+}
+
+.sells-cowork .vd-insights-kpi-d {
+  font-size: 11px;
+  color: oklch(0.55 0.01 250);
+}
+
+.sells-cowork .vd-insights-kpi-d.down {
+  color: oklch(0.50 0.18 25);
+}
+
+.sells-cowork .vd-insights-kpi-d.up {
+  color: oklch(0.50 0.14 145);
+}
+
+.sells-cowork .vd-insights-kpi-d.info {
+  color: oklch(0.48 0.13 240);
+}
+
+/* ── GAP 5 — H2 separadores hierárquicos ── */
+.sells-cowork .vd-insights-h2 {
+  margin: 6px 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: oklch(0.55 0.01 250);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sells-cowork .vd-insights-h2-ic {
+  font-size: 14px;
+}
+
+/* Sparkline range labels (D-N → hoje) */
+.sells-cowork .vd-insights-spark-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: oklch(0.55 0.01 250);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* ── GAP 2 — Lista de ações sugeridas (AcaoRow) ── */
+.sells-cowork .vd-insights-acoes {
+  background: #fff;
+  border: 1px solid oklch(0.92 0.005 250);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.sells-cowork .vd-insights-acao {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid oklch(0.96 0.005 250);
+  transition: background 120ms ease;
+}
+
+.sells-cowork .vd-insights-acao:last-child {
+  border-bottom: 0;
+}
+
+.sells-cowork .vd-insights-acao.tone-rose {
+  background: linear-gradient(90deg, oklch(0.98 0.025 28) 0%, #fff 80%);
+}
+
+.sells-cowork .vd-insights-acao.tone-violet {
+  background: linear-gradient(90deg, oklch(0.97 0.03 285) 0%, #fff 80%);
+}
+
+.sells-cowork .vd-insights-acao.tone-peach {
+  background: linear-gradient(90deg, oklch(0.98 0.04 70) 0%, #fff 80%);
+}
+
+.sells-cowork .vd-insights-acao.tone-grey {
+  background: linear-gradient(90deg, oklch(0.97 0.005 250) 0%, #fff 80%);
+}
+
+.sells-cowork .vd-insights-acao-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid oklch(0.92 0.005 250);
+  font-size: 16px;
+  color: oklch(0.30 0.01 250);
+}
+
+.sells-cowork .vd-insights-acao-text b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: oklch(0.18 0.01 250);
+  line-height: 1.3;
+}
+
+.sells-cowork .vd-insights-acao-text small {
+  display: block;
+  font-size: 11.5px;
+  color: oklch(0.55 0.01 250);
+  margin-top: 2px;
+}
+
+/* CTAs (botões coloridos) */
+.sells-cowork .vd-insights-cta {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 7px;
+  border: 0;
+  color: #fff;
+  white-space: nowrap;
+  transition: background 120ms ease;
+}
+
+.sells-cowork .vd-insights-cta.danger {
+  background: oklch(0.55 0.18 25);
+}
+
+.sells-cowork .vd-insights-cta.danger:hover {
+  background: oklch(0.48 0.18 25);
+}
+
+.sells-cowork .vd-insights-cta.violet {
+  background: oklch(0.55 0.18 285);
+}
+
+.sells-cowork .vd-insights-cta.violet:hover {
+  background: oklch(0.48 0.20 280);
+}
+
+.sells-cowork .vd-insights-cta.orange {
+  background: oklch(0.60 0.16 60);
+}
+
+.sells-cowork .vd-insights-cta.orange:hover {
+  background: oklch(0.52 0.16 60);
+}
+
+.sells-cowork .vd-insights-cta.dark {
+  background: oklch(0.18 0.01 250);
+}
+
+.sells-cowork .vd-insights-cta.dark:hover {
+  background: oklch(0.10 0.01 250);
+}
+
+.sells-cowork .vd-insights-cta.primary {
+  background: oklch(0.50 0.14 145);
+}
+
+.sells-cowork .vd-insights-cta.primary:hover {
+  background: oklch(0.42 0.14 145);
+}

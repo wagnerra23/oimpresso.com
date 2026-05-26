@@ -1,14 +1,32 @@
-// SellsInsightsView — view "Insights Jana" da tab bar Sells (PR #1682 · P5 parking lot).
+// SellsInsightsView — Cockpit "Analista IA" da tab Sells (V2 · Onda gaps r5).
 // Refs:
 //   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/chat-jana.jsx (canon visual)
-//   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md gap #13
+//   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/chat-jana.css (tokens .jc-*)
+//   - memory/requisitos/Sells/Sells-r5-cowork-vs-prod-2026-05-26.md (5 gaps catalogados)
 //
-// Mode "Analista IA" da rota Sells — mostra brief diário + 4 análises usando dados
-// agregados que já existem no payload (sellKpis + coworkAggregates + rows atuais).
-// MVP enxuto. Próxima onda plugará agentes Brain B Jana real (ADR 0035).
+// V2 fecha 5 gaps vs V1 (PR #1684):
+//  GAP 1 — KPIs row dedicado Jana (4 cards independentes do dashboard)
+//  GAP 2 — Lista "AÇÕES QUE [USER] SUGERE" estruturadas (AcaoRow)
+//  GAP 3 — JanaHeader avatar grande + tenant breadcrumb + updatedAt + Configurar/Exportar
+//  GAP 4 — Brief header refinements (📅 + IA pill + "Ouvir áudio" btn placeholder)
+//  GAP 5 — H2 separadores hierárquicos ("ANÁLISES PRINCIPAIS" + "AÇÕES QUE JANA SUGERE")
+//
+// Mode "Analista IA" da rota Sells — mostra brief diário + KPIs Jana + 4 análises + ações
+// sugeridas, usando dados agregados que já existem no payload (sellKpis + coworkAggregates
+// + rows atuais). MVP enxuto. Próxima onda plugará agentes Brain B Jana real (ADR 0035).
 
-import type { ReactNode } from 'react';
-import { AlertCircle, TrendingUp, TrendingDown, MessageSquare, Sparkles } from 'lucide-react';
+import { useMemo, type ReactNode } from 'react';
+import {
+  AlertCircle,
+  TrendingUp,
+  TrendingDown,
+  MessageSquare,
+  Sparkles,
+  Calendar,
+  Volume2,
+  Settings,
+  Download,
+} from 'lucide-react';
 
 export interface InsightsViewProps {
   sellKpis: {
@@ -36,6 +54,9 @@ export interface InsightsViewProps {
     payment_method_label: string | null;
   }>;
   userName?: string;
+  /** Tenant context pro header breadcrumb. */
+  businessName?: string;
+  businessId?: number;
 }
 
 const fmtBRL = (n: number) =>
@@ -51,27 +72,33 @@ const greeting = (): string => {
   return 'Boa noite';
 };
 
+const formatTimeShort = (): string =>
+  new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
 export default function SellsInsightsView({
   sellKpis,
   coworkAggregates,
   rows,
   userName,
+  businessName,
+  businessId,
 }: InsightsViewProps): ReactNode {
-  // Brief calculations
+  // ── Brief calculations ───────────────────────────────────────────────────
   const faturadoHoje = coworkAggregates?.faturadoHojeTotal ?? 0;
   const pixHoje = coworkAggregates?.pixHojeTotal ?? 0;
   const deltaRev = coworkAggregates?.deltaRevenueVsYesterday ?? null;
   const deltaTicket = coworkAggregates?.deltaTicketVsLastWeek ?? null;
-  // sellKpis.total = nº total vendas; sellKpis.due = pendentes (não pagas).
-  // Usados no brief topo pra contextualizar volume.
   const totalVendas = sellKpis?.total ?? rows.length;
   const totalPendentes = sellKpis?.due ?? rows.filter((r) => r.payment_status !== 'paid').length;
   const overdueCount = rows.filter((r) => r.sla_kind === 'overdue').length;
   const overdueValue = rows
     .filter((r) => r.sla_kind === 'overdue')
     .reduce((acc, r) => acc + (Number(r.final_total) || 0), 0);
+  const totalAReceber = rows
+    .filter((r) => r.payment_status !== 'paid')
+    .reduce((acc, r) => acc + (Number(r.final_total) || 0), 0);
 
-  // Inadimplência buckets (paridade prototipo Cowork chat-jana.jsx)
+  // ── Inadimplência buckets ────────────────────────────────────────────────
   const ageingBuckets = (() => {
     const buckets = { '0-30d': 0, '30-90d': 0, '90-365d': 0, '>365d': 0 };
     rows
@@ -88,7 +115,7 @@ export default function SellsInsightsView({
   })();
   const ageingTotal = Object.values(ageingBuckets).reduce((a, b) => a + b, 0);
 
-  // Métodos pagamento
+  // ── Métodos pagamento ────────────────────────────────────────────────────
   const methodsAgg = (() => {
     const m: Record<string, number> = {};
     rows.forEach((r) => {
@@ -101,7 +128,7 @@ export default function SellsInsightsView({
   })();
   const methodsTotal = methodsAgg.reduce((a, [, v]) => a + v, 0);
 
-  // Top clientes
+  // ── Top clientes ─────────────────────────────────────────────────────────
   const topClientes = (() => {
     const m: Record<string, number> = {};
     rows.forEach((r) => {
@@ -114,33 +141,226 @@ export default function SellsInsightsView({
   })();
   const topClientesTotal = topClientes.reduce((a, [, v]) => a + v, 0);
 
-  // Sparkline 30d
+  // ── Sparkline 30d ────────────────────────────────────────────────────────
   const sparkline = coworkAggregates?.sparkline ?? [];
   const sparkMax = Math.max(...sparkline, 1);
+  const sparkSum = sparkline.reduce((a, b) => a + b, 0);
+
+  // ── Ticket médio ─────────────────────────────────────────────────────────
+  const ticketMedio = rows.length > 0
+    ? rows.reduce((acc, r) => acc + (Number(r.final_total) || 0), 0) / rows.length
+    : 0;
+
+  const firstName = userName?.split(' ')[0] || 'você';
+  const firstNameUpper = firstName.toUpperCase();
+
+  // ── GAP 2 — Ações sugeridas (estruturadas) ───────────────────────────────
+  // Gera ações de acordo com sinais detectados no payload. Cada ação tem
+  // ícone + título + descrição + tone (rose/violet/peach/grey) + CTA.
+  type AcaoTone = 'rose' | 'violet' | 'peach' | 'grey';
+  type CtaTone = 'danger' | 'violet' | 'orange' | 'dark' | 'primary';
+  interface Acao {
+    id: string;
+    icon: ReactNode;
+    title: string;
+    sub: string;
+    tone: AcaoTone;
+    cta: { label: string; tone: CtaTone };
+  }
+
+  const acoes = useMemo((): Acao[] => {
+    const list: Acao[] = [];
+    // Sinal 1 — vendas vencidas → régua WhatsApp HITL
+    if (overdueCount > 0) {
+      const topDevedor = rows
+        .filter((r) => r.sla_kind === 'overdue')
+        .sort((a, b) => (Number(b.final_total) || 0) - (Number(a.final_total) || 0))[0];
+      list.push({
+        id: 'regua-whatsapp',
+        icon: <MessageSquare size={16} />,
+        title: `Régua WhatsApp · ${overdueCount} venda${overdueCount === 1 ? '' : 's'} vencida${overdueCount === 1 ? '' : 's'}`,
+        sub: `Potencial recuperação: ${fmtShort(overdueValue)} · ${topDevedor ? `top devedor: ${topDevedor.customer_name || 'Cliente padrão'}` : ''}`.replace(/ · $/, ''),
+        tone: 'rose',
+        cta: { label: 'Disparar', tone: 'danger' },
+      });
+    }
+    // Sinal 2 — top devedor > R$ [redacted Tier 0]k (mesmo se não overdue ainda)
+    if (overdueCount > 0 && overdueValue > 1000) {
+      const topDevedor = rows
+        .filter((r) => r.sla_kind === 'overdue')
+        .sort((a, b) => (Number(b.final_total) || 0) - (Number(a.final_total) || 0))[0];
+      if (topDevedor?.customer_name) {
+        list.push({
+          id: 'negociar-top',
+          icon: <Sparkles size={16} />,
+          title: `Negociar com ${topDevedor.customer_name}`,
+          sub: `Valor ${fmtShort(Number(topDevedor.final_total) || 0)} · contato direto vale mais que régua automática`,
+          tone: 'violet',
+          cta: { label: 'Preparar', tone: 'violet' },
+        });
+      }
+    }
+    // Sinal 3 — queda ticket médio
+    if (deltaTicket !== null && deltaTicket <= -5) {
+      list.push({
+        id: 'investigar-ticket',
+        icon: <TrendingDown size={16} />,
+        title: 'Investigar queda ticket médio',
+        sub: `${deltaTicket}% vs semana passada · pode ser mix de produto mudando`,
+        tone: 'peach',
+        cta: { label: 'Investigar', tone: 'orange' },
+      });
+    }
+    // Sinal 4 — PIX adoção alta (positivo — manter)
+    if (faturadoHoje > 0 && pixHoje > 0 && pixHoje / faturadoHoje > 0.5) {
+      const pct = Math.round((pixHoje / faturadoHoje) * 100);
+      list.push({
+        id: 'pix-adocao',
+        icon: <TrendingUp size={16} />,
+        title: `PIX adoção em ${pct}% — manter`,
+        sub: `${fmtShort(pixHoje)} de ${fmtShort(faturadoHoje)} hoje · custo zero vs maquininha`,
+        tone: 'grey',
+        cta: { label: 'Detalhe', tone: 'dark' },
+      });
+    }
+    // Sinal 5 — pendentes alto sem overdue (alerta antes do estouro)
+    if (overdueCount === 0 && totalPendentes > 10) {
+      list.push({
+        id: 'preventivo-pendentes',
+        icon: <Calendar size={16} />,
+        title: `${totalPendentes} pendentes sem estourar ainda`,
+        sub: 'Janela ideal pra lembrete amigável antes da régua agressiva',
+        tone: 'grey',
+        cta: { label: 'Lembrar', tone: 'primary' },
+      });
+    }
+    return list;
+  }, [overdueCount, overdueValue, deltaTicket, faturadoHoje, pixHoje, totalPendentes, rows]);
+
+  // ── GAP 1 — KPIs row Jana (4 cards próprios) ─────────────────────────────
+  interface JanaKpi {
+    label: string;
+    icon: string;
+    value: string;
+    delta?: string;
+    deltaCls?: 'down' | 'up' | 'info' | '';
+    sub?: string;
+    emphasize?: boolean;
+  }
+
+  const janaKpis: JanaKpi[] = [
+    {
+      label: 'Faturamento mês',
+      icon: '💰',
+      value: fmtShort(sparkSum || faturadoHoje),
+      delta: deltaRev !== null ? `${deltaRev >= 0 ? '↑ +' : '↓ '}${deltaRev}% vs ontem` : undefined,
+      deltaCls: deltaRev !== null ? (deltaRev >= 0 ? 'up' : 'down') : '',
+    },
+    {
+      label: 'Inadimplência total',
+      icon: '🚨',
+      value: fmtShort(overdueValue),
+      sub: overdueCount > 0
+        ? `${overdueCount} venda${overdueCount === 1 ? '' : 's'} vencida${overdueCount === 1 ? '' : 's'}`
+        : 'tudo em dia',
+      emphasize: overdueValue > 0,
+      deltaCls: overdueValue > 0 ? 'down' : '',
+    },
+    {
+      label: 'Ticket médio',
+      icon: '📈',
+      value: fmtShort(ticketMedio),
+      delta: deltaTicket !== null
+        ? `${deltaTicket >= 0 ? '↑ +' : '↓ '}${deltaTicket}% 7d`
+        : undefined,
+      deltaCls: deltaTicket !== null ? (deltaTicket >= 0 ? 'up' : 'down') : '',
+    },
+    {
+      label: 'PIX hoje',
+      icon: '⚡',
+      value: fmtShort(pixHoje),
+      sub: faturadoHoje > 0
+        ? `${Math.round((pixHoje / faturadoHoje) * 100)}% do faturado`
+        : '— sem faturamento hoje',
+      deltaCls: 'info',
+    },
+  ];
 
   return (
     <div className="vd-insights">
-      {/* Brief diário · Jana */}
+      {/* GAP 3 — JanaHeader dedicado ──────────────────────────────────────── */}
+      <header className="vd-insights-jh">
+        <div className="vd-insights-jh-l">
+          <div className="vd-insights-jh-av">
+            <Sparkles size={22} />
+          </div>
+          <div className="vd-insights-jh-id">
+            <h2>
+              Jana <span className="dot">·</span> Analista IA
+            </h2>
+            <p>
+              <span className="vd-insights-jh-tenant">
+                {(businessName || 'OIMPRESSO').toUpperCase()}
+              </span>
+              {businessId != null && (
+                <>
+                  <span className="vd-insights-jh-sep">·</span>biz={businessId}
+                </>
+              )}
+              <span className="vd-insights-jh-sep">·</span>v2026.05
+            </p>
+          </div>
+        </div>
+        <div className="vd-insights-jh-r">
+          <span className="vd-insights-jh-updated">
+            <span className="d" />
+            Atualizado {formatTimeShort()}
+          </span>
+          <button
+            type="button"
+            className="vd-insights-jh-btn ghost"
+            title="Configurar Brain B Jana (em breve)"
+          >
+            <Settings size={12} /> Configurar
+          </button>
+          <button
+            type="button"
+            className="vd-insights-jh-btn dark"
+            title="Exportar relatório (em breve)"
+          >
+            <Download size={12} /> Exportar
+          </button>
+        </div>
+      </header>
+
+      {/* Brief diário · Jana (GAP 4 — header refinements) ──────────────────── */}
       <section className="vd-insights-brief">
         <header className="vd-insights-brief-h">
-          <div className="vd-insights-brief-av">
-            <Sparkles size={18} />
-          </div>
-          <div className="vd-insights-brief-meta">
-            <b>Jana · Analista IA</b>
-            <small>
-              {greeting()}{userName ? `, ${userName.split(' ')[0]}` : ''} ·{' '}
-              {new Date().toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </small>
-          </div>
+          <span className="vd-insights-brief-h-l">
+            <Calendar size={14} />
+            <b>Brief diário</b>
+            <span className="sep">·</span>
+            {new Date().toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </span>
+          <span className="vd-insights-pill ia">IA</span>
+          <button
+            type="button"
+            className="vd-insights-audio"
+            title="Ouvir áudio do brief (em breve — TTS V2)"
+          >
+            <Volume2 size={11} /> Ouvir áudio
+          </button>
         </header>
 
         <div className="vd-insights-brief-body">
-          <p>
+          <p className="vd-insights-brief-greet">
+            <strong>
+              {greeting()}{userName ? `, ${firstName}` : ''}.
+            </strong>{' '}
             <strong>{totalVendas}</strong> vendas no período
             {totalPendentes > 0 && (
               <>
@@ -223,7 +443,34 @@ export default function SellsInsightsView({
         </div>
       </section>
 
-      {/* 4 análises grid 2x2 */}
+      {/* GAP 1 — KPIs row dedicado Jana (4 cards próprios) ──────────────────── */}
+      <div className="vd-insights-kpis">
+        {janaKpis.map((k) => (
+          <div
+            key={k.label}
+            className={`vd-insights-kpi${k.emphasize ? ' emph' : ''}`}
+          >
+            <div className="vd-insights-kpi-h">
+              <span>{k.label.toUpperCase()}</span>
+              <span className="vd-insights-kpi-ic">{k.icon}</span>
+            </div>
+            <b className={`vd-insights-kpi-v ${k.deltaCls === 'down' ? 'red' : ''}`}>
+              {k.value}
+            </b>
+            {k.delta && (
+              <small className={`vd-insights-kpi-d ${k.deltaCls || ''}`}>{k.delta}</small>
+            )}
+            {k.sub && <small className="vd-insights-kpi-d">{k.sub}</small>}
+          </div>
+        ))}
+      </div>
+
+      {/* GAP 5 — H2 separador "ANÁLISES PRINCIPAIS" ─────────────────────────── */}
+      <h2 className="vd-insights-h2">
+        <span className="vd-insights-h2-ic">📊</span> ANÁLISES PRINCIPAIS
+      </h2>
+
+      {/* 4 análises grid 2x2 (já existia) ──────────────────────────────────── */}
       <div className="vd-insights-grid">
         {/* Análise 1: Inadimplência buckets */}
         <section className="vd-insights-card">
@@ -276,24 +523,28 @@ export default function SellsInsightsView({
             )}
           </header>
           <div className="vd-insights-card-big">
-            <span className="vd-pos">
-              {fmtShort(sparkline.reduce((a, b) => a + b, 0))}
-            </span>
+            <span className="vd-pos">{fmtShort(sparkSum)}</span>
           </div>
           <div className="vd-insights-spark">
             {sparkline.length === 0 ? (
               <div className="vd-insights-empty">Carregando sparkline…</div>
             ) : (
-              <svg viewBox={`0 0 ${sparkline.length * 4} 40`} preserveAspectRatio="none">
-                <polyline
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  points={sparkline
-                    .map((v, i) => `${i * 4},${40 - (v / sparkMax) * 38 - 1}`)
-                    .join(' ')}
-                />
-              </svg>
+              <>
+                <svg viewBox={`0 0 ${sparkline.length * 4} 40`} preserveAspectRatio="none">
+                  <polyline
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    points={sparkline
+                      .map((v, i) => `${i * 4},${40 - (v / sparkMax) * 38 - 1}`)
+                      .join(' ')}
+                  />
+                </svg>
+                <div className="vd-insights-spark-range">
+                  <span>D-{sparkline.length}</span>
+                  <span>hoje</span>
+                </div>
+              </>
             )}
           </div>
         </section>
@@ -373,10 +624,42 @@ export default function SellsInsightsView({
         </section>
       </div>
 
+      {/* GAP 5 — H2 separador "AÇÕES QUE [USER] SUGERE" ────────────────────── */}
+      {acoes.length > 0 && (
+        <>
+          <h2 className="vd-insights-h2">
+            <span className="vd-insights-h2-ic">💡</span> AÇÕES QUE {firstNameUpper} SUGERE
+          </h2>
+
+          {/* GAP 2 — Lista de ações estruturadas (AcaoRow) ─────────────────── */}
+          <div className="vd-insights-acoes">
+            {acoes.map((a) => (
+              <div key={a.id} className={`vd-insights-acao tone-${a.tone}`}>
+                <span className="vd-insights-acao-ic">{a.icon}</span>
+                <div className="vd-insights-acao-text">
+                  <b>{a.title}</b>
+                  <small>{a.sub}</small>
+                </div>
+                <button
+                  type="button"
+                  className={`vd-insights-cta ${a.cta.tone}`}
+                  title={`${a.cta.label} (HITL — em breve V2)`}
+                >
+                  {a.cta.label}
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       <p className="vd-insights-foot">
         💡 Insights baseados em vendas filtradas atual + agregados 30d.
-        Próximas ondas: ações HITL (régua WhatsApp · investigar anomalias) + agentes Brain B Jana real.
+        Próximas ondas: ações HITL real (régua WhatsApp · investigar anomalias) + agentes Brain B Jana real.
       </p>
+
+      {/* Anti-flicker placeholder de totalAReceber pra reuso futuro do hook. */}
+      <span hidden data-total-a-receber={totalAReceber} />
     </div>
   );
 }

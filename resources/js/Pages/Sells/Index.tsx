@@ -425,9 +425,14 @@ const SAVED_VIEWS: SavedView[] = [
 // MAIN — SellsIndex
 // ──────────────────────────────────────────────────────────────
 export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
-  // Auth user pra view Insights Jana (greeting "Bom dia, <nome>!").
-  const sharedPage = usePage<{ auth?: { user?: { name?: string } } }>();
+  // Auth user + business pra view Insights Jana (greeting + header dedicado com tenant breadcrumb).
+  const sharedPage = usePage<{
+    auth?: { user?: { name?: string; business_id?: number } };
+    business?: { id?: number; name?: string };
+  }>();
   const authUserName = sharedPage.props.auth?.user?.name;
+  const businessName = sharedPage.props.business?.name;
+  const businessIdShared = sharedPage.props.business?.id ?? sharedPage.props.auth?.user?.business_id;
   // Tier 0 multi-tenant: storage scoped per business_id (ver useBizStorage acima).
   const ls = useBizStorage();
 
@@ -1124,6 +1129,8 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               payment_method_label: r.payment_method_label ?? null,
             }))}
             userName={authUserName}
+            businessName={businessName}
+            businessId={businessIdShared}
           />
         ) : (
         <>
