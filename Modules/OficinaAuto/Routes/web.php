@@ -163,6 +163,23 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [DviInspectionController::class, 'destroy'])
             ->middleware('throttle:60,1')
             ->name('oficinaauto.orders.dvi.destroy');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Gap 1 (2026-05-26) — Upload foto/laudo item DVI via Modules/Arquivos.
+        // Substitui placeholder V2 FOTOS no drawer ServiceOrderRichSheet.
+        // Multi-tenant Tier 0 (ADR 0093) via ArquivosService::attach (session-derived
+        // business_id). Throttle 30/1 (upload mais pesado que CRUD JSON normal).
+        // Sub-vertical 4 mecânica pesada Martinho biz=164 (ADR 0194).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::post('ordens-servico/{order}/dvi/{item}/photo',
+            [DviInspectionController::class, 'uploadPhoto'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.dvi.photo.upload');
+
+        Route::delete('ordens-servico/{order}/dvi/{item}/photo/{arquivo}',
+            [DviInspectionController::class, 'deletePhoto'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.dvi.photo.delete');
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
