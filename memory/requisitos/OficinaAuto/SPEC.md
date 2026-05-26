@@ -57,8 +57,8 @@ Artisan command `officeimpresso:import-vehicles {business_id} {firebird_dsn}` qu
 > blocked_by: US-OFICINA-001 (done), ADR-0129 (FSM canônica)
 
 2 processos seed por business pra `service_orders` ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md) FSM tabular):
-- **OS Simples** (Martinho caçamba avulsa): `aberta` → `em_servico` → `concluida`
-- **OS Complexa** (Vargas recapagem multi-item, futuro): `aberta` → `orcamento` → `aprovada` → `em_producao` → `concluida` → `entregue`
+- **OS Simples** (Martinho · sub-vertical 4 mecânica pesada caminhão basculante · ADR 0194 — pré-correção dizia "caçamba avulsa"): `aberta` → `em_servico` → `concluida`
+- **OS Complexa** (Vargas recapagem multi-item · sub-vertical 2 V1): `aberta` → `orcamento` → `aprovada` → `em_producao` → `concluida` → `entregue`
 
 Importer legacy mapeia `VENDA_ESTAGIO` Firebird → estado FSM correspondente. Pest: state transitions + side-effects.
 
@@ -122,7 +122,7 @@ Todos usam `AppShellV2` Persistent Layout + components shared (`PageHeader`, `Em
 
 > **Contexto:** [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) tornou o `App\Domain\Fsm` o caminho ÚNICO de pipeline em prod (Sells + Repair LIVE em biz=1). OficinaAuto **DEVE** wirar-se ao FSM canônico em vez de inventar state machine própria. Espelha o pattern Sells/Repair com semântica oficina-específica.
 >
-> Discovery realizado contra perfis Vargas (recapagem caminhão multi-placa, 181 OS/mês, sem PCP) + Martinho (caçambas avulsas, 91 veículos, 8 status distinct + 2 estágios FSM já no legacy). Stages calibrados pra suportar ambos sub-tipos.
+> Discovery realizado contra perfis Vargas (recapagem caminhão multi-placa, 181 OS/mês, sem PCP · sub-vertical 2) + Martinho (mecânica pesada caminhão basculante · 91 caminhões de clientes, 8 status distinct + 2 estágios FSM já no legacy · sub-vertical 4 ADR 0194 — pré-correção dizia "caçambas avulsas"). Stages calibrados pra suportar ambos sub-tipos.
 
 ### §14.1 Stages canônicos OficinaAuto (15 stages)
 
