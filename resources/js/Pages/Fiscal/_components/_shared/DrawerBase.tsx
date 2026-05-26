@@ -70,6 +70,13 @@ export interface DrawerBaseProps {
    * Concatenado com "fx-drawer".
    */
   extraAsideClassName?: string;
+  /**
+   * Quando muda, força re-rodar focus management effect. Útil pra consumers
+   * com `data` async (SendToContabilDrawer monta DrawerBase com data=null,
+   * depois re-monta quando data chega) — passar dataReady={data} resolve
+   * race do foco inicial não entrar no drawer.
+   */
+  dataReady?: unknown;
 }
 
 export default function DrawerBase({
@@ -84,6 +91,7 @@ export default function DrawerBase({
   closeOnEsc = true,
   bodyRef,
   extraAsideClassName,
+  dataReady,
 }: DrawerBaseProps) {
   const asideRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -144,7 +152,8 @@ export default function DrawerBase({
         }
       };
     }
-  }, [open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, dataReady]);
 
   // Focus trap — Tab/Shift+Tab cyclam dentro do drawer.
   // Separado do ESC handler porque trap só desliga em closeOnEsc=false
