@@ -360,6 +360,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-SELL-035 — Timeline FSM (sale_stage_history) pra drawer e auditoria.
     Route::get('/api/sells/{id}/history', [\App\Http\Controllers\SaleHistoryController::class, 'index'])
         ->name('sells.history');
+    // P4 parking lot pós-PR #1663 (gap #11 r4 visual-comparison) — timeline
+    // cross-source: FSM + payments + activities + comments + audit_log num
+    // único stream cronológico reverso pra Sells/Show + drawer.
+    Route::get('/api/sells/{id}/timeline-unified', [\App\Http\Controllers\SaleHistoryController::class, 'timelineUnified'])
+        ->name('sells.timeline-unified');
     // US-SELL-COWORK-R3-CURADORIA Onda 3.5 — Audit Trail FSM real (formato flat
     // amigável pro componente SaleAuditTrail.tsx). Multi-tenant Tier 0.
     Route::get('/sells/{sale}/audit', [\App\Http\Controllers\SellAuditController::class, 'show'])

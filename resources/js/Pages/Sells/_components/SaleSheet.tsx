@@ -678,9 +678,9 @@ export default function SaleSheet({
                 </p>
               </section>
 
-              {/* Histórico — timeline FSM da venda (US-SELL-035) */}
+              {/* Histórico — timeline cross-source unificado (P4 parking lot #11) */}
               <Section title="Histórico" icon={Clock}>
-                <SaleTimeline saleId={data.id} enabled={open} />
+                <SaleTimeline saleId={data.id} enabled={open} mode="unified" />
               </Section>
 
               {/* US-SELL-COWORK-R3-CURADORIA — audit trail compacto (Cowork Onda 3)
