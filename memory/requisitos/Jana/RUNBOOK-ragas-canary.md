@@ -3,7 +3,7 @@ title: RUNBOOK — Jana RAGAS Canary daily 06:00 UTC
 type: runbook
 us: US-COPI-116
 status: ativo
-owner: wagner
+owner: W
 last_updated: "2026-05-25"
 last_validated: "2026-05-25"
 owners: ["@wagner"]
