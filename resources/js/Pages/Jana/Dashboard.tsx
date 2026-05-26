@@ -16,7 +16,6 @@ import { Badge } from '@/Components/ui/badge'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
-import JanaCockpitV2, { type JanaCockpitV2Props } from './components/JanaCockpitV2'
 
 interface Apuracao {
   data_ref: string
@@ -43,15 +42,6 @@ interface Meta {
 
 interface Props {
   metas: Meta[]
-  /** Jana V2 cockpit payload (movido de /sells Onda 2026-05-26). */
-  sellKpis: JanaCockpitV2Props['sellKpis']
-  insightsAggregates: JanaCockpitV2Props['insightsAggregates']
-  coworkAggregates?: JanaCockpitV2Props['coworkAggregates']
-  janaContext: {
-    businessId: number | null
-    businessName: string
-    userName: string | null
-  }
 }
 
 function calcularFarol(
@@ -262,7 +252,7 @@ function ProximaAcaoCard() {
   )
 }
 
-export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkAggregates, janaContext }: Props) {
+export default function Dashboard({ metas }: Props) {
   return (
     <>
       {/* JanaAreaHeader — header sticky com tabs Dashboard | Chat (Wagner
@@ -270,22 +260,6 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
       <JanaAreaHeader active="dashboard" />
 
-      {/* JanaCockpitV2 — conteúdo primário (movido de /sells Onda 2026-05-26).
-          Wrapper .sells-cowork porque os tokens .vd-insights-* estão escopados
-          nesse seletor em resources/css/sells-cowork-insights.css. */}
-      <div className="sells-cowork px-6 pt-6">
-        <JanaCockpitV2
-          sellKpis={sellKpis}
-          insightsAggregates={insightsAggregates}
-          coworkAggregates={coworkAggregates}
-          userName={janaContext.userName ?? undefined}
-          businessName={janaContext.businessName || undefined}
-          businessId={janaContext.businessId ?? undefined}
-        />
-      </div>
-
-      {/* Bloco secundário — Dashboard de Metas (continua acessível, mas não é
-          mais a face primária da /ia/dashboard). */}
       <div className="space-y-6 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
@@ -295,12 +269,12 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 aria-label="Versão Jana V2"
               >
                 <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
-                METAS
+                JANA V2
               </Badge>
-              <span className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
+              <span className="text-xs text-muted-foreground">Copiloto operacional</span>
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">Metas ativas</h2>
+              <h1 className="text-2xl font-semibold tracking-tight">Dashboard de Metas</h1>
               <p className="text-sm text-muted-foreground">
                 {metas.length} {metas.length === 1 ? 'meta ativa' : 'metas ativas'} — visão consolidada do business
               </p>
@@ -308,7 +282,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           </div>
 
           <Link href="/ia">
-            <Button variant="outline" className="gap-2">
+            <Button className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar com a Jana
             </Button>
@@ -321,12 +295,12 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
 
         {metas.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+            <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
               <div className="rounded-full bg-violet-500/10 p-4">
                 <Sparkles className="h-10 w-10 text-violet-500" aria-hidden="true" />
               </div>
               <div className="space-y-1">
-                <p className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
+                <p className="text-base font-medium">Nada por aqui ainda</p>
                 <p className="max-w-sm text-sm text-muted-foreground">
                   Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
                 </p>
