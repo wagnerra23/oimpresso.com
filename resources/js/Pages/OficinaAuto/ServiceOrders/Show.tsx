@@ -7,11 +7,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
-import { Wrench, ArrowLeft, Edit, Package } from 'lucide-react';
+import { Wrench, ArrowLeft, Edit, Package, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/Components/ui/button';
 import PageHeader from '@/Components/shared/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
+import { printServiceOrder } from '@/Lib/printServiceOrder';
 import ServiceOrderItemRow, {
   type ServiceOrderItemDto,
 } from './_components/ServiceOrderItemRow';
@@ -142,6 +143,28 @@ export default function ServiceOrdersShow({ order }: Props) {
                   Voltar
                 </Button>
               </Link>
+              {/* Gap 3 US-OFICINA-037 — Imprimir OS A4 nota-fiscal-like.
+                  IFRAME oculto + window.print() via printServiceOrder helper
+                  (espelha pattern Sells printSaleReceipt). */}
+              <Button
+                variant="ghost"
+                onClick={async () => {
+                  try {
+                    await printServiceOrder({
+                      printUrl: `/oficina-auto/ordens-servico/${order.id}/print`,
+                      osNumber: order.id,
+                    });
+                  } catch (e) {
+                    toast.error(
+                      e instanceof Error ? e.message : 'Falha ao gerar impressão.',
+                    );
+                  }
+                }}
+                title="Imprimir OS · A4 nota-fiscal-like"
+              >
+                <Printer className="size-4 mr-1" />
+                Imprimir OS
+              </Button>
               <Link href={`/oficina-auto/ordens-servico/${order.id}/edit`}>
                 <Button>
                   <Edit className="size-4 mr-1" />

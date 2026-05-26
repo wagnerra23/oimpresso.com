@@ -50,6 +50,8 @@ import { Button } from '@/Components/ui/button';
 import MercosulPlate from './MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
 import { MessageCircle, Printer, Wrench, Package, UserCog } from 'lucide-react';
+import { toast } from 'sonner';
+import { printServiceOrder } from '@/Lib/printServiceOrder';
 
 type OrderType = 'locacao' | 'manutencao' | null;
 
@@ -550,7 +552,8 @@ export default function ServiceOrderRichSheet({
             {/* Footer ações sticky (Wave 2.4 US-OFICINA-027) ───
                 3 botões espelhando protótipo Cowork canon (screenshot Wagner 2026-05-26):
                 - "Conversa cliente" → wa.me direct link (LGPD: sem mensagem pré-formatada com PII)
-                - "Imprimir OS" → window.print() (CSS print stylesheet em V2 polish wave)
+                - "Imprimir OS" → printServiceOrder helper (IFRAME oculto + A4 nota-fiscal-like)
+                                  Gap 3 US-OFICINA-037 — substitui window.print() bare (AppShellV2 vazado).
                 - "Editar OS" → fallback href edit (Avançar etapa fica no Pipeline FSM section, não duplica) */}
             <div className="border-t border-border px-6 py-3 bg-background flex items-center justify-end gap-2">
               {data.contact?.mobile && (
@@ -569,8 +572,19 @@ export default function ServiceOrderRichSheet({
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => window.print()}
-                title="Imprimir / Salvar PDF (Ctrl+P)"
+                onClick={async () => {
+                  try {
+                    await printServiceOrder({
+                      printUrl: `/oficina-auto/ordens-servico/${data.id}/print`,
+                      osNumber: data.number ?? data.id,
+                    });
+                  } catch (e) {
+                    toast.error(
+                      e instanceof Error ? e.message : 'Falha ao gerar impressão.',
+                    );
+                  }
+                }}
+                title="Imprimir OS · A4 nota-fiscal-like (Ctrl+P alternativa)"
               >
                 <Printer size={14} className="mr-1.5" />
                 Imprimir OS
