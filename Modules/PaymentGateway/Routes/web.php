@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\PaymentGateway\Http\Controllers\InstallController;
+use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysCnabRetornoController;
 use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\AsaasWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\BcbPixWebhookController;
@@ -80,6 +81,17 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('payment-gateways/{credentialId}/quota', [PaymentGatewaysController::class, 'quota'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.quota');
+
+        // Onda 4f.0 — Fundação CNAB compartilhada (ADR 0170-drivers-separados).
+        // Upload manual de arquivo retorno CNAB (240/400) → Job CnabRetornoProcessor.
+        // Tela: histórico de uploads + form upload.
+        Route::get('payment-gateways/{credentialId}/cnab-retorno', [PaymentGatewaysCnabRetornoController::class, 'index'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.cnab-retorno.index');
+
+        Route::post('payment-gateways/{credentialId}/cnab-retorno', [PaymentGatewaysCnabRetornoController::class, 'store'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.cnab-retorno.store');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────
