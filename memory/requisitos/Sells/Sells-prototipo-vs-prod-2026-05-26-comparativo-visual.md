@@ -31,7 +31,7 @@ O shell Cowork (Index.tsx) é virtualmente IDÊNTICO ao protótipo. Os gaps são
 
 | # | Dimensão | Prototipo (canon) | Prod oimpresso.com | Nota prod /10 | Gap |
 |---|---|---|---|---:|---|
-| **1** | **Sidebar branding** | "Oimpresso Matriz" (logo OI) | "WR2 Sistemas" (logo WS) | **6** | Brand legada não substituída |
+| **1** | **Sidebar — nome empresa selecionada** | "Oimpresso Matriz" (mock prototipo) | "WR2 Sistemas" (business selecionado por user · Larissa biz=4 veria "ROTA LIVRE") | **10** | **NÃO é branding** — é display dinâmico do business_id do user logado. Paridade total. Erro de avaliação inicial corrigido 2026-05-26 17:40. |
 | **2** | **Sidebar items hierarquia** | Plana: Jana · Tarefas · OPERAÇÃO > Vendas/OS/Clientes/Produtos/Orçamentos/CV/Catálogo/Portal · COMERCIAL · PRODUÇÃO · PESSOAS · VERTICAIS · FINANCEIRO > 10 itens | Multi-nível: CADASTRO > Contatos/Produtos/Fabricação · COMERCIAL > Vendas/Crm/OficinaAuto · FINANÇAS · FISCAL > 6 itens · PRODUÇÃO/ESTOQUE/RH/SISTEMA · Dashboard/Relatórios/Modelos/Auditoria | **7** | Prod tem mais hierarquia (legacy modules cobertos) — visual mais cluttered, mas funcional |
 | **3** | **Header h1 + subtitle** | "Vendas" + métrica live: "6 vendas hoje · R$ 9,4k faturado · 3 estouradas" | "Vendas" + estático: "Pedidos · faturamento · NF-e/NFS-e" | **7** | Falta métrica live no subtitle (rapidamente acionável) |
 | **4** | **Search ⌘K topo** | Centralizada bem visível "Buscar venda, cliente, chave SEFAZ..." c/ ⌘K hint | Search inline ao lado de "Visões ▾" + "Filtros avançados ▾" — menor destaque | **7** | Search canon era hero · prod descentralizou |
@@ -49,9 +49,11 @@ O shell Cowork (Index.tsx) é virtualmente IDÊNTICO ao protótipo. Os gaps são
 
 ## Média final
 
-(6+7+7+7+8+9+7+8+8+10+9+10+6+8+9) / 15 = **8,07 / 10**
+(10+7+7+7+8+9+7+8+8+10+9+10+6+8+9) / 15 = **8,33 / 10**
 
-Arredondando: **~80%** literal · **~88%** ponderado (pesos: layout=10x, conteúdo=5x, dados-mock=2x).
+Arredondando: **~83%** literal · **~91%** ponderado (pesos: layout=10x, conteúdo=5x, dados-mock=2x).
+
+**Update 2026-05-26 17:40 UTC:** dimensão #1 corrigida de 6 → 10 após Wagner apontar que "WR2 Sistemas" é o **business multi-tenant selecionado** (display dinâmico do user logado), NÃO branding hardcoded legado. Multi-tenant Tier 0 ADR 0093 funcionando corretamente — Larissa biz=4 vê "ROTA LIVRE", Wagner biz=1 vê "WR2 Sistemas". **Paridade total nessa dimensão.**
 
 ## Visão executiva
 
