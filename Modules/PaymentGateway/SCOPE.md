@@ -5,6 +5,7 @@ contains:
   - "PaymentGatewayController"
   - "CobrancaController"
   - "Settings/PaymentGatewaysController — F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
+  - "Settings/PaymentGatewaysCnabRetornoController — POST /settings/payment-gateways/{credential}/cnab-retorno (upload arquivo retorno + histórico processamento, Onda 4f.0)"
   - "DataController — 3 hooks UltimatePOS (Onda 1)"
   - "InstallController — extends BaseModuleInstallController (Onda 1)"
   - "Webhooks/InterWebhookController — POST /paymentgateway/webhooks/inter/{businessId} (Onda 3 sem cutover)"

@@ -31,6 +31,13 @@ Route::group(
             ->name('team-mcp.team.token.gerar');
         Route::post('/team/{user}/dxt',              'TeamController@gerarDxt')
             ->name('team-mcp.team.dxt.gerar');
+        // G-DESIGN-01: drill-down lista tokens individuais por dev (FICHA CAPTERRA 2026-05-25)
+        Route::get('/team/{user}/tokens',            'TeamController@listTokens')
+            ->name('team-mcp.team.tokens.index');
+        // G-DESIGN-02: revoke individual scopa user (FICHA CAPTERRA 2026-05-25)
+        Route::delete('/team/{user}/token/{tokenId}', 'TeamController@revokeToken')
+            ->name('team-mcp.team.token.revoke');
+        // Legacy revoke (compat — kept while existing callers migrate)
         Route::delete('/team/token/{token}',         'TeamController@revogarToken')
             ->name('team-mcp.team.token.revogar');
         Route::post('/team/{user}/quota',            'TeamController@atualizarQuota')

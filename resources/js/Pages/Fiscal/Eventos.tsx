@@ -11,7 +11,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { Activity } from 'lucide-react';
+import { Activity, Info } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
@@ -105,6 +105,19 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
           </select>
         }
       >
+        {/* Callout — janelas legais (port fiscal-page.jsx §9 EventosTab) */}
+        <div className="fx-callout" role="region" aria-label="Janelas legais">
+          <Info size={16} />
+          <div>
+            <b>Janelas legais que o sistema valida</b>
+            <small>
+              <b>CC-e:</b> até 30 dias · máx 20 por nota · não corrige valor/CFOP/qtd.
+              {' '}<b>Cancelamento:</b> até 24h (NFC-e) / 168h (NF-e se UF permitir).
+              {' '}<b>Inutilização:</b> faixas de numeração não usadas.
+            </small>
+          </div>
+        </div>
+
         {/* Filtros por tipo */}
         <div className="fx-filters">
           <button type="button" className={`fx-chip${filters.kind === 'todos' ? ' active' : ''}`} onClick={() => apply({ kind: 'todos' })}>

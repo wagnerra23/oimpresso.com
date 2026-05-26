@@ -6,7 +6,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { Check, CheckCircle2, Eye, FileSearch, ShieldAlert, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, Eye, FileSearch, Info, ShieldAlert, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
@@ -111,11 +111,30 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
 
       <FxShell
         route="dfe"
-        title="Manifesto DF-e"
-        crumb={`${counts.pendentes} pendentes · ${brl(counts.valorPendente)} aguardando · prazo legal 90d`}
+        title="Manifestação do destinatário"
+        crumb={`${counts.pendentes} aguardando ciência · ${brl(counts.valorPendente)} · busca diária SEFAZ`}
         env={counts.pendentes > 0 ? `${counts.pendentes} aguardando` : 'tudo manifestado'}
         envTone={counts.pendentes > 10 ? 'warn' : counts.pendentes > 0 ? 'ok' : 'ok'}
+        actions={
+          <button type="button" className="fx-btn primary" disabled title="Bulk manifestar (PR seguinte)">
+            Manifestar selecionadas <kbd>E</kbd>
+          </button>
+        }
       >
+        {/* Callout informativo (port do fiscal-page.jsx §10 FiscalDFePage) */}
+        <div className="fx-callout" role="region" aria-label="O que é manifestação">
+          <Info size={16} />
+          <div>
+            <b>O que é manifestação?</b>
+            <small>
+              Toda NF-e emitida com o seu CNPJ no destinatário deve ser manifestada
+              em até <b>90 dias</b>. 4 respostas: <b>ciência</b> · <b>confirmação</b> ·
+              {' '}<b>desconhecimento</b> · <b>não realizada</b>. Sem manifestar, escrita
+              fiscal e CIAP ficam inconsistentes.
+            </small>
+          </div>
+        </div>
+
         <div className="fx-filters">
           <div className="fx-search">
             <FileSearch size={13} />

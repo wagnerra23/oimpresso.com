@@ -3,10 +3,17 @@
 //   module: Fiscal
 //   stories: US-FISCAL-009 (Cert/Cfg sub-página 6 do design KB-9.75)
 //   adrs: 0093, 0094, 0101, 0104
+//
+// Tela UNIFICADA — cert + ambiente + testar + upload no mesmo lugar.
+// Forms apontam pros endpoints existentes /nfe-brasil/configuracao/certificado/*
+// (NfeBrasil CertificadoController) — zero duplicação de lógica backend.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head } from '@inertiajs/react';
-import { Edit3, Shield } from 'lucide-react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import type { PageProps } from '@inertiajs/core';
+import { CheckCircle2, KeyRound, Loader2, PlugZap, Shield, Upload, XCircle } from 'lucide-react';
+import { type FormEvent, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import FxShell from './_components/FxShell';
 
@@ -15,9 +22,11 @@ import '../../../css/fiscal-cockpit.css';
 interface Certificado {
   uuid: string;
   cnpjTitular: string | null;
+  cnpjTitularFallback: string | null;
   validoAteIso: string | null;
   validoAteBr: string | null;
   diasRestantes: number | null;
+  alerta: 'ok' | 'proximo_vencimento' | 'vencido' | null;
   ativo: boolean;
 }
 
@@ -27,22 +36,147 @@ interface Config {
   tributacaoDefault: Record<string, unknown>;
 }
 
+interface Painel {
+  cnpjBusiness: string | null;
+  razaoSocial: string | null;
+  regime: string | null;
+  ncmPadrao: string | null;
+  serieNfe: string;
+  ultimoNumero: number;
+  proximoNumero: number;
+  cfopDefault: string | null;
+  csosnDefault: string | null;
+  cstDefault: string | null;
+  uf: string | null;
+  cidade: string | null;
+  ambiente: 1 | 2;
+}
+
 interface ConfigProps {
   certificado: Certificado | null;
   config: Config | null;
+  painel: Painel;
 }
+
+interface FlashProps extends PageProps {
+  flash?: { success?: string };
+}
+
+type SefazTesteResultado = {
+  ok: boolean;
+  cstat: string;
+  xMotivo: string;
+  tempoResposta: number;
+  ambiente: number;
+  uf: string;
+  versao?: string | null;
+  error?: string;
+};
 
 const REGIME_LABEL: Record<string, string> = {
   simples_nacional: 'Simples Nacional',
+  simples: 'Simples Nacional',
   lucro_presumido: 'Lucro Presumido',
   lucro_real: 'Lucro Real',
   mei: 'MEI',
 };
 
-export default function Config({ certificado, config }: ConfigProps) {
-  const certTone = certificado?.diasRestantes == null ? 'bad'
-    : certificado.diasRestantes <= 7 ? 'bad'
-    : certificado.diasRestantes <= 60 ? 'warn' : 'ok';
+function formatCnpj(raw: string | null): string {
+  if (!raw) return '—';
+  const digits = raw.replace(/\D/g, '').padStart(14, '0').slice(-14);
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
+
+export default function Config({ certificado, config, painel }: ConfigProps) {
+  const { props: pageProps } = usePage<FlashProps>();
+  const flashSuccess = pageProps.flash?.success;
+
+  const certTone: 'ok' | 'warn' | 'bad' = certificado?.diasRestantes == null
+    ? 'bad'
+    : certificado.diasRestantes <= 7
+      ? 'bad'
+      : certificado.diasRestantes <= 60
+        ? 'warn'
+        : 'ok';
+
+  // Upload form (Inertia) → POST /nfe-brasil/configuracao/certificado
+  const fileRef = useRef<HTMLInputElement>(null);
+  const uploadForm = useForm<{ certificado: File | null; senha: string }>({
+    certificado: null,
+    senha: '',
+  });
+  const submitUpload = (e: FormEvent) => {
+    e.preventDefault();
+    uploadForm.post('/nfe-brasil/configuracao/certificado', {
+      forceFormData: true,
+      preserveScroll: true,
+      onSuccess: () => {
+        if (fileRef.current) fileRef.current.value = '';
+        toast.success('Certificado A1 cadastrado.');
+      },
+      onError: () => toast.error('Verifique o arquivo e a senha.'),
+      onFinish: () => uploadForm.reset('certificado', 'senha'),
+    });
+  };
+
+  // Ambiente form (Inertia) → POST /nfe-brasil/configuracao/certificado/ambiente
+  const ambienteForm = useForm<{ ambiente: 1 | 2 }>({ ambiente: painel.ambiente });
+  const submitAmbiente = (e: FormEvent) => {
+    e.preventDefault();
+    if (ambienteForm.data.ambiente === painel.ambiente) return;
+    ambienteForm.post('/nfe-brasil/configuracao/certificado/ambiente', {
+      preserveScroll: true,
+      onSuccess: () => toast.success(
+        `Ambiente alterado para ${ambienteForm.data.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}.`,
+      ),
+      onError: () => toast.error('Falha ao salvar ambiente.'),
+    });
+  };
+
+  // Testar SEFAZ (fetch local, não Inertia) → POST /nfe-brasil/configuracao/certificado/testar
+  const [testando, setTestando] = useState(false);
+  const [resultadoTeste, setResultadoTeste] = useState<SefazTesteResultado | null>(null);
+  const testarSefaz = async () => {
+    setTestando(true);
+    setResultadoTeste(null);
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+      const res = await fetch('/nfe-brasil/configuracao/certificado/testar', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      const payload: SefazTesteResultado = await res.json();
+      setResultadoTeste(payload);
+      if (payload.ok) {
+        toast.success(`SEFAZ-${payload.uf} online (cstat ${payload.cstat})`);
+      } else {
+        toast.error(`SEFAZ retornou cstat ${payload.cstat}: ${payload.xMotivo}`);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
+      setResultadoTeste({
+        ok: false, cstat: '—',
+        xMotivo: `Falha de rede: ${msg}`,
+        tempoResposta: 0, ambiente: 0, uf: '—',
+        error: 'network',
+      });
+      toast.error('Falha de rede ao chamar endpoint.');
+    } finally {
+      setTestando(false);
+    }
+  };
+
+  const crumb = certificado
+    ? (certificado.diasRestantes != null && certificado.diasRestantes > 0
+        ? `Cert A1 vence em ${certificado.diasRestantes}d · ambiente ${painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}`
+        : `Cert A1 EXPIRADO · ambiente ${painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}`)
+    : `Sem certificado A1 ativo · ambiente ${painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}`;
 
   return (
     <AppShellV2>
@@ -51,82 +185,278 @@ export default function Config({ certificado, config }: ConfigProps) {
       <FxShell
         route="fiscal_config"
         title="Certificado & configuração"
-        crumb={certificado
-          ? `Cert A1 ${certificado.diasRestantes != null && certificado.diasRestantes > 0 ? `vence em ${certificado.diasRestantes}d` : 'EXPIRADO'}`
-          : 'Sem certificado ativo'}
-        env={certificado ? 'A1 ativo' : 'config pendente'}
+        crumb={crumb}
+        env={certificado ? `A1 ativo · ${painel.ambiente === 1 ? 'prod' : 'homolog'}` : 'sem cert ativo'}
         envTone={certTone === 'bad' ? 'bad' : certTone === 'warn' ? 'warn' : 'ok'}
         actions={
-          <a href="/nfe-brasil/configuracao/certificado" className="fx-btn primary">
-            <Edit3 size={12} /> Editar (NfeBrasil)
-          </a>
+          certificado ? (
+            <button
+              type="button"
+              className="fx-btn ghost"
+              onClick={testarSefaz}
+              disabled={testando}
+              title="Pingar SEFAZ (cstat 107 esperado) — não emite NFe"
+            >
+              {testando ? <Loader2 size={12} className="animate-spin" /> : <PlugZap size={12} />}
+              {testando ? 'Testando…' : 'Testar SEFAZ'}
+            </button>
+          ) : undefined
         }
       >
-        {/* Cert section */}
-        <section className="fx-drawer-sec" style={{ background: 'white', border: '1px solid var(--fx-border)', borderRadius: 10, padding: 18, marginBottom: 14 }}>
-          <h4>
-            <Shield size={13} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-            Certificado digital A1
-          </h4>
-          {certificado ? (
-            <dl className="fx-kv">
-              <dt>CNPJ titular</dt>
-              <dd>{certificado.cnpjTitular ?? '—'}</dd>
-              <dt>Validade</dt>
-              <dd>
-                <span className={`fx-sefaz ${certTone}`}>
-                  <span className="code">{certificado.validoAteBr ?? '—'}</span>
-                  <span className="lbl">
-                    {certificado.diasRestantes != null && certificado.diasRestantes > 0
-                      ? `${certificado.diasRestantes}d restantes`
-                      : 'EXPIRADO'}
-                  </span>
-                </span>
-              </dd>
-              <dt>Status</dt>
-              <dd>{certificado.ativo ? '✅ Ativo' : '🔒 Inativo'}</dd>
-              <dt>UUID</dt>
-              <dd className="fx-mono"><small>{certificado.uuid}</small></dd>
-            </dl>
-          ) : (
-            <div className="fx-empty" style={{ background: 'transparent', border: 'none', padding: '12px 0' }}>
-              <b>Nenhum certificado A1 ativo</b>
-              <small>Upload via /nfe-brasil/configuracao/certificado</small>
+        {flashSuccess && (
+          <div className="fx-callout" role="status" style={{ background: 'var(--ok-soft)', borderColor: 'var(--ok)' }}>
+            <CheckCircle2 size={16} />
+            <div>
+              <small style={{ color: 'var(--ok)' }}>{flashSuccess}</small>
             </div>
-          )}
-        </section>
+          </div>
+        )}
 
-        {/* Config section */}
-        <section className="fx-drawer-sec" style={{ background: 'white', border: '1px solid var(--fx-border)', borderRadius: 10, padding: 18, marginBottom: 14 }}>
-          <h4>Regime tributário & emissão</h4>
-          {config ? (
-            <dl className="fx-kv">
-              <dt>Regime</dt>
-              <dd>{REGIME_LABEL[config.regime] ?? config.regime}</dd>
-              <dt>Emissão auto</dt>
-              <dd>{config.autoEmissionEnabled ? '✅ Habilitada (emite NFCe ao finalizar venda)' : '🔒 Manual (emite apenas via botão)'}</dd>
-              <dt>Tributação default</dt>
-              <dd>
-                {Object.keys(config.tributacaoDefault).length > 0
-                  ? <code className="fx-mono">{JSON.stringify(config.tributacaoDefault).slice(0, 200)}</code>
-                  : <small>nenhum default configurado</small>}
-              </dd>
-            </dl>
-          ) : (
-            <div className="fx-empty" style={{ background: 'transparent', border: 'none', padding: '12px 0' }}>
-              <b>Configuração não inicializada</b>
-              <small>Edite via /nfe-brasil/tributacao</small>
+        {resultadoTeste && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="fx-callout"
+            style={{
+              background: resultadoTeste.ok ? 'var(--ok-soft)' : 'var(--bad-soft)',
+              borderColor: resultadoTeste.ok ? 'var(--ok)' : 'var(--bad)',
+            }}
+          >
+            {resultadoTeste.ok ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+            <div>
+              <b style={{ color: resultadoTeste.ok ? 'var(--ok)' : 'var(--bad)' }}>
+                {resultadoTeste.ok
+                  ? `SEFAZ-${resultadoTeste.uf} online`
+                  : resultadoTeste.uf && resultadoTeste.uf !== '—'
+                    ? `Erro consultando SEFAZ-${resultadoTeste.uf}`
+                    : 'Erro consultando SEFAZ'}
+                {resultadoTeste.cstat && resultadoTeste.cstat !== '—' && ` · cstat ${resultadoTeste.cstat}`}
+              </b>
+              <small>
+                {resultadoTeste.xMotivo}
+                {resultadoTeste.tempoResposta > 0 && ` · ${resultadoTeste.tempoResposta}s`}
+                {resultadoTeste.versao && ` · ${resultadoTeste.versao}`}
+              </small>
             </div>
-          )}
-        </section>
+          </div>
+        )}
 
-        <div className="fx-empty" style={{ background: 'var(--fx-bg-2)', border: 'none' }}>
-          <small>
-            Edição completa de certificado + tributação cascata em
-            {' '}<a href="/nfe-brasil/configuracao/certificado" className="fx-link">Configuração NfeBrasil</a>{' '}
-            (módulo emissor). Esta tela do Fiscal Cockpit mostra status read-only consolidado.
-          </small>
+        {/* Cert + Help (2-col grid — port fiscal-page.jsx §12 CertificadoTab) */}
+        <div className="fx-cert-grid">
+          <section className="fx-cert-card">
+            <h3>Certificado digital A1</h3>
+            <p className="lead">Instalado em MemCofre · SEFAZ exige renovação anual.</p>
+
+            {certificado ? (
+              <>
+                <div className="fx-cert-head">
+                  <span className="fx-cert-ic"><Shield size={20} /></span>
+                  <div>
+                    <b>
+                      {certificado.cnpjTitular
+                        ? formatCnpj(certificado.cnpjTitular)
+                        : certificado.cnpjTitularFallback
+                          ? <>{formatCnpj(certificado.cnpjTitularFallback)} <small style={{ opacity: 0.7 }}>(business)</small></>
+                          : 'CNPJ não informado'}
+                    </b>
+                    <small>A1 (arquivo .pfx) · MemCofre · senha protegida</small>
+                    <small>UUID {certificado.uuid.slice(0, 8)}…</small>
+                  </div>
+                </div>
+
+                <dl className="fx-cert-validade">
+                  <div>
+                    <dt>Válido até</dt>
+                    <dd>{certificado.validoAteBr ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Restam</dt>
+                    <dd style={{ color: certTone === 'bad' ? 'var(--bad)' : certTone === 'warn' ? 'var(--warn)' : 'var(--ok)' }}>
+                      {certificado.diasRestantes != null && certificado.diasRestantes > 0
+                        ? `${certificado.diasRestantes}d`
+                        : 'EXPIRADO'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{certificado.ativo ? 'Ativo' : 'Inativo'}</dd>
+                  </div>
+                </dl>
+
+                <div className={`fx-cert-bar${certTone === 'bad' ? ' crit' : ''}`}>
+                  <div style={{ width: `${Math.max(2, Math.min(100, ((certificado.diasRestantes ?? 0) / 365) * 100))}%` }} />
+                </div>
+              </>
+            ) : (
+              <div className="fx-empty" style={{ background: 'transparent', border: 'none', padding: 0 }}>
+                <b>Nenhum certificado A1 ativo</b>
+                <small>Faça upload abaixo pra começar a emitir.</small>
+              </div>
+            )}
+          </section>
+
+          <section className="fx-cert-card">
+            <h3>Como funciona o A1</h3>
+            <p className="lead">Resumo pra contadora externa.</p>
+            <ul className="fx-help-list">
+              <li><b>A1 (arquivo):</b> certificado em <code>.pfx</code> + senha. Fica no servidor (MemCofre). Renova a cada 12 meses.</li>
+              <li><b>A3 (token/cartão):</b> exige hardware presente no servidor. Mais seguro mas dificulta automação.</li>
+              <li><b>Vence em &lt; 30 dias?</b> SEFAZ continua aceitando até a data final, mas a emissão deve ser pausada se renovação atrasar.</li>
+              <li><b>Onde fica a senha?</b> sempre em <code>MemCofre</code>, nunca em variável de ambiente.</li>
+            </ul>
+          </section>
         </div>
+
+        {/* Ambiente SEFAZ — radio + submit */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>Ambiente SEFAZ</h3>
+          <p className="lead">
+            <b>Homologação</b> = teste, NF-e gerada não tem valor fiscal.{' '}
+            <b>Produção</b> = valor fiscal real, vai pra contabilidade.
+          </p>
+          <form onSubmit={submitAmbiente} style={{ marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                <input
+                  type="radio"
+                  name="ambiente"
+                  value={2}
+                  checked={ambienteForm.data.ambiente === 2}
+                  onChange={() => ambienteForm.setData('ambiente', 2)}
+                />
+                <b>Homologação</b>
+                <small style={{ color: 'var(--fx-text-mute)' }}>(teste)</small>
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                <input
+                  type="radio"
+                  name="ambiente"
+                  value={1}
+                  checked={ambienteForm.data.ambiente === 1}
+                  onChange={() => ambienteForm.setData('ambiente', 1)}
+                />
+                <b>Produção</b>
+                <small style={{ color: 'var(--warn)' }}>(valor fiscal real)</small>
+              </label>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <small style={{ color: 'var(--fx-text-mute)' }}>
+                Atual: <code className="fx-mono">{painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}</code>
+              </small>
+              <button
+                type="submit"
+                className="fx-btn ghost"
+                disabled={ambienteForm.processing || ambienteForm.data.ambiente === painel.ambiente}
+              >
+                {ambienteForm.processing ? 'Salvando…' : 'Salvar ambiente'}
+              </button>
+            </div>
+            {ambienteForm.errors.ambiente && (
+              <small style={{ color: 'var(--bad)' }}>{ambienteForm.errors.ambiente}</small>
+            )}
+          </form>
+        </section>
+
+        {/* Upload .pfx — Inertia useForm → POST /nfe-brasil/configuracao/certificado */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>
+            <Upload size={14} style={{ verticalAlign: 'text-bottom', marginRight: 6 }} />
+            {certificado ? 'Substituir certificado' : 'Upload do certificado A1'}
+          </h3>
+          <p className="lead">
+            {certificado
+              ? 'Subir um certificado novo desativa o atual automaticamente (rotação cega).'
+              : 'Sobe o .pfx ou .p12 + senha. Valida CNPJ, criptografa em disco e habilita emissão NF-e/NFC-e.'}
+          </p>
+          <form onSubmit={submitUpload} style={{ marginTop: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+              <div>
+                <label htmlFor="certificado-file" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>
+                  Arquivo .pfx / .p12 *
+                </label>
+                <input
+                  id="certificado-file"
+                  ref={fileRef}
+                  type="file"
+                  accept=".pfx,.p12"
+                  onChange={(e) => uploadForm.setData('certificado', e.target.files?.[0] ?? null)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: 12, border: '1px solid var(--fx-border)', borderRadius: 6, background: 'white' }}
+                />
+                <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Máximo 100 KB. A3 (token) não é suportado.</small>
+                {uploadForm.errors.certificado && (
+                  <small style={{ color: 'var(--bad)', display: 'block', fontSize: 11 }}>{uploadForm.errors.certificado}</small>
+                )}
+              </div>
+              <div>
+                <label htmlFor="certificado-senha" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>
+                  <KeyRound size={11} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} />
+                  Senha do certificado *
+                </label>
+                <input
+                  id="certificado-senha"
+                  type="password"
+                  value={uploadForm.data.senha}
+                  onChange={(e) => uploadForm.setData('senha', e.target.value)}
+                  autoComplete="off"
+                  maxLength={80}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: 12, border: '1px solid var(--fx-border)', borderRadius: 6 }}
+                />
+                <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Encrypted-at-rest (Laravel encrypt) · nunca em log.</small>
+                {uploadForm.errors.senha && (
+                  <small style={{ color: 'var(--bad)', display: 'block', fontSize: 11 }}>{uploadForm.errors.senha}</small>
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="submit"
+                className="fx-btn primary"
+                disabled={uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha}
+              >
+                {uploadForm.processing
+                  ? 'Enviando…'
+                  : certificado
+                    ? 'Substituir certificado'
+                    : 'Enviar certificado'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        {/* Identificação + Numeração (info read-only consolidada do painel fiscal) */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>Identificação fiscal &amp; numeração</h3>
+          <dl className="fx-kv" style={{ gridTemplateColumns: '140px 1fr 140px 1fr' }}>
+            <dt>CNPJ business</dt>
+            <dd className="fx-mono">{formatCnpj(painel.cnpjBusiness)}</dd>
+            <dt>Razão social</dt>
+            <dd>{painel.razaoSocial ?? '—'}</dd>
+            <dt>Regime</dt>
+            <dd>{painel.regime ? (REGIME_LABEL[painel.regime] ?? painel.regime) : (config ? (REGIME_LABEL[config.regime] ?? config.regime) : '—')}</dd>
+            <dt>Localização</dt>
+            <dd>{painel.cidade && painel.uf ? `${painel.cidade} / ${painel.uf}` : (painel.uf ?? '—')}</dd>
+            <dt>NCM padrão</dt>
+            <dd className="fx-mono">{painel.ncmPadrao ?? '—'}</dd>
+            <dt>CFOP / CSOSN</dt>
+            <dd className="fx-mono">{painel.cfopDefault ?? '—'} / {painel.csosnDefault ?? painel.cstDefault ?? '—'}</dd>
+            <dt>Série NFe</dt>
+            <dd className="fx-mono">{painel.serieNfe}</dd>
+            <dt>Próximo número</dt>
+            <dd className="fx-mono">{painel.proximoNumero}</dd>
+            <dt>Emissão auto</dt>
+            <dd>{config?.autoEmissionEnabled ? '✅ Habilitada' : '🔒 Manual'}</dd>
+            <dt>Tributação default</dt>
+            <dd>
+              {config && Object.keys(config.tributacaoDefault).length > 0
+                ? <code className="fx-mono" style={{ fontSize: 11 }}>{JSON.stringify(config.tributacaoDefault).slice(0, 120)}</code>
+                : <small>nenhum default</small>}
+            </dd>
+          </dl>
+          <small style={{ display: 'block', marginTop: 12, color: 'var(--fx-text-mute)' }}>
+            Cascade NCM/CFOP/CSOSN avançado vive em{' '}
+            <a href="/nfe-brasil/tributacao" className="fx-link">/nfe-brasil/tributacao</a>.
+          </small>
+        </section>
       </FxShell>
     </AppShellV2>
   );
