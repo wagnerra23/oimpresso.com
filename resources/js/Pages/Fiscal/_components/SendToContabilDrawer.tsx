@@ -85,6 +85,7 @@ export default function SendToContabilDrawer({ open, data, onClose }: SendToCont
       onClose={onClose}
       ariaLabel="Enviar para contabilidade"
       width={760}
+      dataReady={data}
       header={
         <div>
           <small>Fechamento mensal</small>
