@@ -38,6 +38,7 @@ import FiscalSection from './FiscalSection';
 import FsmActionPanel from './FsmActionPanel';
 import SaleTimeline from './SaleTimeline';
 import CriarOsButton from './CriarOsButton';
+import { printSaleReceipt } from '@/Lib/printSaleReceipt';
 // US-SELL-COWORK-R2-IA — painel ✦ IA do drawer (Cowork KB-9.75 Onda 2).
 // Toggle ON via botão ✦ no header; chama POST /sells/{id}/ai-ask (3 modos).
 import SaleAiPanel from './SaleAiPanel';
@@ -186,6 +187,8 @@ export default function SaleSheet({
   // US-SELL-COWORK-R4-DISTRIBUICAO — overlays transcript A4 + presentation fullscreen.
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [presentationOpen, setPresentationOpen] = useState(false);
+  // /sells/{id}/print só responde a AJAX — target="_blank" devolvia tela branca.
+  const [isPrinting, setIsPrinting] = useState(false);
   // Sincroniza aiOpen quando muda saleId/initialAiOpen (entrada via ⌘K ✦).
   useEffect(() => {
     if (saleId != null && initialAiOpen) setAiOpen(true);
@@ -738,11 +741,25 @@ export default function SaleSheet({
                 <MonitorPlay size={14} className="mr-1.5" />
                 Apresentar
               </Button>
-              <Button variant="outline" size="sm" asChild>
-                <a href={data.urls.print} target="_blank" rel="noopener noreferrer">
-                  <Printer size={14} className="mr-1.5" />
-                  Imprimir
-                </a>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isPrinting}
+                onClick={async () => {
+                  if (isPrinting) return;
+                  setIsPrinting(true);
+                  try {
+                    await printSaleReceipt({ printUrl: data.urls.print, invoiceNo: data.invoice_no });
+                  } catch (err) {
+                    console.error('Falha ao imprimir venda', err);
+                    window.alert(err instanceof Error ? err.message : 'Erro ao gerar o recibo.');
+                  } finally {
+                    setIsPrinting(false);
+                  }
+                }}
+              >
+                <Printer size={14} className="mr-1.5" />
+                {isPrinting ? 'Gerando…' : 'Imprimir'}
               </Button>
               <Button size="sm" asChild>
                 <a href={data.urls.edit}>
