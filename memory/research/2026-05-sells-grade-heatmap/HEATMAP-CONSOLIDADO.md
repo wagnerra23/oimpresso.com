@@ -25,7 +25,7 @@ version: v2 (correções Wagner — Q7 lê EQUIPAMENTO_VEICULO, Q3 lê 3 fontes,
 | **Vargas** | 3.979 | **1.064** | **80%** | **20%** | **19%** | 0 | 1 distinct (vazio) | **oficina recapagem caminhão** (cavalo+reboque) |
 | **Extreme** | 16.910 | 0 | — | — | — | **52.473** | 1 distinct (vazio) | **gráfica industrial PCP** |
 | **Gold** | 8.176 | 0 | — | — | — | 0 | 7+5 (29k EM PRODUÇÃO) | **comunicação visual** (sob demanda c/ prazo) |
-| **Martinho Caçambas** | (n/a Q1) | 91 | **96%** | 0% | 0% | 0 | 8+6 (status inline) | **oficina caçamba avulsa** |
+| **Martinho Caçambas** | (n/a Q1) | 91 | **96%** | 0% | 0% | 0 | 8+6 (status inline) | **mecânica pesada caminhão basculante** (sub-vertical 4 ADR 0194 — pré-correção dizia "oficina caçamba avulsa") |
 
 **Correção 2026-05-11 (Wagner):** v2 inicial classificou Vargas como "gráfica + frota" e Gold como "gráfica genérica". Errado:
 - **Vargas é oficina GRANDE de recapagem de caçamba de caminhão** — os 1.064 veículos são os caminhões dos clientes deles. PLACA2/CHASSI2 = cavalo+reboque (semi-reboque tem placa+chassi próprios).
@@ -121,7 +121,7 @@ Preset Ano essencial. Preset Mês útil. Dia/Semana = baixo volume.
 | Gold | 0 | — | — | — | — | — |
 | **Martinho** | **91** | **96%** | 0% | 0% | 0% | 0% |
 
-**Vargas e Martinho usam veículo.** Vargas tem campos secundários (PLACA2/CHASSI2/CHASSI) — frota mista (cavalo+reboque OU múltiplos veículos por cliente). Martinho só PLACA pura (caçamba avulsa).
+**Vargas e Martinho usam veículo.** Vargas tem campos secundários (PLACA2/CHASSI2/CHASSI) — frota mista (cavalo+reboque OU múltiplos veículos por cliente). Martinho só PLACA pura (caminhões de CLIENTES que entram pra peça/serviço · sub-vertical 4 mecânica pesada ADR 0194 — pré-correção dizia "caçamba avulsa").
 
 ### 2.7 PCP estruturado (Q8 — nova)
 
