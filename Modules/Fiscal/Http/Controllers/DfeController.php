@@ -34,7 +34,50 @@ class DfeController extends Controller
             'filters' => $filters,
             'counts'  => $this->computeCounts(),
             'rows'    => Inertia::defer(fn () => $this->buildRowsPayload($filters)),
+            // Onda 2 G — tab Histórico de manifestações já processadas.
+            // TODO[CL]: substituir por query real de NfeDfeRecebido WHERE
+            // status_manifestacao IN ('confirmada','desconhecida','nao_realizada')
+            // ordenado por manifestado_em DESC.
+            'historicoMock' => $this->mockHistorico(),
         ]);
+    }
+
+    /**
+     * Mock pra tab Histórico do DF-e (Onda 2). PII-safe.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function mockHistorico(): array
+    {
+        $now = now();
+
+        return [
+            ['id' => 901, 'chave' => '[REDACTED-CHAVE-NFE-44]',
+             'nomeEmitente' => 'TechSupply Ltda', 'cnpjEmitente' => '[REDACTED-CNPJ]',
+             'when' => $now->copy()->subDays(2)->format('d/m H:i'),
+             'ack' => 'confirmada', 'actor' => 'Wagner',
+             'obs' => 'Material recebido OK · NFe 12345', 'valor' => 8420.00],
+            ['id' => 902, 'chave' => '[REDACTED-CHAVE-NFE-44]',
+             'nomeEmitente' => 'Gráfica Parceira ME', 'cnpjEmitente' => '[REDACTED-CNPJ]',
+             'when' => $now->copy()->subDays(4)->format('d/m H:i'),
+             'ack' => 'confirmada', 'actor' => 'Eliana',
+             'obs' => 'Insumos pra produção', 'valor' => 3240.00],
+            ['id' => 903, 'chave' => '[REDACTED-CHAVE-NFE-44]',
+             'nomeEmitente' => 'Logística Express', 'cnpjEmitente' => '[REDACTED-CNPJ]',
+             'when' => $now->copy()->subDays(7)->format('d/m H:i'),
+             'ack' => 'ciencia', 'actor' => 'Auto (job diário)',
+             'obs' => null, 'valor' => 142.00],
+            ['id' => 904, 'chave' => '[REDACTED-CHAVE-NFE-44]',
+             'nomeEmitente' => 'Empresa Desconhecida XYZ', 'cnpjEmitente' => '[REDACTED-CNPJ]',
+             'when' => $now->copy()->subDays(10)->format('d/m H:i'),
+             'ack' => 'desconhecida', 'actor' => 'Wagner',
+             'obs' => 'Operação não foi solicitada por nós — fornecedor errou destinatário', 'valor' => 18900.00],
+            ['id' => 905, 'chave' => '[REDACTED-CHAVE-NFE-44]',
+             'nomeEmitente' => 'Material Especial', 'cnpjEmitente' => '[REDACTED-CNPJ]',
+             'when' => $now->copy()->subDays(14)->format('d/m H:i'),
+             'ack' => 'nao_realizada', 'actor' => 'Eliana',
+             'obs' => 'Pedido cancelado em comum acordo · mercadoria nunca chegou', 'valor' => 5200.00],
+        ];
     }
 
     protected function computeCounts(): array

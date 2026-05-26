@@ -6,13 +6,28 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { Check, CheckCircle2, Eye, FileSearch, Info, ShieldAlert, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, Eye, FileSearch, Info, Inbox, ShieldAlert, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import ModuleTopNav from './_components/ModuleTopNav';
 import { brl, formatDoc, truncKey } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
+
+type DfeTab = 'pendente' | 'historico';
+
+interface HistoricoEntry {
+  id: number;
+  chave: string;
+  nomeEmitente: string;
+  cnpjEmitente: string | null;
+  when: string;
+  ack: 'confirmada' | 'ciencia' | 'desconhecida' | 'nao_realizada';
+  actor: string;
+  obs: string | null;
+  valor: number;
+}
 
 type StatusManifestacao = 'pendente' | 'ciencia' | 'confirmada' | 'desconhecida' | 'nao_realizada';
 
@@ -49,6 +64,8 @@ interface DfeProps {
   filters: Filters;
   counts: Counts;
   rows?: { data: DfeRow[]; meta: { total: number; current_page: number; last_page: number } };
+  // Onda 2 — histórico de manifestações já processadas (mock no controller)
+  historicoMock?: HistoricoEntry[];
 }
 
 const STATUS_META: Record<StatusManifestacao, { label: string; tone: 'ok' | 'warn' | 'bad' }> = {
@@ -61,8 +78,9 @@ const STATUS_META: Record<StatusManifestacao, { label: string; tone: 'ok' | 'war
 
 type ManifestAction = 'cienciar' | 'confirmar' | 'desconhecer' | 'nao_realizada';
 
-export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps) {
+export default function Dfe({ filters: initialFilters, counts, rows, historicoMock = [] }: DfeProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [tab, setTab] = useState<DfeTab>('pendente');
   const dataRows = rows?.data ?? [];
   const [busyId, setBusyId] = useState<number | null>(null);
   const [modal, setModal] = useState<{ id: number; acao: 'desconhecer' | 'nao_realizada' } | null>(null);
@@ -121,6 +139,17 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
           </button>
         }
       >
+        {/* ModuleTopNav — Onda 2 G — tabs Pendentes / Histórico */}
+        <ModuleTopNav
+          items={[
+            { id: 'pendente',  label: 'Aguardando ciência', icon: <Inbox size={12} />,          count: counts.pendentes, tone: counts.pendentes > 0 ? 'warn' : null },
+            { id: 'historico', label: 'Histórico',          icon: <CheckCircle2 size={12} />, count: historicoMock.length },
+          ]}
+          value={tab}
+          onChange={(id) => setTab(id as DfeTab)}
+        />
+
+        {tab === 'pendente' && (<>
         {/* Callout informativo (port do fiscal-page.jsx §10 FiscalDFePage) */}
         <div className="fx-callout" role="region" aria-label="O que é manifestação">
           <Info size={16} />
@@ -255,6 +284,58 @@ export default function Dfe({ filters: initialFilters, counts, rows }: DfeProps)
             </div>
           )}
         </Deferred>
+        </>)}
+
+        {tab === 'historico' && (
+          historicoMock.length === 0 ? (
+            <div className="fx-empty">
+              <CheckCircle2 size={20} />
+              <b>Sem histórico ainda</b>
+              <small>Manifestações confirmadas/desconhecidas/não-realizadas aparecem aqui após processamento SEFAZ.</small>
+            </div>
+          ) : (
+            <div className="fx-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Emitente</th>
+                    <th style={{ width: 100 }}>Quando</th>
+                    <th style={{ width: 150 }}>Manifestação</th>
+                    <th style={{ width: 110 }}>Por</th>
+                    <th>Observação</th>
+                    <th style={{ width: 110, textAlign: 'right' }}>Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {historicoMock.map((h) => {
+                    const tone = h.ack === 'confirmada' ? 'ok' : h.ack === 'ciencia' ? 'warn' : 'bad';
+                    const label = h.ack === 'confirmada' ? '✓ Confirmada'
+                      : h.ack === 'ciencia' ? '~ Ciência'
+                      : h.ack === 'desconhecida' ? '✗ Desconhecida'
+                      : '— Não realizada';
+                    return (
+                      <tr key={h.id}>
+                        <td>
+                          <b>{h.nomeEmitente}</b>
+                          <small style={{ display: 'block', color: 'var(--fx-text-mute)' }}>{formatDoc(h.cnpjEmitente, null)}</small>
+                        </td>
+                        <td><small className="fx-mono">{h.when}</small></td>
+                        <td>
+                          <span className={`fx-sefaz ${tone}`}>
+                            <span className="lbl">{label}</span>
+                          </span>
+                        </td>
+                        <td><small>{h.actor}</small></td>
+                        <td><small style={{ color: 'var(--fx-text-dim)' }}>{h.obs ?? '—'}</small></td>
+                        <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{brl(h.valor)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
       </FxShell>
 
       {/* Modal motivo (desconhecer / nao_realizada) */}
