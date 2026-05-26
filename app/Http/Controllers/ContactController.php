@@ -1664,6 +1664,20 @@ class ContactController extends Controller
                     'zip_code' => $contact->zip_code ?? null,
                     'customer_group_id' => $contact->customer_group_id ?? null,
                     'credit_limit' => $contact->credit_limit ?? null,
+                    // Dados Fiscais BR (migration 2026_05_21_140000). Diferente do Show()
+                    // que entrega cpf_cnpj MASCARADO, Edit precisa do valor PLAIN pra
+                    // permitir edição. Exposição PII gated por can('customer.update') /
+                    // can('supplier.update') no início do método.
+                    'cpf_cnpj' => $contact->cpf_cnpj ?? null,
+                    'rg' => $contact->rg ?? null,
+                    'inscricao_estadual' => $contact->inscricao_estadual ?? null,
+                    'inscricao_municipal' => $contact->inscricao_municipal ?? null,
+                    'indicador_ie' => $contact->indicador_ie ?? null,
+                    'nome_fantasia' => $contact->nome_fantasia ?? null,
+                    'consumidor_final' => $contact->consumidor_final !== null ? (bool) $contact->consumidor_final : null,
+                    'contribuinte' => $contact->contribuinte !== null ? (bool) $contact->contribuinte : null,
+                    'regime' => $contact->regime ?? null,
+                    'suframa' => $contact->suframa ?? null,
                 ],
                 'types' => $types,
                 'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
@@ -1692,72 +1706,112 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Bug fix 2026-05-26 — pré-fix, TODO o corpo do update() vivia dentro de
+        // `if ($this->isLegacyAjax()) { ... }`. Quando o Edit.tsx mandava PUT via
+        // Inertia (X-Inertia header presente, isLegacyAjax() = false), o método caía
+        // fora do bloco e retornava void → Inertia client lançava "All Inertia requests
+        // must receive a valid Inertia response". Mesma classe de bug que store() ganhou
+        // fix 2026-05-25.
+        //
+        // Solução: extrair processamento pra helper `processContactUpdate()` + 2 branches
+        // explícitos (legacy AJAX retorna JSON UPOS; Inertia redireciona com flash,
+        // espelhando o pattern de store() linhas 1291-1301).
         if ($this->isLegacyAjax()) {
-            try {
-                $input = $request->only(['type', 'supplier_business_name', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'address_line_1', 'address_line_2', 'zip_code', 'dob', 'alternate_number', 'city', 'state', 'country', 'landline', 'customer_group_id', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'shipping_custom_field_details', 'export_custom_field_1', 'export_custom_field_2', 'export_custom_field_3', 'export_custom_field_4', 'export_custom_field_5',
-                    'export_custom_field_6', 'assigned_to_users',
-                    // Campos BR restaurados — migration 2026_05_21_140000 (regressão UPOS 6.7).
-                    'cpf_cnpj', 'rg', 'inscricao_estadual', 'inscricao_municipal', 'indicador_ie', 'nome_fantasia', 'consumidor_final', 'contribuinte', 'regime', 'suframa',
-                ]);
+            return $this->processContactUpdate($request, $id);
+        }
 
-                $name_array = [];
+        $result = $this->processContactUpdate($request, $id);
 
-                if (! empty($input['prefix'])) {
-                    $name_array[] = $input['prefix'];
-                }
-                if (! empty($input['first_name'])) {
-                    $name_array[] = $input['first_name'];
-                }
-                if (! empty($input['middle_name'])) {
-                    $name_array[] = $input['middle_name'];
-                }
-                if (! empty($input['last_name'])) {
-                    $name_array[] = $input['last_name'];
-                }
+        // expiredResponse() do moduleUtil já é Response — devolve direto sem mexer.
+        if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
+            return $result;
+        }
 
-                $input['contact_type'] = $request->input('contact_type_radio');
+        if (! empty($result['success'])) {
+            return redirect()
+                ->route('contacts.show', $id)
+                ->with('status', $result['msg'] ?? __('contact.updated_success'));
+        }
 
+        return back()
+            ->withInput()
+            ->withErrors(['msg' => $result['msg'] ?? __('messages.something_went_wrong')]);
+    }
 
+    /**
+     * Helper extraído do update() pra desacoplar processamento da response.
+     *
+     * Retorna ['success' => bool, 'msg' => string, 'data' => Contact|null] (UPOS canon)
+     * OU Response (caso `moduleUtil->expiredResponse()` em business sem subscription).
+     *
+     * Caller é responsável por interpretar e responder Inertia/JSON conforme contexto.
+     *
+     * @return array|\Symfony\Component\HttpFoundation\Response
+     */
+    private function processContactUpdate(UpdateContactRequest $request, int $id)
+    {
+        try {
+            $input = $request->only(['type', 'supplier_business_name', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'address_line_1', 'address_line_2', 'zip_code', 'dob', 'alternate_number', 'city', 'state', 'country', 'landline', 'customer_group_id', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'shipping_custom_field_details', 'export_custom_field_1', 'export_custom_field_2', 'export_custom_field_3', 'export_custom_field_4', 'export_custom_field_5',
+                'export_custom_field_6', 'assigned_to_users',
+                // Campos BR restaurados — migration 2026_05_21_140000 (regressão UPOS 6.7).
+                'cpf_cnpj', 'rg', 'inscricao_estadual', 'inscricao_municipal', 'indicador_ie', 'nome_fantasia', 'consumidor_final', 'contribuinte', 'regime', 'suframa',
+            ]);
 
-                $input['name'] = trim(implode(' ', $name_array));
+            $name_array = [];
 
-                unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
-
-                $input['is_export'] = ! empty($request->input('is_export')) ? 1 : 0;
-
-                if (! $input['is_export']) {
-                    unset($input['export_custom_field_1'], $input['export_custom_field_2'], $input['export_custom_field_3'], $input['export_custom_field_4'], $input['export_custom_field_5'], $input['export_custom_field_6']);
-                }
-
-                if (! empty($input['dob'])) {
-                    $input['dob'] = $this->commonUtil->uf_date($input['dob']);
-                }
-
-                $input['credit_limit'] = $request->input('credit_limit') != '' ? $this->commonUtil->num_uf($request->input('credit_limit')) : null;
-
-                $business_id = $request->session()->get('user.business_id');
-
-                $input['opening_balance'] = $this->commonUtil->num_uf($request->input('opening_balance'));
-
-                if (! $this->moduleUtil->isSubscribed($business_id)) {
-                    return $this->moduleUtil->expiredResponse();
-                }
-
-                $output = $this->contactUtil->updateContact($input, $id, $business_id);
-
-                event(new ContactCreatedOrModified($output['data'], 'updated'));
-
-                $this->contactUtil->activityLog($output['data'], 'edited');
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
+            if (! empty($input['prefix'])) {
+                $name_array[] = $input['prefix'];
+            }
+            if (! empty($input['first_name'])) {
+                $name_array[] = $input['first_name'];
+            }
+            if (! empty($input['middle_name'])) {
+                $name_array[] = $input['middle_name'];
+            }
+            if (! empty($input['last_name'])) {
+                $name_array[] = $input['last_name'];
             }
 
-            return $output;
+            $input['contact_type'] = $request->input('contact_type_radio');
+
+            $input['name'] = trim(implode(' ', $name_array));
+
+            unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
+
+            $input['is_export'] = ! empty($request->input('is_export')) ? 1 : 0;
+
+            if (! $input['is_export']) {
+                unset($input['export_custom_field_1'], $input['export_custom_field_2'], $input['export_custom_field_3'], $input['export_custom_field_4'], $input['export_custom_field_5'], $input['export_custom_field_6']);
+            }
+
+            if (! empty($input['dob'])) {
+                $input['dob'] = $this->commonUtil->uf_date($input['dob']);
+            }
+
+            $input['credit_limit'] = $request->input('credit_limit') != '' ? $this->commonUtil->num_uf($request->input('credit_limit')) : null;
+
+            $business_id = $request->session()->get('user.business_id');
+
+            $input['opening_balance'] = $this->commonUtil->num_uf($request->input('opening_balance'));
+
+            if (! $this->moduleUtil->isSubscribed($business_id)) {
+                return $this->moduleUtil->expiredResponse();
+            }
+
+            $output = $this->contactUtil->updateContact($input, $id, $business_id);
+
+            event(new ContactCreatedOrModified($output['data'], 'updated'));
+
+            $this->contactUtil->activityLog($output['data'], 'edited');
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            $output = ['success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
+
+        return $output;
     }
 
     /**
