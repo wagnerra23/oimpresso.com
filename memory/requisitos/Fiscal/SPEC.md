@@ -2,9 +2,9 @@
 module: Fiscal
 status: ativo
 version: 1.9.0
-last_updated: 2026-05-25
+last_updated: "2026-05-25"
 piloto: oimpresso biz=1 (Wagner empresa) — depende de NfeBrasil já produção
-last_review: 2026-05-25
+last_review: "2026-05-25"
 owners: [W]
 parent_adr: 0094-constituicao-v2-7-camadas-8-principios
 related_adrs:
