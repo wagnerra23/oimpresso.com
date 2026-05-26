@@ -34,8 +34,11 @@ import VdNextActionPanel from './_components/VdNextActionPanel';
 import FsmActionPanel from './_components/FsmActionPanel';
 import VdNfeEmitModal, { type NfeEmitVenda } from './_components/VdNfeEmitModal';
 import VdNfseEmitModal, { type NfseEmitVenda } from './_components/VdNfseEmitModal';
-import VdNextActionPanel from './_components/VdNextActionPanel';
-import FsmActionPanel from './_components/FsmActionPanel';
+import SaleReciboPrint80mm from './_components/SaleReciboPrint80mm';
+import SaleOrcamentoA4 from './_components/SaleOrcamentoA4';
+
+// Modos de impressão KB-9.75 Cowork bundle 2026-05-26 P2 gaps #8 + #9
+type CoworkPrintMode = 'recibo-80mm' | 'orcamento-a4' | null;
 
 interface Customer {
   id: number;
@@ -157,6 +160,8 @@ export default function SellsShow(props: SellsShowPageProps) {
   const [isPrinting, setIsPrinting] = useState(false);
   // KB-9.75 P0 gaps #2/#3 — emit modals abertos via VdNextActionPanel gate.
   const [emitModalKind, setEmitModalKind] = useState<'nfe' | 'nfse' | null>(null);
+  // KB-9.75 P2 gaps #8/#9 — printMode controla render dos overlays Cowork (Recibo 80mm + Orçamento A4)
+  const [printMode, setPrintMode] = useState<CoworkPrintMode>(null);
 
   // /sells/{id}/print só responde a AJAX (SellPosController::printInvoice).
   // Render via iframe oculto + CSS legacy (Bootstrap 3 + .print_section) — pattern equivale
@@ -177,6 +182,14 @@ export default function SellsShow(props: SellsShowPageProps) {
     },
     [headline.invoice_no, isPrinting, permissions.print, urls.print],
   );
+
+  // KB-9.75 Cowork P2 gaps #8/#9 — abrir overlay print-only (não usa rota /sells/{id}/print legacy)
+  const handleCoworkPrint = useCallback((mode: Exclude<CoworkPrintMode, null>) => {
+    if (!permissions.print) return;
+    setPrintMode(mode);
+  }, [permissions.print]);
+
+  const handleCoworkPrintClose = useCallback(() => setPrintMode(null), []);
 
   // Atalhos teclado E (edit) + P (print) + Esc (back)
   useEffect(() => {
@@ -253,6 +266,12 @@ export default function SellsShow(props: SellsShowPageProps) {
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => handlePrint('delivery_note')}>
                     Nota de entrega
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleCoworkPrint('recibo-80mm')}>
+                    Recibo térmico (80mm)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleCoworkPrint('orcamento-a4')}>
+                    Orçamento A4
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -443,6 +462,28 @@ export default function SellsShow(props: SellsShowPageProps) {
         onClose={() => setEmitModalKind(null)}
         onSuccess={() => router.reload({ only: ['detail', 'headline'] })}
       />
+
+      {/* KB-9.75 Cowork P2 gaps #8/#9 — overlays print-only.
+          Wrapper `sells-cowork` aplica os tokens CSS canon (`.sells-cowork .vd-receipt-paper`).
+          Renderizam só quando user seleciona no dropdown "Imprimir" E detail deferred já chegou. */}
+      {printMode === 'recibo-80mm' && props.detail && (
+        <div className="sells-cowork">
+          <SaleReciboPrint80mm
+            headline={headline}
+            detail={{ lines: props.detail.lines, payments: props.detail.payments }}
+            onClose={handleCoworkPrintClose}
+          />
+        </div>
+      )}
+      {printMode === 'orcamento-a4' && props.detail && (
+        <div className="sells-cowork">
+          <SaleOrcamentoA4
+            headline={headline}
+            detail={{ lines: props.detail.lines }}
+            onClose={handleCoworkPrintClose}
+          />
+        </div>
+      )}
     </>
   );
 }
