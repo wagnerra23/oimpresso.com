@@ -3,12 +3,17 @@ slug: paymentgateway
 title: "Especificação funcional — PaymentGateway"
 type: spec
 module: PaymentGateway
-status: proposed
-related_adrs: [0093, 0094, 0105, 0106, 0170]
+status: ativo
+related_adrs:
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0105-cliente-como-sinal-guiar-sem-mandar"
+  - "0106-recalibracao-velocidade-fator-10x-ia-pair"
+  - "0170-paymentgateway-extracao-camada-cobranca"
 pii: true
-updated_at: 2026-05-25
-last_updated: 2026-05-25
-version: 0.1
+updated_at: "2026-05-25"
+last_updated: "2026-05-25"
+version: "0.1"
 owner: wagner
 ---
 
@@ -17,7 +22,7 @@ owner: wagner
 > Convenção do ID: `US-PG-NNN` user stories, `R-PG-NNN` regras Gherkin.
 > SPEC.md criada em 2026-05-25 pela Onda Audit Sênior — antes só existia [PLANO-ONDA5-SIMPLIFICADA.md](PLANO-ONDA5-SIMPLIFICADA.md) + [RUNBOOK-settings-gateways.md](RUNBOOK-settings-gateways.md). D3 Doc 0/15 → primeiro passo pra subir nota.
 
-## Onda Audit Sênior 2026-05-25 — PR-0 Sec Hardening
+## User stories — Onda Audit Sênior 2026-05-25 PR-0 Sec Hardening
 
 > Origem: dossier inline `audit-senior-expert` 2026-05-25 (não persistido em .md devido a system reminder do agente). PaymentGateway 57/100 Médio. **3 vulnerabilidades P0 críticas detectadas** — Larissa biz=4 NÃO pode cobrar até PR-0 mergeado.
 > Bypass MCP `tasks-create` (mcp_jira_projects ainda não tem entry "PaymentGateway") — webhook sincroniza no próximo push.
