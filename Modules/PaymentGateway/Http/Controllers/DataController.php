@@ -2,9 +2,7 @@
 
 namespace Modules\PaymentGateway\Http\Controllers;
 
-use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
-use Menu;
 
 /**
  * DataController do módulo PaymentGateway.
@@ -58,68 +56,32 @@ class DataController extends Controller
     }
 
     /**
-     * Camada visual sidebar — Onda 5 (2026-05-19): popular.
+     * Camada visual sidebar — Wagner 2026-05-26: NO-OP.
      *
-     * Adiciona entrada "Gateways de Pagamento" apontando pra
-     * /settings/payment-gateways (Page Inertia Onda 4d F3, PR #1135).
+     * Gateway de Pagamento NÃO é mais entry própria do sidebar. Vive como
+     * GHOST da entry "Cobrança" (definido em Modules/Financeiro/Http/Controllers/
+     * DataController.modifyAdminMenu, ghost key='gateway' → /settings/payment-gateways).
      *
-     * Pattern segue Financeiro DataController.modifyAdminMenu — guard
-     * via isModuleInstalled + permission `paymentgateway.access`.
-     * 'group' => 'fin' agrupa visualmente com Financeiro na sidebar
-     * (Sidebar.tsx SIDEBAR_GROUPS canon ADR sidebar-menu-arch).
+     * Justificativa Wagner 2026-05-26:
+     *  - Grupo FINANÇAS = 4 entries flat canon (Caixa · Cobrança · Financeiro ·
+     *    Cobrança Recorrente). Gateway é CONFIGURAÇÃO de cobrança, não fluxo
+     *    operacional diário — não merece entry top-level.
+     *  - Larissa (biz=4 cliente piloto) acessa via PageHeader da Cobrança
+     *    quando configura Asaas/Inter/BCB pix.
+     *  - Reduz ruído visual no sidebar (FINANÇAS tinha 3 entries antes do PR;
+     *    agora tem 4 entries semanticamente paralelas).
+     *
+     * Rotas /settings/payment-gateways CONTINUAM ativas — apenas a injeção
+     * sidebar foi desligada. Acesso via URL direta, ghost na Cobrança, ou
+     * Cmd+K palette.
+     *
+     * Histórico do método (Onda 5 PR #1135 → 2026-05-26):
+     *   PR #1135 — Onda 5: criada entrada "Gateways de Pagamento" order 85.4
+     *   2026-05-22 — fix label hardcoded i18n bug
+     *   2026-05-26 — DESLIGADA (Wagner direção: vira ghost da Cobrança)
      */
     public function modifyAdminMenu(): void
     {
-        $module_util = new ModuleUtil();
-
-        if (auth()->user() && auth()->user()->can('superadmin')) {
-            $is_enabled = $module_util->isModuleInstalled('PaymentGateway');
-        } else {
-            $business_id = session('user.business_id');
-            $is_enabled = $business_id
-                ? (bool) $module_util->hasThePermissionInSubscription(
-                    $business_id,
-                    'paymentgateway_module',
-                    'superadmin_package'
-                )
-                : false;
-        }
-
-        if (! $is_enabled) {
-            return;
-        }
-
-        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('paymentgateway.access')) {
-            return;
-        }
-
-        $segmento_settings = request()->segment(1) === 'settings'
-            && request()->segment(2) === 'payment-gateways';
-
-        // Wagner 2026-05-22 fix: label hardcoded literal pra resolver bug i18n
-        // que mostrava 'paymentgateway:paymentga...' no sidebar. Lang file existe
-        // mas namespace `paymentgateway::` não carregava (OPcache Hostinger ou
-        // module discovery). Hardcode é exceção pragmática à regra "frontend
-        // não hardcode label" — DataController PHP pode hardcode quando lang
-        // resolve quebra em prod. group: 'financas' canon v3.
-        Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_settings) {
-            $menu->url(
-                url('/settings/payment-gateways'),
-                'Gateway de Pagamento',
-                [
-                    'icon'    => 'fa fas fa-key',
-                    'active'  => $segmento_settings,
-                    'group'   => 'financas',
-                    'primary' => [
-                        'label'    => 'Conectar gateway',
-                        'href'     => '/settings/payment-gateways',
-                        'shortcut' => 'N',
-                    ],
-                    'ghosts'  => [
-                        ['key' => 'payment-gateways', 'label' => 'Gateway de Pagamento', 'href' => '/settings/payment-gateways'],
-                    ],
-                ]
-            )->order(85.4);
-        });
+        // No-op intencional. Ver docblock acima.
     }
 }

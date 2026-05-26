@@ -3,6 +3,8 @@
 namespace Modules\Compras\Tests\Feature;
 
 use App\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -23,6 +25,17 @@ class ComprasIndexTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // SQLite skip — Spatie permissions table + users table com Roles+Permissions
+        // exigem schema MySQL UPos completo (ADR 0101 — tests biz=1, mas precisam
+        // migrate canônico). CI roda em MySQL; smoke local em SQLite skipa.
+        // Pattern catalogado em CockpitMultiTenantTest + outros do projeto.
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            $this->markTestSkipped('SQLite-incompatível: Spatie permissions exige schema MySQL UPos (ADR 0101)');
+        }
+        if (! Schema::hasTable('permissions') || ! Schema::hasTable('users')) {
+            $this->markTestSkipped('Tabelas Spatie/users ausentes — rodar php artisan migrate primeiro');
+        }
 
         // Suffix #1 (biz_id=1) — convenção UltimatePOS spatie/laravel-permission.
         $permView = Permission::firstOrCreate(['name' => 'compras.view', 'guard_name' => 'web']);

@@ -29,7 +29,7 @@ UI canon no drawer `ServiceOrderSheet`: **Timeline** (gap #1) + **StagePipeline*
 
 ## Os 2 processos cacamba — fluxo + actions
 
-### 1. `cacamba_locacao` (caso Martinho — locação avulsa)
+### 1. `cacamba_locacao` (key legacy preservada — caso Martinho originalmente classificado como locação caçamba; **corrigido pós-ADR 0194 pra sub-vertical 4 mecânica pesada caminhão basculante**. Key DB mantida por compat backwards · seeder em prod biz=164. Próximo seeder canon usa `mecanica_pesada_basculante` quando US-OFICINA-027 catálogo peça hidráulica chegar)
 
 ```
 [Disponível ●]  ──iniciar_locacao──▶  [Locada]  ──recolher──▶  [Recolhida ✓ terminal]

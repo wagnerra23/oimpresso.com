@@ -7,14 +7,22 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Add rental fields to service_orders pra acomodar caso uso "locação de caçamba".
  *
- * Caso piloto Martinho Caçambas (ADR 0137):
- * - 1 OS = 1 locação de caçamba (vai pra cliente, fica X dias, retorna)
+ * Caso piloto Martinho Caçambas (ADR 0137 · amendado ADR 0194 2026-05-26):
+ *
+ * **Schema preservado nullable.** Pré-ADR 0194 atribuído como fluxo Martinho
+ * (locação caçamba container). Pós-correção 2026-05-26: Martinho é sub-vertical 4
+ * mecânica pesada caminhão basculante CNAE 4520 (não locação). Schema fica como
+ * sub-vertical 3 hipotético sem cliente real ancorado — não dropar até M6+
+ * review_trigger.
+ *
+ * Semântica original (preservada para futuro cliente de locação real):
+ * - 1 OS = 1 locação de caçamba container (vai pra cliente, fica X dias, retorna)
  * - daily_rate × dias = valor a receber (cobrança no retorno OU pré-pago)
  * - expected_return_date prometida no momento da locação
  * - delivery_address: endereço pra entrega + recolhimento
  *
  * Campos novos:
- * - order_type           — locacao | manutencao (separa fluxos OS Martinho × OS oficina genérica)
+ * - order_type           — locacao (sub-vertical 3 hipotético sem cliente) | manutencao (sub-vertical 4 mecânica pesada Martinho LIVE prod default)
  * - delivery_address     — endereço entrega/coleta (texto livre, sem geocoding na V0)
  * - expected_return_date — data prometida de devolução (pra alertar atraso)
  * - daily_rate           — valor diário (pra calcular valor_receber via accessor)
@@ -35,7 +43,7 @@ return new class extends Migration {
                 $table->enum('order_type', ['locacao', 'manutencao'])
                     ->default('manutencao')
                     ->after('vehicle_id')
-                    ->comment('Tipo OS — locacao (Martinho caçamba) | manutencao (oficina automotiva genérica)');
+                    ->comment('Tipo OS — locacao (sub-vertical 3 hipotético container sem cliente real pós-ADR 0194) | manutencao (sub-vertical 4 mecânica pesada Martinho LIVE prod default)');
             }
 
             if (! Schema::hasColumn('service_orders', 'delivery_address')) {

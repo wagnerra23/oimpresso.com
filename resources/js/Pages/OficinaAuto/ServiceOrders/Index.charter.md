@@ -3,16 +3,18 @@ page: /oficina-auto/service-orders
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: 2026-05-26
 parent_module: OficinaAuto
-related_adrs: [0137, 0110, 0093, 0143]
+related_adrs: [0137, 0110, 0093, 0143, 0171, 0192, 0194]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /oficina-auto/service-orders
 
-> **Status:** live (V0). Listagem-detalhe canon Cockpit Pattern V2 das Ordens de Serviço (manutenção + locação).
+> **Status:** live (V0). Listagem-detalhe canon Cockpit Pattern V2 das Ordens de Serviço.
+>
+> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** OS em prod biz=164 Martinho são sub-vertical 4 mecânica pesada (`order_type='manutencao'` predominante). KPI "locações ativas / atrasadas (overdue)" aplica primariamente pra schema sub-vertical 3 hipotético preservado nullable — quando sem dado real, exibe 0 sem erro. Auto-faturar OS→Venda extensão ADR 0192 LIVE 2026-05-25 (Card "Esta OS gerou venda #V-NNNN" no drawer).
 
 ## Mission
 

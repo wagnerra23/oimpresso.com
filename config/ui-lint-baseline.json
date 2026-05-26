@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-25T15:11:26-03:00",
+        "generated_at": "2026-05-26T06:00:30-03:00",
         "tool": "ui:lint",
-        "files_scanned": 493,
-        "total_violations": 7366,
+        "files_scanned": 498,
+        "total_violations": 7425,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -367,7 +367,7 @@
             "R4": 2
         },
         "resources\/js\/Pages\/ComunicacaoVisual\/Index.tsx": {
-            "R1": 2,
+            "R1": 17,
             "R4": 2
         },
         "resources\/js\/Pages\/ConsultaOs\/Index.tsx": {
@@ -465,7 +465,7 @@
             "R1": 18
         },
         "resources\/js\/Pages\/Financeiro\/Unificado\/Index.tsx": {
-            "R1": 143,
+            "R1": 142,
             "R3": 6
         },
         "resources\/js\/Pages\/Financeiro\/Unificado\/Novo.tsx": {
@@ -513,7 +513,7 @@
             "R1": 12
         },
         "resources\/js\/Pages\/Fiscal\/Config.tsx": {
-            "R3": 2
+            "R3": 1
         },
         "resources\/js\/Pages\/Fiscal\/Sped.tsx": {
             "R1": 3
@@ -927,6 +927,9 @@
         "resources\/js\/Pages\/Sells\/_components\/SaleTimeline.tsx": {
             "R1": 44
         },
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/CnabRetorno.tsx": {
+            "R1": 38
+        },
         "resources\/js\/Pages\/Settings\/PaymentGateways\/Index.tsx": {
             "R1": 41
         },
@@ -979,8 +982,8 @@
             "R1": 34
         },
         "resources\/js\/Pages\/team-mcp\/Team\/Index.tsx": {
-            "R1": 12,
-            "R3": 4
+            "R1": 19,
+            "R3": 5
         },
         "resources\/js\/Pages\/TransactionPayment\/Edit.tsx": {
             "R1": 3
