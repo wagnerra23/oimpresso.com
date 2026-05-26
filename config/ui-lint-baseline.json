@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-25T15:11:26-03:00",
+        "generated_at": "2026-05-26T04:56:16-03:00",
         "tool": "ui:lint",
-        "files_scanned": 493,
-        "total_violations": 7366,
+        "files_scanned": 498,
+        "total_violations": 7411,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -465,7 +465,7 @@
             "R1": 18
         },
         "resources\/js\/Pages\/Financeiro\/Unificado\/Index.tsx": {
-            "R1": 143,
+            "R1": 142,
             "R3": 6
         },
         "resources\/js\/Pages\/Financeiro\/Unificado\/Novo.tsx": {
@@ -926,6 +926,9 @@
         },
         "resources\/js\/Pages\/Sells\/_components\/SaleTimeline.tsx": {
             "R1": 44
+        },
+        "resources\/js\/Pages\/Settings\/PaymentGateways\/CnabRetorno.tsx": {
+            "R1": 38
         },
         "resources\/js\/Pages\/Settings\/PaymentGateways\/Index.tsx": {
             "R1": 41
