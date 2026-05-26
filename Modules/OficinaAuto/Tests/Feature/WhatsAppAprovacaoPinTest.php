@@ -10,23 +10,32 @@ use Modules\OficinaAuto\Entities\Vehicle;
 uses(Tests\TestCase::class);
 
 /**
- * Aprovação OS via link público + PIN (US-OFICINA-006 — paridade Repair).
+ * Aprovação OS via link público + PIN (US-OFICINA-014 — wire-up Wave 4 2026-05-26).
  *
- * Fluxo proposto:
- * 1. OS em status `orcamento` dispara WhatsApp pro cliente com link público + PIN 6 dígitos
- * 2. Cliente acessa link (rota signed URL ou token UUID) — preview valor + itens
- * 3. Cliente digita PIN — sistema valida + muda status pra `aprovada`
- * 4. PIN errado 5x → bloqueia tentativas 30min (rate limit)
- * 5. Link expira 7 dias (timestamp + signed URL)
+ * Fluxo LIVE:
+ *  1. OS em status `orcamento` dispara `EnviarLinkAprovacaoWhatsappJob` via Observer hook
+ *  2. Job: gera token HMAC + PIN 4 dígitos via `AprovacaoOsService::gerarTokenAprovacao`
+ *  3. Job: dispatch 2 `SendWhatsappMessageJob` (msg1=link imediata, msg2=PIN delay 60s)
+ *  4. Cliente acessa GET /aprovar-os/{token} → `AprovacaoOsController::show` → Page Inertia
+ *  5. Cliente POST /aprovar-os/{token} {pin,decisao} → `validarPin` ok → status `aprovada`
+ *  6. PIN errado 5x → bloqueia 30min (cache rate limit)
+ *  7. Token TTL 7 dias (HMAC payload contém exp_ts)
  *
- * Estes testes são placeholders V0 — schema PIN/link ainda não existe.
- * Quando US-OFICINA-006 entregar (campos `approval_pin`, `approval_token`, `approval_expires_at`),
- * remover `markTestSkipped` e implementar lógica completa.
+ * Cobertura aqui:
+ *  - Cenários 1-5: FSM transitions + multi-tenant scope (suite original Wave Z-2)
+ *  - Cenário 6: HTTP GET /aprovar-os/{token} valid → 200 + Page Inertia
+ *  - Cenário 7: HTTP POST PIN correto → status `aprovada` (cenário 3 estendido com HTTP real)
  *
- * Multi-tenant Tier 0 (ADR 0093) — biz=1 sempre (ADR 0101).
+ * Cobertura complementar:
+ *  - `EnviarLinkAprovacaoWhatsappJobTest.php` — dispatch Job + multi-tenant guard + LGPD consent
+ *  - `AprovacaoOsTokenTest.php` — Service token+PIN geração + validação isolada
  *
- * @see memory/requisitos/OficinaAuto/SPEC.md US-OFICINA-006
- * @see Modules/Repair (paridade fluxo WhatsApp aprovação)
+ * Multi-tenant Tier 0 ([ADR 0093]) — biz=1 sempre (ADR 0101 — biz=99 só pra cross-tenant guard).
+ *
+ * @see memory/requisitos/OficinaAuto/SPEC.md US-OFICINA-014
+ * @see resources/js/Pages/OficinaAuto/AprovacaoPublica.charter.md (status: live)
+ * @see Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php
+ * @see Modules/OficinaAuto/Services/AprovacaoOsService.php
  */
 
 const BIZ_WAGNER_WPP = 1;
@@ -172,14 +181,75 @@ it('Cenário 5 — rejeição cliente preserva OS em orcamento (idempotente — 
         'notes'       => 'Pedido: troca completa motor',
     ]);
 
-    // Cliente rejeita (PIN errado 5x OU resposta explícita "não aprovo")
-    // V0: status permanece em orcamento — atendente humano negocia
-    // V1 (US-OFICINA-006): registrar tentativas em audit log + flag `approval_rejected_at`
+    // Cliente rejeita: V0 status permanece em orcamento; operador humano negocia.
+    // Cobertura Cenário 5 do AprovacaoOsControllerTest: HTTP submit decisao=rejeitar
+    // retorna flash info SEM mudar status (idempotente).
     expect($os->fresh()->status)->toBe('orcamento');
-
-    // Cancelamento explícito é ação manual operador, NÃO automática por rejeição
-    // Não testamos cancel aqui — fica pra US-OFICINA-003 FSM canon
 })->afterEach(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP005'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP005')->forceDelete();
+});
+
+// ---------------------------------------------------------------------------
+// Wave 4 (US-OFICINA-014) — HTTP integration cenários 6+7
+// ---------------------------------------------------------------------------
+
+it('Cenário 6 — GET /aprovar-os/{token} com token VÁLIDO → 200 + Page renderiza form PIN', function () {
+    session(['user.business_id' => BIZ_WAGNER_WPP]);
+
+    $vehicle = createWppVehicle('WPP006');
+    $os = ServiceOrder::create([
+        'business_id' => BIZ_WAGNER_WPP,
+        'vehicle_id'  => $vehicle->id,
+        'order_type'  => 'manutencao',
+        'status'      => 'orcamento',
+        'entered_at'  => now(),
+    ]);
+
+    $service = app(\Modules\OficinaAuto\Services\AprovacaoOsService::class);
+    $approval = $service->gerarTokenAprovacao($os);
+
+    // Rota pública — sem auth, sem session user (simula cliente externo)
+    $response = $this->get('/aprovar-os/' . $approval['token']);
+
+    $response->assertOk()
+        ->assertInertia(fn ($p) => $p
+            ->component('OficinaAuto/AprovacaoPublica')
+            ->where('erro', null)
+            ->where('os.id', $os->id)
+            ->where('os.order_type', 'manutencao')
+            ->where('tentativasRestantes', 5)
+        );
+})->afterEach(function () {
+    ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP006'))->forceDelete();
+    Vehicle::withoutGlobalScopes()->where('plate', 'WPP006')->forceDelete();
+});
+
+it('Cenário 7 — POST /aprovar-os/{token} com PIN correto + decisao=aprovar muda status pra aprovada', function () {
+    session(['user.business_id' => BIZ_WAGNER_WPP]);
+
+    $vehicle = createWppVehicle('WPP007');
+    $os = ServiceOrder::create([
+        'business_id' => BIZ_WAGNER_WPP,
+        'vehicle_id'  => $vehicle->id,
+        'order_type'  => 'manutencao',
+        'status'      => 'orcamento',
+        'entered_at'  => now(),
+    ]);
+
+    $service = app(\Modules\OficinaAuto\Services\AprovacaoOsService::class);
+    $approval = $service->gerarTokenAprovacao($os);
+
+    $response = $this->post('/aprovar-os/' . $approval['token'], [
+        'pin' => $approval['pin'],
+        'decisao' => 'aprovar',
+    ]);
+
+    $response->assertRedirect();
+
+    $fresh = ServiceOrder::withoutGlobalScopes()->find($os->id);
+    expect($fresh->status)->toBe('aprovada');
+})->afterEach(function () {
+    ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP007'))->forceDelete();
+    Vehicle::withoutGlobalScopes()->where('plate', 'WPP007')->forceDelete();
 });

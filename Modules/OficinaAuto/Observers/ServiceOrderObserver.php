@@ -55,7 +55,21 @@ class ServiceOrderObserver
             return;
         }
 
-        // Só dispara em terminal de SUCESSO (`concluida`) — não em cancelada/recolhida.
+        // Wave 4.2 US-OFICINA-014 — Quando OS entra em `orcamento`, dispara Job que envia
+        // link público + PIN via WhatsApp pra cliente aprovar/rejeitar. Best-effort: falha
+        // de Job NÃO bloqueia fluxo da oficina. Service+Controller+Page já existem desde
+        // PR antecedente (US-OFICINA-006); este hook completa o wire-up automático.
+        // Idempotência interna do Job (cache key) protege contra trigger duplo.
+        if ($so->status === 'orcamento') {
+            \Modules\OficinaAuto\Jobs\EnviarLinkAprovacaoWhatsappJob::dispatch(
+                (int) $so->business_id,
+                (int) $so->id,
+            );
+            // continua processando — não bloqueia outras transições subsequentes
+        }
+
+        // Só dispara auto-faturar Transaction em terminal de SUCESSO (`concluida`).
+        // NÃO em cancelada/recolhida/orcamento.
         if ($so->status !== 'concluida') {
             return;
         }

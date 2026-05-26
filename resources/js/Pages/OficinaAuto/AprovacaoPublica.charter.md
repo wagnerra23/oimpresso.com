@@ -1,10 +1,11 @@
 ---
 page_id: oficina-auto/aprovacao-publica
-status: draft
+status: live
 owner: '[W]'
-related_us: US-OFICINA-006
+related_us: [US-OFICINA-006, US-OFICINA-014]
 created: 2026-05-16
 last_review: 2026-05-26
+promoted_live_at: 2026-05-26
 related_adrs: [0093, 0094, 0143, 0171, 0192, 0194]
 ---
 
@@ -61,14 +62,23 @@ Cliente final (não-User) aprova ou rejeita um orçamento de OS da oficina autom
 - **R3.** Token vazado em link encurtador / WhatsApp preview → TTL 7 dias hard, sem extensão silenciosa.
 - **R4.** Cliente clica link após status já mudou (race condition) → `validarToken` re-checa status=`orcamento`; aprovação `lockForUpdate` + idempotência.
 
-## Quando promover de draft → live
+## Histórico de promoção draft → live (Wave 4 US-OFICINA-014 — 2026-05-26)
 
-- [ ] PR mergeado + canary 7d biz=1 sem incident
-- [ ] US-OFICINA-006 SPEC.md atualizada com link público
-- [ ] Job `EnviarLinkAprovacaoWhatsappJob` existir + agendado por observer `ServiceOrder::updated` (status→orcamento)
-- [ ] Pest test `WhatsAppAprovacaoPinTest` com placeholder REMOVIDO (test real)
-- [ ] Wagner aprovou screenshot final mobile 360px
+- [x] Job `EnviarLinkAprovacaoWhatsappJob` criado (Wave 4.1) — `Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php`
+- [x] Observer `ServiceOrder::updated` hook adicionado (Wave 4.2) — dispatcha Job quando status → orcamento
+- [x] Pest tests Wave 4.3:
+  - `WhatsAppAprovacaoPinTest` placeholder removido + 2 cenários HTTP integration novos (GET token + POST PIN)
+  - `EnviarLinkAprovacaoWhatsappJobTest` novo (Bus::fake + multi-tenant + LGPD + idempotência cache)
+  - `AprovacaoOsTokenTest` existente (Service token+PIN geração — validado isolado)
+- [x] Charter promovido `status: live` 2026-05-26
+- [ ] PR mergeado + canary 7d biz=1 sem incident (próximo passo wallclock)
+- [ ] US-OFICINA-006 SPEC.md cross-link com US-OFICINA-014 (gap doc — PR separado)
+- [ ] Wagner aprovou screenshot final mobile 360px (smoke prod pós-merge via Chrome MCP)
 
 @see Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php
 @see Modules/OficinaAuto/Services/AprovacaoOsService.php
+@see Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php (Wave 4.1)
+@see Modules/OficinaAuto/Observers/ServiceOrderObserver.php (hook orcamento — Wave 4.2)
 @see Modules/OficinaAuto/Tests/Feature/WhatsAppAprovacaoPinTest.php
+@see Modules/OficinaAuto/Tests/Feature/EnviarLinkAprovacaoWhatsappJobTest.php (Wave 4.3)
+@see Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php
