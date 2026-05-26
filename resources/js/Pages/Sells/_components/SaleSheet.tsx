@@ -3,6 +3,7 @@
 //        Pages/ProjectMgmt/Board/DetailSheet.tsx (pattern fonte interno).
 
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from '@inertiajs/react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -782,6 +783,11 @@ export default function SaleSheet({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Button size="sm" variant="outline" asChild title="Abrir página completa (Show.tsx)">
+                <Link href={`/sells/${data.id}`}>
+                  Ver tela →
+                </Link>
+              </Button>
               <Button size="sm" asChild>
                 <a href={data.urls.edit}>
                   <Edit size={14} className="mr-1.5" />
