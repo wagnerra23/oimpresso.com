@@ -1300,3 +1300,74 @@
 }
 .fx-drawer.is-scrolled .fx-drawer-h .fx-drawer-key { display: none; }
 .fx-drawer.is-scrolled .fx-drawer-h small { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* Onda 3 — SavedViewsChips + WriteOffAuditoriaCard + ModuleTopNav tones */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.fx-saved-views {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.fx-saved-views .fx-saved-view.t-bad:not(.active) {
+  color: var(--bad);
+  border-color: var(--bad-soft);
+}
+.fx-saved-views .fx-saved-view.t-warn:not(.active) {
+  color: var(--warn);
+  border-color: var(--warn-soft);
+}
+.fx-saved-views .fx-saved-view.t-ok:not(.active) {
+  color: var(--ok);
+  border-color: var(--ok-soft);
+}
+
+.fx-writeoff-card {
+  background: var(--fx-bg-2);
+  border: 1px solid var(--fx-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 0 0 14px;
+}
+.fx-writeoff-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.fx-writeoff-ic {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: 1px solid var(--fx-border);
+  border-radius: 8px;
+  color: var(--fx-text-dim);
+  flex-shrink: 0;
+}
+.fx-writeoff-body { flex: 1; min-width: 0; }
+.fx-writeoff-body b { display: block; font-size: 13px; font-weight: 600; }
+.fx-writeoff-body small { display: block; font-size: 11.5px; color: var(--fx-text-mute); margin-top: 2px; }
+.fx-writeoff-bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fx-writeoff-bullets li {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 11.5px;
+  color: var(--fx-text-dim);
+}
+.fx-writeoff-bullets li svg { color: var(--warn); flex-shrink: 0; margin-top: 2px; }
+
+.fx-subtab .n.t-warn { background: var(--warn-soft); color: var(--warn); }
+.fx-subtab .n.t-bad  { background: var(--bad-soft);  color: var(--bad);  }
+.fx-subtab .n.t-ok   { background: var(--ok-soft);   color: var(--ok);   }

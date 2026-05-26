@@ -68,7 +68,27 @@ class CockpitController extends Controller
             // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
             'eventosMock'    => $this->mockEventos(),
             'contabilData'   => $this->mockContabilData(),
+            // Onda 3 L — auditoria mensal (write-off candidatos determinístico, sem IA)
+            'writeOffSummary' => $this->mockWriteOffSummary(),
         ]);
+    }
+
+    /**
+     * Mock summary write-off candidatos. Onda 3 L. Determinístico (sem IA).
+     * TODO[CL]: substituir por WriteOffAuditService::analyzeMonth() —
+     * query fin_titulos WHERE due_at < now()-365d AND payment_count=0.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function mockWriteOffSummary(): ?array
+    {
+        return [
+            'totalCandidates' => 2470,
+            'totalValor'      => 770_000.00,
+            'oldestAge'       => 1847, // ~5 anos
+            'category'        => 'incobravel',
+            'scopeLabel'      => 'Inadimplência >365d',
+        ];
     }
 
     /**
