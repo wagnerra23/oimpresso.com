@@ -1,6 +1,10 @@
+
+
 # oimpresso · Modules/OficinaAuto
 
 > **Charter executivo 1-pager** · pra Martinho Caçambas · 13/maio/2026
+>
+> ⚠️ **REGISTRO HISTÓRICO 2026-05-13 — vocabulário desatualizado pós-[ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (2026-05-26).** Este documento foi escrito **antes** da descoberta de que Martinho é sub-vertical 4 mecânica pesada caminhão basculante (CNAE 4520), NÃO locação caçamba container CNAE 4581. Vocabulário canon atualizado em [BRIEFING.md vigente](../BRIEFING.md). Próxima apresentação pra Martinho (ou novo cliente sub-vertical 4) deve usar 1-pager NOVO refletindo: peça hidráulica · PTO · kit hidráulico · hora-trabalho · NÃO m³/diária/locação. Preserva-se este histórico pro registro da reunião 2026-05-13 que ancorou ativação ADR 0171.
 
 ---
 

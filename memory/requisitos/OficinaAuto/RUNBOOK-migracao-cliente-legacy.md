@@ -1,11 +1,11 @@
 ---
 artefato: runbook
 escopo: Migração cliente Office Impresso Desktop (Delphi WR Comercial + Firebird) → oimpresso.com
-status: draft (extraído da migração Martinho 2026-05-13 → 2026-05-17)
-piloto: Martinho Caçambas (biz=164) · validado parcialmente
-proximos_clientes: Vargas, Extreme, Gold, Zoom, Fixar, Mhundo, Produart
-ultima_atualizacao: 2026-05-20
-related_adrs: [0093, 0105, 0119, 0137, 0143]
+status: ativo (validado Martinho 2026-05-13→17 + ativação formal ADR 0171 + corrigido pós-ADR 0194)
+piloto: Martinho Caçambas LTDA biz=164 Capivari de Baixo SC (sub-vertical 4 mecânica pesada caminhão basculante)
+proximos_clientes: Vargas (sub-vertical 2 recapagem V1), Extreme, Gold, Zoom, Fixar, Mhundo, Produart
+ultima_atualizacao: 2026-05-26
+related_adrs: [0093, 0094, 0105, 0119, 0137, 0143, 0171, 0192, 0194]
 owner: [W]
 ---
 
@@ -13,9 +13,11 @@ owner: [W]
 
 > "A consistência da migração vai definir o processo" — Wagner 2026-05-20
 
-> **Refs:** [ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (OficinaAuto qualificada · Martinho #1), [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) (FSM Pipeline LIVE), [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente como sinal — guiar sem mandar), [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) (paralelismo sessões), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0)
-> **Validado parcialmente:** Martinho Caçambas (`MartinhoServidor` → biz=164) · 91 vehicles + ~103k títulos + ~44k vendas (sessão maratona 2026-05-13 → 2026-05-17)
+> **Refs:** [ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (OficinaAuto qualificada · Martinho #1, amendado por 0194), [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) (FSM Pipeline LIVE), [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente como sinal — guiar sem mandar), [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) (paralelismo sessões), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0), [ADR 0171](../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md) (ativação piloto Martinho faseada), [ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) (auto-faturar OS→Venda), **[ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (correção domínio mecânica pesada — 2026-05-26)**
+> **Validado prod:** Martinho Caçambas LTDA biz=164 Capivari de Baixo SC (`MartinhoServidor` → biz=164) · 91 vehicles + ~103k títulos + ~44k vendas (sessão maratona 2026-05-13 → 2026-05-17) · Auto-faturar OS→Venda LIVE 2026-05-25 (ADR 0192 ext) · NFSe Caminho A fix LIVE 2026-05-26 (PR #1597)
 > **Scripts:** [`scripts/legacy-migration/`](../../../scripts/legacy-migration/)
+>
+> **⚠️ Atenção pós-ADR 0194 (2026-05-26):** Martinho é **sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520** — NÃO locação caçamba container CNAE 4581 como leitura original inferiu. Vocabulário correto: **peça hidráulica · PTO · kit hidráulico · hora-trabalho** (não m³ + diária). 91 placas Firebird são **caminhões de CLIENTES** que entram pra peça/serviço (não frota própria do Martinho · não caçamba estacionária). Schema `daily_rate`/`expected_return_date` preservado nullable como sub-vertical 3 hipotético sem cliente real ancorado.
 
 Receita pra migrar qualquer cliente Office Impresso Desktop (Delphi WR Comercial + Firebird `BANCO.FDB`) pro oimpresso.com (Laravel + MySQL Hostinger) sem cutover hard, preservando auditoria via `legacy_id` em todas as tabelas-alvo. Padrão **Strangler Fig + Anticorruption Layer** — desktop continua rodando durante coexistência.
 
@@ -94,11 +96,16 @@ SELECT COUNT(*) FROM CONTAS;              -- accounts (Martinho: TODO ainda não
 
 ### 1.4 Sinais e quirks específicos do cliente
 
-- [ ] Vocabulário vertical anotado (Martinho: **m³ caçamba volume** — NÃO m² · ver [dominios-verticais-oimpresso.md §3.3](../../reference/dominios-verticais-oimpresso.md))
+- [ ] **Sub-vertical identificada** (decide vocabulário + concorrentes + features prioritárias):
+  - **Sub-vertical 4** (Martinho · mecânica pesada/autorizada caminhão basculante CNAE 4520): vocabulário = **peça hidráulica · PTO · kit hidráulico · hora-trabalho · OS programada · catálogo cross-ref Scania/Volvo/MB/Ford**
+  - Sub-vertical 2 (Vargas · recapagem pneu caçamba caminhão CNAE 2212): vocabulário = pneu · borracha · cola · multi-placa cavalo+reboque
+  - Sub-vertical 3 (hipotético · locação caçamba container CNAE 4581): vocabulário = m³ · diária · sem cliente real ancorado · schema preservado nullable
+  - Ver dicionário canon [dominios-verticais-oimpresso.md §"Modules/OficinaAuto"](../../reference/dominios-verticais-oimpresso.md)
 - [ ] Cliente usa cavalo+reboque? (Vargas sim, Martinho não — PLACA2 e CHASSI2 = 0%)
 - [ ] Cliente tem FSM (VENDA_ESTAGIO)? Quantos estados?
-- [ ] Cliente usa PCP (centro_trabalho)? (Martinho não — Vargas/oficina pesada provavelmente sim)
-- [ ] Saúde financeira histórica anotada (Martinho: R$ 6.28M receita 12m · **76.7% inadimplência** — exigiu batch write-off, ver §5)
+- [ ] Cliente usa PCP (centro_trabalho)? (Martinho não — bate com perfil concessionária/autorizada peça+serviço, não fabricação · Vargas/oficina pesada provavelmente sim)
+- [ ] Saúde financeira histórica anotada (Martinho: R$ 6.28M receita 12m · **76.7% inadimplência** — exigiu batch write-off via US-OFICINA-030 cleanup §B, ver §5)
+- [ ] **Cadeia comercial mapeada** (fornecedores B2B / clientes finais): Martinho tem cadeia Tork PTO (fábrica Capivari) → Martinho (revenda+instala) → frota basculante terceiro — Tork virou prospect via ADR 0194 ([perfil em clientes-prospect/tork-tomadas-forca/](../../research/clientes-prospect/tork-tomadas-forca/01-perfil.md))
 
 ## 2. Importer dry-run (~2h)
 
@@ -111,7 +118,7 @@ A ordem importa por causa de FKs (transactions exige contact_id NOT NULL):
 1. **`import-empresas.py`** → `contacts` da própria empresa (entidade Wagner type='both')
 2. **`import-contacts-from-venda.py`** → `contacts` clientes finais (extrai DISTINCT CNPJ de VENDA, popula `contacts.legacy_id=<CNPJ_normalizado>`)
 3. **`import-contas-bancarias.py`** → `accounts` + `fin_contas_bancarias` (necessário pra `fin_titulo_baixas.conta_bancaria_id`)
-4. **`import-vehicles.py`** → `vehicles` (NÃO depende de FK · vehicle_type default `cacamba_avulsa` pra OficinaAuto)
+4. **`import-vehicles.py`** → `vehicles` (NÃO depende de FK · vehicle_type default **`caminhao_basculante`** pra sub-vertical 4 mecânica pesada — antes era `cacamba_avulsa` na leitura pré-ADR 0194 errada; manter compat backwards mas novos imports usam `caminhao_basculante`)
 5. **`import-vendas.py`** → `transactions` (depende de contacts + vehicles lookups)
 6. **`import-financeiro.py`** → `fin_titulos` + `fin_titulo_baixas` (depende de transactions + fin_contas_bancarias)
 
@@ -269,10 +276,12 @@ Ritmo cliente-driven — NÃO empurrar:
 
 ## 10. Gotchas conhecidas (acumular por cliente)
 
-### Martinho (piloto · 2026-05-13 → 2026-05-17)
+### Martinho (piloto · 2026-05-13 → 2026-05-17 · sub-vertical 4 mecânica pesada caminhão basculante)
 
-- **Capacidade caçamba = m³ (volume 3D), NUNCA m²** — Wagner pediu memória dura ([dominios-verticais-oimpresso.md §3.3](../../reference/dominios-verticais-oimpresso.md))
-- **4 caçambas sem placa** → importer usa `S/N-{codigo}` como placeholder em `vehicles.plate` (campo é NOT NULL · operador completa manual depois via tela US-OFICINA-005)
+- **🚨 LEITURA ORIGINAL ERRADA pré-ADR 0194 (descoberta 2026-05-26):** classificado como "locação caçamba container avulsa CNAE 4581" com vocabulário m³ + diária. CORREÇÃO: Martinho é loja de **peça hidráulica + oficina autorizada caminhão basculante CNAE 4520** (Capivari de Baixo/SC). 96% PLACA Firebird = caminhões de CLIENTES (caçamba container estacionária não tem placa). Faturamento R$ 1M+/mês compatível com mecânica pesada autorizada, não locação container ticket R$ 200-500/diária. Ver ADR 0194 + [perfil cliente](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md).
+- **Vocabulário canon sub-vertical 4**: peça hidráulica · PTO (tomada de força) · kit hidráulico · hora-trabalho · OS programada · catálogo cross-ref Scania/Volvo/MB/Ford · NÃO m³/diária/locação.
+- **m³ caçamba volume** mantido APENAS pra sub-vertical 3 hipotético (locação container) — sem cliente real ancorado em 2026-05-26. Schema `daily_rate`/`expected_return_date`/`delivery_address` preservado nullable, review_trigger M6+ caso cliente real surgir.
+- **4 caçambas sem placa** → importer usa `S/N-{codigo}` como placeholder em `vehicles.plate` (campo é NOT NULL · operador completa manual depois via tela cleanup US-OFICINA-029)
 - **76.7% inadimplência** — exigiu batch write-off `metadata.is_write_off_candidate=true` via heurística `import-financeiro.py`: TIPO='A RECEBER' AND VENCTO < (NOW - 365d) AND DATAPAGTO IS NULL AND BOLETO_NOSSO_NR IS NULL AND JUROS=0 AND DESCONTO=0
 - **FINANCEIRO 103k títulos** — STATUS_FILTERS detecta lixo/duplicação (`ATIVO*` saldo virtual, `INATIVO EXCLUIDO` venda cancelada, `INATIVO AGRUPADO` filha agrupada · ver `STATUS_FILTERS` em [`import-financeiro.py:78`](../../../scripts/legacy-migration/import-financeiro.py))
 - **VENDA 44k vendas — FILTRAR por período** com `--start-date`/`--end-date` (importar tudo em uma transação pode estourar timeout Hostinger)
@@ -306,4 +315,5 @@ Ritmo cliente-driven — NÃO empurrar:
 
 ## CHANGELOG
 
+- **2026-05-26** — Reescrita pós-[ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) correção domínio Martinho (US-OFICINA-028 parte 3/5). Vocabulário sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520 (era classificação errada CNAE 4581 locação container até 2026-05-25). Adicionados: bloco de aviso vocabulário no topo, §1.4 expansão sub-vertical identificação (4 sub-verticais distintas), §2.1 vehicle_type default `caminhao_basculante` (era `cacamba_avulsa`), §10 Gotchas Martinho item de correção origem do erro de leitura. Adicionada cadeia comercial Tork PTO prospect 2026-05-26. RUNBOOK status `draft` → `ativo` (validado prod biz=164 + ativação formal ADR 0171 2026-05-20 + auto-faturar LIVE 2026-05-25 + NFSe fix LIVE 2026-05-26).
 - **2026-05-20** — Skeleton inicial criado por Claude (sessão worktree `frosty-greider-83ab2f`). Baseado em migração maratona Martinho 2026-05-13 → 2026-05-17 (perfil + discovery + 6 importers + commits + audit JSONs reais). 4 lacunas TODO/PENDENTE marcadas pro Wagner preencher quando 2º cliente rodar: (a) prazo cutover canônico por bucket, (b) processo canônico criação `business` row, (c) checklist exato smoke local por bucket, (d) orquestração `migrar-tudo.py` cobrindo TODOS 6 importers.

@@ -19,6 +19,7 @@
 
 | Data | Slug | Linhas | Resumo |
 |------|------|-------:|--------|
+| 2026-05-26 | [sidebar-canon-cleanup-comvis-fix](2026-05-26-sidebar-canon-cleanup-comvis-fix.md) | ~130 | **4 PRs sidebar canon Wagner-driven** (FINANÇAS 4 flat · Vendas absorve Catálogo+Woo ghosts · Fiscal remove cockpit duplicado · ComVis hub stub fix 404 Sprint 2 órfão). Pattern emergente `NO-OP modifyAdminMenu` catalogado. Gotcha vendor/junção. |
 | 2026-05-13 | [arq-estrutura-estado-da-arte](2026-05-13-arq-estrutura-estado-da-arte.md) | 237 | Arquiteto Adversarial — estruturar ferramenta `estado-da-arte` (skill+subagent vs alternativas); v1 derrubada, v2 condicional |
 | 2026-05-13 | [agents-canonicos-meta-degradacao](2026-05-13-agents-canonicos-meta-degradacao.md) | 161 | 2 agents canônicos criados + meta-aprendizado sobre degradação Claude |
 | 2026-05-12 | [fsm-pipeline-canon-live-prod-50prs](2026-05-12-fsm-pipeline-canon-live-prod-50prs.md) | 196 | **Marco FSM Pipeline LIVE prod biz=1 (50 PRs em ~10h)** |
