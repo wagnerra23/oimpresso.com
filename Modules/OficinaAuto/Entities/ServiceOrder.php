@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Arquivos\Concerns\HasArquivos;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -50,6 +51,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class ServiceOrder extends Model
 {
+    use HasArquivos; // Gap 1 (2026-05-26) — anexo OS-level laudo geral / foto chassi via Modules/Arquivos backbone (ADR 0123). Complementa foto inline por item DVI (OaInspectionItem).
     use LogsActivity; // D7.b LGPD audit trail (Wave 14)
     use SoftDeletes;
 
