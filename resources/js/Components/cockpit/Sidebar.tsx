@@ -175,10 +175,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     // Wagner 2026-05-25: Oficina Auto MOVE pra COMERCIAL abaixo de Vendas
     // (operação de oficina = atividade comercial, não PRODUÇÃO). Sub-popover
     // legacy (Veículos + Ordens de Serviço) virou ghosts no PageHeader v3.
-    // Companion DataController OficinaAuto.modifyAdminMenu order(31) (entre
-    // Vendas=30 e Catalogue QR=32+).
-    items: ['Crm', 'CRM', 'Vendas', 'Oficina Auto', 'Catalogue QR', 'Catálogo QR',
-            'WooCommerce', 'Woocommerce'],
+    // Wagner 2026-05-26: Catalogue QR + WooCommerce VIRARAM GHOSTS do hub
+    // Vendas (declarados em app/Http/Middleware/AdminSidebarMenu.php no
+    // dropdown __('sale.sale'), attrs `ghosts`). DataControllers
+    // ProductCatalogue + Woocommerce viraram NO-OP no modifyAdminMenu —
+    // canais de venda subordinados ao hub Vendas (overflow [...] PageHeader).
+    items: ['Crm', 'CRM', 'Vendas', 'Oficina Auto'],
   },
   {
     key: 'financas',
