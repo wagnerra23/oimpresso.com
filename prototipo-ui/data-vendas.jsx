@@ -375,6 +375,14 @@ const VENDAS_SAVED_VIEWS = [
   { id: "todas",      label: "Todas",              filter: () => true },
   { id: "hoje",       label: "Hoje",               filter: (v) => v.date === "2026-05-14" },
   { id: "pendentes",  label: "Pendentes pgto.",    filter: (v) => v.fsm < 4 },
+  { id: "aguardando", label: "Aguardando faturamento", filter: (v) => {
+      const hasProd = (v.itemsList || []).some(i => i.type === "produto");
+      const hasSrv  = (v.itemsList || []).some(i => i.type === "servico");
+      const nfeOk   = v.fiscal?.nfe?.status  === "ok";
+      const nfseOk  = v.fiscal?.nfse?.status === "ok";
+      return v.fsm < 4 && ((hasProd && !nfeOk) || (hasSrv && !nfseOk));
+    }
+  },
   { id: "faturadas",  label: "Faturadas semana",   filter: (v) => v.fsm === 2 },
   { id: "atrasadas",  label: "Atrasadas",          filter: (v) => v.urgent && v.fsm < 4 },
   { id: "rejeitadas", label: "Rejeitadas SEFAZ",   filter: (v) => v.fiscal?.nfe?.status === "bad" || v.fiscal?.nfse?.status === "bad" },

@@ -252,6 +252,12 @@ function VdFiscalCard({ kind, doc }) {
 function VendasListPage() {
   const { VENDAS_LIST, VENDAS_STATUS, VENDEDORES_MAP, VENDAS_SAVED_VIEWS, VENDAS_SOURCE_META } = window.VENDAS_DATA;
 
+  // Refino B · 2026-05-26 — patches FSM/Fiscal pra refletir overlays na tabela
+  const fsmH  = window.useVdFsmPatches?.();
+  const fiscH = window.useVdFiscalPatches?.();
+  const effFsmOf    = (vv) => fsmH  ? fsmH.effectiveFsm(vv)    : (vv.fsm || 0);
+  const effFiscalOf = (vv) => fiscH ? fiscH.effectiveFiscal(vv) : (vv.fiscal || {});
+
   // UI state — persiste em localStorage onde fizer sentido
   const lsGet = (k, d) => { try { return localStorage.getItem("oimpresso.sells."+k) ?? d; } catch(e) { return d; } };
   const lsSet = (k, v) => { try { localStorage.setItem("oimpresso.sells."+k, v); } catch(e){} };
@@ -263,7 +269,9 @@ function VendasListPage() {
   const [query, setQuery]         = useStateV(() => lsGet("query", ""));
   const [selected, setSelected]   = useStateV(() => new Set());
   const [openId, setOpenId]       = useStateV(null);
+  const [editingId, setEditingId] = useStateV(null);
   const [createOpen, setCreateOpen] = useStateV(false);
+  const [bulkEmitOpen, setBulkEmitOpen] = useStateV(false);
   const [palOpen, setPalOpen]     = useStateV(false);
   const [palQ, setPalQ]           = useStateV("");
   const [palSel, setPalSel]       = useStateV(0);
@@ -545,7 +553,7 @@ function VendasListPage() {
     }));
     const shortcuts = [
       { grp:"Ações", ico:<I.plus size={14}/>,     title:"Nova venda",                sub:"Drawer de cadastro completo", kbd:"N",  action:()=>{setCreateOpen(true);setPalOpen(false);} },
-      { grp:"Ações", ico:<I.folder size={14}/>,   title:"Emitir NF-e em lote",       sub:"Pra todas vendas selecionadas",        action:()=>{alert("Emit lote — placeholder");setPalOpen(false);} },
+      { grp:"Ações", ico:<I.folder size={14}/>,   title:"Emitir NF-e em lote",       sub:"Pra todas vendas selecionadas",        action:()=>{ if(selected.size > 0){ setBulkEmitOpen(true); } else { window.vdToast?.("Selecione vendas primeiro com X", "warn"); } setPalOpen(false); } },
       { grp:"Buscar",ico:<I.search size={14}/>,   title:"Buscar por chave SEFAZ",    sub:"44 dígitos da NF-e ou NFS-e",          action:()=>{setQuery("3526");setPalOpen(false);} },
       { grp:"Buscar",ico:<I.search size={14}/>,   title:"Filtrar Rejeitadas SEFAZ",  sub:"Saved view",                            action:()=>{setSavedView("rejeitadas");setPalOpen(false);} },
       { grp:"Navegar",ico:<I.folder size={14}/>,  title:"Ir pra Orçamentos",         sub:"Módulo Sells/Orçamentos",              action:()=>{alert("→ Orçamentos");setPalOpen(false);} },
@@ -647,7 +655,29 @@ function VendasListPage() {
       <header className="os-head vd-head-clean">
         <div className="os-head-l">
           <h1>Vendas</h1>
-          <p>Pedidos · faturamento · NF-e/NFS-e</p>
+          <p className="vd-head-stat">
+            <span><b>{kpi_count}</b> vendas hoje</span>
+            <span className="vd-head-sep">·</span>
+            <span><b>{vdFmtShort(kpi_total)}</b> faturado</span>
+            {slaCounts.o > 0 ? (
+              <React.Fragment>
+                <span className="vd-head-sep">·</span>
+                <span className="vd-head-warn">
+                  <b>{slaCounts.o}</b> {slaCounts.o > 1 ? "estouradas" : "estourada"}
+                </span>
+              </React.Fragment>
+            ) : slaCounts.w > 0 ? (
+              <React.Fragment>
+                <span className="vd-head-sep">·</span>
+                <span className="vd-head-warn"><b>{slaCounts.w}</b> atrasando</span>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <span className="vd-head-sep">·</span>
+                <span className="vd-head-ok">tudo em dia</span>
+              </React.Fragment>
+            )}
+          </p>
         </div>
 
         <button className="vd-cmdk" onClick={() => setPalOpen(true)}>
@@ -847,7 +877,7 @@ function VendasListPage() {
         </div>
 
         {/* A receber + ageing */}
-        <div className="os-kpi">
+        <div className={`os-kpi vd-kpi-ar ${slaCounts.o > 0 ? "vd-kpi-alert" : ""}`}>
           <span className="os-kpi-label">A receber</span>
           <span className="os-kpi-value">{vdFmtShort(kpi_ar)}</span>
           <span className="os-kpi-sub vd-sla-counts">
@@ -861,6 +891,11 @@ function VendasListPage() {
             <div className="vd-ag-bar bad"><div style={{width: (ar_b/ar_tot*100)+"%"}}/></div>
             <div className="vd-ag-lbls"><span>0–30d</span><span>31–60d</span><span>+60d</span></div>
           </div>
+          {slaCounts.o > 0 && (
+            <button className="vd-kpi-ar-cta" onClick={(e) => { e.stopPropagation(); setSavedView("atrasadas"); }}>
+              → ver estouradas
+            </button>
+          )}
         </div>
 
         {/* 4º card — varia por Vista */}
@@ -884,26 +919,54 @@ function VendasListPage() {
             </div>
           </div>
         )}
-        {vista === "comissao" && (
-          <div className="os-kpi vd-rank">
-            <span className="os-kpi-label">Ranking vendedores · mês</span>
-            {Object.values(VENDEDORES_MAP).slice(0,4).map((s, i) => {
+        {vista === "comissao" && (() => {
+          const monthSales = VENDAS_LIST.filter(v => v.fsm >= 4);
+          const totalCommission = monthSales.reduce((acc, v) => {
+            const s = VENDEDORES_MAP[v.sellerId];
+            return acc + (v.totalNum * (s?.commissionPct || 0));
+          }, 0);
+          const totalMetaSold = monthSales.reduce((s, v) => s + v.totalNum, 0);
+          const metaTotal = Object.values(VENDEDORES_MAP).reduce((s, ss) => s + (ss.meta || 0), 0);
+          const metaPct = metaTotal ? Math.min(100, Math.round((totalMetaSold / metaTotal) * 100)) : 0;
+          return (
+            <div className="os-kpi">
+              <span className="os-kpi-label">Comissões do mês</span>
+              <span className="os-kpi-value">{vdFmtShort(totalCommission)}</span>
+              <span className="os-kpi-sub">sobre {vdFmtShort(totalMetaSold)} · {monthSales.length} vendas pagas</span>
+              <div className="vd-pix-prog" title={`${metaPct}% da meta agregada`}><div style={{width:metaPct+"%"}}/></div>
+              <div className="vd-meta-lbl"><span>0</span><span>{metaPct}% da meta</span><span>{vdFmtShort(metaTotal)}</span></div>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* RANKING VENDEDORES — seção própria só quando vista=comissao */}
+      {vista === "comissao" && (
+        <section className="vd-rank-section">
+          <div className="vd-rank-section-h">
+            <h3>Ranking vendedores · mês</h3>
+            <small>{Object.keys(VENDEDORES_MAP).length} ativos · meta agregada</small>
+          </div>
+          <div className="vd-rank-grid">
+            {Object.values(VENDEDORES_MAP).map((s) => {
               const sales = VENDAS_LIST.filter(v => v.sellerId === s.id);
               const total = sales.reduce((acc, v) => acc + v.totalNum, 0);
-              const pct = Math.min(100, (total / s.meta) * 100);
+              const pct = Math.min(100, (total / (s.meta || 1)) * 100);
+              const reached = pct >= 100;
               return (
                 <div key={s.id} className="vd-rank-row">
                   <span className={`vd-av vd-av-${s.av}`}>{s.abbr}</span>
                   <span className="vd-rank-info">
-                    <div><span>{s.name}</span><span>{vdFmtShort(total)}</span></div>
-                    <div className="vd-rank-bar"><div style={{width:pct+"%", background: pct >= 100 ? "var(--vd-ok)" : "var(--vd-green)"}}/></div>
+                    <div><span>{s.name}</span><span>{vdFmtShort(total)}<small> / {vdFmtShort(s.meta || 0)}</small></span></div>
+                    <div className="vd-rank-bar"><div style={{width:pct+"%", background: reached ? "var(--vd-ok)" : "var(--vd-green)"}}/></div>
                   </span>
+                  {reached && <span className="vd-rank-badge" title="Meta batida">✓</span>}
                 </div>
               );
             })}
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
       {/* TABS */}
       <div className="os-tabs">
@@ -1006,8 +1069,8 @@ function VendasListPage() {
                   <td className="vd-col-source">
                     <VdSource v={v} onPickOs={(osRef) => console.log("→ abrir OS", osRef)}/>
                   </td>
-                  <td><VdStepper fsm={v.fsm} vertical={v.vertical}/></td>
-                  <td><VdFiscalCell v={v}/></td>
+                  <td><VdStepper fsm={effFsmOf(v)} vertical={v.vertical}/></td>
+                  <td><VdFiscalCell v={{...v, fiscal: effFiscalOf(v)}}/></td>
                   <td className="vd-pay">
                     <div className="vd-pay-top">
                       <span>{v.payment}</span>
@@ -1058,16 +1121,43 @@ function VendasListPage() {
       {/* BULK ACTION BAR */}
       <div className={`vd-bulk ${selected.size > 0 ? "on" : ""}`}>
         <span className="vd-bulk-ct">{selected.size} selecionadas</span>
-        <button className="vd-bulk-btn primary"><I.folder size={11}/>Emitir NF-e em lote</button>
-        <button className="vd-bulk-btn"><I.check size={11}/>Marcar como pagas</button>
+        <button className="vd-bulk-btn primary" onClick={() => setBulkEmitOpen(true)} title="Emitir documento fiscal (gera título no contas a receber)">
+          <I.folder size={11}/>Faturar em lote (NF-e/NFS-e)
+        </button>
+        <button className="vd-bulk-btn" onClick={() => {
+          // Marcar como pagas = baixa financeira em lote (fsm 3→4)
+          // Só processa vendas que estejam em fsm=3 (entregue, esperando pagto)
+          if (!window.useVdFsmPatches) { window.vdToast?.("Hook FSM não carregado", "warn"); return; }
+          const eligible = [...selected].filter(id => {
+            const venda = VENDAS_LIST.find(v => v.id === id);
+            if (!venda) return false;
+            const eff = effFsmOf(venda);
+            return eff >= 1 && eff < 4; // faturada / entregue / etc, mas não paga
+          });
+          if (eligible.length === 0) {
+            window.vdToast?.("Nenhuma das selecionadas está aguardando pagamento", "warn", 3000);
+            return;
+          }
+          eligible.forEach(id => fsmH?.advance(id, 4, "Baixa financeira em lote"));
+          window.vdToast?.(`${eligible.length} pagamento(s) baixado(s) no contas a receber`, "ok", 3600);
+          setSelected(new Set());
+        }} title="Dar baixa no contas a receber (registrar pagamento recebido)">
+          <I.check size={11}/>Receber pagamento em lote
+        </button>
         <button className="vd-bulk-btn"><I.archive size={11}/>Exportar XML/PDF</button>
         <button className="vd-bulk-btn"><I.message size={11}/>Lembrete interno</button>
         <button className="vd-bulk-close" onClick={()=>setSelected(new Set())}>✕</button>
       </div>
 
+      {/* Refino E — modal bulk emit */}
+      {bulkEmitOpen && window.VdBulkEmitFlow && (
+        <window.VdBulkEmitFlow vendaIds={[...selected]} onClose={() => { setBulkEmitOpen(false); setSelected(new Set()); }}/>
+      )}
+
       {/* DRAWERS */}
-      {open       && <VendaDetailDrawer venda={open} onClose={()=>setOpenId(null)}/>}
+      {open       && <VendaDetailDrawer venda={open} onClose={()=>setOpenId(null)} onEdit={(id)=>{setOpenId(null);setEditingId(id);}}/>}
       {createOpen && <VendaCreateDrawer onClose={()=>setCreateOpen(false)}/>}
+      {editingId  && <VendaCreateDrawer editing={VENDAS_LIST.find(v=>v.id===editingId)} onClose={()=>setEditingId(null)}/>}
 
       {/* ⌘K PALETTE */}
       <div className={`vd-pal-bd ${palOpen ? "on" : ""}`} onClick={()=>setPalOpen(false)}>
@@ -1157,12 +1247,18 @@ function VendasListPage() {
 // ──────────────────────────────────────────────────────────────
 // DETAIL DRAWER (com Fiscal tab — A+)
 // ──────────────────────────────────────────────────────────────
-function VendaDetailDrawer({ venda, onClose }) {
+function VendaDetailDrawer({ venda, onClose, onEdit }) {
   const { VENDAS_STATUS, VENDEDORES_MAP } = window.VENDAS_DATA;
   const v = venda;
 
-  const hasNFe  = !!v.fiscal?.nfe;
-  const hasNFSe = !!v.fiscal?.nfse;
+  // Refino A · 2026-05-26 — sync com effectiveFiscal/effectiveFsm
+  const fiscH = window.useVdFiscalPatches?.();
+  const fsmH  = window.useVdFsmPatches?.();
+  const effFiscal = fiscH ? fiscH.effectiveFiscal(v) : (v.fiscal || {});
+  const effFsm    = fsmH  ? fsmH.effectiveFsm(v)    : (v.fsm || 0);
+
+  const hasNFe  = !!effFiscal.nfe;
+  const hasNFSe = !!effFiscal.nfse;
   const wantsNFe  = vdHasProduto(v);
   const wantsNFSe = vdHasServico(v);
 
@@ -1171,6 +1267,12 @@ function VendaDetailDrawer({ venda, onClose }) {
   // Refino #4 KB-9.75 — distribuição
   const [transcriptOpen, setTranscriptOpen] = useStateV(false);
   const [presentationOpen, setPresentationOpen] = useStateV(false);
+  // Fatia 2/3/4 KB-9.75 — emit modal NF-e/NFS-e
+  const [emitOpen, setEmitOpen] = useStateV(null); // null | "nfe" | "nfse"
+  // Refino I 2026-05-26 — recibo térmico
+  const [receiptOpen, setReceiptOpen] = useStateV(false);
+  // Opção C 2026-05-26 — orçamento A4
+  const [orcOpen, setOrcOpen] = useStateV(false);
 
   // Refino #3 KB-9.75 — comentários inline por item (via vendas-curation.jsx)
   const _useVdCom = window.useVdItemComments;
@@ -1210,6 +1312,11 @@ function VendaDetailDrawer({ venda, onClose }) {
               background: (VENDAS_STATUS[v.status]?.color || "#888") + "1f",
               color: VENDAS_STATUS[v.status]?.color || "#888"
             }}>{VENDAS_STATUS[v.status]?.label}</span>
+            {onEdit && (
+              <button className="os-btn ghost vd-edit-btn" onClick={() => onEdit(v.id)} title="Editar venda (E)">
+                <I.pencil size={11}/>Editar
+              </button>
+            )}
             <button className="icon-btn" onClick={onClose}><I.close size={14}/></button>
           </div>
         </header>
@@ -1235,6 +1342,11 @@ function VendaDetailDrawer({ venda, onClose }) {
         </nav>
 
         <div className="os-drawer-body vd-drawer-body">
+
+          {/* Fatia 2 KB-9.75 — painel de próxima ação FSM */}
+          {window.VdNextActionPanel && (
+            <window.VdNextActionPanel venda={v} onOpenEmit={(kind) => setEmitOpen(kind)}/>
+          )}
 
           {tab === "itens" && (
             <section className="vd-section">
@@ -1301,8 +1413,8 @@ function VendaDetailDrawer({ venda, onClose }) {
                       {" "}sem documento fiscal.
                     </small>
                   </div>
-                  <button className="os-btn primary">
-                    {!hasNFe && wantsNFe && !hasNFSe && wantsNFSe ? "Emitir ambos" : !hasNFe ? "Emitir NF-e" : "Emitir NFS-e"}
+                  <button className="os-btn primary" onClick={() => setEmitOpen(!hasNFe && wantsNFe ? "nfe" : "nfse")}>
+                    {!hasNFe && wantsNFe && !hasNFSe && wantsNFSe ? "Emitir NF-e →" : !hasNFe ? "Emitir NF-e →" : "Emitir NFS-e →"}
                   </button>
                 </div>
               )}
@@ -1317,8 +1429,8 @@ function VendaDetailDrawer({ venda, onClose }) {
               )}
 
               <div className={`vd-fcard-grid ${(hasNFe && !hasNFSe) || (!hasNFe && hasNFSe) ? "single" : ""}`}>
-                {hasNFe  && fSub !== "nfse" && <VdFiscalCard kind="nfe"  doc={v.fiscal.nfe}/>}
-                {hasNFSe && fSub !== "nfe"  && <VdFiscalCard kind="nfse" doc={v.fiscal.nfse}/>}
+                {hasNFe  && fSub !== "nfse" && <VdFiscalCard kind="nfe"  doc={effFiscal.nfe}/>}
+                {hasNFSe && fSub !== "nfe"  && <VdFiscalCard kind="nfse" doc={effFiscal.nfse}/>}
               </div>
 
               {/* breakdown total se mista */}
@@ -1418,14 +1530,16 @@ function VendaDetailDrawer({ venda, onClose }) {
 
           {tab === "timeline" && (
             <section className="vd-section">
-              {window.VdAuditTrail
-                ? <window.VdAuditTrail venda={v}/>
-                : <React.Fragment>
-                    <h3>Linha do tempo</h3>
-                    <div className="vd-tline">
-                      <div className="vd-tline-it"><small>{dateBR} {v.time}</small><b>Venda registrada por {s.name || v.seller}</b></div>
-                    </div>
-                  </React.Fragment>}
+              {window.VdRichTimeline
+                ? <window.VdRichTimeline venda={v}/>
+                : window.VdAuditTrail
+                  ? <window.VdAuditTrail venda={v}/>
+                  : <React.Fragment>
+                      <h3>Linha do tempo</h3>
+                      <div className="vd-tline">
+                        <div className="vd-tline-it"><small>{dateBR} {v.time}</small><b>Venda registrada por {s.name || v.seller}</b></div>
+                      </div>
+                    </React.Fragment>}
             </section>
           )}
 
@@ -1442,8 +1556,14 @@ function VendaDetailDrawer({ venda, onClose }) {
         <footer className="os-drawer-actions">
           {window.VdTroubleButton && <window.VdTroubleButton venda={v}/>}
           {v.status === "pendente" && <button className="os-btn primary"><I.check size={11}/>Confirmar pagamento</button>}
-          {v.status === "paga" && !hasNFe && wantsNFe && <button className="os-btn primary"><I.folder size={11}/>Faturar (NF-e)</button>}
-          <button className="os-btn ghost"><I.printer size={11}/>Imprimir recibo</button>
+          {v.status === "paga" && !hasNFe && wantsNFe && <button className="os-btn primary" onClick={() => setEmitOpen("nfe")}><I.folder size={11}/>Faturar (NF-e)</button>}
+          {v.status === "paga" && !hasNFSe && wantsNFSe && <button className="os-btn primary" onClick={() => setEmitOpen("nfse")}><I.folder size={11}/>Faturar (NFS-e)</button>}
+          <button className="os-btn ghost" onClick={() => setReceiptOpen(true)}><I.printer size={11}/>Imprimir recibo</button>
+          {(effFsm <= 1) && window.VdOrcamentoPrint && (
+            <button className="os-btn ghost" onClick={() => setOrcOpen(true)} title="Imprimir orçamento A4 para enviar ao cliente">
+              <I.doc size={11}/>Imprimir orçamento
+            </button>
+          )}
           {window.PgEmitirCobranca && <window.PgEmitirCobranca venda={v}/>}
           {window.VdTranscriptPDF && (
             <button className="os-btn ghost" onClick={() => setTranscriptOpen(true)} title="Transcript completo (PDF jurídico)">
@@ -1461,6 +1581,21 @@ function VendaDetailDrawer({ venda, onClose }) {
       {/* Refino #4 — overlays */}
       {transcriptOpen   && window.VdTranscriptPDF      && <window.VdTranscriptPDF      venda={v} onClose={() => setTranscriptOpen(false)}/>}
       {presentationOpen && window.VdPresentationMode   && <window.VdPresentationMode   venda={v} onClose={() => setPresentationOpen(false)}/>}
+
+      {/* Fatia 2/3/4 — modal emit NF-e/NFS-e */}
+      {emitOpen && window.VdNfeEmitModal && (
+        <window.VdNfeEmitModal venda={v} kind={emitOpen} onClose={() => setEmitOpen(null)}/>
+      )}
+
+      {/* Refino I — recibo térmico imprimível */}
+      {receiptOpen && window.VdReceiptThermal && (
+        <window.VdReceiptThermal venda={v} onClose={() => setReceiptOpen(false)}/>
+      )}
+
+      {/* Opção C — orçamento A4 imprimível */}
+      {orcOpen && window.VdOrcamentoPrint && (
+        <window.VdOrcamentoPrint venda={v} onClose={() => setOrcOpen(false)}/>
+      )}
     </div>
   );
 }
@@ -1468,15 +1603,42 @@ function VendaDetailDrawer({ venda, onClose }) {
 // ──────────────────────────────────────────────────────────────
 // CREATE DRAWER (P0 — preservado do v1, sem mudanças)
 // ──────────────────────────────────────────────────────────────
-function VendaCreateDrawer({ onClose }) {
+function VendaCreateDrawer({ onClose, editing }) {
   const { OS_CLIENTS, OS_PRODUCTS } = window.OS_DATA;
   const { VENDAS_PAYMENTS } = window.VENDAS_DATA;
 
-  const [step, setStep] = useStateV(1);
+  // helpers locais (definí antes dos states pra hidratar do `editing`)
+  const _fmtBRL = (n) => typeof n === "number"
+    ? n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" })
+    : (n || "R$ 0,00");
+
+  // ── Modo editar: arranca direto na step 4 com tudo pré-preenchido
+  const initClient = editing ? {
+    id: editing.clientId || "existing",
+    name: editing.client,
+    cnpj: editing.clientCnpj || "—",
+    contact: editing.contact || "",
+    phone: editing.phone || "",
+  } : null;
+  const initItems = editing
+    ? (editing.itemsList || []).map((it, i) => ({
+        key: "e-" + i + "-" + Math.random(),
+        product: it.name || it.product || "—",
+        qty: it.qty || 1,
+        unitPrice: _fmtBRL(it.unit || 0),
+        generatesOs: it.generatesOs ?? (it.type === "produto"),
+        type: it.type,
+      }))
+    : [];
+  const initPayment = editing
+    ? (VENDAS_PAYMENTS?.find?.(p => (p.label || "").toLowerCase() === (editing.payment || "").toLowerCase())?.id || "pix")
+    : "pix";
+
+  const [step, setStep] = useStateV(editing ? 4 : 1);
   const [clientQuery, setClientQuery] = useStateV("");
-  const [client, setClient] = useStateV(null);
-  const [contact, setContact] = useStateV("");
-  const [phone, setPhone] = useStateV("");
+  const [client, setClient] = useStateV(initClient);
+  const [contact, setContact] = useStateV(editing?.contact || "");
+  const [phone, setPhone] = useStateV(editing?.phone || "");
 
   const clientMatches = useMemoV(() => {
     if (!clientQuery.trim()) return OS_CLIENTS.slice(0, 6);
@@ -1488,7 +1650,7 @@ function VendaCreateDrawer({ onClose }) {
     ).slice(0, 8);
   }, [clientQuery, OS_CLIENTS]);
 
-  const [items, setItems] = useStateV([]);
+  const [items, setItems] = useStateV(initItems);
   const [prodQuery, setProdQuery] = useStateV("");
   const prodMatches = useMemoV(() => {
     const q = prodQuery.trim().toLowerCase();
@@ -1516,9 +1678,9 @@ function VendaCreateDrawer({ onClose }) {
     return s + (isNaN(p) ? 0 : p) * (parseInt(it.qty) || 0);
   }, 0), [items]);
 
-  const [payment, setPayment] = useStateV("pix");
-  const [installments, setInstallments] = useStateV(1);
-  const [discount, setDiscount] = useStateV(0);
+  const [payment, setPayment] = useStateV(initPayment);
+  const [installments, setInstallments] = useStateV(editing?.installments || 1);
+  const [discount, setDiscount] = useStateV(editing?.discount || 0);
   const total = Math.max(0, subtotal - discount);
   const fmt = (n) => n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
 
@@ -1533,12 +1695,19 @@ function VendaCreateDrawer({ onClose }) {
 
   return (
     <div className="os-drawer-back" onClick={onClose}>
-      <aside className="os-drawer wide vd-create" onClick={e => e.stopPropagation()}>
+      <aside className={`os-drawer wide vd-create ${editing ? "vd-create-edit" : ""}`} onClick={e => e.stopPropagation()}>
         <header className="os-drawer-head">
           <div className="os-drawer-head-l">
-            <span className="os-drawer-id">Nova venda</span>
-            <h2>Balcão · {new Date().toLocaleDateString("pt-BR")}</h2>
-            <p>Atalho: <kbd>Esc</kbd> cancelar · <kbd>Enter</kbd> avançar</p>
+            <span className="os-drawer-id">
+              {editing ? `Editar venda · #${editing.id}` : "Nova venda"}
+              {editing && <span className="vd-edit-chip">editando</span>}
+            </span>
+            <h2>{editing ? editing.client : `Balcão · ${new Date().toLocaleDateString("pt-BR")}`}</h2>
+            <p>
+              {editing
+                ? <>Atalho: <kbd>Esc</kbd> descartar mudanças · <kbd>⌘</kbd>+<kbd>S</kbd> salvar</>
+                : <>Atalho: <kbd>Esc</kbd> cancelar · <kbd>Enter</kbd> avançar</>}
+            </p>
           </div>
           <button className="icon-btn" onClick={onClose}><I.close size={14}/></button>
         </header>
@@ -1733,8 +1902,13 @@ function VendaCreateDrawer({ onClose }) {
             {step > 1 && <button className="os-btn ghost" onClick={() => setStep(step-1)}>← Voltar</button>}
             {step < 4 && <button className="os-btn primary" disabled={!canNext} onClick={() => setStep(step+1)}>Avançar →</button>}
             {step === 4 && (
-              <button className="os-btn primary" onClick={() => { alert("Venda registrada (mock)"); onClose(); }}>
-                <I.check size={11}/>Confirmar venda
+              <button className="os-btn primary" onClick={() => {
+                const msg = editing ? `Venda #${editing.id} salva` : "Venda registrada";
+                if (window.vdToast) window.vdToast(msg, "ok", 2800);
+                window.dispatchEvent(new CustomEvent(editing ? "oimpresso:venda-edited" : "oimpresso:venda-created", { detail: { id: editing?.id, items: items.length, total } }));
+                onClose();
+              }}>
+                <I.check size={11}/>{editing ? "Salvar alterações" : "Confirmar venda"}
               </button>
             )}
           </div>
