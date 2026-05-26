@@ -1,5 +1,5 @@
 ---
-date: 2026-05-26
+date: "2026-05-26"
 hour: "05:00 BRT"
 duration: "3.5h"
 topic: "Sidebar canon cleanup — 4 ondas Wagner: FINANÇAS flat, Vendas absorve Catalogue+Woo como ghosts, Fiscal remove cockpit duplicado, ComVis hub stub"
