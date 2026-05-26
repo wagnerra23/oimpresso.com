@@ -10,18 +10,22 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ArrowLeft, CreditCard, FileText, Loader2, Package, Receipt, Save, Settings2, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ArrowLeft, CreditCard, FileText, Loader2, Package, Paperclip, Receipt, Save, Settings2, Trash2, Undo2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { useAuth, useBusiness } from '@/Hooks/usePageProps';
 // ADR 0192 Onda 2 follow-up — editor commission_split mecânico/balcão.
 import CommissionSplitEditor, { type CommissionSplitValue } from '@/Pages/Sells/_components/CommissionSplitEditor';
 // PR #1657 — bloco Produtos real (paridade Create.tsx).
 import ProductSearchAutocomplete, { type ProductSearchResult } from '@/Pages/Sells/_components/ProductSearchAutocomplete';
 // PR #1661 — Customer search Cowork (paridade Create.tsx).
 import CustomerSearchAutocomplete from '@/Pages/Sells/_components/CustomerSearchAutocomplete';
+
+// PR parking-lot P2 — auto-save draft TTL (24h espelha Create.tsx).
+const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Linha de produto editável no form Edit (espelha tipo Create.tsx).
 interface EditProductLine {
@@ -32,6 +36,10 @@ interface EditProductLine {
   quantity: number;
   unit_price: number;
   discount: number;
+  /** Tipo de desconto por linha — PR parking-lot P1 (toggle R$/%). */
+  discount_type: 'fixed' | 'percentage';
+  /** IMEI/serial number opcional por linha — PR parking-lot P1 paridade Blade legacy. */
+  imei_number?: string;
   /** ID da linha existente (sell_lines.id) — pra backend identificar update vs create. */
   sell_line_id?: number | null;
 }
@@ -136,7 +144,7 @@ export default function SellsEdit(props: SellsEditPageProps) {
   // useForm chamado SEMPRE no top-level (regra hooks React). Inicializado vazio
   // e re-populado via useEffect quando form deferred chegar.
   const initialTx = props.form?.transaction;
-  const { data, setData, put, processing, errors } = useForm({
+  const { data, setData, processing, errors } = useForm({
     transaction_date: initialTx?.transaction_date ?? '',
     contact_id: initialTx?.contact_id ?? 0,
     location_id: initialTx?.location_id ?? 0,
@@ -154,6 +162,17 @@ export default function SellsEdit(props: SellsEditPageProps) {
     pay_term_type: initialTx?.pay_term_type ?? 'days',
     // PR #1657 — linhas de produto editáveis (paridade Create.tsx).
     products: [] as EditProductLine[],
+    // PR parking-lot P1 — features só-no-Blade preservadas.
+    /** Endereço cobrança ≠ entrega (Blade legacy `customer_secondary_address`). */
+    customer_secondary_address: '',
+    /** Nota interna pra equipe (separada de additional_notes). Backend: TransactionUtil staff_note. */
+    staff_note: '',
+    /** Assinatura recorrente (Blade legacy `is_recurring`). */
+    is_recurring: 0 as 0 | 1,
+    /** Responsável/comissionado (Blade legacy `commission_agent` select). */
+    commission_agent: null as number | null,
+    /** Documento anexo (file upload Blade legacy `sell_document`). */
+    sell_document: null as File | null,
   });
 
   // Re-popula form quando deferred form chegar (initial render veio sem dados).
@@ -170,6 +189,7 @@ export default function SellsEdit(props: SellsEditPageProps) {
         quantity: Number(sl.quantity ?? 1),
         unit_price: Number(sl.unit_price_inc_tax ?? sl.unit_price ?? 0),
         discount: Number(sl.line_discount_amount ?? 0),
+        discount_type: 'fixed' as const,
       })) ?? [];
       setData({
         transaction_date: tx.transaction_date,
@@ -188,6 +208,12 @@ export default function SellsEdit(props: SellsEditPageProps) {
         pay_term_number: tx.pay_term_number ?? null,
         pay_term_type: tx.pay_term_type ?? 'days',
         products: productsFromBackend,
+        // PR parking-lot P1 — backend pre-fill quando disponível.
+        customer_secondary_address: (tx as unknown as { customer_secondary_address?: string }).customer_secondary_address ?? '',
+        staff_note: (tx as unknown as { staff_note?: string }).staff_note ?? '',
+        is_recurring: ((tx as unknown as { is_recurring?: 0 | 1 }).is_recurring ?? 0) as 0 | 1,
+        commission_agent: (tx as unknown as { commission_agent?: number | null }).commission_agent ?? null,
+        sell_document: null,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,6 +232,8 @@ export default function SellsEdit(props: SellsEditPageProps) {
         quantity: 1,
         unit_price: Number(p.selling_price ?? 0),
         discount: 0,
+        discount_type: 'fixed',
+        imei_number: '',
       },
     ]);
   };
@@ -220,24 +248,11 @@ export default function SellsEdit(props: SellsEditPageProps) {
     setData('products', data.products.filter((_, i) => i !== idx));
   };
 
-  // Atalho Cmd+Enter pra submeter
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        e.preventDefault();
-        if (!processing && permissions.update) {
-          put(urls.submit, { preserveScroll: true });
-        }
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [processing, permissions.update, put, urls.submit]);
-
   // PR #1659 — converte EditProductLine[] → formato esperado pelo backend
   // SellPosController@update (TransactionUtil::createOrUpdateSellLines).
   // Keys esperadas: transaction_sell_lines_id (pra UPDATE), product_id, variation_id,
   // quantity, unit_price, line_discount_amount, line_discount_type.
+  // PR parking-lot P1 — agora honra discount_type per-line + imei_number.
   const buildProductsPayload = () => {
     return data.products.map((p) => ({
       transaction_sell_lines_id: p.sell_line_id ?? undefined,
@@ -246,7 +261,10 @@ export default function SellsEdit(props: SellsEditPageProps) {
       quantity: p.quantity,
       unit_price: p.unit_price,
       line_discount_amount: p.discount,
-      line_discount_type: 'fixed' as const,
+      line_discount_type: p.discount_type ?? 'fixed',
+      // PR parking-lot P1 — IMEI/serial opcional (Blade legacy field).
+      // Backend não tem coluna dedicada hoje; passamos pra futura wire-up sem quebrar.
+      imei_number: p.imei_number ?? '',
     }));
   };
 
@@ -257,14 +275,134 @@ export default function SellsEdit(props: SellsEditPageProps) {
     // PR #1659 — usar router.put direto pra customizar payload (Inertia useForm.put
     // não suporta transform; useForm.data é tipado e não bate com backend `products`
     // que precisa de transaction_sell_lines_id/line_discount_amount/etc).
-    const payload = {
-      ...data,
+    // PR parking-lot P1 — sell_document separado pq File precisa multipart (forceFormData).
+    const { sell_document, ...rest } = data;
+    const payload: Record<string, unknown> = {
+      ...rest,
       products: buildProductsPayload(),
       // Backend espera tax_rate_id; frontend useForm tem tax_id (campo legacy serializer).
       tax_rate_id: data.tax_id,
+      // PR parking-lot P1 — checkbox Inscrever-se? envia 0/1 (backend espera is_recurring).
+      is_recurring: data.is_recurring ? 1 : 0,
     };
+    if (sell_document) {
+      // Anexo presente — usa POST + _method=PUT pra multipart (Laravel form spoofing).
+      // TransactionUtil::uploadFile($request, 'sell_document', 'documents') aceita esse nome.
+      payload.sell_document = sell_document;
+      payload._method = 'put';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      router.post(urls.submit, payload as any, { preserveScroll: true, forceFormData: true });
+      return;
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     router.put(urls.submit, payload as any, { preserveScroll: true });
+  };
+
+  // Atalho Cmd+Enter pra submeter — agora chama handleSubmit programaticamente
+  // (PR parking-lot P3 — antes chamava useForm.put que NÃO incluía products[]).
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (!processing && permissions.update) {
+          // Mesma rota do submit button click — products[] + imei + staff_note + etc.
+          handleSubmit({ preventDefault: () => {} } as unknown as React.FormEvent);
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processing, permissions.update, data]);
+
+  // PR parking-lot P2 — auto-save draft localStorage (espelha Create.tsx US-SELL-007).
+  // STORAGE_KEY com business_id + user_id + sale_id pra isolar:
+  //   1. Multi-tenant Tier 0 (ADR 0093) — biz=4 nunca lê draft de biz=1
+  //   2. Multi-sale — cada venda em edição tem sua chave própria (não vaza entre IDs)
+  // TTL 24h — venda mexida há mais de 1 dia não restaura silenciosa.
+  // Backend updated_at vence draft (se backend > draft.savedAt, descarta draft stale).
+  const auth = useAuth();
+  const business = useBusiness();
+  const draftKey = useMemo(() => {
+    const bizId = business?.id;
+    const userId = auth?.user?.id;
+    const saleId = props.saleId;
+    if (!bizId || !userId || !saleId) return null;
+    return `oimpresso.sells.b${bizId}.u${userId}.edit.${saleId}.draft`;
+  }, [auth, business, props.saleId]);
+
+  const [draftRestored, setDraftRestored] = useState(false);
+  const recoveredRef = useRef(false);
+
+  // Recover ao montar (apenas 1x). Espera form deferred chegar antes pra comparar
+  // updated_at — se backend é mais novo que draft, descarta.
+  useEffect(() => {
+    if (!draftKey || recoveredRef.current) return;
+    if (!props.form?.transaction) return; // aguarda deferred
+    recoveredRef.current = true;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { data: typeof data; savedAt: number };
+      if (!parsed?.savedAt || Date.now() - parsed.savedAt > DRAFT_TTL_MS) {
+        localStorage.removeItem(draftKey);
+        return;
+      }
+      // Backend updated_at vs draft.savedAt — backend > draft = venda mudou no servidor.
+      const txAny = props.form.transaction as unknown as { updated_at?: string };
+      const backendUpdated = txAny.updated_at ? new Date(txAny.updated_at).getTime() : 0;
+      if (backendUpdated > parsed.savedAt) {
+        localStorage.removeItem(draftKey);
+        return;
+      }
+      const time = new Date(parsed.savedAt).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      if (confirm(`Recuperar rascunho desta venda salvo às ${time}?`)) {
+        // Restaura preservando sell_document=null (não serializável).
+        setData({ ...parsed.data, sell_document: null });
+        setDraftRestored(true);
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    } catch {
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {
+        // ignore
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey, props.form?.transaction?.id]);
+
+  // Auto-save debounced 500ms quando data mudar (após mount + form chegar).
+  useEffect(() => {
+    if (!draftKey || !recoveredRef.current) return;
+    const t = setTimeout(() => {
+      try {
+        // Não serializa File (sell_document) — localStorage só aceita string.
+        const { sell_document: _f, ...serializable } = data;
+        void _f;
+        localStorage.setItem(draftKey, JSON.stringify({ data: serializable, savedAt: Date.now() }));
+      } catch {
+        // localStorage quota / incognito — silencioso (Larissa não precisa saber).
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [data, draftKey]);
+
+  // Descartar rascunho manualmente (botão visível no header quando draft restaurado).
+  const discardDraft = () => {
+    if (!draftKey) return;
+    try {
+      localStorage.removeItem(draftKey);
+    } catch {
+      // ignore
+    }
+    setDraftRestored(false);
+    // Recarrega payload backend (descarta mudanças locais).
+    router.reload({ only: ['form'] });
   };
 
   // KB-9.75 paridade Create — KPIs derivadas do form deferred (PR #1655).
@@ -323,6 +461,20 @@ export default function SellsEdit(props: SellsEditPageProps) {
                   )}
                 </p>
               </div>
+              {/* PR parking-lot P2 — Descartar rascunho (visível só quando draft restaurado). */}
+              {draftRestored && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={discardDraft}
+                  className="shrink-0"
+                  aria-label="Descartar rascunho auto-salvo e recarregar dados originais"
+                >
+                  <Undo2 className="h-3.5 w-3.5 mr-1.5" />
+                  Descartar rascunho
+                </Button>
+              )}
             </div>
 
             {/* Filter pills paridade Create — Dados/Produtos/Pagamento/Resumo/Mais opções */}
@@ -437,6 +589,12 @@ interface EditFormData {
   pay_term_type: string;
   // PR #1657 — linhas produtos editáveis (paridade Create).
   products: EditProductLine[];
+  // PR parking-lot P1 — features só-no-Blade preservadas.
+  customer_secondary_address: string;
+  staff_note: string;
+  is_recurring: 0 | 1;
+  commission_agent: number | null;
+  sell_document: File | null;
 }
 
 interface EditFormBodyProps {
@@ -606,12 +764,27 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
               </thead>
               <tbody>
                 {data.products.map((p, idx) => {
-                  const subtotal = Math.max(p.quantity * p.unit_price - p.discount, 0);
+                  // PR parking-lot P1 — desconto per-line agora honra discount_type (R$ vs %).
+                  const lineGross = p.quantity * p.unit_price;
+                  const lineDiscountValue = p.discount_type === 'percentage'
+                    ? (lineGross * p.discount) / 100
+                    : p.discount;
+                  const subtotal = Math.max(lineGross - lineDiscountValue, 0);
                   return (
                     <tr key={`${idx}-${p.product_id}`} className="border-b border-border last:border-0">
                       <td className="px-3 py-2">
                         <div className="font-medium">{p.name}</div>
                         {p.sku && <div className="text-xs text-muted-foreground">{p.sku}</div>}
+                        {/* PR parking-lot P1 — IMEI/serial inline opcional (paridade Blade legacy). */}
+                        <Input
+                          type="text"
+                          value={p.imei_number ?? ''}
+                          onChange={(e) => onUpdateProduct(idx, { imei_number: e.target.value })}
+                          placeholder="IMEI / nº série (opcional)"
+                          className="mt-1 h-7 text-xs"
+                          aria-label={`IMEI ou número de série de ${p.name}`}
+                          disabled={!permissions.update}
+                        />
                       </td>
                       <td className="px-3 py-2 text-right">
                         <Input
@@ -636,15 +809,29 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
                         />
                       </td>
                       <td className="px-3 py-2 text-right">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={p.discount}
-                          onChange={(e) => onUpdateProduct(idx, { discount: parseFloat(e.target.value) || 0 })}
-                          className="text-right tabular-nums h-8"
-                          disabled={!permissions.editDiscount}
-                        />
+                        {/* PR parking-lot P1 — toggle R$/% + input desconto per-line. */}
+                        <div className="flex items-center gap-1 justify-end">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={p.discount}
+                            onChange={(e) => onUpdateProduct(idx, { discount: parseFloat(e.target.value) || 0 })}
+                            className="text-right tabular-nums h-8 w-20"
+                            disabled={!permissions.editDiscount}
+                            aria-label={`Desconto de ${p.name}`}
+                          />
+                          <select
+                            value={p.discount_type}
+                            onChange={(e) => onUpdateProduct(idx, { discount_type: e.target.value as 'fixed' | 'percentage' })}
+                            disabled={!permissions.editDiscount}
+                            className="border border-input rounded-md px-1 py-1 bg-background text-xs h-8 disabled:opacity-50"
+                            aria-label={`Tipo de desconto de ${p.name}: R$ ou %`}
+                          >
+                            <option value="fixed">R$</option>
+                            <option value="percentage">%</option>
+                          </select>
+                        </div>
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums font-semibold">
                         {subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -673,7 +860,14 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums font-bold text-base">
                     {data.products
-                      .reduce((acc, p) => acc + Math.max(p.quantity * p.unit_price - p.discount, 0), 0)
+                      .reduce((acc, p) => {
+                        // PR parking-lot P1 — total honra discount_type per-line.
+                        const gross = p.quantity * p.unit_price;
+                        const disc = p.discount_type === 'percentage'
+                          ? (gross * p.discount) / 100
+                          : p.discount;
+                        return acc + Math.max(gross - disc, 0);
+                      }, 0)
                       .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>
                   <td />
@@ -684,10 +878,103 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
         )}
       </section>
 
+      {/* PR parking-lot P1 — Bloco Responsável + Notas equipe + Inscrever-se + Anexo.
+          Sit acima de "Mais opções" porque são features visíveis com frequência (não advanced). */}
+      <section className="rounded-lg border border-border bg-card p-5 space-y-4 scroll-mt-32">
+        <h2 className="font-semibold text-sm">Responsável, notas e anexos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* PR parking-lot P1 — Responsável select avatar (Blade legacy commission_agent). */}
+          <div>
+            <Label htmlFor="commission_agent">Responsável / comissionado</Label>
+            <select
+              id="commission_agent"
+              value={data.commission_agent ?? ''}
+              onChange={(e) => setData('commission_agent', e.target.value ? Number(e.target.value) : null)}
+              disabled={!permissions.update}
+              className="mt-1 w-full border border-input rounded-md px-3 py-2 bg-background text-sm disabled:opacity-50"
+            >
+              <option value="">— Sem responsável —</option>
+              {Object.entries((form.users ?? {}) as Record<number, string>).map(([id, name]) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Usuário responsável pela venda (aparece no recibo + relatório comissão).
+            </p>
+          </div>
+
+          {/* PR parking-lot P1 — Inscrever-se? checkbox (Blade legacy is_recurring). */}
+          <div className="flex items-start gap-2 pt-6">
+            <input
+              type="checkbox"
+              id="is_recurring"
+              checked={data.is_recurring === 1}
+              onChange={(e) => setData('is_recurring', e.target.checked ? 1 : 0)}
+              disabled={!permissions.update}
+              className="mt-1 h-4 w-4 rounded border-input"
+            />
+            <div className="flex-1">
+              <Label htmlFor="is_recurring" className="cursor-pointer">
+                Assinatura recorrente
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Marca esta venda como recorrente (gera próxima fatura automática).
+              </p>
+            </div>
+          </div>
+
+          {/* PR parking-lot P1 — Notas equipe (staff_note, separado de additional_notes). */}
+          <div className="md:col-span-2">
+            <Label htmlFor="staff_note">Nota interna (equipe)</Label>
+            <Textarea
+              id="staff_note"
+              value={data.staff_note}
+              onChange={(e) => setData('staff_note', e.target.value)}
+              disabled={!permissions.update}
+              placeholder="Observação visível só pra equipe — não aparece no recibo."
+              className="mt-1"
+              rows={2}
+            />
+          </div>
+
+          {/* PR parking-lot P1 — Anexar documento (Blade legacy sell_document upload). */}
+          <div className="md:col-span-2">
+            <Label htmlFor="sell_document">
+              <Paperclip className="inline h-3.5 w-3.5 mr-1" />
+              Anexar documento (opcional)
+            </Label>
+            <input
+              id="sell_document"
+              type="file"
+              accept=".pdf,.csv,.zip,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (file && file.size > 5 * 1024 * 1024) {
+                  alert('Arquivo maior que 5MB. Tente comprimir antes de enviar.');
+                  e.target.value = '';
+                  return;
+                }
+                setData('sell_document', file);
+              }}
+              disabled={!permissions.update}
+              className="mt-1 block w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-input file:bg-background file:text-foreground file:text-xs hover:file:bg-muted disabled:opacity-50"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Aceita .pdf, .csv, .zip, .doc, .docx, .jpg, .png — máx 5MB.
+            </p>
+            {data.sell_document && (
+              <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+                Arquivo selecionado: <span className="font-medium">{data.sell_document.name}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Bloco Frete (colapsável simples) · ID scroll-target pra pill "Mais opções" */}
       <details id="edit-sec-mais-opcoes" className="rounded-lg border border-border bg-card scroll-mt-32">
         <summary className="cursor-pointer p-5 font-semibold text-sm select-none">
-          Mais opções (frete, impostos, condição pagamento)
+          Frete e endereços
         </summary>
         <div className="p-5 pt-0 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -724,7 +1011,23 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
                 onChange={(e) => setData('shipping_address', e.target.value)}
                 className="mt-1"
                 rows={2}
+                placeholder="Endereço pra onde o produto será entregue."
               />
+            </div>
+            {/* PR parking-lot P1 — endereço de cobrança ≠ entrega (Blade legacy customer_secondary_address). */}
+            <div className="md:col-span-2">
+              <Label htmlFor="customer_secondary_address">Endereço de cobrança (se diferente de entrega)</Label>
+              <Textarea
+                id="customer_secondary_address"
+                value={data.customer_secondary_address}
+                onChange={(e) => setData('customer_secondary_address', e.target.value)}
+                className="mt-1"
+                rows={2}
+                placeholder="Deixe em branco se cobrança = entrega."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Usado pra NF-e quando cliente solicita faturamento em endereço diferente.
+              </p>
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="shipping_details">Detalhes frete</Label>
