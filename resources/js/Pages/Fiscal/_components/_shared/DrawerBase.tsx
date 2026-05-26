@@ -132,19 +132,17 @@ export default function DrawerBase({
     // toda a cascata de re-render.
     const aside = asideRef.current;
     if (aside) {
-      const firstFocusable = aside.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
       // Tira foco do trigger imediatamente — evita race com React focus-restore
       previousFocusRef.current?.blur?.();
-      let raf1 = 0;
-      let raf2 = 0;
-      raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(() => {
-          (firstFocusable ?? aside).focus({ preventScroll: true });
-        });
-      });
+      // setTimeout 50ms é mais robusto que RAF: alguns triggers (button chip do
+      // PageHeader em consumers com data async) têm cascata de re-renders que
+      // ultrapassa 2 RAFs. 50ms é imperceptível pro usuário mas dá folga total.
+      const timeoutId = window.setTimeout(() => {
+        const firstFocusable = aside.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+        (firstFocusable ?? aside).focus({ preventScroll: true });
+      }, 50);
       return () => {
-        cancelAnimationFrame(raf1);
-        cancelAnimationFrame(raf2);
+        window.clearTimeout(timeoutId);
         // Cleanup ao fechar: restaura foco anterior (se ainda no DOM e visível)
         const prev = previousFocusRef.current;
         if (prev && document.body.contains(prev)) {
