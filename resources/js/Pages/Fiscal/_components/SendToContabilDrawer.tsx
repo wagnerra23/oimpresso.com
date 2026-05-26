@@ -108,7 +108,7 @@ export default function SendToContabilDrawer({ open, data, onClose }: SendToCont
               type="button"
               className="fx-btn primary"
               disabled={!podeEnviar}
-              title={!podeEnviar ? 'Resolver bloqueios + selecionar pelo menos 1 item do pacote' : 'TODO[CL]: wire-up real no PR seguinte'}
+              title={!podeEnviar ? 'Resolver bloqueios + selecionar pelo menos 1 item do pacote' : 'Em breve · envio automático em preparação'}
             >
               <Archive size={12} /> Gerar e enviar pacote
             </button>
@@ -159,8 +159,8 @@ export default function SendToContabilDrawer({ open, data, onClose }: SendToCont
               />
               <div>
                 {m === 'email' && <><Mail size={14} /> <b>E-mail anexo</b><small>Envia ZIP pro {data.destinatarioPadrao}</small></>}
-                {m === 'sftp' && <><Archive size={14} /> <b>SFTP do contador</b><small>Configurar credencial em /fiscal/config</small></>}
-                {m === 'download' && <><FileText size={14} /> <b>Download manual</b><small>Baixa ZIP local pra você compartilhar</small></>}
+                {m === 'sftp' && <><Archive size={14} /> <b>SFTP do contador</b><small>Configure a credencial em Fiscal → Configurações</small></>}
+                {m === 'download' && <><FileText size={14} /> <b>Download manual</b><small>Baixa o ZIP pra você enviar manualmente</small></>}
               </div>
             </label>
           ))}
