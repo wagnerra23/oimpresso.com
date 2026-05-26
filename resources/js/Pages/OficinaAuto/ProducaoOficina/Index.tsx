@@ -1,12 +1,18 @@
 // @memcofre tela=/oficina-auto/producao-oficina module=OficinaAuto
-// Produção · Oficina — Kanban estado das caçambas (V2 RICA — espelha visual-source.html canônico).
+// Produção · Oficina — Kanban estado dos veículos em produção (V2 RICA — espelha visual-source.html canônico).
 // Espelha 1:1 protótipo Cowork rico:
 //   prototipo-ui/prototipos/producao-oficina/visual-source.html (1213 linhas — fonte canônica visual)
-// Adaptado pra caçambas (5 colunas: Disponível/Locada/Aguardando recolhimento/
-// Em manutenção/Pronta entrega) com 6 KPIs ricos + drawer próprio ServiceOrderRichSheet polimórfico.
+// 5 colunas FSM: Disponível/Em serviço/Aguardando peça/Em manutenção/Pronto entrega
+// + 6 KPIs ricos + drawer próprio ServiceOrderRichSheet polimórfico.
+//
+// Pós-ADR 0194 (2026-05-26): vocabulário sub-vertical 4 mecânica pesada caminhão
+// basculante CNAE 4520 (Martinho biz=164). Labels visíveis atualizadas; keys FSM
+// canon (`disponivel`/`locada`/`aguardando`/`manutencao`/`pronta`) preservados
+// porque DB cacamba_locacao continua rodando LIVE prod (compat backwards).
 //
 // Refs:
-//   - ADR 0137 (OficinaAuto qualificada)
+//   - ADR 0137 (OficinaAuto qualificada) — amendado por 0194
+//   - ADR 0194 (correção domínio Martinho — mecânica pesada não locação)
 //   - ADR 0143 (FSM Pipeline LIVE prod biz=1)
 //   - ADR 0110 (Cockpit V2 — AppShellV2 obrigatório)
 //   - PR #717 lição: useMemo/useCallback nos handlers descendentes (re-render loop)
@@ -68,14 +74,19 @@ interface Props {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
+// ADR 0194: labels sub-vertical 4 mecânica pesada caminhão basculante.
+// Keys FSM canon preservados (compat DB cacamba_locacao LIVE prod biz=164).
 const COLUMNS: Array<{ key: keyof KanbanGroups; status: CacambaStatus; label: string }> = [
   { key: 'disponivel',  status: 'disponivel',  label: 'Disponível' },
-  { key: 'locada',      status: 'locada',      label: 'Locada' },
-  { key: 'aguardando',  status: 'aguardando',  label: 'Aguardando recolhimento' },
+  { key: 'locada',      status: 'locada',      label: 'Em serviço' },
+  { key: 'aguardando',  status: 'aguardando',  label: 'Aguardando peça' },
   { key: 'manutencao',  status: 'manutencao',  label: 'Em manutenção' },
-  { key: 'pronta',      status: 'pronta',      label: 'Pronta entrega' },
+  { key: 'pronta',      status: 'pronta',      label: 'Pronto entrega' },
 ];
 
+// Filtro capacidade preservado nullable (sub-vertical 3 hipotético — caçamba container
+// pode reaparecer com cliente real). Veículos sub-vertical 4 (caminhão basculante)
+// têm capacity_m3 = null e cairão no filtro "Todas" por padrão.
 const CAPACIDADES: Array<{ key: CapacidadeFilter; label: string }> = [
   { key: 'all', label: 'Todas' },
   { key: '3',   label: '3m³' },
@@ -120,15 +131,15 @@ function resolveDragMapping(
     return { kind: 'blocked', reason: 'Mesma coluna', tone: 'info' };
   }
 
-  const plate = cacamba.plate ?? 'caçamba';
+  const plate = cacamba.plate ?? 'veículo';
   const cliente = cacamba.cliente_nome ?? 'cliente';
 
-  // disponivel → locada: precisa criar rental order, não pode inline V1
+  // disponivel → locada: precisa criar OS, não pode inline V1
   if (from === 'disponivel' && to === 'locada') {
     return {
       kind: 'redirect_sells',
       reason:
-        'Pra alugar caçamba use "Criar OS" no menu Ordens de Serviço — V1 não cria rental inline via drag.',
+        'Pra abrir OS use "Criar OS" no menu Ordens de Serviço — V1 não cria OS inline via drag.',
     };
   }
 
@@ -137,7 +148,7 @@ function resolveDragMapping(
     return {
       kind: 'blocked',
       reason:
-        'Aguardando recolhimento é calculado automático quando passa do prazo — não move manual.',
+        'Aguardando peça é calculado automático quando passa do prazo — não move manual.',
       tone: 'info',
     };
   }
@@ -150,37 +161,33 @@ function resolveDragMapping(
       actionLabel: 'Enviar pra manutenção',
       isCritical: true,
       title: 'Enviar pra manutenção?',
-      description: `Caçamba ${plate} vai sair de locação ativa e ir direto pra oficina. Confirma?`,
+      description: `Veículo ${plate} vai sair do serviço atual e ir pra bancada de manutenção. Confirma?`,
     };
   }
 
-  // aguardando → recolhida: action 'recolher' (não é coluna visual; recolhida = saiu da grade)
-  // No mapping do Kanban, "aguardando → manutencao" leva a recolher+enviar_manutencao.
-  // "aguardando → disponivel" não existe direto (precisa recolher antes).
-
-  // aguardando → manutencao: enviar_manutencao (em vez de só recolher — caçamba volta com defeito)
+  // aguardando → manutencao: enviar_manutencao
   if (from === 'aguardando' && to === 'manutencao') {
     return {
       kind: 'allowed',
       actionKey: 'enviar_manutencao',
-      actionLabel: 'Recolher + Enviar pra manutenção',
+      actionLabel: 'Enviar pra manutenção',
       isCritical: true,
-      title: 'Caçamba volta direto pra manutenção?',
-      description: `Caçamba ${plate} de ${cliente} vai ser recolhida e enviada pra oficina (sem passar pelo pátio).`,
+      title: 'Enviar veículo pra manutenção?',
+      description: `Veículo ${plate} de ${cliente} vai ser movido pra bancada de manutenção.`,
     };
   }
 
-  // aguardando → disponivel: action 'recolher' (devolução normal, sem manutenção)
+  // aguardando → disponivel: action 'recolher' (encerra OS sem manutenção adicional)
   if (from === 'aguardando' && to === 'disponivel') {
     const dias = cacamba.dias_locacao ?? 0;
     const valor = cacamba.valor_receber ?? 0;
     return {
       kind: 'allowed',
       actionKey: 'recolher',
-      actionLabel: 'Recolher caçamba',
+      actionLabel: 'Encerrar OS',
       isCritical: false,
-      title: 'Confirmar recolhimento?',
-      description: `Recolher caçamba ${plate} de ${cliente}. Diárias: ${dias} · Valor: ${formatBRLCompact(valor)}.`,
+      title: 'Confirmar encerramento da OS?',
+      description: `Encerrar OS do veículo ${plate} de ${cliente}. Dias em serviço: ${dias} · Valor: ${formatBRLCompact(valor)}.`,
     };
   }
 
@@ -189,10 +196,10 @@ function resolveDragMapping(
     return {
       kind: 'allowed',
       actionKey: 'voltar_disponivel',
-      actionLabel: 'Liberar pra locação',
+      actionLabel: 'Liberar pra próximo serviço',
       isCritical: false,
       title: 'Manutenção finalizada?',
-      description: `Caçamba ${plate} volta pro pátio disponível pra próxima locação.`,
+      description: `Veículo ${plate} volta pro pátio disponível pra próximo serviço.`,
     };
   }
 
@@ -204,7 +211,7 @@ function resolveDragMapping(
       actionLabel: 'Concluir serviço',
       isCritical: true,
       title: 'Finalizar manutenção?',
-      description: `Caçamba ${plate} fica pronta pra entregar (concluído oficina).`,
+      description: `Veículo ${plate} fica pronto pra entrega ao cliente (concluído oficina).`,
     };
   }
 
@@ -215,8 +222,8 @@ function resolveDragMapping(
       actionKey: 'voltar_disponivel',
       actionLabel: 'Voltar pro pátio',
       isCritical: false,
-      title: 'Caçamba volta ao pátio?',
-      description: `Caçamba ${plate} fica disponível pra próxima locação.`,
+      title: 'Veículo volta ao pátio?',
+      description: `Veículo ${plate} fica disponível pra próximo serviço.`,
     };
   }
 
@@ -332,7 +339,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     // (endpoint canônico precisa do {order} model bind). V2 pode adicionar Vehicle FSM endpoint.
     if (pendingTransition.rentalId == null) {
       toast.warning(
-        'Caçamba sem OS ativa — abra o card pra iniciar pipeline FSM antes.',
+        'Veículo sem OS ativa — abra o card pra iniciar pipeline FSM antes.',
       );
       setPendingTransition(null);
       return;
@@ -400,34 +407,35 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
   );
 
   // 6 KPI cards (espelha visual-source.html linha de 6 cards horizontais)
+  // ADR 0194 vocabulário sub-vertical 4 mecânica pesada caminhão basculante.
   const kpiCards = useMemo(
     () => [
       {
         key: 'total',
         label: 'Total',
         value: String(kpis.total),
-        sub: `${kpis.total === 1 ? 'caçamba no estoque' : 'caçambas no estoque'}`,
+        sub: `${kpis.total === 1 ? 'veículo cadastrado' : 'veículos cadastrados'}`,
         tone: 'default' as const,
       },
       {
         key: 'locada',
-        label: 'Locadas',
+        label: 'Em serviço',
         value: String(kpis.locada),
-        sub: 'em campo no momento',
+        sub: 'oficina no momento',
         tone: 'default' as const,
       },
       {
         key: 'aguardando',
         label: 'Aguardando',
         value: String(kpis.aguardando_recolhimento),
-        sub: 'recolhimento',
+        sub: 'peça',
         tone: 'amber' as const,
       },
       {
         key: 'manutencao',
         label: 'Em manutenção',
         value: String(kpis.manutencao),
-        sub: 'oficina',
+        sub: 'bancada',
         tone: 'default' as const,
       },
       {
@@ -448,32 +456,32 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     [kpis]
   );
 
-  // KPI inline filter bar (espelha "8 caçambas · 1 atrasada · 1 aguarda recolhimento")
+  // KPI inline filter bar (espelha "8 veículos · 1 atrasada · 1 aguarda peça")
   const kpiSummary = useMemo(() => {
     const parts: string[] = [
-      `${kpis.total} ${kpis.total === 1 ? 'caçamba' : 'caçambas'}`,
+      `${kpis.total} ${kpis.total === 1 ? 'veículo' : 'veículos'}`,
     ];
     if (kpis.atrasadas > 0) {
       parts.push(`${kpis.atrasadas} ${kpis.atrasadas === 1 ? 'atrasada' : 'atrasadas'}`);
     }
     if (kpis.aguardando_recolhimento > 0) {
-      parts.push(`${kpis.aguardando_recolhimento} aguardando recolhimento`);
+      parts.push(`${kpis.aguardando_recolhimento} aguardando peça`);
     }
     return parts;
   }, [kpis]);
 
   return (
     <>
-      <Head title="Produção · Oficina — Caçambas" />
+      <Head title="Produção · Oficina — Mecânica Pesada" />
       <div className="-m-6 bg-slate-50 min-h-[calc(100vh-3rem)]">
         {/* ─── Topbar header — h1 + sub + ações ─── */}
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-slate-900">
-              Produção · Oficina
+              Produção · Oficina — Mecânica Pesada
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Locação, recolhimento, manutenção e entrega de caçambas
+              OS em execução · mecânica e manutenção de caminhão basculante
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
@@ -506,7 +514,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
             <Button asChild size="sm">
               <Link href="/oficina-auto/veiculos/create">
                 <Plus className="mr-1.5 h-4 w-4" />
-                Nova caçamba
+                Novo veículo
               </Link>
             </Button>
           </div>
@@ -562,9 +570,9 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar caçamba ou cliente…"
+              placeholder="Buscar OS, veículo ou cliente…"
               className="h-8 border-slate-200"
-              aria-label="Buscar caçamba ou cliente"
+              aria-label="Buscar OS, veículo ou cliente"
             />
           </div>
 
