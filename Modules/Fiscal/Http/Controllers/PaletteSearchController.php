@@ -29,7 +29,9 @@ use Modules\NfeBrasil\Models\NfeEmissao;
  *
  * Performance:
  *  - LIKE %query% nas 4 colunas — sem index pra dest_name (metadata JSON)
- *  - Query mínima 2 chars (rejeita single char pra não scan full table)
+ *  - Query mínima 3 chars (anti-DOS leading wildcard — GAP-FISCAL-002
+ *    audit sênior 2026-05-25 — 2 chars permitia full scan em biz=4 com
+ *    50k+ NFe)
  *  - LIMIT 5 cada categoria (10 results max)
  *  - Sem paginação — palette é "ação rápida", não navegação
  *
@@ -47,7 +49,7 @@ class PaletteSearchController extends Controller
         }
 
         $data = $request->validate([
-            'q' => ['required', 'string', 'min:2', 'max:50'],
+            'q' => ['required', 'string', 'min:3', 'max:50'],
         ]);
 
         $query = trim($data['q']);

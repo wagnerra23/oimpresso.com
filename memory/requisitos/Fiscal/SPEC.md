@@ -1,13 +1,19 @@
 ---
 module: Fiscal
-status: em-implementacao (PR #1 NF-e cockpit)
-version: 1.0.0
-last_updated: 2026-05-20
+status: ativo
+version: 1.9.0
+last_updated: "2026-05-25"
 piloto: oimpresso biz=1 (Wagner empresa) — depende de NfeBrasil já produção
-last_review: 2026-05-20
-owner: wagner
-parent_adr: 0094
-related_adrs: [0093, 0101, 0104, 0114, 0143]
+last_review: "2026-05-25"
+owners: [W]
+parent_adr: 0094-constituicao-v2-7-camadas-8-principios
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0101-tests-business-id-1-nunca-cliente
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+implementacao_em_curso: PR Onda ESTABILIZAR — GAP-FISCAL-001 + GAP-FISCAL-002 (audit sênior 2026-05-25)
 na_justified:
   D7.a: "Fiscal cockpit é leitura agregada — não emite. PII (CPF/CNPJ destinatário) vem de NfeBrasil via getActivitylogOptions excluindo PII (PII-LGPD-FISCAL.md). Cockpit apenas exibe via Inertia props já redacted no Service NfeBrasil."
 ---
@@ -389,6 +395,7 @@ Then deve receber 403 Forbidden
 - **v1.6.0** (2026-05-20) — PR #7 Wave ⌘K palette: `PaletteSearchController` + `CmdKPalette.tsx` listener global Cmd/Ctrl+K + endpoint JSON 2 categorias (notas + dfe). FxShell mount global + botão Buscar habilitado. US-FISCAL-015 adicionada. Meta Capterra ≥96/100.
 - **v1.7.0** (2026-05-20) — PR #8 Wave SPED MVP: `SpedIcmsIpiGeneratorService` novo + SpedController::gerar download TXT EFD-ICMS/IPI v3.1.1 perfil A + Sped.tsx botão habilitado. 16 registros canônicos (Blocos 0+C+9). US-FISCAL-016 adicionada. Meta Capterra **100/100**.
 - **v1.8.0** (2026-05-20) — PR #9 Wave Bloco E + H: expande SpedIcmsIpiGeneratorService com 7 registros (E001+E100+E110+E116+E990+H001+H990). Apuração ICMS consolidada via array_sum C190. E116 condicional. Bloco H esqueleto. US-FISCAL-017 adicionada. Cobertura SPED: 23 registros canon (estrutura completa pra validação PVA-EFD CONFAZ).
+- **v1.9.0** (2026-05-25) — **Onda ESTABILIZAR** (audit sênior GAP-FISCAL-001 + GAP-FISCAL-002): (a) Consolidação sidebar — `Modules/NfeBrasil/DataController.modifyAdminMenu` removeu 3 entries duplicadas (Notas/Manifestação/Certificado); `Modules/Fiscal/DataController.modifyAdminMenu` virou hub canon com 4 entries no grupo fiscal (Cockpit /fiscal · Notas /fiscal/nfe · Manifestação /fiscal/dfe · Certificado /fiscal/config). Wagner apontou 2026-05-25 "fiscal manifestação certificado tem telas competindo + cockpit não implementado". (b) Comando `fiscal:habilitar-business {biz}` idempotente provisiona 6 perms `fiscal.*` ao role Admin#{biz} (NÃO atribui fiscal.sped.export — GAP-FISCAL-003 hardcodes pendentes). (c) Cache Redis 60s KPIs Cockpit + listener invalidação em NFeAutorizada/NFCeAutorizada + reuse cert/dfeCount entre computeKpis/computeAlerts (2 queries redundantes eliminadas). (d) Palette anti-DOS min:3 chars (era min:2 — leading wildcard `LIKE %q%` pode full-scan tabelas com 50k+ NFe). (e) Feature flag `fiscal.sped_simples_only_lock=true` default produção bloqueia download SPED com 503 explicativo enquanto SpedIcmsIpiGeneratorService tem 6 hardcodes Tier-0 (audit sênior §"Surpresa estratégica" R1 multa fiscal interestadual). US-FISCAL-018 in_progress (provisionamento técnico ✅ · briefing Larissa pending), US-FISCAL-019 done. 19 Pest tests novos verdes (CockpitCacheTest 6 + SidebarConsolidacaoTest 10 + SimplesOnlyGateConfigTest 3 + HabilitarBusinessCommandTest 6 + SimplesOnlyGateTest 5 — alguns skipados em SQLite-only por exigirem MySQL ADR 0101).
 
 ## Referências
 
@@ -401,3 +408,70 @@ Then deve receber 403 Forbidden
 - SCOPE: [`Modules/Fiscal/SCOPE.md`](../../../Modules/Fiscal/SCOPE.md)
 - RUNBOOK: [`RUNBOOK-nfe.md`](RUNBOOK-nfe.md)
 - Visual comparison: [`nfe-visual-comparison.md`](nfe-visual-comparison.md)
+
+## Onda Audit Sênior 2026-05-25
+
+> Origem: [`AUDIT-SENIOR-2026-05-25.md`](AUDIT-SENIOR-2026-05-25.md). Fiscal 66/100 Bom-baixo → projetado 80+ pós Onda ESTABILIZAR.
+> Bypass MCP `tasks-create` (mcp_jira_projects ainda não tem entry "Fiscal") — webhook sincroniza no próximo push.
+
+### US-FISCAL-018 · Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
+
+> owner: wagner · priority: p0 · estimate: 8h · status: in_progress (provisionamento técnico ✅ · Larissa briefing pending Wagner) · type: story
+> blocked_by: —
+
+**Sintoma:** Larissa já emite NFe via NfeBrasil; falta apenas permissão Fiscal pra ela validar regras tributárias por NCM (vestuário NCM 61-63 Simples Nacional).
+
+**Pré-req crítico:** Feature flag `fiscal.sped_simples_only_lock=true` provisionada ANTES de habilitar biz=4 — proteção R1 multa fiscal interestadual.
+
+**Acceptance:**
+- [x] Feature flag `fiscal.sped_simples_only_lock=true` em [config/fiscal.php](../../../config/fiscal.php) (default true em produção)
+- [x] Gate HTTP em `SpedController::gerar` retorna 503 explicativo quando flag true (superadmin bypassa)
+- [x] Comando `php artisan fiscal:habilitar-business {biz}` idempotente — provisiona 6 perms `fiscal.*` ao role Admin#{biz} + garante package_details.fiscal_module=1 ([HabilitarBusinessCommand.php](../../../Modules/Fiscal/Console/Commands/HabilitarBusinessCommand.php))
+- [x] Comando NUNCA atribui `fiscal.sped.export` (audit sênior GAP-FISCAL-003 ainda pendente)
+- [x] Pest `HabilitarBusinessCommandTest` cobre idempotência + cross-tenant scope (5 tests + 1 contract)
+- [ ] Wagner roda `php artisan fiscal:habilitar-business 4` em prod via SSH (humano-limitado)
+- [ ] Wagner sign-off briefing Larissa (30min humano-limitado)
+- [ ] Canary 7d biz=4 com observação ativa Wagner
+- [ ] Smoke browser MCP salvo
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-001, [TaxRadar NCM Vestuário](https://taxradar.app/blog/ncm/ncm-texteis-vestuario-guia-completo-classificacao)
+
+### US-FISCAL-019 · Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
+
+> owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
+> blocked_by: —
+
+**Sintoma:** KPIs do cockpit Fiscal sem cache (recalcula a cada request). Palette `LIKE %q%` sem índice = anti-DOS vulnerability.
+
+**Acceptance:**
+- [x] Cache Redis 60s nos KPIs via `Cache::remember('fiscal:cockpit:kpis:biz:'.$businessId, 60, ...)` em [CockpitController::index](../../../Modules/Fiscal/Http/Controllers/CockpitController.php)
+- [x] Invalidação automática em `NFeAutorizada` + `NFCeAutorizada` events via [InvalidaCockpitCacheListener](../../../Modules/Fiscal/Listeners/InvalidaCockpitCacheListener.php) registrado em [FiscalServiceProvider](../../../Modules/Fiscal/Providers/FiscalServiceProvider.php)
+- [x] Reuse de `$cert` + `$dfeCount` entre `computeKpis` e `computeAlerts` (2 queries redundantes eliminadas — audit sênior linha 248-249)
+- [x] Palette `q` min 3 chars (era 2) — anti-DOS leading wildcard pra biz com 50k+ NFe ([PaletteSearchController](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php))
+- [x] Pest `CockpitCacheTest` (6 tests — cache key format, TTL, reuse contract, isolation multi-tenant, listener invalidação)
+- [x] Pest `PaletteSearchControllerTest` atualizado pra validar min:3 (era min:2)
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-002
+
+### US-FISCAL-020 · Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED
+
+> owner: — · priority: p0 · estimate: 24h · status: todo · type: story
+> blocked_by: —
+
+**Sintoma crítico:** `SpedIcmsIpiGeneratorService` tem **6 hardcodes Tier-0** que funcionam ACIDENTALMENTE pra Larissa porque coincidem com vestuário Simples Nacional:
+1. NCM `00000000`
+2. CST `102` (CSOSN Simples)
+3. CFOP `5102` (operação dentro da UF)
+4. ALIQ `0`
+5. COD_MUN hardcoded
+6. COD_PART hardcoded
+
+**Quebra na primeira venda interestadual contribuinte** (CFOP 6102 com ICMS-ST). Não é refactor de qualidade — é pré-requisito não-óbvio da Onda 6 (Reforma Tributária IBS/CBS).
+
+**Acceptance:**
+- [ ] Refactor `SpedIcmsIpiGeneratorService` chama `MotorTributarioService` (já existe em NfeBrasil)
+- [ ] 6 hardcodes eliminados — dados vêm de regras tributárias por NCM/CFOP/UF
+- [ ] Pest cobre Simples Nacional (regressão Larissa) + Lucro Presumido CFOP 6102 + ICMS-ST
+- [ ] Migration `nfe_fiscal_rules` 5 colunas (NCM/CFOP/UF/regime/aliq) provisionada
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-003, ADR 0186
