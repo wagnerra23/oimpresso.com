@@ -3,6 +3,7 @@
 namespace Modules\Fiscal\Http\Controllers;
 
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\NfeBrasil\Models\NfeCertificado;
@@ -27,7 +28,17 @@ use Modules\NfeBrasil\Models\NfseEmissao;
 class CockpitController extends Controller
 {
     /**
+     * Cache key pra KPIs do cockpit por business — 60s TTL (GAP-FISCAL-002).
+     * Invalidado via InvalidaCockpitCacheListener em NFeAutorizada/NFCeAutorizada.
+     */
+    public const KPIS_CACHE_TTL_SECONDS = 60;
+
+    /**
      * GET /fiscal — entrypoint do módulo.
+     *
+     * Reuse: $cert + $dfeCount são computados uma vez em buildContexto() e
+     * passados pra computeKpis() + computeAlerts() (audit sênior 2026-05-25
+     * achou 2 queries redundantes; agora 8 queries → 6 em cache miss, 0 em hit).
      */
     public function index(): Response
     {
@@ -35,17 +46,53 @@ class CockpitController extends Controller
             abort(403, 'Sem permissão fiscal.access');
         }
 
+        $contexto = $this->buildContexto();
+
+        $businessId = (int) (session('user.business_id') ?? 0);
+        $kpis = Cache::remember(
+            $this->kpisCacheKey($businessId),
+            self::KPIS_CACHE_TTL_SECONDS,
+            fn () => $this->computeKpis($contexto),
+        );
+
         return Inertia::render('Fiscal/Cockpit', [
-            'kpis'       => $this->computeKpis(),
+            'kpis'       => $kpis,
             'sparklines' => $this->computeSparklines(),
-            'alerts'     => $this->computeAlerts(),
+            'alerts'     => $this->computeAlerts($contexto),
         ]);
     }
 
     /**
-     * KPIs do mês corrente (eager — query rápida count/sum).
+     * Cache key — DEVE bater com InvalidaCockpitCacheListener::KEY_PREFIX.
      */
-    protected function computeKpis(): array
+    public function kpisCacheKey(int $businessId): string
+    {
+        return 'fiscal:cockpit:kpis:biz:' . $businessId;
+    }
+
+    /**
+     * Reusa queries caras (cert + dfeCount) entre computeKpis e computeAlerts.
+     * Antes: cada query rodava 2× (uma em KPIs, outra em alerts). Agora 1×.
+     */
+    protected function buildContexto(): array
+    {
+        $cert = NfeCertificado::query()->where('ativo', true)->orderByDesc('valido_ate')->first();
+        $dfeCount = NfeDfeRecebido::query()
+            ->whereIn('status_manifestacao', ['pendente', 'ciencia'])
+            ->count();
+
+        return [
+            'cert' => $cert,
+            'dfeCount' => $dfeCount,
+        ];
+    }
+
+    /**
+     * KPIs do mês corrente (eager — query rápida count/sum).
+     *
+     * @param  array{cert: ?NfeCertificado, dfeCount: int}  $contexto
+     */
+    protected function computeKpis(array $contexto): array
     {
         $inicioMes = now()->startOfMonth();
 
@@ -54,11 +101,9 @@ class CockpitController extends Controller
         $rejeitadas  = NfeEmissao::query()->where('emitido_em', '>=', $inicioMes)->whereIn('status', ['rejeitada', 'denegada'])->count();
         $faturado    = (float) NfeEmissao::query()->where('emitido_em', '>=', $inicioMes)->where('status', 'autorizada')->sum('valor_total');
 
-        $dfeAguardando = NfeDfeRecebido::query()
-            ->whereIn('status_manifestacao', ['pendente', 'ciencia'])
-            ->count();
-
-        $cert = NfeCertificado::query()->where('ativo', true)->orderByDesc('valido_ate')->first();
+        // Reuse contexto (vinha de 2 queries idênticas no computeAlerts)
+        $dfeAguardando = $contexto['dfeCount'];
+        $cert = $contexto['cert'];
         $certDias = $cert?->valido_ate
             ? (int) now()->startOfDay()->diffInDays($cert->valido_ate, false)
             : null;
@@ -112,8 +157,12 @@ class CockpitController extends Controller
 
     /**
      * Alertas determinísticos (sem LLM) — 3 níveis (crit/warn/info).
+     *
+     * Reusa $cert + $dfeCount do contexto (antes: query duplicada do computeKpis).
+     *
+     * @param  array{cert: ?NfeCertificado, dfeCount: int}  $contexto
      */
-    protected function computeAlerts(): array
+    protected function computeAlerts(array $contexto): array
     {
         $alerts = [];
 
@@ -137,8 +186,8 @@ class CockpitController extends Controller
             ];
         }
 
-        // Warn: cert vencendo <60d
-        $cert = NfeCertificado::query()->where('ativo', true)->orderByDesc('valido_ate')->first();
+        // Warn: cert vencendo <60d (reusa $cert do contexto)
+        $cert = $contexto['cert'];
         if ($cert?->valido_ate) {
             $dias = (int) now()->startOfDay()->diffInDays($cert->valido_ate, false);
             if ($dias <= 60 && $dias > 0) {
@@ -153,10 +202,8 @@ class CockpitController extends Controller
             }
         }
 
-        // Info: DF-e pendente manifestação
-        $dfeCount = NfeDfeRecebido::query()
-            ->whereIn('status_manifestacao', ['pendente', 'ciencia'])
-            ->count();
+        // Info: DF-e pendente manifestação (reusa $dfeCount do contexto)
+        $dfeCount = $contexto['dfeCount'];
         if ($dfeCount > 0) {
             $alerts[] = [
                 'level'  => $dfeCount > 10 ? 'warn' : 'info',

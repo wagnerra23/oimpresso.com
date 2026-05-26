@@ -123,4 +123,29 @@ return [
     |
     */
     'cert_health_check_alert_days' => env('FISCAL_CERT_HEALTH_ALERT_DAYS', 30),
+
+    /*
+    |---------------------------------------------------------------------------
+    | Feature flag SPED simples_only (Onda ESTABILIZAR 2026-05-25)
+    |---------------------------------------------------------------------------
+    |
+    | Audit sênior 2026-05-25 §"Surpresa estratégica" achou 6 hardcodes Tier-0
+    | em SpedIcmsIpiGeneratorService (NCM 00000000, CST 102, CFOP 5102, ALIQ 0,
+    | COD_MUN, COD_PART) que funcionam ACIDENTALMENTE pra Simples Nacional sem
+    | crédito ICMS. Quebram na primeira venda interestadual contribuinte
+    | (CFOP 6102 com ICMS-ST) — multa fiscal pra Larissa biz=4.
+    |
+    | Enquanto GAP-FISCAL-003 (integrar MotorTributarioService no SPED) não
+    | elimina os hardcodes, esta flag bloqueia download SPED em prod default.
+    | Override per-business via setting futuro (não nesta wave — Wagner libera
+    | manualmente via .env quando Larissa estiver pronta).
+    |
+    | Hard-fail no SpedController::gerar quando true (HTTP 503 explicativo).
+    | Visualização /fiscal/sped (página) continua funcionando — só bloqueia
+    | download .txt CONFAZ.
+    |
+    | Default: true em produção (proteção R1 audit sênior).
+    |
+    */
+    'sped_simples_only_lock' => env('FISCAL_SPED_SIMPLES_ONLY_LOCK', true),
 ];

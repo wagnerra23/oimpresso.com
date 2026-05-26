@@ -83,16 +83,70 @@ class DataController extends Controller
         }
 
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
-        $segmento_ativo = request()->segment(1) == 'fiscal';
+        $is_fiscal = request()->segment(1) == 'fiscal';
 
-        // Wagner 2026-05-22: Modules/Fiscal entry REMOVIDA do sidebar. Hub
-        // canon "Fiscal" agora vem de Modules/NfeBrasil (consolidação ADR 0180
-        // — 1 entry + 2 ghosts Notas fiscais·Manifestação). Modules/Fiscal
-        // continua existindo (cockpit /fiscal acessível via URL direta), só
-        // não declara entry própria pra evitar duplicação visual.
+        // 2026-05-25 — Onda ESTABILIZAR (GAP-FISCAL-001): cockpit Fiscal volta a
+        // ser hub canon do sidebar com 4 entries flat no grupo fiscal apontando
+        // pra /fiscal/*. NfeBrasil/DataController removeu as 3 entries duplicadas
+        // (Notas/Manifestação/Certificado) — agora elas vivem aqui consolidadas
+        // sob o cockpit. NfeBrasil vira motor headless (Services + rotas
+        // backend ainda existem pra superadmin troubleshooting).
         //
-        // Retomar quando PR #2 Wave consolidada entregar cockpit real /fiscal
-        // — então renomear/promover entry pra principal e mover NfeBrasil pra
-        // ghost. Por ora, NfeBrasil é o canonical Fiscal hub.
+        // Ordering: Cockpit 93 (raiz) · Notas 95 · Manifestação 96 · Certificado 97.
+        // Mantém afinidade visual antes do Financeiro (order 85).
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $is_fiscal) {
+            // Entry 1 — Cockpit Fiscal (dashboard agregado: KPIs + alertas + sparklines)
+            $menu->url(
+                url('/fiscal'),
+                'Fiscal',
+                [
+                    'icon'   => 'fa fas fa-balance-scale',
+                    'style'  => 'background-color:' . $background_color,
+                    'active' => $is_fiscal && request()->segment(2) === null,
+                    'group'  => 'fiscal',
+                ]
+            )->order(93);
+
+            // Entry 2 — Notas Fiscais (cockpit NF-e/NFC-e — sub-página 2)
+            $menu->url(
+                url('/fiscal/nfe'),
+                'Notas Fiscais',
+                [
+                    'icon'   => 'fa fas fa-receipt',
+                    'style'  => 'background-color:' . $background_color,
+                    'active' => $is_fiscal && request()->segment(2) === 'nfe',
+                    'group'  => 'fiscal',
+                ]
+            )->order(95);
+
+            // Entry 3 — Manifestação DF-e (Fiscal/Dfe.tsx — sub-página 4)
+            // Pré-2026-05-25 apontava pra /nfe-brasil/manifestacao (legacy NfeBrasil).
+            // Consolidado pra /fiscal/dfe canon (com 4 botões via ManifestacaoService).
+            $menu->url(
+                url('/fiscal/dfe'),
+                'Manifestação',
+                [
+                    'icon'   => 'fa fas fa-inbox',
+                    'style'  => 'background-color:' . $background_color,
+                    'active' => $is_fiscal && request()->segment(2) === 'dfe',
+                    'group'  => 'fiscal',
+                ]
+            )->order(96);
+
+            // Entry 4 — Certificado A1 (Fiscal/Config.tsx — sub-página 6)
+            // Pré-2026-05-25 apontava pra /nfe-brasil/configuracao/certificado.
+            // Consolidado pra /fiscal/config canon (read-only + link Editar → NfeBrasil
+            // pra upload cert — fluxo permanece em NfeBrasil canon).
+            $menu->url(
+                url('/fiscal/config'),
+                'Certificado',
+                [
+                    'icon'   => 'fa fas fa-shield-alt',
+                    'style'  => 'background-color:' . $background_color,
+                    'active' => $is_fiscal && request()->segment(2) === 'config',
+                    'group'  => 'fiscal',
+                ]
+            )->order(97);
+        });
     }
 }
