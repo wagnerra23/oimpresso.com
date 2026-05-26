@@ -24,7 +24,7 @@
 //       (-145 LOC líquidas + consistência ESC/a11y).
 //       Onda 2.1 — focus trap + aria-modal + return focus (P1 polimento).
 
-import { useEffect, useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), ' +
@@ -95,6 +95,9 @@ export default function DrawerBase({
 }: DrawerBaseProps) {
   const asideRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const internalBodyRef = useRef<HTMLDivElement | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const effectiveBodyRef = bodyRef ?? internalBodyRef;
 
   // ESC handler — escuta apenas quando drawer aberto e closeOnEsc=true.
   useEffect(() => {
@@ -153,6 +156,25 @@ export default function DrawerBase({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, dataReady]);
 
+  // Header is-scrolled — Onda 2.2.
+  // Observa scroll do body interno; quando rola >20px, aplica classe
+  // .is-scrolled no aside que ativa CSS canon (padding menor, h2 15px,
+  // fx-drawer-key/small hidden, backdrop blur). Compactify automático
+  // pros 5 drawers — antes só NotaDrawerV2 tinha (e tinha seu próprio
+  // observer local, agora centralizado aqui).
+  useEffect(() => {
+    if (!open) {
+      setIsScrolled(false);
+      return;
+    }
+    const el = effectiveBodyRef.current;
+    if (!el) return;
+    const onScroll = () => setIsScrolled(el.scrollTop > 20);
+    el.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // estado inicial caso já comece scrollado
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [open, effectiveBodyRef]);
+
   // Focus trap — Tab/Shift+Tab cyclam dentro do drawer.
   // Separado do ESC handler porque trap só desliga em closeOnEsc=false
   // (mesma condição: modal nested toma controle).
@@ -187,9 +209,11 @@ export default function DrawerBase({
 
   const widthStyle = width !== 480 ? { width: `min(${width}px, 96vw)` } : undefined;
   const bodyStyle = bodyFlush ? { padding: 0 } : undefined;
-  const asideClassName = extraAsideClassName
-    ? `fx-drawer ${extraAsideClassName}`
-    : 'fx-drawer';
+  // Compose className: base + is-scrolled auto + extra do consumer
+  const classes = ['fx-drawer'];
+  if (isScrolled) classes.push('is-scrolled');
+  if (extraAsideClassName) classes.push(extraAsideClassName);
+  const asideClassName = classes.join(' ');
 
   return (
     <>
@@ -215,7 +239,7 @@ export default function DrawerBase({
           </button>
         </header>
 
-        <div className="fx-drawer-body" style={bodyStyle} ref={bodyRef}>
+        <div className="fx-drawer-body" style={bodyStyle} ref={effectiveBodyRef}>
           {children}
         </div>
 
