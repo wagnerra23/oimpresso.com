@@ -50,9 +50,7 @@ import SellsTabelaUnificada, {
   type SaleRow as UnifiedSaleRow,
 } from './_components/SellsTabelaUnificada';
 import SellsCheatSheet, { SELLS_INDEX_SHORTCUTS } from './_components/SellsCheatSheet';
-// Insights Jana movido pra /ia/dashboard (Jana V2 canon). Antes era tab embutida aqui via
-// `viewMode === 'insights'` + SellsInsightsView. Ver Modules/Jana/Http/Controllers/DashboardController
-// + resources/js/Pages/Jana/components/JanaCockpitV2.tsx.
+import SellsInsightsView from './_components/SellsInsightsView';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS
@@ -429,8 +427,14 @@ const SAVED_VIEWS: SavedView[] = [
 // MAIN — SellsIndex
 // ──────────────────────────────────────────────────────────────
 export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
-  // (authUserName + businessName + businessIdShared removidos junto com o render
-  // Insights Jana — usavam-se só pra header tenant. Veja /ia/dashboard via Jana V2.)
+  // Auth user + business pra view Insights Jana (greeting + header dedicado com tenant breadcrumb).
+  const sharedPage = usePage<{
+    auth?: { user?: { name?: string; business_id?: number } };
+    business?: { id?: number; name?: string };
+  }>();
+  const authUserName = sharedPage.props.auth?.user?.name;
+  const businessName = sharedPage.props.business?.name;
+  const businessIdShared = sharedPage.props.business?.id ?? sharedPage.props.auth?.user?.business_id;
   // Tier 0 multi-tenant: storage scoped per business_id (ver useBizStorage acima).
   const ls = useBizStorage();
 
@@ -478,9 +482,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // Branch tree expand/collapse state (não persiste — UX volátil).
   const [origemExpanded, setOrigemExpanded] = useState<boolean>(false);
 
-  // Tab bar [Dashboard | Insights Jana] removida — Insights migrado pra /ia/dashboard
-  // (Jana V2 canon). viewMode state + localStorage `view_mode` removidos. Sells/Index
-  // volta a ser single-view (Dashboard) sem mode-switching.
+  // KB-9.75 P5 parking lot — tab bar topo Sells [Dashboard | Insights Jana].
+  // Mode "Analista IA" alterna view sem mudar rota — preserva filtros/state Index.
+  // Persistência Tier 0 multi-tenant: `oimpresso.sells.b{biz}.u{user}.view_mode`.
+  type ViewMode = 'dashboard' | 'insights';
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const v = ls.get('view_mode', 'dashboard');
+    return (['dashboard', 'insights'] as const).includes(v as ViewMode) ? (v as ViewMode) : 'dashboard';
+  });
+  useEffect(() => ls.set('view_mode', viewMode), [viewMode]);
 
   // Data fetch state.
   const [rows, setRows] = useState<SaleRow[]>([]);
@@ -1070,8 +1080,29 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 'Pedidos · faturamento · NF-e/NFS-e'
               )}
             </p>
-            {/* Tab bar Dashboard | Insights Jana removida — Insights V2 migrado pra
-                /ia/dashboard (canon Jana). */}
+            {/* KB-9.75 P5 — Tab bar Dashboard | Insights Jana.
+                Alterna view sem mudar rota; preserva filtros/state Index.
+                Persistência Tier 0 via `ls.view_mode`. */}
+            <div className="vd-tabs-mode" role="tablist" aria-label="Modo de visualização">
+              <button
+                type="button"
+                className={`vd-tabs-mode-btn ${viewMode === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setViewMode('dashboard')}
+                role="tab"
+                aria-selected={viewMode === 'dashboard'}
+              >
+                <span className="vd-tabs-mode-ic"><BarChart3 size={12} /></span> Dashboard
+              </button>
+              <button
+                type="button"
+                className={`vd-tabs-mode-btn ${viewMode === 'insights' ? 'active' : ''}`}
+                onClick={() => setViewMode('insights')}
+                role="tab"
+                aria-selected={viewMode === 'insights'}
+              >
+                <span className="vd-tabs-mode-ic">✦</span> Insights Jana
+              </button>
+            </div>
           </div>
 
           <div className="os-head-r">
@@ -1084,7 +1115,27 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           </div>
         </header>
 
-        {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
+        {/* KB-9.75 P5 — Conditional render por viewMode.
+            Dashboard = toolbar + KPIs + table + pagination + bulk (legacy).
+            Insights Jana = SellsInsightsView com brief + 4 análises. */}
+        {viewMode === 'insights' ? (
+          <SellsInsightsView
+            sellKpis={props.sellKpis}
+            coworkAggregates={props.coworkAggregates}
+            rows={filtered.map((r) => ({
+              final_total: Number(r.final_total) || 0,
+              payment_status: r.payment_status ?? '',
+              sla_kind: r.sla_kind ?? '',
+              days_to_due: r.days_to_due ?? null,
+              customer_name: r.customer_name ?? null,
+              payment_method_label: r.payment_method_label ?? null,
+            }))}
+            userName={authUserName}
+            businessName={businessName}
+            businessId={businessIdShared}
+          />
+        ) : (
+        <>
         {/* TOOLBAR linha 2: Foco group + Visões btn / Imprimir + Visões ▾ */}
         <div className="vd-toolbar">
           <div className="vd-toolbar-l">
@@ -1648,6 +1699,8 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               ✕
             </button>
           </div>
+        )}
+        </>
         )}
 
         {/* CHEAT-SHEET (?) */}
