@@ -18,9 +18,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
 import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
+import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
 import { brl, truncKey } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
@@ -122,6 +124,9 @@ interface CockpitProps {
   notasMock: NotaRow[];
   savedViewCounts: SavedViewCounts;
   sefazStatus: SefazStatus;
+  // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
+  eventosMock?: EventoFiscal[];
+  contabilData?: SendToContabilData | null;
 }
 
 type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
@@ -215,6 +220,7 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 
 export default function Cockpit({
   kpis, alerts, notasMock, savedViewCounts, sefazStatus,
+  eventosMock = [], contabilData = null,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
 
@@ -236,6 +242,10 @@ export default function Cockpit({
   const openedNfse = openedNota && openedNota.kind === 'nfse'
     ? mapToNFSeDrawerData(openedNota)
     : null;
+
+  // Onda 2 — drawers do header chip (Eventos + Enviar p/ contabilidade)
+  const [eventosOpen, setEventosOpen] = useState(false);
+  const [contabilOpen, setContabilOpen] = useState(false);
 
   const applyView = (vid: Exclude<ViewId, 'custom'>) => {
     const v = SAVED_VIEWS.find((x) => x.id === vid);
@@ -319,10 +329,17 @@ export default function Cockpit({
         ]}
         actions={
           <>
-            <button type="button" className="fx-chip-action" onClick={() => goto('/fiscal/eventos')}>
+            <button type="button" className="fx-chip-action" onClick={() => setEventosOpen(true)}>
               <RefreshCw size={12} /> Eventos
+              {eventosMock.length > 0 && <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 700, color: 'var(--fx-text-mute)' }}>{eventosMock.length}</span>}
             </button>
-            <button type="button" className="fx-chip-action" disabled title="Drawer 'Enviar p/ contabilidade' — TODO[CL]">
+            <button
+              type="button"
+              className="fx-chip-action"
+              onClick={() => setContabilOpen(true)}
+              disabled={!contabilData}
+              title={contabilData ? 'Abrir fluxo de envio mensal' : 'Backend stub — TODO[CL]'}
+            >
               <Archive size={12} /> Enviar p/ contabilidade
             </button>
             <div ref={emitirRef} className="fx-popmenu-wrap">
@@ -604,6 +621,20 @@ export default function Cockpit({
       <NFSeDrawer
         nota={openedNfse}
         onClose={() => setOpenedId(null)}
+      />
+
+      {/* Drawer Eventos (chip 'Eventos' do header — Onda 2 D) */}
+      <EventosDrawer
+        open={eventosOpen}
+        eventos={eventosMock}
+        onClose={() => setEventosOpen(false)}
+      />
+
+      {/* Drawer Enviar p/ contabilidade (chip do header — Onda 2 D) */}
+      <SendToContabilDrawer
+        open={contabilOpen}
+        data={contabilData}
+        onClose={() => setContabilOpen(false)}
       />
     </AppShellV2>
   );

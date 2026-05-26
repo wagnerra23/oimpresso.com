@@ -65,7 +65,81 @@ class CockpitController extends Controller
             'notasMock'      => $this->mockNotasUnificadas(),
             'savedViewCounts' => $this->mockSavedViewCounts(),
             'sefazStatus'    => $this->mockSefazStatus(),
+            // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
+            'eventosMock'    => $this->mockEventos(),
+            'contabilData'   => $this->mockContabilData(),
         ]);
+    }
+
+    /**
+     * Mock eventos fiscais (CC-e, cancelamento, inutilização, EPEC,
+     * manifestação) pra alimentar EventosDrawer do header. Onda 2.
+     * TODO[CL]: substituir por query real em nfe_eventos (NfeBrasil).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function mockEventos(): array
+    {
+        $now = now();
+
+        return [
+            ['id' => 'evt-1', 'tipo' => 'Carta de Correção', 'kind' => 'cce', 'nota' => 'NFe 8424',
+             'sequencia' => 1, 'descricao' => 'Corrigir info adicional natureza operação',
+             'emit' => $now->copy()->subHours(3)->format('d/m H:i'), 'autor' => 'Eliana', 'sefaz' => 100],
+            ['id' => 'evt-2', 'tipo' => 'Cancelamento', 'kind' => 'cancel', 'nota' => 'NFe 8420',
+             'descricao' => 'Cliente desistiu da compra antes de envelopamento',
+             'emit' => $now->copy()->subHours(8)->format('d/m H:i'), 'autor' => 'Eliana', 'sefaz' => 101],
+            ['id' => 'evt-3', 'tipo' => 'Inutilização', 'kind' => 'inutilizacao', 'nota' => 'Faixa 8418-8419',
+             'descricao' => 'Inutilização de faixa numérica saltada (erro digitação)',
+             'emit' => $now->copy()->subDay()->format('d/m H:i'), 'autor' => 'Wagner', 'sefaz' => 102],
+            ['id' => 'evt-4', 'tipo' => 'Manifestação destinatário', 'kind' => 'manifest', 'nota' => 'NFe entrada 982',
+             'descricao' => 'Confirmação operação fornecedor TechSupply Ltda',
+             'emit' => $now->copy()->subDays(2)->format('d/m H:i'), 'autor' => 'Wagner', 'sefaz' => 135],
+            ['id' => 'evt-5', 'tipo' => 'Cancelamento', 'kind' => 'cancel', 'nota' => 'NFCe 9005',
+             'descricao' => 'Cliente devolveu mercadoria mesma data',
+             'emit' => $now->copy()->subDays(3)->format('d/m H:i'), 'autor' => 'Larissa', 'sefaz' => 101],
+        ];
+    }
+
+    /**
+     * Mock dados pro SendToContabilDrawer. Onda 2.
+     * TODO[CL]: substituir por ContabilSendService real (validações reais
+     * + agrega XMLs + dispara job de envio email/SFTP).
+     *
+     * @return array<string, mixed>
+     */
+    protected function mockContabilData(): array
+    {
+        $now = now();
+
+        return [
+            'periodoCorrente'    => $now->locale('pt_BR')->isoFormat('MMMM/YYYY'),
+            'contadorNome'       => 'A configurar em /fiscal/config',
+            'destinatarioPadrao' => 'contador@example.com.br',
+            'validacoes' => [
+                ['ok' => true,   'label' => '184 NF-e autorizadas no período'],
+                ['ok' => 'warn', 'label' => '3 NF-e rejeitadas — não entram no pacote', 'action' => 'Ver rejeitadas', 'goto' => '/fiscal/nfe?status=rejeitadas'],
+                ['ok' => true,   'label' => '5 DF-e manifestadas (4 confirmadas + 1 desconhecida)'],
+                ['ok' => 'warn', 'label' => 'Certificado A1 vence em 47d — renovar antes do próximo fechamento', 'action' => 'Renovar', 'goto' => '/fiscal/config'],
+                ['ok' => true,   'label' => 'SPED EFD ICMS/IPI pronto pra gerar (último: abr/2026)'],
+            ],
+            'totalsByPeriodo' => [
+                'autorizadas' => 184,
+                'nfse'        => 12,
+                'eventos'     => 5,
+            ],
+            'history' => [
+                ['id' => 'hist-1', 'periodo' => 'abril/2026', 'enviadoEm' => '03/05 09:23',
+                 'metodo' => 'email', 'destino' => 'contador@example.com.br',
+                 'pacote' => 4_320_000, 'status' => 'enviado'],
+                ['id' => 'hist-2', 'periodo' => 'março/2026', 'enviadoEm' => '02/04 10:15',
+                 'metodo' => 'email', 'destino' => 'contador@example.com.br',
+                 'pacote' => 3_980_000, 'status' => 'enviado'],
+                ['id' => 'hist-3', 'periodo' => 'fevereiro/2026', 'enviadoEm' => '04/03 11:48',
+                 'metodo' => 'download', 'destino' => 'eliana@local',
+                 'pacote' => 2_140_000, 'status' => 'enviado'],
+            ],
+        ];
     }
 
     /**
