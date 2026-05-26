@@ -107,15 +107,17 @@ jobs:
       - name: Composer install (produção)
         # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component"). Ver auto-mem reference_composer_install_obrigatorio_pos_deploy.md
         # --ignore-platform-req=ext-opentelemetry: Hostinger shared NÃO tem ext-opentelemetry (PECL out/2025). OTel pacotes vivem em require-dev pós ADR 0166 (errata 0162) + OtelHelper é fail-safe (class_exists guard). Hostinger nunca emite spans em prod — só CT 100 emite (ADR 0062 Tier 0 IRREVOGÁVEL runtime).
-        # Incidente 2026-05-26 (PR #1691 quebrou /ia/dashboard com 500): `composer dump-autoload --optimize` no Hostinger
-        # mostrava help do comando em vez de executar (composer 2.x rejeita `--optimize` longo nessa rota?). Fix: usar
-        # `-o` short flag + `--classmap-authoritative` pra forçar regen completa do classmap pós-PR que adiciona classes novas.
+        # Incidente 2026-05-26 (PR #1691 quebrou /ia/dashboard com 500): dump-autoload mostrava HELP em vez de executar.
+        # Causa raiz descoberta na 2ª iteração: `composer dump-autoload` valida platform requirements e Hostinger NÃO
+        # tem ext-opentelemetry (OTel Laravel auto-instrument). Sem --ignore-platform-req, composer aborta com erro
+        # truncado ("emetry Laravel auto-instrumentation") e exibe help do dump-autoload (exit 1, classmap stale).
+        # Fix definitivo: passar --ignore-platform-req=ext-opentelemetry também no dump-autoload (igual ao install).
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -20 &&
             echo '=== dump-autoload force ===' &&
-            composer dump-autoload -o --classmap-authoritative --no-interaction 2>&1 | tail -5
+            composer dump-autoload -o --classmap-authoritative --no-interaction --ignore-platform-req=ext-opentelemetry 2>&1 | tail -10
           "
 
       - name: Artisan migrate (se necessário)
