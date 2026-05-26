@@ -1115,4 +1115,64 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ---
 
-**Última atualização:** 2026-05-20 — v3.0.0 Onda 5 P1 inteira (US-COPI-110/111/112/113) apendada em paralelo (Escopo A aprovado por Wagner — continue paralelo). Agent `audit-senior-expert` em background pesquisa Charter S4 dossier executável pra US-COPI-109 detalhar implementação.
+## Onda 6 Audit Sênior 2026-05-25
+
+> Origem: [`AUDIT-SENIOR-2026-05-25.md`](AUDIT-SENIOR-2026-05-25.md). Jana é REAL 96/100 (grade engine mostra 71 por bug — ver US-GOV-012). LGPD operacional + RAGAS canary + Langfuse self-host fecham gaps últimos.
+
+### US-COPI-115 · LGPD jana:retention-purge artisan + DSR Art. 18 §VI + tool MCP lgpd-esquecer-titular
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** Audit Sênior Jana 2026-05-25 — G1 P0 (Onda 6).
+
+**Estado real:** Jana é 96/100 (não 71 como grade engine mostra). Config canônica de retention existe; jobs faltam.
+
+**Acceptance:**
+- [ ] Artisan `jana:retention-purge` (schedule daily 03:00 BRT)
+- [ ] DSR (Data Subject Request) flow Art. 18 §VI LGPD (direito esquecimento)
+- [ ] Tool MCP `lgpd-esquecer-titular(cpf_or_cnpj)` — purga chat_messages + memoria_facts + contextos do titular
+- [ ] Pest cobre: purge por retention OK, DSR completa em <30d (LGPD limite), evidência auditável em audit_log
+- [ ] Wagner aprova `JANA_RETENTION_ENABLED=true` em prod biz=1 após canary 7d
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §G1, [DSR Fulfillment Timeline](https://securiti.ai/dsr-fulfillment-timeline/), [LGPD Compliance 2026](https://secureprivacy.ai/blog/lgpd-compliance-requirements)
+
+### US-COPI-116 · RAGAS canary CI daily 06:00 UTC + 30 golden questions gate
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** Audit Sênior Jana 2026-05-25 — G2 P0 (Onda 6).
+
+**Sintoma:** `jana-gold-set.json` com golden questions já existe, mas falta gate CI que bloqueie regressão.
+
+**Acceptance:**
+- [ ] GitHub Actions cron daily 06:00 UTC
+- [ ] Roda RAGAS contra 30 golden questions
+- [ ] Métricas: faithfulness, answer_relevancy, context_precision, context_recall
+- [ ] Gate: se score regredir >5% vs baseline → fail CI + alert Slack/Discord
+- [ ] Baseline salvo em `governance/jana-ragas-baseline.json`
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §G2, [Cohere Rerank RAG 2026](https://futureagi.com/blog/evaluating-cohere-rerank-rag-2026/)
+
+### US-COPI-117 · Deploy Langfuse self-host CT 100 (ADR 0132)
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** Audit Sênior Jana 2026-05-25 — G3 P0 (Onda 6).
+
+**Sintoma:** OTel GenAI instrumentado mas collector off. ADR 0132 já decidida (Langfuse self-host CT 100).
+
+**Acceptance:**
+- [ ] Langfuse docker-compose no CT 100 Proxmox
+- [ ] OTel GenAI semconv native pointing pro Langfuse
+- [ ] Workspace-level isolation (1 workspace por business_id)
+- [ ] Custo: R$ 50-80/mês CT 100 — Wagner aprova
+- [ ] Dashboards default: token usage, latência p50/p95, custo por agent, traces por business
+
+**Refs:** AUDIT-SENIOR-2026-05-25.md §G3, ADR 0132, [LLM Observability 2026](https://www.spheron.network/blog/llm-observability-gpu-cloud-langfuse-arize-phoenix-helicone/), [OpenTelemetry GenAI](https://dev.to/x4nent/opentelemetry-genai-semantic-conventions-the-standard-for-llm-observability-1o2a)
+
+---
+
+**Última atualização:** 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).

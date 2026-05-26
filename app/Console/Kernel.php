@@ -399,6 +399,36 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // G1 P0 AUDIT-SENIOR-2026-05-25 §6 — D7.d LGPD purge job daily 03:00 BRT.
+        // Aplica Modules/Jana/Config/retention.php sobre 7 entidades PII-relevantes
+        // (Conversa, Mensagem, Sugestao, CacheSemantico, MemoriaFato, MemoriaMetrica,
+        // HealthNarrative). Estratégia default `anonymize` (LGPD-preferred — preserva
+        // métricas agregadas, redacta PII via PiiRedactor canônico).
+        //
+        // Atrás de JANA_RETENTION_ENABLED=true (default false). Wagner aprova flag=true
+        // em prod biz=1 só após canary 7d (ADR 0105 sinal qualificado).
+        //
+        // Multi-tenant Tier 0 (ADR 0093) IRREVOGÁVEL: command itera business by business
+        // via loop Business::each() explícito. NUNCA cross-tenant cleanup.
+        //
+        // 03:00 BRT — janela de baixa atividade, antes do horário comercial. 30min antes
+        // do fsm:scan-drift (03:00 simultâneo OK — escopos diferentes), 1h antes de
+        // memcofre:sync-memories conclusão (23:00 dia anterior).
+        $schedule->command('jana:retention-purge')
+            ->dailyAt('03:00')
+            ->timezone('America/Sao_Paulo')
+            ->name('jana-retention-purge-daily')
+            ->withoutOverlapping(60)
+            ->environments(['live'])
+            ->when(fn () => (bool) config('jana.retention.enabled', false))
+            ->appendOutputTo(storage_path('logs/jana-retention.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:retention-purge FALHOU — D7 LGPD purge atrasou ' .
+                    '(investigar storage/logs/jana-retention.log)'
+                );
+            });
+
         // MEM-FASE8 — esquecimento semanal (domingo 03:00).
         // Remove bloat (hits=0, >30d) + expirados (valid_until >90d) + órfãos MCP.
         // Soft-delete por padrão. Hard-delete LGPD só via comando manual com --hard.
