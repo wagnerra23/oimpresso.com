@@ -165,6 +165,38 @@ class ServiceOrder extends Model
         return $this->belongsTo(\App\User::class, 'assigned_user_id');
     }
 
+    /**
+     * Itens DVI (Vistoria Digital) — Wave 3 US-OFICINA-035.
+     *
+     * Global scope multi-tenant em OaInspectionItem garante isolamento Tier 0.
+     * Eager-load em show JSON quando UI Wave 3b consumir.
+     */
+    public function dviInspectionItems(): HasMany
+    {
+        return $this->hasMany(OaInspectionItem::class, 'service_order_id');
+    }
+
+    /**
+     * Breakdown DVI agregado pra UI card (8 ok · 2 atenção · 1 crítico + R$ total).
+     *
+     * Accessor evita re-execução de queries quando frontend lê duas vezes.
+     * NÃO eager pra evitar N+1 — usar explicitamente $order->dvi_breakdown depois
+     * de $order->load('dviInspectionItems') OU chamar DviInspectionService::breakdownPorSeverity.
+     *
+     * @return array{ok:int, atencao:int, critico:int, total_recomendado:float}
+     */
+    public function getDviBreakdownAttribute(): array
+    {
+        $items = $this->dviInspectionItems;
+
+        return [
+            'ok'                => $items->where('severity', 'ok')->count(),
+            'atencao'           => $items->where('severity', 'atencao')->count(),
+            'critico'           => $items->where('severity', 'critico')->count(),
+            'total_recomendado' => (float) $items->whereIn('severity', ['atencao', 'critico'])->sum('valor_recomendado'),
+        ];
+    }
+
     // ------------------------------------------------------------------
     // Accessors (UI helpers + cálculos derived)
     // ------------------------------------------------------------------
