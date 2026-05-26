@@ -59,7 +59,115 @@ class CockpitController extends Controller
             'kpis'       => $kpis,
             'sparklines' => $this->computeSparklines(),
             'alerts'     => $this->computeAlerts($contexto),
+            // Stub Wave Cowork — visual "Notas Fiscais" do prototipo-ui.
+            // TODO[CL]: substituir por NotasUnifiedService::query() unificando
+            // NfeEmissao + NfseEmissao com filtros server-side e cursor pagination.
+            'notasMock'      => $this->mockNotasUnificadas(),
+            'savedViewCounts' => $this->mockSavedViewCounts(),
+            'sefazStatus'    => $this->mockSefazStatus(),
         ]);
+    }
+
+    /**
+     * STUB mock — 10 notas unificadas (NF-e + NFC-e + NFS-e) pra hidratar
+     * o visual "Notas Fiscais" do prototipo-ui. Datasets reais virão de
+     * NotasUnifiedService no PR seguinte (TODO[CL]).
+     */
+    protected function mockNotasUnificadas(): array
+    {
+        $now = now();
+
+        return [
+            ['id' => 'nfse-2104', 'tipo' => 'NFS-e', 'kind' => 'nfse', 'num' => '2104', 'serie' => null, 'when' => '05/2026',
+             'cliente' => 'TechPro Equipamentos', 'doc' => '55.666.777/0001-88', 'uf' => 'SP',
+             'venda' => 'OS #4807', 'ref' => null, 'keyOrCode' => '14.05', 'iss' => 5,
+             'status' => 'autorizada', 'statusKind' => 'nfse', 'rejMsg' => null,
+             'modelo' => null, 'value' => 2840.00, 'prazoCancel' => null, 'prazoCce' => null],
+            ['id' => 'nfe-8428', 'tipo' => 'NF-e', 'kind' => 'nfe', 'num' => '8428', 'serie' => '1', 'when' => $now->copy()->subHours(4)->format('d/m H:i'),
+             'cliente' => 'Imobiliária Horizonte', 'doc' => '12.345.678/0001-90', 'uf' => 'SP',
+             'venda' => 'V-4821', 'ref' => null,
+             'keyOrCode' => '35260514398765432109876543210987654321001234',
+             'status' => 100, 'statusKind' => 'sefaz', 'rejMsg' => null,
+             'modelo' => 55, 'value' => 540.00,
+             'prazoCancel' => ['label' => '19h20', 'urgency' => 'ok'], 'prazoCce' => null],
+            ['id' => 'nfce-9012', 'tipo' => 'NFC-e', 'kind' => 'nfe', 'num' => '9012', 'serie' => '9', 'when' => $now->copy()->subHours(5)->subMinutes(10)->format('d/m H:i'),
+             'cliente' => 'Consumidor', 'doc' => '—', 'uf' => 'SP',
+             'venda' => 'V-4825', 'ref' => null,
+             'keyOrCode' => '35260565432198765432109876543210987654321009876',
+             'status' => 100, 'statusKind' => 'sefaz', 'rejMsg' => null,
+             'modelo' => 65, 'value' => 84.00,
+             'prazoCancel' => ['label' => '18h50', 'urgency' => 'ok'], 'prazoCce' => null],
+            ['id' => 'nfce-9011', 'tipo' => 'NFC-e', 'kind' => 'nfe', 'num' => '9011', 'serie' => '9', 'when' => $now->copy()->subHours(6)->format('d/m H:i'),
+             'cliente' => 'Consumidor (CPF nota)', 'doc' => '987.654.321-00', 'uf' => 'SP',
+             'venda' => 'V-4824', 'ref' => null,
+             'keyOrCode' => '35260565432198765432109876543210987654321009875',
+             'status' => 100, 'statusKind' => 'sefaz', 'rejMsg' => null,
+             'modelo' => 65, 'value' => 142.00,
+             'prazoCancel' => ['label' => '17h18', 'urgency' => 'ok'], 'prazoCce' => null],
+            ['id' => 'nfe-8427', 'tipo' => 'NF-e', 'kind' => 'nfe', 'num' => '8427', 'serie' => '1', 'when' => $now->copy()->subHours(7)->format('d/m H:i'),
+             'cliente' => 'Imobiliária Horizonte', 'doc' => '12.345.678/0001-90', 'uf' => 'SP',
+             'venda' => 'V-4820', 'ref' => null,
+             'keyOrCode' => '35260514398765432109876543210987654321001233',
+             'status' => 100, 'statusKind' => 'sefaz', 'rejMsg' => null,
+             'modelo' => 55, 'value' => 560.00,
+             'prazoCancel' => ['label' => '16h05', 'urgency' => 'ok'], 'prazoCce' => null],
+            ['id' => 'nfe-8425', 'tipo' => 'NF-e', 'kind' => 'nfe', 'num' => '8425', 'serie' => '1', 'when' => $now->copy()->subHours(9)->format('d/m H:i'),
+             'cliente' => 'Gráfica Ribeirão Ltda', 'doc' => '23.456.789/0001-12', 'uf' => 'SP',
+             'venda' => 'V-4815', 'ref' => null,
+             'keyOrCode' => '35260514398765432109876543210987654321001231',
+             'status' => 110, 'statusKind' => 'sefaz',
+             'rejMsg' => 'IE destinatário inválida no cadastro SP',
+             'modelo' => 55, 'value' => 1840.00, 'prazoCancel' => null, 'prazoCce' => null],
+            ['id' => 'nfe-8424', 'tipo' => 'NF-e', 'kind' => 'nfe', 'num' => '8424', 'serie' => '1', 'when' => $now->copy()->subDay()->format('d/m H:i'),
+             'cliente' => 'AutoCenter Premium', 'doc' => '34.567.890/0001-23', 'uf' => 'SP',
+             'venda' => 'V-4810', 'ref' => null,
+             'keyOrCode' => '35260514398765432109876543210987654321001230',
+             'status' => 100, 'statusKind' => 'sefaz', 'rejMsg' => null,
+             'modelo' => 55, 'value' => 3200.00, 'prazoCancel' => null,
+             'prazoCce' => ['label' => '29d', 'urgency' => 'ok']],
+            ['id' => 'nfse-2103', 'tipo' => 'NFS-e', 'kind' => 'nfse', 'num' => '2103', 'serie' => null, 'when' => '05/2026',
+             'cliente' => 'Construtora Vale', 'doc' => '45.678.901/0001-34', 'uf' => 'SP',
+             'venda' => null, 'ref' => 'OS #4805', 'keyOrCode' => '14.05', 'iss' => 5,
+             'status' => 'rejeitada', 'statusKind' => 'nfse',
+             'rejMsg' => 'Tomador sem IE municipal — Guarulhos',
+             'modelo' => null, 'value' => 1200.00, 'prazoCancel' => null, 'prazoCce' => null],
+            ['id' => 'nfe-8423', 'tipo' => 'NF-e', 'kind' => 'nfe', 'num' => '8423', 'serie' => '1', 'when' => $now->copy()->subDays(2)->format('d/m H:i'),
+             'cliente' => 'Vargas Distribuidor', 'doc' => '56.789.012/0001-45', 'uf' => 'RJ',
+             'venda' => 'V-4805', 'ref' => null,
+             'keyOrCode' => '33260514398765432109876543210987654321001228',
+             'status' => 999, 'statusKind' => 'sefaz', 'rejMsg' => null,
+             'modelo' => 55, 'value' => 4250.00, 'prazoCancel' => null, 'prazoCce' => null],
+            ['id' => 'nfce-9008', 'tipo' => 'NFC-e', 'kind' => 'nfe', 'num' => '9008', 'serie' => '9', 'when' => $now->copy()->subDays(2)->subHours(3)->format('d/m H:i'),
+             'cliente' => 'Consumidor', 'doc' => '—', 'uf' => 'SP',
+             'venda' => 'V-4802', 'ref' => null,
+             'keyOrCode' => '35260565432198765432109876543210987654321009872',
+             'status' => 100, 'statusKind' => 'sefaz', 'rejMsg' => null,
+             'modelo' => 65, 'value' => 67.00, 'prazoCancel' => null, 'prazoCce' => null],
+        ];
+    }
+
+    /**
+     * Counts pra preset chips ("Pra resolver hoje", "Janela 24h", etc).
+     * TODO[CL]: derivar dos rows reais via NotasUnifiedService.
+     */
+    protected function mockSavedViewCounts(): array
+    {
+        return [
+            'todas'       => 18,
+            'resolver'    => 3,
+            'janela24'    => 5,
+            'processando' => 1,
+            'nfse'        => 2,
+            'nfce'        => 4,
+        ];
+    }
+
+    /**
+     * Status SEFAZ-SP atual (mock — TODO[CL] consumir webservice status).
+     */
+    protected function mockSefazStatus(): array
+    {
+        return ['uf' => 'SP', 'operacional' => true, 'label' => 'SEFAZ-SP operacional'];
     }
 
     /**
