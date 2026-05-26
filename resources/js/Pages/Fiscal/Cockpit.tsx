@@ -14,7 +14,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
 import {
-  Archive, Bot, ChevronDown, FileText, Plus, Receipt, RefreshCw,
+  Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -233,16 +233,8 @@ export default function Cockpit({
           { keys: ['J', 'K'], label: 'navegar' },
           { keys: ['?'], label: 'mais atalhos' },
         ]}
-      >
-        {/* Linha de chips ação (substitui actions do PageHeader anterior) */}
-        <div className="fx-local-header">
-          <h2>Notas Fiscais</h2>
-          <span className="crumb">{crumb}</span>
-          <div className="fx-chips-action">
-            <span className="fx-chip-action ok-tag">{sefazStatus.label}</span>
-            <button type="button" className="fx-chip-action" disabled title="Jana fiscal — TODO[CL] integrar com Jana/BrainB">
-              <Bot size={12} /> Jana resume o mês
-            </button>
+        actions={
+          <>
             <button type="button" className="fx-chip-action" onClick={() => goto('/fiscal/eventos')}>
               <RefreshCw size={12} /> Eventos
             </button>
@@ -273,9 +265,9 @@ export default function Cockpit({
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
+          </>
+        }
+      >
         {/* KPI ribbon estreito (substitui fx-kpis-cockpit 6-card grid) */}
         <div className="fx-ribbon" role="region" aria-label="KPIs fiscais">
           <span className="fx-ribbon-item">
