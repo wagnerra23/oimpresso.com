@@ -1,16 +1,21 @@
 ---
 module: OficinaAuto
 version: 0.1.0
-last_updated: 2026-05-26
+last_updated: "2026-05-26"
 status: ativo
 lifecycle: ativo
 piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
 piloto_previsao: V0 scaffold 2026-05-11 (PR US-OFICINA-001); V1 importer Martinho Sprint 2+
 cnae_principal: '4520-0/01 (serviços de manutenção e reparação mecânica de veículos automotores)'
 cnaes_cobertos: ['4520-0/01', '2212-9/00', '4581-4/00']
-related_adrs: [0137, 0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0119, 0129]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0137-modules-oficinaauto-qualificada
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 related_proposals: [proposals/gap-repair-vs-oficina-auto.md]
-last_review: 2026-05-26
+last_review: "2026-05-26"
 owners: [W]
 ---
 
