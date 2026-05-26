@@ -9,9 +9,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
-  ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
+  ArrowRightLeft, Banknote, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
-  Factory, FileSearch, FileSpreadsheet, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
+  Factory, FileSearch, FileSpreadsheet, FileText, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LogOut,
   MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
@@ -68,9 +68,12 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'contas de pagamento': Wallet,
   accounting: Calculator, contabilidade: Calculator,
   financeiro: Wallet,
-  // Wagner 2026-05-18: 3 entradas novas top-level KB-9.75 Financeiro.
-  // "Boletos" renomeado pra "Gateway de Pagamento" — ícone CreditCard
-  // (mais inclusivo: Inter boleto + PIX + Asaas futuro).
+  // Wagner 2026-05-26: grupo FINANÇAS = 4 entries flat (Caixa · Cobrança ·
+  // Financeiro · Cobrança Recorrente). Gateway de Pagamento virou ghost da
+  // Cobrança — removido como entry, mantém ícone aqui pra ghost render.
+  caixa: Banknote,
+  'cobrança': HandCoins,
+  cobranca: HandCoins,
   'fluxo de caixa': TrendingUp,
   'dre / relatórios': FileSpreadsheet,
   'gateway de pagamento': CreditCard,
@@ -175,16 +178,25 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     // Wagner 2026-05-25: Oficina Auto MOVE pra COMERCIAL abaixo de Vendas
     // (operação de oficina = atividade comercial, não PRODUÇÃO). Sub-popover
     // legacy (Veículos + Ordens de Serviço) virou ghosts no PageHeader v3.
-    // Companion DataController OficinaAuto.modifyAdminMenu order(31) (entre
-    // Vendas=30 e Catalogue QR=32+).
-    items: ['Crm', 'CRM', 'Vendas', 'Oficina Auto', 'Catalogue QR', 'Catálogo QR',
-            'WooCommerce', 'Woocommerce'],
+    // Wagner 2026-05-26: Catalogue QR + WooCommerce VIRARAM GHOSTS do hub
+    // Vendas (declarados em app/Http/Middleware/AdminSidebarMenu.php no
+    // dropdown __('sale.sale'), attrs `ghosts`). DataControllers
+    // ProductCatalogue + Woocommerce viraram NO-OP no modifyAdminMenu —
+    // canais de venda subordinados ao hub Vendas (overflow [...] PageHeader).
+    items: ['Crm', 'CRM', 'Vendas', 'Oficina Auto'],
   },
   {
     key: 'financas',
     label: 'FINANÇAS',
     // Wagner 2026-05-22: Fiscal SAI de FINANÇAS → vira grupo próprio FISCAL abaixo.
-    items: ['Financeiro'],
+    // Wagner 2026-05-26: 4 entries FLAT canon (Caixa · Cobrança · Financeiro ·
+    // Cobrança Recorrente). Gateway de Pagamento removido como entry (virou
+    // ghost da Cobrança em Modules/Financeiro/Http/Controllers/DataController).
+    // Espelha PR #1541 (Fiscal flat) — substitui 1 entry "Financeiro" + 13 ghosts
+    // por 3 entries semanticamente paralelas no DataController do Financeiro,
+    // mais "Cobrança Recorrente" que vem do RecurringBilling DataController.
+    // Alias 'Financeiro' mantido pra label resolvido do __('financeiro::module_label').
+    items: ['Caixa', 'Cobrança', 'Financeiro', 'Cobrança Recorrente'],
   },
   {
     key: 'fiscal',
@@ -192,9 +204,13 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     // Wagner 2026-05-25: 3 entries flat — Notas Fiscais, Manifestação, Certificado.
     // (Substitui 1 entry "Fiscal" + ghosts PageHeader). Labels legacy mantidos
     // pra compat com módulos não-migrados ainda apontando labels antigos.
+    // Wagner 2026-05-26: label 'Fiscal' REMOVIDO da whitelist — entry "Fiscal"
+    // (cockpit dashboard order 93) foi desligada em Modules/Fiscal/Http/
+    // Controllers/DataController pra eliminar duplicação visual com "Notas
+    // Fiscais" logo abaixo. Rota /fiscal continua ativa via URL direta.
     items: ['Notas Fiscais', 'Manifestação', 'Certificado',
             'Notas fiscais', 'NFSe', 'NF-e Brasil', 'NF-e', 'NFC-e',
-            'Certificado Digital', 'Fiscal'],
+            'Certificado Digital'],
   },
   {
     key: 'producao',

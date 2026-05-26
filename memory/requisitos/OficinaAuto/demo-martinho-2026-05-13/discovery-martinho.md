@@ -32,10 +32,31 @@ Próximo passo técnico: **US-OFICINA-002** (importer `EQUIPAMENTO_VEICULO` → 
 | Stack importer | Python `firebird-driver` + `pymysql` (pattern validado `import-empresas.py` biz=1) |
 | Mode `dry-run` | gera SQL preview em `scripts/legacy-migration/output/` antes de tocar prod |
 
-## Vocabulário Martinho (não confundir)
+## Vocabulário Martinho (CORRIGIDO 2026-05-26 pós-ADR 0194)
 
-Capacidade caçamba = **m³** (volume 3D — 3m³ pequena reforma · 5m³ reforma grande · 7m³ obra média).
-**NÃO** dizer m² (área 2D — isso é Comunicação Visual / gráfica). Wagner pediu memória dura ([dominios-verticais-oimpresso.md §3.3](../../../reference/dominios-verticais-oimpresso.md)).
+> **⚠️ Correção factual (Wagner 2026-05-26 + [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)):** vocabulário original capturado neste discovery 2026-05-13 estava errado por leitura errada do Firebird. **Sub-vertical real do Martinho é 4 — mecânica pesada / autorizada caminhão basculante CNAE 4520** (Capivari de Baixo/SC), NÃO locação caçamba container CNAE 4581 como inferido.
+
+### Vocabulário canon CORRETO (sub-vertical 4 mecânica pesada caminhão basculante)
+
+- **peça hidráulica** — PTO (tomada de força), kit hidráulico, bomba, válvula, mangueira
+- **peça mecânica pesada** — eixo, suspensão pesada, motor diesel, embreagem, freio pneumático
+- **L** — óleo diesel/motor/hidráulico
+- **kg** — graxa
+- **hora-trabalho mecânico** — OS programada (não diária)
+- **catálogo cross-ref** Scania/Volvo/MB/Ford
+- **placa Mercosul** — caminhão de cliente (não frota Martinho)
+
+### Vocabulário sub-vertical 3 hipotético (LOCAÇÃO CONTAINER — sem cliente real ancorado)
+
+> Capacidade caçamba container = **m³** (volume 3D — 3m³ pequena reforma · 5m³ reforma grande · 7m³ obra média). **NÃO** dizer m² (área 2D — Comunicação Visual). Preservado em [dominios-verticais-oimpresso.md §"Sub-vertical 3"](../../../reference/dominios-verticais-oimpresso.md) caso futuro cliente real ancorar essa sub-vertical.
+
+### Correção 2026-05-26 — origem do erro de leitura
+
+- 96% PLACA Firebird = caminhões de clientes que entram pra peça/serviço (caçamba container estacionária NÃO tem placa)
+- Faturamento R$ 1M+/mês compatível com mecânica pesada autorizada · não com locação container ticket R$ 200-500/diária
+- WebSearch 2026-05-26 confirmou: Martinho Caçambas Capivari de Baixo SC vende peça hidráulica pra Polli/munck/plataforma/basculante
+- Entidade do filho — pai (Martinho da Caçamba Tubarão SC) é transportadora resíduo separada, NÃO é cliente oimpresso
+- Cadeia comercial: [Tork PTO (fábrica Capivari)](../../../research/clientes-prospect/tork-tomadas-forca/01-perfil.md) → Martinho (revenda + instala) → frota basculante terceiro
 
 ## Pendente Wagner complementar (quando puder)
 
@@ -53,5 +74,11 @@ Capacidade caçamba = **m³** (volume 3D — 3m³ pequena reforma · 5m³ reform
 - [03-financeiro Martinho](../../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/03-financeiro-2026-05-11.md) — R$ 6.28M receita 12m · 76.7% inadimplência (a investigar inadimplencia-investigacao.md)
 - [legacy-delphi-firebird](../../../reference/legacy-delphi-firebird.md) — credenciais SYSDBA/masterkey + DSN MartinhoServidor
 
+## CHANGELOG
+
+- **2026-05-13** — Criado pós-reunião 10h · Claude (worktree angry-liskov-ec22c0). Discovery completo Martinho biz=164 com vocabulário errado (caçamba avulsa locação m³).
+- **2026-05-26** — Correção §Vocabulário pós-[ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md). Sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520. Adicionada §"Correção 2026-05-26 — origem do erro de leitura" + cadeia comercial Tork PTO prospect.
+
 ---
 **Criado:** 2026-05-13 pós-reunião 10h · Claude (worktree angry-liskov-ec22c0)
+**Última atualização:** 2026-05-26 (correção domínio pós-ADR 0194 · worktree oficinaauto-demo)
