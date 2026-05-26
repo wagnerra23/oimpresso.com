@@ -37,6 +37,7 @@ import VdNfseEmitModal, { type NfseEmitVenda } from './_components/VdNfseEmitMod
 import SaleReciboPrint80mm from './_components/SaleReciboPrint80mm';
 import SaleOrcamentoA4 from './_components/SaleOrcamentoA4';
 import SellsCheatSheet, { SELLS_SHOW_SHORTCUTS } from './_components/SellsCheatSheet';
+import SaleTimeline from './_components/SaleTimeline';
 
 // Modos de impressão KB-9.75 Cowork bundle 2026-05-26 P2 gaps #8 + #9
 type CoworkPrintMode = 'recibo-80mm' | 'orcamento-a4' | null;
@@ -165,6 +166,23 @@ export default function SellsShow(props: SellsShowPageProps) {
   const [printMode, setPrintMode] = useState<CoworkPrintMode>(null);
   // KB-9.75 P3 gap #12 — cheat-sheet overlay '?' (Cowork bundle 2026-05-26).
   const [cheatOpen, setCheatOpen] = useState(false);
+  // P4 parking lot #11 — refresh trigger pro SaleTimeline unified
+  // (incrementa quando VdNextActionPanel/Emit* dispatcham CustomEvents).
+  const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const bump = () => setTimelineRefreshKey((k) => k + 1);
+    const events = [
+      'oimpresso:venda-invoiced',
+      'oimpresso:venda-paid',
+      'oimpresso:venda-emitted-nfe',
+      'oimpresso:venda-emitted-nfse',
+    ];
+    events.forEach((ev) => window.addEventListener(ev, bump));
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, bump));
+    };
+  }, []);
 
   // /sells/{id}/print só responde a AJAX (SellPosController::printInvoice).
   // Render via iframe oculto + CSS legacy (Bootstrap 3 + .print_section) — pattern equivale
@@ -362,7 +380,11 @@ export default function SellsShow(props: SellsShowPageProps) {
 
             {/* Linhas + pagamentos + atividades — deferred */}
             <Deferred data="detail" fallback={<DetailSkeleton />}>
-              <ShowDetailSections detail={props.detail} headline={headline} />
+              <ShowDetailSections
+                detail={props.detail}
+                headline={headline}
+                timelineRefreshKey={timelineRefreshKey}
+              />
             </Deferred>
           </div>
 
@@ -514,9 +536,11 @@ export default function SellsShow(props: SellsShowPageProps) {
 interface ShowDetailSectionsProps {
   detail?: ShowDetail;
   headline: Headline;
+  /** P4 parking lot #11 — bump pro SaleTimeline unified re-fetch. */
+  timelineRefreshKey?: number;
 }
 
-function ShowDetailSections({ detail, headline }: ShowDetailSectionsProps) {
+function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDetailSectionsProps) {
   if (!detail) return <DetailSkeleton />;
 
   return (
@@ -636,27 +660,24 @@ function ShowDetailSections({ detail, headline }: ShowDetailSectionsProps) {
         </section>
       )}
 
-      {/* Atividades */}
-      {detail.activities.length > 0 && (
-        <section className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-muted/30">
-            <h2 className="font-semibold text-sm">Histórico</h2>
-            <span className="ml-auto text-xs text-muted-foreground">
-              {detail.activities.length} evento(s)
-            </span>
-          </div>
-          <div className="divide-y divide-border">
-            {detail.activities.map((a, idx) => (
-              <div key={idx} className="px-5 py-3 text-sm">
-                <div className="text-foreground">{a.description}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">
-                  {a.causer_name} · {formatDateTime(a.created_at)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Histórico unificado — P4 parking lot #11 (FSM + payments + activities
+          + comments + audit num único stream cronológico reverso). */}
+      <section className="rounded-lg border border-border bg-card overflow-hidden sells-cowork-show">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-muted/30">
+          <h2 className="font-semibold text-sm">Histórico</h2>
+          <span className="ml-auto text-xs text-muted-foreground">
+            Todos os eventos (FSM, pagamentos, atividades)
+          </span>
+        </div>
+        <div className="px-5 py-4">
+          <SaleTimeline
+            saleId={headline.id}
+            enabled
+            mode="unified"
+            refreshKey={timelineRefreshKey}
+          />
+        </div>
+      </section>
     </>
   );
 }
