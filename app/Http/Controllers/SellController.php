@@ -947,11 +947,27 @@ class SellController extends Controller
             ? ['name' => trim((string) $topSellerRow->name), 'total' => (float) $topSellerRow->total]
             : null;
 
+        // PR #1666 — PIX hoje (5º KPI Cowork canon). Soma transaction_payments
+        // method='custom_pay_1' (PIX UPOS) onde transação é venda final do dia.
+        // Multi-tenant Tier 0: business_id em transaction_payments + Transaction.
+        $pixHojeTotal = (float) \DB::table('transaction_payments')
+            ->join('transactions', 'transactions.id', '=', 'transaction_payments.transaction_id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final')
+            ->whereNull('transactions.sub_type')
+            ->whereDate('transactions.transaction_date', $today)
+            ->where('transaction_payments.method', 'custom_pay_1')
+            ->sum('transaction_payments.amount');
+
         return [
             'sparkline' => $sparkline,
             'deltaRevenueVsYesterday' => $deltaRevenueVsYesterday,
             'deltaTicketVsLastWeek' => $deltaTicketVsLastWeek,
             'topSeller' => $topSeller,
+            // PR #1666 — 5º KPI PIX hoje (paridade prototipo Cowork)
+            'pixHojeTotal' => $pixHojeTotal,
+            'faturadoHojeTotal' => (float) $revToday,
         ];
     }
 
