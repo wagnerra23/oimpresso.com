@@ -21,6 +21,16 @@
 
     <title data-inertia>{{ config('app.name', 'OI Impresso') }}</title>
 
+    {{-- IBM Plex Sans/Mono — referenciada por sells-cowork.css (e demais
+         cowork bundles). Carregar via <link> aqui porque @import dentro de CSS
+         bundleado é descartado pelo Vite no build de produção, e o fallback
+         system-ui faz a tela parecer "errada" (issue: prod sem fonte
+         enquanto localhost renderiza por IBM Plex estar instalado no SO do
+         dev). --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
     {{-- Anti-flash dark mode. Rodamos ANTES do <body> pintar: se modo=auto, decide
          pela preferência do sistema; senão já veio correto do servidor.
          Sem este script, auto-mode pisca branco → escuro (vira estilo amador). --}}

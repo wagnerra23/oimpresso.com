@@ -11,8 +11,13 @@
  * Importado por resources/css/inertia.css. Ver:
  *  - memory/requisitos/Sells/index-r1-visual-comparison.md
  *  - memory/reference/feedback-design-literal-copy-quando-aprovado.md
+ *
+ * Fontes IBM Plex Sans/Mono são carregadas via <link rel="stylesheet"> no
+ * resources/views/layouts/inertia.blade.php — não via @import aqui. Motivo:
+ * @import de URL externa em CSS bundleado é descartado pelo Vite no build de
+ * produção, fazendo a fonte cair em system-ui em todo browser que não tem
+ * IBM Plex instalado no SO (causava prod "errada" e localhost ok).
  */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 .sells-cowork {
   /* Sidebar dark — espelho AppShell */
   --sb-bg:        oklch(0.21 0 0);
