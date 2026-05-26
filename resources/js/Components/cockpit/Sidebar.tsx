@@ -660,9 +660,16 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
   }
 
   // 5 grupos canon (autorizados) + MAIS fallback no fim (collapse fechado)
+  // PR #1669 — filter MAIS ESTRITO pra evitar grupos órfãos sem anchors:
+  // verifica que grupo tem PELO MENOS 1 item com url+label válidos (não é
+  // header sem destination ou item invisible). Smoke 2026-05-26 17:50 mostrou
+  // FINANÇAS/PRODUÇÃO/ESTOQUE/RH como labels SEM children renderizados —
+  // grupos eram populated com items que SidebarMenuItem ignorava (url vazia).
+  const hasVisibleItem = (items: ShellMenuItem[] | undefined): boolean =>
+    !!items && items.some((it) => Boolean(it.href) && Boolean(it.label));
   const groupsToRender = [
-    ...SIDEBAR_GROUPS.filter((g) => groupedItems[g.key]?.length),
-    ...(groupedItems.mais?.length
+    ...SIDEBAR_GROUPS.filter((g) => hasVisibleItem(groupedItems[g.key])),
+    ...(hasVisibleItem(groupedItems.mais)
       ? [{ key: 'mais', label: 'MAIS', items: [] }]
       : []),
   ];
