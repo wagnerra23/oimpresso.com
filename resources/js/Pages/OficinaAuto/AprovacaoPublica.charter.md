@@ -4,9 +4,13 @@ status: draft
 owner: '[W]'
 related_us: US-OFICINA-006
 created: 2026-05-16
+last_review: 2026-05-26
+related_adrs: [0093, 0094, 0143, 0171, 0192, 0194]
 ---
 
 # Charter — Aprovação Pública OS (PIN via WhatsApp)
+
+> **Contexto sub-vertical 4 ([ADR 0194](../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** aplicável principalmente pra OS de **mecânica pesada caminhão basculante** (sub-vertical 4 Martinho LIVE prod biz=164) onde cliente terceiro precisa aprovar orçamento de peça hidráulica / hora-trabalho antes de execução. Não específico de locação — schema OS é genérico (manutencao OR locacao preservado nullable). Add-on faturável WhatsApp R$ [redacted Tier 0]/instância beta 30d ([ADR 0171](../../../../memory/decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md)).
 
 ## Mission
 

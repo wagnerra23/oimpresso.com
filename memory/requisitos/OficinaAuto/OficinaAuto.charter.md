@@ -2,21 +2,29 @@
 module: OficinaAuto
 charter_type: module
 status: ativo
-lifecycle: em-construcao
-piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis)
-last_review: 2026-05-11
+lifecycle: piloto
+piloto: Martinho Caçambas LTDA biz=164 Capivari de Baixo SC LIVE prod 2026-05-13 (sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520) + Vargas V1 (sub-vertical 2 recapagem CNAE 2212)
+last_review: 2026-05-26
 owner: wagner
 parent_adr: 0137
-related_adrs: [0011, 0093, 0094, 0105, 0121, 0129, 0137]
+related_adrs: [0011, 0093, 0094, 0105, 0121, 0129, 0137, 0143, 0171, 0192, 0194]
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Module Charter — Modules/OficinaAuto
 
-> **Status atualizado 2026-05-11** ([ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md)): charter migrou de `proposto/feature-wish` (v1) pra `ativo/em-construcao` (v2). Sinal qualificado materializado: Vargas (recapagem caçamba, 1.064 veículos, multi-placa 20%) + Martinho (caçambas avulsas, 91 veículos, placa única 96%). V0 scaffold em curso — Vehicle + ServiceOrder CRUD multi-tenant Tier 0.
+> **Status atualizado 2026-05-26** (charter_version 3): lifecycle migrou de `em-construcao` (v2) pra **`piloto`** (v3) após [ADR 0171](../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md) ativação formal Martinho biz=164 (2026-05-20) + 91 vehicles + 44k vendas + 103k títulos LIVE prod desde 2026-05-13.
 >
-> Reusa convenções da [Vestuario.charter.md](../Vestuario/Vestuario.charter.md) (template canônico ADR 0121) e antecipa que a infra de OS será compartilhada com `Modules/Repair` após o refactor Caminho A do audit F29 (extração de `RepairCore` reutilizável).
+> **Correção domínio Martinho ([ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** entendimento original em [ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md) classificou Martinho como "caçambas avulsas estacionárias" (sub-vertical 3 hipotético locação CNAE 4581). Realidade descoberta 2026-05-26: Martinho é **sub-vertical 4 mecânica pesada / autorizada caminhão basculante CNAE 4520** (Capivari de Baixo/SC). Vocabulário correto: peça hidráulica · PTO · kit hidráulico · hora-trabalho. Schema `daily_rate`/`expected_return_date` preservado nullable como sub-vertical 3 hipotético sem cliente real ancorado.
+>
+> Sinais qualificados materializados (2 distintos · ADR 0137 amendado por 0194):
+> - **Sub-vertical 4 — Martinho LIVE prod biz=164** (mecânica pesada caminhão basculante · 91 placas de CLIENTES · 44.7k vendas · 103k títulos · R$ [redacted Tier 0]M+/mês estimado · ativado ADR 0171 2026-05-20)
+> - **Sub-vertical 2 — Vargas V1** (recapagem pneu caçamba caminhão · 1.064 veículos · multi-placa 20%)
+>
+> FSM canon LIVE prod 2026-05-20 ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) gaps tríade #1+#2+#3 PRs #1195/#1203/#1205 · estado-da-arte 80/100). Auto-faturar OS→Venda LIVE prod 2026-05-25 ([ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) ext). NFSe Caminho A fix LIVE 2026-05-26 PR #1597.
+>
+> Reusa convenções da [Vestuario.charter.md](../Vestuario/Vestuario.charter.md) (template canônico ADR 0121). Infra de OS compartilhada com `Modules/Repair` via componente shared `@/Components/shared/VendaDerivadaCard.tsx` (Onda 7 PR #1534) — refactor `RepairCore` audit F29 não mais bloqueador pós-ADR 0192 ext.
 >
 > Charter de **módulo inteiro** (não de página). Diferente de `*.charter.md` ao lado de `.tsx`. Aqui o objeto governado é o módulo vertical inteiro do oimpresso conforme [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md).
 
@@ -24,7 +32,7 @@ charter_version: 2
 
 ## 1. Mission (1 frase)
 
-Add-on vertical de oficina mecânica automotiva sobre o núcleo oimpresso — entrega Ordem de Serviço por placa+km, tabela tempária Sindirepa, checklist de diagnóstico padronizado, integração CRLV/DETRAN e comissão por OS pro fluxo realista de oficina independente brasileira.
+Add-on vertical de oficina mecânica automotiva sobre o núcleo oimpresso, **focada em sub-vertical 4 mecânica pesada caminhão basculante (CNAE 4520 · Martinho LIVE prod) + sub-vertical 2 recapagem (CNAE 2212 · Vargas V1)** — entrega Ordem de Serviço por placa+km com catálogo peça hidráulica cross-ref por modelo Scania/Volvo/MB/Ford, hora-trabalho mecânico, checklist de diagnóstico padronizado, integração CRLV/DETRAN sob opt-in, comissão por OS, e diferencial UX placa Mercosul visual + Kanban Producao Oficina (feedback positivo Martinho 2026-05-26).
 
 ---
 
@@ -185,10 +193,10 @@ Segue lifecycle canon de módulo vertical ([ADR 0121](../../decisions/0121-oimpr
 
 | Estado | Critério | Hoje |
 |---|---|---|
-| `proposto` (`feature-wish`) | ADR feature-wish, sem código | ✅ **AQUI** (sem piloto) |
-| `em_construcao` | 1 cliente piloto pagante + 6 features mínimas em desenvolvimento ativo | aguardando gatilho |
-| `piloto` | 1 cliente real pagando, MVP rodando em prod | - |
-| `ativo` | 3+ clientes pagantes, módulo formal `Modules/OficinaAuto/` | - |
+| `proposto` (`feature-wish`) | ADR feature-wish, sem código | — passado |
+| `em_construcao` | 1 cliente piloto pagante + 6 features mínimas em desenvolvimento ativo | — passado |
+| `piloto` | 1 cliente real pagando, MVP rodando em prod | ✅ **AQUI** (Martinho biz=164 LIVE prod 2026-05-13 + ADR 0171 ativação 2026-05-20 · canary 7d em andamento) |
+| `ativo` | 3+ clientes pagantes, módulo formal `Modules/OficinaAuto/` | aguardando 2 pilotos adicionais (Vargas V1 + 1 dos 6 OfficeImpresso saudáveis: Extreme/Gold/Zoom/Fixar/Mhundo/Produart) |
 | `maduro` | 10+ clientes, benchmark setorial via Jana | - |
 | `historical` | <2 clientes ativos / 12m | - |
 
@@ -224,3 +232,5 @@ ADR amendment + comunicação 90d + read-only legacy.
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-10 | Opus + Wagner | Charter inicial **antecipatória** — segundo módulo vertical formalizado pós-Vestuario template canônico ([ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)). Status `proposto` / lifecycle `feature-wish` — **sem piloto pagante**, sem código. Documenta hipótese de produto + gatilho explícito de promoção. Reuso planejado de `RepairCore` (audit F29 Caminho A bloqueador). |
+| 2026-05-11 | Wagner | charter_version 2 — `ativo/em-construcao` pós-ADR 0137 qualificação (Vargas + Martinho sinais OfficeImpresso). V0 scaffold PR #556. |
+| 2026-05-26 | Claude + Wagner | **charter_version 3** — lifecycle `em-construcao` → `piloto` pós-ADR 0171 ativação Martinho formal (2026-05-20) + LIVE prod desde 2026-05-13 + correção domínio [ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md). Mission reescrita pra refletir sub-vertical 4 mecânica pesada (não locação caçamba). related_adrs += 0094, 0143, 0171, 0192, 0194. RepairCore audit F29 desbloqueado via componente shared `@/Components/shared/VendaDerivadaCard.tsx` Onda 7 PR #1534. |
