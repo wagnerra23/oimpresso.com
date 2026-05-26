@@ -6,7 +6,7 @@ contains:
   - "InstallController"
   - "ProducaoOficinaController"
   - "Public/AprovacaoOsController — endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
-  - "ServiceOrderController"
+  - "ServiceOrderController — CRUD + printInvoice (Gap 3 US-OFICINA-037 · GET /ordens-servico/{order}/print AJAX-only · A4 nota-fiscal-like papel-balcão Martinho sub-vertical 4 CNAE 4520 · ADR 0194)."
   - "ServiceOrderItemController — CRUD HTTP de items lançados na OS (peça/mão-obra/serviço terceiro). Wave 1.3 US-OFICINA-027 — alimenta drawer ServiceOrderRichSheet seção PEÇAS & MÃO DE OBRA + Observer ::computeFinalTotal."
   - "DviInspectionController — CRUD HTTP de items DVI (Vistoria Digital · semáforo ok/atenção/crítico). Wave 3 US-OFICINA-035 — wedge competitivo vs RepairShopr/mHelpDesk."
   - "VehicleController"
