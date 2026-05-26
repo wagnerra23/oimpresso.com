@@ -208,3 +208,47 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 - [ADR 0081](../../decisions/0081-identity-mesh-mcp-actors.md) — Identity Mesh `mcp_actors` (ActorResolver consumido por ActionGate)
 - [ADR 0084](../../decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md) — Trigger imutabilidade `mcp_audit_log`
 - [RUNBOOK Module Grades](RUNBOOK-module-grades.md) — receita operacional da tela
+
+## Onda Audit Sênior 2026-05-25
+
+> Origem: [`memory/requisitos/Compras/AUDIT-SENIOR-2026-05-25.md`](../Compras/AUDIT-SENIOR-2026-05-25.md) + [`memory/requisitos/Jana/AUDIT-SENIOR-2026-05-25.md`](../Jana/AUDIT-SENIOR-2026-05-25.md). 2 achados transversais que afetam ranking module-grade do projeto inteiro.
+> Bypass MCP `tasks-create` (mcp_jira_projects ainda não tem entry "Governance") — webhook sincroniza no próximo push.
+
+### US-GOV-011 · [ROI alto] Carregar extension OTel no Herd dev (+2-3pp em 36 módulos D9)
+
+> owner: — · priority: p0 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Sintoma:** `opentelemetry-auto-laravel` instalado via composer mas extension **não carrega no Herd dev** — warning explícito na 1ª linha de `module:grade`:
+> Warning: The opentelemetry extension must be loaded in order to autoload the OpenTelemetry Laravel auto-instrumentation in vendor/open-telemetry/opentelemetry-auto-laravel/_register.php on line 13
+
+**Impacto:** D9.b Observability afetada em **TODOS os 36 módulos** do projeto. Eleva média projeto +2-3pp com 0.5h IA-pair.
+
+**Acceptance:**
+- [ ] Adicionar `extension=opentelemetry` no php.ini do Herd Windows
+- [ ] Verificar `php -m | grep opentelemetry` retorna OK
+- [ ] Re-rodar `php artisan module:grade --all` — sem warning
+- [ ] Documentar no `memory/reference/herd-setup.md`
+
+**ROI:** MAIOR do projeto inteiro (0.5h IA-pair → +2-3pp média 36 módulos)
+**Refs:** Compras/AUDIT-SENIOR-2026-05-25.md (Surpresa Estratégica)
+
+### US-GOV-012 · Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real)
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Sintoma:** `module:grade Jana` hoje devolve **71/100** (D1 MT 15/30, D7 LGPD 6/10). Realidade canon via BRIEFING Wave 25 + Pest enforcement = **96/100** (D1 SATURATED, D7 SATURATED Wave 18).
+
+**Evidência:** 607 linhas Pest multi-tenant + LgpdComplianceTest 179 linhas + 14 Models com HasBusinessScope + 12+ com BelongsToBusinessViaParent + 8 SATURATION markers explícitos. Mas grade engine NÃO reconhece.
+
+**Implicação:** rubrica module-grade-v3 (ADR 0155) tem bug nos scorers que afeta confiança no batch markdown gerado pra Wagner aprovar/rejeitar batch. Pode estar subestimando outros módulos também.
+
+**Acceptance:**
+- [ ] Debugar `ScopedScorecardEvaluator` (Modules/Governance)
+- [ ] Identificar por que SATURATION markers Wave 25 não contam
+- [ ] Verificar se afeta Crm 88, Financeiro 82, Governance 89 (outros high-scoring)
+- [ ] Fix scorer + re-baseline `governance/module-grades-baseline.json`
+- [ ] Pest cobre: SATURATION marker reconhecido em ≥3 Models
+
+**Refs:** Jana/AUDIT-SENIOR-2026-05-25.md (Reconciliação §1.1), ADR 0155 (module-grade-v3)
