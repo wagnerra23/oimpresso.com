@@ -665,6 +665,18 @@
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/ServiceOrderRichSheet.tsx": {
             "R1": 33
         },
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderItemFormSheet.tsx": {
+            "R1": 8
+        },
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderItemRow.tsx": {
+            "R1": 4
+        },
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Edit.tsx": {
+            "R1": 4
+        },
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Show.tsx": {
+            "R1": 5
+        },
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/DragConfirmDialog.tsx": {
             "R1": 19
         },

@@ -3,11 +3,20 @@ page: /oficina-auto/service-orders/{id}
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-26
+last_validated: "2026-05-26"
 parent_module: OficinaAuto
-related_adrs: [0137, 0143, 0110, 0093, 0171, 0192, 0194]
+related_adrs:
+  - 0137-modules-oficinaauto-qualificada
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0110-tipografia-canon-h1-subtitle
+  - 0093-multi-tenant-isolation-tier-0
+  - 0171-oficinaauto-ativacao-piloto-martinho-faseada
+  - 0179-cliente-drawer-760px-substitui-show-fullpage
+  - 0190-primary-button-roxo-universal-295
+  - 0192-auto-faturar-os-venda-jobsheet-observer
+  - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Page Charter — /oficina-auto/service-orders/{id}
@@ -28,6 +37,7 @@ Tela única-fonte-da-verdade sobre 1 OS — mecânico/atendente acompanha estado
 - **Timeline** append-only de `sale_stage_history` (transição, ator, timestamp, side-effects)
 - Locação: card "Valor a receber" = daily_rate × dias_locacao (accessor `valor_receber`) + flag `is_overdue` vermelho se atrasada
 - Manutenção complexa: lista itens (peças + serviços) com subtotal
+- **Wave 5 US-OFICINA-005-bis (2026-05-26):** seção inline "Itens da OS" com hover-row Editar/Excluir + CTA "Adicionar item" (PageHeaderPrimary roxo 295 ADR 0190) abre Sheet lateral 480px com form radio(tipo)+descrição+qty+valor+total client-side. Optimistic UI nos save/delete. Backend consome `ServiceOrderItemController` (PR #1624)
 - Multi-tenant Tier 0 — 404 se OS de outro business
 - Inertia::defer em items aggregated + timeline > 20 entries
 

@@ -467,8 +467,25 @@ class ServiceOrderController extends Controller
             ]);
         }
 
+        // Wave 5 US-OFICINA-005-bis — Show.tsx seção "Itens da OS" consome
+        // `order.items[]` (peças + mão-obra + terceiros). Items já foram eager-loaded
+        // acima (linha `$order->load([..., 'items', ...])`); aqui só serializamos
+        // o shape consumido pelo frontend (mesmo formato do JSON branch).
+        $itemsPayload = $order->items->map(fn ($item) => [
+            'id'             => $item->id,
+            'tipo'           => $item->tipo,
+            'descricao'      => $item->descricao,
+            'quantidade'     => (float) $item->quantidade,
+            'valor_unitario' => (float) $item->valor_unitario,
+            'valor_total'    => (float) $item->valor_total,
+            'product_id'     => $item->product_id,
+            'notes'          => $item->notes,
+        ])->values()->all();
+
         return Inertia::render('OficinaAuto/ServiceOrders/Show', [
-            'order' => $order,
+            'order' => array_merge($order->toArray(), [
+                'items' => $itemsPayload,
+            ]),
         ]);
     }
 
@@ -482,8 +499,25 @@ class ServiceOrderController extends Controller
             ->limit(500)
             ->get(['id', 'plate', 'secondary_plate', 'vehicle_type']);
 
+        // Wave 5 US-OFICINA-005-bis — Edit.tsx tem seção inline "Itens da OS" idêntica
+        // ao Show.tsx. Eager-load items + serializa shape consumido pelo componente
+        // compartilhado ServiceOrderItemRow.
+        $order->load('items');
+        $itemsPayload = $order->items->map(fn ($item) => [
+            'id'             => $item->id,
+            'tipo'           => $item->tipo,
+            'descricao'      => $item->descricao,
+            'quantidade'     => (float) $item->quantidade,
+            'valor_unitario' => (float) $item->valor_unitario,
+            'valor_total'    => (float) $item->valor_total,
+            'product_id'     => $item->product_id,
+            'notes'          => $item->notes,
+        ])->values()->all();
+
         return Inertia::render('OficinaAuto/ServiceOrders/Edit', [
-            'order'    => $order,
+            'order'    => array_merge($order->toArray(), [
+                'items' => $itemsPayload,
+            ]),
             'vehicles' => $vehicles,
             'statuses' => self::statuses(),
         ]);
