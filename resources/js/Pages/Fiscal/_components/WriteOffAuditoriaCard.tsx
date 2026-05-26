@@ -53,7 +53,7 @@ export default function WriteOffAuditoriaCard({ summary, onReview }: WriteOffAud
           className="fx-btn ghost"
           onClick={onReview}
           disabled={!onReview}
-          title={onReview ? 'Abrir drawer pra revisar candidatos' : 'Wire-up no PR seguinte'}
+          title={onReview ? 'Abrir lista pra revisar candidatos' : 'Em breve'}
         >
           <TrendingDown size={12} /> Revisar
         </button>
