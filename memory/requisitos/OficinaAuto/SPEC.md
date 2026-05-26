@@ -1,6 +1,8 @@
 ---
 module: OficinaAuto
-status: em-construcao
+version: 0.1.0
+last_updated: 2026-05-26
+status: ativo
 lifecycle: ativo
 piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
 piloto_previsao: V0 scaffold 2026-05-11 (PR US-OFICINA-001); V1 importer Martinho Sprint 2+
@@ -9,12 +11,16 @@ cnaes_cobertos: ["4520-0/01", "2212-9/00", "4581-4/00"]
 related_adrs: [0137, 0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0119, 0129]
 related_proposals: [proposals/gap-repair-vs-oficina-auto.md]
 last_review: 2026-05-26
-owner: [W]
+owners: [W]
 ---
 
 # Especificação funcional — Modules/OficinaAuto
 
 > ⚠️ **STATUS ATUALIZADO 2026-05-11** — [ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (`amends` 0121) qualifica `Modules/OficinaAuto` como **em construção** baseado em sinal qualificado (Vargas + Martinho — 50% sample OfficeImpresso saudável). Seções §1-§13 abaixo são do SPEC antecipatório original (2026-05-10) — preservadas como contexto estratégico (concorrentes, posicionamento, pricing). A tabela de US **ativas** é a §V0 logo abaixo. Esquema técnico canônico está em ADR 0137 §"Escopo arquitetural V0".
+
+## US ativas
+
+Ver §V0 logo abaixo — convenção `US-OFICINA-NNN` ([ADR 0134](../../decisions/0134-tasks-create-respeita-spec-placeholders.md)).
 
 ## V0 — Scaffold ativo (US-OFICINA-NNN)
 

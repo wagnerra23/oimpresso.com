@@ -7,6 +7,7 @@ contains:
   - "ProducaoOficinaController"
   - "Public/AprovacaoOsController — endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
   - "ServiceOrderController"
+  - "DviInspectionController — CRUD HTTP de items DVI (Vistoria Digital · semáforo ok/atenção/crítico). Wave 3 US-OFICINA-035 — wedge competitivo vs RepairShopr/mHelpDesk."
   - "VehicleController"
   - "ServiceOrderFsmActionController (app/Http/Controllers — shared FSM canon, espelha SaleFsmActionController)"
 not_contains:
