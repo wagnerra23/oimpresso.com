@@ -2,13 +2,19 @@
 lifecycle: active
 owner: [W]
 module: Governance
-status: aceito
+status: ativo
 authority: canonical
 version: "1.0"
-last_updated: 2026-05-25
+last_updated: "2026-05-25"
 created_at: 2026-05-16
 updated_at: 2026-05-25
-related_adrs: [0086, 0094, 0101, 0147, 0153, 0154]
+related_adrs:
+  - "0086-fase-5-mvp-governance-actiongate-warn"
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0101-sistema-charter-capterra-governanca-escopo"
+  - "0147-cascade-review-defesa-drift-time-mcp"
+  - "0153-module-grade-rubrica-v1"
+  - "0154-module-grade-v2-na-justificado"
 parent_charter: mission.constituicao-v2
 tags: [governance, enforcement, actiongate, audit, policies, module-grade]
 pii: false
