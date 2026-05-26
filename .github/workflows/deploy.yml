@@ -117,7 +117,7 @@ jobs:
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -20 &&
             echo '=== dump-autoload force ===' &&
-            composer dump-autoload -o --classmap-authoritative --no-interaction --ignore-platform-req=ext-opentelemetry 2>&1 | tail -10
+            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -10
           "
 
       - name: Artisan migrate (se necessário)
