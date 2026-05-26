@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -135,6 +136,38 @@ class ServiceOrder extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(\App\Contact::class, 'contact_id');
+    }
+
+    /**
+     * Itens DVI (Vistoria Digital) — Wave 3 US-OFICINA-035.
+     *
+     * Global scope multi-tenant em OaInspectionItem garante isolamento Tier 0.
+     * Eager-load em show JSON quando UI Wave 3b consumir.
+     */
+    public function dviInspectionItems(): HasMany
+    {
+        return $this->hasMany(OaInspectionItem::class, 'service_order_id');
+    }
+
+    /**
+     * Breakdown DVI agregado pra UI card (8 ok · 2 atenção · 1 crítico + R$ total).
+     *
+     * Accessor evita re-execução de queries quando frontend lê duas vezes.
+     * NÃO eager pra evitar N+1 — usar explicitamente $order->dvi_breakdown depois
+     * de $order->load('dviInspectionItems') OU chamar DviInspectionService::breakdownPorSeverity.
+     *
+     * @return array{ok:int, atencao:int, critico:int, total_recomendado:float}
+     */
+    public function getDviBreakdownAttribute(): array
+    {
+        $items = $this->dviInspectionItems;
+
+        return [
+            'ok'                => $items->where('severity', 'ok')->count(),
+            'atencao'           => $items->where('severity', 'atencao')->count(),
+            'critico'           => $items->where('severity', 'critico')->count(),
+            'total_recomendado' => (float) $items->whereIn('severity', ['atencao', 'critico'])->sum('valor_recomendado'),
+        ];
     }
 
     // ------------------------------------------------------------------

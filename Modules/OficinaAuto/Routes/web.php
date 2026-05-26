@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ServiceOrderFsmActionController;
 use Illuminate\Support\Facades\Route;
+use Modules\OficinaAuto\Http\Controllers\DviInspectionController;
 use Modules\OficinaAuto\Http\Controllers\InstallController;
 use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
 use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
@@ -108,6 +109,26 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('service-orders/{order}/history',
             [ServiceOrderFsmActionController::class, 'history'])
             ->name('oficinaauto.service_orders.history');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Wave 3 — DVI (Vistoria Digital) US-OFICINA-035.
+        // CAPTERRA-FICHA Repair gap #3 — wedge competitivo vs RepairShopr/mHelpDesk.
+        // UI consumirá via fetch JSON em Wave 3b (depende drawer ServiceOrderRichSheet PR #1624).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::post('ordens-servico/{order}/dvi',
+            [DviInspectionController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.store');
+
+        Route::put('ordens-servico/{order}/dvi/{item}',
+            [DviInspectionController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.update');
+
+        Route::delete('ordens-servico/{order}/dvi/{item}',
+            [DviInspectionController::class, 'destroy'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.destroy');
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
