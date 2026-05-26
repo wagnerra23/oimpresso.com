@@ -112,16 +112,26 @@ export default function DrawerBase({
     // Salva elemento ativo antes de focar dentro do drawer
     previousFocusRef.current = document.activeElement as HTMLElement | null;
 
-    // Foca primeiro focusable do drawer (ou o próprio aside como fallback)
+    // Foca primeiro focusable do drawer (ou o próprio aside como fallback).
+    // Double-RAF é necessário pq alguns triggers (button chip do PageHeader)
+    // mantêm foco após click via React commit tardio. Single RAF é cancelado
+    // por esse commit; double-RAF espera 2 paints e garante que aplique após
+    // toda a cascata de re-render.
     const aside = asideRef.current;
     if (aside) {
       const firstFocusable = aside.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
-      // requestAnimationFrame garante que o foco aplique após render completo
-      const raf = requestAnimationFrame(() => {
-        (firstFocusable ?? aside).focus({ preventScroll: true });
+      // Tira foco do trigger imediatamente — evita race com React focus-restore
+      previousFocusRef.current?.blur?.();
+      let raf1 = 0;
+      let raf2 = 0;
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => {
+          (firstFocusable ?? aside).focus({ preventScroll: true });
+        });
       });
       return () => {
-        cancelAnimationFrame(raf);
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
         // Cleanup ao fechar: restaura foco anterior (se ainda no DOM e visível)
         const prev = previousFocusRef.current;
         if (prev && document.body.contains(prev)) {
