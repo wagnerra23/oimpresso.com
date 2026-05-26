@@ -20,12 +20,14 @@
 - [infra-rede-empresa.md](infra-rede-empresa.md) — TP-Link 192.168.0.1, IP público 177.74.67.30, DHCP reservas, 16 port forwards, Issabel VoIP CentOS 7 EOL
 - [vaultwarden-credenciais.md](vaultwarden-credenciais.md) — vault.oimpresso.com self-hosted, fonte canônica de TODAS senhas/tokens infra
 - [local-dev-setup.md](local-dev-setup.md) — Herd 8.4 + MySQL Laragon + worktrees
+- [gotcha-worktree-junction-vendor-rm.md](gotcha-worktree-junction-vendor-rm.md) — **Pegadinha 2026-05-26:** `git worktree remove --force` segue `mklink /J` e deleta vendor real. Prevenção: remover junção antes do worktree remove. Recovery: `composer install` ~5min
 
 ## Stack & integração
 
 - [ultimatepos-integracao.md](ultimatepos-integracao.md) — DataController hooks, multi-tenant via session, tabelas core, FK business.id é unsignedInteger, DataTables locale, payload SellPosController@store, events
 - [financeiro-integracao.md](financeiro-integracao.md) — Hooks DataController + Observer Transaction + retro-vínculo transaction_payment; tela unificada US-FIN-013
 - [modules-cms-landing.md](modules-cms-landing.md) — Modules/Cms = landing/blog do oimpresso.com (ausente no worktree, vive em produção)
+- [pattern-sidebar-ghost-no-op-modify-admin-menu.md](pattern-sidebar-ghost-no-op-modify-admin-menu.md) — Pattern emergente Wagner 2026-05-26: módulo X vira ghost de hub Y → DataController.modifyAdminMenu vira NO-OP, hub Y ganha ghost via attribute. 4 aplicações catalogadas (PaymentGateway/ProductCatalogue/Woocommerce/Fiscal cockpit)
 
 ## MCP & Jana
 
