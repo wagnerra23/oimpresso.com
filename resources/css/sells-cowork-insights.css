@@ -48,8 +48,11 @@
 }
 
 .sells-cowork .vd-tabs-mode-btn .vd-tabs-mode-ic {
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
   line-height: 1;
+  color: currentColor;
 }
 
 /* ============================================================
@@ -233,8 +236,18 @@
   gap: 10px;
 }
 
+/* Card icon · Linear-style tile (subtle muted bg + monochrome icon centered).
+   Substitui emoji direto por lucide React via container squared 32x32. */
 .sells-cowork .vd-insights-card-ic {
-  font-size: 18px;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: oklch(0.96 0.005 250);
+  color: oklch(0.40 0.008 250);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
 }
 
@@ -628,9 +641,18 @@
   margin-bottom: 4px;
 }
 
+/* KPI icon · Linear-style compact tile (22x22 subtle bg + monochrome icon).
+   Antes era emoji direto via font-size · agora hospeda lucide React. */
 .sells-cowork .vd-insights-kpi-ic {
-  font-size: 14px;
-  opacity: 0.85;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: oklch(0.96 0.005 250);
+  color: oklch(0.45 0.008 250);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .sells-cowork .vd-insights-kpi-v {
@@ -675,8 +697,13 @@
   gap: 7px;
 }
 
+/* H2 separator icon · inline neutral muted matching h2 text color. */
 .sells-cowork .vd-insights-h2-ic {
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  color: oklch(0.55 0.01 250);
+  line-height: 1;
 }
 
 /* Sparkline range labels (D-N → hoje) */
