@@ -36,6 +36,10 @@ class NfeFiscalRule extends Model
         'aliquota_icms', 'aliquota_pis', 'aliquota_cofins', 'aliquota_ipi',
         'mva', 'fcp',
         'metadata',
+        // GAP-FISCAL-004 / US-FISCAL-021 — Reforma Tributária NT 2025.002
+        // Migration 2026_05_26_000001_add_ibs_cbs_to_nfe_fiscal_rules
+        'c_class_trib', 'cst_ibs', 'cst_cbs',
+        'aliquota_ibs', 'aliquota_cbs',
     ];
 
     protected $casts = [
@@ -43,6 +47,8 @@ class NfeFiscalRule extends Model
         'aliquota_pis'    => 'float',
         'aliquota_cofins' => 'float',
         'aliquota_ipi'    => 'float',
+        'aliquota_ibs'    => 'float',
+        'aliquota_cbs'    => 'float',
         'mva'             => 'float',
         'fcp'             => 'float',
         'metadata'        => 'array',

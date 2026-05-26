@@ -3,16 +3,18 @@ page: /oficina-auto/producao
 component: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: 2026-05-26
 parent_module: OficinaAuto
-related_adrs: [0137, 0143, 0110, 0114]
+related_adrs: [0137, 0143, 0110, 0114, 0171, 0192, 0194]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /oficina-auto/producao
 
 > **Status:** live (V0). Kanban operacional drag-drop de OS em produção — replica pré-arte Delphi WR_KANBAN.
+>
+> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** Martinho biz=164 LIVE prod usa sub-vertical 4 (mecânica pesada caminhão basculante) com fluxo Simples 3-estado. **Feedback Martinho 2026-05-26 "placa Mercosul + design Oficina ficou top"** — diferencial UX. Flag `is_overdue` aplica primariamente pra schema sub-vertical 3 hipotético (locação container) preservado nullable; em OS de mecânica pesada o conceito é `expected_completion > now()`.
 
 ## Mission
 

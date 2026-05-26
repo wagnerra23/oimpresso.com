@@ -24,7 +24,7 @@ Tudo + **5 ações fiscais SEFAZ** (Cancelar, Manifestar, CC-e, Inutilizar, Retr
 - **Wagner** — emissão, cancelamento, retransmissão (operações live)
 - **Eliana (contadora)** — leitura, conferência, SPED Fiscal mensal entrega dia 15
 
-Não tem cliente biz=4 (Larissa ROTA LIVRE) tocando esse módulo ainda — usa Sells/NfeBrasil canônico diretamente. Quando ativar Fiscal cockpit pra biz=4, **Tier 0 IRREVOGÁVEL:** tests SEMPRE biz=1, NUNCA biz=4 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
+**Larissa ROTA LIVRE biz=4 em pre-canary** (US-FISCAL-018 Onda ESTABILIZAR 2026-05-25 — audit sênior §GAP-FISCAL-001): provisionamento técnico ok (`php artisan fiscal:habilitar-business 4` idempotente — 6 perms `fiscal.*` ao role Admin#4 EXCETO `fiscal.sped.export` que fica bloqueada por feature flag `fiscal.sped_simples_only_lock=true` enquanto GAP-FISCAL-003 não eliminar 6 hardcodes Tier-0 em SpedIcmsIpiGeneratorService). Briefing manual 30min + canary 7d humano-limitado pending Wagner. Post-canary Wagner promove `module_clients.yaml` Fiscal de `piloto_reportando_dor` -> `biz_4_rota_livre_prod`. **Tier 0 IRREVOGÁVEL:** tests SEMPRE biz=1, NUNCA biz=4 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
 
 ## Capacidades canônicas
 
