@@ -21,7 +21,7 @@ sample: 4 candidatos pre-qualificados pela analise heatmap UI v2 (2026-05-11)
 | 1 | [`Cliente_874398`](02-vargas-recapagem/03-financeiro-2026-05-11.md) | recapagem caminhao | R$ [redacted Tier 0] M | + R$ [redacted Tier 0] M | R$ [redacted Tier 0] M | R$ [redacted Tier 0] M | R$ [redacted Tier 0] | 0 | 🟡 2 |
 | 2 | [`Cliente_6928E8`](03-extreme-grafica/03-financeiro-2026-05-11.md) | grafica industrial PCP | R$ [redacted Tier 0] M | + R$ [redacted Tier 0] M | R$ [redacted Tier 0] M | R$ [redacted Tier 0] M | R$ [redacted Tier 0] | 0 | 🟡 3 |
 | 3 | [`Cliente_09FEB1`](04-gold-comvis/03-financeiro-2026-05-11.md) | comunicacao visual | R$ [redacted Tier 0] M | **- R$ [redacted Tier 0] M** | R$ [redacted Tier 0] M | R$ [redacted Tier 0] M | R$ [redacted Tier 0] | 0 | 🔴 3 |
-| 4 | [`Cliente_731814`](05-martinho-cacambas/03-financeiro-2026-05-11.md) | cacambas avulsas | R$ [redacted Tier 0] M | + R$ [redacted Tier 0] M | **R$ [redacted Tier 0] M** | R$ [redacted Tier 0] M | R$ [redacted Tier 0] | 0 | 🔴 2 |
+| 4 | [`Cliente_731814`](05-martinho-cacambas/03-financeiro-2026-05-11.md) | mecanica pesada caminhao basculante (ADR 0194) | R$ [redacted Tier 0] M | + R$ [redacted Tier 0] M | **R$ [redacted Tier 0] M** | R$ [redacted Tier 0] M | R$ [redacted Tier 0] | 0 | 🔴 2 |
 
 **Total agregado:** receita combinada 12m ≈ R$ [redacted Tier 0] M · resultado combinado ≈ + R$ [redacted Tier 0] M (com 1 cliente em deficit).
 
@@ -95,7 +95,7 @@ Todos os 4: `sem_mrr` — operacao puramente transacional (sem recurring). Nao e
 
 ### Tier B (atencao financeira) — abordar com plano de saude antes
 
-**4. `Cliente_731814` (Martinho — cacambas avulsas)**
+**4. `Cliente_731814` (Martinho — mecanica pesada caminhao basculante · sub-vertical 4 CNAE 4520 · correcao ADR 0194; pre-correcao dizia "cacambas avulsas")**
 - Receita 12m: R$ [redacted Tier 0] M
 - Resultado: + R$ [redacted Tier 0] M (aparente lucro)
 - **MAS** inadimplencia critica: R$ [redacted Tier 0] M em titulos vencidos = **76.7% da receita anual**

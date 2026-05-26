@@ -12,7 +12,7 @@
 - **Nome interno**: `OficinaAuto`
 - **CNAEs**: 4520-0/01 (manutenção/reparação automotiva), 2212-9/00 (reforma pneus), 4581-4/00 (lavagem/lubrificação)
 - **Estado lifecycle** (ADR 0121): **V0 em construção** (ADR 0137 — qualificada por sinal Vargas + Martinho)
-- **Candidato piloto**: Martinho Caçambas (Discovery 2026-05-13) — modo aluguel + manutenção caçambas
+- **Candidato piloto**: Martinho Caçambas LTDA biz=164 Capivari de Baixo SC (Discovery 2026-05-13) — **mecânica pesada caminhão basculante + loja peça hidráulica + oficina autorizada** (sub-vertical 4 CNAE 4520 · ADR 0194 — pré-correção dizia "modo aluguel + manutenção caçambas")
 - **Diferencial-chave**: dual mode locação + manutenção em UI única + FSM canon multi-stage + WhatsApp aprovação token+PIN
 
 ## Concorrentes-alvo

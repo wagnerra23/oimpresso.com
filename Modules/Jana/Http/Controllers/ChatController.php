@@ -610,7 +610,7 @@ class ChatController extends Controller
                      ['label' => 'Top 50',  'bar' => 55, 'pct' => '55%'],
                      ['label' => 'Top 100', 'bar' => 73, 'pct' => '73%'],
                  ],
-                 'footer' => '4.500 one-shot (~51%) · saudável caçamba avulsa'],
+                 'footer' => '4.500 one-shot (~51%) · saudável mecânica pesada caminhão basculante (Martinho · sub-vertical 4 ADR 0194)'],
                 ['id' => 'churn', 'title' => 'Churn ouro', 'sub' => 'LTV alto inativos', 'pill' => ['tone' => 'react', 'label' => 'REATIVAR'], 'icon' => '⏰', 'kind' => 'list',
                  'big' => ['value' => '8 clientes'],
                  'list' => [
@@ -619,7 +619,7 @@ class ChatController extends Controller
                      ['left' => 'CAPITAL CARGAS',    'right' => 'LTV R$ [redacted Tier 0]k · 112d'],
                  ],
                  'footer' => 'Cohort 2024: retenção 35% (target 60%) · drift alto'],
-                ['id' => 'frota', 'title' => 'Frota', 'sub' => '91 caçambas avulsas', 'pill' => ['tone' => 'warn', 'label' => 'PARADAS'], 'icon' => '🚛', 'kind' => 'donut',
+                ['id' => 'frota', 'title' => 'Frota', 'sub' => '91 caminhões basculantes (sub-vertical 4 ADR 0194)', 'pill' => ['tone' => 'warn', 'label' => 'PARADAS'], 'icon' => '🚛', 'kind' => 'donut',
                  'donut' => ['pct' => 33, 'segs' => [
                      ['color' => '#2563eb', 'pct' => 33],
                      ['color' => '#22c55e', 'pct' => 58],

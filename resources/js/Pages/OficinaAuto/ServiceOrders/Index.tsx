@@ -1,5 +1,5 @@
 // @memcofre tela=/oficina-auto/ordens-servico module=OficinaAuto
-// V0.5 dashboard de OS (locação + manutenção combinadas) — pré-reunião Martinho 13/maio.
+// V0.5 dashboard de OS (mecânica pesada predominante + schema locação preservado nullable) — Martinho LIVE prod biz=164 (sub-vertical 4 ADR 0194).
 // Espelha layout Vehicles Index (Wave 5-B) + mockup demo-martinho-2026-05-13/mockup.html.
 // Schema flags do Backend permitem renderizar mesmo antes da Wave 5-A migrar.
 // RUNBOOK: memory/requisitos/OficinaAuto/RUNBOOK-index.md

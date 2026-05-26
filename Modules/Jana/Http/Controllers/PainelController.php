@@ -89,7 +89,7 @@ class PainelController extends Controller
                 ['id' => 'fat',   'title' => 'Faturamento',       'sub' => 'Curva 24 meses',       'pill' => ['tone' => 'warn',  'label' => 'QUEDA'],    'icon' => '📈', 'kind' => 'sparkline', 'big' => ['value' => 'R$ [redacted Tier 0]M', 'color' => 'ok']],
                 ['id' => 'conc',  'title' => 'Concentração',      'sub' => 'Top clientes Pareto',  'pill' => ['tone' => 'ok',    'label' => 'OK'],       'icon' => '🎯', 'kind' => 'bars',      'big' => ['value' => '8.856 clientes']],
                 ['id' => 'churn', 'title' => 'Churn ouro',        'sub' => 'LTV alto inativos',    'pill' => ['tone' => 'react', 'label' => 'REATIVAR'], 'icon' => '⏰', 'kind' => 'list',      'big' => ['value' => '8 clientes']],
-                ['id' => 'frota', 'title' => 'Frota',             'sub' => '91 caçambas avulsas',  'pill' => ['tone' => 'warn',  'label' => 'PARADAS'],  'icon' => '🚛', 'kind' => 'donut'],
+                ['id' => 'frota', 'title' => 'Frota',             'sub' => '91 caminhões basculantes (sub-vertical 4 ADR 0194)',  'pill' => ['tone' => 'warn',  'label' => 'PARADAS'],  'icon' => '🚛', 'kind' => 'donut'],
                 ['id' => 'cheq',  'title' => 'Cheques previsão',  'sub' => 'Na mão / a depositar', 'icon' => '🧾', 'kind' => 'text',      'big' => ['value' => '4.421 cheques']],
             ],
             'acoes' => [
