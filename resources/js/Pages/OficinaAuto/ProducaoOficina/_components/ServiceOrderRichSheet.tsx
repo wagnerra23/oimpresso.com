@@ -1,17 +1,28 @@
-// Drawer rico Caçamba — específico Produção · Oficina (NÃO confundir com ServiceOrderSheet
-// genérico em PR #729 — usado por listagem ServiceOrders/Vehicles).
+// ServiceOrderRichSheet — drawer rico polimórfico Produção · Oficina (origem
+// CacambaProducaoSheet pré-ADR 0194 — renomeado 2026-05-26 Wave 2.2 US-OFICINA-027).
 //
-// Espelha 1:1 protótipo Cowork canon `prototipo-ui/prototipos/producao-oficina/visual-source.html`
-// drawer rico (5 sections):
-//   1. Header com placa Mercosul size=md + KV grid (Cliente, Capacidade, Endereço, Atendente, Valor)
-//   2. OBSERVAÇÃO (rental.notes — italic se vazio)
-//   3. FOTOS & LAUDO — grid 3 placeholders aspect-square + botão "+ Adicionar foto" (V2 upload real)
-//   4. PIPELINE FSM — embed ServiceOrderFsmActionPanel (PR #729 existing — REUSO, não recria)
-//   5. LINHA DO TEMPO — placeholder skeleton (V2: fetch sale_stage_history)
+// Espelha 1:1 protótipo Cowork canon — locação caçamba CNAE 4581 hipotético
+// (`prototipo-ui/prototipos/producao-oficina/visual-source.html`) E protótipo OS
+// mecânica CNAE 4520 Martinho (screenshot Wagner 2026-05-26 · sub-vertical 4 ADR 0194).
 //
-// Footer: ações "Editar OS" / "Imprimir" / "Avançar etapa →" (CTA — embebido pelo FsmActionPanel).
+// 6 sections polimórficas (branching por `data.order_type`):
+//   1. Header KV grid:
+//        - locação: Cliente / Capacidade / Endereço / Diárias / Valor
+//        - manutenção: KM / Box / Mecânico / Valor (items_total) — ADR 0194 mecânica pesada
+//   2. OBSERVAÇÃO (notes — italic se vazio)
+//   3. PEÇAS & MÃO DE OBRA — NOVA Wave 2.3 (data.items[] consumindo `oficina_service_order_items`
+//      via US-OFICINA-027 backend). Renderiza linha-a-linha com ícones tipo + qty + valor unit
+//      + valor total. Footer da section: TOTAL OS.
+//   4. FOTOS & LAUDO — grid 3 placeholders aspect-square + "Adicionar foto" (disabled V2)
+//   5. PIPELINE FSM — embed ServiceOrderFsmActionPanel (REUSO PR #729, não recria)
+//   6. LINHA DO TEMPO — placeholder skeleton derivada (V2: fetch sale_stage_history real)
+//
+// Footer Wave 2.4: "Conversa cliente" (WhatsApp Linker) / "Imprimir OS" / "Avançar etapa" embedded.
 //
 // CRÍTICO React 19 — useMemo/useCallback nos handlers descendentes (lição PR #717).
+//
+// Consumidores: ProducaoOficina/Index.tsx — drawer abre ao clicar card kanban.
+// Multi-tenant Tier 0 [ADR 0093]: payload vem do endpoint show() que respeita global scope.
 
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -38,8 +49,27 @@ import {
 import { Button } from '@/Components/ui/button';
 import MercosulPlate from './MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
+import { MessageCircle, Printer, Wrench, Package, UserCog } from 'lucide-react';
 
 type OrderType = 'locacao' | 'manutencao' | null;
+
+type ItemTipo = 'peca' | 'mao_obra' | 'servico_terceiro';
+
+interface ServiceOrderItemRel {
+  id: number;
+  tipo: ItemTipo;
+  descricao: string;
+  quantidade: number | string;
+  valor_unitario: number | string;
+  valor_total: number | string;
+  product_id: number | null;
+  notes: string | null;
+}
+
+interface AssignedUserRel {
+  id: number;
+  name: string;
+}
 
 interface ContactRel {
   id: number;
@@ -54,6 +84,9 @@ interface VehicleRel {
   vehicle_number?: string | null;
   vehicle_type?: string | null;
   capacity_m3?: number | string | null;
+  model_year?: number | null;
+  manufacture_year?: number | null;
+  color?: string | null;
 }
 
 interface ServiceOrderDetail {
@@ -74,6 +107,13 @@ interface ServiceOrderDetail {
   notes: string | null;
   vehicle: VehicleRel | null;
   contact: ContactRel | null;
+  // Wave 2.1 US-OFICINA-027 — campos modo manutenção (sub-vertical 4 ADR 0194)
+  box_label?: string | null;
+  assigned_user?: AssignedUserRel | null;
+  mileage_at_service?: number | null;
+  // Wave 2.3 US-OFICINA-027 — items lançados (peças + mão-de-obra + terceiros)
+  items?: ServiceOrderItemRel[];
+  items_total?: number | string;
   urls?: {
     edit?: string | null;
     show?: string | null;
@@ -116,7 +156,30 @@ const formatDateOnly = (iso: string | null | undefined) => {
   return `${d}/${m}/${y}`;
 };
 
-export default function CacambaProducaoSheet({
+const capitalize = (s: string | null | undefined) => {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+};
+
+const ITEM_TIPO_LABEL: Record<ItemTipo, string> = {
+  peca: 'Peça',
+  mao_obra: 'Mão de obra',
+  servico_terceiro: 'Serviço terceiro',
+};
+
+const ITEM_TIPO_ICON: Record<ItemTipo, typeof Wrench> = {
+  peca: Package,
+  mao_obra: Wrench,
+  servico_terceiro: UserCog,
+};
+
+const toFloat = (value: number | string | null | undefined): number => {
+  if (value === null || value === undefined || value === '') return 0;
+  const n = typeof value === 'string' ? parseFloat(value) : value;
+  return Number.isNaN(n) ? 0 : n;
+};
+
+export default function ServiceOrderRichSheet({
   serviceOrderId,
   open,
   onOpenChange,
@@ -201,12 +264,27 @@ export default function CacambaProducaoSheet({
                 )}
               </div>
               <SheetTitle className="text-lg font-semibold tracking-tight text-foreground">
-                Caçamba {data.vehicle?.vehicle_number ?? data.vehicle?.plate ?? '—'}
-                {data.vehicle?.capacity_m3 ? (
-                  <span className="text-sm font-normal text-muted-foreground ml-1.5">
-                    · {data.vehicle.capacity_m3}m³
-                  </span>
-                ) : null}
+                {data.order_type === 'manutencao' ? (
+                  <>
+                    {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
+                    {' '}
+                    {data.vehicle?.plate ?? '—'}
+                    {data.vehicle?.model_year ? (
+                      <span className="text-sm font-normal text-muted-foreground ml-1.5">
+                        · {data.vehicle.model_year}
+                      </span>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    Caçamba {data.vehicle?.vehicle_number ?? data.vehicle?.plate ?? '—'}
+                    {data.vehicle?.capacity_m3 ? (
+                      <span className="text-sm font-normal text-muted-foreground ml-1.5">
+                        · {data.vehicle.capacity_m3}m³
+                      </span>
+                    ) : null}
+                  </>
+                )}
               </SheetTitle>
               <SheetDescription className="text-sm text-muted-foreground">
                 {data.contact ? data.contact.name : 'Cliente não informado'}
@@ -216,49 +294,82 @@ export default function CacambaProducaoSheet({
             {/* Conteúdo scroll — 5 sections empilhadas */}
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
-              {/* ─── SEÇÃO 1: Veículo + KV grid (espelha .ofc-veh-card) ─── */}
+              {/* ─── SEÇÃO 1: Veículo + KV grid polimórfico (Wave 2.2 US-OFICINA-027) ───
+                  - manutenção (Martinho sub-vertical 4 CNAE 4520): KM / Box / Mecânico / Valor (items_total)
+                  - locação    (sub-vertical 3 hipotético CNAE 4581): Cliente / Capacidade / Endereço / Diárias / Valor */}
               {data.vehicle && (
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 grid grid-cols-[auto_1fr] gap-3">
                   <MercosulPlate plate={data.vehicle.plate} size="md" />
                   <dl className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 text-[11.5px] self-end">
-                    {data.contact && (
+                    {data.order_type === 'manutencao' ? (
                       <>
-                        <dt className="text-muted-foreground">Cliente</dt>
-                        <dd className="text-foreground font-medium truncate">
-                          {data.contact.name}
+                        {data.mileage_at_service != null && (
+                          <>
+                            <dt className="text-muted-foreground">KM</dt>
+                            <dd className="text-foreground font-medium tabular-nums">
+                              {data.mileage_at_service.toLocaleString('pt-BR')}
+                            </dd>
+                          </>
+                        )}
+                        {data.box_label && (
+                          <>
+                            <dt className="text-muted-foreground">Box</dt>
+                            <dd className="text-foreground">{data.box_label}</dd>
+                          </>
+                        )}
+                        {data.assigned_user && (
+                          <>
+                            <dt className="text-muted-foreground">Mecânico</dt>
+                            <dd className="text-foreground">{data.assigned_user.name}</dd>
+                          </>
+                        )}
+                        <dt className="text-muted-foreground">Valor</dt>
+                        <dd className="tabular-nums font-semibold text-emerald-700">
+                          {formatBRL(data.items_total ?? 0)}
                         </dd>
                       </>
-                    )}
-                    {data.vehicle.capacity_m3 && (
+                    ) : (
                       <>
-                        <dt className="text-muted-foreground">Capacidade</dt>
+                        {data.contact && (
+                          <>
+                            <dt className="text-muted-foreground">Cliente</dt>
+                            <dd className="text-foreground font-medium truncate">
+                              {data.contact.name}
+                            </dd>
+                          </>
+                        )}
+                        {data.vehicle.capacity_m3 && (
+                          <>
+                            <dt className="text-muted-foreground">Capacidade</dt>
+                            <dd className="text-foreground tabular-nums">
+                              {data.vehicle.capacity_m3}m³
+                            </dd>
+                          </>
+                        )}
+                        {data.delivery_address && (
+                          <>
+                            <dt className="text-muted-foreground">Endereço</dt>
+                            <dd className="text-foreground truncate" title={data.delivery_address}>
+                              {data.delivery_address}
+                            </dd>
+                          </>
+                        )}
+                        <dt className="text-muted-foreground">Diárias</dt>
                         <dd className="text-foreground tabular-nums">
-                          {data.vehicle.capacity_m3}m³
+                          {data.dias_locacao ?? 0}d ×{' '}
+                          <span className="text-muted-foreground">{formatBRL(data.daily_rate)}</span>
+                        </dd>
+                        <dt className="text-muted-foreground">Valor</dt>
+                        <dd
+                          className={
+                            'tabular-nums font-semibold ' +
+                            (data.is_overdue ? 'text-rose-700' : 'text-emerald-700')
+                          }
+                        >
+                          {formatBRL(data.valor_receber)}
                         </dd>
                       </>
                     )}
-                    {data.delivery_address && (
-                      <>
-                        <dt className="text-muted-foreground">Endereço</dt>
-                        <dd className="text-foreground truncate" title={data.delivery_address}>
-                          {data.delivery_address}
-                        </dd>
-                      </>
-                    )}
-                    <dt className="text-muted-foreground">Diárias</dt>
-                    <dd className="text-foreground tabular-nums">
-                      {data.dias_locacao ?? 0}d ×{' '}
-                      <span className="text-muted-foreground">{formatBRL(data.daily_rate)}</span>
-                    </dd>
-                    <dt className="text-muted-foreground">Valor</dt>
-                    <dd
-                      className={
-                        'tabular-nums font-semibold ' +
-                        (data.is_overdue ? 'text-rose-700' : 'text-emerald-700')
-                      }
-                    >
-                      {formatBRL(data.valor_receber)}
-                    </dd>
                   </dl>
                 </div>
               )}
@@ -342,6 +453,61 @@ export default function CacambaProducaoSheet({
                 )}
               </Section>
 
+              {/* ─── SEÇÃO PEÇAS & MÃO DE OBRA (Wave 2.3 US-OFICINA-027) ───
+                  Consome `data.items[]` populado pelo endpoint ServiceOrderController::show()
+                  via relação ServiceOrder::items() (Wave 1.1). Lista peças + mão-de-obra +
+                  serviços terceiros lançados na OS com qty × valor_unitario = valor_total.
+                  Footer: TOTAL OS soma (espelha data.items_total backend) — alimentação direta
+                  do ServiceOrderObserver::computeFinalTotal (Wave 1.2). */}
+              <Section title="Peças & Mão de obra" icon={Package}>
+                {data.items && data.items.length > 0 ? (
+                  <>
+                    <ul className="divide-y divide-slate-100 border border-slate-200 rounded-md overflow-hidden bg-white">
+                      {data.items.map((item) => {
+                        const Icon = ITEM_TIPO_ICON[item.tipo];
+                        const qtd = toFloat(item.quantidade);
+                        const vu = toFloat(item.valor_unitario);
+                        const total = toFloat(item.valor_total);
+                        return (
+                          <li
+                            key={item.id}
+                            className="px-3 py-2 grid grid-cols-[auto_1fr_auto] gap-2 items-center text-[11.5px]"
+                          >
+                            <Icon size={14} className="text-muted-foreground shrink-0" aria-hidden />
+                            <div className="min-w-0">
+                              <div className="text-foreground font-medium truncate">
+                                {item.descricao}
+                              </div>
+                              <div className="text-muted-foreground text-[10.5px]">
+                                {ITEM_TIPO_LABEL[item.tipo]} · {qtd.toLocaleString('pt-BR', { maximumFractionDigits: 3 })}
+                                {' × '}
+                                {formatBRL(vu)}
+                              </div>
+                            </div>
+                            <div className="text-foreground tabular-nums font-medium">
+                              {formatBRL(total)}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <div className="mt-2 flex items-center justify-between px-1">
+                      <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
+                        Total OS
+                      </span>
+                      <span className="text-sm tabular-nums font-semibold text-emerald-700">
+                        {formatBRL(data.items_total ?? 0)}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm italic text-muted-foreground">
+                    — nenhum item lançado ainda
+                    {data.order_type === 'manutencao' ? ' (cobrança não fechará automática)' : ''}
+                  </p>
+                )}
+              </Section>
+
               {/* ─── SEÇÃO 3: FOTOS & LAUDO (placeholders V2) ─── */}
               <Section title="Fotos & Laudo" icon={Camera}>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -381,11 +547,33 @@ export default function CacambaProducaoSheet({
               </Section>
             </div>
 
-            {/* Footer ações sticky */}
+            {/* Footer ações sticky (Wave 2.4 US-OFICINA-027) ───
+                3 botões espelhando protótipo Cowork canon (screenshot Wagner 2026-05-26):
+                - "Conversa cliente" → wa.me direct link (LGPD: sem mensagem pré-formatada com PII)
+                - "Imprimir OS" → window.print() (CSS print stylesheet em V2 polish wave)
+                - "Editar OS" → fallback href edit (Avançar etapa fica no Pipeline FSM section, não duplica) */}
             <div className="border-t border-border px-6 py-3 bg-background flex items-center justify-end gap-2">
-              <Button size="sm" variant="ghost" disabled title="Imprimir OS — V2">
-                <FileText size={14} className="mr-1.5" />
-                Imprimir
+              {data.contact?.mobile && (
+                <Button size="sm" variant="ghost" asChild>
+                  <a
+                    href={`https://wa.me/${data.contact.mobile.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Abrir conversa WhatsApp com cliente"
+                  >
+                    <MessageCircle size={14} className="mr-1.5" />
+                    Conversa cliente
+                  </a>
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => window.print()}
+                title="Imprimir / Salvar PDF (Ctrl+P)"
+              >
+                <Printer size={14} className="mr-1.5" />
+                Imprimir OS
               </Button>
               {data.urls?.edit && (
                 <Button size="sm" asChild>

@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -63,6 +64,8 @@ class ServiceOrder extends Model
         'expected_return_date',
         'daily_rate',
         'mileage_at_service',
+        'box_label',           // Wave 2.1 US-OFICINA-027 — texto livre "Elevador 1"
+        'assigned_user_id',    // Wave 2.1 US-OFICINA-027 — mecânico responsável (FK lógica)
         'status',
         'entered_at',
         'expected_completion',
@@ -76,6 +79,7 @@ class ServiceOrder extends Model
         'transaction_id'        => 'integer',
         'vehicle_id'            => 'integer',
         'mileage_at_service'    => 'integer',
+        'assigned_user_id'      => 'integer',  // Wave 2.1 US-OFICINA-027
         'daily_rate'            => 'decimal:2',
         'expected_return_date'  => 'date',
         'entered_at'            => 'datetime',
@@ -135,6 +139,30 @@ class ServiceOrder extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(\App\Contact::class, 'contact_id');
+    }
+
+    /**
+     * Itens da OS (peças + mão-de-obra + serviços terceiros) — US-OFICINA-027.
+     *
+     * Schema `oficina_service_order_items` migrado git desde 2026-05-17 (Wave 27 G1),
+     * Model + Service + Pest entregues isolados. Esta relação completa o wire-up
+     * pra Observer `computeFinalTotal` somar OS de manutenção e pra UI consumir
+     * via Inertia payload (drawer Cowork canon seção "PEÇAS & MÃO DE OBRA").
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(ServiceOrderItem::class, 'service_order_id');
+    }
+
+    /**
+     * Mecânico responsável pela OS (Wave 2.1 US-OFICINA-027).
+     *
+     * FK lógica pra users.id sem cascade — Service layer valida existência.
+     * Renderizado no drawer ServiceOrderRichSheet (Wave 2.2) KV grid modo manutenção.
+     */
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(\App\User::class, 'assigned_user_id');
     }
 
     // ------------------------------------------------------------------
@@ -198,6 +226,17 @@ class ServiceOrder extends Model
         }
 
         return round((float) $this->daily_rate * $this->dias_locacao, 2);
+    }
+
+    /**
+     * Total agregado de itens da OS (US-OFICINA-027) — soma `valor_total` de
+     * todos itens não-deletados. Base do `ServiceOrderObserver::computeFinalTotal`
+     * pra `order_type='manutencao'` (cálculo `peça×qty + hora×horas` que substitui
+     * o hardcode 0.0 pré-ADR 0194).
+     */
+    public function getTotalItemsAttribute(): float
+    {
+        return round((float) $this->items()->sum('valor_total'), 2);
     }
 
     // ------------------------------------------------------------------
