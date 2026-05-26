@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Arquivos\Concerns\HasArquivos;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -39,6 +40,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class OaInspectionItem extends Model
 {
+    use HasArquivos; // Gap 1 (2026-05-26) — upload foto inline DVI item via Modules/Arquivos backbone (ADR 0123). Best-practice 2026 (AutoVitals/Tekmetric): foto por item DVI, não anexo solto.
     use LogsActivity;
     use SoftDeletes;
 
