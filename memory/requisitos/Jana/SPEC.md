@@ -1,11 +1,28 @@
 ---
 module: Jana
-status: em-implementacao (Onda 4 P0 — US-COPI-107..109)
-version: 3.0.0
-last_updated: 2026-05-20
+status: ativo
+version: "3.1.0"
+last_updated: "2026-05-25"
 owner: wagner
-parent_adr: 0094
-related_adrs: [0035, 0048, 0052, 0053, 0061, 0062, 0091, 0093, 0094, 0095, 0101, 0104, 0106, 0114, 0119, 0130, 0131]
+parent_adr: "0094-constituicao-v2-7-camadas-8-principios"
+related_adrs:
+  - "0035-stack-ai-canonica-wagner-2026-04-26"
+  - "0048-framework-agentes-laravel-ai-vizra-rejeitada"
+  - "0052-contextonegocio-expor-multiplos-angulos"
+  - "0053-mcp-server-governanca-como-produto"
+  - "0061-conhecimento-canonico-git-mcp-zero-automem"
+  - "0062-separacao-runtime-hostinger-ct100"
+  - "0091-daily-brief"
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0095-skills-tiers-convencao-interna"
+  - "0101-tests-business-id-1-nunca-cliente"
+  - "0104-processo-mwart-canonico-unico-caminho"
+  - "0106-recalibracao-velocidade-fator-10x-ia-pair"
+  - "0114-prototipo-ui-cowork-loop-formalizado"
+  - "0119-paralelismo-sessoes-whats-active-tier-1"
+  - "0130-handoff-append-only-mcp-first"
+  - "0131-tiering-memoria-canonico-local-segredo"
 ---
 
 # Especificação funcional — Jana
