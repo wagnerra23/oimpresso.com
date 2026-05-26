@@ -137,6 +137,9 @@ interface CoworkAggregates {
   deltaRevenueVsYesterday: number | null; // pct round int (today vs yesterday); null se ontem=0
   deltaTicketVsLastWeek: number | null;   // pct round int (this week ticket médio vs last week); null se 0
   topSeller: { name: string; total: number } | null;
+  // PR #1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
+  pixHojeTotal?: number;
+  faturadoHojeTotal?: number;
 }
 
 export interface SellsIndexPageProps {
@@ -1033,7 +1036,29 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         <header className="os-head vd-head-clean">
           <div className="os-head-l">
             <h1>Vendas</h1>
-            <p>Pedidos · faturamento · NF-e/NFS-e</p>
+            {/* PR #1666 — header subtitle métrica live (paridade prototipo Cowork).
+                Substitui string estática por agregados do payload atual.
+                Fallback elegante quando rows ainda não carregaram. */}
+            <p>
+              {rows.length > 0 ? (
+                <>
+                  <strong>{rows.length}</strong> vendas
+                  {' · '}
+                  <strong>{fmtShort(rows.reduce((acc, r) => acc + (Number(r.final_total) || 0), 0))}</strong> faturado
+                  {(() => {
+                    const overdue = rows.filter((r) => r.sla_kind === 'overdue').length;
+                    return overdue > 0 ? (
+                      <>
+                        {' · '}
+                        <strong className="vd-delta-dn">{overdue}</strong> estouradas
+                      </>
+                    ) : null;
+                  })()}
+                </>
+              ) : (
+                'Pedidos · faturamento · NF-e/NFS-e'
+              )}
+            </p>
           </div>
 
           <div className="os-head-r">
@@ -1405,6 +1430,26 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               </span>
             </div>
           )}
+
+          {/* PR #1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
+              Sempre visível independente do foco — mostra share de PIX
+              no faturamento do dia. Critical pra Larissa biz=4 (vestuário PIX-first). */}
+          <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
+            <span className="os-kpi-label">PIX hoje</span>
+            <span className="os-kpi-value">
+              {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
+            </span>
+            <span className="os-kpi-sub">
+              {(() => {
+                const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
+                const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
+                if (!props.coworkAggregates) return 'carregando…';
+                if (fat <= 0) return 'sem faturamento hoje';
+                const pct = Math.round((pix / fat) * 100);
+                return `${pct}% do faturamento — imediato`;
+              })()}
+            </span>
+          </div>
         </div>
 
         {/* Fix bug 2026-05-18: hint visível pra filter de data ativo (proteção
