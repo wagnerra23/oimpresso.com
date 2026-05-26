@@ -24,17 +24,17 @@ export function validaCpf(input: string): ValidationResult {
 
   // Primeiro DV
   let soma = 0;
-  for (let i = 0; i < 9; i++) soma += parseInt(cpf[i], 10) * (10 - i);
+  for (let i = 0; i < 9; i++) soma += parseInt(cpf[i] ?? '0', 10) * (10 - i);
   let resto = (soma * 10) % 11;
   if (resto === 10) resto = 0;
-  if (resto !== parseInt(cpf[9], 10)) return bad('CPF inválido (DV1)');
+  if (resto !== parseInt(cpf[9] ?? '0', 10)) return bad('CPF inválido (DV1)');
 
   // Segundo DV
   soma = 0;
-  for (let i = 0; i < 10; i++) soma += parseInt(cpf[i], 10) * (11 - i);
+  for (let i = 0; i < 10; i++) soma += parseInt(cpf[i] ?? '0', 10) * (11 - i);
   resto = (soma * 10) % 11;
   if (resto === 10) resto = 0;
-  if (resto !== parseInt(cpf[10], 10)) return bad('CPF inválido (DV2)');
+  if (resto !== parseInt(cpf[10] ?? '0', 10)) return bad('CPF inválido (DV2)');
 
   return ok();
 }
@@ -50,7 +50,7 @@ export function validaCnpj(input: string): ValidationResult {
 
   const calc = (slice: string, pesos: number[]): number => {
     let soma = 0;
-    for (let i = 0; i < slice.length; i++) soma += parseInt(slice[i], 10) * pesos[i];
+    for (let i = 0; i < slice.length; i++) soma += parseInt(slice[i] ?? '0', 10) * (pesos[i] ?? 0);
     const resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };
@@ -58,9 +58,9 @@ export function validaCnpj(input: string): ValidationResult {
   const pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   const pesos2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   const dv1 = calc(cnpj.slice(0, 12), pesos1);
-  if (dv1 !== parseInt(cnpj[12], 10)) return bad('CNPJ inválido (DV1)');
+  if (dv1 !== parseInt(cnpj[12] ?? '0', 10)) return bad('CNPJ inválido (DV1)');
   const dv2 = calc(cnpj.slice(0, 13), pesos2);
-  if (dv2 !== parseInt(cnpj[13], 10)) return bad('CNPJ inválido (DV2)');
+  if (dv2 !== parseInt(cnpj[13] ?? '0', 10)) return bad('CNPJ inválido (DV2)');
 
   return ok();
 }
@@ -130,7 +130,7 @@ export function validaCfop(input: string, ctx: CfopContext = {}): ValidationResu
   const cfop = input.replace(/\D/g, '');
   if (cfop.length === 0) return ok();
   if (cfop.length !== 4) return bad('CFOP precisa ter 4 dígitos');
-  const primeiro = cfop[0];
+  const primeiro = cfop[0] ?? '';
   if (!['1', '2', '3', '5', '6', '7'].includes(primeiro)) {
     return bad('CFOP deve começar com 1/2/3 (entradas) ou 5/6/7 (saídas)');
   }

@@ -34,8 +34,6 @@ import VdNextActionPanel from './_components/VdNextActionPanel';
 import FsmActionPanel from './_components/FsmActionPanel';
 import VdNfeEmitModal, { type NfeEmitVenda } from './_components/VdNfeEmitModal';
 import VdNfseEmitModal, { type NfseEmitVenda } from './_components/VdNfseEmitModal';
-import VdNextActionPanel from './_components/VdNextActionPanel';
-import FsmActionPanel from './_components/FsmActionPanel';
 
 interface Customer {
   id: number;

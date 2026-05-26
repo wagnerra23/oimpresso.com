@@ -74,11 +74,14 @@ export default function VdBulkEmitModal({ open, items, onClose, onCompleted }: P
         ),
       );
       if (ok && proto) {
-        window.dispatchEvent(
-          new CustomEvent(`oimpresso:venda-emitted-${states[i].kind}`, {
-            detail: { saleId: states[i].id, protocolo: proto },
-          }),
-        );
+        const item = states[i];
+        if (item) {
+          window.dispatchEvent(
+            new CustomEvent(`oimpresso:venda-emitted-${item.kind}`, {
+              detail: { saleId: item.id, protocolo: proto },
+            }),
+          );
+        }
       }
     }
     setRunning(false);
