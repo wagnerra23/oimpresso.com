@@ -3,7 +3,7 @@ module: OficinaAuto
 charter_type: module
 status: ativo
 lifecycle: piloto
-piloto: Martinho Caçambas LTDA biz=164 Capivari de Baixo SC LIVE prod 2026-05-13 (sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520) + Vargas V1 (sub-vertical 2 recapagem CNAE 2212)
+piloto: Martinho Caçambas LTDA biz=164 Tubarão SC Humaitá de Cima LIVE prod 2026-05-13 (sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520 · errata endereço 2026-05-26) + Vargas V1 (sub-vertical 2 recapagem CNAE 2212)
 last_review: 2026-05-26
 owner: wagner
 parent_adr: 0137

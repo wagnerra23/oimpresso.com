@@ -2,7 +2,7 @@
 artefato: runbook
 escopo: Migração cliente Office Impresso Desktop (Delphi WR Comercial + Firebird) → oimpresso.com
 status: ativo (validado Martinho 2026-05-13→17 + ativação formal ADR 0171 + corrigido pós-ADR 0194)
-piloto: Martinho Caçambas LTDA biz=164 Capivari de Baixo SC (sub-vertical 4 mecânica pesada caminhão basculante)
+piloto: Martinho Caçambas LTDA biz=164 Tubarão SC Humaitá de Cima (sub-vertical 4 mecânica pesada caminhão basculante · errata endereço 2026-05-26)
 proximos_clientes: Vargas (sub-vertical 2 recapagem V1), Extreme, Gold, Zoom, Fixar, Mhundo, Produart
 ultima_atualizacao: 2026-05-26
 related_adrs: [0093, 0094, 0105, 0119, 0137, 0143, 0171, 0192, 0194]
@@ -14,7 +14,7 @@ owner: [W]
 > "A consistência da migração vai definir o processo" — Wagner 2026-05-20
 
 > **Refs:** [ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (OficinaAuto qualificada · Martinho #1, amendado por 0194), [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) (FSM Pipeline LIVE), [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente como sinal — guiar sem mandar), [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) (paralelismo sessões), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0), [ADR 0171](../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md) (ativação piloto Martinho faseada), [ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) (auto-faturar OS→Venda), **[ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (correção domínio mecânica pesada — 2026-05-26)**
-> **Validado prod:** Martinho Caçambas LTDA biz=164 Capivari de Baixo SC (`MartinhoServidor` → biz=164) · 91 vehicles + ~103k títulos + ~44k vendas (sessão maratona 2026-05-13 → 2026-05-17) · Auto-faturar OS→Venda LIVE 2026-05-25 (ADR 0192 ext) · NFSe Caminho A fix LIVE 2026-05-26 (PR #1597)
+> **Validado prod:** Martinho Caçambas LTDA biz=164 **Tubarão SC Humaitá de Cima** (Location BL0001 · `MartinhoServidor` → biz=164 · errata endereço 2026-05-26 smoke prod) · 91 vehicles + ~103k títulos + ~44k vendas (sessão maratona 2026-05-13 → 2026-05-17) · Auto-faturar OS→Venda LIVE 2026-05-25 (ADR 0192 ext) · NFSe Caminho A fix LIVE 2026-05-26 (PR #1597)
 > **Scripts:** [`scripts/legacy-migration/`](../../../scripts/legacy-migration/)
 >
 > **⚠️ Atenção pós-ADR 0194 (2026-05-26):** Martinho é **sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520** — NÃO locação caçamba container CNAE 4581 como leitura original inferiu. Vocabulário correto: **peça hidráulica · PTO · kit hidráulico · hora-trabalho** (não m³ + diária). 91 placas Firebird são **caminhões de CLIENTES** que entram pra peça/serviço (não frota própria do Martinho · não caçamba estacionária). Schema `daily_rate`/`expected_return_date` preservado nullable como sub-vertical 3 hipotético sem cliente real ancorado.

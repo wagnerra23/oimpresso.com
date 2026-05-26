@@ -53,7 +53,7 @@ A leitura original confundiu **"caçamba container estacionária pra entulho"** 
 | **Wagner 2026-05-26**: "não vejo caminhão destruído lá" | Perfil oficina autorizada de manutenção programada, NÃO lataria/reparação de batida |
 | **WebSearch [Martinho Caçambas Capivari de Baixo SC](https://listatudo.com.br/santa-catarina/florianopolis-e-regiao/tubarao/construcao-civil-e-meio-ambiente/construcao-civil/maquinas-e-equipamentos/cacambas/martinho-da-cacamba/)** | Negócio confirmado: venda de **peças hidráulicas pra caminhões basculantes, Polli-guindastes, plataformas e munck** |
 | **WebSearch [Tork Tomadas de Força Capivari](https://lp.tork.ind.br/)** | Fábrica industrial de PTO (Power Take-Off) + kit hidráulico na mesma cidade — vetor de cadeia comercial: Tork (fábrica) → Martinho (revenda+instala) → frota basculante terceiro |
-| **2 entidades distintas** | Capivari (filho, cliente biz=164) ≠ Tubarão (pai, transportadora resíduo, **não é cliente oimpresso**) |
+| **2 entidades distintas** | WebSearch identificou (a) Capivari de Baixo (loja peça hidráulica) + (b) Tubarão (transportadora resíduo). **Errata 2026-05-26 pós-smoke prod biz=164 Location BL0001:** cliente real cadastrado em **Tubarão SC Humaitá de Cima** (não Capivari como inicialmente apontado). Inconclusivo qual entidade WebSearch corresponde — possível terceira não-identificada OU registro legacy importado pela entidade-mãe Tubarão. |
 
 ## Decisão
 
@@ -63,7 +63,7 @@ A leitura original confundiu **"caçamba container estacionária pra entulho"** 
 
 2. **Sub-vertical 3 (Locação caçamba container CNAE 4581)** perde Martinho como piloto — fica **hipótese sem cliente real ancorado** (caso cliente real de locação caçamba container aparecer no futuro, reabrir sub-vertical com piloto novo).
 
-3. **Criar sub-vertical 4** (mecânica pesada/autorizada caminhão basculante CNAE 4520-0/01) em `memory/reference/dominios-verticais-oimpresso.md` ancorado em Martinho biz=164 Capivari de Baixo/SC.
+3. **Criar sub-vertical 4** (mecânica pesada/autorizada caminhão basculante CNAE 4520-0/01) em `memory/reference/dominios-verticais-oimpresso.md` ancorado em Martinho biz=164 **Tubarão/SC · Humaitá de Cima** (errata 2026-05-26 — primeira versão deste ADR dizia Capivari de Baixo).
 
 4. **Tork Tomadas de Força** (Capivari de Baixo, CNPJ [REDACTED-CNPJ]) entra em `memory/research/clientes-prospect/tork-tomadas-forca/` como **prospect indústria PTO** — vetor B2B via Martinho.
 
@@ -109,7 +109,7 @@ A leitura original confundiu **"caçamba container estacionária pra entulho"** 
 
 ## Critério de validação
 
-- [x] Perfil cliente `memory/research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md` reescrito com domínio correto (Capivari/SC, peça hidráulica + oficina autorizada, sub-vertical 4)
+- [x] Perfil cliente `memory/research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md` reescrito com domínio correto (Tubarão/SC Humaitá de Cima — errata 2026-05-26 corrigiu Capivari/SC inicialmente registrado, peça hidráulica + oficina autorizada, sub-vertical 4)
 - [x] `memory/reference/dominios-verticais-oimpresso.md` adicionou sub-vertical 4 + marcou sub-vertical 3 como hipótese
 - [x] Perfil prospect `memory/research/clientes-prospect/tork-tomadas-forca/01-perfil.md` criado
 - [ ] BRIEFING OficinaAuto reescrito (Missão + capacidades + diferenciais) em PR separado pós-aceite (review_trigger 2026-06-15)

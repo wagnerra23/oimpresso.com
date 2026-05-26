@@ -8,13 +8,15 @@ controlador: Wagner
 vertical_real: pecas-hidraulicas-basculante-oficina-autorizada
 size: medio-grande
 tipo_relacao: cliente-pagante
-cidade: "Capivari de Baixo"
+cidade: "Tubarão"
+bairro: "Humaitá de Cima"
 uf: SC
+endereco_observacao: "Errata 2026-05-26 smoke biz=164 prod Location BL0001 (anterior: Capivari de Baixo — engano inferido via WebSearch)"
 banco_firebird: D:\DadosClientes\MartinhoCacamba\Dados\BANCO.FDB
 banco_alias_firebird: 192.168.0.55:D:\DadosClientes\MartinhoCacamba\Dados\BANCO.FDB
 ---
 
-# Perfil — `Cliente_731814` (peças hidráulicas basculante + oficina autorizada · Capivari de Baixo/SC)
+# Perfil — `Cliente_731814` (peças hidráulicas basculante + oficina autorizada · Tubarão/SC · Humaitá de Cima)
 
 > **Correção 2026-05-26:** entendimento original neste perfil (e em [ADR 0137](../../../decisions/0137-modules-oficinaauto-qualificada.md) + [BRIEFING OficinaAuto](../../../requisitos/OficinaAuto/BRIEFING.md)) descrevia Martinho como "locação de caçamba estacionária pra entulho/obra (CNAE 4581-4/00)". Wagner identificou o erro de leitura — Martinho é **loja de peças hidráulicas pra caminhão basculante + oficina autorizada** (CNAE 4520-0/01). Correção formal via [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (aceito 2026-05-26).
 
