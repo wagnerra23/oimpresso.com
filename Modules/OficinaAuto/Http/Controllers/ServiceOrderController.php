@@ -655,18 +655,18 @@ class ServiceOrderController extends Controller
             // FIX bug 500 2026-05-26: expor exception details no JSON quando
             // APP_DEBUG=true pra Wagner debugar smoke real prod (Hostinger).
             // Em prod com APP_DEBUG=false fica oculto naturalmente.
+            // FIX v2 2026-05-26: forçar _debug ALWAYS porque prod tem APP_DEBUG=false.
+            // Wagner reverte depois quando bug for diagnosticado.
             $payload = [
                 'success' => 0,
                 'msg'     => 'Não foi possível gerar a impressão da OS.',
-            ];
-            if (config('app.debug')) {
-                $payload['_debug'] = [
+                '_debug' => [
                     'class'   => get_class($e),
                     'message' => $e->getMessage(),
                     'file'    => basename($e->getFile()),
                     'line'    => $e->getLine(),
-                ];
-            }
+                ],
+            ];
 
             return response()->json($payload, 500);
         }
