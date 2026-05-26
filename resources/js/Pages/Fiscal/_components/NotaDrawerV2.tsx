@@ -121,12 +121,12 @@ function SefazActionCard({ recipe, status }: { recipe: SefazActionRecipe; status
       {(recipe.primary || recipe.secondary) && (
         <div className="fx-action-btns">
           {recipe.primary && (
-            <button type="button" className={`fx-btn ${recipe.primary.kind}`} disabled title="Wire-up no PR seguinte">
+            <button type="button" className={`fx-btn ${recipe.primary.kind}`} disabled title="Em breve">
               {recipe.primary.label} <kbd>⏎</kbd>
             </button>
           )}
           {recipe.secondary && (
-            <button type="button" className="fx-btn ghost" disabled title="Wire-up no PR seguinte">
+            <button type="button" className="fx-btn ghost" disabled title="Em breve">
               {recipe.secondary.label}
             </button>
           )}
@@ -252,19 +252,19 @@ export default function NotaDrawerV2({ nota, onClose, onQuickFilterCliente }: No
       }
       footer={
         <>
-          <button type="button" className="fx-btn ghost" disabled title="Wire-up no PR seguinte">
+          <button type="button" className="fx-btn ghost" disabled title="Em breve">
             Reconsultar <kbd>R</kbd>
           </button>
           <div className="fx-drawer-f-r">
             <button type="button" className="fx-btn ghost" disabled title="Download XML">XML</button>
             <button type="button" className="fx-btn ghost" disabled title="Download DANFE">DANFE</button>
             {nota.status === 100 && cancelW && (
-              <button type="button" className="fx-btn danger" disabled title="Wire-up no PR seguinte">
+              <button type="button" className="fx-btn danger" disabled title="Em breve">
                 Cancelar <kbd>X</kbd>
               </button>
             )}
             {rejected && (
-              <button type="button" className="fx-btn primary" disabled title="Wire-up no PR seguinte">
+              <button type="button" className="fx-btn primary" disabled title="Em breve">
                 Retransmitir <kbd>⏎</kbd>
               </button>
             )}

@@ -69,14 +69,14 @@ export default function NFSeDrawer({ nota, onClose }: NFSeDrawerProps) {
       }
       footer={
         <>
-          <button type="button" className="fx-btn ghost" disabled title="Wire-up no PR seguinte">
+          <button type="button" className="fx-btn ghost" disabled title="Em breve">
             Reconsultar prefeitura
           </button>
           <div className="fx-drawer-f-r">
             <button type="button" className="fx-btn ghost" disabled title="Download XML">XML</button>
             <button type="button" className="fx-btn ghost" disabled title="Download DANFSe">DANFSe</button>
             {nota.status === 'autorizada' && (
-              <button type="button" className="fx-btn danger" disabled title="Wire-up no PR seguinte">
+              <button type="button" className="fx-btn danger" disabled title="Em breve">
                 Cancelar
               </button>
             )}
