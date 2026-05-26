@@ -14,7 +14,14 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 use Spatie\Permission\Models\Role;
 
 /**
- * Seeder FSM canônico OficinaAuto (caçamba avulsa estacionária — Martinho piloto).
+ * Seeder FSM canônico OficinaAuto — Martinho piloto.
+ *
+ * **Atualizado pós-ADR 0194 (2026-05-26):** Martinho é sub-vertical 4 mecânica
+ * pesada caminhão basculante CNAE 4520 (pré-correção dizia "caçamba avulsa
+ * estacionária" sub-vertical 3 locação CNAE 4581). Keys de processo (`cacamba_locacao`,
+ * `cacamba_manutencao`) preservadas por compat backwards (seeder em prod biz=164
+ * desde 2026-05-13). Próximo seeder canon usa `mecanica_pesada_basculante` quando
+ * US-OFICINA-027 catálogo peça hidráulica chegar.
  *
  * Cria 2 processos FSM idempotentes per-business:
  *
@@ -146,7 +153,7 @@ class OficinaAutoFsmSeeder extends Seeder
                 'business_id'              => $businessId,
                 'key'                      => 'cacamba_locacao',
                 'name'                     => 'Caçamba — Locação',
-                'description'              => 'Pipeline de locação de caçamba avulsa estacionária (caso Martinho)',
+                'description'              => 'Pipeline FSM caso Martinho (key legacy preservada · vocabulário canon pós-ADR 0194 = sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520; pré-correção dizia "locação de caçamba avulsa estacionária")',
                 'default_for_contact_type' => 'any',
                 'active'                   => true,
             ]);
