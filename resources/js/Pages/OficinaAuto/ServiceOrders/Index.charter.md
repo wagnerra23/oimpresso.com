@@ -5,7 +5,14 @@ owner: wagner
 status: live
 last_validated: 2026-05-26
 parent_module: OficinaAuto
-related_adrs: [0137, 0110, 0093, 0143, 0171, 0192, 0194]
+related_adrs:
+  - 0137-modules-oficinaauto-qualificada
+  - 0110-tipografia-canon-h1-subtitle
+  - 0093-multi-tenant-isolation-tier-0
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0171-oficinaauto-ativacao-piloto-martinho-faseada
+  - 0192-auto-faturar-os-venda-jobsheet-observer
+  - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 tier: A
 charter_version: 2
 ---
