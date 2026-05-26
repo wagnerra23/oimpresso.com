@@ -30,8 +30,10 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
  *
  * Cálculo `final_total`:
  *   - locação (order_type='locacao'): `daily_rate × dias_locacao` (accessor `valor_receber`)
- *   - manutenção (order_type='manutencao'): zero por default — Wagner edita manual depois
- *     (gap: V1 traz orçamento integrado · v0 mantém manual)
+ *   - manutenção (order_type='manutencao'): `sum(items.valor_total)` agregando peças +
+ *     mão-de-obra + serviços terceiros via `ServiceOrder::items()` hasMany (US-OFICINA-027
+ *     2026-05-26 · ADR 0194 §"Critério validação"). Backward compat: OS sem items lançados
+ *     ainda gera Transaction com final_total=0 (Wagner edita manual — comportamento legacy).
  *
  * Distinção `os_ref` vs Repair JobSheet:
  *   - JobSheet (Repair shared): `os_ref="OS-{id}"`
@@ -148,8 +150,25 @@ class ServiceOrderObserver
             return (float) ($so->valor_receber ?? 0);
         }
 
-        // order_type='manutencao' (default oficina automotiva): V0 sem orçamento auto.
-        // Wagner edita Transaction depois. V1 (ADR futuro) traz orçamento integrado.
-        return 0.0;
+        // order_type='manutencao' (Martinho sub-vertical 4 mecânica pesada CNAE 4520 — ADR 0194):
+        // soma valor_total de todos itens (peça + mão-de-obra + serviço terceiro) via
+        // hasMany ServiceOrder::items() — schema oficina_service_order_items entregue em
+        // Wave 27 G1 (migration 2026_05_17_000010). Accessor `total_items` retorna float
+        // já arredondado decimal:2.
+        //
+        // OS sem items lançados retorna 0.0 — backward compat com comportamento legacy
+        // (Wagner edita Transaction manual depois). Pós-UI Wave 2, mecânico lança peças
+        // pela tela e o cálculo fecha automático.
+        $total = $so->total_items;
+
+        if ($total > 0) {
+            Log::info('ServiceOrderObserver: final_total recalculado via items()', [
+                'service_order_id' => $so->id,
+                'business_id' => $so->business_id,
+                'items_total' => $total,
+            ]);
+        }
+
+        return $total;
     }
 }

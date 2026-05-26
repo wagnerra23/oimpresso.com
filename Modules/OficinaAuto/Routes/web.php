@@ -6,6 +6,7 @@ use Modules\OficinaAuto\Http\Controllers\InstallController;
 use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
 use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
+use Modules\OficinaAuto\Http\Controllers\ServiceOrderItemController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -69,6 +70,27 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::delete('ordens-servico/{order}',     [ServiceOrderController::class, 'destroy'])
             ->middleware('throttle:30,1')
             ->name('oficinaauto.orders.destroy');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Wave 1.3 US-OFICINA-027 — Items de OS (peça / mão-de-obra / terceiro).
+        // Schema oficina_service_order_items em Wave 27 G1 (migration 2026-05-17).
+        // Drawer Cowork seção "PEÇAS & MÃO DE OBRA" (Wave 2) consome estes endpoints.
+        // Throttle 60/1 nas mutações (padrão módulo).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::post('ordens-servico/{order}/items',
+            [ServiceOrderItemController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.items.store');
+
+        Route::put('ordens-servico/{order}/items/{item}',
+            [ServiceOrderItemController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.items.update');
+
+        Route::delete('ordens-servico/{order}/items/{item}',
+            [ServiceOrderItemController::class, 'destroy'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.items.destroy');
 
         // ─────────────────────────────────────────────────────────────────────
         // Hotfix Wave 7+ — drawer ServiceOrderSheet.fetchData chama URL inglês

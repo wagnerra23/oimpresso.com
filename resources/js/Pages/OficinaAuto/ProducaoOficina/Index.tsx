@@ -3,15 +3,15 @@
 // Espelha 1:1 protótipo Cowork rico:
 //   prototipo-ui/prototipos/producao-oficina/visual-source.html (1213 linhas — fonte canônica visual)
 // Adaptado pra caçambas (5 colunas: Disponível/Locada/Aguardando recolhimento/
-// Em manutenção/Pronta entrega) com 6 KPIs ricos + drawer próprio CacambaProducaoSheet.
+// Em manutenção/Pronta entrega) com 6 KPIs ricos + drawer próprio ServiceOrderRichSheet polimórfico.
 //
 // Refs:
 //   - ADR 0137 (OficinaAuto qualificada)
 //   - ADR 0143 (FSM Pipeline LIVE prod biz=1)
 //   - ADR 0110 (Cockpit V2 — AppShellV2 obrigatório)
 //   - PR #717 lição: useMemo/useCallback nos handlers descendentes (re-render loop)
-//   - ServiceOrderSheet existing (PR #729) — NÃO usado aqui (drawer próprio CacambaProducaoSheet
-//     embute ServiceOrderFsmActionPanel)
+//   - ServiceOrderSheet existing (PR #729) — NÃO usado aqui (drawer próprio ServiceOrderRichSheet
+//     embute ServiceOrderFsmActionPanel) — renomeado de CacambaProducaoSheet Wave 2.2 US-OFICINA-027
 // Visual comparison: memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md (V2)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -29,7 +29,7 @@ import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import CacambaKanbanColumn from './_components/CacambaKanbanColumn';
 import type { CacambaCardData, CacambaStatus } from './_components/CacambaCard';
-import CacambaProducaoSheet from './_components/CacambaProducaoSheet';
+import ServiceOrderRichSheet from './_components/ServiceOrderRichSheet';
 import KanbanDndProvider from './_components/KanbanDndProvider';
 import DragConfirmDialog, {
   type PendingTransition,
@@ -607,8 +607,9 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         </main>
       </div>
 
-      {/* Drawer rico Caçamba — específico desta tela (embute FsmActionPanel reusado) */}
-      <CacambaProducaoSheet
+      {/* Drawer rico polimórfico (locação CNAE 4581 + manutenção CNAE 4520) — Wave 2.2 US-OFICINA-027
+          embute FsmActionPanel reusado · seção PEÇAS & MÃO DE OBRA consome data.items[] */}
+      <ServiceOrderRichSheet
         serviceOrderId={openOsId}
         open={openOsId !== null}
         onOpenChange={handleSheetOpenChange}
