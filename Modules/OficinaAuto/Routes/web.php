@@ -73,6 +73,18 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->name('oficinaauto.orders.destroy');
 
         // ─────────────────────────────────────────────────────────────────────
+        // Gap 3 — Imprimir OS PDF profissional A4 (US-OFICINA-037).
+        // AJAX-only endpoint que retorna {success, receipt:{html_content,print_title}}.
+        // Frontend printServiceOrder.ts injeta HTML em IFRAME oculto + window.print()
+        // (espelha pattern SellPosController::printInvoice).
+        // Throttle 30/1 anti-abuse (mesmo cap dos endpoints de leitura críticos).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('ordens-servico/{order}/print',
+            [ServiceOrderController::class, 'printInvoice'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.print');
+
+        // ─────────────────────────────────────────────────────────────────────
         // Wave 1.3 US-OFICINA-027 — Items de OS (peça / mão-de-obra / terceiro).
         // Schema oficina_service_order_items em Wave 27 G1 (migration 2026-05-17).
         // Drawer Cowork seção "PEÇAS & MÃO DE OBRA" (Wave 2) consome estes endpoints.
