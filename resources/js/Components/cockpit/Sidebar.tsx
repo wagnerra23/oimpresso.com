@@ -577,7 +577,9 @@ function SidebarGroup({
   // Inline accordion (não popover lateral) — Wagner 2026-05-05.
   // Persistência por grupo em LS pra não recarregar entre navegações.
   // Múltiplos grupos podem estar abertos simultaneamente.
-  const lsKey = `oimpresso.cockpit.group.${groupKey}.expanded`;
+  // PR #1674 — bump pra v2 invalida preferências antigas (smoke Wagner descobriu
+  // grupos parecendo vazios porque ls.collapsed=true persistia mesmo com items).
+  const lsKey = `oimpresso.cockpit.group.v2.${groupKey}.expanded`;
   const [expanded, setExpanded] = useState<boolean>(() => {
     if (typeof window === 'undefined') return defaultOpen;
     const v = localStorage.getItem(lsKey);
@@ -710,7 +712,12 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={['cadastro', 'comercial', 'financas', 'fiscal', 'producao', 'estoque'].includes(g.key)}
+          // PR #1674 — defaultOpen=true UNIVERSAL pra paridade prototipo Cowork.
+          // Smoke real Wagner 2026-05-26 18h: grupos pareciam vazios porque user
+          // tinha localStorage antigo persistido como collapsed. lsKey bump pra v2
+          // (SidebarGroup) invalida prefs antigas + todos grupos abrem por default.
+          // Items COM permissão renderizam dentro do body expandido.
+          defaultOpen={true}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
