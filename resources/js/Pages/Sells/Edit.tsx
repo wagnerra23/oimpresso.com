@@ -631,7 +631,7 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
               placeholder="Buscar cliente por nome, CPF/CNPJ ou telefone…"
               disabled={!permissions.update}
             />
-            {/* PR #1663 — Cliente vencido alerta inline (paridade Blade legacy) */}
+            {/* PR 1663 — Cliente vencido alerta inline (paridade Blade legacy) */}
             {form.customer && form.customer.dues_total > 0 && (
               <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 font-medium">
                 ⚠ Cliente vencido: {form.customer.dues_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -726,7 +726,7 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
         )}
       </div>
 
-      {/* Bloco Produtos real · paridade Create.tsx (PR #1657) */}
+      {/* Bloco Produtos real · paridade Create.tsx (PR 1657) */}
       <section id="edit-sec-produtos" className="rounded-lg border border-border bg-card p-5 space-y-4 scroll-mt-32">
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-muted-foreground" />

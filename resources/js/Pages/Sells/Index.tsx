@@ -19,6 +19,8 @@ import {
 import { usePage } from '@inertiajs/react';
 import {
   Archive,
+  BarChart3,
+  Calendar,
   CheckCircle2,
   ChevronDown,
   DollarSign,
@@ -1055,7 +1057,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         <header className="os-head vd-head-clean">
           <div className="os-head-l">
             <h1>Vendas</h1>
-            {/* PR #1666 — header subtitle métrica live (paridade prototipo Cowork).
+            {/* PR 1666 — header subtitle métrica live (paridade prototipo Cowork).
                 Substitui string estática por agregados do payload atual.
                 Fallback elegante quando rows ainda não carregaram. */}
             <p>
@@ -1089,7 +1091,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 role="tab"
                 aria-selected={viewMode === 'dashboard'}
               >
-                <span className="vd-tabs-mode-ic">📊</span> Dashboard
+                <span className="vd-tabs-mode-ic"><BarChart3 size={12} /></span> Dashboard
               </button>
               <button
                 type="button"
@@ -1494,7 +1496,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </div>
           )}
 
-          {/* PR #1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
+          {/* PR 1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
               Sempre visível independente do foco — mostra share de PIX
               no faturamento do dia. Critical pra Larissa biz=4 (vestuário PIX-first). */}
           <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
@@ -1519,7 +1521,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             contra localStorage stale que escondia vendas dos últimos dias). */}
         {dateFilterActive && (
           <div className={'vd-date-filter-hint' + (dateFilterStale ? ' stale' : '')} role="status">
-            <span className="vd-date-filter-hint-ic">{dateFilterStale ? '⚠' : '📅'}</span>
+            <span className="vd-date-filter-hint-ic">{dateFilterStale ? '⚠' : <Calendar size={12} />}</span>
             <span className="vd-date-filter-hint-tx">
               {dateFilterStale ? <b>Filtro antigo escondendo vendas novas:</b> : <b>Filtro de data ativo:</b>}
               {' '}

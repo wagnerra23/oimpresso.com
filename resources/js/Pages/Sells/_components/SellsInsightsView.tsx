@@ -18,14 +18,23 @@
 import { useMemo, type ReactNode } from 'react';
 import {
   AlertCircle,
-  TrendingUp,
-  TrendingDown,
-  MessageSquare,
-  Sparkles,
+  AlertTriangle,
+  BarChart3,
   Calendar,
-  Volume2,
-  Settings,
+  ClipboardList,
+  CreditCard,
   Download,
+  Lightbulb,
+  MessageSquare,
+  Search,
+  Settings,
+  Sparkles,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Volume2,
+  Wallet,
+  Zap,
 } from 'lucide-react';
 
 export interface InsightsViewProps {
@@ -240,7 +249,7 @@ export default function SellsInsightsView({
   // ── GAP 1 — KPIs row Jana (4 cards próprios) ─────────────────────────────
   interface JanaKpi {
     label: string;
-    icon: string;
+    icon: ReactNode;
     value: string;
     delta?: string;
     deltaCls?: 'down' | 'up' | 'info' | '';
@@ -251,14 +260,14 @@ export default function SellsInsightsView({
   const janaKpis: JanaKpi[] = [
     {
       label: 'Faturamento mês',
-      icon: '💰',
+      icon: <Wallet size={14} />,
       value: fmtShort(sparkSum || faturadoHoje),
       delta: deltaRev !== null ? `${deltaRev >= 0 ? '↑ +' : '↓ '}${deltaRev}% vs ontem` : undefined,
       deltaCls: deltaRev !== null ? (deltaRev >= 0 ? 'up' : 'down') : '',
     },
     {
       label: 'Inadimplência total',
-      icon: '🚨',
+      icon: <AlertTriangle size={14} />,
       value: fmtShort(overdueValue),
       sub: overdueCount > 0
         ? `${overdueCount} venda${overdueCount === 1 ? '' : 's'} vencida${overdueCount === 1 ? '' : 's'}`
@@ -268,7 +277,7 @@ export default function SellsInsightsView({
     },
     {
       label: 'Ticket médio',
-      icon: '📈',
+      icon: <TrendingUp size={14} />,
       value: fmtShort(ticketMedio),
       delta: deltaTicket !== null
         ? `${deltaTicket >= 0 ? '↑ +' : '↓ '}${deltaTicket}% 7d`
@@ -277,7 +286,7 @@ export default function SellsInsightsView({
     },
     {
       label: 'PIX hoje',
-      icon: '⚡',
+      icon: <Zap size={14} />,
       value: fmtShort(pixHoje),
       sub: faturadoHoje > 0
         ? `${Math.round((pixHoje / faturadoHoje) * 100)}% do faturado`
@@ -434,10 +443,10 @@ export default function SellsInsightsView({
               </button>
             )}
             <button type="button" className="vd-insights-chip">
-              📋 Ver top devedores
+              <ClipboardList size={11} /> Ver top devedores
             </button>
             <button type="button" className="vd-insights-chip">
-              🔍 Investigar queda ticket médio
+              <Search size={11} /> Investigar queda ticket médio
             </button>
           </div>
         </div>
@@ -467,7 +476,7 @@ export default function SellsInsightsView({
 
       {/* GAP 5 — H2 separador "ANÁLISES PRINCIPAIS" ─────────────────────────── */}
       <h2 className="vd-insights-h2">
-        <span className="vd-insights-h2-ic">📊</span> ANÁLISES PRINCIPAIS
+        <span className="vd-insights-h2-ic"><BarChart3 size={14} /></span> ANÁLISES PRINCIPAIS
       </h2>
 
       {/* 4 análises grid 2x2 (já existia) ──────────────────────────────────── */}
@@ -475,7 +484,7 @@ export default function SellsInsightsView({
         {/* Análise 1: Inadimplência buckets */}
         <section className="vd-insights-card">
           <header className="vd-insights-card-h">
-            <span className="vd-insights-card-ic">🚨</span>
+            <span className="vd-insights-card-ic"><AlertTriangle size={16} /></span>
             <div>
               <b>Inadimplência</b>
               <small>{overdueCount} vendas vencidas</small>
@@ -510,7 +519,7 @@ export default function SellsInsightsView({
         {/* Análise 2: Faturamento sparkline 30d */}
         <section className="vd-insights-card">
           <header className="vd-insights-card-h">
-            <span className="vd-insights-card-ic">📈</span>
+            <span className="vd-insights-card-ic"><TrendingUp size={16} /></span>
             <div>
               <b>Faturamento</b>
               <small>30 dias</small>
@@ -552,7 +561,7 @@ export default function SellsInsightsView({
         {/* Análise 3: Top clientes Pareto */}
         <section className="vd-insights-card">
           <header className="vd-insights-card-h">
-            <span className="vd-insights-card-ic">🎯</span>
+            <span className="vd-insights-card-ic"><Target size={16} /></span>
             <div>
               <b>Top 5 clientes</b>
               <small>concentração</small>
@@ -588,7 +597,7 @@ export default function SellsInsightsView({
         {/* Análise 4: Métodos de pagamento */}
         <section className="vd-insights-card">
           <header className="vd-insights-card-h">
-            <span className="vd-insights-card-ic">💳</span>
+            <span className="vd-insights-card-ic"><CreditCard size={16} /></span>
             <div>
               <b>Métodos de pagamento</b>
               <small>top {methodsAgg.length}</small>
@@ -628,7 +637,7 @@ export default function SellsInsightsView({
       {acoes.length > 0 && (
         <>
           <h2 className="vd-insights-h2">
-            <span className="vd-insights-h2-ic">💡</span> AÇÕES QUE {firstNameUpper} SUGERE
+            <span className="vd-insights-h2-ic"><Lightbulb size={14} /></span> AÇÕES QUE {firstNameUpper} SUGERE
           </h2>
 
           {/* GAP 2 — Lista de ações estruturadas (AcaoRow) ─────────────────── */}
@@ -654,7 +663,8 @@ export default function SellsInsightsView({
       )}
 
       <p className="vd-insights-foot">
-        💡 Insights baseados em vendas filtradas atual + agregados 30d.
+        <Lightbulb size={12} className="inline-block mr-1 align-[-2px]" />
+        Insights baseados em vendas filtradas atual + agregados 30d.
         Próximas ondas: ações HITL real (régua WhatsApp · investigar anomalias) + agentes Brain B Jana real.
       </p>
 
