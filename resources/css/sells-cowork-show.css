@@ -341,3 +341,26 @@
   .sells-cowork-show .vds-section { box-shadow: none; border-color: #ccc; }
   .sells-cowork-show { background: #fff; color: #000; }
 }
+
+/* ─── Timeline unified (P4 parking lot #11 — cross-source stream) ─── */
+.sells-cowork-show .sb-timeline-unified {
+  --sb-timeline-gap: 0.625rem;
+}
+.sells-cowork-show .sb-timeline-event {
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.sells-cowork-show .sb-timeline-event:hover {
+  background-color: var(--bg-2, #f8fafc);
+  border-color: var(--border-2, #e2e8f0);
+}
+.sells-cowork-show .sb-timeline-avatar {
+  box-shadow: 0 0 0 2px var(--surface, #ffffff);
+}
+.sells-cowork-show .sb-timeline-colorbar {
+  border-radius: 2px 0 0 2px;
+}
+@media print {
+  .sells-cowork-show .sb-timeline-event { border-color: #ccc; box-shadow: none; }
+  .sells-cowork-show .sb-timeline-colorbar { display: none; }
+  .sells-cowork-show .sb-timeline-avatar { background: #eee !important; color: #000 !important; box-shadow: none; }
+}
