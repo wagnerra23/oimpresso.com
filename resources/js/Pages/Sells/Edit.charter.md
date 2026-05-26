@@ -35,17 +35,25 @@ Editar venda existente — produtos, descontos, pagamento, frete — preservando
 - Form deferred via `Inertia::defer()` — pre-fill aguarda payload pesado (sell_details join 6 tables)
 - `<Deferred data="form" fallback={<FormSkeleton/>}>` wrap frontend
 - `useForm()` no top-level, re-populado via `useEffect` quando form chega
-- 4+ seções: Dados venda · Desconto/Notas · Frete (colapsável `<details>`)
+- 5+ seções: Dados venda · Produtos (com IMEI + desconto R$/% per-line) · Pagamento · Resumo · Responsável/Notas/Anexos · Frete (colapsável `<details>`)
 - Footer sticky bottom: Cancelar + Salvar
-- Atalho `⌘+Enter` submete
-- Multi-tenant Tier 0 backend (ADR 0093)
+- Atalho `⌘+Enter` chama handleSubmit programaticamente (passa products[] no payload — PR parking-lot P3)
+- Auto-save draft localStorage debounced 500ms — key `oimpresso.sells.b{biz}.u{user}.edit.{id}.draft` TTL 24h, com botão "Descartar rascunho" e descarte automático se `transaction.updated_at > draft.savedAt` (PR parking-lot P2)
+- Features só-no-Blade preservadas (PR parking-lot P1):
+  - IMEI/nº série inline opcional por linha de produto
+  - Desconto R$/% toggle per-line (`line_discount_type`)
+  - Notas equipe (`staff_note`) separada de `additional_notes`
+  - Assinatura recorrente (`is_recurring`) checkbox
+  - Responsável/comissionado (`commission_agent`) select
+  - Anexar documento (`sell_document`) — .pdf/.csv/.zip/.doc/.docx/.jpg/.png · máx 5MB · multipart via POST+_method=put
+  - Endereço cobrança ≠ entrega (`customer_secondary_address`) textarea
+- Multi-tenant Tier 0 backend (ADR 0093) — draft key inclui `bizId.userId.saleId`
 - FSM safety: NUNCA setar `current_stage_id` no useForm
 
 ---
 
 ## Non-Goals — Features (NÃO faz)
 
-- ❌ Auto-save draft (edit é mutação intencional, diferente de Create)
 - ❌ Mudança de status pra cancelled/completed direto (FSM via ActionPanel)
 - ❌ Edição de venda com return associada → backend 422
 - ❌ Edição após transaction_edit_days expirar → backend 422
