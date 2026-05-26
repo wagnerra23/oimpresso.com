@@ -2991,6 +2991,18 @@ class SellController extends Controller
                     'isOrderRequestEnabled' => (bool) $is_order_request_enabled,
                     'customerDue' => (string) $customer_due,
                     'users' => $users,
+                    // PR #1663 — Customer payload pro Edit.tsx (defaultName real + cliente vencido alerta).
+                    // sell_lines.contact pode estar eager-loaded via $with linha 329; fallback firstOrFail
+                    // anti-Tier 0 protege cross-tenant (transaction.business_id já validado linha 2456).
+                    'customer' => $transaction->contact ? [
+                        'id' => (int) $transaction->contact->id,
+                        'name' => (string) ($transaction->contact->name ?? ''),
+                        'mobile' => $transaction->contact->mobile ? (string) $transaction->contact->mobile : null,
+                        'email' => $transaction->contact->email ? (string) $transaction->contact->email : null,
+                        // dues_total = soma de transactions.final_total - total_paid de outras vendas due
+                        // do mesmo contact. Lazy fallback ao $customer_due variable já existente acima.
+                        'dues_total' => (float) ($customer_due ? floatval(preg_replace('/[^\d.]/', '', $customer_due)) : 0.0),
+                    ] : null,
                 ];
             };
 
