@@ -19,8 +19,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * - vehicle_type ENUM cobre 3 sub-verticais (CNAEs 4520/2212/4581)
  * - legacy_id preserva CODIGO Firebird pra importer US-OFICINA-002
  *
- * Caçamba avulsa (extension migration 2026_05_12_220001):
- * - capacity_m3 + current_status + current_rental_id pra fluxo locação Martinho
+ * Caçamba avulsa (extension migration 2026_05_12_220001 · sub-vertical 3 hipotético pós-ADR 0194):
+ * - capacity_m3 + current_status + current_rental_id — schema preservado nullable
+ * - Pré-ADR 0194 (2026-05-26) atribuído como fluxo Martinho; pós-correção
+ *   sub-vertical 3 sem cliente real ancorado · Martinho é sub-vertical 4
+ *   mecânica pesada caminhão basculante (vehicle_type='caminhao_basculante'
+ *   recomendado pra próximos imports — enum já adicionado pela migration)
  *
  * Multi-tenant Tier 0 ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
  * global scope obrigatório — filtra por business_id da sessão automaticamente.

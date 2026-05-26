@@ -45,6 +45,14 @@ NfeBrasil:
   level: biz_1_wagner_active
   note: biz=1 + biz=4 emitem NFe ativamente
 
+Fiscal:
+  level: piloto_reportando_dor
+  note: |
+    US-FISCAL-018 Onda ESTABILIZAR 2026-05-25 — Larissa @ ROTA LIVRE biz=4
+    pre-canary (provisionamento técnico ok via `php artisan fiscal:habilitar-business 4`;
+    briefing manual 30min + canary 7d humano-limitado pending Wagner). Post-canary
+    Wagner promove pra biz_4_rota_livre_prod. Audit sênior 2026-05-25 §GAP-FISCAL-001.
+
 Financeiro:
   level: biz_1_wagner_active
   note: Wagner usa cobrança + Larissa AR/AP
