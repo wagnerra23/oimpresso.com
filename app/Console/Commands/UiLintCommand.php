@@ -545,6 +545,97 @@ class UiLintCommand extends Command
     }
 
     /**
+     * R6 · Blade directives adjacent sem whitespace (`@endif@if`, `@endforeach@foreach`,
+     * `@endphp@if`, etc) em `*.blade.php` · quebra Blade compiler com ViewException
+     * unexpected token. Origem: regressão PR #1659 (OS print 500 prod biz=1 2026-05-26).
+     *
+     * Escaneia `resources/views/` + `Modules/&#42;/Resources/views/`. Em modo
+     * `--changed-only`, restringe pros blade que mudaram vs origin/main.
+     *
+     * @param  array<int, string>|null  $changedFiles  Lista de paths normalizados (--changed-only) ou null (scan completo)
+     * @return array{0: array<int, array{rule:string, file:string, line:int, match:string, detail:string}>, 1: int}
+     */
+    private function checkR6(?array $changedFiles): array
+    {
+        $hits = [];
+        $filesScanned = 0;
+
+        $bladeRoots = [
+            'resources/views',
+        ];
+        // Adiciona Modules/&#42;/Resources/views se existirem (descoberta dinâmica).
+        $modulesBase = base_path('Modules');
+        if (is_dir($modulesBase)) {
+            foreach (scandir($modulesBase) ?: [] as $mod) {
+                if ($mod === '.' || $mod === '..') {
+                    continue;
+                }
+                $candidate = "Modules/{$mod}/Resources/views";
+                if (is_dir(base_path($candidate))) {
+                    $bladeRoots[] = $candidate;
+                }
+            }
+        }
+
+        foreach ($bladeRoots as $root) {
+            $abs = base_path($root);
+            if (! is_dir($abs)) {
+                continue;
+            }
+
+            $finder = new Finder;
+            $finder->files()
+                ->in($abs)
+                ->name('*.blade.php')
+                ->notPath('node_modules')
+                ->notPath('vendor');
+
+            foreach ($finder as $file) {
+                $relPath = $this->relativePath($file->getRealPath());
+
+                // Filtro --changed-only
+                if ($changedFiles !== null && ! in_array($this->normalizePath($relPath), $changedFiles, true)) {
+                    continue;
+                }
+
+                $filesScanned++;
+                $content = file_get_contents($file->getRealPath());
+
+                // Strip Blade comments {{-- ... --}} pra evitar false positive em snippets
+                // documentando o próprio bug. Usa /s pra cruzar linhas.
+                $stripped = preg_replace('/\{\{--.*?--\}\}/s', '', $content);
+
+                // Detecta `@end<word>@<word>` colado · padrão exato do bug regressivo.
+                // Case-sensitive (Blade directives são lowercase canon).
+                if (! preg_match_all('/@end\w+@\w+/', $stripped, $matches, PREG_OFFSET_CAPTURE)) {
+                    continue;
+                }
+
+                foreach ($matches[0] as $m) {
+                    [$matchStr, $offset] = $m;
+                    // Reconstrói line number a partir do offset no $stripped (offsets
+                    // diferem do $content original quando há comments removidos, mas
+                    // a contagem de \n até $offset em $stripped aproxima bem o suficiente
+                    // pro CI · false positive de linha é tolerável vs false negative).
+                    $line = substr_count(substr($stripped, 0, $offset), "\n") + 1;
+                    $hits[] = [
+                        'rule' => 'R6',
+                        'file' => $relPath,
+                        'line' => $line,
+                        'match' => $matchStr,
+                        'detail' => sprintf(
+                            'Blade directives "%s" coladas · adicione espaço/newline entre · quebra compiler com ViewException',
+                            $matchStr
+                        ),
+                    ];
+                }
+            }
+        }
+
+        return [$hits, $filesScanned];
+    }
+
+    /**
      * @param  array<int, array{rule:string, file:string, line:int, match:string, detail:string}>  $violations
      * @param  array<string, array<string, int>>|null  $baseline
      */
