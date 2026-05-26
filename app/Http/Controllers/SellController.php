@@ -2982,6 +2982,16 @@ class SellController extends Controller
                         'pay_term_type' => $transaction->pay_term_type ? (string) $transaction->pay_term_type : null,
                         // ADR 0192 Onda 2 follow-up — editor UI de comissão mecânico/balcão.
                         'commission_split' => $transaction->commission_split, // array | null (cast em Transaction.php)
+                        // PR parking-lot P1 — features só-no-Blade preservadas (pre-fill Edit.tsx).
+                        // staff_note (sale.staff_note), commission_agent select responsável,
+                        // is_recurring assinatura recorrente, customer_secondary_address (cobrança ≠ entrega).
+                        'staff_note' => $transaction->staff_note ? (string) $transaction->staff_note : null,
+                        'commission_agent' => $transaction->commission_agent ? (int) $transaction->commission_agent : null,
+                        'is_recurring' => (int) ($transaction->is_recurring ?? 0),
+                        'customer_secondary_address' => $transaction->customer_secondary_address ?? '',
+                        // PR parking-lot P2 — updated_at pra auto-save draft staleness check.
+                        // Frontend compara com draft.savedAt — se backend > draft, descarta rascunho stale.
+                        'updated_at' => $transaction->updated_at ? (string) $transaction->updated_at : null,
                     ],
                     'sellDetails' => $sell_details,
                     'taxes' => $taxes,
