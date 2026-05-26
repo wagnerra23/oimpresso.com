@@ -1,10 +1,13 @@
 ---
+page: /aprovar-os/{token}
+component: resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx
 page_id: oficina-auto/aprovacao-publica
 status: live
-owner: '[W]'
+owner: wagner
 related_us: [US-OFICINA-006, US-OFICINA-014]
 created: 2026-05-16
 last_review: 2026-05-26
+last_validated: 2026-05-26
 promoted_live_at: 2026-05-26
 related_adrs: [0093, 0094, 0143, 0171, 0192, 0194]
 ---
