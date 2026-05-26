@@ -204,9 +204,13 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     // Wagner 2026-05-25: 3 entries flat — Notas Fiscais, Manifestação, Certificado.
     // (Substitui 1 entry "Fiscal" + ghosts PageHeader). Labels legacy mantidos
     // pra compat com módulos não-migrados ainda apontando labels antigos.
+    // Wagner 2026-05-26: label 'Fiscal' REMOVIDO da whitelist — entry "Fiscal"
+    // (cockpit dashboard order 93) foi desligada em Modules/Fiscal/Http/
+    // Controllers/DataController pra eliminar duplicação visual com "Notas
+    // Fiscais" logo abaixo. Rota /fiscal continua ativa via URL direta.
     items: ['Notas Fiscais', 'Manifestação', 'Certificado',
             'Notas fiscais', 'NFSe', 'NF-e Brasil', 'NF-e', 'NFC-e',
-            'Certificado Digital', 'Fiscal'],
+            'Certificado Digital'],
   },
   {
     key: 'producao',
