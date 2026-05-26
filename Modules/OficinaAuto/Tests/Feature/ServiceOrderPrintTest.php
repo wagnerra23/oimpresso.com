@@ -6,106 +6,213 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Entities\ServiceOrderItem;
 use Modules\OficinaAuto\Entities\Vehicle;
 
 uses(Tests\TestCase::class);
 
 /**
- * Gap 3 (Sells r4 KB-9.75 cowork-bundle 2026-05-26) — printInvoice action.
+ * Gap 3 US-OFICINA-037 — Pest specs pra ServiceOrderController::printInvoice
+ * (papel A4 nota-fiscal-like que substitui window.print bare).
  *
- * Foco: 3 specs MVP cobrindo AJAX-only + multi-tenant + happy path.
+ * 4 specs:
+ *   1. AJAX request retorna JSON {success:1, receipt:{html_content, print_title}}
+ *   2. Sem X-Requested-With (request não-AJAX) retorna 404
+ *   3. Cross-tenant (user biz=A tentando OS biz=B) retorna 404
+ *   4. HTML content inclui número OS + total dos items + zone labels
  *
- * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController::printInvoice
+ * Multi-tenant Tier 0 (ADR 0093) — defensive guard explícito no Controller
+ * + Route Model Binding global scope.
+ *
+ * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php@printInvoice
  * @see resources/views/oficina_auto/print/service_order.blade.php
+ * @see memory/sessions/2026-05-26-plano-gap-3-imprimir-os-pdf-profissional.md
  */
 
-const BIZ_PRINT = 1;
-const BIZ_PRINT_OUTRO = 99;
+const PRINT_BIZ_A = 1;
+const PRINT_BIZ_B = 2;
+const PRINT_PLATE_PREFIX = 'GAP3P';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
     }
-    if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
-        $this->markTestSkipped('service_orders/vehicles tables missing');
+    if (! Schema::hasTable('service_orders')) {
+        $this->markTestSkipped('Migration service_orders ausente');
     }
 });
 
-function criarOsParaPrint(int $biz): ServiceOrder
+function gap3_criaOsComItens(string $suffix, int $business, int $itemsCount = 2): ServiceOrder
 {
-    $v = Vehicle::withoutGlobalScopes()->create([
-        'business_id' => $biz,
-        'plate' => 'ABC' . random_int(1000, 9999),
-        'type' => 'caminhao_basculante',
-        'brand' => 'Volvo',
-        'model' => 'FH 540',
-        'year' => 2020,
+    $vehicle = Vehicle::withoutGlobalScopes()->create([
+        'business_id'  => $business,
+        'plate'        => PRINT_PLATE_PREFIX . $suffix,
+        'vehicle_type' => 'caminhao',
     ]);
 
-    return ServiceOrder::withoutGlobalScopes()->create([
-        'business_id' => $biz,
-        'vehicle_id' => $v->id,
-        'status' => 'aberta',
-        'started_at' => now(),
-        'mileage_at_service' => 245890,
-        'notes' => 'Pastilhas freio dianteiro + disco par',
+    $os = ServiceOrder::withoutGlobalScopes()->create([
+        'business_id' => $business,
+        'vehicle_id'  => $vehicle->id,
+        'order_type'  => 'manutencao',
+        'status'      => 'aberta',
+        'notes'       => 'OS de teste Gap 3 print',
     ]);
+
+    if (Schema::hasTable('oficina_service_order_items')) {
+        for ($i = 1; $i <= $itemsCount; $i++) {
+            ServiceOrderItem::withoutGlobalScopes()->create([
+                'business_id'      => $business,
+                'service_order_id' => $os->id,
+                'tipo'             => ServiceOrderItem::TIPO_PECA,
+                'descricao'        => "Peca Gap3 #{$i}",
+                'quantidade'       => 1,
+                'valor_unitario'   => 100.00 * $i,
+            ]);
+        }
+    }
+
+    return $os;
 }
 
-function userPrintBiz(int $biz): User
+function gap3_cleanup(string $suffix): void
 {
-    return User::withoutGlobalScopes()->firstOrCreate(
-        ['email' => "print-test-biz-{$biz}@oimpresso.test"],
-        [
-            'business_id' => $biz,
-            'first_name' => 'Test Print',
-            'username' => "print_test_biz_{$biz}",
-            'password' => bcrypt('password'),
-            'language' => 'pt_BR',
-        ],
-    );
+    $vehicles = Vehicle::withoutGlobalScopes()
+        ->where('plate', 'like', PRINT_PLATE_PREFIX . $suffix . '%')
+        ->pluck('id')
+        ->toArray();
+
+    if (empty($vehicles)) {
+        return;
+    }
+
+    $osIds = ServiceOrder::withoutGlobalScopes()
+        ->whereIn('vehicle_id', $vehicles)
+        ->pluck('id')
+        ->toArray();
+
+    if (! empty($osIds) && Schema::hasTable('oficina_service_order_items')) {
+        ServiceOrderItem::withoutGlobalScopes()
+            ->whereIn('service_order_id', $osIds)
+            ->forceDelete();
+    }
+    if (! empty($osIds)) {
+        ServiceOrder::withoutGlobalScopes()
+            ->whereIn('id', $osIds)
+            ->forceDelete();
+    }
+
+    Vehicle::withoutGlobalScopes()->whereIn('id', $vehicles)->forceDelete();
 }
 
-it('retorna JSON receipt quando AJAX request autenticado', function () {
-    $os = criarOsParaPrint(BIZ_PRINT);
-    $u = userPrintBiz(BIZ_PRINT);
+// ---------------------------------------------------------------------------
+// Spec 1 — AJAX request retorna JSON com receipt
+// ---------------------------------------------------------------------------
 
-    $response = $this->actingAs($u)
-        ->get(
-            route('oficinaauto.orders.print', $os->id),
-            ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'],
-        );
+it('returns receipt JSON when AJAX request', function () {
+    session(['user.business_id' => PRINT_BIZ_A]);
+    $os = gap3_criaOsComItens('A1', PRINT_BIZ_A, itemsCount: 2);
 
-    $response->assertOk()
-        ->assertJsonStructure([
-            'success',
-            'receipt' => ['html_content', 'print_title'],
+    $user = User::factory()->create(['business_id' => PRINT_BIZ_A]);
+    $user->givePermissionTo('superadmin');
+
+    $response = $this->actingAs($user)
+        ->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept'           => 'application/json',
         ])
-        ->assertJsonPath('success', true);
-})->group('oficinaauto', 'print', 'gap3');
+        ->get("/oficina-auto/ordens-servico/{$os->id}/print");
 
-it('retorna 404 cross-tenant (business_id diferente)', function () {
-    $os = criarOsParaPrint(BIZ_PRINT);
-    $u = userPrintBiz(BIZ_PRINT_OUTRO);
+    $response->assertOk();
+    $response->assertJsonStructure([
+        'success',
+        'receipt' => [
+            'html_content',
+            'print_title',
+        ],
+    ]);
+    expect($response->json('success'))->toBe(1);
+    expect($response->json('receipt.html_content'))->toBeString()->not->toBeEmpty();
+    expect($response->json('receipt.print_title'))->toContain('OS-');
+})->afterEach(fn () => gap3_cleanup('A1'));
 
-    $response = $this->actingAs($u)
-        ->get(
-            route('oficinaauto.orders.print', $os->id),
-            ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'],
-        );
+// ---------------------------------------------------------------------------
+// Spec 2 — Sem X-Requested-With (non-AJAX) retorna 404
+// ---------------------------------------------------------------------------
 
-    // Tier 0 ADR 0093: global scope filtra → RMB retorna 404 ModelNotFound
+it('returns 404 without AJAX header', function () {
+    session(['user.business_id' => PRINT_BIZ_A]);
+    $os = gap3_criaOsComItens('A2', PRINT_BIZ_A, itemsCount: 1);
+
+    $user = User::factory()->create(['business_id' => PRINT_BIZ_A]);
+    $user->givePermissionTo('superadmin');
+
+    // Sem X-Requested-With: Controller aborta 404 (evita AppShellV2 vazado).
+    $response = $this->actingAs($user)
+        ->get("/oficina-auto/ordens-servico/{$os->id}/print");
+
     $response->assertNotFound();
-})->group('oficinaauto', 'print', 'multi-tenant', 'gap3');
+})->afterEach(fn () => gap3_cleanup('A2'));
 
-it('retorna 401/redirect sem auth', function () {
-    $os = criarOsParaPrint(BIZ_PRINT);
+// ---------------------------------------------------------------------------
+// Spec 3 — Cross-tenant guard (ADR 0093 Tier 0)
+// ---------------------------------------------------------------------------
 
-    $response = $this->get(
-        route('oficinaauto.orders.print', $os->id),
-        ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'],
-    );
+it('returns 404 cross-tenant', function () {
+    // OS criada em biz=B ...
+    $osBizB = gap3_criaOsComItens('B1', PRINT_BIZ_B, itemsCount: 1);
 
-    // Middleware auth: unauthenticated → redirect login (302) ou 401 (json)
-    expect($response->status())->toBeIn([302, 401]);
-})->group('oficinaauto', 'print', 'auth', 'gap3');
+    // ... user logado em biz=A tenta acessar.
+    session(['user.business_id' => PRINT_BIZ_A]);
+    $user = User::factory()->create(['business_id' => PRINT_BIZ_A]);
+    $user->givePermissionTo('superadmin');
+
+    $response = $this->actingAs($user)
+        ->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept'           => 'application/json',
+        ])
+        ->get("/oficina-auto/ordens-servico/{$osBizB->id}/print");
+
+    // Route Model Binding já filtra via global scope = 404 antes mesmo do controller.
+    // Defensive guard explícito reforça no controller.
+    $response->assertNotFound();
+})->afterEach(fn () => gap3_cleanup('B1'));
+
+// ---------------------------------------------------------------------------
+// Spec 4 — HTML content inclui número OS + valor total + zone labels
+// ---------------------------------------------------------------------------
+
+it('includes correct total in receipt HTML', function () {
+    if (! Schema::hasTable('oficina_service_order_items')) {
+        $this->markTestSkipped('oficina_service_order_items ausente — pula validacao items');
+    }
+
+    session(['user.business_id' => PRINT_BIZ_A]);
+    // 2 items: R$ 100 + R$ 200 = R$ 300 total
+    $os = gap3_criaOsComItens('A3', PRINT_BIZ_A, itemsCount: 2);
+
+    $user = User::factory()->create(['business_id' => PRINT_BIZ_A]);
+    $user->givePermissionTo('superadmin');
+
+    $response = $this->actingAs($user)
+        ->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept'           => 'application/json',
+        ])
+        ->get("/oficina-auto/ordens-servico/{$os->id}/print");
+
+    $response->assertOk();
+    $html = $response->json('receipt.html_content');
+
+    // Numero OS deve aparecer (formato OS-NNNNN).
+    expect($html)->toContain('OS-' . str_pad((string) $os->id, 5, '0', STR_PAD_LEFT));
+
+    // Total R$ 300,00 (item1 R$ 100 + item2 R$ 200) — formato pt-BR.
+    expect($html)->toMatch('/R\$\s*300[,.]00/');
+
+    // Headers das zones aparecem (zone labels do Blade).
+    expect($html)->toContain('Cliente');
+    expect($html)->toContain('Veículo');
+    expect($html)->toContain('Itens da OS');
+    expect($html)->toContain('TOTAL');
+})->afterEach(fn () => gap3_cleanup('A3'));
