@@ -3,9 +3,18 @@ page: /team-mcp/team
 component: resources/js/Pages/team-mcp/Team/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-25
+last_validated: "2026-05-25"
 parent_module: TeamMcp
-related_adrs: [0053, 0055, 0057, 0070, 0081, 0093, 0094, 0095, 0105]
+related_adrs:
+  - "0053-mcp-server-governanca-como-produto"
+  - "0055-self-host-team-plan-equivalente-anthropic"
+  - "0057-tela-team-admin-regras-governanca-tokens-mcp"
+  - "0070-jira-style-task-management-current-md-removed"
+  - "0081-identity-mesh-mcp-actors"
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0095-skills-tiers-convencao-interna"
+  - "0105-cliente-como-sinal-guiar-sem-mandar"
 related_ficha: memory/requisitos/TeamMcp/CAPTERRA-DESIGN-FICHA.md
 tier: A
 charter_version: 1
