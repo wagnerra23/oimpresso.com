@@ -5,6 +5,9 @@
 /* Sells/Index Cowork visual — escopado em .sells-cowork (ver scripts/scope-sells-cowork-css.py) */
 @import "./sells-cowork.css";
 
+/* Sells Insights Jana view — KB-9.75 P5 parking lot tabs Dashboard|Insights (PR #1682) */
+@import "./sells-cowork-insights.css";
+
 /* Sells KB-9.75 NextActionPanel + validações fiscais BR (Cowork bundle 2026-05-26 P0 gaps #1/#5) */
 @import "./sells-kb975-next-action.css";
 
