@@ -309,7 +309,8 @@
                 @endif
                 @if (!empty($order->contact->address_line_1))
                     <div class="os-kv-line">
-                        {{ $order->contact->address_line_1 }}@if (!empty($order->contact->city)), {{ $order->contact->city }}@endif@if (!empty($order->contact->state)) - {{ $order->contact->state }}@endif
+                        {{ $order->contact->address_line_1 }}@if (!empty($order->contact->city)), {{ $order->contact->city }} @endif
+                        @if (!empty($order->contact->state)) - {{ $order->contact->state }} @endif
                     </div>
                 @endif
             @else
