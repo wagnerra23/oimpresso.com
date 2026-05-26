@@ -666,3 +666,413 @@
 .fx-tl-badge.epec     { background: var(--warn-soft); color: var(--warn); }
 .fx-tl-badge.manifest { background: var(--fis-soft); color: var(--fis); }
 
+/* ═══════════════════════════════════════════════════════════════ */
+/* Cowork "Notas Fiscais" — port do fiscal-page.jsx FiscalCockpit */
+/* (header chips · KPI ribbon · toolbar minimalista · tabela unif) */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/* Header local "Notas Fiscais" (substitui Hero do FxShell quando ativo) */
+.fx-local-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 4px 0 14px;
+}
+.fx-local-header h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.fx-local-header .crumb {
+  font-size: 12px;
+  color: var(--fx-text-mute);
+}
+
+/* Linha de chips de ação ao lado do título */
+.fx-chips-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.fx-chip-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--fx-border);
+  background: white;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fx-text-dim);
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.fx-chip-action:hover:not(:disabled) {
+  border-color: var(--fx-text-dim);
+  color: var(--fx-text);
+}
+.fx-chip-action.ok-tag {
+  border-color: var(--ok-soft);
+  background: var(--ok-soft);
+  color: var(--ok);
+  cursor: default;
+}
+.fx-chip-action.ok-tag::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.fx-chip-action.primary {
+  background: var(--fx-text);
+  color: white;
+  border-color: var(--fx-text);
+  font-weight: 600;
+}
+.fx-chip-action.primary:hover {
+  background: var(--fis);
+  border-color: var(--fis);
+}
+
+/* KPI Ribbon estreito (substitui fx-kpis-cockpit em modo Notas) */
+.fx-ribbon {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 12px 0;
+  margin: 0 0 14px;
+  border-top: 1px solid var(--fx-border);
+  border-bottom: 1px solid var(--fx-border);
+  overflow-x: auto;
+}
+.fx-ribbon-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 22px;
+  border-right: 1px solid var(--fx-border-2);
+  min-width: 0;
+  flex-shrink: 0;
+}
+.fx-ribbon-item:first-child { padding-left: 0; }
+.fx-ribbon-item:last-child  { border-right: 0; }
+.fx-ribbon-item small {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fx-text-mute);
+}
+.fx-ribbon-item b {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.fx-ribbon-item .emph { color: var(--bad); }
+.fx-ribbon-item .ok-text { color: var(--ok); }
+.fx-ribbon-item em {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--fx-text-mute);
+  margin-top: 1px;
+}
+.fx-ribbon-item em.up   { color: var(--ok); }
+.fx-ribbon-item em.down { color: var(--bad); }
+.fx-ribbon-cta {
+  margin-left: auto;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid var(--fis);
+  color: var(--fis);
+  cursor: pointer;
+  align-self: center;
+  transition: background .12s, color .12s;
+}
+.fx-ribbon-cta:hover { background: var(--fis); color: white; }
+
+/* Toolbar minimalista (search + 3 dropdowns + density) */
+.fx-notas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.fx-notas-toolbar .fx-search { flex: 1; min-width: 240px; }
+.fx-combo {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 6px 28px 6px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%2399978f'/></svg>") no-repeat right 10px center;
+  background-size: 8px 5px;
+  color: var(--fx-text);
+  border: 1px solid var(--fx-border);
+  border-radius: 7px;
+  cursor: pointer;
+}
+.fx-combo:focus {
+  outline: none;
+  border-color: var(--fis);
+}
+
+/* Density toggle */
+.fx-density {
+  display: inline-flex;
+  background: var(--fx-bg-2);
+  border-radius: 7px;
+  padding: 2px;
+}
+.fx-density button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--fx-text-mute);
+  display: inline-flex;
+  align-items: center;
+}
+.fx-density button.active {
+  background: white;
+  color: var(--fx-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+
+/* Tabela unificada — tipo NF-e/NFC-e/NFS-e visual */
+.fx-tipo-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.fx-tipo-dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.fx-tipo-dot.t-nfe   { background: oklch(0.96 0.02 240); color: oklch(0.45 0.13 240); }
+.fx-tipo-dot.t-nfe::before   { background: oklch(0.55 0.15 240); }
+.fx-tipo-dot.t-nfce  { background: oklch(0.96 0.03 300); color: oklch(0.45 0.14 300); }
+.fx-tipo-dot.t-nfce::before  { background: oklch(0.55 0.16 300); }
+.fx-tipo-dot.t-nfse  { background: var(--ok-soft); color: var(--ok); }
+.fx-tipo-dot.t-nfse::before  { background: var(--ok); }
+
+.fx-row-actions {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity .12s;
+}
+.fx-table tbody tr:hover .fx-row-actions { opacity: 1; }
+.fx-row-act {
+  appearance: none;
+  background: white;
+  border: 1px solid var(--fx-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fx-text-dim);
+  cursor: pointer;
+}
+.fx-row-act:hover { border-color: var(--fis); color: var(--fis); }
+.fx-row-act.danger { color: var(--bad); }
+.fx-row-act.danger:hover { border-color: var(--bad); }
+
+/* Density variants */
+.fx-density-compact .fx-table tbody td { padding: 5px 10px; font-size: 12px; }
+.fx-density-comfort .fx-table tbody td { padding: 9px 12px; font-size: 12.5px; }
+.fx-density-relax   .fx-table tbody td { padding: 13px 14px; font-size: 13px; }
+
+/* Active filter chip (cliente clicado) */
+.fx-active-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 12px;
+  margin-bottom: 8px;
+  background: var(--fis-soft);
+  border: 1px solid var(--fis);
+  border-radius: 99px;
+  font-size: 11.5px;
+}
+.fx-active-filter b { color: var(--fis); font-weight: 600; }
+.fx-active-filter button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  font-size: 14px;
+  color: var(--fis);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+/* Bulk actions bar (≥1 nota selecionada) */
+.fx-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--fx-text);
+  color: white;
+  border-radius: 8px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.fx-bulk-bar b { color: white; font-weight: 700; }
+.fx-bulk-bar .fx-btn { background: transparent; color: white; border-color: rgba(255,255,255,.3); padding: 4px 8px; font-size: 11.5px; }
+.fx-bulk-bar .fx-btn:hover { background: rgba(255,255,255,.1); }
+
+/* Help callout (DF-e, Eventos info) */
+.fx-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--fx-bg-2);
+  border: 1px solid var(--fx-border);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.fx-callout svg { color: var(--fis); flex-shrink: 0; margin-top: 1px; }
+.fx-callout b { display: block; font-size: 12.5px; margin-bottom: 4px; }
+.fx-callout small { font-size: 11.5px; color: var(--fx-text-dim); line-height: 1.5; }
+
+/* Cert visual card (Config sub-page) */
+.fx-cert-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 980px) { .fx-cert-grid { grid-template-columns: 1fr; } }
+.fx-cert-card {
+  background: white;
+  border: 1px solid var(--fx-border);
+  border-radius: 10px;
+  padding: 18px;
+}
+.fx-cert-card h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; }
+.fx-cert-card .lead { margin: 0 0 14px; font-size: 12px; color: var(--fx-text-dim); }
+.fx-cert-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--fx-bg-2);
+  border-radius: 8px;
+}
+.fx-cert-ic {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  background: var(--fis);
+  color: white;
+  border-radius: 8px;
+}
+.fx-cert-head b { display: block; font-size: 13.5px; font-weight: 600; }
+.fx-cert-head small { display: block; font-size: 11px; color: var(--fx-text-mute); }
+.fx-cert-validade {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 0 0 10px;
+}
+.fx-cert-validade > div { display: flex; flex-direction: column; gap: 2px; }
+.fx-cert-validade dt { font-size: 10.5px; text-transform: uppercase; color: var(--fx-text-mute); font-weight: 600; letter-spacing: 0.04em; }
+.fx-cert-validade dd { margin: 0; font-size: 14px; font-weight: 700; }
+.fx-cert-bar {
+  height: 6px;
+  background: var(--fx-bg-2);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.fx-cert-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ok), var(--warn));
+  border-radius: 99px;
+}
+.fx-cert-bar.crit > div { background: var(--bad); }
+.fx-cert-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.fx-help-list { margin: 0; padding: 0 0 0 18px; font-size: 12px; color: var(--fx-text-dim); }
+.fx-help-list li { margin-bottom: 6px; line-height: 1.5; }
+.fx-help-list code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  background: var(--fx-bg-2);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* DFe inline action buttons (4 manifestações) */
+.fx-dfe-acts {
+  display: inline-flex;
+  gap: 4px;
+}
+.fx-dfe-act {
+  appearance: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: white;
+  border: 1px solid var(--fx-border);
+  border-radius: 5px;
+  color: var(--fx-text-dim);
+  cursor: pointer;
+}
+.fx-dfe-act:hover { border-color: var(--fx-text-dim); color: var(--fx-text); }
+.fx-dfe-act.ok      { color: var(--ok); border-color: var(--ok-soft); }
+.fx-dfe-act.ok:hover{ background: var(--ok); color: white; border-color: var(--ok); }
+.fx-dfe-act.bad     { color: var(--bad); border-color: var(--bad-soft); }
+.fx-dfe-act.bad:hover{ background: var(--bad); color: white; border-color: var(--bad); }
+
+/* Saved views chip dropdown (DF-e + Notas) */
+.fx-saved-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: white;
+  border: 1px solid var(--fx-border);
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--fx-text-dim);
+  cursor: pointer;
+}
+.fx-saved-view.active { background: var(--fis-soft); border-color: var(--fis); color: var(--fis); }
+.fx-saved-view .n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 0 5px;
+  height: 16px;
+  background: var(--fx-bg-2);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.fx-saved-view.active .n { background: var(--fis); color: white; }

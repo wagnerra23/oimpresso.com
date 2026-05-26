@@ -62,43 +62,75 @@ export default function Config({ certificado, config }: ConfigProps) {
           </a>
         }
       >
-        {/* Cert section */}
-        <section className="fx-drawer-sec" style={{ background: 'white', border: '1px solid var(--fx-border)', borderRadius: 10, padding: 18, marginBottom: 14 }}>
-          <h4>
-            <Shield size={13} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-            Certificado digital A1
-          </h4>
-          {certificado ? (
-            <dl className="fx-kv">
-              <dt>CNPJ titular</dt>
-              <dd>{certificado.cnpjTitular ?? '—'}</dd>
-              <dt>Validade</dt>
-              <dd>
-                <span className={`fx-sefaz ${certTone}`}>
-                  <span className="code">{certificado.validoAteBr ?? '—'}</span>
-                  <span className="lbl">
-                    {certificado.diasRestantes != null && certificado.diasRestantes > 0
-                      ? `${certificado.diasRestantes}d restantes`
-                      : 'EXPIRADO'}
-                  </span>
-                </span>
-              </dd>
-              <dt>Status</dt>
-              <dd>{certificado.ativo ? '✅ Ativo' : '🔒 Inativo'}</dd>
-              <dt>UUID</dt>
-              <dd className="fx-mono"><small>{certificado.uuid}</small></dd>
-            </dl>
-          ) : (
-            <div className="fx-empty" style={{ background: 'transparent', border: 'none', padding: '12px 0' }}>
-              <b>Nenhum certificado A1 ativo</b>
-              <small>Upload via /nfe-brasil/configuracao/certificado</small>
-            </div>
-          )}
-        </section>
+        {/* Cert + Help (2-col grid — port fiscal-page.jsx §12 CertificadoTab) */}
+        <div className="fx-cert-grid">
+          <section className="fx-cert-card">
+            <h3>Certificado digital A1</h3>
+            <p className="lead">Instalado em MemCofre · SEFAZ exige renovação anual.</p>
 
-        {/* Config section */}
-        <section className="fx-drawer-sec" style={{ background: 'white', border: '1px solid var(--fx-border)', borderRadius: 10, padding: 18, marginBottom: 14 }}>
-          <h4>Regime tributário & emissão</h4>
+            {certificado ? (
+              <>
+                <div className="fx-cert-head">
+                  <span className="fx-cert-ic"><Shield size={20} /></span>
+                  <div>
+                    <b>{certificado.cnpjTitular ?? 'CNPJ não informado'}</b>
+                    <small>A1 (arquivo .pfx) · MemCofre · senha protegida</small>
+                    <small>UUID {certificado.uuid.slice(0, 8)}…</small>
+                  </div>
+                </div>
+
+                <dl className="fx-cert-validade">
+                  <div>
+                    <dt>Válido até</dt>
+                    <dd>{certificado.validoAteBr ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Restam</dt>
+                    <dd style={{ color: certTone === 'bad' ? 'var(--bad)' : certTone === 'warn' ? 'var(--warn)' : 'var(--ok)' }}>
+                      {certificado.diasRestantes != null && certificado.diasRestantes > 0
+                        ? `${certificado.diasRestantes}d`
+                        : 'EXPIRADO'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{certificado.ativo ? 'Ativo' : 'Inativo'}</dd>
+                  </div>
+                </dl>
+
+                <div className={`fx-cert-bar${certTone === 'bad' ? ' crit' : ''}`}>
+                  <div style={{ width: `${Math.max(2, Math.min(100, ((certificado.diasRestantes ?? 0) / 365) * 100))}%` }} />
+                </div>
+
+                <div className="fx-cert-actions">
+                  <a href="/nfe-brasil/configuracao/certificado" className="fx-btn warn">Renovar certificado</a>
+                  <a href="/nfe-brasil/configuracao/certificado" className="fx-btn ghost">Trocar para A3 (token)</a>
+                </div>
+              </>
+            ) : (
+              <div className="fx-empty" style={{ background: 'transparent', border: 'none', padding: 0 }}>
+                <b>Nenhum certificado A1 ativo</b>
+                <small>Upload via NfeBrasil para começar a emitir.</small>
+                <a href="/nfe-brasil/configuracao/certificado" className="fx-btn primary" style={{ marginTop: 12 }}>Importar certificado</a>
+              </div>
+            )}
+          </section>
+
+          <section className="fx-cert-card">
+            <h3>Como funciona o A1</h3>
+            <p className="lead">Resumo pra contadora externa.</p>
+            <ul className="fx-help-list">
+              <li><b>A1 (arquivo):</b> certificado em <code>.pfx</code> + senha. Fica no servidor (MemCofre). Renova a cada 12 meses.</li>
+              <li><b>A3 (token/cartão):</b> exige hardware presente no servidor. Mais seguro mas dificulta automação.</li>
+              <li><b>Vence em &lt; 30 dias?</b> SEFAZ continua aceitando até a data final, mas a emissão deve ser pausada se renovação atrasar.</li>
+              <li><b>Onde fica a senha?</b> sempre em <code>MemCofre</code>, nunca em variável de ambiente.</li>
+            </ul>
+          </section>
+        </div>
+
+        {/* Regime tributário (mantém visual list-style canônico) */}
+        <section className="fx-cert-card" style={{ marginBottom: 14 }}>
+          <h3>Regime tributário &amp; emissão</h3>
           {config ? (
             <dl className="fx-kv">
               <dt>Regime</dt>
