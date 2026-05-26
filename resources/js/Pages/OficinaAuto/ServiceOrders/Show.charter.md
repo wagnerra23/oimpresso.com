@@ -3,16 +3,18 @@ page: /oficina-auto/service-orders/{id}
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: 2026-05-26
 parent_module: OficinaAuto
-related_adrs: [0137, 0143, 0110, 0093]
+related_adrs: [0137, 0143, 0110, 0093, 0171, 0192, 0194]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /oficina-auto/service-orders/{id}
 
 > **Status:** live (V0). Detalhe completo de uma OS com FSM action panel + timeline auditável.
+>
+> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** OS Martinho biz=164 é sub-vertical 4 mecânica pesada. Card "Valor a receber" `daily_rate × dias_locacao` aplica primariamente pra schema sub-vertical 3 hipotético preservado nullable — V0 OS mecânica retorna R$ [redacted Tier 0] hoje (Wagner edita manual). Recalc canon V1 = `peça×qty + hora-trabalho×horas` via US-OFICINA-027 P0 8h ([levantamento 2026-05-26](../../../../../memory/sessions/2026-05-26-levantamento-martinho-ready.md) §B2). Card "Esta OS gerou venda #V-NNNN" LIVE (ADR 0192 ext + Onda 7 PR #1534 componente shared `@/Components/shared/VendaDerivadaCard.tsx`).
 
 ## Mission
 

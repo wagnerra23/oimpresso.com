@@ -3,16 +3,18 @@ page: /oficina-auto/service-orders/create
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: 2026-05-26
 parent_module: OficinaAuto
-related_adrs: [0137, 0093, 0110]
+related_adrs: [0137, 0093, 0110, 0171, 0194]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /oficina-auto/service-orders/create
 
-> **Status:** live (V0). Formulário de abertura de OS — manutenção ou locação.
+> **Status:** live (V0). Formulário de abertura de OS — `order_type` configurável.
+>
+> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** Martinho biz=164 LIVE prod usa principalmente `order_type='manutencao'` (sub-vertical 4 mecânica pesada caminhão basculante). Campos condicionais de locação (`daily_rate`/`expected_return_date`/`delivery_address`) preservados nullable como schema sub-vertical 3 hipotético sem cliente real ancorado. Toggle UI mantido por compat — review_trigger M6+ caso cliente real de locação container surgir.
 
 ## Mission
 
