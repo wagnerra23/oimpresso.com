@@ -25,7 +25,7 @@ Permitir abertura rápida de OS pelo atendente em ≤ 30s — escolher vehicle (
 - `<PageHeader>` h1 "Nova Ordem de Serviço" + back link
 - Toggle `order_type`: manutenção (default) vs locação (caçamba/equipamento)
 - Autocomplete vehicle por placa (Mercosul + legacy) — se não existe, botão "Criar veículo novo" abre drawer
-- Autocomplete contact (cliente) — required em locação (Martinho aluga pra construtora diferente do dono)
+- Autocomplete contact (cliente) — required (Martinho atende caminhões basculantes de transportadoras/construtoras de terceiros — sub-vertical 4 mecânica pesada ADR 0194)
 - Campos condicionais por order_type:
   - **Manutenção:** mileage_at_service, notes, expected_completion
   - **Locação:** delivery_address, daily_rate, expected_return_date

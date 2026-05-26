@@ -62,7 +62,7 @@ escopo: pasta clientes-legacy-officeimpresso/ + skills officeimpresso-* + Module
 | **Extreme** | **91.4%** | 🎯 gráfica industrial controla prazo formalmente |
 | Gold | 6.2% | comvis NÃO controla prazo estruturalmente |
 | Vargas | 0.4% | recapagem (entrega rápida, sem prazo formal) |
-| Martinho | 0.0% | caçamba locação |
+| Martinho | 0.0% | mecânica pesada caminhão basculante (sub-vertical 4 · CNAE 4520 · correção ADR 0194 — pré-correção dizia "caçamba locação") |
 | WR2 | 8.0% | toy |
 
 **Regra:** Inverter v1/v2/v3 que diziam Gold = "cliente comvis com prazo". É Extreme.
