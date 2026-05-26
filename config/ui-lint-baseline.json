@@ -151,7 +151,7 @@
             "R1": 5
         },
         "resources\/js\/Pages\/Admin\/_components\/WidgetCurador.tsx": {
-            "R1": 29
+            "R1": 33
         },
         "resources\/js\/Pages\/Admin\/_components\/WidgetCycles.tsx": {
             "R1": 11
@@ -662,8 +662,8 @@
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/CacambaKanbanColumn.tsx": {
             "R1": 17
         },
-        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/CacambaProducaoSheet.tsx": {
-            "R1": 29
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/ServiceOrderRichSheet.tsx": {
+            "R1": 33
         },
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/DragConfirmDialog.tsx": {
             "R1": 19
@@ -967,7 +967,7 @@
             "R1": 33
         },
         "resources\/js\/Pages\/StockTransfer\/Index.tsx": {
-            "R1": 29,
+            "R1": 33,
             "R4": 1
         },
         "resources\/js\/Pages\/superadmin\/Usuario360\/Show.tsx": {

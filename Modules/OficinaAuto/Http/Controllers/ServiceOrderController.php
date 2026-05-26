@@ -385,6 +385,10 @@ class ServiceOrderController extends Controller
             'vehicle',
             'contact:id,name,mobile',
             'transaction:id,business_id,invoice_no,final_total,transaction_date',
+            // Wave 2.3 US-OFICINA-027 — drawer ServiceOrderRichSheet seção PEÇAS & MÃO DE OBRA
+            'items',
+            // Wave 2.1 US-OFICINA-027 — drawer KV grid modo manutenção (Mecânico)
+            'assignedUser:id,first_name,last_name,surname',
         ]);
 
         // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
@@ -407,16 +411,47 @@ class ServiceOrderController extends Controller
                 'started_at'            => $order->entered_at,
                 'completed_at'          => $order->completed_at,
                 'notes'                 => $order->notes,
+                // Wave 2.1 US-OFICINA-027 — drawer modo manutenção (sub-vertical 4 ADR 0194)
+                'mileage_at_service'    => $order->mileage_at_service,
+                'box_label'             => $order->box_label,
+                'assigned_user'         => $order->assignedUser ? [
+                    'id'   => $order->assignedUser->id,
+                    // UltimatePOS canon: surname + first_name + last_name (mesmo pattern User::getUserFullNameAttribute)
+                    'name' => trim(
+                        ($order->assignedUser->surname ?? '') . ' ' .
+                        ($order->assignedUser->first_name ?? '') . ' ' .
+                        ($order->assignedUser->last_name ?? '')
+                    ),
+                ] : null,
                 'vehicle' => $order->vehicle ? [
-                    'id'              => $order->vehicle->id,
-                    'plate'           => $order->vehicle->plate,
-                    'vehicle_number'  => $order->vehicle->vehicle_number ?? null,
-                    'capacity_m3'     => $order->vehicle->capacity_m3 ?? null,
+                    'id'                => $order->vehicle->id,
+                    'plate'             => $order->vehicle->plate,
+                    'vehicle_number'    => $order->vehicle->vehicle_number ?? null,
+                    'vehicle_type'      => $order->vehicle->vehicle_type ?? null,
+                    'capacity_m3'       => $order->vehicle->capacity_m3 ?? null,
+                    'model_year'        => $order->vehicle->model_year ?? null,
+                    'manufacture_year'  => $order->vehicle->manufacture_year ?? null,
+                    'color'             => $order->vehicle->color ?? null,
                 ] : null,
                 'contact' => $order->contact ? [
-                    'id'   => $order->contact->id,
-                    'name' => $order->contact->name,
+                    'id'     => $order->contact->id,
+                    'name'   => $order->contact->name,
+                    'mobile' => $order->contact->mobile,
                 ] : null,
+                // Wave 2.3 US-OFICINA-027 — items lançados na OS (peça + mão-obra + terceiro)
+                // alimentam seção "PEÇAS & MÃO DE OBRA" do drawer ServiceOrderRichSheet.
+                // Observer ::computeFinalTotal soma valor_total destes pra Transaction.final_total.
+                'items' => $order->items->map(fn ($item) => [
+                    'id'             => $item->id,
+                    'tipo'           => $item->tipo,
+                    'descricao'      => $item->descricao,
+                    'quantidade'     => (float) $item->quantidade,
+                    'valor_unitario' => (float) $item->valor_unitario,
+                    'valor_total'    => (float) $item->valor_total,
+                    'product_id'     => $item->product_id,
+                    'notes'          => $item->notes,
+                ])->values()->all(),
+                'items_total' => (float) $order->total_items,
                 // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
                 // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
                 // que já existe no equivalente Modules/Repair/ProducaoOficinaController
