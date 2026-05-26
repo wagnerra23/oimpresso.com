@@ -3,7 +3,7 @@ page: /oficina-auto/service-orders/{id}
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-26
+last_validated: "2026-05-26"
 parent_module: OficinaAuto
 related_adrs:
   - 0137-modules-oficinaauto-qualificada

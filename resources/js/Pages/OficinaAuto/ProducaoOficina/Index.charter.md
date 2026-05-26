@@ -3,7 +3,7 @@ page: /oficina-auto/producao
 component: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-26
+last_validated: "2026-05-26"
 parent_module: OficinaAuto
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
