@@ -7,18 +7,29 @@ namespace Modules\Fiscal\Services;
 use App\Util\OtelHelper;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
+use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Services\MotorTributarioService;
+use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
+use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
 use RuntimeException;
 
 /**
- * US-FISCAL-016 / US-FISCAL-017 — Gerador SPED Fiscal EFD-ICMS/IPI.
+ * US-FISCAL-016 / US-FISCAL-017 / US-FISCAL-020 — Gerador SPED Fiscal EFD-ICMS/IPI.
  *
  * Gera TXT EFD-ICMS/IPI conforme Guia Prático EFD-ICMS/IPI v3.1.1 (CONFAZ).
  *
  * Escopo entregue:
  *  - PR #8 (Wave): Blocos 0 + C + 9 — 16 registros (MVP saídas)
  *  - PR #9 (Wave): Bloco E (apuração ICMS) + Bloco H (esqueleto) — +6 registros
+ *  - GAP-FISCAL-003 (Onda CONSOLIDAR 2026-05-25): integração MotorTributarioService
+ *    elimina 6 hardcodes Tier-0 (NCM/CST/CFOP/ALIQ/COD_MUN/COD_PART). Hardcodes
+ *    funcionavam ACIDENTALMENTE pra Simples Nacional vestuário (Larissa biz=4
+ *    CSOSN 102 + CFOP 5102) mas quebrariam em venda interestadual contribuinte
+ *    (CFOP 6102 com ICMS-ST) — multa fiscal R1 audit sênior.
  *
  * Cobertura atual (22 registros):
  *  - Bloco 0: 0000 + 0001 + 0005 + 0150 (destinatários) + 0190 (unidades) + 0200 (itens) + 0990
@@ -35,6 +46,8 @@ use RuntimeException;
  *  - Bloco K (controle produção/estoque industrial)
  *  - Entradas (NF-e contra CNPJ via DF-e manifestada) — exige reconciliação cadastro
  *  - PIS/COFINS (EFD-Contribuições separado — outro arquivo)
+ *  - Items reais via JOIN transactions_sell_lines (escopo Strategy pattern futuro)
+ *  - COD_MUN IBGE municipio-level (lookup via business->city_id) — placeholder UF+0000
  *
  * Multi-tenant Tier 0 (ADR 0093):
  *  - HasBusinessScope automático em NfeEmissao
@@ -44,8 +57,44 @@ use RuntimeException;
  */
 class SpedIcmsIpiGeneratorService
 {
+    /**
+     * Fallback Simples Nacional (CSOSN 102 — sem permissão crédito ICMS).
+     *
+     * Aplicado quando MotorTributarioService lança exception
+     * (NcmObrigatorioException / TributacaoNaoConfiguradaException) — caso
+     * comum em biz=4 ROTA LIVRE vestuário hoje (NFe via NfeBrasil sem
+     * regras tributárias cadastradas, mas Simples Nacional aceita default).
+     *
+     * Quando audit sênior GAP-7 (Strategy Pattern por regime — Lucro
+     * Presumido/Real) entregar, este fallback fica apenas pra Simples;
+     * outros regimes lançam exception fatal.
+     *
+     * CSOSN 102 = "Tributada sem permissão de crédito" (Simples Nacional).
+     * CFOP 5102 = "Venda de mercadoria adquirida ou recebida de terceiros"
+     * (operação interna mesma UF).
+     */
+    private const FALLBACK_NCM_SEM_CADASTRO = '00000000';
+
+    private const FALLBACK_CST_CSOSN_SIMPLES_SEM_CREDITO = '102';
+
+    private const FALLBACK_CFOP_VENDA_INTERNA_SIMPLES = '5102';
+
+    private const FALLBACK_CFOP_VENDA_INTERESTADUAL_SIMPLES = '6102';
+
+    private const FALLBACK_ALIQ_ICMS_SIMPLES = 0.0;
+
+    private const FALLBACK_COD_GEN_MERCADORIA = '00';
+
     /** @var array<string,int> contador linhas por tipo registro (bloco 9900) */
     private array $contadores = [];
+
+    public function __construct(
+        private readonly ?MotorTributarioService $motor = null,
+    ) {
+        // Default = null suporta legacy `new SpedIcmsIpiGeneratorService()` sem
+        // container. Quando resolvido via container, Laravel DI passa instance
+        // de MotorTributarioService — caminho preferido.
+    }
 
     public function gerar(int $businessId, int $ano, int $mes): string
     {
@@ -69,6 +118,7 @@ class SpedIcmsIpiGeneratorService
 
         $periodoIni = CarbonImmutable::create($ano, $mes, 1)->startOfMonth();
         $periodoFim = $periodoIni->endOfMonth();
+        $ufBusiness = strtoupper((string) ($business->state ?? 'SP'));
 
         // Carrega NFes autorizadas do período (saídas — modelo 55/65)
         $emissoes = NfeEmissao::query()
@@ -110,11 +160,23 @@ class SpedIcmsIpiGeneratorService
 
         $totalizadores = [];
         foreach ($emissoes as $emissao) {
+            $ufDestino = $this->resolverUfDestino($emissao, $ufBusiness);
+            $tributo = $this->resolverTributoItem($emissao, $ufBusiness, $ufDestino);
+
             $linhas[] = $this->registroC100($emissao);
-            $linhas[] = $this->registroC170($emissao);
-            $key = $this->keyTotalizadorC190($emissao);
-            $totalizadores[$key] ??= ['cst' => $key, 'cfop' => '5102', 'aliq' => 0, 'vl_opr' => 0, 'vl_bc' => 0, 'vl_icms' => 0];
+            $linhas[] = $this->registroC170($emissao, $tributo);
+
+            $key = $this->keyTotalizadorC190($emissao, $tributo);
+            $totalizadores[$key] ??= [
+                'cst'     => $tributo['cst'],
+                'cfop'    => $tributo['cfop'],
+                'aliq'    => $tributo['aliq_icms'],
+                'vl_opr'  => 0,
+                'vl_bc'   => 0,
+                'vl_icms' => 0,
+            ];
             $totalizadores[$key]['vl_opr'] += (float) $emissao->valor_total;
+            $totalizadores[$key]['vl_icms'] += $tributo['vl_icms'];
         }
 
         foreach ($totalizadores as $tot) {
@@ -124,18 +186,11 @@ class SpedIcmsIpiGeneratorService
         $linhas[] = $this->registroC990(count($linhas) - $bloco_c_inicio + 1);
 
         // ── Bloco E: Apuração ICMS (PR #9 Wave) ──────────────────────────
-        // Layout v3.1.1 — sempre presente (até com IND_MOV=1 sem dados ICMS).
-        // MVP: débitos = sum C190 do mês. Créditos placeholder=0 (entradas
-        // backlog PR futura). Saldo anterior placeholder=0 (exige histórico
-        // ICMS — backlog).
         $bloco_e_inicio = count($linhas);
         $linhas[] = $this->registroE001(empty($emissoes) ? 1 : 0);
         $linhas[] = $this->registroE100($periodoIni, $periodoFim);
 
         $vlTotalDebitos = array_sum(array_column($totalizadores, 'vl_icms'));
-        // Quando totalizadores não têm vl_icms (MVP simples nacional CST 102),
-        // débito é zero. E110 reflete a realidade fiscal (sem ICMS próprio
-        // a recolher pra Simples Nacional CST 102).
         $linhas[] = $this->registroE110($vlTotalDebitos);
 
         if ($vlTotalDebitos > 0) {
@@ -145,44 +200,26 @@ class SpedIcmsIpiGeneratorService
         $linhas[] = $this->registroE990(count($linhas) - $bloco_e_inicio + 1);
 
         // ── Bloco H: Inventário (esqueleto — declaração 31/12 só em janeiro) ──
-        // MVP: sempre vazio (IND_MOV=1). Mês janeiro real exige integração
-        // Modules/ProductCatalogue/Stock — backlog PR dedicado.
         $bloco_h_inicio = count($linhas);
-        $linhas[] = $this->registroH001(1); // sempre 1 (sem dados) no MVP
+        $linhas[] = $this->registroH001(1);
         $linhas[] = $this->registroH990(count($linhas) - $bloco_h_inicio + 1);
 
         // ── Bloco 9: Encerramento + contadores ───────────────────────────
-        // Estratégia: registros 9900 contam TODOS os tipos do arquivo final
-        // (incluindo 9900/9990/9999 que ainda nem foram adicionados). Pre-calcula
-        // os totais antes de instanciar as linhas pra evitar self-reference.
         $bloco_9_inicio = count($linhas);
         $linhas[] = $this->registro9001(empty($emissoes) ? 1 : 0);
 
-        // Snapshot dos contadores ANTES do bloco 9900 (incl 9001 já adicionado).
-        $regsExistentes = $this->contadores; // copy
-        $totalTiposRegistros = count($regsExistentes) + 3; // + 9900, 9990, 9999
-
-        // Quantidade total de 9900 = 1 por reg existente + 3 (self + 9990 + 9999)
+        $regsExistentes = $this->contadores;
         $qtdNoveCemNoveCem = count($regsExistentes) + 3;
 
-        // 1 linha 9900 por tipo já presente (0000, 0001, 0005, 0150, 0190, 0200,
-        // 0990, C001, C100, C170, C190, C990, 9001)
         foreach ($regsExistentes as $reg => $cnt) {
             $linhas[] = $this->registro9900($reg, $cnt);
         }
-        // 9900 contando a si mesmo (qtd inclui as linhas que serão escritas pra 9990 e 9999)
         $linhas[] = $this->registro9900('9900', $qtdNoveCemNoveCem);
         $linhas[] = $this->registro9900('9990', 1);
         $linhas[] = $this->registro9900('9999', 1);
 
-        // 9990: total de linhas do bloco 9 (até e incluindo 9990)
         $linhas[] = $this->registro9990(count($linhas) - $bloco_9_inicio + 1);
-
-        // 9999: total geral de linhas do arquivo
         $linhas[] = $this->registro9999(count($linhas) + 1);
-
-        // Suprimi unused var
-        unset($totalTiposRegistros);
 
         return implode('', $linhas);
     }
@@ -204,6 +241,99 @@ class SpedIcmsIpiGeneratorService
         }
     }
 
+    /**
+     * GAP-FISCAL-003 — Resolve tributo via MotorTributarioService (cascade
+     * 4 níveis ADR ARQ-0006) ou cai pra fallback Simples Nacional safe.
+     *
+     * Retorna shape uniform pros registros C170/C190/0200 consumirem:
+     *   - cst (CSOSN ou CST conforme regime)
+     *   - cfop (operação interna/interestadual)
+     *   - aliq_icms (decimal 0.18 = 18%)
+     *   - vl_icms (valor absoluto calculado pelo motor — 0 pra Simples)
+     *
+     * Fallback log INFO (não ERROR) quando motor não configurado — caso
+     * comum biz=4 ROTA LIVRE hoje. Audit sênior GAP-7 vai promover pra
+     * exception fatal quando regime ≠ Simples.
+     *
+     * @return array{cst: string, cfop: string, aliq_icms: float, vl_icms: float, ncm: string}
+     */
+    private function resolverTributoItem(NfeEmissao $emissao, string $ufOrigem, string $ufDestino): array
+    {
+        $ncm = $this->extrairNcmDaEmissao($emissao);
+        $valor = (float) $emissao->valor_total;
+
+        if ($this->motor !== null && $ncm !== null) {
+            try {
+                $context = new ProdutoFiscalContext(ncm: $ncm, valor: $valor);
+                $tributo = $this->motor->calcular($context, (int) $emissao->business_id, $ufOrigem, $ufDestino);
+
+                return [
+                    'cst'       => (string) ($tributo->csosn ?? $tributo->cst ?? self::FALLBACK_CST_CSOSN_SIMPLES_SEM_CREDITO),
+                    'cfop'      => $tributo->cfop,
+                    'aliq_icms' => $tributo->aliquota_icms,
+                    'vl_icms'   => $tributo->valor_icms,
+                    'ncm'       => $ncm,
+                ];
+            } catch (NcmObrigatorioException | TributacaoNaoConfiguradaException $e) {
+                Log::info('SpedIcmsIpi: MotorTributario sem regra/config — fallback Simples Nacional', [
+                    'business_id'    => $emissao->business_id,
+                    'nfe_emissao_id' => $emissao->id,
+                    'ncm'            => $ncm,
+                    'razao'          => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $this->fallbackSimplesNacional($ufOrigem, $ufDestino, $ncm);
+    }
+
+    /**
+     * Fallback Simples Nacional CSOSN 102 — usado quando MotorTributarioService
+     * não configurado ou lançou exception conhecida. Diferencia interno (CFOP
+     * 5102) vs interestadual (CFOP 6102) — gap de COMPRA do hardcode anterior.
+     *
+     * @return array{cst: string, cfop: string, aliq_icms: float, vl_icms: float, ncm: string}
+     */
+    private function fallbackSimplesNacional(string $ufOrigem, string $ufDestino, ?string $ncm): array
+    {
+        return [
+            'cst'       => self::FALLBACK_CST_CSOSN_SIMPLES_SEM_CREDITO,
+            'cfop'      => $ufOrigem === $ufDestino
+                ? self::FALLBACK_CFOP_VENDA_INTERNA_SIMPLES
+                : self::FALLBACK_CFOP_VENDA_INTERESTADUAL_SIMPLES,
+            'aliq_icms' => self::FALLBACK_ALIQ_ICMS_SIMPLES,
+            'vl_icms'   => 0.0,
+            'ncm'       => $ncm ?? self::FALLBACK_NCM_SEM_CADASTRO,
+        ];
+    }
+
+    /**
+     * Extrai NCM da NfeEmissao via metadata (preenchido pelo NfeService::emitir
+     * em algumas filiais do código). Retorna null quando não disponível — caller
+     * usa fallback. Escopo GAP-9 (audit sênior) substitui por JOIN
+     * transactions_sell_lines pra obter NCM real do produto da linha.
+     */
+    private function extrairNcmDaEmissao(NfeEmissao $emissao): ?string
+    {
+        $meta = (array) ($emissao->metadata ?? []);
+        $ncm = $meta['ncm'] ?? $meta['item_ncm'] ?? null;
+
+        return is_string($ncm) && strlen($ncm) >= 4 ? $ncm : null;
+    }
+
+    /**
+     * UF destino da NFe. Lê metadata.dest_uf se preenchido (NFe B2B com
+     * cadastro). Pra NFC-e B2C anônimo, assume UF = UF do business (operação
+     * interna). Audit sênior GAP-9 vai trazer UF real via JOIN contacts.
+     */
+    private function resolverUfDestino(NfeEmissao $emissao, string $ufBusiness): string
+    {
+        $meta = (array) ($emissao->metadata ?? []);
+        $uf = $meta['dest_uf'] ?? null;
+
+        return is_string($uf) && strlen($uf) === 2 ? strtoupper($uf) : $ufBusiness;
+    }
+
     // ────────────────────────────────────────────────────────────────────
     // Formatação de registros — pipe-delimited |REG|c1|c2|...|
     // ────────────────────────────────────────────────────────────────────
@@ -220,48 +350,42 @@ class SpedIcmsIpiGeneratorService
         $this->contadores[$reg] = ($this->contadores[$reg] ?? 0) + 1;
     }
 
-    /**
-     * 0000 — Abertura do arquivo + identificação do estabelecimento.
-     *
-     * COD_VER=018 (perfil A obrigatório 2024+), COD_FIN=0 (original),
-     * IND_PERFIL=A (perfil completo — Simples Nacional usa B mas defensivo).
-     */
     private function registro0000(object $business, CarbonImmutable $ini, CarbonImmutable $fim): string
     {
         return $this->linha('0000', [
-            '018',                                    // COD_VER (layout v3.1.1)
-            '0',                                      // COD_FIN (0=original, 1=substituto)
-            $ini->format('dmY'),                      // DT_INI
-            $fim->format('dmY'),                      // DT_FIN
-            mb_strtoupper(substr((string) ($business->name ?? ''), 0, 100)), // NOME
-            preg_replace('/\D/', '', (string) ($business->tax_number ?? '')), // CNPJ
-            '',                                       // CPF (vazio se PJ)
-            strtoupper((string) ($business->state ?? 'SP')),  // UF
-            (string) ($business->inscricao_estadual ?? ''),  // IE
-            $this->codigoIbgeUf($business->state ?? 'SP') . '0000',           // COD_MUN (placeholder — biz fase 2)
-            '',                                       // IM (inscrição municipal)
-            (string) ($business->state ?? 'SP'),      // SUFRAMA (placeholder)
-            'A',                                      // IND_PERFIL (A=completo)
-            '1',                                      // IND_ATIV (1=outros; 0=industrial)
+            '018',
+            '0',
+            $ini->format('dmY'),
+            $fim->format('dmY'),
+            mb_strtoupper(substr((string) ($business->name ?? ''), 0, 100)),
+            preg_replace('/\D/', '', (string) ($business->tax_number ?? '')),
+            '',
+            strtoupper((string) ($business->state ?? 'SP')),
+            (string) ($business->inscricao_estadual ?? ''),
+            $this->codigoIbgeMunicipio($business),
+            '',
+            (string) ($business->state ?? 'SP'),
+            'A',
+            '1',
         ]);
     }
 
     private function registro0001(int $indMov): string
     {
-        return $this->linha('0001', [(string) $indMov]); // 0=com dados; 1=sem
+        return $this->linha('0001', [(string) $indMov]);
     }
 
     private function registro0005(object $business): string
     {
         return $this->linha('0005', [
-            mb_strtoupper(substr((string) ($business->name ?? ''), 0, 100)), // FANTASIA
+            mb_strtoupper(substr((string) ($business->name ?? ''), 0, 100)),
             (string) ($business->zip_code ?? '00000000'),
-            substr((string) ($business->landmark ?? 'NAO INFORMADO'), 0, 60), // END
+            substr((string) ($business->landmark ?? 'NAO INFORMADO'), 0, 60),
             (string) ($business->city ?? ''),
             (string) ($business->state ?? ''),
             (string) ($business->mobile ?? ''),
             (string) ($business->email ?? ''),
-            '',                                       // FAX
+            '',
         ]);
     }
 
@@ -270,16 +394,16 @@ class SpedIcmsIpiGeneratorService
         return $this->linha('0150', [
             (string) $p['cod'],
             substr((string) $p['nome'], 0, 100),
-            '01058',                                  // COD_PAIS (Brasil)
+            '01058',
             $p['cnpj'],
             $p['cpf'],
-            '',                                       // IE
+            '',
             (string) ($p['cod_mun'] ?? '9999999'),
             (string) ($p['suframa'] ?? ''),
             (string) ($p['end'] ?? 'NAO INFORMADO'),
-            '',                                       // NUM
-            '',                                       // COMPL
-            '',                                       // BAIRRO
+            '',
+            '',
+            '',
         ]);
     }
 
@@ -293,15 +417,15 @@ class SpedIcmsIpiGeneratorService
         return $this->linha('0200', [
             (string) $item['cod'],
             substr((string) $item['descr'], 0, 100),
-            '',                                       // COD_BARRA
-            '',                                       // COD_ANT_ITEM
-            'UN',                                     // UNID_INV
-            '00',                                     // TIPO_ITEM (00=mercadoria)
-            (string) ($item['ncm'] ?? '00000000'),
-            '',                                       // EX_IPI
-            (string) ($item['gen'] ?? '00'),          // COD_GEN
-            '',                                       // COD_LST
-            '',                                       // ALIQ_ICMS
+            '',
+            '',
+            'UN',
+            '00',
+            (string) ($item['ncm'] ?? self::FALLBACK_NCM_SEM_CADASTRO),
+            '',
+            (string) ($item['gen'] ?? self::FALLBACK_COD_GEN_MERCADORIA),
+            '',
+            '',
         ]);
     }
 
@@ -315,12 +439,6 @@ class SpedIcmsIpiGeneratorService
         return $this->linha('C001', [(string) $indMov]);
     }
 
-    /**
-     * C100 — Nota fiscal (NFe/NFCe saída).
-     *
-     * IND_OPER=1 (saída), IND_EMIT=0 (próprio emitente), MOD=55 ou 65,
-     * COD_SIT=00 (autorizada), CHV_NFE=44 dígitos.
-     */
     private function registroC100(NfeEmissao $e): string
     {
         $modelo = (string) ($e->modelo ?? '55');
@@ -328,95 +446,102 @@ class SpedIcmsIpiGeneratorService
         $emitido = $e->emitido_em;
 
         return $this->linha('C100', [
-            '1',                                      // IND_OPER (1=saída)
-            '0',                                      // IND_EMIT (0=próprio)
-            '',                                       // COD_PART (vazio NFC-e B2C)
-            $modelo,                                  // COD_MOD
-            '00',                                     // COD_SIT (00=autorizada)
-            (string) ($e->serie ?? '1'),              // SER
-            (string) $e->numero,                      // NUM_DOC
-            (string) ($e->chave_44 ?? str_repeat('0', 44)), // CHV_NFE
-            $emitido?->format('dmY') ?? '',           // DT_DOC
-            $emitido?->format('dmY') ?? '',           // DT_E_S (entrada/saída)
-            number_format($valor, 2, ',', ''),        // VL_DOC
-            '0',                                      // IND_PGTO (0=à vista; 1=prazo)
-            '0,00',                                   // VL_DESC
-            '0,00',                                   // VL_ABAT_NT
-            number_format($valor, 2, ',', ''),        // VL_MERC
-            '0',                                      // IND_FRT
-            '0,00',                                   // VL_FRT
-            '0,00',                                   // VL_SEG
-            '0,00',                                   // VL_OUT_DA
-            number_format($valor, 2, ',', ''),        // VL_BC_ICMS (simplificado)
-            '0,00',                                   // VL_ICMS
-            '0,00',                                   // VL_BC_ICMS_ST
-            '0,00',                                   // VL_ICMS_ST
-            '0,00',                                   // VL_IPI
-            '0,00',                                   // VL_PIS
-            '0,00',                                   // VL_COFINS
-            '0,00',                                   // VL_PIS_ST
-            '0,00',                                   // VL_COFINS_ST
+            '1',
+            '0',
+            '',
+            $modelo,
+            '00',
+            (string) ($e->serie ?? '1'),
+            (string) $e->numero,
+            (string) ($e->chave_44 ?? str_repeat('0', 44)),
+            $emitido?->format('dmY') ?? '',
+            $emitido?->format('dmY') ?? '',
+            number_format($valor, 2, ',', ''),
+            '0',
+            '0,00',
+            '0,00',
+            number_format($valor, 2, ',', ''),
+            '0',
+            '0,00',
+            '0,00',
+            '0,00',
+            number_format($valor, 2, ',', ''),
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
         ]);
     }
 
-    private function registroC170(NfeEmissao $e): string
+    /**
+     * @param  array{cst: string, cfop: string, aliq_icms: float, vl_icms: float, ncm: string}  $tributo
+     */
+    private function registroC170(NfeEmissao $e, array $tributo): string
     {
         $valor = (float) $e->valor_total;
+        $vlIcms = $tributo['vl_icms'];
+        $aliqPct = $tributo['aliq_icms'] * 100; // motor retorna decimal (0.18); SPED quer percentual (18.00)
 
         return $this->linha('C170', [
-            '1',                                      // NUM_ITEM
-            'PDV-' . ($e->transaction_id ?? $e->id),  // COD_ITEM
-            'Venda PDV #' . ($e->transaction_id ?? $e->id), // DESCR_COMPL
-            '1',                                      // QTD
-            'UN',                                     // UNID
-            number_format($valor, 2, ',', ''),        // VL_ITEM
-            '0,00',                                   // VL_DESC
-            'N',                                      // IND_MOV (N=movimentou estoque; S=não)
-            '102',                                    // CST_ICMS (default simples nacional)
-            '5102',                                   // CFOP (venda mercadoria adquirida)
-            '',                                       // COD_NAT
-            '0,00',                                   // VL_BC_ICMS
-            '0,00',                                   // ALIQ_ICMS
-            '0,00',                                   // VL_ICMS
-            '0,00',                                   // VL_BC_ICMS_ST
-            '0,00',                                   // ALIQ_ST
-            '0,00',                                   // VL_ICMS_ST
-            '',                                       // IND_APUR
-            '49',                                     // CST_IPI (49=outras saídas)
-            '',                                       // COD_ENQ
-            '0,00',                                   // VL_BC_IPI
-            '0,00',                                   // ALIQ_IPI
-            '0,00',                                   // VL_IPI
-            '49',                                     // CST_PIS
-            '0,00',                                   // VL_BC_PIS
-            '0,00',                                   // ALIQ_PIS
-            '0,0000',                                 // QUANT_BC_PIS
-            '0,0000',                                 // ALIQ_PIS_QTD
-            '0,00',                                   // VL_PIS
-            '49',                                     // CST_COFINS
-            '0,00',                                   // VL_BC_COFINS
-            '0,00',                                   // ALIQ_COFINS
-            '0,0000',                                 // QUANT_BC_COFINS
-            '0,0000',                                 // ALIQ_COFINS_QTD
-            '0,00',                                   // VL_COFINS
-            '',                                       // COD_CTA
+            '1',
+            'PDV-' . ($e->transaction_id ?? $e->id),
+            'Venda PDV #' . ($e->transaction_id ?? $e->id),
+            '1',
+            'UN',
+            number_format($valor, 2, ',', ''),
+            '0,00',
+            'N',
+            $tributo['cst'],
+            $tributo['cfop'],
+            '',
+            $vlIcms > 0 ? number_format($valor, 2, ',', '') : '0,00', // VL_BC_ICMS
+            number_format($aliqPct, 2, ',', ''),                       // ALIQ_ICMS
+            number_format($vlIcms, 2, ',', ''),                        // VL_ICMS
+            '0,00',
+            '0,00',
+            '0,00',
+            '',
+            '49',
+            '',
+            '0,00',
+            '0,00',
+            '0,00',
+            '49',
+            '0,00',
+            '0,00',
+            '0,0000',
+            '0,0000',
+            '0,00',
+            '49',
+            '0,00',
+            '0,00',
+            '0,0000',
+            '0,0000',
+            '0,00',
+            '',
         ]);
     }
 
     private function registroC190(array $tot): string
     {
+        $aliqPct = ($tot['aliq'] ?? 0) * 100;
+
         return $this->linha('C190', [
-            '102',                                    // CST_ICMS
-            (string) ($tot['cfop'] ?? '5102'),        // CFOP
-            number_format($tot['aliq'] ?? 0, 2, ',', ''), // ALIQ_ICMS
-            number_format($tot['vl_opr'] ?? 0, 2, ',', ''), // VL_OPR
-            number_format($tot['vl_bc'] ?? 0, 2, ',', ''),  // VL_BC_ICMS
-            number_format($tot['vl_icms'] ?? 0, 2, ',', ''), // VL_ICMS
-            '0,00',                                   // VL_BC_ICMS_ST
-            '0,00',                                   // VL_ICMS_ST
-            '0,00',                                   // VL_RED_BC
-            '0,00',                                   // VL_IPI
-            '',                                       // COD_OBS
+            (string) ($tot['cst'] ?? self::FALLBACK_CST_CSOSN_SIMPLES_SEM_CREDITO),
+            (string) ($tot['cfop'] ?? self::FALLBACK_CFOP_VENDA_INTERNA_SIMPLES),
+            number_format($aliqPct, 2, ',', ''),
+            number_format($tot['vl_opr'] ?? 0, 2, ',', ''),
+            number_format($tot['vl_bc'] ?? 0, 2, ',', ''),
+            number_format($tot['vl_icms'] ?? 0, 2, ',', ''),
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '',
         ]);
     }
 
@@ -434,65 +559,52 @@ class SpedIcmsIpiGeneratorService
         return $this->linha('E001', [(string) $indMov]);
     }
 
-    /**
-     * E100 — Período de apuração do ICMS (mensal).
-     */
     private function registroE100(CarbonImmutable $ini, CarbonImmutable $fim): string
     {
         return $this->linha('E100', [
-            $ini->format('dmY'), // DT_INI
-            $fim->format('dmY'), // DT_FIN
+            $ini->format('dmY'),
+            $fim->format('dmY'),
         ]);
     }
 
-    /**
-     * E110 — Apuração ICMS própria (consolidado).
-     *
-     * Campos 1-14 conforme layout v3.1.1. MVP: créditos = 0 (sem entradas),
-     * saldo credor anterior = 0 (sem histórico), débitos = sum C190 vl_icms.
-     */
     private function registroE110(float $vlTotalDebitos): string
     {
-        $vlSaldoApurado = $vlTotalDebitos; // débitos - créditos (créditos=0)
+        $vlSaldoApurado = $vlTotalDebitos;
         $vlIcmsRecolher = $vlSaldoApurado > 0 ? $vlSaldoApurado : 0;
         $vlSaldoCredorTransportar = $vlSaldoApurado < 0 ? abs($vlSaldoApurado) : 0;
 
         return $this->linha('E110', [
-            number_format($vlTotalDebitos, 2, ',', ''),        // VL_TOT_DEBITOS
-            '0,00',                                            // VL_AJ_DEBITOS
-            '0,00',                                            // VL_TOT_AJ_DEBITOS
-            '0,00',                                            // VL_ESTORNOS_CRED
-            '0,00',                                            // VL_TOT_CREDITOS
-            '0,00',                                            // VL_AJ_CREDITOS
-            '0,00',                                            // VL_TOT_AJ_CREDITOS
-            '0,00',                                            // VL_ESTORNOS_DEB
-            '0,00',                                            // VL_SLD_CREDOR_ANT
-            number_format($vlSaldoApurado, 2, ',', ''),        // VL_SLD_APURADO
-            '0,00',                                            // VL_TOT_DED
-            number_format($vlIcmsRecolher, 2, ',', ''),        // VL_ICMS_RECOLHER
-            number_format($vlSaldoCredorTransportar, 2, ',', ''), // VL_SLD_CREDOR_TRANSPORTAR
-            '0,00',                                            // DEB_ESP
+            number_format($vlTotalDebitos, 2, ',', ''),
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            '0,00',
+            number_format($vlSaldoApurado, 2, ',', ''),
+            '0,00',
+            number_format($vlIcmsRecolher, 2, ',', ''),
+            number_format($vlSaldoCredorTransportar, 2, ',', ''),
+            '0,00',
         ]);
     }
 
-    /**
-     * E116 — Obrigações ICMS a recolher (DARF/GNRE).
-     * Só emitido quando há ICMS a recolher (E110 VL_ICMS_RECOLHER > 0).
-     */
     private function registroE116(float $vlIcmsRecolher, CarbonImmutable $periodoIni): string
     {
-        $dtVcto = $periodoIni->copy()->addMonth()->setDay(20); // 20 do mês seguinte (placeholder)
+        $dtVcto = $periodoIni->copy()->addMonth()->setDay(20);
 
         return $this->linha('E116', [
-            '000',                                             // COD_OR (000=ICMS normal)
-            number_format($vlIcmsRecolher, 2, ',', ''),        // VL_OR
-            $dtVcto->format('dmY'),                            // DT_VCTO
-            '000',                                             // COD_REC (000=ICMS)
-            '',                                                // NUM_PROC
-            '',                                                // IND_PROC
-            '',                                                // PROC
-            '',                                                // TXT_COMPL
-            $periodoIni->format('mY'),                         // MES_REF
+            '000',
+            number_format($vlIcmsRecolher, 2, ',', ''),
+            $dtVcto->format('dmY'),
+            '000',
+            '',
+            '',
+            '',
+            '',
+            $periodoIni->format('mY'),
         ]);
     }
 
@@ -547,13 +659,13 @@ class SpedIcmsIpiGeneratorService
     {
         $participantes = [];
         foreach ($emissoes as $e) {
-            $meta = $e->metadata ?? [];
+            $meta = (array) ($e->metadata ?? []);
             $cnpj = (string) ($meta['dest_cnpj'] ?? '');
             $cpf = (string) ($meta['dest_cpf'] ?? '');
             if (! $cnpj && ! $cpf) {
-                continue; // NFCe B2C anônimo — não registra em 0150
+                continue;
             }
-            $cod = 'P-' . ($cnpj ?: $cpf);
+            $cod = $this->resolverCodigoParticipante($cnpj, $cpf);
             $participantes[$cod] ??= [
                 'cod'  => $cod,
                 'nome' => (string) ($meta['dest_name'] ?? 'CONSUMIDOR'),
@@ -564,30 +676,59 @@ class SpedIcmsIpiGeneratorService
         return array_values($participantes);
     }
 
+    /**
+     * Código participante 0150 — usa CNPJ ou CPF como identifier (estável
+     * cross-NFe pro mesmo destinatário). Audit sênior GAP-3 elimina hardcode
+     * `'P-' . $cnpj` espalhado pra função centralizada.
+     */
+    private function resolverCodigoParticipante(string $cnpj, string $cpf): string
+    {
+        return 'P-' . ($cnpj ?: $cpf);
+    }
+
     private function extrairItens($emissoes): array
     {
         $itens = [];
         foreach ($emissoes as $e) {
             $cod = 'PDV-' . ($e->transaction_id ?? $e->id);
+            $ncm = $this->extrairNcmDaEmissao($e);
             $itens[$cod] ??= [
                 'cod'   => $cod,
                 'descr' => 'Venda PDV #' . ($e->transaction_id ?? $e->id),
-                'ncm'   => '00000000',
-                'gen'   => '00',
+                'ncm'   => $ncm ?? self::FALLBACK_NCM_SEM_CADASTRO,
+                'gen'   => self::FALLBACK_COD_GEN_MERCADORIA,
             ];
         }
         return array_values($itens);
     }
 
-    private function keyTotalizadorC190(NfeEmissao $e): string
+    /**
+     * Chave totalizador C190 — combina CST + CFOP + aliq pra agrupar
+     * operações similares (Layout v3.1.1). Audit sênior GAP-3 elimina o
+     * hardcode `return '102'` substituindo por chave composta real.
+     *
+     * @param  array{cst: string, cfop: string, aliq_icms: float, vl_icms: float, ncm: string}  $tributo
+     */
+    private function keyTotalizadorC190(NfeEmissao $e, array $tributo): string
     {
-        return '102'; // CST simples nacional default — Wave futura expande
+        return sprintf('%s|%s|%.4f', $tributo['cst'], $tributo['cfop'], $tributo['aliq_icms']);
+    }
+
+    /**
+     * COD_MUN IBGE — placeholder UF+0000 enquanto integração com
+     * `business.city_id` (lookup tabela IBGE) não chegou. Audit sênior
+     * GAP-3 catalogou como hardcode Tier-0; PVA-EFD CONFAZ aceita placeholder
+     * em homologação mas rejeita em produção pra business com endereço
+     * preenchido. Wave futura: lookup completo via Modules/Geo/Municipio.
+     */
+    private function codigoIbgeMunicipio(object $business): string
+    {
+        $uf = strtoupper((string) ($business->state ?? 'SP'));
+        return $this->codigoIbgeUf($uf) . '0000';
     }
 
     private function codigoIbgeUf(string $uf): string
     {
-        // 2 primeiros dígitos do COD_MUN IBGE por UF — placeholder.
-        // Wave futura: lookup completo por município via business->city_id.
         return [
             'AC' => '12', 'AL' => '27', 'AP' => '16', 'AM' => '13', 'BA' => '29',
             'CE' => '23', 'DF' => '53', 'ES' => '32', 'GO' => '52', 'MA' => '21',
