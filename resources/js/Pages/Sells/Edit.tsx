@@ -20,6 +20,8 @@ import { Textarea } from '@/Components/ui/textarea';
 import CommissionSplitEditor, { type CommissionSplitValue } from '@/Pages/Sells/_components/CommissionSplitEditor';
 // PR #1657 — bloco Produtos real (paridade Create.tsx).
 import ProductSearchAutocomplete, { type ProductSearchResult } from '@/Pages/Sells/_components/ProductSearchAutocomplete';
+// PR #1661 — Customer search Cowork (paridade Create.tsx).
+import CustomerSearchAutocomplete from '@/Pages/Sells/_components/CustomerSearchAutocomplete';
 
 // Linha de produto editável no form Edit (espelha tipo Create.tsx).
 interface EditProductLine {
@@ -454,6 +456,21 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
       <section id="edit-sec-dados" className="rounded-lg border border-border bg-card p-5 space-y-4 scroll-mt-32">
         <h2 className="font-semibold text-sm">Dados da venda</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <Label htmlFor="contact_id">Cliente</Label>
+            <CustomerSearchAutocomplete
+              defaultName={`Cliente #${data.contact_id || '—'}`}
+              onSelect={(c) => setData('contact_id', c.id)}
+              placeholder="Buscar cliente por nome, CPF/CNPJ ou telefone…"
+              disabled={!permissions.update}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Digite ≥2 caracteres pra buscar. Cliente atual já vinculado à venda.
+            </p>
+            {errors.contact_id && (
+              <p className="text-xs text-destructive mt-1" role="alert">{errors.contact_id}</p>
+            )}
+          </div>
           <div>
             <Label htmlFor="transaction_date">Data da venda</Label>
             <Input
