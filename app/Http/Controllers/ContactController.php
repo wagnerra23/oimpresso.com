@@ -430,10 +430,32 @@ class ContactController extends Controller
         // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
         $contactsQuery = Contact::where('contacts.business_id', $business_id);
         $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
+
+        // Fix 2026-05-26 — search server-side. Antes o frontend filtrava `rows`
+        // em memória sobre a página paginada (default 50) — busca por nome só
+        // encontrava clientes da página atual. Agora `q` bate no banco via LIKE
+        // em colunas indexáveis (name/tax_number/mobile/fantasia). Multi-tenant
+        // Tier 0 OK — scope `business_id` já aplicado acima ([ADR 0093]).
+        $q = trim((string) request()->input('q', ''));
+        if ($q !== '') {
+            $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
+            $hasFantasia = $hasWaveBCols; // fantasia veio na Wave B junto com tipo.
+            $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
+                $w->where('contacts.name', 'like', $like)
+                    ->orWhere('contacts.tax_number', 'like', $like)
+                    ->orWhere('contacts.mobile', 'like', $like)
+                    ->orWhere('contacts.contact_id', 'like', $like);
+                if ($hasFantasia) {
+                    $w->orWhere('contacts.fantasia', 'like', $like);
+                }
+            });
+        }
+
         $contacts = $contactsQuery
             ->select($selectCols)
             ->orderBy('contacts.name', 'asc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
 
         $contactIds = $contacts->pluck('id')->all();
 

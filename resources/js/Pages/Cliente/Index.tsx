@@ -356,6 +356,26 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  // Fix 2026-05-26 — search server-side via router.reload. Antes filtrava
+  // `rows` em memória (página paginada do backend) → busca só achava entre
+  // os 25-50 da página atual. Agora `q` vai pro Controller, bate LIKE em
+  // name/tax_number/mobile/contact_id/fantasia (ADR 0093 multi-tenant scope
+  // já no Builder). Debounce 300ms já existente acima evita request por
+  // keystroke. Skip primeiro render (mount) pra não disparar reload vazio.
+  const isSearchMounted = useRef(false);
+  useEffect(() => {
+    if (!isSearchMounted.current) {
+      isSearchMounted.current = true;
+      return;
+    }
+    router.reload({
+      only: ['customers'],
+      data: { q: search || undefined, page: 1 },
+      preserveScroll: true,
+      preserveState: true,
+    });
+  }, [search]);
+
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
   const [sortKey, setSortKey] = useState<SortKey>('name');
@@ -513,14 +533,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const filteredRows = useMemo(() => {
     let r = rows;
     if (statusFilter) r = r.filter((x) => x.status === statusFilter);
-    if (search) {
-      const q = search.toLowerCase();
-      r = r.filter((x) =>
-        x.name.toLowerCase().includes(q) ||
-        (x.tax_number_masked ?? '').toLowerCase().includes(q) ||
-        (x.mobile ?? '').includes(q),
-      );
-    }
+    // Fix 2026-05-26 — busca por nome/tax_number/mobile MIGROU pro backend
+    // (useEffect [search] acima dispara router.reload com `q`). Aqui rows
+    // já vem filtrado server-side; filtro client-side seria duplicado e
+    // amputaria resultados que casam o `q` SQL mas não o regex JS (acentos,
+    // case). Filtros locais abaixo continuam (tipo/UF/tags/stale/saldo).
     // Wave G — filtros novos. Cada um é AND independente (espelha protótipo Cowork).
     if (tipoFilter) r = r.filter((x) => x.tipo === tipoFilter);
     if (ufFilter) r = r.filter((x) => (x.uf ?? x.state ?? '') === ufFilter);
@@ -567,7 +584,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       });
     }
     return r;
-  }, [rows, statusFilter, search, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
+  }, [rows, statusFilter, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
 
   // PTDP Onda 2 — counts pros 5 KPI cards. Ativos + ComSaldo usam `kpis`
   // reais do backend; VIPs + Sem90 + Novos vêm estimados das `rows` da página
