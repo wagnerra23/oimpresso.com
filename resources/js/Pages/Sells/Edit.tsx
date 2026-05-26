@@ -11,13 +11,41 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ArrowLeft, CreditCard, FileText, Loader2, Package, Receipt, Save, Settings2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, FileText, Loader2, Package, Receipt, Save, Settings2, Trash2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 // ADR 0192 Onda 2 follow-up — editor commission_split mecânico/balcão.
 import CommissionSplitEditor, { type CommissionSplitValue } from '@/Pages/Sells/_components/CommissionSplitEditor';
+// PR #1657 — bloco Produtos real (paridade Create.tsx).
+import ProductSearchAutocomplete, { type ProductSearchResult } from '@/Pages/Sells/_components/ProductSearchAutocomplete';
+
+// Linha de produto editável no form Edit (espelha tipo Create.tsx).
+interface EditProductLine {
+  product_id: number;
+  variation_id: number | null;
+  name: string;
+  sku: string;
+  quantity: number;
+  unit_price: number;
+  discount: number;
+  /** ID da linha existente (sell_lines.id) — pra backend identificar update vs create. */
+  sell_line_id?: number | null;
+}
+
+// Tipo do row sellDetails que o backend serializer devolve (pré-fill).
+interface BackendSellDetail {
+  id?: number;
+  product_id?: number;
+  variation_id?: number | null;
+  quantity?: number;
+  unit_price_inc_tax?: number;
+  unit_price?: number;
+  line_discount_amount?: number;
+  product?: { name?: string; sku?: string };
+  variations?: { sub_sku?: string };
+}
 
 interface Headline {
   id: number;
@@ -113,12 +141,25 @@ export default function SellsEdit(props: SellsEditPageProps) {
     invoice_scheme_id: initialTx?.invoice_scheme_id ?? null,
     pay_term_number: initialTx?.pay_term_number ?? null,
     pay_term_type: initialTx?.pay_term_type ?? 'days',
+    // PR #1657 — linhas de produto editáveis (paridade Create.tsx).
+    products: [] as EditProductLine[],
   });
 
   // Re-popula form quando deferred form chegar (initial render veio sem dados).
   useEffect(() => {
     if (props.form?.transaction) {
       const tx = props.form.transaction;
+      // PR #1657 — converte sellDetails do backend pra EditProductLine[].
+      const productsFromBackend: EditProductLine[] = (props.form.sellDetails as BackendSellDetail[] | undefined)?.map((sl) => ({
+        sell_line_id: sl.id ?? null,
+        product_id: sl.product_id ?? 0,
+        variation_id: sl.variation_id ?? null,
+        name: sl.product?.name ?? '—',
+        sku: sl.variations?.sub_sku ?? sl.product?.sku ?? '',
+        quantity: Number(sl.quantity ?? 1),
+        unit_price: Number(sl.unit_price_inc_tax ?? sl.unit_price ?? 0),
+        discount: Number(sl.line_discount_amount ?? 0),
+      })) ?? [];
       setData({
         transaction_date: tx.transaction_date,
         contact_id: tx.contact_id,
@@ -135,10 +176,38 @@ export default function SellsEdit(props: SellsEditPageProps) {
         invoice_scheme_id: tx.invoice_scheme_id ?? null,
         pay_term_number: tx.pay_term_number ?? null,
         pay_term_type: tx.pay_term_type ?? 'days',
+        products: productsFromBackend,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.form?.transaction?.id]);
+
+  // PR #1657 — handlers paridade Create.tsx pra add/update/remove produtos.
+  const handleAddProduct = (p: ProductSearchResult) => {
+    setData('products', [
+      ...data.products,
+      {
+        sell_line_id: null,
+        product_id: Number(p.product_id),
+        variation_id: p.variation_id != null ? Number(p.variation_id) : null,
+        name: p.name,
+        sku: p.sku ?? p.sub_sku ?? '',
+        quantity: 1,
+        unit_price: Number(p.selling_price ?? 0),
+        discount: 0,
+      },
+    ]);
+  };
+
+  const handleUpdateProduct = (idx: number, patch: Partial<EditProductLine>) => {
+    const next = [...data.products];
+    next[idx] = { ...next[idx]!, ...patch };
+    setData('products', next);
+  };
+
+  const handleRemoveProduct = (idx: number) => {
+    setData('products', data.products.filter((_, i) => i !== idx));
+  };
 
   // Atalho Cmd+Enter pra submeter
   useEffect(() => {
@@ -302,6 +371,9 @@ export default function SellsEdit(props: SellsEditPageProps) {
               urls={urls}
               form={props.form}
               onSubmit={handleSubmit}
+              onAddProduct={handleAddProduct}
+              onUpdateProduct={handleUpdateProduct}
+              onRemoveProduct={handleRemoveProduct}
             />
           </Deferred>
         </div>
@@ -326,6 +398,8 @@ interface EditFormData {
   invoice_scheme_id: number | null;
   pay_term_number: number | null;
   pay_term_type: string;
+  // PR #1657 — linhas produtos editáveis (paridade Create).
+  products: EditProductLine[];
 }
 
 interface EditFormBodyProps {
@@ -334,12 +408,16 @@ interface EditFormBodyProps {
   errors: Partial<Record<keyof EditFormData, string>>;
   processing: boolean;
   permissions: { editPrice: boolean; editDiscount: boolean; update: boolean };
-  urls: { submit: string; cancel: string; back: string };
+  urls: { submit: string; cancel: string; back: string; commission_split?: string };
   form?: EditFormPayload;
   onSubmit: (e: React.FormEvent) => void;
+  // PR #1657 — handlers produtos.
+  onAddProduct: (p: ProductSearchResult) => void;
+  onUpdateProduct: (idx: number, patch: Partial<EditProductLine>) => void;
+  onRemoveProduct: (idx: number) => void;
 }
 
-function EditFormBody({ data, setData, errors, processing, permissions, urls, form, onSubmit }: EditFormBodyProps) {
+function EditFormBody({ data, setData, errors, processing, permissions, urls, form, onSubmit, onAddProduct, onUpdateProduct, onRemoveProduct }: EditFormBodyProps) {
   if (!form) {
     return <FormSkeleton />;
   }
@@ -432,16 +510,120 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
         )}
       </div>
 
-      {/* Placeholder bloco Produtos · scroll-target pra pill "Produtos" (refator próximo PR
-          adiciona tabela linhas + product autocomplete copiado de Create) */}
-      <section id="edit-sec-produtos" className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center scroll-mt-32">
-        <p className="text-sm text-muted-foreground">
-          <Package className="inline-block h-4 w-4 mr-2 align-middle" />
-          Bloco Produtos — refator próximo PR (paridade Create.tsx)
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Por ora, edição de produtos continua via Blade legacy. Visão somente leitura: {(form.sellDetails as unknown[])?.length ?? 0} item(s).
-        </p>
+      {/* Bloco Produtos real · paridade Create.tsx (PR #1657) */}
+      <section id="edit-sec-produtos" className="rounded-lg border border-border bg-card p-5 space-y-4 scroll-mt-32">
+        <div className="flex items-center gap-2">
+          <Package className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm">Produtos</h2>
+          <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+            {data.products.length} item(s)
+          </span>
+        </div>
+
+        <ProductSearchAutocomplete
+          locationId={data.location_id || null}
+          onSelect={onAddProduct}
+          disabled={!permissions.editPrice && !permissions.update}
+          placeholder="Buscar produto por nome, SKU ou código de barras…"
+        />
+
+        {data.products.length === 0 ? (
+          <div className="rounded-md border border-dashed border-border bg-muted/20 p-8 text-center">
+            <Package className="inline-block h-6 w-6 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground mt-2">Nenhum produto na venda</p>
+            <p className="text-xs text-muted-foreground mt-1">Use a busca acima pra adicionar</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-muted-foreground uppercase tracking-wide">
+                <tr className="border-b border-border">
+                  <th className="text-left px-3 py-2 font-medium">Produto</th>
+                  <th className="text-right px-3 py-2 font-medium w-24">Qtd</th>
+                  <th className="text-right px-3 py-2 font-medium w-32">Preço unit.</th>
+                  <th className="text-right px-3 py-2 font-medium w-28">Desconto</th>
+                  <th className="text-right px-3 py-2 font-medium w-32">Subtotal</th>
+                  <th className="w-10" />
+                </tr>
+              </thead>
+              <tbody>
+                {data.products.map((p, idx) => {
+                  const subtotal = Math.max(p.quantity * p.unit_price - p.discount, 0);
+                  return (
+                    <tr key={`${idx}-${p.product_id}`} className="border-b border-border last:border-0">
+                      <td className="px-3 py-2">
+                        <div className="font-medium">{p.name}</div>
+                        {p.sku && <div className="text-xs text-muted-foreground">{p.sku}</div>}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <Input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={p.quantity}
+                          onChange={(e) => onUpdateProduct(idx, { quantity: parseFloat(e.target.value) || 0 })}
+                          className="text-right tabular-nums h-8"
+                          disabled={!permissions.update}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={p.unit_price}
+                          onChange={(e) => onUpdateProduct(idx, { unit_price: parseFloat(e.target.value) || 0 })}
+                          className="text-right tabular-nums h-8"
+                          disabled={!permissions.editPrice}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={p.discount}
+                          onChange={(e) => onUpdateProduct(idx, { discount: parseFloat(e.target.value) || 0 })}
+                          className="text-right tabular-nums h-8"
+                          disabled={!permissions.editDiscount}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right tabular-nums font-semibold">
+                        {subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </td>
+                      <td className="px-2 py-2 text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                          onClick={() => onRemoveProduct(idx)}
+                          disabled={!permissions.update}
+                          aria-label="Remover produto"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-border">
+                  <td colSpan={4} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Total produtos
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums font-bold text-base">
+                    {data.products
+                      .reduce((acc, p) => acc + Math.max(p.quantity * p.unit_price - p.discount, 0), 0)
+                      .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </td>
+                  <td />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </section>
 
       {/* Bloco Frete (colapsável simples) · ID scroll-target pra pill "Mais opções" */}
