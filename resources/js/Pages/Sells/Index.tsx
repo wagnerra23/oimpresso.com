@@ -48,6 +48,7 @@ import SellsTabelaUnificada, {
   type SaleRow as UnifiedSaleRow,
 } from './_components/SellsTabelaUnificada';
 import SellsCheatSheet, { SELLS_INDEX_SHORTCUTS } from './_components/SellsCheatSheet';
+import SellsInsightsView from './_components/SellsInsightsView';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS
@@ -424,6 +425,9 @@ const SAVED_VIEWS: SavedView[] = [
 // MAIN — SellsIndex
 // ──────────────────────────────────────────────────────────────
 export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
+  // Auth user pra view Insights Jana (greeting "Bom dia, <nome>!").
+  const sharedPage = usePage<{ auth?: { user?: { name?: string } } }>();
+  const authUserName = sharedPage.props.auth?.user?.name;
   // Tier 0 multi-tenant: storage scoped per business_id (ver useBizStorage acima).
   const ls = useBizStorage();
 
@@ -470,6 +474,16 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   useEffect(() => ls.set('visao_origem', visaoOrigem), [visaoOrigem]);
   // Branch tree expand/collapse state (não persiste — UX volátil).
   const [origemExpanded, setOrigemExpanded] = useState<boolean>(false);
+
+  // KB-9.75 P5 parking lot — tab bar topo Sells [Dashboard | Insights Jana].
+  // Mode "Analista IA" alterna view sem mudar rota — preserva filtros/state Index.
+  // Persistência Tier 0 multi-tenant: `oimpresso.sells.b{biz}.u{user}.view_mode`.
+  type ViewMode = 'dashboard' | 'insights';
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const v = ls.get('view_mode', 'dashboard');
+    return (['dashboard', 'insights'] as const).includes(v as ViewMode) ? (v as ViewMode) : 'dashboard';
+  });
+  useEffect(() => ls.set('view_mode', viewMode), [viewMode]);
 
   // Data fetch state.
   const [rows, setRows] = useState<SaleRow[]>([]);
@@ -1059,6 +1073,29 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 'Pedidos · faturamento · NF-e/NFS-e'
               )}
             </p>
+            {/* KB-9.75 P5 — Tab bar Dashboard | Insights Jana.
+                Alterna view sem mudar rota; preserva filtros/state Index.
+                Persistência Tier 0 via `ls.view_mode`. */}
+            <div className="vd-tabs-mode" role="tablist" aria-label="Modo de visualização">
+              <button
+                type="button"
+                className={`vd-tabs-mode-btn ${viewMode === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setViewMode('dashboard')}
+                role="tab"
+                aria-selected={viewMode === 'dashboard'}
+              >
+                <span className="vd-tabs-mode-ic">📊</span> Dashboard
+              </button>
+              <button
+                type="button"
+                className={`vd-tabs-mode-btn ${viewMode === 'insights' ? 'active' : ''}`}
+                onClick={() => setViewMode('insights')}
+                role="tab"
+                aria-selected={viewMode === 'insights'}
+              >
+                <span className="vd-tabs-mode-ic">✦</span> Insights Jana
+              </button>
+            </div>
           </div>
 
           <div className="os-head-r">
@@ -1071,6 +1108,25 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           </div>
         </header>
 
+        {/* KB-9.75 P5 — Conditional render por viewMode.
+            Dashboard = toolbar + KPIs + table + pagination + bulk (legacy).
+            Insights Jana = SellsInsightsView com brief + 4 análises. */}
+        {viewMode === 'insights' ? (
+          <SellsInsightsView
+            sellKpis={props.sellKpis}
+            coworkAggregates={props.coworkAggregates}
+            rows={filtered.map((r) => ({
+              final_total: Number(r.final_total) || 0,
+              payment_status: r.payment_status ?? '',
+              sla_kind: r.sla_kind ?? '',
+              days_to_due: r.days_to_due ?? null,
+              customer_name: r.customer_name ?? null,
+              payment_method_label: r.payment_method_label ?? null,
+            }))}
+            userName={authUserName}
+          />
+        ) : (
+        <>
         {/* TOOLBAR linha 2: Foco group + Visões btn / Imprimir + Visões ▾ */}
         <div className="vd-toolbar">
           <div className="vd-toolbar-l">
@@ -1634,6 +1690,8 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               ✕
             </button>
           </div>
+        )}
+        </>
         )}
 
         {/* CHEAT-SHEET (?) */}
