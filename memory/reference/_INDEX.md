@@ -93,6 +93,7 @@
 - [feedback-outbound-markdown-over-mcp.md](feedback-outbound-markdown-over-mcp.md) — Outbound/sales tracking via markdown, não MCP tasks granulares
 - [feedback-pesquisar-versao-lib.md](feedback-pesquisar-versao-lib.md) — Antes reverter lib externa, pesquisar GitHub issues + versões intermediárias
 - [feedback-recomendado-quando-tecnico.md](feedback-recomendado-quando-tecnico.md) — Seguir `(Recommended)` em decisão técnica sem perguntar; perguntar só escopo/intenção/UX
+- [feedback-jana-fiscal-reativar.md](feedback-jana-fiscal-reativar.md) — IA fiscal foi removida no Onda Fiscal 2026-05-26 por mal-entendido — Wagner quer reativar (briefing + receita SEFAZ não-mapeada + Q&A ⌘K). Princípio: IA com HITL é canon, não SoC violation.
 - [feedback-revert-isolar-client.md](feedback-revert-isolar-client.md) — Antes reverter PR em prod, isolar client-side primeiro
 - [feedback-tenancy-pest-local.md](feedback-tenancy-pest-local.md) — Mudanças tenancy exigem Pest verde local antes de PR
 - [feedback-test-biz-99-cross-tenant.md](feedback-test-biz-99-cross-tenant.md) — biz=1 default; biz=99 cross-tenant (não biz=4 cliente real)
