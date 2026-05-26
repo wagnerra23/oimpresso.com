@@ -32,6 +32,10 @@ import {
 import { printSaleReceipt, type PrintSaleMode } from '@/Lib/printSaleReceipt';
 import VdNextActionPanel from './_components/VdNextActionPanel';
 import FsmActionPanel from './_components/FsmActionPanel';
+import VdNfeEmitModal, { type NfeEmitVenda } from './_components/VdNfeEmitModal';
+import VdNfseEmitModal, { type NfseEmitVenda } from './_components/VdNfseEmitModal';
+import VdNextActionPanel from './_components/VdNextActionPanel';
+import FsmActionPanel from './_components/FsmActionPanel';
 
 interface Customer {
   id: number;
@@ -151,6 +155,8 @@ function DetailSkeleton() {
 export default function SellsShow(props: SellsShowPageProps) {
   const { headline, urls, permissions } = props;
   const [isPrinting, setIsPrinting] = useState(false);
+  // KB-9.75 P0 gaps #2/#3 — emit modals abertos via VdNextActionPanel gate.
+  const [emitModalKind, setEmitModalKind] = useState<'nfe' | 'nfse' | null>(null);
 
   // /sells/{id}/print só responde a AJAX (SellPosController::printInvoice).
   // Render via iframe oculto + CSS legacy (Bootstrap 3 + .print_section) — pattern equivale
@@ -343,6 +349,7 @@ export default function SellsShow(props: SellsShowPageProps) {
                   // Refresh sheet — Inertia partial reload do detail
                   router.reload({ only: ['detail', 'headline'] });
                 }}
+                onOpenEmit={(kind) => setEmitModalKind(kind)}
               />
             )}
 
@@ -372,6 +379,70 @@ export default function SellsShow(props: SellsShowPageProps) {
           </aside>
         </div>
       </div>
+
+      {/* KB-9.75 P0 gaps #2/#3 — emit modals abertos pelo gate fiscal do VdNextActionPanel.
+          Stub UI 3-step (review → preview XML → mock SEFAZ/Prefeitura). Backend real
+          (Modules/NfeBrasil + Modules/NfseBrasil) wire-up no próximo PR. */}
+      <VdNfeEmitModal
+        open={emitModalKind === 'nfe'}
+        venda={
+          emitModalKind === 'nfe'
+            ? {
+                id: headline.id,
+                invoice_no: headline.invoice_no,
+                customer_name: headline.customer?.name ?? null,
+                customer_doc: null,
+                itemsList: (props.detail?.lines ?? []).map((l): {
+                  id: number;
+                  produto: string;
+                  ncm?: string;
+                  cfop?: string;
+                  cst?: string;
+                  qtd: number;
+                  unit: number;
+                  subtotal: number;
+                } => ({
+                  id: l.id,
+                  produto: l.product_name,
+                  ncm: '00000000',
+                  cfop: '5102',
+                  cst: '00',
+                  qtd: l.quantity,
+                  unit: l.unit_price,
+                  subtotal: l.subtotal,
+                })),
+                total: headline.final_total,
+              } satisfies NfeEmitVenda
+            : null
+        }
+        onClose={() => setEmitModalKind(null)}
+        onSuccess={() => router.reload({ only: ['detail', 'headline'] })}
+      />
+      <VdNfseEmitModal
+        open={emitModalKind === 'nfse'}
+        venda={
+          emitModalKind === 'nfse'
+            ? {
+                id: headline.id,
+                invoice_no: headline.invoice_no,
+                customer_name: headline.customer?.name ?? null,
+                customer_doc: null,
+                itemsList: (props.detail?.lines ?? []).map((l) => ({
+                  id: l.id,
+                  servico: l.product_name,
+                  codigoServico: '1.01',
+                  aliquotaIss: 5,
+                  qtd: l.quantity,
+                  unit: l.unit_price,
+                  subtotal: l.subtotal,
+                })),
+                total: headline.final_total,
+              } satisfies NfseEmitVenda
+            : null
+        }
+        onClose={() => setEmitModalKind(null)}
+        onSuccess={() => router.reload({ only: ['detail', 'headline'] })}
+      />
     </>
   );
 }
