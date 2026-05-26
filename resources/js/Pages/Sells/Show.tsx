@@ -370,33 +370,34 @@ export default function SellsShow(props: SellsShowPageProps) {
           <aside className="lg:col-span-4 space-y-4">
             {/* VdNextActionPanel — KB-9.75 Cowork 2026-05-26 P0 gap #1.
                 Próxima ação contextual + gates fiscais ("emita NF antes de faturar").
-                Glossário BR corrigido: Faturar (emit NF + título) ≠ Receber (baixa título). */}
-            {headline.current_stage_key !== null && (
-              <VdNextActionPanel
+                Glossário BR corrigido: Faturar (emit NF + título) ≠ Receber (baixa título).
+                Guard removido (fix 2026-05-26): VdNextActionPanel já tem proprio early-return
+                via fetch /api/sells/{id}/fsm-actions → data.in_pipeline. Headline.current_stage_key
+                pode vir null mesmo quando backend pipeline FSM está ativo (current_stage_id
+                derivado, não eager-loaded — pre-existing inconsistência). */}
+            <VdNextActionPanel
+              saleId={headline.id}
+              paymentStatus={headline.payment_status}
+              currentStageKey={headline.current_stage_key}
+              onTransition={() => {
+                // Refresh sheet — Inertia partial reload do detail
+                router.reload({ only: ['detail', 'headline'] });
+              }}
+              onOpenEmit={(kind) => setEmitModalKind(kind)}
+            />
+
+            {/* Pipeline — todas transições disponíveis (FsmActionPanel completo).
+                Mesmo guard removido — componente decide via /api/sells/{id}/fsm-actions. */}
+            <section className="rounded-lg border border-border bg-card p-4">
+              <h2 className="font-semibold text-sm mb-3">Todas as transições</h2>
+              <FsmActionPanel
                 saleId={headline.id}
-                paymentStatus={headline.payment_status}
-                currentStageKey={headline.current_stage_key}
+                enabled={true}
                 onTransition={() => {
-                  // Refresh sheet — Inertia partial reload do detail
                   router.reload({ only: ['detail', 'headline'] });
                 }}
-                onOpenEmit={(kind) => setEmitModalKind(kind)}
               />
-            )}
-
-            {/* Pipeline — todas transições disponíveis (FsmActionPanel completo) */}
-            {headline.current_stage_key !== null && (
-              <section className="rounded-lg border border-border bg-card p-4">
-                <h2 className="font-semibold text-sm mb-3">Todas as transições</h2>
-                <FsmActionPanel
-                  saleId={headline.id}
-                  enabled={true}
-                  onTransition={() => {
-                    router.reload({ only: ['detail', 'headline'] });
-                  }}
-                />
-              </section>
-            )}
+            </section>
 
             {/* Atalhos hint */}
             <section className="rounded-lg border border-border bg-card p-4">
