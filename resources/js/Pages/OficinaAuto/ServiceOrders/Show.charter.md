@@ -5,9 +5,9 @@ owner: wagner
 status: live
 last_validated: 2026-05-26
 parent_module: OficinaAuto
-related_adrs: [0137, 0143, 0110, 0093, 0171, 0192, 0194]
+related_adrs: [0137, 0143, 0110, 0093, 0171, 0179, 0190, 0192, 0194]
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Page Charter — /oficina-auto/service-orders/{id}
@@ -28,6 +28,7 @@ Tela única-fonte-da-verdade sobre 1 OS — mecânico/atendente acompanha estado
 - **Timeline** append-only de `sale_stage_history` (transição, ator, timestamp, side-effects)
 - Locação: card "Valor a receber" = daily_rate × dias_locacao (accessor `valor_receber`) + flag `is_overdue` vermelho se atrasada
 - Manutenção complexa: lista itens (peças + serviços) com subtotal
+- **Wave 5 US-OFICINA-005-bis (2026-05-26):** seção inline "Itens da OS" com hover-row Editar/Excluir + CTA "Adicionar item" (PageHeaderPrimary roxo 295 ADR 0190) abre Sheet lateral 480px com form radio(tipo)+descrição+qty+valor+total client-side. Optimistic UI nos save/delete. Backend consome `ServiceOrderItemController` (PR #1624)
 - Multi-tenant Tier 0 — 404 se OS de outro business
 - Inertia::defer em items aggregated + timeline > 20 entries
 
