@@ -11,11 +11,15 @@ uses(Tests\TestCase::class);
  * Onda ESTABILIZAR 2026-05-25 — Wagner apontou "fiscal manifestação certificado
  * tem telas competindo". Consolidação:
  *
- *   - Modules/Fiscal/DataController.modifyAdminMenu — publica 4 entries
- *     (Cockpit · Notas · Manifestação · Certificado) todas em /fiscal/*
+ *   - Modules/Fiscal/DataController.modifyAdminMenu — publica 3 entries
+ *     (Notas · Manifestação · Certificado) todas em /fiscal/*
  *
  *   - Modules/NfeBrasil/DataController.modifyAdminMenu — NÃO publica entries
  *     fiscais (eram 3: Notas/Manifestação/Certificado). Vira motor headless.
+ *
+ * Atualizado 2026-05-26 (Wagner): entry "Fiscal" (cockpit dashboard order 93)
+ * REMOVIDA — duplicava visualmente com "Notas Fiscais" logo abaixo. Rota
+ * /fiscal continua ativa (FiscalCockpitController) — acesso URL direta.
  *
  * Tests via análise source (NÃO via boot completo do Menu facade — requer
  * AdminSidebarMenu middleware + ModuleUtil + auth user, complexo demais pra
@@ -23,13 +27,15 @@ uses(Tests\TestCase::class);
  * desde que o intent permaneça.
  */
 
-it('Fiscal/DataController publica entry url(/fiscal) — cockpit raiz', function () {
+it('Fiscal/DataController NÃO publica entry url(/fiscal) raiz (removida 2026-05-26 — duplicava com Notas)', function () {
     $src = file_get_contents(
         (new ReflectionClass(FiscalDataController::class))->getFileName(),
     );
 
-    expect($src)->toContain("url('/fiscal')")
-        ->and($src)->toContain("'Fiscal'");
+    // Pattern busca chamada efetiva $menu->url(url('/fiscal'), 'Fiscal', ...).
+    // Comentário/docblock contendo url('/fiscal') é OK — o regex exige preceder
+    // por `$menu->url(\s*` e seguir por `,` (não barra).
+    expect($src)->not->toMatch('/\$menu->url\(\s*url\([\'"]\/fiscal[\'"]\)\s*,/');
 });
 
 it('Fiscal/DataController publica entry url(/fiscal/nfe) — Notas Fiscais', function () {
