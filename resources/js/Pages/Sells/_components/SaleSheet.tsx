@@ -789,10 +789,10 @@ export default function SaleSheet({
                 </Link>
               </Button>
               <Button size="sm" asChild>
-                <a href={data.urls.edit}>
+                <Link href={data.urls.edit}>
                   <Edit size={14} className="mr-1.5" />
                   Editar
-                </a>
+                </Link>
               </Button>
             </div>
 
