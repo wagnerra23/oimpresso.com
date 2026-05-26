@@ -100,6 +100,15 @@ interface EditFormPayload {
   isOrderRequestEnabled: boolean;
   customerDue: string;
   users: Record<number, string> | [];
+  // PR #1663 — customer payload (backend eager-loaded $transaction->contact).
+  customer: {
+    id: number;
+    name: string;
+    mobile: string | null;
+    email: string | null;
+    /** Soma de outras vendas due deste cliente (R$) — pra alerta inline 'cliente vencido'. */
+    dues_total: number;
+  } | null;
 }
 
 export interface SellsEditPageProps {
@@ -459,11 +468,17 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
           <div className="md:col-span-2">
             <Label htmlFor="contact_id">Cliente</Label>
             <CustomerSearchAutocomplete
-              defaultName={`Cliente #${data.contact_id || '—'}`}
+              defaultName={form.customer?.name ?? `Cliente #${data.contact_id || '—'}`}
               onSelect={(c) => setData('contact_id', c.id)}
               placeholder="Buscar cliente por nome, CPF/CNPJ ou telefone…"
               disabled={!permissions.update}
             />
+            {/* PR #1663 — Cliente vencido alerta inline (paridade Blade legacy) */}
+            {form.customer && form.customer.dues_total > 0 && (
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 font-medium">
+                ⚠ Cliente vencido: {form.customer.dues_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">
               Digite ≥2 caracteres pra buscar. Cliente atual já vinculado à venda.
             </p>
