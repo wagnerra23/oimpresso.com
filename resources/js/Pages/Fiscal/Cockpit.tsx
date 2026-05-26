@@ -22,7 +22,9 @@ import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
 import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
+import SavedViewsChips from './_components/SavedViewsChips';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
+import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
@@ -127,6 +129,8 @@ interface CockpitProps {
   // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
   eventosMock?: EventoFiscal[];
   contabilData?: SendToContabilData | null;
+  // Onda 3 — auditoria mensal (write-off candidatos)
+  writeOffSummary?: WriteOffSummary | null;
 }
 
 type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
@@ -220,7 +224,7 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 
 export default function Cockpit({
   kpis, alerts, notasMock, savedViewCounts, sefazStatus,
-  eventosMock = [], contabilData = null,
+  eventosMock = [], contabilData = null, writeOffSummary = null,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
 
@@ -405,6 +409,9 @@ export default function Cockpit({
           </button>
         </div>
 
+        {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
+        <WriteOffAuditoriaCard summary={writeOffSummary} />
+
         {/* Toolbar minimalista — search + 3 selects + density */}
         <div className="fx-notas-toolbar">
           <div className="fx-search">
@@ -419,15 +426,19 @@ export default function Cockpit({
             />
           </div>
 
-          <select className="fx-combo" value={view} onChange={(e) => {
-            const id = e.target.value as ViewId;
-            if (id !== 'custom') applyView(id as Exclude<ViewId, 'custom'>);
-          }}>
-            {SAVED_VIEWS.map((v) => (
-              <option key={v.id} value={v.id}>{v.label} · {savedViewCounts[v.id] ?? 0}</option>
-            ))}
-            {view === 'custom' && <option value="custom">Filtro custom · {rows.length}</option>}
-          </select>
+          {/* Onda 3 C — SavedViewsChips (substitui o <select> por chips horizontais Linear-style) */}
+          <SavedViewsChips
+            views={SAVED_VIEWS.map((v) => ({
+              id: v.id,
+              label: v.label,
+              count: savedViewCounts[v.id] ?? 0,
+              tone: v.tone ?? null,
+            }))}
+            value={view}
+            onChange={(id) => applyView(id as Exclude<ViewId, 'custom'>)}
+            customCount={rows.length}
+            isCustom={view === 'custom'}
+          />
 
           <select className="fx-combo" value={tipo} onChange={(e) => handleManualFilter('tipo', e.target.value)}>
             <option value="todos">Todos os tipos · {notasMock.length}</option>
