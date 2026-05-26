@@ -579,6 +579,86 @@ class ServiceOrderController extends Controller
     }
 
     /**
+     * Gap 3 — Imprimir OS PDF profissional A4 nota-fiscal-like (US-OFICINA-037).
+     *
+     * Espelha pattern `SellPosController::printInvoice` (Sells legacy) — AJAX-only
+     * (404 sem X-Requested-With) + retorna `{success:1, receipt:{html_content,
+     * print_title}}`. Frontend `printServiceOrder.ts` injeta `html_content` em
+     * IFRAME oculto + dispara `window.print()` (cross-origin IFRAME compat).
+     *
+     * Multi-tenant Tier 0 [ADR 0093]: Route Model Binding já respeita global scope
+     * de ServiceOrder, mas defensive guard explícito (ADR 0093 §"Defense in depth")
+     * — abort 404 cross-tenant antes mesmo do render. Cliente final do Martinho
+     * sub-vertical 4 (CNAE 4520 mecânica pesada) leva papel pra ressarcir
+     * transportadora 3ª/seguradora — não pode vazar dado de outra biz NUNCA.
+     *
+     * @see resources/views/oficina_auto/print/service_order.blade.php (template A4)
+     * @see resources/js/Lib/printServiceOrder.ts (helper IFRAME mirror printSaleReceipt)
+     * @see memory/sessions/2026-05-26-plano-gap-3-imprimir-os-pdf-profissional.md
+     */
+    public function printInvoice(Request $request, ServiceOrder $order)
+    {
+        // AJAX-only (espelha SellPosController::printInvoice §1928) — render direto
+        // via browser sem X-Requested-With retorna 404 (não AppShellV2 vazado).
+        if (! $request->ajax()) {
+            abort(404);
+        }
+
+        // D8 Security: defensive guard cross-tenant + permission (ADR 0093).
+        // Route Model Binding já filtrou via global scope, mas dupla-checa antes
+        // do render pra fechar qualquer brecha futura (ex: superadmin com session
+        // de outra biz).
+        $businessId = (int) ($request->session()->get('user.business_id')
+            ?? $request->session()->get('business.id') ?? 0);
+        abort_unless((int) $order->business_id === $businessId, 404);
+
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.service_order.view'),
+            403
+        );
+
+        try {
+            $order->load([
+                'vehicle',
+                'contact:id,name,mobile,tax_number,address_line_1,city,state',
+                'items',
+                'dviInspectionItems',
+                'assignedUser:id,first_name,last_name,surname',
+            ]);
+
+            $business = \App\Business::find($businessId);
+            $location = $business?->locations()->first();
+
+            $orderNumber = 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+
+            $htmlContent = view('oficina_auto.print.service_order', [
+                'order'    => $order,
+                'business' => $business,
+                'location' => $location,
+                'orderNumber' => $orderNumber,
+                'generatedAt' => now(),
+            ])->render();
+
+            return response()->json([
+                'success' => 1,
+                'receipt' => [
+                    'html_content' => $htmlContent,
+                    'print_title'  => $orderNumber,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::emergency('OficinaAuto printInvoice: File:' . $e->getFile()
+                . ' Line:' . $e->getLine() . ' Message:' . $e->getMessage());
+
+            return response()->json([
+                'success' => 0,
+                'msg'     => 'Não foi possível gerar a impressão da OS.',
+            ], 500);
+        }
+    }
+
+    /**
      * Status livre V0 (FSM canônica chega em US-OFICINA-003 / ADR 0129).
      */
     public static function statuses(): array
