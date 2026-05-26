@@ -1,15 +1,21 @@
 ---
 page: /aprovar-os/{token}
 component: resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx
-page_id: oficina-auto/aprovacao-publica
+page_id: oficina-auto-aprovacao-publica
 status: live
 owner: wagner
 related_us: [US-OFICINA-006, US-OFICINA-014]
-created: 2026-05-16
-last_review: 2026-05-26
-last_validated: 2026-05-26
-promoted_live_at: 2026-05-26
-related_adrs: [0093, 0094, 0143, 0171, 0192, 0194]
+created: "2026-05-16"
+last_review: "2026-05-26"
+last_validated: "2026-05-26"
+promoted_live_at: "2026-05-26"
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0171-oficinaauto-ativacao-piloto-martinho-faseada
+  - 0192-auto-faturar-os-venda-jobsheet-observer
+  - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 ---
 
 # Charter — Aprovação Pública OS (PIN via WhatsApp)
