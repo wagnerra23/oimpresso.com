@@ -10,8 +10,8 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
-import { useEffect, type ReactNode } from 'react';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ArrowLeft, CreditCard, FileText, Loader2, Package, Receipt, Save, Settings2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -161,48 +161,150 @@ export default function SellsEdit(props: SellsEditPageProps) {
     put(urls.submit, { preserveScroll: true });
   };
 
+  // KB-9.75 paridade Create — KPIs derivadas do form deferred (PR #1655).
+  // Pre-deferred: KPIs mostram placeholders. Post-deferred: valores reais.
+  const itensCount = props.form?.sellDetails?.length ?? 0;
+  const totalVenda = props.form?.transaction?.final_total ?? 0;
+  const totalPago = useMemo(() => {
+    if (!props.form?.paymentLines) return 0;
+    return (props.form.paymentLines as Array<{ amount?: number }>).reduce(
+      (acc, p) => acc + (Number(p.amount) || 0),
+      0,
+    );
+  }, [props.form?.paymentLines]);
+  const totalFalta = Math.max(totalVenda - totalPago, 0);
+  const pagamentoStatus: 'paid' | 'falta' | 'zero' =
+    totalVenda === 0 ? 'zero' : totalFalta === 0 ? 'paid' : 'falta';
+
+  // KB-9.75 paridade Create — filter pills/tabs section scroll. Use IDs `edit-sec-*`
+  // pra não colidir com Create `sec-*` quando user navega entre as duas no SPA.
+  const [activeSection, setActiveSection] = useState<string>('edit-sec-dados');
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveSection(id);
+    }
+  };
+
+  const formatBRL = (value: number) =>
+    value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
   return (
     <>
       <Head title={`Editar venda #${headline.invoice_no}`} />
 
-      <div className="sells-cowork-edit container mx-auto px-6 py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-3">
-            <Button variant="ghost" size="icon" asChild aria-label="Voltar">
-              <Link href={urls.back}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Editar venda #{headline.invoice_no}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Status atual: <span className="font-medium">{headline.status}</span>
-                {headline.current_stage_key && (
-                  <span className="ml-2">
-                    · Pipeline: <span className="font-mono text-xs">{headline.current_stage_key}</span>
-                  </span>
-                )}
-              </p>
+      <div className="sells-cowork-edit -m-6 bg-muted/30 min-h-[calc(100vh-3rem)] flex flex-col">
+        {/* Header sticky no topo + filter pills (KB-9.75 paridade Create pattern) */}
+        <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
+          <div className="container mx-auto px-8 pt-6 pb-3 max-w-7xl">
+            <div className="flex items-start gap-4">
+              <Button variant="ghost" size="icon" asChild aria-label="Voltar">
+                <Link href={urls.back}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+              </Button>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                  Editar venda #{headline.invoice_no}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                  Status atual: <span className="font-medium">{headline.status}</span>
+                  {headline.current_stage_key && (
+                    <span className="ml-2">
+                      · Pipeline: <span className="font-mono text-xs">{headline.current_stage_key}</span>
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
+
+            {/* Filter pills paridade Create — Dados/Produtos/Pagamento/Resumo/Mais opções */}
+            <nav className="flex items-center gap-2 mt-4 flex-wrap" aria-label="Seções da edição">
+              {[
+                { id: 'edit-sec-dados', label: 'Dados', icon: FileText, count: undefined as number | undefined },
+                { id: 'edit-sec-produtos', label: 'Produtos', icon: Package, count: itensCount > 0 ? itensCount : undefined },
+                { id: 'edit-sec-pagamento', label: 'Pagamento', icon: CreditCard, count: undefined },
+                { id: 'edit-sec-resumo', label: 'Resumo', icon: Receipt, count: undefined },
+                { id: 'edit-sec-mais-opcoes', label: 'Mais opções', icon: Settings2, count: undefined },
+              ].map((tab) => {
+                const isActive = activeSection === tab.id;
+                const Icon = tab.icon;
+                return (
+                  <Button
+                    key={tab.id}
+                    type="button"
+                    variant={isActive ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => scrollToSection(tab.id)}
+                    className="rounded-full text-xs"
+                    aria-current={isActive ? 'true' : undefined}
+                  >
+                    <Icon size={13} />
+                    {tab.label}
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span className={'ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] tabular-nums ' + (isActive ? 'bg-primary-foreground/20' : 'bg-background border border-border')}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </Button>
+                );
+              })}
+            </nav>
           </div>
         </div>
 
-        {/* Form deferred */}
-        <Deferred data="form" fallback={<FormSkeleton />}>
-          <EditFormBody
-            data={data}
-            setData={setData}
-            errors={errors}
-            processing={processing}
-            permissions={permissions}
-            urls={urls}
-            form={props.form}
-            onSubmit={handleSubmit}
-          />
-        </Deferred>
+        <div className="container mx-auto py-6 px-8 space-y-6 max-w-7xl flex-1">
+          {/* 4 KPI cards GIGANTES — paridade Create pattern KB-9.75 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Itens</div>
+              <div className="text-4xl font-semibold tabular-nums text-foreground mt-3">{itensCount}</div>
+            </div>
+            <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Total venda</div>
+              <div className="text-3xl font-semibold tabular-nums text-foreground mt-3">{formatBRL(totalVenda)}</div>
+            </div>
+            <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Pago</div>
+              <div className="text-3xl font-semibold tabular-nums text-foreground mt-3">{formatBRL(totalPago)}</div>
+            </div>
+            <div
+              className={
+                'rounded-xl border p-6 shadow-sm ' +
+                (pagamentoStatus === 'zero'
+                  ? 'border-border bg-background'
+                  : pagamentoStatus === 'falta'
+                    ? 'border-amber-500/40 bg-amber-50 dark:bg-amber-950/30'
+                    : 'border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/30')
+              }
+            >
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Status pgto</div>
+              <div className="text-3xl font-semibold tabular-nums mt-3">
+                {pagamentoStatus === 'zero' && <span className="text-muted-foreground">—</span>}
+                {pagamentoStatus === 'falta' && <span className="text-amber-700 dark:text-amber-300">{formatBRL(totalFalta)}</span>}
+                {pagamentoStatus === 'paid' && <span className="text-emerald-700 dark:text-emerald-300">Pago</span>}
+              </div>
+              {pagamentoStatus === 'falta' && (
+                <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-1">falta receber</p>
+              )}
+            </div>
+          </div>
+
+          {/* Form deferred — sections com IDs `edit-sec-*` pra scroll de pills */}
+          <Deferred data="form" fallback={<FormSkeleton />}>
+            <EditFormBody
+              data={data}
+              setData={setData}
+              errors={errors}
+              processing={processing}
+              permissions={permissions}
+              urls={urls}
+              form={props.form}
+              onSubmit={handleSubmit}
+            />
+          </Deferred>
+        </div>
       </div>
     </>
   );
@@ -244,8 +346,8 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      {/* Bloco Dados básicos */}
-      <section className="rounded-lg border border-border bg-card p-5 space-y-4">
+      {/* Bloco Dados básicos · ID scroll-target pra filter pill "Dados" */}
+      <section id="edit-sec-dados" className="rounded-lg border border-border bg-card p-5 space-y-4 scroll-mt-32">
         <h2 className="font-semibold text-sm">Dados da venda</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -276,8 +378,8 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
         </div>
       </section>
 
-      {/* Bloco Desconto + Notas */}
-      <section className="rounded-lg border border-border bg-card p-5 space-y-4">
+      {/* Bloco Desconto + Notas · ID scroll-target pra filter pill "Resumo" */}
+      <section id="edit-sec-resumo" className="rounded-lg border border-border bg-card p-5 space-y-4 scroll-mt-32">
         <h2 className="font-semibold text-sm">Desconto e observações</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -318,18 +420,32 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
         </div>
       </section>
 
-      {/* Bloco Comissão (ADR 0192 Onda 2 follow-up) — só renderiza se backend expôs URL. */}
-      {urls.commission_split && form.users && (
-        <CommissionSplitEditor
-          value={form.transaction.commission_split ?? null}
-          users={form.users as Record<number, string>}
-          saveUrl={urls.commission_split}
-          disabled={!permissions.update}
-        />
-      )}
+      {/* Bloco Comissão (ADR 0192 Onda 2 follow-up) · ID scroll-target pra pill "Pagamento" */}
+      <div id="edit-sec-pagamento" className="scroll-mt-32">
+        {urls.commission_split && form.users && (
+          <CommissionSplitEditor
+            value={form.transaction.commission_split ?? null}
+            users={form.users as Record<number, string>}
+            saveUrl={urls.commission_split}
+            disabled={!permissions.update}
+          />
+        )}
+      </div>
 
-      {/* Bloco Frete (colapsável simples) */}
-      <details className="rounded-lg border border-border bg-card">
+      {/* Placeholder bloco Produtos · scroll-target pra pill "Produtos" (refator próximo PR
+          adiciona tabela linhas + product autocomplete copiado de Create) */}
+      <section id="edit-sec-produtos" className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center scroll-mt-32">
+        <p className="text-sm text-muted-foreground">
+          <Package className="inline-block h-4 w-4 mr-2 align-middle" />
+          Bloco Produtos — refator próximo PR (paridade Create.tsx)
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Por ora, edição de produtos continua via Blade legacy. Visão somente leitura: {(form.sellDetails as unknown[])?.length ?? 0} item(s).
+        </p>
+      </section>
+
+      {/* Bloco Frete (colapsável simples) · ID scroll-target pra pill "Mais opções" */}
+      <details id="edit-sec-mais-opcoes" className="rounded-lg border border-border bg-card scroll-mt-32">
         <summary className="cursor-pointer p-5 font-semibold text-sm select-none">
           Mais opções (frete, impostos, condição pagamento)
         </summary>
