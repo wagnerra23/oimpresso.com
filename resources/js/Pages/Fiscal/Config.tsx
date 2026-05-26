@@ -11,13 +11,25 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { PageProps } from '@inertiajs/core';
-import { CheckCircle2, KeyRound, Loader2, PlugZap, Shield, Upload, XCircle } from 'lucide-react';
+import { Archive, CheckCircle2, FileText, KeyRound, Loader2, PlugZap, Settings, Shield, Upload, XCircle } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import FxShell from './_components/FxShell';
+import ModuleTopNav from './_components/ModuleTopNav';
 
 import '../../../css/fiscal-cockpit.css';
+
+type ConfigTab = 'cert' | 'series' | 'ambiente' | 'sped';
+
+export interface SerieFiscal {
+  modelo: 55 | 65;
+  serie: string;
+  proximo: number;
+  filial: string;
+  ativo: boolean;
+  obs?: string | null;
+}
 
 interface Certificado {
   uuid: string;
@@ -56,6 +68,8 @@ interface ConfigProps {
   certificado: Certificado | null;
   config: Config | null;
   painel: Painel;
+  // Onda 2 I — séries fiscais (modelo 55 NF-e + 65 NFC-e)
+  seriesMock?: SerieFiscal[];
 }
 
 interface FlashProps extends PageProps {
@@ -87,7 +101,9 @@ function formatCnpj(raw: string | null): string {
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
 }
 
-export default function Config({ certificado, config, painel }: ConfigProps) {
+export default function Config({ certificado, config, painel, seriesMock = [] }: ConfigProps) {
+  const [tab, setTab] = useState<ConfigTab>('cert');
+
   const { props: pageProps } = usePage<FlashProps>();
   const flashSuccess = pageProps.flash?.success;
 
@@ -241,6 +257,19 @@ export default function Config({ certificado, config, painel }: ConfigProps) {
           </div>
         )}
 
+        {/* Onda 2 H — ModuleTopNav 4 tabs */}
+        <ModuleTopNav
+          items={[
+            { id: 'cert',     label: 'Certificado A1', icon: <Shield size={12} />,    count: certificado ? undefined : 0, tone: certificado ? null : 'bad' },
+            { id: 'series',   label: 'Séries',         icon: <FileText size={12} />,  count: seriesMock.filter((s) => s.ativo).length },
+            { id: 'ambiente', label: 'Ambiente',       icon: <Settings size={12} /> },
+            { id: 'sped',     label: 'SPED & Livros',  icon: <Archive size={12} /> },
+          ]}
+          value={tab}
+          onChange={(id) => setTab(id as ConfigTab)}
+        />
+
+        {tab === 'cert' && (<>
         {/* Cert + Help (2-col grid — port fiscal-page.jsx §12 CertificadoTab) */}
         <div className="fx-cert-grid">
           <section className="fx-cert-card">
@@ -306,7 +335,10 @@ export default function Config({ certificado, config, painel }: ConfigProps) {
             </ul>
           </section>
         </div>
+        </>)}
 
+        {tab === 'ambiente' && (
+        <>
         {/* Ambiente SEFAZ — radio + submit */}
         <section className="fx-cert-card" style={{ marginBottom: 14 }}>
           <h3>Ambiente SEFAZ</h3>
@@ -356,7 +388,10 @@ export default function Config({ certificado, config, painel }: ConfigProps) {
             )}
           </form>
         </section>
+        </>
+        )}
 
+        {tab === 'cert' && (<>
         {/* Upload .pfx — Inertia useForm → POST /nfe-brasil/configuracao/certificado */}
         <section className="fx-cert-card" style={{ marginBottom: 14 }}>
           <h3>
@@ -457,6 +492,81 @@ export default function Config({ certificado, config, painel }: ConfigProps) {
             <a href="/nfe-brasil/tributacao" className="fx-link">/nfe-brasil/tributacao</a>.
           </small>
         </section>
+        </>)}
+
+        {tab === 'series' && (
+          seriesMock.length === 0 ? (
+            <div className="fx-empty">
+              <FileText size={20} />
+              <b>Nenhuma série fiscal cadastrada</b>
+              <small>Séries NFe (modelo 55) e NFCe (modelo 65) são configuradas em NfeBrasil/business.numero_serie_nfe.</small>
+              <a href="/nfe-brasil/configuracao/series" className="fx-btn ghost" style={{ marginTop: 12 }}>Configurar em NfeBrasil</a>
+            </div>
+          ) : (
+            <section className="fx-cert-card">
+              <h3>Séries fiscais</h3>
+              <p className="lead">
+                Numeração ativa por modelo + filial. Read-only no Fiscal Cockpit —
+                edição em <a href="/nfe-brasil/configuracao/series" className="fx-link">NfeBrasil/Series</a>.
+              </p>
+              <div className="fx-table" style={{ marginTop: 12 }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 140 }}>Modelo</th>
+                      <th style={{ width: 100 }}>Série</th>
+                      <th style={{ width: 130, textAlign: 'right' }}>Próximo nº</th>
+                      <th>Filial</th>
+                      <th style={{ width: 140 }}>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {seriesMock.map((s, i) => (
+                      <tr key={`${s.modelo}-${s.serie}-${i}`}>
+                        <td><b>{s.modelo}</b> <small className="fx-mut">({s.modelo === 65 ? 'NFC-e' : 'NF-e'})</small></td>
+                        <td className="fx-mono">série {s.serie}</td>
+                        <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{s.proximo.toLocaleString('pt-BR')}</td>
+                        <td><small>{s.filial}</small></td>
+                        <td>
+                          <span className={`fx-sefaz ${s.ativo ? 'ok' : 'warn'}`}>
+                            <span className="lbl">{s.ativo ? 'ativa' : 'inativa'}</span>
+                          </span>
+                          {s.obs && <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginTop: 3 }}>{s.obs}</small>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )
+        )}
+
+        {tab === 'sped' && (
+          <section className="fx-cert-card">
+            <h3>SPED &amp; Livros fiscais</h3>
+            <p className="lead">
+              EFD ICMS/IPI · PIS/COFINS · ECF · Conciliação SEFAZ.
+              Gerador completo vive em <a href="/fiscal/sped" className="fx-link">/fiscal/sped</a>.
+            </p>
+            <div className="fx-callout" role="region" style={{ marginTop: 12 }}>
+              <Archive size={16} />
+              <div>
+                <b>Próxima entrega: maio/2026 — prazo 15/06</b>
+                <small>
+                  Última: 03/2026 protocolada 14/04 (SPED EFD ICMS/IPI).
+                  <br />
+                  ECF anual: prazo julho.
+                </small>
+              </div>
+            </div>
+            <div style={{ marginTop: 14 }}>
+              <a href="/fiscal/sped" className="fx-btn primary">
+                <Archive size={12} /> Abrir gerador SPED
+              </a>
+            </div>
+          </section>
+        )}
       </FxShell>
     </AppShellV2>
   );

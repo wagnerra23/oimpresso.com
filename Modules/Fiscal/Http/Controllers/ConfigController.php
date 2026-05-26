@@ -78,7 +78,31 @@ class ConfigController extends Controller
             ] : null,
             // Painel fiscal — espelha CertificadoController::status() do NfeBrasil
             'painel' => $painel,
+            // Onda 2 I — séries fiscais (tab "Séries" do ModuleTopNav).
+            // TODO[CL]: substituir por query real (business.numero_serie_nfe +
+            // possíveis tabelas de séries auxiliares).
+            'seriesMock' => $this->mockSeriesFiscais(
+                $painel['serieNfe'] ?? '1',
+                (int) ($painel['proximoNumero'] ?? 1),
+            ),
         ]);
+    }
+
+    /**
+     * Mock séries fiscais. Onda 2 I — tab Séries do Config.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function mockSeriesFiscais(string $serieNfePrincipal, int $proximoNfe): array
+    {
+        return [
+            ['modelo' => 55, 'serie' => $serieNfePrincipal, 'proximo' => $proximoNfe,
+             'filial' => 'Matriz', 'ativo' => true, 'obs' => null],
+            ['modelo' => 65, 'serie' => '9', 'proximo' => 9013,
+             'filial' => 'Matriz · balcão', 'ativo' => true, 'obs' => null],
+            ['modelo' => 55, 'serie' => '2', 'proximo' => 1,
+             'filial' => 'Filial 02 (futuro)', 'ativo' => false, 'obs' => 'Reservada — sem operação ainda'],
+        ];
     }
 
     /**
