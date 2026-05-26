@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-26T06:00:30-03:00",
+        "generated_at": "2026-05-26T06:47:35-03:00",
         "tool": "ui:lint",
-        "files_scanned": 498,
-        "total_violations": 7425,
+        "files_scanned": 500,
+        "total_violations": 7426,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -520,6 +520,9 @@
         },
         "resources\/js\/Pages\/Fiscal\/_components\/CmdKPalette.tsx": {
             "R1": 11
+        },
+        "resources\/js\/Pages\/Fiscal\/_components\/NFSeDrawer.tsx": {
+            "R1": 1
         },
         "resources\/js\/Pages\/Fiscal\/_components\/NotaDrawer.tsx": {
             "R1": 1

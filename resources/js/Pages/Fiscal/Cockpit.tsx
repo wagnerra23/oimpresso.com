@@ -19,6 +19,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
+import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
 import { brl, truncKey } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
@@ -60,6 +62,7 @@ interface NotaRow {
   num: string;
   serie: string | null;
   when: string;
+  emittedAtIso?: string | null;
   cliente: string;
   doc: string;
   uf: string;
@@ -74,6 +77,27 @@ interface NotaRow {
   value: number;
   prazoCancel: { label: string; urgency: 'ok' | 'warn' | 'crit' } | null;
   prazoCce: { label: string; urgency: 'ok' | 'warn' | 'crit' } | null;
+  // Detalhes opcionais (carregados sob demanda no PR seguinte; hoje vêm
+  // do mockNotasUnificadas do CockpitController quando presentes)
+  itens?: Array<{ nome: string; codigo: string; qtd: number; vl: number }>;
+  boleto?: { id: string; venc: string; valor: number; status: 'pago' | 'pendente' | 'vencido' } | null;
+  arquivos?: Array<{ tipo: string; nome: string; tamanho: string; status: string }>;
+  emails?: Array<{ tipo: string; para: string; quando: string; status: string }>;
+  auditoria?: Array<{ quando: string; autor: string; acao: string }>;
+  eventos?: Array<{
+    id: string | number;
+    tipo: string;
+    sequencia?: number;
+    descricao: string;
+    emit: string;
+    autor: string;
+    sefaz: number;
+  }>;
+  // NFS-e específicos
+  codServ?: string;
+  competencia?: string;
+  cnpj?: string | null;
+  cpf?: string | null;
 }
 
 interface SavedViewCounts {
@@ -139,6 +163,56 @@ const STATUS_LABEL: Record<number, string> = {
   999: 'Processando',
 };
 
+// Adaptadores NotaRow → drawer data (extraem campos do tipo unificado).
+function mapToNotaDrawerData(n: NotaRow): NotaDrawerData {
+  return {
+    id: n.id,
+    num: n.num,
+    serie: n.serie ?? '1',
+    modelo: (n.modelo ?? 55) as 55 | 65,
+    key: n.keyOrCode,
+    status: typeof n.status === 'number' ? n.status : 0,
+    rejMsg: n.rejMsg,
+    dest: n.cliente,
+    cnpj: n.cnpj ?? null,
+    cpf: n.cpf ?? null,
+    uf: n.uf,
+    venda: n.venda,
+    when: n.when,
+    emittedAtIso: n.emittedAtIso ?? null,
+    value: n.value,
+    itens: n.itens,
+    boleto: n.boleto,
+    arquivos: n.arquivos,
+    emails: n.emails,
+    auditoria: n.auditoria,
+    eventos: n.eventos,
+  };
+}
+
+function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
+  const statusRaw = typeof n.status === 'string' ? n.status : 'autorizada';
+  const status = (['autorizada', 'processando', 'rejeitada', 'cancelada'].includes(statusRaw)
+    ? statusRaw
+    : 'autorizada') as 'autorizada' | 'processando' | 'rejeitada' | 'cancelada';
+  return {
+    id: n.id,
+    num: n.num,
+    competencia: n.competencia ?? n.when,
+    tomador: n.cliente,
+    cnpj: n.cnpj ?? null,
+    cpf: n.cpf ?? null,
+    municipio: `${n.uf}`, // simplificado; backend real virá com cidade/UF
+    iss: n.iss ?? 0,
+    codServ: n.codServ ?? n.keyOrCode,
+    ref: n.ref,
+    when: n.when,
+    status,
+    rejMsg: n.rejMsg,
+    value: n.value,
+  };
+}
+
 export default function Cockpit({
   kpis, alerts, notasMock, savedViewCounts, sefazStatus,
 }: CockpitProps) {
@@ -152,6 +226,16 @@ export default function Cockpit({
   const [density, setDensity] = useState<Density>('comfort');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [clienteFilter, setClienteFilter] = useState<string | null>(null);
+
+  // Drawer focus (id da nota aberta). Resolve qual drawer abrir pelo tipo.
+  const [openedId, setOpenedId] = useState<string | null>(null);
+  const openedNota = useMemo(() => notasMock.find((n) => n.id === openedId) ?? null, [notasMock, openedId]);
+  const openedNfe = openedNota && openedNota.kind === 'nfe'
+    ? mapToNotaDrawerData(openedNota)
+    : null;
+  const openedNfse = openedNota && openedNota.kind === 'nfse'
+    ? mapToNFSeDrawerData(openedNota)
+    : null;
 
   const applyView = (vid: Exclude<ViewId, 'custom'>) => {
     const v = SAVED_VIEWS.find((x) => x.id === vid);
@@ -409,7 +493,13 @@ export default function Cockpit({
                     const tipoCls = n.tipo === 'NF-e' ? 't-nfe' : n.tipo === 'NFC-e' ? 't-nfce' : 't-nfse';
                     const rejected = isRejected(n);
                     return (
-                      <tr key={n.id}>
+                      <tr
+                        key={n.id}
+                        onClick={() => setOpenedId(n.id)}
+                        className={openedId === n.id ? 'fx-row-focus' : ''}
+                        style={{ cursor: 'pointer' }}
+                        title="Click pra abrir detalhes (drawer)"
+                      >
                         <td onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
@@ -502,6 +592,19 @@ export default function Cockpit({
           </div>
         )}
       </FxShell>
+
+      {/* Drawer NFe/NFCe (slide-in 480px com 7 seções + receita SEFAZ) */}
+      <NotaDrawerV2
+        nota={openedNfe}
+        onClose={() => setOpenedId(null)}
+        onQuickFilterCliente={setClienteFilter}
+      />
+
+      {/* Drawer NFSe (versão leve — sem chave 44d, com cód serviço/ISS) */}
+      <NFSeDrawer
+        nota={openedNfse}
+        onClose={() => setOpenedId(null)}
+      />
     </AppShellV2>
   );
 }
