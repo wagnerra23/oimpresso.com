@@ -5,6 +5,9 @@
 /* Sells/Index Cowork visual — escopado em .sells-cowork (ver scripts/scope-sells-cowork-css.py) */
 @import "./sells-cowork.css";
 
+/* Sells KB-9.75 NextActionPanel + validações fiscais BR (Cowork bundle 2026-05-26 P0 gaps #1/#5) */
+@import "./sells-kb975-next-action.css";
+
 /* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
 @import "./sells-cowork-ia.css";
 
