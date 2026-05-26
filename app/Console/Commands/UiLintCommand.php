@@ -17,6 +17,9 @@ use Symfony\Component\Finder\Finder;
  *        arquivo Page) · use tokens semânticos / vars CSS (AP1 PRE-MERGE-UI)
  *   R2 — FontAwesome em Page/Component shared · use lucide-react (ADR UI-0003)
  *   R3 — Emoji em UI de produto · use lucide icon (R-DS PRE-MERGE-UI AP6)
+ *   R6 — Blade directives adjacent sem whitespace (`@endif@if`, `@endforeach@foreach`,
+ *        etc) em `*.blade.php` · quebra compiler com ViewException unexpected token
+ *        (preventing regression PR #1659 · OS print 500 prod biz=1 2026-05-26)
  *
  * Exit codes:
  *   0  zero violações (CI/local OK)
@@ -57,6 +60,7 @@ class UiLintCommand extends Command
         'R3' => 'emoji em UI de produto (use lucide icon)',
         'R4' => 'PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable shared',
         'R5' => 'origens canon · CSS define apenas 5 origins (OS/CRM/FIN/PNT/MFG)',
+        'R6' => 'Blade directives adjacent sem whitespace (@endif@if, etc) · quebra compiler',
     ];
 
     /**
@@ -157,6 +161,13 @@ class UiLintCommand extends Command
             $violations = [...$violations, ...$this->checkR5()];
         }
 
+        // R6 — Blade directives adjacent (escaneia *.blade.php em resources/views/ + Modules/*/Resources/views/)
+        if ($this->ruleEnabled('R6', $ruleFilter)) {
+            [$r6Hits, $r6FilesScanned] = $this->checkR6($changedFiles);
+            $violations = [...$violations, ...$r6Hits];
+            $filesScanned += $r6FilesScanned;
+        }
+
         // --write-baseline: grava estado atual como baseline aceito
         if ($writeBaseline !== '') {
             return $this->writeBaselineFile($writeBaseline, $violations, $filesScanned);
@@ -199,10 +210,10 @@ class UiLintCommand extends Command
 
         $all = array_unique([...$output, ...$stagedOutput, ...$unstagedOutput]);
 
-        // Filtrar só arquivos .tsx/.jsx do path scan
+        // Filtrar só arquivos .tsx/.jsx/.blade.php do path scan
         return array_values(array_filter(
             array_map(fn (string $p): string => $this->normalizePath($p), $all),
-            fn (string $p): bool => preg_match('/\.(tsx|jsx)$/', $p) === 1
+            fn (string $p): bool => preg_match('/\.(tsx|jsx|blade\.php)$/', $p) === 1
         ));
     }
 
