@@ -78,8 +78,19 @@ class DataController extends Controller
     }
 
     /**
-     * Injeta item "Comunicação Visual" na sidebar do AdminLTE.
-     * Sub-itens: Orçamentos, Ordens de Serviço, Materiais, Apontamentos.
+     * Injeta item "Comunicação Visual" na sidebar.
+     *
+     * 2026-05-26 (Wagner reportou módulo quebrado): substituído dropdown
+     * 4-sub-items (Orçamentos/OS/Materiais/Apontamentos) que apontava pra
+     * URLs /comunicacao-visual/admin/* INEXISTENTES — Sprint 2 nunca
+     * entregou as 4 telas Inertia. Cliques no sidebar davam 404.
+     *
+     * Estado novo: entry single top-level apontando pra /comunicacao-visual
+     * (rota nova em Routes/web.php → Inertia::render('ComunicacaoVisual/Index')
+     * stub que lista as 4 áreas como "em construção"). Quando Sprint 2 entregar
+     * as telas, ghosts podem voltar via attribute 'ghosts' canon ADR 0180.
+     *
+     * APIs /comunicacao-visual/api/* continuam ativas (Sprint 1 entrega).
      */
     public function modifyAdminMenu(): void
     {
@@ -113,34 +124,15 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($segmento_ativo) {
-                $menu->dropdown(
+                $menu->url(
+                    url('/comunicacao-visual'),
                     'Comunicação Visual',
-                    function ($sub) {
-                        $segment3 = request()->segment(3);
-
-                        $sub->url(url('/comunicacao-visual/admin/orcamentos'), 'Orçamentos', [
-                            'icon'   => 'fa fas fa-file-invoice',
-                            'active' => $segment3 === 'orcamentos',
-                        ]);
-
-                        $sub->url(url('/comunicacao-visual/admin/os'), 'Ordens de Serviço', [
-                            'icon'   => 'fa fas fa-tasks',
-                            'active' => $segment3 === 'os',
-                        ]);
-
-                        $sub->url(url('/comunicacao-visual/admin/materiais'), 'Materiais', [
-                            'icon'   => 'fa fas fa-layer-group',
-                            'active' => $segment3 === 'materiais',
-                        ]);
-
-                        $sub->url(url('/comunicacao-visual/admin/apontamentos'), 'Apontamentos', [
-                            'icon'   => 'fa fas fa-clock',
-                            'active' => $segment3 === 'apontamentos',
-                        ]);
-                    },
                     [
                         'icon'   => 'fa fas fa-print',
                         'active' => $segmento_ativo,
+                        // group: legacy default → LEGACY_GROUP_MAP frontend
+                        // mapeia pra 'producao' (vertical gráfica = produção).
+                        'group'  => 'producao',
                     ]
                 )->order(55);
             }
