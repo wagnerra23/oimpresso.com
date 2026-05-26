@@ -1,20 +1,31 @@
 ---
 module: OficinaAuto
-status: em-construcao
+version: 0.1.0
+last_updated: "2026-05-26"
+status: ativo
 lifecycle: ativo
 piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
 piloto_previsao: V0 scaffold 2026-05-11 (PR US-OFICINA-001); V1 importer Martinho Sprint 2+
-cnae_principal: "4520-0/01" (serviços de manutenção e reparação mecânica de veículos automotores)
-cnaes_cobertos: ["4520-0/01", "2212-9/00", "4581-4/00"]
-related_adrs: [0137, 0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0119, 0129]
+cnae_principal: '4520-0/01 (serviços de manutenção e reparação mecânica de veículos automotores)'
+cnaes_cobertos: ['4520-0/01', '2212-9/00', '4581-4/00']
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0137-modules-oficinaauto-qualificada
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 related_proposals: [proposals/gap-repair-vs-oficina-auto.md]
-last_review: 2026-05-11
-owner: [W]
+last_review: "2026-05-26"
+owners: [W]
 ---
 
 # Especificação funcional — Modules/OficinaAuto
 
 > ⚠️ **STATUS ATUALIZADO 2026-05-11** — [ADR 0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (`amends` 0121) qualifica `Modules/OficinaAuto` como **em construção** baseado em sinal qualificado (Vargas + Martinho — 50% sample OfficeImpresso saudável). Seções §1-§13 abaixo são do SPEC antecipatório original (2026-05-10) — preservadas como contexto estratégico (concorrentes, posicionamento, pricing). A tabela de US **ativas** é a §V0 logo abaixo. Esquema técnico canônico está em ADR 0137 §"Escopo arquitetural V0".
+
+## US ativas
+
+Ver §V0 logo abaixo — convenção `US-OFICINA-NNN` ([ADR 0134](../../decisions/0134-tasks-create-respeita-spec-placeholders.md)).
 
 ## V0 — Scaffold ativo (US-OFICINA-NNN)
 
@@ -1247,6 +1258,29 @@ Quando os pré-requisitos forem satisfeitos, **abrir ADR canon** "OficinaAuto-at
 - Sindirepa-SP TAM R$ [redacted Tier 0]bi/2022 — https://rafamarrafon.com.br/oicinas-mecanicas-faturam-128-bilhoes-em-2022/
 - CINAU 121k oficinas BR — https://oficinabrasil.com.br/noticia/mercado-cinau/dimensoes-do-mercado-de-reposicao-quem-somos-onde-estamos-e-quanto-representamos
 
+### US-OFICINA-035 · DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1**
+
+> owner: — · priority: p1 · estimate: 4h (IA-pair fator 10x ADR 0106) · status: in-progress (backend done) · type: story · origin: Wave 3 OficinaAuto · 2026-05-26
+> blocked_by: —
+> blocks: Wave 3b (UI integration drawer ServiceOrderRichSheet — depende PR #1624) · WhatsApp "Enviar p/ cliente" (depende US-OFICINA-014 PR #1627)
+
+Wedge competitivo vs RepairShopr/mHelpDesk catalogado em [CAPTERRA-FICHA Repair gap #3](../Repair/CAPTERRA-FICHA.md). Mecânico registra itens vistoriados na OS com semáforo verde/amarelo/vermelho (ok/atencao/critico) + recomendação + valor + foto opcional. Card UI proposto (screenshot Wagner 2026-05-26): "VISTORIA DIGITAL · DVI" com badges contadores ("8 ok · 2 atenção · 1 crítico"), lista de 5 items com semáforo + valor, e bloco "TOTAL RECOMENDADO · CLIENTE" agregando atencao+critico.
+
+**DoD (entregue Wave 3):**
+- [x] Migration `oa_inspection_items` (10 categorias enum + 3 severity enum + metadata json + photo_url + sort_order + multi-tenant business_id Tier 0 ADR 0093)
+- [x] Model `OaInspectionItem` com global scope business_id + LogsActivity D7.b + SoftDeletes + scopes (oks/atencoes/criticas/recomendaveis) + constantes CATEGORIAS + SEVERITIES_VALIDAS
+- [x] Service `DviInspectionService` com 4 métodos (addItem cross-tenant defense, breakdownPorSeverity, totalRecomendado, listarOrdenado)
+- [x] Controller `DviInspectionController` HTTP JSON (store 201 / update / destroy) com Policy `update(ServiceOrder)` + cross-OS guard (item.service_order_id === order.id)
+- [x] FormRequests `StoreDviRequest` + `UpdateDviRequest` (Rule::in CATEGORIAS + SEVERITIES_VALIDAS, descricao max:150, recomendacao max:255, valor_recomendado numeric min:0)
+- [x] 3 rotas Routes/web.php (POST/PUT/DELETE em `/ordens-servico/{order}/dvi[/{item}]`) com throttle:60,1
+- [x] ServiceOrder.dviInspectionItems() HasMany + getDviBreakdownAttribute() accessor
+- [x] Pest 10 specs (CRUD + global scope cross-tenant + Service validações + cross-OS HTTP 404)
+
+**Pendente Wave 3b:**
+- [ ] UI Pages/OficinaAuto integração no drawer ServiceOrderRichSheet (depende PR #1624 mergear)
+- [ ] Botão "Enviar p/ cliente" via WhatsApp (depende US-OFICINA-014 / PR #1627 — link público + PIN)
+- [ ] Upload de foto S3 (V0 só aceita photo_url string — UI vai precisar de file picker)
+
 ### US-OFICINA-026 · Outreach Martinho Caçambas + cutover discovery — fechar contrato pioneer
 
 > owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
@@ -1264,4 +1298,4 @@ Fechar 1º cliente pagante Modules/OficinaAuto (goal #1 CYCLE-06 — sinal quali
 
 ---
 
-**Última atualização:** 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
