@@ -141,6 +141,7 @@ class ServiceOrder extends Model
         return $this->belongsTo(\App\Contact::class, 'contact_id');
     }
 
+    /**
      * Itens da OS (peças + mão-de-obra + serviços terceiros) — US-OFICINA-027.
      *
      * Schema `oficina_service_order_items` migrado git desde 2026-05-17 (Wave 27 G1),
