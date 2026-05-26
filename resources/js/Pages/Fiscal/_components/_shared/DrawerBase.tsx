@@ -4,11 +4,13 @@
 // NotaDrawerV2, NFSeDrawer, EventosDrawer, SendToContabilDrawer):
 //
 //   - Backdrop (.fx-drawer-bg) com onClick=onClose
-//   - <aside.fx-drawer role="dialog" aria-label="...">
+//   - <aside.fx-drawer role="dialog" aria-modal="true" aria-label="...">
 //   - <header.fx-drawer-h> com botão X (fecha)
 //   - <div.fx-drawer-body> (com padding default ou flush)
 //   - <footer.fx-drawer-f> (opcional)
 //   - ESC handler (window keydown) com closeOnEsc togglable
+//   - **A11y (Onda 2.1):** focus trap + aria-modal=true + return focus
+//     ao fechar (WAI-ARIA Dialog APG pattern).
 //
 // NÃO encapsula:
 //   - Modais nested (NotaDrawer mantém os 3 dele — Cancel/CCe/Retransmit).
@@ -20,8 +22,13 @@
 //
 // Refs: refactor onda 1 — extrai shell duplicado em 5 drawers
 //       (-145 LOC líquidas + consistência ESC/a11y).
+//       Onda 2.1 — focus trap + aria-modal + return focus (P1 polimento).
 
-import { useEffect, type ReactNode, type RefObject } from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), ' +
+  'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export interface DrawerBaseProps {
   /** Controla se drawer está aberto. Quando false, retorna null. */
@@ -50,6 +57,7 @@ export interface DrawerBaseProps {
   /**
    * Controla se ESC fecha o drawer. Default true.
    * NotaDrawer desliga durante modal interno aberto (ESC stack).
+   * Quando false, focus trap também desliga (modal nested gerencia seu próprio).
    */
   closeOnEsc?: boolean;
   /**
@@ -77,6 +85,10 @@ export default function DrawerBase({
   bodyRef,
   extraAsideClassName,
 }: DrawerBaseProps) {
+  const asideRef = useRef<HTMLElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // ESC handler — escuta apenas quando drawer aberto e closeOnEsc=true.
   useEffect(() => {
     if (!open || !closeOnEsc) return;
     const handler = (e: KeyboardEvent) => {
@@ -88,6 +100,66 @@ export default function DrawerBase({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose, closeOnEsc]);
+
+  // Focus management — Onda 2.1 P1.
+  //   1. Ao abrir: salva elemento ativo prévio + foca primeiro focusable do drawer
+  //   2. Ao fechar: restaura foco pro elemento que disparou (trigger original)
+  //   3. Tab/Shift+Tab cyclam dentro do drawer (focus trap)
+  // Quando closeOnEsc=false (modal nested aberto), trap desliga pro modal cuidar.
+  useEffect(() => {
+    if (!open) return;
+
+    // Salva elemento ativo antes de focar dentro do drawer
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    // Foca primeiro focusable do drawer (ou o próprio aside como fallback)
+    const aside = asideRef.current;
+    if (aside) {
+      const firstFocusable = aside.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+      // requestAnimationFrame garante que o foco aplique após render completo
+      const raf = requestAnimationFrame(() => {
+        (firstFocusable ?? aside).focus({ preventScroll: true });
+      });
+      return () => {
+        cancelAnimationFrame(raf);
+        // Cleanup ao fechar: restaura foco anterior (se ainda no DOM e visível)
+        const prev = previousFocusRef.current;
+        if (prev && document.body.contains(prev)) {
+          prev.focus({ preventScroll: true });
+        }
+      };
+    }
+  }, [open]);
+
+  // Focus trap — Tab/Shift+Tab cyclam dentro do drawer.
+  // Separado do ESC handler porque trap só desliga em closeOnEsc=false
+  // (mesma condição: modal nested toma controle).
+  useEffect(() => {
+    if (!open || !closeOnEsc) return;
+    const aside = asideRef.current;
+    if (!aside) return;
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusables = Array.from(
+        aside.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter((el) => !el.hasAttribute('aria-hidden'));
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (!first || !last) return;
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey && (active === first || active === aside)) {
+        e.preventDefault();
+        last.focus({ preventScroll: true });
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus({ preventScroll: true });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, closeOnEsc]);
 
   if (!open) return null;
 
@@ -101,10 +173,13 @@ export default function DrawerBase({
     <>
       <div className="fx-drawer-bg" onClick={onClose} aria-hidden="true" />
       <aside
+        ref={asideRef}
         className={asideClassName}
         style={widthStyle}
         role="dialog"
+        aria-modal="true"
         aria-label={ariaLabel}
+        tabIndex={-1}
       >
         <header className="fx-drawer-h">
           {header}
