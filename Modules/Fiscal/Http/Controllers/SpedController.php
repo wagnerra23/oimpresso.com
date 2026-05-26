@@ -70,6 +70,24 @@ class SpedController extends Controller
             abort(403, 'Sem permissão fiscal.sped.export');
         }
 
+        // Onda ESTABILIZAR 2026-05-25 (audit sênior GAP-FISCAL-003): feature flag
+        // bloqueia download SPED enquanto 6 hardcodes Tier-0 não eliminados no
+        // SpedIcmsIpiGeneratorService. Superadmin bypass — Wagner pode forçar
+        // download em emergência via /superadmin com flag bypass.
+        if ((bool) config('fiscal.sped_simples_only_lock', true) && ! auth()->user()->can('superadmin')) {
+            return response(
+                "Download SPED temporariamente bloqueado.\n\n"
+                . "Motivo: gerador atual usa hardcodes (NCM 00000000, CST 102, CFOP 5102) "
+                . "que funcionam acidentalmente pra Simples Nacional sem crédito ICMS, mas "
+                . "podem gerar valores incorretos em vendas interestaduais ou outros regimes "
+                . "(audit sênior 2026-05-25 GAP-FISCAL-003).\n\n"
+                . "Visualização /fiscal/sped continua disponível.\n"
+                . "Liberação prevista após integração MotorTributarioService (~Onda CONSOLIDAR).",
+                503,
+                ['Content-Type' => 'text/plain; charset=UTF-8'],
+            );
+        }
+
         $businessId = (int) session('user.business_id');
 
         try {

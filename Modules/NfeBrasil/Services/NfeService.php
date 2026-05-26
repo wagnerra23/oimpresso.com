@@ -849,14 +849,17 @@ class NfeService
      * oficialmente). Retransmitir = pegar próximo número novo + re-enviar pra
      * SEFAZ com payload re-derivado da Transaction associada.
      *
-     * Estratégia:
+     * Estratégia (CONFAZ SINIEF 07/2005 Art. 14 preservation IRREVOGÁVEL —
+     * Wave 27/28 saturation D6/D2 enforce ZERO hard-delete em NfeEmissao):
      *  1. Valida emissao status in [rejeitada, denegada, erro_envio]
      *  2. Cross-tenant guard
      *  3. Verifica transaction_id != null (emissões manuais sem TX exigem
      *     scope dedicado — fora deste PR)
-     *  4. `forceDelete()` na NfeEmissao antiga (libera UNIQUE constraint
-     *     business_id+transaction_id). Audit preservado via Spatie LogsActivity
-     *     (Wave 18 D7 — log captura status/cstat/motivo/numero/chave_44).
+     *  4. **UPDATE** na NfeEmissao antiga (NUNCA hard-delete — documento fiscal
+     *     imutável): `status='inutilizada'` + `transaction_id=null` (libera UNIQUE
+     *     biz+tx pra a nova emissão) + `metadata.original_transaction_id` (audit
+     *     trail) + `metadata.retransmitido_em`. Spatie LogsActivity (Wave 18 D7)
+     *     captura o `updated` event automaticamente.
      *  5. Chama `emitirParaTransaction($tx, $modelo)` que cria NfeEmissao NOVA
      *     com próximo número (proximoNumeroLocked withTrashed = sequencial
      *     fiscal monotônico, sem reuso).
@@ -948,12 +951,25 @@ class NfeService
             'transaction_id' => $tx->id,
         ]);
 
-        // ── 5. forceDelete antigo (libera UNIQUE biz+tx; audit via Spatie) ──
-        // Spatie LogsActivity (Wave 18 D7) já registrou 'updated' nas mudanças
-        // status anteriores. O 'deleted' event aqui não loga payload completo
-        // (logOnly em getActivitylogOptions captura apenas chave_44/numero/etc).
-        // Pra audit fiscal trail: activity_log + NfeEvento (eventos SEFAZ associados).
-        $emissao->forceDelete();
+        // ── 5. UPDATE antigo (preserva audit CONFAZ Art. 14 — NUNCA hard-delete) ──
+        // Wave 27/28 saturation D6/D2 IRREVOGÁVEL: remoção física de NfeEmissao
+        // viola CONFAZ SINIEF 07/2005 Art. 14 (documento fiscal imutável). Em
+        // vez disso: status='inutilizada' + transaction_id=null libera a UNIQUE
+        // biz+tx (MySQL trata NULL como distinto em UNIQUE), preservando o row
+        // na tabela com audit completo. Spatie LogsActivity captura o 'updated'
+        // automaticamente; metadata.original_transaction_id mantém referência
+        // pra recuperação caso preciso futuramente.
+        $emissao->update([
+            'status' => 'inutilizada',
+            'transaction_id' => null,
+            'metadata' => array_merge((array) ($emissao->metadata ?? []), [
+                'original_transaction_id' => $tx->id,
+                'retransmitido_em' => now()->toIso8601String(),
+                'retransmitido_por_business' => $businessId,
+                'status_antes_retransmissao' => $statusOriginal,
+                'cstat_antes_retransmissao' => $cstatOriginal,
+            ]),
+        ]);
 
         // ── 6. Re-emite via fluxo canon emitirParaTransaction ──────────────
         // Cria NfeEmissao NOVA com próximo número (proximoNumeroLocked
