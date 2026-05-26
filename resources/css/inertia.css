@@ -11,6 +11,9 @@
 /* Sells KB-9.75 Emit modals NF-e/NFS-e/Bulk (Cowork bundle 2026-05-26 P0 gaps #2/#3/#4 — fullscreen modal global) */
 @import "./sells-kb975-emit-modals.css";
 
+/* Sells KB-9.75 Recibo térmico 80mm + Orçamento A4 (Cowork bundle 2026-05-26 P2 gaps #8/#9) */
+@import "./sells-kb975-print.css";
+
 /* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
 @import "./sells-cowork-ia.css";
 
