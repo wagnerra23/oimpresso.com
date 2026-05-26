@@ -31,6 +31,10 @@
 
 - [mcp-endpoints.md](mcp-endpoints.md) — `mcp.oimpresso.com` (CT 100/FrankenPHP) canônico; `oimpresso.com/api/mcp` (Hostinger) só CRUD admin
 
+## LGPD & Privacidade
+
+- [lgpd-mapa-tratamento.md](lgpd-mapa-tratamento.md) — **Registro de Operações Art. 37 LGPD** (canon). Catalogadas Op-01 a Op-07 (ERP, Clarity, WhatsApp, Jana IA, Asaas, NFe, e-mail) + 12 subprocessadores (Hostinger, Proxmox, Microsoft Clarity SCC EUA, OpenAI/Anthropic/Gemini/Cohere/Groq, GitHub, Asaas BR, Mailgun, Meta). Encarregado: Wagner. Revisão trimestral. Origem: gap G1 [ADR 0191](../decisions/0191-microsoft-clarity-session-replay-lgpd.md).
+
 ## WhatsApp / Atendimento
 
 - [whatsapp-daemon-ct100.md](whatsapp-daemon-ct100.md) — daemon Baileys 6.7.18 + Fastify TS; endpoints; deploy; anti-QR-fest (PRs #685+#686); Multi-Device unified inbox
