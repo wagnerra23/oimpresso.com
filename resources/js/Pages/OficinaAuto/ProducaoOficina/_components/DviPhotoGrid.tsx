@@ -211,7 +211,7 @@ export default function DviPhotoGrid({
       >
         {items.length === 0 && (
           <div
-            className="col-span-full aspect-[3/1] rounded border border-dashed border-slate-200 grid place-items-center text-center text-[10.5px] text-slate-400 leading-tight p-2"
+            className="col-span-full aspect-[3/1] rounded border border-dashed grid place-items-center text-center text-[10.5px] text-muted-foreground leading-tight p-2"
             role="img"
             aria-label="Sem fotos anexadas"
           >
@@ -225,12 +225,12 @@ export default function DviPhotoGrid({
         {items.map((photo) => (
           <div
             key={photo.id}
-            className="relative group aspect-square rounded border border-slate-200 overflow-hidden bg-slate-50"
+            className="relative group aspect-square rounded border overflow-hidden bg-muted/30"
           >
             <button
               type="button"
               onClick={() => setPreview(photo)}
-              className="w-full h-full block focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full h-full block focus:outline-none focus:ring-2 focus:ring-ring"
               title={`${photo.original_name} · clique pra ampliar`}
               aria-label={`Ampliar foto ${photo.original_name}`}
             >
@@ -247,7 +247,7 @@ export default function DviPhotoGrid({
               type="button"
               onClick={() => handleDelete(photo)}
               disabled={disabled || deletingId === photo.id}
-              className="absolute top-1 right-1 grid place-items-center w-6 h-6 rounded-full bg-rose-600/90 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute top-1 right-1 grid place-items-center w-6 h-6 rounded-full bg-destructive/90 text-destructive-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               title="Remover foto (soft-delete)"
               aria-label={`Remover foto ${photo.original_name}`}
             >
@@ -307,7 +307,7 @@ export default function DviPhotoGrid({
             </DialogDescription>
           </DialogHeader>
           {preview && (
-            <div className="bg-slate-50 grid place-items-center p-4">
+            <div className="bg-muted/30 grid place-items-center p-4">
               <img
                 src={preview.display_url}
                 alt={preview.original_name}

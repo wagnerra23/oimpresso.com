@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-26T18:06:26-03:00",
+        "generated_at": "2026-05-26T18:18:53-03:00",
         "tool": "ui:lint",
         "files_scanned": 1426,
-        "total_violations": 7530,
+        "total_violations": 7500,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -666,9 +666,6 @@
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/DragConfirmDialog.tsx": {
             "R1": 19
         },
-        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/DviPhotoGrid.tsx": {
-            "R1": 7
-        },
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/KanbanDndProvider.tsx": {
             "R1": 4
         },
@@ -677,9 +674,6 @@
         },
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/ServiceOrderRichSheet.tsx": {
             "R1": 33
-        },
-        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Edit.tsx": {
-            "R1": 5
         },
         "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Index.tsx": {
             "R1": 95
@@ -904,11 +898,9 @@
             "R1": 27
         },
         "resources\/js\/Pages\/Sells\/Edit.tsx": {
-            "R1": 18
+            "R1": 16
         },
         "resources\/js\/Pages\/Sells\/Index.tsx": {
-            "R1": 2,
-            "R3": 2,
             "R4": 2
         },
         "resources\/js\/Pages\/Sells\/Show.tsx": {
@@ -952,9 +944,6 @@
         },
         "resources\/js\/Pages\/Sells\/_components\/SellsCheatSheet.tsx": {
             "R1": 1
-        },
-        "resources\/js\/Pages\/Sells\/_components\/SellsInsightsView.tsx": {
-            "R3": 12
         },
         "resources\/js\/Pages\/Sells\/_components\/VdNextActionPanel.tsx": {
             "R3": 5
