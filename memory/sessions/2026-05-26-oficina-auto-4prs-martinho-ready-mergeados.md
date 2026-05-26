@@ -1,5 +1,6 @@
 ---
 title: "Sessão 2026-05-26 — 4 PRs OficinaAuto Martinho-ready mergeados em 1 dia"
+topic: OficinaAuto Martinho-ready 4 PRs mergeados (cobrança real + drawer rico + WhatsApp PIN + DVI + UI items)
 date: "2026-05-26"
 type: session-log
 status: closed
