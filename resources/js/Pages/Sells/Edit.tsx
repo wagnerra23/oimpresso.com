@@ -223,11 +223,37 @@ export default function SellsEdit(props: SellsEditPageProps) {
     return () => window.removeEventListener('keydown', handler);
   }, [processing, permissions.update, put, urls.submit]);
 
+  // PR #1659 — converte EditProductLine[] → formato esperado pelo backend
+  // SellPosController@update (TransactionUtil::createOrUpdateSellLines).
+  // Keys esperadas: transaction_sell_lines_id (pra UPDATE), product_id, variation_id,
+  // quantity, unit_price, line_discount_amount, line_discount_type.
+  const buildProductsPayload = () => {
+    return data.products.map((p) => ({
+      transaction_sell_lines_id: p.sell_line_id ?? undefined,
+      product_id: p.product_id,
+      variation_id: p.variation_id,
+      quantity: p.quantity,
+      unit_price: p.unit_price,
+      line_discount_amount: p.discount,
+      line_discount_type: 'fixed' as const,
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!permissions.update || processing) return;
     // ⚠️ NUNCA setamos current_stage_id — FSM trait GuardsFsmTransitions ADR 0143 bloqueia.
-    put(urls.submit, { preserveScroll: true });
+    // PR #1659 — usar router.put direto pra customizar payload (Inertia useForm.put
+    // não suporta transform; useForm.data é tipado e não bate com backend `products`
+    // que precisa de transaction_sell_lines_id/line_discount_amount/etc).
+    const payload = {
+      ...data,
+      products: buildProductsPayload(),
+      // Backend espera tax_rate_id; frontend useForm tem tax_id (campo legacy serializer).
+      tax_rate_id: data.tax_id,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    router.put(urls.submit, payload as any, { preserveScroll: true });
   };
 
   // KB-9.75 paridade Create — KPIs derivadas do form deferred (PR #1655).
