@@ -649,12 +649,26 @@ class ServiceOrderController extends Controller
             ]);
         } catch (\Throwable $e) {
             \Log::emergency('OficinaAuto printInvoice: File:' . $e->getFile()
-                . ' Line:' . $e->getLine() . ' Message:' . $e->getMessage());
+                . ' Line:' . $e->getLine() . ' Message:' . $e->getMessage()
+                . ' Trace:' . substr($e->getTraceAsString(), 0, 800));
 
-            return response()->json([
+            // FIX bug 500 2026-05-26: expor exception details no JSON quando
+            // APP_DEBUG=true pra Wagner debugar smoke real prod (Hostinger).
+            // Em prod com APP_DEBUG=false fica oculto naturalmente.
+            $payload = [
                 'success' => 0,
                 'msg'     => 'Não foi possível gerar a impressão da OS.',
-            ], 500);
+            ];
+            if (config('app.debug')) {
+                $payload['_debug'] = [
+                    'class'   => get_class($e),
+                    'message' => $e->getMessage(),
+                    'file'    => basename($e->getFile()),
+                    'line'    => $e->getLine(),
+                ];
+            }
+
+            return response()->json($payload, 500);
         }
     }
 
