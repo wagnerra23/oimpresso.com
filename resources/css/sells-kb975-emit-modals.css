@@ -1,0 +1,504 @@
+/* sells-kb975-emit-modals.css — KB-9.75 Cowork bundle 2026-05-26 P0 gaps #2/#3/#4
+ * Modais emit NF-e/NFS-e 3-step + bulk emit progress tricolor
+ * NÃO escopado em .sells-cowork — modal é fullscreen global (z-index 50)
+ * Refs:
+ *   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md
+ *   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas.css (.vd-emit-*)
+ */
+
+/* ============================================================
+ * Backdrop + container
+ * ============================================================ */
+
+.vd-emit-bd {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.15 0.01 250 / 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+  animation: vd-emit-fade-in 160ms ease-out;
+}
+
+@keyframes vd-emit-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.vd-emit-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.18), 0 0 0 1px oklch(0.92 0.005 250);
+  width: min(720px, 96vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  animation: vd-emit-slide-up 200ms ease-out;
+}
+
+@keyframes vd-emit-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+ * Header
+ * ============================================================ */
+
+.vd-emit-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid oklch(0.93 0.005 250);
+}
+
+.vd-emit-h-l {
+  flex: 1;
+}
+
+.vd-emit-h h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: oklch(0.20 0.01 250);
+}
+
+.vd-emit-h small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: oklch(0.55 0.01 250);
+}
+
+.vd-emit-close {
+  background: transparent;
+  border: 0;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: oklch(0.55 0.01 250);
+  transition: background 120ms ease;
+}
+
+.vd-emit-close:hover {
+  background: oklch(0.95 0.005 250);
+  color: oklch(0.20 0.01 250);
+}
+
+/* ============================================================
+ * Steps tracker
+ * ============================================================ */
+
+.vd-emit-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 22px;
+  background: oklch(0.985 0.003 250);
+  border-bottom: 1px solid oklch(0.93 0.005 250);
+}
+
+.vd-emit-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: oklch(0.55 0.01 250);
+  white-space: nowrap;
+}
+
+.vd-emit-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: oklch(0.92 0.005 250);
+  color: oklch(0.55 0.01 250);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.vd-emit-step.active {
+  color: oklch(0.20 0.01 250);
+}
+
+.vd-emit-step.active .vd-emit-step-num {
+  background: oklch(0.55 0.13 240);
+  color: #fff;
+}
+
+.vd-emit-step.done .vd-emit-step-num {
+  background: oklch(0.55 0.12 155);
+  color: #fff;
+}
+
+.vd-emit-step-sep {
+  flex: 1;
+  height: 2px;
+  background: oklch(0.92 0.005 250);
+  border-radius: 1px;
+}
+
+/* ============================================================
+ * Body
+ * ============================================================ */
+
+.vd-emit-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+}
+
+.vd-emit-hint {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  color: oklch(0.50 0.01 250);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+/* Table step 1 */
+.vd-emit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.vd-emit-table thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: oklch(0.55 0.01 250);
+  padding: 8px 10px;
+  border-bottom: 1px solid oklch(0.93 0.005 250);
+}
+
+.vd-emit-table tbody td {
+  padding: 10px;
+  vertical-align: top;
+  border-bottom: 1px solid oklch(0.96 0.005 250);
+}
+
+.vd-emit-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.vd-emit-table td.has-error {
+  background: oklch(0.97 0.03 28 / 0.5);
+}
+
+.vd-emit-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: oklch(0.96 0.005 250);
+  color: oklch(0.30 0.01 250);
+  border-radius: 4px;
+}
+
+.vd-emit-err {
+  display: block;
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: oklch(0.45 0.16 28);
+}
+
+.vd-emit-tab-num {
+  font-variant-numeric: tabular-nums;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/* Warn banner */
+.vd-emit-warn {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: oklch(0.97 0.04 28 / 0.5);
+  color: oklch(0.42 0.18 28);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* XML preview step 2 */
+.vd-emit-xml {
+  margin: 0;
+  padding: 14px 16px;
+  background: oklch(0.98 0.005 250);
+  border: 1px solid oklch(0.93 0.005 250);
+  border-radius: 8px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  color: oklch(0.25 0.01 250);
+  overflow-x: auto;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+/* Step 3 result states */
+.vd-emit-confirm,
+.vd-emit-loading,
+.vd-emit-result {
+  text-align: center;
+  padding: 22px 14px;
+}
+
+.vd-emit-confirm > svg,
+.vd-emit-loading > svg,
+.vd-emit-result > svg {
+  margin-bottom: 10px;
+}
+
+.vd-emit-confirm h3,
+.vd-emit-loading h3,
+.vd-emit-result h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.vd-emit-confirm p,
+.vd-emit-loading p,
+.vd-emit-result p {
+  margin: 0 auto 6px;
+  font-size: 13px;
+  color: oklch(0.45 0.01 250);
+  max-width: 460px;
+}
+
+.vd-emit-confirm svg { color: oklch(0.55 0.13 240); }
+.vd-emit-loading svg { color: oklch(0.55 0.13 240); }
+.vd-emit-ok svg     { color: oklch(0.55 0.12 155); }
+.vd-emit-ok h3      { color: oklch(0.42 0.12 155); }
+.vd-emit-bad svg    { color: oklch(0.55 0.18 28); }
+.vd-emit-bad h3     { color: oklch(0.42 0.18 28); }
+.vd-emit-warn-r svg { color: oklch(0.62 0.16 75); }
+.vd-emit-warn-r h3  { color: oklch(0.50 0.16 75); }
+
+.vd-emit-result code {
+  display: inline-block;
+  padding: 4px 10px;
+  margin: 4px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  background: oklch(0.95 0.005 250);
+  border-radius: 4px;
+  color: oklch(0.25 0.01 250);
+}
+
+.vd-emit-spin {
+  animation: vd-emit-spin 1s linear infinite;
+}
+
+@keyframes vd-emit-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+ * Footer + buttons
+ * ============================================================ */
+
+.vd-emit-f {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid oklch(0.93 0.005 250);
+  background: oklch(0.99 0.003 250);
+}
+
+.vd-emit-f-spacer {
+  flex: 1;
+}
+
+.vd-emit-btn,
+.vd-emit-btn-ghost {
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+.vd-emit-btn {
+  background: oklch(0.20 0.01 250);
+  color: #fff;
+  border: 0;
+}
+
+.vd-emit-btn:hover:not(:disabled) {
+  background: oklch(0.30 0.01 250);
+}
+
+.vd-emit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vd-emit-btn.primary {
+  background: oklch(0.55 0.13 240);
+}
+
+.vd-emit-btn.primary:hover {
+  background: oklch(0.48 0.13 240);
+}
+
+.vd-emit-btn-ghost {
+  background: transparent;
+  color: oklch(0.40 0.01 250);
+  border: 1px solid oklch(0.90 0.005 250);
+}
+
+.vd-emit-btn-ghost:hover {
+  background: oklch(0.96 0.005 250);
+}
+
+/* ============================================================
+ * Bulk emit progress (gap #4) — tricolor running/ok/bad
+ * ============================================================ */
+
+.vd-bulk-emit-modal {
+  width: min(560px, 96vw);
+}
+
+.vd-bulk-emit-list {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid oklch(0.93 0.005 250);
+  border-radius: 8px;
+}
+
+.vd-bulk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid oklch(0.96 0.005 250);
+  font-size: 13px;
+}
+
+.vd-bulk-row:last-child {
+  border-bottom: 0;
+}
+
+.vd-bulk-row-icon {
+  width: 22px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vd-bulk-row.pending  .vd-bulk-row-icon { color: oklch(0.65 0.01 250); }
+.vd-bulk-row.running  .vd-bulk-row-icon { color: oklch(0.55 0.13 240); }
+.vd-bulk-row.ok       .vd-bulk-row-icon { color: oklch(0.55 0.12 155); }
+.vd-bulk-row.bad      .vd-bulk-row-icon { color: oklch(0.55 0.18 28); }
+
+.vd-bulk-row-main {
+  flex: 1;
+}
+
+.vd-bulk-row-main b {
+  font-weight: 500;
+  color: oklch(0.20 0.01 250);
+}
+
+.vd-bulk-row-main small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: oklch(0.50 0.01 250);
+}
+
+.vd-bulk-row.bad .vd-bulk-row-main small {
+  color: oklch(0.42 0.18 28);
+}
+
+.vd-bulk-progress-bar {
+  margin: 14px 0 0;
+  height: 6px;
+  background: oklch(0.92 0.005 250);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+}
+
+.vd-bulk-progress-fill {
+  height: 100%;
+  transition: width 200ms ease-out;
+}
+
+.vd-bulk-progress-fill.ok  { background: oklch(0.55 0.12 155); }
+.vd-bulk-progress-fill.bad { background: oklch(0.55 0.18 28); }
+
+.vd-bulk-progress-summary {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: oklch(0.55 0.01 250);
+  display: flex;
+  gap: 12px;
+}
+
+.vd-bulk-progress-summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.vd-bulk-progress-summary .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.vd-bulk-progress-summary .dot.ok  { background: oklch(0.55 0.12 155); }
+.vd-bulk-progress-summary .dot.bad { background: oklch(0.55 0.18 28); }
+.vd-bulk-progress-summary .dot.run { background: oklch(0.55 0.13 240); }
+
+/* ============================================================
+ * Responsive
+ * ============================================================ */
+
+@media (max-width: 640px) {
+  .vd-emit-modal {
+    width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .vd-emit-steps {
+    overflow-x: auto;
+  }
+
+  .vd-emit-table {
+    font-size: 11.5px;
+  }
+
+  .vd-emit-table thead,
+  .vd-emit-table tbody td:nth-child(n + 4) {
+    /* compactar pra mobile mostrando só product + ncm + cfop */
+  }
+}

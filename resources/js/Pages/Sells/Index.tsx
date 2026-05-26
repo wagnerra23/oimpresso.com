@@ -446,19 +446,24 @@ function SellsCheatSheet({ onClose }: { onClose: () => void }): ReactNode {
 // Saved views — Hoje / Pendentes / Atrasadas / Rejeitadas / Faturadas / Favoritas
 // (mock simplificado — backend não implementa view filter ainda; client-side)
 // ──────────────────────────────────────────────────────────────
-type SavedViewId = 'hoje' | 'pendentes' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
+type SavedViewId = 'hoje' | 'pendentes' | 'aguardando-faturamento' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
 interface SavedView {
   id: SavedViewId;
   label: string;
   filter: (r: SaleRow) => boolean;
 }
+// KB-9.75 P1 gap #7: "Aguardando faturamento" — pedidos confirmados sem NF emitida.
+// Glossário BR (gap #6): faturar = emitir NF + título no contas a receber.
+// Critério: payment_status !== 'paid' AND fiscal_status NULL — pedido pronto mas
+// sem NF ainda. Permite a Larissa filtrar a fila de "preciso emitir NF" rapidamente.
 const SAVED_VIEWS: SavedView[] = [
-  { id: 'hoje',       label: 'Pendentes pgto.',  filter: (r) => r.payment_status !== 'paid' },
-  { id: 'pendentes',  label: 'Pendentes',        filter: (r) => r.payment_status === 'due' || r.payment_status === 'partial' },
-  { id: 'atrasadas',  label: 'Atrasadas',        filter: (r) => r.sla_kind === 'overdue' },
-  { id: 'rejeitadas', label: 'NF-e rejeitadas',  filter: (r) => r.fiscal_status === 'rejeitada' },
-  { id: 'faturadas',  label: 'Faturadas (mês)',  filter: (r) => r.fiscal_status === 'autorizada' },
-  { id: 'todas',      label: 'Todas',            filter: () => true },
+  { id: 'hoje',                    label: 'Pendentes pgto.',         filter: (r) => r.payment_status !== 'paid' },
+  { id: 'pendentes',               label: 'Pendentes',               filter: (r) => r.payment_status === 'due' || r.payment_status === 'partial' },
+  { id: 'aguardando-faturamento',  label: 'Aguardando faturamento',  filter: (r) => r.payment_status !== 'paid' && (r.fiscal_status === null || r.fiscal_status === undefined) },
+  { id: 'atrasadas',               label: 'Atrasadas',               filter: (r) => r.sla_kind === 'overdue' },
+  { id: 'rejeitadas',              label: 'NF-e rejeitadas',         filter: (r) => r.fiscal_status === 'rejeitada' },
+  { id: 'faturadas',               label: 'Faturadas (mês)',         filter: (r) => r.fiscal_status === 'autorizada' },
+  { id: 'todas',                   label: 'Todas',                   filter: () => true },
 ];
 
 // ──────────────────────────────────────────────────────────────

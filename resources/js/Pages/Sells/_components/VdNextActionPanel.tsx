@@ -45,6 +45,8 @@ interface Props {
   currentStageKey?: string | null;
   /** Callback após transition bem-sucedida — Show refresh sheet-data + history */
   onTransition?: () => void;
+  /** Callback gate fiscal — Show abre VdNfeEmitModal / VdNfseEmitModal correspondente (gap #2/#3 KB-9.75) */
+  onOpenEmit?: (kind: 'nfe' | 'nfse') => void;
 }
 
 // Mapping label → cor visual (alinhado com Cowork .vd-next-btn-{blue,indigo,amber,green})
@@ -93,6 +95,7 @@ export default function VdNextActionPanel({
   paymentStatus,
   currentStageKey,
   onTransition,
+  onOpenEmit,
 }: Props) {
   const [data, setData] = useState<ActionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -264,6 +267,25 @@ export default function VdNextActionPanel({
           {gate ? (
             <div className="vd-next-gate">
               <span className="vd-next-gate-msg">{gate}</span>
+              {/fatur/i.test(nextAction.label) && onOpenEmit && (
+                <>
+                  <button
+                    type="button"
+                    className="vd-next-gate-cta"
+                    onClick={() => onOpenEmit('nfe')}
+                  >
+                    📄 Emitir NF-e agora →
+                  </button>
+                  <button
+                    type="button"
+                    className="vd-next-gate-cta"
+                    onClick={() => onOpenEmit('nfse')}
+                    style={{ marginLeft: 6 }}
+                  >
+                    📄 Emitir NFS-e agora →
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             nextAction.target_stage && (
