@@ -1835,21 +1835,19 @@ function ClienteSheet({
             </span>
           </div>
 
-          {/* Botoes acao -- Imprimir + Copiloto. */}
+          {/* Botoes acao -- Imprimir + Copiloto. ADR UI-0015 (cowork canon). */}
           <div className="flex items-center gap-2 pt-1">
             <Button
-              variant="outline"
-              size="sm"
+              variant="cowork-ghost"
               onClick={() => {
                 // Placeholder Wave B -- window.print() abre dialogo print do navegador.
                 // Wave G implementa CSS @media print + layout dedicado.
                 if (typeof window !== 'undefined') window.print();
               }}
-              className="text-xs h-7"
             >
               Imprimir ficha
             </Button>
-            <Button asChild size="sm" className="text-xs h-7">
+            <Button asChild variant="cowork-primary">
               <a
                 href={contact ? `/ia/chat?context=cliente:${contact.id}` : '#'}
                 title="Abre o Copiloto (Jana) com contexto deste cliente"
@@ -1942,22 +1940,19 @@ function ClienteSheet({
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
+              variant="cowork-ghost"
               onClick={() => onOpenChange(false)}
-              className="text-xs h-7"
             >
               Cancelar
             </Button>
             <Button
-              size="sm"
+              variant="cowork-primary"
               onClick={() => {
                 // Placeholder Wave B -- Wave C dispara PATCH autosave on blur.
                 // router.reload only:['contact'] refresca payload sem rerender total.
                 // TODO Wave C: substituir por toast "Salvo" + reload partial.
                 onOpenChange(false);
               }}
-              className="text-xs h-7"
             >
               Salvar
             </Button>
