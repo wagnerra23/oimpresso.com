@@ -89,6 +89,7 @@ jobs:
               \$bizDetails = (object)['date_format' => \$biz->date_format ?? 'd/m/Y', 'time_format' => \$biz->time_format ?? 24];
               \$util = app(\App\Utils\Util::class);
               echo 'format_date(transaction_date, true, biz)=' . \$util->format_date(\$tx->transaction_date, true, \$bizDetails) . PHP_EOL;
+              echo 'format_date_no_shift(transaction_date, true, biz)=' . \$util->format_date_no_shift(\$tx->transaction_date, true, \$bizDetails) . PHP_EOL;
             } catch (\Throwable \$e) {
               echo 'format_date ERROR=' . \$e->getMessage() . PHP_EOL;
             }
