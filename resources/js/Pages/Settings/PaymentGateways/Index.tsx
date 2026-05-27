@@ -30,20 +30,30 @@ import {
   type SettingsGateway, type SettingsKpis, type Account, type GatewayKey,
 } from './_lib/gateway-shared';
 
+interface NfeCertificadoAtivo {
+  cnpjTitular: string;
+  validoAteBr: string;
+  diasRestantes: number;
+  vencido: boolean;
+  proximoVencer: boolean;
+}
+
 interface Props {
   gateways: SettingsGateway[];
   accounts: Account[];
   kpis: SettingsKpis;
   today: string;
+  nfeCertificadoAtivo: NfeCertificadoAtivo | null;
 }
 
 const KPI_FALLBACK: SettingsKpis = { ativos: 0, total: 0, fail: 0, cobs_hoje: 0 };
 
-function PaymentGatewaysPage({ gateways, accounts, kpis, today }: Props) {
+function PaymentGatewaysPage({ gateways, accounts, kpis, today, nfeCertificadoAtivo }: Props) {
   // Hotfix Inertia::defer first paint — props deferred chegam undefined.
   gateways = gateways ?? [];
   accounts = accounts ?? [];
   kpis = kpis ?? KPI_FALLBACK;
+  nfeCertificadoAtivo = nfeCertificadoAtivo ?? null;
   const [drawer, setDrawer] = useState<SettingsGateway | null>(null);
   const [novoOpen, setNovoOpen] = useState(false);
   const [confirmToggle, setConfirmToggle] = useState<{ gateway: SettingsGateway; newValue: boolean } | null>(null);
@@ -284,7 +294,13 @@ function PaymentGatewaysPage({ gateways, accounts, kpis, today }: Props) {
       </div>
 
       {drawer && <DrawerGateway gateway={drawer} accounts={accounts} onClose={() => setDrawer(null)} onToggle={(newVal) => handleToggle(drawer, newVal)} />}
-      {novoOpen && <SheetNovoGateway accounts={accounts} onClose={() => setNovoOpen(false)} />}
+      {novoOpen && (
+        <SheetNovoGateway
+          accounts={accounts}
+          nfeCertificadoAtivo={nfeCertificadoAtivo}
+          onClose={() => setNovoOpen(false)}
+        />
+      )}
       {confirmToggle && (
         <ConfirmToggleModal
           gateway={confirmToggle.gateway}
