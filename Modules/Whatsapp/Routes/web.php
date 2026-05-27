@@ -67,13 +67,23 @@ Route::group([
         ->middleware('can:whatsapp.templates.manage')
         ->name('whatsapp.templates.store');
 
-    // US-WA-070: rota legacy `/whatsapp/settings` → 301 pra
-    // `/atendimento/canais/jana-templates`. Mantém compat de bookmark e
-    // qualquer middleware/handler externo que ainda aponte pra cá.
-    Route::get('/settings', fn () => redirect()->route('atendimento.canais.jana_templates.show', [], 301))
+    // US-WA-310 Fase 2 (ADR 0202) — `/whatsapp/settings` agora é wizard Embedded
+    // Signup v4 (substituiu o 301 legacy de US-WA-070). Templates HSM continuam
+    // em `/atendimento/canais/jana-templates`. Caminho `/whatsapp/settings`
+    // mantém compat de bookmarks antigos.
+    Route::get('/settings', [SettingsController::class, 'settings'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('whatsapp.settings.show');
 
+    Route::get('/settings/meta-oauth-init', [SettingsController::class, 'metaOauthInit'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('whatsapp.settings.meta.oauth_init');
+
+    Route::post('/settings/meta-embedded-callback', [SettingsController::class, 'metaEmbeddedCallback'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('whatsapp.settings.meta.embedded_callback');
+
+    // Legacy PUT mantém redirect 301 — templates HSM ficaram em jana-templates.
     Route::put('/settings', fn () => redirect()->route('atendimento.canais.jana_templates.show', [], 301))
         ->middleware('can:whatsapp.settings.manage')
         ->name('whatsapp.settings.update');
