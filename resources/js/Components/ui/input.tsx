@@ -2,7 +2,36 @@ import * as React from "react"
 
 import { cn } from "@/Lib/utils"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+type InputVariant = "default" | "cowork"
+
+interface InputProps extends React.ComponentProps<"input"> {
+  /**
+   * Visual variant.
+   *
+   * - `default` (shadcn canon): bg-transparent, text-sm, ring shadcn.
+   *   Mantido pra todas as telas que já usavam `<Input>` sem prop.
+   *
+   * - `cowork`: replica fiel do protótipo Cowork canon (`.cl-input` em
+   *   prototipo-ui/prototipos/clientes/clientes.css). Usa classes `.cw-input`
+   *   definidas em resources/css/cowork-fields.css com bg `--surface`, text
+   *   13px, ring `--accent-soft`. Adotado pelo drawer Cliente após pedido
+   *   Wagner 2026-05-26 "copie do cowork seja fiel".
+   */
+  variant?: InputVariant
+}
+
+function Input({ className, type, variant = "default", ...props }: InputProps) {
+  if (variant === "cowork") {
+    return (
+      <input
+        type={type}
+        data-slot="input"
+        className={cn("cw-input", className)}
+        {...props}
+      />
+    )
+  }
+
   return (
     <input
       type={type}
@@ -19,3 +48,4 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 }
 
 export { Input }
+export type { InputVariant, InputProps }

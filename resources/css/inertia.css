@@ -44,6 +44,13 @@
 /* Sells/Subscriptions Cowork — lista assinaturas recorrentes (extensões mínimas além da família Index) */
 @import "./sells-cowork-subscriptions.css";
 
+/* Cowork fields — port fiel `.cl-input`/`.cl-field`/`.cl-radio` do protótipo
+ * (prototipo-ui/prototipos/clientes/clientes.css). Aplicado via
+ * `<Input variant="cowork">` no drawer Cliente após pedido Wagner 2026-05-26
+ * "copie do cowork seja fiel". Classes `.cw-*` (não-escopadas — usam tokens
+ * globais já definidos em cockpit.css). */
+@import "./cowork-fields.css";
+
 /* ============================================================================
  * FINANCEIRO — Design System Cowork — REATIVADO 2026-05-19 (Plano B canon)
  *
