@@ -222,6 +222,10 @@ export default function CustomerSearchAutocomplete({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
+          // variant=shadcn pra permitir pl-9 (ícone-prefix). Default cowork tem
+          // padding hardcoded `0 8px` no .cw-input que sobrepõe utilities Tailwind
+          // — ícone Search fica em cima do texto. ADR UI-0015 default cowork 2026-05-27.
+          variant="shadcn"
           className="pl-9 pr-9"
           aria-label="Buscar cliente"
           aria-expanded={open}
