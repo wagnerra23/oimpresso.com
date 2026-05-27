@@ -19,10 +19,11 @@
 // - Acessibilidade: nav vertical com role implícito via lista de buttons; aria-selected
 //   marca tab ativa; aria-label="Sub-abas operacionais" pra screen readers.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Activity,
   Banknote,
+  Car,
   FileText,
   Gift,
   ListChecks,
@@ -40,6 +41,7 @@ import ActivitiesTab from '../_show/ActivitiesTab';
 import PessoasContatoTab from '../_show/PessoasContatoTab';
 import SubscriptionsTab from '../_show/SubscriptionsTab';
 import RewardPointsTab from '../_show/RewardPointsTab';
+import PlacasSubTab from './oss/PlacasSubTab';
 import type { ContactInfo } from './IdentificacaoTab';
 
 type OssSubTabKey =
@@ -47,6 +49,7 @@ type OssSubTabKey =
   | 'sales'
   | 'payments'
   | 'documents'
+  | 'placas'
   | 'activities'
   | 'persons'
   | 'subscriptions'
@@ -66,21 +69,33 @@ export interface OssTabProps {
   };
   /** Lista de filiais do business pra filtro do LedgerTab. Default []. */
   locations?: Array<{ id: number; name: string }>;
+  /** Gate visibilidade sub-tab "Placas" — só renderiza se modulo OficinaAuto ativo
+   *  no business. Default false (biz=4 Larissa vestuario NAO ve). Wagner 2026-05-27. */
+  oficinaAutoEnabled?: boolean;
 }
 
-const SUB_TABS: Array<{ key: OssSubTabKey; label: string; icon: LucideIcon }> = [
+const ALL_SUB_TABS: Array<{ key: OssSubTabKey; label: string; icon: LucideIcon; requiresOficinaAuto?: boolean }> = [
   { key: 'ledger', label: 'Extrato', icon: ListChecks },
   { key: 'sales', label: 'Vendas', icon: ReceiptText },
   { key: 'payments', label: 'Pagamentos', icon: Banknote },
   { key: 'documents', label: 'Documentos', icon: FileText },
+  // Wagner 2026-05-27 — Daniela @ Martinho: placas do cliente no drawer
+  // (caminhao basculante). So aparece se OficinaAuto ativo no business.
+  { key: 'placas', label: 'Placas', icon: Car, requiresOficinaAuto: true },
   { key: 'activities', label: 'Atividades', icon: Activity },
   { key: 'persons', label: 'Pessoas', icon: Users },
   { key: 'subscriptions', label: 'Assinaturas', icon: Recycle },
   { key: 'rewards', label: 'Pontos', icon: Gift },
 ];
 
-export default function OssTab({ contact, permissions = {}, locations = [] }: OssTabProps) {
+export default function OssTab({ contact, permissions = {}, locations = [], oficinaAutoEnabled = false }: OssTabProps) {
   const [active, setActive] = useState<OssSubTabKey>('ledger');
+
+  // Filtra sub-tabs por gate de modulo (Placas exige OficinaAuto).
+  const SUB_TABS = useMemo(
+    () => ALL_SUB_TABS.filter((t) => !t.requiresOficinaAuto || oficinaAutoEnabled),
+    [oficinaAutoEnabled]
+  );
 
   return (
     <div
@@ -158,6 +173,9 @@ export default function OssTab({ contact, permissions = {}, locations = [] }: Os
               edit_note: permissions.edit_note ?? false,
             }}
           />
+        )}
+        {active === 'placas' && oficinaAutoEnabled && (
+          <PlacasSubTab contactId={contact.id} />
         )}
         {active === 'activities' && <ActivitiesTab activities={undefined} />}
         {active === 'persons' && (
