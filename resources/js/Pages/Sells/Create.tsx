@@ -38,6 +38,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 
 interface OptionMap {
   [id: number]: string;
@@ -533,7 +543,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, [auth, business]);
 
   // Recover ao montar (apenas 1x). Pergunta antes — Larissa pode ter terminado em outro tab.
+  // Wagner 2026-05-27 HOTFIX: substituído window.confirm() nativo (botões cinza do browser,
+  // destoa do resto da UI) por AlertDialog shadcn estilizado. Smoke prod 2026-05-27 (Larissa
+  // achou estranho — UI inconsistente). Mantém mesma semântica: OK→recupera, Cancelar→descarta.
   const recoveredRef = useRef(false);
+  const [draftRecover, setDraftRecover] = useState<{ data: typeof data; savedAt: number; time: string } | null>(null);
   useEffect(() => {
     if (!draftKey || recoveredRef.current) return;
     recoveredRef.current = true;
@@ -549,11 +563,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         hour: '2-digit',
         minute: '2-digit',
       });
-      if (confirm(`Recuperar rascunho de venda salvo às ${time}?`)) {
-        setData(parsed.data);
-      } else {
-        localStorage.removeItem(draftKey);
-      }
+      setDraftRecover({ data: parsed.data, savedAt: parsed.savedAt, time });
     } catch {
       // Draft corrompido — descartar silenciosamente.
       try {
@@ -564,6 +574,18 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey]);
+
+  const handleDraftRecover = () => {
+    if (draftRecover) setData(draftRecover.data);
+    setDraftRecover(null);
+  };
+
+  const handleDraftDiscard = () => {
+    if (draftKey) {
+      try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
+    }
+    setDraftRecover(null);
+  };
 
   // Auto-save debounced 500ms quando data mudar (após mount).
   useEffect(() => {
@@ -1401,6 +1423,25 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           </div>
         </div>
       </div>
+
+      {/* Wagner 2026-05-27 HOTFIX: AlertDialog shadcn substitui window.confirm() nativo
+          do browser pra auto-save de rascunho (US-SELL-007). Smoke prod 2026-05-27: UI
+          consistente com resto da app, evita "alert cinza ugly" que destoava. */}
+      <AlertDialog open={!!draftRecover} onOpenChange={(open) => { if (!open) handleDraftDiscard(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Recuperar rascunho de venda?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Encontramos um rascunho salvo automaticamente às <strong>{draftRecover?.time}</strong>.
+              Você pode recuperar e continuar de onde parou ou descartar e começar do zero.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDraftDiscard}>Descartar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDraftRecover}>Recuperar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
