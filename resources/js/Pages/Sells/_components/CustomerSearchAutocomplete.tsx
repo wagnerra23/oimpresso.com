@@ -1,8 +1,13 @@
 // US-SELL-CUST-SEARCH — busca de cliente na Sells/Create.
 //
 // Endpoint legado: GET /contacts/customers?q=TERM (ContactController@getCustomers).
-// Retorna array com { id, text, mobile, ... }. Walk-in customer fica como
-// default no Create — esse autocomplete só TROCA pra um cliente real.
+// Retorna array com { id, text, mobile, balance, ... }. Walk-in customer fica
+// como default no Create — esse autocomplete só TROCA pra um cliente real.
+//
+// Dor 5 (Larissa, auditoria 2026-05-27): expor `balance` no dropdown + abaixo
+// do input após select. Larissa não enxergava saldo devedor antes da venda.
+// Convenção UPOS: backend devolve `balance` (string|number, R$). Quando >0
+// (CRM frame: cliente nos deve) → badge text-destructive.
 //
 // Não vira shared ainda — extrair pra @/Components/shared só quando 2ª tela usar.
 
@@ -15,7 +20,24 @@ export interface CustomerSearchResult {
   text: string;
   mobile?: string | null;
   city?: string | null;
+  /** Saldo devedor cliente (R$). >0 = devedor — exibe badge vermelho. */
+  balance?: number | string | null;
 }
+
+/**
+ * Normaliza balance do payload (controller pode mandar string MySQL
+ * decimal, número ou null) pra Number. NaN/null → 0.
+ */
+const parseBalance = (raw: number | string | null | undefined): number => {
+  if (raw === null || raw === undefined || raw === '') return 0;
+  const n = typeof raw === 'number' ? raw : parseFloat(String(raw));
+  return Number.isFinite(n) ? n : 0;
+};
+
+const BRL = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
 
 interface Props {
   defaultName: string;
@@ -40,6 +62,7 @@ export default function CustomerSearchAutocomplete({
 }: Props) {
   const [query, setQuery] = useState('');
   const [selectedLabel, setSelectedLabel] = useState<string>(defaultName);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerSearchResult | null>(null);
   const [results, setResults] = useState<CustomerSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -142,6 +165,7 @@ export default function CustomerSearchAutocomplete({
     setOpen(false);
     setHighlightedIndex(-1);
     setSelectedLabel(defaultName);
+    setSelectedCustomer(null);
     onClear?.();
     inputRef.current?.focus();
   };
@@ -149,6 +173,7 @@ export default function CustomerSearchAutocomplete({
   const handleSelect = (customer: CustomerSearchResult) => {
     onSelect(customer);
     setSelectedLabel(customer.text);
+    setSelectedCustomer(customer);
     setQuery('');
     setResults([]);
     setOpen(false);
@@ -217,30 +242,54 @@ export default function CustomerSearchAutocomplete({
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-border bg-popover shadow-md"
         >
-          {results.map((c, index) => (
-            <button
-              key={c.id}
-              type="button"
-              role="option"
-              aria-selected={index === highlightedIndex}
-              onClick={() => handleSelect(c)}
-              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm focus:outline-none ${
-                index === highlightedIndex
-                  ? 'bg-accent text-accent-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              <div className="flex flex-col min-w-0">
-                <span className="font-medium truncate">{c.text}</span>
-                {(c.mobile || c.city) && (
-                  <span className="text-xs text-muted-foreground truncate">
-                    {[c.mobile, c.city].filter(Boolean).join(' · ')}
+          {results.map((c, index) => {
+            const cBalance = parseBalance(c.balance);
+            const isDevedor = cBalance > 0;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                role="option"
+                aria-selected={index === highlightedIndex}
+                onClick={() => handleSelect(c)}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm focus:outline-none ${
+                  index === highlightedIndex
+                    ? 'bg-accent text-accent-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="font-medium truncate">{c.text}</span>
+                  {(c.mobile || c.city) && (
+                    <span className="text-xs text-muted-foreground truncate">
+                      {[c.mobile, c.city].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                </div>
+                {isDevedor && (
+                  <span
+                    className="shrink-0 text-xs font-semibold text-destructive whitespace-nowrap"
+                    data-testid="customer-balance-badge"
+                    aria-label={`Cliente devedor: ${BRL.format(cBalance)}`}
+                  >
+                    {BRL.format(cBalance)} devedor
                   </span>
                 )}
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
+      )}
+
+      {/* Dor 5 — após selecionar cliente, expõe saldo devedor pra Larissa
+          decidir se cobra/avisa antes de prosseguir com a venda. */}
+      {selectedCustomer && !open && parseBalance(selectedCustomer.balance) > 0 && (
+        <p
+          className="mt-1 text-xs font-medium text-destructive"
+          data-testid="customer-balance-hint"
+        >
+          Cliente vencido: {BRL.format(parseBalance(selectedCustomer.balance))}
+        </p>
       )}
 
       {open && query.length >= MIN_QUERY_LENGTH && results.length === 0 && !loading && (
