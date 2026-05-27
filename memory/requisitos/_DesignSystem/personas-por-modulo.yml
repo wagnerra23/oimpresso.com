@@ -1,0 +1,114 @@
+# ── Mapping módulo → persona dominante (fallback nível 2 da skill personas-resolve) ──
+#
+# Refs: ADR UI-0016 (design contextualizado), .claude/skills/personas-resolve/SKILL.md
+#
+# Usado quando charter da tela NÃO declara `personas_alvo` explicitamente.
+# Quando declara, charter wins (mais específico).
+#
+# Princípio: `primary` é a persona QUE PASSA MAIS TEMPO usando o módulo no dia-a-dia.
+# `secondary` são personas que tocam ocasionalmente.
+#
+# Cada slug aponta pra um arquivo em memory/clientes/<cliente>/personas/<slug>.yml
+
+# ── Módulos Inertia/React (resources/js/Pages/<Mod>/) ──────────────────────
+
+sells:
+  primary: larissa-rota-livre           # POS balcão 50×/dia
+  secondary:
+    - daniela-martinho                  # venda peça avulsa eventual
+    - kamila-martinho                   # consulta venda pra emitir NF-e
+
+cliente:                                # módulo Cliente (Contacts) — uso UNIVERSAL
+  primary: depends_on_ramo              # ramo do cliente final determina
+  secondary:
+    - larissa-rota-livre                # cliente PF balcão
+    - daniela-martinho                  # cliente PJ frota
+    - kamila-martinho                   # consultar saldo + dados fiscais
+
+oficinaauto:
+  primary: daniela-martinho             # gerente operacional — OSs ativas 30×/dia
+  secondary:
+    - jair-martinho                     # dono — vê dashboard
+    - kamila-martinho                   # admin — faturamento pós-OS
+
+financeiro:
+  primary: kamila-martinho              # admin/fiscal 50+ acessos/dia
+  secondary:
+    - jair-martinho                     # dono — fluxo + DRE final mês
+    - larissa-rota-livre                # contas a receber básico (balcão)
+
+nfe-brasil:
+  primary: kamila-martinho              # power user fiscal NF-e
+  secondary:
+    - daniela-martinho                  # emite ao finalizar OS
+
+nfse:
+  primary: kamila-martinho
+  secondary: []
+
+repair:                                 # módulo Repair legacy (mecânica simples)
+  primary: daniela-martinho             # similar OficinaAuto mas menor escopo
+  secondary: []
+
+ponto:                                  # módulo Ponto (folha + espelho)
+  primary: kamila-martinho              # admin RH
+  secondary:
+    - jair-martinho                     # dono aprovação espelho
+
+compras:
+  primary: kamila-martinho              # compra peça/produto
+  secondary:
+    - daniela-martinho                  # solicita peça pra OS
+
+produto:                                # cadastro de produto
+  primary: larissa-rota-livre           # cadastra peça vestuário
+  secondary:
+    - kamila-martinho                   # cadastra peça automotiva
+
+whatsapp:                               # módulo WhatsApp (atendimento + outbound)
+  primary: larissa-rota-livre           # atende cliente balcão via WA
+  secondary:
+    - daniela-martinho                  # aprovação orçamento via WA cliente frota
+
+atendimento:                            # módulo Atendimento (ticket)
+  primary: depends_on_business          # varia
+  secondary: []
+
+essentials:                             # cadastros gerais (categorias, etc)
+  primary: kamila-martinho              # admin que configura
+  secondary: []
+
+jana:                                   # módulo Copiloto/IA
+  primary: depends_on_business
+  secondary: [larissa-rota-livre, daniela-martinho, kamila-martinho, jair-martinho]
+
+# ── Áreas especiais ──────────────────────────────────────────────────────
+
+admin/feature-flags:                    # painel super-admin
+  primary: wagner                       # só Wagner mesmo
+  secondary: []
+
+superadmin:                             # tools dev
+  primary: wagner
+  secondary: []
+
+ads:                                    # painel ADS (dual brain audit)
+  primary: wagner
+  secondary: []
+
+# ── Notas ────────────────────────────────────────────────────────────────
+#
+# `depends_on_ramo` / `depends_on_business`:
+#   Resolução dinâmica — Claude detecta o `business_id` da sessão e infere
+#   persona pelo ramo do cliente real (Rota Livre vestuário → Larissa primary;
+#   Martinho oficina → Daniela primary).
+#
+# `wagner`:
+#   Telas admin/dev. Não precisa de persona contextualizada — Wagner é
+#   power user que entende o domínio. Pode pular skill personas-resolve.
+#
+# Personas extras a adicionar quando aparecer cliente real:
+#   - contador (escritório terceirizado) — perfil específico fiscal/SPED
+#   - vendedor externo (rep comercial visita cliente)
+#   - mecanico (chão de oficina — tablet ruidoso)
+#   - cliente final (visualizar status OS via link público)
