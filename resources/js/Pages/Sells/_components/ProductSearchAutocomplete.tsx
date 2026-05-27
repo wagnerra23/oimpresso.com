@@ -1,50 +1,59 @@
 // US-SELL-005 — ProductSearchAutocomplete (componente local da Sells/Create).
 //
-// Reusa endpoint legado /products/list (ProductController@getProducts)
-// que aceita ?term=X&location_id=Y&search_fields[]=name&search_fields[]=sku...
-// e retorna array de produtos com variations.
+// Reusa endpoint legado /products/list (ProductController@getProducts → ProductUtil@filterProduct)
+// que retorna N rows pra produto type='variable' (uma por variação).
 //
-// Comportamento:
-//   - Input com debounce 250ms
-//   - Dropdown com até 10 resultados
-//   - Click na linha → onSelect(product) chama callback do parent
-//   - Tecla Esc fecha dropdown
-//   - Tecla Down/Up navega resultados (futuro — US-SELL-007)
+// Dor 1 Larissa — R6 paridade Blade + agrupamento (2026-05-27):
+//   PR #1755 R4 incrementou qty no carrinho quando user clica 2x na MESMA variação,
+//   mas o dropdown continuava mostrando N linhas com nome IDÊNTICO ("Camiseta",
+//   "Camiseta", "Camiseta") pra produto variable — Larissa não distinguia tamanhos
+//   e via "muita quantidade de produtos repetidos".
 //
-// Dor 3 (Larissa) — R5 auditoria 2026-05-27:
-//   V1 (Blade legacy) buscava por nome, SKU, sub_sku, **lot_number** e
-//   código de barras (que cai em sku/sub_sku). V2 só mandava `term=`, perdendo
-//   paridade com a Blade — vendedor não conseguia bipar produto nem buscar lote.
-//   Fix: passar `search_fields[]` array (mesmo default da Blade — name, sku,
-//   sub_sku, lot) pro endpoint, que JÁ suporta via ProductUtil@filterProduct.
-//   Backend NÃO mudou — só passamos os params que ele já entende.
+//   Blade legacy (pos.js:284-286) renderiza `${item.name}-${item.variation}` quando
+//   type==='variable' (ex "Camiseta-G"). NÃO agrupa — mostra N linhas distinguíveis.
+//
+//   Esta PR vai ALÉM da paridade Blade quando há ≥2 variações: agrupa por product_id
+//   no dropdown e abre Popover de seleção (estado da arte 2026 — Shopify POS, Toast).
+//   Quando há 1 variação só: renderiza linha simples com `-{variation}` (paridade Blade).
+//
+// Dor 3 Larissa — R5 search_fields (2026-05-27):
+//   Mantém envio de `search_fields[]=name,sku,lot` (paridade Blade default pos.js:3076).
+//   Sem isso, backend cai em fallback ['name','sku'] e perde busca por lote.
 //
 // Não vira shared ainda — extrair pra @/Components/shared só quando 2ª tela usar.
 // Princípio R-DS-001 (reutilização sob demanda, não especulativa).
 //
 // TODO V3: modal "Configurar busca" (paridade configure_search_modal.blade.php)
-// pra usuário marcar/desmarcar product_custom_field1..4 + persistir em
-// localStorage como a Blade fazia ('pos_search_fields').
+// pra usuário marcar/desmarcar product_custom_field1..4 + persistir em localStorage.
 
-import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, X } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Search, Loader2, X, ChevronRight, Package } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/Components/ui/popover';
 
+// Backend devolve estes campos por row (ProductUtil@filterProduct:1715-1734).
+// AP-12 F3 audit (memory/sessions/2026-05-27-audit-sells-create-vs-blade-larissa.md):
+// tipo explícito > `[k: string]: unknown` pra detectar drift backend cedo.
 export interface ProductSearchResult {
   product_id: number;
   variation_id: number;
   name: string;
-  sku: string;
+  type?: 'variable' | 'single' | 'modifier' | 'combo';
+  enable_stock?: 0 | 1;
+  variation?: string; // variations.name (ex "P", "M", "G")
   sub_sku?: string;
+  sku: string;
   selling_price?: number;
+  variation_group_price?: number; // quando price_group filtra
   qty_available?: number;
   unit?: string;
-  // Quando search_fields inclui 'lot', backend adiciona estes campos
-  // (ProductUtil@filterProduct L1732-1734):
+  // Quando search_fields inclui 'lot':
   purchase_line_id?: number;
   lot_number?: string;
-  // Outros campos do filterProduct podem aparecer; mantemos flexível.
-  [k: string]: unknown;
 }
 
 interface Props {
@@ -57,11 +66,48 @@ interface Props {
 const DEBOUNCE_MS = 250;
 const MIN_QUERY_LENGTH = 2;
 
-// Paridade Blade legacy (pos.js linha 3076 — set_search_fields default):
+// Paridade Blade legacy (pos.js:3076 — set_search_fields default):
 // `['name', 'sku', 'lot']`. Backend (ProductUtil@filterProduct) auto-adiciona
-// `sub_sku` quando `sku` está presente (ver ProductController@getProducts L1522).
-// Mantemos a lista igual à Blade pra zero drift comportamental.
+// `sub_sku` quando `sku` está presente (ProductController@getProducts:1522).
 const DEFAULT_SEARCH_FIELDS = ['name', 'sku', 'lot'] as const;
+
+// Agrupamento dropdown: 1 entrada por product_id. Quando >1 variação,
+// abre Popover com lista. Quando 1 só, render direto com `-{variation}`
+// se type==='variable' (paridade Blade pos.js:285-286).
+type ProductGroup = {
+  product_id: number;
+  name: string;
+  type: ProductSearchResult['type'];
+  variations: ProductSearchResult[];
+  total_qty_available: number;
+  display_price?: number;
+};
+
+function groupResults(results: ProductSearchResult[]): ProductGroup[] {
+  const map = new Map<number, ProductGroup>();
+  for (const row of results) {
+    const existing = map.get(row.product_id);
+    const rowPrice = row.variation_group_price ?? row.selling_price;
+    if (existing) {
+      existing.variations.push(row);
+      existing.total_qty_available += Number(row.qty_available ?? 0);
+    } else {
+      map.set(row.product_id, {
+        product_id: row.product_id,
+        name: row.name,
+        type: row.type,
+        variations: [row],
+        total_qty_available: Number(row.qty_available ?? 0),
+        display_price: rowPrice !== undefined ? Number(rowPrice) : undefined,
+      });
+    }
+  }
+  return Array.from(map.values());
+}
+
+function formatBRL(value: number) {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
 
 export default function ProductSearchAutocomplete({
   locationId,
@@ -73,8 +119,11 @@ export default function ProductSearchAutocomplete({
   const [results, setResults] = useState<ProductSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const groups = useMemo(() => groupResults(results).slice(0, 10), [results]);
 
   // Debounce + fetch
   useEffect(() => {
@@ -89,9 +138,7 @@ export default function ProductSearchAutocomplete({
         const params = new URLSearchParams({ term: query });
         if (locationId) params.set('location_id', String(locationId));
 
-        // Dor 3 R5 — passa search_fields[] array (paridade Blade default).
-        // Sem isso, backend cai no fallback ['name', 'sku'] (L1521 ProductController)
-        // e perde busca por lote. Código de barras já cai em sku/sub_sku.
+        // Dor 3 R5 — search_fields[] array (paridade Blade default).
         DEFAULT_SEARCH_FIELDS.forEach((field) => {
           params.append('search_fields[]', field);
         });
@@ -110,8 +157,9 @@ export default function ProductSearchAutocomplete({
         }
 
         const data = (await res.json()) as ProductSearchResult[];
-        setResults(Array.isArray(data) ? data.slice(0, 10) : []);
+        setResults(Array.isArray(data) ? data : []);
         setOpen(true);
+        setExpandedProductId(null);
       } catch {
         setResults([]);
       } finally {
@@ -127,16 +175,17 @@ export default function ProductSearchAutocomplete({
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setExpandedProductId(null);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Esc fecha + Limpar
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setOpen(false);
+      setExpandedProductId(null);
       inputRef.current?.blur();
     }
   };
@@ -145,15 +194,28 @@ export default function ProductSearchAutocomplete({
     setQuery('');
     setResults([]);
     setOpen(false);
+    setExpandedProductId(null);
     inputRef.current?.focus();
   };
 
-  const handleSelect = (product: ProductSearchResult) => {
-    onSelect(product);
+  const handleSelectVariation = (variation: ProductSearchResult) => {
+    onSelect(variation);
     setQuery('');
     setResults([]);
     setOpen(false);
+    setExpandedProductId(null);
     inputRef.current?.focus();
+  };
+
+  const handleGroupClick = (group: ProductGroup) => {
+    // 1 variação → adiciona direto (mesmo se variable, sem popover overhead).
+    const only = group.variations[0];
+    if (group.variations.length === 1 && only) {
+      handleSelectVariation(only);
+      return;
+    }
+    // >1 variação → toggla popover (open/close em click)
+    setExpandedProductId((prev) => (prev === group.product_id ? null : group.product_id));
   };
 
   return (
@@ -165,7 +227,7 @@ export default function ProductSearchAutocomplete({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onFocus={() => groups.length > 0 && setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled || !locationId}
@@ -202,45 +264,143 @@ export default function ProductSearchAutocomplete({
         </p>
       )}
 
-      {open && results.length > 0 && (
+      {open && groups.length > 0 && (
         <div
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-border bg-popover shadow-md"
         >
-          {results.map((p) => (
-            <button
-              key={`${p.product_id}-${p.variation_id ?? 'novar'}`}
-              type="button"
-              role="option"
-              onClick={() => handleSelect(p)}
-              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
-            >
-              <div className="flex flex-col min-w-0">
-                <span className="font-medium truncate">{p.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  SKU {p.sku}
-                  {p.lot_number && (
-                    <> · lote {p.lot_number}</>
+          {groups.map((group) => {
+            const isExpanded = expandedProductId === group.product_id;
+            const firstVar = group.variations[0];
+            // group.variations sempre tem ≥1 (garantido pelo groupResults).
+            // Type guard explícito pro TS narrow.
+            if (!firstVar) return null;
+            const hasMultiple = group.variations.length > 1;
+
+            // 1 variação — render direto. Mostra `-{variation}` se variable (paridade Blade).
+            if (!hasMultiple) {
+              const isVariable = group.type === 'variable' && firstVar.variation;
+              const displayName = isVariable ? `${group.name} - ${firstVar.variation}` : group.name;
+              const skuLabel = firstVar.sub_sku ?? firstVar.sku;
+              return (
+                <button
+                  key={`g-${group.product_id}-${firstVar.variation_id}`}
+                  type="button"
+                  role="option"
+                  onClick={() => handleSelectVariation(firstVar)}
+                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                >
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-medium truncate">{displayName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      SKU {skuLabel}
+                      {firstVar.lot_number && <> · lote {firstVar.lot_number}</>}
+                      {firstVar.qty_available !== undefined && (
+                        <> · est. {firstVar.qty_available}{firstVar.unit ? firstVar.unit : ''}</>
+                      )}
+                    </span>
+                  </div>
+                  {firstVar.selling_price !== undefined && (
+                    <span className="ml-3 shrink-0 text-sm tabular-nums">
+                      {formatBRL(Number(firstVar.variation_group_price ?? firstVar.selling_price))}
+                    </span>
                   )}
-                  {p.qty_available !== undefined && (
-                    <> · est. {p.qty_available}</>
-                  )}
-                </span>
-              </div>
-              {p.selling_price !== undefined && (
-                <span className="ml-3 shrink-0 text-sm tabular-nums">
-                  {Number(p.selling_price).toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
-                </span>
-              )}
-            </button>
-          ))}
+                </button>
+              );
+            }
+
+            // >1 variações — linha agrupada + Popover side=right com lista
+            return (
+              <Popover
+                key={`g-${group.product_id}`}
+                open={isExpanded}
+                onOpenChange={(o) => setExpandedProductId(o ? group.product_id : null)}
+              >
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-expanded={isExpanded}
+                    aria-haspopup="listbox"
+                    onClick={() => handleGroupClick(group)}
+                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Package className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium truncate">{group.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {group.variations.length} tamanhos
+                          {group.total_qty_available > 0 && (
+                            <> · est. total {group.total_qty_available}</>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {group.display_price !== undefined && (
+                        <span className="text-sm tabular-nums">{formatBRL(group.display_price)}</span>
+                      )}
+                      <ChevronRight
+                        className={`h-4 w-4 text-muted-foreground transition-transform ${
+                          isExpanded ? 'rotate-90' : ''
+                        }`}
+                        aria-hidden
+                      />
+                    </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="right"
+                  align="start"
+                  sideOffset={8}
+                  className="w-80 p-0"
+                  // Evita roubar foco do input principal — popover lida com seu próprio teclado
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <div className="border-b border-border px-3 py-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Escolha o tamanho de {group.name}
+                    </p>
+                  </div>
+                  <ul role="listbox" aria-label={`Variações de ${group.name}`} className="max-h-72 overflow-auto">
+                    {group.variations.map((v) => (
+                      <li key={`v-${v.variation_id}`}>
+                        <button
+                          type="button"
+                          role="option"
+                          onClick={() => handleSelectVariation(v)}
+                          className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                        >
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-medium truncate">
+                              {v.variation ?? 'Padrão'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              SKU {v.sub_sku ?? v.sku}
+                              {v.lot_number && <> · lote {v.lot_number}</>}
+                              {v.qty_available !== undefined && (
+                                <> · est. {v.qty_available}{v.unit ?? ''}</>
+                              )}
+                            </span>
+                          </div>
+                          {v.selling_price !== undefined && (
+                            <span className="ml-3 shrink-0 text-sm tabular-nums">
+                              {formatBRL(Number(v.variation_group_price ?? v.selling_price))}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            );
+          })}
         </div>
       )}
 
-      {open && query.length >= MIN_QUERY_LENGTH && results.length === 0 && !loading && (
+      {open && query.length >= MIN_QUERY_LENGTH && groups.length === 0 && !loading && (
         <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover px-3 py-2 text-sm text-muted-foreground shadow-md">
           Nenhum produto encontrado para "{query}".
         </div>
