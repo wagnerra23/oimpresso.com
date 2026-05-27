@@ -1,0 +1,73 @@
+slug: martinho-dono
+nome_real: Martinho
+cliente_real: martinho-cacambas
+business_id: null
+status: ativo
+created_at: '2026-05-27'
+updated_at: '2026-05-27'
+ultima_entrevista: null
+
+papel: dono
+idade_aproximada: 55
+formacao: ensino médio + 30 anos mecânica pesada (autodidata empresarial)
+genero: masculino
+
+local: oficina + casa (vê relatórios à noite)
+monitor: "1920x1080 escritório / celular Android casa"
+hardware: "PC desktop + Android"
+ruido: medio
+pressa: baixa                            # dono não fica na rotina — olha resumos
+
+frequencia_diaria:
+  - tela: oficinaauto/dashboard
+    qtd: 3                              # vê KPIs manhã + tarde
+  - tela: financeiro/dre
+    qtd: 1                              # fim do dia, lucro
+  - tela: cliente/index
+    qtd: 2                              # buscar cliente PJ específico
+
+tecnico: não                             # mecânico de formação, não tech
+modelo_mental: "quero ver número que importa em 5 segundos — quanto entrou hoje? quanto vou receber? quem deve?"
+
+jtbd:
+  - quando: "manhã chegando no escritório"
+    eu_quero: "ver caixa de hoje + caixa do mês + ranking de cliente PJ"
+    para: "decidir prioridade da semana (puxar cliente fiado? aceitar OS nova?)"
+    motivacao_funcional: "tomar decisão rápida"
+    motivacao_emocional: "se sentir dono no controle, não refém da operação"
+    motivacao_social: "mostrar pra esposa que o negócio cresce"
+
+  - quando: "cliente VIP grande liga reclamando"
+    eu_quero: "abrir cliente e ver TUDO em 1 olhada — quantas OSs, quanto faturou comigo, saldo devedor, último contato"
+    para: "responder cliente com autoridade"
+    motivacao_emocional: "imagem profissional, não amador"
+
+fricoes:
+  - "muito botão na tela — Martinho perde no excesso"
+  - "número pequeno demais — Martinho usa óculos"
+  - "tela cor de pastel — Martinho gosta de cor sólida pra ler"
+
+sucesso:
+  - "ver caixa do mês em 1 tela na abertura do sistema"
+  - "abrir cliente VIP e ver resumo financeiro em 5s"
+  - "navegar via celular Android quando estiver em casa à noite"
+
+pesos_override:
+  brand_confidence: 3                   # default 3 — dono valoriza "parecer empresa séria"
+  information_hierarchy: 3              # números grandes destacados
+  cognitive_load: 1                     # default 1 — Martinho não usa o sistema cada minuto
+  aesthetic_usability: 3                # default 3 — visual confirma que pagou por algo bom
+  mobile_fit: 2                         # default 2 — usa Android casa
+
+citacoes:
+  - data: "2026-05-26"
+    contexto: "infered via Daniela — Martinho pediu via Daniela"
+    texto: '"quero ver os caminhões dos clientes na tela do cliente — não preciso ficar abrindo OficinaAuto separado"'
+
+tags:
+  - non-tech
+  - dono
+  - oficina-pesada
+  - dashboard-driven
+  - mobile-eventual
+  - alto-poder-decisao

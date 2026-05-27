@@ -1,0 +1,84 @@
+slug: daniela-martinho
+nome_real: Daniela
+cliente_real: martinho-cacambas
+business_id: null                       # confirmar — pendente setup biz Martinho
+status: ativo
+created_at: '2026-05-27'
+updated_at: '2026-05-27'
+ultima_entrevista: null                 # placeholder — fazer próxima visita oficina
+
+papel: gerente-operacional
+idade_aproximada: 35
+formacao: superior técnico (mecânica industrial ou administração)
+genero: feminino
+
+local: escritório oficina pesada Martinho Tubarão SC
+monitor: "1920x1080"
+hardware: "notebook escritório + tablet oficina ocasional"
+ruido: medio                            # oficina barulhenta mas escritório isolado
+pressa: media                           # gerente, distribui tarefa entre mecânicos
+
+frequencia_diaria:
+  - tela: oficinaauto/serviceorders/index
+    qtd: 30                             # gerencia OSs ativas
+  - tela: cliente/index
+    qtd: 20                             # cadastra cliente novo, ver frota
+  - tela: oficinaauto/serviceorders/edit
+    qtd: 15                             # atualiza OS andamento
+  - tela: financeiro/contas-receber
+    qtd: 5                              # acompanha pagamento de OS
+tecnico: meio                            # familiar com Delphi WR Sistemas legacy
+modelo_mental: "tudo numa tela só, não me esconde. quero ver frota + saldo + última OS de uma vez"
+
+jtbd:
+  - quando: "caminhão chega na oficina pra manutenção"
+    eu_quero: "registrar entrada com placa, km, fotos do dano em ≤45s"
+    para: "mecânico começar diagnóstico imediato"
+    motivacao_funcional: "OS aberta com info correta"
+    motivacao_emocional: "ser eficiente, parecer competente pro dono Martinho"
+    motivacao_social: "cliente frota confiar na oficina"
+
+  - quando: "cliente PJ frota liga perguntando status do caminhão"
+    eu_quero: "abrir cliente e ver TODAS as OSs ativas + última atualização + previsão"
+    para: "responder em ≤30s sem deixar cliente esperando no telefone"
+    motivacao_funcional: "responder dúvida"
+    motivacao_emocional: "se sentir no controle da operação"
+
+  - quando: "fim do dia, fechar contas a receber"
+    eu_quero: "ver TODAS as OSs aprovadas faturadas hoje + saldo cliente"
+    para: "passar pra contador / dono Martinho"
+    motivacao_funcional: "relatório diário"
+    motivacao_emocional: "encerrar dia tranquila"
+
+fricoes:
+  - "clicar 4 tabs pra chegar nas fotos do veículo — Edit OS"
+  - "abrir cliente PJ frota e não ver veículos cadastrados de cara — preciso clicar 'OSs' depois 'Veículos'"
+  - "saldo cliente não aparece próximo do nome — preciso ir em Financeiro pra ver"
+  - "drawer fecha quando clico fora sem confirmar — perco edição"
+
+sucesso:
+  - "criar OS completa (entrada caminhão + fotos + diagnóstico inicial) em ≤45s"
+  - "ver frota completa + última OS + saldo cliente em 1 tela só"
+  - "cadastrar cliente PJ novo com primeiro caminhão em ≤90s"
+  - "zero erro de placa Mercosul inválida aceita"
+
+pesos_override:
+  density: 3                            # default 3 — reforça (quer ver tudo)
+  information_hierarchy: 3              # default 3 — reforça (saldo, OS, frota)
+  i18n_pt_br: 3                         # default 3 — placa Mercosul, CNPJ, etc
+  speed_to_task: 2                      # default 2 — média pressa (não balcão)
+  brand_confidence: 1                   # default 1 — Daniela quer eficiência, não brilho
+
+citacoes:
+  - data: "2026-05-26"
+    contexto: "Wagner conversa via Daniela — pedido frota + endereços + observações"
+    texto: '"queria registrar os caminhões do cliente, com placas. e cliente tem vários endereços (entrega, comercial), tem que escolher na nota qual usar"'
+
+tags:
+  - tecnica-meio
+  - operacional
+  - oficina-pesada
+  - frota
+  - alta-densidade
+  - desktop-primary
+  - pme-media
