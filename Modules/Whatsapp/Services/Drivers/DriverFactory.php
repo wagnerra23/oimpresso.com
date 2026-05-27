@@ -54,11 +54,15 @@ class DriverFactory
         return match ($effectiveDriver) {
             'zapi' => app(ZapiDriver::class),
             'meta_cloud' => app(MetaCloudDriver::class),
-            'baileys' => app(BaileysDriver::class),
+            'baileys' => throw new NotImplementedDriverException(
+                "BaileysDriver foi descontinuado por ADR 0202 (2026-05-27). "
+                . "Supersede ADR 0096 emenda 4. Use 'meta_cloud' ou 'zapi'. "
+                . "Veja memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md."
+            ),
             'null' => app(NullDriver::class),
             default => throw new \InvalidArgumentException(
                 "Driver '{$effectiveDriver}' desconhecido. Valores válidos: "
-                . "'zapi', 'meta_cloud', 'baileys', 'null'."
+                . "'zapi', 'meta_cloud', 'null'."
             ),
         };
     }
@@ -82,7 +86,10 @@ class DriverFactory
         return match ($config->driver) {
             'zapi' => app(ZapiDriver::class),
             'meta_cloud' => app(MetaCloudDriver::class),
-            'baileys' => app(BaileysDriver::class),
+            'baileys' => throw new NotImplementedDriverException(
+                "BaileysDriver foi descontinuado por ADR 0202 (2026-05-27). "
+                . "Use 'meta_cloud' ou 'zapi'."
+            ),
             'null' => app(NullDriver::class),
             default => throw new \InvalidArgumentException(
                 "Driver primário '{$config->driver}' desconhecido."

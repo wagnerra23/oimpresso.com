@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -51,14 +50,8 @@ it('MetaCloudDriver expõe 5 spans canon (template/freeform/media/interactive/pi
     }
 });
 
-it('BaileysDriver mantém ≥3 spans hot-path canon (W25 baseline preservado)', function () {
-    $file = (new ReflectionClass(BaileysDriver::class))->getFileName();
-    $src = file_get_contents($file);
-
-    $matches = preg_match_all("/'whatsapp\\.baileys\\.[a-z_]+'/", $src);
-    expect($matches)->toBeGreaterThanOrEqual(3);
-    expect($src)->toContain('use App\Util\OtelHelper;');
-});
+// ADR 0202 (2026-05-27): teste "BaileysDriver mantém ≥3 spans hot-path" REMOVIDO
+// — BaileysDriver descontinuado e classe deletada deste PR.
 
 // ------------------------------------------------------------------
 // D4 — Services pattern saturado (preserva W17/W18/W25)
@@ -85,8 +78,8 @@ it('Services top-level canon (InboxQueryService stateless multi-tenant)', functi
 // D2 — DI canon cross-driver (Container resolve)
 // ------------------------------------------------------------------
 
-it('4 drivers canon (Baileys + MetaCloud + Zapi + Null) resolvem do container', function () {
-    foreach ([BaileysDriver::class, MetaCloudDriver::class, ZapiDriver::class, NullDriver::class] as $cls) {
+it('3 drivers canon (MetaCloud + Zapi + Null) resolvem do container pós ADR 0202', function () {
+    foreach ([MetaCloudDriver::class, ZapiDriver::class, NullDriver::class] as $cls) {
         $instance = app($cls);
         expect($instance)->toBeInstanceOf($cls);
         expect($instance)->toBeInstanceOf(DriverInterface::class);
@@ -105,8 +98,8 @@ it('EvolutionDriver permanece proibido (ADR 0096 emenda 4 — Tier 0)', function
 // D9 — OtelHelper fail-soft (otel.enabled=false zero-cost)
 // ------------------------------------------------------------------
 
-it('OtelHelper canon usado por ambos drivers (BaileysDriver + MetaCloudDriver)', function () {
-    foreach ([BaileysDriver::class, MetaCloudDriver::class] as $cls) {
+it('OtelHelper canon usado por MetaCloudDriver (D9 hot-path)', function () {
+    foreach ([MetaCloudDriver::class] as $cls) {
         $file = (new ReflectionClass($cls))->getFileName();
         $src = file_get_contents($file);
         expect($src)->toContain('use App\Util\OtelHelper;');

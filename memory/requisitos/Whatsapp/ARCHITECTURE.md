@@ -52,13 +52,14 @@
                 └──────────────────────────────┘
 ```
 
-**Princípios estruturais:**
+**Princípios estruturais (pós ADR 0202 2026-05-27):**
 - **Hostinger** — UI + webhook receiver + DB primary (HTTP-only, sem daemons — ADR 0062)
-- **CT 100** — Horizon worker + Centrifugo (daemon-land, ADR 0058). **Sprint 3:** ganha container `whatsapp-baileys` (daemon Node próprio rodando lib Baileys — ADR 0096 emenda 4, autorizado pra resolver dor de observabilidade do Evolution).
+- **CT 100** — Horizon worker + Centrifugo (daemon-land, ADR 0058). Container `whatsapp-baileys` REMOVIDO 2026-05-27 (ADR 0202 supersede 0096 emenda 4).
 - **NÃO** roda Evolution API (PROIBIDO permanente — emenda 4: bans recorrentes em produção Wagner + schema não atende + falta de observabilidade).
-- **Driver pattern (Sprint 1: 2 oficiais + Null; Sprint 3: + custom Baileys)** — `ZapiDriver` + `MetaCloudDriver` + `NullDriver` desde Sprint 1; `BaileysDriver` custom Sprint 3 — ADR 0096
-- **Fallback obrigatório (gating duro)** — `whatsapp_business_configs` exige `meta_*` campos preenchidos quando `driver` ∈ {`zapi`, `baileys`} (FormRequest cross-field validation)
-- **Fallback automático** — quando `driver_health` ≥ degraded em driver não-oficial, `DriverFactory` resolve `MetaCloudDriver` em runtime, sem intervenção
+- **NÃO** roda BaileysDriver custom (DESCONTINUADO 2026-05-27 — ADR 0202: instabilidade WhatsApp Web non-official + Wagner reportou "ninguém ativo, pode desconectar todos").
+- **Driver pattern (pós ADR 0202): Meta Cloud default universal + Z-API opcional + Null CI** — `MetaCloudDriver` + `ZapiDriver` + `NullDriver`
+- **Fallback obrigatório (gating duro)** — `whatsapp_business_configs` exige `meta_*` campos preenchidos quando `driver = zapi` (FormRequest cross-field validation)
+- **Fallback automático** — quando `driver_health` ≥ degraded em Z-API, `DriverFactory` resolve `MetaCloudDriver` em runtime, sem intervenção
 - **Multi-tenant Tier 0** — `business_id` global scope + webhook URL com slug + tokens cifrados (ADR 0093)
 
 ## 2. Schema de banco
@@ -72,27 +73,28 @@ CREATE TABLE whatsapp_business_configs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   business_id INT UNSIGNED NOT NULL,
   business_uuid CHAR(36) NOT NULL UNIQUE COMMENT 'usado no webhook URL',
-  driver VARCHAR(20) NOT NULL DEFAULT 'zapi' COMMENT 'zapi|meta_cloud|baileys|null — evolution PROIBIDO permanente',
-  fallback_driver VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'OBRIGATÓRIO quando driver IN (zapi, baileys) — gating FormRequest',
+  driver VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'zapi|meta_cloud|null — baileys descontinuado ADR 0202, evolution PROIBIDO permanente',
+  fallback_driver VARCHAR(20) NOT NULL DEFAULT 'meta_cloud' COMMENT 'OBRIGATÓRIO quando driver=zapi (gating FormRequest). Baileys removido ADR 0202.',
   display_phone VARCHAR(20) NULL COMMENT '+5511987654321 (preenchido após primeiro ping bem-sucedido)',
 
-  -- Meta Cloud API
+  -- Meta Cloud API (default universal ADR 0202)
   meta_phone_number_id VARCHAR(64) NULL COMMENT 'ID Meta do número (≠ telefone)',
   meta_access_token TEXT NULL COMMENT 'cifrado Laravel encrypted cast (Bearer Meta)',
   meta_app_secret TEXT NULL COMMENT 'cifrado — usado pra HMAC webhook',
   meta_webhook_verify_token VARCHAR(64) NULL COMMENT 'random 32 bytes',
 
-  -- Z-API (driver default Sprint 1)
+  -- Z-API (opcional fallback ADR 0202)
   zapi_instance_id VARCHAR(64) NULL,
   zapi_instance_token TEXT NULL COMMENT 'cifrado',
   zapi_client_token TEXT NULL COMMENT 'cifrado — header Client-Token + valida webhook',
 
-  -- BaileysDriver custom (Sprint 3 — ADR 0096 emenda 4)
-  baileys_instance_id VARCHAR(64) NULL COMMENT 'identificador da instance no daemon Node CT 100',
-  baileys_daemon_url VARCHAR(255) NULL COMMENT 'default config: https://whatsapp-baileys.oimpresso.local',
-  baileys_api_key TEXT NULL COMMENT 'cifrado — Bearer token pro daemon Node',
+  -- BaileysDriver columns REMOVIDAS 2026-05-27 (ADR 0202) — migration
+  -- 2026_05_28_000001_drop_baileys_columns_from_whatsapp_business_configs.php.
+  -- Histórico pré-removal: baileys_instance_id VARCHAR(64), baileys_phone_e164
+  -- VARCHAR(20), baileys_verified_name VARCHAR(100), baileys_profile_pic_url
+  -- VARCHAR(255), UNIQUE wbc_biz_phone_unq.
 
-  -- LGPD acknowledgment (obrigatório quando driver IN (zapi, baileys))
+  -- LGPD acknowledgment (obrigatório quando driver=zapi pós ADR 0202)
   lgpd_acknowledged_at TIMESTAMP NULL,
   lgpd_acknowledged_by_user_id INT UNSIGNED NULL,
 
@@ -119,8 +121,8 @@ CREATE TABLE whatsapp_business_configs (
 
 **Validações de FormRequest (cross-field, gating duro):**
 - `driver=zapi` (default) → exige `zapi_*` preenchidos **E** `meta_*` preenchidos como fallback (ban Z-API joga pra Meta) **E** `lgpd_acknowledged_at` not null
-- `driver=meta_cloud` → exige `meta_*` preenchidos. Z-API/Baileys opcionais (podem ficar dormentes)
-- `driver=baileys` (Sprint 3) → exige `baileys_*` preenchidos **E** `meta_*` preenchidos como fallback **E** `lgpd_acknowledged_at` not null
+- `driver=meta_cloud` → exige `meta_*` preenchidos. Z-API opcional (pode ficar dormente)
+- `driver=baileys` → DESCONTINUADO 2026-05-27 (ADR 0202). FormRequest rejeita 422 (`forbidden_drivers` config). Tenants legacy migram pra Meta Cloud em Fase 2/3.
 - `driver=evolution` → **422 ValidationException** ("Driver Evolution proibido por ADR 0096 emenda 4 — bans em produção, schema não atende, falta observabilidade")
 - `fallback_driver=evolution` → **422 ValidationException** (mesmo motivo)
 
@@ -163,7 +165,7 @@ CREATE TABLE whatsapp_messages (
   conversation_id BIGINT UNSIGNED NOT NULL,
   direction ENUM('inbound','outbound') NOT NULL,
   provider_message_id VARCHAR(128) NULL COMMENT 'wamid.XYZ (Meta) ou messageId (Z-API/Evolution) — UNIQUE quando preenchido',
-  provider VARCHAR(20) NOT NULL COMMENT 'zapi|meta_cloud|baileys|null — driver que enviou/recebeu (evolution PROIBIDO)',
+  provider VARCHAR(20) NOT NULL COMMENT 'zapi|meta_cloud|null — provider=baileys preservado como histórico imutável (ADR 0202, evolution PROIBIDO permanente)',
   type ENUM('text','template','image','document','audio','interactive','location','contacts') NOT NULL DEFAULT 'text',
   template_name VARCHAR(64) NULL,
   body TEXT NULL,
@@ -359,12 +361,14 @@ whatsapp.metricas.view         → Dashboard métricas
 
 ## 10. Configuração `config/whatsapp.php`
 
+> Espelha `Modules/Whatsapp/Config/config.php` pós ADR 0202 (2026-05-27).
+
 ```php
 return [
-    'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'zapi'),
-    // valores válidos Sprint 1: zapi|meta_cloud|null
-    // valores válidos Sprint 3: + baileys (driver custom oimpresso — ADR 0096 emenda 4)
-    // 'evolution' NÃO é valor válido (PROIBIDO permanente — ADR 0096 emenda 4)
+    'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'meta_cloud'),
+    // valores válidos pós ADR 0202: meta_cloud (default universal) | zapi (opcional) | null (CI)
+    // 'baileys' DESCONTINUADO 2026-05-27 (ADR 0202 supersede 0096 emenda 4) — entrou em forbidden_drivers
+    // 'evolution' PROIBIDO permanente (ADR 0096 emenda 4)
 
     'zapi' => [
         'base_url' => env('WHATSAPP_ZAPI_BASE_URL', 'https://api.z-api.io'),
@@ -377,11 +381,7 @@ return [
         'request_timeout' => env('WHATSAPP_META_TIMEOUT', 10),
     ],
 
-    'baileys' => [
-        // Sprint 3 — daemon Node próprio CT 100 (ADR 0096 emenda 4)
-        'daemon_url_default' => env('WHATSAPP_BAILEYS_DAEMON_URL', 'https://whatsapp-baileys.oimpresso.local'),
-        'request_timeout' => env('WHATSAPP_BAILEYS_TIMEOUT', 15),
-    ],
+    // Seção 'baileys' REMOVIDA 2026-05-27 (ADR 0202)
 
     'health_check' => [
         'interval_seconds' => env('WHATSAPP_HEALTH_INTERVAL', 21600), // 6h
@@ -393,12 +393,12 @@ return [
     'fallback' => [
         'enabled' => env('WHATSAPP_FALLBACK_ENABLED', true),
         'auto_switch_after_status' => 'degraded', // healthy|degraded|disconnected|banned
-        'mandatory_for_drivers' => ['zapi', 'baileys'], // drivers que EXIGEM fallback configurado
+        'mandatory_for_drivers' => ['zapi'], // ADR 0202: baileys removido — só zapi exige fallback Meta
     ],
 
-    'forbidden_drivers' => ['evolution', 'whatsapp_web_js'],
+    'forbidden_drivers' => ['baileys', 'evolution', 'whatsapp_web_js'],
     // FormRequest rejeita 422 se tentar salvar driver dessa lista
-    // 'baileys' SAIU dessa lista (autorizado Sprint 3 — ADR 0096 emenda 4)
+    // 'baileys' ENTROU nessa lista em 2026-05-27 (ADR 0202)
 
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
@@ -538,11 +538,15 @@ Driver removido por emendas 3 e 4 ADR 0096 (2026-05-07). Não há referência op
 - Traefik labels: `doc.traefik.io/traefik/routing/providers/docker/`
 - Padrão CT 100 Docker compose-managed: `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` + skill `proxmox-docker-host`
 
-## 16. Sprint 3 — BaileysDriver custom (estrutura customizada de atendimento)
+## 16. ~~Sprint 3 — BaileysDriver custom~~ [DEPRECATED 2026-05-27]
 
-> Autorizado em 2026-05-07 por Wagner ([ADR 0096 emenda 4](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)).
-> Esta seção é o **plano de referência** pra implementar quando Sprint 3
-> começar — não é tarefa Sprint 1.
+> **DEPRECATED por [ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md).**
+> Supersede ADR 0096 emenda 4. Conteúdo abaixo preservado como lição histórica.
+> **NÃO implementar.** Direção pós 2026-05-27: Meta Cloud API default universal +
+> Z-API opcional fallback per-tenant. Daemon CT 100 já descomissionado.
+
+> Autorizado originalmente em 2026-05-07 por Wagner ([ADR 0096 emenda 4](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)).
+> Esta seção foi o **plano de referência** pré-2026-05-27 — agora **arquivado**.
 
 ### 16.1 Por que existir (recap razões Wagner)
 

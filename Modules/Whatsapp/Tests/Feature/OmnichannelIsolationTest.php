@@ -7,7 +7,6 @@ use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\ChannelDriverFactory;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NotImplementedDriverException;
@@ -236,12 +235,13 @@ it('R-OMNI-005 — ChannelDriverFactory mapeia 3 types Whatsapp pros drivers exi
         'business_id' => 1, 'label' => 'Zapi', 'type' => Channel::TYPE_WHATSAPP_ZAPI, 'status' => 'active',
     ]);
     $baileys = Channel::query()->create([
-        'business_id' => 1, 'label' => 'Baileys', 'type' => Channel::TYPE_WHATSAPP_BAILEYS, 'status' => 'active',
+        'business_id' => 1, 'label' => 'Baileys legacy', 'type' => Channel::TYPE_WHATSAPP_BAILEYS, 'status' => 'active',
     ]);
 
     expect(ChannelDriverFactory::resolve($meta))->toBeInstanceOf(MetaCloudDriver::class);
     expect(ChannelDriverFactory::resolve($zapi))->toBeInstanceOf(ZapiDriver::class);
-    expect(ChannelDriverFactory::resolve($baileys))->toBeInstanceOf(BaileysDriver::class);
+    // ADR 0202 — TYPE_WHATSAPP_BAILEYS resolve lança NotImplementedDriverException
+    expect(fn () => ChannelDriverFactory::resolve($baileys))->toThrow(NotImplementedDriverException::class);
 });
 
 it('R-OMNI-006 — ChannelDriverFactory lança NotImplementedDriverException pra Fases 1-3', function () {
