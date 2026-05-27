@@ -422,7 +422,7 @@ class ChannelsController extends Controller
             // Estados que NÃO precisam (fresh start já vai conectar):
             //  - 404 not_found (instância nunca existiu)
             //  - connecting / qr_required / connected (já está OK ou em fluxo)
-            $statusResponse = Http::withToken($apiKey)
+            $statusResponse = Http::withHeaders(["Authorization" => $apiKey])
                 ->withoutVerifying()
                 ->timeout($timeout)
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
@@ -442,7 +442,7 @@ class ChannelsController extends Controller
                     'ban_reason' => $statusResponse->json('ban_reason'),
                 ]);
 
-                $purgeResponse = Http::withToken($apiKey)
+                $purgeResponse = Http::withHeaders(["Authorization" => $apiKey])
                     ->withoutVerifying()
                     ->timeout($timeout)
                     ->delete("{$daemonUrl}/instances/{$instanceId}");
@@ -461,7 +461,7 @@ class ChannelsController extends Controller
             // FIXME(US-WA-058): withoutVerifying temp — cert Let's Encrypt no CT 100
             // ainda não emitido (DNS propagou após Traefik tentar ACME). Remover
             // após restart container disparar nova emissão.
-            $connectResponse = Http::withToken($apiKey)
+            $connectResponse = Http::withHeaders(["Authorization" => $apiKey])
                 ->withoutVerifying()
                 ->timeout($timeout)
                 ->post("{$daemonUrl}/instances/{$instanceId}/connect", [
@@ -500,7 +500,7 @@ class ChannelsController extends Controller
             $state = null;
             for ($i = 0; $i < 15; $i++) {
                 usleep(800_000); // 800ms
-                $statusResponse = Http::withToken($apiKey)
+                $statusResponse = Http::withHeaders(["Authorization" => $apiKey])
                     ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
                     ->timeout($timeout)
                     ->get("{$daemonUrl}/instances/{$instanceId}/status");
@@ -520,7 +520,7 @@ class ChannelsController extends Controller
 
             // Fallback pairing code se QR não veio (raro)
             if (! $qrPngDataUrl && $state !== 'connected') {
-                $pcResponse = Http::withToken($apiKey)
+                $pcResponse = Http::withHeaders(["Authorization" => $apiKey])
                     ->withoutVerifying()
                     ->timeout($timeout)
                     ->post("{$daemonUrl}/instances/{$instanceId}/pairing-code", [
@@ -651,7 +651,7 @@ class ChannelsController extends Controller
         $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
 
         try {
-            $r = Http::withToken($apiKey)
+            $r = Http::withHeaders(["Authorization" => $apiKey])
                 ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
                 ->timeout($timeout)
                 ->get("{$daemonUrl}/instances/{$instanceId}/status");
