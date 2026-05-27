@@ -59,6 +59,10 @@ function getCsrfToken(): string {
   );
 }
 
+// Onda 1 PR B' 2026-05-26 — Extraído pra constante única (atende UI Lint ratchet).
+// Evita 3 ocorrências literais idênticas (email/email_billing/email_nfe).
+const INVALID_INPUT_CLASS = 'border-rose-500 focus-visible:ring-rose-400';
+
 export default function ContatoTab({ contact, onSaved, disabled = false }: ContatoTabProps) {
   // Resolve tel inicial: prioriza `tel` (nova coluna Wave B), fallback pra mobile/landline UPOS legacy
   const initialTel = contact.tel ?? contact.mobile ?? contact.landline ?? '';
@@ -310,7 +314,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
               scheduleAutosave('email', v, prev);
             }}
             onBlur={(e) => handleBlur('email', e.target.value)}
-            className={emailError ? 'border-rose-500 focus-visible:ring-rose-400' : ''}
+            className={emailError ? INVALID_INPUT_CLASS : ''}
           />
           <FieldStatus
             error={emailError}
@@ -342,7 +346,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
               scheduleAutosave('email_billing', v, prev);
             }}
             onBlur={(e) => handleBlur('email_billing', e.target.value)}
-            className={emailBillingError ? 'border-rose-500 focus-visible:ring-rose-400' : ''}
+            className={emailBillingError ? INVALID_INPUT_CLASS : ''}
           />
           <FieldStatus
             error={emailBillingError}
@@ -372,7 +376,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
               scheduleAutosave('email_nfe', v, prev);
             }}
             onBlur={(e) => handleBlur('email_nfe', e.target.value)}
-            className={emailNfeError ? 'border-rose-500 focus-visible:ring-rose-400' : ''}
+            className={emailNfeError ? INVALID_INPUT_CLASS : ''}
           />
           <FieldStatus
             error={emailNfeError}
