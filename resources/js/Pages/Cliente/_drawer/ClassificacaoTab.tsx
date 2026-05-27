@@ -461,6 +461,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
           </Label>
           <div className="mt-1 flex items-center gap-3 rounded-md border border-input bg-background px-3 py-2">
             <Switch
+              variant="cowork"
               id="cl-vip"
               checked={vip}
               disabled={disabled}
