@@ -16,6 +16,7 @@ import {
   Activity,
   AlertTriangle,
   Banknote,
+  Car,
   ChevronLeft,
   CreditCard,
   Edit,
@@ -34,6 +35,7 @@ import { Button } from '@/Components/ui/button';
 import PaymentsTab from './_show/PaymentsTab';
 import LedgerTab from './_show/LedgerTab';
 import SalesTab, { type SalesPaginator } from './_show/SalesTab';
+import VehiclesTab, { type VehiclesPaginator } from './_show/VehiclesTab';
 import DocumentsTab from './_show/DocumentsTab';
 import ActionsMenu from './_show/ActionsMenu';
 import ContactPicker, { type ContactDropdownItem } from './_show/ContactPicker';
@@ -89,7 +91,7 @@ interface Permissions {
   view_sell: boolean;
 }
 
-type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities' | 'persons' | 'subscriptions' | 'rewards';
+type TabKey = 'ledger' | 'sales' | 'payments' | 'documents' | 'activities' | 'persons' | 'subscriptions' | 'rewards' | 'vehicles';
 
 interface ClienteShowPageProps {
   contact: ContactInfo;
@@ -103,6 +105,9 @@ interface ClienteShowPageProps {
   contact_persons?: ContactPerson[];
   subscriptions?: SubscriptionItem[];
   reward_points?: RewardPointsPayload;
+  // Onda 1 PR D 2026-05-26 — Veículos do cliente (frota Martinho).
+  modules?: { oficinaauto_enabled: boolean };
+  vehicles?: VehiclesPaginator | null;
 }
 
 const formatBRL = (value: number) =>
@@ -112,6 +117,10 @@ export default function ClienteShow(props: ClienteShowPageProps) {
   const { contact, permissions } = props;
   const [activeTab, setActiveTab] = useState<TabKey>(props.initialTab ?? 'ledger');
 
+  // Onda 1 PR D 2026-05-26 — tab Veículos só aparece se OficinaAuto está instalado
+  // pro business. Pedido Daniela (Martinho) — frota direto no cadastro do cliente.
+  const oficinaAutoEnabled = props.modules?.oficinaauto_enabled === true;
+
   const tabs: Array<{ key: TabKey; label: string; icon: typeof User2 }> = [
     { key: 'ledger', label: 'Extrato', icon: ListChecks },
     { key: 'sales', label: 'Vendas', icon: ReceiptText },
@@ -119,6 +128,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
     { key: 'documents', label: 'Documentos & Notas', icon: FileText },
     { key: 'activities', label: 'Atividades', icon: Activity },
     { key: 'persons', label: 'Pessoas', icon: Users },
+    ...(oficinaAutoEnabled ? [{ key: 'vehicles' as const, label: 'Veículos', icon: Car }] : []),
     { key: 'subscriptions', label: 'Assinaturas', icon: Recycle },
     { key: 'rewards', label: 'Pontos', icon: Gift },
   ];
@@ -295,6 +305,11 @@ export default function ClienteShow(props: ClienteShowPageProps) {
               {activeTab === 'rewards' && (
                 <Deferred data="reward_points" fallback={<TabSkeleton />}>
                   <RewardPointsTab reward_points={props.reward_points} />
+                </Deferred>
+              )}
+              {activeTab === 'vehicles' && oficinaAutoEnabled && (
+                <Deferred data="vehicles" fallback={<TabSkeleton />}>
+                  <VehiclesTab contactId={contact.id} vehicles={props.vehicles} />
                 </Deferred>
               )}
             </div>
