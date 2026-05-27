@@ -38,6 +38,9 @@ export interface ContactInfo {
   is_supplier?: boolean | null;
   is_employee?: boolean | null;
   is_representative?: boolean | null;
+  // ADR 0195 Bucket A — flag `bloqueado` (separada de `contact_status` enum).
+  // Sells/Financeiro consultam pra impedir checkout/cobrança mesmo se ativo.
+  bloqueado?: boolean | null;
 }
 
 /** 4 papéis canônicos ADR 0188. Ordem visual estável (Cliente primeiro · papel
@@ -98,6 +101,8 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
   const [isSupplier, setIsSupplier] = useState<boolean>(Boolean(contact.is_supplier));
   const [isEmployee, setIsEmployee] = useState<boolean>(Boolean(contact.is_employee));
   const [isRepresentative, setIsRepresentative] = useState<boolean>(Boolean(contact.is_representative));
+  // ADR 0195 Bucket A — `bloqueado` flag (separada de `status` enum).
+  const [bloqueado, setBloqueado] = useState<boolean>(Boolean(contact.bloqueado));
 
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
@@ -114,6 +119,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
     setIsSupplier(Boolean(contact.is_supplier));
     setIsEmployee(Boolean(contact.is_employee));
     setIsRepresentative(Boolean(contact.is_representative));
+    setBloqueado(Boolean(contact.bloqueado));
     setErrorField(null);
     setSavedField(null);
   }, [contact.id]);
@@ -123,6 +129,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
     else if (field === 'tags') setTags(Array.isArray(prev) ? (prev as string[]) : []);
     else if (field === 'status') setStatus((prev as string) ?? 'ativo');
     else if (field === 'vip') setVip(!!prev);
+    else if (field === 'bloqueado') setBloqueado(!!prev);
   }, []);
 
   const performSave = useCallback(
@@ -211,6 +218,19 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
       performSave('vip', checked, prev);
     },
     [vip, performSave]
+  );
+
+  // ADR 0195 Bucket A — toggle `bloqueado` (impede checkout/cobranca em Sells +
+  // Financeiro). Wagner 2026-05-27 origem: absorcao legacy WR Comercial PESSOAS.BLOQUEADO.
+  const handleBloqueadoToggle = useCallback(
+    (checked: boolean) => {
+      const prev = bloqueado;
+      if (prev === checked) return;
+      setBloqueado(checked);
+      previousValuesRef.current['bloqueado'] = prev;
+      performSave('bloqueado', checked, prev);
+    },
+    [bloqueado, performSave]
   );
 
   // ADR 0188 Onda 4 — toggle papel via endpoint /papeis separado (não
@@ -477,6 +497,41 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
             saving={savingField === 'vip'}
             saved={savedField === 'vip'}
             backendError={errorField?.field === 'vip' ? errorField.message : null}
+          />
+        </div>
+
+        {/* ADR 0195 Bucket A — Bloquear cobrança/venda (legacy PESSOAS.BLOQUEADO).
+            Toggle vermelho destaca quando ativado — Sells/Financeiro consultam. */}
+        <div>
+          <Label htmlFor="cl-bloqueado" className="text-xs font-medium">
+            Bloqueio comercial <span className="text-muted-foreground font-normal">(opcional)</span>
+          </Label>
+          <div className={`mt-1 flex items-center gap-3 rounded-md border px-3 py-2 ${
+            bloqueado
+              ? 'border-rose-300 bg-rose-50'
+              : 'border-input bg-background'
+          }`}>
+            <Switch
+              variant="cowork"
+              id="cl-bloqueado"
+              checked={bloqueado}
+              disabled={disabled}
+              onCheckedChange={handleBloqueadoToggle}
+              aria-label="Bloquear cobrança e venda pra este cliente"
+            />
+            <div className="flex flex-col">
+              <span className={`text-xs font-medium ${bloqueado ? 'text-rose-700' : ''}`}>
+                Bloquear cobrança/venda
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                Sells e Financeiro impedem checkout e cobrança quando ativo
+              </span>
+            </div>
+          </div>
+          <FieldStatus
+            saving={savingField === 'bloqueado'}
+            saved={savedField === 'bloqueado'}
+            backendError={errorField?.field === 'bloqueado' ? errorField.message : null}
           />
         </div>
       </div>
