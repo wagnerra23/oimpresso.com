@@ -735,20 +735,20 @@ class ChannelsController extends Controller
             [
                 'value' => Channel::TYPE_WHATSAPP_META,
                 'label' => 'WhatsApp Meta Cloud',
-                'description' => 'Oficial Meta. Aprovação 1-3 dias. Free 1k conv/mês.',
+                'description' => 'Oficial Meta. Embedded Signup v4 — 5-15 min via OAuth Facebook. Free 1k conv/mês. Zero risco ban.',
                 'enabled' => true,
             ],
             [
                 'value' => Channel::TYPE_WHATSAPP_ZAPI,
                 'label' => 'WhatsApp Z-API',
-                'description' => 'SaaS BR. 5 min scan QR. Risco ban Meta.',
+                'description' => 'SaaS BR opcional (legacy). 5 min scan QR. Risco ban Meta. Use só se já tem conta Z-API ativa.',
                 'enabled' => true,
             ],
             [
                 'value' => Channel::TYPE_WHATSAPP_BAILEYS,
                 'label' => 'WhatsApp Baileys',
-                'description' => 'Daemon Node próprio CT 100. Custo zero. Risco ban Meta.',
-                'enabled' => true,
+                'description' => 'DESCONTINUADO 2026-05-27 (ADR 0202). Use WhatsApp Meta Cloud.',
+                'enabled' => false,
             ],
             [
                 'value' => Channel::TYPE_INSTAGRAM,
