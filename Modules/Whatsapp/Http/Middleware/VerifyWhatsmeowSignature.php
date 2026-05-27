@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Http\Middleware;
 
+use App\Business;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
-use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -47,20 +48,23 @@ class VerifyWhatsmeowSignature
         }
 
         // SUPERADMIN: webhook público pré-auth — resolve business via uuid no path
-        // ANTES de verificar HMAC. Necessário pra logging de falha de auth com
-        // contexto biz_id (debugging cross-tenant).
-        $config = WhatsappBusinessConfig::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->where('business_uuid', $businessUuid)
+        // ANTES de verificar HMAC. ADR 0135 (Caixa Unificada v4) — busca em
+        // `business.uuid` (legacy table), NÃO `whatsapp_business_configs` que
+        // ficou pra trás na pre-multi-phone era. Sessão 2026-05-27 confirmou.
+        $businessRow = DB::table('business')
+            ->where('uuid', $businessUuid)
+            ->select('id')
             ->first();
 
-        if ($config === null) {
+        if ($businessRow === null) {
             \Log::warning('[whatsapp.webhook.whatsmeow] business_uuid não encontrado', [
                 'business_uuid' => $businessUuid,
                 'ip' => $request->ip(),
             ]);
             return response()->json(['error' => 'business_not_found'], 404);
         }
+
+        $businessId = (int) $businessRow->id;
 
         // ─── Verificação HMAC global (defesa primária) ──────────────────
         // Daemon assina cada POST com HMAC-SHA256(body, WUZAPI_GLOBAL_HMAC_KEY).
@@ -77,7 +81,7 @@ class VerifyWhatsmeowSignature
 
             if (! hash_equals($expectedHash, $providedHash)) {
                 \Log::warning('[whatsapp.webhook.whatsmeow] HMAC signature inválida', [
-                    'business_id' => $config->business_id,
+                    'business_id' => $businessId,
                     'business_uuid' => $businessUuid,
                     'ip' => $request->ip(),
                 ]);
@@ -85,8 +89,8 @@ class VerifyWhatsmeowSignature
             }
 
             // HMAC válido — segue resolução de channel
-            $channel = $this->resolveChannel($request, $config->business_id);
-            $request->attributes->set('whatsapp.config', $config);
+            $channel = $this->resolveChannel($request, $businessId);
+            $request->attributes->set('whatsapp.business_id', $businessId);
             $request->attributes->set('whatsapp.channel', $channel);
 
             return $next($request);
@@ -98,7 +102,7 @@ class VerifyWhatsmeowSignature
         $providedToken = (string) $request->header('Token', '');
         if ($providedToken === '') {
             \Log::warning('[whatsapp.webhook.whatsmeow] sem HMAC nem Token header', [
-                'business_id' => $config->business_id,
+                'business_id' => $businessId,
                 'business_uuid' => $businessUuid,
             ]);
             return response()->json(['error' => 'invalid_signature'], 401);
@@ -108,7 +112,7 @@ class VerifyWhatsmeowSignature
         // pra match token. Após pass, attributes carregam channel resolvido.
         $channel = Channel::query()
             ->withoutGlobalScope(ScopeByBusiness::class)
-            ->where('business_id', $config->business_id)
+            ->where('business_id', $businessId)
             ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
             ->get()
             ->first(function (Channel $ch) use ($providedToken) {
@@ -119,13 +123,13 @@ class VerifyWhatsmeowSignature
 
         if ($channel === null) {
             \Log::warning('[whatsapp.webhook.whatsmeow] Token header não corresponde a nenhum channel', [
-                'business_id' => $config->business_id,
+                'business_id' => $businessId,
                 'business_uuid' => $businessUuid,
             ]);
             return response()->json(['error' => 'invalid_signature'], 401);
         }
 
-        $request->attributes->set('whatsapp.config', $config);
+        $request->attributes->set('whatsapp.business_id', $businessId);
         $request->attributes->set('whatsapp.channel', $channel);
 
         return $next($request);
