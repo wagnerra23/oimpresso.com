@@ -235,6 +235,15 @@ Route::group([
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.status');
 
+    // ADR 0206 Fase D — endpoint dedicado pra polling 2s do Dialog "Conectar".
+    // Reconciler observa estado canon real do daemon (vs /status legacy que
+    // mistura branches Baileys/whatsmeow). UI usa pra detectar paired e fechar
+    // dialog automaticamente.
+    Route::get('/canais/{id}/whatsmeow-status', [ChannelsController::class, 'whatsmeowStatus'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.whatsmeow-status');
+
     // Wagner request 2026-05-14: importar histórico ~90d retroativo gated por
     // feature flag por business_id (`config('whatsapp.history_import.enabled_business_ids')`).
     // Endpoint valida de novo no Controller — defense-in-depth.

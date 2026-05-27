@@ -148,8 +148,21 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
         credentials: 'same-origin',
       });
       const data = await r.json();
-      if (!r.ok || !data.ok) {
-        setQrError(data.error || 'Falha desconhecida ao chamar daemon.');
+
+      // ADR 0206 Fase D — whatsmeow retorna state canon ('paired' / 'qr_required' / 'banned' /
+      // 'daemon_unreachable' / 'error'). Baileys (legacy) ainda retorna shape antigo
+      // (qr_png_data_url + pairing_code + state diferente). Suporta ambos.
+      if (data.state === 'paired' || data.paired === true) {
+        // Canal já estava pareado antes do click — mostra confirmação + fecha 1.5s
+        setQrState('paired');
+        setQrImage(null);
+        setTimeout(() => {
+          setConnecting(null);
+          router.reload({ only: ['channels'] });
+        }, 1500);
+      } else if (!r.ok || !data.ok) {
+        setQrError(data.error || data.message || 'Falha desconhecida ao chamar daemon.');
+        setQrState(data.state || null);
       } else {
         setQrImage(data.qr_png_data_url || null);
         setPairingCode(data.pairing_code || null);
@@ -203,25 +216,46 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
     }
   }
 
-  // Poll status enquanto modal connect aberto
+  // ADR 0206 Fase D — Poll status 2s enquanto Dialog "Conectar" aberto.
+  //
+  // Pra whatsmeow usa endpoint /whatsmeow-status (Reconciler observa estado canon real).
+  // Pra baileys usa endpoint /status legacy.
+  //
+  // Quando `paired=true`, fecha dialog auto + reload channels (Wagner debt #1+#2
+  // resolvido: dialog não ficava fechando, card status não atualizava).
   useEffect(() => {
     if (!connecting) return;
+    const isWhatsmeow = connecting.type === 'whatsapp_whatsmeow';
+    const intervalMs = isWhatsmeow ? 2000 : 3000;
+
     const interval = setInterval(async () => {
       try {
-        const r = await fetch(route('atendimento.channels.status', connecting.id), {
+        const routeName = isWhatsmeow
+          ? 'atendimento.channels.whatsmeow-status'
+          : 'atendimento.channels.status';
+        const r = await fetch(route(routeName, connecting.id), {
           headers: { 'X-Requested-With': 'XMLHttpRequest' },
           credentials: 'same-origin',
         });
         const data = await r.json();
-        setQrState(data.state);
-        if (data.state === 'connected') {
+
+        // whatsmeow retorna `paired: bool` + `state: 'paired'|'qr_pending'|...`
+        // baileys retorna apenas `state: 'connected'|'qr_required'|...`
+        const isPaired = data.paired === true || data.state === 'paired' || data.state === 'connected';
+
+        if (data.state) setQrState(data.state);
+
+        if (isPaired) {
+          clearInterval(interval);
+          setQrImage(null);
+          // Fecha dialog em 800ms (UX: usuário vê "✓ conectado" antes de sumir)
           setTimeout(() => {
             setConnecting(null);
             router.reload({ only: ['channels'] });
-          }, 1500);
+          }, 800);
         }
-      } catch { /* swallow */ }
-    }, 3000);
+      } catch { /* swallow — daemon transitório */ }
+    }, intervalMs);
     return () => clearInterval(interval);
   }, [connecting?.id]);
 
@@ -307,14 +341,23 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
                 {qrError}
               </div>
             )}
-            {!qrLoading && qrImage && (
+            {/* ADR 0206 Fase D — paired state mostra check sem QR, dialog fecha em 800ms */}
+            {!qrLoading && (qrState === 'paired' || qrState === 'connected') && !qrError && (
+              <>
+                <CheckCircle2 size={48} className="text-emerald-600" aria-hidden />
+                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                  Canal pareado com sucesso!
+                </p>
+                <p className="text-xs text-muted-foreground">Fechando…</p>
+              </>
+            )}
+            {!qrLoading && qrImage && qrState !== 'paired' && qrState !== 'connected' && (
               <>
                 <div className="bg-white p-2 rounded-lg shadow-sm">
                   <img src={qrImage} alt="QR Code WhatsApp" width={280} height={280} />
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
                   Válido ~20s (renova automaticamente). State: <strong>{qrState || 'qr_required'}</strong>
-                  {qrState === 'connected' && <span className="text-emerald-600 ml-1">✓ conectado!</span>}
                 </p>
               </>
             )}
