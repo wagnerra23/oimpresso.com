@@ -2010,7 +2010,11 @@ function ClienteSheet({
                 <ContatoTab contact={contact} />
               </div>
               <div hidden={activeTab !== 'endereco'}>
-                <EnderecoTab key={enderecoVersion} contact={contact} />
+                <EnderecoTab
+                  key={enderecoVersion}
+                  contact={contact}
+                  onContactUpdated={onContactUpdated}
+                />
               </div>
               <div hidden={activeTab !== 'comercial'}>
                 <ComercialTab contact={contact} />

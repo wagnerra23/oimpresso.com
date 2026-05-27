@@ -61,6 +61,16 @@ export interface ContactInfo {
 export interface EnderecoTabProps {
   contact: ContactInfo;
   onSaved?: (field: string, value: unknown) => void;
+  /**
+   * Wagner 2026-05-27 — chamado apos lookup CEP persistir campos novos no
+   * banco. Pai (ClienteSheet) atualiza `draftContact` ou row no parent state
+   * DIRETAMENTE pra evitar cache stale Inertia (rows.find retornaria snapshot
+   * pre-lookup). Padrao alinhado ao `IdentificacaoTab.onContactUpdated`.
+   *
+   * Sintoma sem este callback: user clica Buscar CEP → 5 PATCHes 200 OK →
+   * fecha drawer → reabre → campos voltam aos VELHOS (rows nao atualizou).
+   */
+  onContactUpdated?: (patched: Record<string, unknown>) => void;
   disabled?: boolean;
 }
 
@@ -81,7 +91,7 @@ function getCsrfToken(): string {
   );
 }
 
-export default function EnderecoTab({ contact, onSaved, disabled = false }: EnderecoTabProps) {
+export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabled = false }: EnderecoTabProps) {
   // Inicialização — preferir canon UPOS, fallback PT-BR legado pra graceful com
   // a listagem (Index.tsx ainda emite cidade/uf PT-BR no payload da tabela).
   const [zipCode, setZipCode] = useState<string>(maskCEP(contact.zip_code ?? contact.cep ?? ''));
@@ -246,27 +256,42 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
       const novaCidade = (json?.cidade as string) ?? '';
       const novaUf = (json?.uf as string) ?? '';
 
+      // Wagner 2026-05-27 — acumula campos preenchidos pra emitir 1 callback batch
+      // ao final ao parent (ClienteSheet) atualizar draftContact/rows direto
+      // sem depender de router.reload (que nao pega Inertia::defer cache).
+      const contactPatch: Record<string, unknown> = {};
+
       if (novoLogr) {
         setAddressLine1(novoLogr);
         performSave('address_line_1', novoLogr, addressLine1);
+        contactPatch.address_line_1 = novoLogr;
       }
       // Complemento ViaCEP (ex "lado impar 612 a 1510" SP) — SOBRESCREVE
       // (política feedback-lookup-cnpj-sobrescreve-dados: dado oficial público).
       if (novoComplemento) {
         setAddressLine2(novoComplemento);
         performSave('address_line_2', novoComplemento, addressLine2);
+        contactPatch.address_line_2 = novoComplemento;
       }
       if (novoBairro) {
         setNeighborhood(novoBairro);
         performSave('neighborhood', novoBairro, neighborhood);
+        contactPatch.neighborhood = novoBairro;
       }
       if (novaCidade) {
         setCity(novaCidade);
         performSave('city', novaCidade, city);
+        contactPatch.city = novaCidade;
       }
       if (novaUf) {
         setStateUf(novaUf);
         performSave('state', novaUf, stateUf);
+        contactPatch.state = novaUf;
+      }
+      // Notifica parent pra atualizar draftContact/row -- evita cache stale
+      // Inertia ao fechar+reabrir drawer pos lookup (bug Wagner 2026-05-27).
+      if (Object.keys(contactPatch).length > 0) {
+        onContactUpdated?.(contactPatch);
       }
       setCepLookup('ok');
       setCepLookupMsg('Endereço preenchido pelo ViaCEP.');
@@ -280,7 +305,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
       // eslint-disable-next-line no-console
       console.error('[EnderecoTab] cep lookup failed', err);
     }
-  }, [zipCode, addressLine1, neighborhood, city, stateUf, performSave]);
+  }, [zipCode, addressLine1, addressLine2, neighborhood, city, stateUf, performSave, onContactUpdated]);
 
   const handleUfChange = useCallback(
     (v: string) => {
