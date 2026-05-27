@@ -67,3 +67,16 @@ Decisão já está dada (não precisa novo sinal pra começar):
 ## Updated
 
 - Criado: 2026-05-15 — Wagner [W+C]
+
+---
+
+## 2026-05-27 — Baileys saiu por decisão Wagner
+
+Wagner reportou: *"ninguém está ativo no Baileys, pode desconectar todos. é instável não deu pra usar"*.
+
+Decisão canon: [ADR 0202](../decisions/0202-whatsapp-profissionalizacao-baileys-out.md) — BaileysDriver OUT integral, Meta Cloud default universal, Z-API opcional fallback. Supersede ADR 0096 emenda 4.
+
+A migração 7.x descrita acima continua válida como **lição-pattern sobre "decisão irreversível com sunk cost"** mesmo que o objeto Baileys tenha saído. O ponto é estrutural: re-pareamento não é gratuito, e quando descobrimos isso pós-deploy, dá pra (a) absorver e completar ou (b) cortar e enquadrar o trabalho prévio como aprendizado. Nesse incidente 2026-05-15 escolhemos (a) — re-pareamento + history fetch — e funcionou.
+
+Em 2026-05-27 escolhemos (b) pra Baileys inteiro: cortamos integral. Lição: às vezes a saída elegante é parar de gastar capital em algo instável que tenha alternativa oficial estável (Meta Cloud) já viável.
+

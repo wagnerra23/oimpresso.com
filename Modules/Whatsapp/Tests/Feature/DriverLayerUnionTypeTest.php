@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
+use Modules\Whatsapp\Services\Drivers\NotImplementedDriverException;
 use Modules\Whatsapp\Services\Drivers\DriverFactory;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -249,15 +249,15 @@ it('Phone com driver=zapi resolve ZapiDriver', function () {
     expect(DriverFactory::make($phone))->toBeInstanceOf(ZapiDriver::class);
 });
 
-it('Phone com driver=baileys resolve BaileysDriver', function () {
+it('Phone com driver=baileys lança NotImplementedDriverException (ADR 0202 descontinuado)', function () {
     $phone = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
         'phone_uuid' => (string) Str::uuid(),
-        'label' => 'Comercial',
+        'label' => 'Legacy',
         'driver' => 'baileys',
         'fallback_driver' => 'meta_cloud',
         'driver_health' => 'healthy',
     ]);
 
-    expect(DriverFactory::make($phone))->toBeInstanceOf(BaileysDriver::class);
+    expect(fn () => DriverFactory::make($phone))->toThrow(NotImplementedDriverException::class);
 });

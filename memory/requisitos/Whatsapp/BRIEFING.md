@@ -1,8 +1,23 @@
 # BRIEFING — Whatsapp / Atendimento
 
 > **Mantido por:** skill `brief-update` (Tier B auto-trigger) + Wagner review
-> **Atualizado:** 2026-05-17 (Wave 26 — Drivers/Webhook polish ≥85; +14 Pest tests Drivers/WebhookSignatureChecker/MessagePersister sem chamar daemon/Meta real)
-> **Próximo update esperado:** quando próximo PR `feat/perf/fix(whatsapp)` mergear
+> **Atualizado:** 2026-05-27 (ADR 0202 Fase 1 — BaileysDriver OUT integral; supersede ADR 0096 emenda 4)
+> **Próximo update esperado:** Fase 2 ADR 0202 (US-WA-310 Embedded Signup Meta Cloud v4)
+
+## 2026-05-27 — ADR 0202 aceita: BaileysDriver OUT integral
+
+Wagner reportou "ninguém ativo no Baileys, pode desconectar todos. instável não deu pra usar".
+Decisão canon: BaileysDriver descontinuado integralmente em 2026-05-27.
+
+**Fase 0 (executada 2026-05-27):** container CT 100 stopado+removido · sessions volume vazio · backup .env CT 100 90d retention · tag `baileys-final-2026-05-27` · branch `archive/baileys-daemon` (preserva código rastreável).
+
+**Fase 1 (este BRIEFING):** PHP `BaileysDriver` + middleware + job + tests deletados · DROP colunas `baileys_*` em `whatsapp_business_configs/phones` · DROP tabela `whatsapp_baileys_auth_state` · `default_driver` config `zapi → meta_cloud` · adicionado `baileys` em `forbidden_drivers` · daemon Node removido (preservado em archive branch) · 6 runbooks + skill arquivados.
+
+**Próximo (Fase 2):** Embedded Signup Meta Cloud v4 (US-WA-310) — onboarding 1-click oficial.
+
+Detalhes: [ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md) + [dossier 2026-05-27](../../sessions/2026-05-27-dossier-whatsapp-profissionalizacao.md).
+
+---
 
 ### Wave 26 polish (2026-05-17) — Drivers + Webhook saturation 74 → ≥85 (+11pp)
 
@@ -46,7 +61,7 @@ Inbox omnichannel polimórfico (ADR 0135 Fase 0) — multi-canal por design com 
 
 ## 3. Capacidades hoje (paridade Chatwoot OSS + ERP-nativo)
 
-- **Canais:** WhatsApp Baileys daemon CT 100 (7.0.0-rc11 LIVE) + Z-API SaaS + Meta Cloud fallback automático healthcheck (US-WA-014)
+- **Canais:** WhatsApp Meta Cloud (default universal pós ADR 0202) + Z-API SaaS (opcional fallback per-tenant) + Null CI. ~~WhatsApp Baileys daemon CT 100~~ descontinuado 2026-05-27 (ADR 0202).
 - **Atendimento:** Inbox 3-col (lista + thread + sidebar) · ACL canal/fila per-user (US-WA-069) · atalhos `J/K/E/A/?` · status (open/awaiting_human/resolved/archived)
 - **Conteúdo:** Mídia outbound preview-then-send (PR #707) · mídia inbound + Whisper transcrição (PR #648/#664/#675/#669/#679) · 4 templates HSM Cloud API · botões interativos backend (PR #715/#720) · list messages cardápio
 - **Automação:** Macros + quick replies CRUD (PR #709 — 4 actions) · slash commands `/lembrar`/`/corrigir`/`/lembrete`/`/config` ancorados Jana (PRs #649/#657/#658/#659) · SLA policies + escalation alerts (PR #710) · CSAT pós-resolução 1-5★ (PR #714)
@@ -60,9 +75,9 @@ Inbox omnichannel polimórfico (ADR 0135 Fase 0) — multi-canal por design com 
 
 1. **Multi-tenant Tier 0 IRREVOGÁVEL** (ADR 0093) — global scope em Channel/Conversation/Message + tabelas auxiliares. Convention test 100% cobertura.
 2. **Integração ERP transacional** — listeners `NotifyRepairCustomer` + `DispatchToJanaBot` + `BillingNotificationListener` cross-module. **Único BR PME** — Bling/Tiny/Omie zero integração transacional.
-3. **Driver fallback healthcheck automático** — flip Z-API/Baileys → Meta Cloud quando `driver_health` degrada.
+3. **Driver fallback healthcheck automático** — flip Z-API → Meta Cloud quando `driver_health` degrada. (Baileys removido pós ADR 0202 — Meta default universal já elimina necessidade primária.)
 4. **Bot Jana com `ContextoNegocio` 3 ângulos** (ADR 0052) — sabe quanto cliente deve, OS abertas, produto comprado. Chatwoot bolt-on ChatGPT é só chat genérico.
-5. **LID resolution custom** (US-WA-093) — workaround "1 LID @lid ≠ 1 pessoa" Baileys 6.7.x via `whatsapp_lid_pn_map` + Service + cache Redis 24h + backfill cmd. **Ninguém faz** — diferencial técnico ~4-6 meses até Baileys 7.x maduro.
+5. **LID resolution custom** (US-WA-093) — workaround histórico "1 LID @lid ≠ 1 pessoa" Baileys 6.7.x via `whatsapp_lid_pn_map` + Service + cache Redis 24h + backfill cmd. Pós ADR 0202 (Baileys OUT) este diferencial vira lição histórica — Meta Cloud não tem LID problem.
 6. **Anti-ban middleware daemon** (PR #699) — Box-Muller Gaussian jitter + typing presence + warmup 7d quotas + circadian quiet hours. Chip vive 3-5× mais.
 7. **Schema 3-identifiers anti-cross-contact** (PR #855/#864/#870 incident 2026-05-14) — `lid` + `phone_e164` + `bsuid` + ContactObserver cache invalidation + 10 testes regression. **Concorrentes BR não fazem.**
 

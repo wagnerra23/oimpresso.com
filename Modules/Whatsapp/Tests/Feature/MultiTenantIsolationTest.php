@@ -57,9 +57,7 @@ beforeEach(function () {
         $table->string('zapi_instance_id', 64)->nullable();
         $table->text('zapi_instance_token')->nullable();
         $table->text('zapi_client_token')->nullable();
-        $table->string('baileys_instance_id', 64)->nullable();
-        $table->string('baileys_daemon_url', 255)->nullable();
-        $table->text('baileys_api_key')->nullable();
+        // ADR 0202 (2026-05-27): colunas baileys_* DROPADAS via migration.
         $table->timestamp('lgpd_acknowledged_at')->nullable();
         $table->unsignedInteger('lgpd_acknowledged_by_user_id')->nullable();
         $table->boolean('bot_enabled')->default(false);
@@ -89,10 +87,7 @@ beforeEach(function () {
         $table->string('zapi_instance_id', 64)->nullable();
         $table->text('zapi_instance_token')->nullable();
         $table->text('zapi_client_token')->nullable();
-        $table->string('baileys_instance_id', 64)->nullable();
-        $table->string('baileys_phone_e164', 20)->nullable();
-        $table->string('baileys_verified_name', 100)->nullable();
-        $table->string('baileys_profile_pic_url', 255)->nullable();
+        // ADR 0202 (2026-05-27): colunas baileys_* DROPADAS via migration.
         $table->timestamp('lgpd_acknowledged_at')->nullable();
         $table->unsignedInteger('lgpd_acknowledged_by_user_id')->nullable();
         $table->boolean('handles_repair_status')->default(false);
@@ -109,7 +104,8 @@ beforeEach(function () {
         $table->timestamp('last_health_check_at')->nullable();
         $table->text('last_health_message')->nullable();
         $table->timestamps();
-        $table->unique(['business_id', 'baileys_phone_e164'], 'wbp_biz_phone_unq');
+        // ADR 0202 (2026-05-27): UNIQUE wbp_biz_phone_unq REMOVIDO junto com a
+        // coluna baileys_phone_e164. Uniqueness Channel-based agora via ChannelRequest::withValidator.
     });
 
     Schema::create('whatsapp_phone_user_access', function ($table) {
@@ -303,14 +299,13 @@ it('effectiveDriver retorna fallback quando driver_health degraded', function ()
     expect($config->effectiveDriver())->toBe('zapi'); // never_checked usa primário
 });
 
-it('requiresFallback identifica zapi e baileys como obrigando Meta cadastrado', function () {
-    config()->set('whatsapp.fallback.mandatory_for_drivers', ['zapi', 'baileys']);
+it('requiresFallback identifica zapi como único driver obrigando Meta cadastrado (pós ADR 0202)', function () {
+    // ADR 0202 (2026-05-27): baileys removido de mandatory_for_drivers junto
+    // com a saída integral do BaileysDriver. Só zapi exige fallback Meta agora.
+    config()->set('whatsapp.fallback.mandatory_for_drivers', ['zapi']);
 
     $configZapi = new WhatsappBusinessConfig(['driver' => 'zapi']);
     expect($configZapi->requiresFallback())->toBeTrue();
-
-    $configBaileys = new WhatsappBusinessConfig(['driver' => 'baileys']);
-    expect($configBaileys->requiresFallback())->toBeTrue();
 
     $configMeta = new WhatsappBusinessConfig(['driver' => 'meta_cloud']);
     expect($configMeta->requiresFallback())->toBeFalse();
@@ -344,7 +339,7 @@ it('isola WhatsappBusinessPhone cross-business via global scope', function () {
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Comercial',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
     ]);
 
@@ -396,54 +391,16 @@ it('cifra access_token e tokens sensíveis em WhatsappBusinessPhone (encrypted c
     expect(Crypt::decryptString($raw->meta_access_token))->toBe($tokenPlano);
 });
 
-it('UNIQUE (business_id, baileys_phone_e164) bloqueia mesmo número 2x no mesmo business', function () {
-    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 1,
-        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
-        'label' => 'Comercial',
-        'driver' => 'baileys',
-        'fallback_driver' => 'meta_cloud',
-        'baileys_phone_e164' => '+5511987654321',
-    ]);
-
-    expect(fn () => WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 1,
-        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
-        'label' => 'Suporte 2',
-        'driver' => 'baileys',
-        'fallback_driver' => 'meta_cloud',
-        'baileys_phone_e164' => '+5511987654321',
-    ]))->toThrow(\Illuminate\Database\QueryException::class);
-});
-
-it('mesmo número Baileys pode existir em businesses diferentes', function () {
-    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 1,
-        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
-        'label' => 'Comercial',
-        'driver' => 'baileys',
-        'fallback_driver' => 'meta_cloud',
-        'baileys_phone_e164' => '+5511987654321',
-    ]);
-
-    $phoneB = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
-        'business_id' => 99,
-        'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
-        'label' => 'Comercial',
-        'driver' => 'baileys',
-        'fallback_driver' => 'meta_cloud',
-        'baileys_phone_e164' => '+5511987654321',
-    ]);
-
-    expect($phoneB->id)->toBeGreaterThan(0);
-});
+// ADR 0202 (2026-05-27): testes "UNIQUE baileys_phone_e164" e "mesmo número
+// Baileys cross-business" REMOVIDOS — colunas baileys_* serão DROPADAS pela
+// migration 2026_05_28_000001_drop_baileys_columns_from_whatsapp_business_configs.
 
 it('resolveForEvent retorna phone com handle específico ligado', function () {
     WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Comercial',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
         'handles_repair_status' => true,
         'handles_billing' => false,
@@ -473,7 +430,7 @@ it('resolveForEvent cai no handles_outbound_default quando nenhum específico ba
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Único',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
         'handles_repair_status' => false,
         'handles_billing' => false,
@@ -491,7 +448,7 @@ it('resolveForEvent retorna null quando nenhum phone tem flag nem default', func
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Sem rotear nada',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
         'handles_repair_status' => false,
         'handles_billing' => false,
@@ -508,14 +465,14 @@ it('isola WhatsappPhoneUserAccess cross-business via global scope', function () 
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Comercial A',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
     ]);
     $phoneB = WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 99,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Comercial B',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
     ]);
 
@@ -547,7 +504,7 @@ it('scope accessibleBy filtra phones que user tem ACL', function () {
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Visível',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
     ]);
 
@@ -555,7 +512,7 @@ it('scope accessibleBy filtra phones que user tem ACL', function () {
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
         'label' => 'Sem ACL',
-        'driver' => 'baileys',
+        'driver' => 'meta_cloud',
         'fallback_driver' => 'meta_cloud',
     ]);
 
