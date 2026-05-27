@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Modules\PaymentGateway\Services\Drivers;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
@@ -27,9 +29,8 @@ use Modules\PaymentGateway\Services\HttpClientFactory;
  * US-FIN-044 — Onda 4f.sicoob_api. Sinal qualificado: biz=4 ROTA LIVRE
  * (Larissa via Kamila) pediu 2026-05-27 [ADR 0105].
  *
- * PR2 (este) — OAuth2 client_credentials + emitirBoleto + cancelar + consultar
- * + healthCheck. mTLS handshake real fica pra PR3 (mTLS bypass em test
- * via Http::fake — funciona). Webhook em PR4.
+ * PR3 (este) — mTLS handshake real (.pfx + senha cifrada Laravel Crypt).
+ * Webhook real-time chega no PR4.
  *
  * URLs (Sicoob 2026):
  *   - Token (Keycloak): https://auth.sicoob.com.br/auth/realms/cooperado/protocol/openid-connect/token
@@ -45,8 +46,13 @@ use Modules\PaymentGateway\Services\HttpClientFactory;
  *   - consultar usa query string composta (numeroCliente + codigoModalidade +
  *     nossoNumero), não path /boletos/{nn}
  *
- * Em prod, mTLS configurado via $cred->mtls_pfx_path + senha cifrada em
- * config_json['mtls_pfx_password']. Em test (Http::fake) bypass automático.
+ * Em prod, mTLS configurado via $cred->mtls_pfx_path (coluna canon, path
+ * relativo a storage/app/private/ OU absoluto) + senha cifrada em
+ * config_json['mtls_pfx_password_encrypted']. Em test (Http::fake) bypass
+ * automático pois Http::fake não bate na rede.
+ *
+ * Senha NUNCA logada. Crypt::encryptString → DecryptException quando chave
+ * APP_KEY do Laravel muda (re-cadastrar credencial).
  *
  * Refs:
  *   - https://developers.sicoob.com.br/portal/apis (docs oficiais)
@@ -311,7 +317,6 @@ class SicoobApiDriver implements PaymentDriverContract
 
     /**
      * Cliente HTTP com Bearer + client_id header + mTLS options.
-     * mTLS handshake real chega no PR3.
      */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
@@ -327,19 +332,104 @@ class SicoobApiDriver implements PaymentDriverContract
                 'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
             ])
-            ->withOptions($this->mtlsOptions($config));
+            ->withOptions($this->mtlsOptions($cred));
     }
 
     /**
-     * mTLS — placeholder PR2. Handshake real (.pfx + senha cifrada) chega
-     * no PR3. Em test (Http::fake) mTLS é bypass automático.
+     * Monta options Guzzle pra mTLS handshake — `.pfx` (PKCS12) + senha
+     * decifrada via Laravel Crypt.
+     *
+     * Modelos:
+     *   - PHP_PKCS12 nativo:  ['cert' => [$pfxFullPath, $password]]
+     *   - Curl raw:           ['curl' => [CURLOPT_SSLCERT => ..., CURLOPT_SSLCERTTYPE => 'P12']]
+     *
+     * Usamos a forma `['cert' => [path, password]]` que o Guzzle 7 aceita
+     * (passa pra curl como CURLOPT_SSLCERT + SSLCERTPASSWD automaticamente).
+     *
+     * Resolução:
+     *   - $cred->requires_mtls = false → retorna [] (driver pode operar sem mTLS
+     *     em sandbox de homologação Sicoob, mas em prod = mTLS obrigatório).
+     *   - $cred->mtls_pfx_path vazio com requires_mtls=true → throw.
+     *   - Path absoluto → usa direto.
+     *   - Path relativo → prefixa storage/app/private/.
+     *
+     * Multi-tenant Tier 0: cada business_id tem .pfx separado em
+     * storage/app/private/sicoob/{business_id}.pfx (convenção). Path absoluto
+     * é permitido pra deployments que usam volume montado fora do storage.
      */
-    private function mtlsOptions(array $config): array
+    private function mtlsOptions(PaymentGatewayCredential $cred): array
     {
-        // PR3 vai popular ['cert' => $pfxPath, 'ssl_key' => [$pfxPath, $password]]
-        // ou via curl options. Mantém vazio aqui — Http::fake nos tests não
-        // precisa de cert real.
-        return [];
+        if (! $cred->requires_mtls) {
+            return [];
+        }
+
+        $pfxPath = $this->resolveMtlsPfxFullPath($cred);
+        if ($pfxPath === null) {
+            throw new CredentialMisconfiguredException(
+                'Sicoob API credential exige mTLS (requires_mtls=true) mas mtls_pfx_path está vazio. ' .
+                "Faça upload do .pfx em /settings/payment-gateways pra business_id={$cred->business_id}."
+            );
+        }
+        if (! is_file($pfxPath)) {
+            throw new CredentialMisconfiguredException(
+                "Sicoob API .pfx não encontrado em '{$pfxPath}'. Re-upload pelo wizard."
+            );
+        }
+
+        $password = $this->decryptMtlsPassword($cred);
+
+        return [
+            // Guzzle 7 aceita [path, password] e propaga pra curl como
+            // CURLOPT_SSLCERT + CURLOPT_SSLCERTPASSWD + CURLOPT_SSLCERTTYPE=P12.
+            'cert' => [$pfxPath, $password],
+        ];
+    }
+
+    /**
+     * Resolve path completo do .pfx — pode ser absoluto (mantém) ou relativo
+     * (prefixa com storage/app/private/). Retorna null se vazio.
+     */
+    private function resolveMtlsPfxFullPath(PaymentGatewayCredential $cred): ?string
+    {
+        $rel = trim((string) ($cred->mtls_pfx_path ?? ''));
+        if ($rel === '') {
+            return null;
+        }
+
+        // Path absoluto (Windows: C:/... ou /srv/...).
+        if (preg_match('#^([A-Za-z]:[\\\\/]|/)#', $rel) === 1) {
+            return $rel;
+        }
+
+        return storage_path('app/private/' . ltrim($rel, '/'));
+    }
+
+    /**
+     * Decifra senha do .pfx armazenada em config_json['mtls_pfx_password_encrypted'].
+     *
+     * NUNCA loga senha. DecryptException → throws CredentialMisconfigured
+     * com mensagem genérica (não vaza ciphertext nem detalhe interno).
+     */
+    private function decryptMtlsPassword(PaymentGatewayCredential $cred): string
+    {
+        $config = $this->config($cred);
+        $encrypted = (string) ($config['mtls_pfx_password_encrypted'] ?? '');
+
+        if ($encrypted === '') {
+            throw new CredentialMisconfiguredException(
+                "Sicoob mTLS configurado mas senha do .pfx ausente em config_json " .
+                '(mtls_pfx_password_encrypted). Re-cadastre senha no wizard.'
+            );
+        }
+
+        try {
+            return Crypt::decryptString($encrypted);
+        } catch (DecryptException) {
+            throw new CredentialMisconfiguredException(
+                'Senha do .pfx não decifra — APP_KEY do Laravel mudou desde o cadastro. ' .
+                'Re-cadastre senha no wizard de gateways.'
+            );
+        }
     }
 
     /**
@@ -361,7 +451,7 @@ class SicoobApiDriver implements PaymentDriverContract
 
         return Cache::remember($cacheKey, now()->addSeconds(3500), function () use ($cred, $config) {
             $response = Http::asForm()
-                ->withOptions($this->mtlsOptions($config))
+                ->withOptions($this->mtlsOptions($cred))
                 ->withHeaders(['Accept' => 'application/json'])
                 ->timeout(10)
                 ->post($this->oauthUrl($cred), [
