@@ -46,7 +46,10 @@ interface Channel {
   has_zapi_credentials: boolean;
   has_meta_credentials: boolean;
   has_baileys_credentials: boolean;
+  // ADR 0204 — substituto não-oficial Baileys via daemon Go WuzAPI
+  has_whatsmeow_credentials: boolean;
   baileys_phone_e164: string | null;
+  whatsmeow_phone_e164: string | null;
   zapi_instance_id: string | null;
   meta_phone_number_id: string | null;
   lgpd_acknowledged_at: string | null;
@@ -390,6 +393,10 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             {type === 'whatsapp_baileys' && (
               <BaileysFields config={config} setConfig={setConfig} lgpdOk={lgpdOk} setLgpdOk={setLgpdOk} />
             )}
+            {/* ADR 0204 — substituto não-oficial Baileys via daemon Go WuzAPI */}
+            {type === 'whatsapp_whatsmeow' && (
+              <WhatsmeowFields config={config} setConfig={setConfig} lgpdOk={lgpdOk} setLgpdOk={setLgpdOk} />
+            )}
             {type === 'whatsapp_zapi' && (
               <ZapiFields config={config} setConfig={setConfig} />
             )}
@@ -448,7 +455,8 @@ function ChannelCard({
     never_checked: 'text-muted-foreground',
   }[channel.channel_health];
 
-  const showConnect = channel.type === 'whatsapp_baileys'
+  // ADR 0204 — connect button visivel pra whatsmeow tambem (substituto Baileys)
+  const showConnect = (channel.type === 'whatsapp_baileys' || channel.type === 'whatsapp_whatsmeow')
     && channel.status !== 'active'
     && channel.channel_health !== 'healthy';
 
@@ -575,6 +583,42 @@ function BaileysFields({
           Aceito que Baileys é driver não-oficial (WhatsApp Web reverse-engineered).
           Meta pode banir o número a qualquer momento. Fallback Meta Cloud
           obrigatório quando driver_health degrada.
+        </Label>
+      </div>
+    </>
+  );
+}
+
+// ADR 0204 (2026-05-27) — substituto não-oficial Baileys via daemon Go WuzAPI.
+// Risco ban Meta IGUAL Baileys (whatsmeow issue #810). LGPD ack obrigatório.
+function WhatsmeowFields({
+  config, setConfig, lgpdOk, setLgpdOk,
+}: {
+  config: Record<string, string>; setConfig: (c: Record<string, string>) => void;
+  lgpdOk: boolean; setLgpdOk: (v: boolean) => void;
+}) {
+  return (
+    <>
+      <div className="space-y-1">
+        <Label htmlFor="whatsmeow_phone">Telefone WhatsApp (E.164)</Label>
+        <Input
+          id="whatsmeow_phone"
+          value={config.whatsmeow_phone_e164 || ''}
+          onChange={(e) => setConfig({ ...config, whatsmeow_phone_e164: e.target.value })}
+          placeholder="+5511987654321"
+          required
+        />
+        <p className="text-xs text-amber-700 dark:text-amber-400 inline-flex items-start gap-1">
+          <AlertTriangle size={11} className="mt-0.5 shrink-0" aria-hidden />
+          Chip dedicado pra empresa — NUNCA número pessoal. Risco ban Meta (igual Baileys).
+        </p>
+      </div>
+      <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs">
+        <Checkbox id="lgpd-whatsmeow" checked={lgpdOk} onCheckedChange={(v) => setLgpdOk(v === true)} />
+        <Label htmlFor="lgpd-whatsmeow" className="leading-relaxed text-xs cursor-pointer">
+          Aceito que Whatsmeow é driver não-oficial (lib Go via daemon WuzAPI próprio).
+          Meta pode banir o número a qualquer momento (igual Baileys — issue #810 upstream).
+          Fallback Meta Cloud obrigatório quando driver_health degrada (ADR 0204).
         </Label>
       </div>
     </>

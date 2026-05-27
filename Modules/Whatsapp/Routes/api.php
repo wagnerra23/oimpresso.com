@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\Api\BaileysWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ChannelBaileysWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\MetaWebhookController;
+use Modules\Whatsapp\Http\Controllers\Api\WhatsmeowWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ZapiWebhookController;
 
 /*
@@ -45,6 +46,14 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
     Route::post('/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
         ->middleware(['throttle:60,1', 'whatsapp.baileys.signature'])
         ->name('whatsapp.webhook.baileys.handle');
+
+    // ADR 0204 (2026-05-27) — Whatsmeow Go daemon WuzAPI CT 100.
+    // Substituto não-oficial Baileys. Mesma assinatura business_uuid no path
+    // pra preservar multi-tenant Tier 0 (ADR 0093). Middleware
+    // whatsapp.whatsmeow.signature valida HMAC global do daemon.
+    Route::post('/whatsmeow/{business_uuid}', [WhatsmeowWebhookController::class, 'handle'])
+        ->middleware(['throttle:60,1', 'whatsapp.whatsmeow.signature'])
+        ->name('whatsapp.webhook.whatsmeow.handle');
 });
 
 // Omnichannel webhook receiver (ADR 0135) — endereçado por channel_uuid
