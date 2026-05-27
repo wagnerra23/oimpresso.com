@@ -51,9 +51,9 @@ steps:
 
 > **Cliente piloto:** Martinho Caçambas LTDA · biz=164 prod oimpresso · vertical mecânica pesada caminhão basculante ([ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)).
 >
-> **Fases já feitas (não rodar de novo):** Fase 1 (EMPRESA→contacts) 2026-05-13 · Fase 2 (EQUIPAMENTO_VEICULO→vehicles 91 rows) 2026-05-13 13:31 BRT · **Fase 3 VENDA + Fase 4 FINANCEIRO** (descobertas em prod 2026-05-27 — ver §7).
+> **Fases já feitas (não rodar de novo):** Fase 1 (EMPRESA→contacts) 2026-05-13 · Fase 2 (EQUIPAMENTO_VEICULO→vehicles 91 rows) 2026-05-13 13:31 BRT · **Fase 3 VENDA (43.974 em prod) + Fase 4 FINANCEIRO (83.045 títulos + 71.675 baixas em prod)** — descobertas em prod 2026-05-27 ver §7. ⚠️ Gap crítico Fase 3 sub-linhas (92.5% órfãs em `transaction_sell_lines`) — US-OFICINA-XXX pendente Felipe investigar.
 >
-> **Fases cobertas aqui:** Fase 3 VENDA (44.709 esperado) · Fase 4 FINANCEIRO (cleanup-first per [ADR 0198 §Mitigação 4](../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md)).
+> **Fases cobertas no PLANO ORIGINAL §0-§6 abaixo (NÃO REEXECUTAR — ver §7 status real):** Fase 3 VENDA (44.709 esperado) · Fase 4 FINANCEIRO (cleanup-first per [ADR 0198 §Mitigação 4](../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md)).
 >
 > **Owner:** Felipe (F). Wagner (W) aprova gates dry-run.
 >

@@ -101,6 +101,17 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
   - **Catálogo peça hidráulica + cross-ref por modelo caminhão** (Modules/Compras + Modules/Sells) — gap pós-correção
   - **OS de mecânica programada** (cliente leva caminhão, trocamos peça, devolvemos) — `final_total` calculado por **hora-trabalho + peça** (NÃO `daily_rate`)
   - **Eliminar dependência de `service_orders.daily_rate`/`expected_return_date`/`delivery_address`** (introduzidos pela leitura errada "locação" — migration 2026_05_12_220002) — preservados nullable per [ADR 0194 review_trigger](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)
+- **V2 LIVE descoberta 2026-05-27 (Fase 3 + Fase 4 — feito sem RUNBOOK formal):**
+  - `transactions` biz=164 — **43.974 vendas** em prod desde 2012-03 (14 anos · receita 2025: R$ 12.6M) — ✅
+  - `fin_titulos` + `fin_titulo_baixas` — **83.045 títulos + 71.675 baixas** em prod — ✅ (SEM cleanup-first · 76.7% inadimplência legacy migrada — review trigger archive opt-in [ADR 0198 §Mitigação 3](../../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md))
+  - **Diagnóstico SSH Hostinger** ([sessão 2026-05-27](../../../sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md)) confirmou execução paralela não-documentada (provavelmente Felipe pré-RUNBOOK 13:23 BRT)
+  - **⚠️ Gap crítico** descoberto: **92.5% das vendas SEM linhas em `transaction_sell_lines`** (40.644/43.951 órfãs · média 0.13 item/venda — irrealista). US-OFICINA-XXX pendente Felipe investigar (3 hipóteses documentadas em sessão diagnóstico)
+- **V3 LIVE 2026-05-27 (cadastros migrados):**
+  - `contacts` biz=164 — **9.938 contacts** (PESSOAS Delphi migradas além das 4 EMPRESAs Fase 1) — ✅
+  - `products` biz=164 — **3.809 produtos** catalogados — ✅
+  - `service_orders` biz=164 — 91 OS (1 por veículo Fase 2) — ✅
+  - `users` biz=164 — 12 operadores Martinho — ✅
+  - **Schema canon contacts pronto pra sync bidirecional** Delphi ↔ oimpresso ([ADR 0200](../../../decisions/0200-contacts-sync-canon-amends-0197-0199.md) — `officeimpresso_codigo` + `officeimpresso_dt_alteracao` em prod 14:00 BRT)
 
 ## 8. Decisões ADR locais
 
@@ -109,6 +120,10 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
 | [0137](../../../decisions/0137-modules-oficinaauto-qualificada.md) | OficinaAuto qualificada (Vargas + Martinho) | aceito (com erro de domínio Martinho — amendado por 0194) |
 | [0171](../../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md) | Ativação piloto Martinho faseada | aceito (amendado por 0194) |
 | [0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) | Correção domínio Martinho mecânica pesada (não locação) | **aceito 2026-05-26** |
+| [0197](../../../decisions/0197-extend-contacts-absorcao-pessoas-legacy.md) | Extend `contacts` pra absorver schema PESSOAS legacy (Bucket A 13 cols aplicadas biz=164) | aceito 2026-05-27 — amendado por 0199 + 0200 |
+| [0198](../../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md) | Hot/cold tiering migração transacional · prospectivo (DB 594MB · 21TB livre não bloqueia) | aceito 2026-05-27 |
+| [0199](../../../decisions/0199-errata-bucket-b-json-catchall-amends-0197.md) | Errata Bucket B JSON catch-all (amends 0197) | aceito 2026-05-27 |
+| [0200](../../../decisions/0200-contacts-sync-canon-amends-0197-0199.md) | `contacts` adopta canon sync Wagner 2024-11 (amends 0197+0199) | aceito 2026-05-27 |
 
 ## 9. Histórico
 
@@ -130,6 +145,14 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
 - WebSearch confirmou: Martinho Caçambas (Rua Antonia de Bitencourt Barcelos, Capivari de Baixo SC) vende peça hidráulica pra Polli-guindaste / munck / plataforma / basculante.
 - Tork (Tomadas de Força, Capivari) entra na cadeia como fornecedor PTO indústria — perfil prospect em [clientes-prospect/tork-tomadas-forca/](../../clientes-prospect/tork-tomadas-forca/01-perfil.md).
 - [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) formaliza correção (aceito Wagner 2026-05-26 no PR #1593).
+
+### 2026-05-27 — Diagnóstico Hostinger + estabelecimento schema canon contacts (11 PRs sessão)
+- **SSH Hostinger** revelou Fase 3+4 já em prod (43.974 vendas + 83.045 títulos + 9.938 contacts + 3.809 produtos · 14 anos de dados desde 2012-03). Execução paralela não-documentada (provavelmente Felipe pré-RUNBOOK).
+- **Bucket A do contacts mergeado em prod 14:00 BRT** ([ADR 0197](../../../decisions/0197-extend-contacts-absorcao-pessoas-legacy.md) + migration `2026_05_27_120000_extend_contacts_bucket_a_legacy_absorption`) — 13 cols nullable absorvem PESSOAS legacy.
+- **Canon sync bidirecional adotado** ([ADR 0200](../../../decisions/0200-contacts-sync-canon-amends-0197-0199.md)) — `officeimpresso_codigo` + `officeimpresso_dt_alteracao` alinha `contacts` com 11 outras tabelas canon Wagner 2024-11. Permite Delphi LOCAL + oimpresso ONLINE em paralelo via `BaseApiController::syncData`.
+- **Gap crítico descoberto:** 92.5% das vendas Martinho SEM linhas em `transaction_sell_lines` (40.644/43.951 órfãs). US-OFICINA-XXX pra Felipe investigar — não bloqueia operação atual.
+- **Receita real validada:** R$ 12.6M em 2025 (R$ 1.05M/mês) — bate com perfil conservador "R$ 1M+/mês" Wagner.
+- Sessão completa em [memory/sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md](../../../sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md). 11 PRs (#1717/#1723/#1727/#1731/#1735/#1741/#1744/#1747/#1751 + cleanup desta).
 
 ## 10. Refs
 
