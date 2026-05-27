@@ -1,15 +1,12 @@
-// Wagner 2026-05-27 -- Sub-tab "Placas" do OssTab drawer 760 (read-only).
+// Wagner 2026-05-27 -- Tab principal "Placas" do drawer 760 (read-only).
 //
-// Daniela @ Martinho cadastrou Heinig Pre-Moldados e pediu ver caminhoes do
-// cliente direto no drawer Cliente -- sem abrir /oficina-auto/veiculos.
+// Iteracao 1 (PR #1776) virou sub-tab dentro de OSs -- porem usuario nao
+// pensava "vou em OSs ver Placas". Iteracao 2 (este PR) promove pra TAB
+// PRINCIPAL acessado via BOTAO HEADER `[🚛 N placas]` ao lado de
+// "Imprimir ficha"/"Falar com Copiloto" (Proposta F).
 //
-// Reutiliza tabela/cards do `_show/VehiclesTab.tsx` (canon) mas com
-// SELF-FETCH via fetch() em vez de Inertia partial reload — drawer parent
-// (Cliente/Index.tsx) NAO carrega vehicles no payload. Pattern alinhado ao
-// que outros sub-tabs do OssTab vao adotar (sub-agent paralelo fix).
-//
-// Multi-tenant Tier 0 ADR 0093: backend scope; frontend trusta.
-// Visibility: parent OssTab so renderiza se props.oficinaAutoEnabled.
+// Self-fetch via fetch /cliente/{id}/veiculos (drawer parent nao carrega
+// vehicles no payload). Visibility: oficinaAutoEnabled gate ModuleUtil.
 //
 // Refs: ADR 0179 (drawer 760) · ADR 0137 (vehicles schema) · session 2026-05-27.
 
@@ -43,7 +40,7 @@ interface VehiclesPayload {
   to: number | null;
 }
 
-export interface PlacasSubTabProps {
+export interface PlacasMainTabProps {
   contactId: number;
 }
 
@@ -68,7 +65,7 @@ const FUEL_LABELS: Record<string, string> = {
   cng: 'GNV',
 };
 
-export default function PlacasSubTab({ contactId }: PlacasSubTabProps) {
+export default function PlacasMainTab({ contactId }: PlacasMainTabProps) {
   const [data, setData] = useState<VehiclesPayload | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

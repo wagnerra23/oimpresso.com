@@ -12,9 +12,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   AlertTriangle,
   ArrowDown,
+  Activity,
   ArrowUp,
   ArrowUpDown,
   Briefcase,
+  Car,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -35,6 +37,7 @@ import {
   Phone,
   Plus,
   Search,
+  Sparkles,
   Star,
   Trash2,
   Truck,
@@ -70,6 +73,8 @@ import ClassificacaoTab from './_drawer/ClassificacaoTab';
 import OssTab from './_drawer/OssTab';
 import IATab from './_drawer/IATab';
 import AuditoriaTab from './_drawer/AuditoriaTab';
+// Wagner 2026-05-27 iteracao 2: Placas promovido pra tab principal (botao header).
+import PlacasMainTab from './_drawer/PlacasMainTab';
 // Wave G — listagem turbinada (avatar HSL hash + Pills semânticos).
 import { Avatar as ClienteAvatar } from '@/Components/clientes/Avatar';
 import { ActiveChip } from '@/Components/clientes/ActiveChip';
@@ -150,6 +155,9 @@ interface ClienteRow {
   // ADR 0195 Bucket A — flag `bloqueado` (separada de `status` enum derivado).
   // Sells/Financeiro consultam pra impedir checkout/cobrança mesmo quando ativo.
   bloqueado?: boolean | null;
+  // Wagner 2026-05-27 iteracao 2 — contador veiculos pro botao header drawer.
+  // Lazy: count so existe se modulo OficinaAuto instalado (gate hasTable).
+  vehicles_count?: number | null;
 }
 
 interface ListMeta {
@@ -1694,19 +1702,23 @@ type DrawerTab =
   | 'endereco'
   | 'comercial'
   | 'classificacao'
-  | 'oss'
+  | 'operacoes'
+  | 'placas'
   | 'ia'
   | 'auditoria';
 
+// Wagner 2026-05-27 iteracao 2 (Proposta F): 6 tabs principais focadas em
+// CADASTRO/OPERACOES editaveis. Tabs read-only (placas/auditoria/ia) viraram
+// BOTOES NO HEADER do drawer (acesso 1-clique sem poluir tab bar). Rename
+// oss→operacoes (semantica clara: OSs ficavam dentro mas agora so coisas
+// REAIS de OS — Extrato/Vendas/Pagamentos/Documentos/Pessoas/Assinaturas/Pontos).
 const DRAWER_TABS: Array<{ key: DrawerTab; label: string }> = [
   { key: 'identificacao', label: 'Identificação' },
   { key: 'contato',       label: 'Contato' },
   { key: 'endereco',      label: 'Endereço' },
   { key: 'comercial',     label: 'Comercial' },
   { key: 'classificacao', label: 'Classificação' },
-  { key: 'oss',           label: 'OSs' },
-  { key: 'ia',            label: 'IA' },
-  { key: 'auditoria',     label: 'Auditoria' },
+  { key: 'operacoes',     label: 'Operações' },
 ];
 
 function relativeDate(iso: string | null | undefined): string {
@@ -1880,6 +1892,61 @@ function ClienteSheet({
               </a>
             </Button>
           </div>
+
+          {/* Wagner 2026-05-27 iteracao 2 (Proposta F) -- Botoes header pra
+              entidades secundarias: Placas (gate OficinaAuto, contador) +
+              Auditoria + IA. Acesso 1-clique sem poluir tab bar (6 tabs
+              principais focadas em cadastro/operacoes editaveis). */}
+          <div className="flex items-center gap-1 pt-1 flex-wrap" role="toolbar" aria-label="Atalhos do drawer">
+            {oficinaAutoEnabled && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('placas')}
+                className={
+                  'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ' +
+                  (activeTab === 'placas'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40')
+                }
+                aria-pressed={activeTab === 'placas'}
+                title="Ver veiculos cadastrados pra este cliente"
+              >
+                <Car size={11} aria-hidden />
+                <span>{contact?.vehicles_count ?? 0}</span>
+                <span>placas</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setActiveTab('auditoria')}
+              className={
+                'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ' +
+                (activeTab === 'auditoria'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40')
+              }
+              aria-pressed={activeTab === 'auditoria'}
+              title="Linha do tempo de auditoria LGPD"
+            >
+              <Activity size={11} aria-hidden />
+              <span>Auditoria</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('ia')}
+              className={
+                'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ' +
+                (activeTab === 'ia'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40')
+              }
+              aria-pressed={activeTab === 'ia'}
+              title="Cards de inteligencia (perfil/risco)"
+            >
+              <Sparkles size={11} aria-hidden />
+              <span>IA</span>
+            </button>
+          </div>
         </SheetHeader>
 
         {/* ─── 8 Tabs (pattern Show.tsx canon -- border-b-2 + overflow-x-auto) */}
@@ -1951,11 +2018,11 @@ function ClienteSheet({
               <div hidden={activeTab !== 'classificacao'}>
                 <ClassificacaoTab contact={contact} />
               </div>
-              {activeTab === 'oss' && (
-                <OssTab
-                  contact={{ id: contact.id, name: contact.name }}
-                  oficinaAutoEnabled={oficinaAutoEnabled}
-                />
+              {activeTab === 'operacoes' && (
+                <OssTab contact={{ id: contact.id, name: contact.name }} />
+              )}
+              {activeTab === 'placas' && oficinaAutoEnabled && (
+                <PlacasMainTab contactId={contact.id} />
               )}
               {activeTab === 'ia' && (
                 <IATab contact={{ id: contact.id, name: contact.name }} />
