@@ -3,10 +3,15 @@ page: /settings/payment-gateways
 component: resources/js/Pages/Settings/PaymentGateways/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-19
+last_validated: '2026-05-27'
 parent_module: PaymentGateway
-related_adrs: [0093, 0094, 0104, 0144, 0170]
-related_us: [US-PG-F3-SETTINGS]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0144-tasks-db-canonico-spec-template
+  - 0170-bancos-nativos-top5-drivers-separados
+related_us: [US-PG-F3-SETTINGS, US-FIN-044]
 related_prototype: prototipo Cowork "payment-gateway-ui" F1+F1.5 aprovado [W] 2026-05-19
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 93/100)
 tier: A
@@ -21,7 +26,7 @@ charter_version: 1
 
 ## Mission (1 frase)
 
-Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPal) — config inicial, ativar/desativar com confirmação Trust L3, health check real on-demand, link webhook por driver, rotação de mTLS pra credencial expirando, em uma view única estado-da-arte.
+Wagner gerencia credenciais dos drivers de cobrança (Inter + C6 + Asaas + BCB Pix + PesaPal + Pagar.me + **Sicoob API** + 11 CNAB) — config inicial, ativar/desativar com confirmação Trust L3, health check real on-demand, link webhook por driver, rotação de mTLS pra credencial expirando, em uma view única estado-da-arte.
 
 ---
 
@@ -33,7 +38,7 @@ Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPa
 - **Alerta mTLS vencendo** ≤30d (warn amber)
 - **DrawerGateway 4 tabs**:
   - Identificação (apelido + driver + ambiente + conta destino)
-  - Credenciais (campos dinâmicos por driver: Inter mTLS + cert / C6 ag+conta+código / Asaas api_key / BCB CNPJ+mTLS + senha / PesaPal deprecated alert)
+  - Credenciais (campos dinâmicos por driver: Inter mTLS + cert / C6 ag+conta+código / Asaas api_key / BCB CNPJ+mTLS + senha / Sicoob API client_id+secret+.pfx+convênio+carteira+conta (US-FIN-044) / PesaPal deprecated alert)
   - Webhook (URL pública + HMAC secret + eventos 24h)
   - Health (últ check + latência + histórico 7d sparkline + botão "Rodar agora")
 - **SheetNovoGateway wizard 3 steps**: Driver → Credenciais → Vínculo (FK account)
