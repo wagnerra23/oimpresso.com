@@ -1,0 +1,93 @@
+slug: kamila-martinho
+nome_real: Kamila
+cliente_real: martinho-cacambas
+business_id: null
+status: ativo
+created_at: '2026-05-27'
+updated_at: '2026-05-27'
+ultima_entrevista: null                 # placeholder — fazer próxima visita
+
+papel: administrativo-financeiro
+idade_aproximada: 50
+formacao: ensino médio + experiência prática 20+ anos gestão escritório
+genero: feminino
+relacao_com_dono: esposa do Jair (dono)
+
+local: escritório oficina pesada Martinho Tubarão SC
+monitor: "1920x1080 desktop escritório"
+hardware: "PC desktop dedicado escritório"
+ruido: medio
+pressa: media                            # rotinas administrativas, não urgência balcão
+
+frequencia_diaria:
+  - tela: financeiro/contas-receber
+    qtd: 20                             # cobrança de cliente PJ frota
+  - tela: financeiro/contas-pagar
+    qtd: 15                             # fornecedor peças
+  - tela: nfe-brasil
+    qtd: 10                             # emissão NF-e por OS faturada
+  - tela: cliente/index
+    qtd: 8                              # busca cliente pra cobrar / emitir nota
+  - tela: financeiro/fluxo-caixa
+    qtd: 3                              # conferência diária
+  - tela: financeiro/dre
+    qtd: 1                              # fim de mês
+
+tecnico: meio                            # 20 anos experiência admin, familiar com sistemas
+modelo_mental: "preciso ter o caixa controlado e as notas saindo certas — sem erro fiscal"
+
+jtbd:
+  - quando: "cliente PJ frota está atrasado no pagamento"
+    eu_quero: "abrir cliente e ver saldo + histórico de OSs + data último pagamento + telefone Jair contato"
+    para: "ligar cobrando com autoridade e info correta"
+    motivacao_funcional: "recuperar pagamento"
+    motivacao_emocional: "se sentir profissional, não amadora"
+    motivacao_social: "preservar relação com cliente (não brigar)"
+
+  - quando: "OS aprovada e faturada — emitir NF-e"
+    eu_quero: "abrir OS finalizada e clicar 'emitir NF-e' com dados pré-preenchidos cliente + CNPJ + IE + endereço fiscal"
+    para: "NF-e validada pela SEFAZ sem erro"
+    motivacao_funcional: "compliance fiscal sem erro"
+    motivacao_emocional: "tranquilidade — nada de SPED rejeitado pelo contador"
+
+  - quando: "fim do dia, fechar caixa"
+    eu_quero: "ver fluxo do dia: o que entrou (pagamentos OS), o que saiu (peças), saldo final"
+    para: "passar resumo pro Jair (esposo/dono) à noite"
+    motivacao_funcional: "relatório diário"
+    motivacao_emocional: "se sentir no controle do administrativo"
+
+fricoes:
+  - "abrir cliente pra cobrar e não ver telefone secundário (contador, gerente compras do cliente)"
+  - "emitir NF-e e descobrir que IE do cliente está vazio — preciso voltar pra cadastro do cliente"
+  - "ver saldo total que cliente deve, mas não vejo POR QUAL OS é a dívida (precisa drill down)"
+  - "campos fiscais (CFOP, NCM, regime) sumiram do cadastro cliente quando precisei conferir antes de NF-e"
+
+sucesso:
+  - "cobrança PJ frota: abre cliente + vê saldo + histórico + contato em 1 tela (<10s)"
+  - "emitir NF-e a partir de OS aprovada: ≤5 cliques + zero erro SEFAZ"
+  - "fluxo caixa do dia em 1 visão (entrada + saída + saldo) sem múltiplos relatórios"
+  - "drill-down: clicar no saldo do cliente e ver detalhe por OS"
+
+pesos_override:
+  density: 3                            # quer ver tudo do cliente PJ de uma vez
+  information_hierarchy: 3              # saldo + última OS + telefone visíveis em prioridade
+  i18n_pt_br: 3                         # campos fiscais BR (IE, IM, CFOP, NCM, regime, CNPJ formato)
+  error_recovery: 3                     # erro fiscal NF-e é caro — tem que dar pra desfazer rápido
+  microcopy: 2                          # mensagens claras sobre erro fiscal específico
+  affordance: 2                         # botões claros pra ação fiscal (emitir, cancelar NF, CC-e)
+  brand_confidence: 1                   # default 1 — Kamila quer eficiência operacional
+
+citacoes:
+  - data: "2026-05-27"
+    contexto: "inferred pre-discovery — refinar com cliente real próxima visita Tubarão"
+    texto: '"preciso emitir nota sem erro — contador reclama quando rejeita"'
+
+tags:
+  - tecnica-meio
+  - administrativo
+  - financeiro
+  - oficina-pesada
+  - fiscal-nfe-power-user
+  - desktop-primary
+  - pme-media
+  - cobranca-pj-frota
