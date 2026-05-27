@@ -148,12 +148,14 @@ class ClienteLookupController extends Controller
             // frontend mostrava "Configure cert A1" mesmo com cert OK + erro SEFAZ.
             // Agora SefazConsultaCadastroService popula $reason discriminado:
             //   'no_cert'        → user precisa configurar cert (badge action /fiscal/config)
+            //   'env_homolog'    → business em ambiente homologação (configurar PROD em /fiscal/config)
             //   'sefaz_error'    → SEFAZ-UF retornou erro/timeout (retry, não é cert)
             //   'uf_unsupported' → UF fora da whitelist (preencher IE manual)
             //   'flag_off'       → feature flag desligada
             //   'invalid_cnpj'   → CNPJ malformado (bug de envio do client)
             $message = match ($reason) {
                 'no_cert' => 'IE indisponível — configure certificado A1 em /fiscal/config',
+                'env_homolog' => 'IE indisponível — ambiente NFe está em HOMOLOGAÇÃO. SEFAZ ConsultaCadastro funciona apenas em produção. Configure ambiente em /fiscal/config → aba Ambiente.',
                 'sefaz_error' => "SEFAZ-{$uf} indisponível agora — preencha IE manualmente ou tente novamente em instantes",
                 default => 'IE indisponivel — preencha manualmente',
             };

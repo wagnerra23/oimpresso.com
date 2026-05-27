@@ -367,7 +367,7 @@ export default function IdentificacaoTab({
 
       // ── Parse SEFAZ inicial (Técnica C — paralelo) + detect timeout ─────
       let sefazData: Record<string, unknown> | null = null;
-      let sefazReason: 'unsupported' | 'no_cert' | 'sefaz_or_cert_error' | null = null;
+      let sefazReason: 'unsupported' | 'no_cert' | 'env_homolog' | 'sefaz_error' | 'sefaz_or_cert_error' | null = null;
       let sefazTimeoutFlag = false;
       const isAbortedResult = (r: SefazFetchResult): r is { aborted: true } =>
         r !== null && !('status' in r) && (r as { aborted?: boolean }).aborted === true;
@@ -378,7 +378,7 @@ export default function IdentificacaoTab({
         sefazData = await sefazInicialR.json().catch(() => null);
       } else if (sefazInicialR && 'status' in sefazInicialR && sefazInicialR.status === 404) {
         const errJson = await sefazInicialR.json().catch(() => ({}));
-        sefazReason = (errJson?.reason as 'unsupported' | 'no_cert' | 'sefaz_or_cert_error') ?? null;
+        sefazReason = (errJson?.reason as 'unsupported' | 'no_cert' | 'env_homolog' | 'sefaz_error' | 'sefaz_or_cert_error') ?? null;
       }
 
       // ── 2ª chance SEFAZ se BrasilAPI revelou UF nova ─────────────────────
@@ -481,7 +481,7 @@ export default function IdentificacaoTab({
 
       // ── Campos derivados SEFAZ (#1431 Técnica C) — gatilhos NFe + UX warnings
       const certSrc = (sefazData?.cert_source as string) || '';
-      let sefazSource: 'none' | 'primary' | 'institutional' | 'unsupported' | 'no_cert' | 'sefaz_error' = 'none';
+      let sefazSource: 'none' | 'primary' | 'institutional' | 'unsupported' | 'no_cert' | 'env_homolog' | 'sefaz_error' = 'none';
       const alertasSefaz = (sefazData?.alertas as Array<{ code: string; severity: string; msg: string }>) ?? [];
 
       if (sefazData) {
@@ -504,6 +504,11 @@ export default function IdentificacaoTab({
         sefazSource = 'unsupported';
       } else if (sefazReason === 'no_cert') {
         sefazSource = 'no_cert';
+      } else if (sefazReason === 'env_homolog') {
+        // Wagner 2026-05-27 follow-up: business em ambiente homologação (tpAmb=2)
+        // → SEFAZ ConsultaCadastro requer produção. Early-check no backend evita
+        // ~500ms-1s de auth fail com cadeia de cert de testes vs prod.
+        sefazSource = 'env_homolog';
       } else if (sefazReason === 'sefaz_error' || sefazReason === 'sefaz_or_cert_error') {
         // Fix Wagner 2026-05-27: distingue erro SEFAZ (timeout/SOAP/parsing) de
         // cert faltando. Antes ambos caíam em 'no_cert' → badge "Configure cert A1"
@@ -558,6 +563,8 @@ export default function IdentificacaoTab({
         mensagemBadge = `${fontesMsg} preenchidos. SEFAZ-${ufFinal} não disponível — preencha IE manual.`;
       } else if (sefazSource === 'no_cert') {
         mensagemBadge = `${fontesMsg} preenchidos. Configure cert A1 em /fiscal/config pra IE automática.`;
+      } else if (sefazSource === 'env_homolog') {
+        mensagemBadge = `${fontesMsg} preenchidos. Ambiente NFe em HOMOLOGAÇÃO — IE automática só funciona em produção. Configure em /fiscal/config → aba Ambiente.`;
       } else if (sefazSource === 'sefaz_error') {
         mensagemBadge = `${fontesMsg} preenchidos. SEFAZ-${ufFinal} indisponível agora — tente de novo em alguns minutos pra IE automática.`;
       }
