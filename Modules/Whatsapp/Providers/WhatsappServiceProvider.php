@@ -217,6 +217,8 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->app->singleton(MetaCloudDriver::class);
         $this->app->singleton(NullDriver::class);
         // BaileysDriver singleton REMOVIDO 2026-05-27 (ADR 0202).
+        // WhatsmeowDriver registrado 2026-05-27 (ADR 0204) — substituto Baileys.
+        $this->app->singleton(\Modules\Whatsapp\Services\Drivers\WhatsmeowDriver::class);
 
         // Centrifugo publisher singleton (stateless HTTP wrapper)
         $this->app->singleton(CentrifugoPublisher::class);
@@ -236,6 +238,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 'zapi' => $this->app->make(ZapiDriver::class),
                 'meta_cloud' => $this->app->make(MetaCloudDriver::class),
                 // 'baileys' descontinuado 2026-05-27 (ADR 0202) — cai pra NullDriver.
+                'whatsmeow' => $this->app->make(\Modules\Whatsapp\Services\Drivers\WhatsmeowDriver::class),
                 'null' => $this->app->make(NullDriver::class),
                 default => $this->app->make(NullDriver::class),
             };

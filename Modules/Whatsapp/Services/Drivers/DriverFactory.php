@@ -54,15 +54,18 @@ class DriverFactory
         return match ($effectiveDriver) {
             'zapi' => app(ZapiDriver::class),
             'meta_cloud' => app(MetaCloudDriver::class),
+            // ADR 0204 (2026-05-27) — whatsmeow substituto não-oficial Baileys.
+            // Daemon Go WuzAPI CT 100. Mesmo modelo Baileys + estabilidade melhor.
+            'whatsmeow' => app(WhatsmeowDriver::class),
             'baileys' => throw new NotImplementedDriverException(
                 "BaileysDriver foi descontinuado por ADR 0202 (2026-05-27). "
-                . "Supersede ADR 0096 emenda 4. Use 'meta_cloud' ou 'zapi'. "
-                . "Veja memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md."
+                . "Substituído por 'whatsmeow' (ADR 0204) ou use 'meta_cloud'/'zapi'. "
+                . "Veja memory/decisions/0204-whatsmeow-driver-substituto-baileys.md."
             ),
             'null' => app(NullDriver::class),
             default => throw new \InvalidArgumentException(
                 "Driver '{$effectiveDriver}' desconhecido. Valores válidos: "
-                . "'zapi', 'meta_cloud', 'null'."
+                . "'zapi', 'meta_cloud', 'whatsmeow', 'null'."
             ),
         };
     }
@@ -86,9 +89,10 @@ class DriverFactory
         return match ($config->driver) {
             'zapi' => app(ZapiDriver::class),
             'meta_cloud' => app(MetaCloudDriver::class),
+            'whatsmeow' => app(WhatsmeowDriver::class),
             'baileys' => throw new NotImplementedDriverException(
                 "BaileysDriver foi descontinuado por ADR 0202 (2026-05-27). "
-                . "Use 'meta_cloud' ou 'zapi'."
+                . "Use 'whatsmeow' (ADR 0204) ou 'meta_cloud'/'zapi'."
             ),
             'null' => app(NullDriver::class),
             default => throw new \InvalidArgumentException(
