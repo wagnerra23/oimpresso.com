@@ -1,101 +1,84 @@
 ---
-name: SVN auto-commit por tarefa em D:\Programas (Delphi WR Comercial)
-description: Regra Wagner 2026-05-27 — após cada tarefa concluída em D:\Programas\ (working copy SVN do código Delphi WR Comercial/Office Comercial/OficinaAuto + componentes ACBr/DUnit/etc), Claude commita SVN automaticamente em PT-BR pra criar histórico granular. svn.exe via SlikSvn 1.14.2 em C:\Program Files\SlikSvn\bin\. Atenção: commit SVN é centralizado (vira "push" imediato pro servidor servidor-crm:8777) — trata como publication-policy.
+name: SVN read-only em D:\Programas — Claude NÃO comita Delphi
+description: Regra Wagner 2026-05-27 — D:\Programas (working copy SVN compartilhada pelo time em servidor-crm:8777, Delphi WR Comercial/Office Comercial/OficinaAuto + componentes) é READ-ONLY pro Claude. Comitar source Delphi é regra sem ROI (princípio 4 Constituição v2 Loop fechado por métrica) porque Wagner não recompila/redistribui .exe (ADR 0113 + contrato-delphi-inviolavel.md). svn.exe (SlikSvn) instalado só pra LEITURA (info/log/status/diff/blame). Wagner comita manual quando decidir recompilar+distribuir.
 type: feedback
 ---
 
-# Auto-commit SVN no Delphi (D:\Programas)
+# SVN read-only em D:\Programas — Claude NÃO comita Delphi
 
 ## Regra (Wagner 2026-05-27)
 
-Após terminar **cada tarefa** em `D:\Programas\` (working copy SVN do código Delphi legacy WR Sistemas), **Claude commita** automaticamente com mensagem descritiva PT-BR. Cria histórico granular paralelo à disciplina git do oimpresso (1 PR = 1 intent).
+`D:\Programas\` é working copy SVN compartilhada pelo time inteiro (Wagner + Felipe + Maiara + Eliana + Luiz), apontando pro servidor central `http://servidor-crm:8777/svn/Programas`. Cobre o código Delphi WR Comercial / Office Comercial / OficinaAuto + componentes ACBr/DUnit/Imagens/Aprocat/Clinica/etc.
 
-## Why
+**Claude NÃO executa `svn commit`/`svn add`/`svn rm`/`svn delete`/`svn move`/`svn cp` em `D:\Programas\`** — nenhuma operação que modifique o repositório central.
 
-- Histórico SVN do Delphi tinha gaps grandes — último commit `Administrador` em rev 10815 (18/abr/2026, +1 mês atrás). Pequenos fixes Wagner faz dia-a-dia ficam working copy sujo e perdem rastreabilidade.
-- Quando bug aparecer em prod num cliente Delphi, `svn blame <arquivo.pas>` revela QUANDO/POR QUE editou. Equivalente ao `git log` do oimpresso.
-- Wagner já entendeu o fluxo SVN (centralizado, sem push separado) e quer formalizar a disciplina.
+`svn.exe` (SlikSvn 1.14.2 em `C:\Program Files\SlikSvn\bin\svn.exe`) instalado nesta sessão fica útil **só pra LEITURA**: `info`, `log`, `status`, `diff`, `blame`, `cat`, `list`, `propget`.
+
+## Why — princípio 4 Constituição v2
+
+> **"Loop fechado por métrica — toda regra tem dashboard provando ROI. Sem métrica = regra não existe."** ([ADR 0094](../decisions/0094-constituicao-v2-7-camadas-8-principios.md))
+
+Comitar source Delphi no SVN **não tem loop fechado**:
+
+1. Wagner declarou **não recompila/redistribui** os `.exe` Delphi ([ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md), [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md)). Code change que vai pro SVN **não chega em prod** — não vira binário rodando em cliente.
+2. Mudança no `.pas` que altera contrato API (`Services.OImpresso.Token.pas` / `Controller.TOImpresso.pas` / `Services.RegistroSistema.pas`) **quebra cliente permanentemente** se algum dia recompilar — Tier 0 [contrato-delphi-inviolavel.md §1](contrato-delphi-inviolavel.md) (regra de ouro: aditivo only).
+3. Time inteiro acessa o mesmo `servidor-crm:8777` — commit acidental do Claude poluiu histórico compartilhado SEM aprovação humana, e versão central não dá pra "git reset --hard" (SVN é centralizado).
+4. **Princípio mestre [contrato-delphi-inviolavel.md:233](contrato-delphi-inviolavel.md)**: *"Delphi é hardware fóssil. O servidor evolui em volta dele, nunca contra ele."*
+
+A estratégia oimpresso vs Delphi é evolução **server-side aditiva** ([ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md) — 3 caminhos: endpoints novos Connector / hooks Listener server-side / fila polling `ads_delphi_commands`). Tudo no Laravel, nada no `.pas`.
 
 ## How to apply
 
-### Trigger
-Após cada tarefa em D:\Programas\ ser concluída — Wagner confirma "pronto/done", ou tarefa Plan/TaskCreate finaliza. **NÃO commitar mid-task** (estado intermediário inconsistente vai pro servidor central na hora).
+### O que Claude PODE fazer em D:\Programas (READ-ONLY)
 
-### Ferramenta
-- **CLI:** `C:\Program Files\SlikSvn\bin\svn.exe` (instalada 2026-05-27 via `winget install Slik.Subversion`)
-- **NÃO** está no PATH automático em todos shells — usar caminho completo OU adicionar ao `$env:PATH` na sessão:
-  ```powershell
-  $svn = 'C:\Program Files\SlikSvn\bin\svn.exe'
-  ```
+| Comando | Uso |
+|---|---|
+| `& 'C:\Program Files\SlikSvn\bin\svn.exe' info <path>` | URL/UUID/revisão da working copy |
+| `& 'C:\...\svn.exe' log <path> -l 30 -v` | Últimos 30 commits + arquivos tocados |
+| `& 'C:\...\svn.exe' status <path>` | Ver edits locais (NÃO comitar) |
+| `& 'C:\...\svn.exe' diff <path>` | Ver diff vs base (debugar) |
+| `& 'C:\...\svn.exe' blame <arquivo.pas>` | Autor linha-a-linha pra entender bug histórico |
+| `& 'C:\...\svn.exe' cat <arquivo>@<rev>` | Conteúdo de versão antiga |
+| Read tool em `D:\Programas\**\*.pas` / `.dfm` / `.dpr` | Leitura passiva — documentação/análise/cross-ref com SPEC oimpresso |
+| Fallback `wc.db` (SQLite) | Se CLI quebrar — script Python `sqlite3.connect('D:/Programas/.svn/wc.db')` |
 
-### Workflow canônico por tarefa
+### O que Claude NÃO faz (HARD STOP)
 
-```powershell
-$svn = 'C:\Program Files\SlikSvn\bin\svn.exe'
-$wc  = 'D:\Programas'
+- ❌ `svn commit` — qualquer escopo, mesmo "1 arquivo só"
+- ❌ `svn add` / `svn rm` / `svn delete` / `svn move` / `svn cp` — qualquer operação que altere árvore
+- ❌ `svn merge` / `svn switch` — modificações estruturais
+- ❌ `svn propset` / `svn propedit` — propriedades versionadas
+- ❌ Edit/Write tools em `.pas`/`.dfm`/`.dpr`/`.inc`/`.rc` dentro de `D:\Programas\WR Comercial\app\` (cobre [PEGADINHAS.md:182](../legacy-delphi/PEGADINHAS.md) READ-ONLY hard rule)
+- ❌ Sugerir "vou comitar isso pra Wagner" / "vou criar branch SVN pra testar" / "vou propset ignore"
 
-# 1. Ver o que mudou
-& $svn status $wc | Where-Object { $_ -notmatch '^\?' }   # ignora untracked por enquanto
-& $svn diff $wc --depth=infinity | Select-Object -First 200
+### Se descobrir bug REAL no Delphi durante análise
 
-# 2. Adicionar arquivos novos relevantes (revisar manualmente — não cair em ?)
-& $svn add <arquivo-novo>
+Fluxo aprovado:
+1. Documenta o bug em [memory/legacy-delphi/PEGADINHAS.md](../legacy-delphi/PEGADINHAS.md) (apend-only, Felipe owner) ou ARQUITETURA.md `dominios/wr-comercial/` se for arquitetural
+2. **Não edita o `.pas`** — passa o achado pro Wagner com referência (`arquivo.pas:LL`, snippet, hipótese de fix)
+3. Se fix for crítico Tier 0 (contrato `/connector/api/*` quebrado): cria ADR proposal em `memory/decisions/proposals/`
+4. Wagner decide: (a) recompilar+distribuir manualmente IDE, (b) implementar workaround Laravel server-side aditivo per [ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md), (c) postergar
 
-# 3. Commit com mensagem PT-BR descritiva
-& $svn commit $wc -m "<tipo>: <descricao curta>
+### Quando esta regra muda
 
-<corpo opcional explicando WHY>
+Cria ADR nova `supersedes: [esta]` quando:
+- Wagner formaliza pipeline build Delphi automatizado (CI compila + assina + push pra cliente via Connector aditivo) — habilita commit automático SVN com loop fechado de prod
+- Time decide migrar `D:\Programas\` de SVN pra git (raro)
+- Refactor planejado de módulo Delphi morto (ex: `_Ideias/`, `drafts/`) — escopo limitado com ADR
 
-Tarefa: <ref opcional — ex US-OFICINA-002, oimpresso-task-id, bug N>"
-```
+Até lá: **READ-ONLY**.
 
-### Convenção de mensagem (PT-BR, similar ao conventional commits adaptado)
+## Setup técnico desta sessão
 
-| Prefixo | Quando usar | Exemplo |
-|---|---|---|
-| `fix:` | Correção bug Delphi | `fix: ordem token RegistroSistema.Execute (Bearer vazio)` |
-| `feat:` | Feature/funcionalidade nova | `feat: AfterLogin chama RegistrarSistema na inicializacao` |
-| `refactor:` | Limpeza sem mudar comportamento | `refactor: Controller.Principal extrai metodo VerificarAtualizacao` |
-| `chore:` | Componentes/build/instalador | `chore: bump ACBr componente para revisao trunk` |
-| `docs:` | Comentários/README internos | `docs: Principal.pas anota fluxo {$IFDEF WR2}` |
-
-NÃO usar inglês (codebase Delphi inteiro é PT-BR — RAZAOSOCIAL, CNPJCPF, EMPRESA, etc — manter consistência).
-
-### O que NUNCA fazer
-
-- ❌ `svn commit` sem `svn status` + `svn diff` review antes — commit SVN = visível IMEDIATAMENTE no servidor central (`http://servidor-crm:8777/svn/Programas`), sem janela de revert local
-- ❌ Commit com working copy contendo arquivos não-relacionados de outra tarefa (1 tarefa = 1 commit; se misturou, separar via `svn revert` parcial OU mudar TODOS pra um commit grande com mensagem honesta `chore: cleanup multiplas tarefas pendentes`)
-- ❌ Commit envolvendo credenciais ou .env-style (SYSDBA/masterkey hardcoded em Principal.pas `{$IFDEF WR2}` é caso especial documentado em [legacy-delphi-firebird.md](legacy-delphi-firebird.md) — qualquer outra credencial é violação)
-- ❌ Commit de `bin/` `dcu/` `__history/` (artefatos build Delphi) — verificar `.svnignore`/`svn:ignore` props antes
-- ❌ Mudar branch/tag SVN sem aprovação Wagner (SVN branch = pasta no servidor, custosa, raramente justificável)
-
-### Pré-flight check (1× por sessão)
-
-```powershell
-$svn = 'C:\Program Files\SlikSvn\bin\svn.exe'
-& $svn info 'D:\Programas' | Select-String 'URL|Revisão|Working'
-# Deve mostrar URL http://servidor-crm:8777/svn/Programas/Trunk e revisão > 10815
-& $svn status 'D:\Programas' --depth=immediates 2>&1 | Select-Object -First 5
-# Se já tem mudanças locais ALHEIAS à tarefa atual: alertar Wagner ANTES de editar
-```
-
-Se servidor SVN inacessível (LAN ausente, host `servidor-crm` não resolve): `svn commit` vai falhar com `E170013` ou `E215004`. Caso isso aconteça, Claude **não tenta retry** — avisa Wagner ("servidor SVN offline, mudanças continuam locais, commit fica pra quando voltar online"). Diferente de git, SVN NÃO permite commit local pendente — só working copy stash informal.
-
-## Relação com publication-policy
-
-Cada `svn commit` é equivalente a um `git push` no oimpresso → trata como publicação. Aplicar mesma matriz:
-
-- ✅ Executar direto: fix/feat/refactor de pequeno escopo dentro da tarefa que Wagner aprovou
-- ⚠️ Confirmar antes: commit que cruza módulos Delphi (`WR Comercial` + `Componentes/ACBr` simultaneamente — pode indicar tarefa mal separada)
-- ❌ Escalar pra Wagner: mudança em `app/Services/Services.OImpresso.Token.pas` (auth OAuth — Tier 0 contrato Delphi conforme [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md))
-
-## Relação com contrato-delphi-inviolavel.md
-
-Tier 0 IRREVOGÁVEL: o **wire de comunicação Delphi ↔ oimpresso backend** (endpoints `/oauth/token`, `/connector/api/processa-dados-cliente`, `/connector/api/officeimpresso/*`) não muda porque builds antigos rodando em clientes saudáveis nunca recompilam. Edit em `Services.OImpresso.Token.pas` / `Controller.TOImpresso.pas` / `Services.RegistroSistema.pas` requer aprovação Wagner explícita ANTES do commit, e mensagem deve referenciar [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md) no body.
+- `winget install Slik.Subversion` → `svn 1.14.2-SlikSvn` em `C:\Program Files\SlikSvn\bin\svn.exe` (não no `$env:PATH` automático)
+- Working copy `D:\Programas` confirmada: rev 10815 (18/abr/2026), URL `http://servidor-crm:8777/svn/Programas/Trunk`
+- TortoiseSVN GUI continua disponível pra Wagner comitar manual via Explorer
 
 ## Ver também
 
-- [legacy-delphi-firebird.md](legacy-delphi-firebird.md) — código fonte Delphi + bancos Firebird + credenciais canônicas + fluxo login→registro (seção "Inspeção via svn.exe" atualizada 2026-05-27)
-- [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md) — Tier 0 endpoints wire Delphi (NÃO recompila)
-- [feedback-nunca-publicar-credenciais.md](feedback-nunca-publicar-credenciais.md) — nunca ecoar credencial literal (aplica aos commit messages SVN também)
-- [commit-discipline](../../.claude/skills/commit-discipline) — disciplina git oimpresso (princípio análogo)
+- [ADR 0094 Constituição v2 — Loop fechado por métrica](../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — princípio 4 (ROI obrigatório)
+- [ADR 0113 — Integração Delphi↔Laravel 3 caminhos aditivos](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md) — "não recompilar regra"
+- [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md) — Tier 0 wire IRREVOGÁVEL + princípio mestre "hardware fóssil"
+- [memory/legacy-delphi/PEGADINHAS.md:182](../legacy-delphi/PEGADINHAS.md) — `D:\Programas\WR Comercial\app\` READ-ONLY hard rule (Felipe owner)
+- [legacy-delphi-firebird.md](legacy-delphi-firebird.md) — código fonte Delphi + bancos Firebird + creds Vaultwarden
+- [dominios/wr-comercial/ARQUITETURA.md](../dominios/wr-comercial/ARQUITETURA.md) — stack interno Delphi (FireDAC, OAuth, threading)
