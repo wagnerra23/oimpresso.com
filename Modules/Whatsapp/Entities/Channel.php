@@ -70,6 +70,16 @@ class Channel extends Model
     public const TYPE_WHATSAPP_META = 'whatsapp_meta';
     public const TYPE_WHATSAPP_ZAPI = 'whatsapp_zapi';
     public const TYPE_WHATSAPP_BAILEYS = 'whatsapp_baileys';
+    /**
+     * ADR 0204 (2026-05-27) — substituto não-oficial Baileys via daemon Go
+     * WuzAPI wrapping whatsmeow. Mesmo modelo (scan QR, custo zero, risco
+     * ban Meta) com estabilidade técnica melhor (sessões long-running estáveis
+     * + footprint -37% RAM).
+     *
+     * Baileys continua forbidden (ADR 0202) — deletado integral. whatsmeow
+     * é caminho novo, NÃO refactor Baileys.
+     */
+    public const TYPE_WHATSAPP_WHATSMEOW = 'whatsapp_whatsmeow';
     public const TYPE_INSTAGRAM = 'instagram';
     public const TYPE_MESSENGER = 'messenger';
     public const TYPE_EMAIL_IMAP = 'email_imap';
@@ -80,6 +90,7 @@ class Channel extends Model
         self::TYPE_WHATSAPP_META,
         self::TYPE_WHATSAPP_ZAPI,
         self::TYPE_WHATSAPP_BAILEYS,
+        self::TYPE_WHATSAPP_WHATSMEOW,
         self::TYPE_INSTAGRAM,
         self::TYPE_MESSENGER,
         self::TYPE_EMAIL_IMAP,
@@ -131,7 +142,31 @@ class Channel extends Model
             self::TYPE_WHATSAPP_META,
             self::TYPE_WHATSAPP_ZAPI,
             self::TYPE_WHATSAPP_BAILEYS,
+            self::TYPE_WHATSAPP_WHATSMEOW,
         ], true);
+    }
+
+    /**
+     * Convenção canônica do "user name" no daemon WuzAPI CT 100:
+     * `ch-{channel_uuid sem hífens}`.
+     *
+     * Espelha o pattern Baileys (`baileysInstanceId()`) — mantém legibilidade
+     * cross-driver: 1 channel → 1 instance/user com ID determinístico.
+     *
+     * Retorna null quando `channel_uuid` ausente OU type ≠ whatsmeow.
+     *
+     * @see Modules/Whatsapp/Services/Drivers/WhatsmeowDriver.php
+     * @see ADR 0204
+     */
+    public function whatsmeowUserName(): ?string
+    {
+        if ($this->type !== self::TYPE_WHATSAPP_WHATSMEOW) {
+            return null;
+        }
+        if (empty($this->channel_uuid)) {
+            return null;
+        }
+        return 'ch-' . str_replace('-', '', (string) $this->channel_uuid);
     }
 
     /**

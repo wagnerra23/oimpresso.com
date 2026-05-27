@@ -82,8 +82,8 @@ class ChannelsController extends Controller
         $channel->handles_outbound_default = (bool) ($data['handles_outbound_default'] ?? false);
         $channel->bot_enabled = (bool) ($data['bot_enabled'] ?? false);
 
-        // LGPD obrigatório pra Baileys
-        if ($data['type'] === Channel::TYPE_WHATSAPP_BAILEYS) {
+        // LGPD obrigatório pra TODOS drivers não-oficiais (Baileys + whatsmeow ADR 0204).
+        if (in_array($data['type'], [Channel::TYPE_WHATSAPP_BAILEYS, Channel::TYPE_WHATSAPP_WHATSMEOW], true)) {
             $channel->lgpd_acknowledged_at = now();
             $channel->lgpd_acknowledged_by_user_id = $userId;
         }
@@ -91,6 +91,7 @@ class ChannelsController extends Controller
         // Display identifier inferido per-type pra UI mostrar
         $channel->display_identifier = match ($data['type']) {
             Channel::TYPE_WHATSAPP_BAILEYS => $data['config']['baileys_phone_e164'] ?? null,
+            Channel::TYPE_WHATSAPP_WHATSMEOW => $data['config']['whatsmeow_phone_e164'] ?? null,
             Channel::TYPE_WHATSAPP_ZAPI => $data['config']['zapi_instance_id'] ?? null,
             Channel::TYPE_WHATSAPP_META => $data['config']['meta_phone_number_id'] ?? null,
             default => null,
@@ -367,10 +368,17 @@ class ChannelsController extends Controller
             ->where('business_id', $businessId)
             ->findOrFail($id);
 
+        // ADR 0204 (2026-05-27): branch separado pra whatsmeow.
+        // Baileys foi descontinuado (ADR 0202) mas o código de connect persiste
+        // pra arqueologia + migração ainda-em-curso. whatsmeow tem fluxo próprio.
+        if ($channel->type === Channel::TYPE_WHATSAPP_WHATSMEOW) {
+            return $this->connectWhatsmeow($channel);
+        }
+
         if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
             return response()->json([
                 'ok' => false,
-                'error' => "Connect rápido só implementado pra Baileys nesta fase. Tipo atual: {$channel->type}",
+                'error' => "Connect rápido só implementado pra Baileys/Whatsmeow nesta fase. Tipo atual: {$channel->type}",
             ], 422);
         }
 
@@ -549,6 +557,75 @@ class ChannelsController extends Controller
     }
 
     /**
+     * Conecta channel `whatsapp_whatsmeow` ao daemon Go WuzAPI CT 100 (ADR 0204).
+     *
+     * Fluxo:
+     *  1. Se channel ainda não tem `whatsmeow_user_token` → provisiona via
+     *     POST /admin/users no daemon (gera token criptograficamente forte +
+     *     configura webhook com {business_uuid} pra multi-tenant)
+     *  2. POST /session/connect (inicia sessão WhatsApp Web no daemon)
+     *  3. GET /session/qr (retorna QR base64 pra UI render no Dialog)
+     *  4. Frontend polls /status até state=connected (webhook Connected dispara)
+     */
+    protected function connectWhatsmeow(Channel $channel): JsonResponse
+    {
+        try {
+            // Resolve business pra obter business_uuid (webhook URL)
+            $business = \DB::table('business')
+                ->where('id', $channel->business_id)
+                ->first();
+
+            if ($business === null || empty($business->uuid)) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'Business sem uuid — não consigo montar webhook URL multi-tenant.',
+                ], 500);
+            }
+
+            $driver = app(\Modules\Whatsapp\Services\Drivers\WhatsmeowDriver::class);
+            $cfg = $channel->config_json ?? [];
+
+            // Provisiona sessão se ainda não foi
+            if (empty($cfg['whatsmeow_user_token'])) {
+                $provision = $driver->provisionSession($channel, (string) $business->uuid);
+
+                $cfg['whatsmeow_user_token'] = $provision['token'];
+                $cfg['whatsmeow_user_name'] = $provision['name'];
+                $cfg['whatsmeow_webhook_url'] = $provision['webhook'];
+                $channel->config_json = $cfg;
+                $channel->save();
+            }
+
+            // Inicia sessão + retorna QR
+            $result = $driver->connect($channel);
+
+            $channel->status = 'setup';
+            $channel->channel_health = 'never_checked';
+            $channel->save();
+
+            return response()->json([
+                'ok' => true,
+                'qr_png_data_url' => $result['qr_base64']
+                    ? 'data:image/png;base64,' . $result['qr_base64']
+                    : null,
+                'state' => $result['state'],
+                'message' => $result['qr_base64']
+                    ? 'Escaneie o QR no WhatsApp → Dispositivos vinculados.'
+                    : 'Daemon respondeu sem QR. State: ' . ($result['state'] ?? 'desconhecido'),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('whatsmeow.connect_exception', [
+                'channel_id' => $channel->id,
+                'exception' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'ok' => false,
+                'error' => 'Falha ao falar com daemon whatsmeow: ' . $e->getMessage(),
+            ], 502);
+        }
+    }
+
+    /**
      * Lê status atual da instance no daemon (poll do frontend pra detectar
      * connected após scan QR).
      */
@@ -559,8 +636,13 @@ class ChannelsController extends Controller
             ->where('business_id', $businessId)
             ->findOrFail($id);
 
+        // ADR 0204 — branch whatsmeow (status do daemon Go WuzAPI)
+        if ($channel->type === Channel::TYPE_WHATSAPP_WHATSMEOW) {
+            return $this->statusWhatsmeow($channel);
+        }
+
         if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
-            return response()->json(['state' => null, 'reason' => 'only_baileys']);
+            return response()->json(['state' => null, 'reason' => 'only_baileys_whatsmeow']);
         }
 
         $daemonUrl = config('whatsapp.baileys.daemon_url');
@@ -582,6 +664,63 @@ class ChannelsController extends Controller
             $state = $snap['state'] ?? 'unknown';
 
             // Atualiza channel.status quando conectado
+            if ($state === 'connected' && $channel->status !== 'active') {
+                $channel->status = 'active';
+                $channel->channel_health = 'healthy';
+                $channel->last_health_check_at = now();
+                $channel->save();
+            }
+
+            return response()->json([
+                'state' => $state,
+                'qr_available' => $state === 'qr_required',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'state' => 'error',
+                'error' => $e->getMessage(),
+            ], 502);
+        }
+    }
+
+    /**
+     * ADR 0204 — status pro daemon Go WuzAPI (channel.type=whatsapp_whatsmeow).
+     *
+     * WuzAPI /session/status retorna `{ Connected: bool, LoggedIn: bool, Jid: string }`.
+     * Mapeia pra states canon: connected / qr_required / disconnected / error.
+     */
+    protected function statusWhatsmeow(Channel $channel): JsonResponse
+    {
+        $cfg = $channel->config_json ?? [];
+        $userToken = $cfg['whatsmeow_user_token'] ?? null;
+
+        if (empty($userToken)) {
+            return response()->json(['state' => 'never_connected', 'qr_available' => false]);
+        }
+
+        $daemonUrl = config('whatsapp.whatsmeow.daemon_url');
+        $timeout = (int) config('whatsapp.whatsmeow.request_timeout', 10);
+
+        try {
+            $r = Http::withHeaders(['Token' => $userToken])
+                ->withoutVerifying() // FIXME: cert LE pendente CT 100 dev
+                ->timeout($timeout)
+                ->get(rtrim((string) $daemonUrl, '/') . '/session/status');
+
+            if (! $r->successful()) {
+                return response()->json(['state' => 'unknown', 'http' => $r->status()]);
+            }
+
+            $snap = $r->json();
+            $connected = (bool) ($snap['Connected'] ?? false);
+            $loggedIn = (bool) ($snap['LoggedIn'] ?? false);
+
+            $state = match (true) {
+                $connected && $loggedIn => 'connected',
+                $connected && ! $loggedIn => 'qr_required',
+                default => 'disconnected',
+            };
+
             if ($state === 'connected' && $channel->status !== 'active') {
                 $channel->status = 'active';
                 $channel->channel_health = 'healthy';
@@ -713,7 +852,10 @@ class ChannelsController extends Controller
             'has_zapi_credentials' => ! empty($cfg['zapi_instance_id']) && ! empty($cfg['zapi_instance_token']),
             'has_meta_credentials' => ! empty($cfg['meta_phone_number_id']) && ! empty($cfg['meta_access_token']),
             'has_baileys_credentials' => ! empty($cfg['baileys_phone_e164']),
+            // ADR 0204 — whatsmeow flag: tem creds quando user_token foi gerado pelo provision
+            'has_whatsmeow_credentials' => ! empty($cfg['whatsmeow_phone_e164']) && ! empty($cfg['whatsmeow_user_token']),
             'baileys_phone_e164' => $cfg['baileys_phone_e164'] ?? null, // não-secreto
+            'whatsmeow_phone_e164' => $cfg['whatsmeow_phone_e164'] ?? null, // não-secreto
             'zapi_instance_id' => $cfg['zapi_instance_id'] ?? null,     // não-secreto
             'meta_phone_number_id' => $cfg['meta_phone_number_id'] ?? null, // não-secreto
             // Wagner request 2026-05-14: botão "Importar Histórico" gated por
@@ -747,8 +889,17 @@ class ChannelsController extends Controller
             [
                 'value' => Channel::TYPE_WHATSAPP_BAILEYS,
                 'label' => 'WhatsApp Baileys',
-                'description' => 'DESCONTINUADO 2026-05-27 (ADR 0202). Use WhatsApp Meta Cloud.',
+                'description' => 'DESCONTINUADO 2026-05-27 (ADR 0202). Substituído por WhatsApp Whatsmeow (ADR 0204).',
                 'enabled' => false,
+            ],
+            [
+                // ADR 0204 (2026-05-27) — substituto não-oficial Baileys via
+                // daemon Go WuzAPI CT 100. Scan QR 30s, custo zero. Risco ban
+                // Meta igual Baileys (Wagner ciente, whatsmeow issue #810).
+                'value' => Channel::TYPE_WHATSAPP_WHATSMEOW,
+                'label' => 'WhatsApp Whatsmeow (Go)',
+                'description' => 'Scan QR 30s, custo zero. Daemon Go próprio CT 100. Risco ban Meta (não-oficial, ADR 0204).',
+                'enabled' => true,
             ],
             [
                 'value' => Channel::TYPE_INSTAGRAM,
