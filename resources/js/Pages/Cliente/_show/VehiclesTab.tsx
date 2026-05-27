@@ -13,6 +13,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { router } from '@inertiajs/react';
 import { Car, Search } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import StatusBadge from '@/Components/shared/StatusBadge';
 
 export interface VehicleItem {
   id: number;
@@ -46,14 +47,8 @@ export interface VehiclesTabProps {
   endpoint?: string;
 }
 
-// Mapeia enum DB pra label PT-BR — espelha labels do OficinaAuto canon.
-const STATUS_LABELS: Record<string, { text: string; tone: 'emerald' | 'blue' | 'amber' | 'rose' | 'slate' }> = {
-  active: { text: 'Ativo', tone: 'emerald' },
-  in_service: { text: 'Em serviço', tone: 'blue' },
-  awaiting_parts: { text: 'Aguardando peças', tone: 'amber' },
-  inactive: { text: 'Inativo', tone: 'slate' },
-  written_off: { text: 'Baixado', tone: 'rose' },
-};
+// Status labels delegados pro StatusBadge canon (kind='vehicle').
+// Ver: resources/js/Components/shared/StatusBadge.tsx mapping 'vehicle'.
 
 const TYPE_LABELS: Record<string, string> = {
   car: 'Carro',
@@ -160,7 +155,6 @@ export default function VehiclesTab(props: VehiclesTabProps) {
             </thead>
             <tbody className="divide-y divide-border">
               {items.map((v) => {
-                const status = STATUS_LABELS[v.current_status ?? ''] ?? { text: v.current_status ?? '—', tone: 'slate' as const };
                 const typeLabel = TYPE_LABELS[v.vehicle_type ?? ''] ?? (v.vehicle_type ?? '—');
                 const fuelLabel = v.fuel_type ? (FUEL_LABELS[v.fuel_type] ?? v.fuel_type) : '—';
                 const yearLabel = [v.manufacture_year, v.model_year].filter(Boolean).join('/') || '—';
@@ -180,7 +174,7 @@ export default function VehiclesTab(props: VehiclesTabProps) {
                     <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{v.chassis ?? '—'}</td>
                     <td className="px-3 py-2 text-muted-foreground">{fuelLabel}</td>
                     <td className="px-3 py-2">
-                      <StatusBadge tone={status.tone}>{status.text}</StatusBadge>
+                      <StatusBadge kind="vehicle" value={v.current_status ?? ''} />
                     </td>
                   </tr>
                 );
@@ -222,17 +216,5 @@ export default function VehiclesTab(props: VehiclesTabProps) {
   );
 }
 
-function StatusBadge({ tone, children }: { tone: 'emerald' | 'blue' | 'amber' | 'rose' | 'slate'; children: React.ReactNode }) {
-  const classes: Record<typeof tone, string> = {
-    emerald: 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300',
-    blue: 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950/30 dark:text-blue-300',
-    amber: 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
-    rose: 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-700 dark:bg-rose-950/30 dark:text-rose-300',
-    slate: 'border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-950/30 dark:text-slate-300',
-  };
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${classes[tone]}`}>
-      {children}
-    </span>
-  );
-}
+// StatusBadge helper local removido — substitído por <StatusBadge kind="vehicle"> canon
+// (resources/js/Components/shared/StatusBadge.tsx). PR D 2026-05-26 atende UI Lint ratchet.
