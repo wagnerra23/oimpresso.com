@@ -69,6 +69,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\JanaValidateMemoryCommand::class, // S1 Onda 5 P1 — schema rígido CI (6 schemas + AJV + grace period 14d)
                 \Modules\Jana\Console\Commands\FreshnessCheckCommand::class, // GAP D7 #2 auditoria 2026-05-15 — freshness pipeline (4 níveis + drift + alert + reindex)
                 \Modules\Jana\Console\Commands\JanaDriftSentinelCommand::class, // Wave 23 §G2 — canary semanal drift Jana (faithfulness vs baseline)
+                \Modules\Jana\Console\Commands\RetentionPurgeCommand::class, // G1 P0 AUDIT-SENIOR-2026-05-25 — D7.d LGPD purge (Art. 16 + Art. 18 §VI)
             ]);
         }
     }
@@ -240,6 +241,14 @@ class JanaServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/../Config/config.php',
             'copiloto'
+        );
+
+        // G1 P0 AUDIT-SENIOR-2026-05-25 — D7 LGPD retention.php sob namespace jana.retention.
+        // Permite config('jana.retention.entities.conversa') consumível por
+        // RetentionPurgeCommand + RetentionPurgeService (Modules/Jana/Services/Privacy).
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/retention.php',
+            'jana.retention',
         );
     }
 

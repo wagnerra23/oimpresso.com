@@ -73,6 +73,14 @@ class HandleInertiaRequests extends Middleware
                     'ui_sidebar_collapsed'  => (bool) ($user->ui_sidebar_collapsed ?? false),
                 ] : null,
                 'can' => $user ? $this->userPermissions($user) : [],
+                // Wagner 2026-05-20: superadmin "Sign in as user" (ManageUserController::signInAsUser)
+                // grava previous_user_id/previous_username na sessao. Expor pro React permite
+                // AppShellV2 mostrar banner "Voltar para X" em todas as telas Inertia (antes
+                // so funcionava em telas Blade via header.blade.php).
+                'switched_from' => $session->get('previous_user_id') ? [
+                    'user_id'  => (int) $session->get('previous_user_id'),
+                    'username' => (string) $session->get('previous_username'),
+                ] : null,
             ],
             'business' => $businessPayload,
             'ai' => [
@@ -144,7 +152,94 @@ class HandleInertiaRequests extends Middleware
                 'consultaOs'   => \Route::has('consulta-os.index'),
                 'repairStatus' => \Route::has('repair-status'),
             ],
+            // ADR 0191 — consent banner LGPD (pré-req Microsoft Clarity).
+            // Lido em ConsentBanner.tsx pra decidir se mostra a barra. Cookie
+            // é HttpOnly (JS não enxerga) — share é o canal pro frontend.
+            'consent' => $this->consentShare($request),
+            // ADR 0191 — Microsoft Clarity config (null quando snippet NÃO deve
+            // carregar: env off, sem project_id, anon, superadmin/oimpresso,
+            // ou sem consent analytics). Frontend não lê — snippet vem do Blade
+            // partial pra carregar cedo (evita race com hydration React).
+            'clarity' => $this->clarityShare($request),
         ]);
+    }
+
+    /**
+     * Microsoft Clarity config pro Inertia share (ADR 0191).
+     *
+     * Retorna `null` (snippet NÃO renderiza) quando QUALQUER guard falha:
+     *   - `services.clarity.enabled` = false (default — Wagner ativa manual)
+     *   - `services.clarity.project_id` ausente
+     *   - usuário não autenticado
+     *   - user_type ∈ ['superadmin', 'user_oimpresso'] (Wagner não polui dataset)
+     *   - consent analytics não aceito (LGPD opt-in obrigatório)
+     *
+     * Multi-tenant Tier 0 (ADR 0093): `business_id` vem de `auth.user.business_id`
+     * server-side, NUNCA de query string ou input cliente.
+     */
+    protected function clarityShare(Request $request): ?array
+    {
+        if (! config('services.clarity.enabled')) {
+            return null;
+        }
+        $projectId = config('services.clarity.project_id');
+        if (! $projectId) {
+            return null;
+        }
+        $user = $request->user();
+        if (! $user) {
+            return null;
+        }
+        if (in_array($user->user_type, ['superadmin', 'user_oimpresso'], true)) {
+            return null;
+        }
+        if (! $this->consentAnalyticsAccepted($request)) {
+            return null;
+        }
+
+        return [
+            'project_id'    => (string) $projectId,
+            'business_id'   => (string) $user->business_id,
+            'user_type'     => (string) $user->user_type,
+            'mask_strategy' => (string) config('services.clarity.mask_strategy', 'mask-all'),
+        ];
+    }
+
+    /**
+     * Verifica se o usuário aceitou cookies de analytics via banner LGPD.
+     * Reusa o cookie já parseado pelo `consentShare()`.
+     */
+    protected function consentAnalyticsAccepted(Request $request): bool
+    {
+        $raw = $request->cookie((string) config('services.consent.cookie_name', 'oimpresso_consent_v1'));
+        if (! $raw) {
+            return false;
+        }
+        $decoded = json_decode((string) $raw, true);
+        if (! is_array($decoded)) {
+            return false;
+        }
+        return (bool) ($decoded['analytics'] ?? false);
+    }
+
+    /**
+     * Estado do consent LGPD pro frontend (ADR 0191). Cookie é fonte de verdade;
+     * needs_banner=true quando ausente OU JSON corrompido.
+     */
+    protected function consentShare(Request $request): array
+    {
+        $raw = $request->cookie((string) config('services.consent.cookie_name', 'oimpresso_consent_v1'));
+        $decoded = $raw ? json_decode((string) $raw, true) : null;
+
+        if (! is_array($decoded)) {
+            return ['needs_banner' => true, 'analytics_accepted' => false, 'marketing_accepted' => false];
+        }
+
+        return [
+            'needs_banner'       => false,
+            'analytics_accepted' => (bool) ($decoded['analytics'] ?? false),
+            'marketing_accepted' => (bool) ($decoded['marketing'] ?? false),
+        ];
     }
 
     /**

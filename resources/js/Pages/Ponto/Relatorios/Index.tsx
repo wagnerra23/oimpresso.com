@@ -7,6 +7,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/RelatoriosIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import type { ReactNode } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -70,12 +71,16 @@ const corClasses: Record<CorKey, string> = {
 export default function RelatoriosIndex({ relatorios }: Props) {
   return (
     <>
-      <div className="mx-auto max-w-7xl p-6">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Relatórios</h1>
-          <p className="text-sm text-muted-foreground">
-            Geração de relatórios do módulo de ponto. Clique em <strong>Gerar</strong> para emitir.
-          </p>
+      <div className="mx-auto max-w-7xl p-6 space-y-4">
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Relatórios <span className="text-stone-400 font-normal">· Geração de documentos</span></h1>
+            <p>Clique em <strong>Gerar</strong> para emitir.</p>
+          </div>
+          <div className="os-page-h-r">
+            <PontoSubNav active="relatorios" hidePrimary />
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">

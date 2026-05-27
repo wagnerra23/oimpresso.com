@@ -157,18 +157,48 @@ export type SidebarMode = 'expanded' | 'rail';
 // Hue OKLCH por grupo (espelha GROUP_META do prototipo Cowork
 // _cowork-export-2026-05-15/data.jsx). Aplicado via CSS var --gh nos
 // elementos sb-group (dot + label) e sb-rail-group (tooltip + ícone).
+//
+// Sidebar v3 (ADR 0180, 2026-05-21): 8 keys canon (3 topo + 5 grupos).
+// Keys v2 preservadas durante migração faseada — Sidebar.tsx normaliza
+// via LEGACY_GROUP_MAP, mas alguns callers leem hue direto pela key
+// declarada. Cleanup das keys v2 vai na Fase 9.
 export const SIDEBAR_GROUP_HUE: Record<string, number> = {
-  office: 60,
-  oficina: 350,
-  fin: 145,
-  estoque: 30,
-  fiscal: 200,
-  rh: 295,
-  conhecimento: 80,
-  rel: 240,
-  ia: 220,
-  governanca: 270,
-  plataforma: 200,
+  // ── Topo v3 (3 fixos) — cores brand fixas ──
+  ia: 215,           // azul brand — calma/inteligência
+  atendimento: 30,   // laranja — acolhedor
+  equipe: 275,       // roxo — colaboração
+
+  // ── 8 grupos canon Wagner 2026-05-22 — ESCALA CANON espaçada no círculo
+  //     cromático pra distinção visual ≥25° entre cada grupo. Ordem semântica:
+  //     vermelho (energia) → âmbar (vendas) → verde (dinheiro) → ciano (técnico)
+  //     → azul (dados) → índigo (sistema) → magenta (organização).
+  producao: 8,       // vermelho — energia/atividade intensa (fábrica/OS)
+  comercial: 55,     // âmbar/ouro — dinheiro/vendas
+  pessoas: 88,       // verde-limão — calor humano/crescimento (RH)
+  financas: 145,     // verde — dinheiro/finance
+  fiscal: 175,       // turquesa — oficial/técnico (NF-e/SPED)
+  cadastro: 202,     // ciano — dados/registro
+  sistema: 245,      // índigo — autoridade/configuração
+  estoque: 315,      // magenta — organização/inventory
+
+  // ── Legacy v2 aliases (preservadas durante migração — removíveis na F9) ──
+  vender: 55,        // → comercial
+  operar: 8,         // → producao
+
+  // ── Legacy v2 (preservadas durante migração faseada — removidas na F9) ──
+  office: 60,             // → vender
+  oficina: 350,           // → operar
+  'fin-op': 145,          // → financas
+  'fin-analise': 155,     // → financas
+  'fin-config': 135,      // → financas
+  fin: 145,               // → financas
+  estoque: 350,           // → operar
+  fiscal: 145,            // → financas (era 200, conflitava com sistema)
+  rh: 295,                // → pessoas
+  conhecimento: 220,      // → ia
+  rel: 220,               // → ia
+  governanca: 200,        // → sistema (era 270, conflitava com equipe)
+  plataforma: 200,        // → sistema
 };
 
 // ── helpers ─────────────────────────────────────────────────────────────
@@ -179,17 +209,29 @@ export function gradientFor(id: number): string {
   return `linear-gradient(135deg, oklch(0.55 0.15 ${hue}), oklch(0.65 0.15 ${(hue + 60) % 360}))`;
 }
 
-// DEPRECATED 2026-05-10 — cascata "Superadmin" do user dropdown footer foi
-// removida (Wagner). Admin de plataforma agora vive no sidebar principal:
-// Officeimpresso em ACESSOS RÁPIDOS, demais (CMS/Conector/Backup/Módulos) em
-// novo grupo "PLATAFORMA". SidebarMenu não filtra mais — itens caem no grupo
-// canônico via SIDEBAR_GROUPS. Set mantido vazio + isSuperadminMenu sempre
-// false pra preservar callers (SidebarMenu.principais filter, SidebarFooter
-// hasSuperadmin) sem quebrar até refactor remover o code path.
-export const SUPERADMIN_LABELS = new Set<string>();
+// Wagner 2026-05-22 REVIVED: cascata "Superadmin" do user dropdown footer
+// RESTAURADA. Admin de plataforma (Módulos/Backup/CMS/Conector/Office Impresso/
+// Personalizar) sai do menu principal e vai pra cascade no rodapé esquerdo
+// (avatar user). Mantém menu principal limpo + agrupa admin onde faz sentido.
+//
+// Histórico:
+// - 2026-04-27: SUPERADMIN_LABELS criado pra filtrar items pro user dropdown
+// - 2026-05-10: Wagner removeu (admin de plataforma virou grupo PLATAFORMA)
+// - 2026-05-22: Wagner reviveu (sidebar v3 — admin volta pra cascade rodapé)
+//
+// SidebarMenu.principais filter usa isSuperadminMenu() pra excluir esses
+// labels do menu principal. SidebarUserMenu renderiza cascade lateral.
+export const SUPERADMIN_LABELS = new Set<string>([
+  'Módulos', 'Modulos', 'Manage Modules',
+  'Backup',
+  'CMS', 'Cms',
+  'Conector', 'Connector',
+  'Office Impresso', 'Officeimpresso',
+  'Personalizar',
+]);
 
-export function isSuperadminMenu(_label: string): boolean {
-  return false;
+export function isSuperadminMenu(label: string): boolean {
+  return SUPERADMIN_LABELS.has(label.trim());
 }
 
 // Items que vão pro user dropdown footer (botão de avatar/usuário no rodapé)

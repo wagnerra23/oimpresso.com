@@ -3,13 +3,37 @@ import { Switch as SwitchPrimitive } from "radix-ui"
 
 import { cn } from "@/Lib/utils"
 
+type SwitchVariant = "shadcn" | "cowork"
+
 function Switch({
   className,
   size = "default",
+  variant = "shadcn",
   ...props
 }: React.ComponentProps<typeof SwitchPrimitive.Root> & {
   size?: "sm" | "default"
+  /**
+   * Visual variant.
+   *
+   * **Default `shadcn`** (mantido pra não quebrar telas legacy).
+   *
+   * **Opt-in `cowork` (ADR UI-0015)**: aplica `.cw-switch` / `.cw-switch-thumb`
+   * — track 28×16, thumb 12px, accent quando on. Visual fiel ao protótipo Cowork.
+   */
+  variant?: SwitchVariant
 }) {
+  if (variant === "cowork") {
+    return (
+      <SwitchPrimitive.Root
+        data-slot="switch"
+        className={cn("cw-switch", className)}
+        {...props}
+      >
+        <SwitchPrimitive.Thumb data-slot="switch-thumb" className="cw-switch-thumb" />
+      </SwitchPrimitive.Root>
+    )
+  }
+
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -31,3 +55,4 @@ function Switch({
 }
 
 export { Switch }
+export type { SwitchVariant }

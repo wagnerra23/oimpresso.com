@@ -72,36 +72,53 @@ describe('Anti-regressão hardcode biz=N — IRREVOGÁVEL Wagner 2026-05-18', fu
     });
 });
 
-describe('Que sobrevive do trabalho biz=4 anterior — sem hardcode', function () {
-    it('Financeiro DataController publica 4 entradas top-level (não dropdown)', function () {
+describe('Sidebar FINANÇAS canon — 4 entries flat (Wagner 2026-05-26)', function () {
+    it('Financeiro DataController publica 3 entries top-level (Caixa · Cobrança · Financeiro)', function () {
         $src = file_get_contents(ROOT . '/Modules/Financeiro/Http/Controllers/DataController.php');
-        // 4 URLs separados em vez de 1 dropdown
-        expect($src)->toContain('/financeiro/unificado');
-        expect($src)->toContain('/financeiro/fluxo');
-        expect($src)->toContain('/financeiro/relatorios');
-        expect($src)->toContain('/financeiro/boletos');
-        // Orders fracionários 85.0/85.1/85.2/85.3
-        expect($src)->toContain('->order(85)');
-        expect($src)->toContain('->order(85.1)');
-        expect($src)->toContain('->order(85.2)');
-        expect($src)->toContain('->order(85.3)');
+        // 3 URLs primary distintos (4ª entrada Cobrança Recorrente vem do RecurringBilling)
+        expect($src)->toContain("url('/financeiro/caixa')");
+        expect($src)->toContain("url('/financeiro/cobranca')");
+        expect($src)->toContain("url('/financeiro/unificado')");
+        // Orders fracionários 85.00 / 85.10 / 85.20 (3 entries Financeiro)
+        expect($src)->toContain('->order(85.00)');
+        expect($src)->toContain('->order(85.10)');
+        expect($src)->toContain('->order(85.20)');
+        // Labels canon
+        expect($src)->toContain("'Caixa'");
+        expect($src)->toContain("'Cobrança'");
+        // Gateway é GHOST da Cobrança — não entry separada
+        expect($src)->toContain("'key' => 'gateway'");
+        expect($src)->toContain("/settings/payment-gateways");
     });
 
-    it('Lang pt/financeiro tem 3 chaves (cashflow / dre / boletos=Gateway)', function () {
-        $src = file_get_contents(ROOT . '/Modules/Financeiro/Resources/lang/pt/financeiro.php');
-        expect($src)->toContain("'cashflow_label' => 'Fluxo de Caixa'");
-        expect($src)->toContain("'dre_label' => 'DRE / Relatórios'");
-        expect($src)->toContain("'boletos_label' => 'Gateway de Pagamento'");
+    it('Cobrança Recorrente continua entry própria (RecurringBilling DataController)', function () {
+        $src = file_get_contents(ROOT . '/Modules/RecurringBilling/Http/Controllers/DataController.php');
+        expect($src)->toContain("'Cobrança Recorrente'");
+        expect($src)->toContain("'group'   => 'financas'");
+        expect($src)->toContain('->order(86)');
     });
 
-    it('Sidebar.tsx SIDEBAR_GROUPS tem 3 labels novas no grupo fin', function () {
+    it('PaymentGateway DataController NÃO injeta sidebar (Gateway virou ghost)', function () {
+        $src = file_get_contents(ROOT . '/Modules/PaymentGateway/Http/Controllers/DataController.php');
+        // Método modifyAdminMenu existe MAS é no-op (vazio + docblock)
+        expect($src)->toContain('public function modifyAdminMenu(): void');
+        expect($src)->not->toContain("Menu::modify");
+        expect($src)->not->toContain("'Gateway de Pagamento'");
+    });
+
+    it('Sidebar.tsx SIDEBAR_GROUPS.financas tem 4 labels canon flat', function () {
         $src = file_get_contents(ROOT . '/resources/js/Components/cockpit/Sidebar.tsx');
-        expect($src)->toContain("'Fluxo de Caixa'");
-        expect($src)->toContain("'DRE / Relatórios'");
-        expect($src)->toContain("'Gateway de Pagamento'");
-        // MENU_ICON_MAP entries
-        expect($src)->toContain("'fluxo de caixa': TrendingUp");
+        // Whitelist canon (substitui ['Financeiro'] de antes)
+        expect($src)->toContain("items: ['Caixa', 'Cobrança', 'Financeiro', 'Cobrança Recorrente'],");
+        // MENU_ICON_MAP entries novos
+        expect($src)->toContain("caixa: Banknote,");
+        expect($src)->toContain("'cobrança': HandCoins");
+        // Ícones legacy preservados pra ghost render
         expect($src)->toContain("'gateway de pagamento': CreditCard");
+        expect($src)->toContain("'cobrança recorrente': RefreshCw");
+        // Imports lucide novos
+        expect($src)->toContain("Banknote,");
+        expect($src)->toContain("HandCoins,");
     });
 });
 

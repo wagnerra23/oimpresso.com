@@ -22,6 +22,8 @@ use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ContactCreatedOrModified;
+use App\Http\Requests\Cliente\StoreContactRequest;
+use App\Http\Requests\Cliente\UpdateContactRequest;
 use Inertia\Inertia;
 
 class ContactController extends Controller
@@ -41,6 +43,158 @@ class ContactController extends Controller
             return true;
         }
         return in_array($business_id, $allowedBizIds, true);
+    }
+
+    /**
+     * Detecta XHR LEGACY (DataTable Yajra, jQuery AJAX, autocomplete) — exclui
+     * Inertia partial reload que ALSO seta X-Requested-With: XMLHttpRequest.
+     *
+     * Bug pré-existente 2026-05-21: ativar MWART_CLIENTE_INDEX=true expôs collision —
+     * Inertia partial reload pra carregar Inertia::defer caía nos branches
+     * `if (request()->ajax())` retornando DataTable JSON cru → Inertia client erra
+     * "All Inertia requests must receive a valid Inertia response".
+     *
+     * Fix: usar este helper em vez de `request()->ajax()` direto em TODOS os
+     * branches que retornam JSON (DataTable/autocomplete/contact lookup). Inertia
+     * envia header `X-Inertia: true` que diferencia das XHR legacy.
+     *
+     * Ver: PR #1299 fix/contact-controller-inertia-ajax-collision (2026-05-21).
+     */
+    private function isLegacyAjax(): bool
+    {
+        return request()->ajax() && ! request()->hasHeader('X-Inertia');
+    }
+
+    /**
+     * Wave C US-CRM-065 — Paginador de vendas do contato pra SalesTab React.
+     * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório em TODO query.
+     * Espelha shape esperado pelo `SalesPaginator` em resources/js/Pages/Cliente/_show/SalesTab.tsx.
+     */
+    private function buildClienteSalesPaginator(int $contactId, int $businessId, Request $req): array
+    {
+        $startDate = $req->query('customer_sales_start');
+        $endDate = $req->query('customer_sales_end');
+        $status = $req->query('customer_sales_status');
+        $q = trim((string) $req->query('customer_sales_q', ''));
+        $page = max(1, (int) $req->query('customer_sales_page', 1));
+
+        // FIX 2026-05-21: `transactions.total_paid` NÃO existe no schema UltimatePOS.
+        // Pagamentos vivem em `transaction_payments.amount` (1:N). Subquery scalar inline.
+        $totalPaidExpr = '(SELECT COALESCE(SUM(amount), 0) FROM transaction_payments WHERE transaction_payments.transaction_id = transactions.id)';
+        $query = Transaction::where('transactions.business_id', $businessId)
+            ->where('contact_id', $contactId)
+            ->where('type', 'sell')
+            ->where('status', '!=', 'draft')
+            ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
+            ->select(
+                'transactions.id',
+                'transactions.invoice_no',
+                'transactions.ref_no',
+                'transactions.transaction_date',
+                'transactions.final_total',
+                DB::raw("{$totalPaidExpr} AS total_paid"),
+                'transactions.payment_status',
+                'transactions.status',
+                'bl.name as location_name',
+            );
+
+        if ($startDate) {
+            $query->whereDate('transactions.transaction_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('transactions.transaction_date', '<=', $endDate);
+        }
+        if ($status && in_array($status, ['paid', 'due', 'partial', 'overdue'], true)) {
+            $query->where('transactions.payment_status', $status);
+        }
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('transactions.invoice_no', 'like', "%{$q}%")
+                    ->orWhere('transactions.ref_no', 'like', "%{$q}%");
+            });
+        }
+
+        $paginator = $query->orderByDesc('transactions.transaction_date')
+            ->paginate(20, ['*'], 'customer_sales_page', $page);
+
+        return [
+            'data' => $paginator->getCollection()->map(fn ($tx) => [
+                'id' => (int) $tx->id,
+                'invoice_no' => (string) $tx->invoice_no,
+                'ref_no' => $tx->ref_no,
+                'transaction_date' => optional($tx->transaction_date)->toIso8601String(),
+                'final_total' => (float) $tx->final_total,
+                'total_paid' => (float) $tx->total_paid,
+                'total_due' => (float) (((float) $tx->final_total) - ((float) $tx->total_paid)),
+                'payment_status' => (string) $tx->payment_status,
+                'status' => (string) $tx->status,
+                'location_name' => $tx->location_name,
+            ])->all(),
+            'total' => $paginator->total(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+            'links' => collect($paginator->linkCollection() ?? $paginator->toArray()['links'] ?? [])->map(fn ($l) => [
+                'url' => $l['url'] ?? null,
+                'label' => (string) ($l['label'] ?? ''),
+                'active' => (bool) ($l['active'] ?? false),
+            ])->all(),
+        ];
+    }
+
+    /**
+     * Wave Onda 1 PR D 2026-05-26 — Paginador de veículos do contato (frota Martinho).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório.
+     * Reutiliza schema `vehicles` do Modules/OficinaAuto (ADR 0137) — coluna
+     * `contact_id` já liga veículo ao cliente. Sem migration nova.
+     *
+     * Caller (show()) é responsável por gate `oficinaauto_enabled` —
+     * este helper NÃO checa o módulo (pra facilitar reuso futuro em outros contextos).
+     *
+     * Query string: `vehicles_q` (LIKE placa/secondary_plate/chassis), `vehicles_page`.
+     */
+    private function buildClienteVehiclesPaginator(int $contactId, int $businessId, Request $req): array
+    {
+        $q = trim((string) $req->query('vehicles_q', ''));
+        $page = max(1, (int) $req->query('vehicles_page', 1));
+
+        $query = \Modules\OficinaAuto\Entities\Vehicle::where('business_id', $businessId)
+            ->where('contact_id', $contactId);
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('plate', 'like', "%{$q}%")
+                    ->orWhere('secondary_plate', 'like', "%{$q}%")
+                    ->orWhere('chassis', 'like', "%{$q}%");
+            });
+        }
+
+        $paginator = $query->orderByDesc('id')->paginate(20, ['*'], 'vehicles_page', $page);
+
+        return [
+            'data' => $paginator->getCollection()->map(fn ($v) => [
+                'id' => (int) $v->id,
+                'plate' => (string) $v->plate,
+                'secondary_plate' => $v->secondary_plate,
+                'chassis' => $v->chassis,
+                'manufacture_year' => $v->manufacture_year,
+                'model_year' => $v->model_year,
+                'renavam' => $v->renavam,
+                'vehicle_type' => (string) ($v->vehicle_type ?? ''),
+                'current_status' => (string) ($v->current_status ?? ''),
+                'color' => $v->color,
+                'fuel_type' => $v->fuel_type,
+                'mileage_at_entry' => $v->mileage_at_entry,
+                'notes' => $v->notes,
+            ])->all(),
+            'total' => $paginator->total(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+        ];
     }
 
     /**
@@ -103,18 +257,24 @@ class ContactController extends Controller
 
         $type = request()->get('type');
 
-        $types = ['supplier', 'customer'];
+        // ADR 0188 (multi-type 2026-05-24) + Wagner 2026-05-25: whitelist canon canônica
+        // alinhada com $inertiaTypes abaixo (linha ~237). Antes era ['supplier', 'customer']
+        // UPOS legacy → /contacts?type=all/employee/representative caía em redirect()->back()
+        // (bug: usuário em /sells clicava em "Contatos" sidebar → voltava pra /sells).
+        $types = ['supplier', 'customer', 'employee', 'representative', 'all'];
 
         if (empty($type) || ! in_array($type, $types)) {
             return redirect()->back();
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             if ($type == 'supplier') {
                 return $this->indexSupplier();
             } elseif ($type == 'customer') {
                 return $this->indexCustomer();
             } else {
+                // ADR 0188 — papéis novos (employee/representative/all) caem no branch
+                // Inertia abaixo. AJAX legacy não suporta esses tipos.
                 exit('Not Found');
             }
         }
@@ -129,10 +289,21 @@ class ContactController extends Controller
         }
 
         // W1-B3 MWART branch — Inertia render quando flag cliente_index liga.
-        if ($type === 'customer' && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
+        // ADR 0188 — Slot 2 PT-01 multi-type: aceita 4 papéis + 'all'. Permissões
+        // Spatie permanecem mapeadas pra 'customer.*' (UPOS legacy) por simplicidade
+        // operacional — Wagner expande pra 'supplier.*' etc em ondas futuras se time
+        // pedir granularidade por papel.
+        $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        if (in_array($type, $inertiaTypes, true) && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
             return Inertia::render('Cliente/Index', [
-                'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id)),
-                'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id)),
+                'activeType' => $type,
+                'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type)),
+                // ADR 0189 v3.1 + LEARNINGS AP18 (2026-05-25): counters por papel canon
+                // pro PageHeader Zona C subnav. Backend devolve count(*) por tipo;
+                // frontend NUNCA recalcula via rows.filter (rows traz só tipo ativo,
+                // server-side filtered → outros tipos retornariam 0 — bug visível).
+                'tab_counts' => Inertia::defer(fn () => $this->buildClienteIndexTabCounts((int) $business_id)),
+                'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id, $type)),
                 'permissions' => [
                     'create' => auth()->user()->can('customer.create'),
                     'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
@@ -146,13 +317,55 @@ class ContactController extends Controller
     }
 
     /**
+     * ADR 0188 — Aplica filtro por papel canônico em Builder · prefere flags `is_X`
+     * aditivas (migration 2026_05_24_200000) com fallback `type` enum UPOS legacy
+     * pra ambientes pré-migration ou se a coluna for dropada por rollback.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $q
+     * @return mixed Builder com filter aplicado (encadeável).
+     */
+    private function applyContactTypeFilter($q, string $type)
+    {
+        $flagColumn = [
+            'customer' => 'is_customer',
+            'supplier' => 'is_supplier',
+            'employee' => 'is_employee',
+            'representative' => 'is_representative',
+        ];
+
+        if ($type === 'all') {
+            return $q; // Sem filtro · todos papéis
+        }
+
+        $flag = $flagColumn[$type] ?? null;
+        if ($flag === null) {
+            // Fallback defensivo · tipo inválido cai pra customer (já validado em /cliente route).
+            return $q->where('contacts.type', 'customer');
+        }
+
+        // Prefere flag se a coluna existir (post-migration).
+        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', $flag)) {
+            return $q->where("contacts.{$flag}", 1);
+        }
+
+        // Fallback legacy: type enum UPOS. Mapeia 'customer' ↔ 'both' (UPOS legacy convention).
+        if ($type === 'customer') {
+            return $q->whereIn('contacts.type', ['customer', 'both']);
+        }
+
+        return $q->where('contacts.type', $type);
+    }
+
+    /**
      * W1-B3 — Constrói KPIs da listagem de clientes pra Inertia/React.
      * Multi-tenant: scoped por `business_id` ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
      */
-    private function buildClienteIndexKpis(int $business_id): array
+    private function buildClienteIndexKpis(int $business_id, string $type = 'customer'): array
     {
-        $base = Contact::where('contacts.business_id', $business_id)
-            ->whereIn('type', ['customer', 'both']);
+        $base = Contact::where('contacts.business_id', $business_id);
+        // ADR 0188 — filtra via flag aditiva `is_X` se a coluna existir (migration
+        // rodou). Fallback `type` enum legacy UPOS pra ambientes pré-migration.
+        $base = $this->applyContactTypeFilter($base, $type);
 
         $total = (clone $base)->count();
         $com_os_aberta = (clone $base)
@@ -175,10 +388,13 @@ class ContactController extends Controller
                   ->where('transactions.due_date', '<', now());
             })
             ->count();
+        // FIX 2026-05-21: `transactions.total_paid` NÃO existe no schema UltimatePOS.
+        // Pagamentos estão em `transaction_payments.amount` (1:N). Subquery scalar.
+        $totalPaidSub = '(SELECT COALESCE(SUM(amount), 0) FROM transaction_payments WHERE transaction_payments.transaction_id = transactions.id)';
         $valor_total_aberto = (float) Transaction::where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->whereIn('transactions.payment_status', ['due', 'partial'])
-            ->sum(DB::raw('final_total - COALESCE(total_paid, 0)'));
+            ->sum(DB::raw("final_total - {$totalPaidSub}"));
 
         return [
             'total' => (int) $total,
@@ -189,25 +405,126 @@ class ContactController extends Controller
     }
 
     /**
+     * ADR 0189 PageHeader canon v3.1 + LEARNINGS AP18 (2026-05-25):
+     * counters por papel pro Zona C subnav. Backend devolve 5 counts canônicos
+     * (all + 4 papeis ADR 0188), frontend NUNCA recalcula via rows.filter
+     * — rows traz só tipo ativo (server-side filtered) → outros retornariam 0.
+     *
+     * Multi-tenant Tier 0: scoped por `business_id` ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+     * Perf: 5 queries COUNT — OK com índice `(business_id, is_X)` ou `(business_id, type)`.
+     *
+     * @return array{all:int,customer:int,supplier:int,employee:int,representative:int}
+     */
+    private function buildClienteIndexTabCounts(int $business_id): array
+    {
+        $base = Contact::where('contacts.business_id', $business_id);
+
+        $counts = [
+            'all' => (int) (clone $base)->count(),
+        ];
+
+        foreach (['customer', 'supplier', 'employee', 'representative'] as $tipo) {
+            $q = clone $base;
+            $counts[$tipo] = (int) $this->applyContactTypeFilter($q, $tipo)->count();
+        }
+
+        return $counts;
+    }
+
+    /**
      * W1-B3 — Constrói lista paginada de clientes pra Inertia/React.
      * Multi-tenant scope obrigatório ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
      */
-    private function buildClienteIndexCustomers(int $business_id): array
+    private function buildClienteIndexCustomers(int $business_id, string $type = 'customer'): array
     {
         $perPage = (int) request()->input('per_page', 50);
         $perPage = max(10, min($perPage, 100));
 
-        $contacts = Contact::where('contacts.business_id', $business_id)
-            ->whereIn('contacts.type', ['customer', 'both'])
-            ->select(
-                'contacts.id',
-                'contacts.name',
-                'contacts.tax_number',
-                'contacts.contact_id',
-                'contacts.mobile',
-            )
+        // Wave G (ADR 0179) — payload expandido com campos cadastrais p/ tabela turbinada.
+        // SELECT defensivo: usa hasColumn pra cada campo Wave B (migration aditiva
+        // idempotente — em ambientes onde migration ainda não rodou, evita SQL error).
+        // Campos canon UPOS (sempre presentes): id, name, tax_number, contact_id, mobile,
+        // city, state, address_line_1, balance. Campos Wave B adicionados via migration
+        // 2026_05_22_000000: tipo, fantasia, tags, segmento, vip, favorito_users, etc.
+        $hasWaveBCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'tipo');
+        $selectCols = [
+            'contacts.id',
+            'contacts.name',
+            'contacts.tax_number',
+            'contacts.contact_id',
+            'contacts.mobile',
+            'contacts.city',
+            'contacts.state',
+            'contacts.balance',
+            'contacts.created_at',
+            // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
+            // CNPJ/CEP zera campos no EnderecoTab (undefined → setState('')) e a UI
+            // some apesar do DB ter os dados. Wagner 2026-05-27.
+            'contacts.zip_code',
+            'contacts.address_line_1',
+            'contacts.address_line_2',
+        ];
+        // `neighborhood` e `numero` (BR canon) — migrations aditivas recentes
+        // (2026_05_22_120000 e 2026_05_22_180000). hasColumn graceful pra
+        // ambientes pré-migration.
+        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'neighborhood')) {
+            $selectCols[] = 'contacts.neighborhood';
+        }
+        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'numero')) {
+            $selectCols[] = 'contacts.numero';
+        }
+        if ($hasWaveBCols) {
+            $selectCols = array_merge($selectCols, [
+                'contacts.tipo',
+                'contacts.fantasia',
+                'contacts.tags',
+                'contacts.segmento',
+                'contacts.vip',
+            ]);
+        }
+
+        // ADR 0188 Onda 4 — incluir flags multi-papel se a migration rodou.
+        // Graceful degradation: hasColumn check evita erro SQL em ambiente
+        // pre-migration. Front recebe null/false → Drawer trata como unchecked.
+        $hasOnda4Cols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'is_customer');
+        if ($hasOnda4Cols) {
+            $selectCols = array_merge($selectCols, [
+                'contacts.is_customer',
+                'contacts.is_supplier',
+                'contacts.is_employee',
+                'contacts.is_representative',
+            ]);
+        }
+
+        // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
+        $contactsQuery = Contact::where('contacts.business_id', $business_id);
+        $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
+
+        // Fix 2026-05-26 — search server-side. Antes o frontend filtrava `rows`
+        // em memória sobre a página paginada (default 50) — busca por nome só
+        // encontrava clientes da página atual. Agora `q` bate no banco via LIKE
+        // em colunas indexáveis (name/tax_number/mobile/fantasia). Multi-tenant
+        // Tier 0 OK — scope `business_id` já aplicado acima ([ADR 0093]).
+        $q = trim((string) request()->input('q', ''));
+        if ($q !== '') {
+            $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
+            $hasFantasia = $hasWaveBCols; // fantasia veio na Wave B junto com tipo.
+            $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
+                $w->where('contacts.name', 'like', $like)
+                    ->orWhere('contacts.tax_number', 'like', $like)
+                    ->orWhere('contacts.mobile', 'like', $like)
+                    ->orWhere('contacts.contact_id', 'like', $like);
+                if ($hasFantasia) {
+                    $w->orWhere('contacts.fantasia', 'like', $like);
+                }
+            });
+        }
+
+        $contacts = $contactsQuery
+            ->select($selectCols)
             ->orderBy('contacts.name', 'asc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
 
         $contactIds = $contacts->pluck('id')->all();
 
@@ -219,23 +536,37 @@ class ContactController extends Controller
                 DB::raw('COUNT(*) AS total_os'),
                 DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN 1 ELSE 0 END) AS os_abertas'),
                 DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') AND due_date IS NOT NULL AND due_date < NOW() THEN 1 ELSE 0 END) AS os_atrasadas'),
-                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN (final_total - COALESCE(total_paid, 0)) ELSE 0 END) AS valor_aberto'),
+                // FIX 2026-05-21: subquery em transaction_payments (total_paid NÃO existe no schema).
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN (final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id)) ELSE 0 END) AS valor_aberto'),
                 DB::raw('MAX(transaction_date) AS last_os_at'),
+                // Wave G — última compra real (qualquer status, não só due/partial) pra FrescorPill.
+                // Distingue de last_os_at que é última OS aberta. Wave G FrescorPill calcula
+                // dias desde last_purchase pra classificar fresc/recente/distante/frio.
+                DB::raw('MAX(CASE WHEN status != \'draft\' THEN transaction_date ELSE NULL END) AS last_purchase_at'),
             )
             ->groupBy('contact_id')
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
             $atrasadas = $row ? (int) $row->os_atrasadas : 0;
             $valorAberto = $row ? (float) $row->valor_aberto : 0.0;
             $lastOsAt = $row ? $row->last_os_at : null;
+            $lastPurchaseAt = $row ? $row->last_purchase_at : null;
             $status = $atrasadas > 0 ? 'late' : ($abertas > 0 ? 'active' : 'idle');
 
-            return [
+            // Wave G — saldo devedor convenção CRM (positivo = cliente nos deve).
+            // Combina valor_aberto (OS due/partial) - contacts.balance (adiantamento +).
+            // UPOS: contacts.balance >0 = cliente tem crédito conosco (positivo p/
+            // ele). Convertendo p/ frame "devedor do CRM": subtraímos.
+            $balance = (float) ($contact->balance ?? 0);
+            $saldoDevedor = $valorAberto - $balance;
+
+            // Wave G — payload base sempre presente.
+            $payload = [
                 'id' => (int) $contact->id,
                 'name' => (string) $contact->name,
                 'tax_number_masked' => $this->maskTaxNumber($contact->tax_number),
@@ -247,7 +578,56 @@ class ContactController extends Controller
                 'valor_aberto' => $valorAberto,
                 'status' => $status,
                 'last_os_at' => $lastOsAt,
+                // Wave G novos campos cadastrais.
+                // avatar_hash_seed = name (HSL hash determinístico Components/clientes/Avatar.tsx).
+                // Frontend usa name por default mas seed explícito permite estabilidade
+                // mesmo se name mudar futuramente.
+                'avatar_hash_seed' => (string) $contact->name,
+                'cidade' => $contact->city,
+                'uf' => $contact->state,
+                'saldo_devedor' => round($saldoDevedor, 2),
+                'last_purchase_at' => $lastPurchaseAt,
+                // Z-2.1: subtitle drawer "Pessoa jurídica · cadastrado há Xd".
+                'created_at' => optional($contact->created_at)->toIso8601String(),
+                // Endereço canon EN — sem esses campos no payload, EnderecoTab
+                // useEffect reseta state local pra '' quando router.reload({only:['rows']})
+                // dispara pós lookup CNPJ/CEP (`contact.zip_code ?? ''` com undefined → '').
+                // city/state já presentes acima como cidade/uf alias PT-BR — mas
+                // EnderecoTab prefere canon EN. Wagner 2026-05-27.
+                'zip_code' => $contact->zip_code,
+                'address_line_1' => $contact->address_line_1,
+                'address_line_2' => $contact->address_line_2,
+                'neighborhood' => $contact->neighborhood ?? null,
+                'numero' => $contact->numero ?? null,
+                'city' => $contact->city,
+                'state' => $contact->state,
             ];
+
+            // Wave G — campos opcionais quando migration Wave B rodou.
+            // Compatibilidade: ambientes em produção podem ter rodado migration
+            // Wave B ainda não (graceful — null em vez de erro SQL no select).
+            if ($hasWaveBCols) {
+                $payload['tipo'] = $contact->tipo;
+                $payload['fantasia'] = $contact->fantasia;
+                $payload['tags'] = is_array($contact->tags) ? $contact->tags : [];
+                $payload['segmento'] = $contact->segmento;
+                $payload['vip'] = (bool) $contact->vip;
+            } else {
+                $payload['tipo'] = null;
+                $payload['fantasia'] = null;
+                $payload['tags'] = [];
+                $payload['segmento'] = null;
+                $payload['vip'] = false;
+            }
+
+            // ADR 0188 Onda 4 — flags multi-papel pro Drawer 760 seção "Papéis".
+            // Bool no payload (front cast direto · MySQL int 0/1 → React bool).
+            $payload['is_customer'] = (bool) ($contact->is_customer ?? false);
+            $payload['is_supplier'] = (bool) ($contact->is_supplier ?? false);
+            $payload['is_employee'] = (bool) ($contact->is_employee ?? false);
+            $payload['is_representative'] = (bool) ($contact->is_representative ?? false);
+
+            return $payload;
         })->all();
 
         return [
@@ -263,6 +643,89 @@ class ContactController extends Controller
                 'dir' => 'asc',
             ],
         ];
+    }
+
+    /**
+     * Wave G (ADR 0179) — Export CSV da listagem de clientes.
+     *
+     * Endpoint: GET /cliente/export
+     *
+     * - Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): scope business_id obrigatório.
+     * - PII LGPD: tax_number sai mascarado no CSV (CPF.***.***.000-XX), nunca plain.
+     * - BOM UTF-8 \xEF\xBB\xBF p/ Excel-BR abrir acentuação OK.
+     * - Streamed via chunk(500) — evita memory blow em biz=4 Larissa (30+ clientes/dia
+     *   ROTA LIVRE, exports periódicos contábeis).
+     * - Permission: customer.view (lista) — sem permission de export separada porque
+     *   listar = ver = exportar (mesmo recorte de dados).
+     *
+     * Não acopla com BizzImport/BizzExport — esse é um CSV simples PT-BR p/ Excel/
+     * Sheets, sem header machine-readable.
+     */
+    public function clienteExport(Request $request)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')) {
+            abort(403, 'Sem permissão pra exportar clientes.');
+        }
+
+        $businessId = (int) $request->session()->get('user.business_id');
+        if (! $businessId) {
+            abort(403, 'Sessão sem business_id.');
+        }
+
+        $filename = 'clientes-' . now()->format('Y-m-d-His') . '.csv';
+
+        // Checa colunas Wave B (graceful — em ambiente onde migration não rodou,
+        // colunas ficam vazias no CSV em vez de erro SQL).
+        $hasWaveBCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'tipo');
+
+        return response()->stream(function () use ($businessId, $hasWaveBCols) {
+            $out = fopen('php://output', 'w');
+            // BOM UTF-8 — Excel-BR abre acentuação OK (Larissa biz=4 usa Excel local).
+            fwrite($out, "\xEF\xBB\xBF");
+
+            // Cabeçalho PT-BR. Separador ; (CSV Brasil padrão), não vírgula.
+            fputcsv($out, [
+                'Nome',
+                'Tipo',
+                'Documento',
+                'Email',
+                'Telefone',
+                'Cidade',
+                'UF',
+                'Segmento',
+                'Tags',
+                'VIP',
+            ], ';');
+
+            Contact::where('business_id', $businessId)
+                ->whereIn('type', ['customer', 'both'])
+                ->orderBy('name', 'asc')
+                ->chunk(500, function ($contacts) use ($out, $hasWaveBCols) {
+                    foreach ($contacts as $c) {
+                        $tags = $hasWaveBCols && is_array($c->tags ?? null) ? implode(',', $c->tags) : '';
+                        fputcsv($out, [
+                            $c->name ?? '',
+                            $hasWaveBCols ? ($c->tipo ?? '') : '',
+                            // PII LGPD — documento mascarado, NUNCA plain.
+                            $this->maskTaxNumber($c->tax_number) ?? '',
+                            $c->email ?? '',
+                            $c->mobile ?? '',
+                            $c->city ?? '',
+                            $c->state ?? '',
+                            $hasWaveBCols ? ($c->segmento ?? '') : '',
+                            $tags,
+                            $hasWaveBCols && $c->vip ? 'Sim' : 'Não',
+                        ], ';');
+                    }
+                });
+
+            fclose($out);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+        ]);
     }
 
     /**
@@ -808,10 +1271,14 @@ class ContactController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Slice 7 — type-hint StoreContactRequest wira App\Rules\BR\CpfCnpj +
+     * regras canon BR (indicador_ie 1/2/9, regime simples/presumido/real/mei).
+     * Authorize já roda no FormRequest; abort(403) abaixo é defensividade legacy.
+     *
+     * @param  \App\Http\Requests\Cliente\StoreContactRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreContactRequest $request)
     {
         if (! auth()->user()->can('supplier.create') && ! auth()->user()->can('customer.create') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
             abort(403, 'Unauthorized action.');
@@ -825,7 +1292,12 @@ class ContactController extends Controller
             }
 
             $input = $request->only(['type', 'supplier_business_name',
-                'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'address_line_1', 'address_line_2', 'customer_group_id', 'zip_code', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'dob', 'shipping_custom_field_details', 'assigned_to_users', ]);
+                'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'address_line_1', 'address_line_2', 'customer_group_id', 'zip_code', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'dob', 'shipping_custom_field_details', 'assigned_to_users',
+                // Campos BR restaurados — migration 2026_05_21_140000 (regressão UPOS 6.7).
+                'cpf_cnpj', 'rg', 'inscricao_estadual', 'inscricao_municipal', 'indicador_ie', 'nome_fantasia', 'consumidor_final', 'contribuinte', 'regime', 'suframa',
+                // Onda 1 PR B' (Daniela @ Martinho) — emails extras (migration 2026_05_26_140000).
+                'email_billing', 'email_nfe',
+            ]);
 
             $name_array = [];
 
@@ -887,6 +1359,30 @@ class ContactController extends Controller
             ];
         }
 
+        // Inertia-aware response (bug fix 2026-05-25 -- Wagner reportou modal
+        // "All Inertia requests must receive a valid Inertia response, however
+        // a plain JSON response was received" ao salvar cliente novo via
+        // /contacts/create). Tela Inertia espera redirect com headers proprios;
+        // retornar array vira JSON puro e Inertia client lanca modal de erro.
+        //
+        // Detecta via X-Inertia header e converte pra Inertia-friendly:
+        //   sucesso -> redirect()->route('contacts.index') com flash
+        //   erro    -> back()->withInput()->withErrors([...])
+        //
+        // Legacy AJAX/cURL sem header X-Inertia mantem JSON UPOS pra
+        // back-compat com integracoes externas.
+        if ($request->header('X-Inertia')) {
+            if (! empty($output['success'])) {
+                return redirect()
+                    ->route('contacts.index')
+                    ->with('status', $output['msg'] ?? __('contact.added_success'));
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors(['msg' => $output['msg'] ?? __('messages.something_went_wrong')]);
+        }
+
         return $output;
     }
 
@@ -941,14 +1437,33 @@ class ContactController extends Controller
            ->latest()
            ->get();
 
+        // Wave B ADR 0179 — paradigma drawer 760px substitui Show.tsx full-page.
+        // Quando cliente_index liga, redireciona 302 -> Index com deeplink
+        // ?contact_id={id}&tab=identificacao. Tem prioridade sobre cliente_show
+        // branch abaixo (cliente_show vira fallback legacy emergencial).
+        // Multi-tenant: $contact ja foi resolvido com Contact::find($id) acima
+        // sob session('user.business_id') -- chegou aqui = cross-tenant safe.
+        if (config('mwart.cliente_index.enabled')) {
+            $tab = (string) (request()->query('tab') ?: 'identificacao');
+            return redirect()->to("/cliente?contact_id={$contact->id}&tab={$tab}");
+        }
+
         // W1-B3 MWART branch — Inertia render quando flag cliente_show liga.
         if ($this->shouldRenderInertiaCliente('cliente_show', (int) $business_id)) {
+            $req = request();
+            $tab = (string) ($req->query('tab') ?? 'ledger');
+            $contact_type = (string) ($contact->type ?? 'customer');
+            $user = auth()->user();
+            $can_customer_update = $user->can('customer.update');
+            $can_supplier_update = $user->can('supplier.update');
+
             return Inertia::render('Cliente/Show', [
                 'contact' => [
                     'id' => (int) $contact->id,
                     'name' => (string) $contact->name,
                     'supplier_business_name' => $contact->supplier_business_name ?? null,
-                    'type' => (string) ($contact->type ?? 'customer'),
+                    'type' => $contact_type,
+                    'is_active' => (bool) ($contact->contact_status === 'active'),
                     'tax_number_masked' => $this->maskTaxNumber($contact->tax_number ?? null),
                     'mobile' => $contact->mobile ?? null,
                     'landline' => $contact->landline ?? null,
@@ -956,7 +1471,31 @@ class ContactController extends Controller
                     'city' => $contact->city ?? null,
                     'state' => $contact->state ?? null,
                     'address_line_1' => $contact->address_line_1 ?? null,
+                    // Dados Fiscais BR (migration 2026_05_21_140000). cpf_cnpj formatado
+                    // via maskTaxNumber (canon Show.charter Automation Anti-hook) — NAO
+                    // entrega plain pro frontend.
+                    'cpf_cnpj_masked' => $this->maskTaxNumber($contact->cpf_cnpj ?? null),
+                    'inscricao_estadual' => $contact->inscricao_estadual ?? null,
+                    'inscricao_municipal' => $contact->inscricao_municipal ?? null,
+                    'indicador_ie' => $contact->indicador_ie ?? null,
+                    'nome_fantasia' => $contact->nome_fantasia ?? null,
+                    'consumidor_final' => (bool) ($contact->consumidor_final ?? false),
+                    'contribuinte' => (bool) ($contact->contribuinte ?? true),
+                    'regime' => $contact->regime ?? null,
+                    'suframa' => $contact->suframa ?? null,
                 ],
+                'initialTab' => in_array($tab, ['ledger', 'sales', 'payments', 'documents', 'activities', 'persons', 'subscriptions', 'rewards', 'vehicles'], true) ? $tab : 'ledger',
+                'modules' => [
+                    // Onda 1 PR D 2026-05-26 — frontend gate pra tab Veículos.
+                    // Daniela (Martinho cliente piloto) precisa enxergar frota do cliente
+                    // direto do cadastro. Schema `vehicles` (ADR 0137) já tem contact_id.
+                    'oficinaauto_enabled' => (bool) $this->moduleUtil->isModuleInstalled('OficinaAuto'),
+                ],
+                // Defer só quando módulo instalado pra evitar referenciar Modules\OficinaAuto\Entities\Vehicle
+                // em business que não tem o módulo (autoload do nWidart só registra Modules ativos).
+                'vehicles' => $this->moduleUtil->isModuleInstalled('OficinaAuto')
+                    ? Inertia::defer(fn () => $this->buildClienteVehiclesPaginator((int) $contact->id, (int) $business_id, request()))
+                    : null,
                 'stats' => Inertia::defer(fn () => [
                     'total_invoice' => (float) ($contact->total_invoice ?? 0),
                     'invoice_due' => (float) (($contact->total_invoice ?? 0) - ($contact->invoice_paid ?? 0)),
@@ -978,8 +1517,134 @@ class ContactController extends Controller
                         'payment_status' => (string) $tx->payment_status,
                     ])
                     ->all()),
+                // Inertia::defer roda em request separado (partial reload only:['sales']) — usa request() corrente, NÃO $req capturado.
+                'sales' => Inertia::defer(fn () => $this->buildClienteSalesPaginator((int) $contact->id, (int) $business_id, request())),
+                'locations' => $business_locations->map(fn ($name, $id) => ['id' => (int) $id, 'name' => (string) $name])->values()->all(),
+                // Onda Final.A — Contact picker header: lista clientes (customer+both) ativos do biz pro dropdown trocar contato sem voltar.
+                // Defer porque pode ser custoso em business com muitos contatos. Multi-tenant Tier 0 (ADR 0093).
+                'contact_dropdown' => Inertia::defer(fn () => Contact::where('contacts.business_id', $business_id)
+                    ->whereIn('contacts.type', ['customer', 'both'])
+                    ->where('contacts.contact_status', 'active')
+                    ->orderBy('name')
+                    ->limit(500)
+                    ->get(['id', 'name', 'contact_id', 'supplier_business_name'])
+                    ->map(fn ($c) => [
+                        'id' => (int) $c->id,
+                        'name' => (string) $c->name,
+                        'contact_id' => $c->contact_id,
+                        'supplier_business_name' => $c->supplier_business_name,
+                    ])
+                    ->all()),
+                // Onda Final.B — Tab Atividades: activity log Spatie\Activitylog do contact.
+                // Multi-tenant Tier 0 (ADR 0093): Activity::forSubject já scope por subject_id.
+                'activities' => Inertia::defer(fn () => Activity::forSubject($contact)
+                    ->with(['causer'])
+                    ->latest()
+                    ->limit(100)
+                    ->get()
+                    ->map(fn ($a) => [
+                        'id' => (int) $a->id,
+                        'created_at' => optional($a->created_at)->toIso8601String(),
+                        'description' => (string) ($a->description ?? ''),
+                        'description_label' => (string) __('lang_v1.' . ($a->description ?? '')),
+                        'causer_name' => $a->causer->user_full_name ?? null,
+                        'from_api' => $a->getExtraProperty('from_api') ?? null,
+                        'is_automatic' => (bool) $a->getExtraProperty('is_automatic'),
+                        'update_note' => is_string($a->getExtraProperty('update_note')) ? $a->getExtraProperty('update_note') : null,
+                    ])
+                    ->all()),
+                // Onda Final.C — Tab Pessoas de contato: usuários CRM com crm_contact_id = $contact->id.
+                // Feature do Modules/Crm — fica vazio se CRM module não habilitado pra biz. Multi-tenant Tier 0.
+                'contact_persons' => Inertia::defer(fn () => User::where('business_id', $business_id)
+                    ->where('crm_contact_id', $contact->id)
+                    ->orderBy('first_name')
+                    ->limit(200)
+                    ->get(['id', 'username', 'email', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation'])
+                    ->map(fn ($u) => [
+                        'id' => (int) $u->id,
+                        'username' => (string) ($u->username ?? ''),
+                        'email' => $u->email,
+                        'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
+                        'department' => $u->crm_department,
+                        'designation' => $u->crm_designation,
+                    ])
+                    ->all()),
+                // Onda Final.E — Tab Reward Points: pontos fidelidade do contact.
+                // Condicional business.enable_rp (passa null se desligado).
+                'reward_points' => Inertia::defer(fn () => ($req->session()->get('business.enable_rp') == 1 && in_array($contact->type, ['customer', 'both'], true))
+                    ? [
+                        'enabled' => true,
+                        'rp_name' => (string) ($req->session()->get('business.rp_name') ?? 'Pontos'),
+                        'summary' => [
+                            'total_earned' => (int) ($contact->total_rp ?? 0),
+                            'total_used' => (int) ($contact->total_rp_used ?? 0),
+                            'total_expired' => (int) ($contact->total_rp_expired ?? 0),
+                            'balance' => (int) (((int) ($contact->total_rp ?? 0)) - ((int) ($contact->total_rp_used ?? 0)) - ((int) ($contact->total_rp_expired ?? 0))),
+                        ],
+                        'history' => Transaction::where('transactions.business_id', $business_id)
+                            ->where('transactions.contact_id', $contact->id)
+                            ->where(function ($q) {
+                                $q->where('transactions.rp_earned', '>', 0)
+                                  ->orWhere('transactions.rp_redeemed', '>', 0);
+                            })
+                            ->orderByDesc('transactions.transaction_date')
+                            ->limit(100)
+                            ->get(['id', 'invoice_no', 'transaction_date', 'final_total', 'rp_earned', 'rp_redeemed', 'rp_redeemed_amount'])
+                            ->map(fn ($tx) => [
+                                'id' => (int) $tx->id,
+                                'invoice_no' => (string) ($tx->invoice_no ?? ''),
+                                'transaction_date' => optional($tx->transaction_date)->toIso8601String(),
+                                'final_total' => (float) $tx->final_total,
+                                'rp_earned' => (int) ($tx->rp_earned ?? 0),
+                                'rp_redeemed' => (int) ($tx->rp_redeemed ?? 0),
+                                'rp_redeemed_amount' => (float) ($tx->rp_redeemed_amount ?? 0),
+                            ])
+                            ->all(),
+                    ]
+                    : ['enabled' => false, 'rp_name' => '', 'summary' => null, 'history' => []]),
+                // Onda Final.D — Tab Assinaturas: transactions is_recurring=1 do contact (recur_parent_id NULL = pai da série).
+                // Multi-tenant Tier 0 (ADR 0093): business_id + contact_id scope obrigatório.
+                'subscriptions' => Inertia::defer(fn () => Transaction::where('transactions.business_id', $business_id)
+                    ->where('transactions.contact_id', $contact->id)
+                    ->where('transactions.is_recurring', 1)
+                    ->whereNull('transactions.recur_parent_id')
+                    ->leftJoin('business_locations as bl_sub', 'transactions.location_id', '=', 'bl_sub.id')
+                    ->orderByDesc('transactions.transaction_date')
+                    ->limit(100)
+                    ->get([
+                        'transactions.id',
+                        'transactions.subscription_no',
+                        'transactions.transaction_date',
+                        'transactions.recur_interval',
+                        'transactions.recur_interval_type',
+                        'transactions.recur_repetitions',
+                        'transactions.recur_stopped_on',
+                        'bl_sub.name as location_name',
+                    ])
+                    ->map(fn ($s) => [
+                        'id' => (int) $s->id,
+                        'subscription_no' => (string) ($s->subscription_no ?? ''),
+                        'transaction_date' => optional($s->transaction_date)->toIso8601String(),
+                        'recur_interval' => (int) ($s->recur_interval ?? 0),
+                        'recur_interval_type' => (string) ($s->recur_interval_type ?? ''),
+                        'recur_repetitions' => (int) ($s->recur_repetitions ?? 0),
+                        'recur_stopped_on' => optional($s->recur_stopped_on)->toIso8601String(),
+                        'location_name' => $s->location_name,
+                        'generated_count' => (int) Transaction::where('business_id', $business_id)
+                            ->where('recur_parent_id', $s->id)
+                            ->count(),
+                    ])
+                    ->all()),
                 'permissions' => [
-                    'update' => auth()->user()->can('customer.update') || auth()->user()->can('supplier.update'),
+                    'update' => $can_customer_update || $can_supplier_update,
+                    'pay_due' => $user->can('purchase.payments') || $user->can('sell.payments'),
+                    'delete' => $user->can('customer.delete') || $user->can('supplier.delete'),
+                    'toggle_status' => $can_customer_update || $can_supplier_update,
+                    'add_discount' => $user->can('discount.access'),
+                    'upload' => $can_customer_update || $can_supplier_update,
+                    'delete_document' => $can_customer_update || $can_supplier_update,
+                    'edit_note' => $can_customer_update || $can_supplier_update,
+                    'view_sell' => $user->can('view_own_sell_only') || $user->can('sell.view') || $user->can('direct_sell.view'),
                 ],
             ]);
         }
@@ -1000,7 +1665,7 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
             $contact = Contact::where('business_id', $business_id)->find($id);
 
@@ -1093,6 +1758,20 @@ class ContactController extends Controller
                     'zip_code' => $contact->zip_code ?? null,
                     'customer_group_id' => $contact->customer_group_id ?? null,
                     'credit_limit' => $contact->credit_limit ?? null,
+                    // Dados Fiscais BR (migration 2026_05_21_140000). Diferente do Show()
+                    // que entrega cpf_cnpj MASCARADO, Edit precisa do valor PLAIN pra
+                    // permitir edição. Exposição PII gated por can('customer.update') /
+                    // can('supplier.update') no início do método.
+                    'cpf_cnpj' => $contact->cpf_cnpj ?? null,
+                    'rg' => $contact->rg ?? null,
+                    'inscricao_estadual' => $contact->inscricao_estadual ?? null,
+                    'inscricao_municipal' => $contact->inscricao_municipal ?? null,
+                    'indicador_ie' => $contact->indicador_ie ?? null,
+                    'nome_fantasia' => $contact->nome_fantasia ?? null,
+                    'consumidor_final' => $contact->consumidor_final !== null ? (bool) $contact->consumidor_final : null,
+                    'contribuinte' => $contact->contribuinte !== null ? (bool) $contact->contribuinte : null,
+                    'regime' => $contact->regime ?? null,
+                    'suframa' => $contact->suframa ?? null,
                 ],
                 'types' => $types,
                 'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
@@ -1106,79 +1785,127 @@ class ContactController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Slice 7 — type-hint UpdateContactRequest wira App\Rules\BR\CpfCnpj.
+     * Cobre o path legacy (isLegacyAjax) e o futuro Inertia — validação roda
+     * antes da action, antes do branch isLegacyAjax. Authorize duplo (FormRequest
+     * + abort manual) por defensividade durante migração Wave 1.
+     *
+     * @param  \App\Http\Requests\Cliente\UpdateContactRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateContactRequest $request, $id)
     {
         if (! auth()->user()->can('supplier.update') && ! auth()->user()->can('customer.update') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            try {
-                $input = $request->only(['type', 'supplier_business_name', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'address_line_1', 'address_line_2', 'zip_code', 'dob', 'alternate_number', 'city', 'state', 'country', 'landline', 'customer_group_id', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'shipping_custom_field_details', 'export_custom_field_1', 'export_custom_field_2', 'export_custom_field_3', 'export_custom_field_4', 'export_custom_field_5',
-                    'export_custom_field_6', 'assigned_to_users', ]);
+        // Bug fix 2026-05-26 — pré-fix, TODO o corpo do update() vivia dentro de
+        // `if ($this->isLegacyAjax()) { ... }`. Quando o Edit.tsx mandava PUT via
+        // Inertia (X-Inertia header presente, isLegacyAjax() = false), o método caía
+        // fora do bloco e retornava void → Inertia client lançava "All Inertia requests
+        // must receive a valid Inertia response". Mesma classe de bug que store() ganhou
+        // fix 2026-05-25.
+        //
+        // Solução: extrair processamento pra helper `processContactUpdate()` + 2 branches
+        // explícitos (legacy AJAX retorna JSON UPOS; Inertia redireciona com flash,
+        // espelhando o pattern de store() linhas 1291-1301).
+        if ($this->isLegacyAjax()) {
+            return $this->processContactUpdate($request, $id);
+        }
 
-                $name_array = [];
+        $result = $this->processContactUpdate($request, $id);
 
-                if (! empty($input['prefix'])) {
-                    $name_array[] = $input['prefix'];
-                }
-                if (! empty($input['first_name'])) {
-                    $name_array[] = $input['first_name'];
-                }
-                if (! empty($input['middle_name'])) {
-                    $name_array[] = $input['middle_name'];
-                }
-                if (! empty($input['last_name'])) {
-                    $name_array[] = $input['last_name'];
-                }
+        // expiredResponse() do moduleUtil já é Response — devolve direto sem mexer.
+        if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
+            return $result;
+        }
 
-                $input['contact_type'] = $request->input('contact_type_radio');
+        if (! empty($result['success'])) {
+            return redirect()
+                ->route('contacts.show', $id)
+                ->with('status', $result['msg'] ?? __('contact.updated_success'));
+        }
 
+        return back()
+            ->withInput()
+            ->withErrors(['msg' => $result['msg'] ?? __('messages.something_went_wrong')]);
+    }
 
+    /**
+     * Helper extraído do update() pra desacoplar processamento da response.
+     *
+     * Retorna ['success' => bool, 'msg' => string, 'data' => Contact|null] (UPOS canon)
+     * OU Response (caso `moduleUtil->expiredResponse()` em business sem subscription).
+     *
+     * Caller é responsável por interpretar e responder Inertia/JSON conforme contexto.
+     *
+     * @return array|\Symfony\Component\HttpFoundation\Response
+     */
+    private function processContactUpdate(UpdateContactRequest $request, int $id)
+    {
+        try {
+            $input = $request->only(['type', 'supplier_business_name', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'pay_term_number', 'pay_term_type', 'mobile', 'address_line_1', 'address_line_2', 'zip_code', 'dob', 'alternate_number', 'city', 'state', 'country', 'landline', 'customer_group_id', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'shipping_address', 'position', 'shipping_custom_field_details', 'export_custom_field_1', 'export_custom_field_2', 'export_custom_field_3', 'export_custom_field_4', 'export_custom_field_5',
+                'export_custom_field_6', 'assigned_to_users',
+                // Campos BR restaurados — migration 2026_05_21_140000 (regressão UPOS 6.7).
+                'cpf_cnpj', 'rg', 'inscricao_estadual', 'inscricao_municipal', 'indicador_ie', 'nome_fantasia', 'consumidor_final', 'contribuinte', 'regime', 'suframa',
+            ]);
 
-                $input['name'] = trim(implode(' ', $name_array));
+            $name_array = [];
 
-                unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
-
-                $input['is_export'] = ! empty($request->input('is_export')) ? 1 : 0;
-
-                if (! $input['is_export']) {
-                    unset($input['export_custom_field_1'], $input['export_custom_field_2'], $input['export_custom_field_3'], $input['export_custom_field_4'], $input['export_custom_field_5'], $input['export_custom_field_6']);
-                }
-
-                if (! empty($input['dob'])) {
-                    $input['dob'] = $this->commonUtil->uf_date($input['dob']);
-                }
-
-                $input['credit_limit'] = $request->input('credit_limit') != '' ? $this->commonUtil->num_uf($request->input('credit_limit')) : null;
-
-                $business_id = $request->session()->get('user.business_id');
-
-                $input['opening_balance'] = $this->commonUtil->num_uf($request->input('opening_balance'));
-
-                if (! $this->moduleUtil->isSubscribed($business_id)) {
-                    return $this->moduleUtil->expiredResponse();
-                }
-
-                $output = $this->contactUtil->updateContact($input, $id, $business_id);
-
-                event(new ContactCreatedOrModified($output['data'], 'updated'));
-
-                $this->contactUtil->activityLog($output['data'], 'edited');
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
+            if (! empty($input['prefix'])) {
+                $name_array[] = $input['prefix'];
+            }
+            if (! empty($input['first_name'])) {
+                $name_array[] = $input['first_name'];
+            }
+            if (! empty($input['middle_name'])) {
+                $name_array[] = $input['middle_name'];
+            }
+            if (! empty($input['last_name'])) {
+                $name_array[] = $input['last_name'];
             }
 
-            return $output;
+            $input['contact_type'] = $request->input('contact_type_radio');
+
+            $input['name'] = trim(implode(' ', $name_array));
+
+            unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
+
+            $input['is_export'] = ! empty($request->input('is_export')) ? 1 : 0;
+
+            if (! $input['is_export']) {
+                unset($input['export_custom_field_1'], $input['export_custom_field_2'], $input['export_custom_field_3'], $input['export_custom_field_4'], $input['export_custom_field_5'], $input['export_custom_field_6']);
+            }
+
+            if (! empty($input['dob'])) {
+                $input['dob'] = $this->commonUtil->uf_date($input['dob']);
+            }
+
+            $input['credit_limit'] = $request->input('credit_limit') != '' ? $this->commonUtil->num_uf($request->input('credit_limit')) : null;
+
+            $business_id = $request->session()->get('user.business_id');
+
+            $input['opening_balance'] = $this->commonUtil->num_uf($request->input('opening_balance'));
+
+            if (! $this->moduleUtil->isSubscribed($business_id)) {
+                return $this->moduleUtil->expiredResponse();
+            }
+
+            $output = $this->contactUtil->updateContact($input, $id, $business_id);
+
+            event(new ContactCreatedOrModified($output['data'], 'updated'));
+
+            $this->contactUtil->activityLog($output['data'], 'edited');
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            $output = ['success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
         }
+
+        return $output;
     }
 
     /**
@@ -1193,7 +1920,7 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             try {
                 $business_id = request()->user()->business_id;
 
@@ -1247,7 +1974,7 @@ class ContactController extends Controller
      */
     public function getCustomers()
     {
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $term = request()->input('q', '');
 
             $business_id = request()->session()->get('user.business_id');
@@ -1963,7 +2690,7 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
             $contact = Contact::where('business_id', $business_id)->find($id);
             $contact->contact_status = $contact->contact_status == 'active' ? 'inactive' : 'active';
@@ -2033,7 +2760,7 @@ class ContactController extends Controller
     public function getContactPayments($contact_id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $payments = TransactionPayment::leftjoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
             ->leftjoin('transaction_payments as parent_payment', 'transaction_payments.parent_id', '=', 'parent_payment.id')
             ->where('transaction_payments.business_id', $business_id)
@@ -2073,7 +2800,7 @@ class ContactController extends Controller
 
     public function getContactDue($contact_id)
     {
-        if (request()->ajax()) {
+        if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
             $due = $this->transactionUtil->getContactDue($contact_id, $business_id);
 

@@ -64,14 +64,14 @@ type: reference
   - `STATUS` → `status` enum
   - `DT_EMISSAO` → `transaction_date`
   - `P.PLACA` → resolve em `transactions.vehicle_id` via JOIN com `vehicles.legacy_id`
-- **Status:** 🟡 pendente (Vargas tem 1.064 veículos + multi-item; Martinho 44.709 vendas)
+- **Status:** ✅ executado Martinho biz=164 (43.974 vendas em prod desde 2012-03 · diagnóstico SSH Hostinger 2026-05-27) · ⚠️ **gap 92.5% sub-linhas** faltando em `transaction_sell_lines` (40.644/43.951 órfãs) — ver [sessão diagnóstico Hostinger](../sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md) §Gap crítico · 🟡 Vargas/Gold/Extreme ainda pendentes
 
 ### Fase 4 — Financeiro (contas a pagar/receber)
 
 - **Fonte:** `FINANCEIRO` (milhões de linhas em clientes grandes)
 - **Alvo:** `transaction_payments` + linkagem com `transactions` Fase 3
 - **Decisão estratégica Wagner:** cleanup-first — write-off candidate (`DT_VENCTO > 365d + sem BOLETO + sem movimentação`) flagado, NÃO importado. ROI maior que dunning pra 76.7% inadimplência típica (caso Martinho)
-- **Status:** 🟡 pendente — depende US-OFICINA-005 (cleanup tools)
+- **Status:** ✅ executado Martinho biz=164 (83.045 títulos + 71.675 baixas em prod · diagnóstico 2026-05-27) — provavelmente **SEM cleanup-first** (76.7% inadimplência migrada incluindo write-off legacy 14 anos · review trigger: avaliar archive job opt-in ADR 0198 §Mitigação 3) · 🟡 Vargas/Gold/Extreme ainda pendentes — manter cleanup-first per [ADR 0171 §Cleanup tools](../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md)
 
 ## 3. Idempotência canônica (TODA fase)
 

@@ -262,3 +262,29 @@ test -d "$HOME/.claude/oimpresso-local" && test -f "$HOME/.claude/oimpresso-loca
 Referências:
 - [ADR 0131](../../../memory/decisions/0131-tiering-memoria-canonico-local-segredo.md) — tiering canônico
 - [ADR 0061](../../../memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) — base proibindo auto-mem privada (refinada por 0131)
+
+## 11. Setup Delphi/SVN READ-ONLY — OPCIONAL (Felipe atualmente)
+
+Se o dev vai trabalhar com legacy Delphi WR Comercial / clientes Firebird (atualmente **só Felipe**, Wagner aprovou 2026-05-27):
+
+```
+Você vai precisar mexer com Delphi/SVN legacy? (Felipe = sim por default;
+Maiara/Eliana/Luiz = perguntar Wagner antes)
+
+Se sim:
+  Runbook completo em memory/reference/setup-delphi-svn-time.md
+  Passos resumidos:
+    1. winget install Slik.Subversion  (svn.exe CLI)
+    2. Resolver acesso à rede (3 opções no runbook):
+       a) ir à empresa primeira vez (LAN resolve wr2.com.br direto), OU
+       b) Tailscale (futuro, se Wagner aprovar setup), OU
+       c) hosts file: `177.74.67.30  wr2.com.br` (cuidado: sobrescreve
+          DNS público — confirmar com Wagner)
+    3. svn checkout http://wr2.com.br:8777/svn/Programas/Trunk D:\Programas
+       (pode demorar horas — overnight é seguro)
+    4. Credenciais SVN: pegar com Wagner via Vaultwarden
+  Regra de uso: READ-ONLY (Claude NÃO comita SVN — ver
+  memory/reference/feedback-commits-delphi-svn.md)
+```
+
+Referência: [setup-delphi-svn-time.md](../../../memory/reference/setup-delphi-svn-time.md) (Felipe roda passo-a-passo, ~horas de checkout inicial).

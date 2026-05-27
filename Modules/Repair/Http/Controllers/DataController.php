@@ -168,11 +168,38 @@ class DataController extends Controller
 
         if ($is_repair_enabled && (auth()->user()->can('superadmin') || auth()->user()->can('repair.view') || auth()->user()->can('job_sheet.view_assigned') || auth()->user()->can('job_sheet.view_all'))) {
             Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color) {
+                // ADR 0180 Fase 4 Wave B (2026-05-21): entry principal declara
+                // atalho kbd + primary action + ghosts tabs.
+                //  - `shortcut` G O → atalho overlay (Fase 8)
+                //  - `primary`     → "Nova OS" via SellPosController (sub_type=repair)
+                //  - `ghosts`      → sub-views da tela /repair/* (Dashboard, OS, Job Sheets,
+                //    Producao Oficina Kanban, Status, Settings)
+                //
+                // hrefs absolutos (LegacyMenuAdapter::toRelative espera path string).
                 $menu->url(
-                            action([\Modules\Repair\Http\Controllers\DashboardController::class, 'index']),
-                            __('repair::lang.repair'),
-                            ['icon' => 'fa fas fa-wrench', 'active' => request()->segment(1) == 'repair', 'style' => 'background-color:'.$background_color]
-                        )
+                    action([\Modules\Repair\Http\Controllers\DashboardController::class, 'index']),
+                    __('repair::lang.repair'),
+                    [
+                        'icon'     => 'fa fas fa-wrench',
+                        'active'   => request()->segment(1) == 'repair',
+                        'style'    => 'background-color:'.$background_color,
+                        'shortcut' => 'G O',
+                        'primary'  => [
+                            'label'    => 'Nova OS',
+                            'href'     => '/sells/pos/create?sub_type=repair',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'dashboard',        'label' => 'Dashboard',         'href' => '/repair/dashboard'],
+                            ['key' => 'os',               'label' => 'OS de Reparo',      'href' => '/repair/repair'],
+                            ['key' => 'job-sheets',       'label' => 'Job Sheets',        'href' => '/repair/job-sheet'],
+                            ['key' => 'producao',         'label' => 'Produção',          'href' => '/repair/producao-oficina'],
+                            ['key' => 'status',           'label' => 'Status',            'href' => '/repair/status'],
+                            ['key' => 'device-models',    'label' => 'Modelos',           'href' => '/repair/device-models'],
+                            ['key' => 'settings',         'label' => 'Configurações',     'href' => '/repair/repair-settings'],
+                        ],
+                    ]
+                )
                 ->order(24);
             });
         }

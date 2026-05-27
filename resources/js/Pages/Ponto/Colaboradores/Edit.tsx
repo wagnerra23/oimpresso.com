@@ -68,18 +68,17 @@ export default function ColaboradorEdit({ colaborador, escalas }: Props) {
     <>
       <Head title={`Config ${colaborador.nome}`} />
       <div className="mx-auto max-w-3xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <UserCog size={22} /> Configuração de Ponto
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              <strong>{colaborador.nome}</strong> · {colaborador.email ?? '—'}
-            </p>
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Configuração de Ponto <span className="text-stone-400 font-normal">· {colaborador.nome}</span></h1>
+            <p>{colaborador.email ?? '—'}</p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <a href="/ponto/colaboradores"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
-          </Button>
+          <div className="os-page-h-r">
+            <Button variant="outline" size="sm" asChild>
+              <a href="/ponto/colaboradores"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
+            </Button>
+          </div>
         </header>
 
         <form onSubmit={submit}>

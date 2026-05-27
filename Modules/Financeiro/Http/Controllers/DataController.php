@@ -92,83 +92,112 @@ class DataController extends Controller
         }
 
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
-        $segmento_ativo = request()->segment(1) == 'financeiro';
+        $seg2 = request()->segment(2);
 
-        // Sidebar: Wagner 2026-05-18 pediu 4 entradas SEPARADAS top-level (não
-        // dropdown popover-2). UX mais visível pra Larissa ROTA LIVRE — não
-        // precisa clicar pra ver Fluxo/DRE/Boletos. Cada item ocupa linha
-        // própria no grupo FINANCEIRO (SIDEBAR_GROUPS em Sidebar.tsx mapeia
-        // as 4 labels pro mesmo grupo visual).
-        // Permission gates permanecem nos controllers (sidebar só esconde entrada).
+        // Wagner 2026-05-26 direção canon: grupo FINANÇAS agora tem 4 entries
+        // FLAT no sidebar — substitui 1 entry "Financeiro" com 13 ghosts.
+        // Espelha PR #1541 (Fiscal flat) e PR #1547 (Governança removida).
+        //
+        //   sidebar FINANÇAS
+        //     ├── Caixa             /financeiro/caixa            (order 85.00)
+        //     ├── Cobrança          /financeiro/cobranca         (order 85.10) — Gateway vira GHOST aqui
+        //     ├── Financeiro (hub)  /financeiro/unificado        (order 85.20)
+        //     └── Cobrança Recorrente /recurring-billing         (order 86.00 — RecurringBilling DataController)
+        //
+        // Gateway de Pagamento NÃO é mais entry própria do sidebar (PaymentGateway
+        // DataController deixou de chamar Menu::modify). Vive como ghost da
+        // Cobrança — fica acessível via PageHeader em /financeiro/cobranca.
+        //
+        // Sub-items legacy (DRE/Fluxo/Conciliação/Contas a Pagar/Plano de Contas/
+        // Categorias/Dashboard/Extrato/Contador/Relatórios) continuam acessíveis
+        // como ghosts do hub "Financeiro" (terceira entry).
         Menu::modify(
             'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                // 1. Financeiro · Visão unificada (entrada principal)
+            function ($menu) use ($background_color, $seg2) {
+                // ENTRY 1 — Caixa (operação Larissa diária: abrir/fechar caixa).
+                $menu->url(
+                    url('/financeiro/caixa'),
+                    'Caixa',
+                    [
+                        'icon'     => 'fa fas fa-cash-register',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $seg2 === 'caixa',
+                        'group'    => 'financas',
+                        'shortcut' => 'G C',
+                        'primary'  => [
+                            'label'    => 'Abrir caixa',
+                            'href'     => '/financeiro/caixa',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'caixa',            'label' => 'Caixa',            'href' => '/financeiro/caixa'],
+                            ['key' => 'conciliacao',      'label' => 'Conciliação',      'href' => '/financeiro/conciliacao'],
+                            ['key' => 'contas-bancarias', 'label' => 'Contas Bancárias', 'href' => '/financeiro/contas-bancarias'],
+                            ['key' => 'extrato',          'label' => 'Extrato',          'href' => '/financeiro/extrato'],
+                        ],
+                    ]
+                )->order(85.00);
+
+                // ENTRY 2 — Cobrança (emitir boleto/pix/cartão). Gateway de
+                // Pagamento é GHOST aqui (PR #1577+ Wagner 2026-05-26).
+                $cobrancaAtiva = in_array($seg2, ['cobranca', 'contas-receber', 'boletos'])
+                    || (request()->segment(1) === 'settings' && $seg2 === 'payment-gateways');
+                $menu->url(
+                    url('/financeiro/cobranca'),
+                    'Cobrança',
+                    [
+                        'icon'     => 'fa fas fa-file-invoice-dollar',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $cobrancaAtiva,
+                        'group'    => 'financas',
+                        'shortcut' => 'G B',
+                        'primary'  => [
+                            'label'    => 'Nova cobrança',
+                            'href'     => '/financeiro/cobranca',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'cobranca',        'label' => 'Cobrança',         'href' => '/financeiro/cobranca'],
+                            ['key' => 'contas-receber',  'label' => 'Contas a Receber', 'href' => '/financeiro/contas-receber'],
+                            ['key' => 'gateway',         'label' => 'Gateway',          'href' => '/settings/payment-gateways'],
+                        ],
+                    ]
+                )->order(85.10);
+
+                // ENTRY 3 — Financeiro (hub geral). Mantém label do lang module_label
+                // pra compat com modules superadmin + traduções i18n. Ghosts =
+                // restante das telas legacy (Fluxo/DRE/Pagar/Categorias/etc).
+                $financeiroAtiva = in_array($seg2, [
+                    'unificado','lancamentos','contas-pagar','fluxo','dre','plano-contas',
+                    'categorias','dashboard','configuracoes','relatorios',
+                ]);
                 $menu->url(
                     url('/financeiro/unificado'),
                     __('financeiro::financeiro.module_label'),
                     [
-                        'icon'   => 'fa fas fa-coins',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo && (request()->segment(2) == 'unificado' || request()->segment(2) == null),
+                        'icon'     => 'fa fas fa-coins',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $financeiroAtiva,
+                        'group'    => 'financas',
+                        'shortcut' => 'G F',
+                        'primary'  => [
+                            'label'    => 'Novo título',
+                            'href'     => '/financeiro/lancamentos/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'   => [
+                            ['key' => 'unificado',     'label' => 'Lançamentos',    'href' => '/financeiro/unificado'],
+                            ['key' => 'contas-pagar',  'label' => 'Contas a Pagar', 'href' => '/financeiro/contas-pagar'],
+                            ['key' => 'fluxo',         'label' => 'Fluxo de Caixa', 'href' => '/financeiro/fluxo'],
+                            ['key' => 'dre',           'label' => 'DRE',            'href' => '/financeiro/dre'],
+                            ['key' => 'relatorios',    'label' => 'Relatórios',     'href' => '/financeiro/relatorios'],
+                            ['key' => 'dashboard',     'label' => 'Dashboard',      'href' => '/financeiro/dashboard'],
+                            ['key' => 'plano-contas',  'label' => 'Plano de Contas','href' => '/financeiro/plano-contas'],
+                            ['key' => 'categorias',    'label' => 'Categorias',     'href' => '/financeiro/categorias'],
+                            ['key' => 'contador',      'label' => 'Contador',       'href' => '/financeiro/configuracoes/contador'],
+                        ],
                     ]
-                )->order(85);
-
-                // 2. Fluxo de Caixa
-                $menu->url(
-                    url('/financeiro/fluxo'),
-                    __('financeiro::financeiro.cashflow_label'),
-                    [
-                        'icon'   => 'fa fas fa-chart-line',
-                        'active' => $segmento_ativo && request()->segment(2) == 'fluxo',
-                    ]
-                )->order(85.1);
-
-                // 3. DRE / Relatórios — Wagner 2026-05-18 fix: rota era
-                // /relatorios/dre (não existia) → corrigido pra /relatorios.
-                $menu->url(
-                    url('/financeiro/relatorios'),
-                    __('financeiro::financeiro.dre_label'),
-                    [
-                        'icon'   => 'fa fas fa-file-invoice-dollar',
-                        'active' => $segmento_ativo && request()->segment(2) == 'relatorios',
-                    ]
-                )->order(85.2);
-
-                // 4. Cobrança (substitui "Boletos" / "Gateway de Pagamento" —
-                // Wagner 2026-05-19: F3 PaymentGateway UI Tela 1 entregue
-                // em /financeiro/cobranca, escopo expandido pra todos tipos
-                // boleto+pix+pix_recv+card. ADR 0144 + 0170).
-                //
-                // 'group' => 'fin' declara o grupo sidebar — Wagner regra
-                // 2026-05-19: "nunca hardcode label no SIDEBAR_GROUPS frontend,
-                // sempre via DataController do módulo". LegacyMenuAdapter
-                // propaga essa key pro ShellMenuItem.group, Sidebar.tsx
-                // findGroupKey usa antes do label match.
-                $menu->url(
-                    url('/financeiro/cobranca'),
-                    __('financeiro::financeiro.cobranca_label'),
-                    [
-                        'icon'   => 'fa fas fa-credit-card',
-                        'active' => $segmento_ativo && request()->segment(2) === 'cobranca',
-                        'group'  => 'fin',
-                    ]
-                )->order(85.3);
-
-                // 5. Contas Bancárias — Wagner 2026-05-19 reportou que /financeiro
-                // não permitia cadastrar conta + vincular credencial gateway.
-                // Página Inertia já existia (Modules/Financeiro/.../ContaBancariaController
-                // → Pages/Financeiro/ContasBancarias/Index.tsx) só faltava
-                // entrada no sidebar. Bloqueia Onda 5 dogfooding sem isso.
-                $menu->url(
-                    url('/financeiro/contas-bancarias'),
-                    'Contas Bancárias',
-                    [
-                        'icon'   => 'fa fas fa-university',
-                        'active' => $segmento_ativo && request()->segment(2) === 'contas-bancarias',
-                        'group'  => 'fin',
-                    ]
-                )->order(85.5);
+                )->order(85.20);
             }
         );
     }

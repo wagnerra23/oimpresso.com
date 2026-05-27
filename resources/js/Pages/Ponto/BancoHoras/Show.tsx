@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { cn, formatMinutes } from '@/Lib/utils';
 
 interface Saldo {
@@ -88,19 +89,21 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
     <>
       <Head title={`BH · ${saldo.nome}`} />
       <div className="mx-auto max-w-5xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <PiggyBank size={22} /> Banco de Horas — {saldo.nome}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Banco de Horas <span className="text-stone-400 font-normal">· {saldo.nome}</span></h1>
+            <p>
               {saldo.matricula && `Matrícula ${saldo.matricula} · `}
               Ledger append-only — cada ajuste é um novo movimento.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => router.visit('/ponto/banco-horas')}>
-            <ArrowLeft size={14} className="mr-1.5" /> Voltar
-          </Button>
+          <div className="os-page-h-r">
+            <PontoSubNav active="banco-horas" hidePrimary />
+            <Button variant="outline" size="sm" onClick={() => router.visit('/ponto/banco-horas')}>
+              <ArrowLeft size={14} className="mr-1.5" /> Voltar
+            </Button>
+          </div>
         </header>
 
         <Card>

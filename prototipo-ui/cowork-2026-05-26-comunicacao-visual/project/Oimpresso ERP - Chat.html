@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Oimpresso ERP — Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="vendas.css"/>
+<link rel="stylesheet" href="financeiro.css"/>
+<link rel="stylesheet" href="compras-page.css"/>
+<link rel="stylesheet" href="oficina-page.css"/>
+<link rel="stylesheet" href="fin-boletos.css"/>
+<link rel="stylesheet" href="mockup-pages.css"/>
+<link rel="stylesheet" href="crm-page.css"/>
+<link rel="stylesheet" href="inbox-page.css"/>
+<link rel="stylesheet" href="equipe-page.css"/>
+<link rel="stylesheet" href="kb-page.css"/>
+<link rel="stylesheet" href="prod-page-extras.css"/>
+<link rel="stylesheet" href="prod-mec.css"/>
+<link rel="stylesheet" href="chat-jana.css"/>
+<link rel="stylesheet" href="pg-styles.css"/>
+<link rel="stylesheet" href="clientes-page.css"/>
+<!-- Tailwind CDN (preflight desligado pra não sobrescrever o styles.css do shell) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    corePlugins: { preflight: false },
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="data-os.jsx"></script>
+<script type="text/babel" src="data-clientes.jsx"></script>
+<script type="text/babel" src="data-people.jsx"></script>
+<script type="text/babel" src="sidebar.jsx"></script>
+<script type="text/babel" src="chat.jsx"></script>
+<script type="text/babel" src="chat-jana.jsx"></script>
+<script type="text/babel" src="linked-apps.jsx"></script>
+<script type="text/babel" src="viewers.jsx"></script>
+<script type="text/babel" src="tasks.jsx"></script>
+<script type="text/babel" src="os-page.jsx"></script>
+<script type="text/babel" src="clientes-page.jsx"></script>
+<script type="text/babel" src="data-orc-prod.jsx"></script>
+<script type="text/babel" src="data-vendas.jsx"></script>
+<script type="text/babel" src="vendas-page.jsx"></script>
+<script type="text/babel" src="vendas-extras.jsx"></script>
+<script type="text/babel" src="vendas-shortcuts.jsx"></script>
+<script type="text/babel" src="vendas-ai.jsx"></script>
+<script type="text/babel" src="vendas-curation.jsx"></script>
+<script type="text/babel" src="vendas-output.jsx"></script>
+<script type="text/babel" src="vendas-tweaks.jsx"></script>
+<script type="text/babel" src="vendas-flow.jsx"></script>
+<script type="text/babel" src="orc-page.jsx"></script>
+<script type="text/babel" src="prod-page.jsx"></script>
+<script type="text/babel" src="producao-page.jsx"></script>
+<!-- Módulo Financeiro (migrado de Financeiro Unificado.html) -->
+<script type="text/babel" src="financeiro-icons.jsx"></script>
+<script type="text/babel" src="financeiro-data.jsx"></script>
+<script type="text/babel" src="financeiro-telas-extras.jsx"></script>
+<script type="text/babel" src="financeiro-curation.jsx"></script>
+<script type="text/babel" src="financeiro-ai.jsx"></script>
+<script type="text/babel" src="financeiro-output.jsx"></script>
+<script type="text/babel" src="fsm-stepper.jsx"></script>
+<script type="text/babel" src="financeiro-app.jsx"></script>
+<!-- Módulo Boletos (migrado de Boleto e Contas Inter.html) -->
+<script type="text/babel" src="boleto-contas-app.jsx"></script>
+<!-- Módulo PaymentGateway (F1 protótipo · ADR 0144) — 3 telas + shell adapters -->
+<script type="text/babel" src="pg-shared.jsx"></script>
+<script type="text/babel" src="pg-cobranca-page.jsx"></script>
+<script type="text/babel" src="pg-payment-gateways-page.jsx"></script>
+<script type="text/babel" src="pg-sells-cobranca-preview.jsx"></script>
+<script type="text/babel" src="pg-shell-adapters.jsx"></script>
+<script type="text/babel" src="pg-vendas-integration.jsx"></script>
+<!-- Módulo Compras (migrado de Compras.html) -->
+<script type="text/babel" src="compras-page.jsx"></script>
+<!-- Módulo Oficina Auto (migrado de Produção Oficina - Tela.html) -->
+<script type="text/babel" src="oficina-page.jsx"></script>
+<!-- Mockup pages: 16 telas faltantes renderizadas como React components -->
+<script src="mockup-bodies.js"></script>
+<script type="text/babel" src="mockup-pages.jsx"></script>
+<script type="text/babel" src="crm-page.jsx"></script>
+<script type="text/babel" src="inbox-page.jsx"></script>
+<script type="text/babel" src="inbox-v2-extras.jsx"></script>
+<script type="text/babel" src="inbox-v2-ai.jsx"></script>
+<script type="text/babel" src="inbox-v2-cur.jsx"></script>
+<script type="text/babel" src="inbox-v2-out.jsx"></script>
+<script type="text/babel" src="equipe-page.jsx"></script>
+<script type="text/babel" src="kb-page.jsx"></script>
+<script type="text/babel" src="kb-extras.jsx"></script>
+<script type="text/babel" src="kb-paths.jsx"></script>
+<script type="text/babel" src="kb-trouble-lib.jsx"></script>
+<script type="text/babel" src="kb-trouble-editor.jsx"></script>
+<script type="text/babel" src="kb-images-print.jsx"></script>
+<script type="text/babel" src="laravel-panel.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

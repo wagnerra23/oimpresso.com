@@ -15,7 +15,8 @@ supersedes: []
 supersedes_partially: []
 amends: [0121]
 superseded_by: []
-related: [0105, 0121, 0136]
+amended_by: [0194]
+related: [0105, 0121, 0136, 0194]
 pii: false
 review_triggers:
   - "Modules/OficinaAuto ter <2 clientes pagantes após 12m de scaffold (candidato lifecycle: historical)"
@@ -25,6 +26,8 @@ review_triggers:
 
 # ADR 0137 — Modules/OficinaAuto qualificada
 
+> **⚠️ AMENDADO por [ADR 0194](0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (2026-05-26):** Este ADR classificou Martinho como sub-vertical 3 "locação caçamba container CNAE 4581-4/00". Wagner descobriu em 2026-05-26 que **Martinho é sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520-0/01** (loja peça hidráulica + oficina autorizada, Capivari de Baixo/SC). Sub-vertical 3 (locação container) fica como hipótese sem cliente real ancorado — schema preservado nullable. Demais decisões deste ADR (schema multi-placa, FSM 3/5 estados, importer Firebird, ativação Vargas+Martinho) permanecem válidas — só o vocabulário do domínio Martinho foi corrigido.
+
 ## Contexto
 
 [ADR 0121](0121-oimpresso-modular-especializado-por-vertical.md) (modular especializado por vertical) classificou `Modules/OficinaAuto` como **⏸️ aguardando sinal qualificado** ([ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) — backlog só recebe item se cliente paga + reporta OU métrica detecta drift).
@@ -32,7 +35,7 @@ review_triggers:
 Em sessão 2026-05-11 (heatmap source-first 4 clientes OfficeImpresso legacy + correções Wagner), descobrimos:
 
 - **Vargas** (`Cliente_874398`) = **oficina GRANDE de recapagem de caçamba de caminhão** ([perfil](../research/clientes-legacy-officeimpresso/02-vargas-recapagem/01-perfil.md)) — 1.064 veículos cadastrados, PLACA 80% + PLACA2 20% + CHASSI2 8% (cavalo+reboque)
-- **Martinho** (`Cliente_731814`) = **oficina de caçambas avulsas** ([perfil](../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md)) — 91 veículos, PLACA 96% sem multi-placa
+- **Martinho** (`Cliente_731814`) = **loja peça hidráulica + oficina autorizada caminhão basculante** (correção [ADR 0194](0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — pré-correção dizia "oficina de caçambas avulsas") ([perfil](../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md)) — 91 veículos de CLIENTES, PLACA 96% sem multi-placa
 
 **2 de 4 candidatos OfficeImpresso saudáveis** amostrados = **50% do sample** são oficina. Sinal qualificado obtido conforme matriz [ADR 0105](0105-cliente-como-sinal-guiar-sem-mandar.md) — clientes pagantes em produção há anos com volume operacional relevante.
 
@@ -47,10 +50,10 @@ Em sessão 2026-05-11 (heatmap source-first 4 clientes OfficeImpresso legacy + c
 | **Modules/OficinaAuto** | **4520-0/01 / 2212-9/00 / 4581-4/00** | **⏸️ aguardando sinal** | **🟡 em construção** ✨ | **Vargas + Martinho** |
 | Outros | — | 🔒 backlog ADR feature-wish | 🔒 backlog | — |
 
-CNAEs cobertos por OficinaAuto:
-- **4520-0/01** — Serviços de manutenção e reparação mecânica de veículos automotores (oficinas gerais)
-- **2212-9/00** — Recapagem de pneumáticos (Vargas — recapagem caçamba caminhão)
-- **4581-4/00** — Locação de veículos (Martinho — caçambas estacionárias avulsas, locação pra obra)
+CNAEs cobertos por OficinaAuto (amendado [ADR 0194](0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)):
+- **4520-0/01** — Serviços de manutenção e reparação mecânica de veículos automotores (oficinas gerais + **mecânica pesada caminhão basculante · Martinho LIVE prod sub-vertical 4**)
+- **2212-9/00** — Recapagem de pneumáticos (Vargas — recapagem caçamba caminhão · sub-vertical 2 V1)
+- **4581-4/00** — Locação de veículos (sub-vertical 3 hipotético locação caçamba container · **sem cliente real ancorado** pós-ADR-0194 · schema preservado nullable pra futuro)
 
 ## Escopo arquitetural do Modules/OficinaAuto V0
 
@@ -149,7 +152,7 @@ Após V0 sólido, V1 expande pra **Vargas** (cavalo+reboque + multi-item OS — 
 
 ⚠️ **Risco — escopo creep:** "Modules/OficinaAuto" pode atrair pedido "põe estoque de peça, agenda de mecânico, integração com fornecedor" antes da V0 funcionar. Mitigação: V0 = só CRUD Veículo + OS Simples + import legacy; tudo mais aguarda V1+ com sinal qualificado novo.
 
-⚠️ **Risco — sub-vertical recapagem vs locação caçamba:** Vargas é tecnicamente CNAE 2212 (recapagem), Martinho é 4581 (locação). São negócios DIFERENTES. Pode no futuro precisar splitting em `Modules/OficinaRecapagem` + `Modules/LocacaoCacamba`. Decisão preliminar: **ficar em 1 módulo até sinal de divergência aparecer** (V0 com Martinho cobre 4581; V1 com Vargas adiciona 2212; se eventualmente cliente puramente 4520 mecânica geral chegar, avaliar split).
+⚠️ **Risco — sub-verticais distintas no mesmo módulo:** Vargas é CNAE 2212 (recapagem · sub-vertical 2 V1), Martinho é **CNAE 4520 mecânica pesada caminhão basculante** (sub-vertical 4 LIVE pós-[ADR 0194](0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)). Sub-vertical 3 hipotético CNAE 4581 (locação caçamba container) sem cliente real ancorado. Pode no futuro precisar splitting em `Modules/OficinaRecapagem` + `Modules/LocacaoCacamba` se cliente real de locação container aparecer. Decisão preliminar: **ficar em 1 módulo** (V0 Martinho cobre 4520; V1 Vargas adiciona 2212; 4581 hipótese preservada nullable).
 
 ## Implementação imediata (próximo PR sugerido)
 

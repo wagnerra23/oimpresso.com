@@ -136,6 +136,60 @@ function resolveDeferProp(mixed $value): mixed
 
 E use `resolveDeferProp($props['items'])['data']` em vez de `$props['items']['data']`.
 
+## ⚠️ Antipattern: defer no backend SEM handling no frontend = tela branca
+
+**Sintoma reproduzido (Wave 7-C 2026-05-20, hotfix PR #1197):**
+- Backend usa `Inertia::defer(fn () => $this->buildKpisPayload(...))` corretamente
+- Frontend tipa prop como obrigatória: `interface Props { kpis: Kpis }` e acessa direto: `kpis.locacoes_ativas`
+- Primeiro render: `kpis = undefined` (defer ainda não chegou) → `TypeError: Cannot read properties of undefined` → **tela branca em prod afetando cliente piloto**
+
+**Caso real:** [`Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php:189`](../../Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php) deferia `kpis`; [`resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx`](../../resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx) acessava `kpis.locacoes_ativas` em 5 lugares sem guard. Detectado via skill `smoke-prod-evidence` browser MCP pós-deploy.
+
+**Duas formas válidas de evitar (escolha 1, NUNCA nenhuma):**
+
+### Opção A — `<Deferred>` wrapper (idiomático Inertia v3, recomendado)
+
+```tsx
+import { Deferred } from '@inertiajs/react';
+
+interface Props {
+  kpis?: Kpis;  // ?: obrigatório porque defer
+}
+
+export default function Page({ kpis }: Props) {
+  return (
+    <Deferred data="kpis" fallback={<KpiSkeleton />}>
+      {/* dentro do Deferred, kpis garantido populado */}
+      <KpiGrid>
+        <KpiCard value={kpis!.locacoes_ativas} />
+      </KpiGrid>
+    </Deferred>
+  );
+}
+```
+
+### Opção B — Default value no destructuring (fallback rápido, hotfix-friendly)
+
+```tsx
+interface Props {
+  kpis?: Kpis;  // ?: obrigatório
+}
+
+const EMPTY_KPIS: Kpis = {
+  locacoes_ativas: 0,
+  manutencao_ativas: 0,
+  concluidas_mes: 0,
+  atrasadas: 0,
+};
+
+export default function Page({ kpis = EMPTY_KPIS }: Props) {
+  // kpis sempre populado — componentes filhos rendam 0 até defer chegar
+  return <KpiCard value={kpis.locacoes_ativas} />;
+}
+```
+
+**Use Opção A** quando há skeleton visual claro a oferecer (KPIs vazios chama atenção). **Use Opção B** quando "0" é estado válido aceitável (contadores que naturalmente começam zerados). NUNCA `kpis: Kpis` (sem `?`) acessando direto.
+
 ## Exceções legítimas (NÃO aplicar defer)
 
 - **Initial paint requirements críticos** — login screen, error 500, splash

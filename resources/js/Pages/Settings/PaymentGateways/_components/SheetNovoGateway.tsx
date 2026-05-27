@@ -3,21 +3,30 @@
 import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
-  X, ChevronRight, ChevronLeft, Plus, Check, Shield,
+  X, ChevronRight, ChevronLeft, Plus, Check, Shield, ExternalLink,
 } from 'lucide-react';
 import { Btn } from '../../../Financeiro/Cobranca/_components/atoms';
 import { DriverChip, FileField, Field } from './atoms-settings';
 import { DRIVERS, TIPOS, cn, type GatewayKey } from '../_lib/gateway-shared';
 import type { Account } from '../_lib/gateway-shared';
 
+interface NfeCertificadoAtivo {
+  cnpjTitular: string;
+  validoAteBr: string;
+  diasRestantes: number;
+  vencido: boolean;
+  proximoVencer: boolean;
+}
+
 interface Props {
   accounts: Account[];
+  nfeCertificadoAtivo?: NfeCertificadoAtivo | null;
   onClose: () => void;
 }
 
 const STEPS = ['Driver', 'Credenciais', 'Vínculo'];
 
-export default function SheetNovoGateway({ accounts, onClose }: Props) {
+export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClose }: Props) {
   const [step, setStep] = useState(1);
   const [driver, setDriver] = useState<GatewayKey | null>(null);
 
@@ -30,10 +39,13 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Onda 5+: upload cert/key + senha
+  // Onda 5+: upload cert/key + senha (Inter PJ · BCB PIX)
   const [certFile, setCertFile] = useState<File | null>(null);
   const [keyFile, setKeyFile] = useState<File | null>(null);
   const [certPassword, setCertPassword] = useState('');
+
+  // US-FIN-046 (2026-05-27): state pfxFile/pfxPassword REMOVIDO.
+  // Sicoob API reusa NfeCertificado canon via /fiscal/configuracao/certificado.
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -67,6 +79,8 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
     if (certFile) fd.append('cert_file', certFile);
     if (keyFile) fd.append('key_file', keyFile);
     if (certPassword) fd.append('cert_password', certPassword);
+    // US-FIN-046 (2026-05-27): upload pfx_file/pfx_password REMOVIDOS.
+    // Sicoob API reusa NfeCertificado canon (single source of truth).
 
     router.post('/settings/payment-gateways', fd, {
       forceFormData: hasFiles,
@@ -132,11 +146,14 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                     opt.deprecated && 'opacity-70',
                   )}>
                     <span className={cn('w-9 h-9 rounded-md grid place-items-center text-white text-[13px] font-bold shrink-0', opt.dot)}>{opt.sigla}</span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <div className="text-[13px] font-semibold">{opt.nome}</div>
                         {opt.deprecated && <span className="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">deprecated</span>}
+                        {opt.key === 'bcb_pix' && <span className="text-[9px] uppercase tracking-widest font-bold text-violet-700">novo</span>}
+                        {opt.key === 'pagarme' && <span className="text-[9px] uppercase tracking-widest font-bold text-rose-700">Onda 4e</span>}
                       </div>
+
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {opt.tipos.map(t => {
                           const tp = TIPOS[t];
@@ -144,11 +161,73 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                         })}
                         <span className="text-[10px] text-stone-400 ml-1">· {opt.ambientes.join(' / ')}</span>
                       </div>
-                      <div className="text-[10.5px] text-stone-500 mt-1.5">{opt.cred}</div>
+
+                      {/* Onda 4e.UI #3: comparativo drivers (taxa/settlement/requirements) */}
+                      {opt.pricing && !opt.deprecated && (
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-[10.5px]">
+                          {opt.pricing.boleto && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">Boleto:</span><span className="text-stone-700 truncate" title={opt.pricing.boleto}>{opt.pricing.boleto}</span></div>
+                          )}
+                          {opt.pricing.pix && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">PIX:</span><span className="text-stone-700 truncate" title={opt.pricing.pix}>{opt.pricing.pix}</span></div>
+                          )}
+                          {opt.pricing.card && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">Cartão:</span><span className="text-stone-700 truncate" title={opt.pricing.card}>{opt.pricing.card}</span></div>
+                          )}
+                          {opt.pricing.settlement && (
+                            <div className="flex gap-1"><span className="text-stone-400 shrink-0">Liquidação:</span><span className="text-stone-700 truncate" title={opt.pricing.settlement}>{opt.pricing.settlement}</span></div>
+                          )}
+                        </div>
+                      )}
+
+                      {opt.recommendedFor && !opt.deprecated && (
+                        <div className="mt-1.5 text-[10px] text-stone-500 italic">
+                          ↳ {opt.recommendedFor}
+                        </div>
+                      )}
+
+                      <div className="text-[10px] text-stone-400 mt-1.5 font-mono truncate" title={opt.cred}>{opt.cred}</div>
                     </div>
-                    {opt.key === 'bcb_pix' && <span className="text-[9px] uppercase tracking-widest font-bold text-violet-700 self-start">novo</span>}
                   </button>
                 ))}
+
+                <div className="text-[10px] text-stone-400 italic pt-1">
+                  Valores REFERENCE 2026 (sites oficiais + docs públicas) — negociáveis com PSP em volume alto.
+                </div>
+
+                {/* Onda 4e.UI #6 (estado-da-arte 2026-05-23) — pointer pros 21 bancos eduardokum/CNAB.
+                    Backend já funciona via Modules/Financeiro/Strategies/CnabDirectStrategy.
+                    Cadastro vive em /financeiro/contas-bancarias (fluxo legado UPOS validado). */}
+                <a
+                  href="/financeiro/contas-bancarias"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full text-left rounded-md border border-dashed border-stone-300 p-3 transition flex items-start gap-3 hover:border-stone-500 hover:bg-stone-50"
+                >
+                  <span className="w-9 h-9 rounded-md grid place-items-center text-stone-700 text-[12px] font-bold shrink-0 bg-stone-100 border border-stone-300">BC</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="text-[13px] font-semibold">Boleto bancário tradicional (CNAB)</div>
+                      <span className="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded bg-stone-100 text-stone-600">21 bancos</span>
+                    </div>
+                    <div className="text-[10.5px] text-stone-600 mt-1.5 leading-snug">
+                      BB · Bradesco · Itaú · Sicredi · Sicoob · Cresol · Ailos · Caixa · Santander · Banrisul · BNB · BTG · Fibra · HSBC · Delbank · Rendimento · Pine · Ourinvest · Unicred · Inter · C6
+                    </div>
+
+                    {/* Onda 4e.UI #7 — destaque bancos com API moderna disponível (futuros drivers nativos PaymentGateway Onda 4f).
+                        Tier S de maturidade Open Finance + Pix Cobrança REST, dados de WebSearch oficial 2026-05-23. */}
+                    <div className="mt-2 bg-amber-50/60 border border-amber-200 rounded px-2 py-1.5 text-[10px] text-amber-900 leading-snug">
+                      <span className="font-medium">Bancos com API moderna disponível</span> (futuros drivers nativos):
+                      <div className="font-semibold mt-0.5">🔥 Bradesco · Itaú · BB · Sicredi · Sicoob · Santander · Caixa · BTG</div>
+                      <div className="text-[9.5px] text-amber-700 mt-0.5 italic">(hoje via CNAB — driver nativo + webhook em backlog Onda 4f)</div>
+                    </div>
+
+                    <div className="text-[10px] text-stone-500 mt-1.5">
+                      Cadastrar via <span className="font-mono">/financeiro/contas-bancarias</span> (CNAB 240/400 · sem webhook real-time · settlement T+1 mín · upload/download arquivo)
+                    </div>
+                  </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-stone-400 self-start mt-1" />
+                </a>
               </div>
             </div>
           )}
@@ -166,6 +245,22 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
               <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11px] text-stone-700 mb-3">
                 <strong>{d.nome}:</strong> {d.cred}
               </div>
+
+              {/* Onda 4e.UI #5 — deep-link pro painel do PSP onde gerar credencial */}
+              {d.credentialSource && (
+                <a
+                  href={d.credentialSource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 bg-sky-50 border border-sky-200 rounded p-2.5 text-[11px] text-sky-900 hover:bg-sky-100 hover:border-sky-300 transition mb-3"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Onde gerar a credencial</div>
+                    <div className="text-sky-700">{d.credentialSource.label}</div>
+                  </div>
+                </a>
+              )}
               {d.key === 'inter' && <>
                 <Field label="Client ID">
                   <input
@@ -288,23 +383,123 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                   Cert ICP-Brasil ⇄ CNPJ recebedor homologado no BCB. Resolução BCB 380/2024.
                 </div>
               </>}
-              {d.key === 'pesapal' && <>
-                <Field label="Consumer Key">
+              {d.key === 'sicoob_api' && <>
+                <Field label="Client ID">
                   <input
-                    type="password"
-                    value={config.consumer_key ?? ''}
-                    onChange={e => setConfigField('consumer_key', e.target.value)}
+                    value={config.client_id ?? ''}
+                    onChange={e => setConfigField('client_id', e.target.value)}
+                    placeholder="9b5e0aac-..."
                     className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
                   />
                 </Field>
-                <Field label="Consumer Secret">
+                <Field label="Client Secret">
                   <input
                     type="password"
-                    value={config.consumer_secret ?? ''}
-                    onChange={e => setConfigField('consumer_secret', e.target.value)}
+                    value={config.client_secret ?? ''}
+                    onChange={e => setConfigField('client_secret', e.target.value)}
                     className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
                   />
                 </Field>
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Convênio (numero_cliente)">
+                    <input
+                      value={config.numero_cliente ?? ''}
+                      onChange={e => setConfigField('numero_cliente', e.target.value)}
+                      placeholder="código cedente"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
+                  <Field label="Carteira">
+                    <select
+                      value={config.codigo_modalidade ?? '1'}
+                      onChange={e => setConfigField('codigo_modalidade', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                    >
+                      <option value="1">1 — Simples</option>
+                      <option value="3">3 — Caucionada</option>
+                    </select>
+                  </Field>
+                  <Field label="Conta corrente">
+                    <input
+                      value={config.numero_conta ?? ''}
+                      onChange={e => setConfigField('numero_conta', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
+                </div>
+                <Field label="Webhook secret">
+                  <input
+                    type="password"
+                    value={config.webhook_secret ?? ''}
+                    onChange={e => setConfigField('webhook_secret', e.target.value)}
+                    placeholder="HMAC-SHA256 raw body (header x-sicoob-signature)"
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+
+                {/* US-FIN-046 (2026-05-27) — Sicoob reusa NfeCertificado A1 (single source).
+                    Mostra status do cert ativo OU pede pra cadastrar em /fiscal. */}
+                {nfeCertificadoAtivo ? (
+                  <div className={cn(
+                    'border rounded p-2.5 text-[10.5px]',
+                    nfeCertificadoAtivo.vencido
+                      ? 'bg-rose-50 border-rose-200 text-rose-900'
+                      : nfeCertificadoAtivo.proximoVencer
+                        ? 'bg-amber-50 border-amber-200 text-amber-900'
+                        : 'bg-emerald-50 border-emerald-200 text-emerald-900',
+                  )}>
+                    <div className="font-semibold mb-0.5">
+                      {nfeCertificadoAtivo.vencido
+                        ? '⚠️ Cert A1 VENCIDO em ' + nfeCertificadoAtivo.validoAteBr
+                        : nfeCertificadoAtivo.proximoVencer
+                          ? `⚠️ Cert A1 vence em ${nfeCertificadoAtivo.diasRestantes}d (${nfeCertificadoAtivo.validoAteBr})`
+                          : '✅ Certificado A1 ICP-Brasil ativo'}
+                    </div>
+                    CNPJ titular <span className="font-mono">{nfeCertificadoAtivo.cnpjTitular}</span> · válido até{' '}
+                    <span className="font-mono">{nfeCertificadoAtivo.validoAteBr}</span> ({nfeCertificadoAtivo.diasRestantes}d).
+                    Sicoob API reusa este certificado — mesmo usado pra NFe SEFAZ.
+                    {(nfeCertificadoAtivo.vencido || nfeCertificadoAtivo.proximoVencer) && (
+                      <>
+                        {' · '}
+                        <a href="/fiscal/configuracao/certificado" target="_blank" rel="noopener noreferrer" className="underline">
+                          Renovar em Fiscal
+                        </a>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[10.5px] text-amber-900">
+                    <div className="font-semibold mb-0.5">⚠️ Cadastre o certificado A1 da empresa em Fiscal</div>
+                    Sicoob API exige cert ICP-Brasil A1 do CNPJ — mesmo que NFe SEFAZ usa.{' '}
+                    <a href="/fiscal/configuracao/certificado" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                      Ir pra /fiscal/configuracao/certificado
+                    </a>
+                    . Depois volta aqui pra finalizar o cadastro Sicoob.
+                  </div>
+                )}
+              </>}
+              {d.key === 'pagarme' && <>
+                <Field label="Secret Key">
+                  <input
+                    type="password"
+                    value={config.secret_key ?? ''}
+                    onChange={e => setConfigField('secret_key', e.target.value)}
+                    placeholder="sk_test_... ou sk_live_..."
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Webhook Secret">
+                  <input
+                    type="password"
+                    value={config.webhook_secret ?? ''}
+                    onChange={e => setConfigField('webhook_secret', e.target.value)}
+                    placeholder="whsec_••• (validação HMAC X-Hub-Signature-256)"
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <div className="bg-stone-50 border border-stone-200 rounded p-2.5 text-[10.5px] text-stone-700">
+                  Sandbox via prefixo <span className="font-mono">sk_test_</span> · Production via <span className="font-mono">sk_live_</span>. Webhook secret é configurado no dashboard Pagar.me em Integrações → Webhooks.
+                </div>
               </>}
 
               <div className="pt-2 border-t border-stone-200 mt-3 flex items-center gap-2">

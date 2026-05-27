@@ -7,11 +7,12 @@ last_validated: 2026-05-20
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
 related_adrs: [arq/0005, ui/0002, ui/0114, 0093, 0094]
-related_us: [US-FIN-013, US-FIN-020, US-FIN-050-anexos, US-FIN-055-aprovacao]
+related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
+runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 6
+charter_version: 9
 ---
 
 # Page Charter — /financeiro/unificado
@@ -28,6 +29,26 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **PR C — GUARD + RUNBOOK** (2026-05-25, charter v9, US-FIN-027 parcial + G1/G3 auditoria):
+  - **`UnificadoPlanoContaGuardTest`** — 7 GUARDs Tier 0 anti-regressão pra `plano_conta_id`: prop Inertia `planosConta`, shape 3 campos (`plano_conta_id` + `_codigo` + `_nome`), eager-load preserva (anti N+1), Update persiste, coerência tipo↔plano (Edit), Store persiste, cross-tenant rejeitado em ambos. Cada Δ = CI quebra.
+  - **`RUNBOOK-unificado.md`** — doc canon Cockpit (ADR 0039) 12 seções (quando usar, permissões, rotas, componentes, filtros, atalhos, edit/insert, plano de contas, multi-tenant, pegadinhas, troubleshoot, refs).
+  - **Frontmatter `runbook:` linkado** — descoberta automática via tooling MCP.
+
+- **Onda 25 — Insert manual inline** (2026-05-25, charter v8, US-FIN-021 completa):
+  - **TituloCreateSheet** reusa `PlanoContaCombobox` da Onda 24. Drawer abre via DropdownMenu existente "+ Novo título" → "Novo recebimento" (verde 145) ou "Novo pagamento" (rose 25), com `tipo` pré-fixado e não editável (Opção A do design: usuário escolhe tipo ANTES do form).
+  - **POST `/financeiro/unificado`** → `UnificadoController::store(StoreTituloRequest)`. Numero sequencial business-isolado (`R-NNNNN` ou `P-NNNNN`) gerado com `lockForUpdate` (R-FIN-002 idempotência).
+  - **Substitui stub `/unificado/novo`** — remove Non-Goal #1 do charter v6 ("Form unificado de novo lançamento inline").
+  - **Defesa em profundidade**: `StoreTituloRequest::assertPlanoCoerente()` revalida tipo↔plano_conta.tipo no backend (anti tampering — mesmo padrão da Onda 24).
+  - **Multi-tenant Tier 0** (ADR 0093): `business_id` da session, nunca do payload. Pest cross-tenant rejeita 422.
+  - **origem='manual'**, `valor_aberto=valor_total`, `status='aberto'`, `created_by=user.id`, `competencia_mes=Y-m`.
+
+- **Onda 24 — Plano de Contas no Edit** (2026-05-25, charter v7, US-FIN-021 parcial):
+  - **TituloEditSheet** ganha campo `plano_conta_id` via `PlanoContaCombobox` reusável (searchable, hierárquico DCASP indentado por `nivel`).
+  - **Combobox filtra por `kind` do título**: `receivable` → tipo IN (receita, ativo); `payable` → tipo IN (despesa, custo, passivo). Patrimônio fora (não é título corrente).
+  - **Backend defesa em profundidade**: `UpdateTituloRequest::assertPlanoCoerente()` revalida coerência tipo↔plano (anti tampering) + `Rule::exists` scope business + ativo + aceita_lancamento.
+  - **shapeTitulo expõe** `plano_conta_id`, `plano_conta_codigo`, `plano_conta_nome` (eager-load `planoConta:id,codigo,nome,tipo`).
+  - **DRE consequência**: títulos editados passam a alimentar Dre/Index diretamente sem precisar de `BackfillPlanoContaCommand` (que continua cobrindo auto-criação via Observer).
 
 - **Ondas 12-21 KB CANON CSS BUNDLE COMPLETO** (2026-05-20, charter v6):
   - **Bundle copy CSS 9054 LOC** — `resources/css/cowork-canon-financeiro-bundle.css` importado inteiro escopado em `.fin-cowork` (regra Tier 0 `feedback-cowork-bundle-aplicar-inteiro`). Substitui cherry-pick fragmentado.
@@ -57,7 +78,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
   - **Backward compat**: títulos antigos com `aprovacao_status=NULL` seguem fluxo direto (sem aprovação obrigatória)
 
 - **Onda Edit** (2026-05-18, charter v5):
-  - **TituloEditSheet** — Sheet drawer inline edita campos seguros do título: `cliente_descricao` (texto livre + cross-links `#V-/#OS-/#PC-`), `observacoes`, `categoria_id`, `vencimento`. `valor_total` mutável SOMENTE se `status` aberto/parcial (ADR fin-tech/0002 imutabilidade pós-baixa). PUT `/financeiro/unificado/{id}` via `useForm` Inertia. Wire-up no botão "Editar" do drawer de detalhe.
+  - **TituloEditSheet** — Sheet drawer inline edita campos seguros do título: `cliente_descricao` (texto livre + cross-links `#V-/#OS-/#PC-`), `observacoes`, `categoria_id`, `plano_conta_id` (Onda 24), `vencimento`. `valor_total` mutável SOMENTE se `status` aberto/parcial (ADR fin-tech/0002 imutabilidade pós-baixa). PUT `/financeiro/unificado/{id}` via `useForm` Inertia. Wire-up no botão "Editar" do drawer de detalhe.
   - **Conferido per-user DB** — `FinConferidoToggle` migrado de localStorage para `conferido_by` (FK users.id) + `conferido_at` (timestamp). Substitui Onda 5 R1 storage. Eliana confere ≠ Wagner confere → audit per-user. Routes POST/DELETE `/unificado/{id}/conferir`.
   - **Cross-links auto-pop** — `TituloAutoService` sintetiza `#V-{transaction_id}` (vendas) e `#PC-{transaction_id}` (compras) em `cliente_descricao` no `afterCreate`. FinCrossLinkify renderiza pills clicáveis.
 
@@ -94,7 +115,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 
 > Anti-alucinação. Cada item vira Pest GUARD test (Non-Goal violado = CI quebra).
 
-- ❌ Form unificado de novo lançamento inline — F1 é stub picker (Receber/Pagar) em `/unificado/novo`. Roadmap entrega form modal/sheet futuramente
+- ❌ ~~Form unificado de novo lançamento inline~~ — **RESOLVIDO Onda 25** (TituloCreateSheet via DropdownMenu "+ Novo título")
 - ❌ Cancelamento/estorno — vai por rotas dedicadas (`status='cancelado'` via append-only, não delete)
 - ❌ Edição de `tipo`, `origem`, `origem_id`, `status`, `emissao` — imutáveis (anti-corrupção contábil; alterar requer cancelar+criar novo). Onda Edit edita só campos seguros + valor pré-baixa.
 - ❌ Pagination explícita (default `limit(200)` no controller) — paginar quando 1000+ títulos virar dor
@@ -161,7 +182,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 
 ## Backlog futuro (US explícitas)
 
-- **US-FIN-021** — Form unificado inline (modal/sheet) — substitui stub `/unificado/novo`
+- ~~**US-FIN-021** — Form unificado inline (modal/sheet) — substitui stub `/unificado/novo`~~ **DONE Onda 25 (2026-05-25)**
 - **US-FIN-022** — Aging buckets <30/30-60/60-90/90+ + filtro
 - **US-FIN-023** — Comparação `+X% vs mês anterior` por KPI (delta_pct)
 - **US-FIN-024** — Combobox cliente/contraparte com autocomplete

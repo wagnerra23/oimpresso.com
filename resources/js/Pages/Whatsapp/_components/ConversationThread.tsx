@@ -26,6 +26,7 @@ import {
   File as FileIcon,
   Zap,
   MessageSquareDashed,
+  ClipboardCheck,
 } from 'lucide-react';
 
 import { Card } from '@/Components/ui/card';
@@ -39,6 +40,7 @@ import InteractiveMessageDialog from './InteractiveMessageDialog';
 import MicRecorder from './MicRecorder';
 import MediaPreviewCard from './MediaPreviewCard';
 import MediaFullscreenModal from './MediaFullscreenModal';
+import CaptureFeedbackSheet, { type CaptureFeedbackInput } from './CaptureFeedbackSheet';
 import {
   formatBytes,
   groupByDay,
@@ -116,6 +118,24 @@ export default function ConversationThread({
   const [liveConnected, setLiveConnected] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+
+  // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016)
+  const [feedbackSheetOpen, setFeedbackSheetOpen] = useState(false);
+  const [feedbackInput, setFeedbackInput] = useState<CaptureFeedbackInput>({ literal: '' });
+
+  const openCaptureFeedback = (message: Message) => {
+    setFeedbackInput({
+      literal: message.body || '',
+      source_message_id: message.id,
+      conversation_id: conversation.id,
+      contact_id: conversation.contact_id ?? null,
+      contact_name: conversation.contact_name ?? null,
+      contact_phone: conversation.contact_phone ?? null,
+      persona_slug: null, // backend infere via phone lookup futuro
+      cliente_slug: null,
+    });
+    setFeedbackSheetOpen(true);
+  };
   // US-WA-045b: dialog pra compor mensagem interativa HSM (buttons/list/cta_url).
   // Aberto pelo botão "Interativa" no composer; envia via
   // POST /atendimento/inbox/conversations/{id}/send-interactive (Inertia router).
@@ -753,6 +773,7 @@ export default function ConversationThread({
                     showTail={i === group.messages.length - 1 || group.messages[i + 1]?.direction !== m.direction}
                     highlight={searchQuery}
                     slashBadge={slashBadges[m.id] ?? null}
+                    onCaptureFeedback={openCaptureFeedback}
                   />
                 ))}
               </div>
@@ -1222,6 +1243,18 @@ export default function ConversationThread({
         onOpenChange={setInteractiveDialogOpen}
         driverType={conversation.channel_type ?? 'whatsapp_baileys'}
       />
+
+      {/* Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
+          Sheet 760px abre ao clicar botão "📋" numa bubble de mensagem. */}
+      <CaptureFeedbackSheet
+        open={feedbackSheetOpen}
+        onOpenChange={setFeedbackSheetOpen}
+        input={feedbackInput}
+        onSaved={(feedbackId, mcpTaskPending) => {
+          // eslint-disable-next-line no-console
+          console.info('[capture-feedback] salvo', { feedbackId, mcpTaskPending });
+        }}
+      />
     </Card>
   );
 }
@@ -1248,7 +1281,7 @@ export function HighlightedBody({ body, query }: { body: string; query: string }
   );
 }
 
-function MessageBubble({ message, showTail, highlight = '', slashBadge = null }: {
+function MessageBubble({ message, showTail, highlight = '', slashBadge = null, onCaptureFeedback }: {
   message: Message;
   showTail: boolean;
   /** US-WA-062: query da busca local — body matches recebem <mark> highlight */
@@ -1256,6 +1289,9 @@ function MessageBubble({ message, showTail, highlight = '', slashBadge = null }:
   /** US-WA-074 (ADR 0142): payload do slash command resultante (success/error)
    * — quando set, badge clicável aparece ao lado da bubble da nota. */
   slashBadge?: SlashFlashPayload | null;
+  /** Wagner 2026-05-27 — Voice of Customer in-app (ADR UI-0016).
+   *  Callback que abre o Sheet de captura de feedback pré-preenchido. */
+  onCaptureFeedback?: (message: Message) => void;
 }) {
   const isOut = message.direction === 'outbound';
   const isNote = !!message.is_internal_note; // US-WA-071
@@ -1331,7 +1367,22 @@ function MessageBubble({ message, showTail, highlight = '', slashBadge = null }:
     : { background: 'var(--bubble-them)', color: 'var(--bubble-them-fg)' };
 
   return (
-    <div className={`flex ${isOut ? 'justify-end' : 'justify-start'}`} data-msg-id={message.id}>
+    <div className={`group/bubble flex ${isOut ? 'justify-end' : 'justify-start'} items-start gap-1`} data-msg-id={message.id}>
+      {/* Wagner 2026-05-27 — botão "Capturar feedback" (ADR UI-0016).
+          Aparece em mensagens INBOUND (cliente disse algo). Hover-revealed
+          pra não poluir UI. Clica → Sheet 760px pré-preenchido. */}
+      {!isOut && onCaptureFeedback && (message.body || '').trim().length > 0 && (
+        <button
+          type="button"
+          onClick={() => onCaptureFeedback(message)}
+          className="opacity-0 group-hover/bubble:opacity-100 transition-opacity mt-1 inline-flex items-center justify-center h-6 w-6 rounded-md border border-border bg-card hover:bg-[var(--cw-accent-soft)] hover:border-[var(--cw-accent)] text-muted-foreground hover:text-[var(--cw-accent)]"
+          title="Capturar feedback desta mensagem (Voice of Customer)"
+          aria-label="Capturar feedback"
+          data-testid="capture-feedback-btn"
+        >
+          <ClipboardCheck size={12} aria-hidden />
+        </button>
+      )}
       <div className={`max-w-[75%] px-3 py-1.5 shadow-sm border border-transparent ${corner}`} style={bubbleStyle}>
         {message.sender_kind === 'bot' && (
           <div className="text-[10px] font-semibold mb-0.5 uppercase tracking-wide opacity-80 inline-flex items-center gap-1">

@@ -109,6 +109,26 @@ class ServiceOrderFsmActionController extends Controller
             ];
         });
 
+        // Gap #2 estado-da-arte FSM screen (Wave 7-E) — pipeline horizontal "você está aqui".
+        // Lista ordenada de todos stages do processo da OS pra renderizar mini-grafo no drawer.
+        // Multi-tenant Tier 0 (ADR 0093) via currentStage.process.business_id.
+        $stagesPipeline = collect();
+        if ($currentStage && $currentStage->process_id) {
+            $stagesPipeline = SaleProcessStage::query()
+                ->where('process_id', $currentStage->process_id)
+                ->orderBy('sort_order')
+                ->get(['id', 'key', 'name', 'color', 'sort_order', 'is_initial', 'is_terminal'])
+                ->map(fn ($s) => [
+                    'key'         => $s->key,
+                    'name'        => $s->name,
+                    'color'       => $s->color,
+                    'sort_order'  => (int) $s->sort_order,
+                    'is_initial'  => (bool) $s->is_initial,
+                    'is_terminal' => (bool) $s->is_terminal,
+                    'is_current'  => $s->id === $currentStageId,
+                ]);
+        }
+
         return response()->json([
             'service_order_id' => $order->id,
             'process_key'      => $processKey,
@@ -118,8 +138,9 @@ class ServiceOrderFsmActionController extends Controller
                 'color' => $currentStage?->color,
                 'is_terminal' => (bool) $currentStage?->is_terminal,
             ],
-            'actions'     => $payload,
-            'in_pipeline' => true,
+            'stages_pipeline' => $stagesPipeline,
+            'actions'         => $payload,
+            'in_pipeline'     => true,
         ]);
     }
 

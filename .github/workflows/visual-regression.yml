@@ -83,6 +83,16 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci
 
+      - name: Install Playwright npm client
+        # `pestphp/pest-plugin-browser ^4.0` (composer.json) spawneia o cliente
+        # JS `playwright` via stdio. `playwright` NÃO está em package.json
+        # devDependencies (ainda), então `npm ci` não traz `node_modules/playwright/`.
+        # Sem este step, o cache de `~/.cache/ms-playwright/` (binários dos browsers)
+        # acerta mas o cliente JS está ausente → `PlaywrightNotInstalledException`.
+        # `--no-save` evita drift no package.json/lock — declarar como devDep
+        # propriamente fica pra PR follow-up.
+        run: npm install playwright --no-save
+
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium

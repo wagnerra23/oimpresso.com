@@ -42,10 +42,10 @@ Se protótipo NÃO existe → **STOP**. Não tem fonte canônica → use `mwart-
 ### Sub-passo 1: Identificar vertical alvo
 
 Ler `memory/reference_dominios_verticais_oimpresso.md` pra confirmar:
-- Cliente piloto (ex: Martinho — caçambas avulsas locação)
-- CNAE (ex: 4581-4/00)
-- Unidades primárias (ex: m³ pra caçamba, NÃO m² gráfica)
-- Sub-vertical específica (ex: OficinaAuto.locacao_cacamba)
+- Cliente piloto (ex: Martinho — mecânica pesada caminhão basculante CNAE 4520 sub-vertical 4 ADR 0194; pré-correção dizia "caçambas avulsas locação")
+- CNAE (ex: 4520-0/01 mecânica pesada Martinho · 2212-9/00 recapagem Vargas · 4581-4/00 locação container hipótese sem cliente)
+- Unidades primárias por sub-vertical (sub-vertical 4 Martinho: peça hidráulica + hora-trabalho · sub-vertical 3 hipotético: m³ + diária)
+- Sub-vertical específica (ex: OficinaAuto.sub_vertical_4 mecânica pesada caminhão basculante)
 
 ### Sub-passo 2: Construir tabela mapping vocabulário
 

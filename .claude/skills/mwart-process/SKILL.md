@@ -3,7 +3,7 @@ name: mwart-process
 description: Use SEMPRE que o trabalho envolva migrar tela Blade legacy → Inertia/React no oimpresso (MWART). Carrega o processo canônico ÚNICO definido em ADR 0104 — 5 fases obrigatórias e sequenciais (PLAN → BACKEND BASELINE → FRONTEND INCREMENTAL → QA → CUTOVER). Não há caminho alternativo. Ativa quando o pedido é "migrar tela X pra MWART", "criar tela em Pages/<Mod>/<Tela>.tsx", "migrar Blade pra React", ou quando Edit/Write em qualquer `resources/js/Pages/<Mod>/<Tela>.tsx` ou em controller chamando `Inertia::render`.
 tier: A
 status: active
-version: 1.1
+version: 1.2
 authority: canonical
 ---
 
@@ -29,8 +29,13 @@ RUNBOOK + SPEC → BASELINE      → INCREMENTAL     → HARDENING        → + 
 
 1. Verifica F1 completa: `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` existe?
 2. Verifica F2 completa: SPEC.md tem epic + US `<MOD>-002` (backend baseline) com status `done`?
+3. **Identifica camada-3 (Padrão de Tela)** aplicável — ver [Constituição UI v2 / ADR UI-0013](../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md):
+   - Tela-lista → ler [PT-01-Lista.md](../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md) **antes** de codar (6 slots canônicos)
+   - Tela form/drawer → PT-02 (não documentado ainda — drawer 760px em [ADR 0185](../../memory/decisions/0185-drawer-760-canon-entidades-cadastrais.md))
+   - Tela detalhe/dashboard/config → abrir ADR ou justificar desvio
+4. **Antes do PR:** rodar checklist [PRE-MERGE-UI](../../memory/requisitos/_DesignSystem/PRE-MERGE-UI.md) camada 4 (anti-padrões AP1-AP8)
 
-**Se NÃO:** recusa o Edit/Write. Recomenda voltar pra fase faltante. Mensagem PT-BR explicando.
+**Se NÃO (1) OU (2):** recusa o Edit/Write. Recomenda voltar pra fase faltante. Mensagem PT-BR explicando.
 
 ## Skills associadas por fase
 

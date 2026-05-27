@@ -142,116 +142,17 @@ class DataController extends Controller
             return;
         }
 
-        // Agrupamento visual em "FISCAL" acontece no frontend (SIDEBAR_GROUPS
-        // em resources/js/Components/cockpit/Sidebar.tsx). DataController
-        // publica o dropdown standalone do módulo.
-        $background_color = config('app.env') == 'demo' ? '#a8d8ea' : '';
-        $segmento_ativo = request()->segment(1) == 'nfebrasil';
-
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                $menu->dropdown(
-                    'NF-e Brasil',
-                    function ($sub) {
-                        $sub->url(
-                            url('/nfebrasil'),
-                            'Painel',
-                            [
-                                'icon'   => 'fa fas fa-tachometer-alt',
-                                'active' => request()->segment(1) == 'nfebrasil' && ! request()->segment(2),
-                            ]
-                        );
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfebrasil.emit.manage')) {
-                            $sub->url(
-                                url('/nfebrasil/create'),
-                                'Emitir NF-e / NFC-e',
-                                [
-                                    'icon'   => 'fa fas fa-file-invoice-dollar',
-                                    'active' => request()->segment(2) == 'create',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfebrasil.consult.view')) {
-                            $sub->url(
-                                url('/nfebrasil?status=emitidas'),
-                                'Consultar Notas',
-                                [
-                                    'icon'   => 'fa fas fa-search',
-                                    'active' => false,
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfebrasil.sped.view')) {
-                            $sub->url(
-                                url('/nfebrasil/sped'),
-                                'SPED Fiscal',
-                                [
-                                    'icon'   => 'fa fas fa-file-archive',
-                                    'active' => request()->segment(2) == 'sped',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfebrasil.settings.manage')) {
-                            $sub->url(
-                                url('/nfebrasil/settings'),
-                                'Configurações Fiscais',
-                                [
-                                    'icon'   => 'fa fas fa-cog',
-                                    'active' => request()->segment(2) == 'settings',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfe.configuracao.manage')) {
-                            $sub->url(
-                                url('/nfe-brasil/configuracao/certificado'),
-                                'Certificado A1',
-                                [
-                                    'icon'   => 'fa fas fa-key',
-                                    'active' => request()->is('nfe-brasil/configuracao/certificado*'),
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('nfe.tributacao.manage')) {
-                            $sub->url(
-                                url('/nfe-brasil/tributacao'),
-                                'Tributação',
-                                [
-                                    'icon'   => 'fa fas fa-percent',
-                                    'active' => request()->is('nfe-brasil/tributacao*'),
-                                ]
-                            );
-                        }
-
-                        // US-NFE-052 (ADR 0116) — manifestação destinatário
-                        if (
-                            auth()->user()->can('superadmin')
-                            || auth()->user()->can('nfe.manifestacao.view')
-                            || auth()->user()->can('nfe.manifestacao.manage')
-                        ) {
-                            $sub->url(
-                                url('/nfe-brasil/manifestacao'),
-                                'Notas recebidas',
-                                [
-                                    'icon'   => 'fa fas fa-inbox',
-                                    'active' => request()->is('nfe-brasil/manifestacao*'),
-                                ]
-                            );
-                        }
-                    },
-                    [
-                        'icon'   => 'fa fas fa-file-invoice-dollar',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
-                    ]
-                )->order(95);
-            }
-        );
+        // 2026-05-25 — Onda ESTABILIZAR Fiscal: NfeBrasil NÃO publica mais entries
+        // no sidebar. Wagner apontou em sessão 2026-05-25 que "fiscal manifestação
+        // certificado tem telas competindo" — as 3 entries que viviam aqui foram
+        // movidas pra Modules/Fiscal/DataController (cockpit Fiscal vira hub
+        // canon). NfeBrasil continua sendo o motor real (Services + rotas backend
+        // /nfe-brasil/* ainda existem pra superadmin troubleshooting + ações
+        // cross-fiscal que delegam ManifestacaoService/CertificadoService).
+        //
+        // Rotas /nfe-brasil/manifestacao + /nfe-brasil/configuracao/certificado
+        // permanecem funcionais — só não há link visível no sidebar do user comum.
+        // Quem chega lá: superadmin via URL direta OU /fiscal/config "Editar" link
+        // que delega upload cert pra NfeBrasil (Fiscal é read-only).
     }
 }

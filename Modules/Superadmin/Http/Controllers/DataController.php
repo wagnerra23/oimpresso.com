@@ -116,14 +116,11 @@ class DataController extends Controller
      */
     public function modifyAdminMenu()
     {
-        if (auth()->user()->can('superadmin')) {
-            Menu::modify(
-                'admin-sidebar-menu',
-                function ($menu) {
-                    $menu->url(action([\Modules\Superadmin\Http\Controllers\SuperadminController::class, 'index']), __('superadmin::lang.superadmin'), ['icon' => 'fa fas fa-users-cog', 'active' => request()->segment(1) == 'superadmin'])->order(1);
-                }
-            );
-        }
+        // Wagner 2026-05-22: entry "Superadmin" top-level REMOVIDA do sidebar.
+        // Cascade Superadmin do user menu rodapé (PR #1401) já dá acesso a
+        // Módulos/Backup/CMS/Conector/Office Impresso/Personalizar. Manter
+        // 1 entry top-level era duplicação. Tela /superadmin acessível via
+        // URL direta.
 
         if (auth()->user()->can('superadmin.access_package_subscriptions') && auth()->user()->can('business_settings.access')) {
             $menu = Menu::instance('admin-sidebar-menu');

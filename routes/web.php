@@ -126,6 +126,13 @@ Route::middleware(['setData'])->group(function () {
     Route::post('/confirm-payment/{id}', [SellPosController::class, 'confirmPayment'])
         ->middleware('throttle:10,1')
         ->name('confirm_payment');
+
+    // ADR 0191 — banner LGPD consent (pré-requisito Microsoft Clarity).
+    // Público (sem auth) — banner aparece pra anônimo na landing tambem.
+    // throttle:30,1 — UX gentil + freio contra abuso.
+    Route::post('/api/consent', [\App\Http\Controllers\ConsentController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('consent.store');
 });
 
 //Routes for authenticated users only
@@ -152,7 +159,16 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // (TaskProvider interface + TaskRegistry agregando providers de cada módulo).
     Route::get('/tarefas', fn () => inertia('Tarefas/Index'))->name('tarefas.index');
 
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    // Wagner 2026-05-22: /home redireciona pra hub IA/Jana — sidebar v3 ADR 0180.
+    // Wagner 2026-05-25: alvo passou de /ia (chat) pra /ia/dashboard (Dashboard
+    // Jana = primeira aba canon, com farol das metas + KPIs do business). Chat
+    // continua entry-point IA conversacional via aba 2 e FAB. Dashboard legacy
+    // UltimatePOS (HomeController@index com cards Total Vendas/Líquido/A
+    // Receber) ainda acessível via /dashboard-legacy se precisar. Name `home`
+    // preservado pra compat com `route('home')` chamado em ~30 lugares
+    // (post-login redirect, breadcrumbs, links externos UltimatePOS core).
+    Route::get('/home', fn () => redirect('/ia/dashboard', 302))->name('home');
+    Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);
     Route::get('/home/purchase-payment-dues', [HomeController::class, 'getPurchasePaymentDues']);
@@ -189,7 +205,63 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/contacts/check-contacts-id', [ContactController::class, 'checkContactId']);
     Route::get('/contacts/customers', [ContactController::class, 'getCustomers']);
     Route::get('/contacts/create-page', [ContactController::class, 'createPage']);
+
+    // Slice 5a — BrasilAPI lookup CNPJ. Proxy AJAX informativo (gov.br público).
+    // Permission check + Rule\BR\CpfCnpj (mod-11) no controller.
+    // Mantido ANTES de `Route::resource('contacts', …)` pra evitar match em /contacts/{id}.
+    Route::get(
+        '/contacts/lookup/cnpj/{cnpj}',
+        [\App\Http\Controllers\Cliente\ContactLookupController::class, 'cnpj']
+    )->where('cnpj', '[0-9./\\-]+');
+
     Route::resource('contacts', ContactController::class);
+
+    // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — URLs canon /cliente.
+    // INDEX+SHOW canary (read-only). Wrappers thin que reusam ContactController.
+    // Multi-tenant Tier 0: type=customer injetado pra Index; guard customer/both
+    // pra Show (supplier NUNCA cai aqui). Ver app/Http/Middleware/RedirectLegacyContacts.php.
+    //
+    // ADR 0188 (2026-05-24) — Slot 2 PT-01 multi-type: `/cliente?type=X` aceita
+    // whitelist 5 valores (customer/supplier/employee/representative/all). Default
+    // 'customer' se ausente ou inválido pra retrocompat com bookmarks/links externos.
+    Route::get('/cliente', function (ContactController $c) {
+        $allowed = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        $type = (string) request()->query('type', 'customer');
+        if (! in_array($type, $allowed, true)) {
+            $type = 'customer';
+        }
+        request()->merge(['type' => $type]);
+        return $c->index();
+    })->name('cliente.index');
+
+    // Wave G (ADR 0179) — Export CSV da listagem.
+    // Multi-tenant Tier 0 scope automático via session('user.business_id') no controller.
+    // Mantido ANTES de `/cliente/{id}` pra evitar match (`export` cair em {id} regex).
+    Route::get('/cliente/export', [ContactController::class, 'clienteExport'])
+        ->name('cliente.export');
+
+    Route::get('/cliente/{id}', function (int $id, ContactController $c) {
+        $bizId = (int) session('user.business_id');
+        $ok = \App\Contact::where('business_id', $bizId)
+            ->where('id', $id)
+            ->whereIn('type', ['customer', 'both'])
+            ->exists();
+        if (! $ok) {
+            abort(404);
+        }
+
+        // Wave B ADR 0179: paradigma drawer 760px substitui Show.tsx full-page.
+        // Quando cliente_index liga, /cliente/{id} redirect 302 -> Index com
+        // deeplink ?contact_id={id}&tab=identificacao (drawer abre on-load).
+        // Tab opcional via ?tab= preserva navegacao especifica do Copiloto/Slack.
+        // Fallback legacy (canary biz=1 rollback): cliente_show liga -> Show.tsx.
+        if (config('mwart.cliente_index.enabled')) {
+            $tab = (string) (request()->query('tab') ?: 'identificacao');
+            return redirect()->to("/cliente?contact_id={$id}&tab={$tab}");
+        }
+
+        return $c->show($id);
+    })->name('cliente.show')->whereNumber('id');
 
     Route::get('taxonomies-ajax-index-page', [TaxonomyController::class, 'getTaxonomyIndexPage']);
     Route::resource('taxonomies', TaxonomyController::class);
@@ -259,6 +331,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-SELL-008 — Sells/Index.tsx Inertia endpoints (lista JSON + drawer detail).
     Route::get('/sells-list-json', [SellController::class, 'inertiaList']);
     Route::get('/sells/{id}/sheet-data', [SellController::class, 'sheetData']);
+    // Onda 6 (ADR 0192 A1 KB-9.75) — Caixa do dia Inertia em rota nova.
+    // COEXISTE com /cash-register/* Blade legacy (decisão Wagner 2026-05-25 ~15h).
+    // Permission gate dentro do controller (direct_sell.view + variants).
+    Route::get('/vendas/caixa', [SellController::class, 'inertiaCaixa'])->name('vendas.caixa');
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
     // Onda 4d.5 — Wire-up emissão real via PaymentGatewayContract::emitirX().
     // Chip "Emitir cobrança" no footer drawer Sells (ADR 0144 + 0170).
@@ -284,6 +360,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-SELL-035 — Timeline FSM (sale_stage_history) pra drawer e auditoria.
     Route::get('/api/sells/{id}/history', [\App\Http\Controllers\SaleHistoryController::class, 'index'])
         ->name('sells.history');
+    // P4 parking lot pós-PR #1663 (gap #11 r4 visual-comparison) — timeline
+    // cross-source: FSM + payments + activities + comments + audit_log num
+    // único stream cronológico reverso pra Sells/Show + drawer.
+    Route::get('/api/sells/{id}/timeline-unified', [\App\Http\Controllers\SaleHistoryController::class, 'timelineUnified'])
+        ->name('sells.timeline-unified');
     // US-SELL-COWORK-R3-CURADORIA Onda 3.5 — Audit Trail FSM real (formato flat
     // amigável pro componente SaleAuditTrail.tsx). Multi-tenant Tier 0.
     Route::get('/sells/{sale}/audit', [\App\Http\Controllers\SellAuditController::class, 'show'])
@@ -295,6 +376,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('sells.fsm-execute');
     Route::post('/sells/{id}/fsm-start-pipeline', [\App\Http\Controllers\SaleFsmActionController::class, 'startPipeline'])
         ->name('sells.fsm-start-pipeline');
+    // ADR 0192 Onda 2 follow-up — Editor UI do split de comissão (mecânico/balcão).
+    // Endpoint dedicado pra preservar SoC (não cruza com SellPosController::update).
+    Route::patch('/sells/{id}/commission-split', [\App\Http\Controllers\SellCommissionSplitController::class, 'update'])
+        ->whereNumber('id')
+        ->name('sells.commission-split.update');
     Route::resource('sells', SellController::class)->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 

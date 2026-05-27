@@ -6,22 +6,24 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Arquivos\Concerns\HasArquivos;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
- * ServiceOrder — Ordem de Serviço da oficina automotiva OU locação caçamba (Martinho).
+ * ServiceOrder — Ordem de Serviço da oficina automotiva (mecânica pesada caminhão basculante · Martinho LIVE prod · sub-vertical 4 ADR 0194).
  *
- * Schema ADR 0137 §"Escopo arquitetural V0":
+ * Schema ADR 0137 §"Escopo arquitetural V0" (amendado por ADR 0194 2026-05-26):
  * - 1 OS = 1 venda (transaction_id FK UltimatePOS transactions, nullable durante draft)
  * - status: string livre na V0; FSM canônica chega em US-OFICINA-003 (ADR 0129)
- *   - OS Simples (Martinho): aberta → em_servico → concluida
- *   - OS Complexa (Vargas, V1): aberta → orcamento → aprovada → em_producao → concluida → entregue
+ *   - OS Simples (Martinho · sub-vertical 4 mecânica pesada caminhão basculante): aberta → em_servico → concluida
+ *   - OS Complexa (Vargas · sub-vertical 2 recapagem · V1): aberta → orcamento → aprovada → em_producao → concluida → entregue
  *
- * Locação (extension migration 2026_05_12_220002):
- * - order_type=locacao → fluxo Martinho (caçamba avulsa)
- * - order_type=manutencao → fluxo oficina automotiva genérica (default)
+ * order_type extension migration 2026_05_12_220002 (schema preservado nullable pós-ADR 0194):
+ * - order_type=manutencao → fluxo Martinho mecânica pesada (predominante prod biz=164) — sub-vertical 4 default
+ * - order_type=locacao → schema sub-vertical 3 hipotético locação caçamba container (sem cliente real ancorado pós-ADR 0194 — pré-correção dizia "fluxo Martinho caçamba avulsa")
  *
  * Multi-tenant Tier 0 (ADR 0093): global scope obrigatório.
  *
@@ -49,6 +51,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class ServiceOrder extends Model
 {
+    use HasArquivos; // Gap 1 (2026-05-26) — anexo OS-level laudo geral / foto chassi via Modules/Arquivos backbone (ADR 0123). Complementa foto inline por item DVI (OaInspectionItem).
     use LogsActivity; // D7.b LGPD audit trail (Wave 14)
     use SoftDeletes;
 
@@ -63,6 +66,8 @@ class ServiceOrder extends Model
         'expected_return_date',
         'daily_rate',
         'mileage_at_service',
+        'box_label',           // Wave 2.1 US-OFICINA-027 — texto livre "Elevador 1"
+        'assigned_user_id',    // Wave 2.1 US-OFICINA-027 — mecânico responsável (FK lógica)
         'status',
         'entered_at',
         'expected_completion',
@@ -76,6 +81,7 @@ class ServiceOrder extends Model
         'transaction_id'        => 'integer',
         'vehicle_id'            => 'integer',
         'mileage_at_service'    => 'integer',
+        'assigned_user_id'      => 'integer',  // Wave 2.1 US-OFICINA-027
         'daily_rate'            => 'decimal:2',
         'expected_return_date'  => 'date',
         'entered_at'            => 'datetime',
@@ -135,6 +141,62 @@ class ServiceOrder extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(\App\Contact::class, 'contact_id');
+    }
+
+    /**
+     * Itens da OS (peças + mão-de-obra + serviços terceiros) — US-OFICINA-027.
+     *
+     * Schema `oficina_service_order_items` migrado git desde 2026-05-17 (Wave 27 G1),
+     * Model + Service + Pest entregues isolados. Esta relação completa o wire-up
+     * pra Observer `computeFinalTotal` somar OS de manutenção e pra UI consumir
+     * via Inertia payload (drawer Cowork canon seção "PEÇAS & MÃO DE OBRA").
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(ServiceOrderItem::class, 'service_order_id');
+    }
+
+    /**
+     * Mecânico responsável pela OS (Wave 2.1 US-OFICINA-027).
+     *
+     * FK lógica pra users.id sem cascade — Service layer valida existência.
+     * Renderizado no drawer ServiceOrderRichSheet (Wave 2.2) KV grid modo manutenção.
+     */
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(\App\User::class, 'assigned_user_id');
+    }
+
+    /**
+     * Itens DVI (Vistoria Digital) — Wave 3 US-OFICINA-035.
+     *
+     * Global scope multi-tenant em OaInspectionItem garante isolamento Tier 0.
+     * Eager-load em show JSON quando UI Wave 3b consumir.
+     */
+    public function dviInspectionItems(): HasMany
+    {
+        return $this->hasMany(OaInspectionItem::class, 'service_order_id');
+    }
+
+    /**
+     * Breakdown DVI agregado pra UI card (8 ok · 2 atenção · 1 crítico + R$ total).
+     *
+     * Accessor evita re-execução de queries quando frontend lê duas vezes.
+     * NÃO eager pra evitar N+1 — usar explicitamente $order->dvi_breakdown depois
+     * de $order->load('dviInspectionItems') OU chamar DviInspectionService::breakdownPorSeverity.
+     *
+     * @return array{ok:int, atencao:int, critico:int, total_recomendado:float}
+     */
+    public function getDviBreakdownAttribute(): array
+    {
+        $items = $this->dviInspectionItems;
+
+        return [
+            'ok'                => $items->where('severity', 'ok')->count(),
+            'atencao'           => $items->where('severity', 'atencao')->count(),
+            'critico'           => $items->where('severity', 'critico')->count(),
+            'total_recomendado' => (float) $items->whereIn('severity', ['atencao', 'critico'])->sum('valor_recomendado'),
+        ];
     }
 
     // ------------------------------------------------------------------
@@ -198,6 +260,17 @@ class ServiceOrder extends Model
         }
 
         return round((float) $this->daily_rate * $this->dias_locacao, 2);
+    }
+
+    /**
+     * Total agregado de itens da OS (US-OFICINA-027) — soma `valor_total` de
+     * todos itens não-deletados. Base do `ServiceOrderObserver::computeFinalTotal`
+     * pra `order_type='manutencao'` (cálculo `peça×qty + hora×horas` que substitui
+     * o hardcode 0.0 pré-ADR 0194).
+     */
+    public function getTotalItemsAttribute(): float
+    {
+        return round((float) $this->items()->sum('valor_total'), 2);
     }
 
     // ------------------------------------------------------------------

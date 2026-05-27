@@ -112,20 +112,22 @@ class RoadmapController extends Controller
             ->limit(500)
             ->get();
 
-        // 4+5) Owners/Modules distintos — D6.a Wave 17: deferred (DISTINCT cross-table).
-        $ownersDeferred = Inertia::defer(fn () => DB::table('mcp_tasks')
+        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (owners+modules).
+        // Roadmap.tsx destruct direto — TypeError `undefined.map` em prod.
+        // Mesmo padrão PR #1550/#1552.
+        $owners = DB::table('mcp_tasks')
             ->select('owner')
             ->whereNotNull('owner')
             ->distinct()
             ->orderBy('owner')
-            ->pluck('owner'));
+            ->pluck('owner');
 
-        $modulesDeferred = Inertia::defer(fn () => DB::table('mcp_tasks')
+        $modules = DB::table('mcp_tasks')
             ->select('module')
             ->whereNotNull('module')
             ->distinct()
             ->orderBy('module')
-            ->pluck('module'));
+            ->pluck('module');
 
         return Inertia::render('Jana/Admin/Roadmap', [
             'cycles' => $cycles->map(function ($c) {
@@ -170,8 +172,8 @@ class RoadmapController extends Controller
                 'priority' => $priorityFilter,
                 'module'   => $moduleFilter,
             ],
-            'owners'  => $ownersDeferred,
-            'modules' => $modulesDeferred,
+            'owners'  => $owners,
+            'modules' => $modules,
             'active_cycle_id' => $activeCycle?->id,
         ]);
     }

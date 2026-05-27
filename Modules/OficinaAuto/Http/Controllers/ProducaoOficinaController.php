@@ -13,11 +13,17 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 
 /**
- * ProducaoOficinaController — Kanban estado das caçambas (Martinho 13/maio 2026).
+ * ProducaoOficinaController — Kanban estado dos veículos em produção (Martinho LIVE prod biz=164).
  *
  * Tela "Produção · Oficina" — espelha 1:1 protótipo Cowork canônico
- * `prototipo-ui/prototipos/producao-oficina/visual-source.html` adaptado pra caçambas
- * (workflow real Martinho — locação caçamba estacionária):
+ * `prototipo-ui/prototipos/producao-oficina/visual-source.html`.
+ *
+ * **Pós-ADR 0194 (2026-05-26):** Martinho é sub-vertical 4 mecânica pesada
+ * caminhão basculante CNAE 4520 (pré-correção dizia "locação caçamba
+ * estacionária"). Workflow real prod hoje preservou keys/labels antigos
+ * por compat backwards (DB já tem `cacamba_locacao` rodando) — refactor
+ * pra `mecanica_pesada_basculante` quando US-OFICINA-027 catálogo peça
+ * hidráulica chegar:
  *
  * 5 colunas Kanban:
  *  1. disponivel        — caçambas no pátio prontas pra locar

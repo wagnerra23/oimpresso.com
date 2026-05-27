@@ -7,8 +7,8 @@ interface Props {
 
 export default function FabJana({ contextRoute }: Props) {
   const href = contextRoute
-    ? `/copiloto?context=${encodeURIComponent(contextRoute)}`
-    : '/copiloto'
+    ? `/ia?context=${encodeURIComponent(contextRoute)}`
+    : '/ia'
 
   return (
     <Link

@@ -18,7 +18,7 @@ purpose: identificar padrões entre clientes pra calibrar Modules/<Vertical>, or
 | [Vargas](02-vargas-recapagem/) | `Cliente_874398` | **Oficina recapagem caminhão** | grande | 1.064 veículos · PLACA2 20% · CHASSI2 8% (cavalo+reboque) |
 | [Extreme](03-extreme-grafica/) | `Cliente_6928E8` | **Gráfica industrial PCP** | muito grande | 52k linhas centro_trabalho |
 | [Gold](04-gold-comvis/) | `Cliente_09FEB1` | **Comunicação visual** | grande | DT_PROMETIDO 85% (único do sample) · 29k EM PRODUÇÃO |
-| [Martinho](05-martinho-cacambas/) | `Cliente_731814` | **Oficina caçambas avulsas** | médio | 91 veículos · 96% PLACA pura · FSM 2 estados |
+| [Martinho](05-martinho-cacambas/) | `Cliente_731814` | **Mecânica pesada caminhão basculante** (sub-vertical 4 ADR 0194 — pré-correção dizia "Oficina caçambas avulsas") | médio-grande | 91 veículos de CLIENTES · 96% PLACA pura · FSM 2 estados |
 
 ## 2. Segmentação por vertical (4 candidatos comerciais)
 
@@ -78,7 +78,7 @@ purpose: identificar padrões entre clientes pra calibrar Modules/<Vertical>, or
 | **Vargas** | **1.064** | **80%** | **20%** | **19%** | **8%** | **cavalo+reboque** (recapagem caminhão grande) |
 | Extreme | 0 | — | — | — | — | gráfica pura |
 | Gold | 0 | — | — | — | — | comvis pura |
-| **Martinho** | **91** | **96%** | 0% | 0% | 0% | **PLACA simples** (caçamba avulsa) |
+| **Martinho** | **91** | **96%** | 0% | 0% | 0% | **PLACA simples** (caminhão basculante de cliente · sub-vertical 4 ADR 0194; ~~caçamba avulsa~~ era leitura pré-correção) |
 
 **Conclusão Modules/OficinaAuto:**
 - **PLACA simples cobre 80% dos casos** (Martinho 96% sem 2ª placa)
@@ -101,7 +101,7 @@ purpose: identificar padrões entre clientes pra calibrar Modules/<Vertical>, or
 | **Vargas** | **3.08** | 37% | **47%** | 12% | 3% |
 | Extreme | 1.47 | 74% | 25% | 1% | 0.2% |
 | Gold | 1.58 | 72% | 27% | 1% | 0.4% |
-| Martinho | ~1 | (alta concentração 1 item — caçamba avulsa) | — | — | — |
+| Martinho | ~1 | (alta concentração 1 item — OS de mecânica pesada · troca peça hidráulica per-OS sub-vertical 4 ADR 0194) | — | — | — |
 
 **Vargas é outlier** — 47% das OS têm 2-5 itens. Faz sentido em recapagem: 1 banda + 1 câmera de ar + 1 serviço aplicação = 3 itens.
 

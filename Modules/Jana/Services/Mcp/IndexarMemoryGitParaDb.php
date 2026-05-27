@@ -296,9 +296,15 @@ class IndexarMemoryGitParaDb
         ['context' => $contextualContext, 'indexed' => $contextualIndexed]
             = $this->aplicarContextualRetrieval($contentRedacted);
 
-        // UPSERT
-        $doc = McpMemoryDocument::firstOrNew(['slug' => $info['slug']]);
+        // UPSERT — inclui soft-deleted (withTrashed) pra recuperar docs que
+        // foram soft-removidos por glob miss em sync anterior e reapareceram
+        // (ex: arquivo renomeado pro path antigo, .gitignore mudou, glob expandido).
+        // Sem withTrashed, firstOrNew ignora soft-deleted → create() viola UNIQUE
+        // (slug). Detectado em prod 2026-05-21: SQLSTATE[23000] 1062 Duplicate
+        // entry 'session-2026-05-13-agents-canonicos-meta-degradacao'.
+        $doc = McpMemoryDocument::withTrashed()->firstOrNew(['slug' => $info['slug']]);
         $novo = ! $doc->exists;
+        $estavaSoftDeletado = ! $novo && $doc->trashed();
 
         $tipadas = $this->extrairColunasTipadas($frontmatter, $piiCount);
 
@@ -343,6 +349,16 @@ class IndexarMemoryGitParaDb
         if ($novo) {
             McpMemoryDocument::create(array_merge(['slug' => $info['slug']], $atributos));
             return ['novo' => true, 'atualizado' => false, 'redactions' => $piiCount];
+        }
+
+        // Soft-deleted row reapareceu — restaura e força update (mudou ou não).
+        // Contabilizado como 'atualizado' (mais útil pro operador que 'novo' falso).
+        if ($estavaSoftDeletado) {
+            DB::transaction(function () use ($doc, $atributos) {
+                $doc->restore();
+                $doc->snapshotEAtualizar($atributos, $this->userId, $this->reason);
+            });
+            return ['novo' => false, 'atualizado' => true, 'redactions' => $piiCount];
         }
 
         if ($contentMudou) {

@@ -2,7 +2,7 @@
 
 > 1-pager canônico. Atualizado por PR (skill `brief-update` Tier B).
 > Doc mãe: [SPEC.md](SPEC.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [README.md](README.md)
-> Última atualização: 2026-05-16 (Wave M — gap dimensão D3.b)
+> Última atualização: 2026-05-25 (Wave Z-2 — Integração Vendas × Oficina mergeada em main)
 
 ## O que é
 
@@ -15,6 +15,7 @@ Kanban de Ordens de Serviço (OS) — infraestrutura **shared multi-vertical** c
 - **ProducaoOficina** kanban drag-and-drop (US-REPAIR-PROD-2..4) — query real + fallback mock
 - **MWART B6** ([Wave Massiva 2026-05-12](../../sessions/2026-05-12-wave-massiva-repair-mwart-b6.md)): Index/Show/Create/Edit/AddParts migrados Blade → Inertia/React (5 telas + 5 RUNBOOKs + 2 visual-comparisons)
 - **FSM Pipeline canônico** ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)) — `RepairFsmActionController` orquestra 13 stages (`recebido_para_diagnostico` → ... → `entregue_completo`) × ~15 actions × 6 roles per-business via `ExecuteStageActionService`
+- **Auto-faturar OS→Venda derivada** ([ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) · Wave Z-2 mergeada 2026-05-25) — `JobSheetObserver@updated` cria `Transaction(source='oficina', os_ref='OS-NNNN')` quando OS transiciona pra stage terminal `entregue_completo`; reverse hook (`cancelled_at`) cancela Transaction se OS reaberta; idempotente por `(business_id, os_ref)`; drawer ganha card "Esta OS gerou venda #V-NNNN" com breakdown peças/serviço/fiscal + atalhos Abrir/Imprimir/Compartilhar; cross-link bidirecional via evento `oimpresso:open-venda` (PRs #1500/#1502/#1505/#1508/#1509/#1510/#1511/#1513)
 
 ## Stack arquitetural
 
@@ -44,3 +45,4 @@ Kanban de Ordens de Serviço (OS) — infraestrutura **shared multi-vertical** c
 - [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) Processo MWART (Wave B6 seguiu)
 - [0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md) FSM tabular custom
 - [0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) FSM Pipeline LIVE prod biz=1 (marco 2026-05-12)
+- [0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) Auto-faturar OS→Venda via JobSheetObserver (Wave Z-2 marco 2026-05-25)

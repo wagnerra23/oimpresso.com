@@ -140,7 +140,7 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
   const dif = DIFICULDADE_CONFIG[p.dificuldade] ?? DIFICULDADE_CONFIG['realista']!;
 
   function escolher() {
-    router.post(`/jana/sugestoes/${sugestao.id}/escolher`, {}, {
+    router.post(`/ia/sugestoes/${sugestao.id}/escolher`, {}, {
       preserveScroll: true,
       preserveState: true,
       onSuccess: () => toast.success('Meta criada com sucesso!'),
@@ -149,7 +149,7 @@ function PropostaCard({ sugestao }: { sugestao: Sugestao }) {
   }
 
   function rejeitar() {
-    router.post(`/jana/sugestoes/${sugestao.id}/rejeitar`, {}, {
+    router.post(`/ia/sugestoes/${sugestao.id}/rejeitar`, {}, {
       preserveScroll: true,
       preserveState: true,
       onSuccess: () => toast.info('Proposta rejeitada.'),
@@ -233,7 +233,7 @@ export default function Chat({
   }), [conversa, mensagensCockpit]);
 
   function selectConv(id: string) {
-    router.get(`/jana/conversas/${id}`, {}, {
+    router.get(`/ia/conversas/${id}`, {}, {
       preserveScroll: true,
       preserveState: true,
     });
@@ -362,7 +362,7 @@ function ConvSidePanel({
         <button type="button" className="cs-iconbtn" title="Filtros" aria-label="Filtros">
           <SlidersHorizontal size={14} />
         </button>
-        <a href="/jana/conversas/nova" className="cs-iconbtn primary" title="Nova conversa · ⌘N" aria-label="Nova conversa">
+        <a href="/ia/conversas/nova" className="cs-iconbtn primary" title="Nova conversa · ⌘N" aria-label="Nova conversa">
           <Plus size={14} />
         </a>
       </header>

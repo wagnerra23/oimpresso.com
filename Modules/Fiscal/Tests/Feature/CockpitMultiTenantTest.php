@@ -28,6 +28,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // Guard SQLite (Wagner 2026-05-25): cleanup só roda quando tabela existe.
+    // beforeEach skipa tests que precisam dela, mas afterEach roda sempre —
+    // sem guard, CI Pest SQLite (modules-pest.yml) quebra com QueryException
+    // 'no such table: nfe_emissoes'.
+    if (! Schema::hasTable('nfe_emissoes')) {
+        return;
+    }
     NfeEmissao::withoutGlobalScopes()
         ->where('chave_44', 'like', '%' . COCKPIT_TAG . '%')
         ->forceDelete();
@@ -57,9 +64,17 @@ it('computeKpis scope per business: biz=99 não aparece em counts de biz=1', fun
     session(['business.id' => COCKPIT_BIZ_WAGNER, 'user.business_id' => COCKPIT_BIZ_WAGNER]);
 
     $controller = new \Modules\Fiscal\Http\Controllers\CockpitController();
+
+    // Pós Onda ESTABILIZAR 2026-05-25 (GAP-FISCAL-002): computeKpis recebe
+    // $contexto pré-computado (cert + dfeCount) pra evitar query duplicada
+    // em computeAlerts. Invoca buildContexto primeiro, passa adiante.
+    $buildContexto = new ReflectionMethod($controller, 'buildContexto');
+    $buildContexto->setAccessible(true);
+    $contexto = $buildContexto->invoke($controller);
+
     $reflection = new ReflectionMethod($controller, 'computeKpis');
     $reflection->setAccessible(true);
-    $kpis = $reflection->invoke($controller);
+    $kpis = $reflection->invoke($controller, $contexto);
 
     // KPIs devem refletir SOMENTE biz=1 — autorizadas com tag
     $countTagsBiz1 = NfeEmissao::query()
@@ -75,9 +90,16 @@ it('computeKpis scope per business: biz=99 não aparece em counts de biz=1', fun
 
 it('computeAlerts não usa LLM — receitas determinísticas por estado', function () {
     $controller = new \Modules\Fiscal\Http\Controllers\CockpitController();
+
+    // Pós Onda ESTABILIZAR 2026-05-25 (GAP-FISCAL-002): computeAlerts recebe
+    // $contexto pré-computado (reuse cert + dfeCount sem re-query).
+    $buildContexto = new ReflectionMethod($controller, 'buildContexto');
+    $buildContexto->setAccessible(true);
+    $contexto = $buildContexto->invoke($controller);
+
     $reflection = new ReflectionMethod($controller, 'computeAlerts');
     $reflection->setAccessible(true);
-    $alerts = $reflection->invoke($controller);
+    $alerts = $reflection->invoke($controller, $contexto);
 
     // Cada alert tem estrutura fixa (sem campos genéricos LLM tipo "thought" ou "reasoning")
     foreach ($alerts as $a) {

@@ -5,7 +5,7 @@ owner: wagner
 status: rascunho
 last_validated: 2026-05-10
 parent_module: Repair
-related_adrs: [0094, 0101, 0114, 0121, 0093]
+related_adrs: [0094, 0101, 0114, 0121, 0093, 0192]
 related_prototype: prototipo-ui/prototipos/producao-oficina/F1.html
 tier: A
 ---
@@ -36,6 +36,12 @@ Visão de produção em **kanban de 5 colunas** (Recepção → Diagnóstico →
 - Cabe em monitor 1280px sem scroll horizontal (Larissa quirk crítico — aplicado a outros clientes 1280px também)
 - AppShellV2 + topnav Repair (`KanbanSquare` icon)
 - **Multi-tenant Tier 0** ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) preservado: queries `JobSheet` scopadas por `business_id` global scope; endpoint `/move` valida `business_id` antes de mutação
+- **Onda 5 — Integração Vendas × Oficina** ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)): drawer renderiza card `Esta OS gerou a venda #V-NNNN` quando OS está na coluna `pronto` (= FSM `entregue_completo`) AND tem `venda_derivada` (Transaction `source='oficina'` criada pelo `JobSheetObserver`). Card mostra total + data + 3 atalhos:
+  - **Abrir #V-NNNN** → dispatch `window.CustomEvent('oimpresso:open-venda', { detail: { venda_id } })` — listener em `Sells/Index.tsx` (Worker A Onda 4) abre drawer SaleSheet (loose coupling)
+  - **Imprimir recibo** → `window.open('/sells/{venda_id}/print', '_blank')` (rota Blade legacy preservada)
+  - **Compartilhar** → Web Share API nativa (mobile/PWA share-sheet) com fallback `navigator.clipboard.writeText()` + toast Sonner (desktop). Payload `Venda #V-NNNN · R$ XX,XX · DD/MM/YYYY` + URL `/sells/{id}`. `AbortError` (user cancelou) tratado silenciosamente. (Onda 5 follow-up Worker 3 · 2026-05-25)
+- **FASE B — VendaDerivadaCard evolution** (Wave Z-2 backend W2 `2f6f10fc8` · 2026-05-25): card mostra **breakdown** Peças vs Serviços (grid 2-col responsive · empilha em mobile) + linha Subtotal + Desconto (se > 0 · rose) + Impostos (se > 0 · slate); **badge fiscal** NF-e com 4 estados (`autorizada` verde + link DANFE clicável `window.open(/danfe/{id}, '_blank')` · `pendente` amber · `rejeitada` rose · `null` slate sutil "Sem nota fiscal" pra OS informal); **lista items expandível** disclosure pattern (collapsed por default · `▸ Ver N itens da venda` → `▾ Ocultar` · max 10 visíveis · "+ N adicionais" sumário). Prefix textual "Peça" / "Serviço" (skill `pageheader-canon` · ZERO emoji em UI). Empty states tolerantes preservam Onda 5 backward compat: `items_list` ausente/`[]` não renderiza breakdown nem disclosure; `fiscal: null` renderiza só badge "Sem nota fiscal".
+- Vocabulário shared multi-vertical preservado ([ADR 0121 §P8](../../../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md)) — `venda_derivada` é cross-vertical (OficinaAuto, ComunicacaoVisual, Vestuario)
 
 ---
 
@@ -50,6 +56,14 @@ Visão de produção em **kanban de 5 colunas** (Recepção → Diagnóstico →
 - ❌ Aprovação cliente *via* esta tela (botão "Reenviar" no drawer só dispara WhatsApp template — sem UI de aprovar/recusar aqui)
 - ❌ Edição inline em qualquer card
 - ❌ Tela específica per-vertical (Vestuario/ComVisual/OficinaAuto NÃO tem `/vestuario/producao-oficina` — todas usam `/repair/producao-oficina` parametrizado por `business.repair_settings`)
+- ❌ **Onda 5 / FASE B placeholder TODOs (charter aceita explícito):**
+  - ~~Botão "Compartilhar" no card da venda derivada **sem ação por ora**~~ → **entregue Onda 5 follow-up Worker 3 (2026-05-25)** via Web Share API nativa + clipboard fallback + toast Sonner
+  - ~~Breakdown peças/serviço no card~~ → **entregue FASE B (2026-05-25)** após Wave Z-2 backend W2 (`2f6f10fc8`) expandir payload com `items_list` + `items_summary` (eager-load `sell_lines.product` anti-N+1)
+  - ~~Badges fiscais NF-e/NFS-e no card~~ → **entregue FASE B (2026-05-25)** apenas para NF-e (modelo 55/65). NFS-e segue Non-Goal — feature `NfeBrasil` não emite NFS-e ainda; quando emitir, expandir badge.
+  - Edição inline da venda derivada (drawer só lê · CRUD vai pra `/sells/{id}/edit`)
+  - Botão "Ver no Caixa do dia" (Sells/Caixa.tsx é Onda 6 wave separada · fora deste plano)
+  - Items list ilimitada — capamos em 10 visíveis + sumário "+ N adicionais" pra não estourar densidade do drawer (480px)
+  - Drilldown per-item (clicar num item → abrir detalhe) — fora do escopo; drawer Sells/SaleSheet já cobre
 
 ---
 
@@ -115,3 +129,5 @@ Vertical decide o que faz sentido. Vestuário pode ter `slots: [{key: "rack", la
 - ✅ **US-REPA-002** — Caminho A refactor vocabulário shared (este charter atualizado)
 - ⏳ **US-REPA-003** — CI workflow `repair-shared-vocab.yml` que falha se `placa|vehicle|km|mecanico|elevador|box` voltar em `Modules/Repair/**` ou `resources/js/Pages/Repair/**`
 - ⏳ **US-REPA-004** — Vestuario/ComVisual/OficinaAuto seeders `RepairSettingsSeeder` populando `business.repair_settings` per-vertical
+- ✅ **US-REPA-INT-VND-5** — Onda 5 Integração Vendas × Oficina A1 KB-9.75 ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)): drawer card "Esta OS gerou venda #V-NNNN" + 3 CTAs (Abrir dispatch / Imprimir recibo / Compartilhar TODO). Adição cirúrgica preservando kanban + drag-drop + filtros + demais drawer sections.
+- ✅ **US-REPA-INT-VND-B** — FASE B VendaDerivadaCard evolution (Wave Z-2 backend `2f6f10fc8`): breakdown peças/serviço + badge fiscal NF-e (autorizada/pendente/rejeitada/null) + lista items expandível com cap 10 + "+ N adicionais". Empty states tolerantes (items vazio + fiscal null). Tokens `.ofc-venda-grid` / `.ofc-vc` / `.ofc-fb-*` Cowork preservados verbatim. Pest GUARDs file-content pattern: `ProducaoOficinaFaseBVendaDerivadaCardTest.php`.

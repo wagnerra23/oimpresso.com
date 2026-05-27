@@ -14,9 +14,26 @@ Universo legacy do Wagner (WR Sistemas) — código Delphi cliente desktop (`WR 
 
 **VCS:** SVN (não Git). Repo em `http://servidor-crm:8777/svn/Programas`. Working copy em `D:/Programas/.svn/` (pai de WR Comercial — trabalha como **monorepo**). Pasta tem `.git` local mas histórico parcial/morto — **use SVN**.
 
-### Inspeção sem `svn.exe` no PATH
+### Inspeção via `svn.exe` CLI — **READ-ONLY**
 
-TortoiseSVN em `C:/Program Files/TortoiseSVN/` só tem UI (TortoiseProc.exe, TortoiseMerge.exe), **sem svn.exe CLI**. Pra queries de histórico/checksum, ler direto o `wc.db` (SQLite) com Python stdlib:
+**Atualizado 2026-05-27:** SlikSvn 1.14.2 instalada em `C:\Program Files\SlikSvn\bin\svn.exe` (via `winget install Slik.Subversion`). Não está no PATH automático em todos shells — usar caminho completo.
+
+⚠️ **Apenas leitura** — Claude NÃO comita SVN em `D:\Programas\` (regra Wagner 2026-05-27 em [feedback-commits-delphi-svn.md](feedback-commits-delphi-svn.md), alinhada com princípio 4 Constituição v2 "Loop fechado por métrica" + [ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md) "não recompila Delphi"):
+
+```powershell
+$svn = 'C:\Program Files\SlikSvn\bin\svn.exe'
+& $svn info 'D:\Programas'        # URL/UUID/revisão
+& $svn log 'D:\Programas' -l 20   # últimos 20 commits
+& $svn status 'D:\Programas'      # ver edits locais (NÃO comitar)
+& $svn diff 'D:\Programas\<arquivo.pas>'   # debugar
+& $svn blame 'D:\Programas\<arquivo.pas>'  # autor linha-a-linha
+```
+
+NÃO usar `commit`/`add`/`rm`/`merge`/`switch`/`propset` — qualquer mutação do repositório central é HARD STOP. Wagner comita manual via TortoiseSVN GUI quando decidir recompilar+distribuir.
+
+### Inspeção legada via `wc.db` (fallback se CLI quebrar)
+
+TortoiseSVN em `C:/Program Files/TortoiseSVN/` só tem UI (TortoiseProc.exe, TortoiseMerge.exe), **sem svn.exe CLI por default**. Quando CLI não disponível, ler direto o `wc.db` (SQLite) com Python stdlib:
 
 ```python
 import sqlite3

@@ -8,7 +8,7 @@
 | US | Estado real | Ação recomendada |
 |---|---|---|
 | US-OFICINA-005 | **Mergeado em prod** (PR #960, 2026-05-16) — porém SPEC pede 3 sub-features UI + Comandos artisan entregues cobrem só parcial | Reavaliar `done` × `partial`: marcar `done` se MVP-Martinho for "Commands CLI" OU criar US-OFICINA-022 (já existe linha 468 SPEC) pra sub-features (a)(b)(c) UI completas |
-| US-OFICINA-006 | **Mergeado em prod** (PRs #723 #728, 2026-05-13) — MVP Martinho 2 processos caçamba (locacao/manutencao); seeder amplo 15×19 do SPEC §14 NÃO implementado (intencional, é Vargas/futuro) | Marcar `done` (subset Martinho entregue); criar US-OFICINA-006B "FSM seeder amplo 15 stages × 19 actions (Vargas + oficina pesada)" se Wagner quiser cobrir SPEC §14 antes de Vargas |
+| US-OFICINA-006 | **Mergeado em prod** (PRs #723 #728, 2026-05-13) — MVP Martinho 2 processos FSM (keys `cacamba_locacao`/`cacamba_manutencao` preservadas DB compat; vocabulário real pós-ADR 0194 = sub-vertical 4 mecânica pesada caminhão basculante); seeder amplo 15×19 do SPEC §14 NÃO implementado (intencional, é Vargas/futuro) | Marcar `done` (subset Martinho entregue); criar US-OFICINA-006B "FSM seeder amplo 15 stages × 19 actions (Vargas + oficina pesada)" se Wagner quiser cobrir SPEC §14 antes de Vargas |
 | US-OFICINA-014 | **Mergeado em prod** (PR #960, 2026-05-16) — Controller público + Service + Pages Inertia + 2 testes Pest entregues. Detalhe: usa rota `/aprovar-os/{token}` (SPEC pede `/oficina/aprovar/{token}` — não-blocker, só path) e atualiza `status` direto (NÃO via FSM action `cliente_aprovou`) | Marcar `done`; criar TASK pequena "wire-up `cliente_aprovou` no FSM" se Wagner quiser integração full (atual funciona pra Martinho, FSM seeder caçamba NÃO tem stage orçamento → action não aplica nesse fluxo) |
 
 ---
@@ -23,7 +23,7 @@
 | Critério SPEC §US-OFICINA-006 | Entregue? | Arquivo |
 |---|---|---|
 | Adicionar `current_stage_id` em `service_orders` migration | SIM | `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` (PR #728) |
-| Seeder FSM oficina (15 stages × 19 actions × roles) | **PARCIAL** — entregue 2 processos curtos (`cacamba_locacao` 4 stages + `cacamba_manutencao` 4 stages) suficientes pro MVP Martinho | `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` (PR #723) |
+| Seeder FSM oficina (15 stages × 19 actions × roles) | **PARCIAL** — entregue 2 processos curtos (keys legacy `cacamba_locacao` 4 stages + `cacamba_manutencao` 4 stages — preservadas DB compat; vocabulário canon pós-ADR 0194 sub-vertical 4 mecânica pesada caminhão basculante) suficientes pro MVP Martinho | `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` (PR #723) |
 | `ServiceOrder` Model adota trait `GuardsFsmTransitions` | **NÃO** — model não importa o trait. Controller usa `ExecuteStageActionService` diretamente; defensivo p/ `current_stage_id` null | `Modules/OficinaAuto/Entities/ServiceOrder.php` — sem `use GuardsFsmTransitions` |
 | `OficinaAutoFsmActionController` espelhando RepairFsmActionController | SIM (nome final: `ServiceOrderFsmActionController` em `app/Http/Controllers/`) | `app/Http/Controllers/ServiceOrderFsmActionController.php` (3 endpoints: actions/execute/start-pipeline) |
 | UI drawer `FsmActionPanel` reuso de Repair | SIM (Wave 7-B via PR #729 `claude/oficinaauto-drawer-fsm-ui`) | `resources/js/Pages/OficinaAuto/...` (drawer + FsmActionPanel — PR #729 MERGED 2026-05-13) |

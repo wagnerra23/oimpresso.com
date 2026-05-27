@@ -1,6 +1,8 @@
 # Demo script — Reunião Martinho Caçambas · 13/maio 10h
 
 > Roteiro 15-20min pra Wagner conduzir presencialmente. Ordem importa: começa com o **mockup personalizado** (gancho emocional), passa por **provas concretas em prod** (credibilidade), termina com **roadmap + pricing + descoberta** (próximo passo).
+>
+> ⚠️ **REGISTRO HISTÓRICO 2026-05-13 — vocabulário desatualizado pós-[ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) (2026-05-26).** Mockup KPIs "91 caçambas cadastradas / 23 locadas / 4 manutenção / 3 atrasada" foram baseados em leitura errada (Martinho NÃO é locação caçamba container — é mecânica pesada caminhão basculante CNAE 4520). Preserva-se este histórico do roteiro original que rodou na reunião 10h 2026-05-13 (Martinho aceitou migração). Próximas apresentações pra Martinho (operação real) usam métricas reais: 91 **caminhões de clientes** atendidos pela oficina · OSs abertas/em-serviço/concluídas/aguardando-peça · faturamento R$ por mês (não R$ por diária). Vocabulário canon: peça hidráulica · PTO · hora-trabalho.
 
 ---
 

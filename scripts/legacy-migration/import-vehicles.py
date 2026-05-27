@@ -8,9 +8,14 @@ UPSERT idempotente via (business_id, legacy_id) — `legacy_id` preserva
 `EQUIPAMENTO_VEICULO.CODIGO` Firebird. Re-rodar = no-op pra rows existentes,
 update pra mudanças, insert pra novas.
 
-Vehicle_type default 'cacamba_avulsa' (caso piloto Martinho); pra outras
-verticais OficeImpresso (Vargas recapagem, oficina automotiva), passar
---vehicle-type explícito.
+Vehicle_type default 'cacamba_avulsa' (enum DB preservado por compat backwards;
+Martinho biz=164 prod usa esse value herdado da leitura pré-ADR 0194 que
+classificou como sub-vertical 3 locação caçamba container).
+
+Pós-ADR 0194 (2026-05-26): Martinho é sub-vertical 4 mecânica pesada
+caminhão basculante CNAE 4520. Próximos imports usam --vehicle-type
+'caminhao_basculante' (enum já adicionado em add_cacamba_fields_to_vehicles
+migration). Vargas recapagem usa --vehicle-type 'recapagem'.
 
 NÃO migra: legacy_source bridge separada — `legacy_id` direto na tabela
 `vehicles` (campo já existe schema US-OFICINA-001 PR #556).
@@ -68,7 +73,7 @@ except ImportError:
 
 IMPORTER_VERSION = "0.1.0"
 LEGACY_SOURCE = "wr-comercial-delphi"
-DEFAULT_VEHICLE_TYPE = "cacamba_avulsa"
+DEFAULT_VEHICLE_TYPE = "cacamba_avulsa"  # legacy default · pós-ADR 0194 sub-vertical 4 prefere "caminhao_basculante" — passar --vehicle-type explícito
 DEFAULT_CURRENT_STATUS = "disponivel"
 
 # Placeholder pra rows sem placa preserva legacy_id (preserva auditoria).

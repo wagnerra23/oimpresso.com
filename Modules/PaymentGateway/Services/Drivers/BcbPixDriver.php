@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
+use Modules\PaymentGateway\Services\HttpClientFactory;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Dto\CobrancaEmitidaResult;
 use Modules\PaymentGateway\Dto\CobrancaStatus;
@@ -121,8 +122,8 @@ class BcbPixDriver implements PaymentDriverContract
             ],
         ];
 
-        $response = $this->client($cred)
-            ->put("/v2/rec/{$input->idempotencyKey}", $payload);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->put("/v2/rec/{$input->idempotencyKey}", $payload));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -159,8 +160,8 @@ class BcbPixDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra revogar mandato BcbPix');
         }
 
-        $response = $this->client($cred)
-            ->delete("/v2/rec/{$idRec}", ['motivo' => substr($motivo, 0, 140)]);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->delete("/v2/rec/{$idRec}", ['motivo' => substr($motivo, 0, 140)]));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -185,7 +186,7 @@ class BcbPixDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra consultar mandato BcbPix');
         }
 
-        $response = $this->client($cred)->get("/v2/rec/{$idRec}");
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/v2/rec/{$idRec}"));
         if ($response->failed()) {
             throw new GatewayUnavailableException(
                 "BcbPix consultar falhou ({$response->status()}): " . substr($response->body(), 0, 200)
@@ -299,13 +300,16 @@ class BcbPixDriver implements PaymentDriverContract
         return rtrim((string) ($cred->config_json['base_url'] ?? ''), '/');
     }
 
+    /**
+     * Cliente principal — com retry + 429 handler via HttpClientFactory
+     * (Auditoria 2026-05-23 Onda 4e gap #1+#2).
+     */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
-        return Http::baseUrl($this->baseUrl($cred))
-            ->withToken($this->getAccessToken($cred))
-            ->acceptJson()
-            ->asJson()
-            ->timeout(30);
+        return HttpClientFactory::make(
+            baseUrl: $this->baseUrl($cred),
+            timeoutSec: 30,
+        )->withToken($this->getAccessToken($cred));
     }
 
     private function getAccessToken(PaymentGatewayCredential $cred): string

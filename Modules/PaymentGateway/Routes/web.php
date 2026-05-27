@@ -2,12 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\PaymentGateway\Http\Controllers\InstallController;
+use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysCnabRetornoController;
 use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\AsaasWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\BcbPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\C6WebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterWebhookController;
+use Modules\PaymentGateway\Http\Controllers\Webhooks\PagarmeWebhookController;
+use Modules\PaymentGateway\Http\Controllers\Webhooks\SicoobApiWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +66,33 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('payment-gateways/{credentialId}/toggle', [PaymentGatewaysController::class, 'toggle'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.toggle');
+
+        // Onda 4e.UI (gap P0 estado-da-arte 2026-05-23): audit trail per credential.
+        Route::get('payment-gateways/{credentialId}/history', [PaymentGatewaysController::class, 'history'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.history');
+
+        // Onda 4e.UI #2 (gap P0 estado-da-arte 2026-05-23): webhook events per credential.
+        Route::get('payment-gateways/{credentialId}/webhook-events', [PaymentGatewaysController::class, 'webhookEvents'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.webhook-events');
+
+        // Onda 4e gap #3 (audit 2026-05-23): quota tracking MVP — count
+        // cobrancas/mês per credencial agrupado por tipo. Sem contador persistido.
+        Route::get('payment-gateways/{credentialId}/quota', [PaymentGatewaysController::class, 'quota'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.quota');
+
+        // Onda 4f.0 — Fundação CNAB compartilhada (ADR 0170-drivers-separados).
+        // Upload manual de arquivo retorno CNAB (240/400) → Job CnabRetornoProcessor.
+        // Tela: histórico de uploads + form upload.
+        Route::get('payment-gateways/{credentialId}/cnab-retorno', [PaymentGatewaysCnabRetornoController::class, 'index'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.cnab-retorno.index');
+
+        Route::post('payment-gateways/{credentialId}/cnab-retorno', [PaymentGatewaysCnabRetornoController::class, 'store'])
+            ->whereNumber('credentialId')
+            ->name('payment-gateways.cnab-retorno.store');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────
@@ -86,6 +116,18 @@ Route::middleware(['web'])
         Route::post('bcb-pix/{businessId}', [BcbPixWebhookController::class, 'handle'])
             ->whereNumber('businessId')
             ->name('paymentgateway.webhooks.bcb-pix');
+
+        // Onda 4e — driver Pagar.me v5 (Stone group)
+        // HMAC signature X-Hub-Signature-256 validada no controller.
+        Route::post('pagarme/{businessId}', [PagarmeWebhookController::class, 'handle'])
+            ->whereNumber('businessId')
+            ->name('paymentgateway.webhooks.pagarme');
+
+        // Onda 4f.sicoob_api — US-FIN-044 PR4. HMAC `x-sicoob-signature`
+        // raw body. Eventos cobranca.liquidada/vencida/cancelada.
+        Route::post('sicoob-api/{businessId}', [SicoobApiWebhookController::class, 'handle'])
+            ->whereNumber('businessId')
+            ->name('paymentgateway.webhooks.sicoob-api');
     });
 
 // ─── Webhook PIX Inter US-FIN-032 (Onda 26) ──────────────────────────────

@@ -115,6 +115,16 @@ gh pr create ...
 - **Migration grande** (criação tabela com índices) — single intent, OK ser >300
 - **Refactor PR-9 oficialmente declarado** (ex: rename copiloto_* → jana_*) — ADR justificando
 
+## Pré-req adicional pra PR que cria ADR canon (`memory/decisions/NNNN-*.md`)
+
+Quando o PR adiciona arquivo novo em `memory/decisions/NNNN-*.md`, antes do commit:
+
+1. Skill [pre-adr-introspect](../pre-adr-introspect/SKILL.md) deve ter rodado (verifica `git grep` de patterns canon + diagnóstico prod se ADR depende de estado DB)
+2. Commit body OU §Contexto da ADR cita pelo menos 1 pattern canon investigado (mesmo que conclua "não existe — criar novo")
+3. Se ADR `amends` ou `supersedes` outras → `related_adrs` no frontmatter lista TODAS as relacionadas
+
+**Origem:** sessão 2026-05-27 — 3 ADRs erratas mesmo dia (#1731, #1735, #1744) por não introspectar antes. Documentado em ADR 0200 §Lição arquitetural.
+
 ## Métricas (skill telemetria)
 
 - `mcp_skill_telemetry`: total commits onde commit-discipline disparou
@@ -125,4 +135,6 @@ gh pr create ...
 
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (princípio #5 SoC)
 - [ADR 0095](../../../memory/decisions/0095-skills-tiers-convencao-interna.md) — Skills Tiers
+- [ADR 0200](../../../memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md) — §Lição arquitetural (origem do pré-req pre-adr-introspect)
+- [pre-adr-introspect skill](../pre-adr-introspect/SKILL.md) — Tier B pareada
 - [Anthropic 2026 Agentic Coding Trends](https://resources.anthropic.com/hubfs/2026%20Agentic%20Coding%20Trends%20Report.pdf) — diff size best-practice

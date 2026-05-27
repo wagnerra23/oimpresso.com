@@ -1,21 +1,44 @@
 // US-SELL-CUST-SEARCH — busca de cliente na Sells/Create.
 //
 // Endpoint legado: GET /contacts/customers?q=TERM (ContactController@getCustomers).
-// Retorna array com { id, text, mobile, ... }. Walk-in customer fica como
-// default no Create — esse autocomplete só TROCA pra um cliente real.
+// Retorna array com { id, text, mobile, balance, ... }. Walk-in customer fica
+// como default no Create — esse autocomplete só TROCA pra um cliente real.
+//
+// Dor 5 (Larissa, auditoria 2026-05-27): expor `balance` no dropdown + abaixo
+// do input após select. Larissa não enxergava saldo devedor antes da venda.
+// Convenção UPOS: backend devolve `balance` (string|number, R$). Quando >0
+// (CRM frame: cliente nos deve) → badge text-destructive.
 //
 // Não vira shared ainda — extrair pra @/Components/shared só quando 2ª tela usar.
 
 import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, X, UserPlus } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import QuickAddCustomerSheet from './QuickAddCustomerSheet';
 
 export interface CustomerSearchResult {
   id: number;
   text: string;
   mobile?: string | null;
   city?: string | null;
+  /** Saldo devedor cliente (R$). >0 = devedor — exibe badge vermelho. */
+  balance?: number | string | null;
 }
+
+/**
+ * Normaliza balance do payload (controller pode mandar string MySQL
+ * decimal, número ou null) pra Number. NaN/null → 0.
+ */
+const parseBalance = (raw: number | string | null | undefined): number => {
+  if (raw === null || raw === undefined || raw === '') return 0;
+  const n = typeof raw === 'number' ? raw : parseFloat(String(raw));
+  return Number.isFinite(n) ? n : 0;
+};
+
+const BRL = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
 
 interface Props {
   defaultName: string;
@@ -40,10 +63,16 @@ export default function CustomerSearchAutocomplete({
 }: Props) {
   const [query, setQuery] = useState('');
   const [selectedLabel, setSelectedLabel] = useState<string>(defaultName);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerSearchResult | null>(null);
   const [results, setResults] = useState<CustomerSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  // R6 (2026-05-27) — Sheet in-place pra quick-add cliente (Dor 4 Larissa).
+  // Substitui nova aba + postMessage. Quando user clica "Cadastrar 'X'", abre
+  // Sheet lateral com 5 campos. Após salvar, fecha + seleciona no autocomplete.
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddPrefill, setQuickAddPrefill] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -142,6 +171,7 @@ export default function CustomerSearchAutocomplete({
     setOpen(false);
     setHighlightedIndex(-1);
     setSelectedLabel(defaultName);
+    setSelectedCustomer(null);
     onClear?.();
     inputRef.current?.focus();
   };
@@ -149,6 +179,7 @@ export default function CustomerSearchAutocomplete({
   const handleSelect = (customer: CustomerSearchResult) => {
     onSelect(customer);
     setSelectedLabel(customer.text);
+    setSelectedCustomer(customer);
     setQuery('');
     setResults([]);
     setOpen(false);
@@ -163,8 +194,31 @@ export default function CustomerSearchAutocomplete({
           ref={inputRef}
           type="text"
           value={query.length > 0 ? query : selectedLabel}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onChange={(e) => {
+            // Wagner 2026-05-27 HOTFIX: quando o value mostra `selectedLabel`
+            // ("Cliente padrão" antes da primeira busca), o user digitava
+            // e o texto era CONCATENADO ao label visual (e.target.value
+            // virava "Cliente padrãowagner"), disparando fetch quebrado
+            // `q=Cliente+padr%C3%A3owagner`. Smoke prod Wagner 2026-05-27
+            // 10:25 BRT via Chrome MCP detectou o bug.
+            // Fix: ao digitar com selectedLabel ainda no campo, extrair APENAS
+            // o suffix adicionado pelo usuário.
+            const raw = e.target.value;
+            if (query.length === 0 && raw.startsWith(selectedLabel) && raw.length > selectedLabel.length) {
+              setQuery(raw.slice(selectedLabel.length));
+            } else {
+              setQuery(raw);
+            }
+          }}
+          onFocus={(e) => {
+            // Wagner 2026-05-27 HOTFIX: seleciona conteúdo no focus pra
+            // primeira digitação substituir o `selectedLabel` (defesa
+            // em profundidade pro caso de o user digitar do meio).
+            if (query.length === 0) {
+              e.currentTarget.select();
+            }
+            if (results.length > 0) setOpen(true);
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
@@ -194,30 +248,54 @@ export default function CustomerSearchAutocomplete({
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-border bg-popover shadow-md"
         >
-          {results.map((c, index) => (
-            <button
-              key={c.id}
-              type="button"
-              role="option"
-              aria-selected={index === highlightedIndex}
-              onClick={() => handleSelect(c)}
-              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm focus:outline-none ${
-                index === highlightedIndex
-                  ? 'bg-accent text-accent-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              <div className="flex flex-col min-w-0">
-                <span className="font-medium truncate">{c.text}</span>
-                {(c.mobile || c.city) && (
-                  <span className="text-xs text-muted-foreground truncate">
-                    {[c.mobile, c.city].filter(Boolean).join(' · ')}
+          {results.map((c, index) => {
+            const cBalance = parseBalance(c.balance);
+            const isDevedor = cBalance > 0;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                role="option"
+                aria-selected={index === highlightedIndex}
+                onClick={() => handleSelect(c)}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm focus:outline-none ${
+                  index === highlightedIndex
+                    ? 'bg-accent text-accent-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="font-medium truncate">{c.text}</span>
+                  {(c.mobile || c.city) && (
+                    <span className="text-xs text-muted-foreground truncate">
+                      {[c.mobile, c.city].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                </div>
+                {isDevedor && (
+                  <span
+                    className="shrink-0 text-xs font-semibold text-destructive whitespace-nowrap"
+                    data-testid="customer-balance-badge"
+                    aria-label={`Cliente devedor: ${BRL.format(cBalance)}`}
+                  >
+                    {BRL.format(cBalance)} devedor
                   </span>
                 )}
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
+      )}
+
+      {/* Dor 5 — após selecionar cliente, expõe saldo devedor pra Larissa
+          decidir se cobra/avisa antes de prosseguir com a venda. */}
+      {selectedCustomer && !open && parseBalance(selectedCustomer.balance) > 0 && (
+        <p
+          className="mt-1 text-xs font-medium text-destructive"
+          data-testid="customer-balance-hint"
+        >
+          Cliente vencido: {BRL.format(parseBalance(selectedCustomer.balance))}
+        </p>
       )}
 
       {open && query.length >= MIN_QUERY_LENGTH && results.length === 0 && !loading && (
@@ -225,21 +303,38 @@ export default function CustomerSearchAutocomplete({
           <div className="px-3 py-2 text-sm text-muted-foreground">
             Nenhum cliente encontrado para "{query}".
           </div>
-          {/* Cadastro inline — abre página completa de criação de contato.
-              Usa /contacts/create-page (rota standalone com layout completo)
-              em vez de /contacts/create (fragmento modal sem CSS). */}
-          <a
-            href={`/contacts/create-page?type=customer&prefill_name=${encodeURIComponent(query)}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* R6 (2026-05-27) Dor 4 Larissa — cadastro in-place via Sheet lateral.
+              Substitui o legacy `<a target=_blank href=/contacts/create-page>`
+              que abria nova aba e dependia de postMessage pra devolver. Sheet
+              fica no MESMO contexto da venda (draft preservado). */}
+          <button
+            type="button"
+            onClick={() => {
+              setQuickAddPrefill(query);
+              setQuickAddOpen(true);
+              setOpen(false);
+            }}
             className="flex w-full items-center gap-2 border-t border-border bg-primary/5 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10 focus:bg-primary/10 focus:outline-none"
             data-testid="customer-cadastrar-inline"
           >
             <UserPlus className="h-4 w-4" />
             Cadastrar "{query}" como novo cliente
-          </a>
+          </button>
         </div>
       )}
+
+      {/* QuickAdd Sheet — montado sempre, controlado por `quickAddOpen`. */}
+      <QuickAddCustomerSheet
+        open={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        prefillName={quickAddPrefill}
+        onCreated={(customer) => {
+          // Mesmo fluxo de seleção do dropdown — mantém compat com `forcedValue`
+          // externo (Sells/Create.tsx ainda escuta postMessage da aba legacy
+          // até retirada plena; ambos caminhos chegam aqui).
+          handleSelect(customer);
+        }}
+      />
     </div>
   );
 }

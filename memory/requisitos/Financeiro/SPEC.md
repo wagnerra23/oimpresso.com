@@ -4,13 +4,16 @@ title: "Especificação funcional — Financeiro"
 type: spec
 module: Financeiro
 status: ativo
-related_adrs: [0154, 0155, 0156]
+related_adrs:
+  - 0154-rubrica-module-grade-v2
+  - 0155-rubrica-module-grade-v3
+  - 0156-rubrica-module-grade-v3-detail
 na_justified_v3:
   D1.c: "Job `CriarTituloDeVendaJob` é `@deprecated` órfão (Onda 2, 2026-04-25) e nunca foi dispatched em produção; sincronização canônica de títulos a partir de transactions ocorre via `TituloAutoService::sincronizarDeTransacao` chamado diretamente pelo `TransactionObserver`. O constructor do Job recebe apenas `$transactionId` e extrai `business_id` da Eloquent (pattern legítimo de Job-por-ID), portanto a checagem `$businessId` no constructor não se aplica ao módulo."
 pii: false
 updated_at: 2026-05-16
-last_updated: 2026-05-19
-version: 1.1
+last_updated: '2026-05-27'
+version: '1.2'
 owner: wagner
 ---
 
@@ -1263,3 +1266,316 @@ Diferencial Conta Azul KILLER que ataca direto seu moat de mercado: network de c
 
 **Refs:** Wagner aprovou DC2 em sessão 2026-05-19 · CAPTERRA-INVENTARIO bucket ❌ Customer service network · COMPARATIVO_CONCORRENCIA Pros líder (Conta Azul) #1 "Network de contadores é diferencial"
 **LOC estimado Fase 1:** ~400 · estratégico, alto impacto comercial
+
+---
+
+## Follow-ups pos-sessao 2026-05-20 (Larissa biz=4 bridge recovery)
+
+### US-FIN-038 · UI label 'Conta indefinida' + CTA 'vincular conta' nas linhas com conta_bancaria_id NULL
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Pos-ADR 0175 (Observer permite baixa sem fin_contas_bancarias), drawer/list Financeiro/ContasReceber + Financeiro/Unificado + Financeiro/Cobranca devem mostrar pill cinza 'Conta indefinida' nas linhas onde `fin_titulo_baixas.conta_bancaria_id IS NULL`, com CTA pra modal de cadastro fin_contas_bancarias.
+
+Acceptance:
+- Tooltip: 'Pagamento registrado sem vinculação bancária. Cadastre conta pra organizar caixa.'
+- Pill cinza-amarelado (warning leve, não vermelho de erro)
+- Click no CTA abre `/financeiro/contas-bancarias/create` em modal ou nova rota
+- Pos-cadastro, oferecer artisan-equivalente UI: 'Vincular automaticamente N baixas órfãs?' (executa `financeiro:vincular-baixas-sem-conta {biz} {conta}` via fila/job)
+- Pest GUARD: titulo com baixa conta_bancaria_id NULL renderiza pill 'indefinida'
+- Smoke browser Brave biz=4 Larissa apos PR mergeada: deve aparecer pill nos 15.412 baixas backfill SQL ja existentes + nos NOVAS pos-pagamento
+
+Refs ADR 0175, sessao 2026-05-20-financeiro-bridge-larissa-backfill-recovery.md.
+
+### US-FIN-039 · Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior
+
+> owner: — · priority: p2 · estimate: 1.5h · status: todo · type: story
+> blocked_by: —
+
+Comando Laravel que recebe `{biz_id}` + `{conta_bancaria_id}` e faz UPDATE em massa de `fin_titulo_baixas` + `fin_caixa_movimentos` onde `conta_bancaria_id IS NULL AND business_id = ?` setando o `conta_bancaria_id` fornecido.
+
+Pareado com ADR 0175 - quando cliente cadastrar `fin_contas_bancarias` apos ja ter baixas com NULL, executa o vinculo retroativo.
+
+Uso `php artisan financeiro:vincular-baixas-sem-conta 4 20`. Output esperado `15.412 fin_titulo_baixas + 15.412 fin_caixa_movimentos atualizados (biz=4 -> conta_bancaria_id=20)`.
+
+Acceptance:
+- Signature `financeiro:vincular-baixas-sem-conta {biz : Business ID} {conta_id : fin_contas_bancarias.id}`
+- Pre-check: confirma `conta_id` pertence ao `biz_id` (Tier 0 ADR 0093)
+- UPDATE idempotente: só atualiza onde conta_bancaria_id IS NULL
+- Output: count antes + depois
+- Pest GUARD: cria conta, gera 3 baixas sem conta, roda comando, asserta 3 baixas vinculadas
+- Tag `metadata.reconciled_at` em cada row atualizado (auditoria)
+
+Refs ADR 0175, RUNBOOK bridge-sells-titulos-backfill.md.
+
+### US-FIN-040 · Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Health-check que roda 5 queries canonicas detectando os 3 gaps documentados em RUNBOOK-bridge-sells-titulos-backfill.md cross-business. Alerta Slack/log quando gap > threshold.
+
+Signature `financeiro:health-check [--biz=*] [--alert] [--json]`.
+
+Gaps detectados:
+- Gap A: business com `fin_titulo_baixas` mas zero `fin_contas_bancarias` (no-op residual pre-ADR 0175)
+- Gap B: `transactions(type IN (sell,purchase), status=final)` sem `fin_titulos` correspondente (Observer nao retroativo)
+- Gap C: `fin_titulos.cliente_descricao IS NULL` em > 5% titulos (campo desnormalizado nao populado)
+
+Acceptance:
+- Output formato tabela ou JSON com 5 metricas por biz
+- Exit code 0 = zero gaps, 1 = pelo menos 1 gap encontrado (CI/cron usa)
+- Flag `--alert` envia Slack webhook quando gap > 0 (env `SLACK_FIN_HEALTH_WEBHOOK_URL`)
+- Schedule daily 06:00 BRT (espelha pattern `sells:smoke-daily`)
+- Pest GUARD: cria biz com gap, roda command, asserta exit 1 + Slack message
+- Tier 0 ADR 0093 respeitado em todas queries
+
+Refs ADR 0175, agent financeiro-bridge-auditor.md.
+
+### US-FIN-041 · Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Onda 6 final da deprecacao Accounting (ADR 0172) - executar apos canary 30d (destrava 2026-06-19).
+
+Pre-cond:
+- 30d desde merge PR #1258 (drop Modules/Accounting) sem incidente
+- Smoke prod confirma zero log error apontando `/accounting/*`
+- Wagner aprovacao final
+
+Acao SQL (ARCHIVE mysqldump LGPD 5y primeiro, depois DROP TABLE 8 + DELETE permissions accounting.* + UPDATE packages.custom_permissions JSON_REMOVE accounting_module).
+
+Acceptance:
+- 8 tabelas DROPed (`chart_of_accounts`, `journal_entries`, `budgets`, `transfers`, `payment_details`, `branch_capital`, `account_subtypes`, `account_detail_types`)
+- 13 permissions accounting.* removidas
+- mysqldump archive em governance/archive/accounting-YYYY-MM-DD.sql.gz (LGPD 5y)
+- Pest GUARD existe: `Pest test schema accounting tables removidas`
+- Smoke `gh pr view 1258 mergedAt + 30d >= today` validado
+
+Refs ADR 0172/0174, DEPRECATION-PLAN.md Onda 6.
+
+### US-FIN-042 · Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL
+
+> owner: — · priority: p3 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+Aplica o mesmo backfill `cliente_descricao` do biz=4 (sessao 2026-05-20) em biz=1 Wagner WR2. Auditoria daquela sessao apontou 0% NULL em biz=1, mas tem casos isolados se aparecer drift futuro.
+
+UPDATE idempotente (mesma logica do Observer TituloAutoService linha 19 Onda Edit 2026-05-18) — JOIN contacts c ON c.id = ft.cliente_id, SET cliente_descricao = CONCAT(nome, ' . #', V/PC, '-', origem_id), WHERE business_id=1 AND cliente_descricao IS NULL.
+
+Acceptance:
+- Pre-check conta `count(*) where cliente_descricao IS NULL business_id=1` (esperado: 0 ou poucos)
+- Pos-check 100% titulos biz=1 tem cliente_descricao populado
+- Tier 0 ADR 0093: WHERE business_id=1 explicito
+- Idempotente (NOT NULL guard)
+
+Pode ser executado sob demanda quando Wagner pedir, OU agendado via `financeiro:health-check` apos detectar Gap C.
+
+Refs RUNBOOK-bridge-sells-titulos-backfill.md fase 2d.
+
+### US-FIN-043 · Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara)
+
+> owner: maiara · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Vamos migrar o Financeiro (FINANCEIRO + MENSALIDADE_FINANCEIRO + CONTRATO + BOLETOS + PESSOAS) de cada cliente legacy Delphi/Firebird pro oimpresso (`fin_titulos` + `fin_titulo_baixas` + `contacts` + `transaction_boletos`). Antes de codar o importer Python, Maiara coleta o que falta — regras de negocio que sao por cliente, nao estao no schema.
+
+**LGPD: LIBERADO por Wagner 2026-05-21** — dados PII podem migrar.
+
+## O que voce precisa fazer, Maiara
+
+Segue passo-a-passo no guia: [MAIARA-GUIA-COLETA-CLIENTE.md](MAIARA-GUIA-COLETA-CLIENTE.md)
+
+Resumo:
+
+1. **Pre-flight (10min):** identifica cliente, business_id, conecta no Firebird, conta volume
+2. **Extrai mappings automaticos (30min):** roda 4 queries SQL pra gerar 3 CSVs (planocontas, tipopagto, codbanco) + 3 samples (pessoas, financeiro, contrato)
+3. **Call com cliente (60-90min):** roteiro com 14 perguntas nos 6 Blocos (A-F) — guia tem o texto pronto
+4. **Preenche checklist (30min):** copia [MIGRATION-CHECKLIST-LEGACY.md](MIGRATION-CHECKLIST-LEGACY.md) e responde
+5. **Entrega na task (status: review):** posta os 7 anexos + lista duvidas pendentes pra Wagner/Felipe
+
+## Entregaveis (acceptance criteria)
+
+- [ ] `MIGRATION-CHECKLIST-LEGACY-<cliente>.md` preenchido (Blocos A-F)
+- [ ] `mapping-planocontas-<cliente>.csv` com coluna `oimpresso_codigo` preenchida
+- [ ] `mapping-tipopagto-<cliente>.csv` com coluna `oimpresso_enum` (1 dos 9 valores)
+- [ ] `mapping-codbanco-<cliente>.csv` com `febraban_codigo` preenchido
+- [ ] Sample 20 registros PESSOAS/FINANCEIRO/CONTRATO (3 CSVs)
+- [ ] Volume estimado anotado no cabecalho
+- [ ] Data target cutover sugerida pelo cliente
+- [ ] Status `review` na task MCP
+
+## Cliente piloto
+
+**Cliente piloto fixado: Martinho (biz=164)** — decisao Wagner 2026-05-21.
+
+- Fases 1 + 2 (contacts + vehicles) ja migradas em 2026-05-13 (91 vehicles, placeholder `#EQ{codigo}` pros 4 sem placa)
+- Falta APENAS Financeiro (esta task)
+- Path Firebird: `servidor-crm:D:\DadosClientes\Martinho\Dados\BANCO.FDB`
+
+Pre-flight Martinho:
+
+```bash
+# Confirmar nome biz=164
+ssh hostinger 'cd /home/u613912490/domains/oimpresso.com/public_html && php artisan tinker --execute="echo App\Business::find(164)->name;"'
+
+# Contar fin_titulos Martinho ja importado (esperado: 0)
+ssh hostinger 'cd /home/u613912490/domains/oimpresso.com/public_html && php artisan tinker --execute="echo DB::table(\"fin_titulos\")->where(\"business_id\", 164)->count();"'
+# Se != 0: PARAR + investigar (auditar quem importou antes via git log + audit JSON em scripts/legacy-migration/output/)
+```
+
+## Quando travar
+
+- SQL Firebird nao conecta → @felipe
+- Cliente nao responde 48h → comenta + @wagner
+- Mapping ambiguo → comenta + @felipe
+- Regra de negocio incerta → comenta + @wagner
+
+## Cronograma sugerido
+
+3-5h espalhadas em 2-3 dias (call cliente precisa janela 24-48h):
+
+| Dia | Atividade |
+|---|---|
+| Dia 1 manha | Passo 1 + Passo 2 |
+| Dia 1 tarde | Passo 3 (call cliente, agendar 24-48h antes) |
+| Dia 2 | Passo 4 + Passo 5 |
+
+## Depois desta task — owner: Wagner (decisao 2026-05-21)
+
+Quando Maiara entregar `review`, Daily Brief avisa Wagner automatic. NAO criar task pro Felipe — Wagner roda pessoalmente:
+
+1. Wagner valida coleta da Maiara (~30min)
+2. Wagner cria/roda `scripts/legacy-migration/import-financeiro.py --dry-run` com mappings da Maiara (~2h)
+3. Wagner valida tabela reconciliation side-by-side Firebird×MySQL (secao "Reconciliation pos-import" no [MIGRATION-CHECKLIST-LEGACY.md](MIGRATION-CHECKLIST-LEGACY.md))
+4. Cutover live + audit JSON arquivado (~1h)
+5. Wagner abre proxima task `tasks-create` pra Maiara — proximo cliente
+
+## Refs
+
+- Schema canon: [memory/requisitos/Officeimpresso/OFFICEIMPRESSO-FIREBIRD-SCHEMA.md](../Officeimpresso/OFFICEIMPRESSO-FIREBIRD-SCHEMA.md)
+- Pattern migracao validado 3 clientes: [memory/reference/migracao-officeimpresso-pattern.md](../../reference/migracao-officeimpresso-pattern.md)
+- ADR 0093 multi-tenant Tier 0 (business_id obrigatorio)
+- ADR 0118 segregacao dominios externos (bridge table `accounts_legacy_map`)
+- ADR 0120 PII redaction em audit JSON (legacy_metadata redacted)
+
+---
+
+### US-FIN-044 · SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time)
+
+> owner: wagner · priority: p1 · estimate: 24h · status: in_progress · type: story
+> blocked_by: cliente (Kamila/Martinho biz=164 buscando credenciais sandbox Sicoob Developer Portal)
+
+## Contexto
+
+Sicoob é Top 5 mercado BR cooperativista. Antes desta US, oimpresso só tinha `SicoobCnabDriver` (CNAB 240 arquivo via `eduardokum/laravel-boleto`). Cliente real (Kamila — Admin#164 do Martinho Caçambas, biz=164, locação caçambas Tubarão/SC, competidor HiSoft) pediu API REST por OAuth2 + webhook real-time pra evitar import manual de arquivo retorno.
+
+**Atenção:** Kamila é do Martinho Caçambas (biz=164), NÃO da ROTA LIVRE (biz=4 Larissa vestuário Gravatal/SC). Confundi os 2 clientes na sessão 2026-05-27 — consolidação canon em PR [#1734](https://github.com/wagnerra23/oimpresso.com/pull/1734).
+
+## Acceptance criteria
+
+Backend em prod (6 PRs mergeados via PR [#1730](https://github.com/wagnerra23/oimpresso.com/pull/1730) cherry-pick consolidation):
+
+- [x] `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` implementando `PaymentDriverContract`
+- [x] OAuth2 client_credentials flow (cache Laravel TTL 3500s, key por business_id + ambiente + hash client_id)
+- [x] mTLS handshake — **reusa NfeCertificado canon** (US-FIN-046 fix, ver abaixo)
+- [x] Endpoints: POST `/cobranca-bancaria/v3/boletos`, GET `/boletos` (consultar), PATCH `/boletos/baixa` (cancelar), webhook receiver
+- [x] `Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php` validando HMAC `x-sicoob-signature` + idempotência
+- [x] Registro `PaymentGatewayService::DRIVERS['sicoob_api']`
+- [x] Wizard step Sicoob no `SheetNovoGateway.tsx` — client_id + secret + convênio + carteira + conta + webhook_secret + indicador cert A1 do Fiscal
+- [x] Deep-link "Onde gerar credencial" → `https://developers.sicoob.com.br`
+- [x] Pest contract test + cross-tenant ampliado
+- [x] [RUNBOOK-sicoob-api.md](../PaymentGateway/RUNBOOK-sicoob-api.md) (11 seções)
+- [x] Charter `Settings/PaymentGateways/Index.charter.md` atualizado
+- [ ] Smoke E2E real com credenciais sandbox da Kamila (BLOQUEADO — pré-req humano)
+
+## Pré-requisito humano
+
+Checklist completo em [memory/sessions/2026-05-27-sicoob-api-credenciais-pedido.md](../../sessions/2026-05-27-sicoob-api-credenciais-pedido.md). Kamila pede pro gerente Sicoob libera Developer Portal + client_id/secret + convênio + webhook scopes.
+
+**NÃO precisa upload .pfx do Sicoob** — cert A1 ICP-Brasil já cadastrado em Fiscal pra NFe SEFAZ serve (verdade canon: Sicoob exige A1 ICP-Brasil do CNPJ, mesmo que NfeBrasil gerencia). Fix arquitetural em US-FIN-046.
+
+## Multi-tenant Tier 0
+
+- Cache OAuth token key por `business_id` — nunca compartilhado entre tenants
+- Webhook valida HMAC com `webhook_secret` da credential do `business_id` da rota
+- mTLS reusa `NfeCertificado` filtrado por `business_id` (single source, encrypted-at-rest via Crypt)
+
+## Refs
+
+- 7 PRs: [#1718](https://github.com/wagnerra23/oimpresso.com/pull/1718) skeleton · [#1720](https://github.com/wagnerra23/oimpresso.com/pull/1720) OAuth+emissão · [#1722](https://github.com/wagnerra23/oimpresso.com/pull/1722) mTLS · [#1724](https://github.com/wagnerra23/oimpresso.com/pull/1724) webhook · [#1725](https://github.com/wagnerra23/oimpresso.com/pull/1725) UI · [#1728](https://github.com/wagnerra23/oimpresso.com/pull/1728) docs · [#1730](https://github.com/wagnerra23/oimpresso.com/pull/1730) cherry-pick stack
+- US-FIN-046 fix arquitetural mTLS
+- ADR 0105 cliente como sinal qualificado
+- ADR 0170 §4f.sicoob_api bancos nativos top-5
+
+---
+
+### US-FIN-045 · Wizard bank-first 2-step (banco → modo conexão)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Wagner identificou 2026-05-27 (durante sessão US-FIN-044): wizard `SheetNovoGateway` step 1 lista 16+ drivers misturando bancos com modos de conexão (`sicoob_api` ao lado de `sicoob_cnab`, `inter` ao lado de `bradesco_cnab`...). Usuário pensa "quero Sicoob", não "quero `sicoob_api`".
+
+## Acceptance criteria
+
+- [ ] Wizard refatorado pra 4 steps:
+  - **Step 1 — Banco**: 1 card por instituição (Sicoob, Inter, Bradesco, BB, Itaú, Santander, Caixa, BTG, Sicredi, Ailos, Cresol, Banrisul, C6 + grupo PSPs: Asaas, Pagar.me + grupo Regulador: BCB PIX)
+  - **Step 2 — Modo conexão**: opções disponíveis pro banco (API REST / CNAB 240 / API PIX / outros) com trade-offs
+  - **Step 3 — Credenciais**: form dinâmico baseado em (banco, modo)
+  - **Step 4 — Vínculo**: conta destino + ambiente + ativo
+
+- [ ] `gateway-shared.ts` ganha estrutura `BANKS` (top-level) + `MODES` (segundo nível) com mapping `(bank, mode) → GatewayKey`
+
+- [ ] PSPs/Reguladores em grupo separado (Asaas, Pagar.me, BCB)
+
+- [ ] Pest navega wizard 4 steps com casos Sicoob+API / Sicoob+CNAB / Inter+API
+
+## Multi-tenant Tier 0
+
+Sem mudança backend — apenas UI reorganizada. Backend continua recebendo `gateway_key` canon.
+
+## Refs
+
+- US-FIN-044 origem do feedback
+- Não-blocker pra Sicoob funcionar — refactor reduz fricção quando 2º API driver (Bradesco/BB/Itaú) entrar
+
+---
+
+### US-FIN-046 · Sicoob mTLS reusa NfeCertificado (single source of truth)
+
+> owner: wagner · priority: p0 · estimate: 4h · status: review · type: story
+> blocked_by: —
+
+## Contexto
+
+Bug arquitetural US-FIN-044 (Wagner apontou 2026-05-27): `.pfx` Sicoob ficava em 2 lugares — `storage/app/nfe-brasil/{biz}/cert/{uuid}.pfx.enc` (encrypted canon NfeCertificado) + minha cópia `storage/app/private/sicoob/{biz}.pfx` (PLAIN, inseguro). Cliente teria que upload o MESMO cert A1 ICP-Brasil duas vezes.
+
+**Verdade canon (pesquisa Wagner 2026-05-27 — TecnoSpeed/Soften/ACBr):** Sicoob API Cobrança v3 EXIGE cert ICP-Brasil A1 do CNPJ da empresa — EXATAMENTE o mesmo que NfeBrasil já gerencia pra SEFAZ.
+
+## Acceptance criteria
+
+- [x] `SicoobApiDriver::mtlsOptions()` chama `CertificadoService::carregarParaSefaz($cred->business_id)` canon NfeBrasil
+- [x] Temp file `sys_get_temp_dir()/sicoob-pfx-*` com chmod 0600 + cleanup via `register_shutdown_function`
+- [x] `CredentialMisconfigured` clara com link `/fiscal/configuracao/certificado` se business sem cert
+- [x] Migration revert PR1: drop colunas `requires_mtls` + `mtls_pfx_path`
+- [x] Wizard step 2 Sicoob: remove upload .pfx; adiciona indicador colorido (verde/âmbar/rose) cert A1 ativo OU warning + deep-link Fiscal
+- [x] RUNBOOK + SCOPE.md atualizados
+- [x] Pest reescrito: mock `CertificadoService` via `app->instance()`
+- [ ] PR [#1737](https://github.com/wagnerra23/oimpresso.com/pull/1737) merged + deployed
+
+## Débito anotado
+
+Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débito aceitável até 2º banco API entrar (Bradesco/Inter/BB). Aí extrai `NfeCertificado` pra módulo neutro com campo `proposito` — vira **US-FIN-047** backlog.
+
+## Refs
+
+- US-FIN-044 origem do bug
+- Modules/NfeBrasil/Services/CertificadoService.php canon a reusar
+- Sicoob docs: TecnoSpeed/SoftenSistemas/ACBr confirmam ICP-Brasil A1 (busca Wagner 2026-05-27)

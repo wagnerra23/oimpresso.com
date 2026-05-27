@@ -9,6 +9,11 @@ import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
+import DadosFiscaisBRSection, {
+  type DadosFiscaisBRData,
+  type BrasilApiCnpjData,
+} from './_form/DadosFiscaisBRSection';
+import { unmaskDigits } from '@/Lib/format-br';
 
 interface ClienteCreatePageProps {
   types: Record<string, string>;
@@ -21,7 +26,7 @@ interface ClienteCreatePageProps {
   };
 }
 
-type ClienteFormData = {
+type ClienteFormData = DadosFiscaisBRData & {
   type: string;
   contact_type_radio: string;
   prefix: string;
@@ -43,7 +48,7 @@ type ClienteFormData = {
 };
 
 export default function ClienteCreate(props: ClienteCreatePageProps) {
-  const { data, setData, post, processing, errors } = useForm<ClienteFormData>({
+  const { data, setData, post, processing, errors, transform } = useForm<ClienteFormData>({
     type: props.selected_type ?? 'customer',
     contact_type_radio: 'person',
     prefix: '',
@@ -62,7 +67,51 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
     customer_group_id: '',
     opening_balance: '0',
     credit_limit: '',
+    // Dados Fiscais BR — migration 2026_05_21_140000.
+    cpf_cnpj: '',
+    rg: '',
+    inscricao_estadual: '',
+    inscricao_municipal: '',
+    indicador_ie: '',
+    nome_fantasia: '',
+    consumidor_final: false,
+    contribuinte: true,
+    regime: '',
+    suframa: '',
   });
+
+  const isJuridica = data.contact_type_radio === 'business';
+
+  // Slice 5a — callback chamado quando DadosFiscaisBRSection recebe sucesso do
+  // /contacts/lookup/cnpj/{cnpj}. Preenche aqui os campos que NÃO vivem em
+  // DadosFiscaisBRData (supplier_business_name = razão social + endereço).
+  const handleCnpjLookup = (api: BrasilApiCnpjData) => {
+    if (api.razao_social) {
+      setData('supplier_business_name', api.razao_social);
+      // Se primeiro_nome estiver vazio, usa razao_social como base — fluxo comum
+      // de cadastrar PJ pela primeira vez.
+      if (!data.first_name) {
+        setData('first_name', api.razao_social);
+      }
+    }
+    // Endereço — só sobrescreve se vier valor da API (preserva o que user já digitou).
+    if (api.logradouro) {
+      const numero = api.numero ? `, ${api.numero}` : '';
+      const bairro = api.bairro ? ` — ${api.bairro}` : '';
+      setData('address_line_1', `${api.logradouro}${numero}${bairro}`);
+    }
+    if (api.municipio) setData('city', api.municipio);
+    if (api.uf) setData('state', api.uf);
+    if (api.cep) setData('zip_code', api.cep);
+  };
+
+  // Normaliza cpf_cnpj pra dígitos puros antes do submit — backend Rule\BR\CpfCnpj
+  // já chama Util::onlyNumbers internamente mas mandamos limpo pra evitar
+  // pontuação persistida no banco (consistência cross-driver).
+  transform((payload) => ({
+    ...payload,
+    cpf_cnpj: unmaskDigits(payload.cpf_cnpj),
+  }));
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -91,10 +140,10 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
         </div>
       </div>
 
-      <div className="container mx-auto px-8 py-6 max-w-3xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="container mx-auto px-8 py-5 max-w-3xl">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Section title="Identificação" icon={User2}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Tipo" error={errors.type}>
                 <select
                   value={data.type}
@@ -148,19 +197,27 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
                   maxLength={100}
                 />
               </Field>
-              <Field label="CNPJ / CPF" error={errors.tax_number}>
+              <Field label="Tax number (legado UPOS)" error={errors.tax_number}>
                 <Input
                   type="text"
                   value={data.tax_number}
                   onChange={(e) => setData('tax_number', e.target.value)}
-                  placeholder="00.000.000/0000-00"
+                  placeholder="Use CPF / CNPJ abaixo (este campo é legacy)"
                 />
               </Field>
             </div>
           </Section>
 
+          <DadosFiscaisBRSection<ClienteFormData>
+            data={data}
+            setData={setData}
+            errors={errors}
+            isJuridica={isJuridica}
+            onCnpjLookup={handleCnpjLookup}
+          />
+
           <Section title="Contato">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Celular" error={errors.mobile}>
                 <Input
                   type="tel"
@@ -189,7 +246,7 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
           </Section>
 
           <Section title="Endereço">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Endereço" error={errors.address_line_1} colSpan={2}>
                 <Input
                   type="text"
@@ -225,7 +282,7 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
 
           {(data.type === 'customer' || data.type === 'both') && (
             <Section title="Financeiro">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <Field label="Saldo inicial" error={errors.opening_balance}>
                   <Input
                     type="text"
@@ -261,10 +318,10 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
           )}
 
           <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-            <Button type="button" variant="outline" asChild>
+            <Button type="button" variant="cowork-ghost" asChild>
               <a href="/contacts/customer">Cancelar</a>
             </Button>
-            <Button type="submit" disabled={processing}>
+            <Button type="submit" variant="cowork-primary" disabled={processing}>
               <Save className="mr-1.5 h-4 w-4" />
               {processing ? 'Salvando…' : 'Salvar cliente'}
             </Button>
@@ -279,9 +336,9 @@ ClienteCreate.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
 function Section({ title, icon: Icon, children }: { title: string; icon?: typeof User2; children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-border bg-background p-5">
-      <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-        {Icon && <Icon size={16} className="text-muted-foreground" />}
+    <section className="rounded-lg border border-border bg-background p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+        {Icon && <Icon size={14} className="text-muted-foreground" />}
         {title}
       </h3>
       {children}
@@ -302,9 +359,9 @@ function Field({
 }) {
   return (
     <div className={colSpan === 2 ? 'sm:col-span-2' : ''}>
-      <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{label}</Label>
+      <Label className="mb-1 block">{label}</Label>
       {children}
-      {error && <p className="text-xs text-rose-600 mt-1">{error}</p>}
+      {error && <p className="text-xs text-rose-600 mt-0.5">{error}</p>}
     </div>
   );
 }

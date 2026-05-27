@@ -17,10 +17,23 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\IdempotencyConflictException;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Cnab\Drivers\AilosCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\BBCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\BanrisulCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\BradescoCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\BtgCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\CaixaCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\CresolCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\ItauCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\SantanderCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\SicoobCnabDriver;
+use Modules\PaymentGateway\Services\Cnab\Drivers\SicrediCnabDriver;
 use Modules\PaymentGateway\Services\Drivers\AsaasDriver;
 use Modules\PaymentGateway\Services\Drivers\BcbPixDriver;
 use Modules\PaymentGateway\Services\Drivers\C6Driver;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
+use Modules\PaymentGateway\Services\Drivers\PagarmeDriver;
+use Modules\PaymentGateway\Services\Drivers\SicoobApiDriver;
 
 /**
  * Implementação do PaymentGatewayContract — coordena drivers + persistência.
@@ -40,14 +53,39 @@ class PaymentGatewayService implements PaymentGatewayContract
      *
      * Onda 4a: inter
      * Onda 4b: + c6, asaas
-     * Onda 4d.1: + bcb_pix (este PR — PIX Automático regulado BCB)
+     * Onda 4d.1: + bcb_pix (PIX Automático regulado BCB)
+     * Onda 4e: + pagarme (Pagar.me v5 — Stone group — boleto/pix_cob/card)
+     * Onda 4f.cnab: + 11 CnabDrivers (ADR 0170-bancos-nativos-top5-drivers-separados v3 Wagner 2026-05-26)
+     *               — Bradesco/Itaú/BB/Santander/Caixa/Sicoob/Ailos/Sicredi/Cresol/Banrisul/BTG
+     *               todos file-based via lib eduardokum/laravel-boleto sobre fundação CnabBoletoAdapter
+     *               PRs mergeados: #1589 #1590 #1592 #1606-#1613
+     * Onda 4f.sicoob_api: + sicoob_api (US-FIN-044 — Wagner aprovou 2026-05-27 a pedido
+     *               de Kamila/Larissa biz=4 ROTA LIVRE; REST v3 OAuth2+mTLS+webhook real-time)
+     *               PR1 skeleton, PR2 OAuth2+emissão, PR3 mTLS, PR4 webhook, PR5 UI, PR6 docs.
      * Onda 5/6: pesapal (deprecated → remoção)
      */
     private const DRIVERS = [
-        'inter'   => InterDriver::class,
-        'c6'      => C6Driver::class,
-        'asaas'   => AsaasDriver::class,
-        'bcb_pix' => BcbPixDriver::class,
+        // API REST drivers
+        'inter'      => InterDriver::class,
+        'c6'         => C6Driver::class,
+        'asaas'      => AsaasDriver::class,
+        'bcb_pix'    => BcbPixDriver::class,
+        'pagarme'    => PagarmeDriver::class,
+        'sicoob_api' => SicoobApiDriver::class,
+
+        // CNAB drivers (file-based — boleto registrado via remessa/retorno)
+        // Onda 4f.cnab — clientes emitem boleto dia 1 sem esperar homologação Open API (14-45d)
+        'bradesco_cnab'  => BradescoCnabDriver::class,
+        'itau_cnab'      => ItauCnabDriver::class,
+        'bb_cnab'        => BBCnabDriver::class,
+        'santander_cnab' => SantanderCnabDriver::class,
+        'caixa_cnab'     => CaixaCnabDriver::class,
+        'sicoob_cnab'    => SicoobCnabDriver::class,
+        'ailos_cnab'     => AilosCnabDriver::class,
+        'sicredi_cnab'   => SicrediCnabDriver::class,
+        'cresol_cnab'    => CresolCnabDriver::class,
+        'banrisul_cnab'  => BanrisulCnabDriver::class,
+        'btg_cnab'       => BtgCnabDriver::class,
     ];
 
     /**

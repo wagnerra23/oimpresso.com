@@ -71,6 +71,14 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     REP_C: { variant: 'outline', label: 'REP-C' },
     REP_A: { variant: 'outline', label: 'REP-A' },
   },
+  // Onda 1 PR D 2026-05-26 — status de Vehicle (OficinaAuto). Frota Martinho.
+  vehicle: {
+    active:         { variant: 'default',     label: 'Ativo',           className: 'bg-emerald-600 hover:bg-emerald-700' },
+    in_service:     { variant: 'default',     label: 'Em serviço',      className: 'bg-blue-600 hover:bg-blue-700' },
+    awaiting_parts: { variant: 'default',     label: 'Aguardando peças', className: 'bg-amber-600 hover:bg-amber-700' },
+    inactive:       { variant: 'outline',     label: 'Inativo' },
+    written_off:    { variant: 'destructive', label: 'Baixado' },
+  },
   ads_destination: {
     blocked:        { variant: 'destructive', label: 'Bloqueado' },
     pending_wagner: { variant: 'default',     label: 'Aguardando você', className: 'bg-amber-600 hover:bg-amber-700' },

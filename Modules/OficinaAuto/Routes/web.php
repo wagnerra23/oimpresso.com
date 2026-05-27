@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\ServiceOrderFsmActionController;
 use Illuminate\Support\Facades\Route;
+use Modules\OficinaAuto\Http\Controllers\DviInspectionController;
 use Modules\OficinaAuto\Http\Controllers\InstallController;
 use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
 use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
+use Modules\OficinaAuto\Http\Controllers\ServiceOrderItemController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -71,6 +73,39 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->name('oficinaauto.orders.destroy');
 
         // ─────────────────────────────────────────────────────────────────────
+        // Gap 3 — Imprimir OS PDF profissional A4 (US-OFICINA-037).
+        // AJAX-only endpoint que retorna {success, receipt:{html_content,print_title}}.
+        // Frontend printServiceOrder.ts injeta HTML em IFRAME oculto + window.print()
+        // (espelha pattern SellPosController::printInvoice).
+        // Throttle 30/1 anti-abuse (mesmo cap dos endpoints de leitura críticos).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('ordens-servico/{order}/print',
+            [ServiceOrderController::class, 'printInvoice'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.print');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Wave 1.3 US-OFICINA-027 — Items de OS (peça / mão-de-obra / terceiro).
+        // Schema oficina_service_order_items em Wave 27 G1 (migration 2026-05-17).
+        // Drawer Cowork seção "PEÇAS & MÃO DE OBRA" (Wave 2) consome estes endpoints.
+        // Throttle 60/1 nas mutações (padrão módulo).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::post('ordens-servico/{order}/items',
+            [ServiceOrderItemController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.items.store');
+
+        Route::put('ordens-servico/{order}/items/{item}',
+            [ServiceOrderItemController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.items.update');
+
+        Route::delete('ordens-servico/{order}/items/{item}',
+            [ServiceOrderItemController::class, 'destroy'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.items.destroy');
+
+        // ─────────────────────────────────────────────────────────────────────
         // Hotfix Wave 7+ — drawer ServiceOrderSheet.fetchData chama URL inglês
         // /service-orders/{id} esperando JSON (Accept-aware show). Alias necessário
         // pra evitar 404 quando user clica row na ServiceOrders Index.
@@ -108,6 +143,43 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('service-orders/{order}/history',
             [ServiceOrderFsmActionController::class, 'history'])
             ->name('oficinaauto.service_orders.history');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Wave 3 — DVI (Vistoria Digital) US-OFICINA-035.
+        // CAPTERRA-FICHA Repair gap #3 — wedge competitivo vs RepairShopr/mHelpDesk.
+        // UI consumirá via fetch JSON em Wave 3b (depende drawer ServiceOrderRichSheet PR #1624).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::post('ordens-servico/{order}/dvi',
+            [DviInspectionController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.store');
+
+        Route::put('ordens-servico/{order}/dvi/{item}',
+            [DviInspectionController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.update');
+
+        Route::delete('ordens-servico/{order}/dvi/{item}',
+            [DviInspectionController::class, 'destroy'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.destroy');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Gap 1 (2026-05-26) — Upload foto/laudo item DVI via Modules/Arquivos.
+        // Substitui placeholder V2 FOTOS no drawer ServiceOrderRichSheet.
+        // Multi-tenant Tier 0 (ADR 0093) via ArquivosService::attach (session-derived
+        // business_id). Throttle 30/1 (upload mais pesado que CRUD JSON normal).
+        // Sub-vertical 4 mecânica pesada Martinho biz=164 (ADR 0194).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::post('ordens-servico/{order}/dvi/{item}/photo',
+            [DviInspectionController::class, 'uploadPhoto'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.dvi.photo.upload');
+
+        Route::delete('ordens-servico/{order}/dvi/{item}/photo/{arquivo}',
+            [DviInspectionController::class, 'deletePhoto'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.dvi.photo.delete');
     });
 
 // ─────────────────────────────────────────────────────────────────────────────

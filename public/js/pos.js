@@ -265,13 +265,20 @@ $(document).ready(function() {
                 if (item.variation_group_price) {
                     selling_price = item.variation_group_price;
                 }
+                // Wagner 2026-05-27 HOTFIX: strings "Price:" e "Out of stock" estavam
+                // hardcoded em inglês no dropdown autocomplete da /sells/create. Larissa
+                // @ Rota Livre não entendia que produto estava esgotado — viu "Out of stock"
+                // em inglês. Smoke prod Chrome MCP detectou em MARTELO (qty=null = bloqueado).
+                // Trocar por LANG.out_of_stock (já existe em pt.js: "Item esgotado") e label
+                // "Preço:" pt-BR (string hardcoded — i18n key não disponível, mantém literal).
+                var label_out_of_stock = (typeof LANG !== 'undefined' && LANG.out_of_stock) ? LANG.out_of_stock : 'Out of stock';
                 string +=
                     ' (' +
                     item.sub_sku +
                     ')' +
-                    '<br> Price: ' +
+                    '<br> Preço: ' +
                     __currency_trans_from_en(selling_price, false, false, __currency_precision, true) +
-                    ' (Out of stock) </li>';
+                    ' (' + label_out_of_stock + ') </li>';
                 return $(string).appendTo(ul);
             } else {
                 var string = '<div>' + item.name;
@@ -284,7 +291,8 @@ $(document).ready(function() {
                     selling_price = item.variation_group_price;
                 }
 
-                string += ' (' + item.sub_sku + ')' + '<br> Price: ' + __currency_trans_from_en(selling_price, false, false, __currency_precision, true);
+                // Wagner 2026-05-27 HOTFIX: "Price:" hardcoded en — trocar pra "Preço:" pt-BR.
+                string += ' (' + item.sub_sku + ')' + '<br> Preço: ' + __currency_trans_from_en(selling_price, false, false, __currency_precision, true);
                 if (item.enable_stock == 1) {
                     var qty_available = __currency_trans_from_en(item.qty_available, false, false, __currency_precision, true);
                     string += ' - ' + qty_available + item.unit;

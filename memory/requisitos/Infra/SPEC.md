@@ -1,5 +1,12 @@
 ---
+slug: infra
+title: "Especificação funcional — Infra (loop de governança fechado)"
+type: spec
 module: Infra
+status: ativo
+owner: wagner
+version: "1.1"
+last_updated: 2026-05-20
 na_justified:
   D5: "Infra é loop de governança fechado (META → SINAL → DESVIO → RECÁLCULO — ADR 0105) servindo o projeto inteiro, NÃO módulo de features cliente. Não há biz=4 ROTA LIVRE consumindo GrowthBook/APM/MCP server diretamente — são fundações da plataforma. D5 cliente real não aplica por design."
   D4.b: "Infra não tem state machine FSM (ADR 0143). Concentra runbooks operacionais (deploy Centrifugo, Hostinger, CT 100, GrowthBook) e SPECs de infra — sem Eloquent Models com transições. D4.b FSM canônica N/A."
@@ -283,3 +290,78 @@ Quando os 5 primeiros fecharem, oimpresso opera com **loop de governança fechad
 ---
 
 **Última atualização:** 2026-05-09 — adicionadas US-INFRA-006/007 ([ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
+
+---
+
+### US-INFRA-011 · Rotacionar senha MySQL Hostinger u906587222_oimpresso - exposicao sessao 2026-05-20
+
+> owner: wagner · priority: p1 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+Senha MySQL Hostinger apareceu no contexto Claude durante sessao 2026-05-20 tarde (via tailscale ssh ct100-mcp grep MYSQL_AUTH_STATE). Tratar como comprometida per memory/reference/feedback-nunca-publicar-credenciais.md.
+
+Etapas Wagner manual (~15min):
+1. hPanel Hostinger → Bancos de Dados → resetar senha do user u906587222_oimpresso
+2. Vaultwarden → atualizar item hostinger-mysql-oimpresso com nova senha
+3. SSH CT 100: `tailscale ssh root@ct100-mcp` + `vim /opt/whatsapp-baileys/build/.env` → atualizar MYSQL_AUTH_STATE_PASS
+4. SSH CT 100: `docker compose restart whatsapp-baileys` → recriar container
+5. SSH Hostinger app: `vim .env` → atualizar DB_PASSWORD
+6. Smoke pos-rotacao: `tailscale ssh ct100-mcp docker run mysql SELECT 1;` deve funcionar com nova senha
+
+Acceptance:
+- Senha rotacionada no hPanel
+- Vaultwarden refletindo nova senha
+- 2 .env atualizados (CT 100 + Hostinger app)
+- Smoke conexao OK
+
+Refs feedback-nunca-publicar-credenciais.md + reference/hostinger-remote-mysql.md.
+
+---
+
+**Última atualização (US-INFRA-011):** 2026-05-20 — adicionada rotação senha MySQL pós-exposição sessão tarde Larissa biz=4
+
+---
+
+### US-INFRA-012 · Resolver migration order legacy pra visual-regression.yml sair de INFRA-ONLY (ADR 0108)
+
+> owner: wagner · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Workflow `.github/workflows/visual-regression.yml` (Pest 4 Browser + Playwright snapshot, ADR 0108) está em **INFRA-ONLY MODE** com `continue-on-error: true` em 3 steps (Setup Laravel, Build Inertia, Run Pest Browser). Comentário no YAML linha 102-110:
+
+> "Setup MySQL+migrate full em CI fica pra PR separado — permite job verde mesmo se migrate quebrar por ordem de migration UltimatePOS legacy (ex: ALTER TABLE contacts ADD regime AFTER contribuinte falha porque contribuinte é adicionado por migration posterior)."
+
+Resultado: workflow EXISTE mas **não bloqueia** regressão visual real. ADR 0108 vira teatro.
+
+Wagner mencionou em 2026-05-25 que isso é dívida técnica conhecida ("você lembra dessa?"). Validar com ele se ainda é prioridade.
+
+## Acceptance Criteria
+
+- [ ] Investigar quais migrations UltimatePOS legacy estão fora de ordem (provável: `ALTER TABLE contacts ADD regime AFTER contribuinte` antes da migration que adiciona `contribuinte`)
+- [ ] 2 caminhos possíveis — Wagner decide:
+  - **A**: Reorganizar migrations legacy (renomeação timestamp) — IRREVERSÍVEL em prod, alto risco multi-tenant Tier 0
+  - **B**: Criar migration consolidada `2026_*_fix_contacts_schema_for_ci.php` que roda antes em ambiente fresh CI
+- [ ] Tirar `continue-on-error: true` de `visual-regression.yml` (3 steps)
+- [ ] Estabilizar baseline screenshots (rodar `--update-snapshots` local, commit batch inicial)
+- [ ] Confirmar gate bloqueia: abrir PR teste com regressão visual deliberada, deve falhar
+- [ ] Apendar nota em ADR 0108 marcando saída de INFRA-ONLY (status pode virar `accepted` strict)
+
+## Não-objetivos
+
+- ❌ NÃO mexer em migrations já aplicadas em prod (Tier 0 IRREVOGÁVEL ADR 0093)
+- ❌ NÃO tirar continue-on-error sem baseline estabilizada (vai bloquear todo PR Inertia)
+
+## Riscos
+
+- Flakes de Playwright em CI (rendering timing) — mitigar com `await page.waitForLoadState('networkidle')`
+- Diff threshold 0.1% muito apertado pode gerar falso positivo (antialiasing) — calibrar pós-baseline
+
+## Estimate
+
+Codável IA-pair: 8h (investigação migration + fix + estabilizar baseline). Humano-limitado: ~3 dias real pra calibrar threshold + reduzir flakes (relógio do mundo real, ADR 0106 fator 10x não aplica).
+
+---
+
+**Última atualização (US-INFRA-012):** 2026-05-25 — adicionada resolução migration order legacy visual-regression.yml (batch validação design system pós-conversa Wagner com Claude do chat)

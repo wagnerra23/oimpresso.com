@@ -1,5 +1,5 @@
 // @memcofre
-//   tela: /jana/painel
+//   tela: /ia/painel
 //   stories: US-JANA-PAINEL-001 (Onda A1)
 //   adrs: 0035 stack-ai, 0039 ui-cockpit-pattern, 0093 multi-tenant, 0114 cowork-loop
 //   visual-canon: prototipo-ui/cowork-snapshot/chat-jana.jsx (491 ln IIFE window.JanaCockpit)
@@ -10,6 +10,7 @@
 import React from 'react'
 import { Head } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
+import { JanaAreaHeader } from './components/JanaAreaHeader'
 
 interface BriefData {
   greeting: string
@@ -74,6 +75,7 @@ export default function Painel({ business, painel }: Props) {
   return (
     <AppShellV2 title="Jana · Painel">
       <Head title="Jana · Painel" />
+      <JanaAreaHeader active="painel" />
 
       <div className="jc-page" data-screen-label="Jana — Dashboard">
         <header className="jc-header">

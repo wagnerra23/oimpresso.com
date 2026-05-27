@@ -125,7 +125,7 @@ iOS Safari quirks aceitáveis pra V0 (Wagner pode testar Vargas Android primeiro
 
 Modules/Autopecas (catálogo OEM) é US-OFICINA-008 = P1 no SPEC original mas reavaliando: **deferir pra fase 5** (pós-piloto pagante). Razão:
 - Vargas usa banda de rodagem (não peça OEM convencional) — diferente catálogo
-- Martinho usa caçambas estacionárias (peças do caminhão de transporte, não da caçamba)
+- Martinho é mecânica pesada caminhão basculante (sub-vertical 4 ADR 0194 — pré-correção dizia "caçambas estacionárias"); peças hidráulicas + PTO + componentes basculante são o catálogo real
 - Catálogo OEM exige parceria ou scraping (custo legal + manutenção)
 - ROI baixo pré-piloto
 

@@ -1,14 +1,30 @@
 ---
 modulo: PaymentGateway
 onda: 5
-status: plano-aprovado-aguardando-execucao
+status: executado-aguardando-smoke
 aprovado_por: Wagner
 aprovado_em: 2026-05-19
+executado_em: 2026-05-19
+executado_pr: 1148
+executado_commit: 3c2d00cc4
 adr_origem: 0170
-adr_filho_pendente: 0170-onda5-simplificada (criar quando começar execução)
+adr_filho: 0170-onda5-simplificada
 tipo: blueprint
 trust_required: tier-0
 ---
+
+## Histórico de execução
+
+- **2026-05-19** — Plano B aprovado por Wagner
+- **2026-05-19** — PR #1148 mergeado (commit `3c2d00cc4`) — 6/6 itens código + bônus (BusinessAutoSubscriptionObserver, EmitTrialExpiredCobrancasCommand cron, MigrateCredentialsCommand)
+- **2026-05-22** — Auditoria confirmou execução 100% código ([session log](../../sessions/2026-05-22-audit-onda5-paymentgateway.md))
+- **2026-05-22** — ADR filho [`0170-onda5-simplificada`](../../decisions/0170-onda5-simplificada.md) criado formalizando aceite
+
+**Pendências humano-limitadas (ADR 0106 — relógio do mundo real):**
+1. 5 pré-condições prod manuais (ContaBancaria + Credencial BCB + Package Premium + `register-permissions --business=all` + homologação BCB 1-3d)
+2. Smoke dogfooding biz=1 — Wagner paga ele mesmo
+3. Canary 7d com Larissa (biz=4)
+4. Smoke inadimplência — deixar 1 cobrança vencer + confirmar bloqueio Delphi 400 invalid_grant
 
 # PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via gateway adicional
 

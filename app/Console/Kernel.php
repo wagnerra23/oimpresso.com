@@ -399,6 +399,36 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // G1 P0 AUDIT-SENIOR-2026-05-25 §6 — D7.d LGPD purge job daily 03:00 BRT.
+        // Aplica Modules/Jana/Config/retention.php sobre 7 entidades PII-relevantes
+        // (Conversa, Mensagem, Sugestao, CacheSemantico, MemoriaFato, MemoriaMetrica,
+        // HealthNarrative). Estratégia default `anonymize` (LGPD-preferred — preserva
+        // métricas agregadas, redacta PII via PiiRedactor canônico).
+        //
+        // Atrás de JANA_RETENTION_ENABLED=true (default false). Wagner aprova flag=true
+        // em prod biz=1 só após canary 7d (ADR 0105 sinal qualificado).
+        //
+        // Multi-tenant Tier 0 (ADR 0093) IRREVOGÁVEL: command itera business by business
+        // via loop Business::each() explícito. NUNCA cross-tenant cleanup.
+        //
+        // 03:00 BRT — janela de baixa atividade, antes do horário comercial. 30min antes
+        // do fsm:scan-drift (03:00 simultâneo OK — escopos diferentes), 1h antes de
+        // memcofre:sync-memories conclusão (23:00 dia anterior).
+        $schedule->command('jana:retention-purge')
+            ->dailyAt('03:00')
+            ->timezone('America/Sao_Paulo')
+            ->name('jana-retention-purge-daily')
+            ->withoutOverlapping(60)
+            ->environments(['live'])
+            ->when(fn () => (bool) config('jana.retention.enabled', false))
+            ->appendOutputTo(storage_path('logs/jana-retention.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:retention-purge FALHOU — D7 LGPD purge atrasou ' .
+                    '(investigar storage/logs/jana-retention.log)'
+                );
+            });
+
         // MEM-FASE8 — esquecimento semanal (domingo 03:00).
         // Remove bloat (hits=0, >30d) + expirados (valid_until >90d) + órfãos MCP.
         // Soft-delete por padrão. Hard-delete LGPD só via comando manual com --hard.
@@ -425,6 +455,22 @@ class Kernel extends ConsoleKernel
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
                     'Schedule mcp:sync-memory FALHOU'
+                );
+            });
+
+        // MCP tasks:sync — rede de proteção pra task sync (US-FIN-043 incident 2026-05-21).
+        // Webhook handler (SyncMemoryWebhookController::handle) chama
+        // TaskParserService::syncAll() quando SPEC.md muda — mas se o webhook
+        // retornar 5xx (env stale, network), as tasks NUNCA chegam no DB MCP.
+        // Cron everyTenMinutes cobre essa falha. Idempotente: parser usa hash do SPEC.
+        $schedule->command('mcp:tasks:sync')
+            ->everyTenMinutes()
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/mcp-tasks-cron.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule mcp:tasks:sync FALHOU — tasks SPEC.md podem nao estar no DB'
                 );
             });
 
@@ -707,6 +753,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADR 0195 Fase B — Feedback reindex semanal (rescore + INDEX.md HOT +
+        // archive trimestral COLD). Domingo 03:00 BRT, depois que activity baixa
+        // de fim-de-semana. Roda quieto sem PII em log (LGPD).
+        $schedule->command('feedback:reindex')
+            ->weeklyOn(0, '03:00')                // 0 = domingo
+            ->timezone('America/Sao_Paulo')
+            ->name('feedback-reindex-weekly')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule feedback:reindex FALHOU — INDEX.md pode estar stale (impacto baixo, semanal)'
+                );
+            });
+
         // US-NFE-051 (ADR 0116 caso Gold) — Distribuição DFe pra businesses com cert
         // ativo. Puxa NF-e emitidas contra meu CNPJ via NSU SEFAZ ambiente nacional.
         // 06:15 BRT (após jana:health-check 06:00). Cooldown 5min protege se cron
@@ -780,6 +841,39 @@ class Kernel extends ConsoleKernel
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule KbBridgeFromMcpJob FALHOU — grafo KB pode estar stale ' .
                     '(ver kb_bridge_state.last_error por business)'
+                );
+            });
+
+        // PR G (2026-05-25) G11 auditoria pós Ondas 24/25 — Backfill plano_conta_id
+        // weekly pra businesses ativos. Cobre auto-criação Observer venda/compra
+        // que cria Titulo sem classificação (não-Observer caminho dá DRE zerada).
+        // Idempotente: só toca rows ainda NULL.
+        //
+        // Domingo 04:00 BRT: baixa carga, depois fsm:scan-drift (03:00) e antes
+        // do horário comercial. withoutOverlapping(60) cobre business com 50k+
+        // títulos (ROTA LIVRE biz=4 tinha 18054 backfilled 2026-05-20).
+        $schedule->call(function () {
+            try {
+                $businesses = \App\Business::query()->pluck('id');
+                foreach ($businesses as $bizId) {
+                    \Illuminate\Support\Facades\Artisan::call('financeiro:backfill-plano-conta', [
+                        '--business' => $bizId,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule financeiro:backfill-plano-conta FALHOU: '.$e->getMessage()
+                );
+            }
+        })
+            ->name('financeiro-backfill-plano-conta-weekly')
+            ->weeklyOn(0, '04:00') // Domingo 04:00
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping(60)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule financeiro:backfill-plano-conta FALHOU — DRE pode zerar pra business sem classificação'
                 );
             });
 

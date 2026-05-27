@@ -177,10 +177,10 @@ export default function ClienteImport(props: ClienteImportPageProps) {
           )}
 
           <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-border">
-            <Button type="button" variant="outline" asChild>
+            <Button type="button" variant="cowork-ghost" asChild>
               <a href="/contacts/customer">Cancelar</a>
             </Button>
-            <Button type="submit" disabled={!data.contacts_csv || processing}>
+            <Button type="submit" variant="cowork-primary" disabled={!data.contacts_csv || processing}>
               <Upload className="mr-1.5 h-4 w-4" />
               {processing ? 'Importando…' : 'Importar'}
             </Button>

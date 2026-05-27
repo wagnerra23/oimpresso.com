@@ -55,10 +55,27 @@ class DataController extends Controller
 
         if (auth()->user()->can('superadmin')) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
+                // ADR 0180 Fase 4 Wave E — Cms é ghost virtual de Plataforma no
+                // grupo canon `sistema` v3. Sem `shortcut` (acoplado em Governança);
+                // `primary` = "Nova página" (criação via CmsPageController create);
+                // `ghosts` = Pages + Site Details (2 sub-views resource).
                 $menu->url(
                     action([\Modules\Cms\Http\Controllers\CmsPageController::class, 'index'], ['type' => 'page']),
                     __('cms::lang.cms'),
-                    ['icon' => 'fas fa-window-restore fa', 'style' => config('app.env') == 'demo' ? 'background-color: #9E458B !important;' : '', 'active' => request()->segment(1) == 'cms']
+                    [
+                        'icon'    => 'fas fa-window-restore fa',
+                        'style'   => config('app.env') == 'demo' ? 'background-color: #9E458B !important;' : '',
+                        'active'  => request()->segment(1) == 'cms',
+                        'primary' => [
+                            'label'    => 'Nova página',
+                            'href'     => '/cms/cms-page/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'cms-page',     'label' => 'Páginas',      'href' => '/cms/cms-page'],
+                            ['key' => 'site-details', 'label' => 'Configurações do site', 'href' => '/cms/site-details'],
+                        ],
+                    ]
                 )->order(5);
             });
         }

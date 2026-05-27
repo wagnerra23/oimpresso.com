@@ -5,7 +5,6 @@ namespace Modules\Woocommerce\Http\Controllers;
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Artisan;
-use Menu;
 
 class DataController extends Controller
 {
@@ -120,30 +119,30 @@ class DataController extends Controller
     }
 
     /**
-     * Adds Woocommerce menus
+     * Adds Woocommerce menus — Wagner 2026-05-26: NO-OP.
      *
-     * @return null
+     * WooCommerce NÃO é mais entry própria do sidebar. Virou GHOST do hub
+     * Vendas (definido em app/Http/Middleware/AdminSidebarMenu.php dropdown
+     * __('sale.sale'), ghost key='woocommerce' → /woocommerce).
+     *
+     * Justificativa Wagner 2026-05-26:
+     *  - WooCommerce é um canal de venda (sync com loja externa WordPress),
+     *    conceitualmente subordinado ao hub Vendas — não entry paralela
+     *    top-level no grupo COMERCIAL.
+     *  - Acesso via PageHeader overflow [...] da tela /sells, ou URL direta
+     *    /woocommerce, ou Cmd+K palette.
+     *
+     * Rotas /woocommerce/* CONTINUAM ativas (sync products/orders/categories
+     * + map tax rates + API settings) — apenas a injeção sidebar foi
+     * desligada. Permissions woocommerce.* continuam válidas no
+     * WoocommerceController (Page render gate).
+     *
+     * Histórico:
+     *   UltimatePOS original — entry top-level order 88 grupo COMERCIAL
+     *   2026-05-26 — DESLIGADO sidebar (vira ghost de Vendas)
      */
     public function modifyAdminMenu()
     {
-        $module_util = new ModuleUtil();
-
-        $business_id = session()->get('user.business_id');
-
-        // Visibilidade per-business já é via subscription package abaixo
-        // (hasThePermissionInSubscription consulta woocommerce_module no
-        // pacote ativo da business). Pra esconder pra um business: desmarcar
-        // woocommerce_module no pacote via Modules/Superadmin/PackagesController.
-        $is_woo_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'woocommerce_module', 'superadmin_package');
-
-        if ($is_woo_enabled && (auth()->user()->can('woocommerce.syc_categories') || auth()->user()->can('woocommerce.sync_products') || auth()->user()->can('woocommerce.sync_orders') || auth()->user()->can('woocommerce.map_tax_rates') || auth()->user()->can('woocommerce.access_woocommerce_api_settings'))) {
-            Menu::modify('admin-sidebar-menu', function ($menu) {
-                $menu->url(
-                    action([\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'index']),
-                    __('woocommerce::lang.woocommerce'),
-                    ['icon' => 'fab fa-wordpress', 'style' => config('app.env') == 'demo' ? 'background-color: #9E458B !important;' : '', 'active' => request()->segment(1) == 'woocommerce']
-                )->order(88);
-            });
-        }
+        // No-op intencional. Ver docblock acima.
     }
 }

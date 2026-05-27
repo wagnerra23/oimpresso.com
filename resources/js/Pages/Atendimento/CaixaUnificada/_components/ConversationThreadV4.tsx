@@ -10,8 +10,8 @@
 //
 // Empty state quando thread=null (mantém UX Cockpit V2 do legacy Inbox).
 
-import { useEffect, useMemo, useRef } from 'react';
-import { Check, CheckCheck } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, CheckCheck, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import {
   type CaixaUnifMessage,
@@ -22,6 +22,7 @@ import {
   dayGroupLabel,
 } from './helpers';
 import ComposerV4 from './ComposerV4';
+import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
 
 interface Props {
   thread: CaixaUnifThread;
@@ -34,6 +35,25 @@ export default function ConversationThreadV4({
   thread, messages, channels, onResolve,
 }: Props) {
   const threadRef = useRef<HTMLDivElement>(null);
+
+  // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
+  // Botão hover-revealed em mensagens inbound abre Sheet 760px pré-preenchido.
+  const [feedbackSheetOpen, setFeedbackSheetOpen] = useState(false);
+  const [feedbackInput, setFeedbackInput] = useState<CaptureFeedbackInput>({ literal: '' });
+
+  const openCaptureFeedback = (m: CaixaUnifMessage) => {
+    setFeedbackInput({
+      literal: m.body || '',
+      source_message_id: m.id,
+      conversation_id: thread.id,
+      contact_id: null,                       // tipo CaixaUnifThread não expõe contact_id (V4)
+      contact_name: thread.contact_name ?? null,
+      contact_phone: thread.customer_external_id ?? null,
+      persona_slug: null,
+      cliente_slug: null,
+    });
+    setFeedbackSheetOpen(true);
+  };
 
   const channel = useMemo(
     () => channels.find(c => c.id === thread.channel_type),
@@ -222,11 +242,31 @@ export default function ConversationThreadV4({
                 ) : (
                   <div
                     className={cn(
+                      'group/bubble inline-flex items-start gap-1.5 max-w-[78%]',
+                      m.direction === 'inbound' ? 'self-start mr-auto' : 'self-end ml-auto flex-row-reverse',
+                    )}
+                  >
+                  {/* Wagner 2026-05-27 — botão capturar feedback (ADR UI-0016).
+                      Hover-revealed em INBOUND quando body presente. */}
+                  {m.direction === 'inbound' && (m.body || '').trim().length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => openCaptureFeedback(m)}
+                      className="opacity-0 group-hover/bubble:opacity-100 transition-opacity mt-1 inline-flex items-center justify-center h-6 w-6 rounded-md border border-border bg-card hover:bg-[var(--cw-accent-soft)] hover:border-[var(--cw-accent)] text-muted-foreground hover:text-[var(--cw-accent)] shrink-0"
+                      title="Capturar feedback desta mensagem (Voice of Customer)"
+                      aria-label="Capturar feedback"
+                      data-testid="capture-feedback-btn"
+                    >
+                      <ClipboardCheck size={12} aria-hidden />
+                    </button>
+                  )}
+                  <div
+                    className={cn(
                       // Tokens Cowork canon (inbox-page.css §498): max-w 75%, padding 7px 11px, radius 10px, font 12.5px, line-height 1.45
-                      'max-w-[75%] px-[11px] py-[7px] rounded-[10px] text-[12.5px] leading-[1.45] whitespace-pre-wrap break-words flex flex-col',
+                      'px-[11px] py-[7px] rounded-[10px] text-[12.5px] leading-[1.45] whitespace-pre-wrap break-words flex flex-col flex-1 min-w-0',
                       m.direction === 'inbound'
-                        ? 'self-start bg-white border border-border rounded-bl-[3px] mr-auto'
-                        : 'self-end rounded-br-[3px] ml-auto',
+                        ? 'bg-white border border-border rounded-bl-[3px]'
+                        : 'rounded-br-[3px]',
                     )}
                     style={
                       m.direction === 'outbound'
@@ -261,12 +301,21 @@ export default function ConversationThreadV4({
                       )}
                     </small>
                   </div>
+                  </div>
                 )}
               </div>
             );
           })
         )}
       </div>
+
+      {/* Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
+          Sheet 760px abre ao clicar botão "📋" em bubble inbound. */}
+      <CaptureFeedbackSheet
+        open={feedbackSheetOpen}
+        onOpenChange={setFeedbackSheetOpen}
+        input={feedbackInput}
+      />
 
       {/* Composer */}
       <ComposerV4

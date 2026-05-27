@@ -5,7 +5,11 @@ namespace Modules\Financeiro\Providers;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Financeiro\Events\CashRegisterClosed;
+use Modules\Financeiro\Events\TituloCriado;
+use Modules\Financeiro\Listeners\OnCashRegisterClosedCreateFinanceiroTitulo;
 use Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo;
+use Modules\Financeiro\Listeners\OnTituloCriadoLog;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 
 class FinanceiroServiceProvider extends ServiceProvider
@@ -46,6 +50,14 @@ class FinanceiroServiceProvider extends ServiceProvider
 
         Event::listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
 
+        // ADR 0183 — Ponte cash_registers → fin_titulos (multi-caixa canon)
+        Event::listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
+
+        // PR F (2026-05-25) G9 — Event TituloCriado dispatched no store() manual
+        // (UnificadoController). Listener stub log INFO + abre caminho extensão
+        // (notify, cache, accounting). Não dispara em auto-criação observers.
+        Event::listen(TituloCriado::class, [OnTituloCriadoLog::class, 'handle']);
+
         self::$paymentgatewayListenersRegistered = true;
     }
 
@@ -59,6 +71,8 @@ class FinanceiroServiceProvider extends ServiceProvider
     {
         \App\Transaction::observe(\Modules\Financeiro\Observers\TransactionObserver::class);
         \App\TransactionPayment::observe(\Modules\Financeiro\Observers\TransactionPaymentObserver::class);
+        // ADR 0183 — observa cash_registers pra detectar fechamento e disparar event
+        \App\CashRegister::observe(\Modules\Financeiro\Observers\CashRegisterObserver::class);
     }
 
     /**
@@ -93,6 +107,14 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\InstallCommand::class,
                 // Wave 17 D9.c — Health check do módulo (governance v3 saturação 66→81).
                 \Modules\Financeiro\Console\Commands\FinanceiroHealthCommand::class,
+                // Backfill plano_conta_id em titulos NULL — DRE depende disso.
+                // Wagner 2026-05-20: 18.054 titulos biz=4 com plano_conta_id NULL
+                // (criados antes do schema fin_planos_conta). DRE renderiza vazia.
+                \Modules\Financeiro\Console\Commands\BackfillPlanoContaCommand::class,
+                // Wagner 2026-05-21 Fase 5 deprecação legacy — bridge transactions
+                // tipo expense (core UltimatePOS) → fin_titulos AP (Financeiro).
+                // Idempotente via UNIQUE(business_id, origem, origem_id, parcela_numero).
+                \Modules\Financeiro\Console\Commands\BridgeExpenseToTitulosCommand::class,
             ]);
         }
     }

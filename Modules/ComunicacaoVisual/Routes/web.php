@@ -1,8 +1,32 @@
 <?php
 
+use Inertia\Inertia;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
+
+// Hub stub Sprint 2 (Wagner 2026-05-26): rota raiz renderiza Index.tsx
+// existente como hub "em construção" listando 4 áreas (Orçamentos/OS/
+// Materiais/Apontamentos). Substitui o dropdown legacy do DataController
+// que apontava pra URLs /comunicacao-visual/admin/* não existentes (404).
+// Sprint 2 entrega telas Inertia próprias — até lá, hub stub +
+// acesso direto via APIs /comunicacao-visual/api/*.
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('comunicacao-visual')
+    ->group(function () {
+        Route::get('/', function () {
+            // Permission gate canon — qualquer perm de visualização CV libera o hub.
+            if (! auth()->user()->can('superadmin')
+                && ! auth()->user()->can('comvis.orcamento.view')
+                && ! auth()->user()->can('comvis.os.view')) {
+                abort(403, 'Sem permissão Comunicação Visual (comvis.orcamento.view ou comvis.os.view).');
+            }
+
+            return Inertia::render('ComunicacaoVisual/Index', [
+                'bizName' => session('business.name', 'oimpresso'),
+            ]);
+        })->name('comunicacao-visual.index');
+    });
 
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).
 // Sem essas rotas o action() helper em Install/ModulesController vira '#'

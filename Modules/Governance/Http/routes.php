@@ -24,10 +24,13 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->prefix('governance')
     ->name('governance.')
     ->group(function () {
-        // Dashboard consolidado — throttle 60req/min (read-only, cheap cache)
-        Route::get('/', [DashboardController::class, 'index'])
+        // Wagner 2026-05-22: /governance redireciona pra /ia (entry-point
+        // canon do oimpresso é o hub IA/Jana — sidebar v3 ADR 0180).
+        // Dashboard governance original preservado em /governance/dashboard.
+        Route::get('/', fn () => redirect('/ia', 302))->name('admin.dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])
             ->middleware('throttle:60,1')
-            ->name('admin.dashboard');
+            ->name('admin.dashboard.legacy');
 
         // Policies CRUD (mcp_governance_rules) — throttle defensivo:
         // read 60/min, toggle 10/min (operação sensível afeta enforcement runtime)

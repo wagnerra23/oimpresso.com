@@ -8,7 +8,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   CreditCard,
@@ -23,6 +23,24 @@ import {
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import { printSaleReceipt, type PrintSaleMode } from '@/Lib/printSaleReceipt';
+import VdNextActionPanel from './_components/VdNextActionPanel';
+import FsmActionPanel from './_components/FsmActionPanel';
+import VdNfeEmitModal, { type NfeEmitVenda } from './_components/VdNfeEmitModal';
+import VdNfseEmitModal, { type NfseEmitVenda } from './_components/VdNfseEmitModal';
+import SaleReciboPrint80mm from './_components/SaleReciboPrint80mm';
+import SaleOrcamentoA4 from './_components/SaleOrcamentoA4';
+import SellsCheatSheet, { SELLS_SHOW_SHORTCUTS } from './_components/SellsCheatSheet';
+import SaleTimeline from './_components/SaleTimeline';
+
+// Modos de impressão KB-9.75 Cowork bundle 2026-05-26 P2 gaps #8 + #9
+type CoworkPrintMode = 'recibo-80mm' | 'orcamento-a4' | null;
 
 interface Customer {
   id: number;
@@ -141,8 +159,62 @@ function DetailSkeleton() {
 
 export default function SellsShow(props: SellsShowPageProps) {
   const { headline, urls, permissions } = props;
+  const [isPrinting, setIsPrinting] = useState(false);
+  // KB-9.75 P0 gaps #2/#3 — emit modals abertos via VdNextActionPanel gate.
+  const [emitModalKind, setEmitModalKind] = useState<'nfe' | 'nfse' | null>(null);
+  // KB-9.75 P2 gaps #8/#9 — printMode controla render dos overlays Cowork (Recibo 80mm + Orçamento A4)
+  const [printMode, setPrintMode] = useState<CoworkPrintMode>(null);
+  // KB-9.75 P3 gap #12 — cheat-sheet overlay '?' (Cowork bundle 2026-05-26).
+  const [cheatOpen, setCheatOpen] = useState(false);
+  // P4 parking lot #11 — refresh trigger pro SaleTimeline unified
+  // (incrementa quando VdNextActionPanel/Emit* dispatcham CustomEvents).
+  const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
-  // Atalhos teclado E (edit) + P (print) + Esc (back)
+  useEffect(() => {
+    const bump = () => setTimelineRefreshKey((k) => k + 1);
+    const events = [
+      'oimpresso:venda-invoiced',
+      'oimpresso:venda-paid',
+      'oimpresso:venda-emitted-nfe',
+      'oimpresso:venda-emitted-nfse',
+    ];
+    events.forEach((ev) => window.addEventListener(ev, bump));
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, bump));
+    };
+  }, []);
+
+  // /sells/{id}/print só responde a AJAX (SellPosController::printInvoice).
+  // Render via iframe oculto + CSS legacy (Bootstrap 3 + .print_section) — pattern equivale
+  // ao legacy public/js/app.js:1656 (a.print-invoice → __print_receipt). 3 modos do legacy
+  // sale_pos/show.blade.php:413/416 (invoice / packing_slip / delivery_note).
+  const handlePrint = useCallback(
+    async (mode: PrintSaleMode = 'invoice') => {
+      if (!permissions.print || isPrinting) return;
+      setIsPrinting(true);
+      try {
+        await printSaleReceipt({ printUrl: urls.print, invoiceNo: headline.invoice_no, mode });
+      } catch (err) {
+        console.error('Falha ao imprimir venda', err);
+        window.alert(err instanceof Error ? err.message : 'Erro ao gerar o recibo.');
+      } finally {
+        setIsPrinting(false);
+      }
+    },
+    [headline.invoice_no, isPrinting, permissions.print, urls.print],
+  );
+
+  // KB-9.75 Cowork P2 gaps #8/#9 — abrir overlay print-only (não usa rota /sells/{id}/print legacy)
+  const handleCoworkPrint = useCallback((mode: Exclude<CoworkPrintMode, null>) => {
+    if (!permissions.print) return;
+    setPrintMode(mode);
+  }, [permissions.print]);
+
+  const handleCoworkPrintClose = useCallback(() => setPrintMode(null), []);
+
+  // Atalhos teclado E (edit) + P (print) + ? (cheat-sheet KB-9.75 gap #12) + Esc (back/close).
+  // Quando cheatOpen, todos os outros atalhos ficam suprimidos — o próprio
+  // SellsCheatSheet possui seu listener pra Esc/? (fecha o overlay).
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
@@ -151,13 +223,20 @@ export default function SellsShow(props: SellsShowPageProps) {
       ) {
         return;
       }
+      // Suprime atalhos enquanto cheat-sheet aberta — o overlay tem listener próprio.
+      if (cheatOpen) return;
+      if (e.key === '?') {
+        e.preventDefault();
+        setCheatOpen(true);
+        return;
+      }
       if (e.key === 'e' && permissions.edit) {
         e.preventDefault();
         router.visit(urls.edit);
       }
       if (e.key === 'p' && permissions.print) {
         e.preventDefault();
-        window.open(urls.print, '_blank');
+        handlePrint('invoice');
       }
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -166,7 +245,7 @@ export default function SellsShow(props: SellsShowPageProps) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [permissions.edit, permissions.print, urls.edit, urls.print, urls.back]);
+  }, [cheatOpen, permissions.edit, permissions.print, urls.edit, urls.back, handlePrint]);
 
   const totalFalta = Math.max(0, headline.final_total - headline.total_paid);
   const paymentStatusLabel = PAYMENT_STATUS_LABEL[headline.payment_status] ?? headline.payment_status;
@@ -201,12 +280,31 @@ export default function SellsShow(props: SellsShowPageProps) {
 
           <div className="flex items-center gap-2">
             {permissions.print && (
-              <Button variant="outline" size="sm" asChild>
-                <a href={urls.print} target="_blank" rel="noopener noreferrer">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Imprimir
-                </a>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={isPrinting}>
+                    <Printer className="h-4 w-4 mr-2" />
+                    {isPrinting ? 'Gerando…' : 'Imprimir'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => handlePrint('invoice')}>
+                    Recibo / fatura (P)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handlePrint('packing_slip')}>
+                    Romaneio / packing slip
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handlePrint('delivery_note')}>
+                    Nota de entrega
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleCoworkPrint('recibo-80mm')}>
+                    Recibo térmico (80mm)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleCoworkPrint('orcamento-a4')}>
+                    Orçamento A4
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             {permissions.edit && (
               <Button variant="default" size="sm" asChild>
@@ -282,22 +380,46 @@ export default function SellsShow(props: SellsShowPageProps) {
 
             {/* Linhas + pagamentos + atividades — deferred */}
             <Deferred data="detail" fallback={<DetailSkeleton />}>
-              <ShowDetailSections detail={props.detail} headline={headline} />
+              <ShowDetailSections
+                detail={props.detail}
+                headline={headline}
+                timelineRefreshKey={timelineRefreshKey}
+              />
             </Deferred>
           </div>
 
-          {/* COLUNA DIREITA — FSM action panel + timeline */}
+          {/* COLUNA DIREITA — Próxima ação hero + Pipeline FSM completo + Atalhos */}
           <aside className="lg:col-span-4 space-y-4">
-            {/* FSM action panel — reuso shared (apenas se stage_key existe) */}
-            {headline.current_stage_key !== null && (
-              <section className="rounded-lg border border-border bg-card p-4">
-                <h2 className="font-semibold text-sm mb-3">Pipeline</h2>
-                {/* FsmActionPanel já existe em _components/ — reuso quando integrável */}
-                <p className="text-xs text-muted-foreground">
-                  Stage atual: <span className="font-mono">{headline.current_stage_key}</span>
-                </p>
-              </section>
-            )}
+            {/* VdNextActionPanel — KB-9.75 Cowork 2026-05-26 P0 gap #1.
+                Próxima ação contextual + gates fiscais ("emita NF antes de faturar").
+                Glossário BR corrigido: Faturar (emit NF + título) ≠ Receber (baixa título).
+                Guard removido (fix 2026-05-26): VdNextActionPanel já tem proprio early-return
+                via fetch /api/sells/{id}/fsm-actions → data.in_pipeline. Headline.current_stage_key
+                pode vir null mesmo quando backend pipeline FSM está ativo (current_stage_id
+                derivado, não eager-loaded — pre-existing inconsistência). */}
+            <VdNextActionPanel
+              saleId={headline.id}
+              paymentStatus={headline.payment_status}
+              currentStageKey={headline.current_stage_key}
+              onTransition={() => {
+                // Refresh sheet — Inertia partial reload do detail
+                router.reload({ only: ['detail', 'headline'] });
+              }}
+              onOpenEmit={(kind) => setEmitModalKind(kind)}
+            />
+
+            {/* Pipeline — todas transições disponíveis (FsmActionPanel completo).
+                Mesmo guard removido — componente decide via /api/sells/{id}/fsm-actions. */}
+            <section className="rounded-lg border border-border bg-card p-4">
+              <h2 className="font-semibold text-sm mb-3">Todas as transições</h2>
+              <FsmActionPanel
+                saleId={headline.id}
+                enabled={true}
+                onTransition={() => {
+                  router.reload({ only: ['detail', 'headline'] });
+                }}
+              />
+            </section>
 
             {/* Atalhos hint */}
             <section className="rounded-lg border border-border bg-card p-4">
@@ -310,7 +432,103 @@ export default function SellsShow(props: SellsShowPageProps) {
             </section>
           </aside>
         </div>
+
+        {/* KB-9.75 P3 gap #12 — cheat-sheet overlay '?' (Cowork bundle 2026-05-26).
+            Lista canon SELLS_SHOW_SHORTCUTS exporta os atalhos da tela Detalhe. */}
+        <SellsCheatSheet
+          open={cheatOpen}
+          onClose={() => setCheatOpen(false)}
+          shortcuts={SELLS_SHOW_SHORTCUTS}
+          title="Atalhos · Detalhe da venda"
+          footerLeft="Vendas opera sem mouse — atalhos persistem em Lista, Caixa, Detalhe e Edição."
+        />
       </div>
+
+      {/* KB-9.75 P0 gaps #2/#3 — emit modals abertos pelo gate fiscal do VdNextActionPanel.
+          Stub UI 3-step (review → preview XML → mock SEFAZ/Prefeitura). Backend real
+          (Modules/NfeBrasil + Modules/NfseBrasil) wire-up no próximo PR. */}
+      <VdNfeEmitModal
+        open={emitModalKind === 'nfe'}
+        venda={
+          emitModalKind === 'nfe'
+            ? {
+                id: headline.id,
+                invoice_no: headline.invoice_no,
+                customer_name: headline.customer?.name ?? null,
+                customer_doc: null,
+                itemsList: (props.detail?.lines ?? []).map((l): {
+                  id: number;
+                  produto: string;
+                  ncm?: string;
+                  cfop?: string;
+                  cst?: string;
+                  qtd: number;
+                  unit: number;
+                  subtotal: number;
+                } => ({
+                  id: l.id,
+                  produto: l.product_name,
+                  ncm: '00000000',
+                  cfop: '5102',
+                  cst: '00',
+                  qtd: l.quantity,
+                  unit: l.unit_price,
+                  subtotal: l.subtotal,
+                })),
+                total: headline.final_total,
+              } satisfies NfeEmitVenda
+            : null
+        }
+        onClose={() => setEmitModalKind(null)}
+        onSuccess={() => router.reload({ only: ['detail', 'headline'] })}
+      />
+      <VdNfseEmitModal
+        open={emitModalKind === 'nfse'}
+        venda={
+          emitModalKind === 'nfse'
+            ? {
+                id: headline.id,
+                invoice_no: headline.invoice_no,
+                customer_name: headline.customer?.name ?? null,
+                customer_doc: null,
+                itemsList: (props.detail?.lines ?? []).map((l) => ({
+                  id: l.id,
+                  servico: l.product_name,
+                  codigoServico: '1.01',
+                  aliquotaIss: 5,
+                  qtd: l.quantity,
+                  unit: l.unit_price,
+                  subtotal: l.subtotal,
+                })),
+                total: headline.final_total,
+              } satisfies NfseEmitVenda
+            : null
+        }
+        onClose={() => setEmitModalKind(null)}
+        onSuccess={() => router.reload({ only: ['detail', 'headline'] })}
+      />
+
+      {/* KB-9.75 Cowork P2 gaps #8/#9 — overlays print-only.
+          Wrapper `sells-cowork` aplica os tokens CSS canon (`.sells-cowork .vd-receipt-paper`).
+          Renderizam só quando user seleciona no dropdown "Imprimir" E detail deferred já chegou. */}
+      {printMode === 'recibo-80mm' && props.detail && (
+        <div className="sells-cowork">
+          <SaleReciboPrint80mm
+            headline={headline}
+            detail={{ lines: props.detail.lines, payments: props.detail.payments }}
+            onClose={handleCoworkPrintClose}
+          />
+        </div>
+      )}
+      {printMode === 'orcamento-a4' && props.detail && (
+        <div className="sells-cowork">
+          <SaleOrcamentoA4
+            headline={headline}
+            detail={{ lines: props.detail.lines }}
+            onClose={handleCoworkPrintClose}
+          />
+        </div>
+      )}
     </>
   );
 }
@@ -318,9 +536,11 @@ export default function SellsShow(props: SellsShowPageProps) {
 interface ShowDetailSectionsProps {
   detail?: ShowDetail;
   headline: Headline;
+  /** P4 parking lot #11 — bump pro SaleTimeline unified re-fetch. */
+  timelineRefreshKey?: number;
 }
 
-function ShowDetailSections({ detail, headline }: ShowDetailSectionsProps) {
+function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDetailSectionsProps) {
   if (!detail) return <DetailSkeleton />;
 
   return (
@@ -440,27 +660,24 @@ function ShowDetailSections({ detail, headline }: ShowDetailSectionsProps) {
         </section>
       )}
 
-      {/* Atividades */}
-      {detail.activities.length > 0 && (
-        <section className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-muted/30">
-            <h2 className="font-semibold text-sm">Histórico</h2>
-            <span className="ml-auto text-xs text-muted-foreground">
-              {detail.activities.length} evento(s)
-            </span>
-          </div>
-          <div className="divide-y divide-border">
-            {detail.activities.map((a, idx) => (
-              <div key={idx} className="px-5 py-3 text-sm">
-                <div className="text-foreground">{a.description}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">
-                  {a.causer_name} · {formatDateTime(a.created_at)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Histórico unificado — P4 parking lot #11 (FSM + payments + activities
+          + comments + audit num único stream cronológico reverso). */}
+      <section className="rounded-lg border border-border bg-card overflow-hidden sells-cowork-show">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-muted/30">
+          <h2 className="font-semibold text-sm">Histórico</h2>
+          <span className="ml-auto text-xs text-muted-foreground">
+            Todos os eventos (FSM, pagamentos, atividades)
+          </span>
+        </div>
+        <div className="px-5 py-4">
+          <SaleTimeline
+            saleId={headline.id}
+            enabled
+            mode="unified"
+            refreshKey={timelineRefreshKey}
+          />
+        </div>
+      </section>
     </>
   );
 }

@@ -5,6 +5,21 @@
 /* Sells/Index Cowork visual — escopado em .sells-cowork (ver scripts/scope-sells-cowork-css.py) */
 @import "./sells-cowork.css";
 
+/* Sells Insights Jana view — KB-9.75 P5 parking lot tabs Dashboard|Insights (PR #1682) */
+@import "./sells-cowork-insights.css";
+
+/* Sells KB-9.75 NextActionPanel + validações fiscais BR (Cowork bundle 2026-05-26 P0 gaps #1/#5) */
+@import "./sells-kb975-next-action.css";
+
+/* Sells KB-9.75 Emit modals NF-e/NFS-e/Bulk (Cowork bundle 2026-05-26 P0 gaps #2/#3/#4 — fullscreen modal global) */
+@import "./sells-kb975-emit-modals.css";
+
+/* Sells KB-9.75 Recibo térmico 80mm + Orçamento A4 (Cowork bundle 2026-05-26 P2 gaps #8/#9) */
+@import "./sells-kb975-print.css";
+
+/* Sells KB-9.75 Cheat-sheet overlay '?' (Cowork bundle 2026-05-26 gap P3 #12 — fullscreen global, fora .sells-cowork) */
+@import "./sells-kb975-cheatsheet.css";
+
 /* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
 @import "./sells-cowork-ia.css";
 
@@ -28,6 +43,13 @@
 
 /* Sells/Subscriptions Cowork — lista assinaturas recorrentes (extensões mínimas além da família Index) */
 @import "./sells-cowork-subscriptions.css";
+
+/* Cowork fields — port fiel `.cl-input`/`.cl-field`/`.cl-radio` do protótipo
+ * (prototipo-ui/prototipos/clientes/clientes.css). Aplicado via
+ * `<Input variant="cowork">` no drawer Cliente após pedido Wagner 2026-05-26
+ * "copie do cowork seja fiel". Classes `.cw-*` (não-escopadas — usam tokens
+ * globais já definidos em cockpit.css). */
+@import "./cowork-fields.css";
 
 /* ============================================================================
  * FINANCEIRO — Design System Cowork — REATIVADO 2026-05-19 (Plano B canon)
@@ -75,6 +97,7 @@
 @import "./fin-ia.css";
 @import "./fin-output.css";
 @import "./fin-cowork.css";
+@import "./fin-mobile.css";
 
 /* PaymentGateway UI F3 Cowork (Cobrança + Settings/Gateways + Sells drawer chip) — escopado em .pg-shell-scope */
 @import "./cowork-payment-gateway-bundle.css";
@@ -88,6 +111,13 @@
   --color-ring: hsl(222.2 84% 4.9%);
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(222.2 84% 4.9%);
+
+  /* canon v3.4 (Wagner 2026-05-25): fundo cream warm hue 90 pra Index canon v3.x.
+     Espelha `.cockpit` em /sells (Cowork canon · oklch(0.985 0.003 90)).
+     Substitui `bg-slate-50` cool hue 248. Cria afinidade visual com cards brancos
+     (mesma família temperatura) sem competir com filtros coloridos.
+     Gera utility `bg-page-cream` automaticamente via Tailwind v4. */
+  --color-page-cream: oklch(0.985 0.003 90);
 
   --color-primary: hsl(221.2 83.2% 53.3%);
   --color-primary-foreground: hsl(210 40% 98%);
@@ -120,6 +150,9 @@
   --color-ring: hsl(212.7 26.8% 83.9%);
   --color-background: hsl(222.2 84% 4.9%);
   --color-foreground: hsl(210 40% 98%);
+
+  /* canon v3.4 dark mode: cream warm não inverte coerente — usa slate-950 neutro */
+  --color-page-cream: hsl(222.2 84% 4.9%);
 
   --color-primary: hsl(217.2 91.2% 59.8%);
   --color-primary-foreground: hsl(222.2 47.4% 11.2%);
@@ -256,8 +289,11 @@
   color: oklch(0.40 0.18 60);
 }
 .sells-cowork .vd-date-filter-hint-ic {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
   line-height: 1;
+  color: currentColor;
 }
 .sells-cowork .vd-date-filter-hint-tx {
   flex: 1;

@@ -26,9 +26,11 @@ use Modules\Whatsapp\Console\Commands\WhatsappObservabilityHealthCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Console\Commands\ImportHistoryCommand;
 use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
+use Modules\Whatsapp\Console\Commands\FeedbackReindexCommand;
 use Modules\Whatsapp\Console\Commands\MetricsAggregateCommand;
 use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
 use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
+use Modules\Whatsapp\Console\Commands\RetryRecentMediaDownloadsCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
 use Modules\Whatsapp\Console\Commands\SlaScanCommand;
 use Modules\Whatsapp\Entities\Message;
@@ -39,7 +41,6 @@ use Modules\Whatsapp\Events\WhatsappMessageReceived;
 use Modules\Whatsapp\Events\WhatsappMessageSent;
 use Modules\Whatsapp\Http\Middleware\EnforceWebhookBackpressure;
 use Modules\Whatsapp\Http\Middleware\PropagateTraceparent;
-use Modules\Whatsapp\Http\Middleware\VerifyBaileysSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyBaileysWebhookHmac;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
@@ -54,7 +55,6 @@ use Modules\Whatsapp\Observers\WhatsappMessageObserver;
 use Modules\Whatsapp\Services\Audio\Contracts\AudioTranscriber;
 use Modules\Whatsapp\Services\Audio\WhisperTranscriber;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -70,9 +70,10 @@ use Modules\Whatsapp\Services\Notes\SlashCommandRegistry;
  * ServiceProvider do módulo Whatsapp.
  *
  * Decisão arquitetural mãe: ADR 0096 (memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)
- * - Z-API = driver default Sprint 1
- * - Meta Cloud = fallback obrigatório Sprint 1 (gating duro FormRequest)
- * - BaileysDriver custom = autorizado Sprint 3 (estrutura customizada de atendimento)
+ * Atualizada por: ADR 0202 (memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md)
+ * - Meta Cloud = driver default universal (ADR 0202, supersede 0096 emenda 4)
+ * - Z-API = opcional fallback per-tenant
+ * - BaileysDriver = DESCONTINUADO 2026-05-27 (ADR 0202)
  * - Evolution API = PROIBIDO permanente
  *
  * @see memory/requisitos/Whatsapp/SPEC.md
@@ -96,6 +97,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
                 ReparseMediaFromPayloadCommand::class,  // Bonus — extrai meta de payload pré-PR #664
+                RetryRecentMediaDownloadsCommand::class, // PR #882 — cron horário retry mídia recente (cron em app/Console/Kernel.php:657)
                 AutoLinkConversationContactsCommand::class, // US-WA-078 — backfill auto-link Contact CRM
                 ImportHistoryCommand::class,            // US-WA-080 — import histórico Baileys 90d
                 LidBackfillCommand::class,              // US-WA-093 P1 — backfill LID→phone de messages.payload histórico
@@ -116,6 +118,8 @@ class WhatsappServiceProvider extends ServiceProvider
                 // US-WA-VOZ-003 — Employee Performance scorecard (2026-05-15)
                 EmployeePerformanceBackfillCommand::class,
                 EmployeePerformanceRefreshDailyCommand::class,
+                // ADR 0195 Fase B (2026-05-27) — Feedback reindex (signature + score + INDEX.md + archive)
+                FeedbackReindexCommand::class,
             ]);
         }
 
@@ -133,6 +137,19 @@ class WhatsappServiceProvider extends ServiceProvider
         // channel é deletado, purga instance no daemon CT 100 (fecha Gap A
         // do post-mortem 2026-05-13).
         \Modules\Whatsapp\Entities\Channel::observe(\Modules\Whatsapp\Observers\ChannelObserver::class);
+
+        // Observer ClientFeedback — auto-compute signature/relevance_score em creating/updating.
+        // Ref: ADR 0195 + FeedbackRelevanceService.
+        // Wagner 2026-05-27 HOTFIX: guard class_exists() em volta — incidente prod onde
+        // dump-autoload --classmap-authoritative regenerou OK (19523 classes) mas autoloader
+        // não resolvia Modules\Whatsapp\Entities\ClientFeedback, derrubando boot() de TODA
+        // request autenticada (/ia/dashboard 500, Larissa @ Rota Livre travada). Defesa em
+        // profundidade: se classe estiver indisponível, skip observer ao invés de quebrar app.
+        // Voice of Customer dedup/scoring degrada graciosamente (HOT/WARM/COLD calculado on-demand
+        // via FeedbackRelevanceService) até causa-raiz do classmap ser corrigida.
+        if (class_exists(\Modules\Whatsapp\Entities\ClientFeedback::class)) {
+            \Modules\Whatsapp\Entities\ClientFeedback::observe(\Modules\Whatsapp\Observers\ClientFeedbackObserver::class);
+        }
 
         // Observer LidPhoneMap — wave-protocol-stack PR2 (sessão 2026-05-15).
         // Quando LID resolve pra phone (NULL→valor em phone_e164), dispara
@@ -179,8 +196,10 @@ class WhatsappServiceProvider extends ServiceProvider
         $router = $this->app['router'];
         $router->aliasMiddleware('whatsapp.meta.signature', VerifyMetaSignature::class);
         $router->aliasMiddleware('whatsapp.zapi.signature', VerifyZapiSignature::class);
-        $router->aliasMiddleware('whatsapp.baileys.signature', VerifyBaileysSignature::class);
+        // whatsapp.baileys.signature alias REMOVIDO 2026-05-27 (ADR 0202) — VerifyBaileysSignature deletado.
         // US-WA-082 — Replay protection HMAC + nonce no webhook receiver Baileys
+        // (preservado: webhook receiver legado pode receber callbacks históricos
+        // do daemon CT 100 já desligado; descomissionamento completo em Fase 4)
         $router->aliasMiddleware('whatsapp.baileys.hmac', VerifyBaileysWebhookHmac::class);
         // US-WA-084 — Backpressure protetiva (429 quando queue depth > max)
         $router->aliasMiddleware('whatsapp.baileys.backpressure', EnforceWebhookBackpressure::class);
@@ -197,7 +216,7 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->app->singleton(ZapiDriver::class);
         $this->app->singleton(MetaCloudDriver::class);
         $this->app->singleton(NullDriver::class);
-        $this->app->singleton(BaileysDriver::class);
+        // BaileysDriver singleton REMOVIDO 2026-05-27 (ADR 0202).
 
         // Centrifugo publisher singleton (stateless HTTP wrapper)
         $this->app->singleton(CentrifugoPublisher::class);
@@ -213,10 +232,10 @@ class WhatsappServiceProvider extends ServiceProvider
         // Em produção real, sempre prefira DriverFactory::make($config) que
         // aplica fallback runtime.
         $this->app->bind(DriverInterface::class, function () {
-            return match (config('whatsapp.default_driver', 'zapi')) {
+            return match (config('whatsapp.default_driver', 'meta_cloud')) {
                 'zapi' => $this->app->make(ZapiDriver::class),
                 'meta_cloud' => $this->app->make(MetaCloudDriver::class),
-                'baileys' => $this->app->make(BaileysDriver::class),
+                // 'baileys' descontinuado 2026-05-27 (ADR 0202) — cai pra NullDriver.
                 'null' => $this->app->make(NullDriver::class),
                 default => $this->app->make(NullDriver::class),
             };

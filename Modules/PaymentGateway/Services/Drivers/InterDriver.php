@@ -18,6 +18,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\HttpClientFactory;
 
 /**
  * Driver Banco Inter — API Cobrança v3 (OAuth2 + mTLS em prod).
@@ -60,8 +61,8 @@ class InterDriver implements PaymentDriverContract
 
         $payload = $this->buildEmitirBoletoPayload($input, $config);
 
-        $response = $this->client($cred)
-            ->post('/cobranca/v3/cobrancas', $payload);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->post('/cobranca/v3/cobrancas', $payload));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -134,7 +135,7 @@ class InterDriver implements PaymentDriverContract
         }
 
         $endpoint = "/pix/v2/{$tipo}/{$input->idempotencyKey}";
-        $response = $this->client($cred)->put($endpoint, $payload);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->put($endpoint, $payload));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -180,10 +181,10 @@ class InterDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra cancelar no Inter');
         }
 
-        $response = $this->client($cred)
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
             ->post("/cobranca/v3/cobrancas/{$nossoNumero}/cancelar", [
                 'motivoCancelamento' => $this->mapMotivoCancelar($motivo),
-            ]);
+            ]));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -233,8 +234,8 @@ class InterDriver implements PaymentDriverContract
             $payload['descricao'] = substr($motivo, 0, 140);
         }
 
-        $response = $this->client($cred)
-            ->put("/pix/v2/cob/{$extId}/devolucao/{$idDevolucao}", $payload);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->put("/pix/v2/cob/{$extId}/devolucao/{$idDevolucao}", $payload));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -251,8 +252,8 @@ class InterDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra consultar no Inter');
         }
 
-        $response = $this->client($cred)
-            ->get("/cobranca/v3/cobrancas/{$nossoNumero}");
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->get("/cobranca/v3/cobrancas/{$nossoNumero}"));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -374,16 +375,20 @@ class InterDriver implements PaymentDriverContract
             : self::API_BASE_PRODUCTION;
     }
 
+    /**
+     * Cliente principal — com retry + 429 handler via HttpClientFactory
+     * (Auditoria 2026-05-23 Onda 4e gap #1+#2). mTLS preservado via withOptions.
+     */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
         $config = $this->config($cred);
 
-        return Http::baseUrl($this->baseUrl($cred))
+        return HttpClientFactory::make(
+            baseUrl: $this->baseUrl($cred),
+            timeoutSec: 30,
+        )
             ->withToken($this->getAccessToken($cred))
-            ->withOptions($this->mtlsOptions($config))
-            ->acceptJson()
-            ->asJson()
-            ->timeout(30);
+            ->withOptions($this->mtlsOptions($config));
     }
 
     /**

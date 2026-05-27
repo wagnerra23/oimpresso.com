@@ -19,6 +19,10 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // Cowork variants (ADR UI-0015) — visual fiel ao protótipo Cowork canon.
+        // Aplica classes .cw-btn-* do resources/css/cowork-fields.css.
+        "cowork-primary": "cw-btn-primary",
+        "cowork-ghost":   "cw-btn-ghost",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -29,6 +33,8 @@ const buttonVariants = cva(
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
         "icon-lg": "size-10",
+        // Cowork compact size — alinhada com .cw-input h-30px.
+        cowork: "h-[30px] gap-1.5 rounded-[5px] px-3.5 text-[12.5px] has-[>svg]:px-3",
       },
     },
     defaultVariants: {

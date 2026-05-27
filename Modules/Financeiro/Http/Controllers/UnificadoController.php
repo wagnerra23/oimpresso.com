@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Events\TituloCriado;
 use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
+use Modules\Financeiro\Http\Requests\StoreTituloRequest;
 use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -69,6 +71,7 @@ class UnificadoController extends Controller
             ->whereIn('status', ['aberto', 'parcial', 'quitado'])
             ->with([
                 'categoria:id,nome',
+                'planoConta:id,codigo,nome,tipo',
                 'conferidoPor:id,first_name,last_name,username',
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',
@@ -124,8 +127,42 @@ class UnificadoController extends Controller
               ->where('vencimento', '<', $hoje);
         }
 
+        // PR E (2026-05-25) US-FIN-022 — Aging buckets multi-select. AND com lifecycle.
+        // Buckets canon BR financeiro: lt30 / 30-60 / 60-90 / gt90 / gt180 dias vencidos.
+        // Cada bucket vira range de vencimento absoluto (data hoje - N dias).
+        if (! empty($filters['aging'])) {
+            $today = now();
+            $q->whereIn('status', ['aberto', 'parcial'])
+              ->where('vencimento', '<', $hoje)
+              ->where(function ($qq) use ($filters, $today) {
+                  foreach ($filters['aging'] as $bucket) {
+                      $qq->orWhere(function ($qqq) use ($bucket, $today) {
+                          [$min, $max] = match ($bucket) {
+                              'lt30' => [0, 29],
+                              '30-60' => [30, 59],
+                              '60-90' => [60, 89],
+                              'gt90' => [90, 179],
+                              'gt180' => [180, 99999],
+                              default => [null, null],
+                          };
+                          if ($min === null) {
+                              return;
+                          }
+                          $maxDate = (clone $today)->subDays($min)->toDateString();
+                          $minDate = (clone $today)->subDays($max + 1)->toDateString();
+                          $qqq->whereBetween('vencimento', [$minDate, $maxDate]);
+                      });
+                  }
+              });
+        }
+
+        // Onda 7 (2026-05-20): multi-conta — filters['conta'] agora aceita CSV
+        // "1,3,5" (back-compat: 1 single vira "1"). Backend faz whereIn.
         if ($filters['conta']) {
-            $q->whereHas('baixas', fn ($qq) => $qq->where('conta_bancaria_id', $filters['conta']));
+            $contaIds = array_filter(array_map('intval', explode(',', $filters['conta'])));
+            if (! empty($contaIds)) {
+                $q->whereHas('baixas', fn ($qq) => $qq->whereIn('conta_bancaria_id', $contaIds));
+            }
         }
         // Onda 12.7 (2026-05-19) — `filters['categoria']` agora vem da UI como
         // plano_conta_id (Wagner trocou select Categorias por Plano de Contas).
@@ -146,10 +183,36 @@ class UnificadoController extends Controller
             });
         }
 
-        $rows = $q->orderBy('vencimento')
-            ->limit(500)
+        // Onda 8 (2026-05-20): sort dinamico whitelist (anti SQL injection).
+        // Default: vencimento ASC (canon). Override via filters.sort + filters.dir.
+        $sortColMap = [
+            'vencimento' => 'vencimento',
+            'valor' => 'valor_total',
+            'status' => 'status',
+            'lancamento' => 'numero',
+            'contraparte' => 'cliente_descricao',
+        ];
+        $sortCol = $sortColMap[$filters['sort']] ?? 'vencimento';
+        $sortDir = $filters['dir'] === 'desc' ? 'desc' : 'asc';
+
+        // Onda 13 (2026-05-20): pagination via per_page + page. Default 100 per_page
+        // (cobre maioria dos mes pra Eliana sem scroll infinito). Antes era limit(500)
+        // fixo — biz grande passaria desse limite e perderia dados visualmente.
+        $perPage = max(20, min(500, (int) ($filters['per_page'] ?? 100)));
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $totalRows = (clone $q)->count();
+        $rows = $q->orderBy($sortCol, $sortDir)
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
             ->get()
             ->map(fn (Titulo $t) => $this->shapeTitulo($t, $hoje, $vencendoLimite));
+
+        $pagination = [
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $totalRows,
+            'total_pages' => max(1, (int) ceil($totalRows / $perPage)),
+        ];
 
         // ───────────────── KPIs ─────────────────
         $kpis = $this->kpis($businessId, $start, $end);
@@ -188,10 +251,13 @@ class UnificadoController extends Controller
         return Inertia::render('Financeiro/Unificado/Index', [
             'kpis' => $kpis,
             'lancamentos' => $rows,
+            'pagination' => $pagination, // Onda 13 (2026-05-20)
             'filters' => $filters,
             'contas' => $contas,
             'categorias' => $categorias,
             'planosConta' => $planosConta,
+            // PR E (2026-05-25) US-FIN-022 — aging breakdown pra chips de filtro
+            'agingBreakdown' => $this->agingBreakdown($businessId),
             'periodLabel' => $periodLabel,
             'businessName' => $businessName,
         ]);
@@ -215,6 +281,67 @@ class UnificadoController extends Controller
     }
 
     /**
+     * POST /financeiro/unificado
+     * Onda 25 (2026-05-25) US-FIN-021 — Insert manual de título via TituloCreateSheet.
+     * Substitui stub `/unificado/novo` (Non-Goal #1 do charter v6).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): business_id da session, nunca
+     * do payload (anti tampering). Numero sequencial business-isolado via
+     * `lockForUpdate` (R-FIN-002 idempotência).
+     */
+    public function store(StoreTituloRequest $request): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = $request->user()->id;
+        $request->assertPlanoCoerente();
+
+        $titulo = DB::transaction(function () use ($request, $businessId, $userId) {
+            // Numero sequencial business-isolado.
+            // Padrão: receber → R-0001, R-0002… · pagar → P-0001, P-0002…
+            $prefixo = $request->input('tipo') === 'receber' ? 'R' : 'P';
+            $proximoNumero = (int) Titulo::where('business_id', $businessId)
+                ->where('numero', 'like', "{$prefixo}-%")
+                ->lockForUpdate()
+                ->selectRaw("MAX(CAST(SUBSTRING(numero, 3) AS UNSIGNED)) as max_n")
+                ->value('max_n');
+            $proximoNumero = max(1, $proximoNumero + 1);
+            $numero = sprintf('%s-%05d', $prefixo, $proximoNumero);
+
+            $valor = (float) $request->input('valor_total');
+
+            return Titulo::create([
+                'business_id'       => $businessId,
+                'numero'            => $numero,
+                'tipo'              => $request->input('tipo'),
+                'status'            => 'aberto',
+                'cliente_descricao' => $request->input('cliente_descricao'),
+                'valor_total'       => $valor,
+                'valor_aberto'      => $valor,
+                'moeda'             => 'BRL',
+                'emissao'           => now()->toDateString(),
+                'vencimento'        => $request->date('vencimento')->toDateString(),
+                'competencia_mes'   => now()->format('Y-m'),
+                'origem'            => 'manual',
+                'origem_id'         => null,
+                'categoria_id'      => $request->input('categoria_id') ?: null,
+                'plano_conta_id'    => $request->input('plano_conta_id') ?: null,
+                'observacoes'       => $request->input('observacoes'),
+                'created_by'        => $userId,
+                'updated_by'        => $userId,
+            ]);
+        });
+
+        $label = $titulo->tipo === 'receber' ? 'a receber' : 'a pagar';
+
+        // PR F (2026-05-25) G9 — Event TituloCriado abre caminho de extensão
+        // (notify fornecedor, recalcular cache KPIs, sincronizar accounting).
+        // Listener canônico inicial: OnTituloCriadoLog (audit log INFO).
+        TituloCriado::dispatch($titulo);
+
+        return back()->with('success', "Lançamento {$titulo->numero} ({$label}) criado.");
+    }
+
+    /**
      * PUT /financeiro/unificado/{id}
      * Edit Sheet inline (Onda Edit 2026-05-18). Campos seguros: descricao,
      * observacoes, categoria_id, vencimento. valor_total mutável só se status
@@ -226,11 +353,13 @@ class UnificadoController extends Controller
 
         $titulo = Titulo::where('business_id', $businessId)->findOrFail($id);
         $request->assertValorMutavel($titulo);
+        $request->assertPlanoCoerente($titulo);
 
         $payload = [
             'cliente_descricao' => $request->input('cliente_descricao'),
             'observacoes' => $request->input('observacoes'),
             'categoria_id' => $request->input('categoria_id') ?: null,
+            'plano_conta_id' => $request->input('plano_conta_id') ?: null,
             'vencimento' => $request->date('vencimento')->toDateString(),
             'updated_by' => $request->user()->id,
         ];
@@ -250,6 +379,42 @@ class UnificadoController extends Controller
 
     /**
      * POST /financeiro/unificado/{id}/conferir
+     * Onda 15 (2026-05-20) — Bulk update categoria em lote.
+     * POST /financeiro/unificado/bulk-update-categoria
+     * Body: { ids: number[], categoria_id: number }
+     *
+     * Tier 0 multi-tenant: business_id scope explicito (R-FIN-001).
+     * Whitelist categoria pertence ao business (anti cross-tenant via ID guess).
+     */
+    public function bulkUpdateCategoria(Request $request): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1|max:500',
+            'ids.*' => 'integer|min:1',
+            'categoria_id' => 'required|integer|min:1',
+        ]);
+
+        // Whitelist: categoria precisa pertencer ao business (anti SQL injection
+        // via ID arbitrario que vaze pra outro tenant).
+        $catExists = Categoria::where('business_id', $businessId)
+            ->where('id', $validated['categoria_id'])
+            ->whereNull('deleted_at')
+            ->exists();
+        if (! $catExists) {
+            return back()->withErrors(['categoria_id' => 'Categoria inválida pra este business.']);
+        }
+
+        $count = Titulo::where('business_id', $businessId)
+            ->whereIn('id', $validated['ids'])
+            ->whereNull('deleted_at')
+            ->update(['categoria_id' => $validated['categoria_id']]);
+
+        return back()->with('flash', "$count lançamentos categorizados em lote.");
+    }
+
+    /**
      * Marca título como conferido pelo user atual (Eliana/Wagner — audit per-user).
      * Idempotente: re-marcar não altera timestamp original.
      */
@@ -519,6 +684,93 @@ class UnificadoController extends Controller
         ]);
     }
 
+    /**
+     * GET /financeiro/unificado/sugerir-valor
+     *
+     * PR I (2026-05-25) G5 auditoria — sugere valor pra novo Titulo manual
+     * baseado em histórico do par (contraparte + tipo). Retorna último valor +
+     * média + count pra UI mostrar "geralmente cobra R$ X (N lançamentos)".
+     *
+     * Query params:
+     *   - contraparte: string (cliente_descricao, like %)
+     *   - tipo: 'receber' | 'pagar'
+     *
+     * Multi-tenant Tier 0 (ADR 0093): scope business_id obrigatório.
+     */
+    public function sugerirValor(Request $request): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $contraparte = trim($request->string('contraparte', '')->toString());
+        $tipo = $request->string('tipo', '')->toString();
+
+        if ($contraparte === '' || ! in_array($tipo, ['receber', 'pagar'], true)) {
+            return response()->json(['count' => 0, 'ultimo_valor' => null, 'media_valor' => null]);
+        }
+
+        // Match permissivo: like %contraparte% (case insensitive via collation default)
+        $base = Titulo::where('business_id', $businessId)
+            ->where('tipo', $tipo)
+            ->where('cliente_descricao', 'like', "%{$contraparte}%")
+            ->whereNotIn('status', ['cancelado']);
+
+        $count = (clone $base)->count();
+        if ($count === 0) {
+            return response()->json(['count' => 0, 'ultimo_valor' => null, 'media_valor' => null]);
+        }
+
+        $ultimo = (clone $base)->orderByDesc('id')->first(['valor_total']);
+        $media = (float) (clone $base)->avg('valor_total');
+
+        return response()->json([
+            'count'        => $count,
+            'ultimo_valor' => (float) $ultimo->valor_total,
+            'media_valor'  => round($media, 2),
+        ]);
+    }
+
+    /**
+     * GET /financeiro/unificado/buscar-cliente
+     *
+     * PR J (2026-05-25) US-FIN-024 — Combobox cliente autocomplete.
+     * Busca contacts (clientes + fornecedores) por nome, supplier_business_name,
+     * mobile, email ou contact_id (CPF/CNPJ).
+     *
+     * Multi-tenant Tier 0: scope business_id obrigatório.
+     */
+    public function buscarCliente(Request $request): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $q = trim($request->string('q', '')->toString());
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['contacts' => []]);
+        }
+
+        $like = "%{$q}%";
+        $contacts = \App\Contact::where('business_id', $businessId)
+            ->where(function ($w) use ($like) {
+                $w->where('name', 'like', $like)
+                  ->orWhere('supplier_business_name', 'like', $like)
+                  ->orWhere('mobile', 'like', $like)
+                  ->orWhere('email', 'like', $like)
+                  ->orWhere('contact_id', 'like', $like);
+            })
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'supplier_business_name', 'mobile', 'type', 'contact_id'])
+            ->map(fn ($c) => [
+                'id'    => $c->id,
+                'name'  => $c->name,
+                'biz'   => $c->supplier_business_name,
+                'mobile' => $c->mobile,
+                'type'  => $c->type,
+                'doc'   => $c->contact_id,
+            ]);
+
+        return response()->json(['contacts' => $contacts]);
+    }
+
     // ─────────── Helpers privados ───────────
 
     /**
@@ -651,11 +903,26 @@ class UnificadoController extends Controller
             fn ($x) => in_array($x, $aprovacaoValidos, true)
         )));
 
+        // PR E (2026-05-25) US-FIN-022 — parse aging[] (CSV ou array). 5 buckets canon BR.
+        $agingValidos = ['lt30', '30-60', '60-90', 'gt90', 'gt180'];
+        $agingRaw = $request->input('aging', []);
+        if (is_string($agingRaw)) {
+            $agingRaw = $agingRaw === '' ? [] : explode(',', $agingRaw);
+        }
+        if (! is_array($agingRaw)) {
+            $agingRaw = [];
+        }
+        $aging = array_values(array_unique(array_filter(
+            array_map('strval', $agingRaw),
+            fn ($x) => in_array($x, $agingValidos, true)
+        )));
+
         return [
             'tab' => in_array($request->string('tab')->toString(), $tabsValidas, true)
                 ? $request->string('tab')->toString() : 'all',
             'lifecycle' => $lifecycle,
             'aprovacao_status' => $aprovacao,
+            'aging' => $aging,
             'overdue' => $request->boolean('overdue'),
             'busca' => trim($request->string('busca', '')->toString()),
             'conta' => $request->string('conta', '')->toString(),
@@ -664,6 +931,15 @@ class UnificadoController extends Controller
                 ? $request->string('periodo')->toString() : 'mes_atual',
             'densidade' => in_array($request->string('densidade')->toString(), $densidadesValidas, true)
                 ? $request->string('densidade')->toString() : 'compact',
+            // Onda 8 (2026-05-20): sort + dir. Whitelist forçada na query (não confia
+            // no input). 'sort' default vazio → orderBy vencimento; 'dir' default asc.
+            'sort' => $request->string('sort', '')->toString(),
+            'dir' => $request->string('dir', 'asc')->toString() === 'desc' ? 'desc' : 'asc',
+            // Onda 13 (2026-05-20): pagination. Defaults page 1, per_page 100.
+            // Backend clampa per_page entre 20-500. Frontend mostra controls
+            // se total > per_page.
+            'page' => max(1, (int) $request->integer('page', 1)),
+            'per_page' => max(20, min(500, (int) $request->integer('per_page', 100))),
         ];
     }
 
@@ -677,7 +953,64 @@ class UnificadoController extends Controller
         };
     }
 
+    /**
+     * PR E (2026-05-25) US-FIN-022 — Aging breakdown.
+     * Conta títulos vencidos (status aberto/parcial + vencimento < hoje) por
+     * bucket BR canon. Usado pra chips de filtro mostrarem contagem visível
+     * — "lt30 (5) · 30-60 (3) · 60-90 (1) · gt90 (0) · gt180 (0)".
+     *
+     * Multi-tenant Tier 0: scope business_id obrigatório.
+     */
+    private function agingBreakdown(int $businessId): array
+    {
+        $hoje = now()->toDateString();
+        $base = Titulo::where('business_id', $businessId)
+            ->whereIn('status', ['aberto', 'parcial'])
+            ->where('vencimento', '<', $hoje);
+
+        $today = now();
+        $bucketRange = function (int $minDays, int $maxDays) use ($today) {
+            $maxDate = (clone $today)->subDays($minDays)->toDateString();
+            $minDate = (clone $today)->subDays($maxDays + 1)->toDateString();
+            return [$minDate, $maxDate];
+        };
+
+        return [
+            'lt30'  => (clone $base)->whereBetween('vencimento', $bucketRange(0, 29))->count(),
+            '30-60' => (clone $base)->whereBetween('vencimento', $bucketRange(30, 59))->count(),
+            '60-90' => (clone $base)->whereBetween('vencimento', $bucketRange(60, 89))->count(),
+            'gt90'  => (clone $base)->whereBetween('vencimento', $bucketRange(90, 179))->count(),
+            'gt180' => (clone $base)->whereBetween('vencimento', $bucketRange(180, 99999))->count(),
+        ];
+    }
+
     private function kpis(int $businessId, Carbon $start, Carbon $end): array
+    {
+        $atual = $this->kpisCore($businessId, $start, $end);
+
+        // PR H (2026-05-25) US-FIN-023 — delta_pct vs mês anterior.
+        // Calcula KPIs do período equivalente do mês anterior pra comparativo
+        // visual ("Recebido R$ 45.300 ↑+12%" — Eliana vê tendência).
+        $startPrior = (clone $start)->subMonth();
+        $endPrior = (clone $end)->subMonth();
+        $anterior = $this->kpisCore($businessId, $startPrior, $endPrior);
+
+        $atual['delta_pct'] = [
+            'saldo_previsto' => $this->deltaPct($anterior['saldo_previsto'], $atual['saldo_previsto']),
+            'recebido'       => $this->deltaPct($anterior['recebido']['valor'], $atual['recebido']['valor']),
+            'a_receber'      => $this->deltaPct($anterior['a_receber']['valor'], $atual['a_receber']['valor']),
+            'pago'           => $this->deltaPct($anterior['pago']['valor'], $atual['pago']['valor']),
+            'a_pagar'        => $this->deltaPct($anterior['a_pagar']['valor'], $atual['a_pagar']['valor']),
+        ];
+
+        return $atual;
+    }
+
+    /**
+     * PR H (2026-05-25) — core dos KPIs (sem delta_pct).
+     * Extraído pra reuso: `kpis()` chama 2x (atual + anterior) pra delta_pct.
+     */
+    private function kpisCore(int $businessId, Carbon $start, Carbon $end): array
     {
         $base = Titulo::where('business_id', $businessId)
             ->whereBetween('vencimento', [$start->toDateString(), $end->toDateString()]);
@@ -688,7 +1021,6 @@ class UnificadoController extends Controller
         $aReceber = (clone $rec)->whereIn('status', ['aberto', 'parcial']);
         $aPagar = (clone $pay)->whereIn('status', ['aberto', 'parcial']);
 
-        // Recebido/Pago no período: soma TituloBaixa.valor_baixa via data_baixa.
         $recebido = TituloBaixa::where('business_id', $businessId)
             ->whereBetween('data_baixa', [$start->toDateString(), $end->toDateString()])
             ->whereNull('estorno_de_id')
@@ -726,6 +1058,19 @@ class UnificadoController extends Controller
     }
 
     /**
+     * PR H (2026-05-25) US-FIN-023 — calcula delta percentual seguro.
+     * Retorna null se denominador zero/negativo (evita divisão por zero e
+     * +infinito visual quando KPI nasce do zero).
+     */
+    private function deltaPct(float $anterior, float $atual): ?float
+    {
+        if ($anterior <= 0) {
+            return null;
+        }
+        return round((($atual - $anterior) / $anterior) * 100, 1);
+    }
+
+    /**
      * Mapeia Titulo (schema real) pro shape esperado pelo Index.tsx (schema do protótipo).
      */
     private function shapeTitulo(Titulo $t, string $hoje, string $vencendoLimite): array
@@ -742,8 +1087,13 @@ class UnificadoController extends Controller
         $nfeNumero = $metadata['nfe_numero'] ?? $metadata['nfe_chave'] ?? null;
         $canal = $metadata['canal'] ?? $t->origem;
 
-        $descricao = $t->cliente_descricao
-            ?: ($metadata['descricao'] ?? "Titulo {$t->numero}");
+        // PR 3 (2026-05-20): metadata['descricao'] tem prioridade sobre cliente_descricao.
+        // Razao: 'descricao' = descricao do ITEM/SERVICO (ex.: "Banner lona 4x1m #V-7831"),
+        // enquanto 'cliente_descricao' = nome do CLIENTE quando nao ha FK contacts.id (vira
+        // 'contraparte' na linha 758). Antes ?:  usava cliente_descricao como descricao →
+        // FinCrossLinkify nao encontrava refs #V-/#OS-/#BL- pq descs viravam nome cliente.
+        $descricao = ($metadata['descricao'] ?? null)
+            ?: ($t->cliente_descricao ?: "Titulo {$t->numero}");
 
         $conferidoUser = $t->relationLoaded('conferidoPor') ? $t->conferidoPor : null;
         $conferidoNome = $conferidoUser
@@ -759,6 +1109,9 @@ class UnificadoController extends Controller
             'contraparte_doc' => $metadata['cliente_documento'] ?? null,
             'categoria' => $t->categoria?->nome ?? 'Sem categoria',
             'categoria_id' => $t->categoria_id,
+            'plano_conta_id' => $t->plano_conta_id,
+            'plano_conta_codigo' => $t->planoConta?->codigo,
+            'plano_conta_nome' => $t->planoConta?->nome,
             'conta_bancaria' => $contaBancariaNome,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
@@ -766,7 +1119,12 @@ class UnificadoController extends Controller
             'valor' => (float) $t->valor_total,
             'nfe_numero' => $nfeNumero,
             'canal' => $canal,
-            'observacao' => $t->observacoes,
+            // Onda 3 (2026-05-20): strip prefix de tag interno (SEEDER_DEMO :: , etc)
+            // antes de exibir pro usuario. Tag usado pra idempotencia do seeder
+            // mas nao deve vazar pra UI (Wagner viu no drawer 'SEEDER_DEMO :: ...').
+            'observacao' => $t->observacoes
+                ? preg_replace('/^SEEDER_DEMO\s*::\s*/', '', $t->observacoes)
+                : null,
             'conferido_by' => $t->conferido_by,
             'conferido_at' => $t->conferido_at?->toIso8601String(),
             'conferido_user_nome' => $conferidoNome,

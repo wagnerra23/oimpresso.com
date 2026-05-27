@@ -72,7 +72,18 @@ interface FinAnomalyDetectorProps {
 export function FinAnomalyDetector({ row, all }: FinAnomalyDetectorProps) {
   const anomaly = useMemo(() => finAnomalyDetect(row, all), [row.id, row.valor, all]);
 
-  if (!anomaly) return null;
+  // Estado vazio canon — aba IA precisa de feedback explícito, não silêncio.
+  if (!anomaly) {
+    return (
+      <div className="fin-anomaly fin-anomaly-ok" data-kind="ok">
+        <span className="fin-anomaly-ic">✓</span>
+        <div className="fin-anomaly-body">
+          <b>Sem desvio detectado</b>
+          <small>Valor dentro do padrão histórico da contraparte.</small>
+        </div>
+      </div>
+    );
+  }
 
   const icon = anomaly.kind === 'high' ? '⚠' : '◇';
 

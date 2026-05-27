@@ -11,7 +11,7 @@ uses(Tests\TestCase::class);
  * US-JANA-PAINEL-001 · Onda A1 smoke do PainelController.
  *
  * Valida que:
- *  - rota GET /jana/painel retorna 200 quando autenticado
+ *  - rota GET /ia/painel retorna 200 quando autenticado
  *  - Inertia component 'Jana/Painel' é resolvido
  *  - payload contém business + person + brief + 4 kpis + 6 analises + 4 acoes
  *  - business_id da sessão é honrado (multi-tenant Tier 0 — ADR 0093)
@@ -54,15 +54,15 @@ beforeEach(function () {
     ]);
 });
 
-it('GET /jana/painel retorna 200 com Inertia component Jana/Painel', function () {
-    $response = $this->get('/jana/painel');
+it('GET /ia/painel retorna 200 com Inertia component Jana/Painel', function () {
+    $response = $this->get('/ia/painel');
 
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page->component('Jana/Painel'));
 });
 
 it('payload contém estrutura canon: business + person + brief + 4 kpis + 6 analises + 4 acoes', function () {
-    $response = $this->get('/jana/painel');
+    $response = $this->get('/ia/painel');
 
     $response->assertInertia(fn ($page) => $page
         ->component('Jana/Painel')
@@ -82,7 +82,7 @@ it('payload contém estrutura canon: business + person + brief + 4 kpis + 6 anal
 });
 
 it('respeita business_id da sessão (Tier 0 multi-tenant)', function () {
-    $response = $this->get('/jana/painel');
+    $response = $this->get('/ia/painel');
 
     $response->assertInertia(fn ($page) => $page
         ->where('business.id', $this->business->id)

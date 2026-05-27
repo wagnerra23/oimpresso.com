@@ -10,7 +10,15 @@ use Modules\OficinaAuto\Entities\Vehicle;
 uses(Tests\TestCase::class);
 
 /**
- * Schema + accessors caçamba avulsa estacionária (Martinho piloto — ADR 0137).
+ * Schema + accessors caçamba avulsa estacionária — leitura PRÉ-ADR 0194.
+ *
+ * **Atualização 2026-05-26 (ADR 0194):** Martinho é sub-vertical 4 mecânica
+ * pesada caminhão basculante CNAE 4520 (não locação caçamba container CNAE
+ * 4581). Enum value `cacamba_avulsa` + accessors `dias_locacao`/`is_overdue`
+ * preservados nullable em prod biz=164 como schema sub-vertical 3 hipotético
+ * sem cliente real ancorado. Estes testes validam que o schema continua
+ * funcional caso cliente real surgir. Não é teste do domínio Martinho real
+ * — esse usa OS de manutenção (mecânica pesada) sem dias_locacao.
  *
  * Cobertura:
  *  - Migration `add_cacamba_fields_to_vehicles` aplicada (capacity_m3, current_status, current_rental_id)

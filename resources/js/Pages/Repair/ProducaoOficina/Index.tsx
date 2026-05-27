@@ -14,8 +14,21 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import VendaDerivadaCard, {
+  type VendaDerivada,
+} from '@/Components/shared/VendaDerivadaCard';
 
 type Tone = 'slate' | 'blue' | 'amber' | 'violet' | 'emerald';
+
+// Onda 5 — Integração Vendas × Oficina (ADR 0192).
+// Quando OS está em coluna 'pronto' (= FSM `entregue_completo` · is_completed_status=true)
+// AND tem Transaction derivada (source='oficina'), o Controller (Onda 2) anexa este
+// shape ao card. Frontend renderiza card "Esta OS gerou venda" no drawer.
+//
+// Tipos VendaItem / VendaItemsSummary / VendaFiscal / VendaDerivada + componente
+// VendaDerivadaCard agora vivem em @/Components/shared/VendaDerivadaCard.tsx
+// (cross-módulo Repair + OficinaAuto · single source of truth pra FASE C+).
 
 interface Card {
   id?: number;                    // presente em live data; ausente em mock (drag-drop só local)
@@ -31,11 +44,12 @@ interface Card {
   area?: string | null;           // elevador (auto) | área impressão (com.visual)
   eta?: string;
   pending_approval?: boolean;
-  approved?: boolean;
+  approved?: boolean;             // true quando coluna='pronto' (is_completed_status)
   status_label?: string;
   quote_total?: number;
   quote_items?: number;
   quote_status?: string;
+  venda_derivada?: VendaDerivada | null;  // Onda 5 · ADR 0192
 }
 
 interface Column {
@@ -506,6 +520,15 @@ function JobDrawer({ card, labelOverrides, onClose }: { card: Card; labelOverrid
       )}
 
       <div className="flex-1 overflow-y-auto">
+        {/* Onda 5 (ADR 0192) — Integração Vendas × Oficina A1 KB-9.75.
+            Card renderiza quando OS está em coluna 'pronto' (= FSM `entregue_completo` ·
+            is_completed_status=true) AND o JobSheetObserver criou Transaction derivada
+            (source='oficina'). Loose coupling via window.CustomEvent — Sells/Index
+            (Worker A Onda 4) registra listener pra abrir drawer SaleSheet. */}
+        {card.approved && card.venda_derivada && (
+          <VendaDerivadaCard venda={card.venda_derivada} />
+        )}
+
         <DrawerSection title="Sintoma reportado">
           <p className="text-sm text-slate-800">
             Cliente relata barulho na suspensão dianteira ao passar em buraco. Volante puxa pra direita em

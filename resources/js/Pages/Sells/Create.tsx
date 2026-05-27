@@ -38,6 +38,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 interface OptionMap {
   [id: number]: string;
@@ -267,12 +278,55 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     }
   };
 
+  // Dor 1 Larissa (2026-05-13 rollback V2): adicionar 2x o mesmo produto (mesmo
+  // product_id + variation_id) criava 2 linhas distintas. Comportamento esperado
+  // pelo Blade legacy POS era incrementar qty da linha existente.
+  //
+  // MVP atual (PR r4-group-variations-v2):
+  //   - Mesmo product_id + mesma variation_id  → incrementa qty (+1) na linha existente
+  //   - Mesmo product_id + variation_id diferente → toast info + adiciona como linha nova
+  //     (refactor com popover de variações fica pra PR separado se Wagner pedir)
+  //   - product_id novo → push linha nova (comportamento original)
   const handleAddProduct = (p: ProductSearchResult) => {
+    const incomingVariationId = p.variation_id ?? null;
+    const existing = data.products.find(
+      (row) => row.product_id === p.product_id,
+    );
+
+    // Caso 1a — mesmo product_id E mesma variation_id: incrementa qty da linha
+    // existente. Fix Dor 1 Larissa (rollback V2 2026-05-13): MARTELO-P + MARTELO-P
+    // criava 2 linhas distintas — agora vira 1 linha com qty 2.
+    if (existing && existing.variation_id === incomingVariationId) {
+      const newQty = Number(existing.quantity) + 1;
+      setData(
+        'products',
+        data.products.map((row) =>
+          row.product_id === p.product_id && row.variation_id === incomingVariationId
+            ? { ...row, quantity: newQty }
+            : row,
+        ),
+      );
+      toast.success(`${p.name} — quantidade ${newQty}`, { duration: 1500 });
+      return;
+    }
+
+    // Caso 1b — mesmo product_id mas variation_id diferente (ex: MARTELO-P já está,
+    // user agora adicionou MARTELO-M). Variações podem ter preço/estoque distinto,
+    // então agrupar como sub-row demanda refactor de UI maior (popover de variações).
+    // Por enquanto: adiciona linha separada + toast info pra deixar comportamento
+    // explícito (evita confusão tipo Dor 1 onde user acha que tá duplicando).
+    if (existing && existing.variation_id !== incomingVariationId) {
+      toast.info(`Variação diferente de ${p.name} — adicionada como linha separada`, {
+        duration: 2500,
+      });
+    }
+
+    // Caso 2 (product_id novo) ou 1b (variação diferente): adiciona linha nova.
     setData('products', [
       ...data.products,
       {
         product_id: p.product_id,
-        variation_id: p.variation_id ?? null,
+        variation_id: incomingVariationId,
         name: p.name,
         sku: p.sku,
         quantity: 1,
@@ -280,6 +334,90 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         discount: 0,
       },
     ]);
+  };
+
+  // Bug R3 (E) — recalcular preço retroativo ao trocar Grupo de preço.
+  //
+  // Cenário Larissa: adiciona "Blusa P" (R$ 150 padrão), depois muda Grupo → ATACADO.
+  // Antes do fix: linha continuava R$ 150 (preço congelado no add).
+  // Depois do fix: refetch /products/list?term=<name>&location_id=X&price_group=Y
+  //                pra cada linha, atualiza unit_price com variation_group_price
+  //                (legacy pattern public/js/pos.js linhas 265-266).
+  //
+  // Failsafe: se refetch falha ou variation_id não aparece no resultado, MANTÉM
+  // preço atual (sem warning visual — só console.warn). Não quebra fluxo.
+  //
+  // 1 request HTTP por linha — OK pra primeiro fix (Larissa raramente tem >5 itens).
+  // Batch/debounce fica pra otimização futura se necessário.
+  //
+  // R3 escopo SÓ no handler de price_group_id. Não toca __number_uf, handleAddProduct,
+  // ou submit (PR R4 outro agent vai trabalhar handler add).
+  const handlePriceGroupChange = async (newGroupId: number | null) => {
+    setData('price_group_id', newGroupId);
+
+    // Sem linhas adicionadas → nada a refetchar
+    if (data.products.length === 0) return;
+
+    // Sem location → endpoint /products/list não filtra direito (skip refetch)
+    if (!data.location_id) {
+      console.warn('[Sells/Create] price group changed sem location_id, skip recalc');
+      return;
+    }
+
+    // Refetch concorrente pra cada linha. Promise.all com Settled pra não quebrar
+    // tudo se 1 falhar.
+    const requests = data.products.map(async (line) => {
+      if (!line.variation_id) return null; // linha sem variation → skip
+      const params = new URLSearchParams({ term: line.name });
+      params.set('location_id', String(data.location_id));
+      if (newGroupId) params.set('price_group', String(newGroupId));
+
+      try {
+        const res = await fetch(`/products/list?${params.toString()}`, {
+          headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin',
+        });
+        if (!res.ok) return null;
+        const arr = (await res.json()) as Array<{
+          variation_id: number;
+          selling_price?: number;
+          variation_group_price?: number;
+        }>;
+        const match = Array.isArray(arr)
+          ? arr.find((r) => r.variation_id === line.variation_id)
+          : undefined;
+        if (!match) return null;
+        // Pattern legacy public/js/pos.js: variation_group_price tem prioridade
+        const newPrice =
+          match.variation_group_price !== undefined &&
+          match.variation_group_price !== null
+            ? Number(match.variation_group_price)
+            : Number(match.selling_price ?? line.unit_price);
+        return { variation_id: line.variation_id, unit_price: newPrice };
+      } catch (err) {
+        console.warn(
+          '[Sells/Create] refetch preço falhou pra linha',
+          line.variation_id,
+          err,
+        );
+        return null;
+      }
+    });
+
+    const results = await Promise.all(requests);
+
+    // Aplica atualizações em batch (1 setData só, evita N re-renders)
+    const updated = data.products.map((line) => {
+      const found = results.find(
+        (r) => r && r.variation_id === line.variation_id,
+      );
+      if (!found) return line; // failsafe: mantém preço atual
+      return { ...line, unit_price: found.unit_price };
+    });
+    setData('products', updated);
   };
 
   const handleProductChange = (
@@ -533,7 +671,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, [auth, business]);
 
   // Recover ao montar (apenas 1x). Pergunta antes — Larissa pode ter terminado em outro tab.
+  // Wagner 2026-05-27 HOTFIX: substituído window.confirm() nativo (botões cinza do browser,
+  // destoa do resto da UI) por AlertDialog shadcn estilizado. Smoke prod 2026-05-27 (Larissa
+  // achou estranho — UI inconsistente). Mantém mesma semântica: OK→recupera, Cancelar→descarta.
   const recoveredRef = useRef(false);
+  const [draftRecover, setDraftRecover] = useState<{ data: typeof data; savedAt: number; time: string } | null>(null);
   useEffect(() => {
     if (!draftKey || recoveredRef.current) return;
     recoveredRef.current = true;
@@ -549,11 +691,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         hour: '2-digit',
         minute: '2-digit',
       });
-      if (confirm(`Recuperar rascunho de venda salvo às ${time}?`)) {
-        setData(parsed.data);
-      } else {
-        localStorage.removeItem(draftKey);
-      }
+      setDraftRecover({ data: parsed.data, savedAt: parsed.savedAt, time });
     } catch {
       // Draft corrompido — descartar silenciosamente.
       try {
@@ -564,6 +702,18 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey]);
+
+  const handleDraftRecover = () => {
+    if (draftRecover) setData(draftRecover.data);
+    setDraftRecover(null);
+  };
+
+  const handleDraftDiscard = () => {
+    if (draftKey) {
+      try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
+    }
+    setDraftRecover(null);
+  };
 
   // Auto-save debounced 500ms quando data mudar (após mount).
   useEffect(() => {
@@ -1276,7 +1426,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 <Label htmlFor="price_group_id">Grupo de preço</Label>
                 <Select
                   value={data.price_group_id ? String(data.price_group_id) : ''}
-                  onValueChange={(v) => setData('price_group_id', v ? Number(v) : null)}
+                  onValueChange={(v) => handlePriceGroupChange(v ? Number(v) : null)}
                 >
                   <SelectTrigger id="price_group_id">
                     <SelectValue placeholder="Padrão" />
@@ -1401,6 +1551,25 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           </div>
         </div>
       </div>
+
+      {/* Wagner 2026-05-27 HOTFIX: AlertDialog shadcn substitui window.confirm() nativo
+          do browser pra auto-save de rascunho (US-SELL-007). Smoke prod 2026-05-27: UI
+          consistente com resto da app, evita "alert cinza ugly" que destoava. */}
+      <AlertDialog open={!!draftRecover} onOpenChange={(open) => { if (!open) handleDraftDiscard(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Recuperar rascunho de venda?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Encontramos um rascunho salvo automaticamente às <strong>{draftRecover?.time}</strong>.
+              Você pode recuperar e continuar de onde parou ou descartar e começar do zero.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDraftDiscard}>Descartar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDraftRecover}>Recuperar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

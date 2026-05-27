@@ -83,22 +83,66 @@ class DataController extends Controller
         }
 
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
-        $segmento_ativo = request()->segment(1) == 'fiscal';
+        $is_fiscal = request()->segment(1) == 'fiscal';
 
-        Menu::modify(
-            'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
-                // Entrada top-level "Fiscal" — leva ao Cockpit (PR #2 Wave consolidada).
-                $menu->url(
-                    url('/fiscal'),
-                    __('fiscal::fiscal.module_label'),
-                    [
-                        'icon'   => 'fa fas fa-file-invoice',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
-                    ]
-                )->order(84);
-            }
-        );
+        // 2026-05-25 — Onda ESTABILIZAR (GAP-FISCAL-001): cockpit Fiscal volta a
+        // ser hub canon do sidebar com 4 entries flat no grupo fiscal apontando
+        // pra /fiscal/*. NfeBrasil/DataController removeu as 3 entries duplicadas
+        // (Notas/Manifestação/Certificado) — agora elas vivem aqui consolidadas
+        // sob o cockpit. NfeBrasil vira motor headless (Services + rotas
+        // backend ainda existem pra superadmin troubleshooting).
+        //
+        // 2026-05-26 — Wagner direção: REMOVIDA entry "Fiscal" (cockpit dashboard
+        // order 93) do sidebar — duplicava visualmente com "Notas Fiscais" logo
+        // abaixo. Rota /fiscal CONTINUA ativa (FiscalCockpitController.index) —
+        // acesso via URL direta ou Cmd+K palette. Sidebar fica com 3 entries
+        // flat: Notas Fiscais · Manifestação · Certificado.
+        //
+        // Ordering: Notas 95 · Manifestação 96 · Certificado 97.
+        // Mantém afinidade visual antes do Financeiro (order 85).
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $is_fiscal) {
+            // Entry 1 — Notas Fiscais (cockpit NF-e/NFC-e — sub-página 2)
+            // Active também quando segment(2) é null pra cobrir /fiscal raiz
+            // (URL direta cai aqui visualmente até o user clicar).
+            $menu->url(
+                url('/fiscal/nfe'),
+                'Notas Fiscais',
+                [
+                    'icon'   => 'fa fas fa-receipt',
+                    'style'  => 'background-color:' . $background_color,
+                    'active' => $is_fiscal && in_array(request()->segment(2), [null, 'nfe'], true),
+                    'group'  => 'fiscal',
+                ]
+            )->order(95);
+
+            // Entry 2 — Manifestação DF-e (Fiscal/Dfe.tsx — sub-página 4)
+            // Pré-2026-05-25 apontava pra /nfe-brasil/manifestacao (legacy NfeBrasil).
+            // Consolidado pra /fiscal/dfe canon (com 4 botões via ManifestacaoService).
+            $menu->url(
+                url('/fiscal/dfe'),
+                'Manifestação',
+                [
+                    'icon'   => 'fa fas fa-inbox',
+                    'style'  => 'background-color:' . $background_color,
+                    'active' => $is_fiscal && request()->segment(2) === 'dfe',
+                    'group'  => 'fiscal',
+                ]
+            )->order(96);
+
+            // Entry 3 — Certificado A1 (Fiscal/Config.tsx — sub-página 6)
+            // Pré-2026-05-25 apontava pra /nfe-brasil/configuracao/certificado.
+            // Consolidado pra /fiscal/config canon (read-only + link Editar → NfeBrasil
+            // pra upload cert — fluxo permanece em NfeBrasil canon).
+            $menu->url(
+                url('/fiscal/config'),
+                'Certificado',
+                [
+                    'icon'   => 'fa fas fa-shield-alt',
+                    'style'  => 'background-color:' . $background_color,
+                    'active' => $is_fiscal && request()->segment(2) === 'config',
+                    'group'  => 'fiscal',
+                ]
+            )->order(97);
+        });
     }
 }

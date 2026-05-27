@@ -28,9 +28,34 @@ class AdminSidebarMenu
 
         Menu::create('admin-sidebar-menu', function ($menu) {
             $enabled_modules = !empty(session('business.enabled_modules')) ? session('business.enabled_modules') : [];
+            // Defensive: session pode armazenar enabled_modules como string JSON
+            // se o cast `array` do Business model não foi aplicado (ex: session
+            // hidratada via DB::table sem cast, ou Eloquent serializado perdeu cast
+            // entre requests). json_decode garante array sempre que entrar em in_array.
+            if (is_string($enabled_modules)) {
+                $decoded = json_decode($enabled_modules, true);
+                $enabled_modules = is_array($decoded) ? $decoded : [];
+            }
 
             $common_settings = !empty(session('business.common_settings')) ? session('business.common_settings') : [];
             $pos_settings = !empty(session('business.pos_settings')) ? json_decode(session('business.pos_settings'), true) : [];
+
+            // Wagner 2026-05-20 Fase 1 deprecação legacy — quando Modules/Financeiro
+            // está habilitado pro business + user tem permission, esconde dropdowns
+            // core "Despesas" (L498) e "Contas de pagamento" (L534) pra evitar
+            // duplicação de domínio. Dados não somem, deeplinks /expenses e /account
+            // continuam funcionando. Mesmo pattern de gate usado em
+            // Modules/Financeiro/Http/Controllers/DataController::modifyAdminMenu().
+            $financeiro_module_util = new ModuleUtil();
+            if (auth()->user()->can('superadmin')) {
+                $financeiro_enabled = $financeiro_module_util->isModuleInstalled('Financeiro');
+            } else {
+                $financeiro_enabled = (bool) $financeiro_module_util->hasThePermissionInSubscription(
+                    session('user.business_id'),
+                    'financeiro_module',
+                    'superadmin_package'
+                ) && auth()->user()->can('financeiro.access');
+            }
 
             $is_admin = auth()->user()->hasRole('Admin#' . session('business.id')) ? true : false;
             //Home
@@ -89,56 +114,31 @@ class AdminSidebarMenu
                 )->order(10);
             }
 
-            //Contacts dropdown
+            // Contatos single-link (ADR 0180 + AP19 LEARNINGS 2026-05-25):
+            // Era dropdown popup-menu com sub-items (Fornecedores/Clientes/Grupos/Importar/Map)
+            // → migrado pra SINGLE-LINK apontando pra `/contacts?type=all` (aba Todos).
+            // Sub-views (filtros por tipo) viraram tabs no PageHeader Zona C da própria tela.
+            // Ações secundárias (Importar/Exportar/Grupos) viraram items no overflow `⋮` do header.
+            // "Sidebar é mapa de DESTINOS, não AÇÕES" (ADR 0180 § Justificativa).
             if (auth()->user()->can('supplier.view') || auth()->user()->can('customer.view') || auth()->user()->can('supplier.view_own') || auth()->user()->can('customer.view_own')) {
-                $menu->dropdown(
+                $menu->url(
+                    action([\App\Http\Controllers\ContactController::class, 'index'], ['type' => 'all']),
                     __('contact.contacts'),
-                    function ($sub) {
-                        if (auth()->user()->can('supplier.view') || auth()->user()->can('supplier.view_own')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'index'], ['type' => 'supplier']),
-                                __('report.supplier'),
-                                ['icon' => '', 'active' => request()->input('type') == 'supplier']
-                            );
-                        }
-                        if (auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'index'], ['type' => 'customer']),
-                                __('report.customer'),
-                                ['icon' => '', 'active' => request()->input('type') == 'customer']
-                            );
-                            $sub->url(
-                                action([\App\Http\Controllers\CustomerGroupController::class, 'index']),
-                                __('lang_v1.customer_groups'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'customer-group']
-                            );
-                        }
-                        if (auth()->user()->can('supplier.create') || auth()->user()->can('customer.create')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'getImportContacts']),
-                                __('lang_v1.import_contacts'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'contacts' && request()->segment(2) == 'import']
-                            );
-                        }
-
-                        if (!empty(env('GOOGLE_MAP_API_KEY'))) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ContactController::class, 'contactMap']),
-                                __('lang_v1.map'),
-                                ['icon' => 'fa fas fa-map-marker-alt', 'active' => request()->segment(1) == 'contacts' && request()->segment(2) == 'map']
-                            );
-                        }
-                    },
-                    ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z"></path>
-                    <path d="M10 16h6"></path>
-                    <path d="M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                    <path d="M4 8h3"></path>
-                    <path d="M4 12h3"></path>
-                    <path d="M4 16h3"></path>
-                  </svg>', 'id' => 'tour_step4']
+                    [
+                        'icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z"></path>
+                            <path d="M10 16h6"></path>
+                            <path d="M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M4 8h3"></path>
+                            <path d="M4 12h3"></path>
+                            <path d="M4 16h3"></path>
+                          </svg>',
+                        'active' => request()->segment(1) == 'contacts'
+                                    || request()->segment(1) == 'cliente'
+                                    || request()->segment(1) == 'customer-group',
+                        'id' => 'tour_step4',
+                    ]
                 )->order(15);
             }
 
@@ -265,13 +265,18 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'purchase-order']
                             );
                         }
-                        if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\PurchaseController::class, 'index']),
-                                __('purchase.list_purchase'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'purchases' && request()->segment(2) == null]
-                            );
-                        }
+                        // Wagner 2026-05-22 P3: entry "List Purchase" → /purchases REMOVIDA.
+                        // Duplicava com Modules/Compras canon (entry "Compras" → /compras).
+                        // Rota /purchases continua funcionando (tela Blade legacy + sub-rotas
+                        // create/edit/return/etc preservadas abaixo). Apenas o item no menu
+                        // some pra evitar 2 "Compras" no sidebar.
+                        // if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
+                        //     $sub->url(
+                        //         action([\App\Http\Controllers\PurchaseController::class, 'index']),
+                        //         __('purchase.list_purchase'),
+                        //         ['icon' => '', 'active' => request()->segment(1) == 'purchases' && request()->segment(2) == null]
+                        //     );
+                        // }
                         if (auth()->user()->can('purchase.create')) {
                             $sub->url(
                                 action([\App\Http\Controllers\PurchaseController::class, 'create']),
@@ -409,13 +414,29 @@ class AdminSidebarMenu
                             );
                         }
                     },
-                    ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    [
+                        'icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                     <path d="M12 15v-12"></path>
                     <path d="M16 7l-4 -4l-4 4"></path>
                     <path d="M3 12a9 9 0 0 0 18 0"></path>
-                  </svg>', 'id' => 'tour_step7']
+                  </svg>',
+                        'id' => 'tour_step7',
+                        // Wagner 2026-05-26: ghosts canon ADR 0180 — canais de venda
+                        // (Catálogo QR + WooCommerce) viraram ghosts do hub Vendas.
+                        // Antes eram entries top-level no grupo COMERCIAL (orders
+                        // 88 + 95). Movidos pra cá pra reduzir poluição visual da
+                        // sidebar; acessíveis via PageHeader overflow [...] da
+                        // tela /sells. Companion: Modules/ProductCatalogue +
+                        // Modules/Woocommerce DataController.modifyAdminMenu
+                        // viraram NO-OP nesta mesma onda.
+                        'group'  => 'comercial',
+                        'ghosts' => [
+                            ['key' => 'catalogue-qr', 'label' => 'Catálogo QR', 'href' => '/product-catalogue/catalogue-qr'],
+                            ['key' => 'woocommerce',  'label' => 'WooCommerce', 'href' => '/woocommerce'],
+                        ],
+                    ]
                 )->order(30);
             }
 
@@ -483,7 +504,9 @@ class AdminSidebarMenu
             //Expense dropdown
             // Visibilidade per-business via $enabled_modules (vem do package
             // subscription do business) + permission Spatie. NUNCA hardcode biz=N.
-            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense'))) {
+            // Wagner 2026-05-20 Fase 1: escondido quando Modules/Financeiro habilitado
+            // (substituído por Contas a Pagar + Visão Unificada + Categorias do Financeiro).
+            if (in_array('expenses', $enabled_modules) && (auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense')) && ! $financeiro_enabled) {
                 $menu->dropdown(
                     __('expense.expenses'),
                     function ($sub) {
@@ -519,7 +542,9 @@ class AdminSidebarMenu
                 )->order(45);
             }
             //Accounts dropdown
-            if (auth()->user()->can('account.access') && in_array('account', $enabled_modules)) {
+            // Wagner 2026-05-20 Fase 1: escondido quando Modules/Financeiro habilitado
+            // (substituído por Contas Bancárias + Fluxo de Caixa + DRE do Financeiro).
+            if (auth()->user()->can('account.access') && in_array('account', $enabled_modules) && ! $financeiro_enabled) {
                 $menu->dropdown(
                     __('lang_v1.payment_accounts'),
                     function ($sub) {

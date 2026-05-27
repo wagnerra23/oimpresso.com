@@ -192,16 +192,19 @@ class AppServiceProvider extends ServiceProvider
                 ?>";
         });
 
-        //Blade directive to convert.
+        // Diretivas de formato de data — usam date_format do business da sessão,
+        // com fallback pra config('constants.default_date_format') quando session
+        // está vazia (ex: /superadmin não passa pelo SetSessionData middleware →
+        // session('business.date_format') === null → Carbon::format(null) TypeError).
+        // Hotfix superadmin 500: 2026-05-21.
         Blade::directive('format_date', function ($date) {
             if (! empty($date)) {
-                return "\Carbon::createFromTimestamp(strtotime($date))->format(session('business.date_format'))";
+                return "\Carbon::createFromTimestamp(strtotime($date))->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')))";
             } else {
                 return null;
             }
         });
 
-        //Blade directive to convert.
         Blade::directive('format_time', function ($date) {
             if (! empty($date)) {
                 $time_format = 'h:i A';
@@ -222,7 +225,7 @@ class AppServiceProvider extends ServiceProvider
                     $time_format = 'H:i';
                 }
 
-                return "\Carbon::createFromTimestamp(strtotime($date))->format(session('business.date_format') . ' ' . '$time_format')";
+                return "\Carbon::createFromTimestamp(strtotime($date))->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')) . ' ' . '$time_format')";
             } else {
                 return null;
             }
@@ -237,7 +240,7 @@ class AppServiceProvider extends ServiceProvider
                 $time_format = 'H:i';
             }
 
-            return "\Carbon::now()->format(session('business.date_format') . ' ' . '$time_format')";
+            return "\Carbon::now()->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')) . ' ' . '$time_format')";
         });
 
         //Blade directive to format currency.

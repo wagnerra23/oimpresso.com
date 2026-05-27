@@ -173,19 +173,25 @@
   height: 36px;
   display: block;
 }
-/* Sparkline em fundo absoluto pro KPI hero (atrás do texto) */
+/* Onda 9 (2026-05-20 Wagner "encaixar melhor"): sparkline volta pro FLOW NORMAL
+   ABAIXO do hint (não mais absolute background). Match canon fin-boletos.css:96:
+     width calc(100% + 24px); margin-left -12px (sangra bordas card);
+     margin-top 8px; height 32px; opacity 0.85 (VISÍVEL como info-graphic).
+   Anterior era position absolute bottom 0 opacity 0.35 — escondido atrás do texto. */
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-spark {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin-top: 0;
-  height: 56px;
-  opacity: 0.35;
-  pointer-events: none;
-  z-index: 0;
+  position: relative;
+  width: calc(100% + 24px);
+  margin: 8px -12px 0;
+  height: 32px;
+  opacity: 0.85;
+  display: block;
 }
-.fin-cowork .fin-curadoria .fin-stat-hero > * { position: relative; z-index: 1; }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-spark circle {
+  pointer-events: auto;
+}
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-spark:hover {
+  opacity: 1;
+}
 /* ─────────────────────────────────────────────────────────────
  * Toolbar (filter chips + density + search)
  * ───────────────────────────────────────────────────────────── */
@@ -371,14 +377,20 @@
  * background sólido + border-top sólida = sensação "barra colada".
  * ───────────────────────────────────────────────────────────── */
 .fin-cowork .fin-curadoria .fin-footer-tips {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 6px 24px;
-  background: oklch(0.985 0.003 90);
-  border-top: 1px solid var(--fin-line);
-  font-size: 11px;
+  /* Wagner 2026-05-20: era fixed left:0 right:0 ocupando largura inteira
+     (cobria sidebar). Canon real (erp-shell/financeiro-app.jsx:669):
+     'sticky bottom-0 mx-6 mb-4 mt-3 rounded-md border bg-white shadow-sm'.
+     Sticky no scroll parent (.main-body) respeita layout do AppShellV2. */
+  position: sticky;
+  bottom: 16px;
+  margin: 12px 24px 16px;
+  padding: 0 16px;
+  height: 48px;
+  background: white;
+  border: 1px solid var(--fin-line);
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
+  font-size: 12.5px;
   color: var(--fin-text-mute);
   display: flex;
   align-items: center;
@@ -386,8 +398,6 @@
   flex-wrap: wrap;
   z-index: 30;
 }
-/* Padding-bottom no container pra última linha não ficar atrás do footer. */
-.fin-cowork .fin-curadoria { padding-bottom: 48px; }
 /* Onda 12 — summary numérica esquerda no footer (paridade canon REAL).
    "N lançamentos · Total entrada: R$ X · Total saída: R$ Y" */
 .fin-cowork .fin-curadoria .fin-footer-tips .fin-footer-summary {
@@ -417,5 +427,113 @@
   background: white;
   border: 1px solid var(--fin-line);
   color: var(--fin-text);
+}
+
+/* ============================================================================
+ * Onda 22b (2026-05-20) — Drawer portal scope fix
+ *
+ * <Sheet> shadcn renderiza via Portal direto no <body> — fora do .fin-cowork
+ * wrapper da página. Quando adicionamos `fin-cowork` no SheetContent (Onda 22),
+ * descobrimos 2 problemas:
+ *   (1) CSS vars (--bg, --text, --accent, --border) definidos no
+ *       cowork-canon-financeiro-bundle.css NÃO sobreviveram ao build vite —
+ *       só .sells-cowork-show e .sells-cowork-edit têm essas vars no bundle.
+ *   (2) bg-background do Tailwind colide com .fin-cowork {background:#fff !important}
+ *       e o computed style ficou rgba(0,0,0,0) (transparent), deixando a
+ *       tabela atrás visível ATRAVÉS do drawer.
+ *
+ * Fix: redefinir os vars + bg branco com seletor de alta especificidade que
+ * pega só drawers (Sheet shadcn portal). NÃO afeta .fin-cowork da página
+ * principal (já tem vars vindos do .cockpit ancestor com inline style).
+ * ============================================================================ */
+
+/* Onda 24 (2026-05-20) — Border bump global pra todas páginas Financeiro/*.
+   `border-stone-100` (oklch 0.97) era quase invisível contra bg-white. Usado
+   em 26 arquivos × 50 ocorrências do projeto inteiro — separador entre seções
+   drawer/grid/card/footer. Override pra oklch 0.92 (= stone-200) só dentro de
+   .fin-cowork wrapper, atinge: Conciliacao, PlanoContas, Unificado, Fluxo,
+   Cobranca, e drawers nestes módulos. Wagner aprovou escopo Financeiro/
+   via AskUser 2026-05-20. Outras áreas (Vendas/Produto/Purchase) decidem
+   caso a caso depois — risco de border-stone-100 ser intencional sutil. */
+.fin-cowork .border-stone-100 {
+  border-color: oklch(0.92 0.005 80) !important;
+}
+
+/* Onda 25 (2026-05-20) — Drawer overflow horizontal fix.
+   Sintoma: "Internet + telefonia maio", "Conciliado com extr...", "R$ 320,0..."
+   cortados na borda direita do drawer; tabs Editar cortado.
+   Root cause (via JS check em prod):
+   - SheetContent shadcn tem padding:0 (sem px-5 lateral)
+   - fin-output.css:685 define `.fin-cowork .fin-drawer-tabs { margin: 12px -18px 0 }`
+     — esse margin negativo era pra "sangrar" o nav até as bordas quando o
+     aside parent tinha px-5. Mas SheetContent sem padding → nav vai PRA FORA
+     do drawer (width 595px vs drawer 559px).
+   - Body div `mt-3 space-y-5` sem px lateral → conteúdo cola na borda.
+   Fix em duas frentes:
+   (a) Override CSS aqui — zerar margin negativo do nav DENTRO do portal
+   (b) Adicionar px-5 no body div via Edit no Index.tsx (commit separado abaixo) */
+[role="dialog"].fin-cowork .fin-drawer-tabs {
+  margin: 0 !important;
+}
+
+/* Onda 26 (2026-05-20) — Páginas Financeiro/* respiram nas laterais.
+   Page wrapper .fin-curadoria estava com padding:0 — KPI strip, sparkline,
+   filters chips e tabela todos colando no edge esquerdo (sidebar) e direito
+   (viewport). Aplicar px-5 (20px) no .fin-curadoria igual ao que Wagner
+   aprovou no drawer (Onda 25). Wagner aprovou escopo .fin-curadoria via
+   AskUser 2026-05-20. */
+.fin-cowork .fin-curadoria {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Onda 23 (2026-05-20) — alinhar glyphs Unicode (✦ ✎) com texto nos tabs.
+   Glyphs Unicode tem altura visual diferente das letras — wrap em span com
+   font-size menor + line-height: 1 + inline-flex align-items: center
+   normaliza baseline. Sem isso, "✦ IA" e "✎ Editar" sobem ~2px vs "Detalhes". */
+[role="dialog"].fin-cowork .fin-drawer-tab-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  min-width: 12px;
+}
+
+/* Onda 23 — borders mais firmes entre seções do drawer body (stone-200
+   em vez de stone-100 que ficava quase invisível). Match Cowork canon
+   prototype `border-stone-200`. */
+[role="dialog"].fin-cowork .border-stone-100 {
+  border-color: oklch(0.92 0.005 80) !important;
+}
+
+[role="dialog"].fin-cowork {
+  /* Surface */
+  --bg:           oklch(0.985 0.003 90);
+  --bg-2:         oklch(0.965 0.004 90);
+  --surface:      #ffffff;
+  --border:       oklch(0.90 0.004 90);
+  --border-2:     oklch(0.93 0.004 90);
+  --text:         oklch(0.22 0.01 80);
+  --text-dim:     oklch(0.50 0.01 80);
+  --text-mute:    oklch(0.65 0.01 80);
+
+  --accent:       oklch(0.58 0.09 220);
+  --accent-2:     oklch(0.66 0.09 220);
+  --accent-soft:  oklch(0.94 0.025 220);
+  --accent-fg:    #ffffff;
+
+  --radius:       8px;
+  --radius-sm:    6px;
+  --shadow-pop:   0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft:  0 1px 2px rgba(0,0,0,.04);
+
+  --row-h:        30px;
+  --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Force opaque white background — sobrescreve Tailwind bg-background colision */
+  background: #ffffff !important;
+  color: var(--text);
 }
 .fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }

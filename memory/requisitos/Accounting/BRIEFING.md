@@ -2,28 +2,43 @@
 module: Accounting
 status: legacy UltimatePOS contábil (núcleo comum — 70 entities + 12 controllers)
 piloto: N/A (cross-business interno consumido por Vestuario/Financeiro/NfeBrasil/RecurringBilling)
-last_review: 2026-05-16
+last_review: 2026-05-20
 owner: wagner
 parent_adr: 0011
-related_adrs: [0011, 0093, 0101, 0121, 0153, 0155, 0156]
+related_adrs: [0011, 0093, 0101, 0121, 0153, 0155, 0156, 0172, 0173]
 nota_atual_v2: "~50/100 (injusto — D5 + D6.a Blade zero Inertia penalizados)"
 nota_esperada_v3: "~70-80/100 pós-PR4 na_justified D5+D6.a declarados"
 na_justified: [D5, "D6.a"]
+lifecycle: deprecating
+deprecation_adr: memory/decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md
+deprecation_started: 2026-05-20
 ---
 
 # Accounting — BRIEFING
 
+> ⚠️ **MÓDULO EM DEPRECAÇÃO PROGRAMADA** — substituto canônico: **`Modules/Financeiro`**
+>
+> Decreto: [ADR 0172](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md) (aceita 2026-05-20). Errata drift `accounting_*` vs nomes nus: [ADR 0173](../../decisions/0173-errata-arq-0005-tabelas-accounting-sem-prefixo.md). Roadmap 7 ondas (~26 semanas corridas) em [DEPRECATION-PLAN.md](DEPRECATION-PLAN.md). Inspeção forense base (24 capacidades mapeadas): [INSPECAO-FORENSE-2026-05-20.md](INSPECAO-FORENSE-2026-05-20.md).
+>
+> Conteúdo abaixo preservado **append-only** ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) princípio 7) — claims refutados pela inspeção forense ficam VISÍVEIS marcados com tag `<!-- FALSO -->` pra rastreabilidade histórica.
+
 > 1-pager estado consolidado do módulo. Mantido por PR (skill `brief-update` Tier B).
-> Última atualização: 2026-05-16 — Wave J Boost (51→meta 65) + Wave 5 re-try `na_justified` D5+D6.a
+> Última atualização: 2026-05-20 — banner deprecação + errata 2 claims falsos (US-ACCO-011, [ADR 0172](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md)). Histórico: 2026-05-16 Wave J Boost (51→meta 65) + Wave 5 re-try `na_justified` D5+D6.a.
 
 ## O que é
 
+<!-- FALSO (inspecao forense 2026-05-20): ZERO Listeners/cross-imports detectados — preservado pra histórico append-only -->
 Módulo contábil **CORE UltimatePOS herdado** — núcleo de **70 entities** vivas (`Modules/Accounting/Entities/`) que servem de espinha dorsal pra **Vestuario**, **Financeiro**, **NfeBrasil**, **RecurringBilling** e qualquer módulo que toque livro razão/balancete. É o módulo de **maior superfície** do núcleo comum (70 modelos × 12 controllers × suite de relatórios SPED-ready).
+
+> **ERRATA 2026-05-20 (US-ACCO-011):** claim "espinha dorsal pra Vestuario/NfeBrasil/RecurringBilling" REFUTADO pela [inspeção forense](INSPECAO-FORENSE-2026-05-20.md#62-quem-importa-namespace-modulesaccounting) — `grep -r "Modules\\Accounting\\" Modules/Vestuario/ Modules/NfeBrasil/ Modules/RecurringBilling/` retorna **ZERO matches**. Acoplamento real cross-módulo = 0 arquivos PHP fora de `Modules/Accounting/` importam o namespace. Realidade verificada: Accounting é **isolado**, não espinha dorsal de nada. Ver [ADR 0172](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md) §motivação.
 
 ## Cliente piloto
 
+<!-- FALSO (inspecao forense 2026-05-20): ZERO Listeners/cross-imports detectados — preservado pra histórico append-only -->
 - **ROTA LIVRE** (`business_id=4`, Larissa, Modules/Vestuario CNAE 4781-4/00) — usa Accounting de forma **transparente** via Sells/Compras (JournalEntry gerado automaticamente em vendas/compras pagas).
 - Larissa não acessa a UI Accounting diretamente — consome via relatórios financeiros.
+
+> **ERRATA 2026-05-20 (US-ACCO-011):** claim "JournalEntry gerado automaticamente em vendas/compras pagas" REFUTADO pela [inspeção forense](INSPECAO-FORENSE-2026-05-20.md#28-listeners--subscribers--observers--jobs) — módulo tem **ZERO Listeners/Observers/Jobs/Events/Subscribers** (pastas inexistentes). Criação de `JournalEntry` só via UI manual (`/accounting/journal_entry/store` ou `/accounting/transactions/map_to_chart_of_account` — humano clica). Realidade verificada: Larissa biz=4 **provavelmente NÃO consome Accounting em absoluto**. AR/AP automático opera no `Modules/Financeiro` via `TransactionObserver` + `TransactionPaymentObserver` → `fin_titulos`/`fin_titulo_baixas` ([DEPRECATION-PLAN §3](DEPRECATION-PLAN.md#3-verdade-de-campo--onde-larissa-biz4-vê-hoje-este-cliente-pagou-quanto-está-pago)).
 
 ## Capacidades hoje
 

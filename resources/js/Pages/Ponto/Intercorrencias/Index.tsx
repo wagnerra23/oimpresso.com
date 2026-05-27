@@ -21,7 +21,8 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 
-import PageHeader from '@/Components/shared/PageHeader';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
 import PageFilters from '@/Components/shared/PageFilters';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -94,18 +95,19 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
   return (
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
-        <PageHeader
-          icon="alert-triangle"
-          title="Intercorrências"
-          description="Ausências, atestados, esquecimentos de marcação e outras ocorrências que afetam a apuração de ponto."
-          action={
-            <Button asChild>
-              <Link href="/ponto/intercorrencias/create">
-                <Plus size={14} className="mr-1.5" /> Nova
-              </Link>
-            </Button>
-          }
-        />
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Intercorrências <span className="text-stone-400 font-normal">· Ocorrências do ponto</span></h1>
+            <p>Ausências, atestados, esquecimentos e outras ocorrências que afetam a apuração.</p>
+          </div>
+          <div className="os-page-h-r">
+            <PontoSubNav active="intercorrencias" hidePrimary />
+            <PontoPrimaryButton onClick={() => router.visit('/ponto/intercorrencias/create')}>
+              Nova
+            </PontoPrimaryButton>
+          </div>
+        </header>
 
         <PageFilters activeChips={activeChips} onReset={hasFilters ? resetFilters : undefined} cols={2}>
           <div>

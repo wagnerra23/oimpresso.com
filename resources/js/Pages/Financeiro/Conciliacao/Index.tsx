@@ -10,6 +10,8 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
 import { Upload, Check, X, Search } from 'lucide-react';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 
 interface Linha {
   id: number;
@@ -85,12 +87,16 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
   return (
     <div className="fin-curadoria vendas-aplus">
       {/* Onda 19 — header canon */}
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>Conciliação <span className="fin-hero-title-sub">· OFX bancário</span></h1>
-          <p>Importe extrato OFX → parser detecta transações → fuzzy match com títulos abertos → aprovar manualmente</p>
+      {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+      <PageHeader
+        title="Conciliação"
+        suffix=" · OFX bancário"
+        subtitle={<>Importe extrato OFX → parser detecta transações → fuzzy match com títulos abertos → aprovar manualmente</>}
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+          <FinanceiroSubNav active="conciliacao" hidePrimary />
         </div>
-      </header>
+      </PageHeader>
 
       {/* KPI strip canon */}
       <div className="fin-stats">
@@ -160,6 +166,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
             type="submit"
             className="os-btn primary"
             disabled={!uploadForm.data.arquivo || uploadForm.processing}
+            style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
           >
             <Upload size={13} />
             {uploadForm.processing ? 'Processando…' : 'Importar OFX'}

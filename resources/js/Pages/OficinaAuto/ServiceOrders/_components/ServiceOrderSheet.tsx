@@ -31,7 +31,11 @@ import {
   SheetDescription,
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
+import VendaDerivadaCard, {
+  type VendaDerivada,
+} from '@/Components/shared/VendaDerivadaCard';
 import ServiceOrderFsmActionPanel from './ServiceOrderFsmActionPanel';
+import ServiceOrderStagePipeline from './ServiceOrderStagePipeline';
 import ServiceOrderTimeline from './ServiceOrderTimeline';
 
 type OrderType = 'locacao' | 'manutencao' | null;
@@ -69,6 +73,9 @@ interface ServiceOrderDetail {
   notes: string | null;
   vehicle: VehicleRel | null;
   contact: ContactRel | null;
+  // ADR 0192 — venda derivada auto-criada pelo ServiceOrderObserver (PR #1530)
+  // na transição status='concluida'. Renderiza VendaDerivadaCard shared no body.
+  venda_derivada?: VendaDerivada | null;
   urls?: {
     edit?: string | null;
     show?: string | null;
@@ -214,6 +221,14 @@ export default function ServiceOrderSheet({
 
             {/* Conteúdo scroll — seções verticais (mesmo pattern SaleSheet) */}
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {/* ADR 0192 — Integração Vendas × Oficina A1 KB-9.75.
+                  Card "Esta OS gerou venda #V-NNNN" renderiza acima dos KPIs
+                  quando ServiceOrderObserver (PR #1530) criou Transaction
+                  derivada na transição status='concluida'. Componente shared
+                  cross-módulo (vive em @/Components/shared/VendaDerivadaCard,
+                  reutilizado por Modules/Repair desde PR #1504 Onda 5). */}
+              {data.venda_derivada && <VendaDerivadaCard venda={data.venda_derivada} />}
+
               {/* 4 KPIs mini horizontais */}
               <div className="grid grid-cols-3 gap-3">
                 <MiniKpi
@@ -338,8 +353,17 @@ export default function ServiceOrderSheet({
                 </Section>
               )}
 
-              {/* Pipeline FSM — ações disponíveis (Wave 7-A backend) */}
-              <Section title="Pipeline FSM" icon={CheckCircle2}>
+              {/* Mini-grafo horizontal stages (Wave 7-E — gap #2 estado-da-arte). */}
+              <Section title="Pipeline" icon={CheckCircle2}>
+                <ServiceOrderStagePipeline
+                  serviceOrderId={data.id}
+                  enabled={open}
+                  refreshKey={historyVersion}
+                />
+              </Section>
+
+              {/* Ações FSM (Wave 7-A backend) */}
+              <Section title="Ações disponíveis" icon={CheckCircle2}>
                 <ServiceOrderFsmActionPanel
                   serviceOrderId={data.id}
                   enabled={open}

@@ -4892,12 +4892,23 @@ class TransactionUtil extends Util
      */
     public function getListPurchases($business_id)
     {
-        $purchases = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+        // US-COM-009 hotfix R1 (AUDIT-SENIOR-2026-05-25) — JOIN com `contacts` e
+        // `business_locations` AGORA usa closure com scope `business_id` explícito
+        // (defense-in-depth ADR 0093 IRREVOGÁVEL Garantia 5). Antes vazava
+        // `contacts.supplier_business_name` cross-tenant via filtro `?q=` em
+        // `Modules/Compras/Services/ComprasService::listarCompras` (MultiTenantTest
+        // cenário 4). WHERE em `transactions.business_id` abaixo continua, mas o
+        // JOIN sem scope permitia atacante injetar match em linha do outro tenant.
+        $purchases = Transaction::leftJoin('contacts', function ($join) use ($business_id) {
+            $join->on('transactions.contact_id', '=', 'contacts.id')
+                ->where('contacts.business_id', '=', $business_id);
+        })
                     ->join(
                         'business_locations AS BS',
-                        'transactions.location_id',
-                        '=',
-                        'BS.id'
+                        function ($join) use ($business_id) {
+                            $join->on('transactions.location_id', '=', 'BS.id')
+                                ->where('BS.business_id', '=', $business_id);
+                        }
                     )
                     ->leftJoin(
                         'transaction_payments AS TP',
@@ -4949,18 +4960,33 @@ class TransactionUtil extends Util
      */
     public function getListExpenses($business_id)
     {
-        $expenses = Transaction::leftJoin('expense_categories AS ec', 'transactions.expense_category_id', '=', 'ec.id')
-            ->leftJoin('expense_categories AS esc', 'transactions.expense_sub_category_id', '=', 'esc.id')
+        // US-COM-009 hotfix R1 (AUDIT-SENIOR-2026-05-25) — JOIN com `contacts` e
+        // `business_locations` AGORA usa closure com scope `business_id` explícito
+        // (defense-in-depth ADR 0093 Garantia 5). `expense_categories` também tem
+        // `business_id`. `users`, `tax_rates` mantidos sem scope (não expõem PII
+        // cross-tenant via filtro nesta listagem).
+        $expenses = Transaction::leftJoin('expense_categories AS ec', function ($join) use ($business_id) {
+            $join->on('transactions.expense_category_id', '=', 'ec.id')
+                ->where('ec.business_id', '=', $business_id);
+        })
+            ->leftJoin('expense_categories AS esc', function ($join) use ($business_id) {
+                $join->on('transactions.expense_sub_category_id', '=', 'esc.id')
+                    ->where('esc.business_id', '=', $business_id);
+            })
             ->join(
                 'business_locations AS bl',
-                'transactions.location_id',
-                '=',
-                'bl.id'
+                function ($join) use ($business_id) {
+                    $join->on('transactions.location_id', '=', 'bl.id')
+                        ->where('bl.business_id', '=', $business_id);
+                }
             )
             ->leftJoin('tax_rates as tr', 'transactions.tax_id', '=', 'tr.id')
             ->leftJoin('users AS U', 'transactions.expense_for', '=', 'U.id')
             ->leftJoin('users AS usr', 'transactions.created_by', '=', 'usr.id')
-            ->leftJoin('contacts AS c', 'transactions.contact_id', '=', 'c.id')
+            ->leftJoin('contacts AS c', function ($join) use ($business_id) {
+                $join->on('transactions.contact_id', '=', 'c.id')
+                    ->where('c.business_id', '=', $business_id);
+            })
             ->leftJoin(
                 'transaction_payments AS TP',
                 'transactions.id',
@@ -5006,7 +5032,17 @@ class TransactionUtil extends Util
      */
     public function getListSells($business_id, $sale_type = 'sell')
     {
-        $sells = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+        // US-COM-009 hotfix R1 (AUDIT-SENIOR-2026-05-25) — JOIN com `contacts` e
+        // `business_locations` AGORA usa closure com scope `business_id` explícito
+        // (defense-in-depth ADR 0093 Garantia 5). MESMO bug do getListPurchases:
+        // SELECT inclui `contacts.name/mobile/supplier_business_name` cross-tenant.
+        // `res_tables`, `transaction_sell_lines` (FK em transactions já scopeada),
+        // `users` mantidos sem scope (semantic = info do criador/garçom/entregador
+        // — não exposição PII de outro tenant via filtro `?q=`).
+        $sells = Transaction::leftJoin('contacts', function ($join) use ($business_id) {
+            $join->on('transactions.contact_id', '=', 'contacts.id')
+                ->where('contacts.business_id', '=', $business_id);
+        })
                 // ->leftJoin('transaction_payments as tp', 'transactions.id', '=', 'tp.transaction_id')
                 ->leftJoin('transaction_sell_lines as tsl', function ($join) {
                     $join->on('transactions.id', '=', 'tsl.transaction_id')
@@ -5018,9 +5054,10 @@ class TransactionUtil extends Util
                 ->leftJoin('res_tables as tables', 'transactions.res_table_id', '=', 'tables.id')
                 ->join(
                     'business_locations AS bl',
-                    'transactions.location_id',
-                    '=',
-                    'bl.id'
+                    function ($join) use ($business_id) {
+                        $join->on('transactions.location_id', '=', 'bl.id')
+                            ->where('bl.business_id', '=', $business_id);
+                    }
                 )
                 ->leftJoin(
                     'transactions AS SR',

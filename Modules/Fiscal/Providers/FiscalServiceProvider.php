@@ -2,7 +2,12 @@
 
 namespace Modules\Fiscal\Providers;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Fiscal\Console\Commands\HabilitarBusinessCommand;
+use Modules\Fiscal\Listeners\InvalidaCockpitCacheListener;
+use Modules\NfeBrasil\Events\NFCeAutorizada;
+use Modules\NfeBrasil\Events\NFeAutorizada;
 
 class FiscalServiceProvider extends ServiceProvider
 {
@@ -16,6 +21,16 @@ class FiscalServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        // GAP-FISCAL-002 — invalida cache KPIs Cockpit quando NFe/NFCe autorizada
+        Event::listen(NFeAutorizada::class, InvalidaCockpitCacheListener::class);
+        Event::listen(NFCeAutorizada::class, InvalidaCockpitCacheListener::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                HabilitarBusinessCommand::class,
+            ]);
+        }
     }
 
     public function register(): void

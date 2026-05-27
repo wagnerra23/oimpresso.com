@@ -322,3 +322,117 @@ Então recebe `403 Unauthorized`
 
 **Implementação:** Controllers checam `$user->can('accounting.journal_entries.create')`  
 **Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+
+---
+
+## Deprecação programada — Modules/Accounting (ADR 0172)
+
+> Tasks de deprecação canon (Wagner aprovou 2026-05-20 — [ADR 0172](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md)). Plano completo em [DEPRECATION-PLAN.md](DEPRECATION-PLAN.md). 7 ondas, ~26 semanas corridas, ~18d trabalho ativo. Onda 0 (audit DB) + Onda 1 (ADRs accepted) já concluídas em 2026-05-20. Restam 6 tasks abaixo.
+
+### US-ACCO-011 · DEPRECATION Onda 1.3: Errata BRIEFING Accounting (claims falsos linhas 21+25)
+
+> owner: claude · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+Atualizar `memory/requisitos/Accounting/BRIEFING.md` pra refletir realidade pós-inspeção forense 2026-05-20.
+
+**Acceptance:**
+- [ ] Linha 21 ("espinha dorsal pra Vestuario/NfeBrasil/RecurringBilling") removida ou anotada como FALSA — inspeção confirmou ZERO cross-imports
+- [ ] Linha 25 ("JournalEntry gerado automaticamente em vendas/compras pagas") removida ou anotada como FALSA — ZERO Listeners/Observers no módulo
+- [ ] Header BRIEFING declara `lifecycle: deprecating` (decreto ADR 0172)
+- [ ] Link pra ADR 0172 + DEPRECATION-PLAN.md no topo
+- [ ] PR aberto + mergeado
+
+**Ref:** [ADR 0172](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md), [INSPECAO-FORENSE-2026-05-20.md](INSPECAO-FORENSE-2026-05-20.md)
+
+### US-ACCO-012 · DEPRECATION Onda 2: UI freeze (sidebar hide + routes 410 Gone)
+
+> owner: claude · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: US-ACCO-011
+
+Esconder Accounting do user-facing UI antes do drop de código.
+
+**Acceptance:**
+- [ ] `Modules/Accounting/Http/Controllers/DataController.php` — `modifyAdminMenu()` faz early return (sidebar não renderiza Accounting pra nenhum business)
+- [ ] `Modules/Accounting/Http/routes.php` — todas as 82 routes `/accounting/*` retornam HTTP 410 Gone com mensagem "Módulo Accounting deprecated em 2026-05-20 — use /financeiro/* (ADR 0172)"
+- [ ] Exceto rotas API que outros módulos chamem (verificar nenhuma existe — inspeção forense já mostrou zero cross-imports)
+- [ ] `modules_statuses.json`: Accounting permanece `true` ainda (Onda 5 troca pra false)
+- [ ] Pest test: GET `/accounting/chart-of-accounts` retorna 410
+- [ ] Pest test: sidebar de admin biz=1 NÃO contém entry Accounting
+- [ ] PR + canary deploy + monitor 14 dias antes de Onda 3
+
+**Ref:** [ADR 0172 §Roadmap E3 UI freeze](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md)
+
+### US-ACCO-013 · DEPRECATION Onda 3: Migration accounts_legacy_map → fin_planos_conta (idempotente)
+
+> owner: claude · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: US-ACCO-012
+
+Migrar dados úteis das tabelas Accounting pras correspondentes Financeiro, business_id por business_id.
+
+**Acceptance:**
+- [ ] Script `Modules/Accounting/Database/Migrations/{ts}_migrate_accounting_data_to_financeiro.php`
+- [ ] Maps `chart_of_accounts` (49 rows × N biz) → `fin_planos_conta` skip se já existir (idempotente)
+- [ ] Maps `journal_entries` (se houver dados úteis) → `fin_titulos` com origem='migracao_accounting'
+- [ ] `accounts_legacy_map` (Financeiro 2026-05-09 — bridge infra já existente) populada pra cada par accounting_id → fin_planos_conta_id
+- [ ] Pest test: rerun migration NÃO duplica linhas
+- [ ] Pest test: business_id preservado em cada linha
+- [ ] Multi-tenant Tier 0: zero leak cross-business no script
+- [ ] PR + dry-run em staging + canary biz=1 + monitor 7d
+
+**Ref:** [ADR 0172 §Roadmap E4 Migration paths](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md)
+
+### US-ACCO-014 · DEPRECATION Onda 4: View bridge tabelas (60d rollback window)
+
+> owner: claude · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: US-ACCO-013
+
+Substituir tabelas Accounting por VIEWS apontando pra Financeiro, mantendo append-only de queries legadas que possam existir em dashboards externos / clientes Power BI.
+
+**Acceptance:**
+- [ ] DROP TABLE `chart_of_accounts` + CREATE VIEW `chart_of_accounts` AS SELECT ... FROM `fin_planos_conta` JOIN `accounts_legacy_map`
+- [ ] Idem `journal_entries`, `accounts`, `acc_trans_mappings`, `budget`
+- [ ] Backup pre-drop: mysqldump das 5 tabelas pra `/tmp/accounting-pre-bridge-{date}.sql` + S3 (retention 90d)
+- [ ] Pest test: SELECT * FROM `chart_of_accounts` WHERE business_id=1 retorna 49 linhas (paridade pré/pós)
+- [ ] Monitor 60d sem regressão antes de Onda 5
+- [ ] Critério rollback: se cliente reportar dashboard quebrado, drop view + restore mysqldump
+
+**Ref:** [ADR 0172 §Roadmap E5 View bridge](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md)
+
+### US-ACCO-015 · DEPRECATION Onda 5: Drop Modules/Accounting/ + modules_statuses=false
+
+> owner: claude · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: US-ACCO-014
+
+Remover código do módulo após 60d de view bridge sem regressão.
+
+**Acceptance:**
+- [ ] `git rm -r Modules/Accounting/` (todos Controllers, Services, Entities, Migrations, Views, Routes, Tests, Resources/lang)
+- [ ] `modules_statuses.json`: Accounting → false
+- [ ] Permissions Spatie `accounting.*` removidas (ou marcadas deprecated)
+- [ ] Composer autoload-dump
+- [ ] Pest: `php artisan test` passa sem erros (zero referência órfã)
+- [ ] Smoke prod: `curl /accounting/chart-of-accounts` → 404 (não 500)
+- [ ] `memory/requisitos/Accounting/`: mover pra `memory/requisitos/_deprecated/Accounting/` preservando inspecao + plano + ADRs como histórico
+- [ ] PR + canary deploy + monitor 7d
+- [ ] CHANGELOG.md entry + post-mortem session log
+
+**Ref:** [ADR 0172 §Roadmap E6 Drop código](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md)
+
+### US-ACCO-016 · DEPRECATION Onda 6: Drop tabelas (90d após Onda 5) — IRREVERSÍVEL
+
+> owner: wagner · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: US-ACCO-015
+
+Última fase: DROP VIEW + DROP backup tables após 90d de monitor. **Gate manual Wagner irreversível.**
+
+**Acceptance:**
+- [ ] DROP VIEW `chart_of_accounts`, `journal_entries`, `accounts`, `acc_trans_mappings`, `budget`
+- [ ] DROP `accounts_legacy_map` (não mais necessário — código gone, dados em fin_*)
+- [ ] Confirmação Wagner explícita por chat antes de DROP (ponto sem retorno)
+- [ ] Backup final mysqldump preservado em S3 (retention 5 anos LGPD audit)
+- [ ] Migration `{ts}_drop_accounting_views_and_legacy_map.php` (rollback NÃO possível — declarar irreversible no header)
+- [ ] Pest test: `SHOW TABLES LIKE 'chart_of_accounts'` retorna vazio
+- [ ] PR + Wagner aprova explícito (gate manual irreversível)
+
+**Ref:** [ADR 0172 §Roadmap E7 Drop tabelas (irreversível)](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md)

@@ -645,24 +645,10 @@ class SellController extends Controller
 
         // Inertia render — US-SELL-008 pattern Cockpit canon (PR único).
         // DataTables AJAX legacy continua funcionando via request()->ajax() acima.
-        // KPIs counters — mesmas regras de tenant scope que getListSells (defesa em profundidade).
-        $kpiBase = \App\Transaction::where('business_id', $business_id)
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->whereNull('sub_type');
-
-        $sellKpis = [
-            'total' => (clone $kpiBase)->count(),
-            'paid' => (clone $kpiBase)->where('payment_status', 'paid')->count(),
-            'due' => (clone $kpiBase)->where('payment_status', 'due')->count(),
-            'partial' => (clone $kpiBase)->where('payment_status', 'partial')->count(),
-            'overdue' => (clone $kpiBase)
-                ->whereIn('payment_status', ['due', 'partial'])
-                ->whereNotNull('pay_term_number')
-                ->whereNotNull('pay_term_type')
-                ->whereRaw("IF(pay_term_type='days', DATE_ADD(transaction_date, INTERVAL pay_term_number DAY) < CURDATE(), DATE_ADD(transaction_date, INTERVAL pay_term_number MONTH) < CURDATE())")
-                ->count(),
-        ];
+        // KPIs counters + coworkAggregates extraídos pra App\Services\Sells\SellsCockpitAggregator
+        // (reuso /ia/dashboard, Jana V2). Comportamento idêntico — Pest cobertura paridade.
+        $cockpitAggregator = app(\App\Services\Sells\SellsCockpitAggregator::class);
+        $sellKpis = $cockpitAggregator->buildSellKpis($business_id);
 
         // US-SELL-COWORK-COMMISSION — Coluna Comissão na grade só aparece quando
         // setting business_details.sales_cmsn_agnt ≠ 'disable' (gap PR #1043).
@@ -689,116 +675,168 @@ class SellController extends Controller
             'coworkCommissionEnabled' => $coworkCommissionEnabled,
             // US-SELL-COWORK-R5-POLISH — agregados Cowork (sparkline 30d + deltas + top vendedor).
             // Inertia::defer pra não bloquear render inicial (pages.md rule canon).
-            'coworkAggregates' => \Inertia\Inertia::defer(fn () => $this->buildCoworkAggregates($business_id)),
+            'coworkAggregates' => \Inertia\Inertia::defer(fn () => $cockpitAggregator->buildCoworkAggregates($business_id)),
         ]);
     }
 
     /**
-     * US-SELL-COWORK-R5-POLISH — agregados pra cards Cowork da Sells/Index.
+     * Onda 6 (ADR 0192 A1 KB-9.75) — Caixa do dia Inertia em rota nova /vendas/caixa.
      *
-     * Retorna:
-     *  - sparkline: array 30 days revenue (final_total) — multi-tenant Tier 0 scoped via business_id
-     *  - deltaRevenueVsYesterday: pct (round int) — null se ontem == 0
-     *  - deltaTicketVsLastWeek: pct (round int) — null se semana passada == 0
-     *  - topSeller: { name, total } — commission_agent do mês corrente OU null
+     * Coexiste com legacy /cash-register/* Blade (decisão Wagner 2026-05-25 ~15h —
+     * pattern Cliente Wave A-G drawer 760 · rollback trivial).
      *
-     * Multi-tenant Tier 0 IRREVOGÁVEL: todo where() abaixo recebe ->where('business_id', $business_id)
-     * explícito além do global scope (defesa em profundidade, ADR 0093).
+     * Retorna props pré-agregadas pelo controller (defesa Tier 0 — sem query no frontend):
+     *  - porFormaPagamento: array [{ key, label, icon, clearing, count, total }]
+     *  - porOrigem: array [{ source, label, count, total, refs:[{id,invoice_no,os_ref}] }]
+     *  - caixaAberto: bool
+     *  - cashRegisterId: int|null (pra link "Fechar caixa" navegar legacy)
+     *  - totalDia: float
+     *  - countDia: int
+     *  - dateSelected: 'Y-m-d' (default hoje)
+     *
+     * Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL: where('business_id', $business_id)
+     * explícito em todo Eloquent (defesa em profundidade além do global scope).
+     *
+     * Permission gate: direct_sell.view (paridade Sells/Index · Caixa é leitura).
      */
-    protected function buildCoworkAggregates(int $business_id): array
+    public function inertiaCaixa(\Illuminate\Http\Request $request)
     {
-        $today = now()->startOfDay();
-        $yesterday = (clone $today)->subDay();
-        $start30 = (clone $today)->subDays(29);
-        $monthStart = (clone $today)->startOfMonth();
-        $lastWeekStart = (clone $today)->subDays(13);
-        $lastWeekEnd = (clone $today)->subDays(7);
-        $thisWeekStart = (clone $today)->subDays(6);
-
-        // Sparkline — 30d revenue per day. GROUP BY DATE().
-        $sparkRowsQ = \App\Transaction::where('business_id', $business_id)
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->whereNull('sub_type')
-            ->whereBetween('transaction_date', [$start30, (clone $today)->endOfDay()])
-            ->selectRaw('DATE(transaction_date) as d, SUM(final_total) as total')
-            ->groupBy('d')
-            ->orderBy('d');
-
-        $sparkByDate = $sparkRowsQ->get()->keyBy('d')->map(fn ($r) => (float) $r->total);
-
-        $sparkline = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = (clone $today)->subDays($i)->format('Y-m-d');
-            $sparkline[] = (float) ($sparkByDate[$date] ?? 0.0);
+        // Gate canonical UPOS (paridade Sells/Index — Caixa é leitura).
+        if (! auth()->user()->can('direct_sell.view') &&
+            ! auth()->user()->can('view_own_sell_only') &&
+            ! auth()->user()->can('view_commission_agent_sell')) {
+            abort(403, 'Unauthorized action.');
         }
 
-        // Delta revenue hoje vs ontem (round int %).
-        $revToday = \App\Transaction::where('business_id', $business_id)
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->whereNull('sub_type')
-            ->whereDate('transaction_date', $today)
-            ->sum('final_total');
-        $revYesterday = \App\Transaction::where('business_id', $business_id)
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->whereNull('sub_type')
-            ->whereDate('transaction_date', $yesterday)
-            ->sum('final_total');
+        $business_id = (int) $request->session()->get('user.business_id');
 
-        $deltaRevenueVsYesterday = $revYesterday > 0
-            ? (int) round((($revToday - $revYesterday) / $revYesterday) * 100)
-            : null;
+        // Date selected — default hoje (timezone biz session já aplicado por middleware).
+        $dateInput = (string) $request->input('date', '');
+        $date = \Carbon::createFromFormat('Y-m-d', $dateInput ?: now()->format('Y-m-d'));
+        $dayStart = (clone $date)->startOfDay();
+        $dayEnd = (clone $date)->endOfDay();
 
-        // Delta ticket médio esta semana vs semana passada (round int %).
-        $thisWeekRows = \App\Transaction::where('business_id', $business_id)
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->whereNull('sub_type')
-            ->whereBetween('transaction_date', [$thisWeekStart, (clone $today)->endOfDay()])
-            ->selectRaw('COUNT(*) as c, SUM(final_total) as s')
-            ->first();
-        $lastWeekRows = \App\Transaction::where('business_id', $business_id)
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->whereNull('sub_type')
-            ->whereBetween('transaction_date', [$lastWeekStart, $lastWeekEnd])
-            ->selectRaw('COUNT(*) as c, SUM(final_total) as s')
-            ->first();
-
-        $thisWeekTicket = ($thisWeekRows && $thisWeekRows->c > 0) ? $thisWeekRows->s / $thisWeekRows->c : 0.0;
-        $lastWeekTicket = ($lastWeekRows && $lastWeekRows->c > 0) ? $lastWeekRows->s / $lastWeekRows->c : 0.0;
-
-        $deltaTicketVsLastWeek = $lastWeekTicket > 0
-            ? (int) round((($thisWeekTicket - $lastWeekTicket) / $lastWeekTicket) * 100)
-            : null;
-
-        // Top vendedor do mês (commission_agent).
-        $topSellerRow = \App\Transaction::where('transactions.business_id', $business_id)
+        // Base query Transactions vendas final do dia (Tier 0 multi-tenant).
+        $base = \App\Transaction::where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
             ->whereNull('transactions.sub_type')
-            ->whereBetween('transactions.transaction_date', [$monthStart, (clone $today)->endOfDay()])
-            ->whereNotNull('transactions.commission_agent')
-            ->join('users', 'users.id', '=', 'transactions.commission_agent')
-            ->selectRaw("CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as name, SUM(transactions.final_total) as total")
-            ->groupBy('transactions.commission_agent', 'users.first_name', 'users.last_name')
-            ->orderByDesc('total')
-            ->limit(1)
+            ->whereBetween('transactions.transaction_date', [$dayStart, $dayEnd]);
+
+        // Total/count dia.
+        $totalDia = (float) (clone $base)->sum('transactions.final_total');
+        $countDia = (int) (clone $base)->count();
+
+        // ── Por forma de pagamento ─────────────────────────────────────────────
+        // Agrega via transaction_payments (canonical UPOS — pay_method por linha).
+        $payMethodLabels = [
+            'cash' => ['label' => 'Dinheiro', 'icon' => 'cash', 'clearing' => 'imediato'],
+            'card' => ['label' => 'Cartão', 'icon' => 'card', 'clearing' => 'D+1'],
+            'cheque' => ['label' => 'Cheque', 'icon' => 'cheque', 'clearing' => 'compensação'],
+            'bank_transfer' => ['label' => 'Transferência', 'icon' => 'transfer', 'clearing' => 'D+0'],
+            'other' => ['label' => 'Outro', 'icon' => 'other', 'clearing' => '—'],
+            'advance' => ['label' => 'Adiantamento', 'icon' => 'advance', 'clearing' => '—'],
+        ];
+
+        $payRows = \DB::table('transaction_payments as tp')
+            ->join('transactions as t', 't.id', '=', 'tp.transaction_id')
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'sell')
+            ->where('t.status', 'final')
+            ->whereNull('t.sub_type')
+            ->whereBetween('t.transaction_date', [$dayStart, $dayEnd])
+            ->where('tp.is_return', 0)
+            ->selectRaw('tp.method as method, COUNT(DISTINCT tp.transaction_id) as cnt, SUM(tp.amount) as tot')
+            ->groupBy('tp.method')
+            ->get();
+
+        $porFormaPagamento = $payRows->map(function ($r) use ($payMethodLabels) {
+            $key = (string) $r->method;
+            $meta = $payMethodLabels[$key] ?? ['label' => ucfirst(str_replace('_', ' ', $key)), 'icon' => 'other', 'clearing' => '—'];
+
+            return [
+                'key' => $key,
+                'label' => $meta['label'],
+                'icon' => $meta['icon'],
+                'clearing' => $meta['clearing'],
+                'count' => (int) $r->cnt,
+                'total' => (float) $r->tot,
+            ];
+        })->values()->all();
+
+        // ── Por origem (A1 KB-9.75 · ADR 0192) ─────────────────────────────────
+        // Agrupa por transactions.source (default 'balcao' retroativo · migration default).
+        $sourceLabels = [
+            'balcao' => 'Balcão',
+            'oficina' => 'Oficina',
+            'online' => 'Online',
+        ];
+
+        $sourceRows = (clone $base)
+            ->select(
+                \DB::raw("COALESCE(transactions.source, 'balcao') as source"),
+                \DB::raw('COUNT(*) as cnt'),
+                \DB::raw('SUM(transactions.final_total) as tot')
+            )
+            ->groupBy(\DB::raw("COALESCE(transactions.source, 'balcao')"))
+            ->get();
+
+        // Refs por source (id + invoice_no + os_ref) — limit 10 por source pro payload leve.
+        $refsBySource = (clone $base)
+            ->select(
+                'transactions.id',
+                'transactions.invoice_no',
+                'transactions.os_ref',
+                \DB::raw("COALESCE(transactions.source, 'balcao') as source")
+            )
+            ->whereNotNull('transactions.os_ref')
+            ->orderBy('transactions.id', 'desc')
+            ->limit(50)
+            ->get()
+            ->groupBy('source')
+            ->map(fn ($g) => $g->take(10)->map(fn ($r) => [
+                'id' => (int) $r->id,
+                'invoice_no' => (string) $r->invoice_no,
+                'os_ref' => (string) $r->os_ref,
+            ])->values()->all());
+
+        $porOrigem = $sourceRows->map(function ($r) use ($sourceLabels, $refsBySource) {
+            $source = (string) $r->source;
+
+            return [
+                'source' => $source,
+                'label' => $sourceLabels[$source] ?? ucfirst($source),
+                'count' => (int) $r->cnt,
+                'total' => (float) $r->tot,
+                'refs' => $refsBySource->get($source, []),
+            ];
+        })->values()->all();
+
+        // ── Caixa aberto (UPOS canonical) ──────────────────────────────────────
+        $openCashRegister = \App\CashRegister::where('business_id', $business_id)
+            ->where('user_id', auth()->user()->id)
+            ->where('status', 'open')
+            ->orderBy('id', 'desc')
             ->first();
 
-        $topSeller = $topSellerRow && trim((string) $topSellerRow->name) !== ''
-            ? ['name' => trim((string) $topSellerRow->name), 'total' => (float) $topSellerRow->total]
-            : null;
-
-        return [
-            'sparkline' => $sparkline,
-            'deltaRevenueVsYesterday' => $deltaRevenueVsYesterday,
-            'deltaTicketVsLastWeek' => $deltaTicketVsLastWeek,
-            'topSeller' => $topSeller,
-        ];
+        return \Inertia\Inertia::render('Sells/Caixa/Index', [
+            'porFormaPagamento' => $porFormaPagamento,
+            'porOrigem' => $porOrigem,
+            'totalDia' => $totalDia,
+            'countDia' => $countDia,
+            'caixaAberto' => $openCashRegister !== null,
+            'cashRegisterId' => $openCashRegister?->id,
+            'dateSelected' => $date->format('Y-m-d'),
+            'permissions' => [
+                'view' => true, // Já passou o gate acima
+                'close' => auth()->user()->can('close_cash_register'),
+            ],
+        ]);
     }
+
+    // buildCoworkAggregates() extraído para App\Services\Sells\SellsCockpitAggregator
+    // (reuso em Modules\Jana\Http\Controllers\DashboardController — /ia/dashboard
+    // Jana V2). Lógica preservada verbatim — Pest cobertura paridade.
 
     /**
      * Show the form for creating a new resource.
@@ -928,15 +966,16 @@ class SellController extends Controller
         // mapeia pra SellPosController (que tem branch idêntico).
         // Refs: ADR 0104 (MWART canônico §F2 backend baseline), ADR 0105 (3 graus regulação).
         //
-        // HOTFIX rollback emergencial 2026-05-13 — biz=4 (Larissa/ROTA LIVRE) reportou bugs v2:
-        //   (1) "traz o mesmo produto com estoque" (duplicação/seleção variação errada)
-        //   (2) faltam botões "preço diferenciado / tamanho / conversão unidade medida" do Blade
-        //   (3) erro visível na tela
-        // Cintura+suspensório: GrowthBook regra biz=4 OFF + este guard hardcoded.
-        // TODO: remover guard quando bugs corrigidos + canary biz=4 re-ativado.
+        // HOTFIX 2026-05-13 (biz=4 rollback) REMOVIDO em 2026-05-27.
+        // Histórico: Larissa @ ROTA LIVRE reportou 3 bugs v2 (variação duplicada, falta
+        // preço diferenciado/tamanho/conversão, erro visível) → guard hardcoded `$business_id !== 4`.
+        // Após cadeia hotfixes 2026-05-27 (PRs #1716/#1719/#1721/#1726/#1729/#1732/#1733/#1746):
+        //   - PR #1729 fixou CustomerSearch concatenação (parte do bug 2 — recalcular preço cliente)
+        //   - Bugs 1 (variação duplicada) e 3 (erro visível) endereçados em PRs separados R4/R5
+        //   - Wagner 2026-05-27: "remova hardcode, ative para todos"
+        // V2 agora controlada APENAS pela feature flag (FeatureFlagService.useV2SellsCreate).
         $ffs = app(\App\Services\FeatureFlagService::class);
-        $useV2 = $business_id !== 4
-            && $ffs->isOn('useV2SellsCreate', ['business_id' => $business_id]);
+        $useV2 = $ffs->isOn('useV2SellsCreate', ['business_id' => $business_id]);
         if ($useV2) {
             return \Inertia\Inertia::render('Sells/Create', [
                 'businessLocations'    => $business_locations,
@@ -1216,6 +1255,10 @@ class SellController extends Controller
                 // US-SELL-COWORK — pagamento: método dominante (último registrado) + número de parcelas (count > 0 amount).
                 \DB::raw('(SELECT method FROM transaction_payments tp_m WHERE tp_m.transaction_id = transactions.id AND tp_m.is_return = 0 ORDER BY tp_m.id DESC LIMIT 1) as last_payment_method'),
                 \DB::raw('(SELECT COUNT(*) FROM transaction_payments tp_i WHERE tp_i.transaction_id = transactions.id AND tp_i.is_return = 0 AND tp_i.amount > 0) as installments_count'),
+                // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75): coluna Origem.
+                // COALESCE pra default 'balcao' retroativo (vendas legacy sem source).
+                \DB::raw("COALESCE(transactions.source, 'balcao') as source"),
+                'transactions.os_ref',
             ], 'page', $page);
         $rows = $paginator->getCollection();
 
@@ -1363,6 +1406,17 @@ class SellController extends Controller
 
                     'payment_method_label' => $paymentMethodLabel,
                     'installments' => (int) ($r->installments_count ?? 0),
+
+                    // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75).
+                    // Frontend Sells/Index Onda 3 renderiza VdSource pill (Balcão/Oficina/Online)
+                    // + link ↗ #OS-NNNN clicável quando source='oficina'.
+                    'source' => (string) ($r->source ?? 'balcao'),
+                    'source_label' => match ((string) ($r->source ?? 'balcao')) {
+                        'oficina' => 'Oficina',
+                        'online'  => 'Online',
+                        default   => 'Balcão',
+                    },
+                    'os_ref' => $r->os_ref,
                 ];
             });
 
@@ -2794,6 +2848,18 @@ class SellController extends Controller
                         'invoice_scheme_id' => $transaction->invoice_scheme_id ? (int) $transaction->invoice_scheme_id : null,
                         'pay_term_number' => $transaction->pay_term_number,
                         'pay_term_type' => $transaction->pay_term_type ? (string) $transaction->pay_term_type : null,
+                        // ADR 0192 Onda 2 follow-up — editor UI de comissão mecânico/balcão.
+                        'commission_split' => $transaction->commission_split, // array | null (cast em Transaction.php)
+                        // PR parking-lot P1 — features só-no-Blade preservadas (pre-fill Edit.tsx).
+                        // staff_note (sale.staff_note), commission_agent select responsável,
+                        // is_recurring assinatura recorrente, customer_secondary_address (cobrança ≠ entrega).
+                        'staff_note' => $transaction->staff_note ? (string) $transaction->staff_note : null,
+                        'commission_agent' => $transaction->commission_agent ? (int) $transaction->commission_agent : null,
+                        'is_recurring' => (int) ($transaction->is_recurring ?? 0),
+                        'customer_secondary_address' => $transaction->customer_secondary_address ?? '',
+                        // PR parking-lot P2 — updated_at pra auto-save draft staleness check.
+                        // Frontend compara com draft.savedAt — se backend > draft, descarta rascunho stale.
+                        'updated_at' => $transaction->updated_at ? (string) $transaction->updated_at : null,
                     ],
                     'sellDetails' => $sell_details,
                     'taxes' => $taxes,
@@ -2819,6 +2885,18 @@ class SellController extends Controller
                     'isOrderRequestEnabled' => (bool) $is_order_request_enabled,
                     'customerDue' => (string) $customer_due,
                     'users' => $users,
+                    // PR #1663 — Customer payload pro Edit.tsx (defaultName real + cliente vencido alerta).
+                    // sell_lines.contact pode estar eager-loaded via $with linha 329; fallback firstOrFail
+                    // anti-Tier 0 protege cross-tenant (transaction.business_id já validado linha 2456).
+                    'customer' => $transaction->contact ? [
+                        'id' => (int) $transaction->contact->id,
+                        'name' => (string) ($transaction->contact->name ?? ''),
+                        'mobile' => $transaction->contact->mobile ? (string) $transaction->contact->mobile : null,
+                        'email' => $transaction->contact->email ? (string) $transaction->contact->email : null,
+                        // dues_total = soma de transactions.final_total - total_paid de outras vendas due
+                        // do mesmo contact. Lazy fallback ao $customer_due variable já existente acima.
+                        'dues_total' => (float) ($customer_due ? floatval(preg_replace('/[^\d.]/', '', $customer_due)) : 0.0),
+                    ] : null,
                 ];
             };
 
@@ -2835,6 +2913,8 @@ class SellController extends Controller
                     'submit' => '/sells/' . $id,
                     'cancel' => '/sells/' . $id,
                     'back' => '/sells',
+                    // ADR 0192 Onda 2 follow-up — endpoint dedicado pra salvar commission_split.
+                    'commission_split' => '/sells/' . $id . '/commission-split',
                 ],
             ]);
         }

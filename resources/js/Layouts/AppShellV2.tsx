@@ -37,6 +37,7 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
+  Undo2,
   Users,
   Wrench,
   Zap,
@@ -79,6 +80,7 @@ const TOPNAV_ICON_MAP: Record<string, LucideIcon> = {
 import { useAutoModuleNav } from '@/Hooks/usePageProps';
 import CommandPalette from '@/Components/CommandPalette';
 import PwaInstallBanner from '@/Components/shared/PwaInstallBanner';
+import ConsentBanner from '@/Components/shared/ConsentBanner';
 
 import '../../css/cockpit.css';
 
@@ -225,13 +227,20 @@ export default function AppShellV2({
       menu?: ShellMenuItem[];
       cockpit?: CockpitShellPropsRaw;
     };
-    auth?: { user?: { ui_theme?: 'light' | 'dark' | null } };
+    auth?: {
+      user?: { ui_theme?: 'light' | 'dark' | null };
+      switched_from?: { user_id: number; username: string } | null;
+    };
   };
   const shellProps = allProps?.shell;
   const shellMenu: ShellMenuItem[] = shellProps?.menu ?? [];
   // Tema do user — aplicado no .cockpit pra cores ficarem coerentes com
   // shadcn (que usa dark mode automatico via classe 'dark' no <html>).
   const userTheme = allProps?.auth?.user?.ui_theme ?? 'light';
+  // Wagner 2026-05-20: superadmin switched para conta de outro user (Modules/Superadmin
+  // "Sign in as user"). Banner "Voltar para X" no topo de toda tela Inertia, espelha
+  // link Blade em resources/views/layouts/partials/header.blade.php (linha 47-49).
+  const switchedFrom = allProps?.auth?.switched_from ?? null;
   const superadminItems = shellMenu.filter((i) => isSuperadminMenu(i.label));
   const userMenuItems = shellMenu.filter((i) => isUserMenuItem(i.label));
 
@@ -393,6 +402,34 @@ export default function AppShellV2({
       {/* PWA install banner (US-FIN-036) — auto-detecta rota /financeiro/* e
           beforeinstallprompt; fora desse contexto renderiza null. */}
       <PwaInstallBanner />
+      {/* Consent banner LGPD (ADR 0191) — portão pra analytics/tracking.
+          Auto-detecta `consent.needs_banner` via Inertia share; fora desse
+          contexto renderiza null. */}
+      <ConsentBanner />
+      {switchedFrom && (
+        <a
+          href={`/sign-in-as-user/${switchedFrom.user_id}`}
+          role="alert"
+          aria-label={`Voltar para ${switchedFrom.username}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: '6px 16px',
+            background: '#dc2626',
+            color: '#fff',
+            fontSize: 12.5,
+            fontWeight: 600,
+            textDecoration: 'none',
+            position: 'relative',
+            zIndex: 9999,
+          }}
+        >
+          <Undo2 size={14} />
+          Voltar para {switchedFrom.username}
+        </a>
+      )}
       <div
         className="cockpit"
         data-linked={!conversaFoco || linkedCollapsed ? 'off' : 'on'}
@@ -442,7 +479,11 @@ export default function AppShellV2({
         {/* MAIN COLUMN */}
         <div className="main" data-topbar={hideTopbar ? 'hidden' : 'on'}>
           {!hideTopbar && (
-          <header className="topbar">
+          /* ADR 0191 — data-clarity-unmask: breadcrumb + topnav são contexto
+             de navegação não-PII; desmascarar pra heatmap fazer sentido
+             visual no dashboard Clarity. Forms/listagens com dados de
+             cliente seguem mascarados pelo mask-all default. */
+          <header className="topbar" data-clarity-unmask="True">
             <div className="bc">
               {crumb.map((part, i) => (
                 <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>

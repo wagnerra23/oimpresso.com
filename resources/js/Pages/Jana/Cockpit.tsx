@@ -1,5 +1,5 @@
 // @memcofre
-//   tela: /copiloto/cockpit (= /jana/cockpit)
+//   tela: /ia/cockpit (legacy: /copiloto/cockpit · /jana/cockpit — 301 redirects)
 //   stories: US-COPI-COCKPIT-002 (V2 Analista IA · pivot Cowork 2026-05-15)
 //   adrs: 0035 (stack IA), 0039 (Cockpit V2), 0094 (Constituição §IA), 0104 (MWART), 0107 (gate F1.5), 0114 (loop Cowork↔CC)
 //   status: live (pivot Cowork aceito · supersedes MVP-piloto WhatsApp anti-pattern)
@@ -20,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { BusinessOpt } from '@/Components/cockpit/shared';
+import { JanaAreaHeader } from './components/JanaAreaHeader';
 
 // ─── Tipos ─────────────────────────────────────────────────────────────
 
@@ -954,6 +955,7 @@ export default function Cockpit({
       }}
     >
       <Head title="Jana · Cockpit" />
+      <JanaAreaHeader active="cockpit" />
       <div className="px-6 py-5 max-w-[1280px] mx-auto">
         <JanaHeader data={jana} businessNome={businessNome} />
 

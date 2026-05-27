@@ -22,7 +22,12 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
 class ServiceOrderSummaryService
 {
     /**
-     * KPIs combinados (locação + manutenção) pra dashboard Martinho.
+     * KPIs combinados (manutenção mecânica pesada predominante + locação preservada nullable) pra dashboard Martinho.
+     *
+     * Pós-ADR 0194 (2026-05-26): Martinho biz=164 sub-vertical 4 mecânica pesada
+     * caminhão basculante CNAE 4520 — OS predominante `order_type='manutencao'`.
+     * KPI `locacao_ativa` reflete schema sub-vertical 3 hipotético preservado
+     * nullable (sem cliente real ancorado — retorna 0 sem erro).
      *
      * @return array{locacao_ativa:int,manutencao_ativa:int,concluida_mes:int,atrasada:int}
      */

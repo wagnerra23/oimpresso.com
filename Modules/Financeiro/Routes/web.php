@@ -6,6 +6,7 @@ use Modules\Financeiro\Http\Controllers\Advisor\AdvisorPortalController;
 use Modules\Financeiro\Http\Controllers\AdvisorAccessController;
 use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\BoletoController;
+use Modules\Financeiro\Http\Controllers\CaixaController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\CobrancaController;
 use Modules\Financeiro\Http\Controllers\ConciliacaoController;
@@ -13,6 +14,7 @@ use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DashboardController;
+use Modules\Financeiro\Http\Controllers\DreController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
@@ -64,10 +66,18 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/unificado/{id}/baixar', [UnificadoController::class, 'baixar'])
             ->whereNumber('id')
             ->name('unificado.baixar');
+        // Onda 15 (2026-05-20): bulk update categoria em lote
+        Route::post('/unificado/bulk-update-categoria', [UnificadoController::class, 'bulkUpdateCategoria'])
+            ->name('unificado.bulk-update-categoria');
         // Onda Edit 2026-05-18 — edit Sheet inline + conferido per-user DB.
         Route::put('/unificado/{id}', [UnificadoController::class, 'update'])
             ->whereNumber('id')
             ->name('unificado.update');
+        // Onda 25 (2026-05-25) US-FIN-021 — Insert manual via TituloCreateSheet
+        // (substitui stub /unificado/novo). Multi-tenant Tier 0 + idempotência
+        // via lockForUpdate no numero sequencial business-isolado.
+        Route::post('/unificado', [UnificadoController::class, 'store'])
+            ->name('unificado.store');
         Route::post('/unificado/{id}/conferir', [UnificadoController::class, 'conferir'])
             ->whereNumber('id')
             ->name('unificado.conferir');
@@ -79,6 +89,15 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Pure-read, JSON, Tier 0 multi-tenant via business_id global scope.
         Route::get('/unificado/saldo-sparkline', [UnificadoController::class, 'saldoSparkline'])
             ->name('unificado.saldo-sparkline');
+
+        // PR I (2026-05-25) G5 auditoria — sugere valor pra novo Titulo manual
+        // baseado em histórico contraparte (último valor + média + count).
+        Route::get('/unificado/sugerir-valor', [UnificadoController::class, 'sugerirValor'])
+            ->name('unificado.sugerir-valor');
+
+        // PR J (2026-05-25) US-FIN-024 — Combobox cliente autocomplete server-side.
+        Route::get('/unificado/buscar-cliente', [UnificadoController::class, 'buscarCliente'])
+            ->name('unificado.buscar-cliente');
 
         // Onda #4b 2026-05-18 — sidebar REAL pro Mock Cowork (3 camadas universal).
         // Bridge JS fetcha com header `X-Inertia: true` (senão middleware
@@ -102,6 +121,14 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
         Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
+
+        // DRE gerencial hierárquica — Cockpit V2 (US-FIN-014a, reaplicação canon).
+        // Wagner aprovou 2026-05-20 (Q1-Q8b em memory/requisitos/Financeiro/
+        // dre-visual-comparison.md). Read-only. Ver Pages/Financeiro/Dre/Index.charter.md.
+        Route::get('/dre', [DreController::class, 'index'])->name('dre.index');
+        Route::get('/dre/export-pdf', [DreController::class, 'exportPdf'])->name('dre.export-pdf');
+        Route::get('/dre/export-xlsx', [DreController::class, 'exportXlsx'])->name('dre.export-xlsx');
+        Route::get('/dre/export-csv', [DreController::class, 'exportCsv'])->name('dre.export-csv');
 
         // Contas a receber (lista + emitir boleto)
         Route::get('/contas-receber', [ContaReceberController::class, 'index'])->name('contas-receber.index');
@@ -157,6 +184,17 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
 
         // Alias canonical: /financeiro/dashboard → /financeiro (URL canônica é a raiz)
         Route::redirect('/dashboard', '/financeiro', 301)->name('dashboard.alias');
+
+        // Wagner 2026-05-21 Fase 6 Soft (wrapper Inertia) — caixa do turno read-only.
+        // Lifecycle (abrir/fechar) continua na header POS via CashRegisterController core;
+        // esta tela é só descoberta + histórico no Financeiro.
+        // Permission gate `view_cash_register` no Controller.
+        Route::get('/caixa', [CaixaController::class, 'index'])->name('caixa.index');
+        // ADR 0183 PR C — backfill manual: lança fin_titulo retroativo pra caixa
+        // fechado pré-Observer. Idempotente. Permission financeiro.lancamentos.create.
+        Route::post('/caixa/{id}/lancar', [CaixaController::class, 'lancar'])
+            ->whereNumber('id')
+            ->name('caixa.lancar');
 
         // Categorias livres (CRUD complementar ao plano de contas)
         Route::get('/categorias', [CategoriaController::class, 'index'])->name('categorias.index');

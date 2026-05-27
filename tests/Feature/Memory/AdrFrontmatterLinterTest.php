@@ -53,9 +53,13 @@ const MODULE_VALIDOS    = [
     'autopecas',    // ADR 0125 — Modules/Autopecas feature-wish (Vargas sinal qualificado)
     'comissao',     // ADR 0151 — Modules/Comissao feature-wish (cross-vertical)
     'pcp',          // ADR 0152 — Modules/Pcp feature-wish (apontamento producao)
+    'crm',          // ADR 0188 — Modules/Crm contatos multi-type (acquaintance Wagner 2026-05-24)
     // Legacy/Wave variants (case-sensitive em ADRs aceitas pre-migração — append-only Tier 0)
     'Sells', 'Autopecas', 'Comissao', 'Pcp', 'Governance', 'ADS',
     'Infra', 'jana', 'sells', 'design-system', 'Sells',
+    'NfeBrasil',    // ADR 0186 mergeada com case canônico do path Modules/NfeBrasil/ — append-only impede fix
+    '_DesignSystem', // ADRs 0189/0190 mergeadas com prefixo underscore (era convenção early-design-system) — append-only impede fix; convenção futura: design-system (lowercase)
+    'OficinaAuto',  // ADR 0194 mergeada com case canônico do path Modules/OficinaAuto/ — append-only impede fix; convenção futura: oficinaauto (lowercase)
 ];
 
 const CAMPOS_OBRIGATORIOS = [
@@ -83,6 +87,21 @@ const ADRS_LEGACY_SKIP = [
     '0126-vault-chunked-encryption-sprint-2',
     '0127-modules-auditoria-undo-activity-log',
     '0128-smoke-testing-e2e-pos-cycle',
+    // Pre-existentes em main 2026-05-21 (Wagner Financeiro/Accounting deprec sprint):
+    // ambos sem frontmatter YAML canon. Append-only Tier 0 — não editar.
+    // Backlog migração: Wave 30+ junto com 0122-0128.
+    '0172-deprecar-modulo-accounting-fundir-financeiro',
+    '0173-errata-arq-0005-tabelas-accounting-sem-prefixo',
+    // Aceita 2026-05-21 antes do CI rodar este check com vocabulário module strict.
+    // `module: crm` legacy (MODULE_VALIDOS não lista 'crm' nem 'Crm' como canon —
+    // Modules/Crm é módulo real do projeto; backlog adicionar à enum em PR
+    // dedicado quando outras ADRs precisarem). Append-only Tier 0 — não editar.
+    '0179-cliente-drawer-760px-substitui-show-fullpage',
+    // Pre-existente em main · frontmatter incompleto (sem slug/number/type/authority/
+    // lifecycle/decided_at). Append-only Tier 0 — não editar. Backlog migração junto
+    // com 0122-0128 + 0172-0173 em Wave 30+.
+    '0170-onda5-simplificada',
+    '0170-bancos-nativos-top5-drivers-separados',
 ];
 
 /**

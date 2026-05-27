@@ -7,15 +7,21 @@ namespace Modules\PaymentGateway\Http\Controllers\Webhooks;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 /**
- * Recebe webhooks do Inter (boleto + Pix Cob).
+ * Recebe webhooks do Inter (boleto + Pix Cob — controller LEGACY).
  *
  * Rota: POST /paymentgateway/webhooks/inter/{businessId}
  * Sem auth middleware (chamado pelo Inter externamente).
  *
- * Onda 3 — ADR 0170. Cutover via DNS/proxy fica pra Onda 3.5.
- * RB continua recebendo em /webhooks/inter (sem conflito).
+ * NÃO confundir com `InterPixWebhookController` (Onda 26 US-FIN-032) que
+ * vive em /webhooks/inter/{credentialId} e processa PIX dedicado com job.
+ *
+ * Onda 3 — ADR 0170. US-PG-002 (audit-senior 2026-05-25 VULN SEC P0-#2):
+ * valida HMAC-SHA256 (`x-inter-signature`) ANTES de qualquer parse/DB-write
+ * — espelhando pattern InterPixWebhookController canon.
  *
  * Identificadores Inter:
  *   - boletoCobranca: "txid" no payload (PIX recv) ou "nossoNumero" (boleto)
@@ -29,6 +35,34 @@ class InterWebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
+        $credential = PaymentGatewayCredential::withoutGlobalScopes()
+            ->where('business_id', $businessId)
+            ->where('gateway_key', 'inter')
+            ->where('ativo', true)
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $credential) {
+            Log::warning('paymentgateway.inter.webhook.credential_not_found', [
+                'business_id' => $businessId,
+            ]);
+            return response()->json([
+                'ok'    => false,
+                'error' => 'credential_not_found',
+            ], 404);
+        }
+
+        if (! $this->processor->validateSignature('inter', $request, $credential)) {
+            Log::warning('paymentgateway.inter.webhook.signature_invalid', [
+                'business_id'   => $businessId,
+                'credential_id' => $credential->id,
+            ]);
+            return response()->json([
+                'ok'    => false,
+                'error' => 'signature_invalid',
+            ], 401);
+        }
+
         $eventName = (string) $request->input('evento', $request->input('event', 'unknown'));
         $eventId = (string) ($request->input('id')
             ?? $request->input('txid')
@@ -41,6 +75,7 @@ class InterWebhookController extends Controller
             businessId: $businessId,
             eventName: $eventName,
             eventId: $eventId,
+            signatureValid: true,
         );
     }
 }

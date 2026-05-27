@@ -38,7 +38,7 @@ uses(Tests\TestCase::class);
 // ---------- D8.c FormRequest tests ----------
 
 it('001. StoreMetaRequest aceita payload válido', function () {
-    $request = StoreMetaRequest::create('/jana/metas', 'POST', [
+    $request = StoreMetaRequest::create('/ia/metas', 'POST', [
         'slug' => 'receita-mensal',
         'nome' => 'Receita Mensal',
         'unidade' => 'R$',

@@ -1,15 +1,31 @@
 ---
 name: sidebar-menu-arch
-description: Reconhecer, auditar e modificar a arquitetura do sidebar do AppShellV2 — DataController por módulo + agrupamento visual via SIDEBAR_GROUPS no frontend.
+description: Reconhecer, auditar e modificar a arquitetura do sidebar do AppShellV2 — DataController por módulo + agrupamento visual via SIDEBAR_GROUPS no frontend. ATENÇÃO 2026-05-25: ADR 0180 (aceito 2026-05-21) supersede o padrão `Menu::dropdown` com sub-itens — agora canon é href direto + ghosts no PageHeader. Ler "Princípio canônico v3" abaixo antes de aplicar.
 trust_level: L2
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
 charter_adr: 0080
 tier: B
 parent_adr: 0095
+supersedes_partially_via_adr: 0180
 ---
 
 # Skill — Arquitetura do Sidebar (AdminSidebarMenu + SIDEBAR_GROUPS)
+
+> ⚠️ **CONFLITO HISTÓRICO RESOLVIDO 2026-05-25:** Esta skill foi escrita 2026-05-05 com padrão v2
+> (`Menu::dropdown('Label', sub-items)` popup-menu). [ADR 0180](../../../memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md)
+> aceita 2026-05-21 **supersedes parcialmente** este padrão:
+> - **Item sidebar é SINGLE-LINK** (`'href' => '/destino'`) — NUNCA dropdown popup-menu
+> - **Sub-views (ghosts) viram tabs no PageHeader Zona C** — não vivem mais no sidebar
+> - **Cmd+K cobre power-user** que quer pular direto
+>
+> Pattern justificado: "Sidebar é mapa de DESTINOS, não de AÇÕES" (ADR 0180 § Justificativa).
+> Skill mantida pra documentar o **lifecycle backend** (DataController + SIDEBAR_GROUPS grouping)
+> que continua válido, mas a parte de "como compor sub-itens" foi reescrita pelo contrato
+> DataController v2 (ADR 0180 § Contrato DataController v2 — `'href'` + `'ghosts'[]`).
+>
+> Anti-padrão AP19 (LEARNINGS PageHeader sessão 2026-05-25):
+> usar `Menu::dropdown('X', $sub => $sub->url(...))` com popup é PROIBIDO no canon v3.
 
 ## Quando ativar
 
@@ -20,13 +36,31 @@ Sempre que a tarefa envolver:
 - Entender por que um módulo não aparece no sidebar
 - Mover módulo de um grupo visual para outro
 
-## Princípio canônico (ratificado 2026-05-05)
+## Princípio canônico v3 (ratificado 2026-05-21 via ADR 0180 — supersede v2 de 2026-05-05)
 
-> **Cada módulo publica SEU PRÓPRIO dropdown via `DataController::modifyAdminMenu()`. O agrupamento visual (RH/Fiscal/IA…) acontece NO FRONTEND, via lookup table `SIDEBAR_GROUPS` em `resources/js/Components/cockpit/Sidebar.tsx`.**
+> **Cada módulo publica UM ÚNICO item single-link via `DataController::items()` contrato v2 (ADR 0180).
+> O item tem `'href' => /destino'` direto + `'ghosts' => [...]` que viram tabs no PageHeader Zona C
+> da tela destino. O agrupamento visual (VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA) acontece NO
+> FRONTEND, via lookup `SIDEBAR_GROUPS` em `Sidebar.tsx` (5 keys canon, não 11).**
 
-Padrão validado em `Modules/Financeiro` (módulo próprio) + grupo "Estoque" (itens core agrupados visualmente). Estendido em 2026-05-05 para HRM/Essenciais (RH), NFSe/NfeBrasil (FISCAL) e TeamMcp (IA & PRODUTIVIDADE).
+**3 mudanças vs v2:**
+1. ❌ `Menu::dropdown('Label', $sub => $sub->url(...))` com popup-menu → ✅ item single-link `'href' => '/X'`
+2. ❌ Sub-items vivendo no sidebar (popup ao hover) → ✅ ghosts viram **tabs no PageHeader Zona C** da tela
+3. ❌ 11 grupos visuais → ✅ 5 grupos canônicos (VENDER · OPERAR · FINANÇAS · PESSOAS · SISTEMA) + 3 topo (IA · ATENDIMENTO · EQUIPE)
 
-**Não fazer:** `Menu::dropdown('NomeGrupo', ...)` cross-módulo dentro de `AdminSidebarMenu.php`. Causa acoplamento (PHP precisa conhecer todos os módulos do grupo) e gera bugs de escopo de closure (`use ($seg)` em PHP é não-óbvio). Histórico: bug "Undefined variable $seg" 2026-05-05 reverteu o pattern.
+**Razão (ADR 0180 § Justificativa):** "Sidebar persistente como mapa de DESTINOS, não de AÇÕES.
+Sub-funções são contextuais da tela — ghost ARIA tablist preserva acessibilidade. Hierarquia
+in-screen escala 5→50 features sem restructure (padrão Linear/Notion/Vercel/Stripe)."
+
+### Princípio canônico v2 (HISTÓRICO — descontinuado por ADR 0180)
+
+~~Cada módulo publica SEU PRÓPRIO dropdown via `DataController::modifyAdminMenu()` com `Menu::dropdown('Label', $sub => ...)` agrupando sub-itens.~~
+
+Padrão validado em 2026-05-05 (Financeiro, HRM/Essenciais, NFSe/NfeBrasil, TeamMcp) mas **substituído** 16 dias depois pela arquitetura v3 da ADR 0180. Razão da substituição: popup-menu duplica navegação (sidebar + header da tela mostram as mesmas opções), violando "uma única forma de acessar uma página" (Constituição UI v2 ADR UI-0013).
+
+**Anti-padrão v2 mantido (continua proibido):** `Menu::dropdown('NomeGrupo', ...)` cross-módulo dentro de `AdminSidebarMenu.php`. Causa acoplamento (PHP precisa conhecer todos os módulos do grupo) e gera bugs de escopo de closure (`use ($seg)` em PHP é não-óbvio). Histórico: bug "Undefined variable $seg" 2026-05-05 reverteu o pattern.
+
+**Anti-padrão v3 NOVO (ADR 0180 v3 introduziu):** `Menu::dropdown('LabelModulo', $sub => $sub->url(...)->url(...))` MESMO se for SÓ do próprio módulo (não cross). O item sidebar deve ser SINGLE-LINK; sub-itens viram ghosts no PageHeader Zona C da tela destino. Anti-padrão AP19 catalogado em PageHeader-LEARNINGS sessão 2026-05-25.
 
 ## Stack do sidebar (do backend ao React)
 
@@ -55,11 +89,49 @@ Sidebar.tsx → SIDEBAR_GROUPS lookup → SidebarGroup (accordion) → SidebarMe
 | `resources/js/Components/cockpit/Sidebar.tsx` | **SIDEBAR_GROUPS + MENU_ICON_MAP** — agrupamento visual e ícones |
 | `resources/css/cockpit.css` | Estilos `.sb-item`, `.sb-group`, `.sb-item.is-open` |
 
-## Padrão único — DataController + SIDEBAR_GROUPS
+## Padrão canon v3 — DataController contrato v2 (ADR 0180) + SIDEBAR_GROUPS
 
-### Backend — `Modules/<Nome>/Http/Controllers/DataController.php`
+### Backend — `Modules/<Nome>/Sidebar/DataController.php` (contrato v2)
 
 ```php
+// ADR 0180 v3 — item SINGLE-LINK + ghosts (que viram tabs no PageHeader Zona C)
+public function items(int $businessId): array
+{
+    if (!$this->isInstalledFor($businessId)) {
+        return [];  // Tier 0 multi-tenant — tenant sem módulo não declara (ADR 0093)
+    }
+
+    if (!auth()->user()->can('nome.access')) {
+        return [];  // permissão usuário
+    }
+
+    return [[
+        'label'    => 'Label do Módulo',             // ← label canônico
+        'href'     => route('nome.index'),           // ← SINGLE-LINK direto
+        'icon'     => 'icon-name',                   // ← Lucide icon name
+        'group'    => 'vender',                      // ← uma das 5: vender/operar/financas/pessoas/sistema
+        'shortcut' => 'G N',                         // ← atalho kbd sidebar (G + letra grupo + letra item)
+        'primary'  => [                              // ← botão "+ Novo X" colorido no PageHeader Zona R
+            'label'    => 'Novo X',
+            'href'     => route('nome.create'),
+            'shortcut' => 'N',
+        ],
+        'ghosts'   => [                              // ← header tabs Zona C (NÃO popup do sidebar)
+            ['key' => 'todos',      'label' => 'Todos',     'href' => '/nome?tab=todos'],
+            ['key' => 'sub1',       'label' => 'Sub 1',     'href' => '/nome?tab=sub1'],
+            ['key' => 'sub2',       'label' => 'Sub 2',     'href' => '/nome?tab=sub2'],
+            // ... até 5 ghosts inline · 6+ vira "⋯ Mais" dropdown no PageHeader
+        ],
+    ]];
+}
+```
+
+### Backend — `Modules/<Nome>/Http/Controllers/DataController.php` (contrato v1 — DEPRECATED por ADR 0180)
+
+> ⚠️ **NÃO USAR EM CÓDIGO NOVO.** Mantido aqui só pra entender módulos legados ainda não migrados.
+
+```php
+// ❌ DEPRECATED — usar items() contrato v2 acima (ADR 0180)
 public function modifyAdminMenu(): void
 {
     $module_util = new ModuleUtil();
@@ -79,16 +151,11 @@ public function modifyAdminMenu(): void
     if (! $usuario_pode_ver) return;
 
     Menu::modify('admin-sidebar-menu', function ($menu) {
+        // ❌ ANTI-PADRÃO v3: dropdown com sub-itens é proibido (AP19)
+        // Use items() contrato v2 com 'href' direto + 'ghosts' que viram tabs no header
         $menu->dropdown('Label do Módulo', function ($sub) {
-            $sub->url(route('nome.index'), 'Subitem', [
-                'icon'   => 'fa fas fa-icon',
-                'active' => request()->segment(2) === 'sub',
-            ]);
-            // ... mais subitens com guards de permissão ...
-        }, [
-            'icon'   => 'fa fas fa-icon-grupo',
-            'active' => request()->segment(1) === 'nome',
-        ])->order(NN);
+            $sub->url(route('nome.index'), 'Subitem', [...]);
+        }, [...])->order(NN);
     });
 }
 ```
@@ -189,6 +256,15 @@ console.table(lookup);
 
 ## Anti-padrões
 
+### v3 (ADR 0180 — banidos 2026-05-21)
+
+- ❌ **AP19** — `Menu::dropdown('Label', $sub => $sub->url(...)->url(...))` com popup-menu, MESMO se for só do próprio módulo. Use `items()` contrato v2 com `'href'` direto + `'ghosts'[]` que viram tabs no PageHeader Zona C da tela destino. Razão: "Sidebar é mapa de DESTINOS, não AÇÕES" (ADR 0180 § Justificativa)
+- ❌ Duplicar navegação (sidebar popup + header tabs mostrando as mesmas opções) — viola "uma única forma de acessar uma página" (Constituição UI v2 ADR UI-0013)
+- ❌ Mais que 5 ghosts visíveis no PageHeader Zona C — overflow vira "⋯ Mais (N)" dropdown
+- ❌ Sub-views no sidebar quando deveriam estar no header (`Crm > Contatos > [Fornecedores, Clientes, Grupos, Importar]` = AP19)
+
+### v2 mantidos (continuam proibidos)
+
 - ❌ Criar `Menu::dropdown('Grupo', ...)` cross-módulo em `AdminSidebarMenu.php` — usar SIDEBAR_GROUPS no frontend
 - ❌ DataController de módulo A criar dropdown que inclui itens do módulo B — cada módulo publica só o seu
 - ❌ Esquecer entrada em `MENU_ICON_MAP` (label cai em ícone genérico Hash)
@@ -201,6 +277,8 @@ console.table(lookup);
 
 ## Histórico
 
+- **2026-05-25** — **Skill reconciliada com ADR 0180.** Detectado conflito (Wagner sessão `/contacts?type=customer` perguntou "qual link deve ter popup?"). Skill v2 ainda descrevia `Menu::dropdown('Label', sub)` com popup, mas ADR 0180 (aceito 2026-05-21) já banira esse padrão em favor de single-link `'href'` + ghosts no PageHeader Zona C. Adicionado: princípio canônico v3 no topo, contrato `items()` v2 no corpo, anti-padrão AP19, nota de conflito histórico no preâmbulo. v1 (`modifyAdminMenu()`) mantida como DEPRECATED pra entender módulos legados ainda não migrados. ADR 0180 Fase 4 (migração 17 DataControllers) NÃO completou — Cliente/Contatos ainda mostra popup em prod.
+- **2026-05-21** — [ADR 0180](../../../memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md) aceita. Sidebar v3 redefine arquitetura: 5 grupos canônicos (VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA) + 3 topo (IA/ATENDIMENTO/EQUIPE). Item sidebar = single-link `'href'`. Sub-views = ghost ARIA tablist no PageHeader Zona C. Cmd+K global pra power-user. Pinned/Favoritos localStorage scoped business_id.
 - **2026-05-05** — Reorg parte 3 (Wagner): OFFICEIMPRESSO renomeado → ACESSOS RÁPIDOS. Novo grupo CONHECIMENTO (Cofre de Memórias + Base de Conhecimento + Planilha) — "Base de Conhecimento" extraída do dropdown Essenciais como item top-level no Essentials DataController. MemCofre/Memória removidos de SUPERADMIN_LABELS (vão pra CONHECIMENTO). Grupo NOTIFICAÇÕES eliminado — Modelos de notificação cai em fallback MAIS. 'Project Mgmt' adicionado ao grupo IA & PRODUTIVIDADE. Lang strings: `home.home` "Iniciar"→"Dashboard", `sale.sale` "vender"→"Vendas".
 - **2026-05-05** — Reorg parte 2 (Wagner): Reparar entrou em OFFICEIMPRESSO. Gerenciamento de usuários + Configurações foram pro user dropdown footer (USER_MENU_LABELS em shared.ts). Grupo PRODUTIVIDADE removido — voltou pra IA & PRODUTIVIDADE com Projeto + Team MCP juntos.
 - **2026-05-05** — Reorg parte 1: Iniciar/Home/Dashboard movidos para RELATÓRIOS. PontoWr2 label "Ponto WR2" → "Ponto" + entrou em RH. 'Conector' adicionado a SUPERADMIN_LABELS (regex single-n não batia o português).
@@ -208,4 +286,4 @@ console.table(lookup);
 - **2026-05-05** — CSS `.sb-item.is-open` parou de clarear (Wagner: "sempre escuro, só hover ilumina").
 - **2026-04-27** — `MENU_ICON_MAP` + `SIDEBAR_GROUPS` introduzidos em `Sidebar.tsx` (UI-0011).
 
-**Última atualização:** 2026-05-05
+**Última atualização:** 2026-05-25 (reconciliação com ADR 0180 — supersede parcial do padrão v2)

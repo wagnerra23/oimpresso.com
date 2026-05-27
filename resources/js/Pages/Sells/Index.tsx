@@ -16,29 +16,43 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import { usePage } from '@inertiajs/react';
 import {
   Archive,
+  BarChart3,
+  Calendar,
   CheckCircle2,
   ChevronDown,
+  DollarSign,
   FileText,
   Folder,
   Plus,
   Printer,
   Search,
   SlidersHorizontal,
-  X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
+import QuickPaymentPopover from './_components/QuickPaymentPopover';
+import VdBulkEmitModal, { type BulkEmitItem } from './_components/VdBulkEmitModal';
+import { toast } from 'sonner';
 // PR follow-up Cowork — filtros legacy reintegrados via barra colapsável "Filtros avançados ▾".
 // Refs: Index.charter.md v2 Goals · feedback-design-literal-copy §How to apply #5.
 import SellsDateFilter, {
   computePresetRange,
   type DateFilterPreset,
 } from './_components/SellsDateFilter';
-import SellsToggleViewMode, { type SellsViewMode } from './_components/SellsToggleViewMode';
-import SellsGroupByDropdown, { type GroupByField } from './_components/SellsGroupByDropdown';
-import SellsGradeAvancada from './_components/SellsGradeAvancada';
-import type { SellsTotals } from './_components/SellsTotalsRow';
+import SellsTabsVisao, { type SellsVisao } from './_components/SellsTabsVisao';
+import SellsTabelaUnificada, {
+  COLUMNS_OPERACIONAL,
+  COLUMNS_FINANCEIRA,
+  COLUMNS_PRODUCAO,
+  type ColumnId,
+  type SaleRow as UnifiedSaleRow,
+} from './_components/SellsTabelaUnificada';
+import SellsCheatSheet, { SELLS_INDEX_SHORTCUTS } from './_components/SellsCheatSheet';
+// Insights Jana movido pra /ia/dashboard (Jana V2 canon). Antes era tab embutida aqui via
+// `viewMode === 'insights'` + SellsInsightsView. Ver Modules/Jana/Http/Controllers/DashboardController
+// + resources/js/Pages/Jana/components/JanaCockpitV2.tsx.
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS
@@ -87,6 +101,12 @@ interface SaleRow {
   // Coluna só renderiza se coworkCommissionEnabled=true (setting business.sales_cmsn_agnt ≠ 'disable').
   commission_agent_id?: number | null;
   commission_agent_name?: string | null;
+  // Integração Vendas × Oficina (Onda 3+4 · ADR 0192) — payload `/sells-list-json`
+  // devolve desde Onda 2 commit e98649989. source default 'balcao' retroativo
+  // (migration default · zero breaking change com vendas legacy).
+  source?: 'balcao' | 'oficina' | 'online' | string;
+  source_label?: string;
+  os_ref?: string | null;
 }
 
 interface SellKpis {
@@ -122,6 +142,9 @@ interface CoworkAggregates {
   deltaRevenueVsYesterday: number | null; // pct round int (today vs yesterday); null se ontem=0
   deltaTicketVsLastWeek: number | null;   // pct round int (this week ticket médio vs last week); null se 0
   topSeller: { name: string; total: number } | null;
+  // PR #1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
+  pixHojeTotal?: number;
+  faturadoHojeTotal?: number;
 }
 
 export interface SellsIndexPageProps {
@@ -167,22 +190,37 @@ const fmtTime = (iso: string | null) => {
   return m ? `${m[1]}:${m[2]}` : '';
 };
 
-const LS_PREFIX = 'oimpresso.sells.';
-function lsGet(k: string, d = ''): string {
-  if (typeof window === 'undefined') return d;
-  try {
-    return window.localStorage.getItem(LS_PREFIX + k) ?? d;
-  } catch (_) {
-    return d;
-  }
-}
-function lsSet(k: string, v: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(LS_PREFIX + k, v);
-  } catch (_) {
-    /* localStorage indisponível */
-  }
+// Tier 0 multi-tenant (ADR 0093): preferências de UI da Sells escopo
+// per-business pra não vazar entre tenants no mesmo browser (Wagner WR2 biz=1
+// ↔ Larissa biz=4). Chave: `oimpresso.sells.b<businessId>.<k>` ou `.guest.<k>`.
+// Sinal: Larissa @ ROTA LIVRE biz=4 reportou filtro abrindo em "Caixa" em vez
+// de "Todas" 2026-05-21 (ADR 0105 cliente-sinal).
+function useBizStorage() {
+  const page = usePage<{ auth?: { user?: { business_id?: number } } }>();
+  const bizId = page.props.auth?.user?.business_id ?? null;
+  const prefix = `oimpresso.sells.${bizId ? `b${bizId}` : 'guest'}.`;
+  return useMemo(
+    () => ({
+      get: (k: string, d = ''): string => {
+        if (typeof window === 'undefined') return d;
+        try {
+          return window.localStorage.getItem(prefix + k) ?? d;
+        } catch (_) {
+          return d;
+        }
+      },
+      set: (k: string, v: string): void => {
+        if (typeof window === 'undefined') return;
+        try {
+          window.localStorage.setItem(prefix + k, v);
+        } catch (_) {
+          /* localStorage indisponível */
+        }
+      },
+      key: (k: string): string => prefix + k,
+    }),
+    [prefix],
+  );
 }
 
 // SLA pill — mirrors backend sla_kind but supports rendering when ausente.
@@ -215,7 +253,7 @@ const STATUS_LABEL: Record<PillKey, string> = {
 };
 
 // classifier — what pill does a row belong to (frontend cheap derivation).
-function classifyPill(r: SaleRow): PillKey {
+export function classifyPill(r: SaleRow): PillKey {
   if (r.fiscal_status === 'cancelada') return 'cancelada';
   if (r.fiscal_status === 'autorizada') return 'faturada';
   if (r.payment_status === 'paid') return 'paga';
@@ -224,7 +262,7 @@ function classifyPill(r: SaleRow): PillKey {
 
 // avatar palette index by seller_id (consistent across renders).
 const AVATAR_PALETTES = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
-function avatarPaletteFor(sellerId: number | null): string {
+export function avatarPaletteFor(sellerId: number | null): string {
   if (sellerId == null) return AVATAR_PALETTES[0];
   return AVATAR_PALETTES[sellerId % AVATAR_PALETTES.length] ?? AVATAR_PALETTES[0];
 }
@@ -232,7 +270,7 @@ function avatarPaletteFor(sellerId: number | null): string {
 // ──────────────────────────────────────────────────────────────
 // SLA pill — pílula fresco/atrasando/estourado/paga
 // ──────────────────────────────────────────────────────────────
-function SaleSlaPill({ row, compact = false }: { row: SaleRow; compact?: boolean }): ReactNode {
+export function SaleSlaPill({ row, compact = false }: { row: SaleRow; compact?: boolean }): ReactNode {
   const kind = row.sla_kind ?? 'fresh';
   const days = row.days_to_due;
   const label = slaLabel(kind, days);
@@ -247,7 +285,7 @@ function SaleSlaPill({ row, compact = false }: { row: SaleRow; compact?: boolean
 // ──────────────────────────────────────────────────────────────
 // Pipeline dots — stepper FSM ●●●○ + label curta
 // ──────────────────────────────────────────────────────────────
-function PipelineDots({ row }: { row: SaleRow }): ReactNode {
+export function PipelineDots({ row }: { row: SaleRow }): ReactNode {
   const step = row.pipeline_step ?? null;
   const total = row.pipeline_total ?? 5;
   if (step == null) {
@@ -283,7 +321,7 @@ const FBADGE_CLASS: Record<string, { cls: string; ic: string; tip: string }> = {
   cancelada:  { cls: 'canc', ic: '⊘', tip: 'Cancelada' },
 };
 
-function FiscalBadgesCell({ row }: { row: SaleRow }): ReactNode {
+export function FiscalBadgesCell({ row }: { row: SaleRow }): ReactNode {
   if (!row.fiscal_status) {
     return (
       <span className="vd-fc">
@@ -358,109 +396,91 @@ function Sparkline({
 }
 
 // ──────────────────────────────────────────────────────────────
-// Cheat sheet overlay (?)
+// Cheat sheet overlay (?) — extraído pra _components/SellsCheatSheet.tsx
+// (gap P3 #12 KB-9.75 Cowork bundle 2026-05-26). Lista canônica de atalhos
+// em SELLS_INDEX_SHORTCUTS no mesmo módulo.
 // ──────────────────────────────────────────────────────────────
-function SellsCheatSheet({ onClose }: { onClose: () => void }): ReactNode {
-  return (
-    <div className="vd-cheat-bd" onClick={onClose}>
-      <div className="vd-cheat" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Atalhos">
-        <header className="vd-cheat-h">
-          <span className="vd-cheat-ic">⌨</span>
-          <h2>Atalhos · Lista de vendas</h2>
-          <button className="vd-cheat-x" onClick={onClose} aria-label="Fechar">
-            <X size={14} />
-          </button>
-        </header>
-        <div className="vd-cheat-body">
-          <section className="vd-cheat-grp">
-            <h3>Navegar</h3>
-            <ul>
-              <li><kbd>J</kbd> <kbd>K</kbd> linha anterior/próxima</li>
-              <li><kbd>Enter</kbd> abrir detalhes</li>
-              <li><kbd>Esc</kbd> fechar drawer / palette</li>
-            </ul>
-          </section>
-          <section className="vd-cheat-grp">
-            <h3>Ações</h3>
-            <ul>
-              <li><kbd>N</kbd> nova venda</li>
-              <li><kbd>B</kbd> favoritar linha em foco ★</li>
-              <li><kbd>R</kbd> imprimir recibo</li>
-              <li><kbd>F</kbd> faturar (emitir NF)</li>
-              <li><kbd>X</kbd> marcar pra ação em lote</li>
-              <li><kbd>E</kbd> editar venda</li>
-            </ul>
-          </section>
-          <section className="vd-cheat-grp">
-            <h3>⌘K palette</h3>
-            <ul>
-              <li><kbd>⌘K</kbd> abrir busca rápida</li>
-              <li><kbd>/</kbd> ações</li>
-              <li><kbd>#</kbd> ID da venda</li>
-              <li><kbd>@</kbd> vendedor</li>
-              <li><kbd>$</kbd> valor mínimo</li>
-            </ul>
-          </section>
-          <section className="vd-cheat-grp">
-            <h3>Sair</h3>
-            <ul>
-              <li><kbd>?</kbd> abre/fecha este painel</li>
-              <li><kbd>Esc</kbd> fechar</li>
-            </ul>
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ──────────────────────────────────────────────────────────────
 // Saved views — Hoje / Pendentes / Atrasadas / Rejeitadas / Faturadas / Favoritas
 // (mock simplificado — backend não implementa view filter ainda; client-side)
 // ──────────────────────────────────────────────────────────────
-type SavedViewId = 'hoje' | 'pendentes' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
+type SavedViewId = 'hoje' | 'pendentes' | 'aguardando-faturamento' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
 interface SavedView {
   id: SavedViewId;
   label: string;
   filter: (r: SaleRow) => boolean;
 }
+// KB-9.75 P1 gap #7: "Aguardando faturamento" — pedidos confirmados sem NF emitida.
+// Glossário BR (gap #6): faturar = emitir NF + título no contas a receber.
+// Critério: payment_status !== 'paid' AND fiscal_status NULL — pedido pronto mas
+// sem NF ainda. Permite a Larissa filtrar a fila de "preciso emitir NF" rapidamente.
 const SAVED_VIEWS: SavedView[] = [
-  { id: 'hoje',       label: 'Pendentes pgto.',  filter: (r) => r.payment_status !== 'paid' },
-  { id: 'pendentes',  label: 'Pendentes',        filter: (r) => r.payment_status === 'due' || r.payment_status === 'partial' },
-  { id: 'atrasadas',  label: 'Atrasadas',        filter: (r) => r.sla_kind === 'overdue' },
-  { id: 'rejeitadas', label: 'NF-e rejeitadas',  filter: (r) => r.fiscal_status === 'rejeitada' },
-  { id: 'faturadas',  label: 'Faturadas (mês)',  filter: (r) => r.fiscal_status === 'autorizada' },
-  { id: 'todas',      label: 'Todas',            filter: () => true },
+  { id: 'hoje',                    label: 'Pendentes pgto.',         filter: (r) => r.payment_status !== 'paid' },
+  { id: 'pendentes',               label: 'Pendentes',               filter: (r) => r.payment_status === 'due' || r.payment_status === 'partial' },
+  { id: 'aguardando-faturamento',  label: 'Aguardando faturamento',  filter: (r) => r.payment_status !== 'paid' && (r.fiscal_status === null || r.fiscal_status === undefined) },
+  { id: 'atrasadas',               label: 'Atrasadas',               filter: (r) => r.sla_kind === 'overdue' },
+  { id: 'rejeitadas',              label: 'NF-e rejeitadas',         filter: (r) => r.fiscal_status === 'rejeitada' },
+  { id: 'faturadas',               label: 'Faturadas (mês)',         filter: (r) => r.fiscal_status === 'autorizada' },
+  { id: 'todas',                   label: 'Todas',                   filter: () => true },
 ];
 
 // ──────────────────────────────────────────────────────────────
 // MAIN — SellsIndex
 // ──────────────────────────────────────────────────────────────
 export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
+  // (authUserName + businessName + businessIdShared removidos junto com o render
+  // Insights Jana — usavam-se só pra header tenant. Veja /ia/dashboard via Jana V2.)
+  // Tier 0 multi-tenant: storage scoped per business_id (ver useBizStorage acima).
+  const ls = useBizStorage();
+
   // FOCO segmented control (vista) — Caixa / Faturamento / Comissão (afeta 4º KPI).
   const [foco, setFoco] = useState<FocoKey>(() => {
-    const v = lsGet('foco', 'caixa');
+    const v = ls.get('foco', 'caixa');
     return (['caixa', 'faturamento', 'comissao'] as const).includes(v as FocoKey)
       ? (v as FocoKey)
       : 'caixa';
   });
-  useEffect(() => lsSet('foco', foco), [foco]);
+  useEffect(() => ls.set('foco', foco), [foco]);
 
   // Saved view dropdown (Hoje / Pendentes / Atrasadas / etc).
+  // Default 'todas' — Larissa @ ROTA LIVRE biz=4 reportou 2026-05-21 abrir em
+  // "Caixa" não bate com a operação dela (ADR 0105 sinal qualificado).
   const [savedViewId, setSavedViewId] = useState<SavedViewId>(() => {
-    const v = lsGet('savedView', 'hoje');
-    return SAVED_VIEWS.find((s) => s.id === v)?.id ?? 'hoje';
+    const v = ls.get('savedView', 'todas');
+    return SAVED_VIEWS.find((s) => s.id === v)?.id ?? 'todas';
   });
-  useEffect(() => lsSet('savedView', savedViewId), [savedViewId]);
+  useEffect(() => ls.set('savedView', savedViewId), [savedViewId]);
 
   // 5-pill status filter.
   const [pillFilter, setPillFilter] = useState<PillKey>(() => {
-    const v = lsGet('pill', 'todas');
+    const v = ls.get('pill', 'todas');
     return (['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as const).includes(v as PillKey)
       ? (v as PillKey)
       : 'todas';
   });
-  useEffect(() => lsSet('pill', pillFilter), [pillFilter]);
+  useEffect(() => ls.set('pill', pillFilter), [pillFilter]);
+
+  // Onda 4 (ADR 0192) — saved tree branch "Por origem ▾" no dropdown Visões.
+  // Filhos Balcão/Oficina/Online filtram client-side; persiste em
+  // localStorage Tier 0 per-business (Larissa biz=4 ≠ Wagner biz=1).
+  // Vazio = sem filtro de origem (semântica neutra). Felipe (mecânico) abre
+  // direto em 'oficina' via setting backend `user.profile_default === 'mecanico'`
+  // — UI-only, sem ACL hard (ADR 0192 decisão Wagner).
+  type VisaoOrigemKind = '' | 'balcao' | 'oficina' | 'online';
+  const [visaoOrigem, setVisaoOrigem] = useState<VisaoOrigemKind>(() => {
+    const v = ls.get('visao_origem', '');
+    return (['', 'balcao', 'oficina', 'online'] as const).includes(v as VisaoOrigemKind)
+      ? (v as VisaoOrigemKind)
+      : '';
+  });
+  useEffect(() => ls.set('visao_origem', visaoOrigem), [visaoOrigem]);
+  // Branch tree expand/collapse state (não persiste — UX volátil).
+  const [origemExpanded, setOrigemExpanded] = useState<boolean>(false);
+
+  // Tab bar [Dashboard | Insights Jana] removida — Insights migrado pra /ia/dashboard
+  // (Jana V2 canon). viewMode state + localStorage `view_mode` removidos. Sells/Index
+  // volta a ser single-view (Dashboard) sem mode-switching.
 
   // Data fetch state.
   const [rows, setRows] = useState<SaleRow[]>([]);
@@ -469,60 +489,48 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const [totals, setTotals] = useState<TotalsSummary | null>(null);
   const [openSaleId, setOpenSaleId] = useState<number | null>(null);
 
-  // PR follow-up Cowork — filtros legacy preservados US-SELL-015/017/018/019/021.
-  // viewMode (lista | grade-avancada), preset (Dia/Semana/Mês/Ano/Personalizado/all),
+  // PR follow-up Cowork — filtros legacy preservados US-SELL-018/021.
+  // preset (Dia/Semana/Mês/Ano/Personalizado/all),
   // dateField (7 opções: emissão/atualização/nfe/faturamento/envio/competência/prometido),
-  // groupBy (none/customer/payment_status/emission_month), sortKey/Dir.
-  const [viewMode, setViewMode] = useState<SellsViewMode>(() => {
-    const v = lsGet('viewMode', 'lista');
-    return (['lista', 'grade-avancada'] as const).includes(v as SellsViewMode)
-      ? (v as SellsViewMode)
-      : 'lista';
-  });
-  useEffect(() => lsSet('viewMode', viewMode), [viewMode]);
+  // sortKey/Dir.
+  // viewMode + groupBy + Grade Avançada REMOVIDOS 2026-05-21 (cleanup pós-Onda Unificação,
+  // ADR 0178). Conceito de "Lista vs Grade Avançada" eliminado — tabs Visão atendem.
 
   const [datePreset, setDatePreset] = useState<DateFilterPreset>(() => {
-    const v = lsGet('datePreset', 'all');
+    const v = ls.get('datePreset', 'all');
     return (['day', 'week', 'month', 'year', 'custom', 'all'] as const).includes(
       v as DateFilterPreset
     )
       ? (v as DateFilterPreset)
       : 'all';
   });
-  useEffect(() => lsSet('datePreset', datePreset), [datePreset]);
+  useEffect(() => ls.set('datePreset', datePreset), [datePreset]);
 
   const [dateFrom, setDateFrom] = useState<string>(() => {
-    const stored = lsGet('datePreset', 'all') as DateFilterPreset;
+    const stored = ls.get('datePreset', 'all') as DateFilterPreset;
     if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateFrom;
-    return lsGet('dateFrom', '');
+    return ls.get('dateFrom', '');
   });
   const [dateTo, setDateTo] = useState<string>(() => {
-    const stored = lsGet('datePreset', 'all') as DateFilterPreset;
+    const stored = ls.get('datePreset', 'all') as DateFilterPreset;
     if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateTo;
-    return lsGet('dateTo', '');
+    return ls.get('dateTo', '');
   });
-  useEffect(() => lsSet('dateFrom', dateFrom), [dateFrom]);
-  useEffect(() => lsSet('dateTo', dateTo), [dateTo]);
+  useEffect(() => ls.set('dateFrom', dateFrom), [dateFrom]);
+  useEffect(() => ls.set('dateTo', dateTo), [dateTo]);
 
   const [dateField, setDateField] = useState<
     'transaction_date' | 'updated_at' | 'nfe_issued_at' | 'invoiced_at'
     | 'invoice_sent_at' | 'competence_date' | 'due_date'
   >(() => {
-    const v = lsGet('dateField', 'transaction_date');
+    const v = ls.get('dateField', 'transaction_date');
     const allowed = [
       'transaction_date', 'updated_at', 'nfe_issued_at', 'invoiced_at',
       'invoice_sent_at', 'competence_date', 'due_date',
     ] as const;
     return (allowed as readonly string[]).includes(v) ? (v as typeof allowed[number]) : 'transaction_date';
   });
-  useEffect(() => lsSet('dateField', dateField), [dateField]);
-
-  const [groupBy, setGroupBy] = useState<GroupByField>(() => {
-    const v = lsGet('groupBy', 'none');
-    const allowed = ['none', 'customer_name', 'payment_status', 'emission_month'] as const;
-    return (allowed as readonly string[]).includes(v) ? (v as GroupByField) : 'none';
-  });
-  useEffect(() => lsSet('groupBy', groupBy), [groupBy]);
+  useEffect(() => ls.set('dateField', dateField), [dateField]);
 
   type SortKey = 'transaction_date' | 'invoice_no' | 'customer_name' | 'final_total' | 'payment_status';
   const [sortKey, setSortKey] = useState<SortKey>('transaction_date');
@@ -563,9 +571,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     setDatePreset('all');
     setDateFrom('');
     setDateTo('');
-    lsSet('datePreset', 'all');
-    lsSet('dateFrom', '');
-    lsSet('dateTo', '');
+    ls.set('datePreset', 'all');
+    ls.set('dateFrom', '');
+    ls.set('dateTo', '');
   }, []);
 
   const dateFilterActive = datePreset !== 'all' || dateFrom !== '' || dateTo !== '';
@@ -591,14 +599,14 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   }, [datePreset, dateFrom, dateTo, dateFilterActive]);
 
   // Toggle de visibilidade da barra (default fechado pra não poluir o Cowork visual).
-  const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => lsGet('advancedOpen', '0') === '1');
-  useEffect(() => lsSet('advancedOpen', advancedOpen ? '1' : '0'), [advancedOpen]);
+  const [advancedOpen, setAdvancedOpen] = useState<boolean>(() => ls.get('advancedOpen', '0') === '1');
+  useEffect(() => ls.set('advancedOpen', advancedOpen ? '1' : '0'), [advancedOpen]);
 
   // Selection + favorites + focus row (J/K navigation).
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
   const [favSet, setFavSet] = useState<Set<number>>(() => {
     try {
-      const v = window.localStorage.getItem(LS_PREFIX + 'favs');
+      const v = window.localStorage.getItem(ls.key('favs'));
       return new Set(JSON.parse(v ?? '[]'));
     } catch (_) {
       return new Set();
@@ -623,6 +631,42 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // Refetch trigger (independente de filtros) — disparado por onSaleChanged do drawer.
   const [refetchToken, setRefetchToken] = useState(0);
 
+  // US-SELL-042 / Onda Unificação PR5 — Larissa @ ROTA LIVRE biz=4 (ADR 0105)
+  // pediu 2026-05-21 "adicionar pagamentos como antigamente" (botão direto na
+  // linha sem abrir drawer). Agora via QuickPaymentPopover anchored em cada
+  // row (state local ao componente — sem lift-up).
+
+  // Onda Unificação PR6/6 (ADR 0178) — cutover: tabs Visão sempre ON +
+  // SellsTabelaUnificada sempre renderizada (Lista inline aposentada via
+  // viewMode legado preservado pra fallback "Grade Avançada" durante 30d).
+  // Migration silenciosa localStorage `viewMode → visao` (PR1 #1311 mantém
+  // chaves Tier 0 per-business `oimpresso.sells.b<bizId>.*`).
+  const [visao, setVisao] = useState<SellsVisao>(() => {
+    // Migration: se já tem chave visao salva, usa. Senão, deriva do viewMode
+    // legado: 'lista' → 'operacional' (default), 'grade-avancada' → 'financeira'
+    // (heurística — quem usava Grade buscava Pago/A receber/totalizador).
+    const stored = ls.get('visao', '');
+    if (stored && (['operacional', 'financeira', 'producao'] as const).includes(stored as SellsVisao)) {
+      return stored as SellsVisao;
+    }
+    const legacyViewMode = ls.get('viewMode', 'lista');
+    if (legacyViewMode === 'grade-avancada') return 'financeira';
+    return 'operacional';
+  });
+  useEffect(() => ls.set('visao', visao), [visao]);
+
+  // Connect visão → visibleColumns pra SellsTabelaUnificada (ADR 0178). Filtra
+  // 'commission' do preset quando setting business.sales_cmsn_agnt = 'disable'.
+  const visibleColumns = useMemo<ColumnId[]>(() => {
+    const preset =
+      visao === 'financeira' ? COLUMNS_FINANCEIRA :
+      visao === 'producao' ? COLUMNS_PRODUCAO :
+      COLUMNS_OPERACIONAL;
+    return props.coworkCommissionEnabled
+      ? preset
+      : preset.filter((c) => c !== 'commission');
+  }, [visao, props.coworkCommissionEnabled]);
+
   // UI overlays.
   const [cheatOpen, setCheatOpen] = useState(false);
   const [palOpen, setPalOpen] = useState(false);
@@ -633,6 +677,12 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // US-SELL-COWORK-R2-IA — ⌘K palette ✦ "Perguntar à IA" abre drawer da 1ª venda
   // visível + painel IA. Esta flag sincroniza com SaleSheet via prop initialAiOpen.
   const [aiTriggered, setAiTriggered] = useState(false);
+
+  // KB-9.75 P0 #4 bulk emit modal state — wire-up BulkActionBar onClick
+  // (bug-fix smoke real 2026-05-26 — PR #1644 entregou componente mas wire-up
+  // incompleto deixou 3 botões decorativos sem handler).
+  const [openBulk, setOpenBulk] = useState(false);
+  const [bulkKind, setBulkKind] = useState<'nfe' | 'nfse'>('nfe');
 
   // Fetch /sells-list-json sempre que filtros mudam.
   useEffect(() => {
@@ -691,8 +741,22 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     let out = rows.filter(currentSavedView.filter);
     if (pillFilter === 'faturada') out = out.filter((r) => r.fiscal_status === 'autorizada');
     else if (pillFilter === 'cancelada') out = out.filter((r) => r.fiscal_status === 'cancelada');
+    // Onda 4 (ADR 0192) — saved tree "Por origem" filtra cliente-side por source.
+    if (visaoOrigem) out = out.filter((r) => (r.source ?? 'balcao') === visaoOrigem);
     return out;
-  }, [rows, currentSavedView, pillFilter]);
+  }, [rows, currentSavedView, pillFilter, visaoOrigem]);
+
+  // Onda 4 (ADR 0192) — contadores por source dos rows server-loaded.
+  // Alimenta os filhos do branch "Por origem" no dropdown saved tree e o
+  // breakdown line do KPI hero quando foco='faturamento'.
+  const sourceCounts = useMemo(() => {
+    const acc = { balcao: 0, oficina: 0, online: 0 };
+    rows.forEach((r) => {
+      const k = (r.source ?? 'balcao') as 'balcao' | 'oficina' | 'online';
+      if (k === 'oficina' || k === 'online' || k === 'balcao') acc[k]++;
+    });
+    return acc;
+  }, [rows]);
 
   // Counts per pill (sobre rows server-loaded).
   const countByPill = useCallback(
@@ -736,6 +800,20 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     const total = today.reduce((s, r) => s + r.final_total, 0);
     const ticket = today.length ? total / today.length : 0;
     return { total, count: today.length, ticket };
+  }, [rows, todayIso]);
+
+  // Onda 4 (ADR 0192) — breakdown por source do KPI hero "Faturado hoje".
+  // Soma final_total dos rows do dia agrupado por source. Renderiza apenas
+  // quando foco='faturamento' E há pelo menos 1 row de oficina OU online
+  // (paridade Cowork: condicional pra não poluir tela em biz só-balcão).
+  const kpiTodayBySource = useMemo(() => {
+    const acc = { balcao: 0, oficina: 0, online: 0 };
+    rows.forEach((r) => {
+      if (r.transaction_date?.slice(0, 10) !== todayIso) return;
+      const k = (r.source ?? 'balcao') as 'balcao' | 'oficina' | 'online';
+      if (k === 'oficina' || k === 'online' || k === 'balcao') acc[k] += r.final_total;
+    });
+    return acc;
   }, [rows, todayIso]);
 
   // A receber — soma de final_total - total_paid sobre rows não-pagas.
@@ -792,6 +870,19 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     else setSelectedIds(new Set(filtered.map((v) => v.id)));
   }, [selectedIds.size, filtered]);
 
+  // KB-9.75 P0 #4 — mapeia selecionadas → BulkEmitItem pro VdBulkEmitModal.
+  // Lê rows (state local feed via /sells-list-json) + filtra pelos IDs selecionados.
+  const buildBulkItems = useCallback((): BulkEmitItem[] => {
+    return rows
+      .filter((r) => selectedIds.has(r.id))
+      .map((r) => ({
+        id: r.id,
+        invoice_no: r.invoice_no,
+        customer_name: r.customer_name,
+        kind: bulkKind,
+      }));
+  }, [rows, selectedIds, bulkKind]);
+
   // Favorites helpers (persist localStorage).
   const toggleFav = useCallback((id: number) => {
     setFavSet((prev) => {
@@ -799,12 +890,47 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
       if (next.has(id)) next.delete(id);
       else next.add(id);
       try {
-        window.localStorage.setItem(LS_PREFIX + 'favs', JSON.stringify([...next]));
+        window.localStorage.setItem(ls.key('favs'), JSON.stringify([...next]));
       } catch (_) {
         /* ls indisponível */
       }
       return next;
     });
+  }, []);
+
+  // Onda 4 (ADR 0192) — listener cross-módulo `oimpresso:open-venda`.
+  // Worker B (Onda 5) Repair drawer card "Esta OS gerou venda #V-NNNN" dispara
+  // `window.dispatchEvent(new CustomEvent('oimpresso:open-venda', { detail: { venda_id } }))`
+  // quando user clica "Abrir #V-NNNN". Aqui Sells/Index escuta + abre o drawer
+  // SaleSheet da venda derivada. Sem fetch redundante — backend já filtra
+  // tenancy via /sells/{id}/sheet-data (Tier 0 ADR 0093).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onOpenVenda = (e: Event) => {
+      const detail = (e as CustomEvent<{ venda_id?: number; vendaId?: number; id?: number }>).detail;
+      // Tolera 3 nomes de campo pro contrato eventual ficar resiliente.
+      const vendaId = detail?.venda_id ?? detail?.vendaId ?? detail?.id ?? null;
+      if (vendaId != null && Number.isFinite(vendaId)) {
+        setOpenSaleId(Number(vendaId));
+      }
+    };
+    window.addEventListener('oimpresso:open-venda', onOpenVenda as EventListener);
+    return () => window.removeEventListener('oimpresso:open-venda', onOpenVenda as EventListener);
+  }, []);
+
+  // Onda 6 (ADR 0192) — deep-link `?open=ID` cross-página.
+  // Sells/Caixa/Index navega `router.visit('/sells?open=ID')` quando user clica
+  // link `↗ #OS-NNNN` na seção "Por origem". Pattern padrão deep-link Inertia.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const openParam = params.get('open');
+    if (openParam) {
+      const id = Number(openParam);
+      if (Number.isFinite(id) && id > 0) {
+        setOpenSaleId(id);
+      }
+    }
   }, []);
 
   // Keyboard handler — J/K nav, ?, N, B, R, F, E, X, ⌘K, Esc.
@@ -916,18 +1042,37 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   return (
     <div className="sells-cowork">
       <div className="os-page vendas-page vendas-aplus" data-vista={foco}>
-        {/* HEADER linha 1: h1 + ⌘K + CTA primário */}
+        {/* HEADER linha 1: h1 + CTA primário (busca ⌘K movida pra barra de
+            tabs ao lado de Filtros avançados — Wagner 2026-05-21). */}
         <header className="os-head vd-head-clean">
           <div className="os-head-l">
             <h1>Vendas</h1>
-            <p>Pedidos · faturamento · NF-e/NFS-e</p>
+            {/* PR 1666 — header subtitle métrica live (paridade prototipo Cowork).
+                Substitui string estática por agregados do payload atual.
+                Fallback elegante quando rows ainda não carregaram. */}
+            <p>
+              {rows.length > 0 ? (
+                <>
+                  <strong>{rows.length}</strong> vendas
+                  {' · '}
+                  <strong>{fmtShort(rows.reduce((acc, r) => acc + (Number(r.final_total) || 0), 0))}</strong> faturado
+                  {(() => {
+                    const overdue = rows.filter((r) => r.sla_kind === 'overdue').length;
+                    return overdue > 0 ? (
+                      <>
+                        {' · '}
+                        <strong className="vd-delta-dn">{overdue}</strong> estouradas
+                      </>
+                    ) : null;
+                  })()}
+                </>
+              ) : (
+                'Pedidos · faturamento · NF-e/NFS-e'
+              )}
+            </p>
+            {/* Tab bar Dashboard | Insights Jana removida — Insights V2 migrado pra
+                /ia/dashboard (canon Jana). */}
           </div>
-
-          <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
-            <Search size={12} />
-            <span>Buscar venda, cliente, chave SEFAZ…</span>
-            <kbd>⌘K</kbd>
-          </button>
 
           <div className="os-head-r">
             {props.permissions.create && (
@@ -939,6 +1084,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           </div>
         </header>
 
+        {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
         {/* TOOLBAR linha 2: Foco group + Visões btn / Imprimir + Visões ▾ */}
         <div className="vd-toolbar">
           <div className="vd-toolbar-l">
@@ -1009,6 +1155,60 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                       </div>
                     );
                   })}
+                  {/* Onda 4 (ADR 0192) — branch expansível "Por origem ▾" com
+                      filhos Balcão/Oficina/Online + contadores derivados de
+                      sourceCounts. Filtro client-side via visaoOrigem state +
+                      localStorage Tier 0 per-business `oimpresso.sells.b*.visao_origem`.
+                      Só renderiza filhos se há pelo menos 1 row da origem. */}
+                  <div className="vd-views-sep" />
+                  <div
+                    className={`vd-tree-row l0 ${visaoOrigem ? 'active' : ''}`}
+                    onClick={(e) => {
+                      // Click no label: limpa filtro (toggle off) ou expande pra ver filhos.
+                      if (visaoOrigem) {
+                        setVisaoOrigem('');
+                      } else {
+                        setOrigemExpanded((v) => !v);
+                      }
+                      e.stopPropagation();
+                    }}
+                  >
+                    <span
+                      className={`vd-tree-arr ${origemExpanded ? 'open' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOrigemExpanded((v) => !v);
+                      }}
+                    >
+                      ›
+                    </span>
+                    <span className="vd-tree-lbl">Por origem</span>
+                    <span className="ct">{rows.length}</span>
+                  </div>
+                  {origemExpanded &&
+                    (['balcao', 'oficina', 'online'] as const)
+                      .filter((k) => sourceCounts[k] > 0)
+                      .map((k) => {
+                        const label = k === 'balcao' ? 'Balcão' : k === 'oficina' ? 'Oficina' : 'Online';
+                        const isActiveChild = visaoOrigem === k;
+                        return (
+                          <div
+                            key={k}
+                            className={`vd-tree-row l1 ${isActiveChild ? 'active' : ''}`}
+                            onClick={() => {
+                              setVisaoOrigem(k);
+                              setViewsOpen(false);
+                            }}
+                          >
+                            <span className="vd-tree-arr empty" />
+                            <span className="vd-tree-lbl">
+                              <span className={`vd-src-dot vd-src-${k}`} style={{ display: 'inline-block', marginRight: 6 }} />
+                              {label}
+                            </span>
+                            <span className="ct">{sourceCounts[k]}</span>
+                          </div>
+                        );
+                      })}
                 </div>
               )}
             </div>
@@ -1075,7 +1275,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         <div className="os-kpis vd-kpis">
           {/* Hero: Faturado hoje + sparkline (delta real US-SELL-COWORK-R5) */}
           <div className="os-kpi vd-kpi-hero">
-            <span className="os-kpi-label">Faturado hoje</span>
+            <span className="os-kpi-label">
+              Faturado hoje
+              {/* Onda 4 (ADR 0192) — tag "· todas origens" só aparece quando
+                  Foco=Faturamento (paridade Cowork). Sinaliza que o breakdown
+                  abaixo distribui o total por source (Balcão/Oficina/Online). */}
+              {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
+                <small className="vd-kpi-tag"> · todas origens</small>
+              )}
+            </span>
             <span className="os-kpi-value">{fmtShort(kpiToday.total)}</span>
             <span
               className={
@@ -1092,6 +1300,31 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 ? `— · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`
                 : `${deltaRevenue >= 0 ? '↑ +' : '↓ '}${deltaRevenue}% vs ontem · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`}
             </span>
+            {/* Onda 4 (ADR 0192) — breakdown por source quando Foco=Faturamento
+                E há pelo menos 1 venda oficina OU online hoje (evita poluir
+                tela em biz só-balcão · paridade Cowork vendas-page.jsx L817-838). */}
+            {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
+              <div className="vd-kpi-breakdown">
+                {kpiTodayBySource.balcao > 0 && (
+                  <div className="vd-kpi-b balcao">
+                    <small>● Balcão</small>
+                    <b>{fmtShort(kpiTodayBySource.balcao)}</b>
+                  </div>
+                )}
+                {kpiTodayBySource.oficina > 0 && (
+                  <div className="vd-kpi-b oficina">
+                    <small>● Oficina</small>
+                    <b>{fmtShort(kpiTodayBySource.oficina)}</b>
+                  </div>
+                )}
+                {kpiTodayBySource.online > 0 && (
+                  <div className="vd-kpi-b online">
+                    <small>● Online</small>
+                    <b>{fmtShort(kpiTodayBySource.online)}</b>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="vd-spark">
               <Sparkline data={sparkData} color="oklch(0.72 0.10 155)" />
             </div>
@@ -1211,13 +1444,33 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               </span>
             </div>
           )}
+
+          {/* PR 1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
+              Sempre visível independente do foco — mostra share de PIX
+              no faturamento do dia. Critical pra Larissa biz=4 (vestuário PIX-first). */}
+          <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
+            <span className="os-kpi-label">PIX hoje</span>
+            <span className="os-kpi-value">
+              {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
+            </span>
+            <span className="os-kpi-sub">
+              {(() => {
+                const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
+                const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
+                if (!props.coworkAggregates) return 'carregando…';
+                if (fat <= 0) return 'sem faturamento hoje';
+                const pct = Math.round((pix / fat) * 100);
+                return `${pct}% do faturamento — imediato`;
+              })()}
+            </span>
+          </div>
         </div>
 
         {/* Fix bug 2026-05-18: hint visível pra filter de data ativo (proteção
             contra localStorage stale que escondia vendas dos últimos dias). */}
         {dateFilterActive && (
           <div className={'vd-date-filter-hint' + (dateFilterStale ? ' stale' : '')} role="status">
-            <span className="vd-date-filter-hint-ic">{dateFilterStale ? '⚠' : '📅'}</span>
+            <span className="vd-date-filter-hint-ic">{dateFilterStale ? '⚠' : <Calendar size={12} />}</span>
             <span className="vd-date-filter-hint-tx">
               {dateFilterStale ? <b>Filtro antigo escondendo vendas novas:</b> : <b>Filtro de data ativo:</b>}
               {' '}
@@ -1251,7 +1504,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             ))}
           </div>
           <div className="vd-tabs-actions">
-            <SellsToggleViewMode viewMode={viewMode} onChange={setViewMode} />
+            {/* ADR 0178 — tabs Visão sempre visíveis (Operacional/Financeira/Produção). */}
+            <SellsTabsVisao visao={visao} onChange={setVisao} />
+            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
+                fica próxima dos filtros, contextualmente coerente. */}
+            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
+              <Search size={12} />
+              <span>Buscar venda, cliente, chave SEFAZ…</span>
+              <kbd>⌘K</kbd>
+            </button>
             <button
               type="button"
               className={'vd-filters-toggle' + (advancedOpen ? ' on' : '')}
@@ -1282,244 +1543,42 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               dateField={dateField}
               onChange={handleDateFilterChange}
             />
-            {viewMode === 'grade-avancada' && (
-              <SellsGroupByDropdown groupBy={groupBy} onChange={setGroupBy} />
-            )}
           </div>
         )}
 
-        {/* TABLE — Cowork (lista) OU Grade Avançada (toggle) */}
-        {viewMode === 'grade-avancada' ? (
-          <div className="vd-grade-wrap">
-            <SellsGradeAvancada
-              rows={rows}
-              loading={loading}
-              totals={totals as SellsTotals | null}
-              selectedIds={selectedIds}
-              onToggleSelect={toggleSel}
-              onToggleSelectAll={toggleAll}
-              onClearSelection={() => setSelectedIds(new Set())}
-              onRowClick={(id: number) => setOpenSaleId(id)}
-              openSaleId={openSaleId}
-              totalFiltered={meta?.total ?? rows.length}
-              sortKey={sortKey}
-              sortDir={sortDir}
-              onSort={handleSort}
-              groupBy={groupBy}
-              onGroupByChange={setGroupBy}
-            />
-          </div>
-        ) : (
+        {/* TABLE — SellsTabelaUnificada com visibleColumns derivado da tab Visão
+            (ADR 0178). Grade Avançada + toggle Lista/Grade Avançada deletados
+            2026-05-21 (cleanup pós-Onda Unificação — Wagner aprovou delete).
+            Onda 3+4 (ADR 0192): coluna Origem entra no preset Operacional/Produção
+            + onPickOs navega pra Repair quando user clica ↗ #OS-NNNN. */}
         <div className="os-table-wrap">
-          <table className="os-table vendas-table vd-aplus-table">
-            <thead>
-              <tr>
-                <th style={{ width: 24, padding: '0 0 0 12px' }}>
-                  <input
-                    type="checkbox"
-                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
-                    onChange={toggleAll}
-                    aria-label="Selecionar todas"
-                  />
-                </th>
-                <th style={{ width: 82 }}>Venda</th>
-                <th style={{ width: 80 }}>Data</th>
-                <th>Cliente</th>
-                <th style={{ width: 168 }}>Atendido por</th>
-                <th style={{ width: 128 }}>Pipeline</th>
-                <th style={{ width: 148 }}>Fiscal</th>
-                <th style={{ width: 128 }}>Pagamento</th>
-                <th style={{ width: 110 }}>Total</th>
-                <th style={{ width: 88 }}>Status</th>
-                {/* US-SELL-COWORK-COMMISSION — coluna Comissão (gap PR #1043).
-                    Só renderiza se setting business.sales_cmsn_agnt ≠ 'disable'. */}
-                {props.coworkCommissionEnabled && (
-                  <th style={{ width: 120 }}>Comissão</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {loading &&
-                Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={`sk${i}`} className="vd-sk-row">
-                    {/* US-SELL-COWORK-COMMISSION — colSpan dinâmico (10 base + 1 se Comissão habilitada). */}
-                    <td colSpan={props.coworkCommissionEnabled ? 11 : 10}>
-                      <div className="vd-sk-bar" style={{ animationDelay: `${i * 60}ms` }} />
-                    </td>
-                  </tr>
-                ))}
-              {!loading &&
-                filtered.map((v, ri) => {
-                  const sel = selectedIds.has(v.id);
-                  const isFocused = ri === focusIdx;
-                  const isFav = favSet.has(v.id);
-                  const isUrgent = v.sla_kind === 'overdue';
-                  const pill = classifyPill(v);
-                  const pillStyle: Record<PillKey, { bg: string; fg: string; label: string }> = {
-                    todas: { bg: 'var(--vd-neutral-soft)', fg: 'var(--vd-neutral)', label: '—' },
-                    paga: { bg: 'var(--vd-ok-soft)', fg: 'var(--vd-ok)', label: 'Paga' },
-                    pendente: { bg: 'var(--vd-warn-soft)', fg: 'var(--vd-warn)', label: 'Pendente' },
-                    faturada: { bg: 'var(--accent-soft)', fg: 'var(--accent)', label: 'Faturada' },
-                    cancelada: { bg: 'var(--bg-2)', fg: 'var(--text-mute)', label: 'Cancelada' },
-                  };
-                  const ps = pillStyle[pill] ?? pillStyle.todas;
-                  return (
-                    <tr
-                      key={v.id}
-                      ref={(el) => {
-                        rowsRef.current[ri] = el;
-                      }}
-                      className={
-                        'os-row' +
-                        (isUrgent ? ' urgent' : '') +
-                        (sel ? ' selected' : '') +
-                        (isFocused ? ' row-focused' : '')
-                      }
-                      onClick={() => {
-                        setFocusIdx(ri);
-                        setOpenSaleId(v.id);
-                      }}
-                    >
-                      <td className="vd-chk" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={sel}
-                          onChange={() => toggleSel(v.id)}
-                          aria-label={`Selecionar venda ${v.invoice_no}`}
-                        />
-                      </td>
-                      <td className="vd-id">
-                        {isFav && (
-                          <span className="vd-fav" title="Favorita (B)">
-                            ★
-                          </span>
-                        )}
-                        #{v.invoice_no}
-                      </td>
-                      <td className="vd-date">
-                        <div>{fmtDateDM(v.display_date ?? v.transaction_date)}</div>
-                        <div className="vd-time">{fmtTime(v.display_date ?? v.transaction_date)}</div>
-                      </td>
-                      <td className="vd-client">
-                        <div className="vd-client-name">{v.customer_name ?? '—'}</div>
-                        {v.items_summary && <div className="vd-notes">{v.items_summary}</div>}
-                      </td>
-                      <td className="vd-seller-cell">
-                        {v.seller_abbr ? (
-                          <>
-                            <span className={`vd-av vd-av-${avatarPaletteFor(v.seller_id)}`}>
-                              {v.seller_abbr}
-                            </span>
-                            <span className="vd-seller-info">
-                              <b>{(v.seller_name ?? '').split(' ')[0]}</b>
-                              <small>{v.seller_origin}</small>
-                            </span>
-                          </>
-                        ) : (
-                          <span style={{ opacity: 0.5 }}>—</span>
-                        )}
-                      </td>
-                      <td>
-                        <PipelineDots row={v} />
-                      </td>
-                      <td>
-                        <FiscalBadgesCell row={v} />
-                      </td>
-                      <td className="vd-pay">
-                        <div className="vd-pay-top">
-                          <span>{v.payment_method_label ?? '—'}</span>
-                          {v.installments > 1 && <span className="vd-inst">{v.installments}×</span>}
-                        </div>
-                        <div className="vd-pay-sla">
-                          <SaleSlaPill row={v} compact />
-                        </div>
-                      </td>
-                      <td className="vd-total">{fmt(v.final_total)}</td>
-                      <td>
-                        <span
-                          className="os-stage"
-                          style={{
-                            background: ps.bg,
-                            color: ps.fg,
-                          }}
-                        >
-                          {ps.label}
-                        </span>
-                        <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
-                          {v.fiscal_status === 'autorizada' && (
-                            <button className="vd-row-act" title="Baixar DANFE PDF" type="button">
-                              <Archive size={11} />
-                            </button>
-                          )}
-                          {v.fiscal_status === 'autorizada' && (
-                            <button className="vd-row-act" title="Baixar XML" type="button">
-                              <FileText size={11} />
-                            </button>
-                          )}
-                          <button className="vd-row-act" title="Imprimir recibo (R)" type="button">
-                            <Printer size={11} />
-                          </button>
-                        </div>
-                      </td>
-                      {/* US-SELL-COWORK-COMMISSION — célula Comissão (gap PR #1043).
-                          Truncate 12 chars + tooltip nome completo; "—" quando sem comissionado. */}
-                      {props.coworkCommissionEnabled && (
-                        <td className="vd-commission">
-                          {v.commission_agent_name ? (
-                            <span
-                              className="vd-commission-name"
-                              title={v.commission_agent_name}
-                              style={{
-                                display: 'inline-block',
-                                maxWidth: 108,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                verticalAlign: 'middle',
-                              }}
-                            >
-                              {v.commission_agent_name.length > 12
-                                ? v.commission_agent_name.slice(0, 12) + '…'
-                                : v.commission_agent_name}
-                            </span>
-                          ) : (
-                            <span style={{ opacity: 0.5 }}>—</span>
-                          )}
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              {!loading && filtered.length === 0 && (
-                <tr>
-                  {/* US-SELL-COWORK-COMMISSION — colSpan dinâmico (10 base + 1 se Comissão habilitada). */}
-                  <td colSpan={props.coworkCommissionEnabled ? 11 : 10} className="os-empty">
-                    {savedViewId === 'atrasadas' && (
-                      <>
-                        <b>Tudo dentro do prazo ✓</b>
-                        <br />
-                        <small>Nenhuma venda atrasada. Bom trabalho.</small>
-                      </>
-                    )}
-                    {savedViewId === 'rejeitadas' && (
-                      <>
-                        <b>Zero rejeições da SEFAZ ✓</b>
-                        <br />
-                        <small>Todos os documentos fiscais autorizados.</small>
-                      </>
-                    )}
-                    {!['atrasadas', 'rejeitadas'].includes(savedViewId) && (
-                      <>
-                        Nenhuma venda encontrada. Use <kbd>N</kbd> pra criar ou <kbd>⌘K</kbd> pra buscar.
-                      </>
-                    )}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <SellsTabelaUnificada
+            rows={filtered as UnifiedSaleRow[]}
+            loading={loading}
+            visibleColumns={visibleColumns}
+            selectedIds={selectedIds}
+            favSet={favSet}
+            focusIdx={focusIdx}
+            filteredCount={filtered.length}
+            rowsRef={rowsRef}
+            onToggleSel={toggleSel}
+            onToggleAll={toggleAll}
+            onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
+            onPaySuccess={() => setRefetchToken((t) => t + 1)}
+            onPickOs={(osRef) => {
+              // Cross-módulo Onda 3 + extensão ServiceOrderObserver 2026-05-25:
+              // Roteia por prefix do os_ref pra evitar levar SO-NNNN pra Repair
+              // (que só conhece JobSheet · resultaria em kanban vazio).
+              //   OS-{id}  → Modules/Repair/JobSheet         → /repair/producao-oficina
+              //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/producao-oficina
+              const isOficinaAuto = osRef.startsWith('SO-');
+              const targetPath = isOficinaAuto
+                ? '/oficina-auto/producao-oficina'
+                : '/repair/producao-oficina';
+              window.location.href = `${targetPath}?os=${encodeURIComponent(osRef)}`;
+            }}
+          />
         </div>
-        )}
 
         {/* Pagination compacta (preserva contrato US-SELL-008) */}
         {meta && meta.last_page > 1 && (
@@ -1553,15 +1612,30 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         {selectedIds.size > 0 && (
           <div className="vd-bulk on">
             <span className="vd-bulk-ct">{selectedIds.size} selecionada{selectedIds.size > 1 ? 's' : ''}</span>
-            <button className="vd-bulk-btn primary" type="button">
+            <button
+              className="vd-bulk-btn primary"
+              type="button"
+              onClick={() => {
+                setBulkKind('nfe');
+                setOpenBulk(true);
+              }}
+            >
               <Folder size={11} />
               Emitir NF-e em lote
             </button>
-            <button className="vd-bulk-btn" type="button">
+            <button
+              className="vd-bulk-btn"
+              type="button"
+              onClick={() => toast.info('Marcar como pagas em lote · Em breve V2')}
+            >
               <CheckCircle2 size={11} />
               Marcar como pagas
             </button>
-            <button className="vd-bulk-btn" type="button">
+            <button
+              className="vd-bulk-btn"
+              type="button"
+              onClick={() => toast.info('Exportar XML/PDF em lote · Em breve V2')}
+            >
               <Archive size={11} />
               Exportar XML/PDF
             </button>
@@ -1577,7 +1651,13 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         )}
 
         {/* CHEAT-SHEET (?) */}
-        {cheatOpen && <SellsCheatSheet onClose={() => setCheatOpen(false)} />}
+        <SellsCheatSheet
+          open={cheatOpen}
+          onClose={() => setCheatOpen(false)}
+          shortcuts={SELLS_INDEX_SHORTCUTS}
+          title="Atalhos · Lista de vendas"
+          footerLeft="Atalhos persistem em toda sub-rota de Vendas (Lista · Caixa · Devoluções · Comissões · Relatórios)."
+        />
 
         {/* ⌘K palette — versão simplificada (backend search + recent + actions) */}
         {palOpen && (
@@ -1701,6 +1781,23 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         onSaleChanged={() => setRefetchToken((t) => t + 1)}
         initialAiOpen={aiTriggered}
       />
+
+      {/* KB-9.75 P0 #4 — Faturar em lote NF-e/NFS-e (wire-up bug-fix 2026-05-26).
+          VdBulkEmitModal monta só quando openBulk=true; items derivados de selectedIds. */}
+      <VdBulkEmitModal
+        open={openBulk}
+        items={buildBulkItems()}
+        onClose={() => setOpenBulk(false)}
+        onCompleted={(okCount, badCount) => {
+          if (okCount > 0) setRefetchToken((t) => t + 1);
+          if (badCount === 0) setSelectedIds(new Set());
+        }}
+      />
+
+      {/* QuickPaymentPopover agora vive ANCORADO em cada row (state local). O
+          render global do antigo QuickPaymentDialog foi removido — popover é
+          mais ergonômico (preserva contexto da linha; Esc/click-outside close
+          via Radix primitive). Dialog mantido @deprecated em _components/. */}
     </div>
   );
 }

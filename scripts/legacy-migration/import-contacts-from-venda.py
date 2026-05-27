@@ -173,7 +173,7 @@ def map_venda_to_contact(
     # city/state(191), name/email/landline(191), mobile(191) NOT NULL.
     data = {
         "business_id": business_id,
-        "type": "customer",  # cliente (não fornecedor) — Martinho oficina/locação
+        "type": "customer",  # cliente (não fornecedor) — Martinho oficina sub-vertical 4 mecânica pesada caminhão basculante (ADR 0194; pré-correção dizia "oficina/locação")
         "contact_type": contact_type,
         "name": normalize_str(razao, 191) or f"Legacy CNPJ {cnpj[:6]}...",
         "supplier_business_name": normalize_str(razao, 191),

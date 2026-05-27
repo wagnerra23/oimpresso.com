@@ -7,6 +7,8 @@ namespace Modules\PaymentGateway\Http\Controllers\Webhooks;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 /**
  * Recebe webhooks do Asaas.
@@ -14,8 +16,10 @@ use Illuminate\Http\Request;
  * Rota: POST /paymentgateway/webhooks/asaas/{businessId}
  * Sem auth middleware (chamado pelo Asaas externamente).
  *
- * Onda 3 — ADR 0170. Pattern espelha RB AsaasWebhookController existente
- * (que continua recebendo em /webhooks/asaas/{businessId} no RB).
+ * Onda 3 — ADR 0170. US-PG-002 (audit-senior 2026-05-25 VULN SEC P0-#2):
+ * valida `asaas-access-token` ANTES de qualquer parse/DB-write.
+ * Asaas mudança fev/2026: token webhook obrigatório e auto-gerado.
+ * Cadastrar em payment_gateway_credentials.config_json.webhook_token.
  *
  * Identificadores Asaas:
  *   - id: ID do evento
@@ -30,6 +34,34 @@ class AsaasWebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
+        $credential = PaymentGatewayCredential::withoutGlobalScopes()
+            ->where('business_id', $businessId)
+            ->where('gateway_key', 'asaas')
+            ->where('ativo', true)
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $credential) {
+            Log::warning('paymentgateway.asaas.webhook.credential_not_found', [
+                'business_id' => $businessId,
+            ]);
+            return response()->json([
+                'ok'    => false,
+                'error' => 'credential_not_found',
+            ], 404);
+        }
+
+        if (! $this->processor->validateSignature('asaas', $request, $credential)) {
+            Log::warning('paymentgateway.asaas.webhook.signature_invalid', [
+                'business_id'   => $businessId,
+                'credential_id' => $credential->id,
+            ]);
+            return response()->json([
+                'ok'    => false,
+                'error' => 'signature_invalid',
+            ], 401);
+        }
+
         $eventName = (string) $request->input('event', 'unknown');
         $paymentId = $request->input('payment.id');
         $eventId = (string) ($request->input('id')
@@ -41,6 +73,7 @@ class AsaasWebhookController extends Controller
             businessId: $businessId,
             eventName: $eventName,
             eventId: $eventId,
+            signatureValid: true,
         );
     }
 }

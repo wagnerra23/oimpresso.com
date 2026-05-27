@@ -7,6 +7,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesRepsTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -65,19 +66,18 @@ export default function ReposIndex({ reps }: Props) {
   return (
     <>
       <div className="mx-auto max-w-5xl p-6 space-y-4">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <Server size={22} /> REPs — Registradores Eletrônicos
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Cadastro dos dispositivos (REP-P, REP-C, REP-A) conforme Portaria MTP 671/2021.
-              Identificador de 17 caracteres.
-            </p>
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>REPs <span className="text-stone-400 font-normal">· Registradores Eletrônicos</span></h1>
+            <p>Dispositivos REP-P/C/A conforme Portaria MTP 671/2021. Identificador de 17 caracteres.</p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/ponto/configuracoes"><ArrowLeft size={14} className="mr-1.5" /> Configurações</Link>
-          </Button>
+          <div className="os-page-h-r">
+            <PontoSubNav active="configuracoes" hidePrimary />
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/ponto/configuracoes"><ArrowLeft size={14} className="mr-1.5" /> Configurações</Link>
+            </Button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

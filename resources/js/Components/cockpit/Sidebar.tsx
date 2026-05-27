@@ -9,9 +9,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
-  ArrowRightLeft, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
+  ArrowRightLeft, Banknote, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
-  FileSearch, FileSpreadsheet, FileText, FolderKanban, Hash, Home, Inbox, Keyboard, LogOut,
+  Factory, FileSearch, FileSpreadsheet, FileText, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LogOut,
   MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
@@ -68,9 +68,12 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'contas de pagamento': Wallet,
   accounting: Calculator, contabilidade: Calculator,
   financeiro: Wallet,
-  // Wagner 2026-05-18: 3 entradas novas top-level KB-9.75 Financeiro.
-  // "Boletos" renomeado pra "Gateway de Pagamento" — ícone CreditCard
-  // (mais inclusivo: Inter boleto + PIX + Asaas futuro).
+  // Wagner 2026-05-26: grupo FINANÇAS = 4 entries flat (Caixa · Cobrança ·
+  // Financeiro · Cobrança Recorrente). Gateway de Pagamento virou ghost da
+  // Cobrança — removido como entry, mantém ícone aqui pra ghost render.
+  caixa: Banknote,
+  'cobrança': HandCoins,
+  cobranca: HandCoins,
   'fluxo de caixa': TrendingUp,
   'dre / relatórios': FileSpreadsheet,
   'gateway de pagamento': CreditCard,
@@ -99,6 +102,10 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'project mgmt': ClipboardList,
   nfse: FileText,
   'nf-e brasil': FileText,
+  // Wagner 2026-05-25: 3 entries flat do grupo FISCAL (substitui 1 entry "Fiscal").
+  'notas fiscais': Receipt,
+  'manifestação': Inbox,
+  certificado: ShieldCheck,
   'cofre de memórias': Vault,
   'base de conhecimento': BookOpen,
   planilha: Sheet,
@@ -107,6 +114,20 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
 function findMenuIcon(label: string): LucideIcon {
   return MENU_ICON_MAP[label.trim().toLowerCase()] ?? Hash;
 }
+
+// Ícone Lucide por grupo canon (Wagner 2026-05-22 — capricho visual).
+// Renderizado no header SidebarGroup ao lado do dot OKLCH + label uppercase.
+const GROUP_ICON_MAP: Record<string, LucideIcon> = {
+  cadastro:  BookOpen,      // cadastros/dados base
+  comercial: ShoppingCart,  // vendas
+  financas:  Wallet,        // dinheiro
+  fiscal:    FileText,      // NF-e/NFSe/SPED (Wagner 2026-05-22)
+  producao:  Factory,       // fábrica/produção
+  estoque:   Package,       // caixas/inventory
+  pessoas:   Users,         // RH
+  sistema:   Settings,      // configurações
+  mais:      Hash,          // fallback
+};
 
 import {
   BusinessOpt,
@@ -119,86 +140,172 @@ import {
   isUserMenuItem,
 } from './shared';
 
-// ── Mapeamento item → grupo (lookup table). Ratificado por Wagner 2026-05-05.
-// Itens não mapeados caem no grupo "MAIS" (collapse fechado por default).
-// Quando LegacyMenuAdapter ganhar campo `group` no MenuItem, esse mapping
-// migra pro backend e este lookup é deletado.
+// ── Sidebar v3 — 5 grupos canon AUTORIZADOS (ADR 0180, 2026-05-22) ────────
+//
+// Wagner direção 2026-05-22: "não deve existir grupo IA, só tem 5 grupos
+// autorizados". IA/Atendimento/Equipe são SHORTCUTS TOPO fixos (SidebarShortcuts),
+// NÃO grupos. Items com group: 'ia'/'atendimento'/'equipe' são escondidos do
+// sidebar (acessíveis via shortcut topo + PageHeader ghosts canon).
+//
+// Items legacy que não casam nos 5 canon caem automaticamente em MAIS (fallback
+// no fim do sidebar, collapse fechado por default — fora do caminho).
+//
+// Substitui sidebar v2 (11 keys misturadas, ~50 labels visíveis) e a tentativa
+// inicial v3 (8 keys com IA/Atendimento/Equipe duplicando shortcuts topo).
+//
+// Mental model: VENDER → OPERAR → FINANÇAS → PESSOAS → SISTEMA (verbos PT-BR
+// Larissa-friendly, universal pros 4 verticais vestuário/oficina/gráfica/conserto).
+//
+// Wagner regra 2026-05-19: DataController declara `data['group']`, frontend
+// NUNCA hardcode. `items[]` aqui só pra compat com módulos não-migrados (Fase 4
+// ADR 0180 — 17 DataControllers migram em onda separada).
+// Wagner 2026-05-22 ordem canon: CADASTRO → COMERCIAL → FINANÇAS → PRODUÇÃO
+// → ESTOQUE → RH → SISTEMA. ("Financeiro abaixo do comercial" + "estoque
+// acima do RH").
 const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
   {
-    key: 'office',
-    label: 'ACESSOS RÁPIDOS',
-    items: ['Consulta de OS', 'Ordens de Serviço', 'Contatos', 'Clientes', 'Produtos', 'Vender', 'vender', 'Vendas', 'Orçamentos', 'Reparar', 'CRM', 'Crm', 'Office Impresso', 'Officeimpresso'],
+    key: 'cadastro',
+    label: 'CADASTRO',
+    // Wagner 2026-05-22: Fabricação adicionada em CADASTRO (cadastro de receitas/BOM).
+    items: ['Contatos', 'Clientes', 'Produtos', 'Produto/Serviço', 'Catálogo',
+            'Equipamentos/Veículos', 'Equipamentos', 'Veículos',
+            'Fabricação', 'Manufacturing', 'Produção'],
   },
   {
-    // ADR 0137 — Modules/OficinaAuto vertical CNAEs 4520/2212/4581 (V0).
-    // Sub-itens "Veículos" + "Ordens de Serviço" entram via DataController.modifyAdminMenu.
-    key: 'oficina',
-    label: 'OFICINA AUTO',
-    items: ['Oficina Auto'],
+    key: 'comercial',
+    label: 'COMERCIAL',
+    // Wagner 2026-05-22: Crm + Vendas + Catalogue QR + Woocommerce (canal venda).
+    // Wagner 2026-05-25: Oficina Auto MOVE pra COMERCIAL abaixo de Vendas
+    // (operação de oficina = atividade comercial, não PRODUÇÃO). Sub-popover
+    // legacy (Veículos + Ordens de Serviço) virou ghosts no PageHeader v3.
+    // Wagner 2026-05-26: Catalogue QR + WooCommerce VIRARAM GHOSTS do hub
+    // Vendas (declarados em app/Http/Middleware/AdminSidebarMenu.php no
+    // dropdown __('sale.sale'), attrs `ghosts`). DataControllers
+    // ProductCatalogue + Woocommerce viraram NO-OP no modifyAdminMenu —
+    // canais de venda subordinados ao hub Vendas (overflow [...] PageHeader).
+    items: ['Crm', 'CRM', 'Vendas', 'Oficina Auto'],
   },
   {
-    key: 'fin',
-    label: 'FINANCEIRO',
-    // Wagner 2026-05-18: 3 labels novas (Fluxo de Caixa / DRE / Cobrança) saíram
-    // do dropdown popover-2 pra entradas top-level — ficam visíveis sem click.
-    // Itens NOVOS (Cobrança, futuros) devem declarar `'group' => 'fin'` no
-    // DataController do módulo em vez de adicionar string aqui — Wagner regra
-    // 2026-05-19: "nunca hardcode label, sempre via DataController do módulo".
-    items: ['Despesas', 'Contas de pagamento', 'Accounting', 'Contabilidade', 'Financeiro', 'Fluxo de Caixa', 'DRE / Relatórios', 'Gateway de Pagamento', 'Cobrança Recorrente'],
-  },
-  {
-    key: 'estoque',
-    label: 'ESTOQUE',
-    items: ['Compras', 'Transferências de ações', 'Ajuste de estoque', 'Gestão de ativos'],
+    key: 'financas',
+    label: 'FINANÇAS',
+    // Wagner 2026-05-22: Fiscal SAI de FINANÇAS → vira grupo próprio FISCAL abaixo.
+    // Wagner 2026-05-26: 4 entries FLAT canon (Caixa · Cobrança · Financeiro ·
+    // Cobrança Recorrente). Gateway de Pagamento removido como entry (virou
+    // ghost da Cobrança em Modules/Financeiro/Http/Controllers/DataController).
+    // Espelha PR #1541 (Fiscal flat) — substitui 1 entry "Financeiro" + 13 ghosts
+    // por 3 entries semanticamente paralelas no DataController do Financeiro,
+    // mais "Cobrança Recorrente" que vem do RecurringBilling DataController.
+    // Alias 'Financeiro' mantido pra label resolvido do __('financeiro::module_label').
+    items: ['Caixa', 'Cobrança', 'Financeiro', 'Cobrança Recorrente'],
   },
   {
     key: 'fiscal',
     label: 'FISCAL',
-    items: ['NFSe', 'NF-e Brasil'],
+    // Wagner 2026-05-25: 3 entries flat — Notas Fiscais, Manifestação, Certificado.
+    // (Substitui 1 entry "Fiscal" + ghosts PageHeader). Labels legacy mantidos
+    // pra compat com módulos não-migrados ainda apontando labels antigos.
+    // Wagner 2026-05-26: label 'Fiscal' REMOVIDO da whitelist — entry "Fiscal"
+    // (cockpit dashboard order 93) foi desligada em Modules/Fiscal/Http/
+    // Controllers/DataController pra eliminar duplicação visual com "Notas
+    // Fiscais" logo abaixo. Rota /fiscal continua ativa via URL direta.
+    items: ['Notas Fiscais', 'Manifestação', 'Certificado',
+            'Notas fiscais', 'NFSe', 'NF-e Brasil', 'NF-e', 'NFC-e',
+            'Certificado Digital'],
   },
   {
-    key: 'rh',
+    key: 'producao',
+    label: 'PRODUÇÃO',
+    // Wagner 2026-05-22: Fabricação/Manufacturing/Produção MOVIDOS pra CADASTRO
+    // (Wagner direção pm). Grupo PRODUÇÃO mantém só verticais OS + restaurant.
+    items: ['Reservas', 'Cocina', 'Cozinha', 'Pedidos',
+            'Comunicação Visual', 'Oficina Auto', 'Reparar',
+            'Ordens de Serviço'],
+  },
+  {
+    key: 'estoque',
+    label: 'ESTOQUE',
+    // Wagner 2026-05-22: Reservas/Cocina/Pedidos/ComVisual/OficinaAuto/Reparar
+    // SAEM do ESTOQUE → vão pro grupo PRODUÇÃO novo.
+    items: ['Compras', 'Compra', 'Transferências de ações', 'Transferência',
+            'Ajuste de estoque', 'Gestão de ativos', 'Estoque', 'Inventário'],
+  },
+  {
+    key: 'pessoas',
+    // Wagner 2026-05-22: PESSOAS renomeado RH (popular com HRM + Ponto).
     label: 'RH',
-    items: ['HRM', 'Essenciais', 'Ponto'],
+    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Folha', 'Colaboradores'],
   },
   {
-    key: 'conhecimento',
-    label: 'CONHECIMENTO',
-    items: ['Cofre de Memórias', 'SRS', 'Sistema de Regras', 'Base de Conhecimento', 'KB', 'Planilha', 'Notas'],
-  },
-  {
-    key: 'rel',
-    label: 'RELATÓRIOS',
-    items: ['Iniciar', 'Início', 'Home', 'Dashboard', 'Relatórios', 'Reservas', 'Pedidos', 'Cocina'],
-  },
-  {
-    key: 'ia',
-    label: 'IA & PRODUTIVIDADE',
-    items: ['Copiloto', 'Jana', 'Projeto', 'Project Mgmt', 'Project'],
-  },
-  {
-    key: 'governanca',
-    label: 'GOVERNANÇA',
-    items: ['Governança', 'Governance', 'ADS', 'Adaptive Decision', 'Team MCP', 'TeamMcp'],
-  },
-  {
-    // Wagner 2026-05-10: cascata "Superadmin" do user dropdown footer foi
-    // removida; admin de plataforma vive no sidebar como qualquer outro grupo.
-    // Officeimpresso saiu deste grupo e foi pra ACESSOS RÁPIDOS (uso pesado
-    // pra gestão de licenças desktop dos clientes legacy WR Sistemas).
-    key: 'plataforma',
-    label: 'PLATAFORMA',
-    items: ['CMS', 'Conector', 'Connector', 'Backup', 'Módulos', 'Modulos', 'Manage Modules', 'Personalizar'],
+    key: 'sistema',
+    label: 'SISTEMA',
+    // Wagner 2026-05-22: Auditoria/Modelos de notificação/Relatórios/Dashboard
+    // adicionados (eram módulos soltos em MAIS).
+    // Wagner 2026-05-25: 'Governança' REMOVIDO — entry sidebar desligada no
+    // Modules/Governance/DataController.modifyAdminMenu (acesso via URL direta).
+    items: ['Plataforma', 'Auditoria',
+            'Modelos de notificação', 'Modelo de notificação',
+            'Relatórios', 'Dashboard',
+            // Wagner 2026-05-22: Planilha vai pra SISTEMA.
+            'Planilha', 'Spreadsheet',
+            // Superadmin top-level entry removida (PR #1407) — mantém alias
+            // pra futuros DataControllers que ainda declarem com esse label.
+            'Superadmin'],
   },
 ];
+
+/**
+ * SENTINEL pra items com group ia/atendimento/equipe — esses são SHORTCUTS TOPO
+ * (Wagner 2026-05-22: "não deve existir grupo IA, só tem 5 grupos autorizados").
+ * Render filtra `__hidden__` pra não duplicar com shortcut topo.
+ */
+const HIDDEN_GROUP = '__hidden__';
+
+/**
+ * LEGACY_GROUP_MAP — converte keys do sidebar v2 pros 5 grupos v3 canon
+ * (Wagner 2026-05-22: 5 grupos autorizados — VENDER/OPERAR/FINANÇAS/PESSOAS/SISTEMA).
+ *
+ * Permite migração modulo-a-modulo: DataControllers não-migrados ainda
+ * declaram `'group' => 'office'|'fin-op'|...` e caem no grupo canônico v3
+ * correto. Espelha `App\Sidebar\SidebarGroup::fromLegacy()` (Fase 1).
+ *
+ * Keys `ia`/`atendimento`/`equipe` → `__hidden__` (shortcuts topo cobrem).
+ *
+ * Removível na Fase 9 (cleanup), quando todos os 17 DataControllers tiverem
+ * migrado pro contrato v3 (Fase 4) com group canon.
+ */
+const LEGACY_GROUP_MAP: Record<string, string> = {
+  // v2 → v3 canon (Wagner 2026-05-22: 7 grupos — CADASTRO/COMERCIAL/ESTOQUE/
+  // PRODUÇÃO substituíram VENDER/OPERAR. FINANÇAS/PESSOAS/SISTEMA mantidos).
+  office:       'comercial',  // VENDER virou COMERCIAL (Crm/Vendas)
+  vender:       'comercial',  // alias antigo canon
+  oficina:      'producao',   // OFICINA AUTO → PRODUÇÃO (Wagner 2026-05-22)
+  operar:       'producao',   // OPERAR antigo → PRODUÇÃO (verticais OS)
+  estoque:      'estoque',    // mantém — só Compras/Transferências/Ajuste/Estoque
+  fin:          'financas',
+  'fin-op':     'financas',
+  'fin-analise':'financas',
+  'fin-config': 'financas',
+  fiscal:       'financas',
+  rh:           'pessoas',
+  conhecimento: 'sistema',
+  rel:          HIDDEN_GROUP,
+  governanca:   'sistema',
+  plataforma:   'sistema',
+  // Shortcuts topo — items com esses groups são ESCONDIDOS do sidebar
+  ia:           HIDDEN_GROUP,
+  atendimento:  HIDDEN_GROUP,
+  equipe:       HIDDEN_GROUP,
+};
 
 /**
  * Resolve grupo do sidebar pra um menu item.
  *
  * Prioridade (Wagner regra 2026-05-19 — DataController declara, frontend não hardcode):
- *  1. item.group (declarado pelo DataController via `data['group']`)
- *  2. Match por label string em SIDEBAR_GROUPS.items[] (legacy compat)
- *  3. Fallback 'mais' (collapse fechado por default)
+ *  1. item.group v3 canon (uma das 5 keys vender/operar/financas/pessoas/sistema)
+ *  2. item.group ia/atendimento/equipe → HIDDEN (shortcut topo cobre)
+ *  3. item.group v2 legacy mapeada via LEGACY_GROUP_MAP
+ *  4. Match por label string em SIDEBAR_GROUPS.items[] (compat módulos não-migrados)
+ *  5. Fallback 'mais' (collapse fechado por default, FIM do sidebar)
  */
 function findGroupKey(item: ShellMenuItem | string): string {
   // String legacy pra cobertura backwards-compat (alguns callers passam só label)
@@ -210,12 +317,17 @@ function findGroupKey(item: ShellMenuItem | string): string {
     return 'mais';
   }
 
-  // 1. group declarado pelo DataController do módulo
-  if (item.group && SIDEBAR_GROUPS.some((g) => g.key === item.group)) {
-    return item.group;
+  // 1+2. group declarado: 5 canon → grupo · ia/atendimento/equipe → HIDDEN · legacy → map
+  if (item.group) {
+    if (SIDEBAR_GROUPS.some((g) => g.key === item.group)) {
+      return item.group;
+    }
+    if (LEGACY_GROUP_MAP[item.group] !== undefined) {
+      return LEGACY_GROUP_MAP[item.group];
+    }
   }
 
-  // 2. fallback label match (legacy items que ainda não declararam group)
+  // 3. fallback label match (módulos que ainda não declararam group)
   const norm = item.label.trim();
   for (const g of SIDEBAR_GROUPS) {
     if (g.items.some((i) => i.toLowerCase() === norm.toLowerCase())) return g.key;
@@ -411,29 +523,32 @@ function SidebarShortcuts({
   atendimentoCount?: number;
   shortcuts?: SidebarShortcutsShared;
 }) {
-  // Default true (back-compat) — quando shared prop não veio ainda
-  const showTarefas = shortcuts?.tarefas ?? true;
+  // Wagner 2026-05-22: Tarefas REMOVIDO (módulo ainda não definido).
+  // Sequência canon TOPO: IA → Equipe → Atendimento.
   const showIa = shortcuts?.ia ?? true;
+  const showEquipe = true; // TeamMcp interno do oimpresso, sempre visível
   const showAtendimento = shortcuts?.atendimento ?? true;
 
   return (
     <div className="sb-shortcuts">
-      {showTarefas && (
-        <a href="/tarefas" className="sb-shortcut">
-          <Inbox size={13} />
-          <span className="label">Tarefas</span>
-          {!!tarefasCount && <span className="badge">{tarefasCount}</span>}
-        </a>
-      )}
       {showIa && (
-        <a href="/jana" className="sb-shortcut">
+        // Wagner 2026-05-25: sidebar IA aponta /ia/dashboard (Dashboard =
+        // primeira aba canon da Jana + destino pós-login). Chat acessível
+        // via aba "Copiloto" do PageHeader + FAB.
+        <a href="/ia/dashboard" className="sb-shortcut">
           <Bot size={13} />
           <span className="label">IA</span>
           {!!chatCount && <span className="badge">{chatCount}</span>}
         </a>
       )}
+      {showEquipe && (
+        <a href="/team-mcp/team" className="sb-shortcut">
+          <Users size={13} />
+          <span className="label">Equipe</span>
+        </a>
+      )}
       {showAtendimento && (
-        <a href="/atendimento/inbox" className="sb-shortcut">
+        <a href="/atendimento" className="sb-shortcut">
           <MessageCircle size={13} />
           <span className="label">Atendimento</span>
           {!!atendimentoCount && <span className="badge">{atendimentoCount}</span>}
@@ -462,7 +577,9 @@ function SidebarGroup({
   // Inline accordion (não popover lateral) — Wagner 2026-05-05.
   // Persistência por grupo em LS pra não recarregar entre navegações.
   // Múltiplos grupos podem estar abertos simultaneamente.
-  const lsKey = `oimpresso.cockpit.group.${groupKey}.expanded`;
+  // PR #1674 — bump pra v2 invalida preferências antigas (smoke Wagner descobriu
+  // grupos parecendo vazios porque ls.collapsed=true persistia mesmo com items).
+  const lsKey = `oimpresso.cockpit.group.v2.${groupKey}.expanded`;
   const [expanded, setExpanded] = useState<boolean>(() => {
     if (typeof window === 'undefined') return defaultOpen;
     const v = localStorage.getItem(lsKey);
@@ -481,6 +598,9 @@ function SidebarGroup({
     return <div className="sb-group sb-group-noheader">{children}</div>;
   }
 
+  // Wagner 2026-05-22: ícone Lucide por grupo (capricho visual).
+  const GroupIcon = GROUP_ICON_MAP[groupKey];
+
   return (
     <div className={`sb-group ${expanded ? 'is-open' : ''}`} style={groupStyle}>
       <button
@@ -497,7 +617,15 @@ function SidebarGroup({
             transition: 'transform 150ms',
           }}
         />
-        {hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
+        {GroupIcon && (
+          <GroupIcon
+            size={12}
+            className="sb-group-ic"
+            aria-hidden="true"
+            style={hue !== undefined ? { color: `oklch(0.65 0.15 ${hue})` } : undefined}
+          />
+        )}
+        {!GroupIcon && hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
         <span className="sb-group-l">{label}</span>
       </button>
       {expanded && <div className="sb-group-body">{children}</div>}
@@ -522,18 +650,28 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
   );
 
   // Agrupa principais por (1) item.group declarado pelo DataController OU
-  // (2) lookup table label match (legacy compat)
+  // (2) lookup table label match (legacy compat).
+  // Items com group ia/atendimento/equipe caem em __hidden__ (Wagner 2026-05-22 —
+  // shortcuts topo já cobrem, não duplicar) e são descartados depois.
   const groupedItems: Record<string, ShellMenuItem[]> = {};
   for (const item of principais) {
     const key = findGroupKey(item);
+    if (key === HIDDEN_GROUP) continue; // skip — shortcut topo cobre
     if (!groupedItems[key]) groupedItems[key] = [];
     groupedItems[key].push(item);
   }
 
-  // Items não mapeados caem em "mais"
+  // 5 grupos canon (autorizados) + MAIS fallback no fim (collapse fechado)
+  // PR #1669 — filter MAIS ESTRITO pra evitar grupos órfãos sem anchors:
+  // verifica que grupo tem PELO MENOS 1 item com url+label válidos (não é
+  // header sem destination ou item invisible). Smoke 2026-05-26 17:50 mostrou
+  // FINANÇAS/PRODUÇÃO/ESTOQUE/RH como labels SEM children renderizados —
+  // grupos eram populated com items que SidebarMenuItem ignorava (url vazia).
+  const hasVisibleItem = (items: ShellMenuItem[] | undefined): boolean =>
+    !!items && items.some((it) => Boolean(it.href) && Boolean(it.label));
   const groupsToRender = [
-    ...SIDEBAR_GROUPS.filter((g) => groupedItems[g.key]?.length),
-    ...(groupedItems.mais?.length
+    ...SIDEBAR_GROUPS.filter((g) => hasVisibleItem(groupedItems[g.key])),
+    ...(hasVisibleItem(groupedItems.mais)
       ? [{ key: 'mais', label: 'MAIS', items: [] }]
       : []),
   ];
@@ -574,7 +712,12 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           key={g.key}
           groupKey={g.key}
           label={g.label}
-          defaultOpen={g.key === 'office'}
+          // PR #1674 — defaultOpen=true UNIVERSAL pra paridade prototipo Cowork.
+          // Smoke real Wagner 2026-05-26 18h: grupos pareciam vazios porque user
+          // tinha localStorage antigo persistido como collapsed. lsKey bump pra v2
+          // (SidebarGroup) invalida prefs antigas + todos grupos abrem por default.
+          // Items COM permissão renderizam dentro do body expandido.
+          defaultOpen={true}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} />
@@ -600,8 +743,9 @@ function SidebarMenuRail({
   counts: SidebarCountsShared;
   shortcuts?: SidebarShortcutsShared;
 }) {
-  const showTarefas = shortcuts?.tarefas ?? true;
+  // Wagner 2026-05-22: Tarefas REMOVIDO, sequência IA → Equipe → Atendimento
   const showIa = shortcuts?.ia ?? true;
+  const showEquipe = true;
   const showAtendimento = shortcuts?.atendimento ?? true;
   const [flyout, setFlyout] = useState<string | null>(null);
   const [flyoutPos, setFlyoutPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -631,20 +775,10 @@ function SidebarMenuRail({
 
   return (
     <div className="sb-menu-rail">
-      {showTarefas && (
-        <a
-          href="/tarefas"
-          className="sb-rail-btn"
-          data-tip="Tarefas"
-          onClick={() => setFlyout(null)}
-        >
-          <Inbox size={18} className="ic" />
-          {!!counts.tarefas && <span className="sb-rail-dot-badge" />}
-        </a>
-      )}
       {showIa && (
+        // Wagner 2026-05-25: rail collapsed IA aponta /ia/dashboard (espelha sb-shortcut acima).
         <a
-          href="/jana"
+          href="/ia/dashboard"
           className="sb-rail-btn"
           data-tip="IA"
           onClick={() => setFlyout(null)}
@@ -653,9 +787,19 @@ function SidebarMenuRail({
           {!!counts.chat && <span className="sb-rail-dot-badge" />}
         </a>
       )}
+      {showEquipe && (
+        <a
+          href="/team-mcp/team"
+          className="sb-rail-btn"
+          data-tip="Equipe"
+          onClick={() => setFlyout(null)}
+        >
+          <Users size={18} className="ic" />
+        </a>
+      )}
       {showAtendimento && (
         <a
-          href="/atendimento/inbox"
+          href="/atendimento"
           className="sb-rail-btn"
           data-tip="Atendimento"
           onClick={() => setFlyout(null)}

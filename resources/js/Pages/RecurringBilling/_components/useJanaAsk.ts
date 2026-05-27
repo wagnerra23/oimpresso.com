@@ -12,7 +12,7 @@ export async function askJana(query: string, _context?: string): Promise<{ ok: b
   };
   const body = JSON.stringify({ query, context: _context || '' });
 
-  for (const url of ['/api/jana/ask', '/jana/ask']) {
+  for (const url of ['/api/ia/ask', '/ia/ask']) {
     try {
       const res = await fetch(url, { method: 'POST', headers, body, credentials: 'same-origin' });
       if (!res.ok) continue;

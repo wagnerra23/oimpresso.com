@@ -2,11 +2,13 @@
 
 namespace Modules\Financeiro\Services;
 
+use App\CashRegister;
 use App\Transaction;
 use App\TransactionPayment;
 use App\Util\OtelHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\CaixaMovimento;
 use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -19,7 +21,13 @@ use Modules\Financeiro\Models\TituloBaixa;
  * Origens suportadas:
  *  - 'venda'   — Transaction type='sell'     + payment_status in ('due','partial')
  *  - 'compra'  — Transaction type='purchase' + payment_status in ('due','partial')
- *  - 'despesa' — Transaction type='expense'  (futuro / onda 3)
+ *  - 'despesa' — Transaction type='expense'  (Fase 5.5 deprecação legacy, 2026-05-21)
+ *
+ * Diferença EXPENSE vs SELL/PURCHASE no payment_status:
+ *  - sell/purchase com payment_status='paid' → cancelarSeExistir (não vira título)
+ *  - expense com payment_status='paid' → cria fin_titulo com status='quitado',
+ *    valor_aberto=0 (Eliana DRE precisa ver despesa histórica paga ou não).
+ *    Mesma filosofia do BridgeExpenseToTitulosCommand (Fase 5).
  *
  * Numeração: sequencial business-isolado com prefixo (R000001 receber / P000001 pagar),
  * gerado com lockForUpdate pra evitar dupla numeração em concorrência.
@@ -29,14 +37,19 @@ use Modules\Financeiro\Models\TituloBaixa;
  *
  * Onda 2 (2026-04-25): + suporte purchase + numeração R/P + baixa automática
  * via registrarPagamento/cancelarPagamento (TransactionPayment).
+ * Fase 5.5 (2026-05-21): + suporte expense → Observer cobre novas expenses
+ * automaticamente (F5 backfill cobre histórico via comando artisan).
  */
 class TituloAutoService
 {
     /**
-     * Cria ou atualiza Titulo a partir de Transaction (sell ou purchase).
-     * No-op se transaction não for sell/purchase ou se já estiver paga.
+     * Cria ou atualiza Titulo a partir de Transaction (sell, purchase ou expense).
+     * No-op se transaction não for sell/purchase/expense.
+     * Para sell/purchase quitada no caixa (payment_status='paid'), cancela o título.
+     * Para expense quitada, cria com status='quitado' (Eliana DRE precisa ver paga).
      *
      * Onda 2: este é o ponto de entrada canônico (renomeado de sincronizarDeVenda).
+     * Fase 5.5: + type='expense'.
      */
     public function sincronizarDeTransacao(Transaction $tx): ?Titulo
     {
@@ -55,6 +68,7 @@ class TituloAutoService
         $tipo = match ($tx->type) {
             'sell' => 'receber',
             'purchase' => 'pagar',
+            'expense' => 'pagar',
             default => null,
         };
 
@@ -62,15 +76,29 @@ class TituloAutoService
             return null;
         }
 
-        // Transação paga em dia (status='paid') não gera título financeiro.
-        if (! in_array($tx->payment_status, ['due', 'partial'], true)) {
+        // Filosofia divergente sell/purchase vs expense (Fase 5.5 2026-05-21):
+        //  - sell/purchase com payment_status='paid' → cancelarSeExistir (não vira título;
+        //    "pagou no caixa, não cria conta a receber/pagar pendente")
+        //  - expense com payment_status='paid' → cria fin_titulo com status='quitado'
+        //    pra Eliana ver DRE histórica (mesma regra do BridgeExpenseToTitulosCommand F5)
+        if ($tx->type !== 'expense' && ! in_array($tx->payment_status, ['due', 'partial'], true)) {
             return $this->cancelarSeExistir($tx, motivo: 'transação quitada no caixa');
         }
 
-        $origem = $tx->type === 'sell' ? 'venda' : 'compra';
+        $origem = match ($tx->type) {
+            'sell' => 'venda',
+            'purchase' => 'compra',
+            'expense' => 'despesa',
+        };
 
         $valorTotal = (float) $tx->final_total;
-        $valorAberto = (float) ($tx->total_remaining_amount ?? $tx->final_total);
+        // Pra expense paga: valor_aberto = 0 (mesma regra do bridge F5).
+        // Pra sell/purchase paga/parcial: usa total_remaining_amount.
+        if ($tx->type === 'expense' && $tx->payment_status === 'paid') {
+            $valorAberto = 0.0;
+        } else {
+            $valorAberto = (float) ($tx->total_remaining_amount ?? $tx->final_total);
+        }
         $valorPago = $valorTotal - $valorAberto;
 
         return DB::transaction(function () use ($tx, $tipo, $origem, $valorTotal, $valorAberto, $valorPago) {
@@ -87,13 +115,18 @@ class TituloAutoService
             $numero = $existing?->numero ?? $this->proximoNumero($tx->business_id, $tipo);
 
             // Onda Edit 2026-05-18 — cross-link auto-pop em `cliente_descricao`.
-            // Formato: "{ContactName} · #V-{txId}" (venda) ou "{ContactName} · #PC-{txId}" (compra).
+            // Formato: "{ContactName} · #V-{txId}" (venda), "{ContactName} · #PC-{txId}" (compra),
+            // "{ContactName} · #E-{txId}" (despesa, Fase 5.5).
             // FinCrossLinkify (frontend) parseia esses tokens e renderiza pills clicáveis
-            // que roteiam pro Sells/Compras de origem. Preserva edit manual do user:
+            // que roteiam pro Sells/Compras/Expenses de origem. Preserva edit manual do user:
             // se $existing já tem cliente_descricao preenchido, NÃO sobrescreve.
             $cliente = $tx->contact_id ? \App\Contact::find($tx->contact_id) : null;
             $contactName = $cliente?->name ?: ($cliente?->supplier_business_name ?: null);
-            $crossLinkPrefix = $tipo === 'receber' ? 'V' : 'PC';
+            $crossLinkPrefix = match ($tx->type) {
+                'sell' => 'V',
+                'purchase' => 'PC',
+                'expense' => 'E',
+            };
             $crossLink = sprintf('#%s-%d', $crossLinkPrefix, $tx->id);
             $descricaoSugerida = $contactName ? "{$contactName} · {$crossLink}" : $crossLink;
             $clienteDescricaoFinal = ($existing && ! empty($existing->cliente_descricao))
@@ -154,6 +187,7 @@ class TituloAutoService
         $origem = match ($tx->type) {
             'sell' => 'venda',
             'purchase' => 'compra',
+            'expense' => 'despesa',
             default => null,
         };
 
@@ -243,25 +277,27 @@ class TituloAutoService
                 return $existenteAtiva;
             }
 
+            // ADR 0175 (2026-05-20) — conta_bancaria_id agora é nullable em fin_titulo_baixas
+            // e fin_caixa_movimentos. Bridge dispara mesmo sem fin_contas_bancarias cadastrada
+            // (cenário PME que opera só PIX/dinheiro — caso real Larissa biz=4 ROTA LIVRE).
+            // UI mostra pill "conta indefinida" + CTA "vincular conta agora".
+            // Reconciliação pós-cadastro: `php artisan financeiro:vincular-baixas-sem-conta {biz} {conta_id}`.
             $contaBancaria = $this->resolverContaBancaria($tx->business_id, $tp->account_id);
+
             if (! $contaBancaria) {
-                // Business ainda não cadastrou conta no Financeiro. No-op gracioso
-                // pra não bloquear o save do pagamento no core UltimatePOS. O lançamento
-                // financeiro pode ser reconciliado depois via comando manual.
-                // D7.a Wave 14 — log via FinanceiroAuditLogger pra redacionar PII
-                // (observacoes/note podem conter CPF/email do cliente).
+                // D7.a Wave 14 — log informativo via FinanceiroAuditLogger (PII redacted).
+                // NÃO é mais no-op — apenas registra que baixa será criada sem conta vinculada.
                 app(FinanceiroAuditLogger::class)->info(
-                    'TituloAutoService.registrarPagamento: skip — biz sem fin_contas_bancarias',
+                    'TituloAutoService.registrarPagamento: baixa sem conta — biz sem fin_contas_bancarias (ADR 0175)',
                     [
                         'business_id' => $tx->business_id,
                         'tp_id' => $tp->id,
                         'tx_id' => $tx->id,
                         'invoice_no' => $tx->invoice_no,
-                        'note' => $tp->note,
                     ]
                 );
-                return null;
             }
+
             $valor = (float) $tp->amount;
 
             // SUPERADMIN: Observer TransactionPayment registrarPagamento — INSERT TituloBaixa com business_id da Transaction
@@ -270,7 +306,7 @@ class TituloAutoService
                 ->create([
                     'business_id' => $tx->business_id,
                     'titulo_id' => $titulo->id,
-                    'conta_bancaria_id' => $contaBancaria->id,
+                    'conta_bancaria_id' => $contaBancaria?->id,
                     'valor_baixa' => $valor,
                     'data_baixa' => $tp->paid_on
                         ? Carbon::parse($tp->paid_on, config('app.timezone'))->toDateString()
@@ -287,11 +323,12 @@ class TituloAutoService
 
             // SUPERADMIN: Observer TransactionPayment — INSERT CaixaMovimento com business_id da Transaction
             // Cria CaixaMovimento — entrada se receber (venda paga), saída se pagar (compra paga).
+            // ADR 0175: conta_bancaria_id pode ser null se biz não tem fin_contas_bancarias cadastrada.
             CaixaMovimento::query()
                 ->withoutGlobalScope(BusinessScopeImpl::class)
                 ->create([
                     'business_id' => $tx->business_id,
-                    'conta_bancaria_id' => $contaBancaria->id,
+                    'conta_bancaria_id' => $contaBancaria?->id,
                     'tipo' => $origem === 'venda' ? 'entrada' : 'saida',
                     'valor' => $valor,
                     'data' => $baixa->data_baixa,
@@ -600,5 +637,208 @@ class TituloAutoService
     private function idempotencyKeyParaEstorno(int $businessId, TransactionPayment $tp, TituloBaixa $original): string
     {
         return 'estorno_baixa_' . $original->id;
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // ADR 0183 — Ponte cash_registers (core UPOS) → fin_titulos
+    // ════════════════════════════════════════════════════════════════════
+
+    /**
+     * Cria fin_titulo consolidado a partir de fechamento de caixa físico.
+     *
+     * Disparado pelo OnCashRegisterClosedCreateFinanceiroTitulo listener
+     * (event CashRegisterClosed). Pode ser chamado direto via comando
+     * artisan pra backfill manual de caixas antigos pré-Observer.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id sempre vem do CashRegister.
+     *
+     * Pegadinhas mitigadas (ADR 0183):
+     *   P1 idempotência fin_titulos.UNIQUE(business_id,origem='caixa',origem_id)
+     *   P2 business_id=0 → skip + log
+     *   P5 data fin_titulo = closed_at (não created_at)
+     *   P6 caixa vazio (total<=0) → skip silencioso
+     *   P7 user_id NULL → metadata.user_name='Sistema'
+     *   P13 multi-business cross-pollution → assert business_id consistente
+     */
+    public function sincronizarDeCashRegister(CashRegister $cr): ?Titulo
+    {
+        return OtelHelper::spanBiz('financeiro.titulo_auto.cash_register', function () use ($cr): ?Titulo {
+            return $this->sincronizarDeCashRegisterInternal($cr);
+        }, [
+            'cash_register_id' => $cr->id,
+            'business_id'      => $cr->business_id,
+            'status'           => $cr->status,
+        ]);
+    }
+
+    private function sincronizarDeCashRegisterInternal(CashRegister $cr): ?Titulo
+    {
+        // P2 — business_id zerado (legacy data)
+        if (! $cr->business_id) {
+            Log::warning('[adr_0183][caixa] cash_register sem business_id — skip', [
+                'cash_register_id' => $cr->id,
+            ]);
+            return null;
+        }
+
+        // R5 — só processa caixa FECHADO
+        if ($cr->status !== 'close') {
+            return null;
+        }
+
+        // P1 — idempotência (já lançado)
+        $existente = Titulo::withoutGlobalScopes()
+            ->where('business_id', $cr->business_id)
+            ->where('origem', 'caixa')
+            ->where('origem_id', $cr->id)
+            ->first();
+        if ($existente) {
+            return $existente; // retorna existente pra caller saber o ID
+        }
+
+        // P6 — compute totals; skip se caixa vazio
+        $totals = $this->computeCashRegisterTotals($cr);
+        if ($totals['total'] <= 0.001) {
+            return null;
+        }
+
+        // P4 — detect location via primeira transaction linked
+        $location = $this->detectLocationFromCashRegister($cr);
+
+        // R3 — conta-mãe Caixa do business (criada via seed da migration PR A)
+        $contaCaixa = ContaBancaria::withoutGlobalScopes()
+            ->where('business_id', $cr->business_id)
+            ->where('tipo_conta', 'caixa')
+            ->first();
+
+        if (! $contaCaixa) {
+            // Defensive fallback — caso migration PR A seed não tenha rodado pro business
+            Log::warning('[adr_0183][caixa] Conta-mãe tipo_conta=caixa não encontrada — pulando', [
+                'cash_register_id' => $cr->id,
+                'business_id'      => $cr->business_id,
+            ]);
+            return null;
+        }
+
+        // P7 — user_id NULL fallback
+        $userId   = $cr->user_id;
+        $userName = 'Sistema';
+        if ($userId) {
+            $user = \App\User::withoutGlobalScopes()->find($userId);
+            if ($user) {
+                $userName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+                $userName = $userName !== '' ? $userName : ('User#' . $userId);
+            }
+        }
+
+        // R5 — data = closed_at (não created_at)
+        $dataFechamento = $cr->closed_at
+            ? Carbon::parse($cr->closed_at)
+            : Carbon::parse($cr->updated_at);
+
+        // R8 — metadata.breakdown sempre 5 keys (mesmo zero)
+        $metadata = [
+            'source'        => 'cash_register_fechamento',
+            'user_id'       => $userId,
+            'user_name'     => $userName,
+            'location_id'   => $location['id'] ?? null,
+            'location_name' => $location['name'] ?? null,
+            'caixa_id'      => $cr->id,
+            'breakdown'     => [
+                'cash'   => (float) $totals['cash'],
+                'card'   => (float) $totals['card'],
+                'cheque' => (float) $totals['cheque'],
+                'other'  => (float) $totals['other'],
+                'total'  => (float) $totals['total'],
+            ],
+            'opened_at'   => $cr->created_at?->toDateTimeString(),
+            'closed_at'   => $dataFechamento->toDateTimeString(),
+            'closing_amount' => (float) $cr->closing_amount,
+        ];
+
+        // Cria titulo dentro de transaction (rollback em falha)
+        return DB::transaction(function () use ($cr, $totals, $contaCaixa, $dataFechamento, $userName, $metadata) {
+            return Titulo::create([
+                'business_id'       => $cr->business_id,
+                'numero'            => 'CX-' . $cr->id, // CX prefix pra distinguir de R/P
+                'tipo'              => 'receber',       // fechamento = entrada de dinheiro
+                'status'            => 'quitado',       // dinheiro JÁ está no caixa físico
+                'cliente_descricao' => "Fechamento caixa #{$cr->id} · {$userName}",
+                'valor_total'       => $totals['total'],
+                'valor_aberto'      => 0,               // status=quitado → aberto=0
+                'moeda'             => 'BRL',
+                'emissao'           => $dataFechamento->toDateString(),
+                'vencimento'        => $dataFechamento->toDateString(),
+                'competencia_mes'   => $dataFechamento->format('Y-m'),
+                'origem'            => 'caixa',
+                'origem_id'         => $cr->id,
+                'observacoes'       => "Auto-gerado via fechamento caixa #{$cr->id} (ADR 0183)",
+                'metadata'          => $metadata,
+                'created_by'        => $cr->user_id ?? 1, // user que fechou OU System fallback
+            ]);
+        });
+    }
+
+    /**
+     * Soma transactions do caixa por método de pagamento.
+     *
+     * P3 — NÃO usar whereNull('parent_id') (coluna não existe em cash_register_transactions).
+     * Estornos viram type=debit nova linha — overcount mínimo.
+     */
+    private function computeCashRegisterTotals(CashRegister $cr): array
+    {
+        $rows = DB::table('cash_register_transactions')
+            ->where('cash_register_id', $cr->id)
+            ->selectRaw('
+                SUM(CASE WHEN pay_method="cash"            AND type="credit" THEN amount ELSE 0 END) as cash_credit,
+                SUM(CASE WHEN pay_method="cash"            AND type="debit"  THEN amount ELSE 0 END) as cash_debit,
+                SUM(CASE WHEN pay_method="card"            AND type="credit" THEN amount ELSE 0 END) as card_credit,
+                SUM(CASE WHEN pay_method="card"            AND type="debit"  THEN amount ELSE 0 END) as card_debit,
+                SUM(CASE WHEN pay_method="cheque"          AND type="credit" THEN amount ELSE 0 END) as cheque_credit,
+                SUM(CASE WHEN pay_method="cheque"          AND type="debit"  THEN amount ELSE 0 END) as cheque_debit,
+                SUM(CASE WHEN pay_method NOT IN ("cash","card","cheque") AND type="credit" THEN amount ELSE 0 END) as other_credit,
+                SUM(CASE WHEN pay_method NOT IN ("cash","card","cheque") AND type="debit"  THEN amount ELSE 0 END) as other_debit
+            ')
+            ->first();
+
+        $cash   = (float) ($rows->cash_credit   ?? 0) - (float) ($rows->cash_debit   ?? 0);
+        $card   = (float) ($rows->card_credit   ?? 0) - (float) ($rows->card_debit   ?? 0);
+        $cheque = (float) ($rows->cheque_credit ?? 0) - (float) ($rows->cheque_debit ?? 0);
+        $other  = (float) ($rows->other_credit  ?? 0) - (float) ($rows->other_debit  ?? 0);
+
+        return [
+            'cash'   => $cash,
+            'card'   => $card,
+            'cheque' => $cheque,
+            'other'  => $other,
+            'total'  => $cash + $card + $cheque + $other,
+        ];
+    }
+
+    /**
+     * Detecta location_id do caixa via primeira transaction linked.
+     *
+     * R4 fallback chain — cash_registers NÃO tem location_id (bug P4).
+     * Usamos transactions.cash_register_id (UPOS pattern) pra ler location.
+     */
+    private function detectLocationFromCashRegister(CashRegister $cr): array
+    {
+        $row = DB::table('transactions as t')
+            ->leftJoin('business_locations as bl', 'bl.id', '=', 't.location_id')
+            ->where('t.cash_register_id', $cr->id)
+            ->where('t.business_id', $cr->business_id)
+            ->select('t.location_id', 'bl.name as location_name')
+            ->orderBy('t.id', 'asc')
+            ->limit(1)
+            ->first();
+
+        if ($row) {
+            return [
+                'id'   => $row->location_id ? (int) $row->location_id : null,
+                'name' => $row->location_name ?? null,
+            ];
+        }
+
+        return ['id' => null, 'name' => null];
     }
 }

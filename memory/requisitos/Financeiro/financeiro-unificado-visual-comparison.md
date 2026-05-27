@@ -5,6 +5,8 @@ type: visual-comparison
 module: Financeiro
 status: approved
 date: 2026-05-09
+last_updated: 2026-05-25
+last_appended_ondas: [24, 25, "PR D quick wins"]
 canon_reference: cowork-2026-05-09-protótipo "Visao Unificada" (Financeiro.html)
 canon_secundario: tasks.jsx (inbox densa com atalhos teclado)
 blade_source: n/a (greenfield — tela nova de unificação dos 4 estados)
@@ -139,3 +141,48 @@ Ver [ADR ui/0003](adr/ui/0003-amendment-0002-visao-unificada-cockpit-v2.md) pra 
 ## Backlog (do charter)
 
 US-FIN-021..028 — ver [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md) §"Backlog futuro". Cada um gated por sinal qualificado [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
+
+---
+
+## Anexo: Ondas 24 + 25 (2026-05-25) — Plano de Contas + Insert manual
+
+> **Status:** approved 2026-05-25 via Chrome MCP smoke prod biz=MARTINHO (PRs #1533 + #1538 mergeados).
+> **Reabertura retroativa do gate F1.5 mwart-comparative V4** (G2 da auditoria 2026-05-25).
+
+### Ondas 24/25 — diff visual vs canon
+
+| Dimensão | Canon Cowork original | Implementação Onda 24+25 | Decisão |
+|---|---|---|---|
+| **Campo plano de contas no Edit** | Ausente (canon protótipo não previa) | `PlanoContaCombobox` searchable hierárquico DCASP filtrado por `kind` do título | **Adição funcional** — canon visual aceito porque DRE depende de plano classificado na origem |
+| **Insert manual inline** | Canon previa botão "+" no header → tela separada `/novo` | `TituloCreateSheet` drawer inline reusando padrão `TituloEditSheet` | **Cumpre intent do canon** (sem navegação) — DropdownMenu existente "+ Novo título" virou wire pro Sheet |
+| **Combobox hues semânticos por tipo DCASP** | n/a (canon não tinha plano de contas) | 6 tipos (receita, ativo, despesa, custo, passivo, patrimonio) via `style` inline oklch tokens | Fora dos tokens shadcn (ui:lint R1 escape). Hues coerentes com paleta financeira (receita=verde 145, despesa=rose 25, custo=amber 60, passivo=rose 25, ativo=verde 145, patrimonio=azul 240) |
+| **Filtragem do combobox por `kind`** | n/a | `receivable` → receita+ativo (11 opções biz=MARTINHO) · `payable` → despesa+custo+passivo (17 opções) | Reduz cognitive load — Eliana não vê opções inválidas |
+| **Numero sequencial R-/P-** | Canon previa `numero` opcional | `R-NNNNN` (receber) / `P-NNNNN` (pagar) com `lockForUpdate` business-isolado | R-FIN-002 idempotência forte |
+| **2 botões vs Dropdown** | Decisão pendente | Opção A do design: Wagner aprovou 2 escolhas explícitas ANTES do form. Reusou `DropdownMenu` existente em vez de criar 2 botões novos no header | Menos poluição visual + mantém mental model Eliana |
+
+### Validação Chrome MCP smoke prod (2026-05-25 biz=MARTINHO)
+
+| Fluxo | Resultado |
+|---|---|
+| Dropdown "+ Novo título" 3 itens | ✅ |
+| Novo recebimento → Sheet "Nova conta a receber" | ✅ Title + 6 labels + combobox `cr-plano` |
+| Combobox receber filtragem | ✅ 11 opções tipos `ativo + receita` |
+| Novo pagamento → Sheet "Nova conta a pagar" | ✅ placeholder "Despesa, custo ou passivo" |
+| Combobox pagar filtragem | ✅ 17 opções tipos `passivo + custo + despesa` |
+| Edit título #68042 (pagar) | ✅ combobox `ed-plano` filtrado correto, label "Plano de contas" entre Categoria/Vencimento |
+| Console errors | 0 |
+
+### PR D — Combobox keyboard navigation (G7 auditoria)
+
+WAI-ARIA Combobox pattern adicionado pós-smoke:
+- `↑` / `↓` navega lista
+- `Enter` seleciona ativo
+- `Esc` fecha
+- `Home` / `End` primeiro/último
+- `aria-activedescendant` linka input ↔ option pra screen reader
+- Mouse hover atualiza activeIdx (consistência visual)
+- `scrollIntoView({block:'nearest'})` mantém ativo visível em listas longas
+
+### PR D — G12 audit log violação coerência
+
+`UpdateTituloRequest::assertPlanoCoerente()` + `StoreTituloRequest::assertPlanoCoerente()` agora emitem `Log::warning('financeiro.plano_coerencia.violada', ...)` antes do abort(422) com payload completo (route, business_id, titulo_id, tipo_titulo, plano_id, plano_codigo, plano_tipo, user_id, ip). Permite alerta em dashboard se taxa > 0.1% (signal de bug UI ou tentativa tampering).

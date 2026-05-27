@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fiscal/sped
 //   module: Fiscal
-//   stories: US-FISCAL-010 (SPED & Livros sub-página 7 do design KB-9.75)
+//   stories: US-FISCAL-010 (SPED placeholder), US-FISCAL-016 (gerador EFD-ICMS/IPI MVP — PR #8)
 //   adrs: 0093, 0094, 0101, 0104
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -46,17 +46,17 @@ export default function Sped({ periodos, notice }: SpedProps) {
         envTone="warn"
       >
         <div className="fx-empty" style={{
-          background: 'linear-gradient(135deg, var(--warn-soft), white)',
-          border: '1px solid var(--warn)',
+          background: 'linear-gradient(135deg, var(--ok-soft, #d4f4dd), white)',
+          border: '1px solid var(--ok, #2da764)',
           textAlign: 'left',
           padding: 18,
           marginBottom: 18,
         }}>
-          <b style={{ color: 'var(--warn)' }}>⚠️ Gerador SPED em desenvolvimento</b>
+          <b style={{ color: 'var(--ok, #2da764)' }}>✅ Gerador EFD-ICMS/IPI MVP disponível (PR #8)</b>
           <p style={{ fontSize: 12 }}>{notice}</p>
           <small>
-            Próxima entrega: SPED Fiscal EFD-Reinf + PIS/COFINS via Modules/NfeBrasil.
-            Acompanhe em <code className="fx-mono">memory/requisitos/NfeBrasil/SPEC.md</code> US futuras.
+            <b>Próximas Waves:</b> Bloco E (apuração ICMS · saldo mês anterior) · Bloco H (inventário anual)
+            · EFD-Contribuições (PIS/COFINS arquivo separado) · Entradas via DF-e manifestada.
           </small>
         </div>
 
@@ -87,9 +87,22 @@ export default function Sped({ periodos, notice }: SpedProps) {
                     <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{brl(p.valorAutorizado)}</td>
                     <td><small>{p.prazoEntrega ?? '—'}</small></td>
                     <td style={{ textAlign: 'center' }}>
-                      <button className="fx-btn ghost" disabled title="Gerador em desenvolvimento">
-                        <Download size={11} />
-                      </button>
+                      {p.notasAutorizadas > 0 ? (
+                        <a
+                          href={`/fiscal/sped/icms-ipi/${p.mesIso.split('-')[0]}/${parseInt(p.mesIso.split('-')[1] ?? '1', 10)}`}
+                          className="fx-btn primary"
+                          title={`Baixar EFD-ICMS-IPI ${p.mes} (.txt CONFAZ v3.1.1)`}
+                          download
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        >
+                          <Download size={11} />
+                          <span style={{ fontSize: 10 }}>.txt</span>
+                        </a>
+                      ) : (
+                        <button className="fx-btn ghost" disabled title="Sem notas autorizadas no período">
+                          <Download size={11} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

@@ -69,13 +69,23 @@
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white no-print" 
-        aria-label="Print" 
+      {{-- ADR 0183 PR D: link pra view canon /financeiro/caixa (histórico completo
+           + status integração ✅/⚠️ Lançado no Financeiro + drill-down fin_titulo).
+           Larissa abre modal rápido pelo POS E pode pular pra auditoria completa. --}}
+      <a href="/financeiro/caixa"
+         class="tw-dw-btn tw-dw-btn-outline no-print"
+         style="background:oklch(0.55 0.15 145);color:oklch(0.99 0 0);border-color:oklch(0.45 0.15 145);"
+         title="Histórico completo de caixas + status integração com Financeiro">
+        <i class="fa fa-history"></i> Ver no Financeiro
+      </a>
+
+      <button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white no-print"
+        aria-label="Print"
           onclick="$(this).closest('div.modal').printThis();">
         <i class="fa fa-print"></i> @lang( 'messages.print' )
       </button>
 
-      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white no-print" 
+      <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white no-print"
         data-dismiss="modal">@lang( 'messages.cancel' )
       </button>
     </div>

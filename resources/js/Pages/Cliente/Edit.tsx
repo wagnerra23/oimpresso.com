@@ -9,6 +9,11 @@ import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
+import DadosFiscaisBRSection, {
+  type DadosFiscaisBRData,
+  type BrasilApiCnpjData,
+} from './_form/DadosFiscaisBRSection';
+import { unmaskDigits } from '@/Lib/format-br';
 
 interface ContactInfo {
   id: number;
@@ -30,6 +35,17 @@ interface ContactInfo {
   zip_code: string | null;
   customer_group_id: number | null;
   credit_limit: string | null;
+  // Campos BR (migration 2026_05_21_140000). Backend pode mandar null em legacy.
+  cpf_cnpj?: string | null;
+  rg?: string | null;
+  inscricao_estadual?: string | null;
+  inscricao_municipal?: string | null;
+  indicador_ie?: number | null;
+  nome_fantasia?: string | null;
+  consumidor_final?: boolean | null;
+  contribuinte?: boolean | null;
+  regime?: string | null;
+  suframa?: string | null;
 }
 
 interface ClienteEditPageProps {
@@ -39,7 +55,7 @@ interface ClienteEditPageProps {
   opening_balance: string;
 }
 
-type ClienteFormData = {
+type ClienteFormData = DadosFiscaisBRData & {
   type: string;
   contact_type_radio: string;
   first_name: string;
@@ -61,7 +77,7 @@ type ClienteFormData = {
 
 export default function ClienteEdit(props: ClienteEditPageProps) {
   const c = props.contact;
-  const { data, setData, put, processing, errors } = useForm<ClienteFormData>({
+  const { data, setData, put, processing, errors, transform } = useForm<ClienteFormData>({
     type: c.type ?? 'customer',
     contact_type_radio: c.contact_type ?? 'person',
     first_name: c.first_name ?? c.name ?? '',
@@ -79,7 +95,42 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
     customer_group_id: c.customer_group_id ? String(c.customer_group_id) : '',
     opening_balance: props.opening_balance ?? '0',
     credit_limit: c.credit_limit ?? '',
+    // Dados Fiscais BR — pré-preenchidos do contact carregado pelo backend.
+    cpf_cnpj: c.cpf_cnpj ?? '',
+    rg: c.rg ?? '',
+    inscricao_estadual: c.inscricao_estadual ?? '',
+    inscricao_municipal: c.inscricao_municipal ?? '',
+    indicador_ie: c.indicador_ie != null ? String(c.indicador_ie) : '',
+    nome_fantasia: c.nome_fantasia ?? '',
+    consumidor_final: c.consumidor_final === true,
+    contribuinte: c.contribuinte !== false, // default true se null/undefined (legacy)
+    regime: c.regime ?? '',
+    suframa: c.suframa ?? '',
   });
+
+  const isJuridica = data.contact_type_radio === 'business';
+
+  // Slice 5a — preenche campos não-fiscais quando BrasilAPI retorna sucesso.
+  // No Edit, preservar valores existentes é mais sensível — só sobrescreve se API trouxe valor.
+  const handleCnpjLookup = (api: BrasilApiCnpjData) => {
+    if (api.razao_social) {
+      setData('supplier_business_name', api.razao_social);
+    }
+    if (api.logradouro) {
+      const numero = api.numero ? `, ${api.numero}` : '';
+      const bairro = api.bairro ? ` — ${api.bairro}` : '';
+      setData('address_line_1', `${api.logradouro}${numero}${bairro}`);
+    }
+    if (api.municipio) setData('city', api.municipio);
+    if (api.uf) setData('state', api.uf);
+    if (api.cep) setData('zip_code', api.cep);
+  };
+
+  // Mesma normalização de Create — backend Rule\BR\CpfCnpj re-aplica onlyNumbers.
+  transform((payload) => ({
+    ...payload,
+    cpf_cnpj: unmaskDigits(payload.cpf_cnpj),
+  }));
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,10 +157,10 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
         </div>
       </div>
 
-      <div className="container mx-auto px-8 py-6 max-w-3xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="container mx-auto px-8 py-5 max-w-3xl">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Section title="Identificação" icon={User2}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Tipo" error={errors.type}>
                 <select
                   value={data.type}
@@ -152,14 +203,22 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
               <Field label="Sobrenome" error={errors.last_name}>
                 <Input value={data.last_name} onChange={(e) => setData('last_name', e.target.value)} maxLength={100} />
               </Field>
-              <Field label="CNPJ / CPF" error={errors.tax_number}>
-                <Input value={data.tax_number} onChange={(e) => setData('tax_number', e.target.value)} />
+              <Field label="Tax number (legado UPOS)" error={errors.tax_number}>
+                <Input value={data.tax_number} onChange={(e) => setData('tax_number', e.target.value)} placeholder="Use CPF / CNPJ abaixo (este campo é legacy)" />
               </Field>
             </div>
           </Section>
 
+          <DadosFiscaisBRSection<ClienteFormData>
+            data={data}
+            setData={setData}
+            errors={errors}
+            isJuridica={isJuridica}
+            onCnpjLookup={handleCnpjLookup}
+          />
+
           <Section title="Contato">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Celular" error={errors.mobile}>
                 <Input value={data.mobile} onChange={(e) => setData('mobile', e.target.value)} />
               </Field>
@@ -173,7 +232,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
           </Section>
 
           <Section title="Endereço">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Endereço" error={errors.address_line_1} colSpan={2}>
                 <Input value={data.address_line_1} onChange={(e) => setData('address_line_1', e.target.value)} />
               </Field>
@@ -191,7 +250,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
 
           {(data.type === 'customer' || data.type === 'both') && (
             <Section title="Financeiro">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <Field label="Saldo inicial" error={errors.opening_balance}>
                   <Input value={data.opening_balance} onChange={(e) => setData('opening_balance', e.target.value)} />
                 </Field>
@@ -217,10 +276,10 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
           )}
 
           <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-            <Button type="button" variant="outline" asChild>
+            <Button type="button" variant="cowork-ghost" asChild>
               <a href={`/contacts/${c.id}`}>Cancelar</a>
             </Button>
-            <Button type="submit" disabled={processing}>
+            <Button type="submit" variant="cowork-primary" disabled={processing}>
               <Save className="mr-1.5 h-4 w-4" />
               {processing ? 'Salvando…' : 'Salvar alterações'}
             </Button>
@@ -235,9 +294,9 @@ ClienteEdit.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
 function Section({ title, icon: Icon, children }: { title: string; icon?: typeof User2; children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-border bg-background p-5">
-      <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-        {Icon && <Icon size={16} className="text-muted-foreground" />}
+    <section className="rounded-lg border border-border bg-background p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+        {Icon && <Icon size={14} className="text-muted-foreground" />}
         {title}
       </h3>
       {children}
@@ -248,9 +307,9 @@ function Section({ title, icon: Icon, children }: { title: string; icon?: typeof
 function Field({ label, children, error, colSpan }: { label: string; children: ReactNode; error?: string; colSpan?: number }) {
   return (
     <div className={colSpan === 2 ? 'sm:col-span-2' : ''}>
-      <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{label}</Label>
+      <Label className="mb-1 block">{label}</Label>
       {children}
-      {error && <p className="text-xs text-rose-600 mt-1">{error}</p>}
+      {error && <p className="text-xs text-rose-600 mt-0.5">{error}</p>}
     </div>
   );
 }

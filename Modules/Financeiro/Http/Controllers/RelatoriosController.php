@@ -5,22 +5,23 @@ namespace Modules\Financeiro\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
-use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 
 /**
- * Relatórios gerenciais do Financeiro (US-FIN-014).
+ * Relatórios gerenciais do Financeiro (US-FIN-014b).
  *
- * Entrega 3 visões em uma tela com tabs:
- *   1) DRE Gerencial (receita - despesa, comparativo 4 meses)
- *   2) Fluxo de Caixa Projetado vs Realizado (semana/mês)
- *   3) Resumo do Mês (KPIs)
+ * Entrega 2 visões em uma tela com tabs:
+ *   1) Fluxo de Caixa Projetado vs Realizado (semana/mês)
+ *   2) Resumo do Mês (KPIs)
+ *
+ * DRE foi extraída pra DreController + DreService (`/financeiro/dre`) em
+ * 2026-05-20 (PR D wave reaplicação canon — Q8b Wagner aprovou). Ver
+ * memory/requisitos/Financeiro/dre-visual-comparison.md (status approved).
  *
  * Multi-tenant: BusinessScope nos models filtra por session('user.business_id').
  *
@@ -47,7 +48,6 @@ class RelatoriosController extends Controller
 
         return Inertia::render('Financeiro/Relatorios/Index', [
             'filters'  => $filters,
-            'dre'      => $this->montarDre($businessId, $filters),
             'fluxo'    => $this->montarFluxo($businessId, $filters),
             'resumo'   => $this->montarResumo($businessId, $filters),
         ]);
@@ -57,7 +57,9 @@ class RelatoriosController extends Controller
     {
         $businessId = (int) session('user.business_id');
         $filters = $this->parseFilters($request);
-        $tipo = $request->get('tipo', 'dre');
+        // DRE removida 2026-05-20 (PR D wave reaplicação canon).
+        // DRE export agora vive em DreController::exportCsv. Default cai pra fluxo.
+        $tipo = $request->get('tipo', 'fluxo');
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -70,15 +72,12 @@ class RelatoriosController extends Controller
             fwrite($out, "\xEF\xBB\xBF");
 
             switch ($tipo) {
-                case 'fluxo':
-                    $this->csvFluxo($out, $businessId, $filters);
-                    break;
                 case 'resumo':
                     $this->csvResumo($out, $businessId, $filters);
                     break;
-                case 'dre':
+                case 'fluxo':
                 default:
-                    $this->csvDre($out, $businessId, $filters);
+                    $this->csvFluxo($out, $businessId, $filters);
             }
 
             fclose($out);
@@ -116,95 +115,10 @@ class RelatoriosController extends Controller
         }
     }
 
-    // ───────────────────── DRE ─────────────────────
-
-    /**
-     * DRE simplificado (regime de competência):
-     *   - Receita Bruta = sum(titulos.tipo='receber') por competencia_mes
-     *   - Despesa Total = sum(titulos.tipo='pagar')   por competencia_mes
-     *   - Resultado     = Receita - Despesa
-     *   - Despesas por categoria (top N do período)
-     *
-     * Note: usa competencia_mes (regime de competência) — não a data de baixa.
-     * CMV não é separado de Despesa nesta MVP (categoria_id pode evoluir pra isso).
-     */
-    private function montarDre(int $businessId, array $filters): array
-    {
-        $de = $filters['data_de'];
-        $ate = $filters['data_ate'];
-
-        // Lista os meses (YYYY-MM) entre de..ate, no minimo 1 mês.
-        $meses = [];
-        $cur = Carbon::parse($de)->startOfMonth();
-        $end = Carbon::parse($ate)->startOfMonth();
-        $guard = 0;
-        while ($cur->lte($end) && $guard < 24) {
-            $meses[] = $cur->format('Y-m');
-            $cur->addMonthNoOverflow();
-            $guard++;
-        }
-        if (empty($meses)) {
-            $meses[] = Carbon::parse($de)->format('Y-m');
-        }
-
-        // SUM agrupado por competencia_mes + tipo (sem cancelados)
-        $rows = Titulo::query()
-            ->where('business_id', $businessId)
-            ->whereIn('competencia_mes', $meses)
-            ->where('status', '!=', 'cancelado')
-            ->select('competencia_mes', 'tipo', DB::raw('SUM(valor_total) AS total'))
-            ->groupBy('competencia_mes', 'tipo')
-            ->get();
-
-        $porMes = [];
-        foreach ($meses as $m) {
-            $porMes[$m] = ['mes' => $m, 'receita' => 0.0, 'despesa' => 0.0, 'resultado' => 0.0];
-        }
-        foreach ($rows as $r) {
-            $key = $r->tipo === 'receber' ? 'receita' : 'despesa';
-            $porMes[$r->competencia_mes][$key] = (float) $r->total;
-        }
-        foreach ($porMes as &$m) {
-            $m['resultado'] = $m['receita'] - $m['despesa'];
-        }
-        unset($m);
-
-        // Despesas agrupadas por categoria (todo o período)
-        $despesasPorCat = Titulo::query()
-            ->leftJoin('fin_categorias', 'fin_titulos.categoria_id', '=', 'fin_categorias.id')
-            ->where('fin_titulos.business_id', $businessId)
-            ->where('fin_titulos.tipo', 'pagar')
-            ->where('fin_titulos.status', '!=', 'cancelado')
-            ->whereIn('fin_titulos.competencia_mes', $meses)
-            ->select(
-                DB::raw('COALESCE(fin_categorias.nome, "(sem categoria)") AS categoria_nome'),
-                DB::raw('COALESCE(fin_categorias.cor, "#9ca3af") AS categoria_cor'),
-                DB::raw('SUM(fin_titulos.valor_total) AS total')
-            )
-            ->groupBy('categoria_nome', 'categoria_cor')
-            ->orderByDesc('total')
-            ->limit(10)
-            ->get()
-            ->map(fn ($r) => [
-                'categoria' => $r->categoria_nome,
-                'cor'       => $r->categoria_cor,
-                'total'     => (float) $r->total,
-            ])
-            ->all();
-
-        $totais = array_reduce(array_values($porMes), function ($acc, $m) {
-            $acc['receita']   += $m['receita'];
-            $acc['despesa']   += $m['despesa'];
-            $acc['resultado'] += $m['resultado'];
-            return $acc;
-        }, ['receita' => 0.0, 'despesa' => 0.0, 'resultado' => 0.0]);
-
-        return [
-            'meses'             => array_values($porMes),
-            'despesas_por_cat'  => $despesasPorCat,
-            'totais'            => $totais,
-        ];
-    }
+    // ───────────────────── DRE: removida 2026-05-20 (PR D wave reaplicação canon) ─────────────────────
+    // `montarDre()` e `csvDre()` removidos. DRE agora vive em DreController + DreService
+    // (`/financeiro/dre`) com hierarquia clássica (header/item/subtotal/highlight).
+    // Ver: memory/requisitos/Financeiro/dre-visual-comparison.md (status approved Wagner 2026-05-20).
 
     // ───────────────────── Fluxo ─────────────────────
 
@@ -365,26 +279,8 @@ class RelatoriosController extends Controller
     }
 
     // ───────────────────── CSV writers ─────────────────────
-
-    private function csvDre($out, int $businessId, array $filters): void
-    {
-        $dre = $this->montarDre($businessId, $filters);
-
-        fputcsv($out, ['DRE Gerencial — ' . $filters['data_de'] . ' a ' . $filters['data_ate']]);
-        fputcsv($out, []);
-        fputcsv($out, ['Mês', 'Receita', 'Despesa', 'Resultado']);
-        foreach ($dre['meses'] as $m) {
-            fputcsv($out, [$m['mes'], $m['receita'], $m['despesa'], $m['resultado']]);
-        }
-        fputcsv($out, ['TOTAL', $dre['totais']['receita'], $dre['totais']['despesa'], $dre['totais']['resultado']]);
-
-        fputcsv($out, []);
-        fputcsv($out, ['Despesas por categoria']);
-        fputcsv($out, ['Categoria', 'Total']);
-        foreach ($dre['despesas_por_cat'] as $c) {
-            fputcsv($out, [$c['categoria'], $c['total']]);
-        }
-    }
+    // csvDre() removido 2026-05-20 (PR D wave reaplicação canon). Export DRE
+    // agora vive em DreController::exportCsv (`/financeiro/dre/export-csv`).
 
     private function csvFluxo($out, int $businessId, array $filters): void
     {

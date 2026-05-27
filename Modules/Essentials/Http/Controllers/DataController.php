@@ -335,21 +335,67 @@ class DataController extends Controller
         // - Base de Conhecimento (top-level, extraído do dropdown) → grupo CONHECIMENTO
         if ($is_essentials_enabled) {
             Menu::modify('admin-sidebar-menu', function ($menu) {
-                // HRM (área /hrm/*)
+                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry HRM é
+                // principal do grupo PESSOAS — declara atalho kbd + primary action
+                // + ghosts tabs no `attributes` propagados pelo LegacyMenuAdapter
+                // pro frontend Sidebar.tsx (v3 5 grupos canon).
+                //  - `shortcut` G H → atalho overlay (H = HRM)
+                //  - `primary`     → "Novo colaborador" via /users/create core
+                //    (UltimatePOS gerencia users no core, Essentials estende com
+                //    department/designation/payroll)
+                //  - `ghosts`      → sub-views da área /hrm/* + dashboard core users
+                //
+                // hrefs absolutos. Permission gates específicos (essentials.crud_*,
+                // essentials.approve_leave, etc) continuam enforce nos Controllers.
+                //
+                // HRM (área /hrm/*) — entry principal do grupo pessoas
                 $menu->url(
                         action([\Modules\Essentials\Http\Controllers\DashboardController::class, 'hrmDashboard']),
                         __('essentials::lang.hrm'),
-                        ['icon' => 'fa fas fa-users', 'active' => request()->segment(1) == 'hrm', 'style' => config('app.env') == 'demo' ? 'background-color: #605ca8 !important;' : '']
+                        [
+                            'icon'     => 'fa fas fa-users',
+                            'active'   => request()->segment(1) == 'hrm',
+                            'style'    => config('app.env') == 'demo' ? 'background-color: #605ca8 !important;' : '',
+                            'shortcut' => 'G H',
+                            'primary'  => [
+                                'label'    => 'Novo colaborador',
+                                'href'     => '/users/create',
+                                'shortcut' => 'N',
+                            ],
+                            'ghosts'   => [
+                                ['key' => 'dashboard',    'label' => 'Dashboard HRM',  'href' => '/hrm/dashboard'],
+                                ['key' => 'colaboradores','label' => 'Colaboradores',  'href' => '/users'],
+                                ['key' => 'leave',        'label' => 'Solicitações',   'href' => '/hrm/leave'],
+                                ['key' => 'leave-type',   'label' => 'Tipos de Folga', 'href' => '/hrm/leave-type'],
+                                ['key' => 'attendance',   'label' => 'Presença',       'href' => '/hrm/attendance'],
+                                ['key' => 'holiday',      'label' => 'Feriados',       'href' => '/hrm/holiday'],
+                                ['key' => 'payroll',      'label' => 'Folha',          'href' => '/hrm/payroll'],
+                                ['key' => 'settings',     'label' => 'Configurações',  'href' => '/hrm/settings'],
+                            ],
+                        ]
                     )
                 ->order(87);
 
                 // Base de Conhecimento — top-level (vai pra grupo CONHECIMENTO no frontend)
-                $menu->url(
-                        action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index']),
-                        __('essentials::lang.knowledge_base'),
-                        ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'knowledge-base']
-                    )
-                ->order(89);
+                //
+                // 2026-05-22: módulo `KB` canon (ADR 0180 Wave C, route /kb) declara
+                // o MESMO label "Base de Conhecimento" via Modules/KB/Http/Controllers/
+                // DataController@modifyAdminMenu — causa item duplicado na sidebar
+                // pra subscribers que têm os dois módulos ativos. Solução:
+                //   - Quando KB está instalado, escondemos a entrada Essentials (KB
+                //     vira o canon visível e mantém o histórico do Essentials acessível
+                //     via /knowledge-base direto, sem quebrar bookmarks/links).
+                //   - Quando só Essentials está ativo (cliente legacy sem KB),
+                //     mantemos a entrada original — comportamento pré-mudança.
+                $kb_canon_ativo = (new ModuleUtil())->isModuleInstalled('KB');
+                if (! $kb_canon_ativo) {
+                    $menu->url(
+                            action([\Modules\Essentials\Http\Controllers\KnowledgeBaseController::class, 'index']),
+                            __('essentials::lang.knowledge_base'),
+                            ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'knowledge-base']
+                        )
+                    ->order(89);
+                }
 
                 // Dropdown "Essentials" — Tarefas, Mensagens, Documentos, Lembretes
                 $menu->dropdown(

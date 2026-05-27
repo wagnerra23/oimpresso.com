@@ -2,9 +2,9 @@
 
 namespace Modules\OficinaAuto\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -66,11 +66,13 @@ class ServiceOrderController extends Controller
         $hasNumber      = Schema::hasColumn('service_orders', 'number');
         $hasStartedAt   = Schema::hasColumn('service_orders', 'started_at');
         $hasContact     = Schema::hasColumn('service_orders', 'contact_id');
+        $hasCurrentStage = Schema::hasColumn('service_orders', 'current_stage_id');
         $hasVehicleNumber = Schema::hasColumn('vehicles', 'vehicle_number');
         $hasCapacityM3  = Schema::hasColumn('vehicles', 'capacity_m3');
 
         $statusFilter = $request->string('status')->toString();
         $typeFilter   = $request->string('type')->toString();
+        $stageFilter  = $request->string('stage')->toString();
         $q            = $request->string('q')->toString();
 
         // ──────── Base query (multi-tenant via global scope) ────────
@@ -135,6 +137,23 @@ class ServiceOrderController extends Controller
             $qb->where('order_type', $typeFilter);
         });
 
+        // ──────── Filter stage (Gap #3 — chips por current_stage_id estilo Linear) ────────
+        // UI manda stage.key (ex 'disponivel'), backend resolve pra stage_id via JOIN
+        // com sale_process_stages dos processos cacamba_*. Multi-tenant Tier 0 (ADR 0093)
+        // preservado via global scope ServiceOrder + filter business_id em SaleProcess.
+        $base->when($stageFilter !== '' && $stageFilter !== 'all' && $hasCurrentStage, function ($qb) use ($stageFilter) {
+            $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+            $stageIds = \App\Domain\Fsm\Models\SaleProcessStage::query()
+                ->whereHas('process', function ($p) use ($businessId) {
+                    $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                        ->where('business_id', $businessId)
+                        ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
+                })
+                ->where('key', $stageFilter)
+                ->pluck('id');
+            $qb->whereIn('current_stage_id', $stageIds);
+        });
+
         // ──────── Search ────────
         $base->when($q !== '', function ($qb) use ($q, $hasNumber, $hasContact) {
             $like = '%' . $q . '%';
@@ -184,9 +203,13 @@ class ServiceOrderController extends Controller
             'filters' => [
                 'status' => $statusFilter,
                 'type'   => $typeFilter,
+                'stage'  => $stageFilter,
                 'q'      => $q,
             ],
             'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate)),
+            // Gap #3 estado-da-arte FSM screen — chips por stage estilo Linear.
+            // Defer porque é COUNT por stage (~8 stages × cacamba_* processos).
+            'stages' => Inertia::defer(fn () => $this->buildStagesPayload($hasCurrentStage)),
             // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager
             'schemaFlags' => [
                 'has_order_type'      => $hasOrderType,
@@ -196,10 +219,57 @@ class ServiceOrderController extends Controller
                 'has_number'          => $hasNumber,
                 'has_started_at'      => $hasStartedAt,
                 'has_contact'         => $hasContact,
+                'has_current_stage'   => $hasCurrentStage,
                 'has_vehicle_number'  => $hasVehicleNumber,
                 'has_capacity_m3'     => $hasCapacityM3,
             ],
         ]);
+    }
+
+    /**
+     * Stages payload pros chips de filtro (Gap #3 estado-da-arte FSM screen).
+     *
+     * Retorna lista de stages dos processos cacamba_locacao + cacamba_manutencao
+     * do business atual com contador de OS em cada stage. Multi-tenant Tier 0
+     * (ADR 0093) via global scope ServiceOrder + filter business_id em SaleProcess.
+     *
+     * @return list<array{key:string, name:string, color:string|null, count:int, is_terminal:bool, process_key:string}>
+     */
+    private function buildStagesPayload(bool $hasCurrentStage): array
+    {
+        if (! $hasCurrentStage) {
+            return [];
+        }
+
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+
+        $stages = \App\Domain\Fsm\Models\SaleProcessStage::query()
+            ->whereHas('process', function ($p) use ($businessId) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                    ->where('business_id', $businessId)
+                    ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
+            })
+            ->with(['process' => function ($p) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class);
+            }])
+            ->orderBy('sort_order')
+            ->get();
+
+        // 1 query bulk: counts por stage_id (multi-tenant via global scope ServiceOrder)
+        $countsByStageId = ServiceOrder::query()
+            ->whereIn('current_stage_id', $stages->pluck('id'))
+            ->selectRaw('current_stage_id, COUNT(*) as total')
+            ->groupBy('current_stage_id')
+            ->pluck('total', 'current_stage_id');
+
+        return $stages->map(fn ($stage) => [
+            'key'         => $stage->key,
+            'name'        => $stage->name,
+            'color'       => $stage->color,
+            'count'       => (int) ($countsByStageId[$stage->id] ?? 0),
+            'is_terminal' => (bool) $stage->is_terminal,
+            'process_key' => $stage->process->key,
+        ])->all();
     }
 
     /**
@@ -302,9 +372,24 @@ class ServiceOrderController extends Controller
     public function show(Request $request, ServiceOrder $order)
     {
         // D8 Security Wave 15: Policy multi-tenant sameTenant guard.
+        // Causa raiz #25 (2026-05-20): ServiceOrderController extendia Illuminate\Routing\Controller
+        // (sem trait AuthorizesRequests) — $this->authorize() não existia. Fixed: extends
+        // App\Http\Controllers\Controller (projeto canon que já usa AuthorizesRequests).
         $this->authorize('view', $order);
 
-        $order->load(['vehicle', 'contact:id,name,mobile']);
+        // ADR 0192 — Integração Vendas × Oficina A1 KB-9.75. Carrega Transaction
+        // derivada (criada pelo ServiceOrderObserver na transição status='concluida'
+        // · PR #1530) pra renderizar VendaDerivadaCard no drawer. Eager 1 query FK
+        // barata — multi-tenant Tier 0 herdado via belongsTo + global scope Transaction.
+        $order->load([
+            'vehicle',
+            'contact:id,name,mobile',
+            'transaction:id,business_id,invoice_no,final_total,transaction_date',
+            // Wave 2.3 US-OFICINA-027 — drawer ServiceOrderRichSheet seção PEÇAS & MÃO DE OBRA
+            'items',
+            // Wave 2.1 US-OFICINA-027 — drawer KV grid modo manutenção (Mecânico)
+            'assignedUser:id,first_name,last_name,surname',
+        ]);
 
         // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
         // Hotfix Wave 7+ — drawer chamava /oficina-auto/service-orders/{id} esperando
@@ -326,16 +411,55 @@ class ServiceOrderController extends Controller
                 'started_at'            => $order->entered_at,
                 'completed_at'          => $order->completed_at,
                 'notes'                 => $order->notes,
+                // Wave 2.1 US-OFICINA-027 — drawer modo manutenção (sub-vertical 4 ADR 0194)
+                'mileage_at_service'    => $order->mileage_at_service,
+                'box_label'             => $order->box_label,
+                'assigned_user'         => $order->assignedUser ? [
+                    'id'   => $order->assignedUser->id,
+                    // UltimatePOS canon: surname + first_name + last_name (mesmo pattern User::getUserFullNameAttribute)
+                    'name' => trim(
+                        ($order->assignedUser->surname ?? '') . ' ' .
+                        ($order->assignedUser->first_name ?? '') . ' ' .
+                        ($order->assignedUser->last_name ?? '')
+                    ),
+                ] : null,
                 'vehicle' => $order->vehicle ? [
-                    'id'              => $order->vehicle->id,
-                    'plate'           => $order->vehicle->plate,
-                    'vehicle_number'  => $order->vehicle->vehicle_number ?? null,
-                    'capacity_m3'     => $order->vehicle->capacity_m3 ?? null,
+                    'id'                => $order->vehicle->id,
+                    'plate'             => $order->vehicle->plate,
+                    'vehicle_number'    => $order->vehicle->vehicle_number ?? null,
+                    'vehicle_type'      => $order->vehicle->vehicle_type ?? null,
+                    'capacity_m3'       => $order->vehicle->capacity_m3 ?? null,
+                    'model_year'        => $order->vehicle->model_year ?? null,
+                    'manufacture_year'  => $order->vehicle->manufacture_year ?? null,
+                    'color'             => $order->vehicle->color ?? null,
                 ] : null,
                 'contact' => $order->contact ? [
-                    'id'   => $order->contact->id,
-                    'name' => $order->contact->name,
+                    'id'     => $order->contact->id,
+                    'name'   => $order->contact->name,
+                    'mobile' => $order->contact->mobile,
                 ] : null,
+                // Wave 2.3 US-OFICINA-027 — items lançados na OS (peça + mão-obra + terceiro)
+                // alimentam seção "PEÇAS & MÃO DE OBRA" do drawer ServiceOrderRichSheet.
+                // Observer ::computeFinalTotal soma valor_total destes pra Transaction.final_total.
+                'items' => $order->items->map(fn ($item) => [
+                    'id'             => $item->id,
+                    'tipo'           => $item->tipo,
+                    'descricao'      => $item->descricao,
+                    'quantidade'     => (float) $item->quantidade,
+                    'valor_unitario' => (float) $item->valor_unitario,
+                    'valor_total'    => (float) $item->valor_total,
+                    'product_id'     => $item->product_id,
+                    'notes'          => $item->notes,
+                ])->values()->all(),
+                'items_total' => (float) $order->total_items,
+                // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
+                // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
+                // que já existe no equivalente Modules/Repair/ProducaoOficinaController
+                // (`buildVendaDerivadaPayload`). Quando trouxer pra OficinaAuto, extrair
+                // helper compartilhado pra App\Services\VendaDerivadaPayloadService.
+                'venda_derivada' => $order->transaction
+                    ? $this->shapeVendaDerivada($order->transaction)
+                    : null,
                 'urls' => [
                     'show' => '/oficina-auto/ordens-servico/' . $order->id,
                     'edit' => '/oficina-auto/ordens-servico/' . $order->id . '/edit',
@@ -343,8 +467,25 @@ class ServiceOrderController extends Controller
             ]);
         }
 
+        // Wave 5 US-OFICINA-005-bis — Show.tsx seção "Itens da OS" consome
+        // `order.items[]` (peças + mão-obra + terceiros). Items já foram eager-loaded
+        // acima (linha `$order->load([..., 'items', ...])`); aqui só serializamos
+        // o shape consumido pelo frontend (mesmo formato do JSON branch).
+        $itemsPayload = $order->items->map(fn ($item) => [
+            'id'             => $item->id,
+            'tipo'           => $item->tipo,
+            'descricao'      => $item->descricao,
+            'quantidade'     => (float) $item->quantidade,
+            'valor_unitario' => (float) $item->valor_unitario,
+            'valor_total'    => (float) $item->valor_total,
+            'product_id'     => $item->product_id,
+            'notes'          => $item->notes,
+        ])->values()->all();
+
         return Inertia::render('OficinaAuto/ServiceOrders/Show', [
-            'order' => $order,
+            'order' => array_merge($order->toArray(), [
+                'items' => $itemsPayload,
+            ]),
         ]);
     }
 
@@ -358,8 +499,25 @@ class ServiceOrderController extends Controller
             ->limit(500)
             ->get(['id', 'plate', 'secondary_plate', 'vehicle_type']);
 
+        // Wave 5 US-OFICINA-005-bis — Edit.tsx tem seção inline "Itens da OS" idêntica
+        // ao Show.tsx. Eager-load items + serializa shape consumido pelo componente
+        // compartilhado ServiceOrderItemRow.
+        $order->load('items');
+        $itemsPayload = $order->items->map(fn ($item) => [
+            'id'             => $item->id,
+            'tipo'           => $item->tipo,
+            'descricao'      => $item->descricao,
+            'quantidade'     => (float) $item->quantidade,
+            'valor_unitario' => (float) $item->valor_unitario,
+            'valor_total'    => (float) $item->valor_total,
+            'product_id'     => $item->product_id,
+            'notes'          => $item->notes,
+        ])->values()->all();
+
         return Inertia::render('OficinaAuto/ServiceOrders/Edit', [
-            'order'    => $order,
+            'order'    => array_merge($order->toArray(), [
+                'items' => $itemsPayload,
+            ]),
             'vehicles' => $vehicles,
             'statuses' => self::statuses(),
         ]);
@@ -393,6 +551,122 @@ class ServiceOrderController extends Controller
 
         return redirect('/oficina-auto/ordens-servico')
             ->with('status', ['success' => 1, 'msg' => 'OS removida (soft delete).']);
+    }
+
+    /**
+     * Shape mínimo do payload `venda_derivada` consumido pelo VendaDerivadaCard
+     * shared (resources/js/Components/shared/VendaDerivadaCard.tsx).
+     *
+     * V0 core (Onda 5 ADR 0192): id + invoice_no + final_total + transaction_date.
+     * Items breakdown + badge fiscal NF-e ficam pra wave futura (paridade com
+     * Modules/Repair `buildVendaDerivadaPayload`).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): Transaction já vem scopada por business_id
+     * via belongsTo + global scope herdado. Frontend só lê.
+     */
+    private function shapeVendaDerivada(\App\Transaction $t): array
+    {
+        return [
+            'id'               => (int) $t->id,
+            'invoice_no'       => (string) ($t->invoice_no ?? $t->id),
+            'final_total'      => (float) $t->final_total,
+            'transaction_date' => $t->transaction_date
+                ? (is_string($t->transaction_date)
+                    ? substr($t->transaction_date, 0, 10)
+                    : $t->transaction_date->toDateString())
+                : null,
+        ];
+    }
+
+    /**
+     * Gap 3 — Imprimir OS PDF profissional A4 nota-fiscal-like (US-OFICINA-037).
+     *
+     * Espelha pattern `SellPosController::printInvoice` (Sells legacy) — AJAX-only
+     * (404 sem X-Requested-With) + retorna `{success:1, receipt:{html_content,
+     * print_title}}`. Frontend `printServiceOrder.ts` injeta `html_content` em
+     * IFRAME oculto + dispara `window.print()` (cross-origin IFRAME compat).
+     *
+     * Multi-tenant Tier 0 [ADR 0093]: Route Model Binding já respeita global scope
+     * de ServiceOrder, mas defensive guard explícito (ADR 0093 §"Defense in depth")
+     * — abort 404 cross-tenant antes mesmo do render. Cliente final do Martinho
+     * sub-vertical 4 (CNAE 4520 mecânica pesada) leva papel pra ressarcir
+     * transportadora 3ª/seguradora — não pode vazar dado de outra biz NUNCA.
+     *
+     * @see resources/views/oficina_auto/print/service_order.blade.php (template A4)
+     * @see resources/js/Lib/printServiceOrder.ts (helper IFRAME mirror printSaleReceipt)
+     * @see memory/sessions/2026-05-26-plano-gap-3-imprimir-os-pdf-profissional.md
+     */
+    public function printInvoice(Request $request, ServiceOrder $order)
+    {
+        // AJAX-only (espelha SellPosController::printInvoice §1928) — render direto
+        // via browser sem X-Requested-With retorna 404 (não AppShellV2 vazado).
+        if (! $request->ajax()) {
+            abort(404);
+        }
+
+        // D8 Security: defensive guard cross-tenant + permission (ADR 0093).
+        // Route Model Binding já filtrou via global scope, mas dupla-checa antes
+        // do render pra fechar qualquer brecha futura (ex: superadmin com session
+        // de outra biz).
+        $businessId = (int) ($request->session()->get('user.business_id')
+            ?? $request->session()->get('business.id') ?? 0);
+        abort_unless((int) $order->business_id === $businessId, 404);
+
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.service_order.view'),
+            403
+        );
+
+        try {
+            $order->load([
+                'vehicle',
+                'contact:id,name,mobile,tax_number,address_line_1,city,state',
+                'items',
+                'dviInspectionItems',
+                'assignedUser:id,first_name,last_name,surname',
+            ]);
+
+            $business = \App\Business::find($businessId);
+            $location = $business?->locations()->first();
+
+            $orderNumber = 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+
+            $htmlContent = view('oficina_auto.print.service_order', [
+                'order'    => $order,
+                'business' => $business,
+                'location' => $location,
+                'orderNumber' => $orderNumber,
+                'generatedAt' => now(),
+            ])->render();
+
+            return response()->json([
+                'success' => 1,
+                'receipt' => [
+                    'html_content' => $htmlContent,
+                    'print_title'  => $orderNumber,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::emergency('OficinaAuto printInvoice: File:' . $e->getFile()
+                . ' Line:' . $e->getLine() . ' Message:' . $e->getMessage()
+                . ' Trace:' . substr($e->getTraceAsString(), 0, 800));
+
+            $payload = [
+                'success' => 0,
+                'msg'     => 'Não foi possível gerar a impressão da OS.',
+            ];
+            if (config('app.debug')) {
+                $payload['_debug'] = [
+                    'class'   => get_class($e),
+                    'message' => $e->getMessage(),
+                    'file'    => basename($e->getFile()),
+                    'line'    => $e->getLine(),
+                ];
+            }
+
+            return response()->json($payload, 500);
+        }
     }
 
     /**

@@ -195,7 +195,18 @@ class MenuItem implements Arrayable
 
         $parts = [];
         foreach ($attributes as $k => $v) {
-            $parts[] = is_int($k) ? e($v) : sprintf('%s="%s"', $k, e($v));
+            // ADR 0180 Fase 4 (PR #1350/#1353): attributes vira bag misto — alguns
+            // valores (primary[], ghosts[], shortcut struct) existem só pro
+            // LegacyMenuAdapter→React Sidebar e não fazem sentido como atributo
+            // HTML no Blade legacy. Ignora não-escalares pra não estourar e()
+            // com htmlspecialchars(): TypeError quando $v é array.
+            if ($v === null || is_array($v) || is_object($v)) {
+                continue;
+            }
+            if (is_bool($v)) {
+                $v = $v ? '1' : '0';
+            }
+            $parts[] = is_int($k) ? e((string) $v) : sprintf('%s="%s"', $k, e((string) $v));
         }
         return $parts ? ' ' . implode(' ', $parts) : '';
     }

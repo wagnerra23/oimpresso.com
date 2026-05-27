@@ -83,7 +83,7 @@ revisions:
 ## Decisão MWART V2
 
 - **Espelhamento canon visual-source.html** — 6 KPIs ricos + cards 5-6 linhas + drawer 5 sections + FOTOS placeholder + atendente avatar + URGENTE pulse rose
-- **Adaptado vocabulário caçamba** — verbos workflow Martinho (locação/recolhimento/manutenção/entrega) substituem mecânica (recepção/diagnóstico/peças/execução/pronto)
+- **Adaptado vocabulário caçamba** — verbos workflow Martinho (locação/recolhimento/manutenção/entrega) **eram aplicados na leitura pré-ADR 0194** (sub-vertical 3 hipotético). **Pós-ADR 0194** sub-vertical 4 real (mecânica pesada caminhão basculante) usa verbos canon mecânica (recepção/diagnóstico/peças/execução/pronto). UI prod biz=164 hoje exibe os verbos antigos preservados — review_trigger M6+ caso refactor vir conforme US-OFICINA-027 catálogo peça hidráulica.
 - **Drawer próprio `CacambaProducaoSheet`** — NÃO reusa `ServiceOrderSheet` (PR #729 — sections diferentes). Embute `ServiceOrderFsmActionPanel` canon (sem duplicar lógica FSM)
 - **Tokens custom evitados** — Tailwind 4 JIT com classes nativas (`slate-*`, `amber-*`, `rose-*`, `emerald-*`); pattern foto inline `repeating-linear-gradient` com oklch (1 lugar só)
 - **Atendente derivado backend** — não hardcoded; backend projetor `makeIniciais()` cria iniciais a partir de `transaction.createdBy.first_name + last_name`. Fallback: "sem atendente" italic

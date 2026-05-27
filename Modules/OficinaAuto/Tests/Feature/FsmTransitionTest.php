@@ -48,7 +48,7 @@ function createFsmVehicle(string $plate): Vehicle
     ]);
 }
 
-it('Cenário 1 — fluxo Simples Martinho: aberta → em_servico → concluida (locação caçamba)', function () {
+it('Cenário 1 — fluxo Simples Martinho: aberta → em_servico → concluida (sub-vertical 4 mecânica pesada caminhão basculante · ADR 0194 — pré-correção dizia "locação caçamba")', function () {
     session(['user.business_id' => BIZ_WAGNER_FSM]);
 
     $vehicle = createFsmVehicle('FSM001');

@@ -313,6 +313,19 @@ class LegacyMenuAdapter
             $result['group'] = (string) $group;
         }
 
+        // ADR 0180 Fase 4 — propaga atalho kbd + primary action + ghosts tabs
+        // declarados pelo DataController do módulo. Lidos quando MenuItem.tsx
+        // (sidebar) usa shortcut como dica visual, e quando PageHeaderTabs
+        // (Components/shared, Fase 3) consome primary+ghosts pra renderizar
+        // tabs no header da tela. Não é propagada estrutura — apenas pass-through
+        // do payload exatamente como o backend declarou.
+        foreach (['shortcut', 'primary', 'ghosts'] as $extraKey) {
+            $value = $props[$extraKey] ?? $props['attributes'][$extraKey] ?? null;
+            if ($value !== null && $value !== '' && $value !== []) {
+                $result[$extraKey] = $value;
+            }
+        }
+
         if (!empty($children)) {
             $result['children'] = $children;
             // Pais dropdown geralmente não têm URL própria no nwidart — deixamos undef

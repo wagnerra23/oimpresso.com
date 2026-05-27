@@ -130,6 +130,21 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave C TOPO (2026-05-21): entry dropdown principal
+                // declara atributos extras propagados pelo LegacyMenuAdapter pro
+                // frontend Sidebar.tsx (v3 — grupo 'ia' no TOPO):
+                //  - `shortcut` G I → atalho kbd canônico (overlay Fase 8)
+                //  - `primary`     → "Conversar com Jana" (entry-point IA do módulo)
+                //  - `ghosts`      → 6 sub-views (conversar/dashboard/metas/alertas/custos/plataforma)
+                //
+                // group: 'ia' canon — LegacyMenuAdapter propaga pro Sidebar.tsx,
+                // que renderiza Jana no TOPO junto com KB/Brief/SRS (ghosts de IA).
+                //
+                // hrefs absolutos (não usa route() helper aqui pra evitar interpretação
+                // no LegacyMenuAdapter::toRelative). Permission gates específicos
+                // (jana.chat, jana.metas.manage, jana.admin.custos.view, jana.superadmin)
+                // permanecem enforce nos Controllers individuais — gate global
+                // hasThePermissionInSubscription já cobre módulo on/off na entry.
                 $menu->dropdown(
                     __('copiloto::copiloto.module_label'),
                     function ($sub) {
@@ -168,15 +183,10 @@ class DataController extends Controller
                             );
                         }
 
-                        // Alertas
-                        $sub->url(
-                            route('jana.alertas.index'),
-                            __('copiloto::copiloto.menu.alertas'),
-                            [
-                                'icon'   => 'fa fas fa-bell',
-                                'active' => request()->segment(2) == 'alertas',
-                            ]
-                        );
+                        // Alertas — REMOVIDO do dropdown legacy (Wagner 2026-05-25).
+                        // Tela /ia/alertas é STUB ("spec-ready ver US-COPI-060") sem
+                        // implementação real. Reativar quando US-COPI-060 entregar.
+                        // Rota e Controller mantidos pra não quebrar bookmarks externos.
 
                         // Custos de IA (admin do business — US-COPI-070)
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.admin.custos.view')) {
@@ -204,9 +214,66 @@ class DataController extends Controller
                         }
                     },
                     [
-                        'icon'   => 'fa fas fa-compass',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'     => 'fa fas fa-compass',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $segmento_ativo,
+                        'group'    => 'ia',
+                        'shortcut' => 'G I',
+                        'primary'  => [
+                            'label'    => 'Conversar com Jana',
+                            'href'     => '/ia',
+                            'shortcut' => 'N',
+                        ],
+                        // ADR 0182 + GUIA-SIDEBAR-V3 Wagner 2026-05-21: hub IA com
+                        // sub-views canon do guia (Copiloto/Brief/Memórias/KB/Regras)
+                        // + ghosts internos Jana (Dashboard/Metas/Custos).
+                        // Labels CURTOS (≤2 palavras). PageHeaderTabs auto-promove ghost
+                        // ativo inline mesmo se index >= maxVisible.
+                        //
+                        // Wagner 2026-05-22: hrefs /jana → /ia (vertical-slice IA piloto
+                        // sidebar v3 — URL canon casa com label "IA" do topo).
+                        'ghosts'   => [
+                            // Wagner 2026-05-25: Dashboard PROMOVIDO pra primeira aba canon
+                            // da Jana — destino pós-login (`/home → /ia/dashboard`). Charter
+                            // Pages/Jana/Dashboard.charter.md já cobre empty state. Substitui
+                            // Copiloto (chat) como entry-point default da Jana — chat continua
+                            // acessível em 2ª aba e via FAB. Tentativas anteriores travaram em
+                            // DashboardController@index redirect "sem metas → chat" (removido).
+                            ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
+                            ['key' => 'copiloto',  'label' => 'Copiloto',  'href' => '/ia'],
+                            ['key' => 'brief',     'label' => 'Brief',     'href' => '/ia/brief'],
+                            ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
+                            ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
+                            ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],
+                            // Wagner 2026-05-25: Governança canon (Modules/Governance · policies/audit/
+                            // drift/module-grades) entra como ghost da Jana — "governança é da IA".
+                            // Entry sidebar foi desligada no mesmo dia (Modules/Governance/DataController
+                            // modifyAdminMenu early-return). Sub-views Dashboard/Policies/Audit/Drift/
+                            // Module Grades navegáveis pelo PageHeader da própria Governança.
+                            ['key' => 'governanca', 'label' => 'Governança', 'href' => '/governance/dashboard'],
+                            // Wagner 2026-05-23: ghost 'metas' removido — MetasController@index ainda
+                            // retorna Blade view ('copiloto::metas.index'), o que faz Inertia Link no
+                            // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController
+                            // for migrado pra Inertia::render via MWART.
+                            ['key' => 'custos',    'label' => 'Custos',    'href' => '/ia/admin/custos'],
+                            // Wagner 2026-05-22: ADS vai pra dentro da Jana (entry sidebar removida).
+                            // Wagner 2026-05-23 fix: href '/ads' não existe (rota raiz ausente em
+                            // Modules/ADS/Routes/web.php). Entry-point real do módulo é a tela Decisões.
+                            ['key' => 'ads',       'label' => 'ADS',       'href' => '/ads/admin/decisoes'],
+                            // Wagner 2026-05-25: promovidas pra ghosts após audit Jana
+                            // (browser MCP smoke detectou 3 Pages órfãs sem link).
+                            //  - cockpit: Jana V2 Analista IA (Brief + KPIs + análises) — Pages/Jana/Cockpit.tsx
+                            //  - roadmap: Timeline Gantt das tasks MCP — Pages/Jana/Admin/Roadmap.tsx
+                            // Painel.tsx fica acessível só por URL (mock Onda A1, sobreposto ao Cockpit).
+                            ['key' => 'cockpit',  'label' => 'Cockpit',  'href' => '/ia/cockpit'],
+                            ['key' => 'roadmap',  'label' => 'Roadmap',  'href' => '/ia/admin/roadmap'],
+                            // Wagner 2026-05-22 P2: zera 2 órfãs (telas Jana Admin Governança + Qualidade).
+                            // Wagner 2026-05-25: rename 'Governança Jana' → 'Governança MCP' (alinha
+                            // com topnav.php que já chama de MCP — clarifica vs ghost 'governanca'
+                            // canon que aponta /governance/dashboard outro módulo).
+                            ['key' => 'governanca-mcp', 'label' => 'Governança MCP', 'href' => '/ia/admin/governanca'],
+                            ['key' => 'qualidade-jana', 'label' => 'Qualidade IA',   'href' => '/ia/admin/qualidade'],
+                        ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)
             }

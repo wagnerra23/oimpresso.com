@@ -78,3 +78,152 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::post('save-marketplace', [Modules\Crm\Http\Controllers\CrmMarketplaceController::class, 'save']);
     Route::get('import-leads', [Modules\Crm\Http\Controllers\CrmMarketplaceController::class, 'importLeads']);
 });
+
+// ADR 0179 Wave C-BE -- Cliente drawer cadastro autosave + lookups BR.
+//
+// Stack middleware canon UPOS Admin (copiada literal do grupo /cliente raiz
+// em routes/web.php:132): 'setData','auth','SetSessionData','language',
+// 'timezone','AdminSidebarMenu','CheckUserLogin'. Pre-flight LICOES F3
+// T-AP-3 (middleware fantasma) -- NAO inventamos middleware 'tenant'.
+//
+// `setData` = popula `session('user.business_id')` que ClienteAutosaveController
+// usa pra multi-tenant scope (ADR 0093 IRREVOGAVEL). `CheckUserLogin` recusa
+// usuarios sem business_id valido.
+//
+// 5 endpoints PATCH cadastrais + 2 endpoints GET lookup (BrLookupService
+// proxy ViaCEP/BrasilAPI com cache Redis -- evita rate limit federal pra
+// Larissa biz=4 ~30 cadastros/dia em pico).
+//
+// Refs:
+//   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md
+//   - memory/requisitos/Crm/RUNBOOK-Cliente-drawer-760px.md §4 Wave C
+//   - resources/js/Pages/Cliente/Index.charter.md v3
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('cliente')
+    ->name('cliente.')
+    ->group(function () {
+        // POST /cliente/draft -- cria placeholder vazio + retorna id pro drawer
+        // 760 abrir em modo "novo cliente" (substitui /contacts/create Blade legacy).
+        // Throttle 30/min anti-abuso (Larissa biz=4 max ~30 cadastros/dia).
+        Route::post('draft', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'draft'])
+            ->middleware('throttle:30,1')
+            ->name('draft.create');
+
+        // 5 endpoints autosave (Q2 inline -- debounce 800ms client-side).
+        Route::patch('{id}/identificacao', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'identificacao'])
+            ->whereNumber('id')
+            ->name('autosave.identificacao');
+        Route::patch('{id}/contato', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'contato'])
+            ->whereNumber('id')
+            ->name('autosave.contato');
+        Route::patch('{id}/endereco', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'endereco'])
+            ->whereNumber('id')
+            ->name('autosave.endereco');
+        Route::patch('{id}/comercial', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'comercial'])
+            ->whereNumber('id')
+            ->name('autosave.comercial');
+        Route::patch('{id}/classificacao', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'classificacao'])
+            ->whereNumber('id')
+            ->name('autosave.classificacao');
+
+        // ADR 0188 Onda 4 -- multi-type papeis (4 flags is_X · Drawer secao "Papeis").
+        // Contato pode ter N papeis simultaneos sem duplicar cadastro (insight Delphi
+        // WR Comercial). Backend invariante: >=1 papel ativo (anti soft-delete acidental).
+        Route::patch('{id}/papeis', [\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'papeis'])
+            ->whereNumber('id')
+            ->name('autosave.papeis');
+
+        // 2 endpoints lookup (cache Redis: CEP 90d, CNPJ 30d).
+        // Wave 15 D8 Security -- throttle 60/min anti-abuso pro caso de
+        // Auth bypassado em prod (defensivo): Larissa biz=4 ~30 cadastros/dia
+        // = ~5 lookup/min em pico = cabe folgado em 60/min.
+        Route::middleware('throttle:60,1')->group(function () {
+            Route::get('lookup/cep/{cep}', [\Modules\Crm\Http\Controllers\ClienteLookupController::class, 'cep'])
+                ->where('cep', '\d{5}-?\d{3}|\d{8}')
+                ->name('lookup.cep');
+            Route::get('lookup/cnpj/{cnpj}', [\Modules\Crm\Http\Controllers\ClienteLookupController::class, 'cnpj'])
+                ->where('cnpj', '[\d./\-]{14,18}')
+                ->name('lookup.cnpj');
+            // Lookup SEFAZ ConsultaCadastro (ADR 0186) -- chain de cert + IE oficial.
+            // Throttle compartilhado (60/min) -- mesma franquia que CEP/CNPJ
+            // (fluxo unico de cadastro). Query param obrigatorio ?uf=XX.
+            Route::get('lookup/cnpj/{cnpj}/sefaz', [\Modules\Crm\Http\Controllers\ClienteLookupController::class, 'cnpjSefaz'])
+                ->where('cnpj', '[\d./\-]{14,18}')
+                ->name('lookup.cnpj.sefaz');
+        });
+    });
+
+// Wave E -- Tab IA endpoints (ADR 0179 Q4 Default ON pra todos).
+//
+// 3 endpoints POST LLM (resumo/segmento/proxima-acao via Modules/Crm/Ai/Agents)
+// + 1 endpoint GET deterministico (score-risco, zero LLM -- 8 sinais canon
+// que espelham resources/js/Pages/Cliente/_show/RiscoClienteCard.tsx).
+//
+// Middleware stack canon UPOS Admin (copiada LITERAL do grupo /cliente Wave C
+// linha 101 acima -- NAO inventamos middleware 'tenant'). Pre-flight LICOES
+// F3 T-AP-3 (middleware fantasma) -- usa setData+SetSessionData canon pra
+// popular session('user.business_id') que ClienteIaController usa em todo
+// query (Tier 0 ADR 0093 IRREVOGAVEL).
+//
+// Throttle defensivo 30/min anti-abuso custo Brain B (Wagner regride pra
+// gate copiloto.admin.custos se hit rate alto). Q4 explicito: sem gate
+// quota inicial -- Default ON pra todos.
+//
+// Refs:
+//   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md §Q4
+//   - Modules/Crm/Http/Controllers/ClienteIaController.php
+//   - Modules/Crm/Ai/Agents/Cliente*Agent.php
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('cliente')
+    ->name('cliente.')
+    ->group(function () {
+        Route::middleware('throttle:30,1')->group(function () {
+            Route::post('{id}/ia/resumo', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'resumo'])
+                ->whereNumber('id')
+                ->name('ia.resumo');
+            Route::post('{id}/ia/segmento', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'segmento'])
+                ->whereNumber('id')
+                ->name('ia.segmento');
+            Route::post('{id}/ia/proxima-acao', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'proximaAcao'])
+                ->whereNumber('id')
+                ->name('ia.proxima-acao');
+            Route::get('{id}/ia/score-risco', [\Modules\Crm\Http\Controllers\ClienteIaController::class, 'scoreRisco'])
+                ->whereNumber('id')
+                ->name('ia.score-risco');
+        });
+    });
+
+// Wave F -- Tab Auditoria endpoints (ADR 0179 -- LGPD Art. 18)
+//
+// Timeline Spatie ActivityLog v4.8 (subject_type=App\Contact + subject_id +
+// scope explicito where('activity_log.business_id', $bizId) defesa Tier 0
+// ADR 0093 IRREVOGAVEL) + CSV export UTF-8 BOM (Excel BR abre acentos certo).
+//
+// 2 endpoints:
+//   GET /cliente/{id}/auditoria          -> timeline paginada JSON (20/pg, max 100)
+//   GET /cliente/{id}/auditoria/export   -> download CSV streaming chunk(500)
+//
+// Reusa MESMO middleware stack canon UPOS Admin (copia literal do grupo Wave C
+// linha 101 acima): 'setData','auth','SetSessionData','language','timezone',
+// 'AdminSidebarMenu','CheckUserLogin'. `setData` popula session('user.business_id')
+// que ClienteAuditoriaController usa em todo query Tier 0.
+//
+// Permission gate amplo (LGPD Art. 18 direito de acesso): customer.view OU
+// supplier.view OU equivalente .view_own. NAO exige .update (leitura).
+//
+// Refs:
+//   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md §Wave F
+//   - resources/js/Pages/Cliente/_drawer/AuditoriaTab.tsx
+//   - Modules/Crm/Http/Controllers/ClienteAuditoriaController.php
+//   - prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md §6
+Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('cliente')
+    ->name('cliente.')
+    ->group(function () {
+        Route::get('{id}/auditoria', [\Modules\Crm\Http\Controllers\ClienteAuditoriaController::class, 'index'])
+            ->whereNumber('id')
+            ->name('auditoria.index');
+        Route::get('{id}/auditoria/export', [\Modules\Crm\Http\Controllers\ClienteAuditoriaController::class, 'export'])
+            ->whereNumber('id')
+            ->name('auditoria.export');
+    });

@@ -97,6 +97,9 @@
 
     @include('layouts.partials.javascripts')
 
+    {{-- ADR 0191 — consent banner LGPD pra tela de login --}}
+    @include('layouts.partials.consent-banner')
+
     <!-- Scripts -->
     <script src="{{ asset('js/login.js?v=' . $asset_v) }}"></script>
 

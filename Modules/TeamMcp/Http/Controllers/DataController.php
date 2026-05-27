@@ -87,6 +87,20 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
+                // ADR 0180 Fase 4 Wave C TOPO (2026-05-21): entry dropdown TeamMcp
+                // declara atributos extras propagados pelo LegacyMenuAdapter pro
+                // frontend Sidebar.tsx (v3 — grupo 'equipe' no TOPO):
+                //  - `shortcut` G E → atalho kbd canônico (overlay Fase 8)
+                //  - `ghosts`      → 3 sub-views (team/tasks/cc-sessions)
+                //  - NÃO declara `primary` (módulo é read-only — observabilidade do
+                //    uso MCP/CC pelo time, sem ação de criação primária).
+                //
+                // group: 'equipe' canon — LegacyMenuAdapter propaga pro Sidebar.tsx,
+                // que renderiza TeamMcp no TOPO junto com ProjectMgmt (ghost de Equipe).
+                //
+                // Permission gates específicos (jana.mcp.usage.all, jana.cc.read.team)
+                // permanecem enforce nos sub-itens — gate global hasThePermissionInSubscription
+                // já cobre módulo on/off na entry principal.
                 $menu->dropdown(
                     __('teammcp::teammcp.module_label'),
                     function ($sub) {
@@ -124,9 +138,24 @@ class DataController extends Controller
                         }
                     },
                     [
-                        'icon'   => 'fa fas fa-users-cog',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'     => 'fa fas fa-users-cog',
+                        'style'    => 'background-color:' . $background_color,
+                        'active'   => $segmento_ativo,
+                        'group'    => 'equipe',
+                        'shortcut' => 'G E',
+                        'ghosts'   => [
+                            ['key' => 'team',        'label' => 'Team',        'href' => '/team-mcp/team'],
+                            ['key' => 'tasks',       'label' => 'Tasks',       'href' => '/team-mcp/tasks'],
+                            ['key' => 'cc-sessions', 'label' => 'CC Sessions', 'href' => '/team-mcp/cc-sessions'],
+                            // Wagner 2026-05-22 P0: ProjectMgmt absorvido como ghosts do hub Equipe.
+                            // Zera 6 órfãs da matriz. PageHeaderTabs auto-overflow após 5 ghosts.
+                            ['key' => 'board',       'label' => 'Board',       'href' => '/project-mgmt/board'],
+                            ['key' => 'my-work',     'label' => 'My Work',     'href' => '/project-mgmt/my-work'],
+                            ['key' => 'backlog',     'label' => 'Backlog',     'href' => '/project-mgmt/backlog'],
+                            ['key' => 'activity',    'label' => 'Activity',    'href' => '/project-mgmt/activity'],
+                            ['key' => 'burndown',    'label' => 'Burndown',    'href' => '/project-mgmt/burndown'],
+                            ['key' => 'roadmap',     'label' => 'Roadmap',     'href' => '/project-mgmt/roadmap'],
+                        ],
                     ]
                 )->order(91); // Logo após Copiloto (90)
             }

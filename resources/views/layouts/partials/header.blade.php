@@ -270,29 +270,12 @@
     </div>
 </div>
 
-<script>
-    //get color plate
-    if (!function_exists("get_custom_theme_color_list")) {
-
-        function get_custom_theme_color_list() {
-            //scan the css files for theme color and show a list
-            try {
-                $dir = getcwd() . '/assets/css/color/';
-                $files = scandir($dir);
-                if ($files && is_array($files)) {
-
-                    echo "<span class='color-tag clickable mr15 change-theme' data-color='F2F2F2' style='background:#F2F2F2'> </span>"; //default color
-
-                    foreach ($files as $file) {
-                        if ($file != "." && $file != ".." && $file != "index.html" && $file != ".DS_Store") {
-                            $color_code = str_replace(".css", "", $file);
-                            echo "<span class='color-tag clickable mr15 change-theme' style='background:#$color_code' data-color='$color_code'> </span>";
-                        }
-                    }
-                }
-            } catch (\Exception $exc) {
-            }
-        }
-    }
-</script>
+{{-- Wagner 2026-05-27 HOTFIX: removido bloco <script> com código PHP cru (legacy UltimatePOS).
+     `if (!function_exists("get_custom_theme_color_list"))` + scandir() vazavam PHP pra dentro
+     de tag <script> HTML — browser interpretava como JS e quebrava com
+     "SyntaxError: Unexpected string" na linha 1554 do HTML rendered, paralisando
+     interatividade da /sells/create (consultar produto / consultar cliente,
+     dores reportadas pela Larissa @ Rota Livre).
+     Função get_custom_theme_color_list() é código morto — `grep` confirma que
+     não é chamada em nenhum lugar do projeto (theme picker legacy desabilitado). --}}
 

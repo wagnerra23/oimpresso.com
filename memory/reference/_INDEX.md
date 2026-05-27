@@ -20,16 +20,22 @@
 - [infra-rede-empresa.md](infra-rede-empresa.md) — TP-Link 192.168.0.1, IP público 177.74.67.30, DHCP reservas, 16 port forwards, Issabel VoIP CentOS 7 EOL
 - [vaultwarden-credenciais.md](vaultwarden-credenciais.md) — vault.oimpresso.com self-hosted, fonte canônica de TODAS senhas/tokens infra
 - [local-dev-setup.md](local-dev-setup.md) — Herd 8.4 + MySQL Laragon + worktrees
+- [gotcha-worktree-junction-vendor-rm.md](gotcha-worktree-junction-vendor-rm.md) — **Pegadinha 2026-05-26:** `git worktree remove --force` segue `mklink /J` e deleta vendor real. Prevenção: remover junção antes do worktree remove. Recovery: `composer install` ~5min
 
 ## Stack & integração
 
 - [ultimatepos-integracao.md](ultimatepos-integracao.md) — DataController hooks, multi-tenant via session, tabelas core, FK business.id é unsignedInteger, DataTables locale, payload SellPosController@store, events
 - [financeiro-integracao.md](financeiro-integracao.md) — Hooks DataController + Observer Transaction + retro-vínculo transaction_payment; tela unificada US-FIN-013
 - [modules-cms-landing.md](modules-cms-landing.md) — Modules/Cms = landing/blog do oimpresso.com (ausente no worktree, vive em produção)
+- [pattern-sidebar-ghost-no-op-modify-admin-menu.md](pattern-sidebar-ghost-no-op-modify-admin-menu.md) — Pattern emergente Wagner 2026-05-26: módulo X vira ghost de hub Y → DataController.modifyAdminMenu vira NO-OP, hub Y ganha ghost via attribute. 4 aplicações catalogadas (PaymentGateway/ProductCatalogue/Woocommerce/Fiscal cockpit)
 
 ## MCP & Jana
 
 - [mcp-endpoints.md](mcp-endpoints.md) — `mcp.oimpresso.com` (CT 100/FrankenPHP) canônico; `oimpresso.com/api/mcp` (Hostinger) só CRUD admin
+
+## LGPD & Privacidade
+
+- [lgpd-mapa-tratamento.md](lgpd-mapa-tratamento.md) — **Registro de Operações Art. 37 LGPD** (canon). Catalogadas Op-01 a Op-07 (ERP, Clarity, WhatsApp, Jana IA, Asaas, NFe, e-mail) + 12 subprocessadores (Hostinger, Proxmox, Microsoft Clarity SCC EUA, OpenAI/Anthropic/Gemini/Cohere/Groq, GitHub, Asaas BR, Mailgun, Meta). Encarregado: Wagner. Revisão trimestral. Origem: gap G1 [ADR 0191](../decisions/0191-microsoft-clarity-session-replay-lgpd.md).
 
 ## WhatsApp / Atendimento
 
@@ -51,6 +57,7 @@
 
 - [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md) — **TIER 0** wire IRREVOGÁVEL (Delphi não vai recompilar) — endpoints Connector+Officeimpresso+Subscription + 3 níveis enforcement bloqueio (empresa/máquina/validade) + builds prod catalogados + matriz permitido/proibido
 - [legacy-delphi-firebird.md](legacy-delphi-firebird.md) — código fonte Delphi WR Comercial (SVN) + 50 bancos Firebird + SYSDBA/masterkey hardcoded {$IFDEF WR2} + fluxo login→registro
+- [setup-delphi-svn-time.md](setup-delphi-svn-time.md) — **Runbook provisionar dev remoto** pra Delphi/SVN READ-ONLY (atualmente Felipe — Wagner aprovou 2026-05-27). SlikSvn + URL canônica `http://wr2.com.br:8777/svn/Programas/Trunk` (split-DNS — 3 caminhos pra dev remoto: presencial LAN / Tailscale futuro / hosts file override) + checkout completo D:\Programas + credenciais via Vaultwarden. Outros devs (Maiara/Eliana/Luiz) sob demanda.
 - [project-officeimpresso-modulo.md](project-officeimpresso-modulo.md) — módulo Laravel licença desktop (3.7 restaurado→6.7) + tela licenca_log v3 machine-centric
 - [migracao-officeimpresso-pattern.md](migracao-officeimpresso-pattern.md) — **pattern canônico 4 fases** (Empresas→Vehicles→Vendas→Financeiro) · Python firebird-driver + pymysql · idempotência por legacy_id · audit JSON · anti-patterns Martinho 2026-05-13
 - [matriz-conhecimento-clientes-legacy.md](matriz-conhecimento-clientes-legacy.md) — **matriz universo** 50 bancos Firebird × 56 businesses oimpresso × status migração · Tier A (5 perfis: WR2/Vargas/Extreme/Gold/Martinho) · Tier B (45 dormentes) · **VERSAO_BANCO** por cliente (range 1404-1474 = 70 versões drift)
@@ -80,16 +87,20 @@
 - [feedback-daemon-qrfest.md](feedback-daemon-qrfest.md) — Daemon rebuild = QR-fest; PR #685 mitiga após primeiro pair
 - [feedback-eloquent-array-cast-inertia.md](feedback-eloquent-array-cast-inertia.md) — `(array) $eloquent` quebra Inertia; usar `->toArray()`
 - [feedback-legacy-migration-importer.md](feedback-legacy-migration-importer.md) — Migração Delphi → oimpresso via Python importer canônico
+- [feedback-lookup-cnpj-sobrescreve-dados.md](feedback-lookup-cnpj-sobrescreve-dados.md) — Lookup CNPJ/CEP/integrações fonte oficial: sobrescreve dados cadastrais, contatos só se vazio
 - [feedback-migrate-pos-deploy.md](feedback-migrate-pos-deploy.md) — `php artisan migrate` manual obrigatório pós-quick-sync Hostinger
 - [feedback-module-audit-approach.md](feedback-module-audit-approach.md) — Skill `module-completeness-audit` Tier B (8 dims governança)
 - [feedback-nunca-publicar-credenciais.md](feedback-nunca-publicar-credenciais.md) — NUNCA ecoar valor literal credencial no chat
 - [feedback-outbound-markdown-over-mcp.md](feedback-outbound-markdown-over-mcp.md) — Outbound/sales tracking via markdown, não MCP tasks granulares
 - [feedback-pesquisar-versao-lib.md](feedback-pesquisar-versao-lib.md) — Antes reverter lib externa, pesquisar GitHub issues + versões intermediárias
+- [feedback-recomendado-quando-tecnico.md](feedback-recomendado-quando-tecnico.md) — Seguir `(Recommended)` em decisão técnica sem perguntar; perguntar só escopo/intenção/UX
+- [feedback-jana-fiscal-reativar.md](feedback-jana-fiscal-reativar.md) — IA fiscal foi removida no Onda Fiscal 2026-05-26 por mal-entendido — Wagner quer reativar (briefing + receita SEFAZ não-mapeada + Q&A ⌘K). Princípio: IA com HITL é canon, não SoC violation.
 - [feedback-revert-isolar-client.md](feedback-revert-isolar-client.md) — Antes reverter PR em prod, isolar client-side primeiro
 - [feedback-tenancy-pest-local.md](feedback-tenancy-pest-local.md) — Mudanças tenancy exigem Pest verde local antes de PR
 - [feedback-test-biz-99-cross-tenant.md](feedback-test-biz-99-cross-tenant.md) — biz=1 default; biz=99 cross-tenant (não biz=4 cliente real)
 - [feedback-habilitar-modulo-por-business.md](feedback-habilitar-modulo-por-business.md) — **Tier 0 IRREVOGÁVEL** (lado a lado com `business_id` global scope em [proibicoes.md](../proibicoes.md)). **3 CAMADAS** canônicas pra esconder/liberar feature por business+user: (1) Subscription Package via `/superadmin/packages/{id}/edit` — 24+ chaves `X_module` nWidart; (2) `business.enabled_modules` via `/business/settings` — 13 keys core (pegadinha switch business — Wagner afirma `/superadmin/business/{id}/settings` existe, verificar próxima sessão); (3) Spatie Permissions via `/roles/{id}/edit` — 260+ permissions granulares por feature. Checklist Wagner recorrente + pattern criar gate quando módulo nWidart não tem. NUNCA `if ($business_id === N) return`. Wagner regra 2026-05-18.
 - [feedback-cowork-bundle-aplicar-inteiro.md](feedback-cowork-bundle-aplicar-inteiro.md) — **Tier 0 regra design system 2026-05-18 Wagner** (após 3 tentativas falhas no Financeiro PR #1085→#1091→#1092). Pacote Cowork novo de módulo: PRIMEIRA aplicação = COPIAR `styles.css` INTEIRO do bundle, sem cherry-pick. Validado historicamente em Vendas/Pedidos/Cockpit. Cherry-pick incremental erra detalhes (cor, hue, padding) e gasta 3-5 ondas iterando. Bundle copy = 1 PR base + N PRs de customização Inertia/React.
+- [feedback-commits-delphi-svn.md](feedback-commits-delphi-svn.md) — **Wagner 2026-05-27 (revisada):** `D:\Programas\` (SVN compartilhada time inteiro, `servidor-crm:8777`) é **READ-ONLY pro Claude**. NÃO comita SVN Delphi — princípio 4 Constituição v2 (Loop fechado por métrica) + Wagner não recompila/redistribui .exe ([ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md)). `svn.exe` (SlikSvn) instalado só pra leitura (info/log/status/diff/blame). Wagner comita manual via TortoiseSVN quando decidir recompilar.
 
 ## Workflow & triggers
 

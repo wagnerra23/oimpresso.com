@@ -44,6 +44,10 @@
   background: oklch(0.96 0.04 240);
   color: oklch(0.45 0.10 240);
 }
+.fin-cowork .fin-curadoria .fin-anomaly-ok {
+  background: oklch(0.97 0.03 145);
+  color: oklch(0.45 0.13 145);
+}
 .fin-cowork .fin-curadoria .fin-anomaly-ic {
   display: grid;
   place-items: center;

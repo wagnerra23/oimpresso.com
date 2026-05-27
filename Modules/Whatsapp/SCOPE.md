@@ -16,6 +16,7 @@ contains:
   - "Admin/ChannelsController — CRUD Channel polimórfico /atendimento/canais (ADR 0135 Fase 0, coexiste Settings legacy)"
   - "Admin/InboxController — UI omnichannel /atendimento/inbox lê schema novo (US-WA-067/069 ADR 0135)"
   - "Admin/CaixaUnificadaController — UI omnichannel V4 /atendimento/caixa-unificada redesign Cowork F3 MWART (PR-D 2026-05-15, coexiste Inbox legacy canary 7d)"
+  - "Admin/ClientFeedbackController — captura Voice of Customer canon a partir de bubble inbox (PR #1711 2026-05-27); ADR UI-0016 + ADR 0105 cliente-como-sinal"
   # API webhooks (US-WA-010/010b/002d)
   - "Api/MetaWebhookController — recebe events Meta Cloud (HMAC SHA-256 verify)"
   - "Api/ZapiWebhookController — recebe events Z-API (Client-Token timing-safe)"

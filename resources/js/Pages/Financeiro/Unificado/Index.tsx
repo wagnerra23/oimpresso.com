@@ -17,13 +17,22 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen, Download } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
@@ -31,7 +40,7 @@ import { FinCommentsThread, FinCommentsBadge, useFinComments, type UseFinComment
 import { FinAuditTrail } from './_components/FinAuditTrail';
 // Onda 6 R2 IA — anomaly + party history (pure compute, sem backend).
 // FinMonthDigest REMOVIDO Onda 12 (paridade canon REAL — não tem sub-header colapsável).
-import { FinAnomalyDetector } from './_components/FinAnomalyDetector';
+import { FinAnomalyDetector, finAnomalyDetect } from './_components/FinAnomalyDetector';
 import { FinPartyHistory } from './_components/FinPartyHistory';
 // Onda 7 R3 Output — cross-link + checklist fechamento.
 import { FinCrossLinkify } from './_components/FinCrossLinkify';
@@ -50,6 +59,7 @@ import { FinMonthResumeDialog } from './_components/FinMonthResume';
 import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
+import { TituloCreateSheet } from './_components/TituloCreateSheet';
 // US-FIN-026 (Onda 22) — painel completo de anexos no drawer (GET + upload + download + delete).
 import { FinAnexosPanel } from './_components/FinAnexosPanel';
 // US-FIN-029 (Onda 23) — Sheet OCR boleto (OpenAI Vision API extrai linha digitavel + valor + vencimento).
@@ -69,6 +79,9 @@ interface Lancamento {
   contraparte_doc: string | null;
   categoria: string;
   categoria_id: number | null;
+  plano_conta_id: number | null;
+  plano_conta_codigo: string | null;
+  plano_conta_nome: string | null;
   conta_bancaria: string;
   vencimento: string;            // ISO yyyy-mm-dd
   vencimento_label: string;      // "qua, 14 mai"
@@ -92,6 +105,14 @@ interface Kpi {
   a_receber: { valor: number; qtd: number };
   pago: { valor: number; qtd: number };
   a_pagar: { valor: number; qtd: number };
+  // PR H (2026-05-25) US-FIN-023 — delta_pct vs mês anterior (null se anterior=0)
+  delta_pct?: {
+    saldo_previsto: number | null;
+    recebido: number | null;
+    a_receber: number | null;
+    pago: number | null;
+    a_pagar: number | null;
+  };
 }
 
 type TabId = 'all' | 'open' | 'rec' | 'pay' | 'received' | 'paid' | 'late';
@@ -105,10 +126,14 @@ type LifecycleId = 'ar' | 're' | 'ap' | 'pa';
 //  pendente / aprovado / rejeitado / sem_workflow (NULL aprovacao_status)
 type ApprovalStatusId = 'pendente' | 'aprovado' | 'rejeitado' | 'sem_workflow';
 
+// PR E (2026-05-25) US-FIN-022 — Aging buckets BR canon
+type AgingBucketId = 'lt30' | '30-60' | '60-90' | 'gt90' | 'gt180';
+
 interface Filters {
   tab: TabId;              // Legacy — preservado pra back-compat de bookmarks.
   lifecycle: LifecycleId[]; // Onda Polish — multi-select.
   aprovacao_status: ApprovalStatusId[]; // US-FIN-027 (Onda 22).
+  aging: AgingBucketId[];  // PR E US-FIN-022 — vencidos por bucket
   overdue: boolean;        // Toggle "Só atrasados" independente.
   busca: string;
   conta: string;
@@ -116,6 +141,19 @@ interface Filters {
   periodo: string;
   // Onda 12.6 (2026-05-19) — Wagner: removed 'spacious' (não tinha uso real).
   densidade: 'compact' | 'comfortable';
+  // Onda 8 (2026-05-20): sort por coluna via click no thead.
+  sort: '' | 'vencimento' | 'valor' | 'status' | 'lancamento' | 'contraparte';
+  dir: 'asc' | 'desc';
+  // Onda 13 (2026-05-20): pagination.
+  page: number;
+  per_page: number;
+}
+
+interface Pagination {
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
 }
 
 // Onda 12.7 (2026-05-19) — Plano de Contas hierárquico substitui Categorias.
@@ -127,13 +165,23 @@ interface PlanoConta {
   nivel: number;    // 1=raiz, 4=folha
 }
 
+interface AgingBreakdown {
+  lt30: number;
+  '30-60': number;
+  '60-90': number;
+  gt90: number;
+  gt180: number;
+}
+
 interface Props {
   kpis: Kpi;
   lancamentos: Lancamento[];
+  pagination?: Pagination; // Onda 13 (2026-05-20)
   filters: Filters;
   contas: { id: number; nome: string }[];
   categorias: { id: number; nome: string }[];
   planosConta: PlanoConta[];
+  agingBreakdown?: AgingBreakdown; // PR E US-FIN-022
   periodLabel: string;
   businessName: string;
 }
@@ -151,6 +199,16 @@ const FILTER_LIFECYCLE: { id: LifecycleId; label: string; hue: number }[] = [
   { id: 're', label: 'Recebidas',  hue: 145 }, // verde (lifecycle complementar)
   { id: 'ap', label: 'A pagar',    hue: 25  }, // rose
   { id: 'pa', label: 'Pagas',      hue: 240 }, // azul (saída liquidada)
+];
+
+// PR E (2026-05-25) US-FIN-022 — Aging buckets canon BR. Hue rose escala
+// crescente conforme dias vencidos (alerta visual mais agressivo).
+const FILTER_AGING: { id: AgingBucketId; label: string; hue: number }[] = [
+  { id: 'lt30',  label: '< 30d',   hue: 60  },  // amber suave
+  { id: '30-60', label: '30-60d',  hue: 40  },  // amber escuro
+  { id: '60-90', label: '60-90d',  hue: 25  },  // rose
+  { id: 'gt90',  label: '> 90d',   hue: 15  },  // rose escuro
+  { id: 'gt180', label: '> 180d',  hue: 0   },  // vermelho crítico
 ];
 
 /**
@@ -209,6 +267,143 @@ function statusLabel(s: LancamentoStatus): string {
 
 // ---------- Componentes ----------
 
+/**
+ * Onda 7 (2026-05-20) — Multi-select de contas bancárias.
+ * Renderiza trigger texto compacto + Popover com lista de checkboxes.
+ * Label dinâmico:
+ *   - vazio       → "Todas as contas"
+ *   - 1 selecionada → nome da conta
+ *   - >1 selecionada → "N contas"
+ */
+/**
+ * Onda 8 (2026-05-20) — Sortable header click toggle.
+ * Click 1: asc · Click 2: desc · Click 3: clear (volta default vencimento asc).
+ */
+function SortableHeader({
+  k,
+  label,
+  filters,
+  aplicar,
+  className,
+  alignRight,
+}: {
+  k: NonNullable<Filters['sort']> | 'lancamento' | 'contraparte';
+  label: string;
+  filters: Filters;
+  aplicar: (f: Partial<Filters>) => void;
+  className?: string;
+  alignRight?: boolean;
+}) {
+  const active = filters.sort === k;
+  const dir = active ? filters.dir : null;
+  const onClick = () => {
+    if (!active) aplicar({ sort: k as Filters['sort'], dir: 'asc' });
+    else if (filters.dir === 'asc') aplicar({ sort: k as Filters['sort'], dir: 'desc' });
+    else aplicar({ sort: '', dir: 'asc' });
+  };
+  return (
+    <th className={className}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`inline-flex items-center gap-1 ${alignRight ? 'justify-end w-full' : ''} ${active ? 'text-stone-900' : 'text-stone-500 hover:text-stone-700'} cursor-pointer select-none transition-colors`}
+        aria-label={`Ordenar por ${label}`}
+      >
+        <span>{label}</span>
+        <span className="text-[8px] opacity-70">
+          {dir === 'asc' ? '▲' : dir === 'desc' ? '▼' : '⇅'}
+        </span>
+      </button>
+    </th>
+  );
+}
+
+function FinMultiSelectContas({
+  contas,
+  valueCSV,
+  onChange,
+}: {
+  contas: { id: number; nome: string }[];
+  valueCSV: string;
+  onChange: (csv: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  const selectedIds = useMemo(
+    () => (valueCSV ? valueCSV.split(',').map(Number).filter(Boolean) : []),
+    [valueCSV],
+  );
+
+  // Fechar ao clicar fora
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [open]);
+
+  const toggle = (id: number) => {
+    const next = selectedIds.includes(id)
+      ? selectedIds.filter((x) => x !== id)
+      : [...selectedIds, id];
+    onChange(next.join(','));
+  };
+
+  const label =
+    selectedIds.length === 0
+      ? 'Todas as contas'
+      : selectedIds.length === 1
+        ? contas.find((c) => c.id === selectedIds[0])?.nome ?? `Conta ${selectedIds[0]}`
+        : `${selectedIds.length} contas`;
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        type="button"
+        className={`h-7 px-2 rounded-md border text-[12px] bg-white flex items-center gap-1 ${selectedIds.length > 0 ? 'border-stone-300 text-stone-800' : 'border-stone-200 text-stone-600'}`}
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Conta bancária multi-select"
+        aria-expanded={open}
+      >
+        <span>{label}</span>
+        <span className="text-stone-400 text-[10px]">▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-50 top-[110%] left-0 min-w-[220px] max-h-[320px] overflow-y-auto rounded-md border border-stone-200 bg-white shadow-lg p-1">
+          <button
+            type="button"
+            className="w-full text-left px-2 py-1.5 text-[12px] text-stone-600 hover:bg-stone-50 rounded"
+            onClick={() => onChange('')}
+          >
+            <span className="inline-flex items-center gap-2">
+              <input type="checkbox" checked={selectedIds.length === 0} readOnly className="accent-stone-700" />
+              Todas as contas
+            </span>
+          </button>
+          <div className="h-px bg-stone-100 my-1" />
+          {contas.map((c) => {
+            const checked = selectedIds.includes(c.id);
+            return (
+              <button
+                key={c.id}
+                type="button"
+                className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-stone-50 rounded flex items-center gap-2"
+                onClick={() => toggle(c.id)}
+              >
+                <input type="checkbox" checked={checked} readOnly className="accent-stone-700" />
+                <span className={checked ? 'text-stone-900 font-medium' : 'text-stone-700'}>{c.nome}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StatusPill({ s }: { s: LancamentoStatus }) {
   const tone = statusTone(s);
   const cls = {
@@ -259,8 +454,19 @@ interface SparkPoint { date: string; saldo: number; in: number; out: number }
 function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?: SparkPoint[] | null }) {
   const color = tone === 'pos' ? 'oklch(0.78 0.13 145)' : 'oklch(0.65 0.18 25)';
 
-  // Sem dados → fallback placeholder estático (Onda 8 inicial)
-  if (!points || points.length < 2) {
+  // Fallback placeholder estático (canon Cowork v1). Usado quando:
+  //  - sem dados (points null ou < 2)
+  //  - saldos todos iguais (range == 0 → linha plana invisível, ex.: biz novo
+  //    sem baixas no período, ou seeder demo sem TituloBaixa). Wagner pediu
+  //    refazer 2026-05-20: melhor mostrar oscilação visual canon do que linha
+  //    horizontal "morta" no hero card preto.
+  const renderPlaceholder = !points || points.length < 2 || (() => {
+    if (!points || points.length < 2) return true;
+    const saldos = points.map((p) => p.saldo);
+    return Math.max(...saldos) === Math.min(...saldos);
+  })();
+
+  if (renderPlaceholder) {
     return (
       <svg className="fin-spark" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true">
         <defs>
@@ -298,17 +504,32 @@ function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?:
   const firstSaldo = points[0]?.saldo ?? 0;
   const baselineY = H - PADDING_Y - ((firstSaldo - minS) / range) * innerH;
 
+  // Onda 6 (2026-05-20): hover tooltip via SVG <title> nativo + circles invisíveis
+  // por ponto (clickable area). Mouseover → browser mostra "DD/MM · R$ X,XX (+R$ Y in / -R$ Z out)"
+  const fmtBR = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(v ?? 0);
   return (
-    <svg className="fin-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+    <svg className="fin-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
       <defs>
         <linearGradient id="finSparkG" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.5" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={fillPath} fill="url(#finSparkG)" />
-      <path d={linePath} stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeLinecap="round" />
-      <line x1="0" y1={baselineY} x2={W} y2={baselineY} stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
+      <path d={fillPath} fill="url(#finSparkG)" aria-hidden="true" />
+      <path d={linePath} stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true" />
+      <line x1="0" y1={baselineY} x2={W} y2={baselineY} stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" aria-hidden="true" />
+      {/* Hotspots invisíveis por ponto — hover mostra title nativo do browser */}
+      {points.map((p, i) => {
+        const x = (i / (points.length - 1)) * W;
+        const y = H - PADDING_Y - ((p.saldo - minS) / range) * innerH;
+        const dateStr = p.date.split('-').reverse().slice(0, 2).join('/'); // YYYY-MM-DD → DD/MM
+        const ioStr = (p.in > 0 ? ` · +${fmtBR(p.in)}` : '') + (p.out > 0 ? ` · -${fmtBR(p.out)}` : '');
+        return (
+          <circle key={i} cx={x} cy={y} r={4} fill="transparent" style={{ pointerEvents: 'auto', cursor: 'help' }}>
+            <title>{`${dateStr} · saldo ${fmtBR(p.saldo)}${ioStr}`}</title>
+          </circle>
+        );
+      })}
     </svg>
   );
 }
@@ -340,18 +561,70 @@ function useSparkline30d(): SparkPoint[] | null {
   return points;
 }
 
-function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
+function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancamentos: Lancamento[]; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
   // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
   // Onda 8c: sparkline alimentado por endpoint backend (30d real).
+  // PR 2/5 (2026-05-20): breakdown rico KPIs (Wagner Fase 4 gap dim 4):
+  //  - "A receber" agora mostra "R$ X em atraso" (canon: 6 entradas /
+  //     R$ 7.738,00 em atraso). Calc client-side filtra status=atrasado.
+  //  - "A pagar" agora mostra "próx. <dia mes> · <contraparte>" (canon:
+  //     "próx. 10 mai · Suprigraf"). Calc client-side ordena payables
+  //     abertos por vencimento.
   const pendente = kpis.a_receber.valor - kpis.a_pagar.valor;
   const sparkPoints = useSparkline30d();
+
+  // PR 2 — hint rico A receber: valor atrasado (subset de a_receber).
+  const atrasadoReceber = useMemo(() => {
+    return lancamentos
+      .filter((l) => l.kind === 'receivable' && l.status === 'atrasado')
+      .reduce((acc, l) => acc + (l.valor ?? 0), 0);
+  }, [lancamentos]);
+
+  // PR 2 — hint rico A pagar: próximo vencimento + contraparte.
+  // Filtra payables abertos/vencendo/atrasado, ordena por vencimento ASC,
+  // pega o primeiro. Atrasado conta também pq "próx" semanticamente = "próximo
+  // que vc precisa pagar agora" (canon).
+  const proxPagar = useMemo(() => {
+    const candidates = lancamentos
+      .filter((l) => l.kind === 'payable' && (l.status === 'aberto' || l.status === 'vencendo' || l.status === 'atrasado'))
+      .sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+    const first = candidates[0];
+    if (!first) return null;
+    // Format "10 mai" pt-BR
+    const parts = first.vencimento.split('-');
+    const mm = parts[1] ?? '01';
+    const dd = parts[2] ?? '01';
+    const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const mesAbrev = MES[parseInt(mm, 10) - 1] ?? '???';
+    return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte };
+  }, [lancamentos]);
+
+  // PR H (2026-05-25) US-FIN-023 — render badge delta_pct (↑+12% verde / ↓-5% rose / → 0% neutro).
+  // Cores via classes canon `fin-num-pos`/`fin-num-neg`/`text-muted-foreground` (AP1 PRE-MERGE-UI).
+  const DeltaBadge = ({ pct }: { pct: number | null | undefined }) => {
+    if (pct === null || pct === undefined) return null;
+    const isZero = Math.abs(pct) < 0.05;
+    const isUp = pct > 0;
+    const colorClass = isZero ? 'text-muted-foreground' : (isUp ? 'fin-num-pos' : 'fin-num-neg');
+    const arrow = isZero ? '→' : (isUp ? '↑' : '↓');
+    const sign = pct > 0 ? '+' : '';
+    return (
+      <span
+        className={`fin-delta-pct ml-1 text-[10px] font-medium tabular-nums ${colorClass}`}
+        title={`vs mês anterior (${pct > 0 ? 'subiu' : 'caiu'} ${Math.abs(pct)}%)`}
+      >
+        {arrow}{sign}{pct.toFixed(1)}%
+      </span>
+    );
+  };
+
   return (
     <div className="fin-stats">
       <button type="button" className="fin-stat fin-stat-hero" onClick={() => onLifecycleSelect(['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
         <small>Saldo previsto · maio</small>
-        <b>{brl(kpis.saldo_previsto)}</b>
+        <b>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} /></b>
         <span className="fin-stat-hint">
           <b className="mono">{brl(kpis.recebido.valor - kpis.pago.valor)}</b> realizado · <span className={pendente >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(pendente)}</span> pendente
         </span>
@@ -360,26 +633,36 @@ function KpiBar({ kpis, onLifecycleSelect }: { kpis: Kpi; onLifecycleSelect: (li
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['re'])} aria-label="Filtrar recebidas">
         <small>Recebido</small>
-        <b className="fin-num-pos">{brl(kpis.recebido.valor)}</b>
+        <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} /></b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ar'])} aria-label="Filtrar a receber">
         <small>A receber</small>
-        <b>{brl(kpis.a_receber.valor)}</b>
-        <span className="fin-stat-hint">{kpis.a_receber.qtd} títulos</span>
+        <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} /></b>
+        {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
+        <span className="fin-stat-hint">
+          {atrasadoReceber > 0
+            ? <><span className="fin-num-neg mono">{brl(atrasadoReceber)}</span> em atraso</>
+            : <>{kpis.a_receber.qtd} títulos</>}
+        </span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['pa'])} aria-label="Filtrar pagas">
         <small>Pago</small>
-        <b className="fin-num-neg">{brl(kpis.pago.valor)}</b>
+        <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} /></b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ap'])} aria-label="Filtrar a pagar">
         <small>A pagar</small>
-        <b>{brl(kpis.a_pagar.valor)}</b>
-        <span className="fin-stat-hint">{kpis.a_pagar.qtd} títulos</span>
+        <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} /></b>
+        {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
+        <span className="fin-stat-hint">
+          {proxPagar
+            ? <>próx. <b>{proxPagar.label}</b> · {proxPagar.contraparte}</>
+            : <>{kpis.a_pagar.qtd} títulos</>}
+        </span>
       </button>
     </div>
   );
@@ -433,11 +716,14 @@ function _KpiBarLegacy({ kpis, onTabClick }: { kpis: Kpi; onTabClick: (tab: TabI
   );
 }
 
-function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comments, isFav }: {
+function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comments, isFav, bulkSelected, onToggleBulk }: {
   row: Lancamento; dens: typeof DENSITY[keyof typeof DENSITY]; selected: boolean;
   onSelect: () => void; onBaixar: () => void;
   conferido: UseFinConferidoApi; comments: UseFinCommentsApi;
   isFav: boolean;
+  // Onda 12 (2026-05-20): bulk-select checkbox state.
+  bulkSelected: boolean;
+  onToggleBulk: () => void;
 }) {
   const isIn = row.kind === 'receivable';
   const settled = row.status === 'recebido' || row.status === 'pago';
@@ -449,10 +735,20 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   };
   return (
     <tr
-      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''}`}
+      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-blue-50/50' : ''}`}
       onClick={onSelect}
     >
-      <td className="pl-4 pr-2">
+      {/* Onda 12 (2026-05-20): checkbox bulk-select. stopPropagation pra nao abrir drawer. */}
+      <td className="pl-4 pr-1" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={bulkSelected}
+          onChange={onToggleBulk}
+          aria-label={`Selecionar lançamento ${row.descricao}`}
+          className="accent-stone-700 cursor-pointer"
+        />
+      </td>
+      <td className="pl-1 pr-2">
         {/* Onda 8b Cowork canon: direction arrow com bg pill semântico.
             Receivable = ↘ entrada (emerald), Payable = ↗ saída (rose).
             Settled tem opacidade reduzida (cor "tomada"). */}
@@ -473,6 +769,26 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
           {isIn ? '↘' : '↗'}
         </span>
       </td>
+      {/* PR 4 (Wagner Fase 4 dim 7/8): coluna VENCIMENTO explicita
+          formato canon: "dd/mm" + label temporal (paid_at / "ha N dias" / "vencendo"). */}
+      <td className="px-2 text-stone-700 text-[12px] whitespace-nowrap">
+        <div className="font-medium text-stone-900">
+          {(() => {
+            const parts = row.vencimento.split('-');
+            const dd = parts[2] ?? '01';
+            const mm = parts[1] ?? '01';
+            return `${dd}/${mm}`;
+          })()}
+        </div>
+        {row.liquidacao && (
+          <div className="text-[10px] text-stone-500">pago {row.liquidacao}</div>
+        )}
+        {!row.liquidacao && (row.status === 'atrasado' || row.status === 'vencendo') && (
+          <div className={`text-[10px] ${row.status === 'atrasado' ? 'text-rose-600' : 'text-amber-600'}`}>
+            {row.status === 'atrasado' ? 'em atraso' : 'vencendo'}
+          </div>
+        )}
+      </td>
       <td className="px-2">
         <div className="font-medium text-stone-900 truncate max-w-[260px] flex items-center gap-1.5">
           <FinCrossLinkify text={row.descricao} className="truncate" />
@@ -483,7 +799,13 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         {row.nfe_numero && <div className="text-[11px] text-stone-500">NF-e {row.nfe_numero}</div>}
       </td>
       <td className="px-2 text-stone-700 truncate max-w-[160px]">{row.contraparte}</td>
-      <td className="px-2 text-stone-500 truncate max-w-[140px]">{row.categoria}</td>
+      {/* Onda 9 (2026-05-20): categoria pill com cor semantica (in=verde, out=âmbar)
+          pra visual scan rapido por kind sem ler valor. */}
+      <td className="px-2 truncate max-w-[140px]">
+        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-medium border ${isIn ? 'bg-emerald-50/60 text-emerald-700 border-emerald-100' : 'bg-amber-50/60 text-amber-700 border-amber-100'}`}>
+          {row.categoria}
+        </span>
+      </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-stone-900'}`}>
         <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
@@ -502,8 +824,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 }
 
 // ---------- Página principal ----------
+// (FinanceiroSubNav extraído pra `_shared/FinanceiroSubNav.tsx` 2026-05-21 — ADR 0180 Fase 5 propagação)
 
-function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, agingBreakdown, periodLabel, businessName }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
   // HOTFIX 2026-05-20: shared `auth.can` vem do HandleInertiaRequests.share como
   // OBJETO `Record<string, boolean>` (não array de strings — vide app/Http/Middleware/
@@ -518,6 +841,36 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
   const [busca, setBusca] = useState(filters.busca ?? '');
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  // Onda 12 (2026-05-20): bulk select multi-row via checkbox.
+  // Canon: footer mostra "N selecionados · +totalIn / -totalOut · Editar lote · Limpar"
+  // quando há items selecionados (substitui summary numérica padrão).
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const toggleRow = useCallback((id: number) => {
+    setSelectedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+  const clearSelection = useCallback(() => setSelectedRows(new Set()), []);
+  // Onda 15 (2026-05-20): bulk edit categoria modal state
+  const [bulkCategoriaOpen, setBulkCategoriaOpen] = useState(false);
+  const [bulkCategoriaId, setBulkCategoriaId] = useState<number | null>(null);
+  const submitBulkCategoria = useCallback(() => {
+    if (!bulkCategoriaId || selectedRows.size === 0) return;
+    router.post('/financeiro/unificado/bulk-update-categoria', {
+      ids: Array.from(selectedRows),
+      categoria_id: bulkCategoriaId,
+    }, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setBulkCategoriaOpen(false);
+        setBulkCategoriaId(null);
+        clearSelection();
+      },
+    });
+  }, [bulkCategoriaId, selectedRows, clearSelection]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   // Onda 12.6 — default compact (Wagner pediu: financeiro denso).
   const dens = DENSITY[filters.densidade ?? 'compact'];
@@ -544,6 +897,9 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
   useEffect(() => { setDrawerTab('detalhes'); }, [selectedId]);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
+  // Onda 25 (2026-05-25) US-FIN-021 — Insert manual via TituloCreateSheet.
+  // `createTipo` controla qual variante abre (receber=verde · pagar=rose).
+  const [createTipo, setCreateTipo] = useState<'receber' | 'pagar' | null>(null);
   // US-FIN-029 (Onda 23) — Sheet OCR boleto.
   const [ocrSheetOpen, setOcrSheetOpen] = useState(false);
 
@@ -560,7 +916,16 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
     });
   };
 
-  // Atalhos: Cmd+K → palette, / → busca, B → toggle favorito da linha selecionada
+  // Atalhos keyboard:
+  //   ⌘K/Ctrl+K → palette
+  //   / → busca focus
+  //   J / ↓ → próxima linha
+  //   K / ↑ → linha anterior
+  //   ␣ (Space) → toggle baixar (pago/recebido) da linha focada
+  //   Enter → abre drawer da linha focada
+  //   B → toggle favorito (Onda 7c)
+  //   Esc → fecha drawer / limpa bulk
+  // Onda 11 (2026-05-20 Wagner): J/K/␣/Esc adicionados — Eliana-persona power-user.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -573,11 +938,70 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
       if (e.key === 'b' && !inEditable && selectedId !== null) {
         e.preventDefault();
         favs.toggle(selectedId);
+        return;
+      }
+      // PR G (2026-05-25) G6 auditoria — N/R/P atalhos novo lançamento.
+      //   N = Novo recebimento (default — mais comum em ERP gráfico)
+      //   R = Receber explícito
+      //   P = Pagar explícito
+      if ((e.key === 'n' || e.key === 'r') && !inEditable) {
+        e.preventDefault();
+        setCreateTipo('receber');
+        return;
+      }
+      if (e.key === 'p' && !inEditable) {
+        e.preventDefault();
+        setCreateTipo('pagar');
+        return;
+      }
+      // Onda 11 — J/K (ou ↓/↑) navegar linhas
+      if (!inEditable && (e.key === 'j' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const ids = lancamentos.map((l) => l.id);
+        if (ids.length === 0) return;
+        const currentIdx = selectedId !== null ? ids.indexOf(selectedId) : -1;
+        const nextIdx = currentIdx < 0 ? 0 : Math.min(currentIdx + 1, ids.length - 1);
+        setSelectedId(ids[nextIdx] ?? null);
+        return;
+      }
+      if (!inEditable && (e.key === 'k' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const ids = lancamentos.map((l) => l.id);
+        if (ids.length === 0) return;
+        const currentIdx = selectedId !== null ? ids.indexOf(selectedId) : -1;
+        const prevIdx = currentIdx <= 0 ? 0 : currentIdx - 1;
+        setSelectedId(ids[prevIdx] ?? null);
+        return;
+      }
+      // Onda 11 — ␣ (Space) marcar pago/recebido da linha focada
+      if (!inEditable && e.key === ' ' && selectedId !== null) {
+        e.preventDefault();
+        const row = lancamentos.find((l) => l.id === selectedId);
+        if (row && (row.status === 'aberto' || row.status === 'atrasado' || row.status === 'vencendo')) {
+          onBaixar(selectedId);
+        }
+        return;
+      }
+      // Onda 11 — Esc fecha drawer OU limpa bulk selection
+      if (!inEditable && e.key === 'Escape') {
+        if (selectedRows.size > 0) {
+          e.preventDefault();
+          clearSelection();
+        } else if (selectedId !== null) {
+          e.preventDefault();
+          setSelectedId(null);
+        }
+        return;
+      }
+      // Onda 11 — Enter abre drawer da linha focada (se não tem drawer aberto)
+      if (!inEditable && e.key === 'Enter' && selectedId !== null) {
+        // selectedId já tá setado → drawer já abre. No-op se já aberto.
+        return;
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, favs]);
+  }, [selectedId, favs, lancamentos, selectedRows, clearSelection, onBaixar]);
 
   // Agrupamento por data de vencimento
   const grupos = useMemo(() => {
@@ -618,90 +1042,57 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
-          <button type="button" className="os-btn ghost" onClick={() => setPaletteOpen(true)}>
-            <Search size={13} />
-            Buscar
-            <kbd>⌘K</kbd>
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-ai"
-            title="Resumo executivo do mês (narrativa compute-based · Onda 9 v1)"
-            onClick={() => setResumoOpen(true)}
-          >
-            <Sparkles size={13} />
-            Resumir mês
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-trilha"
-            onClick={() => setChecklistOpen(true)}
-            title="Trilha de 12 passos do fechamento mensal"
-          >
-            <CheckSquare size={13} />
-            Fechamento
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost fin-btn-present"
-            title="Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)"
-            onClick={() => setPresentOpen(true)}
-          >
-            <Play size={13} />
-            Apresentar
-          </button>
-          <button
-            type="button"
-            className="os-btn ghost"
-            title={`Folha jurídica imprimível${favs.count > 0 ? ` · ${favs.count} favorito${favs.count === 1 ? '' : 's'}` : ''}`}
-            onClick={() => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}
-          >
-            <Printer size={13} />
-            Imprimir
-            {favs.count > 0 && <span className="fin-btn-badge">{favs.count}★</span>}
-          </button>
-          {/* Onda 19 (2026-05-19) #49 — destino real /financeiro/conciliacao (tela OFX criada) */}
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/conciliacao')} title="Conciliação OFX — upload extrato + match com títulos">
-            <RefreshCw size={13} />
-            Conciliar
-          </button>
-          {/* Onda 18 (2026-05-19) — destino real /financeiro/plano-contas (tela dedicada criada).
-              Antes apontava pra /categorias (workaround Onda 16). */}
-          <button type="button" className="os-btn ghost" onClick={() => router.visit('/financeiro/plano-contas')} title="Plano de contas hierárquico BR (Receita Federal/DCASP)">
-            <FolderOpen size={13} />
-            Plano de contas
-          </button>
-          {/* Onda 12 — Download icon-only (paridade canon REAL — botão entre Plano contas e CTA Novo).
-              Onclick stub abre ⌘K palette por enquanto; handler real (Exportar XLSX/PDF) vira US futura. */}
-          <button
-            type="button"
-            className="os-btn ghost"
-            title="Exportar lançamentos do período (XLSX / PDF)"
-            aria-label="Exportar"
-            onClick={() => setPaletteOpen(true)}
-            style={{ padding: '0 8px' }}
-          >
-            <Download size={13} />
-          </button>
-          {/* US-FIN-029 (Onda 23) — KILLER OCR boleto: Eliana cola foto → IA extrai campos. */}
-          <button
-            type="button"
-            className="os-btn ghost"
-            title="Importar boleto via foto/PDF (OCR via IA)"
-            aria-label="Importar boleto OCR"
-            onClick={() => setOcrSheetOpen(true)}
-            style={{ padding: '0 8px' }}
-          >
-            📷 OCR boleto
-          </button>
-          <button type="button" className="os-btn primary" onClick={() => router.visit('/financeiro/unificado/novo')}>
-            <Plus size={13} />
-            Novo lançamento
-          </button>
+          {/* ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — header em UMA linha:
+                ghost tabs (esquerda) + ⋯ Mais (botões action features) + primary "+ Novo" (direita)
+              - Ghost tabs ARIA navegação entre 13 sub-views do Financeiro
+              - Primary "+ Novo título" SEPARADO no canto direito (Wagner pediu lado oposto)
+              - Botões action features-específicas (Buscar/Resumir/Fechamento/Apresentar/
+                Imprimir/Download/OCR) entram no overflow `⋯ Mais` (Wagner: "atuais entram no ⋯") */}
+          <FinanceiroSubNav
+            active="unificado"
+            hidePrimary
+            extraOverflowItems={[
+              { key: 'buscar',     label: 'Buscar (⌘K)',     icon: <Search size={13} />,      onClick: () => setPaletteOpen(true) },
+              { key: 'resumir',    label: 'Resumir mês',     icon: <Sparkles size={13} />,    onClick: () => setResumoOpen(true),                                  title: 'Resumo executivo do mês (narrativa compute-based · Onda 9 v1)' },
+              { key: 'fechamento', label: 'Fechamento',      icon: <CheckSquare size={13} />, onClick: () => setChecklistOpen(true),                               title: 'Trilha de 12 passos do fechamento mensal' },
+              { key: 'apresentar', label: 'Apresentar',      icon: <Play size={13} />,        onClick: () => setPresentOpen(true),                                 title: 'Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)' },
+              { key: 'imprimir',   label: favs.count > 0 ? `Imprimir (${favs.count}★)` : 'Imprimir', icon: <Printer size={13} />, onClick: () => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }, title: 'Folha jurídica imprimível' },
+              { key: 'exportar',   label: 'Exportar XLSX/PDF',icon: <Download size={13} />,   onClick: () => setPaletteOpen(true),                                 title: 'Exportar lançamentos do período' },
+              // OCR boleto movido pro dropdown "Novo título" (entry-point de criação,
+              // não ação features) — Wagner 2026-05-21 split-button popup menu.
+            ]}
+          />
+          {/* Primary "+ Novo título" — canto direito, hue 145 financas (ADR 0182).
+              Wagner 2026-05-21: Unificado é caso especial — mostra ambos receivable+
+              payable. Click do "+ Novo título" abre dropdown menu com escolha explícita
+              (Receber/Pagar/OCR boleto) em vez de levar pra form genérico ambíguo. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="os-btn primary"
+                style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
+              >
+                <Plus size={13} /> Novo título <ChevronDown size={11} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuItem onClick={() => setCreateTipo('receber')}>
+                <TrendingUp size={13} className="mr-2 text-emerald-600" /> Novo recebimento
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setCreateTipo('pagar')}>
+                <TrendingDown size={13} className="mr-2 text-rose-600" /> Novo pagamento
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setOcrSheetOpen(true)} title="Importar boleto via foto/PDF (OCR via IA)">
+                <span className="mr-2">📷</span> Importar boleto OCR
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <KpiBar kpis={kpis} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
+      <KpiBar kpis={kpis} lancamentos={lancamentos} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
 
       {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
           Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
@@ -770,6 +1161,45 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
         <span className="fin-filter-sep" />
 
+        {/* PR E (2026-05-25) US-FIN-022 — Aging buckets chips.
+            Apenas visível se houver algum vencido (evita poluição quando saudável).
+            AND com lifecycle: filtra vencidos por bucket BR canon. */}
+        {agingBreakdown && (agingBreakdown.lt30 + agingBreakdown['30-60'] + agingBreakdown['60-90'] + agingBreakdown.gt90 + agingBreakdown.gt180) > 0 && (
+          <>
+            <div className="fin-filter-group" role="group" aria-label="Filtros por aging (dias vencidos)">
+              {FILTER_AGING.map((ag) => {
+                const on = (filters.aging ?? []).includes(ag.id);
+                const count = agingBreakdown[ag.id];
+                if (count === 0 && !on) return null;
+                const toggle = () => {
+                  const cur = filters.aging ?? [];
+                  const next = on ? cur.filter((x) => x !== ag.id) : [...cur, ag.id];
+                  aplicar({ aging: next });
+                };
+                return (
+                  <label
+                    key={ag.id}
+                    className={'fin-filter-cb' + (on ? ' on' : '')}
+                    style={{ ['--cb-hue' as string]: ag.hue } as React.CSSProperties}
+                    title={`Títulos vencidos ${ag.label} (atrasados não pagos)`}
+                  >
+                    <input
+                      type="checkbox"
+                      name={`fin-aging-${ag.id}`}
+                      checked={on}
+                      onChange={toggle}
+                    />
+                    <span className="fin-filter-cb-box" />
+                    <span>{ag.label}</span>
+                    <span className="fin-filter-ct">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <span className="fin-filter-sep" />
+          </>
+        )}
+
         {/* US-FIN-027 (Onda 22) — Chips workflow aprovação multi-select.
             AND com lifecycle (combina filtros). Hidden se nenhum titulo
             tem aprovacao_status (zero workflow ainda usado em prod). */}
@@ -810,22 +1240,17 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           </>
         )}
 
-        <select
-          className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
-          value={filters.conta}
-          onChange={(e) => aplicar({ conta: e.target.value })}
-          aria-label="Conta bancária"
-        >
-          <option value="">Todas as contas</option>
-          {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-        </select>
+        {/* Onda 7 (2026-05-20): multi-select de contas via Popover + Checkbox.
+            Backend aceita CSV "1,3,5" via filters.conta. Frontend mostra label
+            agregado: "Todas as contas" / "Conta X" / "N contas". */}
+        <FinMultiSelectContas contas={contas} valueCSV={filters.conta} onChange={(csv) => aplicar({ conta: csv })} />
 
         {/* Onda 12.7 (2026-05-19) — Wagner: substituir 'Categorias' (tags livres) por
             'Plano de Contas' (estrutura contábil hierárquica BR). Renderiza com indent
             visual via `nivel` (4 espaços por nível) pra leitura tipo árvore.
             Mantém prop `filters.categoria` por back-compat (mesmo querystring). */}
         <select
-          className="h-7 px-2 rounded-md border border-stone-200 text-[12px] bg-white"
+          className="fin-filter-select"
           value={filters.categoria}
           onChange={(e) => aplicar({ categoria: e.target.value })}
           aria-label="Plano de Contas"
@@ -877,26 +1302,46 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           <table className="w-full border-collapse">
             <thead>
               <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
-                <th className="pl-4 pr-2 py-2 w-8"></th>
-                <th className="px-2 py-2 text-left font-medium">Lançamento</th>
-                <th className="px-2 py-2 text-left font-medium">Contraparte</th>
+                {/* Onda 12 (2026-05-20): checkbox select-all (referencia: visible rows). */}
+                <th className="pl-4 pr-1 py-2 w-7">
+                  <input
+                    type="checkbox"
+                    aria-label="Selecionar todos lançamentos visíveis"
+                    className="accent-stone-700 cursor-pointer"
+                    checked={lancamentos.length > 0 && lancamentos.every((l) => selectedRows.has(l.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedRows(new Set(lancamentos.map((l) => l.id)));
+                      else clearSelection();
+                    }}
+                  />
+                </th>
+                <th className="pl-1 pr-2 py-2 w-7"></th>
+                <SortableHeader k="vencimento" label="Vencimento" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium w-[110px]" />
+                <SortableHeader k="lancamento" label="Lançamento" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
+                <SortableHeader k="contraparte" label="Contraparte" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <th className="px-2 py-2 text-left font-medium">Categoria</th>
-                <th className="px-2 py-2 text-left font-medium">Status</th>
-                <th className="px-2 py-2 text-right font-medium">Valor</th>
+                <SortableHeader k="status" label="Status" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
+                <SortableHeader k="valor" label="Valor" filters={filters} aplicar={aplicar} className="px-2 py-2 text-right font-medium" alignRight />
                 <th className="pl-2 pr-4 py-2 w-[110px] text-right font-medium"></th>
               </tr>
             </thead>
             <tbody>
               {grupos.map(([key, rows]) => {
                 const [, label] = key.split('|');
+                // Wagner 2026-05-20: modo compact NAO mostra agrupador (linha por data
+                // ja tem coluna VENCIMENTO explicita), comfortable mantem header
+                // pra orientacao macro em listas longas.
+                const showGroupHeader = filters.densidade === 'comfortable';
                 return (
                   <React.Fragment key={key}>
-                    <tr><td colSpan={7} className="bg-stone-50/70 border-b border-stone-200">
-                      <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
-                        <span>{label}</span>
-                        <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
-                      </div>
-                    </td></tr>
+                    {showGroupHeader && (
+                      <tr><td colSpan={9} className="bg-stone-50/70 border-b border-stone-200">
+                        <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+                          <span>{label}</span>
+                          <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
+                        </div>
+                      </td></tr>
+                    )}
                     {rows.map(r => (
                       <LinhaTabela
                         key={r.id} row={r} dens={dens}
@@ -906,13 +1351,15 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                         conferido={conferido}
                         comments={comments}
                         isFav={favs.has(r.id)}
+                        bulkSelected={selectedRows.has(r.id)}
+                        onToggleBulk={() => toggleRow(r.id)}
                       />
                     ))}
                   </React.Fragment>
                 );
               })}
               {grupos.length === 0 && (
-                <tr><td colSpan={7} className="py-16">
+                <tr><td colSpan={9} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
                     <div className="text-sm text-stone-600">
                       {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
@@ -929,19 +1376,94 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
               )}
             </tbody>
           </table>
+          {/* Onda 13 (2026-05-20): pagination controls (só renderiza se total > per_page) */}
+          {pagination && pagination.total > pagination.per_page && (
+            <div className="px-4 py-2 flex items-center justify-between border-t border-stone-200 text-[12px] text-stone-600 bg-stone-50/50">
+              <span>
+                Página <b>{pagination.page}</b> de <b>{pagination.total_pages}</b>
+                <span className="mx-2 text-stone-400">·</span>
+                <b>{pagination.total}</b> lançamentos total
+                <span className="mx-2 text-stone-400">·</span>
+                <span>{pagination.per_page} por página</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-[12px]"
+                  disabled={pagination.page <= 1}
+                  onClick={() => aplicar({ page: pagination.page - 1 })}
+                  aria-label="Página anterior"
+                >
+                  ← Anterior
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-[12px]"
+                  disabled={pagination.page >= pagination.total_pages}
+                  onClick={() => aplicar({ page: pagination.page + 1 })}
+                  aria-label="Próxima página"
+                >
+                  Próxima →
+                </Button>
+                <select
+                  className="h-7 ml-2 px-1 rounded border border-stone-200 bg-white text-[11px]"
+                  value={pagination.per_page}
+                  onChange={(e) => aplicar({ per_page: parseInt(e.target.value, 10), page: 1 })}
+                  aria-label="Itens por página"
+                >
+                  {[20, 50, 100, 200, 500].map((n) => <option key={n} value={n}>{n}/pág</option>)}
+                </select>
+              </span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Drawer detalhe — Cowork v2 (gap report 2026-05-18):
           nav `fin-drawer-tabs` separa Detalhes (info+actions) de ✦ IA (insights). */}
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
-        <SheetContent side="right" className="fin-drawer-wide w-[460px] sm:max-w-[460px]">
+        {/* Onda 5 (2026-05-20): width 560px paridade canon (erp-shell/financeiro-app.jsx:738
+            'w-[560px] max-w-[92vw]'). Era 460px — drawer mais espaçoso pra
+            Histórico + Anexos + Conferido sem cortar texto. */}
+        {/* Onda 22 (2026-05-20) — Portal Sheet renderiza fora de .fin-cowork wrapper,
+            então CSS canon prefixado nao aplica (audit-trail, drawer-tabs, comments-thread,
+            conferido-toggle). Adicionar `fin-cowork` aqui ativa todas regras canon
+            DENTRO do drawer (CSS vars + grid layouts + spacing). Root cause descoberto
+            via JS check: drawerInsideFinCowork=false, audit-row display=list-item
+            (deveria ser grid). */}
+        <SheetContent side="right" className="fin-cowork fin-curadoria fin-drawer-wide w-[560px] sm:max-w-[560px]">
           {selected && (
             <>
+              {/* Onda 17 (2026-05-20) — Header canon match prototype financeiro-app.jsx:739-754.
+                  Pre-title UPPERCASE "A receber/A pagar · #ID" + DirIcon + conferido inline.
+                  Descrição main title bold 14px linkified. */}
               <SheetHeader>
-                <SheetTitle className="text-[16px]">
-                  <FinCrossLinkify text={selected.descricao} />
-                </SheetTitle>
+                <div className="flex items-start gap-2.5">
+                  <span
+                    className={
+                      'inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ' +
+                      (selected.kind === 'receivable'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-stone-100 text-stone-700 border border-stone-200')
+                    }
+                    aria-hidden
+                  >
+                    {selected.kind === 'receivable' ? '↑' : '↓'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium flex items-center gap-2">
+                      <span>{selected.kind === 'receivable' ? 'A receber' : 'A pagar'} · #{selected.id}</span>
+                      {selected.conferido_at && (
+                        <span className="text-[10px] text-emerald-700 font-medium normal-case tracking-normal">✓ conferido</span>
+                      )}
+                    </div>
+                    <SheetTitle className="text-[14px] font-semibold mt-0.5 truncate">
+                      <FinCrossLinkify text={selected.descricao} />
+                    </SheetTitle>
+                  </div>
+                </div>
               </SheetHeader>
 
               {/* Nav de abas — Cowork canon V2.1 (3 abas: Detalhes/IA/Editar) */}
@@ -968,7 +1490,24 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                   className={'fin-drawer-tab fin-drawer-tab-ai' + (drawerTab === 'ia' ? ' on' : '')}
                   onClick={() => setDrawerTab('ia')}
                 >
-                  ✦ IA
+                  <span className="fin-drawer-tab-glyph" aria-hidden>✦</span>
+                  <span>IA</span>
+                  {/* Onda 14 (2026-05-20): badge ! na aba IA quando há anomalia detectada
+                      (ticket alto vs media historica). Permite Eliana ver alerta sem
+                      precisar trocar aba primeiro. */}
+                  {(() => {
+                    const anom = finAnomalyDetect(selected, lancamentos);
+                    if (!anom) return null;
+                    return (
+                      <span
+                        className="fin-drawer-tab-ct"
+                        title={`Anomalia ${anom.severity}: ticket ${anom.kind === 'high' ? 'acima' : 'abaixo'} da média`}
+                        style={{ background: anom.kind === 'high' ? 'oklch(0.62 0.18 60)' : 'oklch(0.65 0.13 240)', color: 'white' }}
+                      >
+                        !
+                      </span>
+                    );
+                  })()}
                 </button>
                 <button
                   type="button"
@@ -979,33 +1518,110 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                   disabled={!selected.valor_mutavel}
                   title={!selected.valor_mutavel ? 'Valor não-mutável após baixa (ADR fin-tech/0002)' : 'Editar inline'}
                 >
-                  ✎ Editar
+                  <span className="fin-drawer-tab-glyph" aria-hidden>✎</span>
+                  <span>Editar</span>
                 </button>
               </nav>
 
-              {/* Aba Detalhes — info + audit + comments + actions */}
+              {/* Aba Detalhes — info + audit + comments + actions
+                  Wagner 2026-05-25: body com flex-1 + overflow-y-auto + min-h-0
+                  permite o footer (irmão, fora do scroll) ficar sticky-bottom. */}
               {drawerTab === 'detalhes' && (
-                <div className="mt-3 space-y-4 text-[13px]">
-                  <div className="flex items-center gap-2 fin-toggles-row">
-                    <StatusPill s={selected.status} />
-                    <FinPillFrescor row={{ due: selected.vencimento, paid_at: (selected.status === 'recebido' || selected.status === 'pago') ? selected.liquidacao : null, vencimento: selected.vencimento }} />
-                    <span className="ml-auto font-semibold tabular-nums text-[16px]">{brl(selected.valor)}</span>
-                  </div>
+                <div className="mt-3 px-5 pb-4 space-y-5 text-[13px] flex-1 overflow-y-auto min-h-0">
+                  {/* Onda 17 (2026-05-20) — Hierarquia visual canon: UPPERCASE label colorido
+                      por status + date 22px BIG + amount 34px BIG (verde se receivable, stone
+                      se payable) + StatusPill + FrescorPill inline.
+                      Match prototype financeiro-app.jsx:772-806. */}
+                  {(() => {
+                    const settled = selected.status === 'recebido' || selected.status === 'pago';
+                    const labelTone =
+                      selected.status === 'atrasado' ? 'text-rose-700'
+                      : selected.status === 'vencendo' ? 'text-amber-700'
+                      : 'text-stone-500';
+                    return (
+                      <div>
+                        <div className={`text-[11px] uppercase tracking-widest font-medium ${labelTone}`}>
+                          {settled ? 'Liquidado' : 'Vencimento'}
+                        </div>
+                        <div className="mt-1 flex items-baseline gap-2">
+                          <div className="text-[22px] font-semibold tracking-tight tabular-nums">
+                            {settled && selected.liquidacao ? selected.liquidacao : selected.vencimento_label}
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-baseline gap-2 flex-wrap">
+                          <div className={`text-[34px] font-semibold tracking-tight tabular-nums ${selected.kind === 'receivable' ? 'text-emerald-700' : 'text-stone-900'}`}>
+                            {selected.kind === 'receivable' ? '+ ' : '− '}{brl(selected.valor)}
+                          </div>
+                          <StatusPill s={selected.status} />
+                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <FinConferidoToggle rowId={selected.id} conferido={conferido} />
 
-                  <dl className="grid grid-cols-2 gap-y-2 text-[12.5px]">
-                    <dt className="text-stone-500">Contraparte</dt><dd>{selected.contraparte}{selected.contraparte_doc && <span className="block text-stone-500">{selected.contraparte_doc}</span>}</dd>
-                    <dt className="text-stone-500">Categoria</dt><dd>{selected.categoria}</dd>
-                    <dt className="text-stone-500">Conta</dt><dd>{selected.conta_bancaria}</dd>
-                    <dt className="text-stone-500">Vencimento</dt><dd>{selected.vencimento_label}</dd>
-                    {selected.liquidacao && <><dt className="text-stone-500">Liquidação</dt><dd>{selected.liquidacao}</dd></>}
-                    {selected.nfe_numero && <><dt className="text-stone-500">NF-e</dt><dd>{selected.nfe_numero}</dd></>}
-                    {selected.canal && <><dt className="text-stone-500">Canal</dt><dd>{selected.canal}</dd></>}
-                  </dl>
+                  {/* Onda 18 (2026-05-20) — Grid 2-col canon match prototype financeiro-app.jsx:808-831.
+                      Cells: Contraparte / Categoria / Canal / Documento (col-1) + Conta col-span-2
+                      com bank icon. Labels UPPERCASE tracking-widest text-stone-500. */}
+                  <div className="border-t border-stone-100 pt-4 grid grid-cols-2 gap-y-3 gap-x-3">
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Contraparte</div>
+                      <div className="mt-0.5 font-medium text-stone-900">{selected.contraparte}</div>
+                      {selected.contraparte_doc && <div className="text-[11px] text-stone-500 font-mono">{selected.contraparte_doc}</div>}
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Categoria</div>
+                      <div className="mt-0.5 text-stone-700">{selected.categoria || '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Canal</div>
+                      <div className="mt-0.5 text-stone-700">{selected.canal || 'manual'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Documento</div>
+                      <div className="mt-0.5 text-stone-700 font-mono text-[12px]">{selected.nfe_numero || '—'}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conta</div>
+                      <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
+                        <span className="text-stone-400" aria-hidden>🏦</span>
+                        <span>{selected.conta_bancaria || '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {selected.observacao && (
                     <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
                   )}
+
+                  {/* Onda 19 (2026-05-20) — Bloco Conciliação extrato canon match prototype
+                      financeiro-app.jsx:833-851. Settled = green card "Conciliado com extrato",
+                      not settled = stone card "Sem match. Ao liquidar...". */}
+                  {(() => {
+                    const settled = selected.status === 'recebido' || selected.status === 'pago';
+                    return (
+                      <div className="border-t border-stone-100 pt-4">
+                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conciliação extrato</div>
+                        {settled ? (
+                          <div className="mt-2 rounded-md border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 flex items-start gap-2.5">
+                            <span className="text-emerald-700 mt-0.5" aria-hidden>🔗</span>
+                            <div className="text-[12.5px]">
+                              <div className="text-emerald-800 font-medium">Conciliado com extrato bancário</div>
+                              <div className="text-emerald-700/80">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-2 rounded-md border border-stone-200 px-3 py-2.5 text-[12.5px] text-stone-600 flex items-start gap-2.5">
+                            <span className="text-stone-500 mt-0.5" aria-hidden>✦</span>
+                            <div>
+                              Sem match no extrato. Ao liquidar, o sistema procura linhas próximas (±R$ 5,00 e ±2 dias) e sugere conciliação automática.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div className="border-t border-stone-200 pt-4">
                     <FinAuditTrail row={{
@@ -1091,52 +1707,80 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
                     </div>
                   )}
 
-                  <div className="fin-drawer-footer">
-                    {(selected.status !== 'recebido' && selected.status !== 'pago') && (
-                      <Button onClick={() => onBaixar(selected.id)}>
-                        {selected.kind === 'receivable' ? 'Marcar recebido' : 'Marcar pago'}
-                      </Button>
-                    )}
-                    <Button variant="outline" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => favs.toggle(selected.id)}
-                      title="Atalho: B (com a linha selecionada)"
-                    >
-                      {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
-                    </Button>
-                    {/* Onda 22 US-FIN-026 — botão Anexar inline removido, agora vive no
-                        FinAnexosPanel completo (lista + upload + download + delete) abaixo. */}
-                  </div>
-
                   {/* US-FIN-026 (Onda 22) — painel completo Anexos (substitui botão upload-only Onda 20). */}
                   <FinAnexosPanel tituloId={selected.id} />
                 </div>
               )}
 
-              {/* Aba IA — insights computacionais (Anomaly + Party History) */}
+              {/* Onda 21 (2026-05-20) + Wagner 2026-05-25 — Footer sticky-bottom.
+                  Irmão do body scrollable (não filho) pra ficar fixado no rodapé
+                  do SheetContent flex-col h-full. Sequência canon:
+                  Ver NFe → Cobrar → Recebi/Paguei → Editar → Favoritar. */}
+              {drawerTab === 'detalhes' && (
+                <div className="fin-drawer-footer fin-drawer-footer-sticky">
+                  {selected.nfe_numero && (
+                    <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Ver NFe" onClick={() => router.visit(`/fiscal/nfe?numero=${selected.nfe_numero}`)}>
+                      <span aria-hidden>👁</span>
+                      <span className="ml-1">Ver NFe</span>
+                    </Button>
+                  )}
+                  {selected.kind === 'receivable' && (selected.status !== 'recebido') && (
+                    <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Cobrar contraparte" onClick={() => router.visit(`/cobranca/recorrente/nova?titulo=${selected.id}`)}>
+                      <span aria-hidden>✉</span>
+                      <span className="ml-1">Cobrar</span>
+                    </Button>
+                  )}
+                  {(selected.status !== 'recebido' && selected.status !== 'pago') && (
+                    <Button onClick={() => onBaixar(selected.id)} className="fin-foot-mark-btn">
+                      <span aria-hidden>✓</span>
+                      <span className="ml-1">{selected.kind === 'receivable' ? 'Recebi' : 'Paguei'}</span>
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => favs.toggle(selected.id)}
+                    title="Atalho: B (com a linha selecionada)"
+                  >
+                    {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
+                  </Button>
+                </div>
+              )}
+
+              {/* Aba IA — insights computacionais (Anomaly + Party History)
+                  Wagner 2026-05-25: section headers `<h3>` ativam CSS canon
+                  `.fin-cowork .fin-ai-panel h3 { uppercase purple 295 }` que estava
+                  no-op por falta de markup. Wrapper `fin-curadoria` no
+                  SheetContent ativa background/border de .fin-anomaly/.fin-party-history. */}
               {drawerTab === 'ia' && (
-                <div className="mt-3 space-y-4 text-[13px] fin-ai-panel">
-                  <FinAnomalyDetector
-                    row={{
-                      id: selected.id,
-                      contraparte: selected.contraparte,
-                      categoria: selected.categoria,
-                      valor: selected.valor,
-                      vencimento: selected.vencimento,
-                      liquidacao: selected.liquidacao,
-                      status: selected.status,
-                      kind: selected.kind,
-                    }}
-                    all={lancamentos}
-                  />
+                <div className="mt-3 px-5 text-[13px] fin-ai-panel">
+                  <section>
+                    <h3>Anomalia de valor</h3>
+                    <FinAnomalyDetector
+                      row={{
+                        id: selected.id,
+                        contraparte: selected.contraparte,
+                        categoria: selected.categoria,
+                        valor: selected.valor,
+                        vencimento: selected.vencimento,
+                        liquidacao: selected.liquidacao,
+                        status: selected.status,
+                        kind: selected.kind,
+                      }}
+                      all={lancamentos}
+                    />
+                  </section>
 
-                  <FinPartyHistory
-                    currentRow={{ id: selected.id, contraparte: selected.contraparte }}
-                    all={lancamentos}
-                  />
+                  <section>
+                    <h3>Histórico com a contraparte</h3>
+                    <FinPartyHistory
+                      currentRow={{ id: selected.id, contraparte: selected.contraparte }}
+                      all={lancamentos}
+                    />
+                  </section>
 
-                  <p className="text-[11.5px] text-stone-500 italic pt-2 border-t border-stone-100">
+                  <p className="text-[11.5px] text-stone-500 italic pt-3 mt-3 border-t border-stone-100">
                     Insights computacionais · pure compute · Fase 2 plugará JanaService LLM
                   </p>
                 </div>
@@ -1144,7 +1788,7 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
 
               {/* Aba Editar — Onda 10 canon 100%: form INLINE real (PUT /financeiro/unificado/{id}) */}
               {drawerTab === 'editar' && (
-                <div className="mt-3">
+                <div className="mt-3 px-5">
                   <FinEditPanel
                     lancamento={selected}
                     categorias={categorias}
@@ -1195,27 +1839,116 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           Match com /cowork-preview/Oimpresso ERP - Chat.html:
           "29 lançamentos · Total entrada: R$ 18.600 · Total saída: R$ 19.392" + atalhos */}
       <div className="fin-footer-tips">
-        <span className="fin-footer-summary">
-          <b>{footerSummary.count}</b> lançamento{footerSummary.count === 1 ? '' : 's'}
-          <span className="fin-footer-sep">·</span>
-          Total entrada: <b>{brl(footerSummary.entrada)}</b>
-          <span className="fin-footer-sep">·</span>
-          Total saída: <b>{brl(footerSummary.saida)}</b>
-        </span>
-        <span className="spacer" />
-        <span><kbd>⌘K</kbd> palette</span>
-        <span><kbd>/</kbd> buscar</span>
-        <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
-        <span><kbd>␣</kbd> marcar pago/recebido</span>
-        <span><kbd>B</kbd> favoritar linha</span>
-        <FinTroubleButton onClick={() => setTroubleOpen(true)} />
-        {favs.count > 0 && (
-          <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
+        {/* Onda 12 (2026-05-20): footer condicional — quando há bulk select, mostra
+            summary dos selecionados + ações em lote. Senão, summary do periodo. */}
+        {selectedRows.size > 0 ? (
+          <>
+            {(() => {
+              const selectedLancs = lancamentos.filter((l) => selectedRows.has(l.id));
+              const totalIn = selectedLancs.filter((l) => l.kind === 'receivable').reduce((s, l) => s + (l.valor ?? 0), 0);
+              const totalOut = selectedLancs.filter((l) => l.kind === 'payable').reduce((s, l) => s + (l.valor ?? 0), 0);
+              return (
+                <span className="fin-footer-summary">
+                  <b>{selectedRows.size}</b> selecionado{selectedRows.size === 1 ? '' : 's'}
+                  <span className="fin-footer-sep">·</span>
+                  {totalIn > 0 && <><span className="text-emerald-700"><b>+{brl(totalIn)}</b></span>{totalOut > 0 && <span className="fin-footer-sep">·</span>}</>}
+                  {totalOut > 0 && <span className="text-stone-900"><b>−{brl(totalOut)}</b></span>}
+                </span>
+              );
+            })()}
+            <span className="spacer" />
+            <Button
+              size="sm"
+              variant="default"
+              className="h-7 px-3 text-[12px]"
+              onClick={() => {
+                selectedRows.forEach((id) => onBaixar(id));
+                clearSelection();
+              }}
+            >
+              Marcar pago/recebido ({selectedRows.size})
+            </Button>
+            {/* Onda 15 (2026-05-20): bulk edit categoria em lote */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-[12px]"
+              onClick={() => setBulkCategoriaOpen(true)}
+            >
+              Categorizar lote
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-[12px]"
+              onClick={clearSelection}
+            >
+              Limpar
+            </Button>
+          </>
+        ) : (
+          <>
+            <span className="fin-footer-summary">
+              <b>{footerSummary.count}</b> lançamento{footerSummary.count === 1 ? '' : 's'}
+              <span className="fin-footer-sep">·</span>
+              Total entrada: <b>{brl(footerSummary.entrada)}</b>
+              <span className="fin-footer-sep">·</span>
+              Total saída: <b>{brl(footerSummary.saida)}</b>
+            </span>
+            <span className="spacer" />
+            <span><kbd>⌘K</kbd> palette</span>
+            <span><kbd>/</kbd> buscar</span>
+            <span><kbd>J</kbd>/<kbd>K</kbd> navegar</span>
+            <span><kbd>␣</kbd> marcar pago/recebido</span>
+            <span><kbd>B</kbd> favoritar linha</span>
+            <FinTroubleButton onClick={() => setTroubleOpen(true)} />
+            {favs.count > 0 && (
+              <span>{favs.count} favorito{favs.count === 1 ? '' : 's'} ★</span>
+            )}
+          </>
         )}
       </div>
 
       {/* Onda 7b — Dialogs Troubleshooter + Presentation Mode */}
       <FinTroubleshooterDialog open={troubleOpen} onClose={() => setTroubleOpen(false)} />
+
+      {/* Onda 15 (2026-05-20): Sheet modal pra bulk edit categoria em lote.
+          Renderiza só quando bulkCategoriaOpen=true. */}
+      <Sheet open={bulkCategoriaOpen} onOpenChange={(o) => !o && setBulkCategoriaOpen(false)}>
+        <SheetContent side="right" className="fin-cowork w-[440px] sm:max-w-[440px]">
+          <SheetHeader>
+            <SheetTitle>Categorizar em lote</SheetTitle>
+          </SheetHeader>
+          <div className="px-1 py-4 space-y-4">
+            <div className="text-sm text-stone-600">
+              Selecione a categoria a aplicar aos <b>{selectedRows.size}</b> lançamento{selectedRows.size === 1 ? '' : 's'} selecionado{selectedRows.size === 1 ? '' : 's'}:
+            </div>
+            <select
+              className="w-full h-9 px-2 rounded-md border border-stone-200 bg-white text-sm"
+              value={bulkCategoriaId ?? ''}
+              onChange={(e) => setBulkCategoriaId(e.target.value ? parseInt(e.target.value, 10) : null)}
+              aria-label="Categoria"
+            >
+              <option value="">— escolher categoria —</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>{c.nome}</option>
+              ))}
+            </select>
+            <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+              <Button
+                size="sm"
+                disabled={!bulkCategoriaId || selectedRows.size === 0}
+                onClick={submitBulkCategoria}
+              >
+                Aplicar ({selectedRows.size})
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setBulkCategoriaOpen(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
       <FinPresentationMode
         open={presentOpen}
         onClose={() => setPresentOpen(false)}
@@ -1259,6 +1992,18 @@ function FinanceiroUnificado({ kpis, lancamentos, filters, contas, categorias, p
           onClose={() => setEditOpen(false)}
           lancamento={selected}
           categorias={categorias}
+          planos={planosConta}
+        />
+      )}
+
+      {/* Onda 25 (2026-05-25) US-FIN-021 — Sheet Insert manual (substitui stub /unificado/novo) */}
+      {createTipo && (
+        <TituloCreateSheet
+          open={createTipo !== null}
+          onClose={() => setCreateTipo(null)}
+          tipo={createTipo}
+          categorias={categorias}
+          planos={planosConta}
         />
       )}
 

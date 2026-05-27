@@ -319,7 +319,7 @@ JS;
     }
 
     /**
-     * Revoga token (soft-delete).
+     * Revoga token (soft-delete) — endpoint legacy (sem scope user).
      */
     public function revogarToken(int $tokenId)
     {
@@ -332,6 +332,91 @@ JS;
 
             return response()->json(['ok' => true]);
         }, ['module' => 'TeamMcp', 'token_id' => $tokenId]);
+    }
+
+    /**
+     * G-DESIGN-01 — Lista tokens individuais de 1 user (drill-down do contador
+     * "N ativos" da tabela team principal). FICHA CAPTERRA 2026-05-25 §6 + ADR
+     * 0057 §6 (drill-down esperado por governança Tier 0).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): scope explícito por business_id do user
+     * autenticado — tokens de user com business_id != session business_id
+     * resultam em 404 (defesa em profundidade). Permission gate
+     * `copiloto.mcp.usage.all` já aplicada no construtor.
+     *
+     * Reveal-once invariante (ADR 0057 §2): NUNCA expõe `sha256_token` nem raw —
+     * apenas metadados. Hidden no Model bloqueia serialização acidental, mas
+     * explicitamos os campos retornados aqui pra contrato de API estável.
+     */
+    public function listTokens(Request $request, int $userId)
+    {
+        return OtelHelper::spanBiz('teammcp.tokens.list', function () use ($request, $userId) {
+            $sessionBusinessId = (int) $request->session()->get('user.business_id');
+
+            // Multi-tenant Tier 0 (ADR 0093): user só visível se mesmo business
+            $user = User::where('id', $userId)
+                ->where('business_id', $sessionBusinessId)
+                ->firstOrFail();
+
+            $tokens = McpToken::where('user_id', $user->id)
+                ->orderByDesc('created_at')
+                ->get([
+                    'id', 'name', 'created_at', 'expires_at', 'revoked_at',
+                    'last_used_at', 'last_used_ip', 'user_agent',
+                ]);
+
+            return response()->json([
+                'ok' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'nome' => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
+                        ?: ($user->username ?? "#{$user->id}"),
+                ],
+                'tokens' => $tokens->map(fn ($t) => [
+                    'id' => $t->id,
+                    'name' => $t->name,
+                    'created_at' => $t->created_at?->toIso8601String(),
+                    'expires_at' => $t->expires_at?->toIso8601String(),
+                    'revoked_at' => $t->revoked_at?->toIso8601String(),
+                    'last_used_at' => $t->last_used_at?->toIso8601String(),
+                    'last_used_ip' => $t->last_used_ip,
+                ])->values()->toArray(),
+            ]);
+        }, ['module' => 'TeamMcp', 'target_user_id' => $userId]);
+    }
+
+    /**
+     * G-DESIGN-02 — Revoga UM token específico de UM user específico (drill-down
+     * action). FICHA CAPTERRA 2026-05-25. Difere do revogarToken legacy: força
+     * scope explícito por user + business_id (multi-tenant Tier 0 ADR 0093).
+     *
+     * Audit (ADR 0057 §10): McpToken usa LogsActivity (Spatie) — revoked_at +
+     * revoked_by gravados via $token->revogar() pra preservar audit trail LGPD.
+     */
+    public function revokeToken(Request $request, int $userId, int $tokenId)
+    {
+        return OtelHelper::spanBiz('teammcp.token.revoke', function () use ($request, $userId, $tokenId) {
+            $sessionBusinessId = (int) $request->session()->get('user.business_id');
+            $actor = $request->user();
+
+            // Multi-tenant Tier 0: confirma user pertence ao mesmo business
+            $user = User::where('id', $userId)
+                ->where('business_id', $sessionBusinessId)
+                ->firstOrFail();
+
+            // Token deve pertencer a esse user (defesa adicional contra tokenId
+            // cross-tenant via URL manipulation).
+            $token = McpToken::where('id', $tokenId)
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+
+            // Já revogado? idempotente.
+            if ($token->revoked_at === null) {
+                $token->revogar($actor?->id ?? 0);
+            }
+
+            return response()->json(['ok' => true, 'token_id' => $token->id]);
+        }, ['module' => 'TeamMcp', 'target_user_id' => $userId, 'token_id' => $tokenId]);
     }
 
     /**

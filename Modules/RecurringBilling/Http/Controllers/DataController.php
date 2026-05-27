@@ -94,6 +94,9 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $segmento_ativo = request()->segment(1) === 'recurring-billing';
 
+        // Wagner 2026-05-22: Cobrança Recorrente FICA no sidebar como entry
+        // própria. Revertido erro do PR #1399 (havia movido pra ghost do
+        // Financeiro, mas Wagner esclareceu que deve permanecer entry separada).
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
@@ -101,9 +104,22 @@ class DataController extends Controller
                     route('recurring-billing.index'),
                     'Cobrança Recorrente',
                     [
-                        'icon'   => 'fa fas fa-sync-alt',
-                        'style'  => 'background-color:' . $background_color,
-                        'active' => $segmento_ativo,
+                        'icon'    => 'fa fas fa-sync-alt',
+                        'style'   => 'background-color:' . $background_color,
+                        'active'  => $segmento_ativo,
+                        'group'   => 'financas',
+                        'primary' => [
+                            'label'    => 'Nova assinatura',
+                            'href'     => '/recurring-billing/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'recurring-billing', 'label' => 'Assinaturas',    'href' => '/recurring-billing'],
+                            // Wagner 2026-05-22 P1: +3 ghosts pra zerar órfãs RecurringBilling.
+                            ['key' => 'planos',            'label' => 'Planos',         'href' => '/recurring-billing/planos'],
+                            ['key' => 'faturas',           'label' => 'Faturas',        'href' => '/recurring-billing/faturas'],
+                            ['key' => 'configuracoes',     'label' => 'Configurações',  'href' => '/recurring-billing/configuracoes'],
+                        ],
                     ]
                 )->order(86);
             }

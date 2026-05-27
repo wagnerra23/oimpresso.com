@@ -25,11 +25,43 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = "default",
+  variant = "cowork",
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
+  /**
+   * Visual variant.
+   *
+   * **Default desde 2026-05-27 (ADR UI-0015):** `cowork` aplica classes
+   * `.cw-input` (port fiel do protótipo Cowork) — bg sólido, ring accent-soft.
+   *
+   * **Opt-in legacy:** `shadcn` — visual canônico shadcn antigo. Use APENAS
+   * quando precisar em containers escuros onde bg branco quebra hierarquia.
+   */
+  variant?: "cowork" | "shadcn"
 }) {
+  if (variant !== "shadcn") {
+    return (
+      <SelectPrimitive.Trigger
+        data-slot="select-trigger"
+        data-size={size}
+        className={cn(
+          "cw-input flex items-center justify-between gap-2",
+          "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <SelectPrimitive.Icon asChild>
+          <ChevronDownIcon className="size-4 opacity-50" />
+        </SelectPrimitive.Icon>
+      </SelectPrimitive.Trigger>
+    )
+  }
+
+  // variant === "shadcn" — visual canônico opt-in legacy
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"

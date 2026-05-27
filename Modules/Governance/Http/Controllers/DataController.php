@@ -52,6 +52,15 @@ class DataController extends Controller
 
     public function modifyAdminMenu()
     {
+        // Wagner 2026-05-25: entry sidebar de Governança REMOVIDA — módulo
+        // continua acessível por URL direta (/governance/dashboard, /policies,
+        // /audit, /drift, /module-grades) mas não aparece no sidebar. Roteamento
+        // canon agora é via Jana: login pós-redirect → /ia/dashboard (primeira
+        // aba). Permissions/package/rotas preservadas — só desligamos o
+        // Menu::modify pra parar de renderizar entry no AppShellV2.
+        return;
+
+        // ↓ DEAD CODE preservado pra histórico (até ADR formalizar a remoção).
         if (!auth()->check()) return;
 
         $module_util = new ModuleUtil();
@@ -80,10 +89,39 @@ class DataController extends Controller
         if (!$user->can('governance.dashboard.view')) return;
 
         Menu::modify('admin-sidebar-menu', function ($menu) {
+            // ADR 0180 Fase 4 Wave E — entry principal Governance declara:
+            //  - `shortcut` G G → atalho kbd canônico (overlay visual em Fase 8)
+            //  - `primary`     → botão "Gerenciar policies" (PageHeaderTabs Fase 5)
+            //  - `ghosts`      → 5 sub-views consolidadas (dashboard/policies/audit/drift/module-grades)
+            //
+            // ADR 0180 v3 — entry vive no grupo canon `sistema` (acoplado em Governança
+            // visual no frontend). ADS/Auditoria/Cms/Connector/Officeimpresso são ghosts
+            // virtuais agrupados pela Sidebar.tsx no mesmo cabeçalho `sistema`.
+            // Wagner 2026-05-22 P2: hub Governance canon entry em SISTEMA + ghost
+            // dashboard ajustado pra /governance/dashboard (legacy preservado), pq
+            // /governance raiz virou redirect pra /ia (PR #1403).
+            // URL principal volta a apontar /governance/dashboard pra evitar redirect.
             $menu->url(
-                action(['\\Modules\\Governance\\Http\\Controllers\\DashboardController', 'index']),
+                '/governance/dashboard',
                 __('governance::governance.governance'),
-                ['icon' => 'fa fa-shield', 'active' => request()->is('governance*')]
+                [
+                    'icon'     => 'fa fa-shield',
+                    'active'   => request()->is('governance*'),
+                    'group'    => 'sistema',
+                    'shortcut' => 'G G',
+                    'primary'  => [
+                        'label'    => 'Gerenciar policies',
+                        'href'     => '/governance/policies',
+                        'shortcut' => 'P',
+                    ],
+                    'ghosts'   => [
+                        ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance/dashboard'],
+                        ['key' => 'policies',      'label' => 'Policies',        'href' => '/governance/policies'],
+                        ['key' => 'audit',         'label' => 'Audit log',       'href' => '/governance/audit'],
+                        ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],
+                        ['key' => 'module-grades', 'label' => 'Module Grades',   'href' => '/governance/module-grades'],
+                    ],
+                ]
             )->order(199);
         });
     }

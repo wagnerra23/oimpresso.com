@@ -21,6 +21,9 @@ import {
   Check, AlertCircle, Receipt, Zap, Building,
 } from 'lucide-react';
 import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_components/atoms';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { PageHeader } from '@/Components/PageHeader';
+import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import FunnelStrip from './_components/FunnelStrip';
 import DrawerCobranca from './_components/DrawerCobranca';
 import SheetNovaCobranca from './_components/SheetNovaCobranca';
@@ -175,28 +178,33 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
 
   return (
     <div className="fin-cowork h-full bg-stone-50 flex flex-col font-sans pg-shell-scope">
-      {/* Onda 15 (2026-05-19) — header canon paridade Unificado (substitui PageHeader pg-*) */}
+      {/* BLOCO 1 — Header canon v3.8 via <PageHeader> componente compartilhado.
+          Wave 2 (2026-05-25): refactor pra usar `<PageHeader>` de @/Components/PageHeader.
+          Antes era inline JSX duplicado · agora 1 componente serve 13+ telas Financeiro.
+          FinanceiroSubNav + FinanceiroPrimaryButton mantidos (Wave 3 vai unificar). */}
       <div className="fin-curadoria vendas-aplus">
-        <header className="os-page-h fin-page-h">
-          <div className="os-page-h-l fin-page-h-l">
-            <h1>Cobrança <span className="fin-hero-title-sub">· Boletos e PIX</span></h1>
-            <p>{kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways</p>
+        <PageHeader
+          title="Cobrança"
+          suffix=" · Boletos e PIX"
+          subtitle={<>{kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways</>}
+        >
+          {/* Children = Zona R custom: SubNav 12 ghosts + extraOverflow + Primary */}
+          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+            <FinanceiroSubNav
+              active="cobranca"
+              hidePrimary
+              extraOverflowItems={[
+                { key: 'resumir',  label: 'Resumir mês',     icon: <span>✦</span>,         onClick: () => setAiOpen(true),                            title: 'Resumir cobranças deste mês — IA' },
+                { key: 'gateways', label: 'Gateways',        icon: <Settings size={13} />, onClick: () => router.visit('/settings/payment-gateways'), title: 'Configurar gateways' },
+                { key: 'remessa',  label: 'Remessa/Retorno', icon: <Upload size={13} />,   onClick: () => setRemessaOpen(true) },
+              ]}
+            />
+            {/* FinanceiroPrimaryButton ja eh shim DEPRECATED -> roxo 295 universal (ADR 0190 + PR #1462) */}
+            <FinanceiroPrimaryButton onClick={() => setNovaOpen(true)}>
+              Nova cobrança
+            </FinanceiroPrimaryButton>
           </div>
-          <div className="os-page-h-r fin-page-h-r">
-            <button type="button" className="os-btn ghost fin-btn-ai" onClick={() => setAiOpen(true)} title="Resumir cobranças deste mês — IA">
-              <span>✦</span> Resumir mês
-            </button>
-            <button type="button" className="os-btn ghost" onClick={() => router.visit('/settings/payment-gateways')} title="Configurar gateways">
-              <Settings size={13} /> Gateways
-            </button>
-            <button type="button" className="os-btn ghost" onClick={() => setRemessaOpen(true)}>
-              <Upload size={13} /> Remessa/Retorno
-            </button>
-            <button type="button" className="os-btn primary" onClick={() => setNovaOpen(true)}>
-              <Plus size={13} /> Nova cobrança
-            </button>
-          </div>
-        </header>
+        </PageHeader>
       </div>
 
       {/* FUNIL */}

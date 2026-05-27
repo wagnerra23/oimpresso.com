@@ -59,7 +59,86 @@ class Contact extends Authenticatable
         'whatsapp_consent' => 'bool',
         'email_consent' => 'bool',
         'consent_updated_at' => 'datetime',
+        // Campos BR restaurados — migration 2026_05_21_140000 (regressão UPOS 6.7).
+        // Em v3.7 eram integer default 1; modernizamos pra boolean.
+        // Cast cobre legado: int 1/0 → bool true/false transparente.
+        'consumidor_final' => 'bool',
+        'contribuinte' => 'bool',
+        'indicador_ie' => 'integer',
+        // ADR 0179 Wave B/C — Cliente drawer 760px. Campos JSON + bool + date
+        // adicionados pela migration 2026_05_22_000000_extend_contacts_for_cliente_drawer.
+        'tags' => 'array',
+        'favorito_users' => 'array',
+        'vip' => 'bool',
+        'nascimento' => 'date',
+        // ADR 0197 Bucket A — extend contacts pra absorver PESSOAS legacy.
+        // Migration 2026_05_27_120000_extend_contacts_bucket_a_legacy_absorption.
+        'bloqueado' => 'bool',
+        'cobrar_custo_boleto' => 'bool',
+        'limite_desconto_percentual' => 'decimal:2',
+        'boleto_desconto_pontualidade_pct' => 'decimal:2',
+        'fatura_previsao' => 'date',
+        'prioridade_producao' => 'integer',
+        'iss_retido' => 'integer',
+        // ADR 0199 Bucket B (Opção B JSON catch-all) — pivot tabela satélite
+        // para col JSON em contacts. Migration 2026_05_27_140000_contacts_bucket_b_legacy_raw_json.
+        // Importer canônico persiste PII-redacted dump Delphi como JSON aqui.
+        // Chaves canônicas esperadas: codigo_raw, data_cadastro, dt_alteracao,
+        // usuario_cadastro, usuario_alteracao, emails_extras, observacoes,
+        // campos_custom_cliente, raw_dump_pessoas_row.
+        'legacy_raw' => 'array',
+        // ADR 0200 — canon sync bidirecional Delphi ↔ oimpresso (Wagner 2024-11).
+        // Pareada com 11 outras tabelas (brands/products/users/etc).
+        // BaseApiController::syncData usa officeimpresso_dt_alteracao em conflict
+        // detection (linha 67-73). Migration 2026_05_27_160000_contacts_consolidate_officeimpresso_sync_canon.
+        'officeimpresso_dt_alteracao' => 'datetime',
     ];
+
+    /**
+     * ADR 0199 — Storytelling accessor "cliente desde 2003".
+     *
+     * Lê data de cadastro original Delphi do JSON catch-all em legacy_raw.
+     * Retorna null se contact não foi migrado de legacy (legacy_raw IS NULL)
+     * ou se a chave data_cadastro não está presente.
+     *
+     * Use em UI: {{ $contact->cliente_desde ?? 'data não disponível' }}
+     */
+    public function getClienteDesdeAttribute(): ?string
+    {
+        return data_get($this->legacy_raw, 'data_cadastro');
+    }
+
+    /**
+     * ADR 0197 Bucket A — Pai da rede (matriz/filial). Self-FK.
+     *
+     * 1 contact pode ter N filhos (parent_contact_id apontando pra ele).
+     * Importer Vargas 2-pass resolve via legacy_id; orfaos viram NULL.
+     */
+    public function parentContact()
+    {
+        return $this->belongsTo(self::class, 'parent_contact_id');
+    }
+
+    public function childContacts()
+    {
+        return $this->hasMany(self::class, 'parent_contact_id');
+    }
+
+    /**
+     * ADR 0197 Bucket A — Representante responsavel pelo cliente (comissao Sells).
+     *
+     * Aponta pra OUTRO contacts row com is_representative=1. Type-check
+     * em app layer (nao via DB constraint).
+     */
+    public function salesRep()
+    {
+        return $this->belongsTo(self::class, 'sales_rep_contact_id');
+    }
+
+    public function customersAsRep()
+    {
+        return $this->hasMany(self::class, 'sales_rep_contact_id');
+    }
 
     /**
      * LGPD — Pode receber notificação WhatsApp?

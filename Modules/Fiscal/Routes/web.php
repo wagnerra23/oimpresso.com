@@ -9,6 +9,7 @@ use Modules\Fiscal\Http\Controllers\EventosController;
 use Modules\Fiscal\Http\Controllers\InstallController;
 use Modules\Fiscal\Http\Controllers\NfeCockpitController;
 use Modules\Fiscal\Http\Controllers\NfseCockpitController;
+use Modules\Fiscal\Http\Controllers\PaletteSearchController;
 use Modules\Fiscal\Http\Controllers\SpedController;
 
 /*
@@ -56,6 +57,15 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // SPED & Livros (sub-página 7 — PR #3 Wave final, placeholder).
         Route::get('/sped', [SpedController::class, 'index'])->name('sped.index');
 
+        // ─── PR #8 Wave: SPED Fiscal EFD-ICMS/IPI ────────────────────────
+        // Download TXT layout CONFAZ v3.1.1 (perfil A) por ano+mês.
+        // Throttle 3/min (gera arquivo pesado; evita abuso).
+        Route::get('/sped/icms-ipi/{ano}/{mes}', [SpedController::class, 'gerar'])
+            ->whereNumber('ano')
+            ->whereNumber('mes')
+            ->middleware('throttle:3,1')
+            ->name('sped.icms-ipi');
+
         // ─── PR #4 Wave Ações Mutação ──────────────────────────────────
         // Cancelar NFe/NFC-e (delega NfeService::cancelar — FSM cascade ADR 0143).
         // Throttle 30/min anti-DOS (pattern Modules/NfeBrasil — protege SEFAZ).
@@ -71,4 +81,29 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->where('acao', 'cienciar|confirmar|desconhecer|nao_realizada')
             ->middleware('throttle:30,1')
             ->name('acoes.dfe.manifestar');
+
+        // ─── PR #5 Wave: CCe + Inutilização ──────────────────────────────
+        // Carta de Correção (tpEvento 110110) — delega NfeCartaCorrecaoService.
+        Route::post('/acoes/nfe/{emissao}/cce', [AcoesController::class, 'cartaCorrecao'])
+            ->whereNumber('emissao')
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.cce');
+
+        // Inutilização faixa numérica (SEFAZ cstat=102) — delega NfeInutilizacaoService.
+        Route::post('/acoes/nfe/inutilizar', [AcoesController::class, 'inutilizar'])
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.inutilizar');
+
+        // ─── PR #6 Wave: Retransmitir NFe rejeitada/denegada ─────────────
+        // Delega NfeService::retransmitir (UPDATE preservation contract CONFAZ Art. 14).
+        Route::post('/acoes/nfe/{emissao}/retransmitir', [AcoesController::class, 'retransmitir'])
+            ->whereNumber('emissao')
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.retransmitir');
+
+        // ─── PR #7 Wave: ⌘K palette cross-fiscal ────────────────────────
+        // Busca global em notas + DF-e (throttle 60/min — usuário digita rápido).
+        Route::get('/palette/search', [PaletteSearchController::class, 'search'])
+            ->middleware('throttle:60,1')
+            ->name('palette.search');
     });

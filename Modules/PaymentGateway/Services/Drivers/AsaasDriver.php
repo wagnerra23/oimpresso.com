@@ -6,7 +6,6 @@ namespace Modules\PaymentGateway\Services\Drivers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Dto\CobrancaEmitidaResult;
@@ -19,6 +18,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\HttpClientFactory;
 
 /**
  * Driver Asaas — API REST v3.
@@ -75,7 +75,7 @@ class AsaasDriver implements PaymentDriverContract
 
         $customerId = $this->resolveCustomer($input, $cred);
 
-        $response = $this->client($cred)
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
             ->post('/payments', [
                 'customer'           => $customerId,
                 'billingType'        => 'CREDIT_CARD',
@@ -90,7 +90,7 @@ class AsaasDriver implements PaymentDriverContract
                     'expiryYear'  => $token->expYear,
                 ],
                 'creditCardToken' => $token->token,
-            ]);
+            ]));
 
         if ($response->status() === 400) {
             throw new CardDeclinedException(
@@ -122,7 +122,7 @@ class AsaasDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra cancelar no Asaas');
         }
 
-        $response = $this->client($cred)->delete("/payments/{$extId}");
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->delete("/payments/{$extId}"));
         if ($response->failed()) {
             throw new GatewayUnavailableException(
                 "Asaas cancelar falhou ({$response->status()}): " . substr($response->body(), 0, 200)
@@ -143,7 +143,7 @@ class AsaasDriver implements PaymentDriverContract
             $payload['value'] = round($valorCentavos / 100, 2);
         }
 
-        $response = $this->client($cred)->post("/payments/{$extId}/refund", $payload);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->post("/payments/{$extId}/refund", $payload));
         if ($response->failed()) {
             throw new GatewayUnavailableException(
                 "Asaas refund falhou ({$response->status()}): " . substr($response->body(), 0, 200)
@@ -159,7 +159,7 @@ class AsaasDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra consultar no Asaas');
         }
 
-        $response = $this->client($cred)->get("/payments/{$extId}");
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/payments/{$extId}"));
         if ($response->failed()) {
             throw new GatewayUnavailableException(
                 "Asaas consultar falhou ({$response->status()}): " . substr($response->body(), 0, 200)
@@ -183,7 +183,7 @@ class AsaasDriver implements PaymentDriverContract
         $start = microtime(true);
 
         try {
-            $response = $this->client($cred)->get('/finance/balance');
+            $response = $this->clientHealth($cred)->get('/finance/balance');
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
             if ($response->successful()) {
@@ -234,7 +234,7 @@ class AsaasDriver implements PaymentDriverContract
         $this->assertCredential($cred);
         $customerId = $this->resolveCustomer($input, $cred);
 
-        $response = $this->client($cred)
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
             ->post('/payments', [
                 'customer'           => $customerId,
                 'billingType'        => $billingType, // BOLETO | PIX
@@ -243,7 +243,7 @@ class AsaasDriver implements PaymentDriverContract
                 'description'        => $input->descricao,
                 'externalReference'  => $input->idempotencyKey,
                 'postalService'      => false,
-            ]);
+            ]));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -265,7 +265,7 @@ class AsaasDriver implements PaymentDriverContract
         $pixEmv = null;
 
         if ($billingType === 'BOLETO') {
-            $bankSlip = $this->client($cred)->get("/payments/{$id}/identificationField");
+            $bankSlip = HttpClientFactory::send(fn () => $this->client($cred)->get("/payments/{$id}/identificationField"));
             if ($bankSlip->successful()) {
                 $bs = $bankSlip->json() ?? [];
                 $linhaDigitavel = (string) ($bs['identificationField'] ?? '');
@@ -275,7 +275,7 @@ class AsaasDriver implements PaymentDriverContract
         }
 
         if ($billingType === 'PIX') {
-            $pixData = $this->client($cred)->get("/payments/{$id}/pixQrCode");
+            $pixData = HttpClientFactory::send(fn () => $this->client($cred)->get("/payments/{$id}/pixQrCode"));
             if ($pixData->successful()) {
                 $pd = $pixData->json() ?? [];
                 $pixEmv = (string) ($pd['payload'] ?? '');
@@ -306,7 +306,7 @@ class AsaasDriver implements PaymentDriverContract
         $email = $input->meta['payer_email'] ?? null;
 
         // Procura por externalReference primeiro
-        $existing = $this->client($cred)->get('/customers', ['externalReference' => $externalRef]);
+        $existing = HttpClientFactory::send(fn () => $this->client($cred)->get('/customers', ['externalReference' => $externalRef]));
         if ($existing->successful()) {
             $data = $existing->json() ?? [];
             if (! empty($data['data'][0]['id'])) {
@@ -315,12 +315,12 @@ class AsaasDriver implements PaymentDriverContract
         }
 
         // Cria novo
-        $created = $this->client($cred)->post('/customers', array_filter([
+        $created = HttpClientFactory::send(fn () => $this->client($cred)->post('/customers', array_filter([
             'name'              => $name,
             'cpfCnpj'           => $cpfCnpj,
             'email'             => $email,
             'externalReference' => $externalRef,
-        ]));
+        ])));
 
         if ($created->failed()) {
             throw new InvalidPayerException(
@@ -360,18 +360,40 @@ class AsaasDriver implements PaymentDriverContract
             : self::API_BASE_PRODUCTION;
     }
 
+    /**
+     * Cliente principal — com retry + 429 handler via HttpClientFactory
+     * (Auditoria 2026-05-23 Onda 4e gap #1+#2).
+     */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
         $config = $cred->config_json ?? [];
 
-        return Http::baseUrl($this->baseUrl($cred))
-            ->withHeaders([
+        return HttpClientFactory::make(
+            baseUrl: $this->baseUrl($cred),
+            headers: [
                 'access_token' => (string) ($config['api_key'] ?? ''),
                 'Accept'       => 'application/json',
-            ])
-            ->acceptJson()
-            ->asJson()
-            ->timeout(30);
+            ],
+            timeoutSec: 30,
+        );
+    }
+
+    /**
+     * Cliente healthcheck — SEM retry (1 fail = down).
+     */
+    private function clientHealth(PaymentGatewayCredential $cred): PendingRequest
+    {
+        $config = $cred->config_json ?? [];
+
+        return HttpClientFactory::make(
+            baseUrl: $this->baseUrl($cred),
+            headers: [
+                'access_token' => (string) ($config['api_key'] ?? ''),
+                'Accept'       => 'application/json',
+            ],
+            timeoutSec: 30,
+            withRetry: false,
+        );
     }
 
     private function mapStatus(string $asaasStatus): string

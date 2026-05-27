@@ -15,7 +15,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, Deferred } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -23,6 +23,11 @@ import { Label } from '@/Components/ui/label';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/Components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
+import { Badge } from '@/Components/ui/badge';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -77,6 +82,51 @@ function fmtDate(iso: string | null): string {
   return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+// G-DESIGN-04 — relativo PT-BR pra last_used_at no TokensListDialog
+function fmtRelative(iso: string | null): string {
+  if (!iso) return 'Nunca usado';
+  const d = new Date(iso).getTime();
+  const diff = (Date.now() - d) / 1000;
+  if (diff < 60) return 'agora há pouco';
+  if (diff < 3600) return `há ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)} h`;
+  if (diff < 86400 * 30) return `há ${Math.floor(diff / 86400)} dias`;
+  if (diff < 86400 * 365) return `há ${Math.floor(diff / (86400 * 30))} meses`;
+  return `há ${Math.floor(diff / (86400 * 365))} anos`;
+}
+
+// G-DESIGN-05 — status pill semântico por token (FICHA CAPTERRA 2026-05-25)
+interface TokenRow {
+  id: number;
+  name: string;
+  created_at: string | null;
+  expires_at: string | null;
+  revoked_at: string | null;
+  last_used_at: string | null;
+  last_used_ip: string | null;
+}
+
+function tokenStatus(t: TokenRow): { label: string; className: string } {
+  if (t.revoked_at) {
+    return { label: 'Revogado', className: 'bg-muted text-muted-foreground' };
+  }
+  const now = Date.now();
+  if (t.expires_at) {
+    const expMs = new Date(t.expires_at).getTime();
+    if (expMs < now) {
+      return { label: 'Expirado', className: 'bg-muted text-muted-foreground' };
+    }
+    const days = Math.ceil((expMs - now) / 86400000);
+    if (days <= 7) {
+      return {
+        label: `Expira em ${days}d`,
+        className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      };
+    }
+  }
+  return { label: 'Ativo', className: 'bg-green-100 text-green-800' };
+}
+
 function quotaBadge(pct: number, block: boolean): { className: string; label: string } {
   if (pct >= 100) return { className: 'bg-red-100 text-red-800', label: block ? '🚫 BLOQUEADO' : '⚠️ excedido' };
   if (pct >= 80)  return { className: 'bg-orange-100 text-orange-800', label: '⚠️ ' + pct + '%' };
@@ -96,9 +146,28 @@ function TeamIndex(props: Props) {
   const { pricing_config } = props;
   const [tokenGerado, setTokenGerado] = useState<{ user: string; raw: string } | null>(null);
   const [editQuotaUser, setEditQuotaUser] = useState<TeamMember | null>(null);
+  // G-DESIGN-01/02/03 — drill-down lista tokens + AlertDialog destrutivo unificado
+  const [tokensListUser, setTokensListUser] = useState<TeamMember | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   function gerarToken(member: TeamMember) {
-    if (!confirm(`Gerar token MCP novo pra ${member.nome}?`)) return;
+    setConfirmAction({
+      title: `Gerar token MCP novo pra ${member.nome}?`,
+      description:
+        'O token novo terá acesso a 107 docs de memória + 56 ADRs + chat Copiloto. ' +
+        'Entregue ao dev via Vaultwarden imediatamente — o raw NÃO será mostrado de novo. ' +
+        'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Gerar token',
+      onConfirm: () => doGerarToken(member),
+    });
+  }
+
+  function doGerarToken(member: TeamMember) {
     fetch(`/team-mcp/team/${member.id}/token`, {
       method: 'POST',
       headers: {
@@ -121,8 +190,19 @@ function TeamIndex(props: Props) {
       .catch(() => toast.error('Erro de rede'));
   }
 
-  async function gerarDxt(member: TeamMember) {
-    if (!confirm(`Gerar arquivo .dxt (Claude Desktop) pra ${member.nome}? Cria token novo embutido — entrega via canal seguro.`)) return;
+  function gerarDxt(member: TeamMember) {
+    setConfirmAction({
+      title: `Gerar arquivo .dxt pra ${member.nome}?`,
+      description:
+        'Cria token MCP novo embutido no .dxt (Claude Desktop). Entregue o arquivo via ' +
+        'Vaultwarden ou canal seguro — quem tiver o .dxt tem acesso completo ao MCP server. ' +
+        'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Gerar .dxt',
+      onConfirm: () => { void doGerarDxt(member); },
+    });
+  }
+
+  async function doGerarDxt(member: TeamMember) {
     try {
       const res = await fetch(`/team-mcp/team/${member.id}/dxt`, {
         method: 'POST',
@@ -261,13 +341,20 @@ function TeamIndex(props: Props) {
                       <div className="text-xs text-muted-foreground">{m.email}</div>
                     </td>
                     <td className="text-center py-2 px-2">
-                      {m.tokens_ativos > 0 ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">
-                          {m.tokens_ativos} ativo{m.tokens_ativos > 1 ? 's' : ''}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
+                      {/* G-DESIGN-01: contador clicável abre TokensListDialog (drill-down) */}
+                      <button
+                        type="button"
+                        onClick={() => setTokensListUser(m)}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800 hover:bg-green-200 hover:underline disabled:opacity-60"
+                        aria-label={`Ver ${m.tokens_ativos} tokens de ${m.nome}`}
+                        title={m.tokens_ativos > 0
+                          ? `Ver ${m.tokens_ativos} token${m.tokens_ativos > 1 ? 's' : ''} de ${m.nome}`
+                          : `Ver histórico de tokens de ${m.nome}`}
+                      >
+                        {m.tokens_ativos > 0
+                          ? `${m.tokens_ativos} ativo${m.tokens_ativos > 1 ? 's' : ''}`
+                          : 'ver'}
+                      </button>
                     </td>
                     <td className="text-right py-2 px-2 font-mono">{brl(m.custo_hoje_brl)}</td>
                     <td className="text-right py-2 px-2 font-mono">{brl(m.custo_mes_brl)}</td>
@@ -405,7 +492,207 @@ function TeamIndex(props: Props) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* G-DESIGN-01/02/04/05 — drill-down tokens individuais (FICHA CAPTERRA) */}
+      {tokensListUser && (
+        <TokensListDialog
+          user={tokensListUser}
+          onClose={() => setTokensListUser(null)}
+          requestConfirm={(action) => setConfirmAction(action)}
+          afterRevoke={() => router.reload({ only: ['team'] })}
+        />
+      )}
+
+      {/* G-DESIGN-03 — AlertDialog destrutivo (substitui window.confirm + prompt) */}
+      <AlertDialog open={confirmAction !== null} onOpenChange={(o) => !o && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmAction?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmAction?.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                confirmAction?.onConfirm();
+                setConfirmAction(null);
+              }}
+            >
+              {confirmAction?.confirmLabel ?? 'Confirmar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+  );
+}
+
+// ============================================================================
+// G-DESIGN-01/02/04/05 — TokensListDialog (FICHA CAPTERRA 2026-05-25)
+//
+// Drill-down do contador "N ativos" da tabela team. Lista tokens individuais
+// do dev com colunas name/created_at/expires_at/last_used_at/last_used_ip/
+// status/action. Empty state se 0 tokens. Revoke por token com AlertDialog
+// reusando o confirmAction global (G-DESIGN-03).
+//
+// Multi-tenant Tier 0 (ADR 0093): backend listTokens já filtra por business_id
+// — frontend só renderiza. Reveal-once (ADR 0057 §2): apenas metadados.
+// ============================================================================
+function TokensListDialog({
+  user,
+  onClose,
+  requestConfirm,
+  afterRevoke,
+}: {
+  user: TeamMember;
+  onClose: () => void;
+  requestConfirm: (a: {
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  }) => void;
+  afterRevoke: () => void;
+}) {
+  const [tokens, setTokens] = useState<TokenRow[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    fetch(`/team-mcp/team/${user.id}/tokens`, {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok) {
+          setTokens(data.tokens as TokenRow[]);
+        } else {
+          setError(data.message ?? 'Erro ao carregar tokens');
+        }
+      })
+      .catch(() => setError('Erro de rede ao carregar tokens'))
+      .finally(() => setLoading(false));
+  }, [user.id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  function revoke(t: TokenRow) {
+    requestConfirm({
+      title: `Revogar token "${t.name}" de ${user.nome}?`,
+      description:
+        'O dev perde acesso ao MCP server imediatamente — cortará uso ativo (se houver). ' +
+        'O hash fica preservado no audit log (LGPD). Esta ação não pode ser desfeita.',
+      confirmLabel: 'Revogar token',
+      onConfirm: () => {
+        fetch(`/team-mcp/team/${user.id}/token/${t.id}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+            'X-Requested-With': 'XMLHttpRequest',
+            Accept: 'application/json',
+          },
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.ok) {
+              toast.success('Token revogado');
+              load();
+              afterRevoke();
+            } else {
+              toast.error(data.message ?? 'Erro ao revogar');
+            }
+          })
+          .catch(() => toast.error('Erro de rede ao revogar'));
+      },
+    });
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Tokens MCP — {user.nome}</DialogTitle>
+          <DialogDescription>
+            Drill-down dos tokens individuais. Revogue por token; o raw não é exibido.
+          </DialogDescription>
+        </DialogHeader>
+
+        {loading && <div className="py-6 text-sm text-muted-foreground">Carregando tokens…</div>}
+        {error && <div className="py-6 text-sm text-red-600">{error}</div>}
+        {!loading && !error && tokens && tokens.length === 0 && (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            Nenhum token registrado pra esse dev ainda.
+          </div>
+        )}
+        {!loading && !error && tokens && tokens.length > 0 && (
+          <div className="overflow-x-auto max-h-[60vh]">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 px-2 font-medium">Nome</th>
+                  <th className="text-left py-2 px-2 font-medium">Criado</th>
+                  <th className="text-left py-2 px-2 font-medium">Expira</th>
+                  <th className="text-left py-2 px-2 font-medium">Último uso</th>
+                  <th className="text-left py-2 px-2 font-medium">IP</th>
+                  <th className="text-center py-2 px-2 font-medium">Status</th>
+                  <th className="text-right py-2 px-2 font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tokens.map((t) => {
+                  const s = tokenStatus(t);
+                  const isInactive = t.revoked_at !== null
+                    || (t.expires_at !== null && new Date(t.expires_at).getTime() < Date.now());
+                  return (
+                    <tr key={t.id} className="border-b hover:bg-muted/40">
+                      <td className="py-2 px-2 font-mono text-xs">{t.name}</td>
+                      <td className="py-2 px-2 text-xs">{fmtDate(t.created_at)}</td>
+                      <td className="py-2 px-2 text-xs">
+                        {t.expires_at ? fmtDate(t.expires_at) : '—'}
+                      </td>
+                      <td
+                        className="py-2 px-2 text-xs"
+                        title={t.last_used_at ? new Date(t.last_used_at).toLocaleString('pt-BR') : ''}
+                      >
+                        {t.last_used_at
+                          ? fmtRelative(t.last_used_at)
+                          : <span className="text-muted-foreground">Nunca usado</span>}
+                      </td>
+                      <td className="py-2 px-2 font-mono text-xs">
+                        {t.last_used_ip ?? <span className="text-muted-foreground">—</span>}
+                      </td>
+                      <td className="text-center py-2 px-2">
+                        <Badge className={s.className}>{s.label}</Badge>
+                      </td>
+                      <td className="text-right py-2 px-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => revoke(t)}
+                          disabled={isInactive}
+                          aria-label={`Revogar token ${t.name}`}
+                          title={isInactive ? 'Já inativo' : `Revogar token ${t.name}`}
+                          className="text-xs"
+                        >
+                          🗑 Revogar
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

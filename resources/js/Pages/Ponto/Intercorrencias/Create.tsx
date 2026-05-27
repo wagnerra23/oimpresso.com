@@ -154,19 +154,17 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
   return (
     <>
       <div className="mx-auto max-w-5xl p-6 space-y-6">
-        <header className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-              <AlertTriangle size={22} /> Nova Intercorrência
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Registre ausências, consultas médicas, esquecimentos de marcação, etc.
-            </p>
+        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        <header className="os-page-h">
+          <div className="os-page-h-l">
+            <h1>Nova Intercorrência <span className="text-stone-400 font-normal">· Ocorrência</span></h1>
+            <p>Registre ausências, consultas médicas, esquecimentos de marcação, etc.</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => router.visit('/ponto/intercorrencias')}>
-            <ArrowLeft size={14} className="mr-1.5" />
-            Voltar
-          </Button>
+          <div className="os-page-h-r">
+            <Button variant="outline" size="sm" onClick={() => router.visit('/ponto/intercorrencias')}>
+              <ArrowLeft size={14} className="mr-1.5" /> Voltar
+            </Button>
+          </div>
         </header>
 
         {/* ================== Campo IA ================== */}
