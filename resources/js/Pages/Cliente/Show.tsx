@@ -171,7 +171,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
             </div>
             <div className="flex items-center gap-2">
               {permissions.update && (
-                <Button asChild>
+                <Button asChild variant="cowork-primary">
                   <a href={`/contacts/${contact.id}/edit`}>
                     <Edit className="mr-1.5 h-4 w-4" />
                     Editar
