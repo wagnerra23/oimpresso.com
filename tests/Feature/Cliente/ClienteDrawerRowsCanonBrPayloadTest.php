@@ -29,10 +29,13 @@ test('GUARD 1 — buildClienteIndexCustomers select inclui canon BR fields grace
         ->toContain("'contacts.cpf_cnpj'")
         ->toContain("'contacts.inscricao_estadual'")
         ->toContain("'contacts.rg'")
-        // Wave drawer 2026-05-22 — nascimento + cargo.
+        // Wave drawer 2026-05-22 — nascimento + cargo + ie (alias Cowork).
         ->toContain("Schema::hasColumn('contacts', 'cargo')")
         ->toContain("'contacts.nascimento'")
-        ->toContain("'contacts.cargo'");
+        ->toContain("'contacts.cargo'")
+        // `ie` (Wave drawer) e a fonte de verdade — autosave grava la, NAO em
+        // `inscricao_estadual` (Wave canon BR — kept como fallback legacy).
+        ->toContain("'contacts.ie'");
 });
 
 // ─── GUARD 2: payload row tem chaves drawer-friendly ──────────────────────
@@ -47,6 +50,10 @@ test('GUARD 2 — buildClienteIndexCustomers payload tem cpf_cnpj_masked + ie + 
         // Fallback canon -> legacy UPOS pra cadastros pre-Wave 2026-05-21.
         ->toContain('cpf_cnpj ?? null')
         ->toContain('?? $contact->tax_number')
+        // ie prioriza coluna Wave drawer (`contacts.ie`) com fallback canon BR
+        // (`inscricao_estadual`) pra cadastros pre-drawer. Autosave grava em `ie`.
+        ->toContain('$contact->ie ?? null')
+        ->toContain('$contact->inscricao_estadual ?? null')
         // ie + rg + nascimento + cargo escapam o mask (sao livres, nao PII numerica).
         ->toMatch("/\\\$payload\\['ie'\\]\\s*=/")
         ->toMatch("/\\\$payload\\['rg'\\]\\s*=/")
@@ -85,4 +92,84 @@ test('GUARD 4 — Cliente/Index.tsx ClienteRow declara ie + cpf_cnpj_masked + rg
         ->toContain('rg?: string | null')
         ->toContain('nascimento?: string | null')
         ->toContain('cargo?: string | null');
+});
+
+// ─── GUARD 5: ContatoTab — telefones + emails + site + canal ──────────────
+
+test('GUARD 5 — payload tem landline + tel2 + alternate_number + email + email_billing + email_nfe + site + canal', function () {
+    $path = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain("'contacts.landline'")
+        ->toContain("'contacts.alternate_number'")
+        ->toContain("'contacts.email'")
+        ->toContain("'contacts.tel2'")
+        ->toContain("'contacts.site_url'")
+        ->toContain("'contacts.canal_preferido'")
+        ->toContain("Schema::hasColumn('contacts', 'email_billing')")
+        ->toContain("'contacts.email_billing'")
+        ->toContain("'contacts.email_nfe'")
+        ->toMatch("/\\\$payload\\['landline'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['tel2'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['alternate_number'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['email'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['email_billing'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['email_nfe'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['site_url'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['site'\\]\\s*=\\s*\\\$payload\\['site_url'\\]/")
+        ->toMatch("/\\\$payload\\['canal_preferido'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['canal'\\]\\s*=\\s*\\\$payload\\['canal_preferido'\\]/");
+});
+
+// ─── GUARD 6: ComercialTab — limite, prazo, tabela, pgto, obs ──────────────
+
+test('GUARD 6 — payload tem credit_limit + pay_term_number + tabela_preco_padrao + pgto_padrao + obs_comercial + aliases PT-BR', function () {
+    $path = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain("'contacts.credit_limit'")
+        ->toContain("'contacts.pay_term_number'")
+        ->toContain("'contacts.tabela_preco_padrao'")
+        ->toContain("'contacts.pgto_padrao'")
+        ->toContain("'contacts.obs_comercial'")
+        ->toMatch("/\\\$payload\\['credit_limit'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['limite_credito'\\]\\s*=\\s*\\\$payload\\['credit_limit'\\]/")
+        ->toMatch("/\\\$payload\\['pay_term_number'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['prazo_padrao_dias'\\]\\s*=\\s*\\\$payload\\['pay_term_number'\\]/")
+        ->toMatch("/\\\$payload\\['tabela_preco_padrao'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['pgto_padrao'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['obs_comercial'\\]\\s*=/");
+});
+
+// ─── GUARD 7: ClassificacaoTab + SEFAZ derivados ───────────────────────────
+
+test('GUARD 7 — payload tem contact_status + SEFAZ derivados (ind_ie_dest, sefaz_cad_*)', function () {
+    $path = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain("'contacts.contact_status'")
+        ->toMatch("/\\\$payload\\['contact_status'\\]\\s*=/")
+        ->toContain("Schema::hasColumn('contacts', 'sefaz_cad_sit')")
+        ->toContain("'contacts.ind_ie_dest'")
+        ->toContain("'contacts.sefaz_cad_sit'")
+        ->toContain("'contacts.sefaz_cad_ind_cred_nfe'")
+        ->toContain("'contacts.sefaz_cad_consultado_em'")
+        ->toMatch("/\\\$payload\\['ind_ie_dest'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['sefaz_cad_sit'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['sefaz_cad_ind_cred_nfe'\\]\\s*=/")
+        ->toMatch("/\\\$payload\\['sefaz_cad_consultado_em'\\]\\s*=/");
+});
+
+// ─── GUARD 8: `status` (derivado OS) NÃO foi renomeado — sem regressão ─────
+
+test('GUARD 8 — payload[status] ainda eh late|active|idle derivado OS (FrescorPill)', function () {
+    $path = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain("\$status = \$atrasadas > 0 ? 'late' : (\$abertas > 0 ? 'active' : 'idle')")
+        ->toMatch("/'status'\\s*=>\\s*\\\$status/");
 });
