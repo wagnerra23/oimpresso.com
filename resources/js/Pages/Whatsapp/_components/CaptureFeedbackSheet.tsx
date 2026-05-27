@@ -20,7 +20,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/Components/ui/select';
-import { ClipboardCheck, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { ClipboardCheck, AlertCircle, CheckCircle2, Loader2, Ban, AlertTriangle, ZapIcon, FileText } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 
 export interface CaptureFeedbackInput {
@@ -411,7 +411,8 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
           {/* Dev task result message */}
           {savedOk && devTaskMsg && (
             <div className="rounded-md border border-sky-300 bg-sky-50 px-3 py-2 text-xs text-sky-800 inline-flex items-center gap-2">
-              📋 {devTaskMsg}
+              <FileText size={14} />
+              {devTaskMsg}
             </div>
           )}
         </div>
@@ -444,12 +445,34 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
                   </span>
                 )}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">
-                {devTaskBlocked && '🚫 Contato não é cliente pagante (ADR 0105 — backlog só recebe quem paga ou reporta).'}
-                {!devTaskBlocked && devTaskWarnNoContact && '⚠️ Número sem cliente vinculado — backend valida ao salvar.'}
-                {!devTaskBlocked && !devTaskWarnNoContact && devTaskWarnLowSev && '⚠️ Severity baixa — considere apenas registrar como feedback.'}
-                {!devTaskBlocked && !devTaskWarnNoContact && !devTaskWarnLowSev && !devTaskRecommended && 'Marca pra Wagner criar task MCP em até 24h via triagem.'}
-                {!devTaskBlocked && !devTaskWarnNoContact && devTaskRecommended && 'Sev ≥ 3 + cliente pagante. Pré-marcado em verde — Wagner triagem cria task em até 24h.'}
+              <div className="text-[11px] text-muted-foreground mt-0.5 inline-flex items-start gap-1">
+                {devTaskBlocked && (
+                  <>
+                    <Ban size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Contato não é cliente pagante (ADR 0105 — backlog só recebe quem paga ou reporta).</span>
+                  </>
+                )}
+                {!devTaskBlocked && devTaskWarnNoContact && (
+                  <>
+                    <AlertTriangle size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Número sem cliente vinculado — backend valida ao salvar.</span>
+                  </>
+                )}
+                {!devTaskBlocked && !devTaskWarnNoContact && devTaskWarnLowSev && (
+                  <>
+                    <AlertTriangle size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Severity baixa — considere apenas registrar como feedback.</span>
+                  </>
+                )}
+                {!devTaskBlocked && !devTaskWarnNoContact && !devTaskWarnLowSev && !devTaskRecommended && (
+                  <span>Marca pra Wagner criar task MCP em até 24h via triagem.</span>
+                )}
+                {!devTaskBlocked && !devTaskWarnNoContact && devTaskRecommended && (
+                  <>
+                    <ZapIcon size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Sev ≥ 3 + cliente pagante. Pré-marcado em verde — Wagner triagem cria task em até 24h.</span>
+                  </>
+                )}
               </div>
             </label>
           </div>
