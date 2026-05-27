@@ -753,6 +753,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADR 0195 Fase B — Feedback reindex semanal (rescore + INDEX.md HOT +
+        // archive trimestral COLD). Domingo 03:00 BRT, depois que activity baixa
+        // de fim-de-semana. Roda quieto sem PII em log (LGPD).
+        $schedule->command('feedback:reindex')
+            ->weeklyOn(0, '03:00')                // 0 = domingo
+            ->timezone('America/Sao_Paulo')
+            ->name('feedback-reindex-weekly')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule feedback:reindex FALHOU — INDEX.md pode estar stale (impacto baixo, semanal)'
+                );
+            });
+
         // US-NFE-051 (ADR 0116 caso Gold) — Distribuição DFe pra businesses com cert
         // ativo. Puxa NF-e emitidas contra meu CNPJ via NSU SEFAZ ambiente nacional.
         // 06:15 BRT (após jana:health-check 06:00). Cooldown 5min protege se cron
