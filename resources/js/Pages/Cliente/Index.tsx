@@ -217,6 +217,9 @@ export interface ClienteIndexPageProps {
     view: boolean;
     import: boolean;
   };
+  /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer. true se modulo
+   *  OficinaAuto ativo no business. Default false (biz=4 Larissa vestuario). */
+  oficinaauto_enabled?: boolean;
 }
 
 type StatusFilter = '' | 'late' | 'active' | 'idle';
@@ -1945,7 +1948,10 @@ function ClienteSheet({
                 <ClassificacaoTab contact={contact} />
               </div>
               {activeTab === 'oss' && (
-                <OssTab contact={{ id: contact.id, name: contact.name }} />
+                <OssTab
+                  contact={{ id: contact.id, name: contact.name }}
+                  oficinaAutoEnabled={props.oficinaauto_enabled ?? false}
+                />
               )}
               {activeTab === 'ia' && (
                 <IATab contact={{ id: contact.id, name: contact.name }} />

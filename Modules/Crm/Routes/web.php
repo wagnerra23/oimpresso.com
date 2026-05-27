@@ -133,6 +133,43 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
             ->whereNumber('id')
             ->name('autosave.papeis');
 
+        // Wagner 2026-05-27 -- sub-tab "Placas" do OssTab drawer 760 (read-only).
+        // Daniela @ Martinho cadastrou Heinig + pediu ver caminhoes basculantes
+        // direto no drawer Cliente sem abrir /oficina-auto/veiculos separado.
+        // Endpoint condicional ao modulo OficinaAuto instalado (gate frontend
+        // via oficinaAutoEnabled prop + backend rota sempre registrada — retorna
+        // [] se Vehicle model inexistente em ambiente sem modulo).
+        Route::get('{id}/veiculos', [\Modules\Crm\Http\Controllers\ClienteVeiculosController::class, 'index'])
+            ->whereNumber('id')
+            ->name('veiculos.index');
+
+        // Wagner 2026-05-27 (fix critico stuck "Carregando atividades...") --
+        // 7 sub-tabs do OssTab drawer 760 (Extrato/Vendas/Pagamentos/
+        // Documentos/Atividades/Pessoas/Assinaturas/Pontos) recebiam undefined
+        // do parent porque buildClienteIndexCustomers do ContactController so
+        // monta rows enxuto sem Inertia::defer dos sub-tabs (defers viviam so na
+        // Show.tsx legada). Fix arquitetural: self-fetch via fetch() JSON.
+        // Endpoints centralizados em ClienteOssDataController (1 arquivo,
+        // N metodos). Multi-tenant Tier 0 garantido em cada metodo.
+        Route::prefix('{id}')->whereNumber('id')->group(function () {
+            Route::get('ledger', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'ledger'])
+                ->name('oss.ledger');
+            Route::get('sales', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'sales'])
+                ->name('oss.sales');
+            Route::get('payments', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'payments'])
+                ->name('oss.payments');
+            Route::get('documents', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'documents'])
+                ->name('oss.documents');
+            Route::get('activities', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'activities'])
+                ->name('oss.activities');
+            Route::get('persons', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'persons'])
+                ->name('oss.persons');
+            Route::get('subscriptions', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'subscriptions'])
+                ->name('oss.subscriptions');
+            Route::get('rewards', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'rewards'])
+                ->name('oss.rewards');
+        });
+
         // 2 endpoints lookup (cache Redis: CEP 90d, CNPJ 30d).
         // Wave 15 D8 Security -- throttle 60/min anti-abuso pro caso de
         // Auth bypassado em prod (defensivo): Larissa biz=4 ~30 cadastros/dia

@@ -309,6 +309,10 @@ class ContactController extends Controller
                     'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
                     'import' => auth()->user()->can('customer.create'),
                 ],
+                // Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer.
+                // Daniela @ Martinho: ve placas no drawer apenas se OficinaAuto
+                // ativo. biz=4 Larissa vestuario nao ve (graceful default false).
+                'oficinaauto_enabled' => (bool) $this->moduleUtil->isModuleInstalled('OficinaAuto'),
             ]);
         }
 
