@@ -108,10 +108,11 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
   - **⚠️ Gap crítico** descoberto: **92.5% das vendas SEM linhas em `transaction_sell_lines`** (40.644/43.951 órfãs · média 0.13 item/venda — irrealista). US-OFICINA-XXX pendente Felipe investigar (3 hipóteses documentadas em sessão diagnóstico)
 - **V3 LIVE 2026-05-27 (cadastros migrados):**
   - `contacts` biz=164 — **9.938 contacts** (PESSOAS Delphi migradas além das 4 EMPRESAs Fase 1) — ✅
-  - `products` biz=164 — **3.809 produtos** catalogados — ✅
+  - `products` biz=164 — **3.809 produtos** catalogados — ✅ (origem mista revisada 2026-05-27: 1.838 manuais 2024-12/2025-01 + 1.971 manuais 2026-05-26 + 0 Delphi-migrated · `import-produtos.py` órfão recuperado [ADR 0203 canon](../../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) + [ADR 0204 proposal](../../../decisions/proposals/0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon.md))
   - `service_orders` biz=164 — 91 OS (1 por veículo Fase 2) — ✅
-  - `users` biz=164 — 12 operadores Martinho — ✅
+  - `users` biz=164 — 12 operadores Martinho — ✅ (10 nomeados cadastrados manualmente 2024-12-10 + 1 sistema 2024-11-08 + 1 wagner-dev 2026-05-14 · nenhum migrado via Python)
   - **Schema canon contacts pronto pra sync bidirecional** Delphi ↔ oimpresso ([ADR 0200](../../../decisions/0200-contacts-sync-canon-amends-0197-0199.md) — `officeimpresso_codigo` + `officeimpresso_dt_alteracao` em prod 14:00 BRT)
+- **⚠️ Descoberta crítica 2026-05-27 (arqueologia):** biz=164 existe em prod desde **2024-11-08** (não 2026-05) — originalmente "JAIR UMBELINA VARGAS ME" → renomeado MARTINHO em 2026-05-15 (per [handoff 2026-05-17 17:22 §"corrigido em prod"](../../../handoffs/2026-05-17-1722-migracao-martinho-completa-perfil-canon.md)). 10 funcionários reais (Kamila/Evandro/Andre/Luiza/etc.) cadastrados manualmente 2024-12-10. **6+ meses de operação real** — proposta DROP Wagner 2026-05-27 revertida em [ADR 0203 §Caminho A](../../../decisions/proposals/0203-migracao-legacy-pattern-canonico-consolidado.md).
 
 ## 8. Decisões ADR locais
 
@@ -124,6 +125,8 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
 | [0198](../../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md) | Hot/cold tiering migração transacional · prospectivo (DB 594MB · 21TB livre não bloqueia) | aceito 2026-05-27 |
 | [0199](../../../decisions/0199-errata-bucket-b-json-catchall-amends-0197.md) | Errata Bucket B JSON catch-all (amends 0197) | aceito 2026-05-27 |
 | [0200](../../../decisions/0200-contacts-sync-canon-amends-0197-0199.md) | `contacts` adopta canon sync Wagner 2024-11 (amends 0197+0199) | aceito 2026-05-27 |
+| [0203](../../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) | Pipeline legacy-migration Firebird → oimpresso completo (Wave 29-1 Felipe · 4 importers novos + venda-itens + nfe + enrich + WireCrypt fix + PHP service amplo) | aceito 2026-05-26 (mergeado #1765) |
+| [0204](../../../decisions/proposals/0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon.md) | Importers complementares Wave 2 (compras/estoque/contacts-NFe/daemon-sync) + reflexão arqueológica · amends 0197+0198+0203 | proposed 2026-05-27 |
 
 ## 9. Histórico
 
@@ -153,6 +156,15 @@ Tork é prospect novo identificado 2026-05-26 — perfil em [clientes-prospect/t
 - **Gap crítico descoberto:** 92.5% das vendas Martinho SEM linhas em `transaction_sell_lines` (40.644/43.951 órfãs). US-OFICINA-XXX pra Felipe investigar — não bloqueia operação atual.
 - **Receita real validada:** R$ 12.6M em 2025 (R$ 1.05M/mês) — bate com perfil conservador "R$ 1M+/mês" Wagner.
 - Sessão completa em [memory/sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md](../../../sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md). 11 PRs (#1717/#1723/#1727/#1731/#1735/#1741/#1744/#1747/#1751 + cleanup desta).
+
+### 2026-05-27 — Consolidação arqueologia + recuperação 7 importers órfãos (caminho A aprovado Wagner)
+
+- **Wagner pediu** consolidar memórias migração + decidir pattern canônico + autorizou DROP biz=164 ("teste sem problemas").
+- **Arqueologia revelou** drift gigantesco: biz=164 nasceu 2024-11-08 (não 2026-05) como "JAIR UMBELINA VARGAS ME" → renomeado MARTINHO em 2026-05-15. 10 funcionários nomeados (Kamila/Evandro/Andre/Luiza/Rodrigo/Vendas2/Teste/Danielli/Eduardo/Junior) cadastrados manualmente 2024-12-10. 1.838 produtos manuais 2024-12/2025-01 + 1.971 produtos 2026-05-26 + feedback Kamila Sicoob ([memory/clientes/martinho-cacambas/feedback/2026-05-27-sicoob-api-cobranca-realtime.md](../../../clientes/martinho-cacambas/feedback/2026-05-27-sicoob-api-cobranca-realtime.md)). **6+ meses de operação real** — DROP completo perderia tudo isso.
+- **5 branches órfãs paralelas** com importers concorrentes catalogadas (principal `claude/wip-martinho-canary-2026-05-14` · 93 arquivos · 22.892 LOC · 7 importers Python).
+- **Caminho A aprovado:** consolidar via cherry-pick 11 scripts da branch órfã + criar [ADR 0203 canon](../../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) + [ADR 0204 proposal](../../../decisions/proposals/0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon.md) + atualizar pattern canônico com Fases 6-9 + atualizar perfil + RUNBOOK.
+- **Smoke dry-run 2026-05-27 14:36** — `import-produtos.py --target dry-run` lê 4.378 produtos do Firebird (1.310 com EAN, 3.068 placeholder LEG-*). Pipeline validado funcionando.
+- Sessão completa em [memory/sessions/2026-05-27-consolidacao-migracao-martinho-arqueologia.md](../../../sessions/2026-05-27-consolidacao-migracao-martinho-arqueologia.md).
 
 ## 10. Refs
 
