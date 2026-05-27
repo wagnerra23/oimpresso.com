@@ -101,6 +101,7 @@ const ADRS_LEGACY_SKIP = [
     // lifecycle/decided_at). Append-only Tier 0 — não editar. Backlog migração junto
     // com 0122-0128 + 0172-0173 em Wave 30+.
     '0170-onda5-simplificada',
+    '0170-bancos-nativos-top5-drivers-separados',
 ];
 
 /**
