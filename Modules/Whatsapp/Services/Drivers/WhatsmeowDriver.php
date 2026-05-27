@@ -295,17 +295,34 @@ class WhatsmeowDriver implements DriverInterface
             throw new \RuntimeException('channel.config_json.whatsmeow_user_token ausente.');
         }
 
-        // POST /session/connect (gera/refresh QR)
-        $connectResponse = $this->client($userToken)
-            ->post('/session/connect', [
-                'Subscribe' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected'],
-                'Immediate' => false,
-            ]);
+        // Reconciliação: se daemon já tem sessão conectada (loggedIn=true OU
+        // connected=true sem QR pending), pula /session/connect que retorna
+        // 500 "already connected". Tratado como sucesso — UI vai mostrar QR
+        // do GET /session/qr se ainda pendente, ou mensagem "já pareado" se
+        // loggedIn=true. (Débito #4 sessão 2026-05-27.)
+        $statusResp = $this->client($userToken)->get('/session/status');
+        $statusData = $statusResp->json('data') ?? [];
+        $alreadyConnected = ($statusData['connected'] ?? false) === true;
+        $alreadyLoggedIn = ($statusData['loggedIn'] ?? false) === true;
 
-        if (! $connectResponse->successful()) {
-            throw new \RuntimeException(
-                "Daemon /session/connect retornou {$connectResponse->status()}: {$connectResponse->body()}"
-            );
+        if (! $alreadyConnected) {
+            // POST /session/connect (gera/refresh QR)
+            $connectResponse = $this->client($userToken)
+                ->post('/session/connect', [
+                    'Subscribe' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected'],
+                    'Immediate' => false,
+                ]);
+
+            if (! $connectResponse->successful()) {
+                throw new \RuntimeException(
+                    "Daemon /session/connect retornou {$connectResponse->status()}: {$connectResponse->body()}"
+                );
+            }
+        }
+
+        // Se já pareado (loggedIn=true), retornar state direto sem QR
+        if ($alreadyLoggedIn) {
+            return ['qr_base64' => null, 'state' => 'paired'];
         }
 
         // GET /session/qr (retorna QR base64 ou status connected)
