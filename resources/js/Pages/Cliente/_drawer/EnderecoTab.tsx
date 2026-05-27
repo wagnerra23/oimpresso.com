@@ -102,42 +102,30 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
   const previousValuesRef = useRef<Record<string, unknown>>({});
 
   useEffect(() => {
-    setZipCode(maskCEP(contact.zip_code ?? contact.cep ?? ''));
-    setAddressLine1(contact.address_line_1 ?? contact.endereco ?? '');
-    setNumero(contact.numero ?? '');
-    setAddressLine2(contact.address_line_2 ?? contact.complemento ?? '');
-    setNeighborhood(contact.neighborhood ?? contact.bairro ?? '');
-    setCity(contact.city ?? contact.cidade ?? '');
-    setStateUf(contact.state ?? contact.uf ?? '');
+    // Fix Wagner 2026-05-27 — deps reduzidas pra `[contact.id]` APENAS
+    // (alinha com ContatoTab/IdentificacaoTab/ComercialTab). Antes deps expandidas
+    // `[contact.zip_code, contact.address_line_1, ...]` disparavam re-sync toda vez
+    // que o parent recebia update do `contact` (router.reload, onContactUpdated)
+    // → sobrescrevia state local que o user tinha digitado em outra aba e voltado
+    // ("trocou as outras abas apaga tudo"). Agora useEffect só roda na mount
+    // inicial (drawer abre) ou se drawer abrir cliente diferente.
+    //
+    // Trade-off: pós CNPJ lookup, o EnderecoTab NÃO auto-atualiza state local
+    // (user precisa ver via key remount controlado pelo pai via `key={enderecoVersion}`
+    // em ClienteSheet — disparado por onCnpjEnderecoPersisted).
+    setZipCode(maskCEP((contact.zip_code ?? contact.cep ?? '') as string));
+    setAddressLine1((contact.address_line_1 ?? contact.endereco ?? '') as string);
+    setNumero((contact.numero ?? '') as string);
+    setAddressLine2((contact.address_line_2 ?? contact.complemento ?? '') as string);
+    setNeighborhood((contact.neighborhood ?? contact.bairro ?? '') as string);
+    setCity((contact.city ?? contact.cidade ?? '') as string);
+    setStateUf((contact.state ?? contact.uf ?? '') as string);
     setErrorField(null);
     setSavedField(null);
     setCepLookup('idle');
     setCepLookupMsg(null);
-    // Deps expandidas (PR #1419 + #1422) — ressincroniza quando parent
-    // (ClienteSheet) faz router.reload({ only: ['rows'] }) após lookup CNPJ
-    // ter persistido endereço em /cliente/{id}/endereco. Inclui canon EN
-    // (zip_code, address_line_1, address_line_2, numero, neighborhood) + aliases
-    // PT-BR legados (cep, endereco, complemento, bairro, cidade, uf) pra graceful
-    // com listagem que ainda emite PT-BR.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    contact.id,
-    // Canon EN (preferidos).
-    contact.zip_code,
-    contact.address_line_1,
-    contact.address_line_2,
-    contact.numero,
-    contact.neighborhood,
-    contact.city,
-    contact.state,
-    // Aliases PT-BR (legado listagem).
-    contact.cep,
-    contact.endereco,
-    contact.complemento,
-    contact.bairro,
-    contact.cidade,
-    contact.uf,
-  ]);
+  }, [contact.id]);
 
   const cepError = useMemo<string | null>(() => {
     const v = validateCEP(zipCode);

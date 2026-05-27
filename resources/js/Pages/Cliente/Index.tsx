@@ -1749,6 +1749,13 @@ function ClienteSheet({
   // Placeholder no payload ClienteRow nao tem `tipo` ainda (Migration Wave B
   // adiciona; ContactController nao pro frontend ainda nesta wave).
   const [tipo, setTipo] = useState<'PF' | 'PJ'>('PJ');
+  // Fix Wagner 2026-05-27 — version counter pra forçar remount do EnderecoTab
+  // SÓ quando CNPJ lookup explicitamente persistir endereço (sobrescrita autorizada
+  // pelo user). Tabs cadastrais agora usam useEffect deps `[contact.id]` apenas
+  // (preserva state local quando user troca de aba). Sem isso, pós CNPJ lookup
+  // o EnderecoTab continuaria mostrando state local antigo. Incrementar key
+  // descarta state local e re-monta com novo `contact.zip_code/address_line_1/...`.
+  const [enderecoVersion, setEnderecoVersion] = useState(0);
 
   // Reset tab ao abrir contact diferente. Drawer abre default em "Identificação".
   useEffect(() => {
@@ -1792,6 +1799,12 @@ function ClienteSheet({
         // scroll horizontal). Pest Wave B asserta `w-[760px]` no HTML.
         // cw-sheet (ADR UI-0015): bg --cw-bg sutil — destaca seções brancas dentro
         className="cw-sheet w-[760px] sm:max-w-[760px] p-0 flex flex-col"
+        // Fix Wagner 2026-05-27 — ESC dentro do drawer (ex: dispensar erro
+        // "CEP não encontrado" após Buscar CEP, ou limpar focus de um input)
+        // fechava o Sheet inteiro perdendo todo o trabalho não-salvo. Drawer
+        // tem botão X visível (top-right) + click no overlay pra fechar — ESC
+        // é foot-gun. Padrão Notion/Linear: ESC NUNCA fecha drawer de edição.
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         {/* ─── Header rico ─────────────────────────────────────────────── */}
         <SheetHeader className="cw-sheet-header px-6 py-4 space-y-3">
@@ -1895,28 +1908,39 @@ function ClienteSheet({
         >
           {contact && (
             <>
-              {/* Tabs cadastrais 1-5 — Wave C-FE plugadas com autosave on blur. */}
-              {activeTab === 'identificacao' && (
+              {/* Tabs cadastrais 1-5 — Wagner 2026-05-27: MOUNTED SEMPRE (hidden via
+                  CSS quando inativo) pra preservar state local + debounces pendentes
+                  quando user troca de aba antes do autosave 800ms disparar. Padrão
+                  Notion/Linear. Render-condicional anterior desmontava o componente,
+                  matando state + cleanup clearTimeout matando debounces → user digita
+                  CEP/número/etc e troca pra aba "Contato" em <800ms → valor sumia.
+                  Tabs read-only (oss/ia/auditoria) seguem condicionais — desmontar
+                  é OK pra elas (consultas pesadas, sem state user-editável). */}
+              <div hidden={activeTab !== 'identificacao'}>
                 <IdentificacaoTab
                   contact={contact}
-                  onCnpjEnderecoPersisted={() =>
-                    router.reload({ only: ['rows'], preserveScroll: true, preserveState: true })
-                  }
+                  onCnpjEnderecoPersisted={() => {
+                    router.reload({ only: ['rows'], preserveScroll: true, preserveState: true });
+                    // Força remount do EnderecoTab pra sincronizar com novos campos
+                    // da BrasilAPI (CEP/logradouro/bairro/cidade/UF). Sobrescrita
+                    // autorizada (user clicou "Buscar CNPJ").
+                    setEnderecoVersion((v) => v + 1);
+                  }}
                   onContactUpdated={onContactUpdated}
                 />
-              )}
-              {activeTab === 'contato' && (
+              </div>
+              <div hidden={activeTab !== 'contato'}>
                 <ContatoTab contact={contact} />
-              )}
-              {activeTab === 'endereco' && (
-                <EnderecoTab contact={contact} />
-              )}
-              {activeTab === 'comercial' && (
+              </div>
+              <div hidden={activeTab !== 'endereco'}>
+                <EnderecoTab key={enderecoVersion} contact={contact} />
+              </div>
+              <div hidden={activeTab !== 'comercial'}>
                 <ComercialTab contact={contact} />
-              )}
-              {activeTab === 'classificacao' && (
+              </div>
+              <div hidden={activeTab !== 'classificacao'}>
                 <ClassificacaoTab contact={contact} />
-              )}
+              </div>
               {activeTab === 'oss' && (
                 <OssTab contact={{ id: contact.id, name: contact.name }} />
               )}
