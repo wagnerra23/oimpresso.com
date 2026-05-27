@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Drawer Cliente — reorg tabs (Wagner 2026-05-27)</title>
+  <style>
+    :root {
+      --bg: #fafaf9;
+      --card: #ffffff;
+      --border: #e7e5e4;
+      --text: #1c1917;
+      --muted: #78716c;
+      --primary: oklch(0.55 0.15 295);
+      --primary-soft: oklch(0.97 0.02 295);
+      --rose: oklch(0.6 0.18 25);
+      --rose-soft: oklch(0.97 0.03 25);
+      --emerald: oklch(0.55 0.15 160);
+      --emerald-soft: oklch(0.97 0.02 160);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, "SF Pro Text", Segoe UI, Inter, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px; font-size: 13px; line-height: 1.5; }
+    h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 12px; }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .pane { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0; overflow: hidden; }
+    .pane-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .pane-label { font-weight: 600; font-size: 13px; }
+    .badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+    .badge-current { background: #f5f5f4; color: var(--muted); }
+    .badge-new { background: var(--primary-soft); color: var(--primary); }
+    .drawer-header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    .client-name { font-size: 14px; font-weight: 600; }
+    .client-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .tabs-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 12px; overflow-x: auto; background: #fafaf9; }
+    .tab { padding: 10px 12px; font-size: 12px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+    .tab.new { background: var(--primary-soft); position: relative; }
+    .tab.new::after { content: "novo"; position: absolute; top: 2px; right: 4px; font-size: 8px; color: var(--primary); background: var(--card); padding: 1px 4px; border-radius: 4px; line-height: 1; }
+    .body { display: flex; min-height: 240px; }
+    .subnav { width: 130px; border-right: 1px solid var(--border); padding: 8px 0; background: #fafaf9; }
+    .subnav-item { padding: 8px 12px; font-size: 11px; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .subnav-item.active { color: var(--primary); background: var(--primary-soft); font-weight: 500; }
+    .subnav-item.removed { text-decoration: line-through; color: var(--rose); opacity: 0.5; }
+    .subnav-item.removed::after { content: "remove"; font-size: 8px; padding: 1px 4px; background: var(--rose-soft); color: var(--rose); border-radius: 4px; margin-left: 4px; text-decoration: none; }
+    .subnav-item.promoted { text-decoration: line-through; opacity: 0.4; }
+    .subnav-item.promoted::after { content: "→ tab principal"; font-size: 8px; padding: 1px 4px; background: var(--emerald-soft); color: var(--emerald); border-radius: 4px; margin-left: 4px; text-decoration: none; }
+    .icon { display: inline-block; width: 12px; height: 12px; opacity: 0.6; }
+    .content { flex: 1; padding: 16px; font-size: 12px; color: var(--muted); }
+    .note { background: #fef3c7; border: 1px solid #fde68a; padding: 8px 12px; font-size: 11px; color: #92400e; margin: 8px 16px 0; border-radius: 6px; }
+    .delta { margin-top: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+    .delta h2 { font-size: 14px; margin-bottom: 12px; }
+    .delta ul { padding-left: 20px; }
+    .delta li { font-size: 12px; margin-bottom: 6px; }
+    .delta li.add { color: var(--emerald); }
+    .delta li.rm { color: var(--rose); }
+    .delta li.rename { color: var(--primary); }
+    code { background: #f5f5f4; padding: 1px 5px; border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+
+<h1>Drawer Cliente — Reorg Tabs (Proposta C)</h1>
+<p class="subtitle">Wagner 2026-05-27 · "Placas/Observação/Atividades mais acessíveis · ou trocar OSs pra Mais..."</p>
+
+<div class="compare">
+
+  <!-- ============ ATUAL ============ -->
+  <div class="pane">
+    <div class="pane-header">
+      <span class="pane-label">ATUAL</span>
+      <span class="badge badge-current">8 tabs · OSs com 9 sub-tabs</span>
+    </div>
+    <div class="drawer-header">
+      <div class="client-name">Cervejaria Lupulada</div>
+      <div class="client-meta">Pessoa jurídica · cadastrado há 9d</div>
+    </div>
+    <div class="tabs-bar">
+      <div class="tab">Identificação</div>
+      <div class="tab">Contato</div>
+      <div class="tab">Endereço</div>
+      <div class="tab">Comercial</div>
+      <div class="tab">Classificação</div>
+      <div class="tab active">OSs</div>
+      <div class="tab">IA</div>
+      <div class="tab">Auditoria</div>
+    </div>
+    <div class="body">
+      <div class="subnav">
+        <div class="subnav-item">📊 Extrato</div>
+        <div class="subnav-item">🧾 Vendas</div>
+        <div class="subnav-item">💵 Pagamentos</div>
+        <div class="subnav-item">📄 Documentos</div>
+        <div class="subnav-item active">🚛 Placas</div>
+        <div class="subnav-item">📈 Atividades</div>
+        <div class="subnav-item">👥 Pessoas</div>
+        <div class="subnav-item">🔄 Assinaturas</div>
+        <div class="subnav-item">🎁 Pontos</div>
+      </div>
+      <div class="content">
+        <strong>Placas do cliente (0 veículos)</strong>
+        <div style="margin-top: 16px; opacity: 0.5;">Nenhum veículo cadastrado pra este cliente.</div>
+      </div>
+    </div>
+    <div class="note">
+      ❗ <strong>Problema:</strong> Placas é entidade do cliente (não da OS).<br />
+      ❗ Sub-tab <strong>Atividades</strong> duplica tab principal <strong>Auditoria</strong> (mesma fonte <code>activity_log</code>).<br />
+      ❗ OSs vira gaveta de tudo · usuário não pensa "vou em OSs pra ver Placas".
+    </div>
+  </div>
+
+  <!-- ============ PROPOSTA C ============ -->
+  <div class="pane">
+    <div class="pane-header">
+      <span class="pane-label">PROPOSTA C (recomendada)</span>
+      <span class="badge badge-new">9 tabs · Operações com 6 sub-tabs</span>
+    </div>
+    <div class="drawer-header">
+      <div class="client-name">Cervejaria Lupulada</div>
+      <div class="client-meta">Pessoa jurídica · cadastrado há 9d</div>
+    </div>
+    <div class="tabs-bar">
+      <div class="tab">Identificação</div>
+      <div class="tab">Contato</div>
+      <div class="tab">Endereço</div>
+      <div class="tab">Comercial</div>
+      <div class="tab new active">🚛 Placas</div>
+      <div class="tab">Classificação</div>
+      <div class="tab">Operações</div>
+      <div class="tab">IA</div>
+      <div class="tab">Auditoria</div>
+    </div>
+    <div class="body">
+      <div class="content" style="padding: 16px;">
+        <strong>Placas do cliente (0 veículos)</strong>
+        <div style="margin-top: 6px; font-size: 11px; opacity: 0.6;">Acesso direto · 1 clique do header</div>
+        <div style="margin-top: 16px; padding: 12px; border: 1px dashed var(--border); border-radius: 6px; text-align: center; opacity: 0.5;">
+          🚛<br/>Nenhum veículo cadastrado pra este cliente.
+        </div>
+      </div>
+    </div>
+    <div class="note" style="background: #d1fae5; border-color: #6ee7b7; color: #065f46;">
+      ✓ <strong>Placas</strong> promovida pra tab principal (gate <code>oficinaAutoEnabled</code> preservado).<br />
+      ✓ Sub-tab <strong>Atividades</strong> removida — tab <strong>Auditoria</strong> já cobre.<br />
+      ✓ <strong>OSs renomeado pra Operações</strong> — agora só Extrato/Vendas/Pagamentos/Documentos/Pessoas/Assinaturas/Pontos (entidades da OS).
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ DELTA ============ -->
+<div class="delta">
+  <h2>Mudanças no código (~180 linhas, 1 PR)</h2>
+  <ul>
+    <li class="add">➕ <code>DRAWER_TABS</code> array: nova entrada <code>{ key: 'placas', label: 'Placas' }</code> entre <code>comercial</code> e <code>classificacao</code> (com gate <code>oficinaAutoEnabled</code>)</li>
+    <li class="add">➕ Novo <code>PlacasMainTab.tsx</code> em <code>_drawer/</code> (move <code>PlacasSubTab.tsx</code> de <code>oss/</code> · mantém self-fetch <code>/cliente/{id}/veiculos</code>)</li>
+    <li class="rename">🔁 Label <code>OSs</code> → <code>Operações</code> (sem código novo · só string em <code>DRAWER_TABS</code>)</li>
+    <li class="rm">➖ <code>OssTab.tsx</code>: remove import + render do <code>PlacasSubTab</code> + entrada <code>placas</code> do <code>ALL_SUB_TABS</code></li>
+    <li class="rm">➖ <code>OssTab.tsx</code>: remove sub-tab <code>activities</code> (entrada <code>{ key: 'activities', label: 'Atividades' }</code> + render <code>&lt;ActivitiesTab /&gt;</code>)</li>
+    <li class="add">➕ <code>Index.tsx ClienteSheet</code>: render <code>activeTab === 'placas' &amp;&amp; oficinaAutoEnabled &amp;&amp; &lt;PlacasMainTab contactId={contact.id} /&gt;</code></li>
+    <li class="add">➕ 4 GUARDs Pest atualizando o test <code>ClienteDrawerPlacasSubTabTest.php</code> pro novo lugar (renomeia <code>PlacasMainTabTest</code>)</li>
+  </ul>
+  <h2 style="margin-top: 16px;">Sobre <strong>Observações</strong></h2>
+  <ul>
+    <li>📌 <code>obs_comercial</code> <strong>já está no tab Comercial</strong> (Wagner validou TEST-OBS-V2 hoje).</li>
+    <li>📌 <strong>Não promover pra tab principal</strong> — observação é dado contextual ao Comercial (limite/prazo/forma pgto). Promover criaria fragmentação.</li>
+    <li>📌 Bucket B legacy: <code>legacy_observacoes</code> JSON múltiplas (OBS_FINANCEIRO / OBS_PRODUCAO / OBS_INTERNA do Delphi) — quando expor, vai na <strong>Auditoria</strong> ou seção colapsada do Comercial.</li>
+  </ul>
+</div>
+
+<p style="margin-top: 20px; font-size: 11px; color: var(--muted); text-align: center;">
+  Mockup HTML · sem JS · só visual. Abre no Chrome pra ver hover/active states.
+</p>
+
+</body>
+</html>
