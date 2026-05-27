@@ -159,6 +159,37 @@ test('SefazConsultaCadastroService retorna null pra CNPJ menor que 14 digitos', 
     expect($result)->toBeNull();
 });
 
+// Fix Wagner 2026-05-27 — out param $reason distingue causa do null
+// (antes: qualquer falha caía em 'sefaz_or_cert_error' → UI mostrava "Configure
+// cert A1" mesmo com cert OK e erro SEFAZ).
+test('SefazConsultaCadastroService popula $reason=invalid_cnpj quando CNPJ malformado', function () {
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $reason = null;
+    $result = $svc->consultar('123', 'RS', $this->business->id, $reason);
+
+    expect($result)->toBeNull();
+    expect($reason)->toBe('invalid_cnpj');
+});
+
+test('SefazConsultaCadastroService popula $reason=uf_unsupported quando UF fora da whitelist', function () {
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $reason = null;
+    $result = $svc->consultar('11222333000181', 'GO', $this->business->id, $reason);
+
+    expect($result)->toBeNull();
+    expect($reason)->toBe('uf_unsupported');
+});
+
+test('SefazConsultaCadastroService popula $reason=flag_off quando feature flag desligada', function () {
+    Config::set('fiscal.sefaz_consulta_cadastro_enabled', false);
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $reason = null;
+    $result = $svc->consultar('11222333000181', 'RS', $this->business->id, $reason);
+
+    expect($result)->toBeNull();
+    expect($reason)->toBe('flag_off');
+});
+
 // ---------------------------------------------------------------------
 // Técnica C (ADR 0186 §Evolução) — derivação indIeDest + warnings + persist
 // ---------------------------------------------------------------------

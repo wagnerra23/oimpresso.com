@@ -139,12 +139,28 @@ class ClienteLookupController extends Controller
             ], 403);
         }
 
-        $result = $this->sefazService->consultar($cnpj, $uf, $businessId);
+        $reason = null;
+        $result = $this->sefazService->consultar($cnpj, $uf, $businessId, $reason);
 
         if ($result === null) {
+            // Fix Wagner 2026-05-27 — distinguir motivo real do null pra UI mostrar
+            // mensagem certa. Antes: TODO null vinha como 'sefaz_or_cert_error' →
+            // frontend mostrava "Configure cert A1" mesmo com cert OK + erro SEFAZ.
+            // Agora SefazConsultaCadastroService popula $reason discriminado:
+            //   'no_cert'        → user precisa configurar cert (badge action /fiscal/config)
+            //   'sefaz_error'    → SEFAZ-UF retornou erro/timeout (retry, não é cert)
+            //   'uf_unsupported' → UF fora da whitelist (preencher IE manual)
+            //   'flag_off'       → feature flag desligada
+            //   'invalid_cnpj'   → CNPJ malformado (bug de envio do client)
+            $message = match ($reason) {
+                'no_cert' => 'IE indisponível — configure certificado A1 em /fiscal/config',
+                'sefaz_error' => "SEFAZ-{$uf} indisponível agora — preencha IE manualmente ou tente novamente em instantes",
+                default => 'IE indisponivel — preencha manualmente',
+            };
+
             return response()->json([
-                'message' => 'IE indisponivel — preencha manualmente',
-                'reason' => 'sefaz_or_cert_error',
+                'message' => $message,
+                'reason' => $reason ?? 'sefaz_or_cert_error',
                 'uf' => $uf,
             ], 404);
         }
