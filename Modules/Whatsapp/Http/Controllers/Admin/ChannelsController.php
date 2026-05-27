@@ -557,72 +557,176 @@ class ChannelsController extends Controller
     }
 
     /**
-     * Conecta channel `whatsapp_whatsmeow` ao daemon Go WuzAPI CT 100 (ADR 0204).
+     * Conecta channel `whatsapp_whatsmeow` via WhatsmeowReconciler (ADR 0206).
+     *
+     * Reconciler é o ÚNICO ponto que muta sessão WuzAPI. Sempre consulta
+     * estado real ANTES de mutar — bug "already connected" 2026-05-27 resolvido.
      *
      * Fluxo:
-     *  1. Se channel ainda não tem `whatsmeow_user_token` → provisiona via
-     *     POST /admin/users no daemon (gera token criptograficamente forte +
-     *     configura webhook com {business_uuid} pra multi-tenant)
-     *  2. POST /session/connect (inicia sessão WhatsApp Web no daemon)
-     *  3. GET /session/qr (retorna QR base64 pra UI render no Dialog)
-     *  4. Frontend polls /status até state=connected (webhook Connected dispara)
+     *  1. ensureProvisioned() — cria user no daemon se NOT_EXISTS (idempotente)
+     *  2. reconcile() — observa estado canon real do daemon
+     *  3. Match state → retorna payload UI apropriado (QR / paired / error)
+     *
+     * Estados retornados pra UI (campo `state`):
+     *  - `paired` → canal já pareado, UI fecha dialog
+     *  - `qr_required` → QR base64 inline, UI mostra + inicia polling 2s
+     *  - `banned` → 422, fallback Meta Cloud recomendado
+     *  - `daemon_unreachable` → 502, retry em alguns minutos
      */
     protected function connectWhatsmeow(Channel $channel): JsonResponse
     {
+        $reconciler = app(\Modules\Whatsapp\Services\WhatsmeowReconciler::class);
+
         try {
-            // Resolve business pra obter business_uuid (webhook URL)
-            $business = \DB::table('business')
-                ->where('id', $channel->business_id)
-                ->first();
+            // 1. Garante user provisionado no daemon (idempotente)
+            $reconciler->ensureProvisioned($channel);
 
-            if ($business === null || empty($business->uuid)) {
-                return response()->json([
+            // 2. Observa estado canon real
+            $state = $reconciler->reconcile($channel);
+
+            return match (true) {
+                $state === \Modules\Whatsapp\Services\Drivers\WhatsmeowState::PAIRED => $this->whatsmeowPairedResponse($channel),
+                $state === \Modules\Whatsapp\Services\Drivers\WhatsmeowState::BANNED => response()->json([
                     'ok' => false,
-                    'error' => 'Business sem uuid — não consigo montar webhook URL multi-tenant.',
-                ], 500);
-            }
-
-            $driver = app(\Modules\Whatsapp\Services\Drivers\WhatsmeowDriver::class);
-            $cfg = $channel->config_json ?? [];
-
-            // Provisiona sessão se ainda não foi
-            if (empty($cfg['whatsmeow_user_token'])) {
-                $provision = $driver->provisionSession($channel, (string) $business->uuid);
-
-                $cfg['whatsmeow_user_token'] = $provision['token'];
-                $cfg['whatsmeow_user_name'] = $provision['name'];
-                $cfg['whatsmeow_webhook_url'] = $provision['webhook'];
-                $channel->config_json = $cfg;
-                $channel->save();
-            }
-
-            // Inicia sessão + retorna QR
-            $result = $driver->connect($channel);
-
-            $channel->status = 'setup';
-            $channel->channel_health = 'never_checked';
-            $channel->save();
-
-            return response()->json([
-                'ok' => true,
-                'qr_png_data_url' => $result['qr_base64']
-                    ? 'data:image/png;base64,' . $result['qr_base64']
-                    : null,
-                'state' => $result['state'],
-                'message' => $result['qr_base64']
-                    ? 'Escaneie o QR no WhatsApp → Dispositivos vinculados.'
-                    : 'Daemon respondeu sem QR. State: ' . ($result['state'] ?? 'desconhecido'),
-            ]);
+                    'state' => 'banned',
+                    'error' => 'Número banido pela Meta. Fallback Meta Cloud (oficial) recomendado.',
+                    'message' => $state->userMessage(),
+                ], 422),
+                $state === \Modules\Whatsapp\Services\Drivers\WhatsmeowState::DAEMON_UNREACHABLE => response()->json([
+                    'ok' => false,
+                    'state' => 'daemon_unreachable',
+                    'error' => 'Daemon CT 100 não respondeu. Tente novamente em alguns minutos.',
+                    'message' => $state->userMessage(),
+                ], 502),
+                $state === \Modules\Whatsapp\Services\Drivers\WhatsmeowState::ERROR => response()->json([
+                    'ok' => false,
+                    'state' => 'error',
+                    'error' => 'Erro interno — verifique logs.',
+                    'message' => $state->userMessage(),
+                ], 500),
+                // PROVISION_PENDING / QR_PENDING / NOT_EXISTS / LOGGED_OUT → buscar/refresh QR
+                default => $this->whatsmeowQrResponse($reconciler, $channel, $state),
+            };
         } catch (\Throwable $e) {
             Log::error('whatsmeow.connect_exception', [
+                'event' => 'whatsmeow.connect_exception',
                 'channel_id' => $channel->id,
+                'business_id' => $channel->business_id,
                 'exception' => $e->getMessage(),
             ]);
             return response()->json([
                 'ok' => false,
-                'error' => 'Falha ao falar com daemon whatsmeow: ' . $e->getMessage(),
+                'state' => 'error',
+                'error' => 'Falha ao falar com daemon whatsmeow: '.$e->getMessage(),
             ], 502);
         }
+    }
+
+    private function whatsmeowPairedResponse(Channel $channel): JsonResponse
+    {
+        // Sincroniza DB se estado canon diverge (e.g. canal foi pareado em
+        // tentativa anterior mas channel.status não atualizou).
+        if ($channel->status !== 'active' || $channel->channel_health !== 'healthy') {
+            app(\Modules\Whatsapp\Services\WhatsmeowReconciler::class)
+                ->markPairedInDb($channel, $channel->config_json['whatsmeow_jid'] ?? null);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'state' => 'paired',
+            'qr_png_data_url' => null,
+            'jid' => $channel->config_json['whatsmeow_jid'] ?? null,
+            'message' => 'Canal já pareado — sessão ativa.',
+            'paired' => true,
+        ]);
+    }
+
+    private function whatsmeowQrResponse(
+        \Modules\Whatsapp\Services\WhatsmeowReconciler $reconciler,
+        Channel $channel,
+        \Modules\Whatsapp\Services\Drivers\WhatsmeowState $state,
+    ): JsonResponse {
+        try {
+            $qrBase64 = $reconciler->getQrCode($channel);
+        } catch (\Throwable $e) {
+            Log::error('whatsmeow.qr_fetch_exception', [
+                'event' => 'whatsmeow.qr_fetch_exception',
+                'channel_id' => $channel->id,
+                'business_id' => $channel->business_id,
+                'exception' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'ok' => false,
+                'state' => 'error',
+                'error' => 'Falha ao gerar QR: '.$e->getMessage(),
+            ], 502);
+        }
+
+        // Marca channel em setup (limpa last_health_message stale)
+        if ($channel->status !== 'setup' && $channel->status !== 'active') {
+            $channel->status = 'setup';
+            $channel->channel_health = 'never_checked';
+            $channel->save();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'state' => 'qr_required',
+            'qr_png_data_url' => $qrBase64 ? 'data:image/png;base64,'.$qrBase64 : null,
+            'message' => $qrBase64
+                ? $state->userMessage()
+                : 'Daemon não retornou QR. Estado: '.$state->value,
+            'paired' => false,
+        ]);
+    }
+
+    /**
+     * GET /atendimento/canais/{id}/whatsmeow-status (ADR 0206 Fase D).
+     *
+     * Retorna estado canon observado pelo Reconciler — UI faz polling 2s
+     * pra detectar pareamento pós-scan QR e fechar dialog automaticamente.
+     *
+     * Multi-tenant Tier 0: findOrFail escopado por business_id (404 cross-tenant).
+     */
+    public function whatsmeowStatus(int $id): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        if ($channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW) {
+            return response()->json([
+                'state' => 'error',
+                'error' => 'Canal não é whatsmeow.',
+            ], 422);
+        }
+
+        $reconciler = app(\Modules\Whatsapp\Services\WhatsmeowReconciler::class);
+        $state = $reconciler->reconcile($channel);
+
+        // Side-effect benigno: se daemon diz PAIRED e DB ainda não atualizou,
+        // sincroniza agora (cobre cenário onde webhook Connected falhou ou
+        // chegou off-order). Idempotente.
+        if ($state === \Modules\Whatsapp\Services\Drivers\WhatsmeowState::PAIRED
+            && $channel->status !== 'active'
+        ) {
+            $reconciler->markPairedInDb($channel, $channel->config_json['whatsmeow_jid'] ?? null);
+            $channel = $channel->fresh() ?? $channel;
+        }
+
+        return response()->json([
+            'state' => $state->value,
+            'paired' => $state->isPaired(),
+            'error' => $state->isError(),
+            'message' => $state->userMessage(),
+            'channel' => [
+                'id' => $channel->id,
+                'status' => $channel->status,
+                'channel_health' => $channel->channel_health,
+                'display_identifier' => $channel->display_identifier,
+            ],
+        ]);
     }
 
     /**
