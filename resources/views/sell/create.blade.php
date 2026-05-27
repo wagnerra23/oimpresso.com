@@ -221,7 +221,8 @@
 					<div class="@if(!empty($commission_agent)) col-sm-3 @else col-sm-4 @endif">
 						<div class="form-group">
 							{!! Form::label('status', __('sale.status') . ':*') !!}
-							{!! Form::select('status', $statuses, null, ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'required']); !!}
+							{{-- Wagner 2026-05-27 HOTFIX: default 'final' (campo obrigatório). Antes vinha null → user submetia sem perceber → toast "Entradas inválidas, verifique e tente novamente !!" + label vermelha "This field is required". Pain reportada smoke prod 2026-05-27 (Larissa @ Rota Livre). Espelha comportamento Sells/Create.tsx V2 que JÁ default 'final'. --}}
+							{!! Form::select('status', $statuses, 'final', ['class' => 'form-control select2', 'placeholder' => __('messages.please_select'), 'required']); !!}
 						</div>
 					</div>
 				@endif
