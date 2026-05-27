@@ -1,0 +1,11 @@
+# Feedback canon — auto-gerado por `php artisan feedback:reindex`
+
+Estrutura:
+- `INDEX.md` — top 20 HOT por business (ADR 0195 score ≥ 70). NÃO editar manualmente.
+- `archive/YYYY-QN.md` — digest agregado COLD por trimestre. NÃO contém literal PII (LGPD).
+
+Comando manual: `php artisan feedback:reindex [--business=X] [--skip-archive] [--skip-index]`
+
+Schedule canon: domingo 03:00 BRT (Kernel.php).
+
+Refs: ADR 0195 Fase B.

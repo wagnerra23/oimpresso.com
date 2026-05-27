@@ -26,6 +26,7 @@ use Modules\Whatsapp\Console\Commands\WhatsappObservabilityHealthCommand;
 use Modules\Whatsapp\Console\Commands\DriverHealthCheckAllCommand;
 use Modules\Whatsapp\Console\Commands\ImportHistoryCommand;
 use Modules\Whatsapp\Console\Commands\LidBackfillCommand;
+use Modules\Whatsapp\Console\Commands\FeedbackReindexCommand;
 use Modules\Whatsapp\Console\Commands\MetricsAggregateCommand;
 use Modules\Whatsapp\Console\Commands\RegisterWhatsappPermissionsCommand;
 use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
@@ -118,6 +119,8 @@ class WhatsappServiceProvider extends ServiceProvider
                 // US-WA-VOZ-003 — Employee Performance scorecard (2026-05-15)
                 EmployeePerformanceBackfillCommand::class,
                 EmployeePerformanceRefreshDailyCommand::class,
+                // ADR 0195 Fase B (2026-05-27) — Feedback reindex (signature + score + INDEX.md + archive)
+                FeedbackReindexCommand::class,
             ]);
         }
 
