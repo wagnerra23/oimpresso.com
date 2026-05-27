@@ -5,6 +5,7 @@ use Modules\Whatsapp\Http\Controllers\InstallController;
 use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\CsatController;
+use Modules\Whatsapp\Http\Controllers\Admin\ClientFeedbackController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacroVariantsController;
@@ -152,6 +153,21 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.update_status');
+
+    // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
+    // Captura feedback diretamente de mensagens do inbox WhatsApp.
+    Route::post('/feedback/capture', [ClientFeedbackController::class, 'capture'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.feedback.capture');
+
+    Route::get('/feedback', [ClientFeedbackController::class, 'index'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.feedback.index');
+
+    Route::patch('/feedback/{id}/status', [ClientFeedbackController::class, 'updateStatus'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.feedback.update_status');
 
     // US-WA-063: sync tags da conversa
     Route::patch('/inbox/{id}/tags', [InboxController::class, 'updateTags'])
