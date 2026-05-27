@@ -71,7 +71,48 @@ class Contact extends Authenticatable
         'favorito_users' => 'array',
         'vip' => 'bool',
         'nascimento' => 'date',
+        // ADR 0197 Bucket A — extend contacts pra absorver PESSOAS legacy.
+        // Migration 2026_05_27_120000_extend_contacts_bucket_a_legacy_absorption.
+        'bloqueado' => 'bool',
+        'cobrar_custo_boleto' => 'bool',
+        'limite_desconto_percentual' => 'decimal:2',
+        'boleto_desconto_pontualidade_pct' => 'decimal:2',
+        'fatura_previsao' => 'date',
+        'prioridade_producao' => 'integer',
+        'iss_retido' => 'integer',
     ];
+
+    /**
+     * ADR 0197 Bucket A — Pai da rede (matriz/filial). Self-FK.
+     *
+     * 1 contact pode ter N filhos (parent_contact_id apontando pra ele).
+     * Importer Vargas 2-pass resolve via legacy_id; orfaos viram NULL.
+     */
+    public function parentContact()
+    {
+        return $this->belongsTo(self::class, 'parent_contact_id');
+    }
+
+    public function childContacts()
+    {
+        return $this->hasMany(self::class, 'parent_contact_id');
+    }
+
+    /**
+     * ADR 0197 Bucket A — Representante responsavel pelo cliente (comissao Sells).
+     *
+     * Aponta pra OUTRO contacts row com is_representative=1. Type-check
+     * em app layer (nao via DB constraint).
+     */
+    public function salesRep()
+    {
+        return $this->belongsTo(self::class, 'sales_rep_contact_id');
+    }
+
+    public function customersAsRep()
+    {
+        return $this->hasMany(self::class, 'sales_rep_contact_id');
+    }
 
     /**
      * LGPD — Pode receber notificação WhatsApp?
