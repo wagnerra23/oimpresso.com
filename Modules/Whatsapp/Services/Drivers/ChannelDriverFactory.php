@@ -19,9 +19,9 @@ use Modules\Whatsapp\Entities\Channel;
  * em paralelo neste PR — drivers/jobs/webhooks Whatsapp continuam funcionando.
  *
  * Mapeamento `Channel::type` → driver class:
- *   whatsapp_meta     → MetaCloudDriver  (existe)
- *   whatsapp_zapi     → ZapiDriver       (existe)
- *   whatsapp_baileys  → BaileysDriver    (existe — daemon CT 100)
+ *   whatsapp_meta     → MetaCloudDriver  (existe — default ADR 0202)
+ *   whatsapp_zapi     → ZapiDriver       (existe — opcional fallback ADR 0202)
+ *   whatsapp_baileys  → NotImplementedDriverException  (descontinuado ADR 0202)
  *   instagram         → not_implemented  (Fase 1 — gate cliente)
  *   messenger         → not_implemented  (Fase 1)
  *   email_imap        → not_implemented  (Fase 2)
@@ -49,7 +49,11 @@ class ChannelDriverFactory
         return match ($channel->type) {
             Channel::TYPE_WHATSAPP_META => app(MetaCloudDriver::class),
             Channel::TYPE_WHATSAPP_ZAPI => app(ZapiDriver::class),
-            Channel::TYPE_WHATSAPP_BAILEYS => app(BaileysDriver::class),
+            Channel::TYPE_WHATSAPP_BAILEYS => throw new NotImplementedDriverException(
+                "Channel type 'whatsapp_baileys' foi descontinuado por ADR 0202 (2026-05-27). "
+                . "Supersede ADR 0096 emenda 4. Crie channel 'whatsapp_meta' (default) ou 'whatsapp_zapi' (opcional). "
+                . "Veja memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md."
+            ),
 
             Channel::TYPE_INSTAGRAM,
             Channel::TYPE_MESSENGER,

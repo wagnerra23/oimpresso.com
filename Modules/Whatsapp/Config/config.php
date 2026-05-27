@@ -3,7 +3,10 @@
 /**
  * Configuração do módulo Whatsapp.
  *
+ * ADR 0202 (2026-05-27): BaileysDriver descontinuado; supersede ADR 0096 emenda 4.
+ *
  * Decisão arquitetural mãe: ADR 0096 (memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)
+ * Atualizada por: ADR 0202 (memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md)
  * Espelha o que está em memory/requisitos/Whatsapp/ARCHITECTURE.md §10.
  */
 
@@ -13,13 +16,11 @@ return [
     /*
      * Driver default global (pode ser sobrescrito per-business via whatsapp_business_configs.driver).
      *
-     * Valores válidos Sprint 1: 'zapi' | 'meta_cloud' | 'null'
-     * Valores válidos Sprint 3: + 'baileys' (driver custom oimpresso — daemon Node CT 100,
-     *   ADR 0096 emenda 4: estrutura customizada de atendimento, dor de observabilidade)
-     * Valor 'evolution' é PROIBIDO permanente (FormRequest rejeita 422 — bans Wagner +
-     *   schema não atende + falta observabilidade).
+     * Valores válidos pós ADR 0202: 'meta_cloud' (default universal) | 'zapi' (opcional) | 'null' (CI)
+     * Valores PROIBIDOS Tier 0: 'baileys' (descontinuado 2026-05-27 — ADR 0202) +
+     *   'evolution' + 'whatsapp_web_js' (permanente — FormRequest rejeita 422).
      */
-    'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'zapi'),
+    'default_driver' => env('WHATSAPP_DEFAULT_DRIVER', 'meta_cloud'),
 
     'zapi' => [
         'base_url' => env('WHATSAPP_ZAPI_BASE_URL', 'https://api.z-api.io'),
@@ -32,19 +33,7 @@ return [
         'request_timeout' => env('WHATSAPP_META_TIMEOUT', 10),
     ],
 
-    'baileys' => [
-        // Daemon Node próprio CT 100 (ADR 0096 emenda 4).
-        // US-WA-022: daemon_url + api_key são GLOBAIS (server secrets), não
-        // per-tenant. Multi-tenancy é via business_uuid no path do webhook +
-        // baileys_instance_id auto-gerado (prefix "biz{business_id}-").
-        // Tenant só cadastra telefone E.164 na UI Settings.
-        'daemon_url' => env('WHATSAPP_BAILEYS_DAEMON_URL', 'https://whatsapp-baileys.oimpresso.local'),
-        'api_key' => env('WHATSAPP_BAILEYS_API_KEY'),
-        'request_timeout' => (int) env('WHATSAPP_BAILEYS_TIMEOUT', 15),
-        'instance_id_prefix' => env('WHATSAPP_BAILEYS_INSTANCE_PREFIX', 'biz'),
-        // Rate limit anti-abuse (US-WA-022 §Rate limit) — 3 connect/business/dia
-        'connect_rate_limit_per_day' => (int) env('WHATSAPP_BAILEYS_CONNECT_RATE_LIMIT', 3),
-    ],
+    // Seção 'baileys' REMOVIDA 2026-05-27 (ADR 0202). Daemon CT 100 descomissionado.
 
     'health_check' => [
         'interval_seconds' => env('WHATSAPP_HEALTH_INTERVAL', 21600), // 6h
@@ -57,8 +46,8 @@ return [
         'enabled' => env('WHATSAPP_FALLBACK_ENABLED', true),
         'auto_switch_after_status' => 'degraded', // healthy|degraded|disconnected|banned
         // drivers que EXIGEM fallback Meta Cloud configurado (gating duro FormRequest).
-        // Sprint 3: 'baileys' entra nessa lista junto com 'zapi'.
-        'mandatory_for_drivers' => ['zapi', 'baileys'],
+        // ADR 0202 (2026-05-27): 'baileys' removido — driver descontinuado.
+        'mandatory_for_drivers' => ['zapi'],
 
         // Lista de business_id que escapam do gate Meta-fallback (ADR 0111 — emenda 5 ao 0096).
         // Per-tenant bypass cirúrgico — preserva Tier 0 multi-tenant em todos outros businesses.
@@ -78,11 +67,13 @@ return [
      * Histórico:
      * - 'evolution' — PROIBIDO permanente (ADR 0096 emenda 4): bans em produção Wagner +
      *   schema de banco não atende estrutura customizada + falta de observabilidade
-     * - 'whatsapp_web_js' — sobreposição funcional com BaileysDriver custom Sprint 3
-     * - 'baileys' SAIU dessa lista em ADR 0096 emenda 4 — autorizado como BaileysDriver
-     *   custom Sprint 3 com daemon Node próprio CT 100 (resolve as 3 dores do Evolution)
+     * - 'whatsapp_web_js' — sobreposição funcional com daemon WhatsApp Web não-oficial
+     * - 'baileys' — DESCONTINUADO 2026-05-27 (ADR 0202, supersede ADR 0096 emenda 4):
+     *   instabilidade WhatsApp Web non-official + Wagner reportou "ninguém ativo,
+     *   pode desconectar todos" + DriverFactory lança NotImplementedDriverException.
+     *   Tenant pré-existente é migrado pra Meta Cloud (Fase 2/3 ADR 0202).
      */
-    'forbidden_drivers' => ['evolution', 'whatsapp_web_js'],
+    'forbidden_drivers' => ['baileys', 'evolution', 'whatsapp_web_js'],
 
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
