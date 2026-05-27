@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { dropdownEntries } from './dropdownEntries';
+import NumericInputPtBR from './NumericInputPtBR';
 
 export interface Payment {
   amount: number;
@@ -186,17 +187,18 @@ export default function PaymentRow({
           md+         — grid-cols-2 (paridade)
           lg+         — grid-cols-4 (paridade — Valor / Método / Pago / Conta) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Valor — destaque mobile (col-span-full + text-lg) */}
+        {/* Valor — destaque mobile (col-span-full + text-lg).
+            Bug R$ [redacted Tier 0]k Larissa (2026-05-27): convertido pra NumericInputPtBR.
+            Antes: type="number" + Number(e.target.value) virava NaN quando user
+            digitava "25,00" → totalPago=NaN → canSubmit=false (botão Salvar
+            permanecia desabilitado). */}
         <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
           <Label htmlFor={id.amount}>Valor</Label>
-          <Input
+          <NumericInputPtBR
             id={id.amount}
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="0.01"
             value={payment.amount}
-            onChange={(e) => onChange(index, 'amount', Number(e.target.value))}
+            onChange={(n) => onChange(index, 'amount', n)}
+            precision={2}
             className={`${INPUT_TOUCH_CLASS} tabular-nums text-lg md:text-sm font-semibold md:font-normal`}
             aria-label={`Valor do pagamento ${index + 1}`}
             aria-invalid={errors?.amount ? true : undefined}

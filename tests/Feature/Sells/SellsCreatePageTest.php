@@ -288,12 +288,14 @@ it('ProductSearchAutocomplete tem hint UI "Digite ou bipe" mencionando barcode +
     expect($componentSource)->toContain('Digite ou bipe');
 });
 
-it('ProductSearchAutocomplete mostra lote no item dropdown quando backend retorna p.lot_number', function () {
+it('ProductSearchAutocomplete mostra lote no item dropdown quando backend retorna lot_number', function () {
     $componentSource = file_get_contents(
         base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
     );
-    expect($componentSource)->toContain('p.lot_number');
-    expect($componentSource)->toMatch('/lote\\s+\\{p\\.lot_number\\}/');
+    expect($componentSource)->toContain('lot_number');
+    // Pós R6 agrupamento: var local é `firstVar` (1 variação) ou `v` (popover).
+    // Ambos paths devem renderizar lote inline.
+    expect($componentSource)->toMatch('/lote\s+\{(firstVar|v)\.lot_number\}/');
 });
 
 it('ProductSearchAutocomplete NÃO altera DEBOUNCE_MS=250 (PR #1729 fixou — não regredir)', function () {
@@ -370,4 +372,52 @@ it('Sells/Create.tsx usa NumericInputPtBR para quantity/unit_price/discount (ant
     expect($source)->not->toMatch("/<Input[^>]*type=\"number\"[^>]*value=\\{p\\.unit_price\\}/");
     expect($source)->not->toMatch("/<Input[^>]*type=\"number\"[^>]*value=\\{p\\.quantity\\}/");
     expect($source)->not->toMatch("/<Input[^>]*type=\"number\"[^>]*value=\\{p\\.discount\\}/");
+});
+
+// R6 — Dor 1 Larissa completa (2026-05-27): agrupar variações no dropdown +
+// Popover de seleção. Paridade Blade (pos.js:285-286) quando 1 variação,
+// agrupamento estado-da-arte 2026 quando >1.
+
+it('ProductSearchAutocomplete agrupa variações por product_id (groupResults memo)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    expect($componentSource)->toContain('function groupResults');
+    expect($componentSource)->toContain('useMemo(() => groupResults');
+    // Type ProductGroup com campo variations[]
+    expect($componentSource)->toContain('type ProductGroup');
+    expect($componentSource)->toContain('variations: ProductSearchResult[]');
+});
+
+it('ProductSearchAutocomplete renderiza `-{variation}` quando 1 variação e type=variable (paridade Blade pos.js:285-286)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    // Detecta type==='variable' pra concatenar variation
+    expect($componentSource)->toContain("group.type === 'variable'");
+    // Concatena nome + variation com hífen (Blade pattern)
+    expect($componentSource)->toMatch('/\$\{group\.name\}\s*-\s*\$\{firstVar\.variation\}/');
+});
+
+it('ProductSearchAutocomplete usa Popover Radix quando há >1 variação (estado-da-arte 2026)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    expect($componentSource)->toContain("from '@/Components/ui/popover'");
+    expect($componentSource)->toContain('<Popover');
+    expect($componentSource)->toContain('<PopoverTrigger asChild>');
+    expect($componentSource)->toContain('<PopoverContent');
+    // Aria correto pra acessibilidade
+    expect($componentSource)->toContain('aria-haspopup="listbox"');
+    expect($componentSource)->toContain('aria-expanded={isExpanded}');
+});
+
+it('ProductSearchAutocomplete tipa campos backend explícitos (anti AP-12 F3)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    // Era [k: string]: unknown — agora explícito
+    expect($componentSource)->toContain('variation?: string');
+    expect($componentSource)->toContain("type?: 'variable' | 'single'");
+    expect($componentSource)->toContain('variation_group_price?: number');
 });
