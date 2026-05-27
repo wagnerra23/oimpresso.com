@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -113,7 +114,7 @@ class PaymentGatewaysController extends Controller
         }
 
         $validated = $request->validate([
-            'gateway_key'      => 'required|string|in:inter,c6,asaas,bcb_pix,pagarme',
+            'gateway_key'      => 'required|string|in:inter,c6,asaas,bcb_pix,pagarme,sicoob_api',
             'ambiente'         => 'required|string|in:production,sandbox',
             'nome_display'     => 'nullable|string|max:191',
             'conta_bancaria_id' => 'nullable|integer|exists:accounts,id',
@@ -122,6 +123,9 @@ class PaymentGatewaysController extends Controller
             'cert_file'        => 'sometimes|file|mimes:crt,pem,cer|max:32',
             'key_file'         => 'sometimes|file|mimes:key,pem|max:32',
             'cert_password'    => 'sometimes|nullable|string|max:191',
+            // Onda 4f.sicoob_api PR5 — .pfx PKCS12 + senha (Sicoob/BB/Bradesco)
+            'pfx_file'         => 'sometimes|file|mimes:pfx,p12|max:64',
+            'pfx_password'     => 'sometimes|nullable|string|max:191',
         ]);
 
         // Tier 0: garantir conta_bancaria_id pertence ao business_id session
@@ -171,6 +175,17 @@ class PaymentGatewaysController extends Controller
                 }
                 $cred->update(['config_json' => $configJson]);
             }
+        }
+
+        // Onda 4f.sicoob_api PR5 — upload .pfx + senha cifrada via Crypt
+        if ($request->hasFile('pfx_file')) {
+            $pfxRelative = $this->storeSicoobPfx($request, $businessId);
+            $update = ['mtls_pfx_path' => $pfxRelative, 'requires_mtls' => true];
+            if (!empty($validated['pfx_password'])) {
+                $configJson['mtls_pfx_password_encrypted'] = Crypt::encryptString((string) $validated['pfx_password']);
+                $update['config_json'] = $configJson;
+            }
+            $cred->update($update);
         }
 
         Log::info('[paymentgateway.credential.created]', [
@@ -272,6 +287,30 @@ class PaymentGatewaysController extends Controller
      *
      * @return array<string, string>
      */
+
+    /**
+     * Onda 4f.sicoob_api PR5 — armazena .pfx em
+     * storage/app/private/sicoob/{business_id}.pfx (convenção canon usada
+     * pelo SicoobApiDriver::resolveMtlsPfxFullPath()).
+     *
+     * Retorna path RELATIVO (sicoob/{biz}.pfx) — driver prefixa storage_path.
+     * chmod 0600 best-effort em Linux (Windows ignora silenciosamente).
+     */
+    private function storeSicoobPfx(Request $request, int $businessId): string
+    {
+        /** @var UploadedFile $pfx */
+        $pfx = $request->file('pfx_file');
+        $relativePath = "sicoob/{$businessId}.pfx";
+        $pfx->storeAs('sicoob', "{$businessId}.pfx", 'local');
+
+        $absPath = Storage::disk('local')->path($relativePath);
+        if (is_file($absPath)) {
+            @chmod($absPath, 0600);
+        }
+
+        return $relativePath;
+    }
+
     private function storeCertFiles(Request $request, PaymentGatewayCredential $cred, int $businessId): array
     {
         $paths = [];
