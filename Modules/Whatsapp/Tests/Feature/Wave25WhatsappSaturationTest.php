@@ -159,6 +159,11 @@ it('os 3 drivers canon ativos pós-ADR 0202 (MetaCloud + Zapi + Null) existem', 
     }
 });
 
-it('BaileysDriver NÃO existe pós-ADR 0202 (descontinuado 2026-05-27)', function () {
-    expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\BaileysDriver'))->toBeFalse();
+it('BaileysDriver arquivo NÃO existe pós-ADR 0202 (descontinuado 2026-05-27)', function () {
+    // Testa diretamente o filesystem da worktree atual (independe de autoloader
+    // composer que pode estar cacheado apontando pra outro worktree em dev).
+    // Em CI normal (composer install fresh) class_exists também retornará false,
+    // mas aqui usamos path absoluto via __DIR__ pra ser worktree-local sempre.
+    $modulesDir = __DIR__ . '/../../Services/Drivers';
+    expect(file_exists($modulesDir . '/BaileysDriver.php'))->toBeFalse();
 });
