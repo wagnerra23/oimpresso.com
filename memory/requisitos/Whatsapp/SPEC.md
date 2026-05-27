@@ -1,3 +1,16 @@
+---
+module: Whatsapp
+version: "2.0"
+status: ativo
+owners: [W]
+last_updated: "2026-05-27"
+related_adrs:
+  - "0096-modulo-whatsapp-meta-cloud-api-direto"
+  - "0117-multiplos-numeros-whatsapp-por-business"
+  - "0202-whatsapp-profissionalizacao-baileys-out"
+  - "0135-omnichannel-inbox-arquitetura"
+---
+
 # Especificação funcional — Whatsapp
 
 > Convenção do ID: `US-WA-NNN` para user stories, `R-WA-NNN` para regras Gherkin.
