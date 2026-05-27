@@ -252,3 +252,53 @@ it('Page permite remover linha de pagamento se houver mais de 1 (split)', functi
     expect($source)->toContain('removable={data.payments.length > 1}');
     expect($source)->toContain('handleRemovePayment');
 });
+
+// R5 — Dor 3 Larissa (auditoria 2026-05-27): paridade Blade busca produto
+// (barcode/lot/custom_fields). Backend ProductController@getProducts já aceita
+// search_fields[]; frontend só precisa mandar os campos como a Blade legacy.
+
+it('ProductSearchAutocomplete envia search_fields[] paridade Blade (name/sku/lot)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    // Constante DEFAULT_SEARCH_FIELDS deve estar declarada
+    expect($componentSource)->toContain('DEFAULT_SEARCH_FIELDS');
+    // 3 campos canônicos da Blade (pos.js L3076)
+    expect($componentSource)->toMatch("/DEFAULT_SEARCH_FIELDS\\s*=\\s*\\[\\s*'name'\\s*,\\s*'sku'\\s*,\\s*'lot'\\s*\\]/");
+    // Deve appendar como array no querystring (search_fields[]=X)
+    expect($componentSource)->toContain("params.append('search_fields[]', field)");
+});
+
+it('ProductSearchAutocomplete tipa lot_number + purchase_line_id na interface (backend retorna quando search_fields inclui lot)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    expect($componentSource)->toContain('lot_number?: string');
+    expect($componentSource)->toContain('purchase_line_id?: number');
+});
+
+it('ProductSearchAutocomplete tem hint UI "Digite ou bipe" mencionando barcode + lote', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    // Placeholder atualizado pra V2 paridade Blade
+    expect($componentSource)->toContain('código de barras');
+    expect($componentSource)->toContain('lote');
+    // Hint quando input vazio
+    expect($componentSource)->toContain('Digite ou bipe');
+});
+
+it('ProductSearchAutocomplete mostra lote no item dropdown quando backend retorna p.lot_number', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    expect($componentSource)->toContain('p.lot_number');
+    expect($componentSource)->toMatch('/lote\\s+\\{p\\.lot_number\\}/');
+});
+
+it('ProductSearchAutocomplete NÃO altera DEBOUNCE_MS=250 (PR #1729 fixou — não regredir)', function () {
+    $componentSource = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'),
+    );
+    expect($componentSource)->toContain('DEBOUNCE_MS = 250');
+});
