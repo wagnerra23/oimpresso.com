@@ -302,3 +302,72 @@ it('ProductSearchAutocomplete NÃO altera DEBOUNCE_MS=250 (PR #1729 fixou — n�
     );
     expect($componentSource)->toContain('DEBOUNCE_MS = 250');
 });
+
+// R7 — Bug R$ [redacted Tier 0]k Larissa (2026-05-27): input `type=number` + `Number(e.target.value)`
+// não lidava com vírgula decimal pt-BR. Substituído por NumericInputPtBR + parseDecimalPtBR
+// (paridade Blade __read_number/__write_number — accounting.unformat pt-BR).
+
+it('numberPtBR helper existe em Lib (utility shared)', function () {
+    expect(file_exists(base_path('resources/js/Lib/numberPtBR.ts')))->toBeTrue();
+});
+
+it('parseDecimalPtBR converte string pt-BR em number (paridade Blade __read_number)', function () {
+    $source = file_get_contents(base_path('resources/js/Lib/numberPtBR.ts'));
+    // Função exportada com nome canônico
+    expect($source)->toContain('export function parseDecimalPtBR');
+    // Convenção pt-BR: vírgula = decimal, ponto = milhar
+    expect($source)->toContain('vírgula = decimal');
+    // Detecta vírgula como decimal (não usa parseFloat ingênuo)
+    expect($source)->toContain('lastIndexOf');
+    // Remove pontos como milhar quando há vírgula decimal
+    expect($source)->toMatch('/replace\(\/\\\\\.\/g/');
+});
+
+it('formatDecimalPtBR formata number em pt-BR (paridade Blade __write_number)', function () {
+    $source = file_get_contents(base_path('resources/js/Lib/numberPtBR.ts'));
+    expect($source)->toContain('export function formatDecimalPtBR');
+    expect($source)->toContain("toLocaleString('pt-BR'");
+    expect($source)->toContain('minimumFractionDigits');
+});
+
+it('NumericInputPtBR componente existe em Sells/_components', function () {
+    expect(file_exists(base_path('resources/js/Pages/Sells/_components/NumericInputPtBR.tsx')))
+        ->toBeTrue();
+});
+
+it('NumericInputPtBR usa type=text NÃO type=number (evita quirks locale navegador)', function () {
+    $source = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/NumericInputPtBR.tsx'),
+    );
+    expect($source)->toContain('type="text"');
+    // type=number é o BUG — não deve aparecer no input rendered (strip comments).
+    $codeOnly = preg_replace('#//[^\n]*#', '', $source);
+    expect($codeOnly)->not->toMatch('/type="number"/');
+    // inputMode="decimal" preservado pra teclado numérico mobile
+    expect($source)->toContain('inputMode="decimal"');
+});
+
+it('NumericInputPtBR usa parseDecimalPtBR do Lib (não Number(e.target.value))', function () {
+    $source = file_get_contents(
+        base_path('resources/js/Pages/Sells/_components/NumericInputPtBR.tsx'),
+    );
+    expect($source)->toContain("from '@/Lib/numberPtBR'");
+    expect($source)->toContain('parseDecimalPtBR');
+    expect($source)->toContain('formatDecimalPtBR');
+    // ANTIPADRÃO: NÃO usa Number(e.target.value) — bug origem R$ [redacted Tier 0]k.
+    // Regex strip comments primeiro pra ignorar menções históricas.
+    $codeOnly = preg_replace('#//[^\n]*#', '', $source);
+    expect($codeOnly)->not->toMatch('/Number\(e\.target\.value\)/');
+});
+
+it('Sells/Create.tsx usa NumericInputPtBR para quantity/unit_price/discount (anti-regressão R$ [redacted Tier 0]k)', function () {
+    $source = file_get_contents(base_path('resources/js/Pages/Sells/Create.tsx'));
+    expect($source)->toContain("from './_components/NumericInputPtBR'");
+    // 3 inputs convertidos
+    expect(substr_count($source, '<NumericInputPtBR'))->toBeGreaterThanOrEqual(3);
+    // Os antigos `<Input type="number"` nesses 3 lugares NÃO devem mais existir
+    // pra qty/unit_price/discount (PaymentRow e outros podem manter durante migração).
+    expect($source)->not->toMatch("/<Input[^>]*type=\"number\"[^>]*value=\\{p\\.unit_price\\}/");
+    expect($source)->not->toMatch("/<Input[^>]*type=\"number\"[^>]*value=\\{p\\.quantity\\}/");
+    expect($source)->not->toMatch("/<Input[^>]*type=\"number\"[^>]*value=\\{p\\.discount\\}/");
+});
