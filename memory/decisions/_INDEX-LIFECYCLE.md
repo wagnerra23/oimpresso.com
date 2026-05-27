@@ -1,6 +1,6 @@
 ---
 title: Index de Lifecycle das ADRs — pós-triagem 2026-05-06 (refresh 2026-05-09)
-description: Single source of truth pra status de lifecycle das 119 ADRs canon (116 únicas + 3 colisões 0101/0102/0119). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09. Tool MCP `decisions-search` filtra por este index.
+description: Single source of truth pra status de lifecycle das ADRs canon (4 colisões 0101/0102/0119/0195). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09; entrada colisão 0195 apendada em 2026-05-27. Tool MCP `decisions-search` filtra por este index.
 type: index
 status: aceito
 authority: [Wagner]
@@ -8,7 +8,7 @@ last_reviewed: 2026-05-09
 next_review: 2026-08-09  # trimestral
 total_adrs: 119
 unique_numbers: 116
-numbering_collisions: [0101, 0102, 0119]  # ADR 0028 não cumprido em 3 casos — pendente housekeeping (ADR 0120)
+numbering_collisions: [0101, 0102, 0119, 0195]  # ADR 0028 não cumprido em 4 casos — pendente housekeeping (ADR 0120). Colisão 0195 adicionada 2026-05-27 (PR #1714 feedback-relevance + PR #1736 tabs-autosave mergeados mesmo dia).
 governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete uso, não validade histórica
 ---
 
@@ -274,3 +274,35 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 - Revisão trimestral → bumpa `last_reviewed` + ajusta entries que mudaram
 
 > **Cuidado:** atualização deste index é a única forma de "mover" ADR sem violar append-only. Conteúdo de ADR aceita JAMAIS é editado.
+
+---
+
+## Bloco 10 — Apendado 2026-05-27 — colisão 0195 + ADRs 0197-0200 (migração legacy Martinho)
+
+### Colisão 0195 (4ª colisão histórica — pendente housekeeping ADR 0120)
+
+| Numero | Lifecycle | Notas |
+|---|---|---|
+| 0195a | A | **Feedback relevance scoring/decay adaptativo** (PR #1714 — mergeou 12:09 BRT) · slug `0195-feedback-relevance-scoring-decay-adaptativo` · ⚠️ **colisão numérica com 0195b** |
+| 0195b | A | **Tabs autosave mount-sempre hidden** (PR #1736 — mergeou 14:33 BRT) · slug `0195-tabs-autosave-mount-sempre-hidden` · ⚠️ **colisão numérica com 0195a** |
+
+**Causa:** 2 PRs paralelos no mesmo dia (2026-05-27) ambos numeraram `0195` sem coordenação cross-branch. PR #1714 mergeou primeiro (convenção "first wins") mas gate `Append-only canon` bloqueia rename retroativo (regra "ADR mantém número" — Constituição Art. 3 + ADR 0095). Coexistência aceita como tech-debt.
+
+**Resolução de descoberta:** agente que procura "ADR 0195" deve checar AMBOS slugs. Tool MCP `decisions-search` retorna os 2 ao filtrar por number. ADRs internamente não se referenciam (temas distintos — feedback adaptativo ≠ tabs UI).
+
+### ADRs novas 2026-05-27 (migração legacy contacts/PESSOAS)
+
+| Numero | Lifecycle | Notas |
+|---|---|---|
+| 0196 | (livre) | Pulado intencionalmente — PR #1715 (WhatsApp feedback Fase B) mergeou paralelo sem ADR mãe; número reservado pra eventual ADR mãe retroativa |
+| 0197 | A | **Extend `contacts` pra absorver schema legacy PESSOAS** · Fase 1 CLI+FOR+REP via Bucket A+B · PR #1717 |
+| 0198 | A | **Hot/cold tiering migração transacional legacy** · prospectivo (aplicar antes 2º cliente) · PR #1717 |
+| 0199 | A | **Errata Bucket B JSON catch-all** (amends 0197) · PR #1731 |
+| 0200 | A | **`contacts` adopta canon sync bidirecional Wagner 2024-11** (amends 0197+0199) · `officeimpresso_codigo`+`dt_alteracao` · PR #1735 |
+
+**Padrão da sessão 2026-05-27:** consolidação iterativa same-day. ADR 0197 (proposta inicial) → 0199 (errata Bucket B) → 0200 (canon sync). Sequência preservada via `amends` em frontmatter.
+
+**Lição arquitetural** (extraída pra ADR 0200 §Lição):
+> "Antes de criar pattern novo, faça `git grep` de patterns canon existentes."
+
+Ver [memory/sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md](../sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md) pra retrospectiva completa.
