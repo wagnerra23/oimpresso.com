@@ -48,6 +48,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 interface OptionMap {
   [id: number]: string;
@@ -277,12 +278,55 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     }
   };
 
+  // Dor 1 Larissa (2026-05-13 rollback V2): adicionar 2x o mesmo produto (mesmo
+  // product_id + variation_id) criava 2 linhas distintas. Comportamento esperado
+  // pelo Blade legacy POS era incrementar qty da linha existente.
+  //
+  // MVP atual (PR r4-group-variations-v2):
+  //   - Mesmo product_id + mesma variation_id  → incrementa qty (+1) na linha existente
+  //   - Mesmo product_id + variation_id diferente → toast info + adiciona como linha nova
+  //     (refactor com popover de variações fica pra PR separado se Wagner pedir)
+  //   - product_id novo → push linha nova (comportamento original)
   const handleAddProduct = (p: ProductSearchResult) => {
+    const incomingVariationId = p.variation_id ?? null;
+    const existing = data.products.find(
+      (row) => row.product_id === p.product_id,
+    );
+
+    // Caso 1a — mesmo product_id E mesma variation_id: incrementa qty da linha
+    // existente. Fix Dor 1 Larissa (rollback V2 2026-05-13): MARTELO-P + MARTELO-P
+    // criava 2 linhas distintas — agora vira 1 linha com qty 2.
+    if (existing && existing.variation_id === incomingVariationId) {
+      const newQty = Number(existing.quantity) + 1;
+      setData(
+        'products',
+        data.products.map((row) =>
+          row.product_id === p.product_id && row.variation_id === incomingVariationId
+            ? { ...row, quantity: newQty }
+            : row,
+        ),
+      );
+      toast.success(`${p.name} — quantidade ${newQty}`, { duration: 1500 });
+      return;
+    }
+
+    // Caso 1b — mesmo product_id mas variation_id diferente (ex: MARTELO-P já está,
+    // user agora adicionou MARTELO-M). Variações podem ter preço/estoque distinto,
+    // então agrupar como sub-row demanda refactor de UI maior (popover de variações).
+    // Por enquanto: adiciona linha separada + toast info pra deixar comportamento
+    // explícito (evita confusão tipo Dor 1 onde user acha que tá duplicando).
+    if (existing && existing.variation_id !== incomingVariationId) {
+      toast.info(`Variação diferente de ${p.name} — adicionada como linha separada`, {
+        duration: 2500,
+      });
+    }
+
+    // Caso 2 (product_id novo) ou 1b (variação diferente): adiciona linha nova.
     setData('products', [
       ...data.products,
       {
         product_id: p.product_id,
-        variation_id: p.variation_id ?? null,
+        variation_id: incomingVariationId,
         name: p.name,
         sku: p.sku,
         quantity: 1,
