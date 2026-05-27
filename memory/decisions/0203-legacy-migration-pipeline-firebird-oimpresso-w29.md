@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-26
+decided_at: "2026-05-26"
 module: officeimpresso
 quarter: 2026-Q2
 tags: [legacy-migration, officeimpresso, martinho, firebird, idempotence]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0019, 0093, 0118]
+related: ["0019-officeimpresso-delphi-nao-autentica", "0093-multi-tenant-isolation-tier-0", "0118-segregacao-dominios-externos-clientes-legacy"]
 pii: false
 review_triggers: []
 ---
