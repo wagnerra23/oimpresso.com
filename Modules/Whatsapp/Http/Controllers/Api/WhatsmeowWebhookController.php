@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Modules\Whatsapp\Entities\Channel;
-use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Jobs\ProcessIncomingWebhookJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
 
@@ -44,8 +43,9 @@ class WhatsmeowWebhookController extends Controller
 
     public function handle(Request $request): JsonResponse
     {
-        /** @var WhatsappBusinessConfig $config */
-        $config = $request->attributes->get('whatsapp.config');
+        // ADR 0135 (Caixa Unificada v4): middleware resolve business_id via
+        // business.uuid (NÃO whatsapp_business_configs legacy). Sessão 2026-05-27.
+        $businessId = (int) $request->attributes->get('whatsapp.business_id', 0);
         /** @var Channel|null $channel */
         $channel = $request->attributes->get('whatsapp.channel');
 
@@ -53,7 +53,7 @@ class WhatsmeowWebhookController extends Controller
         $event = (string) ($payload['type'] ?? $payload['Event'] ?? '');
 
         Log::info('whatsapp.webhook.received', [
-            'business_id' => $config->business_id,
+            'business_id' => $businessId,
             'provider' => 'whatsmeow',
             'channel_id' => $channel?->id,
             'event' => $event,
@@ -62,7 +62,7 @@ class WhatsmeowWebhookController extends Controller
         // Eventos de mensagem/status → enfileira processamento assíncrono
         if (in_array($event, ['Message', 'ReadReceipt'], true)) {
             ProcessIncomingWebhookJob::dispatch(
-                $config->business_id,
+                $businessId,
                 'whatsmeow',
                 array_merge($payload, ['provider' => 'whatsmeow']),
                 null, // phone_id legacy (não usado com Channel-based)
@@ -75,7 +75,7 @@ class WhatsmeowWebhookController extends Controller
         if ($channel === null) {
             // Sem channel resolvido — só loga e retorna 200 (daemon vai retentar)
             Log::warning('[whatsapp.webhook.whatsmeow] evento de estado sem channel resolvido', [
-                'business_id' => $config->business_id,
+                'business_id' => $businessId,
                 'event' => $event,
             ]);
             return response()->json(['ok' => true, 'note' => 'no_channel'], 200);
