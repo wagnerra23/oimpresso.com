@@ -365,3 +365,58 @@ Codável IA-pair: 8h (investigação migration + fix + estabilizar baseline). Hu
 ---
 
 **Última atualização (US-INFRA-012):** 2026-05-25 — adicionada resolução migration order legacy visual-regression.yml (batch validação design system pós-conversa Wagner com Claude do chat)
+
+### US-INFRA-013 · Implementar contract-test-gate GH Action (ADR 0207)
+
+> owner: — · sprint: 2026-W22 · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Implementa o gate hard descrito em [ADR-0207](../../decisions/0207-contract-test-obrigatorio-pr-tela-autosave.md) — PR que toque tela autosave deve incluir fixture contract OU label `contract-test-exempt`.
+
+## Entregáveis
+
+1. **`scripts/contract-test-detect.sh`** — heurística no diff:
+   - `git diff origin/main --name-only` → lista arquivos modificados
+   - Regex match backend autosave: `Modules/*/Http/Controllers/*Autosave*Controller.php`, `app/Http/Controllers/*Autosave*Controller.php`, `Modules/*/Http/Requests/*Request.php` com método `rules()` no diff
+   - Regex match frontend autosave: `resources/js/Pages/<Mod>/<Tela>.tsx` contendo `useAutosave|onAutosave|patchJson|axios.patch|router.patch`
+   - Se match → verifica se `tests/Contract/Fixtures/` OU `tests/Feature/Contract/` também tem touch no diff
+   - Backend touch SEM fixture touch → exit 1 + sugere nome fixture esperado
+   - Imprime payload JSON pra GH comment
+
+2. **`.github/workflows/contract-test-gate.yml`** — workflow:
+   - Trigger `pull_request`
+   - Job `detect`: roda `scripts/contract-test-detect.sh`
+   - Job `check-exempt-label`: se detect falha, consulta `gh pr view --json labels` → se label `contract-test-exempt` presente → pass
+   - Job `comment`: se falhou e não tem exempt → comenta no PR linkando ADR 0207 + nome do fixture esperado
+
+3. **Label setup** — `contract-test-exempt` criada no repo via `gh label create contract-test-exempt --description "ADR 0207 exempt — exige session log canônico justificando" --color FFAA00`
+
+4. **Smoke test** — abrir PR proposital quebrando regra (mexer em Controller sem fixture) → verificar bloqueio → adicionar exempt label → verificar pass
+
+## Acceptance criteria
+
+- [ ] Script detect.sh funciona local (`bash scripts/contract-test-detect.sh PR_NUMBER`)
+- [ ] GH Action bloqueia PR-test sem fixture
+- [ ] Label exempt destranca PR-test
+- [ ] Comentário PR mostra ADR 0207 link + sugestão fixture
+- [ ] RUNBOOK em `memory/requisitos/Infra/RUNBOOK-contract-test-gate.md` documentando troubleshooting + falsos-positivos conhecidos
+- [ ] Smoke test PR (proposital quebra + exempt unlock) catalogado em session log
+
+## Pegadinhas conhecidas
+
+- **Refactor puro** (rename var, mover método) NÃO deve ativar gate — heurística deve checar se rules() ou body do método mudou, não só assinatura
+- **Migration sem Controller** NÃO deve ativar
+- **Endpoint webhook receiver** (HMAC upstream-defined) NÃO precisa fixture — documentar exempt automático via path prefix `routes/api.php` ou comentário magic
+- **PR Wagner solo modo admin** — exempt label aplicada por Wagner sem session log é OK em casos extremos (sessão produtiva), mas P2 do ADR exige idealmente. Soft-warn vs hard-block decidir em retrospectiva +1 mês
+
+## Refs
+
+- [ADR-0207](../../decisions/0207-contract-test-obrigatorio-pr-tela-autosave.md) — Contract test obrigatório (amends 0205)
+- [ADR-0205](../../decisions/0205-contract-tests-autosave-padrao-canonico.md) — Contract tests autosave canon
+- [Session 2026-05-27 rollout 4 waves](../../sessions/2026-05-27-contract-tests-rollout-4-waves-paralelas.md) — 6 padrões reusáveis P1-P6
+- [Session Stock adjustment doc-only](../../sessions/2026-05-27-contract-tests-stock-adjustment-decisao.md) — padrão exempt validado
+- [RUNBOOK module-grades-gate-ci](RUNBOOK-module-grades-gate-ci.md) — pattern de GH Action gate similar pra inspirar
+
+---
+
+**Última atualização (US-INFRA-013):** 2026-05-27 — adicionada implementação contract-test-gate GH Action ADR 0207 (entrega da decisão promovida pela sessão 4 waves paralelas)
