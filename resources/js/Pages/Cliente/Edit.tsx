@@ -276,10 +276,10 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
           )}
 
           <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-            <Button type="button" variant="outline" asChild>
+            <Button type="button" variant="cowork-ghost" asChild>
               <a href={`/contacts/${c.id}`}>Cancelar</a>
             </Button>
-            <Button type="submit" disabled={processing}>
+            <Button type="submit" variant="cowork-primary" disabled={processing}>
               <Save className="mr-1.5 h-4 w-4" />
               {processing ? 'Salvando…' : 'Salvar alterações'}
             </Button>
