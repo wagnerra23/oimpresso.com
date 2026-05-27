@@ -292,6 +292,90 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     ]);
   };
 
+  // Bug R3 (E) — recalcular preço retroativo ao trocar Grupo de preço.
+  //
+  // Cenário Larissa: adiciona "Blusa P" (R$ 150 padrão), depois muda Grupo → ATACADO.
+  // Antes do fix: linha continuava R$ 150 (preço congelado no add).
+  // Depois do fix: refetch /products/list?term=<name>&location_id=X&price_group=Y
+  //                pra cada linha, atualiza unit_price com variation_group_price
+  //                (legacy pattern public/js/pos.js linhas 265-266).
+  //
+  // Failsafe: se refetch falha ou variation_id não aparece no resultado, MANTÉM
+  // preço atual (sem warning visual — só console.warn). Não quebra fluxo.
+  //
+  // 1 request HTTP por linha — OK pra primeiro fix (Larissa raramente tem >5 itens).
+  // Batch/debounce fica pra otimização futura se necessário.
+  //
+  // R3 escopo SÓ no handler de price_group_id. Não toca __number_uf, handleAddProduct,
+  // ou submit (PR R4 outro agent vai trabalhar handler add).
+  const handlePriceGroupChange = async (newGroupId: number | null) => {
+    setData('price_group_id', newGroupId);
+
+    // Sem linhas adicionadas → nada a refetchar
+    if (data.products.length === 0) return;
+
+    // Sem location → endpoint /products/list não filtra direito (skip refetch)
+    if (!data.location_id) {
+      console.warn('[Sells/Create] price group changed sem location_id, skip recalc');
+      return;
+    }
+
+    // Refetch concorrente pra cada linha. Promise.all com Settled pra não quebrar
+    // tudo se 1 falhar.
+    const requests = data.products.map(async (line) => {
+      if (!line.variation_id) return null; // linha sem variation → skip
+      const params = new URLSearchParams({ term: line.name });
+      params.set('location_id', String(data.location_id));
+      if (newGroupId) params.set('price_group', String(newGroupId));
+
+      try {
+        const res = await fetch(`/products/list?${params.toString()}`, {
+          headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin',
+        });
+        if (!res.ok) return null;
+        const arr = (await res.json()) as Array<{
+          variation_id: number;
+          selling_price?: number;
+          variation_group_price?: number;
+        }>;
+        const match = Array.isArray(arr)
+          ? arr.find((r) => r.variation_id === line.variation_id)
+          : undefined;
+        if (!match) return null;
+        // Pattern legacy public/js/pos.js: variation_group_price tem prioridade
+        const newPrice =
+          match.variation_group_price !== undefined &&
+          match.variation_group_price !== null
+            ? Number(match.variation_group_price)
+            : Number(match.selling_price ?? line.unit_price);
+        return { variation_id: line.variation_id, unit_price: newPrice };
+      } catch (err) {
+        console.warn(
+          '[Sells/Create] refetch preço falhou pra linha',
+          line.variation_id,
+          err,
+        );
+        return null;
+      }
+    });
+
+    const results = await Promise.all(requests);
+
+    // Aplica atualizações em batch (1 setData só, evita N re-renders)
+    const updated = data.products.map((line) => {
+      const found = results.find(
+        (r) => r && r.variation_id === line.variation_id,
+      );
+      if (!found) return line; // failsafe: mantém preço atual
+      return { ...line, unit_price: found.unit_price };
+    });
+    setData('products', updated);
+  };
+
   const handleProductChange = (
     idx: number,
     field: 'quantity' | 'unit_price' | 'discount',
@@ -1298,7 +1382,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 <Label htmlFor="price_group_id">Grupo de preço</Label>
                 <Select
                   value={data.price_group_id ? String(data.price_group_id) : ''}
-                  onValueChange={(v) => setData('price_group_id', v ? Number(v) : null)}
+                  onValueChange={(v) => handlePriceGroupChange(v ? Number(v) : null)}
                 >
                   <SelectTrigger id="price_group_id">
                     <SelectValue placeholder="Padrão" />
