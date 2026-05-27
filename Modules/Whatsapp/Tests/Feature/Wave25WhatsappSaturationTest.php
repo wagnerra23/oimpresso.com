@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -14,38 +13,28 @@ uses(Tests\TestCase::class);
 /**
  * Wave 25 Whatsapp SATURATION — D2/D3/D4 Drivers contract + OtelHelper canon.
  *
- * Esforço (gap 74 → ≥85, +11pp):
- *   - D2: cobertura Drivers (BaileysDriver + MetaCloudDriver + ZapiDriver +
- *     NullDriver) — implementam DriverInterface canon (5 métodos obrigatórios)
+ * Atualizado 2026-05-27 (ADR 0202): BaileysDriver descontinuado — testes
+ * específicos removidos. MetaCloud (default ADR 0202) + Zapi + Null permanecem.
+ *
+ * Esforço original (gap 74 → ≥85, +11pp):
+ *   - D2: cobertura Drivers (MetaCloudDriver + ZapiDriver + NullDriver) —
+ *     implementam DriverInterface canon (6 métodos)
  *   - D3: cobertura métodos canon (sendTemplate/sendFreeform/sendMedia/
  *     fetchMessageStatus/ping + sendInteractive)
  *   - D4: Services pattern preservado — Wave 17/18 criou Service layer; este
  *     test prova DI canon + OtelHelper imports cross-driver
  *
- * Trust L0 — testes via Reflection (sem chamar daemon Node/Meta real).
- * Mock mode garantido via Http::fake nos testes individuais
- * (BaileysDriverTest + MetaCloudDriverStubTest).
- *
  * @see Modules/Whatsapp/Services/Drivers/DriverInterface.php
- * @see Modules/Whatsapp/Services/Drivers/BaileysDriver.php (custom oimpresso, ADR 0096 emenda 4)
- * @see Modules/Whatsapp/Services/Drivers/MetaCloudDriver.php (fallback obrigatório)
- * @see Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php (Wave 23 baseline)
+ * @see Modules/Whatsapp/Services/Drivers/MetaCloudDriver.php (default ADR 0202)
+ * @see memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md
  */
 
 // ------------------------------------------------------------------
 // D2/D3 — Drivers implementam contrato canon
 // ------------------------------------------------------------------
 
-it('BaileysDriver implementa DriverInterface canon (5 métodos obrigatórios + sendInteractive)', function () {
-    $ref = new ReflectionClass(BaileysDriver::class);
-    expect($ref->implementsInterface(DriverInterface::class))->toBeTrue();
-
-    // 6 métodos canon: sendTemplate, sendFreeform, sendMedia,
-    // fetchMessageStatus, ping, sendInteractive
-    foreach (['sendTemplate', 'sendFreeform', 'sendMedia', 'fetchMessageStatus', 'ping', 'sendInteractive'] as $method) {
-        expect($ref->hasMethod($method))->toBeTrue("BaileysDriver deve ter método {$method}");
-    }
-});
+// ADR 0202 (2026-05-27): teste "BaileysDriver implementa DriverInterface canon" REMOVIDO
+// — BaileysDriver descontinuado e classe deletada deste PR.
 
 it('MetaCloudDriver implementa DriverInterface canon (6 métodos)', function () {
     $ref = new ReflectionClass(MetaCloudDriver::class);
@@ -70,15 +59,7 @@ it('NullDriver implementa DriverInterface canon (dev/CI Pest)', function () {
 // D4 — Services pattern (DI + OtelHelper canon cross-driver)
 // ------------------------------------------------------------------
 
-it('BaileysDriver importa OtelHelper canon (D9 observabilidade hot-path)', function () {
-    $file = (new ReflectionClass(BaileysDriver::class))->getFileName();
-    $src = file_get_contents($file);
-    expect($src)->toContain('use App\Util\OtelHelper;');
-
-    // Hot-path spans canon — pelo menos send_freeform + send_media + ping
-    $matches = preg_match_all("/'whatsapp\\.baileys\\.[a-z_]+'/", $src);
-    expect($matches)->toBeGreaterThanOrEqual(3);
-});
+// ADR 0202 (2026-05-27): teste BaileysDriver OtelHelper canon REMOVIDO.
 
 it('MetaCloudDriver importa OtelHelper canon + spans canon (D9 hot-path)', function () {
     $file = (new ReflectionClass(MetaCloudDriver::class))->getFileName();
@@ -91,11 +72,7 @@ it('MetaCloudDriver importa OtelHelper canon + spans canon (D9 hot-path)', funct
     expect($matches)->toBeGreaterThanOrEqual(2);
 });
 
-it('BaileysDriver resolve do container (DI canon)', function () {
-    $driver = app(BaileysDriver::class);
-    expect($driver)->toBeInstanceOf(BaileysDriver::class);
-    expect($driver)->toBeInstanceOf(DriverInterface::class);
-});
+// ADR 0202 (2026-05-27): teste BaileysDriver container resolution REMOVIDO.
 
 it('MetaCloudDriver resolve do container (DI canon)', function () {
     $driver = app(MetaCloudDriver::class);
@@ -175,9 +152,13 @@ it('EvolutionDriver NÃO existe (ADR 0096 emenda 4 — proibido permanente)', fu
     expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\EvolutionDriver'))->toBeFalse();
 });
 
-it('os 4 drivers canon ativos (Baileys + MetaCloud + Zapi + Null) existem', function () {
-    $drivers = [BaileysDriver::class, MetaCloudDriver::class, ZapiDriver::class, NullDriver::class];
+it('os 3 drivers canon ativos pós-ADR 0202 (MetaCloud + Zapi + Null) existem', function () {
+    $drivers = [MetaCloudDriver::class, ZapiDriver::class, NullDriver::class];
     foreach ($drivers as $cls) {
         expect(class_exists($cls))->toBeTrue("Driver canon {$cls} deve existir");
     }
+});
+
+it('BaileysDriver NÃO existe pós-ADR 0202 (descontinuado 2026-05-27)', function () {
+    expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\BaileysDriver'))->toBeFalse();
 });
