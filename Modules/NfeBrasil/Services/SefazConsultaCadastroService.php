@@ -97,14 +97,23 @@ class SefazConsultaCadastroService
      * @param  string  $cnpj  CNPJ em qualquer formato (só dígitos usados)
      * @param  string  $uf    UF de 2 letras (RS, SP, etc)
      * @param  int     $businessId  Business consumidor (multi-tenant Tier 0)
-     * @return array|null  null = UF não suportada, sem cert, ou erro SEFAZ
+     * @param  string|null  &$reason  Out param populado quando retorno é null,
+     *                                 distinguindo motivo pra UI/controller:
+     *                                 'invalid_cnpj' | 'uf_unsupported' | 'flag_off'
+     *                                 | 'no_cert' | 'sefaz_error'.
+     *                                 Antes (Wagner 2026-05-27): qualquer falha caía
+     *                                 em 'sefaz_or_cert_error' genérico → UI mostrava
+     *                                 "Configure cert A1" mesmo com cert OK + erro SEFAZ.
+     * @return array|null  null = UF não suportada, sem cert, ou erro SEFAZ (ver $reason)
      */
-    public function consultar(string $cnpj, string $uf, int $businessId): ?array
+    public function consultar(string $cnpj, string $uf, int $businessId, ?string &$reason = null): ?array
     {
+        $reason = null;
         $cnpjDigits = preg_replace('/\D/', '', $cnpj) ?? '';
         $uf = strtoupper(trim($uf));
 
         if (strlen($cnpjDigits) !== 14) {
+            $reason = 'invalid_cnpj';
             return null;
         }
 
@@ -115,6 +124,7 @@ class SefazConsultaCadastroService
                 'uf' => $uf,
                 'business_id' => $businessId,
             ]);
+            $reason = 'uf_unsupported';
             return null;
         }
 
@@ -123,17 +133,25 @@ class SefazConsultaCadastroService
             Log::info('SefazConsultaCadastroService: feature flag desligada — skip', [
                 'business_id' => $businessId,
             ]);
+            $reason = 'flag_off';
             return null;
         }
 
         // Cache Redis 30d — dado público compartilhado entre businesses.
+        // IMPORTANTE: cacheamos APENAS resultados success. Falhas (no_cert/sefaz_error)
+        // NUNCA vão pra cache porque estado pode mudar rápido (user configura cert,
+        // SEFAZ volta após manutenção) — cachear erro = bloquear retry desnecessário.
         $cacheKey = "sefaz_cadastro:{$uf}:{$cnpjDigits}";
         $cacheTtl = (int) config('fiscal.sefaz_consulta_cadastro_cache_ttl_seconds', 60 * 60 * 24 * 30);
 
-        return Cache::remember(
-            $cacheKey,
-            $cacheTtl,
-            function () use ($cnpjDigits, $uf, $businessId): ?array {
+        // Hit cache → success cached, retorna direto sem reason.
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $innerReason = null;
+        $result = (function () use ($cnpjDigits, $uf, $businessId, &$innerReason): ?array {
                 try {
                     // Carrega cert via chain (ADR 0186) — pode lançar RuntimeException se sem cert nenhum.
                     $certData = $this->certService->carregarParaSefazComFallback(
@@ -296,6 +314,7 @@ class SefazConsultaCadastroService
                         'uf' => $uf,
                         'reason' => $certErr->getMessage(),
                     ]);
+                    $innerReason = 'no_cert';
                     return null;
                 } catch (\Throwable $e) {
                     Log::warning('SefazConsultaCadastroService: erro SEFAZ ou parsing', [
@@ -304,9 +323,19 @@ class SefazConsultaCadastroService
                         'cnpj_len' => strlen($cnpjDigits),
                         'message' => $e->getMessage(),
                     ]);
+                    $innerReason = 'sefaz_error';
                     return null;
                 }
-            }
-        );
+            })();
+
+        // Cache APENAS success — falhas (no_cert/sefaz_error) ficam fora pra
+        // permitir retry imediato após user configurar cert ou SEFAZ recuperar.
+        if (is_array($result)) {
+            Cache::put($cacheKey, $result, $cacheTtl);
+        } else {
+            $reason = $innerReason;
+        }
+
+        return $result;
     }
 }
