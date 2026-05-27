@@ -7,6 +7,8 @@ export type OrigemType = 'sale' | 'invoice' | 'subscription_license';
 export type GatewayKey =
   // API REST drivers
   | 'inter' | 'c6' | 'asaas' | 'bcb_pix' | 'pagarme'
+  // Onda 4f.sicoob_api — US-FIN-044 (Wagner 2026-05-27, biz=4 ROTA LIVRE Lea)
+  | 'sicoob_api'
   // CNAB drivers (Onda 4f.cnab — ADR 0170-bancos-nativos-top5-drivers-separados v3 Wagner 2026-05-26)
   | 'bradesco_cnab' | 'itau_cnab' | 'bb_cnab' | 'santander_cnab' | 'caixa_cnab'
   | 'sicoob_cnab' | 'ailos_cnab' | 'sicredi_cnab' | 'cresol_cnab' | 'banrisul_cnab' | 'btg_cnab';
@@ -183,6 +185,26 @@ export const DRIVERS: Record<GatewayKey, DriverToken> = {
     requirements: ['Homologação BCB recebedor (Res. 380/2024)', 'mTLS ICP-Brasil', 'Mandato autorizado pagador-a-pagador'],
     recommendedFor: 'Mensalidade recorrente PIX (SaaS, plano gym) · cobrança autorizada 1× pelo cliente',
     credentialSource: { url: 'https://www.bcb.gov.br/estabilidadefinanceira/pix', label: 'BCB → PIX Automático → Homologação recebedor' },
+  },
+  // Onda 4f.sicoob_api — US-FIN-044 (Lea/Larissa biz=4 ROTA LIVRE pediu 2026-05-27)
+  sicoob_api: {
+    key: 'sicoob_api', nome: 'Sicoob API', sigla: 'SB',
+    dot: 'bg-emerald-700', bg: 'bg-emerald-50', fg: 'text-emerald-800', border: 'border-emerald-200',
+    tipos: ['boleto'],
+    ambientes: ['sandbox', 'production'],
+    cred: 'OAuth2 + mTLS (.pfx) · client_id+secret · convênio + carteira + modalidade',
+    pricing: {
+      boleto: 'R$ 1,50–3,50 por boleto registrado (negociável com cooperativa)',
+      settlement: 'D+0 (mesma data útil)',
+    },
+    requirements: [
+      'Conta PJ Sicoob ativa em cooperativa singular',
+      'Produto "Cobrança Bancária API v3" contratado em agência',
+      '.pfx (PKCS12) + senha emitida pelo Sicoob via Developer Portal',
+      'Convênio (Código Cedente) liberado pela cooperativa',
+    ],
+    recommendedFor: 'PJ cooperativada Sicoob · webhook real-time pra reconciliação',
+    credentialSource: { url: 'https://developers.sicoob.com.br', label: 'Sicoob Developer Portal → Cobrança Bancária v3' },
   },
   pagarme: {
     key: 'pagarme', nome: 'Pagar.me', sigla: 'PG',
