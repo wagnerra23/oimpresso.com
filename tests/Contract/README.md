@@ -128,9 +128,9 @@ Skips gracefully se ambiente sem schema (`Schema::hasTable('contacts')` false) �
 |---|---|---|
 | Cliente drawer | ✅ implementado | 5 abas (identificacao/contato/endereco/comercial/classificacao) |
 | Sells/Create | ✅ parcial | quick-add cliente (POST /contacts), commission-split (PATCH /sells/{id}/commission-split). NÃO cobre POST /pos (full-form). |
-| OficinaAuto/ServiceOrder | ✅ implementado | PUT edit (status + datas + notes + odometer) — roundtrip via GET JSON |
+| OficinaAuto/ServiceOrder | ✅ implementado | PUT /oficina-auto/ordens-servico/{id} (7 campos cadastrais) |
+| Compras/Create | ✅ parcial | quick-add Fornecedor (POST /contacts type=supplier, 5 campos). NÃO cobre POST /purchases (redirect-flow). check_ref_number reservado pra runner raw_body. |
 | NFe/Config | ✅ parcial | ambiente SEFAZ (POST), auto-emission toggle (POST), config-default upsert (POST). NÃO cobre upload .pfx (multipart, fixture próprio) nem testar SEFAZ (action, não autosave). |
-| Compras/Create | 🟡 médio | draft, item edit |
 | Vehicles/Edit | ⚪ baixo | edit |
 | Produto/Edit | ⚪ baixo | edit, variations |
 
