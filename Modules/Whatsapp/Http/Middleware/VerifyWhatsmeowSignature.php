@@ -96,16 +96,40 @@ class VerifyWhatsmeowSignature
             return $next($request);
         }
 
-        // ─── Fallback: Token header (sem HMAC global configurado) ───────
-        // Cenário: HMAC global não setado no daemon (dev) — valida via user_token
+        // ─── Fallback 1: Token header (sem HMAC global) ─────────────────
+        // Cenário: HMAC global não setado no daemon — valida via user_token
         // matching algum channel ativo do business. Timing-safe compare.
         $providedToken = (string) $request->header('Token', '');
-        if ($providedToken === '') {
-            \Log::warning('[whatsapp.webhook.whatsmeow] sem HMAC nem Token header', [
+
+        // ─── Fallback 2: IP whitelist CT 100 (WuzAPI outbound) ──────────
+        // Quando WuzAPI manda webhook outbound sem HMAC nem Token header
+        // (config padrão atual em /admin/users HasHmac=false), aceita request
+        // se vem do IP whitelist do CT 100 (Tier 1 defesa: rede privada).
+        // Sessão 2026-05-27: business_uuid path já valida tenant; channel
+        // resolvido por payload Username (resolveChannel) ou fallback default
+        // ativo. ADR 0205 Reconciler completo vai substituir esse fallback.
+        $allowedDaemonIps = (array) config('whatsapp.whatsmeow.allowed_daemon_ips', [
+            '177.74.67.30', // CT 100 público (Traefik egress)
+            '10.0.0.0/8',   // Tailscale interno
+        ]);
+        $remoteIp = (string) $request->ip();
+        $ipAllowed = $this->ipMatchesAny($remoteIp, $allowedDaemonIps);
+
+        if ($providedToken === '' && ! $ipAllowed) {
+            \Log::warning('[whatsapp.webhook.whatsmeow] sem HMAC nem Token nem IP whitelist', [
                 'business_id' => $businessId,
                 'business_uuid' => $businessUuid,
+                'ip' => $remoteIp,
             ]);
             return response()->json(['error' => 'invalid_signature'], 401);
+        }
+
+        if ($providedToken === '' && $ipAllowed) {
+            // IP whitelist OK — resolve channel via payload Username
+            $channel = $this->resolveChannel($request, $businessId);
+            $request->attributes->set('whatsapp.business_id', $businessId);
+            $request->attributes->set('whatsapp.channel', $channel);
+            return $next($request);
         }
 
         // SUPERADMIN: busca channels do business sem global scope (pré-auth)
@@ -133,6 +157,31 @@ class VerifyWhatsmeowSignature
         $request->attributes->set('whatsapp.channel', $channel);
 
         return $next($request);
+    }
+
+    /**
+     * Match IP contra lista de patterns (CIDR ou exato).
+     * Suporta strings simples ("177.74.67.30") + CIDR ("10.0.0.0/8").
+     */
+    private function ipMatchesAny(string $ip, array $patterns): bool
+    {
+        foreach ($patterns as $pattern) {
+            if (str_contains($pattern, '/')) {
+                [$subnet, $bits] = explode('/', $pattern, 2);
+                $ipBin = ip2long($ip);
+                $subnetBin = ip2long($subnet);
+                if ($ipBin === false || $subnetBin === false) {
+                    continue;
+                }
+                $mask = -1 << (32 - (int) $bits);
+                if (($ipBin & $mask) === ($subnetBin & $mask)) {
+                    return true;
+                }
+            } elseif ($ip === $pattern) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
