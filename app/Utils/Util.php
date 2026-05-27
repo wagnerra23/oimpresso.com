@@ -298,6 +298,32 @@ class Util
     }
 
     /**
+     * Formata data já-existente do DB SEM o shift +3h histórico do format_date.
+     *
+     * Wagner 2026-05-27 — Larissa @ Rota Livre: recibo de venda 2026/2986
+     * mostrava 23:47 quando hora real era 18:00. Diagnóstico via workflow
+     * debug-tz-info.yml: transaction_date no DB = 20:47 (correto), format_date
+     * adicionava +3h "intencional" → display 23:47.
+     *
+     * Use este método pra dados de DB (transaction_date, etc) onde valor é
+     * timestamp histórico que NÃO deve ter shift adicional. format_date()
+     * legacy mantido inalterado pra preservar consistência visual com vendas
+     * mega-antigas que dependem dele.
+     */
+    public function format_date_no_shift($date, $show_time = false, $business_details = null)
+    {
+        if (empty($date)) {
+            return null;
+        }
+        $format = ! empty($business_details) ? $business_details->date_format : session('business.date_format');
+        if (! empty($show_time)) {
+            $time_format = ! empty($business_details) ? $business_details->time_format : session('business.time_format');
+            $format .= ($time_format == 12) ? ' h:i A' : ' H:i';
+        }
+        return \Carbon::parse($date)->format($format);
+    }
+
+    /**
      * Retorna "agora" formatado no padrão do business, SEM o shift +3h histórico
      * do format_date. Use pra pré-preencher campos de form tipo transaction_date
      * onde o valor é "agora" e não um dado histórico de DB.
