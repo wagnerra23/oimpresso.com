@@ -35,7 +35,7 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -211,9 +211,21 @@ def map_financeiro_to_titulo(
         if cp in transaction_lookup:
             transaction_id_resolved = transaction_lookup[cp]
 
-    # Lookup cliente via PESSOA_RESPONSAVEL_CODIGO (não tem CNPJ direto em FINANCEIRO)
-    # Por ora cliente_id=NULL + cliente_descricao=RAZAOSOCIAL
+    # Lookup cliente via PESSOA_RESPONSAVEL_CODIGO → contacts.legacy_id.
+    # FINANCEIRO não traz CNPJ direto — PESSOA_RESPONSAVEL_CODIGO é o CODIGO Delphi
+    # da PESSOA. Mas contact_lookup neste pipeline é montado com legacy_id=CNPJ
+    # (import-contacts-from-venda usa CNPJ como dedup). Pra resolver cliente_id
+    # precisaria um segundo lookup PESSOAS.CODIGO→PESSOAS.CNPJCPF, custoso.
+    # Compromisso: tenta lookup direto (legacy_id=PESSOA.CODIGO) se contact_lookup
+    # tiver populado nesse formato (ex: import-contacts.py por CODIGO Delphi).
+    # Caso contrário fica NULL e cliente_descricao carrega RAZAOSOCIAL.
     razao = normalize_str(fin.get("RAZAOSOCIAL"), 255)
+    cliente_id = None
+    pessoa_cod = fin.get("PESSOA_RESPONSAVEL_CODIGO")
+    if pessoa_cod is not None:
+        pc = str(pessoa_cod).strip()
+        if pc and pc in contact_lookup:
+            cliente_id = contact_lookup[pc]
 
     parcela_num, parcela_total = parse_parcela(fin.get("PARCELA"))
 
@@ -256,7 +268,7 @@ def map_financeiro_to_titulo(
         "legacy_id": legacy_id,
         "tipo": tipo,
         "status": status,
-        "cliente_id": None,
+        "cliente_id": cliente_id,
         "cliente_descricao": razao,
         "valor_total": valor,
         "valor_aberto": valor_aberto,
@@ -293,7 +305,7 @@ def map_financeiro_to_titulo(
             "delphi_tipopagto": normalize_str(fin.get("TIPOPAGTO")),
             "delphi_condicaopagto": normalize_str(fin.get("CONDICAOPAGTO")),
             "is_write_off_candidate": write_off,
-            "imported_at_iso": datetime.utcnow().isoformat() + "Z",
+            "imported_at_iso": datetime.now(timezone.utc).isoformat(),
             "importer_version": IMPORTER_VERSION,
         }, ensure_ascii=False),
         "created_by": created_by,
@@ -318,8 +330,17 @@ def map_financeiro_to_titulo(
     return data, audit
 
 
-def map_baixa(fin: dict, titulo_id: int, business_id: int, conta_default: int, created_by: int) -> dict | None:
-    """Se DATAPAGTO != NULL, gera fin_titulo_baixas row."""
+def map_baixa(
+    fin: dict, titulo_id: int, business_id: int, conta_default: int,
+    created_by: int, conta_legacy_map: dict[str, int] | None = None,
+) -> dict | None:
+    """Se DATAPAGTO != NULL, gera fin_titulo_baixas row.
+
+    conta_bancaria_id: SEMPRE fin_contas_bancarias.id do biz alvo (FK obrigatório).
+    NÃO usar accounts_legacy_map.account_id aqui — aquele bridge mapeia pra
+    UltimatePOS accounts.id, não pra fin_contas_bancarias.id. FK quebraria.
+    Param conta_legacy_map mantido pra compat de assinatura mas ignorado.
+    """
     datapagto = fin.get("DATAPAGTO")
     if datapagto is None:
         return None
@@ -329,10 +350,12 @@ def map_baixa(fin: dict, titulo_id: int, business_id: int, conta_default: int, c
     if valor == 0:
         return None
     legacy_id = str(fin["CODIGO"]).strip()
+    conta_id = conta_default  # sempre fallback safe (fin_contas_bancarias.id válido)
+
     return {
         "business_id": business_id,
         "titulo_id": titulo_id,
-        "conta_bancaria_id": conta_default,
+        "conta_bancaria_id": conta_id,
         "valor_baixa": valor,
         "juros": juros,
         "multa": 0,
@@ -402,7 +425,10 @@ def main() -> int:
         # Lookup transactions biz=N pra resolver origem_id via ref_no=CODPEDIDO
         transaction_lookup: dict[str, int] = {}
         contact_lookup: dict[str, int] = {}
-        conta_default = 1  # primeira conta bancária biz alvo
+        # CODCONTA Delphi → fin_contas_bancarias.id via accounts_legacy_map
+        # (mapping populado por import-contas-bancarias.py — fonte de verdade)
+        conta_legacy_map: dict[str, int] = {}
+        conta_default = 1  # fallback: primeira conta bancária biz alvo
 
         if args.target in ("local", "prod"):
             if pymysql is None:
@@ -433,7 +459,20 @@ def main() -> int:
                     )
                     for r in cur.fetchall():
                         contact_lookup[str(r["legacy_id"])] = int(r["id"])
-                    # Conta bancária default (primeira ativa)
+                    # CODCONTA Delphi → account no oimpresso via accounts_legacy_map
+                    # (ADR 0118 — bridge table sem mexer no schema UltimatePOS core)
+                    try:
+                        cur.execute(
+                            "SELECT legacy_id, account_id FROM accounts_legacy_map "
+                            "WHERE business_id=%s AND legacy_source=%s",
+                            (args.target_business, LEGACY_SOURCE),
+                        )
+                        for r in cur.fetchall():
+                            conta_legacy_map[str(r["legacy_id"])] = int(r["account_id"])
+                    except pymysql.err.ProgrammingError:
+                        # Tabela accounts_legacy_map pode não existir em ambientes antigos
+                        pass
+                    # Conta bancária default (primeira ativa) — fallback se CODCONTA não mapeada
                     cur.execute(
                         "SELECT id FROM fin_contas_bancarias WHERE business_id=%s LIMIT 1",
                         (args.target_business,),
@@ -445,9 +484,10 @@ def main() -> int:
                 tmp_con.close()
             print(f"[Transactions lookup] {len(transaction_lookup)} entries")
             print(f"[Contacts lookup] {len(contact_lookup)} entries")
-            print(f"[Conta bancária default] id={conta_default}")
+            print(f"[Accounts legacy map] {len(conta_legacy_map)} CODCONTA Delphi → account_id mapeados")
+            print(f"[Conta bancária default] id={conta_default} (fallback)")
         else:
-            print("[Lookups] dry-run · vazio (origem_id ficará NULL)")
+            print("[Lookups] dry-run · vazio (origem_id e cliente_id ficarão NULL)")
 
         # Query FINANCEIRO com filtro
         where_parts = []
@@ -568,7 +608,10 @@ def main() -> int:
 
                         # Baixa (se pago)
                         if not args.skip_baixas:
-                            baixa = map_baixa(fin, titulo_id, args.target_business, conta_default, args.created_by)
+                            baixa = map_baixa(
+                                fin, titulo_id, args.target_business, conta_default,
+                                args.created_by, conta_legacy_map=conta_legacy_map,
+                            )
                             if baixa:
                                 # Idempotência via idempotency_key
                                 wcur.execute(

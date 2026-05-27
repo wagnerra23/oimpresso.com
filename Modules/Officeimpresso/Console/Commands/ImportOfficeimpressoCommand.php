@@ -94,13 +94,17 @@ class ImportOfficeimpressoCommand extends Command
                 ['PRODUTOS → products', $report['produtos']['read'], $report['produtos']['migrated'], $report['produtos']['skipped']],
                 ['VENDAS → transactions', $report['vendas']['read'], $report['vendas']['migrated'], $report['vendas']['skipped']],
                 ['LICENCA_COMPUTADOR → licenca_computador', $report['licencas']['read'], $report['licencas']['migrated'], $report['licencas']['skipped']],
+                ['FINANCEIRO → fin_titulos [W29-1]', $report['financeiros']['read'] ?? 0, $report['financeiros']['migrated'] ?? 0, $report['financeiros']['skipped'] ?? 0],
+                ['NOTA_FISCAL → nfe_emissoes [W29-1]', $report['notas_fiscais']['read'] ?? 0, $report['notas_fiscais']['migrated'] ?? 0, $report['notas_fiscais']['skipped'] ?? 0],
             ]
         );
 
         $totalMigrated = $report['clientes']['migrated']
             + $report['produtos']['migrated']
             + $report['vendas']['migrated']
-            + $report['licencas']['migrated'];
+            + $report['licencas']['migrated']
+            + ($report['financeiros']['migrated'] ?? 0)
+            + ($report['notas_fiscais']['migrated'] ?? 0);
 
         $this->line('');
         if ($dryRun) {

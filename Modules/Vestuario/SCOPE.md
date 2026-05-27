@@ -2,8 +2,11 @@
 module: Vestuario
 purpose: "Vertical lojas de vestuário/moda BR (CNAE 4781-4/00). Encapsula customizações ROTA LIVRE (cliente piloto biz=4) e habilita revenda do módulo. Consome Modules/Repair shared infra opcional (kanban costureira→revisão→finalização) via vocabulário shared."
 contains:
-  # módulo scaffold vazio — customizações ROTA LIVRE migram progressivamente
-  # (US-VEST-002+). Quando nascer 1º Controller, declarar aqui.
+  - "EtiquetaTagController — geração lote etiquetas TAG (ZPL Argox/Zebra + PDF DomPDF) per business (US-VEST-020, RUNBOOK-etiqueta-tag.md)"
+  - "EtiquetaTagService — ZPL 50×30mm + EAN-13 GS1 + QR Code opcional + settings configurable per business (Wave 27 + US-VEST-020)"
+  - "GradeCurvaService — matriz tamanho × cor + proporção curva BR (Wave 27, ADR 0121 §P7)"
+  - "VestuarioSettingsResolver — settings JSON per business cache 5min (Sprint 2 ADR 0121)"
+  - "DevolucaoService — CDC art. 49 7d devolução + crédito vest_creditos_cliente (US-VEST-021, scaffold)"
 not_contains:
   - "Núcleo transactions/contacts → UltimatePOS core (compartilhado entre verticais)"
   - "NFe/NFC-e → Modules/NfeBrasil (backbone)"
