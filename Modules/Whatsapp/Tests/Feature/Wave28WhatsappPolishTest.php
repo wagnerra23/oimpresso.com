@@ -70,8 +70,9 @@ describe('Wave 28 Whatsapp POLISH', function () {
             expect(class_exists($cls))->toBeTrue("Driver canon {$cls} deve existir");
         }
 
-        // ADR 0202 (2026-05-27): BaileysDriver descontinuado, classe deletada
-        expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\BaileysDriver'))->toBeFalse();
+        // ADR 0202 (2026-05-27): BaileysDriver descontinuado, arquivo deletado
+        $driversDir = __DIR__ . '/../../Services/Drivers';
+        expect(file_exists($driversDir . '/BaileysDriver.php'))->toBeFalse();
 
         // Anti-regression IRREVOGÁVEL: EvolutionDriver não pode ressuscitar
         expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\EvolutionDriver'))->toBeFalse();
