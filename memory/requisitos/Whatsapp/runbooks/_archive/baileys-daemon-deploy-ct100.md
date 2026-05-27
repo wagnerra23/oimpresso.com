@@ -1,3 +1,6 @@
+> ⚠️ **ARQUIVADO 2026-05-27** — BaileysDriver descontinuado por [ADR 0202](../../../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md).
+> Conteúdo preservado como lição histórica. **NÃO aplicar em produção.**
+
 # RUNBOOK · whatsapp-baileys daemon — Deploy CT 100
 
 > **Pré-requisitos:** acesso `tailscale ssh root@ct100-mcp` validado. Skill `proxmox-docker-host`.
