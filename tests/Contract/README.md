@@ -128,8 +128,8 @@ Skips gracefully se ambiente sem schema (`Schema::hasTable('contacts')` false) �
 |---|---|---|
 | Cliente drawer | ✅ implementado | 5 abas (identificacao/contato/endereco/comercial/classificacao) |
 | Sells/Create | ✅ parcial | quick-add cliente (POST /contacts), commission-split (PATCH /sells/{id}/commission-split). NÃO cobre POST /pos (full-form). |
-| OficinaAuto/ServiceOrder | 🟡 alto | edit, status_change |
-| Compras/Create | 🟡 médio | draft, item edit |
+| OficinaAuto/ServiceOrder | ✅ implementado | PUT /oficina-auto/ordens-servico/{id} (7 campos cadastrais) |
+| Compras/Create | ✅ parcial | quick-add Fornecedor (POST /contacts type=supplier, 5 campos). NÃO cobre POST /purchases (redirect-flow). check_ref_number reservado pra runner raw_body. |
 | Vehicles/Edit | ⚪ baixo | edit |
 | Produto/Edit | ⚪ baixo | edit, variations |
 | NFe/Config | ⚪ baixo | certificate upload, ambiente toggle |
