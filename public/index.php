@@ -4,6 +4,12 @@
 // Só afeta este projeto. Erros reais (E_ERROR/E_WARNING/E_PARSE) continuam aparecendo.
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_NOTICE);
 
+// display_errors=0 sempre — Ignition captura erros fatais (Throwable). Warnings
+// vendor não-fatais (ex: opentelemetry-auto-laravel sem ext-opentelemetry no Herd
+// local) iam pra display_errors e corromper JSON responses Inertia. Logs continuam
+// indo pra storage/logs/laravel.log via Laravel error handler.
+ini_set('display_errors', '0');
+
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 

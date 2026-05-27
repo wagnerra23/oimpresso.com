@@ -28,6 +28,14 @@ class AdminSidebarMenu
 
         Menu::create('admin-sidebar-menu', function ($menu) {
             $enabled_modules = !empty(session('business.enabled_modules')) ? session('business.enabled_modules') : [];
+            // Defensive: session pode armazenar enabled_modules como string JSON
+            // se o cast `array` do Business model não foi aplicado (ex: session
+            // hidratada via DB::table sem cast, ou Eloquent serializado perdeu cast
+            // entre requests). json_decode garante array sempre que entrar em in_array.
+            if (is_string($enabled_modules)) {
+                $decoded = json_decode($enabled_modules, true);
+                $enabled_modules = is_array($decoded) ? $decoded : [];
+            }
 
             $common_settings = !empty(session('business.common_settings')) ? session('business.common_settings') : [];
             $pos_settings = !empty(session('business.pos_settings')) ? json_decode(session('business.pos_settings'), true) : [];
