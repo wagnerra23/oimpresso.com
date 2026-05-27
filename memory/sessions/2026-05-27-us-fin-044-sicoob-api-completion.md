@@ -142,7 +142,54 @@ Martinho Caçambas (biz=164, locação/manutenção caçambas, região Tubarão/
 ## Próximos passos
 
 1. **Wagner manda checklist pra Kamila** ([memory/sessions/2026-05-27-sicoob-api-credenciais-pedido.md](2026-05-27-sicoob-api-credenciais-pedido.md))
-2. **Lea/Kamila junta credenciais sandbox Sicoob** (~2-7 dias úteis, depende cooperativa)
-3. **Wagner cadastra biz=4 no wizard sandbox** + smoke E2E real
-4. **Wagner aprova migração biz=4 sicoob_cnab → sicoob_api** (manter ambos 30d)
-5. **Aplicar US-FIN-045 bank-first** quando 2º API driver (Bradesco/BB/Itaú) entrar pra justificar refactor amplo do wizard.
+2. **Kamila junta credenciais sandbox Sicoob** (~2-7 dias úteis, depende cooperativa) — atenção: **não precisa baixar .pfx do Sicoob** (US-FIN-046 reusa cert A1 ICP-Brasil já cadastrado em Fiscal)
+3. **Wagner cadastra biz=164 no wizard sandbox** + smoke E2E real
+4. **Wagner aprova migração biz=164 sicoob_cnab → sicoob_api** (manter ambos 30d)
+5. **Aplicar US-FIN-045 bank-first** quando 2º API driver (Bradesco/BB/Itaú) entrar pra justificar refactor amplo do wizard
+6. **Aplicar US-FIN-047 extrair NfeCertificado** pra módulo neutro quando 2º banco API exigir (Bradesco/Inter/BB todos exigem ICP-Brasil A1)
+
+---
+
+## Adendo 2026-05-27 — Lição US-FIN-046 (bug arquitetural .pfx duplicado)
+
+### O bug que Wagner pegou na revisão
+
+Quando entreguei US-FIN-044, fiz o driver Sicoob armazenar `.pfx` em `storage/app/private/sicoob/{biz}.pfx` (plain) — INDEPENDENTE de qualquer cert que o cliente já tivesse cadastrado no Fiscal pra NFe SEFAZ. Wagner perguntou "Certificado .pfx (PKCS12) vai ficar em dois lugares?" — sim, eu tinha criado duplicação:
+
+| Local | Encrypt-at-rest | Origem |
+|---|---|---|
+| `storage/app/nfe-brasil/{biz}/cert/{uuid}.pfx.enc` | ✅ `Crypt::encrypt(binary)` | NfeCertificado canon (NFe SEFAZ) |
+| `storage/app/private/sicoob/{biz}.pfx` | ❌ plain | minha cópia US-FIN-044 PR5 |
+
+### Verdade canon que faltava
+
+Sicoob API Cobrança v3 EXIGE cert **ICP-Brasil A1 do CNPJ da empresa** — EXATAMENTE o mesmo certificado que NfeBrasil/SEFAZ já usa. Confirmado em TecnoSpeed + SoftenSistemas + ACBr Projeto (pesquisa 2026-05-27). O mesmo vale pra futuros Bradesco API, Inter API mTLS, BB API, Itaú API — todos ICP-Brasil A1.
+
+**Padrão arquitetural recomendado:** drivers de banco PJ no Brasil que exigem mTLS devem **reusar `NfeCertificado` canon** (não criar storage próprio). Cliente upload UMA vez em `/fiscal/configuracao/certificado`. Multi-uso (NFe + Sicoob + Bradesco + ...) automático.
+
+### Fix (US-FIN-046)
+
+`SicoobApiDriver::mtlsOptions()` agora chama `CertificadoService::carregarParaSefaz($cred->business_id)` (canon NfeBrasil), escreve `.pfx` binary em temp file (`sys_get_temp_dir()/sicoob-pfx-*` com chmod 0600), cleanup via `register_shutdown_function`. Retorna `['cert' => [tempPath, plain_password]]` pra Guzzle.
+
+Wizard step 2 Sicoob: removeu upload `.pfx` + senha; adicionou indicador colorido (verde/âmbar/rose) do cert A1 ativo OU warning se ausente com deep-link `/fiscal/configuracao/certificado`. UX clara: cert A1 vive UMA VEZ no Fiscal, todos os drivers consomem.
+
+Migration revert: drop colunas `payment_gateway_credentials.requires_mtls` + `mtls_pfx_path` que ficaram órfãs.
+
+### Lição #7 (registrar canon)
+
+**Antes de criar storage/encrypt/upload novo, GREP por pattern existente** em arquivos canon (`Modules/NfeBrasil/Models/NfeCertificado`, `Modules/NfeBrasil/Services/CertificadoService`, etc). Especialmente pra coisas que parecem "óbvias de criar do zero" (.pfx, cert digital, encrypt-at-rest) — provavelmente alguém já fez canonicamente. Confundir com decisão de implementação inicial gera 2 sistemas e cliente upload duplicado.
+
+### Débito futuro anotado — US-FIN-047
+
+Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil/Models/NfeCertificado` é débito aceitável até 2º banco API entrar (Bradesco/Inter/BB). Aí extrair pra módulo neutro:
+
+- `app/Models/CertificadoDigital` (ou `Modules/Infra/Certificados/Models/CertificadoDigital`)
+- Campo novo `proposito`: `nfe_sefaz` / `sicoob_mtls` / `bradesco_mtls` / `inter_mtls` / `bb_mtls`
+- Validação CNPJ Subject CN configurável por propósito (NFe exige bater, Sicoob exige bater, BB pode aceitar wildcard)
+- Migrar consumers (NfeBrasil + PaymentGateway) pra novo model
+
+Hoje semanticamente confuso pra time MCP — "por que `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver` importa de `Modules/NfeBrasil/Services/CertificadoService`?". Comentário no driver explica, mas ideal é refactor.
+
+### Lição #8 (revisão por Wagner)
+
+Quando entregar feature técnica que toca infra compartilhada (storage, encrypt, modelo único da empresa, certificados, integrações OAuth), **explicar arquitetura ANTES de implementar** + pesquisar fato canon (ex: "Sicoob aceita ICP-Brasil A1 da empresa?"). Custou um refactor (US-FIN-046) e PR adicional pra corrigir. Padrão pra próximas integrações bancárias.
