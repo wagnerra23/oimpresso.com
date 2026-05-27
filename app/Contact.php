@@ -80,7 +80,28 @@ class Contact extends Authenticatable
         'fatura_previsao' => 'date',
         'prioridade_producao' => 'integer',
         'iss_retido' => 'integer',
+        // ADR 0199 Bucket B (Opção B JSON catch-all) — pivot tabela satélite
+        // para 2 cols em contacts. Migration 2026_05_27_140000_contacts_bucket_b_legacy_raw_json.
+        // Importer canônico persiste PII-redacted dump Delphi como JSON aqui.
+        // Chaves canônicas esperadas: codigo_raw, data_cadastro, dt_alteracao,
+        // usuario_cadastro, usuario_alteracao, emails_extras, observacoes,
+        // campos_custom_cliente, raw_dump_pessoas_row.
+        'legacy_raw' => 'array',
     ];
+
+    /**
+     * ADR 0199 — Storytelling accessor "cliente desde 2003".
+     *
+     * Lê data de cadastro original Delphi do JSON catch-all em legacy_raw.
+     * Retorna null se contact não foi migrado de legacy (legacy_raw IS NULL)
+     * ou se a chave data_cadastro não está presente.
+     *
+     * Use em UI: {{ $contact->cliente_desde ?? 'data não disponível' }}
+     */
+    public function getClienteDesdeAttribute(): ?string
+    {
+        return data_get($this->legacy_raw, 'data_cadastro');
+    }
 
     /**
      * ADR 0197 Bucket A — Pai da rede (matriz/filial). Self-FK.
