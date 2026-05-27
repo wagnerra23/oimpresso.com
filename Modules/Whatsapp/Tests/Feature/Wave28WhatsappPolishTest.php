@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
+// BaileysDriver REMOVIDO 2026-05-27 (ADR 0202).
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -65,11 +65,13 @@ describe('Wave 28 Whatsapp POLISH', function () {
 
     // ---- Tier 0 lock-in extra ----
 
-    it('Tier 0: 4 drivers canon exatos via class_exists (ADR 0096 emenda 4 — EvolutionDriver proibido permanente)', function () {
-        // Sentry via class_exists (mais portável que glob windows path)
-        foreach ([BaileysDriver::class, MetaCloudDriver::class, NullDriver::class, ZapiDriver::class] as $cls) {
+    it('Tier 0 pós ADR 0202: 3 drivers canon exatos (Meta/Zapi/Null) + Baileys removido + Evolution proibido permanente', function () {
+        foreach ([MetaCloudDriver::class, NullDriver::class, ZapiDriver::class] as $cls) {
             expect(class_exists($cls))->toBeTrue("Driver canon {$cls} deve existir");
         }
+
+        // ADR 0202 (2026-05-27): BaileysDriver descontinuado, classe deletada
+        expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\BaileysDriver'))->toBeFalse();
 
         // Anti-regression IRREVOGÁVEL: EvolutionDriver não pode ressuscitar
         expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\EvolutionDriver'))->toBeFalse();
