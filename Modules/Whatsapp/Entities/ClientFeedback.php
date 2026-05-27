@@ -55,6 +55,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property ?string $responder_cliente
  * @property ?string $mcp_task_id
  * @property bool $dev_task_requested
+ * @property ?string $signature
+ * @property float $relevance_score
+ * @property ?\Carbon\Carbon $relevance_score_at
+ * @property ?\Carbon\Carbon $last_seen_at
  * @property ?\Carbon\Carbon $data_resolvido
  * @property ?string $pr_link
  * @property ?bool $cliente_confirmou
@@ -99,6 +103,7 @@ class ClientFeedback extends Model
         'severity_nng', 'primeira_vez', 'recorrente_count', 'pattern_emergente',
         'status', 'responder_cliente',
         'mcp_task_id', 'dev_task_requested',
+        'signature', 'relevance_score', 'relevance_score_at', 'last_seen_at',
         'data_resolvido', 'pr_link', 'cliente_confirmou', 're_reclamacao',
         'created_by',
     ];
@@ -116,6 +121,9 @@ class ClientFeedback extends Model
         'cliente_confirmou' => 'boolean',
         're_reclamacao' => 'boolean',
         'dev_task_requested' => 'boolean',
+        'relevance_score' => 'decimal:2',
+        'relevance_score_at' => 'datetime',
+        'last_seen_at' => 'datetime',
         'created_by' => 'integer',
     ];
 
@@ -159,6 +167,36 @@ class ClientFeedback extends Model
     public function shouldHaveMcpTask(): bool
     {
         return $this->severity_nng >= 3;
+    }
+
+    /**
+     * Scope HOT: relevance_score >= 70 (camada in-context, INDEX.md).
+     */
+    public function scopeHot($query)
+    {
+        return $query->where('relevance_score', '>=', 70);
+    }
+
+    /**
+     * Scope WARM: 30 <= relevance_score < 70.
+     */
+    public function scopeWarm($query)
+    {
+        return $query->whereBetween('relevance_score', [30, 69.99]);
+    }
+
+    /**
+     * Scope COLD: relevance_score < 30 OU resolved/closed >= 90d.
+     */
+    public function scopeCold($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('relevance_score', '<', 30)
+              ->orWhere(function ($qq) {
+                  $qq->whereIn('status', [self::STATUS_CLOSED, self::STATUS_RESOLVED])
+                     ->where('updated_at', '<', now()->subDays(90));
+              });
+        });
     }
 
     /**
