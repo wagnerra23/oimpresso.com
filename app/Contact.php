@@ -81,12 +81,17 @@ class Contact extends Authenticatable
         'prioridade_producao' => 'integer',
         'iss_retido' => 'integer',
         // ADR 0199 Bucket B (Opção B JSON catch-all) — pivot tabela satélite
-        // para 2 cols em contacts. Migration 2026_05_27_140000_contacts_bucket_b_legacy_raw_json.
+        // para col JSON em contacts. Migration 2026_05_27_140000_contacts_bucket_b_legacy_raw_json.
         // Importer canônico persiste PII-redacted dump Delphi como JSON aqui.
         // Chaves canônicas esperadas: codigo_raw, data_cadastro, dt_alteracao,
         // usuario_cadastro, usuario_alteracao, emails_extras, observacoes,
         // campos_custom_cliente, raw_dump_pessoas_row.
         'legacy_raw' => 'array',
+        // ADR 0200 — canon sync bidirecional Delphi ↔ oimpresso (Wagner 2024-11).
+        // Pareada com 11 outras tabelas (brands/products/users/etc).
+        // BaseApiController::syncData usa officeimpresso_dt_alteracao em conflict
+        // detection (linha 67-73). Migration 2026_05_27_160000_contacts_consolidate_officeimpresso_sync_canon.
+        'officeimpresso_dt_alteracao' => 'datetime',
     ];
 
     /**
