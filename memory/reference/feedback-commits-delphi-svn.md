@@ -8,7 +8,7 @@ type: feedback
 
 ## Regra (Wagner 2026-05-27)
 
-`D:\Programas\` é working copy SVN compartilhada pelo time inteiro (Wagner + Felipe + Maiara + Eliana + Luiz), apontando pro servidor central `http://sistema.wr2.com:8777/svn/Programas` (hostname canônico — split-DNS LAN escritório resolve pro `.55:8777` interno; working copy original do Wagner usa hostname legacy `servidor-crm` apontando pro mesmo repo). Cobre o código Delphi WR Comercial / Office Comercial / OficinaAuto + componentes ACBr/DUnit/Imagens/Aprocat/Clinica/etc.
+`D:\Programas\` é working copy SVN compartilhada pelo time inteiro (Wagner + Felipe + Maiara + Eliana + Luiz), apontando pro servidor central `http://wr2.com.br:8777/svn/Programas` (hostname canônico — split-DNS LAN escritório resolve pro `.55:8777` interno; working copy original do Wagner usa hostname legacy `servidor-crm` apontando pro mesmo repo). Cobre o código Delphi WR Comercial / Office Comercial / OficinaAuto + componentes ACBr/DUnit/Imagens/Aprocat/Clinica/etc.
 
 **Claude NÃO executa `svn commit`/`svn add`/`svn rm`/`svn delete`/`svn move`/`svn cp` em `D:\Programas\`** — nenhuma operação que modifique o repositório central.
 
@@ -22,7 +22,7 @@ Comitar source Delphi no SVN **não tem loop fechado**:
 
 1. Wagner declarou **não recompila/redistribui** os `.exe` Delphi ([ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md), [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md)). Code change que vai pro SVN **não chega em prod** — não vira binário rodando em cliente.
 2. Mudança no `.pas` que altera contrato API (`Services.OImpresso.Token.pas` / `Controller.TOImpresso.pas` / `Services.RegistroSistema.pas`) **quebra cliente permanentemente** se algum dia recompilar — Tier 0 [contrato-delphi-inviolavel.md §1](contrato-delphi-inviolavel.md) (regra de ouro: aditivo only).
-3. Time inteiro acessa o mesmo `sistema.wr2.com:8777` (split-DNS, antes `servidor-crm:8777`) — commit acidental do Claude poluiu histórico compartilhado SEM aprovação humana, e versão central não dá pra "git reset --hard" (SVN é centralizado).
+3. Time inteiro acessa o mesmo `wr2.com.br:8777` (split-DNS, antes `servidor-crm:8777`) — commit acidental do Claude poluiu histórico compartilhado SEM aprovação humana, e versão central não dá pra "git reset --hard" (SVN é centralizado).
 4. **Princípio mestre [contrato-delphi-inviolavel.md:233](contrato-delphi-inviolavel.md)**: *"Delphi é hardware fóssil. O servidor evolui em volta dele, nunca contra ele."*
 
 A estratégia oimpresso vs Delphi é evolução **server-side aditiva** ([ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md) — 3 caminhos: endpoints novos Connector / hooks Listener server-side / fila polling `ads_delphi_commands`). Tudo no Laravel, nada no `.pas`.
@@ -71,7 +71,7 @@ Até lá: **READ-ONLY**.
 ## Setup técnico desta sessão
 
 - `winget install Slik.Subversion` → `svn 1.14.2-SlikSvn` em `C:\Program Files\SlikSvn\bin\svn.exe` (não no `$env:PATH` automático)
-- Working copy `D:\Programas` do Wagner confirmada: rev 10815 (18/abr/2026), URL legacy `http://servidor-crm:8777/svn/Programas/Trunk`. URL canônica nova (Felipe etc): `http://sistema.wr2.com:8777/svn/Programas/Trunk` — mesmo repo (UUID match).
+- Working copy `D:\Programas` do Wagner confirmada: rev 10815 (18/abr/2026), URL legacy `http://servidor-crm:8777/svn/Programas/Trunk`. URL canônica nova (Felipe etc): `http://wr2.com.br:8777/svn/Programas/Trunk` — mesmo repo (UUID match).
 - TortoiseSVN GUI continua disponível pra Wagner comitar manual via Explorer
 
 ## Ver também

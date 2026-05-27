@@ -276,11 +276,11 @@ Se sim:
   Passos resumidos:
     1. winget install Slik.Subversion  (svn.exe CLI)
     2. Resolver acesso à rede (3 opções no runbook):
-       a) ir à empresa primeira vez (LAN resolve sistema.wr2.com direto), OU
+       a) ir à empresa primeira vez (LAN resolve wr2.com.br direto), OU
        b) Tailscale (futuro, se Wagner aprovar setup), OU
-       c) hosts file: `177.74.67.30  sistema.wr2.com` (cuidado: sobrescreve
+       c) hosts file: `177.74.67.30  wr2.com.br` (cuidado: sobrescreve
           DNS público — confirmar com Wagner)
-    3. svn checkout http://sistema.wr2.com:8777/svn/Programas/Trunk D:\Programas
+    3. svn checkout http://wr2.com.br:8777/svn/Programas/Trunk D:\Programas
        (pode demorar horas — overnight é seguro)
     4. Credenciais SVN: pegar com Wagner via Vaultwarden
   Regra de uso: READ-ONLY (Claude NÃO comita SVN — ver
