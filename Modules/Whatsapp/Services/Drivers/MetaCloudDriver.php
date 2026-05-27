@@ -468,6 +468,171 @@ class MetaCloudDriver implements DriverInterface
     }
 
     /**
+     * Embedded Signup v4 — OAuth code → access_token permanent + auto-subscribe webhook.
+     *
+     * Fluxo Meta oficial (https://developers.facebook.com/docs/whatsapp/embedded-signup):
+     *   1. Frontend abre popup Facebook OAuth → user escolhe WABA + phone_number
+     *   2. Meta retorna `code` via `postMessage` pra parent window
+     *   3. Frontend posta `code` neste callback (POST /whatsapp/settings/meta-embedded-callback)
+     *   4. Backend troca code → access_token (System User long-lived) via Graph API
+     *   5. Backend pega phone_number_id + waba_id via /me/businesses + /{waba}/phone_numbers
+     *   6. Backend chama /{waba}/subscribed_apps pra assinar webhook
+     *   7. Caller (SettingsController) persiste tudo cifrado em whatsapp_business_configs
+     *
+     * Custo IA: ZERO (apenas chamadas Graph API Meta, sem LLM).
+     * Latência típica: 2-4 segundos (4 HTTP roundtrips Graph).
+     *
+     * NÃO persiste — caller fica responsável. Driver é puro adapter Meta.
+     *
+     * @param  string  $code  OAuth code recebido do popup Meta
+     * @return array{
+     *   access_token: string,
+     *   phone_number_id: string,
+     *   waba_id: string,
+     *   display_phone: string,
+     *   business_name: ?string
+     * }
+     *
+     * @throws \RuntimeException se Meta retorna erro em qualquer step
+     *
+     * @see https://developers.facebook.com/docs/whatsapp/embedded-signup/implementation
+     * @see memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md Fase 2
+     */
+    public function provisionViaEmbeddedSignup(string $code): array
+    {
+        return OtelHelper::span('whatsapp.meta_cloud.embedded_signup', [
+            'code_len' => strlen($code),
+        ], function () use ($code) {
+            $appId = (string) config('whatsapp.meta.app_id');
+            $appSecret = (string) config('whatsapp.meta.app_secret');
+            $apiVersion = config('whatsapp.meta.api_version', 'v21.0');
+            $baseUrl = config('whatsapp.meta.base_url', 'https://graph.facebook.com');
+            $timeout = (int) config('whatsapp.meta.request_timeout', 10);
+
+            if ($appId === '' || $appSecret === '') {
+                throw new \RuntimeException(
+                    'Meta App credentials missing (META_APP_ID/META_APP_SECRET). '
+                    .'Configure via .env antes de usar Embedded Signup.'
+                );
+            }
+
+            $client = Http::baseUrl("{$baseUrl}/{$apiVersion}")
+                ->timeout($timeout)
+                ->acceptJson();
+
+            // Step 1: code → access_token (long-lived System User token)
+            $tokenResponse = $client->get('/oauth/access_token', [
+                'client_id' => $appId,
+                'client_secret' => $appSecret,
+                'code' => $code,
+            ]);
+
+            if (! $tokenResponse->successful()) {
+                throw new \RuntimeException(
+                    'Meta oauth/access_token falhou: HTTP '.$tokenResponse->status()
+                    .' — '.$this->extractMetaError($tokenResponse)
+                );
+            }
+
+            $accessToken = (string) ($tokenResponse->json('access_token') ?? '');
+            if ($accessToken === '') {
+                throw new \RuntimeException(
+                    'Meta oauth/access_token retornou 2xx mas sem access_token: '
+                    .$tokenResponse->body()
+                );
+            }
+
+            $authedClient = $client->withToken($accessToken);
+
+            // Step 2: lista WABAs do user — pega o primeiro (Wagner manual escolha
+            // futura via UI dropdown se houver múltiplos)
+            $bizResponse = $authedClient->get('/me/businesses', ['limit' => 10]);
+
+            if (! $bizResponse->successful()) {
+                throw new \RuntimeException(
+                    'Meta /me/businesses falhou: HTTP '.$bizResponse->status()
+                    .' — '.$this->extractMetaError($bizResponse)
+                );
+            }
+
+            $businesses = $bizResponse->json('data') ?? [];
+            if (empty($businesses) || ! is_array($businesses[0] ?? null)) {
+                throw new \RuntimeException(
+                    'Meta /me/businesses retornou lista vazia — user precisa ter '
+                    .'Meta Business Manager + WABA criado antes de Embedded Signup.'
+                );
+            }
+
+            $wabaId = (string) ($businesses[0]['id'] ?? '');
+            $businessName = (string) ($businesses[0]['name'] ?? '') ?: null;
+
+            if ($wabaId === '') {
+                throw new \RuntimeException('Meta /me/businesses: WABA id vazio no payload.');
+            }
+
+            // Step 3: lista phone numbers do WABA — pega o primeiro
+            $phoneResponse = $authedClient->get("/{$wabaId}/phone_numbers", ['limit' => 10]);
+
+            if (! $phoneResponse->successful()) {
+                throw new \RuntimeException(
+                    "Meta /{$wabaId}/phone_numbers falhou: HTTP ".$phoneResponse->status()
+                    .' — '.$this->extractMetaError($phoneResponse)
+                );
+            }
+
+            $phones = $phoneResponse->json('data') ?? [];
+            if (empty($phones) || ! is_array($phones[0] ?? null)) {
+                throw new \RuntimeException(
+                    "WABA {$wabaId} não tem phone_number vinculado — user precisa "
+                    .'adicionar número ao WABA antes via Meta Business Manager.'
+                );
+            }
+
+            $phoneNumberId = (string) ($phones[0]['id'] ?? '');
+            $displayPhone = (string) ($phones[0]['display_phone_number'] ?? '');
+
+            if ($phoneNumberId === '' || $displayPhone === '') {
+                throw new \RuntimeException(
+                    "WABA {$wabaId} phone_numbers payload inválido (sem id/display)."
+                );
+            }
+
+            // Step 4: assina webhook fields (idempotent — Meta aceita re-subscribe)
+            $subscribeResponse = $authedClient->post("/{$wabaId}/subscribed_apps");
+
+            if (! $subscribeResponse->successful()) {
+                throw new \RuntimeException(
+                    "Meta /{$wabaId}/subscribed_apps falhou: HTTP "
+                    .$subscribeResponse->status()
+                    .' — '.$this->extractMetaError($subscribeResponse)
+                );
+            }
+
+            return [
+                'access_token' => $accessToken,
+                'phone_number_id' => $phoneNumberId,
+                'waba_id' => $wabaId,
+                'display_phone' => $displayPhone,
+                'business_name' => $businessName,
+            ];
+        });
+    }
+
+    /**
+     * Extrai mensagem de erro Meta de forma robusta (Meta usa formato
+     * `{error: {message, code, ...}}` mas alguns endpoints retornam só body).
+     */
+    private function extractMetaError(Response $response): string
+    {
+        $errorMessage = $response->json('error.message');
+        if (is_string($errorMessage) && $errorMessage !== '') {
+            return $errorMessage;
+        }
+
+        return (string) $response->body();
+    }
+
+    /**
      * Cliente HTTP configurado pra Meta Cloud API.
      *
      * Bearer token = meta_access_token (cifrado em DB, decifrado no Model getter).
