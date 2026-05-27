@@ -14,9 +14,23 @@ Universo legacy do Wagner (WR Sistemas) — código Delphi cliente desktop (`WR 
 
 **VCS:** SVN (não Git). Repo em `http://servidor-crm:8777/svn/Programas`. Working copy em `D:/Programas/.svn/` (pai de WR Comercial — trabalha como **monorepo**). Pasta tem `.git` local mas histórico parcial/morto — **use SVN**.
 
-### Inspeção sem `svn.exe` no PATH
+### Inspeção via `svn.exe` CLI
 
-TortoiseSVN em `C:/Program Files/TortoiseSVN/` só tem UI (TortoiseProc.exe, TortoiseMerge.exe), **sem svn.exe CLI**. Pra queries de histórico/checksum, ler direto o `wc.db` (SQLite) com Python stdlib:
+**Atualizado 2026-05-27:** SlikSvn 1.14.2 instalada em `C:\Program Files\SlikSvn\bin\svn.exe` (via `winget install Slik.Subversion`). Não está no PATH automático em todos shells — usar caminho completo:
+
+```powershell
+$svn = 'C:\Program Files\SlikSvn\bin\svn.exe'
+& $svn info 'D:\Programas'        # URL/UUID/revisão
+& $svn log 'D:\Programas' -l 20   # últimos 20 commits
+& $svn status 'D:\Programas'      # diff vs base + arquivos novos
+& $svn diff 'D:\Programas\<arquivo.pas>'
+```
+
+Regra de commit por tarefa em [feedback-commits-delphi-svn.md](feedback-commits-delphi-svn.md) (Wagner 2026-05-27).
+
+### Inspeção legada via `wc.db` (fallback se CLI quebrar)
+
+TortoiseSVN em `C:/Program Files/TortoiseSVN/` só tem UI (TortoiseProc.exe, TortoiseMerge.exe), **sem svn.exe CLI por default**. Quando CLI não disponível, ler direto o `wc.db` (SQLite) com Python stdlib:
 
 ```python
 import sqlite3
