@@ -1,7 +1,9 @@
 # Especificação funcional — Whatsapp
 
 > Convenção do ID: `US-WA-NNN` para user stories, `R-WA-NNN` para regras Gherkin.
-> Decisão arquitetural mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) — **Z-API/Baileys driver default + Meta Cloud fallback obrigatório (Evolution PROIBIDO Tier 0)**.
+> Decisão arquitetural mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)
+> **Atualizado por [ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md) (2026-05-27):**
+> Meta Cloud API default universal · Z-API opcional fallback per-tenant · BaileysDriver DESCONTINUADO · Evolution PROIBIDO Tier 0 (permanente).
 
 ## 1. Glossário rápido
 
@@ -14,13 +16,13 @@
 - **HITL** — Human In The Loop (handoff bot→humano quando PolicyEngine retorna `REQUIRE_HUMAN_REVIEW`)
 - **Deflection** — % de conversas resolvidas sem intervenção humana
 - **Conversation** — janela 24h Meta (cobrada uma vez); várias mensagens dentro = 1 conversa
-- **Driver** — abstração `ZapiDriver` (default Sprint 1) / `MetaCloudDriver` (fallback obrigatório Sprint 1) / `BaileysDriver` (custom oimpresso Sprint 3) / `NullDriver`
-- **Z-API (default Sprint 1)** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web/Baileys. Onboarding 5 min (scan QR). **Risco ban Meta MUITO ALTO** (mitigado por fallback obrigatório + termo LGPD)
-- **Meta Cloud (fallback obrigatório Sprint 1)** — oficial Meta. Free 1k conv/mês BR. Sem risco ban. Cadastro paralelo gating duro do Z-API.
-- **BaileysDriver custom (Sprint 3)** — daemon Node CT 100 próprio rodando lib `@whiskeysockets/baileys` direto. Schema, logs OTel, métricas e health check sob nosso controle total. Justificativa: dor de observabilidade no Evolution. Container Docker compose-managed `whatsapp-baileys` no CT 100 (ADR 0058 + skill `proxmox-docker-host`). Detalhes em ARCHITECTURE.md §16.
+- **Driver (pós ADR 0202)** — abstração `MetaCloudDriver` (default universal) / `ZapiDriver` (opcional fallback) / `NullDriver` (CI). `BaileysDriver` DESCONTINUADO 2026-05-27.
+- **Meta Cloud (default universal pós ADR 0202)** — oficial Meta (`graph.facebook.com/v21.0`). Free 1k conv/mês BR. Sem risco ban. Embedded Signup v4 simplifica onboarding (Fase 2 ADR 0202).
+- **Z-API (opcional fallback pós ADR 0202)** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web. Onboarding 5 min (scan QR). **Risco ban Meta** (mitigado por fallback Meta Cloud obrigatório + termo LGPD).
+- **BaileysDriver custom** — DESCONTINUADO 2026-05-27 ([ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md), supersede ADR 0096 emenda 4). Daemon Node CT 100 descomissionado. Tenants legacy migram pra Meta Cloud em Fase 2/3.
 - **Evolution API** — **PROIBIDO permanente** ([ADR 0096 emenda 4](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)). Razões concretas: bans recorrentes em produção Wagner + schema não atende + falta de observabilidade.
-- **Driver Health Check** — job 6h em 6h envia ping pra detectar ban Z-API (Sprint 2). Estende pra BaileysDriver no Sprint 3.
-- **Fallback automático** — quando driver não-oficial (`zapi`, `baileys`) `driver_health` ≥ degraded, sistema troca pra Meta Cloud sem intervenção
+- **Driver Health Check** — job 6h em 6h envia ping pra detectar ban Z-API. BaileysDriver não monitorado pós ADR 0202.
+- **Fallback automático** — quando Z-API `driver_health` ≥ degraded, sistema troca pra Meta Cloud sem intervenção.
 
 ## 2. User Stories — Sub-módulo Core (Sprint 1)
 
@@ -123,12 +125,16 @@ Anteriormente proposta como driver self-host CT 100. **Removida em 2026-05-07 (e
 
 Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; não esperar).
 
-### US-WA-002d · BaileysDriver custom (Sprint 3 — autorizado emenda 4)
+### US-WA-002d · ~~BaileysDriver custom~~ [DEPRECATED 2026-05-27]
 
-> **Área:** Core Sprint 3
-> **Service:** `Modules\Whatsapp\Services\Drivers\BaileysDriver`
+> **DEPRECATED por [ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md)** (supersede ADR 0096 emenda 4).
+> Conteúdo abaixo preservado como lição histórica. Driver descontinuado integral 2026-05-27.
+> Substituído por: US-WA-310 (Embedded Signup Meta Cloud v4, Fase 2).
+>
+> **Área:** Core Sprint 3 (arquivado)
+> **Service:** ~~`Modules\Whatsapp\Services\Drivers\BaileysDriver`~~ (classe deletada)
 > **Permissão Spatie:** `whatsapp.send`
-> **Componente Node:** novo container Docker `whatsapp-baileys` no CT 100
+> **Componente Node:** ~~container Docker `whatsapp-baileys` no CT 100~~ (descomissionado)
 
 **Como** Sistema (estrutura customizada de atendimento)
 **Quero** enviar/receber via daemon Node próprio rodando Baileys lib direto
@@ -385,9 +391,12 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 - [ ] OpenTelemetry `whatsapp.*` metrics paralelo (padrão ADR 0051)
 - [ ] Pest: `MetricasAggregationTest` cobrindo (a) 0 conversas dia = row 0, (b) 10 conversas com 4 deflected = 40% deflection
 
-### US-WA-022 · UX simplificada onboarding Baileys (1 telefone → QR → conectado)
+### US-WA-022 · ~~UX simplificada onboarding Baileys~~ [DEPRECATED 2026-05-27]
 
-> owner: wagner · sprint: 3 · priority: p2 · status: done
+> **DEPRECATED por [ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md).** Wizard Baileys removido — onboarding agora via Meta Cloud Embedded Signup v4 (US-WA-310, Fase 2).
+> Conteúdo abaixo preservado como lição histórica.
+>
+> owner: wagner · sprint: 3 · priority: p2 · status: done (descontinuado)
 
 > **Área:** Settings UX
 > **Charter:** [`resources/js/Pages/Whatsapp/Settings.charter.md`](../../../resources/js/Pages/Whatsapp/Settings.charter.md)

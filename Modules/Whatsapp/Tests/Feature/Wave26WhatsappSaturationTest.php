@@ -303,9 +303,10 @@ it('D3 W26: Modules/Whatsapp/CHANGELOG.md OU BRIEFING.md tem entrada Wave 26', f
 
 it('Pós ADR 0202: BaileysDriver removido + MetaCloudDriver default + Evolution PROIBIDO permanente', function () {
     // ADR 0202 (2026-05-27) supersede ADR 0096 emenda 4 — BaileysDriver
-    // descontinuado e classe deletada. MetaCloud vira default universal.
+    // descontinuado e arquivo deletado. MetaCloud vira default universal.
     // Evolution continua proibido permanente.
-    expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\BaileysDriver'))->toBeFalse();
+    $driversDir = __DIR__ . '/../../Services/Drivers';
+    expect(file_exists($driversDir . '/BaileysDriver.php'))->toBeFalse();
     expect(class_exists(MetaCloudDriver::class))->toBeTrue();
     expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\EvolutionDriver'))->toBeFalse();
 });
