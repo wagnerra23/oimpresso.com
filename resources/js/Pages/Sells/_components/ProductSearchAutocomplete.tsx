@@ -125,6 +125,27 @@ export default function ProductSearchAutocomplete({
 
   const groups = useMemo(() => groupResults(results).slice(0, 10), [results]);
 
+  // Scanner físico: envia código + Enter em <50ms. Paridade Blade pos.js:186-208 —
+  // ao Enter, se 1 result exato → auto-select sem precisar clicar.
+  // Helper: fetch síncrono pra contornar o debounce quando Enter chega rápido demais.
+  const fetchProductsNow = async (term: string): Promise<ProductSearchResult[]> => {
+    if (!locationId || term.length < MIN_QUERY_LENGTH) return [];
+    const params = new URLSearchParams({ term });
+    params.set('location_id', String(locationId));
+    DEFAULT_SEARCH_FIELDS.forEach((f) => params.append('search_fields[]', f));
+    try {
+      const res = await fetch(`/products/list?${params.toString()}`, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+      });
+      if (!res.ok) return [];
+      const data = (await res.json()) as ProductSearchResult[];
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  };
+
   // Debounce + fetch
   useEffect(() => {
     if (query.length < MIN_QUERY_LENGTH) {
@@ -182,11 +203,65 @@ export default function ProductSearchAutocomplete({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setOpen(false);
       setExpandedProductId(null);
       inputRef.current?.blur();
+      return;
+    }
+
+    // Enter — paridade Blade (scanner físico + UX teclado).
+    // Cenários:
+    //   1) Scanner envia código + Enter em <50ms. Results podem estar vazios ainda
+    //      (debounce 250ms não disparou). → fetch síncrono + auto-select.
+    //   2) User digitou + ja viu dropdown com 1 produto + 1 variação → auto-select.
+    //   3) Match SKU exato em N results → auto-select essa variação.
+    //   4) Múltiplos resultados sem match exato → mantém dropdown aberto pra user escolher.
+    if (e.key === 'Enter' && query.length >= MIN_QUERY_LENGTH) {
+      e.preventDefault(); // evita submit acidental do form parent
+      const q = query.trim();
+
+      // Match exato SKU/sub_sku no results atuais (instant path).
+      const exact = results.find(
+        (r) => r.sku === q || r.sub_sku === q,
+      );
+      if (exact) {
+        handleSelectVariation(exact);
+        return;
+      }
+
+      // 1 grupo + 1 variação no dropdown atual.
+      if (groups.length === 1 && groups[0]?.variations.length === 1) {
+        const only = groups[0].variations[0];
+        if (only) {
+          handleSelectVariation(only);
+          return;
+        }
+      }
+
+      // Scanner path: results vazios mas query parece código de barras.
+      // Força fetch SYNC e auto-select se 1 resultado OU match SKU exato.
+      if (results.length === 0 && !loading) {
+        setLoading(true);
+        try {
+          const fresh = await fetchProductsNow(q);
+          const exactFresh = fresh.find((r) => r.sku === q || r.sub_sku === q);
+          if (exactFresh) {
+            handleSelectVariation(exactFresh);
+            return;
+          }
+          if (fresh.length === 1 && fresh[0]) {
+            handleSelectVariation(fresh[0]);
+            return;
+          }
+          // Múltiplos / nenhum → atualiza state pra abrir dropdown
+          setResults(fresh);
+          setOpen(true);
+        } finally {
+          setLoading(false);
+        }
+      }
     }
   };
 
