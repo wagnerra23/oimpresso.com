@@ -275,8 +275,12 @@ Se sim:
   Runbook completo em memory/reference/setup-delphi-svn-time.md
   Passos resumidos:
     1. winget install Slik.Subversion  (svn.exe CLI)
-    2. hosts file: adicionar `177.74.67.30  servidor-crm`
-    3. svn checkout http://servidor-crm:8777/svn/Programas/Trunk D:\Programas
+    2. Resolver acesso à rede (3 opções no runbook):
+       a) ir à empresa primeira vez (LAN resolve sistema.wr2.com direto), OU
+       b) Tailscale (futuro, se Wagner aprovar setup), OU
+       c) hosts file: `177.74.67.30  sistema.wr2.com` (cuidado: sobrescreve
+          DNS público — confirmar com Wagner)
+    3. svn checkout http://sistema.wr2.com:8777/svn/Programas/Trunk D:\Programas
        (pode demorar horas — overnight é seguro)
     4. Credenciais SVN: pegar com Wagner via Vaultwarden
   Regra de uso: READ-ONLY (Claude NÃO comita SVN — ver

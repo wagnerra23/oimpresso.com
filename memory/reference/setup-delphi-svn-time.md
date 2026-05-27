@@ -1,6 +1,6 @@
 ---
 name: Setup Delphi/SVN READ-ONLY pra time remoto (Felipe etc)
-description: Runbook de provisionar máquina de dev remoto pra trabalhar com Delphi WR Comercial em modo READ-ONLY conforme feedback-commits-delphi-svn.md. Atualmente provisionado pra Felipe (Wagner 2026-05-27); outros devs sob demanda. Cobre install SlikSvn + hosts file pro NAT 177.74.67.30:8777 + checkout completo D:\Programas + validação + credenciais SVN + troubleshoot. Aplica regra Wagner READ-ONLY (princípio 4 Constituição v2 + ADR 0113 + PEGADINHAS:182).
+description: Runbook de provisionar máquina de dev remoto pra trabalhar com Delphi WR Comercial em modo READ-ONLY conforme feedback-commits-delphi-svn.md. Atualmente provisionado pra Felipe (Wagner 2026-05-27); outros devs sob demanda. URL canon SVN sistema.wr2.com:8777 (split-DNS — LAN resolve direto, remoto precisa Tailscale/VPN/presencial OU hosts file override). Cobre install SlikSvn + checkout completo D:\Programas + validação + credenciais SVN + troubleshoot. Aplica regra Wagner READ-ONLY (princípio 4 Constituição v2 + ADR 0113 + PEGADINHAS:182).
 type: reference
 ---
 
@@ -12,16 +12,18 @@ type: reference
 
 ## Pré-requisitos
 
-- Windows 10/11 com permissão admin (hosts file requer UAC)
+- Windows 10/11 (admin shell pode ser necessário se for usar hosts file override no Passo 2c)
 - ~50 GB livres em disco (working copy completa estimada)
 - Conexão internet com banda de download tolerável (~horas pra checkout inicial)
-- Credenciais SVN (pegar com Wagner via Vaultwarden — item `svn-servidor-crm-readonly` OU usuário/senha do servidor SVN dedicado em `192.168.0.55:8777`)
+- Credenciais SVN (pegar com Wagner via Vaultwarden — item `svn-sistema-wr2-readonly` OU usuário/senha do servidor SVN dedicado em `192.168.0.55:8777`)
 
 ## Estrutura de rede (contexto)
 
-- **Servidor SVN dedicado:** `192.168.0.55:8777` (LAN — [infra-rede-empresa.md:47](infra-rede-empresa.md))
+- **Servidor SVN dedicado:** `192.168.0.55:8777` (LAN escritório — [infra-rede-empresa.md:47](infra-rede-empresa.md))
 - **NAT TP-Link regra #5:** porta `8777` exposta no IP público `177.74.67.30:8777` ([infra-rede-empresa.md:87](infra-rede-empresa.md))
-- **Hostname `servidor-crm`:** só resolve dentro da LAN do escritório. Dev remoto precisa hosts file mapeando pro IP público.
+- **URL canônica SVN:** `http://sistema.wr2.com:8777/svn/Programas/Trunk`
+  - **Split-DNS:** na LAN do escritório `sistema.wr2.com` resolve pro IP interno do servidor SVN (.55); externamente resolve pra IPs AWS (76.223.54.146 / 13.248.169.48) que **não expõem 8777**
+  - **Hostname legacy `servidor-crm`:** working copy original do Wagner usa esse hostname; também só resolve LAN. Novas máquinas devem usar `sistema.wr2.com` direto
 
 ## Passo 1 — Instalar SVN CLI (SlikSvn)
 
@@ -36,7 +38,25 @@ winget install --id Slik.Subversion --silent --accept-source-agreements --accept
 
 Alternativa GUI: TortoiseSVN também instala svn.exe se marcar "command line client tools" no installer — mas SlikSvn é mais leve (~10MB) e suficiente.
 
-## Passo 2 — Mapear `servidor-crm` via hosts file
+## Passo 2 — Resolver acesso à rede (3 caminhos — escolher 1)
+
+A URL canônica `http://sistema.wr2.com:8777/svn/Programas/Trunk` resolve direto na LAN do escritório (split-DNS interno). Dev remoto precisa um destes caminhos:
+
+### 2a — Vai à empresa pra primeira vez (mais simples)
+
+Felipe vai presencialmente no escritório, conecta no Wi-Fi LAN, e o `sistema.wr2.com` resolve automaticamente. Faz checkout inicial overnight lá (vai puxar dezenas de GB rápido pela LAN). Depois leva a working copy pra casa (já populada) e pode trabalhar OFFLINE — `svn info`/`log`/`status`/`diff`/`blame` funcionam sem rede, e `svn update` periódico requer voltar à empresa OU usar 2b/2c.
+
+**Sem ação no hosts file.** Working copy fica consistente com Wagner.
+
+### 2b — Tailscale futuro (mais seguro, infra nova)
+
+Reabrir decisão da regra (atualmente vetada — ver "Reabertura desta decisão" em [feedback-commits-delphi-svn.md](feedback-commits-delphi-svn.md)). Subir Tailscale no servidor `192.168.0.55` + máquina Felipe → Magic DNS resolve `sistema.wr2.com` corretamente via mesh privado, tráfego sempre criptografado.
+
+**Não disponível hoje — só se Wagner aprovar setup novo.**
+
+### 2c — Hosts file override (de casa, sem Tailscale)
+
+⚠️ **Tradeoff:** sobrescreve DNS público de `sistema.wr2.com` na máquina do Felipe — qualquer outro serviço que use esse hostname externamente (provavelmente app web em HTTPS via AWS) deixa de funcionar nessa máquina.
 
 ```powershell
 # Windows admin shell — editar hosts file
@@ -45,23 +65,25 @@ notepad C:\Windows\System32\drivers\etc\hosts
 
 Adicionar linha no final:
 ```
-177.74.67.30    servidor-crm
+177.74.67.30    sistema.wr2.com
 ```
 
 Salvar (Notepad pode pedir Save As → mesmo nome, sobrescrever).
 
 Validar resolução:
 ```powershell
-nslookup servidor-crm
-# esperado: Address 177.74.67.30 (não NXDOMAIN)
+nslookup sistema.wr2.com
+# esperado: Address 177.74.67.30 (não os IPs AWS 76.223.54.146 / 13.248.169.48)
 
-Test-NetConnection servidor-crm -Port 8777
+Test-NetConnection sistema.wr2.com -Port 8777
 # esperado: TcpTestSucceeded = True
 ```
 
+**Confirmar com Wagner antes** se esse override quebra algum app web/serviço que Felipe usa diariamente.
+
 ## Passo 3 — Checkout working copy completo
 
-⚠️ **Demorado** — checkout completo da pasta `Programas` é dezenas de GB. Estimativa: várias horas dependendo da banda. Rodar em momento que possa deixar máquina ligada (overnight é seguro).
+⚠️ **Demorado** — checkout completo da pasta `Programas` é dezenas de GB. Estimativa: várias horas dependendo da banda. Rodar em momento que possa deixar máquina ligada (overnight é seguro). Bandwidth na LAN é muito maior que via internet — preferir Passo 2a se possível.
 
 ```powershell
 # Definir destino (D: se tiver, senão ajustar path)
@@ -75,7 +97,7 @@ $dest = 'D:\Programas'
 # $dest = 'C:\Programas'
 
 # Checkout completo do Trunk (Wagner aprovou pasta inteira 2026-05-27)
-& $svn checkout http://servidor-crm:8777/svn/Programas/Trunk $dest
+& $svn checkout http://sistema.wr2.com:8777/svn/Programas/Trunk $dest
 # Vai pedir user/password — usar credencial pegada do Wagner/Vaultwarden
 # Marcar "save credentials" se confiável na máquina
 ```
@@ -94,8 +116,10 @@ $svn = 'C:\Program Files\SlikSvn\bin\svn.exe'
 & $svn info 'D:\Programas' | Select-String 'URL|Revisão|Working|UUID'
 # esperado:
 #   Working Copy Root Path: D:\Programas
-#   URL: http://servidor-crm:8777/svn/Programas/Trunk
+#   URL: http://sistema.wr2.com:8777/svn/Programas/Trunk
 #   Revisão: >= 10815
+# (working copy original do Wagner usa URL http://servidor-crm:8777/... — mesmo repo
+#  via hostname legacy LAN. Felipe novo deve usar sistema.wr2.com canônico)
 
 & $svn log 'D:\Programas' -l 5
 # esperado: últimos 5 commits visíveis
@@ -147,11 +171,12 @@ Quando aprovado: roda mesmo passo-a-passo, atualiza este doc adicionando linha e
 
 | Sintoma | Causa | Fix |
 |---|---|---|
-| `nslookup servidor-crm` retorna NXDOMAIN | hosts file não foi salvo OU shell antigo cacheou | reabrir PowerShell + `ipconfig /flushdns` |
-| `svn checkout` retorna "Connection timed out" | porta 8777 bloqueada pelo firewall do ISP do Felipe | Tentar via VPN do ISP OU caminho alternativo Tailscale (ver "Reabertura desta decisão" no [feedback-commits-delphi-svn.md](feedback-commits-delphi-svn.md)) |
+| `nslookup sistema.wr2.com` retorna IPs AWS (76.x / 13.x) e não 192.168.0.55 | Felipe está fora da LAN — split-DNS interno não alcança | Escolher Passo 2a (ir à empresa) OU 2c (hosts file override pra 177.74.67.30) OU 2b (Tailscale futuro) |
+| `svn checkout` retorna "Connection timed out" | Porta 8777 bloqueada pelo firewall do ISP do Felipe OU resolveu pra IP AWS errado | Confirmar resolução com `Test-NetConnection sistema.wr2.com -Port 8777`; aplicar Passo 2c |
 | `svn checkout` pede senha repetida | credencial não foi salva ou inválida | rodar `svn auth --remove` e tentar de novo |
 | `svn cleanup` falha com "database is locked" | sessão SVN paralela ainda rodando | matar processo svn.exe em Task Manager e retry |
 | Checkout traz pasta mas Test-Path em arquivo específico falha | path tem espaço/caracter especial — verificar literal | Usar nome exato ex `'D:\Programas\WR Comercial\Principal.pas'` com aspas |
+| Working copy do Wagner mostra URL `servidor-crm` mas Felipe usa `sistema.wr2.com` | Hostnames diferentes pro MESMO repo SVN (UUID match) | Funciona normal — não precisa `svn relocate` se UUID bate. Se SVN reclamar de "canonical URL mismatch": rodar `svn relocate http://sistema.wr2.com:8777/svn/Programas/Trunk D:\Programas` |
 
 ## Ver também
 
