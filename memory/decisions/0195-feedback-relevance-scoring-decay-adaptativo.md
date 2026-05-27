@@ -1,12 +1,26 @@
 ---
-adr: 0195
-title: Feedback indexing — relevance scoring + decay adaptativo + signature dedup
-status: accepted
-date: 2026-05-27
-deciders: [Wagner Rocha]
-tags: [feedback, voice-of-customer, memoria, lgpd, tier-0]
+slug: 0195-feedback-relevance-scoring-decay-adaptativo
+number: 195
+title: "Feedback indexing — relevance scoring + decay adaptativo + signature dedup"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-27"
+accepted_at: "2026-05-27"
+accepted_via: "Wagner aprovou via AskUserQuestion 3-decisões 2026-05-27 sessão `frosty-greider-83ab2f` — decay 60d, archive OR (score<30 OR closed>=90d), sequencial Fase A→B"
+module: whatsapp
+quarter: 2026-Q2
+tags: [feedback, voice-of-customer, memoria, lgpd, tier-0, scoring, dedup, decay, append-only]
 supersedes: []
-related: [0093, 0105, 0131, 0140]
+supersedes_partially: []
+amends: []
+superseded_by: []
+related:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0131-tiering-memoria-canonico-local-segredo
 authors:
   - W
   - C
@@ -166,8 +180,6 @@ ALTER TABLE clients_feedbacks ADD:
   qualificado (peso 15 do score)
 - [ADR 0131](0131-tiering-memoria-canonico-local-segredo.md) — tiering memória
   canonico/local/segredo (mesma filosofia HOT/WARM/COLD)
-- [ADR 0140](0140-feedback-management-canon-voice-of-customer.md) — feedback
-  management canon Voice of Customer
 - PR #1711 — captura Voice of Customer in-app inbox
 - PR #1713 — abrir chamado dev direto da conversa + guard rails ADR 0105
 - Voice of Customer (Six Sigma + NN/g) — fundamento metodológico
