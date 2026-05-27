@@ -59,6 +59,7 @@ const MODULE_VALIDOS    = [
     'Infra', 'jana', 'sells', 'design-system', 'Sells',
     'NfeBrasil',    // ADR 0186 mergeada com case canônico do path Modules/NfeBrasil/ — append-only impede fix
     '_DesignSystem', // ADRs 0189/0190 mergeadas com prefixo underscore (era convenção early-design-system) — append-only impede fix; convenção futura: design-system (lowercase)
+    'OficinaAuto',  // ADR 0194 mergeada com case canônico do path Modules/OficinaAuto/ — append-only impede fix; convenção futura: oficinaauto (lowercase)
 ];
 
 const CAMPOS_OBRIGATORIOS = [
@@ -100,6 +101,7 @@ const ADRS_LEGACY_SKIP = [
     // lifecycle/decided_at). Append-only Tier 0 — não editar. Backlog migração junto
     // com 0122-0128 + 0172-0173 em Wave 30+.
     '0170-onda5-simplificada',
+    '0170-bancos-nativos-top5-drivers-separados',
 ];
 
 /**
