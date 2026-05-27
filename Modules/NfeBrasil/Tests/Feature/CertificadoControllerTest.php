@@ -109,70 +109,20 @@ function inertiaComponent(\Inertia\Response $r): string
     return $prop->getValue($r);
 }
 
-it('GET sem cert ativo: renderiza Inertia component com tem_certificado=false', function () {
+// Wagner 2026-05-27 consolidação — tela GET /nfe-brasil/configuracao/certificado
+// foi DEPRECATED. Conteúdo unificado em /fiscal/config (Fiscal/Config.tsx).
+// `status()` agora retorna RedirectResponse 302 pra /fiscal/config.
+// Tests de props/alerta/dias_ate_vencimento foram movidos pra cobertura indireta
+// via Fiscal/ConfigController (que lê NfeCertificado direto) + NfeCertificado
+// model tests (`diasAteVencimento()` puro).
+it('GET status() retorna redirect 302 pra /fiscal/config (consolidação 2026-05-27)', function () {
     $controller = new CertificadoController(new CertificadoService());
 
-    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
+    $response = $controller->status(makeStatusRequest(1, '12345678000199'));
 
-    expect($response)->toBeInstanceOf(\Inertia\Response::class);
-    expect(inertiaComponent($response))->toBe('NfeBrasil/Configuracao/Certificado');
-
-    $props = inertiaProps($response);
-    expect($props)->toHaveKey('tem_certificado')
-        ->and($props['tem_certificado'])->toBeFalse()
-        ->and($props['cnpj_business'])->toBe('12345678000199');
-});
-
-it('GET com cert ativo OK (>30d): tem_certificado=true + alerta=ok', function () {
-    $validoAte = (new DateTimeImmutable('+90 days'))->format('Y-m-d');
-    insertCertRow(1, '12345678000199', $validoAte);
-
-    $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
-
-    $props = inertiaProps($response);
-    expect($props['tem_certificado'])->toBeTrue()
-        ->and($props['cnpj_titular'])->toBe('12345678000199')
-        ->and($props['alerta'])->toBe('ok')
-        ->and($props['dias_ate_vencimento'])->toBeGreaterThan(30)
-        ->and($props['valido_ate'])->toBe($validoAte);
-});
-
-it('GET com cert próximo do vencimento (≤30d): alerta=proximo_vencimento', function () {
-    $validoAte = (new DateTimeImmutable('+15 days'))->format('Y-m-d');
-    insertCertRow(1, '12345678000199', $validoAte);
-
-    $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
-
-    $props = inertiaProps($response);
-    expect($props['tem_certificado'])->toBeTrue()
-        ->and($props['alerta'])->toBe('proximo_vencimento')
-        ->and($props['dias_ate_vencimento'])->toBeLessThanOrEqual(30)
-        ->and($props['dias_ate_vencimento'])->toBeGreaterThanOrEqual(14);
-});
-
-it('GET com cert vencido: alerta=vencido + dias negativos', function () {
-    $validoAte = (new DateTimeImmutable('-5 days'))->format('Y-m-d');
-    insertCertRow(1, '12345678000199', $validoAte);
-
-    $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(1,'12345678000199'));
-
-    $props = inertiaProps($response);
-    expect($props['tem_certificado'])->toBeTrue()
-        ->and($props['alerta'])->toBe('vencido')
-        ->and($props['dias_ate_vencimento'])->toBeLessThan(0);
-});
-
-it('multi-tenant: cert do business 1 não vaza pra business 99', function () {
-    insertCertRow(1, '11111111000111', (new DateTimeImmutable('+90 days'))->format('Y-m-d'));
-
-    $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(99, '99999999000199'));
-
-    $props = inertiaProps($response);
-    expect($props['tem_certificado'])->toBeFalse();
+    expect($response)->toBeInstanceOf(\Illuminate\Http\RedirectResponse::class);
+    expect($response->getStatusCode())->toBe(302);
+    expect($response->getTargetUrl())->toContain('/fiscal/config');
 });
 
 // ── testar() endpoint — botão "Testar conexão SEFAZ" (US-NFE-041 fase 2) ──
@@ -355,52 +305,12 @@ it('POST ambiente com valor inválido (3) → ValidationException', function () 
         ->toThrow(\Illuminate\Validation\ValidationException::class);
 });
 
-it('GET status retorna painel fiscal completo (regime, ncm, cfop, csosn, ambiente, etc)', function () {
-    if (! Schema::hasTable('business')) {
-        test()->markTestSkipped('business table indisponível');
-    }
-    insertCertRow(1, '12345678000199', (new DateTimeImmutable('+90 days'))->format('Y-m-d'));
-
-    $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(1, '12345678000199'));
-
-    $props = inertiaProps($response);
-
-    // Cert info
-    expect($props['tem_certificado'])->toBeTrue();
-    // Painel fiscal — chaves novas (US-NFE-041 fase 3)
-    expect($props)->toHaveKeys([
-        'cnpj_business', 'razao_social', 'regime',
-        'ncm_padrao', 'serie_nfe', 'ultimo_numero', 'proximo_numero',
-        'cfop_default', 'csosn_default', 'uf', 'cidade', 'ambiente',
-    ]);
-    expect($props['ambiente'])->toBeIn([1, 2]);
-    expect($props['serie_nfe'])->toBeString();
-    expect($props['proximo_numero'])->toBe(($props['ultimo_numero'] ?? 0) + 1);
-});
-
-it('GET status com cnpj_titular vazio no cert → expõe cnpj_titular_fallback', function () {
-    if (! Schema::hasTable('business')) {
-        test()->markTestSkipped('business table indisponível');
-    }
-    // Insere cert SEM cnpj_titular (simula bug legacy do salvar antigo)
-    NfeCertificado::create([
-        'business_id'        => 1,
-        'uuid'               => (string) \Illuminate\Support\Str::uuid(),
-        'cnpj_titular'       => '', // ← vazio (bug legacy)
-        'valido_ate'         => (new DateTimeImmutable('+90 days'))->format('Y-m-d'),
-        'encrypted_password' => Crypt::encryptString('pass'),
-        'ativo'              => true,
-    ]);
-
-    $controller = new CertificadoController(new CertificadoService());
-    $response = $controller->status(makeStatusRequest(1, '12345678000199'));
-
-    $props = inertiaProps($response);
-
-    expect($props['cnpj_titular'])->toBeNull(); // vazio → null no payload
-    expect($props['cnpj_titular_fallback'])->toBe('12345678000199'); // usa business.cnpj
-});
+// Tests "GET status retorna painel fiscal completo" e "cnpj_titular vazio →
+// fallback" removidos na consolidação Wagner 2026-05-27. A lógica que esses
+// tests cobriam (`montarPainelFiscal` + alerta + cnpj_titular_fallback) vive
+// em Modules\Fiscal\Http\Controllers\ConfigController::montarPainelFiscal +
+// `index()`. Cobertura indireta via Fiscal/SidebarConsolidacaoTest +
+// CertificadoServiceTest (chain de cert).
 
 it('POST testar com Throwable inesperado (TypeError) → 500 com payload completo', function () {
     insertCertRow(1, '12345678000199', (new DateTimeImmutable('+60 days'))->format('Y-m-d'));
