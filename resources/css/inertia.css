@@ -134,6 +134,22 @@
   --color-popover: hsl(0 0% 100%);
   --color-popover-foreground: hsl(222.2 84% 4.9%);
 
+  /* Semantic status tokens — adicionados 2026-05-27 pra ADR 0202 Settings WhatsApp
+     + qualquer Page que precise green/yellow/red sem cair em violação UI lint R1.
+     Constituição UI v2 ([ADR UI-0013]) — tokens semânticos > cores hardcoded.
+     Geram utilities `bg-success`, `text-success-foreground`, `bg-warning`, etc
+     via Tailwind v4 (@theme directive). */
+  --color-success: hsl(142 71% 45%);
+  --color-success-foreground: hsl(143 64% 24%);
+  --color-warning: hsl(38 92% 50%);
+  --color-warning-foreground: hsl(26 90% 30%);
+
+  /* Brand Meta (Facebook OAuth) — token específico do botão "Conectar com Meta"
+     no Embedded Signup v4. Cor oficial Facebook (#1877F2 hover #166FE5)
+     mantida cross-theme porque é cor de identidade Meta (não muda em dark). */
+  --color-brand-meta: hsl(215 89% 53%);
+  --color-brand-meta-hover: hsl(215 89% 48%);
+
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
@@ -168,6 +184,16 @@
   --color-card-foreground: hsl(210 40% 98%);
   --color-popover: hsl(222.2 84% 4.9%);
   --color-popover-foreground: hsl(210 40% 98%);
+
+  /* Semantic status tokens — dark mode (mais saturado pra contraste em fundo escuro) */
+  --color-success: hsl(142 71% 45%);
+  --color-success-foreground: hsl(143 70% 78%);
+  --color-warning: hsl(38 92% 55%);
+  --color-warning-foreground: hsl(35 90% 78%);
+
+  /* Brand Meta — mantém Facebook color cross-theme (identidade visível em ambos) */
+  --color-brand-meta: hsl(215 89% 53%);
+  --color-brand-meta-hover: hsl(215 89% 48%);
 }
 
 @layer base {
