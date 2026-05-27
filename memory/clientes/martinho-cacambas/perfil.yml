@@ -1,0 +1,50 @@
+slug: martinho-cacambas
+nome_fantasia: MARTINHO CAÇAMBAS
+razao_social: MARTINHO TRANSPORTES E SERVIÇOS LTDA
+business_id: null                       # confirmar — Wagner setup pendente
+status: piloto                          # cliente piloto Q2 2026 ramo oficina pesada
+plano: pro                              # mais features (OficinaAuto + frota)
+arr_mensal_brl: null                    # piloto Wagner
+contato_principal: daniela-martinho
+
+ramo: oficina-mecanica
+cnae: '4520-0'                          # serviços de manutenção e reparação de veículos automotores
+sub_segmento: oficina-pesada-caminhao-basculante
+tamanho:
+  funcionarios: 12
+  faturamento_mensal_brl: "200k-400k"
+  pontos_venda: 1                       # 1 oficina central
+porte: epp
+
+localizacao:
+  estado: SC                            # Tubarão SC (catalogado pré-existente)
+  cidade: "Tubarão"
+
+tech:
+  sistema_anterior: "CRM Delphi WR Sistemas legacy + planilha"
+  internet: "fibra"
+  hardware_principal: "PC escritório + tablet oficina"
+  uso_mobile: medio
+
+modulos_uso:
+  - oficinaauto                         # core — gestão de OS + veículos + frota
+  - cliente                             # cadastro cliente PJ frota
+  - financeiro                          # contas a pagar (fornecedor peças) + receber (OS)
+  - sells                               # eventual venda de peça avulsa
+features_criticas:
+  - gestão de OS (entrada, diagnóstico, aprovação, conclusão)
+  - cadastro de frota (placa, chassi, km, foto)
+  - aprovação WhatsApp do orçamento
+  - importação Firebird CRM legacy Delphi (one-time)
+
+sinal:
+  paga: false                           # piloto Wagner — ARR formal Q3 2026
+  reporta_uso: true                     # Daniela reporta semanal via Wagner
+  feedback_aberto: "memory/clientes/martinho-cacambas/discovery-PROXIMA.md"
+
+tags:
+  - piloto-oficina
+  - pme-media
+  - frota-pesada
+  - ramo-pesado
+  - sub-vertical-4-mecanica-pesada       # ADR 0194 errata Martinho
