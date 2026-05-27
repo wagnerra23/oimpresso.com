@@ -30,6 +30,7 @@ import ProductSearchAutocomplete, {
 } from './_components/ProductSearchAutocomplete';
 import CustomerSearchAutocomplete from './_components/CustomerSearchAutocomplete';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
+import NumericInputPtBR from './_components/NumericInputPtBR';
 import { dropdownEntries } from './_components/dropdownEntries';
 import {
   Select,
@@ -1023,48 +1024,31 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                           <div className="text-xs text-muted-foreground">SKU {p.sku}</div>
                         </td>
                         <td className="px-3 py-2">
-                          <Input
-                            type="number"
-                            inputMode="decimal"
-                            min="0"
-                            step="1"
+                          {/* NumericInputPtBR — paridade Blade __read_number/__write_number.
+                              Bug origem R$ [redacted Tier 0]k Larissa (2026-05-27): type=number+Number(...) virou parser pt-BR-safe. */}
+                          <NumericInputPtBR
                             value={p.quantity}
-                            onChange={(e) =>
-                              handleProductChange(idx, 'quantity', Number(e.target.value))
-                            }
+                            onChange={(n) => handleProductChange(idx, 'quantity', n)}
+                            precision={0}
                             aria-label={`Quantidade de ${p.name}`}
-                            className="h-8"
+                            className="h-8 tabular-nums"
                           />
                         </td>
                         <td className="px-3 py-2">
-                          <Input
-                            type="number"
-                            inputMode="decimal"
-                            min="0"
-                            step="0.01"
+                          <NumericInputPtBR
                             value={p.unit_price}
-                            onChange={(e) =>
-                              handleProductChange(
-                                idx,
-                                'unit_price',
-                                Number(e.target.value),
-                              )
-                            }
+                            onChange={(n) => handleProductChange(idx, 'unit_price', n)}
+                            precision={2}
                             disabled={!props.permissions.editPrice}
                             aria-label={`Preço unitário de ${p.name}`}
                             className="h-8 tabular-nums"
                           />
                         </td>
                         <td className="px-3 py-2">
-                          <Input
-                            type="number"
-                            inputMode="decimal"
-                            min="0"
-                            step="0.01"
+                          <NumericInputPtBR
                             value={p.discount}
-                            onChange={(e) =>
-                              handleProductChange(idx, 'discount', Number(e.target.value))
-                            }
+                            onChange={(n) => handleProductChange(idx, 'discount', n)}
+                            precision={2}
                             disabled={!props.permissions.editDiscount}
                             aria-label={`Desconto em ${p.name}`}
                             className="h-8 tabular-nums"

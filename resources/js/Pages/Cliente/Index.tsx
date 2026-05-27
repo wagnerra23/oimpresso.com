@@ -1273,6 +1273,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         open={openContactId !== null}
         rows={rows}
         draftContact={draftContact}
+        oficinaAutoEnabled={props.oficinaauto_enabled ?? false}
         onOpenChange={(open) => {
           if (!open) setDraftContact(null);
           if (!open) setOpenContactId(null);
@@ -1729,6 +1730,7 @@ function ClienteSheet({
   open,
   rows,
   draftContact,
+  oficinaAutoEnabled = false,
   onOpenChange,
   onContactUpdated,
 }: {
@@ -1739,6 +1741,8 @@ function ClienteSheet({
    * via state Index.tsx pra não depender do `rows.find()` (que falha porque
    * draft recém-criado pode estar fora da página paginada da listagem). */
   draftContact?: ClienteRow | null;
+  /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab. */
+  oficinaAutoEnabled?: boolean;
   onOpenChange: (open: boolean) => void;
   /** Fix 2026-05-25 — IdentificacaoTab chama isso após PATCH endereço/contato
    * sucesso pra atualizar draftContact no Index.tsx DIRETO (sem router.reload
@@ -1950,7 +1954,7 @@ function ClienteSheet({
               {activeTab === 'oss' && (
                 <OssTab
                   contact={{ id: contact.id, name: contact.name }}
-                  oficinaAutoEnabled={props.oficinaauto_enabled ?? false}
+                  oficinaAutoEnabled={oficinaAutoEnabled}
                 />
               )}
               {activeTab === 'ia' && (
