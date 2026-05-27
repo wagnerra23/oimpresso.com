@@ -165,6 +165,28 @@ function __number_uf(input, use_page_currency = false) {
         var decimal = __currency_decimal_separator;
     }
 
+    // Wagner 2026-05-27 HOTFIX: aceita PONTO como decimal alternativo em locale pt-BR
+    // (decimal=','). Smoke prod via Chrome MCP detectou que digitar "10.50" em campo
+    // Preço/Quantidade/Desconto gerava subtotal 100x maior (accounting.unformat trata
+    // ponto como milhar quando decimal=','). Risco financeiro: Larissa @ Rota Livre
+    // poderia cobrar 100x do cliente sem aviso visual.
+    //
+    // Heurística conservadora: se input tem SÓ ponto (sem vírgula) E o ponto tem
+    // 1-2 dígitos depois, é decimal — converte pra vírgula. "10.50" → "10,50".
+    // "1.000" (3 dígitos depois) NÃO converte — preserva semântica de milhar.
+    if (typeof input === 'string' && decimal === ',') {
+        var hasComma = input.indexOf(',') !== -1;
+        var lastDot  = input.lastIndexOf('.');
+        if (!hasComma && lastDot !== -1) {
+            var afterDot = input.length - lastDot - 1;
+            // Só converte se for o ÚNICO ponto (evita ambiguidade tipo "1.000.50")
+            var dotCount = (input.match(/\./g) || []).length;
+            if (dotCount === 1 && afterDot >= 1 && afterDot <= 2) {
+                input = input.substring(0, lastDot) + ',' + input.substring(lastDot + 1);
+            }
+        }
+    }
+
     return accounting.unformat(input, decimal);
 }
 
