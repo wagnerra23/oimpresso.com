@@ -1,16 +1,32 @@
 """
-Wrapper orchestrator — migra CONTAS + EMPRESAS Delphi → oimpresso.
+Wrapper orchestrator — migra Delphi WR Comercial → oimpresso (pipeline completo).
 
-Fluxo:
-  1. Abre SSH tunnel local 127.0.0.1:33069 → Hostinger MySQL localhost:3306
-  2. Lê DB_PASSWORD do .env Hostinger remoto (uma vez, no env, sem ecoar)
-  3. Roda import-contas-bancarias.py (com --reset-placeholders + --only-ativo)
-  4. Roda import-empresas.py
-  5. Fecha tunnel
+Ordem canônica (dependências FK):
+  1. CONTAS         → fin_contas_bancarias + accounts_legacy_map
+  2. EMPRESA        → business + business_locations
+  3. CONTACTS       → contacts (extraído de VENDA, dedup CNPJ)
+  4. VENDAS         → transactions (ref_no = CODPEDIDO Delphi)
+  5. FINANCEIRO     → fin_titulos + fin_titulo_baixas (lookup transactions + accounts)
+  6. NOTAS_FISCAIS  → nfe_emissoes (lookup transactions via CODVENDA)
+
+Fluxo de conexão:
+  - target=prod: abre SSH tunnel 127.0.0.1:33069 → Hostinger MySQL, lê
+                 DB_PASSWORD do .env remoto via SSH (sem ecoar)
+  - target=local: usa MySQL local (Herd default ou env vars)
+  - target=dry-run: não conecta MySQL (só Firebird leitura + audit JSON)
 
 Uso:
-    python migrar-tudo.py --target dry-run
-    python migrar-tudo.py --target prod --confirm
+    python migrar-tudo.py --target dry-run --target-business 164 --alias MartinhoServidor
+    python migrar-tudo.py --target local --target-business 164 --alias MartinhoServidor
+    python migrar-tudo.py --target prod --target-business 164 --alias MartinhoServidor --confirm
+
+    # Skip steps específicos
+    python migrar-tudo.py --target local --target-business 164 \\
+        --skip-contas --skip-empresas  # já rodadas em sessão anterior
+
+    # Filtro temporal (para todos os steps que aceitam)
+    python migrar-tudo.py --target dry-run --target-business 164 \\
+        --start-date 2024-12-01 --end-date 2024-12-31
 """
 
 from __future__ import annotations
@@ -98,10 +114,21 @@ def main() -> int:
     parser.add_argument("--confirm", action="store_true")
     parser.add_argument("--skip-contas", action="store_true")
     parser.add_argument("--skip-empresas", action="store_true")
+    parser.add_argument("--skip-contacts", action="store_true")
+    parser.add_argument("--skip-produtos", action="store_true")
+    parser.add_argument("--skip-vendas", action="store_true")
+    parser.add_argument("--skip-venda-itens", action="store_true")
+    parser.add_argument("--skip-financeiro", action="store_true")
+    parser.add_argument("--skip-notas-fiscais", action="store_true")
     parser.add_argument("--reset-placeholders", action="store_true", default=True,
                         help="default True — soft-delete placeholders biz alvo (Wagner '2 a')")
     parser.add_argument("--only-ativo", action="store_true", default=True,
                         help="default True — só CONTAS ATIVO='S' (Wagner '1 c' = 19 contas)")
+    parser.add_argument("--start-date", help="Filtro EMISSAO >= YYYY-MM-DD (vendas/financeiro/notas)")
+    parser.add_argument("--end-date", help="Filtro EMISSAO <= YYYY-MM-DD (vendas/financeiro/notas)")
+    parser.add_argument("--limit", type=int, default=0, help="Limita rows por step (0=sem limite)")
+    parser.add_argument("--include-rejeitadas", action="store_true",
+                        help="Notas fiscais: inclui rejeitadas (cstat=217)")
     args = parser.parse_args()
 
     if args.target == "prod" and not args.confirm:
@@ -139,39 +166,93 @@ def main() -> int:
                 "FIREBIRD_PASSWORD": "masterkey",
             }
 
-        # 1) Contas
-        if not args.skip_contas:
-            common = [
+        # Args comuns a todos os steps
+        def base_args() -> list[str]:
+            a = [
                 "--alias", args.alias,
                 "--target-business", str(args.target_business),
                 "--target", args.target,
             ]
-            if args.only_ativo:
-                common.append("--only-ativo")
-            if args.reset_placeholders:
-                common.append("--reset-placeholders")
             if args.confirm:
-                common.append("--confirm")
-            rc = run_script("import-contas-bancarias.py", common, env)
+                a.append("--confirm")
+            return a
+
+        def date_args() -> list[str]:
+            a = []
+            if args.start_date:
+                a += ["--start-date", args.start_date]
+            if args.end_date:
+                a += ["--end-date", args.end_date]
+            return a
+
+        def limit_arg() -> list[str]:
+            return ["--limit", str(args.limit)] if args.limit > 0 else []
+
+        # 1) Contas bancárias → fin_contas_bancarias + accounts_legacy_map
+        if not args.skip_contas:
+            cmd = base_args()
+            if args.only_ativo:
+                cmd.append("--only-ativo")
+            if args.reset_placeholders:
+                cmd.append("--reset-placeholders")
+            rc = run_script("import-contas-bancarias.py", cmd, env)
             if rc != 0:
                 print(f"❌ contas falhou rc={rc}", file=sys.stderr)
                 return rc
 
-        # 2) Empresas
+        # 2) Empresas → business + business_locations
         if not args.skip_empresas:
-            common = [
-                "--alias", args.alias,
-                "--target-business", str(args.target_business),
-                "--target", args.target,
-            ]
-            if args.confirm:
-                common.append("--confirm")
-            rc = run_script("import-empresas.py", common, env)
+            rc = run_script("import-empresas.py", base_args(), env)
             if rc != 0:
                 print(f"❌ empresas falhou rc={rc}", file=sys.stderr)
                 return rc
 
-        print(f"\n🎉 Migração concluída (target={args.target})")
+        # 3) Contacts → contacts (dedup CNPJ extraído de VENDA)
+        if not args.skip_contacts:
+            rc = run_script("import-contacts-from-venda.py", base_args() + date_args(), env)
+            if rc != 0:
+                print(f"❌ contacts falhou rc={rc}", file=sys.stderr)
+                return rc
+
+        # 4) Produtos → products + variations (sem filtro de data — catálogo é global)
+        if not args.skip_produtos:
+            rc = run_script("import-produtos.py", base_args(), env)
+            if rc != 0:
+                print(f"❌ produtos falhou rc={rc}", file=sys.stderr)
+                return rc
+
+        # 5) Vendas → transactions (ref_no=CODPEDIDO — usado por financeiro/nfe/itens lookups)
+        if not args.skip_vendas:
+            rc = run_script("import-vendas.py", base_args() + date_args() + limit_arg(), env)
+            if rc != 0:
+                print(f"❌ vendas falhou rc={rc}", file=sys.stderr)
+                return rc
+
+        # 6) Venda itens → transaction_sell_lines (precisa de vendas + produtos)
+        if not args.skip_venda_itens:
+            rc = run_script("import-venda-itens.py", base_args() + date_args() + limit_arg(), env)
+            if rc != 0:
+                print(f"❌ venda-itens falhou rc={rc}", file=sys.stderr)
+                return rc
+
+        # 7) Financeiro → fin_titulos + fin_titulo_baixas
+        if not args.skip_financeiro:
+            rc = run_script("import-financeiro.py", base_args() + date_args() + limit_arg(), env)
+            if rc != 0:
+                print(f"❌ financeiro falhou rc={rc}", file=sys.stderr)
+                return rc
+
+        # 8) Notas Fiscais → nfe_emissoes
+        if not args.skip_notas_fiscais:
+            cmd = base_args() + date_args() + limit_arg()
+            if args.include_rejeitadas:
+                cmd.append("--include-rejeitadas")
+            rc = run_script("import-notas-fiscais.py", cmd, env)
+            if rc != 0:
+                print(f"❌ notas-fiscais falhou rc={rc}", file=sys.stderr)
+                return rc
+
+        print(f"\n🎉 Migração concluída (target={args.target}, biz={args.target_business})")
         return 0
 
     finally:
