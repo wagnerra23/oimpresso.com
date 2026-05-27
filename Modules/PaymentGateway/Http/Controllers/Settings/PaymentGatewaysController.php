@@ -10,12 +10,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
+use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
@@ -60,7 +60,42 @@ class PaymentGatewaysController extends Controller
             'accounts' => Inertia::defer(fn () => $this->listarContasDestino($businessId)),
             'gateways' => Inertia::defer(fn () => $this->listarGateways($businessId)),
             'kpis' => Inertia::defer(fn () => $this->kpis($businessId)),
+            // US-FIN-046 — wizard Sicoob mostra status do cert A1 (reusa NfeCertificado)
+            'nfeCertificadoAtivo' => $this->nfeCertificadoAtivoPayload($businessId),
         ]);
+    }
+
+    /**
+     * US-FIN-046 — info do NfeCertificado ativo pro wizard SheetNovoGateway
+     * step 2 Sicoob mostrar "✅ Cert A1 cadastrado" OU "⚠️ Cadastre em /fiscal".
+     *
+     * @return array{cnpjTitular: string, validoAteBr: string, diasRestantes: int}|null
+     */
+    private function nfeCertificadoAtivoPayload(int $businessId): ?array
+    {
+        if ($businessId <= 0) {
+            return null;
+        }
+
+        $cert = NfeCertificado::query()
+            ->where('business_id', $businessId)
+            ->where('ativo', true)
+            ->orderByDesc('valido_ate')
+            ->first();
+
+        if (! $cert || ! $cert->valido_ate) {
+            return null;
+        }
+
+        $dias = (int) now()->startOfDay()->diffInDays($cert->valido_ate, false);
+
+        return [
+            'cnpjTitular'    => (string) $cert->cnpj_titular,
+            'validoAteBr'    => $cert->valido_ate->format('d/m/Y'),
+            'diasRestantes'  => $dias,
+            'vencido'        => $dias < 0,
+            'proximoVencer'  => $dias >= 0 && $dias <= 30,
+        ];
     }
 
     /**
@@ -123,9 +158,9 @@ class PaymentGatewaysController extends Controller
             'cert_file'        => 'sometimes|file|mimes:crt,pem,cer|max:32',
             'key_file'         => 'sometimes|file|mimes:key,pem|max:32',
             'cert_password'    => 'sometimes|nullable|string|max:191',
-            // Onda 4f.sicoob_api PR5 — .pfx PKCS12 + senha (Sicoob/BB/Bradesco)
-            'pfx_file'         => 'sometimes|file|mimes:pfx,p12|max:64',
-            'pfx_password'     => 'sometimes|nullable|string|max:191',
+            // US-FIN-046 (2026-05-27): pfx_file/pfx_password REMOVIDOS.
+            // Sicoob API reusa NfeCertificado canon — cliente upload UMA vez
+            // em /fiscal/configuracao/certificado.
         ]);
 
         // Tier 0: garantir conta_bancaria_id pertence ao business_id session
@@ -177,16 +212,8 @@ class PaymentGatewaysController extends Controller
             }
         }
 
-        // Onda 4f.sicoob_api PR5 — upload .pfx + senha cifrada via Crypt
-        if ($request->hasFile('pfx_file')) {
-            $pfxRelative = $this->storeSicoobPfx($request, $businessId);
-            $update = ['mtls_pfx_path' => $pfxRelative, 'requires_mtls' => true];
-            if (!empty($validated['pfx_password'])) {
-                $configJson['mtls_pfx_password_encrypted'] = Crypt::encryptString((string) $validated['pfx_password']);
-                $update['config_json'] = $configJson;
-            }
-            $cred->update($update);
-        }
+        // US-FIN-046 (2026-05-27): bloco upload .pfx removido. Sicoob API
+        // reusa NfeCertificado canon via CertificadoService::carregarParaSefaz.
 
         Log::info('[paymentgateway.credential.created]', [
             'business_id'   => $businessId,
@@ -285,32 +312,12 @@ class PaymentGatewaysController extends Controller
      * Permissions: 0600. Tier 0: business_id no path previne leak.
      * LGPD/PCI: log nunca emite conteúdo.
      *
+     * US-FIN-046 (2026-05-27): helper storeSicoobPfx() REMOVIDO. Sicoob API
+     * reusa NfeCertificado canon — cliente upload UMA vez em
+     * /fiscal/configuracao/certificado.
+     *
      * @return array<string, string>
      */
-
-    /**
-     * Onda 4f.sicoob_api PR5 — armazena .pfx em
-     * storage/app/private/sicoob/{business_id}.pfx (convenção canon usada
-     * pelo SicoobApiDriver::resolveMtlsPfxFullPath()).
-     *
-     * Retorna path RELATIVO (sicoob/{biz}.pfx) — driver prefixa storage_path.
-     * chmod 0600 best-effort em Linux (Windows ignora silenciosamente).
-     */
-    private function storeSicoobPfx(Request $request, int $businessId): string
-    {
-        /** @var UploadedFile $pfx */
-        $pfx = $request->file('pfx_file');
-        $relativePath = "sicoob/{$businessId}.pfx";
-        $pfx->storeAs('sicoob', "{$businessId}.pfx", 'local');
-
-        $absPath = Storage::disk('local')->path($relativePath);
-        if (is_file($absPath)) {
-            @chmod($absPath, 0600);
-        }
-
-        return $relativePath;
-    }
-
     private function storeCertFiles(Request $request, PaymentGatewayCredential $cred, int $businessId): array
     {
         $paths = [];

@@ -54,10 +54,9 @@ class PaymentGatewayCredential extends Model
         'conta_bancaria_id',
         'health_status',
         'health_checked_at',
-        // Onda 4f.sicoob_api (US-FIN-044 PR3) — mTLS handshake real.
-        // Reusável por qualquer driver REST que exija .pfx (Bradesco/BB futuros).
-        'requires_mtls',
-        'mtls_pfx_path',
+        // US-FIN-046 (2026-05-27): colunas mtls_pfx_path + requires_mtls REMOVIDAS.
+        // Sicoob/BB/Bradesco/Inter API REST usam NfeCertificado canon (single source).
+        // Driver lê via CertificadoService::carregarParaSefaz($business_id).
     ];
 
     protected $casts = [
@@ -67,7 +66,6 @@ class PaymentGatewayCredential extends Model
         'config_json'       => 'encrypted:array',
         'ativo'             => 'boolean',
         'health_checked_at' => 'datetime',
-        'requires_mtls'     => 'boolean',
     ];
 
     /**
