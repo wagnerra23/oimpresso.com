@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Modules\PaymentGateway\Services\Drivers;
 
 use Carbon\Carbon;
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Dto\CobrancaEmitidaResult;
@@ -22,42 +21,35 @@ use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\HttpClientFactory;
+use RuntimeException;
 
 /**
  * Driver Sicoob — API Cobrança Bancária v3 (REST + OAuth2 + mTLS).
  *
- * US-FIN-044 — Onda 4f.sicoob_api. Sinal qualificado: biz=4 ROTA LIVRE
- * (Larissa via Kamila) pediu 2026-05-27 [ADR 0105].
+ * US-FIN-044 — Onda 4f.sicoob_api. Sinal qualificado: Martinho Caçambas
+ * (biz=164) — Kamila (Admin#164) pediu 2026-05-27 [ADR 0105]. NÃO confundir
+ * com ROTA LIVRE (biz=4 Larissa vestuário) — ROTA LIVRE não usa Sicoob.
  *
- * PR3 (este) — mTLS handshake real (.pfx + senha cifrada Laravel Crypt).
- * Webhook real-time chega no PR4.
+ * US-FIN-046 (refactor 2026-05-27) — mTLS REUSA o NfeCertificado do business
+ * em vez de upload duplicado. Sicoob API exige cert ICP-Brasil A1 do CNPJ
+ * da empresa, EXATAMENTE o mesmo cert que NfeBrasil já gerencia pra SEFAZ
+ * (encrypt-at-rest via Crypt, validação CNPJ Subject CN, audit OTel).
+ *
+ * Single source of truth: cliente upload UMA vez em /fiscal/configuracao/certificado.
+ *
+ * Acoplamento cross-module Sicoob → NfeBrasil é débito aceitável até 2º
+ * banco API entrar (Bradesco/Inter/BB). Aí extrai NfeCertificado pra
+ * módulo neutro (US-FIN-047 backlog).
  *
  * URLs (Sicoob 2026):
  *   - Token (Keycloak): https://auth.sicoob.com.br/auth/realms/cooperado/protocol/openid-connect/token
  *   - API prod:         https://api.sicoob.com.br/cobranca-bancaria/v3
  *   - API sandbox:      https://sandbox.sicoob.com.br/sicoob/sandbox/cobranca-bancaria/v3
  *
- * Particularidades vs InterDriver:
- *   - Sicoob exige header `client_id` em TODAS as chamadas (não só no token)
- *   - Token cache em Laravel Cache (Redis-safe, multi-process) — Inter usa
- *     in-memory que perde token entre requests
- *   - Scopes Sicoob são granulares: boletos_inclusao + boletos_consulta +
- *     boletos_alteracao + webhooks_inclusao + webhooks_consulta
- *   - consultar usa query string composta (numeroCliente + codigoModalidade +
- *     nossoNumero), não path /boletos/{nn}
- *
- * Em prod, mTLS configurado via $cred->mtls_pfx_path (coluna canon, path
- * relativo a storage/app/private/ OU absoluto) + senha cifrada em
- * config_json['mtls_pfx_password_encrypted']. Em test (Http::fake) bypass
- * automático pois Http::fake não bate na rede.
- *
- * Senha NUNCA logada. Crypt::encryptString → DecryptException quando chave
- * APP_KEY do Laravel muda (re-cadastrar credencial).
- *
  * Refs:
- *   - https://developers.sicoob.com.br/portal/apis (docs oficiais)
- *   - https://api.sicoob.com.br/cobranca-bancaria/v3 (base prod)
+ *   - https://developers.sicoob.com.br/portal/apis
  *   - ADR 0170-bancos-nativos-top5-drivers-separados §4f.sicoob_api
+ *   - Modules/NfeBrasil/Services/CertificadoService (canon a reusar)
  *   - memory/sessions/2026-05-27-sicoob-api-credenciais-pedido.md
  */
 class SicoobApiDriver implements PaymentDriverContract
@@ -74,6 +66,10 @@ class SicoobApiDriver implements PaymentDriverContract
      * Scopes mínimos pra cobrança REST v3. Webhook scopes chegam no PR4.
      */
     private const SCOPES = 'boletos_inclusao boletos_consulta boletos_alteracao';
+
+    public function __construct(
+        private readonly CertificadoService $certificadoService,
+    ) {}
 
     public function key(): string
     {
@@ -103,8 +99,6 @@ class SicoobApiDriver implements PaymentDriverContract
 
         $data = $response->json() ?? [];
 
-        // Sicoob retorna `resultado: [{ status: 200, boleto: {...} }]` quando
-        // sucesso em batch; ou objeto direto quando 1 boleto só.
         $boleto = $data['resultado'][0]['boleto'] ?? $data['boleto'] ?? $data;
         $nossoNumero = (string) ($boleto['nossoNumero'] ?? '');
         $linhaDigitavel = (string) ($boleto['linhaDigitavel'] ?? '');
@@ -229,7 +223,6 @@ class SicoobApiDriver implements PaymentDriverContract
         $start = microtime(true);
 
         try {
-            // OAuth handshake = boa prova de saúde (token + mTLS + DNS + TLS).
             $this->getAccessToken($cred, forceRefresh: true);
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
@@ -252,9 +245,6 @@ class SicoobApiDriver implements PaymentDriverContract
 
     public function processWebhook(array $payload, object $cred): ?object
     {
-        // PR4 implementa HMAC + dispatch real. PR2 deixa só mapping superficial
-        // pra Onda 3 (gateway_webhook_events) não quebrar se chegar payload
-        // inesperado.
         $nossoNumero = (string) ($payload['nossoNumero'] ?? $payload['boleto']['nossoNumero'] ?? '');
         if ($nossoNumero === '') {
             return null;
@@ -287,8 +277,6 @@ class SicoobApiDriver implements PaymentDriverContract
                 'Sicoob API credential precisa client_id + client_secret em config_json'
             );
         }
-        // Convênio (numero_cliente) é o código cedente Sicoob — sem ele não
-        // emite boleto. Carteira (codigo_modalidade) tem default 1 (Simples).
         if (empty($config['numero_cliente']) && empty($config['convenio'])) {
             throw new CredentialMisconfiguredException(
                 'Sicoob API credential precisa numero_cliente (convênio/código cedente)'
@@ -315,9 +303,6 @@ class SicoobApiDriver implements PaymentDriverContract
             : self::OAUTH_URL_PRODUCTION;
     }
 
-    /**
-     * Cliente HTTP com Bearer + client_id header + mTLS options.
-     */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
         $config = $this->config($cred);
@@ -336,100 +321,61 @@ class SicoobApiDriver implements PaymentDriverContract
     }
 
     /**
-     * Monta options Guzzle pra mTLS handshake — `.pfx` (PKCS12) + senha
-     * decifrada via Laravel Crypt.
+     * mTLS options pra Guzzle — REUSA NfeCertificado do business (US-FIN-046).
      *
-     * Modelos:
-     *   - PHP_PKCS12 nativo:  ['cert' => [$pfxFullPath, $password]]
-     *   - Curl raw:           ['curl' => [CURLOPT_SSLCERT => ..., CURLOPT_SSLCERTTYPE => 'P12']]
+     * Sicoob exige cert ICP-Brasil A1 do CNPJ da empresa — mesmo cert que
+     * já vive em `nfe_certificados` encrypted-at-rest. Reusamos via
+     * `CertificadoService::carregarParaSefaz()` (canon).
      *
-     * Usamos a forma `['cert' => [path, password]]` que o Guzzle 7 aceita
-     * (passa pra curl como CURLOPT_SSLCERT + SSLCERTPASSWD automaticamente).
+     * Implementação:
+     *   1. Carrega .pfx binary + senha via CertificadoService (decrypt em memória)
+     *   2. Escreve .pfx temp em sys_get_temp_dir() pra Guzzle/curl (mTLS exige file)
+     *   3. register_shutdown_function pra unlink ao final do request
+     *   4. Retorna ['cert' => [$tempPath, $senha]] — Guzzle 7 propaga pra curl
      *
-     * Resolução:
-     *   - $cred->requires_mtls = false → retorna [] (driver pode operar sem mTLS
-     *     em sandbox de homologação Sicoob, mas em prod = mTLS obrigatório).
-     *   - $cred->mtls_pfx_path vazio com requires_mtls=true → throw.
-     *   - Path absoluto → usa direto.
-     *   - Path relativo → prefixa storage/app/private/.
+     * Segurança:
+     *   - Temp file fica em sys_get_temp_dir() com prefix `sicoob-pfx-` e
+     *     basename random via tempnam — atacante local não consegue prever path
+     *   - Conteúdo no temp é o .pfx (PKCS12 cifrado pela própria senha) — atacante
+     *     que pegue o arquivo ainda precisa da senha pra abrir
+     *   - unlink no shutdown garante cleanup mesmo em exception
      *
-     * Multi-tenant Tier 0: cada business_id tem .pfx separado em
-     * storage/app/private/sicoob/{business_id}.pfx (convenção). Path absoluto
-     * é permitido pra deployments que usam volume montado fora do storage.
+     * Em test (Http::fake) mTLS é bypass — caller NÃO precisa NfeCertificado ativo
+     * se o driver não fizer chamada real. Mas chamadas reais (emitirBoleto via
+     * Http::fake response) ainda invocam mtlsOptions → carregarParaSefaz.
      */
     private function mtlsOptions(PaymentGatewayCredential $cred): array
     {
-        if (! $cred->requires_mtls) {
-            return [];
-        }
-
-        $pfxPath = $this->resolveMtlsPfxFullPath($cred);
-        if ($pfxPath === null) {
+        try {
+            $cert = $this->certificadoService->carregarParaSefaz($cred->business_id);
+        } catch (RuntimeException $e) {
             throw new CredentialMisconfiguredException(
-                'Sicoob API credential exige mTLS (requires_mtls=true) mas mtls_pfx_path está vazio. ' .
-                "Faça upload do .pfx em /settings/payment-gateways pra business_id={$cred->business_id}."
-            );
-        }
-        if (! is_file($pfxPath)) {
-            throw new CredentialMisconfiguredException(
-                "Sicoob API .pfx não encontrado em '{$pfxPath}'. Re-upload pelo wizard."
+                'Sicoob API exige certificado A1 ICP-Brasil cadastrado em ' .
+                '/fiscal/configuracao/certificado — mesmo cert usado pra NFe SEFAZ. ' .
+                "Erro original: {$e->getMessage()}"
             );
         }
 
-        $password = $this->decryptMtlsPassword($cred);
+        $tempPath = tempnam(sys_get_temp_dir(), 'sicoob-pfx-');
+        if ($tempPath === false) {
+            throw new CredentialMisconfiguredException(
+                'Falha ao criar arquivo temporário pro .pfx Sicoob (sys_get_temp_dir não writable)'
+            );
+        }
+
+        file_put_contents($tempPath, $cert['pfx_binary']);
+        @chmod($tempPath, 0600);
+
+        // Cleanup garantido — unlink quando request termina (sucesso OU exception).
+        register_shutdown_function(static function () use ($tempPath): void {
+            if (is_file($tempPath)) {
+                @unlink($tempPath);
+            }
+        });
 
         return [
-            // Guzzle 7 aceita [path, password] e propaga pra curl como
-            // CURLOPT_SSLCERT + CURLOPT_SSLCERTPASSWD + CURLOPT_SSLCERTTYPE=P12.
-            'cert' => [$pfxPath, $password],
+            'cert' => [$tempPath, $cert['senha']],
         ];
-    }
-
-    /**
-     * Resolve path completo do .pfx — pode ser absoluto (mantém) ou relativo
-     * (prefixa com storage/app/private/). Retorna null se vazio.
-     */
-    private function resolveMtlsPfxFullPath(PaymentGatewayCredential $cred): ?string
-    {
-        $rel = trim((string) ($cred->mtls_pfx_path ?? ''));
-        if ($rel === '') {
-            return null;
-        }
-
-        // Path absoluto (Windows: C:/... ou /srv/...).
-        if (preg_match('#^([A-Za-z]:[\\\\/]|/)#', $rel) === 1) {
-            return $rel;
-        }
-
-        return storage_path('app/private/' . ltrim($rel, '/'));
-    }
-
-    /**
-     * Decifra senha do .pfx armazenada em config_json['mtls_pfx_password_encrypted'].
-     *
-     * NUNCA loga senha. DecryptException → throws CredentialMisconfigured
-     * com mensagem genérica (não vaza ciphertext nem detalhe interno).
-     */
-    private function decryptMtlsPassword(PaymentGatewayCredential $cred): string
-    {
-        $config = $this->config($cred);
-        $encrypted = (string) ($config['mtls_pfx_password_encrypted'] ?? '');
-
-        if ($encrypted === '') {
-            throw new CredentialMisconfiguredException(
-                "Sicoob mTLS configurado mas senha do .pfx ausente em config_json " .
-                '(mtls_pfx_password_encrypted). Re-cadastre senha no wizard.'
-            );
-        }
-
-        try {
-            return Crypt::decryptString($encrypted);
-        } catch (DecryptException) {
-            throw new CredentialMisconfiguredException(
-                'Senha do .pfx não decifra — APP_KEY do Laravel mudou desde o cadastro. ' .
-                'Re-cadastre senha no wizard de gateways.'
-            );
-        }
     }
 
     /**
@@ -487,8 +433,8 @@ class SicoobApiDriver implements PaymentDriverContract
             'dataEmissao'                     => Carbon::now()->toIso8601String(),
             'seuNumero'                       => substr($input->idempotencyKey, 0, 15),
             'identificacaoBoletoEmpresa'      => substr($input->idempotencyKey, 0, 25),
-            'identificacaoEmissaoBoleto'      => 2, // 2 = banco emite
-            'identificacaoDistribuicaoBoleto' => 2, // 2 = banco distribui
+            'identificacaoEmissaoBoleto'      => 2,
+            'identificacaoDistribuicaoBoleto' => 2,
             'valor'                           => $valorReais,
             'dataVencimento'                  => Carbon::instance($input->vencimento)->toIso8601String(),
             'numeroDiasLimiteRecebimento'     => $input->meta['dias_baixa'] ?? 30,
@@ -509,21 +455,11 @@ class SicoobApiDriver implements PaymentDriverContract
         ];
     }
 
-    /**
-     * Sicoob codigoBaixa (PATCH /boletos/baixa):
-     *   1 = Comandar baixa (motivo livre). Outros códigos chegam futuro.
-     */
     private function mapMotivoCancelar(string $motivo): int
     {
         return 1;
     }
 
-    /**
-     * Sicoob situacaoBoleto → status canon oimpresso.
-     *
-     * Valores Sicoob v3: EM_ABERTO, BAIXADO, LIQUIDADO, PROTESTADO,
-     * EM_PROTESTO, NEGATIVADO, EM_NEGATIVACAO, REGISTRADO.
-     */
     private function mapSituacao(string $sicoobStatus): string
     {
         return match (strtoupper($sicoobStatus)) {

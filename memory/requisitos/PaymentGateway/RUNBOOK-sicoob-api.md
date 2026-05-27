@@ -55,9 +55,7 @@ Webhook scopes (PR4+): `webhooks_inclusao webhooks_consulta`.
 ## Models + Schema
 
 - `Modules\PaymentGateway\Models\PaymentGatewayCredential` — tabela `payment_gateway_credentials`
-  - `gateway_key='sicoob_api'` (enum ampliado em [migration PR1](../../../Modules/PaymentGateway/Database/Migrations/2026_05_27_120000_add_sicoob_api_to_payment_gateway_credentials.php))
-  - `requires_mtls=true` (novo bool desde PR1)
-  - `mtls_pfx_path='sicoob/{business_id}.pfx'` (novo string desde PR1, relativo a `storage/app/private/`)
+  - `gateway_key='sicoob_api'` (enum)
   - `config_json` (encrypted-at-rest AES-256-CBC + MAC desde Onda 2):
     - `client_id` (Sicoob Developer Portal)
     - `client_secret`
@@ -65,8 +63,15 @@ Webhook scopes (PR4+): `webhooks_inclusao webhooks_consulta`.
     - `codigo_modalidade` (carteira — 1 Simples / 3 Caucionada)
     - `numero_conta` (conta corrente cooperativada)
     - `especie_documento` (default 'DM')
-    - `mtls_pfx_password_encrypted` (Crypt::encryptString da senha do .pfx)
     - `webhook_secret` (HMAC `x-sicoob-signature`)
+  - **Sem `mtls_pfx_path` / `requires_mtls`** desde US-FIN-046 (2026-05-27) — driver reusa `NfeCertificado` canon.
+
+- `Modules\NfeBrasil\Models\NfeCertificado` — **single source** do cert A1 ICP-Brasil da empresa
+  - Cliente upload UMA vez em `/fiscal/configuracao/certificado`
+  - Encrypted-at-rest: `.pfx` em disco cifrado via `Crypt::encrypt(binary)`
+  - Senha em `encrypted_password` (`Crypt::encryptString`)
+  - Validação CNPJ Subject CN bate com business CNPJ (PCI/LGPD)
+  - Reusado por: NFe SEFAZ, Sicoob API (US-FIN-046), futuros Bradesco/Inter/BB API drivers
 
 ## Backend canônico
 
@@ -92,11 +97,15 @@ Webhook scopes (PR4+): `webhooks_inclusao webhooks_consulta`.
   3. Extrai `eventId` determinístico (id → eventId → nossoNumero → md5 payload)
   4. Delega `WebhookProcessor::handle()` — idempotência DB-level via UNIQUE `(business_id, gateway_key, gateway_event_id)`
 
-### mTLS handshake
+### mTLS handshake (US-FIN-046)
 - `SicoobApiDriver::mtlsOptions(PaymentGatewayCredential $cred): array`
-  - `requires_mtls=false` → `[]` (sandbox sem cert)
-  - `requires_mtls=true` + `.pfx` válido + senha decifrável → `['cert' => [abs_path, plain_password]]`
-  - Guzzle 7 propaga pra curl como CURLOPT_SSLCERT + SSLCERTPASSWD + SSLCERTTYPE=P12
+  - Chama `CertificadoService::carregarParaSefaz($cred->business_id)` (canon NfeBrasil)
+  - Sem cert ativo → `CredentialMisconfiguredException` apontando pra `/fiscal/configuracao/certificado`
+  - Com cert ativo → escreve `.pfx` binary em temp file `sys_get_temp_dir()/sicoob-pfx-XXXXX` com chmod 0600
+  - Retorna `['cert' => [tempPath, plain_password]]` — Guzzle 7 propaga pra curl
+  - Cleanup automático via `register_shutdown_function(unlink)` ao fim do request
+
+**Single source of truth:** cliente upload UMA vez o cert A1 em `/fiscal/configuracao/certificado` — serve NFe SEFAZ + Sicoob + futuros API drivers (todos exigem ICP-Brasil A1).
 
 ### Cache OAuth
 - Key: `sicoob_api:token:{business_id}:{ambiente}:{client_id_hash}` (hash sha256 truncado 12 chars)
@@ -124,20 +133,23 @@ Webhook scopes (PR4+): `webhooks_inclusao webhooks_consulta`.
 
 ## Operação — Wagner cadastra Sicoob
 
-### 1. Liberação Sicoob (pré-requisito humano Kamila)
+### 1. Pré-requisito cert A1 (Fiscal)
+Cert A1 ICP-Brasil do CNPJ da empresa cadastrado em `/fiscal/configuracao/certificado`. Se ainda não cadastrou (cliente novo sem NFe), o wizard Sicoob mostra warning + deep-link pra Fiscal. **MESMO cert que NFe SEFAZ usa** — single source of truth desde US-FIN-046 (2026-05-27).
+
+### 2. Liberação Sicoob (pré-requisito humano Kamila)
 Conforme checklist [memory/sessions/2026-05-27-sicoob-api-credenciais-pedido.md](../../sessions/2026-05-27-sicoob-api-credenciais-pedido.md):
 - Acesso ao Sicoob Developer Portal liberado pelo gerente
 - Aplicativo criado no portal com scopes `boletos_inclusao boletos_consulta boletos_alteracao`
 - client_id + client_secret salvos
-- `.pfx` baixado + senha em mãos
 - Convênio (Código Cedente) anotado
+- **NÃO precisa baixar .pfx do Sicoob** — usa o cert A1 do passo 1
 
-### 2. Wagner cadastra via wizard
+### 3. Wagner cadastra via wizard
 `/settings/payment-gateways` → "Novo gateway" → step 1 escolher "Sicoob API" → step 2:
 - client_id + client_secret (collados do portal)
 - Convênio + Carteira (1 = Simples padrão) + Conta corrente
-- Upload `.pfx` + senha
 - Webhook secret (HMAC arbitrário gerado pra Sicoob configurar — `openssl rand -hex 32`)
+- Indicador no rodapé mostra status do cert A1 ativo (✅ válido / ⚠️ vencido / ⚠️ não cadastrado)
 - Step 3 → vincular conta destino + ambiente sandbox (testa) ou production
 
 ### 3. Wagner configura webhook no portal Sicoob
