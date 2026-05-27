@@ -55,30 +55,31 @@ Mesmo padrão em telas equivalentes. Filtro de Sells = filtro de Compras = filtr
 
 Peso 1× = baseline. Peso 2× = importante. Peso 3× = crítico.
 
-| Dimensão | Larissa (balconista) | Daniela (operacional) | Martinho (dono) | Contador (futuro) |
+| Dimensão | Larissa (balconista) | Daniela (operacional) | Jair (dono Martinho) | Kamila (admin/fiscal) |
 |---|---|---|---|---|
 | 1. Density | 2 | 3 | 1 | 3 |
-| 2. Discoverability | 3 | 2 | 2 | 1 |
-| 3. Speed-to-task | 3 | 2 | 1 | 1 |
-| 4. Error recovery | 3 | 2 | 1 | 2 |
-| 5. Cognitive load | 3 | 2 | 1 | 1 |
+| 2. Discoverability | 3 | 2 | 2 | 2 |
+| 3. Speed-to-task | 3 | 2 | 1 | 2 |
+| 4. Error recovery | 3 | 2 | 1 | 3 |
+| 5. Cognitive load | 3 | 2 | 1 | 2 |
 | 6. Aesthetic-usability | 2 | 1 | 3 | 1 |
-| 7. Affordance | 3 | 2 | 1 | 1 |
-| 8. Brand confidence | 1 | 1 | 3 | 2 |
+| 7. Affordance | 3 | 2 | 1 | 2 |
+| 8. Brand confidence | 1 | 1 | 3 | 1 |
 | 9. Mobile fit | 2 | 1 | 2 | 1 |
 | 10. A11y WCAG | 2 | 2 | 1 | 2 |
 | 11. i18n PT-BR | 3 | 3 | 2 | 3 |
 | 12. Performance perceived | 2 | 2 | 1 | 1 |
 | 13. Information hierarchy | 1 | 3 | 3 | 3 |
-| 14. Microcopy | 3 | 2 | 1 | 1 |
-| 15. Internal consistency | 1 | 2 | 2 | 1 |
-| **Total ponderado max** | **34** | **30** | **25** | **24** |
+| 14. Microcopy | 3 | 2 | 1 | 2 |
+| 15. Internal consistency | 1 | 2 | 2 | 2 |
+| **Total ponderado max** | **34** | **30** | **25** | **29** |
 
 ### Como ler a tabela
 
-- **Larissa** (não-técnica, balcão): peso 3 em Speed/Cognitive/Affordance/Microcopy/Discoverability — ela odeia "achar onde clicar"
-- **Daniela** (operacional oficina): peso 3 em Density/Information hierarchy/i18n — quer ver tudo de uma vez, frota + saldo + última OS
-- **Martinho** (dono): peso 3 em Brand confidence/Information hierarchy — paga pra "parecer empresa séria"
+- **Larissa** (não-técnica, balcão Rota Livre): peso 3 em Speed/Cognitive/Affordance/Microcopy/Discoverability — ela odeia "achar onde clicar"
+- **Daniela** (gerente operacional Martinho): peso 3 em Density/Information hierarchy/i18n — quer ver tudo de uma vez, frota + saldo + última OS
+- **Jair** (dono Martinho Caçambas): peso 3 em Brand confidence/Information hierarchy/Aesthetic-usability — paga pra "parecer empresa séria"
+- **Kamila** (admin/financeiro Martinho — esposa do Jair): peso 3 em Density/Error recovery/i18n PT-BR/Information hierarchy — emite NF-e, cobra cliente, fluxo caixa — erro fiscal é caro
 
 ### Cálculo do score
 

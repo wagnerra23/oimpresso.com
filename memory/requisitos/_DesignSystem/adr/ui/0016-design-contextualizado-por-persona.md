@@ -86,5 +86,17 @@ PR `feat/design-deep-framework-canon` 2026-05-27:
 1. ADR canon (este arquivo)
 2. `framework-15-dimensoes.md` + tabela ponderação
 3. `RUNBOOK-design-deep.md` + `RUNBOOK-cliente-discovery.md`
-4. 2 perfis empresa + 3 personas iniciais (Rota Livre/Larissa, Martinho/Daniela, Martinho/Martinho)
+4. 2 perfis empresa + 4 personas iniciais:
+   - Rota Livre/Larissa (dona-balconista vestuário)
+   - Martinho Caçambas/Jair (dono — decisor estratégico)
+   - Martinho Caçambas/Daniela (gerente operacional)
+   - Martinho Caçambas/Kamila (admin/financeiro — esposa do Jair)
 5. 2 skills (`design-deep-analysis`, `cliente-discovery`)
+
+## Errata 2026-05-27 pós-commit inicial
+
+- "Martinho" é nome da EMPRESA (Martinho Caçambas / Martinho Transportes), não pessoa.
+- **Jair** é o nome real do dono.
+- **Kamila** é esposa do Jair + administrativo/financeiro/NF-e/cobrança PJ frota.
+- Persona `martinho.yml` original (criada como "dono") foi corrigida e renomeada → `jair.yml`.
+- Persona `kamila.yml` adicionada como canon.
