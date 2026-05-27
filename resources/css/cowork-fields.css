@@ -32,6 +32,7 @@
   --cw-text-dim:     oklch(0.50 0.01 80);
   --cw-text-mute:    oklch(0.65 0.01 80);
   --cw-accent:       oklch(0.58 0.09 220);
+  --cw-accent-2:     oklch(0.66 0.09 220);  /* accent hover (mais claro) */
   --cw-accent-soft:  oklch(0.94 0.025 220);
   --cw-error:        oklch(0.65 0.18 25);
   --cw-error-soft:   oklch(0.94 0.04 25);
@@ -211,4 +212,52 @@ select.cw-input {
   letter-spacing: .07em; text-transform: uppercase;
   color: var(--cw-text-mute);
   margin: 0 0 8px;
+}
+
+/* ── Buttons (Cowork canon — primary/ghost — Wagner 2026-05-27) ────────── */
+.cw-btn-primary {
+  appearance: none; border: 0;
+  background: var(--cw-accent); color: #fff;
+  height: 30px; padding: 0 14px;
+  border-radius: 5px;
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 12.5px; font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.cw-btn-primary:hover { background: var(--cw-accent-2); }
+.cw-btn-primary:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--cw-accent-soft);
+}
+.cw-btn-primary:disabled {
+  background: var(--cw-border); color: var(--cw-text-mute);
+  cursor: not-allowed;
+}
+
+.cw-btn-ghost {
+  appearance: none;
+  background: var(--cw-surface);
+  border: 1px solid var(--cw-border);
+  color: var(--cw-text);
+  height: 30px; padding: 0 12px;
+  border-radius: 5px;
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+  white-space: nowrap;
+}
+.cw-btn-ghost:hover {
+  background: var(--cw-bg-2);
+  border-color: var(--cw-text-mute);
+}
+.cw-btn-ghost:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--cw-accent-soft);
+  border-color: var(--cw-accent);
+}
+.cw-btn-ghost:disabled {
+  opacity: 0.6; cursor: not-allowed;
 }
