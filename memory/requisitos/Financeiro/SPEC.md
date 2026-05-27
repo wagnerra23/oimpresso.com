@@ -4,13 +4,16 @@ title: "Especificação funcional — Financeiro"
 type: spec
 module: Financeiro
 status: ativo
-related_adrs: [0154, 0155, 0156]
+related_adrs:
+  - 0154-rubrica-module-grade-v2
+  - 0155-rubrica-module-grade-v3
+  - 0156-rubrica-module-grade-v3-detail
 na_justified_v3:
   D1.c: "Job `CriarTituloDeVendaJob` é `@deprecated` órfão (Onda 2, 2026-04-25) e nunca foi dispatched em produção; sincronização canônica de títulos a partir de transactions ocorre via `TituloAutoService::sincronizarDeTransacao` chamado diretamente pelo `TransactionObserver`. O constructor do Job recebe apenas `$transactionId` e extrai `business_id` da Eloquent (pattern legítimo de Job-por-ID), portanto a checagem `$businessId` no constructor não se aplica ao módulo."
 pii: false
 updated_at: 2026-05-16
-last_updated: 2026-05-19
-version: 1.1
+last_updated: '2026-05-27'
+version: '1.2'
 owner: wagner
 ---
 
@@ -1459,3 +1462,120 @@ Quando Maiara entregar `review`, Daily Brief avisa Wagner automatic. NAO criar t
 - ADR 0093 multi-tenant Tier 0 (business_id obrigatorio)
 - ADR 0118 segregacao dominios externos (bridge table `accounts_legacy_map`)
 - ADR 0120 PII redaction em audit JSON (legacy_metadata redacted)
+
+---
+
+### US-FIN-044 · SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time)
+
+> owner: wagner · priority: p1 · estimate: 24h · status: in_progress · type: story
+> blocked_by: cliente (Kamila/Martinho biz=164 buscando credenciais sandbox Sicoob Developer Portal)
+
+## Contexto
+
+Sicoob é Top 5 mercado BR cooperativista. Antes desta US, oimpresso só tinha `SicoobCnabDriver` (CNAB 240 arquivo via `eduardokum/laravel-boleto`). Cliente real (Kamila — Admin#164 do Martinho Caçambas, biz=164, locação caçambas Tubarão/SC, competidor HiSoft) pediu API REST por OAuth2 + webhook real-time pra evitar import manual de arquivo retorno.
+
+**Atenção:** Kamila é do Martinho Caçambas (biz=164), NÃO da ROTA LIVRE (biz=4 Larissa vestuário Gravatal/SC). Confundi os 2 clientes na sessão 2026-05-27 — consolidação canon em PR [#1734](https://github.com/wagnerra23/oimpresso.com/pull/1734).
+
+## Acceptance criteria
+
+Backend em prod (6 PRs mergeados via PR [#1730](https://github.com/wagnerra23/oimpresso.com/pull/1730) cherry-pick consolidation):
+
+- [x] `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` implementando `PaymentDriverContract`
+- [x] OAuth2 client_credentials flow (cache Laravel TTL 3500s, key por business_id + ambiente + hash client_id)
+- [x] mTLS handshake — **reusa NfeCertificado canon** (US-FIN-046 fix, ver abaixo)
+- [x] Endpoints: POST `/cobranca-bancaria/v3/boletos`, GET `/boletos` (consultar), PATCH `/boletos/baixa` (cancelar), webhook receiver
+- [x] `Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php` validando HMAC `x-sicoob-signature` + idempotência
+- [x] Registro `PaymentGatewayService::DRIVERS['sicoob_api']`
+- [x] Wizard step Sicoob no `SheetNovoGateway.tsx` — client_id + secret + convênio + carteira + conta + webhook_secret + indicador cert A1 do Fiscal
+- [x] Deep-link "Onde gerar credencial" → `https://developers.sicoob.com.br`
+- [x] Pest contract test + cross-tenant ampliado
+- [x] [RUNBOOK-sicoob-api.md](../PaymentGateway/RUNBOOK-sicoob-api.md) (11 seções)
+- [x] Charter `Settings/PaymentGateways/Index.charter.md` atualizado
+- [ ] Smoke E2E real com credenciais sandbox da Kamila (BLOQUEADO — pré-req humano)
+
+## Pré-requisito humano
+
+Checklist completo em [memory/sessions/2026-05-27-sicoob-api-credenciais-pedido.md](../../sessions/2026-05-27-sicoob-api-credenciais-pedido.md). Kamila pede pro gerente Sicoob libera Developer Portal + client_id/secret + convênio + webhook scopes.
+
+**NÃO precisa upload .pfx do Sicoob** — cert A1 ICP-Brasil já cadastrado em Fiscal pra NFe SEFAZ serve (verdade canon: Sicoob exige A1 ICP-Brasil do CNPJ, mesmo que NfeBrasil gerencia). Fix arquitetural em US-FIN-046.
+
+## Multi-tenant Tier 0
+
+- Cache OAuth token key por `business_id` — nunca compartilhado entre tenants
+- Webhook valida HMAC com `webhook_secret` da credential do `business_id` da rota
+- mTLS reusa `NfeCertificado` filtrado por `business_id` (single source, encrypted-at-rest via Crypt)
+
+## Refs
+
+- 7 PRs: [#1718](https://github.com/wagnerra23/oimpresso.com/pull/1718) skeleton · [#1720](https://github.com/wagnerra23/oimpresso.com/pull/1720) OAuth+emissão · [#1722](https://github.com/wagnerra23/oimpresso.com/pull/1722) mTLS · [#1724](https://github.com/wagnerra23/oimpresso.com/pull/1724) webhook · [#1725](https://github.com/wagnerra23/oimpresso.com/pull/1725) UI · [#1728](https://github.com/wagnerra23/oimpresso.com/pull/1728) docs · [#1730](https://github.com/wagnerra23/oimpresso.com/pull/1730) cherry-pick stack
+- US-FIN-046 fix arquitetural mTLS
+- ADR 0105 cliente como sinal qualificado
+- ADR 0170 §4f.sicoob_api bancos nativos top-5
+
+---
+
+### US-FIN-045 · Wizard bank-first 2-step (banco → modo conexão)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+## Contexto
+
+Wagner identificou 2026-05-27 (durante sessão US-FIN-044): wizard `SheetNovoGateway` step 1 lista 16+ drivers misturando bancos com modos de conexão (`sicoob_api` ao lado de `sicoob_cnab`, `inter` ao lado de `bradesco_cnab`...). Usuário pensa "quero Sicoob", não "quero `sicoob_api`".
+
+## Acceptance criteria
+
+- [ ] Wizard refatorado pra 4 steps:
+  - **Step 1 — Banco**: 1 card por instituição (Sicoob, Inter, Bradesco, BB, Itaú, Santander, Caixa, BTG, Sicredi, Ailos, Cresol, Banrisul, C6 + grupo PSPs: Asaas, Pagar.me + grupo Regulador: BCB PIX)
+  - **Step 2 — Modo conexão**: opções disponíveis pro banco (API REST / CNAB 240 / API PIX / outros) com trade-offs
+  - **Step 3 — Credenciais**: form dinâmico baseado em (banco, modo)
+  - **Step 4 — Vínculo**: conta destino + ambiente + ativo
+
+- [ ] `gateway-shared.ts` ganha estrutura `BANKS` (top-level) + `MODES` (segundo nível) com mapping `(bank, mode) → GatewayKey`
+
+- [ ] PSPs/Reguladores em grupo separado (Asaas, Pagar.me, BCB)
+
+- [ ] Pest navega wizard 4 steps com casos Sicoob+API / Sicoob+CNAB / Inter+API
+
+## Multi-tenant Tier 0
+
+Sem mudança backend — apenas UI reorganizada. Backend continua recebendo `gateway_key` canon.
+
+## Refs
+
+- US-FIN-044 origem do feedback
+- Não-blocker pra Sicoob funcionar — refactor reduz fricção quando 2º API driver (Bradesco/BB/Itaú) entrar
+
+---
+
+### US-FIN-046 · Sicoob mTLS reusa NfeCertificado (single source of truth)
+
+> owner: wagner · priority: p0 · estimate: 4h · status: review · type: story
+> blocked_by: —
+
+## Contexto
+
+Bug arquitetural US-FIN-044 (Wagner apontou 2026-05-27): `.pfx` Sicoob ficava em 2 lugares — `storage/app/nfe-brasil/{biz}/cert/{uuid}.pfx.enc` (encrypted canon NfeCertificado) + minha cópia `storage/app/private/sicoob/{biz}.pfx` (PLAIN, inseguro). Cliente teria que upload o MESMO cert A1 ICP-Brasil duas vezes.
+
+**Verdade canon (pesquisa Wagner 2026-05-27 — TecnoSpeed/Soften/ACBr):** Sicoob API Cobrança v3 EXIGE cert ICP-Brasil A1 do CNPJ da empresa — EXATAMENTE o mesmo que NfeBrasil já gerencia pra SEFAZ.
+
+## Acceptance criteria
+
+- [x] `SicoobApiDriver::mtlsOptions()` chama `CertificadoService::carregarParaSefaz($cred->business_id)` canon NfeBrasil
+- [x] Temp file `sys_get_temp_dir()/sicoob-pfx-*` com chmod 0600 + cleanup via `register_shutdown_function`
+- [x] `CredentialMisconfigured` clara com link `/fiscal/configuracao/certificado` se business sem cert
+- [x] Migration revert PR1: drop colunas `requires_mtls` + `mtls_pfx_path`
+- [x] Wizard step 2 Sicoob: remove upload .pfx; adiciona indicador colorido (verde/âmbar/rose) cert A1 ativo OU warning + deep-link Fiscal
+- [x] RUNBOOK + SCOPE.md atualizados
+- [x] Pest reescrito: mock `CertificadoService` via `app->instance()`
+- [ ] PR [#1737](https://github.com/wagnerra23/oimpresso.com/pull/1737) merged + deployed
+
+## Débito anotado
+
+Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débito aceitável até 2º banco API entrar (Bradesco/Inter/BB). Aí extrai `NfeCertificado` pra módulo neutro com campo `proposito` — vira **US-FIN-047** backlog.
+
+## Refs
+
+- US-FIN-044 origem do bug
+- Modules/NfeBrasil/Services/CertificadoService.php canon a reusar
+- Sicoob docs: TecnoSpeed/SoftenSistemas/ACBr confirmam ICP-Brasil A1 (busca Wagner 2026-05-27)
