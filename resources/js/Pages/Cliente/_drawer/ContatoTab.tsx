@@ -24,9 +24,14 @@ export interface ContactInfo {
   id: number;
   tel?: string | null;
   tel2?: string | null;
+  // Onda 1 PR B' (Daniela @ Martinho) — 3º telefone via coluna UPOS legacy.
+  alternate_number?: string | null;
   mobile?: string | null;
   landline?: string | null;
   email?: string | null;
+  // Onda 1 PR B' — emails diferenciados (comercial / NF-e).
+  email_billing?: string | null;
+  email_nfe?: string | null;
   site?: string | null;
   canal?: 'whatsapp' | 'email' | 'telefone' | 'presencial' | null;
 }
@@ -54,12 +59,21 @@ function getCsrfToken(): string {
   );
 }
 
+// Onda 1 PR B' 2026-05-26 — Extraído pra constante única (atende UI Lint ratchet).
+// Evita 3 ocorrências literais idênticas (email/email_billing/email_nfe).
+const INVALID_INPUT_CLASS = 'border-rose-500 focus-visible:ring-rose-400';
+
 export default function ContatoTab({ contact, onSaved, disabled = false }: ContatoTabProps) {
   // Resolve tel inicial: prioriza `tel` (nova coluna Wave B), fallback pra mobile/landline UPOS legacy
   const initialTel = contact.tel ?? contact.mobile ?? contact.landline ?? '';
   const [tel, setTel] = useState<string>(maskTel(initialTel));
   const [tel2, setTel2] = useState<string>(maskTel(contact.tel2 ?? ''));
+  // Onda 1 PR B' — 3º telefone (alternate_number UPOS legacy).
+  const [tel3, setTel3] = useState<string>(maskTel(contact.alternate_number ?? ''));
   const [email, setEmail] = useState<string>(contact.email ?? '');
+  // Onda 1 PR B' — emails diferenciados.
+  const [emailBilling, setEmailBilling] = useState<string>(contact.email_billing ?? '');
+  const [emailNfe, setEmailNfe] = useState<string>(contact.email_nfe ?? '');
   const [site, setSite] = useState<string>(contact.site ?? '');
   const [canal, setCanal] = useState<CanalValue | ''>((contact.canal as CanalValue) ?? '');
 
@@ -74,7 +88,10 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
     const t = contact.tel ?? contact.mobile ?? contact.landline ?? '';
     setTel(maskTel(t));
     setTel2(maskTel(contact.tel2 ?? ''));
+    setTel3(maskTel(contact.alternate_number ?? ''));
     setEmail(contact.email ?? '');
+    setEmailBilling(contact.email_billing ?? '');
+    setEmailNfe(contact.email_nfe ?? '');
     setSite(contact.site ?? '');
     setCanal((contact.canal as CanalValue) ?? '');
     setErrorField(null);
@@ -88,11 +105,25 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
     return null;
   }, [email]);
 
+  // Onda 1 PR B' — validação dos 2 emails extras (mesma regra).
+  const emailBillingError = useMemo<string | null>(() => {
+    if (!emailBilling) return null;
+    return validateEmail(emailBilling) === false ? 'Formato de e-mail inválido.' : null;
+  }, [emailBilling]);
+
+  const emailNfeError = useMemo<string | null>(() => {
+    if (!emailNfe) return null;
+    return validateEmail(emailNfe) === false ? 'Formato de e-mail inválido.' : null;
+  }, [emailNfe]);
+
   // ── Autosave debounced ───────────────────────────────────────────────
   const rollbackField = useCallback((field: string, prev: unknown) => {
     if (field === 'tel') setTel((prev as string) ?? '');
     else if (field === 'tel2') setTel2((prev as string) ?? '');
+    else if (field === 'alternate_number') setTel3((prev as string) ?? '');
     else if (field === 'email') setEmail((prev as string) ?? '');
+    else if (field === 'email_billing') setEmailBilling((prev as string) ?? '');
+    else if (field === 'email_nfe') setEmailNfe((prev as string) ?? '');
     else if (field === 'site') setSite((prev as string) ?? '');
     else if (field === 'canal') setCanal((prev as CanalValue | '') ?? '');
   }, []);
@@ -163,6 +194,8 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
   const handleBlur = useCallback(
     (field: string, value: unknown) => {
       if (field === 'email' && emailError) return;
+      if (field === 'email_billing' && emailBillingError) return;
+      if (field === 'email_nfe' && emailNfeError) return;
       const prev = previousValuesRef.current[field];
       if (debounceTimersRef.current[field]) {
         clearTimeout(debounceTimersRef.current[field]);
@@ -170,7 +203,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
       }
       performSave(field, value, prev);
     },
-    [emailError, performSave]
+    [emailError, emailBillingError, emailNfeError, performSave]
   );
 
   const handleCanalChange = useCallback(
@@ -236,6 +269,32 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
           />
         </div>
 
+        {/* Onda 1 PR B' (Daniela @ Martinho) — 3º telefone via coluna UPOS legacy `alternate_number`. */}
+        <div className="md:col-span-2">
+          <Label htmlFor="ct-tel3" className="text-xs font-medium">
+            Telefone 3 <span className="text-muted-foreground font-normal">(opcional · recados)</span>
+          </Label>
+          <Input
+            id="ct-tel3"
+            value={tel3}
+            placeholder="(00) 0 0000-0000"
+            disabled={disabled}
+            inputMode="tel"
+            onChange={(e) => {
+              const prev = tel3;
+              const v = maskTel(e.target.value);
+              setTel3(v);
+              scheduleAutosave('alternate_number', v, prev);
+            }}
+            onBlur={(e) => handleBlur('alternate_number', e.target.value)}
+          />
+          <FieldStatus
+            saving={savingField === 'alternate_number'}
+            saved={savedField === 'alternate_number'}
+            backendError={errorField?.field === 'alternate_number' ? errorField.message : null}
+          />
+        </div>
+
         <div className="md:col-span-2">
           <Label htmlFor="ct-email" className="text-xs font-medium">
             E-mail
@@ -255,7 +314,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
               scheduleAutosave('email', v, prev);
             }}
             onBlur={(e) => handleBlur('email', e.target.value)}
-            className={emailError ? 'border-rose-500 focus-visible:ring-rose-400' : ''}
+            className={emailError ? INVALID_INPUT_CLASS : ''}
           />
           <FieldStatus
             error={emailError}
@@ -263,6 +322,68 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
             saving={savingField === 'email'}
             saved={savedField === 'email'}
             backendError={errorField?.field === 'email' ? errorField.message : null}
+          />
+        </div>
+
+        {/* Onda 1 PR B' (Daniela @ Martinho) — E-mails diferenciados.
+            Migration 2026_05_26_140000_add_emails_extras_to_contacts. */}
+        <div>
+          <Label htmlFor="ct-email-billing" className="text-xs font-medium">
+            E-mail comercial <span className="text-muted-foreground font-normal">(opcional · vendedor)</span>
+          </Label>
+          <Input
+            id="ct-email-billing"
+            type="email"
+            value={emailBilling}
+            placeholder="comercial@exemplo.com.br"
+            disabled={disabled}
+            aria-invalid={!!emailBillingError}
+            aria-describedby={emailBillingError ? 'ct-email-billing-error' : undefined}
+            onChange={(e) => {
+              const prev = emailBilling;
+              const v = e.target.value;
+              setEmailBilling(v);
+              scheduleAutosave('email_billing', v, prev);
+            }}
+            onBlur={(e) => handleBlur('email_billing', e.target.value)}
+            className={emailBillingError ? INVALID_INPUT_CLASS : ''}
+          />
+          <FieldStatus
+            error={emailBillingError}
+            errorId="ct-email-billing-error"
+            saving={savingField === 'email_billing'}
+            saved={savedField === 'email_billing'}
+            backendError={errorField?.field === 'email_billing' ? errorField.message : null}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="ct-email-nfe" className="text-xs font-medium">
+            E-mail NF-e <span className="text-muted-foreground font-normal">(opcional · contador)</span>
+          </Label>
+          <Input
+            id="ct-email-nfe"
+            type="email"
+            value={emailNfe}
+            placeholder="contador@exemplo.com.br"
+            disabled={disabled}
+            aria-invalid={!!emailNfeError}
+            aria-describedby={emailNfeError ? 'ct-email-nfe-error' : undefined}
+            onChange={(e) => {
+              const prev = emailNfe;
+              const v = e.target.value;
+              setEmailNfe(v);
+              scheduleAutosave('email_nfe', v, prev);
+            }}
+            onBlur={(e) => handleBlur('email_nfe', e.target.value)}
+            className={emailNfeError ? INVALID_INPUT_CLASS : ''}
+          />
+          <FieldStatus
+            error={emailNfeError}
+            errorId="ct-email-nfe-error"
+            saving={savingField === 'email_nfe'}
+            saved={savedField === 'email_nfe'}
+            backendError={errorField?.field === 'email_nfe' ? errorField.message : null}
           />
         </div>
 

@@ -207,7 +207,12 @@ class ClienteAutosaveController extends Controller
     /**
      * PATCH /cliente/{id}/contato
      *
-     * Campos: mobile, tel2, email, site_url, canal_preferido.
+     * Campos: mobile, tel2, alternate_number, email, email_billing, email_nfe,
+     * site_url, canal_preferido.
+     *
+     * Onda 1 PR B' 2026-05-26 (Daniela @ Martinho):
+     *   - alternate_number EXPOSTO (campo UPOS legacy = 3º telefone)
+     *   - email_billing + email_nfe novos (migration 2026_05_26_140000)
      */
     public function contato(Request $request, int $id): JsonResponse
     {
@@ -219,7 +224,12 @@ class ClienteAutosaveController extends Controller
         $validator = Validator::make($request->all(), [
             'mobile' => ['nullable', 'string', 'max:25'],
             'tel2' => ['nullable', 'string', 'max:20'],
+            // Onda 1 PR B' — 3º telefone via coluna UPOS legacy `alternate_number`.
+            'alternate_number' => ['nullable', 'string', 'max:25'],
             'email' => ['nullable', 'email', 'max:255'],
+            // Onda 1 PR B' — emails diferenciados (comercial / NF-e).
+            'email_billing' => ['nullable', 'email', 'max:320'],
+            'email_nfe' => ['nullable', 'email', 'max:320'],
             // site_url aceita URL com ou sem scheme. Larissa biz=4 digita
             // "exemplo.com.br" sem https:// -- aceitamos.
             'site_url' => ['nullable', 'string', 'max:120', 'regex:/^(https?:\/\/)?[a-zA-Z0-9][a-zA-Z0-9-]{0,61}(\.[a-zA-Z0-9][a-zA-Z0-9-]{0,61})+\/?.*$/'],
@@ -512,7 +522,13 @@ class ClienteAutosaveController extends Controller
             'cargo' => $contact->cargo ?? null,
             'mobile' => $contact->mobile ?? null,
             'tel2' => $contact->tel2 ?? null,
+            // Onda 1 PR B' (Daniela) — 3º telefone via coluna UPOS legacy.
+            'alternate_number' => $contact->alternate_number ?? null,
             'email' => $contact->email ?? null,
+            // Onda 1 PR B' — emails diferenciados (comercial / NF-e). Migration
+            // 2026_05_26_140000_add_emails_extras_to_contacts.
+            'email_billing' => $contact->email_billing ?? null,
+            'email_nfe' => $contact->email_nfe ?? null,
             'site_url' => $contact->site_url ?? null,
             'canal_preferido' => $contact->canal_preferido ?? null,
             'zip_code' => $contact->zip_code ?? null,
