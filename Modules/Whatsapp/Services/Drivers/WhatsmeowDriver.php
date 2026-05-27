@@ -316,7 +316,13 @@ class WhatsmeowDriver implements DriverInterface
         }
 
         $data = $qrResponse->json();
-        $qrBase64 = $data['QRCode'] ?? null;
+        // WuzAPI envelope: {"code":200,"data":{"QRCode":"data:image/png;base64,..."},"success":true}
+        // QR fica em data.QRCode (nested), não no root. Sessão 2026-05-27 confirmou via curl.
+        $qrDataUrl = $data['data']['QRCode'] ?? null;
+        // Strip "data:image/png;base64," prefix se presente — UI já adiciona o prefix
+        $qrBase64 = $qrDataUrl && str_contains($qrDataUrl, ',')
+            ? explode(',', $qrDataUrl, 2)[1]
+            : $qrDataUrl;
 
         return [
             'qr_base64' => $qrBase64,
