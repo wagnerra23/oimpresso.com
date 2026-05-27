@@ -3,11 +3,13 @@ slug: 0201-receita-sefaz-lookup-canon-cadastro-br
 number: 201
 title: "Receita Federal + SEFAZ ConsultaCadastro é o padrão canon de coleta de dados cadastrais BR em entidades fiscais"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-27"
+accepted_at: "2026-05-27"
+accepted_via: "Wagner aprovou canon + validou prod oimpresso.com: distinguir no_cert vs sefaz_error vs env_homolog funcionando · PR #1749 deployed 16:20 UTC validado via fetch direto retornando reason=env_homolog correto · sessão `frosty-greider-83ab2f` 2026-05-27 — comando exato: 'merge'"
 module: core
 quarter: 2026-Q2
 tags: [cadastral, receita-federal, sefaz, brasilapi, cnpj-lookup, certificado-a1, multi-tenant, autosave, persona-larissa, ADR-0186-chain-cert, ADR-0185-drawer-canon, ADR-0179-cliente-drawer, ADR-0195-tabs-mount-sempre]
