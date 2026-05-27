@@ -83,14 +83,14 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
   const [qrError, setQrError] = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
 
-  // Form state
-  const [type, setType] = useState<string>('whatsapp_baileys');
+  // Form state — default Meta Cloud (ADR 0202 — Baileys descontinuado)
+  const [type, setType] = useState<string>('whatsapp_meta');
   const [label, setLabel] = useState('');
   const [config, setConfig] = useState<Record<string, string>>({});
   const [lgpdOk, setLgpdOk] = useState(false);
 
   function resetForm() {
-    setType('whatsapp_baileys');
+    setType('whatsapp_meta');
     setLabel('');
     setConfig({});
     setLgpdOk(false);
