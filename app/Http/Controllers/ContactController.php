@@ -497,6 +497,12 @@ class ContactController extends Controller
         if ($hasDrawerCols) {
             $selectCols[] = 'contacts.nascimento';
             $selectCols[] = 'contacts.cargo';
+            // `ie` (Wave drawer 2026-05-22) — alias Cowork de `inscricao_estadual`
+            // (Wave canon BR 2026-05-21). DUAS colunas coexistem (intencional —
+            // Wave C decide canon). ClienteAutosaveController PATCH grava SÓ em
+            // `ie`, então é a fonte de verdade pro drawer. Fallback `inscricao_estadual`
+            // cobre cadastros pre-drawer Wave (Wave 2026-05-21).
+            $selectCols[] = 'contacts.ie';
             $selectCols[] = 'contacts.tel2';
             $selectCols[] = 'contacts.site_url';
             $selectCols[] = 'contacts.canal_preferido';
@@ -679,7 +685,10 @@ class ContactController extends Controller
             // UPOS (cadastros pré-restauração BR). PII mascarado, NUNCA plain.
             $cpfCnpjRaw = $hasCanonBrCols ? ($contact->cpf_cnpj ?? null) : null;
             $payload['cpf_cnpj_masked'] = $this->maskTaxNumber($cpfCnpjRaw ?? $contact->tax_number);
-            $payload['ie'] = $hasCanonBrCols ? ($contact->inscricao_estadual ?? null) : null;
+            // IE: prioriza `contacts.ie` (Wave drawer — onde autosave grava) com
+            // fallback `inscricao_estadual` (Wave canon BR — cadastros pre-drawer).
+            $payload['ie'] = ($hasDrawerCols ? ($contact->ie ?? null) : null)
+                ?? ($hasCanonBrCols ? ($contact->inscricao_estadual ?? null) : null);
             $payload['rg'] = $hasCanonBrCols ? ($contact->rg ?? null) : null;
 
             // Wave drawer 2026-05-22 — campos cadastrais drawer.

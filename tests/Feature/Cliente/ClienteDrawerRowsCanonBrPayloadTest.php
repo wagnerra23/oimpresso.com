@@ -29,10 +29,13 @@ test('GUARD 1 — buildClienteIndexCustomers select inclui canon BR fields grace
         ->toContain("'contacts.cpf_cnpj'")
         ->toContain("'contacts.inscricao_estadual'")
         ->toContain("'contacts.rg'")
-        // Wave drawer 2026-05-22 — nascimento + cargo.
+        // Wave drawer 2026-05-22 — nascimento + cargo + ie (alias Cowork).
         ->toContain("Schema::hasColumn('contacts', 'cargo')")
         ->toContain("'contacts.nascimento'")
-        ->toContain("'contacts.cargo'");
+        ->toContain("'contacts.cargo'")
+        // `ie` (Wave drawer) e a fonte de verdade — autosave grava la, NAO em
+        // `inscricao_estadual` (Wave canon BR — kept como fallback legacy).
+        ->toContain("'contacts.ie'");
 });
 
 // ─── GUARD 2: payload row tem chaves drawer-friendly ──────────────────────
@@ -47,6 +50,10 @@ test('GUARD 2 — buildClienteIndexCustomers payload tem cpf_cnpj_masked + ie + 
         // Fallback canon -> legacy UPOS pra cadastros pre-Wave 2026-05-21.
         ->toContain('cpf_cnpj ?? null')
         ->toContain('?? $contact->tax_number')
+        // ie prioriza coluna Wave drawer (`contacts.ie`) com fallback canon BR
+        // (`inscricao_estadual`) pra cadastros pre-drawer. Autosave grava em `ie`.
+        ->toContain('$contact->ie ?? null')
+        ->toContain('$contact->inscricao_estadual ?? null')
         // ie + rg + nascimento + cargo escapam o mask (sao livres, nao PII numerica).
         ->toMatch("/\\\$payload\\['ie'\\]\\s*=/")
         ->toMatch("/\\\$payload\\['rg'\\]\\s*=/")
