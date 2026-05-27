@@ -49,10 +49,12 @@ class ChannelDriverFactory
         return match ($channel->type) {
             Channel::TYPE_WHATSAPP_META => app(MetaCloudDriver::class),
             Channel::TYPE_WHATSAPP_ZAPI => app(ZapiDriver::class),
+            // ADR 0204 (2026-05-27) — whatsmeow substituto não-oficial Baileys.
+            Channel::TYPE_WHATSAPP_WHATSMEOW => app(WhatsmeowDriver::class),
             Channel::TYPE_WHATSAPP_BAILEYS => throw new NotImplementedDriverException(
                 "Channel type 'whatsapp_baileys' foi descontinuado por ADR 0202 (2026-05-27). "
-                . "Supersede ADR 0096 emenda 4. Crie channel 'whatsapp_meta' (default) ou 'whatsapp_zapi' (opcional). "
-                . "Veja memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md."
+                . "Substituído por 'whatsapp_whatsmeow' (ADR 0204) ou crie channel 'whatsapp_meta' (default). "
+                . "Veja memory/decisions/0204-whatsmeow-driver-substituto-baileys.md."
             ),
 
             Channel::TYPE_INSTAGRAM,

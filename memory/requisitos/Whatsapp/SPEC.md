@@ -17,6 +17,8 @@ related_adrs:
 > Decisão arquitetural mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)
 > **Atualizado por [ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md) (2026-05-27):**
 > Meta Cloud API default universal · Z-API opcional fallback per-tenant · BaileysDriver DESCONTINUADO · Evolution PROIBIDO Tier 0 (permanente).
+> **Amend [ADR 0204](../../decisions/0204-whatsmeow-driver-substituto-baileys.md) (2026-05-27):**
+> Whatsmeow Go driver via daemon WuzAPI CT 100 ENTRA como substituto não-oficial Baileys (mesma data ADR 0202). Risco ban Meta igual Baileys (whatsmeow issue #810) — trade-off técnico aceito por estabilidade long-running + footprint -37% RAM. Baileys segue forbidden.
 
 ## 1. Glossário rápido
 
@@ -29,10 +31,11 @@ related_adrs:
 - **HITL** — Human In The Loop (handoff bot→humano quando PolicyEngine retorna `REQUIRE_HUMAN_REVIEW`)
 - **Deflection** — % de conversas resolvidas sem intervenção humana
 - **Conversation** — janela 24h Meta (cobrada uma vez); várias mensagens dentro = 1 conversa
-- **Driver (pós ADR 0202)** — abstração `MetaCloudDriver` (default universal) / `ZapiDriver` (opcional fallback) / `NullDriver` (CI). `BaileysDriver` DESCONTINUADO 2026-05-27.
+- **Driver (pós ADR 0202 + 0204)** — abstração `MetaCloudDriver` (default universal) / `ZapiDriver` (opcional fallback) / `WhatsmeowDriver` (substituto não-oficial Baileys, ADR 0204) / `NullDriver` (CI). `BaileysDriver` DESCONTINUADO 2026-05-27.
 - **Meta Cloud (default universal pós ADR 0202)** — oficial Meta (`graph.facebook.com/v21.0`). Free 1k conv/mês BR. Sem risco ban. Embedded Signup v4 simplifica onboarding (Fase 2 ADR 0202).
 - **Z-API (opcional fallback pós ADR 0202)** — SaaS BR (`api.z-api.io`) baseado em Whatsapp Web. Onboarding 5 min (scan QR). **Risco ban Meta** (mitigado por fallback Meta Cloud obrigatório + termo LGPD).
-- **BaileysDriver custom** — DESCONTINUADO 2026-05-27 ([ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md), supersede ADR 0096 emenda 4). Daemon Node CT 100 descomissionado. Tenants legacy migram pra Meta Cloud em Fase 2/3.
+- **WhatsmeowDriver (ADR 0204)** — driver não-oficial via daemon Go WuzAPI CT 100 (substituto Baileys). Scan QR 30s, custo zero. **Risco ban Meta igual Baileys** ([whatsmeow #810](https://github.com/tulir/whatsmeow/issues/810)). LGPD ack obrigatório. Fallback Meta Cloud automático quando degrada.
+- **BaileysDriver custom** — DESCONTINUADO 2026-05-27 ([ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md), supersede ADR 0096 emenda 4). Daemon Node CT 100 descomissionado. Tenants legacy migram pra Meta Cloud em Fase 2/3. **Substituído pelo Whatsmeow Go** ([ADR 0204](../../decisions/0204-whatsmeow-driver-substituto-baileys.md)) que tem mesmo modelo + estabilidade melhor.
 - **Evolution API** — **PROIBIDO permanente** ([ADR 0096 emenda 4](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)). Razões concretas: bans recorrentes em produção Wagner + schema não atende + falta de observabilidade.
 - **Driver Health Check** — job 6h em 6h envia ping pra detectar ban Z-API. BaileysDriver não monitorado pós ADR 0202.
 - **Fallback automático** — quando Z-API `driver_health` ≥ degraded, sistema troca pra Meta Cloud sem intervenção.

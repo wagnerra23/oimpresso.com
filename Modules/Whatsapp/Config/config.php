@@ -52,6 +52,27 @@ return [
 
     // Seção 'baileys' REMOVIDA 2026-05-27 (ADR 0202). Daemon CT 100 descomissionado.
 
+    /*
+     * ADR 0204 (2026-05-27) — whatsmeow Go daemon (substituto Baileys).
+     *
+     * Daemon WuzAPI (asternic/wuzapi wrapping tulir/whatsmeow) rodando em
+     * CT 100 com Traefik IP whitelist Hostinger. Veja runbook:
+     * memory/requisitos/Whatsapp/runbooks/whatsmeow-daemon-deploy-ct100.md
+     *
+     * Driver é OPCIONAL — meta_cloud continua default universal. Wagner ativa
+     * channel por channel via UI (type=whatsapp_whatsmeow) com LGPD ack.
+     *
+     * Risco ban Meta = igual Baileys (whatsmeow issue #810). Trade-off técnico
+     * aceito: estabilidade long-running + footprint -37% RAM. Fallback
+     * obrigatório Meta Cloud preservado (gating duro FormRequest).
+     */
+    'whatsmeow' => [
+        'daemon_url' => env('WHATSMEOW_DAEMON_URL', 'https://whatsapp-whatsmeow.oimpresso.com'),
+        'api_key' => env('WHATSMEOW_API_KEY'),
+        'hmac_secret' => env('WHATSMEOW_HMAC_SECRET'),
+        'request_timeout' => (int) env('WHATSMEOW_TIMEOUT', 15),
+    ],
+
     'health_check' => [
         'interval_seconds' => env('WHATSAPP_HEALTH_INTERVAL', 21600), // 6h
         'consecutive_failures_to_degrade' => 5,

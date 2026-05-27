@@ -37,7 +37,10 @@ class ChannelRequest extends FormRequest
             'handles_jana_bot' => ['boolean'],
             'handles_outbound_default' => ['boolean'],
             'bot_enabled' => ['boolean'],
-            'lgpd_acknowledged' => ['required_if:type,whatsapp_baileys', 'accepted_if:type,whatsapp_baileys'],
+            // LGPD ack obrigatório pra TODOS drivers não-oficiais (Baileys + whatsmeow).
+            // ADR 0204 (2026-05-27) — whatsmeow herda mesma rule Baileys: usuário
+            // aceita explicitamente risco ban Meta (whatsmeow issue #810).
+            'lgpd_acknowledged' => ['required_if:type,whatsapp_baileys,whatsapp_whatsmeow', 'accepted_if:type,whatsapp_baileys,whatsapp_whatsmeow'],
         ];
 
         // Per-type config validation
@@ -58,6 +61,15 @@ class ChannelRequest extends FormRequest
             case Channel::TYPE_WHATSAPP_BAILEYS:
                 $rules['config.baileys_phone_e164'] = ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/'];
                 break;
+
+            case Channel::TYPE_WHATSAPP_WHATSMEOW:
+                // ADR 0204 — campos config_json pro driver whatsmeow.
+                // Telefone E.164 vira display_identifier (cross-tenant uniqueness check).
+                // Tokens da sessão (user_token) são GERADOS pelo Laravel quando
+                // chama POST /admin/users no daemon — não vem do form. Apenas
+                // o número e o LGPD ack são inputs do usuário.
+                $rules['config.whatsmeow_phone_e164'] = ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/'];
+                break;
         }
 
         return $rules;
@@ -67,7 +79,8 @@ class ChannelRequest extends FormRequest
     {
         return [
             'config.baileys_phone_e164.regex' => 'Telefone deve estar no formato E.164 (ex: +5511987654321).',
-            'lgpd_acknowledged.accepted_if' => 'Baileys exige aceite explícito do termo LGPD (driver não-oficial).',
+            'config.whatsmeow_phone_e164.regex' => 'Telefone deve estar no formato E.164 (ex: +5511987654321).',
+            'lgpd_acknowledged.accepted_if' => 'Driver não-oficial (Baileys/Whatsmeow) exige aceite explícito do termo LGPD.',
         ];
     }
 
@@ -106,6 +119,7 @@ class ChannelRequest extends FormRequest
                     Channel::TYPE_WHATSAPP_META,
                     Channel::TYPE_WHATSAPP_ZAPI,
                     Channel::TYPE_WHATSAPP_BAILEYS,
+                    Channel::TYPE_WHATSAPP_WHATSMEOW,
                 ])
                 ->where(function ($q) use ($normalized, $identifier) {
                     // Compara tanto formato cru quanto normalizado (sem '+')
@@ -118,6 +132,7 @@ class ChannelRequest extends FormRequest
             if ($exists) {
                 $field = match ($type) {
                     Channel::TYPE_WHATSAPP_BAILEYS => 'config.baileys_phone_e164',
+                    Channel::TYPE_WHATSAPP_WHATSMEOW => 'config.whatsmeow_phone_e164',
                     Channel::TYPE_WHATSAPP_ZAPI => 'config.zapi_instance_id',
                     Channel::TYPE_WHATSAPP_META => 'config.meta_phone_number_id',
                     default => 'config',
@@ -139,6 +154,7 @@ class ChannelRequest extends FormRequest
     {
         return match ($type) {
             Channel::TYPE_WHATSAPP_BAILEYS => $this->input('config.baileys_phone_e164'),
+            Channel::TYPE_WHATSAPP_WHATSMEOW => $this->input('config.whatsmeow_phone_e164'),
             Channel::TYPE_WHATSAPP_ZAPI => $this->input('config.zapi_instance_id'),
             Channel::TYPE_WHATSAPP_META => $this->input('config.meta_phone_number_id'),
             default => null,

@@ -196,6 +196,8 @@ class WhatsappServiceProvider extends ServiceProvider
         $router = $this->app['router'];
         $router->aliasMiddleware('whatsapp.meta.signature', VerifyMetaSignature::class);
         $router->aliasMiddleware('whatsapp.zapi.signature', VerifyZapiSignature::class);
+        // ADR 0204 (2026-05-27) — whatsmeow Go daemon WuzAPI webhook auth.
+        $router->aliasMiddleware('whatsapp.whatsmeow.signature', \Modules\Whatsapp\Http\Middleware\VerifyWhatsmeowSignature::class);
         // whatsapp.baileys.signature alias REMOVIDO 2026-05-27 (ADR 0202) — VerifyBaileysSignature deletado.
         // US-WA-082 — Replay protection HMAC + nonce no webhook receiver Baileys
         // (preservado: webhook receiver legado pode receber callbacks históricos
@@ -217,6 +219,8 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->app->singleton(MetaCloudDriver::class);
         $this->app->singleton(NullDriver::class);
         // BaileysDriver singleton REMOVIDO 2026-05-27 (ADR 0202).
+        // WhatsmeowDriver registrado 2026-05-27 (ADR 0204) — substituto Baileys.
+        $this->app->singleton(\Modules\Whatsapp\Services\Drivers\WhatsmeowDriver::class);
 
         // Centrifugo publisher singleton (stateless HTTP wrapper)
         $this->app->singleton(CentrifugoPublisher::class);
@@ -236,6 +240,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 'zapi' => $this->app->make(ZapiDriver::class),
                 'meta_cloud' => $this->app->make(MetaCloudDriver::class),
                 // 'baileys' descontinuado 2026-05-27 (ADR 0202) — cai pra NullDriver.
+                'whatsmeow' => $this->app->make(\Modules\Whatsapp\Services\Drivers\WhatsmeowDriver::class),
                 'null' => $this->app->make(NullDriver::class),
                 default => $this->app->make(NullDriver::class),
             };
