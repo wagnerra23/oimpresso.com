@@ -2,8 +2,8 @@
     "_meta": {
         "generated_at": "2026-05-26T18:18:53-03:00",
         "tool": "ui:lint",
-        "files_scanned": 1426,
-        "total_violations": 7500,
+        "files_scanned": 1427,
+        "total_violations": 7521,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -60,7 +60,7 @@
             "R1": 7
         },
         "resources\/js\/Components\/shared\/StatusBadge.tsx": {
-            "R1": 39
+            "R1": 45
         },
         "resources\/js\/Components\/shared\/VendaDerivadaCard.tsx": {
             "R1": 53
@@ -243,7 +243,8 @@
             "R1": 6
         },
         "resources\/js\/Pages\/Atendimento\/CaixaUnificada\/_components\/ConversationThreadV4.tsx": {
-            "R1": 5
+            "R1": 5,
+            "R3": 1
         },
         "resources\/js\/Pages\/Atendimento\/Channels\/Index.tsx": {
             "R1": 16,
@@ -309,7 +310,7 @@
             "R1": 5
         },
         "resources\/js\/Pages\/Cliente\/_drawer\/EnderecoTab.tsx": {
-            "R1": 8
+            "R1": 6
         },
         "resources\/js\/Pages\/Cliente\/_drawer\/IATab.tsx": {
             "R1": 31
@@ -1026,7 +1027,12 @@
             "R1": 110
         },
         "resources\/js\/Pages\/Whatsapp\/_components\/ConversationThread.tsx": {
-            "R1": 112
+            "R1": 112,
+            "R3": 1
+        },
+        "resources\/js\/Pages\/Whatsapp\/_components\/CaptureFeedbackSheet.tsx": {
+            "R1": 14,
+            "R3": 1
         },
         "resources\/js\/Pages\/Whatsapp\/_components\/CustomerMemoryBlock.tsx": {
             "R1": 13

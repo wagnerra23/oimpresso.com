@@ -56,6 +56,7 @@ class ClientFeedbackController extends Controller
             'workaround_custo' => ['nullable', 'string', 'max:255'],
             'severity_nng' => ['required', 'integer', 'min:0', 'max:4'],
             'primeira_vez' => ['nullable', 'boolean'],
+            'create_dev_task' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -63,11 +64,15 @@ class ClientFeedbackController extends Controller
         }
 
         $data = $validator->validated();
+        $createDevTaskRequested = (bool) ($data['create_dev_task'] ?? false);
+        unset($data['create_dev_task']);
+
         $data['business_id'] = $businessId;       // Tier 0 — server-side ALWAYS
         $data['created_by'] = $userId;
         $data['canal'] = $data['canal'] ?? 'whatsapp';
         $data['status'] = ClientFeedback::STATUS_NOVO;
         $data['primeira_vez'] = $data['primeira_vez'] ?? true;
+        $data['dev_task_requested'] = false; // será reavaliado server-side abaixo
 
         // Validação cross-tenant: conversation_id pertence ao business
         if (! empty($data['conversation_id'])) {
@@ -90,6 +95,37 @@ class ClientFeedbackController extends Controller
             ]);
         }
 
+        // Dev task request — ADR 0105 guard rails (server-side é a verdade)
+        $devTaskInfo = ['requested' => false, 'reason' => null, 'message' => null];
+        if ($createDevTaskRequested) {
+            $qual = $feedback->qualifiesForDevTask();
+            if ($qual['ok']) {
+                $feedback->update(['dev_task_requested' => true]);
+                $devTaskInfo = [
+                    'requested' => true,
+                    'reason' => null,
+                    'message' => 'Chamado registrado. Wagner triagem cria task MCP em até 24h.',
+                ];
+                Log::info('[client-feedback.capture] dev_task_requested', [
+                    'feedback_id' => $feedback->id,
+                    'business_id' => $businessId,
+                    'contact_id' => $feedback->contact_id,
+                    'severity' => $feedback->severity_nng,
+                ]);
+            } else {
+                $devTaskInfo = [
+                    'requested' => false,
+                    'reason' => $qual['reason'],
+                    'message' => $qual['message'],
+                ];
+                Log::info('[client-feedback.capture] dev_task rejected by guard rail', [
+                    'feedback_id' => $feedback->id,
+                    'business_id' => $businessId,
+                    'reason' => $qual['reason'],
+                ]);
+            }
+        }
+
         Log::info('[client-feedback.capture] novo feedback', [
             'feedback_id' => $feedback->id,
             'business_id' => $businessId,
@@ -104,7 +140,9 @@ class ClientFeedbackController extends Controller
                 'severity_label' => $feedback->severity_label,
                 'status' => $feedback->status,
                 'mcp_task_pending' => $feedback->shouldHaveMcpTask(),
+                'dev_task_requested' => $feedback->dev_task_requested,
             ],
+            'dev_task' => $devTaskInfo,
             'message' => 'Feedback capturado com sucesso.',
         ], 201);
     }

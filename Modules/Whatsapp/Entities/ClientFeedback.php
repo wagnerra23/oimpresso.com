@@ -54,6 +54,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $status
  * @property ?string $responder_cliente
  * @property ?string $mcp_task_id
+ * @property bool $dev_task_requested
  * @property ?\Carbon\Carbon $data_resolvido
  * @property ?string $pr_link
  * @property ?bool $cliente_confirmou
@@ -97,7 +98,8 @@ class ClientFeedback extends Model
         'workaround_o_que_faz', 'workaround_custo',
         'severity_nng', 'primeira_vez', 'recorrente_count', 'pattern_emergente',
         'status', 'responder_cliente',
-        'mcp_task_id', 'data_resolvido', 'pr_link', 'cliente_confirmou', 're_reclamacao',
+        'mcp_task_id', 'dev_task_requested',
+        'data_resolvido', 'pr_link', 'cliente_confirmou', 're_reclamacao',
         'created_by',
     ];
 
@@ -113,6 +115,7 @@ class ClientFeedback extends Model
         'data_resolvido' => 'datetime',
         'cliente_confirmou' => 'boolean',
         're_reclamacao' => 'boolean',
+        'dev_task_requested' => 'boolean',
         'created_by' => 'integer',
     ];
 
@@ -125,7 +128,7 @@ class ClientFeedback extends Model
         return LogOptions::defaults()
             ->logOnly([
                 'status', 'severity_nng', 'cliente_confirmou', 're_reclamacao',
-                'data_resolvido', 'pr_link', 'mcp_task_id',
+                'data_resolvido', 'pr_link', 'mcp_task_id', 'dev_task_requested',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -156,5 +159,50 @@ class ClientFeedback extends Model
     public function shouldHaveMcpTask(): bool
     {
         return $this->severity_nng >= 3;
+    }
+
+    /**
+     * Sinal qualificado ADR 0105: feedback elegível pra virar dev task.
+     *
+     * Regra: contact_id deve apontar pra um Contact com type ∈ {customer, both}.
+     * Lead não qualifica (ADR 0105 — backlog só recebe sinal de quem paga ou
+     * tem track-record). Severity mínima 2 (Minor — problema real com workaround).
+     */
+    public function qualifiesForDevTask(): array
+    {
+        if ($this->severity_nng < 2) {
+            return [
+                'ok' => false,
+                'reason' => 'severity_below_threshold',
+                'message' => 'Severity < 2 — backlog não recebe wish-list sem dor real.',
+            ];
+        }
+
+        if (! $this->contact_id) {
+            return [
+                'ok' => false,
+                'reason' => 'no_contact_linked',
+                'message' => 'Mensagem sem Contact vinculado — vincule a um cliente antes.',
+            ];
+        }
+
+        $contact = $this->contact()->withoutGlobalScopes()->first();
+        if (! $contact) {
+            return [
+                'ok' => false,
+                'reason' => 'contact_not_found',
+                'message' => 'Contact vinculado não encontrado.',
+            ];
+        }
+
+        if (! in_array($contact->type, ['customer', 'both'], true)) {
+            return [
+                'ok' => false,
+                'reason' => 'not_paying_customer',
+                'message' => 'ADR 0105 — backlog só recebe sinal de cliente pagante (Contact.type ∈ customer|both).',
+            ];
+        }
+
+        return ['ok' => true, 'reason' => null, 'message' => null];
     }
 }
