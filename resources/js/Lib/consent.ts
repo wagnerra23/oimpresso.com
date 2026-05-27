@@ -26,16 +26,37 @@ export function hasConsent(category: ConsentCategory): boolean {
   return false;
 }
 
-/** POST /api/consent — Inertia recarrega só `consent`, banner some sem trocar de página. */
+/** POST /api/consent — fetch raw + Inertia partial reload do `consent` shared prop.
+ *
+ * Wagner 2026-05-27 reportou "da erro quando aceita": ConsentController retorna
+ * `noContent()` (204 sem body Inertia). `router.post(...)` Inertia espera resposta
+ * Inertia válida (X-Inertia headers) — sem isso dispara `onError` mesmo backend
+ * tendo salvo o cookie corretamente. Resultado: cookie gravado mas banner não some
+ * + toast.error aparece.
+ *
+ * Fix: fetch raw pro endpoint, depois `router.reload({ only: ['consent'] })` pra
+ * atualizar a shared prop e fazer banner sumir.
+ */
 export function setConsent(categories: { analytics: boolean; marketing: boolean }): Promise<void> {
-  return new Promise((resolve, reject) => {
-    router.post('/api/consent', categories, {
-      preserveScroll: true,
-      preserveState: true,
-      only: ['consent'],
-      onSuccess: () => resolve(),
-      onError: (errors) => reject(new Error(JSON.stringify(errors))),
-    });
+  const csrfToken =
+    (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+
+  return fetch('/api/consent', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-TOKEN': csrfToken,
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(categories),
+  }).then((res) => {
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+    // 204 OK — cookie salvo. Recarrega só `consent` shared prop pra banner sumir.
+    router.reload({ only: ['consent'] });
   });
 }
 
