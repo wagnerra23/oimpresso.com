@@ -180,10 +180,15 @@ class SellsCockpitAggregator
         $today = now()->startOfDay();
 
         // Base — vendas final do tenant. Multi-tenant Tier 0.
-        $base = \App\Transaction::where('business_id', $businessId)
-            ->where('type', 'sell')
-            ->where('status', 'final')
-            ->whereNull('sub_type');
+        // Wagner 2026-05-27 HOTFIX: colunas prefixadas com `transactions.` porque
+        // mais abaixo (linha 218 + 285) há leftJoin('contacts', ...) e a tabela
+        // contacts TAMBÉM tem `business_id` + `type` — sem prefix MySQL retorna
+        // "Column 'business_id' in where clause is ambiguous", quebra
+        // PDO->prepare() e gera 500 em /ia/dashboard (Larissa @ Rota Livre).
+        $base = \App\Transaction::where('transactions.business_id', $businessId)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final')
+            ->whereNull('transactions.sub_type');
 
         // Computa due_date e days_to_due via subquery — apenas vendas com pay_term completo.
         // sla_kind='overdue' espelha lógica do SellController@getListSells (linha 1425):
@@ -198,23 +203,23 @@ class SellsCockpitAggregator
             transactions.pay_term_number,
             transactions.pay_term_type,
             CASE
-                WHEN pay_term_type='days' THEN DATE_ADD(transaction_date, INTERVAL pay_term_number DAY)
-                WHEN pay_term_type='months' THEN DATE_ADD(transaction_date, INTERVAL pay_term_number MONTH)
+                WHEN transactions.pay_term_type='days' THEN DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY)
+                WHEN transactions.pay_term_type='months' THEN DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH)
                 ELSE NULL
             END as due_date_calc,
             CASE
-                WHEN pay_term_type='days' THEN DATEDIFF(DATE_ADD(transaction_date, INTERVAL pay_term_number DAY), CURDATE())
-                WHEN pay_term_type='months' THEN DATEDIFF(DATE_ADD(transaction_date, INTERVAL pay_term_number MONTH), CURDATE())
+                WHEN transactions.pay_term_type='days' THEN DATEDIFF(DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY), CURDATE())
+                WHEN transactions.pay_term_type='months' THEN DATEDIFF(DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH), CURDATE())
                 ELSE NULL
             END as days_to_due_calc,
             COALESCE(contacts.supplier_business_name, contacts.name) as customer_label
         ";
 
         $overdueRows = (clone $base)
-            ->whereIn('payment_status', ['due', 'partial'])
-            ->whereNotNull('pay_term_number')
-            ->whereNotNull('pay_term_type')
-            ->whereRaw("IF(pay_term_type='days', DATE_ADD(transaction_date, INTERVAL pay_term_number DAY) < CURDATE(), DATE_ADD(transaction_date, INTERVAL pay_term_number MONTH) < CURDATE())")
+            ->whereIn('transactions.payment_status', ['due', 'partial'])
+            ->whereNotNull('transactions.pay_term_number')
+            ->whereNotNull('transactions.pay_term_type')
+            ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())")
             ->leftJoin('contacts', 'contacts.id', '=', 'transactions.contact_id')
             ->selectRaw($overdueSelect)
             ->get();
