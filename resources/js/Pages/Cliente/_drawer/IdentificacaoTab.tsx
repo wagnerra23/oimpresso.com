@@ -627,10 +627,11 @@ export default function IdentificacaoTab({
       {/* Linha 1: Nome/Razão social */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
-          <Label htmlFor="id-nome" className="text-xs font-medium">
+          <Label htmlFor="id-nome" className="cw-label">
             {isPJ ? 'Razão social' : 'Nome completo'} <span className="text-rose-600">*</span>
           </Label>
           <Input
+            variant="cowork"
             id="id-nome"
             value={nome}
             placeholder={isPJ ? 'Ex.: Dragão Verde Comunicação Visual Ltda' : 'Ex.: Marina Costa'}
@@ -658,10 +659,11 @@ export default function IdentificacaoTab({
         {/* Fantasia só PJ */}
         {isPJ && (
           <div className="md:col-span-2">
-            <Label htmlFor="id-fantasia" className="text-xs font-medium">
+            <Label htmlFor="id-fantasia" className="cw-label">
               Nome fantasia <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
             <Input
+              variant="cowork"
               id="id-fantasia"
               value={fantasia}
               placeholder="Como o cliente é conhecido"
@@ -684,11 +686,12 @@ export default function IdentificacaoTab({
 
         {/* Documento (CPF ou CNPJ) + botão Buscar CNPJ */}
         <div className="md:col-span-2">
-          <Label htmlFor="id-doc" className="text-xs font-medium">
+          <Label htmlFor="id-doc" className="cw-label">
             {isPJ ? 'CNPJ' : 'CPF'} {isPJ && <span className="ml-1 text-xs text-muted-foreground">(clique em Buscar pra preencher automático)</span>}
           </Label>
           <div className="flex gap-2">
             <Input
+              variant="cowork"
               id="id-doc"
               value={doc}
               placeholder={isPJ ? '00.000.000/0000-00' : '000.000.000-00'} // pii-allowlist máscara visual de input
@@ -754,10 +757,11 @@ export default function IdentificacaoTab({
         {/* IE (PJ) ou RG (PF) */}
         {isPJ ? (
           <div>
-            <Label htmlFor="id-ie" className="text-xs font-medium">
+            <Label htmlFor="id-ie" className="cw-label">
               Inscrição estadual <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
             <Input
+              variant="cowork"
               id="id-ie"
               value={ie}
               placeholder="000.000.000.000"
@@ -778,10 +782,11 @@ export default function IdentificacaoTab({
           </div>
         ) : (
           <div>
-            <Label htmlFor="id-rg" className="text-xs font-medium">
+            <Label htmlFor="id-rg" className="cw-label">
               RG <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
             <Input
+              variant="cowork"
               id="id-rg"
               value={rg}
               placeholder="00.000.000-0"
@@ -805,10 +810,11 @@ export default function IdentificacaoTab({
         {/* Nascimento — só PF */}
         {!isPJ && (
           <div>
-            <Label htmlFor="id-nascimento" className="text-xs font-medium">
+            <Label htmlFor="id-nascimento" className="cw-label">
               Data de nascimento <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
             <Input
+              variant="cowork"
               id="id-nascimento"
               type="date"
               value={nascimento}
@@ -832,10 +838,11 @@ export default function IdentificacaoTab({
         {/* Contato principal — só PJ */}
         {isPJ && (
           <div className="md:col-span-2">
-            <Label htmlFor="id-contato" className="text-xs font-medium">
+            <Label htmlFor="id-contato" className="cw-label">
               Contato principal <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
             <Input
+              variant="cowork"
               id="id-contato"
               value={contatoNome}
               placeholder="Nome do responsável"
@@ -859,10 +866,11 @@ export default function IdentificacaoTab({
         {/* Cargo — só PJ */}
         {isPJ && (
           <div className="md:col-span-2">
-            <Label htmlFor="id-cargo" className="text-xs font-medium">
+            <Label htmlFor="id-cargo" className="cw-label">
               Cargo do contato <span className="text-muted-foreground font-normal">(opcional)</span>
             </Label>
             <Input
+              variant="cowork"
               id="id-cargo"
               value={cargo}
               placeholder="Ex.: Diretor de marketing"
