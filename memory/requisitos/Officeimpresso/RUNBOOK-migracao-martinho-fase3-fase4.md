@@ -1,8 +1,8 @@
 ---
-title: "RUNBOOK migração Martinho biz=164 — Fase 3 (Vendas) + Fase 4 (Financeiro)"
+title: "RUNBOOK migração Martinho biz=164 — Fase 3 (Vendas) + Fase 4 (Financeiro) · HISTORICAL — execução real divergiu do plano"
 module: Officeimpresso
 owner: F
-status: rascunho
+status: historical
 last_validated: "2026-05-27"
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
@@ -322,4 +322,108 @@ Cenário: smoke quebra, queries lentas, drift multi-tenant detectado.
 
 ---
 
-**Status:** rascunho — Felipe valida em primeiro dry-run real e move `status` pra `ativo` + atualiza `last_validated` pra data do dry-run aprovado.
+## 7. Retrospectiva 2026-05-27 — Estado REAL Hostinger pos-merge (descoberta diagnóstico)
+
+> **Status muda pra `historical`.** Wagner confirmou acesso Hostinger via SSH em 2026-05-27 e Claude rodou as 3 queries diagnóstico [ADR 0198 §Fase 0](../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md#fase-0--diagnóstico-hostinger-atual-bloqueador). **Descoberta:** Fases 3+4 NÃO estavam pendentes — alguma execução pré-RUNBOOK (provavelmente Felipe em sessão paralela não-documentada) já migrou massivamente. RUNBOOK escrito em 2026-05-27 manhã (PR #1717) virou plano-com-realidade-divergente.
+
+### 7.1 Hostinger DB total atual
+
+| Métrica | Valor (2026-05-27 13:30 BRT) |
+|---|---|
+| **DB size** | **594 MB** / 368 tabelas |
+| **Disco servidor** | 21 TB total · 6.1 TB livre (29%) |
+| **MariaDB** | 11.8.6 (partitioning suportado ✅) |
+| **Storage app** | 273 MB · vendor 465 MB · .git 1.4 GB (limpar) |
+
+**Implicação:** gargalo escala temido por Wagner em [§Contexto ADR 0198](../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md#contexto) **não é problema atual** — DB inteiro mais leve que um Firebird legacy individual. Mitigações ADR 0198 viram **prospectivas** (aplicar antes do 2º cliente Gold/Vargas/Extreme, não pro Martinho).
+
+### 7.2 Top 4 tabelas pesadas Hostinger
+
+| Tabela | Tamanho | Linhas |
+|---|---:|---:|
+| `fin_titulos` | 105.3 MB | 96.313 |
+| `transactions` | 103.4 MB | 66.776 |
+| `mcp_dual_brain_decisions` | 72.9 MB | 22.493 |
+| `messages` (WhatsApp) | 46.2 MB | 44.068 |
+
+### 7.3 Inventory Martinho biz=164 — REAL
+
+| Tabela | Volume real | Status |
+|---|---:|---|
+| `contacts` | **9.938** | ✅ massivo — PESSOAS migradas (não só EMPRESA Fase 1) |
+| `products` | **3.809** | ✅ catálogo migrado |
+| `vehicles` | 91 | ✅ Fase 2 confirmada |
+| `service_orders` | 91 | ✅ 1 OS/veículo (Fase 2 satélite) |
+| `transactions` | **43.974** | ✅ Fase 3 cabeçalho ~98% (esperado 44.709) |
+| `transaction_sell_lines` | **5.758** | ⚠️ **GAP CRÍTICO** — 92.5% das vendas sem sublinhas |
+| `transaction_payments` | 0 | ℹ️ esperado (Modules/Financeiro canônico ≠ UPOS payment legacy) |
+| `fin_titulos` | **83.045** | ✅ Fase 4 massiva (provavelmente SEM cleanup-first) |
+| `fin_titulo_baixas` | 71.675 | ✅ baixas históricas |
+| `users` | 12 | ✅ operadores Martinho cadastrados |
+
+### 7.4 Receita Martinho 14 anos (cross-validation com perfil)
+
+| Ano | Vendas | Receita |
+|---:|---:|---:|
+| 2026 (parcial) | 1.923 | R$ 4.669.551,41 |
+| 2025 | 4.868 | **R$ 12.594.668,98** |
+| 2024 | 5.211 | R$ 12.547.971,59 |
+| 2023 | 5.192 | R$ 15.874.207,54 |
+| 2022 | 5.221 | R$ 16.595.740,55 |
+| 2021 | 5.161 | R$ 14.903.429,02 |
+| 2020 | 3.578 | R$ 6.634.731,97 |
+| 2019 | 2.534 | R$ 4.518.756,86 |
+| 2018 | 3.176 | R$ 5.697.383,91 |
+| 2012-2017 | 7.110 | R$ 12.877.841,72 (acumulado) |
+
+Cross-validation [perfil §5](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md#5-saúde-financeira): "R$ 6.28M 12m + R$ 1M+/mês Wagner" bate com 2024-2025 (≈R$ 12.5M/ano = R$ 1.04M/mês). Perfil estava conservador — receita real é dobro do snapshot anterior.
+
+### 7.5 Gap crítico — sub-linhas de venda
+
+**92.5% das vendas Martinho NÃO têm linhas em `transaction_sell_lines`:**
+
+- 43.951 vendas tipo `sell`
+- Apenas 3.307 têm sub-linhas (7.5%)
+- Média 0.13 item/venda
+- 40.644 vendas órfãs (sem `transaction_sell_lines` correspondente)
+
+**Hipóteses (a investigar):**
+
+1. **Importer Fase 3 parou no cabeçalho** — `transactions.final_total` migrado agregado, mas loop de sub-linhas (VENDA_ITEM Delphi) não rodou ou abortou cedo
+2. **FK pra products faltando** — sub-linhas precisam de `products.id`, e dos 3.809 produtos migrados pode não haver match pra todos os SKUs antigos. Mas isso explicaria parcial, não 92%
+3. **Importer parcial intencional** — Felipe pode ter migrado só vendas recentes (2023+) e deixado histórico só com cabeçalho. Mas 3.307 < 5.211 vendas só de 2024 — nem isso
+
+**Recomendação Felipe (US-OFICINA-XXX a abrir):**
+
+```bash
+# Investigar — query Firebird vs MySQL pra comparar VENDA_ITEM cardinalidade
+python scripts/legacy-migration/audit-venda-itens-gap.py --biz 164 --alias MartinhoCacamba
+# Output esperado: por ano, quantas VENDA têm VENDA_ITEM no Firebird vs transaction_sell_lines no MySQL
+```
+
+Decisão arquitetural pendente:
+- **Opção A** — completar import sub-linhas retroativamente (importer novo, 2-pass FK products via legacy_id)
+- **Opção B** — aceitar perda histórica de granularidade · usar só `transactions.final_total` agregado pra reports
+- **Opção C** — `Modules/Financeiro` já reflete a realidade comercial (83k títulos + 71k baixas) — sub-linhas só importam pra produção/Compras retroativa
+
+Wagner decide quando US for priorizada. **Não bloqueia operação atual** — Sells trabalha normal com vendas novas (Martinho ativo 2026-05-26).
+
+### 7.6 Reclassificação ADRs 0197 + 0198
+
+| ADR | Status original (2026-05-27 manhã) | Reclassificação pos-diagnóstico |
+|---|---|---|
+| **0197** (Bucket A+B contacts) | "schema necessário pra absorver PESSOAS legacy" | **Confirmado** — `contacts` biz=164 tem 9.938 rows que vão se beneficiar dos campos Bucket A (`bloqueado`, `prioridade_producao`, `parent_contact_id`, etc) quando ContactProfileLegacy backfill rodar via importer dedicado. Migration Bucket A já mergeada (PR #1723 ✅) |
+| **0198** (hot/cold tiering) | "preocupação Wagner sobre gargalo" | **Prospectivo** — Hostinger atual em 594 MB com Martinho ✅; mitigações (partitioning, archive, Object Storage XMLs) aplicar ANTES do 2º cliente (Gold biz=? próximo). Wagner pode adiar implementação até real necessidade aparecer |
+
+### 7.7 Próximos passos atualizados
+
+1. ✅ **PR #1717** ADR 0197+0198 + RUNBOOK — mergeado 2026-05-27 13:23 BRT
+2. ✅ **PR #1723** Migration Bucket A contacts (13 cols + Pest) — mergeado 2026-05-27 13:24 BRT
+3. 🟡 **PR Bucket B** (próximo) — `contact_profile_legacy` 1:1 + Model novo + Eloquent relation + Pest. Permite importer dedicado backfillar 9.938 contacts biz=164 com `legacy_data_cadastro` etc
+4. 🟡 **US-OFICINA-XXX gap sub-linhas** (Felipe owner) — investigar 92.5% gap `transaction_sell_lines` Martinho; decidir backfill vs accept-loss
+5. 🟢 **Plano Hostinger upgrade** ([ADR 0198 §Mitigação 5](../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md)) — **NÃO urgente** dado 594 MB atual. Reavaliar quando Gold biz=? entrar
+6. 🟢 **Partitioning + archive + Object Storage** — aplicar ANTES de Gold piloto, não pro Martinho que já está saudável
+
+---
+
+**Status:** `historical` desde 2026-05-27 — execução real pre-RUNBOOK divergiu do plano original. Documentado em [memory/sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md](../../sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md).
