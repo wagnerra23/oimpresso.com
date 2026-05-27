@@ -196,6 +196,8 @@ class WhatsappServiceProvider extends ServiceProvider
         $router = $this->app['router'];
         $router->aliasMiddleware('whatsapp.meta.signature', VerifyMetaSignature::class);
         $router->aliasMiddleware('whatsapp.zapi.signature', VerifyZapiSignature::class);
+        // ADR 0204 (2026-05-27) — whatsmeow Go daemon WuzAPI webhook auth.
+        $router->aliasMiddleware('whatsapp.whatsmeow.signature', \Modules\Whatsapp\Http\Middleware\VerifyWhatsmeowSignature::class);
         // whatsapp.baileys.signature alias REMOVIDO 2026-05-27 (ADR 0202) — VerifyBaileysSignature deletado.
         // US-WA-082 — Replay protection HMAC + nonce no webhook receiver Baileys
         // (preservado: webhook receiver legado pode receber callbacks históricos
