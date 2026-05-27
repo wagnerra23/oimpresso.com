@@ -46,6 +46,8 @@ steps:
 > **§0-§6 abaixo = plano original não-executado.** Útil como referência de pattern (idempotência, audit JSON, pre-flight), mas NÃO rodar `php artisan officeimpresso:migrate-batch --biz=164` — vai duplicar dados em prod.
 >
 > 👉 **Pular pra [§7 Retrospectiva 2026-05-27 — Estado REAL Hostinger pos-merge (descoberta diagnóstico)](#7-retrospectiva-2026-05-27--estado-real-hostinger-pos-merge-descoberta-diagnóstico)**
+>
+> **2026-05-27 atualização (15:00 BRT) — Consolidação canônica:** Pattern oficial pra Vargas/Gold/Extreme + 33 clientes remanescentes vive em **2 ADRs**: [ADR 0203 canon](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) (Felipe Wave 29-1 — pipeline end-to-end · resolve gap 92.5% sub-linhas · WireCrypt fix · PHP service amplo) + [ADR 0204 proposal](../../decisions/proposals/0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon.md) (Wave 2 importers complementares: compras/estoque/contacts-NFe/daemon-sync). Pattern canônico atualizado com 13 fases combinadas em [migracao-officeimpresso-pattern.md §2-bis](../../reference/migracao-officeimpresso-pattern.md). Detalhes consolidação + arqueologia 5 branches órfãs em [memory/sessions/2026-05-27-consolidacao-migracao-martinho-arqueologia.md](../../sessions/2026-05-27-consolidacao-migracao-martinho-arqueologia.md).
 
 ---
 
