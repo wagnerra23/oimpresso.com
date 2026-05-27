@@ -63,8 +63,21 @@ class AutosaveContractRunner
     /**
      * Roda todos campos do fixture contra endpoint(s).
      *
+     * EXTENSAO 2026-05-27 (Sells/Create fixture) — tabSpec aceita opcionais:
+     *   - 'method' => 'patch' (default) | 'post' | 'put'  — HTTP verb por tab
+     *   - 'responseRoot' => 'contact' (default) | 'commission_split' | 'data' | ''  —
+     *      raiz onde buscar `recv` no JSON resposta. '' = raiz top-level.
+     *   - 'payloadShape' => 'flat' (default) | 'nested:<key>'  —
+     *      'flat' envia { send: value }, 'nested:commission_split' envia
+     *      { commission_split: { send: value, ...base } } pra endpoints que
+     *      esperam objeto wrapped (ex. SellCommissionSplitController).
+     *   - 'baseFields' => [k => v]  — campos sempre enviados junto (ex. campos
+     *      required do validator que nao sao o foco do teste). Usado em payloadShape
+     *      'nested:X' pra montar o objeto valido.
+     *   - 'expectStatus' => 200 (default)  — POST geralmente retorna 200 ou 201.
+     *
      * @param  object  $testCase  $this do Pest (pra acessar $testCase->patchJson etc)
-     * @param  array<string, array{endpoint: string, fields: array<int, array{send: string, value: mixed, recv: string, match?: string}>}>  $fixture
+     * @param  array<string, array{endpoint: string, fields: array<int, array{send: string, value: mixed, recv: string, match?: string}>, method?: string, responseRoot?: string, payloadShape?: string, baseFields?: array, expectStatus?: int}>  $fixture
      * @param  int  $resourceId  ID do recurso (contact_id, etc) substituindo {id} no endpoint
      * @return array{passed: int, total: int, failures: array<int, array>}
      */
@@ -77,6 +90,11 @@ class AutosaveContractRunner
 
         foreach ($fixture as $tabName => $tabSpec) {
             $endpoint = str_replace('{id}', (string) $resourceId, $tabSpec['endpoint']);
+            $method = strtolower($tabSpec['method'] ?? 'patch');
+            $responseRoot = $tabSpec['responseRoot'] ?? 'contact';
+            $payloadShape = $tabSpec['payloadShape'] ?? 'flat';
+            $baseFields = $tabSpec['baseFields'] ?? [];
+            $expectStatus = $tabSpec['expectStatus'] ?? 200;
 
             foreach ($tabSpec['fields'] as $field) {
                 $total++;
@@ -89,17 +107,26 @@ class AutosaveContractRunner
                     ? str_replace('{stamp}', $stamp, $field['value'])
                     : $field['value'];
 
+                // Monta payload conforme shape.
+                $payload = self::buildPayload($sendKey, $sent, $payloadShape, $baseFields, $stamp);
+
                 /** @var TestResponse $response */
-                $response = $testCase->patchJson($endpoint, [$sendKey => $sent]);
+                $response = match ($method) {
+                    'post' => $testCase->postJson($endpoint, $payload, ['X-Requested-With' => 'XMLHttpRequest']),
+                    'put' => $testCase->putJson($endpoint, $payload),
+                    default => $testCase->patchJson($endpoint, $payload),
+                };
 
                 $status = $response->status();
-                $received = data_get($response->json(), "contact.{$recvKey}");
+                $path = $responseRoot === '' ? $recvKey : "{$responseRoot}.{$recvKey}";
+                $received = data_get($response->json(), $path);
 
                 $ok = self::matches($sent, $received, $match);
-                if (! $ok || $status !== 200) {
+                if (! $ok || $status !== $expectStatus) {
                     $failures[] = [
                         'tab' => $tabName,
                         'endpoint' => $endpoint,
+                        'method' => $method,
                         'send' => $sendKey,
                         'value_sent' => is_string($sent) ? substr($sent, 0, 50) : $sent,
                         'recv' => $recvKey,
@@ -114,6 +141,31 @@ class AutosaveContractRunner
         }
 
         return ['passed' => $passed, 'total' => $total, 'failures' => $failures];
+    }
+
+    /**
+     * Monta payload conforme `payloadShape`.
+     *   - 'flat'             => [sendKey => value, ...baseFields]
+     *   - 'nested:<wrapper>' => [<wrapper> => [sendKey => value, ...baseFields]]
+     *
+     * baseFields tambem substitui {stamp} em strings.
+     */
+    private static function buildPayload(string $sendKey, mixed $value, string $shape, array $baseFields, string $stamp): array
+    {
+        $expandedBase = [];
+        foreach ($baseFields as $k => $v) {
+            $expandedBase[$k] = is_string($v) ? str_replace('{stamp}', $stamp, $v) : $v;
+        }
+
+        $fields = array_merge($expandedBase, [$sendKey => $value]);
+
+        if (str_starts_with($shape, 'nested:')) {
+            $wrapper = substr($shape, strlen('nested:'));
+
+            return [$wrapper => $fields];
+        }
+
+        return $fields;
     }
 
     /**
@@ -171,5 +223,58 @@ class AutosaveContractRunner
         session(['user.business_id' => $business->id]);
 
         return ['business' => $business, 'user' => $user, 'contactId' => $contactId];
+    }
+
+    /**
+     * Helper pra setup multi-tenant Tier 0 com transaction `sell` base.
+     * Usado por fixtures que precisam de transacao existente (ex. commission-split).
+     *
+     * Cria contact + sell stub minimo (status=draft pra nao mexer estoque/financeiro).
+     *
+     * @return array{business: \App\Business, user: \App\User, contactId: int, transactionId: int}
+     */
+    public static function setupSellsContext(object $testCase): array
+    {
+        if (! Schema::hasTable('transactions')) {
+            $testCase->markTestSkipped('Schema UltimatePOS ausente (transactions) — rode com DB_CONNECTION=mysql.');
+        }
+
+        $ctx = self::setupContext($testCase);
+
+        $now = now();
+        $row = [
+            'business_id' => $ctx['business']->id,
+            'created_by' => $ctx['user']->id,
+            'type' => 'sell',
+            'status' => 'draft',
+            'payment_status' => 'due',
+            'contact_id' => $ctx['contactId'],
+            'invoice_no' => 'CT-' . substr((string) microtime(true), -6),
+            'transaction_date' => $now,
+            'total_before_tax' => 0,
+            'final_total' => 0,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        // Best-effort: tenta achar primeira business_location pra preencher location_id
+        // se a coluna existir (algumas instalacoes UPOS exigem). Skip se nao houver.
+        if (Schema::hasColumn('transactions', 'location_id') && Schema::hasTable('business_locations')) {
+            $locationId = \Illuminate\Support\Facades\DB::table('business_locations')
+                ->where('business_id', $ctx['business']->id)
+                ->value('id');
+            if ($locationId !== null) {
+                $row['location_id'] = $locationId;
+            }
+        }
+
+        $transactionId = \Illuminate\Support\Facades\DB::table('transactions')->insertGetId($row);
+
+        return [
+            'business' => $ctx['business'],
+            'user' => $ctx['user'],
+            'contactId' => $ctx['contactId'],
+            'transactionId' => $transactionId,
+        ];
     }
 }
