@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Modules\Whatsapp\Entities\ClientFeedback;
 use Modules\Whatsapp\Entities\Conversation;
+use Modules\Whatsapp\Services\FeedbackRelevanceService;
 
 /**
  * ClientFeedbackController — captura + listagem + status update de feedback canon.
@@ -82,7 +83,34 @@ class ClientFeedbackController extends Controller
             }
         }
 
-        $feedback = ClientFeedback::create($data);
+        // Dedup por signature (últimos 90d): mesma persona + módulo + ação + literal
+        // normalizada → bump recorrente_count em vez de criar duplicata.
+        $relevance = app(FeedbackRelevanceService::class);
+        $tempFb = new ClientFeedback($data);
+        $tempFb->business_id = $businessId;
+        $signature = $relevance->computeSignature($tempFb);
+        $existing = $relevance->findDuplicateWithin90d($signature, $businessId);
+
+        $isDedup = false;
+        if ($existing) {
+            $existing->recorrente_count = ($existing->recorrente_count ?? 1) + 1;
+            $existing->pattern_emergente = $existing->recorrente_count >= 3;
+            $existing->severity_nng = max($existing->severity_nng, (int) $data['severity_nng']);
+            $existing->last_seen_at = now();
+            $existing->save();   // Observer rescore automaticamente
+            $feedback = $existing;
+            $isDedup = true;
+
+            Log::info('[client-feedback.capture] dedup hit', [
+                'feedback_id' => $feedback->id,
+                'business_id' => $businessId,
+                'signature' => $signature,
+                'recorrente_count' => $feedback->recorrente_count,
+                'pattern_emergente' => $feedback->pattern_emergente,
+            ]);
+        } else {
+            $feedback = ClientFeedback::create($data);
+        }
 
         // Severity ≥ 3 → MCP task (via Observer/event ou inline).
         // MVP: log apenas. Job assíncrono em PR follow-up.
@@ -141,9 +169,19 @@ class ClientFeedbackController extends Controller
                 'status' => $feedback->status,
                 'mcp_task_pending' => $feedback->shouldHaveMcpTask(),
                 'dev_task_requested' => $feedback->dev_task_requested,
+                'signature' => $feedback->signature,
+                'recorrente_count' => $feedback->recorrente_count,
+                'pattern_emergente' => $feedback->pattern_emergente,
+                'relevance_score' => (float) $feedback->relevance_score,
             ],
             'dev_task' => $devTaskInfo,
-            'message' => 'Feedback capturado com sucesso.',
+            'dedup' => [
+                'matched_existing' => $isDedup,
+                'recorrente_count' => $feedback->recorrente_count,
+            ],
+            'message' => $isDedup
+                ? "Mesma reclamação já registrada — agora com {$feedback->recorrente_count} ocorrência(s)."
+                : 'Feedback capturado com sucesso.',
         ], 201);
     }
 
