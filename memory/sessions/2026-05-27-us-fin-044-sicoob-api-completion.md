@@ -1,5 +1,6 @@
 ---
 date: '2026-05-27'
+topic: "US-FIN-044 — Sicoob API REST v3 driver completion + 5 lições aprendidas"
 type: session
 slug: us-fin-044-sicoob-api-completion
 related_us:
@@ -24,7 +25,9 @@ owner: W
 
 # US-FIN-044 — Sicoob API REST v3 driver — completion + lições
 
-> Origem: Kamila (operadora ROTA LIVRE biz=4) perguntou Wagner sobre Sicoob com API em 2026-05-27. Wagner aprovou full-autônomo. 6 PRs stacked entregues + 1 PR de finalização pra consertar mismerge.
+> Origem: Kamila (Admin#164, operadora do **Martinho Caçambas** biz=164) perguntou Wagner sobre Sicoob com API em 2026-05-27. Wagner aprovou full-autônomo. 6 PRs stacked entregues + 1 PR de finalização pra consertar mismerge.
+>
+> **Correção canon 2026-05-27:** durante a sessão eu (Claude) misturei Kamila com Larissa/ROTA LIVRE várias vezes. **São clientes diferentes:** Kamila é do Martinho Caçambas (biz=164, locação caçambas, Tubarão/SC). Larissa é da ROTA LIVRE (biz=4, vestuário, Gravatal/SC). ROTA LIVRE NÃO usa Sicoob. Ver [cliente-martinho-cacambas.md](../reference/cliente-martinho-cacambas.md) e [cliente-rotalivre.md](../reference/cliente-rotalivre.md).
 
 ## Estado final (post-merge)
 
@@ -132,7 +135,9 @@ Mapping (banco, modo) → `gateway_key` canônico mantido no backend pra compat.
 
 ## Cliente sinal qualificado (ADR 0105)
 
-biz=4 ROTA LIVRE (Larissa, vestuário) pediu API Sicoob explicitamente em 2026-05-27 via Kamila (operadora). Não foi hipótese de feature wish — cliente paga, reportou necessidade. Sicoob é banco operacional dela. **Não migrar biz=4 de `sicoob_cnab` pra `sicoob_api` antes de smoke E2E real com credenciais sandbox** (manter ambos coexistindo durante transição, sicoob_cnab como fallback ~30d).
+Martinho Caçambas (biz=164, locação/manutenção caçambas, região Tubarão/SC, migrado em 2026-05-14 de WR2 Firebird legacy, competidor HiSoft) pediu API Sicoob explicitamente em 2026-05-27 via Kamila (Admin#164, operadora). Não foi hipótese de feature wish — cliente paga, reportou necessidade. Sicoob é banco operacional do Martinho. **Não migrar biz=164 de `sicoob_cnab` pra `sicoob_api` antes de smoke E2E real com credenciais sandbox** (manter ambos coexistindo durante transição, sicoob_cnab como fallback ~30d).
+
+**Atenção (consolidação canon 2026-05-27):** ROTA LIVRE (biz=4 Larissa, vestuário Gravatal/SC) é cliente SEPARADO — NÃO usa Sicoob. Confundir os 2 clientes pode gerar bugs Tier 0 multi-tenant.
 
 ## Próximos passos
 
