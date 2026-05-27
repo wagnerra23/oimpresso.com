@@ -488,9 +488,22 @@ class Contact extends Authenticatable
         }
 
         $full_name = implode(' ', $name_array);
-        $business_name = ! empty($this->supplier_business_name) ? $this->supplier_business_name.', ' : '';
 
-        return $business_name.$full_name;
+        // Wagner 2026-05-27: Larissa @ Rota Livre cadastrou cliente "CLAUDIO MENDES"
+        // com `first_name="CLAUDIO MENDES"` E `supplier_business_name="CLAUDIO MENDES"`
+        // (mesmo valor). Recibo mostrava "CLAUDIO MENDES, CLAUDIO MENDES". Dedup:
+        // se supplier_business_name === full_name (case-insensitive + trim),
+        // retorna só 1. Comportamento normal preservado quando diferentes.
+        if (! empty($this->supplier_business_name)) {
+            $sb_norm = mb_strtolower(trim($this->supplier_business_name));
+            $fn_norm = mb_strtolower(trim($full_name));
+            if ($sb_norm === $fn_norm) {
+                return $full_name;
+            }
+            return $this->supplier_business_name.', '.$full_name;
+        }
+
+        return $full_name;
     }
 
     public function getContactAddressArrayAttribute()
