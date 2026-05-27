@@ -215,9 +215,10 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             ]);
         }
 
+        // Schema 2026-05-27: messages table não tem channel_id direto;
+        // canal vem via conversation_id → conversation.channel_id.
         \DB::table('messages')->insert([
             'business_id' => $this->businessId,
-            'channel_id' => $channel->id,
             'conversation_id' => $convId,
             'direction' => 'inbound',
             'provider' => 'whatsmeow',
@@ -229,6 +230,24 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             'created_at' => $now,
             'updated_at' => $now,
         ]);
+
+        // Realtime Centrifugo — publica evento "message.received" no canal
+        // do business pra UI Inbox/ConversationThread atualizar sem refresh.
+        try {
+            app(\Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher::class)->publish(
+                "whatsapp:business:{$this->businessId}",
+                [
+                    'event' => 'whatsmeow.message.received',
+                    'channel_id' => $channel->id,
+                    'conversation_id' => $convId,
+                    'phone_e164' => $phoneE164,
+                    'contact_name' => $contactName,
+                    'body_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('whatsmeow.centrifugo.publish_failed', ['error' => $e->getMessage()]);
+        }
 
         if ($conversation !== null) {
             \DB::table('conversations')->where('id', $convId)->update([
