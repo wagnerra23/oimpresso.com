@@ -429,6 +429,32 @@ Bloqueador pra escala fora de WR2/ROTA LIVRE — sem isso, lead capturado sem co
 
 #### US-CRM-062 · MWART CrmDashboard com Recharts · **P2** · 10H
 
+### Bloco F — Canon migração legacy (gap descoberto 2026-05-27)
+
+#### US-CRM-077 · Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
+
+> owner: felipe · status: todo · type: story
+> blocked_by: — · bloqueia rodar Wave 2 contra Vargas/Gold/Extreme
+
+**Como** dev oimpresso responsável por importers legacy-migration
+**Quero** os 3 importers de contacts (`import-empresas` + `import-contacts-from-venda` + `import-contacts-from-nfe`) populando canon `officeimpresso_codigo` + `officeimpresso_dt_alteracao` per [ADR 0200](../../decisions/0200-contacts-sync-canon-amends-0197-0199.md)
+**Para** os 9.938 contacts em prod biz=164 + 40k contacts esperados Vargas/Gold/Extreme entrarem no sync bidirecional `BaseApiController::syncData` (hoje estão fora — record sem `officeimpresso_codigo` não vai ser matched)
+
+**Decisão arquitetural pendente:** pattern pra fornecedor de NFe SEM PESSOAS row Delphi (3 opções A/B/C descritas em [session log 2026-05-27](../../sessions/2026-05-27-consolidacao-migracao-martinho-arqueologia.md) §"Lições de comportamento"). Wagner deferiu pra Felipe definir.
+
+**DoD:**
+- [ ] ADR amendment a 0200 (ex `proposals/0205-canon-fornecedor-nfe-sem-pessoas.md`) documentando pattern escolhido
+- [ ] 3 importers atualizados pra LOOKUP `PESSOAS` Firebird via CNPJ → preencher canon quando match
+- [ ] Comportamento "no match" implementado per ADR aprovado (A=SKIP+audit · B=push Delphi · C=outro)
+- [ ] Script `scripts/legacy-migration/backfill-contacts-officeimpresso-codigo.py` pra preencher 9.938 contacts Martinho atual
+- [ ] Smoke prod biz=164 valida X% canon-completo + Y% pending
+- [ ] Pest test (`contacts.officeimpresso_codigo IS NOT NULL OR audit.pending contains cnpj`)
+- [ ] Pattern atualizado em `memory/reference/migracao-officeimpresso-pattern.md` §3 (idempotência)
+
+**Delegação opcional:** após ADR aprovado, implementação Python pode ir pra Maiara (codar sob ADR aprovado é zona dela per [TEAM.md §Maiara](../../../TEAM.md)).
+
+**Refs:** ADR 0093 0197 0199 0200 + ADR 0204 Wave 2 + handoff 2026-05-17-1722-migracao-martinho-completa-perfil-canon.md + session log 2026-05-27 consolidação.
+
 ---
 
 ## §7 — Regras de negócio (Gherkin)
