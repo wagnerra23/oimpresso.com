@@ -125,8 +125,50 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             'meta_cloud' => $this->extractFromMeta($this->payload),
             'zapi' => $this->extractFromZapi($this->payload),
             'baileys' => $this->extractFromBaileys($this->payload),
+            'whatsmeow' => $this->extractFromWhatsmeow($this->payload),
             default => [],
         };
+    }
+
+    /**
+     * Whatsmeow (WuzAPI daemon Go) — ADR 0204.
+     * Payload já unwrapped pelo WhatsmeowWebhookController: $payload.event.Info + $payload.event.Message
+     */
+    private function extractFromWhatsmeow(array $payload): array
+    {
+        $event = $payload['event'] ?? $payload;
+        $info = $event['Info'] ?? [];
+        $message = $event['Message'] ?? [];
+
+        // SenderAlt tem o número E.164 real (Chat/Sender vem @lid em multi-device).
+        // Fallback Chat se SenderAlt vazio (grupos / casos exóticos).
+        $senderJid = (string) ($info['SenderAlt'] ?? $info['Chat'] ?? '');
+        $phone = '+' . preg_replace('/\D/', '', explode('@', $senderJid)[0]);
+
+        // Body — WuzAPI/whatsmeow embute em Message.conversation (text) ou Message.imageMessage.caption (image), etc.
+        $type = strtolower((string) ($info['Type'] ?? 'text'));
+        $body = match (true) {
+            isset($message['conversation']) => (string) $message['conversation'],
+            isset($message['extendedTextMessage']['text']) => (string) $message['extendedTextMessage']['text'],
+            isset($message['imageMessage']['caption']) => (string) $message['imageMessage']['caption'] ?: '[imagem]',
+            isset($message['documentMessage']['caption']) => (string) $message['documentMessage']['caption'] ?: '[documento]',
+            isset($message['audioMessage']) => '[áudio]',
+            isset($message['videoMessage']['caption']) => (string) $message['videoMessage']['caption'] ?: '[vídeo]',
+            default => '[' . $type . ']',
+        };
+
+        if (($info['IsFromMe'] ?? false) === true) {
+            return []; // outbound enviado por nós mesmo — ignora
+        }
+
+        return [[
+            'provider_message_id' => $info['ID'] ?? null,
+            'from' => $phone,
+            'body' => $body,
+            'type' => $type,
+            'push_name' => $info['PushName'] ?? null,
+            'raw' => $payload,
+        ]];
     }
 
     private function extractFromMeta(array $payload): array
