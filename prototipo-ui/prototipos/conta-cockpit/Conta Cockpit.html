@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<title>Contas bancárias — Oimpresso ERP</title>
+<style>
+  :root{
+    --bg:#f6f4ef;--paper:#fff;--ink:#1a1917;--ink-2:#5b574f;--ink-3:#8b8580;
+    --line:#e5e0d3;--line-2:#efeae0;
+    --accent:#1f3a5f;--accent-soft:#eaf0f7;--accent-2:#173049;
+    --ok:#1f6d3a;--ok-soft:#e6f1e8;
+    --warn:#a35a00;--warn-soft:#fbf0dc;
+    --err:#9a2d2d;--err-soft:#fbe9e9;
+    --info:#1f5a8a;--info-soft:#e3edf6;
+    --radius:6px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}
+  button,input,select,textarea{font:inherit}
+
+  .app{display:grid;grid-template-columns:200px 1fr;height:100vh;overflow:hidden}
+
+  /* SIDEBAR */
+  .sb{background:#1a1917;color:#c5beae;padding:14px 0;overflow-y:auto;display:flex;flex-direction:column}
+  .sb .brand{padding:0 16px 16px;border-bottom:1px solid #2a2926;margin-bottom:10px}
+  .sb .brand b{font-size:14px;color:#fff;font-weight:700;letter-spacing:-.01em;display:block}
+  .sb .brand small{font-size:10px;color:#8b8580;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;display:block;margin-top:1px}
+  .sb h4{margin:14px 16px 6px;font-size:9.5px;color:#5b574f;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .sb a{display:flex;align-items:center;gap:9px;padding:6px 16px;color:#c5beae;text-decoration:none;font-size:12.5px;border-left:2px solid transparent;cursor:pointer}
+  .sb a:hover{background:#2a2926;color:#fff}
+  .sb a.active{background:#2a2926;color:#fff;border-left-color:#c97a3a;font-weight:600}
+  .sb a .ic{width:14px;text-align:center;font-size:11px;color:#8b8580}
+  .sb a.active .ic{color:#c97a3a}
+  .sb a .ct{margin-left:auto;font-size:10px;color:#5b574f;font-family:var(--mono)}
+  .sb .biz{margin-top:auto;padding:12px 16px;border-top:1px solid #2a2926;font-size:11px;color:#8b8580}
+  .sb .biz b{display:block;color:#c5beae;font-size:12px;margin-bottom:1px}
+  .sb .sub{padding:3px 16px 3px 38px;font-size:12px;color:#8b8580;cursor:pointer;border-left:2px solid transparent;display:flex;align-items:center;gap:7px}
+  .sb .sub:hover{color:#c5beae;background:#252422}
+  .sb .sub.active{color:#fff;background:#252422;border-left-color:#c97a3a;font-weight:600}
+
+  /* MAIN */
+  .main{display:grid;grid-template-rows:auto auto 1fr auto;overflow:hidden}
+
+  .hd{background:#fff;border-bottom:1px solid var(--line);padding:11px 20px;display:flex;align-items:center;gap:14px}
+  .hd .crumbs{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;font-family:var(--mono)}
+  .hd h1{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .hd .count{font-size:11px;font-family:var(--mono);color:var(--ink-3);background:var(--line-2);padding:2px 8px;border-radius:99px}
+  .hd .sp{flex:1}
+  .hd .search{display:flex;align-items:center;gap:6px;background:#fbf9f3;border:1px solid var(--line);border-radius:5px;padding:5px 10px;min-width:260px}
+  .hd .search input{border:none;outline:none;background:transparent;font-size:12.5px;flex:1}
+  .hd .search span{color:var(--ink-3);font-size:13px}
+
+  .tbs{background:#fff;border-bottom:1px solid var(--line);padding:0 20px;display:flex;align-items:center;gap:2px;overflow-x:auto}
+  .tbs a{padding:9px 14px;font-size:12.5px;color:var(--ink-2);border-bottom:2px solid transparent;text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .tbs a:hover{color:var(--ink)}
+  .tbs a.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  .tbs a .ct{font-size:10px;font-family:var(--mono);color:var(--ink-3);background:var(--line-2);padding:1px 6px;border-radius:99px}
+  .tbs a.active .ct{background:var(--accent-soft);color:var(--accent)}
+  .tbs .sp{flex:1}
+  .tbs .filters{display:flex;gap:6px;font-size:11.5px;color:var(--ink-3);align-items:center}
+  .tbs .filter-pill{padding:3px 9px;border:1px solid var(--line);background:#fbf9f3;border-radius:99px;color:var(--ink-2);cursor:pointer;font-size:11px}
+  .tbs .filter-pill:hover{border-color:var(--accent);color:var(--accent)}
+  .tbs .filter-pill.on{background:var(--accent-soft);border-color:#c9d6e8;color:var(--accent);font-weight:600}
+
+  /* BODY GRID with drawer */
+  .bd{display:grid;overflow:hidden;transition:grid-template-columns .2s ease;min-width:0}
+  .bd.with-drawer{grid-template-columns:minmax(580px,1fr) 480px}
+  .bd:not(.with-drawer){grid-template-columns:1fr 0}
+  .list{min-width:0;overflow:auto;padding:14px 20px;background:var(--bg)}
+  .drawer-col{min-width:0;overflow:hidden}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:5px;padding:10px 12px}
+  .kpi small{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;display:block;margin-bottom:3px}
+  .kpi b{font-size:16px;font-weight:700;letter-spacing:-.01em;font-family:var(--mono);font-variant-numeric:tabular-nums;display:block}
+  .kpi .ln{font-size:10.5px;color:var(--ink-2);margin-top:3px}
+  .kpi.dark{background:#1a1917;border-color:#1a1917}
+  .kpi.dark small{color:#5b574f}
+  .kpi.dark b{color:#fff;font-size:18px}
+  .kpi.dark .ln{color:#8b8580}
+  .kpi.ok b{color:var(--ok)} .kpi.ok{background:var(--ok-soft);border-color:#b8d9c0}
+  .kpi.warn b{color:var(--warn)} .kpi.warn{background:var(--warn-soft);border-color:#f1d499}
+  .kpi.err b{color:var(--err)} .kpi.err{background:var(--err-soft);border-color:#e8b8b8}
+  .kpi.info b{color:var(--info)} .kpi.info{background:var(--info-soft);border-color:#b8cee0}
+
+  /* TABLE */
+  .tbl{background:#fff;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+  table.fin{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.fin th{text-align:left;padding:8px 10px;background:#fbf9f3;border-bottom:1px solid var(--line);font-weight:600;color:var(--ink-2);font-size:10px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:1}
+  table.fin td{padding:11px 10px;border-bottom:1px solid var(--line-2);cursor:pointer;vertical-align:middle}
+  table.fin tr:last-child td{border-bottom:none}
+  table.fin tr:hover td{background:#fbf9f3}
+  table.fin tr.sel td{background:var(--accent-soft);border-bottom-color:#c9d6e8}
+  table.fin tr.dim td{opacity:.55}
+  table.fin td.mono{font-family:var(--mono);font-size:12px}
+  table.fin td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+  table.fin td.num b{font-size:13px;font-weight:700}
+
+  /* Pills */
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600;white-space:nowrap}
+  .pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+  .pill.ativa{background:var(--ok-soft);color:var(--ok)}
+  .pill.inativa{background:var(--line-2);color:var(--ink-3)}
+  .pill.cc{background:var(--accent-soft);color:var(--accent)}
+  .pill.poup{background:var(--info-soft);color:var(--info)}
+  .pill.aplic{background:var(--warn-soft);color:var(--warn)}
+  .pill.entrada{background:var(--ok-soft);color:var(--ok)}
+  .pill.saida{background:var(--err-soft);color:var(--err)}
+
+  /* Bank logo placeholder */
+  .bank-logo{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:5px;font-size:11px;font-weight:800;color:#fff;letter-spacing:-.02em;font-family:var(--mono);flex-shrink:0}
+  .bank-logo.dark-text{color:#1a1917}
+  .bank-logo.big{width:48px;height:48px;font-size:15px;border-radius:6px}
+
+  /* Progress bar */
+  .progress{display:flex;align-items:center;gap:8px}
+  .progress .bk{flex:1;height:5px;background:var(--line-2);border-radius:99px;overflow:hidden;min-width:60px;max-width:120px}
+  .progress .bk i{display:block;height:100%;border-radius:99px}
+  .progress .lb{font-size:10.5px;font-family:var(--mono);color:var(--ink-2);white-space:nowrap}
+
+  /* DRAWER */
+  .drawer{background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;height:100%}
+  .drw-head{padding:14px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:flex-start;gap:12px}
+  .drw-head h2{margin:0 0 2px;font-size:14px;font-weight:600;line-height:1.3}
+  .drw-head .meta{font-size:11.5px;color:var(--ink-3)}
+  .drw-head .mono{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);background:var(--line-2);padding:2px 7px;border-radius:4px;margin-top:5px;display:inline-block}
+  .drw-head .x{margin-left:auto;border:none;background:transparent;color:var(--ink-3);width:26px;height:26px;border-radius:4px;font-size:15px;cursor:pointer;align-self:flex-start}
+  .drw-head .x:hover{background:var(--line-2);color:var(--ink)}
+
+  .hero-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--line-2);background:#fbf9f3}
+  .hero-kpi{padding:10px 10px;border-right:1px solid var(--line-2);text-align:center}
+  .hero-kpi:last-child{border-right:none}
+  .hero-kpi small{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);font-weight:600;display:block}
+  .hero-kpi b{font-size:13px;font-weight:700;font-family:var(--mono);font-variant-numeric:tabular-nums;display:block;margin-top:2px}
+  .hero-kpi.ok b{color:var(--ok)} .hero-kpi.warn b{color:var(--warn)} .hero-kpi.err b{color:var(--err)} .hero-kpi.info b{color:var(--info)}
+
+  .drw-tabs{display:flex;padding:0 18px;border-bottom:1px solid var(--line-2);gap:0;overflow-x:auto;background:#fff}
+  .drw-tabs button{border:none;background:transparent;padding:9px 12px;font-size:12px;color:var(--ink-2);border-bottom:2px solid transparent;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+  .drw-tabs button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  .drw-tabs button:hover:not(.active){color:var(--ink)}
+  .drw-tabs button .ct{font-size:10px;font-family:var(--mono);color:var(--ink-3);background:var(--line-2);padding:0 5px;border-radius:99px}
+
+  .drw-body{flex:1;overflow:auto;padding:14px 18px}
+  .drw-foot{padding:11px 18px;border-top:1px solid var(--line);background:#fbf9f3;display:flex;align-items:center;gap:8px}
+
+  .sec{margin-bottom:14px}
+  .sec h4{margin:0 0 7px;font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .sec .card{background:#fbf9f3;border:1px solid var(--line);border-radius:5px;padding:11px 13px}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:12px}
+  .field-grid .f label{font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;display:block;margin-bottom:1px}
+  .field-grid .f span{color:var(--ink);font-weight:500}
+  .field-grid .f span.mono{font-family:var(--mono);font-size:11.5px}
+  .field-grid .f.full{grid-column:span 2}
+
+  /* movs table */
+  table.movs{width:100%;border-collapse:collapse;font-size:12px}
+  table.movs th{text-align:left;padding:6px 8px;background:#fbf9f3;border-bottom:1px solid var(--line);font-weight:600;color:var(--ink-2);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em}
+  table.movs td{padding:7px 8px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  table.movs td.mono{font-family:var(--mono);font-size:11px}
+  table.movs td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+  table.movs tr:last-child td{border-bottom:none}
+
+  /* extratos list */
+  .extrato-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);background:#fbf9f3;border-radius:5px;margin-bottom:6px;font-size:12px}
+  .extrato-row .dt{font-family:var(--mono);font-size:11px;color:var(--ink-2);min-width:80px}
+  .extrato-row .lb{flex:1;min-width:0}
+  .extrato-row .lb b{font-size:12.5px;display:block}
+  .extrato-row .lb small{color:var(--ink-3);font-size:10.5px;font-family:var(--mono)}
+
+  /* DIR icon */
+  .dir-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;font-size:11px;font-weight:700}
+  .dir-icon.in{background:var(--ok-soft);color:var(--ok)}
+  .dir-icon.out{background:var(--err-soft);color:var(--err)}
+
+  /* foot */
+  .ft{background:#fff;border-top:1px solid var(--line);padding:8px 20px;display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--ink-3)}
+  .ft b{color:var(--ink);font-weight:600}
+  .ft .sp{flex:1}
+  .ft kbd{font-family:var(--mono);font-size:10px;background:var(--line-2);border:1px solid var(--line);border-radius:3px;padding:1px 5px;color:var(--ink-2)}
+
+  .btn{border:1px solid var(--line);background:#fff;padding:5px 11px;border-radius:4px;font-size:11.5px;color:var(--ink);cursor:pointer}
+  .btn:hover{border-color:#c5beae;background:#fbf9f3}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{background:var(--accent-2)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+  .btn.ghost:hover{background:var(--line-2)}
+  .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+  .btn.ok:hover{filter:brightness(.92)}
+  .btn.danger{color:var(--err);border-color:var(--err-soft)}
+  .btn.danger:hover{background:var(--err-soft);border-color:var(--err)}
+  .btn.sm{padding:3px 8px;font-size:11px}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+const { useState, useMemo, useEffect } = React;
+
+/* ─── FORMAT HELPERS ─────────────────────────────────────────────────── */
+const fmtBRL = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtBRLshort = (n) => {
+  const abs = Math.abs(n);
+  if (abs >= 1000) return (n < 0 ? "− " : "") + "R$ " + (abs / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "k";
+  return fmtBRL(n);
+};
+const fmtDate = (d) => d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+const fmtDateLong = (d) => d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+function d(s) { return new Date(s + "T12:00:00"); }
+
+const TODAY = new Date(2026, 4, 9); // 2026-05-09
+
+/* ─── MOCK DATA — CONTAS ─────────────────────────────────────────────── */
+const CONTAS = [
+  {
+    id: "ITAU-4521",
+    banco: "Itaú Unibanco",
+    bancoCode: "341",
+    logoBg: "#ec7000",
+    logoText: "Itaú",
+    darkText: false,
+    tipo: "CC",
+    tipoLabel: "Conta corrente",
+    agencia: "0438",
+    conta: "4521-7",
+    saldoAtual: 24830.55,
+    bloqueado: 4500.00,
+    saldoDisp: 20330.55,
+    entradasMes: 14200.00,
+    saidasMes: 11680.40,
+    saldoProj30: 18420.10,
+    titular: "LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME",
+    cnpj: "04.123.456/0001-78",
+    limiteCheque: 15000.00,
+    taxaMensal: 89.90,
+    taxaTed: 12.50,
+    taxaDoc: 8.90,
+    aberturaEm: d("2018-03-12"),
+    ultMov: d("2026-05-09"),
+    ultMovDesc: "PIX recebido — Padaria Pão Quente",
+    conciliados: 28,
+    pendentes: 4,
+    divergencias: 1,
+    status: "ativa",
+    principal: true,
+  },
+  {
+    id: "SANT-13005",
+    banco: "Santander",
+    bancoCode: "033",
+    logoBg: "#ec0000",
+    logoText: "Sant.",
+    darkText: false,
+    tipo: "CC",
+    tipoLabel: "Conta corrente",
+    agencia: "2103",
+    conta: "13.005678-9",
+    saldoAtual: 6420.18,
+    bloqueado: 1200.00,
+    saldoDisp: 5220.18,
+    entradasMes: 4180.00,
+    saidasMes: 3240.00,
+    saldoProj30: 5360.18,
+    titular: "LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME",
+    cnpj: "04.123.456/0001-78",
+    limiteCheque: 8000.00,
+    taxaMensal: 64.90,
+    taxaTed: 10.90,
+    taxaDoc: 7.50,
+    aberturaEm: d("2020-09-04"),
+    ultMov: d("2026-05-08"),
+    ultMovDesc: "TED recebido — Auto Posto Trevo",
+    conciliados: 14,
+    pendentes: 2,
+    divergencias: 0,
+    status: "ativa",
+    principal: false,
+  },
+  {
+    id: "BB-98765",
+    banco: "Banco do Brasil",
+    bancoCode: "001",
+    logoBg: "#fae128",
+    logoText: "BB",
+    darkText: true,
+    tipo: "POUP",
+    tipoLabel: "Poupança",
+    agencia: "1234",
+    conta: "98765-4",
+    saldoAtual: 32400.00,
+    bloqueado: 0,
+    saldoDisp: 32400.00,
+    entradasMes: 2000.00,
+    saidasMes: 0,
+    saldoProj30: 34400.00,
+    titular: "LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME",
+    cnpj: "04.123.456/0001-78",
+    limiteCheque: 0,
+    taxaMensal: 0,
+    taxaTed: 0,
+    taxaDoc: 0,
+    aberturaEm: d("2019-06-20"),
+    ultMov: d("2026-05-02"),
+    ultMovDesc: "Transferência interna — reserva mensal",
+    conciliados: 4,
+    pendentes: 0,
+    divergencias: 0,
+    status: "ativa",
+    principal: false,
+  },
+  {
+    id: "CAIXA-0001",
+    banco: "Caixa Econômica Federal",
+    bancoCode: "104",
+    logoBg: "#1860a3",
+    logoText: "Caixa",
+    darkText: false,
+    tipo: "CC",
+    tipoLabel: "Conta corrente",
+    agencia: "0001",
+    conta: "0001-1",
+    saldoAtual: 420.10,
+    bloqueado: 0,
+    saldoDisp: 420.10,
+    entradasMes: 3000.00,
+    saidasMes: 2722.00,
+    saldoProj30: 180.10,
+    titular: "LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME",
+    cnpj: "04.123.456/0001-78",
+    limiteCheque: 2000.00,
+    taxaMensal: 39.90,
+    taxaTed: 9.90,
+    taxaDoc: 6.50,
+    aberturaEm: d("2021-02-15"),
+    ultMov: d("2026-05-05"),
+    ultMovDesc: "DAS Simples Nacional abril",
+    conciliados: 8,
+    pendentes: 3,
+    divergencias: 0,
+    status: "ativa",
+    principal: false,
+  },
+];
+
+/* ─── MOCK — MOVIMENTAÇÕES POR CONTA ─────────────────────────────────── */
+const MOVS_BY_CONTA = {
+  "ITAU-4521": [
+    { date: d("2026-05-09"), desc: "PIX recebido — Padaria Pão Quente", cat: "Venda balcão", val:  480.00, saldo: 24830.55 },
+    { date: d("2026-05-09"), desc: "Tarifa cesta conta PJ", cat: "Tarifa", val:  -89.90, saldo: 24350.55 },
+    { date: d("2026-05-08"), desc: "PIX recebido — Maria Aparecida", cat: "Venda PF", val:  120.00, saldo: 24440.45 },
+    { date: d("2026-05-07"), desc: "PIX recebido — Clínica Vida Plena", cat: "Venda PJ", val:  880.00, saldo: 24320.45 },
+    { date: d("2026-05-06"), desc: "PIX recebido — Farmácia Saúde Total", cat: "Venda PJ", val:  720.00, saldo: 23440.45 },
+    { date: d("2026-05-05"), desc: "TED Folha Larissa Souza", cat: "Folha", val: -2800.00, saldo: 22720.45 },
+    { date: d("2026-05-05"), desc: "PIX Alphagraf Acabamento", cat: "Fornecedor", val: -1120.00, saldo: 25520.45 },
+    { date: d("2026-05-04"), desc: "PIX recebido — Studio Foco", cat: "Venda PJ", val:  380.00, saldo: 26640.45 },
+    { date: d("2026-05-03"), desc: "Débito autom. Vivo Empresas", cat: "Utilidade", val:  -320.00, saldo: 26260.45 },
+    { date: d("2026-05-02"), desc: "TED Imobiliária Centro (aluguel)", cat: "Aluguel", val: -4500.00, saldo: 26580.45 },
+    { date: d("2026-05-02"), desc: "Transferência → BB Poupança", cat: "Interna", val: -2000.00, saldo: 31080.45 },
+    { date: d("2026-05-02"), desc: "TED recebida — Construtora Vértice", cat: "Venda PJ", val: 3200.00, saldo: 33080.45 },
+    { date: d("2026-04-30"), desc: "Boleto pago — Suprigraf", cat: "Fornecedor", val: -2450.00, saldo: 29880.45 },
+    { date: d("2026-04-29"), desc: "PIX recebido — Cervejaria Lupulada", cat: "Venda PJ", val: 1640.00, saldo: 32330.45 },
+    { date: d("2026-04-28"), desc: "DAS Simples Nacional", cat: "Imposto", val: -2110.00, saldo: 30690.45 },
+    { date: d("2026-04-27"), desc: "Boleto pago — Tinta Solvent BR", cat: "Insumo", val:  -650.00, saldo: 32800.45 },
+    { date: d("2026-04-26"), desc: "PIX recebido — Transporte Veloz", cat: "Venda PJ", val: 4200.00, saldo: 33450.45 },
+    { date: d("2026-04-25"), desc: "Tarifa TED", cat: "Tarifa", val:   -12.50, saldo: 29250.45 },
+    { date: d("2026-04-24"), desc: "TED recebida — Imobiliária Horizonte", cat: "Venda PJ", val:  540.00, saldo: 29262.95 },
+    { date: d("2026-04-23"), desc: "PIX Tinta Solvent (sinal)", cat: "Fornecedor", val:  -300.00, saldo: 28722.95 },
+  ],
+  "SANT-13005": [
+    { date: d("2026-05-08"), desc: "TED recebida — Auto Posto Trevo", cat: "Venda PJ", val: 2340.00, saldo: 6420.18 },
+    { date: d("2026-05-06"), desc: "Tarifa mensalidade PJ", cat: "Tarifa", val:  -64.90, saldo: 4080.18 },
+    { date: d("2026-05-05"), desc: "PIX Equatorial Energia", cat: "Utilidade", val: -1180.40, saldo: 4145.08 },
+    { date: d("2026-05-04"), desc: "PIX recebido — Loja Bella Moda", cat: "Venda PJ", val: 1890.00, saldo: 5325.48 },
+    { date: d("2026-05-02"), desc: "Débito autom. IPTU 5ª", cat: "Imposto", val:  -890.00, saldo: 3435.48 },
+    { date: d("2026-04-30"), desc: "PIX recebido — Restaurante Sabor&Cia", cat: "Venda PJ", val:  340.00, saldo: 4325.48 },
+    { date: d("2026-04-28"), desc: "Boleto pago — TecPlot Assistência", cat: "Serviço", val:  -780.00, saldo: 3985.48 },
+    { date: d("2026-04-27"), desc: "PIX recebido — Academia Movimento", cat: "Venda PJ", val:  290.00, saldo: 4765.48 },
+  ],
+  "BB-98765": [
+    { date: d("2026-05-02"), desc: "Transferência ← Itaú PJ (reserva)", cat: "Interna", val: 2000.00, saldo: 32400.00 },
+    { date: d("2026-04-02"), desc: "Transferência ← Itaú PJ (reserva)", cat: "Interna", val: 2000.00, saldo: 30400.00 },
+    { date: d("2026-04-30"), desc: "Rendimento poupança abr", cat: "Rendimento", val:   158.20, saldo: 28400.00 },
+    { date: d("2026-03-02"), desc: "Transferência ← Itaú PJ (reserva)", cat: "Interna", val: 2000.00, saldo: 28241.80 },
+  ],
+  "CAIXA-0001": [
+    { date: d("2026-05-05"), desc: "DAS Simples Nacional abril", cat: "Imposto", val: -2110.00, saldo:  420.10 },
+    { date: d("2026-05-04"), desc: "Transferência ← Itaú PJ", cat: "Interna", val: 2500.00, saldo: 2530.10 },
+    { date: d("2026-05-02"), desc: "GPS INSS abril", cat: "Imposto", val:  -612.00, saldo:   30.10 },
+    { date: d("2026-04-29"), desc: "Transferência ← Itaú PJ", cat: "Interna", val:  500.00, saldo:  642.10 },
+    { date: d("2026-04-25"), desc: "Tarifa mensalidade", cat: "Tarifa", val:  -39.90, saldo:  142.10 },
+    { date: d("2026-04-20"), desc: "FGTS abril (GFD)", cat: "Imposto", val:  -224.00, saldo:  182.00 },
+    { date: d("2026-04-15"), desc: "Transferência ← Itaú PJ", cat: "Interna", val:  300.00, saldo:  406.00 },
+    { date: d("2026-04-10"), desc: "ICMS-ST abril", cat: "Imposto", val:  -180.00, saldo:  106.00 },
+  ],
+};
+
+/* ─── MOCK — EXTRATOS OFX IMPORTADOS POR CONTA ───────────────────────── */
+const EXTRATOS_BY_CONTA = {
+  "ITAU-4521": [
+    { id: "OFX-04398", periodo: "01/05 → 09/05", lanc: 18, status: "processado", importadoEm: d("2026-05-09") },
+    { id: "OFX-04340", periodo: "01/04 → 30/04", lanc: 42, status: "processado", importadoEm: d("2026-05-01") },
+    { id: "OFX-04288", periodo: "01/03 → 31/03", lanc: 38, status: "processado", importadoEm: d("2026-04-01") },
+    { id: "OFX-04221", periodo: "01/02 → 28/02", lanc: 35, status: "processado", importadoEm: d("2026-03-02") },
+  ],
+  "SANT-13005": [
+    { id: "OFX-SA-218", periodo: "01/05 → 09/05", lanc: 8, status: "processado", importadoEm: d("2026-05-09") },
+    { id: "OFX-SA-201", periodo: "01/04 → 30/04", lanc: 21, status: "processado", importadoEm: d("2026-05-01") },
+    { id: "OFX-SA-184", periodo: "01/03 → 31/03", lanc: 19, status: "processado", importadoEm: d("2026-04-01") },
+  ],
+  "BB-98765": [
+    { id: "OFX-BB-102", periodo: "01/05 → 09/05", lanc: 1, status: "processado", importadoEm: d("2026-05-09") },
+    { id: "OFX-BB-098", periodo: "01/04 → 30/04", lanc: 2, status: "processado", importadoEm: d("2026-05-01") },
+  ],
+  "CAIXA-0001": [
+    { id: "OFX-CX-066", periodo: "01/05 → 09/05", lanc: 4, status: "pendente", importadoEm: d("2026-05-09") },
+    { id: "OFX-CX-054", periodo: "01/04 → 30/04", lanc: 12, status: "processado", importadoEm: d("2026-05-01") },
+    { id: "OFX-CX-041", periodo: "01/03 → 31/03", lanc: 9, status: "processado", importadoEm: d("2026-04-01") },
+  ],
+};
+
+/* ─── TABS DE FILTRO ─────────────────────────────────────────────────── */
+const TABS = [
+  { id: "all",      label: "Todas" },
+  { id: "active",   label: "Ativas" },
+  { id: "cheque",   label: "Cheque especial" },
+  { id: "aplic",    label: "Aplicação" },
+  { id: "inativas", label: "Inativas" },
+];
+
+const FIN_SUBS = [
+  { id: "unified", label: "Visão unificada",  ic: "≡" },
+  { id: "fluxo",   label: "Fluxo de caixa",  ic: "~" },
+  { id: "contas",  label: "Contas bancárias", ic: "▤" },
+  { id: "concil",  label: "Conciliação",      ic: "⇌" },
+  { id: "dre",     label: "DRE / Relatórios", ic: "%" },
+  { id: "pcontas", label: "Plano de contas",  ic: "⊞" },
+];
+
+/* ─── BANK LOGO ──────────────────────────────────────────────────────── */
+function BankLogo({ conta, size = "sm" }) {
+  return (
+    <div
+      className={`bank-logo${size === "big" ? " big" : ""}${conta.darkText ? " dark-text" : ""}`}
+      style={{ background: conta.logoBg }}
+    >
+      {conta.logoText}
+    </div>
+  );
+}
+
+/* ─── TYPE PILL ──────────────────────────────────────────────────────── */
+function TipoPill({ tipo, label }) {
+  const cls = tipo === "CC" ? "cc" : tipo === "POUP" ? "poup" : "aplic";
+  return <span className={`pill ${cls}`}>{label}</span>;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * DRAWER — CONTA DETAIL
+ * ═══════════════════════════════════════════════════════════════════════ */
+function DrawerConta({ conta, onClose }) {
+  const [tab, setTab] = useState("resumo");
+  const movs   = MOVS_BY_CONTA[conta.id] || [];
+  const extras = EXTRATOS_BY_CONTA[conta.id] || [];
+  const totConcil = conta.conciliados + conta.pendentes + conta.divergencias;
+  const pctConcil = totConcil > 0 ? (conta.conciliados / totConcil) * 100 : 100;
+
+  const tabs = [
+    { id: "resumo",   l: "Resumo" },
+    { id: "movs",     l: "Movimentações", ct: movs.length },
+    { id: "concil",   l: "Conciliação",   ct: conta.pendentes },
+    { id: "extratos", l: "Extratos",      ct: extras.length },
+  ];
+
+  return (
+    <aside className="drawer">
+      {/* HEAD */}
+      <div className="drw-head">
+        <BankLogo conta={conta} size="big"/>
+        <div style={{flex:1,minWidth:0}}>
+          <h2 style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {conta.banco}{conta.principal && <span style={{marginLeft:6,fontSize:9.5,fontWeight:600,color:"var(--accent)",background:"var(--accent-soft)",padding:"1px 6px",borderRadius:99,verticalAlign:"middle"}}>PRINCIPAL</span>}
+          </h2>
+          <div className="meta">{conta.tipoLabel} · ag {conta.agencia} · cc {conta.conta}</div>
+          <span className="mono">cód {conta.bancoCode} · {conta.id}</span>
+        </div>
+        <button className="x" onClick={onClose}>✕</button>
+      </div>
+
+      {/* HERO KPIs */}
+      <div className="hero-kpis">
+        <div className="hero-kpi">
+          <small>Saldo atual</small>
+          <b>{fmtBRL(conta.saldoAtual)}</b>
+          <div style={{fontSize:9,marginTop:1,color:"var(--ink-3)"}}>{conta.bloqueado > 0 ? `${fmtBRLshort(conta.bloqueado)} bloq.` : "sem bloqueio"}</div>
+        </div>
+        <div className="hero-kpi ok">
+          <small>Entradas · mai</small>
+          <b>+ {fmtBRLshort(conta.entradasMes)}</b>
+          <div style={{fontSize:9,marginTop:1,color:"var(--ink-3)"}}>{movs.filter(m=>m.val>0).length} créditos</div>
+        </div>
+        <div className="hero-kpi err">
+          <small>Saídas · mai</small>
+          <b>− {fmtBRLshort(conta.saidasMes)}</b>
+          <div style={{fontSize:9,marginTop:1,color:"var(--ink-3)"}}>{movs.filter(m=>m.val<0).length} débitos</div>
+        </div>
+        <div className={`hero-kpi ${conta.saldoProj30 < conta.saldoAtual ? "warn" : "info"}`}>
+          <small>Proj. 30d</small>
+          <b>{fmtBRLshort(conta.saldoProj30)}</b>
+          <div style={{fontSize:9,marginTop:1,color:"var(--ink-3)"}}>{conta.saldoProj30 < conta.saldoAtual ? "↓ queda prevista" : "↑ alta prevista"}</div>
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div className="drw-tabs">
+        {tabs.map(t => (
+          <button key={t.id} className={tab === t.id ? "active" : ""} onClick={() => setTab(t.id)}>
+            {t.l}{t.ct != null && <span className="ct">{t.ct}</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* BODY */}
+      <div className="drw-body">
+        {tab === "resumo" && (
+          <>
+            <div className="sec">
+              <h4>Identificação bancária</h4>
+              <div className="card">
+                <div className="field-grid">
+                  <div className="f"><label>Banco</label><span>{conta.banco}</span></div>
+                  <div className="f"><label>Código FEBRABAN</label><span className="mono">{conta.bancoCode}</span></div>
+                  <div className="f"><label>Agência</label><span className="mono">{conta.agencia}</span></div>
+                  <div className="f"><label>Conta</label><span className="mono">{conta.conta}</span></div>
+                  <div className="f"><label>Tipo</label><span>{conta.tipoLabel}</span></div>
+                  <div className="f"><label>Status</label><span><span className={`pill ${conta.status}`}>{conta.status === "ativa" ? "Ativa" : "Inativa"}</span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sec">
+              <h4>Titularidade</h4>
+              <div className="card">
+                <div className="field-grid">
+                  <div className="f full"><label>Razão social</label><span>{conta.titular}</span></div>
+                  <div className="f"><label>CNPJ</label><span className="mono">{conta.cnpj}</span></div>
+                  <div className="f"><label>Abertura da conta</label><span className="mono">{fmtDateLong(conta.aberturaEm)}</span></div>
+                </div>
+              </div>
+            </div>
+
+            {conta.limiteCheque > 0 && (
+              <div className="sec">
+                <h4>Limite e cheque especial</h4>
+                <div className="card">
+                  <div className="field-grid">
+                    <div className="f"><label>Limite cheque especial</label><span className="mono" style={{fontWeight:700,color:"var(--warn)"}}>{fmtBRL(conta.limiteCheque)}</span></div>
+                    <div className="f"><label>Usado hoje</label><span className="mono">{conta.saldoAtual < 0 ? fmtBRL(Math.abs(conta.saldoAtual)) : fmtBRL(0)}</span></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="sec">
+              <h4>Tarifas pactuadas</h4>
+              <div className="card">
+                <div className="field-grid">
+                  <div className="f"><label>Mensalidade</label><span className="mono">{fmtBRL(conta.taxaMensal)}</span></div>
+                  <div className="f"><label>TED</label><span className="mono">{fmtBRL(conta.taxaTed)}</span></div>
+                  <div className="f"><label>DOC</label><span className="mono">{fmtBRL(conta.taxaDoc)}</span></div>
+                  <div className="f"><label>PIX PJ</label><span className="mono">grátis</span></div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {tab === "movs" && (
+          <div className="sec">
+            <h4>Últimas {movs.length} movimentações</h4>
+            <div className="tbl" style={{borderRadius:5}}>
+              <table className="movs">
+                <thead><tr>
+                  <th style={{width:60}}>Data</th>
+                  <th style={{width:24}}></th>
+                  <th>Descrição</th>
+                  <th style={{width:80}}>Categoria</th>
+                  <th style={{textAlign:"right",width:90}}>Valor</th>
+                  <th style={{textAlign:"right",width:90}}>Saldo</th>
+                </tr></thead>
+                <tbody>
+                  {movs.map((m, i) => {
+                    const isIn = m.val > 0;
+                    return (
+                      <tr key={i}>
+                        <td className="mono" style={{color:"var(--ink-2)"}}>{fmtDate(m.date)}</td>
+                        <td><span className={`dir-icon ${isIn?"in":"out"}`}>{isIn?"↓":"↑"}</span></td>
+                        <td><b style={{fontSize:12}}>{m.desc}</b></td>
+                        <td style={{color:"var(--ink-3)",fontSize:10.5,textTransform:"uppercase",letterSpacing:".04em"}}>{m.cat}</td>
+                        <td className="num">
+                          <b style={{color: isIn ? "var(--ok)" : "var(--ink)",fontSize:12}}>
+                            <span style={{color:"var(--ink-3)",marginRight:1}}>{isIn?"+":"−"}</span>
+                            {fmtBRL(Math.abs(m.val)).replace("R$","").trim()}
+                          </b>
+                        </td>
+                        <td className="num" style={{color:"var(--ink-2)",fontSize:11}}>
+                          {fmtBRL(m.saldo).replace("R$","").trim()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <small style={{display:"block",marginTop:6,fontSize:10.5,color:"var(--ink-3)"}}>
+              Exibindo {movs.length} lançamentos · <a style={{color:"var(--accent)",cursor:"pointer"}}>Ver extrato completo →</a>
+            </small>
+          </div>
+        )}
+
+        {tab === "concil" && (
+          <>
+            <div className="sec">
+              <h4>Estado da conciliação</h4>
+              <div className="card">
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:0}}>
+                  <div style={{textAlign:"center",borderRight:"1px solid var(--line)"}}>
+                    <div style={{fontSize:9.5,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:".05em",fontWeight:600}}>Conciliados</div>
+                    <div style={{fontSize:20,fontWeight:700,fontFamily:"var(--mono)",color:"var(--ok)"}}>{conta.conciliados}</div>
+                  </div>
+                  <div style={{textAlign:"center",borderRight:"1px solid var(--line)"}}>
+                    <div style={{fontSize:9.5,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:".05em",fontWeight:600}}>Pendentes</div>
+                    <div style={{fontSize:20,fontWeight:700,fontFamily:"var(--mono)",color:"var(--warn)"}}>{conta.pendentes}</div>
+                  </div>
+                  <div style={{textAlign:"center"}}>
+                    <div style={{fontSize:9.5,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:".05em",fontWeight:600}}>Divergências</div>
+                    <div style={{fontSize:20,fontWeight:700,fontFamily:"var(--mono)",color: conta.divergencias>0?"var(--err)":"var(--ink-3)"}}>{conta.divergencias}</div>
+                  </div>
+                </div>
+                <div style={{marginTop:12}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:10.5,color:"var(--ink-3)",fontFamily:"var(--mono)"}}>
+                    <span>{Math.round(pctConcil)}% conciliado</span>
+                    <span>{conta.conciliados}/{totConcil}</span>
+                  </div>
+                  <div style={{height:6,background:"var(--line-2)",borderRadius:99,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${pctConcil}%`,background:"var(--ok)",borderRadius:99}}/>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sec">
+              <h4>Último lote conciliado</h4>
+              <div className="card" style={{fontSize:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <b>{extras[0]?.id || "—"}</b>
+                    <div style={{color:"var(--ink-3)",fontSize:11,marginTop:2}}>{extras[0]?.periodo} · {extras[0]?.lanc} lançamentos</div>
+                  </div>
+                  <span className={`pill ${extras[0]?.status === "processado" ? "ativa" : "aplic"}`}>{extras[0]?.status === "processado" ? "OK" : "Pendente"}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:"flex",gap:6,marginTop:14}}>
+              <button className="btn primary" style={{flex:1}}>▶ Iniciar conciliação</button>
+              <button className="btn" style={{flex:1}}>Ver tela completa →</button>
+            </div>
+          </>
+        )}
+
+        {tab === "extratos" && (
+          <div className="sec">
+            <h4>OFX importados</h4>
+            {extras.map(e => (
+              <div className="extrato-row" key={e.id}>
+                <span className="dt">{fmtDate(e.importadoEm)}</span>
+                <div className="lb">
+                  <b>{e.periodo}</b>
+                  <small>{e.id} · {e.lanc} lançamentos</small>
+                </div>
+                <span className={`pill ${e.status === "processado" ? "ativa" : "aplic"}`}>{e.status === "processado" ? "Processado" : "Pendente"}</span>
+                <button className="btn sm ghost">↓</button>
+              </div>
+            ))}
+            <button className="btn primary" style={{width:"100%",marginTop:8}}>↑ Importar novo OFX</button>
+            <small style={{display:"block",marginTop:6,fontSize:10.5,color:"var(--ink-3)"}}>
+              Suportado: OFX 2.x. Tamanho máximo 5MB. Período recomendado: 90 dias.
+            </small>
+          </div>
+        )}
+      </div>
+
+      {/* FOOTER */}
+      <div className="drw-foot">
+        <button className="btn ghost danger">Desativar</button>
+        <button className="btn ghost">Editar</button>
+        <div style={{flex:1}}/>
+        <button className="btn">↑ Importar OFX</button>
+        <button className="btn primary">Conciliar →</button>
+      </div>
+    </aside>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * APP ROOT
+ * ═══════════════════════════════════════════════════════════════════════ */
+function App() {
+  const [tab, setTab]   = useState("all");
+  const [query, setQuery] = useState("");
+  const [drawerConta, setDrawerConta] = useState(null);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") setDrawerConta(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const counts = useMemo(() => ({
+    all:      CONTAS.length,
+    active:   CONTAS.filter(c => c.status === "ativa").length,
+    cheque:   CONTAS.filter(c => c.limiteCheque > 0).length,
+    aplic:    CONTAS.filter(c => c.tipo === "POUP" || c.tipo === "APLIC").length,
+    inativas: CONTAS.filter(c => c.status === "inativa").length,
+  }), []);
+
+  const filtered = useMemo(() => {
+    let r = CONTAS;
+    if (tab === "active")   r = r.filter(c => c.status === "ativa");
+    if (tab === "cheque")   r = r.filter(c => c.limiteCheque > 0);
+    if (tab === "aplic")    r = r.filter(c => c.tipo === "POUP" || c.tipo === "APLIC");
+    if (tab === "inativas") r = r.filter(c => c.status === "inativa");
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      r = r.filter(c =>
+        c.banco.toLowerCase().includes(q)   ||
+        c.agencia.includes(q)                ||
+        c.conta.includes(q)                  ||
+        c.tipoLabel.toLowerCase().includes(q)||
+        c.id.toLowerCase().includes(q)
+      );
+    }
+    return r;
+  }, [tab, query]);
+
+  /* KPIs página */
+  const kpiPage = useMemo(() => {
+    const ativas    = CONTAS.filter(c => c.status === "ativa");
+    const total     = ativas.reduce((s, c) => s + c.saldoAtual, 0);
+    const disp      = ativas.reduce((s, c) => s + c.saldoDisp,  0);
+    const bloq      = ativas.reduce((s, c) => s + c.bloqueado,  0);
+    const pendentes = ativas.reduce((s, c) => s + c.pendentes,  0);
+    return { total, disp, bloq, pendentes };
+  }, []);
+
+  const totalFiltrado = filtered.reduce((s, c) => s + c.saldoAtual, 0);
+
+  return (
+    <div className="app">
+      {/* SIDEBAR */}
+      <aside className="sb">
+        <div className="brand"><b>Oimpresso</b><small>ERP · Rota Livre</small></div>
+
+        <h4>Operação</h4>
+        <a><span className="ic">▢</span>Dashboard</a>
+        <a><span className="ic">↗</span>Vendas <span className="ct">82</span></a>
+        <a><span className="ic">↙</span>Compras <span className="ct">7</span></a>
+        <a><span className="ic">▣</span>Produtos <span className="ct">8</span></a>
+        <a><span className="ic">⏵</span>OS · Produção <span className="ct">23</span></a>
+        <a className="active"><span className="ic">$</span>Financeiro <span className="ct">{CONTAS.length}</span></a>
+
+        {/* Sub-itens financeiro */}
+        {FIN_SUBS.map(s => (
+          <span key={s.id} className={`sub${s.id === "contas" ? " active" : ""}`}>
+            <span style={{width:14,textAlign:"center",fontSize:10}}>{s.ic}</span>
+            {s.label}
+          </span>
+        ))}
+
+        <h4>Cadastros</h4>
+        <a><span className="ic">●</span>Clientes</a>
+        <a><span className="ic">○</span>Fornecedores <span className="ct">4</span></a>
+        <a><span className="ic">⚙</span>Configurações</a>
+
+        <div className="biz"><b>Matriz · Eliana</b>regime simples nacional<br/>04.123.456/0001-78</div>
+      </aside>
+
+      {/* MAIN */}
+      <div className="main">
+        {/* HEADER */}
+        <header className="hd">
+          <div className="crumbs">ERP · Financeiro · <b style={{color:"var(--ink-2)"}}>Contas bancárias</b></div>
+          <h1>Contas bancárias</h1>
+          <span className="count">{CONTAS.length} contas</span>
+          <div className="sp"/>
+          <div className="search">
+            <span>⌕</span>
+            <input
+              placeholder="banco, agência, conta..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+            <kbd style={{fontSize:9,fontFamily:"var(--mono)",color:"var(--ink-3)",background:"var(--line-2)",padding:"1px 5px",borderRadius:3}}>/</kbd>
+          </div>
+          <button className="btn">↑ Importar OFX</button>
+          <button className="btn primary">+ Nova conta</button>
+        </header>
+
+        {/* TABS */}
+        <nav className="tbs">
+          {TABS.map(t => (
+            <a key={t.id} className={tab === t.id ? "active" : ""} onClick={() => setTab(t.id)}>
+              {t.label} <span className="ct">{counts[t.id]}</span>
+            </a>
+          ))}
+          <div className="sp"/>
+          <div className="filters">
+            <span style={{fontSize:10,textTransform:"uppercase",letterSpacing:".04em",color:"var(--ink-3)"}}>visão</span>
+            <span className="filter-pill on">Cartão</span>
+            <span className="filter-pill">Lista</span>
+          </div>
+        </nav>
+
+        {/* BODY */}
+        <div className={`bd${drawerConta ? " with-drawer" : ""}`}>
+          <main className="list">
+            {/* KPIs */}
+            <div className="kpis">
+              <div className="kpi dark">
+                <small>Saldo total consolidado</small>
+                <b>{fmtBRL(kpiPage.total)}</b>
+                <div className="ln">{CONTAS.filter(c => c.status === "ativa").length} contas ativas</div>
+              </div>
+              <div className="kpi ok">
+                <small>Saldo disponível</small>
+                <b>{fmtBRL(kpiPage.disp)}</b>
+                <div className="ln">pronto pra uso · sem bloqueios</div>
+              </div>
+              <div className="kpi warn">
+                <small>Bloqueado / cheque pré</small>
+                <b>{fmtBRL(kpiPage.bloq)}</b>
+                <div className="ln">cheques pré-datados + judicial</div>
+              </div>
+              <div className="kpi info">
+                <small>Última conciliação</small>
+                <b style={{fontSize:14}}>09 mai · 14:32</b>
+                <div className="ln">{kpiPage.pendentes} lançamentos pendentes</div>
+              </div>
+            </div>
+
+            {/* TABLE */}
+            <div className="tbl">
+              <table className="fin">
+                <thead><tr>
+                  <th>Banco</th>
+                  <th style={{width:120}}>Tipo</th>
+                  <th style={{width:140}}>Agência / Conta</th>
+                  <th style={{width:140,textAlign:"right"}}>Saldo atual</th>
+                  <th style={{width:220}}>Última movimentação</th>
+                  <th style={{width:180}}>Conciliação</th>
+                  <th style={{width:90}}>Status</th>
+                </tr></thead>
+                <tbody>
+                  {filtered.length === 0 && (
+                    <tr><td colSpan={7} style={{padding:"32px",textAlign:"center",color:"var(--ink-3)"}}>Nenhuma conta neste filtro.</td></tr>
+                  )}
+                  {filtered.map(c => {
+                    const totConcil = c.conciliados + c.pendentes + c.divergencias;
+                    const pct = totConcil > 0 ? (c.conciliados / totConcil) * 100 : 100;
+                    const isSelected = drawerConta && drawerConta.id === c.id;
+                    return (
+                      <tr key={c.id}
+                        className={isSelected ? "sel" : ""}
+                        onClick={() => setDrawerConta(c)}
+                      >
+                        <td>
+                          <div style={{display:"flex",alignItems:"center",gap:10}}>
+                            <BankLogo conta={c}/>
+                            <div style={{minWidth:0,flex:1}}>
+                              <b style={{fontSize:12.5,display:"block"}}>
+                                {c.banco}
+                                {c.principal && <span style={{marginLeft:6,fontSize:9,fontWeight:600,color:"var(--accent)",background:"var(--accent-soft)",padding:"1px 5px",borderRadius:99,verticalAlign:"middle"}}>PRINCIPAL</span>}
+                              </b>
+                              <small style={{color:"var(--ink-3)",fontSize:10,fontFamily:"var(--mono)"}}>cód {c.bancoCode}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><TipoPill tipo={c.tipo} label={c.tipoLabel}/></td>
+                        <td className="mono">
+                          <b style={{fontSize:12}}>{c.agencia} · {c.conta}</b>
+                          {c.limiteCheque > 0 && (
+                            <small style={{display:"block",fontSize:10,color:"var(--ink-3)"}}>
+                              limite {fmtBRLshort(c.limiteCheque)}
+                            </small>
+                          )}
+                        </td>
+                        <td className="num">
+                          <b style={{color: c.saldoAtual < 0 ? "var(--err)" : c.saldoAtual < 1000 ? "var(--warn)" : "var(--ink)"}}>
+                            {fmtBRL(c.saldoAtual).replace("R$","").trim()}
+                          </b>
+                          {c.bloqueado > 0 && (
+                            <small style={{display:"block",fontSize:10,color:"var(--warn)",fontFamily:"var(--mono)"}}>
+                              − {fmtBRLshort(c.bloqueado)} bloq.
+                            </small>
+                          )}
+                        </td>
+                        <td>
+                          <b style={{fontSize:12,display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:200}}>{c.ultMovDesc}</b>
+                          <small style={{color:"var(--ink-3)",fontSize:10,fontFamily:"var(--mono)"}}>{fmtDate(c.ultMov)}</small>
+                        </td>
+                        <td>
+                          <div className="progress">
+                            <div className="bk">
+                              <i style={{width:`${pct}%`,background: c.divergencias > 0 ? "var(--err)" : c.pendentes > 0 ? "var(--warn)" : "var(--ok)"}}/>
+                            </div>
+                            <span className="lb">{c.conciliados}/{totConcil}</span>
+                          </div>
+                          {c.pendentes > 0 && (
+                            <small style={{display:"block",fontSize:10,color:"var(--warn)",marginTop:2}}>
+                              {c.pendentes} pendente{c.pendentes !== 1 ? "s" : ""}
+                              {c.divergencias > 0 && <span style={{color:"var(--err)"}}> · {c.divergencias} divergência</span>}
+                            </small>
+                          )}
+                        </td>
+                        <td><span className={`pill ${c.status}`}>{c.status === "ativa" ? "Ativa" : "Inativa"}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </main>
+
+          {/* DRAWER */}
+          {drawerConta && (
+            <div className="drawer-col">
+              <DrawerConta conta={drawerConta} onClose={() => setDrawerConta(null)}/>
+            </div>
+          )}
+        </div>
+
+        {/* FOOTER */}
+        <footer className="ft">
+          <b>{filtered.length}</b> conta{filtered.length !== 1 ? "s" : ""}
+          <span style={{height:12,width:1,background:"var(--line)"}}/>
+          saldo total <b>{fmtBRL(totalFiltrado)}</b>
+          {drawerConta && (
+            <>
+              <span style={{height:12,width:1,background:"var(--line)"}}/>
+              <span>Selecionada: <b>{drawerConta.banco}</b></span>
+            </>
+          )}
+          <div className="sp"/>
+          <span>Atalhos: <kbd>/</kbd> buscar · <kbd>↑↓</kbd> navegar · <kbd>Esc</kbd> fechar</span>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

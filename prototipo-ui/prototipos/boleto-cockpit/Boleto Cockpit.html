@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<title>Boletos — Oimpresso ERP</title>
+<style>
+  :root{
+    --bg:#f6f4ef;--paper:#fff;--ink:#1a1917;--ink-2:#5b574f;--ink-3:#8b8580;
+    --line:#e5e0d3;--line-2:#efeae0;
+    --accent:#1f3a5f;--accent-soft:#eaf0f7;--accent-2:#173049;
+    --ok:#1f6d3a;--ok-soft:#e6f1e8;
+    --warn:#a35a00;--warn-soft:#fbf0dc;
+    --err:#9a2d2d;--err-soft:#fbe9e9;
+    --info:#1f5a8a;--info-soft:#e3edf6;
+    --radius:6px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}
+  button,input,select,textarea{font:inherit}
+
+  .app{display:grid;grid-template-columns:200px 1fr;height:100vh;overflow:hidden}
+
+  /* SIDEBAR */
+  .sb{background:#1a1917;color:#c5beae;padding:14px 0;overflow-y:auto;display:flex;flex-direction:column}
+  .sb .brand{padding:0 16px 16px;border-bottom:1px solid #2a2926;margin-bottom:10px}
+  .sb .brand b{font-size:14px;color:#fff;font-weight:700;letter-spacing:-.01em;display:block}
+  .sb .brand small{font-size:10px;color:#8b8580;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;display:block;margin-top:1px}
+  .sb h4{margin:14px 16px 6px;font-size:9.5px;color:#5b574f;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .sb a{display:flex;align-items:center;gap:9px;padding:6px 16px;color:#c5beae;text-decoration:none;font-size:12.5px;border-left:2px solid transparent;cursor:pointer}
+  .sb a:hover{background:#2a2926;color:#fff}
+  .sb a.active{background:#2a2926;color:#fff;border-left-color:#c97a3a;font-weight:600}
+  .sb a .ic{width:14px;text-align:center;font-size:11px;color:#8b8580}
+  .sb a.active .ic{color:#c97a3a}
+  .sb a .ct{margin-left:auto;font-size:10px;color:#5b574f;font-family:var(--mono)}
+  .sb .biz{margin-top:auto;padding:12px 16px;border-top:1px solid #2a2926;font-size:11px;color:#8b8580}
+  .sb .biz b{display:block;color:#c5beae;font-size:12px;margin-bottom:1px}
+  .sb .sub{padding:3px 16px 3px 38px;font-size:12px;color:#8b8580;cursor:pointer;border-left:2px solid transparent;display:flex;align-items:center;gap:7px}
+  .sb .sub:hover{color:#c5beae;background:#252422}
+  .sb .sub.active{color:#fff;background:#252422;border-left-color:#c97a3a;font-weight:600}
+
+  /* MAIN */
+  .main{display:grid;grid-template-rows:auto auto 1fr auto;overflow:hidden}
+
+  .hd{background:#fff;border-bottom:1px solid var(--line);padding:11px 20px;display:flex;align-items:center;gap:14px}
+  .hd .crumbs{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;font-family:var(--mono)}
+  .hd h1{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .hd .count{font-size:11px;font-family:var(--mono);color:var(--ink-3);background:var(--line-2);padding:2px 8px;border-radius:99px}
+  .hd .sp{flex:1}
+  .hd .search{display:flex;align-items:center;gap:6px;background:#fbf9f3;border:1px solid var(--line);border-radius:5px;padding:5px 10px;min-width:280px}
+  .hd .search input{border:none;outline:none;background:transparent;font-size:12.5px;flex:1}
+  .hd .search span{color:var(--ink-3);font-size:13px}
+
+  .tbs{background:#fff;border-bottom:1px solid var(--line);padding:0 20px;display:flex;align-items:center;gap:2px;overflow-x:auto}
+  .tbs a{padding:9px 14px;font-size:12.5px;color:var(--ink-2);border-bottom:2px solid transparent;text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .tbs a:hover{color:var(--ink)}
+  .tbs a.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  .tbs a .ct{font-size:10px;font-family:var(--mono);color:var(--ink-3);background:var(--line-2);padding:1px 6px;border-radius:99px}
+  .tbs a.active .ct{background:var(--accent-soft);color:var(--accent)}
+  .tbs .sp{flex:1}
+
+  /* BODY GRID with drawer */
+  .bd{display:grid;overflow:hidden;transition:grid-template-columns .2s ease;min-width:0}
+  .bd.with-drawer{grid-template-columns:minmax(580px,1fr) 480px}
+  .bd:not(.with-drawer){grid-template-columns:1fr 0}
+  .list{min-width:0;overflow:auto;padding:14px 20px;background:var(--bg)}
+  .drawer-col{min-width:0;overflow:hidden}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:5px;padding:10px 12px}
+  .kpi small{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;display:block;margin-bottom:3px}
+  .kpi b{font-size:16px;font-weight:700;letter-spacing:-.01em;font-family:var(--mono);font-variant-numeric:tabular-nums;display:block}
+  .kpi .ln{font-size:10.5px;color:var(--ink-2);margin-top:3px}
+  .kpi.dark{background:#1a1917;border-color:#1a1917}
+  .kpi.dark small{color:#5b574f}
+  .kpi.dark b{color:#fff;font-size:18px}
+  .kpi.dark .ln{color:#8b8580}
+  .kpi.ok b{color:var(--ok)} .kpi.ok{background:var(--ok-soft);border-color:#b8d9c0}
+  .kpi.warn b{color:var(--warn)} .kpi.warn{background:var(--warn-soft);border-color:#f1d499}
+  .kpi.err b{color:var(--err)} .kpi.err{background:var(--err-soft);border-color:#e8b8b8}
+
+  /* TABLE */
+  .tbl{background:#fff;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+  table.bol{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.bol th{text-align:left;padding:8px 10px;background:#fbf9f3;border-bottom:1px solid var(--line);font-weight:600;color:var(--ink-2);font-size:10px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:1}
+  table.bol td{padding:9px 10px;border-bottom:1px solid var(--line-2);cursor:pointer;vertical-align:middle}
+  table.bol tr:last-child td{border-bottom:none}
+  table.bol tr:hover td{background:#fbf9f3}
+  table.bol tr.sel td{background:var(--accent-soft);border-bottom-color:#c9d6e8}
+  table.bol tr.dim td{opacity:.55}
+  table.bol td.mono{font-family:var(--mono);font-size:12px}
+  table.bol td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+  table.bol td.num b{font-size:13px;font-weight:700}
+
+  /* Pills */
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600;white-space:nowrap}
+  .pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+  .pill.emitido{background:var(--info-soft);color:var(--info)}
+  .pill.pago{background:var(--ok-soft);color:var(--ok)}
+  .pill.vencido{background:var(--err-soft);color:var(--err)}
+  .pill.vencendo{background:var(--warn-soft);color:var(--warn)}
+  .pill.cancelado{background:var(--line-2);color:var(--ink-3)}
+
+  /* Banco logo */
+  .bk-logo{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:4px;font-weight:700;color:#fff;font-size:10px;font-family:var(--mono);letter-spacing:-.02em;flex-shrink:0}
+  .bk-logo.itau{background:#ec7000}
+  .bk-logo.santander{background:#ec0000}
+  .bk-logo.bradesco{background:#cc092f}
+  .bk-cell{display:flex;align-items:center;gap:8px}
+  .bk-cell .meta{font-size:10.5px;color:var(--ink-3);font-family:var(--mono);line-height:1.25}
+  .bk-cell .meta b{font-size:11px;font-weight:600;color:var(--ink-2);display:block}
+
+  /* DRAWER */
+  .drawer{background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;height:100%}
+  .drw-head{padding:14px 18px 12px;border-bottom:1px solid var(--line-2)}
+  .drw-head-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .drw-head .big-icon{width:46px;height:46px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:11px;font-family:var(--mono);flex-shrink:0;letter-spacing:-.02em}
+  .drw-head h2{margin:0 0 2px;font-size:14px;font-weight:600;line-height:1.3;font-family:var(--mono)}
+  .drw-head .meta{font-size:11.5px;color:var(--ink-2);font-weight:500}
+  .drw-head .mono-tag{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);background:var(--line-2);padding:2px 7px;border-radius:4px;margin-top:5px;display:inline-block}
+  .drw-head .x{margin-left:auto;border:none;background:transparent;color:var(--ink-3);width:26px;height:26px;border-radius:4px;font-size:15px;cursor:pointer;align-self:flex-start;flex-shrink:0}
+  .drw-head .x:hover{background:var(--line-2);color:var(--ink)}
+
+  .hero-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--line-2);background:#fbf9f3}
+  .hero-kpi{padding:10px 12px;border-right:1px solid var(--line-2);text-align:center}
+  .hero-kpi:last-child{border-right:none}
+  .hero-kpi small{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;display:block}
+  .hero-kpi b{font-size:14px;font-weight:700;font-family:var(--mono);font-variant-numeric:tabular-nums;display:block;margin-top:2px;letter-spacing:-.01em}
+  .hero-kpi .sub{font-size:9.5px;margin-top:1px;color:var(--ink-3)}
+  .hero-kpi.ok b{color:var(--ok)} .hero-kpi.ok .sub{color:var(--ok)}
+  .hero-kpi.warn b{color:var(--warn)} .hero-kpi.warn .sub{color:var(--warn)}
+  .hero-kpi.err b{color:var(--err)} .hero-kpi.err .sub{color:var(--err)}
+  .hero-kpi.info b{color:var(--info)} .hero-kpi.info .sub{color:var(--info)}
+
+  .drw-tabs{display:flex;padding:0 18px;border-bottom:1px solid var(--line-2);gap:0;overflow-x:auto;background:#fff}
+  .drw-tabs button{border:none;background:transparent;padding:9px 12px;font-size:12px;color:var(--ink-2);border-bottom:2px solid transparent;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+  .drw-tabs button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  .drw-tabs button:hover:not(.active){color:var(--ink)}
+  .drw-tabs button .ct{font-size:10px;font-family:var(--mono);color:var(--ink-3);background:var(--line-2);padding:0 5px;border-radius:99px}
+
+  .drw-body{flex:1;overflow:auto;padding:14px 18px}
+  .drw-foot{padding:11px 18px;border-top:1px solid var(--line);background:#fbf9f3;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+  .sec{margin-bottom:14px}
+  .sec h4{margin:0 0 7px;font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;display:flex;align-items:center;gap:6px}
+  .sec .card{background:#fbf9f3;border:1px solid var(--line);border-radius:5px;padding:11px 13px}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:12px}
+  .field-grid .f label{font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;display:block;margin-bottom:1px}
+  .field-grid .f span{color:var(--ink);font-weight:500}
+  .field-grid .f span.mono{font-family:var(--mono);font-size:11.5px}
+  .field-grid .f.full{grid-column:span 2}
+
+  /* Valor breakdown */
+  .val-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;border-bottom:1px dashed var(--line-2)}
+  .val-row:last-child{border-bottom:none}
+  .val-row .lbl{color:var(--ink-2)}
+  .val-row .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+  .val-row.add .v{color:var(--err)}
+  .val-row.sub .v{color:var(--ok)}
+  .val-row.tot{font-size:13.5px;font-weight:700;padding-top:8px;color:var(--accent);border-top:1px solid var(--line);border-bottom:none;margin-top:3px}
+
+  /* Linha digitável */
+  .ld{display:flex;align-items:center;gap:8px;background:#1a1917;color:#fff;padding:10px 12px;border-radius:5px;font-family:var(--mono);font-size:11.5px;letter-spacing:.5px;overflow-x:auto}
+  .ld code{flex:1;white-space:nowrap}
+  .ld button{border:1px solid #3a3833;background:#2a2926;color:#fff;padding:4px 9px;border-radius:3px;font-size:10.5px;cursor:pointer;font-family:var(--mono);flex-shrink:0}
+  .ld button:hover{background:#3a3833}
+
+  /* Código de barras visual */
+  .bcode{background:#fff;border:1px solid var(--line);border-radius:5px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .bcode-bars{display:flex;align-items:flex-end;gap:1px;height:54px;width:100%;justify-content:center}
+  .bcode-bars i{display:block;background:#1a1917;width:2px;height:100%}
+  .bcode-bars i.thin{width:1px}
+  .bcode-bars i.thick{width:3px}
+  .bcode-bars i.gap{background:transparent}
+  .bcode-num{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);letter-spacing:.6px;text-align:center}
+
+  /* Instruções */
+  .inst{background:#fbf9f3;border:1px dashed var(--line);border-radius:5px;padding:10px 12px;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+  .inst b{color:var(--ink);font-weight:600}
+
+  /* timeline */
+  .timeline{position:relative;padding-left:20px}
+  .tl-item{position:relative;padding:0 0 12px 14px;font-size:11.5px}
+  .tl-item::before{content:"";position:absolute;left:-1px;top:6px;bottom:0;width:1px;background:var(--line)}
+  .tl-item:last-child::before{display:none}
+  .tl-dot{position:absolute;left:-5px;top:4px;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid var(--line)}
+  .tl-item.ok .tl-dot{border-color:var(--ok);background:var(--ok)}
+  .tl-item.warn .tl-dot{border-color:var(--warn);background:var(--warn)}
+  .tl-item.info .tl-dot{border-color:var(--accent);background:var(--accent)}
+  .tl-item.err .tl-dot{border-color:var(--err);background:var(--err)}
+  .tl-item b{font-weight:600;display:block;font-size:12px}
+  .tl-item small{color:var(--ink-3);font-family:var(--mono);font-size:10.5px}
+  .tl-item .detail{color:var(--ink-2);font-size:11px;margin-top:2px}
+
+  /* NFe link */
+  .nfe-link{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--accent-soft);border:1px solid #c9d6e8;border-radius:5px;cursor:pointer}
+  .nfe-link:hover{background:#dde6f1}
+  .nfe-link .ic{width:32px;height:32px;border-radius:4px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;font-family:var(--mono);flex-shrink:0}
+  .nfe-link b{font-size:12.5px;color:var(--accent);display:block;font-family:var(--mono)}
+  .nfe-link small{font-size:11px;color:var(--ink-2);display:block;margin-top:1px}
+  .nfe-link .arr{margin-left:auto;color:var(--accent);font-size:14px}
+
+  /* foot */
+  .ft{background:#fff;border-top:1px solid var(--line);padding:8px 20px;display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--ink-3)}
+  .ft b{color:var(--ink);font-weight:600}
+  .ft .sp{flex:1}
+  .ft kbd{font-family:var(--mono);font-size:10px;background:var(--line-2);border:1px solid var(--line);border-radius:3px;padding:1px 5px;color:var(--ink-2);margin:0 2px}
+
+  .btn{border:1px solid var(--line);background:#fff;padding:5px 11px;border-radius:4px;font-size:11.5px;color:var(--ink);cursor:pointer}
+  .btn:hover{border-color:#c5beae;background:#fbf9f3}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{background:var(--accent-2)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+  .btn.ghost:hover{background:var(--line-2)}
+  .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+  .btn.ok:hover{filter:brightness(.92)}
+  .btn.danger{background:transparent;border-color:transparent;color:var(--err)}
+  .btn.danger:hover{background:var(--err-soft)}
+  .btn.sm{padding:3px 8px;font-size:11px}
+
+  /* Cancelado banner */
+  .canc-banner{padding:8px 18px;background:var(--line-2);border-top:1px solid var(--line-2);font-size:11.5px;color:var(--ink-3);font-weight:600;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+const { useState, useMemo, useEffect, useCallback } = React;
+
+/* ─── FORMAT HELPERS ─────────────────────────────────────────────────── */
+const fmtBRL = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtBRLshort = (n) => {
+  const abs = Math.abs(n);
+  if (abs >= 1000) return (n < 0 ? "− " : "") + "R$ " + (abs / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "k";
+  return fmtBRL(n);
+};
+const fmtDate = (d) => d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+const fmtDateLong = (d) => d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+const fmtDateTime = (d) => d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+const dayLabel = (delta) => {
+  if (delta === 0) return "vence hoje";
+  if (delta === 1) return "vence amanhã";
+  if (delta === -1) return "atrasado há 1d";
+  if (delta > 0) return `em ${delta}d`;
+  return `atrasado há ${-delta}d`;
+};
+
+/* ─── MOCK DATA ──────────────────────────────────────────────────────── */
+const TODAY = new Date(2026, 4, 11); // 2026-05-11
+
+function d(s) { return new Date(s + "T12:00:00"); }
+function daysFromToday(date) {
+  return Math.round((date - TODAY) / 86400000);
+}
+
+const BANCOS = {
+  itau:       { id:"itau",       nome:"Itaú",        cor:"itau",       num:"341", ag:"0438", cc:"4521-7" },
+  santander:  { id:"santander",  nome:"Santander",   cor:"santander",  num:"033", ag:"3105", cc:"13002-9" },
+  bradesco:   { id:"bradesco",   nome:"Bradesco",    cor:"bradesco",   num:"237", ag:"2814", cc:"0085421-0" },
+};
+
+function statusFor(row) {
+  if (row.cancelado_at) return "cancelado";
+  if (row.pago_at) return "pago";
+  const delta = daysFromToday(row.due);
+  if (delta < 0) return "vencido";
+  if (delta <= 7) return "vencendo";
+  return "emitido";
+}
+
+const RAW = [
+  // PAGOS / RECEBIDOS
+  {
+    id: "00284/2026", emissao: d("2026-04-22"), due: d("2026-05-02"), valor: 580.00,
+    cliente: { nome:"Pizzaria Nicola", cidade:"São Paulo / SP", doc:"12.345.678/0001-90",
+               endereco:"Rua das Palmeiras, 210 — Vila Madalena — São Paulo/SP — 05435-040" },
+    banco: "itau", pago_at: d("2026-05-02"), canal_pago: "PIX (QR boleto)", venda_id:"V-7821", nfe:"NFe 8401",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000284-9",
+    linha_digitavel:"34191.79001 01043.510047 91020.150008 5 91230000058000",
+  },
+  {
+    id: "00287/2026", emissao: d("2026-04-25"), due: d("2026-05-05"), valor: 340.00,
+    cliente: { nome:"Salão Bella Hair", cidade:"Termas do Gravatal / SC", doc:"23.456.789/0001-12",
+               endereco:"Av. Central, 1.480 — Centro — Termas do Gravatal/SC — 88735-000" },
+    banco: "itau", pago_at: d("2026-05-04"), canal_pago: "Internet banking", venda_id:"V-7824", nfe:"NFe 8403",
+    instrucoes:"Boleto pode ser pago em qualquer banco até o vencimento.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000287-3",
+    linha_digitavel:"34191.79001 01043.530071 91020.180015 4 91260000034000",
+  },
+  {
+    id: "00289/2026", emissao: d("2026-04-28"), due: d("2026-05-08"), valor: 1240.00,
+    cliente: { nome:"Studio Foco", cidade:"São Paulo / SP", doc:"34.567.890/0001-34",
+               endereco:"Rua Augusta, 2.890 — Consolação — São Paulo/SP — 01412-100" },
+    banco: "santander", pago_at: d("2026-05-08"), canal_pago: "PIX (QR boleto)", venda_id:"V-7826", nfe:"NFe 8405",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000289-1",
+    linha_digitavel:"03399.79009 01045.310091 91020.190018 7 91290000124000",
+  },
+
+  // VENCENDO 7d (EM ABERTO)
+  {
+    id: "00291/2026", emissao: d("2026-05-01"), due: d("2026-05-12"), valor: 1850.00,
+    cliente: { nome:"Auto Peças Vargas", cidade:"Osasco / SP", doc:"45.678.901/0001-56",
+               endereco:"Av. dos Trabalhadores, 880 — Centro — Osasco/SP — 06013-010" },
+    banco: "itau", pago_at: null, venda_id:"V-7832", nfe:"NFe 8412",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.\nNão receber após 30 dias do vencimento.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000291-5",
+    linha_digitavel:"34191.79001 01043.610111 91020.220033 6 92010000185000",
+  },
+  {
+    id: "00292/2026", emissao: d("2026-05-02"), due: d("2026-05-14"), valor: 3200.00,
+    cliente: { nome:"Construtora Serra", cidade:"Guarulhos / SP", doc:"56.789.012/0001-78",
+               endereco:"Av. Radial Leste, 3.200 — Vila Galvão — Guarulhos/SP — 07054-100" },
+    banco: "itau", pago_at: null, venda_id:"V-7829", nfe:"NFe 8414",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000292-3",
+    linha_digitavel:"34191.79001 01043.620137 91020.230036 1 92030000320000",
+  },
+  {
+    id: "00293/2026", emissao: d("2026-05-03"), due: d("2026-05-18"), valor: 480.00,
+    cliente: { nome:"Pet Shop Mundo Animal", cidade:"São Paulo / SP", doc:"67.890.123/0001-90",
+               endereco:"Rua das Acácias, 415 — Pinheiros — São Paulo/SP — 05435-040" },
+    banco: "bradesco", pago_at: null, venda_id:"V-7830", nfe:"NFe 8416",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000293-1",
+    linha_digitavel:"23791.79001 01043.630153 91020.240042 5 92050000048000",
+  },
+
+  // EMITIDOS (longe do vencimento)
+  {
+    id: "00294/2026", emissao: d("2026-05-05"), due: d("2026-05-25"), valor: 720.00,
+    cliente: { nome:"Imobiliária Horizonte", cidade:"São Paulo / SP", doc:"78.901.234/0001-12",
+               endereco:"Av. Paulista, 1.500 — Bela Vista — São Paulo/SP — 01310-200" },
+    banco: "itau", pago_at: null, venda_id:"V-7834", nfe:"NFe 8418",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000294-9",
+    linha_digitavel:"34191.79001 01043.640177 91020.250048 7 92120000072000",
+  },
+  {
+    id: "00295/2026", emissao: d("2026-05-06"), due: d("2026-05-28"), valor: 4200.00,
+    cliente: { nome:"Transporte Veloz Ltda", cidade:"São Paulo / SP", doc:"89.012.345/0001-34",
+               endereco:"Av. Marginal Tietê, 12.000 — Vila Maria — São Paulo/SP — 02112-000" },
+    banco: "santander", pago_at: null, venda_id:"V-7835", nfe:"NFe 8419",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000295-7",
+    linha_digitavel:"03399.79009 01045.320144 91020.260052 9 92150000420000",
+  },
+
+  // ATRASADOS
+  {
+    id: "00280/2026", emissao: d("2026-04-15"), due: d("2026-04-25"), valor: 1640.00,
+    cliente: { nome:"Distribuidora Pavão", cidade:"São Paulo / SP", doc:"90.123.456/0001-56",
+               endereco:"Rua Coronel Lisboa, 880 — Vila Mariana — São Paulo/SP — 04020-040" },
+    banco: "itau", pago_at: null, venda_id:"V-7815", nfe:"NFe 8395",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.\nNão receber após 30 dias do vencimento.",
+    juros:8.75, multa:32.80, desconto:0,
+    nosso_numero:"00000280-7",
+    linha_digitavel:"34191.79001 01042.800024 91020.110001 8 91150000164000",
+  },
+  {
+    id: "00282/2026", emissao: d("2026-04-18"), due: d("2026-04-28"), valor: 2950.00,
+    cliente: { nome:"Cervejaria Lupulada", cidade:"São Paulo / SP", doc:"01.234.567/0001-78",
+               endereco:"Rua Joaquim Antunes, 502 — Pinheiros — São Paulo/SP — 05415-001" },
+    banco: "bradesco", pago_at: null, venda_id:"V-7818", nfe:"NFe 8398",
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:12.30, multa:59.00, desconto:0,
+    nosso_numero:"00000282-3",
+    linha_digitavel:"23791.79001 01042.820061 91020.130012 4 91180000295000",
+  },
+
+  // CANCELADO
+  {
+    id: "00286/2026", emissao: d("2026-04-24"), due: d("2026-05-04"), valor: 890.00,
+    cliente: { nome:"Maria Aparecida (PF)", cidade:"Termas do Gravatal / SC", doc:"123.456.789-00",
+               endereco:"Rua das Camélias, 88 — Centro — Termas do Gravatal/SC — 88735-000" },
+    banco: "itau", pago_at: null, cancelado_at: d("2026-04-26"), venda_id:"V-7822", nfe:null,
+    instrucoes:"Após o vencimento cobrar multa de 2% e juros de 1% ao mês.",
+    juros:0, multa:0, desconto:0,
+    nosso_numero:"00000286-5",
+    linha_digitavel:"34191.79001 01042.860048 91020.170024 8 91240000089000",
+  },
+];
+
+const INITIAL_ROWS = RAW.map((r) => ({ ...r, status: statusFor(r) }))
+  .sort((a, b) => b.due - a.due);
+
+/* ─── HISTÓRICO MOCK por boleto ──────────────────────────────────────── */
+function historicoFor(r) {
+  const base = [
+    { tipo:"info", titulo:"Boleto emitido",        detalhe:`${r.id} criado a partir de ${r.venda_id}`, dt: r.emissao, op:"Eliana" },
+    { tipo:"info", titulo:"E-mail enviado",        detalhe:`Enviado para ${r.cliente.nome}`, dt: new Date(r.emissao.getTime()+30*60000), op:"automação" },
+    { tipo:"info", titulo:"Registrado no banco",   detalhe:`${BANCOS[r.banco].nome} · convênio CNAB 240`, dt: new Date(r.emissao.getTime()+2*3600000), op:"automação" },
+    { tipo:"info", titulo:"Visualizado pelo cliente", detalhe:"Aberto via link do e-mail", dt: new Date(r.emissao.getTime()+24*3600000), op:"—" },
+  ];
+  if (r.pago_at) {
+    base.push({ tipo:"ok", titulo:"Pago", detalhe:`Recebido via ${r.canal_pago}`, dt: r.pago_at, op:"automação" });
+    base.push({ tipo:"ok", titulo:"Baixa registrada", detalhe:`Conciliado com OFX/CNAB retorno`, dt: new Date(r.pago_at.getTime()+4*3600000), op:"automação" });
+  } else if (r.cancelado_at) {
+    base.push({ tipo:"err", titulo:"Cancelamento solicitado", detalhe:"Cliente desistiu da compra", dt: r.cancelado_at, op:"Eliana" });
+    base.push({ tipo:"err", titulo:"Baixa no banco confirmada", detalhe:"CNAB retorno code 02 — Baixado", dt: new Date(r.cancelado_at.getTime()+24*3600000), op:"automação" });
+  } else if (r.status === "vencido") {
+    base.push({ tipo:"warn", titulo:"Vencimento ultrapassado", detalhe:"Sistema gerou alerta automático", dt: new Date(r.due.getTime()+24*3600000), op:"automação" });
+    base.push({ tipo:"warn", titulo:"Lembrete enviado",       detalhe:`Cobrança automática · 2ª via para ${r.cliente.nome}`, dt: new Date(r.due.getTime()+48*3600000), op:"automação" });
+  }
+  return base;
+}
+
+/* ─── FILTER TABS ────────────────────────────────────────────────────── */
+const TABS = [
+  { id: "all",        label: "Todos" },
+  { id: "open",       label: "Em aberto" },
+  { id: "vencendo",   label: "Vencendo" },
+  { id: "atrasado",   label: "Atrasados" },
+  { id: "pago",       label: "Pagos" },
+  { id: "cancelado",  label: "Cancelados" },
+];
+
+/* ─── STATUS PILL ────────────────────────────────────────────────────── */
+function StatusPill({ status }) {
+  const labels = {
+    emitido:"Emitido", pago:"Pago", vencido:"Vencido",
+    vencendo:"Vencendo", cancelado:"Cancelado"
+  };
+  return <span className={`pill ${status}`}>{labels[status] || status}</span>;
+}
+
+/* ─── BANCO LOGO + meta ──────────────────────────────────────────────── */
+function BankCell({ banco }) {
+  const b = BANCOS[banco];
+  const sigla = b.nome.slice(0,3).toUpperCase();
+  return (
+    <div className="bk-cell">
+      <span className={`bk-logo ${b.cor}`}>{sigla}</span>
+      <div className="meta">
+        <b>{b.nome}</b>
+        ag {b.ag} · cc {b.cc}
+      </div>
+    </div>
+  );
+}
+
+/* ─── CÓDIGO DE BARRAS visual (deterministic) ────────────────────────── */
+function Barcode({ seed }) {
+  const bars = useMemo(() => {
+    let s = 0;
+    for (const c of (seed || "")) s = (s * 31 + c.charCodeAt(0)) >>> 0;
+    const arr = [];
+    for (let i = 0; i < 95; i++) {
+      s = (s * 1103515245 + 12345) >>> 0;
+      const t = s % 100;
+      if (t < 8) arr.push("gap");
+      else if (t < 25) arr.push("thick");
+      else if (t < 65) arr.push("");
+      else arr.push("thin");
+    }
+    return arr;
+  }, [seed]);
+  return (
+    <div className="bcode-bars">
+      {bars.map((b, i) => <i key={i} className={b}/>)}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * APP
+ * ═══════════════════════════════════════════════════════════════════════ */
+function App() {
+  const [rows, setRows]           = useState(INITIAL_ROWS);
+  const [drawerRow, setDrawerRow] = useState(null);
+  const [search, setSearch]       = useState("");
+  const [tab, setTab]             = useState("all");
+  const [drwTab, setDrwTab]       = useState("resumo");
+
+  // Close drawer on Escape
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setDrawerRow(null);
+      if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
+        e.preventDefault();
+        document.querySelector(".hd .search input")?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Reset drawer tab when switching rows
+  useEffect(() => { setDrwTab("resumo"); }, [drawerRow?.id]);
+
+  const counts = useMemo(() => ({
+    all:        rows.length,
+    open:       rows.filter(r => !r.pago_at && !r.cancelado_at).length,
+    vencendo:   rows.filter(r => r.status === "vencendo").length,
+    atrasado:   rows.filter(r => r.status === "vencido").length,
+    pago:       rows.filter(r => r.status === "pago").length,
+    cancelado:  rows.filter(r => r.status === "cancelado").length,
+  }), [rows]);
+
+  const filtered = useMemo(() => {
+    let r = rows;
+    if (tab === "open")       r = r.filter(x => !x.pago_at && !x.cancelado_at);
+    if (tab === "vencendo")   r = r.filter(x => x.status === "vencendo");
+    if (tab === "atrasado")   r = r.filter(x => x.status === "vencido");
+    if (tab === "pago")       r = r.filter(x => x.status === "pago");
+    if (tab === "cancelado")  r = r.filter(x => x.status === "cancelado");
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      r = r.filter(x =>
+        x.id.toLowerCase().includes(q) ||
+        x.cliente.nome.toLowerCase().includes(q) ||
+        x.cliente.cidade.toLowerCase().includes(q) ||
+        x.valor.toString().includes(q) ||
+        (x.nfe || "").toLowerCase().includes(q)
+      );
+    }
+    return r;
+  }, [rows, tab, search]);
+
+  const kpi = useMemo(() => {
+    const emAberto    = rows.filter(r => !r.pago_at && !r.cancelado_at);
+    const emAbertoTot = emAberto.length;
+    const vencendoArr = rows.filter(r => r.status === "vencendo");
+    const vencendoTot = vencendoArr.reduce((s,r)=>s+r.valor, 0);
+    const atrasadosArr= rows.filter(r => r.status === "vencido");
+    const atrasados   = atrasadosArr.reduce((s,r)=>s+r.valor, 0);
+    const recebidosMes= rows.filter(r => r.status === "pago").reduce((s,r)=>s+r.valor, 0);
+    const totalEmit   = rows.filter(r => !r.cancelado_at).reduce((s,r)=>s+r.valor, 0);
+    return { emAbertoTot, vencendoArr, vencendoTot, atrasadosArr, atrasados, recebidosMes, totalEmit };
+  }, [rows]);
+
+  const totalAberto = filtered.filter(r => !r.pago_at && !r.cancelado_at).reduce((s,r)=>s+r.valor, 0);
+
+  const handleReceber = useCallback((id) => {
+    setRows(rs => rs.map(r => r.id === id
+      ? { ...r, pago_at: TODAY, canal_pago: "Registrado manual", status: "pago" }
+      : r));
+    if (drawerRow && drawerRow.id === id) {
+      setDrawerRow(prev => prev ? { ...prev, pago_at: TODAY, canal_pago: "Registrado manual", status: "pago" } : null);
+    }
+  }, [drawerRow]);
+
+  const handleCancelar = useCallback((id) => {
+    setRows(rs => rs.map(r => r.id === id
+      ? { ...r, cancelado_at: TODAY, status: "cancelado" }
+      : r));
+    if (drawerRow && drawerRow.id === id) {
+      setDrawerRow(prev => prev ? { ...prev, cancelado_at: TODAY, status: "cancelado" } : null);
+    }
+  }, [drawerRow]);
+
+  return (
+    <div className="app">
+      {/* SIDEBAR */}
+      <aside className="sb">
+        <div className="brand"><b>Oimpresso</b><small>ERP · Rota Livre</small></div>
+
+        <h4>Operação</h4>
+        <a><span className="ic">▢</span>Dashboard</a>
+        <a><span className="ic">↗</span>Vendas <span className="ct">82</span></a>
+        <a><span className="ic">↙</span>Compras <span className="ct">7</span></a>
+        <a><span className="ic">▣</span>Produtos <span className="ct">8</span></a>
+        <a><span className="ic">⏵</span>OS · Produção <span className="ct">23</span></a>
+        <a className="active"><span className="ic">$</span>Financeiro <span className="ct">{counts.open}</span></a>
+
+        {/* Financial sub-items */}
+        <span className="sub"><span style={{width:14,textAlign:"center",fontSize:10}}>≡</span>Visão unificada</span>
+        <span className="sub"><span style={{width:14,textAlign:"center",fontSize:10}}>~</span>Fluxo de caixa</span>
+        <span className="sub"><span style={{width:14,textAlign:"center",fontSize:10}}>⇌</span>Conciliação</span>
+        <span className="sub active"><span style={{width:14,textAlign:"center",fontSize:10}}>▦</span>Boletos</span>
+        <span className="sub"><span style={{width:14,textAlign:"center",fontSize:10}}>%</span>DRE / Relatórios</span>
+        <span className="sub"><span style={{width:14,textAlign:"center",fontSize:10}}>⊞</span>Plano de contas</span>
+
+        <h4>Cadastros</h4>
+        <a><span className="ic">●</span>Clientes</a>
+        <a><span className="ic">○</span>Fornecedores <span className="ct">4</span></a>
+        <a><span className="ic">⚙</span>Configurações</a>
+
+        <div className="biz"><b>Matriz · Eliana</b>regime simples nacional<br/>04.123.456/0001-78</div>
+      </aside>
+
+      {/* MAIN AREA */}
+      <div className="main">
+        {/* HEADER */}
+        <header className="hd">
+          <div className="crumbs">ERP · Financeiro · <b style={{color:"var(--ink-2)"}}>Boletos</b></div>
+          <h1>Boletos</h1>
+          {counts.atrasado > 0 && (
+            <span className="count" style={{background:"var(--err-soft)",color:"var(--err)"}}>
+              {counts.atrasado} em atraso
+            </span>
+          )}
+          <div className="sp"/>
+          <div className="search">
+            <span>⌕</span>
+            <input
+              placeholder="nº boleto, cliente, valor..."
+              value={search}
+              onChange={e=>setSearch(e.target.value)}
+            />
+            <kbd style={{fontSize:9,fontFamily:"var(--mono)",color:"var(--ink-3)",background:"var(--line-2)",padding:"1px 5px",borderRadius:3}}>/</kbd>
+          </div>
+          <button className="btn">↑ Remessa CNAB</button>
+          <button className="btn primary">+ Novo boleto</button>
+        </header>
+
+        {/* TABS */}
+        <nav className="tbs">
+          {TABS.map(t => (
+            <a key={t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}>
+              {t.label} <span className="ct">{counts[t.id]}</span>
+            </a>
+          ))}
+          <div className="sp"/>
+        </nav>
+
+        {/* BODY */}
+        <div className={`bd${drawerRow?" with-drawer":""}`}>
+          <main className="list">
+            {/* KPIs */}
+            <div className="kpis">
+              <div className="kpi">
+                <small>Em aberto</small>
+                <b>{kpi.emAbertoTot}</b>
+                <div className="ln">{rows.filter(r=>!r.pago_at&&!r.cancelado_at).length} boletos pendentes</div>
+              </div>
+              <div className="kpi warn">
+                <small>Vencendo 7d</small>
+                <b>{fmtBRLshort(kpi.vencendoTot)}</b>
+                <div className="ln">{kpi.vencendoArr.length} boletos · cobrar</div>
+              </div>
+              <div className="kpi err">
+                <small>Atrasados</small>
+                <b>{fmtBRLshort(kpi.atrasados)}</b>
+                <div className="ln">{kpi.atrasadosArr.length} boletos vencidos</div>
+              </div>
+              <div className="kpi ok">
+                <small>Recebidos no mês</small>
+                <b>{fmtBRLshort(kpi.recebidosMes)}</b>
+                <div className="ln">{rows.filter(r=>r.status==="pago").length} liquidados em maio</div>
+              </div>
+              <div className="kpi dark">
+                <small>Total emitido</small>
+                <b>{fmtBRLshort(kpi.totalEmit)}</b>
+                <div className="ln">{rows.filter(r=>!r.cancelado_at).length} boletos · 3 bancos</div>
+              </div>
+            </div>
+
+            {/* TABLE */}
+            <div className="tbl">
+              <table className="bol">
+                <thead><tr>
+                  <th style={{width:140}}>Nº boleto</th>
+                  <th>Cliente</th>
+                  <th style={{width:120,textAlign:"right"}}>Valor</th>
+                  <th style={{width:140}}>Vencimento</th>
+                  <th style={{width:170}}>Banco</th>
+                  <th style={{width:110}}>Status</th>
+                  <th style={{width:220,textAlign:"right"}}>Ações</th>
+                </tr></thead>
+                <tbody>
+                  {filtered.length === 0 && (
+                    <tr><td colSpan={7} style={{padding:"32px",textAlign:"center",color:"var(--ink-3)"}}>Nenhum boleto neste filtro.</td></tr>
+                  )}
+                  {filtered.map(row => {
+                    const delta = daysFromToday(row.due);
+                    const isSelected = drawerRow && drawerRow.id === row.id;
+                    const settled = !!row.pago_at;
+                    const canc    = !!row.cancelado_at;
+                    return (
+                      <tr key={row.id}
+                        className={`${isSelected?"sel":""} ${(settled||canc)?"dim":""}`}
+                        onClick={() => setDrawerRow(row)}
+                      >
+                        <td className="mono" style={{whiteSpace:"nowrap"}}>
+                          <b style={{fontSize:12.5}}>{row.id}</b>
+                          <small style={{display:"block",fontSize:10,color:"var(--ink-3)"}}>emit {fmtDate(row.emissao)}</small>
+                        </td>
+                        <td>
+                          <b style={{fontSize:12.5,display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:260}}>{row.cliente.nome}</b>
+                          <small style={{color:"var(--ink-3)",fontSize:10.5}}>{row.cliente.cidade}</small>
+                        </td>
+                        <td className="num">
+                          <b>{fmtBRL(row.valor).replace("R$","").trim()}</b>
+                        </td>
+                        <td className="mono" style={{whiteSpace:"nowrap"}}>
+                          <b style={{fontSize:12}}>{fmtDate(row.due)}</b>
+                          <small style={{
+                            display:"block",fontSize:10,
+                            color: canc ? "var(--ink-3)"
+                                 : settled ? "var(--ok)"
+                                 : row.status === "vencido" ? "var(--err)"
+                                 : row.status === "vencendo" ? "var(--warn)"
+                                 : "var(--ink-3)",
+                            fontWeight: settled || row.status === "vencido" || row.status === "vencendo" ? 600 : 400
+                          }}>
+                            {canc ? "cancelado"
+                             : settled ? `pago ${fmtDate(row.pago_at)}`
+                             : dayLabel(delta)}
+                          </small>
+                        </td>
+                        <td>
+                          <BankCell banco={row.banco}/>
+                        </td>
+                        <td><StatusPill status={row.status}/></td>
+                        <td onClick={e=>e.stopPropagation()} style={{textAlign:"right",paddingRight:12}}>
+                          <button className="btn sm ghost" title="Copiar linha digitável" style={{marginRight:3}}>⎘</button>
+                          <button className="btn sm ghost" title="Baixar PDF" style={{marginRight:3}}>↓ PDF</button>
+                          {!settled && !canc && (
+                            <button className="btn sm ok" onClick={()=>handleReceber(row.id)} title="Marcar como recebido">
+                              ✓ Recebi
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </main>
+
+          {/* DRAWER */}
+          {drawerRow && (
+            <div className="drawer-col">
+              <DrawerDetail
+                row={drawerRow}
+                tab={drwTab}
+                setTab={setDrwTab}
+                onClose={()=>setDrawerRow(null)}
+                onReceber={handleReceber}
+                onCancelar={handleCancelar}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* FOOTER */}
+        <footer className="ft">
+          <b>{filtered.length}</b> boletos
+          <span>em aberto <b style={{color:"var(--warn)"}}>{fmtBRL(totalAberto)}</b></span>
+          <span style={{height:12,width:1,background:"var(--line)"}}/>
+          recebido mês <b style={{color:"var(--ok)"}}>{fmtBRL(kpi.recebidosMes)}</b>
+          <div className="sp"/>
+          <span>Atalhos: <kbd>/</kbd> buscar · <kbd>N</kbd> novo · <kbd>↑↓</kbd> navegar · <kbd>Esc</kbd> fechar</span>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * DRAWER
+ * ═══════════════════════════════════════════════════════════════════════ */
+function DrawerDetail({ row, tab, setTab, onClose, onReceber, onCancelar }) {
+  const settled = !!row.pago_at;
+  const canc    = !!row.cancelado_at;
+  const delta   = daysFromToday(row.due);
+  const banco   = BANCOS[row.banco];
+  const hist    = useMemo(() => historicoFor(row), [row]);
+
+  const totalComJurosMulta = row.valor + (row.juros||0) + (row.multa||0) - (row.desconto||0);
+
+  const tabs = [
+    { id:"resumo",     label:"Resumo" },
+    { id:"pagamento",  label:"Pagamento" },
+    { id:"historico",  label:"Histórico", ct: hist.length },
+    { id:"nfe",        label:"NFe vinculada" },
+  ];
+
+  const sigla = banco.nome.slice(0,3).toUpperCase();
+
+  // Hero KPI 4: dias até vencer / atraso
+  let kpiDias;
+  if (canc)           kpiDias = { lbl:"Cancelado", val:"—",                       sub:fmtDate(row.cancelado_at), cls:"" };
+  else if (settled)   kpiDias = { lbl:"Pago em",   val:fmtDate(row.pago_at),     sub:row.canal_pago,             cls:"ok" };
+  else if (delta < 0) kpiDias = { lbl:"Atraso",    val:`${-delta}d`,             sub:"juros + multa correndo",   cls:"err" };
+  else if (delta === 0) kpiDias = { lbl:"Vence",   val:"hoje",                   sub:"ação imediata",            cls:"warn" };
+  else if (delta <= 7)kpiDias = { lbl:"Vence em",  val:`${delta}d`,              sub:"prazo curto",              cls:"warn" };
+  else                kpiDias = { lbl:"Vence em",  val:`${delta}d`,              sub:"dentro do prazo",          cls:"info" };
+
+  return (
+    <aside className="drawer">
+      <div className="drw-head">
+        <div className="drw-head-top">
+          <div className={`big-icon`} style={{background:
+              canc    ? "var(--ink-3)"
+            : settled ? "var(--ok)"
+            : row.status === "vencido"  ? "var(--err)"
+            : row.status === "vencendo" ? "var(--warn)"
+            : "var(--accent)"}}>
+            {sigla}
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <h2 style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{row.id}</h2>
+            <div className="meta">{row.cliente.nome} · {row.cliente.cidade}</div>
+            <span className="mono-tag">{banco.nome} · ag {banco.ag} · cc {banco.cc}</span>
+          </div>
+          <button className="x" onClick={onClose}>✕</button>
+        </div>
+      </div>
+
+      {/* Hero KPIs */}
+      <div className="hero-kpis">
+        <div className={`hero-kpi ${canc?"":settled?"ok":row.status==="vencido"?"err":row.status==="vencendo"?"warn":"info"}`}>
+          <small>Valor</small>
+          <b>{fmtBRL(row.valor)}</b>
+          <div className="sub">{(row.juros||row.multa) ? `+ ${fmtBRL((row.juros||0)+(row.multa||0))} encargos` : "valor face"}</div>
+        </div>
+        <div className={`hero-kpi ${canc?"":settled?"ok":row.status==="vencido"?"err":row.status==="vencendo"?"warn":""}`}>
+          <small>Vencimento</small>
+          <b>{fmtDate(row.due)}</b>
+          <div className="sub">{fmtDateLong(row.due).split(" de ").slice(1).join(" ")}</div>
+        </div>
+        <div className={`hero-kpi ${canc?"":settled?"ok":row.status==="vencido"?"err":row.status==="vencendo"?"warn":"info"}`}>
+          <small>Status</small>
+          <b style={{fontSize:11}}><StatusPill status={row.status}/></b>
+          <div className="sub">{settled?"liquidado":canc?"cancelado":"em aberto"}</div>
+        </div>
+        <div className={`hero-kpi ${kpiDias.cls}`}>
+          <small>{kpiDias.lbl}</small>
+          <b>{kpiDias.val}</b>
+          <div className="sub">{kpiDias.sub}</div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="drw-tabs">
+        {tabs.map(t => (
+          <button key={t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}>
+            {t.label}
+            {t.ct != null && <span className="ct">{t.ct}</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* Body */}
+      <div className="drw-body">
+        {tab === "resumo"    && <TabResumo    row={row} banco={banco} totalComJurosMulta={totalComJurosMulta}/>}
+        {tab === "pagamento" && <TabPagamento row={row} banco={banco} settled={settled} canc={canc} onReceber={onReceber}/>}
+        {tab === "historico" && <TabHistorico hist={hist}/>}
+        {tab === "nfe"       && <TabNFe       row={row}/>}
+      </div>
+
+      {/* Footer */}
+      <div className="drw-foot">
+        {!canc && !settled && (
+          <button className="btn danger sm" onClick={()=>onCancelar(row.id)}>Cancelar boleto</button>
+        )}
+        <button className="btn ghost sm" disabled={canc}>Reemitir</button>
+        <button className="btn ghost sm">⎘ Copiar linha</button>
+        <button className="btn ghost sm">↓ PDF</button>
+        <div style={{flex:1}}/>
+        <button className="btn primary sm">Editar →</button>
+      </div>
+    </aside>
+  );
+}
+
+/* ─── TAB: RESUMO ────────────────────────────────────────────────────── */
+function TabResumo({ row, banco, totalComJurosMulta }) {
+  return (
+    <>
+      <div className="sec">
+        <h4>Pagador</h4>
+        <div className="card">
+          <div className="field-grid">
+            <div className="f"><label>Nome</label><span>{row.cliente.nome}</span></div>
+            <div className="f"><label>Documento</label><span className="mono">{row.cliente.doc}</span></div>
+            <div className="f full"><label>Endereço</label><span style={{fontSize:11.5}}>{row.cliente.endereco}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Beneficiário</h4>
+        <div className="card">
+          <div className="field-grid">
+            <div className="f"><label>Nome</label><span>LARISSA COMERCIO DE ARTIGOS LTDA - ME</span></div>
+            <div className="f"><label>CNPJ</label><span className="mono">04.123.456/0001-78</span></div>
+            <div className="f"><label>Banco</label><span>{banco.nome} ({banco.num})</span></div>
+            <div className="f"><label>Carteira</label><span className="mono">109</span></div>
+            <div className="f"><label>Agência</label><span className="mono">{banco.ag}</span></div>
+            <div className="f"><label>Conta</label><span className="mono">{banco.cc}</span></div>
+            <div className="f"><label>Nosso número</label><span className="mono">{row.nosso_numero}</span></div>
+            <div className="f"><label>Convênio</label><span className="mono">CNAB 240</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Valores</h4>
+        <div className="card">
+          <div className="val-row">
+            <span className="lbl">Valor face</span>
+            <span className="v">{fmtBRL(row.valor)}</span>
+          </div>
+          {row.juros > 0 && (
+            <div className="val-row add">
+              <span className="lbl">Juros 1% a.m. (acumulado)</span>
+              <span className="v">+ {fmtBRL(row.juros)}</span>
+            </div>
+          )}
+          {row.multa > 0 && (
+            <div className="val-row add">
+              <span className="lbl">Multa 2% (atraso)</span>
+              <span className="v">+ {fmtBRL(row.multa)}</span>
+            </div>
+          )}
+          {row.desconto > 0 && (
+            <div className="val-row sub">
+              <span className="lbl">Desconto</span>
+              <span className="v">− {fmtBRL(row.desconto)}</span>
+            </div>
+          )}
+          <div className="val-row tot">
+            <span className="lbl">Total a pagar hoje</span>
+            <span className="v">{fmtBRL(totalComJurosMulta)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Linha digitável</h4>
+        <div className="ld">
+          <code>{row.linha_digitavel}</code>
+          <button title="Copiar">⎘ copiar</button>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Código de barras</h4>
+        <div className="bcode">
+          <Barcode seed={row.id + row.nosso_numero}/>
+          <div className="bcode-num">{row.linha_digitavel.replace(/[. ]/g,"")}</div>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Instruções do boleto</h4>
+        <div className="inst">
+          {row.instrucoes.split("\n").map((l, i) => (
+            <div key={i}>{i === 0 ? <b>• </b> : <b>• </b>}{l}</div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ─── TAB: PAGAMENTO ─────────────────────────────────────────────────── */
+function TabPagamento({ row, banco, settled, canc, onReceber }) {
+  if (settled) {
+    return (
+      <>
+        <div className="sec">
+          <h4>Pagamento confirmado</h4>
+          <div style={{padding:"14px 16px",background:"var(--ok-soft)",border:"1px solid #b8d9c0",borderRadius:5}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <div style={{width:36,height:36,borderRadius:"50%",background:"var(--ok)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700}}>✓</div>
+              <div>
+                <b style={{color:"var(--ok)",fontSize:13.5}}>Pago em {fmtDate(row.pago_at)}</b>
+                <div style={{fontSize:11.5,color:"var(--ink-2)",marginTop:1}}>{row.canal_pago} · {banco.nome}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="sec">
+          <h4>Detalhes da baixa</h4>
+          <div className="card">
+            <div className="field-grid">
+              <div className="f"><label>Data</label><span className="mono">{fmtDateLong(row.pago_at)}</span></div>
+              <div className="f"><label>Canal</label><span>{row.canal_pago}</span></div>
+              <div className="f"><label>Banco</label><span>{banco.nome}</span></div>
+              <div className="f"><label>Valor recebido</label><span className="mono">{fmtBRL(row.valor)}</span></div>
+              <div className="f full"><label>Retorno CNAB</label><span className="mono" style={{fontSize:11}}>Código 06 · Liquidação normal · arquivo retorno_05092026.RET</span></div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (canc) {
+    return (
+      <div className="sec">
+        <h4>Pagamento</h4>
+        <div style={{padding:"14px 16px",background:"var(--line-2)",border:"1px solid var(--line)",borderRadius:5,fontSize:12,color:"var(--ink-2)"}}>
+          <b style={{display:"block",marginBottom:3,color:"var(--ink)"}}>Boleto cancelado</b>
+          Baixa registrada no banco em {fmtDate(row.cancelado_at)}. Não receberá mais pagamentos.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="sec">
+        <h4>Status atual</h4>
+        <div style={{padding:"12px 14px",background:"var(--warn-soft)",border:"1px solid #f1d499",borderRadius:5,fontSize:12,color:"var(--ink-2)"}}>
+          Boleto em aberto. Acompanhamento automático via retorno CNAB diário.
+          {row.status === "vencido" && <span style={{color:"var(--err)",fontWeight:600,display:"block",marginTop:4}}>⚠ Vencido — juros e multa aplicados.</span>}
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Simular pagamento hoje</h4>
+        <div className="card">
+          <div className="val-row">
+            <span className="lbl">Valor face</span>
+            <span className="v">{fmtBRL(row.valor)}</span>
+          </div>
+          <div className="val-row add">
+            <span className="lbl">Juros 1% a.m. (hoje)</span>
+            <span className="v">+ {fmtBRL(row.juros||0)}</span>
+          </div>
+          <div className="val-row add">
+            <span className="lbl">Multa 2% (se atrasado)</span>
+            <span className="v">+ {fmtBRL(row.multa||0)}</span>
+          </div>
+          <div className="val-row tot">
+            <span className="lbl">Total se pago hoje</span>
+            <span className="v">{fmtBRL(row.valor + (row.juros||0) + (row.multa||0))}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Registrar pagamento manual</h4>
+        <div className="card">
+          <div style={{fontSize:11.5,color:"var(--ink-2)",marginBottom:9}}>
+            Use quando o cliente pagou por canal não rastreado (transferência, dinheiro, etc).
+            O sistema NÃO baixa no banco — uma baixa CNAB ainda precisa ser confirmada.
+          </div>
+          <button className="btn ok sm" onClick={()=>onReceber(row.id)}>✓ Marcar como recebido</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ─── TAB: HISTÓRICO ─────────────────────────────────────────────────── */
+function TabHistorico({ hist }) {
+  return (
+    <div className="sec">
+      <h4>Linha do tempo</h4>
+      <div className="timeline">
+        {hist.map((h, i) => (
+          <div key={i} className={`tl-item ${h.tipo}`}>
+            <span className="tl-dot"/>
+            <b>{h.titulo}</b>
+            <div className="detail">{h.detalhe}</div>
+            <small>{fmtDateTime(h.dt)} · {h.op}</small>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── TAB: NFe ───────────────────────────────────────────────────────── */
+function TabNFe({ row }) {
+  if (!row.nfe) {
+    return (
+      <div className="sec">
+        <h4>NFe vinculada</h4>
+        <div style={{padding:"14px 16px",background:"var(--line-2)",border:"1px dashed var(--line)",borderRadius:5,fontSize:12,color:"var(--ink-3)",textAlign:"center"}}>
+          Boleto sem NFe vinculada (cancelado antes da emissão).
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="sec">
+        <h4>Venda de origem</h4>
+        <div className="nfe-link">
+          <div className="ic">VND</div>
+          <div style={{flex:1,minWidth:0}}>
+            <b>{row.venda_id}</b>
+            <small>Abrir venda completa · cliente {row.cliente.nome}</small>
+          </div>
+          <span className="arr">→</span>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Nota fiscal vinculada</h4>
+        <div className="nfe-link">
+          <div className="ic">NFe</div>
+          <div style={{flex:1,minWidth:0}}>
+            <b>{row.nfe}</b>
+            <small>autorizada · emitida {fmtDate(row.emissao)}</small>
+          </div>
+          <span className="arr">→</span>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h4>Resumo fiscal</h4>
+        <div className="card">
+          <div className="field-grid">
+            <div className="f"><label>Série</label><span className="mono">001</span></div>
+            <div className="f"><label>Número</label><span className="mono">{row.nfe.replace("NFe ","")}</span></div>
+            <div className="f"><label>Status SEFAZ</label><span style={{color:"var(--ok)",fontWeight:600}}>Autorizada</span></div>
+            <div className="f"><label>Valor NFe</label><span className="mono">{fmtBRL(row.valor)}</span></div>
+            <div className="f full"><label>Chave</label><span className="mono" style={{fontSize:10.5,wordBreak:"break-all"}}>3526 0504 1234 5600 0178 5500 1000 0084 0118 7654 3210</span></div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
