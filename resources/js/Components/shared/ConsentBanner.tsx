@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/Components/ui/dialog';
@@ -33,6 +34,20 @@ export default function ConsentBanner() {
   // Espelha em window.__consent pra hasConsent() funcionar fora de React.
   useEffect(() => { if (consent) syncConsentToWindow(consent); }, [consent]);
 
+  // Wagner 2026-05-27: Larissa reportou "aceitar LGPD ta complicado o click".
+  // Causa: banner `fixed bottom-0` competia visualmente com footer sticky
+  // do Sells/Create (`sticky bottom-0 z-30`). Em viewport 1280px (Larissa
+  // monitor padrão), os 2 ficavam visualmente confusos. Fix: empurra body
+  // com `padding-bottom` enquanto banner visível — separa visualmente.
+  useEffect(() => {
+    if (!consent?.needs_banner || dismissed) {
+      document.body.style.paddingBottom = '';
+      return;
+    }
+    document.body.style.paddingBottom = 'calc(96px + env(safe-area-inset-bottom, 0px))';
+    return () => { document.body.style.paddingBottom = ''; };
+  }, [consent?.needs_banner, dismissed]);
+
   if (!consent?.needs_banner || dismissed) return null;
 
   const submit = (a: boolean, m: boolean) => {
@@ -40,7 +55,14 @@ export default function ConsentBanner() {
     setSubmitting(true);
     setConsent({ analytics: a, marketing: m })
       .then(() => { setDismissed(true); setOpen(false); })
-      .catch(() => { /* silencioso — user pode tentar de novo */ })
+      .catch((err: Error) => {
+        // Wagner 2026-05-27: catch era silencioso — Larissa clicava "Aceitar"
+        // e nada acontecia se POST falhava. Toast.error dá feedback claro.
+        toast.error('Não conseguimos registrar sua preferência. Tente novamente.', {
+          description: err?.message?.substring(0, 80),
+          duration: 5000,
+        });
+      })
       .finally(() => setSubmitting(false));
   };
 
