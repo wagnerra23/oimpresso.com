@@ -7,8 +7,9 @@ last_validated: 2026-05-27
 parent_module: Whatsapp
 parent_adr: memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md
 related_adrs: [0093, 0094, 0096, 0117, 0135, 0202]
+related_adrs_ui: [UI-0013]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — `/whatsapp/settings`
@@ -48,7 +49,7 @@ continuam na tela separada `/atendimento/canais/jana-templates`.
 - Estado conectado em < 500ms via Inertia `router.reload({ only: ['currentConfig'] })`
 - Empty state honesto ("Meta App não configurado") apontando runbook canônico
 - Popup OAuth 600x750 (padrão Facebook for Business)
-- Cor botão `#1877F2` (Facebook blue oficial — reconhecimento visual instantâneo)
+- Cor botão Facebook blue oficial via token semântico `--color-brand-meta` (`hsl(215 89% 53%)`) — reconhecimento visual instantâneo, cross-theme constant
 - Texto microcopy não-técnico (persona Larissa biz=4 vestuário)
 
 ## Automation hooks
@@ -80,3 +81,43 @@ continuam na tela separada `/atendimento/canais/jana-templates`.
 - **Zero custo IA** — apenas chamadas Graph API Meta (free quota oficial)
 - Latência típica conexão completa: 2-4s (4 roundtrips Graph paralelos seriam menos, mas Meta exige order)
 - Centrifugo publish futuro custa < 1ms (não afeta latência percebida)
+
+## Tokens semânticos (ADR UI-0013 · Constituição UI v2)
+
+### Charter version 2 (2026-05-27 · pós-#1768 cleanup)
+
+A v1 do Settings.tsx nasceu com cores Tailwind hardcoded (`bg-green-50`,
+`bg-yellow-50`, `bg-red-50`, hex literal `#1877F2`) gerando 18 violações
+R1 do `ui:lint`. Wagner aceitou tech debt como condição pra mergear
+ADR 0202 Fase 2 (PR consolidado), com refator pra tokens semânticos
+agendado pro PR seguinte ("pode arrumar os debitos eu aceito" 2026-05-27).
+
+### Tokens aplicados (após cleanup)
+
+| Antes (hardcoded) | Depois (token semântico) | Token CSS canon |
+|---|---|---|
+| `bg-green-50/100` (Conectado healthy) | `bg-success/10` `bg-success/20` | `--color-success` em `inertia.css` |
+| `border-green-200` | `border-success/40` | derivado de `--color-success` |
+| `text-green-600` (ícone CheckCircle) | `text-success` | `--color-success` |
+| `text-green-700/800/900` (textos card) | `text-success-foreground` + variants `/90/80` | `--color-success-foreground` |
+| `bg-yellow-50` (warning Meta App) | `bg-warning/10` | `--color-warning` |
+| `border-yellow-300` | `border-warning/40` | derivado |
+| `text-yellow-700` (ícone Alert) | `text-warning` | `--color-warning` |
+| `text-yellow-900` (textos warning) | `text-warning-foreground` | `--color-warning-foreground` |
+| `bg-red-50` (errorMessage card) | `bg-destructive/10` | `--color-destructive` (já existia shadcn) |
+| `border-red-300` | `border-destructive/40` | shadcn |
+| `text-red-900` | `text-destructive` | shadcn |
+| `bg-[#1877F2] hover:bg-[#166FE5]` (botão Meta) | `bg-brand-meta hover:bg-brand-meta-hover` | `--color-brand-meta` (novo, cross-theme constant) |
+
+### Anti-pattern (proibido daqui pra frente)
+
+- ⛔ Cores Tailwind nomeadas (`bg-green-50`, `text-yellow-700`, etc) — quebram dark mode + violam UI lint R1
+- ⛔ Hex literais (`#1877F2`, `#FF0000`, etc) — exceto puros `#fff`/`#000`
+- ⛔ Inline styles com cor (`style={{ color: 'red' }}`) — invisível ao UI lint, igualmente proibido
+
+### Atalhos canônicos (Constituição UI v2 · sliver pra PR UI Judge)
+
+- **Cmd+K / Ctrl+K** — abre Command Palette global (já provido por `AppShellV2` via `CommandPalette` component — PMG-002, ADR 0100). Settings.tsx herda automático, **sem duplicar**.
+- **Esc** — fecha popup OAuth Meta se aberto (handler local `useEffect` listener `keydown`). Limpa estado `connecting` + seta `errorMessage` honesto.
+- **Enter** no botão "Conectar com Meta" focused — dispara `onClick` (default HTML5, sem JS extra).
+- **j/k navigation** — N/A nesta tela (form simples sem lista navegável). Aplicável em `/whatsapp/conversations` (PT-01 Lista).

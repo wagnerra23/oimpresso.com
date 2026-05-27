@@ -11,7 +11,7 @@
 // WhatsApp via Embedded Signup v4.
 
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, AlertTriangle, Loader2, ExternalLink } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -64,6 +64,9 @@ export default function Settings({
   const [connecting, setConnecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [popup, setPopup] = useState<Window | null>(null);
+  // Ref pro botao "Conectar com Meta" — usado pelo handler Esc/atalho global
+  // pra dar focus rapido sem precisar Tab manual (canon UI v2 atalhos).
+  const connectBtnRef = useRef<HTMLButtonElement | null>(null);
 
   // Cleanup: fecha popup se page unmount durante connecting
   useEffect(() => {
@@ -73,6 +76,31 @@ export default function Settings({
       }
     };
   }, [popup]);
+
+  // Esc fecha popup OAuth se aberto (Constituicao UI v2 — atalhos canon).
+  // Cmd+K command palette ja global no AppShellV2 (PMG-002 ADR 0100),
+  // Enter no botao focused dispara onClick (default HTML). Esc cobre o
+  // fluxo de "abri popup mas quero cancelar sem clicar X".
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && popup && !popup.closed) {
+        popup.close();
+        setPopup(null);
+        setConnecting(false);
+        setErrorMessage('Conexao cancelada via Esc.');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [popup]);
+
+  // Autofocus no botao Conectar quando tela carrega sem conexao ativa
+  // (mais UX rapida — Enter dispara conexao sem precisar clicar/Tab).
+  useEffect(() => {
+    if (!currentConfig || currentConfig.driver_health !== 'healthy') {
+      connectBtnRef.current?.focus();
+    }
+  }, [currentConfig]);
 
   const metaAppConfigured = metaAppId !== '' && metaBusinessConfigId !== '';
 
@@ -216,28 +244,30 @@ export default function Settings({
       <PageHeader title="WhatsApp do negócio" description="Conecte o número WhatsApp do seu negócio via Meta Cloud (oficial)." />
 
       <div className="max-w-3xl mx-auto p-6 space-y-6">
-        {/* Estado: conectado via Meta Cloud */}
+        {/* Estado: conectado via Meta Cloud — tokens semânticos success.
+            Ver Settings.charter.md seção Tokens semânticos pro racional
+            (Fase 2 ADR 0202 cleanup pos-merge). */}
         {currentConfig?.driver === 'meta_cloud' && currentConfig.driver_health === 'healthy' ? (
-          <Card className="p-6 bg-green-50 border-green-200">
+          <Card className="p-6 bg-success/10 border-success/40">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="h-6 w-6 text-success mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <div className="font-semibold text-green-900">Conectado via Meta Cloud (oficial)</div>
-                <div className="text-sm text-green-800 mt-1">
-                  Número: <code className="bg-green-100 px-1.5 py-0.5 rounded">{currentConfig.display_phone}</code>
+                <div className="font-semibold text-success-foreground">Conectado via Meta Cloud (oficial)</div>
+                <div className="text-sm text-success-foreground/90 mt-1">
+                  Número: <code className="bg-success/20 px-1.5 py-0.5 rounded">{currentConfig.display_phone}</code>
                 </div>
                 {currentConfig.meta_waba_id && (
-                  <div className="text-xs text-green-700 mt-1">
+                  <div className="text-xs text-success-foreground/80 mt-1">
                     WABA: <code>{currentConfig.meta_waba_id}</code>
                   </div>
                 )}
                 {currentConfig.connected_at && (
-                  <div className="text-xs text-green-700 mt-1">
+                  <div className="text-xs text-success-foreground/80 mt-1">
                     Última verificação: {new Date(currentConfig.connected_at).toLocaleString('pt-BR')}
                   </div>
                 )}
                 <div className="mt-4">
-                  <Badge className="bg-green-100 text-green-900">Meta Business API · sem risco de ban</Badge>
+                  <Badge className="bg-success/20 text-success-foreground">Meta Business API · sem risco de ban</Badge>
                 </div>
               </div>
             </div>
@@ -252,9 +282,9 @@ export default function Settings({
             </p>
 
             {!metaAppConfigured && (
-              <div className="rounded-md border border-yellow-300 bg-yellow-50 p-3 mb-4 flex items-start gap-2">
-                <AlertTriangle className="h-5 w-5 text-yellow-700 flex-shrink-0" />
-                <div className="text-sm text-yellow-900">
+              <div className="rounded-md border border-warning/40 bg-warning/10 p-3 mb-4 flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0" />
+                <div className="text-sm text-warning-foreground">
                   <div className="font-medium">Meta App não configurado</div>
                   <div className="text-xs mt-1">
                     Wagner precisa configurar <code>META_APP_ID</code> + <code>META_BUSINESS_CONFIG_ID</code> no
@@ -265,11 +295,16 @@ export default function Settings({
               </div>
             )}
 
+            {/* Botão Conectar Meta — usa token --color-brand-meta (Facebook blue oficial).
+                Enter no foco dispara onClick (default HTML5). Esc fecha popup OAuth
+                (useEffect listener acima). Cmd+K abre command palette global (AppShellV2). */}
             <Button
+              ref={connectBtnRef}
               onClick={startEmbeddedSignup}
               disabled={connecting || !metaAppConfigured}
-              className="bg-[#1877F2] hover:bg-[#166FE5] text-white font-medium px-6 py-3"
+              className="bg-brand-meta hover:bg-brand-meta-hover text-white font-medium px-6 py-3"
               size="lg"
+              aria-label="Conectar WhatsApp via Meta — abre popup OAuth Facebook"
             >
               {connecting ? (
                 <>
@@ -285,7 +320,7 @@ export default function Settings({
             </Button>
 
             {errorMessage && (
-              <div className="mt-4 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+              <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
                 <div className="font-medium">Erro</div>
                 <div className="text-xs mt-1">{errorMessage}</div>
               </div>
@@ -301,10 +336,10 @@ export default function Settings({
 
         {/* Estado degraded/disconnected — pode reconectar */}
         {currentConfig?.driver === 'meta_cloud' && currentConfig.driver_health !== 'healthy' && (
-          <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <Card className="p-4 bg-warning/10 border-warning/40">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-700" />
-              <div className="text-sm text-yellow-900">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              <div className="text-sm text-warning-foreground">
                 Conexão atual está em estado <strong>{currentConfig.driver_health}</strong>.{' '}
                 <button onClick={startEmbeddedSignup} className="underline" disabled={connecting}>
                   Reconectar com Meta
