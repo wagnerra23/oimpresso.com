@@ -255,7 +255,7 @@ class WhatsmeowDriver implements DriverInterface
         $webhookUrl = rtrim((string) config('app.url'), '/')
             . "/api/whatsapp/webhook/whatsmeow/{$businessUuid}";
 
-        $response = Http::withHeaders(['Authorization' => "Bearer {$adminToken}"])
+        $response = Http::withHeaders(['Authorization' => $adminToken])
             ->withoutVerifying() // Daemon CT 100 self-signed dev; cert LE pendente
             ->timeout($timeout)
             ->baseUrl($daemonUrl)
