@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
@@ -18,21 +19,32 @@ use Modules\PaymentGateway\Services\PaymentGatewayService;
 uses(Tests\TestCase::class);
 
 /**
- * Onda 4f.sicoob_api PR2 — US-FIN-044.
+ * Onda 4f.sicoob_api US-FIN-044 + US-FIN-046 refactor.
  *
- * Substitui SicoobApiDriverSkeletonTest do PR1. Testes reais com Http::fake
- * mockando endpoints Sicoob sandbox (token + boletos + baixa + consulta).
+ * Testes reais com Http::fake mockando endpoints Sicoob sandbox.
+ *
+ * US-FIN-046 (2026-05-27): driver agora REUSA NfeCertificado canon. Tests
+ * mockam CertificadoService::carregarParaSefaz pra retornar pfx_binary fake
+ * sem precisar do disco nfe_certs real.
  *
  * Multi-tenant Tier 0: business_id=1 sempre (ADR 0101 — nunca cliente real).
- * Cache::flush() em beforeEach pra não vazar token entre testes.
- *
- * PR3 adiciona mTLS handshake real (.pfx). Em test bypass automático.
- * PR4 adiciona HMAC webhook real.
  */
 
 beforeEach(function () {
     Cache::flush();
     session(['business.id' => 1]);
+
+    // US-FIN-046 — mocka CertificadoService global pra retornar cert stub.
+    // Em Http::fake() o handshake mTLS é bypass, então pfx_binary fake serve.
+    $stub = Mockery::mock(CertificadoService::class);
+    $stub->shouldReceive('carregarParaSefaz')
+        ->andReturn([
+            'pfx_binary' => 'FAKE-PFX-BIN-DO-MOCK',
+            'senha'      => 'fake-pfx-senha',
+            'valido_ate' => new DateTimeImmutable('+90 days'),
+            'source'     => 'nfe_brasil',
+        ]);
+    app()->instance(CertificadoService::class, $stub);
 
     $this->cred = PaymentGatewayCredential::query()->create([
         'business_id'   => 1,
@@ -49,18 +61,20 @@ beforeEach(function () {
             'especie_documento' => 'DM',
         ],
     ]);
+
+    $this->driver = fn (): SicoobApiDriver => app(SicoobApiDriver::class);
 });
 
 it('instancia SicoobApiDriver via classe concreta', function () {
-    expect(new SicoobApiDriver())->toBeInstanceOf(PaymentDriverContract::class);
+    expect(app(SicoobApiDriver::class))->toBeInstanceOf(PaymentDriverContract::class);
 });
 
 it('expõe key sicoob_api', function () {
-    expect((new SicoobApiDriver())->key())->toBe('sicoob_api');
+    expect((app(SicoobApiDriver::class))->key())->toBe('sicoob_api');
 });
 
 it('supports boleto + pix_cob, rejeita card/pix_cobv/pix_recv', function () {
-    $d = new SicoobApiDriver();
+    $d = app(SicoobApiDriver::class);
 
     expect($d->supports('boleto'))->toBeTrue()
         ->and($d->supports('pix_cob'))->toBeTrue()
@@ -100,7 +114,7 @@ it('OAuth2 client_credentials cacheia token e reusa entre requests', function ()
         ], 200),
     ]);
 
-    $driver = new SicoobApiDriver();
+    $driver = app(SicoobApiDriver::class);
 
     // 1ª chamada — força OAuth + emissão
     $r1 = $driver->emitirBoleto(sicoobPr2Input(), $this->cred);
@@ -125,7 +139,7 @@ it('emitirBoleto monta payload v3 com numeroCliente/codigoModalidade/pagador', f
         ], 200),
     ]);
 
-    (new SicoobApiDriver())->emitirBoleto(sicoobPr2Input(), $this->cred);
+    (app(SicoobApiDriver::class))->emitirBoleto(sicoobPr2Input(), $this->cred);
 
     Http::assertSent(function ($request) {
         if (! str_contains($request->url(), '/boletos')) {
@@ -152,7 +166,7 @@ it('emitirBoleto envia client_id header em TODA request (não só no token)', fu
         ], 200),
     ]);
 
-    (new SicoobApiDriver())->emitirBoleto(sicoobPr2Input(), $this->cred);
+    (app(SicoobApiDriver::class))->emitirBoleto(sicoobPr2Input(), $this->cred);
 
     Http::assertSent(function ($request) {
         return str_contains($request->url(), '/boletos')
@@ -166,7 +180,7 @@ it('emitirBoleto lança GatewayUnavailableException quando Sicoob 500', function
         '*/cobranca-bancaria/v3/boletos' => Http::response(['mensagens' => [['mensagem' => 'erro interno']]], 500),
     ]);
 
-    expect(fn () => (new SicoobApiDriver())->emitirBoleto(sicoobPr2Input(), $this->cred))
+    expect(fn () => (app(SicoobApiDriver::class))->emitirBoleto(sicoobPr2Input(), $this->cred))
         ->toThrow(GatewayUnavailableException::class, 'Sicoob API falhou (500)');
 });
 
@@ -176,7 +190,7 @@ it('emitirBoleto lança InvalidPayerException se Sicoob retorna sem nossoNumero'
         '*/cobranca-bancaria/v3/boletos' => Http::response(['resultado' => [['status' => 200, 'boleto' => []]]], 200),
     ]);
 
-    expect(fn () => (new SicoobApiDriver())->emitirBoleto(sicoobPr2Input(), $this->cred))
+    expect(fn () => (app(SicoobApiDriver::class))->emitirBoleto(sicoobPr2Input(), $this->cred))
         ->toThrow(InvalidPayerException::class, 'sem nossoNumero');
 });
 
@@ -187,7 +201,7 @@ it('cancelar chama PATCH /boletos/baixa com numeroCliente + nossoNumero + codigo
     ]);
 
     $cobranca = (object) ['gateway_external_id' => '55667788'];
-    (new SicoobApiDriver())->cancelar($cobranca, $this->cred, 'cliente_pediu');
+    (app(SicoobApiDriver::class))->cancelar($cobranca, $this->cred, 'cliente_pediu');
 
     Http::assertSent(function ($request) {
         return str_contains($request->url(), '/boletos/baixa')
@@ -210,7 +224,7 @@ it('consultar mapeia situacaoBoleto Sicoob → status canon', function () {
         ], 200),
     ]);
 
-    $status = (new SicoobApiDriver())->consultar((object) ['gateway_external_id' => '999'], $this->cred);
+    $status = (app(SicoobApiDriver::class))->consultar((object) ['gateway_external_id' => '999'], $this->cred);
 
     expect($status->status)->toBe('paga')
         ->and($status->valorPagoCentavos)->toBe(15000)
@@ -226,7 +240,7 @@ it('consultar mapeia EM_ABERTO → emitida', function () {
         ], 200),
     ]);
 
-    $status = (new SicoobApiDriver())->consultar((object) ['gateway_external_id' => '111'], $this->cred);
+    $status = (app(SicoobApiDriver::class))->consultar((object) ['gateway_external_id' => '111'], $this->cred);
 
     expect($status->status)->toBe('emitida')->and($status->valorPagoCentavos)->toBeNull();
 });
@@ -236,7 +250,7 @@ it('healthCheck ok quando OAuth handshake passa', function () {
         '*/openid-connect/token' => Http::response(['access_token' => 'fake', 'expires_in' => 3600], 200),
     ]);
 
-    $health = (new SicoobApiDriver())->healthCheck($this->cred);
+    $health = (app(SicoobApiDriver::class))->healthCheck($this->cred);
 
     expect($health->ok)->toBeTrue()
         ->and($health->status)->toBeIn(['ok', 'degraded']);
@@ -247,7 +261,7 @@ it('healthCheck down quando OAuth 401', function () {
         '*/openid-connect/token' => Http::response(['error' => 'invalid_client'], 401),
     ]);
 
-    $health = (new SicoobApiDriver())->healthCheck($this->cred);
+    $health = (app(SicoobApiDriver::class))->healthCheck($this->cred);
 
     expect($health->ok)->toBeFalse()->and($health->status)->toBe('down');
 });
@@ -261,7 +275,7 @@ it('assertCredential rejeita credential com gateway_key diferente', function () 
         'config_json' => ['client_id' => 'x', 'client_secret' => 'y'],
     ]);
 
-    expect(fn () => (new SicoobApiDriver())->emitirBoleto(sicoobPr2Input(), $cred))
+    expect(fn () => (app(SicoobApiDriver::class))->emitirBoleto(sicoobPr2Input(), $cred))
         ->toThrow(CredentialMisconfiguredException::class, "não bate com driver Sicoob API");
 });
 
@@ -274,12 +288,12 @@ it('assertCredential rejeita config_json sem numero_cliente nem convenio', funct
         'config_json' => ['client_id' => 'x', 'client_secret' => 'y'], // sem numero_cliente
     ]);
 
-    expect(fn () => (new SicoobApiDriver())->emitirBoleto(sicoobPr2Input(), $cred))
+    expect(fn () => (app(SicoobApiDriver::class))->emitirBoleto(sicoobPr2Input(), $cred))
         ->toThrow(CredentialMisconfiguredException::class, 'numero_cliente');
 });
 
 it('emitirPix lança DriverNotSupportedException — PIX cob chega futuro', function () {
-    expect(fn () => (new SicoobApiDriver())->emitirPix(sicoobPr2Input(), $this->cred, 'cob'))
+    expect(fn () => (app(SicoobApiDriver::class))->emitirPix(sicoobPr2Input(), $this->cred, 'cob'))
         ->toThrow(DriverNotSupportedException::class, 'sicoob_cnab');
 });
 
@@ -293,22 +307,22 @@ it('cobrarCartao rejeita explicitamente — Sicoob não emite cartão', function
         expYear: '2030',
     );
 
-    expect(fn () => (new SicoobApiDriver())->cobrarCartao(sicoobPr2Input(), $this->cred, $token))
+    expect(fn () => (app(SicoobApiDriver::class))->cobrarCartao(sicoobPr2Input(), $this->cred, $token))
         ->toThrow(DriverNotSupportedException::class, 'não emite cartão');
 });
 
 it('refund de boleto rejeitado — TED reverso manual', function () {
-    expect(fn () => (new SicoobApiDriver())->refund((object) ['tipo' => 'boleto'], $this->cred, null, 'erro'))
+    expect(fn () => (app(SicoobApiDriver::class))->refund((object) ['tipo' => 'boleto'], $this->cred, null, 'erro'))
         ->toThrow(DriverNotSupportedException::class, 'TED reverso');
 });
 
 it('emitirPixAutomatico aponta pra bcb_pix driver dedicado', function () {
-    expect(fn () => (new SicoobApiDriver())->emitirPixAutomatico(sicoobPr2Input(), $this->cred))
+    expect(fn () => (app(SicoobApiDriver::class))->emitirPixAutomatico(sicoobPr2Input(), $this->cred))
         ->toThrow(DriverNotSupportedException::class, 'bcb_pix');
 });
 
 it('processWebhook PR2 mapeia superficial (HMAC real chega PR4)', function () {
-    $result = (new SicoobApiDriver())->processWebhook([
+    $result = (app(SicoobApiDriver::class))->processWebhook([
         'nossoNumero' => '12345',
         'situacao'    => 'LIQUIDADO',
     ], $this->cred);
@@ -319,7 +333,7 @@ it('processWebhook PR2 mapeia superficial (HMAC real chega PR4)', function () {
 });
 
 it('processWebhook retorna null se payload sem nossoNumero', function () {
-    $result = (new SicoobApiDriver())->processWebhook(['evento' => 'unknown'], $this->cred);
+    $result = (app(SicoobApiDriver::class))->processWebhook(['evento' => 'unknown'], $this->cred);
     expect($result)->toBeNull();
 });
 
@@ -355,7 +369,7 @@ it('cache token isolado por business_id — Tier 0 multi-tenant', function () {
         ],
     ]);
 
-    $d = new SicoobApiDriver();
+    $d = app(SicoobApiDriver::class);
     $d->emitirBoleto(sicoobPr2Input(), $this->cred);
     $d->emitirBoleto(sicoobPr2Input(), $credBiz99);
 

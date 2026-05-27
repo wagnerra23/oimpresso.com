@@ -10,14 +10,23 @@ import { DriverChip, FileField, Field } from './atoms-settings';
 import { DRIVERS, TIPOS, cn, type GatewayKey } from '../_lib/gateway-shared';
 import type { Account } from '../_lib/gateway-shared';
 
+interface NfeCertificadoAtivo {
+  cnpjTitular: string;
+  validoAteBr: string;
+  diasRestantes: number;
+  vencido: boolean;
+  proximoVencer: boolean;
+}
+
 interface Props {
   accounts: Account[];
+  nfeCertificadoAtivo?: NfeCertificadoAtivo | null;
   onClose: () => void;
 }
 
 const STEPS = ['Driver', 'Credenciais', 'Vínculo'];
 
-export default function SheetNovoGateway({ accounts, onClose }: Props) {
+export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClose }: Props) {
   const [step, setStep] = useState(1);
   const [driver, setDriver] = useState<GatewayKey | null>(null);
 
@@ -30,14 +39,13 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Onda 5+: upload cert/key + senha
+  // Onda 5+: upload cert/key + senha (Inter PJ · BCB PIX)
   const [certFile, setCertFile] = useState<File | null>(null);
   const [keyFile, setKeyFile] = useState<File | null>(null);
   const [certPassword, setCertPassword] = useState('');
 
-  // Onda 4f.sicoob_api PR5: .pfx unitário (PKCS12 emitido pelo Sicoob)
-  const [pfxFile, setPfxFile] = useState<File | null>(null);
-  const [pfxPassword, setPfxPassword] = useState('');
+  // US-FIN-046 (2026-05-27): state pfxFile/pfxPassword REMOVIDO.
+  // Sicoob API reusa NfeCertificado canon via /fiscal/configuracao/certificado.
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -58,7 +66,7 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
     setError(null);
     setSubmitting(true);
 
-    const hasFiles = certFile !== null || keyFile !== null || pfxFile !== null;
+    const hasFiles = certFile !== null || keyFile !== null;
     const fd = new FormData();
     fd.append('gateway_key', driver);
     fd.append('ambiente', ambiente);
@@ -71,10 +79,8 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
     if (certFile) fd.append('cert_file', certFile);
     if (keyFile) fd.append('key_file', keyFile);
     if (certPassword) fd.append('cert_password', certPassword);
-    // Onda 4f.sicoob_api PR5 — .pfx + senha separados (controller cifra senha
-    // via Crypt e move .pfx pra storage/app/private/sicoob/{business_id}.pfx)
-    if (pfxFile) fd.append('pfx_file', pfxFile);
-    if (pfxPassword) fd.append('pfx_password', pfxPassword);
+    // US-FIN-046 (2026-05-27): upload pfx_file/pfx_password REMOVIDOS.
+    // Sicoob API reusa NfeCertificado canon (single source of truth).
 
     router.post('/settings/payment-gateways', fd, {
       forceFormData: hasFiles,
@@ -421,23 +427,6 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                     />
                   </Field>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <FileField
-                    label="Certificado .pfx (PKCS12)"
-                    accept=".pfx,.p12"
-                    onFile={setPfxFile}
-                    selectedFileName={pfxFile?.name}
-                    hint="Emitido pelo Sicoob Developer Portal"
-                  />
-                  <Field label="Senha do .pfx">
-                    <input
-                      type="password"
-                      value={pfxPassword}
-                      onChange={e => setPfxPassword(e.target.value)}
-                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
-                    />
-                  </Field>
-                </div>
                 <Field label="Webhook secret">
                   <input
                     type="password"
@@ -447,12 +436,47 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                     className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
                   />
                 </Field>
-                <div className="bg-emerald-50 border border-emerald-200 rounded p-2.5 text-[10.5px] text-emerald-900">
-                  <div className="font-semibold mb-0.5">Sicoob API v3 · OAuth2 + mTLS</div>
-                  .pfx será salvo em <span className="font-mono">storage/app/private/sicoob/{'{business_id}'}.pfx</span> (chmod 0600).
-                  Senha cifrada via Laravel Crypt antes de gravar em <span className="font-mono">config_json</span>.
-                  Sandbox e produção usam o mesmo Developer Portal mas .pfx + client_id distintos.
-                </div>
+
+                {/* US-FIN-046 (2026-05-27) — Sicoob reusa NfeCertificado A1 (single source).
+                    Mostra status do cert ativo OU pede pra cadastrar em /fiscal. */}
+                {nfeCertificadoAtivo ? (
+                  <div className={cn(
+                    'border rounded p-2.5 text-[10.5px]',
+                    nfeCertificadoAtivo.vencido
+                      ? 'bg-rose-50 border-rose-200 text-rose-900'
+                      : nfeCertificadoAtivo.proximoVencer
+                        ? 'bg-amber-50 border-amber-200 text-amber-900'
+                        : 'bg-emerald-50 border-emerald-200 text-emerald-900',
+                  )}>
+                    <div className="font-semibold mb-0.5">
+                      {nfeCertificadoAtivo.vencido
+                        ? '⚠️ Cert A1 VENCIDO em ' + nfeCertificadoAtivo.validoAteBr
+                        : nfeCertificadoAtivo.proximoVencer
+                          ? `⚠️ Cert A1 vence em ${nfeCertificadoAtivo.diasRestantes}d (${nfeCertificadoAtivo.validoAteBr})`
+                          : '✅ Certificado A1 ICP-Brasil ativo'}
+                    </div>
+                    CNPJ titular <span className="font-mono">{nfeCertificadoAtivo.cnpjTitular}</span> · válido até{' '}
+                    <span className="font-mono">{nfeCertificadoAtivo.validoAteBr}</span> ({nfeCertificadoAtivo.diasRestantes}d).
+                    Sicoob API reusa este certificado — mesmo usado pra NFe SEFAZ.
+                    {(nfeCertificadoAtivo.vencido || nfeCertificadoAtivo.proximoVencer) && (
+                      <>
+                        {' · '}
+                        <a href="/fiscal/configuracao/certificado" target="_blank" rel="noopener noreferrer" className="underline">
+                          Renovar em Fiscal
+                        </a>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[10.5px] text-amber-900">
+                    <div className="font-semibold mb-0.5">⚠️ Cadastre o certificado A1 da empresa em Fiscal</div>
+                    Sicoob API exige cert ICP-Brasil A1 do CNPJ — mesmo que NFe SEFAZ usa.{' '}
+                    <a href="/fiscal/configuracao/certificado" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                      Ir pra /fiscal/configuracao/certificado
+                    </a>
+                    . Depois volta aqui pra finalizar o cadastro Sicoob.
+                  </div>
+                )}
               </>}
               {d.key === 'pagarme' && <>
                 <Field label="Secret Key">
