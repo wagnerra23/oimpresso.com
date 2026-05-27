@@ -526,6 +526,12 @@ class ContactController extends Controller
             $selectCols[] = 'contacts.sefaz_cad_ind_cred_nfe';
             $selectCols[] = 'contacts.sefaz_cad_consultado_em';
         }
+        // ADR 0195 Bucket A — `bloqueado` (bool) flag separada de contact_status.
+        // Migration 2026_05_27_120000_extend_contacts_bucket_a_legacy_absorption.
+        $hasBucketACols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'bloqueado');
+        if ($hasBucketACols) {
+            $selectCols[] = 'contacts.bloqueado';
+        }
         if ($hasWaveBCols) {
             $selectCols = array_merge($selectCols, [
                 'contacts.tipo',
@@ -601,7 +607,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -739,6 +745,9 @@ class ContactController extends Controller
             $payload['sefaz_cad_ind_cred_nfe'] = $hasSefazCols && $contact->sefaz_cad_ind_cred_nfe !== null
                 ? (int) $contact->sefaz_cad_ind_cred_nfe : null;
             $payload['sefaz_cad_consultado_em'] = $hasSefazCols ? ($contact->sefaz_cad_consultado_em ?? null) : null;
+
+            // ── Bucket A: bloqueado (ADR 0195) ───────────────────────────────
+            $payload['bloqueado'] = $hasBucketACols ? (bool) ($contact->bloqueado ?? false) : false;
 
             return $payload;
         })->all();
