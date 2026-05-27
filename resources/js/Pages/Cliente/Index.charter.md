@@ -4,11 +4,30 @@ component: resources/js/Pages/Cliente/Index.tsx
 owner: wagner
 status: live
 last_validated: 2026-05-24
-charter_version: 6
+charter_version: 7
 parent_module: Cliente / Crm
 related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0179, 0187]
 supersedes: [Pages/Cliente/Show.charter.md v2]
 tier: A
+
+# ── ADR UI-0016 design contextualizado por persona ──────────────────────
+# Skill personas-resolve (Tier A) carrega persona(s) automaticamente em edit.
+personas_alvo:
+  - depends_on_ramo                     # universal — varia por cliente final
+  - daniela-martinho                    # secondary — frota Martinho pediu Veículos
+  - kamila-martinho                     # secondary — admin/fiscal busca cliente
+  - larissa-rota-livre                  # secondary — POS lookup cliente recorrente
+job_principal: "buscar cliente recorrente em ≤3s; abrir drawer com info contextual em ≤1 clique"
+fricoes_conhecidas:
+  daniela: "veículos do cliente escondidos em sub-tab OSs (Fix #1694)"
+  kamila: "saldo cliente sem drill-down por OS"
+  larissa: "cliente fiado: precisa ir em Financeiro pra ver saldo"
+metrica_sucesso:
+  - "buscar cliente por nome parcial em ≤3 chars + ≤500ms"
+  - "abrir drawer + ver KPIs primários (saldo, última OS, contato) em ≤1s"
+  - "Daniela vê frota do cliente sem trocar de tab"
+# ── /ADR UI-0016 ────────────────────────────────────────────────────────
+
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/prototipos/clientes/ (HTML + 13 .jsx)"
   blueprint_screenshot_approval: "Wagner 2026-05-21 aprovou opção A (drawer 760px)"
