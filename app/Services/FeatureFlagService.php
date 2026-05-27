@@ -31,11 +31,18 @@ class FeatureFlagService
 
     /**
      * Defaults seguros — se GrowthBook estiver inacessível, estes valores
-     * são retornados em vez de quebrar a aplicação. Manter conservador
-     * (OFF por default em flags novas) até validação em prod.
+     * são retornados em vez de quebrar a aplicação.
+     *
+     * Wagner 2026-05-27: useV2SellsCreate → true após cadeia de hotfixes
+     * resolverem todos bugs do rollback original (2026-05-13):
+     *   PRs #1716 boot · #1719 route:cache · #1721 SQL · #1726 script PHP
+     *   #1729 CustomerSearch · #1732 Status · #1733 AlertDialog · #1746 i18n
+     *   #1752 remover hardcode V2-off · #1753 saldo devedor · #1754 price_group
+     *   #1755 agrupar variações · #1758 barcode/lot · #1756 quick-add Sheet
+     * Wagner: "ative para todos pronto" → flip fallback default p/ TRUE.
      */
     private array $fallbackDefaults = [
-        'useV2SellsCreate' => false,
+        'useV2SellsCreate' => true,
     ];
 
     public function isOn(string $flag, array $attrs = []): bool
