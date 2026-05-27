@@ -21,7 +21,7 @@ charter_version: 1
 
 ## Mission (1 frase)
 
-Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPal) — config inicial, ativar/desativar com confirmação Trust L3, health check real on-demand, link webhook por driver, rotação de mTLS pra credencial expirando, em uma view única estado-da-arte.
+Wagner gerencia credenciais dos drivers de cobrança (Inter + C6 + Asaas + BCB Pix + PesaPal + Pagar.me + **Sicoob API** + 11 CNAB) — config inicial, ativar/desativar com confirmação Trust L3, health check real on-demand, link webhook por driver, rotação de mTLS pra credencial expirando, em uma view única estado-da-arte.
 
 ---
 
@@ -33,7 +33,7 @@ Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPa
 - **Alerta mTLS vencendo** ≤30d (warn amber)
 - **DrawerGateway 4 tabs**:
   - Identificação (apelido + driver + ambiente + conta destino)
-  - Credenciais (campos dinâmicos por driver: Inter mTLS + cert / C6 ag+conta+código / Asaas api_key / BCB CNPJ+mTLS + senha / PesaPal deprecated alert)
+  - Credenciais (campos dinâmicos por driver: Inter mTLS + cert / C6 ag+conta+código / Asaas api_key / BCB CNPJ+mTLS + senha / Sicoob API client_id+secret+.pfx+convênio+carteira+conta (US-FIN-044) / PesaPal deprecated alert)
   - Webhook (URL pública + HMAC secret + eventos 24h)
   - Health (últ check + latência + histórico 7d sparkline + botão "Rodar agora")
 - **SheetNovoGateway wizard 3 steps**: Driver → Credenciais → Vínculo (FK account)
