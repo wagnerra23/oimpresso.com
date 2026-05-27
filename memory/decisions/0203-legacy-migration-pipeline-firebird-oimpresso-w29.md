@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-26
-module: Officeimpresso
+module: officeimpresso
 quarter: 2026-Q2
 tags: [legacy-migration, officeimpresso, martinho, firebird, idempotence]
 supersedes: []
@@ -70,8 +70,8 @@ Wave 29-1 entrega o pipeline completo:
    metadata.legacy.codigo + UK; mock fallback CI sem ext pdo_firebird).
 
 5. **Anti-duplicação** instituída em prod biz=164 após detecção de 8.832
-   contacts dups (formatos de CNPJ diferentes coexistindo "60.756.323/0001-31"
-   vs "60756323000131"):
+   contacts dups (formatos de CNPJ diferentes coexistindo — `XX.XXX.XXX/YYYY-ZZ`
+   com máscara vs `XXXXXXXXYYYYZZ` digits-only):
    - `UPDATE contacts SET tax_number = REGEXP_REPLACE(tax_number, '[^0-9]', '')`
    - Remap FK transactions.contact_id + fin_titulos.cliente_id antes do DELETE
    - UK `uk_contacts_biz_tax (business_id, tax_number)` criada
