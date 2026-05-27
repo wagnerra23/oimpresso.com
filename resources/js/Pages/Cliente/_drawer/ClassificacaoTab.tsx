@@ -508,7 +508,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
           </Label>
           <div className={`mt-1 flex items-center gap-3 rounded-md border px-3 py-2 ${
             bloqueado
-              ? 'border-rose-300 bg-rose-50'
+              ? 'border-destructive bg-destructive/10'
               : 'border-input bg-background'
           }`}>
             <Switch
@@ -520,7 +520,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
               aria-label="Bloquear cobrança e venda pra este cliente"
             />
             <div className="flex flex-col">
-              <span className={`text-xs font-medium ${bloqueado ? 'text-rose-700' : ''}`}>
+              <span className={`text-xs font-medium ${bloqueado ? 'text-destructive' : ''}`}>
                 Bloquear cobrança/venda
               </span>
               <span className="text-[10px] text-muted-foreground">
