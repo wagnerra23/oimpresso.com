@@ -56,17 +56,26 @@ jtbd:
     motivacao_funcional: "relatório diário"
     motivacao_emocional: "se sentir no controle do administrativo"
 
+  - quando: "cliente PJ frota paga boleto Sicoob a qualquer hora do dia"
+    eu_quero: "sistema baixa o título sozinho via webhook Sicoob — sem eu importar arquivo retorno 2x/dia"
+    para: "eliminar tarefa repetitiva diária + não cobrar cliente que já pagou"
+    motivacao_funcional: "economizar 10-15min/dia + zero erro de cobrança duplicada"
+    motivacao_emocional: "se sentir profissional — não amadora esquecendo retorno"
+    # alvo: US-FIN-044 (Sicoob API REST + webhook real-time) — backend live em prod 2026-05-27 aguardando credenciais sandbox dela
+
 fricoes:
   - "abrir cliente pra cobrar e não ver telefone secundário (contador, gerente compras do cliente)"
   - "emitir NF-e e descobrir que IE do cliente está vazio — preciso voltar pra cadastro do cliente"
   - "ver saldo total que cliente deve, mas não vejo POR QUAL OS é a dívida (precisa drill down)"
   - "campos fiscais (CFOP, NCM, regime) sumiram do cadastro cliente quando precisei conferir antes de NF-e"
+  - "baixar arquivo retorno Sicoob 2x/dia manual no internet banking + upload em /financeiro/cobranca — toma 10-15min/dia + risco esquecer (cobro cliente que JÁ pagou)"   # US-FIN-044 2026-05-27 · resolução via Sicoob API webhook real-time
 
 sucesso:
   - "cobrança PJ frota: abre cliente + vê saldo + histórico + contato em 1 tela (<10s)"
   - "emitir NF-e a partir de OS aprovada: ≤5 cliques + zero erro SEFAZ"
   - "fluxo caixa do dia em 1 visão (entrada + saída + saldo) sem múltiplos relatórios"
   - "drill-down: clicar no saldo do cliente e ver detalhe por OS"
+  - "baixa de boleto Sicoob automática em tempo real (zero importação manual de arquivo retorno)"   # alvo US-FIN-044
 
 pesos_override:
   density: 3                            # quer ver tudo do cliente PJ de uma vez
@@ -81,6 +90,11 @@ citacoes:
   - data: "2026-05-27"
     contexto: "inferred pre-discovery — refinar com cliente real próxima visita Tubarão"
     texto: '"preciso emitir nota sem erro — contador reclama quando rejeita"'
+
+  - data: "2026-05-27"
+    contexto: "Wagner reportou pedido Kamila via voz/whatsapp — abriu US-FIN-044 Sicoob API"
+    texto: '"kamila quer cadastrar o cobrança pelo sicoob"'
+    feedback_ref: "feedback/2026-05-27-sicoob-api-cobranca-realtime.md"
 
 tags:
   - tecnica-meio
