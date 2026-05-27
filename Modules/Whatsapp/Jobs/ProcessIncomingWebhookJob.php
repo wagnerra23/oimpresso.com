@@ -95,12 +95,24 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         }
 
         if ($phone === null) {
-            // SUPERADMIN: fallback config legacy — job sem session, biz do constructor
-            // Fallback config legacy (durante coexistência PR 1 → PR 5)
-            $config = WhatsappBusinessConfig::query()
-                ->withoutGlobalScope(ScopeByBusiness::class)
-                ->where('business_id', $this->businessId)
-                ->firstOrFail();
+            // ADR 0135 + 0204: providers Channel-based (whatsmeow) NÃO usam
+            // whatsapp_business_configs legacy. Skip lookup — job processa
+            // direto via Channel (resolveChannel no upsertMessage).
+            // Legacy providers (zapi/meta_cloud com phones table) ainda passam
+            // phone_id no constructor; whatsmeow nunca passa.
+            if ($this->provider !== 'whatsmeow') {
+                $config = WhatsappBusinessConfig::query()
+                    ->withoutGlobalScope(ScopeByBusiness::class)
+                    ->where('business_id', $this->businessId)
+                    ->first();
+                if ($config === null) {
+                    Log::warning('whatsapp.webhook.process_incoming.no_legacy_config', [
+                        'business_id' => $this->businessId,
+                        'provider' => $this->provider,
+                    ]);
+                    return; // sem config legacy → não processa (defensive)
+                }
+            }
             $resolvedPhoneId = null;
         } else {
             $resolvedPhoneId = $phone->id;
@@ -112,8 +124,130 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         }
 
         foreach ($extracted as $msg) {
-            $this->upsertMessage($this->businessId, $resolvedPhoneId, $msg);
+            // ADR 0135 + 0204: provider=whatsmeow usa schema novo (channels/conversations/messages)
+            // Caixa Unificada v4. Legacy providers continuam via whatsapp_business_configs.
+            if ($this->provider === 'whatsmeow') {
+                $this->upsertMessageWhatsmeow($msg);
+            } else {
+                $this->upsertMessage($this->businessId, $resolvedPhoneId, $msg);
+            }
         }
+    }
+
+    /**
+     * Upsert mensagem no schema NOVO (channels/conversations/messages) — ADR 0135 + 0204.
+     *
+     * Resolve channel via instanceName no payload (whatsmeowUserName match).
+     * Cria conversation + message via DB::table direto (não usa WhatsappMessage
+     * model legacy que aponta pra whatsapp_messages table vazia).
+     */
+    private function upsertMessageWhatsmeow(array $msg): void
+    {
+        $providerMessageId = (string) ($msg['provider_message_id'] ?? '');
+        if ($providerMessageId === '') {
+            return;
+        }
+
+        // Idempotência cross-tenant — provider_message_id UNIQUE global
+        $existing = \DB::table('messages')
+            ->where('provider_message_id', $providerMessageId)
+            ->first();
+        if ($existing !== null) {
+            return;
+        }
+
+        // Resolve channel via instanceName do payload outer (passado pelo controller)
+        // OU via primeiro channel whatsmeow ativo do business (fallback).
+        $instanceName = (string) ($this->payload['instanceName'] ?? '');
+        $channel = null;
+        if ($instanceName !== '') {
+            $channel = \Modules\Whatsapp\Entities\Channel::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $this->businessId)
+                ->where('type', \Modules\Whatsapp\Entities\Channel::TYPE_WHATSAPP_WHATSMEOW)
+                ->get()
+                ->first(fn ($ch) => $ch->whatsmeowUserName() === $instanceName);
+        }
+        if ($channel === null) {
+            $channel = \Modules\Whatsapp\Entities\Channel::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $this->businessId)
+                ->where('type', \Modules\Whatsapp\Entities\Channel::TYPE_WHATSAPP_WHATSMEOW)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        if ($channel === null) {
+            Log::warning('whatsapp.webhook.whatsmeow.no_channel_resolved', [
+                'business_id' => $this->businessId,
+                'instance_name' => $instanceName,
+                'provider_message_id' => $providerMessageId,
+            ]);
+            return;
+        }
+
+        $phoneE164 = (string) ($msg['from'] ?? '');
+        $contactName = (string) ($msg['push_name'] ?? '') ?: $phoneE164;
+
+        // firstOrCreate conversation
+        $conversation = \DB::table('conversations')
+            ->where('business_id', $this->businessId)
+            ->where('channel_id', $channel->id)
+            ->where('phone_e164', $phoneE164)
+            ->first();
+
+        $convId = $conversation?->id;
+        $now = now();
+        if ($convId === null) {
+            $convId = \DB::table('conversations')->insertGetId([
+                'business_id' => $this->businessId,
+                'channel_id' => $channel->id,
+                'phone_e164' => $phoneE164,
+                'contact_name' => $contactName,
+                'status' => 'open',
+                'unread_count' => 1,
+                'last_inbound_at' => $now,
+                'last_message_at' => $now,
+                'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
+                'last_message_direction' => 'inbound',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        \DB::table('messages')->insert([
+            'business_id' => $this->businessId,
+            'channel_id' => $channel->id,
+            'conversation_id' => $convId,
+            'direction' => 'inbound',
+            'provider' => 'whatsmeow',
+            'provider_message_id' => $providerMessageId,
+            'type' => $msg['type'] ?? 'text',
+            'body' => $msg['body'] ?? null,
+            'payload' => json_encode($msg['raw'] ?? null),
+            'status' => 'received',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        if ($conversation !== null) {
+            \DB::table('conversations')->where('id', $convId)->update([
+                'unread_count' => ($conversation->unread_count ?? 0) + 1,
+                'last_inbound_at' => $now,
+                'last_message_at' => $now,
+                'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
+                'last_message_direction' => 'inbound',
+                'contact_name' => $contactName,
+                'updated_at' => $now,
+            ]);
+        }
+
+        Log::info('whatsapp.webhook.whatsmeow.message_persisted', [
+            'business_id' => $this->businessId,
+            'channel_id' => $channel->id,
+            'conversation_id' => $convId,
+            'provider_message_id' => $providerMessageId,
+        ]);
     }
 
     /**
