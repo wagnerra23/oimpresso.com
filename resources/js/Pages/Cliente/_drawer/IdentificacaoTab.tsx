@@ -481,7 +481,7 @@ export default function IdentificacaoTab({
 
       // ── Campos derivados SEFAZ (#1431 Técnica C) — gatilhos NFe + UX warnings
       const certSrc = (sefazData?.cert_source as string) || '';
-      let sefazSource: 'none' | 'primary' | 'institutional' | 'unsupported' | 'no_cert' = 'none';
+      let sefazSource: 'none' | 'primary' | 'institutional' | 'unsupported' | 'no_cert' | 'sefaz_error' = 'none';
       const alertasSefaz = (sefazData?.alertas as Array<{ code: string; severity: string; msg: string }>) ?? [];
 
       if (sefazData) {
@@ -502,8 +502,14 @@ export default function IdentificacaoTab({
         }
       } else if (sefazReason === 'uf_unsupported') {
         sefazSource = 'unsupported';
-      } else if (sefazReason === 'no_cert' || sefazReason === 'sefaz_or_cert_error') {
+      } else if (sefazReason === 'no_cert') {
         sefazSource = 'no_cert';
+      } else if (sefazReason === 'sefaz_error' || sefazReason === 'sefaz_or_cert_error') {
+        // Fix Wagner 2026-05-27: distingue erro SEFAZ (timeout/SOAP/parsing) de
+        // cert faltando. Antes ambos caíam em 'no_cert' → badge "Configure cert A1"
+        // mesmo com cert OK (gerou frustração: "já configurei!").
+        // 'sefaz_or_cert_error' legacy mantido pra compat com backend pré-fix.
+        sefazSource = 'sefaz_error';
       }
 
       // Fix 2026-05-25 — sincronizar contact state no parent direto (sem depender
@@ -552,6 +558,8 @@ export default function IdentificacaoTab({
         mensagemBadge = `${fontesMsg} preenchidos. SEFAZ-${ufFinal} não disponível — preencha IE manual.`;
       } else if (sefazSource === 'no_cert') {
         mensagemBadge = `${fontesMsg} preenchidos. Configure cert A1 em /fiscal/config pra IE automática.`;
+      } else if (sefazSource === 'sefaz_error') {
+        mensagemBadge = `${fontesMsg} preenchidos. SEFAZ-${ufFinal} indisponível agora — tente de novo em alguns minutos pra IE automática.`;
       }
 
       // Append alerta SEFAZ severity high/medium (evitar rejeição NFe antes da emissão).
