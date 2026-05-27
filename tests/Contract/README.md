@@ -124,21 +124,37 @@ Skips gracefully se ambiente sem schema (`Schema::hasTable('contacts')` false) �
 
 ## Telas-candidatas (próximas iterações)
 
-| Tela | Prioridade | Endpoints PATCH |
+| Tela | Prioridade | Endpoints |
 |---|---|---|
-| Cliente drawer | ✅ implementado | 5 abas (identificacao/contato/endereco/comercial/classificacao) |
+| Cliente drawer | ✅ implementado | 5 abas PATCH (identificacao/contato/endereco/comercial/classificacao) |
 | Sells/Create | ✅ parcial | quick-add cliente (POST /contacts), commission-split (PATCH /sells/{id}/commission-split). NÃO cobre POST /pos (full-form). |
 | OficinaAuto/ServiceOrder | ✅ implementado | PUT /oficina-auto/ordens-servico/{id} (7 campos cadastrais) |
+| OficinaAuto/ServiceOrderItems | ✅ implementado | CRUD drawer PECAS & MAO DE OBRA |
+| OficinaAuto/DviInspection | ✅ implementado | PUT item DVI (7 campos cadastrais). Multi-placeholder `{order}/{item}` pre-resolved no test file (P1). |
+| Sells/Edit shipping | ✅ implementado | PUT /sells/update-shipping/{id} (10 campos shipping_*). DB roundtrip pq response é `{success:1}` minimal (P2). |
+| NFe/NCM rules (Tributação) | ✅ implementado | POST + PUT 3 tabs (mutex CSOSN/CST via tabs dedicadas — P4). Pattern Inertia redirect+flash, read-back via Eloquent (P3). |
 | Compras/Create | ✅ parcial | quick-add Fornecedor (POST /contacts type=supplier, 5 campos). NÃO cobre POST /purchases (redirect-flow). check_ref_number reservado pra runner raw_body. |
 | NFe/Config | ✅ parcial | ambiente SEFAZ (POST), auto-emission toggle (POST), config-default upsert (POST). NÃO cobre upload .pfx (multipart, fixture próprio) nem testar SEFAZ (action, não autosave). |
-| Vehicles/Edit | ⚪ baixo | edit |
-| Produto/Edit | ⚪ baixo | edit, variations |
+| Vehicles/Edit | ✅ implementado | PATCH 14 campos OficinaAuto |
+| Produto/Edit | ✅ implementado | PATCH 11 campos cadastrais |
+| Stock adjustment | 📋 doc-only | Justificado fora de escopo — full-form CRUD Blade legacy + Inertia useForm single-submit. Ver [session 2026-05-27 decisão](../../memory/sessions/2026-05-27-contract-tests-stock-adjustment-decisao.md). |
+
+## Padrões reusáveis catalogados (sessão 2026-05-27 4 waves paralelas)
+
+Ver [session log completo](../../memory/sessions/2026-05-27-contract-tests-rollout-4-waves-paralelas.md). Resumo:
+
+- **P1 — Multi-placeholder endpoint** (`{order}/{item}`): pre-resolve `{order}` no test file antes do runner. Não exige extender runner.
+- **P2 — Response minimal** (só `{success:1}`): loop custom inline + DB roundtrip via `DB::table()`. Trade-off: valida persistência mas não shape leitura JSON.
+- **P3 — Inertia redirect+flash**: loop custom inline + read-back via Eloquent model (com casts aplicados).
+- **P4 — Mutex de campos** (CSOSN OU CST): tabs dedicadas no fixture pra cada caminho — evita pollution cross-tab.
+- **P5 — POST + PUT cobertura dupla**: cobre `store` (drop validated()) + `update` (baseFields + 1 variado) — mesmo custo, dobro de bug catching.
+- **P6 — Doc-only como entregável válido**: se tela cai em "Tela CRUD tradicional ⚪ opcional" da matriz ADR 0205, decisão doc-only é entregável legítimo (não forçar fixture).
 
 ## Tier 2 (futuro)
 
 Browser smoke (Pest Browser/Dusk) — abre drawer, preenche, fecha, reabre, screenshot + assert text visible. Captura bugs de cache stale frontend (tipo bug CEP #1786 que persistia backend mas drawer não exibia).
 
-Plano: implementar quando Tier 1 estiver estabilizado pra 3+ telas.
+**ADR 0205 declara:** "Implementar quando Tier 1 cobre 5+ telas." Pós sessão 4 waves paralelas (2026-05-27) temos **11 fixtures cobertas** — gate atingido. Candidatos top-priority: drawer Cliente (bug #4 cache stale catalogado), Sells/Create (cliente piloto Larissa), ServiceOrder/Edit (FSM visuais).
 
 ## Refs
 
