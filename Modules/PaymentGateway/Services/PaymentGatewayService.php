@@ -33,6 +33,7 @@ use Modules\PaymentGateway\Services\Drivers\BcbPixDriver;
 use Modules\PaymentGateway\Services\Drivers\C6Driver;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
 use Modules\PaymentGateway\Services\Drivers\PagarmeDriver;
+use Modules\PaymentGateway\Services\Drivers\SicoobApiDriver;
 
 /**
  * Implementação do PaymentGatewayContract — coordena drivers + persistência.
@@ -58,15 +59,19 @@ class PaymentGatewayService implements PaymentGatewayContract
      *               — Bradesco/Itaú/BB/Santander/Caixa/Sicoob/Ailos/Sicredi/Cresol/Banrisul/BTG
      *               todos file-based via lib eduardokum/laravel-boleto sobre fundação CnabBoletoAdapter
      *               PRs mergeados: #1589 #1590 #1592 #1606-#1613
+     * Onda 4f.sicoob_api: + sicoob_api (US-FIN-044 — Wagner aprovou 2026-05-27 a pedido
+     *               de Kamila/Larissa biz=4 ROTA LIVRE; REST v3 OAuth2+mTLS+webhook real-time)
+     *               PR1 skeleton, PR2 OAuth2+emissão, PR3 mTLS, PR4 webhook, PR5 UI, PR6 docs.
      * Onda 5/6: pesapal (deprecated → remoção)
      */
     private const DRIVERS = [
         // API REST drivers
-        'inter'   => InterDriver::class,
-        'c6'      => C6Driver::class,
-        'asaas'   => AsaasDriver::class,
-        'bcb_pix' => BcbPixDriver::class,
-        'pagarme' => PagarmeDriver::class,
+        'inter'      => InterDriver::class,
+        'c6'         => C6Driver::class,
+        'asaas'      => AsaasDriver::class,
+        'bcb_pix'    => BcbPixDriver::class,
+        'pagarme'    => PagarmeDriver::class,
+        'sicoob_api' => SicoobApiDriver::class,
 
         // CNAB drivers (file-based — boleto registrado via remessa/retorno)
         // Onda 4f.cnab — clientes emitem boleto dia 1 sem esperar homologação Open API (14-45d)
