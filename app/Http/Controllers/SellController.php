@@ -2909,13 +2909,21 @@ class SellController extends Controller
                     'editDiscount' => (bool) $edit_discount,
                     'update' => true,
                 ],
-                'urls' => [
+                'urls' => array_filter([
                     'submit' => '/sells/' . $id,
                     'cancel' => '/sells/' . $id,
                     'back' => '/sells',
                     // ADR 0192 Onda 2 follow-up — endpoint dedicado pra salvar commission_split.
-                    'commission_split' => '/sells/' . $id . '/commission-split',
-                ],
+                    // Wagner 2026-05-27: Larissa @ Rota Livre (vestuário, biz=4) reportou ver
+                    // "Mecânico" no Edit da venda. Causa: commission_split é feature OficinaAuto
+                    // (sub-vertical 4 Martinho mecânica pesada, ADR 0194) com labels hardcoded
+                    // "Mecânico"/"Balconista" no CommissionSplitEditor. Filtro canon: só popular
+                    // a URL quando OficinaAuto está instalado pro business. Sem OficinaAuto →
+                    // Edit.tsx:719 condicional `urls.commission_split` é falsy → editor nem renderiza.
+                    'commission_split' => $this->moduleUtil->isModuleInstalled('OficinaAuto')
+                        ? '/sells/' . $id . '/commission-split'
+                        : null,
+                ]),
             ]);
         }
 
