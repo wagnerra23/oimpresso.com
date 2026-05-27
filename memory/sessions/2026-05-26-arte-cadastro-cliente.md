@@ -1,7 +1,7 @@
 ---
 date: "2026-05-26"
 topic: "Estado-da-arte cadastro Cliente — Drawer 760 + Edit.tsx + Show.tsx vs SOTA 2026 (nota 61/100)"
-authors: ["Wagner", "Claude"]
+authors: ["W", "C"]
 session_slug: "arte-cadastro-cliente"
 agent: "design-arte"
 escopo: "Cadastro/edição de Cliente PJ/PF — 3 superfícies (Drawer 760px, Edit.tsx, Show.tsx)"
