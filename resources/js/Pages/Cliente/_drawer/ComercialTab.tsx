@@ -209,10 +209,11 @@ export default function ComercialTab({ contact, onSaved, disabled = false }: Com
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <Label htmlFor="cm-limite" className="text-xs font-medium">
+          <Label htmlFor="cm-limite" className="cw-label">
             Limite de crédito <span className="text-muted-foreground font-normal">(R$, vazio = sem limite)</span>
           </Label>
           <Input
+            variant="cowork"
             id="cm-limite"
             value={limite}
             placeholder="0"
@@ -234,10 +235,11 @@ export default function ComercialTab({ contact, onSaved, disabled = false }: Com
         </div>
 
         <div>
-          <Label htmlFor="cm-prazo" className="text-xs font-medium">
+          <Label htmlFor="cm-prazo" className="cw-label">
             Prazo padrão <span className="text-muted-foreground font-normal">(dias)</span>
           </Label>
           <Input
+            variant="cowork"
             id="cm-prazo"
             value={prazo}
             placeholder="30"
@@ -259,7 +261,7 @@ export default function ComercialTab({ contact, onSaved, disabled = false }: Com
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="cm-tabela" className="text-xs font-medium">
+          <Label htmlFor="cm-tabela" className="cw-label">
             Tabela de preço
           </Label>
           <Select
@@ -286,7 +288,7 @@ export default function ComercialTab({ contact, onSaved, disabled = false }: Com
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="cm-pgto" className="text-xs font-medium">
+          <Label htmlFor="cm-pgto" className="cw-label">
             Forma de pagamento preferida
           </Label>
           <Select
@@ -313,7 +315,7 @@ export default function ComercialTab({ contact, onSaved, disabled = false }: Com
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="cm-obs" className="text-xs font-medium">
+          <Label htmlFor="cm-obs" className="cw-label">
             Observações comerciais <span className="text-muted-foreground font-normal">(opcional)</span>
           </Label>
           <Textarea

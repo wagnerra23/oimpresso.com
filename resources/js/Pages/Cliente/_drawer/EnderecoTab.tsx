@@ -308,11 +308,12 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <Label htmlFor="ed-cep" className="text-xs font-medium">
+          <Label htmlFor="ed-cep" className="cw-label">
             CEP
           </Label>
           <div className="flex gap-2">
             <Input
+              variant="cowork"
               id="ed-cep"
               value={zipCode}
               placeholder="00000-000"
@@ -377,10 +378,11 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
         </div>
 
         <div>
-          <Label htmlFor="ed-numero" className="text-xs font-medium">
+          <Label htmlFor="ed-numero" className="cw-label">
             Número
           </Label>
           <Input
+            variant="cowork"
             id="ed-numero"
             value={numero}
             placeholder="123"
@@ -401,10 +403,11 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="ed-endereco" className="text-xs font-medium">
+          <Label htmlFor="ed-endereco" className="cw-label">
             Endereço
           </Label>
           <Input
+            variant="cowork"
             id="ed-endereco"
             value={addressLine1}
             placeholder="Rua, avenida, alameda…"
@@ -425,10 +428,11 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="ed-complemento" className="text-xs font-medium">
+          <Label htmlFor="ed-complemento" className="cw-label">
             Complemento <span className="text-muted-foreground font-normal">(opcional)</span>
           </Label>
           <Input
+            variant="cowork"
             id="ed-complemento"
             value={addressLine2}
             placeholder="Apto, conjunto, sala…"
@@ -449,10 +453,11 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
         </div>
 
         <div>
-          <Label htmlFor="ed-bairro" className="text-xs font-medium">
+          <Label htmlFor="ed-bairro" className="cw-label">
             Bairro
           </Label>
           <Input
+            variant="cowork"
             id="ed-bairro"
             value={neighborhood}
             placeholder=""
@@ -473,10 +478,11 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
         </div>
 
         <div>
-          <Label htmlFor="ed-cidade" className="text-xs font-medium">
+          <Label htmlFor="ed-cidade" className="cw-label">
             Cidade
           </Label>
           <Input
+            variant="cowork"
             id="ed-cidade"
             value={city}
             placeholder=""
@@ -497,7 +503,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
         </div>
 
         <div>
-          <Label htmlFor="ed-uf" className="text-xs font-medium">
+          <Label htmlFor="ed-uf" className="cw-label">
             UF
           </Label>
           <Select value={stateUf} onValueChange={handleUfChange} disabled={disabled}>
