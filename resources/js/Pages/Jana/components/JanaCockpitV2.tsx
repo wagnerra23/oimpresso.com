@@ -1,19 +1,27 @@
-// SellsInsightsView — Cockpit "Analista IA" da tab Sells (V2 · Onda gaps r5).
+// JanaCockpitV2 — Cockpit "Analista IA" canon da Jana V2, hospedado em /ia/dashboard.
 // Refs:
 //   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/chat-jana.jsx (canon visual)
 //   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/chat-jana.css (tokens .jc-*)
 //   - memory/requisitos/Sells/Sells-r5-cowork-vs-prod-2026-05-26.md (5 gaps catalogados)
 //
-// V2 fecha 5 gaps vs V1 (PR #1684):
-//  GAP 1 — KPIs row dedicado Jana (4 cards independentes do dashboard)
+// História:
+//   1. PR #1684 — V1 como tab em /sells
+//   2. PR #1686 — V2 fecha 5 gaps r5 (header + KPIs + H2 + Ações + brief)
+//   3. Onda atual — movido pra /ia/dashboard (Jana é marca IA; Sells volta single-view)
+//     Antes: resources/js/Pages/Sells/_components/SellsInsightsView.tsx
+//     Agora: resources/js/Pages/Jana/components/JanaCockpitV2.tsx
+//
+// Mudança técnica da Onda atual: contrato de props refatorado de `rows`-driven
+// (computava ageingBuckets/methodsAgg/topClientes/topDevedor no frontend) pra
+// `insightsAggregates` pré-computed server-side via App\Services\Sells\
+// SellsCockpitAggregator. Componente standalone — não depende de filtros Sells.
+//
+// V2 features:
+//  GAP 1 — KPIs row dedicado Jana (4 cards próprios)
 //  GAP 2 — Lista "AÇÕES QUE [USER] SUGERE" estruturadas (AcaoRow)
 //  GAP 3 — JanaHeader avatar grande + tenant breadcrumb + updatedAt + Configurar/Exportar
 //  GAP 4 — Brief header refinements (📅 + IA pill + "Ouvir áudio" btn placeholder)
 //  GAP 5 — H2 separadores hierárquicos ("ANÁLISES PRINCIPAIS" + "AÇÕES QUE JANA SUGERE")
-//
-// Mode "Analista IA" da rota Sells — mostra brief diário + KPIs Jana + 4 análises + ações
-// sugeridas, usando dados agregados que já existem no payload (sellKpis + coworkAggregates
-// + rows atuais). MVP enxuto. Próxima onda plugará agentes Brain B Jana real (ADR 0035).
 
 import { useMemo, type ReactNode } from 'react';
 import {
@@ -37,7 +45,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-export interface InsightsViewProps {
+export interface JanaCockpitV2Props {
   sellKpis: {
     total: number;
     paid: number;
@@ -53,15 +61,20 @@ export interface InsightsViewProps {
     pixHojeTotal?: number;
     faturadoHojeTotal?: number;
   };
-  /** Vendas atuais (já filtradas no Index pelo saved view + status pill). */
-  rows: Array<{
-    final_total: number;
-    payment_status: string;
-    sla_kind: string;
-    days_to_due: number | null;
-    customer_name: string | null;
-    payment_method_label: string | null;
-  }>;
+  /**
+   * Pré-agregações server-side (SellsCockpitAggregator.buildInsightsAggregates).
+   * Substituem o `rows`-driven que existia em SellsInsightsView V1/V2.
+   */
+  insightsAggregates: {
+    overdueCount: number;
+    overdueValue: number;
+    ageingBuckets: { '0-30d': number; '30-90d': number; '90-365d': number; '>365d': number };
+    methodsAgg: Array<{ method: string; total: number }>;
+    topClientes: Array<{ name: string; total: number }>;
+    topDevedor: { name: string; total: number } | null;
+    ticketMedio: number;
+    totalAReceber: number;
+  };
   userName?: string;
   /** Tenant context pro header breadcrumb. */
   businessName?: string;
@@ -84,81 +97,39 @@ const greeting = (): string => {
 const formatTimeShort = (): string =>
   new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-export default function SellsInsightsView({
+export default function JanaCockpitV2({
   sellKpis,
   coworkAggregates,
-  rows,
+  insightsAggregates,
   userName,
   businessName,
   businessId,
-}: InsightsViewProps): ReactNode {
+}: JanaCockpitV2Props): ReactNode {
   // ── Brief calculations ───────────────────────────────────────────────────
   const faturadoHoje = coworkAggregates?.faturadoHojeTotal ?? 0;
   const pixHoje = coworkAggregates?.pixHojeTotal ?? 0;
   const deltaRev = coworkAggregates?.deltaRevenueVsYesterday ?? null;
   const deltaTicket = coworkAggregates?.deltaTicketVsLastWeek ?? null;
-  const totalVendas = sellKpis?.total ?? rows.length;
-  const totalPendentes = sellKpis?.due ?? rows.filter((r) => r.payment_status !== 'paid').length;
-  const overdueCount = rows.filter((r) => r.sla_kind === 'overdue').length;
-  const overdueValue = rows
-    .filter((r) => r.sla_kind === 'overdue')
-    .reduce((acc, r) => acc + (Number(r.final_total) || 0), 0);
-  const totalAReceber = rows
-    .filter((r) => r.payment_status !== 'paid')
-    .reduce((acc, r) => acc + (Number(r.final_total) || 0), 0);
+  const totalVendas = sellKpis?.total ?? 0;
+  const totalPendentes = sellKpis?.due ?? 0;
 
-  // ── Inadimplência buckets ────────────────────────────────────────────────
-  const ageingBuckets = (() => {
-    const buckets = { '0-30d': 0, '30-90d': 0, '90-365d': 0, '>365d': 0 };
-    rows
-      .filter((r) => r.sla_kind === 'overdue' && r.days_to_due !== null)
-      .forEach((r) => {
-        const days = Math.abs(r.days_to_due as number);
-        const v = Number(r.final_total) || 0;
-        if (days <= 30) buckets['0-30d'] += v;
-        else if (days <= 90) buckets['30-90d'] += v;
-        else if (days <= 365) buckets['90-365d'] += v;
-        else buckets['>365d'] += v;
-      });
-    return buckets;
-  })();
+  // Pré-agregados server-side (SellsCockpitAggregator.buildInsightsAggregates).
+  const overdueCount = insightsAggregates.overdueCount;
+  const overdueValue = insightsAggregates.overdueValue;
+  const totalAReceber = insightsAggregates.totalAReceber;
+  const ageingBuckets = insightsAggregates.ageingBuckets;
   const ageingTotal = Object.values(ageingBuckets).reduce((a, b) => a + b, 0);
-
-  // ── Métodos pagamento ────────────────────────────────────────────────────
-  const methodsAgg = (() => {
-    const m: Record<string, number> = {};
-    rows.forEach((r) => {
-      const k = r.payment_method_label || 'Outros';
-      m[k] = (m[k] ?? 0) + (Number(r.final_total) || 0);
-    });
-    return Object.entries(m)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-  })();
-  const methodsTotal = methodsAgg.reduce((a, [, v]) => a + v, 0);
-
-  // ── Top clientes ─────────────────────────────────────────────────────────
-  const topClientes = (() => {
-    const m: Record<string, number> = {};
-    rows.forEach((r) => {
-      const k = r.customer_name || 'Cliente padrão';
-      m[k] = (m[k] ?? 0) + (Number(r.final_total) || 0);
-    });
-    return Object.entries(m)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-  })();
-  const topClientesTotal = topClientes.reduce((a, [, v]) => a + v, 0);
+  const methodsAggList = insightsAggregates.methodsAgg;
+  const methodsTotal = methodsAggList.reduce((a, m) => a + m.total, 0);
+  const topClientesList = insightsAggregates.topClientes;
+  const topClientesTotal = topClientesList.reduce((a, c) => a + c.total, 0);
+  const ticketMedio = insightsAggregates.ticketMedio;
+  const topDevedor = insightsAggregates.topDevedor;
 
   // ── Sparkline 30d ────────────────────────────────────────────────────────
   const sparkline = coworkAggregates?.sparkline ?? [];
   const sparkMax = Math.max(...sparkline, 1);
   const sparkSum = sparkline.reduce((a, b) => a + b, 0);
-
-  // ── Ticket médio ─────────────────────────────────────────────────────────
-  const ticketMedio = rows.length > 0
-    ? rows.reduce((acc, r) => acc + (Number(r.final_total) || 0), 0) / rows.length
-    : 0;
 
   const firstName = userName?.split(' ')[0] || 'você';
   const firstNameUpper = firstName.toUpperCase();
@@ -181,33 +152,25 @@ export default function SellsInsightsView({
     const list: Acao[] = [];
     // Sinal 1 — vendas vencidas → régua WhatsApp HITL
     if (overdueCount > 0) {
-      const topDevedor = rows
-        .filter((r) => r.sla_kind === 'overdue')
-        .sort((a, b) => (Number(b.final_total) || 0) - (Number(a.final_total) || 0))[0];
       list.push({
         id: 'regua-whatsapp',
         icon: <MessageSquare size={16} />,
         title: `Régua WhatsApp · ${overdueCount} venda${overdueCount === 1 ? '' : 's'} vencida${overdueCount === 1 ? '' : 's'}`,
-        sub: `Potencial recuperação: ${fmtShort(overdueValue)} · ${topDevedor ? `top devedor: ${topDevedor.customer_name || 'Cliente padrão'}` : ''}`.replace(/ · $/, ''),
+        sub: `Potencial recuperação: ${fmtShort(overdueValue)} · ${topDevedor ? `top devedor: ${topDevedor.name}` : ''}`.replace(/ · $/, ''),
         tone: 'rose',
         cta: { label: 'Disparar', tone: 'danger' },
       });
     }
     // Sinal 2 — top devedor > R$1k (mesmo se não overdue ainda)
-    if (overdueCount > 0 && overdueValue > 1000) {
-      const topDevedor = rows
-        .filter((r) => r.sla_kind === 'overdue')
-        .sort((a, b) => (Number(b.final_total) || 0) - (Number(a.final_total) || 0))[0];
-      if (topDevedor?.customer_name) {
-        list.push({
-          id: 'negociar-top',
-          icon: <Sparkles size={16} />,
-          title: `Negociar com ${topDevedor.customer_name}`,
-          sub: `Valor ${fmtShort(Number(topDevedor.final_total) || 0)} · contato direto vale mais que régua automática`,
-          tone: 'violet',
-          cta: { label: 'Preparar', tone: 'violet' },
-        });
-      }
+    if (overdueCount > 0 && overdueValue > 1000 && topDevedor) {
+      list.push({
+        id: 'negociar-top',
+        icon: <Sparkles size={16} />,
+        title: `Negociar com ${topDevedor.name}`,
+        sub: `Valor ${fmtShort(topDevedor.total)} · contato direto vale mais que régua automática`,
+        tone: 'violet',
+        cta: { label: 'Preparar', tone: 'violet' },
+      });
     }
     // Sinal 3 — queda ticket médio
     if (deltaTicket !== null && deltaTicket <= -5) {
@@ -244,7 +207,7 @@ export default function SellsInsightsView({
       });
     }
     return list;
-  }, [overdueCount, overdueValue, deltaTicket, faturadoHoje, pixHoje, totalPendentes, rows]);
+  }, [overdueCount, overdueValue, deltaTicket, faturadoHoje, pixHoje, totalPendentes, topDevedor]);
 
   // ── GAP 1 — KPIs row Jana (4 cards próprios) ─────────────────────────────
   interface JanaKpi {
@@ -406,18 +369,13 @@ export default function SellsInsightsView({
               </span>
               <strong className="vd-neg">{fmtShort(overdueValue)}</strong> em{' '}
               <strong>{overdueCount} vendas vencidas</strong>. Top devedor:{' '}
-              {(() => {
-                const top = rows
-                  .filter((r) => r.sla_kind === 'overdue')
-                  .sort((a, b) => (b.final_total || 0) - (a.final_total || 0))[0];
-                return top ? (
-                  <>
-                    <strong>{top.customer_name || 'Cliente padrão'}</strong> ({fmtShort(top.final_total)})
-                  </>
-                ) : (
-                  '—'
-                );
-              })()}
+              {topDevedor ? (
+                <>
+                  <strong>{topDevedor.name}</strong> ({fmtShort(topDevedor.total)})
+                </>
+              ) : (
+                '—'
+              )}
               .
             </p>
           )}
@@ -568,23 +526,23 @@ export default function SellsInsightsView({
             </div>
           </header>
           <div className="vd-insights-card-big">
-            <span>{topClientes.length}</span>
+            <span>{topClientesList.length}</span>
           </div>
           <div className="vd-insights-bars">
-            {topClientes.length === 0 ? (
+            {topClientesList.length === 0 ? (
               <div className="vd-insights-empty">Sem dados de clientes</div>
             ) : (
-              topClientes.map(([name, value]) => (
-                <div key={name} className="vd-insights-bar-row">
+              topClientesList.map((c) => (
+                <div key={c.name} className="vd-insights-bar-row">
                   <div className="vd-insights-bar-lbl">
-                    <span title={name}>{name.slice(0, 28)}</span>
-                    <b>{fmtShort(value)}</b>
+                    <span title={c.name}>{c.name.slice(0, 28)}</span>
+                    <b>{fmtShort(c.total)}</b>
                   </div>
                   <div className="vd-insights-bar">
                     <div
                       className="vd-insights-bar-fill"
                       style={{
-                        width: topClientesTotal > 0 ? `${(value / topClientesTotal) * 100}%` : '0%',
+                        width: topClientesTotal > 0 ? `${(c.total / topClientesTotal) * 100}%` : '0%',
                       }}
                     />
                   </div>
@@ -600,29 +558,29 @@ export default function SellsInsightsView({
             <span className="vd-insights-card-ic"><CreditCard size={16} /></span>
             <div>
               <b>Métodos de pagamento</b>
-              <small>top {methodsAgg.length}</small>
+              <small>top {methodsAggList.length}</small>
             </div>
           </header>
           <div className="vd-insights-card-big">
             <span>{fmtShort(methodsTotal)}</span>
           </div>
           <div className="vd-insights-bars">
-            {methodsAgg.length === 0 ? (
+            {methodsAggList.length === 0 ? (
               <div className="vd-insights-empty">Sem pagamentos registrados</div>
             ) : (
-              methodsAgg.map(([method, value]) => (
-                <div key={method} className="vd-insights-bar-row">
+              methodsAggList.map((m) => (
+                <div key={m.method} className="vd-insights-bar-row">
                   <div className="vd-insights-bar-lbl">
-                    <span>{method}</span>
+                    <span>{m.method}</span>
                     <b>
-                      {methodsTotal > 0 ? Math.round((value / methodsTotal) * 100) : 0}%
+                      {methodsTotal > 0 ? Math.round((m.total / methodsTotal) * 100) : 0}%
                     </b>
                   </div>
                   <div className="vd-insights-bar">
                     <div
                       className="vd-insights-bar-fill green"
                       style={{
-                        width: methodsTotal > 0 ? `${(value / methodsTotal) * 100}%` : '0%',
+                        width: methodsTotal > 0 ? `${(m.total / methodsTotal) * 100}%` : '0%',
                       }}
                     />
                   </div>
