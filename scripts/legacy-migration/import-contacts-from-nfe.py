@@ -1,44 +1,60 @@
 """
-Fase 2-alt — Importer CONTACTS extraídos inline de VENDA Delphi WR Comercial.
+Fase 2-bis — Importer CONTACTS (fornecedores) extraídos de NOTA_FISCAL_ENTRADA
+Delphi WR Comercial → `contacts` UltimatePOS (type='supplier' ou 'both').
 
-Para clientes legacy com CRM órfão (caso Martinho v1404):
-- VENDA tem dados de cliente INLINE em RAZAOSOCIAL/RESPONSAVEL_* (texto)
-- Tabela CLIENTES existe mas não é populada via FK CODCLIENTE_SITE
-- Não dá pra usar import-empresas.py (que lê tabela EMPRESA — entidades próprias)
+Por que existe (gap detectado 2026-05-14):
+- `import-contacts-from-venda.py` extrai apenas CLIENTES inline de VENDA
+  (RESPONSAVEL_*) — ZERO fornecedores são migrados por aquele importer.
+- `import-compras.py` precisa de `contact_id` (NOT NULL FK em transactions)
+  pra cada NFe entrada. Sem esse importer rodar antes, 15.617 NFs Martinho
+  ficariam órfãs com `contact_id=NULL` → skip massivo + dados incompletos.
 
-Este importer extrai `SELECT DISTINCT` clientes únicos de VENDA por
-`RESPONSAVEL_CNPJCPF` (chave natural de dedup) + popula `contacts` em
-business alvo.
+Lógica:
+- Read DISTINCT (NF_CNPJCPF_EMITENTE, NF_RAZAOSOCIAL_EMITENTE) de
+  NOTA_FISCAL_ENTRADA Firebird.
+- Filtros canônicos: CNPJ/RAZAO NOT NULL · ATIVO='S'.
+- Normalize CNPJ (digits only · valida len 11 ou 14).
+- UPSERT idempotente em `contacts` UltimatePOS:
+   * existe E type=customer → UPDATE type=both (cliente que também é fornecedor)
+   * existe E type IN (supplier, both) → no-op (idempotente)
+   * NÃO existe → INSERT type=supplier
+- Chave natural: (business_id, legacy_id=CNPJ_normalizado).
 
-UPSERT idempotente via (business_id, legacy_id=CNPJ_normalized). Re-rodar
-é no-op pra rows existentes, update pra mudanças, insert pra novos.
+Pareado com `import-compras.py` — Wagner roda PRIMEIRO este, DEPOIS compras.
+A ordem canônica do daemon dual-sync ficou:
+  contacts (clientes via VENDA) →
+  contacts-fornecedores-nfe (fornecedores via NFE) →
+  compras (NFE + lines · contact_id resolvido).
 
-Pareado com import-vendas.py:
-- Rodar PRIMEIRO este (Fase 2-alt) — popula contacts.legacy_id=CNPJ
-- Rodar import-vendas.py depois — resolve transactions.contact_id via
-  lookup CNPJ → contacts.id
+Multi-tenant Tier 0 (ADR 0093): business_id obrigatório em todo INSERT/UPDATE.
+Cinto-suspensório: UPDATE sempre com `AND business_id=%s` em SET (lição
+incidente ROTA LIVRE 14/maio — memory/reference/feedback-importer-cross-business-bug.md).
 
-Multi-tenant Tier 0 (ADR 0093): impõe business_id em todo INSERT/UPDATE.
-
-PII redaction (audit JSON): CPFCNPJ, telefones, emails → [REDACTED].
+PII redaction (audit JSON):
+  NF_CNPJCPF_EMITENTE → [REDACTED-XXXX...] (4 primeiros dígitos)
+  NF_RAZAOSOCIAL_EMITENTE → [REDACTED]
 
 Uso:
     # Dry-run (gera SQL preview + audit, não toca DB)
-    python import-contacts-from-venda.py --alias MartinhoServidor --target-business 164
+    python import-contacts-from-nfe.py --alias MartinhoServidor --target-business 164
 
     # Local Laragon (Herd dev)
-    python import-contacts-from-venda.py --alias MartinhoServidor --target-business 164 \\
-        --target local
+    python import-contacts-from-nfe.py --alias MartinhoServidor --target-business 164 --target local
 
     # Hostinger prod (perigoso — exige --confirm)
-    python import-contacts-from-venda.py --alias MartinhoServidor --target-business 164 \\
-        --target prod --confirm
+    python import-contacts-from-nfe.py --alias MartinhoServidor --target-business 164 --target prod --confirm
+
+    # Daemon dual-sync — delta-only
+    python import-contacts-from-nfe.py --alias MartinhoServidor --target-business 164 \\
+        --delta-since-last-sync --sync-type contacts-fornecedores-nfe
 
 Refs:
-    - memory/reference/migracao-officeimpresso-pattern.md §FK convention drift
-    - memory/research/clientes-legacy-officeimpresso/_MAPPING/relacionamentos-fk-firebird.sql
+    - import-contacts-from-venda.py — pattern PESSOAS inline VENDA (cliente)
+    - import-compras.py — consumidor desse lookup (resolve contact_id)
+    - memory/decisions/proposals/dual-system-delphi-oimpresso-sync-realtime.md §6.1
+    - memory/reference/feedback-importer-cross-business-bug.md
     - ADR 0093 — Multi-tenant Tier 0
-    - .claude/agents/migracao-firebird-versoes.md
+    - ADR 0101 — Pest biz=1 nunca cliente
 """
 
 from __future__ import annotations
@@ -63,7 +79,7 @@ try:
 except ImportError:
     pass
 
-from lib.firebird_reader import firebird_connect, query, has_column  # noqa: E402
+from lib.firebird_reader import firebird_connect, has_column  # noqa: E402
 from lib import sync_checkpoint as sc  # noqa: E402
 
 try:
@@ -72,33 +88,23 @@ try:
 except ImportError:
     pymysql = None  # type: ignore
 
-IMPORTER_VERSION = "0.2.0"  # bump: --delta-since-last-sync support
+IMPORTER_VERSION = "0.1.0"  # primeira versão — fornecedores via NFe entrada
 LEGACY_SOURCE = "wr-comercial-delphi"
-SYNC_TYPE_DEFAULT = "contacts"
+SYNC_TYPE_DEFAULT = "contacts-fornecedores-nfe"
 
-# Colunas inline canônicas em VENDA pra extrair cliente (Martinho v1404)
-# Cols ausentes em outras versões viram NULL (adapter)
-COLS_CLIENTE_INLINE = [
-    "RAZAOSOCIAL",                 # nome — chave secundária
-    "RESPONSAVEL_CNPJCPF",         # PII — chave dedup principal
-    "RESPONSAVEL_INSCIDENT",       # IE
-    "RESPONSAVEL_TIPO",            # F/J
-    "RESPONSAVEL_ENDERECO",
-    "RESPONSAVEL_NUMERO",
-    "RESPONSAVEL_BAIRRO",
-    "RESPONSAVEL_CEP",
-    "RESPONSAVEL_CIDADE",
-    "RESPONSAVEL_UF",
-    "RESPONSAVEL_EMAIL",
-    "TELEFONE",
-    "CONTATO",
+# Colunas canônicas pra extrair fornecedor de NOTA_FISCAL_ENTRADA.
+# Cols ausentes em outras versões viram NULL (adapter).
+COLS_FORNECEDOR_NFE = [
+    "NF_CNPJCPF_EMITENTE",       # PII — chave dedup principal
+    "NF_RAZAOSOCIAL_EMITENTE",   # PII — nome
+    "ATIVO",                     # filtro
 ]
 
-PII_FIELDS = {"RESPONSAVEL_CNPJCPF", "TELEFONE", "RESPONSAVEL_EMAIL"}
+PII_FIELDS = {"NF_CNPJCPF_EMITENTE", "NF_RAZAOSOCIAL_EMITENTE"}
 
 
 def normalize_cpf_cnpj(raw) -> str | None:
-    """Remove pontuação CPF/CNPJ. Retorna None se vazio."""
+    """Remove pontuação CPF/CNPJ. Retorna None se vazio ou len inválido."""
     if not raw:
         return None
     s = str(raw).strip()
@@ -125,6 +131,13 @@ def redact_pii(value) -> str | None:
     return "[REDACTED]"
 
 
+def redact_cnpj_prefix(cnpj: str | None) -> str | None:
+    """CNPJ → [REDACTED-XXXX...] (preserva 4 dígitos pra audit cruzado)."""
+    if not cnpj:
+        return None
+    return f"[REDACTED-{cnpj[:4]}...]"
+
+
 def get_existing_cols(con, table: str) -> set[str]:
     cur = con.cursor()
     try:
@@ -134,71 +147,45 @@ def get_existing_cols(con, table: str) -> set[str]:
         cur.close()
 
 
-def build_adapted_distinct_select(cols_presentes: set[str]) -> tuple[str, list[str]]:
-    """Gera SELECT DISTINCT adaptado — cols ausentes viram NULL."""
-    select_parts = []
-    used_cols = []
-    for c in COLS_CLIENTE_INLINE:
-        if c in cols_presentes:
-            select_parts.append(c)
-            used_cols.append(c)
-        else:
-            select_parts.append(f"CAST(NULL AS VARCHAR(1)) AS {c}")
-            used_cols.append(c)
-    return ", ".join(select_parts), used_cols
+def derive_contact_type(cnpj_digits: str) -> str:
+    """11 dígitos = CPF (pessoa física) · 14 dígitos = CNPJ (jurídica)."""
+    return "person" if len(cnpj_digits) == 11 else "business"
 
 
-def derive_contact_type(tipo_responsavel: str | None) -> str:
-    """RESPONSAVEL_TIPO Delphi (F/J) → contact.contact_type."""
-    t = (tipo_responsavel or "").upper().strip()
-    if t == "F":
-        return "person"
-    return "business"  # default J + null + outros
-
-
-def map_venda_to_contact(
+def map_nfe_to_supplier_contact(
     row: dict, business_id: int
 ) -> tuple[dict, dict] | None:
-    """Distinct VENDA row → linha em `contacts`. Retorna None se sem CNPJ.
+    """Distinct NFE row → linha em `contacts` (type=supplier). Retorna None se sem CNPJ.
 
     Retorna (data, audit).
     """
-    cnpj = normalize_cpf_cnpj(row.get("RESPONSAVEL_CNPJCPF"))
+    cnpj = normalize_cpf_cnpj(row.get("NF_CNPJCPF_EMITENTE"))
     if not cnpj:
         return None  # sem CNPJ não dá pra dedup → skip
 
-    razao = normalize_str(row.get("RAZAOSOCIAL"))
-    contact_type = derive_contact_type(row.get("RESPONSAVEL_TIPO"))
+    razao = normalize_str(row.get("NF_RAZAOSOCIAL_EMITENTE"))
+    contact_type = derive_contact_type(cnpj)
 
     # Schema contacts UltimatePOS: varchar tamanhos justos — truncar pra evitar overflow.
-    # cpf_cnpj(20), ie_rg(18), rua(80), numero(10), bairro(40), zip_code(20),
-    # city/state(191), name/email/landline(191), mobile(191) NOT NULL.
+    # cpf_cnpj(20), name/email/landline(191), mobile(191) NOT NULL.
     data = {
         "business_id": business_id,
-        "type": "customer",  # cliente (não fornecedor) — Martinho oficina/locação
+        "type": "supplier",  # fornecedor — pode promover pra both se já existir como customer
         "contact_type": contact_type,
-        "name": normalize_str(razao, 191) or f"Legacy CNPJ {cnpj[:6]}...",
+        "name": normalize_str(razao, 191) or f"Legacy Fornecedor CNPJ {cnpj[:6]}...",
         "supplier_business_name": normalize_str(razao, 191),
         "cpf_cnpj": cnpj[:20],
         "tax_number": cnpj[:20],
-        "ie_rg": normalize_str(row.get("RESPONSAVEL_INSCIDENT"), 18),
-        "rua": normalize_str(row.get("RESPONSAVEL_ENDERECO"), 80),
-        "numero": normalize_str(row.get("RESPONSAVEL_NUMERO"), 10),
-        "bairro": normalize_str(row.get("RESPONSAVEL_BAIRRO"), 40),
-        "zip_code": normalize_str(row.get("RESPONSAVEL_CEP"), 20),
-        "city": normalize_str(row.get("RESPONSAVEL_CIDADE"), 191),
-        "state": normalize_str(row.get("RESPONSAVEL_UF"), 191),
         "country": "BRASIL",
-        "email": normalize_str(row.get("RESPONSAVEL_EMAIL"), 191),
-        # mobile é NOT NULL — fallback '' se vazio
-        "mobile": normalize_str(row.get("TELEFONE"), 191) or "",
+        # mobile é NOT NULL no schema UltimatePOS — fallback '' se vazio
+        "mobile": "",
         "contact_status": "active",
         "legacy_id": cnpj[:32],  # CNPJ é chave natural dedup
     }
 
     # Audit metadata
     pii_safe = {}
-    for k in COLS_CLIENTE_INLINE:
+    for k in COLS_FORNECEDOR_NFE:
         v = row.get(k)
         if k in PII_FIELDS:
             pii_safe[k] = redact_pii(v)
@@ -207,8 +194,8 @@ def map_venda_to_contact(
 
     audit = {
         "legacy_source": LEGACY_SOURCE,
-        "legacy_id": cnpj,
-        "razaosocial_denormalized": razao,
+        "legacy_id_redacted": redact_cnpj_prefix(cnpj),
+        "razaosocial_redacted": redact_pii(razao),
         "contact_type_inferido": contact_type,
         "raw_delphi_pii_safe": pii_safe,
         "imported_at_iso": datetime.utcnow().isoformat() + "Z",
@@ -243,8 +230,6 @@ def main() -> int:
     parser.add_argument(
         "--target", choices=["dry-run", "local", "prod"], default="dry-run"
     )
-    parser.add_argument("--start-date", help="Filtro VENDA.DT_EMISSAO >= YYYY-MM-DD")
-    parser.add_argument("--end-date", help="Filtro VENDA.DT_EMISSAO <= YYYY-MM-DD")
     parser.add_argument("--mysql-host", default=os.environ.get("MYSQL_HOST", "127.0.0.1"))
     parser.add_argument("--mysql-port", type=int, default=int(os.environ.get("MYSQL_PORT", "3306")))
     parser.add_argument("--mysql-user", default=os.environ.get("MYSQL_USER", "root"))
@@ -270,28 +255,30 @@ def main() -> int:
         print("[ERRO] --target prod requer --confirm explicito (seguranca)", file=sys.stderr)
         return 2
 
-    print(f"== Importer Contacts (extraidos inline de VENDA) v{IMPORTER_VERSION} ==")
+    print(f"== Importer Contacts FORNECEDORES (extraidos NFe entrada) v{IMPORTER_VERSION} ==")
     print(f"  Alias Firebird   : {args.alias}")
     print(f"  business_id alvo : {args.target_business}")
     print(f"  Target MySQL     : {args.target}")
-    if args.start_date or args.end_date:
-        print(f"  Filtro DT_EMISSAO: [{args.start_date or '-inf'} .. {args.end_date or '+inf'}]")
+    print(f"  sync_type        : {args.sync_type}")
 
     stats = {
-        "venda_lidos_distinct": 0,
+        "nfe_distinct_lidos": 0,
         "skipped_no_cnpj": 0,
-        "inserts": 0,
-        "updates": 0,
+        "inserts": 0,                       # type=supplier (NÃO existia)
+        "updates_supplier_existed": 0,      # idempotência — já era supplier/both
+        "updates_promoted_to_both": 0,      # tinha type=customer → vira both
+        "skipped_cross_business_guard": 0,  # cinto-suspensório SQL barrou
         "errors": 0,
     }
     dry_run_lines = [
-        f"-- Generated by import-contacts-from-venda v{IMPORTER_VERSION}",
+        f"-- Generated by import-contacts-from-nfe v{IMPORTER_VERSION}",
         f"-- Generated at: {datetime.utcnow().isoformat()}Z",
         f"-- Target: {args.target}  business={args.target_business}  alias={args.alias}",
-        f"-- Filter: VENDA.DT_EMISSAO [{args.start_date or '-inf'} .. {args.end_date or '+inf'}]",
         "",
-        "-- Dedup: SELECT DISTINCT por RESPONSAVEL_CNPJCPF (normalizado digits-only).",
+        "-- Dedup: SELECT DISTINCT por NF_CNPJCPF_EMITENTE (normalizado digits-only).",
         "-- Idempotência: SELECT por (business_id, legacy_id=CNPJ) → UPDATE OU INSERT.",
+        "-- Type promotion: se contact existe com type=customer → vira both (cliente+fornecedor).",
+        "-- Cinto-suspensório SQL: UPDATE qualificado com AND business_id (ADR 0093).",
         "",
     ]
     audit_records = []
@@ -324,43 +311,51 @@ def main() -> int:
 
     print("\n[Firebird] Conectando...")
     with firebird_connect(args.alias, password_override=args.firebird_password) as fb_con:
-        cols_existentes_venda = get_existing_cols(fb_con, "VENDA")
-        cols_ausentes = [c for c in COLS_CLIENTE_INLINE if c not in cols_existentes_venda]
-        print(f"[Adapter] VENDA cols presentes: {len(cols_existentes_venda)} · cliente-inline canônicas pedidas: {len(COLS_CLIENTE_INLINE)} · ausentes: {len(cols_ausentes)}")
+        cols_existentes_nfe = get_existing_cols(fb_con, "NOTA_FISCAL_ENTRADA")
+        cols_ausentes = [c for c in COLS_FORNECEDOR_NFE if c not in cols_existentes_nfe]
+        print(
+            f"[Adapter] NOTA_FISCAL_ENTRADA cols presentes: {len(cols_existentes_nfe)} · "
+            f"canônicas pedidas: {len(COLS_FORNECEDOR_NFE)} · ausentes: {len(cols_ausentes)}"
+        )
         if cols_ausentes:
             print(f"          Ausentes (NULL): {cols_ausentes}")
 
-        # Delta filter — DT_ALTERACAO ausente em algumas versões legacy → fallback FULL SYNC com warn
-        has_dt_alteracao = "DT_ALTERACAO" in cols_existentes_venda
+        # Delta filter — DT_ALTERACAO ausente em algumas versões → fallback FULL SYNC
+        has_dt_alteracao = "DT_ALTERACAO" in cols_existentes_nfe
         if delta_active and not has_dt_alteracao:
             print(
-                "[delta WARN] VENDA não tem DT_ALTERACAO nesta versão Firebird — fallback FULL SYNC",
+                "[delta WARN] NOTA_FISCAL_ENTRADA sem DT_ALTERACAO — fallback FULL SYNC",
                 file=sys.stderr,
             )
             delta_active = False
 
-        select_clause, _ = build_adapted_distinct_select(cols_existentes_venda)
-
-        where_parts = ["RESPONSAVEL_CNPJCPF IS NOT NULL", "TRIM(RESPONSAVEL_CNPJCPF) <> ''"]
+        # WHERE pieces
+        where_parts = [
+            "NF_CNPJCPF_EMITENTE IS NOT NULL",
+            "TRIM(NF_CNPJCPF_EMITENTE) <> ''",
+            "NF_RAZAOSOCIAL_EMITENTE IS NOT NULL",
+            "TRIM(NF_RAZAOSOCIAL_EMITENTE) <> ''",
+        ]
         params: list = []
-        if args.start_date:
-            where_parts.append("DT_EMISSAO >= ?")
-            params.append(args.start_date)
-        if args.end_date:
-            where_parts.append("DT_EMISSAO <= ?")
-            params.append(args.end_date + " 23:59:59")
+        if "ATIVO" in cols_existentes_nfe:
+            where_parts.append("ATIVO = 'S'")
         if delta_active and delta_since is not None:
             where_parts.append("DT_ALTERACAO > ?")
             params.append(sc.format_firebird_timestamp(delta_since))
         where_clause = "WHERE " + " AND ".join(where_parts)
 
+        # Cols pra SELECT (NF_CNPJCPF_EMITENTE + NF_RAZAOSOCIAL_EMITENTE + ATIVO se presente)
+        select_cols = ["NF_CNPJCPF_EMITENTE", "NF_RAZAOSOCIAL_EMITENTE"]
+        if "ATIVO" in cols_existentes_nfe:
+            select_cols.append("ATIVO")
+
         sql = f"""
-            SELECT DISTINCT {select_clause}
-            FROM VENDA
+            SELECT DISTINCT {', '.join(select_cols)}
+            FROM NOTA_FISCAL_ENTRADA
             {where_clause}
-            ORDER BY RESPONSAVEL_CNPJCPF, RAZAOSOCIAL
+            ORDER BY NF_CNPJCPF_EMITENTE, NF_RAZAOSOCIAL_EMITENTE
         """
-        print(f"\n[Query DISTINCT VENDA] {sql.strip()[:200]}...")
+        print(f"\n[Query DISTINCT NOTA_FISCAL_ENTRADA] {sql.strip()[:200]}...")
 
         cur = fb_con.cursor()
         cur.execute(sql, tuple(params))
@@ -381,9 +376,9 @@ def main() -> int:
 
         try:
             for row_tuple in cur:
-                stats["venda_lidos_distinct"] += 1
+                stats["nfe_distinct_lidos"] += 1
                 row = dict(zip(col_names, row_tuple))
-                result = map_venda_to_contact(row, args.target_business)
+                result = map_nfe_to_supplier_contact(row, args.target_business)
                 if result is None:
                     stats["skipped_no_cnpj"] += 1
                     continue
@@ -394,7 +389,10 @@ def main() -> int:
                     s = emit_insert_sql(data)
                     if len(sample_inserts) < 5:
                         sample_inserts.append(s)
-                    dry_run_lines.append(f"-- contact CNPJ=[REDACTED-{data['legacy_id'][:4]}...] razao=\"{(data['name'] or '')[:40]}\"")
+                    dry_run_lines.append(
+                        f"-- fornecedor CNPJ={redact_cnpj_prefix(data['legacy_id'])} "
+                        f"razao=[REDACTED]"
+                    )
                     dry_run_lines.append(s)
                     dry_run_lines.append("")
                     stats["inserts"] += 1
@@ -402,23 +400,58 @@ def main() -> int:
                     assert con is not None
                     data_filtered = {k: v for k, v in data.items() if v is not None}
                     with con.cursor() as wcur:
+                        # Lookup existente por (business_id, legacy_id) — cinto-suspensório
+                        # já no SELECT (filtro business_id explícito previne cross-tenant).
                         wcur.execute(
-                            "SELECT id FROM contacts WHERE business_id=%s AND legacy_id=%s LIMIT 1",
+                            "SELECT id, type FROM contacts "
+                            "WHERE business_id=%s AND legacy_id=%s LIMIT 1",
                             (args.target_business, data["legacy_id"]),
                         )
                         existing = wcur.fetchone()
+
                         if existing:
-                            update_fields = {
-                                k: v for k, v in data_filtered.items()
-                                if k not in ("business_id", "legacy_id", "type", "contact_type")
-                            }
-                            set_clause = ", ".join(f"{k}=%s" for k in update_fields)
-                            wcur.execute(
-                                f"UPDATE contacts SET {set_clause}, updated_at=NOW() WHERE id=%s",
-                                (*update_fields.values(), existing["id"]),
-                            )
-                            stats["updates"] += 1
+                            existing_id = int(existing["id"])
+                            existing_type = (existing["type"] or "").lower()
+
+                            if existing_type == "customer":
+                                # Cliente que também é fornecedor — promove pra both.
+                                # Cinto-suspensório SQL Tier 0 (ADR 0093 · lição ROTA LIVRE):
+                                # UPDATE qualificado com AND business_id=%s previne
+                                # contamination cross-tenant mesmo se id colidir.
+                                wcur.execute(
+                                    "UPDATE contacts "
+                                    "SET type='both', "
+                                    "    supplier_business_name=COALESCE(supplier_business_name, %s), "
+                                    "    updated_at=NOW() "
+                                    "WHERE id=%s AND business_id=%s",
+                                    (
+                                        data_filtered.get("supplier_business_name"),
+                                        existing_id,
+                                        args.target_business,
+                                    ),
+                                )
+                                if wcur.rowcount == 0:
+                                    # Defesa final: UPDATE não pegou (id pertence outro biz).
+                                    stats["skipped_cross_business_guard"] += 1
+                                    if stats["skipped_cross_business_guard"] <= 3:
+                                        print(
+                                            f"  BLOCKED cross-business: contact id={existing_id} "
+                                            f"NÃO está em biz={args.target_business}",
+                                            file=sys.stderr,
+                                        )
+                                    continue
+                                stats["updates_promoted_to_both"] += 1
+
+                            elif existing_type in ("supplier", "both"):
+                                # Já é fornecedor — no-op idempotente
+                                stats["updates_supplier_existed"] += 1
+
+                            else:
+                                # Type estranho (lead/prospect/etc) — não mexe sem ADR
+                                stats["updates_supplier_existed"] += 1
+
                         else:
+                            # INSERT novo fornecedor
                             cols = list(data_filtered.keys())
                             placeholders = ", ".join(["%s"] * len(cols))
                             wcur.execute(
@@ -427,6 +460,7 @@ def main() -> int:
                                 (*data_filtered.values(), args.created_by),
                             )
                             stats["inserts"] += 1
+
             if con:
                 con.commit()
                 print("\n[OK] Commit MySQL")
@@ -437,7 +471,9 @@ def main() -> int:
                             con,
                             args.target_business,
                             args.sync_type,
-                            rows_processed=stats["inserts"] + stats["updates"],
+                            rows_processed=stats["inserts"]
+                            + stats["updates_promoted_to_both"]
+                            + stats["updates_supplier_existed"],
                         )
                         con.commit()
                     except Exception as e:
@@ -467,19 +503,21 @@ def main() -> int:
     biz_suffix = f"biz{args.target_business}"
 
     if args.target == "dry-run":
-        sql_path = out / f"dry-run-contacts-from-venda-{biz_suffix}-{ts}.sql"
+        sql_path = out / f"dry-run-contacts-from-nfe-{biz_suffix}-{ts}.sql"
         sql_path.write_text("\n".join(dry_run_lines), encoding="utf-8")
         print(f"\n[SQL preview] {sql_path}")
 
-    audit_path = out / f"audit-contacts-from-venda-{biz_suffix}-{ts}.json"
+    audit_path = out / f"audit-contacts-from-nfe-{biz_suffix}-{ts}.json"
     audit_summary = {
         "importer_version": IMPORTER_VERSION,
         "alias": args.alias,
         "business_id": args.target_business,
         "target": args.target,
-        "filter": {"start_date": args.start_date, "end_date": args.end_date},
+        "sync_type": args.sync_type,
+        "delta_active": delta_active,
+        "delta_since": str(delta_since) if delta_since else None,
         "adapter": {
-            "cols_canonicas_pedidas": len(COLS_CLIENTE_INLINE),
+            "cols_canonicas_pedidas": len(COLS_FORNECEDOR_NFE),
             "cols_ausentes": cols_ausentes,
         },
         "stats": stats,
@@ -494,12 +532,20 @@ def main() -> int:
     print(f"[Audit JSON] {audit_path}")
 
     print("\n== Relatório ==")
-    print(f"  VENDA distinct (com CNPJ): {stats['venda_lidos_distinct']}")
-    print(f"  Skipped (sem CNPJ valido): {stats['skipped_no_cnpj']}")
-    print(f"  Contacts INSERT          : {stats['inserts']}")
-    print(f"  Contacts UPDATE          : {stats['updates']}")
-    print(f"  Errors                   : {stats['errors']}")
-    print(f"[OK] Contacts concluido (v{IMPORTER_VERSION}, target={args.target})")
+    print(f"  NFE distinct lidos        : {stats['nfe_distinct_lidos']}")
+    print(f"  Skipped (sem CNPJ valido) : {stats['skipped_no_cnpj']}")
+    print(f"  Contacts INSERT supplier  : {stats['inserts']}")
+    print(f"  Contacts UPDATE promoted  : {stats['updates_promoted_to_both']}  (customer → both)")
+    print(f"  Contacts no-op existed    : {stats['updates_supplier_existed']}  (já supplier/both)")
+    print(f"  Skipped cross-business    : {stats['skipped_cross_business_guard']}")
+    print(f"  Errors                    : {stats['errors']}")
+    if stats["skipped_cross_business_guard"] > 0:
+        print(
+            f"\n[ALERT] {stats['skipped_cross_business_guard']} tentativas cross-business "
+            f"barradas pelo cinto-suspensório. Investigar.",
+            file=sys.stderr,
+        )
+    print(f"[OK] Contacts fornecedores (NFe) concluido (v{IMPORTER_VERSION}, target={args.target})")
     return 0
 
 
