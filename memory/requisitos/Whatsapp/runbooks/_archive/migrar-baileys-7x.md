@@ -1,3 +1,6 @@
+> ⚠️ **ARQUIVADO 2026-05-27** — BaileysDriver descontinuado por [ADR 0202](../../../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md).
+> Conteúdo preservado como lição histórica. **NÃO aplicar em produção.**
+
 # RUNBOOK · whatsapp-baileys daemon — Migração Baileys 6.7.18 → 7.0.0-rc11
 
 > **Decisão mãe:** [ADR 0096 emenda 4](../../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)

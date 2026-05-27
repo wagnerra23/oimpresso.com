@@ -1,3 +1,6 @@
+> ⚠️ **ARQUIVADO 2026-05-27** — BaileysDriver descontinuado por [ADR 0202](../../../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md).
+> Conteúdo preservado como lição histórica. **NÃO aplicar em produção.**
+
 # Runbook — Restore auth_state Baileys CT 100
 
 > Companion do backup automatizado em [`infra/scripts/backup-baileys-auth.sh`](../../../../infra/scripts/backup-baileys-auth.sh).
