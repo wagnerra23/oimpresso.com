@@ -453,9 +453,15 @@ class ContactController extends Controller
             'contacts.tax_number',
             'contacts.contact_id',
             'contacts.mobile',
+            'contacts.landline',
+            'contacts.alternate_number',
+            'contacts.email',
             'contacts.city',
             'contacts.state',
             'contacts.balance',
+            'contacts.credit_limit',
+            'contacts.pay_term_number',
+            'contacts.contact_status',
             'contacts.created_at',
             // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
             // CNPJ/CEP zera campos no EnderecoTab (undefined → setState('')) e a UI
@@ -483,11 +489,42 @@ class ContactController extends Controller
             $selectCols[] = 'contacts.inscricao_estadual';
             $selectCols[] = 'contacts.rg';
         }
-        // Wave drawer 2026-05-22 — campos cadastrais drawer (nascimento + cargo).
+        // Wave drawer 2026-05-22 — campos cadastrais drawer (nascimento + cargo +
+        // tel2 + site_url + canal_preferido + tabela_preco_padrao + pgto_padrao +
+        // obs_comercial). Sem isso, ContatoTab/ComercialTab/IdentificacaoTab abrem
+        // com placeholders. Wagner 2026-05-27 reportou "drawer não traz dados".
         $hasDrawerCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'cargo');
         if ($hasDrawerCols) {
             $selectCols[] = 'contacts.nascimento';
             $selectCols[] = 'contacts.cargo';
+            // `ie` (Wave drawer 2026-05-22) — alias Cowork de `inscricao_estadual`
+            // (Wave canon BR 2026-05-21). DUAS colunas coexistem (intencional —
+            // Wave C decide canon). ClienteAutosaveController PATCH grava SÓ em
+            // `ie`, então é a fonte de verdade pro drawer. Fallback `inscricao_estadual`
+            // cobre cadastros pre-drawer Wave (Wave 2026-05-21).
+            $selectCols[] = 'contacts.ie';
+            $selectCols[] = 'contacts.tel2';
+            $selectCols[] = 'contacts.site_url';
+            $selectCols[] = 'contacts.canal_preferido';
+            $selectCols[] = 'contacts.tabela_preco_padrao';
+            $selectCols[] = 'contacts.pgto_padrao';
+            $selectCols[] = 'contacts.obs_comercial';
+        }
+        // Wave emails extras 2026-05-26 (Onda 1 PR B' Daniela) — emails
+        // diferenciados (comercial / NF-e). ContatoTab espera.
+        $hasEmailsExtras = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'email_billing');
+        if ($hasEmailsExtras) {
+            $selectCols[] = 'contacts.email_billing';
+            $selectCols[] = 'contacts.email_nfe';
+        }
+        // Wave SEFAZ 2026-05-23 — campos derivados ConsultaCadastro (badge alertas
+        // IdentificacaoTab). Graceful pra ambiente pré-Wave.
+        $hasSefazCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'sefaz_cad_sit');
+        if ($hasSefazCols) {
+            $selectCols[] = 'contacts.ind_ie_dest';
+            $selectCols[] = 'contacts.sefaz_cad_sit';
+            $selectCols[] = 'contacts.sefaz_cad_ind_cred_nfe';
+            $selectCols[] = 'contacts.sefaz_cad_consultado_em';
         }
         if ($hasWaveBCols) {
             $selectCols = array_merge($selectCols, [
@@ -564,7 +601,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -648,12 +685,60 @@ class ContactController extends Controller
             // UPOS (cadastros pré-restauração BR). PII mascarado, NUNCA plain.
             $cpfCnpjRaw = $hasCanonBrCols ? ($contact->cpf_cnpj ?? null) : null;
             $payload['cpf_cnpj_masked'] = $this->maskTaxNumber($cpfCnpjRaw ?? $contact->tax_number);
-            $payload['ie'] = $hasCanonBrCols ? ($contact->inscricao_estadual ?? null) : null;
+            // IE: prioriza `contacts.ie` (Wave drawer — onde autosave grava) com
+            // fallback `inscricao_estadual` (Wave canon BR — cadastros pre-drawer).
+            $payload['ie'] = ($hasDrawerCols ? ($contact->ie ?? null) : null)
+                ?? ($hasCanonBrCols ? ($contact->inscricao_estadual ?? null) : null);
             $payload['rg'] = $hasCanonBrCols ? ($contact->rg ?? null) : null;
 
             // Wave drawer 2026-05-22 — campos cadastrais drawer.
             $payload['nascimento'] = $hasDrawerCols ? ($contact->nascimento ?? null) : null;
             $payload['cargo'] = $hasDrawerCols ? ($contact->cargo ?? null) : null;
+
+            // ── ContatoTab: telefones + emails + site + canal ────────────────
+            // UPOS canon (sempre presentes).
+            $payload['landline'] = $contact->landline ?? null;
+            $payload['alternate_number'] = $contact->alternate_number ?? null;
+            $payload['email'] = $contact->email ?? null;
+            // Wave drawer + Wave emails extras. Aliases PT-BR (`site`/`canal`)
+            // pra ContatoTab que declara essas chaves diretamente; canon EN
+            // (`site_url`/`canal_preferido`) preservados pra compat shapeContactResponse.
+            $payload['tel2'] = $hasDrawerCols ? ($contact->tel2 ?? null) : null;
+            $payload['site_url'] = $hasDrawerCols ? ($contact->site_url ?? null) : null;
+            $payload['site'] = $payload['site_url'];
+            $payload['canal_preferido'] = $hasDrawerCols ? ($contact->canal_preferido ?? null) : null;
+            $payload['canal'] = $payload['canal_preferido'];
+            $payload['email_billing'] = $hasEmailsExtras ? ($contact->email_billing ?? null) : null;
+            $payload['email_nfe'] = $hasEmailsExtras ? ($contact->email_nfe ?? null) : null;
+
+            // ── ComercialTab: limite, prazo, tabela, pgto, obs ───────────────
+            // UPOS canon + Wave drawer enums. Aliases PT-BR pro tab que declara
+            // `limite_credito`/`prazo_padrao_dias` em vez de `credit_limit`/`pay_term_number`.
+            $payload['credit_limit'] = $contact->credit_limit !== null ? (float) $contact->credit_limit : null;
+            $payload['limite_credito'] = $payload['credit_limit'];
+            $payload['pay_term_number'] = $contact->pay_term_number !== null ? (int) $contact->pay_term_number : null;
+            $payload['prazo_padrao_dias'] = $payload['pay_term_number'];
+            $payload['tabela_preco_padrao'] = $hasDrawerCols ? ($contact->tabela_preco_padrao ?? null) : null;
+            $payload['pgto_padrao'] = $hasDrawerCols ? ($contact->pgto_padrao ?? null) : null;
+            $payload['obs_comercial'] = $hasDrawerCols ? ($contact->obs_comercial ?? null) : null;
+
+            // ── ClassificacaoTab: contact_status enum UPOS ───────────────────
+            // NOTA: `status` (linha ~559) é DERIVADO do payment_status das OS
+            // (late/active/idle pra FrescorPill) — NÃO renomear pra evitar
+            // regressão visual. `contact_status` (ativo/inativo/bloqueado) é
+            // separado e o tab pode escolher entre os 2 ao migrar.
+            $payload['contact_status'] = $contact->contact_status ?? null;
+
+            // ── IdentificacaoTab: SEFAZ ConsultaCadastro (Wave 2026-05-23) ───
+            // Badge alertas NFe (rejeicao 478/487/770) — IdentificacaoTab lê via
+            // shapeContactResponse pos lookup; ler no payload inicial mantem
+            // consistencia (drawer abre com warning sem precisar re-lookup).
+            $payload['ind_ie_dest'] = $hasSefazCols && $contact->ind_ie_dest !== null
+                ? (int) $contact->ind_ie_dest : null;
+            $payload['sefaz_cad_sit'] = $hasSefazCols ? ($contact->sefaz_cad_sit ?? null) : null;
+            $payload['sefaz_cad_ind_cred_nfe'] = $hasSefazCols && $contact->sefaz_cad_ind_cred_nfe !== null
+                ? (int) $contact->sefaz_cad_ind_cred_nfe : null;
+            $payload['sefaz_cad_consultado_em'] = $hasSefazCols ? ($contact->sefaz_cad_consultado_em ?? null) : null;
 
             return $payload;
         })->all();
