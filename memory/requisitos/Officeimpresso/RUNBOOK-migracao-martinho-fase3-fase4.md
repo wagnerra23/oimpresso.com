@@ -35,9 +35,23 @@ steps:
 
 # RUNBOOK — Migração Martinho biz=164 · Fases 3 (Vendas) + 4 (Financeiro)
 
+> ## ⚠️ HISTÓRICO — leia §7 PRIMEIRO
+>
+> **Status: `historical`** (frontmatter). Este RUNBOOK foi escrito 2026-05-27 13:23 BRT assumindo que Fase 3 (VENDA→transactions) + Fase 4 (FINANCEIRO→fin_titulos) estavam pendentes em prod. **Não estavam.**
+>
+> Diagnóstico Hostinger às 13:30 BRT revelou que Martinho biz=164 já tinha **43.974 vendas + 83.045 fin_titulos** em prod (14 anos de dados, 2012-03 → 2026-05). Execução paralela não-documentada migrou antes do RUNBOOK ser escrito.
+>
+> **§7 Retrospectiva** (apendada às 13:36 BRT) documenta estado real + gap crítico descoberto (92.5% das vendas sem `transaction_sell_lines`).
+>
+> **§0-§6 abaixo = plano original não-executado.** Útil como referência de pattern (idempotência, audit JSON, pre-flight), mas NÃO rodar `php artisan officeimpresso:migrate-batch --biz=164` — vai duplicar dados em prod.
+>
+> 👉 **Pular pra [§7 Retrospectiva 2026-05-27 — Estado REAL Hostinger pos-merge (descoberta diagnóstico)](#7-retrospectiva-2026-05-27--estado-real-hostinger-pos-merge-descoberta-diagnóstico)**
+
+---
+
 > **Cliente piloto:** Martinho Caçambas LTDA · biz=164 prod oimpresso · vertical mecânica pesada caminhão basculante ([ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)).
 >
-> **Fases já feitas (não rodar de novo):** Fase 1 (EMPRESA→contacts) 2026-05-13 · Fase 2 (EQUIPAMENTO_VEICULO→vehicles 91 rows) 2026-05-13 13:31 BRT.
+> **Fases já feitas (não rodar de novo):** Fase 1 (EMPRESA→contacts) 2026-05-13 · Fase 2 (EQUIPAMENTO_VEICULO→vehicles 91 rows) 2026-05-13 13:31 BRT · **Fase 3 VENDA + Fase 4 FINANCEIRO** (descobertas em prod 2026-05-27 — ver §7).
 >
 > **Fases cobertas aqui:** Fase 3 VENDA (44.709 esperado) · Fase 4 FINANCEIRO (cleanup-first per [ADR 0198 §Mitigação 4](../../decisions/0198-hot-cold-tiering-migracao-transacional-legacy.md)).
 >
