@@ -92,7 +92,12 @@
   transition: border-color .12s, box-shadow .12s;
 }
 .cw-input::placeholder {
-  color: var(--cw-text-mute);
+  /* Wagner 2026-05-27: --cw-text-mute (oklch 0.65 light) era muito claro pra
+     leitura (contrast ~3:1 com surface, FAIL WCAG AA 4.5:1). Trocado pra
+     --cw-text-dim (oklch 0.50) que dá contrast ratio ~5:1 (PASS WCAG AA).
+     Afeta TODOS os inputs cowork do app — alinhamento ao tema padrão. */
+  color: var(--cw-text-dim);
+  opacity: 0.85;
 }
 .cw-input:focus,
 .cw-input:focus-visible {
