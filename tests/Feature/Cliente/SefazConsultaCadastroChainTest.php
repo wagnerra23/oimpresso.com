@@ -190,6 +190,35 @@ test('SefazConsultaCadastroService popula $reason=flag_off quando feature flag d
     expect($reason)->toBe('flag_off');
 });
 
+// Fix Wagner 2026-05-27 follow-up — business em ambiente homologação (tpAmb=2)
+// NÃO pode fazer ConsultaCadastro (SEFAZ aceita só prod). Early-check evita
+// ~500ms-1s auth fail + log poluído "sefaz_error" enganoso.
+test('SefazConsultaCadastroService popula $reason=env_homolog quando business.ambiente=2', function () {
+    // Garante business em homologação (default UPOS quando ambiente=2)
+    DB::table('business')->where('id', $this->business->id)->update(['ambiente' => 2]);
+
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $reason = null;
+    $result = $svc->consultar('11222333000181', 'RS', $this->business->id, $reason);
+
+    expect($result)->toBeNull();
+    expect($reason)->toBe('env_homolog');
+});
+
+test('SefazConsultaCadastroService NAO retorna env_homolog quando business.ambiente=1 (produção)', function () {
+    DB::table('business')->where('id', $this->business->id)->update(['ambiente' => 1]);
+
+    $svc = app(\Modules\NfeBrasil\Services\SefazConsultaCadastroService::class);
+    $reason = null;
+    // CNPJ invalido pra parar antes de SEFAZ real (validação backend strict)
+    $result = $svc->consultar('99999999999999', 'RS', $this->business->id, $reason);
+
+    expect($result)->toBeNull();
+    // Quando ambiente=1, env_homolog NÃO dispara. Cai em no_cert (sem cert no biz teste)
+    // OU sefaz_error (chain cert ok mas SEFAZ rejeita). Nunca env_homolog.
+    expect($reason)->not->toBe('env_homolog');
+});
+
 // ---------------------------------------------------------------------
 // Técnica C (ADR 0186 §Evolução) — derivação indIeDest + warnings + persist
 // ---------------------------------------------------------------------
