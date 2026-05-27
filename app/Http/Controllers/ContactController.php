@@ -457,7 +457,22 @@ class ContactController extends Controller
             'contacts.state',
             'contacts.balance',
             'contacts.created_at',
+            // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
+            // CNPJ/CEP zera campos no EnderecoTab (undefined → setState('')) e a UI
+            // some apesar do DB ter os dados. Wagner 2026-05-27.
+            'contacts.zip_code',
+            'contacts.address_line_1',
+            'contacts.address_line_2',
         ];
+        // `neighborhood` e `numero` (BR canon) — migrations aditivas recentes
+        // (2026_05_22_120000 e 2026_05_22_180000). hasColumn graceful pra
+        // ambientes pré-migration.
+        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'neighborhood')) {
+            $selectCols[] = 'contacts.neighborhood';
+        }
+        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'numero')) {
+            $selectCols[] = 'contacts.numero';
+        }
         if ($hasWaveBCols) {
             $selectCols = array_merge($selectCols, [
                 'contacts.tipo',
@@ -574,6 +589,18 @@ class ContactController extends Controller
                 'last_purchase_at' => $lastPurchaseAt,
                 // Z-2.1: subtitle drawer "Pessoa jurídica · cadastrado há Xd".
                 'created_at' => optional($contact->created_at)->toIso8601String(),
+                // Endereço canon EN — sem esses campos no payload, EnderecoTab
+                // useEffect reseta state local pra '' quando router.reload({only:['rows']})
+                // dispara pós lookup CNPJ/CEP (`contact.zip_code ?? ''` com undefined → '').
+                // city/state já presentes acima como cidade/uf alias PT-BR — mas
+                // EnderecoTab prefere canon EN. Wagner 2026-05-27.
+                'zip_code' => $contact->zip_code,
+                'address_line_1' => $contact->address_line_1,
+                'address_line_2' => $contact->address_line_2,
+                'neighborhood' => $contact->neighborhood ?? null,
+                'numero' => $contact->numero ?? null,
+                'city' => $contact->city,
+                'state' => $contact->state,
             ];
 
             // Wave G — campos opcionais quando migration Wave B rodou.
