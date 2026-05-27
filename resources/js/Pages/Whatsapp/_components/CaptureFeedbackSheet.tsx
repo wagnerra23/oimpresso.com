@@ -20,7 +20,8 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/Components/ui/select';
-import { ClipboardCheck, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { ClipboardCheck, AlertCircle, CheckCircle2, Loader2, Ban, AlertTriangle, ZapIcon, FileText } from 'lucide-react';
+import { cn } from '@/Lib/utils';
 
 export interface CaptureFeedbackInput {
   literal: string;
@@ -31,13 +32,15 @@ export interface CaptureFeedbackInput {
   cliente_slug?: string | null;
   contact_phone?: string | null;
   contact_name?: string | null;
+  /** true=customer|both, false=lead|supplier, null=desconhecido (backend valida) */
+  contact_is_customer?: boolean | null;
 }
 
 export interface CaptureFeedbackSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   input: CaptureFeedbackInput;
-  onSaved?: (feedbackId: number, mcpTaskPending: boolean) => void;
+  onSaved?: (feedbackId: number, mcpTaskPending: boolean, devTaskRequested?: boolean) => void;
 }
 
 const SEVERITY_OPTIONS = [
@@ -87,9 +90,12 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
   const [workaround, setWorkaround] = useState<string>('');
   const [workaroundCusto, setWorkaroundCusto] = useState<string>('');
 
+  const [createDevTask, setCreateDevTask] = useState<boolean>(false);
+
   const [saving, setSaving] = useState<boolean>(false);
   const [savedOk, setSavedOk] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [devTaskMsg, setDevTaskMsg] = useState<string | null>(null);
 
   // Reset state quando sheet abre com novo input
   useEffect(() => {
@@ -107,8 +113,39 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
       setSaving(false);
       setSavedOk(false);
       setError(null);
+      setDevTaskMsg(null);
+      // Pré-marca dev_task se severity ≥ 3 + cliente é pagante (sinal forte)
+      setCreateDevTask(false);
     }
   }, [open, input]);
+
+  const severityValueNum = parseInt(severity, 10);
+  const isPayingCustomer = input.contact_is_customer === true;
+  const isExplicitlyNotCustomer = input.contact_is_customer === false;
+  const contactLinked = !!input.contact_id;
+
+  // ADR 0105 guard rails (visuais — backend é a verdade)
+  // - cliente confirmado pagante + sev ≥ 3 → pré-marca + recomenda
+  // - sev ≥ 2 + (pagante OU desconhecido) → toggle disponível neutro
+  // - sev 0-1 → toggle disponível mas aviso "talvez só feedback"
+  // - cliente explicitamente NÃO pagante → toggle bloqueado
+  const devTaskBlocked = isExplicitlyNotCustomer;
+  const devTaskRecommended = isPayingCustomer && severityValueNum >= 3;
+  const devTaskWarnLowSev = severityValueNum < 2;
+  const devTaskWarnNoContact = !contactLinked && !devTaskBlocked;
+
+  useEffect(() => {
+    if (!open) return;
+    // Auto-marca quando entra severity ≥ 3 + cliente pagante confirmado
+    if (devTaskRecommended && !createDevTask) {
+      setCreateDevTask(true);
+    }
+    // Auto-desmarca se bloqueado
+    if (devTaskBlocked && createDevTask) {
+      setCreateDevTask(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [severity, input.contact_is_customer, open]);
 
   const handleSave = useCallback(async () => {
     if (!literal.trim()) {
@@ -143,6 +180,7 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
           workaround_custo: workaroundCusto.trim() || null,
           severity_nng: parseInt(severity, 10),
           primeira_vez: true,
+          create_dev_task: createDevTask && !devTaskBlocked,
         }),
       });
 
@@ -161,12 +199,17 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
       const j = await r.json();
       setSavedOk(true);
       setSaving(false);
+      const devTask = j?.dev_task ?? null;
+      if (devTask?.message) {
+        setDevTaskMsg(devTask.message);
+      }
 
-      onSaved?.(j.feedback.id, j.feedback.mcp_task_pending);
+      onSaved?.(j.feedback.id, j.feedback.mcp_task_pending, !!j.feedback.dev_task_requested);
 
+      // Sheet fica mais tempo aberto quando há mensagem dev_task pra ler
       setTimeout(() => {
         onOpenChange(false);
-      }, 1500);
+      }, devTask?.message ? 2500 : 1500);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[CaptureFeedbackSheet] save error', err);
@@ -175,11 +218,11 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
     }
   }, [
     literal, contexto, personaSlug, clienteSlug, severity, modulo, job, motivacao,
-    workaround, workaroundCusto, input, onSaved, onOpenChange,
+    workaround, workaroundCusto, createDevTask, devTaskBlocked,
+    input, onSaved, onOpenChange,
   ]);
 
-  const severityValue = parseInt(severity, 10);
-  const isHighSeverity = severityValue >= 3;
+  const isHighSeverity = severityValueNum >= 3;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -364,10 +407,77 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
               Feedback salvo no canon. Persona + charter atualizados.
             </div>
           )}
+
+          {/* Dev task result message */}
+          {savedOk && devTaskMsg && (
+            <div className="rounded-md border border-sky-300 bg-sky-50 px-3 py-2 text-xs text-sky-800 inline-flex items-center gap-2">
+              <FileText size={14} />
+              {devTaskMsg}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border px-6 py-3 flex items-center justify-end gap-2">
+        <div className="border-t border-border px-6 py-3 space-y-2">
+          {/* Toggle: Virar chamado de desenvolvimento */}
+          <div className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              id="create-dev-task-toggle"
+              checked={createDevTask}
+              onChange={(e) => setCreateDevTask(e.target.checked)}
+              disabled={saving || savedOk || devTaskBlocked}
+              data-testid="create-dev-task-toggle"
+              className="mt-0.5 h-3.5 w-3.5 accent-[var(--cw-accent)] cursor-pointer disabled:cursor-not-allowed"
+            />
+            <label
+              htmlFor="create-dev-task-toggle"
+              className={cn(
+                'text-xs leading-tight cursor-pointer select-none',
+                devTaskBlocked && 'text-muted-foreground cursor-not-allowed',
+              )}
+            >
+              <div className="font-medium inline-flex items-center gap-1.5">
+                Virar chamado de desenvolvimento
+                {devTaskRecommended && (
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                    RECOMENDADO
+                  </span>
+                )}
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-0.5 inline-flex items-start gap-1">
+                {devTaskBlocked && (
+                  <>
+                    <Ban size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Contato não é cliente pagante (ADR 0105 — backlog só recebe quem paga ou reporta).</span>
+                  </>
+                )}
+                {!devTaskBlocked && devTaskWarnNoContact && (
+                  <>
+                    <AlertTriangle size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Número sem cliente vinculado — backend valida ao salvar.</span>
+                  </>
+                )}
+                {!devTaskBlocked && !devTaskWarnNoContact && devTaskWarnLowSev && (
+                  <>
+                    <AlertTriangle size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Severity baixa — considere apenas registrar como feedback.</span>
+                  </>
+                )}
+                {!devTaskBlocked && !devTaskWarnNoContact && !devTaskWarnLowSev && !devTaskRecommended && (
+                  <span>Marca pra Wagner criar task MCP em até 24h via triagem.</span>
+                )}
+                {!devTaskBlocked && !devTaskWarnNoContact && devTaskRecommended && (
+                  <>
+                    <ZapIcon size={11} className="mt-0.5 flex-shrink-0" />
+                    <span>Sev ≥ 3 + cliente pagante. Pré-marcado em verde — Wagner triagem cria task em até 24h.</span>
+                  </>
+                )}
+              </div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-end gap-2">
           <Button variant="cowork-ghost" onClick={() => onOpenChange(false)} disabled={saving}>
             Cancelar
           </Button>
@@ -385,10 +495,11 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
             ) : (
               <>
                 <ClipboardCheck size={14} className="mr-1.5" />
-                Salvar feedback
+                {createDevTask && !devTaskBlocked ? 'Salvar + abrir chamado' : 'Salvar feedback'}
               </>
             )}
           </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
