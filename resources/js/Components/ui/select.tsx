@@ -25,20 +25,23 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = "default",
-  variant = "default",
+  variant = "cowork",
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
   /**
-   * Visual variant — `cowork` aplica classes `.cw-input` (port fiel do
-   * protótipo Cowork) em vez do shadcn default. Adicionado 2026-05-27
-   * pra emparelhar com <Input variant="cowork"> no drawer Cliente.
-   * Ver resources/css/cowork-fields.css.
+   * Visual variant.
+   *
+   * **Default desde 2026-05-27 (ADR UI-0015):** `cowork` aplica classes
+   * `.cw-input` (port fiel do protótipo Cowork) — bg sólido, ring accent-soft.
+   *
+   * **Opt-in legacy:** `shadcn` — visual canônico shadcn antigo. Use APENAS
+   * quando precisar em containers escuros onde bg branco quebra hierarquia.
    */
-  variant?: "default" | "cowork"
+  variant?: "cowork" | "shadcn"
 }) {
-  if (variant === "cowork") {
+  if (variant !== "shadcn") {
     return (
       <SelectPrimitive.Trigger
         data-slot="select-trigger"
@@ -58,6 +61,7 @@ function SelectTrigger({
     )
   }
 
+  // variant === "shadcn" — visual canônico opt-in legacy
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
