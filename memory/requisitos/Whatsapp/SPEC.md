@@ -1661,7 +1661,7 @@ Reskin visual do Inbox `/atendimento/inbox` pra bater identidade da Caixa Unific
 
 ## Caixa Unificada V4 — gaps próximo PR (handoff Wagner 2026-05-15)
 
-> Cadastradas a partir dos TODOs inline `US-WA-3XX` no protótipo canônico
+> Cadastradas a partir dos TODOs inline da faixa US-WA na centena 300 no protótipo canônico
 > [prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx).
 > **Regra anti-pattern M-AP-1 (LICOES_F3 §1):** NÃO inventar Service novo
 > sem antes ler Models/DataController/Service existentes — comparar com
