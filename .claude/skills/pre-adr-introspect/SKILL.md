@@ -4,7 +4,7 @@ description: ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR
 tier: B
 trigger: description-matching
 parent_adr: 0095
-related_adrs: [0028, 0093, 0094, 0095, 0105, 0120, 0200]
+related_adrs: ["0028", "0093", "0094", "0095", "0105", "0120", "0200"]
 ---
 
 # pre-adr-introspect — Tier B auto-trigger
@@ -21,7 +21,7 @@ Em **2026-05-27** entre 13:23 e 14:59 BRT, 7 PRs criados/mergeados pela mesma se
 | Escrevi RUNBOOK Martinho Fase 3+4 ([#1717](https://github.com/wagnerra23/oimpresso.com/pull/1717)) assumindo fases pendentes — realidade: já estavam em prod com 43.974 vendas + 83.045 títulos há semanas | RUNBOOK virou `historical` no mesmo dia ([#1727](https://github.com/wagnerra23/oimpresso.com/pull/1727) retrospectiva §7) | Não rodei diagnóstico Hostinger ANTES de escrever plano |
 | Tentei resolver colisão `number: 195` ([#1714](https://github.com/wagnerra23/oimpresso.com/pull/1714) vs [#1736](https://github.com/wagnerra23/oimpresso.com/pull/1736)) via rename/append em ADR — bloqueado por gate Append-only canon. Existiam 3 precedentes (0101/0102/0119) tratados via `_INDEX-LIFECYCLE.md` | 2 CI fails + 1 PR extra ([#1741](https://github.com/wagnerra23/oimpresso.com/pull/1741) fail · [#1744](https://github.com/wagnerra23/oimpresso.com/pull/1744)) | Não busquei precedente de colisão numérica em `memory/decisions/_INDEX-LIFECYCLE.md` |
 
-**Padrão único:** propus solução nova ANTES de verificar o que o projeto já tinha resolvido. **Mesma lição** documentada em [ADR 0200 §Lição arquitetural](../../memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md) — e cometi 2 vezes depois disso.
+**Padrão único:** propus solução nova ANTES de verificar o que o projeto já tinha resolvido. **Mesma lição** documentada em [ADR 0200 §Lição arquitetural](../../../memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md) — e cometi 2 vezes depois disso.
 
 Esta skill operacionaliza o "antes de criar pattern novo, faça `git grep`".
 
@@ -123,7 +123,7 @@ Esse relatório vai no corpo da ADR (seção "Contexto" ou "Análise prévia") o
 | Skill | Relação |
 |---|---|
 | [memory-schema-preflight](../memory-schema-preflight/SKILL.md) | Roda DEPOIS da introspecção — valida frontmatter da ADR já com decisões alinhadas |
-| [como-integrar](../como-integrar/SKILL.md) | Pareado — `como-integrar` introspecta antes de feature; `pre-adr-introspect` antes de ADR |
+| `como-integrar` (agente, não skill — `Agent(subagent_type: "como-integrar")`) | Pareado — `como-integrar` introspecta antes de feature; `pre-adr-introspect` antes de ADR |
 | [commit-discipline](../commit-discipline/SKILL.md) | Pré-req antes de commit de PR que cria ADR canon |
 | [mcp-first](../mcp-first/SKILL.md) | Tools MCP `decisions-search` cobrem parte do item 1 (canon search) |
 
@@ -151,10 +151,10 @@ Revisar em 30 dias (2026-06-27) — se métricas batem, virar Tier A always-on.
 
 ## Refs
 
-- [ADR 0200 — Contacts adopta canon sync Wagner](../../memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md) (§Lição arquitetural que esta skill operacionaliza)
-- [ADR 0095 — Skills tiers convenção interna](../../memory/decisions/0095-skills-tiers-convencao-interna.md)
-- [_INDEX-LIFECYCLE.md](../../memory/decisions/_INDEX-LIFECYCLE.md) (única forma de "mover" ADR sem violar append-only)
+- [ADR 0200 — Contacts adopta canon sync Wagner](../../../memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md) (§Lição arquitetural que esta skill operacionaliza)
+- [ADR 0095 — Skills tiers convenção interna](../../../memory/decisions/0095-skills-tiers-convencao-interna.md)
+- [_INDEX-LIFECYCLE.md](../../../memory/decisions/_INDEX-LIFECYCLE.md) (única forma de "mover" ADR sem violar append-only)
 - [memory-schema-preflight skill](../memory-schema-preflight/SKILL.md) (pareada)
-- [como-integrar skill](../como-integrar/SKILL.md) (pareada — features vs ADRs)
-- [contrato-delphi-inviolavel.md](../../memory/reference/contrato-delphi-inviolavel.md) (exemplo de doc canônico que ADR deve respeitar)
-- [migracao-officeimpresso-pattern.md](../../memory/reference/migracao-officeimpresso-pattern.md) (exemplo de pattern canônico que ADR deve reusar)
+- `como-integrar` agente (`Agent(subagent_type: "como-integrar")`) — pareado (features vs ADRs)
+- [contrato-delphi-inviolavel.md](../../../memory/reference/contrato-delphi-inviolavel.md) (exemplo de doc canônico que ADR deve respeitar)
+- [migracao-officeimpresso-pattern.md](../../../memory/reference/migracao-officeimpresso-pattern.md) (exemplo de pattern canônico que ADR deve reusar)
