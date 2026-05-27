@@ -832,7 +832,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="cw-dropdown-content w-56">
                   {/* SEÇÃO DADOS — ADR 0189 v3.1 SPEC §4.5 */}
                   {(props.permissions.import || props.permissions.view) && (
                     <>
@@ -1628,7 +1628,7 @@ function ActionsMenu({ row, onView }: { row: ClienteRow; onView: () => void }) {
           <MoreVertical size={16} />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="cw-dropdown-content w-48">
         <DropdownMenuItem onClick={onView}>
           <Eye size={14} className="mr-2" />
           Ver detalhes
@@ -1790,10 +1790,11 @@ function ClienteSheet({
         // 760px conforme ADR 0179 + Cowork blueprint. Larissa biz=4 1280x1024:
         // 760 + AppShellV2 sidebar 240 + main padding ~= 1024px (cabe sem
         // scroll horizontal). Pest Wave B asserta `w-[760px]` no HTML.
-        className="w-[760px] sm:max-w-[760px] p-0 flex flex-col"
+        // cw-sheet (ADR UI-0015): bg --cw-bg sutil — destaca seções brancas dentro
+        className="cw-sheet w-[760px] sm:max-w-[760px] p-0 flex flex-col"
       >
         {/* ─── Header rico ─────────────────────────────────────────────── */}
-        <SheetHeader className="border-b border-border px-6 py-4 space-y-3">
+        <SheetHeader className="cw-sheet-header px-6 py-4 space-y-3">
           <div className="flex items-start gap-4">
             {/* Z-2.1: drawer header avatar 40px round gradient oklch (alinhado ao protótipo Cowork). */}
             <ClienteAvatar
