@@ -102,3 +102,75 @@ Tela com score > 80 = ótimo.
 7. Wagner decide → aplica → smoke prod
 
 Detalhes operacionais no [RUNBOOK-design-deep.md](RUNBOOK-design-deep.md).
+
+---
+
+## Frameworks complementares canon (adicionados 2026-05-27)
+
+O **15D** cobre análise tática de tela. Pra cobrir outros ângulos do design o canon do oimpresso agora incorpora 2 frameworks consolidados:
+
+### A. JTBD Forces (Bob Moesta — Re-Wired Group)
+
+Modelo de **DECISÃO de adoção/abandono** do usuário. Quatro forças competem:
+
+| Força | Definição | Pergunta canon |
+|---|---|---|
+| **Push (do velho)** | Frustração com sistema atual | "O que dói no que ele usa hoje?" |
+| **Pull (do novo)** | Atração pelo oimpresso | "O que o oimpresso resolve que ele queria?" |
+| **Anxiety (do novo)** | Medo de trocar (vai dar certo?) | "O que ele tem MEDO se trocar?" |
+| **Habit (do velho)** | Apego ao familiar | "O que ele vai sentir falta do velho?" |
+
+**Trocar acontece quando**: `Push + Pull > Anxiety + Habit`.
+
+Aplicação no oimpresso: análise de **conversão piloto→pago** (Larissa, Daniela) e **prevenção de churn** (oimpresso vs Bling/Tiny/Omie). Quando designar tela que afeta decisão de continuar usando, escorar via JTBD Forces — NÃO 15D.
+
+Exemplo concreto Sells/Create:
+- **Push velho**: Excel + caderno fiado, perde controle saldo cliente
+- **Pull novo**: vê saldo no balcão em 1 clique
+- **Anxiety**: "se quebrar o sistema, perco vendas"
+- **Habit**: "Excel eu sei onde tudo está"
+
+Decisão design Sells/Create deve **MAXIMIZAR Pull (saldo evidente, NF-e auto)** + **REDUZIR Anxiety (recovery rápido, offline mode)** + **REDUZIR Habit (atalhos espelham caderno mental)**.
+
+### B. Nielsen Heuristics 10 (NN/g 1994)
+
+Checklist universal de sanity. **Pre-merge UI review** — Claude valida tela contra os 10 antes de aprovar PR:
+
+| # | Heurística | Pergunta |
+|---|---|---|
+| H1 | Visibility of system status | Usuário sabe o que está acontecendo agora? (loading, saved, etc) |
+| H2 | Match between system and real world | Termos = linguagem do usuário (PT-BR PME, não tech) |
+| H3 | User control and freedom | Saída de emergência sempre disponível (Cancelar, Voltar) |
+| H4 | Consistency and standards | Mesmo padrão em telas equivalentes |
+| H5 | Error prevention | Validação antes do erro (mascara CNPJ, confirma antes deletar) |
+| H6 | Recognition over recall | Mostra opções (dropdown) > exige lembrar (input livre) |
+| H7 | Flexibility and efficiency | Atalhos pra power user, sem complicar pra novato |
+| H8 | Aesthetic and minimalist design | Cada elemento na tela compete por atenção — corte o desnecessário |
+| H9 | Help users recognize, diagnose, recover from errors | Mensagem de erro explica + sugere ação corretiva |
+| H10 | Help and documentation | Onde necessário, ajuda contextual em ≤1 clique |
+
+Aplicação no oimpresso: skill `design-deep-analysis` roda Nielsen 10 como **quick sanity check** ANTES de pontuar 15D detalhado. Se reprovar em ≥3 heurísticas, sinaliza "tela tem problema fundamental, refator profundo".
+
+### Como combinar
+
+```
+┌─ Pergunta tipo "tela X tá ruim" ─────────────────────────────────────┐
+│                                                                       │
+│  1. Quick check Nielsen 10 (5 min) — algum vermelho?                  │
+│     SIM → refator profundo (15D + 3 alternativas)                     │
+│     NÃO → continua                                                    │
+│                                                                       │
+│  2. 15D score ponderado por persona — score < 60? refator             │
+│                                                                       │
+│  3. Se tela é "porta de entrada" (Sells/Create, Cliente landing):     │
+│     rodar JTBD Forces — Push/Pull/Anxiety/Habit balanceado?           │
+│                                                                       │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+### Refs
+
+- Bob Moesta — "Demand-Side Sales" + "Forces of Progress" framework
+- Clayton Christensen — "Competing Against Luck" (livro)
+- Jakob Nielsen — "10 Usability Heuristics" (NN/g, 1994)
+- Whitney Quesenbery — "5Es of Usability" (cabíveis em futuras expansões)
