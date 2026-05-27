@@ -57,6 +57,7 @@
 
 - [contrato-delphi-inviolavel.md](contrato-delphi-inviolavel.md) — **TIER 0** wire IRREVOGÁVEL (Delphi não vai recompilar) — endpoints Connector+Officeimpresso+Subscription + 3 níveis enforcement bloqueio (empresa/máquina/validade) + builds prod catalogados + matriz permitido/proibido
 - [legacy-delphi-firebird.md](legacy-delphi-firebird.md) — código fonte Delphi WR Comercial (SVN) + 50 bancos Firebird + SYSDBA/masterkey hardcoded {$IFDEF WR2} + fluxo login→registro
+- [setup-delphi-svn-time.md](setup-delphi-svn-time.md) — **Runbook provisionar dev remoto** pra Delphi/SVN READ-ONLY (atualmente Felipe — Wagner aprovou 2026-05-27). SlikSvn + hosts file mapeando NAT 177.74.67.30:8777 + checkout completo D:\Programas + credenciais via Vaultwarden. Outros devs (Maiara/Eliana/Luiz) sob demanda.
 - [project-officeimpresso-modulo.md](project-officeimpresso-modulo.md) — módulo Laravel licença desktop (3.7 restaurado→6.7) + tela licenca_log v3 machine-centric
 - [migracao-officeimpresso-pattern.md](migracao-officeimpresso-pattern.md) — **pattern canônico 4 fases** (Empresas→Vehicles→Vendas→Financeiro) · Python firebird-driver + pymysql · idempotência por legacy_id · audit JSON · anti-patterns Martinho 2026-05-13
 - [matriz-conhecimento-clientes-legacy.md](matriz-conhecimento-clientes-legacy.md) — **matriz universo** 50 bancos Firebird × 56 businesses oimpresso × status migração · Tier A (5 perfis: WR2/Vargas/Extreme/Gold/Martinho) · Tier B (45 dormentes) · **VERSAO_BANCO** por cliente (range 1404-1474 = 70 versões drift)
