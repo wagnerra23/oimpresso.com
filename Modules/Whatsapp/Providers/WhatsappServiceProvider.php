@@ -141,7 +141,16 @@ class WhatsappServiceProvider extends ServiceProvider
 
         // Observer ClientFeedback — auto-compute signature/relevance_score em creating/updating.
         // Ref: ADR 0195 + FeedbackRelevanceService.
-        \Modules\Whatsapp\Entities\ClientFeedback::observe(\Modules\Whatsapp\Observers\ClientFeedbackObserver::class);
+        // Wagner 2026-05-27 HOTFIX: guard class_exists() em volta — incidente prod onde
+        // dump-autoload --classmap-authoritative regenerou OK (19523 classes) mas autoloader
+        // não resolvia Modules\Whatsapp\Entities\ClientFeedback, derrubando boot() de TODA
+        // request autenticada (/ia/dashboard 500, Larissa @ Rota Livre travada). Defesa em
+        // profundidade: se classe estiver indisponível, skip observer ao invés de quebrar app.
+        // Voice of Customer dedup/scoring degrada graciosamente (HOT/WARM/COLD calculado on-demand
+        // via FeedbackRelevanceService) até causa-raiz do classmap ser corrigida.
+        if (class_exists(\Modules\Whatsapp\Entities\ClientFeedback::class)) {
+            \Modules\Whatsapp\Entities\ClientFeedback::observe(\Modules\Whatsapp\Observers\ClientFeedbackObserver::class);
+        }
 
         // Observer LidPhoneMap — wave-protocol-stack PR2 (sessão 2026-05-15).
         // Quando LID resolve pra phone (NULL→valor em phone_e164), dispara
