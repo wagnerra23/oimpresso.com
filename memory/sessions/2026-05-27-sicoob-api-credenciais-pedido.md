@@ -1,5 +1,6 @@
 ---
 date: '2026-05-27'
+topic: "Sicoob API — checklist credenciais Kamila pedir pro gerente (Martinho Caçambas biz=164)"
 type: handoff
 audience: kamila
 business_id: 164

@@ -1,5 +1,6 @@
 ---
 date: '2026-05-27'
+topic: "US-FIN-044 — Sicoob API REST v3 driver completion + 5 lições aprendidas"
 type: session
 slug: us-fin-044-sicoob-api-completion
 related_us:
