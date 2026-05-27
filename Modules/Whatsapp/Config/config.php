@@ -31,6 +31,23 @@ return [
         'api_version' => env('WHATSAPP_META_API_VERSION', 'v21.0'),
         'base_url' => env('WHATSAPP_META_BASE_URL', 'https://graph.facebook.com'),
         'request_timeout' => env('WHATSAPP_META_TIMEOUT', 10),
+
+        /*
+         * US-WA-310 Fase 2 (ADR 0202) — Embedded Signup v4.
+         *
+         * `app_id` + `app_secret` vêm do Meta App criado em developers.facebook.com
+         * com produto "WhatsApp" habilitado. Configuração detalhada no runbook
+         * `memory/requisitos/Whatsapp/runbooks/onboarding-meta-cloud-embedded-signup.md`.
+         *
+         * `business_config_id` é gerado dentro do Meta App ao habilitar Embedded
+         * Signup v4 — é o "Configuration ID" passado na URL do popup OAuth.
+         *
+         * Sem esses env vars, `provisionViaEmbeddedSignup()` lança RuntimeException —
+         * fluxo é opcional até Wagner configurar.
+         */
+        'app_id' => env('META_APP_ID'),
+        'app_secret' => env('META_APP_SECRET'),
+        'business_config_id' => env('META_BUSINESS_CONFIG_ID'),
     ],
 
     // Seção 'baileys' REMOVIDA 2026-05-27 (ADR 0202). Daemon CT 100 descomissionado.
