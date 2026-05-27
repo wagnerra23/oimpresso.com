@@ -1,15 +1,16 @@
 {
     "_meta": {
-        "generated_at": "2026-05-26T06:47:35-03:00",
+        "generated_at": "2026-05-26T18:18:53-03:00",
         "tool": "ui:lint",
-        "files_scanned": 500,
-        "total_violations": 7426,
+        "files_scanned": 1426,
+        "total_violations": 7500,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
             "R3": "emoji em UI de produto (use lucide icon)",
             "R4": "PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable shared",
-            "R5": "origens canon · CSS define apenas 5 origins (OS\/CRM\/FIN\/PNT\/MFG)"
+            "R5": "origens canon · CSS define apenas 5 origins (OS\/CRM\/FIN\/PNT\/MFG)",
+            "R6": "Blade directives adjacent sem whitespace (@endif@if, etc) · quebra compiler"
         }
     },
     "files": {
@@ -151,7 +152,7 @@
             "R1": 5
         },
         "resources\/js\/Pages\/Admin\/_components\/WidgetCurador.tsx": {
-            "R1": 33
+            "R1": 29
         },
         "resources\/js\/Pages\/Admin\/_components\/WidgetCycles.tsx": {
             "R1": 11
@@ -662,21 +663,6 @@
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/CacambaKanbanColumn.tsx": {
             "R1": 17
         },
-        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/ServiceOrderRichSheet.tsx": {
-            "R1": 33
-        },
-        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderItemFormSheet.tsx": {
-            "R1": 8
-        },
-        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderItemRow.tsx": {
-            "R1": 4
-        },
-        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Edit.tsx": {
-            "R1": 4
-        },
-        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Show.tsx": {
-            "R1": 5
-        },
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/DragConfirmDialog.tsx": {
             "R1": 19
         },
@@ -686,11 +672,23 @@
         "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/MercosulPlate.tsx": {
             "R1": 2
         },
+        "resources\/js\/Pages\/OficinaAuto\/ProducaoOficina\/_components\/ServiceOrderRichSheet.tsx": {
+            "R1": 33
+        },
         "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Index.tsx": {
             "R1": 95
         },
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/Show.tsx": {
+            "R1": 5
+        },
         "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderFsmActionPanel.tsx": {
             "R1": 46
+        },
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderItemFormSheet.tsx": {
+            "R1": 8
+        },
+        "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderItemRow.tsx": {
+            "R1": 4
         },
         "resources\/js\/Pages\/OficinaAuto\/ServiceOrders\/_components\/ServiceOrderSheet.tsx": {
             "R1": 40
@@ -899,8 +897,10 @@
         "resources\/js\/Pages\/Sells\/Create.tsx": {
             "R1": 27
         },
+        "resources\/js\/Pages\/Sells\/Edit.tsx": {
+            "R1": 16
+        },
         "resources\/js\/Pages\/Sells\/Index.tsx": {
-            "R3": 1,
             "R4": 2
         },
         "resources\/js\/Pages\/Sells\/Show.tsx": {
@@ -940,7 +940,7 @@
             "R1": 53
         },
         "resources\/js\/Pages\/Sells\/_components\/SaleTimeline.tsx": {
-            "R1": 44
+            "R1": 76
         },
         "resources\/js\/Pages\/Sells\/_components\/SellsCheatSheet.tsx": {
             "R1": 1
@@ -985,7 +985,7 @@
             "R1": 33
         },
         "resources\/js\/Pages\/StockTransfer\/Index.tsx": {
-            "R1": 33,
+            "R1": 29,
             "R4": 1
         },
         "resources\/js\/Pages\/superadmin\/Usuario360\/Show.tsx": {

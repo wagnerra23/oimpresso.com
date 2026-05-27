@@ -318,7 +318,7 @@ export default function ServiceOrdersEdit({ order, vehicles, statuses }: Props) 
 
               {items.length > 0 ? (
                 <>
-                  <ul className="divide-y divide-slate-100 border border-slate-200 rounded-md overflow-hidden bg-white">
+                  <ul className="divide-y divide-border/60 border rounded-md overflow-hidden bg-background">
                     {items.map((item) => (
                       <ServiceOrderItemRow
                         key={item.id}
@@ -333,13 +333,13 @@ export default function ServiceOrdersEdit({ order, vehicles, statuses }: Props) 
                     <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
                       Total OS
                     </span>
-                    <span className="text-sm tabular-nums font-semibold text-emerald-700">
+                    <span className="text-sm tabular-nums font-bold text-foreground">
                       {formatBRL(totalOs)}
                     </span>
                   </div>
                 </>
               ) : (
-                <div className="rounded-md border border-dashed border-slate-200 p-6 text-center">
+                <div className="rounded-md border border-dashed p-6 text-center">
                   <Package className="size-5 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
                     Nenhum item lançado ainda.
@@ -351,7 +351,7 @@ export default function ServiceOrdersEdit({ order, vehicles, statuses }: Props) 
               )}
             </section>
 
-            {/* Footer sticky bottom — cockpit pattern (Create #1676) */}
+            {/* Footer sticky bottom — cockpit pattern (Create PR 1676) */}
             <div className="flex justify-end gap-2 pt-4 border-t sticky bottom-0 bg-background -mx-1 px-1 pb-2">
               <Button variant="outline" type="button" onClick={handleClose}>
                 Cancelar
