@@ -163,8 +163,31 @@ export default function CustomerSearchAutocomplete({
           ref={inputRef}
           type="text"
           value={query.length > 0 ? query : selectedLabel}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onChange={(e) => {
+            // Wagner 2026-05-27 HOTFIX: quando o value mostra `selectedLabel`
+            // ("Cliente padrão" antes da primeira busca), o user digitava
+            // e o texto era CONCATENADO ao label visual (e.target.value
+            // virava "Cliente padrãowagner"), disparando fetch quebrado
+            // `q=Cliente+padr%C3%A3owagner`. Smoke prod Wagner 2026-05-27
+            // 10:25 BRT via Chrome MCP detectou o bug.
+            // Fix: ao digitar com selectedLabel ainda no campo, extrair APENAS
+            // o suffix adicionado pelo usuário.
+            const raw = e.target.value;
+            if (query.length === 0 && raw.startsWith(selectedLabel) && raw.length > selectedLabel.length) {
+              setQuery(raw.slice(selectedLabel.length));
+            } else {
+              setQuery(raw);
+            }
+          }}
+          onFocus={(e) => {
+            // Wagner 2026-05-27 HOTFIX: seleciona conteúdo no focus pra
+            // primeira digitação substituir o `selectedLabel` (defesa
+            // em profundidade pro caso de o user digitar do meio).
+            if (query.length === 0) {
+              e.currentTarget.select();
+            }
+            if (results.length > 0) setOpen(true);
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
