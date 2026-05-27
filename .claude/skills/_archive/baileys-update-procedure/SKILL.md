@@ -1,3 +1,6 @@
+> ⚠️ **ARQUIVADO 2026-05-27** — BaileysDriver descontinuado por [ADR 0202](../../../../memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md).
+> Conteúdo preservado como lição histórica. **NÃO ativar.**
+
 ---
 name: baileys-update-procedure
 description: ATIVAR quando user pedir "atualizar baileys", "nova versão baileys", "bump @whiskeysockets/baileys", OU quando daemon CT 100 apresentar bug "Connection Failure" / "noise-handler" / ban_detected suspeito recorrente. Roda procedimento 5-fase de update Baileys daemon (pre-check / migration / build / smoke / rollback) com gotchas conhecidos. Substitui exploração ad-hoc por checklist canônico — descobertos 5 traps em 2026-05-11 que custaram ~4h da sessão. Tier B (auto-trigger por description).
