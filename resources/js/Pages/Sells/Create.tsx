@@ -176,6 +176,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       product_id: number;
       variation_id: number | null;
       name: string;
+      // Variation name (ex "P", "M", "G") — exibido como `{name} - {variation}` no
+      // carrinho pra Larissa identificar tamanho da peça. Sem isso, vestuário com
+      // variável vê só "Camiseta" sem distinguir tamanho selecionado.
+      variation: string | null;
       sku: string;
       quantity: number;
       unit_price: number;
@@ -308,13 +312,19 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     }
 
     // Caso 1b/2 — product_id novo OU variação diferente: adiciona linha nova.
+    // Larissa @ Rota Livre (vestuário) reportou 2026-05-27: "tamanho não aparece
+    // e SKU sem código". Causa: handleAddProduct salvava só `name` (sem variation)
+    // e `sku` do produto base. Fix: incluir `variation` no state + usar `sub_sku`
+    // da variação no display (SKU da variação ≠ SKU do produto).
+    const hasVariation = p.variation !== undefined && p.variation !== null && p.variation !== '';
     setData('products', [
       ...data.products,
       {
         product_id: p.product_id,
         variation_id: incomingVariationId,
         name: p.name,
-        sku: p.sku,
+        variation: hasVariation ? p.variation ?? null : null,
+        sku: hasVariation ? p.sub_sku ?? p.sku : p.sku,
         quantity: 1,
         unit_price: Number(p.selling_price ?? 0),
         discount: 0,
@@ -479,11 +489,16 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // Submit handler — POST /sells via Inertia. Backend SellController@store / SellPosController@store
   // recebe o payload e cria Transaction + TransactionSellLine + payments.
   // Refs: ADR 0104 (MWART F2 backend baseline), Inertia useForm docs.
+  // Wagner 2026-05-27: removida exigência `Math.abs(totalPago - totalGeral) < 0.01`.
+  // Venda a prazo / fiado: Larissa @ Rota Livre vende cliente leva produto + paga
+  // depois. Backend cria venda com payment_status=due automaticamente quando
+  // totalPago < totalGeral. Indicador no rodapé mostra saldo devedor (falta /
+  // exato / troco), mas botão Salvar habilita pra qualquer combinação válida.
+  // Paridade Blade legacy POS que sempre permitiu finalizar venda sem pagamento.
   const canSubmit =
     !processing &&
     data.products.length > 0 &&
     data.location_id !== null &&
-    Math.abs(totalPago - totalGeral) < 0.01 &&
     !discountError;
 
   const handleSubmit = (withPrint = false) => {
@@ -1005,7 +1020,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                     return (
                       <tr key={`${p.product_id}-${p.variation_id}-${idx}`}>
                         <td className="px-3 py-2 align-top">
-                          <div className="font-medium text-foreground">{p.name}</div>
+                          <div className="font-medium text-foreground">
+                            {p.name}
+                            {p.variation && <> — <span className="text-muted-foreground">{p.variation}</span></>}
+                          </div>
                           <div className="text-xs text-muted-foreground">SKU {p.sku}</div>
                         </td>
                         <td className="px-3 py-2">
@@ -1496,10 +1514,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               </span>
             ) : !canSubmit && data.products.length === 0 ? (
               <span>Adicione pelo menos 1 produto</span>
-            ) : !canSubmit && Math.abs(totalPago - totalGeral) >= 0.01 ? (
-              <span>Pagamento {pagamentoStatus === 'falta' ? 'falta fechar' : 'excede o total'}</span>
             ) : !canSubmit && data.location_id === null ? (
               <span>Selecione o local da venda</span>
+            ) : pagamentoStatus === 'falta' ? (
+              // Info-level (não bloqueia mais — venda a prazo permitida).
+              <span className="text-amber-600 dark:text-amber-400">
+                Venda a prazo — saldo devedor {formatBRL(Math.abs(saldoPagamento))}
+              </span>
+            ) : pagamentoStatus === 'troco' ? (
+              <span>Troco {formatBRL(saldoPagamento)}</span>
             ) : (
               <span className="hidden md:inline">Atalho: Ctrl+Enter pra salvar</span>
             )}
