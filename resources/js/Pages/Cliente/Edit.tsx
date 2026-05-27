@@ -157,10 +157,10 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
         </div>
       </div>
 
-      <div className="container mx-auto px-8 py-6 max-w-3xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="container mx-auto px-8 py-5 max-w-3xl">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Section title="Identificação" icon={User2}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Tipo" error={errors.type}>
                 <select
                   value={data.type}
@@ -218,7 +218,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
           />
 
           <Section title="Contato">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Celular" error={errors.mobile}>
                 <Input value={data.mobile} onChange={(e) => setData('mobile', e.target.value)} />
               </Field>
@@ -232,7 +232,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
           </Section>
 
           <Section title="Endereço">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Field label="Endereço" error={errors.address_line_1} colSpan={2}>
                 <Input value={data.address_line_1} onChange={(e) => setData('address_line_1', e.target.value)} />
               </Field>
@@ -250,7 +250,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
 
           {(data.type === 'customer' || data.type === 'both') && (
             <Section title="Financeiro">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <Field label="Saldo inicial" error={errors.opening_balance}>
                   <Input value={data.opening_balance} onChange={(e) => setData('opening_balance', e.target.value)} />
                 </Field>
@@ -294,9 +294,9 @@ ClienteEdit.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
 function Section({ title, icon: Icon, children }: { title: string; icon?: typeof User2; children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-border bg-background p-5">
-      <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-        {Icon && <Icon size={16} className="text-muted-foreground" />}
+    <section className="rounded-lg border border-border bg-background p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+        {Icon && <Icon size={14} className="text-muted-foreground" />}
         {title}
       </h3>
       {children}
@@ -307,9 +307,9 @@ function Section({ title, icon: Icon, children }: { title: string; icon?: typeof
 function Field({ label, children, error, colSpan }: { label: string; children: ReactNode; error?: string; colSpan?: number }) {
   return (
     <div className={colSpan === 2 ? 'sm:col-span-2' : ''}>
-      <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">{label}</Label>
+      <Label className="mb-1 block">{label}</Label>
       {children}
-      {error && <p className="text-xs text-rose-600 mt-1">{error}</p>}
+      {error && <p className="text-xs text-rose-600 mt-0.5">{error}</p>}
     </div>
   );
 }
