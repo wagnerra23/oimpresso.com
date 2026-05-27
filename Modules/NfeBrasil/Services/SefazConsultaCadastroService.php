@@ -100,10 +100,15 @@ class SefazConsultaCadastroService
      * @param  string|null  &$reason  Out param populado quando retorno é null,
      *                                 distinguindo motivo pra UI/controller:
      *                                 'invalid_cnpj' | 'uf_unsupported' | 'flag_off'
-     *                                 | 'no_cert' | 'sefaz_error'.
+     *                                 | 'env_homolog' | 'no_cert' | 'sefaz_error'.
      *                                 Antes (Wagner 2026-05-27): qualquer falha caía
      *                                 em 'sefaz_or_cert_error' genérico → UI mostrava
      *                                 "Configure cert A1" mesmo com cert OK + erro SEFAZ.
+     *                                 `env_homolog` (Wagner 2026-05-27 follow-up):
+     *                                 business em ambiente homologação (tpAmb=2) NÃO pode
+     *                                 fazer ConsultaCadastro — SEFAZ aceita SÓ produção
+     *                                 (tpAmb=1). Early-check evita ~500ms-1s auth fail
+     *                                 + log poluído com "sefaz_error" enganoso.
      * @return array|null  null = UF não suportada, sem cert, ou erro SEFAZ (ver $reason)
      */
     public function consultar(string $cnpj, string $uf, int $businessId, ?string &$reason = null): ?array
@@ -134,6 +139,31 @@ class SefazConsultaCadastroService
                 'business_id' => $businessId,
             ]);
             $reason = 'flag_off';
+            return null;
+        }
+
+        // Early-check ambiente NFe — SEFAZ ConsultaCadastro funciona APENAS em
+        // produção (tpAmb=1). Cert pode estar válido mas se o BUSINESS está
+        // configurado pra homologação (tpAmb=2 default UPOS), Tools sped-nfe
+        // monta request com tpAmb=1 hardcoded enquanto cert autentica contra
+        // cadeia de testes → auth fail em ~500ms-1s + log "sefaz_error" enganoso.
+        // Wagner 2026-05-27: biz=1 oimpresso estava em homolog → todas 6 UFs
+        // falharam com 'sefaz_error' (latência 462-964ms — não era timeout).
+        //
+        // Lê business.ambiente direto via DB (consistente com ConfigController
+        // do Fiscal, mesma coluna). Default 2 (homolog) se ausente — seguro.
+        //
+        // Multi-tenant Tier 0: businessId já vem scoped no caller, query aqui
+        // é flat (SELECT ambiente FROM business WHERE id=?) sem cross-tenant risk.
+        $ambiente = (int) (\Illuminate\Support\Facades\DB::table('business')
+            ->where('id', $businessId)
+            ->value('ambiente') ?? 2);
+        if ($ambiente !== 1) {
+            Log::info('SefazConsultaCadastroService: business em homologação — skip', [
+                'business_id' => $businessId,
+                'ambiente' => $ambiente,
+            ]);
+            $reason = 'env_homolog';
             return null;
         }
 
