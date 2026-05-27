@@ -1,5 +1,10 @@
+# Firebird driver — escolha um (auto-detect via lib/firebird_reader.py):
+#   firebird-driver: API moderna, requer Firebird ≥3.0 client/server
+#   fdb:             driver legacy oficial, funciona com Firebird 2.5+
+# Servidores WR Comercial legacy (Martinho, vários clientes) rodam FB 2.5 —
+# instalar fdb se for esse o caso. firebird-driver fica como upgrade futuro.
 firebird-driver>=1.10.0
+fdb>=2.0.2
 python-dotenv>=1.0.0
-# Opcional — só pra import-contas-bancarias.py em modo --target local|prod
-# (não necessário pra POCs nem dry-run)
+# Opcional — só pra modo --target local|prod (não necessário pra POCs nem dry-run)
 pymysql>=1.1.0
