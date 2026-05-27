@@ -3,10 +3,15 @@ page: /settings/payment-gateways
 component: resources/js/Pages/Settings/PaymentGateways/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-19
+last_validated: '2026-05-27'
 parent_module: PaymentGateway
-related_adrs: [0093, 0094, 0104, 0144, 0170]
-related_us: [US-PG-F3-SETTINGS]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0144-tasks-db-canonico-spec-template
+  - 0170-bancos-nativos-top5-drivers-separados
+related_us: [US-PG-F3-SETTINGS, US-FIN-044]
 related_prototype: prototipo Cowork "payment-gateway-ui" F1+F1.5 aprovado [W] 2026-05-19
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 93/100)
 tier: A

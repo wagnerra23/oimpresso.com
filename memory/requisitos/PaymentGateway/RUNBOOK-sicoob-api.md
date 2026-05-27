@@ -4,6 +4,7 @@ title: "RUNBOOK — Sicoob API v3 driver (US-FIN-044)"
 type: runbook
 authority: canonical
 lifecycle: ativo
+status: ativo
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0105-cliente-como-sinal-guiar-sem-mandar
@@ -14,6 +15,7 @@ parent_module: PaymentGateway
 persona: Wagner (superadmin) + Kamila (operadora ROTA LIVRE biz=4)
 session_date: '2026-05-27'
 owner: W
+last_validated: '2026-05-27'
 ---
 
 # RUNBOOK · Sicoob API v3 driver (US-FIN-044)
