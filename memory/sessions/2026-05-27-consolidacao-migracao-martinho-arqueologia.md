@@ -211,3 +211,55 @@ Após criar PR #1766 com ADR 0203 proposal "pattern canônico consolidado", dete
 - Pattern conceitual expandido pra 13 fases (9 originais + 4 ADR 0203 canon)
 
 **Anti-pattern §5 do pattern recursivamente acontecendo:** múltiplos agentes Claude paralelos sem `whats-active`. Acontece desde 2026-05-13 (Wave 0 Martinho rename) + 2026-05-14 (5 branches órfãs maratona) + 2026-05-27 (PR #1765 vs PR #1766 1m26s diferença). Mitigação real exige promover hook `whats-active` MCP pra Tier A always-on — listado em US-MEMORIA-ZZZ backlog [ADR 0204 §Implementação](../decisions/proposals/0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon.md).
+
+---
+
+## ⚠️ Lições de comportamento do Claude (registradas pós-merge #1766)
+
+Adendo final 2026-05-27 ~18:30 BRT após Wagner corrigir 2 padrões meus que causaram ida-e-volta desnecessária na sessão. Registrado em git pra evitar repetição em sessões futuras.
+
+### Lição 1 — Confiar em ADR canon vigente · NÃO re-propor decisão recente
+
+**Contexto:** Pós-merge #1766, Wagner reforçou canon dedupe `officeimpresso_codigo` + `officeimpresso_dt_alteracao` (de [ADR 0200](../decisions/0200-contacts-sync-canon-amends-0197-0199.md), aceita 5h antes na mesma sessão). Eu auditei meus 4 importers Wave 2, achei `import-contacts-from-nfe.py` usando `legacy_id=CNPJ_normalizado` como chave dedup (sem `officeimpresso_codigo` preenchido), e propus **"follow-up PR pra ajustar pra preencher `officeimpresso_codigo=NULL` explicitamente"**.
+
+**Wagner corrigiu:** *"isso é errado tu ja tinha corrigido essas coisas e feito plano melhor para não duplicar e ficar ida e volta"*.
+
+**Canon que eu ignorei** (ADR 0200 §"PII leak — drift detection" + §"Riscos"):
+> *"Cliente Delphi PUSH com `officeimpresso_codigo` que conflita com `legacy_id` | App layer trata como **chaves distintas**"*
+>
+> *"campo `officeimpresso_codigo` é CODIGO Delphi internal (não PII); validar trimestralmente que **não foi misturado com CNPJ no importer**"*
+
+**Implementação atual estava CORRETA:**
+- `legacy_id = CNPJ_normalizado` ✅ canon (chave dedup natural pra fornecedor sem CODIGO Delphi origem)
+- `officeimpresso_codigo = NULL` (default · comportamento correto · fornecedor extraído de NFe NÃO tem código Delphi internal)
+- Preencher `NULL` explicitamente seria **anti-pattern** que ADR 0200 lista como drift trimestral a detectar (porta pra alguém erradamente colocar CNPJ ali achando "tem que preencher canon")
+
+**Anti-pattern de comportamento meu:**
+1. Propor "ajuste" em decisão canon aceita **na mesma sessão** sem re-ler ADR vigente
+2. Gerar ida-e-volta com Wagner pra confirmar canon já estabelecido
+3. Confiar em raciocínio próprio sobre "consistência" em vez de confiar no design intencional do ADR
+
+**Mitigação operacional pra sessões futuras:**
+- ANTES de propor "ajuste/follow-up" em código tocado por ADR aceita recentemente → re-ler ADR completa (incluindo §Riscos e §Drift detection)
+- Se propor mudança, citar EXPLICITAMENTE o que o ADR canon diz contra
+- Se o ADR não fala contra, ainda é mais seguro perguntar antes de propor follow-up
+
+### Lição 2 — "Órfã" não é status auto-deduzível · cross-check autor + atividade recente
+
+**Contexto:** Logo antes (mesma sessão ~18:00 BRT), eu chamei 5 branches de "órfãs a deletar" no ADR 0204 inicial sem cross-check.
+
+**Wagner corrigiu:** *"tem certeza que são orfão porque tem sessões trabalhando"*.
+
+**Re-classificação real:** PR #1204 (`feature/legacy-migration-pessoas-sql`) é **trabalho ATIVO do SupportWR/Felipe** (5 commits 20/05 com US-VEST-020 etiqueta + skill migration-status + Page Inertia /vestuario/etiquetas misturados). Não é órfã.
+
+**Mitigação operacional:**
+- ANTES de propor delete branch >7d → cross-check: (a) autor (não-Wagner = pode ser time ativo), (b) PR aberto + CI status, (c) `cc-search` MCP pra sessões CC paralelas, (d) conteúdo dos commits (pode ter trabalho não-relacionado misturado)
+- "Órfão" exige evidência POSITIVA de abandono — não inferência por idade isolada
+
+### Padrão comum das 2 lições
+
+Em ambos casos eu propus mudança baseado em **raciocínio próprio sobre "consistência/limpeza"** sem cross-check com (a) ADR canon vigente OU (b) atividade real do time. Wagner teve que corrigir minha proposta — gerando o ida-e-volta que ele explicitamente reclamou.
+
+**Princípio destilado:** *"Antes de propor 'ajuste/limpeza', verifique se o estado atual é resultado de decisão deliberada (ADR canon) OU trabalho ativo (autor + PR). Se sim, não propor mudança — confiar no design vigente."*
+
+Possível candidato a **skill nova Tier B** auto-trigger: `confiar-canon-vigente` — ativada quando agente vai propor "follow-up PR" / "ajuste" / "consistência" em código tocado por ADR canon aceita nos últimos 7d.
