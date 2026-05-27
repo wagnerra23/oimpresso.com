@@ -203,7 +203,11 @@ export default function SellsSubscriptions(props: SellsSubscriptionsPageProps) {
         {/* Search */}
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* variant=shadcn pra permitir pl-9 (ícone-prefix). Default cowork tem
+              padding hardcoded `0 8px` que sobrepõe o pl-9 Tailwind — ícone fica
+              em cima do texto. ADR UI-0015 default cowork 2026-05-27. */}
           <Input
+            variant="shadcn"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nº ou cliente…"
