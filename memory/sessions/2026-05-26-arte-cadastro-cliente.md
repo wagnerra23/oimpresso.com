@@ -1,11 +1,14 @@
 ---
-session: 2026-05-26 · arte-cadastro-cliente
-agent: design-arte (estratégico — benchmark + nota + Capterra)
-escopo: Cadastro/edição de Cliente PJ/PF — 3 superfícies (Drawer 760px, Edit.tsx, Show.tsx)
-solicitante: Wagner (após PRs #1693/#1694/#1695 mergeados hoje)
-modulo_alvo: Cliente (resources/js/Pages/Cliente/)
-adrs_referencia: [0093, 0094, 0104, 0107, 0149, 0179, 0188 · UI-0013]
-charter_ativo: Pages/Cliente/Index.charter.md v7
+date: "2026-05-26"
+topic: "Estado-da-arte cadastro Cliente — Drawer 760 + Edit.tsx + Show.tsx vs SOTA 2026 (nota 61/100)"
+authors: ["Wagner", "Claude"]
+session_slug: "arte-cadastro-cliente"
+agent: "design-arte"
+escopo: "Cadastro/edição de Cliente PJ/PF — 3 superfícies (Drawer 760px, Edit.tsx, Show.tsx)"
+solicitante: "Wagner (após PRs #1693/#1694/#1695 hoje)"
+modulo_alvo: "Cliente"
+adrs_referencia: ["0093", "0094", "0104", "0107", "0149", "0179", "0188"]
+charter_ativo: "Pages/Cliente/Index.charter.md v7"
 ---
 
 # Design Arte — Cadastro/edição de Cliente (Drawer + Edit + Show)
