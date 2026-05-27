@@ -269,7 +269,7 @@ export default function ComercialTab({ contact, onSaved, disabled = false }: Com
             onValueChange={(v) => handleSelectChange('tabela_preco_padrao', v)}
             disabled={disabled}
           >
-            <SelectTrigger id="cm-tabela" className="w-full">
+            <SelectTrigger id="cm-tabela" variant="cowork" className="w-full">
               <SelectValue placeholder="Selecionar tabela" />
             </SelectTrigger>
             <SelectContent>
@@ -296,7 +296,7 @@ export default function ComercialTab({ contact, onSaved, disabled = false }: Com
             onValueChange={(v) => handleSelectChange('pgto_padrao', v)}
             disabled={disabled}
           >
-            <SelectTrigger id="cm-pgto" className="w-full">
+            <SelectTrigger id="cm-pgto" variant="cowork" className="w-full">
               <SelectValue placeholder="Selecionar forma de pagamento" />
             </SelectTrigger>
             <SelectContent>
