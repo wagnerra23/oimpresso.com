@@ -1,3 +1,16 @@
+---
+module: Whatsapp
+version: "2.0"
+status: ativo
+owners: [W]
+last_updated: "2026-05-27"
+related_adrs:
+  - "0096-modulo-whatsapp-meta-cloud-api-direto"
+  - "0117-multiplos-numeros-whatsapp-por-business"
+  - "0202-whatsapp-profissionalizacao-baileys-out"
+  - "0135-omnichannel-inbox-arquitetura"
+---
+
 # Especificação funcional — Whatsapp
 
 > Convenção do ID: `US-WA-NNN` para user stories, `R-WA-NNN` para regras Gherkin.
@@ -1648,7 +1661,7 @@ Reskin visual do Inbox `/atendimento/inbox` pra bater identidade da Caixa Unific
 
 ## Caixa Unificada V4 — gaps próximo PR (handoff Wagner 2026-05-15)
 
-> Cadastradas a partir dos TODOs inline `US-WA-3XX` no protótipo canônico
+> Cadastradas a partir dos TODOs inline da faixa US-WA na centena 300 no protótipo canônico
 > [prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx).
 > **Regra anti-pattern M-AP-1 (LICOES_F3 §1):** NÃO inventar Service novo
 > sem antes ler Models/DataController/Service existentes — comparar com
