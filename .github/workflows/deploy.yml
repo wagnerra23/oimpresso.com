@@ -129,6 +129,16 @@ jobs:
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan ${{ inputs.extra_artisan }} 2>&1 | tail -30"
 
       - name: Clear caches + re-cache
+        # Wagner 2026-05-27 HOTFIX: removido `php artisan route:cache` — em prod o arquivo
+        # `bootstrap/cache/routes-v7.php` é gerado OK no deploy, smoke /login retorna 200,
+        # mas LOGO DEPOIS o arquivo SUMME (algum cron/job/shared-hosting cleanup destrói),
+        # quebrando TODA request autenticada subsequente com:
+        #   "Failed opening required '.../bootstrap/cache/routes-v7.php'
+        #    at RouteServiceProvider.php:150"
+        # Sintoma: Larissa @ Rota Livre travada em /ia/dashboard 500 (deploy 26512430704
+        # logo após hotfix #1716 que resolveu ClientFeedback bootstrap).
+        # Trade-off: routes resolvidas em runtime (latência ~10-30ms a mais por request),
+        # mas prod estável. Investigação root cause em PR separado (ver tail laravel.log).
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
@@ -136,8 +146,7 @@ jobs:
             php artisan route:clear &&
             php artisan view:clear &&
             php artisan cache:clear &&
-            php artisan config:cache &&
-            php artisan route:cache
+            php artisan config:cache
           "
 
       - name: Package discover
