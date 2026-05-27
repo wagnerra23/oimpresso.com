@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\DriverDoesNotSupport;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
@@ -25,45 +24,17 @@ uses(Tests\TestCase::class);
  * Trust L0: tests Reflection puros + Http::fake. Zero side-effect (HTTP/DB).
  *
  * @see Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php (Wave 25 baseline)
- * @see Modules/Whatsapp/Services/Drivers/* (4 drivers canon ADR 0096 emenda 4)
+ * @see Modules/Whatsapp/Services/Drivers/* (3 drivers canon pós ADR 0202: Meta/Zapi/Null)
  * @see Modules/Whatsapp/Services/Webhook/* (Wave 18 D4 SoC extraction)
+ * @see memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md (BaileysDriver OUT 2026-05-27)
  */
 
 // ------------------------------------------------------------------
-// D2 — Cobertura expandida BaileysDriver (spans + métodos auxiliares)
+// D2 — Cobertura BaileysDriver REMOVIDA 2026-05-27 (ADR 0202 — driver
+// descontinuado, classe deletada). Spans baileys.* permanecem em
+// WebhookSignatureChecker pra processar callbacks legados do daemon CT 100
+// já desligado durante janela de descomissionamento.
 // ------------------------------------------------------------------
-
-it('BaileysDriver tem spans canon hot-path send_freeform + send_media + send_interactive + ping', function () {
-    $file = (new ReflectionClass(BaileysDriver::class))->getFileName();
-    $src = file_get_contents($file);
-
-    foreach (['send_freeform', 'send_media', 'send_interactive'] as $span) {
-        expect($src)->toContain("'whatsapp.baileys.{$span}'");
-    }
-});
-
-it('BaileysDriver mapSendResponse + normalizePhone são private (encapsulamento canon)', function () {
-    $ref = new ReflectionClass(BaileysDriver::class);
-
-    expect($ref->getMethod('mapSendResponse')->isPrivate())->toBeTrue();
-    expect($ref->getMethod('normalizePhone')->isPrivate())->toBeTrue();
-    expect($ref->getMethod('client')->isPrivate())->toBeTrue();
-});
-
-it('BaileysDriver sendInteractive rejeita cta_url (Whatsapp Web protocol não suporta)', function () {
-    $file = (new ReflectionClass(BaileysDriver::class))->getFileName();
-    $src = file_get_contents($file);
-
-    // Deve lançar DriverDoesNotSupport pra cta_url (fail-fast pro caller saber
-    // que precisa cair pro Meta Cloud)
-    expect($src)->toContain("'cta_url'");
-    expect($src)->toContain('DriverDoesNotSupport::for');
-});
-
-it('BaileysDriver fetchMessageStatus retorna queued (status real vem via webhook)', function () {
-    $ref = new ReflectionMethod(BaileysDriver::class, 'fetchMessageStatus');
-    expect($ref->getReturnType()?->getName())->toBe('Modules\\Whatsapp\\Services\\Drivers\\MessageStatus');
-});
 
 // ------------------------------------------------------------------
 // D2 — Cobertura expandida MetaCloudDriver
@@ -330,10 +301,11 @@ it('D3 W26: Modules/Whatsapp/CHANGELOG.md OU BRIEFING.md tem entrada Wave 26', f
     expect(str_contains($changelog, 'Wave 26') || str_contains($briefing, 'Wave 26'))->toBeTrue();
 });
 
-it('Wave 26 preserva BaileysDriver custom + MetaCloudDriver fallback (IRREVOGÁVEL ADR 0096 e4)', function () {
-    // Não deve haver tentativa de remover BaileysDriver em prol de Evolution
-    // (ADR 0096 emenda 4 — Evolution proibida permanente)
-    expect(class_exists(BaileysDriver::class))->toBeTrue();
+it('Pós ADR 0202: BaileysDriver removido + MetaCloudDriver default + Evolution PROIBIDO permanente', function () {
+    // ADR 0202 (2026-05-27) supersede ADR 0096 emenda 4 — BaileysDriver
+    // descontinuado e classe deletada. MetaCloud vira default universal.
+    // Evolution continua proibido permanente.
+    expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\BaileysDriver'))->toBeFalse();
     expect(class_exists(MetaCloudDriver::class))->toBeTrue();
     expect(class_exists('Modules\\Whatsapp\\Services\\Drivers\\EvolutionDriver'))->toBeFalse();
 });

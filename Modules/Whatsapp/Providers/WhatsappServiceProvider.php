@@ -41,7 +41,6 @@ use Modules\Whatsapp\Events\WhatsappMessageReceived;
 use Modules\Whatsapp\Events\WhatsappMessageSent;
 use Modules\Whatsapp\Http\Middleware\EnforceWebhookBackpressure;
 use Modules\Whatsapp\Http\Middleware\PropagateTraceparent;
-use Modules\Whatsapp\Http\Middleware\VerifyBaileysSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyBaileysWebhookHmac;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
@@ -56,7 +55,6 @@ use Modules\Whatsapp\Observers\WhatsappMessageObserver;
 use Modules\Whatsapp\Services\Audio\Contracts\AudioTranscriber;
 use Modules\Whatsapp\Services\Audio\WhisperTranscriber;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
-use Modules\Whatsapp\Services\Drivers\BaileysDriver;
 use Modules\Whatsapp\Services\Drivers\DriverInterface;
 use Modules\Whatsapp\Services\Drivers\MetaCloudDriver;
 use Modules\Whatsapp\Services\Drivers\NullDriver;
@@ -72,9 +70,10 @@ use Modules\Whatsapp\Services\Notes\SlashCommandRegistry;
  * ServiceProvider do módulo Whatsapp.
  *
  * Decisão arquitetural mãe: ADR 0096 (memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)
- * - Z-API = driver default Sprint 1
- * - Meta Cloud = fallback obrigatório Sprint 1 (gating duro FormRequest)
- * - BaileysDriver custom = autorizado Sprint 3 (estrutura customizada de atendimento)
+ * Atualizada por: ADR 0202 (memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md)
+ * - Meta Cloud = driver default universal (ADR 0202, supersede 0096 emenda 4)
+ * - Z-API = opcional fallback per-tenant
+ * - BaileysDriver = DESCONTINUADO 2026-05-27 (ADR 0202)
  * - Evolution API = PROIBIDO permanente
  *
  * @see memory/requisitos/Whatsapp/SPEC.md
@@ -197,8 +196,10 @@ class WhatsappServiceProvider extends ServiceProvider
         $router = $this->app['router'];
         $router->aliasMiddleware('whatsapp.meta.signature', VerifyMetaSignature::class);
         $router->aliasMiddleware('whatsapp.zapi.signature', VerifyZapiSignature::class);
-        $router->aliasMiddleware('whatsapp.baileys.signature', VerifyBaileysSignature::class);
+        // whatsapp.baileys.signature alias REMOVIDO 2026-05-27 (ADR 0202) — VerifyBaileysSignature deletado.
         // US-WA-082 — Replay protection HMAC + nonce no webhook receiver Baileys
+        // (preservado: webhook receiver legado pode receber callbacks históricos
+        // do daemon CT 100 já desligado; descomissionamento completo em Fase 4)
         $router->aliasMiddleware('whatsapp.baileys.hmac', VerifyBaileysWebhookHmac::class);
         // US-WA-084 — Backpressure protetiva (429 quando queue depth > max)
         $router->aliasMiddleware('whatsapp.baileys.backpressure', EnforceWebhookBackpressure::class);
@@ -215,7 +216,7 @@ class WhatsappServiceProvider extends ServiceProvider
         $this->app->singleton(ZapiDriver::class);
         $this->app->singleton(MetaCloudDriver::class);
         $this->app->singleton(NullDriver::class);
-        $this->app->singleton(BaileysDriver::class);
+        // BaileysDriver singleton REMOVIDO 2026-05-27 (ADR 0202).
 
         // Centrifugo publisher singleton (stateless HTTP wrapper)
         $this->app->singleton(CentrifugoPublisher::class);
@@ -231,10 +232,10 @@ class WhatsappServiceProvider extends ServiceProvider
         // Em produção real, sempre prefira DriverFactory::make($config) que
         // aplica fallback runtime.
         $this->app->bind(DriverInterface::class, function () {
-            return match (config('whatsapp.default_driver', 'zapi')) {
+            return match (config('whatsapp.default_driver', 'meta_cloud')) {
                 'zapi' => $this->app->make(ZapiDriver::class),
                 'meta_cloud' => $this->app->make(MetaCloudDriver::class),
-                'baileys' => $this->app->make(BaileysDriver::class),
+                // 'baileys' descontinuado 2026-05-27 (ADR 0202) — cai pra NullDriver.
                 'null' => $this->app->make(NullDriver::class),
                 default => $this->app->make(NullDriver::class),
             };
