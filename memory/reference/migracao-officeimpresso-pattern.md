@@ -73,6 +73,67 @@ type: reference
 - **Decisão estratégica Wagner:** cleanup-first — write-off candidate (`DT_VENCTO > 365d + sem BOLETO + sem movimentação`) flagado, NÃO importado. ROI maior que dunning pra 76.7% inadimplência típica (caso Martinho)
 - **Status:** ✅ executado Martinho biz=164 (83.045 títulos + 71.675 baixas em prod · diagnóstico 2026-05-27) — provavelmente **SEM cleanup-first** (76.7% inadimplência migrada incluindo write-off legacy 14 anos · review trigger: avaliar archive job opt-in ADR 0198 §Mitigação 3) · 🟡 Vargas/Gold/Extreme ainda pendentes — manter cleanup-first per [ADR 0171 §Cleanup tools](../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md)
 
+## 2-bis. Fases 6-9 consolidadas 2026-05-27 ([ADR 0203 canon](../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) + [ADR 0204 proposal](../decisions/proposals/0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon.md))
+
+Scripts recuperados de branch órfã `claude/wip-martinho-canary-2026-05-14` em PR consolidação 2026-05-27 (~3 semanas órfãs). Cherry-pick + smoke validados.
+
+### Fase 6 — Produtos (catálogo Delphi → products UltimatePOS)
+
+- **Fonte:** `PRODUTO` (21+ cols canônicas, adapter por versão)
+- **Alvo:** `products` (multi-tenant Tier 0)
+- **Importer:** `scripts/legacy-migration/import-produtos.py` (724 LOC · v0.2.0 com `--delta-since-last-sync`)
+- **Chave dedupe:** `(business_id, sku)` — SKU = `CODIGOEAN` se válido, senão `LEG-{CODIGO}`
+- **Validado:** Martinho dry-run 2026-05-27 — 4.378 produtos lidos (1.310 com EAN, 3.068 placeholder LEG-*)
+- **Pré-req:** Nenhum (universal)
+
+### Fase 7 — Estoque (movimentações Delphi → product_stock_movements)
+
+- **Fonte:** `ESTOQUE` (filtrado `PRINCIPAL='S'` opcional)
+- **Alvo:** `product_stock_movements` (FK pra `products.id`)
+- **Importer:** `scripts/legacy-migration/import-estoque.py` (552 LOC · v0.2.0)
+- **Pré-req:** Fase 6 (produtos prontos)
+- **Validado:** Martinho dry-run 2026-05-14 — 4.581 movimentações
+
+### Fase 8 — Compras (NFe entrada → transactions tipo=purchase)
+
+- **Fonte:** `COMPRA` + `NFE_COMPRA` (JOIN)
+- **Alvo:** `transactions` (type=purchase, com `purchase_lines` JOIN `products`)
+- **Importer:** `scripts/legacy-migration/import-compras.py` (846 LOC · v0.2.0 · `--limit N` pra dry-run)
+- **Pré-req:** Fase 1 (empresas) + Fase 6 (produtos)
+
+### Fase 9 — Contacts fornecedores via NFe (cross-reference NFe entrada)
+
+- **Fonte:** `NFE_COMPRA` emitente (CNPJ + razão social)
+- **Alvo:** `contacts` type=supplier (ou promove existente de customer→both)
+- **Importer:** `scripts/legacy-migration/import-contacts-from-nfe.py` (553 LOC · v0.2.0 · `--sync-type contacts-fornecedores-nfe`)
+- **Pré-req:** Fase 0 (Bucket A contacts) — pra absorver legacy_id
+
+### Ferramentas opcionais
+
+| Tool | Linhas | Função | Status |
+|---|---:|---|---|
+| `migrar-martinho.py` | 210 | Orquestrador específico Martinho | Reusar como template `migrar-<cliente>.py` |
+| `daemon-sync-martinho.py` | 536 | Sync incremental dual-system Delphi ↔ MySQL | **Experimental, manual-run only** — NÃO scheduled. Quando aparecer dor real → mover pra `app/Console/Commands/` + scheduled em **CT 100** ([ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md)) |
+| `lib/sync_checkpoint.py` | 230 | State `--delta-since-last-sync` por (alias, sync_type) | Reusado por todos v0.2.0 importers |
+| `lib/firebird_reader.py` v0.2.0 | +88 | Adapter por versão Firebird (v1404 Martinho → v1474 Zoom canônica) | — |
+
+### Grade de dependências (próximo cliente)
+
+```
+Fase 0 (1x global)            → migration Bucket A contacts (ADR 0197)
+Fase 1 (empresas)             → sem pré-req
+Fase 2 (vehicles)             → sem pré-req · SÓ OficinaAuto
+Fase 3 (contacts via VENDA)   → Fase 0
+Fase 4 (vendas)               → Fases 2 + 3
+Fase 5 (financeiro)           → Fase 4
+Fase 6 (produtos)             → sem pré-req
+Fase 7 (estoque)              → Fase 6
+Fase 8 (compras)              → Fases 1 + 6
+Fase 9 (contacts via NFe)     → Fase 0
+```
+
+**Ordem prática recomendada Vargas/Gold/Extreme:** 0 → 1 → 6 → 3 → 9 → 2 (se oficina) → 8 → 4 → 7 → 5
+
 ## 3. Idempotência canônica (TODA fase)
 
 ```python
@@ -116,6 +177,8 @@ ssh hostinger 'cd ... && php artisan tinker --execute="echo \DB::table(\"vehicle
 | **Wave 0 rename pulado** | [plano-paralelizacao.md](../requisitos/OficinaAuto/demo-martinho-2026-05-13/plano-paralelizacao.md) tinha `vehicles`→`oa_vehicles` como pré-req; agente importou em `vehicles` (sem prefixo módulo) | Charter/SPEC.md fonte de verdade; agente lê pré-reqs antes de Fase 1 |
 | **Múltiplos agentes paralelos sem `whats-active`** | Wagner achou que estava começando Fase 2, mas agente cloud já tinha importado 4h antes | Hook `whats-active` MCP detecta sessões paralelas tocando paths overlapping ([ADR 0119](../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md)) |
 | **PII em log** | CPF/CNPJ Martinho aparecer no audit JSON sem redação | Sempre `PiiRedactor::redact()` no campo `metadata.delphi_legacy` antes de `json.dumps()` |
+| **Branch órfã guardando trabalho não-fatiado >7d** | `claude/wip-martinho-canary-2026-05-14` (93 arquivos / 22.892 LOC) ficou 3 semanas órfã com 7 importers que rodaram em prod sem PR — descoberto 2026-05-27 via diff dry-run vs prod count | Checkpoint WIP só sobrevive 7d. Fatiar em PRs A-F na mesma semana ([ADR 0203 canon](../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) + [ADR 0204 proposal](../decisions/proposals/0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon.md)) |
+| **"Daemon" que é script manual disfarçado** | Logs `daemon-<tabela>-biz164-{ts}.log` em 14/05 18:25 sugerem scheduler, mas são `import-*.py --target dry-run` rodados manualmente em PowerShell. Zero scheduled. | Daemon real = scheduled em `app/Console/Kernel.php` em CT 100 ([ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md)). Script manual com flag `--daemon-mode` ≠ daemon |
 
 ## 6. Hooks LGPD obrigatórios
 
