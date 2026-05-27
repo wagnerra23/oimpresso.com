@@ -30,7 +30,10 @@ export interface ContactInfo {
   id: number;
   segmento?: string | null;
   tags?: string[] | null;
-  status?: 'ativo' | 'inativo' | 'bloqueado' | string | null;
+  /** Frontend legacy PT-BR. Pode chegar como `status` (alias) ou `contact_status`
+   *  (canon EN UPOS — backend persiste assim via PATCH /classificacao). */
+  status?: 'ativo' | 'inativo' | 'bloqueado' | 'active' | 'inactive' | 'blocked' | string | null;
+  contact_status?: 'active' | 'inactive' | 'blocked' | string | null;
   vip?: boolean | null;
   // ADR 0188 Onda 4 — flags multi-papel (Wagner 2026-05-25 UX refactor:
   // movido de IdentificacaoTab pra cá · papel é classificação semântica).
@@ -79,11 +82,26 @@ const TAG_OPTIONS = [
   'reincidente',
 ];
 
-const STATUS_OPTIONS: Array<{ value: 'ativo' | 'inativo' | 'bloqueado'; label: string; color: string }> = [
-  { value: 'ativo', label: 'Ativo', color: 'text-emerald-700' },
-  { value: 'inativo', label: 'Inativo', color: 'text-stone-700' },
-  { value: 'bloqueado', label: 'Bloqueado', color: 'text-rose-700' },
+// Wagner 2026-05-27 — backend canon UPOS persiste valores EN (`active`/
+// `inactive`/`blocked`) via PATCH /classificacao + ContactController. Frontend
+// legado nasceu PT-BR (`ativo`/`inativo`/`bloqueado`). Normaliza EN canon
+// (sem migration retroativa de dados).
+const STATUS_OPTIONS: Array<{ value: 'active' | 'inactive' | 'blocked'; label: string; color: string }> = [
+  { value: 'active', label: 'Ativo', color: 'text-emerald-700' },
+  { value: 'inactive', label: 'Inativo', color: 'text-stone-700' },
+  { value: 'blocked', label: 'Bloqueado', color: 'text-rose-700' },
 ];
+
+// Mapeamento alias PT-BR -> EN canon UPOS (cadastros pre-canon).
+function normalizeStatus(s: string | null | undefined): 'active' | 'inactive' | 'blocked' | '' {
+  if (!s) return '';
+  const map: Record<string, 'active' | 'inactive' | 'blocked'> = {
+    ativo: 'active', active: 'active',
+    inativo: 'inactive', inactive: 'inactive',
+    bloqueado: 'blocked', blocked: 'blocked',
+  };
+  return map[s.toLowerCase()] ?? '';
+}
 
 function getCsrfToken(): string {
   return (
@@ -94,7 +112,12 @@ function getCsrfToken(): string {
 export default function ClassificacaoTab({ contact, onSaved, disabled = false }: ClassificacaoTabProps) {
   const [segmento, setSegmento] = useState<string>(contact.segmento ?? '');
   const [tags, setTags] = useState<string[]>(Array.isArray(contact.tags) ? contact.tags : []);
-  const [status, setStatus] = useState<string>(contact.status ?? 'ativo');
+  // Wagner 2026-05-27 — backend persiste canon EN em `contact_status`. Lê de
+  // `contact_status` (canon) com fallback `status` (alias legado). Normaliza
+  // PT-BR -> EN. Default 'active'.
+  const [status, setStatus] = useState<string>(
+    normalizeStatus(contact.contact_status ?? contact.status) || 'active'
+  );
   const [vip, setVip] = useState<boolean>(!!contact.vip);
   // ADR 0188 Onda 4 — 4 flags multi-papel (Wagner 2026-05-25 UX refactor).
   const [isCustomer, setIsCustomer] = useState<boolean>(Boolean(contact.is_customer));
@@ -113,7 +136,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
   useEffect(() => {
     setSegmento(contact.segmento ?? '');
     setTags(Array.isArray(contact.tags) ? contact.tags : []);
-    setStatus(contact.status ?? 'ativo');
+    setStatus(normalizeStatus(contact.contact_status ?? contact.status) || 'active');
     setVip(!!contact.vip);
     setIsCustomer(Boolean(contact.is_customer));
     setIsSupplier(Boolean(contact.is_supplier));
@@ -127,7 +150,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
   const rollbackField = useCallback((field: string, prev: unknown) => {
     if (field === 'segmento') setSegmento((prev as string) ?? '');
     else if (field === 'tags') setTags(Array.isArray(prev) ? (prev as string[]) : []);
-    else if (field === 'status') setStatus((prev as string) ?? 'ativo');
+    else if (field === 'status' || field === 'contact_status') setStatus((prev as string) ?? 'active');
     else if (field === 'vip') setVip(!!prev);
     else if (field === 'bloqueado') setBloqueado(!!prev);
   }, []);
@@ -204,7 +227,9 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
       if (prev === v) return;
       setStatus(v);
       previousValuesRef.current['status'] = prev;
-      performSave('status', v, prev);
+      // Wagner 2026-05-27 — envia chave canon backend (contact_status). Validator
+      // backend nao aceita 'status' -- silent no-op caso bug 'status'.
+      performSave('contact_status', v, prev);
     },
     [status, performSave]
   );
