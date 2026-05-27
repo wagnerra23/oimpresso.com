@@ -10,6 +10,7 @@ use Modules\PaymentGateway\Http\Controllers\Webhooks\C6WebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\InterWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\PagarmeWebhookController;
+use Modules\PaymentGateway\Http\Controllers\Webhooks\SicoobApiWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -121,6 +122,12 @@ Route::middleware(['web'])
         Route::post('pagarme/{businessId}', [PagarmeWebhookController::class, 'handle'])
             ->whereNumber('businessId')
             ->name('paymentgateway.webhooks.pagarme');
+
+        // Onda 4f.sicoob_api — US-FIN-044 PR4. HMAC `x-sicoob-signature`
+        // raw body. Eventos cobranca.liquidada/vencida/cancelada.
+        Route::post('sicoob-api/{businessId}', [SicoobApiWebhookController::class, 'handle'])
+            ->whereNumber('businessId')
+            ->name('paymentgateway.webhooks.sicoob-api');
     });
 
 // ─── Webhook PIX Inter US-FIN-032 (Onda 26) ──────────────────────────────
