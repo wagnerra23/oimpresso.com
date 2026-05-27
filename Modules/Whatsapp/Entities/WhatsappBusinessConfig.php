@@ -32,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $fallback_driver
  * @property ?string $display_phone
  * @property ?string $meta_phone_number_id
+ * @property ?string $meta_waba_id      WhatsApp Business Account ID (Embedded Signup v4)
  * @property ?string $meta_access_token
  * @property ?string $meta_app_secret
  * @property ?string $meta_webhook_verify_token
