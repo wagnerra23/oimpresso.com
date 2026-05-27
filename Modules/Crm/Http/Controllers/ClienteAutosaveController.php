@@ -355,6 +355,10 @@ class ClienteAutosaveController extends Controller
             'tags.*' => ['string', 'in:' . implode(',', self::TAGS_WHITELIST)],
             'contact_status' => ['nullable', 'string', 'in:' . implode(',', self::CONTACT_STATUSES)],
             'vip' => ['nullable', 'boolean'],
+            // ADR 0195 Bucket A — `bloqueado` (bool) absorve flag `BLOQUEADO` Delphi
+            // PESSOAS. Sells + Financeiro consultam pra impedir checkout/cobranca.
+            // Migration 2026_05_27_120000_extend_contacts_bucket_a_legacy_absorption.
+            'bloqueado' => ['nullable', 'boolean'],
         ], $this->messages());
 
         if ($validator->fails()) {
@@ -547,6 +551,10 @@ class ClienteAutosaveController extends Controller
             'tags' => $this->decodeTags($contact->tags ?? null),
             'contact_status' => $contact->contact_status ?? null,
             'vip' => (bool) ($contact->vip ?? false),
+            // ADR 0195 Bucket A — flag `bloqueado` (separada de contact_status
+            // enum). Sells/Financeiro consultam para impedir checkout/cobranca
+            // mesmo quando contact_status='active'.
+            'bloqueado' => (bool) ($contact->bloqueado ?? false),
         ];
     }
 

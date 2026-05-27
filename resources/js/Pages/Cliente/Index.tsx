@@ -147,6 +147,9 @@ interface ClienteRow {
   is_supplier?: boolean | null;
   is_employee?: boolean | null;
   is_representative?: boolean | null;
+  // ADR 0195 Bucket A — flag `bloqueado` (separada de `status` enum derivado).
+  // Sells/Financeiro consultam pra impedir checkout/cobrança mesmo quando ativo.
+  bloqueado?: boolean | null;
 }
 
 interface ListMeta {
