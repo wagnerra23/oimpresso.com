@@ -9,6 +9,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, X, UserPlus } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import QuickAddCustomerSheet from './QuickAddCustomerSheet';
 
 export interface CustomerSearchResult {
   id: number;
@@ -44,6 +45,11 @@ export default function CustomerSearchAutocomplete({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  // R6 (2026-05-27) — Sheet in-place pra quick-add cliente (Dor 4 Larissa).
+  // Substitui nova aba + postMessage. Quando user clica "Cadastrar 'X'", abre
+  // Sheet lateral com 5 campos. Após salvar, fecha + seleciona no autocomplete.
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddPrefill, setQuickAddPrefill] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -248,21 +254,38 @@ export default function CustomerSearchAutocomplete({
           <div className="px-3 py-2 text-sm text-muted-foreground">
             Nenhum cliente encontrado para "{query}".
           </div>
-          {/* Cadastro inline — abre página completa de criação de contato.
-              Usa /contacts/create-page (rota standalone com layout completo)
-              em vez de /contacts/create (fragmento modal sem CSS). */}
-          <a
-            href={`/contacts/create-page?type=customer&prefill_name=${encodeURIComponent(query)}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* R6 (2026-05-27) Dor 4 Larissa — cadastro in-place via Sheet lateral.
+              Substitui o legacy `<a target=_blank href=/contacts/create-page>`
+              que abria nova aba e dependia de postMessage pra devolver. Sheet
+              fica no MESMO contexto da venda (draft preservado). */}
+          <button
+            type="button"
+            onClick={() => {
+              setQuickAddPrefill(query);
+              setQuickAddOpen(true);
+              setOpen(false);
+            }}
             className="flex w-full items-center gap-2 border-t border-border bg-primary/5 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10 focus:bg-primary/10 focus:outline-none"
             data-testid="customer-cadastrar-inline"
           >
             <UserPlus className="h-4 w-4" />
             Cadastrar "{query}" como novo cliente
-          </a>
+          </button>
         </div>
       )}
+
+      {/* QuickAdd Sheet — montado sempre, controlado por `quickAddOpen`. */}
+      <QuickAddCustomerSheet
+        open={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        prefillName={quickAddPrefill}
+        onCreated={(customer) => {
+          // Mesmo fluxo de seleção do dropdown — mantém compat com `forcedValue`
+          // externo (Sells/Create.tsx ainda escuta postMessage da aba legacy
+          // até retirada plena; ambos caminhos chegam aqui).
+          handleSelect(customer);
+        }}
+      />
     </div>
   );
 }
