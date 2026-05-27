@@ -8,8 +8,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 use InvalidArgumentException;
 use Modules\NfeBrasil\Http\Requests\UploadCertificadoRequest;
 use Modules\NfeBrasil\Models\NfeCertificado;
@@ -33,87 +31,20 @@ class CertificadoController extends Controller
     /**
      * GET /nfe-brasil/configuracao/certificado
      *
-     * Renderiza a Page Inertia com status atual do cert ativo do business.
-     */
-    public function status(Request $request): Response
-    {
-        $businessId = (int) $request->session()->get('business.id');
-        $cnpjBusiness = (string) $request->session()->get('business.tax_number_1', '');
-
-        $painel = $this->montarPainelFiscal($businessId, $cnpjBusiness);
-
-        $cert = NfeCertificado::where('business_id', $businessId)
-            ->where('ativo', true)
-            ->first();
-
-        if (! $cert) {
-            return Inertia::render('NfeBrasil/Configuracao/Certificado', array_merge(
-                ['tem_certificado' => false],
-                $painel,
-            ));
-        }
-
-        $dias = $cert->diasAteVencimento();
-        $alerta = $dias < 0 ? 'vencido' : ($dias <= 30 ? 'proximo_vencimento' : 'ok');
-
-        // Fallback CNPJ titular: se cert foi gravado antes do fix de salvar(),
-        // cnpj_titular pode estar vazio. Usa business.cnpj como contexto.
-        $cnpjTitularRaw = $cert->cnpj_titular ?: '';
-        $cnpjTitularFallback = $cnpjTitularRaw === '' ? $painel['cnpj_business'] : null;
-
-        return Inertia::render('NfeBrasil/Configuracao/Certificado', array_merge([
-            'tem_certificado'              => true,
-            'cnpj_titular'                 => $cnpjTitularRaw ?: null,
-            'cnpj_titular_fallback'        => $cnpjTitularFallback,
-            'valido_ate'                   => $cert->valido_ate->format('Y-m-d'),
-            'dias_ate_vencimento'          => $dias,
-            'alerta'                       => $alerta,
-        ], $painel));
-    }
-
-    /**
-     * Coleta dados consolidados pra painel fiscal da tela do certificado:
-     *   - Identificação (CNPJ, razão, regime)
-     *   - Numeração NF-e (série, último/próximo número)
-     *   - Tributação default (NCM, CFOP, CSOSN)
-     *   - Localização (UF/cidade)
-     *   - Ambiente SEFAZ atual (1=produção, 2=homologação)
+     * DEPRECATED 2026-05-27 — Wagner consolidou tela cert em /fiscal/config
+     * (Fiscal/Config.tsx unificada). Page Pages/NfeBrasil/Configuracao/Certificado.tsx
+     * removida. Mantém método pra compat retroativa com testes diretos
+     * `$controller->status()` enquanto migração de testes não rola.
      *
-     * Tudo defensivo — colunas opcionais não quebram se ausentes.
+     * Rota agora retorna redirect 302 → /fiscal/config (routes/web.php).
+     * Painel fiscal vive em Modules\Fiscal\Http\Controllers\ConfigController::montarPainelFiscal.
      *
-     * @return array<string, mixed>
+     * Em runtime, este método NÃO é mais chamado (rota é Closure redirect).
+     * Se chamado diretamente (testes), retorna RedirectResponse pra /fiscal/config.
      */
-    private function montarPainelFiscal(int $businessId, string $cnpjBusinessSession): array
+    public function status(Request $request): RedirectResponse
     {
-        $business = \DB::table('business')->where('id', $businessId)->first();
-        $config   = \DB::table('nfe_business_configs')->where('business_id', $businessId)->first();
-        $location = \DB::table('business_locations')
-            ->where('business_id', $businessId)
-            ->orderBy('id')
-            ->first();
-
-        $tributacao = $config?->tributacao_default
-            ? json_decode($config->tributacao_default, true)
-            : null;
-
-        $serie  = (string) ($business->numero_serie_nfe ?? '1');
-        $ultimo = (int) ($business->ultimo_numero_nfe ?? 0);
-
-        return [
-            'cnpj_business'   => $cnpjBusinessSession ?: ($business->cnpj ?? null),
-            'razao_social'    => $business->name ?? null,
-            'regime'          => $config?->regime,
-            'ncm_padrao'      => $business->ncm_padrao ?? null,
-            'serie_nfe'       => $serie,
-            'ultimo_numero'   => $ultimo,
-            'proximo_numero'  => $ultimo + 1,
-            'cfop_default'    => $tributacao['cfop'] ?? null,
-            'csosn_default'   => $tributacao['csosn'] ?? null,
-            'cst_default'     => $tributacao['cst'] ?? null,
-            'uf'              => $location?->state ?? null,
-            'cidade'          => $location?->city ?? null,
-            'ambiente'        => (int) ($business->ambiente ?? 2),
-        ];
+        return redirect('/fiscal/config', 302);
     }
 
     /**

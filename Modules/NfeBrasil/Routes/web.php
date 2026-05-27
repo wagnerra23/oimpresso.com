@@ -38,8 +38,13 @@ Route::group([], function () {
 Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('nfe-brasil/configuracao')
     ->group(function () {
-        Route::get('certificado', [CertificadoController::class, 'status'])
+        // Tela GET legacy → redirect 302 pra /fiscal/config (UNIFICADA — Wagner 2026-05-27).
+        // Mantém bookmarks/deeplinks externos vivos. Page Pages/NfeBrasil/Configuracao/Certificado.tsx
+        // foi removida — todo fluxo de cert/ambiente/testar usa Fiscal/Config.tsx agora.
+        Route::get('certificado', fn () => redirect('/fiscal/config', 302))
             ->name('nfe-brasil.certificado.status');
+        // POSTs continuam como API endpoints — consumidos pelo Fiscal/Config.tsx
+        // via Inertia useForm. ZERO duplicação de lógica (comment em ConfigController).
         Route::post('certificado', [CertificadoController::class, 'upload'])
             ->name('nfe-brasil.certificado.upload');
         Route::post('certificado/testar', [CertificadoController::class, 'testar'])

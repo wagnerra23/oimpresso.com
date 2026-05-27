@@ -5,7 +5,7 @@
 //   nota: alerta visual no Sidebar quando cert A1 NFe está vencendo (≤30d)
 //         ou já vencido. Lê de `usePage().props.shell.nfe_cert_status`
 //         (HandleInertiaRequests::nfeCertStatus). Click leva pra
-//         /nfe-brasil/configuracao/certificado.
+//         /fiscal/config (tela unificada — Wagner 2026-05-27 consolidação).
 
 import { usePage } from '@inertiajs/react';
 import { AlertTriangle, ShieldAlert } from 'lucide-react';
@@ -60,7 +60,7 @@ export function NfeCertBadge() {
 
   return (
     <a
-      href="/nfe-brasil/configuracao/certificado"
+      href="/fiscal/config"
       className="nfe-cert-badge"
       title={`${label} — ${detail}. Clique pra renovar.`}
       style={{
