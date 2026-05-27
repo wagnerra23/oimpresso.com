@@ -597,6 +597,18 @@ class ContactController extends Controller
 
         $contactIds = $contacts->pluck('id')->all();
 
+        // Wagner 2026-05-27 — header drawer botao contador "X placas". Lazy: so
+        // count se tabela vehicles existe (gate OficinaAuto). Map contact_id => count.
+        $vehiclesCountMap = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('vehicles') && ! empty($contactIds)) {
+            $vehiclesCountMap = \Modules\OficinaAuto\Entities\Vehicle::where('business_id', $business_id)
+                ->whereIn('contact_id', $contactIds)
+                ->selectRaw('contact_id, COUNT(*) as cnt')
+                ->groupBy('contact_id')
+                ->pluck('cnt', 'contact_id')
+                ->toArray();
+        }
+
         $stats = Transaction::where('transactions.business_id', $business_id)
             ->whereIn('transactions.contact_id', $contactIds)
             ->where('transactions.type', 'sell')
@@ -617,7 +629,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $vehiclesCountMap) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -761,6 +773,9 @@ class ContactController extends Controller
 
             // ── Daniela 2026-05-27: contato (nome do responsavel principal PJ)
             $payload['contato'] = $hasContatoCol ? ($contact->contato ?? null) : null;
+
+            // ── Wagner 2026-05-27: contador de veiculos pro header drawer (botao "🚛 N placas")
+            $payload['vehicles_count'] = (int) ($vehiclesCountMap[$contact->id] ?? 0);
 
             return $payload;
         })->all();
