@@ -1,5 +1,5 @@
-slug: martinho-dono
-nome_real: Martinho
+slug: jair-martinho
+nome_real: Jair
 cliente_real: martinho-cacambas
 business_id: null
 status: ativo
@@ -61,8 +61,12 @@ pesos_override:
 
 citacoes:
   - data: "2026-05-26"
-    contexto: "infered via Daniela — Martinho pediu via Daniela"
+    contexto: "inferred via Daniela — Jair pediu via gerente Daniela"
     texto: '"quero ver os caminhões dos clientes na tela do cliente — não preciso ficar abrindo OficinaAuto separado"'
+
+# Notas
+# Casado com Kamila (administrativo/financeiro da empresa) — ver kamila.yml
+# Nome empresa: Martinho Caçambas (Jair é o dono, não tem "Martinho" como nome próprio)
 
 tags:
   - non-tech

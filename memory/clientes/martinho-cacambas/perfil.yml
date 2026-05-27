@@ -5,7 +5,16 @@ business_id: null                       # confirmar — Wagner setup pendente
 status: piloto                          # cliente piloto Q2 2026 ramo oficina pesada
 plano: pro                              # mais features (OficinaAuto + frota)
 arr_mensal_brl: null                    # piloto Wagner
-contato_principal: daniela-martinho
+contato_principal: jair-martinho        # dono — decisor final
+contatos_operacionais:
+  - daniela-martinho                    # gerente operacional dia-a-dia
+  - kamila-martinho                     # esposa do Jair + administrativo/financeiro
+
+# Estrutura familiar/societária Martinho Caçambas:
+# - Jair (dono — decisão estratégica + dashboards)
+# - Kamila (esposa do Jair + responsável admin/financeiro/NF-e/cobrança)
+# - Daniela (gerente operacional — OSs, frota, oficina)
+# Empresa = "Martinho Caçambas" / "Martinho Transportes" (nome fantasia, NÃO pessoa).
 
 ramo: oficina-mecanica
 cnae: '4520-0'                          # serviços de manutenção e reparação de veículos automotores
