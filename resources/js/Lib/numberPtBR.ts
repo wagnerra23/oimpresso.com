@@ -10,12 +10,18 @@
 //   - "25,00"           → 25      (vírgula = decimal)
 //   - "1.234,56"        → 1234.56 (ponto = milhar, vírgula = decimal)
 //   - "25.000,00"       → 25000   (idem)
-//   - "25.000"          → 25000   (sem vírgula, ponto = milhar)
+//   - "25.000"          → 25000   (sem vírgula + 3 dígitos depois → milhar pt-BR)
+//   - "147.77"          → 147.77  (sem vírgula + ≤2 dígitos depois → decimal en-US tolerado)
 //   - "25"              → 25
 //   - ""                → 0
 //   - "abc"             → NaN
 //
-// NÃO trata locale en-US ("1,234.56" = 1234.56). Sistema é pt-BR canônico.
+// Heurística "ponto decimal en-US tolerado" (Bug Wagner @ test 2026-05-27):
+//   user pode digitar "147.77" pensando em decimal en-US. Sem vírgula no input,
+//   o sistema antes interpretava ponto como milhar → "147.77" virava 14777.
+//   Agora aceitamos ponto como decimal SE o resultado for inequívoco:
+//   1 único ponto + 1-2 dígitos depois = decimal. Múltiplos pontos OU 3+ dígitos
+//   após = milhar pt-BR (preserva paridade Blade pra "25.000" = vinte e cinco mil).
 
 const DEFAULT_PRECISION = 2;
 
@@ -45,7 +51,8 @@ export function parseDecimalPtBR(input: string | number | null | undefined): num
 
   // Convenção pt-BR: vírgula = decimal, ponto = milhar.
   // Se tem vírgula: tudo antes é parte inteira (com pontos como milhar), depois é decimal.
-  // Se NÃO tem vírgula: ponto é separador de milhar.
+  // Se NÃO tem vírgula: heurística — 1 ponto + ≤2 dígitos depois = decimal en-US tolerado,
+  //   senão = milhar pt-BR (paridade Blade pra "25.000" = vinte e cinco mil).
   let normalized: string;
   const commaIdx = abs.lastIndexOf(',');
   if (commaIdx >= 0) {
@@ -53,8 +60,22 @@ export function parseDecimalPtBR(input: string | number | null | undefined): num
     const decPart = abs.slice(commaIdx + 1).replace(/\./g, ''); // garante sanity
     normalized = `${intPart}.${decPart}`;
   } else {
-    // Sem vírgula → ponto é milhar. Remove todos os pontos.
-    normalized = abs.replace(/\./g, '');
+    // Sem vírgula → ponto pode ser milhar OU decimal en-US (heurística inequívoca).
+    const dotCount = (abs.match(/\./g) || []).length;
+    if (dotCount === 1) {
+      const dotIdx = abs.indexOf('.');
+      const decPart = abs.slice(dotIdx + 1);
+      if (decPart.length <= 2) {
+        // "147.77" / "1.5" / "25.0" → decimal en-US tolerado
+        normalized = abs;
+      } else {
+        // "25.000" / "1.234" → milhar pt-BR (3+ dígitos depois)
+        normalized = abs.replace(/\./g, '');
+      }
+    } else {
+      // 0 pontos → puro inteiro. Múltiplos pontos → milhar pt-BR ("1.234.567").
+      normalized = abs.replace(/\./g, '');
+    }
   }
 
   const n = Number(normalized);
