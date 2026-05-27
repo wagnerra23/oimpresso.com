@@ -3,11 +3,13 @@ slug: 0195-tabs-autosave-mount-sempre-hidden
 number: 195
 title: "Tabs com autosave/state user-editável ficam mount-sempre (hidden via CSS) — render-condicional só pra tabs read-only"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-27"
+accepted_at: "2026-05-27"
+accepted_via: "Wagner validou prod oimpresso.com biz=1: TESTE123 preservado após Endereço→Contato→Identificação→Comercial→Classificação→volta · CEP 88702-230 ViaCEP autopreencheu + Número preservado · sessão `frosty-greider-83ab2f` 2026-05-27 — comando exato: 'merge' (PRs #1736 + #1743 + #1749 deployed sucesso)"
 module: core
 quarter: 2026-Q2
 tags: [drawer-760, tabs, autosave, react-state, ux, debounce, persona-larissa, ADR-0179-cliente-drawer, ADR-0185-drawer-canon]
