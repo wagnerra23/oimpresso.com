@@ -532,6 +532,12 @@ class ContactController extends Controller
         if ($hasBucketACols) {
             $selectCols[] = 'contacts.bloqueado';
         }
+        // Daniela 2026-05-27 — `contato` (nome do responsavel principal PJ).
+        // Migration 2026_05_27_180000_add_contato_to_contacts.
+        $hasContatoCol = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'contato');
+        if ($hasContatoCol) {
+            $selectCols[] = 'contacts.contato';
+        }
         if ($hasWaveBCols) {
             $selectCols = array_merge($selectCols, [
                 'contacts.tipo',
@@ -607,7 +613,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -748,6 +754,9 @@ class ContactController extends Controller
 
             // ── Bucket A: bloqueado (ADR 0195) ───────────────────────────────
             $payload['bloqueado'] = $hasBucketACols ? (bool) ($contact->bloqueado ?? false) : false;
+
+            // ── Daniela 2026-05-27: contato (nome do responsavel principal PJ)
+            $payload['contato'] = $hasContatoCol ? ($contact->contato ?? null) : null;
 
             return $payload;
         })->all();

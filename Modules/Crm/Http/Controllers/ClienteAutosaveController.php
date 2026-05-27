@@ -173,7 +173,19 @@ class ClienteAutosaveController extends Controller
             return $contact; // ja e JsonResponse 404/403
         }
 
-        $validator = Validator::make($request->all(), [
+        // Fix Daniela 2026-05-27 (cliente Heinig nao salvou razao social + CNPJ):
+        // Frontend IdentificacaoTab.tsx envia chaves PT-BR (`nome`, `doc`, `contato`).
+        // Backend validator espera canon EN (`name`, `tax_number`, `contato` ja
+        // canon). Normaliza aliases ANTES de validar -- silent no-op vira save real.
+        $input = $request->all();
+        if (array_key_exists('nome', $input) && ! array_key_exists('name', $input)) {
+            $input['name'] = $input['nome'];
+        }
+        if (array_key_exists('doc', $input) && ! array_key_exists('tax_number', $input)) {
+            $input['tax_number'] = $input['doc'];
+        }
+
+        $validator = Validator::make($input, [
             'tipo' => ['nullable', 'string', 'in:PF,PJ'],
             'name' => ['nullable', 'string', 'max:255'],
             'fantasia' => ['nullable', 'string', 'max:255'],
@@ -182,6 +194,9 @@ class ClienteAutosaveController extends Controller
             'rg' => ['nullable', 'string', 'max:20'],
             'nascimento' => ['nullable', 'date', 'before:today'],
             'cargo' => ['nullable', 'string', 'max:80'],
+            // Daniela 2026-05-27 -- nome do responsavel principal (PJ). Coluna
+            // criada nesta sessao via migration 2026_05_27_180000.
+            'contato' => ['nullable', 'string', 'max:100'],
             // ADR 0186 Técnica C — campos derivados da SEFAZ ConsultaCadastro.
             'ind_ie_dest' => ['nullable', 'integer', 'in:1,2,9'],
             'sefaz_cad_sit' => ['nullable', 'string', 'in:habilitado,nao_habilitado,suspenso,cancelado,paralisado,baixado'],
@@ -221,7 +236,22 @@ class ClienteAutosaveController extends Controller
             return $contact;
         }
 
-        $validator = Validator::make($request->all(), [
+        // Fix Daniela 2026-05-27 (telefone principal nao salvou em cadastro Heinig):
+        // Frontend ContatoTab.tsx envia chaves PT-BR (`tel`, `site`, `canal`).
+        // Backend validator espera canon EN (`mobile`, `site_url`, `canal_preferido`).
+        // Normaliza aliases ANTES de validar.
+        $input = $request->all();
+        if (array_key_exists('tel', $input) && ! array_key_exists('mobile', $input)) {
+            $input['mobile'] = $input['tel'];
+        }
+        if (array_key_exists('site', $input) && ! array_key_exists('site_url', $input)) {
+            $input['site_url'] = $input['site'];
+        }
+        if (array_key_exists('canal', $input) && ! array_key_exists('canal_preferido', $input)) {
+            $input['canal_preferido'] = $input['canal'];
+        }
+
+        $validator = Validator::make($input, [
             'mobile' => ['nullable', 'string', 'max:25'],
             'tel2' => ['nullable', 'string', 'max:20'],
             // Onda 1 PR B' — 3º telefone via coluna UPOS legacy `alternate_number`.
@@ -524,6 +554,9 @@ class ClienteAutosaveController extends Controller
             'rg' => $contact->rg ?? null,
             'nascimento' => $contact->nascimento ?? null,
             'cargo' => $contact->cargo ?? null,
+            // Daniela 2026-05-27 — Nome do responsavel principal. Coluna
+            // criada via migration 2026_05_27_180000_add_contato_to_contacts.
+            'contato' => $contact->contato ?? null,
             'mobile' => $contact->mobile ?? null,
             'tel2' => $contact->tel2 ?? null,
             // Onda 1 PR B' (Daniela) — 3º telefone via coluna UPOS legacy.
