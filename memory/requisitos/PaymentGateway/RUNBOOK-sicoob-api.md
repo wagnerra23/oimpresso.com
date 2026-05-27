@@ -12,7 +12,7 @@ related_adrs:
 related_us:
   - US-FIN-044
 parent_module: PaymentGateway
-persona: Wagner (superadmin) + Kamila (operadora ROTA LIVRE biz=4)
+persona: Wagner (superadmin) + Kamila (Admin#164 Martinho Caçambas biz=164)
 session_date: '2026-05-27'
 owner: W
 last_validated: '2026-05-27'
@@ -24,11 +24,11 @@ last_validated: '2026-05-27'
 
 ## Mission
 
-Cliente PJ cooperativada Sicoob (ex: Larissa @ ROTA LIVRE biz=4) emite boleto registrado direto pela API REST, recebe notificação real-time quando cliente paga via webhook HMAC, sem precisar baixar/importar arquivo CNAB 240 manualmente 2× por dia.
+Cliente PJ cooperativada Sicoob (ex: Martinho Caçambas @ biz=164) emite boleto registrado direto pela API REST, recebe notificação real-time quando cliente paga via webhook HMAC, sem precisar baixar/importar arquivo CNAB 240 manualmente 2× por dia.
 
 ## Sinal qualificado (ADR 0105)
 
-Origem: Kamila perguntou Wagner em 2026-05-27 "Sicoob quer API". Wagner aprovou implementação. biz=4 ROTA LIVRE (Larissa, vestuário) é cliente pagante ativo — usa Sicoob como banco operacional. NÃO é hipótese de feature wish — é cliente real reportando necessidade.
+Origem: Kamila (Admin#164, operadora do Martinho Caçambas biz=164) perguntou Wagner em 2026-05-27 "Sicoob quer API". Wagner aprovou implementação. Martinho Caçambas (locação/manutenção caçambas, região Tubarão/SC, migrado em 2026-05-14 de WR2 Firebird legacy, competidor HiSoft) é cliente pagante ativo — usa Sicoob como banco operacional. NÃO é hipótese de feature wish — é cliente real reportando necessidade. **Atenção:** ROTA LIVRE (biz=4 Larissa vestuário Gravatal/SC) NÃO usa Sicoob — não confundir os 2 clientes.
 
 ## Roadmap PRs (6 fatias merged sequencial)
 
