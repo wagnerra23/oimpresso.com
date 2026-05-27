@@ -1,0 +1,170 @@
+/**
+ * Cowork fields — port fiel do protótipo prototipo-ui/prototipos/clientes/clientes.css
+ *
+ * Origem: pedido Wagner 2026-05-26 "copie do cowork seja fiel".
+ * Drawer Cliente do oimpresso (Modules/Crm + resources/js/Pages/Cliente/) tinha
+ * campos shadcn `<Input>` com bg-transparent + text-sm — visual diferente do
+ * protótipo Cowork que o time gostava. Este arquivo replica as classes canon
+ * do Cowork (`.cl-input`, `.cl-field`, `.cl-radio`) sob namespace `cw-*` pra
+ * evitar colisão com qualquer `.cl-*` legacy.
+ *
+ * Tokens já existem em resources/css/cockpit.css (--bg, --surface, --text,
+ * --text-dim, --text-mute, --accent, --accent-soft, --border). Este arquivo
+ * NÃO redefine tokens — só usa.
+ *
+ * Aplicado via `<Input variant="cowork">` + `<Label variant="cowork">` —
+ * ver Components/ui/input.tsx e Components/ui/label.tsx.
+ */
+
+/* ── Field wrapper (label + input + error) ─────────────────────────────── */
+.cw-field {
+  display: flex; flex-direction: column; gap: 5px; min-width: 0;
+}
+.cw-field label,
+.cw-label {
+  font-size: 11.5px; font-weight: 500; color: var(--text-dim);
+  display: flex; align-items: center; gap: 6px;
+}
+.cw-opt {
+  font-size: 10.5px; color: var(--text-mute); font-weight: 400;
+}
+
+/* ── Input ─────────────────────────────────────────────────────────────── */
+.cw-input {
+  appearance: none;
+  width: 100%; height: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0 10px;
+  font: inherit; font-size: 13px;
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.cw-input::placeholder {
+  color: var(--text-mute);
+}
+.cw-input:focus,
+.cw-input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.cw-input:disabled {
+  background: var(--bg-2);
+  color: var(--text-mute);
+  cursor: not-allowed;
+}
+
+/* Textarea variant (auto-height) */
+.cw-input.cw-textarea {
+  height: auto; padding: 8px 10px; line-height: 1.5;
+  min-height: 70px; resize: vertical;
+}
+
+/* Native select dropdown — adiciona caret manual */
+select.cw-input {
+  appearance: auto; cursor: pointer; padding-right: 26px;
+}
+
+/* Error state — usa cores Cowork canon (oklch vermelho) */
+.cw-field.has-error .cw-input,
+.cw-input[aria-invalid="true"],
+.cw-input.cw-error {
+  border-color: oklch(0.65 0.18 25);
+}
+.cw-field.has-error .cw-input:focus,
+.cw-input[aria-invalid="true"]:focus,
+.cw-input.cw-error:focus {
+  box-shadow: 0 0 0 3px oklch(0.94 0.04 25);
+}
+
+.cw-err {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: oklch(0.55 0.18 25);
+}
+
+.cw-hint {
+  font-size: 11px; color: var(--text-mute);
+}
+
+/* ── Radio pill ────────────────────────────────────────────────────────── */
+.cw-radio-row {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.cw-radio {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); background: var(--surface);
+  padding: 6px 10px; border-radius: 6px;
+  font-size: 12px; cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.cw-radio input { display: none; }
+.cw-radio:hover { background: var(--bg-2); }
+.cw-radio.on,
+.cw-radio:has(input:checked) {
+  background: var(--accent-soft); color: var(--accent);
+  border-color: transparent; font-weight: 600;
+}
+
+/* ── Tag chip selector ─────────────────────────────────────────────────── */
+.cw-tags-input {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.cw-tag-btn {
+  appearance: none; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-dim);
+  padding: 5px 12px; border-radius: 999px;
+  font: inherit; font-size: 11.5px; cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.cw-tag-btn:hover { background: var(--bg-2); color: var(--text); }
+.cw-tag-btn.on {
+  background: var(--accent); color: #fff;
+  border-color: transparent; font-weight: 500;
+}
+
+/* ── Toggle switch ─────────────────────────────────────────────────────── */
+.cw-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; cursor: pointer; color: var(--text);
+}
+.cw-toggle input { display: none; }
+.cw-toggle-track {
+  width: 32px; height: 18px; background: var(--border);
+  border-radius: 999px; position: relative;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.cw-toggle-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; background: #fff; border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  transition: left .15s;
+}
+.cw-toggle input:checked + .cw-toggle-track {
+  background: var(--accent);
+}
+.cw-toggle input:checked + .cw-toggle-track .cw-toggle-thumb {
+  left: 16px;
+}
+
+/* ── Form grid (2 cols default, responsive) ────────────────────────────── */
+.cw-form-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 14px 12px;
+}
+.cw-form-grid > .cw-field.full-row {
+  grid-column: 1 / -1;
+}
+@media (max-width: 640px) {
+  .cw-form-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Section title (idênticos ao Cowork) ───────────────────────────────── */
+.cw-section-title {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-mute);
+  margin: 0 0 10px;
+}

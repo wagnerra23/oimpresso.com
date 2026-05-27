@@ -220,10 +220,11 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <Label htmlFor="ct-tel" className="text-xs font-medium">
+          <Label htmlFor="ct-tel" className="cw-label">
             Telefone principal
           </Label>
           <Input
+            variant="cowork"
             id="ct-tel"
             value={tel}
             placeholder="(00) 0 0000-0000"
@@ -245,10 +246,11 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
         </div>
 
         <div>
-          <Label htmlFor="ct-tel2" className="text-xs font-medium">
+          <Label htmlFor="ct-tel2" className="cw-label">
             Telefone alternativo <span className="text-muted-foreground font-normal">(opcional)</span>
           </Label>
           <Input
+            variant="cowork"
             id="ct-tel2"
             value={tel2}
             placeholder="(00) 0 0000-0000"
@@ -271,10 +273,11 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
 
         {/* Onda 1 PR B' (Daniela @ Martinho) — 3º telefone via coluna UPOS legacy `alternate_number`. */}
         <div className="md:col-span-2">
-          <Label htmlFor="ct-tel3" className="text-xs font-medium">
+          <Label htmlFor="ct-tel3" className="cw-label">
             Telefone 3 <span className="text-muted-foreground font-normal">(opcional · recados)</span>
           </Label>
           <Input
+            variant="cowork"
             id="ct-tel3"
             value={tel3}
             placeholder="(00) 0 0000-0000"
@@ -296,10 +299,11 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="ct-email" className="text-xs font-medium">
+          <Label htmlFor="ct-email" className="cw-label">
             E-mail
           </Label>
           <Input
+            variant="cowork"
             id="ct-email"
             type="email"
             value={email}
@@ -328,10 +332,11 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
         {/* Onda 1 PR B' (Daniela @ Martinho) — E-mails diferenciados.
             Migration 2026_05_26_140000_add_emails_extras_to_contacts. */}
         <div>
-          <Label htmlFor="ct-email-billing" className="text-xs font-medium">
+          <Label htmlFor="ct-email-billing" className="cw-label">
             E-mail comercial <span className="text-muted-foreground font-normal">(opcional · vendedor)</span>
           </Label>
           <Input
+            variant="cowork"
             id="ct-email-billing"
             type="email"
             value={emailBilling}
@@ -358,10 +363,11 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
         </div>
 
         <div>
-          <Label htmlFor="ct-email-nfe" className="text-xs font-medium">
+          <Label htmlFor="ct-email-nfe" className="cw-label">
             E-mail NF-e <span className="text-muted-foreground font-normal">(opcional · contador)</span>
           </Label>
           <Input
+            variant="cowork"
             id="ct-email-nfe"
             type="email"
             value={emailNfe}
@@ -388,10 +394,11 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
         </div>
 
         <div className="md:col-span-2">
-          <Label htmlFor="ct-site" className="text-xs font-medium">
+          <Label htmlFor="ct-site" className="cw-label">
             Site <span className="text-muted-foreground font-normal">(opcional)</span>
           </Label>
           <Input
+            variant="cowork"
             id="ct-site"
             type="url"
             value={site}
@@ -413,7 +420,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
         </div>
 
         <div className="md:col-span-2">
-          <Label className="text-xs font-medium">
+          <Label className="cw-label">
             Canal preferido <span className="text-muted-foreground font-normal">(opcional)</span>
           </Label>
           <div
