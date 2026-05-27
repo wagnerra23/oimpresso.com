@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-27"
-module: Officeimpresso
+module: officeimpresso
 tags: [migracao-legacy, escala, hostinger, mysql-partitioning, object-storage, lgpd-retention, performance]
 supersedes: []
 superseded_by: []

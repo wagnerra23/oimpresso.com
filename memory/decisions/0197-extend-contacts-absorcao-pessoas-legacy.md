@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-27"
-module: Crm
+module: crm
 tags: [migracao-legacy, officeimpresso, firebird, contacts, multi-tenant, lgpd, schema]
 supersedes: []
 superseded_by: []

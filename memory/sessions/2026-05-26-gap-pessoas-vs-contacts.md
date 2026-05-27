@@ -1,10 +1,15 @@
 ---
 title: "Gap PESSOAS (Firebird Delphi WR Comercial) vs contacts (Laravel oimpresso) — análise pré-migração Larissa/Vargas"
+topic: "Gap PESSOAS Firebird vs contacts MySQL — análise pré-migração legacy Martinho/Vargas (Bucket A+B+C+D+E)"
 type: session
 date: "2026-05-26"
-author: Claude (Opus 4.7) sob direção Wagner
+authors:
+  - C
+  - W
 status: live
 audience: Wagner (decisor) + Felipe (migrar Larissa biz=4) + Maiara (futuras migrações multi-cliente)
+prs:
+  - 1717
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0178-canon-br-fiscal-restaurado-v3-7
