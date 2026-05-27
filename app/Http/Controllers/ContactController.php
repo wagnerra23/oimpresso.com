@@ -473,6 +473,22 @@ class ContactController extends Controller
         if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'numero')) {
             $selectCols[] = 'contacts.numero';
         }
+        // Wave 2026-05-21 (canon BR restaurado pós-regressão UPOS 6.7 — ADR 0178).
+        // Sem isso, drawer IdentificacaoTab (Index Cliente) abre com CNPJ/IE/RG
+        // vazios mesmo com dado no banco — payload rows não enviava as chaves
+        // `cpf_cnpj_masked`/`ie`/`rg` que o drawer espera (Wagner 2026-05-27).
+        $hasCanonBrCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'cpf_cnpj');
+        if ($hasCanonBrCols) {
+            $selectCols[] = 'contacts.cpf_cnpj';
+            $selectCols[] = 'contacts.inscricao_estadual';
+            $selectCols[] = 'contacts.rg';
+        }
+        // Wave drawer 2026-05-22 — campos cadastrais drawer (nascimento + cargo).
+        $hasDrawerCols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'cargo');
+        if ($hasDrawerCols) {
+            $selectCols[] = 'contacts.nascimento';
+            $selectCols[] = 'contacts.cargo';
+        }
         if ($hasWaveBCols) {
             $selectCols = array_merge($selectCols, [
                 'contacts.tipo',
@@ -548,7 +564,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -626,6 +642,18 @@ class ContactController extends Controller
             $payload['is_supplier'] = (bool) ($contact->is_supplier ?? false);
             $payload['is_employee'] = (bool) ($contact->is_employee ?? false);
             $payload['is_representative'] = (bool) ($contact->is_representative ?? false);
+
+            // Canon BR (Wave 2026-05-21 ADR 0178) — campos que IdentificacaoTab
+            // do drawer espera. Fallback `cpf_cnpj` → `tax_number` cobre legacy
+            // UPOS (cadastros pré-restauração BR). PII mascarado, NUNCA plain.
+            $cpfCnpjRaw = $hasCanonBrCols ? ($contact->cpf_cnpj ?? null) : null;
+            $payload['cpf_cnpj_masked'] = $this->maskTaxNumber($cpfCnpjRaw ?? $contact->tax_number);
+            $payload['ie'] = $hasCanonBrCols ? ($contact->inscricao_estadual ?? null) : null;
+            $payload['rg'] = $hasCanonBrCols ? ($contact->rg ?? null) : null;
+
+            // Wave drawer 2026-05-22 — campos cadastrais drawer.
+            $payload['nascimento'] = $hasDrawerCols ? ($contact->nascimento ?? null) : null;
+            $payload['cargo'] = $hasDrawerCols ? ($contact->cargo ?? null) : null;
 
             return $payload;
         })->all();
