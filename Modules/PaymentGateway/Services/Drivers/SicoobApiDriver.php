@@ -26,8 +26,9 @@ use Modules\PaymentGateway\Services\HttpClientFactory;
 /**
  * Driver Sicoob — API Cobrança Bancária v3 (REST + OAuth2 + mTLS).
  *
- * US-FIN-044 — Onda 4f.sicoob_api. Sinal qualificado: biz=4 ROTA LIVRE
- * (Larissa via Kamila) pediu 2026-05-27 [ADR 0105].
+ * US-FIN-044 — Onda 4f.sicoob_api. Sinal qualificado: Martinho Caçambas
+ * (biz=164) — Kamila (Admin#164) pediu 2026-05-27 [ADR 0105]. NÃO confundir
+ * com ROTA LIVRE (biz=4 Larissa vestuário) — ROTA LIVRE não usa Sicoob.
  *
  * PR3 (este) — mTLS handshake real (.pfx + senha cifrada Laravel Crypt).
  * Webhook real-time chega no PR4.
