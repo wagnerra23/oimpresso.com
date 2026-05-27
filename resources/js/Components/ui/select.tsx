@@ -25,11 +25,39 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = "default",
+  variant = "default",
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
+  /**
+   * Visual variant — `cowork` aplica classes `.cw-input` (port fiel do
+   * protótipo Cowork) em vez do shadcn default. Adicionado 2026-05-27
+   * pra emparelhar com <Input variant="cowork"> no drawer Cliente.
+   * Ver resources/css/cowork-fields.css.
+   */
+  variant?: "default" | "cowork"
 }) {
+  if (variant === "cowork") {
+    return (
+      <SelectPrimitive.Trigger
+        data-slot="select-trigger"
+        data-size={size}
+        className={cn(
+          "cw-input flex items-center justify-between gap-2",
+          "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <SelectPrimitive.Icon asChild>
+          <ChevronDownIcon className="size-4 opacity-50" />
+        </SelectPrimitive.Icon>
+      </SelectPrimitive.Trigger>
+    )
+  }
+
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"

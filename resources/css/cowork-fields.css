@@ -37,20 +37,15 @@
   --cw-error-soft:   oklch(0.94 0.04 25);
 }
 
-/* Dark mode auto via media query OU .dark wrapper Inertia */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cw-bg:           oklch(0.16 0.003 240);
-    --cw-bg-2:         oklch(0.19 0.006 240);
-    --cw-surface:      oklch(0.26 0.008 240);
-    --cw-border:       oklch(0.32 0.005 240);
-    --cw-border-2:     oklch(0.28 0.005 240);
-    --cw-text:         oklch(0.92 0.005 90);
-    --cw-text-dim:     oklch(0.72 0.005 90);
-    --cw-text-mute:    oklch(0.55 0.005 90);
-    --cw-accent-soft:  oklch(0.32 0.05 220);
-  }
-}
+/* Dark mode — APENAS via classe .dark (canon do Inertia/shadcn no oimpresso).
+ *
+ * NÃO usar @media (prefers-color-scheme: dark): o resto do app (sidebar,
+ * tabela, header) só respeita a classe .dark no <html>. Se usássemos
+ * media query, OS em dark mode → SÓ os campos cowork ficariam escuros
+ * enquanto resto do app continua light. Bug catalogado 2026-05-27 pós-PR
+ * #1699: Wagner em Windows dark mode viu drawer com campos pretos sobre
+ * fundo light (mismatch).
+ */
 .dark {
   --cw-bg:           oklch(0.16 0.003 240);
   --cw-bg-2:         oklch(0.19 0.006 240);

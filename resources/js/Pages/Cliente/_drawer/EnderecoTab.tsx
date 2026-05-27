@@ -333,7 +333,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
                   handleCepLookup();
                 }
               }}
-              className={cepError ? 'border-rose-500 focus-visible:ring-rose-400' : ''}
+              /* aria-invalid já dispara `.cw-input[aria-invalid="true"]` no CSS (border error) — não precisa className condicional duplicado */
             />
             <Button
               type="button"
@@ -507,7 +507,7 @@ export default function EnderecoTab({ contact, onSaved, disabled = false }: Ende
             UF
           </Label>
           <Select value={stateUf} onValueChange={handleUfChange} disabled={disabled}>
-            <SelectTrigger id="ed-uf" className="w-full">
+            <SelectTrigger id="ed-uf" variant="cowork" className="w-full">
               <SelectValue placeholder="UF" />
             </SelectTrigger>
             <SelectContent>

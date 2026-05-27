@@ -424,7 +424,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
             Status
           </Label>
           <Select value={status} onValueChange={handleStatusChange} disabled={disabled}>
-            <SelectTrigger id="cl-status" className="w-full">
+            <SelectTrigger id="cl-status" variant="cowork" className="w-full">
               <SelectValue placeholder="Selecionar status" />
             </SelectTrigger>
             <SelectContent>
