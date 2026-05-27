@@ -119,11 +119,12 @@ class WebhookProcessor
         $config = (array) ($credential->config_json ?? []);
 
         return match ($gatewayKey) {
-            'asaas'   => $this->validateAsaas($request, $config),
-            'inter'   => $this->validateInterHmac($request, $config),
-            'c6'      => $this->validateC6Hmac($request, $config),
-            'bcb_pix' => $this->validateBcbPixMtls($request, $config),
-            default   => false, // gateway desconhecido → fail-secure
+            'asaas'      => $this->validateAsaas($request, $config),
+            'inter'      => $this->validateInterHmac($request, $config),
+            'c6'         => $this->validateC6Hmac($request, $config),
+            'bcb_pix'    => $this->validateBcbPixMtls($request, $config),
+            'sicoob_api' => $this->validateSicoobApiHmac($request, $config),
+            default      => false, // gateway desconhecido → fail-secure
         };
     }
 
@@ -203,6 +204,29 @@ class WebhookProcessor
         }
         $normalize = fn (string $v): string => strtolower(str_replace([':', ' '], '', $v));
         return hash_equals($normalize($expectedFp), $normalize($fp));
+    }
+
+    /**
+     * Sicoob API v3 — HMAC-SHA256 raw body via header `x-sicoob-signature`
+     * (hex lowercase, sem prefixo). Mesmo pattern Inter legacy.
+     *
+     * US-FIN-044 PR4 — pattern conservador. Se Lea/gerente Sicoob trouxer
+     * doc real divergente (ex `sha256=` prefix ou outro header), ajuste
+     * cirúrgico aqui.
+     */
+    private function validateSicoobApiHmac(Request $request, array $config): bool
+    {
+        $secret = (string) ($config['webhook_secret'] ?? '');
+        if ($secret === '') {
+            return false;
+        }
+        $provided = (string) $request->header('x-sicoob-signature', '');
+        if ($provided === '') {
+            return false;
+        }
+        $expected = hash_hmac('sha256', $request->getContent(), $secret);
+
+        return hash_equals($expected, $provided);
     }
 
     private function isUniqueViolation(\Illuminate\Database\QueryException $e): bool
