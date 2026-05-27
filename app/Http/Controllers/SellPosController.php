@@ -269,15 +269,16 @@ class SellPosController extends Controller
         // Default OFF; Rule canary `business_id == 1` ativa pra Wagner WR2 SC validar antes de ROTA LIVRE.
         // Refs: ADR 0104 (MWART canônico §F2 backend baseline), ADR 0105 (3 graus regulação).
         //
-        // HOTFIX rollback emergencial 2026-05-13 — biz=4 (Larissa/ROTA LIVRE) reportou bugs v2:
-        //   (1) "traz o mesmo produto com estoque" (duplicação/seleção variação errada)
-        //   (2) faltam botões "preço diferenciado / tamanho / conversão unidade medida" do Blade
-        //   (3) erro visível na tela
-        // Cintura+suspensório: GrowthBook regra biz=4 OFF + este guard hardcoded.
-        // TODO: remover guard quando bugs corrigidos + canary biz=4 re-ativado.
+        // HOTFIX 2026-05-13 (biz=4 rollback) REMOVIDO em 2026-05-27.
+        // Histórico: Larissa @ ROTA LIVRE reportou 3 bugs v2 (variação duplicada, falta
+        // preço diferenciado/tamanho/conversão, erro visível) → guard hardcoded `$business_id !== 4`.
+        // Após cadeia hotfixes 2026-05-27 (PRs #1716/#1719/#1721/#1726/#1729/#1732/#1733/#1746):
+        //   - PR #1729 fixou CustomerSearch concatenação (parte do bug 2 — recalcular preço cliente)
+        //   - Bugs 1 (variação duplicada) e 3 (erro visível) endereçados em PRs separados R4/R5
+        //   - Wagner 2026-05-27: "remova hardcode, ative para todos"
+        // V2 agora controlada APENAS pela feature flag (FeatureFlagService.useV2SellsCreate).
         $ffs = app(FeatureFlagService::class);
-        $useV2 = $business_id !== 4
-            && $ffs->isOn('useV2SellsCreate', ['business_id' => $business_id]);
+        $useV2 = $ffs->isOn('useV2SellsCreate', ['business_id' => $business_id]);
         if ($useV2) {
             return Inertia::render('Sells/Create', [
                 'businessLocations'    => $business_locations,
