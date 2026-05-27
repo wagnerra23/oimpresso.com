@@ -35,6 +35,10 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
   const [keyFile, setKeyFile] = useState<File | null>(null);
   const [certPassword, setCertPassword] = useState('');
 
+  // Onda 4f.sicoob_api PR5: .pfx unitário (PKCS12 emitido pelo Sicoob)
+  const [pfxFile, setPfxFile] = useState<File | null>(null);
+  const [pfxPassword, setPfxPassword] = useState('');
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
@@ -54,7 +58,7 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
     setError(null);
     setSubmitting(true);
 
-    const hasFiles = certFile !== null || keyFile !== null;
+    const hasFiles = certFile !== null || keyFile !== null || pfxFile !== null;
     const fd = new FormData();
     fd.append('gateway_key', driver);
     fd.append('ambiente', ambiente);
@@ -67,6 +71,10 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
     if (certFile) fd.append('cert_file', certFile);
     if (keyFile) fd.append('key_file', keyFile);
     if (certPassword) fd.append('cert_password', certPassword);
+    // Onda 4f.sicoob_api PR5 — .pfx + senha separados (controller cifra senha
+    // via Crypt e move .pfx pra storage/app/private/sicoob/{business_id}.pfx)
+    if (pfxFile) fd.append('pfx_file', pfxFile);
+    if (pfxPassword) fd.append('pfx_password', pfxPassword);
 
     router.post('/settings/payment-gateways', fd, {
       forceFormData: hasFiles,
@@ -367,6 +375,83 @@ export default function SheetNovoGateway({ accounts, onClose }: Props) {
                 </Field>
                 <div className="bg-stone-50 border border-stone-200 rounded p-2.5 text-[10.5px] text-stone-700">
                   Cert ICP-Brasil ⇄ CNPJ recebedor homologado no BCB. Resolução BCB 380/2024.
+                </div>
+              </>}
+              {d.key === 'sicoob_api' && <>
+                <Field label="Client ID">
+                  <input
+                    value={config.client_id ?? ''}
+                    onChange={e => setConfigField('client_id', e.target.value)}
+                    placeholder="9b5e0aac-..."
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <Field label="Client Secret">
+                  <input
+                    type="password"
+                    value={config.client_secret ?? ''}
+                    onChange={e => setConfigField('client_secret', e.target.value)}
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Convênio (numero_cliente)">
+                    <input
+                      value={config.numero_cliente ?? ''}
+                      onChange={e => setConfigField('numero_cliente', e.target.value)}
+                      placeholder="código cedente"
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
+                  <Field label="Carteira">
+                    <select
+                      value={config.codigo_modalidade ?? '1'}
+                      onChange={e => setConfigField('codigo_modalidade', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                    >
+                      <option value="1">1 — Simples</option>
+                      <option value="3">3 — Caucionada</option>
+                    </select>
+                  </Field>
+                  <Field label="Conta corrente">
+                    <input
+                      value={config.numero_conta ?? ''}
+                      onChange={e => setConfigField('numero_conta', e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <FileField
+                    label="Certificado .pfx (PKCS12)"
+                    accept=".pfx,.p12"
+                    onFile={setPfxFile}
+                    selectedFileName={pfxFile?.name}
+                    hint="Emitido pelo Sicoob Developer Portal"
+                  />
+                  <Field label="Senha do .pfx">
+                    <input
+                      type="password"
+                      value={pfxPassword}
+                      onChange={e => setPfxPassword(e.target.value)}
+                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px] font-mono"
+                    />
+                  </Field>
+                </div>
+                <Field label="Webhook secret">
+                  <input
+                    type="password"
+                    value={config.webhook_secret ?? ''}
+                    onChange={e => setConfigField('webhook_secret', e.target.value)}
+                    placeholder="HMAC-SHA256 raw body (header x-sicoob-signature)"
+                    className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[11.5px] font-mono"
+                  />
+                </Field>
+                <div className="bg-emerald-50 border border-emerald-200 rounded p-2.5 text-[10.5px] text-emerald-900">
+                  <div className="font-semibold mb-0.5">Sicoob API v3 · OAuth2 + mTLS</div>
+                  .pfx será salvo em <span className="font-mono">storage/app/private/sicoob/{'{business_id}'}.pfx</span> (chmod 0600).
+                  Senha cifrada via Laravel Crypt antes de gravar em <span className="font-mono">config_json</span>.
+                  Sandbox e produção usam o mesmo Developer Portal mas .pfx + client_id distintos.
                 </div>
               </>}
               {d.key === 'pagarme' && <>
