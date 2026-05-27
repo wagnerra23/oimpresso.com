@@ -50,14 +50,42 @@ class WhatsmeowWebhookController extends Controller
         $channel = $request->attributes->get('whatsapp.channel');
 
         $payload = $request->all();
-        $event = (string) ($payload['type'] ?? $payload['Event'] ?? '');
+
+        // WuzAPI envelope: payload outer tem {instanceName, jsonData (string)}.
+        // jsonData é JSON string aninhado com {event:{...}, type:"Message"}.
+        // Sessão 2026-05-27 confirmou via daemon logs. Faz unwrap defensivo.
+        $unwrapped = $payload;
+        if (isset($payload['jsonData']) && is_string($payload['jsonData'])) {
+            $decoded = json_decode($payload['jsonData'], true);
+            if (is_array($decoded)) {
+                $unwrapped = array_merge($payload, $decoded);
+            }
+        }
+
+        $event = (string) ($unwrapped['type'] ?? $unwrapped['Event'] ?? '');
+        $instanceName = (string) ($payload['instanceName'] ?? $unwrapped['instanceName'] ?? '');
+
+        // Fallback resolveChannel via instanceName (WuzAPI envia nome do user
+        // criado em POST /admin/users, que é nosso whatsmeowUserName()).
+        if ($channel === null && $instanceName !== '') {
+            $channel = Channel::query()
+                ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                ->where('business_id', $businessId)
+                ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
+                ->get()
+                ->first(fn (Channel $ch) => $ch->whatsmeowUserName() === $instanceName);
+        }
 
         Log::info('whatsapp.webhook.received', [
             'business_id' => $businessId,
             'provider' => 'whatsmeow',
             'channel_id' => $channel?->id,
             'event' => $event,
+            'instance_name' => $instanceName,
         ]);
+
+        // Substitui payload pelo unwrapped pra downstream
+        $payload = $unwrapped;
 
         // Eventos de mensagem/status → enfileira processamento assíncrono
         if (in_array($event, ['Message', 'ReadReceipt'], true)) {
