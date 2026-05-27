@@ -1,9 +1,9 @@
 {
     "_meta": {
-        "generated_at": "2026-05-27T16:32:08-03:00",
+        "generated_at": "2026-05-27T17:12:28-03:00",
         "tool": "ui:lint",
         "files_scanned": 1433,
-        "total_violations": 7512,
+        "total_violations": 7515,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -247,7 +247,7 @@
             "R3": 1
         },
         "resources\/js\/Pages\/Atendimento\/Channels\/Index.tsx": {
-            "R1": 16,
+            "R1": 19,
             "R3": 1
         },
         "resources\/js\/Pages\/Atendimento\/Channels\/Show.tsx": {
@@ -318,11 +318,11 @@
         "resources\/js\/Pages\/Cliente\/_drawer\/IdentificacaoTab.tsx": {
             "R1": 11
         },
-        "resources\/js\/Pages\/Cliente\/_drawer\/oss\/PlacasSubTab.tsx": {
-            "R1": 1
-        },
         "resources\/js\/Pages\/Cliente\/_drawer\/OssTab.tsx": {
             "R1": 4
+        },
+        "resources\/js\/Pages\/Cliente\/_drawer\/PlacasMainTab.tsx": {
+            "R1": 1
         },
         "resources\/js\/Pages\/Cliente\/_form\/DadosFiscaisBRSection.tsx": {
             "R1": 3

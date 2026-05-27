@@ -1518,7 +1518,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               <span>Selecione o local da venda</span>
             ) : pagamentoStatus === 'falta' ? (
               // Info-level (não bloqueia mais — venda a prazo permitida).
-              <span className="text-amber-600 dark:text-amber-400">
+              // text-warning é token semântico canon (--color-warning).
+              <span className="text-warning">
                 Venda a prazo — saldo devedor {formatBRL(Math.abs(saldoPagamento))}
               </span>
             ) : pagamentoStatus === 'troco' ? (
