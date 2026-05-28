@@ -3,7 +3,7 @@ slug: 0211-tanstack-query-data-fetching-padrao
 number: 211
 title: "TanStack Query como padrão de data-fetching em componentes — eliminar R7 (race condition) na raiz"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

@@ -3,7 +3,7 @@ slug: 0209-eslint-9-flat-config
 number: 209
 title: "ESLint 9 flat-config + react-hooks + jsx-a11y baseline ratchet — enforcement passivo JS/TS"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
