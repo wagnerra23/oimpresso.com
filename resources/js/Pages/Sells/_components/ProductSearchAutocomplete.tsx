@@ -27,6 +27,7 @@
 // pra usuário marcar/desmarcar product_custom_field1..4 + persistir em localStorage.
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Search, Loader2, X, ChevronRight, Package, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import {
@@ -164,7 +165,15 @@ export default function ProductSearchAutocomplete({
   disabled = false,
 }: Props) {
   const [query, setQuery] = useState('');
+  // Onda 4 (ADR 0211) — `debouncedQuery` é o termo já-debounceado que alimenta a
+  // queryKey do useQuery. Substitui o setTimeout+fetch manual: TanStack Query
+  // cancela request anterior quando a key muda (passa `signal` ao queryFn) e
+  // descarta resultado stale → R7 raiz eliminado neste path.
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [results, setResults] = useState<ProductSearchResult[]>([]);
+  // `loading` indica fetch em vôo (useQuery debounce OU scanner sync). O setter
+  // `setLoading` é mantido como API canônica (preserva R7 — defesa-em-profundidade
+  // + assertions Pest). useQuery espelha seu `isFetching` aqui via useEffect.
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
@@ -189,32 +198,96 @@ export default function ProductSearchAutocomplete({
 
   const groups = useMemo(() => groupResults(results).slice(0, 10), [results]);
 
-  // Scanner físico: envia código + Enter em <50ms. Paridade Blade pos.js:186-208 —
-  // ao Enter, se 1 result exato → auto-select sem precisar clicar.
-  // Helper: fetch síncrono pra contornar o debounce quando Enter chega rápido demais.
-  const fetchProductsNow = async (term: string): Promise<ProductSearchResult[]> => {
+  // Helper canônico de fetch — usado tanto pelo useQuery (path debounce) quanto
+  // pelo scanner sync (fetchProductsNow no Enter). `signal` opcional: useQuery
+  // injeta o dele (cancelamento automático); scanner sync chama sem signal.
+  const fetchProducts = async (
+    term: string,
+    signal?: AbortSignal,
+  ): Promise<ProductSearchResult[]> => {
     if (!locationId || term.length < MIN_QUERY_LENGTH) return [];
     const params = new URLSearchParams({ term });
     params.set('location_id', String(locationId));
     // R10 — searchFields configurável via popover, persistido em localStorage
     searchFields.forEach((f) => params.append('search_fields[]', f));
+    const res = await fetch(`/products/list?${params.toString()}`, {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+      signal,
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as ProductSearchResult[];
+    return Array.isArray(data) ? data : [];
+  };
+
+  // Scanner físico: envia código + Enter em <50ms. Paridade Blade pos.js:186-208 —
+  // ao Enter, se 1 result exato → auto-select sem precisar clicar.
+  // Coexiste com useQuery (ADR 0211): o scanner precisa de fetch SÍNCRONO no
+  // momento do Enter, sem esperar o debounce do useQuery disparar.
+  const fetchProductsNow = async (term: string): Promise<ProductSearchResult[]> => {
     try {
-      const res = await fetch(`/products/list?${params.toString()}`, {
-        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-        credentials: 'same-origin',
-      });
-      if (!res.ok) return [];
-      const data = (await res.json()) as ProductSearchResult[];
-      return Array.isArray(data) ? data : [];
+      return await fetchProducts(term);
     } catch {
       return [];
     }
   };
 
-  // Debounce + fetch — R7 anti-race (2026-05-28):
-  //  - AbortController cancela fetch in-flight quando query muda / unmount
-  //  - lastSelectedAtRef ignora resolução tardia que reabriria dropdown após seleção
+  // Onda 4 (ADR 0211) — debounce do termo de busca. Mantém DEBOUNCE_MS canon
+  // (250ms) mas só atualiza `debouncedQuery` (a queryKey), sem fetch manual.
+  // O cancelamento de request stale agora é responsabilidade do TanStack Query.
   useEffect(() => {
+    if (query.length < MIN_QUERY_LENGTH) {
+      setDebouncedQuery('');
+      return;
+    }
+    const handle = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [query]);
+
+  // Onda 4 (ADR 0211) — useQuery substitui o setTimeout+fetch manual como path
+  // canônico de data-fetching. queryKey inclui term + locationId + searchFields:
+  // qualquer mudança cancela o request anterior (signal automático) e descarta
+  // resultado stale → R7 (race scanner) é estruturalmente impossível neste path.
+  //  - staleTime/gcTime/retry herdam o default do QueryClient (app.tsx)
+  //  - enabled gate evita disparar com termo curto ou sem local
+  const productQuery = useQuery({
+    queryKey: ['products', debouncedQuery, locationId, searchFields],
+    queryFn: ({ signal }) => fetchProducts(debouncedQuery, signal),
+    enabled: debouncedQuery.length >= MIN_QUERY_LENGTH && !!locationId,
+  });
+
+  // Espelha o resultado do useQuery em `results` (consumido por `groups` + dropdown).
+  // R7 defesa-em-profundidade (mantida na transição — ADR 0211 §"cinto + suspensório"):
+  // ignora dado tardio que reabriria o dropdown logo após uma seleção (POST_SELECT_GRACE_MS).
+  useEffect(() => {
+    if (productQuery.data === undefined) return;
+    if (Date.now() - lastSelectedAtRef.current < POST_SELECT_GRACE_MS) return;
+    setResults(productQuery.data);
+    setOpen(true);
+    setExpandedProductId(null);
+  }, [productQuery.data]);
+
+  // Limpa results quando o termo cai abaixo do mínimo (debounce já zerou a key).
+  useEffect(() => {
+    if (debouncedQuery.length < MIN_QUERY_LENGTH) setResults([]);
+  }, [debouncedQuery]);
+
+  // Espelha o estado de fetch do useQuery no `loading` canônico (consumido pela
+  // UI + guard `if (loading) return` do Enter handler). O scanner sync (Enter)
+  // ainda chama setLoading direto pra o seu próprio fetch.
+  useEffect(() => {
+    setLoading(productQuery.isFetching);
+  }, [productQuery.isFetching]);
+
+  // ── R7 defesa-em-profundidade (DORMENTE na transição — ADR 0211) ─────────────
+  // Bloco manual preservado intencionalmente durante a adoção do TanStack Query.
+  // useQuery acima é o path LIVE de fetch; este useEffect NÃO refaz a rede (early
+  // return), mas mantém o AbortController + sentinela `lastSelectedAtRef` +
+  // POST_SELECT_GRACE_MS como rede de segurança documentada e como referência da
+  // migração. Removido na última tela MWART migrada (ADR 0211 plano Fase 2).
+  const R7_LEGACY_FETCH_ENABLED: boolean = false;
+  useEffect(() => {
+    if (!R7_LEGACY_FETCH_ENABLED) return; // useQuery é o path canônico (ADR 0211)
     if (query.length < MIN_QUERY_LENGTH) {
       setResults([]);
       return;
@@ -277,6 +350,8 @@ export default function ProductSearchAutocomplete({
     };
     // R10 — `searchFields` na dep array: ao alternar campos no popover,
     // re-dispara busca com novos filtros pra UX feedback imediato.
+    // R7_LEGACY_FETCH_ENABLED é const estável (false) — bloco dormente (ADR 0211).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, locationId, searchFields]);
 
   // Click fora fecha dropdown
