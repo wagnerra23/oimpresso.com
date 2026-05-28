@@ -35,9 +35,16 @@ trait HasArquivos
 
     /**
      * Helper: arquivos classificados num bucket específico.
+     *
+     * `bucket()` é um local scope definido em Arquivo::scopeBucket — Larastan
+     * não propaga scopes do model target via MorphMany sem `@method` annotation.
+     * Refator clean (US-ARQ-TYPE follow-up): adicionar
+     * `@method static Builder<static> bucket(string $bucket)` em Arquivo +
+     * generic `@return MorphMany<Arquivo, $this>` em arquivos() acima.
      */
     public function arquivosClassificados(string $bucket): \Illuminate\Database\Eloquent\Collection
     {
+        /** @phpstan-ignore-next-line method.notFound */
         return $this->arquivos()->bucket($bucket)->get();
     }
 }
