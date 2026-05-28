@@ -714,6 +714,25 @@ class Kernel extends ConsoleKernel
             ->timezone('America/Sao_Paulo')
             ->environments(['live']);
 
+        // ADR 0216 — Governance Drift Framework (orchestrator)
+        // Slot 06:35 BRT escolhido (06:15 disputado por 4 schedules; 06:30 charter:health).
+        // Roda TODOS DriftCheckers registrados em config/governance.php > drift_checkers[].
+        // PR1 ships com 4 checkers: composer_audit, multi_tenant_scope, adr_link_rot, routes_zombie.
+        // --notify publica governance:drift Centrifugo (consumido por Brief Jana 07h).
+        // Canary 7d: roda em paralelo com schedules legacy (secrets:audit, governance:detect-drift).
+        // Após 7d sem regressão, PR cleanup remove entries legacy.
+        $schedule->command('governance:audit --all --notify')
+            ->dailyAt('06:35')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live'])
+            ->onOneServer()
+            ->withoutOverlapping(60)
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:audit FALHOU — drift detection paralisado, fallback nos checkers legacy 06:15'
+                );
+            });
+
         // Guardião 6 camadas anti-mídia-perdida — Camada 4 (retry hourly).
         // Rede de proteção pra mídia órfã (status=pending|downloading, media_url=null,
         // attempts<5, criada nos últimos 7d). Dispatcha DownloadMediaJob pra cada.
