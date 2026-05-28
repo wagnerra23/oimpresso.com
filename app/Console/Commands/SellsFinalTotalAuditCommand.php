@@ -32,20 +32,27 @@ use Illuminate\Support\Facades\DB;
 class SellsFinalTotalAuditCommand extends Command
 {
     /**
+     * Modos:
+     *   final-total : detecta final_total > teto (total_before_tax + tax + shipping) — bug 17642
+     *   times-ten   : detecta unit_price ≈ variation.default_sell_price × 10 — bug clássico legacy num_uf
+     *                 ("89.9" → str_replace('.','','89.9') = '899' antes do PR #1867)
+     *
      * Sintaxe:
      *   php artisan sells:final-total-audit --business=4
+     *   php artisan sells:final-total-audit --business=4 --mode=times-ten
      *   php artisan sells:final-total-audit --business=4 --since=2026-05-01
-     *   php artisan sells:final-total-audit --business=4 --ratio=5
      *   php artisan sells:final-total-audit --business=4 --apply --transaction=69293
+     *   php artisan sells:final-total-audit --business=4 --mode=times-ten --apply --transaction=69300
      */
     protected $signature = 'sells:final-total-audit
         {--business= : ID do business (OBRIGATÓRIO — Tier 0 ADR 0093 scope)}
+        {--mode=final-total : final-total | times-ten}
         {--since= : Data ISO (YYYY-MM-DD) a partir de quando auditar (default: últimos 30d)}
-        {--ratio=5 : Razão final_total / esperado considerada suspeita (default 5x)}
+        {--ratio=5 : Razão final_total / esperado considerada suspeita (default 5x, só mode=final-total)}
         {--apply : Aplica correção (default DRY-RUN). Exige --transaction.}
         {--transaction= : ID da transaction única a corrigir (apply requer este)}';
 
-    protected $description = 'Audita transactions.final_total corrompidas por bug num_uf histórico (DRY-RUN por padrão).';
+    protected $description = 'Audita transactions corrompidas por bug num_uf histórico (DRY-RUN por padrão).';
 
     public function handle(): int
     {
@@ -56,11 +63,20 @@ class SellsFinalTotalAuditCommand extends Command
             return self::FAILURE;
         }
 
+        $mode = (string) $this->option('mode');
+        if (! in_array($mode, ['final-total', 'times-ten'], true)) {
+            $this->error("--mode inválido. Aceita: 'final-total', 'times-ten'. Recebido: '{$mode}'.");
+
+            return self::FAILURE;
+        }
+
         $since = $this->option('since') ?: now()->subDays(30)->format('Y-m-d');
         $ratio = (float) ($this->option('ratio') ?: 5);
 
         if (! $this->option('apply')) {
-            return $this->runDryRun($business, $since, $ratio);
+            return $mode === 'times-ten'
+                ? $this->runDryRunTimesTen($business, $since)
+                : $this->runDryRun($business, $since, $ratio);
         }
 
         $tid = (int) $this->option('transaction');
@@ -70,7 +86,9 @@ class SellsFinalTotalAuditCommand extends Command
             return self::FAILURE;
         }
 
-        return $this->runApply($business, $tid);
+        return $mode === 'times-ten'
+            ? $this->runApplyTimesTen($business, $tid)
+            : $this->runApply($business, $tid);
     }
 
     private function runDryRun(int $business, string $since, float $ratio): int
@@ -251,6 +269,210 @@ class SellsFinalTotalAuditCommand extends Command
 
         $this->info("✅ Transaction {$tid} corrigida. final_total {$real} → {$esperado}.");
         $this->warn('Lembre de revisar payment_status / fin_titulos / commission manualmente se aplicável.');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Modo times-ten: detecta vendas onde TODAS as sell_lines têm
+     * `unit_price ≈ variations.default_sell_price × 10` — sinal canônico
+     * do bug legacy `num_uf("89.9") = '899'` (str_replace ponto = '' antes de #1867).
+     *
+     * Filtra apenas vendas onde TODAS as lines têm o multiplicador 10 consistente
+     * (evita falsos positivos de promoções/alteração manual de preço onde só 1 line
+     * é × 10 e outras não).
+     */
+    private function runDryRunTimesTen(int $business, string $since): int
+    {
+        $this->info("DRY-RUN times-ten — business={$business}, since={$since}");
+        $this->line('');
+
+        // Subquery: por transaction, contar lines bugadas vs total. Só listar
+        // quando 100% das lines estão bugadas (confiança alta no padrão).
+        $rows = DB::select(
+            <<<'SQL'
+                SELECT
+                    t.id AS tid,
+                    t.invoice_no,
+                    t.created_at,
+                    u.username AS created_by_username,
+                    t.final_total,
+                    t.total_before_tax,
+                    t.discount_amount,
+                    t.discount_type,
+                    t.payment_status,
+                    t.chave AS nfe_chave,
+                    COUNT(sl.id) AS qtd_lines_total,
+                    SUM(
+                        CASE WHEN pv.default_sell_price > 0
+                             AND ABS(sl.unit_price - pv.default_sell_price * 10) / sl.unit_price < 0.05
+                        THEN 1 ELSE 0 END
+                    ) AS qtd_lines_bugadas
+                FROM transactions t
+                JOIN transaction_sell_lines sl ON sl.transaction_id = t.id
+                JOIN variations pv ON pv.id = sl.variation_id
+                LEFT JOIN users u ON u.id = t.created_by
+                WHERE t.business_id = ?
+                  AND t.type = 'sell'
+                  AND t.created_at >= ?
+                GROUP BY t.id
+                HAVING qtd_lines_bugadas = qtd_lines_total AND qtd_lines_bugadas > 0
+                ORDER BY t.id DESC
+            SQL,
+            [$business, $since]
+        );
+
+        if (empty($rows)) {
+            $this->info('Nenhuma transaction × 10 detectada.');
+
+            return self::SUCCESS;
+        }
+
+        $this->warn(sprintf('Detectadas %d transactions com bug × 10:', count($rows)));
+        $this->line('');
+
+        $tableRows = [];
+        foreach ($rows as $r) {
+            $tableRows[] = [
+                'id'         => $r->tid,
+                'invoice'    => $r->invoice_no,
+                'criada'     => $r->created_at,
+                'created_by' => $r->created_by_username,
+                'final_atual' => number_format((float) $r->final_total, 2, ',', '.'),
+                'final_/10'  => number_format(((float) $r->final_total) / 10, 2, ',', '.'),
+                'itens'      => $r->qtd_lines_total,
+                'nfe'        => $r->nfe_chave ? '⚠️ EMITIDA' : 'não',
+                'pgto'       => $r->payment_status ?: '-',
+            ];
+        }
+
+        $this->table(
+            ['id', 'invoice', 'criada', 'created_by', 'final_atual', 'final_/10', 'itens', 'nfe', 'pgto'],
+            $tableRows
+        );
+
+        $this->line('');
+        $this->warn('Pra aplicar correção numa transaction específica:');
+        $this->line('  php artisan sells:final-total-audit --business='.$business.' --mode=times-ten --apply --transaction=ID');
+        $this->line('');
+        $this->warn('REGRAS DE SEGURANÇA:');
+        $this->line('  • NUNCA aplicar em transaction com NFe emitida.');
+        $this->line('  • SEMPRE confirmar com Larissa antes de transactions com pagamento != null.');
+        $this->line('  • Divide TUDO por 10: final_total + total_before_tax + tax_amount + sell_lines (unit_price, unit_price_inc_tax, unit_price_before_discount).');
+
+        return self::SUCCESS;
+    }
+
+    private function runApplyTimesTen(int $business, int $tid): int
+    {
+        /** @var Transaction|null $t */
+        $t = Transaction::where('business_id', $business)->where('id', $tid)->first();
+        if (! $t) {
+            $this->error("Transaction {$tid} não pertence a business {$business} (Tier 0 scope).");
+
+            return self::FAILURE;
+        }
+
+        if (! empty($t->chave)) {
+            $this->error("Transaction {$tid} tem NFe EMITIDA (chave={$t->chave}). Correção bloqueada — anular via SEFAZ antes.");
+
+            return self::FAILURE;
+        }
+
+        // Confirma que TODAS as lines estão × 10 antes de aplicar (defesa em profundidade)
+        $checks = DB::select(
+            <<<'SQL'
+                SELECT
+                    COUNT(sl.id) AS total,
+                    SUM(
+                        CASE WHEN pv.default_sell_price > 0
+                             AND ABS(sl.unit_price - pv.default_sell_price * 10) / sl.unit_price < 0.05
+                        THEN 1 ELSE 0 END
+                    ) AS bugadas
+                FROM transaction_sell_lines sl
+                JOIN variations pv ON pv.id = sl.variation_id
+                WHERE sl.transaction_id = ?
+            SQL,
+            [$tid]
+        );
+
+        $total = (int) ($checks[0]->total ?? 0);
+        $bugadas = (int) ($checks[0]->bugadas ?? 0);
+
+        if ($total === 0 || $bugadas !== $total) {
+            $this->error("Transaction {$tid} NÃO está com TODAS as lines × 10 ({$bugadas}/{$total} bugadas). Correção bloqueada — pode haver promoção ou edição manual.");
+
+            return self::FAILURE;
+        }
+
+        $this->info("Transaction #{$tid} (invoice {$t->invoice_no}):");
+        $this->line('  total_before_tax atual: '.number_format((float) $t->total_before_tax, 2, ',', '.').' → '.number_format(((float) $t->total_before_tax) / 10, 2, ',', '.'));
+        $this->line('  final_total atual:      '.number_format((float) $t->final_total, 2, ',', '.').' → '.number_format(((float) $t->final_total) / 10, 2, ',', '.'));
+        $this->line('  '.$total.' sell_lines serão divididas por 10 (unit_price, unit_price_inc_tax, unit_price_before_discount)');
+        $this->line('  payment_status: '.($t->payment_status ?? '-'));
+        $this->line('');
+
+        if (! $this->confirm('Confirma dividir TUDO por 10?', false)) {
+            $this->info('Cancelado pelo operador.');
+
+            return self::SUCCESS;
+        }
+
+        DB::transaction(function () use ($t, $business): void {
+            $oldTotalBefore = (float) $t->total_before_tax;
+            $oldFinalTotal = (float) $t->final_total;
+            $oldTax = (float) $t->tax_amount;
+
+            // Audit append-only ANTES do UPDATE
+            DB::table('activity_log')->insert([
+                'log_name' => 'sells-times-ten-audit',
+                'description' => 'unit_price + final_total /= 10 via sells:final-total-audit mode=times-ten (bug histórico num_uf PR #1867)',
+                'subject_type' => 'App\\Transaction',
+                'subject_id' => $t->id,
+                'causer_type' => null,
+                'causer_id' => null,
+                'properties' => json_encode([
+                    'business_id' => $business,
+                    'attributes' => [
+                        'total_before_tax' => round($oldTotalBefore / 10, 4),
+                        'tax_amount' => round($oldTax / 10, 4),
+                        'final_total' => round($oldFinalTotal / 10, 4),
+                    ],
+                    'old' => [
+                        'total_before_tax' => $oldTotalBefore,
+                        'tax_amount' => $oldTax,
+                        'final_total' => $oldFinalTotal,
+                    ],
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Atualiza sell_lines: divide unit_price + unit_price_inc_tax + unit_price_before_discount por 10
+            DB::statement(
+                <<<'SQL'
+                    UPDATE transaction_sell_lines
+                    SET unit_price = unit_price / 10,
+                        unit_price_inc_tax = unit_price_inc_tax / 10,
+                        unit_price_before_discount = unit_price_before_discount / 10,
+                        item_tax = item_tax / 10,
+                        updated_at = NOW()
+                    WHERE transaction_id = ?
+                SQL,
+                [$t->id]
+            );
+
+            // Atualiza transaction: divide totais por 10
+            DB::table('transactions')->where('id', $t->id)->update([
+                'total_before_tax' => round($oldTotalBefore / 10, 4),
+                'tax_amount' => round($oldTax / 10, 4),
+                'final_total' => round($oldFinalTotal / 10, 4),
+                'updated_at' => now(),
+            ]);
+        });
+
+        $this->info("✅ Transaction {$tid} corrigida (÷ 10).");
+        $this->warn('Lembre de revisar transaction_payments + payment_status + commission manualmente — não foram tocados.');
 
         return self::SUCCESS;
     }
