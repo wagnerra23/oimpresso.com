@@ -8,6 +8,18 @@ import tailwindcss from '@tailwindcss/vite';
 // NÃO `@laravel/wayfinder/vite`. Validado contra dist v0.1.7 (registry npm 2026-05-28).
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import path from 'node:path';
+import fs from 'node:fs';
+
+// Wayfinder roda `php artisan wayfinder:generate` no build/dev — exige PHP +
+// vendor/autoload.php presentes. O job CI "Frontend / Vite build" é JS-only
+// (sem composer install) e o artisan aborta (fatal: vendor/autoload.php
+// ausente), derrubando o build inteiro. Guard: só habilita o plugin quando o
+// backend está instalado. Dev local + deploy prod (composer install → npm
+// build) geram os tipos normalmente; CI JS-only pula sem quebrar. Nada importa
+// rotas geradas pelo Wayfinder ainda (consumo é FASE 2 — Sells/Create piloto).
+const backendInstalled = fs.existsSync(
+  path.resolve(process.cwd(), 'vendor/autoload.php'),
+);
 
 export default defineConfig({
   plugins: [
@@ -17,11 +29,9 @@ export default defineConfig({
       refresh: true,
       buildDirectory: 'build-inertia',
     }),
-    wayfinder({
-      // Gera helpers de rotas + actions tipados. `formVariants` habilita
-      // helpers .form() pra submits Inertia type-safe (ADR 0210 Fase 2 piloto).
-      formVariants: true,
-    }),
+    // Gera helpers de rotas + actions tipados. `formVariants` habilita
+    // helpers .form() pra submits Inertia type-safe (ADR 0210 Fase 2 piloto).
+    ...(backendInstalled ? [wayfinder({ formVariants: true })] : []),
     react(),
     tailwindcss(),
   ],
