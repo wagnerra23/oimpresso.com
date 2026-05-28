@@ -82,8 +82,9 @@ jobs:
           TELESCOPE_ENABLED=false
           VIEW_COMPILED_PATH=storage/framework/views
           BCRYPT_ROUNDS=4
+          APP_KEY=
           EOF
-          php artisan key:generate
+          php artisan key:generate --force
 
       - name: PHPStan analyse (falha só em regressão vs baseline)
         run: |

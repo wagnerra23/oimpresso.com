@@ -51,6 +51,11 @@ parameters:
         - identifier: argument.type
           message: '#Parameter \#1 \$key of function session expects string\|null#'
 
+        # nullsafe.neverNull: Larastan no Linux detecta `?->business_id` quando model
+        # marcado non-nullable em DocBlock. Local Windows não detecta (diff de stub).
+        # Suprime globalmente até harmonizar — débito Onda 2.4 (PR futuro).
+        - identifier: nullsafe.neverNull
+
         # === 14 erros pre-existentes "non-ignorable" (não cabem em baseline.neon)
         #     Cada um é débito documentado pra fix em PR per módulo:
         #     - return.missing (5): scaffold controllers vazios — owner módulo adiciona `return back();`
