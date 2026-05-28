@@ -3,7 +3,7 @@ slug: 0208-larastan-baseline-ratchet
 number: 208
 title: "Larastan PHPStan baseline ratchet — enforcement passivo de anti-padrões PHP"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

@@ -3,7 +3,7 @@ slug: 0213-audit-creates-tasks-loop-fechado
 number: 213
 title: "Audit docs com gaps criam MCP tasks automaticamente — loop fechado audit → backlog → ação"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

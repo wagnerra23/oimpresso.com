@@ -3,7 +3,7 @@ slug: 0210-type-safety-end-to-end-wayfinder
 number: 210
 title: "Type safety end-to-end via Wayfinder — eliminar R8/AP-12 (type drift backend↔frontend) na raiz"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
