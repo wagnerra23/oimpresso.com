@@ -1,15 +1,20 @@
 ---
-adr: 0218
-title: MultiTenantScopeChecker — Tier 0 IRREVOGÁVEL (ADR 0093 defesa em profundidade)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0093-multi-tenant-isolation-tier-0.md
-  - 0158-module-grade-v3-d1-heuristica-hardening.md
-  - 0216-governance-drift-framework-driftchecker-plugavel.md
-lifecycle: active
+slug: 0218-multi-tenant-scope-checker-tier-0
+number: 218
+title: "MultiTenantScopeChecker — Tier 0 IRREVOGÁVEL (ADR 0093 defesa em profundidade)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, multi-tenant, tier-0, security]
+related:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0158-module-grade-v3-d1-heuristica-hardening
+  - 0216-governance-drift-framework-driftchecker-plugavel
+pii: false
 ---
 
 ## Contexto

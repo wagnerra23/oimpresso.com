@@ -3,9 +3,9 @@ slug: 0018-officeimpresso-log-acesso-passivo
 number: 18
 title: !!binary gJQgTG9nIGRlIGFjZXNzbyBkbyBkZXNrdG9wIHZpYSB0cmlnZ2VycyBNeVNRTCAocGFzc2l2byk=
 type: adr
-status: historical
+status: aceito
 authority: canonical
-lifecycle: historical
+lifecycle: arquivado
 decided_by:
   - W
 decided_at: '2026-04-23'

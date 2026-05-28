@@ -1,17 +1,22 @@
 ---
-adr: 0215
-title: Secrets governance — 5 camadas automáticas (auto-discovery + auto-validate + auto-alert + auto-PR + pre-commit gate)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0044-vaultwarden-self-hosted-cofre.md
-  - 0045-hostinger-dns-api-endpoint-canonico.md
-  - 0061-conhecimento-canonico-git-mcp-zero-automem.md
-  - 0093-multi-tenant-isolation-tier-0.md
-  - 0131-tiering-memoria-canonico-local-segredo.md
-lifecycle: active
+slug: 0215-secrets-governance-5-camadas-automaticas
+number: 215
+title: "Secrets governance — 5 camadas automáticas (auto-discovery + auto-validate + auto-alert + auto-PR + pre-commit gate)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [secrets, governance, drift, supply-chain, automation]
+related:
+  - 0044-vaultwarden-self-hosted-cofre
+  - 0045-hostinger-dns-api-endpoint-canonico
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0093-multi-tenant-isolation-tier-0
+  - 0131-tiering-memoria-canonico-local-segredo
+pii: false
 ---
 
 ## Contexto

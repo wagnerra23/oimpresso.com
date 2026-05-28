@@ -1,17 +1,23 @@
 ---
-adr: 0214
-title: Arquivos backbone — aceite ADR 0123 + emenda storage default S3 MinIO CT 100
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: [0123]
-references:
-  - 0123-modules-arquivos-backbone.md
-  - 0042-proxmox-docker-host-canonico.md
-  - 0058-reverb-substituido-por-centrifugo-frankenphp.md
-  - 0062-separacao-runtime-hostinger-ct100.md
-  - 0093-multi-tenant-isolation-tier-0.md
-lifecycle: active
+slug: 0214-arquivos-storage-s3-minio-ct100
+number: 214
+title: "Arquivos backbone — aceite ADR 0123 + emenda storage default S3 MinIO CT 100"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: infra
+tags: [arquivos, storage, s3, minio, ct100]
+amends: [0123-modules-arquivos-backbone]
+related:
+  - 0123-modules-arquivos-backbone
+  - 0042-proxmox-docker-host-canonico
+  - 0058-reverb-substituido-por-centrifugo-frankenphp
+  - 0062-separacao-runtime-hostinger-ct100
+  - 0093-multi-tenant-isolation-tier-0
+pii: false
 ---
 
 ## Contexto
