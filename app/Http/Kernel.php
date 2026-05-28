@@ -36,6 +36,11 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
+            // ADR 0212 Camada 1 (2026-05-28) — injeta business_id/user_id/request_id/
+            // route_name em Log::withContext pra toda request. Camada base do
+            // "fail loud not silent" — fallbacks WARN/ERROR têm rastreabilidade
+            // automática. Posicionado APÓS StartSession (precisa session ativa).
+            \App\Http\Middleware\LogContextMiddleware::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
