@@ -85,4 +85,21 @@ if [ -f "config/ui-lint-baseline.json" ]; then
     fi
 fi
 
+# ── Secrets governance (ADR 0215 Camada 5 — 2026-05-28) ──
+# Roda secrets:scan --diff-only --fail-on-drift se artisan disponível.
+# Bloqueia commit que adicione secret sem entry em memory/_INDEX-SECRETS.md.
+# Pra emergencia: git commit --no-verify (registra exceção no PR).
+if [ -f artisan ]; then
+    if ! "$PHP_BIN" artisan secrets:scan --diff-only --fail-on-drift 2>/dev/null; then
+        echo ""
+        echo "❌ SECRETS GOVERNANCE: secret novo detectado SEM entry em memory/_INDEX-SECRETS.md"
+        echo "Ações:"
+        echo "  1. Adicione linha no índice canônico antes de commitar"
+        echo "  2. OR padrão ponteiro: não commitar valor real, só ponteiro pra Vaultwarden/CT 100 file"
+        echo "  3. Pra emergencia: git commit --no-verify (registra exceção no PR body)"
+        echo "Refs: ADR 0215 · skill memory-first-secret-search"
+        exit 1
+    fi
+fi
+
 exit 0
