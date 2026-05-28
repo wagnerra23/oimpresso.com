@@ -1,10 +1,22 @@
-# Smoke test do hook block-memory-drift.ps1 -- 10 casos canonicos.
+# Smoke test do hook block-memory-drift.ps1 -- 11 casos canonicos.
 #
 # Rodar manual:
 #   pwsh .claude/hooks/block-memory-drift.test.ps1
 #   (ou) powershell .claude/hooks/block-memory-drift.test.ps1
 #
-# Exit 0 = 10/10 casos passam. Nao-zero = falha (caso explicitado).
+# Exit 0 = 11/11 casos passam. Nao-zero = falha (caso explicitado).
+#
+# BRANCH-AGNOSTICO: o teste passa 11/11 INDEPENDENTE da branch ativa do checkout.
+# O hook detecta a branch via `git rev-parse --abbrev-ref HEAD` rodando no CWD do
+# processo (NAO no $PSScriptRoot). Os caminhos canon (Test-CanonFile) sao resolvidos
+# via $PSScriptRoot -> repo real, entao independem do CWD. Logo, pra simular uma
+# branch deterministica nos casos branch-dependentes (3, 4, 5), rodamos o hook com
+# CWD apontando pra um repo git temporario descartavel na branch desejada
+# (helper Invoke-HookOnBranch). Assim:
+#   - Caso 3 (ADR nova) roda em claude/* simulada -> ALLOW deterministico
+#   - Caso 4 (proibicoes em main) roda em main simulada -> BLOCK deterministico
+#   - Caso 5 (proibicoes em claude/*) roda em claude/* simulada -> ALLOW deterministico
+# Nenhum caso depende mais da branch real do worktree.
 
 $ErrorActionPreference = 'Stop'
 
@@ -74,7 +86,76 @@ function Invoke-Hook {
     return [string]$result
 }
 
-# Detecta branch real atual (afeta testes que NAO mockam branch)
+# Helper: cria um repo git temporario descartavel numa branch especifica.
+# Retorna o path do repo. O hook, ao rodar com este path como CWD, vai detectar
+# essa branch via `git rev-parse --abbrev-ref HEAD` -- mas continua resolvendo os
+# arquivos canon via $PSScriptRoot (repo real). Isso desacopla a deteccao de branch
+# da branch real do checkout, tornando os casos branch-dependentes deterministicos.
+function New-TempGitRepoOnBranch {
+    param([string]$Branch)
+
+    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("bmd-test-{0}" -f ([guid]::NewGuid().ToString('N')))
+    New-Item -ItemType Directory -Path $tmp -Force | Out-Null
+
+    Push-Location $tmp
+    try {
+        & git init -q 2>$null | Out-Null
+        & git config user.email 'test@oimpresso.local' 2>$null | Out-Null
+        & git config user.name 'bmd-test' 2>$null | Out-Null
+        & git commit -q --allow-empty -m 'init' 2>$null | Out-Null
+        # main/master podem nao precisar de rename; pra outras branches usamos checkout -b
+        $cur = (& git rev-parse --abbrev-ref HEAD 2>$null).Trim()
+        if ($cur -ne $Branch) {
+            & git checkout -q -B $Branch 2>$null | Out-Null
+        }
+    } finally {
+        Pop-Location
+    }
+    return $tmp
+}
+
+# Helper: roda o hook simulando uma branch deterministica (via CWD = repo temp).
+# Os paths canon sao resolvidos pelo $PSScriptRoot do hook (repo real), entao
+# FilePath deve continuar apontando pro repo real (ex "$repoRoot/memory/...").
+function Invoke-HookOnBranch {
+    param(
+        [string]$ToolName,
+        [string]$FilePath,
+        [string]$Branch,
+        [hashtable]$Env = @{}
+    )
+
+    $payload = @{
+        tool_name  = $ToolName
+        tool_input = @{ file_path = $FilePath }
+    } | ConvertTo-Json -Compress
+
+    $tmpRepo = New-TempGitRepoOnBranch -Branch $Branch
+
+    $envBackup = @{}
+    foreach ($key in $Env.Keys) {
+        $envBackup[$key] = [Environment]::GetEnvironmentVariable($key)
+        [Environment]::SetEnvironmentVariable($key, $Env[$key])
+    }
+
+    Push-Location $tmpRepo
+    try {
+        $prevErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        $result = $payload | & $script:psBin -NoProfile -File $hookPath 2>&1 | Out-String
+        $ErrorActionPreference = $prevErrorAction
+    } finally {
+        Pop-Location
+        foreach ($key in $envBackup.Keys) {
+            [Environment]::SetEnvironmentVariable($key, $envBackup[$key])
+        }
+        if (Test-Path $tmpRepo) { Remove-Item $tmpRepo -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+
+    return [string]$result
+}
+
+# Detecta branch real atual (apenas informativo no log -- os casos NAO dependem dela)
 Push-Location $repoRoot
 try {
     $currentBranch = (& git rev-parse --abbrev-ref HEAD 2>$null).Trim()
@@ -129,43 +210,32 @@ if (-not (Assert-Block 'Caso 2 (Edit ADR existente em claude/*)' $out)) { $failu
 
 # ============================================================================
 # CASO 3: Write criando ADR nova (NNNN inexistente, ex 9999) em claude/* -> ALLOW
+#         BRANCH-AGNOSTICO: simula branch claude/test-branch via repo temp no CWD.
+#         O hook so permite ADR nova em branch claude/* (regra D). Como a branch
+#         real do checkout pode ser docs/* ou main, simulamos claude/* aqui.
 # ============================================================================
 $adrNova = "$repoRoot/memory/decisions/9999-test-novo-adr-nunca-usado.md"
-# Garante que nao existe
+# Garante que nao existe (Test-CanonFile resolve pelo repo real -> precisa estar ausente)
 if (Test-Path $adrNova) { Remove-Item $adrNova -Force }
-$out = Invoke-Hook -ToolName 'Write' -FilePath $adrNova
-if (-not (Assert-Allow 'Caso 3 (Write ADR nova 9999 em claude/*)' $out)) { $failures += 'caso3' }
+$out = Invoke-HookOnBranch -ToolName 'Write' -FilePath $adrNova -Branch 'claude/test-branch'
+if (-not (Assert-Allow 'Caso 3 (Write ADR nova 9999 em claude/* simulada)' $out)) { $failures += 'caso3' }
 
 # ============================================================================
-# CASO 4: Edit em memory/proibicoes.md em branch 'main' simulado -> BLOCK
-#         Como nao temos como mockar git branch facilmente, testamos com a
-#         branch real do worktree. Se for claude/* (caso D abaixo), testa
-#         ALLOW; se for main/master, testa BLOCK. Cobertura logica garantida
-#         via inspecao do codigo do hook (regra A + F).
+# CASO 4: Edit em memory/proibicoes.md em branch 'main' -> BLOCK
+#         BRANCH-AGNOSTICO: simula branch main via repo temp no CWD (regra A/F).
+#         Canon root (proibicoes.md) so eh editavel em claude/*; em main -> BLOCK.
 # ============================================================================
 $proibicoes = "$repoRoot/memory/proibicoes.md"
-$out = Invoke-Hook -ToolName 'Edit' -FilePath $proibicoes
-
-if ($currentBranch -in @('main', 'master')) {
-    if (-not (Assert-Block 'Caso 4 (Edit proibicoes.md em main)' $out)) { $failures += 'caso4' }
-} elseif ($currentBranch -match '^claude/') {
-    # Equivalente do Caso 5 -- branch claude/* permite edit em proibicoes.md
-    if (-not (Assert-Allow 'Caso 4-bis (Edit proibicoes.md em claude/* -- ALLOW esperado)' $out)) { $failures += 'caso4' }
-} else {
-    if (-not (Assert-Block "Caso 4 (Edit proibicoes.md em branch '$currentBranch' nao-claude)" $out)) { $failures += 'caso4' }
-}
+$out = Invoke-HookOnBranch -ToolName 'Edit' -FilePath $proibicoes -Branch 'main'
+if (-not (Assert-Block 'Caso 4 (Edit proibicoes.md em main simulada)' $out)) { $failures += 'caso4' }
 
 # ============================================================================
 # CASO 5: Edit em memory/proibicoes.md em claude/* -> ALLOW
-#         Coberto efetivamente no Caso 4 quando branch atual eh claude/*.
-#         Aqui repete pra deixar explicito no log.
+#         BRANCH-AGNOSTICO: simula branch claude/test-branch via repo temp no CWD.
+#         Em branch claude/*, canon root eh editavel (vai pra PR) -> ALLOW.
 # ============================================================================
-if ($currentBranch -match '^claude/') {
-    $out = Invoke-Hook -ToolName 'Edit' -FilePath $proibicoes
-    if (-not (Assert-Allow 'Caso 5 (Edit proibicoes.md em claude/*)' $out)) { $failures += 'caso5' }
-} else {
-    Write-Host "[SKIP] Caso 5 nao testavel -- branch atual '$currentBranch' nao eh claude/*. Inspecionado via codigo."
-}
+$out = Invoke-HookOnBranch -ToolName 'Edit' -FilePath $proibicoes -Branch 'claude/test-branch'
+if (-not (Assert-Allow 'Caso 5 (Edit proibicoes.md em claude/* simulada)' $out)) { $failures += 'caso5' }
 
 # ============================================================================
 # CASO 6: Edit em handoff existente em qualquer branch -> BLOCK
