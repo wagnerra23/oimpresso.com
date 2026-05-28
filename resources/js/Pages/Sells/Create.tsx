@@ -548,11 +548,41 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   const handleSubmit = (withPrint = false) => {
     if (!canSubmit) return;
+
+    // R9 (2026-05-28) — guard transaction_date drift +2h47.
+    //
+    // Cenário catalogado em session log 2026-05-27: Larissa salvou venda 18:00
+    // mas DB gravou transaction_date=20:47 (+2h47 drift = tempo ficou na tela).
+    // Root cause provável: input chega vazio no POST (user limpou o input, ou
+    // toDatetimeLocal não casou formato AM/PM, ou state perdeu durante sub-views)
+    // → SellPosController@store:435 fallback `\Carbon::now()` sobrescreve com
+    // hora do MOMENTO do submit (não da abertura).
+    //
+    // Fix preventivo: validar transaction_date ANTES do POST. Se vazio/inválido,
+    // re-aplica defaultDatetime (sempre válido do backend) + console.warn pra
+    // rastreabilidade.
+    const TX_DATE_RE = /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/;
+    if (!data.transaction_date || !TX_DATE_RE.test(data.transaction_date)) {
+      console.warn(
+        '[Sells/Create] transaction_date inválido no submit:',
+        JSON.stringify(data.transaction_date),
+        '— recuperando defaultDatetime:',
+        JSON.stringify(props.defaultDatetime),
+      );
+      setData('transaction_date', props.defaultDatetime);
+    }
+
     // Transform: mapeia state UX-friendly do React pra payload que SellPosController@store
     // espera (Blade legacy field names + flat shipping + is_direct_sale flag obrigatório).
     // Refs: SellPosController@store linhas 352-680 + sell/create.blade.php Form::* fields.
     transform((d) => ({
       ...d,
+      // R9 anti-drift — fallback em camada de transform (defesa em profundidade).
+      // Se setData acima não flushou ainda (race com Inertia post), garante valor.
+      transaction_date:
+        d.transaction_date && TX_DATE_RE.test(d.transaction_date)
+          ? d.transaction_date
+          : props.defaultDatetime,
       // Flag CRÍTICO: sem is_direct_sale=1, controller cai em cashRegister check (linha 364).
       is_direct_sale: 1,
       is_save_and_print: withPrint ? 1 : 0,
