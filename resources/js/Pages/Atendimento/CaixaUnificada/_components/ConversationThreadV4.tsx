@@ -71,9 +71,14 @@ export default function ConversationThreadV4({
   const isBlocked = thread.is_blocked;
 
   return (
-    <main
-      className="flex flex-col bg-muted/15 min-h-0 min-w-0"
+    // Fix scroll incident 2026-05-28: era <main> sem h-full → <main> aninhado dentro
+    // do <main> do AppShellV2 (HTML5 inválido) + filho overflow-auto sem altura de
+    // referência → conteúdo empurrava layout 375px além viewport → `.cockpit` ancestor
+    // tem overflow:hidden → cortado sem scrollbar. Fix: <div> semântico + h-full.
+    <div
+      className="flex flex-col bg-muted/15 min-h-0 min-w-0 h-full"
       aria-label="Thread da conversa"
+      role="region"
     >
       {/* Header */}
       <header className="flex items-center gap-3 bg-card border-b px-4 py-2.5">
@@ -326,6 +331,6 @@ export default function ConversationThreadV4({
         channelLabel={thread.channel_label ?? ''}
         channelType={thread.channel_type}
       />
-    </main>
+    </div>
   );
 }
