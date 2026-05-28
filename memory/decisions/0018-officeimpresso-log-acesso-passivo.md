@@ -3,19 +3,22 @@ slug: 0018-officeimpresso-log-acesso-passivo
 number: 18
 title: !!binary gJQgTG9nIGRlIGFjZXNzbyBkbyBkZXNrdG9wIHZpYSB0cmlnZ2VycyBNeVNRTCAocGFzc2l2byk=
 type: adr
-status: aceito
+status: historical
 authority: canonical
-lifecycle: ativo
+lifecycle: historical
 decided_by:
   - W
 decided_at: '2026-04-23'
+historical_at: '2026-04-24'
 module: officeimpresso
 quarter: 2026-Q2
 tags: {  }
-supersedes:
-  - '2026-04-24'
-  - '2026'
-  - '0000'
+# Nota 2026-05-28: campo 'supersedes' foi removido — continha valores invalidos
+# ('2026-04-24', '2026', '0000') por confusao semantica (deveria ter sido
+# 'superseded_by'). Migracao pra event listener + middleware descrita inline na
+# secao "Update 2026-04-24" do body — nao ha ADR substituto formal, portanto
+# lifecycle 'historical' (convencao do projeto) em vez de 'superseded'.
+# Detectado pelo AdrLinksChecker (ADR 0219) smoke 2026-05-28.
 related:
   - '0017'
 pii: false
