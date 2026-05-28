@@ -15,6 +15,13 @@
 | 5 | [`regras-time.md`](regras-time.md) | Time (Wagner / Maiara / Felipe / Luiz / Eliana) |
 | 6 | [`how-bridge-cloud-local.md`](how-bridge-cloud-local.md) | Transferir trabalho nuvem ↔ local |
 
+## 🔐 Secrets & Credenciais (canon ÚNICO)
+
+> ⛔ Tier 0: agente DEVE consultar PRIMEIRO antes de qualquer busca por token/API key/password. Skill `memory-first-secret-search` Tier A bloqueante.
+
+- **[`_INDEX-SECRETS.md`](_INDEX-SECRETS.md)** — índice canon de TODOS secrets do projeto (~20 entradas): Hostinger DNS, Hostinger MySQL, MinIO CT 100, Vaultwarden, Centrifugo, Whatsmeow, Meta Cloud, Asaas, Sicoob, Mailgun, Anthropic, OpenAI, Langfuse, GitHub PAT. Ponteiro (não valor) + status (active/expired/pending/locked) + frequência rotação.
+- Skills correlatas: [`memory-first-secret-search`](../.claude/skills/memory-first-secret-search/SKILL.md) (busca canônica) + [`hostinger-dns-autonomy`](../.claude/skills/hostinger-dns-autonomy/SKILL.md) (autonomia Hostinger).
+
 ## 🏛️ Governance & Decisões (148 ADRs)
 
 - **[decisions/](decisions/)** — todas ADRs Nygard, **append-only**. Status: `accepted | proposed | historical | superseded`
