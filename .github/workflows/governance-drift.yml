@@ -34,12 +34,16 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
       - name: Install PHP dependencies (no-dev)
-        run: composer install --no-progress --no-interaction --prefer-dist
+        # --no-scripts: pula o post-autoload-dump da OTel (_register.php) que
+        # THROW em CI (extension_loaded('opentelemetry') runtime check). CI nunca
+        # emite spans (só CT 100, ADR 0062). Paridade com phpstan-gate.yml. Incident 2026-05-28.
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
       - name: Install Node dependencies (for npm_audit checker — ADR 0223)
         run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
       - name: Run governance:audit on PR (block-level fail)
@@ -73,12 +77,14 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
       - name: Install PHP dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist
+        # --no-scripts: idem job drift-scan-pr — pula post-autoload-dump OTel.
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
       - name: Install Node dependencies (for npm_audit checker — ADR 0223)
         run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
       - name: Run governance:audit --all
