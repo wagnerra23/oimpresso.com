@@ -595,6 +595,16 @@ class CaixaUnificadaController extends Controller
             'sender_user_name' => $senderName,
             'is_internal_note' => (bool) $m->is_internal_note,
             'created_at' => $m->created_at?->toIso8601String() ?? now()->toIso8601String(),
+            // M6 fix 2026-05-28: expor media fields pro frontend renderizar
+            // thumb/player. Antes UI mostrava body literal "[imagem]"/"[áudio]"
+            // mesmo com media_url preenchido no DB (audit smoke pós M2 download).
+            'media_url' => $m->media_url ? \Storage::disk('public')->url($m->media_url) : null,
+            'media_thumbnail_url' => $m->media_thumbnail_url ? \Storage::disk('public')->url($m->media_thumbnail_url) : null,
+            'media_mime' => $m->media_mime,
+            'media_size_bytes' => $m->media_size_bytes ? (int) $m->media_size_bytes : null,
+            'media_filename' => $m->media_filename,
+            'media_transcription' => $m->media_transcription,
+            'media_download_status' => $m->media_download_status,
         ];
     }
 
