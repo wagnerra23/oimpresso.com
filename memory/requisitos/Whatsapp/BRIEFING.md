@@ -131,8 +131,8 @@ Total CYCLE-08: **~30h IA-pair** → score estimado **~96%**.
 
 ## 10. Cliente piloto / canary
 
-- **Atual prod biz=1:** ROTA LIVRE / Larissa (Vestuário) — 99% volume vendas históricas. Status: estável pós-recovery 83 msgs DELETE + Baileys 7.x re-pareamento 2026-05-15 09:25. 55 msgs sincronizadas via history fetch.
-- **Próximo canary Baileys 7.x prod:** já em biz=1 desde 2026-05-15 09:00 (Wagner fez deploy manual). Estável 7d a observar via OTel.
+- **Atual prod biz=4:** ROTA LIVRE / Larissa (Vestuário) — 99% volume vendas históricas. Status: estável pós-recovery 83 msgs DELETE + Baileys 7.x re-pareamento 2026-05-15 09:25. 55 msgs sincronizadas via history fetch.
+- **biz=1 (WR2 Sistemas / Wagner):** empresa-mãe, dev team — usada como canary Baileys 7.x prod desde 2026-05-15 09:00 (deploy manual Wagner). Estável 7d a observar via OTel.
 - **Cliente piloto novo módulo Whatsapp avançado:** **Martinho Caçambas / biz=164** (legacy v1404 migrado, CYCLE-06) — feedback canon Wagner: **NÃO ROTA LIVRE pra novos rollouts WhatsApp** (canary inicia em Martinho)
 - **Canary Cloud API Meta:** stub PoC PR #858 — aguarda Wagner config Meta Business Manager (biz=99 sandbox)
 
