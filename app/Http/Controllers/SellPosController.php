@@ -432,7 +432,19 @@ class SellPosController extends Controller
 
                 DB::beginTransaction();
 
+                // R9 (2026-05-28) — diagnóstico drift +2h47 Larissa session log
+                // 2026-05-27. Quando transaction_date chega vazio, fallback
+                // Carbon::now() sobrescreve com hora do MOMENTO do submit (não
+                // da abertura). Frontend agora envia guard, mas legacy Blade
+                // pos_form pode mandar vazio em casos edge. Loga pra rastrear.
                 if (empty($request->input('transaction_date'))) {
+                    \Log::warning('SellPosController@store transaction_date vazio — fallback Carbon::now()', [
+                        'business_id' => $business_id ?? null,
+                        'user_id' => $user_id ?? null,
+                        'is_direct_sale' => $is_direct_sale ?? null,
+                        'has_payload_key' => $request->has('transaction_date'),
+                        'raw_value' => json_encode($request->input('transaction_date')),
+                    ]);
                     $input['transaction_date'] = \Carbon::now();
                 } else {
                     $input['transaction_date'] = $this->productUtil->uf_date($request->input('transaction_date'), true);
