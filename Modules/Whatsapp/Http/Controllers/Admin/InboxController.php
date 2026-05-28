@@ -1368,12 +1368,15 @@ class InboxController extends Controller
             'last_message_at' => now(),
         ])->save();
 
-        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+        // M3 fix 2026-05-28: aceita Baileys OU Whatsmeow (incident outbound mídia
+        // hardcoded só Baileys). SendMediaJob faz dispatch por type pro daemon.
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS
+            && $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW) {
             $message->forceFill([
                 'status' => 'failed',
-                'failed_reason' => "Envio de mídia só implementado pra Baileys nesta fase. Tipo: {$channel->type}",
+                'failed_reason' => "Envio de mídia só implementado pra Baileys/Whatsmeow nesta fase. Tipo: {$channel->type}",
             ])->save();
-            return back()->withErrors(['send_media' => 'Envio de mídia só disponível pra canais Baileys.']);
+            return back()->withErrors(['send_media' => 'Envio de mídia só disponível pra canais Baileys/Whatsmeow.']);
         }
 
         SendMediaJob::dispatch($businessId, $message->id);
