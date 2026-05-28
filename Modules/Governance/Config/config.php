@@ -72,6 +72,7 @@ return [
      */
     'drift_checkers' => [
         \Modules\Governance\Services\Checkers\ComposerAuditChecker::class,       // ADR 0217
+        \Modules\Governance\Services\Checkers\NpmAuditChecker::class,            // ADR 0223 — frontend supply chain
         \Modules\Governance\Services\Checkers\MultiTenantScopeChecker::class,    // ADR 0218 — Tier 0 IRREVOGÁVEL
         \Modules\Governance\Services\Checkers\AdrLinksChecker::class,            // ADR 0219
         \Modules\Governance\Services\Checkers\ChartersFreshnessChecker::class,   // ADR 0220 — adapter charter:audit
