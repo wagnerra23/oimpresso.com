@@ -232,15 +232,32 @@ it('blade vestuario::etiquetas.pdf compila e renderiza HTML válido', function (
 });
 
 it('blade pdf renderiza 10 etiquetas em grid (acceptance criteria)', function () {
+    // EAN13 = 12 dígitos base + 1 check digit (mod-10 GS1).
+    // Antes: '789100000001' + ($i % 10) — só o sufixo i=4 acertava o check digit
+    // por coincidência; outras 9 iterações disparavam Milon\Barcode\WrongCheckDigitException
+    // quando vendor/milon/barcode renderizava o SVG na view (CI Pest Vestuario red
+    // detectado a partir do PR #1856 — job só roda em PRs, débito ficou invisível
+    // nos merges main).
+    $ean13Check = static function (string $base12): string {
+        $sum = 0;
+        for ($k = 0; $k < 12; $k++) {
+            $d = (int) $base12[$k];
+            $sum += ($k % 2 === 0) ? $d : ($d * 3);
+        }
+
+        return $base12 . (string) ((10 - ($sum % 10)) % 10);
+    };
+
     $etiquetas = [];
     for ($i = 1; $i <= 10; $i++) {
+        $base12 = '789100000' . sprintf('%03d', $i); // 9 + 3 = 12 dígitos
         $etiquetas[] = [
             'nome'        => "Produto {$i}",
             'tamanho'     => 'M',
             'cor'         => 'Preto',
             'preco'       => 29.90 + $i,
             'sku'         => sprintf('SKU-%03d', $i),
-            'ean13'       => '789100000001' . (string) ($i % 10),
+            'ean13'       => $ean13Check($base12),
             'qr_enabled'  => false,
             'colecao'     => '',
         ];
