@@ -3,10 +3,14 @@ status: accepted
 date: 2026-05-28
 deciders: wagner
 consulted: claude (incident response 2026-05-28 10:11→13:22)
-related: [0093, 0212]
+related: [0093, 0212, 0215]
 ---
 
-# ADR 0215 — Deploy webhook Hostinger deve rodar `composer dump-autoload -o` + `php artisan optimize` após `git pull`
+# ADR 0216 — Deploy webhook Hostinger deve rodar `composer dump-autoload -o` + `php artisan optimize` após `git pull`
+
+> **Errata 2026-05-28:** este ADR foi originalmente criado como 0215 mas renumerado pra 0216
+> porque o agente paralelo Sprint S-0215-1 ([PR #1864](https://github.com/wagnerra23/oimpresso.com/pull/1864))
+> reservou 0215 pra "secrets governance" antes deste merge. Conteúdo intacto.
 
 ## Status
 
