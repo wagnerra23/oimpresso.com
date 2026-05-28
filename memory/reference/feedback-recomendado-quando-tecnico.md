@@ -22,6 +22,14 @@ Em `AskUserQuestion`, distinguir o **tipo de decisão** antes de perguntar:
 
 Wagner reconhece que em decisões técnicas ele pode errar por desconhecimento — e prefere que Claude (expert técnico) decida pelo `(Recommended)`.
 
+**Reforço 2026-05-28 (sessão Ondas 3+4, encerramento):** depois do trabalho pronto, Claude apresentou menu "(a) criar tasks / (b) deletar branches / (c) R12 — qual?". Wagner respondeu irritado:
+> *"resolva a melhor, nem deveria ter me perguntado isso é chato, deveria ter feito. se responder é grande a chance de escolher uma resposta errada"*
+> *"anote para não fazer perguntas idiotas, que force a um erro humano"*
+
+**A pergunta-menu É o erro-indutor.** Quando as opções são TODAS corretas e não-conflitantes (puro "qual cleanup/próximo passo de execução"), oferecer o menu obriga Wagner a escolher — e ele tende a escolher a errada (ou achar chato). Nesses casos: **fazer a melhor, ou fazer TODAS se não conflitam.** Não perguntar.
+
+Padrão da sessão inteira (Larissa R7-R10 → prevenção → 4.8): Wagner corrigiu ≥4× ("por que me perguntar? isso é um erro", "sim, não pergunte", "atacar a próxima precisa eu falar?"). Atalho mental: **se eu já sei qual é a melhor resposta, executá-la JÁ é a resposta — não transformar em pergunta.**
+
 **How to apply:**
 - Antes de chamar `AskUserQuestion`, classificar mentalmente: "essa pergunta é escopo/UX ou implementação?"
 - Se escopo/UX → perguntar normalmente
