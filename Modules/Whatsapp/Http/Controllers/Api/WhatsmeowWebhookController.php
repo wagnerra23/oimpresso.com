@@ -93,6 +93,37 @@ class WhatsmeowWebhookController extends Controller
 
         // Eventos de mensagem/status → enfileira processamento assíncrono
         if (in_array($event, ['Message', 'ReadReceipt'], true)) {
+            // Filter Tier 0 — drop NON-conversação ANTES do dispatch.
+            // Bug 2026-05-27 prod biz=1: 5 failed jobs com `Duplicate entry '1-11-'` em
+            // `conv_biz_ch_ext_uniq` porque status@broadcast (Stories) criou conversation
+            // lixo com customer_external_id='' e qualquer msg subsequente bateu na UNIQUE.
+            // Padrão portado do ChannelBaileysWebhookController.php (linhas 295-313).
+            //   - `status@broadcast` / `status@...` → feed de WhatsApp Status (Stories alheios)
+            //   - `@g.us`                          → grupos (schema diferente, US futura)
+            //   - `@broadcast` / `@newsletter`     → listas de transmissão / canais
+            $chatJid = (string) ($payload['event']['Info']['Chat']
+                ?? $payload['Info']['Chat']
+                ?? $payload['Chat']
+                ?? '');
+            $isStatusBroadcast = $chatJid === 'status@broadcast'
+                || str_starts_with($chatJid, 'status@');
+            $isGroupOrBroadcast = str_contains($chatJid, '@g.us')
+                || str_contains($chatJid, '@broadcast')
+                || str_contains($chatJid, '@newsletter');
+            if ($isStatusBroadcast || $isGroupOrBroadcast) {
+                Log::info('whatsapp.webhook.whatsmeow.non_conversation_dropped', [
+                    'business_id' => $businessId,
+                    'channel_id' => $channel?->id,
+                    'event' => $event,
+                    'note' => $isStatusBroadcast ? 'status_broadcast_dropped' : 'group_or_broadcast_dropped',
+                    'chat_sample' => substr($chatJid, 0, 50),
+                ]);
+                return response()->json([
+                    'ok' => true,
+                    'note' => $isStatusBroadcast ? 'status_broadcast_dropped' : 'group_or_broadcast_dropped',
+                ], 200);
+            }
+
             ProcessIncomingWebhookJob::dispatch(
                 $businessId,
                 'whatsmeow',
