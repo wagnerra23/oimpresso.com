@@ -614,6 +614,28 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `whatsapp` (default do `ProcessIncomingWebhookJob`):
+        // recebe webhooks Meta/Z-API/Baileys/whatsmeow + dispara persistência.
+        // SEM ESTE CRON, msgs entrantes não persistem — incident 2026-05-28:
+        // queue worker `whatsapp` órfão fazia tela ficar vazia mesmo com daemon
+        // healthy e fix de código aplicado (PR #1825). Webhook chegava, job
+        // enfileirado, ninguém executava. Worker manual processou 54 jobs em 2s.
+        //
+        // Mesmo padrão Hostinger shared hosting cron-based: --max-time=55 +
+        // --stop-when-empty + everyMinute + runInBackground evita CPU ocioso
+        // e respeita limite de processos LSPHP. Tries=3 cobre retry transient
+        // (DB lock, OTel sidecar momentâneo).
+        $schedule->command('queue:work database --queue=whatsapp --max-time=55 --stop-when-empty --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(1)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work whatsapp FALHOU — msgs recebidas podem ficar órfãs em jobs table'
+                );
+            });
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria
