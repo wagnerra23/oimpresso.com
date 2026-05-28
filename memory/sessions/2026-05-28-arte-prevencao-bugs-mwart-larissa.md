@@ -4,7 +4,9 @@ title: "Estado-da-arte 2026 — prevenção de bugs Laravel + Inertia/React (dos
 type: session-arte
 authority: dossie-estrategico
 lifecycle: ativo
+date: '2026-05-28'
 session_date: '2026-05-28'
+topic: "Estado-da-arte 2026 prevenção bugs MWART pós-Larissa (R7-R10) — dossier 6 frentes pra ADRs 0208-0213"
 quarter: 2026-Q2
 related:
   - '0093'
