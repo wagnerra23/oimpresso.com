@@ -1,6 +1,6 @@
 ---
 name: encerrar-sessao
-description: BLOQUEADOR — ATIVAR SEMPRE que user disser "encerrar sessão", "fim de sessão", "vamos parar", "continua depois", "salvar tudo", "salve as memórias", "ciclos", "outra sessão", "vai pra MCP continua depois", "tchau", "obrigado", "valeu", "fim", "fechar", "encerrar", "tá bom", "beleza", "show", "perfeito", "depois eu vejo", "fica pra depois", "baixa prioridade". TAMBÉM ativar quando agente cogitar terminar trabalho produtivo (≥3 PRs mergeados na sessão OR ≥1 ADR proposto OR ≥4h trabalho). Skill canônica que CARREGA conteúdo R12 PROTOCOLO inline NO MOMENTO do trigger (vs Tier A always-on que carrega no SessionStart e perde em sessão longa). Origem 2026-05-28 Wagner — sessão Larissa 17 PRs faltou cumprir R12 passo 3 porque conteúdo saiu do contexto após 200+ turnos. Wagner palavras textuais "mas não está funcionando porque? se existe mas não funciona ta errado. como colocar para funcionar? qual momento tem que ser ativado?". Solução: ativação lazy via description-match no momento exato vs eager always-on. Pareada com hook UserPromptSubmit `force-r12-closing-signal.ps1` (defesa em depth).
+description: BLOQUEADOR — ATIVAR SEMPRE que user disser "encerrar sessão", "fim de sessão", "vamos parar", "continua depois", "salvar tudo", "salve as memórias", "ciclos", "outra sessão", "vai pra MCP continua depois", "tchau", "obrigado", "valeu", "fim", "fechar", "encerrar", "tá bom", "beleza", "show", "perfeito", "depois eu vejo", "fica pra depois", "baixa prioridade". TAMBÉM ativar quando agente cogitar terminar trabalho produtivo (≥3 PRs mergeados na sessão OR ≥1 ADR proposto OR ≥4h trabalho). Skill canônica que CARREGA conteúdo R12 PROTOCOLO inline NO MOMENTO do trigger (vs Tier A always-on que carrega no SessionStart e perde em sessão longa). Origem 2026-05-28 Wagner — sessão Larissa 17 PRs faltou cumprir R12 passo 3 porque conteúdo saiu do contexto após 200+ turnos. Wagner palavras textuais "mas não está funcionando porque? se existe mas não funciona ta errado. como colocar para funcionar? qual momento tem que ser ativado?". Solução: ativação lazy via description-match no momento exato vs eager always-on. Pareada com hook UserPromptSubmit `force-r12-closing-signal.mjs` (defesa em depth).
 trust_level: L2
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
@@ -21,7 +21,7 @@ parent_adr: 0130
 |---|---|---|---|
 | R12 PROTOCOLO-WAGNER-SEMPRE | Eager (SessionStart) | Tier A always-on | Sai de contexto sessão longa |
 | **Skill `encerrar-sessao`** (esta) | **Lazy (description-match)** | **No momento do trigger word** | **Garantido** |
-| Hook `force-r12-closing-signal.ps1` | UserPromptSubmit | Antes do Claude responder | Defesa em depth |
+| Hook `force-r12-closing-signal.mjs` | UserPromptSubmit | Antes do Claude responder | Defesa em depth |
 
 3 camadas = R12 dispara mesmo em sessão de 8h+ com 17 PRs.
 
@@ -93,7 +93,7 @@ Garante auditoria do mecanismo (Wagner pode verificar que disparou).
 
 ## Sinal de violação (defesa em depth se skill falhar)
 
-Hook `force-r12-closing-signal.ps1` detecta os mesmos triggers no UserPromptSubmit e injeta `<system-reminder>` forçando execução R12. Se nem skill nem hook dispararem, Wagner cobra "esta esquecendo das regras de fechamento" — reincidência ativa hook P2 dormente bloqueador.
+Hook `force-r12-closing-signal.mjs` (Node.js **cross-platform** — Windows/macOS/Linux) detecta os mesmos triggers no UserPromptSubmit e injeta `<system-reminder>` forçando execução R12. Se nem skill nem hook dispararem, Wagner cobra "esta esquecendo das regras de fechamento" — reincidência ativa hook P2 dormente bloqueador.
 
 ## Heurística de duração
 
@@ -106,7 +106,7 @@ Hook `force-r12-closing-signal.ps1` detecta os mesmos triggers no UserPromptSubm
 ## Pareada com
 
 - [R12 PROTOCOLO-WAGNER-SEMPRE](../../memory/reference/PROTOCOLO-WAGNER-SEMPRE.md) — origem da regra (texto canon)
-- [Hook `force-r12-closing-signal.ps1`](../../.claude/hooks/force-r12-closing-signal.ps1) — camada 2 (UserPromptSubmit)
+- [Hook `force-r12-closing-signal.mjs`](../../.claude/hooks/force-r12-closing-signal.mjs) — camada 2 (UserPromptSubmit)
 - [ADR 0130 — handoff append-only MCP-first](../../memory/decisions/0130-handoff-append-only-mcp-first.md) — base
 - [Skill `memory-sync`](../memory-sync/SKILL.md) — Tier B, push pro git canon
 - [Skill `brief-update`](../brief-update/SKILL.md) — Tier B, atualiza BRIEFING.md módulos
