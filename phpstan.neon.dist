@@ -56,6 +56,14 @@ parameters:
         # Suprime globalmente até harmonizar — débito Onda 2.4 (PR futuro).
         - identifier: nullsafe.neverNull
 
+        # Diff Win↔Linux Larastan stubs — mesma família do nullsafe.neverNull.
+        # Detectados só no CI Linux (PR #1868 NoNopMutationController) em código
+        # pré-existente NÃO tocado por este PR. Suprime globalmente — débito de
+        # cleanup gradual nos módulos owners (Onda 3+).
+        - identifier: booleanOr.alwaysFalse
+        - identifier: equal.alwaysFalse
+        - identifier: identical.alwaysFalse
+
         # === 14 erros pre-existentes "non-ignorable" (não cabem em baseline.neon)
         #     Cada um é débito documentado pra fix em PR per módulo:
         #     - return.missing (5): scaffold controllers vazios — owner módulo adiciona `return back();`
@@ -96,6 +104,13 @@ services:
         # ADR 0208 + ADR 0093 (Tier 0 multi-tenant). US-INFRA-017.
         # Detecta Module Controllers fazendo Eloquent query sem business_id mention.
         class: App\PhpStan\Rules\NoMissingTenantScopeRule
+        tags:
+            - phpstan.rules.rule
+    -
+        # ADR 0208 + T-AP-13 LICOES_F3. US-INFRA-019.
+        # Detecta methods públicos em Controllers retornando APENAS back()/redirect()
+        # sem mutação — endpoint vira API de mentirinha.
+        class: App\PhpStan\Rules\NoNopMutationControllerRule
         tags:
             - phpstan.rules.rule
 
