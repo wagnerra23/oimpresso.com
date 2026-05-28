@@ -66,7 +66,14 @@ class DownloadMediaJob implements ShouldQueue
         public int $messageId,
         public string $sourceUrl = '',
         public string $expectedMime = '',
-    ) {}
+    ) {
+        // M2-followup fix 2026-05-28: dispatch na queue `whatsapp` (que tem
+        // cron `queue:work --queue=whatsapp` everyMinute via PR #1826).
+        // ANTES caía em queue `default` sem worker — 20.282 jobs órfãos
+        // acumulados desde 2026-05-14 (audit honest pós-cobrança Wagner).
+        // Mesmo problema que ProcessIncomingWebhookJob já resolveu.
+        $this->onQueue(config('whatsapp.queue', 'whatsapp'));
+    }
 
     public function handle(): void
     {
