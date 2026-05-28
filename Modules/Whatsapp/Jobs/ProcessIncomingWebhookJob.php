@@ -187,13 +187,29 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         }
 
         $phoneE164 = (string) ($msg['from'] ?? '');
+        $externalId = (string) ($msg['external_id'] ?? '');
         $contactName = (string) ($msg['push_name'] ?? '') ?: $phoneE164;
 
-        // firstOrCreate conversation
+        // Defense-in-depth — customer_external_id é NOT NULL no schema, parte da
+        // UNIQUE conv_biz_ch_ext_uniq (business_id, channel_id, customer_external_id).
+        // Se chegar vazio (extractor não capturou Chat/Sender), NÃO crie row lixo.
+        // Bug 2026-05-27: 5 failed jobs com Duplicate '1-11-' originaram exatamente
+        // disso — primeira passou com '' e travou todas seguintes.
+        if ($externalId === '') {
+            Log::warning('whatsapp.webhook.whatsmeow.empty_external_id_rejected', [
+                'business_id' => $this->businessId,
+                'channel_id' => $channel->id,
+                'provider_message_id' => $providerMessageId,
+                'phone_e164_sample' => substr($phoneE164, 0, 20),
+            ]);
+            return;
+        }
+
+        // firstOrCreate conversation — chave de UNIQUE é customer_external_id, NÃO phone_e164.
         $conversation = \DB::table('conversations')
             ->where('business_id', $this->businessId)
             ->where('channel_id', $channel->id)
-            ->where('phone_e164', $phoneE164)
+            ->where('customer_external_id', $externalId)
             ->first();
 
         $convId = $conversation?->id;
@@ -202,6 +218,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             $convId = \DB::table('conversations')->insertGetId([
                 'business_id' => $this->businessId,
                 'channel_id' => $channel->id,
+                'customer_external_id' => $externalId,
                 'phone_e164' => $phoneE164,
                 'contact_name' => $contactName,
                 'status' => 'open',
@@ -298,6 +315,14 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         $senderJid = (string) ($info['SenderAlt'] ?? $info['Chat'] ?? '');
         $phone = '+' . preg_replace('/\D/', '', explode('@', $senderJid)[0]);
 
+        // customer_external_id — JID original do contato (Chat em 1:1; pode ser
+        // "5548...@s.whatsapp.net" ou "12345@lid"). NÃO é o phone E.164 — é o
+        // identifier estável que o UNIQUE `conv_biz_ch_ext_uniq` usa.
+        // Bug 2026-05-27: este campo NÃO era preenchido no upsert → todas as
+        // conversations whatsmeow caíam em customer_external_id='' (NOT NULL default)
+        // e a 2ª msg sempre quebrava com Duplicate entry.
+        $externalId = (string) ($info['Chat'] ?? $info['Sender'] ?? '');
+
         // Body — WuzAPI/whatsmeow embute em Message.conversation (text) ou Message.imageMessage.caption (image), etc.
         $type = strtolower((string) ($info['Type'] ?? 'text'));
         $body = match (true) {
@@ -316,6 +341,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
 
         return [[
             'provider_message_id' => $info['ID'] ?? null,
+            'external_id' => $externalId,
             'from' => $phone,
             'body' => $body,
             'type' => $type,
