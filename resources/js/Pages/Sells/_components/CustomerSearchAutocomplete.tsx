@@ -12,6 +12,7 @@
 // Não vira shared ainda — extrair pra @/Components/shared só quando 2ª tela usar.
 
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Search, Loader2, X, UserPlus } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import QuickAddCustomerSheet from './QuickAddCustomerSheet';
@@ -74,10 +75,11 @@ export default function CustomerSearchAutocomplete({
   forcedValue,
 }: Props) {
   const [query, setQuery] = useState('');
+  // Onda 4 (ADR 0211) — termo debounceado que alimenta a queryKey do useQuery.
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedLabel, setSelectedLabel] = useState<string>(defaultName);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerSearchResult | null>(null);
   const [results, setResults] = useState<CustomerSearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   // R6 (2026-05-27) — Sheet in-place pra quick-add cliente (Dor 4 Larissa).
@@ -94,44 +96,59 @@ export default function CustomerSearchAutocomplete({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forcedValue]);
 
+  // Onda 4 (ADR 0211) — debounce do termo. Só atualiza a queryKey; o fetch +
+  // cancelamento de request stale agora são responsabilidade do TanStack Query.
   useEffect(() => {
     if (query.length < MIN_QUERY_LENGTH) {
-      setResults([]);
-      setOpen(false);
+      setDebouncedQuery('');
       return;
     }
-
-    const handle = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ q: query });
-        const res = await fetch(`/contacts/customers?${params.toString()}`, {
-          headers: {
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          credentials: 'same-origin',
-        });
-
-        if (!res.ok) {
-          setResults([]);
-          return;
-        }
-
-        const data = await res.json();
-        const list: CustomerSearchResult[] = Array.isArray(data) ? data : (data?.data ?? []);
-        setResults(list.slice(0, 10));
-        setOpen(true);
-        setHighlightedIndex(-1);
-      } catch {
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    }, DEBOUNCE_MS);
-
+    const handle = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
     return () => clearTimeout(handle);
   }, [query]);
+
+  // Onda 4 (ADR 0211) — useQuery substitui o setTimeout+fetch manual. Este
+  // componente NÃO tinha AbortController; useQuery resolve cancelamento de
+  // request stale nativamente via `signal` injetado no queryFn (R7 raiz).
+  //  - staleTime/gcTime/retry herdam o default do QueryClient (app.tsx)
+  const customerQuery = useQuery({
+    queryKey: ['customers', debouncedQuery],
+    queryFn: async ({ signal }): Promise<CustomerSearchResult[]> => {
+      const params = new URLSearchParams({ q: debouncedQuery });
+      const res = await fetch(`/contacts/customers?${params.toString()}`, {
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        signal,
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const list: CustomerSearchResult[] = Array.isArray(data) ? data : (data?.data ?? []);
+      return list.slice(0, 10);
+    },
+    enabled: debouncedQuery.length >= MIN_QUERY_LENGTH,
+  });
+
+  const loading = customerQuery.isFetching;
+
+  // Espelha o resultado do useQuery em `results` (consumido pelo dropdown +
+  // navegação por teclado). Abre o dropdown quando há dados frescos.
+  useEffect(() => {
+    if (customerQuery.data === undefined) return;
+    setResults(customerQuery.data);
+    setOpen(true);
+    setHighlightedIndex(-1);
+  }, [customerQuery.data]);
+
+  // Limpa results + fecha dropdown quando o termo cai abaixo do mínimo.
+  useEffect(() => {
+    if (debouncedQuery.length < MIN_QUERY_LENGTH) {
+      setResults([]);
+      setOpen(false);
+    }
+  }, [debouncedQuery]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
