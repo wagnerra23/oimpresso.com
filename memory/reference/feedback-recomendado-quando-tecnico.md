@@ -37,4 +37,11 @@ Padrão da sessão inteira (Larissa R7-R10 → prevenção → 4.8): Wagner corr
 - Continua respeitando Constituição UI v2 ("pedido vago = pergunta antes") — mas o "vago" é sobre escopo, não sobre implementação
 - Se a decisão técnica tem trade-off relevante pro custo/tempo de Wagner, ainda informar (não perguntar): "Vou stubar mock — backend real fica pra PR seguinte. OK seguir?"
 
+**Reforço #2 2026-05-28 (sessão "status do projeto" / reconciliação backlog MCP):** Claude apresentou menu "fecho os 10 verdes OU investigo os 6 amarelos primeiro?". Wagner respondeu irritado:
+> *"os dois poxa se eu responder qual quer coisa esta me induzindo ao erro? porra que chato resolva. Como eu vou conseguir responder sem errar? isso não pode acontecer grave isso."*
+
+**Nuance NOVA (≠ casos acima):** o menu pediu pra Wagner **adjudicar um FATO que é do Claude levantar** ("a task X está feita?"). Isso nunca é pergunta — é **tarefa de investigação disfarçada de pergunta**. Wagner não tem como saber sem o Claude ir verificar. Regra: **se a resposta exige informação que EU consigo apurar (grep no código, ADR existe, hook existe), eu apuro e decido — não pergunto.** Marcar task done é reversível (reabrir é trivial) → a decisão é MINHA tomar e DELE corrigir, nunca o contrário. Só escala o que é genuinamente não-apurável por mim (ação no mundo: rotação de senha, outreach, canary — essas deixo abertas e reporto, não pergunto qual fechar).
+
+> ⚠️ **3ª ocorrência do MESMO padrão** (2026-05-26 escopo PR → 2026-05-28 menu encerramento → 2026-05-28 menu reconciliação). Doc passivo não está bastando pra mudar comportamento em sessão longa. Considerar hook `UserPromptSubmit`/`PreToolUse` que intercepte `AskUserQuestion` cujas opções sejam todas "qual próximo passo de execução / qual fato verificar" e force investigação antes — análogo ao `force-r12-closing-signal.mjs`.
+
 **Não confundir com:** decisões de produto, preço, integração externa, marca — essas Wagner aprova sempre.
