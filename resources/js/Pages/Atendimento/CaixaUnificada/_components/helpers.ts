@@ -134,6 +134,15 @@ export interface CaixaUnifMessage {
   sender_user_name: string | null;
   is_internal_note: boolean;
   created_at: string;
+  // M6 fix 2026-05-28: media fields expostos pro componente renderizar
+  // thumb/player. msgToUiArray no backend agora retorna.
+  media_url?: string | null;
+  media_thumbnail_url?: string | null;
+  media_mime?: string | null;
+  media_size_bytes?: number | null;
+  media_filename?: string | null;
+  media_transcription?: string | null;
+  media_download_status?: 'pending' | 'downloading' | 'success' | 'failed_permanent' | null;
 }
 
 export interface Paginated<T> {
