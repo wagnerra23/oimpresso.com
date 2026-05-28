@@ -1,8 +1,8 @@
 # ADR UI-0017 · Design System v3 = implementação concreta das camadas 1–3 da Constituição UI v2 (não supersede; instancia)
 
-- **Status**: proposed
+- **Status**: accepted
 - **Data**: 2026-05-28
-- **Aprovado em**: — (aguarda Wagner)
+- **Aprovado em**: 2026-05-28 — Wagner explícito: *"merge e adote padrão[:] qualquer coisa diferente deveria ser errado e pedir para validar"*
 - **Decisores**: Wagner (aprovador), Claude Code (autor)
 - **Categoria**: ui · estruturante · governança · design-system
 - **Substitui**: nada (aditiva)
@@ -83,12 +83,30 @@ Toda mudança no DS v3: (a) bump de versão no `CODE_DESIGN_CONTRACT.md`; (b) en
 (d) migração agendada, não obrigatória imediata. Esta ADR **cobre retroativamente** o landing
 do PR #1893.
 
+**6. Regra-mãe de enforcement — divergência do DS é ERRO (Wagner-explícito 2026-05-28).**
+Qualquer coisa fora do canon — **cor** fora dos tokens, **componente/classe** que não existe no
+DS, **padrão de tela** que não bate com PT-01..PT-08, **token** redeclarado — é tratada como
+**erro**, não como liberdade criativa. Diante dela, o agente (ou humano):
+
+1. **PARA** — não implementa o diferente.
+2. **Pede validação** — propõe extensão do DS via `COWORK_NOTES.md` (template do contrato) e
+   aguarda [CC] atualizar o DS + Wagner aprovar.
+3. Só depois aplica, agora dentro do canon.
+
+Vale **igual** pra humano, esposa, Felipe, Maiara e qualquer agente — mesmo caminho, sem atalho.
+"Só faz funcionar" não é override. Override real exige a extensão aprovada do DS. Isto é a
+"regra única" do [CODE_DESIGN_CONTRACT.md](../../../../prototipo-ui/CODE_DESIGN_CONTRACT.md)
+elevada a decisão canônica. **Enforcement progressivo:** hoje via revisão (esta regra + gate
+`mwart-comparative` F1.5); meta = gate de CI/hook que falha o PR quando há cor/classe fora do
+DS (lacuna registrada abaixo).
+
 ## O que esta ADR NÃO decide (lacunas explícitas)
 
 - ❌ A **implementação** do token bridge (camada 1) — vai em PR próprio, app-wide.
 - ❌ Os **F1 de cada tela** (Clientes, Vendas, etc.) — loop MWART, um por vez.
 - ❌ A criação dos componentes DS faltantes (stat-card, payment-split-row) — Cowork, no F1.
 - ❌ A limpeza de cores cruas pré-existentes (ex: azuis em `Sells/Create.tsx`) — PR isolado.
+- ❌ O **gate de CI/hook** que torna a regra-mãe (ponto 6) automática (falha PR com cor/classe fora do DS) — desejável, vai em ADR/PR próprio. Até lá, enforcement é por revisão.
 - ❌ **Sidebar light vs dark** — permanece light por decisão Wagner-explícita ([UI-0009](0009-cockpit-sidebar-light-padrao.md) + [UI-0014](0014-sidebar-light-mantida-v2-parcial.md)); os tokens `--sb-*` dark do DS v3 não revogam isso sem ADR.
 
 ## Consequências
