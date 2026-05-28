@@ -7,7 +7,7 @@ status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-28
+decided_at: '2026-05-28'
 module: Infra
 quarter: 2026-Q2
 tags: [audit, backlog-automation, hook, skill, mcp, prevencao-orphans]

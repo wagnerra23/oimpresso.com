@@ -7,7 +7,7 @@ status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-28
+decided_at: '2026-05-28'
 module: _DesignSystem
 quarter: 2026-Q2
 tags: [react, data-fetching, tanstack-query, race-condition, prevencao-bugs]
