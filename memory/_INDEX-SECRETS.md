@@ -39,6 +39,7 @@ lifecycle: active
 | **Anthropic API key (Claude API)** | API key | Hostinger `.env` `ANTHROPIC_API_KEY` | `ssh ... 'grep ANTHROPIC .env'` | semestral | ✅ active |
 | **OpenAI API key (Jana Brain B fallback)** | API key | Hostinger `.env` `OPENAI_API_KEY` | `ssh ... 'grep OPENAI .env'` | semestral | ✅ active |
 | **Langfuse keys (LLM observability)** | public + secret | CT 100 `langfuse.oimpresso.com` user account + Hostinger `.env` `LANGFUSE_*` | dashboard Langfuse + `.env` grep | semestral | ✅ active |
+| **Meilisearch master key** | Bearer (master key) | canon: env `MEILI_MASTER_KEY` no host Meilisearch (`meilisearch.oimpresso.com` / `127.0.0.1:7700`). ⚠️ VAZADA em git history (só ponteiro, NÃO copiar valor) — exemplos `curl PATCH .../settings/embedders` em `memory/sessions/2026-04-27-sprints-5-6-mcp-claude-desktop-revisao.md:98`, `memory/handoffs/2026-05-10-2230-cycle-higiene-pivot-fsm.md:1303` e `:1476` (2 chaves distintas) | rotacionar no host + `grep MEILI_MASTER_KEY .env` | sob demanda | 🔴 **COMPROMETIDA 2026-05-28** — em git history (append-only, não removível), tratar como comprometida e **ROTACIONAR** (Wagner). Catalogada aqui pra destravar `secrets:scan` (ADR 0215, drift fonte→índice). |
 
 ## Convenções
 
