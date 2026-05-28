@@ -61,3 +61,6 @@ tests/eval/results/*.json
 /.phpstan-cache
 /phpstan-gen.log
 /phpstan-gen.err
+
+# ESLint 9 (ADR 0209)
+# config/eslint-baseline.json é VERSIONADO (canon ratchet)
