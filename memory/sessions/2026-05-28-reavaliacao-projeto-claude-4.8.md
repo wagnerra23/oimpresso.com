@@ -104,6 +104,16 @@ Estes existem por razões de negócio/segurança/legais — independem da geraç
 
 Sequência: 0224 → 0225 (juntas, são a maior economia de atrito) → 0226 (independente, pode ir em paralelo) → 0227 → 0228 (depende de aprender com 0225).
 
+### Status de execução (atualizado 2026-05-28)
+
+| ADR | Status | Resultado |
+|---|---|---|
+| **0224** | ✅ ACEITA (PR #1890) | hooks triados; só `block-claim-without-evidence` rebaixado |
+| **0225** | ✅ ACEITA (PR #1892) | núcleo Tier A = 5 + 7 auto-trigger. **Errata [0229](../decisions/0229-errata-0225-medicao-empirica-25-66-skills.md)** capturou a medição empírica 25/66 (drift real 3×) |
+| **0226** | ✅ ACEITA (PR #1895) | Brief v2, régua 3.5k→8k tokens |
+| **0227 — MWART single-layer** | ❌ NÃO-FAZER (no-op) | A premissa "colapsar 3 camadas pra CI-only" **conflita com a 0224**: o hook `block-mwart-violation` é **determinístico** (checa se `RUNBOOK-<tela>.md` existe), logo pela 0224 *deve continuar block*. E a 0225 já rebaixou a camada de skill (`mwart-process` → auto-trigger). Estado atual já é right-sized: hook determinístico + CI gate autoritativo + skill auto-trigger. Nenhuma ADR nova necessária. |
+| **0228 — subagent orchestration nativo** | ⏸️ DEFERIDA | EVOLUIR (não simplificar). Piloto de 1 fluxo (cascade-review) pro Agent SDK nativo + telemetria antes/depois. Merece sessão dedicada (~3h); não cabe em fim de sessão. Reservado o número 0228. |
+
 ---
 
 ## 8. Recomendação concreta
