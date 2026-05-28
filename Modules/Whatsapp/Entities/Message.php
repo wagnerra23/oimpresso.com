@@ -7,6 +7,7 @@ namespace Modules\Whatsapp\Entities;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Arquivos\Concerns\HasArquivos;
 
 /**
  * Message — entidade canônica omnichannel (ADR 0135), append-only.
@@ -51,7 +52,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Message extends Model
 {
-    use HasBusinessScope;
+    // Sprint 1 ADR 0214 — Message ganha relação polimórfica com Modules/Arquivos
+    // backbone. attachArquivo() + arquivos() disponíveis. Inicialmente DUAL-WRITE:
+    // DownloadMediaJob continua preenchendo media_url (legacy) E também faz
+    // attachArquivo (novo). msgToUiArray prefere arquivos signed URL quando
+    // presente, fallback media_url quando não. Cutover legacy → Arquivos vem
+    // em PR seguinte após bucket MinIO em prod + 30d soak.
+    use HasBusinessScope, HasArquivos;
 
     protected $table = 'messages';
 
