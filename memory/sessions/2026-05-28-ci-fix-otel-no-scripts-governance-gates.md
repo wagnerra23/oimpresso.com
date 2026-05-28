@@ -1,5 +1,5 @@
 ---
-date: 2026-05-28
+date: "2026-05-28"
 hour: "00:00 BRT"
 topic: "Fix CI repo-wide — --no-scripts nos gates secrets:scan (ADR 0215) e governance:audit (ADR 0216) que quebravam por OTel _register.php"
 authors: [W, C]

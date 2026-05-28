@@ -1,13 +1,13 @@
 {
   "generated_at": "2026-05-27T16:30:00-03:00",
-  "baseline_version": "v3.4.7",
+  "baseline_version": "v3.4.8",
   "rubric_adr": "0155",
-  "reconciled_at": "2026-05-27T16:30:00-03:00",
-  "reconciliation_pr": "fix(sells/v2) agrupar variacoes + parser pt-BR — reconciliação baseline pós-merge #1779 + #1780",
+  "reconciled_at": "2026-05-28T00:00:00-03:00",
+  "reconciliation_pr": "fix(ci) gates secrets/governance OTel+boot (PR #1888) — reconcilia Governance 89→88: drift natural pós-merge #1885 (ADR 0222 Renovate) + #1887 (ADR 0223 NpmAuditChecker, código novo sem teste pareado). PR #1888 NÃO toca Modules/Governance.",
   "last_update_pr": "v3.4.6 fix-whatsapp-settings — Whatsapp +2pp, NfeBrasil +2pp, demais drift natural · v3.4.7 fix-sells-v2-agrupar-variacoes-popover: 26 módulos com -1pp sistêmico vs baseline v3.4.6 (drift natural rubrica entre execuções CI/local — não há mudança funcional nesses módulos no PR). ComunicacaoVisual +1pp (72→73 natural). PaymentRow.amount convertido pra NumericInputPtBR completando fix Bug R$25k Larissa.",
   "notes": "Atualizado 2026-05-27 (PR #1778 popover variações + PaymentRow.amount fix): snapshot CI rodado pós-merge #1779 (parser pt-BR) + #1780 (cliente drawer). 26 módulos com -1pp sistêmico vs v3.4.6 — drift natural rubrica entre runs CI/local (mesma rodada em local main devolve nota X-1 vs snapshot anterior). Sem mudança funcional nos 26. ComunicacaoVisual +1pp natural. Esta PR só toca Sells V2 — Sells não está no gate (entry deprecated_pending_decision).",
   "modules": {
-    "Governance": 89,
+    "Governance": 88,
     "Crm": 88,
     "Essentials": 84,
     "ProjectMgmt": 84,
