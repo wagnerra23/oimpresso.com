@@ -33,9 +33,24 @@ final class BriefGeneratorService
 
     private const TEMPERATURE = 0.2;
 
-    private const MAX_TOKENS = 4096;
+    /**
+     * Teto de tokens de geração do brief.
+     *
+     * ADR 0226 (Claude 4.8-aware): 4096 → 8192. Premissa antiga (ADR 0091) era
+     * "contexto escasso/caro" (janela ~200k → brief enxuto economiza). Com 1M
+     * context, 8k de brief = 0,8% da janela; brief mais RICO (mais EM VOO, mais
+     * decisões, mais contexto) vale mais que brief telegráfico. Custo gpt-4o-mini
+     * extra é trivial (~$0,001/brief). Override via env pra Wagner calibrar.
+     */
+    private const MAX_TOKENS = 8192;
 
     private const STOP_SEQUENCE = "\n---END---";
+
+    /** Régua de tamanho-alvo do brief no prompt (ADR 0226 — env-overridable). */
+    private function targetTokens(): int
+    {
+        return (int) env('GOVERNANCE_BRIEF_TARGET_TOKENS', 8000);
+    }
 
     /** Custo em USD por 1k tokens — gpt-4o-mini 2025 pricing. */
     private const PRICE_INPUT_PER_1K = 0.00015;
@@ -153,10 +168,12 @@ REGRAS DURAS (não negocie):
    ## CHARTERS APODRECENDO
    ## FLAGS
    ## METADATA
-3. Total ≤3.500 tokens. Conte mentalmente. Se passar, corte da seção
-   menos crítica (geralmente SKILLS ou CHARTERS).
+3. Total ≤8.000 tokens (ADR 0226 — 1M context, brief RICO > brief enxuto).
+   Não precisa cortar agressivo: priorize completude útil. Se exceder MUITO,
+   corte da seção menos crítica (geralmente SKILLS ou CHARTERS).
 4. Termine com a linha exata: \n---END---
-5. PT-BR sempre. Tom: telegráfico, denso, factual. Sem floreio.
+5. PT-BR sempre. Tom: denso e factual, mas com contexto suficiente pro Wagner
+   decidir sem abrir 5 ferramentas. Sem floreio, mas sem amputar informação útil.
 6. Use emojis SOMENTE em FLAGS (🔴 🟡 🟢) e setas (↑ ↓ →) onde fizer sentido.
 7. Datas: "há 3d", "há 2h", "hoje 14h", "ontem". Nunca ISO completo no corpo.
 8. Números: pt-BR (R$ [redacted Tier 0] / 47% / 14d).
@@ -176,7 +193,7 @@ ESTRUTURA OBRIGATÓRIA DE CADA SEÇÃO:
 Lista numerada. Cada linha:
 N. <actor_id> @ <target_path> — <intent_label>, <aging_human>
 
-Limite 8 linhas. Resto vira "+N outros".
+Limite 12 linhas (ADR 0226 — brief rico). Resto vira "+N outros".
 
 ## DECISÕES RECENTES (24h)
 - ADRs: <lista compacta com IDs e títulos truncados em 50 chars>
@@ -208,14 +225,14 @@ Critério emoji:
 
 ## METADATA
 - Gerado: <human relative>
-- Versão gerador: v1
+- Versão gerador: v2 (ADR 0226 — 1M-aware, ≤8k)
 - Tokens estimados: <N>
 
 VALIDADOR INTERNO antes de devolver:
 - 7 headers ##? ✓
 - Termina em ---END---? ✓
 - Tem PII de cliente final? ✗ (refazer se sim)
-- Total tokens ≤3500? ✓
+- Total tokens ≤8000? ✓ (ADR 0226)
 PROMPT;
     }
 
