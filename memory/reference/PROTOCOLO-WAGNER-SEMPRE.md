@@ -340,7 +340,7 @@ R12 é regra **passiva**. Wagner 2026-05-28 cobrou: *"mas não está funcionando
 |---|---|---|---|
 | 1 | Skill [`wagner-protocol-enforce`](../../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A | SessionStart (eager) | Sai do contexto em sessão longa |
 | 2 | Skill [`encerrar-sessao`](../../.claude/skills/encerrar-sessao/SKILL.md) Tier B | **description-match LAZY no trigger word** | **Garantido — recarrega R12 inline** |
-| 3 | Hook [`force-r12-closing-signal.ps1`](../../.claude/hooks/force-r12-closing-signal.ps1) | **UserPromptSubmit antes do Claude responder** | **Garantido — injeta `<system-reminder>`** |
+| 3 | Hook [`force-r12-closing-signal.mjs`](../../.claude/hooks/force-r12-closing-signal.mjs) | **UserPromptSubmit antes do Claude responder** | **Garantido — Node.js cross-platform (Windows/macOS/Linux), injeta `<system-reminder>` em TODO computador do time (Wagner/Felipe/Maiara/Eliana/Luiz)** |
 
 Camada 2 + 3 = defesa em depth. Mesmo em sessão de 17 PRs / 8h+, ao detectar pattern de fechamento R12 dispara via skill description-match OU hook UserPromptSubmit.
 
