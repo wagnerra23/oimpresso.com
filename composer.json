@@ -57,6 +57,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
         "knuckleswtf/scribe": "^5.0",
+        "larastan/larastan": "3.10",
         "laravel/boost": "^2.4",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^8.5",
@@ -93,6 +94,9 @@
         ]
     },
     "scripts": {
+        "phpstan": [
+            "vendor/bin/phpstan analyse --memory-limit=2G"
+        ],
         "post-root-package-install": [
             "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
