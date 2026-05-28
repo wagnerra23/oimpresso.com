@@ -691,6 +691,29 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Secrets Governance — ADR 0215 Camada 3 (auto-validate daily).
+        // Lê memory/_INDEX-SECRETS.md, valida cada secret (curl/grep/ssh),
+        // atualiza status, alerta Centrifugo + Brief Jana se drift.
+        // 06h BRT (após brief regenerar primeira vez do dia).
+        // --auto-pr commita mudanças; --notify publica Centrifugo.
+        $schedule->command('secrets:audit --auto-pr --notify')
+            ->dailyAt('06:15')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live'])
+            ->withoutOverlapping()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule secrets:audit FALHOU — secrets drift pode estar passando despercebido'
+                );
+            });
+
+        // ADR 0215 Camada 1 — discovery weekly (segundas 09h BRT).
+        // Procura secrets em git canon sem entry no índice.
+        $schedule->command('secrets:scan')
+            ->weeklyOn(1, '09:00')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live']);
+
         // Guardião 6 camadas anti-mídia-perdida — Camada 4 (retry hourly).
         // Rede de proteção pra mídia órfã (status=pending|downloading, media_url=null,
         // attempts<5, criada nos últimos 7d). Dispatcha DownloadMediaJob pra cada.
