@@ -28,7 +28,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
-import CustomerSearchAutocomplete from './_components/CustomerSearchAutocomplete';
+import CustomerSearchAutocomplete, {
+  type CustomerSearchResult,
+} from './_components/CustomerSearchAutocomplete';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
 import NumericInputPtBR from './_components/NumericInputPtBR';
 import { dropdownEntries } from './_components/dropdownEntries';
@@ -414,6 +416,49 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       return { ...line, unit_price: found.unit_price };
     });
     setData('products', updated);
+  };
+
+  // R8 (2026-05-28) — Bug 2 hotfix Larissa "preço diferenciado" ainda aberto.
+  // Quando troca cliente, auto-aplica:
+  //   - selling_price_group_id (recalcula unit_price do carrinho via handlePriceGroupChange)
+  //   - pay_term_number/pay_term_type (cliente VIP "30 dias" não estava puxando)
+  //   - shipping_address (endereço de entrega pré-fill)
+  //
+  // Backend ContactController@getCustomers já devolve TODOS estes campos (linhas
+  // 2150-2176). Antes deste fix, o handler descartava — só salvava contact_id.
+  // Paridade Blade `customer_id.on('change')` em public/js/pos.js.
+  //
+  // shipping_address vive em data.shipping.address (nested) — setData usa dot path.
+  const handleCustomerSelect = (c: CustomerSearchResult) => {
+    setData('contact_id', c.id);
+    if (c.pay_term_number !== null && c.pay_term_number !== undefined && c.pay_term_number !== '') {
+      setData('pay_term_number', String(c.pay_term_number));
+    }
+    if (c.pay_term_type === 'days' || c.pay_term_type === 'months') {
+      setData('pay_term_type', c.pay_term_type);
+    }
+    // Shipping address — `data.shipping.address` é nested. Usa spread pra preservar
+    // outros campos (details, cost, status, deliver_to) que user pode ter editado.
+    if (c.shipping_address && c.shipping_address !== '') {
+      setData('shipping', { ...data.shipping, address: c.shipping_address });
+    }
+    // Grupo de preço — `handlePriceGroupChange` já existe (R3) e recalcula linhas.
+    // null/undefined → não muda (preserva default já aplicado).
+    if (c.selling_price_group_id !== null && c.selling_price_group_id !== undefined) {
+      void handlePriceGroupChange(c.selling_price_group_id);
+    }
+  };
+
+  // R8 — reset ao limpar cliente. Volta pros defaults (walk-in + props default).
+  const handleCustomerClear = () => {
+    setData('contact_id', props.walkInCustomer.id);
+    setData('pay_term_number', '');
+    setData('pay_term_type', 'days');
+    // shipping fica como user editou — não auto-limpa (pode ser endereço manual)
+    // price_group volta ao default do business
+    if (props.defaultPriceGroupId !== data.price_group_id) {
+      void handlePriceGroupChange(props.defaultPriceGroupId);
+    }
   };
 
   const handleProductChange = (
@@ -913,8 +958,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <Label htmlFor="contact_id">Cliente</Label>
             <CustomerSearchAutocomplete
               defaultName={props.walkInCustomer.name}
-              onSelect={(c) => setData('contact_id', c.id)}
-              onClear={() => setData('contact_id', props.walkInCustomer.id)}
+              onSelect={handleCustomerSelect}
+              onClear={handleCustomerClear}
               forcedValue={forcedCustomer}
             />
             <p className="text-xs text-muted-foreground">
