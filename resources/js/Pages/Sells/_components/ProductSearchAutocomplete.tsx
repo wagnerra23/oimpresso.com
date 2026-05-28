@@ -27,7 +27,7 @@
 // pra usuário marcar/desmarcar product_custom_field1..4 + persistir em localStorage.
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, Loader2, X, ChevronRight, Package } from 'lucide-react';
+import { Search, Loader2, X, ChevronRight, Package, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import {
   Popover,
@@ -78,6 +78,46 @@ const POST_SELECT_GRACE_MS = 500;
 // `['name', 'sku', 'lot']`. Backend (ProductUtil@filterProduct) auto-adiciona
 // `sub_sku` quando `sku` está presente (ProductController@getProducts:1522).
 const DEFAULT_SEARCH_FIELDS = ['name', 'sku', 'lot'] as const;
+
+// R10 (2026-05-28) — configure-search popover (paridade Blade
+// configure_search_modal.blade.php). Larissa @ Rota Livre quer buscar por
+// product_custom_field3 (referência interna fornecedor). Persistido localStorage
+// com prefixo canon `oimpresso.` (auto-mem GOTCHAS preference).
+const ALL_SEARCH_FIELDS = [
+  { key: 'name', label: 'Nome do produto' },
+  { key: 'sku', label: 'SKU' },
+  { key: 'lot', label: 'Lote' },
+  { key: 'product_custom_field1', label: 'Campo personalizado 1' },
+  { key: 'product_custom_field2', label: 'Campo personalizado 2' },
+  { key: 'product_custom_field3', label: 'Campo personalizado 3' },
+  { key: 'product_custom_field4', label: 'Campo personalizado 4' },
+] as const;
+const SEARCH_FIELDS_STORAGE_KEY = 'oimpresso.sells.product_search_fields';
+
+function loadSearchFields(): string[] {
+  if (typeof window === 'undefined') return [...DEFAULT_SEARCH_FIELDS];
+  try {
+    const raw = window.localStorage.getItem(SEARCH_FIELDS_STORAGE_KEY);
+    if (!raw) return [...DEFAULT_SEARCH_FIELDS];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...DEFAULT_SEARCH_FIELDS];
+    const validKeys = new Set(ALL_SEARCH_FIELDS.map((f) => f.key));
+    const filtered = parsed.filter((k): k is string => typeof k === 'string' && validKeys.has(k as never));
+    // Failsafe — array vazio cairia em fallback backend (só nome). Mantém ao menos `name`.
+    return filtered.length > 0 ? filtered : [...DEFAULT_SEARCH_FIELDS];
+  } catch {
+    return [...DEFAULT_SEARCH_FIELDS];
+  }
+}
+
+function saveSearchFields(fields: string[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(SEARCH_FIELDS_STORAGE_KEY, JSON.stringify(fields));
+  } catch {
+    // localStorage quota / private mode — silencioso
+  }
+}
 
 // Agrupamento dropdown: 1 entrada por product_id. Quando >1 variação,
 // abre Popover com lista. Quando 1 só, render direto com `-{variation}`
@@ -133,6 +173,19 @@ export default function ProductSearchAutocomplete({
   // R7 anti-race — timestamp da última seleção. Bloqueia fetches em flight do
   // useEffect debounce de reabrirem o dropdown logo após handleSelectVariation.
   const lastSelectedAtRef = useRef(0);
+  // R10 configure-search — fields persistidos em localStorage.
+  const [searchFields, setSearchFields] = useState<string[]>(() => loadSearchFields());
+  const [configureOpen, setConfigureOpen] = useState(false);
+
+  const toggleSearchField = (key: string) => {
+    setSearchFields((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      // Failsafe — não permite array vazio (sem isso busca cai em fallback backend).
+      const safe = next.length > 0 ? next : ['name'];
+      saveSearchFields(safe);
+      return safe;
+    });
+  };
 
   const groups = useMemo(() => groupResults(results).slice(0, 10), [results]);
 
@@ -143,7 +196,8 @@ export default function ProductSearchAutocomplete({
     if (!locationId || term.length < MIN_QUERY_LENGTH) return [];
     const params = new URLSearchParams({ term });
     params.set('location_id', String(locationId));
-    DEFAULT_SEARCH_FIELDS.forEach((f) => params.append('search_fields[]', f));
+    // R10 — searchFields configurável via popover, persistido em localStorage
+    searchFields.forEach((f) => params.append('search_fields[]', f));
     try {
       const res = await fetch(`/products/list?${params.toString()}`, {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -177,8 +231,9 @@ export default function ProductSearchAutocomplete({
         const params = new URLSearchParams({ term: query });
         if (locationId) params.set('location_id', String(locationId));
 
-        // Dor 3 R5 — search_fields[] array (paridade Blade default).
-        DEFAULT_SEARCH_FIELDS.forEach((field) => {
+        // R10 — search_fields[] configurável via popover (paridade Blade
+        // configure_search_modal.blade.php), persistido em localStorage.
+        searchFields.forEach((field) => {
           params.append('search_fields[]', field);
         });
 
@@ -220,7 +275,9 @@ export default function ProductSearchAutocomplete({
       clearTimeout(handle);
       controller.abort();
     };
-  }, [query, locationId]);
+    // R10 — `searchFields` na dep array: ao alternar campos no popover,
+    // re-dispara busca com novos filtros pra UX feedback imediato.
+  }, [query, locationId, searchFields]);
 
   // Click fora fecha dropdown
   useEffect(() => {
@@ -351,25 +408,74 @@ export default function ProductSearchAutocomplete({
           // padding hardcoded `0 8px` no .cw-input que sobrepõe utilities Tailwind
           // — ícone Search fica em cima do texto. ADR UI-0015 default cowork 2026-05-27.
           variant="shadcn"
-          className="pl-9 pr-9"
+          className="pl-9 pr-16"
           aria-label="Buscar produto"
           aria-expanded={open}
           aria-haspopup="listbox"
           autoComplete="off"
         />
         {loading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+          <Loader2 className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
         )}
         {!loading && query.length > 0 && (
           <button
             type="button"
             onClick={handleClear}
             aria-label="Limpar busca"
-            className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+            className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         )}
+        {/* R10 (2026-05-28) — configure-search popover. Paridade Blade
+            configure_search_modal.blade.php. Sempre visível (não depende de
+            query) — Larissa pode pré-configurar antes de digitar. */}
+        <Popover open={configureOpen} onOpenChange={setConfigureOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label="Configurar campos de busca"
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground focus:outline-none"
+              data-testid="configure-search-trigger"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="bottom"
+            align="end"
+            sideOffset={8}
+            className="w-72 p-0"
+          >
+            <div className="border-b border-border px-3 py-2">
+              <p className="text-xs font-medium text-foreground">
+                Buscar produto por:
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Persistido neste navegador
+              </p>
+            </div>
+            <ul className="py-1" role="group" aria-label="Campos de busca">
+              {ALL_SEARCH_FIELDS.map((field) => {
+                const checked = searchFields.includes(field.key);
+                return (
+                  <li key={field.key}>
+                    <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleSearchField(field.key)}
+                        className="h-4 w-4 cursor-pointer accent-primary"
+                        data-testid={`search-field-${field.key}`}
+                      />
+                      <span className="select-none">{field.label}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {!locationId && (
