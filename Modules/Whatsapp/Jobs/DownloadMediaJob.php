@@ -121,9 +121,15 @@ class DownloadMediaJob implements ShouldQueue
 
         $attempts = $newAttempts;
 
-        // Valida MIME whitelist ANTES de baixar (Tier 0 — anti-XSS SVG)
+        // Valida MIME whitelist ANTES de baixar (Tier 0 — anti-XSS SVG).
+        // Strip RFC 7231 parameters: "audio/ogg; codecs=opus" → "audio/ogg".
+        // Whatsmeow protobuf manda full MIME spec com codecs parameter pra audio.
+        // Sem strip, TODOS audios opus falhavam early gate (audit 2026-05-28 18:00).
+        // Mantém bloqueio SVG: "image/svg+xml; charset=utf-8" → "image/svg+xml"
+        // (não está no whitelist) → bloqueado ✅.
         $mime = $this->expectedMime ?: ($message->media_mime ?? '');
-        if ($mime && ! in_array($mime, Message::MEDIA_MIME_WHITELIST, true)) {
+        $mimeBase = trim(explode(';', $mime)[0]);
+        if ($mimeBase && ! in_array($mimeBase, Message::MEDIA_MIME_WHITELIST, true)) {
             $this->markPermanentFailed($message, "MIME bloqueado pelo whitelist: {$mime}");
             return;
         }
@@ -156,7 +162,9 @@ class DownloadMediaJob implements ShouldQueue
             return;
         }
 
-        if ($contentType && ! in_array($contentType, Message::MEDIA_MIME_WHITELIST, true)) {
+        // Mesmo strip RFC 7231 params no Content-Type pós-download.
+        $contentTypeBase = trim(explode(';', $contentType ?: '')[0]);
+        if ($contentTypeBase && ! in_array($contentTypeBase, Message::MEDIA_MIME_WHITELIST, true)) {
             $this->markPermanentFailed($message, "Content-Type bloqueado: {$contentType}");
             return;
         }
