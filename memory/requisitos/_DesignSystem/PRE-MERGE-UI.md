@@ -67,6 +67,22 @@ Checklist deriva da **hierarquia de 4 camadas** ([ADR UI-0013](adr/ui/0013-const
 - [ ] **AP6** Sem emoji em UI de produto (só ícone SVG do lucide)
 - [ ] **AP7** Sem `bg-fill` em status badges — usa dot + texto colorido (Stripe-style)
 - [ ] **AP8** PT-BR em todo label, copy, erro, mensagem
+- [ ] **AP9** Sem `<main>` aninhado dentro do `<main>` do AppShellV2 — HTML5 spec exige no máximo 1 `<main>` visível por documento. Componentes de tela usam `<div role="region" aria-label="…">` quando precisam semântica regional. Detect: `document.querySelectorAll('main').length` deve ser ≤ 1.
+- [ ] **AP10** Chain de overflow/scroll respeitada — todo nó intermediário com `flex-1` em coluna PRECISA ter `h-full` **OU** o pai PRECISA ser `flex flex-col + min-h-0`. Sem isso, filho `overflow-auto` não tem altura de referência → conteúdo empurra layout além do viewport → ancestor `overflow:hidden` corta sem scrollbar. Detect: `el.scrollHeight > el.clientHeight + window.innerHeight` em chain de ancestors.
+
+> **Auditoria 30s (Chrome DevTools / MCP javascript_tool):**
+> ```js
+> // 1. Conta <main> duplicados
+> document.querySelectorAll('main').length // > 1 = AP9 violado
+> // 2. Mede chain main → grid → thread → msgs
+> ['main','.flex-1.grid','[role="region"]','.flex-1.overflow-auto'].map(s => {
+>   const el = document.querySelector(s); if (!el) return {s, missing: true};
+>   return { s, h: Math.round(el.getBoundingClientRect().height),
+>            scrollH: el.scrollHeight, overflowY: getComputedStyle(el).overflowY,
+>            canScroll: el.scrollHeight > el.clientHeight };
+> })
+> ```
+> Sintoma classico: 1 nó na chain com `scrollH > viewport` mas `canScroll: false` + ancestor `overflow:hidden` = layout cortado sem scrollbar. **Resolução:** adicionar `h-full` no nó cortado.
 
 ### Estrutural
 
