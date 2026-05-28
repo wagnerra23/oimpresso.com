@@ -3,7 +3,7 @@ slug: 0212-defensive-logging-fallback-paths
 number: 212
 title: "Defensive logging em fallback paths — eliminar R9-class (silent fallback) via Log::warning canon + PHPStan rule"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
