@@ -30,21 +30,68 @@ class Util
      */
     public function num_uf($input_number, $currency_details = null)
     {
-        $thousand_separator = '';
-        $decimal_separator = '';
-
-        if (! empty($currency_details)) {
-            $thousand_separator = $currency_details->thousand_separator;
-            $decimal_separator = $currency_details->decimal_separator;
-        } else {
-            $thousand_separator = session()->has('currency') ? session('currency')['thousand_separator'] : '';
-            $decimal_separator = session()->has('currency') ? session('currency')['decimal_separator'] : '';
+        // Bug Larissa @ Rota Livre biz=4 (2026-05-28 reportado por Wagner):
+        // Cliente cola "80.00" de calculadora/Excel US no campo preço. Implementação
+        // legacy fazia `str_replace('.', '', '80.00')` → '8000' → R$ [redacted Tier 0] gravado.
+        // Sintoma reportado: "R$ [redacted Tier 0] vira R$ [redacted Tier 0]+ na impressão".
+        //
+        // Fix: heurística pt-BR canônica (paridade com resources/js/Lib/numberPtBR.ts
+        // `parseDecimalPtBR` — commit 9b842ab8b R8 2026-05-27 corrigiu o front, mas
+        // backend continuava bugado pra qualquer path que NÃO passe pelo Sells/Create
+        // Inertia: API REST, conector Delphi, edit Blade legacy, queue/cron, etc).
+        //
+        // Regras:
+        //   - "80,00"            → 80      (vírgula = decimal pt-BR)
+        //   - "1.234,56"         → 1234.56 (ponto = milhar, vírgula = decimal)
+        //   - "25.000"           → 25000   (1 ponto + 3 dígitos → milhar)
+        //   - "80.00"            → 80      (1 ponto + ≤2 dígitos → decimal en-US tolerado)
+        //   - "147.77"           → 147.77  (idem)
+        //   - "R$ [redacted Tier 0]"      → 2500.80 (símbolo de moeda + espaços removidos)
+        //   - ""                 → 0
+        //   - null               → 0
+        if ($input_number === null || $input_number === '') {
+            return 0.0;
         }
 
-        $num = str_replace($thousand_separator, '', $input_number);
-        $num = str_replace($decimal_separator, '.', $num);
+        // Limpa símbolo de moeda + espaços (qualquer char não-numérico exceto . , -)
+        $cleaned = preg_replace('/[^0-9.,\-]/', '', (string) $input_number);
+        if ($cleaned === '' || $cleaned === '-') {
+            return 0.0;
+        }
 
-        return (float) $num;
+        $negative = strncmp($cleaned, '-', 1) === 0;
+        $abs = $negative ? substr($cleaned, 1) : $cleaned;
+
+        $hasComma = strpos($abs, ',') !== false;
+        $hasDot = strpos($abs, '.') !== false;
+
+        if ($hasComma) {
+            // Pt-BR canônico: vírgula = decimal, ponto = milhar.
+            // Usa a última vírgula como separador decimal (caso edge "1.234,56,78").
+            $lastComma = strrpos($abs, ',');
+            $intPart = str_replace('.', '', substr($abs, 0, $lastComma));
+            $decPart = str_replace('.', '', substr($abs, $lastComma + 1));
+            $normalized = $intPart.'.'.$decPart;
+        } elseif ($hasDot) {
+            // Apenas ponto: heurística inequívoca.
+            //   1 ponto + ≤2 dígitos após = decimal en-US tolerado ("80.00" = 80)
+            //   1 ponto + ≥3 dígitos após OU múltiplos pontos = milhar pt-BR ("25.000" = 25000)
+            $dotCount = substr_count($abs, '.');
+            $lastDot = strrpos($abs, '.');
+            $afterLastDot = strlen($abs) - $lastDot - 1;
+            if ($dotCount === 1 && $afterLastDot <= 2) {
+                $normalized = $abs;
+            } else {
+                $normalized = str_replace('.', '', $abs);
+            }
+        } else {
+            // 0 pontos + 0 vírgulas → puro inteiro.
+            $normalized = $abs;
+        }
+
+        $n = (float) $normalized;
+
+        return $negative ? -$n : $n;
     }
 
     /**
