@@ -115,6 +115,15 @@
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/audit-creates-tasks.mjs"
+          }
+        ]
       }
     ],
     "Stop": [
