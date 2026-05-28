@@ -29,9 +29,28 @@ ANTES de:
 - Se nenhum funciona, registra Tier 0 gap em `memory/proibicoes.md` + propõe ADR pra unblock futuro
 - NUNCA escala pro Wagner — Wagner já alertou 3×
 
-## 6 paths pra buscar token Hostinger API (em ordem)
+## Ordem de busca CANÔNICA (Path 0 OBRIGATÓRIO antes dos demais)
 
-Token criado 2026-04-28 ("Claude da hostinger"). Onde provavelmente está:
+### Path 0 — **MEMORY canon ÚNICO** (consultar PRIMEIRO sempre)
+
+> Skill `memory-first-secret-search` Tier A bloqueante força esta etapa.
+
+```bash
+# Sempre PRIMEIRO check (índice canônico de TODOS secrets):
+grep -A 1 "Hostinger DNS API" memory/_INDEX-SECRETS.md
+# Aponta pra arquivo canônico + status + frequência rotação
+```
+
+Hostinger DNS API token está documentado em:
+- [`memory/_INDEX-SECRETS.md`](../../../memory/_INDEX-SECRETS.md) (índice + ponteiro)
+- [`memory/claude/reference_hostinger_hpanel.md`](../../../memory/claude/reference_hostinger_hpanel.md) (valor histórico — pode estar 🔴 EXPIRED)
+- `/root/.hostinger-api-token` CT 100 (cache runtime — agente atualiza pós rotação)
+
+Status atual no índice indica se ainda funciona. Se 🔴 EXPIRED → secret-rotation needed, NÃO Tier 0 gap.
+
+## Paths fallback (1-6) — só se Path 0 não tiver entry
+
+Token criado 2026-04-28 ("Claude da hostinger"). Onde pode estar (caso índice canon não cubra):
 
 ### Path 1 — Arquivo canon CT 100 `/root/.hostinger-api-token`
 
