@@ -249,12 +249,20 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         ]);
 
         // Realtime Centrifugo — publica evento "message.received" no canal
-        // do business pra UI Inbox/ConversationThread atualizar sem refresh.
+        // omnichannel do business pra UI Caixa Unificada V4 atualizar sem refresh.
+        //
+        // 🚨 INCIDENT 2026-05-28: canal e nome do evento ESTAVAM em MISMATCH com
+        // o frontend (`Pages/Atendimento/CaixaUnificada/Index.tsx`):
+        //   - Publish ERA "whatsapp:business:{id}"      → Frontend subscribe "omnichannel:business:{id}"
+        //   - Evento ERA "whatsmeow.message.received"   → Frontend `ctx.data.type === 'message.received'`
+        // Resultado: msgs persistiam OK no DB mas WebSocket NUNCA entregava → tela
+        // só atualizava via polling 5s (que pausa em tab inativa) → latência percebida ~60s.
+        // Fix: publicar no canal omnichannel canon (ADR 0135) com chave `type` esperada.
         try {
             app(\Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher::class)->publish(
-                "whatsapp:business:{$this->businessId}",
+                "omnichannel:business:{$this->businessId}",
                 [
-                    'event' => 'whatsmeow.message.received',
+                    'type' => 'message.received',
                     'channel_id' => $channel->id,
                     'conversation_id' => $convId,
                     'phone_e164' => $phoneE164,
@@ -262,8 +270,18 @@ class ProcessIncomingWebhookJob implements ShouldQueue
                     'body_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
                 ]
             );
+            Log::info('whatsapp.centrifugo.publish.success', [
+                'business_id' => $this->businessId,
+                'channel_centrifugo' => "omnichannel:business:{$this->businessId}",
+                'conversation_id' => $convId,
+                'event_type' => 'message.received',
+            ]);
         } catch (\Throwable $e) {
-            Log::warning('whatsmeow.centrifugo.publish_failed', ['error' => $e->getMessage()]);
+            Log::warning('whatsmeow.centrifugo.publish_failed', [
+                'error' => $e->getMessage(),
+                'business_id' => $this->businessId,
+                'conversation_id' => $convId,
+            ]);
         }
 
         if ($conversation !== null) {
