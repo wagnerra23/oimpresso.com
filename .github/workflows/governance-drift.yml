@@ -1,0 +1,89 @@
+name: Governance Drift Framework — ADR 0216
+
+# Generaliza secrets-governance.yml (ADR 0215) — orquestra TODOS DriftCheckers
+# via governance:audit. Canary 7d: roda em paralelo com secrets-governance.yml
+# legacy. PR cleanup remove o legacy depois.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/**'
+      - 'config/**'
+      - 'Modules/**'
+      - 'app/**'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.env.example'
+  schedule:
+    # Daily 06:35 BRT (09:35 UTC) — Camada 3 ADR 0216 health-check + auto-PR
+    - cron: '35 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  drift-scan-pr:
+    name: ADR 0216 PR scan (governance:audit --diff-only)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # need diff against base
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Install dependencies (no-dev)
+        run: composer install --no-progress --no-interaction --prefer-dist
+      - name: Run governance:audit on PR (block-level fail)
+        run: |
+          # PR mode: --diff-only + fail-on=block (CI gate)
+          # No-persist pra não escrever em mcp_alertas_eventos durante CI
+          php artisan governance:audit \
+            --diff-only \
+            --no-persist \
+            --fail-on=block \
+            --json > governance-drift-report.json || EXIT_CODE=$?
+          cat governance-drift-report.json
+          exit ${EXIT_CODE:-0}
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: governance-drift-report
+          path: governance-drift-report.json
+          retention-days: 14
+
+  drift-audit-scheduled:
+    name: ADR 0216 daily health-check (governance:audit --all)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist
+      - name: Run governance:audit --all
+        run: |
+          # Schedule mode: --all + JSON output pra inspeção; --no-persist porque
+          # CI runner não tem acesso ao DB live (cron real roda no CT 100 — Kernel.php)
+          php artisan governance:audit \
+            --all \
+            --no-persist \
+            --json > governance-drift-report.json || EXIT_CODE=$?
+          cat governance-drift-report.json
+          # exit 0 sempre — schedule é diagnóstico, não bloqueante (cron CT 100 abre PRs)
+          exit 0
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: governance-drift-report-daily
+          path: governance-drift-report.json
+          retention-days: 30
