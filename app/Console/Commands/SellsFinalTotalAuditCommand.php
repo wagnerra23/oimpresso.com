@@ -122,6 +122,19 @@ class SellsFinalTotalAuditCommand extends Command
         foreach ($rows as $r) {
             $esperado = (float) $r->final_total_esperado;
             $real = (float) $r->final_total;
+            $beforeTax = (float) $r->total_before_tax;
+
+            // Heurística A: final_total >> total_before_tax + tax + shipping (impossível
+            // matematicamente — desconto não pode AUMENTAR o total). Pega 17642 (931x).
+            $extras = (float) $r->tax_amount + (float) $r->shipping_charges;
+            $tetoRazoavel = $beforeTax + $extras;
+            if ($tetoRazoavel > 0 && $real > $tetoRazoavel * 1.5) {
+                $suspeitas[] = ['row' => $r, 'esperado' => $esperado > 0 ? $esperado : $tetoRazoavel, 'razao' => $real / max($tetoRazoavel, 0.01)];
+
+                continue;
+            }
+
+            // Heurística B: razão final vs esperado fora do threshold (caso clássico).
             if ($esperado <= 0) {
                 continue;
             }
