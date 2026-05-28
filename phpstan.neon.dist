@@ -92,4 +92,11 @@ services:
         class: App\PhpStan\Rules\NoSilentFallbackRule
         tags:
             - phpstan.rules.rule
+    -
+        # ADR 0208 + T-AP-13 LICOES_F3. US-INFRA-019.
+        # Detecta methods públicos em Controllers retornando APENAS back()/redirect()
+        # sem mutação — endpoint vira API de mentirinha.
+        class: App\PhpStan\Rules\NoNopMutationControllerRule
+        tags:
+            - phpstan.rules.rule
 

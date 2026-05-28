@@ -1381,12 +1381,6 @@ parameters:
 			path: Modules/Cms/Entities/CmsPage.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/Cms/Entities/CmsPage.php
-
-		-
 			message: '#^Call to function method_exists\(\) with \$this\(Modules\\Cms\\Entities\\CmsPage\) and ''arquivos'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -5533,6 +5527,12 @@ parameters:
 			path: Modules/Essentials/Http/Controllers/DocumentController.php
 
 		-
+			message: '#^Método `Modules\\Essentials\\Http\\Controllers\\DocumentController\:\:update\(\)` é mutação NO\-OP — retorna apenas `back\(\)`/`redirect\(\)` sem qualquer mutação ou validação\. Endpoint vira API de mentirinha — botão clica, HTTP 302 volta, NADA persiste\. Adicione validação/serviço/Eloquent call OU marque explicitamente com `// @phpstan\-ignore\-next\-line oimpresso\.nopMutation` justificando\. Ver T\-AP\-13 no LICOES_F3\.$#'
+			identifier: oimpresso.nopMutation
+			count: 1
+			path: Modules/Essentials/Http/Controllers/DocumentController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Essentials\\Entities\\Document\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -8062,12 +8062,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/Financeiro/Models/BoletoRemessa.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
 			count: 1
 			path: Modules/Financeiro/Models/BoletoRemessa.php
 
@@ -12488,6 +12482,12 @@ parameters:
 			path: Modules/NfeBrasil/Http/Controllers/CertificadoController.php
 
 		-
+			message: '#^Método `Modules\\NfeBrasil\\Http\\Controllers\\CertificadoController\:\:status\(\)` é mutação NO\-OP — retorna apenas `back\(\)`/`redirect\(\)` sem qualquer mutação ou validação\. Endpoint vira API de mentirinha — botão clica, HTTP 302 volta, NADA persiste\. Adicione validação/serviço/Eloquent call OU marque explicitamente com `// @phpstan\-ignore\-next\-line oimpresso\.nopMutation` justificando\. Ver T\-AP\-13 no LICOES_F3\.$#'
+			identifier: oimpresso.nopMutation
+			count: 1
+			path: Modules/NfeBrasil/Http/Controllers/CertificadoController.php
+
+		-
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeBusinessConfig\:\:\$regime\.$#'
 			identifier: property.notFound
 			count: 1
@@ -13178,12 +13178,6 @@ parameters:
 			path: Modules/NfeBrasil/Models/NfeDfeRecebido.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/NfeBrasil/Models/NfeDfeRecebido.php
-
-		-
 			message: '#^Call to function method_exists\(\) with \$this\(Modules\\NfeBrasil\\Models\\NfeDfeRecebido\) and ''arquivos'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -13211,12 +13205,6 @@ parameters:
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeEmissao\:\:\$status\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/NfeBrasil/Models/NfeEmissao.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
 			path: Modules/NfeBrasil/Models/NfeEmissao.php
 
 		-
@@ -14082,22 +14070,10 @@ parameters:
 			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/OficinaAuto/Entities/OaInspectionItem.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/OficinaAuto/Entities/OaInspectionItem.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/OficinaAuto/Entities/ServiceOrder.php
 
 		-
 			message: '#^Constant Modules\\OficinaAuto\\Entities\\ServiceOrder\:\:RENTAL_ACTIVE_STATUSES is unused\.$#'
@@ -17726,12 +17702,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_stage_id\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/Repair/Entities/JobSheet.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
 			count: 1
 			path: Modules/Repair/Entities/JobSheet.php
 
@@ -21976,12 +21946,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: Modules/Whatsapp/Entities/ClientFeedback.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/Whatsapp/Entities/Message.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$channel_health\.$#'
