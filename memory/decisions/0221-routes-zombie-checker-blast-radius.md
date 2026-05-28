@@ -1,14 +1,19 @@
 ---
-adr: 0221
-title: RoutesZombieChecker — routes sem hits = tech debt + blast radius
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0162-observability-spans-aggregation.md
-  - 0216-governance-drift-framework-driftchecker-plugavel.md
-lifecycle: active
+slug: 0221-routes-zombie-checker-blast-radius
+number: 221
+title: "RoutesZombieChecker — routes sem hits = tech debt + blast radius"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, routes, tech-debt, observability]
+related:
+  - 0162-observability-spans-aggregation
+  - 0216-governance-drift-framework-driftchecker-plugavel
+pii: false
 ---
 
 ## Contexto

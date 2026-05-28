@@ -1,13 +1,18 @@
 ---
-adr: 0219
-title: AdrLinksChecker — link rot + lifecycle integrity de ADRs Nygard
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0216-governance-drift-framework-driftchecker-plugavel.md
-lifecycle: active
+slug: 0219-adr-links-checker-memory-canon-integrity
+number: 219
+title: "AdrLinksChecker — link rot + lifecycle integrity de ADRs Nygard"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, adr, link-rot, memory-canon]
+related:
+  - 0216-governance-drift-framework-driftchecker-plugavel
+pii: false
 ---
 
 ## Contexto

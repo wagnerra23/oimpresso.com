@@ -1,15 +1,20 @@
 ---
-adr: 0223
-title: NpmAuditChecker — frontend supply chain CVE detection (complementa 0217)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0216-governance-drift-framework-driftchecker-plugavel.md
-  - 0217-composer-audit-checker-supply-chain-detection.md
-  - 0222-renovate-config-supply-chain-defense.md
-lifecycle: active
+slug: 0223-npm-audit-checker-frontend-supply-chain
+number: 223
+title: "NpmAuditChecker — frontend supply chain CVE detection (complementa 0217)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, supply-chain, npm, frontend, security]
+related:
+  - 0216-governance-drift-framework-driftchecker-plugavel
+  - 0217-composer-audit-checker-supply-chain-detection
+  - 0222-renovate-config-supply-chain-defense
+pii: false
 ---
 
 ## Contexto
