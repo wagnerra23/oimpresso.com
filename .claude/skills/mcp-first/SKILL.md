@@ -5,7 +5,7 @@ trust_level: L2
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
 charter_adr: 0080
-tier: A
+tier: B
 parent_adr: 0095
 ---
 

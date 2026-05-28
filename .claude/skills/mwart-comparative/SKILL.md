@@ -1,7 +1,7 @@
 ---
 name: mwart-comparative
 description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier A always-on V4 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) **e** o loop Cowork ↔ Claude Code formalizado em `prototipo-ui/` (ADR 0114). Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo + sincroniza com `prototipo-ui/SYNC_LOG.md`. Skill PARA após gerar draft e aguarda Wagner aprovar SCREENSHOT (não tabela) ~10min síncrono ANTES de qualquer Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx`. Restaura o loop "design supervisionado" da era Repair S2.5 com qualidade estado-da-arte. Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
-tier: A
+tier: B
 status: active
 version: 4.0
 authority: canonical

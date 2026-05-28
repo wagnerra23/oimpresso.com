@@ -10,10 +10,17 @@ description: |
   humana antes commit/push/merge) — sem Wagner precisar repedir. Origem: sessão
   2026-05-17 Wagner "não é justo eu sempre ficar pedindo a mesma coisa".
 trust_level: 1
-tier: A
+tier: B
 parent_mission: mission.constituicao-v2
 charter_adr: 0094-constituicao-v2-7-camadas-8-principios
-auto_trigger: session_start
+auto_trigger: on_demand
+recalibrado_por: 0225-hooks-skills-tier-recalibracao-claude-4.8
+recalibracao_nota: |
+  ADR 0225 (2026-05-28) — rebaixado A->B. O binding REAL das regras R1-R11 ja
+  vive em memory/proibicoes.md "REGRA ZERO" (Tier 0 IRREVOGAVEL), que e @import
+  no CLAUDE.md => SEMPRE em contexto, independente desta skill. Logo always-on
+  desta skill era redundante. R1 (smoke real) + R10 (aprovacao humana) continuam
+  Tier 0 duro via proibicoes. Esta skill vira referencia on-demand do doc completo.
 applies_to:
   - any session in oimpresso project
   - both human-driven and agent-driven sessions

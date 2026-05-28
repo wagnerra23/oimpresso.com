@@ -1,7 +1,7 @@
 ---
 name: mwart-process
 description: Use SEMPRE que o trabalho envolva migrar tela Blade legacy → Inertia/React no oimpresso (MWART). Carrega o processo canônico ÚNICO definido em ADR 0104 — 5 fases obrigatórias e sequenciais (PLAN → BACKEND BASELINE → FRONTEND INCREMENTAL → QA → CUTOVER). Não há caminho alternativo. Ativa quando o pedido é "migrar tela X pra MWART", "criar tela em Pages/<Mod>/<Tela>.tsx", "migrar Blade pra React", ou quando Edit/Write em qualquer `resources/js/Pages/<Mod>/<Tela>.tsx` ou em controller chamando `Inertia::render`.
-tier: A
+tier: B
 status: active
 version: 1.2
 authority: canonical
