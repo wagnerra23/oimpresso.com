@@ -389,7 +389,10 @@ class DownloadMediaJob implements ShouldQueue
         }
         $proto = $messageProto[$protoKey] ?? [];
 
-        $url = $proto['url'] ?? $payload['media_url'] ?? null;
+        // Whatsmeow/WuzAPI protobuf serializa chaves em UPPERCASE: URL, fileSHA256,
+        // fileEncSHA256 (diferente Baileys que era lowercase url, fileSha256).
+        // Validado no smoke real msg #46403 — payload tem `URL`, não `url`.
+        $url = $proto['URL'] ?? $proto['url'] ?? $payload['media_url'] ?? null;
         if (! $url) {
             throw new HttpFetchException('URL mídia ausente no payload', retryable: false);
         }
@@ -404,12 +407,13 @@ class DownloadMediaJob implements ShouldQueue
             default => null,
         };
 
+        // Mesmo quirk uppercase: aceita ambos pra defense-in-depth.
         $reqBody = array_filter([
             'Url' => $url,
             'MediaKey' => $mediaKey,
             'Mimetype' => $this->expectedMime ?: ($message->media_mime ?? ($proto['mimetype'] ?? '')),
-            'FileSha256' => $proto['fileSha256'] ?? null,
-            'FileEncSha256' => $proto['fileEncSha256'] ?? null,
+            'FileSha256' => $proto['fileSHA256'] ?? $proto['fileSha256'] ?? null,
+            'FileEncSha256' => $proto['fileEncSHA256'] ?? $proto['fileEncSha256'] ?? null,
             'FileLength' => isset($proto['fileLength']) ? (int) $proto['fileLength'] : null,
             'DirectPath' => $proto['directPath'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
