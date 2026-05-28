@@ -23,6 +23,18 @@ export interface CustomerSearchResult {
   city?: string | null;
   /** Saldo devedor cliente (R$). >0 = devedor — exibe badge vermelho. */
   balance?: number | string | null;
+  // R8 (2026-05-28) — campos pra auto-aplicar prazo + grupo de preço ao trocar cliente.
+  // Backend ContactController@getCustomers (linhas 2150-2176) já devolve todos.
+  // Bug 2 hotfix Larissa 2026-05-13 era: "preço diferenciado" — cliente VIP com
+  // grupo de preço cobrava balcão. Fix: ao onSelect, parent reaplica.
+  /** Grupo de preço (cg.selling_price_group_id via customer_group join). */
+  selling_price_group_id?: number | null;
+  /** Prazo de pagamento (qtd unidades) — pré-fill no campo "pay_term_number". */
+  pay_term_number?: number | string | null;
+  /** Tipo prazo — 'days' | 'months'. */
+  pay_term_type?: 'days' | 'months' | string | null;
+  /** Endereço entrega — pré-fill no campo shipping. */
+  shipping_address?: string | null;
 }
 
 /**
