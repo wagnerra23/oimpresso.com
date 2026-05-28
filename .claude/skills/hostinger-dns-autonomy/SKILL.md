@@ -80,6 +80,37 @@ tailscale ssh root@ct100-mcp 'cat /root/.vaultwarden-cli-session 2>/dev/null'
 tailscale ssh root@ct100-mcp 'export BW_SESSION=$(cat /root/.bw-session 2>/dev/null) && bw get item "hostinger-api-token" --raw 2>/dev/null'
 ```
 
+### Path 7 — **CANON** memory/claude/reference_hostinger_*.md (PRIMEIRO a checar)
+
+> Falha 2026-05-28 18:30: agente declarou Tier 0 gap "token só no Vaultwarden encrypted" sem ter pesquisado memory canon. Wagner cobrou "tem api da hostinger na memoria". Token estava literalmente em `memory/claude/reference_hostinger_hpanel.md:37` desde abril.
+
+```bash
+grep -hr "Authorization: Bearer" memory/claude/reference_hostinger_*.md 2>/dev/null | head -3
+# Ou direto:
+grep -hE "^Authorization: Bearer ([A-Za-z0-9]{20,})" memory/claude/reference_hostinger_hpanel.md
+```
+
+**Path 7 deve ser tentado ANTES do Path 1.** memory canon é a fonte de verdade #0.
+
+## Se token achado MAS retorna 401 (secret stale)
+
+NÃO é Tier 0 gap (gap = "não acessível"; stale = "expirou"). Trate como **secret rotation needed**:
+
+```bash
+# Validar token via GET zone:
+curl -s -w "\nHTTP:%{http_code}\n" \
+  -H "Authorization: Bearer $TOKEN" \
+  "https://developers.hostinger.com/api/dns/v1/zones/oimpresso.com" | head -3
+```
+
+Se HTTP 401: token expirado/revogado. Propor Wagner regenerar:
+1. Wagner gera novo token via hPanel API page (irredutível — gerar token é UI-only Hostinger, não tem API pra criar token de token)
+2. Wagner atualiza `memory/claude/reference_hostinger_hpanel.md` linha "Authorization: Bearer ..."
+3. Wagner cola em `/root/.hostinger-api-token` CT 100 (uso runtime, sem precisar agente ler git)
+4. Agente continua trabalho
+
+**Frequência rotação:** anual ~. NÃO é "operação repetida". Análogo a Wagner ter regenerado SSH key 2026-04-23 — setup único por ciclo de vida do secret.
+
 ## Receita criar A record (ADR 0045 canônica)
 
 Após ter token:
