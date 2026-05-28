@@ -9,7 +9,7 @@ description: |
   tasks-active, decisions-search). Custo trivial (cache 5min), economia ~27k
   tokens por sessão.
 trust_level: 1
-tier: A
+tier: B
 parent_mission: mission.constituicao-v2
 charter_adr: 0091-daily-brief
 auto_trigger: session_start
