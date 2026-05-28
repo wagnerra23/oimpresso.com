@@ -1447,12 +1447,6 @@ parameters:
 			path: Modules/Cms/Entities/CmsPage.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/Cms/Entities/CmsPage.php
-
-		-
 			message: '#^Call to function method_exists\(\) with \$this\(Modules\\Cms\\Entities\\CmsPage\) and ''arquivos'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -1837,70 +1831,10 @@ parameters:
 			path: Modules/ComunicacaoVisual/Database/Seeders/RepairSettingsSeeder.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/Acabamento.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/Apontamento.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/Instalacao.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/InstalacaoCatalogo.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/Material.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/Orcamento.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/OrcamentoItem.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_stage_id\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/ComunicacaoVisual/Entities/OrdemProducao.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/OrdemProducao.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/Os.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/ComunicacaoVisual/Entities/Substrato.php
 
 		-
 			message: '#^Anonymous function has an unused use \$validated\.$#'
@@ -2781,12 +2715,6 @@ parameters:
 		-
 			message: '#^Left side of && is always false\.$#'
 			identifier: booleanAnd.leftAlwaysFalse
-			count: 1
-			path: Modules/Connector/Http/Controllers/Api/SellController.php
-
-		-
-			message: '#^Loose comparison using \=\= between ''single''\|''variable'' and ''combo'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
 			count: 1
 			path: Modules/Connector/Http/Controllers/Api/SellController.php
 
@@ -5677,6 +5605,12 @@ parameters:
 			path: Modules/Essentials/Http/Controllers/DocumentController.php
 
 		-
+			message: '#^Método `Modules\\Essentials\\Http\\Controllers\\DocumentController\:\:update\(\)` é mutação NO\-OP — retorna apenas `back\(\)`/`redirect\(\)` sem qualquer mutação ou validação\. Endpoint vira API de mentirinha — botão clica, HTTP 302 volta, NADA persiste\. Adicione validação/serviço/Eloquent call OU marque explicitamente com `// @phpstan\-ignore\-next\-line oimpresso\.nopMutation` justificando\. Ver T\-AP\-13 no LICOES_F3\.$#'
+			identifier: oimpresso.nopMutation
+			count: 1
+			path: Modules/Essentials/Http/Controllers/DocumentController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Essentials\\Entities\\Document\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -8264,12 +8198,6 @@ parameters:
 			path: Modules/Financeiro/Models/BoletoRemessa.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/Financeiro/Models/BoletoRemessa.php
-
-		-
 			message: '#^Call to function method_exists\(\) with \$this\(Modules\\Financeiro\\Models\\BoletoRemessa\) and ''arquivos'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -8612,12 +8540,6 @@ parameters:
 			path: Modules/Financeiro/Services/Integrations/PluggyClient.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between int\<1, 21\> and 0 will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 2
-			path: Modules/Financeiro/Services/LinhaDigitavelValidator.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Financeiro\\Models\\CaixaMovimento\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -8722,12 +8644,6 @@ parameters:
 		-
 			message: '#^Strict comparison using \!\=\= between ''purchase''\|''sell'' and ''expense'' will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: Modules/Financeiro/Services/TituloAutoService.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between ''purchase''\|''sell'' and ''expense'' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/Financeiro/Services/TituloAutoService.php
 
@@ -10916,12 +10832,6 @@ parameters:
 			path: Modules/Jana/Services/Cache/SemanticCacheService.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between int\<1, max\> and 0 will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/Jana/Services/Cache/SemanticCacheService.php
-
-		-
 			message: '#^Parameter \#3 \$serieDb of method Modules\\Jana\\Services\\CustosService\:\:preencherSerie\(\) expects Illuminate\\Support\\Collection\<string, object\>, Illuminate\\Support\\Collection\<\(int\|string\), stdClass\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -10930,12 +10840,6 @@ parameters:
 		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.expr
-			count: 1
-			path: Modules/Jana/Services/GovernancaService.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between float and 0 will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/Jana/Services/GovernancaService.php
 
@@ -11112,12 +11016,6 @@ parameters:
 			identifier: property.notFound
 			count: 2
 			path: Modules/Jana/Services/Memoria/MeilisearchDriver.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between Modules\\Jana\\Support\\ContextoNegocio and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/Jana/Services/Memoria/ProfileDistiller.php
 
 		-
 			message: '#^Offset ''mergedAt'' on array\{number\: int, title\: string, mergedAt\: string\} on left side of \?\? always exists and is not nullable\.$#'
@@ -11974,12 +11872,6 @@ parameters:
 		-
 			message: '#^Method Modules\\KB\\Services\\KbRagService\:\:rerank\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, non\-empty\-array\<string, mixed\>\>\.$#'
 			identifier: return.type
-			count: 1
-			path: Modules/KB/Services/KbRagService.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between non\-falsy\-string\|null and '''' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/KB/Services/KbRagService.php
 
@@ -12884,6 +12776,12 @@ parameters:
 			path: Modules/NfeBrasil/Http/Controllers/CertificadoController.php
 
 		-
+			message: '#^Método `Modules\\NfeBrasil\\Http\\Controllers\\CertificadoController\:\:status\(\)` é mutação NO\-OP — retorna apenas `back\(\)`/`redirect\(\)` sem qualquer mutação ou validação\. Endpoint vira API de mentirinha — botão clica, HTTP 302 volta, NADA persiste\. Adicione validação/serviço/Eloquent call OU marque explicitamente com `// @phpstan\-ignore\-next\-line oimpresso\.nopMutation` justificando\. Ver T\-AP\-13 no LICOES_F3\.$#'
+			identifier: oimpresso.nopMutation
+			count: 1
+			path: Modules/NfeBrasil/Http/Controllers/CertificadoController.php
+
+		-
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeBusinessConfig\:\:\$regime\.$#'
 			identifier: property.notFound
 			count: 1
@@ -13574,12 +13472,6 @@ parameters:
 			path: Modules/NfeBrasil/Models/NfeDfeRecebido.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/NfeBrasil/Models/NfeDfeRecebido.php
-
-		-
 			message: '#^Call to function method_exists\(\) with \$this\(Modules\\NfeBrasil\\Models\\NfeDfeRecebido\) and ''arquivos'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -13607,12 +13499,6 @@ parameters:
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeEmissao\:\:\$status\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/NfeBrasil/Models/NfeEmissao.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
 			path: Modules/NfeBrasil/Models/NfeEmissao.php
 
 		-
@@ -13760,12 +13646,6 @@ parameters:
 			path: Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between non\-empty\-string and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php
-
-		-
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeDfeRecebido\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 2
@@ -13786,12 +13666,6 @@ parameters:
 		-
 			message: '#^Parameter \#2 \$tpEvento of method NFePHP\\NFe\\Tools\:\:sefazManifesta\(\) expects int, string given\.$#'
 			identifier: argument.type
-			count: 1
-			path: Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between non\-empty\-string and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php
 
@@ -13994,12 +13868,6 @@ parameters:
 				\}\)\: Unexpected token "\=", expected '\}' at offset 962 on line 23$#
 			'''
 			identifier: phpDoc.parseError
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between non\-empty\-string and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/NfeBrasil/Services/NfeService.php
 
@@ -14364,12 +14232,6 @@ parameters:
 			path: Modules/Officeimpresso/Http/Controllers/OfficeimpressoController.php
 
 		-
-			message: '#^Loose comparison using \=\= between ''single''\|''variable'' and ''combo'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 1
-			path: Modules/Officeimpresso/Http/Controllers/OfficeimpressoController.php
-
-		-
 			message: '#^Method Modules\\Officeimpresso\\Http\\Controllers\\OfficeimpressoController\:\:index\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -14490,32 +14352,8 @@ parameters:
 			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/OficinaAuto/Entities/OaInspectionItem.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/OficinaAuto/Entities/OaInspectionItem.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/OficinaAuto/Entities/ServiceOrder.php
-
-		-
 			message: '#^Constant Modules\\OficinaAuto\\Entities\\ServiceOrder\:\:RENTAL_ACTIVE_STATUSES is unused\.$#'
 			identifier: classConstant.unused
-			count: 1
-			path: Modules/OficinaAuto/Entities/ServiceOrder.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/OficinaAuto/Entities/ServiceOrder.php
 
@@ -14526,20 +14364,8 @@ parameters:
 			path: Modules/OficinaAuto/Entities/ServiceOrderItem.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/OficinaAuto/Entities/ServiceOrderItem.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_overdue\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/OficinaAuto/Entities/Vehicle.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/OficinaAuto/Entities/Vehicle.php
 
@@ -18296,12 +18122,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_stage_id\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/Repair/Entities/JobSheet.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
 			count: 1
 			path: Modules/Repair/Entities/JobSheet.php
 
@@ -22662,12 +22482,6 @@ parameters:
 			path: Modules/Whatsapp/Entities/ClientFeedback.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/Whatsapp/Entities/Message.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$channel_health\.$#'
 			identifier: property.notFound
 			count: 2
@@ -23058,12 +22872,6 @@ parameters:
 			path: Modules/Whatsapp/Listeners/PublishOmnichannelToCentrifugo.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between float and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/Whatsapp/Observers/ClientFeedbackObserver.php
-
-		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
@@ -23090,18 +22898,6 @@ parameters:
 		-
 			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
 			identifier: oimpresso.silentFallback
-			count: 1
-			path: Modules/Whatsapp/Services/CustomerMemory/CustomerMemoryRebuilder.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between bool\|null and 1 will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/Whatsapp/Services/CustomerMemory/CustomerMemoryRebuilder.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between false\|null and 0 will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/Whatsapp/Services/CustomerMemory/CustomerMemoryRebuilder.php
 
@@ -23240,12 +23036,6 @@ parameters:
 		-
 			message: '#^Offset 2 on array\{non\-falsy\-string, ''config''\|''corrigir''\|''lembrar''\|''lembrete'', non\-empty\-string\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Whatsapp/Services/Notes/SlashCommandParser.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between ''config''\|''corrigir''\|''lembrar''\|''lembrete'' and '''' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/Whatsapp/Services/Notes/SlashCommandParser.php
 
@@ -27072,12 +26862,6 @@ parameters:
 			path: app/Http/Controllers/Install/InstallController.php
 
 		-
-			message: '#^Loose comparison using \=\= between null and 1\.2 will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Install/InstallController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\Install\\InstallController\:\:index\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -28143,12 +27927,6 @@ parameters:
 			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
 			identifier: oimpresso.silentFallback
 			count: 6
-			path: app/Http/Controllers/ProductController.php
-
-		-
-			message: '#^Loose comparison using \=\= between ''single''\|''variable'' and ''combo'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 1
 			path: app/Http/Controllers/ProductController.php
 
 		-
@@ -30684,12 +30462,6 @@ parameters:
 			path: app/Http/Controllers/SellController.php
 
 		-
-			message: '#^Loose comparison using \=\= between ''purchase''\|''sell'' and ''sales_order'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 2
-			path: app/Http/Controllers/SellController.php
-
-		-
 			message: '#^Match arm comparison between ''due'' and ''due'' is always true\.$#'
 			identifier: match.alwaysTrue
 			count: 2
@@ -31046,12 +30818,6 @@ parameters:
 		-
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
-			count: 1
-			path: app/Http/Controllers/SellPosController.php
-
-		-
-			message: '#^Loose comparison using \=\= between int and ''null'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
 			count: 1
 			path: app/Http/Controllers/SellPosController.php
 
@@ -34008,12 +33774,6 @@ parameters:
 			path: app/Services/NFCeService.php
 
 		-
-			message: '#^Loose comparison using \=\= between ''01''\|''99'' and ''04'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 1
-			path: app/Services/NFCeService.php
-
-		-
 			message: '#^Parameter \#1 \$model of method NFePHP\\NFe\\Common\\Tools\:\:model\(\) expects int\|null, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -35760,12 +35520,6 @@ parameters:
 			path: app/Utils/RestaurantUtil.php
 
 		-
-			message: '#^Loose comparison using \=\= between ''booked'' and ''waiting'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 1
-			path: app/Utils/RestaurantUtil.php
-
-		-
 			message: '#^Method App\\Utils\\RestaurantUtil\:\:getAllOrders\(\) has invalid return type App\\Utils\\obj\.$#'
 			identifier: class.notFound
 			count: 1
@@ -36351,24 +36105,6 @@ parameters:
 			message: '#^Loose comparison using \!\= between int\<1, max\> and 0 will always evaluate to true\.$#'
 			identifier: notEqual.alwaysTrue
 			count: 1
-			path: app/Utils/TransactionUtil.php
-
-		-
-			message: '#^Loose comparison using \=\= between ''purchase'' and ''sell_return'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 1
-			path: app/Utils/TransactionUtil.php
-
-		-
-			message: '#^Loose comparison using \=\= between ''purchase''\|''sell'' and ''sales_order'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 2
-			path: app/Utils/TransactionUtil.php
-
-		-
-			message: '#^Loose comparison using \=\= between ''purchase''\|''sell'' and ''sell_return'' will always evaluate to false\.$#'
-			identifier: equal.alwaysFalse
-			count: 2
 			path: app/Utils/TransactionUtil.php
 
 		-
@@ -37257,12 +36993,6 @@ parameters:
 			message: '#^Parameter \#3 \$pad_string of function str_pad expects string, int given\.$#'
 			identifier: argument.type
 			count: 2
-			path: app/Utils/Util.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, int given\.$#'
-			identifier: argument.type
-			count: 1
 			path: app/Utils/Util.php
 
 		-
