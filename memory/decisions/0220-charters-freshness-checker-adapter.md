@@ -1,15 +1,20 @@
 ---
-adr: 0220
-title: ChartersFreshnessChecker — adapter pattern do charter:audit existente
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0101-page-charter-contract-vivo.md
-  - 0216-governance-drift-framework-driftchecker-plugavel.md
-lifecycle: active
+slug: 0220-charters-freshness-checker-adapter
+number: 220
+title: "ChartersFreshnessChecker — adapter pattern do charter:audit existente"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, charter, freshness]
+related:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0101-page-charter-contract-vivo
+  - 0216-governance-drift-framework-driftchecker-plugavel
+pii: false
 ---
 
 ## Contexto

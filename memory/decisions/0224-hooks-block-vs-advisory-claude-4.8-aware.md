@@ -1,16 +1,21 @@
 ---
-adr: 0224
-title: Triagem hooks block vs advisory — Claude 4.8-aware (rebaixa enforcement semântico)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0061-conhecimento-canonico-git-mcp-zero-automem.md
-  - 0093-multi-tenant-isolation-tier-0.md
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel.md
-lifecycle: active
+slug: 0224-hooks-block-vs-advisory-claude-4.8-aware
+number: 224
+title: "Triagem hooks block vs advisory — Claude 4.8-aware (rebaixa enforcement semântico)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, hooks, claude-4-8, enforcement]
+related:
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel
+pii: false
 ---
 
 ## Contexto

@@ -1,9 +1,20 @@
 ---
-status: accepted
-date: 2026-05-28
-deciders: wagner
-consulted: claude (incident response 2026-05-28 10:11→13:22)
-related: [0093, 0212, 0215]
+slug: 0216-deploy-webhook-rodar-composer-dump-autoload
+number: 216
+title: "Deploy webhook Hostinger deve rodar `composer dump-autoload -o` + `php artisan optimize` após `git pull`"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: infra
+tags: [deploy, hostinger, composer, autoload, incident]
+related:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0212-defensive-logging-fallback-paths
+  - 0215-secrets-governance-5-camadas-automaticas
+pii: false
 ---
 
 # ADR 0216 — Deploy webhook Hostinger deve rodar `composer dump-autoload -o` + `php artisan optimize` após `git pull`

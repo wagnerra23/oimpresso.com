@@ -1,13 +1,18 @@
 ---
-adr: 0217
-title: ComposerAuditChecker — CVE detection deps composer.lock (supply chain)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0216-governance-drift-framework-driftchecker-plugavel.md
-lifecycle: active
+slug: 0217-composer-audit-checker-supply-chain-detection
+number: 217
+title: "ComposerAuditChecker — CVE detection deps composer.lock (supply chain)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, supply-chain, composer, cve, security]
+related:
+  - 0216-governance-drift-framework-driftchecker-plugavel
+pii: false
 ---
 
 ## Contexto

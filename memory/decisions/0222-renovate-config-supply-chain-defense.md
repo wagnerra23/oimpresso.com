@@ -1,16 +1,21 @@
 ---
-adr: 0222
-title: Renovate config — defesa proativa supply chain (lições Shai-Hulud + axios + laravel-lang 2026)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0061-conhecimento-canonico-git-mcp-zero-automem.md
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0216-governance-drift-framework-driftchecker-plugavel.md
-  - 0217-composer-audit-checker-supply-chain-detection.md
-lifecycle: active
+slug: 0222-renovate-config-supply-chain-defense
+number: 222
+title: "Renovate config — defesa proativa supply chain (lições Shai-Hulud + axios + laravel-lang 2026)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, supply-chain, renovate, security]
+related:
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0216-governance-drift-framework-driftchecker-plugavel
+  - 0217-composer-audit-checker-supply-chain-detection
+pii: false
 ---
 
 ## Contexto
