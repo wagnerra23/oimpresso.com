@@ -90,10 +90,10 @@ it('falha quando sentinela ---END--- ausente', function () {
     expect($r->reason)->toBe('missing_end_sentinel');
 });
 
-it('falha quando token count > 3500', function () {
-    // Brief válido + ~15k chars de padding (>3500 tokens estimados)
+it('falha quando token count > 8000 (ADR 0226)', function () {
+    // Brief válido + ~36k chars de padding (>8000 tokens estimados @ ~4 chars/token)
     $valid = briefValido();
-    $padded = str_replace('---END---', str_repeat('a', 15_000) . "\n---END---", $valid);
+    $padded = str_replace('---END---', str_repeat('a', 36_000) . "\n---END---", $valid);
     $r = (new BriefValidator())->validate($padded);
 
     expect($r->isOk())->toBeFalse();
@@ -134,5 +134,5 @@ it('ValidationResult::fail cria instância imutável com reason', function () {
 
 it('BriefValidator::REQUIRED_HEADERS bate exato 7 entradas (ADR 0091)', function () {
     expect(BriefValidator::REQUIRED_HEADERS)->toHaveCount(7);
-    expect(BriefValidator::MAX_TOKENS)->toBe(3500);
+    expect(BriefValidator::MAX_TOKENS)->toBe(8000); // ADR 0226 — 1M-aware (era 3500)
 });
