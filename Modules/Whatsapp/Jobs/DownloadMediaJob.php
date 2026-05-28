@@ -121,9 +121,15 @@ class DownloadMediaJob implements ShouldQueue
 
         $attempts = $newAttempts;
 
-        // Valida MIME whitelist ANTES de baixar (Tier 0 — anti-XSS SVG)
+        // Valida MIME whitelist ANTES de baixar (Tier 0 — anti-XSS SVG).
+        // Strip RFC 7231 parameters: "audio/ogg; codecs=opus" → "audio/ogg".
+        // Whatsmeow protobuf manda full MIME spec com codecs parameter pra audio.
+        // Sem strip, TODOS audios opus falhavam early gate (audit 2026-05-28 18:00).
+        // Mantém bloqueio SVG: "image/svg+xml; charset=utf-8" → "image/svg+xml"
+        // (não está no whitelist) → bloqueado ✅.
         $mime = $this->expectedMime ?: ($message->media_mime ?? '');
-        if ($mime && ! in_array($mime, Message::MEDIA_MIME_WHITELIST, true)) {
+        $mimeBase = trim(explode(';', $mime)[0]);
+        if ($mimeBase && ! in_array($mimeBase, Message::MEDIA_MIME_WHITELIST, true)) {
             $this->markPermanentFailed($message, "MIME bloqueado pelo whitelist: {$mime}");
             return;
         }
@@ -156,7 +162,9 @@ class DownloadMediaJob implements ShouldQueue
             return;
         }
 
-        if ($contentType && ! in_array($contentType, Message::MEDIA_MIME_WHITELIST, true)) {
+        // Mesmo strip RFC 7231 params no Content-Type pós-download.
+        $contentTypeBase = trim(explode(';', $contentType ?: '')[0]);
+        if ($contentTypeBase && ! in_array($contentTypeBase, Message::MEDIA_MIME_WHITELIST, true)) {
             $this->markPermanentFailed($message, "Content-Type bloqueado: {$contentType}");
             return;
         }
@@ -389,7 +397,10 @@ class DownloadMediaJob implements ShouldQueue
         }
         $proto = $messageProto[$protoKey] ?? [];
 
-        $url = $proto['url'] ?? $payload['media_url'] ?? null;
+        // Whatsmeow/WuzAPI protobuf serializa chaves em UPPERCASE: URL, fileSHA256,
+        // fileEncSHA256 (diferente Baileys que era lowercase url, fileSha256).
+        // Validado no smoke real msg #46403 — payload tem `URL`, não `url`.
+        $url = $proto['URL'] ?? $proto['url'] ?? $payload['media_url'] ?? null;
         if (! $url) {
             throw new HttpFetchException('URL mídia ausente no payload', retryable: false);
         }
@@ -404,12 +415,13 @@ class DownloadMediaJob implements ShouldQueue
             default => null,
         };
 
+        // Mesmo quirk uppercase: aceita ambos pra defense-in-depth.
         $reqBody = array_filter([
             'Url' => $url,
             'MediaKey' => $mediaKey,
             'Mimetype' => $this->expectedMime ?: ($message->media_mime ?? ($proto['mimetype'] ?? '')),
-            'FileSha256' => $proto['fileSha256'] ?? null,
-            'FileEncSha256' => $proto['fileEncSha256'] ?? null,
+            'FileSha256' => $proto['fileSHA256'] ?? $proto['fileSha256'] ?? null,
+            'FileEncSha256' => $proto['fileEncSHA256'] ?? $proto['fileEncSha256'] ?? null,
             'FileLength' => isset($proto['fileLength']) ? (int) $proto['fileLength'] : null,
             'DirectPath' => $proto['directPath'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
@@ -443,16 +455,28 @@ class DownloadMediaJob implements ShouldQueue
 
         if (str_contains($contentType, 'application/json')) {
             $json = $response->json();
-            $base64 = $json['data']['Data'] ?? $json['Data'] ?? null;
-            if (! $base64) {
+            $dataField = $json['data']['Data'] ?? $json['Data'] ?? null;
+            if (! $dataField) {
                 throw new HttpFetchException(
                     'WuzAPI download response sem Data field: ' . mb_substr($rawBody, 0, 200),
                     retryable: false,
                 );
             }
-            $decoded = base64_decode($base64, true);
+            // WuzAPI Data field é DATA URL: "data:image/jpeg;base64,<base64>"
+            // (validado via spec.yml + smoke 2026-05-28 msg #46403).
+            // base64_decode direto sem strip → fails. Strip prefixo primeiro.
+            if (str_starts_with($dataField, 'data:')) {
+                $commaPos = strpos($dataField, ',');
+                if ($commaPos !== false) {
+                    $dataField = substr($dataField, $commaPos + 1);
+                }
+            }
+            $decoded = base64_decode($dataField, true);
             if ($decoded === false) {
-                throw new HttpFetchException('Base64 inválido no response WuzAPI', retryable: false);
+                throw new HttpFetchException(
+                    'Base64 inválido no response WuzAPI (após strip data: prefix)',
+                    retryable: false,
+                );
             }
             return $decoded;
         }

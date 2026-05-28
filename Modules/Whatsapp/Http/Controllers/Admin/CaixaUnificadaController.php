@@ -596,8 +596,10 @@ class CaixaUnificadaController extends Controller
             'sender_user_name' => $senderName,
             'is_internal_note' => (bool) $m->is_internal_note,
             'created_at' => $m->created_at?->toIso8601String() ?? now()->toIso8601String(),
-            // M6+M7 fix 2026-05-28: expor media fields via Controller-served URL
-            // (Hostinger LiteSpeed bloqueia /storage/* direct serve com 403).
+            // M6+M7 fix 2026-05-28: expor media fields via Controller-served URL.
+            // M6 (PR #1846): media_url + media_thumbnail_url no UI shape.
+            // M7 (este PR): rotear via route('atendimento.midia.show') porque
+            // Hostinger LiteSpeed bloqueia /storage/* direct serve com 403.
             'media_url' => $m->media_url ? route('atendimento.midia.show', ['path' => $m->media_url]) : null,
             'media_thumbnail_url' => $m->media_thumbnail_url ? route('atendimento.midia.show', ['path' => $m->media_thumbnail_url]) : null,
             'media_mime' => $m->media_mime,
