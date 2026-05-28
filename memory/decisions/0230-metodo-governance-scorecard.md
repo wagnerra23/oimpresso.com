@@ -8,6 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 proposed_at: "2026-05-28"
+decided_at: "2026-05-28"
 module: governance
 quarter: 2026-Q2
 tags: [governance, scorecard, score-as-code, anti-regressao, ratchet, rastreabilidade, rtm, benchmark, pensamento-estruturado, agent-reliability]
