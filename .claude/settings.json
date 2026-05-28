@@ -134,7 +134,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/force-r12-closing-signal.ps1"
+            "command": "node .claude/hooks/force-r12-closing-signal.mjs"
           }
         ]
       }
