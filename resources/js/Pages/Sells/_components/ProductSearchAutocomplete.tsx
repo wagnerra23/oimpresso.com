@@ -66,6 +66,14 @@ interface Props {
 const DEBOUNCE_MS = 250;
 const MIN_QUERY_LENGTH = 2;
 
+// Sentinela anti-race pós-seleção (R7 — fix duplicação scanner 2026-05-28):
+// Após handleSelectVariation rodar, um setTimeout-fetch agendado ANTES da seleção
+// pode resolver em paralelo (clearTimeout não cancela Promise em flight) e fazer
+// setResults+setOpen(true), reabrindo o dropdown DEPOIS de já ter limpo state.
+// Larissa via dropdown "fantasma" e clicava no item → duplicação.
+// Solução: marcar lastSelectedAtRef e ignorar setOpen tardio nesta janela.
+const POST_SELECT_GRACE_MS = 500;
+
 // Paridade Blade legacy (pos.js:3076 — set_search_fields default):
 // `['name', 'sku', 'lot']`. Backend (ProductUtil@filterProduct) auto-adiciona
 // `sub_sku` quando `sku` está presente (ProductController@getProducts:1522).
@@ -122,6 +130,9 @@ export default function ProductSearchAutocomplete({
   const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // R7 anti-race — timestamp da última seleção. Bloqueia fetches em flight do
+  // useEffect debounce de reabrirem o dropdown logo após handleSelectVariation.
+  const lastSelectedAtRef = useRef(0);
 
   const groups = useMemo(() => groupResults(results).slice(0, 10), [results]);
 
@@ -146,14 +157,21 @@ export default function ProductSearchAutocomplete({
     }
   };
 
-  // Debounce + fetch
+  // Debounce + fetch — R7 anti-race (2026-05-28):
+  //  - AbortController cancela fetch in-flight quando query muda / unmount
+  //  - lastSelectedAtRef ignora resolução tardia que reabriria dropdown após seleção
   useEffect(() => {
     if (query.length < MIN_QUERY_LENGTH) {
       setResults([]);
       return;
     }
 
+    const controller = new AbortController();
     const handle = setTimeout(async () => {
+      // Sentinela pré-fetch — se uma seleção acabou de rolar e setQuery('') ainda
+      // está pendente no render queue, este timeout dispararia órfão.
+      if (Date.now() - lastSelectedAtRef.current < POST_SELECT_GRACE_MS) return;
+
       setLoading(true);
       try {
         const params = new URLSearchParams({ term: query });
@@ -170,7 +188,13 @@ export default function ProductSearchAutocomplete({
             'X-Requested-With': 'XMLHttpRequest',
           },
           credentials: 'same-origin',
+          signal: controller.signal,
         });
+
+        // Guards pós-await — cleanup do useEffect ou seleção podem ter acontecido
+        // enquanto o fetch estava em vôo.
+        if (controller.signal.aborted) return;
+        if (Date.now() - lastSelectedAtRef.current < POST_SELECT_GRACE_MS) return;
 
         if (!res.ok) {
           setResults([]);
@@ -178,17 +202,24 @@ export default function ProductSearchAutocomplete({
         }
 
         const data = (await res.json()) as ProductSearchResult[];
+        if (controller.signal.aborted) return;
+        if (Date.now() - lastSelectedAtRef.current < POST_SELECT_GRACE_MS) return;
+
         setResults(Array.isArray(data) ? data : []);
         setOpen(true);
         setExpandedProductId(null);
-      } catch {
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
         setResults([]);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }, DEBOUNCE_MS);
 
-    return () => clearTimeout(handle);
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
   }, [query, locationId]);
 
   // Click fora fecha dropdown
@@ -220,6 +251,12 @@ export default function ProductSearchAutocomplete({
     //   4) Múltiplos resultados sem match exato → mantém dropdown aberto pra user escolher.
     if (e.key === 'Enter' && query.length >= MIN_QUERY_LENGTH) {
       e.preventDefault(); // evita submit acidental do form parent
+
+      // R7 anti-race — se loading=true, um fetch SYNC já está rodando (scanner path
+      // anterior). Um 2º Enter rápido (operadora insistindo) cairia no mesmo branch
+      // e poderia duplicar. Ignora.
+      if (loading) return;
+
       const q = query.trim();
 
       // Match exato SKU/sub_sku no results atuais (instant path).
@@ -266,6 +303,7 @@ export default function ProductSearchAutocomplete({
   };
 
   const handleClear = () => {
+    lastSelectedAtRef.current = Date.now(); // bloqueia fetch pendente reabrir dropdown
     setQuery('');
     setResults([]);
     setOpen(false);
@@ -274,6 +312,9 @@ export default function ProductSearchAutocomplete({
   };
 
   const handleSelectVariation = (variation: ProductSearchResult) => {
+    // R7 anti-race — marca timestamp ANTES dos setStates pra que o useEffect debounce
+    // (caso resolva tardiamente) skipe o setOpen(true) na sentinela.
+    lastSelectedAtRef.current = Date.now();
     onSelect(variation);
     setQuery('');
     setResults([]);
