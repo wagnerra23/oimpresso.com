@@ -157,6 +157,54 @@ parameters:
 			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
 
 		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:approve\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:moveLabel\(\)` faz Eloquent query \(4\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:reject\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:review\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:store\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Método `Modules\\ADS\\Http\\Controllers\\Admin\\SkillsController\:\:test\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -307,6 +355,18 @@ parameters:
 			path: Modules/Admin/Config/retention.php
 
 		-
+			message: '#^Método `Modules\\Admin\\Http\\Controllers\\FeatureFlagsController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Admin/Http/Controllers/FeatureFlagsController.php
+
+		-
+			message: '#^Método `Modules\\Admin\\Http\\Controllers\\FeatureFlagsController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Admin/Http/Controllers/FeatureFlagsController.php
+
+		-
 			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
 			identifier: greater.alwaysTrue
 			count: 1
@@ -442,6 +502,12 @@ parameters:
 			message: '#^Access to an undefined property Modules\\Arquivos\\Entities\\Arquivo\:\:\$storage_path\.$#'
 			identifier: property.notFound
 			count: 3
+			path: Modules/Arquivos/Http/Controllers/DownloadController.php
+
+		-
+			message: '#^Método `Modules\\Arquivos\\Http\\Controllers\\DownloadController\:\:__invoke\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
 			path: Modules/Arquivos/Http/Controllers/DownloadController.php
 
 		-
@@ -1489,6 +1555,18 @@ parameters:
 			path: Modules/Cms/Http/Controllers/CmsController.php
 
 		-
+			message: '#^Método `Modules\\Cms\\Http\\Controllers\\CmsController\:\:getBlogListLegacy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Cms/Http/Controllers/CmsController.php
+
+		-
+			message: '#^Método `Modules\\Cms\\Http\\Controllers\\CmsController\:\:viewBlogLegacy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Cms/Http/Controllers/CmsController.php
+
+		-
 			message: '#^PHPDoc tag @param references unknown parameter\: \$product$#'
 			identifier: parameter.notFound
 			count: 1
@@ -1545,6 +1623,30 @@ parameters:
 		-
 			message: '#^Method Modules\\Cms\\Http\\Controllers\\CmsPageController\:\:update\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
+			count: 1
+			path: Modules/Cms/Http/Controllers/CmsPageController.php
+
+		-
+			message: '#^Método `Modules\\Cms\\Http\\Controllers\\CmsPageController\:\:edit\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Cms/Http/Controllers/CmsPageController.php
+
+		-
+			message: '#^Método `Modules\\Cms\\Http\\Controllers\\CmsPageController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Cms/Http/Controllers/CmsPageController.php
+
+		-
+			message: '#^Método `Modules\\Cms\\Http\\Controllers\\CmsPageController\:\:showPage\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Cms/Http/Controllers/CmsPageController.php
+
+		-
+			message: '#^Método `Modules\\Cms\\Http\\Controllers\\CmsPageController\:\:showPageLegacy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Cms/Http/Controllers/CmsPageController.php
 
@@ -1827,6 +1929,12 @@ parameters:
 		-
 			message: '#^Cannot instantiate interface Lcobucci\\JWT\\Parser\.$#'
 			identifier: new.interface
+			count: 1
+			path: Modules/Connector/Http/Controllers/Api/ApiController.php
+
+		-
+			message: '#^Método `Modules\\Connector\\Http\\Controllers\\Api\\ApiController\:\:getClient\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Connector/Http/Controllers/Api/ApiController.php
 
@@ -2374,6 +2482,30 @@ parameters:
 			message: '#^Left side of && is always false\.$#'
 			identifier: booleanAnd.leftAlwaysFalse
 			count: 2
+			path: Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php
+
+		-
+			message: '#^Método `Modules\\Connector\\Http\\Controllers\\Api\\LicencaComputadorController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php
+
+		-
+			message: '#^Método `Modules\\Connector\\Http\\Controllers\\Api\\LicencaComputadorController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php
+
+		-
+			message: '#^Método `Modules\\Connector\\Http\\Controllers\\Api\\LicencaComputadorController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php
+
+		-
+			message: '#^Método `Modules\\Connector\\Http\\Controllers\\Api\\LicencaComputadorController\:\:store\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
 			path: Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php
 
 		-
@@ -3919,6 +4051,12 @@ parameters:
 			path: Modules/Crm/Http/Controllers/DataController.php
 
 		-
+			message: '#^Método `Modules\\Crm\\Http\\Controllers\\DataController\:\:deleteCommissionWithSale\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Crm/Http/Controllers/DataController.php
+
+		-
 			message: '#^Parameter \#1 \$user of method App\\Utils\\Util\:\:is_admin\(\) expects App\\Utils\\obj, App\\Contact\|App\\User\|Modules\\Financeiro\\Models\\Advisor\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -5449,6 +5587,12 @@ parameters:
 			path: Modules/Essentials/Http/Controllers/DataController.php
 
 		-
+			message: '#^Método `Modules\\Essentials\\Http\\Controllers\\DataController\:\:parse_notification\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Essentials/Http/Controllers/DataController.php
+
+		-
 			message: '#^Parameter \#3 \$receipt_printer_type_attribute of static method App\\BusinessLocation\:\:forDropdown\(\) expects array, false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -6565,6 +6709,18 @@ parameters:
 			path: Modules/Essentials/Http/Controllers/ToDoController.php
 
 		-
+			message: '#^Método `Modules\\Essentials\\Http\\Controllers\\ToDoController\:\:deleteComment\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Essentials/Http/Controllers/ToDoController.php
+
+		-
+			message: '#^Método `Modules\\Essentials\\Http\\Controllers\\ToDoController\:\:deleteDocument\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Essentials/Http/Controllers/ToDoController.php
+
+		-
 			message: '#^Parameter \#1 \$user of method App\\Utils\\Util\:\:is_admin\(\) expects App\\Utils\\obj, App\\Contact\|App\\User\|Modules\\Financeiro\\Models\\Advisor\|null given\.$#'
 			identifier: argument.type
 			count: 2
@@ -7045,6 +7201,12 @@ parameters:
 			path: Modules/Financeiro/Http/Controllers/Advisor/AdvisorAuthController.php
 
 		-
+			message: '#^Método `Modules\\Financeiro\\Http\\Controllers\\Advisor\\AdvisorAuthController\:\:login\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/Advisor/AdvisorAuthController.php
+
+		-
 			message: '#^Access to an undefined property Modules\\Financeiro\\Models\\Advisor\:\:\$email\.$#'
 			identifier: property.notFound
 			count: 1
@@ -7155,6 +7317,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\RecurringBilling\\Models\\Subscription\:\:\$status\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/AssinaturaController.php
+
+		-
+			message: '#^Método `Modules\\Financeiro\\Http\\Controllers\\AssinaturaController\:\:showAtualizar\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Financeiro/Http/Controllers/AssinaturaController.php
 
@@ -7306,6 +7474,36 @@ parameters:
 			message: '#^Access to an undefined property Modules\\Financeiro\\Models\\Categoria\:\:\$ativo\.$#'
 			identifier: property.notFound
 			count: 2
+			path: Modules/Financeiro/Http/Controllers/CategoriaController.php
+
+		-
+			message: '#^Método `Modules\\Financeiro\\Http\\Controllers\\CategoriaController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/CategoriaController.php
+
+		-
+			message: '#^Método `Modules\\Financeiro\\Http\\Controllers\\CategoriaController\:\:index\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/CategoriaController.php
+
+		-
+			message: '#^Método `Modules\\Financeiro\\Http\\Controllers\\CategoriaController\:\:store\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/CategoriaController.php
+
+		-
+			message: '#^Método `Modules\\Financeiro\\Http\\Controllers\\CategoriaController\:\:toggleAtivo\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/CategoriaController.php
+
+		-
+			message: '#^Método `Modules\\Financeiro\\Http\\Controllers\\CategoriaController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
 			path: Modules/Financeiro/Http/Controllers/CategoriaController.php
 
 		-
@@ -9080,6 +9278,12 @@ parameters:
 			path: Modules/Fiscal/Http/Controllers/PaletteSearchController.php
 
 		-
+			message: '#^Método `Modules\\Fiscal\\Http\\Controllers\\SpedController\:\:index\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Fiscal/Http/Controllers/SpedController.php
+
+		-
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeEmissao\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 2
@@ -9824,6 +10028,30 @@ parameters:
 			path: Modules/Jana/Http/Controllers/ChatController.php
 
 		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\ChatController\:\:rejeitar\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/ChatController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\ChatController\:\:send\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/ChatController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\ChatController\:\:sendStream\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/ChatController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\ChatController\:\:updateConversa\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/ChatController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Modules\\Jana\\Entities\\Conversa\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -9906,6 +10134,54 @@ parameters:
 			identifier: argument.unresolvableType
 			count: 1
 			path: Modules/Jana/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/MetasController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/MetasController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:show\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/MetasController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:store\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/MetasController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/MetasController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\PeriodosController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/PeriodosController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\PeriodosController\:\:store\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/PeriodosController.php
+
+		-
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\PeriodosController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Jana/Http/Controllers/PeriodosController.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpToken\:\:\$user_id\.$#'
@@ -11336,6 +11612,24 @@ parameters:
 			path: Modules/KB/Entities/KbSubcategory.php
 
 		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\FontesController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/FontesController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\FontesController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/FontesController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbCommentController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbCommentController.php
+
+		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpMemoryDocument\:\:\$admin_only\.$#'
 			identifier: property.notFound
 			count: 1
@@ -11420,10 +11714,106 @@ parameters:
 			path: Modules/KB/Http/Controllers/KbController.php
 
 		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbController\:\:softDelete\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbDecisionTreeController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbDecisionTreeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbDecisionTreeController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbDecisionTreeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbDecisionTreeController\:\:update\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbDecisionTreeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbEdgeController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbEdgeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbEdgeController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbEdgeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbEdgeController\:\:store\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbEdgeController.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$git_path\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/KB/Http/Controllers/KbNodeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbNodeController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbNodeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbNodeController\:\:reverify\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbNodeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbNodeController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbNodeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbNodeController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbNodeController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbPathController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbPathController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbPathController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbPathController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbVersionController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbVersionController.php
+
+		-
+			message: '#^Método `Modules\\KB\\Http\\Controllers\\KbVersionController\:\:restoreVersion\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/KB/Http/Controllers/KbVersionController.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpMemoryDocument\:\:\$content_md\.$#'
@@ -11986,6 +12376,12 @@ parameters:
 		-
 			message: '#^Method Modules\\Manufacturing\\Http\\Controllers\\RecipeController\:\:updateRecipeProductPrices\(\) should return Illuminate\\Http\\Response but returns array\<string, array\|int\|string\>\.$#'
 			identifier: return.type
+			count: 1
+			path: Modules/Manufacturing/Http/Controllers/RecipeController.php
+
+		-
+			message: '#^Método `Modules\\Manufacturing\\Http\\Controllers\\RecipeController\:\:isRecipeExist\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Manufacturing/Http/Controllers/RecipeController.php
 
@@ -13794,6 +14190,18 @@ parameters:
 			path: Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php
 
 		-
+			message: '#^Método `Modules\\Officeimpresso\\Http\\Controllers\\LicencaComputadorController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php
+
+		-
+			message: '#^Método `Modules\\Officeimpresso\\Http\\Controllers\\LicencaComputadorController\:\:viewLicencas\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php
+
+		-
 			message: '#^Ternary operator condition is always true\.$#'
 			identifier: ternary.alwaysTrue
 			count: 2
@@ -14274,6 +14682,24 @@ parameters:
 			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
 
 		-
+			message: '#^Método `Modules\\OficinaAuto\\Http\\Controllers\\ServiceOrderController\:\:create\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
+
+		-
+			message: '#^Método `Modules\\OficinaAuto\\Http\\Controllers\\ServiceOrderController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
+
+		-
+			message: '#^Método `Modules\\OficinaAuto\\Http\\Controllers\\ServiceOrderController\:\:store\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Domain\\Fsm\\Models\\SaleProcessStage\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -14308,6 +14734,18 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderItemController.php
+
+		-
+			message: '#^Método `Modules\\OficinaAuto\\Http\\Controllers\\VehicleController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/OficinaAuto/Http/Controllers/VehicleController.php
+
+		-
+			message: '#^Método `Modules\\OficinaAuto\\Http\\Controllers\\VehicleController\:\:store\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/OficinaAuto/Http/Controllers/VehicleController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$contact_id\.$#'
@@ -15300,6 +15738,18 @@ parameters:
 			path: Modules/Ponto/Http/Controllers/AprovacaoController.php
 
 		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\AprovacaoController\:\:aprovar\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/AprovacaoController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\AprovacaoController\:\:rejeitar\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/AprovacaoController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Modules\\Ponto\\Entities\\Intercorrencia\>\:\:transform\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -15350,6 +15800,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\Ponto\\Entities\\BancoHorasSaldo\:\:\$updated_at\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/Ponto/Http/Controllers/BancoHorasController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\BancoHorasController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Ponto/Http/Controllers/BancoHorasController.php
 
@@ -15464,6 +15920,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\Ponto\\Entities\\Escala\:\:\$tipo\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/Ponto/Http/Controllers/ColaboradorController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\ColaboradorController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Ponto/Http/Controllers/ColaboradorController.php
 
@@ -15726,6 +16188,18 @@ parameters:
 			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
 		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\EscalaController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/EscalaController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\EscalaController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/EscalaController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -15876,6 +16350,12 @@ parameters:
 			path: Modules/Ponto/Http/Controllers/ImportacaoController.php
 
 		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\ImportacaoController\:\:baixarOriginal\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/ImportacaoController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Modules\\Ponto\\Entities\\Importacao\>\:\:transform\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -15998,6 +16478,30 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\Ponto\\Entities\\Intercorrencia\:\:\$tipo\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/Ponto/Http/Controllers/IntercorrenciaController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\IntercorrenciaController\:\:cancelar\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/IntercorrenciaController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\IntercorrenciaController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/IntercorrenciaController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\IntercorrenciaController\:\:submeter\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Ponto/Http/Controllers/IntercorrenciaController.php
+
+		-
+			message: '#^Método `Modules\\Ponto\\Http\\Controllers\\IntercorrenciaController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Ponto/Http/Controllers/IntercorrenciaController.php
 
@@ -16638,6 +17142,12 @@ parameters:
 			path: Modules/ProjectMgmt/Http/Controllers/ActivityController.php
 
 		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\ActivityController\:\:index\(\)` faz Eloquent query \(7\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/ActivityController.php
+
+		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$component_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -16860,6 +17370,48 @@ parameters:
 			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
 
 		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:addSubtask\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:show\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:suggestUsers\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:unwatch\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:updateStatus\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:watch\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+
+		-
 			message: '#^Offset ''task_id'' on array\{task_id\: string, identifier\: string\|null, markdown\: string\|null, spec_path\: string\|null, written\: bool\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -17016,6 +17568,18 @@ parameters:
 			path: Modules/ProjectMgmt/Http/Controllers/MyWorkController.php
 
 		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\MyWorkController\:\:markAllRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/MyWorkController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\MyWorkController\:\:markRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/MyWorkController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -17072,6 +17636,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$title\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/SearchController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\SearchController\:\:index\(\)` faz Eloquent query \(4\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/ProjectMgmt/Http/Controllers/SearchController.php
 
@@ -20520,6 +21090,12 @@ parameters:
 			path: Modules/Superadmin/Http/Controllers/BusinessController.php
 
 		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\BusinessController\:\:updatePassword\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/BusinessController.php
+
+		-
 			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type Modules\\Superadmin\\Http\\Requests\\StoreBusinessRequest\.$#'
 			identifier: parameter.phpDocType
 			count: 1
@@ -20688,6 +21264,24 @@ parameters:
 			path: Modules/Superadmin/Http/Controllers/PackagesController.php
 
 		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PackagesController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PackagesController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PackagesController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PackagesController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PackagesController\:\:update\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PackagesController.php
+
+		-
 			message: '#^PHPDoc tag @param references unknown parameter\: \$product$#'
 			identifier: parameter.notFound
 			count: 1
@@ -20738,6 +21332,36 @@ parameters:
 		-
 			message: '#^Method Modules\\Superadmin\\Http\\Controllers\\PageController\:\:update\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PageController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PageController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PageController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PageController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PageController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PageController\:\:showPage\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PageController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PageController\:\:store\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/PageController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\PageController\:\:update\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Superadmin/Http/Controllers/PageController.php
 
@@ -21108,6 +21732,12 @@ parameters:
 			path: Modules/Superadmin/Http/Controllers/SuperadminSettingsController.php
 
 		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\SuperadminSettingsController\:\:update\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/SuperadminSettingsController.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Superadmin\\Entities\\Subscription\>\|Modules\\Superadmin\\Entities\\Subscription\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -21230,6 +21860,24 @@ parameters:
 		-
 			message: '#^Method Modules\\Superadmin\\Http\\Controllers\\SuperadminSubscriptionsController\:\:updateSubscription\(\) should return Illuminate\\Http\\Response but returns array\<string, array\|bool\|string\>\.$#'
 			identifier: return.type
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\SuperadminSubscriptionsController\:\:edit\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\SuperadminSubscriptionsController\:\:editSubscription\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php
+
+		-
+			message: '#^Método `Modules\\Superadmin\\Http\\Controllers\\SuperadminSubscriptionsController\:\:updateSubscription\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php
 
@@ -21756,6 +22404,12 @@ parameters:
 			path: Modules/TeamMcp/Http/Controllers/CcSessionsController.php
 
 		-
+			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\CcSessionsController\:\:show\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/TeamMcp/Http/Controllers/CcSessionsController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Mcp\\McpCcMessage\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -21834,6 +22488,12 @@ parameters:
 			path: Modules/TeamMcp/Http/Controllers/TasksAdminController.php
 
 		-
+			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TasksAdminController\:\:index\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/TeamMcp/Http/Controllers/TasksAdminController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Mcp\\McpTask\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 2
@@ -21885,6 +22545,30 @@ parameters:
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpToken\:\:\$revoked_at\.$#'
 			identifier: property.notFound
 			count: 2
+			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+
+		-
+			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:atualizarQuota\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+
+		-
+			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:gerarDxt\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+
+		-
+			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:gerarToken\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+
+		-
+			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:revogarToken\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
 			path: Modules/TeamMcp/Http/Controllers/TeamController.php
 
 		-
@@ -22112,6 +22796,18 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\Whatsapp\\Entities\\ClientFeedback\:\:\$created_at\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/Whatsapp/Http/Controllers/Admin/ClientFeedbackController.php
+
+		-
+			message: '#^Método `Modules\\Whatsapp\\Http\\Controllers\\Admin\\ClientFeedbackController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/Whatsapp/Http/Controllers/Admin/ClientFeedbackController.php
+
+		-
+			message: '#^Método `Modules\\Whatsapp\\Http\\Controllers\\Admin\\ClientFeedbackController\:\:updateStatus\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Whatsapp/Http/Controllers/Admin/ClientFeedbackController.php
 
