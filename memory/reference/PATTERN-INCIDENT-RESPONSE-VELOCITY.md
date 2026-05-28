@@ -161,6 +161,21 @@ Centrifugo erro 102 só visível assim.
 
 **Anti-padrão custoso:** prometer "tudo funcionando" sem validar (4 ciclos vai-volta hoje antes de eu aprender).
 
+### G) Autonomia operacional — NUNCA escala automatizável pro Wagner
+
+**Pattern:** Antes de pedir Wagner abrir hPanel/UI/copy-paste secret, tentar mínimo **6 paths** de automação.
+
+**Caso real falha 2026-05-28 17:55:** Tentei 2 paths pra token Hostinger (.env + scripts/), não achei, pedi Wagner criar DNS A record no hPanel. Wagner alertou: "não me pergunte". Isso é **terceirização de fricção** — Wagner já tinha alertado 3× na mesma sessão.
+
+**Caminho correto:**
+1. Skill `hostinger-dns-autonomy` Tier A lista 6 paths (canon, container env, vaultwarden API, bw CLI, etc)
+2. Se TODOS falharem, registra Tier 0 gap em `memory/proibicoes.md` + propõe ADR pra unblock estrutural
+3. NÃO escala — Wagner NÃO é helpdesk
+
+**Anti-padrão custoso:** assumir "Wagner faz em 5 segundos" como atalho. Cada pedido é (a) interrupção do flow dele, (b) sinal de que minhas regras estão furadas, (c) fricção repetitiva no longo prazo. Skill `hostinger-dns-autonomy` codifica.
+
+**Aprendizado meta:** quando bater fricção (token não em path óbvio), default mental tem que virar "investigar 5 paths a mais" em vez de "pedir Wagner ajuda 30s". Skill bloqueante força esse default.
+
 ---
 
 ## Anti-padrões formais (referenciar em PRE-MERGE-UI / governance)

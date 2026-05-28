@@ -104,6 +104,7 @@
 - ⛔ **Não assumir completude** — Wagner valoriza economia de crédito; confirme escopo com perguntas curtas antes de implementar massivamente
 - ⛔ **Não remover shim `App\View\Helpers\Form`** sem antes migrar ~6.4k chamadas Blade `Form::`
 - ⛔ **Identificadores MySQL >64 chars** — sempre passar nome explícito em índices compostos
+- ⛔ **NUNCA escalar pro Wagner ação automatizável (hPanel, painéis web, copy-paste secret no chat)** se existe API/CLI documentada. Falha 2026-05-28: agente pediu Wagner criar A record no hPanel quando ADR 0045 já dava receita exata via Hostinger DNS API. Wagner alertou 3× nesta sessão "não pede o que pode fazer". Skill canon `hostinger-dns-autonomy` Tier A lista 6 paths pra buscar token Hostinger antes de "desistir" — se TODOS falharem, registra Tier 0 gap, NÃO escala. Princípio: Wagner NÃO é helpdesk do agente. Ref [PROTOCOLO-WAGNER-SEMPRE](reference/PROTOCOLO-WAGNER-SEMPRE.md) regra 1, skill `publication-policy`, skill `hostinger-dns-autonomy`
 - ⛔ **Não suba código sem alertar pré-requisitos e riscos**. Histórico de crashes:
   - 2026-04-18: scaffold incompatível
   - 2026-04-19: PHP 8 em servidor PHP 7.1
