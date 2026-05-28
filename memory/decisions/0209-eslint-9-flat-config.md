@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-28
-module: DesignSystem
+module: _DesignSystem
 quarter: 2026-Q2
 tags: [enforcement, static-analysis, eslint, react-hooks, anti-pattern, prevencao-bugs]
 supersedes: []
