@@ -86,3 +86,14 @@ Tarefa trivial (1 edit, pergunta factual, correção mecânica). O processo é p
 ## Validação
 
 Esta sessão é o caso de uso vivo: 4 `audit-research-expert` em paralelo → grade consolidada → Método 0230. O contraste (modo reativo no início → erros; modo estruturado no fim → resultado) é a evidência empírica.
+
+## Agentes por etapa (quem executa cada parte das ondas)
+
+| Etapa | Agente canônico | Papel |
+|---|---|---|
+| **Dividir** em áreas/ondas | `coordenador-paralelo` | decompõe em áreas isoladas Tier 0, sem overlap |
+| **Pesquisar + pontuar** (por regra/dimensão) | `audit-research-expert` | estado-da-arte 2026 + nota %/100 + gaps + exemplos reais. Ondas grandes/estratégicas: `audit-senior-expert` |
+| **Implementar / fechar o gap** | `audit-implement-expert` | código + testes Pest + RUNBOOK na área isolada, até o baseline subir |
+| **Consolidar** | agente-pai (Claude principal) | integra os outputs num todo coerente (grade + roadmap) |
+
+**Mapa por onda (R1-R12):** cada regra = 1 `audit-research-expert` (pontuar vs os melhores) → 1 `audit-implement-expert` (fechar o gap, criando o teste anti-regressão com `origin`). Orquestração via skill `/audit-and-fix` (Fase 1 research → Fase 3 implement) + `coordenador-paralelo` quando ≥3 regras em paralelo. Cada onda só fecha quando a grade (`.claude/governance-eval/grade.mjs`) sobe o baseline e não regride (Invariante A).
