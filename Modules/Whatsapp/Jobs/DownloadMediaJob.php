@@ -447,16 +447,28 @@ class DownloadMediaJob implements ShouldQueue
 
         if (str_contains($contentType, 'application/json')) {
             $json = $response->json();
-            $base64 = $json['data']['Data'] ?? $json['Data'] ?? null;
-            if (! $base64) {
+            $dataField = $json['data']['Data'] ?? $json['Data'] ?? null;
+            if (! $dataField) {
                 throw new HttpFetchException(
                     'WuzAPI download response sem Data field: ' . mb_substr($rawBody, 0, 200),
                     retryable: false,
                 );
             }
-            $decoded = base64_decode($base64, true);
+            // WuzAPI Data field é DATA URL: "data:image/jpeg;base64,<base64>"
+            // (validado via spec.yml + smoke 2026-05-28 msg #46403).
+            // base64_decode direto sem strip → fails. Strip prefixo primeiro.
+            if (str_starts_with($dataField, 'data:')) {
+                $commaPos = strpos($dataField, ',');
+                if ($commaPos !== false) {
+                    $dataField = substr($dataField, $commaPos + 1);
+                }
+            }
+            $decoded = base64_decode($dataField, true);
             if ($decoded === false) {
-                throw new HttpFetchException('Base64 inválido no response WuzAPI', retryable: false);
+                throw new HttpFetchException(
+                    'Base64 inválido no response WuzAPI (após strip data: prefix)',
+                    retryable: false,
+                );
             }
             return $decoded;
         }
