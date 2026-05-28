@@ -101,6 +101,12 @@ services:
         tags:
             - phpstan.rules.rule
     -
+        # ADR 0208 + ADR 0093 (Tier 0 multi-tenant). US-INFRA-017.
+        # Detecta Module Controllers fazendo Eloquent query sem business_id mention.
+        class: App\PhpStan\Rules\NoMissingTenantScopeRule
+        tags:
+            - phpstan.rules.rule
+    -
         # ADR 0208 + T-AP-13 LICOES_F3. US-INFRA-019.
         # Detecta methods públicos em Controllers retornando APENAS back()/redirect()
         # sem mutação — endpoint vira API de mentirinha.
