@@ -419,4 +419,213 @@ Implementa o gate hard descrito em [ADR-0207](../../decisions/0207-contract-test
 
 ---
 
+## Onda prevenção bugs MWART (US-INFRA-014..030) — 2026-05-28
+
+> 17 tasks geradas a partir do dossier `memory/sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md` e ADRs 0208/0209/0210/0211/0212/0213 (PR #1837 propostos). Atacam classe inteira de bugs Larissa R7-R10 via enforcement passivo (PHPStan/Larastan, ESLint, Wayfinder, TanStack Query, defensive logging, audit-to-backlog).
+
+### US-INFRA-014 · Install Larastan + phpstan.neon.dist nível 5 baseline
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Onda 1 · habilita enforcement infra.** `composer require --dev larastan/larastan` v2.11+, criar `phpstan.neon.dist` na raiz com nível 5 inicial (sobe pra 7 após baseline limpa em 90d), includes `vendor/larastan/larastan/extension.neon`, paths `[app, Modules]`, exclude `vendor/storage/bootstrap/cache`. Gerar `phpstan-baseline.neon` com pre-existentes (ratchet — falha só REGRESSÃO). `composer.json` script `composer phpstan`.
+
+**Acceptance:** `composer phpstan` roda local sem erro fatal; baseline gerado; sem mudanças em código de produção.
+
+Refs: ADR 0208 — Larastan PHPStan baseline ratchet
+Pré-req: nenhum (habilita Onda 2 inteira)
+
+### US-INFRA-015 · Workflow phpstan-gate.yml — CI ratchet contra baseline
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: US-INFRA-014
+
+**Onda 1.** `.github/workflows/phpstan-gate.yml` espelhando `ui-lint.yml`. Dispara em PR tocando `**/*.php`. Roda `vendor/bin/phpstan analyse --memory-limit=1G --error-format=github`. Compara contra baseline; falha só em delta > 0. Annotations inline. Cache PHPStan no GH Actions cache.
+
+**Acceptance:** PR sem regressão passa; PR com regressão falha com annotation linha:col.
+
+Refs: ADR 0208
+
+### US-INFRA-016 · LogContextMiddleware global — business_id/user_id/request_id em todo log
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Onda 1 · defensive logging.** `app/Http/Middleware/LogContextMiddleware.php` registrado em `App\Http\Kernel.php` `'web'` group antes de `AdminSidebarMenu`. Injeta em `Log::withContext`: `business_id`, `user_id`, `request_id` (UUID), `route_name`.
+
+**Acceptance:** qualquer `Log::warning(...)` subsequente tem esses 4 campos automaticamente.
+
+Refs: ADR 0212 Camada 1
+
+### US-INFRA-017 · PHPStan custom rule NoMissingTenantScope (T-AP-2 Tier 0)
+
+> owner: — · priority: p0 · estimate: 5h · status: todo · type: story
+> blocked_by: US-INFRA-014
+
+**Onda 2.** Classes em `Modules/*/Http/Controllers/*` que executam `Model::query()` sem `->where('business_id', session('user.business_id'))` OU sem global scope → erro PHPStan. Codifica T-AP-2 + T-AP-8.
+
+**Acceptance:** rule em `app/PhpStan/Rules/NoMissingTenantScopeRule.php`; baseline absorve violações pre-existentes; novo controller sem scope = erro.
+
+Refs: ADR 0208 + ADR 0093 (Tier 0 multi-tenant)
+
+### US-INFRA-018 · PHPStan custom rule NoInventedModel (T-AP-1)
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: US-INFRA-014
+
+**Onda 2.** Detecta `use App\<Model>` ou `use Modules\*\Models\<Model>` que referenciam classe inexistente. Codifica T-AP-1 (agente externo F3 inventando model `FinancialEntry`, etc).
+
+**Acceptance:** rule + fixture Pest com model inventado = erro detectado.
+
+Refs: ADR 0208
+
+### US-INFRA-019 · PHPStan custom rule NoNopMutationController (T-AP-13)
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: US-INFRA-014
+
+**Onda 2.** Action public que retorna apenas `return back();` ou `return redirect()->back();` sem mutação → erro. Codifica T-AP-13.
+
+**Acceptance:** rule + fixture no-op = erro; controllers reais que só redirecionam ficam no baseline.
+
+Refs: ADR 0208
+
+### US-INFRA-020 · PHPStan custom rule NoSilentFallbackRule (R9 raiz)
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: US-INFRA-014
+
+**Onda 2 · custom rule.** Detecta:
+- `if (empty($var)) $assignment = <expr>;` sem `Log::warning` no mesmo bloco
+- `$var = $other ?? <default>;` em controllers/services (warn)
+- `if (! isset($x)) $x = <default>;`
+
+False-positive ok no início — ratchet absorve.
+
+**Acceptance:** rule em `app/PhpStan/Rules/NoSilentFallbackRule.php`; fixture R9 (transaction_date Carbon::now() sem log) = erro; padrão correto com Log::warning prévio = OK.
+
+Refs: ADR 0212 Camada 3
+
+### US-INFRA-021 · Catalogar AP-18 "Fallback default sem Log::warning" no LICOES_F3
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Onda 2 · doc.** Adicionar AP-18 em `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` Parte 3. Exemplo R9 (PR #1830). Cross-ref ADR 0212.
+
+**Acceptance:** PR `docs/` adiciona AP-18 com 15-25 linhas.
+
+Refs: ADR 0212 Camada 2
+
+### US-INFRA-022 · Install Laravel Wayfinder + Vite plugin + watch types
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Onda 3 · type safety.** `composer require laravel/wayfinder` (validar maturidade beta na execução). `php artisan wayfinder:install`. `npm install @laravel/wayfinder`. Vite plugin em `vite.config.js`. Tipos gerados em watch em `resources/js/types/wayfinder/`.
+
+**Acceptance:** `npm run dev` regenera tipos quando route/Model muda; build limpa não regenera.
+
+Refs: ADR 0210 Fase 1
+Pré-req: avaliar maturidade beta — fallback spatie/laravel-data documentado no ADR 0210
+
+### US-INFRA-023 · Zod schemas em endpoints JSON não-Inertia
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Onda 3 · gap-filler.** Endpoints que NÃO vão por Inertia. Zod schemas no client:
+- `/products/list` → 13 campos
+- `/contacts/customers` → 11 campos (`selling_price_group_id`, `pay_term_number/type`, `shipping_address`, etc)
+
+`schema.parse(await fetch(...))` — drift explode no fetch.
+
+**Acceptance:** schemas em `resources/js/types/api-schemas/`; autocompletes usam parse; cenário R8 gera erro detectável.
+
+Refs: ADR 0210 Fase 3
+
+### US-INFRA-024 · PHPStan custom rule NoUntypedInertiaProps (R8 gate final)
+
+> owner: — · priority: p2 · estimate: 10h · status: todo · type: story
+> blocked_by: US-INFRA-014 + US-INFRA-022
+
+**Onda 3.** Detecta `Inertia::render('X', $data)` onde `array_keys($data)` ≠ keys do TS interface Wayfinder.
+
+**Acceptance:** rule + fixture com drift = erro; smoke 3 telas piloto Wayfinder limpas; baseline absorve telas legacy.
+
+Refs: ADR 0210 Fase 4
+
+### US-INFRA-025 · Catalogar AP-17 "Inertia props não tipadas" no LICOES_F3
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Onda 3 · doc.** Adicionar AP-17 com exemplo R8 (PR #1828). Cross-ref ADR 0210.
+
+**Acceptance:** PR docs adiciona AP-17 com 15-25 linhas.
+
+Refs: ADR 0210 Fase 5
+
+### US-INFRA-026 · Convenção markdown TASK[owner](Px) em audits
+
+> owner: — · priority: p0 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Onda 5 · convenção.** Atualizar `memory/sessions/_TEMPLATE-audit.md` com pattern `- [ ] TASK[claude](P1): <desc>` + bullets Onde/Esforço/Impact. Referência em `.claude/rules/sessions.md`. Cross-ref ADR 0213.
+
+**Acceptance:** template + rule rotulados; próximo audit Wagner segue.
+
+Refs: ADR 0213 Mecanismo 1
+Pré-req: fundação dos próximos 4
+
+### US-INFRA-027 · Hook audit-creates-tasks.ps1 (PostToolUse Write)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: US-INFRA-026
+
+**Onda 5.** `.claude/hooks/audit-creates-tasks.ps1` ativa em Write matching `memory/sessions/*-audit-*.md`. Parse `- [ ] TASK[<owner>](P\d): <desc>`. Sugere batch `tasks-create`. Wagner confirma 1×. Hook escreve `<!-- TASK_CREATED: US-MOD-NNN -->` no audit. Logger `storage/logs/audit-orphan-tracker.log`.
+
+**Acceptance:** hook ativa só nos paths certos; parser não confunde com checklists genéricos; integration test fixture mock MCP.
+
+Refs: ADR 0213 Mecanismo 2
+
+### US-INFRA-028 · Skill audit-to-backlog Tier B
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: US-INFRA-026
+
+**Onda 5.** `.claude/skills/audit-to-backlog/SKILL.md` Tier B. Description: "ATIVAR quando user pedir 'transformar audit em tasks', `/audit-to-backlog <doc>`, OU PostToolUse Write em `*-audit-*.md`". Lê audit, cruza com MCP backlog (`tasks-list`), propõe batch com `parent_audit:<slug>` metadata.
+
+Pattern análogo `comparativo-do-modulo` Tier B (ADR 0089).
+
+**Acceptance:** skill registrada; smoke com audit Sells/Create 27/05 gera batch sem duplicar PRs já mergeados.
+
+Refs: ADR 0213 Mecanismo 3
+
+### US-INFRA-029 · Workflow CI audit-orphan-check.yml — warning PR órfãos
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: US-INFRA-026
+
+**Onda 5 · safety-net CI.** `.github/workflows/audit-orphan-check.yml` dispara em PR tocando `memory/sessions/*-audit-*.md`. Parse `❌`/`🟡` sem `<!-- TASK_CREATED: ... -->`. Comenta listando órfãos. Não bloqueia merge — opt-in via `<!-- TASK_IGNORED: razão -->`.
+
+**Acceptance:** PR com `❌` órfão = comment auto; PR com TASK_CREATED ou TASK_IGNORED = sem comment.
+
+Refs: ADR 0213 Mecanismo 4
+
+### US-INFRA-030 · health-check audits_with_orphan_findings — auditoria periódica
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: US-INFRA-029
+
+**Onda 5 · safety-net.** `jana:health-check` ganha check novo. Roda daily 06:00 BRT. Conta `❌`/`🟡` em `memory/sessions/*-audit-*.md` (últimos 30d) sem TASK_CREATED. Primeiro hit dispara ALERT entry em `storage/logs/laravel.log`.
+
+**Acceptance:** check rodando + métrica visível; alerta dispara em fixture audit órfão.
+
+Refs: ADR 0213 Mecanismo 5
+
+---
+
+**Última atualização (US-INFRA-014..030):** 2026-05-28 — adicionadas 17 tasks Onda prevenção bugs MWART (ADRs 0208-0213 propostos no PR #1837). Atacam R7/R8/R9/R10-class via enforcement passivo (Larastan, Wayfinder, Zod, hooks audit-to-backlog).
+
 **Última atualização (US-INFRA-013):** 2026-05-27 — adicionada implementação contract-test-gate GH Action ADR 0207 (entrega da decisão promovida pela sessão 4 waves paralelas)
