@@ -351,7 +351,7 @@ Evidência empírica reportada na comunidade BR:
 
 ## 4c.3 Tabela comparativa 6 opções × 12 dimensões (peso ROTA LIVRE)
 
-Calibrado pro caso **biz=1 ROTA LIVRE (99% volume, ~50-200 msgs/dia, meta R$ 5mi/ano, prod hoje, multi-tenant Tier 0 IRREVOGÁVEL)**. Score 0-100% por dimensão; total ponderado embaixo.
+Calibrado pro caso **biz=4 ROTA LIVRE / Larissa (99% volume, ~50-200 msgs/dia, meta R$ 5mi/ano, prod hoje, multi-tenant Tier 0 IRREVOGÁVEL)**. Score 0-100% por dimensão; total ponderado embaixo.
 
 | Dimensão | Peso | Baileys 6.7.9 endurecido (hoje) | Baileys 7.x final (futuro) | whatsapp-web.js (Puppeteer) | Evolution API self-host | Z-API SaaS | Cloud API Meta |
 |---|---:|---:|---:|---:|---:|---:|---:|

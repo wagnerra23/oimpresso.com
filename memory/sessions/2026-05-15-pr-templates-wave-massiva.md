@@ -65,7 +65,7 @@ Parte de plano de fechamento de migração core-vendas/ROTA LIVRE em 7 dias (tar
 
 - [ ] CI Pest cross-tenant verde
 - [ ] Wagner aprova F1.5 screenshot blueprint Cowork (ADR 0149 — 1 screenshot por bucket family)
-- [ ] Smoke biz=1 ROTA LIVRE manual em /<rota>
+- [ ] Smoke biz=1 (Wagner WR2) manual em /<rota> — NUNCA biz=4 ROTA LIVRE (ADR 0101)
 - [ ] Canary 7d antes de remover Blade legacy (rota fallback ativa)
 - [ ] Comunicação Larissa via WhatsApp pré-cutover
 
@@ -83,8 +83,8 @@ Parte de plano de fechamento de migração core-vendas/ROTA LIVRE em 7 dias (tar
 ## Próximos passos
 
 1. CI verde → merge
-2. Smoke biz=1 ROTA LIVRE
-3. Canary 7d ativo (Blade legacy preservada via flag rollback)
+2. Smoke biz=1 (Wagner WR2) — NUNCA biz=4 ROTA LIVRE em smoke (ADR 0101)
+3. Canary 7d biz=1 → biz=4 ROTA LIVRE ativo (Blade legacy preservada via flag rollback)
 4. Pós-canary: PR remove Blade legacy
 5. Atualizar `memory/requisitos/<Mod>/BRIEFING.md` (skill brief-update Tier B)
 

@@ -62,8 +62,8 @@ Total telas simultâneas: **32 / 35**. B2 spawn assim que Cowork entregue (~1h W
 3. CI rodando Pest cross-tenant em todos
 4. Wagner aprova F1.5 batch (~6 screenshots blueprint pela ADR 0149)
 5. Merge após CI verde + F1.5 aprovado
-6. Smoke biz=1 ROTA LIVRE
-7. Canary 7d antes de remover Blade legacy
+6. Smoke biz=1 (Wagner WR2) — NUNCA biz=4 ROTA LIVRE em smoke (ADR 0101)
+7. Canary 7d biz=1 → biz=4 ROTA LIVRE antes de remover Blade legacy
 
 ## Cronograma realista (modo agressivo)
 

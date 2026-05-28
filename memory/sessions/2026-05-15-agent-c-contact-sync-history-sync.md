@@ -2,7 +2,7 @@
 
 **Wave:** paralela 3-agents. Agent C, isolado em `Modules/Whatsapp/Http/Controllers/Api/ChannelBaileysWebhookController.php` + `Modules/Whatsapp/Jobs/` + `Modules/Whatsapp/Tests/Feature/`.
 
-**Trigger:** Wagner reportou 2026-05-15 09:25: *"sincronia dos contatos não trouxe contatos"* pós re-pareamento Baileys 7.x em ROTA LIVRE biz=1.
+**Trigger:** Wagner reportou 2026-05-15 09:25: *"sincronia dos contatos não trouxe contatos"* pós re-pareamento Baileys 7.x em ROTA LIVRE biz=4 (cliente Larissa).
 
 ## Decisão de escopo (mínimo viável)
 

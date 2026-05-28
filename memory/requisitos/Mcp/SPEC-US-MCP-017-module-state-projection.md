@@ -56,7 +56,7 @@ Em ~1min Felipe sabe o que está vivo, onde dói, e qual a próxima ação razo�
 - [ ] Multi-tenant: quando módulo tem dados scoped por `business_id` (ex: Whatsapp, Sells), filtrar tasks/sessões por business do user que chamou. Cross-tenant explicit denied no schema (sem `business_id` parameter — herda do `Request::user()`).
 - [ ] Docs README na pasta atualizado + entrada nova em `OimpressoMcpServer.php` comment block
 - [ ] Cache table `mcp_module_state_cache` migrada com TTL (similar `mcp_handoff_diffs`)
-- [ ] Smoke real biz=1 (Larissa ROTA LIVRE) com módulo `Whatsapp` (32 tasks ativas em maio/2026) + módulo `Sells` (denso de PRs)
+- [ ] Smoke real biz=1 (Wagner WR2 Sistemas) com módulo `Whatsapp` (32 tasks ativas em maio/2026) + módulo `Sells` (denso de PRs) — NUNCA biz=4 ROTA LIVRE / Larissa em smoke (ADR 0101)
 
 ## 5. Shape do response (markdown estruturado)
 

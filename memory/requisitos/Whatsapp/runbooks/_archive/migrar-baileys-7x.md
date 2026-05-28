@@ -27,7 +27,7 @@ Decisão é irreversível ([feedback Wagner 2026-05-15](../../../reference/feedb
 - [ ] PR #855 (schema 3-identifiers) mergeado — backend pronto pra ler `lid`/`phone_e164`
 - [ ] PR #857 (backup auth_state) mergeado — mitiga perda 90d em re-pareamento
 - [ ] Wagner aprovou janela de deploy (recomendado: madrugada BRT, baixo tráfego ROTA LIVRE)
-- [ ] Aviso prévio cliente Larissa (ROTA LIVRE biz=1) — 99% do volume, qualquer indisponibilidade é crítica
+- [ ] Aviso prévio cliente Larissa (ROTA LIVRE biz=4) — 99% do volume, qualquer indisponibilidade é crítica
 - [ ] Snapshot pré-deploy: `npm view @whiskeysockets/baileys versions --json | tail -10` confirma 7.0.0-rc11 ainda é latest 7.x
 
 ## Fase 1 — Pre-check (5 min)
@@ -104,7 +104,7 @@ tailscale ssh root@ct100-mcp '
 
 ## Fase 4 — Smoke test pairing biz=99 sandbox (15 min síncrono)
 
-> ⛔ **NUNCA fazer smoke em biz=1 prod ROTA LIVRE.** Apenas `business_uuid` de sandbox (`00000000-0000-0000-0000-000000000099`).
+> ⛔ **NUNCA fazer smoke em biz=4 prod ROTA LIVRE (Larissa).** Apenas `business_uuid` de sandbox (`00000000-0000-0000-0000-000000000099`).
 
 ```bash
 tailscale ssh root@ct100-mcp '
@@ -159,14 +159,14 @@ Antes de promover pra prod biz=1:
 - `whatsapp_baileys_message_lag_seconds_p95` — comparar com baseline 6.7.18
 - `whatsapp_history_chunk_queued` / `_processed` rate — incremental, não acumular backlog
 
-## Fase 6 — Promoção biz=1 prod ROTA LIVRE
+## Fase 6 — Promoção biz=4 prod ROTA LIVRE
 
-> ⛔ Só executar se canary 7d biz=99 passou TODAS as métricas acima.
+> ⛔ Só executar se canary 7d biz=99 (sandbox) + 7d biz=1 (WR2 dev) passou TODAS as métricas acima.
 > ⛔ Janela: madrugada BRT, com aviso prévio Larissa.
 
 ```bash
-# Em biz=1 prod NÃO é "deploy diferente" — daemon CT 100 já está com Baileys 7.x
-# desde Fase 3. Promoção é só LIBERAR pareamento Baileys nos canais biz=1
+# Em biz=4 prod NÃO é "deploy diferente" — daemon CT 100 já está com Baileys 7.x
+# desde Fase 3. Promoção é só LIBERAR pareamento Baileys nos canais biz=4 (ROTA LIVRE)
 # existentes (atualmente paused/pinned em 6.7.18-friendly mode se houver flag).
 
 # Wagner valida 1 canal biz=1 (`Suorte` id=2 ou similar) reage normal pós-deploy:
@@ -206,9 +206,9 @@ Se rollback exigido, criar US-WA-XXX investigando issue real específica antes d
 
 ## Anti-padrões
 
-- ❌ Deploy direto biz=1 prod ROTA LIVRE sem canary 7d biz=99 — incident 2026-05-14 prova que cross-contact é caro
+- ❌ Deploy direto biz=4 prod ROTA LIVRE sem canary 7d biz=99 (sandbox) + biz=1 (WR2 dev) — incident 2026-05-14 prova que cross-contact é caro
 - ❌ Force re-build sem `rm node_modules package-lock.json` — cache pode mascarar incompatibilidade ESM
-- ❌ Smoke em biz=1 cliente real — ADR 0101 IRREVOGÁVEL: `business_id=99` pra todos smokes
+- ❌ Smoke em biz=4 cliente real — ADR 0101 IRREVOGÁVEL: `business_id=99` pra todos smokes
 - ❌ Citar issues rc.X do Baileys 7.x como motivo pra adiar deploy — decisão Wagner é irreversível ([feedback 2026-05-15](../../../reference/feedback-baileys-7x-decisao-irreversivel.md))
 - ❌ Mudar `package.json` direto no CT 100 sem PR no git — drift de governança (ADR 0061)
 

@@ -150,13 +150,13 @@ Wagner perguntou "como eu peço pra consolidar a memória?". Resposta canônica:
 
 - ⏳ **Re-parear canal id=7 via UI** `/whatsapp/channels` — QR scan novo. Daemon 7.x vai gerar QR via novo auth state.
 
-- ⏳ **Smoke test biz=99 sandbox** primeiro (canary 7d) ANTES de promover biz=1 prod — seguir [runbook](../requisitos/Whatsapp/runbooks/migrar-baileys-7x.md).
+- ⏳ **Smoke test biz=99 sandbox** primeiro (canary 7d) ANTES de promover biz=4 prod (ROTA LIVRE) — seguir [runbook](../requisitos/Whatsapp/runbooks/migrar-baileys-7x.md).
 
 ### Claude pode disparar quando Wagner desbloquear
 
 - 🟡 **Após deploy Baileys 7.x:** acompanhar prod 7d com OTel métricas (uptime, signature failures, history sync success) — pattern já implementado PR #850.
-- 🟡 **Após canary 7d OK:** promover biz=1 prod via re-pareamento + cliente Larissa ROTA LIVRE aviso prévio ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md)).
-- 🟡 **Após biz=1 estável 30d:** ativar Cloud API canary biz=99 ([runbook](../requisitos/Whatsapp/runbooks/ativar-cloud-api-canary-biz99.md)) — Wagner cria Meta Business + HSM templates manual.
+- 🟡 **Após canary 7d OK:** promover biz=4 prod (ROTA LIVRE / Larissa) via re-pareamento + aviso prévio cliente ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md)).
+- 🟡 **Após biz=4 estável 30d:** ativar Cloud API canary biz=99 ([runbook](../requisitos/Whatsapp/runbooks/ativar-cloud-api-canary-biz99.md)) — Wagner cria Meta Business + HSM templates manual.
 - 🟡 **Após Cloud API biz=99 maduro:** revisitar [ADR 0146](../decisions/0146-contact-lid-canonico-pk-refactor.md) feature-wish → implementação real (refactor `contact_lid` como PK canônica).
 
 ### Backlog backup (não-bloqueia)
@@ -170,7 +170,7 @@ Wagner perguntou "como eu peço pra consolidar a memória?". Resposta canônica:
 - **Brief Tier A** SessionStart 14h carregado — CYCLE-05 ativo (Inter PJ + WhatsApp governança), 9d restantes, drift 0% alinhados.
 - **Cycle pivot CYCLE-05→06** rodando em paralelo (sessão Wagner criou ADR 0145 IA Administradora — pivot ADS↔FSM + piloto Cobradora ROTA LIVRE em [decision 0145-ia-administradora](../decisions/0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md)).
 - **Tasks MCP afetadas pelos 8 PRs:** US-WA-093 LID Resolver workaround → ganha schema 3-identifiers + observer backfill + Baileys 7.x nativo. US-WA-078 auto-link Contact → ganha defense-in-depth fuzzy suffix-8.
-- **Cliente Larissa ROTA LIVRE** continua impactada zero (recovery DELETE foi em msgs de teste Wagner, biz=1 = oimpresso operacional não cliente).
+- **Cliente Larissa ROTA LIVRE (biz=4)** continua impactada zero (recovery DELETE foi em msgs de teste Wagner, biz=1 = WR2 Sistemas empresa-mãe / dev — não cliente).
 
 ## Como Wagner pede consolidação no futuro (resposta canônica)
 

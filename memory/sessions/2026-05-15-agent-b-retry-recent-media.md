@@ -2,7 +2,7 @@
 
 > **Worktree:** `flamboyant-chaum-16429f`
 > **Owner:** Claude (Agent B paralelo, wave 3 de 3)
-> **Trigger origem:** Wagner reportou "mídias não estão mostrando" no Inbox `/atendimento/inbox` prod biz=1 (ROTA LIVRE) após re-pareamento Baileys 7.x CT 100 às 09:25 BRT. 55 msgs history sync ficaram com `media_url=NULL`.
+> **Trigger origem:** Wagner reportou "mídias não estão mostrando" no Inbox `/atendimento/inbox` prod biz=4 (ROTA LIVRE / Larissa) após re-pareamento Baileys 7.x CT 100 às 09:25 BRT. 55 msgs history sync ficaram com `media_url=NULL`.
 
 ## Decisão — Opção B (comando novo) escolhida
 
