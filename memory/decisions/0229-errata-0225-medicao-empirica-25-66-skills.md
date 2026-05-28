@@ -15,8 +15,7 @@ superseded_by: []
 amends: [0225-skills-tier-a-recalibracao-claude-4.8]
 related:
   - 0095-skills-tiers-convencao-interna
-  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware
+  - 0094-constituicao-v2-7-camadas-8-principios
 pii: false
 ---
 
