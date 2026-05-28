@@ -85,3 +85,11 @@ parameters:
     # `checkGenericClassInNonGenericObjectType` foram REMOVIDAS — agora cobertas
     # automaticamente pelos níveis (level 6+ verifica generic types).
     tmpDir: .phpstan-cache
+
+# Custom rules oimpresso (ADR 0212 Camada 3, US-INFRA-020+)
+services:
+    -
+        class: App\PhpStan\Rules\NoSilentFallbackRule
+        tags:
+            - phpstan.rules.rule
+

@@ -313,10 +313,22 @@ parameters:
 			path: Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php
+
+		-
 			message: '#^Strict comparison using \!\=\= between int and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: Modules/Admin/Http/Controllers/MutationsController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
+			path: Modules/Admin/Http/Controllers/RagQualityDashboardController.php
 
 		-
 			message: '#^Parameter \#1 \$array \(list\<array\{query_hash\: string, span_name\: string, max_duration_ms\: int\<0, max\>, count\: int\<1, max\>\}\>\) of array_values is already a list, call has no effect\.$#'
@@ -775,6 +787,12 @@ parameters:
 			path: Modules/AssetManagement/Http/Controllers/AssetController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/AssetManagement/Http/Controllers/AssetController.php
+
+		-
 			message: '#^Method Modules\\AssetManagement\\Http\\Controllers\\AssetController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
@@ -895,6 +913,12 @@ parameters:
 			path: Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php
+
+		-
 			message: '#^Method Modules\\AssetManagement\\Http\\Controllers\\AssetMaitenanceController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
@@ -1003,6 +1027,12 @@ parameters:
 			path: Modules/AssetManagement/Http/Controllers/AssetSettingsController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
+			path: Modules/AssetManagement/Http/Controllers/AssetSettingsController.php
+
+		-
 			message: '#^Method Modules\\AssetManagement\\Http\\Controllers\\AssetSettingsController\:\:create\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -1084,6 +1114,12 @@ parameters:
 			message: '#^Caught class Modules\\AssetManagement\\Http\\Controllers\\Exception not found\.$#'
 			identifier: class.notFound
 			count: 2
+			path: Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
 			path: Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php
 
 		-
@@ -1189,10 +1225,22 @@ parameters:
 			path: Modules/AssetManagement/Services/AssetAllocationService.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/AssetManagement/Services/AssetAllocationService.php
+
+		-
 			message: '#^Access to an undefined property Modules\\AssetManagement\\Entities\\AssetMaintenance\:\:\$assigned_to\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/AssetManagement/Services/AssetMaintenanceService.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/AssetManagement/Services/AssetService.php
 
 		-
 			message: '#^Parameter \#1 \$time of static method Carbon\\Carbon\:\:parse\(\) expects Carbon\\Month\|Carbon\\WeekDay\|DateTimeInterface\|float\|int\|string\|null, App\\Utils\\strin given\.$#'
@@ -1307,12 +1355,6 @@ parameters:
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 3
 			path: Modules/Brief/Config/retention.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type App\\Contact\|App\\User\|Modules\\Financeiro\\Models\\Advisor\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Brief/Http/Requests/ForceRefreshBriefRequest.php
 
 		-
 			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:header\(\)\.$#'
@@ -1687,21 +1729,9 @@ parameters:
 			path: Modules/Compras/Services/ComprasService.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/ComunicacaoVisual/Database/Seeders/MaterialSeeder.php
-
-		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
-			path: Modules/ComunicacaoVisual/Database/Seeders/RepairSettingsSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
 			path: Modules/ComunicacaoVisual/Database/Seeders/RepairSettingsSeeder.php
 
 		-
@@ -1993,24 +2023,6 @@ parameters:
 			path: Modules/Connector/Http/Controllers/Api/CheckUpdateController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>business_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Connector/Http/Controllers/Api/CheckUpdateController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>versao_disponivel" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Connector/Http/Controllers/Api/CheckUpdateController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>versao_obrigatoria" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Connector/Http/Controllers/Api/CheckUpdateController.php
-
-		-
 			message: '#^Relation ''currency'' is not found in App\\Business model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
@@ -2027,6 +2039,12 @@ parameters:
 			identifier: larastan.relationExistence
 			count: 1
 			path: Modules/Connector/Http/Controllers/Api/CommonResourceController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Connector/Http/Controllers/Api/Crm/CallLogsController.php
 
 		-
 			message: '#^Relation ''customer'' is not found in Modules\\Crm\\Entities\\Schedule model\.$#'
@@ -2122,6 +2140,12 @@ parameters:
 			message: '#^Call to static method with\(\) on an unknown class Modules\\FieldForce\\Entities\\FieldForce\.$#'
 			identifier: class.notFound
 			count: 1
+			path: Modules/Connector/Http/Controllers/Api/FieldForce/FieldForceController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
 			path: Modules/Connector/Http/Controllers/Api/FieldForce/FieldForceController.php
 
 		-
@@ -3079,6 +3103,12 @@ parameters:
 			path: Modules/Crm/Entities/CrmContact.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Crm/Entities/CrmContact.php
+
+		-
 			message: '#^Method Modules\\Crm\\Entities\\CrmContact\:\:leadsDropdown\(\) should return array but returns Illuminate\\Support\\Collection\<\(int\|string\), mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -3739,6 +3769,12 @@ parameters:
 			path: Modules/Crm/Http/Controllers/CrmMarketplaceController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Crm/Http/Controllers/CrmMarketplaceController.php
+
+		-
 			message: '#^Method Modules\\Crm\\Http\\Controllers\\CrmMarketplaceController\:\:importLeads\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
 			count: 1
@@ -3937,6 +3973,12 @@ parameters:
 			path: Modules/Crm/Http/Controllers/LeadController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Crm/Http/Controllers/LeadController.php
+
+		-
 			message: '#^Method Modules\\Crm\\Http\\Controllers\\LeadController\:\:create\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -4077,6 +4119,12 @@ parameters:
 		-
 			message: '#^Call to an undefined method Yajra\\DataTables\\DataTableAbstract\:\:filterColumn\(\)\.$#'
 			identifier: method.notFound
+			count: 1
+			path: Modules/Crm/Http/Controllers/OrderRequestController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/Crm/Http/Controllers/OrderRequestController.php
 
@@ -4825,10 +4873,22 @@ parameters:
 			path: Modules/Crm/Services/ProposalService.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Crm/Services/ScheduleService.php
+
+		-
 			message: '#^Relation ''users'' is not found in Modules\\Crm\\Entities\\Schedule model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
 			path: Modules/Crm/Services/ScheduleService.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Crm/Utils/CrmUtil.php
 
 		-
 			message: '#^Relation ''Source'' is not found in Modules\\Crm\\Entities\\CrmContact model\.$#'
@@ -5067,6 +5127,12 @@ parameters:
 		-
 			message: '#^Call to an undefined method Yajra\\DataTables\\DataTableAbstract\:\:filterColumn\(\)\.$#'
 			identifier: method.notFound
+			count: 1
+			path: Modules/Essentials/Http/Controllers/AttendanceController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/Essentials/Http/Controllers/AttendanceController.php
 
@@ -5707,6 +5773,12 @@ parameters:
 			path: Modules/Essentials/Http/Controllers/EssentialsLeaveController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Essentials/Http/Controllers/EssentialsLeaveController.php
+
+		-
 			message: '#^Method Modules\\Essentials\\Http\\Controllers\\EssentialsLeaveController\:\:activity\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -6148,6 +6220,12 @@ parameters:
 			message: '#^Caught class Modules\\Essentials\\Http\\Controllers\\Exception not found\.$#'
 			identifier: class.notFound
 			count: 3
+			path: Modules/Essentials/Http/Controllers/PayrollController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
 			path: Modules/Essentials/Http/Controllers/PayrollController.php
 
 		-
@@ -6895,6 +6973,12 @@ parameters:
 			path: Modules/Essentials/Utils/EssentialsUtil.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Essentials/Utils/EssentialsUtil.php
+
+		-
 			message: '#^Parameter \#3 \$value of method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Essentials\\Entities\\EssentialsAttendance\>\:\:whereDate\(\) expects DateTimeInterface\|string\|null, int\<min, \-1\>\|int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -6923,12 +7007,6 @@ parameters:
 			identifier: return.unusedType
 			count: 1
 			path: Modules/Financeiro/Database/Seeders/FinanceiroDemoSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/Financeiro/Database/Seeders/PlanoContasBrSeeder.php
 
 		-
 			message: '#^Offset ''base_rl'' on array\{periodo_label\: string, periodo_label_prev\: string, base_rl\: float, business_name\: string, anchor_mes\: string\} on left side of \?\? always exists and is not nullable\.$#'
@@ -6999,12 +7077,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Financeiro\\Models\\AdvisorBusinessAccess\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php
 
@@ -7225,12 +7297,6 @@ parameters:
 			path: Modules/Financeiro/Http/Controllers/BoletoController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Financeiro/Http/Controllers/BoletoController.php
-
-		-
 			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\CashRegister\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -7281,12 +7347,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Financeiro\\Models\\ContaBancaria\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Financeiro/Http/Controllers/CobrancaController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Financeiro/Http/Controllers/CobrancaController.php
 
@@ -7353,12 +7413,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Financeiro\\Models\\Titulo\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Financeiro/Http/Controllers/ContaPagarController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Financeiro/Http/Controllers/ContaPagarController.php
 
@@ -7796,6 +7850,12 @@ parameters:
 			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
+
+		-
 			message: '#^Offset ''error'' on \*NEVER\* on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -7811,24 +7871,6 @@ parameters:
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Financeiro\\Models\\TituloComment\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>nome" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Contact\|App\\User\|Modules\\Financeiro\\Models\\Advisor\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
 			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
 
 		-
@@ -8084,12 +8126,6 @@ parameters:
 			path: Modules/Financeiro/Models/ContaBancaria.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Financeiro/Models/ContaBancaria.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -8258,10 +8294,10 @@ parameters:
 			path: Modules/Financeiro/Services/CoworkDataMapper.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>nome" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
-			path: Modules/Financeiro/Services/CoworkDataMapper.php
+			path: Modules/Financeiro/Services/DreService.php
 
 		-
 			message: '#^Offset 1\|2\|3\|4\|5\|6\|7\|8\|9\|10\|11\|12 on array\{1\: ''Janeiro'', 2\: ''Fevereiro'', 3\: ''Março'', 4\: ''Abril'', 5\: ''Maio'', 6\: ''Junho'', 7\: ''Julho'', 8\: ''Agosto'', \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
@@ -8330,12 +8366,6 @@ parameters:
 			path: Modules/Financeiro/Services/FluxoCaixaService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>nome" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Financeiro/Services/FluxoCaixaService.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Financeiro\\Models\\TituloBaixa\:\:\$ano\.$#'
 			identifier: property.notFound
 			count: 1
@@ -8362,6 +8392,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\Financeiro\\Models\\TituloBaixa\:\:\$total\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/Financeiro/Services/FluxoRealizadoService.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/Financeiro/Services/FluxoRealizadoService.php
 
@@ -8494,12 +8530,6 @@ parameters:
 		-
 			message: '#^Strict comparison using \=\=\= between ''purchase''\|''sell'' and ''expense'' will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
-			count: 1
-			path: Modules/Financeiro/Services/TituloAutoService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>numero" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Financeiro/Services/TituloAutoService.php
 
@@ -8764,18 +8794,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeCertificado\:\:\$valido_ate\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/Fiscal/Http/Controllers/ConfigController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>city" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Fiscal/Http/Controllers/ConfigController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>state" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Fiscal/Http/Controllers/ConfigController.php
 
@@ -9134,6 +9152,12 @@ parameters:
 			path: Modules/Governance/Http/Controllers/DataController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Governance/Http/Controllers/ModuleGradeController.php
+
+		-
 			message: '#^Ternary operator condition is always true\.$#'
 			identifier: ternary.alwaysTrue
 			count: 1
@@ -9186,12 +9210,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: Modules/Governance/Services/DriftAlertService.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Governance/Services/InitiativeService.php
 
 		-
 			message: '#^Method Modules\\Governance\\Services\\ModuleGradeService\:\:gradeAllModules\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{module\: string, score\: int, bucket\: string, color\: string, dimensions\: array, gaps\: array, evolve_tasks\: array, evaluated_at\: string\}\>\.$#'
@@ -9330,24 +9348,6 @@ parameters:
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
 			path: Modules/Jana/Config/retention.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 4
-			path: Modules/Jana/Database/Seeders/McpDefaultsSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 5
-			path: Modules/Jana/Database/Seeders/McpScopesSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Jana/Database/Seeders/MemoriaGabaritoSeeder.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$config_json\.$#'
@@ -9788,6 +9788,12 @@ parameters:
 			path: Modules/Jana/Http/Controllers/Admin/QualidadeController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Jana/Http/Controllers/Admin/QualidadeController.php
+
+		-
 			message: '#^Parameter \#1 \$array of function array_values contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -9920,12 +9926,6 @@ parameters:
 			path: Modules/Jana/Http/Middleware/McpAuthMiddleware.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Jana/Http/Middleware/McpAuthMiddleware.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Meta\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -9946,12 +9946,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: non\-falsy\-string, Closure\(Modules\\Jana\\Entities\\Mensagem\)\: non\-falsy\-string given\.$#'
 			identifier: argument.type
-			count: 1
-			path: Modules/Jana/Jobs/ExtrairFatosDaConversaJob.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Jana/Jobs/ExtrairFatosDaConversaJob.php
 
@@ -10202,6 +10196,12 @@ parameters:
 			path: Modules/Jana/Mcp/Tools/DecisionsSearchTool.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Jana/Mcp/Tools/FlagGetTool.php
+
+		-
 			message: '#^Offset ''environments'' on array\{id\: string, defaultValue\: mixed, valueType\: string, rules\: array\} on left side of \?\? does not exist\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -10244,6 +10244,12 @@ parameters:
 			path: Modules/Jana/Mcp/Tools/FlagListTool.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Jana/Mcp/Tools/HandoffDraftTool.php
+
+		-
 			message: '#^Parameter \$user of method Modules\\Jana\\Mcp\\Tools\\KbAnswerTool\:\:buscarFontes\(\) expects App\\User\|null, Illuminate\\Contracts\\Auth\\Authenticatable\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -10276,18 +10282,6 @@ parameters:
 		-
 			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Jana/Mcp/Tools/MyInboxTool.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Jana/Mcp/Tools/MyInboxTool.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>user_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Jana/Mcp/Tools/MyInboxTool.php
 
@@ -10520,18 +10514,6 @@ parameters:
 			path: Modules/Jana/Services/Ai/LaravelAiSdkDriver.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>completionTokens" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Jana/Services/Ai/LaravelAiSdkDriver.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>promptTokens" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Jana/Services/Ai/LaravelAiSdkDriver.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$content\.$#'
 			identifier: property.notFound
 			count: 1
@@ -10607,6 +10589,12 @@ parameters:
 			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
+			path: Modules/Jana/Services/Backlinks/AdrGraphBuilder.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 3
 			path: Modules/Jana/Services/Backlinks/AdrGraphBuilder.php
 
 		-
@@ -10934,10 +10922,22 @@ parameters:
 			path: Modules/Jana/Services/Metricas/GabaritoEvaluator.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Jana/Services/Privacy/RetentionPurgeService.php
+
+		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
 			path: Modules/Jana/Services/Ragas/RagasJudgeService.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Jana/Services/Retrieval/LlmRerankerAdapter.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -11240,26 +11240,8 @@ parameters:
 			path: Modules/KB/Config/retention.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/KB/Database/Seeders/KbBridgeFromMcpSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/KB/Database/Seeders/KbCategoriesSeeder.php
-
-		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/KB/Database/Seeders/KbDatabaseSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/KB/Database/Seeders/KbDatabaseSeeder.php
 
@@ -11276,22 +11258,82 @@ parameters:
 			path: Modules/KB/Database/Seeders/KbOperacionalSeeder.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/KB/Database/Seeders/KbOperacionalSeeder.php
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbBridgeState.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/KB/Database/Seeders/KbSubcategoriesSeeder.php
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbCategory.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbComment.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbDecisionTree.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbDecisionTreeStep.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbEdge.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbFavorite.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$content_md\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/KB/Entities/KbNode.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbNode.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbNodeVersion.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbPath.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbPathStep.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/KB/Entities/KbSubcategory.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpMemoryDocument\:\:\$admin_only\.$#'
@@ -11384,12 +11426,6 @@ parameters:
 			path: Modules/KB/Http/Controllers/KbNodeController.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Support\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/KB/Http/Controllers/KbVersionController.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpMemoryDocument\:\:\$content_md\.$#'
 			identifier: property.notFound
 			count: 1
@@ -11450,14 +11486,14 @@ parameters:
 			path: Modules/KB/Jobs/KbEdgeAutoDeriverJob.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Http\\Request\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/KB/Observers/KbNodeObserver.php
-
-		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/KB/Services/KbBgeRerankerService.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/KB/Services/KbBgeRerankerService.php
 
@@ -11555,12 +11591,6 @@ parameters:
 			message: '#^Strict comparison using \=\=\= between non\-falsy\-string\|null and '''' will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
-			path: Modules/KB/Services/KbRagService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>timestamp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
 			path: Modules/KB/Services/KbRagService.php
 
 		-
@@ -11699,6 +11729,12 @@ parameters:
 			message: '#^Caught class Modules\\Manufacturing\\Http\\Controllers\\Exception not found\.$#'
 			identifier: class.notFound
 			count: 2
+			path: Modules/Manufacturing/Http/Controllers/ProductionController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 3
 			path: Modules/Manufacturing/Http/Controllers/ProductionController.php
 
 		-
@@ -11884,6 +11920,12 @@ parameters:
 		-
 			message: '#^Call to an undefined method Yajra\\DataTables\\DataTableAbstract\:\:filterColumn\(\)\.$#'
 			identifier: method.notFound
+			count: 1
+			path: Modules/Manufacturing/Http/Controllers/RecipeController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/Manufacturing/Http/Controllers/RecipeController.php
 
@@ -12326,30 +12368,6 @@ parameters:
 			path: Modules/NFSe/Http/Controllers/NfseController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>cpf_cnpj" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NFSe/Http/Controllers/NfseController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/NFSe/Http/Controllers/NfseController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>supplier_business_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/NFSe/Http/Controllers/NfseController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>tax_number" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NFSe/Http/Controllers/NfseController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -12467,12 +12485,6 @@ parameters:
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfeCertificado\:\:\$valido_ate\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/NfeBrasil/Http/Controllers/CertificadoController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>state" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
 			path: Modules/NfeBrasil/Http/Controllers/CertificadoController.php
 
 		-
@@ -13596,54 +13608,6 @@ parameters:
 			path: Modules/NfeBrasil/Services/NfeService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>cStat" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>chNFe" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>descricao" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>dhRecbto" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>nProt" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>officeimpresso_codigo" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>state" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>xMotivo" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/NfeBrasil/Services/NfeService.php
-
-		-
 			message: '#^Access to an undefined property Modules\\NfeBrasil\\Models\\NfseEmissao\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 2
@@ -13688,6 +13652,12 @@ parameters:
 		-
 			message: '#^Call to method toArray\(\) on an unknown class NFePHP\\Common\\Standardize\.$#'
 			identifier: class.notFound
+			count: 1
+			path: Modules/NfeBrasil/Services/SefazConsultaCadastroService.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/NfeBrasil/Services/SefazConsultaCadastroService.php
 
@@ -13738,12 +13708,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: Modules/Officeimpresso/Entities/LicencaLog.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>business_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Officeimpresso/Http/Controllers/AuditController.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Officeimpresso\\Http\\Controllers\\ClientController\:\:\$util\.$#'
@@ -13968,6 +13932,12 @@ parameters:
 			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\{licenca_id\: mixed, business_id\: mixed, business_name\: mixed, business_blocked\: bool, machine_blocked\: bool, hd\: mixed, user_win\: mixed, hostname\: mixed, ip_interno\: mixed, versao_exe\: mixed, versao_banco\: mixed, sistema_operacional\: mixed, sistema\: mixed, last_login\: mixed, last_ip\: mixed, was_blocked_last\: bool\|null, dt_ultimo_acesso\: mixed, effective_ts\: mixed, last_location\: mixed\}&stdClass\>\:\:sortByDesc\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -13976,18 +13946,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,stdClass\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>created_at" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>ip" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
 
@@ -14088,12 +14046,6 @@ parameters:
 			path: Modules/Officeimpresso/Http/Middleware/LogDesktopAccess.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Http\\Request\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 4
-			path: Modules/Officeimpresso/Listeners/LogPassportAccessToken.php
-
-		-
 			message: '#^Array has 2 duplicate keys with value ''bloqueado'' \("bloqueado", "bloqueado"\)\.$#'
 			identifier: array.duplicateKey
 			count: 1
@@ -14127,12 +14079,6 @@ parameters:
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
-			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
 			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
 
 		-
@@ -14226,8 +14172,8 @@ parameters:
 			path: Modules/OficinaAuto/Http/Controllers/ProducaoOficinaController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>business_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/OficinaAuto/Http/Controllers/ProducaoOficinaController.php
 
@@ -14318,6 +14264,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\OficinaAuto\\Entities\\ServiceOrder\:\:\$box_label\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
 
@@ -14612,12 +14564,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\PaymentGateway\\Models\\PaymentGatewayCredential\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysController.php
 
@@ -15144,6 +15090,12 @@ parameters:
 			path: Modules/Ponto/Database/factories/ColaboradorFactory.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Ponto/Entities/BancoHorasMovimento.php
+
+		-
 			message: '#^Access to an undefined property Modules\\Ponto\\Entities\\BancoHorasSaldo\:\:\$saldo_minutos\.$#'
 			identifier: property.notFound
 			count: 2
@@ -15180,9 +15132,27 @@ parameters:
 			path: Modules/Ponto/Entities/Intercorrencia.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Ponto/Entities/Intercorrencia.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Ponto/Entities/Marcacao.php
+
+		-
 			message: '#^Access to an undefined property Modules\\Ponto\\Entities\\Rep\:\:\$ultimo_nsr\.$#'
 			identifier: property.notFound
 			count: 2
+			path: Modules/Ponto/Entities/Rep.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
 			path: Modules/Ponto/Entities/Rep.php
 
 		-
@@ -16488,6 +16458,12 @@ parameters:
 			path: Modules/Ponto/Services/MarcacaoService.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
+			path: Modules/Ponto/Services/MarcacaoService.php
+
+		-
 			message: '#^PHPDoc tag @var above a method has no effect\.$#'
 			identifier: varTag.misplaced
 			count: 1
@@ -16914,18 +16890,6 @@ parameters:
 			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>timestamp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTaskEvent\:\:\$created_at\.$#'
 			identifier: property.notFound
 			count: 2
@@ -17136,12 +17100,6 @@ parameters:
 			path: Modules/RecurringBilling/Database/Seeders/RecurringBillingDemoSeeder.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Database/Seeders/RecurringBillingDemoSeeder.php
-
-		-
 			message: '#^Access to an undefined property Modules\\RecurringBilling\\Models\\BoletoCredential\:\:\$ambiente\.$#'
 			identifier: property.notFound
 			count: 2
@@ -17258,12 +17216,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/RecurringBilling/Http/Controllers/InvoiceController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/RecurringBilling/Http/Controllers/InvoiceController.php
 
@@ -17502,54 +17454,6 @@ parameters:
 			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>ciclo" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>fiscal_type" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>landline" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>mobile" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>tax_number" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>valor" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php
-
-		-
 			message: '#^Method Modules\\RecurringBilling\\Jobs\\CancelarCobrancaAsaasJob\:\:resolveChargeId\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1
@@ -17712,18 +17616,6 @@ parameters:
 			path: Modules/RecurringBilling/Repositories/SubscriptionRepository.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>ciclo" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Repositories/SubscriptionRepository.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>valor" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Repositories/SubscriptionRepository.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$ciclo\.$#'
 			identifier: property.notFound
 			count: 1
@@ -17772,18 +17664,6 @@ parameters:
 			path: Modules/RecurringBilling/Services/AssinaturaCobrancaService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>ciclo" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Services/AssinaturaCobrancaService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>valor" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Services/AssinaturaCobrancaService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$ciclo\.$#'
 			identifier: property.notFound
 			count: 1
@@ -17802,21 +17682,9 @@ parameters:
 			path: Modules/RecurringBilling/Services/AssinaturaService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>ciclo" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/RecurringBilling/Services/AssinaturaService.php
-
-		-
 			message: '#^Access to an undefined property Modules\\RecurringBilling\\Models\\BoletoCredential\:\:\$banco\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/RecurringBilling/Services/Boleto/BoletoCredentialResolver.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>banco" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
 			path: Modules/RecurringBilling/Services/Boleto/BoletoCredentialResolver.php
 
 		-
@@ -17828,12 +17696,6 @@ parameters:
 		-
 			message: '#^Property Modules\\RecurringBilling\\Dto\\BoletoResult\:\:\$nossoNumero \(string\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
-			count: 1
-			path: Modules/RecurringBilling/Services/Boleto/BoletoService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>banco" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/RecurringBilling/Services/Boleto/BoletoService.php
 
@@ -18588,18 +18450,6 @@ parameters:
 			path: Modules/Repair/Http/Controllers/JobSheetController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Repair/Http/Controllers/JobSheetController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Http/Controllers/JobSheetController.php
-
-		-
 			message: '#^Variable \$job_sheet in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.variable
 			count: 1
@@ -18704,36 +18554,6 @@ parameters:
 		-
 			message: '#^Relation ''technician'' is not found in Modules\\Repair\\Entities\\JobSheet model\.$#'
 			identifier: larastan.relationExistence
-			count: 1
-			path: Modules/Repair/Http/Controllers/ProducaoOficinaController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Http/Controllers/ProducaoOficinaController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>is_completed_status" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Http/Controllers/ProducaoOficinaController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/Repair/Http/Controllers/ProducaoOficinaController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>repair_settings" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Http/Controllers/ProducaoOficinaController.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type mixed\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Repair/Http/Controllers/ProducaoOficinaController.php
 
@@ -18915,24 +18735,6 @@ parameters:
 			message: '#^Relation ''sell_lines'' is not found in App\\Transaction model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
-			path: Modules/Repair/Http/Controllers/RepairController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>color" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Http/Controllers/RepairController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Http/Controllers/RepairController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 5
 			path: Modules/Repair/Http/Controllers/RepairController.php
 
 		-
@@ -19968,18 +19770,6 @@ parameters:
 			path: Modules/Repair/Routes/web.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Services/KanbanProductionService.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type mixed\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Repair/Services/KanbanProductionService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Repair\\Entities\\JobSheet\>\|Modules\\Repair\\Entities\\JobSheet\:\:\$customer\.$#'
 			identifier: property.notFound
 			count: 1
@@ -20031,12 +19821,6 @@ parameters:
 			message: '#^Result of static method App\\Util\\OtelHelper\:\:spanBiz\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
 			count: 1
-			path: Modules/Repair/Utils/RepairUtil.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type mixed\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 4
 			path: Modules/Repair/Utils/RepairUtil.php
 
 		-
@@ -20256,6 +20040,12 @@ parameters:
 			path: Modules/SRS/Services/ChatAssistant.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/SRS/Services/DocRetentionCleaner.php
+
+		-
 			message: '#^Access to an undefined property Modules\\SRS\\Entities\\DocPage\:\:\$path\.$#'
 			identifier: property.notFound
 			count: 4
@@ -20274,8 +20064,20 @@ parameters:
 			path: Modules/SRS/Services/DocValidator.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
+			path: Modules/SRS/Services/DocValidator.php
+
+		-
 			message: '#^Comparison operation "\>" between 100 and 0 is always true\.$#'
 			identifier: greater.alwaysTrue
+			count: 1
+			path: Modules/SRS/Services/ModuleAuditor.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/SRS/Services/ModuleAuditor.php
 
@@ -21096,6 +20898,12 @@ parameters:
 			path: Modules/Superadmin/Http/Controllers/SubscriptionController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
+			path: Modules/Superadmin/Http/Controllers/SubscriptionController.php
+
+		-
 			message: '#^Instantiated class Srmklive\\PayPal\\Services\\ExpressCheckout not found\.$#'
 			identifier: class.notFound
 			count: 3
@@ -21228,12 +21036,6 @@ parameters:
 			path: Modules/Superadmin/Http/Controllers/SubscriptionController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Superadmin/Http/Controllers/SubscriptionController.php
-
-		-
 			message: '#^Access to an undefined property App\\Business\:\:\$total\.$#'
 			identifier: property.notFound
 			count: 1
@@ -21254,6 +21056,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Modules\\Superadmin\\Entities\\Subscription\:\:\$total\.$#'
 			identifier: property.notFound
+			count: 1
+			path: Modules/Superadmin/Http/Controllers/SuperadminController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: Modules/Superadmin/Http/Controllers/SuperadminController.php
 
@@ -21738,16 +21546,16 @@ parameters:
 			path: Modules/Superadmin/Services/SuperadminDashboardService.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Superadmin/Services/SuperadminDashboardService.php
+
+		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
 			path: Modules/TeamMcp/Config/retention.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
@@ -22086,20 +21894,8 @@ parameters:
 			path: Modules/TeamMcp/Http/Controllers/TeamController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/TeamMcp/Http/Controllers/TeamController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/TeamMcp/Services/ActorResolver.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/TeamMcp/Services/ActorResolver.php
 
@@ -22140,12 +21936,6 @@ parameters:
 			path: Modules/Vestuario/Database/Seeders/RepairSettingsSeeder.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Vestuario/Database/Seeders/RepairSettingsSeeder.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Vestuario\\Entities\\VestuarioSetting\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -22170,22 +21960,28 @@ parameters:
 			path: Modules/Vestuario/Services/VestuarioSettingsResolver.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>settings" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Vestuario/Services/VestuarioSettingsResolver.php
-
-		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 49
 			path: Modules/Whatsapp/Config/config.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Whatsapp/Entities/Channel.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/Whatsapp/Entities/ClientFeedback.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany\:\:bucket\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/Whatsapp/Entities/Message.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$channel_health\.$#'
@@ -22278,18 +22074,6 @@ parameters:
 			path: Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>channel_health" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>status" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 4
-			path: Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Whatsapp\\Entities\\Channel\:\:\$created_at\.$#'
 			identifier: property.notFound
 			count: 1
@@ -22352,12 +22136,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Whatsapp\\Entities\\CsatResponse\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: Modules/Whatsapp/Http/Controllers/Admin/CsatController.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\CarbonImmutable\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Whatsapp/Http/Controllers/Admin/CsatController.php
 
@@ -22530,18 +22308,6 @@ parameters:
 			path: Modules/Whatsapp/Http/Controllers/Api/ChannelBaileysWebhookController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Whatsapp/Http/Controllers/Api/CustomerProfileController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Whatsapp/Http/Controllers/Api/EmployeeScorecardController.php
-
-		-
 			message: '#^Right side of && is always true\.$#'
 			identifier: booleanAnd.rightAlwaysTrue
 			count: 1
@@ -22582,12 +22348,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: Modules/Whatsapp/Listeners/NotifyRepairCustomer.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\CarbonImmutable\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Whatsapp/Listeners/PublishMessageReceivedToCentrifugo.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$channel_id\.$#'
@@ -22632,6 +22392,12 @@ parameters:
 			path: Modules/Whatsapp/Services/Contacts/LidPhoneResolver.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Whatsapp/Services/CustomerMemory/CustomerMemoryRebuilder.php
+
+		-
 			message: '#^Strict comparison using \=\=\= between bool\|null and 1 will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
@@ -22642,6 +22408,12 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 1
 			path: Modules/Whatsapp/Services/CustomerMemory/CustomerMemoryRebuilder.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Whatsapp/Services/CustomerMemory/OfficeimpressoEnrichService.php
 
 		-
 			message: '#^Offset ''bloqueado'' on array\{cliente_id\: int, nome\: string, fone1\: string\|null, fone2\: string\|null, email\: string\|null, bloqueado\: bool, cpf_cnpj\: string\|null, cidade\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
@@ -22666,6 +22438,12 @@ parameters:
 			identifier: match.unhandled
 			count: 1
 			path: Modules/Whatsapp/Services/Drivers/WhatsmeowDriver.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: Modules/Whatsapp/Services/EmployeePerformance/EmployeePerformanceRebuilder.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Whatsapp\\Entities\\ClientFeedback\:\:\$occurrences_sum\.$#'
@@ -22713,18 +22491,6 @@ parameters:
 			message: '#^Parameter \#2 \$channel of method Modules\\Whatsapp\\Services\\Macros\\MacroExecutor\:\:dispatchToBaileysDaemon\(\) expects Modules\\Whatsapp\\Entities\\Channel, Illuminate\\Database\\Eloquent\\Model given\.$#'
 			identifier: argument.type
 			count: 1
-			path: Modules/Whatsapp/Services/Macros/MacroExecutor.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>body" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Whatsapp/Services/Macros/MacroExecutor.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>type" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
 			path: Modules/Whatsapp/Services/Macros/MacroExecutor.php
 
 		-
@@ -22923,6 +22689,12 @@ parameters:
 			message: '#^Call to function compact\(\) contains possibly undefined variable \$woocommerce_tax_rates\.$#'
 			identifier: variable.undefined
 			count: 1
+			path: Modules/Woocommerce/Http/Controllers/WoocommerceController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 3
 			path: Modules/Woocommerce/Http/Controllers/WoocommerceController.php
 
 		-
@@ -23307,6 +23079,12 @@ parameters:
 			message: '#^Call to method post\(\) on an unknown class Modules\\Woocommerce\\Utils\\obj\.$#'
 			identifier: class.notFound
 			count: 4
+			path: Modules/Woocommerce/Utils/WoocommerceUtil.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 9
 			path: Modules/Woocommerce/Utils/WoocommerceUtil.php
 
 		-
@@ -23772,6 +23550,12 @@ parameters:
 			path: app/CashRegisterTransaction.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Category.php
+
+		-
 			message: '#^Method App\\Category\:\:forDropdown\(\) should return array but returns Illuminate\\Support\\Collection\<\(int\|string\), mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -23982,12 +23766,6 @@ parameters:
 			path: app/Domain/Fsm/SideEffects/InutilizarFaixaNfe.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>business_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Domain/Fsm/SideEffects/InutilizarFaixaNfe.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -23998,6 +23776,12 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Domain/Fsm/SideEffects/ReservarEstoque.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Domain/Inventory/Services/BomResolver.php
 
 		-
 			message: '#^Method App\\Domain\\Inventory\\Services\\BomResolver\:\:resolveLegacyCombo\(\) never returns array\<int, array\{product_id\: int, variation_id\: int\|null, qty\: float, from_legacy\: bool\}\> so it can be removed from the return type\.$#'
@@ -24348,6 +24132,12 @@ parameters:
 			path: app/Http/Controllers/AccountReportsController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Http/Controllers/AccountReportsController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\AccountReportsController\:\:balanceSheet\(\) has invalid return type App\\Http\\Controllers\\Response\.$#'
 			identifier: class.notFound
 			count: 1
@@ -24576,6 +24366,12 @@ parameters:
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Http/Controllers/Auth/SocialAuthController.php
+
+		-
 			message: '#^Call to method getMessage\(\) on an unknown class App\\Http\\Controllers\\Exception\.$#'
 			identifier: class.notFound
 			count: 1
@@ -24768,6 +24564,12 @@ parameters:
 			path: app/Http/Controllers/BusinessController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Http/Controllers/BusinessController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\BusinessController\:\:getBusinessSettings\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -24819,6 +24621,12 @@ parameters:
 			message: '#^Called ''pluck'' on Laravel collection, but could have been retrieved as a query\.$#'
 			identifier: larastan.noUnnecessaryCollectionCall
 			count: 4
+			path: app/Http/Controllers/BusinessLocationController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
 			path: app/Http/Controllers/BusinessLocationController.php
 
 		-
@@ -24972,6 +24780,12 @@ parameters:
 			path: app/Http/Controllers/CombinedPurchaseReturnController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Http/Controllers/CombinedPurchaseReturnController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\CombinedPurchaseReturnController\:\:create\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -25113,6 +24927,12 @@ parameters:
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.expr
 			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
 			path: app/Http/Controllers/ContactController.php
 
 		-
@@ -25422,6 +25242,12 @@ parameters:
 			path: app/Http/Controllers/CteController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 4
+			path: app/Http/Controllers/CteController.php
+
+		-
 			message: '#^Method App\\Services\\CTeService\:\:cartaCorrecao\(\) invoked with 3 parameters, 4 required\.$#'
 			identifier: arguments.count
 			count: 1
@@ -25616,6 +25442,12 @@ parameters:
 		-
 			message: '#^Caught class App\\Http\\Controllers\\InvalidArgumentException not found\.$#'
 			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/DevolucaoController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 2
 			path: app/Http/Controllers/DevolucaoController.php
 
@@ -26250,6 +26082,12 @@ parameters:
 			path: app/Http/Controllers/ImportOpeningStockController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 3
+			path: app/Http/Controllers/ImportOpeningStockController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\ImportOpeningStockController\:\:index\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 2
@@ -26313,6 +26151,12 @@ parameters:
 			message: '#^Access to property \$product_tax on an unknown class App\\Http\\Controllers\\obj\.$#'
 			identifier: class.notFound
 			count: 4
+			path: app/Http/Controllers/ImportProductsController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 6
 			path: app/Http/Controllers/ImportProductsController.php
 
 		-
@@ -26403,6 +26247,12 @@ parameters:
 			message: '#^Access to an undefined property App\\Variation\:\:\$product\.$#'
 			identifier: property.notFound
 			count: 1
+			path: app/Http/Controllers/ImportSalesController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
 			path: app/Http/Controllers/ImportSalesController.php
 
 		-
@@ -26856,6 +26706,12 @@ parameters:
 			path: app/Http/Controllers/ManageUserController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
+			path: app/Http/Controllers/ManageUserController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\ManageUserController\:\:create\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -27090,6 +26946,12 @@ parameters:
 			path: app/Http/Controllers/NfceController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 4
+			path: app/Http/Controllers/NfceController.php
+
+		-
 			message: '#^Instantiated class NFePHP\\DA\\NFe\\Cupom not found\.$#'
 			identifier: class.notFound
 			count: 1
@@ -27192,6 +27054,12 @@ parameters:
 			path: app/Http/Controllers/NfeController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 4
+			path: app/Http/Controllers/NfeController.php
+
+		-
 			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
 			identifier: argument.type
 			count: 5
@@ -27279,6 +27147,12 @@ parameters:
 			message: '#^Caught class App\\Http\\Controllers\\InvalidArgumentException not found\.$#'
 			identifier: class.notFound
 			count: 3
+			path: app/Http/Controllers/NfeEntradaController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
 			path: app/Http/Controllers/NfeEntradaController.php
 
 		-
@@ -27567,6 +27441,12 @@ parameters:
 			message: '#^Comparison operation "\>" between array and 0 results in an error\.$#'
 			identifier: greater.invalid
 			count: 1
+			path: app/Http/Controllers/ProductController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 6
 			path: app/Http/Controllers/ProductController.php
 
 		-
@@ -28080,12 +27960,6 @@ parameters:
 			path: app/Http/Controllers/ProdutoUnificadoController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>short_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/ProdutoUnificadoController.php
-
-		-
 			message: '#^Access to an undefined property App\\Http\\Controllers\\PurchaseController\:\:\$businessUtil\.$#'
 			identifier: property.notFound
 			count: 3
@@ -28137,6 +28011,12 @@ parameters:
 			message: '#^Access to an undefined property App\\Transaction\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Transaction\>\:\:\$purchase_lines\.$#'
 			identifier: property.notFound
 			count: 2
+			path: app/Http/Controllers/PurchaseController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 3
 			path: app/Http/Controllers/PurchaseController.php
 
 		-
@@ -28308,18 +28188,6 @@ parameters:
 			path: app/Http/Controllers/PurchaseController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/PurchaseController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>short_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/PurchaseController.php
-
-		-
 			message: '#^Variable \$output might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -28353,6 +28221,12 @@ parameters:
 			message: '#^Access to an undefined property App\\Transaction\:\:\$purchase_lines\.$#'
 			identifier: property.notFound
 			count: 4
+			path: app/Http/Controllers/PurchaseOrderController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
 			path: app/Http/Controllers/PurchaseOrderController.php
 
 		-
@@ -28476,6 +28350,12 @@ parameters:
 			path: app/Http/Controllers/PurchaseRequisitionController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Http/Controllers/PurchaseRequisitionController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\PurchaseRequisitionController\:\:create\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -28550,6 +28430,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Transaction\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Transaction\>\:\:\$purchase_lines\.$#'
 			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/PurchaseReturnController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 2
 			path: app/Http/Controllers/PurchaseReturnController.php
 
@@ -29090,6 +28976,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Restaurant\\Booking\:\:\$customer\.$#'
 			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Restaurant/BookingController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 1
 			path: app/Http/Controllers/Restaurant/BookingController.php
 
@@ -29670,24 +29562,6 @@ parameters:
 			path: app/Http/Controllers/SaleHistoryController.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/SaleHistoryController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>label" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/SaleHistoryController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/SaleHistoryController.php
-
-		-
 			message: '#^Access to an undefined property App\\Http\\Controllers\\SalesCommissionAgentController\:\:\$commonUtil\.$#'
 			identifier: property.notFound
 			count: 3
@@ -29810,24 +29684,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Domain\\Fsm\\Models\\SaleStageHistory\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/SellAuditController.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/SellAuditController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>label" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/SellAuditController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/SellAuditController.php
 
@@ -30120,6 +29976,12 @@ parameters:
 			path: app/Http/Controllers/SellController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
+			path: app/Http/Controllers/SellController.php
+
+		-
 			message: '#^Loose comparison using \=\= between ''payment_lines'' and ''payment_lines'' will always evaluate to true\.$#'
 			identifier: equal.alwaysTrue
 			count: 1
@@ -30342,18 +30204,6 @@ parameters:
 			path: app/Http/Controllers/SellController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 4
-			path: app/Http/Controllers/SellController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>tax_number" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/SellController.php
-
-		-
 			message: '#^Variable \$sell_details in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.variable
 			count: 1
@@ -30483,6 +30333,12 @@ parameters:
 			message: '#^Caught class App\\Http\\Controllers\\Exception not found\.$#'
 			identifier: class.notFound
 			count: 3
+			path: app/Http/Controllers/SellPosController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 5
 			path: app/Http/Controllers/SellPosController.php
 
 		-
@@ -31032,6 +30888,12 @@ parameters:
 			path: app/Http/Controllers/SellingPriceGroupController.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Http/Controllers/SellingPriceGroupController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\SellingPriceGroupController\:\:create\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
 			identifier: return.type
 			count: 1
@@ -31188,12 +31050,6 @@ parameters:
 			path: app/Http/Controllers/ServiceOrderFsmActionController.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/ServiceOrderFsmActionController.php
-
-		-
 			message: '#^Access to an undefined property App\\PurchaseLine\:\:\$transaction\.$#'
 			identifier: property.notFound
 			count: 3
@@ -31209,6 +31065,12 @@ parameters:
 			message: '#^Access to an undefined property App\\Transaction\:\:\$stock_adjustment_lines\.$#'
 			identifier: property.notFound
 			count: 3
+			path: app/Http/Controllers/StockAdjustmentController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
 			path: app/Http/Controllers/StockAdjustmentController.php
 
 		-
@@ -31347,6 +31209,12 @@ parameters:
 			message: '#^Access to an undefined property App\\Transaction\:\:\$sell_lines\.$#'
 			identifier: property.notFound
 			count: 6
+			path: app/Http/Controllers/StockTransferController.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 2
 			path: app/Http/Controllers/StockTransferController.php
 
 		-
@@ -32406,12 +32274,6 @@ parameters:
 			path: app/Jobs/EstornarBoletoJob.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>status" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Jobs/EstornarBoletoJob.php
-
-		-
 			message: '#^Method App\\Jobs\\RefundCobrancaInterJob\:\:registrarAcaoManualSeTabelaExistir\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1
@@ -33150,18 +33012,6 @@ parameters:
 			path: app/Services/CriarOsPorVendaService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>business_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/CriarOsPorVendaService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/CriarOsPorVendaService.php
-
-		-
 			message: '#^Access to an undefined property App\\Business\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Business\>\:\:\$UF\.$#'
 			identifier: property.notFound
 			count: 1
@@ -33352,6 +33202,12 @@ parameters:
 			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: app/Services/Menu/MenuItem.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Services/ModuleRequirementsGenerator.php
 
 		-
 			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
@@ -33726,6 +33582,12 @@ parameters:
 			path: app/Services/NFeService.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Services/PermissionRegistry.php
+
+		-
 			message: '#^Offset ''permissions'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -33996,6 +33858,12 @@ parameters:
 			path: app/Utils/BusinessUtil.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 3
+			path: app/Utils/BusinessUtil.php
+
+		-
 			message: '#^Method App\\Utils\\BusinessUtil\:\:addLocation\(\) has invalid return type App\\Utils\\location\.$#'
 			identifier: class.notFound
 			count: 1
@@ -34134,6 +34002,12 @@ parameters:
 			path: app/Utils/CashRegisterUtil.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Utils/CashRegisterUtil.php
+
+		-
 			message: '#^Method App\\Utils\\CashRegisterUtil\:\:getCurrentCashRegister\(\) has invalid return type App\\Utils\\obj\.$#'
 			identifier: class.notFound
 			count: 1
@@ -34156,6 +34030,12 @@ parameters:
 			identifier: phpDoc.parseError
 			count: 2
 			path: app/Utils/CashRegisterUtil.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 1
+			path: app/Utils/ContactUtil.php
 
 		-
 			message: '#^Method App\\Utils\\ContactUtil\:\:getContactInfo\(\) should return array but returns App\\Contact\|null\.$#'
@@ -34208,6 +34088,12 @@ parameters:
 		-
 			message: '#^Caught class App\\Utils\\Exception not found\.$#'
 			identifier: class.notFound
+			count: 2
+			path: app/Utils/InstallUtil.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
 			count: 2
 			path: app/Utils/InstallUtil.php
 
@@ -34809,6 +34695,12 @@ parameters:
 			message: '#^Cannot call method toArray\(\) on array\.$#'
 			identifier: method.nonObject
 			count: 1
+			path: app/Utils/ProductUtil.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 8
 			path: app/Utils/ProductUtil.php
 
 		-
@@ -35754,6 +35646,12 @@ parameters:
 			path: app/Utils/TransactionUtil.php
 
 		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 14
+			path: app/Utils/TransactionUtil.php
+
+		-
 			message: '#^Loose comparison using \!\= between int\<1, max\> and 0 will always evaluate to true\.$#'
 			identifier: notEqual.alwaysTrue
 			count: 1
@@ -36459,6 +36357,12 @@ parameters:
 			message: '#^Expression in empty\(\) is not falsy\.$#'
 			identifier: empty.expr
 			count: 1
+			path: app/Utils/Util.php
+
+		-
+			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
+			identifier: oimpresso.silentFallback
+			count: 6
 			path: app/Utils/Util.php
 
 		-
