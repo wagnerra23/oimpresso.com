@@ -234,6 +234,8 @@ class ProcessIncomingWebhookJob implements ShouldQueue
 
         // Schema 2026-05-27: messages table não tem channel_id direto;
         // canal vem via conversation_id → conversation.channel_id.
+        // M1 fix 2026-05-28: persiste media_mime/size/filename quando extractor capturou
+        // (image/video/audio/document/sticker) — antes era NULL = 45.819 msgs órfãs.
         \DB::table('messages')->insert([
             'business_id' => $this->businessId,
             'conversation_id' => $convId,
@@ -244,6 +246,9 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             'body' => $msg['body'] ?? null,
             'payload' => json_encode($msg['raw'] ?? null),
             'status' => 'received',
+            'media_mime' => $msg['media_mime'] ?? null,
+            'media_size_bytes' => $msg['media_size_bytes'] ?? null,
+            'media_filename' => $msg['media_filename'] ?? null,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -315,39 +320,74 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         $senderJid = (string) ($info['SenderAlt'] ?? $info['Chat'] ?? '');
         $phone = '+' . preg_replace('/\D/', '', explode('@', $senderJid)[0]);
 
-        // customer_external_id — JID original do contato (Chat em 1:1; pode ser
-        // "5548...@s.whatsapp.net" ou "12345@lid"). NÃO é o phone E.164 — é o
-        // identifier estável que o UNIQUE `conv_biz_ch_ext_uniq` usa.
-        // Bug 2026-05-27: este campo NÃO era preenchido no upsert → todas as
-        // conversations whatsmeow caíam em customer_external_id='' (NOT NULL default)
-        // e a 2ª msg sempre quebrava com Duplicate entry.
+        // customer_external_id — JID original do contato (Chat em 1:1).
         $externalId = (string) ($info['Chat'] ?? $info['Sender'] ?? '');
 
-        // Body — WuzAPI/whatsmeow embute em Message.conversation (text) ou Message.imageMessage.caption (image), etc.
-        $type = strtolower((string) ($info['Type'] ?? 'text'));
+        // Mídia inbound — incident 2026-05-28 M1: ANTES NUNCA preenchia
+        // media_mime/url/size/filename → 45.819 msgs presas type='' body='[media]'
+        // sem download possível. Whatsmeow protobuf: Message.{image|video|audio|document}Message
+        // (camelCase) carrega { url, mimetype, fileLength, mediaKey, fileName, caption }.
+        $mediaInfo = null;
+        $detectedType = strtolower((string) ($info['Type'] ?? 'text'));
+        if (isset($message['imageMessage']) && is_array($message['imageMessage'])) {
+            $m = $message['imageMessage'];
+            $detectedType = 'image';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'image/jpeg'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => (string) ($m['caption'] ?? '')];
+        } elseif (isset($message['videoMessage']) && is_array($message['videoMessage'])) {
+            $m = $message['videoMessage'];
+            $detectedType = 'video';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'video/mp4'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => (string) ($m['caption'] ?? '')];
+        } elseif (isset($message['audioMessage']) && is_array($message['audioMessage'])) {
+            $m = $message['audioMessage'];
+            $detectedType = 'audio';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'audio/ogg'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => ''];
+        } elseif (isset($message['documentMessage']) && is_array($message['documentMessage'])) {
+            $m = $message['documentMessage'];
+            $detectedType = 'document';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'application/octet-stream'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => (string) ($m['fileName'] ?? 'document'), 'caption' => (string) ($m['caption'] ?? '')];
+        } elseif (isset($message['stickerMessage']) && is_array($message['stickerMessage'])) {
+            $m = $message['stickerMessage'];
+            $detectedType = 'sticker';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'image/webp'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => ''];
+        }
+
+        // Body (texto/caption). Mantém placeholder genérico só pra mídias sem caption.
         $body = match (true) {
             isset($message['conversation']) => (string) $message['conversation'],
             isset($message['extendedTextMessage']['text']) => (string) $message['extendedTextMessage']['text'],
-            isset($message['imageMessage']['caption']) => (string) $message['imageMessage']['caption'] ?: '[imagem]',
-            isset($message['documentMessage']['caption']) => (string) $message['documentMessage']['caption'] ?: '[documento]',
-            isset($message['audioMessage']) => '[áudio]',
-            isset($message['videoMessage']['caption']) => (string) $message['videoMessage']['caption'] ?: '[vídeo]',
-            default => '[' . $type . ']',
+            $mediaInfo !== null && $mediaInfo['caption'] !== '' => $mediaInfo['caption'],
+            $detectedType === 'image' => '[imagem]',
+            $detectedType === 'video' => '[vídeo]',
+            $detectedType === 'audio' => '[áudio]',
+            $detectedType === 'document' => '[documento]',
+            $detectedType === 'sticker' => '[sticker]',
+            default => '[' . $detectedType . ']',
         };
 
         if (($info['IsFromMe'] ?? false) === true) {
             return []; // outbound enviado por nós mesmo — ignora
         }
 
-        return [[
+        $out = [[
             'provider_message_id' => $info['ID'] ?? null,
             'external_id' => $externalId,
             'from' => $phone,
             'body' => $body,
-            'type' => $type,
+            'type' => $detectedType,
             'push_name' => $info['PushName'] ?? null,
             'raw' => $payload,
         ]];
+
+        if ($mediaInfo !== null) {
+            $out[0]['media_mime'] = $mediaInfo['mime'];
+            $out[0]['media_size_bytes'] = $mediaInfo['size'];
+            $out[0]['media_filename'] = $mediaInfo['filename'];
+            // media_url fica null — download separado pelo DownloadMediaJob whatsmeow
+            // (próximo PR M2): endpoint WuzAPI /chat/downloadimage usando mediaKey + url.
+            // Por hora UI mostra thumb placeholder com mime/size em vez de "[media]" genérico.
+        }
+
+        return $out;
     }
 
     private function extractFromMeta(array $payload): array

@@ -93,42 +93,85 @@ class SendMediaJob implements ShouldQueue
 
         $channel = $conversation->channel;
 
-        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+        // M3 fix 2026-05-28: aceita Baileys OU Whatsmeow. Dispatch por type:
+        //   - Baileys (legacy):  POST /instances/{ch-uuid}/media  Bearer {API_KEY}
+        //                        body {to, media_url, mimetype, filename, caption, type}
+        //   - Whatsmeow (ADR 0204): POST /chat/send/{image|video|audio|document}
+        //                        Header Token {user_token}
+        //                        body {Phone, Image|Video|Audio|Document: <url>, Caption, FileName}
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS
+            && $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW) {
             $message->forceFill([
                 'status' => 'failed',
-                'failed_reason' => "Envio de mídia só implementado pra Baileys nesta fase. Tipo: {$channel->type}",
+                'failed_reason' => "Envio de mídia só implementado pra Baileys/Whatsmeow nesta fase. Tipo: {$channel->type}",
             ])->save();
             return;
         }
 
-        $daemonUrl = config('whatsapp.baileys.daemon_url');
-        $apiKey = config('whatsapp.baileys.api_key');
-        $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
         $toPhone = preg_replace('/^\+/', '', $conversation->customer_external_id);
-
-        // Daemon faz fetch da URL absoluta — passamos URL pública (assinada ou
-        // direto se disco público). Em prod precisaria URL externa acessível
-        // pelo CT 100 (Storage::url() na Hostinger).
         $mediaPublicUrl = Storage::disk('public')->url($message->media_url);
+        $isWhatsmeow = $channel->type === Channel::TYPE_WHATSAPP_WHATSMEOW;
+
+        if ($isWhatsmeow) {
+            $daemonUrl = rtrim((string) config('whatsapp.whatsmeow.daemon_url'), '/');
+            $userToken = $channel->config_json['whatsmeow_user_token'] ?? null;
+            if (! $userToken) {
+                $message->forceFill([
+                    'status' => 'failed',
+                    'failed_reason' => 'whatsmeow_user_token ausente em channel.config_json — reconecte via QR.',
+                ])->save();
+                return;
+            }
+            $endpoint = match ($message->type) {
+                'image' => '/chat/send/image',
+                'video' => '/chat/send/video',
+                'audio' => '/chat/send/audio',
+                'document', 'pdf' => '/chat/send/document',
+                default => null,
+            };
+            if ($endpoint === null) {
+                $message->forceFill([
+                    'status' => 'failed',
+                    'failed_reason' => "Tipo de mídia não suportado pelo whatsmeow daemon: {$message->type}",
+                ])->save();
+                return;
+            }
+            // WuzAPI accepts URL no body field específico por tipo
+            $bodyField = match ($message->type) {
+                'image' => 'Image',
+                'video' => 'Video',
+                'audio' => 'Audio',
+                default => 'Document',
+            };
+            $payload = array_filter([
+                'Phone' => $toPhone,
+                $bodyField => $mediaPublicUrl,
+                'Caption' => $message->body ?? null,
+                'FileName' => $message->media_filename ?? null,
+                'Id' => strtoupper(str_replace('-', '', (string) \Illuminate\Support\Str::uuid())),
+            ], fn ($v) => $v !== null && $v !== '');
+            $authHeaders = ['Token' => $userToken, 'Content-Type' => 'application/json'];
+        } else {
+            $daemonUrl = rtrim((string) config('whatsapp.baileys.daemon_url'), '/');
+            $apiKey = (string) config('whatsapp.baileys.api_key');
+            $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+            $endpoint = "/instances/{$instanceId}/media";
+            $payload = [
+                'to' => $toPhone,
+                'media_url' => $mediaPublicUrl,
+                'mimetype' => $message->media_mime,
+                'filename' => $message->media_filename,
+                'caption' => $message->body,
+                'type' => $message->type,
+            ];
+            $authHeaders = ['Authorization' => "Bearer {$apiKey}", 'Content-Type' => 'application/json'];
+        }
 
         try {
-            $response = Http::withToken($apiKey)
-                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
+            $response = Http::withHeaders($authHeaders)
+                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente CT 100
                 ->timeout(30)
-                ->post("{$daemonUrl}/instances/{$instanceId}/media", [
-                    'to' => $toPhone,
-                    'media_url' => $mediaPublicUrl,
-                    // P0 #2 (2026-05-12): Zod schema do daemon espera `mimetype`,
-                    // não `mime`. Antes desta correção a chave era stripada
-                    // silenciosamente → áudios/docs outbound iam sem MIME →
-                    // WhatsApp rejeitava ou entregava como `application/octet-stream`.
-                    // Schema aceita ambas chaves por 30d (até 2026-06-12), mas
-                    // canônico aqui é `mimetype`.
-                    'mimetype' => $message->media_mime,
-                    'filename' => $message->media_filename,
-                    'caption' => $message->body, // body é caption no envio
-                    'type' => $message->type,    // image|audio|document|video
-                ]);
+                ->post("{$daemonUrl}{$endpoint}", $payload);
         } catch (\Throwable $e) {
             $message->forceFill([
                 'status' => 'failed',
@@ -136,6 +179,7 @@ class SendMediaJob implements ShouldQueue
             ])->save();
             Log::error('[send_media] daemon exception', [
                 'message_id' => $message->id,
+                'channel_type' => $channel->type,
                 'error' => $e->getMessage(),
             ]);
             throw $e; // permite retry
@@ -148,15 +192,24 @@ class SendMediaJob implements ShouldQueue
             ])->save();
             Log::warning('[send_media] daemon non-2xx', [
                 'message_id' => $message->id,
+                'channel_type' => $channel->type,
                 'status' => $response->status(),
             ]);
             return;
         }
 
-        $payload = $response->json();
+        $respJson = $response->json();
+        // Normaliza por tipo. Baileys {message_id, status} vs WuzAPI {Id, Details}.
+        $providerMsgId = $isWhatsmeow
+            ? ($respJson['Id'] ?? $respJson['Data']['Id'] ?? null)
+            : ($respJson['message_id'] ?? null);
+        $newStatus = $isWhatsmeow
+            ? (($respJson['Details'] ?? '') === 'Sent' ? 'sent' : ($respJson['Details'] ?? 'sent'))
+            : ($respJson['status'] ?? 'sent');
+
         $message->forceFill([
-            'status' => $payload['status'] ?? 'sent',
-            'provider_message_id' => $payload['message_id'] ?? null,
+            'status' => $newStatus,
+            'provider_message_id' => $providerMsgId,
         ])->save();
 
         Log::info('[send_media] dispatched', [
