@@ -31,9 +31,11 @@
   --cw-text:         oklch(0.22 0.01 80);
   --cw-text-dim:     oklch(0.50 0.01 80);
   --cw-text-mute:    oklch(0.65 0.01 80);
-  --cw-accent:       oklch(0.58 0.09 220);
-  --cw-accent-2:     oklch(0.66 0.09 220);  /* accent hover (mais claro) */
-  --cw-accent-soft:  oklch(0.94 0.025 220);
+  /* DS v4 — accent ROXO dos campos cowork (era 220 azul). Canon ADR 0190 hue 295.
+     Aplica em foco de input (.cw-input:focus), .cw-btn-primary e .cw-switch. */
+  --cw-accent:       oklch(0.55 0.15 295);
+  --cw-accent-2:     oklch(0.62 0.15 295);  /* accent hover (mais claro) */
+  --cw-accent-soft:  oklch(0.95 0.04 295);
   --cw-error:        oklch(0.65 0.18 25);
   --cw-error-soft:   oklch(0.94 0.04 25);
 }
@@ -56,9 +58,9 @@
   --cw-text:         oklch(0.92 0.005 90);
   --cw-text-dim:     oklch(0.72 0.005 90);
   --cw-text-mute:    oklch(0.55 0.005 90);
-  --cw-accent:       oklch(0.64 0.10 220);  /* mais legível em fundo escuro */
-  --cw-accent-2:     oklch(0.72 0.10 220);
-  --cw-accent-soft:  oklch(0.32 0.05 220);
+  --cw-accent:       oklch(0.68 0.16 295);  /* roxo mais legível em fundo escuro */
+  --cw-accent-2:     oklch(0.74 0.16 295);
+  --cw-accent-soft:  oklch(0.32 0.06 295);
   --cw-error:        oklch(0.70 0.18 25);
   --cw-error-soft:   oklch(0.30 0.08 25);
 }
