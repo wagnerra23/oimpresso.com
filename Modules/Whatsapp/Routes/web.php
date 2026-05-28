@@ -140,6 +140,14 @@ Route::group([
         ->middleware('can:whatsapp.access')
         ->name('atendimento.caixa-unificada.index');
 
+    // M7 fix 2026-05-28 — serve mídia via Controller (Hostinger LiteSpeed
+    // bloqueia /storage/* direct serve 403). Path tem 4 partes:
+    // whatsapp/<businessId>/<YYYY-MM>/<uuid>.<ext>
+    Route::get('/midia/{path}', [CaixaUnificadaController::class, 'serveMedia'])
+        ->where('path', 'whatsapp/[0-9]+/[0-9]{4}-[0-9]{2}/[a-f0-9-]+(_thumb)?\.[a-z0-9]+')
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.midia.show');
+
     Route::post('/inbox/{id}/send', [InboxController::class, 'send'])
         ->whereNumber('id')
         ->middleware('can:whatsapp.send')
