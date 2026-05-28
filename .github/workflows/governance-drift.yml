@@ -46,6 +46,30 @@ jobs:
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
       - name: Install Node dependencies (for npm_audit checker — ADR 0223)
         run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+      - name: Prepare storage dirs + .env mínimo
+        # governance:audit boota o framework (AppServiceProvider → Blade) que exige
+        # config('view.compiled') válido. Sem .env/storage o boot dá "Please provide
+        # a valid cache path". --no-persist já evita acesso a DB. Paridade phpstan-gate.yml.
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-governance-pr
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          BCRYPT_ROUNDS=4
+          APP_KEY=
+          EOF
+          php artisan key:generate --force
       - name: Run governance:audit on PR (block-level fail)
         run: |
           # PR mode: --diff-only + fail-on=block (CI gate)
@@ -87,6 +111,28 @@ jobs:
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
       - name: Install Node dependencies (for npm_audit checker — ADR 0223)
         run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+      - name: Prepare storage dirs + .env mínimo
+        # Idem job drift-scan-pr: framework precisa bootar pra rodar governance:audit.
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-governance-daily
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          BCRYPT_ROUNDS=4
+          APP_KEY=
+          EOF
+          php artisan key:generate --force
       - name: Run governance:audit --all
         run: |
           # Schedule mode: --all + JSON output pra inspeção; --no-persist porque
