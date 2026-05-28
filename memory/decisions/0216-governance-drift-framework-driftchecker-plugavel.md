@@ -1,18 +1,23 @@
 ---
-adr: 0216
-title: Governance Drift Framework — interface DriftChecker plugável (generaliza ADR 0215)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-references:
-  - 0093-multi-tenant-isolation-tier-0.md
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0106-recalibracao-velocidade-fator-10x-ia-pair.md
-  - 0133-jana-health-check-sql-puro.md
-  - 0162-observability-spans-aggregation.md
-  - 0215-secrets-governance-5-camadas-automaticas.md
-lifecycle: active
+slug: 0216-governance-drift-framework-driftchecker-plugavel
+number: 216
+title: "Governance Drift Framework — interface DriftChecker plugável (generaliza ADR 0215)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, drift, framework, driftchecker]
+related:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
+  - 0133-jana-health-check-sql-puro
+  - 0162-observability-spans-aggregation
+  - 0215-secrets-governance-5-camadas-automaticas
+pii: false
 ---
 
 ## Contexto

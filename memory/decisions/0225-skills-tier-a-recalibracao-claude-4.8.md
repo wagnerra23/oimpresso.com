@@ -1,19 +1,26 @@
 ---
-adr: 0225
-title: Recalibração skills Tier A pós-Claude 4.8 — 8 always-on → 5 núcleo + 7 auto-trigger
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-supersedes_partially: [0095, 0168]
-references:
-  - 0061-conhecimento-canonico-git-mcp-zero-automem.md
-  - 0093-multi-tenant-isolation-tier-0.md
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0095-skills-tiers-convencao-interna.md
-  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel.md
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware.md
-lifecycle: active
+slug: 0225-skills-tier-a-recalibracao-claude-4.8
+number: 225
+title: "Recalibração skills Tier A pós-Claude 4.8 — 8 always-on → 5 núcleo + 7 auto-trigger"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, skills, tier-a, claude-4-8, recalibracao]
+supersedes_partially:
+  - 0095-skills-tiers-convencao-interna
+  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel
+related:
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0095-skills-tiers-convencao-interna
+  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel
+  - 0224-hooks-block-vs-advisory-claude-4.8-aware
+pii: false
 ---
 
 ## Contexto

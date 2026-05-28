@@ -1,18 +1,25 @@
 ---
-adr: 0226
-title: Brief v2 (1M-aware) — régua 3.5k → 8k tokens, reposiciona como estado-rico-pro-Wagner
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: []
-supersedes_partially: [0091, 0097]
-references:
-  - 0091-daily-brief.md
-  - 0097-brief-model-gpt4o-mini-supersede-parcial-0091.md
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware.md
-  - 0225-skills-tier-a-recalibracao-claude-4.8.md
-lifecycle: active
+slug: 0226-brief-v2-1m-aware-rico
+number: 226
+title: "Brief v2 (1M-aware) — régua 3.5k → 8k tokens, reposiciona como estado-rico-pro-Wagner"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [governance, brief, context-engineering, claude-4-8, 1m]
+supersedes_partially:
+  - 0091-daily-brief
+  - 0097-brief-model-gpt4o-mini-supersede-parcial-0091
+related:
+  - 0091-daily-brief
+  - 0097-brief-model-gpt4o-mini-supersede-parcial-0091
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0224-hooks-block-vs-advisory-claude-4.8-aware
+  - 0225-skills-tier-a-recalibracao-claude-4.8
+pii: false
 ---
 
 ## Contexto
