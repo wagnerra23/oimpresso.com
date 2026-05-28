@@ -92,4 +92,10 @@ services:
         class: App\PhpStan\Rules\NoSilentFallbackRule
         tags:
             - phpstan.rules.rule
+    -
+        # ADR 0208 + ADR 0093 (Tier 0 multi-tenant). US-INFRA-017.
+        # Detecta Module Controllers fazendo Eloquent query sem business_id mention.
+        class: App\PhpStan\Rules\NoMissingTenantScopeRule
+        tags:
+            - phpstan.rules.rule
 
