@@ -343,4 +343,122 @@ Liga ou deixa desligado? Tabela trade-off:
 
 ---
 
+## Onda prevenção bugs MWART (US-_DESIGNSYSTEM-004..013) — 2026-05-28
+
+> 10 tasks geradas a partir do dossier `memory/sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md` e ADRs 0209/0210/0211 (PR #1837 propostos). Frontend enforcement passivo (ESLint, Wayfinder pilots, TanStack Query, MSW Vitest, custom rules).
+
+### US-_DESIGNSYSTEM-004 · Install ESLint 9 flat-config + plugins canon + baseline ratchet
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Onda 1 · habilita enforcement JS/TS.** `npm install -D eslint@9 @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react-hooks eslint-plugin-jsx-a11y eslint-plugin-react-refresh`. `eslint.config.js` flat config com `@typescript-eslint/recommended`, `react-hooks/recommended`, `jsx-a11y/recommended` (sem no-autofocus), `react-refresh/only-export-components`. Baseline JSON ratchet idêntico a `ui-lint-baseline.json`.
+
+**Acceptance:** `npm run lint` roda local; baseline gerado; sem mudança em comportamento UI.
+
+Refs: ADR 0209
+
+### US-_DESIGNSYSTEM-005 · Workflow eslint-gate.yml — CI ratchet contra baseline
+
+> owner: — · priority: p0 · estimate: 1h · status: todo · type: story
+> blocked_by: US-_DESIGNSYSTEM-004
+
+**Onda 1.** `.github/workflows/eslint-gate.yml` espelhando `ui-lint.yml`. Dispara em PR tocando `resources/js/**/*.{ts,tsx}`. Roda `npx eslint --format=json` + comparação baseline. Falha só em REGRESSÃO. Annotations inline GitHub.
+
+**Acceptance:** delta=0 verde; delta>0 vermelho com path:linha:rule.
+
+Refs: ADR 0209
+
+### US-_DESIGNSYSTEM-006 · Pilot Sells/Create.tsx com Wayfinder types (R8 raiz)
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: US-INFRA-022
+
+**Onda 3 · piloto 1.** Migrar `resources/js/Pages/Sells/Create.tsx` pra consumir tipos Wayfinder gerados. Substituir interface manual `CustomerSearchResult` pelo gerado. Substituir `SellsCreatePageProps` pelo gerado. Smoke prod biz=4 (Larissa) — validar cliente VIP com `selling_price_group_id` recalcula preços (R8 raiz).
+
+**Acceptance:** `tsc --noEmit` limpo; smoke prod cliente trocado → carrinho recalcula; nenhuma regressão R7/R8/R9/R10.
+
+Refs: ADR 0210 Fase 2
+
+### US-_DESIGNSYSTEM-007 · Pilot Financeiro/Unificado/Index.tsx com Wayfinder types
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: US-INFRA-022
+
+**Onda 3 · piloto 2.** Segunda tela mais reportada. Migrar pra Wayfinder.
+
+**Acceptance:** type drift impossível em paths Inertia props; smoke prod biz=1 OK.
+
+Refs: ADR 0210 Fase 2
+
+### US-_DESIGNSYSTEM-008 · Install TanStack Query v5 + Provider em AppShellV2
+
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Onda 4 · data-fetching moderno.** `npm install @tanstack/react-query @tanstack/react-query-devtools`. `QueryClient` em `AppShellV2` ou layout-raiz. `<QueryClientProvider>` envolve app. `<ReactQueryDevtools initialIsOpen={false} />` em DEV. Defaults: staleTime 60s, gcTime 5min, retry 1.
+
+**Acceptance:** Provider ativo; DevTools visível em dev; bundle prod aumenta ~16KB gzip (esperado).
+
+Refs: ADR 0211 Fase 1
+
+### US-_DESIGNSYSTEM-009 · Migrar ProductSearchAutocomplete pra useQuery (R7 raiz)
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: US-_DESIGNSYSTEM-008
+
+**Onda 4 · piloto 1.** Substituir `useEffect+setTimeout+AbortController+lastSelectedAtRef` em `ProductSearchAutocomplete.tsx` por `useQuery({queryKey: ['products', term, locationId], queryFn: ({signal}) => fetch(..., {signal})})`. Manter fixes R7 (AbortController + sentinela) como defesa-em-profundidade durante transição.
+
+**Acceptance:** Pest 11 estruturais R7 verde; smoke prod biz=4 scanner USB → qty incrementa, dropdown não reabre; LOC reduz ~50-80.
+
+Refs: ADR 0211 Fase 2
+
+### US-_DESIGNSYSTEM-010 · Migrar CustomerSearchAutocomplete pra useQuery
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: US-_DESIGNSYSTEM-008
+
+**Onda 4 · piloto 2.** Substituir `useEffect+setTimeout` por `useQuery`. Race-protection grátis. Cache permite trocar cliente e voltar sem refetch.
+
+**Acceptance:** Pest existentes verde; smoke prod cliente busca rápida.
+
+Refs: ADR 0211 Fase 2
+
+### US-_DESIGNSYSTEM-011 · MSW + Vitest fake-timers + suite scanner-race.test.tsx
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: US-_DESIGNSYSTEM-008 + US-_DESIGNSYSTEM-009
+
+**Onda 4 · test infra.** `npm install -D msw vitest @vitest/ui`. `vitest.config.ts` setup mínimo. Suite `tests/scanner-race.test.tsx` simula `KeyboardEvent sequence USB <50ms` + Enter. Workflow `vitest-gate.yml`.
+
+**Acceptance:** suite cobre A (1 bipa), B (2 bipas mesmo SKU = qty 2), C (Enter duplo durante loading); MSW mocka `/products/list`.
+
+Refs: ADR 0211 Fase 3
+
+### US-_DESIGNSYSTEM-012 · Custom ESLint rule no-uncancelled-fetch-in-effect
+
+> owner: — · priority: p2 · estimate: 5h · status: todo · type: story
+> blocked_by: US-_DESIGNSYSTEM-004 + US-_DESIGNSYSTEM-008
+
+**Onda 4 · enforcement final.** Detecta `useEffect` com `fetch()` sem `AbortController` OU sem `useQuery`. Custom rule via `@typescript-eslint/utils`. Baseline absorve existentes.
+
+**Acceptance:** rule + fixture useEffect fetch sem abort = erro; useQuery limpo = OK; AbortController explícito = OK.
+
+Refs: ADR 0211 Fase 5
+
+### US-_DESIGNSYSTEM-013 · Catalogar AP-16 "Debounce + Promise sem cancelamento" no LICOES_F3
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Onda 4 · doc.** Adicionar AP-16 em `LICOES_F3_FINANCEIRO_REJEITADO.md`. Exemplo R7 (PR #1824). Cross-ref ADR 0211.
+
+**Acceptance:** PR docs adiciona AP-16.
+
+Refs: ADR 0211 Fase 4
+
+---
+
+**Última atualização (US-_DESIGNSYSTEM-004..013):** 2026-05-28 — adicionadas 10 tasks Onda prevenção bugs MWART frontend (ADRs 0209-0211 propostos no PR #1837). Atacam R7/R8-class via ESLint baseline, Wayfinder type-gen, TanStack Query data-fetching, MSW Vitest scanner-race tests.
+
 **Última atualização:** 2026-05-25 — adicionadas US-001/002/003 (batch validação design system pós-conversa Wagner com Claude do chat — 4 tasks no MCP US-_DESIGNSYSTEM-001/002/003 + US-INFRA-012)
