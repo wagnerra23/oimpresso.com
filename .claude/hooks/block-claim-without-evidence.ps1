@@ -190,4 +190,11 @@ Skill cultural pareada (Tier B auto-trigger):
 
 $msg = $msg.Replace('__INFRA_FILES__', $infraFilesList)
 [Console]::Error.WriteLine($msg)
-exit 2
+
+# ADR 0224 (2026-05-28): rebaixado de BLOQUEIO (exit 2) para ADVISORY (exit 0).
+# Razao: deteccao semantica regex (infra-critica + evidencia) e fragil; o enforcement
+# REAL e a Camada A CI .github/workflows/infra-contract-required.yml (mais robusto,
+# nao bypassavel por --admin local) + skill Tier B smoke-prod-evidence (cultural).
+# Claude 4.8 segue a disciplina de evidencia lendo o aviso; o gate de merge fica no CI.
+# Criterio canonico: hook bloqueia SO o deterministico-obrigatorio; semantico vira advisory.
+exit 0
