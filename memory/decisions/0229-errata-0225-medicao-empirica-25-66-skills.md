@@ -1,16 +1,23 @@
 ---
-adr: 0229
-title: Errata 0225 — medição empírica 25/66 skills eager (corrige diagnóstico "8→5" estimate-based)
-status: accepted
-date: 2026-05-28
-deciders: [Wagner]
-amends: [0225-skills-tier-a-recalibracao-claude-4.8.md]
-references:
-  - 0095-skills-tiers-convencao-interna.md
-  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel.md
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware.md
-  - 0225-skills-tier-a-recalibracao-claude-4.8.md
-lifecycle: active
+slug: 0229-errata-0225-medicao-empirica-25-66-skills
+number: 229
+title: "Errata 0225 — medição empírica 25/66 skills eager (corrige diagnóstico 8→5 estimate-based)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-28"
+module: governance
+tags: [skills, tier-a, errata, claude-4.8, context-engineering, recalibracao]
+supersedes: []
+superseded_by: []
+amends: [0225-skills-tier-a-recalibracao-claude-4.8]
+related:
+  - 0095-skills-tiers-convencao-interna
+  - 0168-protocolo-wagner-sempre-tier-A-irrevogavel
+  - 0224-hooks-block-vs-advisory-claude-4.8-aware
+pii: false
 ---
 
 ## Contexto
