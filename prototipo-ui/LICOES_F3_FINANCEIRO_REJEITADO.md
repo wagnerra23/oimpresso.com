@@ -566,3 +566,141 @@ Mesmo zip 2026-05-09 trouxe `prototipo-ui-patch/app/Http/Controllers/ProdutoUnif
 ---
 
 **Última atualização:** 2026-05-09 — sessão de rejeição F3 Financeiro. Documento mantido append-only — críticas posteriores (Estoque, Vendas, RH, etc) viram seção nova, não revisão das anteriores.
+
+---
+
+## AP-18 — Fallback default sem `Log::warning` (R9 raiz, 2026-05-28)
+
+> **Catalogado retroativamente** após bug Larissa R9 ([PR #1830](https://github.com/wagnerra23/oimpresso.com/pull/1830)). Codificado em PHPStan custom rule [`NoSilentFallbackRule`](../app/PhpStan/Rules/NoSilentFallbackRule.php) ([PR #1862](https://github.com/wagnerra23/oimpresso.com/pull/1862)).
+>
+> **Identifier PHPStan:** `oimpresso.silentFallback`
+
+### O bug
+
+`SellPosController:435` tinha:
+
+```php
+if (empty($request->input('transaction_date'))) {
+    $input['transaction_date'] = \Carbon::now();  // ← silent fallback
+}
+```
+
+Quando input chegava vazio (datetime-local limpo, regex AM/PM, state perdido em navegação), backend gravava `Carbon::now()` — hora do **MOMENTO do submit**, não da abertura. Larissa abriu Create 18:00, submeteu 20:47 (2h47 depois) → DB gravou **20:47**. Recibo errado, sem alerta, sem exception, sem log.
+
+### O pattern errado
+
+Branch fallback escolhendo default **sem logar** = bug invisível até cliente reportar. Vale pra qualquer:
+
+- `if (empty(...)) $x = <default>;`
+- `if (! isset(...)) $x = <default>;`
+- (ainda não detectado pela rule: `$x = $y ?? <default>;` em controller — Onda 3+)
+
+### O pattern certo
+
+Sempre `Log::warning(...)` ANTES do assignment:
+
+```php
+if (empty($request->input('transaction_date'))) {
+    \Log::warning('SellPosController@store fallback Carbon::now()', [
+        'expected_key' => 'transaction_date',
+        'received' => json_encode($request->input('transaction_date')),
+        'has_payload_key' => $request->has('transaction_date'),
+        // business_id/user_id já em context via LogContextMiddleware (ADR 0212 Camada 1)
+    ]);
+    $input['transaction_date'] = \Carbon::now();
+}
+```
+
+Métodos aceitos: `warning`, `error`, `critical`, `alert`, `emergency`. Facade aceito: `Log::`, `\Log::`, `\Illuminate\Support\Facades\Log::`.
+
+### Como prevenir
+
+- **Camada 1** ([LogContextMiddleware](../app/Http/Middleware/LogContextMiddleware.php) ADR 0212): `Log::withContext` injeta `business_id/user_id/request_id/route_name` globalmente em todo `Log::*` da request — sem boilerplate.
+- **Camada 3** ([NoSilentFallbackRule](../app/PhpStan/Rules/NoSilentFallbackRule.php) ADR 0212): PHPStan custom rule bloqueia novo PR com pattern violador. **103 ocorrências pre-existentes catalogadas em baseline ratchet** — refator gradual por módulo.
+
+---
+
+## AP-2 — Eloquent query em Module Controller sem `business_id` (Tier 0 raiz, 2026-05-28)
+
+> **Reforço** do T-AP-2 catalogado em 2026-05-09. Codificado em PHPStan custom rule [`NoMissingTenantScopeRule`](../app/PhpStan/Rules/NoMissingTenantScopeRule.php) ([PR #1866](https://github.com/wagnerra23/oimpresso.com/pull/1866)).
+>
+> **Identifier PHPStan:** `oimpresso.missingTenantScope`
+> **Tier 0 IRREVOGÁVEL** ([ADR 0093](../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+
+### O pattern errado
+
+```php
+// ❌ Module Controller sem business_id em nenhum lugar do método
+public function index() {
+    $transactions = Transaction::where('type', 'sell')->get();
+    return view('admin.list', compact('transactions'));
+}
+```
+
+Vaza dados cross-tenant — pior bug possível neste projeto.
+
+### O pattern certo (3 formas aceitas)
+
+```php
+// ✅ 1. where explícito (idiomático UPOS)
+public function index() {
+    $businessId = session('user.business_id');
+    $transactions = Transaction::where('business_id', $businessId)->get();
+}
+
+// ✅ 2. Variable canon (camelCase)
+public function index() {
+    $businessId = $this->businessId;
+    // ... usar em queries
+}
+
+// ✅ 3. BusinessScope global automático (Model::boot tem addGlobalScope)
+public function index() {
+    // ... comentário OU constante OU type-hint menciona BusinessScope::class
+}
+```
+
+### Cobertura PHPStan
+
+- **116 violations pre-existentes** catalogadas em `phpstan-baseline.neon` — ratchet absorve, novo controller falha CI.
+- Heurística string-match em body do método (não AST profundo) — false-positives aceitáveis durante adoção.
+
+---
+
+## AP-13 (refatorado) — Mutação NO-OP `return back()` em Controller (2026-05-28)
+
+> **Reforço** do T-AP-13 catalogado em 2026-05-09. Codificado em PHPStan custom rule [`NoNopMutationControllerRule`](../app/PhpStan/Rules/NoNopMutationControllerRule.php) ([PR #1868](https://github.com/wagnerra23/oimpresso.com/pull/1868)).
+>
+> **Identifier PHPStan:** `oimpresso.nopMutation`
+
+### O pattern errado
+
+```php
+// ❌ Endpoint API de mentirinha — botão clica, HTTP 302 volta, dado NÃO persiste
+public function aceitar(Request $request, $id) {
+    return back();
+}
+```
+
+Catastrófico em conciliação bancária, aceite-de-ordem, aprovação fiscal — fluxos onde "confirma" precisa **mutar DB**.
+
+### O pattern certo
+
+Qualquer mutação real + return:
+
+```php
+public function aceitar(Request $request, $id) {
+    Conciliacao::find($id)->update(['status' => 'aceito']);  // ← mutação
+    return back()->with('success', 'Aceito');
+}
+```
+
+### Cobertura PHPStan
+
+- **2 violations pre-existentes** (T-AP-13 catalogado batch F3 Cowork rejeitado 2026-05-09) catalogadas em baseline.
+- **Skip canon CRUD** (`index`/`show`/`create`/`edit`): retornam view direto, OK.
+- Trigger: body com **exatamente 1 statement** = `return back()` ou `return redirect()->...()`.
+
+---
+
+**Update meta 2026-05-28:** após batch Larissa (PRs #1824/#1828/#1830/#1832) + Ondas 1-2 prevenção (PRs #1850/#1852/#1854/#1862/#1866/#1868), 3 anti-padrões antes só documentados (AP-18, T-AP-2, T-AP-13) agora têm **enforcement passivo PHPStan**. Esquecer = CI bloqueia.
