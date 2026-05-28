@@ -332,6 +332,27 @@ Sinais de "Wagner está fechando" — QUALQUER um:
 
 **Skill correlata:** [`memory-sync`](../../.claude/skills/memory-sync/SKILL.md) Tier C (dispara `git push` pós-edit em `memory/`, complementa R12 mas NÃO substitui — R12 é orchestrador do checklist).
 
+### ⚠️ Mecanismos de ATIVAÇÃO no momento certo (catalogado 2026-05-28)
+
+R12 é regra **passiva**. Wagner 2026-05-28 cobrou: *"mas não está funcionando porque? se existe mas não funciona ta errado. como colocar pra funcionar? qual momento tem que ser ativado?"*. Em sessão longa (200+ turnos / 8h+), Tier A always-on sai do contexto Claude. R12 precisa de **3 camadas** de ativação:
+
+| Camada | Mecanismo | Quando dispara | Garantia |
+|---|---|---|---|
+| 1 | Skill [`wagner-protocol-enforce`](../../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A | SessionStart (eager) | Sai do contexto em sessão longa |
+| 2 | Skill [`encerrar-sessao`](../../.claude/skills/encerrar-sessao/SKILL.md) Tier B | **description-match LAZY no trigger word** | **Garantido — recarrega R12 inline** |
+| 3 | Hook [`force-r12-closing-signal.ps1`](../../.claude/hooks/force-r12-closing-signal.ps1) | **UserPromptSubmit antes do Claude responder** | **Garantido — injeta `<system-reminder>`** |
+
+Camada 2 + 3 = defesa em depth. Mesmo em sessão de 17 PRs / 8h+, ao detectar pattern de fechamento R12 dispara via skill description-match OU hook UserPromptSubmit.
+
+**Trigger words canônicos** (consultar [skill encerrar-sessao description](../../.claude/skills/encerrar-sessao/SKILL.md) pra lista completa):
+
+- Explícito: `encerrar` · `fim de sessão` · `vamos parar` · `continua depois` · `salve as memórias` · `outra sessão` · `vai pra MCP`
+- Cortesia: `tchau` · `obrigado` · `valeu` · `tá bom` · `beleza` · `show` · `perfeito`
+- Adiamento: `depois eu vejo` · `fica pra depois` · `baixa prioridade`
+- Auto-detect: ≥3 PRs mergeados · ≥1 ADR proposto · ≥4h trabalho
+
+**CITAR EXPLÍCITO no report final:** `"Cumprindo R12 PROTOCOLO via skill encerrar-sessao (ativação lazy via hook UserPromptSubmit)"`. Garante auditoria do mecanismo — Wagner verifica que disparou.
+
 ---
 
 ## Como Claude detecta violação no meio da sessão (auto-check)
