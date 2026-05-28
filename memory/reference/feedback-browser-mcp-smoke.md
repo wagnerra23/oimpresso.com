@@ -32,3 +32,6 @@ Wagner pediu em 2026-05-12 (sessão musing-hopper, após Wave 3): **"sim faça i
 **Quando ESCALAR pra Wagner:**
 - Smoke detecta regressão visual em feature crítica (Sells Index, drawer SaleSheet, FSM action panel) — pausar wave, reportar antes de prosseguir
 - Componente carrega mas com erro console (verificar via `mcp__Claude_in_Chrome__read_console_messages`)
+
+**Smoke DIRETO após fix UI — sem pedir aprovação (Wagner 2026-05-26):**
+Wagner reforçou textualmente: **"sim não pergunte faça sempre"**. A regra do smoke não vale só pra feature nova — vale pra **qualquer fix de UI/tela**: ajuste em `Pages/*.tsx`, `Components/`, correção de botão, handler de evento, ou regressão UX visível. Nesses casos, **executar o smoke DIRETO**, sem antes perguntar "quer que eu rode o smoke?". O ciclo é **fix → smoke → reporta resultado** num só fluxo, e só então marcar como resolvido. Isso é coerente com a autonomia já canon em [feedback-executar-nao-informar.md](feedback-executar-nao-informar.md) (executar, não pedir permissão pro óbvio) e [feedback-claude-mais-autonomo-2026-05-25.md](feedback-claude-mais-autonomo-2026-05-25.md). As ressalvas acima (o que pular, o que NÃO fazer em prod biz=1, quando escalar) seguem valendo — autonomia é sobre não perguntar antes do smoke, não sobre relaxar a segurança.
