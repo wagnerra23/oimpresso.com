@@ -17,6 +17,13 @@
   - [Auditoria conformidade Sells](../../Sells/sells-create-ds-v3-conformance.md) — caso concreto que expôs a lacuna
   - PR #1893 — landing do DS v3 (mergeado **sem ADR** — esta ADR cobre retroativamente)
 
+> **Errata 2026-05-28** (mesmo dia da aceitação): a versão original listava o "gate de
+> CI/hook que falha o PR com cor/classe fora do DS" como **lacuna futura**. Isso era **falso** —
+> o gate já existe e bloqueia: `php artisan ui:lint` (R1–R6) em modo ratchet via
+> `ui-lint.yml`, validado rodando contra `Sells/Create.tsx` (27 violações R1 congeladas no
+> baseline; uma 28ª falharia o PR). Decisão inalterada; corrigido só o fato. Ponto 6 e lacunas
+> atualizados.
+
 ## Contexto
 
 Em 2026-05-28 o **Design System v3** entrou no repo (PR #1893): `tokens.css` (single
@@ -96,9 +103,14 @@ DS, **padrão de tela** que não bate com PT-01..PT-08, **token** redeclarado �
 Vale **igual** pra humano, esposa, Felipe, Maiara e qualquer agente — mesmo caminho, sem atalho.
 "Só faz funcionar" não é override. Override real exige a extensão aprovada do DS. Isto é a
 "regra única" do [CODE_DESIGN_CONTRACT.md](../../../../prototipo-ui/CODE_DESIGN_CONTRACT.md)
-elevada a decisão canônica. **Enforcement progressivo:** hoje via revisão (esta regra + gate
-`mwart-comparative` F1.5); meta = gate de CI/hook que falha o PR quando há cor/classe fora do
-DS (lacuna registrada abaixo).
+elevada a decisão canônica. **Enforcement já existe e bloqueia** (errata 2026-05-28, ver topo):
+o comando `php artisan ui:lint` (regras R1 cor crua · R2 FontAwesome · R3 emoji · R4 PT-01 ·
+R5 origens · R6 blade) roda em CI via [`.github/workflows/ui-lint.yml`](../../../../../.github/workflows/ui-lint.yml)
+em modo **ratchet** contra `config/ui-lint-baseline.json`: dívida existente congelada
+(~7.5k violações), e **qualquer divergência NOVA em arquivo alterado falha o PR** (`--strict`).
+Some-se a isso o gate `mwart-comparative` F1.5. A única peça ainda ausente é uma regra de
+**componente/classe inexistente no `design-system.css`** (faz sentido só após o token bridge —
+ver lacunas).
 
 ## O que esta ADR NÃO decide (lacunas explícitas)
 
@@ -106,7 +118,7 @@ DS (lacuna registrada abaixo).
 - ❌ Os **F1 de cada tela** (Clientes, Vendas, etc.) — loop MWART, um por vez.
 - ❌ A criação dos componentes DS faltantes (stat-card, payment-split-row) — Cowork, no F1.
 - ❌ A limpeza de cores cruas pré-existentes (ex: azuis em `Sells/Create.tsx`) — PR isolado.
-- ❌ O **gate de CI/hook** que torna a regra-mãe (ponto 6) automática (falha PR com cor/classe fora do DS) — desejável, vai em ADR/PR próprio. Até lá, enforcement é por revisão.
+- ❌ Uma regra `ui:lint` **R7 — componente/classe inexistente no `design-system.css`** (a única peça de enforcement ainda ausente; o resto — cor crua R1, ícone R2, emoji R3 — **já bloqueia** via `ui-lint.yml`). Faz sentido só após o token bridge. ~~Antes (errata): este item dizia que o gate inteiro não existia — falso.~~
 - ❌ **Sidebar light vs dark** — permanece light por decisão Wagner-explícita ([UI-0009](0009-cockpit-sidebar-light-padrao.md) + [UI-0014](0014-sidebar-light-mantida-v2-parcial.md)); os tokens `--sb-*` dark do DS v3 não revogam isso sem ADR.
 
 ## Consequências
