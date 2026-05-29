@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Carbon;
 use Modules\Jana\Console\Commands\SeedAdrsCommand;
+use Modules\Jana\Entities\MemoriaFato;
 
 uses(Tests\TestCase::class);
 
@@ -151,4 +153,38 @@ it('published_at é null quando não há nenhuma data (não crasha o decay)', fu
     $doc = seedFakeDoc('adr');
     $doc->indexed_at = null;
     expect($cmd->resolvePublishedAt($doc, []))->toBeNull();
+});
+
+// ── 4. reindex Scout: partição ativo (indexa) vs superseded (remove) ─────────
+//
+// GAP (handoff 2026-05-29): o insert/update do command usa DB::table (raw), o que
+// BYPASSA os eventos Eloquent que o Scout escuta — sem reindex explícito o fato
+// nunca chegava ao Meilisearch (mesmo com o schedule diário rodando). O fix carrega
+// os fatos seedados e particiona: ativos → searchable(), superseded → unsearchable().
+// Aqui blindamos a LÓGICA da partição (shouldBeSearchable), que é a parte com risco
+// de bug — o searchable()/unsearchable() em si no-opa com SCOUT_DRIVER=null.
+
+it('fato ativo (valid_until null) é indexável no Scout', function () {
+    $f = new MemoriaFato();
+    $f->valid_until = null;
+    expect($f->shouldBeSearchable())->toBeTrue();
+});
+
+it('fato superseded (valid_until preenchido) NÃO é indexável (vai pra unsearchable)', function () {
+    $f = new MemoriaFato();
+    $f->valid_until = Carbon::parse('2026-01-10 00:00:00');
+    expect($f->shouldBeSearchable())->toBeFalse();
+});
+
+it('filter/reject shouldBeSearchable particiona ativos de superseded (lógica do reindex)', function () {
+    $ativo = new MemoriaFato();
+    $ativo->valid_until = null;
+
+    $superseded = new MemoriaFato();
+    $superseded->valid_until = Carbon::parse('2026-01-10 00:00:00');
+
+    $col = collect([$ativo, $superseded]);
+
+    expect($col->filter->shouldBeSearchable())->toHaveCount(1);   // → ->searchable()
+    expect($col->reject->shouldBeSearchable())->toHaveCount(1);   // → ->unsearchable()
 });
