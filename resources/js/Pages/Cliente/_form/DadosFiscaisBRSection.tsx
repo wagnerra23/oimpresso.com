@@ -276,20 +276,26 @@ export default function DadosFiscaisBRSection<T extends DadosFiscaisBRData>({
         <div className="cw-field full-row">
           <Label className="cw-label">Flags</Label>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-1">
-            <label className="inline-flex cursor-pointer items-center gap-2 text-[12px] text-foreground">
+            <div className="inline-flex items-center gap-2">
               <Checkbox
+                id="flag-contribuinte"
                 checked={data.contribuinte}
                 onCheckedChange={(c) => set('contribuinte', c === true)}
               />
-              Contribuinte ICMS
-            </label>
-            <label className="inline-flex cursor-pointer items-center gap-2 text-[12px] text-foreground">
+              <Label htmlFor="flag-contribuinte" className="cursor-pointer text-[12px] text-foreground">
+                Contribuinte ICMS
+              </Label>
+            </div>
+            <div className="inline-flex items-center gap-2">
               <Checkbox
+                id="flag-consumidor-final"
                 checked={data.consumidor_final}
                 onCheckedChange={(c) => set('consumidor_final', c === true)}
               />
-              Consumidor final (NFe)
-            </label>
+              <Label htmlFor="flag-consumidor-final" className="cursor-pointer text-[12px] text-foreground">
+                Consumidor final (NFe)
+              </Label>
+            </div>
           </div>
         </div>
       </FormGrid>

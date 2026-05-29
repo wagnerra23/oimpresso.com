@@ -98,7 +98,7 @@ export function ClienteRail<T extends ClienteFormShared>({
           {checks.map((c) => (
             <li key={c.label} className="flex items-center gap-2 text-[11.5px]">
               {c.done ? (
-                <CheckCircle2 size={13} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle2 size={13} className="cw-ok-text shrink-0" />
               ) : (
                 <Circle size={13} className="shrink-0 text-muted-foreground/50" />
               )}
@@ -107,7 +107,7 @@ export function ClienteRail<T extends ClienteFormShared>({
           ))}
         </ul>
         {allDone && (
-          <div className="mt-2.5 rounded-md bg-emerald-50 px-2.5 py-1.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+          <div className="cw-ok-badge mt-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium">
             Pronto pra emitir NF-e
           </div>
         )}

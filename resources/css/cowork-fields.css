@@ -444,6 +444,9 @@ select.cw-input {
 }
 .cw-field-ico { width: 12px; height: 12px; flex: 0 0 12px; }
 .cw-req { color: var(--cw-error); margin-left: 2px; font-weight: 700; }
+/* Utilitários de sucesso (rail prontidão fiscal) — token, não emerald-* cru. */
+.cw-ok-text { color: var(--cw-ok); }
+.cw-ok-badge { background: var(--cw-ok-soft); color: var(--cw-ok); }
 .cw-spin { animation: cw-spin .7s linear infinite; }
 @keyframes cw-spin { to { transform: rotate(360deg); } }
 
