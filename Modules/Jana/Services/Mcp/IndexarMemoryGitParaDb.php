@@ -254,6 +254,127 @@ class IndexarMemoryGitParaDb
             ];
         }
 
+        // ─── GAP #1 ingest-coverage (2026-05-29) ──────────────────────────
+        //
+        // Pastas cegas de ALTO VALOR e SEM PII de cliente que a whitelist de
+        // globs acima ignorava. Sem isto, handoffs ("onde paramos" entre
+        // sessões) e os 51 docs canônicos ex-auto-mem NUNCA chegavam ao MCP.
+        //
+        // ⚠️ EXCLUÍDO de propósito (LGPD): memory/clientes/** e memory/feedback/**
+        // têm PII de cliente (email/telefone) que o redactor (só CPF/CNPJ/cartão)
+        // NÃO cobre. Adicionar só quando o redactor cobrir email+telefone.
+
+        // 1. Handoffs — "onde paramos" entre sessões (CRÍTICO p/ continuidade).
+        //    memory/08-handoff.md já coletado acima como slug 'handoff' — não duplica
+        //    (pasta handoffs/ tem nomes datados, sem colisão com '08-handoff').
+        foreach (glob("$base/memory/handoffs/*.md") as $file) {
+            $name = basename($file, '.md');
+            if (str_starts_with($name, '_') || $name === 'README') continue;
+            $arquivos[] = [
+                'slug'   => "handoff-" . strtolower(str_replace(['_', ' '], '-', $name)),
+                'type'   => 'handoff',
+                'module' => $this->detectarModulo($name),
+                'path'   => "memory/handoffs/$name.md",
+                'full'   => $file,
+            ];
+        }
+
+        // 2. Reference recursivo — 51+ docs canônicos ex-auto-mem (ADR 0061).
+        foreach ($this->coletarRecursivo("$base/memory/reference", $base, 'reference', 'reference') as $info) {
+            $arquivos[] = $info;
+        }
+
+        // 3. Sprints recursivo — dossiês de sprint (s3-constituicao, etc).
+        foreach ($this->coletarRecursivo("$base/memory/sprints", $base, 'reference', 'sprint') as $info) {
+            $arquivos[] = $info;
+        }
+
+        // 4. Governance recursivo — CONSTITUTION, ENFORCEMENT, TRUST-TIERS, etc.
+        foreach ($this->coletarRecursivo("$base/memory/governance", $base, 'reference', 'governance') as $info) {
+            $arquivos[] = $info;
+        }
+
+        // 5. Audits na raiz (memory/audits/*.md — NÃO recursivo: subpastas como
+        //    2026-05-pre-sales podem conter material sensível não auditado).
+        foreach (glob("$base/memory/audits/*.md") as $file) {
+            $name = basename($file, '.md');
+            if (str_starts_with($name, '_') || $name === 'README') continue;
+            $arquivos[] = [
+                'slug'   => "audit-root-" . strtolower(str_replace(['_', ' '], '-', $name)),
+                'type'   => 'audit',
+                'module' => $this->detectarModulo($name),
+                'path'   => "memory/audits/$name.md",
+                'full'   => $file,
+            ];
+        }
+
+        // 6. Design System recursivo — PT-01, PRE-MERGE-UI, adr/ui/*.
+        foreach ($this->coletarRecursivo("$base/memory/requisitos/_DesignSystem", $base, 'reference', 'designsystem') as $info) {
+            $arquivos[] = $info;
+        }
+
+        return $arquivos;
+    }
+
+    /**
+     * GAP #1 ingest-coverage — coleta RECURSIVA de *.md numa subárvore.
+     *
+     * glob() do PHP não recursa em subdiretórios, então pastas como
+     * memory/reference/, memory/sprints/ e memory/requisitos/_DesignSystem/adr/ui/
+     * ficavam cegas. Usa RecursiveDirectoryIterator + RecursiveIteratorIterator
+     * (SKIP_DOTS) — pattern canônico PHP 8.4 — pra varrer toda a subárvore.
+     *
+     * Pula arquivos `_*` (templates/índices) e README. Slug único derivado do
+     * caminho relativo (ex: reference/adr/ui/foo.md → 'reference-adr-ui-foo')
+     * pra não colidir entre subpastas homônimas.
+     *
+     * @return list<array{slug:string, type:string, module:?string, path:string, full:string}>
+     */
+    protected function coletarRecursivo(string $dir, string $base, string $type, string $slugPrefix): array
+    {
+        if (! is_dir($dir)) {
+            return [];
+        }
+
+        $arquivos = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::LEAVES_ONLY,
+        );
+
+        foreach ($iterator as $file) {
+            /** @var \SplFileInfo $file */
+            if (! $file->isFile() || strtolower($file->getExtension()) !== 'md') {
+                continue;
+            }
+
+            $name = $file->getBasename('.md');
+            if (str_starts_with($name, '_') || $name === 'README') {
+                continue;
+            }
+
+            // Caminho relativo POSIX a partir do diretório-raiz da subárvore.
+            $full = $file->getPathname();
+            $rel = ltrim(str_replace('\\', '/', substr($full, strlen($dir))), '/'); // ex: adr/ui/foo.md
+            $relSemExt = preg_replace('/\.md$/i', '', $rel);
+
+            // Slug determinístico: prefixo + caminho-relativo slugificado.
+            $slugTail = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $relSemExt));
+            $slugTail = trim((string) $slugTail, '-');
+            $slug = "$slugPrefix-$slugTail";
+
+            // git_path POSIX relativo ao repo (consistente com glob branches acima).
+            $gitPath = ltrim(str_replace('\\', '/', substr($full, strlen($base))), '/');
+
+            $arquivos[] = [
+                'slug'   => $slug,
+                'type'   => $type,
+                'module' => $this->detectarModulo($rel),
+                'path'   => $gitPath,
+                'full'   => $full,
+            ];
+        }
+
         return $arquivos;
     }
 
