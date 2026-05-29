@@ -33,15 +33,15 @@ services:
 
     environment:
       APP_ENV: staging
-      # DB_HOST resolvido pelo nome do container na rede docker-host_default
-      DB_HOST: mysql-workers
+      # MariaDB dedicado do staging (container oimpresso-staging-db, mesma engine da produção)
+      DB_HOST: oimpresso-staging-db
       DB_PORT: 3306
 
     # Sobrescreve o ENTRYPOINT Octane da imagem por um modo CLÁSSICO (sem workers).
     entrypoint: ["/bin/sh", "/var/www/html/docker/oimpresso-staging/entrypoint-staging.sh"]
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:80/login >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:80/ | grep -qE '^[234]' || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
