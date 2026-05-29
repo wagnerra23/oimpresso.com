@@ -1431,12 +1431,6 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
-			path: Modules/Brief/Services/BriefGeneratorService.php
-
-		-
-			message: '#^Method Modules\\Brief\\Services\\BriefGeneratorService\:\:targetTokens\(\) is unused\.$#'
-			identifier: method.unused
 			count: 1
 			path: Modules/Brief/Services/BriefGeneratorService.php
 
@@ -9244,7 +9238,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 5
+			count: 3
 			path: Modules/Governance/Config/config.php
 
 		-
@@ -9318,36 +9312,6 @@ parameters:
 			identifier: notIdentical.alwaysTrue
 			count: 3
 			path: Modules/Governance/Services/AuditDrillDownService.php
-
-		-
-			message: '#^Offset ''title'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Governance/Services/Checkers/NpmAuditChecker.php
-
-		-
-			message: '#^Argument of an invalid type Illuminate\\Routing\\RouteCollectionInterface supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: Modules/Governance/Services/Checkers/RoutesZombieChecker.php
-
-		-
-			message: '#^Constant Modules\\Governance\\Services\\Checkers\\RoutesZombieChecker\:\:DEFAULT_ZOMBIE_GRACE_DAYS is unused\.$#'
-			identifier: classConstant.unused
-			count: 1
-			path: Modules/Governance/Services/Checkers/RoutesZombieChecker.php
-
-		-
-			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PersistsDriftAlert is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: Modules/Governance/Services/Concerns/PersistsDriftAlert.php
-
-		-
-			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PublishesDriftToCentrifugo is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: Modules/Governance/Services/Concerns/PublishesDriftToCentrifugo.php
 
 		-
 			message: '#^Anonymous function should return Illuminate\\Support\\Collection\<string, int\<0, max\>\|list\<array\{module\: string, undeclared\: non\-empty\-list\<string\|null\>, undeclared_count\: int\<1, max\>, total_actual\: int\<0, max\>\}\|string\>\> but returns Illuminate\\Support\\Collection\<string, int\<0, max\>\|list\<array\{module\: string, undeclared\: non\-empty\-list\<string\|null\>, undeclared_count\: int\<1, max\>, total_actual\: int\<0, max\>\}\|string\>\>\.$#'
@@ -9496,7 +9460,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 71
+			count: 68
 			path: Modules/Jana/Config/config.php
 
 		-
