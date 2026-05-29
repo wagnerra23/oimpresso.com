@@ -42,6 +42,7 @@ class IndexRegenCommand extends Command
         'reference/PROTOCOLO-WAGNER-SEMPRE.md',
         '_INDEX-SECRETS.md',
         'governance/CONSTITUTION.md',
+        'governance/ARCHITECTURE.md', // arc42 — "como o sistema funciona / escopo / responsabilidades" (2026-05-29)
         'decisions/0094-constituicao-v2-7-camadas-8-principios.md',
         'decisions/0093-multi-tenant-isolation-tier-0.md',
         'decisions/0095-skills-tiers-convencao-interna.md',
