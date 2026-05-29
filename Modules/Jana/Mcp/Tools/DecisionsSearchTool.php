@@ -62,7 +62,7 @@ class DecisionsSearchTool extends Tool
         $rows = null;
         if (! $includeArchived && config('copiloto.mcp_search.docs_pipeline', false)) {
             try {
-                $hybrid = McpMemoryDocument::buscarHybrid($query, $limit, $user instanceof \App\User ? $user : null, 'adr');
+                $hybrid = McpMemoryDocument::buscarHybrid($query, $limit, $user instanceof \App\User ? $user : null, 'adr', null, $businessId);
                 if ($hybrid->isNotEmpty()) {
                     $rows = $hybrid;
                 }
