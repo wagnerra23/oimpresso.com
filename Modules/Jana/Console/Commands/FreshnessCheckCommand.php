@@ -50,6 +50,12 @@ class FreshnessCheckCommand extends Command
 
         $dryRun = (bool) $this->option('dry-run');
 
+        // BUG-1 fix (2026-05-29): injeta o path real do repo git no detector.
+        // Sem isso `repoBasePath` ficava null (default do construtor) e o drift
+        // tipo-SHA (git↔DB) nunca era avaliado. shell_exec ausente (Hostinger)
+        // degrada gracioso — lerGitShaAtual retorna null e o drift git é pulado.
+        $detector->comRepoBasePath(base_path());
+
         // Fase 1 — contagem por nível
         $contagem = $detector->contagemPorNivel();
 
