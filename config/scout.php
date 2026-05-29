@@ -140,9 +140,14 @@ return [
         'host' => env('MEILISEARCH_HOST', 'http://localhost:7700'),
         'key' => env('MEILISEARCH_KEY'),
         'index-settings' => [
-            // 'users' => [
-            //     'filterableAttributes'=> ['id', 'name', 'email'],
-            // ],
+            // mcp_memory_documents — `business_id` filterable = pré-req multi-tenant
+            // (Tier 0, ADR 0093) pra rotear as tools MCP pelo hybrid SEM vazar tenant
+            // (SPEC-retrieval-tools-mcp-unificado, gap #2). Filtro alvo no search:
+            // "business_id IS NULL OR business_id = X" (espelha doBusiness()).
+            // Aplicar em prod/CT 100 com: php artisan scout:sync-index-settings
+            'mcp_memory_documents' => [
+                'filterableAttributes' => ['business_id', 'type', 'status', 'module'],
+            ],
         ],
     ],
 

@@ -28,11 +28,12 @@ O chat tem retrieval estado-da-arte (`MeilisearchDriver`: hybrid+HyDE+RRF+time-d
 
 ## User stories (recalibradas ADR 0106)
 
-### US-RET-001 — Embeddings no corpus do time (`mcp_memory_documents`) · P0 · ~3-5h
-- Configurar embedder (`text-embedding-3-small` ou `qwen3_local`, alinhar com o índice do chat) no índice Scout de `McpMemoryDocument`.
-- `toSearchableArray` + `shouldBeSearchable` revisados; backfill via `scout:import`.
-- **Pré-req de tudo abaixo** — sem semântica no corpus, hybrid não tem o que recuperar. Sem bloqueio (Meilisearch já roda — ADR 0058).
-- **Aceite:** `McpMemoryDocument::search()` retorna por similaridade semântica; smoke cross-tenant (biz=1 vs biz=99) não vaza.
+### US-RET-001 — Embeddings + `business_id` no índice do corpus · P0 · 🟡 EM PARTE FEITO
+> **Correção 2026-05-29:** o estado-da-arte disse "sem embeddings" — **errado**. `McpMemoryDocument` **já tem Scout/Meilisearch hybrid + embedder** (Sprint 9, ADR 0068) + Contextual Retrieval. O embedder JÁ existe.
+> O pré-req real que faltava era **multi-tenant**: `toSearchableArray` **não emitia `business_id`** → rotear as tools pelo Scout vazaria tenant (P0).
+- ✅ **Feito (PR desta US):** `business_id` adicionado a `toSearchableArray` (NULL = doc plataforma) + `filterableAttributes` em `config/scout.php` + Pest (`McpMemoryDocumentTenantIndexTest`). PHPStan limpo (`@property` anotado).
+- ⏳ **Pendente (deploy CT 100, não-código):** `php artisan scout:sync-index-settings` + `scout:import "Modules\Jana\Entities\Mcp\McpMemoryDocument"` (reindex com o novo campo). Verificar embedder ativo no índice.
+- **Aceite:** após reindex, `McpMemoryDocument::search()->where('business_id', …)` filtra por tenant; smoke biz=1 vs biz=99 não vaza.
 
 ### US-RET-002 — Retriever business-scoped reutilizável · P0 · ~2-3h
 - Novo método/serviço de retrieval hybrid sobre `mcp_memory_documents` que recebe **`businessId` (sem `userId`)** + filtros de tipo/lifecycle, reaproveitando a lógica de hybrid+RRF+rerank+decay do `MeilisearchDriver` (extrair o que é genérico; NÃO copiar o filtro user).
