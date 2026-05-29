@@ -100,7 +100,7 @@ export default function FeatureFlagsShow({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link
             href={route('admin.feature-flags.index')}
-            className="text-blue-600 hover:underline"
+            className="text-primary hover:underline"
           >
             ← Feature Flags
           </Link>

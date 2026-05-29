@@ -104,11 +104,11 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                     <Badge variant="outline">{c.gap_minutes}min entre eventos</Badge>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap text-xs">
-                    <Link href={`/ads/admin/decisoes/${c.decision_a.id}`} className="text-blue-600 hover:underline">
+                    <Link href={`/ads/admin/decisoes/${c.decision_a.id}`} className="text-primary hover:underline">
                       #{c.decision_a.id} {c.decision_a.event_type} → {c.decision_a.destination}
                     </Link>
                     <span className="text-muted-foreground">⟷</span>
-                    <Link href={`/ads/admin/decisoes/${c.decision_b.id}`} className="text-blue-600 hover:underline">
+                    <Link href={`/ads/admin/decisoes/${c.decision_b.id}`} className="text-primary hover:underline">
                       #{c.decision_b.id} {c.decision_b.event_type} → {c.decision_b.destination}
                     </Link>
                   </div>
@@ -167,7 +167,7 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               {judgment_conflicts.map((c, i) => (
                 <li key={i} className="text-sm space-y-1 border-l-2 border-blue-300 pl-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Link href={`/ads/admin/decisoes/${c.decision_id}`} className="text-blue-600 hover:underline font-medium">
+                    <Link href={`/ads/admin/decisoes/${c.decision_id}`} className="text-primary hover:underline font-medium">
                       #{c.decision_id} {c.event_type}
                     </Link>
                     <Badge variant="outline">{c.domain}</Badge>
