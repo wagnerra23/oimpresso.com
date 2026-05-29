@@ -299,7 +299,7 @@ function MyWorkIndex({
         <section
           className={[
             'rounded-xl border bg-muted/20 p-4 transition-all',
-            focus === 'work' ? 'ring-2 ring-blue-400/60' : 'opacity-90',
+            focus === 'work' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
           onClick={() => setFocus('work')}
         >
@@ -369,7 +369,7 @@ function MyWorkIndex({
         <section
           className={[
             'rounded-xl border bg-muted/20 p-4 transition-all',
-            focus === 'inbox' ? 'ring-2 ring-blue-400/60' : 'opacity-90',
+            focus === 'inbox' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
           onClick={() => setFocus('inbox')}
         >
@@ -433,7 +433,7 @@ function MyWorkIndex({
                   }}
                   className={[
                     'group flex items-start gap-2 p-2 rounded-md text-left transition-colors hover:bg-muted',
-                    focus === 'inbox' && selectedInboxId === item.id ? 'bg-muted ring-1 ring-blue-400/60' : '',
+                    focus === 'inbox' && selectedInboxId === item.id ? 'bg-muted ring-1 ring-primary/60' : '',
                     wasRead ? 'opacity-60' : '',
                   ].filter(Boolean).join(' ')}
                 >

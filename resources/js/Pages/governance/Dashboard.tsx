@@ -222,7 +222,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 <span className="text-amber-600">📋</span>
                 ADRs aguardando você ({pending_adrs.length})
               </h3>
-              <Link href="/copiloto/admin/memoria?type=adr" className="text-sm text-blue-600 hover:underline">
+              <Link href="/copiloto/admin/memoria?type=adr" className="text-sm text-primary hover:underline">
                 ver todos →
               </Link>
             </div>
@@ -235,7 +235,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                   <li key={adr.slug} className="flex items-start gap-2 text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2 last:border-0">
                     <Link
                       href={`/copiloto/admin/memoria/${adr.slug}`}
-                      className="font-mono text-xs text-blue-600 hover:underline shrink-0"
+                      className="font-mono text-xs text-primary hover:underline shrink-0"
                     >
                       {adr.slug.split('-')[0]}
                     </Link>
@@ -256,7 +256,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 <span className="text-zinc-700 dark:text-zinc-300">📊</span>
                 Audit Highlights 24h ({audit_highlights.length})
               </h3>
-              <Link href="/governance/audit" className="text-sm text-blue-600 hover:underline">
+              <Link href="/governance/audit" className="text-sm text-primary hover:underline">
                 drill-down →
               </Link>
             </div>
@@ -297,7 +297,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 <span className="text-zinc-700 dark:text-zinc-300">🤖</span>
                 Narrativas Brain A 24h ({narratives.length})
               </h3>
-              <Link href="/copiloto/admin/memoria?type=narrative" className="text-sm text-blue-600 hover:underline">
+              <Link href="/copiloto/admin/memoria?type=narrative" className="text-sm text-primary hover:underline">
                 histórico →
               </Link>
             </div>
@@ -361,14 +361,14 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         <CardContent className="p-4">
           <h3 className="text-lg font-semibold mb-3">Documentos canônicos</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/CONSTITUTION.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">📜 Constituição v1.1.0</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/TRUST-TIERS.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">🔐 Trust Tiers</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ARCHITECTURE.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">🏗️ Architecture</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/IDENTITY-MESH.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">👥 Identity Mesh</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ENFORCEMENT.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">🛡️ Enforcement (8 mecanismos)</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">📐 Drift Migration Plan</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/audit-2026-05-05-v1.1.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">📋 Audit cascata v1.1</a>
-            <Link href="/copiloto/admin/memoria" className="text-blue-600 hover:underline">📚 KB completo →</Link>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/CONSTITUTION.md" target="_blank" rel="noreferrer" className="text-primary hover:underline">📜 Constituição v1.1.0</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/TRUST-TIERS.md" target="_blank" rel="noreferrer" className="text-primary hover:underline">🔐 Trust Tiers</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ARCHITECTURE.md" target="_blank" rel="noreferrer" className="text-primary hover:underline">🏗️ Architecture</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/IDENTITY-MESH.md" target="_blank" rel="noreferrer" className="text-primary hover:underline">👥 Identity Mesh</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ENFORCEMENT.md" target="_blank" rel="noreferrer" className="text-primary hover:underline">🛡️ Enforcement (8 mecanismos)</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md" target="_blank" rel="noreferrer" className="text-primary hover:underline">📐 Drift Migration Plan</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/audit-2026-05-05-v1.1.md" target="_blank" rel="noreferrer" className="text-primary hover:underline">📋 Audit cascata v1.1</a>
+            <Link href="/copiloto/admin/memoria" className="text-primary hover:underline">📚 KB completo →</Link>
           </div>
         </CardContent>
       </Card>

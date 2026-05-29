@@ -203,7 +203,7 @@ function CacambaCardImpl({ cacamba, variant, onClick }: Props) {
       {...listeners}
       className={`${cardBg} ${opacityClass} relative rounded border border-t-2 ${cardBaseBorder} ${TOP_BORDER_COLOR[variant]} p-3 transition-colors ${
         isDragging
-          ? 'opacity-50 cursor-grabbing ring-2 ring-blue-400 ring-offset-1'
+          ? 'opacity-50 cursor-grabbing ring-2 ring-primary/60 ring-offset-1'
           : 'cursor-grab active:cursor-grabbing hover:shadow-sm'
       }`}
       onClick={(e) => {

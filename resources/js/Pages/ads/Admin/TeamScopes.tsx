@@ -105,7 +105,7 @@ const TeamScopes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = (
                     <button
                       type="button"
                       onClick={() => setSelectedUser(u)}
-                      className={`w-full text-left px-4 py-3 hover:bg-muted/50 ${selectedUser?.id === u.id ? 'bg-blue-50' : ''}`}
+                      className={`w-full text-left px-4 py-3 hover:bg-muted/50 ${selectedUser?.id === u.id ? 'bg-primary/5' : ''}`}
                     >
                       <div className="font-medium text-sm">{u.name}</div>
                       <div className="text-xs text-muted-foreground">{u.email}</div>

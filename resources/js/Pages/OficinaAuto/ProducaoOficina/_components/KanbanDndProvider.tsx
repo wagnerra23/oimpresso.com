@@ -51,7 +51,7 @@ interface KanbanDndProviderProps {
 function CardDragPreview({ cacamba }: { cacamba: CacambaCardData }) {
   return (
     <div
-      className="bg-white border-2 border-blue-500 rounded shadow-lg p-3 max-w-[260px] cursor-grabbing rotate-2 opacity-95"
+      className="bg-white border-2 border-primary rounded shadow-lg p-3 max-w-[260px] cursor-grabbing rotate-2 opacity-95"
       role="presentation"
       aria-hidden="true"
     >
