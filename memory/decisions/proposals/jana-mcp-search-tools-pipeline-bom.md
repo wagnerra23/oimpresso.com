@@ -34,6 +34,31 @@ As tools MCP de busca — que o time inteiro consome — usam **FULLTEXT puro**:
 Efeito: o Claude/time recupera **pior do que poderia** — sem expansão semântica,
 sem decay temporal (ADR velho pesa igual a recente), sem rerank, sem Peso Real.
 
+## ⚠️ Constraint crítico (Wagner, 2026-05-29): memória é da EMPRESA
+
+A memória do oimpresso é **business-level** — fatos pertencem ao `business`, não ao
+usuário. Funcionário **ainda não foi projetado** pra ter memória individual. Logo,
+busca de memória **NÃO deve filtrar por `user_id`**.
+
+**Problema descoberto:** o pipeline bom (`MeilisearchDriver::buscarInterno`) tem
+`business_id = X AND user_id = Y` **hardcoded** no filtro Meilisearch ([L~129](../../../Modules/Jana/Services/Memoria/MeilisearchDriver.php#L120)).
+O recall do chat em prod já passa `userId: $conv->user_id` ([LaravelAiSdkDriver L568](../../../Modules/Jana/Services/Ai/LaravelAiSdkDriver.php#L568))
+— então **o escopo-por-usuário já existe hoje no chat** e contradiz o modelo de
+memória de empresa. Os ADRs seedados são `user_id=1` → outro funcionário não os veria.
+
+**Implicação pra gap #2:** rotear as tools MCP por `buscar(biz, user)` como está
+**ESTRAGARIA as regras empresariais** (estreitaria pra 1 usuário, perdendo os fatos
+da empresa). A tool `memoria-search` HOJE é corretamente **business-only** (FULLTEXT
+filtra só `business_id`, sem `user_id` — [L92-93](../../../Modules/Jana/Mcp/Tools/MemoriaSearchTool.php#L92)).
+
+**Pré-requisito do gap #2 (novo):** o pipeline precisa de uma variante
+**business-scoped** — `buscar(businessId, query, topK)` sem `user_id` (ou `userId`
+opcional que, quando ausente, sai do filtro). Sem isso, nenhuma das áreas abaixo pode
+ligar com segurança. Decidir também se o **chat** deve migrar pra business-scope
+(provável bug latente — fora do escopo desta proposta, decisão Wagner).
+
+> Tentativa de Área A user-scoped foi convertida pra **draft em #1922** por causa disto.
+
 ## A sutileza que impede o "swap único"
 
 O pipeline bom (`MemoriaContrato::buscar`) opera sobre **`jana_memoria_facts`**
@@ -41,10 +66,11 @@ O pipeline bom (`MemoriaContrato::buscar`) opera sobre **`jana_memoria_facts`**
 buscam **`mcp_memory_documents`** (o *markdown completo* do ADR). São índices
 diferentes. Logo o gap #2 não é uniforme — divide em 3 áreas com risco distinto:
 
-### Área A — `memoria-search` → `MemoriaContrato::buscar` (BAIXO risco)
-Mesma tabela (`jana_memoria_facts`). Swap direto pro `buscar(bizId, userId, query, topK)`.
-O próprio comentário do tool já antecipa isso ([L90-91](../../../Modules/Jana/Mcp/Tools/MemoriaSearchTool.php#L90)).
-Multi-tenant já resolvido (o driver scopa por business+user). **Flag + fallback FULLTEXT.**
+### Área A — `memoria-search` → pipeline **business-scoped** (BAIXO risco *após* o pré-req)
+Mesma tabela (`jana_memoria_facts`). **NÃO** é o swap direto pro `buscar(bizId, userId,…)`
+— isso estreitaria pra 1 usuário (ver constraint acima). Precisa da variante
+business-scoped do pipeline primeiro. Só então: flag + fallback FULLTEXT business-only.
+A tentativa user-scoped (#1922) ficou em **draft**.
 
 ### Área B — `decisions-search` (MÉDIO risco — depende de decisão)
 Duas opções:
@@ -74,10 +100,11 @@ preservada.
 3. **Gate golden-set ANTES de ligar default**: rodar `copiloto:eval` (recall@5) com
    pipeline ON vs FULLTEXT sobre um golden set de ~20 queries reais do time. Só vira
    default se recall não regredir (≥ baseline). Sem isso, fica flag-off.
-4. **Multi-tenant Tier 0** (ADR 0093): o token MCP resolve user→business; cada tool
-   já asserta cross-tenant. O `buscar()` recebe business+user explícitos.
-5. **Sequência**: Área A (baixo risco, valida o padrão flag+fallback) → golden set →
-   Áreas B+C juntas (mesma decisão B1).
+4. **Business-scoped, NÃO user-scoped** (constraint acima): variante de `buscar`
+   sem filtro `user_id` é **pré-requisito** de todas as áreas. Multi-tenant Tier 0
+   (ADR 0093) preservado: filtro por `business_id` + cross-tenant assert em cada tool.
+5. **Sequência**: (0) criar variante business-scoped do pipeline → (A) `memoria-search`
+   valida o padrão flag+fallback → golden set → (B+C) `decisions-search`/`kb-answer`.
 
 ## Custo / risco
 
@@ -87,9 +114,12 @@ preservada.
 
 ## Decisão pendente de Wagner
 
-- [ ] Aprovar o paradigma (tools MCP via pipeline bom, flag-gated)?
+- [ ] Confirmar: memória é **business-level** (sem user_id no recall)? → exige variante
+      business-scoped do pipeline como pré-req.
+- [ ] O **chat** (recall user-scoped hoje, LaravelAiSdkDriver L568) deve migrar pra
+      business-scope também? (bug latente — fora do escopo, mas relacionado)
+- [ ] Aprovar o paradigma (tools MCP via pipeline bom business-scoped, flag-gated)?
 - [ ] B1 (buscar fatos seedados) vs B2 (generalizar driver pros docs)?
-- [ ] Implementar Área A já (flag-off, reversível) OU esperar ADR aceita?
 
 ## Relacionado
 
