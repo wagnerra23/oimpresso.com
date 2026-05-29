@@ -77,10 +77,10 @@ function pesoInvokePesoReal(MeilisearchDriver $driver, array $candidatos, Collec
 
 it('flag OFF (default) NÃO reordena — saída idêntica ao applyTimeDecay (não-regressão)', function () {
     // Default canônico do config.php: retrieval_enabled = false.
-    // O driver só chama applyPesoReal se config('jana.peso_real.retrieval_enabled').
+    // O driver só chama applyPesoReal se config('copiloto.peso_real.retrieval_enabled').
     // Aqui provamos que, com a flag OFF, o array que iria pro reranker é EXATAMENTE
     // a saída do applyTimeDecay — byte-idêntico ao pipeline legado.
-    config(['jana.peso_real.retrieval_enabled' => false]);
+    config(['copiloto.peso_real.retrieval_enabled' => false]);
     config([
         'copiloto.time_decay.enabled'            => true,
         'copiloto.time_decay.temporal_weight'    => 0.4,
@@ -98,7 +98,7 @@ it('flag OFF (default) NÃO reordena — saída idêntica ao applyTimeDecay (nã
     $candidatos = pesoInvokeTimeDecay($driver, $merged);
 
     // Simula o guard do buscarInterno: flag OFF → NÃO chama applyPesoReal.
-    $resultado = config('jana.peso_real.retrieval_enabled')
+    $resultado = config('copiloto.peso_real.retrieval_enabled')
         ? pesoInvokePesoReal($driver, $candidatos, $merged)
         : $candidatos;
 
@@ -112,7 +112,7 @@ it('config default de retrieval_enabled é false (segurança máxima)', function
     // Como o arquivo é merged sob `copiloto`, a chave `jana.*` resolve null em
     // runtime real → falsy → OFF. Ambos os caminhos garantem OFF por default.
     $copiloto = config('copiloto.peso_real.retrieval_enabled');
-    $jana     = config('jana.peso_real.retrieval_enabled');
+    $jana     = config('copiloto.peso_real.retrieval_enabled');
 
     expect((bool) $copiloto)->toBeFalse();
     expect((bool) $jana)->toBeFalse();
@@ -121,7 +121,7 @@ it('config default de retrieval_enabled é false (segurança máxima)', function
 // ── 2. flag ON — Peso Real reordena decisões por lifecycle (sem decay) ─────
 
 it('flag ON — ADR accepted reordena ACIMA de ADR superseded (decisão evergreen)', function () {
-    config(['jana.peso_real.retrieval_enabled' => true]);
+    config(['copiloto.peso_real.retrieval_enabled' => true]);
     config([
         'copiloto.time_decay.enabled'            => true,
         'copiloto.time_decay.temporal_weight'    => 0.4,
@@ -154,7 +154,7 @@ it('flag ON — ADR accepted reordena ACIMA de ADR superseded (decisão evergree
 });
 
 it('flag ON — respeita relevancia_meta do metadata quando a Área B já populou', function () {
-    config(['jana.peso_real.retrieval_enabled' => true]);
+    config(['copiloto.peso_real.retrieval_enabled' => true]);
     config(['copiloto.time_decay.enabled' => true]);
 
     $driver = new MeilisearchDriver();
@@ -177,7 +177,7 @@ it('flag ON — respeita relevancia_meta do metadata quando a Área B já populo
 // ── 3. flag ON — robustez: não crasha com metadata ausente ────────────────
 
 it('flag ON — não crasha com metadata ausente (fallback inferência)', function () {
-    config(['jana.peso_real.retrieval_enabled' => true]);
+    config(['copiloto.peso_real.retrieval_enabled' => true]);
     config(['copiloto.time_decay.enabled' => true]);
 
     $driver = new MeilisearchDriver();
@@ -208,7 +208,7 @@ it('flag ON — não crasha com metadata ausente (fallback inferência)', functi
 });
 
 it('flag ON — memória (session) mantém o decay temporal já aplicado em 3.5', function () {
-    config(['jana.peso_real.retrieval_enabled' => true]);
+    config(['copiloto.peso_real.retrieval_enabled' => true]);
     config([
         'copiloto.time_decay.enabled'            => true,
         'copiloto.time_decay.temporal_weight'    => 0.4,

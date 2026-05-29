@@ -485,10 +485,10 @@ return [
         //
         // NOTA de namespace: este arquivo é merged como `copiloto.*`
         // (JanaServiceProvider::registerConfig). O driver lê via
-        // config('jana.peso_real.retrieval_enabled') — chave que HOJE resolve
-        // pra null em runtime real (não há mergeConfigFrom 'jana.peso_real'),
+        // config('copiloto.peso_real.retrieval_enabled') — chave que HOJE resolve
+        // pra null em runtime real (não há mergeConfigFrom 'copiloto.peso_real'),
         // ou seja: OFF por default em prod, garantido. Para LIGAR em homolog,
-        // Wagner registra o merge `jana.peso_real` OU seta via config() runtime.
+        // Wagner registra o merge `copiloto.peso_real` OU seta via config() runtime.
         // Os testes exercitam ON via config([...]) em runtime (independe do merge).
         'retrieval_enabled' => false,
 

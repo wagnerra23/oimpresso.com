@@ -173,10 +173,10 @@ class MeilisearchDriver implements MemoriaContrato
         //   - MEMÓRIA (session/handoff/fato): mantém o decay já aplicado em 3.5
         //
         // SEGURANÇA MÁXIMA: passo guardado por feature-flag OFF por default
-        // (config('jana.peso_real.retrieval_enabled')). Com a flag OFF o pipeline
+        // (config('copiloto.peso_real.retrieval_enabled')). Com a flag OFF o pipeline
         // é BYTE-IDÊNTICO ao legado — $candidatos flui intacto pro reranker.
         // Wagner liga conscientemente em homolog após validação.
-        if (config('jana.peso_real.retrieval_enabled')) {
+        if (config('copiloto.peso_real.retrieval_enabled')) {
             $candidatos = $this->applyPesoReal($candidatos, $merged);
         }
 
@@ -392,7 +392,7 @@ class MeilisearchDriver implements MemoriaContrato
      * com um campo canônico `relevancia_meta` no frontmatter/metadata. Quando
      * o metadata já trouxer `relevancia_meta`, este passo o respeita.
      *
-     * SÓ é chamado quando config('jana.peso_real.retrieval_enabled') === true.
+     * SÓ é chamado quando config('copiloto.peso_real.retrieval_enabled') === true.
      * Com a flag OFF este método nunca executa (comportamento legado intacto).
      *
      * Multi-tenant Tier 0 (ADR 0093): opera sobre material já scoped por
