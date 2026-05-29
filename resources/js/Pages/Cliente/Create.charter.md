@@ -3,14 +3,14 @@ page: /contacts/create
 component: resources/js/Pages/Cliente/Create.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-15
+last_validated: 2026-05-29
 parent_module: Cliente
-related_adrs: [0110, 0107, 0093, 0094, 0104, 0149]
+related_adrs: [0110, 0107, 0093, 0094, 0104, 0149, 0235]
 tier: A
-charter_version: 1
+charter_version: 2
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/prototipos/clientes/"
-  blueprint_screenshot_approval: "SYNC_LOG (pendente)"
+  blueprint_screenshot_approval: "Wagner 2026-05-29 — PR-A Onda F (componentes aprovados; Create elevado pendente)"
   derived_screens: [Create]
   divergence_from_blueprint: "none"
 ---
@@ -29,8 +29,11 @@ Formulário de cadastro de novo cliente/fornecedor — substitui Blade `contact.
 - 4 seções: Identificação · Contato · Endereço · Financeiro
 - Validação client-side básica (required) + display de errors server-side via useForm.errors
 - Pre-fill via query `?prefill_name=` (vindo do CustomerSearchAutocomplete em Sells/Create)
-- Radio person/business em UI canon (radio nativo, não fancy)
-- Dropdown customer_group_id (eager-load — apenas N customer_groups, leve)
+- **Segmented PF/PJ** (DS v4 Onda F · `@/Components/ui/segmented`) — substitui o radio nativo
+- `<Select>` customer_group_id (eager-load — apenas N customer_groups, leve)
+- Lookup CNPJ via BrasilAPI (DadosFiscaisBRSection · `InputGroup` + `FieldSuccess`)
+- **Rail de contexto** sticky — preview vivo + prontidão fiscal client-side (PR-A; copiloto IA = PR-A2)
+- Corpo compartilhado `_form/ClienteForm` (Create + Edit dividem ~90%)
 - Submit via Inertia POST `/contacts` — backend valida e retorna redirect ou errors
 - PT-BR labels obrigatório
 
