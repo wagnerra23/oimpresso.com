@@ -70,6 +70,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\FreshnessCheckCommand::class, // GAP D7 #2 auditoria 2026-05-15 — freshness pipeline (4 níveis + drift + alert + reindex)
                 \Modules\Jana\Console\Commands\JanaDriftSentinelCommand::class, // Wave 23 §G2 — canary semanal drift Jana (faithfulness vs baseline)
                 \Modules\Jana\Console\Commands\RetentionPurgeCommand::class, // G1 P0 AUDIT-SENIOR-2026-05-25 — D7.d LGPD purge (Art. 16 + Art. 18 §VI)
+                \Modules\Jana\Console\Commands\IndexRegenCommand::class, // regressão 2026-05-29 — gate integridade/priorização memory/INDEX.md (Tier 0 + links + contagens)
             ]);
         }
     }
