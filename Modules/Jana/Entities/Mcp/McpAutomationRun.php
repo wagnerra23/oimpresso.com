@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,6 +14,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * Sem business_id by design — herda a natureza global de McpAutomation (infra
  * de plataforma, ADR 0093 exceção). O registry não lê dados de tenant.
+ *
+ * @property int     $id
+ * @property int     $automation_id
+ * @property Carbon  $ran_at
+ * @property string  $status          ok|warn|fail|skip
+ * @property ?string $detail
+ * @property ?string $actor           scheduler|claude-code:SessionStart|username...
+ * @property ?Carbon $created_at
+ * @property ?Carbon $updated_at
  */
 class McpAutomationRun extends Model
 {

@@ -2,6 +2,7 @@
 
 namespace Modules\Jana\Entities\Mcp;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,6 +21,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * automações custom por-tenant no futuro, SEM scope global aplicado aqui:
  * o registry nunca lê dados de negócio, só arquivos do repo — uma query
  * scoped esconderia rows globais no contexto do daemon MCP (errado).
+ *
+ * @property int     $id
+ * @property string  $slug             basename do hook / comando do cron / slug do manifesto
+ * @property ?int    $business_id      NULL = global (infra de plataforma, ADR 0093)
+ * @property string  $tipo             hook_sessionstart|hook_pretooluse|hook_posttooluse|cron|routine|webhook
+ * @property string  $gatilho          matcher do hook / expressão cron / descrição do trigger
+ * @property ?string $descricao
+ * @property string  $arquivo          path relativo ao repo
+ * @property ?string $owner
+ * @property ?string $governed_by_adr  slug do ADR que governa esta automação
+ * @property bool    $enabled
+ * @property ?Carbon $last_run_at
+ * @property ?string $last_status      ok|warn|fail|skip
+ * @property ?string $last_detail
+ * @property ?Carbon $created_at
+ * @property ?Carbon $updated_at
  */
 class McpAutomation extends Model
 {

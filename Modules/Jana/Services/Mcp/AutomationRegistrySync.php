@@ -271,12 +271,17 @@ class AutomationRegistrySync
                     }
                     // Primeiro evento que registra o hook vence (um hook pode estar em
                     // múltiplos eventos; o gatilho concatena matcher + evento real).
-                    if (! isset($mapa[$basename])) {
-                        $mapa[$basename] = [
-                            'tipo'    => $tipo,
-                            'gatilho' => "{$evento}:{$matcher}",
-                        ];
+                    // Guard-clause em vez de `if (!isset) { assign }`: NÃO é fallback
+                    // silencioso (ADR 0212) — é dedup determinístico, o 1º valor é o
+                    // dado real, não um default que mascara ausência.
+                    if (isset($mapa[$basename])) {
+                        continue;
                     }
+
+                    $mapa[$basename] = [
+                        'tipo'    => $tipo,
+                        'gatilho' => "{$evento}:{$matcher}",
+                    ];
                 }
             }
         }
