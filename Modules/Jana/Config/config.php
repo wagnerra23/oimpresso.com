@@ -483,11 +483,11 @@ return [
         ],
 
         // (b) MEMÓRIA — meia-vida default do decay exponencial, em dias (ADR 0195).
-        'half_life' => (int) env('JANA_PESO_REAL_HALF_LIFE', 60),
+        'half_life' => 60,
 
         // (b) MEMÓRIA — piso crítico (fração de relevancia_meta). Memória que
         // protege cliente pagante não cai abaixo deste piso, mesmo velha.
-        'piso_critico' => (float) env('JANA_PESO_REAL_PISO_CRITICO', 0.5),
+        'piso_critico' => 0.5,
 
         // (c) INICIATIVA — sinal de cliente (ADR 0105).
         'sinal' => [
