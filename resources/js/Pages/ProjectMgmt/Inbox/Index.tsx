@@ -237,6 +237,7 @@ function InboxIndex({ inbox = [], inbox_stats = EMPTY_INBOX_STATS, filters }: Pr
       <PageHeader
         icon="Inbox"
         title="Caixa de entrada"
+        moduleNav
         description={`${inbox_stats.unread} não-lidas · ${inbox_stats.total_30d} nos últimos 30 dias`}
         action={
           <div className="flex items-center gap-2">
