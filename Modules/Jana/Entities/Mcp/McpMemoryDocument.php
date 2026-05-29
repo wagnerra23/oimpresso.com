@@ -135,7 +135,10 @@ class McpMemoryDocument extends Model
      */
     public static function buscarHybrid(string $query, int $limit, ?\App\User $user, ?string $tipo = null, ?string $module = null): \Illuminate\Database\Eloquent\Collection
     {
-        $embedder = (string) config('copiloto.memoria.meilisearch.embedder', 'qwen3_local');
+        // Embedder do índice mcp_memory_documents (verificado live CT 100: nomic_local +
+        // qwen3_local). NÃO usar copiloto.memoria.meilisearch.embedder — essa é a do chat
+        // (jana_memoria_facts), que no prod resolve 'openai' e NÃO existe neste índice.
+        $embedder = (string) config('copiloto.mcp_search.docs_embedder', 'qwen3_local');
         $ratio    = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.6);
 
         $filtros = ["status IN ['aceito','accepted','accepted-historical']"];
