@@ -19,18 +19,18 @@ declare(strict_types=1);
 
 const CONTROLLER_PATH_EDIT = 'app/Http/Controllers/SellController.php';
 
-function readEditController(): string
+function readSellEditController(): string
 {
     return file_get_contents(base_path(CONTROLLER_PATH_EDIT));
 }
 
 it('Método edit($id) está declarado e público', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     expect($source)->toMatch('/public function edit\(\$id\)/');
 });
 
 it('edit() bloqueia se sem permissão direct_sell.update E sem so.update (403)', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     expect($editBlock)->toMatch("/can\\('direct_sell\\.update'\\)/");
@@ -39,7 +39,7 @@ it('edit() bloqueia se sem permissão direct_sell.update E sem so.update (403)',
 });
 
 it('edit() preserva guard canBeEdited (transaction_edit_days)', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     expect($editBlock)->toContain('canBeEdited');
@@ -47,42 +47,42 @@ it('edit() preserva guard canBeEdited (transaction_edit_days)', function () {
 });
 
 it('edit() preserva guard isReturnExist (não pode editar venda com devolução)', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     expect($editBlock)->toContain('isReturnExist');
 });
 
 it('edit() respeita Tier 0 multi-tenant (business_id ADR 0093)', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     expect($editBlock)->toContain("where('business_id', \$business_id)");
 });
 
 it('edit() restringe Transaction type a [sell, sales_order]', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     expect($editBlock)->toContain("whereIn('type', ['sell', 'sales_order'])");
 });
 
 it('edit() usa findorfail($id) (404 se venda doutra biz)', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     expect($editBlock)->toMatch('/findorfail\(\$id\)/i');
 });
 
 it('edit() preserva view sell.edit (Blade legacy fallback)', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     expect($editBlock)->toContain("view('sell.edit')");
 });
 
 it('edit() NÃO menciona current_stage_id (FSM safety ADR 0143)', function () {
-    $source = readEditController();
+    $source = readSellEditController();
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
     $editBlock = $matches[0] ?? '';
     // Trait GuardsFsmTransitions bloqueia. Edit não deve tentar set direto.
