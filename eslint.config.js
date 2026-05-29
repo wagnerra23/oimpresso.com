@@ -111,6 +111,58 @@ export default [
     },
   },
 
+  // === DS guard (ds/*) — anti-drift · ratchet ADR 0209 ===
+  // Escopo: TELAS (Pages/** + Modules/**). NÃO roda em Components/ui/** (camada
+  // canônica onde os padrões legitimamente vivem) nem em Pages/_Showcase/** (stories).
+  // Severidade `warn` — o ratchet (config/eslint-baseline.json) trata como gate por
+  // delta>0: baseline absorve o hand-roll atual; PR novo que hand-rolar regride.
+  // Selectors casam Literal puro E dentro de BinaryExpression/CallExpression (clsx).
+  // Ref: prototipo-ui/REGRAS_DS_LINT.md §1 · REGISTRY_DS_COMPONENTES.md · PR-A 9d28f56a0
+  {
+    files: [
+      'resources/js/Pages/**/*.{ts,tsx}',
+      'resources/js/Modules/**/*.{ts,tsx}',
+    ],
+    ignores: [
+      'resources/js/Components/ui/**',
+      'resources/js/Pages/_Showcase/**',
+    ],
+    rules: {
+      'no-restricted-syntax': ['warn',
+        {
+          // radio nativo → RadioGroup / Segmented. Dispara no atributo type="radio".
+          selector: 'JSXAttribute[name.name="type"][value.value="radio"]',
+          message: 'ds/no-native-radio — use <RadioGroup> (@/Components/ui/radio-group) ou <Segmented> pra toggle 2–3 opções. Ver REGISTRY_DS_COMPONENTES.md.',
+        },
+        {
+          // checkbox nativo → Checkbox
+          selector: 'JSXAttribute[name.name="type"][value.value="checkbox"]',
+          message: 'ds/no-native-checkbox — use <Checkbox> (@/Components/ui/checkbox).',
+        },
+        {
+          // select nativo → Select. <select> lowercase = nativo; <Select> Radix não casa.
+          selector: 'JSXOpeningElement[name.name="select"]',
+          message: 'ds/no-native-select — use <Select> (@/Components/ui/select).',
+        },
+        {
+          // rounded-xl+ proibido (charter): radius máximo é rounded-md/lg
+          selector: 'JSXAttribute[name.name="className"] Literal[value=/\\brounded-(xl|2xl|3xl)\\b/]',
+          message: 'ds/no-rounded-xl — radius máximo é rounded-lg (12px). Charter CLAUDE_DESIGN_BRIEFING §4.',
+        },
+        {
+          // cor arbitrária (bg-[#..], text-[#..], border-[#..]…) → token semântico
+          selector: 'JSXAttribute[name.name="className"] Literal[value=/(bg|text|border|ring|fill|stroke)-\\[#/]',
+          message: 'ds/no-arbitrary-color — sem hex cru. Use token semântico (bg-muted, text-foreground, border-border, text-destructive…).',
+        },
+        {
+          // texto de status colorido na mão → FieldError/FieldSuccess/Alert
+          selector: 'JSXAttribute[name.name="className"] Literal[value=/\\btext-(rose|red|emerald|green)-(500|600|700)\\b/]',
+          message: 'ds/no-adhoc-status-text — use <FieldError>/<FieldSuccess> ou <Alert> (cores semânticas), não text-rose/emerald cru.',
+        },
+      ],
+    },
+  },
+
   // JS files (vite.config.js, etc) — config legibility only
   {
     files: ['**/*.{js,mjs,cjs}'],
