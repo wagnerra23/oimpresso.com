@@ -54,10 +54,13 @@ class MeilisearchIndexSetupCommand extends Command
 
         $this->info("Meilisearch index setup → {$host}".($dry ? ' [DRY-RUN]' : ''));
 
+        $matched = false;
+
         foreach ($indexes as $uid => $cfg) {
             if ($alvo !== 'all' && $alvo !== $uid) {
                 continue;
             }
+            $matched = true;
 
             $payload   = $this->payloadPara($cfg);
             $embedders = implode(', ', array_keys($cfg['embedders'] ?? []));
@@ -81,6 +84,12 @@ class MeilisearchIndexSetupCommand extends Command
             }
 
             $this->info('    ✓ aplicado (taskUid '.data_get($resp->json(), 'taskUid', '?').')');
+        }
+
+        if ($alvo !== 'all' && ! $matched) {
+            $this->error("--index={$alvo} não existe em copiloto.meilisearch_indexes. Conhecidos: ".implode(', ', array_keys($indexes)));
+
+            return self::FAILURE;
         }
 
         if (! $dry) {

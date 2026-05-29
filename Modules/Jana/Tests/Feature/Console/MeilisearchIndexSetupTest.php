@@ -46,6 +46,13 @@ it('payloadPara monta embedders + filterableAttributes', function () {
         ->and($payload['filterableAttributes'])->toBe(['business_id', 'user_id']);
 });
 
+it('--index com nome inexistente FALHA em vez de retornar SUCCESS silencioso', function () {
+    // Revisão adversarial 2026-05-29 (finding #6): --index=typo pulava todos os
+    // índices no loop e caía no return SUCCESS — no-op silencioso mascarava o erro.
+    $this->artisan('jana:meilisearch-setup', ['--index' => 'indice_que_nao_existe', '--dry-run' => true])
+        ->assertExitCode(1);
+});
+
 // NOTA: a detecção de drift (settings vivos × config) NÃO mora mais aqui — virou
 // MeilisearchSettingsDriftChecker (Modules/Governance, ADR 0216). Ver
 // Modules/Governance/Tests/.../MeilisearchSettingsDriftCheckerTest.php.
