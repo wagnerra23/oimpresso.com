@@ -36,7 +36,7 @@ namespace Modules\Jana\Services\Peso;
 class PesoRealService
 {
     /**
-     * Defaults de fallback hardcoded — usados quando config('jana.peso_real.*')
+     * Defaults de fallback hardcoded — usados quando config('copiloto.peso_real.*')
      * está ausente. Garante que o service NUNCA quebra por config faltando.
      */
     private const FALLBACK_LIFECYCLE_MULT = [
@@ -207,7 +207,7 @@ class PesoRealService
     }
 
     /**
-     * Lê config('jana.peso_real.<chave>') com fallback hardcoded. Usa helper
+     * Lê config('copiloto.peso_real.<chave>') com fallback hardcoded. Usa helper
      * config() do Laravel quando disponível; senão (service puro chamado fora do
      * framework) cai no default sem quebrar.
      */
@@ -217,7 +217,7 @@ class PesoRealService
             return $fallback;
         }
 
-        $valor = config("jana.peso_real.{$chave}");
+        $valor = config("copiloto.peso_real.{$chave}");
 
         return $valor ?? $fallback;
     }
