@@ -54,7 +54,9 @@ tailscale ssh root@ct100-mcp '
 
 ### Meilisearch (CT 100)
 - Não publica porta no host. Consultar **de dentro do container**: `docker exec meilisearch sh -c 'curl -s http://localhost:7700/... -H "Authorization: Bearer $MEILI_MASTER_KEY"'` (key via env interno, nunca imprimir).
-- Índices: `jana_memoria_facts` (Jana, per-cliente) + `mcp_memory_documents` (MCP, global). Embedders ollama: **`qwen3_local`** (qwen3-embedding:0.6b, 1024d) + `nomic_local`. filterableAttributes do mcp_memory_documents: `[status,type,module,slug]` (SEM business_id — corpus global).
+- Índices: `jana_memoria_facts` (Jana, per-cliente) + `mcp_memory_documents` (MCP, global). filterableAttributes do mcp_memory_documents: `[status,type,module,slug]` (SEM business_id — corpus global); jana_memoria_facts: `[business_id,user_id,valid_until]`.
+- **Embedder = `qwen3_local`** (qwen3-embedding:0.6b, 1024d, via `ollama-embedder`). NÃO usar `nomic` (inútil em PT-BR — cosine ~0.97 pra tudo; eval Sprint 9: nomic 0.158 vs FULLTEXT 0.700). **`COPILOTO_MEMORIA_EMBEDDER=qwen3_local`** no .env (DEVE casar com o embedder do índice — se divergir, "Cannot find embedder X").
+- ⚙️ **Config-as-code (não setar manual!):** o embedder vive em `config copiloto.meilisearch_indexes` e é aplicado por **`php artisan jana:meilisearch-setup`** (idempotente). Era manual via curl (Sprint 9b) e SE PERDEU 2× → agora codificado. Após mudar embedder: Meilisearch re-embeda; `scout:import` força reindex.
 
 ## DNS (Hostinger API)
 `developers.hostinger.com/api/dns/v1/zones/oimpresso.com` (PUT `overwrite:false`). Token no Vaultwarden (`hostinger-api-token`). A-records de serviço → **`177.74.67.30`** (IP público CT 100). Detalhe: [ADR 0045](../decisions/0045-hostinger-dns-api-endpoint-canonico.md) + [hostinger.md](hostinger.md).
