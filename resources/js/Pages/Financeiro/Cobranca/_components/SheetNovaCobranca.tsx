@@ -11,6 +11,9 @@ import {
   brl, cn, fmtDate, DRIVERS,
   type CobrancaTipo, type Account, type GatewayKey,
 } from '../_lib/cobranca-shared';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 
 interface Props {
   accounts: Account[];
@@ -172,10 +175,14 @@ export default function SheetNovaCobranca({ accounts, onClose }: Props) {
                 </Field>
               </div>
               <Field label="Conta destino">
-                <select value={account} onChange={e => setAccount(parseInt(e.target.value, 10))} className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]">
-                  {accounts.filter(a => a.driver).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                  {accounts.filter(a => a.driver).length === 0 && <option value="">— sem conta com gateway ativo —</option>}
-                </select>
+                <Select value={String(account)} onValueChange={v => setAccount(parseInt(v, 10))}>
+                  <SelectTrigger className="w-full" aria-label="Conta destino">
+                    <SelectValue placeholder="— sem conta com gateway ativo —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.filter(a => a.driver).map(a => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </Field>
               {tipo === 'pix_recv' && (
                 <div className="bg-violet-50 border border-violet-200 rounded p-3 text-[10.5px] text-violet-900">
