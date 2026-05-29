@@ -309,6 +309,15 @@ class ContactController extends Controller
                     'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
                     'import' => auth()->user()->can('customer.create'),
                 ],
+                // Tabela de preço REAL pro drawer Comercial (ADR 0093 scope).
+                // [{id,name}] das customer_groups do business — substitui o
+                // dropdown fake hardcoded (padrao/varejo/atacado/parceiro).
+                // biz=164 Martinho: MECÂNICA / FABRICANTE / FINAL.
+                'priceGroups' => CustomerGroup::where('business_id', $business_id)
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                    ->map(fn ($g) => ['id' => (int) $g->id, 'name' => (string) $g->name])
+                    ->all(),
                 // Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer.
                 // Daniela @ Martinho: ve placas no drawer apenas se OficinaAuto
                 // ativo. biz=4 Larissa vestuario nao ve (graceful default false).
@@ -465,6 +474,9 @@ class ContactController extends Controller
             'contacts.balance',
             'contacts.credit_limit',
             'contacts.pay_term_number',
+            // Tabela de preço REAL (FK customer_groups) — canon UPOS, sempre presente.
+            // Drawer ComercialTab lê pra popular o dropdown de tabela de preço.
+            'contacts.customer_group_id',
             'contacts.contact_status',
             'contacts.created_at',
             // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
@@ -541,6 +553,13 @@ class ContactController extends Controller
         $hasContatoCol = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'contato');
         if ($hasContatoCol) {
             $selectCols[] = 'contacts.contato';
+        }
+        // `mensagem_venda` (TEXT) — migrado de PESSOAS.MENSAGEM_PARA_VENDA Delphi.
+        // Exibido como alerta ao vendedor no POS + editavel no drawer Comercial.
+        // Migration 2026_05_29_120000_add_mensagem_venda_to_contacts.
+        $hasMensagemVendaCol = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'mensagem_venda');
+        if ($hasMensagemVendaCol) {
+            $selectCols[] = 'contacts.mensagem_venda';
         }
         if ($hasWaveBCols) {
             $selectCols = array_merge($selectCols, [
@@ -629,7 +648,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $vehiclesCountMap) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -746,8 +765,14 @@ class ContactController extends Controller
             $payload['limite_credito'] = $payload['credit_limit'];
             $payload['pay_term_number'] = $contact->pay_term_number !== null ? (int) $contact->pay_term_number : null;
             $payload['prazo_padrao_dias'] = $payload['pay_term_number'];
+            // Tabela de preço REAL (FK customer_groups) — canon UPOS. Drawer
+            // ComercialTab popula o dropdown com priceGroups e grava aqui.
+            $payload['customer_group_id'] = $contact->customer_group_id !== null
+                ? (int) $contact->customer_group_id : null;
             $payload['tabela_preco_padrao'] = $hasDrawerCols ? ($contact->tabela_preco_padrao ?? null) : null;
             $payload['pgto_padrao'] = $hasDrawerCols ? ($contact->pgto_padrao ?? null) : null;
+            // mensagem_venda (alerta ao vendedor no POS · editavel no drawer).
+            $payload['mensagem_venda'] = $hasMensagemVendaCol ? ($contact->mensagem_venda ?? null) : null;
             $payload['obs_comercial'] = $hasDrawerCols ? ($contact->obs_comercial ?? null) : null;
 
             // ── ClassificacaoTab: contact_status enum UPOS ───────────────────
@@ -2162,6 +2187,9 @@ class ContactController extends Controller
                 'pay_term_type',
                 'balance',
                 'supplier_business_name',
+                // mensagem_venda — alerta ao vendedor no POS quando o cliente é
+                // selecionado (migrado de PESSOAS.MENSAGEM_PARA_VENDA Delphi).
+                'contacts.mensagem_venda',
                 'cg.amount as discount_percent',
                 'cg.price_calculation_type',
                 'cg.selling_price_group_id',
