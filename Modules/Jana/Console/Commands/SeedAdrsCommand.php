@@ -5,6 +5,7 @@ namespace Modules\Jana\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Jana\Entities\MemoriaFato;
 
 /**
  * MEM-MULTI-1 — Seeda ADRs do MCP → copiloto_memoria_facts.
@@ -160,18 +161,47 @@ class SeedAdrsCommand extends Command
             }
         }
 
+        // Sincroniza o índice Scout/Meilisearch.
+        //
+        // O insert/update acima usa DB::table (raw) por performance — o que BYPASSA
+        // os eventos Eloquent que o Scout escuta. Sem este passo o fato entra no DB
+        // mas NUNCA no índice: o schedule diário (copiloto-seed-adrs-daily) rodava,
+        // gravava o metadata canônico e ainda assim "ADR novo não virava fato
+        // pesquisável" — o recall nunca via os ADRs seedados.
+        //
+        // Em CLI o ScopeByBusiness no-opa (HasBusinessScope L19) — por isso filtramos
+        // business_id + user_id explicitamente (multi-tenant Tier 0, ADR 0093).
+        // shouldBeSearchable() separa ativo (indexa) de superseded/valid_until (remove
+        // do índice). Com SCOUT_DRIVER=null (testes) searchable()/unsearchable() no-opam.
+        $reindexados = 0;
+        if (! $dryRun) {
+            $facts = MemoriaFato::withoutGlobalScopes()
+                ->where('business_id', $businessId)
+                ->where('user_id', $userId)
+                ->whereRaw("JSON_EXTRACT(metadata, '$.seeded_from_mcp') = true")
+                ->get();
+
+            // Métodos de instância do trait Searchable (não o macro de Collection):
+            // ativo → searchable() (indexa) · superseded → unsearchable() (remove).
+            foreach ($facts as $fact) {
+                $fact->shouldBeSearchable()
+                    ? $fact->searchable()
+                    : $fact->unsearchable();
+            }
+            $reindexados = $facts->count();
+        }
+
         $this->newLine();
         $this->info("Concluído:");
         $this->line("  inseridos   : {$stats['inserted']}");
         $this->line("  atualizados : {$stats['updated']}");
         $this->line("  superseded  : {$stats['superseded']} (valid_until preenchido)");
         $this->line("  skipped     : {$stats['skipped']}");
+        $this->line("  reindexados : {$reindexados} (sincronizados com Meilisearch via Scout)");
 
         if (! $dryRun) {
-            $total = $stats['inserted'] + $stats['updated'] + $stats['superseded'];
             $this->newLine();
-            $this->info("Próximo passo: indexar no Meilisearch e medir recall:");
-            $this->line("  php artisan scout:import \"Modules\\\\Copiloto\\\\Entities\\\\MemoriaFato\"");
+            $this->info("Fatos já sincronizados com Meilisearch (Scout). Pra medir recall:");
             $this->line("  php artisan copiloto:eval --persist --business=$businessId");
         }
 
