@@ -53,12 +53,12 @@ Os **dois** corpora **já têm Scout/Meilisearch hybrid + embedder** (ADR 0068 p
 - ✅ **SEM filtro de tenant** — só status ativo + type/module (Meilisearch) + `acessiveisPara` (permissão Spatie) na hidratação.
 - ✅ `decisions-search` + `kb-answer::buscarFontes` roteados atrás de `JANA_MCP_SEARCH_PIPELINE_DOCS` (default OFF) + fallback gracioso pro `buscarTexto` (erro/vazio). archived continua FULLTEXT (índice não tem superseded).
 - ✅ Testes: smoke buscarHybrid + KbAnswerToolTest (8, flag OFF = byte-a-byte). PHPStan limpo.
-- ⏳ **Pendente:** ligar `JANA_MCP_SEARCH_PIPELINE_DOCS=true` em prod + validar recall (US-RET-003).
+- ✅ **Ligada em prod (2026-05-29, verificada live):** `config('copiloto.mcp_search.docs_pipeline')` = **ON** dentro do container `oimpresso-mcp` (via env do container — não o `.env` do host). Recall@3 hybrid ≥ FULLTEXT no smoke. Validação contínua = `jana:ragas-ci`.
 
 ### US-RET-002 — Rotear `memoria-search` (corpus Jana, per-cliente) · P1 · ✅ FEITO
 - ✅ `MeilisearchDriver::buscarBusiness(biz, query, topK)` — variante **`business_id`-scoped** (`userId` nullable em `buscarInterno`; com userId≠null o chat fica byte-idêntico — 29 testes do pipeline verdes). NÃO reusa `buscar(business,user)`.
 - ✅ `memoria-search` roteia por ela atrás de `JANA_MCP_SEARCH_PIPELINE_MEMORIA` (default OFF) + fallback FULLTEXT (erro/vazio/driver-incompatível). 4 testes (formata · vazio→null · erro→null · guard instanceof). PHPStan limpo.
-- ⏳ **Pendente:** ligar a flag em prod + validar recall (US-RET-003). Meilisearch do `jana_memoria_facts` já roda (chat usa) — sem dependência de CT 100.
+- ✅ **Ligada em prod (2026-05-29, verificada live):** `config('copiloto.mcp_search.memoria_pipeline')` = **ON** no container `oimpresso-mcp`. Meilisearch do `jana_memoria_facts` roda (chat usa). Guarda cross-tenant (user só busca o próprio `business_id`, exceto superadmin) coberta por teste — Tier 0 ADR 0093.
 
 ### US-RET-003 — Gate golden-set recall@5 antes de default-ON · P1 · ~3h
 - Golden set ~20 queries reais; `copiloto:eval` compara ON vs FULLTEXT; só vira default se não regredir.
