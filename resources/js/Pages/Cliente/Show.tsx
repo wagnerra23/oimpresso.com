@@ -244,7 +244,7 @@ export default function ClienteShow(props: ClienteShowPageProps) {
                     className={
                       'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ' +
                       (isActive
-                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                        ? 'border-primary text-primary'
                         : 'border-transparent text-muted-foreground hover:text-foreground')
                     }
                     aria-selected={isActive}

@@ -106,7 +106,7 @@ export default function SubscriptionsTab({ subscriptions }: SubscriptionsTabProp
                 <td className="px-4 py-3 text-xs">
                   <a
                     href={`/sells/${s.id}`}
-                    className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
                   >
                     Ver
                     <ExternalLink size={11} aria-hidden />
