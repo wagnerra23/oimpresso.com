@@ -93,7 +93,7 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                           onClick={() => setSelectedId(contact.id)}
                           className={
                             'w-full text-left p-3 transition-colors ' +
-                            (isSelected ? 'bg-blue-50 dark:bg-blue-950/30' : 'hover:bg-muted/40')
+                            (isSelected ? 'bg-primary/10' : 'hover:bg-muted/40')
                           }
                           disabled={!hasPosition}
                         >
@@ -103,7 +103,7 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                               className={
                                 hasPosition
                                   ? isSelected
-                                    ? 'text-blue-600 mt-0.5 flex-shrink-0'
+                                    ? 'text-primary mt-0.5 flex-shrink-0'
                                     : 'text-emerald-600 mt-0.5 flex-shrink-0'
                                   : 'text-muted-foreground/40 mt-0.5 flex-shrink-0'
                               }
@@ -163,7 +163,7 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                   <div className="px-4 py-3 border-t border-border bg-background flex items-center gap-2">
                     <a
                       href={`/contacts/${selected.id}`}
-                      className="text-xs text-blue-600 hover:underline"
+                      className="text-xs text-primary hover:underline"
                     >
                       Ver detalhes →
                     </a>
