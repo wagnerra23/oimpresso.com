@@ -114,20 +114,23 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
 
       {/* Filtros */}
       <div className="fin-toolbar mt-4">
-        <div className="fin-filter-group" role="group" aria-label="Filtrar por tipo">
+        <div className="fin-filter-group" role="radiogroup" aria-label="Filtrar por tipo">
           {(['all', 'receita', 'despesa', 'ativo', 'passivo', 'patrimonio', 'custo'] as const).map((t) => (
-            <label
+            <button
               key={t}
+              type="button"
+              role="radio"
+              aria-checked={tipoFilter === t}
               className={'fin-filter-cb' + (tipoFilter === t ? ' on' : '')}
               style={{ ['--cb-hue' as string]: t === 'receita' ? 145 : t === 'despesa' ? 25 : t === 'ativo' ? 145 : t === 'passivo' ? 25 : 240 } as React.CSSProperties}
+              onClick={() => setTipoFilter(t)}
             >
-              <input type="radio" name="tipo" checked={tipoFilter === t} onChange={() => setTipoFilter(t)} />
               <span className="fin-filter-cb-box" />
               <span>{t === 'all' ? 'Todos' : t.charAt(0).toUpperCase() + t.slice(1)}</span>
               <span className="fin-filter-ct">
                 {t === 'all' ? stats.total : (stats as unknown as Record<string, number>)[t] ?? 0}
               </span>
-            </label>
+            </button>
           ))}
         </div>
 
