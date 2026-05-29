@@ -1,5 +1,7 @@
 # 01 — Visão Geral do Projeto
 
+> ⚠️ **STALE / PontoWr2-era (legado).** Descreve só o módulo Ponto (origem do projeto), não o ERP modular atual. Pra "como o sistema funciona / escopo / responsabilidades" use **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md)** (canônico arc42). Mantido por compatibilidade histórica.
+
 ## Nome
 
 **Ponto WR2** — Módulo de Ponto Eletrônico para UltimatePOS 6

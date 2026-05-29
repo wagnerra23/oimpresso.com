@@ -14,6 +14,20 @@
 | **[ADR UI-0013 — Constituição UI v2](requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)** | Constituição da **UI** (4 camadas: Fundações→Shell→Padrão de Tela→Módulo) | aceito |
 | [ADR 0079](decisions/0079-constituicao-oimpresso-7-camadas-governanca.md) · [ADR 0078](decisions/0078-constituicao-uma-frase-skill-unidade-evolucao.md) | Histórico — origem das 7 camadas + meta-skill "1 frase" | superseded por 0094 |
 
+## 🗺️ COMO O SISTEMA FUNCIONA (arquitetura · escopo · responsabilidades)
+
+> "Como funciona, qual escopo, para que serve, como reconstruir responsabilidades." Estilo **arc42** (vista geral → building blocks → deployment → crosscutting → decisões). As peças vivem em git e **delegam o detalhe à fonte viva** (não duplicar = não apodrece).
+
+| Camada (arc42) | Doc canônico |
+|---|---|
+| **Vista geral + escopo + responsabilidade/módulo** | **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md)** — vista 1-slide · módulos estado/destino · **trust level por módulo** · princípios modulares · fases. **COMECE AQUI pra entender o sistema.** |
+| **Building blocks (detalhe por módulo)** | `Modules/<X>/SCOPE.md` (36 — missão/responsabilidade de cada um) + [modulos/INDEX.md](modulos/INDEX.md) (catálogo auto-gerado por `php artisan module:specs`) |
+| **Deployment / onde roda / como acessar** | **[reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md)** (Hostinger · CT100 · MCP · Meilisearch · deploy) |
+| **Crosscutting** | [governance/](governance/) (Constituição · Trust-Tiers · Enforcement · Drift Framework → `governance:audit`) |
+| **Decisões (por quê)** | [decisions/](decisions/) (ADRs Nygard) — via `decisions-search` |
+
+> ⚠️ `01-project-overview.md` e `03-architecture.md` são **PontoWr2-era (PODRES — "Laravel 10 / Módulo de Ponto")**. NÃO usar; ver governance/ARCHITECTURE.md.
+
 ## 🎯 Norte, Protocolo & Skills Tier A (normativo — mesmo nível da Constituição)
 
 > O que **decide o trabalho** e **como toda sessão DEVE operar**. Tão Tier 0 quanto a Constituição. Antes ficava ausente/enterrado no índice — regressão de priorização corrigida na auditoria 2026-05-29 (a Constituição foi só o 1º caso de uma classe).
