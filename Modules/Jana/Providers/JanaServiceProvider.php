@@ -86,6 +86,18 @@ class JanaServiceProvider extends ServiceProvider
         $this->app->singleton(\Modules\Jana\Services\ContextSnapshotService::class);
         $this->app->singleton(\Modules\Jana\Services\AlertaService::class);
 
+        // Freshness (GAP D7 #2 · revisão adversarial 2026-05-29 finding #2):
+        // StalenessDetectorService é STATEFUL (repoBasePath). Sem singleton, o
+        // FreshnessCheckCommand configurava `comRepoBasePath(base_path())` na SUA
+        // instância injetada, mas o ReindexJobDispatcher recebia OUTRA instância
+        // (repoBasePath=null) → detectDrift() no dispatcher sempre vazio → drift
+        // git-SHA detectado no relatório mas NUNCA reindexado (anulava o BUG-1 fix).
+        // Singleton já com base_path() → command e dispatcher compartilham a config.
+        $this->app->singleton(
+            \Modules\Jana\Services\Memoria\Freshness\StalenessDetectorService::class,
+            fn () => new \Modules\Jana\Services\Memoria\Freshness\StalenessDetectorService(base_path()),
+        );
+
         // L1 Onda 4 (P0 GAP-ANALYSIS-91-100-2026-05-13) — Langfuse v3 self-host
         // CT 100 + batch ingestion REST. Multiplicador exponencial: instrumenta
         // TODOS os tools LLM (kb-answer, handoff-summarized, handoff-diff,
