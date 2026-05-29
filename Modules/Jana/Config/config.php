@@ -258,6 +258,46 @@ return [
         'docs_embedder' => env('JANA_MCP_DOCS_EMBEDDER', 'qwen3_local'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Meilisearch index settings (embedders) — CONFIG-AS-CODE
+    |--------------------------------------------------------------------------
+    | Codifica o que antes era setado MANUAL via curl (Sprint 9b 2026-05-04) e
+    | SE PERDEU (jana_memoria_facts voltou a embedders {} → recall do chat degradou).
+    | Aplicado idempotente por `jana:meilisearch-setup`. Embedder ollama qwen3_local
+    | (qwen3-embedding:0.6b, 1024d) — venceu nomic (inútil PT-BR) no eval Sprint 9.
+    | URL interna CT 100. Ver INFRA-ACESSO-CANON + RUNBOOK-ragas-canary.
+    */
+    'meilisearch_indexes' => [
+        'jana_memoria_facts' => [
+            'embedders' => [
+                'qwen3_local' => [
+                    'source'                  => 'ollama',
+                    'model'                   => env('JANA_OLLAMA_EMBED_MODEL', 'qwen3-embedding:0.6b'),
+                    'dimensions'              => 1024,
+                    'documentTemplate'        => '{{doc.fato}}',
+                    'documentTemplateMaxBytes' => 400,
+                    'url'                     => env('JANA_OLLAMA_EMBED_URL', 'http://ollama-embedder:11434/api/embeddings'),
+                ],
+            ],
+            'filterableAttributes' => ['business_id', 'user_id', 'valid_until'],
+        ],
+        'mcp_memory_documents' => [
+            'embedders' => [
+                'qwen3_local' => [
+                    'source'                  => 'ollama',
+                    'model'                   => env('JANA_OLLAMA_EMBED_MODEL', 'qwen3-embedding:0.6b'),
+                    'dimensions'              => 1024,
+                    'documentTemplate'        => '{{doc.title}}. {{doc.content_excerpt}}',
+                    'documentTemplateMaxBytes' => 400,
+                    'url'                     => env('JANA_OLLAMA_EMBED_URL', 'http://ollama-embedder:11434/api/embeddings'),
+                ],
+            ],
+            // corpus MCP é GLOBAL — NÃO inclui business_id (ADR 0093 não se aplica: docs de programação)
+            'filterableAttributes' => ['status', 'type', 'module', 'slug'],
+        ],
+    ],
+
     'reranker' => [
         'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
         'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),
