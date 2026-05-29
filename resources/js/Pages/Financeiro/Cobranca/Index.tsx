@@ -297,7 +297,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
         <div className="w-px h-5 bg-stone-200 mx-1" />
 
         <Select value={gatewayFilter} onValueChange={v => setGatewayFilterLs(v)}>
-          <SelectTrigger className="!h-6 !w-auto text-[11.5px]" aria-label="Filtrar por gateway">
+          <SelectTrigger variant="shadcn" size="sm" className="text-[11.5px]" aria-label="Filtrar por gateway">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -307,7 +307,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
         </Select>
 
         <Select value={accountFilter} onValueChange={v => setAccountFilterLs(v)}>
-          <SelectTrigger className="!h-6 !w-auto text-[11.5px]" aria-label="Filtrar por conta destino">
+          <SelectTrigger variant="shadcn" size="sm" className="text-[11.5px]" aria-label="Filtrar por conta destino">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

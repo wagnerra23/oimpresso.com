@@ -1244,7 +1244,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           value={filters.categoria || '__none__'}
           onValueChange={(v) => aplicar({ categoria: v === '__none__' ? '' : v })}
         >
-          <SelectTrigger className="!h-7 !w-[190px] min-w-0 text-[12px] [&>span]:truncate" aria-label="Plano de Contas">
+          <SelectTrigger variant="shadcn" size="sm" className="max-w-[220px] text-[12px]" aria-label="Plano de Contas">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1404,7 +1404,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   value={String(pagination.per_page)}
                   onValueChange={(v) => aplicar({ per_page: parseInt(v, 10), page: 1 })}
                 >
-                  <SelectTrigger className="!h-7 !w-auto ml-2 text-[11px]" aria-label="Itens por página">
+                  <SelectTrigger variant="shadcn" size="sm" className="ml-2 text-[11px]" aria-label="Itens por página">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
