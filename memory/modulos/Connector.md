@@ -11,8 +11,10 @@
 
 ## Sinais detectados
 
-- 🔗 Registra 2 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package
+- 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
 - 🔴 +50 rotas — módulo grande, migrar em fases
+- ✅ Tem testes (9)
+- 🔐 Registra 1 permissão(ões) Spatie
 - 🔗 Acoplamento: depende de 3 outro(s) módulo(s)
 
 - **Prioridade sugerida de migração:** baixa (grande, fazer por último ou dividir)
@@ -22,16 +24,16 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 55 |
-| Controllers | 25 |
+| Rotas (web+api) | 61 |
+| Controllers | 30 |
 | Entities (Models) | 0 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 2 |
+| FormRequests | 15 |
 | Middleware | 1 |
 | Views Blade | 2 |
 | Migrations | 1 |
 | Arquivos de lang | 16 |
-| Testes | 0 |
+| Testes | 9 |
 
 ## Rotas
 
@@ -45,12 +47,18 @@
 | `GET` | `install/update` | `[Modules\Connector\Http\Controllers\InstallController::class, 'update']` |
 | `GET` | `/api` | `[Modules\Connector\Http\Controllers\ConnectorController::class, 'index']` |
 | `GET` | `/regenerate` | `[Modules\Connector\Http\Controllers\ClientController::class, 'regenerate']` |
+| `RESOURCE` | `client` | `Officeimpresso\ClientController` |
 | `RESOURCE` | `/client` | `'Modules\Connector\Http\Controllers\ClientController'` |
 
 ### `api.php`
 
 | Método | URI | Controller |
 |---|---|---|
+| `POST` | `processa-dados-cliente` | `[ \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'ProcessaDadosCliente' ]` |
+| `POST` | `salvar-cliente` | `[ \Modules\Connector\Http\Controllers\Api\BusinessController::class, 'saveBusiness' ]` |
+| `POST` | `salvar-equipamento/{business_id}` | `[ \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento' ]` |
+| `POST` | `oimpresso/registrar` | `[ \Modules\Connector\Http\Controllers\Api\OImpressoRegistroController::class, 'registrar' ]` |
+| `POST` | `check-update` | `[ \Modules\Connector\Http\Controllers\Api\CheckUpdateController::class, 'check' ]` |
 | `POST` | `contactapi-payment` | `[Modules\Connector\Http\Controllers\Api\ContactController::class, 'contactPay']` |
 | `GET` | `selling-price-group` | `[Modules\Connector\Http\Controllers\Api\ProductController::class, 'getSellingPriceGroup']` |
 | `GET` | `variation/{id?}` | `[Modules\Connector\Http\Controllers\Api\ProductController::class, 'listVariations']` |
@@ -86,28 +94,28 @@
 | `POST` | `field-force/create` | `[Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'store']` |
 | `POST` | `field-force/update-visit-status/{id}` | `[Modules\Connector\Http\Controllers\Api\FieldForce\FieldForceController::class, 'updateStatus']` |
 | `RESOURCE` | `business-location` | `Modules\Connector\Http\Controllers\Api\BusinessLocationController::class` |
-| `RESOURCE` | `contactapi` | `Modules\Connector\Http\Controllers\Api\ContactController::class` |
-| `RESOURCE` | `unit` | `Modules\Connector\Http\Controllers\Api\UnitController::class` |
-| `RESOURCE` | `taxonomy` | `'Modules\Connector\Http\Controllers\Api\CategoryController'` |
-| `RESOURCE` | `brand` | `Modules\Connector\Http\Controllers\Api\BrandController::class` |
-| `RESOURCE` | `product` | `Modules\Connector\Http\Controllers\Api\ProductController::class` |
 
-_... +8 rotas_
+_... +13 rotas_
 
 ## Controllers
 
 - **`ApiController`** — 7 ação(ões): getStatusCode, setStatusCode, respondUnauthorized, respond, modelNotFoundExceptionResult, otherExceptions, getClient
 - **`AttendanceController`** — 4 ação(ões): getAttendance, clockin, clockout, getHolidays
+- **`BaseApiController`** — 2 ação(ões): syncData, getData
 - **`BrandController`** — 2 ação(ões): index, show
+- **`BusinessController`** — 8 ação(ões): index, create, store, show, edit, update, destroy, saveBusiness
 - **`BusinessLocationController`** — 2 ação(ões): index, show
 - **`CashRegisterController`** — 3 ação(ões): index, store, show
 - **`CategoryController`** — 2 ação(ões): index, show
+- **`CheckUpdateController`** — 1 ação(ões): check
 - **`CommonResourceController`** — 7 ação(ões): getPaymentAccounts, getPaymentMethods, getBusinessDetails, getProfitLoss, getProductStock, getNotifications, getLocation
 - **`ContactController`** — 5 ação(ões): index, store, show, update, contactPay
 - **`CallLogsController`** — 2 ação(ões): saveCallLogs, searchUser
 - **`FollowUpController`** — 6 ação(ões): index, getFollowUpResources, store, show, update, getLeads
 - **`ExpenseController`** — 6 ação(ões): index, show, store, update, listExpenseRefund, listExpenseCategories
 - **`FieldForceController`** — 3 ação(ões): index, store, updateStatus
+- **`LicencaComputadorController`** — 7 ação(ões): ProcessaDadosCliente, saveEquipamento, index, store, show, update, destroy
+- **`OImpressoRegistroController`** — 1 ação(ões): registrar
 - **`ProductController`** — 4 ação(ões): index, show, listVariations, getSellingPriceGroup
 - **`ProductSellController`** — 3 ação(ões): newProduct, newSell, newContactApi
 - **`SellController`** — 8 ação(ões): index, show, store, update, destroy, updateSellShippingStatus, addSellReturn, listSellReturn
@@ -119,8 +127,8 @@ _... +8 rotas_
 - **`UserController`** — 7 ação(ões): index, show, loggedin, updatePassword, registerUser, generateRandomString, forgetPassword
 - **`ClientController`** — 8 ação(ões): index, create, store, show, edit, update, destroy, regenerate
 - **`ConnectorController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
-- **`DataController`** — 2 ação(ões): superadmin_package, modifyAdminMenu
-- **`InstallController`** — 4 ação(ões): index, install, uninstall, update
+- **`DataController`** — 3 ação(ões): superadmin_package, user_permissions, modifyAdminMenu
+- **`InstallController`** — 0 ação(ões): 
 
 ## Migrations
 
@@ -139,12 +147,21 @@ _... +8 rotas_
 
 - **`modifyAdminMenu()`** — Injeta itens na sidebar admin
 - **`superadmin_package()`** — Registra pacote de licenciamento no Superadmin
+- **`user_permissions()`** — Registra permissões Spatie no cadastro de Roles
 
 ## Permissões
+
+**Registradas pelo módulo** (via `user_permissions()`):
+
+- `connector.access`
 
 **Usadas nas views** (`@can`/`@cannot`):
 
 - `superadmin`
+
+## Processamento / eventos
+
+**Commands (artisan):** `ConnectorHealthCommand`
 
 ## Peças adicionais
 
@@ -195,84 +212,11 @@ _Referências a outros módulos encontradas no código PHP._
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 85
-- **Linhas +:** 12460 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_08_18_123107_add_connector_module_version_to_system_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/ConnectorDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/Api/ApiController.php`
-  - `Http/Controllers/Api/AttendanceController.php`
-  - `Http/Controllers/Api/BrandController.php`
-  - `Http/Controllers/Api/BusinessLocationController.php`
-  - `Http/Controllers/Api/CashRegisterController.php`
-  - `Http/Controllers/Api/CategoryController.php`
-  - `Http/Controllers/Api/CommonResourceController.php`
-  - `Http/Controllers/Api/ContactController.php`
-  - `Http/Controllers/Api/Crm/CallLogsController.php`
-  - `Http/Controllers/Api/Crm/FollowUpController.php`
-  - `Http/Controllers/Api/ExpenseController.php`
-  - `Http/Controllers/Api/FieldForce/FieldForceController.php`
-  - `Http/Controllers/Api/ProductController.php`
-  - `Http/Controllers/Api/ProductSellController.php`
-  - `Http/Controllers/Api/SellController.php`
-  - `Http/Controllers/Api/SuperadminController.php`
-  - `Http/Controllers/Api/TableController.php`
-  - `Http/Controllers/Api/TaxController.php`
-  - `Http/Controllers/Api/TypesOfServiceController.php`
-  - `Http/Controllers/Api/UnitController.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 85
-- **Linhas +:** 12460 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_08_18_123107_add_connector_module_version_to_system_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/ConnectorDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/Api/ApiController.php`
-  - `Http/Controllers/Api/AttendanceController.php`
-  - `Http/Controllers/Api/BrandController.php`
-  - `Http/Controllers/Api/BusinessLocationController.php`
-  - `Http/Controllers/Api/CashRegisterController.php`
-  - `Http/Controllers/Api/CategoryController.php`
-  - `Http/Controllers/Api/CommonResourceController.php`
-  - `Http/Controllers/Api/ContactController.php`
-  - `Http/Controllers/Api/Crm/CallLogsController.php`
-  - `Http/Controllers/Api/Crm/FollowUpController.php`
-  - `Http/Controllers/Api/ExpenseController.php`
-  - `Http/Controllers/Api/FieldForce/FieldForceController.php`
-  - `Http/Controllers/Api/ProductController.php`
-  - `Http/Controllers/Api/ProductSellController.php`
-  - `Http/Controllers/Api/SellController.php`
-  - `Http/Controllers/Api/SuperadminController.php`
-  - `Http/Controllers/Api/TableController.php`
-  - `Http/Controllers/Api/TaxController.php`
-  - `Http/Controllers/Api/TypesOfServiceController.php`
-  - `Http/Controllers/Api/UnitController.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -282,5 +226,5 @@ _Referências a outros módulos encontradas no código PHP._
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Connector`

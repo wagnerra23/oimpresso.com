@@ -12,8 +12,11 @@
 ## Sinais detectados
 
 - 🔗 Registra 2 hook(s) UltimatePOS: modifyAdminMenu, user_permissions
-- 🟡 33 rotas — escopo médio
+- 🟡 39 rotas — escopo médio
+- ✅ Tem testes (15)
 - 🔐 Registra 1 permissão(ões) Spatie
+- ⚙️ Processamento assíncrono: 2 peça(s) (jobs/events/listeners)
+- 🔗 Acoplamento: depende de 1 outro(s) módulo(s)
 
 - **Prioridade sugerida de migração:** baixa (grande, fazer por último ou dividir)
 - **Risco estimado:** alto
@@ -22,16 +25,16 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 33 |
-| Controllers | 13 |
+| Rotas (web+api) | 39 |
+| Controllers | 14 |
 | Entities (Models) | 4 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 4 |
+| FormRequests | 6 |
 | Middleware | 0 |
-| Views Blade | 45 |
+| Views Blade | 46 |
 | Migrations | 12 |
 | Arquivos de lang | 16 |
-| Testes | 0 |
+| Testes | 15 |
 
 ## Rotas
 
@@ -40,6 +43,12 @@
 | Método | URI | Controller |
 |---|---|---|
 | `GET` | `/pricing` | `[Modules\Superadmin\Http\Controllers\PricingController::class, 'index']` |
+| `GET` | `/pricing/old` | `[Modules\Superadmin\Http\Controllers\PricingController::class, 'indexLegacy']` |
+| `GET` | `/usuarios` | `[Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'index']` |
+| `GET` | `/usuarios/{id}/360` | `[Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'show']` |
+| `POST` | `/usuarios/{id}/lock` | `[Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'lock']` |
+| `POST` | `/usuarios/{id}/unlock` | `[Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'unlock']` |
+| `GET` | `/usuarios/{id}/history` | `[Modules\Superadmin\Http\Controllers\Usuario360Controller::class, 'history']` |
 | `GET` | `/install` | `[Modules\Superadmin\Http\Controllers\InstallController::class, 'index']` |
 | `GET` | `/install/update` | `[Modules\Superadmin\Http\Controllers\InstallController::class, 'update']` |
 | `GET` | `/install/uninstall` | `[Modules\Superadmin\Http\Controllers\InstallController::class, 'uninstall']` |
@@ -87,11 +96,12 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - **`PackagesController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
 - **`PageController`** — 7 ação(ões): index, create, store, showPage, edit, update, destroy
 - **`PesaPalController`** — 1 ação(ões): pesaPalPaymentConfirmation
-- **`PricingController`** — 1 ação(ões): index
+- **`PricingController`** — 2 ação(ões): index, indexLegacy
 - **`SubscriptionController`** — 10 ação(ões): index, pay, registerPay, confirm, paypalExpressCheckout, getRedirectToPaystack, postPaymentPaystackCallback, postFlutterwavePaymentCallback +2
 - **`SuperadminController`** — 2 ação(ões): index, stats
 - **`SuperadminSettingsController`** — 2 ação(ões): edit, update
 - **`SuperadminSubscriptionsController`** — 9 ação(ões): index, create, store, show, edit, update, destroy, editSubscription +1
+- **`Usuario360Controller`** — 5 ação(ões): index, show, lock, unlock, history
 
 ## Entities (Models Eloquent)
 
@@ -117,11 +127,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Views (Blade)
 
-**Total:** 45 arquivos
+**Total:** 46 arquivos
 
 **Pastas principais:**
 
-- `subscription/` — 13 arquivo(s)
+- `subscription/` — 14 arquivo(s)
 - `superadmin_settings/` — 9 arquivo(s)
 - `layouts/` — 5 arquivo(s)
 - `business/` — 4 arquivo(s)
@@ -151,10 +161,15 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Processamento / eventos
 
-**Commands (artisan):** `SubscriptionExpiryAlert`
+**Commands (artisan):** `SubscriptionExpiryAlert`, `SuperadminHealthCommand`
+
+**Listeners:** `OnCobrancaPagaUpdateSubscription`, `OnCobrancaVencidaBloqueaSubscription`
+
+**Observers:** `BusinessAutoSubscriptionObserver`
 
 ## Peças adicionais
 
+- **Policies:** `PackagePolicy`
 - **Notifications:** `NewBusinessNotification`, `NewBusinessWelcomNotification`, `NewSubscriptionNotification`, `PasswordUpdateNotification`, `SendSubscriptionExpiryAlert`, `SubscriptionOfflinePaymentActivationConfirmation`, `SuperadminCommunicator`
 - **Seeders:** `SuperadminDatabaseSeeder`
 
@@ -164,6 +179,14 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 |---|---|
 | `name` | `Superadmin` |
 | `module_version` | `4.0` |
+
+## Dependências cross-module detectadas
+
+_Referências a outros módulos encontradas no código PHP._
+
+| Módulo referenciado | Ocorrências |
+|---|---:|
+| `PaymentGateway` | 2 |
 
 ## Integridade do banco
 
@@ -197,84 +220,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 124
-- **Linhas +:** 11272 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/SubscriptionExpiryAlert.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2018_06_27_185405_create_packages_table.php`
-  - `Database/Migrations/2018_06_28_182803_create_subscriptions_table.php`
-  - `Database/Migrations/2018_07_17_182021_add_rows_to_system_table.php`
-  - `Database/Migrations/2018_07_19_131721_add_options_to_packages_table.php`
-  - `Database/Migrations/2018_08_17_155534_add_min_termination_alert_days.php`
-  - `Database/Migrations/2018_08_28_105945_add_business_based_username_settings_to_system_table.php`
-  - `Database/Migrations/2018_08_30_105906_add_superadmin_communicator_logs_table.php`
-  - `Database/Migrations/2018_11_02_130636_add_custom_permissions_to_packages_table.php`
-  - `Database/Migrations/2018_11_05_161848_add_more_fields_to_packages_table.php`
-  - `Database/Migrations/2018_12_10_124621_modify_system_table_values_null_default.php`
-  - `Database/Migrations/2019_05_10_135434_add_missing_database_column_indexes.php`
-  - `Database/Migrations/2019_08_16_115300_create_superadmin_frontend_pages_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/SuperadminDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/Package.php`
-  - `Entities/Subscription.php`
-  - `Entities/SuperadminCommunicatorLog.php`
-  - `Entities/SuperadminFrontendPage.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/BaseController.php`
-  - `Http/Controllers/BusinessController.php`
-  - `Http/Controllers/CommunicatorController.php`
-  - `Http/Controllers/DataController.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 124
-- **Linhas +:** 11272 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/SubscriptionExpiryAlert.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2018_06_27_185405_create_packages_table.php`
-  - `Database/Migrations/2018_06_28_182803_create_subscriptions_table.php`
-  - `Database/Migrations/2018_07_17_182021_add_rows_to_system_table.php`
-  - `Database/Migrations/2018_07_19_131721_add_options_to_packages_table.php`
-  - `Database/Migrations/2018_08_17_155534_add_min_termination_alert_days.php`
-  - `Database/Migrations/2018_08_28_105945_add_business_based_username_settings_to_system_table.php`
-  - `Database/Migrations/2018_08_30_105906_add_superadmin_communicator_logs_table.php`
-  - `Database/Migrations/2018_11_02_130636_add_custom_permissions_to_packages_table.php`
-  - `Database/Migrations/2018_11_05_161848_add_more_fields_to_packages_table.php`
-  - `Database/Migrations/2018_12_10_124621_modify_system_table_values_null_default.php`
-  - `Database/Migrations/2019_05_10_135434_add_missing_database_column_indexes.php`
-  - `Database/Migrations/2019_08_16_115300_create_superadmin_frontend_pages_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/SuperadminDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/Package.php`
-  - `Entities/Subscription.php`
-  - `Entities/SuperadminCommunicatorLog.php`
-  - `Entities/SuperadminFrontendPage.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/BaseController.php`
-  - `Http/Controllers/BusinessController.php`
-  - `Http/Controllers/CommunicatorController.php`
-  - `Http/Controllers/DataController.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -284,5 +234,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Superadmin`
