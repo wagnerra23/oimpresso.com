@@ -3,6 +3,17 @@
 > Mapa pra navegar `memory/`. Para **estado VIVO** (cycle ativo, tasks, brief), use tools MCP: `brief-fetch`, `my-work`, `cycles-active`, `decisions-search`.
 > Documento canônico — atualizar quando criar nova categoria. Reorg: ver [AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) §5 (G2).
 
+## 🏛️ LEI MÁXIMA — a Constituição (ler ANTES de tudo)
+
+> Documento **supremo** do projeto. Toda decisão, skill, ADR e código **herda** disto e **nunca contradiz**. Append-only (mudança só via nova ADR com `supersedes`).
+
+| Doc | O que é | Status |
+|---|---|---|
+| **[ADR 0094 — Constituição v2](decisions/0094-constituicao-v2-7-camadas-8-principios.md)** | **MÃE** — 7 camadas + 8 princípios duros (Multi-tenant Tier 0 · Context-as-product · Charter>Spec · Loop fechado por métrica · SoC brutal · Transparência · Confiabilidade c/ fallback · Tiered cost) | aceito (vigente) |
+| [governance/CONSTITUTION.md](governance/CONSTITUTION.md) | Versão operacional renderizada (artigos) | vigente |
+| **[ADR UI-0013 — Constituição UI v2](requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)** | Constituição da **UI** (4 camadas: Fundações→Shell→Padrão de Tela→Módulo) | aceito |
+| [ADR 0079](decisions/0079-constituicao-oimpresso-7-camadas-governanca.md) · [ADR 0078](decisions/0078-constituicao-uma-frase-skill-unidade-evolucao.md) | Histórico — origem das 7 camadas + meta-skill "1 frase" | superseded por 0094 |
+
 ## Comece aqui (onboarding 7 docs)
 
 | # | Documento | Quando ler |
@@ -108,4 +119,5 @@ Mantidos por compatibilidade (PontoWr2 origem do projeto). Para core moderno, ve
 - **Tasks NÃO em markdown** ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md)) — use tools MCP `tasks-*`
 
 ---
-**Última atualização:** 2026-05-13 — reescrito de 64 linhas (stale, só PontoWr2) → mapa completo. Gap reportado em [AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) §5 (G2 P0).
+**Última atualização:** 2026-05-29 — Constituição promovida a **LEI MÁXIMA** no topo do índice (ADR 0094 mãe + UI-0013 + governance/CONSTITUTION.md). Antes só aparecia enterrada em "ADRs mais citadas" — regressão de indexação reportada pelo Wagner.
+**2026-05-13** — reescrito de 64 linhas (stale, só PontoWr2) → mapa completo. Gap reportado em [AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) §5 (G2 P0).
