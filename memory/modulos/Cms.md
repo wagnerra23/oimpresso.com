@@ -11,7 +11,9 @@
 
 ## Sinais detectados
 
-- 🔗 Registra 1 hook(s) UltimatePOS: modifyAdminMenu
+- 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
+- ✅ Tem testes (17)
+- 🔐 Registra 1 permissão(ões) Spatie
 
 - **Prioridade sugerida de migração:** baixa (grande, fazer por último ou dividir)
 - **Risco estimado:** alto
@@ -20,16 +22,16 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 12 |
+| Rotas (web+api) | 16 |
 | Controllers | 5 |
 | Entities (Models) | 3 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 4 |
+| FormRequests | 9 |
 | Middleware | 0 |
 | Views Blade | 45 |
 | Migrations | 5 |
 | Arquivos de lang | 1 |
-| Testes | 0 |
+| Testes | 17 |
 
 ## Rotas
 
@@ -38,8 +40,12 @@
 | Método | URI | Controller |
 |---|---|---|
 | `GET` | `/` | `[Modules\Cms\Http\Controllers\CmsController::class, 'index']` |
+| `GET` | `/old` | `[Modules\Cms\Http\Controllers\CmsController::class, 'indexLegacy']` |
+| `GET` | `c/page/{page}/old` | `[Modules\Cms\Http\Controllers\CmsPageController::class, 'showPageLegacy']` |
 | `GET` | `c/page/{page}` | `[Modules\Cms\Http\Controllers\CmsPageController::class, 'showPage']` |
+| `GET` | `c/blogs/old` | `[Modules\Cms\Http\Controllers\CmsController::class, 'getBlogListLegacy']` |
 | `GET` | `c/blogs` | `[Modules\Cms\Http\Controllers\CmsController::class, 'getBlogList']` |
+| `GET` | `c/blog/{slug}-{id}/old` | `[Modules\Cms\Http\Controllers\CmsController::class, 'viewBlogLegacy']` |
 | `GET` | `c/blog/{slug}-{id}` | `[Modules\Cms\Http\Controllers\CmsController::class, 'viewBlog']` |
 | `GET` | `c/contact-us` | `[Modules\Cms\Http\Controllers\CmsController::class, 'contactUs']` |
 | `POST` | `c/submit-contact-form` | `[Modules\Cms\Http\Controllers\CmsController::class, 'postContactForm']` |
@@ -56,10 +62,10 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Controllers
 
-- **`CmsController`** — 11 ação(ões): index, create, store, show, edit, update, destroy, getBlogList +3
-- **`CmsPageController`** — 7 ação(ões): index, create, store, showPage, edit, update, destroy
-- **`DataController`** — 1 ação(ões): modifyAdminMenu
-- **`InstallController`** — 4 ação(ões): index, install, uninstall, update
+- **`CmsController`** — 14 ação(ões): index, indexLegacy, create, store, show, edit, update, destroy +6
+- **`CmsPageController`** — 8 ação(ões): index, create, store, showPage, showPageLegacy, edit, update, destroy
+- **`DataController`** — 3 ação(ões): superadmin_package, user_permissions, modifyAdminMenu
+- **`InstallController`** — 0 ação(ões): 
 - **`SettingsController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
 
 ## Entities (Models Eloquent)
@@ -91,6 +97,18 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 ## Hooks UltimatePOS registrados
 
 - **`modifyAdminMenu()`** — Injeta itens na sidebar admin
+- **`superadmin_package()`** — Registra pacote de licenciamento no Superadmin
+- **`user_permissions()`** — Registra permissões Spatie no cadastro de Roles
+
+## Permissões
+
+**Registradas pelo módulo** (via `user_permissions()`):
+
+- `cms.access`
+
+## Processamento / eventos
+
+**Commands (artisan):** `CmsHealthCommand`, `ImportWpOfficeImpressoCommand`
 
 ## Peças adicionais
 
@@ -137,84 +155,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ❌ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 103
-- **Linhas +:** 9154 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2022_08_04_143146_create_cms_pages_table.php`
-  - `Database/Migrations/2022_09_10_161849_add_layout_column_to_cms_pages_table.php`
-  - `Database/Migrations/2022_09_10_163209_create_cms_site_details_table.php`
-  - `Database/Migrations/2022_09_15_122547_create_cms_page_metas_table.php`
-  - `Database/Migrations/2022_09_16_130337_create_default_data_for_cms.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/CmsDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/CmsPage.php`
-  - `Entities/CmsPageMeta.php`
-  - `Entities/CmsSiteDetail.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/CmsController.php`
-  - `Http/Controllers/CmsPageController.php`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/SettingsController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Notifications/NewLeadGeneratedNotification.php`
-  - `Providers/.gitkeep`
-  - `Providers/CmsServiceProvider.php`
-  - `Providers/RouteServiceProvider.php`
-  - `Resources/assets/.gitkeep`
-  - `Resources/assets/css/cms.css`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 103
-- **Linhas +:** 9154 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2022_08_04_143146_create_cms_pages_table.php`
-  - `Database/Migrations/2022_09_10_161849_add_layout_column_to_cms_pages_table.php`
-  - `Database/Migrations/2022_09_10_163209_create_cms_site_details_table.php`
-  - `Database/Migrations/2022_09_15_122547_create_cms_page_metas_table.php`
-  - `Database/Migrations/2022_09_16_130337_create_default_data_for_cms.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/CmsDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/CmsPage.php`
-  - `Entities/CmsPageMeta.php`
-  - `Entities/CmsSiteDetail.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/CmsController.php`
-  - `Http/Controllers/CmsPageController.php`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/SettingsController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Notifications/NewLeadGeneratedNotification.php`
-  - `Providers/.gitkeep`
-  - `Providers/CmsServiceProvider.php`
-  - `Providers/RouteServiceProvider.php`
-  - `Resources/assets/.gitkeep`
-  - `Resources/assets/css/cms.css`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -224,5 +169,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:13.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Cms`

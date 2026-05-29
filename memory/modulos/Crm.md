@@ -14,7 +14,9 @@
 - 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, user_permissions, addTaxonomies
 - 🔴 +50 rotas — módulo grande, migrar em fases
 - 🔴 +50 views — trabalho pesado
+- ✅ Tem testes (13)
 - 🔐 Registra 13 permissão(ões) Spatie
+- 🗃️ 11 foreign keys — alto acoplamento em dados
 
 - **Prioridade sugerida de migração:** baixa (grande, fazer por último ou dividir)
 - **Risco estimado:** alto
@@ -23,16 +25,16 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 52 |
-| Controllers | 21 |
-| Entities (Models) | 11 |
-| Services | 0 |
-| FormRequests | 0 |
+| Rotas (web+api) | 75 |
+| Controllers | 27 |
+| Entities (Models) | 12 |
+| Services | 9 |
+| FormRequests | 16 |
 | Middleware | 2 |
 | Views Blade | 68 |
-| Migrations | 26 |
+| Migrations | 27 |
 | Arquivos de lang | 16 |
-| Testes | 0 |
+| Testes | 13 |
 
 ## Rotas
 
@@ -62,7 +64,6 @@
 | `GET` | `install/update` | `[Modules\Crm\Http\Controllers\InstallController::class, 'update']` |
 | `GET` | `lead/{id}/convert` | `[Modules\Crm\Http\Controllers\LeadController::class, 'convertToCustomer']` |
 | `GET` | `lead/{id}/post-life-stage` | `[Modules\Crm\Http\Controllers\LeadController::class, 'postLifeStage']` |
-| `GET` | `{id}/send-campaign-notification` | `[Modules\Crm\Http\Controllers\CampaignController::class, 'sendNotification']` |
 | `GET` | `dashboard` | `[Modules\Crm\Http\Controllers\CrmDashboardController::class, 'index']` |
 | `GET` | `reports` | `[Modules\Crm\Http\Controllers\ReportController::class, 'index']` |
 | `GET` | `follow-ups-by-user` | `[Modules\Crm\Http\Controllers\ReportController::class, 'followUpsByUser']` |
@@ -70,18 +71,19 @@
 | `GET` | `lead-to-customer-report` | `[Modules\Crm\Http\Controllers\ReportController::class, 'leadToCustomerConversion']` |
 | `GET` | `lead-to-customer-details/{user_id}` | `[Modules\Crm\Http\Controllers\ReportController::class, 'showLeadToCustomerConversionDetails']` |
 | `GET` | `call-log` | `[Modules\Crm\Http\Controllers\CallLogController::class, 'index'], ['only' => ['index']]` |
-| `POST` | `mass-delete-call-log` | `[Modules\Crm\Http\Controllers\CallLogController::class, 'massDestroy']` |
 | `GET` | `edit-proposal-template` | `[Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'getEdit']` |
 | `POST` | `update-proposal-template` | `[Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'postEdit']` |
 | `GET` | `view-proposal-template` | `[Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'getView']` |
-| `GET` | `send-proposal` | `[Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'send']` |
 | `DELETE` | `delete-proposal-media/{id}` | `[Modules\Crm\Http\Controllers\ProposalTemplateController::class, 'deleteProposalMedia']` |
 | `GET` | `settings` | `[Modules\Crm\Http\Controllers\CrmSettingsController::class, 'index']` |
 | `POST` | `update-settings` | `[Modules\Crm\Http\Controllers\CrmSettingsController::class, 'updateSettings']` |
 | `GET` | `order-request` | `[Modules\Crm\Http\Controllers\OrderRequestController::class, 'listOrderRequests']` |
 | `GET` | `b2b-marketplace` | `[Modules\Crm\Http\Controllers\CrmMarketplaceController::class, 'index']` |
+| `POST` | `save-marketplace` | `[Modules\Crm\Http\Controllers\CrmMarketplaceController::class, 'save']` |
+| `GET` | `import-leads` | `[Modules\Crm\Http\Controllers\CrmMarketplaceController::class, 'importLeads']` |
+| `POST` | `draft` | `[\Modules\Crm\Http\Controllers\ClienteAutosaveController::class, 'draft']` |
 
-_... +12 rotas_
+_... +35 rotas_
 
 ### `api.php`
 
@@ -91,6 +93,12 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 - **`CallLogController`** — 3 ação(ões): index, massDestroy, allUsersCallLog
 - **`CampaignController`** — 9 ação(ões): index, create, store, show, edit, update, destroy, sendNotification +1
+- **`ClienteAuditoriaController`** — 2 ação(ões): index, export
+- **`ClienteAutosaveController`** — 7 ação(ões): draft, identificacao, contato, endereco, comercial, classificacao, papeis
+- **`ClienteIaController`** — 4 ação(ões): resumo, segmento, proximaAcao, scoreRisco
+- **`ClienteLookupController`** — 3 ação(ões): cep, cnpj, cnpjSefaz
+- **`ClienteOssDataController`** — 8 ação(ões): ledger, sales, payments, documents, activities, persons, subscriptions, rewards
+- **`ClienteVeiculosController`** — 1 ação(ões): index
 - **`ContactBookingController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
 - **`ContactLoginController`** — 9 ação(ões): index, create, store, show, edit, update, destroy, allContactsLoginList +1
 - **`CrmDashboardController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
@@ -98,7 +106,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - **`CrmSettingsController`** — 2 ação(ões): index, updateSettings
 - **`DashboardController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
 - **`DataController`** — 12 ação(ões): after_payment_status_updated, deleteCommissionWithSale, parse_notification, modifyAdminMenu, get_contact_view_tabs, addTaxonomies, user_permissions, calendarEvents +4
-- **`InstallController`** — 4 ação(ões): index, install, uninstall, update
+- **`InstallController`** — 0 ação(ões): 
 - **`LeadController`** — 9 ação(ões): index, create, store, show, edit, update, destroy, convertToCustomer +1
 - **`LedgerController`** — 2 ação(ões): index, getLedger
 - **`ManageProfileController`** — 3 ação(ões): getProfile, updateProfile, updatePassword
@@ -118,6 +126,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - **`CrmContact`** (tabela: `contacts`)
 - **`CrmContactPersonCommission`** (tabela: `—`)
 - **`CrmMarketplace`** (tabela: `—`)
+- **`Deal`** (tabela: `crm_deals`)
 - **`Leaduser`** (tabela: `crm_lead_users`)
 - **`Proposal`** (tabela: `crm_proposals`)
 - **`ProposalTemplate`** (tabela: `crm_proposal_templates`)
@@ -153,6 +162,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - `2022_03_02_180929_add_followup_category_id.php`
 - `2022_05_26_061553_create_crm_contact_person_commissions_table.php`
 - `2022_06_06_073006_add_cc_and_bcc_columns_to_crm_proposals_table.php`
+- `2026_05_17_120000_create_crm_deals_table.php`
 
 ## Views (Blade)
 
@@ -228,10 +238,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Processamento / eventos
 
-**Commands (artisan):** `CreateRecursiveFollowup`, `SendScheduleNotification`
+**Commands (artisan):** `CrmHealthCommand`, `CreateRecursiveFollowup`, `SendScheduleNotification`
 
 ## Peças adicionais
 
+- **Policies:** `CampaignPolicy`, `ProposalPolicy`
 - **Notifications:** `ScheduleNotification`, `SendCampaignNotification`, `SendProposalNotification`
 - **Seeders:** `CrmDatabaseSeeder`
 
@@ -245,7 +256,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Integridade do banco
 
-**Foreign Keys** (10):
+**Foreign Keys** (11):
 
 - `crm_contact_id` → `contacts.id`
 - `business_id` → `business.id`
@@ -257,6 +268,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - `business_id` → `business.id`
 - `business_id` → `business.id`
 - `contact_id` → `contacts.id`
+- `business_id` → `business.id`
 
 ## Assets (JS / CSS)
 
@@ -286,84 +298,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 176
-- **Linhas +:** 19919 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/CreateRecursiveFollowup.php`
-  - `Console/SendScheduleNotification.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_03_19_130231_add_contact_id_to_users_table.php`
-  - `Database/Migrations/2020_03_27_133605_create_schedules_table.php`
-  - `Database/Migrations/2020_03_27_133628_create_schedule_users_table.php`
-  - `Database/Migrations/2020_03_30_112834_create_schedule_logs_table.php`
-  - `Database/Migrations/2020_04_02_182331_add_crm_module_version_to_system_table.php`
-  - `Database/Migrations/2020_04_08_153231_modify_cloumn_in_contacts_table.php`
-  - `Database/Migrations/2020_04_09_101052_create_lead_users_table.php`
-  - `Database/Migrations/2020_04_16_114747_create_crm_campaigns_table.php`
-  - `Database/Migrations/2021_01_07_155757_add_followup_additional_info_column_to_crm_schedules_table.php`
-  - `Database/Migrations/2021_02_02_140021_add_additional_info_to_crm_campaigns_table.php`
-  - `Database/Migrations/2021_02_02_173651_add_new_columns_to_contacts_table.php`
-  - `Database/Migrations/2021_02_04_120439_create_call_logs_table.php`
-  - `Database/Migrations/2021_02_08_172047_add_mobile_name_column_to_crm_call_logs_table.php`
-  - `Database/Migrations/2021_02_16_190038_add_crm_module_indexing.php`
-  - `Database/Migrations/2021_02_19_120846_create_crm_followup_invoices.php`
-  - `Database/Migrations/2021_02_22_132125_add_follow_up_by_to_crm_schedules_table.php`
-  - `Database/Migrations/2021_03_24_160736_add_department_and_designation_to_users_table.php`
-  - `Database/Migrations/2021_06_15_152924_create_proposal_templates_table.php`
-  - `Database/Migrations/2021_06_16_114448_add_recursive_fields_to_crm_schedules_table.php`
-  - `Database/Migrations/2021_06_16_125740_create_proposals_table.php`
-  - `Database/Migrations/2021_09_24_065738_add_crm_settings_column_to_business_table.php`
-  - `Database/Migrations/2022_02_09_055012_create_crm_marketplaces_table.php`
-  - `Database/Migrations/2022_02_17_113045_add_source_id_to_marketplace.php`
-  - `Database/Migrations/2022_03_02_180929_add_followup_category_id.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 176
-- **Linhas +:** 19919 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/CreateRecursiveFollowup.php`
-  - `Console/SendScheduleNotification.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_03_19_130231_add_contact_id_to_users_table.php`
-  - `Database/Migrations/2020_03_27_133605_create_schedules_table.php`
-  - `Database/Migrations/2020_03_27_133628_create_schedule_users_table.php`
-  - `Database/Migrations/2020_03_30_112834_create_schedule_logs_table.php`
-  - `Database/Migrations/2020_04_02_182331_add_crm_module_version_to_system_table.php`
-  - `Database/Migrations/2020_04_08_153231_modify_cloumn_in_contacts_table.php`
-  - `Database/Migrations/2020_04_09_101052_create_lead_users_table.php`
-  - `Database/Migrations/2020_04_16_114747_create_crm_campaigns_table.php`
-  - `Database/Migrations/2021_01_07_155757_add_followup_additional_info_column_to_crm_schedules_table.php`
-  - `Database/Migrations/2021_02_02_140021_add_additional_info_to_crm_campaigns_table.php`
-  - `Database/Migrations/2021_02_02_173651_add_new_columns_to_contacts_table.php`
-  - `Database/Migrations/2021_02_04_120439_create_call_logs_table.php`
-  - `Database/Migrations/2021_02_08_172047_add_mobile_name_column_to_crm_call_logs_table.php`
-  - `Database/Migrations/2021_02_16_190038_add_crm_module_indexing.php`
-  - `Database/Migrations/2021_02_19_120846_create_crm_followup_invoices.php`
-  - `Database/Migrations/2021_02_22_132125_add_follow_up_by_to_crm_schedules_table.php`
-  - `Database/Migrations/2021_03_24_160736_add_department_and_designation_to_users_table.php`
-  - `Database/Migrations/2021_06_15_152924_create_proposal_templates_table.php`
-  - `Database/Migrations/2021_06_16_114448_add_recursive_fields_to_crm_schedules_table.php`
-  - `Database/Migrations/2021_06_16_125740_create_proposals_table.php`
-  - `Database/Migrations/2021_09_24_065738_add_crm_settings_column_to_business_table.php`
-  - `Database/Migrations/2022_02_09_055012_create_crm_marketplaces_table.php`
-  - `Database/Migrations/2022_02_17_113045_add_source_id_to_marketplace.php`
-  - `Database/Migrations/2022_03_02_180929_add_followup_category_id.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -373,5 +312,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Crm`

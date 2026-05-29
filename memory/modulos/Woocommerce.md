@@ -12,6 +12,7 @@
 ## Sinais detectados
 
 - 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
+- ✅ Tem testes (8)
 - 🔐 Registra 5 permissão(ões) Spatie
 
 - **Prioridade sugerida de migração:** média
@@ -24,13 +25,13 @@
 | Rotas (web+api) | 19 |
 | Controllers | 4 |
 | Entities (Models) | 1 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 3 |
+| FormRequests | 2 |
 | Middleware | 0 |
 | Views Blade | 13 |
 | Migrations | 13 |
 | Arquivos de lang | 10 |
-| Testes | 0 |
+| Testes | 8 |
 
 ## Rotas
 
@@ -38,25 +39,25 @@
 
 | Método | URI | Controller |
 |---|---|---|
-| `POST` | `/webhook/order-created/{business_id}` | `[Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderCreated']` |
-| `POST` | `/webhook/order-updated/{business_id}` | `[Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderUpdated']` |
-| `POST` | `/webhook/order-deleted/{business_id}` | `[Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderDeleted']` |
-| `POST` | `/webhook/order-restored/{business_id}` | `[Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderRestored']` |
-| `GET` | `/install` | `[Modules\Woocommerce\Http\Controllers\InstallController::class, 'index']` |
-| `GET` | `/install/update` | `[Modules\Woocommerce\Http\Controllers\InstallController::class, 'update']` |
-| `GET` | `/install/uninstall` | `[Modules\Woocommerce\Http\Controllers\InstallController::class, 'uninstall']` |
-| `GET` | `/` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'index']` |
-| `GET` | `/api-settings` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'apiSettings']` |
-| `POST` | `/update-api-settings` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'updateSettings']` |
-| `GET` | `/sync-categories` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncCategories']` |
-| `GET` | `/sync-products` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncProducts']` |
-| `GET` | `/sync-log` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'getSyncLog']` |
-| `GET` | `/sync-orders` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncOrders']` |
-| `POST` | `/map-taxrates` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'mapTaxRates']` |
-| `GET` | `/view-sync-log` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'viewSyncLog']` |
-| `GET` | `/get-log-details/{id}` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'getLogDetails']` |
-| `GET` | `/reset-categories` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'resetCategories']` |
-| `GET` | `/reset-products` | `[Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'resetProducts']` |
+| `POST` | `/webhook/order-created/{business_id}` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderCreated']` |
+| `POST` | `/webhook/order-updated/{business_id}` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderUpdated']` |
+| `POST` | `/webhook/order-deleted/{business_id}` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderDeleted']` |
+| `POST` | `/webhook/order-restored/{business_id}` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController::class, 'orderRestored']` |
+| `GET` | `/install` | `[\Modules\Woocommerce\Http\Controllers\InstallController::class, 'index']` |
+| `GET` | `/install/update` | `[\Modules\Woocommerce\Http\Controllers\InstallController::class, 'update']` |
+| `GET` | `/install/uninstall` | `[\Modules\Woocommerce\Http\Controllers\InstallController::class, 'uninstall']` |
+| `GET` | `/` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'index']` |
+| `GET` | `/api-settings` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'apiSettings']` |
+| `POST` | `/update-api-settings` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'updateSettings']` |
+| `GET` | `/sync-categories` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncCategories']` |
+| `GET` | `/sync-products` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncProducts']` |
+| `GET` | `/sync-log` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'getSyncLog']` |
+| `GET` | `/sync-orders` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'syncOrders']` |
+| `POST` | `/map-taxrates` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'mapTaxRates']` |
+| `GET` | `/view-sync-log` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'viewSyncLog']` |
+| `GET` | `/get-log-details/{id}` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'getLogDetails']` |
+| `GET` | `/reset-categories` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'resetCategories']` |
+| `GET` | `/reset-products` | `[\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'resetProducts']` |
 
 ### `api.php`
 
@@ -125,7 +126,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Processamento / eventos
 
-**Commands (artisan):** `WooCommerceSyncOrder`, `WoocommerceSyncProducts`
+**Commands (artisan):** `WoocommerceHealthCommand`, `WooCommerceSyncOrder`, `WoocommerceSyncProducts`
 
 ## Peças adicionais
 
@@ -165,84 +166,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 73
-- **Linhas +:** 5944 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/WooCommerceSyncOrder.php`
-  - `Console/WoocommerceSyncProducts.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2018_10_10_110400_add_module_version_to_system_table.php`
-  - `Database/Migrations/2018_10_10_122845_add_woocommerce_api_settings_to_business_table.php`
-  - `Database/Migrations/2018_10_10_162041_add_woocommerce_category_id_to_categories_table.php`
-  - `Database/Migrations/2018_10_11_173839_create_woocommerce_sync_logs_table.php`
-  - `Database/Migrations/2018_10_16_123522_add_woocommerce_tax_rate_id_column_to_tax_rates_table.php`
-  - `Database/Migrations/2018_10_23_111555_add_woocommerce_attr_id_column_to_variation_templates_table.php`
-  - `Database/Migrations/2018_12_03_163945_add_woocommerce_permissions.php`
-  - `Database/Migrations/2019_02_18_154414_change_woocommerce_sync_logs_table.php`
-  - `Database/Migrations/2019_04_19_174129_add_disable_woocommerce_sync_column_to_products_table.php`
-  - `Database/Migrations/2019_06_08_132440_add_woocommerce_wh_oc_secret_column_to_business_table.php`
-  - `Database/Migrations/2019_10_01_171828_add_woocommerce_media_id_columns.php`
-  - `Database/Migrations/2020_09_07_124952_add_woocommerce_skipped_orders_fields_to_business_table.php`
-  - `Database/Migrations/2021_02_16_190608_add_woocommerce_module_indexing.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/AddDummySyncLogTableSeeder.php`
-  - `Database/Seeders/WoocommerceDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/WoocommerceSyncLog.php`
-  - `Exceptions/WooCommerceError.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/WoocommerceController.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 73
-- **Linhas +:** 5944 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/WooCommerceSyncOrder.php`
-  - `Console/WoocommerceSyncProducts.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2018_10_10_110400_add_module_version_to_system_table.php`
-  - `Database/Migrations/2018_10_10_122845_add_woocommerce_api_settings_to_business_table.php`
-  - `Database/Migrations/2018_10_10_162041_add_woocommerce_category_id_to_categories_table.php`
-  - `Database/Migrations/2018_10_11_173839_create_woocommerce_sync_logs_table.php`
-  - `Database/Migrations/2018_10_16_123522_add_woocommerce_tax_rate_id_column_to_tax_rates_table.php`
-  - `Database/Migrations/2018_10_23_111555_add_woocommerce_attr_id_column_to_variation_templates_table.php`
-  - `Database/Migrations/2018_12_03_163945_add_woocommerce_permissions.php`
-  - `Database/Migrations/2019_02_18_154414_change_woocommerce_sync_logs_table.php`
-  - `Database/Migrations/2019_04_19_174129_add_disable_woocommerce_sync_column_to_products_table.php`
-  - `Database/Migrations/2019_06_08_132440_add_woocommerce_wh_oc_secret_column_to_business_table.php`
-  - `Database/Migrations/2019_10_01_171828_add_woocommerce_media_id_columns.php`
-  - `Database/Migrations/2020_09_07_124952_add_woocommerce_skipped_orders_fields_to_business_table.php`
-  - `Database/Migrations/2021_02_16_190608_add_woocommerce_module_indexing.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/AddDummySyncLogTableSeeder.php`
-  - `Database/Seeders/WoocommerceDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/WoocommerceSyncLog.php`
-  - `Exceptions/WooCommerceError.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/WoocommerceController.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -252,5 +180,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Woocommerce`
