@@ -13,6 +13,9 @@
 
 import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 
 interface Lancamento {
   id: number;
@@ -133,19 +136,24 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
           )}
         </label>
 
-        <label>
+        <label htmlFor="fin-edit-categoria">
           <span>Categoria</span>
-          <select
-            value={form.data.categoria_id}
-            onChange={(e) => form.setData('categoria_id', e.target.value)}
+          <Select
+            value={form.data.categoria_id || '__none__'}
+            onValueChange={(v) => form.setData('categoria_id', v === '__none__' ? '' : v)}
           >
-            <option value="">— sem categoria —</option>
-            {categorias.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nome}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="fin-edit-categoria" aria-label="Categoria">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">— sem categoria —</SelectItem>
+              {categorias.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>
+                  {c.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
 
         <label className="fin-edit-wide">

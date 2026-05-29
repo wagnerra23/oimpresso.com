@@ -24,6 +24,9 @@ import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_compon
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 import FunnelStrip from './_components/FunnelStrip';
 import DrawerCobranca from './_components/DrawerCobranca';
 import SheetNovaCobranca from './_components/SheetNovaCobranca';
@@ -293,19 +296,25 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
 
         <div className="w-px h-5 bg-stone-200 mx-1" />
 
-        <select value={gatewayFilter} onChange={e => setGatewayFilterLs(e.target.value)}
-          className="h-6 text-[11.5px] bg-white border border-stone-300 rounded px-2 text-stone-700 focus-visible:ring-2 focus-visible:ring-stone-400"
-          aria-label="Filtrar por gateway">
-          <option value="all">Todos gateways</option>
-          {Object.values(DRIVERS).filter(d => !d.deprecated).map(d => <option key={d.key} value={d.key}>{d.nome}</option>)}
-        </select>
+        <Select value={gatewayFilter} onValueChange={v => setGatewayFilterLs(v)}>
+          <SelectTrigger className="!h-6 !w-auto text-[11.5px]" aria-label="Filtrar por gateway">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos gateways</SelectItem>
+            {Object.values(DRIVERS).filter(d => !d.deprecated).map(d => <SelectItem key={d.key} value={d.key}>{d.nome}</SelectItem>)}
+          </SelectContent>
+        </Select>
 
-        <select value={accountFilter} onChange={e => setAccountFilterLs(e.target.value)}
-          className="h-6 text-[11.5px] bg-white border border-stone-300 rounded px-2 text-stone-700"
-          aria-label="Filtrar por conta destino">
-          <option value="all">Todas contas destino</option>
-          {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
+        <Select value={accountFilter} onValueChange={v => setAccountFilterLs(v)}>
+          <SelectTrigger className="!h-6 !w-auto text-[11.5px]" aria-label="Filtrar por conta destino">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas contas destino</SelectItem>
+            {accounts.map(a => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
 
         <div className="w-px h-5 bg-stone-200 mx-1" />
 
