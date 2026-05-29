@@ -46,6 +46,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | OpenAI — Daily Brief (ADR 0091) + hybrid embedder Meilisearch (ADR 0036)
+    |--------------------------------------------------------------------------
+    |
+    | Chave global única OPENAI_API_KEY. Vive em config/ raiz pra sobreviver a
+    | `config:cache` — env() fora de config/ retorna null quando cacheado, então
+    | services que precisam da chave devem ler via config('services.openai.api_key'),
+    | nunca env() direto (larastan barra; quebra silenciosamente em prod cacheado).
+    */
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Asaas — flags de segurança financeira
     |--------------------------------------------------------------------------
     |
