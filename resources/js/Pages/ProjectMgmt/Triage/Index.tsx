@@ -89,7 +89,7 @@ function timeAgo(iso: string | null): string {
 
 type AssignPatch = Partial<{ owner: string; priority: Priority; cycle_id: number | null; epic_id: number | null }>;
 
-function TriageIndex({ project, tasks, cycles, epics, owners, kpis, filters }: Props) {
+function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
   // Tasks que saíram da lista (still_triage=false) — escondidas localmente até reload.
   const [resolved, setResolved] = useState<Set<string>>(new Set());
   // Overlay otimista por task (campos já aplicados antes do servidor confirmar).
@@ -262,7 +262,7 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis, filters }: P
 
                     {/* Owner inline */}
                     <div>
-                      <label className="md:hidden text-[10px] uppercase tracking-wide text-muted-foreground">Dono</label>
+                      <span className="md:hidden block text-[10px] uppercase tracking-wide text-muted-foreground">Dono</span>
                       <Select
                         value={t.owner ?? NONE}
                         disabled={isPending}
@@ -282,7 +282,7 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis, filters }: P
 
                     {/* Priority inline */}
                     <div>
-                      <label className="md:hidden text-[10px] uppercase tracking-wide text-muted-foreground">Prioridade</label>
+                      <span className="md:hidden block text-[10px] uppercase tracking-wide text-muted-foreground">Prioridade</span>
                       <Select
                         value={t.priority_raw ?? NONE}
                         disabled={isPending}
@@ -306,7 +306,7 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis, filters }: P
 
                     {/* Cycle inline (opcional) */}
                     <div>
-                      <label className="md:hidden text-[10px] uppercase tracking-wide text-muted-foreground">Cycle</label>
+                      <span className="md:hidden block text-[10px] uppercase tracking-wide text-muted-foreground">Cycle</span>
                       <Select
                         value={t.cycle_id ? String(t.cycle_id) : NONE}
                         disabled={isPending || cycles.length === 0}
@@ -328,7 +328,7 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis, filters }: P
 
                     {/* Epic inline (opcional) */}
                     <div>
-                      <label className="md:hidden text-[10px] uppercase tracking-wide text-muted-foreground">Epic</label>
+                      <span className="md:hidden block text-[10px] uppercase tracking-wide text-muted-foreground">Epic</span>
                       <Select
                         value={t.epic_id ? String(t.epic_id) : NONE}
                         disabled={isPending || epics.length === 0}

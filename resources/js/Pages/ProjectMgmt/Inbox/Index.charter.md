@@ -3,9 +3,8 @@ page: /project-mgmt/inbox
 component: resources/js/Pages/ProjectMgmt/Inbox/Index.tsx
 owner: wagner
 status: draft
-last_validated: null
 parent_module: ProjectMgmt
-related_adrs: [0070, 0093, 0058, "UI-0013", 0039]
+related_adrs: [70, 93, 58, 39]
 related_spec: memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md
 stories: [US-TR-304, US-TR-305, US-TR-306]
 tier: A

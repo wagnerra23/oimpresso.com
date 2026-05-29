@@ -3,7 +3,7 @@
         "generated_at": "2026-05-27T17:12:28-03:00",
         "tool": "ui:lint",
         "files_scanned": 1433,
-        "total_violations": 7515,
+        "total_violations": 7548,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -244,10 +244,10 @@
         },
         "resources\/js\/Pages\/Atendimento\/CaixaUnificada\/_components\/ConversationThreadV4.tsx": {
             "R1": 5,
-            "R3": 1
+            "R3": 2
         },
         "resources\/js\/Pages\/Atendimento\/Channels\/Index.tsx": {
-            "R1": 19,
+            "R1": 21,
             "R3": 1
         },
         "resources\/js\/Pages\/Atendimento\/Channels\/Show.tsx": {
@@ -809,12 +809,20 @@
         "resources\/js\/Pages\/ProjectMgmt\/Burndown\/Index.tsx": {
             "R1": 3
         },
+        "resources\/js\/Pages\/ProjectMgmt\/Inbox\/Index.tsx": {
+            "R1": 7,
+            "R3": 1
+        },
         "resources\/js\/Pages\/ProjectMgmt\/MyWork\/Index.tsx": {
             "R1": 4,
             "R3": 1
         },
         "resources\/js\/Pages\/ProjectMgmt\/Roadmap\/Index.tsx": {
             "R1": 18
+        },
+        "resources\/js\/Pages\/ProjectMgmt\/Triage\/Index.tsx": {
+            "R1": 21,
+            "R3": 1
         },
         "resources\/js\/Pages\/Purchase\/Create.tsx": {
             "R1": 40
