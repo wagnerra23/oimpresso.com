@@ -34,28 +34,27 @@ As tools MCP de busca — que o time inteiro consome — usam **FULLTEXT puro**:
 Efeito: o Claude/time recupera **pior do que poderia** — sem expansão semântica,
 sem decay temporal (ADR velho pesa igual a recente), sem rerank, sem Peso Real.
 
-## ⚠️ Constraint crítico (Wagner, 2026-05-29): memória é da EMPRESA
+## ⚠️ Constraint crítico (Wagner, 2026-05-29): memória do MCP é da EMPRESA
 
-A memória do oimpresso é **business-level** — fatos pertencem ao `business`, não ao
-usuário. Funcionário **ainda não foi projetado** pra ter memória individual. Logo,
-busca de memória **NÃO deve filtrar por `user_id`**.
+**Escopo desta proposta = MCP** (ingestão/retrieval de conhecimento da empresa pelas
+tools MCP). O **chat Copiloto NÃO faz parte disto** — o chat tem seu próprio modelo de
+acesso por **permissões Spatie** e é um concern separado. Não misturar os dois.
 
-**Problema descoberto:** o pipeline bom (`MeilisearchDriver::buscarInterno`) tem
-`business_id = X AND user_id = Y` **hardcoded** no filtro Meilisearch ([L~129](../../../Modules/Jana/Services/Memoria/MeilisearchDriver.php#L120)).
-O recall do chat em prod já passa `userId: $conv->user_id` ([LaravelAiSdkDriver L568](../../../Modules/Jana/Services/Ai/LaravelAiSdkDriver.php#L568))
-— então **o escopo-por-usuário já existe hoje no chat** e contradiz o modelo de
-memória de empresa. Os ADRs seedados são `user_id=1` → outro funcionário não os veria.
+No MCP, memória é **business-level** — o conhecimento (ADRs, fatos, docs) pertence ao
+`business`, não ao usuário. Logo, busca de memória via MCP **NÃO deve filtrar por
+`user_id`**. A tool `memoria-search` HOJE está correta: FULLTEXT filtra só `business_id`
+([L92-93](../../../Modules/Jana/Mcp/Tools/MemoriaSearchTool.php#L92)).
 
-**Implicação pra gap #2:** rotear as tools MCP por `buscar(biz, user)` como está
-**ESTRAGARIA as regras empresariais** (estreitaria pra 1 usuário, perdendo os fatos
-da empresa). A tool `memoria-search` HOJE é corretamente **business-only** (FULLTEXT
-filtra só `business_id`, sem `user_id` — [L92-93](../../../Modules/Jana/Mcp/Tools/MemoriaSearchTool.php#L92)).
+**O que isto implica pro gap #2:** o método `MemoriaContrato::buscar()` filtra
+`business_id AND user_id` (`MeilisearchDriver::buscarInterno`). Esse contrato foi
+desenhado pra outro consumidor; **não serve pras tools MCP** sem virar business-only.
+Rotear as tools MCP por `buscar(biz, user)` como está **ESTRAGARIA as regras
+empresariais** (estreitaria pra 1 usuário, perdendo os fatos da empresa — ex: ADRs
+seedados `user_id=1`).
 
-**Pré-requisito do gap #2 (novo):** o pipeline precisa de uma variante
-**business-scoped** — `buscar(businessId, query, topK)` sem `user_id` (ou `userId`
-opcional que, quando ausente, sai do filtro). Sem isso, nenhuma das áreas abaixo pode
-ligar com segurança. Decidir também se o **chat** deve migrar pra business-scope
-(provável bug latente — fora do escopo desta proposta, decisão Wagner).
+**Pré-requisito do gap #2 (novo):** o retrieval das tools MCP precisa de um caminho
+**business-scoped** — `buscar(businessId, query, topK)` **sem** `user_id` no filtro.
+Sem isso, nenhuma das áreas abaixo pode ligar com segurança.
 
 > Tentativa de Área A user-scoped foi convertida pra **draft em #1922** por causa disto.
 
@@ -114,11 +113,8 @@ preservada.
 
 ## Decisão pendente de Wagner
 
-- [ ] Confirmar: memória é **business-level** (sem user_id no recall)? → exige variante
-      business-scoped do pipeline como pré-req.
-- [ ] O **chat** (recall user-scoped hoje, LaravelAiSdkDriver L568) deve migrar pra
-      business-scope também? (bug latente — fora do escopo, mas relacionado)
-- [ ] Aprovar o paradigma (tools MCP via pipeline bom business-scoped, flag-gated)?
+- [ ] Confirmar: memória do MCP é **business-level** (sem `user_id` no retrieval das tools)?
+- [ ] Aprovar o paradigma (tools MCP via retrieval business-scoped, flag-gated)?
 - [ ] B1 (buscar fatos seedados) vs B2 (generalizar driver pros docs)?
 
 ## Relacionado
