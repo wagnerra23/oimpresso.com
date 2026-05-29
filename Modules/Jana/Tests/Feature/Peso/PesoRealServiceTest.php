@@ -172,9 +172,9 @@ it('relevancia_meta fora de faixa é clampada para 0-100', function () {
 });
 
 it('(i) config ausente usa fallback hardcoded sem quebrar', function () {
-    // Zera toda a config jana.peso_real — o service deve seguir funcionando
+    // Zera toda a config copiloto.peso_real — o service deve seguir funcionando
     // com os defaults internos.
-    config(['jana.peso_real' => null]);
+    config(['copiloto.peso_real' => null]);
 
     $svc = new PesoRealService();
 
@@ -186,7 +186,7 @@ it('(i) config ausente usa fallback hardcoded sem quebrar', function () {
 });
 
 it('config customizada sobrepõe o fallback', function () {
-    config(['jana.peso_real.piso_critico' => 0.7]);
+    config(['copiloto.peso_real.piso_critico' => 0.7]);
 
     $svc = new PesoRealService();
     // memória crítica velha → piso = 90 × 0.7 = 63 (delta p/ float).
