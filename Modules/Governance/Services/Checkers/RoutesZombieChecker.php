@@ -36,7 +36,6 @@ use Modules\Governance\Services\DriftFinding;
 final class RoutesZombieChecker implements DriftChecker
 {
     private const DEFAULT_HIT_WINDOW_DAYS = 30;
-    private const DEFAULT_ZOMBIE_GRACE_DAYS = 14;
 
     public function name(): string
     {
@@ -146,7 +145,7 @@ final class RoutesZombieChecker implements DriftChecker
     private function snapshotRoutes(): array
     {
         $out = [];
-        foreach (Route::getRoutes() as $route) {
+        foreach (Route::getRoutes()->getRoutes() as $route) {
             $methods = $route->methods();
             // Apenas GET/POST publicly-callable (ignora HEAD, OPTIONS, internals)
             $relevantMethods = array_intersect($methods, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
@@ -154,7 +153,9 @@ final class RoutesZombieChecker implements DriftChecker
                 continue;
             }
             $uri = '/' . ltrim($route->uri(), '/');
-            $action = is_string($route->getActionName()) ? $route->getActionName() : 'Closure';
+            // getActionName() já retorna 'Closure' pra rotas closure (Laravel core),
+            // sempre string — ternário is_string() era redundante.
+            $action = $route->getActionName();
             $out[] = [
                 'uri' => $uri,
                 'method' => implode('|', $relevantMethods),

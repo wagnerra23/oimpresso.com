@@ -46,12 +46,6 @@ final class BriefGeneratorService
 
     private const STOP_SEQUENCE = "\n---END---";
 
-    /** Régua de tamanho-alvo do brief no prompt (ADR 0226 — env-overridable). */
-    private function targetTokens(): int
-    {
-        return (int) env('GOVERNANCE_BRIEF_TARGET_TOKENS', 8000);
-    }
-
     /** Custo em USD por 1k tokens — gpt-4o-mini 2025 pricing. */
     private const PRICE_INPUT_PER_1K = 0.00015;
 
@@ -101,7 +95,7 @@ final class BriefGeneratorService
             $systemPrompt = $this->buildSystemPrompt();
             $userPrompt = $this->buildUserPrompt($payload);
 
-            $apiKey = config('services.openai.api_key', env('OPENAI_API_KEY'));
+            $apiKey = config('services.openai.api_key');
             if (! $apiKey) {
                 throw new RuntimeException(
                     'OPENAI_API_KEY ausente — configure em .env ou config/services.php'

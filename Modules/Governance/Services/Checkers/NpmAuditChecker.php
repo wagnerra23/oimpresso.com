@@ -205,7 +205,7 @@ final class NpmAuditChecker implements DriftChecker
             }
 
             foreach ($advisories as $advisory) {
-                $title = $advisory['title'] ?? 'CVE sem título';
+                $title = $advisory['title'];
                 $url = $advisory['url'] ?? '';
                 $cwe = $advisory['cwe'] ?? [];
 

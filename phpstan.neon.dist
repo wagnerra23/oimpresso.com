@@ -85,6 +85,20 @@ parameters:
           path: Modules/Officeimpresso/Transformers/*.php
           message: '#unknown class Illuminate.Http.Resources.Json.Resource#'
 
+        # 2x trait.unused FALSO-POSITIVO (NÃO é débito — não baseline).
+        # PersistsDriftAlert + PublishesDriftToCentrifugo SÃO usados por
+        # Modules/Governance/Console/Commands/GovernanceAuditCommand (use nas linhas
+        # 44-45; chamados em 165 persistirDriftAlert + 171 publishDriftToCentrifugo).
+        # Esse command é o orchestrator do `governance:audit` (ADR 0216), agendado em
+        # app/Console/Kernel.php (daily 06:35 BRT). Mas Console/* está em excludePaths
+        # (larastan 3.10 bug PHP 8.4 — ver acima), então PHPStan não enxerga o
+        # consumidor e reporta o trait como "usado zero vezes". Remover os traits
+        # quebraria o command em prod. Ignore pontual por identifier+path.
+        - identifier: trait.unused
+          path: Modules/Governance/Services/Concerns/PersistsDriftAlert.php
+        - identifier: trait.unused
+          path: Modules/Governance/Services/Concerns/PublishesDriftToCentrifugo.php
+
     # Reporta erros do baseline (não ignora)
     reportUnmatchedIgnoredErrors: false
 

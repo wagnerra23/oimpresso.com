@@ -1431,12 +1431,6 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/Brief/Services/BriefGeneratorService.php
-
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 4
 			path: Modules/Cms/Config/retention.php
 
@@ -9238,7 +9232,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 3
+			count: 5
 			path: Modules/Governance/Config/config.php
 
 		-
@@ -9460,7 +9454,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 68
+			count: 76
 			path: Modules/Jana/Config/config.php
 
 		-
