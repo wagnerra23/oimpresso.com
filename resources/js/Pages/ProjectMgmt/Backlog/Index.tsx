@@ -267,7 +267,7 @@ function BacklogIndex({
       </Card>
 
       {selected.size > 0 && (
-        <div className="sticky top-2 z-20 mt-3 flex flex-wrap items-center gap-2 px-4 py-2 rounded-xl border bg-blue-50 dark:bg-blue-950/40 shadow">
+        <div className="sticky top-2 z-20 mt-3 flex flex-wrap items-center gap-2 px-4 py-2 rounded-xl border bg-primary/5 shadow">
           <span className="text-xs font-semibold">{selected.size} selecionada{selected.size > 1 ? 's' : ''}</span>
 
           <span className="text-xs text-muted-foreground">Status:</span>
@@ -339,7 +339,7 @@ function BacklogIndex({
                     key={t.task_id}
                     className={[
                       'border-b transition-colors',
-                      sel ? 'bg-blue-50 dark:bg-blue-950/30' : 'hover:bg-muted/40',
+                      sel ? 'bg-primary/5' : 'hover:bg-muted/40',
                       t.is_blocked ? 'bg-red-50/40 dark:bg-red-950/10' : '',
                     ].filter(Boolean).join(' ')}
                   >

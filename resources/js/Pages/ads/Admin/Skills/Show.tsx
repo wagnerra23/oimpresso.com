@@ -57,7 +57,7 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
   return (
     <div className="mx-auto max-w-5xl p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <Link href="/ads/admin/skills" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+        <Link href="/ads/admin/skills" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
           <ArrowLeft className="w-4 h-4" /> Voltar pra lista
         </Link>
         <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ const Show: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
             prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:rounded-md prose-pre:p-4 prose-pre:text-xs
             prose-code:before:content-none prose-code:after:content-none
             prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:font-normal
-            prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+            prose-a:text-primary prose-a:no-underline hover:prose-a:underline
             prose-table:text-xs prose-th:text-xs prose-td:py-1 prose-td:px-2">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{skill.body}</ReactMarkdown>
           </article>

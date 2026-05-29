@@ -49,7 +49,7 @@ const ACTIONS: ActionConfig[] = [
       type: 'text',
       placeholder: '2026-05-10-sensitive-001',
     }],
-    buttonClass: 'bg-blue-600 hover:bg-blue-700',
+    buttonClass: 'bg-primary hover:bg-primary/90',
   },
   {
     key: 'regen_token',

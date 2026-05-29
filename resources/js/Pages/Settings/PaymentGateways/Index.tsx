@@ -212,7 +212,7 @@ function PaymentGatewaysPage({ gateways, accounts, kpis, today, nfeCertificadoAt
                   return (
                     <tr key={g.id} onClick={() => setDrawer(g)} className={cn(
                       'border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer',
-                      isFocus && 'bg-blue-50/40 ring-1 ring-inset ring-blue-300',
+                      isFocus && 'bg-primary/5 ring-1 ring-inset ring-primary/30',
                     )}>
                       <td className="pl-5 pr-2 py-2.5">
                         <div className="font-medium text-stone-900">{g.nome}</div>
