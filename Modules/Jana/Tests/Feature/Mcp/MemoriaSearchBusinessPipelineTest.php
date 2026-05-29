@@ -84,3 +84,62 @@ it('driver não-MeilisearchDriver (Null/Mcp dev/CI) → null (fallback, guard in
 
     expect(memoriaSearchBizTool()->chamarPipeline(1, 'q', 5))->toBeNull();
 });
+
+it('GUARDA cross-tenant: user biz=1 pedindo business_id=99 → erro, NUNCA chega no DB (Tier 0)', function () {
+    // Revisão adversarial 2026-05-29 (finding #7): a guarda cross-tenant existia no
+    // handle() mas SEM teste. Tier 0 IRREVOGÁVEL (ADR 0093) — vazamento entre tenants
+    // é o pior bug. Este teste é a rede de segurança da guarda (early-return, antes do DB).
+    $user = new class extends \App\User // App\User É Authenticatable; subclasse real (setAttribute ok)
+    {
+        public function hasRole($roles, $guard = null): bool
+        {
+            return false; // não-superadmin
+        }
+    };
+    $user->business_id = 1;
+
+    $request = Mockery::mock(\Laravel\Mcp\Request::class);
+    $request->shouldReceive('get')->with('query', '')->andReturn('segredo do concorrente');
+    $request->shouldReceive('get')->with('business_id')->andReturn(99);
+    $request->shouldReceive('get')->with('limit', 5)->andReturn(5);
+    $request->shouldReceive('user')->andReturn($user);
+
+    $resp = (new MemoriaSearchTool())->handle($request);
+
+    expect((string) $resp->content())
+        ->toContain('Cross-tenant violation')
+        ->toContain('biz=1')
+        ->toContain('biz=99');
+});
+
+it('GUARDA cross-tenant: superadmin NÃO é bloqueado pela guarda de business', function () {
+    // Superadmin pode cruzar tenant (suporte). A guarda só pode disparar pra não-superadmin.
+    // Confirma que a guarda NÃO retorna o erro de violação pra superadmin (passa adiante).
+    $user = new class extends \App\User
+    {
+        public function hasRole($roles, $guard = null): bool
+        {
+            return true; // superadmin
+        }
+    };
+    $user->business_id = 1;
+
+    $request = Mockery::mock(\Laravel\Mcp\Request::class);
+    $request->shouldReceive('get')->with('query', '')->andReturn('q');
+    $request->shouldReceive('get')->with('business_id')->andReturn(99);
+    $request->shouldReceive('get')->with('limit', 5)->andReturn(5);
+    $request->shouldReceive('user')->andReturn($user);
+
+    // Pipeline ON + driver vazio → null → cai no FULLTEXT. Como o foco é só a guarda,
+    // basta garantir que a resposta NÃO é a violação cross-tenant.
+    config()->set('copiloto.mcp_search.memoria_pipeline', true);
+    $driver = Mockery::mock(MeilisearchDriver::class);
+    $driver->shouldReceive('buscarBusiness')->andReturn([
+        fatoBiz(7, 'fato cross-tenant via superadmin', [], 0.5),
+    ]);
+    app()->instance(MemoriaContrato::class, $driver);
+
+    $resp = (new MemoriaSearchTool())->handle($request);
+
+    expect((string) $resp->content())->not->toContain('Cross-tenant violation');
+});
