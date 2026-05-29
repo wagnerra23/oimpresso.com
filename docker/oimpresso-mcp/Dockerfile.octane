@@ -10,7 +10,11 @@ FROM dunglas/frankenphp:php8.4-alpine
 
 WORKDIR /var/www/html
 
-# Extensões PHP do Laravel (mesmo set do FPM anterior)
+# Extensões PHP do Laravel.
+# gd/soap/sockets/opentelemetry adicionados 2026-05-29: o composer.lock atual exige
+# essas exts (composer install falhava com "ext-gd/soap/sockets/opentelemetry missing"
+# → bloqueava deploy do código novo no container, que ficou 1302 commits atrás).
+# Ver memory/reference/INFRA-ACESSO-CANON.md (deploy oimpresso-mcp).
 RUN install-php-extensions \
         pdo_mysql \
         intl \
@@ -18,7 +22,11 @@ RUN install-php-extensions \
         zip \
         opcache \
         pcntl \
-        redis
+        redis \
+        gd \
+        soap \
+        sockets \
+        opentelemetry
 
 # OPcache + JIT em produção pra acelerar boot inicial e código quente
 COPY php.ini /usr/local/etc/php/conf.d/zz-mcp-overrides.ini
