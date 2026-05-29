@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Calendar, Download, Filter, Mail, Printer, FileText } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Input } from '@/Components/ui/input';
 
 export interface LedgerLine {
@@ -200,18 +201,19 @@ export default function LedgerTab({
           {locations.length > 0 && (
             <div className="flex-1 min-w-[160px]">
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Local</label>
-              <select
-                value={locationId}
-                onChange={(e) => setLocationId(e.target.value)}
-                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-              >
-                <option value="">Todos</option>
-                {locations.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
+              <Select value={locationId || '__none__'} onValueChange={(v) => setLocationId(v === '__none__' ? '' : v)}>
+                <SelectTrigger className="w-full" aria-label="Local">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Todos</SelectItem>
+                  {locations.map((l) => (
+                    <SelectItem key={l.id} value={String(l.id)}>
+                      {l.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           <div className="flex items-center gap-2">

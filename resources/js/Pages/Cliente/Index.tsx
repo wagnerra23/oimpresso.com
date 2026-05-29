@@ -48,6 +48,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import {
   DropdownMenu,
@@ -1349,7 +1350,7 @@ function KpiSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="rounded-xl border border-border bg-background p-5 shadow-sm h-28 animate-pulse" />
+        <div key={i} className="rounded-lg border border-border bg-background p-5 shadow-sm h-28 animate-pulse" />
       ))}
     </div>
   );
@@ -1531,7 +1532,7 @@ function KpiCard({
   return (
     <div
       className={
-        'rounded-xl border p-5 shadow-sm ' +
+        'rounded-lg border p-5 shadow-sm ' +
         (danger
           ? 'border-rose-200 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-950/30'
           : 'border-border bg-background')
@@ -2147,18 +2148,18 @@ function Pagination({
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Por página</span>
-          <select
-            value={perPage}
-            onChange={(e) => onPerPageChange(Number(e.target.value))}
-            className="h-7 rounded border border-border bg-background px-2 text-xs text-foreground"
-            aria-label="Itens por página"
-          >
-            {PER_PAGE_OPTIONS.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+          <Select value={String(perPage)} onValueChange={(v) => onPerPageChange(Number(v))}>
+            <SelectTrigger variant="shadcn" size="sm" className="h-7 w-fit text-xs" aria-label="Itens por página">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PER_PAGE_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-1">
           <PageBtn onClick={() => onPageChange(1)} disabled={!canPrev} aria-label="Primeira página">
@@ -2298,7 +2299,7 @@ function CommandPalette({
       aria-label="Busca rápida"
     >
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl rounded-xl border border-border bg-background shadow-2xl mx-4">
+      <div className="relative w-full max-w-2xl rounded-lg border border-border bg-background shadow-2xl mx-4">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <Search size={16} className="text-muted-foreground" aria-hidden="true" />
           <input
@@ -2442,7 +2443,7 @@ function CheatSheet({ onClose }: { onClose: () => void }) {
       aria-label="Atalhos de teclado"
     >
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-md rounded-xl border border-border bg-background shadow-2xl mx-4">
+      <div className="relative w-full max-w-md rounded-lg border border-border bg-background shadow-2xl mx-4">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <Keyboard size={16} className="text-muted-foreground" />
