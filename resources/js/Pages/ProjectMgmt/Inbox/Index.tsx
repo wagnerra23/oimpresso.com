@@ -41,10 +41,18 @@ interface InboxItem {
 }
 
 interface Props {
-  inbox: InboxItem[];
-  inbox_stats: { unread: number; total_30d: number };
+  // inbox/inbox_stats chegam via Inertia::defer (InboxController) → `undefined`
+  // no 1º paint. Tipados opcionais + default-guard no destructuring pra NÃO
+  // crashar React antes do defer chegar (skill inertia-defer-default, Opção B;
+  // espelha OficinaAuto/ServiceOrders/Index.tsx). Sintoma do bug: inbox.forEach()
+  // sobre undefined → tela branca (PR #1940).
+  inbox?: InboxItem[];
+  inbox_stats?: { unread: number; total_30d: number };
   filters: { show_read: boolean };
 }
+
+// Default-guard pros props deferred (contadores começam zerados até o defer resolver).
+const EMPTY_INBOX_STATS = { unread: 0, total_30d: 0 };
 
 const TYPE_ICON: Record<InboxType, typeof AtSign> = {
   mention:          AtSign,
@@ -100,7 +108,7 @@ function timeAgo(iso: string | null): string {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-function InboxIndex({ inbox, inbox_stats, filters }: Props) {
+function InboxIndex({ inbox = [], inbox_stats = EMPTY_INBOX_STATS, filters }: Props) {
   const [optimisticRead, setOptimisticRead] = useState<Set<number>>(new Set());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   // Item em foco pra navegação J/K (mesma mecânica do MyWork/Board).
