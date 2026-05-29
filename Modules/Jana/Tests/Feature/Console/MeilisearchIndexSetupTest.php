@@ -45,3 +45,36 @@ it('payloadPara monta embedders + filterableAttributes', function () {
         ->and($payload['embedders'])->toHaveKey('qwen3_local')
         ->and($payload['filterableAttributes'])->toBe(['business_id', 'user_id']);
 });
+
+// ── SettingsReconciler — detectarDrift (o gate "nunca mais perder o embedder") ──
+
+$cfg = [
+    'embedders' => ['qwen3_local' => ['source' => 'ollama', 'model' => 'qwen3-embedding:0.6b', 'dimensions' => 1024]],
+    'filterableAttributes' => ['status', 'type'],
+];
+
+it('detectarDrift: settings vivos == config → sem drift', function () use ($cfg) {
+    $vivo = ['embedders' => $cfg['embedders'], 'filterableAttributes' => ['type', 'status']]; // ordem diferente OK
+    expect((new MeilisearchIndexSetupCommand())->detectarDrift('x', $cfg, $vivo))->toBeEmpty();
+});
+
+it('detectarDrift: embedder VAZIO (o bug recorrente) → drift', function () use ($cfg) {
+    $vivo = ['embedders' => [], 'filterableAttributes' => ['status', 'type']];
+    $d = (new MeilisearchIndexSetupCommand())->detectarDrift('jana_memoria_facts', $cfg, $vivo);
+    expect($d)->not->toBeEmpty()
+        ->and($d[0])->toContain("embedder 'qwen3_local' AUSENTE");
+});
+
+it('detectarDrift: model divergente (ex openai) → drift', function () use ($cfg) {
+    $vivo = ['embedders' => ['qwen3_local' => ['source' => 'ollama', 'model' => 'nomic-embed-text', 'dimensions' => 1024]], 'filterableAttributes' => ['status', 'type']];
+    expect((new MeilisearchIndexSetupCommand())->detectarDrift('x', $cfg, $vivo))
+        ->toHaveCount(1)
+        ->and(implode('', (new MeilisearchIndexSetupCommand())->detectarDrift('x', $cfg, $vivo)))->toContain('.model difere');
+});
+
+it('detectarDrift: filterableAttributes diferente → drift', function () use ($cfg) {
+    $vivo = ['embedders' => $cfg['embedders'], 'filterableAttributes' => ['status']];
+    expect((new MeilisearchIndexSetupCommand())->detectarDrift('x', $cfg, $vivo))
+        ->toHaveCount(1)
+        ->and(implode('', (new MeilisearchIndexSetupCommand())->detectarDrift('x', $cfg, $vivo)))->toContain('filterableAttributes difere');
+});
