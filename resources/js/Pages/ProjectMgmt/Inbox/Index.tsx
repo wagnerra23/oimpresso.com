@@ -316,7 +316,7 @@ function InboxIndex({ inbox = [], inbox_stats = EMPTY_INBOX_STATS, filters }: Pr
                         aria-current={isSelected ? 'true' : undefined}
                         className={[
                           'group flex items-start gap-2 p-3 rounded-lg border bg-card transition-colors',
-                          isSelected ? 'ring-1 ring-inset ring-blue-400/60' : '',
+                          isSelected ? 'ring-1 ring-inset ring-primary/60' : '',
                           wasRead ? 'opacity-60' : 'hover:bg-muted/40',
                         ].filter(Boolean).join(' ')}
                       >
@@ -348,7 +348,7 @@ function InboxIndex({ inbox = [], inbox_stats = EMPTY_INBOX_STATS, filters }: Pr
                             className="shrink-0 inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-1 rounded hover:bg-muted"
                             title="Marcar como lida"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" aria-hidden="true" />
                             marcar lida
                           </button>
                         ) : (

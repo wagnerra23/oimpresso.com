@@ -297,7 +297,7 @@ function TriageIndex({
                     aria-current={isSelected ? 'true' : undefined}
                     className={[
                       'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_140px_150px_150px_150px] gap-3 px-4 py-3 items-center transition-colors',
-                      isSelected ? 'bg-muted/60 ring-1 ring-inset ring-blue-400/60' : 'hover:bg-muted/40',
+                      isSelected ? 'bg-muted/60 ring-1 ring-inset ring-primary/60' : 'hover:bg-muted/40',
                     ].join(' ')}
                   >
                     {/* Task: id + título + chips de motivo */}
