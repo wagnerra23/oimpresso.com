@@ -15,8 +15,9 @@ related_adrs: [0070, 0093, 0094, 0100, 0104, 0107, 0114, 0058]
 
 # Visual Comparison — ProjectMgmt Triage + Inbox
 
-> **STATUS DO DOCUMENTO: `draft` — AGUARDANDO aprovação por SCREENSHOT do Wagner (ADR 0107/0114).**
-> **Chrome MCP está OFF — as telas NÃO foram renderizadas nem vistas.** Este é o artefato de **preparação** do gate visual (F1.5), **não** a aprovação. O gate MWART continua sinalizando ⚠ (status ≠ approved) **de propósito**: o PR #1940 segue DRAFT até o Wagner ver o SCREENSHOT real e mudar `status: approved` (append-only, decisão humana). Nada aqui declara verde de smoke nem aprovação.
+> **STATUS DO DOCUMENTO: `draft` — smoke de RENDER feito; falta só o sign-off humano do Wagner.**
+> **ATUALIZADO 2026-05-29 (pós-deploy):** as telas **FORAM renderizadas e verificadas** via smoke headless (Chromium + Pest Browser + `actingAs` biz=1). O 1º deploy (#1940) tinha **TELA BRANCA** (`Inertia::defer` props undefined sem guard) — **bug corrigido no hotfix #1962** (`73fac69ac`, default-guard). **Re-smoke VERDE:** h1 + KPIs + sidebar + atalhos J/K/⌘K renderizam, 0 console error (evidência: `storage/smoke/triage-fixed.png` + `inbox-fixed.png`; 7.9KB branco → 80KB renderizado). LIVE em prod.
+> Logo: **NÃO é mais "telas não renderizadas"** — elas renderizam. O que falta é só a **olhada final do Wagner no app live** (sign-off humano do gate F1.5, ADR 0107/0114 — `approved_by` segue `null` até ele confirmar). Smoke técnico de render: ✅. Aprovação estética humana: pendente.
 >
 > **Tipo de tela:** duas listas operacionais teclado-first (PT-01-aware), superfícies humanas das tools MCP de governança.
 > **Personas:** membro do time não-técnico (Felipe/Maiara/Eliana/Luiz) + Wagner Admin — distribuir backlog órfão (Triage) e processar a caixa da manhã (Inbox).
