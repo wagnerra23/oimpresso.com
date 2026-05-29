@@ -4,7 +4,7 @@ type: pegadinha
 module: Infra
 status: resolved 2026-05-12 14:23 BRT
 related: [ADR 0053, ADR 0062, RUNBOOK-acesso-ct100]
-incidents: ["2026-05-12 sync atrasado ~3h — ADR 0143 LIVE prod mas brief não listava"]
+incidents: ["2026-05-12 sync atrasado ~3h — ADR 0143 LIVE prod mas brief não listava", "2026-05-29 deploy-latest-main-sha.txt stale (89f6952e) — DeployDriftChecker cego porque NADA escrevia o arquivo no CT 100 (webhook só chega na Hostinger)"]
 ---
 
 # Pegadinha — CT 100 MCP server: `mcp:sync-memory` lia filesystem antigo (faltava cron `git pull`)
@@ -95,6 +95,36 @@ systemctl status oimpresso-git-sync.timer
 tailscale ssh root@ct100-mcp 'cd /opt/oimpresso-mcp/code && git log --oneline HEAD -1 && echo "vs origin:" && git fetch origin main -q && git log --oneline origin/main -1'
 # Se diferem ⇒ webhook/timer parou; checar journalctl -u oimpresso-git-sync.service
 ```
+
+## 2026-05-29 — Extensão: o timer também grava o `deploy-latest-main-sha.txt` (ADR 0216)
+
+### Sintoma
+`DeployDriftChecker` (ADR 0216) flagava drift `high` permanente: `storage/app/deploy-latest-main-sha.txt` no CT 100 estava congelado num **commit ancestral** (89f6952e) enquanto main já estava 6 merges à frente. Reconcile manual do arquivo "resolvia", mas voltava a ficar stale.
+
+### Root cause (investigado 2026-05-29)
+O webhook GitHub é **um só** e aponta pra `https://oimpresso.com/api/mcp/sync-memory` = **Hostinger** (confirmado via `gh api repos/:owner/:repo/hooks` → `last_response.code: 200`). O `SyncMemoryWebhookController` grava o SHA em `storage/app/` da **máquina que recebe o POST** — ou seja, na Hostinger. Mas o `DeployDriftChecker` roda no **container `oimpresso-mcp` (CT 100)**, lendo o `storage/app/` do CT 100, que o webhook **nunca toca**.
+
+Pontos descartados na investigação (não eram a causa):
+- ❌ Permissão / read-only no bind-mount: `/opt/oimpresso-mcp/storage → /var/www/html/storage` é **rw=true**; write testado OK (owner `www-data`/uid 82, world-readable).
+- ❌ `@file_put_contents` falhando: o código do webhook está correto — só roda na Hostinger.
+- ❌ GitHub não entregando: entrega 200 normalmente — só não chega no CT 100.
+
+➡️ **A causa real: no CT 100, NADA escrevia o arquivo automaticamente.** O webhook ia pra Hostinger; o `oimpresso-git-sync.timer` fazia `git pull` mas **não gravava o SHA**.
+
+### Fix (instalado 2026-05-29)
+Estendido o `ExecStart` do `oimpresso-git-sync.service` pra gravar o SHA a partir de `git rev-parse origin/main`, **logo após o `git fetch` e ANTES do `pull`/`sync`** — assim o arquivo reflete o que main realmente é mesmo se o `pull` der drift ou o `mcp:sync-memory` sofrer **OOM (status=137)**, que acontece ~2×/dia no passo pesado de indexação:
+
+```ini
+ExecStart=/bin/bash -c "/usr/bin/git fetch origin main && /usr/bin/git rev-parse origin/main > /opt/oimpresso-mcp/storage/app/deploy-latest-main-sha.txt; /usr/bin/git pull --ff-only origin main && /usr/bin/docker exec oimpresso-mcp php artisan mcp:sync-memory --reason=cron"
+```
+
+Com isso o CT 100 fica **auto-suficiente** (gera seu próprio sinal "o que é main" a cada 5min, via root no host, zero dependência do webhook). `governance:audit --check=deploy_drift` validado **clean** (deployed == main) após o fix. Nenhuma mudança no código PHP do checker.
+
+> **Nota de design:** o `DeployDriftChecker::latestMainSha()` prefere o arquivo sobre `refs/remotes/origin/main`. Como o timer agora mantém o arquivo fresco, isso fica correto. (Alternativa considerada e descartada por ser menos alinhada ao contrato do checker: deletar o arquivo no CT 100 e deixar cair no fallback do ref `origin/main`, que o timer já mantém fresco via `git fetch`.)
+
+### Follow-ups
+- ⚠️ **OOM no `mcp:sync-memory` (status=137, ~2×/dia):** pré-existente, separado deste fix (o SHA agora é gravado ANTES do passo que mata). Vale investigar limite de memória do container / chunking da indexação.
+- ⚠️ **Unit systemd não versionada:** `oimpresso-git-sync.{service,timer}` vivem só no host (criadas ad-hoc 2026-05-12, agora editadas ad-hoc). Um rebuild do CT 100 via bootstrap perde o fix. Mover a definição da unit pro `docker/oimpresso-mcp/scripts/bootstrap-ct100*.sh` (ou systemd unit no repo) pra durabilidade real.
 
 ## Histórico
 
