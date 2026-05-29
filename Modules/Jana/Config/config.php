@@ -230,6 +230,25 @@ return [
     | Compat: env legado COPILOTO_RERANKER_ENABLED ainda funciona (true=usa driver, false=null).
     | Novo env JANA_RERANKER_ENABLED + JANA_RERANKER_DRIVER. Default = habilitado RRF.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | MCP search tools — pipeline bom vs FULLTEXT (gap #2)
+    |--------------------------------------------------------------------------
+    | SPEC-retrieval-tools-mcp-unificado. As tools MCP de busca usam FULLTEXT; o
+    | pipeline estado-da-arte (hybrid+HyDE+RRF+decay+Peso Real+rerank) só serve o chat.
+    |
+    | memoria_pipeline: liga a tool memoria-search a usar MeilisearchDriver::buscarBusiness
+    | (BUSINESS-scoped — memória da empresa, sem user_id). DEFAULT OFF = FULLTEXT atual
+    | byte-a-byte. Fallback gracioso pro FULLTEXT em erro/vazio/driver-incompatível.
+    | NÃO ligar default sem validar recall@5 com golden set (US-RET-003).
+    |
+    | Nota: decisions-search/kb-answer (corpus MCP global mcp_memory_documents) NÃO entram
+    | aqui ainda — dependem de verificar o embedder do índice no CT 100 (US-RET-001).
+    */
+    'mcp_search' => [
+        'memoria_pipeline' => (bool) env('JANA_MCP_SEARCH_PIPELINE_MEMORIA', false),
+    ],
+
     'reranker' => [
         'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
         'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),
