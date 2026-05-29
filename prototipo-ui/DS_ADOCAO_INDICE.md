@@ -37,6 +37,43 @@ O repo já tem `Pages/Admin/GovernanceV4` + `_components/DriftAlertBanner.tsx` +
 
 ---
 
+## Baseline medido — o drift inicial (2026-05-29, pós-PR #1979)
+
+> Preenche a promessa da seção acima com o número real. Medido por **[CL] Code** rodando `eslint.config.js` (merge `fe9a182d6`) sobre `resources/js/Pages/**`. Total: **639 violações `ds/*` em 197 arquivos** (em `config/eslint-baseline.json`; total geral do baseline = 1455). É o número-base do drift — cada PR-C abaixa, meta `ds/*` → 0.
+>
+> ⚠️ O ratchet guarda as 6 regras como um único `no-restricted-syntax`, então o split por seletor **não está no JSON** — veio de re-rodar o ESLint e agrupar pela mensagem `ds/…`.
+
+### Por regra
+
+| Regra `ds/*` | Violações | % | Destino |
+|---|---:|---:|---|
+| `no-adhoc-status-text` | 410 | 64.2% | `<FieldError>`/`<FieldSuccess>`/`<Alert>` (Tipo 1) · `<Badge variant>` (Tipo 2) |
+| `no-native-select` | 103 | 16.1% | `<Select>` (@/ui) |
+| `no-rounded-xl` | 66 | 10.3% | `rounded-lg` / `<Card>` / `<Dialog>` |
+| `no-native-checkbox` | 53 | 8.3% | `<Checkbox>` |
+| `no-native-radio` | 7 | 1.1% | `<Segmented>` / `<RadioGroup>` |
+| `no-arbitrary-color` | 0 | 0% | — (já limpo) |
+
+> Os 410 `no-adhoc-status-text` casam `text-(rose/red/emerald/green)-(500/600/700)` e misturam os **dois tipos** da nuance da Matriz: Tipo 1 (form `<FieldError>` — migra primeiro) e Tipo 2 (badge `STATUS_STYLE` — baseline absorve, migra por último). O seletor não separa; só o contexto.
+
+### Por área (`Pages/<X>`) — por contagem
+
+| Área | `ds/*` | | Área | `ds/*` |
+|---|---:|---|---|---:|
+| Financeiro | 107 | | Admin | 26 |
+| Cliente | 77 | | Whatsapp | 24 |
+| RecurringBilling | 58 | | Settings | 22 |
+| OficinaAuto | 44 | | Atendimento | 19 |
+| Sells | 42 | | ProjectMgmt | 17 |
+| Repair | 35 | | Ponto | 17 |
+| Purchase | 31 | | Fiscal | 14 |
+
+> _(top 14 = 533; demais áreas ≈ 106; pior arquivo único: `Pages/Financeiro/Unificado/Index.tsx` = 25.)_
+>
+> **Contagem crua ≠ ordem do P0.** Financeiro lidera por volume, mas o P0 da Matriz é **Cliente + Sells** (telas mais tocadas, origem do diagnóstico KB-9.75). Estado real medido: **Cliente/Create + Edit já zerados** (migrados no PR-A). Próximos alvos reais: **Sells Create (6) + Edit (12)** e **Cliente/Index (12)**.
+
+---
+
 ## "Componente de DS = pronto" — a nova definição (o lock real)
 
 Antes eu entregava CSS + showcase. **A partir de agora, promover um componente só está pronto com o tripé:**
