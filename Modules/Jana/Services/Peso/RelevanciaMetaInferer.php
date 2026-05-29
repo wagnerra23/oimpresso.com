@@ -30,7 +30,7 @@ namespace Modules\Jana\Services\Peso;
  * Não custa nada e não toca multi-tenant (não há query). NÃO está plugado em
  * retrieval/prod — é a fonte que a Área A (PesoRealService) virá a consumir.
  *
- * Toda faixa/mapa vem de config `jana.peso_real.relevancia` (valores diretos,
+ * Toda faixa/mapa vem de config `copiloto.peso_real.relevancia` (valores diretos,
  * sem env() — Larastan barra env fora de config/ raiz, ADR 0232 / Constituição §4).
  *
  * @see memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md (Área B)
@@ -61,7 +61,7 @@ final class RelevanciaMetaInferer
     ];
 
     /**
-     * Config resolvida do módulo Jana (`jana.peso_real.relevancia`).
+     * Config resolvida do módulo Jana (`copiloto.peso_real.relevancia`).
      *
      * @var array<string, mixed>
      */
@@ -72,7 +72,7 @@ final class RelevanciaMetaInferer
      */
     public function __construct(?array $config = null)
     {
-        $this->config = $config ?? (array) config('jana.peso_real.relevancia', []);
+        $this->config = $config ?? (array) config('copiloto.peso_real.relevancia', []);
     }
 
     /**
