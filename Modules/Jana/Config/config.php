@@ -524,5 +524,53 @@ return [
                 'reference' => 45,
             ],
         ],
+
+        // ÁREA C / ETAPA 5 IAOS — feature-flag do passo de reordenação por Peso
+        // Real dentro do MeilisearchDriver::buscar (pós-time-decay, pré-reranker).
+        //
+        // ⚠️ FALSE POR DEFAULT (segurança máxima): com a flag OFF o pipeline de
+        // retrieval é BYTE-IDÊNTICO ao legado. Toca o coração da busca em prod —
+        // só ligar conscientemente em homolog após validação (Wagner aprova).
+        //
+        // Valor DIRETO (sem env) — Larastan barra env() fora de config/ raiz,
+        // mesmo padrão que a Área A adotou pro resto deste bloco.
+        //
+        // NOTA de namespace: este arquivo é merged como `copiloto.*`
+        // (JanaServiceProvider::registerConfig). O driver lê via
+        // config('copiloto.peso_real.retrieval_enabled') — chave que HOJE resolve
+        // pra null em runtime real (não há mergeConfigFrom 'copiloto.peso_real'),
+        // ou seja: OFF por default em prod, garantido. Para LIGAR em homolog,
+        // Wagner registra o merge `copiloto.peso_real` OU seta via config() runtime.
+        // Os testes exercitam ON via config([...]) em runtime (independe do merge).
+        'retrieval_enabled' => false,
+
+        // (a) DECISÃO/ADR — multiplicador por lifecycle (não decai por tempo).
+        'lifecycle_mult' => [
+            'accepted'            => 1.0,
+            'accepted-historical' => 0.8,
+            'sunsetting'          => 0.4,
+            'superseded'          => 0.1,
+            'deprecated'          => 0.1,
+        ],
+
+        // (b) MEMÓRIA — meia-vida default do decay exponencial, em dias (ADR 0195).
+        'half_life' => 60,
+
+        // (b) MEMÓRIA — piso crítico (fração de relevancia_meta). Memória que
+        // protege cliente pagante não cai abaixo deste piso, mesmo velha.
+        'piso_critico' => 0.5,
+
+        // (c) INICIATIVA — sinal de cliente (ADR 0105).
+        'sinal' => [
+            'paga_reporta' => 1.0,
+            'qualificado'  => 0.5,
+            'hipotese'     => 0.2,
+        ],
+
+        // (c) INICIATIVA — time_criticality (Cost of Delay / WSJF).
+        'time_criticality' => [
+            'normal'     => 1.0,
+            'compliance' => 1.5,
+        ],
     ],
 ];
