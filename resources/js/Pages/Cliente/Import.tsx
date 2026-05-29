@@ -109,7 +109,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
 
         <div className="rounded-lg border border-border bg-background p-6 mb-6">
           <div className="flex items-start gap-3">
-            <Download size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <Download size={20} className="text-primary flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-foreground">Passo 1 — Baixe o template</h3>
               <p className="text-xs text-muted-foreground mt-1">
@@ -127,7 +127,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
 
         <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-background p-6">
           <div className="flex items-start gap-3 mb-4">
-            <FileSpreadsheet size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <FileSpreadsheet size={20} className="text-primary flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-semibold text-foreground">Passo 2 — Envie o arquivo</h3>
               <p className="text-xs text-muted-foreground mt-1">
@@ -138,7 +138,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
 
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors"
+            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors"
           >
             <Upload size={28} className="mx-auto text-muted-foreground mb-2" />
             <p className="text-sm text-foreground">
@@ -168,7 +168,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
             <div className="mt-4">
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 transition-all"
+                  className="h-full bg-primary transition-all"
                   style={{ width: `${progress.percentage ?? 0}%` }}
                 />
               </div>
