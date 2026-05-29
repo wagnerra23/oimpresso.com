@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * ARCHITECTURE TEST — Anti-regressão GLOBAL hardcode business_id.

@@ -45,3 +45,7 @@ it('payloadPara monta embedders + filterableAttributes', function () {
         ->and($payload['embedders'])->toHaveKey('qwen3_local')
         ->and($payload['filterableAttributes'])->toBe(['business_id', 'user_id']);
 });
+
+// NOTA: a detecção de drift (settings vivos × config) NÃO mora mais aqui — virou
+// MeilisearchSettingsDriftChecker (Modules/Governance, ADR 0216). Ver
+// Modules/Governance/Tests/.../MeilisearchSettingsDriftCheckerTest.php.

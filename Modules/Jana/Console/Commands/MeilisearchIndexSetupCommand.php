@@ -29,8 +29,13 @@ class MeilisearchIndexSetupCommand extends Command
 {
     protected $signature = 'jana:meilisearch-setup {--index=all : uid do índice ou "all"} {--dry-run : mostra sem aplicar}';
 
-    protected $description = 'Codifica/aplica embedders + filterableAttributes dos índices Meilisearch da Jana (idempotente)';
+    protected $description = 'Aplica (cura) embedders + filterableAttributes dos índices Meilisearch da Jana (idempotente)';
 
+    /**
+     * NOTA: a DETECÇÃO de drift NÃO mora aqui — é o MeilisearchSettingsDriftChecker
+     * (Modules/Governance, ADR 0216) plugado em `governance:audit --all`. Este comando
+     * é só a CURA (apply/PATCH runtime). Detect = framework; heal = domínio Jana.
+     */
     public function handle(): int
     {
         $host = rtrim((string) config('scout.meilisearch.host', 'http://localhost:7700'), '/');

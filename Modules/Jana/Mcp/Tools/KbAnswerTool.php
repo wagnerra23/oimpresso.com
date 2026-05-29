@@ -200,6 +200,7 @@ class KbAnswerTool extends Tool
                     $user,
                     $categoria !== 'all' ? $categoria : null,
                     $module !== '' ? $module : null,
+                    $businessId, // Tier 0 — simétrico ao FULLTEXT (revisão 2026-05-29)
                 );
                 if ($hybrid->isNotEmpty()) {
                     return $hybrid;
