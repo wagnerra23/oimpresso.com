@@ -32,7 +32,7 @@ Violam *"não redeclarar tokens"* (CODE_DESIGN_CONTRACT) e ficarão azuis enquan
 - `resources/css/sells-cowork-show.css`
 - `resources/css/sells-cowork.css`
 
-→ **Ação futura:** remover a redefinição local; herdar `--accent` roxo do `cockpit.css`. (Fora do escopo deste PR.)
+→ **✅ RESOLVIDO** (PR `feat/ds-v4-cowork-bundles-accent-roxo`, 2026-05-29): flip dos 6 bundles `--accent`/`--accent-2`/`--accent-soft` (claro + escuro) azul 220 → roxo 295, **escopado só nas linhas `--accent*`** — `--bubble-me` e `--status-partial` (que compartilham o valor azul `oklch(0.58 0.09 220)`) ficam azuis de propósito. Optou-se por **flip de valor** (não remover a redeclaração) por ser independente da ordem de carga do CSS; o débito DRY (herdar de `cockpit.css`) fica pra depois.
 
 ## 3. Débito — telas Inertia/React com AZUL HARDCODED (`blue-*` Tailwind)
 
@@ -57,6 +57,6 @@ Violam *"não redeclarar tokens"* (CODE_DESIGN_CONTRACT) e ficarão azuis enquan
 |---|---|
 | Shell/primary do app (`cockpit.css`) | ✅ roxo (ADR 0190) |
 | Fundação de referência (`prototipo-ui/`) | ✅ roxo (este PR) |
-| Bundles CSS financeiro/sells | ❌ azul 220 redeclarado (§2) |
+| Bundles CSS financeiro/sells | ✅ roxo 295 (flip neste PR · §2) |
 | Telas Inertia (`blue-*` hardcoded) | ❌ 106 arquivos (§3 — PR-2 começa pela `Cliente/`) |
 | Blade legado `contact.*` | ⬜ fora do DS (§4) |
