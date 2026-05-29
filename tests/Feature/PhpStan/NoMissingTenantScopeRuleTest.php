@@ -11,7 +11,7 @@ declare(strict_types=1);
  *  3. Registrada em phpstan.neon.dist via services + tag phpstan.rules.rule
  *  4. getNodeType retorna ClassMethod::class
  *  5. ELOQUENT_METHODS lista contém query/where/find/all/create/etc
- *  6. Path filter restrito a Modules/*/Http/Controllers/*Controller.php
+ *  6. Path filter restrito a Modules/{mod}/Http/Controllers/{Nome}Controller.php
  *  7. Skip métodos privados + __construct
  *  8. Heurística business_id mention aceita 3 formas
  *  9. RuleErrorBuilder usa identifier 'oimpresso.missingTenantScope'
