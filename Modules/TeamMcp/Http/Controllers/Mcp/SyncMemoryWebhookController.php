@@ -80,6 +80,17 @@ class SyncMemoryWebhookController extends Controller
             ]);
         }
 
+        // DeployDriftChecker (ADR 0216): registra o SHA de main a cada push pro
+        // governance:audit detectar deploy atrasado (o "1302-commits cego"). File
+        // cache persiste entre requests/octane reload.
+        $after = (string) $request->input('after', '');
+        if (preg_match('/^[0-9a-f]{7,40}$/i', $after)) {
+            \Illuminate\Support\Facades\Cache::forever(
+                \Modules\Governance\Services\Checkers\DeployDriftChecker::CACHE_KEY,
+                $after
+            );
+        }
+
         // Sincroniza filesystem com origin/main antes de indexar.
         // Sem isso, IndexarMemoryGitParaDb indexa estado parado do disco.
         $gitInfo = $this->sincronizarComOrigin($request);
