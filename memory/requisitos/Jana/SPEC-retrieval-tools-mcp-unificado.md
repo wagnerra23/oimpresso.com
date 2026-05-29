@@ -45,10 +45,10 @@ Os **dois** corpora **já têm Scout/Meilisearch hybrid + embedder** (ADR 0068 p
 - Flag `JANA_MCP_SEARCH_PIPELINE` (default OFF) + fallback gracioso pro `buscarTexto` (ADR 0036/0056).
 - **Aceite:** flag OFF = byte-a-byte atual; flag ON = recall melhor; `acessiveisPara`/`porStatusAtivo` preservados.
 
-### US-RET-002 — Rotear `memoria-search` (corpus Jana, per-cliente) · P1 · ~2-3h
-- `jana_memoria_facts` via hybrid **`business_id`-scoped** (variante do `MeilisearchDriver` SEM `user_id` — o chat scopa por user, a tool MCP scopa por business). NÃO reusar `buscar(business,user)`.
-- Flag + fallback FULLTEXT.
-- **Aceite:** Pest cross-tenant biz=1 vs biz=99 verde; recall ≥ baseline. **`business_id` filtrado (este é o ÚNICO corpus com tenant).**
+### US-RET-002 — Rotear `memoria-search` (corpus Jana, per-cliente) · P1 · ✅ FEITO
+- ✅ `MeilisearchDriver::buscarBusiness(biz, query, topK)` — variante **`business_id`-scoped** (`userId` nullable em `buscarInterno`; com userId≠null o chat fica byte-idêntico — 29 testes do pipeline verdes). NÃO reusa `buscar(business,user)`.
+- ✅ `memoria-search` roteia por ela atrás de `JANA_MCP_SEARCH_PIPELINE_MEMORIA` (default OFF) + fallback FULLTEXT (erro/vazio/driver-incompatível). 4 testes (formata · vazio→null · erro→null · guard instanceof). PHPStan limpo.
+- ⏳ **Pendente:** ligar a flag em prod + validar recall (US-RET-003). Meilisearch do `jana_memoria_facts` já roda (chat usa) — sem dependência de CT 100.
 
 ### US-RET-003 — Gate golden-set recall@5 antes de default-ON · P1 · ~3h
 - Golden set ~20 queries reais; `copiloto:eval` compara ON vs FULLTEXT; só vira default se não regredir.
