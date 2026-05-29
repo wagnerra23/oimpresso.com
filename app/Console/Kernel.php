@@ -495,6 +495,29 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // MEM-MULTI-1 (auditoria seed 2026-05-28) — re-seed ADRs → jana_memoria_facts
+        // diário. Sem este schedule os fatos de ADR ficavam STALE: nova ADR aceita /
+        // ADR supersedida não viravam fato pesquisável até alguém rodar o command na mão.
+        //
+        // 04:45 BRT escolhido de propósito: DEPOIS do jana:freshness-check (04:30) que
+        // reindexa docs STALE/drift no Meilisearch, e bem depois do último ciclo de
+        // mcp:sync-memory (every5min — withoutOverlapping protege se o sync ainda estiver
+        // rodando). Idempotente (upsert por source_slug), safe pra cron diário.
+        // --type=all cobre adr+spec+reference numa passada.
+        $schedule->command('copiloto:seed-adrs --type=all')
+            ->dailyAt('04:45')
+            ->timezone('America/Sao_Paulo')
+            ->name('copiloto-seed-adrs-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/copiloto-seed-adrs.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule copiloto:seed-adrs FALHOU — fatos de ADR podem ficar STALE ' .
+                    '(investigar storage/logs/copiloto-seed-adrs.log)'
+                );
+            });
+
         // Sprint 1 — Daily Brief (ADR 0091, camada L7 da Constituição V2).
         // Gera o brief 6x/dia em horário comercial PT-BR (07/11/14/17/20/23h).
         // Custo médio: $0.05/run × 6 = $0.30/dia. Cap diário no command.
