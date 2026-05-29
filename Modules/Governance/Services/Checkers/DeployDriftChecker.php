@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services\Checkers;
 
-use Illuminate\Support\Facades\Cache;
 use Modules\Governance\Contracts\DriftChecker;
 use Modules\Governance\Services\DriftCheckResult;
 use Modules\Governance\Services\DriftFinding;
@@ -28,7 +27,16 @@ use Modules\Governance\Services\DriftFinding;
  */
 final class DeployDriftChecker implements DriftChecker
 {
-    public const CACHE_KEY = 'deploy:latest_main_sha';
+    /**
+     * Arquivo onde o webhook GitHub→MCP grava o SHA do último push em main.
+     * ARQUIVO (não cache) de propósito: o container roda CACHE_DRIVER=array
+     * (per-process) — cache do webhook (octane) NÃO cruza pro audit (CLI). O
+     * storage é bind-mounted e compartilhado entre processos. (verificado 2026-05-29)
+     */
+    public static function shaFilePath(): string
+    {
+        return storage_path('app/deploy-latest-main-sha.txt');
+    }
 
     public function name(): string
     {
@@ -148,13 +156,17 @@ final class DeployDriftChecker implements DriftChecker
     }
 
     /**
-     * SHA de main: cache do webhook (fresco) OU origin/main ref (stale fallback).
+     * SHA de main: arquivo gravado pelo webhook a cada push (fresco, cross-process)
+     * OU origin/main ref (stale fallback). $shaFile injetável pra teste.
      */
-    public function latestMainSha(string $base): ?string
+    public function latestMainSha(string $base, ?string $shaFile = null): ?string
     {
-        $cached = Cache::get(self::CACHE_KEY);
-        if (is_string($cached) && $this->ehSha($cached)) {
-            return $cached;
+        $shaFile ??= self::shaFilePath();
+        if (is_file($shaFile)) {
+            $sha = trim((string) file_get_contents($shaFile));
+            if ($this->ehSha($sha)) {
+                return $sha;
+            }
         }
 
         return $this->resolverRef($base, 'refs/remotes/origin/main');
