@@ -495,22 +495,10 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // SettingsReconciler (estado-da-arte reconcile-loop 2026-05-29) — guarda contra
-        // o bug recorrente "embedder do Meilisearch se perdeu" (jana_memoria_facts voltou
-        // a {} 2×). Compara settings vivos × config copiloto.meilisearch_indexes; exit 1 +
-        // alerta idempotente index_settings_drift se driftar. Roda DEPOIS do freshness.
-        $schedule->command('jana:meilisearch-setup --check')
-            ->dailyAt('04:40')
-            ->timezone('America/Sao_Paulo')
-            ->onOneServer()
-            ->withoutOverlapping(20)
-            ->environments(['live'])
-            ->appendOutputTo(storage_path('logs/jana-meilisearch-reconcile.log'))
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
-                    'Schedule jana:meilisearch-setup --check FALHOU — DRIFT de settings/embedder do índice (rodar jana:meilisearch-setup pra curar)'
-                );
-            });
+        // NOTA: a detecção de drift de settings/embedder do Meilisearch NÃO tem cron
+        // próprio — é o MeilisearchSettingsDriftChecker (Modules/Governance, ADR 0216)
+        // que roda no `governance:audit --all --notify` já agendado abaixo. Cura =
+        // `php artisan jana:meilisearch-setup`.
 
         // MEM-MULTI-1 (auditoria seed 2026-05-28) — re-seed ADRs → jana_memoria_facts
         // diário. Sem este schedule os fatos de ADR ficavam STALE: nova ADR aceita /
