@@ -12,6 +12,7 @@
 ## Sinais detectados
 
 - 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
+- ✅ Tem testes (9)
 - 🔐 Registra 2 permissão(ões) Spatie
 
 - **Prioridade sugerida de migração:** média
@@ -24,13 +25,13 @@
 | Rotas (web+api) | 9 |
 | Controllers | 3 |
 | Entities (Models) | 2 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 1 |
+| FormRequests | 5 |
 | Middleware | 0 |
 | Views Blade | 7 |
 | Migrations | 4 |
 | Arquivos de lang | 16 |
-| Testes | 0 |
+| Testes | 9 |
 
 ## Rotas
 
@@ -55,7 +56,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 ## Controllers
 
 - **`DataController`** — 5 ação(ões): superadmin_package, user_permissions, modifyAdminMenu, parse_notification, getSharedSpreadsheetForGivenData
-- **`InstallController`** — 4 ação(ões): index, install, uninstall, update
+- **`InstallController`** — 0 ação(ões): 
 - **`SpreadsheetController`** — 12 ação(ões): index, create, store, show, edit, update, destroy, getShareSpreadsheet +4
 
 ## Entities (Models Eloquent)
@@ -97,6 +98,10 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 - `create.spreadsheet`
 - `superadmin`
+
+## Processamento / eventos
+
+**Commands (artisan):** `SpreadsheetHealthCommand`
 
 ## Peças adicionais
 
@@ -144,84 +149,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ❌ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 59
-- **Linhas +:** 2545 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_12_23_125610_add_spreadsheet_version_to_system_table.php`
-  - `Database/Migrations/2020_12_23_153255_create_spreadsheets_table.php`
-  - `Database/Migrations/2021_03_12_175416_create_spreadsheet_shares_table.php`
-  - `Database/Migrations/2023_01_16_124948_add_folder_id_column_to_sheet_spreadsheets_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/SpreadsheetDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/Spreadsheet.php`
-  - `Entities/SpreadsheetShare.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/SpreadsheetController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Notifications/SpreadsheetShared.php`
-  - `Providers/.gitkeep`
-  - `Providers/RouteServiceProvider.php`
-  - `Providers/SpreadsheetServiceProvider.php`
-  - `Resources/assets/.gitkeep`
-  - `Resources/assets/js/app.js`
-  - `Resources/assets/sass/app.scss`
-  - `Resources/lang/.gitkeep`
-  - `Resources/lang/ar/lang.php`
-  - `Resources/lang/ce/lang.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 59
-- **Linhas +:** 2545 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_12_23_125610_add_spreadsheet_version_to_system_table.php`
-  - `Database/Migrations/2020_12_23_153255_create_spreadsheets_table.php`
-  - `Database/Migrations/2021_03_12_175416_create_spreadsheet_shares_table.php`
-  - `Database/Migrations/2023_01_16_124948_add_folder_id_column_to_sheet_spreadsheets_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/SpreadsheetDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/Spreadsheet.php`
-  - `Entities/SpreadsheetShare.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/SpreadsheetController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Notifications/SpreadsheetShared.php`
-  - `Providers/.gitkeep`
-  - `Providers/RouteServiceProvider.php`
-  - `Providers/SpreadsheetServiceProvider.php`
-  - `Resources/assets/.gitkeep`
-  - `Resources/assets/js/app.js`
-  - `Resources/assets/sass/app.scss`
-  - `Resources/lang/.gitkeep`
-  - `Resources/lang/ar/lang.php`
-  - `Resources/lang/ce/lang.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -231,5 +163,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Spreadsheet`

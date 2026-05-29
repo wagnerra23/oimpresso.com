@@ -12,7 +12,9 @@
 ## Sinais detectados
 
 - 🔗 Registra 4 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions, addTaxonomies
+- ✅ Tem testes (9)
 - 🔐 Registra 6 permissão(ões) Spatie
+- 🔗 Acoplamento: depende de 1 outro(s) módulo(s)
 
 - **Prioridade sugerida de migração:** média
 - **Risco estimado:** médio
@@ -21,16 +23,16 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 10 |
+| Rotas (web+api) | 11 |
 | Controllers | 7 |
 | Entities (Models) | 4 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 4 |
+| FormRequests | 5 |
 | Middleware | 0 |
 | Views Blade | 17 |
 | Migrations | 7 |
 | Arquivos de lang | 16 |
-| Testes | 0 |
+| Testes | 9 |
 
 ## Rotas
 
@@ -46,6 +48,7 @@
 | `RESOURCE` | `assets` | `Modules\AssetManagement\Http\Controllers\AssetController::class` |
 | `RESOURCE` | `allocation` | `Modules\AssetManagement\Http\Controllers\AssetAllocationController::class` |
 | `RESOURCE` | `revocation` | `Modules\AssetManagement\Http\Controllers\RevokeAllocatedAssetController::class` |
+| `RESOURCE` | `/settings` | `Manufacturing\SettingsController` |
 | `RESOURCE` | `settings` | `Modules\AssetManagement\Http\Controllers\AssetSettingsController::class` |
 | `RESOURCE` | `asset-maintenance` | `'Modules\AssetManagement\Http\Controllers\AssetMaitenanceController'` |
 
@@ -60,7 +63,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - **`AssetMaitenanceController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
 - **`AssetSettingsController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
 - **`DataController`** — 5 ação(ões): superadmin_package, user_permissions, addTaxonomies, modifyAdminMenu, parse_notification
-- **`InstallController`** — 3 ação(ões): index, uninstall, update
+- **`InstallController`** — 0 ação(ões): 
 - **`RevokeAllocatedAssetController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
 
 ## Entities (Models Eloquent)
@@ -120,6 +123,10 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - `asset.view_all_maintenance`
 - `asset.view_own_maintenance`
 
+## Processamento / eventos
+
+**Commands (artisan):** `AssetManagementHealthCommand`
+
 ## Peças adicionais
 
 - **Notifications:** `AssetAssignedForMaintenance`, `AssetSentForMaintenance`
@@ -132,6 +139,14 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 | `name` | `AssetManagement` |
 | `module_version` | `2.0` |
 | `pid` | `14` |
+
+## Dependências cross-module detectadas
+
+_Referências a outros módulos encontradas no código PHP._
+
+| Módulo referenciado | Ocorrências |
+|---|---:|
+| `Jana` | 5 |
 
 ## Integridade do banco
 
@@ -172,84 +187,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ❌ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 80
-- **Linhas +:** 6389 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_08_19_175842_add_asset_management_module_version_to_system_table.php`
-  - `Database/Migrations/2020_08_20_114339_create_assets_table.php`
-  - `Database/Migrations/2020_08_20_173031_create_asset_transactions_table.php`
-  - `Database/Migrations/2020_08_21_180138_add_asset_settings_column_to_business_table.php`
-  - `Database/Migrations/2021_10_29_110841_create_asset_warranties_table.php`
-  - `Database/Migrations/2022_03_26_062215_create_asset_maintenances_table.php`
-  - `Database/Migrations/2022_05_11_070711_add_maintenance_note_column_to_asset_maintenances_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/AssetManagementDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/Asset.php`
-  - `Entities/AssetMaintenance.php`
-  - `Entities/AssetTransaction.php`
-  - `Entities/AssetWarranty.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/AssetAllocationController.php`
-  - `Http/Controllers/AssetController.php`
-  - `Http/Controllers/AssetMaitenanceController.php`
-  - `Http/Controllers/AssetSettingsController.php`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/RevokeAllocatedAssetController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Notifications/AssetAssignedForMaintenance.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 80
-- **Linhas +:** 6389 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_08_19_175842_add_asset_management_module_version_to_system_table.php`
-  - `Database/Migrations/2020_08_20_114339_create_assets_table.php`
-  - `Database/Migrations/2020_08_20_173031_create_asset_transactions_table.php`
-  - `Database/Migrations/2020_08_21_180138_add_asset_settings_column_to_business_table.php`
-  - `Database/Migrations/2021_10_29_110841_create_asset_warranties_table.php`
-  - `Database/Migrations/2022_03_26_062215_create_asset_maintenances_table.php`
-  - `Database/Migrations/2022_05_11_070711_add_maintenance_note_column_to_asset_maintenances_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/AssetManagementDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/Asset.php`
-  - `Entities/AssetMaintenance.php`
-  - `Entities/AssetTransaction.php`
-  - `Entities/AssetWarranty.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/AssetAllocationController.php`
-  - `Http/Controllers/AssetController.php`
-  - `Http/Controllers/AssetMaitenanceController.php`
-  - `Http/Controllers/AssetSettingsController.php`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/RevokeAllocatedAssetController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Notifications/AssetAssignedForMaintenance.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -259,5 +201,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:13.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec AssetManagement`
