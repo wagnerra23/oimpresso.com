@@ -458,4 +458,48 @@ return [
         'redact_query'            => (bool) env('JANA_REDACT_QUERY_IN_SPANS', true),
         'audit_log_enabled'       => (bool) env('JANA_RETRIEVAL_AUDIT_LOG', true),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Peso Real — classificação por contribuição à meta R$5M (ADR 0232)
+    |--------------------------------------------------------------------------
+    | Multiplicadores das três fórmulas do Peso Real, lidos por
+    | Modules\Jana\Services\Peso\PesoRealService (função PURA, sem I/O).
+    |
+    | ÁREA A / ETAPA 5 IAOS — PROPOSTA, NÃO plugada em retrieval/prod.
+    | O service tem defaults de fallback hardcoded; estas entradas só permitem
+    | tunar sem editar código. Não quebra se a chave for removida.
+    |
+    | @see memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md
+    */
+    'peso_real' => [
+        // (a) DECISÃO/ADR — multiplicador por lifecycle (não decai por tempo).
+        'lifecycle_mult' => [
+            'accepted'            => 1.0,
+            'accepted-historical' => 0.8,
+            'sunsetting'          => 0.4,
+            'superseded'          => 0.1,
+            'deprecated'          => 0.1,
+        ],
+
+        // (b) MEMÓRIA — meia-vida default do decay exponencial, em dias (ADR 0195).
+        'half_life' => 60,
+
+        // (b) MEMÓRIA — piso crítico (fração de relevancia_meta). Memória que
+        // protege cliente pagante não cai abaixo deste piso, mesmo velha.
+        'piso_critico' => 0.5,
+
+        // (c) INICIATIVA — sinal de cliente (ADR 0105).
+        'sinal' => [
+            'paga_reporta' => 1.0,
+            'qualificado'  => 0.5,
+            'hipotese'     => 0.2,
+        ],
+
+        // (c) INICIATIVA — time_criticality (Cost of Delay / WSJF).
+        'time_criticality' => [
+            'normal'     => 1.0,
+            'compliance' => 1.5,
+        ],
+    ],
 ];
