@@ -80,15 +80,15 @@ class SyncMemoryWebhookController extends Controller
             ]);
         }
 
-        // DeployDriftChecker (ADR 0216): registra o SHA de main a cada push pro
-        // governance:audit detectar deploy atrasado (o "1302-commits cego"). File
-        // cache persiste entre requests/octane reload.
+        // DeployDriftChecker (ADR 0216): grava o SHA de main a cada push pro
+        // governance:audit detectar deploy atrasado (o "1302-commits cego").
+        // ARQUIVO (não cache): container roda CACHE_DRIVER=array (per-process) — cache
+        // do webhook não cruzaria pro processo do audit. Storage é compartilhado.
         $after = (string) $request->input('after', '');
         if (preg_match('/^[0-9a-f]{7,40}$/i', $after)) {
-            \Illuminate\Support\Facades\Cache::forever(
-                \Modules\Governance\Services\Checkers\DeployDriftChecker::CACHE_KEY,
-                $after
-            );
+            $shaFile = \Modules\Governance\Services\Checkers\DeployDriftChecker::shaFilePath();
+            @mkdir(dirname($shaFile), 0775, true);
+            @file_put_contents($shaFile, $after);
         }
 
         // Sincroniza filesystem com origin/main antes de indexar.

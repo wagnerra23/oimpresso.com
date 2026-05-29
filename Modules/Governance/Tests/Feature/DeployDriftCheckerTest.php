@@ -60,6 +60,13 @@ it('deployedSha: lê .git/HEAD → ref → refs/heads/main (sem git binary)', fu
     @unlink($base.'/.git/HEAD');
 });
 
+it('latestMainSha lê o ARQUIVO do webhook (cross-process — cache array nao serve)', function () {
+    $tmp = sys_get_temp_dir().'/latestmain_'.uniqid().'.txt';
+    file_put_contents($tmp, "abc1234def5678\n");
+    expect((new DeployDriftChecker())->latestMainSha(sys_get_temp_dir(), $tmp))->toBe('abc1234def5678');
+    @unlink($tmp);
+});
+
 it('deployedSha: HEAD destacado (SHA direto) também resolve', function () {
     $base = sys_get_temp_dir().'/deploydrift2_'.uniqid();
     mkdir($base.'/.git', 0777, true);
