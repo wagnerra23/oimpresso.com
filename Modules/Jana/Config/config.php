@@ -473,6 +473,25 @@ return [
     | @see memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md
     */
     'peso_real' => [
+        // ÁREA C / ETAPA 5 IAOS — feature-flag do passo de reordenação por Peso
+        // Real dentro do MeilisearchDriver::buscar (pós-time-decay, pré-reranker).
+        //
+        // ⚠️ FALSE POR DEFAULT (segurança máxima): com a flag OFF o pipeline de
+        // retrieval é BYTE-IDÊNTICO ao legado. Toca o coração da busca em prod —
+        // só ligar conscientemente em homolog após validação (Wagner aprova).
+        //
+        // Valor DIRETO (sem env) — Larastan barra env() fora de config/ raiz,
+        // mesmo padrão que a Área A adotou pro resto deste bloco.
+        //
+        // NOTA de namespace: este arquivo é merged como `copiloto.*`
+        // (JanaServiceProvider::registerConfig). O driver lê via
+        // config('jana.peso_real.retrieval_enabled') — chave que HOJE resolve
+        // pra null em runtime real (não há mergeConfigFrom 'jana.peso_real'),
+        // ou seja: OFF por default em prod, garantido. Para LIGAR em homolog,
+        // Wagner registra o merge `jana.peso_real` OU seta via config() runtime.
+        // Os testes exercitam ON via config([...]) em runtime (independe do merge).
+        'retrieval_enabled' => false,
+
         // (a) DECISÃO/ADR — multiplicador por lifecycle (não decai por tempo).
         'lifecycle_mult' => [
             'accepted'            => 1.0,

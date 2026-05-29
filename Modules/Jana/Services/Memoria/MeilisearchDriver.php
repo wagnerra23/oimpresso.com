@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\Jana\Contracts\MemoriaPersistida;
 use Modules\Jana\Entities\MemoriaFato;
+use Modules\Jana\Services\Peso\PesoRealService;
 use Modules\Jana\Services\Retrieval\Reranker;
 
 /**
@@ -165,6 +166,19 @@ class MeilisearchDriver implements MemoriaContrato
         // filtered (ordem preservada pelo $merged). Reranker depois reordena por
         // score ajustado.
         $candidatos = $this->applyTimeDecay($merged);
+
+        // 3.6 Peso Real (Área C — Etapa 5 IAOS / ADR 0232). Reordena por
+        // "contribuição à meta R$5M" distinguindo a natureza temporal do tipo:
+        //   - DECISÃO (adr/spec): NÃO decai por tempo → pesoDecisao(relevancia, lifecycle)
+        //   - MEMÓRIA (session/handoff/fato): mantém o decay já aplicado em 3.5
+        //
+        // SEGURANÇA MÁXIMA: passo guardado por feature-flag OFF por default
+        // (config('jana.peso_real.retrieval_enabled')). Com a flag OFF o pipeline
+        // é BYTE-IDÊNTICO ao legado — $candidatos flui intacto pro reranker.
+        // Wagner liga conscientemente em homolog após validação.
+        if (config('jana.peso_real.retrieval_enabled')) {
+            $candidatos = $this->applyPesoReal($candidatos, $merged);
+        }
 
         $reranked = $reranker->reranquear($query, $candidatos, $topK);
 
@@ -356,6 +370,98 @@ class MeilisearchDriver implements MemoriaContrato
                 'score'   => $scoreFinal,
             ];
         })->values()->all();
+    }
+
+    /**
+     * Reordena candidatos por Peso Real (Área C — Etapa 5 IAOS / ADR 0232).
+     *
+     * Plugа PesoRealService (função pura) no retrieval distinguindo a natureza
+     * temporal de cada tipo de documento — o que o applyTimeDecay sozinho NÃO faz
+     * (hoje ele aplica decay a TUDO, inclusive ADR com half-life 365):
+     *
+     *   - DECISÃO (doc_type adr|spec): NÃO decai por tempo. Usa
+     *     pesoDecisao(relevancia_meta, lifecycle) — peso = relevancia × lifecycle_mult.
+     *     Decisão é evergreen: perde peso por supersede (lifecycle), nunca por idade.
+     *
+     *   - MEMÓRIA (session|handoff|fato|outros): mantém o decay temporal já
+     *     calculado em applyTimeDecay. Peso = relevancia_meta × score_decaído.
+     *     (Reaproveita o $candidato['score'], que já é o multiplier temporal.)
+     *
+     * relevancia_meta (0-100) é INFERIDA de forma simples por tipo (ver
+     * inferRelevanciaMeta) com fallback nos metadata — a Área B refina depois
+     * com um campo canônico `relevancia_meta` no frontmatter/metadata. Quando
+     * o metadata já trouxer `relevancia_meta`, este passo o respeita.
+     *
+     * SÓ é chamado quando config('jana.peso_real.retrieval_enabled') === true.
+     * Com a flag OFF este método nunca executa (comportamento legado intacto).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): opera sobre material já scoped por
+     * business_id/user_id no buscarInterno — não toca DB, não recebe businessId.
+     *
+     * @param  array<int, array{id:int, snippet:string, score:float}> $candidatos Saída do applyTimeDecay.
+     * @param  Collection<int, MemoriaFato> $merged Models originais (pra ler metadata).
+     * @return array<int, array{id:int, snippet:string, score:float}> Reordenado por peso desc.
+     */
+    private function applyPesoReal(array $candidatos, Collection $merged): array
+    {
+        /** @var PesoRealService $peso */
+        $peso  = app(PesoRealService::class);
+        $byId  = $merged->keyBy('id');
+
+        $reordenado = array_map(function (array $c) use ($peso, $byId) {
+            // Recupera o model original pra ler metadata (doc_type/lifecycle).
+            // instanceof narra o tipo pro analisador (Collection::get → mixed).
+            $model    = $byId->get($c['id']);
+            $metadata = $model instanceof MemoriaFato ? ($model->metadata ?? []) : [];
+
+            $docType = strtolower((string) ($metadata['doc_type'] ?? 'fato'));
+
+            // relevancia_meta: respeita metadata se a Área B já populou; senão infere.
+            $relevancia = isset($metadata['relevancia_meta'])
+                ? (int) $metadata['relevancia_meta']
+                : $this->inferRelevanciaMeta($docType);
+
+            if ($docType === 'adr' || $docType === 'spec') {
+                // DECISÃO: evergreen, sem decay. lifecycle de metadata.lifecycle
+                // (preferido) ou metadata.status (compat com applyTimeDecay).
+                $lifecycle = strtolower((string) (
+                    $metadata['lifecycle'] ?? $metadata['status'] ?? 'accepted'
+                ));
+
+                $novoScore = $peso->pesoDecisao($relevancia, $lifecycle);
+            } else {
+                // MEMÓRIA: preserva o decay temporal já aplicado (score de 3.5).
+                // peso = relevancia_meta × fator_temporal — mantém o sinal de idade.
+                $novoScore = $relevancia * (float) $c['score'];
+            }
+
+            $c['score'] = $novoScore;
+
+            return $c;
+        }, $candidatos);
+
+        // Reordena por peso desc (estável: usort não é estável em PHP, mas o sinal
+        // de peso é o critério canônico aqui; empates mantêm proximidade aceitável).
+        usort($reordenado, fn (array $a, array $b) => $b['score'] <=> $a['score']);
+
+        return $reordenado;
+    }
+
+    /**
+     * Inferência simples de relevancia_meta (0-100) por doc_type — placeholder
+     * até a Área B introduzir o campo canônico. Defaults conservadores:
+     *   adr/spec=70 (decisões importam), session=50, handoff=40, fato/outros=50.
+     *
+     * NÃO depende da Área B: é um default razoável que faz o passo funcionar hoje.
+     */
+    private function inferRelevanciaMeta(string $docType): int
+    {
+        return match ($docType) {
+            'adr', 'spec' => 70,
+            'session'     => 50,
+            'handoff'     => 40,
+            default       => 50,
+        };
     }
 
     /**
