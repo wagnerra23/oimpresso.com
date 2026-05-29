@@ -410,14 +410,14 @@ function ActiveChip({
   onRemove: () => void;
 }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-0.5 text-[11px] text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+    <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-2 py-0.5 text-[11px] text-primary">
       <span className="font-medium">{label}:</span>
       <span>{value}</span>
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Remover filtro ${label}`}
-        className="hover:text-blue-900 dark:hover:text-blue-100"
+        className="hover:text-primary/80"
       >
         <X size={10} />
       </button>
@@ -521,7 +521,7 @@ function FilterDropdown({
         className={
           'inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
           (hasSel
-            ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+            ? 'border-primary/30 bg-primary/5 text-primary'
             : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground')
         }
         aria-haspopup="listbox"
@@ -562,7 +562,7 @@ function FilterDropdown({
                 className={
                   'w-full text-left rounded px-2 py-1.5 text-xs transition-colors ' +
                   (isOn
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                    ? 'bg-primary/5 text-primary'
                     : 'text-foreground hover:bg-muted')
                 }
               >

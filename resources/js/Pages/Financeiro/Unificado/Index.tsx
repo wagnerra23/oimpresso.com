@@ -735,7 +735,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   };
   return (
     <tr
-      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-blue-50/50' : ''}`}
+      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-primary/5' : ''}`}
       onClick={onSelect}
     >
       {/* Onda 12 (2026-05-20): checkbox bulk-select. stopPropagation pra nao abrir drawer. */}

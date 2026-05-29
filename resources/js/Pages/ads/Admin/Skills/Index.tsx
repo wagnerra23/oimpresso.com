@@ -119,7 +119,7 @@ const Skills: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ sk
                     <td className="px-4 py-2 font-mono text-xs">
                       <Link
                         href={`/ads/admin/skills/${s.slug}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         {s.slug}
                       </Link>

@@ -79,7 +79,7 @@ const Review: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ dr
               <CardHeader>
                 <CardTitle className="text-sm flex items-center justify-between">
                   <span>
-                    <Link href={`/ads/admin/skills/${d.skill_slug}`} className="text-blue-600 hover:underline">
+                    <Link href={`/ads/admin/skills/${d.skill_slug}`} className="text-primary hover:underline">
                       {d.skill_name}
                     </Link>
                     <span className="text-muted-foreground"> · v{d.version}</span>
@@ -107,7 +107,7 @@ const Review: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ dr
                   ) : (
                     <span className="text-amber-600">⚠️ Sem test runs anexados</span>
                   )}
-                  <Link href={`/ads/admin/skills/${d.skill_slug}/test`} className="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                  <Link href={`/ads/admin/skills/${d.skill_slug}/test`} className="inline-flex items-center gap-1 text-primary hover:underline">
                     Testar primeiro <ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>
