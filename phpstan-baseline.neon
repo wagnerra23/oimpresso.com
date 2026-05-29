@@ -37144,3 +37144,129 @@ parameters:
 			identifier: property.phpDocType
 			count: 1
 			path: app/Warranty.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$actor_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$body\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$read_at\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$task_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\InboxController\:\:markAllRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\InboxController\:\:markRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$cycle_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$due_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$epic_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$identifier\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$module\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$owner\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$priority\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$task_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
