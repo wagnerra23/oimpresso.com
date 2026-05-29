@@ -626,6 +626,50 @@ Refs: ADR 0213 Mecanismo 5
 
 ---
 
+### US-INFRA-031 · Resolver colisões de const/function globais em tests/Feature (bloqueia suíte Pest completa)
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** após o fix do double-binding Pest (PR #1943, commit 073fff72e), a discovery da suíte avança e bate em colisões de símbolos globais entre arquivos de teste — PHP carrega todos os arquivos no namespace global, então helpers/consts com mesmo nome colidem. Pré-existente (não é regressão); estava mascarado atrás do crash do double-binding.
+
+**FATAL (`Cannot redeclare function`):**
+- `readEditController()` declarada SEM guard `function_exists` em DOIS arquivos: `tests/Feature/Sells/Wave1EditBaselineTest.php:22` e `tests/Feature/Purchase/Wave2EditBaselineTest.php:13`.
+- `repo_path()` em 14 arquivos `Wave2*` (Bulk/Create/Edit/Index/SellingPrices/Show/StockHistory × Baseline/Inertia) — provavelmente já com guard `function_exists` (carrega antes e não deu fatal); confirmar + padronizar.
+
+**Warnings (16 consts globais duplicadas, não-fatais):** PAGE_PATH, EDIT_CHARTER_PATH (×3), KB975_INERTIA_CSS (×3), KB975_SHOW_PAGE (×3), COMMISSION_SELL_CONTROLLER_PATH, SHOW_PAGE_PATH, EDIT_PAGE_PATH, SELLS_INDEX_PATH, SHOW_CHARTER_PATH, KB975_INDEX_PAGE, SKILLS_VALIDADAS, ROOT, EDIT_CONTROLLER_PATH, QUOTATIONS_CHARTER_PATH, SUBSCRIPTIONS_CHARTER_PATH, DRAFTS_CHARTER_PATH.
+
+**Fix sugerido (escolher 1, consistente):** (a) `if (! function_exists('x')) { function x(){} }` nas funções + `defined('X') || define('X', ...)` nas consts colisivas; (b) melhor: mover helpers genuinamente compartilhados (repo_path, readEditController, path consts) pra um arquivo único autoloadado (ex: `tests/Pest.php` ou `Helpers.php`) e remover as declarações por-arquivo; (c) namespacear cada arquivo de teste.
+
+**Validação:** `php vendor/bin/pest --list-tests` (em D:\oimpresso.com) deve completar discovery sem "Cannot redeclare"; depois `php artisan test` consegue enumerar a suíte inteira. Só arquivos de teste — sem business_id. Branch dedicada (ex: fix/pest-feature-global-symbol-collisions).
+
+---
+
+### US-INFRA-032 · Triar 11 hardcodes $businessId === N flagados pelo NoHardcodeBusinessIdInModulesTest (guard Tier 0 agora ativo)
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** o guard anti-regressão `tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest` (Tier 0, regra Wagner 2026-05-18 IRREVOGÁVEL) nunca rodava porque a suíte morria no double-binding Pest. Após PR #1943 ele roda e **FALHA com 11 hits**. Não é regressão nova — código pré-existente que o guard agora enxerga.
+
+**Hits (`$businessId === N` / `$bizId === N`):**
+- `Modules/Financeiro/Http/Controllers/CobrancaController.php:76` → `$businessId === 1`
+- `Modules/NfeBrasil/Http/Controllers/CertificadoController.php:105,179` → `$businessId === 0`
+- `Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php:58,120,172,206` → `$businessId === 0`
+- `Modules/NfeBrasil/Http/Controllers/NfeInutilizacaoController.php:53,102` → `$businessId === 0`
+- `Modules/NfeBrasil/Http/Controllers/NfeStatusController.php:66` → `$businessId === 0`
+- `Modules/OficinaAuto/Http/Controllers/ProducaoOficinaController.php:222` → `$bizId === 0`
+
+**Triagem sugerida (por hit):**
+- `=== 0` (10 de 11): provavelmente **sentinela** "sem tenant / contexto sistema" → **falso-positivo** do regex. Decisão: refinar `PATTERNS_BANIDOS` no test pra excluir comparação com `0` (ex: exigir `\d+` mas tratar `=== 0` como guard de ausência, não gate per-business). Confirmar lendo cada caso.
+- `=== 1` (CobrancaController:76): parece **gate per-business real** (biz=1) → avaliar refatorar pra `ModuleUtil::hasThePermissionInSubscription(...)` OU documentar justificativa.
+
+**Objetivo:** não deixar o guard Tier 0 vermelho indefinidamente — ou ajustar o regex (falsos-positivos) ou refatorar os reais. Refs: `memory/reference/feedback-habilitar-modulo-por-business.md`, ADR 0093. Depende de US-INFRA-031 pra o guard rodar em CI de suíte completa (mas dá pra rodar isolado: `php vendor/bin/pest tests/Feature/Architecture`).
+
+---
+
+**Última atualização (US-INFRA-031..032):** 2026-05-29 — 2 follow-ups do fix Pest double-binding (PR #1943): colisão de símbolos globais em tests/Feature (bloqueia suíte completa) + triagem dos 11 hardcodes business_id que o guard Tier 0 (agora ativo) flagou.
+
 **Última atualização (US-INFRA-014..030):** 2026-05-28 — adicionadas 17 tasks Onda prevenção bugs MWART (ADRs 0208-0213 propostos no PR #1837). Atacam R7/R8/R9/R10-class via enforcement passivo (Larastan, Wayfinder, Zod, hooks audit-to-backlog).
 
 **Última atualização (US-INFRA-013):** 2026-05-27 — adicionada implementação contract-test-gate GH Action ADR 0207 (entrega da decisão promovida pela sessão 4 waves paralelas)
