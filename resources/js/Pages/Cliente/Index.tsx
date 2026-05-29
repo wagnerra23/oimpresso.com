@@ -67,7 +67,7 @@ import {
 import IdentificacaoTab from './_drawer/IdentificacaoTab';
 import ContatoTab from './_drawer/ContatoTab';
 import EnderecoTab from './_drawer/EnderecoTab';
-import ComercialTab from './_drawer/ComercialTab';
+import ComercialTab, { type PriceGroupOption } from './_drawer/ComercialTab';
 import ClassificacaoTab from './_drawer/ClassificacaoTab';
 // Wave D/E/F — OSs wrapper, IA 4 cards, Auditoria timeline LGPD (ADR 0179).
 import OssTab from './_drawer/OssTab';
@@ -137,8 +137,12 @@ interface ClienteRow {
   state?: string | null;
   limite_credito?: number | null;
   prazo_padrao_dias?: number | null;
+  // Tabela de preço REAL (FK customer_groups). Substitui o fake tabela_preco_padrao.
+  customer_group_id?: number | null;
   tabela_preco_padrao?: string | null;
   pgto_padrao?: string | null;
+  // Mensagem exibida como alerta ao vendedor no POS (migrado do Delphi).
+  mensagem_venda?: string | null;
   obs_comercial?: string | null;
   segmento?: string | null;
   tags?: string[] | null;
@@ -225,6 +229,12 @@ export interface ClienteIndexPageProps {
     view: boolean;
     import: boolean;
   };
+  /**
+   * Tabelas de preço REAIS do business (customer_groups id+name). Server-side
+   * em ContactController::index (scope business_id). Alimenta o dropdown de
+   * tabela de preço no drawer ComercialTab — substitui o enum fake hardcoded.
+   */
+  priceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer. true se modulo
    *  OficinaAuto ativo no business. Default false (biz=4 Larissa vestuario). */
   oficinaauto_enabled?: boolean;
@@ -1143,9 +1153,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           className={
                             'border-b border-border cursor-pointer transition-colors ' +
                             (isOpen
-                              ? 'bg-blue-50/60 dark:bg-blue-950/30'
+                              ? 'bg-primary/10'
                               : isFocused
-                                ? 'bg-blue-50/30 dark:bg-blue-950/20 ring-2 ring-inset ring-blue-300 dark:ring-blue-700'
+                                ? 'bg-primary/5 ring-2 ring-inset ring-primary/40'
                                 : 'hover:bg-muted/40')
                           }
                           onClick={() => {
@@ -1281,6 +1291,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         open={openContactId !== null}
         rows={rows}
         draftContact={draftContact}
+        priceGroups={props.priceGroups ?? []}
         oficinaAutoEnabled={props.oficinaauto_enabled ?? false}
         onOpenChange={(open) => {
           if (!open) setDraftContact(null);
@@ -1422,7 +1433,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
         className={
           'inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
           (hasSel
-            ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+            ? 'border-primary/40 bg-primary/10 text-primary'
             : 'border-transparent bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground')
         }
         aria-haspopup="listbox"
@@ -1476,7 +1487,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
                 className={
                   'w-full text-left rounded px-2 py-1.5 text-xs flex items-center gap-2 transition-colors ' +
                   (isOn
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                    ? 'bg-primary/10 text-primary'
                     : 'text-foreground hover:bg-muted')
                 }
               >
@@ -1485,7 +1496,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
                     className={
                       'inline-flex h-3.5 w-3.5 items-center justify-center rounded border ' +
                       (isOn
-                        ? 'border-blue-500 bg-blue-500 text-white'
+                        ? 'border-primary bg-primary text-primary-foreground'
                         : 'border-border bg-background')
                     }
                   >
@@ -1493,7 +1504,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
                   </span>
                 )}
                 <span className="flex-1">{opt.label}</span>
-                {!multi && isOn && <Check size={11} className="text-blue-600" />}
+                {!multi && isOn && <Check size={11} className="text-primary" />}
               </button>
             );
           })}
@@ -1742,6 +1753,7 @@ function ClienteSheet({
   open,
   rows,
   draftContact,
+  priceGroups = [],
   oficinaAutoEnabled = false,
   onOpenChange,
   onContactUpdated,
@@ -1753,6 +1765,8 @@ function ClienteSheet({
    * via state Index.tsx pra não depender do `rows.find()` (que falha porque
    * draft recém-criado pode estar fora da página paginada da listagem). */
   draftContact?: ClienteRow | null;
+  /** Tabelas de preço REAIS (customer_groups) pro dropdown do ComercialTab. */
+  priceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab. */
   oficinaAutoEnabled?: boolean;
   onOpenChange: (open: boolean) => void;
@@ -1967,7 +1981,7 @@ function ClienteSheet({
                 className={
                   'inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ' +
                   (isActive
-                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                    ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground')
                 }
               >
@@ -2017,7 +2031,7 @@ function ClienteSheet({
                 />
               </div>
               <div hidden={activeTab !== 'comercial'}>
-                <ComercialTab contact={contact} />
+                <ComercialTab contact={contact} priceGroups={priceGroups} />
               </div>
               <div hidden={activeTab !== 'classificacao'}>
                 <ClassificacaoTab contact={contact} />

@@ -365,7 +365,7 @@ function TeamIndex(props: Props) {
                         </span>
                       ) : (
                         <button
-                          className="text-xs text-blue-600 hover:underline"
+                          className="text-xs text-primary hover:underline"
                           onClick={() => setEditQuotaUser(m)}
                         >
                           definir
@@ -379,7 +379,7 @@ function TeamIndex(props: Props) {
                         </span>
                       ) : (
                         <button
-                          className="text-xs text-blue-600 hover:underline"
+                          className="text-xs text-primary hover:underline"
                           onClick={() => setEditQuotaUser(m)}
                         >
                           definir

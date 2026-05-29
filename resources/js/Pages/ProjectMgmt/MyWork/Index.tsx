@@ -55,12 +55,21 @@ interface Kpis { doing: number; review: number; blocked: number; p0: number; ove
 interface Props {
   project: { id: number; key: string; name: string } | null;
   username: string;
-  my_work: MyWorkBucket[];
-  inbox: InboxItem[];
-  inbox_stats: { unread: number; total_30d: number };
-  kpis: Kpis;
+  // my_work/inbox/inbox_stats/kpis chegam via Inertia::defer (MyWorkController:50-53)
+  // → `undefined` no 1º paint. Tipados opcionais + default-guard no destructuring
+  // pra NÃO crashar React antes do defer chegar (skill inertia-defer-default,
+  // Opção B; espelha OficinaAuto/ServiceOrders/Index.tsx). Sintoma do bug:
+  // my_work.forEach() sobre undefined → tela branca.
+  my_work?: MyWorkBucket[];
+  inbox?: InboxItem[];
+  inbox_stats?: { unread: number; total_30d: number };
+  kpis?: Kpis;
   filters: { show_read: boolean };
 }
+
+// Default-guard pros props deferred (começam vazios/zerados até o defer resolver).
+const EMPTY_KPIS: Kpis = { doing: 0, review: 0, blocked: 0, p0: 0, overdue: 0, unread: 0 };
+const EMPTY_INBOX_STATS = { unread: 0, total_30d: 0 };
 
 const LS_FOCUS = 'oimpresso.mywork.focus';
 
@@ -102,7 +111,15 @@ function csrfToken(): string {
   return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
 }
 
-function MyWorkIndex({ project, username, my_work, inbox, inbox_stats, kpis, filters }: Props) {
+function MyWorkIndex({
+  project,
+  username,
+  my_work = [],
+  inbox = [],
+  inbox_stats = EMPTY_INBOX_STATS,
+  kpis = EMPTY_KPIS,
+  filters,
+}: Props) {
   const [focus, setFocus] = useState<'work' | 'inbox'>(() => {
     if (typeof window === 'undefined') return 'work';
     return (localStorage.getItem(LS_FOCUS) as 'work' | 'inbox') === 'inbox' ? 'inbox' : 'work';
@@ -282,7 +299,7 @@ function MyWorkIndex({ project, username, my_work, inbox, inbox_stats, kpis, fil
         <section
           className={[
             'rounded-xl border bg-muted/20 p-4 transition-all',
-            focus === 'work' ? 'ring-2 ring-blue-400/60' : 'opacity-90',
+            focus === 'work' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
           onClick={() => setFocus('work')}
         >
@@ -352,7 +369,7 @@ function MyWorkIndex({ project, username, my_work, inbox, inbox_stats, kpis, fil
         <section
           className={[
             'rounded-xl border bg-muted/20 p-4 transition-all',
-            focus === 'inbox' ? 'ring-2 ring-blue-400/60' : 'opacity-90',
+            focus === 'inbox' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
           onClick={() => setFocus('inbox')}
         >
@@ -416,7 +433,7 @@ function MyWorkIndex({ project, username, my_work, inbox, inbox_stats, kpis, fil
                   }}
                   className={[
                     'group flex items-start gap-2 p-2 rounded-md text-left transition-colors hover:bg-muted',
-                    focus === 'inbox' && selectedInboxId === item.id ? 'bg-muted ring-1 ring-blue-400/60' : '',
+                    focus === 'inbox' && selectedInboxId === item.id ? 'bg-muted ring-1 ring-primary/60' : '',
                     wasRead ? 'opacity-60' : '',
                   ].filter(Boolean).join(' ')}
                 >

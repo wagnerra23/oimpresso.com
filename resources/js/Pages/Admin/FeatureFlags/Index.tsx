@@ -127,7 +127,7 @@ export default function FeatureFlagsIndex({
                       <td className="py-2 font-mono">
                         <Link
                           href={route('admin.feature-flags.show', { key: f.id })}
-                          className="text-blue-600 hover:underline"
+                          className="text-primary hover:underline"
                         >
                           {f.id}
                         </Link>
@@ -152,7 +152,7 @@ export default function FeatureFlagsIndex({
                       <td>
                         <Link
                           href={route('admin.feature-flags.show', { key: f.id })}
-                          className="text-blue-600 hover:underline text-xs"
+                          className="text-primary hover:underline text-xs"
                         >
                           editar →
                         </Link>
@@ -201,7 +201,7 @@ export default function FeatureFlagsIndex({
                       <td className="font-mono">
                         <Link
                           href={route('admin.feature-flags.show', { key: a.flag_key })}
-                          className="text-blue-600 hover:underline"
+                          className="text-primary hover:underline"
                         >
                           {a.flag_key}
                         </Link>

@@ -5,6 +5,9 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { FormEvent } from 'react';
 
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
+
 interface FlashShape {
   success?: string;
   error?: string;
@@ -76,14 +79,16 @@ function Login() {
               {form.errors.password && <span className="text-xs text-red-600">{form.errors.password}</span>}
             </label>
 
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
+            <div className="flex items-center gap-2 text-sm">
+              <Checkbox
+                id="remember"
                 checked={form.data.remember}
-                onChange={(e) => form.setData('remember', e.target.checked)}
+                onCheckedChange={(v) => form.setData('remember', v === true)}
               />
-              Lembrar de mim
-            </label>
+              <Label htmlFor="remember" variant="shadcn" className="font-normal cursor-pointer">
+                Lembrar de mim
+              </Label>
+            </div>
 
             <button
               type="submit"

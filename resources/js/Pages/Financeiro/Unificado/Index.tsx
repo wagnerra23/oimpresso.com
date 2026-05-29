@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,10 @@ import {
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { Checkbox } from '@/Components/ui/checkbox';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -379,7 +383,7 @@ function FinMultiSelectContas({
             onClick={() => onChange('')}
           >
             <span className="inline-flex items-center gap-2">
-              <input type="checkbox" checked={selectedIds.length === 0} readOnly className="accent-stone-700" />
+              <Check className={`h-3.5 w-3.5 shrink-0 ${selectedIds.length === 0 ? 'opacity-100' : 'opacity-0'}`} />
               Todas as contas
             </span>
           </button>
@@ -393,7 +397,7 @@ function FinMultiSelectContas({
                 className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-stone-50 rounded flex items-center gap-2"
                 onClick={() => toggle(c.id)}
               >
-                <input type="checkbox" checked={checked} readOnly className="accent-stone-700" />
+                <Check className={`h-3.5 w-3.5 shrink-0 ${checked ? 'opacity-100' : 'opacity-0'}`} />
                 <span className={checked ? 'text-stone-900 font-medium' : 'text-stone-700'}>{c.nome}</span>
               </button>
             );
@@ -735,17 +739,16 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   };
   return (
     <tr
-      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-blue-50/50' : ''}`}
+      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-primary/5' : ''}`}
       onClick={onSelect}
     >
       {/* Onda 12 (2026-05-20): checkbox bulk-select. stopPropagation pra nao abrir drawer. */}
       <td className="pl-4 pr-1" onClick={(e) => e.stopPropagation()}>
-        <input
-          type="checkbox"
+        <Checkbox
           checked={bulkSelected}
-          onChange={onToggleBulk}
+          onCheckedChange={onToggleBulk}
           aria-label={`Selecionar lançamento ${row.descricao}`}
-          className="accent-stone-700 cursor-pointer"
+          className="cursor-pointer"
         />
       </td>
       <td className="pl-1 pr-2">
@@ -1118,24 +1121,21 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               aplicar({ lifecycle: next });
             };
             return (
-              <label
+              <button
                 key={lc.id}
+                type="button"
+                aria-pressed={on}
                 className={'fin-filter-cb' + (on ? ' on' : '')}
                 // Onda 12 refine — hue SEMPRE setada (mesmo OFF) pra borda semântica
                 // persistir (paridade canon REAL: pills coloridos mesmo desligados).
                 style={{ ['--cb-hue' as string]: lc.hue } as React.CSSProperties}
+                onClick={toggle}
               >
-                <input
-                  type="checkbox"
-                  name={`fin-lifecycle-${lc.id}`}
-                  checked={on}
-                  onChange={toggle}
-                />
                 <span className="fin-filter-cb-box" />
                 <span>{lc.label}</span>
                 {/* Onda 12 refine — count sempre visível (paridade canon: mostra 0 também). */}
                 <span className="fin-filter-ct">{count}</span>
-              </label>
+              </button>
             );
           })}
         </div>
@@ -1145,19 +1145,16 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         {/* Onda 12.5 (2026-05-19) — Toggle "Só atrasados" usa classe `fin-filter-toggle`
             (canon REAL DOM forensics) em vez de `fin-filter-cb` que é dos lifecycle.
             Toggle = on/off independente; lifecycle = multi-select pill colorido. */}
-        <label
+        <button
+          type="button"
+          aria-pressed={filters.overdue}
           className={'fin-filter-toggle' + (filters.overdue ? ' on' : '')}
           title="AND multiplicativo: combina com lifecycle ativos"
+          onClick={() => aplicar({ overdue: !filters.overdue })}
         >
-          <input
-            type="checkbox"
-            name="fin-overdue"
-            checked={filters.overdue}
-            onChange={() => aplicar({ overdue: !filters.overdue })}
-          />
           <span>Só atrasados</span>
           <span className="fin-filter-ct">{countOverdue(lancamentos)}</span>
-        </label>
+        </button>
 
         <span className="fin-filter-sep" />
 
@@ -1177,22 +1174,19 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   aplicar({ aging: next });
                 };
                 return (
-                  <label
+                  <button
                     key={ag.id}
+                    type="button"
+                    aria-pressed={on}
                     className={'fin-filter-cb' + (on ? ' on' : '')}
                     style={{ ['--cb-hue' as string]: ag.hue } as React.CSSProperties}
                     title={`Títulos vencidos ${ag.label} (atrasados não pagos)`}
+                    onClick={toggle}
                   >
-                    <input
-                      type="checkbox"
-                      name={`fin-aging-${ag.id}`}
-                      checked={on}
-                      onChange={toggle}
-                    />
                     <span className="fin-filter-cb-box" />
                     <span>{ag.label}</span>
                     <span className="fin-filter-ct">{count}</span>
-                  </label>
+                  </button>
                 );
               })}
             </div>
@@ -1217,21 +1211,18 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   aplicar({ aprovacao_status: next });
                 };
                 return (
-                  <label
+                  <button
                     key={af.id}
+                    type="button"
+                    aria-pressed={on}
                     className={'fin-filter-cb' + (on ? ' on' : '')}
                     style={{ ['--cb-hue' as string]: af.hue } as React.CSSProperties}
+                    onClick={toggle}
                   >
-                    <input
-                      type="checkbox"
-                      name={`fin-aprov-${af.id}`}
-                      checked={on}
-                      onChange={toggle}
-                    />
                     <span className="fin-filter-cb-box" />
                     <span>{af.label}</span>
                     <span className="fin-filter-ct">{count}</span>
-                  </label>
+                  </button>
                 );
               })}
             </div>
@@ -1249,20 +1240,23 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             'Plano de Contas' (estrutura contábil hierárquica BR). Renderiza com indent
             visual via `nivel` (4 espaços por nível) pra leitura tipo árvore.
             Mantém prop `filters.categoria` por back-compat (mesmo querystring). */}
-        <select
-          className="fin-filter-select"
-          value={filters.categoria}
-          onChange={(e) => aplicar({ categoria: e.target.value })}
-          aria-label="Plano de Contas"
+        <Select
+          value={filters.categoria || '__none__'}
+          onValueChange={(v) => aplicar({ categoria: v === '__none__' ? '' : v })}
         >
-          <option value="">Todo o plano de contas</option>
+          <SelectTrigger variant="shadcn" size="sm" className="max-w-[220px] text-[12px]" aria-label="Plano de Contas">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Todo o plano de contas</SelectItem>
           {(planosConta ?? []).map((p) => (
-            <option key={p.id} value={p.id} title={`${p.codigo} ${p.nome} (${p.tipo})`}>
+            <SelectItem key={p.id} value={String(p.id)} title={`${p.codigo} ${p.nome} (${p.tipo})`}>
               {'  '.repeat(Math.max(0, p.nivel - 1))}
               {p.codigo} · {p.nome}
-            </option>
+            </SelectItem>
           ))}
-        </select>
+          </SelectContent>
+        </Select>
 
         <div className="fin-toolbar-r">
           <div className="fin-search-wrap">
@@ -1304,13 +1298,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
                 {/* Onda 12 (2026-05-20): checkbox select-all (referencia: visible rows). */}
                 <th className="pl-4 pr-1 py-2 w-7">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     aria-label="Selecionar todos lançamentos visíveis"
-                    className="accent-stone-700 cursor-pointer"
+                    className="cursor-pointer"
                     checked={lancamentos.length > 0 && lancamentos.every((l) => selectedRows.has(l.id))}
-                    onChange={(e) => {
-                      if (e.target.checked) setSelectedRows(new Set(lancamentos.map((l) => l.id)));
+                    onCheckedChange={(checked) => {
+                      if (checked === true) setSelectedRows(new Set(lancamentos.map((l) => l.id)));
                       else clearSelection();
                     }}
                   />
@@ -1407,14 +1400,17 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 >
                   Próxima →
                 </Button>
-                <select
-                  className="h-7 ml-2 px-1 rounded border border-stone-200 bg-white text-[11px]"
-                  value={pagination.per_page}
-                  onChange={(e) => aplicar({ per_page: parseInt(e.target.value, 10), page: 1 })}
-                  aria-label="Itens por página"
+                <Select
+                  value={String(pagination.per_page)}
+                  onValueChange={(v) => aplicar({ per_page: parseInt(v, 10), page: 1 })}
                 >
-                  {[20, 50, 100, 200, 500].map((n) => <option key={n} value={n}>{n}/pág</option>)}
-                </select>
+                  <SelectTrigger variant="shadcn" size="sm" className="ml-2 text-[11px]" aria-label="Itens por página">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[20, 50, 100, 200, 500].map((n) => <SelectItem key={n} value={String(n)}>{n}/pág</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </span>
             </div>
           )}
@@ -1923,17 +1919,20 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             <div className="text-sm text-stone-600">
               Selecione a categoria a aplicar aos <b>{selectedRows.size}</b> lançamento{selectedRows.size === 1 ? '' : 's'} selecionado{selectedRows.size === 1 ? '' : 's'}:
             </div>
-            <select
-              className="w-full h-9 px-2 rounded-md border border-stone-200 bg-white text-sm"
-              value={bulkCategoriaId ?? ''}
-              onChange={(e) => setBulkCategoriaId(e.target.value ? parseInt(e.target.value, 10) : null)}
-              aria-label="Categoria"
+            <Select
+              value={bulkCategoriaId === null ? '__none__' : String(bulkCategoriaId)}
+              onValueChange={(v) => setBulkCategoriaId(v === '__none__' ? null : parseInt(v, 10))}
             >
-              <option value="">— escolher categoria —</option>
-              {categorias.map((c) => (
-                <option key={c.id} value={c.id}>{c.nome}</option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full" aria-label="Categoria">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— escolher categoria —</SelectItem>
+                {categorias.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
               <Button
                 size="sm"

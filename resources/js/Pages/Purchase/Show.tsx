@@ -201,7 +201,7 @@ function PurchaseShow({ purchase, permissions }: Props) {
             {purchase.supplier_mobile && <div className="text-stone-600 text-[12px]">Tel: {purchase.supplier_mobile}</div>}
             {purchase.supplier_email && <div className="text-stone-600 text-[12px]">{purchase.supplier_email}</div>}
             {purchase.document_path && (
-              <a href={purchase.document_path} download={purchase.document_name ?? ''} className="inline-flex items-center text-blue-600 hover:underline text-[12px] mt-2">
+              <a href={purchase.document_path} download={purchase.document_name ?? ''} className="inline-flex items-center text-primary hover:underline text-[12px] mt-2">
                 <Download className="h-3 w-3 mr-1" /> Documento anexo
               </a>
             )}

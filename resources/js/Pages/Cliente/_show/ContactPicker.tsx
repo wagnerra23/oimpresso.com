@@ -93,7 +93,7 @@ export default function ContactPicker({ currentContactId, contacts }: ContactPic
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar por nome ou código..."
-                  className="w-full rounded border border-border bg-background pl-8 pr-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded border border-border bg-background pl-8 pr-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
                   data-testid="contact-picker-search"
                 />
               </div>
@@ -115,7 +115,7 @@ export default function ContactPicker({ currentContactId, contacts }: ContactPic
                           disabled={isCurrent}
                           className={
                             'w-full text-left px-3 py-2 text-xs hover:bg-muted/40 transition-colors flex items-center justify-between ' +
-                            (isCurrent ? 'bg-blue-50 dark:bg-blue-950/30 cursor-default' : '')
+                            (isCurrent ? 'bg-primary/10 cursor-default' : '')
                           }
                           data-testid={`contact-picker-item-${c.id}`}
                         >
@@ -131,7 +131,7 @@ export default function ContactPicker({ currentContactId, contacts }: ContactPic
                             )}
                           </div>
                           {isCurrent && (
-                            <span className="text-[10px] text-blue-700 dark:text-blue-400 font-semibold uppercase tracking-wider">
+                            <span className="text-[10px] text-primary font-semibold uppercase tracking-wider">
                               atual
                             </span>
                           )}

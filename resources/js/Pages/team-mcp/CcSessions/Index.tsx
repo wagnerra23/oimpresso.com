@@ -263,7 +263,7 @@ function CcSessionsIndex(props: Props) {
               {' '}
               <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Copiloto/SPEC-cc-sessions.md#us-copi-cc-040--watcher-node-ingere-sessions-jsonl-local"
                  target="_blank" rel="noopener noreferrer"
-                 className="text-blue-600 hover:underline">SPEC US-COPI-CC-040</a>.
+                 className="text-primary hover:underline">SPEC US-COPI-CC-040</a>.
             </div>
             <div className="text-[10px] text-muted-foreground">
               Endpoint pronto: <code className="font-mono">POST /api/cc/ingest</code>
@@ -286,7 +286,7 @@ function CcSessionsIndex(props: Props) {
                   const isSel = s.session_uuid === selectedUuid;
                   return (
                     <tr key={s.id}
-                      className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-blue-50 dark:bg-blue-950/30 border-l-2 border-l-blue-500' : ''}`}
+                      className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-primary/5 border-l-2 border-primary' : ''}`}
                       onClick={() => openSession(s.session_uuid)}>
                       <td className="py-1.5 px-2 align-top">
                         <div className="font-medium text-xs leading-tight">{s.user_nome}</div>
@@ -532,7 +532,7 @@ function MessageBubble({ m }: { m: Message }) {
       )}
       {isLong && (
         <button onClick={() => setExpanded(!expanded)}
-          className="text-[10px] text-blue-600 hover:underline mt-1">
+          className="text-[10px] text-primary hover:underline mt-1">
           {expanded ? '▲ recolher' : `▼ ver mais (${text.length} chars)`}
         </button>
       )}

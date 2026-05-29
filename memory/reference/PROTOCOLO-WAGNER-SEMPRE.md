@@ -375,6 +375,28 @@ Decisão de **prioridade / ROI / arquitetura / sequenciamento** é trabalho do C
 
 ---
 
+## R14 — Conferência é MINHA, jornada COMPLETA. Wagner NUNCA é testador.
+
+**Origem:** Wagner 2026-05-29, sessão Triage/Inbox:
+
+> *"depois de publicar tem que testar e garantir estar funcionando. use browser... testa porra"* + *"porque não obedece o comando de conferir? perco tempo de conferência, fico igual garoto de recado teste."*
+
+Declarei "no ar/funcionando" **2× em cima de prova PARCIAL** (1º `curl 302`; depois render de rota direta) — e o Wagner teve que testar e achar o que eu deveria ter achado (tela branca por `Inertia::defer` sem guard; depois 404 por falta de link no menu). Ele virou meu testador. **Proibido.**
+
+**Regra dura:**
+1. **Conferir = jornada do usuário REAL ponta-a-ponta, EU mesmo, com evidência:** descobre (link existe no menu) → clica/navega (URL certa, sem prefixo dobrado) → renderiza (não branco, 0 console error) → opera (a ação funciona). Uma etapa não basta.
+2. **PROIBIDO declarar "pronto / funcionando / no ar / live / deployado / entregue" em PROXY:** build-success, `curl`/HTTP 302, render de rota direta digitada, "deve funcionar". **Proxy ≠ funcionando.** `curl` prova ROTA, não RENDER nem NAVEGAÇÃO.
+3. **Wagner NUNCA é o testador.** Se dá pra conferir (headless / Pest Browser / MCP / `actingAs`), EU confiro. Não peço pro Wagner abrir/clicar/testar o que posso testar.
+4. **Se não conseguir conferir 100%, escrever "NÃO CONFERIDO: <o quê>"** explícito — nunca empurrar a conferência pro Wagner nem mascarar com proxy.
+
+**Quando dispara:** Claude vai escrever "funcionando / no ar / pronto / live / deployado / entregue".
+
+**Sinal de violação:** Wagner volta com "404" / "tela branca" / "não abre" / "testa" / "fico de garoto de recado" → declarei sem conferir a jornada.
+
+**Ativação (3 camadas):** este doc (R14) + reforça R1 + DoD da skill [`incident-done-checklist`](../../.claude/skills/incident-done-checklist/SKILL.md) + feedback [feedback-deploy-smoke-browser-obrigatorio.md](feedback-deploy-smoke-browser-obrigatorio.md). Evidência da jornada (screenshots) ANEXADA antes de declarar.
+
+---
+
 ## Como Claude detecta violação no meio da sessão (auto-check)
 
 Após cada turno, Claude se pergunta:
@@ -382,7 +404,7 @@ Após cada turno, Claude se pergunta:
 - Mexi em path que precisa pré-flight? ler `SPEC.md`+`RUNBOOK*.md`+`charter.md`+ADRs (R3 R7)
 - Mexi em Eloquent/Service/Job que toca dados? confer `business_id` scope (R4)
 - Estou em worktree? Edits foram pro path worktree, não main repo? (R8)
-- Vou declarar "funcionando"? tenho `curl -sv` ou `screenshot` salvo? (R1)
+- Vou declarar "funcionando/pronto/no ar"? **conferi a JORNADA COMPLETA eu mesmo (menu→clica→navega URL certa→renderiza→opera) com screenshot? `curl`/build/302 NÃO contam — provam rota, não render. (R1 + R14)**
 - Wagner aprovou design? estou copiando integral, não slice? (R2)
 - Vou commit/push/merge? Wagner autorizou ESCOPO/CAMINHO (não só ação isolada)? (R10 + R11)
 - Texto UI/commit em PT-BR? (R5)

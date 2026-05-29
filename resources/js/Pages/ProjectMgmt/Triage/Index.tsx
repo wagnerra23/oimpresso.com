@@ -51,16 +51,24 @@ interface Kpis { total: number; sem_owner: number; sem_prio: number; backlog: nu
 
 interface Props {
   project: { id: number; key: string; name: string } | null;
-  tasks: TriageTask[];
-  cycles: CycleOption[];
-  epics: EpicOption[];
-  owners: string[];
-  kpis: Kpis;
+  // tasks/cycles/epics/owners/kpis chegam via Inertia::defer (TriageController) →
+  // `undefined` no 1º paint. Tipados opcionais + default-guard no destructuring
+  // pra NÃO crashar React antes do defer chegar (skill inertia-defer-default,
+  // Opção B; espelha OficinaAuto/ServiceOrders/Index.tsx). Sintoma do bug:
+  // tasks.filter() sobre undefined → tela branca (PR #1940).
+  tasks?: TriageTask[];
+  cycles?: CycleOption[];
+  epics?: EpicOption[];
+  owners?: string[];
+  kpis?: Kpis;
   filters: { project: string | null };
 }
 
 const NONE = '__none__';
 const PRIORITIES: Priority[] = ['p0', 'p1', 'p2', 'p3'];
+
+// Default-guard pros props deferred (kpis começa zerado até o defer resolver).
+const EMPTY_KPIS: Kpis = { total: 0, sem_owner: 0, sem_prio: 0, backlog: 0 };
 
 const PRIORITY_LABEL: Record<Priority, string> = {
   p0: 'P0 — urgente',
@@ -89,7 +97,14 @@ function timeAgo(iso: string | null): string {
 
 type AssignPatch = Partial<{ owner: string; priority: Priority; cycle_id: number | null; epic_id: number | null }>;
 
-function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
+function TriageIndex({
+  project,
+  tasks = [],
+  cycles = [],
+  epics = [],
+  owners = [],
+  kpis = EMPTY_KPIS,
+}: Props) {
   // Tasks que saíram da lista (still_triage=false) — escondidas localmente até reload.
   const [resolved, setResolved] = useState<Set<string>>(new Set());
   // Overlay otimista por task (campos já aplicados antes do servidor confirmar).
@@ -216,6 +231,7 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
       <PageHeader
         icon="Inbox"
         title={project ? `${project.name} — Triagem` : 'Triagem'}
+        moduleNav
         description={
           `${kpis.total} pra triar · ${kpis.sem_owner} sem dono · ${kpis.sem_prio} sem prioridade · ${kpis.backlog} em backlog`
         }
@@ -282,7 +298,7 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
                     aria-current={isSelected ? 'true' : undefined}
                     className={[
                       'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_140px_150px_150px_150px] gap-3 px-4 py-3 items-center transition-colors',
-                      isSelected ? 'bg-muted/60 ring-1 ring-inset ring-blue-400/60' : 'hover:bg-muted/40',
+                      isSelected ? 'bg-muted/60 ring-1 ring-inset ring-primary/60' : 'hover:bg-muted/40',
                     ].join(' ')}
                   >
                     {/* Task: id + título + chips de motivo */}

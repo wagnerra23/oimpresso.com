@@ -110,7 +110,7 @@ export default function OssTab({ contact, permissions = {}, locations = [] }: Os
               className={
                 'w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors text-left ' +
                 (isActive
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground')
               }
             >

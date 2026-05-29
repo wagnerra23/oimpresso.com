@@ -12,6 +12,9 @@ import { type ReactNode, type FormEvent, useState } from 'react';
 import { Upload, Check, X, Search } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 
 interface Linha {
   id: number;
@@ -149,17 +152,20 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
               <label htmlFor="conta_id" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium block mb-1">
                 Conta bancária (opcional)
               </label>
-              <select
-                id="conta_id"
-                value={uploadForm.data.conta_bancaria_id}
-                onChange={(e) => uploadForm.setData('conta_bancaria_id', e.target.value)}
-                className="h-8 px-2 rounded-md border border-stone-300 text-[13px] bg-white w-full"
+              <Select
+                value={uploadForm.data.conta_bancaria_id || '__none__'}
+                onValueChange={(v) => uploadForm.setData('conta_bancaria_id', v === '__none__' ? '' : v)}
               >
-                <option value="">Detectar do arquivo</option>
-                {contas.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nome}</option>
-                ))}
-              </select>
+                <SelectTrigger id="conta_id" className="w-full" aria-label="Conta bancária">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Detectar do arquivo</SelectItem>
+                  {contas.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           <button

@@ -41,10 +41,18 @@ interface InboxItem {
 }
 
 interface Props {
-  inbox: InboxItem[];
-  inbox_stats: { unread: number; total_30d: number };
+  // inbox/inbox_stats chegam via Inertia::defer (InboxController) → `undefined`
+  // no 1º paint. Tipados opcionais + default-guard no destructuring pra NÃO
+  // crashar React antes do defer chegar (skill inertia-defer-default, Opção B;
+  // espelha OficinaAuto/ServiceOrders/Index.tsx). Sintoma do bug: inbox.forEach()
+  // sobre undefined → tela branca (PR #1940).
+  inbox?: InboxItem[];
+  inbox_stats?: { unread: number; total_30d: number };
   filters: { show_read: boolean };
 }
+
+// Default-guard pros props deferred (contadores começam zerados até o defer resolver).
+const EMPTY_INBOX_STATS = { unread: 0, total_30d: 0 };
 
 const TYPE_ICON: Record<InboxType, typeof AtSign> = {
   mention:          AtSign,
@@ -100,7 +108,7 @@ function timeAgo(iso: string | null): string {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-function InboxIndex({ inbox, inbox_stats, filters }: Props) {
+function InboxIndex({ inbox = [], inbox_stats = EMPTY_INBOX_STATS, filters }: Props) {
   const [optimisticRead, setOptimisticRead] = useState<Set<number>>(new Set());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   // Item em foco pra navegação J/K (mesma mecânica do MyWork/Board).
@@ -229,6 +237,7 @@ function InboxIndex({ inbox, inbox_stats, filters }: Props) {
       <PageHeader
         icon="Inbox"
         title="Caixa de entrada"
+        moduleNav
         description={`${inbox_stats.unread} não-lidas · ${inbox_stats.total_30d} nos últimos 30 dias`}
         action={
           <div className="flex items-center gap-2">
@@ -308,7 +317,7 @@ function InboxIndex({ inbox, inbox_stats, filters }: Props) {
                         aria-current={isSelected ? 'true' : undefined}
                         className={[
                           'group flex items-start gap-2 p-3 rounded-lg border bg-card transition-colors',
-                          isSelected ? 'ring-1 ring-inset ring-blue-400/60' : '',
+                          isSelected ? 'ring-1 ring-inset ring-primary/60' : '',
                           wasRead ? 'opacity-60' : 'hover:bg-muted/40',
                         ].filter(Boolean).join(' ')}
                       >
@@ -340,7 +349,7 @@ function InboxIndex({ inbox, inbox_stats, filters }: Props) {
                             className="shrink-0 inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-1 rounded hover:bg-muted"
                             title="Marcar como lida"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" aria-hidden="true" />
                             marcar lida
                           </button>
                         ) : (

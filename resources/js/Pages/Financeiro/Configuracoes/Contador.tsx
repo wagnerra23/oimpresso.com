@@ -6,6 +6,9 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router, usePage } from '@inertiajs/react';
 import { useState, FormEvent, ReactNode } from 'react';
 
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
+
 interface AccessRow {
   id: number;
   advisor_nome: string | null;
@@ -154,38 +157,43 @@ function Contador({ accesses, breadcrumbs }: Props) {
 
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium">Escopo de acesso</legend>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
+            <div className="flex items-center gap-2 text-sm">
+              <Checkbox
+                id="can_view_unificado"
                 checked={form.data.can_view_unificado}
-                onChange={(e) => form.setData('can_view_unificado', e.target.checked)}
+                onCheckedChange={(v) => form.setData('can_view_unificado', v === true)}
               />
-              Pode ver Visão Unificada
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
+              <Label htmlFor="can_view_unificado" variant="shadcn" className="font-normal cursor-pointer">
+                Pode ver Visão Unificada
+              </Label>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Checkbox
+                id="can_view_reports"
                 checked={form.data.can_view_reports}
-                onChange={(e) => form.setData('can_view_reports', e.target.checked)}
+                onCheckedChange={(v) => form.setData('can_view_reports', v === true)}
               />
-              Pode ver Relatórios (DRE / Fluxo)
-            </label>
+              <Label htmlFor="can_view_reports" variant="shadcn" className="font-normal cursor-pointer">
+                Pode ver Relatórios (DRE / Fluxo)
+              </Label>
+            </div>
           </fieldset>
 
-          <label className="flex items-start gap-2 text-sm border-t pt-4">
-            <input
-              type="checkbox"
+          <div className="flex items-start gap-2 text-sm border-t pt-4">
+            <Checkbox
+              id="consent_lgpd"
+              className="mt-0.5"
               checked={form.data.consent_lgpd}
-              onChange={(e) => form.setData('consent_lgpd', e.target.checked)}
+              onCheckedChange={(v) => form.setData('consent_lgpd', v === true)}
               required
             />
-            <span>
+            <label htmlFor="consent_lgpd" className="cursor-pointer">
               <strong>Consentimento LGPD:</strong> declaro estar ciente que estou compartilhando
               dados financeiros desta empresa com o contador acima, exclusivamente para fins
               contábeis. O acesso é somente leitura, revogável a qualquer momento, e a ação fica
               registrada em log de auditoria. (LGPD Art. 7º, II.)
-            </span>
-          </label>
+            </label>
+          </div>
           {form.errors.consent_lgpd && <p className="text-xs text-red-600">{form.errors.consent_lgpd}</p>}
 
           <div className="flex justify-end gap-2 pt-2">

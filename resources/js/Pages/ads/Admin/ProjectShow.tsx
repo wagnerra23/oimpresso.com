@@ -244,7 +244,7 @@ const ProjectShow: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
                 <ul className="space-y-1.5">
                   {decisions.map(d => (
                     <li key={d.id} className="text-sm flex items-center gap-2 flex-wrap">
-                      <Link href={`/ads/admin/decisoes/${d.id}`} className="font-mono text-xs text-blue-600 hover:underline">
+                      <Link href={`/ads/admin/decisoes/${d.id}`} className="font-mono text-xs text-primary hover:underline">
                         #{String(d.id).padStart(4, '0')}
                       </Link>
                       <code className="text-xs">{d.event_type}</code>
