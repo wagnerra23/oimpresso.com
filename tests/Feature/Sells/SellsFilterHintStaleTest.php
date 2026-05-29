@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * Fix bug 2026-05-18 "vendas só aparecem até dia 14" — testes estruturais.

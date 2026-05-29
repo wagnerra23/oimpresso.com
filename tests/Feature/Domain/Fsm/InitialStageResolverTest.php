@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Domain\Fsm\Services\InitialStageResolver;
 use App\Transaction;
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * Service InitialStageResolver — testa lógica de mapeamento status legacy → stage FSM.
