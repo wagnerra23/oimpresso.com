@@ -21,7 +21,7 @@ use Modules\OficinaAuto\Entities\Vehicle;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * ServiceOrderFsmActionController — Wave 7-A wire-up FSM (espelha SaleFsmActionController).

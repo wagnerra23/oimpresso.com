@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder;
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * Seeder OficinaAutoFsmSeeder — 2 processos FSM caçamba (locacao + manutencao).
