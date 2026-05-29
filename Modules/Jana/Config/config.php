@@ -252,6 +252,10 @@ return [
         // filtro tenant). US-RET-001. Embedder qwen3_local + filterable status/type/module
         // verificados no índice live (CT 100). Default OFF; só caminho ativo (não archived).
         'docs_pipeline' => (bool) env('JANA_MCP_SEARCH_PIPELINE_DOCS', false),
+        // Embedder do índice mcp_memory_documents (qwen3_local OU nomic_local — ambos
+        // existem no índice). Separado da config do chat (que resolve 'openai', inexistente
+        // neste índice). Verificado live CT 100 2026-05-29.
+        'docs_embedder' => env('JANA_MCP_DOCS_EMBEDDER', 'qwen3_local'),
     ],
 
     'reranker' => [
