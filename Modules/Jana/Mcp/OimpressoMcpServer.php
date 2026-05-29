@@ -141,6 +141,11 @@ class OimpressoMcpServer extends Server
         // Anonymize default (LGPD-preferred) · hard delete opt-in. Confirm obrigatório.
         // Audit trail append-only via jana.audit.lgpd.eliminacao (severity=critical).
         Tools\LgpdEsquecerTitularTool::class,
+        // ADR 0234 (Onda 1.1) — Registry de Automações. Lista hooks/crons/rotinas
+        // governados + estado vivo (enabled/last_run/last_status) + drift. Read-only,
+        // ZERO LLM (varredura determinística). Fecha a simetria de governança:
+        // decisões/tasks/skills/automações todos com registry MCP-queryable. Page 2.
+        Tools\AutomationsListTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
