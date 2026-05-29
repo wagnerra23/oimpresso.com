@@ -16,6 +16,9 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/Components/ui/sheet';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 import { PlanoContaCombobox, type PlanoConta } from './PlanoContaCombobox';
 
 // PR I (2026-05-25) G5 — sugestão de valor último/médio por contraparte.
@@ -192,17 +195,20 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
             <label htmlFor="cr-cat" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Categoria
             </label>
-            <select
-              id="cr-cat"
-              value={form.data.categoria_id as string | number}
-              onChange={(e) => form.setData('categoria_id', e.target.value as unknown as number | '')}
-              className="w-full h-9 rounded-md border border-input bg-background px-3 text-[13px]"
+            <Select
+              value={form.data.categoria_id === '' ? '__none__' : String(form.data.categoria_id)}
+              onValueChange={(v) => form.setData('categoria_id', (v === '__none__' ? '' : v) as unknown as number | '')}
             >
-              <option value="">(Sem categoria)</option>
-              {categorias.map((c) => (
-                <option key={c.id} value={c.id}>{c.nome}</option>
-              ))}
-            </select>
+              <SelectTrigger id="cr-cat" aria-label="Categoria">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">(Sem categoria)</SelectItem>
+                {categorias.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {form.errors.categoria_id && (
               <p className="text-[11px] text-destructive">{form.errors.categoria_id}</p>
             )}
