@@ -461,18 +461,70 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Peso Real — classificação por contribuição à meta R$5M (ADR 0232)
+    | Peso Real — Modelo de classificação por meta (ADR 0232)
     |--------------------------------------------------------------------------
-    | Multiplicadores das três fórmulas do Peso Real, lidos por
-    | Modules\Jana\Services\Peso\PesoRealService (função PURA, sem I/O).
+    | Mapas da heurística de `relevancia_meta` (0-100) — quanto um item
+    | move/protege a meta R$5M/ano (ADR 0022). Fonte do RelevanciaMetaInferer
+    | (Área B), consumido pelo PesoRealService (Área A).
     |
-    | ÁREA A / ETAPA 5 IAOS — PROPOSTA, NÃO plugada em retrieval/prod.
-    | O service tem defaults de fallback hardcoded; estas entradas só permitem
-    | tunar sem editar código. Não quebra se a chave for removida.
+    | Régua canônica ADR 0232:
+    |   0-25 indireto · 26-50 habilitador · 51-75 alavanca · 76-100 receita direta.
     |
+    | VALORES DIRETOS, SEM env() — Larastan barra env fora de config/ raiz.
+    | Ranking de módulos espelha memory/NORTE-ROI.md (Tier 1 vende > 2 > 3).
+    |
+    | @see Modules/Jana/Services/Peso/RelevanciaMetaInferer.php
     | @see memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md
+    | @see memory/NORTE-ROI.md
     */
     'peso_real' => [
+        'relevancia' => [
+            // Tags Tier 0 — proteção/meta direta (topo da régua). Maior peso vence.
+            'tags' => [
+                'tier-0'       => 95,
+                'multi-tenant' => 95,
+                'meta'         => 95,
+                'seguranca'    => 90,
+                'security'     => 90,
+                'peso-real'    => 70,
+                'roi'          => 60,
+                'governance'   => 45,
+                'meta-processo' => 45,
+                'feature-wish' => 25,
+            ],
+
+            // Módulos — ranking NORTE-ROI (Tier 1 vende/validado > Tier 2 > Tier 3).
+            'modules' => [
+                // Tier 1 — cliente pagante / validado / compliance obrigatório.
+                'Financeiro'       => 88,
+                'Vestuario'        => 88,
+                'RecurringBilling' => 85,
+                'NfeBrasil'        => 82,
+
+                // Tier 2 — diferencial, sem cliente pagante dedicado ainda.
+                'Copiloto'          => 65,
+                'Jana'              => 62,
+                'LaravelAI'         => 62,
+                'Whatsapp'          => 60,
+                'ComunicacaoVisual' => 58,
+
+                // Tier 3 — governança/infra (meio) e sem sinal (espera).
+                'governance' => 45,
+
+                // Tier 3 — sem cliente pagando (ADR 0105: feature-wish até sinal).
+                'OficinaAuto' => 28,
+            ],
+
+            // Tipo de documento — fallback fraco quando módulo/tag não casam.
+            'types' => [
+                'adr'       => 55,
+                'spec'      => 55,
+                'handoff'   => 45,
+                'session'   => 40,
+                'reference' => 45,
+            ],
+        ],
+
         // ÁREA C / ETAPA 5 IAOS — feature-flag do passo de reordenação por Peso
         // Real dentro do MeilisearchDriver::buscar (pós-time-decay, pré-reranker).
         //
