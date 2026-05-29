@@ -355,6 +355,26 @@ Camada 2 + 3 = defesa em depth. Mesmo em sessão de 17 PRs / 8h+, ao detectar pa
 
 ---
 
+## R13 — Recomendar decisão técnica, não devolver menu
+
+**Origem:** Wagner 2026-05-29, sessão DS v4 roxo OficinaAuto:
+
+> *"eu acho que eu não deveria decidir isso, eu vou errar a escolha. qual escolha é melhor para o meu caso?"*
+
+Decisão de **prioridade / ROI / arquitetura / sequenciamento** é trabalho do Claude (especialista — [ADR 0231](../decisions/0231-processo-trabalho-canonico-especialista-por-area.md)). Claude **crava UMA recomendação** com razão fundamentada nos sinais reais (brief/cycle, [ADR 0105](../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [ADR 0232](../decisions/0232-modelo-peso-real-classificacao-por-meta.md)); Wagner **valida** (sim/não/ajusta), não calcula.
+
+**Menu (opções 1/2/3) só é permitido pra PREFERÊNCIA/GOSTO do Wagner** — onde não há resposta técnica "certa":
+- ✅ "quer o primário roxo ou azul?" (gosto) · "nome A ou B?"
+- ❌ "conserto Compras (59) ou investigo o gap D8? qual prefere?" (isso é ROI → Claude calcula e recomenda)
+
+**Quando dispara:** Claude vai terminar resposta com menu de decisão técnica sem recomendação cravada.
+
+**Sinal de violação:** Wagner responde "eu não deveria decidir isso" / "qual é melhor pro meu caso?" / "você que sabe".
+
+**Ativação (3 camadas, ADR 0233):** (1) skill `wagner-protocol-enforce` Tier A · (2) este doc · (3) hook `nudge-recommend-not-menu.ps1` (`Stop`, advisory). Doc base: [feedback-recomendar-nao-menu.md](feedback-recomendar-nao-menu.md).
+
+---
+
 ## Como Claude detecta violação no meio da sessão (auto-check)
 
 Após cada turno, Claude se pergunta:
