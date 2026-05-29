@@ -38,6 +38,9 @@
   --cw-accent-soft:  oklch(0.95 0.04 295);
   --cw-error:        oklch(0.65 0.18 25);
   --cw-error-soft:   oklch(0.94 0.04 25);
+  /* DS v4.1 Onda F — verde de sucesso (lookup CNPJ ok, field-success). */
+  --cw-ok:           oklch(0.45 0.12 145);
+  --cw-ok-soft:      oklch(0.94 0.06 145);
 }
 
 /* Dark mode — APENAS via classe .dark (canon do Inertia/shadcn no oimpresso).
@@ -63,6 +66,8 @@
   --cw-accent-soft:  oklch(0.32 0.06 295);
   --cw-error:        oklch(0.70 0.18 25);
   --cw-error-soft:   oklch(0.30 0.08 25);
+  --cw-ok:           oklch(0.72 0.15 145);  /* verde mais legivel em fundo escuro */
+  --cw-ok-soft:      oklch(0.30 0.07 145);
 }
 
 /* ── Field wrapper (label + input + error) ─────────────────────────────── */
@@ -374,12 +379,12 @@ select.cw-input {
 .cw-segmented {
   display: inline-flex; gap: 2px; padding: 2px;
   background: var(--cw-bg-2); border: 1px solid var(--cw-border);
-  border-radius: 6px;
+  border-radius: 5px;
 }
 .cw-segmented button {
   font: inherit; font-size: 12px; font-weight: 500; line-height: 1;
   color: var(--cw-text-dim); background: transparent; border: 0;
-  border-radius: 4px; padding: 6px 13px; cursor: pointer;
+  border-radius: 3px; padding: 6px 13px; cursor: pointer;
   transition: background .12s, color .12s;
 }
 .cw-segmented button:hover { color: var(--cw-text); }
@@ -410,7 +415,7 @@ select.cw-input {
 .cw-ig-btn svg { width: 13px; height: 13px; }
 .cw-ig-btn.cw-loading { color: var(--cw-text-mute); pointer-events: none; }
 .cw-ig-btn.cw-done {
-  color: oklch(0.45 0.12 145); background: oklch(0.94 0.06 145);
+  color: var(--cw-ok); background: var(--cw-ok-soft);
   border-color: transparent;
 }
 .cw-ig-btn:disabled { opacity: .6; cursor: not-allowed; }
@@ -431,7 +436,7 @@ select.cw-input {
 }
 .cw-field-success {
   display: inline-flex; align-items: center; gap: 5px; margin-top: 4px;
-  font-size: 10.5px; font-weight: 500; color: oklch(0.45 0.12 145);
+  font-size: 10.5px; font-weight: 500; color: var(--cw-ok);
 }
 .cw-field-validating {
   display: inline-flex; align-items: center; gap: 5px; margin-top: 4px;
