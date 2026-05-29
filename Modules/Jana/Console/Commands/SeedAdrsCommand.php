@@ -118,16 +118,7 @@ class SeedAdrsCommand extends Command
             // Monta o "fato" textual que irá pro índice Meilisearch
             $fato = $this->buildFatoText($doc, $meta, $summary, $status);
 
-            $fatoMeta = json_encode([
-                'seeded_from_mcp' => true,
-                'source_type'     => $doc->type,
-                'source_slug'     => $doc->slug,
-                'source_title'    => $doc->title,
-                'adr_status'      => $status,
-                'supersedes'      => $supersedes,
-                'module'          => $meta['module'] ?? null,
-                'indexed_at'      => $doc->indexed_at,
-            ]);
+            $fatoMeta = json_encode($this->buildFatoMetadata($doc, $meta, $status, $supersedes));
 
             if ($dryRun) {
                 $this->line("  [DRY] [{$doc->slug}] status={$status} superseded=" . ($isSuperseded ? 'sim' : 'não'));
@@ -200,6 +191,93 @@ class SeedAdrsCommand extends Command
         $content = trim($content);
 
         return mb_substr($content, 0, 400);
+    }
+
+    /**
+     * Monta o metadata do fato gravado em jana_memoria_facts.metadata.
+     *
+     * GAP (auditoria 2026-05-28): o time-decay do MeilisearchDriver lê
+     * `metadata['doc_type']`, `metadata['status']` e `metadata['published_at']`
+     * (ver MeilisearchDriver::applyTimeDecay + resolveDocDate). As chaves antigas
+     * (`source_type`/`adr_status`/`indexed_at`) NÃO casavam, então TODO fato de ADR
+     * caía no fallback do decay (temporal_factor=1.0, status_multiplier=default).
+     *
+     * Solução: gravar AS NOVAS chaves canônicas (doc_type/status/published_at)
+     * MANTENDO as antigas pra back-compat (outros consumidores e fatos já gravados).
+     *
+     * - doc_type: $doc->type cru (adr|spec|reference) — vocabulário do half_life da config.
+     * - status: normalizado PT→EN (normalizeStatus) — vocabulário status_multipliers
+     *   (accepted/proposed/historical/superseded).
+     * - published_at: melhor data real disponível no metadata do MCP, com fallback
+     *   em indexed_at (decided_at > accepted_at > date > indexed_at).
+     *
+     * @param  array<string, mixed> $meta Metadata cru do mcp_memory_documents.
+     * @return array<string, mixed>
+     */
+    public function buildFatoMetadata(object $doc, array $meta, string $status, ?string $supersedes): array
+    {
+        return [
+            'seeded_from_mcp' => true,
+            'source_type'     => $doc->type,
+            'source_slug'     => $doc->slug,
+            'source_title'    => $doc->title,
+            'adr_status'      => $status,
+            'supersedes'      => $supersedes,
+            'module'          => $meta['module'] ?? null,
+            'indexed_at'      => $doc->indexed_at,
+
+            // ── chaves canônicas lidas pelo time-decay (MeilisearchDriver) ──
+            'doc_type'     => $doc->type,
+            'status'       => $this->normalizeStatus($status),
+            'published_at' => $this->resolvePublishedAt($doc, $meta),
+        ];
+    }
+
+    /**
+     * Normaliza o status do ADR (PT ou EN) pro vocabulário EN canônico do
+     * config copiloto.time_decay.status_multipliers:
+     * accepted | proposed | historical | superseded.
+     *
+     * Mapeamentos:
+     *   aceito/aceita/accepted          → accepted
+     *   proposto/proposta/proposed      → proposed
+     *   superseded/supersedido/         → superseded
+     *     supersedida/deprecated/
+     *     depreciado/rejected/rejeitado
+     *   historical/historico/histórico  → historical
+     *
+     * Status desconhecido → 'default' (multiplier 1.0, sem boost nem pena).
+     */
+    public function normalizeStatus(?string $status): string
+    {
+        $s = trim(Str::lower((string) $status));
+
+        return match ($s) {
+            'aceito', 'aceita', 'accepted', 'aceitado', 'aceitada'  => 'accepted',
+            'proposto', 'proposta', 'proposed'                      => 'proposed',
+            'superseded', 'supersedido', 'supersedida', 'substituido', 'substituída',
+            'substituida', 'deprecated', 'depreciado', 'depreciada',
+            'rejected', 'rejeitado', 'rejeitada'                    => 'superseded',
+            'historical', 'historico', 'histórico', 'historica', 'histórica' => 'historical',
+            default                                                 => 'default',
+        };
+    }
+
+    /**
+     * Resolve a data real de publicação do doc pro decay temporal.
+     * Prioridade: metadata.decided_at → accepted_at → date → fallback indexed_at.
+     *
+     * @param  array<string, mixed> $meta
+     */
+    public function resolvePublishedAt(object $doc, array $meta): ?string
+    {
+        $candidate = $meta['decided_at']
+            ?? $meta['accepted_at']
+            ?? $meta['date']
+            ?? $doc->indexed_at
+            ?? null;
+
+        return $candidate !== null ? (string) $candidate : null;
     }
 
     private function buildFatoText(object $doc, array $meta, string $summary, string $status): string
