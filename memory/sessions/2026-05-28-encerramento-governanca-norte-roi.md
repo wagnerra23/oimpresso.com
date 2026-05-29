@@ -1,8 +1,8 @@
 ---
-name: Encerramento 2026-05-28 — governança, norte ROI, peso real
-description: Handoff de fim da sessão longa de governança/memória. O que entrou em main, o método/norte criados, lições de processo, e o que falta. TL;DR pra retomar fresco.
-type: session
-authority: canonical
+session: 2026-05-28-encerramento-governanca-norte-roi
+created: 2026-05-28-20:30
+status: encerramento sessao governanca norte roi peso real
+owners: [wagner, claude]
 ---
 
 # Encerramento 2026-05-28 — governança + norte ROI + peso real
