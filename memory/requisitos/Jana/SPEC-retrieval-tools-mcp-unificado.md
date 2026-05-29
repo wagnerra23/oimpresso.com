@@ -15,6 +15,14 @@ fonte: [memory/sessions/2026-05-29-arte-indexacao-priorizacao-retrieval-memoria-
 
 > **Origem:** estado-da-arte 2026 ([doc](../../sessions/2026-05-29-arte-indexacao-priorizacao-retrieval-memoria-agentes.md)) + proposta [jana-mcp-search-tools-pipeline-bom](../../decisions/proposals/jana-mcp-search-tools-pipeline-bom.md). Estimates recalibrados ADR 0106 (10×).
 
+## ✅ ATIVADO EM PROD (2026-05-29) + findings live
+
+Deployado no `oimpresso-mcp` (CT 100) — ver [INFRA-ACESSO-CANON](../../reference/INFRA-ACESSO-CANON.md). Container estava 1302 commits atrás; deploy destravado pelo fix do Dockerfile (exts).
+
+- ✅ **`decisions-search` + `kb-answer` HYBRID LIVE** (`JANA_MCP_SEARCH_PIPELINE_DOCS=true`). Smoke real no app: `buscarHybrid('isolamento multi-tenant', 4, null, 'adr')` → `0006 · 0218 · 0093 · ARQ-0001` (semântico). Embedder = `qwen3_local` (config `copiloto.mcp_search.docs_embedder` — NÃO o `openai` do chat).
+- ⏸️ **`memoria-search` OFF** (`JANA_MCP_SEARCH_PIPELINE_MEMORIA=false`). Bloqueado: o índice **`jana_memoria_facts` tem embedders `{}` (vazio)** — sem embedder configurado, hybrid impossível. Precisa configurar embedder + reindex (tarefa infra).
+- 🔴 **FINDING separado (chat):** como `jana_memoria_facts` não tem embedder, **o recall semântico do CHAT também está degradado (keyword-only)** apesar de `COPILOTO_MEMORIA_EMBEDDER=openai` no .env. O índice precisa do embedder configurado pra o chat ter hybrid de verdade. Abrir issue/ADR próprio.
+
 ## ⚠️ Dois corpora distintos (Wagner, 2026-05-29 — NÃO conflar)
 
 | | **Corpus MCP** (`mcp_memory_documents`) | **Corpus Jana** (`jana_memoria_facts`) |
