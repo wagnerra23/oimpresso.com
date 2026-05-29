@@ -28,18 +28,18 @@ Espinha dorsal do roadmap de faturamento (2 anos). Ver [_Roadmap_Faturamento.md]
 
 Clique para ver requisitos funcionais.
 
-- [Accounting](Accounting.md)
+- [Accounting](Accounting/)
 - [AssetManagement](AssetManagement.md)
 - [Cms](Cms.md)
 - [Connector](Connector.md)
-- [Crm](Crm.md)
-- [Essentials](Essentials.md)
-- [Manufacturing](Manufacturing.md)
-- [PontoWr2](PontoWr2.md) — pasta completa em `PontoWr2/`
+- [Crm](Crm/)
+- [Essentials](Essentials/)
+- [Manufacturing](Manufacturing/)
+- [PontoWr2](PontoWr2/) — pasta completa
 - [MemCofre](MemCofre/) — Cofre de Memórias / docs vivos
 - [ProductCatalogue](ProductCatalogue.md)
-- [Project](Project.md)
-- [Repair](Repair.md)
+- [ProjectMgmt](ProjectMgmt/) — (era `Project.md`, legado UltimatePOS removido)
+- [Repair](Repair/)
 - [Spreadsheet](Spreadsheet.md)
 - [Superadmin](Superadmin.md)
 - [Woocommerce](Woocommerce.md)
