@@ -246,7 +246,12 @@ return [
     | aqui ainda — dependem de verificar o embedder do índice no CT 100 (US-RET-001).
     */
     'mcp_search' => [
+        // memoria-search → jana_memoria_facts (corpus Jana, BUSINESS-scoped). US-RET-002.
         'memoria_pipeline' => (bool) env('JANA_MCP_SEARCH_PIPELINE_MEMORIA', false),
+        // decisions-search + kb-answer → mcp_memory_documents (corpus MCP GLOBAL, sem
+        // filtro tenant). US-RET-001. Embedder qwen3_local + filterable status/type/module
+        // verificados no índice live (CT 100). Default OFF; só caminho ativo (não archived).
+        'docs_pipeline' => (bool) env('JANA_MCP_SEARCH_PIPELINE_DOCS', false),
     ],
 
     'reranker' => [

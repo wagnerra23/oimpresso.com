@@ -121,6 +121,45 @@ class McpMemoryDocument extends Model
     }
 
     /**
+     * Busca HYBRID (semantic + full-text) no índice Meilisearch — para as tools MCP
+     * decisions-search/kb-answer recuperarem com a qualidade do pipeline do chat.
+     *
+     * Corpus MCP é GLOBAL (conhecimento de programação/produto — serve TODOS os
+     * clientes). Verificado no índice live (CT 100): filterableAttributes =
+     * [status, type, module, slug], SEM business_id. Logo NÃO filtra tenant — só
+     * status ativo + type/module no Meilisearch + acessiveisPara (permissão Spatie)
+     * na hidratação. Embedder/ratio do config (qwen3_local / 0.6, mesmos do chat).
+     * `shouldBeSearchable` já exclui superseded/deprecated do índice (status = defesa extra).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, static>
+     */
+    public static function buscarHybrid(string $query, int $limit, ?\App\User $user, ?string $tipo = null, ?string $module = null): \Illuminate\Database\Eloquent\Collection
+    {
+        $embedder = (string) config('copiloto.memoria.meilisearch.embedder', 'qwen3_local');
+        $ratio    = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.6);
+
+        $filtros = ["status IN ['aceito','accepted','accepted-historical']"];
+        if ($tipo !== null && $tipo !== '' && $tipo !== 'all') {
+            $filtros[] = "type = '".addslashes($tipo)."'";
+        }
+        if ($module !== null && $module !== '') {
+            $filtros[] = "module = '".addslashes($module)."'";
+        }
+        $filtro = implode(' AND ', $filtros);
+
+        return static::search($query, function ($index, string $q, array $params) use ($embedder, $ratio, $filtro, $limit) {
+            $params['hybrid'] = ['embedder' => $embedder, 'semanticRatio' => $ratio];
+            $params['filter'] = $filtro;
+            $params['limit']  = $limit;
+
+            return $index->search($q, $params);
+        })
+            ->query(fn ($q) => $q->acessiveisPara($user))
+            ->take($limit)
+            ->get();
+    }
+
+    /**
      * Filtra documentos por status no metadata (triagem 2026-05-06).
      *
      * Status canônicos:

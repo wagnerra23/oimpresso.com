@@ -39,11 +39,12 @@ Os **dois** corpora **já têm Scout/Meilisearch hybrid + embedder** (ADR 0068 p
 
 ## User stories (recalibradas ADR 0106)
 
-### US-RET-001 — Rotear `decisions-search` + `kb-answer` (corpus MCP, GLOBAL) · P0 · ~2-4h
-- Trocar `McpMemoryDocument::...->buscarTexto()` por `McpMemoryDocument::search($q, callback hybrid)` (índice já tem embedder, ADR 0068).
-- **SEM filtro de tenant** — corpus global de programação. Preservar só `porStatusAtivo` (não retornar superseded) + `acessiveisPara($user)` (permissões Spatie / `scope_required` / `admin_only`) — que são **permissão**, não tenant.
-- Flag `JANA_MCP_SEARCH_PIPELINE` (default OFF) + fallback gracioso pro `buscarTexto` (ADR 0036/0056).
-- **Aceite:** flag OFF = byte-a-byte atual; flag ON = recall melhor; `acessiveisPara`/`porStatusAtivo` preservados.
+### US-RET-001 — Rotear `decisions-search` + `kb-answer` (corpus MCP, GLOBAL) · P0 · ✅ FEITO
+- ✅ `McpMemoryDocument::buscarHybrid(query, limit, user, tipo?, module?)` — Scout hybrid (embedder `qwen3_local` + semanticRatio do config). **Verificado LIVE no índice CT 100**: embedder qwen3_local, filterableAttributes `[status,type,module,slug]` (SEM business_id → corpus global), 1048 docs 100% embedded; busca semântica "isolamento multi-tenant" retornou ADR 0006/0093/0218/ARQ-0001.
+- ✅ **SEM filtro de tenant** — só status ativo + type/module (Meilisearch) + `acessiveisPara` (permissão Spatie) na hidratação.
+- ✅ `decisions-search` + `kb-answer::buscarFontes` roteados atrás de `JANA_MCP_SEARCH_PIPELINE_DOCS` (default OFF) + fallback gracioso pro `buscarTexto` (erro/vazio). archived continua FULLTEXT (índice não tem superseded).
+- ✅ Testes: smoke buscarHybrid + KbAnswerToolTest (8, flag OFF = byte-a-byte). PHPStan limpo.
+- ⏳ **Pendente:** ligar `JANA_MCP_SEARCH_PIPELINE_DOCS=true` em prod + validar recall (US-RET-003).
 
 ### US-RET-002 — Rotear `memoria-search` (corpus Jana, per-cliente) · P1 · ✅ FEITO
 - ✅ `MeilisearchDriver::buscarBusiness(biz, query, topK)` — variante **`business_id`-scoped** (`userId` nullable em `buscarInterno`; com userId≠null o chat fica byte-idêntico — 29 testes do pipeline verdes). NÃO reusa `buscar(business,user)`.
