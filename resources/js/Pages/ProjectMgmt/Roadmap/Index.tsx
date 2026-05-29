@@ -30,9 +30,17 @@ interface QuarterBucket { key: string; epics: Epic[] }
 
 interface Props {
   project: { id: number; key: string; name: string } | null;
-  quarters: QuarterBucket[];
-  kpis: { total_epics: number; active_epics: number; planning_epics: number; done_epics: number };
+  // quarters/kpis chegam via Inertia::defer (RoadmapController:40-41) → `undefined`
+  // no 1º paint. Tipados opcionais + default-guard no destructuring pra NÃO crashar
+  // React antes do defer chegar (skill inertia-defer-default, Opção B; espelha
+  // OficinaAuto/ServiceOrders/Index.tsx). Sintoma do bug: kpis.total_epics sobre
+  // undefined → tela branca.
+  quarters?: QuarterBucket[];
+  kpis?: { total_epics: number; active_epics: number; planning_epics: number; done_epics: number };
 }
+
+// Default-guard pro prop deferred kpis (contadores começam zerados até o defer resolver).
+const EMPTY_KPIS = { total_epics: 0, active_epics: 0, planning_epics: 0, done_epics: 0 };
 
 const STATUS_BADGE = {
   planning:  'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
@@ -86,7 +94,7 @@ function EpicCard({ e }: { e: Epic }) {
   );
 }
 
-function RoadmapIndex({ project, quarters, kpis }: Props) {
+function RoadmapIndex({ project, quarters = [], kpis = EMPTY_KPIS }: Props) {
   return (
     <>
       <PageHeader
