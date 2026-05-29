@@ -20,8 +20,6 @@ use Laravel\Scout\Searchable;
  * `business_id` nullable preserva back-compat (legado pré-MEM-MULTI-1) mas
  * default é NULL (compartilhado). Wave 25 SATURATION marker explícito pra
  * rubrica D1.c v3.2 hardened.
- *
- * @property int|null $business_id business_id nullable (NULL = doc plataforma). Migration ALTER pós-create — anotado p/ larastan ver no toSearchableArray (US-RET-001).
  */
 class McpMemoryDocument extends Model
 {
@@ -182,11 +180,6 @@ class McpMemoryDocument extends Model
 
         return [
             'id'              => $this->id,
-            // business_id no índice = pré-req multi-tenant (Tier 0, ADR 0093) pra
-            // rotear as tools MCP pelo hybrid SEM vazar tenant. Filtro alvo no search:
-            // (business_id IS NULL [doc plataforma] OR business_id = X) — espelha o
-            // scope doBusiness(). NULL = ADR/doc platform-wide, visível a todos.
-            'business_id'     => $this->business_id,
             'slug'            => $this->slug,
             'title'           => $this->title,
             'content_md'      => $contentIndexed,
