@@ -231,6 +231,7 @@ function TriageIndex({
       <PageHeader
         icon="Inbox"
         title={project ? `${project.name} — Triagem` : 'Triagem'}
+        moduleNav
         description={
           `${kpis.total} pra triar · ${kpis.sem_owner} sem dono · ${kpis.sem_prio} sem prioridade · ${kpis.backlog} em backlog`
         }
