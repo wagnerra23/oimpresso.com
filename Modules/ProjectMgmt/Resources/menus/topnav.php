@@ -17,11 +17,16 @@ return [
     'label' => 'Project Mgmt',
     'icon'  => 'KanbanSquare',
     'items' => [
-        ['label' => 'My Work',  'href' => '/project-mgmt/my-work',  'icon' => 'CheckSquare',   'can' => 'copiloto.mcp.usage.all'],
-        ['label' => 'Board',    'href' => '/project-mgmt/board',    'icon' => 'KanbanSquare',  'can' => 'copiloto.mcp.usage.all'],
-        ['label' => 'Backlog',  'href' => '/project-mgmt/backlog',  'icon' => 'List',          'can' => 'copiloto.mcp.usage.all'],
-        ['label' => 'Roadmap',  'href' => '/project-mgmt/roadmap',  'icon' => 'CalendarRange', 'can' => 'copiloto.mcp.usage.all'],
-        ['label' => 'Activity', 'href' => '/project-mgmt/activity', 'icon' => 'Activity',      'can' => 'copiloto.mcp.usage.all'],
-        ['label' => 'Burndown', 'href' => '/project-mgmt/burndown', 'icon' => 'TrendingDown',  'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'My Work',          'href' => '/project-mgmt/my-work',  'icon' => 'CheckSquare',   'can' => 'copiloto.mcp.usage.all'],
+        // 2026-05-29: Triagem + Caixa de entrada adicionadas ao lado de My Work.
+        // Antes só acessíveis por URL direta — agora navegáveis via nav intra-módulo.
+        // hrefs single-prefix /project-mgmt/{triage,inbox} (NÃO dobrar o prefixo).
+        ['label' => 'Triagem',          'href' => '/project-mgmt/triage',   'icon' => 'Inbox',         'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Caixa de entrada', 'href' => '/project-mgmt/inbox',    'icon' => 'Bell',          'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Board',            'href' => '/project-mgmt/board',    'icon' => 'KanbanSquare',  'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Backlog',          'href' => '/project-mgmt/backlog',  'icon' => 'List',          'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Roadmap',          'href' => '/project-mgmt/roadmap',  'icon' => 'CalendarRange', 'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Activity',         'href' => '/project-mgmt/activity', 'icon' => 'Activity',      'can' => 'copiloto.mcp.usage.all'],
+        ['label' => 'Burndown',         'href' => '/project-mgmt/burndown', 'icon' => 'TrendingDown',  'can' => 'copiloto.mcp.usage.all'],
     ],
 ];

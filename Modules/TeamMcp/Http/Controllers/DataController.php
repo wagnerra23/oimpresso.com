@@ -149,8 +149,13 @@ class DataController extends Controller
                             ['key' => 'cc-sessions', 'label' => 'CC Sessions', 'href' => '/team-mcp/cc-sessions'],
                             // Wagner 2026-05-22 P0: ProjectMgmt absorvido como ghosts do hub Equipe.
                             // Zera 6 órfãs da matriz. PageHeaderTabs auto-overflow após 5 ghosts.
+                            // 2026-05-29: + Triagem + Caixa de entrada (estavam só acessíveis
+                            // por URL direta — sem entrada de navegação). hrefs single-prefix
+                            // /project-mgmt/{triage,inbox} (NÃO dobrar prefixo). Ao lado de My Work.
                             ['key' => 'board',       'label' => 'Board',       'href' => '/project-mgmt/board'],
                             ['key' => 'my-work',     'label' => 'My Work',     'href' => '/project-mgmt/my-work'],
+                            ['key' => 'triage',      'label' => 'Triagem',           'href' => '/project-mgmt/triage'],
+                            ['key' => 'inbox',       'label' => 'Caixa de entrada',  'href' => '/project-mgmt/inbox'],
                             ['key' => 'backlog',     'label' => 'Backlog',     'href' => '/project-mgmt/backlog'],
                             ['key' => 'activity',    'label' => 'Activity',    'href' => '/project-mgmt/activity'],
                             ['key' => 'burndown',    'label' => 'Burndown',    'href' => '/project-mgmt/burndown'],
