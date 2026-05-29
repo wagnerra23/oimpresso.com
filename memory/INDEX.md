@@ -87,6 +87,7 @@
 ## 📚 Knowledge & Reference
 
 - **[reference/](reference/)** — conhecimento canon migrado de auto-mem (post-G1, ADRs [0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)/[0131](decisions/0131-tiering-memoria-canonico-local-segredo.md))
+  - 🖥️ **[reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md)** — **mapa ÚNICO de acesso a TODA máquina** (CT 100 via `tailscale ssh root@ct100-mcp`, Hostinger SSH, deploy do MCP, Meilisearch, DNS, secrets). Claude NUNCA diz "não tenho acesso". + [hostinger.md](reference/hostinger.md)
 - [modulos/](modulos/) — 44 specs auto-geradas (36 ativos · re-index 2026-05-29) via `php artisan module:specs` + [INDEX.md](modulos/INDEX.md) + [RECOMENDACOES.md](modulos/RECOMENDACOES.md)
 - [governance/](governance/) — [CONSTITUTION.md](governance/CONSTITUTION.md), [TRUST-TIERS.md](governance/TRUST-TIERS.md), [IDENTITY-MESH.md](governance/IDENTITY-MESH.md), [ENFORCEMENT.md](governance/ENFORCEMENT.md), [MODULE-DRIFT-MIGRATION-PLAN.md](governance/MODULE-DRIFT-MIGRATION-PLAN.md)
 - [comparativos/](comparativos/) — análises CAPTERRA + concorrentes (memória, RAG, sites)
