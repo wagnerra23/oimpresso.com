@@ -495,6 +495,11 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // NOTA: a detecção de drift de settings/embedder do Meilisearch NÃO tem cron
+        // próprio — é o MeilisearchSettingsDriftChecker (Modules/Governance, ADR 0216)
+        // que roda no `governance:audit --all --notify` já agendado abaixo. Cura =
+        // `php artisan jana:meilisearch-setup`.
+
         // MEM-MULTI-1 (auditoria seed 2026-05-28) — re-seed ADRs → jana_memoria_facts
         // diário. Sem este schedule os fatos de ADR ficavam STALE: nova ADR aceita /
         // ADR supersedida não viravam fato pesquisável até alguém rodar o command na mão.

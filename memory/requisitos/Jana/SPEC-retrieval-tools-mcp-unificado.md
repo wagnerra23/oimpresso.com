@@ -15,6 +15,15 @@ fonte: [memory/sessions/2026-05-29-arte-indexacao-priorizacao-retrieval-memoria-
 
 > **Origem:** estado-da-arte 2026 ([doc](../../sessions/2026-05-29-arte-indexacao-priorizacao-retrieval-memoria-agentes.md)) + proposta [jana-mcp-search-tools-pipeline-bom](../../decisions/proposals/jana-mcp-search-tools-pipeline-bom.md). Estimates recalibrados ADR 0106 (10×).
 
+## ✅ ATIVADO EM PROD (2026-05-29) + findings live
+
+Deployado no `oimpresso-mcp` (CT 100) — ver [INFRA-ACESSO-CANON](../../reference/INFRA-ACESSO-CANON.md). Container estava 1302 commits atrás; deploy destravado pelo fix do Dockerfile (exts).
+
+- ✅ **`decisions-search` + `kb-answer` HYBRID LIVE** (`JANA_MCP_SEARCH_PIPELINE_DOCS=true`). Smoke real: `buscarHybrid('isolamento multi-tenant')` → `0006 · 0218 · 0093 · ARQ-0001`. Embedder `qwen3_local`. Comparação recall@3 (6 golden q): **hybrid ≥ FULLTEXT** (venceu 0093, 0 perdas) — reverte com dado fresco a conclusão velha (Sprint 9: FULLTEXT 0.700 > qwen3 0.692; corpus cresceu + Contextual Retrieval entrou).
+- ✅ **`memoria-search` HYBRID LIVE** (`JANA_MCP_SEARCH_PIPELINE_MEMORIA=true`). O índice `jana_memoria_facts` estava com embedders `{}` (perdido desde Sprint 9b — era manual via curl). **Recuperado:** `jana:meilisearch-setup` configurou `qwen3_local` (31/31 docs embedded). Smoke: `buscarBusiness(1,'multi-tenant')` → 5 hits (ADR 0006/0005/0004/0010/0001).
+- ✅ **Recall do CHAT restaurado:** o embedder vazio degradava o recall do chat pra keyword-only. Corrigido junto (mesmo índice). `.env` realinhado `COPILOTO_MEMORIA_EMBEDDER=openai → qwen3_local` (= default já codificado; `openai` era drift, e não existia embedder openai no índice).
+- 🔒 **Durável agora:** embedder vive em `config copiloto.meilisearch_indexes` + `jana:meilisearch-setup` (idempotente) → não se perde mais num reindex/recreate. Validação rigorosa contínua = `jana:ragas-ci` (golden set 100q).
+
 ## ⚠️ Dois corpora distintos (Wagner, 2026-05-29 — NÃO conflar)
 
 | | **Corpus MCP** (`mcp_memory_documents`) | **Corpus Jana** (`jana_memoria_facts`) |

@@ -124,18 +124,23 @@ class McpMemoryDocument extends Model
      * Busca HYBRID (semantic + full-text) no índice Meilisearch — para as tools MCP
      * decisions-search/kb-answer recuperarem com a qualidade do pipeline do chat.
      *
-     * Corpus MCP é GLOBAL (conhecimento de programação/produto — serve TODOS os
-     * clientes). Verificado no índice live (CT 100): filterableAttributes =
-     * [status, type, module, slug], SEM business_id. Logo NÃO filtra tenant — só
-     * status ativo + type/module no Meilisearch + acessiveisPara (permissão Spatie)
-     * na hidratação. Embedder/ratio do config (qwen3_local / 0.6, mesmos do chat).
-     * `shouldBeSearchable` já exclui superseded/deprecated do índice (status = defesa extra).
+     * Multi-tenant Tier 0 (ADR 0093): aplica `doBusiness($businessId)` na hidratação
+     * — SIMÉTRICO ao caminho FULLTEXT (DecisionsSearch/KbAnswer chamam doBusiness quando
+     * businessId>0). doBusiness = `business_id = X OR business_id IS NULL`, então docs de
+     * plataforma (NULL = ADR 0053 cross-tenant by design) aparecem pra todos, mas docs
+     * de um business específico NÃO vazam pra outro tenant. (Revisão adversarial 2026-05-29
+     * pegou a assimetria: hybrid não filtrava enquanto FULLTEXT filtrava.)
+     * + acessiveisPara (permissão Spatie). Embedder/ratio do config (qwen3_local / 0.6).
+     * `shouldBeSearchable` já exclui superseded/deprecated do índice.
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, static>
      */
-    public static function buscarHybrid(string $query, int $limit, ?\App\User $user, ?string $tipo = null, ?string $module = null): \Illuminate\Database\Eloquent\Collection
+    public static function buscarHybrid(string $query, int $limit, ?\App\User $user, ?string $tipo = null, ?string $module = null, int $businessId = 0): \Illuminate\Database\Eloquent\Collection
     {
-        $embedder = (string) config('copiloto.memoria.meilisearch.embedder', 'qwen3_local');
+        // Embedder do índice mcp_memory_documents (verificado live CT 100: nomic_local +
+        // qwen3_local). NÃO usar copiloto.memoria.meilisearch.embedder — essa é a do chat
+        // (jana_memoria_facts), que no prod resolve 'openai' e NÃO existe neste índice.
+        $embedder = (string) config('copiloto.mcp_search.docs_embedder', 'qwen3_local');
         $ratio    = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.6);
 
         $filtros = ["status IN ['aceito','accepted','accepted-historical']"];
@@ -154,7 +159,14 @@ class McpMemoryDocument extends Model
 
             return $index->search($q, $params);
         })
-            ->query(fn ($q) => $q->acessiveisPara($user))
+            ->query(function ($q) use ($user, $businessId) {
+                $q->acessiveisPara($user);
+                if ($businessId > 0) {
+                    $q->doBusiness($businessId); // Tier 0 — simétrico ao FULLTEXT (ADR 0093)
+                }
+
+                return $q;
+            })
             ->take($limit)
             ->get();
     }

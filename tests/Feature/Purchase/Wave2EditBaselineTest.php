@@ -10,7 +10,7 @@ declare(strict_types=1);
 const EDIT_BLADE_LEGACY = 'resources/views/purchase/edit.blade.php';
 const EDIT_CONTROLLER = 'app/Http/Controllers/PurchaseController.php';
 
-function readEditController(): string
+function readPurchaseEditController(): string
 {
     return file_get_contents(base_path(EDIT_CONTROLLER));
 }
@@ -20,22 +20,22 @@ it('Blade legacy edit.blade.php existe', function () {
 });
 
 it('Controller edit() PRESERVA return view("purchase.edit") (fallback legacy)', function () {
-    $source = readEditController();
+    $source = readPurchaseEditController();
     expect($source)->toContain("return view('purchase.edit')");
 });
 
 it('Controller edit() PRESERVA permission purchase.update + canBeEdited time-gate', function () {
-    $source = readEditController();
+    $source = readPurchaseEditController();
     expect($source)->toContain("auth()->user()->can('purchase.update')");
     expect($source)->toContain("canBeEdited(\$id, \$edit_days)");
 });
 
 it('Controller edit() PRESERVA isReturnExist bloqueio', function () {
-    $source = readEditController();
+    $source = readPurchaseEditController();
     expect($source)->toContain("isReturnExist(\$id)");
 });
 
 it('Controller edit() PRESERVA Transaction::where(business_id) Tier 0', function () {
-    $source = readEditController();
+    $source = readPurchaseEditController();
     expect($source)->toMatch('/Transaction::where\\(.business_id., \\$business_id\\)/');
 });

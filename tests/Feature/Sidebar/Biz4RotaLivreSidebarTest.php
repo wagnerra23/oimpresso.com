@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * Anti-regressão hardcode biz=N — Wagner regra 2026-05-18 IRREVOGÁVEL.

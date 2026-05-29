@@ -1,5 +1,7 @@
 # 03 — Arquitetura
 
+> ⚠️ **STALE / PontoWr2-era (legado — "Laravel 10").** Não reflete o ERP modular atual (Laravel 13.6, 36 módulos). Doc de arquitetura canônico (arc42): **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md)**. Mantido por compatibilidade histórica.
+
 ## Estilo arquitetural
 
 **Modular Monolith com DDD leve**, dentro de uma instalação Laravel única que também hospeda UltimatePOS e Essentials & HRM.
