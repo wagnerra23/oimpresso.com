@@ -89,6 +89,7 @@ beforeEach(function () {
     config()->set('copiloto.freshness.thresholds_days.fresh', 1);
     config()->set('copiloto.freshness.thresholds_days.warm', 7);
     config()->set('copiloto.freshness.thresholds_days.stale', 30);
+    config()->set('copiloto.freshness.thresholds_days.critical', 30);
 });
 
 afterEach(function () {
@@ -114,6 +115,19 @@ function freshFazDoc(string $slug, ?\DateTimeInterface $indexedAt, array $extras
         ], $extras));
         return $doc;
     });
+}
+
+/**
+ * Nivela indexed_at = updated_at (mesmo instante) pra um doc — isola o drift
+ * tipo-B (git-SHA) do tipo-A (updated_at > indexed_at). Usa update direto no DB
+ * pra não re-bumpar updated_at via Eloquent.
+ */
+function freshNivelaTimestamps(int $id): void
+{
+    $ts = now();
+    DB::table('mcp_memory_documents')
+        ->where('id', $id)
+        ->update(['indexed_at' => $ts, 'updated_at' => $ts]);
 }
 
 // ─── testes ─────────────────────────────────────────────────────────────────
@@ -242,4 +256,197 @@ it('doc com indexed_at NULL é CRITICAL (nunca foi indexado)', function () {
 
     $stale = $detector->detectStale();
     expect($stale)->toHaveCount(1);
+});
+
+// ─── BUG-2 regression — STALE (7-30d) isolado de CRITICAL (>=30d) ─────────────
+
+it('BUG-2: doc de 15d é detectStale mas NÃO detectCritical (faixa STALE 7-30d isolada)', function () {
+    $doc = freshFazDoc('stale-15d', now()->subDays(15));
+
+    $detector = new StalenessDetectorService();
+
+    // detectStale (cutoff = warm = 7d) deve pegar o doc de 15d.
+    $stale = $detector->detectStale();
+    expect($stale)->toHaveCount(1);
+    expect($stale[0]->slug)->toBe('stale-15d');
+
+    // detectCritical (cutoff = critical = 30d) NÃO deve pegar 15d.
+    $critical = $detector->detectCritical();
+    expect($critical)->toHaveCount(0);
+
+    // staleness() confirma classificação STALE (não CRITICAL).
+    expect($detector->staleness($doc))->toBe(StalenessDetectorService::NIVEL_STALE);
+});
+
+it('BUG-2: doc de 40d é CRITICAL (detectCritical pega, staleness classifica CRITICAL)', function () {
+    $doc = freshFazDoc('critical-40d', now()->subDays(40));
+
+    $detector = new StalenessDetectorService();
+
+    $critical = $detector->detectCritical();
+    expect($critical)->toHaveCount(1);
+    expect($critical[0]->slug)->toBe('critical-40d');
+
+    // 40d também é stale (superset), mas o ponto é: NÃO some do CRITICAL.
+    expect($detector->detectStale())->toHaveCount(1);
+
+    expect($detector->staleness($doc))->toBe(StalenessDetectorService::NIVEL_CRITICAL);
+});
+
+it('BUG-2: faixa 7-30d separa STALE de CRITICAL (8d/15d/29d stale-only; 31d/45d critical)', function () {
+    // Valores afastados das fronteiras exatas (7/30) — as queries usam `<` no
+    // cutoff (strict), então um doc indexed_at EXATO em now-30d cai na borda do
+    // microssegundo. Os cenários reais nunca batem o limite no microssegundo.
+    foreach ([8, 15, 29] as $d) {
+        freshFazDoc("warn-{$d}d", now()->subDays($d));
+    }
+    foreach ([31, 45] as $d) {
+        freshFazDoc("crit-{$d}d", now()->subDays($d));
+    }
+
+    $detector = new StalenessDetectorService();
+
+    // detectStale pega todos >= 7d (3 stale-only + 2 critical = 5).
+    expect($detector->detectStale())->toHaveCount(5);
+
+    // detectCritical pega só >= 30d (2).
+    $critical = $detector->detectCritical();
+    expect($critical)->toHaveCount(2);
+    expect(collect($critical)->pluck('slug')->sort()->values()->all())
+        ->toBe(['crit-31d', 'crit-45d']);
+});
+
+// ─── BUG-1 regression — drift tipo-SHA (git↔DB) ──────────────────────────────
+//
+// StalenessDetectorService é `final` (não subclassável de propósito). Em vez de
+// stubar lerGitShaAtual, exercitamos o ramo git real montando um repo git
+// temporário (fixture). Pula gracioso quando git/shell_exec ausente — que é
+// exatamente o cenário de degradação coberto pelo último teste.
+
+function freshGitDisponivel(): bool
+{
+    if (! function_exists('shell_exec')) {
+        return false;
+    }
+    $disabled = explode(',', (string) ini_get('disable_functions'));
+    if (in_array('shell_exec', $disabled, true)) {
+        return false;
+    }
+    $probe = @shell_exec('git --version 2>&1');
+
+    return is_string($probe) && str_contains($probe, 'git version');
+}
+
+function freshMontaRepoGitTemp(): string
+{
+    $dir = sys_get_temp_dir() . '/fresh_git_' . bin2hex(random_bytes(6));
+    mkdir($dir, 0777, true);
+    mkdir($dir . '/memory/decisions', 0777, true);
+    file_put_contents($dir . '/memory/decisions/drift-sha-doc.md', "# doc\nv1\n");
+
+    $q = escapeshellarg($dir);
+    shell_exec("git -C {$q} init -q 2>&1");
+    shell_exec("git -C {$q} config user.email t@t.dev 2>&1");
+    shell_exec("git -C {$q} config user.name tester 2>&1");
+    shell_exec("git -C {$q} add . 2>&1");
+    shell_exec("git -C {$q} commit -q -m init 2>&1");
+
+    return $dir;
+}
+
+function freshRemoveDir(string $dir): void
+{
+    if (! is_dir($dir)) {
+        return;
+    }
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($it as $f) {
+        $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
+    }
+    @rmdir($dir);
+}
+
+it('BUG-1: drift por SHA detectado quando repoBasePath setado e git_sha diverge', function () {
+    if (! freshGitDisponivel()) {
+        $this->markTestSkipped('git/shell_exec indisponível — ramo git-SHA coberto pelo teste de degradação.');
+    }
+
+    $repo = freshMontaRepoGitTemp();
+
+    try {
+        // git_sha no DB diverge do HEAD real do arquivo no repo → drift tipo-B.
+        // indexed_at >= updated_at isola o cenário (evita drift tipo-A).
+        $doc = freshFazDoc('drift-sha-doc', now(), [
+            'git_sha'  => 'staleshanaobate0000000000000000000000000',
+            'git_path' => 'memory/decisions/drift-sha-doc.md',
+        ]);
+        freshNivelaTimestamps($doc->id);
+
+        $detector = (new StalenessDetectorService())->comRepoBasePath($repo);
+        $drift = $detector->detectDrift();
+
+        expect($drift)->toHaveCount(1);
+        expect($drift[0]->slug)->toBe('drift-sha-doc');
+    } finally {
+        freshRemoveDir($repo);
+    }
+});
+
+it('BUG-1: NÃO acusa drift-SHA quando git_sha bate com HEAD real do repo', function () {
+    if (! freshGitDisponivel()) {
+        $this->markTestSkipped('git/shell_exec indisponível.');
+    }
+
+    $repo = freshMontaRepoGitTemp();
+
+    try {
+        $q = escapeshellarg($repo);
+        $headSha = trim((string) shell_exec(
+            "git -C {$q} log -n 1 --format=%H -- memory/decisions/drift-sha-doc.md 2>&1"
+        ));
+
+        // git_sha do DB == HEAD real → sem divergência. indexed_at >= updated_at.
+        $doc = freshFazDoc('drift-sha-doc', now(), [
+            'git_sha'  => $headSha,
+            'git_path' => 'memory/decisions/drift-sha-doc.md',
+        ]);
+        freshNivelaTimestamps($doc->id);
+
+        $detector = (new StalenessDetectorService())->comRepoBasePath($repo);
+
+        expect($detector->detectDrift())->toHaveCount(0);
+    } finally {
+        freshRemoveDir($repo);
+    }
+});
+
+it('BUG-1: setter comRepoBasePath é fluent e retorna o próprio service', function () {
+    $detector = new StalenessDetectorService();
+
+    expect($detector->comRepoBasePath(base_path()))
+        ->toBeInstanceOf(StalenessDetectorService::class);
+});
+
+it('BUG-1: degrada gracioso quando repoBasePath aponta pra dir sem git (Hostinger sem shell_exec)', function () {
+    // Sem repoBasePath (default null) o ramo git-SHA nem roda. E apontando pra
+    // um dir que NÃO é repo git, lerGitShaAtual retorna null → nenhum drift-SHA
+    // acusado e zero crash (fallback NULL preservado).
+    $dirSemGit = sys_get_temp_dir() . '/fresh_nogit_' . bin2hex(random_bytes(4));
+    mkdir($dirSemGit, 0777, true);
+
+    try {
+        $doc = freshFazDoc('no-git-doc', now()); // sem drift tipo-A
+        freshNivelaTimestamps($doc->id);
+
+        $detector = (new StalenessDetectorService())->comRepoBasePath($dirSemGit);
+
+        // Não lança, e como git_sha não bate com "HEAD inexistente" (null),
+        // o doc NÃO entra em drift-SHA (null != sha → pulado).
+        expect($detector->detectDrift())->toHaveCount(0);
+    } finally {
+        freshRemoveDir($dirSemGit);
+    }
 });
