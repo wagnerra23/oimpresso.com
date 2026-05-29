@@ -33,9 +33,6 @@ docker run --rm --network docker-host_default \
   -e PHOST="$PHOST" -e PUSER="$PUSER" -e PPASS="$PPASS" -e PDB="$PDB" mariadb:11 bash -c '
     mariadb-dump --host="$PHOST" --user="$PUSER" --password="$PPASS" \
       --single-transaction --skip-lock-tables --no-tablespaces \
-      --ignore-table="$PDB".activity_log \
-      --ignore-table="$PDB".telescope_entries \
-      --ignore-table="$PDB".telescope_entries_tags \
       "$PDB"
   ' 2>/tmp/staging-dump.err \
   | docker exec -i -e SROOT="$SROOT" oimpresso-staging-db bash -c 'mariadb --user=root --password="$SROOT" oimpresso_staging'

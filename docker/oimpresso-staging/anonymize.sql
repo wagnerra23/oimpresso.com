@@ -2,13 +2,13 @@
 -- Anonimização LGPD do banco de STAGING (oimpresso_staging).
 -- Roda APÓS importar o dump de produção, ANTES de o staging ficar acessível.
 --
--- Estratégia:
+-- Perfil "realista seguro" (Wagner 2026-05-29 — todas as tabelas com dados):
 --   1. PII de pessoas (contacts/users/transactions) → fake determinístico (por id)
 --   2. Credenciais/tokens/certificados → TRUNCATE (staging não age no mundo real)
---   3. Conteúdo de conversas (WhatsApp/Jana/chat) → TRUNCATE (não precisa histórico real)
+--   3. Conversas (WhatsApp/Jana/chat) e logs → MANTIDOS com dados (realismo)
 --
--- Idempotente. Rodar com `mysql --force` (tolera tabela ausente entre versões).
--- Ref: memory/reference/lgpd-mapa-tratamento.md
+-- Idempotente. Rodar com `mariadb --force` (tolera tabela ausente entre versões).
+-- Ref: memory/reference/lgpd-mapa-tratamento.md + ADR 0235
 -- ─────────────────────────────────────────────────────────────────────────────
 SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_SAFE_UPDATES = 0;
@@ -75,22 +75,11 @@ TRUNCATE TABLE whatsapp_business_configs;
 TRUNCATE TABLE whatsapp_business_phones;
 TRUNCATE TABLE whatsapp_phone_user_access;
 
--- ── Conteúdo de conversas (PII por conteúdo) → TRUNCATE ─────────────────────
-TRUNCATE TABLE whatsapp_messages;
-TRUNCATE TABLE whatsapp_conversations;
-TRUNCATE TABLE whatsapp_csat_responses;
-TRUNCATE TABLE whatsapp_reminders;
-TRUNCATE TABLE whatsapp_lid_pn_map;
-TRUNCATE TABLE messages;
-TRUNCATE TABLE essentials_messages;
-TRUNCATE TABLE jana_mensagens;
-TRUNCATE TABLE jana_conversas;
-TRUNCATE TABLE jana_memoria_facts;
-TRUNCATE TABLE jana_cache_semantico;
-TRUNCATE TABLE jana_business_profile;
-TRUNCATE TABLE copiloto_mensagens;
-TRUNCATE TABLE docs_chat_messages;
-TRUNCATE TABLE mcp_cc_messages;
+-- NOTA (perfil "realista seguro" — Wagner 2026-05-29): conversas
+-- (whatsapp_messages/conversations, jana_*, messages, essentials_messages) e
+-- logs (activity_log) são MANTIDOS com dados pra realismo da inbox/dashboards.
+-- A identidade canônica (contacts/users) já está anonimizada acima — telefones
+-- /nomes que apareçam DENTRO do corpo das mensagens não são mascarados.
 
 SET FOREIGN_KEY_CHECKS = 1;
 SET SQL_SAFE_UPDATES = 1;
