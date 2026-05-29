@@ -262,10 +262,20 @@ return [
     'freshness' => [
         'enabled'      => env('JANA_FRESHNESS_PIPELINE', true),
         'auto_reindex' => env('JANA_FRESHNESS_AUTO_REINDEX', false),
+        // Semântica dos cutoffs (alinhada com StalenessDetectorService::staleness):
+        //   FRESH    → age <= fresh (1d)
+        //   WARM     → fresh < age < warm (1d–7d)
+        //   STALE    → warm <= age < stale (7d–30d)   ← faixa warning
+        //   CRITICAL → age >= critical (>=30d)         ← alerta mcp_alertas_eventos
+        // `detectStale()` usa `warm` como cutoff (pega tudo >= 7d, inclui CRITICAL);
+        // `detectCritical()` usa `critical` (pega só >= 30d). A faixa 7-30d isolada
+        // = detectStale − detectCritical. Chave `stale` mantida pro método
+        // `staleness()` (fronteira STALE→CRITICAL). BUG-2 fix 2026-05-29.
         'thresholds_days' => [
-            'fresh' => (int) env('JANA_FRESHNESS_THRESHOLD_FRESH', 1),
-            'warm'  => (int) env('JANA_FRESHNESS_THRESHOLD_WARM', 7),
-            'stale' => (int) env('JANA_FRESHNESS_THRESHOLD_STALE', 30),
+            'fresh'    => (int) env('JANA_FRESHNESS_THRESHOLD_FRESH', 1),
+            'warm'     => (int) env('JANA_FRESHNESS_THRESHOLD_WARM', 7),
+            'stale'    => (int) env('JANA_FRESHNESS_THRESHOLD_STALE', 30),
+            'critical' => (int) env('JANA_FRESHNESS_THRESHOLD_CRITICAL', 30),
         ],
     ],
 
