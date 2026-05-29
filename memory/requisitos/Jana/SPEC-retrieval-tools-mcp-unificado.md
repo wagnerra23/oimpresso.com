@@ -15,54 +15,56 @@ fonte: [memory/sessions/2026-05-29-arte-indexacao-priorizacao-retrieval-memoria-
 
 > **Origem:** estado-da-arte 2026 ([doc](../../sessions/2026-05-29-arte-indexacao-priorizacao-retrieval-memoria-agentes.md)) + proposta [jana-mcp-search-tools-pipeline-bom](../../decisions/proposals/jana-mcp-search-tools-pipeline-bom.md). Estimates recalibrados ADR 0106 (10×).
 
-## Problema (uma frase)
+## ⚠️ Dois corpora distintos (Wagner, 2026-05-29 — NÃO conflar)
 
-O chat tem retrieval estado-da-arte (`MeilisearchDriver`: hybrid+HyDE+RRF+time-decay+Peso Real+reranker), mas as tools MCP que **o time usa todo dia** (`decisions-search`/`memoria-search`/`kb-answer`) rodam em **MySQL FULLTEXT cru** sobre `mcp_memory_documents` (que **não tem embeddings**). O `kb-answer` é o pior caso: gasta LLM sintetizando sobre um recall que pode nem ter trazido o doc certo.
+| | **Corpus MCP** (`mcp_memory_documents`) | **Corpus Jana** (`jana_memoria_facts`) |
+|---|---|---|
+| O que é | Conhecimento de **programação/produto** (ADRs/SPECs/sessions/handoffs) — fonte única do git, indexado sob `business_id=1` (default do `IndexarMemoryGitParaDb`) | **Dados do CLIENTE** (fatos/metas/conversas) |
+| Tenancy | **GLOBAL — serve TODOS os clientes/devs.** NÃO é per-cliente. **Sem filtro de tenant.** | **Per-cliente: `business_id`-scoped** (NÃO `user_id`) |
+| Tools | `decisions-search`, `kb-answer` | `memoria-search` |
+| Consumidor | Time de dev (Wagner/Felipe/…) via Claude Code | A própria Jana (chat do cliente no produto) |
 
-## Não-objetivos (Tier 0 — o que NÃO fazer)
+**MCP ≠ Jana.** O MCP (programação) atende todos os clientes; a Jana é restrita por `business_id` e serve um cliente. Já confundi isso 2× (chat em #1922, business_id no corpus MCP em #1928 — ambos revertidos).
 
-- ❌ **NÃO** reusar `MemoriaContrato::buscar(business, user)` do chat — ele filtra `user_id`, e a memória do MCP é **business-level** (não por usuário). Erro já cometido e revertido (#1922 fechado).
-- ❌ **NÃO** alterar o filtro multi-tenant das tools. O `business_id` / `acessiveisPara($user)` que cada tool já aplica é **Tier 0 IRREVOGÁVEL** (ADR 0093) — preservar **byte-a-byte**. Vazar tenant = P0.
+## Não-objetivos (o que NÃO fazer)
+
+- ❌ **NÃO** colocar filtro `business_id` no corpus MCP (`mcp_memory_documents`). É conhecimento global de programação. **#1928 foi revertido por isso.**
+- ❌ **NÃO** reusar `MemoriaContrato::buscar(business, **user**)` do chat — filtra `user_id`; a memória da Jana é por `business`, não por usuário. **#1922 fechado por isso.**
 - ❌ **NÃO** ligar default sem validar recall@5 com golden set.
 - ❌ **NÃO** ir pra GraphRAG/entity-linking agora (consenso 2026: só ao saturar hybrid; não saturamos).
 
+## Estado real (corrigido)
+
+Os **dois** corpora **já têm Scout/Meilisearch hybrid + embedder** (ADR 0068 pro MCP; chat pro Jana). **Não falta indexação.** O que falta é só **rotear as tools** (que ainda usam FULLTEXT/`buscarTexto`) pelo Scout hybrid. Sem reindex, sem campo novo.
+
 ## User stories (recalibradas ADR 0106)
 
-### US-RET-001 — Embeddings + `business_id` no índice do corpus · P0 · 🟡 EM PARTE FEITO
-> **Correção 2026-05-29:** o estado-da-arte disse "sem embeddings" — **errado**. `McpMemoryDocument` **já tem Scout/Meilisearch hybrid + embedder** (Sprint 9, ADR 0068) + Contextual Retrieval. O embedder JÁ existe.
-> O pré-req real que faltava era **multi-tenant**: `toSearchableArray` **não emitia `business_id`** → rotear as tools pelo Scout vazaria tenant (P0).
-- ✅ **Feito (PR desta US):** `business_id` adicionado a `toSearchableArray` (NULL = doc plataforma) + `filterableAttributes` em `config/scout.php` + Pest (`McpMemoryDocumentTenantIndexTest`). PHPStan limpo (`@property` anotado).
-- ⏳ **Pendente (deploy CT 100, não-código):** `php artisan scout:sync-index-settings` + `scout:import "Modules\Jana\Entities\Mcp\McpMemoryDocument"` (reindex com o novo campo). Verificar embedder ativo no índice.
-- **Aceite:** após reindex, `McpMemoryDocument::search()->where('business_id', …)` filtra por tenant; smoke biz=1 vs biz=99 não vaza.
+### US-RET-001 — Rotear `decisions-search` + `kb-answer` (corpus MCP, GLOBAL) · P0 · ~2-4h
+- Trocar `McpMemoryDocument::...->buscarTexto()` por `McpMemoryDocument::search($q, callback hybrid)` (índice já tem embedder, ADR 0068).
+- **SEM filtro de tenant** — corpus global de programação. Preservar só `porStatusAtivo` (não retornar superseded) + `acessiveisPara($user)` (permissões Spatie / `scope_required` / `admin_only`) — que são **permissão**, não tenant.
+- Flag `JANA_MCP_SEARCH_PIPELINE` (default OFF) + fallback gracioso pro `buscarTexto` (ADR 0036/0056).
+- **Aceite:** flag OFF = byte-a-byte atual; flag ON = recall melhor; `acessiveisPara`/`porStatusAtivo` preservados.
 
-### US-RET-002 — Retriever business-scoped reutilizável · P0 · ~2-3h
-- Novo método/serviço de retrieval hybrid sobre `mcp_memory_documents` que recebe **`businessId` (sem `userId`)** + filtros de tipo/lifecycle, reaproveitando a lógica de hybrid+RRF+rerank+decay do `MeilisearchDriver` (extrair o que é genérico; NÃO copiar o filtro user).
-- Multi-tenant: filtro `business_id` + `acessiveisPara` idêntico ao atual das tools.
-- **Aceite:** Pest — mesma query, mesmo escopo de tenant que o FULLTEXT atual; recall ≥ baseline no golden set.
+### US-RET-002 — Rotear `memoria-search` (corpus Jana, per-cliente) · P1 · ~2-3h
+- `jana_memoria_facts` via hybrid **`business_id`-scoped** (variante do `MeilisearchDriver` SEM `user_id` — o chat scopa por user, a tool MCP scopa por business). NÃO reusar `buscar(business,user)`.
+- Flag + fallback FULLTEXT.
+- **Aceite:** Pest cross-tenant biz=1 vs biz=99 verde; recall ≥ baseline. **`business_id` filtrado (este é o ÚNICO corpus com tenant).**
 
-### US-RET-003 — Rotear as 3 tools pelo retriever, flag + fallback · P1 · ~2-4h
-- `decisions-search` (`buscarTexto`), `memoria-search` (FULLTEXT) e `kb-answer` (`buscarFontes`) passam a usar US-RET-002.
-- Flag `JANA_MCP_SEARCH_PIPELINE` (default OFF) por tool; fallback gracioso pro FULLTEXT em erro/vazio (ADR 0036/0056).
-- **Aceite:** flag OFF = comportamento atual byte-a-byte; flag ON = recall melhor; cross-tenant intacto.
-
-### US-RET-004 — Gate golden-set recall@5 antes de default-ON · P1 · ~3h
-- Golden set ~20 queries reais do time (ADRs/SPECs/sessions/handoffs).
-- `copiloto:eval` compara pipeline ON vs FULLTEXT; só vira default se recall não regredir.
-- **Aceite:** relatório recall@5 ON ≥ baseline; Wagner aprova flip.
+### US-RET-003 — Gate golden-set recall@5 antes de default-ON · P1 · ~3h
+- Golden set ~20 queries reais; `copiloto:eval` compara ON vs FULLTEXT; só vira default se não regredir.
+- **Aceite:** recall@5 ON ≥ baseline; Wagner aprova flip.
 
 ## Sequência
 
 ```
-US-RET-001 (embeddings) ──→ US-RET-002 (retriever business-scoped) ──→ US-RET-003 (rotear tools, flag OFF)
-                                                                              │
-                                                              US-RET-004 (golden set) → Wagner liga default
+US-RET-001 (decisions-search + kb-answer, sem tenant) ──┐
+US-RET-002 (memoria-search, business-scoped) ───────────┼─→ US-RET-003 (golden set) → Wagner liga default
 ```
 
-## Multi-tenant (Tier 0 — checklist obrigatório por PR)
+## Multi-tenant (Tier 0)
 
-- [ ] `business_id` filtrado no retriever (sem `user_id`).
-- [ ] `acessiveisPara($user)` / permissões Spatie preservadas em cada tool.
-- [ ] Pest cross-tenant biz=1 vs biz=99 verde antes de merge.
+- Corpus **MCP** (decisions-search/kb-answer): **sem `business_id`** — global. Só `acessiveisPara` (permissão) + `porStatusAtivo`.
+- Corpus **Jana** (memoria-search): `business_id`-scoped (sem `user_id`). Pest cross-tenant obrigatório.
 
 ## Esforço total
 
