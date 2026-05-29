@@ -32,8 +32,9 @@ Caixa de entrada dedicada por-pessoa: mostrar as notificações do usuário aute
 - **Marcar lido** (US-TR-305): individual (botão "marcar lida" por item) + **todas** (botão no header) → `PATCH /inbox/{id}/read` e `PATCH /inbox/read-all`, otimista com rollback
 - **Deep-link** (US-TR-306): clicar item abre `/project-mgmt/board?task=ID` (DetailSheet) + marca lido no caminho
 - Toggle **mostrar lidas / só não-lidas** (`?show_read=1`)
-- Empty state: **"Caixa de entrada vazia 🎉"** (ou "Nada na caixa." no modo show_read)
+- Empty state: **"Caixa de entrada vazia"** (sem emoji — AP empty-state PT-BR limpo; "Nada na caixa." no modo show_read)
 - Ícone + label PT-BR por tipo de notificação
+- Atalhos canônicos (PT-01 + Board/MyWork): **J/K** navega item · **Enter** abre task no Board · **R** marca lida · **Shift+R** marca todas · **⌘K** palette global (dono do AppShellV2, PMG-002)
 - Polling 30s + on-focus reload (badge/contador re-sincroniza)
 - (futuro próximo) badge realtime via Centrifugo canal `inbox.{user_id}` — ADR 0058 (não nesta entrega)
 

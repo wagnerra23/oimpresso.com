@@ -35,8 +35,9 @@ Dar ao time não-técnico (e futuros clientes B2B) uma tela dedicada pra **triar
 - **Rollback** em erro (banner âmbar inline auto-dismiss 5s) + reconciliação via partial reload
 - Task **some da lista** quando deixa de ser órfã (`still_triage=false` do backend)
 - Chips de motivo por linha (sem dono / sem prioridade / backlog)
-- Empty state: **"Nada pra triar 🎉"**
+- Empty state: **"Nada pra triar"** (sem emoji — AP empty-state PT-BR limpo)
 - Deep-link `display_id` → `/project-mgmt/board?task=ID` (abre DetailSheet)
+- Atalhos canônicos (PT-01 + Board/MyWork): **J/K** navega linha · **Enter** abre no Board · **⌘K** palette global (dono do AppShellV2, PMG-002)
 - Polling 30s + on-focus reload (re-sincroniza fila)
 
 ---

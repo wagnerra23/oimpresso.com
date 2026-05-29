@@ -98,6 +98,8 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   // Tasks em voo (desabilita selects).
   const [pending, setPending] = useState<Set<string>>(new Set());
+  // Linha em foco pra navegação J/K (mesma mecânica do Board/MyWork).
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!errorMsg) return;
@@ -158,6 +160,49 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
     };
   }
 
+  // Quando a lista muda e o selecionado some, escolhe o primeiro (igual Board).
+  useEffect(() => {
+    if (!visible.length) {
+      setSelectedId(null);
+      return;
+    }
+    if (selectedId && !visible.find((t) => t.task_id === selectedId)) {
+      setSelectedId(visible[0]?.task_id ?? null);
+    }
+  }, [visible, selectedId]);
+
+  // Atalhos canônicos J/K (navegar) + Enter (abrir no Board) — mesma mecânica
+  // inline que Board/Index.tsx e MyWork/Index.tsx. ⌘K (palette global) é dono do
+  // AppShellV2 (PMG-002), não re-registramos aqui.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const tgt = e.target as HTMLElement | null;
+      const isTyping = tgt && (
+        tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.isContentEditable
+      );
+      if (isTyping) return;
+      if (!visible.length) return;
+
+      const idx = selectedId ? visible.findIndex((t) => t.task_id === selectedId) : -1;
+      const cur = idx >= 0 ? visible[idx] : null;
+
+      if (e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        const n = idx < 0 ? 0 : Math.min(visible.length - 1, idx + 1);
+        setSelectedId(visible[n]?.task_id ?? null);
+      } else if (e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        const p = idx <= 0 ? 0 : idx - 1;
+        setSelectedId(visible[p]?.task_id ?? null);
+      } else if (e.key === 'Enter' && cur) {
+        e.preventDefault();
+        router.visit(`/project-mgmt/board?task=${cur.task_id}`);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visible, selectedId]);
+
   // Polling leve (igual MyWork/Board) — re-sincroniza órfãs com servidor.
   useEffect(() => {
     const reload = () => router.reload({ only: ['tasks', 'kpis'], preserveScroll: true });
@@ -175,9 +220,17 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
           `${kpis.total} pra triar · ${kpis.sem_owner} sem dono · ${kpis.sem_prio} sem prioridade · ${kpis.backlog} em backlog`
         }
         action={
-          <a href="/project-mgmt/board" className="text-[11px] text-muted-foreground hover:underline">
-            Ver no Board →
-          </a>
+          <div className="flex items-center gap-3">
+            <span className="hidden md:inline text-[11px] text-muted-foreground">
+              <kbd className="px-1 py-0.5 rounded bg-muted">J</kbd>{' '}
+              <kbd className="px-1 py-0.5 rounded bg-muted">K</kbd> navegar ·{' '}
+              <kbd className="px-1 py-0.5 rounded bg-muted">Enter</kbd> abrir ·{' '}
+              <kbd className="px-1 py-0.5 rounded bg-muted">⌘K</kbd> buscar
+            </span>
+            <a href="/project-mgmt/board" className="text-[11px] text-muted-foreground hover:underline">
+              Ver no Board →
+            </a>
+          </div>
         }
       />
 
@@ -203,7 +256,7 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
       {visible.length === 0 ? (
         <div className="mt-8 text-center py-16 border-2 border-dashed rounded-xl text-muted-foreground">
           <CheckCircle2 size={28} className="mx-auto mb-3 text-emerald-500/70" />
-          <p className="text-base font-medium">Nada pra triar 🎉</p>
+          <p className="text-base font-medium">Nada pra triar</p>
           <p className="text-sm mt-1">Toda task tem dono, prioridade e saiu do backlog.</p>
         </div>
       ) : (
@@ -222,10 +275,15 @@ function TriageIndex({ project, tasks, cycles, epics, owners, kpis }: Props) {
               {visible.map((raw) => {
                 const t = effective(raw);
                 const isPending = pending.has(t.task_id);
+                const isSelected = t.task_id === selectedId;
                 return (
                   <div
                     key={t.task_id}
-                    className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_140px_150px_150px_150px] gap-3 px-4 py-3 items-center hover:bg-muted/40 transition-colors"
+                    aria-current={isSelected ? 'true' : undefined}
+                    className={[
+                      'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_140px_150px_150px_150px] gap-3 px-4 py-3 items-center transition-colors',
+                      isSelected ? 'bg-muted/60 ring-1 ring-inset ring-blue-400/60' : 'hover:bg-muted/40',
+                    ].join(' ')}
                   >
                     {/* Task: id + título + chips de motivo */}
                     <div className="min-w-0">

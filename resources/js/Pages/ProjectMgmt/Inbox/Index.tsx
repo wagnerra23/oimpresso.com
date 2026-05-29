@@ -103,6 +103,8 @@ function timeAgo(iso: string | null): string {
 function InboxIndex({ inbox, inbox_stats, filters }: Props) {
   const [optimisticRead, setOptimisticRead] = useState<Set<number>>(new Set());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Item em foco pra navegação J/K (mesma mecânica do MyWork/Board).
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!errorMsg) return;
@@ -164,6 +166,56 @@ function InboxIndex({ inbox, inbox_stats, filters }: Props) {
     }
   }
 
+  // Quando a lista muda e o selecionado some, escolhe o primeiro (igual Board).
+  useEffect(() => {
+    if (!inbox.length) {
+      setSelectedId(null);
+      return;
+    }
+    if (selectedId && !inbox.find((i) => i.id === selectedId)) {
+      setSelectedId(inbox[0]?.id ?? null);
+    }
+  }, [inbox, selectedId]);
+
+  // Atalhos canônicos J/K (navegar) + Enter (abrir task no Board) + R (marcar
+  // lida) — mesma mecânica inline que MyWork/Index.tsx (foco inbox) e Board.
+  // ⌘K (palette global) é dono do AppShellV2 (PMG-002), não re-registramos aqui.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const tgt = e.target as HTMLElement | null;
+      const isTyping = tgt && (
+        tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.isContentEditable
+      );
+      if (isTyping) return;
+      if (!inbox.length) return;
+
+      const idx = selectedId ? inbox.findIndex((i) => i.id === selectedId) : -1;
+      const cur = idx >= 0 ? inbox[idx] : null;
+
+      if (e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        const n = idx < 0 ? 0 : Math.min(inbox.length - 1, idx + 1);
+        setSelectedId(inbox[n]?.id ?? null);
+      } else if (e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        const p = idx <= 0 ? 0 : idx - 1;
+        setSelectedId(inbox[p]?.id ?? null);
+      } else if (e.key === 'Enter' && cur) {
+        e.preventDefault();
+        openTask(cur);
+      } else if (e.key === 'r' && !e.shiftKey && cur && !(cur.is_read || optimisticRead.has(cur.id))) {
+        e.preventDefault();
+        markRead(cur.id);
+      } else if (e.key === 'R' && e.shiftKey) {
+        e.preventDefault();
+        markAllRead();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inbox, selectedId, optimisticRead]);
+
   // Polling leve — badge/contador re-sincroniza (igual MyWork).
   useEffect(() => {
     const reload = () => router.reload({ only: ['inbox', 'inbox_stats'], preserveScroll: true });
@@ -180,6 +232,13 @@ function InboxIndex({ inbox, inbox_stats, filters }: Props) {
         description={`${inbox_stats.unread} não-lidas · ${inbox_stats.total_30d} nos últimos 30 dias`}
         action={
           <div className="flex items-center gap-2">
+            <span className="hidden md:inline text-[11px] text-muted-foreground mr-1">
+              <kbd className="px-1 py-0.5 rounded bg-muted">J</kbd>{' '}
+              <kbd className="px-1 py-0.5 rounded bg-muted">K</kbd> navegar ·{' '}
+              <kbd className="px-1 py-0.5 rounded bg-muted">Enter</kbd> abrir ·{' '}
+              <kbd className="px-1 py-0.5 rounded bg-muted">R</kbd> lida ·{' '}
+              <kbd className="px-1 py-0.5 rounded bg-muted">⌘K</kbd> buscar
+            </span>
             <Button
               variant="ghost"
               size="sm"
@@ -218,7 +277,7 @@ function InboxIndex({ inbox, inbox_stats, filters }: Props) {
         <div className="mt-8 text-center py-16 border-2 border-dashed rounded-xl text-muted-foreground">
           <BellOff size={28} className="mx-auto mb-3 opacity-40" />
           <p className="text-base font-medium">
-            {filters.show_read ? 'Nada na caixa.' : 'Caixa de entrada vazia 🎉'}
+            {filters.show_read ? 'Nada na caixa.' : 'Caixa de entrada vazia'}
           </p>
           <p className="text-sm mt-1">Notificações aparecem aqui quando te mencionam, atribuem ou pedem revisão.</p>
         </div>
@@ -242,17 +301,20 @@ function InboxIndex({ inbox, inbox_stats, filters }: Props) {
                 <div className="flex flex-col gap-1.5">
                   {items.map((item) => {
                     const wasRead = item.is_read || optimisticRead.has(item.id);
+                    const isSelected = item.id === selectedId;
                     return (
                       <div
                         key={item.id}
+                        aria-current={isSelected ? 'true' : undefined}
                         className={[
                           'group flex items-start gap-2 p-3 rounded-lg border bg-card transition-colors',
+                          isSelected ? 'ring-1 ring-inset ring-blue-400/60' : '',
                           wasRead ? 'opacity-60' : 'hover:bg-muted/40',
-                        ].join(' ')}
+                        ].filter(Boolean).join(' ')}
                       >
                         <button
                           type="button"
-                          onClick={() => openTask(item)}
+                          onClick={() => { setSelectedId(item.id); openTask(item); }}
                           className="flex-1 min-w-0 text-left"
                           title={item.task_id ? 'Abrir task no Board' : undefined}
                         >
