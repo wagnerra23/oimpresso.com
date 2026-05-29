@@ -27,10 +27,15 @@ use Illuminate\Support\Facades\Http;
  */
 class MeilisearchIndexSetupCommand extends Command
 {
-    protected $signature = 'jana:meilisearch-setup {--index=all : uid do índice ou "all"} {--dry-run : mostra sem aplicar} {--check : SÓ compara settings vivos × config, exit 1 se drift (SettingsReconciler)}';
+    protected $signature = 'jana:meilisearch-setup {--index=all : uid do índice ou "all"} {--dry-run : mostra sem aplicar}';
 
-    protected $description = 'Codifica/aplica/reconcilia embedders + filterableAttributes dos índices Meilisearch da Jana (idempotente)';
+    protected $description = 'Aplica (cura) embedders + filterableAttributes dos índices Meilisearch da Jana (idempotente)';
 
+    /**
+     * NOTA: a DETECÇÃO de drift NÃO mora aqui — é o MeilisearchSettingsDriftChecker
+     * (Modules/Governance, ADR 0216) plugado em `governance:audit --all`. Este comando
+     * é só a CURA (apply/PATCH runtime). Detect = framework; heal = domínio Jana.
+     */
     public function handle(): int
     {
         $host = rtrim((string) config('scout.meilisearch.host', 'http://localhost:7700'), '/');
@@ -45,12 +50,6 @@ class MeilisearchIndexSetupCommand extends Command
             $this->error('config copiloto.meilisearch_indexes vazia.');
 
             return self::FAILURE;
-        }
-
-        // SettingsReconciler (gap "embedder perdido 2×"): compara settings VIVOS × config
-        // desejada e FALHA se driftou. CI-friendly (gate de PR) + cron (alerta). NÃO cura.
-        if ($this->option('check')) {
-            return $this->reconcileCheck($host, $key, $alvo, $indexes);
         }
 
         $this->info("Meilisearch index setup → {$host}".($dry ? ' [DRY-RUN]' : ''));
@@ -113,114 +112,5 @@ class MeilisearchIndexSetupCommand extends Command
         }
 
         return $payload;
-    }
-
-    /**
-     * SettingsReconciler — GET settings vivos de cada índice, compara com a config
-     * desejada, reporta drift. exit 1 se qualquer drift (gate). Alerta idempotente.
-     *
-     * @param  array<string, array<string, mixed>> $indexes
-     */
-    protected function reconcileCheck(string $host, string $key, string $alvo, array $indexes): int
-    {
-        $this->info("SettingsReconciler --check → {$host}");
-        $totalDrift = [];
-
-        foreach ($indexes as $uid => $cfg) {
-            if ($alvo !== 'all' && $alvo !== $uid) {
-                continue;
-            }
-
-            $resp = Http::withToken($key)->timeout(30)->get("{$host}/indexes/{$uid}/settings");
-            if ($resp->failed()) {
-                $this->error("  {$uid}: GET settings falhou ({$resp->status()})");
-
-                return self::FAILURE;
-            }
-
-            $drift = $this->detectarDrift($uid, $cfg, (array) $resp->json());
-            if ($drift === []) {
-                $this->line("  ✓ {$uid}: em dia");
-            } else {
-                foreach ($drift as $d) {
-                    $this->error("  ✗ {$d}");
-                }
-                $totalDrift = array_merge($totalDrift, $drift);
-            }
-        }
-
-        if ($totalDrift !== []) {
-            // Alerta idempotente por dia (mesmo padrão do freshness-check).
-            try {
-                \Illuminate\Support\Facades\DB::table('mcp_alertas_eventos')->updateOrInsert(
-                    ['chave_idempotencia' => 'index_settings_drift:'.now()->toDateString()],
-                    [
-                        'tipo'       => 'index_settings_drift',
-                        'severidade' => 'high',
-                        'business_id' => null,
-                        'metadata'   => json_encode(['drift' => $totalDrift]),
-                        'updated_at' => now(),
-                        'created_at' => now(),
-                    ],
-                );
-            } catch (\Throwable $e) {
-                $this->warn('  (alerta não persistido: '.$e->getMessage().')');
-            }
-
-            $this->newLine();
-            $this->error('DRIFT detectado — rode `php artisan jana:meilisearch-setup` pra curar.');
-
-            return self::FAILURE;
-        }
-
-        $this->info('Settings de todos os índices == config. Nenhum drift.');
-
-        return self::SUCCESS;
-    }
-
-    /**
-     * Compara a config desejada de UM índice com os settings vivos. Pura/testável.
-     * Drift = embedder esperado ausente, source/model/dimensions divergente, ou
-     * filterableAttributes diferente (como conjunto).
-     *
-     * @param  array<string, mixed> $cfg   config desejada (embedders + filterableAttributes)
-     * @param  array<string, mixed> $vivo  settings vivos do Meilisearch
-     * @return string[] lista de drifts (vazia = em dia)
-     */
-    public function detectarDrift(string $uid, array $cfg, array $vivo): array
-    {
-        $drift = [];
-
-        /** @var array<string, array<string, mixed>> $expEmb */
-        $expEmb = (array) ($cfg['embedders'] ?? []);
-        /** @var array<string, array<string, mixed>> $vivoEmb */
-        $vivoEmb = (array) ($vivo['embedders'] ?? []);
-
-        foreach ($expEmb as $nome => $espec) {
-            if (! isset($vivoEmb[$nome])) {
-                $drift[] = "{$uid}: embedder '{$nome}' AUSENTE no índice (esperado na config)";
-
-                continue;
-            }
-            foreach (['source', 'model', 'dimensions'] as $campo) {
-                if (! array_key_exists($campo, (array) $espec)) {
-                    continue;
-                }
-                $vivoVal = $vivoEmb[$nome][$campo] ?? null;
-                if ($vivoVal != $espec[$campo]) {
-                    $drift[] = "{$uid}: embedder '{$nome}'.{$campo} difere (config=".json_encode($espec[$campo]).' vivo='.json_encode($vivoVal).')';
-                }
-            }
-        }
-
-        $expFilt  = (array) ($cfg['filterableAttributes'] ?? []);
-        $vivoFilt = (array) ($vivo['filterableAttributes'] ?? []);
-        sort($expFilt);
-        sort($vivoFilt);
-        if ($expFilt !== $vivoFilt) {
-            $drift[] = "{$uid}: filterableAttributes difere (config=[".implode(',', $expFilt).'] vivo=['.implode(',', $vivoFilt).'])';
-        }
-
-        return $drift;
     }
 }
