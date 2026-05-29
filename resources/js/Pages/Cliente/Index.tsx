@@ -67,7 +67,7 @@ import {
 import IdentificacaoTab from './_drawer/IdentificacaoTab';
 import ContatoTab from './_drawer/ContatoTab';
 import EnderecoTab from './_drawer/EnderecoTab';
-import ComercialTab from './_drawer/ComercialTab';
+import ComercialTab, { type PriceGroupOption } from './_drawer/ComercialTab';
 import ClassificacaoTab from './_drawer/ClassificacaoTab';
 // Wave D/E/F — OSs wrapper, IA 4 cards, Auditoria timeline LGPD (ADR 0179).
 import OssTab from './_drawer/OssTab';
@@ -137,8 +137,12 @@ interface ClienteRow {
   state?: string | null;
   limite_credito?: number | null;
   prazo_padrao_dias?: number | null;
+  // Tabela de preço REAL (FK customer_groups). Substitui o fake tabela_preco_padrao.
+  customer_group_id?: number | null;
   tabela_preco_padrao?: string | null;
   pgto_padrao?: string | null;
+  // Mensagem exibida como alerta ao vendedor no POS (migrado do Delphi).
+  mensagem_venda?: string | null;
   obs_comercial?: string | null;
   segmento?: string | null;
   tags?: string[] | null;
@@ -225,6 +229,12 @@ export interface ClienteIndexPageProps {
     view: boolean;
     import: boolean;
   };
+  /**
+   * Tabelas de preço REAIS do business (customer_groups id+name). Server-side
+   * em ContactController::index (scope business_id). Alimenta o dropdown de
+   * tabela de preço no drawer ComercialTab — substitui o enum fake hardcoded.
+   */
+  priceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer. true se modulo
    *  OficinaAuto ativo no business. Default false (biz=4 Larissa vestuario). */
   oficinaauto_enabled?: boolean;
@@ -1281,6 +1291,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         open={openContactId !== null}
         rows={rows}
         draftContact={draftContact}
+        priceGroups={props.priceGroups ?? []}
         oficinaAutoEnabled={props.oficinaauto_enabled ?? false}
         onOpenChange={(open) => {
           if (!open) setDraftContact(null);
@@ -1742,6 +1753,7 @@ function ClienteSheet({
   open,
   rows,
   draftContact,
+  priceGroups = [],
   oficinaAutoEnabled = false,
   onOpenChange,
   onContactUpdated,
@@ -1753,6 +1765,8 @@ function ClienteSheet({
    * via state Index.tsx pra não depender do `rows.find()` (que falha porque
    * draft recém-criado pode estar fora da página paginada da listagem). */
   draftContact?: ClienteRow | null;
+  /** Tabelas de preço REAIS (customer_groups) pro dropdown do ComercialTab. */
+  priceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab. */
   oficinaAutoEnabled?: boolean;
   onOpenChange: (open: boolean) => void;
@@ -2017,7 +2031,7 @@ function ClienteSheet({
                 />
               </div>
               <div hidden={activeTab !== 'comercial'}>
-                <ComercialTab contact={contact} />
+                <ComercialTab contact={contact} priceGroups={priceGroups} />
               </div>
               <div hidden={activeTab !== 'classificacao'}>
                 <ClassificacaoTab contact={contact} />

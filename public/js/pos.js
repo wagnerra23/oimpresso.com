@@ -150,6 +150,20 @@ $(document).ready(function() {
         if ($('.contact_due_text').length) {
             get_contact_due(data.id);
         }
+
+        // Mensagem para a venda — alerta ao vendedor (migrado de
+        // PESSOAS.MENSAGEM_PARA_VENDA do Delphi). Exibe num <small> próprio
+        // quando o cliente selecionado tem texto; esconde caso contrário.
+        if ($('.contact_mensagem_venda_text').length) {
+            var mensagem_venda = data.mensagem_venda ? $.trim(data.mensagem_venda) : '';
+            if (mensagem_venda !== '') {
+                $('.contact_mensagem_venda_text').find('span').text(mensagem_venda);
+                $('.contact_mensagem_venda_text').removeClass('hide');
+            } else {
+                $('.contact_mensagem_venda_text').find('span').text('');
+                $('.contact_mensagem_venda_text').addClass('hide');
+            }
+        }
     });
 
     set_default_customer();
