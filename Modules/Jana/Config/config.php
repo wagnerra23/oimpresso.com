@@ -230,6 +230,29 @@ return [
     | Compat: env legado COPILOTO_RERANKER_ENABLED ainda funciona (true=usa driver, false=null).
     | Novo env JANA_RERANKER_ENABLED + JANA_RERANKER_DRIVER. Default = habilitado RRF.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | MCP search tools — pipeline bom vs FULLTEXT (Gap #2)
+    |--------------------------------------------------------------------------
+    |
+    | handoff 2026-05-29 / proposta jana-mcp-search-tools-pipeline-bom.
+    |
+    | As tools MCP de busca usam FULLTEXT puro; o pipeline estado-da-arte
+    | (MemoriaContrato::buscar — hybrid+HyDE+RRF+time-decay+Peso Real+reranker)
+    | só serve o chat Copiloto. Esta flag liga o pipeline na tool memoria-search
+    | (Área A — mesma tabela jana_memoria_facts).
+    |
+    | DEFAULT OFF: comportamento atual idêntico (FULLTEXT business-scoped). Com a
+    | flag ON, memoria-search passa por MemoriaContrato::buscar(biz, user, …) — que
+    | filtra business_id AND user_id (mais estreito que o FULLTEXT business-only de
+    | hoje). Em erro/vazio cai no FULLTEXT (fallback gracioso, ADR 0036/0056).
+    |
+    | NÃO ligar default sem validar recall@5 com golden set (copiloto:eval).
+    */
+    'mcp_search' => [
+        'memoria_pipeline' => (bool) env('JANA_MCP_SEARCH_PIPELINE_MEMORIA', false),
+    ],
+
     'reranker' => [
         'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
         'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),

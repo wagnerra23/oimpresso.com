@@ -6,9 +6,12 @@ namespace Modules\Jana\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
+use Modules\Jana\Contracts\MemoriaContrato;
+use Modules\Jana\Contracts\MemoriaPersistida;
 
 /**
  * MEM-MEM-MCP-1 (ADR 0056) — Tool MCP que busca fatos persistentes da memória
@@ -86,6 +89,20 @@ class MemoriaSearchTool extends Tool
             return Response::error('business_id não pôde ser resolvido.');
         }
 
+        // Gap #2 (Área A) — pipeline bom (MemoriaContrato::buscar: hybrid+HyDE+RRF+
+        // time-decay+Peso Real+reranker) atrás de flag, com fallback gracioso pro
+        // FULLTEXT. DEFAULT OFF = comportamento abaixo idêntico. Nota: buscar() filtra
+        // business_id AND user_id (mais estreito que o FULLTEXT business-only daqui),
+        // por isso só ativa quando há um user_id real do token.
+        $userId = (int) ($user->id ?? 0);
+        if ($userId > 0 && config('copiloto.mcp_search.memoria_pipeline', false)) {
+            $viaPipeline = $this->buscarViaPipeline($bizParaBusca, $userId, $query, $limit);
+            if ($viaPipeline !== null) {
+                return $viaPipeline;
+            }
+            // null = pipeline vazio/falhou → cai no FULLTEXT abaixo (fallback gracioso).
+        }
+
         // Busca via FULLTEXT em copiloto_memoria_facts
         // (não usa Meilisearch direto pra ter controle de filter biz/user/valid_until aqui;
         //  Meilisearch fica como cache/index secundário — pode ser refinement futuro)
@@ -117,6 +134,56 @@ class MemoriaSearchTool extends Tool
             $output .= "\n";
             $output .= $r->fato . "\n";
             $output .= "_Persistido em: {$r->valid_from}_\n\n";
+        }
+
+        return Response::text($output);
+    }
+
+    /**
+     * Busca via pipeline bom (MemoriaContrato::buscar — hybrid+HyDE+RRF+time-decay+
+     * Peso Real+reranker). Retorna Response formatada, ou null pra sinalizar fallback
+     * (vazio ou erro → handle() cai no FULLTEXT business-wide).
+     *
+     * @return Response|null
+     */
+    protected function buscarViaPipeline(int $businessId, int $userId, string $query, int $limit): ?Response
+    {
+        try {
+            /** @var MemoriaPersistida[] $hits */
+            $hits = app(MemoriaContrato::class)->buscar($businessId, $userId, $query, $limit);
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning(
+                'memoria-search: pipeline falhou, fallback FULLTEXT: ' . $e->getMessage()
+            );
+
+            return null;
+        }
+
+        if ($hits === []) {
+            return null; // fallback pro FULLTEXT business-wide
+        }
+
+        $output = sprintf("Encontrados %d fato(s) na memória pra \"%s\" (pipeline):\n\n", count($hits), $query);
+        foreach ($hits as $h) {
+            $meta  = $h->metadata;
+            $cat   = (string) ($meta['categoria'] ?? $meta['doc_type'] ?? '');
+            $relev = (string) ($meta['relevancia'] ?? '');
+
+            $output .= "## Fato #{$h->id}";
+            if ($cat !== '') {
+                $output .= " [{$cat}]";
+            }
+            if ($relev !== '') {
+                $output .= " · relevância {$relev}";
+            }
+            if ($h->score !== null) {
+                $output .= sprintf(' · score %.3f', $h->score);
+            }
+            $output .= "\n" . $h->fato . "\n";
+            if ($h->validFrom !== null) {
+                $output .= "_Persistido em: {$h->validFrom}_\n";
+            }
+            $output .= "\n";
         }
 
         return Response::text($output);
