@@ -9,6 +9,8 @@ contains:
   - "BacklogController — backlog priorizado"
   - "RoadmapController — roadmap quarterly"
   - "MyWorkController — tasks do owner logado"
+  - "TriageController — tasks órfãs (sem owner/priority/backlog); paridade tool MCP `triage`"
+  - "InboxController — caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
   - "BurndownController — burndown chart por cycle"
   - "ActivityController — atividade recente"
   - "SearchController — busca cross-task fulltext"
