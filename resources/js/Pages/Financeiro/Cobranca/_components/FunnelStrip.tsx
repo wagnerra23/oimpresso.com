@@ -23,12 +23,12 @@ export default function FunnelStrip({ funil }: { funil: CobrancaFunil }) {
         ].map((s, i) => (
           <div key={i} className={cn(
             'flex-1 px-4 py-3 border-r border-stone-100 last:border-r-0',
-            s.active && 'bg-blue-50/40',
+            s.active && 'bg-primary/5',
             s.alert && 'bg-rose-50/40',
           )}>
             <div className={cn(
               'text-[10.5px] font-medium',
-              s.alert ? 'text-rose-700' : s.active ? 'text-blue-700' : 'text-stone-500',
+              s.alert ? 'text-rose-700' : s.active ? 'text-primary' : 'text-stone-500',
             )}>{s.l}</div>
             <div className="text-[18px] font-semibold tabular-nums tracking-tight mt-1">{s.v}</div>
             <div className={cn(
