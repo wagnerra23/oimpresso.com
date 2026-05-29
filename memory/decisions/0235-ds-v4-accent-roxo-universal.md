@@ -1,7 +1,7 @@
 ---
 slug: 0235-ds-v4-accent-roxo-universal
 number: 235
-title: "DS v4 — accent roxo universal oklch(0.55 0.15 295): estende o primary button (ADR 0190) pro shell inteiro (foco/links/abas/ativo/ring)"
+title: "DS v4 — design system roxo universal (accent oklch 0.55 0.15 295); supersede ADR 0190; Claude Design plugin vira owner da interface"
 type: adr
 status: aceito
 authority: canonical
@@ -9,55 +9,48 @@ lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-05-29"
 accepted_at: "2026-05-29"
-accepted_via: "Wagner 2026-05-29 — briefing Cowork 'APLICAR O DESIGN SYSTEM v4 (ROXO)' (full-roxo aprovado) + escolha explícita de executar fundação+auditoria E correção de tela em 2 PRs."
+accepted_via: "Wagner 2026-05-29 — 'aplique o roxo e rebaixe o 190, nao vou usar mais, estou trocando o design; a partir de agora vou instalar o design system, quem vai cuidar da interface sera o Claude Design.'"
 module: _DesignSystem
 quarter: 2026-Q2
-tags: [design-system, accent, roxo, ds-v4, shell, amends-0190]
-supersedes: []
-amends:
+tags: [design-system, ds-v4, accent, roxo, supersede-0190, claude-design, governanca-ui]
+supersedes:
   - "0190-primary-button-roxo-universal-295"
+amends: []
 superseded_by: []
 related:
   - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0109-claude-design-plugin-integrado-processo-mwart"
   - "0114-prototipo-ui-cowork-loop-formalizado"
   - "0180-sidebar-v3-5-grupos-ghosts-header"
-  - "0189-pageheader-canon-v3-1-cadastro-roxo"
   - "0190-primary-button-roxo-universal-295"
 pii: false
 review_triggers:
   - Larissa biz=4 testar 7d e relatar saturação visual com roxo em todas as telas
   - Telemetria mostrar drop em CTA/navegação após accent universal
-  - 2+ clientes piloto pedirem accent diferente do roxo
 ---
 
-# ADR 0235 — DS v4: accent roxo universal (estende ADR 0190)
+# ADR 0235 — DS v4: design system roxo universal + Claude Design como owner da UI
+
+> **Supersede [ADR 0190](0190-primary-button-roxo-universal-295.md)** por decisão do Wagner 2026-05-29 (*"rebaixe o 190, não vou usar mais"*). A 0190 (primary button roxo + hue-per-grupo na sidebar) sai de cena; o DS v4 (roxo universal) passa a ser o regime único, sob responsabilidade do **Claude Design**.
 
 ## Contexto
 
-[ADR 0190](0190-primary-button-roxo-universal-295.md) (aceita 2026-05-25) estabeleceu o **primary button** interno = roxo médio `oklch(0.55 0.15 295)`, mantendo *hue-per-grupo* apenas pra agrupamento visual da sidebar. Ela tratou do **botão primário** — não do **accent** (cor de foco, links, abas ativas, item selecionado, ring).
+[ADR 0190](0190-primary-button-roxo-universal-295.md) (2026-05-25) estabeleceu o **primary button** roxo `oklch(0.55 0.15 295)`, mantendo *hue-per-grupo* na sidebar. Em 2026-05-29 o Wagner decidiu **trocar o design system inteiro** pro DS v4 (roxo universal) e **aposentar a 0190** — não apenas estendê-la.
 
-Em 2026-05-29 o Cowork propôs "DS v4 (roxo)" via briefing que afirmava *"supersede ADR 0190 (shell azul)"*. A auditoria do repo ([`prototipo-ui/AUDITORIA_DS_V4.md`](../../prototipo-ui/AUDITORIA_DS_V4.md)) mostrou que essa premissa estava **factualmente incorreta**:
-
-| Afirmação do briefing | Realidade do repo |
-|---|---|
-| "ADR 0190 = shell azul" | ADR 0190 = *primary button roxo 295*, `supersedes: []`, aceito |
-| "vira o shell pra roxo" | `resources/css/cockpit.css:32` **já** tem `--accent: oklch(0.55 0.15 295)` (roxo) |
-| "supersede 0190" | Constituição é append-only; e 0190 já é pró-roxo → cabe **amends**, não supersede |
-
-O que de fato faltava: (a) **formalizar** o accent roxo como canon universal (a 0190 só cobriu o primary button); (b) **sincronizar a fundação de referência** (`prototipo-ui/tokens.css` ainda estava `oklch(0.58 0.09 220)` azul).
+Nota de implementação (auditoria [`prototipo-ui/AUDITORIA_DS_V4.md`](../../prototipo-ui/AUDITORIA_DS_V4.md)): o app já vinha aplicando o roxo no shell (`resources/css/cockpit.css:32` já tinha `--accent: oklch(0.55 0.15 295)`). O DS v4 formaliza isso como regime e sincroniza a fundação de referência (`prototipo-ui/tokens.css`, que estava em azul 220).
 
 ## Decisão
 
-1. **Accent canônico = roxo** `oklch(0.55 0.15 295)` — com `--accent-2: oklch(0.62 0.15 295)` e `--accent-soft: oklch(0.95 0.04 295)`. Vale pra foco, links, abas ativas, item selecionado, ring e accent em geral do shell.
-2. **Hue-per-grupo da sidebar permanece** ([ADR 0180](0180-sidebar-v3-5-grupos-ghosts-header.md)/[0190](0190-primary-button-roxo-universal-295.md)) — é só agrupamento visual, não accent.
-3. `prototipo-ui/tokens.css` + `design-system.css` + `Design System v4.html` sincronizados como fundação de referência v4.
-4. **Migração das telas é tela-por-tela** (não big-bang). Telas Inertia com `blue-*` hardcoded migram pro token, começando por `Pages/Cliente/` (PR `feat/cliente-accent-roxo`).
-5. Bundles CSS que ainda redeclaram `--accent` azul 220 (financeiro/sells — ver auditoria §2) devem herdar o token roxo (ação futura).
+1. **DS v4 é o design system canônico.** Accent = roxo `oklch(0.55 0.15 295)` (`--accent-2: 0.62 0.15 295`, `--accent-soft: 0.95 0.04 295`) — foco, links, abas, item ativo, ring e primary. Token semântico Tailwind nas Pages Inertia: **`primary`** (`resources/css/inertia.css`).
+2. **ADR 0190 fica `superseded`** (`superseded_by: 0235`). A autoridade dela — primary roxo **e** a regra de *hue-per-grupo* da sidebar — deixa de valer; o DS v4 assume.
+3. **Owner da interface = Claude Design plugin** (`design:*` — design-system, design-critique, ux-copy, accessibility-review, design-handoff). A partir de 2026-05-29, decisão e evolução de UI passam pelo Claude Design. [ADR 0109](0109-claude-design-plugin-integrado-processo-mwart.md) já o integrava ao MWART; agora ele é o **responsável** pela UI, não só uma etapa. Loop Cowork↔Code permanece ([ADR 0114](0114-prototipo-ui-cowork-loop-formalizado.md)).
+4. **Migração tela-por-tela.** Telas Inertia com `blue-*` hardcoded migram pro token `primary`; `Pages/Cliente/` (a tela `/contacts`) foi a primeira. A sidebar `hue-per-grupo` (código `cockpit/shared.ts SIDEBAR_GROUP_HUE` + [ADR 0180](0180-sidebar-v3-5-grupos-ghosts-header.md)) continua no código por ora; a decisão de unificá-la em roxo fica com o Claude Design — **sem mudança de código neste momento**.
+5. Débito residual (auditoria): 6 bundles CSS redeclaram `--accent` azul 220; ~105 telas `.tsx` com azul hardcoded.
 
 ## Consequências
 
-**Positivas:** identidade visual única (roxo) coerente entre shell, primary e accent; fundação de referência alinhada com o app; auditoria mapeia todo o débito restante.
+**Positivas:** regime de design único e roxo; owner claro (Claude Design); fundação de referência alinhada ao app; auditoria mapeia o débito.
 
-**Negativas / riscos:** 106 telas `.tsx` têm azul hardcoded → inconsistência temporária (roxo no shell, azul nas telas não migradas) até a migração tela-por-tela concluir. Mitigado por: migração priorizada (Cliente primeiro) + `review_triggers` (saturação visual Larissa biz=4 em 7d).
+**Negativas / riscos:** inconsistência temporária (roxo no shell, azul em telas não migradas) até a migração concluir; a sidebar `hue-per-grupo` fica num limbo de autoridade (mantida no código) até o Claude Design decidir. Mitigado por migração priorizada + `review_triggers` (saturação Larissa biz=4 em 7d).
 
-**Append-only:** esta ADR **não altera** a 0190; registra a extensão (`amends`). Reversão/ajuste futuro = nova ADR com `supersedes: [0235]`.
+**Append-only:** esta ADR não edita o conteúdo da 0190; apenas marca seu lifecycle como `superseded` (mecanismo canônico de rebaixamento). Ajuste futuro = nova ADR com `supersedes: [0235]`.
