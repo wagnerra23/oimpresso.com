@@ -22,9 +22,8 @@ declare(strict_types=1);
  */
 
 use Modules\Jana\Services\Ragas\RagasJudgeService;
-use Tests\TestCase;
 
-uses(TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * Dataset canônico — perguntas com ground_truth conhecida.
