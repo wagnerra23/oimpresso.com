@@ -80,6 +80,21 @@ const DESIGN_INDEX_CANON_DOCS = [
     'LEDGER.md',
 ];
 
+/**
+ * (c) Regras de design CANÔNICAS (ADRs de governança do DS) que DEVEM estar referenciadas no
+ * índice — ADR 0239 R5 ("toda regra de design mora no índice"). Escopo CURADO e deliberado
+ * (decisão [W] 2026-05-30): só regras de GOVERNANÇA do DS, não UI-ADRs táticas (essas dariam
+ * falso-positivo, igual à decisão de escopo de (b)). Regra de design nova? Adiciona aqui + no índice.
+ * Match por "ADR NNNN" (tolerante a "ADR-NNNN"), a forma que o índice usa pra citar ADR.
+ *
+ * @var string[] números (4 díg.) das ADRs de regra-de-design canônicas
+ */
+const DESIGN_INDEX_CANON_RULE_ADRS = [
+    '0235', // DS v4 — tokens/roxo universal + plugin dono da interface
+    '0236', // governança de evolução da doc de design
+    '0239', // governança do Design System (regra única — git SSOT + regressão-IA + 1 na raiz)
+];
+
 beforeEach(function () {
     // Skip gracioso quando filesystem do repo não está acessível (CI ephemeral) —
     // mesmo padrão defensivo do WaveZ2DocumentationGuardTest.
@@ -219,6 +234,29 @@ it('(b) HARD: todo doc CANÔNICO de leitura-obrigatória está referenciado no �
     );
 });
 
+// ─── (c) HARD (curado) — regras de design canônicas (ADRs) estão no índice ───
+
+it('(c) HARD: toda regra de design canônica (ADR) está referenciada no índice (ADR 0239 R5)', function () {
+    $content = designIndexContent();
+
+    $orphans = [];
+    foreach (DESIGN_INDEX_CANON_RULE_ADRS as $num) {
+        // "Referenciada" = o índice cita a ADR por número ("ADR 0239" / "ADR-0239").
+        // \b evita casar o número dentro de um maior; ADR[ -]? casa a forma usada no índice.
+        if (! preg_match('/\bADR[ -]?' . preg_quote($num, '/') . '\b/', $content)) {
+            $orphans[] = 'ADR ' . $num;
+        }
+    }
+
+    expect($orphans)->toBe(
+        [],
+        'Regras de design CANÔNICAS não referenciadas no índice-mestre (ADR 0239 R5):'
+        . PHP_EOL . '  - ' . implode(PHP_EOL . '  - ', $orphans)
+        . PHP_EOL . 'Toda regra de design (governança do DS) DEVE estar no índice. '
+        . 'Adicione a entrada em INDEX-DESIGN-MEMORIAS.md. (ADR 0239 R5 / ADR 0236: índice = fonte única.)',
+    );
+});
+
 // ─── Sanidade — o índice e os alvos foram realmente parseados ────────────────
 
 it('SANIDADE: índice tem links markdown e a lista canon não está vazia (guarda anti-regex-quebrado)', function () {
@@ -229,4 +267,5 @@ it('SANIDADE: índice tem links markdown e a lista canon não está vazia (guard
     // passariam vacuamente — esta guarda evita "verde falso".
     expect(count($targets))->toBeGreaterThan(0, 'Nenhum link markdown extraído do índice (regex quebrou?).');
     expect(DESIGN_INDEX_CANON_DOCS)->not->toBeEmpty('Lista de docs canônicos vazia.');
+    expect(DESIGN_INDEX_CANON_RULE_ADRS)->not->toBeEmpty('Lista de ADRs-regra de design vazia.');
 });
