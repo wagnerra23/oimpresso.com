@@ -46,12 +46,20 @@ export interface GradeSummary {
 }
 
 const LV_ORDER = ['Champion', 'Leader', 'Advanced', 'Developing', 'Beginner'];
-const LV_COLOR: Record<string, string> = {
-  Champion: 'oklch(0.72 0.15 85)',
-  Leader: 'oklch(0.62 0.14 150)',
-  Advanced: 'oklch(0.58 0.13 250)',
-  Developing: 'oklch(0.72 0.14 70)',
-  Beginner: 'oklch(0.62 0.2 25)',
+// Cores por nível via classes Tailwind (escala warm do DS — sem cor crua/oklch inline)
+const LV_BG: Record<string, string> = {
+  Champion: 'bg-violet-600',
+  Leader: 'bg-emerald-500',
+  Advanced: 'bg-sky-500',
+  Developing: 'bg-amber-500',
+  Beginner: 'bg-rose-500',
+};
+const LV_TEXT: Record<string, string> = {
+  Champion: 'text-violet-600',
+  Leader: 'text-emerald-600',
+  Advanced: 'text-sky-600',
+  Developing: 'text-amber-600',
+  Beginner: 'text-rose-600',
 };
 
 interface Props {
@@ -154,10 +162,7 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
           Maturidade de design · método 9.75
         </h2>
         <span className="text-[11px] text-muted-foreground">{total} telas graduadas</span>
-        <span
-          className="ml-auto text-2xl font-bold tabular-nums"
-          style={{ color: 'var(--primary)' }}
-        >
+        <span className="ml-auto text-2xl font-bold tabular-nums text-primary">
           {grades.media}
           <span className="text-sm text-muted-foreground">/100</span>
         </span>
@@ -171,7 +176,8 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
             <span
               key={lv}
               title={`${lv}: ${c}`}
-              style={{ width: `${(c / total) * 100}%`, background: LV_COLOR[lv] }}
+              className={LV_BG[lv]}
+              style={{ width: `${(c / total) * 100}%` }}
             />
           );
         })}
@@ -179,7 +185,7 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
       <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
         {LV_ORDER.map((lv) => (
           <span key={lv} className="flex items-center gap-1.5">
-            <i className="h-2 w-2 rounded-full" style={{ background: LV_COLOR[lv] }} />
+            <i className={`h-2 w-2 rounded-full ${LV_BG[lv]}`} />
             {lv} <b className="tabular-nums">{grades.dist[lv] ?? 0}</b>
           </span>
         ))}
@@ -187,7 +193,7 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
-          <h3 className="mb-2 text-[12px] font-semibold text-rose-700 dark:text-rose-300">
+          <h3 className="mb-2 text-[12px] font-semibold text-foreground">
             🔴 Prioridades — menor nota
           </h3>
           <ul className="space-y-1">
@@ -197,7 +203,7 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
           </ul>
         </div>
         <div>
-          <h3 className="mb-2 text-[12px] font-semibold text-emerald-700 dark:text-emerald-300">
+          <h3 className="mb-2 text-[12px] font-semibold text-foreground">
             🏅 Goldens — referência
           </h3>
           <ul className="space-y-1">
@@ -218,12 +224,8 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
               <span className="w-28 shrink-0 truncate font-mono">{m.module}</span>
               <span className="h-2 flex-1 overflow-hidden rounded bg-muted">
                 <i
-                  className="block h-full"
-                  style={{
-                    width: `${m.media}%`,
-                    background:
-                      m.media >= 85 ? LV_COLOR.Leader : m.media >= 70 ? LV_COLOR.Advanced : LV_COLOR.Developing,
-                  }}
+                  className={`block h-full ${m.media >= 85 ? 'bg-emerald-500' : m.media >= 70 ? 'bg-sky-500' : 'bg-amber-500'}`}
+                  style={{ width: `${m.media}%` }}
                 />
               </span>
               <span className="w-7 text-right font-bold tabular-nums">{m.media}</span>
@@ -245,8 +247,7 @@ function GradeLi({ row }: { row: GradeRow }) {
   return (
     <li className="flex items-center gap-2 text-[12px]">
       <span
-        className="w-9 shrink-0 text-right font-bold tabular-nums"
-        style={{ color: LV_COLOR[row.nivel] ?? 'var(--foreground)' }}
+        className={`w-9 shrink-0 text-right font-bold tabular-nums ${LV_TEXT[row.nivel] ?? ''}`}
       >
         {row.nota}
       </span>
