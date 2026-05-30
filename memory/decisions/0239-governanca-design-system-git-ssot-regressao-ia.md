@@ -71,8 +71,14 @@ propostas → `_arquivo/ds/` (histórico antigo → `_arquivo/ds-historico/`). N
 Troca de vigente = **append-only** (move, não apaga) + 1 linha no **changelog** do INDEX + 1 no `SYNC_LOG`.
 (ADR 0003, 0236)
 
+### R5 · Toda regra de design mora no índice-mestre (e o teste garante)
+Toda regra/ADR de design — este 0239, mais 0235 (tokens) e 0236 (evolução-doc) — é **referenciada
+no `INDEX-DESIGN-MEMORIAS.md`**. Atualizar o índice é **parte do "pronto"** (ADR 0236), e o
+**`DesignIndexSingleSourceTest` (invariante c) falha o CI** se uma regra de design canônica não
+estiver no índice. Ninguém precisa pedir — é **gate, não memória**.
+
 > **Invariantes (nunca):** nunca 2 specs visuais na raiz · nunca DS mudado sem regressão-IA verde ·
-> nunca Cowork como fonte · nunca delete (append-only).
+> nunca Cowork como fonte · nunca regra de design fora do índice (testado) · nunca delete (append-only).
 
 ## Mecanismo (compõe ferramentas existentes)
 
@@ -82,6 +88,7 @@ Troca de vigente = **append-only** (move, não apaga) + 1 linha no **changelog**
 | R2 fluxo Cowork→Code | loop ADR 0114 + canais `CODE_NOTES`/`COWORK_NOTES`/`SYNC_LOG` | — |
 | R3 regressão-IA | `visual-regression.yml` · skill `screen-grade` · `RagasJudgeService`/`ragas-gate.yml` · `critique-score` (plugin) · `DesignDocsFreshnessChecker` | adicionar trigger por path `design-system.css`/`tokens.css` num `ds-regression-gate.yml` que orquestra os acima |
 | R4 arquivamento | `_arquivo/INDEX.md` + changelog (v1.x) | — (regra operacional; Cowork executa) |
+| R5 índice obrigatório | `INDEX-DESIGN-MEMORIAS.md` + `DesignIndexSingleSourceTest` (inv. c) | — (gate já existe; estendido neste PR) |
 
 ## Responsabilidades
 
