@@ -80,6 +80,9 @@ function colisoesRegistradas(): array
 {
     $path = base_path(COLLISION_LIFECYCLE_FILE);
     $conteudo = file_get_contents($path);
+    if ($conteudo === false) {
+        return [];
+    }
 
     if (! preg_match('/^---\s*\n(.*?)\n---\s*\n/s', $conteudo, $m)) {
         return [];
@@ -98,7 +101,9 @@ function colisoesRegistradas(): array
     $normalizados = [];
     foreach ($lista as $valor) {
         // Extrai só os dígitos (cobre int 101, string '0101', etc.) e re-padroniza.
-        $digitos = preg_replace('/\D/', '', (string) $valor);
+        // is_scalar guard: $valor é mixed (vem do YAML) — evita cast inseguro de array→string.
+        $bruto = is_scalar($valor) ? (string) $valor : '';
+        $digitos = preg_replace('/\D/', '', $bruto) ?? '';
         if ($digitos === '') {
             continue;
         }
