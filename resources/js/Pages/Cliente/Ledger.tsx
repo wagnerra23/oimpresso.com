@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 interface LedgerLine {
   date: string;
@@ -153,29 +154,31 @@ export default function ClienteLedger(props: ClienteLedgerPageProps) {
             </div>
             <div className="flex-1 min-w-[160px]">
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Formato</label>
-              <select
-                value={format}
-                onChange={(e) => setFormat(e.target.value)}
-                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-              >
-                <option value="format_1">Padrão</option>
-                <option value="format_2">Resumido</option>
-                <option value="format_3">Detalhado por linha</option>
-              </select>
+              <Select value={format} onValueChange={setFormat}>
+                <SelectTrigger className="w-full" aria-label="Formato">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="format_1">Padrão</SelectItem>
+                  <SelectItem value="format_2">Resumido</SelectItem>
+                  <SelectItem value="format_3">Detalhado por linha</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             {props.locations.length > 0 && (
               <div className="flex-1 min-w-[160px]">
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Local</label>
-                <select
-                  value={locationId}
-                  onChange={(e) => setLocationId(e.target.value)}
-                  className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="">Todos</option>
-                  {props.locations.map((l) => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
-                  ))}
-                </select>
+                <Select value={locationId || '__none__'} onValueChange={(v) => setLocationId(v === '__none__' ? '' : v)}>
+                  <SelectTrigger className="w-full" aria-label="Local">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Todos</SelectItem>
+                    {props.locations.map((l) => (
+                      <SelectItem key={l.id} value={String(l.id)}>{l.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
             <Button onClick={applyFilters}>
@@ -256,7 +259,7 @@ function KpiCard({ label, value, danger }: { label: string; value: string; dange
   return (
     <div
       className={
-        'rounded-xl border p-5 shadow-sm ' +
+        'rounded-lg border p-5 shadow-sm ' +
         (danger
           ? 'border-rose-200 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-950/30'
           : 'border-border bg-background')
