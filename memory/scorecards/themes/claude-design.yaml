@@ -7,7 +7,7 @@
 # O lado DESIGN tinha o framework-15-dimensoes.md (já é "nota 0-100 por dimensão ponderada por
 # persona") MAS sem o rigor do ADR 0230: sem score-as-code executável, sem ratchet (Invariante A),
 # sem rastreabilidade origin (Invariante B), sem a etapa "≥3 best-of-class + POR QUÊ" registrada.
-# Este arquivo + .claude/governance-eval/grade-design.mjs fecham esse furo.
+# Este arquivo + .claude/governance-eval/scorecard.mjs (runner universal --scope) fecham esse furo.
 #
 # As unidades pontuáveis aqui NÃO são telas — são as CAPACIDADES do Claude Design, agrupadas
 # pelas 4 etapas + 2 invariantes do próprio método grade. Cada uma pergunta: "isso ajuda o
@@ -16,14 +16,15 @@
 ---
 
 apiVersion: oimpresso.governance/v1
-kind: CapabilityScorecard          # não é ModuleScorecard (0160) nem regra R1-R12 (0230 governança): é capacidade
+kind: ThemeScorecard               # ADR 0236: entidade VIRTUAL/transversal (não módulo, não regra) — tema/capacidade
 metadata:
   scope: claude-design
   metodo: 'ADR 0230 — Método Governance Scorecard aplicado à dimensão DESIGN'
   pergunta: 'O Claude Design já vai me entender?'
   owner: '[W]'                     # Wagner — único aprovador
   cliente_real: 'larissa@rota-livre (biz=4) + jair/kamila/daniela@martinho-cacambas'
-  status: 'proposto'               # baseline inicial — Wagner aprova antes de virar gate
+  status: 'baseline'               # aceito 2026-05-30 (Wagner) — advisory, ainda NÃO é gate CI (ADR 0236)
+  kind_ref: 'ThemeScorecard (ADR 0236) — rodar via: node .claude/governance-eval/scorecard.mjs --scope themes/claude-design'
   baseline_date: 2026-05-30
   proxima_revisao: 2026-08-30      # revisão trimestral (a própria grade tem nota — auto-aprimoramento)
   origin: "sessão 2026-05-30 — Wagner: 'aplique método grade ADR 0230, quero saber se o Claude Design já vai me entender'"
@@ -314,8 +315,8 @@ unidades:
     origin: "sessão 2026-05-30 — Wagner pediu aplicar ADR 0230 ao Claude Design"
     best_of_class: [cortex_opslevel_port]
     evidence:
-      - 'memory/scorecards/design.yaml (este arquivo — score-as-code)'
-      - '.claude/governance-eval/grade-design.mjs (grade executável + ratchet)'
+      - 'memory/scorecards/themes/claude-design.yaml (este arquivo — score-as-code)'
+      - '.claude/governance-eval/scorecard.mjs (runner universal --scope + ratchet)'
     forte: 'Agora o veredito do Claude Design é REPRODUZÍVEL (roda a grade) e versionado por PR.'
     gaps:
       - 'Notas ainda atribuídas pelo método (não AI-driven leitura de telemetria como Cortex MCP).'
@@ -387,7 +388,7 @@ roadmap:
     itens:
       - 'CD1: +personas de novos ramos (gráfica, fiscal) com cliente real + cadência de re-entrevista'
       - 'CD2: teste de regressão "pedido vago foi refinado" (fecha o gap orientação→enforcement)'
-      - 'CD9: plugar grade-design.mjs no CI como gate (Wagner aprova) + tendência AI-driven'
+      - 'CD9: plugar scorecard.mjs no CI como gate (Wagner aprova) + tendência AI-driven'
     ganho_estimado: 'agregado ~80+ (GOLD — "te entende sem repetir")'
 
 # ===========================================================================
