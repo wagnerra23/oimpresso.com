@@ -164,13 +164,15 @@ A cada PR mergeado, `[CL]` escreve nos **3 canais que `[CC]` lê via MCP** (webh
 
 | # | Canal | Ação | Conteúdo |
 |---|---|---|---|
-| 1 | `DS_ADOCAO_INDICE.md` | atualiza | a linha do módulo com o `ds/*` novo (o placar) |
+| 1 | `DS_ADOCAO_INDICE.md` | **`npm run ds:report:write`** | regenera o **placar de tarefas** (checklist ✅/☐ por módulo, entre marcadores `ds:worklist`) — derivado do `ds/*` real, é como `[CC]` sabe **o que `[CL]` já executou e o que falta**, sem regerar o já-feito |
 | 2 | `SYNC_LOG.md` | **append** | `YYYY-MM-DD HH:MM [CL] <fase> <módulo> merged · ds/*: <antes>→<depois> · PR #N` |
 | 3 | `HANDOFF.md` | **sobrescreve** | "agora": fase/módulo corrente · próximo da fila · `ds/*` total restante |
 
-Placar canônico: **`npm run ds:report`** (`scripts/ds-report.mjs`) — quebra `ds/*` por **regra × módulo** (o baseline agrega tudo sob `no-restricted-syntax`; este separa). `npm run ds:report -- --json` alimenta o `DS_ADOCAO_INDICE.md` e a dimensão "Adoção DS" do GovernanceV4.
+Placar canônico: **`npm run ds:report`** (`scripts/ds-report.mjs`) — quebra `ds/*` por **regra × módulo** (o baseline agrega tudo sob `no-restricted-syntax`; este separa). Modos:
+- **`npm run ds:report:write`** (= `-- --write`) — regenera o **checklist da fila** no `DS_ADOCAO_INDICE.md` (**✅ = `ds/*`=0 concluído · ☐ = pendente**), derivado do estado real. **Rodar a cada PR** — é o "tarefa concluída" que `[CC]` lê (Sync now) pra não regerar o já-feito.
+- `-- --worklist` mostra só o checklist no stdout · `-- --json` alimenta a dimensão "Adoção DS" do GovernanceV4.
 
-`[CC]` lê esses 3 via MCP e solta a próxima fila — **sem o Wagner copiar status na mão.**
+`[CC]` lê esses 3 via MCP e solta a próxima fila **só do que está ☐** — sem o Wagner copiar status na mão, sem regerar tarefa já concluída.
 
 ### 10.3 Por que git, não chat
 
