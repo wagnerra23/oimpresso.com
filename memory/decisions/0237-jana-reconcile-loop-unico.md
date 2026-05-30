@@ -1,12 +1,14 @@
 ---
-slug: jana-reconcile-loop-unico
+slug: 0237-jana-reconcile-loop-unico
+number: 237
 title: "jana:reconcile — loop de reconciliação único (git == índice == MCP == settings == deploy) consolidando o padrão Reconciler já provado"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 proposed_at: "2026-05-30"
+decided_at: "2026-05-30"
 module: governance
 quarter: 2026-Q2
 tags: [governance, reconcile, self-healing, drift, gitops, idempotente, index, freshness, mcp, claude-design, anti-poluicao]
