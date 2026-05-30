@@ -49,7 +49,7 @@ Seed dizia "faltam 0042–0189". O git já tem **239 ADRs (até 0235)** — comp
 `STATUS.md` diz "DS canônico = v4.1 / v4.2 proposto". Mas o git aceitou **ADR 0235 — DS v4 roxo universal + Claude Design como owner da UI** (2026-05-29). Vale reconciliar a numeração (v4.1/v4.2 Cowork × "DS v4" git) pelo loop F0. Deixei STATUS fiel ao Cowork.
 
 ### 🔗 PR
-(link adicionado no commit seguinte)
+https://github.com/wagnerra23/oimpresso.com/pull/1990
 
 ---
 
