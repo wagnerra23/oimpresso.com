@@ -10,6 +10,7 @@ import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Icon } from '@/Components/Icon';
 
 interface ModelRow {
@@ -159,37 +160,43 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
             <label htmlFor="filter-brand" className="text-xs text-muted-foreground mb-1">
               Marca
             </label>
-            <select
-              id="filter-brand"
-              value={brandFilter}
-              onChange={(e) => setBrandFilter(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-sm min-w-40"
+            <Select
+              value={brandFilter || '__none__'}
+              onValueChange={(v) => setBrandFilter(v === '__none__' ? '' : v)}
             >
-              <option value="">Todas as marcas</option>
-              {Object.entries(brands ?? {}).map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="filter-brand" variant="shadcn" size="sm" aria-label="Marca" className="min-w-40 text-sm">
+                <SelectValue placeholder="Todas as marcas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Todas as marcas</SelectItem>
+                {Object.entries(brands ?? {}).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex flex-col">
             <label htmlFor="filter-device" className="text-xs text-muted-foreground mb-1">
               Categoria
             </label>
-            <select
-              id="filter-device"
-              value={deviceFilter}
-              onChange={(e) => setDeviceFilter(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-sm min-w-40"
+            <Select
+              value={deviceFilter || '__none__'}
+              onValueChange={(v) => setDeviceFilter(v === '__none__' ? '' : v)}
             >
-              <option value="">Todas as categorias</option>
-              {Object.entries(devices ?? {}).map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="filter-device" variant="shadcn" size="sm" aria-label="Categoria" className="min-w-40 text-sm">
+                <SelectValue placeholder="Todas as categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Todas as categorias</SelectItem>
+                {Object.entries(devices ?? {}).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button type="button" size="sm" onClick={applyFilters}>
             <Icon name="filter" className="mr-1 h-3 w-3" />

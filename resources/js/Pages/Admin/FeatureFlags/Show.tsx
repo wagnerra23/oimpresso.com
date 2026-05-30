@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 interface FeatureRule {
   id?: string;
@@ -269,14 +270,18 @@ export default function FeatureFlagsShow({
                           <label className="text-xs text-muted-foreground block mb-1">
                             value
                           </label>
-                          <select
+                          <Select
                             value={bizRuleForm.data.value}
-                            onChange={(e) => bizRuleForm.setData('value', e.target.value)}
-                            className="border rounded px-2 py-2 text-sm"
+                            onValueChange={(v) => bizRuleForm.setData('value', v)}
                           >
-                            <option value="true">true (ligar)</option>
-                            <option value="false">false (desligar)</option>
-                          </select>
+                            <SelectTrigger variant="shadcn" size="sm" aria-label="value" className="text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="true">true (ligar)</SelectItem>
+                              <SelectItem value="false">false (desligar)</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <Button type="submit" disabled={bizRuleForm.processing}>
                           Salvar rule

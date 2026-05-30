@@ -8,6 +8,7 @@ import { useState, useMemo, type ReactNode } from 'react';
 import { Wrench, Plus, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -245,37 +246,45 @@ function Index({ repairs, filters, meta, permissions }: Props) {
             />
           </div>
 
-          <select
-            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-            value={filters.location_id ?? ''}
-            onChange={(e) =>
-              applyFilter(filters, { location_id: e.target.value ? Number(e.target.value) : null })
+          <Select
+            value={String(filters.location_id ?? '__none__')}
+            onValueChange={(v) =>
+              applyFilter(filters, { location_id: v === '__none__' ? null : Number(v) })
             }
           >
-            <option value="">Todos os locais</option>
-            {Object.entries(meta.business_locations).map(([id, name]) => (
-              <option key={id} value={id}>
-                {String(name)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger variant="shadcn" aria-label="Local" className="text-sm">
+              <SelectValue placeholder="Todos os locais" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Todos os locais</SelectItem>
+              {Object.entries(meta.business_locations).map(([id, name]) => (
+                <SelectItem key={id} value={id}>
+                  {String(name)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <select
-            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-            value={filters.service_staff_id ?? ''}
-            onChange={(e) =>
+          <Select
+            value={String(filters.service_staff_id ?? '__none__')}
+            onValueChange={(v) =>
               applyFilter(filters, {
-                service_staff_id: e.target.value ? Number(e.target.value) : null,
+                service_staff_id: v === '__none__' ? null : Number(v),
               })
             }
           >
-            <option value="">Todos os responsáveis</option>
-            {Object.entries(meta.service_staff).map(([id, name]) => (
-              <option key={id} value={id}>
-                {String(name)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger variant="shadcn" aria-label="Responsável" className="text-sm">
+              <SelectValue placeholder="Todos os responsáveis" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Todos os responsáveis</SelectItem>
+              {Object.entries(meta.service_staff).map(([id, name]) => (
+                <SelectItem key={id} value={id}>
+                  {String(name)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearAll}>

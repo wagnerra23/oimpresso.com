@@ -10,6 +10,8 @@ import { Head, Deferred } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
 import { Icon } from '@/Components/Icon';
 
 type BucketKey =
@@ -429,15 +431,14 @@ export default function GovernanceV4Dashboard({
             </button>
           ))}
 
-          <label className="flex items-center gap-1 ml-4 cursor-pointer">
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-1 ml-4">
+            <Checkbox
+              id="drift-only"
               checked={driftOnly}
-              onChange={(e) => setDriftOnly(e.target.checked)}
-              className="rounded"
+              onCheckedChange={(v) => setDriftOnly(v === true)}
             />
-            <span className="text-zinc-700">Só com drift</span>
-          </label>
+            <Label htmlFor="drift-only" variant="shadcn" className="font-normal cursor-pointer text-zinc-700">Só com drift</Label>
+          </div>
         </div>
 
         {/* Buckets */}

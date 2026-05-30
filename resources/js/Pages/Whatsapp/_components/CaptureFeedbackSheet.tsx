@@ -20,6 +20,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/Components/ui/select';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { ClipboardCheck, AlertCircle, CheckCircle2, Loader2, Ban, AlertTriangle, ZapIcon, FileText } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 
@@ -421,14 +422,13 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
         <div className="border-t border-border px-6 py-3 space-y-2">
           {/* Toggle: Virar chamado de desenvolvimento */}
           <div className="flex items-start gap-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="create-dev-task-toggle"
               checked={createDevTask}
-              onChange={(e) => setCreateDevTask(e.target.checked)}
+              onCheckedChange={(v) => setCreateDevTask(v === true)}
               disabled={saving || savedOk || devTaskBlocked}
               data-testid="create-dev-task-toggle"
-              className="mt-0.5 h-3.5 w-3.5 accent-[var(--cw-accent)] cursor-pointer disabled:cursor-not-allowed"
+              className="mt-0.5 h-3.5 w-3.5 cursor-pointer disabled:cursor-not-allowed"
             />
             <label
               htmlFor="create-dev-task-toggle"

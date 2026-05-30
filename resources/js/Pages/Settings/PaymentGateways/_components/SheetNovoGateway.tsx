@@ -9,6 +9,8 @@ import { Btn } from '../../../Financeiro/Cobranca/_components/atoms';
 import { DriverChip, FileField, Field } from './atoms-settings';
 import { DRIVERS, TIPOS, cn, type GatewayKey } from '../_lib/gateway-shared';
 import type { Account } from '../_lib/gateway-shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Checkbox } from '@/Components/ui/checkbox';
 
 interface NfeCertificadoAtivo {
   cnpjTitular: string;
@@ -410,14 +412,18 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
                     />
                   </Field>
                   <Field label="Carteira">
-                    <select
+                    <Select
                       value={config.codigo_modalidade ?? '1'}
-                      onChange={e => setConfigField('codigo_modalidade', e.target.value)}
-                      className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                      onValueChange={v => setConfigField('codigo_modalidade', v)}
                     >
-                      <option value="1">1 — Simples</option>
-                      <option value="3">3 — Caucionada</option>
-                    </select>
+                      <SelectTrigger variant="shadcn" size="sm" aria-label="Carteira" className="w-full text-[12.5px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 — Simples</SelectItem>
+                        <SelectItem value="3">3 — Caucionada</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                   <Field label="Conta corrente">
                     <input
@@ -512,14 +518,18 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
           {step === 3 && d && (
             <div className="space-y-3">
               <Field label="Conta destino (FK accounts)">
-                <select
-                  value={contaId}
-                  onChange={e => setContaId(e.target.value)}
-                  className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                <Select
+                  value={contaId || '__none__'}
+                  onValueChange={v => setContaId(v === '__none__' ? '' : v)}
                 >
-                  <option value="">— sem vínculo —</option>
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
+                  <SelectTrigger variant="shadcn" size="sm" aria-label="Conta destino (FK accounts)" className="w-full text-[12.5px]">
+                    <SelectValue placeholder="— sem vínculo —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— sem vínculo —</SelectItem>
+                    {accounts.map(a => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </Field>
               <Field label="Ambiente inicial">
                 <div className="inline-flex bg-stone-100 rounded p-0.5 border border-stone-200">
@@ -536,18 +546,17 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
                   ))}
                 </div>
               </Field>
-              <label className="flex items-center gap-3 py-1.5">
-                <input
-                  type="checkbox"
+              <div className="flex items-center gap-3 py-1.5">
+                <Checkbox
+                  id="gw-ativo"
                   checked={ativo}
-                  onChange={e => setAtivo(e.target.checked)}
-                  className="accent-stone-900 w-4 h-4"
+                  onCheckedChange={v => setAtivo(v === true)}
                 />
-                <div>
+                <label htmlFor="gw-ativo" className="cursor-pointer">
                   <div className="text-[12.5px] text-stone-800">Ativar imediatamente</div>
                   <div className="text-[10.5px] text-stone-500">se desligado, gateway fica cadastrado mas não emite cobrança</div>
-                </div>
-              </label>
+                </label>
+              </div>
               <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11px] text-stone-700">
                 Ao confirmar, será criada uma linha em <span className="font-mono">payment_gateway_credentials</span> com <span className="font-mono">business_id</span> do business logado.
                 Webhook URL será gerada automaticamente — cole no painel do {d.nome} após criação.
