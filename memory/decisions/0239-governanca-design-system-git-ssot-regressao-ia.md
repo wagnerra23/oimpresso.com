@@ -88,7 +88,7 @@ estiver no índice. Ninguém precisa pedir — é **gate, não memória**.
 | R2 fluxo Cowork→Code | loop ADR 0114 + canais `CODE_NOTES`/`COWORK_NOTES`/`SYNC_LOG` | — |
 | R3 regressão-IA | `visual-regression.yml` · skill `screen-grade` · `RagasJudgeService`/`ragas-gate.yml` · `critique-score` (plugin) · `DesignDocsFreshnessChecker` | adicionar trigger por path `design-system.css`/`tokens.css` num `ds-regression-gate.yml` que orquestra os acima |
 | R4 arquivamento | `_arquivo/INDEX.md` + changelog (v1.x) | — (regra operacional; Cowork executa) |
-| R5 índice obrigatório | `INDEX-DESIGN-MEMORIAS.md` + `DesignIndexSingleSourceTest` (inv. c) | — (gate já existe; estendido neste PR) |
+| R5 índice obrigatório | `DesignIndexSingleSourceTest` (inv. c) — teste já existia | **`design-index-gate.yml`** (novo neste PR — antes o teste só rodava local, não gateava PR) |
 
 ## Responsabilidades
 
