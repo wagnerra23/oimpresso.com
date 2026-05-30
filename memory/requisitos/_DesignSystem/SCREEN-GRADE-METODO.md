@@ -93,3 +93,27 @@ Agregado → ranking das 272 + dimensão "Design Maturity" no **GovernanceV4** +
 | enforcement (ratchet+GovernanceV4) | Soundcheck CI gate | 7/10 | ligar |
 
 **Nota geral do método:** conceito **85/100 (Advanced→Leader)** · execução atual **40/100 (Developing)** · ponderada **~68/100**. Todos os gaps são **wiring** (doc→tool), nenhum é conceitual. Em 2 pontos (Peso Real ROI + code-first sem Figma) está **à frente** dos frameworks genéricos.
+
+---
+
+## 7. Como testar o modelo (validade de um scorecard / LLM-as-judge)
+
+Um modelo de grade só vale se passar em 3 propriedades (literatura de scorecard + LLM-as-judge):
+
+| Teste | Pergunta | Critério de aceite |
+|---|---|---|
+| **T1 · Confiabilidade** (test-retest) | gradar a MESMA tela 2-3× dá a mesma nota? | desvio σ ≤ **3 pts**. Se diverge muito → rubrica subjetiva, endurecer critérios binários |
+| **T2 · Validade discriminante** | separa tela boa de ruim na direção certa? | gap grande: golden (Sells/Create) ≫ tela com drift alto |
+| **T3 · Monotonicidade da evolução** | cada fix sobe a nota, e o teto bate no golden real? | S0 < S1 < S2 e S2(Champion) ≈ nota real do golden do arquétipo (calibração) |
+
+### As 3 simulações por tela (a escada de evolução — "grave as evoluções")
+
+Pra cada tela, 3 simulações **em paralelo** (1 agente especialista por tela, ADR 0231):
+
+- **S0 · Estado atual** — grade as-is das 16 dim → nota + nível
+- **S1 · Próxima onda** — top-3 fixes do roadmap aplicados → nota projetada
+- **S2 · Champion** — teto do arquétipo (benchmark best-of-class) → nota projetada
+
+### Ledger (grava a evolução)
+
+`memory/governance/screen-grades-pilot.md` — tabela `tela × {arquétipo, persona, S0, S1, S2, ΔS0→S1, ΔS1→S2, nível S0→S2}` + nota de confiabilidade (T1) + veredito discriminante (T2) + monotonicidade (T3). Cada linha vira depois um `scorecards/screens/<tela>.yaml` com baseline ratchet (Invariante A — nota só sobe).
