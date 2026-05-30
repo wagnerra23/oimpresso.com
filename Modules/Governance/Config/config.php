@@ -76,6 +76,7 @@ return [
         \Modules\Governance\Services\Checkers\MultiTenantScopeChecker::class,    // ADR 0218 — Tier 0 IRREVOGÁVEL
         \Modules\Governance\Services\Checkers\AdrLinksChecker::class,            // ADR 0219
         \Modules\Governance\Services\Checkers\ChartersFreshnessChecker::class,   // ADR 0220 — adapter charter:audit
+        \Modules\Governance\Services\Checkers\DesignDocsFreshnessChecker::class, // ADR 0236 — freshness gate dos docs de design (file-based)
         \Modules\Governance\Services\Checkers\RoutesZombieChecker::class,        // ADR 0221
         \Modules\Governance\Services\Checkers\MeilisearchSettingsDriftChecker::class, // 2026-05-29 — embedder do índice se perdeu 2× (recall degrada)
         \Modules\Governance\Services\Checkers\DeployDriftChecker::class,         // 2026-05-29 — código deployado != main (1302-commits cego)
