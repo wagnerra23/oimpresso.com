@@ -11,7 +11,7 @@
 
 import * as React from 'react';
 import { Head, router, Deferred } from '@inertiajs/react';
-import { Clock } from 'lucide-react';
+import { Clock, TriangleAlert, Trophy } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -19,6 +19,8 @@ import PageHeaderActions from '@/Components/shared/PageHeaderActions';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Skeleton } from '@/Components/ui/skeleton';
+
+import '../../../css/screen-grade.css';
 
 import type { ScreenReviewMeta } from './ScreenReview';
 
@@ -48,18 +50,18 @@ export interface GradeSummary {
 const LV_ORDER = ['Champion', 'Leader', 'Advanced', 'Developing', 'Beginner'];
 // Cores por nível via classes Tailwind (escala warm do DS — sem cor crua/oklch inline)
 const LV_BG: Record<string, string> = {
-  Champion: 'bg-violet-600',
-  Leader: 'bg-emerald-500',
-  Advanced: 'bg-sky-500',
-  Developing: 'bg-amber-500',
-  Beginner: 'bg-rose-500',
+  Champion: 'sg-bg-champion',
+  Leader: 'sg-bg-leader',
+  Advanced: 'sg-bg-advanced',
+  Developing: 'sg-bg-developing',
+  Beginner: 'sg-bg-beginner',
 };
 const LV_TEXT: Record<string, string> = {
-  Champion: 'text-violet-600',
-  Leader: 'text-emerald-600',
-  Advanced: 'text-sky-600',
-  Developing: 'text-amber-600',
-  Beginner: 'text-rose-600',
+  Champion: 'sg-tx-champion',
+  Leader: 'sg-tx-leader',
+  Advanced: 'sg-tx-advanced',
+  Developing: 'sg-tx-developing',
+  Beginner: 'sg-tx-beginner',
 };
 
 interface Props {
@@ -193,8 +195,8 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
-          <h3 className="mb-2 text-[12px] font-semibold text-foreground">
-            🔴 Prioridades — menor nota
+          <h3 className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-foreground">
+            <TriangleAlert size={13} className="text-muted-foreground" /> Prioridades — menor nota
           </h3>
           <ul className="space-y-1">
             {grades.priorities.map((p) => (
@@ -203,8 +205,8 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
           </ul>
         </div>
         <div>
-          <h3 className="mb-2 text-[12px] font-semibold text-foreground">
-            🏅 Goldens — referência
+          <h3 className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-foreground">
+            <Trophy size={13} className="text-muted-foreground" /> Goldens — referência
           </h3>
           <ul className="space-y-1">
             {grades.goldens.map((p) => (
@@ -224,7 +226,7 @@ function MaturitySection({ grades }: { grades?: GradeSummary }) {
               <span className="w-28 shrink-0 truncate font-mono">{m.module}</span>
               <span className="h-2 flex-1 overflow-hidden rounded bg-muted">
                 <i
-                  className={`block h-full ${m.media >= 85 ? 'bg-emerald-500' : m.media >= 70 ? 'bg-sky-500' : 'bg-amber-500'}`}
+                  className={`block h-full ${m.media >= 85 ? 'sg-bg-leader' : m.media >= 70 ? 'sg-bg-advanced' : 'sg-bg-developing'}`}
                   style={{ width: `${m.media}%` }}
                 />
               </span>
