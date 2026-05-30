@@ -27,6 +27,8 @@ Quando duas memórias divergem, vence nesta ordem:
 4. **[LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)** — os 21 anti-padrões (exemplo errado). Leitura obrigatória antes de F3.
 5. **[SCREEN-GRADE-METODO.md](SCREEN-GRADE-METODO.md)** — como a tela será notada (16 dim, níveis Beginner→Champion).
 
+> **Atalho operacional:** a skill **[`screen-grade`](../../../.claude/skills/screen-grade/SKILL.md)** (Tier B) dispara o Pré-Flight resolver + a nota automaticamente — basta "nota da tela X" / "/screen-grade Mod/Tela" ou tocar um `Pages/<Mod>/<Tela>.tsx`. Materializa os 5 passos acima sem montar contexto de cabeça.
+
 ---
 
 ## 2 · ÍNDICE POSITIVO (o que usar)

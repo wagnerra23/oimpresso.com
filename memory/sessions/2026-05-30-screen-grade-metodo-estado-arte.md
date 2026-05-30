@@ -58,9 +58,13 @@ B1 1-golden≠272-tipos → golden por arquétipo · B2 v3 azul vs v4 roxo → d
 
 ## Próximos passos
 
-1. Migrar âncora `Sells/Create` pra DS v4 (roxo).
-2. `ScreenGradeCommand` (espelho `ModuleGradeCommand`) — persiste `memory/governance/scorecards/screens/*.yaml`.
+1. Migrar âncora `Sells/Create` pra DS v4 (roxo). ⚠️ tela-ouro/zona F3 — exige gate visual + Wagner aprova screenshot (R2/R7).
+2. `ScreenGradeCommand` (espelho `ModuleGradeCommand`) — persiste `memory/governance/scorecards/screens/*.yaml`. (precisa de runtime PHP/vendor pra validar)
 3. Disparar piloto (coordenador-paralelo → design-arte × Sells/Cliente/Financeiro).
 4. Goldens dos arquétipos faltantes (dashboard/kanban/detalhe/relatório/drawer).
-5. Wiring: pré-flight vira hook/skill; REGISTRY vira índice consultável; dimensão Design Maturity no GovernanceV4.
+5. ✅ **Pré-flight vira skill — FEITO** (continuação 2026-05-30, sessão `status-PSG8g`): `.claude/skills/screen-grade/SKILL.md` (Tier B) operacionaliza PRE-FLIGHT resolver + nota 16-dim, dispara em "nota da tela X"/"/screen-grade"/edit de Page. Resta: REGISTRY vira índice consultável + dimensão Design Maturity no GovernanceV4.
 6. Candidata a ADR canon (método screen-grade).
+
+## Continuação 2026-05-30 (sessão `status-PSG8g`) — recuperação + Passo 5
+
+Wagner pediu pra recuperar e continuar esta sessão (branch `claude/design-governance-progress-NRXE3`, PR #1991) de onde parou. Nada se perdeu — 4 commits docs-only já estavam no git. Container de continuação é clone fresco **sem `vendor/`** → não roda artisan/Pest/browser; por isso Passo 1 (Page golden) e Passo 2 (command) ficaram pendentes (precisam runtime + gate visual) e fechei o **Passo 5** (skill, markdown puro, verificável aqui). Entregue: skill `screen-grade` + atalho no `INDEX-DESIGN-MEMORIAS.md`.
