@@ -298,6 +298,25 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Reconcilers — jana:reconcile loop único (ADR 0237)
+    |--------------------------------------------------------------------------
+    | Cada Reconciler garante sincronia de UMA faceta (git == índice == MCP ==
+    | settings == deploy). `jana:reconcile` itera esta lista — padrão idêntico ao
+    | `governance.drift_checkers` do ADR 0216. O orquestrador usa class_exists-guard
+    | (tolera reconciler ainda-não-criado). Filtra via `--only=index,settings`.
+    | Este config é merged como `copiloto.*` (JanaServiceProvider) → o orquestrador
+    | lê via config('copiloto.reconcilers').
+    */
+    'reconcilers' => [
+        \Modules\Jana\Services\Reconcile\Reconcilers\IndexReconciler::class,    // cura poluição dos índices (ADR 0237 P0)
+        \Modules\Jana\Services\Reconcile\Reconcilers\SettingsReconciler::class, // embedder Meilisearch (perdido 2×)
+        \Modules\Jana\Services\Reconcile\Reconcilers\ContentReconciler::class,  // git→DB mcp_memory_documents
+        \Modules\Jana\Services\Reconcile\Reconcilers\DeployReconciler::class,   // SHA deployado vs main
+        \Modules\Jana\Services\Reconcile\Reconcilers\EvalReconciler::class,     // RAGAS pass-rate threshold
+    ],
+
     'reranker' => [
         'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
         'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),
