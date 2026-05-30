@@ -5,6 +5,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
   AlertCircle,
   Ban,
@@ -543,36 +544,40 @@ export default function FaturasIndex(props: PageProps) {
             </div>
 
             {/* Gateway dropdown */}
-            <select
+            <Select
               value={gatewayFilter}
-              onChange={(e) => {
-                setGatewayFilter(e.target.value);
-                applyFilters({ gateway: e.target.value });
+              onValueChange={(v) => {
+                setGatewayFilter(v as GatewayFilter);
+                applyFilters({ gateway: v });
               }}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
             >
-              {GATEWAY_OPTIONS.map((g) => (
-                <option key={g.key} value={g.key}>
-                  {g.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8 w-[150px] text-xs font-medium" aria-label="Gateway">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GATEWAY_OPTIONS.map((g) => (
+                  <SelectItem key={g.key} value={g.key}>{g.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             {/* Periodo dropdown */}
-            <select
+            <Select
               value={periodoFilter}
-              onChange={(e) => {
-                setPeriodoFilter(e.target.value);
-                applyFilters({ periodo: e.target.value });
+              onValueChange={(v) => {
+                setPeriodoFilter(v as PeriodoFilter);
+                applyFilters({ periodo: v });
               }}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
             >
-              {PERIODO_OPTIONS.map((p) => (
-                <option key={p.key} value={p.key}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8 w-[160px] text-xs font-medium" aria-label="Período">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PERIODO_OPTIONS.map((p) => (
+                  <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             {/* Search */}
             <div className="flex flex-1 items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5">

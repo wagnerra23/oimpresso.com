@@ -7,6 +7,9 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useEffect, useRef, type FormEvent, type ReactNode } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
 
 type Ciclo = 'monthly' | 'quarterly' | 'semiannual' | 'yearly' | 'custom';
 type FiscalType = 'nfe' | 'nfse' | 'none';
@@ -225,15 +228,19 @@ export default function PlanosEdit({ plan }: PageProps) {
                 required
                 error={form.errors.ciclo}
               >
-                <select
+                <Select
                   value={form.data.ciclo}
-                  onChange={(e) => form.setData('ciclo', e.target.value as Ciclo)}
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  onValueChange={(v) => form.setData('ciclo', v as Ciclo)}
                 >
-                  {CICLO_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-9 text-sm" aria-label="Ciclo">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CICLO_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
 
               {showCicloDias && (
@@ -271,15 +278,16 @@ export default function PlanosEdit({ plan }: PageProps) {
             </div>
 
             <div className="mt-4">
-              <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-zinc-700">
-                <input
-                  type="checkbox"
+              <div className="inline-flex items-center gap-2">
+                <Checkbox
+                  id="ativo"
                   checked={form.data.ativo}
-                  onChange={(e) => form.setData('ativo', e.target.checked)}
-                  className="h-4 w-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
+                  onCheckedChange={(c) => form.setData('ativo', c === true)}
                 />
-                Plano ativo (disponível pra novas assinaturas)
-              </label>
+                <Label htmlFor="ativo" className="cursor-pointer text-sm text-zinc-700">
+                  Plano ativo (disponível pra novas assinaturas)
+                </Label>
+              </div>
             </div>
           </section>
 
@@ -291,15 +299,19 @@ export default function PlanosEdit({ plan }: PageProps) {
                 label="Tipo"
                 error={form.errors.fiscal_type}
               >
-                <select
+                <Select
                   value={form.data.fiscal_type}
-                  onChange={(e) => form.setData('fiscal_type', e.target.value as FiscalType)}
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  onValueChange={(v) => form.setData('fiscal_type', v as FiscalType)}
                 >
-                  {FISCAL_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-9 text-sm" aria-label="Tipo de emissão fiscal">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FISCAL_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
 
               {showCfop && (
