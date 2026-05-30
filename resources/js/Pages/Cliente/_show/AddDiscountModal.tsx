@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { Loader2, PiggyBank, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Input } from '@/Components/ui/input';
 
 export interface AddDiscountModalProps {
@@ -142,16 +143,15 @@ export default function AddDiscountModal({
               <label htmlFor="discount-sub-type" className="text-xs font-medium text-muted-foreground mb-1.5 block">
                 Aplicar em
               </label>
-              <select
-                id="discount-sub-type"
-                value={subType}
-                onChange={(e) => setSubType(e.target.value as typeof subType)}
-                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                data-testid="discount-subtype-select"
-              >
-                <option value="sell_discount">Vendas</option>
-                <option value="purchase_discount">Compras</option>
-              </select>
+              <Select value={subType} onValueChange={(v) => setSubType(v as typeof subType)}>
+                <SelectTrigger id="discount-sub-type" className="w-full" aria-label="Aplicar em" data-testid="discount-subtype-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sell_discount">Vendas</SelectItem>
+                  <SelectItem value="purchase_discount">Compras</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
           <div>

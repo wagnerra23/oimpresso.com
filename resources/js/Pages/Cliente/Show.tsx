@@ -326,7 +326,7 @@ function StatsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="rounded-xl border border-border bg-background p-5 h-24 animate-pulse" />
+        <div key={i} className="rounded-lg border border-border bg-background p-5 h-24 animate-pulse" />
       ))}
     </div>
   );
@@ -350,7 +350,7 @@ function StatCard({
   return (
     <div
       className={
-        'rounded-xl border p-4 shadow-sm ' +
+        'rounded-lg border p-4 shadow-sm ' +
         (danger
           ? 'border-rose-200 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-950/30'
           : 'border-border bg-background')
