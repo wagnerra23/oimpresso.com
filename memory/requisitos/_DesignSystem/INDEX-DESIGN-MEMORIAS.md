@@ -159,8 +159,20 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 - **last_reprocess:** `2026-05-30` (consolidação inicial — 4 agentes paralelos, ADR 0231)
 - **Como evolui sem quebrar:** [ADR 0236](../../decisions/0236-governanca-evolucao-doc-design.md) (aceito 2026-05-30) — append-only + ratchet + freshness + 3 gatilhos (G1 incremental / G2 reconciliar / G3 total). Workflow executável: skill [`design-memoria-reprocess`](../../../.claude/skills/design-memoria-reprocess/SKILL.md).
 
+### Regras canônicas de governança do DS (toda regra de design mora aqui)
+
+> **Invariante testada** (`tests/Feature/Design/DesignIndexSingleSourceTest.php` inv. c · ADR 0239 R5): toda regra de design canônica é referenciada NESTE índice — **CI falha se faltar**. Ninguém precisa lembrar de pedir.
+
+| ADR | Regra |
+|---|---|
+| [ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md) | DS v4 — tokens + `primary` roxo `oklch(0.55 0.15 295)` universal; Claude Design plugin dono da interface |
+| [ADR 0236](../../decisions/0236-governanca-evolucao-doc-design.md) | Evolução da doc de design — append-only + índice fonte-única + ratchet + freshness + reprocesso |
+| [ADR 0238](../../decisions/0238-soberania-constituicao-wagner.md) | Soberania de [W] sobre a constituição (memória/numeração) |
+| [ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md) | Governança do DS — git SSOT · Cowork→Code · regressão-IA · 1 spec vigente na raiz |
+
 ### Changelog
 | Data | Gatilho | Mudança |
 |---|---|---|
 | 2026-05-30 | G3 (inicial) | Índice criado: 88 docs revisados, regra de ouro, conflitos reconciliados, positivo+negativo. |
 | 2026-05-30 | G1 | Ledger de pedidos **file-based** (scaffold `governance/design-requests/`) + correção canon "Claude Design = só arquivos, nunca MCP" ([feedback](../../reference/feedback-claude-design-so-arquivos.md)). |
+| 2026-05-30 | G1 | **Regras de governança do DS** (0235/0236/0238/0239) referenciadas + invariante (c) no `DesignIndexSingleSourceTest` — "toda regra de design mora no índice" (ADR 0239 R5). |
