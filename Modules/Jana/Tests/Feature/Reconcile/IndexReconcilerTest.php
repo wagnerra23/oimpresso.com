@@ -283,6 +283,195 @@ MD;
     @rmdir($base);
 });
 
+// ─── CURA HONESTA: no-op NÃO finge healed=true (chave ausente / convergência) ─
+
+it('cura HONESTA: chave AUSENTE no frontmatter NÃO marca healed=true (detecta mas healed=false)', function () {
+    // Bug-guard [ALTO]: a cura marcava healed=true pra todo drift healable ANTES de saber
+    // se a reescrita casou. Regex-replace NÃO consegue inserir uma chave que não existe →
+    // o drift tem de ficar healed=false (honesto: detectou mas não curou) e REAPARECER.
+    $base = sys_get_temp_dir().'/idxrec_nokey_'.uniqid();
+    $dir = $base.'/memory/decisions';
+    @mkdir($dir, 0777, true);
+
+    // Disco: 1 ADR → total real=1, unique real=1, zero colisão.
+    file_put_contents($dir.'/0101-um.md', "# stub\n");
+
+    // Frontmatter SEM total_adrs / unique_numbers / numbering_collisions (chaves ausentes).
+    // Não há linha pra regex casar — a cura tem de no-opar honestamente.
+    $lifecycle = <<<MD
+---
+type: index
+status: aceito
+governance_principle: append-only
+---
+
+# Corpo
+
+Sem os escalares computáveis no frontmatter.
+MD;
+    file_put_contents($dir.'/_INDEX-LIFECYCLE.md', $lifecycle);
+    $antes = (string) file_get_contents($dir.'/_INDEX-LIFECYCLE.md');
+
+    $rec = new IndexReconciler($base);
+    $r = $rec->reconcile(['heal' => true]);
+
+    $depois = (string) file_get_contents($dir.'/_INDEX-LIFECYCLE.md');
+    $totalDrift = collect($r->drifts)->firstWhere('target', 'lifecycle.total_adrs');
+    $uniqueDrift = collect($r->drifts)->firstWhere('target', 'lifecycle.unique_numbers');
+
+    expect($depois)->toBe($antes)               // nada a inserir → arquivo intacto
+        ->and($r->healedCount)->toBe(0)         // NÃO finge cura
+        ->and($totalDrift)->not->toBeNull()
+        ->and($totalDrift->healable)->toBeTrue()
+        ->and($totalDrift->healed)->toBeFalse() // detectou (ausente) mas NÃO curou — honesto
+        ->and($uniqueDrift)->not->toBeNull()
+        ->and($uniqueDrift->healed)->toBeFalse();
+
+    // Convergência: drift reaparece na 2ª run (não some — pois nunca foi curado de verdade).
+    $r2 = $rec->reconcile(['heal' => true]);
+    expect($r2->driftCount)->toBe($r->driftCount) // mesmo drift persiste
+        ->and($r2->healedCount)->toBe(0);
+
+    array_map('unlink', (array) glob($dir.'/*.md'));
+    @rmdir($dir);
+    @rmdir($base.'/memory');
+    @rmdir($base);
+});
+
+it('cura HONESTA: numbering_collisions em BLOCK list YAML NÃO marca healed=true (regex inline no-opa)', function () {
+    // Bug-guard [ALTO]: numbering_collisions escrito como BLOCK list (- 0999) não casa o
+    // regex inline `[...]` → reescreverColisoes no-opa. Antes virava healed=true mentiroso.
+    $base = sys_get_temp_dir().'/idxrec_block_'.uniqid();
+    $dir = $base.'/memory/decisions';
+    @mkdir($dir, 0777, true);
+
+    // Disco: colisão real em 0170 (2 arquivos).
+    foreach (['0170-a.md', '0170-b.md'] as $f) {
+        file_put_contents($dir.'/'.$f, "# stub\n");
+    }
+
+    // numbering_collisions como BLOCK list (não inline [...]) + escalares ausentes.
+    $lifecycle = <<<MD
+---
+type: index
+numbering_collisions:
+  - 0999
+---
+corpo
+MD;
+    file_put_contents($dir.'/_INDEX-LIFECYCLE.md', $lifecycle);
+    $antes = (string) file_get_contents($dir.'/_INDEX-LIFECYCLE.md');
+
+    $rec = new IndexReconciler($base);
+    $r = $rec->reconcile(['heal' => true]);
+
+    $depois = (string) file_get_contents($dir.'/_INDEX-LIFECYCLE.md');
+    $colDrift = collect($r->drifts)->firstWhere('target', 'lifecycle.numbering_collisions');
+
+    expect($depois)->toBe($antes)                // BLOCK list intocada (regex inline não casa)
+        ->and($colDrift)->not->toBeNull()
+        ->and($colDrift->healable)->toBeTrue()
+        ->and($colDrift->healed)->toBeFalse();   // detectou divergência mas NÃO curou — honesto
+
+    array_map('unlink', (array) glob($dir.'/*.md'));
+    @rmdir($dir);
+    @rmdir($base.'/memory');
+    @rmdir($base);
+});
+
+it('cura HONESTA: convergência REAL — 2ª run não tem mais drift nos campos curados', function () {
+    // Idempotência verdadeira (não só "arquivo igual"): o que foi curado SOME da detecção
+    // na 2ª run. Antes o loop podia reaparecer (healed mentiroso) — aqui provamos convergência.
+    $base = sys_get_temp_dir().'/idxrec_conv_'.uniqid();
+    $dir = $base.'/memory/decisions';
+    @mkdir($dir, 0777, true);
+
+    foreach (['0101-um.md', '0170-a.md', '0170-b.md'] as $f) {
+        file_put_contents($dir.'/'.$f, "# stub\n");
+    }
+    // real: total=3, unique=2, colisão=[0170]
+
+    $lifecycle = <<<MD
+---
+type: index
+total_adrs: 119
+unique_numbers: 116
+numbering_collisions: [0999]
+---
+corpo
+MD;
+    file_put_contents($dir.'/_INDEX-LIFECYCLE.md', $lifecycle);
+
+    $rec = new IndexReconciler($base);
+
+    $r1 = $rec->reconcile(['heal' => true]);
+    expect($r1->healedCount)->toBe(3); // 3 campos realmente reescritos
+
+    // 2ª run: tudo convergiu → ZERO drift (não reaparece).
+    $r2 = $rec->reconcile(['heal' => true]);
+    expect($r2->inSync)->toBeTrue()
+        ->and($r2->driftCount)->toBe(0)
+        ->and($r2->healedCount)->toBe(0);
+
+    array_map('unlink', (array) glob($dir.'/*.md'));
+    @rmdir($dir);
+    @rmdir($base.'/memory');
+    @rmdir($base);
+});
+
+it('cura CRLF: arquivo CRLF cura os escalares total_adrs/unique_numbers (regex CRLF-tolerante)', function () {
+    // Bug-guard [ALTO]: o regex antigo terminava em `\d+(\h*(?:#.*)?)$` e `\r` não está em
+    // `\h` → em arquivos CRLF os escalares NUNCA curavam (mas eram contados como healed).
+    // Aqui o tmpfile é CRLF: a cura tem de (a) reescrever de fato e (b) preservar o `\r`.
+    $base = sys_get_temp_dir().'/idxrec_crlf_'.uniqid();
+    $dir = $base.'/memory/decisions';
+    @mkdir($dir, 0777, true);
+
+    foreach (['0101-um.md', '0170-a.md', '0170-b.md'] as $f) {
+        file_put_contents($dir.'/'.$f, "# stub\n");
+    }
+    // real: total=3, unique=2, colisão=[0170]
+
+    // Frontmatter com terminadores CRLF (\r\n) em TODAS as linhas + comentário inline.
+    $linhas = [
+        '---',
+        'type: index',
+        'total_adrs: 119',
+        'unique_numbers: 116  # nota curada à mão',
+        'numbering_collisions: [0999]',
+        '---',
+        'corpo',
+    ];
+    $lifecycle = implode("\r\n", $linhas)."\r\n";
+    file_put_contents($dir.'/_INDEX-LIFECYCLE.md', $lifecycle);
+
+    $rec = new IndexReconciler($base);
+    $r = $rec->reconcile(['heal' => true]);
+
+    $depois = (string) file_get_contents($dir.'/_INDEX-LIFECYCLE.md');
+
+    expect($r->healedCount)->toBe(3)                              // os 3 healable curaram DE VERDADE em CRLF
+        ->and($depois)->toContain("total_adrs: 3\r\n")           // curou E preservou o CRLF
+        ->and($depois)->toContain('unique_numbers: 2')
+        ->and($depois)->toContain("# nota curada à mão\r\n")     // comentário + CRLF preservados
+        ->and($depois)->toContain('numbering_collisions: [0170]')
+        ->and($depois)->not->toContain('total_adrs: 119')
+        ->and($depois)->not->toContain("\r\r")                    // não duplicou CR
+        ->and(substr_count($depois, "\n"))->toBe(substr_count($depois, "\r")); // segue 100% CRLF (não virou LF)
+
+    // Convergência REAL em CRLF: 2ª run sem drift.
+    $r2 = $rec->reconcile(['heal' => true]);
+    $depois2 = (string) file_get_contents($dir.'/_INDEX-LIFECYCLE.md');
+    expect($depois2)->toBe($depois)        // idempotente byte-a-byte
+        ->and($r2->inSync)->toBeTrue()
+        ->and($r2->driftCount)->toBe(0);
+
+    array_map('unlink', (array) glob($dir.'/*.md'));
+    @rmdir($dir);
+    @rmdir($base.'/memory');
+    @rmdir($base);
+});
+
 it('reconcile: name e tags canônicos', function () {
     $rec = new IndexReconciler('/tmp/x');
 

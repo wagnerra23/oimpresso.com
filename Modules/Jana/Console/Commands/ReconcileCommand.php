@@ -67,16 +67,49 @@ class ReconcileCommand extends Command
 
         $only = $this->parseOnly((string) ($this->option('only') ?? ''));
 
-        $reconcilers = $this->resolveReconcilers($only);
+        // Universo de reconcilers válidos (class_exists + contrato), ANTES de filtrar
+        // por --only. Precisamos dele inteiro pra validar os nomes de --only: um typo
+        // não pode passar silencioso (--only é gate de CI; se neutraliza, o gate morre).
+        $available = $this->availableReconcilers();
+
+        // VALIDAÇÃO DE INPUT: todo nome de --only TEM que casar com um name() disponível.
+        // Basta UM não casar (ex: typo `setings`) pra abortar com FAILURE — mesmo que os
+        // demais casem. Isso evita o pior bug de um gate: `jana:reconcile --check
+        // --only=index,setings` passar VERDE sem reconciliar `setings` (que não existe).
+        if ($only !== []) {
+            $availableNames = array_map(static fn (Reconciler $r): string => $r->name(), $available);
+            $unknown = array_values(array_diff($only, $availableNames));
+
+            if ($unknown !== []) {
+                $listaValidos = $availableNames === [] ? '(nenhum)' : implode(', ', $availableNames);
+                $msg = '--only ' . implode(', ', array_map(
+                    static fn (string $n): string => "'{$n}'",
+                    $unknown,
+                )) . ' não casou. Reconcilers disponíveis: ' . $listaValidos . '.';
+
+                // Sempre erro VISÍVEL (stderr), inclusive em --json: input inválido não
+                // é um resultado de reconciliação, então não polui o array JSON.
+                $this->error($msg);
+
+                return self::FAILURE;
+            }
+        }
+
+        $reconcilers = $only === []
+            ? $available
+            : array_values(array_filter(
+                $available,
+                static fn (Reconciler $r): bool => in_array($r->name(), $only, true),
+            ));
 
         if ($reconcilers === []) {
-            $msg = $only !== []
-                ? 'Nenhum reconciler casou com --only=' . implode(',', $only) . '.'
-                : 'Nenhum reconciler registrado em config(copiloto.reconcilers).';
+            // Aqui só chega o caso LEGÍTIMO: nenhum reconciler registrado na config
+            // (sem --only, ou --only vazio). O caso "--only não casou" já abortou acima
+            // com FAILURE. Config vazia = nada a fazer = SUCCESS honesto.
             if ($json) {
                 $this->line($this->encodeJson([]));
             } else {
-                $this->warn($msg);
+                $this->warn('Nenhum reconciler registrado em config(copiloto.reconcilers).');
             }
 
             return self::SUCCESS;
@@ -132,13 +165,14 @@ class ReconcileCommand extends Command
     }
 
     /**
-     * Resolve a lista de Reconcilers a partir de config(copiloto.reconcilers),
-     * com guard class_exists (tolera FQCN ainda-não-criado) e filtro --only por name().
+     * Resolve TODOS os Reconcilers válidos de config(copiloto.reconcilers), com guard
+     * class_exists (tolera FQCN ainda-não-criado) e guard de contrato. NÃO aplica o
+     * filtro --only: o universo completo é necessário pra validar os nomes de --only
+     * (um nome que não existe aqui é input inválido → FAILURE no handle, não silêncio).
      *
-     * @param array<int, string> $only
      * @return array<int, Reconciler>
      */
-    private function resolveReconcilers(array $only): array
+    private function availableReconcilers(): array
     {
         $resolved = [];
 
@@ -157,10 +191,6 @@ class ReconcileCommand extends Command
                     'fqcn' => $fqcn,
                 ]);
 
-                continue;
-            }
-
-            if ($only !== [] && ! in_array($instance->name(), $only, true)) {
                 continue;
             }
 

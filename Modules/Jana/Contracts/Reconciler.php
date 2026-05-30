@@ -13,7 +13,7 @@ use Modules\Jana\Services\Reconcile\ReconcileResult;
  * (fonte da verdade, ADR 0061) e o estado vivo (índice / DB / settings / SHA
  * deployado). Espelha o padrão classe-A já provado em prod do
  * `ChannelsReconcilerCommand` (WhatsApp) + o `DriftChecker` do Governance Drift
- * Framework (ADR 0216) — `jana:reconcile` orquestra via `config('jana.reconcilers')`.
+ * Framework (ADR 0216) — `jana:reconcile` orquestra via `config('copiloto.reconcilers')`.
  *
  * Contrato mental (cada implementação faz internamente):
  *   desired()  — estado desejado, derivado do git.

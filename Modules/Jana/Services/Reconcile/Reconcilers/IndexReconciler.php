@@ -51,8 +51,12 @@ use Symfony\Component\Yaml\Yaml;
  *   - Núcleo PURO injetável: {@see analisar()} recebe desired/observed e devolve drifts
  *     SEM tocar disco — determinístico, testável sem I/O (padrão DeployDriftChecker::analisar
  *     / DesignDocsFreshnessChecker::analisarDoc).
- *   - Idempotência: heal reescreve só o campo computável (regex cirúrgico) → rodar 2× = mesmo
- *     arquivo. `reconcile()` 2× = mesmo resultado.
+ *   - Idempotência REAL: heal reescreve só o campo computável (regex cirúrgico) e só quando
+ *     o valor difere → rodar 2× = mesmo arquivo + a 2ª run CONVERGE (drift some).
+ *   - Cura HONESTA: `healed=true` SÓ quando a reescrita de fato mudou o conteúdo daquele
+ *     alvo. Se o regex no-opa (chave ausente no frontmatter — não dá pra inserir via
+ *     replace; `numbering_collisions` em BLOCK list; trailer inesperado) o drift fica
+ *     `healed=false` (detectou mas NÃO curou) e reaparece — nunca finge cura.
  *   - Cura segura só: drift com fonte-de-verdade clara (contagem/colisão = disco) cura;
  *     link quebrado (ambíguo) alerta humano.
  *   - Repo-wide: índices não têm business_id (multi-tenant N/A).
@@ -243,9 +247,19 @@ final class IndexReconciler implements Reconciler
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Aplica a cura nos drifts healable e marca `healed=true`. Os não-healable
-     * passam intactos (continuam só-alerta). Idempotente: reescreve apenas o campo
-     * derivado via regex cirúrgico → rodar 2× = mesmo arquivo.
+     * Aplica a cura nos drifts healable e marca `healed=true` SÓ no que a reescrita
+     * realmente mudou. Os não-healable passam intactos (continuam só-alerta).
+     *
+     * Honestidade da cura (ADR 0237, R10): cada `reescrever*` reporta se de fato
+     * casou+mudou o conteúdo daquele alvo. Se o regex no-opa (chave ausente no
+     * frontmatter, `numbering_collisions` em BLOCK list YAML em vez de inline `[...]`,
+     * trailer inesperado), o drift continua `healed=false` — detectou mas NÃO curou,
+     * e REAPARECE na próxima run (em vez de fingir cura e entrar em loop infinito de
+     * "curei mas não curei"). Inserir uma chave que não existe NÃO é tarefa de
+     * regex-replace cirúrgico → fica honestamente não-curado.
+     *
+     * Idempotente: reescreve apenas o campo derivado via regex cirúrgico, e só
+     * quando o valor difere → rodar 2× = mesmo arquivo + 2ª run converge (drift some).
      *
      * @param array<int, ReconcileDrift> $drifts
      * @param array{collisions?: list<string>, total_adrs?: int, unique_numbers?: int} $desired
@@ -268,15 +282,21 @@ final class IndexReconciler implements Reconciler
             if (! $drift->healable) {
                 continue;
             }
+
+            // Cada reescrita devolve o conteúdo + se mudou ESTE alvo. Só marca
+            // healed quando mudou de fato (regex casou e o valor era diferente).
             if ($drift->target === self::T_COLLISIONS) {
-                $novo = $this->reescreverColisoes($novo, $this->normalizarColisoes($desired['collisions'] ?? []));
-                $alvosCurados[self::T_COLLISIONS] = true;
+                [$novo, $mudou] = $this->reescreverColisoes($novo, $this->normalizarColisoes($desired['collisions'] ?? []));
             } elseif ($drift->target === self::T_TOTAL_ADRS) {
-                $novo = $this->reescreverEscalar($novo, 'total_adrs', (int) ($desired['total_adrs'] ?? 0));
-                $alvosCurados[self::T_TOTAL_ADRS] = true;
+                [$novo, $mudou] = $this->reescreverEscalar($novo, 'total_adrs', (int) ($desired['total_adrs'] ?? 0));
             } elseif ($drift->target === self::T_UNIQUE_NUMS) {
-                $novo = $this->reescreverEscalar($novo, 'unique_numbers', (int) ($desired['unique_numbers'] ?? 0));
-                $alvosCurados[self::T_UNIQUE_NUMS] = true;
+                [$novo, $mudou] = $this->reescreverEscalar($novo, 'unique_numbers', (int) ($desired['unique_numbers'] ?? 0));
+            } else {
+                continue;
+            }
+
+            if ($mudou) {
+                $alvosCurados[$drift->target] = true;
             }
         }
 
@@ -284,7 +304,7 @@ final class IndexReconciler implements Reconciler
             $this->escreverArquivo($lifecyclePath, $novo);
         }
 
-        // Marca healed=true só nos alvos que foram efetivamente reescritos.
+        // Marca healed=true só nos alvos cuja reescrita efetivamente mudou o conteúdo.
         return array_map(
             static fn (ReconcileDrift $d): ReconcileDrift => isset($alvosCurados[$d->target])
                 ? new ReconcileDrift(
@@ -303,17 +323,24 @@ final class IndexReconciler implements Reconciler
     /**
      * Reescreve a linha `numbering_collisions: [...]` do frontmatter com a lista
      * desejada (já normalizada — zero-pad de 4 díg, ordenada). Cirúrgico: casa SÓ
-     * a linha da chave (até o `]`), preserva qualquer comentário `# ...` após o
-     * colchete (prosa curada à mão). Idempotente.
+     * a linha da chave (até o `]`), preserva qualquer comentário `# ...`/`\r` (CRLF)
+     * após o colchete (prosa curada à mão). Idempotente.
+     *
+     * Devolve [conteúdo, mudou?]. `mudou=false` (no-op honesto) quando:
+     *   - a chave não existe como lista inline `[...]` (ex: BLOCK list YAML `- 0101`
+     *     ou chave ausente) → regex não casa, nada a inserir via replace;
+     *   - já está no valor desejado (idempotência) → casa mas conteúdo não muda.
+     * Em ambos o drift fica `healed=false` — detectou mas não fingiu cura.
      *
      * @param list<string> $cols números de colisão normalizados (ex: ['0101', '0170'])
+     * @return array{0: string, 1: bool} [conteúdo resultante, se mudou de fato]
      */
-    private function reescreverColisoes(string $conteudo, array $cols): string
+    private function reescreverColisoes(string $conteudo, array $cols): array
     {
         $render = '['.implode(', ', $cols).']';
 
-        // Captura: (1) "numbering_collisions:" + espaços  (2) o array [...]  (3) o resto da linha (comentário).
-        // O grupo (.*) sempre casa (mesmo vazio) → $m[1]/$m[2] sempre presentes.
+        // Captura: (1) "numbering_collisions:" + espaços  (2) o array [...]  (3) trailer (comentário + `\r` do CRLF).
+        // `.` casa `\r` (não casa só `\n`) → o trailer absorve o CR e a cura preserva CRLF.
         $regex = '/^(\h*numbering_collisions:\h*)\[[^\]]*\](.*)$/m';
         $resultado = preg_replace_callback(
             $regex,
@@ -322,17 +349,34 @@ final class IndexReconciler implements Reconciler
             1,
         );
 
-        return $resultado ?? $conteudo;
+        // preg_replace_callback devolve null só em erro de PCRE (regex inválido) — guarda mixed.
+        if ($resultado === null) {
+            return [$conteudo, false];
+        }
+
+        return [$resultado, $resultado !== $conteudo];
     }
 
     /**
      * Reescreve um escalar inteiro do frontmatter (`total_adrs: N` / `unique_numbers: N`)
-     * com o valor desejado, preservando comentário inline. Cirúrgico + idempotente.
+     * com o valor desejado, preservando comentário inline + `\r` (CRLF). Cirúrgico + idempotente.
+     *
+     * CRLF-tolerante: o trailer é `(.*)` (casa `\r`, comentário, etc.) em vez do antigo
+     * `(\h*(?:#.*)?)`, onde `\r` NÃO estava em `\h` → em arquivos CRLF o `$` (que casa
+     * antes do `\n`) ficava encalhado no `\r` e o escalar NUNCA curava (mas era contado
+     * como healed). O trailer absorve o CR e a cura preserva o CRLF (não força LF).
+     *
+     * Devolve [conteúdo, mudou?]. `mudou=false` (no-op honesto) quando a chave não
+     * existe (regex não casa — não dá pra inserir via replace) ou já está no valor
+     * desejado (idempotência). Em ambos o drift fica `healed=false`.
+     *
+     * @return array{0: string, 1: bool} [conteúdo resultante, se mudou de fato]
      */
-    private function reescreverEscalar(string $conteudo, string $chave, int $valor): string
+    private function reescreverEscalar(string $conteudo, string $chave, int $valor): array
     {
-        // (1) "chave:" + espaços  (2) o número  (3) resto (comentário). \D-boundary evita casar substring.
-        $regex = '/^(\h*'.preg_quote($chave, '/').':\h*)\d+(\h*(?:#.*)?)$/m';
+        // (1) "chave:" + espaços  (2) o número  (3) trailer (comentário + `\r` do CRLF).
+        // `\d+` garante boundary à direita (não casa substring); `(.*)$` preserva CRLF.
+        $regex = '/^(\h*'.preg_quote($chave, '/').':\h*)\d+(.*)$/m';
         $resultado = preg_replace_callback(
             $regex,
             static fn (array $m): string => $m[1].$valor.($m[2] ?? ''),
@@ -340,7 +384,12 @@ final class IndexReconciler implements Reconciler
             1,
         );
 
-        return $resultado ?? $conteudo;
+        // preg_replace_callback devolve null só em erro de PCRE — guarda mixed.
+        if ($resultado === null) {
+            return [$conteudo, false];
+        }
+
+        return [$resultado, $resultado !== $conteudo];
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -310,6 +310,48 @@ it('--only filtra reconcilers por name()', function () {
     expect(FakeReconcilerState::$lastOpts)->not->toHaveKey('settings');
 });
 
+it('--check --only=<nome_inexistente> retorna exit 1 (typo NÃO neutraliza o gate)', function () {
+    // Regressão do pior bug de um gate: um typo em --only fazer `jana:reconcile --check`
+    // passar VERDE sem reconciliar nada. Antes do fix, --only que não casava caía no
+    // branch "nenhum reconciler" e retornava SUCCESS, ignorando --check. Agora é input
+    // inválido → FAILURE.
+    FakeReconcilerState::$plans = [
+        'index' => ['drift' => 0],
+        'settings' => ['drift' => 0],
+    ];
+    config(['copiloto.reconcilers' => [FakeIndexReconciler::class, FakeSettingsReconciler::class]]);
+
+    $exit = Artisan::call('jana:reconcile', ['--check' => true, '--only' => 'setings']); // typo
+
+    expect($exit)->toBe(1); // FAILURE, não SUCCESS
+
+    // Nenhum reconciler foi rodado (abortou na validação de input, antes do loop).
+    expect(FakeReconcilerState::$lastOpts)->toBe([]);
+
+    // Mensagem lista os nomes válidos pra orientar a correção do typo.
+    $out = Artisan::output();
+    expect($out)->toContain('setings')
+        ->and($out)->toContain('index')
+        ->and($out)->toContain('settings');
+});
+
+it('--only com UM nome inválido entre nomes válidos aborta tudo com exit 1', function () {
+    // Garantia mais forte: basta UM nome não casar pra abortar — mesmo que `index`
+    // exista. O typo `setings` não pode passar silencioso "porque index casou".
+    FakeReconcilerState::$plans = [
+        'index' => ['drift' => 0],
+        'settings' => ['drift' => 0],
+    ];
+    config(['copiloto.reconcilers' => [FakeIndexReconciler::class, FakeSettingsReconciler::class]]);
+
+    $exit = Artisan::call('jana:reconcile', ['--check' => true, '--only' => 'index,setings']);
+
+    expect($exit)->toBe(1);
+
+    // Como abortou na validação, NEM o `index` (válido) chegou a rodar.
+    expect(FakeReconcilerState::$lastOpts)->toBe([]);
+});
+
 it('--check com --only que isola um reconciler limpo retorna exit 0 (ignora drift do filtrado)', function () {
     FakeReconcilerState::$plans = [
         'index' => ['drift' => 0],
@@ -339,13 +381,31 @@ it('tolera FQCN inexistente na config (class_exists-guard) sem derrubar o loop',
         ->and($report[0]['name'])->toBe('index');
 });
 
-it('config vazia → exit 0 e nenhum reconciler rodado', function () {
+it('config vazia LEGÍTIMA (sem --only) → exit 0 e nenhum reconciler rodado', function () {
+    // Contraponto ao caso typo: config vazia SEM --only é "nada registrado, nada a
+    // fazer" = SUCCESS honesto. O fix preserva isso — só o --only-não-casou virou
+    // FAILURE; a ausência de reconcilers continua SUCCESS.
     config(['copiloto.reconcilers' => []]);
 
     $exit = Artisan::call('jana:reconcile', ['--check' => true]);
 
     expect($exit)->toBe(0);
     expect(FakeReconcilerState::$lastOpts)->toBe([]);
+});
+
+it('config vazia + --only → exit 1 (não há nome pra casar; lista disponíveis = nenhum)', function () {
+    // Borda: se NÃO há reconciler registrado mas o usuário passou --only, ainda é input
+    // inválido (o nome pedido não existe) → FAILURE, e a lista de disponíveis é vazia.
+    config(['copiloto.reconcilers' => []]);
+
+    $exit = Artisan::call('jana:reconcile', ['--check' => true, '--only' => 'index']);
+
+    expect($exit)->toBe(1);
+    expect(FakeReconcilerState::$lastOpts)->toBe([]);
+
+    $out = Artisan::output();
+    expect($out)->toContain('index')
+        ->and($out)->toContain('nenhum'); // "Reconcilers disponíveis: (nenhum)."
 });
 
 it('é resiliente: reconciler que lança vira linha de erro + exit 1, demais rodam', function () {

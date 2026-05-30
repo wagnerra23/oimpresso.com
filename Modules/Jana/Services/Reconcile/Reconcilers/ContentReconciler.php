@@ -6,7 +6,6 @@ namespace Modules\Jana\Services\Reconcile\Reconcilers;
 
 use Modules\Jana\Contracts\Reconciler;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
-use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
 use Modules\Jana\Services\Reconcile\ReconcileDrift;
 use Modules\Jana\Services\Reconcile\ReconcileResult;
 
@@ -15,116 +14,137 @@ use Modules\Jana\Services\Reconcile\ReconcileResult;
  *
  * Garante que o git (`memory/**`, fonte da verdade ADR 0061) == o índice de busca
  * que o MCP server serve (`mcp_memory_documents`). Quando um doc canônico do git
- * não chegou ao DB — ou chegou com `git_sha` velho, ou o DB sabe que mudou mas o
- * Scout não re-embeddou — o MCP serve conteúdo STALE. Esta faceta torna esse drift
- * VISÍVEL todo dia e (com --heal) re-sincroniza o que está claramente atrasado.
+ * chegou ao DB com `git_sha` velho, ou o DB sabe que mudou mas o Scout não
+ * re-embeddou, o MCP serve conteúdo STALE. Esta faceta torna esse drift VISÍVEL
+ * todo dia (alerta-only — ver "Tier 0" abaixo).
  *
- * ── O que reconcilia (desired × observed) ────────────────────────────────────
- *  - desired  = docs em `memory/**` com seu `git_sha` (HEAD), chaveados por path.
+ * ── DB-FIRST (observed-driven): por que NÃO enumera o git inteiro ────────────
+ * A versão anterior montava `desired` varrendo TODO `memory/**` e flagava
+ * "ausente no DB" pra cada path que não estava no índice. Isso gerava
+ * PHANTOM-DRIFT: o healer canônico ({@see IndexarMemoryGitParaDb::coletarArquivos})
+ * só ingere um SUBCONJUNTO whitelisted de globs (decisions, sessions, requisitos,
+ * handoffs, reference, sprints, governance, _DesignSystem, audits-raiz) e EXCLUI
+ * de propósito `memory/clientes/**` e `memory/feedback/**` por LGPD (PII de
+ * cliente que o redactor não cobre). Resultado: ~1000+ paths que o índice NUNCA
+ * deveria conter eram reportados como "faltando" — drift que `--heal` jamais
+ * curava → `jana:reconcile --check` em exit 1 PERMANENTE (gate de CI quebrado) +
+ * ruído diário que afoga o sinal real.
+ *
+ * Correção: ITERAR o OBSERVED (linhas que JÁ estão em `mcp_memory_documents`) e
+ * checar cada uma contra o git. Assim a cobertura da faceta == a cobertura do
+ * healer por construção (só olhamos o que está no índice). Espelha o
+ * {@see \Modules\Jana\Services\Memoria\Freshness\StalenessDetectorService}, que a
+ * ADR 0237 manda consolidar — ele também parte do DB (`McpMemoryDocument::query()`),
+ * não do git.
+ *
+ * ── O que reconcilia (observed × git) ────────────────────────────────────────
  *  - observed = linhas de `mcp_memory_documents` (git_path, git_sha, indexed_at,
- *               updated_at), chaveadas por path.
+ *               updated_at), chaveadas por git_path — a base da iteração.
+ *  - desired  = o estado do git PARA CADA path observado: o `git_sha` HEAD daquele
+ *               arquivo (lido on-demand, best-effort via shell_exec).
  *  - drift:
- *      (a) doc no git AUSENTE no DB           → nunca indexado (ou soft-deleted).
  *      (b) `git_sha` git ≠ `git_sha` DB        → sync git→DB silenciou (perdeu
  *                                                webhook + cron).
  *      (c) `updated_at > indexed_at` no DB     → DB sabe que mudou, Scout não
  *                                                re-embeddou.
- *  Todos os três são HEALABLE: a fonte-de-verdade é o git e o re-sync é
- *  idempotente + append-only (snapshot em history antes de sobrescrever).
  *
- * ── heal = re-sync git→DB + re-embed (reusa a lógica existente) ───────────────
- * `heal=true` delega ao {@see IndexarMemoryGitParaDb::run()} — o MESMO sync
- * canônico do webhook GitHub→MCP e do cron `mcp:sync-memory`. Ele re-lê o `.md`
- * do git, recalcula o `git_sha`, faz UPSERT por slug (restaura soft-deleted),
- * snapshota a versão anterior em `mcp_memory_documents_history` e dispara o Scout
- * (re-embed Meilisearch). NÃO reimplementa parsing/embedding aqui — só consome.
- * `dry_run=true` DETECTA e reporta sem escrever (não chama run()).
+ * O caso (a) da versão antiga — "doc NOVO no git ainda não indexado" — saiu de
+ * escopo de PROPÓSITO: detectá-lo com segurança exige um PATH-LISTER CANÔNICO
+ * COMPARTILHADO com o healer (mesma whitelist + mesmas exclusões LGPD), senão
+ * volta o phantom-drift. Isso é FOLLOW-UP documentado (ver docblock de
+ * {@see analisar()}), não dá pra fazer com segurança agora.
  *
- * Idempotência: o sync é no-op quando o sha já bate (o próprio serviço só
- * atualiza `indexed_at` sem disparar Scout pra doc inalterado). Rodar 2× = mesmo
- * estado final. Após heal, os drifts ficam `healed=true` (o re-sync os cobriu).
+ * ── heal DESLIGADO por enquanto (alerta-only) — risco Tier 0 latente ─────────
+ * Os drifts saem `healable=false`: a faceta DETECTA + ALERTA, humano decide (R10).
+ * Por quê: o único healer disponível é o {@see IndexarMemoryGitParaDb::run()}, que
+ * ao final faz `McpMemoryDocument::whereNotIn('slug', $vistos)->delete()` SEM
+ * escopo de `business_id`. Hoje o corpus é mono-tenant (só biz=1), mas no dia em
+ * que um segundo tenant (ex biz=4 / Larissa) popular `mcp_memory_documents`, um
+ * `--heal` DIÁRIO (cron) soft-deletaria TODOS os docs do outro tenant — vazamento
+ * DESTRUTIVO cross-tenant (ADR 0093 Tier 0). Disparar `run()` daqui, num caller
+ * diário, materializa esse risco. Logo NÃO disparamos: detecção+alerta já entregam
+ * valor sem o risco.
  *
- * ── Multi-tenant Tier 0 (ADR 0093) — corpus GLOBAL, NÃO filtra business_id ────
+ * Auto-heal SEGURO depende de DOIS pré-requisitos (FOLLOW-UP, fora de escopo):
+ *   (a) path-lister CANÔNICO compartilhado com o healer (resolve o phantom-drift
+ *       do caso (a) E garante que heal e check enxergam o mesmo conjunto);
+ *   (b) `business_id` no soft-delete do healer (whereNotIn slug escopado por
+ *       tenant) — sem isso o delete global é Tier-0-inseguro.
+ * Enquanto (a)+(b) não existirem, `healable=false` e `--heal` é no-op aqui.
+ *
+ * ── Multi-tenant Tier 0 (ADR 0093) — corpus GLOBAL na LEITURA ────────────────
  * `mcp_memory_documents` é o corpus de DOCUMENTAÇÃO DE PROGRAMAÇÃO da plataforma
  * (ADRs, sessions, reference, specs) — NÃO carrega dados de business. Por design
- * ele é GLOBAL/cross-tenant: a nota canônica vive em
+ * ele é GLOBAL/cross-tenant na LEITURA: a nota canônica vive em
  * `config('copiloto.meilisearch_indexes.mcp_memory_documents')` —
  * "corpus MCP é GLOBAL — NÃO inclui business_id (ADR 0093 não se aplica: docs de
  * programação)" (filterableAttributes = status/type/module/slug, SEM business_id).
- * Logo este Reconciler NÃO aplica `doBusiness()`/scope de tenant e isso NÃO é
- * vazamento — é o contrato do corpus. O sync (IndexarMemoryGitParaDb) grava
- * `business_id = 1` por compat de schema (coluna nullable, legado pré-MEM-MULTI-1),
- * mas a faceta NÃO segmenta por tenant.
+ * Logo a OBSERVAÇÃO aqui NÃO aplica `doBusiness()`/scope de tenant e isso NÃO é
+ * vazamento — é o contrato do corpus pra LER.
+ *
+ * ⚠️ A assimetria que motiva o `healable=false`: ler global é seguro, mas
+ * DELETAR global NÃO é. Um `delete()` sem `whereNotIn(... business_id)` apaga
+ * linhas de OUTROS tenants. Por isso a leitura pode ser cross-tenant enquanto a
+ * cura (que deleta) fica bloqueada até o healer ganhar escopo de business_id.
  *
  * ── Testabilidade (sem DB / sem git real) ────────────────────────────────────
  * Espelha o "método puro injetável" do {@see DeployReconciler} /
- * `DeployDriftChecker::analisar`. Três observações INJETÁVEIS por closure no
+ * `DeployDriftChecker::analisar`. Duas observações INJETÁVEIS por closure no
  * construtor (default = I/O real):
- *   - $gitDocsObserver : desired (git HEAD).
  *   - $dbDocsObserver  : observed (query real em `mcp_memory_documents`).
- *   - $healer          : ação de cura (run() do sync) — devolve quantos docs tocou.
- * O núcleo `analisar(array $gitDocs, array $dbDocs): array` é PURO (sem DB, sem
- * git, sem clock): o teste injeta gitDocs+dbDocs fake e exercita os 3 tipos de
- * drift direto. `observarDocsIndexados()` expõe a observação do DB como método
- * (default = query real) pro teste substituir via o closure do construtor.
+ *   - $gitShaResolver  : desired-por-path (git_sha HEAD de um git_path, on-demand).
+ * O núcleo `analisar(array $dbDocs, \Closure $gitShaResolver): array` é PURO (sem
+ * DB, sem clock; o git entra SÓ pelo resolver injetado): o teste injeta dbDocs
+ * fake + um resolver determinístico e exercita (b)/(c) direto.
+ * `observarDocsIndexados()` expõe a observação do DB como método (default = query
+ * real) pro teste substituir via o closure do construtor.
  *
  * Refs:
  * - ADR 0237 (jana:reconcile loop único — contrato Reconciler)
  * - ADR 0061 (git canônico = fonte da verdade; MCP é cache governado)
  * - ADR 0053 (mcp_memory_documents — cache governado da memory/)
- * - ADR 0093 (multi-tenant Tier 0; corpus global é exceção documentada)
+ * - ADR 0093 (multi-tenant Tier 0; corpus global na leitura é exceção documentada)
  * - Modules/Jana/Services/Memoria/Freshness/StalenessDetectorService (lógica
- *   de drift git↔DB que esta faceta CONSOLIDA no contrato Reconciler)
+ *   de drift git↔DB DB-first que esta faceta CONSOLIDA no contrato Reconciler)
+ * - Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb (healer — NÃO disparado aqui
+ *   por enquanto: delete global sem business_id, FOLLOW-UP).
  */
 final class ContentReconciler implements Reconciler
 {
     /**
-     * @var \Closure(): array<string, array{git_path: string, git_sha: ?string}>
-     *   Desired: docs do git (`memory/**`) chaveados por git_path → {git_path, git_sha HEAD}.
-     */
-    private \Closure $gitDocsObserver;
-
-    /**
      * @var \Closure(): array<string, array{git_path: string, git_sha: ?string, indexed_at: ?string, updated_at: ?string}>
-     *   Observed: linhas de `mcp_memory_documents` chaveadas por git_path.
+     *   Observed: linhas de `mcp_memory_documents` chaveadas por git_path. É a base
+     *   da iteração (DB-FIRST) — só checamos drift de docs que JÁ estão no índice.
      */
     private \Closure $dbDocsObserver;
 
     /**
-     * @var \Closure(): int Ação de cura: re-sincroniza git→DB (+ re-embed) e devolve
-     *   quantos docs foram efetivamente tocados (novos + atualizados). Default delega
-     *   ao IndexarMemoryGitParaDb::run().
+     * @var \Closure(string): ?string
+     *   Desired-por-path: dado um git_path, devolve o `git_sha` HEAD daquele arquivo
+     *   no git (best-effort; null quando shell_exec indisponível — Hostinger). Só é
+     *   invocado pros paths observados (DB-first), nunca varre o git inteiro.
      */
-    private \Closure $healer;
+    private \Closure $gitShaResolver;
 
     /**
      * Closures default fecham sobre I/O real. Teste injeta stubs determinísticos.
      *
-     * @param (\Closure(): array<string, array{git_path: string, git_sha: ?string}>)|null $gitDocsObserver
+     * NÃO há mais `$gitDocsObserver` (enumerava o git inteiro = phantom-drift) nem
+     * `$healer` (disparava o delete global cross-tenant — Tier-0-inseguro). Ambos
+     * removidos de propósito; ver docblock da classe.
+     *
      * @param (\Closure(): array<string, array{git_path: string, git_sha: ?string, indexed_at: ?string, updated_at: ?string}>)|null $dbDocsObserver
-     * @param (\Closure(): int)|null $healer
+     * @param (\Closure(string): ?string)|null $gitShaResolver
      */
     public function __construct(
-        ?\Closure $gitDocsObserver = null,
         ?\Closure $dbDocsObserver = null,
-        ?\Closure $healer = null,
+        ?\Closure $gitShaResolver = null,
     ) {
-        $this->gitDocsObserver = $gitDocsObserver
-            ?? fn (): array => $this->coletarGitDocs(base_path());
-
         $this->dbDocsObserver = $dbDocsObserver
             ?? fn (): array => $this->observarDocsIndexados();
 
-        $this->healer = $healer
-            ?? static function (): int {
-                // MESMO sync do webhook GitHub→MCP / cron mcp:sync-memory. Idempotente:
-                // só toca o que mudou (sha != ou novo) e re-embeda via Scout. business_id=1
-                // por compat de schema (coluna nullable, legado) — corpus é global por design.
-                $stats = (new IndexarMemoryGitParaDb(base_path(), 'reconcile', null, 1))->run();
-
-                // run() garante as chaves 'novos'/'atualizados' (sempre presentes, int).
-                return $stats['novos'] + $stats['atualizados'];
-            };
+        $this->gitShaResolver = $gitShaResolver
+            ?? fn (string $gitPath): ?string => $this->lerGitSha(base_path(), $gitPath);
     }
 
     public function name(): string
@@ -134,7 +154,7 @@ final class ContentReconciler implements Reconciler
 
     public function description(): string
     {
-        return 'git (memory/**) == índice MCP (mcp_memory_documents): doc faltando / git_sha velho / updated_at>indexed_at';
+        return 'índice MCP (mcp_memory_documents) coerente com o git (memory/**): git_sha velho / updated_at>indexed_at — alerta-only';
     }
 
     /**
@@ -149,43 +169,30 @@ final class ContentReconciler implements Reconciler
     {
         $start = microtime(true);
 
+        // NOTA: `heal`/`dry_run` são lidos do contrato Reconciler, mas a faceta é
+        // ALERTA-ONLY por enquanto (drifts healable=false). Nenhum caminho aqui
+        // dispara o healer destrutivo ({@see IndexarMemoryGitParaDb::run()} — delete
+        // global sem business_id). healedCount é SEMPRE 0 (honesto). Ver docblock.
         $heal = (bool) ($opts['heal'] ?? false);
         $dryRun = (bool) ($opts['dry_run'] ?? false);
+        unset($heal, $dryRun); // explicitamente ignorados (alerta-only) — sem efeito.
 
-        $gitDocs = ($this->gitDocsObserver)();
         $dbDocs = ($this->dbDocsObserver)();
 
-        $drifts = $this->analisar($gitDocs, $dbDocs);
-
-        $healedCount = 0;
-        if ($heal && ! $dryRun && $drifts !== []) {
-            // Re-sync único cobre TODOS os drifts de conteúdo (faltando/sha/updated):
-            // o IndexarMemoryGitParaDb varre memory/** inteiro e reconcilia cada doc.
-            $healedCount = ($this->healer)();
-
-            // Após o re-sync, marca os drifts como curados (a fonte-de-verdade git foi
-            // reaplicada no DB). healed=true alimenta ReconcileResult::healedCount.
-            $drifts = array_map(
-                static fn (ReconcileDrift $d): ReconcileDrift => new ReconcileDrift(
-                    target: $d->target,
-                    detail: $d->detail,
-                    desired: $d->desired,
-                    observed: $d->observed,
-                    healable: $d->healable,
-                    healed: $d->healable,
-                ),
-                $drifts,
-            );
-        }
+        $drifts = $this->analisar($dbDocs, $this->gitShaResolver);
 
         $durationMs = (int) round((microtime(true) - $start) * 1000);
 
         $metadata = [
-            'git_docs' => count($gitDocs),
             'db_docs' => count($dbDocs),
-            'heal_supported' => true,
-            'resynced_docs' => $healedCount,
-            // Documenta que a faceta é cross-tenant por design (corpus global, ADR 0093).
+            // Alerta-only por enquanto: heal desligado até o healer ganhar (a)
+            // path-lister compartilhado e (b) escopo business_id no soft-delete.
+            'heal_supported' => false,
+            'heal_blocked_reason' => 'healer (IndexarMemoryGitParaDb) faz delete global sem business_id — Tier-0-inseguro (ADR 0093); FOLLOW-UP',
+            'healed_docs' => 0,
+            // Cobertura DB-first: só docs JÁ indexados (evita phantom-drift do git inteiro).
+            'coverage' => 'db_first',
+            // Documenta que a faceta LÊ cross-tenant por design (corpus global, ADR 0093).
             'corpus' => 'global',
         ];
 
@@ -193,59 +200,52 @@ final class ContentReconciler implements Reconciler
     }
 
     /**
-     * Núcleo PURO + determinístico (sem DB, sem git, sem clock): cruza desired (git)
-     * × observed (DB) e devolve os ReconcileDrift. Testável direto — espelha
-     * DeployReconciler::analisar / DesignDocsFreshnessChecker::analisarDoc.
+     * Núcleo PURO + determinístico (sem DB, sem clock): para CADA doc OBSERVED
+     * (linha de `mcp_memory_documents`), checa drift contra o git. DB-FIRST —
+     * espelha StalenessDetectorService::doDetectDrift (que também parte do DB).
      *
-     * Chave de junção = git_path (caminho POSIX relativo ao repo, ex
+     * Chave de iteração = git_path (caminho POSIX relativo ao repo, ex
      * "memory/decisions/0237-...md"). Ordena por path pra resultado determinístico.
      *
-     * Drift (todos HEALABLE — fonte-de-verdade é o git, re-sync idempotente):
-     *  (a) path no git, ausente no DB     → nunca indexado.
+     * O git entra SÓ pelo `$gitShaResolver` injetado (default = `git log` por path,
+     * best-effort): chamado UMA vez por doc observado. NÃO enumera o git inteiro —
+     * é exatamente isso que elimina o phantom-drift (não há mais caso "ausente no
+     * DB" varrendo `memory/**` além da whitelist do healer).
+     *
+     * Drift (todos `healable=false` — alerta-only; ver docblock da classe):
      *  (b) git_sha git != git_sha DB       → sync silenciou (sha velho).
      *  (c) updated_at > indexed_at no DB   → DB mudou, Scout não re-embeddou.
      *
      * Casos NÃO-drift (não reporta):
-     *  - path igual em ambos com mesmo sha e indexed_at >= updated_at → synced.
-     *  - git_sha indeterminado (null) em git OU DB → não dá pra COMPARAR sha
+     *  - mesmo sha e indexed_at >= updated_at → synced.
+     *  - git_sha indeterminado (null) no git OU no DB → não dá pra COMPARAR sha
      *    (Hostinger sem shell_exec degrada git_sha pra null). Não inventa drift de
-     *    sha nesse caso; (a) e (c) ainda valem. Evita falso-positivo diário.
-     *  - path SÓ no DB (não está no git) → fora do escopo desta faceta. O sync já
-     *    soft-deleta órfãos (whereNotIn slug); reportar aqui seria ruído.
+     *    sha nesse caso; (c) ainda vale. Evita falso-positivo diário.
      *
-     * @param array<string, array{git_path: string, git_sha: ?string}> $gitDocs
-     *   desired, chaveado por git_path.
+     * FOLLOW-UP (fora de escopo — exige path-lister canônico compartilhado com o
+     * healer, mesma whitelist + exclusões LGPD de `memory/clientes` e
+     * `memory/feedback`): detectar "doc NOVO no git ainda não indexado". Sem o
+     * path-lister compartilhado, reintroduziria o phantom-drift (git enumera milhares
+     * de paths que o índice nunca deve conter). Quando existir, vira o caso (a) +
+     * habilita auto-heal escopado.
+     *
      * @param array<string, array{git_path: string, git_sha: ?string, indexed_at: ?string, updated_at: ?string}> $dbDocs
-     *   observed, chaveado por git_path.
+     *   observed, chaveado por git_path. É a BASE da iteração (DB-first).
+     * @param \Closure(string): ?string $gitShaResolver
+     *   desired-por-path: git_path → git_sha HEAD (null = indeterminado).
      * @return array<int, ReconcileDrift>
      */
-    public function analisar(array $gitDocs, array $dbDocs): array
+    public function analisar(array $dbDocs, \Closure $gitShaResolver): array
     {
-        $paths = array_keys($gitDocs);
+        $paths = array_keys($dbDocs);
         sort($paths); // determinístico
 
         $drifts = [];
 
         foreach ($paths as $path) {
-            $git = $gitDocs[$path];
-            $gitSha = $git['git_sha'];
-
-            // (a) doc do git ausente no DB → nunca indexado (ou soft-deleted).
-            if (! array_key_exists($path, $dbDocs)) {
-                $drifts[] = new ReconcileDrift(
-                    target: $path,
-                    detail: 'Doc do git ausente no índice MCP (mcp_memory_documents) — nunca indexado '
-                        . 'ou soft-deletado. Re-sync git→DB indexa + embeda.',
-                    desired: $gitSha !== null ? "git_sha={$gitSha}" : 'presente no git',
-                    observed: 'ausente no DB',
-                    healable: true,
-                );
-
-                continue;
-            }
-
             $db = $dbDocs[$path];
             $dbSha = $db['git_sha'];
+            $gitSha = $gitShaResolver($path);
 
             // (b) git_sha diverge → sync git→DB silenciou. Só compara quando AMBOS
             // os SHAs são conhecidos (Hostinger sem shell_exec → sha null = pula).
@@ -253,10 +253,12 @@ final class ContentReconciler implements Reconciler
                 $drifts[] = new ReconcileDrift(
                     target: $path,
                     detail: 'git_sha do índice MCP diverge do HEAD do git — sync git→DB silenciou '
-                        . '(perdeu webhook + cron). Re-sync reescreve content_md + re-embeda.',
+                        . '(perdeu webhook + cron). Re-sync reescreve content_md + re-embeda. '
+                        . 'ALERTA-ONLY: cura manual via `php artisan mcp:sync-memory` (heal automático '
+                        . 'bloqueado — healer faz delete global sem business_id, ADR 0093).',
                     desired: "git_sha={$gitSha}",
                     observed: "git_sha={$dbSha}",
-                    healable: true,
+                    healable: false,
                 );
 
                 continue;
@@ -267,10 +269,12 @@ final class ContentReconciler implements Reconciler
                 $drifts[] = new ReconcileDrift(
                     target: $path,
                     detail: 'updated_at > indexed_at no índice MCP — o DB registrou mudança mas o Scout '
-                        . 'não re-embeddou (índice serve conteúdo stale). Re-sync força re-index.',
+                        . 'não re-embeddou (índice serve conteúdo stale). Re-sync força re-index. '
+                        . 'ALERTA-ONLY: cura manual via `php artisan mcp:sync-memory` (heal automático '
+                        . 'bloqueado — ver docblock da classe).',
                     desired: 'indexed_at >= updated_at (' . ($db['updated_at'] ?? '-') . ')',
                     observed: 'indexed_at=' . ($db['indexed_at'] ?? 'nunca'),
-                    healable: true,
+                    healable: false,
                 );
 
                 continue;
@@ -285,11 +289,12 @@ final class ContentReconciler implements Reconciler
      * `mcp_memory_documents`). Espelha o "método puro injetável" do DeployDriftChecker:
      * o teste substitui via o closure $dbDocsObserver do construtor (não toca DB).
      *
-     * Multi-tenant: corpus GLOBAL — NÃO aplica scope de business_id (docs de
-     * programação, sem dados de tenant). Ver doc da classe + config
+     * Multi-tenant: corpus GLOBAL na LEITURA — NÃO aplica scope de business_id (docs
+     * de programação, sem dados de tenant). Ver doc da classe + config
      * `copiloto.meilisearch_indexes.mcp_memory_documents`. Inclui soft-deleted
-     * (withTrashed) pra que (a) "ausente no DB" distinga doc nunca-indexado de
-     * doc soft-deletado que o git ressuscitou — ambos curam via re-sync.
+     * (withTrashed) por simetria com o healer; aqui são inertes (sem git_sha
+     * divergente acionável até serem restaurados), mas mantém a leitura fiel ao
+     * estado do índice.
      *
      * @return array<string, array{git_path: string, git_sha: ?string, indexed_at: ?string, updated_at: ?string}>
      */
@@ -319,82 +324,11 @@ final class ContentReconciler implements Reconciler
     }
 
     /**
-     * Coleta os docs canônicos do git (`memory/**`) com seu `git_sha` HEAD, chaveados
-     * por git_path. Default de produção do desired — reusa a MESMA lista de paths que
-     * o sync (IndexarMemoryGitParaDb) cobre + o MESMO leitor de SHA best-effort (git
-     * log via shell_exec, degrada pra null no Hostinger). NÃO duplica parsing de
-     * frontmatter/embedding: só precisa de path + sha pra COMPARAR.
-     *
-     * @return array<string, array{git_path: string, git_sha: ?string}>
-     */
-    private function coletarGitDocs(string $base): array
-    {
-        $out = [];
-        foreach ($this->listarPathsGit($base) as $relPath) {
-            $out[$relPath] = [
-                'git_path' => $relPath,
-                'git_sha' => $this->lerGitSha($base, $relPath),
-            ];
-        }
-
-        return $out;
-    }
-
-    /**
-     * Lista os paths POSIX-relativos dos docs canônicos sob `memory/**` (e a raiz
-     * CLAUDE/DESIGN/INFRA) que o índice MCP deve refletir. Varre recursivo via
-     * RecursiveDirectoryIterator (glob do PHP não recursa) — pula `_*`/README como
-     * o sync faz. Ordenado pra determinismo.
-     *
-     * @return array<int, string>
-     */
-    private function listarPathsGit(string $base): array
-    {
-        $baseNorm = rtrim(str_replace('\\', '/', $base), '/');
-        $memoryDir = $baseNorm . '/memory';
-
-        $paths = [];
-
-        if (is_dir($memoryDir)) {
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($memoryDir, \FilesystemIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::LEAVES_ONLY,
-            );
-            foreach ($iterator as $file) {
-                if (! $file instanceof \SplFileInfo) {
-                    continue;
-                }
-                if (! $file->isFile() || strtolower($file->getExtension()) !== 'md') {
-                    continue;
-                }
-                $name = $file->getBasename('.md');
-                if (str_starts_with($name, '_') || $name === 'README') {
-                    continue;
-                }
-                $full = str_replace('\\', '/', $file->getPathname());
-                $paths[$full] = ltrim(substr($full, strlen($baseNorm)), '/');
-            }
-        }
-
-        // Docs canônicos da raiz que o sync também indexa (reference).
-        foreach (['CLAUDE.md', 'DESIGN.md', 'INFRA.md'] as $raiz) {
-            $full = $baseNorm . '/' . $raiz;
-            if (is_file($full)) {
-                $paths[$full] = $raiz;
-            }
-        }
-
-        $rel = array_values($paths);
-        sort($rel);
-
-        return $rel;
-    }
-
-    /**
      * SHA do último commit que toca o arquivo (best-effort). MESMA estratégia do
      * IndexarMemoryGitParaDb::lerGitSha / StalenessDetectorService::lerGitShaAtual:
      * Hostinger shared hosting tem shell_exec disabled → degrada pra null (drift de
-     * sha simplesmente não é avaliado nesse path; (a)/(c) ainda valem).
+     * sha simplesmente não é avaliado nesse path; (c) ainda vale). Chamado on-demand
+     * pelo resolver default, UMA vez por doc observado (DB-first) — nunca varre o git.
      */
     private function lerGitSha(string $base, string $relativePath): ?string
     {
@@ -429,9 +363,8 @@ final class ContentReconciler implements Reconciler
      * (ou qualquer formato que strtotime entenda). Pura: recebe as duas strings já
      * observadas, não toca clock.
      *
-     * - indexed_at null  → nunca indexado: tratado por (a) ausência, NÃO aqui (o doc
-     *   existe no DB mas sem indexed_at é raro; conservador = não reporta como (c)
-     *   pra não duplicar com casos de borda). Retorna false.
+     * - indexed_at null  → nunca indexado de fato: conservador = não reporta como
+     *   (c) (doc no DB sem indexed_at é raro e ambíguo). Retorna false.
      * - updated_at null  → sem sinal de mudança → false.
      */
     private function updatedAposIndexed(?string $updatedAt, ?string $indexedAt): bool
