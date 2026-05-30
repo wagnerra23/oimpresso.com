@@ -1,8 +1,12 @@
 ---
 date: '2026-05-30'
-hour: '10:48 BRT'
+time: '10:48 BRT'
+slug: design-governance-system-incremental
+tldr: "Sistema de governança de design pro Claude Design (golden + pré-flight + grade 16-dim + índice mestre) construído e mergeado (PR #1991); 4 goldens de arquétipo PT-02..05 + ADR 0236 aceito + briefings refrescados; camada incremental (mcp_design_requests) proposta — retomar com MCP ativado."
 topic: "Sistema de governança de design pro Claude Design (golden + pré-flight + grade + índice + reprocesso) + camada incremental proposta"
 duration: 5h
+prs: [1991, 1992, 1993, 1994]
+decided_by: [W]
 authors: [W, C]
 ---
 
