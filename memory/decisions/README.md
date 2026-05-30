@@ -45,7 +45,15 @@ Nome do arquivo: `NNNN-titulo-curto-em-kebab.md`
 | [0010](./0010-sistema-memoria-projeto.md) | Sistema de memória do projeto (CLAUDE.md + /memory/) | ✅ Aceita |
 | [0011](./0011-alinhamento-padrao-jana.md) | Alinhamento com padrãa Jana (UltimatePOS) | ✅ Aceita |
 | [0023](./0023-inertia-v3-upgrade.md) | Upgrade Inertia.js v2 → v3 (faseado) | ✅ Aceita |
+| 0024–0235 | _(índice cronológico defasado — ver índice temático completo abaixo)_ | — |
+| [0236](./0236-sessao-2026-05-30-ds-harmonizacao.md) | Harmonização DS sem perder qualidade + caminho v4.2 (Cowork, proposto como `0200`) | ✅ Aceita |
+| [0237](./0237-ratificacao-constituicao-design.md) | Carta de Design [CC] subordinada ao protocolo do git (Cowork, proposto como `0201`) | ✅ Aceita |
 
 ---
 
-**Última atualização:** 2026-04-24
+> ⚠️ **Este índice cronológico está defasado** (parou em 2026-04-24 / ADR 0023). O índice **completo e atual**,
+> organizado por tema (T1–T9, ADRs 0001–0237), está em [`../INDEX_TEMATICO.md`](../INDEX_TEMATICO.md).
+> O lifecycle (aceita / superseded / proposta) é resolvido pela tool MCP `decisions-search` +
+> [`_INDEX-LIFECYCLE.md`](./_INDEX-LIFECYCLE.md). Regra de numeração: ADR 0028 (monotônica).
+
+**Última atualização:** 2026-05-30
