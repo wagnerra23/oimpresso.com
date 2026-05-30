@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-05-29T23:55:21.807Z",
-    "total_violations": 1417,
+    "generated_at": "2026-05-30T00:42:36.910Z",
+    "total_violations": 1405,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"
   },
@@ -416,11 +416,11 @@
     "resources/js/Pages/ProjectMgmt/MyWork/Index.tsx|no-restricted-syntax": 2,
     "resources/js/Pages/ProjectMgmt/Triage/Index.tsx|no-restricted-syntax": 2,
     "resources/js/Pages/Purchase/Create.tsx|no-undef": 1,
-    "resources/js/Pages/Purchase/Create.tsx|no-restricted-syntax": 11,
+    "resources/js/Pages/Purchase/Create.tsx|no-restricted-syntax": 7,
     "resources/js/Pages/Purchase/Edit.tsx|no-undef": 1,
-    "resources/js/Pages/Purchase/Edit.tsx|no-restricted-syntax": 8,
+    "resources/js/Pages/Purchase/Edit.tsx|no-restricted-syntax": 4,
     "resources/js/Pages/Purchase/Index.tsx|@typescript-eslint/no-unused-vars": 1,
-    "resources/js/Pages/Purchase/Index.tsx|no-restricted-syntax": 7,
+    "resources/js/Pages/Purchase/Index.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Purchase/Show.tsx|no-restricted-syntax": 5,
     "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx|no-restricted-syntax": 9,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|@typescript-eslint/no-unused-vars": 1,

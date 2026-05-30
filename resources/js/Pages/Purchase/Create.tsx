@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save } from 'lucide-react';
 
 // ---------- Tipos ----------
@@ -84,6 +85,9 @@ export interface PurchaseCreatePageProps {
 
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
+
+// Sentinela do Radix Select (não aceita value=""), mapeada pra '' no estado.
+const NENHUM = '__none__';
 
 // ---------- Página ----------
 
@@ -228,18 +232,19 @@ function PurchaseCreate({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <Label htmlFor="location_id" className="text-[12px] text-stone-600">Filial *</Label>
-              <select
-                id="location_id"
-                className="mt-1 w-full h-9 px-2 rounded-md border border-stone-200 text-[13px]"
+              <Select
                 value={form.data.location_id}
-                onChange={(e) => form.setData('location_id', e.target.value)}
-                required
+                onValueChange={(v) => form.setData('location_id', v)}
               >
-                <option value="">Selecione uma filial…</option>
-                {localOptions.map(([id, name]) => (
-                  <option key={id} value={id}>{name}</option>
-                ))}
-              </select>
+                <SelectTrigger id="location_id" className="mt-1 h-9 text-[13px]" aria-label="Filial">
+                  <SelectValue placeholder="Selecione uma filial…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {localOptions.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {form.errors.location_id && <p className="text-rose-700 text-[11px] mt-1">{form.errors.location_id}</p>}
             </div>
 
@@ -282,17 +287,19 @@ function PurchaseCreate({
 
             <div>
               <Label htmlFor="status" className="text-[12px] text-stone-600">Status *</Label>
-              <select
-                id="status"
-                className="mt-1 w-full h-9 px-2 rounded-md border border-stone-200 text-[13px]"
+              <Select
                 value={form.data.status}
-                onChange={(e) => form.setData('status', e.target.value as PurchaseStatus)}
-                required
+                onValueChange={(v) => form.setData('status', v as PurchaseStatus)}
               >
-                {Object.entries(order_statuses).map(([key, label]) => (
-                  <option key={key} value={key}>{label}</option>
-                ))}
-              </select>
+                <SelectTrigger id="status" className="mt-1 h-9 text-[13px]" aria-label="Status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(order_statuses).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {form.errors.status && <p className="text-rose-700 text-[11px] mt-1">{form.errors.status}</p>}
             </div>
           </div>
@@ -416,14 +423,18 @@ function PurchaseCreate({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-[12px] text-stone-600">Tipo desconto</Label>
-                <select
-                  className="mt-1 w-full h-9 px-2 rounded-md border border-stone-200 text-[13px]"
+                <Select
                   value={form.data.discount_type}
-                  onChange={(e) => form.setData('discount_type', e.target.value as DiscountType)}
+                  onValueChange={(v) => form.setData('discount_type', v as DiscountType)}
                 >
-                  <option value="fixed">Valor fixo ({currency.symbol})</option>
-                  <option value="percentage">Percentual (%)</option>
-                </select>
+                  <SelectTrigger className="mt-1 h-9 text-[13px]" aria-label="Tipo de desconto">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">Valor fixo ({currency.symbol})</SelectItem>
+                    <SelectItem value="percentage">Percentual (%)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-[12px] text-stone-600">Valor desconto</Label>
@@ -439,16 +450,20 @@ function PurchaseCreate({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-[12px] text-stone-600">Imposto global</Label>
-                <select
-                  className="mt-1 w-full h-9 px-2 rounded-md border border-stone-200 text-[13px]"
-                  value={form.data.tax_id}
-                  onChange={(e) => form.setData('tax_id', e.target.value)}
+                <Select
+                  value={form.data.tax_id || NENHUM}
+                  onValueChange={(v) => form.setData('tax_id', v === NENHUM ? '' : v)}
                 >
-                  <option value="">Nenhum</option>
-                  {taxes.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name} ({t.amount}%)</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="mt-1 h-9 text-[13px]" aria-label="Imposto global">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NENHUM}>Nenhum</SelectItem>
+                    {taxes.map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>{t.name} ({t.amount}%)</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-[12px] text-stone-600">Frete ({currency.symbol})</Label>

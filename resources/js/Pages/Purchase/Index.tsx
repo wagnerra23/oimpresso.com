@@ -18,7 +18,11 @@ import { useState, useMemo, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Plus, Eye, Edit, Trash2, Printer, RotateCcw, FileText } from 'lucide-react';
+
+// Sentinela do Radix Select (não aceita value=""), mapeada pra '' (= "todos") nos filtros.
+const NENHUM = '__none__';
 
 // ---------- Tipos ----------
 
@@ -174,32 +178,52 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
       {/* Filtros sticky */}
       <Card className="mt-4 sticky top-14 z-10">
         <CardContent className="p-3 flex flex-wrap items-center gap-2">
-          <select className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
-                  value={filters.location_id} onChange={(e) => aplicar({ location_id: e.target.value })}>
-            <option value="">Todas as filiais</option>
-            {business_locations.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}
-          </select>
+          <Select value={filters.location_id || NENHUM}
+                  onValueChange={(v) => aplicar({ location_id: v === NENHUM ? '' : v })}>
+            <SelectTrigger className="h-8 w-[160px] text-[12.5px]" aria-label="Filial">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NENHUM}>Todas as filiais</SelectItem>
+              {business_locations.map(l => <SelectItem key={l.id} value={String(l.id)}>{l.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
 
-          <select className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
-                  value={filters.supplier_id} onChange={(e) => aplicar({ supplier_id: e.target.value })}>
-            <option value="">Todos os fornecedores</option>
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-          </select>
+          <Select value={filters.supplier_id || NENHUM}
+                  onValueChange={(v) => aplicar({ supplier_id: v === NENHUM ? '' : v })}>
+            <SelectTrigger className="h-8 w-[190px] text-[12.5px]" aria-label="Fornecedor">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NENHUM}>Todos os fornecedores</SelectItem>
+              {suppliers.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
 
-          <select className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
-                  value={filters.status} onChange={(e) => aplicar({ status: e.target.value })}>
-            <option value="">Todos os status</option>
-            {order_statuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-          </select>
+          <Select value={filters.status || NENHUM}
+                  onValueChange={(v) => aplicar({ status: v === NENHUM ? '' : v })}>
+            <SelectTrigger className="h-8 w-[150px] text-[12.5px]" aria-label="Status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NENHUM}>Todos os status</SelectItem>
+              {order_statuses.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
 
-          <select className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
-                  value={filters.payment_status} onChange={(e) => aplicar({ payment_status: e.target.value })}>
-            <option value="">Pagamento (todos)</option>
-            <option value="paid">Pago</option>
-            <option value="due">Em aberto</option>
-            <option value="partial">Parcial</option>
-            <option value="overdue">Vencido</option>
-          </select>
+          <Select value={filters.payment_status || NENHUM}
+                  onValueChange={(v) => aplicar({ payment_status: v === NENHUM ? '' : v })}>
+            <SelectTrigger className="h-8 w-[160px] text-[12.5px]" aria-label="Pagamento">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NENHUM}>Pagamento (todos)</SelectItem>
+              <SelectItem value="paid">Pago</SelectItem>
+              <SelectItem value="due">Em aberto</SelectItem>
+              <SelectItem value="partial">Parcial</SelectItem>
+              <SelectItem value="overdue">Vencido</SelectItem>
+            </SelectContent>
+          </Select>
 
           <Input
             type="date"
