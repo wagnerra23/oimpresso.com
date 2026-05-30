@@ -148,3 +148,15 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 ---
 
 > _Atualizar este índice sempre que um doc de design for criado/aposentado. É a fonte da verdade do que o Claude Design consome._
+
+---
+
+## 7 · Estado do reprocesso (mantido pela skill `design-memoria-reprocess`)
+
+- **last_reprocess:** `2026-05-30` (consolidação inicial — 4 agentes paralelos, ADR 0231)
+- **Como evolui sem quebrar:** ADR proposto [`governanca-evolucao-doc-design`](../../decisions/proposals/governanca-evolucao-doc-design.md) — append-only + ratchet + freshness + 3 gatilhos (G1 incremental / G2 reconciliar / G3 total). Workflow executável: skill [`design-memoria-reprocess`](../../../.claude/skills/design-memoria-reprocess/SKILL.md).
+
+### Changelog
+| Data | Gatilho | Mudança |
+|---|---|---|
+| 2026-05-30 | G3 (inicial) | Índice criado: 88 docs revisados, regra de ouro, conflitos reconciliados, positivo+negativo. |
