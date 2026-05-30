@@ -132,7 +132,51 @@ PR de F3 mergeia → tela ativa em prod
 prototipos/<tela>/ permanece read-only como histórico
 ```
 
-## 10. Links
+## 10. Gatilho canônico de entrada + canal de retorno (loop fechado)
+
+> **Origem:** 2026-05-30 — o roadmap "DS até zero" chegou via 2 snippets genéricos do Claude Design
+> ("Fetch this design file…" / "Implement the designs") que **não carregam este protocolo** e **não
+> abrem retorno** `[CL]`→`[CC]`. Resultado: `HANDOFF.md` ficou 15d stale, `SYNC_LOG.md` parou, `CODE_NOTES.md`
+> morreu, e o Wagner virou carteiro manual de status. Esta seção mata isso.
+> Ancora em [ADR 0239](../memory/decisions/0239-governanca-design-system-git-ssot-regressao-ia.md) (git = SSOT · fluxo Cowork→Code→git).
+
+O loop tem **dois** gatilhos, não um. O genérico do Claude Design é só IDA — e ainda incompleto.
+
+### 10.1 Gatilho de IDA — `[CC]`/`[W]` → `[CL]` (substitui os snippets genéricos)
+
+```
+<roadmap/tarefa> — executar via protocolo prototipo-ui (ADR 0114 + ADR 0239).
+
+ANTES de tocar código:
+1. Ler prototipo-ui/PROTOCOL.md + ADR 0239 (git = fonte única).
+2. Salvar os prompts recebidos em prototipo-ui/PROMPT_PARA_CODE_*.md e commitar
+   (as URLs claudeusercontent.com expiram em ~1h — git é o SSOT).
+
+EXECUTAR: 1 unidade = 1 branch = 1 PR · lint:baseline:check verde ·
+PARA no gate visual ([W2] aprova screenshot · --admin proibido).
+
+REPORTAR DE VOLTA a cada PR mergeado → §10.2.
+```
+
+### 10.2 Gatilho de RETORNO — `[CL]` → `[CC]` (o que faltava)
+
+A cada PR mergeado, `[CL]` escreve nos **3 canais que `[CC]` lê via MCP** (webhook GitHub→MCP, ~2min):
+
+| # | Canal | Ação | Conteúdo |
+|---|---|---|---|
+| 1 | `DS_ADOCAO_INDICE.md` | atualiza | a linha do módulo com o `ds/*` novo (o placar) |
+| 2 | `SYNC_LOG.md` | **append** | `YYYY-MM-DD HH:MM [CL] <fase> <módulo> merged · ds/*: <antes>→<depois> · PR #N` |
+| 3 | `HANDOFF.md` | **sobrescreve** | "agora": fase/módulo corrente · próximo da fila · `ds/*` total restante |
+
+Placar canônico: **`npm run ds:report`** (`scripts/ds-report.mjs`) — quebra `ds/*` por **regra × módulo** (o baseline agrega tudo sob `no-restricted-syntax`; este separa). `npm run ds:report -- --json` alimenta o `DS_ADOCAO_INDICE.md` e a dimensão "Adoção DS" do GovernanceV4.
+
+`[CC]` lê esses 3 via MCP e solta a próxima fila — **sem o Wagner copiar status na mão.**
+
+### 10.3 Por que git, não chat
+
+`[CC]` (Claude Design web) não enxerga o repo direto; enxerga via **MCP** (`mcp.oimpresso.com`), que sincroniza por **webhook GitHub→MCP no merge**. Logo: status que não está **commitado** é invisível pro `[CC]`. Handoff em `memory/handoffs/` (fora de `prototipo-ui/`) **não** fecha o loop — `[CC]` não lê de lá. Os 3 canais de §10.2 são o contrato.
+
+## 11. Links
 
 - [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — mãe
 - [ADR 0107](../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — gate F1.5 visual
