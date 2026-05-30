@@ -9,6 +9,7 @@ import { Save, X, Plus, Trash2, Wrench } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
 
 interface JobSheetMin {
@@ -196,19 +197,22 @@ export default function JobSheetAddParts({
             <h2 className="text-sm font-semibold">Atualizar status (pendente do fluxo)</h2>
             <div>
               <Label htmlFor="status_id">Status</Label>
-              <select
-                id="status_id"
-                value={data.status_id as string | number}
-                onChange={(e) => setData('status_id', e.target.value)}
-                className="w-full rounded-md border px-3 py-2 text-sm"
+              <Select
+                value={String(data.status_id || '__none__')}
+                onValueChange={(v) => setData('status_id', v === '__none__' ? '' : v)}
               >
-                <option value="">— Status —</option>
-                {Object.entries(status_dropdown).map(([id, name]) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="status_id" aria-label="Status" className="w-full">
+                  <SelectValue placeholder="— Status —" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Status —</SelectItem>
+                  {Object.entries(status_dropdown).map(([id, name]) => (
+                    <SelectItem key={id} value={id}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </section>
         )}
