@@ -1,0 +1,164 @@
+# ÍNDICE-MESTRE — Memórias de Design que o Claude Design pode usar
+
+> **Pra que serve:** ponto único de partida do Claude Design. Lista TODAS as memórias de design do projeto — **positivas** (o que copiar/seguir) e **negativas** (o que NÃO repetir) — já reconciliadas, com a **regra de ouro** que resolve conflito. Substitui a tarefa de "montar contexto de cabeça" (origem da invenção e do erro repetido).
+> **Gerado:** 2026-05-30 por 4 agentes especialistas em paralelo (ADR 0231) revisando 27 docs `prototipo-ui/` + 26 `_DesignSystem/` + 17 ADRs UI + 18 decisions. Sessão `2026-05-30-screen-grade-metodo-estado-arte.md`. PR #1991.
+
+---
+
+## 0 · REGRA DE OURO (como resolver qualquer conflito)
+
+Quando duas memórias divergem, vence nesta ordem:
+
+1. **ADR canon mais recente com `supersedes`** (memórias são append-only — o aposentado vira histórico, NÃO se usa).
+2. **DS v4 roxo (ADR 0235) > DS v3 > v2.** Cor canon = `primary` roxo `oklch(0.55 0.15 295)`. Azul em tela = **débito a migrar**, nunca padrão novo.
+3. **Código real > documento.** Se a doc diz "tela X tem drift Y" e o código não tem mais, o código vence (a MATRIZ_MIGRACAO_DS tem falsos-positivos confirmados — ver §4).
+4. **Constituição UI v2 (ADR UI-0013):** Fundações → Shell → Padrão de Tela → Módulo. Camada superior herda e **nunca contradiz** a inferior.
+5. **Data mais recente** vence em docs operacionais (briefings, handoffs, notes).
+
+> **Meta-regra única (a frase):** *Crie DENTRO do que existe — copie o golden do arquétipo, rode o PRE-FLIGHT, use só `@/Components/ui` + token `primary` roxo, e NUNCA invente (componente, Model, paleta) nem repita um anti-padrão já catalogado. Em dúvida, pergunte (UI-0013 regra-mestre).*
+
+---
+
+## 1 · ORDEM DE LEITURA (sempre, antes de qualquer tela)
+
+1. **[PRE-FLIGHT-TELA.md](../../../prototipo-ui/PRE-FLIGHT-TELA.md)** — monta o pacote de pré-requisitos DAQUELA tela (identidade/não-inventar/não-repetir/validar).
+2. **[GOLDEN-REFERENCE.md](../../../prototipo-ui/GOLDEN-REFERENCE.md)** — a tela-ouro do arquétipo + 10 regras binárias. "Faça idêntico, mude só X."
+3. **[REGISTRY_DS_COMPONENTES.md](../../../prototipo-ui/REGISTRY_DS_COMPONENTES.md)** — componentes `@/Components/ui` disponíveis. Se está aqui, **não hand-rola**. ⚠️ Onda F (`Segmented`/`FormSection`/`InputGroup`/`FieldState`) **ainda NÃO existe** — não assuma que existe.
+4. **[LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)** — os 21 anti-padrões (exemplo errado). Leitura obrigatória antes de F3.
+5. **[SCREEN-GRADE-METODO.md](SCREEN-GRADE-METODO.md)** — como a tela será notada (16 dim, níveis Beginner→Champion).
+
+> **Atalho operacional:** a skill **[`screen-grade`](../../../.claude/skills/screen-grade/SKILL.md)** (Tier B) dispara o Pré-Flight resolver + a nota automaticamente — basta "nota da tela X" / "/screen-grade Mod/Tela" ou tocar um `Pages/<Mod>/<Tela>.tsx`. Materializa os 5 passos acima sem montar contexto de cabeça.
+
+---
+
+## 2 · ÍNDICE POSITIVO (o que usar)
+
+### 2a. Entrada / identidade do projeto
+| Memória | Usar pra |
+|---|---|
+| [memory/why-oimpresso.md](../../why-oimpresso.md) | **Posicionamento REAL: ERP modular multi-vertical** (ADR 0121). Larissa/ROTA LIVRE = **vestuário** (não gráfica). ⚠️ corrige briefings antigos |
+| [personas-por-modulo.yml](personas-por-modulo.yml) + ADR UI-0016 | Persona dona da tela (Larissa 1280px densidade · Eliana tabela densa · técnico touch ≥44px) |
+| [prototipo-ui/GLOSSARY.md](../../../prototipo-ui/GLOSSARY.md) | Siglas, fases, comparáveis externos por arquétipo |
+
+### 2b. Padrões — o que COPIAR
+| Memória | Usar pra |
+|---|---|
+| **GOLDEN-REFERENCE.md** | tela-ouro `Sells/Create` (form) + 10 regras binárias R1-R10 |
+| **padroes-tela/PT-01-Lista.md** | golden do arquétipo **lista** (status sem bg-fill, slots) |
+| **REGISTRY_DS_COMPONENTES.md** | componentes reais `@/Components/ui` |
+| **tokens v4** (`resources/css/inertia.css`, ADR 0235) | cor = `primary` roxo. Zero `blue-*` de marca |
+| ADR 0110 (Cockpit Pattern V2) + UI-0010 `os-page.jsx` + UI-0012 | padrão list+detail / shell |
+| ADR UI-0015 | campos de form default `variant="cowork"` |
+| [framework-15-dimensoes.md](framework-15-dimensoes.md) | as 15 dim de qualidade + ponderação por persona |
+| [pageheader-matriz-diferencas.md](pageheader-matriz-diferencas.md) | PageHeader: F1-F16 fixas vs V1-V9 variáveis |
+| [PRE-MERGE-UI.md](PRE-MERGE-UI.md) · [SPEC.md](SPEC.md) (R-DS-001..012) · README.md · ARCHITECTURE.md | regras duras + checklist + mapa da stack |
+| RUNBOOK-{replicar-prototipo-cowork,onda-cowork,design-deep,inertia-defer-pattern}.md | receitas de execução (portar protótipo, ondas, defer) |
+
+> ⚠️ **Goldens de arquétipo: só existe PT-01-Lista.** Faltam **PT-02 Form/Drawer · PT-03 Detalhe · PT-04 Dashboard · PT-05 Config/Kanban** (confirmado por 2 agentes + piloto). Até existirem, o Claude Design usa o golden de código (GOLDEN-REFERENCE = form) e, p/ outros tipos, **pergunta** em vez de inventar.
+
+### 2c. Validação / definição de pronto
+| Memória | Usar pra |
+|---|---|
+| **SCREEN-GRADE-METODO.md** | nota 16-dim, níveis, score-as-code |
+| [PRE-MERGE-UI.md](PRE-MERGE-UI.md) | checklist AP1-AP8 antes de merge |
+| `php artisan ui:lint` (R1-R6, CI ratchet) | cor crua, FontAwesome, emoji, PT-01, origens, blade |
+| `ds:report` (regras `ds/*`, ADR 0209) | violações de DS (zero é meta) |
+
+---
+
+## 3 · ÍNDICE NEGATIVO (não repetir — memórias negativas)
+
+> Estas existem pra o Claude Design **não repetir erro já pago**. Anthropic context-engineering: "manter o erro no contexto previne repeti-lo."
+
+### 3a. Meta-anti-padrões (LICOES_F3 — comportamento)
+| Código | Não fazer |
+|---|---|
+| M-AP-1 | auto-doc/aprendizado não é gate — não pular validação sob pressão |
+| M-AP-2 | marketing otimista — não chamar 4/5 stubs mock de "F3 completo" |
+| M-AP-3 | "f3" no chat ≠ aprovação dos gates F1.5+F2 |
+| M-AP-4 | schema/Model proposto NÃO vira código sem ADR |
+| M-AP-5 | decisão pendente NÃO vira default silencioso hardcoded |
+| **M-AP-6** | **"criar componente se não existe" institucionaliza invenção** — proibido |
+
+### 3b. Anti-padrões técnicos (não inventar)
+| Código | Não fazer |
+|---|---|
+| T-AP-1/2 | **Models inventados** — `FinancialEntry`/`BankAccount`/`ChartOfAccount` NÃO existem; reais = `Titulo`/`ContaBancaria`/`Categoria` |
+| T-AP-2 | Controller sem tenant scope (Tier 0 / ADR 0093) |
+| T-AP-3 | middleware fantasma `'tenant'` — canon = `['web','auth','language','timezone','AdminSidebarMenu']` |
+| T-AP-4 | sobrescrever Controller de tela já em prod (regressão silenciosa) |
+| T-AP-7 | Services inventados sem `Glob Modules/<Mod>/Services/` |
+| T-AP-8 | `auth()->user()->business_id` — canon = `session('user.business_id')` (Job/CLI) |
+| T-AP-13 | mutação NO-OP `return back()` (botão clica, nada persiste) |
+| T-AP-15 | sidebar inventado (`sidebar.php`) — canon = `DataController::user_permissions` + `SIDEBAR_GROUPS` |
+| T-AP-18 | fallback default sem `Log::warning` (bug Larissa R9) |
+
+### 3c. Proibições visuais (lista canônica = [PRE-MERGE-UI.md](PRE-MERGE-UI.md) AP1-AP10 + PT-01 §Nunca + pageheader F12-F16)
+Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · inglês em UI · `rounded-xl+` · emoji em UI produtiva · cor crua fora dos tokens · gradiente 135° bluish-purple · sombra forte · **reinventar shared** (Table/Drawer/PageHeader — AP2) · localStorage sem prefixo `oimpresso.<mod>.*` · ícone fora do lucide · **status badge com bg-fill** (canon = dot + texto colorido, Stripe-style — AP7) · label não-PT-BR · `<main>` aninhado · chain de overflow sem `h-full`/`min-h-0` · primary magenta legacy (hue 330) · botão que duplica navegação já coberta por ghost.
+> ⚠️ `ui:lint` **NÃO** pega AP2/AP5/AP7/AP8 (componente reinventado, gradient, bg-fill badge, copy não-PT-BR) — esses dependem de revisão humana/golden.
+
+### 3d. Drifts de implementação catalogados
+| Origem | Erro |
+|---|---|
+| GOLDEN-REFERENCE §4 | a própria golden usa `rounded-xl` nos KPI (`Sells/Create:916,924,932,942`) → corrigir p/ `rounded-lg` ao copiar |
+| DS_ADOCAO_INDICE | drift-raiz: hand-rolou `<input radio>` existindo `radio-group.tsx` — falta de guard |
+| HANDOFF/SYNC_LOG | NÃO copiar zip Cowork `{Modules,Pages,resources}` direto pra raiz (viola Tier 0, regride prod) |
+
+---
+
+## 4 · CONFLITOS RECONCILIADOS (a regra de ouro aplicada)
+
+| Tema | Canon HOJE | Aposentado / não-usar | Regra |
+|---|---|---|---|
+| **Cor / accent** | **ADR 0235 — roxo `primary` `oklch(0.55 0.15 295)`** universal | ADR 0190 (`superseded`) · azul de marca | R1+R2 |
+| **Sidebar (cor)** | **light** por padrão (UI-0009 + UI-0014) | "sidebar dark sempre" (rejeitada) | R1 |
+| **Sidebar (estrutura)** | single-pane scroll, user menu cascata (UI-0011) | toggle Chat↔Menu dual-pane (UI-0008/0039) | R1 |
+| **DS v3 vs UI v2** | **coexistem** — DS v3 é o "como", UI v2 é o "o quê" (UI-0017) | — | R4 |
+| **MATRIZ Cliente/Index "modais/select nativo"** | **código real**: já é `rounded-lg` + `<Select>` shadcn | entradas P0-3 da MATRIZ (falsos-positivos) | R3 |
+| **Azul na golden** | preservar azul **semântico** (status); trocar azul **de marca** (link/foco) → `primary` | — | R2 (nuance AUDITORIA_DS_V4 §3) |
+| **Posicionamento do produto** | **ERP multi-vertical**, Larissa = vestuário (why-oimpresso, ADR 0121) | "só comunicação visual" (briefing antigo) | R5 |
+| **Onda F componentes** | **não existem ainda** (REGISTRY) — hand-rola até criar | assumir `<Segmented>` etc. existe (= M-AP-6) | R3 |
+| **Topbar** | presente no Cockpit (UI-0008) | UI-0007 (removida) — só AppShell legado | R1 |
+| **Sidebar hue-per-grupo** | **código `cockpit/shared.ts SIDEBAR_GROUP_HUE`** (reconciliado 2026-05-25) | hues de GUIA-SIDEBAR / sidebar-rail-mode (antigos) | R3 |
+| **PageHeader (estrutura)** | **3 blocos fechados** separados, gap 12px (ADR 0189 v3.1, pageheader-matriz F1) | "layout flat 3 zonas" (ADR 0182) | R1 |
+| **Azul que SOBREVIVE** | **origin-badge CRM = blue** (sistema de badge de origem, ≠ botão primary) — continua válido | confundir com cor de marca | R2 (nuance) |
+
+---
+
+## 5 · HIERARQUIA CANÔNICA HOJE (estado final)
+
+**Fundações** (tokens DS v3, accent **roxo 295** via DS v4/ADR 0235) → **Shell** (AppShellV2/Cockpit, sidebar **light** single-pane) → **Padrão de Tela** (PT-01 Lista / Cockpit Pattern V2 / `os-page.jsx`) → **Módulo**. Owner da UI = **Claude Design plugin** (ADR 0235 §3), dentro do loop MWART (0104→0114) + persona (UI-0016).
+
+---
+
+## 6 · DOCS STALE (a refrescar — não são canon de cor/posicionamento)
+
+| Doc | Problema | Ação |
+|---|---|---|
+| `CLAUDE_COWORK_PRIMER.md` | `last_sync 2026-05-09` — não conhece DS v4/GOLDEN/PRE-FLIGHT | **header canon adicionado 2026-05-30** (aponta pra este índice) |
+| `CLAUDE_DESIGN_BRIEFING.md` | §2 "só comunicação visual" (errado) · §4 tokens azul/shadcn genérico | refresh: posicionamento multi-vertical + token roxo |
+| `CODE_DESIGN_CONTRACT.md` | versão para em DS v3.1, cita "Design System.html" | bump v4 + apontar `Design System v4.html` |
+| `PROTOCOL.md` | v1.0, F3 "1 linha" (já estendido por PROTOCOL-F3) | costurar GOLDEN/PRE-FLIGHT como gate |
+| `HANDOFF.md` | congelado 2026-05-15 | regenerar |
+| `GLOSSARY.md` | `[M]=Manus` diverge de `[M]=Maiara` (canon) | reconciliar tabela de pessoas |
+| `MATRIZ_MIGRACAO_DS.md` §P0-3 | 3 falsos-positivos Cliente/Index | corrigir (Cliente já migrado) |
+| **`BRIEFING_CLAUDE_DESIGN.md`** ⚠️ URGENTE | doc-âncora do Claude Design, mas 2026-04-27: "sidebar dark" + accent hue 220 | reconciliar p/ sidebar light + roxo 295 + PT-01 + UI-0013 |
+| `CATALOGO_ACABAMENTOS.md` | snapshot 2026-04-27, accent hue 220 | tipografia/estrutura úteis; cor via ADR 0235 |
+| `SPEC.md` (R-DS-002) + `ARCHITECTURE.md` + `AUTOMATION-ROADMAP.md` | exemplos `bg-blue-500` | trocar exemplo p/ roxo (confunde com primary) |
+| `GUIA-SIDEBAR-V3` + `sidebar-rail-mode` | hues divergem de `shared.ts` | validar estado real antes de seguir |
+
+---
+
+> _Atualizar este índice sempre que um doc de design for criado/aposentado. É a fonte da verdade do que o Claude Design consome._
+
+---
+
+## 7 · Estado do reprocesso (mantido pela skill `design-memoria-reprocess`)
+
+- **last_reprocess:** `2026-05-30` (consolidação inicial — 4 agentes paralelos, ADR 0231)
+- **Como evolui sem quebrar:** ADR proposto [`governanca-evolucao-doc-design`](../../decisions/proposals/governanca-evolucao-doc-design.md) — append-only + ratchet + freshness + 3 gatilhos (G1 incremental / G2 reconciliar / G3 total). Workflow executável: skill [`design-memoria-reprocess`](../../../.claude/skills/design-memoria-reprocess/SKILL.md).
+
+### Changelog
+| Data | Gatilho | Mudança |
+|---|---|---|
+| 2026-05-30 | G3 (inicial) | Índice criado: 88 docs revisados, regra de ouro, conflitos reconciliados, positivo+negativo. |
