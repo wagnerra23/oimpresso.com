@@ -60,6 +60,7 @@ Quando duas memórias divergem, vence nesta ordem:
 | Memória | Usar pra |
 |---|---|
 | **SCREEN-GRADE-METODO.md** | nota 16-dim, níveis, score-as-code |
+| [design-requests/LEDGER.md](../../governance/design-requests/LEDGER.md) | ledger incremental de pedidos (REQ-NNN, **file-based**) — checar "já processei?" antes de trabalhar; grava resultado/grade ao fechar · ⚠️ scaffold pré-ADR ([proposta](../../decisions/proposals/design-request-ledger-incremental.md)) |
 | [PRE-MERGE-UI.md](PRE-MERGE-UI.md) | checklist AP1-AP8 antes de merge |
 | `php artisan ui:lint` (R1-R6, CI ratchet) | cor crua, FontAwesome, emoji, PT-01, origens, blade |
 | `ds:report` (regras `ds/*`, ADR 0209) | violações de DS (zero é meta) |
@@ -156,9 +157,10 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 ## 7 · Estado do reprocesso (mantido pela skill `design-memoria-reprocess`)
 
 - **last_reprocess:** `2026-05-30` (consolidação inicial — 4 agentes paralelos, ADR 0231)
-- **Como evolui sem quebrar:** ADR proposto [`governanca-evolucao-doc-design`](../../decisions/proposals/governanca-evolucao-doc-design.md) — append-only + ratchet + freshness + 3 gatilhos (G1 incremental / G2 reconciliar / G3 total). Workflow executável: skill [`design-memoria-reprocess`](../../../.claude/skills/design-memoria-reprocess/SKILL.md).
+- **Como evolui sem quebrar:** [ADR 0236](../../decisions/0236-governanca-evolucao-doc-design.md) (aceito 2026-05-30) — append-only + ratchet + freshness + 3 gatilhos (G1 incremental / G2 reconciliar / G3 total). Workflow executável: skill [`design-memoria-reprocess`](../../../.claude/skills/design-memoria-reprocess/SKILL.md).
 
 ### Changelog
 | Data | Gatilho | Mudança |
 |---|---|---|
 | 2026-05-30 | G3 (inicial) | Índice criado: 88 docs revisados, regra de ouro, conflitos reconciliados, positivo+negativo. |
+| 2026-05-30 | G1 | Ledger de pedidos **file-based** (scaffold `governance/design-requests/`) + correção canon "Claude Design = só arquivos, nunca MCP" ([feedback](../../reference/feedback-claude-design-so-arquivos.md)). |
