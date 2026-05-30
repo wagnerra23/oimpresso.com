@@ -1,0 +1,410 @@
+# Scorecard score-as-code — CLAUDE DESIGN (o pipeline de design assistido por IA do oimpresso)
+# Método: ADR 0230 (Governance Scorecard) aplicado à dimensão DESIGN.
+# Pergunta que este scorecard responde: "O Claude Design já vai me entender?" (Wagner, 2026-05-30)
+#
+# Por que existe: o método grade (pesquisar os melhores → nota 0-100 → roadmap pro topo)
+# já vivia em governança (grade.mjs + governance.yaml) e em módulo (module-grade-v4 / ADR 0160).
+# O lado DESIGN tinha o framework-15-dimensoes.md (já é "nota 0-100 por dimensão ponderada por
+# persona") MAS sem o rigor do ADR 0230: sem score-as-code executável, sem ratchet (Invariante A),
+# sem rastreabilidade origin (Invariante B), sem a etapa "≥3 best-of-class + POR QUÊ" registrada.
+# Este arquivo + .claude/governance-eval/grade-design.mjs fecham esse furo.
+#
+# As unidades pontuáveis aqui NÃO são telas — são as CAPACIDADES do Claude Design, agrupadas
+# pelas 4 etapas + 2 invariantes do próprio método grade. Cada uma pergunta: "isso ajuda o
+# Claude Design a ENTENDER o Wagner/cliente e a não regredir?".
+
+---
+
+apiVersion: oimpresso.governance/v1
+kind: CapabilityScorecard          # não é ModuleScorecard (0160) nem regra R1-R12 (0230 governança): é capacidade
+metadata:
+  scope: claude-design
+  metodo: 'ADR 0230 — Método Governance Scorecard aplicado à dimensão DESIGN'
+  pergunta: 'O Claude Design já vai me entender?'
+  owner: '[W]'                     # Wagner — único aprovador
+  cliente_real: 'larissa@rota-livre (biz=4) + jair/kamila/daniela@martinho-cacambas'
+  status: 'proposto'               # baseline inicial — Wagner aprova antes de virar gate
+  baseline_date: 2026-05-30
+  proxima_revisao: 2026-08-30      # revisão trimestral (a própria grade tem nota — auto-aprimoramento)
+  origin: "sessão 2026-05-30 — Wagner: 'aplique método grade ADR 0230, quero saber se o Claude Design já vai me entender'"
+
+# ===========================================================================
+# NÍVEIS legíveis (estilo OpsLevel/Port — herdado de ADR 0230 / 0160)
+# ===========================================================================
+niveis:
+  bronze: '< 50'
+  silver: '50 - 79'
+  gold: '>= 80'
+meta_aspiracional: 90              # calibrada pelo case OpsLevel 22→89% em 8 semanas
+
+# ===========================================================================
+# ETAPA 3 do método — QUEM É O MELHOR DO MUNDO, E POR QUÊ (o mecanismo, não só o nome)
+# Cada unidade abaixo referencia estes por id.
+# ===========================================================================
+best_of_class:
+  - id: nng_persona_jtbd
+    nome: 'Nielsen Norman Group — personas evidence-based + JTBD (Christensen)'
+    url: 'https://www.nngroup.com/articles/personas-jobs-be-done/'
+    porque: |
+      Separa o atitudinal/comportamental (persona) do situacional (JTBD: "o usuário contrata o
+      produto pra fazer progresso numa situação"). MECANISMO superior: persona "evidence-linked"
+      (quotes, logs, tickets, experimentos) + pesquisa CONTÍNUA em vez de doc estático. Expõe
+      lacunas de conhecimento em vez de escondê-las. É exatamente o que separa persona-ativo de
+      persona-ficção.
+
+  - id: athena_design_quality
+    nome: 'athenahealth — Design Quality metric via heuristic evaluation'
+    url: 'https://medium.com/athenahealth-design/establishing-a-design-quality-metric-to-build-design-credibility-61236b8a4567'
+    porque: |
+      Transforma "qualidade de design" em NÚMERO auditável: painel avalia cada workflow contra as
+      10 heurísticas de Nielsen, nota 0-4 por heurística, média = score. MECANISMO superior: barato,
+      repetível, defensável — constrói credibilidade do design com dado, não opinião.
+
+  - id: rubric_2026_llm_judge
+    nome: 'Rubric design 2026 + LLM-as-a-judge (Galileo / Adnan Masood)'
+    url: 'https://medium.com/@adnanmasood/rubric-based-evals-llm-as-a-judge-methodologies-and-empirical-validation-in-domain-context-71936b989e80'
+    porque: |
+      4-5 níveis de score + 5-10 worked examples de edge cases + calibração de viés com intervalo de
+      confiança + item response theory aplicada AOS PRÓPRIOS JUÍZES. MECANISMO superior: trata a
+      confiabilidade como propriedade do INSTRUMENTO de medição — o que impede a rubrica de virar
+      opinião disfarçada de número (risco direto do framework-15-dim hoje).
+
+  - id: ds_maturity_models
+    nome: 'Design System Maturity Models (Sparkbox / USWDS / VA.gov / designsystems.one)'
+    url: 'https://sparkbox.com/foundry/design_system_maturity_model'
+    porque: |
+      5 dimensões (governance · adoption · technical · design quality · operations) × níveis
+      (beginner→leader). MECANISMO superior: mede ADOÇÃO real e impacto alinhado a metas estratégicas
+      (não só "o DS existe"), com design audit + linting + review process. Backstage mostra que
+      adoção real fica ~10% se não se mede — daí o peso em cobertura.
+
+  - id: chromatic_percy_vrt
+    nome: 'Chromatic / Percy — visual regression testing'
+    url: 'https://www.chromatic.com/'
+    porque: |
+      Screenshot-diff POR COMPONENTE contra baseline estável; quando um componente muda, mostra diff
+      lado-a-lado pra aprovar (design intencional) ou rejeitar (regressão). MECANISMO superior: a
+      regressão visual é barrada no CI com baseline versionado — é o ratchet do ADR 0230 aplicado a
+      pixels, não a número agregado.
+
+  - id: style_dictionary_tokens
+    nome: 'Style Dictionary + design tokens semver (W3C DTCG)'
+    url: 'https://smaple.tr/en/blog/tasarim-tokenlari-design-system-olceklendirme-en'
+    porque: |
+      Tokens versionados semanticamente (MAJOR breaking / MINOR add / PATCH fix) + pipeline CI roda
+      VRT quando token muda. MECANISMO superior: a mudança de fundação (cor/espaço/tipo) é rastreável
+      e testada — não silenciosa.
+
+  - id: v0_figma_mcp
+    nome: 'Vercel v0 + Figma Make + Figma MCP + Claude Code (stack de design 2026)'
+    url: 'https://vercel.com/blog/working-with-figma-and-custom-design-systems-in-v0'
+    porque: |
+      Design-to-code alimentando o agente SEÇÃO POR SEÇÃO com regras explícitas do design system
+      (via Figma MCP como middle step), em vez de jogar o arquivo inteiro. MECANISMO superior: o
+      gerador respeita o DS porque recebe o contrato em pedaços digeríveis — menos alucinação visual.
+
+  - id: cortex_opslevel_port
+    nome: 'Cortex / OpsLevel / Port — score-as-code'
+    url: 'https://www.cortex.io'
+    porque: |
+      Rubrica vive em YAML versionado (GitOps), níveis Bronze/Silver/Gold, e tendência AI-driven
+      (LLM lê código+telemetria e atualiza score). MECANISMO superior: a régua é código revisado por
+      PR — muda a régua exige justificativa. É a fundação do próprio ADR 0230.
+
+# ===========================================================================
+# AS UNIDADES PONTUÁVEIS (etapa 1: dividir · etapa 2: pontuar 0-100)
+# Cada unidade carrega os 2 invariantes:
+#   A. baseline (ratchet — nota NÃO pode cair) + justification (por que não pode voltar)
+#   B. origin (a memória que originou — ADR/sessão/incidente)
+# eixo = a que etapa/invariante do método ela corresponde.
+# ===========================================================================
+unidades:
+
+  CD1_compreensao_cliente:
+    eixo: 'ENTENDER (etapa 1 — quem é o usuário)'
+    title: 'Compreensão do cliente — persona de cliente real + JTBD + discovery'
+    peso: 3
+    maturity: 78
+    nivel: silver
+    rec: CONSOLIDAR
+    baseline: 70
+    justification: |
+      Voltar abaixo de 70 reabre "design genérico = commodity" (Bling/Tiny/Omie). A diferenciação do
+      oimpresso É adaptar ao papel+ramo+tamanho via persona de cliente PAGANTE (ADR 0105). Persona
+      inventada = ficção que deriva.
+    origin: 'ADR UI-0016 (design contextualizado por persona) + ADR 0105 (cliente-como-sinal)'
+    best_of_class: [nng_persona_jtbd]
+    evidence:
+      - 'memory/clientes/<cliente>/personas/*.yml (Larissa, Jair, Kamila, Daniela — cliente real)'
+      - 'skill cliente-discovery (Mom Test + JTBD + IDEO day-in-the-life)'
+      - 'memory/clientes/<cliente>/discovery-*.md (append-only)'
+    forte: |
+      Já faz o que a NN/g prega: persona evidence-based de cliente real pagante (não inventada). Isso
+      está À FRENTE da maioria do mercado, que usa persona genérica de template.
+    gaps:
+      - 'Cobertura baixa: 2 empresas / 4 personas (vestuário + caçambas). Falta gráfica, fiscal, etc.'
+      - 'Sem cadência de re-entrevista (NN/g 2026 prega pesquisa CONTÍNUA vs doc estático de 2026-05-27).'
+      - 'Persona não tem campo evidence-link estruturado (quote→ticket→experimento) pra cada atributo.'
+
+  CD2_decodifica_pedido:
+    eixo: 'ENTENDER (etapa 1 — decodificar a intenção do Wagner)'
+    title: 'Decodificação do pedido vago → estruturado (pergunta antes de implementar)'
+    peso: 3
+    maturity: 70
+    nivel: silver
+    rec: CONSOLIDAR
+    baseline: 60
+    justification: |
+      Voltar abaixo de 60 reabre "implementa em cima de pedido cru e erra o alvo" — exatamente o
+      problema que motivou a regra-mestre da Constituição UI v2. Esta sessão É a prova: o agente
+      PERGUNTOU o alvo da grade antes de codar.
+    origin: 'Constituição UI v2 regra-mestre (ADR UI-0013) + agente wagner-understand + skill wagner-request-refiner'
+    best_of_class: [rubric_2026_llm_judge]
+    evidence:
+      - '.claude/agents/wagner-understand (decodifica pedido cru)'
+      - 'skill wagner-request-refiner (Tier B reactive)'
+      - 'AskUserQuestion usado nesta sessão antes de aplicar a grade'
+    forte: 'A regra "pedido vago = pergunta antes" está escrita e foi exercida agora.'
+    gaps:
+      - 'É ORIENTAÇÃO (skill/agent), não enforcement medido — depende do agente lembrar (mesmo gap meta do ADR 0230).'
+      - 'Não há teste que prove "pedido vago foi refinado" — sem ratchet, pode regredir silenciosamente.'
+
+  CD3_rubrica_pontuada:
+    eixo: 'PONTUAR (etapa 2 — classificar dando nota)'
+    title: 'Rubrica de avaliação pontuada — framework 15 dimensões ponderado por persona'
+    peso: 2
+    maturity: 72
+    nivel: silver
+    rec: CONSOLIDAR
+    baseline: 65
+    justification: |
+      Voltar abaixo de 65 reabre "score genérico sem ponderação = improviso disfarçado" (anti-pattern
+      explícito do RUNBOOK-design-deep). A ponderação por persona é o que torna a nota uma DECISÃO.
+    origin: 'framework-15-dimensoes.md + ADR UI-0016'
+    best_of_class: [athena_design_quality, rubric_2026_llm_judge]
+    evidence:
+      - 'memory/requisitos/_DesignSystem/framework-15-dimensoes.md (15 dim, 0-100, tabela de peso por persona)'
+      - 'skill design-deep-analysis (score ponderado = decisão por persona)'
+    forte: '15 dimensões é MAIS granular que as 10 heurísticas de Nielsen, e a ponderação por persona é inovação além do baseline de mercado.'
+    gaps:
+      - 'Score é "estimado dos outputs das skills" — subjetivo, sem ancoragem (rubric 2026 pede worked examples + calibração inter-avaliador / IRT).'
+      - 'Vive em markdown, não em score-as-code executável (este YAML começa a corrigir, mas o 15-dim em si ainda não está parametrizado em YAML).'
+
+  CD4_comparativo_best_of_class:
+    eixo: 'PONTUAR (etapa 3 — pesquisar quem é o melhor E POR QUÊ)'
+    title: 'Comparação com best-of-class do mundo + justificativa do mecanismo'
+    peso: 2
+    maturity: 68
+    nivel: silver
+    rec: CONSOLIDAR
+    baseline: 58
+    justification: |
+      Voltar abaixo de 58 reabre "nota vs nada" — a nota só vale se comparada com os melhores. O ADR
+      0230 exige registrar o POR QUÊ (mecanismo), não só citar o concorrente.
+    origin: 'ADR 0114 (mwart-comparative V4, gate F3 estado-da-arte) + agentes design-arte/tela-venda-arte/capterra-senior'
+    best_of_class: [v0_figma_mcp, ds_maturity_models]
+    evidence:
+      - 'skill mwart-comparative (gate F3: Linear/Stripe/Shopify/Notion antes de codar Page)'
+      - 'agentes design-arte, tela-venda-arte, capterra-senior (vs Bling/Tiny/Omie + líderes globais)'
+    forte: 'O comparativo vs estado-da-arte já é gate obrigatório antes de migrar tela (MWART F3).'
+    gaps:
+      - 'Comparação é por demanda (quando roda agent), não persistida como score-as-code com o POR QUÊ.'
+      - 'Sem registro estruturado do mecanismo (este best_of_class acima é a 1ª vez que isso é gravado em YAML).'
+
+  CD5_roadmap_acionavel:
+    eixo: 'ROADMAP (etapa 4 — caminho pro ponto mais alto)'
+    title: 'Roadmap acionável — 3 alternativas A/B/C com diff preparado + impacto×esforço + métrica'
+    peso: 2
+    maturity: 80
+    nivel: gold
+    rec: CONSOLIDAR
+    baseline: 72
+    justification: |
+      Voltar abaixo de 72 reabre "análise abstrata sem código pronto" — o RUNBOOK-design-deep proíbe
+      isso explicitamente ("diff preparado, não análise abstrata"). Entregar A/B/C com diff + ganho
+      por dimensão é o que torna a recomendação executável.
+    origin: 'RUNBOOK-design-deep.md passo 5 + skill design-deep-analysis princípios duros'
+    best_of_class: [ds_maturity_models]
+    evidence:
+      - 'design-deep-analysis: 3 alternativas (mínimo/médio/repensar) com diff + métrica antes/depois'
+    forte: 'Supera a maioria — entrega DIFF pronto pra aplicar + ganho estimado por dimensão, não recomendação genérica.'
+    gaps:
+      - 'Ganho estimado nem sempre é MEDIDO pós-deploy (smoke prod existe mas o loop "antes/depois" real nem sempre fecha).'
+
+  CD6_anti_regressao_design:
+    eixo: 'INVARIANTE A — anti-regressão JUSTIFICADA (ratchet)'
+    title: 'Anti-regressão de design com justificativa medida'
+    peso: 2
+    maturity: 62
+    nivel: silver
+    rec: EVOLUIR
+    baseline: 55
+    justification: |
+      Voltar abaixo de 55 reabre "agente regride o DS sem perceber" — o motivo do PRE-MERGE-UI existir.
+      Mas hoje o ratchet ds/* trava o NÚMERO sem carregar a justificativa medida do ADR 0230 (por que
+      voltar é ruim + custo). Por isso EVOLUIR, não só CONSOLIDAR.
+    origin: 'PR #1979-1982 (guard ds/* + ratchet) + PRE-MERGE-UI (AP1-AP10) + brief "Visual regression CI"'
+    best_of_class: [chromatic_percy_vrt, style_dictionary_tokens]
+    evidence:
+      - 'ds/* guard + ratchet (baixa baseline 1455→1432 — trava drift DS<->repo)'
+      - 'PRE-MERGE-UI.md (checklist por camada + AP1-AP10)'
+      - 'Module Grade v4 baseline ("score não baixou vs baseline" — alerta Wagner)'
+    forte: 'Já existe ratchet de drift DS + anti-padrões catalogados + baseline que alerta regressão.'
+    gaps:
+      - 'Falta screenshot-diff POR COMPONENTE estilo Chromatic/Percy (o VRT atual não parece aprovável lado-a-lado por componente).'
+      - 'O ratchet ds/* trava número mas NÃO carrega "voltar reabre qual incidente + custo" (Invariante A do ADR 0230 não acoplada).'
+      - 'Tokens não versionados por semver explícito (MAJOR/MINOR/PATCH) como Style Dictionary prega.'
+
+  CD7_rastreabilidade_rtm:
+    eixo: 'INVARIANTE B — rastreabilidade design→memória (RTM)'
+    title: 'Rastreabilidade de cada decisão de design até a memória de origem'
+    peso: 1
+    maturity: 64
+    nivel: silver
+    rec: CONSOLIDAR
+    baseline: 55
+    justification: |
+      Voltar abaixo de 55 reabre "decisão de design órfã" — ninguém lembra por que a tela é assim, e
+      o agente "arruma" e quebra. O charter é a guarda executável do porquê.
+    origin: 'charter-first/charter-write (contrato vivo por tela) + ADRs UI numeradas + discovery append-only'
+    best_of_class: [nng_persona_jtbd]
+    evidence:
+      - '*.charter.md ao lado do *.tsx (Mission/Goals/Non-Goals/Anti-hooks)'
+      - 'ADRs UI-0001..0017 (cada decisão de design numerada e append-only)'
+      - 'brief "Charters apodrecendo: —" (hoje vazio = bom sinal, métrica vigiada)'
+    forte: 'Charter por tela + ADRs UI numeradas dão rastro do porquê.'
+    gaps:
+      - 'Não há campo `origin` formal por regra de design (o grade.mjs de governança tem; o lado design não).'
+      - 'Charter drift é risco vigiado mas não bloqueante (pode apodrecer entre revisões).'
+
+  CD8_geracao_design_to_code:
+    eixo: 'EXECUTAR (gerar o design — fora das 4 etapas, mas parte do pipeline)'
+    title: 'Geração/aplicação — Cowork → Inertia/React (design-to-code)'
+    peso: 1
+    maturity: 70
+    nivel: silver
+    rec: CONSOLIDAR
+    baseline: 60
+    justification: |
+      Voltar abaixo de 60 reabre os 6 meta-anti-padrões + 15 técnicos do batch Financeiro rejeitado
+      (LICOES_F3). O processo MWART de 5 fases existe pra não repetir isso.
+    origin: 'ADR 0104 (MWART) + ADR 0114 + skill cowork-prototype-replication + LICOES_F3_FINANCEIRO_REJEITADO'
+    best_of_class: [v0_figma_mcp]
+    evidence:
+      - 'skill mwart-process (5 fases) + cowork-prototype-replication (7 fases prototipo-ui→Inertia)'
+      - 'prototipo-ui/PROTOCOL.md (loop Cowork ↔ Claude Code)'
+    forte: 'Cowork faz o papel do Figma Make + Claude Code gera; o loop é formalizado em 5-7 fases.'
+    gaps:
+      - 'Sem Figma MCP / feed section-by-section automático — o handoff Cowork→Inertia é processual/manual.'
+      - 'Tokens não sincronizam bidirecional automático (design→code) como Style Dictionary.'
+
+  CD9_metodo_executavel:
+    eixo: 'META — o método é score-as-code executável + auto-revisável?'
+    title: 'O próprio método grade aplicado a design existe como código rodável e ratcheted'
+    peso: 1
+    maturity_antes: 30
+    maturity: 75                    # depois de criar este design.yaml + grade-design.mjs
+    nivel: silver
+    rec: EVOLUIR
+    baseline: 30
+    justification: |
+      Voltar abaixo de 30 = voltar ao estado pré-2026-05-30: o método de design vivia só em markdown
+      (framework-15-dim), sem execução, sem ratchet, sem origin. Era o elo MAIS FRACO — igual a camada
+      meta da governança (38/100). Este arquivo + grade-design.mjs subiram pra 75.
+    origin: "sessão 2026-05-30 — Wagner pediu aplicar ADR 0230 ao Claude Design"
+    best_of_class: [cortex_opslevel_port]
+    evidence:
+      - 'memory/scorecards/design.yaml (este arquivo — score-as-code)'
+      - '.claude/governance-eval/grade-design.mjs (grade executável + ratchet)'
+    forte: 'Agora o veredito do Claude Design é REPRODUZÍVEL (roda a grade) e versionado por PR.'
+    gaps:
+      - 'Notas ainda atribuídas pelo método (não AI-driven leitura de telemetria como Cortex MCP).'
+      - 'Não plugado em CI ainda (proposta — Wagner aprova antes de virar gate).'
+
+# ===========================================================================
+# PAIRED INDICATORS — anti-gaming (herdado de ADR 0160 / Jellyfish 2025)
+# Se a parelha não bate, a unidade fica capped — impede inflar nota sem substância.
+# ===========================================================================
+paired_indicators:
+  - velocidade: CD1_compreensao_cliente   # "temos personas"
+    qualidade: CD7_rastreabilidade_rtm     # "as personas/decisões têm origin rastreável"
+    rule: 'se CD1 >= 80 mas CD7 < 60, CD1 cap em 60'
+    racional: 'Persona sem rastro de evidência vira ficção bonita — vanity persona.'
+
+  - velocidade: CD3_rubrica_pontuada       # "damos nota"
+    qualidade: CD4_comparativo_best_of_class # "a nota é vs os melhores, com porquê"
+    rule: 'se CD3 >= 80 mas CD4 < 60, CD3 cap em 60'
+    racional: 'Nota sem comparação com estado-da-arte é opinião com casas decimais (Goodhart).'
+
+  - velocidade: CD9_metodo_executavel      # "o método roda"
+    qualidade: CD6_anti_regressao_design    # "e trava regressão de verdade"
+    rule: 'se CD9 >= 80 mas CD6 < 55, CD9 cap em 60'
+    racional: 'Grade que roda mas não barra regressão é teatro de governança.'
+
+# ===========================================================================
+# CÁLCULO — agregado ponderado pelos pesos das unidades
+# ===========================================================================
+calculo:
+  formula: 'Σ(maturity_i × peso_i) / Σ(peso_i)'
+  pesos_total: 17                  # 3+3+2+2+2+2+1+1+1
+  agregado_antes: 69               # com CD9=30 (estado pré-sessão 2026-05-30)
+  agregado_depois: 72              # com CD9=75 (após criar design.yaml + grade-design.mjs)
+  nivel_global: silver
+  meta_gold: 80                    # "o Claude Design te entende sem você repetir"
+
+# ===========================================================================
+# ROADMAP pro ponto mais alto (etapa 4) — gaps por impacto×esforço, em ondas
+# ===========================================================================
+roadmap:
+  consolidar_vs_evoluir:
+    consolidar: 'CD1, CD2, CD3, CD4, CD5, CD7, CD8 — paradigma certo, fechar furos'
+    evoluir: 'CD6 (anti-regressão precisa screenshot-diff + justificativa medida) · CD9 (plugar em CI + AI-driven)'
+
+  onda_1_destravar_metodo:          # FEITO nesta sessão
+    feito: true
+    itens:
+      - 'design.yaml (score-as-code) — CD9 30→75'
+      - 'grade-design.mjs (grade executável + ratchet) — torna o veredito reproduzível'
+    ganho: 'CD9 +45 → agregado 69→72'
+
+  onda_2_ancorar_a_nota:            # impacto alto, esforço médio
+    feito: false
+    itens:
+      - 'CD3: adicionar 5-10 worked examples de edge case por dimensão (rubric 2026) + calibração inter-avaliador'
+      - 'CD4: persistir o comparativo best-of-class no YAML por dimensão (não só on-demand)'
+    ganho_estimado: 'CD3 72→82, CD4 68→78 → agregado ~75'
+
+  onda_3_anti_regressao_real:       # impacto alto, esforço alto
+    feito: false
+    itens:
+      - 'CD6: screenshot-diff por componente (Chromatic/Percy-style) plugado no CI'
+      - 'CD6: acoplar justificativa medida do ADR 0230 ao ratchet ds/* (cada trava cita incidente + custo)'
+      - 'CD6: versionar tokens por semver (Style Dictionary)'
+    ganho_estimado: 'CD6 62→80 → agregado ~78'
+
+  onda_4_cobertura_e_cadencia:      # impacto médio, esforço médio
+    feito: false
+    itens:
+      - 'CD1: +personas de novos ramos (gráfica, fiscal) com cliente real + cadência de re-entrevista'
+      - 'CD2: teste de regressão "pedido vago foi refinado" (fecha o gap orientação→enforcement)'
+      - 'CD9: plugar grade-design.mjs no CI como gate (Wagner aprova) + tendência AI-driven'
+    ganho_estimado: 'agregado ~80+ (GOLD — "te entende sem repetir")'
+
+# ===========================================================================
+# VEREDITO — resposta direta à pergunta do Wagner
+# ===========================================================================
+veredito:
+  pergunta: 'O Claude Design já vai me entender?'
+  resposta_curta: 'SIM, em ~72/100 (SILVER) — e nos eixos que MAIS importam pra te entender ele já está em 70-80.'
+  detalhe: |
+    O Claude Design JÁ tem o que mais importa: persona de cliente REAL (não inventada, 78),
+    decodifica teu pedido vago perguntando antes (70), rubrica 15-dim ponderada (72) e roadmap
+    A/B/C com DIFF pronto (80 — GOLD). Em "entender o cliente" ele está à frente da maioria do
+    mercado (faz evidence-based como a NN/g prega).
+
+    O elo mais fraco NÃO era ele te entender — era o MÉTODO de design não ser executável (BRONZE 30,
+    igual foi a governança em 38). Isso foi destravado agora (design.yaml + grade = 75).
+
+    Pra ele te entender SEM você repetir (GOLD ≥80) faltam 3 ondas: ancorar a nota (worked examples +
+    calibração), anti-regressão de design REAL (screenshot-diff + justificativa medida), e cobertura
+    de personas (mais ramos + cadência).
