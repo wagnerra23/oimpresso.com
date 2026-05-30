@@ -49,6 +49,12 @@ class ScreenReviewController extends Controller
     /** Base path scan — relative to base_path() */
     private const PAGES_ROOT = 'resources/js/Pages';
 
+    /** Glob do baseline de notas screen-grade (método 9.75) — memória canônica no git (ADR 0239 R1 / 0061). */
+    private const GRADE_BASELINE_GLOB = 'memory/governance/scorecards/screen-grades-baseline-*.json';
+
+    /** Cache (path → grade) — evita reler o JSON a cada buildScreensPayload. */
+    private ?array $gradesCache = null;
+
     public function __construct(
         protected AdminAuditLogger $audit,
         protected ?InitiativeService $initiatives = null,
@@ -76,6 +82,8 @@ class ScreenReviewController extends Controller
                 'iterate_count' => $counts[self::STATUS_ITERATE],
                 'pending_over_7d' => $counts['pending_over_7d'],
             ],
+            // Maturidade de design (método 9.75) — baseline no git (ADR 0239 R1). Defer: lê arquivo.
+            'grades' => Inertia::defer(fn () => $this->buildGradeSummary()),
         ]);
     }
 
@@ -230,6 +238,7 @@ class ScreenReviewController extends Controller
         }
 
         $screens = [];
+        $grades = $this->gradesByPath();
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS)
         );
@@ -285,6 +294,7 @@ class ScreenReviewController extends Controller
             );
             $screenshotUrl = File::exists(base_path($screenshotRel)) ? '/'.$screenshotRel : null;
 
+            $g = $grades[$pathNoExt] ?? null;
             $screens[] = [
                 'module' => $module,
                 'path' => $pathNoExt,
@@ -296,12 +306,133 @@ class ScreenReviewController extends Controller
                 'charter_path' => File::exists($charterPath) ? $pathNoExt.'.charter.md' : null,
                 'ux_targets' => $uxTargets,
                 'desvios_count' => $desviosCount,
+                // Maturidade método 9.75 (null se a tela ainda não foi graduada no baseline)
+                'nota' => $g['nota'] ?? null,
+                'nivel' => $g['nivel'] ?? null,
+                'archetype' => $g['archetype'] ?? null,
             ];
         }
 
         usort($screens, fn ($a, $b) => strcmp($a['module'], $b['module']) ?: strcmp($a['name'], $b['name']));
 
         return $screens;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Maturidade (método 9.75) — baseline no git, ADR 0239 R1 / 0061
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Lê o baseline de notas screen-grade mais recente em memory/governance/scorecards/.
+     * Defensivo: ausência/JSON inválido → [] (a tela degrada sem nota, não quebra).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function loadGradeBaseline(): array
+    {
+        $files = glob(base_path(self::GRADE_BASELINE_GLOB)) ?: [];
+        if ($files === []) {
+            return [];
+        }
+        sort($files); // nome com data → último = mais recente
+        $latest = (string) end($files);
+        try {
+            $json = json_decode((string) File::get($latest), true, 512, JSON_THROW_ON_ERROR);
+        } catch (\Throwable $e) {
+            Log::warning('screen-review.grade_baseline_read_failed', ['file' => $latest, 'error' => $e->getMessage()]);
+
+            return [];
+        }
+
+        return is_array($json['grades'] ?? null) ? $json['grades'] : [];
+    }
+
+    /**
+     * Mapa path-da-tela → {nota, nivel, archetype, persona} (memoizado).
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function gradesByPath(): array
+    {
+        if ($this->gradesCache !== null) {
+            return $this->gradesCache;
+        }
+        $map = [];
+        foreach ($this->loadGradeBaseline() as $g) {
+            $screen = (string) ($g['screen'] ?? '');
+            if ($screen === '') {
+                continue;
+            }
+            $map[$screen] = [
+                'nota' => isset($g['nota']) ? (int) $g['nota'] : null,
+                'nivel' => (string) ($g['nivel'] ?? ''),
+                'archetype' => (string) ($g['archetype'] ?? ''),
+                'persona' => (string) ($g['persona'] ?? ''),
+            ];
+        }
+
+        return $this->gradesCache = $map;
+    }
+
+    /**
+     * Resumo de maturidade pro Dashboard: média, distribuição por nível, top
+     * prioridades (menor nota), top goldens (maior nota) e média por módulo.
+     *
+     * @return array<string, mixed>
+     */
+    public function buildGradeSummary(): array
+    {
+        $grades = array_values(array_filter(
+            $this->loadGradeBaseline(),
+            fn ($g) => ($g['found'] ?? true) !== false && isset($g['nota']),
+        ));
+
+        if ($grades === []) {
+            return ['available' => false, 'total' => 0, 'media' => 0, 'dist' => [], 'priorities' => [], 'goldens' => [], 'by_module' => []];
+        }
+
+        $bands = ['Champion' => [95, 100], 'Leader' => [85, 94], 'Advanced' => [70, 84], 'Developing' => [50, 69], 'Beginner' => [0, 49]];
+        $dist = array_fill_keys(array_keys($bands), 0);
+        $sum = 0;
+        $byModule = [];
+        foreach ($grades as $g) {
+            $nota = (int) $g['nota'];
+            $sum += $nota;
+            foreach ($bands as $lvl => [$lo, $hi]) {
+                if ($nota >= $lo && $nota <= $hi) {
+                    $dist[$lvl]++;
+                    break;
+                }
+            }
+            $byModule[explode('/', (string) $g['screen'])[0]][] = $nota;
+        }
+
+        $slim = fn ($g) => [
+            'screen' => (string) $g['screen'],
+            'nota' => (int) $g['nota'],
+            'nivel' => (string) ($g['nivel'] ?? ''),
+            'persona' => (string) ($g['persona'] ?? ''),
+            'gap' => isset($g['top_gaps'][0]['dim']) ? (string) $g['top_gaps'][0]['dim'] : '',
+        ];
+
+        $asc = $grades;
+        usort($asc, fn ($a, $b) => ((int) $a['nota'] <=> (int) $b['nota']) ?: strcmp((string) $a['screen'], (string) $b['screen']));
+
+        $mods = [];
+        foreach ($byModule as $m => $arr) {
+            $mods[] = ['module' => $m, 'n' => count($arr), 'media' => (int) round(array_sum($arr) / count($arr))];
+        }
+        usort($mods, fn ($a, $b) => $a['media'] <=> $b['media']);
+
+        return [
+            'available' => true,
+            'total' => count($grades),
+            'media' => (int) round($sum / count($grades)),
+            'dist' => $dist,
+            'priorities' => array_map($slim, array_slice($asc, 0, 12)),
+            'goldens' => array_map($slim, array_slice(array_reverse($asc), 0, 8)),
+            'by_module' => array_slice($mods, 0, 8),
+        ];
     }
 
     // ─────────────────────────────────────────────────────────────────────
