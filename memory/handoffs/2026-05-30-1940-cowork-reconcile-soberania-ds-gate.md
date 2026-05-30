@@ -2,7 +2,7 @@
 date: '2026-05-30'
 time: '19:40 BRT'
 slug: cowork-reconcile-soberania-ds-gate
-tldr: "Handoff Claude Design (Cowork export) + Wagner 'analise se o filesystem/memória do Design ficou como planejou, use a grade'. Auditei o export (grade 55/100: esqueleto ok, recheio furado), gerei prompt 'lê o git e se arruma' pro Cowork → ele reconciliou (verifiquei: 55→90, 6/6). Daí 2 ADRs canon: 0238 soberania-[W] (#2007) + 0239 governança do DS (git SSOT + Cowork→Code + regressão-IA + 1 vigente na raiz, #2008). Achei o furo real: DesignIndexSingleSourceTest existia mas NÃO rodava em CI nenhum → liguei (design-index-gate.yml + invariante c · R5). + tidy git-side R4 (v3→_arquivo, #2009). 3 PRs, 2 ADRs, tudo em main."
+tldr: "Handoff do Claude Design + Wagner 'analise se ficou como planejou, use a grade'. Auditei o export (grade 55/100) → prompt 'lê o git e se arruma' → Cowork reconciliou (verifiquei 55→90, 6/6). 2 ADRs canon: 0238 soberania-[W] (#2007) + 0239 governança do DS (git SSOT · Cowork→Code · regressão-IA · 1 vigente na raiz, #2008). Furo real: o teste do índice não rodava em CI → liguei design-index-gate + invariante c (R5). + tidy R4 v3→arquivo (#2009). 3 PRs, tudo em main."
 topic: "Auditoria filesystem/memória Claude Design (grade) + loop reconcile Cowork verificado + ADR 0238 soberania + ADR 0239 governança DS + gate do índice wirado"
 duration: ~2h
 prs: [2007, 2008, 2009]
