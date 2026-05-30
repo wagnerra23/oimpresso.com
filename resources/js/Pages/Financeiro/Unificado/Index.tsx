@@ -202,7 +202,7 @@ const FILTER_LIFECYCLE: { id: LifecycleId; label: string; hue: number }[] = [
   { id: 'ar', label: 'A receber',  hue: 145 }, // verde
   { id: 're', label: 'Recebidas',  hue: 145 }, // verde (lifecycle complementar)
   { id: 'ap', label: 'A pagar',    hue: 25  }, // rose
-  { id: 'pa', label: 'Pagas',      hue: 240 }, // azul (saída liquidada)
+  { id: 'pa', label: 'Pagas',      hue: 295 }, // roxo accent v4 — estado ativo = roxo (azul 240 não era semântico de status)
 ];
 
 // PR E (2026-05-25) US-FIN-022 — Aging buckets canon BR. Hue rose escala
@@ -1065,7 +1065,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               // não ação features) — Wagner 2026-05-21 split-button popup menu.
             ]}
           />
-          {/* Primary "+ Novo título" — canto direito, hue 145 financas (ADR 0182).
+          {/* Primary "+ Novo título" — canto direito, roxo do canon var(--accent)
+              (ADR 0190 — .os-btn.primary universal roxo 295, supersede hue 145 financas ADR 0182).
               Wagner 2026-05-21: Unificado é caso especial — mostra ambos receivable+
               payable. Click do "+ Novo título" abre dropdown menu com escolha explícita
               (Receber/Pagar/OCR boleto) em vez de levar pra form genérico ambíguo. */}
@@ -1074,7 +1075,6 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               <button
                 type="button"
                 className="os-btn primary"
-                style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
               >
                 <Plus size={13} /> Novo título <ChevronDown size={11} />
               </button>

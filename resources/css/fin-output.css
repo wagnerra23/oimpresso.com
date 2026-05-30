@@ -659,10 +659,10 @@
 }
 .fin-cowork .fin-resume-btn:hover { background: oklch(0.97 0 0); }
 .fin-cowork .fin-resume-btn.primary {
-  background: oklch(0.42 0.18 280); color: white;
-  border-color: oklch(0.42 0.18 280);
+  background: var(--accent); color: white;
+  border-color: var(--accent);
 }
-.fin-cowork .fin-resume-btn.primary:hover { background: oklch(0.36 0.18 280); }
+.fin-cowork .fin-resume-btn.primary:hover { background: var(--accent-2); }
 .fin-cowork .fin-resume-btn.primary.copied {
   background: oklch(0.42 0.18 145);
   border-color: oklch(0.42 0.18 145);
@@ -831,12 +831,12 @@
   border-top: 1px solid oklch(0.92 0.02 60);
 }
 .fin-cowork .fin-edit-close {
-  background: oklch(0.55 0.13 145); color: white;
+  background: var(--accent); color: white;
   font-weight: 600;
   padding: 6px 14px; border: none; border-radius: 6px;
   font-size: 12.5px; cursor: pointer;
 }
-.fin-cowork .fin-edit-close:hover { background: oklch(0.48 0.13 145); }
+.fin-cowork .fin-edit-close:hover { background: var(--accent-2); }
 .fin-cowork .fin-edit-cancel {
   background: white; color: oklch(0.40 0 0);
   padding: 6px 14px; border: 1px solid oklch(0.85 0 0);
