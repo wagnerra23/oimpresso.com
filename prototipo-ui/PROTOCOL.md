@@ -178,6 +178,24 @@ Placar canônico: **`npm run ds:report`** (`scripts/ds-report.mjs`) — quebra `
 
 `[CC]` (Claude Design web) não enxerga o repo direto; enxerga via **MCP** (`mcp.oimpresso.com`), que sincroniza por **webhook GitHub→MCP no merge**. Logo: status que não está **commitado** é invisível pro `[CC]`. Handoff em `memory/handoffs/` (fora de `prototipo-ui/`) **não** fecha o loop — `[CC]` não lê de lá. Os 3 canais de §10.2 são o contrato.
 
+### 10.4 Gate de validação `[CL]` do prompt do `[CC]` — obrigatório, NÃO depende de `[W]`
+
+> **Origem:** 2026-05-30 — Wagner: *"se eu responder eu posso errar? isso não pode depender de mim"*. Um prompt stale do `[CC]` (sync da faxina) mandava re-numerar **ADR 0238 já existente** + renomear colisões 0235/0236 (viola append-only). Se `[W]` aprovasse no automático, quebrava o canon. **A proteção não pode ser `[W]` revisar certo** — é o `[CL]` que valida.
+
+Todo `PROMPT_PARA_CODE` / comando de sync do `[CC]` é **proposta, não ordem**. Antes de executar, `[CL]` valida contra o git — **sozinho, sem escalar pra `[W]` decidir**:
+
+| Checagem | Como | Se falhar |
+|---|---|---|
+| Manda criar/numerar ADR que **já existe** | `git ls-tree origin/main \| grep decisions/<nº\|slug>` | **bloqueia** — não duplica |
+| Manda **renomear/mutar/renumerar ADR aceito** | append-only é **Tier 0** | **bloqueia** — colisão se *documenta* (gate #1997), não muta |
+| Cita **número de ADR** que não bate | comparar com `decisions/` real | **alerta** — provável alucinação/stale |
+| Manda trazer `_PROPOSTA-*` / `*.proposto` / faxina-local pro **canon git** | é rascunho do Cowork | **rejeita** — rascunho fica no Cowork, não polui canon |
+| Contradiz **decisão canon recente** | `decisions-search` / handoffs | **alerta** — Cowork provavelmente stale |
+
+**Regra de ouro:** se a checagem tem resposta no git, `[CL]` **decide e age — só informa `[W]`**. Escala pra `[W]` **apenas o subjetivo** (estético / estratégico / prioridade / dinheiro). O gate não espera `[W]`.
+
+**Backstop no repo (2ª linha, também sem `[W]`):** `AdrNumberCollisionTest` (#1997) + invariante append-only pegam se algo stale chegar a commitar. Lição canon: [feedback-cowork-sync-now-prompt-stale](../memory/reference/feedback-cowork-sync-now-prompt-stale.md).
+
 ## 11. Links
 
 - [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — mãe
