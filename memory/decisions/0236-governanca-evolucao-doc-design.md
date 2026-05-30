@@ -1,13 +1,14 @@
 ---
-slug: governanca-evolucao-doc-design
-number: null  # atribuir no aceite (próximo livre — cuidado colisão paralela tipo ADR 0180)
+slug: 0236-governanca-evolucao-doc-design
+number: 236
 title: "Governança de evolução da documentação de design — append-only + índice fonte-única + ratchet + freshness gate + reprocesso por gatilho"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 proposed_at: "2026-05-30"
+decided_at: "2026-05-30"
 module: governance
 quarter: 2026-Q2
 tags: [governance, design-system, documentacao, append-only, ratchet, freshness, reprocesso, event-driven, idempotente, claude-design]
