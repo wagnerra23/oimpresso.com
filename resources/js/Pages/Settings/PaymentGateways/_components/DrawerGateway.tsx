@@ -13,6 +13,7 @@ import {
   DRIVERS, cn, fmtDate, type GatewayKey,
 } from '../_lib/gateway-shared';
 import type { SettingsGateway, Account } from '../_lib/gateway-shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 type Tab = 'identificacao' | 'credenciais' | 'webhook' | 'health' | 'historico';
 
@@ -306,14 +307,18 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 </Field>
               </div>
               <Field label="Conta destino">
-                <select
-                  value={contaId}
-                  onChange={e => setContaId(e.target.value)}
-                  className="w-full h-8 bg-white border border-stone-300 rounded px-2 text-[12.5px]"
+                <Select
+                  value={contaId || '__none__'}
+                  onValueChange={v => setContaId(v === '__none__' ? '' : v)}
                 >
-                  <option value="">— sem vínculo —</option>
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
+                  <SelectTrigger variant="shadcn" size="sm" aria-label="Conta destino" className="w-full text-[12.5px]">
+                    <SelectValue placeholder="— sem vínculo —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— sem vínculo —</SelectItem>
+                    {accounts.map(a => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Status"><Toggle on={gateway.ativo} onConfirm={onToggle} /></Field>

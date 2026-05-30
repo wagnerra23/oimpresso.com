@@ -11,6 +11,8 @@ import {
   Target,
 } from 'lucide-react';
 import { cn } from '@/Lib/utils';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
 import RoundBadge, { type ReviewStatus } from './RoundBadge';
 import type { ScreenRow } from './ScreenList';
 
@@ -174,15 +176,16 @@ export default function ReviewReader({ screen, onAction, onResmoke, className }:
           maxLength={2000}
           className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/40"
         />
-        <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <input
-            type="checkbox"
+        <div className="flex items-center gap-1.5">
+          <Checkbox
+            id="create-initiative"
             checked={createInitiative}
-            onChange={(e) => setCreateInitiative(e.target.checked)}
-            className="rounded border-border"
+            onCheckedChange={(v) => setCreateInitiative(v === true)}
           />
-          Abrir Initiative governance se rejeitar (deadline 14d)
-        </label>
+          <Label htmlFor="create-initiative" variant="shadcn" className="font-normal cursor-pointer text-[11px] text-muted-foreground">
+            Abrir Initiative governance se rejeitar (deadline 14d)
+          </Label>
+        </div>
         <div className="flex flex-wrap gap-1.5 pt-1">
           <ActionButton
             tone="approve"

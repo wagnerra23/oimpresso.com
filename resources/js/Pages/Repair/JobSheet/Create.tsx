@@ -10,6 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
 
 interface DropdownOption {
@@ -133,54 +134,63 @@ export default function JobSheetCreate({ options, walk_in_customer, default_stat
                 </div>
                 <div>
                   <Label htmlFor="location_id">Local de atendimento</Label>
-                  <select
-                    id="location_id"
-                    value={data.location_id}
-                    onChange={(e) => setData('location_id', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  <Select
+                    value={String(data.location_id || '__none__')}
+                    onValueChange={(v) => setData('location_id', v === '__none__' ? '' : v)}
                   >
-                    <option value="">— Selecione —</option>
-                    {options?.business_locations &&
-                      Object.entries(options.business_locations).map(([id, name]) => (
-                        <option key={id} value={id}>
-                          {name}
-                        </option>
-                      ))}
-                  </select>
+                    <SelectTrigger id="location_id" aria-label="Local de atendimento" className="w-full">
+                      <SelectValue placeholder="— Selecione —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Selecione —</SelectItem>
+                      {options?.business_locations &&
+                        Object.entries(options.business_locations).map(([id, name]) => (
+                          <SelectItem key={id} value={id}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="service_staff">Técnico</Label>
-                  <select
-                    id="service_staff"
-                    value={data.service_staff}
-                    onChange={(e) => setData('service_staff', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  <Select
+                    value={String(data.service_staff || '__none__')}
+                    onValueChange={(v) => setData('service_staff', v === '__none__' ? '' : v)}
                   >
-                    <option value="">— Sem responsável —</option>
-                    {options?.technecians &&
-                      Object.entries(options.technecians).map(([id, name]) => (
-                        <option key={id} value={id}>
-                          {name}
-                        </option>
-                      ))}
-                  </select>
+                    <SelectTrigger id="service_staff" aria-label="Técnico" className="w-full">
+                      <SelectValue placeholder="— Sem responsável —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Sem responsável —</SelectItem>
+                      {options?.technecians &&
+                        Object.entries(options.technecians).map(([id, name]) => (
+                          <SelectItem key={id} value={id}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="status_id">Status inicial</Label>
-                  <select
-                    id="status_id"
-                    value={data.status_id as string | number}
-                    onChange={(e) => setData('status_id', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  <Select
+                    value={String(data.status_id || '__none__')}
+                    onValueChange={(v) => setData('status_id', v === '__none__' ? '' : v)}
                   >
-                    <option value="">— Status —</option>
-                    {options?.repair_statuses &&
-                      Object.entries(options.repair_statuses).map(([id, name]) => (
-                        <option key={id} value={id}>
-                          {name}
-                        </option>
-                      ))}
-                  </select>
+                    <SelectTrigger id="status_id" aria-label="Status inicial" className="w-full">
+                      <SelectValue placeholder="— Status —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Status —</SelectItem>
+                      {options?.repair_statuses &&
+                        Object.entries(options.repair_statuses).map(([id, name]) => (
+                          <SelectItem key={id} value={id}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="delivery_date">Prazo de entrega</Label>
@@ -202,54 +212,63 @@ export default function JobSheetCreate({ options, walk_in_customer, default_stat
                 {options?.repair_settings?.enable_brand_in_job_sheet && (
                   <div>
                     <Label htmlFor="brand_id">Marca</Label>
-                    <select
-                      id="brand_id"
-                      value={data.brand_id}
-                      onChange={(e) => setData('brand_id', e.target.value)}
-                      className="w-full rounded-md border px-3 py-2 text-sm"
+                    <Select
+                      value={String(data.brand_id || '__none__')}
+                      onValueChange={(v) => setData('brand_id', v === '__none__' ? '' : v)}
                     >
-                      <option value="">— Marca —</option>
-                      {Object.entries(options.brands).map(([id, name]) => (
-                        <option key={id} value={id}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger id="brand_id" aria-label="Marca" className="w-full">
+                        <SelectValue placeholder="— Marca —" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">— Marca —</SelectItem>
+                        {Object.entries(options.brands).map(([id, name]) => (
+                          <SelectItem key={id} value={id}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
                 <div>
                   <Label htmlFor="device_id">Tipo de aparelho</Label>
-                  <select
-                    id="device_id"
-                    value={data.device_id}
-                    onChange={(e) => setData('device_id', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  <Select
+                    value={String(data.device_id || '__none__')}
+                    onValueChange={(v) => setData('device_id', v === '__none__' ? '' : v)}
                   >
-                    <option value="">— Aparelho —</option>
-                    {options?.devices &&
-                      Object.entries(options.devices).map(([id, name]) => (
-                        <option key={id} value={id}>
-                          {name}
-                        </option>
-                      ))}
-                  </select>
+                    <SelectTrigger id="device_id" aria-label="Tipo de aparelho" className="w-full">
+                      <SelectValue placeholder="— Aparelho —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Aparelho —</SelectItem>
+                      {options?.devices &&
+                        Object.entries(options.devices).map(([id, name]) => (
+                          <SelectItem key={id} value={id}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="device_model_id">Modelo</Label>
-                  <select
-                    id="device_model_id"
-                    value={data.device_model_id}
-                    onChange={(e) => setData('device_model_id', e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  <Select
+                    value={String(data.device_model_id || '__none__')}
+                    onValueChange={(v) => setData('device_model_id', v === '__none__' ? '' : v)}
                   >
-                    <option value="">— Modelo —</option>
-                    {options?.device_models &&
-                      Object.entries(options.device_models).map(([id, name]) => (
-                        <option key={id} value={id}>
-                          {name}
-                        </option>
-                      ))}
-                  </select>
+                    <SelectTrigger id="device_model_id" aria-label="Modelo" className="w-full">
+                      <SelectValue placeholder="— Modelo —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Modelo —</SelectItem>
+                      {options?.device_models &&
+                        Object.entries(options.device_models).map(([id, name]) => (
+                          <SelectItem key={id} value={id}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {options?.repair_settings?.show_serial_no_in_job_sheet !== false && (
                   <div>
