@@ -659,10 +659,10 @@
 }
 .fin-cowork .fin-resume-btn:hover { background: oklch(0.97 0 0); }
 .fin-cowork .fin-resume-btn.primary {
-  background: oklch(0.42 0.18 280); color: white;
-  border-color: oklch(0.42 0.18 280);
+  background: var(--accent); color: white;
+  border-color: var(--accent);
 }
-.fin-cowork .fin-resume-btn.primary:hover { background: oklch(0.36 0.18 280); }
+.fin-cowork .fin-resume-btn.primary:hover { background: var(--accent-2); }
 .fin-cowork .fin-resume-btn.primary.copied {
   background: oklch(0.42 0.18 145);
   border-color: oklch(0.42 0.18 145);

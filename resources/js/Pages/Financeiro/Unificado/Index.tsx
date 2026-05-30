@@ -202,7 +202,7 @@ const FILTER_LIFECYCLE: { id: LifecycleId; label: string; hue: number }[] = [
   { id: 'ar', label: 'A receber',  hue: 145 }, // verde
   { id: 're', label: 'Recebidas',  hue: 145 }, // verde (lifecycle complementar)
   { id: 'ap', label: 'A pagar',    hue: 25  }, // rose
-  { id: 'pa', label: 'Pagas',      hue: 240 }, // azul (saída liquidada)
+  { id: 'pa', label: 'Pagas',      hue: 295 }, // roxo accent v4 — estado ativo = roxo (azul 240 não era semântico de status)
 ];
 
 // PR E (2026-05-25) US-FIN-022 — Aging buckets canon BR. Hue rose escala
