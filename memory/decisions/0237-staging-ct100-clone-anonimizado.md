@@ -1,6 +1,6 @@
 ---
-slug: 0235-staging-ct100-clone-anonimizado
-number: 235
+slug: 0237-staging-ct100-clone-anonimizado
+number: 237
 title: "Ambiente de Staging no CT 100 — clone anonimizado da produção"
 type: adr
 status: aceito
@@ -21,11 +21,15 @@ tags: [infra, staging, ct100, lgpd, anonimizacao, traefik, mariadb, homologacao]
 pii: false
 ---
 
-# ADR 235 — Ambiente de Staging no CT 100: clone anonimizado da produção
+# ADR 237 — Ambiente de Staging no CT 100: clone anonimizado da produção
 
 ## Status
 
-**Aceito** — 2026-05-29 (Wagner autorizado). Implementado na branch `feat/staging-ct100`:
+**Aceito** — 2026-05-29 (Wagner autorizado).
+
+> ⚠️ **Renumerado `0235` → `0237` em 2026-05-30.** Colidia com [`0235-ds-v4-accent-roxo-universal`](0235-ds-v4-accent-roxo-universal.md) — os dois foram aceitos em paralelo no mesmo dia (2026-05-29). Renumerei o **staging** (tinha menos refs inbound) e preservei `0235` pro **DS v4 roxo**. A decisão de conteúdo é **inalterada** — só o número mudou. Conforme [ADR 0236](0236-governanca-evolucao-doc-design.md) (governança: evitar colisão de número) + lição ADR 0180.
+
+Implementado na branch `feat/staging-ct100`:
 artefatos [`docker/oimpresso-staging/`](../../docker/oimpresso-staging/) + [RUNBOOK](../requisitos/Infra/RUNBOOK-staging-ct100.md)
 + skill [`criar-staging`](../../.claude/skills/criar-staging/SKILL.md). `staging.oimpresso.com` no ar, login testado fim-a-fim.
 

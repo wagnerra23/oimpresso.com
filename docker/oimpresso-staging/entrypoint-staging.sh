@@ -3,7 +3,7 @@
 #
 # Cada request boota o framework fresh (igual PHP-FPM do Hostinger) → evita
 # state-leak do UltimatePOS, que NÃO é Octane-safe (singletons/static entre requests).
-# Ver docker/oimpresso-staging/docker-compose.yml + ADR 0235.
+# Ver docker/oimpresso-staging/docker-compose.yml + ADR 0237.
 
 set -e
 cd /var/www/html

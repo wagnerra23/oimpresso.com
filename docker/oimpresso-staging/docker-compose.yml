@@ -1,6 +1,6 @@
 # Ambiente de STAGING / HOMOLOGAÇÃO do ERP oimpresso — staging.oimpresso.com
 #
-# ADR 0235 (emenda à 0062): CT 100 passa a servir UM subdomínio web de staging.
+# ADR 0237 (emenda à 0062): CT 100 passa a servir UM subdomínio web de staging.
 # ⚠️ NÃO é produção. Banco SEPARADO (oimpresso_staging) com dados ANONIMIZADOS.
 # ⚠️ Integrações externas NEUTRALIZADAS (mail=log, sem WhatsApp/Asaas/NFe reais).
 #

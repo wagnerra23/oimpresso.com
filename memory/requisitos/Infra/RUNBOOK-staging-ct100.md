@@ -5,7 +5,7 @@
 > sem tocar produção e sem disparar ação no mundo real.
 >
 > **Construído:** 2026-05-29 (Wagner + Claude). **Artefatos versionados:** [`docker/oimpresso-staging/`](../../../docker/oimpresso-staging/).
-> **Decisão:** ADR 0235 (emenda à [0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md) — CT 100 passa a servir 1 subdomínio web de staging).
+> **Decisão:** ADR 0237 (emenda à [0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md) — CT 100 passa a servir 1 subdomínio web de staging).
 
 ## Arquitetura
 

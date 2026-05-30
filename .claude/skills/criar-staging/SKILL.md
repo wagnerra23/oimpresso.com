@@ -10,7 +10,7 @@ parent_adr: 0235
 
 > Clone fiel da produção no CT 100 pra equipe **testar sem tocar prod e sem disparar ação real**.
 > **RUNBOOK completo (LER):** [`memory/requisitos/Infra/RUNBOOK-staging-ct100.md`](../../../memory/requisitos/Infra/RUNBOOK-staging-ct100.md)
-> **Artefatos versionados:** [`docker/oimpresso-staging/`](../../../docker/oimpresso-staging/) · **ADR 0235** (emenda à 0062).
+> **Artefatos versionados:** [`docker/oimpresso-staging/`](../../../docker/oimpresso-staging/) · **ADR 0237** (emenda à 0062).
 
 ## Quando ativa
 Pedido tipo "criar/recriar/atualizar/re-seedar staging", "ambiente de homologação", "clone de prod pra teste", OU tocar `docker/oimpresso-staging/**`.
