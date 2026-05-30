@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-05-30T00:55:26.100Z",
-    "total_violations": 1373,
+    "generated_at": "2026-05-30T07:46:33.163Z",
+    "total_violations": 1365,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"
   },
@@ -423,7 +423,7 @@
     "resources/js/Pages/Purchase/Show.tsx|no-restricted-syntax": 5,
     "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx|no-restricted-syntax": 9,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|@typescript-eslint/no-unused-vars": 1,
-    "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|no-restricted-syntax": 10,
+    "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|no-restricted-syntax": 8,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|jsx-a11y/click-events-have-key-events": 2,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|jsx-a11y/no-static-element-interactions": 2,
     "resources/js/Pages/RecurringBilling/Index.tsx|no-restricted-syntax": 9,
@@ -431,8 +431,8 @@
     "resources/js/Pages/RecurringBilling/Index.tsx|jsx-a11y/click-events-have-key-events": 3,
     "resources/js/Pages/RecurringBilling/Index.tsx|jsx-a11y/no-noninteractive-element-interactions": 2,
     "resources/js/Pages/RecurringBilling/Index.tsx|jsx-a11y/no-static-element-interactions": 1,
-    "resources/js/Pages/RecurringBilling/Planos/Create.tsx|no-restricted-syntax": 8,
-    "resources/js/Pages/RecurringBilling/Planos/Edit.tsx|no-restricted-syntax": 8,
+    "resources/js/Pages/RecurringBilling/Planos/Create.tsx|no-restricted-syntax": 5,
+    "resources/js/Pages/RecurringBilling/Planos/Edit.tsx|no-restricted-syntax": 5,
     "resources/js/Pages/RecurringBilling/Planos/Index.tsx|no-restricted-syntax": 7,
     "resources/js/Pages/RecurringBilling/Planos/Index.tsx|react-hooks/exhaustive-deps": 2,
     "resources/js/Pages/RecurringBilling/_components/CheatSheet.tsx|jsx-a11y/click-events-have-key-events": 2,
