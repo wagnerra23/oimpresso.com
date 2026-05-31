@@ -139,7 +139,7 @@ function ProdutoSellingPrices(props: ProdutoSellingPricesPageProps) {
           </div>
         </header>
 
-        <main className="pb-16 px-6 mt-4">
+        <div className="pb-16 px-6 mt-4">
           {priceGroups.length === 0 ? (
             <div className="rounded-md bg-white border border-stone-200 p-6 text-center text-stone-500 text-[13px]">
               Nenhum grupo de preço cadastrado. Cadastre primeiro em Inventário › Grupos de preço.
@@ -230,7 +230,7 @@ function ProdutoSellingPrices(props: ProdutoSellingPricesPageProps) {
               </p>
             </form>
           )}
-        </main>
+        </div>
       </div>
     </>
   );

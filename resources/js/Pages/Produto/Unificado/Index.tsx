@@ -137,7 +137,7 @@ function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insu
           </nav>
         </header>
 
-        <main className="pb-16">
+        <div className="pb-16">
           {/* KPI strip */}
           <section className="mx-6 mt-4 rounded-md bg-white border border-stone-200 shadow-sm grid grid-cols-5 divide-x divide-stone-200 overflow-hidden">
             <Kpi label="Catálogo ativo" value={kpis.catalogo_ativo} emphasize />
@@ -153,7 +153,7 @@ function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insu
           {tela === 'insumos'    && <ListaInsumos rows={insumos} />}
           {tela === 'tabelas'    && <ListaTabelas rows={tabelas} produtos={produtos} />}
           {tela === 'historico'  && <ListaHistorico rows={historico} />}
-        </main>
+        </div>
 
         {/* Tweaks panel (canto inferior direito) — reutilizar `<TweaksPanel>` do design system. */}
         <TweaksPanel tweaks={tweaks} setTweak={setTweak} />
