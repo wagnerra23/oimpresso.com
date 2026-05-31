@@ -6,7 +6,7 @@ module: _DesignSystem
 status: ativo
 owner: wagner
 version: "1.1"
-last_updated: 2026-05-25
+last_updated: "2026-05-25"
 ---
 
 # Especificação funcional · Design System
