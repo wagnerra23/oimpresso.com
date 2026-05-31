@@ -18,6 +18,17 @@ const badgeVariants = cva(
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
+        // Status pills (tom soft) — Onda G. Espelham o STATUS_STYLE hand-rolled (migração 1:1).
+        // Distintos de `destructive` (sólido = AÇÃO destrutiva); estos são ESTADO.
+        success:
+          "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300",
+        warning:
+          "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300",
+        danger:
+          "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300",
+        info:
+          "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300",
+        neutral: "bg-muted text-muted-foreground border-border",
       },
     },
     defaultVariants: {
