@@ -1,8 +1,8 @@
 # ADR ARQ-0006 (Financeiro) · RAG "perguntar ao histórico financeiro" — Jana copiloto que cita fonte
 
-- **Status**: proposed
+- **Status**: accepted
 - **Data**: 2026-05-31
-- **Decisores**: Wagner (pendente)
+- **Decisores**: Wagner (aprovado 2026-05-31)
 - **Categoria**: arq
 - **Relacionado**: [KB-9.75 I2](../../METODO-9.75-FINANCEIRO.md) · [AUDIT-METODO-9.75-TELAS-2026-05-31](../../AUDIT-METODO-9.75-TELAS-2026-05-31.md) · [ADR 0035 stack IA](../../../../decisions/0035-stack-ia.md) · [ADR 0093 multi-tenant Tier 0](../../../../decisions/0093-multi-tenant-isolation-tier-0.md) · ADR tech/0001 (idempotência)
 
@@ -66,4 +66,4 @@ Implementar I2 como **tool-calling estruturado** (LLM traduz a pergunta → cham
 
 ---
 
-**Proposta por:** Claude Code (Opus 4.8), 2026-05-31, ancorada na [auditoria das telas](../../AUDIT-METODO-9.75-TELAS-2026-05-31.md). Aguarda decisão Wagner antes de qualquer código.
+**Proposta por:** Claude Code (Opus 4.8), 2026-05-31, ancorada na [auditoria das telas](../../AUDIT-METODO-9.75-TELAS-2026-05-31.md). **Aprovada por Wagner em 2026-05-31.** Sequência: PR1 (tools read-only `InsightsService` + Pest) em andamento → PR2 (Jana tool-calling + painel de pergunta) depois.
