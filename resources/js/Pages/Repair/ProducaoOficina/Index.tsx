@@ -244,7 +244,7 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source, slo
       </div>
 
       {/* Kanban */}
-      <main className="flex-1 p-6 overflow-hidden">
+      <div className="flex-1 p-6 overflow-hidden">
         <div className="grid grid-cols-5 gap-4 h-full">
           {filteredColumns.map((col) => (
             <KanbanColumn
@@ -269,7 +269,7 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source, slo
             />
           ))}
         </div>
-      </main>
+      </div>
 
       {/* Drawer overlay */}
       {activeCard && <JobDrawer card={activeCard} labelOverrides={label_overrides} onClose={() => setActiveCard(null)} />}

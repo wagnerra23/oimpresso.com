@@ -182,7 +182,7 @@ function ProdutoBulkEdit(props: ProdutoBulkEditPageProps) {
           </div>
         </header>
 
-        <main className="pb-16 px-6 mt-4">
+        <div className="pb-16 px-6 mt-4">
           {/* Banner aviso destrutivo */}
           <div className="rounded-md bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
@@ -359,7 +359,7 @@ function ProdutoBulkEdit(props: ProdutoBulkEditPageProps) {
               </div>
             </div>
           </form>
-        </main>
+        </div>
       </div>
     </>
   );
