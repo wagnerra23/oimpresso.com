@@ -42,14 +42,14 @@ class ExtratoController extends Controller
      * cadastrar em /financeiro/contas-bancarias (com flash) — SEM fallback
      * silencioso (Log::warning antes do redirect).
      *
-     * Session key: usa `business.id` (mesma chave lida por index()) pra manter
-     * consistência com a tela de detalhe. O global scope BusinessScope reforça
-     * o isolamento por `user.business_id` (ambas as chaves carregam o mesmo
-     * valor em toda a stack UltimatePOS — SetSessionData + FinanceiroTestCase).
+     * Session key: usa `user.business_id` (canon UPOS — lições F3 T-AP-8 + os
+     * demais controllers do módulo). Padronizado no fix B5 (antes era `business.id`,
+     * inconsistente com o resto). Ambas as chaves carregam o mesmo valor na stack
+     * (SetSessionData + FinanceiroTestCase), mas `user.business_id` é a canônica.
      */
     public function selecionar(Request $request): RedirectResponse
     {
-        $businessId = (int) $request->session()->get('business.id');
+        $businessId = (int) $request->session()->get('user.business_id');
 
         $conta = ContaBancaria::where('business_id', $businessId)
             ->orderBy('id')
@@ -73,7 +73,7 @@ class ExtratoController extends Controller
             return $mock;
         }
 
-        $businessId = (int) $request->session()->get('business.id');
+        $businessId = (int) $request->session()->get('user.business_id');
 
         // Conta header é cheap (firstOrFail single row) — fica eager.
         $conta = ContaBancaria::where('business_id', $businessId)
