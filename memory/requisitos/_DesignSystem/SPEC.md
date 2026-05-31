@@ -457,7 +457,62 @@ Refs: ADR 0211 Fase 5
 
 Refs: ADR 0211 Fase 4
 
+### US-_DESIGNSYSTEM-014 · Lote seguro: R9 <main> aninhado + R3 localStorage prefix
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Lote determinístico, SEM gate visual** (estrutural/invisível). Derivado da worklist de auditoria paralela.
+
+- **R9** `<main>` aninhado → `<div role="region">` em ~13 telas (AppShellV2 já provê o `<main>`; Page não deve aninhar — AP9). ⚠️ conferir públicas: `Site/*` fora do AppShell podem ter `<main>` legítimo — não tocar.
+- **R3** localStorage sem prefixo → `oimpresso.<mod>.*` (1 tela).
+
+**Fecha por evidência:** `node prototipo-ui/audit/score-mechanized.mjs` mostra R9=0 e R3=0. Sem screenshot (invisível).
+Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` · parent: worklist-auditoria-paralela.
+
+### US-_DESIGNSYSTEM-015 · Lote ícones: R6 emoji + R4 svg/lib → lucide-react
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+Trocar emoji (R6, ~21 telas) e svg-inline / lib-não-lucide (R4, ~18 telas) por ícone `lucide-react` (UI-0003 · AP4 · AP6). Visual leve.
+
+**Fecha por evidência:** scorer R6=0 e R4=0 + screenshot que não regrediu.
+Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` (lotes R6, R4) — telas exatas em `reports/`. parent: worklist-auditoria-paralela.
+
+### US-_DESIGNSYSTEM-016 · Lote R1 cor crua → token roxo (codemod, 17 piores primeiro)
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Codemod cor crua → token DS (roxo 295) em 40 telas (R1 = hex/oklch/rgb literal). **17 piores primeiro** (Financeiro/RecurringBilling/Cliente/Sells — todas R1+R2, módulos que mais faturam). Execução medida do P1 do PLANO-DESIGN-TELAS (≈ US-TR-310 Onda 1).
+
+**Fecha por evidência:** scorer R1=0 nas telas do lote **+** screenshot golden aprovado (gate visual Wagner, ADR 0114). Cor é visível — NÃO fecha sem o print.
+Ref: `prototipo-ui/audit/BACKLOG-FIXES.md` (lote R1). parent: worklist-auditoria-paralela.
+
+### US-_DESIGNSYSTEM-017 · Lote R2 nativo → DS (prioriza ds/* pela worklist, faseado)
+
+> owner: — · priority: p1 · estimate: 24h · status: todo · type: story
+> blocked_by: —
+
+Migrar elementos nativos → DS (`<select>`→Select, `<input>`→Input, `<textarea>`→Textarea, `<table>`→DataTable) — R2, 141 telas. **NÃO é trabalho novo:** é a migração `ds/no-native-*` já rastreada na Matriz (`DS_ADOCAO_INDICE.md`); esta task só a **prioriza pela worklist** (17 piores primeiro). Faseado por módulo.
+
+**Fecha por evidência:** `ds/no-native-select|checkbox|radio` = 0 no ratchet (`config/eslint-baseline.json`) por módulo + scorer R2=0.
+Ref: `BACKLOG-FIXES.md` (lote R2) + `MATRIZ_MIGRACAO_DS.md`. parent: worklist-auditoria-paralela.
+
+### US-_DESIGNSYSTEM-018 · R7 status bg-fill: confirmar AP7 via Fase 2, depois codemod dot+texto
+
+> owner: — · priority: p3 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+R7 (`bg-*-100` fill → dot+texto, AP7) é heurística ampla (80/239 telas) — **não codar cego**. Primeiro a Fase 2 (agentes LLM read-only) confirma quais são AP7 real (badge de status) vs fundo legítimo. Só depois codemod nas confirmadas.
+
+**Fecha por evidência:** lista confirmada pelo agente Fase 2 + scorer R7=0 nas confirmadas + screenshot. Depende da Fase 2 rodar.
+Ref: `BACKLOG-FIXES.md` (lote R7). parent: worklist-auditoria-paralela.
+
 ---
+
+**Última atualização (US-_DESIGNSYSTEM-014..018):** 2026-05-31 — backlog de fixes da worklist de auditoria paralela (5 lotes por regra mecanizada: R9+R3 · R6+R4 · R1 · R2 · R7). Fecha por evidência (scorer = regra zerada). Ref `prototipo-ui/audit/BACKLOG-FIXES.md`.
 
 **Última atualização (US-_DESIGNSYSTEM-004..013):** 2026-05-28 — adicionadas 10 tasks Onda prevenção bugs MWART frontend (ADRs 0209-0211 propostos no PR #1837). Atacam R7/R8-class via ESLint baseline, Wayfinder type-gen, TanStack Query data-fetching, MSW Vitest scanner-race tests.
 
