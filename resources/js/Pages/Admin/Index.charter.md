@@ -3,7 +3,7 @@ page: /admin
 component: resources/js/Pages/Admin/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-10
+last_validated: 2026-05-31
 parent_module: Admin
 related_adrs: [0122, 0093, 0094, 0091, 0070, 0042, 0062]
 tier: A
@@ -38,6 +38,8 @@ Centro de Operações Wagner-only que agrega visão única de toda a infra/gover
 - PageHeader shared component
 - Card / CardContent / CardTitle do `ui/`
 - Icon helper canônico
+- **Carga incremental (2026-05-31):** os 10 widgets ficam envoltos em `<Deferred data="widgets" fallback={<WidgetSkeleton/>}>` (`@/Components/ui/skeleton`). Controller mantém eager load (rollback PR #963, test-locked Wave 18) — `<Deferred>` lê a prop eager no render inicial e só re-busca em partial reload `only:[]`, dando SPA-feel sem quebrar render. Health + ADRs Tier 0 promovidos ao topo do grid.
+- **Status tokenizado (2026-05-31):** badges de saúde/infra via `@/Components/shared/StatusBadge` (`kind="admin_health"` green/yellow/red/unknown · `kind="admin_reachable"` online/offline) — substitui 6× `bg-(green|amber|red)-100` inline. Banners red/amber → tokens DS (`bg-destructive`/`bg-muted`).
 - Auth gate: tailscale-only → auth → is-wagner (3 condições AND + fallback_username env)
 
 ---
@@ -84,6 +86,8 @@ Centro de Operações Wagner-only que agrega visão única de toda a infra/gover
 - ❌ NÃO carrega TODAS as tasks (limit cycle atual; histórico Sprint 2)
 - ❌ NÃO mostra senhas/secrets ainda que admin Wagner-only — defense in depth
 - ❌ NÃO chama brief-fetch tool MCP via HTTP (round-trip caro; consulta SQL direto)
+- ❌ NÃO usa cor crua em status (`bg-green/amber/red-NNN`, `#hex`, `oklch`, `style` de cor) — só `StatusBadge` (kind→variant DS) + tokens (ADR UI-0013)
+- ❌ NÃO troca o eager load do IndexController por `Inertia::defer` (test-locked "rollback PR #963"; defer é só frontend via `<Deferred>` wrap)
 
 ---
 

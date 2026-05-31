@@ -98,6 +98,19 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     error:          { variant: 'destructive', label: 'error' },
     quota_exceeded: { variant: 'default',     label: 'quota_exceeded', className: 'bg-orange-600 hover:bg-orange-700' },
   },
+  // Admin Center (Centro de Operações) — semáforo green/yellow/red dos health
+  // snapshots + estado online/offline de infra. Substitui bg-(green|amber|red)-100
+  // inline repetido 6x no Admin/Index.tsx (tokenização DS, ADR UI-0013).
+  admin_health: {
+    green:   { variant: 'default',     label: 'green',   className: 'bg-emerald-600 hover:bg-emerald-700' },
+    yellow:  { variant: 'default',     label: 'yellow',  className: 'bg-amber-600 hover:bg-amber-700' },
+    red:     { variant: 'destructive', label: 'red' },
+    unknown: { variant: 'outline',     label: 'unknown' },
+  },
+  admin_reachable: {
+    online:  { variant: 'default',     label: 'online',  className: 'bg-emerald-600 hover:bg-emerald-700' },
+    offline: { variant: 'destructive', label: 'offline' },
+  },
 };
 
 interface Props {

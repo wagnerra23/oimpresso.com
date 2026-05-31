@@ -37,59 +37,88 @@ class DashboardController extends Controller
         $business_id = request()->session()->get('user.business_id');
         $job_sheets_by_status = $this->repairUtil->getRepairByStatus($business_id);
         $job_sheets_by_service_staff = $this->repairUtil->getRepairByServiceStaff($business_id);
-        $trending_brand_chart = $this->repairUtil->getTrendingRepairBrands($business_id);
-        $trending_devices_chart = $this->repairUtil->getTrendingDevices($business_id);
-        $trending_dm_chart = $this->repairUtil->getTrendingDeviceModels($business_id);
 
         // MWART-0002 (Sprint 2.5) — branch Inertia/React quando flag ativa.
         if ($this->mwartEnabled('repair_dashboard_index', (int) $business_id)) {
-            // Util methods retornam CommonChart (objeto Highcharts) — incompatível com TSX que espera arrays.
-            // Re-query inline pra entregar shape limpo {label,count}.
-            $statusRows = collect($job_sheets_by_status)->map(fn ($r) => [
-                'status' => $r->status_name ?? '—',
-                'count' => (int) $r->total_job_sheets,
-            ])->values()->all();
-
-            $staffRows = collect($job_sheets_by_service_staff)->map(fn ($r) => [
-                'staff' => trim($r->service_staff ?? '—') ?: '—',
-                'count' => (int) $r->total_job_sheets,
-            ])->values()->all();
-
-            $trendingBrands = JobSheet::leftJoin('brands', 'repair_job_sheets.brand_id', '=', 'brands.id')
-                ->where('repair_job_sheets.business_id', $business_id)
-                ->whereNotNull('repair_job_sheets.brand_id')
-                ->select('brands.name as brand', DB::raw('COUNT(repair_job_sheets.id) as count'))
-                ->groupBy('brands.id')
-                ->orderBy('count', 'desc')
-                ->limit(10)
-                ->get()
-                ->toArray();
-
-            $trendingModels = JobSheet::leftJoin('repair_device_models as RDM', 'repair_job_sheets.device_model_id', '=', 'RDM.id')
-                ->where('repair_job_sheets.business_id', $business_id)
-                ->whereNotNull('repair_job_sheets.device_model_id')
-                ->select('RDM.name as model', DB::raw('COUNT(repair_job_sheets.id) as count'))
-                ->groupBy('RDM.id')
-                ->orderBy('count', 'desc')
-                ->limit(10)
-                ->get()
-                ->toArray();
-
+            // KPIs leves ficam eager (counts das coleções já carregadas). Os 5
+            // gráficos viram Inertia::defer (P7) — pulam em partial reload
+            // `only:[]` que não os pedir. Cada closure re-query inline e entrega
+            // shape uniforme {label,count} (RepairUtil devolve CommonChart
+            // Highcharts, incompatível com a TSX). Os métodos pesados de chart
+            // do RepairUtil NÃO rodam aqui — só no branch Blade abaixo.
             return Inertia::render('Repair/Dashboard/Index', [
                 'kpis' => [
                     'total_repairs' => is_countable($job_sheets_by_status) ? count($job_sheets_by_status) : 0,
                     'service_staff_count' => is_countable($job_sheets_by_service_staff) ? count($job_sheets_by_service_staff) : 0,
                 ],
-                'job_sheets_by_status' => $statusRows,
-                'job_sheets_by_service_staff' => $staffRows,
-                'trending_brand_chart' => $trendingBrands,
-                'trending_devices_chart' => [],
-                'trending_dm_chart' => $trendingModels,
+                'job_sheets_by_status' => Inertia::defer(fn () => collect($job_sheets_by_status)->map(fn ($r) => [
+                    'label' => $r->status_name ?? '—',
+                    'count' => (int) $r->total_job_sheets,
+                ])->values()->all()),
+
+                'job_sheets_by_service_staff' => Inertia::defer(fn () => collect($job_sheets_by_service_staff)->map(fn ($r) => [
+                    'label' => trim($r->service_staff ?? '—') ?: '—',
+                    'count' => (int) $r->total_job_sheets,
+                ])->values()->all()),
+
+                'trending_brand_chart' => Inertia::defer(fn () => $this->trendingCounts('brands', 'brand_id', 'brand')),
+                'trending_dm_chart' => Inertia::defer(fn () => $this->trendingDeviceModels($business_id)),
+
+                // US-REPAIR-DASH-1 — FIXME un-voided: getTrendingDevices() já era
+                // computado (join categories), apenas era descartado como []. Agora
+                // exposto em painel próprio, deferido como os demais.
+                'trending_devices_chart' => Inertia::defer(fn () => $this->trendingCounts('categories', 'device_id', 'device')),
             ]);
         }
 
+        // Branch Blade legacy — charts CommonChart Highcharts (eager, só aqui).
+        $trending_brand_chart = $this->repairUtil->getTrendingRepairBrands($business_id);
+        $trending_devices_chart = $this->repairUtil->getTrendingDevices($business_id);
+        $trending_dm_chart = $this->repairUtil->getTrendingDeviceModels($business_id);
+
         return view('repair::dashboard.index')
             ->with(compact('job_sheets_by_status', 'job_sheets_by_service_staff', 'trending_devices_chart', 'trending_dm_chart', 'trending_brand_chart'));
+    }
+
+    /**
+     * Top-5 trending genérico: join 1 tabela de lookup pelo FK e conta job sheets.
+     * Usado por brand_id->brands e device_id->categories (espelha RepairUtil sem CommonChart).
+     *
+     * @return array<int, array{label: string, count: int}>
+     */
+    private function trendingCounts(string $lookupTable, string $fk, string $alias): array
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        return JobSheet::leftJoin($lookupTable, "repair_job_sheets.{$fk}", '=', "{$lookupTable}.id")
+            ->where('repair_job_sheets.business_id', $business_id)
+            ->whereNotNull("repair_job_sheets.{$fk}")
+            ->select("{$lookupTable}.name as {$alias}", DB::raw('COUNT(repair_job_sheets.id) as count'))
+            ->groupBy("{$lookupTable}.id")
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(fn ($r) => ['label' => (string) ($r->{$alias} ?? '—'), 'count' => (int) $r->count])
+            ->all();
+    }
+
+    /**
+     * Top-5 modelos de aparelho (join repair_device_models).
+     *
+     * @return array<int, array{label: string, count: int}>
+     */
+    private function trendingDeviceModels($business_id): array
+    {
+        return JobSheet::leftJoin('repair_device_models as RDM', 'repair_job_sheets.device_model_id', '=', 'RDM.id')
+            ->where('repair_job_sheets.business_id', $business_id)
+            ->whereNotNull('repair_job_sheets.device_model_id')
+            ->select('RDM.name as model', DB::raw('COUNT(repair_job_sheets.id) as count'))
+            ->groupBy('RDM.id')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(fn ($r) => ['label' => (string) ($r->model ?? '—'), 'count' => (int) $r->count])
+            ->all();
     }
 
     /**

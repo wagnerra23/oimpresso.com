@@ -1,16 +1,23 @@
 // @memcofre tela=/repair/dashboard module=Repair
 // Sprint 2.5 / MWART-0002 — port Dashboard Repair Blade → Inertia/React.
-// 5 painéis: KPIs + status breakdown + service staff + trending brands/devices/models.
+// W31-uplift: SimpleListCard texto → BarChart SVG a11y; trending_devices
+// (US-REPAIR-DASH-1) un-voided; charts em Inertia::defer + skeleton (P7).
 
+import { Deferred } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
+import KpiGrid from '@/Components/shared/KpiGrid';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Skeleton } from '@/Components/ui/skeleton';
 import { Icon } from '@/Components/Icon';
-import type { ReactNode } from 'react';
+import { cn } from '@/Lib/utils';
 
-interface ChartDataPoint {
-  [key: string]: string | number;
+/** Toda série de gráfico é normalizada pelo Controller pra {label,count}. */
+interface ChartRow {
+  label: string;
+  count: number;
 }
 
 interface PageProps {
@@ -18,97 +25,162 @@ interface PageProps {
     total_repairs: number;
     service_staff_count: number;
   };
-  job_sheets_by_status: ChartDataPoint[];
-  job_sheets_by_service_staff: ChartDataPoint[];
-  trending_brand_chart: ChartDataPoint[] | null;
-  trending_devices_chart: ChartDataPoint[] | null;
-  trending_dm_chart: ChartDataPoint[] | null;
+  // Charts deferidos (Inertia::defer) — ausentes no first-paint, chegam em chunk.
+  job_sheets_by_status?: ChartRow[];
+  job_sheets_by_service_staff?: ChartRow[];
+  trending_brand_chart?: ChartRow[];
+  trending_dm_chart?: ChartRow[];
+  trending_devices_chart?: ChartRow[];
 }
 
 export default function DashboardIndex(props: PageProps) {
-  const {
-    kpis,
-    job_sheets_by_status,
-    job_sheets_by_service_staff,
-    trending_brand_chart,
-    trending_devices_chart: _trending_devices_chart, // FIXME US-REPAIR-DASH-1: incluir em painel próprio
-    trending_dm_chart,
-  } = props;
-  void _trending_devices_chart;
+  const { kpis } = props;
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto space-y-6 p-4">
       <PageHeader
         icon="wrench"
         title="Dashboard Repair"
         description="Visão geral de OS, status, equipe e tendências (Repair)"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KpiCard
-          label="Status únicos"
-          value={kpis.total_repairs}
-          icon="wrench"
-        />
+      <KpiGrid cols={2}>
+        <KpiCard label="Status únicos" value={kpis.total_repairs} icon="wrench" tone="info" />
         <KpiCard
           label="Service staff"
           value={kpis.service_staff_count}
           icon="users"
+          tone="default"
         />
-      </div>
+      </KpiGrid>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SimpleListCard
-          title="OS por status"
-          items={job_sheets_by_status}
-          labelKey="status"
-          valueKey="count"
-          emptyMsg="Sem dados de status"
-        />
-        <SimpleListCard
-          title="OS por service staff"
-          items={job_sheets_by_service_staff}
-          labelKey="staff"
-          valueKey="count"
-          emptyMsg="Sem dados de equipe"
-        />
-        <SimpleListCard
-          title="Top marcas (trending)"
-          items={trending_brand_chart ?? []}
-          labelKey="brand"
-          valueKey="count"
-          emptyMsg="Sem dados de marcas"
-          iconName="trending-up"
-        />
-        <SimpleListCard
-          title="Top modelos (trending)"
-          items={trending_dm_chart ?? []}
-          labelKey="model"
-          valueKey="count"
-          emptyMsg="Sem dados de modelos"
-          iconName="trending-up"
-        />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Deferred data="job_sheets_by_status" fallback={<ChartSkeleton title="OS por status" />}>
+          <BarChartCard
+            title="OS por status"
+            rows={props.job_sheets_by_status ?? []}
+            tone="info"
+            unit="OS"
+            emptyMsg="Sem dados de status"
+          />
+        </Deferred>
+
+        <Deferred
+          data="job_sheets_by_service_staff"
+          fallback={<ChartSkeleton title="OS por service staff" />}
+        >
+          <BarChartCard
+            title="OS por service staff"
+            rows={props.job_sheets_by_service_staff ?? []}
+            tone="default"
+            unit="OS"
+            emptyMsg="Sem dados de equipe"
+          />
+        </Deferred>
+
+        <Deferred
+          data="trending_brand_chart"
+          fallback={<ChartSkeleton title="Top marcas (trending)" />}
+        >
+          <BarChartCard
+            title="Top marcas (trending)"
+            icon="trending-up"
+            rows={props.trending_brand_chart ?? []}
+            tone="success"
+            unit="OS"
+            emptyMsg="Sem dados de marcas"
+          />
+        </Deferred>
+
+        <Deferred
+          data="trending_dm_chart"
+          fallback={<ChartSkeleton title="Top modelos (trending)" />}
+        >
+          <BarChartCard
+            title="Top modelos (trending)"
+            icon="trending-up"
+            rows={props.trending_dm_chart ?? []}
+            tone="success"
+            unit="OS"
+            emptyMsg="Sem dados de modelos"
+          />
+        </Deferred>
+
+        {/* US-REPAIR-DASH-1 — FIXME resolvido: painel próprio pra trending_devices. */}
+        <Deferred
+          data="trending_devices_chart"
+          fallback={<ChartSkeleton title="Top aparelhos (trending)" />}
+        >
+          <BarChartCard
+            title="Top aparelhos (trending)"
+            icon="trending-up"
+            rows={props.trending_devices_chart ?? []}
+            tone="success"
+            unit="OS"
+            emptyMsg="Sem dados de aparelhos"
+          />
+        </Deferred>
       </div>
     </div>
   );
 }
 
-interface SimpleListCardProps {
-  title: string;
-  items: ChartDataPoint[];
-  labelKey: string;
-  valueKey: string;
-  emptyMsg: string;
-  iconName?: string;
-}
-
-function SimpleListCard({ title, items, labelKey, valueKey, emptyMsg, iconName }: SimpleListCardProps) {
-  const list = Array.isArray(items) ? items : [];
+function ChartSkeleton({ title }: { title: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          {iconName && <Icon name={iconName} className="h-4 w-4" />}
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="h-4 w-24 shrink-0" />
+              <Skeleton className="h-3.5 flex-1" />
+              <Skeleton className="h-4 w-8 shrink-0" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+type BarTone = 'default' | 'info' | 'success';
+
+// currentColor dirige o fill do SVG — só tokens, zero hex/oklch literal.
+const barToneClass: Record<BarTone, string> = {
+  default: 'text-muted-foreground',
+  info: 'text-blue-600 dark:text-blue-400',
+  success: 'text-emerald-600 dark:text-emerald-400',
+};
+
+interface BarChartCardProps {
+  title: string;
+  rows: ChartRow[];
+  tone?: BarTone;
+  unit?: string;
+  emptyMsg: string;
+  icon?: string;
+}
+
+/**
+ * Sparkbar horizontal em SVG. Acessível:
+ *   - role=img + aria-label por barra
+ *   - <title> por barra (tooltip nativo + SR)
+ *   - coluna textual de valor (o "eixo" lido por screen reader)
+ *   - resumo sr-only consolidando a série
+ */
+function BarChartCard({ title, rows, tone = 'default', unit = '', emptyMsg, icon }: BarChartCardProps) {
+  const list = Array.isArray(rows) ? rows.slice(0, 10) : [];
+  const max = list.reduce((m, r) => Math.max(m, r.count), 0) || 1;
+  const summary = list.map((r) => `${r.label}: ${r.count}`).join(', ');
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-sm font-medium">
+          {icon && <Icon name={icon} className="h-4 w-4" />}
           {title}
         </CardTitle>
       </CardHeader>
@@ -116,16 +188,34 @@ function SimpleListCard({ title, items, labelKey, valueKey, emptyMsg, iconName }
         {list.length === 0 ? (
           <p className="text-sm text-muted-foreground">{emptyMsg}</p>
         ) : (
-          <ul className="space-y-1 text-sm">
-            {list.slice(0, 10).map((item, i) => (
-              <li key={i} className="flex justify-between border-b border-border last:border-0 py-1">
-                <span className="text-foreground">{String(item[labelKey] ?? Object.values(item)[0] ?? '—')}</span>
-                <span className="font-medium tabular-nums text-foreground">
-                  {String(item[valueKey] ?? Object.values(item)[1] ?? 0)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-2">
+            {list.map((r, i) => {
+              const pct = Math.round((r.count / max) * 100);
+              const aria = `${r.label}: ${r.count}${unit ? ' ' + unit : ''}`;
+              return (
+                <div key={`${r.label}-${i}`} className="flex items-center gap-3">
+                  <span className="w-28 shrink-0 truncate text-sm text-foreground" title={r.label}>
+                    {r.label}
+                  </span>
+                  <svg
+                    className={cn('h-3.5 flex-1', barToneClass[tone])}
+                    viewBox="0 0 100 14"
+                    preserveAspectRatio="none"
+                    role="img"
+                    aria-label={aria}
+                  >
+                    <title>{aria}</title>
+                    <rect x={0} y={0} width={100} height={14} rx={3} className="fill-muted" />
+                    <rect x={0} y={0} width={pct} height={14} rx={3} fill="currentColor" />
+                  </svg>
+                  <span className="w-10 shrink-0 text-right text-sm font-medium tabular-nums text-foreground">
+                    {r.count}
+                  </span>
+                </div>
+              );
+            })}
+            <span className="sr-only">{`${title}. ${summary}.`}</span>
+          </div>
         )}
       </CardContent>
     </Card>
