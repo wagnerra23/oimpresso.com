@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Link as LinkIcon, Eye, FileText } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1088,7 +1088,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setOcrSheetOpen(true)} title="Importar boleto via foto/PDF (OCR via IA)">
-                <span className="mr-2">📷</span> Importar boleto OCR
+                <Camera className="mr-2 h-3.5 w-3.5" /> Importar boleto OCR
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1260,7 +1260,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
         <div className="fin-toolbar-r">
           <div className="fin-search-wrap">
-            <span aria-hidden="true">🔍</span>
+            <Search className="h-3.5 w-3.5" aria-hidden="true" />
             <input
               id="fin-search-input"
               placeholder="Buscar lançamento…"
@@ -1581,7 +1581,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     <div className="col-span-2">
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conta</div>
                       <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
-                        <span className="text-stone-400" aria-hidden>🏦</span>
+                        <Landmark className="h-4 w-4 text-stone-400" aria-hidden />
                         <span>{selected.conta_bancaria || '—'}</span>
                       </div>
                     </div>
@@ -1601,7 +1601,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conciliação extrato</div>
                         {settled ? (
                           <div className="mt-2 rounded-md border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 flex items-start gap-2.5">
-                            <span className="text-emerald-700 mt-0.5" aria-hidden>🔗</span>
+                            <LinkIcon className="h-4 w-4 text-emerald-700 mt-0.5" aria-hidden />
                             <div className="text-[12.5px]">
                               <div className="text-emerald-800 font-medium">Conciliado com extrato bancário</div>
                               <div className="text-emerald-700/80">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
@@ -1716,7 +1716,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 <div className="fin-drawer-footer fin-drawer-footer-sticky">
                   {selected.nfe_numero && (
                     <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Ver NFe" onClick={() => router.visit(`/fiscal/nfe?numero=${selected.nfe_numero}`)}>
-                      <span aria-hidden>👁</span>
+                      <Eye className="h-4 w-4" aria-hidden />
                       <span className="ml-1">Ver NFe</span>
                     </Button>
                   )}
@@ -1812,7 +1812,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               ✦ Resumir mês (narrativa exec)
             </CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); setTranscriptOnlyFavs(false); setTranscriptOpen(true); }}>
-              📄 Imprimir período (folha jurídica)
+              <FileText className="h-3.5 w-3.5 mr-1" /> Imprimir período (folha jurídica)
             </CommandItem>
             {favs.count > 0 && (
               <CommandItem onSelect={() => { setPaletteOpen(false); setTranscriptOnlyFavs(true); setTranscriptOpen(true); }}>

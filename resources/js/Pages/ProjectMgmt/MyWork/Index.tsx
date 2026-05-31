@@ -19,7 +19,7 @@ import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import {
   AlertCircle, AtSign, BellOff, CheckCircle2, CheckSquare, Clock,
-  Flame, Inbox as InboxIcon, MessageSquare, RefreshCw, Send, UserPlus,
+  Flame, Inbox as InboxIcon, MessageSquare, RefreshCw, Send, Target, UserPlus,
 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -343,7 +343,7 @@ function MyWorkIndex({
                   </div>
                   {bucket.header.goal && (
                     <p className="text-[11px] text-muted-foreground italic mb-2 px-1 line-clamp-2">
-                      🎯 {bucket.header.goal}
+                      <Target className="h-3 w-3 mr-1 inline align-text-bottom not-italic" /> {bucket.header.goal}
                     </p>
                   )}
                   <div className="flex flex-col gap-2">
