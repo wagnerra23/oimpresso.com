@@ -1,5 +1,5 @@
 ---
-page: Financeiro/Advisor/Dashboard
+page: /advisor/dashboard
 route: /advisor
 controller: Modules\Financeiro\Http\Controllers\Advisor\AdvisorPortalController@index
 persona: eliana
