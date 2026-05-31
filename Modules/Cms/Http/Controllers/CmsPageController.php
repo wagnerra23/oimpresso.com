@@ -37,6 +37,7 @@ class CmsPageController extends Controller
     {
         $this->commonUtil = $commonUtil;
         $this->piiRedactor = $piiRedactor;
+        $this->siteContent = $siteContent;
     }
 
     /**
@@ -161,9 +162,18 @@ class CmsPageController extends Controller
     private function buildPagePayload(string $title)
     {
         return OtelHelper::spanBiz('cms.page.render', function () use ($title) {
-            return CmsPage::with(['pageMeta'])
+            $page = CmsPage::with(['pageMeta'])
                         ->where('title', $title)
                         ->first();
+
+            if ($page === null) {
+                return null;
+            }
+
+            // XSS: sanitiza o HTML in-place (Site/Page usa dangerouslySetInnerHTML).
+            $page->content = $this->siteContent->sanitizeHtml($page->content);
+
+            return $page;
         }, ['page_title' => $title]);
     }
 
