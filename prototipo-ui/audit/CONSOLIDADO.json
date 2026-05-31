@@ -1,0 +1,39 @@
+{
+  "gerado_contra_sha": "8a8517938",
+  "total": 2,
+  "media": 43,
+  "abaixo_70": 2,
+  "ds_sum": 0,
+  "distribuicao": {
+    "Champion": 0,
+    "Leader": 0,
+    "Advanced": 0,
+    "Developing": 0,
+    "Beginner": 2
+  },
+  "telas": [
+    {
+      "screen": "NfeBrasil/Transactions/NfceStatus",
+      "nota": 38,
+      "nivel": "Beginner",
+      "mech_fails": [
+        "R1"
+      ],
+      "judged_fails": [
+        "R2",
+        "R7"
+      ],
+      "ds_total": 0,
+      "measured_against_sha": "8a8517938"
+    },
+    {
+      "screen": "Produto/StockHistory",
+      "nota": 47,
+      "nivel": "Beginner",
+      "mech_fails": [],
+      "judged_fails": [],
+      "ds_total": 0,
+      "measured_against_sha": "8a8517938"
+    }
+  ]
+}
