@@ -11,7 +11,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import { Factory, Plus, Search, X } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -54,18 +54,16 @@ const ROUTE = '/manufacturing/v2/production';
 const CREATE_ROUTE = '/manufacturing/production/create';
 
 function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
-  // is_final é flag de presença no backend (request()->has('is_final')); só envia quando true.
-  const next: Record<string, unknown> = {
-    location_id: current.location_id ?? undefined,
-    start_date: current.start_date ?? undefined,
-    end_date: current.end_date ?? undefined,
-    is_final: current.is_final ? 1 : undefined,
-    ...patch,
+  // Merge current+patch, depois serializa explicitamente em string|number|undefined
+  // (RequestPayload do Inertia não aceita `unknown`). is_final é flag de presença
+  // no backend (request()->has('is_final')) — só envia quando true.
+  const merged = { ...current, ...patch };
+  const next: Record<string, string | number | undefined> = {
+    location_id: merged.location_id ?? undefined,
+    start_date: merged.start_date ?? undefined,
+    end_date: merged.end_date ?? undefined,
+    is_final: merged.is_final ? 1 : undefined,
   };
-  // Normaliza is_final boolean→flag depois do merge.
-  if ('is_final' in patch) {
-    next.is_final = patch.is_final ? 1 : undefined;
-  }
   router.get(ROUTE, next, {
     preserveState: true,
     preserveScroll: true,
@@ -130,14 +128,14 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           label="Total"
           value={summary?.total_count ?? 0}
           icon="layers"
-          compact
+          size="compact"
         />
         <KpiCard
           label="Finalizadas"
           value={summary?.final_count ?? 0}
           icon="check-circle-2"
           tone={filters.is_final ? 'success' : 'default'}
-          compact
+          size="compact"
           onClick={() => applyFilter(filters, { is_final: filters.is_final ? null : true })}
           selected={!!filters.is_final}
         />
@@ -145,13 +143,13 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           label="Pendentes"
           value={summary?.pending_count ?? 0}
           icon="clock"
-          compact
+          size="compact"
         />
         <KpiCard
           label="Valor total"
           value={formatCurrency(summary?.total_value ?? 0)}
           icon="dollar-sign"
-          compact
+          size="compact"
         />
       </div>
 
