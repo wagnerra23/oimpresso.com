@@ -157,6 +157,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
       <div className="rounded-lg border border-border bg-card p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           {hasLocations && (
+            // eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS
             <select
               className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
               value={filters.location_id ?? ''}
@@ -281,6 +282,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 function StatusPill({ isFinal }: { isFinal: number }) {
   if (isFinal) {
     return (
+      // eslint-disable-next-line no-restricted-syntax -- status pill dot-style (PT-01), não é mensagem de erro/validação de form
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
         Finalizada

@@ -187,6 +187,7 @@ function PartSearchField({
                 key={`${r.variation_id}-${skuLabel}`}
                 type="button"
                 role="option"
+                aria-selected={false}
                 onClick={() => pick(r)}
                 className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
               >
@@ -469,6 +470,7 @@ export default function JobSheetAddParts({
             <h2 className="text-sm font-semibold">Atualizar status (pendente do fluxo)</h2>
             <div>
               <Label htmlFor="status_id">Status</Label>
+              {/* eslint-disable-next-line no-restricted-syntax -- select nativo simples (status update); estilizado com tokens DS */}
               <select
                 id="status_id"
                 value={data.status_id as string | number}
