@@ -320,3 +320,129 @@ E o frontend do segundo usuário reverte otimismo + mostra banner + refeta silen
 - [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — 24 capacidades P0-P3
 - [`memory/requisitos/TaskRegistry/SPEC.md`](../TaskRegistry/SPEC.md) — SPEC funcional histórico (US-TR-NNN; renaming pendente Fase 3.9)
 - PRs cadeia: [#197](https://github.com/wagnerra23/oimpresso.com/pull/197) [#202](https://github.com/wagnerra23/oimpresso.com/pull/202) [#205](https://github.com/wagnerra23/oimpresso.com/pull/205) [#207](https://github.com/wagnerra23/oimpresso.com/pull/207) [#209](https://github.com/wagnerra23/oimpresso.com/pull/209) [#211](https://github.com/wagnerra23/oimpresso.com/pull/211) [#220](https://github.com/wagnerra23/oimpresso.com/pull/220) [#222](https://github.com/wagnerra23/oimpresso.com/pull/222) [#224](https://github.com/wagnerra23/oimpresso.com/pull/224) [#226](https://github.com/wagnerra23/oimpresso.com/pull/226)
+
+---
+
+<!-- Design Plan 44 telas <70 → ≥70 · git-bridge dos US criados via MCP 2026-05-31 · ref memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md -->
+
+### US-TR-309 · Design Onda 0 — Resgate: 4 telas piores + sem AppShellV2
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Plano de design: 44 telas <70 → ≥70. ONDA 0 = resgate das piores.
+Ref: memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md
+Fecha por EVIDÊNCIA (ds:report do módulo=0 + screenshot que bate golden Cowork), nunca por opinião.
+
+Telas (nota atual → alvo 70):
+- [ ] NfeBrasil/Transactions/NfceStatus 38 — P1: remover style{} inline + oklch 240 azul; Card/Badge DS + ação reemitir
+- [ ] Produto/StockHistory 47 — P9: timeline real via JSON+defer (hoje só linka Blade legacy)
+- [ ] Manufacturing/Index 50 — P2: montar no AppShellV2 + @/ui + PT-01 Lista; habilitar CTA
+- [ ] ComunicacaoVisual/Index 54 — P2: montar no AppShellV2 + tokens; entregar calculadora m² (API já existe)
+
+Critério de pronto: cada tela ≥70 no SCREEN-GRADE board (ratchet ADR 0236) + screenshot aprovado Wagner.
+
+### US-TR-310 · Design Onda 1 — Cor crua → token DS v4 em lote (13 telas)
+
+> owner: — · priority: p1 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+Plano de design: 44 telas <70 → ≥70. ONDA 1 = maior alavancagem (telas que perdem ESSENCIALMENTE por cor crua). Receita P1 1× (cor/hex/oklch inline → token v4 roxo) aplicada em lote.
+Ref: memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md
+Fecha por EVIDÊNCIA (ds:report cor-crua=0 + screenshot), nunca por opinião.
+
+Telas (nota → alvo 70):
+- [ ] Auditoria/Index 57 — P1 + barra de filtros
+- [ ] Auditoria/Detail 58 — P1 (sky azul) + diff formatado (não JSON dump)
+- [ ] ads/Admin/Graph 60 — P1 HEX cru inline no ReactFlow → CSS vars; responsivo
+- [ ] Admin/FeatureFlags/Index 64 — P1 (amber/red → Alert) + charter
+- [ ] Admin/FeatureFlags/Show 66 — P1 + Select DS + charter
+- [ ] governance/Policies 66 — P1 (emerald) + Switch DS optimistic
+- [ ] ads/Admin/Learning 67 — P1 (colorMap 9 cores) + chart com eixo
+- [ ] Ponto/Relatorios/Index 68 — P1 (blue/violet PROIBIDO) + params período
+- [ ] Produto/SellingPrices 68 — P1 (stone) + PageHeader + atalho salvar
+- [ ] Fiscal/Sped 68 — P1 (hex fallback) — núcleo já funciona
+- [ ] Admin/RagQualityDashboard 69 — P1 + charter + tooltip sparkline
+- [ ] ads/Admin/Confidence 69 — P1 + a11y tabela + mobile card-stack
+- [ ] governance/DriftAlerts 69 — P1 (amber) + Card DS + CTA por item
+
+Critério: cada tela ≥70 no board (ratchet ADR 0236) + screenshot aprovado Wagner.
+
+### US-TR-311 · Design Público — Sanitizar XSS + discoverability (3 telas Site)
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Plano de design: telas PÚBLICAS (fora do app shell, mas com fix de SEGURANÇA obrigatório — risco stored-XSS).
+Ref: memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md
+
+Telas (nota → alvo 70):
+- [ ] Site/BlogPost 55 — P0-XSS: sanitizar dangerouslySetInnerHTML + lazy img + meta autor/data
+- [ ] Site/Page 58 — P0-XSS: sanitizar + fallback null/404
+- [ ] Site/Blogs 68 — paginação + busca/tags + data pt-BR
+
+Critério: sanitize aplicado (sem HTML não-confiável) + cada tela ≥70 no board.
+
+### US-TR-312 · Design Onda 2 — Stubs → conteúdo real (6 telas)
+
+> owner: — · priority: p2 · estimate: 32h · status: todo · type: story
+> blocked_by: —
+
+Plano de design: 44 telas <70 → ≥70. ONDA 2 = stubs "em construção" → feature mínima viável (P9 Speed-to-task). ATENÇÃO: precisa decisão de produto antes de codar cada uma.
+Ref: memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md
+
+Telas (nota → alvo 70):
+- [ ] Financeiro/Unificado/Novo 52 — stub picker (2 cards) → form unificado real
+- [ ] Jana/Brief/Index 52 — renderizar brief real inline (não redirect pro chat)
+- [ ] Jana/Regras/Index 52 — listar policies PolicyEngine (4 outcomes) read-only
+- [ ] Jana/Painel 55 — markup .jc-* → @/ui; unificar com Cockpit.tsx
+- [ ] Repair/JobSheet/Index 52 — placeholder DataTables → tabela TanStack real
+- [ ] Ponto/Welcome 58 — stub boas-vindas → dashboard de ponto (pendências/aprovações)
+
+Critério: cada tela entrega valor real + ≥70 no board + screenshot aprovado Wagner.
+
+### US-TR-313 · Design Onda 3 — Conformance estrutural (18 telas)
+
+> owner: — · priority: p2 · estimate: 32h · status: todo · type: story
+> blocked_by: —
+
+Plano de design: 44 telas <70 → ≥70. ONDA 3 = conformance estrutural (PageHeader P3 + charter P4 + @/ui P5 + defer P7 + Dialog P6 + a11y/PII P8).
+Ref: memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md
+
+Telas (nota → alvo 70):
+- [ ] Financeiro/Advisor/Login 50 — @/ui + tokens + charter
+- [ ] Financeiro/Advisor/Dashboard 52 — tudo hand-roll → @/ui + charter
+- [ ] Produto/Unificado/Index 56 — @/ui (nativos) + tokens + a11y
+- [ ] Financeiro/AssinaturaAtualizar 58 — PageHeader + charter + preview impacto
+- [ ] Financeiro/Configuracoes/Contador 58 — @/ui + SubNav + Dialog + bg-blue
+- [ ] superadmin/Usuario360/Index 58 — charter + Button DS + debounce
+- [ ] superadmin/Usuario360/Show 64 — confirm→Dialog + tokens + charter
+- [ ] OficinaAuto/Vehicles/Edit 62 — paridade campos c/ Create + Select DS
+- [ ] OficinaAuto/Vehicles/Create 64 — charter + Select/Textarea DS
+- [ ] OficinaAuto/Vehicles/Show 68 — charter + badge canon + KPI/FSM topo
+- [ ] OficinaAuto/ServiceOrders/Create 66 — @/ui + erros completos + combobox placa
+- [ ] Repair/JobSheet/AddParts 61 — autocomplete produto + totais
+- [ ] Repair/JobSheet/Create 68 — busca cliente + erros inline + Select DS
+- [ ] Repair/Dashboard/Index 62 — defer + gráficos reais + KPIs
+- [ ] Admin/Index 68 — defer nos 10 widgets + StatusBadge tokenizado
+- [ ] Financeiro/Extrato/Index 67 — PII mask doc + PageHeader/SubNav
+- [ ] Settings/PaymentGateways/CnabRetorno 58 — charter + tokens (stone) + dropzone
+- [ ] MemCofre/Modulo 69 — markdown render (não <pre> dump) + tabs overflow
+
+Critério: cada tela ≥70 no board (ratchet ADR 0236) + screenshot aprovado Wagner.
+
+### US-TR-314 · Design Onda 4 — Alinhar sidebar ↔ módulos (4 fixes estruturais)
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Plano de design: alinhamento estrutural do sidebar (não-tela). Cruzar board (por módulo) com SIDEBAR_GROUPS canon (ADR 0180, 8 grupos).
+Ref: memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md (Parte 3)
+
+Fixes:
+- [ ] Desinchar SISTEMA: 15 das 44 telas fracas são ferramenta INTERNA (ads/governance/MemCofre/Usuario360/RagQuality) ≠ tela de cliente. Separar interno/superadmin do SISTEMA do tenant (cliente não vê governança no menu).
+- [ ] Grupos órfãos: ads/MemCofre/kb/ProjectMgmt não declaram `group` no DataController → caem em MAIS. Dar group canon OU marcar interno.
+- [ ] Bucket "Público" separado no board (Site/Auth não pertencem ao sidebar).
+- [ ] Remover OficinaAuto duplicado de PRODUÇÃO no SIDEBAR_GROUPS.items[] (resolve pra COMERCIAL, mas é dívida).
+
+Critério: sidebar reflete os módulos sem órfãos em MAIS + interno separado de cliente.
