@@ -1,172 +1,77 @@
-import React from 'react';
-import { Head } from '@inertiajs/react';
+// @memcofre tela=/manufacturing/v2/production module=Manufacturing
+// MWART Wave J → board 2026-05-30 uplift (50 Developing → ≥70).
+// Lista de produções (production_purchase) em Inertia/React no padrão PT-01
+// Lista (AppShellV2 + PageHeader + KpiCard + tabela tokenizada + EmptyState).
+// Coexiste com Blade legacy /manufacturing/production (Tier 0: preservado).
+//
+// Backend: ProductionController@indexV2 → ProductionService::listProductions/summary
+// (scoped por business_id — Tier 0 ADR 0093). Filtros (location/data/finalizadas)
+// via Inertia partial reload. CTA aponta pra rota legacy de create existente.
 
-/**
- * Manufacturing/Index — esqueleto MWART inicial (Wave J 2026-05-16).
- *
- * Página minimal para listar produções (production_purchase). Rota nova
- * `/manufacturing/v2/production` em coexistência com Blade legacy
- * `/manufacturing/production` (Tier 0: preservar comportamento existente).
- *
- * Próximos passos (NÃO neste PR):
- *  - Migrar tabela legacy DataTables → TanStack Table
- *  - Adicionar filtros (location_id, date range)
- *  - Wire-up CRUD via Inertia forms
- *  - Charter ao lado deste arquivo (Index.charter.md) define Mission/Non-Goals
- */
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
+import { Factory, Plus, Search, X } from 'lucide-react';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import PageHeader from '@/Components/shared/PageHeader';
+import KpiCard from '@/Components/shared/KpiCard';
+import EmptyState from '@/Components/shared/EmptyState';
 
-type Production = {
+interface Production {
   id: number;
   ref_no: string | null;
-  transaction_date: string;
+  /** Já formatada `dd/mm/aaaa` pelo Controller (indexV2). */
+  transaction_date: string | null;
   location_name: string | null;
   final_total: number;
   mfg_is_final: number;
-};
+}
 
-type Summary = {
+interface Summary {
   total_count: number;
   final_count: number;
   pending_count: number;
   total_value: number;
-};
+}
 
-type Props = {
+interface FiltersState {
+  location_id?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  is_final?: boolean | null;
+}
+
+interface Props {
   productions: Production[];
   summary: Summary;
-};
-
-export default function Index({ productions = [], summary }: Props) {
-  return (
-    <>
-      <Head title="Produção (Manufacturing)" />
-
-      <div className="p-6 space-y-6">
-        {/* PageHeader */}
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Produção</h1>
-            <p className="text-sm text-gray-500">
-              Ordens de produção (Manufacturing) — versão Inertia/React.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90"
-            disabled
-            title="Em construção — use a rota legacy enquanto isso"
-          >
-            + Nova produção
-          </button>
-        </header>
-
-        {/* Summary cards */}
-        <section className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <SummaryCard label="Total" value={summary?.total_count ?? 0} />
-          <SummaryCard label="Finalizadas" value={summary?.final_count ?? 0} />
-          <SummaryCard label="Pendentes" value={summary?.pending_count ?? 0} />
-          <SummaryCard
-            label="Valor total"
-            value={summary?.total_value ?? 0}
-            isCurrency
-          />
-        </section>
-
-        {/* Lista */}
-        <section className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ref
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Local
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {productions.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center">
-                    <EmptyState />
-                  </td>
-                </tr>
-              ) : (
-                productions.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {p.ref_no ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {p.transaction_date}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {p.location_name ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                      {formatCurrency(p.final_total)}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      {p.mfg_is_final ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                          Finalizada
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Pendente
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </>
-  );
+  /** id → nome. Pode não vir em versões antigas do payload. */
+  business_locations?: Record<number, string>;
+  filters?: FiltersState;
 }
 
-function SummaryCard({
-  label,
-  value,
-  isCurrency = false,
-}: {
-  label: string;
-  value: number;
-  isCurrency?: boolean;
-}) {
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-gray-900">
-        {isCurrency ? formatCurrency(value) : value}
-      </p>
-    </div>
-  );
-}
+const ROUTE = '/manufacturing/v2/production';
+const CREATE_ROUTE = '/manufacturing/production/create';
 
-function EmptyState() {
-  return (
-    <div className="text-center">
-      <p className="text-sm text-gray-500">Nenhuma produção cadastrada.</p>
-      <p className="mt-1 text-xs text-gray-400">
-        Use a rota legacy em /manufacturing/production para criar enquanto a
-        migração MWART está em andamento.
-      </p>
-    </div>
-  );
+function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
+  // is_final é flag de presença no backend (request()->has('is_final')); só envia quando true.
+  const next: Record<string, unknown> = {
+    location_id: current.location_id ?? undefined,
+    start_date: current.start_date ?? undefined,
+    end_date: current.end_date ?? undefined,
+    is_final: current.is_final ? 1 : undefined,
+    ...patch,
+  };
+  // Normaliza is_final boolean→flag depois do merge.
+  if ('is_final' in patch) {
+    next.is_final = patch.is_final ? 1 : undefined;
+  }
+  router.get(ROUTE, next, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['productions', 'summary', 'filters'],
+    replace: true,
+  });
 }
 
 function formatCurrency(value: number): string {
@@ -175,3 +80,230 @@ function formatCurrency(value: number): string {
     currency: 'BRL',
   }).format(value ?? 0);
 }
+
+function Index({ productions = [], summary, business_locations = {}, filters = {} }: Props) {
+  const [start, setStart] = useState<string>(filters.start_date ?? '');
+  const [end, setEnd] = useState<string>(filters.end_date ?? '');
+
+  const locationEntries = Object.entries(business_locations);
+  const hasLocations = locationEntries.length > 0;
+
+  const hasActiveFilters =
+    !!filters.location_id ||
+    !!filters.start_date ||
+    !!filters.end_date ||
+    !!filters.is_final;
+
+  const clearAll = () => {
+    setStart('');
+    setEnd('');
+    router.get(ROUTE, {}, { preserveState: false, preserveScroll: false });
+  };
+
+  const applyDateRange = () => {
+    if (start && end) {
+      applyFilter(filters, { start_date: start, end_date: end });
+    } else if (!start && !end) {
+      applyFilter(filters, { start_date: null, end_date: null });
+    }
+  };
+
+  return (
+    <div className="space-y-6 p-6">
+      {/* Slot 1 — PageHeader com CTA habilitado (rota legacy de create existe) */}
+      <PageHeader
+        icon="factory"
+        title="Produção"
+        description="Ordens de produção (Manufacturing). Lista MWART em coexistência com a tela legacy."
+        action={
+          <Button asChild>
+            <a href={CREATE_ROUTE}>
+              <Plus className="mr-2 h-4 w-4" /> Nova produção
+            </a>
+          </Button>
+        }
+      />
+
+      {/* KPI strip — "Finalizadas" e "Pendentes" filtram a lista */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Total"
+          value={summary?.total_count ?? 0}
+          icon="layers"
+          compact
+        />
+        <KpiCard
+          label="Finalizadas"
+          value={summary?.final_count ?? 0}
+          icon="check-circle-2"
+          tone={filters.is_final ? 'success' : 'default'}
+          compact
+          onClick={() => applyFilter(filters, { is_final: filters.is_final ? null : true })}
+          selected={!!filters.is_final}
+        />
+        <KpiCard
+          label="Pendentes"
+          value={summary?.pending_count ?? 0}
+          icon="clock"
+          compact
+        />
+        <KpiCard
+          label="Valor total"
+          value={formatCurrency(summary?.total_value ?? 0)}
+          icon="dollar-sign"
+          compact
+        />
+      </div>
+
+      {/* Slot 3 — Toolbar de filtros (local + intervalo de data) */}
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {hasLocations && (
+            <select
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
+              value={filters.location_id ?? ''}
+              onChange={(e) =>
+                applyFilter(filters, {
+                  location_id: e.target.value ? Number(e.target.value) : null,
+                })
+              }
+              aria-label="Filtrar por local"
+            >
+              <option value="">Todos os locais</option>
+              {locationEntries.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {String(name)}
+                </option>
+              ))}
+            </select>
+          )}
+
+          <div className="flex items-center gap-1.5">
+            <Input
+              type="date"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              onBlur={applyDateRange}
+              className="h-9 w-[150px]"
+              aria-label="Data inicial"
+            />
+            <span className="text-sm text-muted-foreground">até</span>
+            <Input
+              type="date"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              onBlur={applyDateRange}
+              className="h-9 w-[150px]"
+              aria-label="Data final"
+            />
+            <Button variant="outline" size="sm" onClick={applyDateRange}>
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearAll}>
+              <X className="mr-1 h-4 w-4" /> Limpar
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Slot 5 — Tabela tokenizada */}
+      <div className="rounded-lg border border-border bg-card overflow-x-auto">
+        {productions.length === 0 ? (
+          <EmptyState
+            icon="factory"
+            variant={hasActiveFilters ? 'search' : 'default'}
+            title={hasActiveFilters ? 'Nenhuma produção no filtro' : 'Sem produções cadastradas'}
+            description={
+              hasActiveFilters
+                ? 'Ajuste ou limpe os filtros pra ver mais resultados.'
+                : 'Crie a primeira ordem de produção pelo botão "Nova produção".'
+            }
+            action={
+              hasActiveFilters ? (
+                <Button variant="outline" size="sm" onClick={clearAll}>
+                  <X className="mr-1 h-4 w-4" /> Limpar filtros
+                </Button>
+              ) : (
+                <Button asChild size="sm">
+                  <a href={CREATE_ROUTE}>
+                    <Plus className="mr-2 h-4 w-4" /> Nova produção
+                  </a>
+                </Button>
+              )
+            }
+          />
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr className="text-left">
+                <th className="px-3 py-2 font-medium text-muted-foreground">Ref</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground">Data</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground">Local</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Total</th>
+                <th className="px-3 py-2 font-medium text-muted-foreground">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productions.map((p) => (
+                <tr key={p.id} className="border-t border-border hover:bg-muted/30 transition-colors">
+                  <td className="px-3 py-2 font-mono text-foreground">{p.ref_no ?? '—'}</td>
+                  <td className="px-3 py-2 text-muted-foreground tabular-nums">
+                    {p.transaction_date ?? '—'}
+                  </td>
+                  <td className="px-3 py-2 max-w-[220px] truncate text-foreground" title={p.location_name ?? ''}>
+                    {p.location_name ?? '—'}
+                  </td>
+                  <td className="px-3 py-2 text-right font-medium text-foreground tabular-nums">
+                    {formatCurrency(p.final_total)}
+                  </td>
+                  <td className="px-3 py-2">
+                    <StatusPill isFinal={p.mfg_is_final} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {productions.length > 0 && (
+        <p className="text-xs text-muted-foreground tabular-nums">
+          {productions.length} produç{productions.length === 1 ? 'ão' : 'ões'} exibida
+          {productions.length === 1 ? '' : 's'}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Status dot-style (Stripe-like) com tokens semânticos — sem bg-fill cru (PT-01).
+function StatusPill({ isFinal }: { isFinal: number }) {
+  if (isFinal) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+        Finalizada
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+      Pendente
+    </span>
+  );
+}
+
+Index.layout = (page: ReactNode) => (
+  <AppShellV2
+    title="Produção · Manufacturing"
+    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Produção' }]}
+  >
+    {page}
+  </AppShellV2>
+);
+
+export default Index;

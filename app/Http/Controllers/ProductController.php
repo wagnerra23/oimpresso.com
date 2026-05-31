@@ -2649,6 +2649,12 @@ class ProductController extends Controller
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
         if (request()->header('X-Inertia')) {
+            // Variação/local efetivos da timeline: o que veio na query string OU o
+            // primeiro de cada (a tela inicializa nos primeiros).
+            // getVariationStockHistory exige ambos preenchidos.
+            $selected_variation_id = request()->get('variation_id') ?: ($product->variations->first()->id ?? null);
+            $selected_location_id = request()->get('location_id') ?: array_key_first($business_locations->toArray());
+
             return Inertia::render('Produto/StockHistory', [
                 'product' => [
                     'id' => (int) $product->id,
@@ -2663,14 +2669,81 @@ class ProductController extends Controller
                     'subSku' => (string) ($v->sub_sku ?? ''),
                 ])->all(),
                 'businessLocations' => $business_locations,
+                'filters' => [
+                    'variationId' => $selected_variation_id ? (string) $selected_variation_id : '',
+                    'locationId' => $selected_location_id ? (string) $selected_location_id : '',
+                ],
                 'permissions' => [
                     'view' => true,
                 ],
+                // Timeline real de movimentação (entrada/saída/ajuste) carregada sob demanda.
+                // Reusa o helper canônico ProductUtil::getVariationStockHistory — já escopado
+                // por business_id + location_id + variation_id (multi-tenant Tier 0).
+                'movements' => Inertia::defer(fn () => $this->buildStockMovements(
+                    $business_id,
+                    $selected_variation_id,
+                    $selected_location_id
+                )),
             ]);
         }
 
         return view('product.stock_history')
                 ->with(compact('product', 'business_locations'));
+    }
+
+    /**
+     * Monta a linha do tempo de movimentação de estoque (entrada/saída/ajuste) de
+     * uma variação num local, pro front Inertia (Produto/StockHistory).
+     *
+     * Delega a query ao helper canônico ProductUtil::getVariationStockHistory, que
+     * une transaction_sell_lines (saída), purchase_lines (entrada) e
+     * stock_adjustment_lines (ajuste) já escopados por business_id + location_id
+     * + variation_id (multi-tenant Tier 0 — sem vazamento cross-tenant) e já calcula
+     * o saldo corrente (running balance) por linha.
+     *
+     * Normaliza o tipo cru da transação em direção visual (entrada/saida/ajuste)
+     * pro componente React. `quantity_change` já vem assinado do helper.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildStockMovements($business_id, $variation_id, $location_id): array
+    {
+        if (empty($variation_id) || empty($location_id)) {
+            return [];
+        }
+
+        $rows = $this->productUtil->getVariationStockHistory($business_id, $variation_id, $location_id);
+
+        // Tipos que reduzem estoque (saída) vs aumentam (entrada). stock_adjustment
+        // tem cor/badge própria (ajuste). Mantém alinhado com getVariationStockHistory.
+        $outTypes = ['sell', 'sell_transfer', 'purchase_return'];
+
+        return collect($rows)->map(function ($row) use ($outTypes) {
+            $type = $row['type'] ?? '';
+
+            if ($type === 'stock_adjustment') {
+                $kind = 'ajuste';
+            } elseif (in_array($type, $outTypes, true)) {
+                $kind = 'saida';
+            } else {
+                $kind = 'entrada';
+            }
+
+            $change = (float) ($row['quantity_change'] ?? 0);
+            $stock = (float) ($row['stock'] ?? 0);
+            $date = ! empty($row['date']) ? \Carbon\Carbon::parse($row['date']) : null;
+
+            return [
+                'id' => $kind.'-'.($row['transaction_id'] ?? 0).'-'.($row['ref_no'] ?? ''),
+                'kind' => $kind,
+                'dateLabel' => $date ? $date->format('d/m/Y H:i') : '—',
+                'quantity' => round($change, 4),
+                'quantityLabel' => ($change > 0 ? '+' : '').$this->productUtil->num_f($change, false, null, true),
+                'balanceLabel' => $this->productUtil->num_f($stock, false, null, true),
+                'origin' => (string) ($row['type_label'] ?? $type),
+                'refNo' => ! empty($row['ref_no']) ? $row['ref_no'] : '—',
+            ];
+        })->values()->all();
     }
 
     /**
