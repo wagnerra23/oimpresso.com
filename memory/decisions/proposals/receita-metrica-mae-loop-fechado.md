@@ -90,6 +90,9 @@ Comando artisan (esqueleto — `app/Console/Commands/` ou `Modules/Superadmin/Co
 ### Camada 4 — Ritual semanal
 Sexta: `cycle-goals-track cycle:CYCLE-08` + atualizar placar [`_pipeline-migracao-legacy.md`](../../clientes/_pipeline-migracao-legacy.md) + 3 perguntas (quantos clientes toquei? quanto MRR? o que trava?). Opcional virar skill Tier B `revenue-weekly-review` ou `/schedule` sexta 17h.
 
+### Teste de desvios (rigor) ✅ CONSTRUÍDO
+Regra de detecção isolada em `.claude/hooks/receita-drift-rule.ps1` (função pura `Get-ReceitaDriftLevel` → SILENT / FRAME / DRIFT, threshold 25% decorrido) e **testada contra a falha** em `.claude/hooks/receita-drift-rule.tests.ps1` — matriz de 8 cenários: drift a 25%/50%/90% sem cliente novo → **DRIFT**; com movimento (3 novos) ou cedo demais → **FRAME**; fora de cycle Receita → **SILENT**. **8/8 passam** (regressão guard). Responde a pergunta canônica *"o mecanismo PEGA o desvio, não só dispara?"*. O sensor `revenue-pulse` + brief consomem essa regra ao deployar (alimentam `Novos7d` real do DB).
+
 ## Consequências
 
 **Positivas:** o sistema se auto-corrige — toda sessão reabre o frame de receita; o brief mostra MRR no topo; drift comercial vira alerta ativo, não silêncio. A recalibração de cycle (CYCLE-08) deixa de ter prazo de validade. `cliente-como-sinal` vira enforced.

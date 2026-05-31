@@ -29,6 +29,7 @@ session_type: estratégia/management (ZERO código de produto, ZERO PR — artef
 - `memory/sessions/2026-05-31-dossie-mercado-consolidado.md` — síntese 28 streams + **correções da verificação** (TAM oficina R$60bi não R$256bi; ContaAzul R$1,66bi não R$2bi; gatilho = Nuvem Fiscal off 31/07/2026 não multa; Certtus não HiSoft)
 - `memory/decisions/proposals/receita-metrica-mae-loop-fechado.md` — **ADR proposta** (ratificar → ~0241): receita=métrica-mãe + loop 5 camadas + SQL sensor + patches brief
 - `.claude/hooks/receita-loop-check.ps1` — hook SessionStart forçador (ASCII-puro, **testado: dispara**) + registrado em `.claude/settings.json`
+- `.claude/hooks/receita-drift-rule.ps1` + `.tests.ps1` — regra de detecção pura (`Get-ReceitaDriftLevel`) + **teste de desvios** (matriz 8 cenários, **8/8 passam**) que prova o loop PEGA o drift
 
 ## Persistência
 - **Git:** estes arquivos estão no checkout MAIN (D:/oimpresso.com), não no worktree. Commit+push neste fechamento → webhook/cron MCP propaga.
@@ -38,14 +39,14 @@ session_type: estratégia/management (ZERO código de produto, ZERO PR — artef
 ## Próximos passos pra retomar
 1. **🔴 PRIMEIRO — Wagner responde a composição dos R$60k** (legado WR vs oimpresso · quantos clientes · ARPU maior/menor · despesa fixa vs variável). Sem isso a matemática de canibalização fica no escuro.
 2. Recalibrar **CYCLE-08 + plano** com a realidade lucrativa: métrica vira **NRR≥100% na base + ARPU igual-ou-maior**, não "12 logos novos".
-3. **Construir o teste de desvios** do loop (Pest em `renderCycleDriftAlert` + sensor com fixture `novos_7d=0`/cycle 50% → assert dispara). **Gap admitido: o hook foi verificado que DISPARA, mas não testado que PEGA um desvio real.**
+3. ✅ **Teste de desvios CONSTRUÍDO** (`receita-drift-rule.ps1` + `.tests.ps1`, 8/8). Gap "mecanismo dispara ≠ pega desvio" **fechado**. Falta só o sensor `revenue-pulse` deployar p/ alimentar `Novos7d` real do DB.
 4. Deploy servidor das camadas 1+2 do loop (sensor `revenue-pulse` + seção RECEITA no brief) — Wagner aprova.
 5. Ratificar a ADR proposta → vira ~0241.
 6. Segunda: snapshot Firebird dos 5 mais quentes + 1ª call (gancho Nuvem Fiscal 31/07).
 
 ## Lições catalogadas
 - **Estrategizei sobre 3 incógnitas load-bearing** (caixa, MRR real, WTP validada) sem sinalizar cedo. Regra: **perguntar financials ANTES** de montar estratégia. (Wagner expôs ao dar R$60k/R$40k no fim.)
-- **Mecanismo ≠ testado:** construí o loop anti-drift mas não o testei contra a falha que ele deveria pegar. "Existe e dispara" ≠ "pega o desvio". Teste de desvios é a peça que falta.
+- **Mecanismo ≠ testado:** construí o loop anti-drift mas inicialmente não o testei contra a falha que ele deveria pegar. "Existe e dispara" ≠ "pega o desvio". → **corrigido no mesmo fechamento** (Wagner cobrou "vai teste de desvios?") com `receita-drift-rule.tests.ps1` (8/8). Lição: forcing function só conta como mecanismo depois de testada contra o cenário de falha.
 - **PowerShell 5.1 lê .ps1 como Windows-1252** → em-dash "—" (byte 0x94=aspas) e emoji quebram o parser. **Hooks devem ser ASCII-only** (pego e corrigido na hora).
 - **Sonnet pra fan-out** quando weekly all-models está alto e Sonnet está 0% — usa a capacidade livre, mais rápido.
 - **Verificação adversarial paga:** caçou erros reais de ±20% (oficina TAM 4×, ContaAzul 20%, Bling GMV, gatilho fiscal). Validou o design do workflow.
