@@ -70,6 +70,9 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\FreshnessCheckCommand::class, // GAP D7 #2 auditoria 2026-05-15 — freshness pipeline (4 níveis + drift + alert + reindex)
                 \Modules\Jana\Console\Commands\JanaDriftSentinelCommand::class, // Wave 23 §G2 — canary semanal drift Jana (faithfulness vs baseline)
                 \Modules\Jana\Console\Commands\RetentionPurgeCommand::class, // G1 P0 AUDIT-SENIOR-2026-05-25 — D7.d LGPD purge (Art. 16 + Art. 18 §VI)
+                \Modules\Jana\Console\Commands\IndexRegenCommand::class, // regressão 2026-05-29 — gate integridade/priorização memory/INDEX.md (Tier 0 + links + contagens)
+                \Modules\Jana\Console\Commands\MeilisearchIndexSetupCommand::class, // 2026-05-29 — config-as-code dos embedders Meilisearch (Sprint 9b se perdeu)
+                \Modules\Jana\Console\Commands\ReconcileCommand::class, // ADR 0237 — jana:reconcile loop único (orquestra Reconcilers index/settings/content/deploy/eval)
             ]);
         }
     }
@@ -83,6 +86,18 @@ class JanaServiceProvider extends ServiceProvider
         $this->app->singleton(\Modules\Jana\Services\ApuracaoService::class);
         $this->app->singleton(\Modules\Jana\Services\ContextSnapshotService::class);
         $this->app->singleton(\Modules\Jana\Services\AlertaService::class);
+
+        // Freshness (GAP D7 #2 · revisão adversarial 2026-05-29 finding #2):
+        // StalenessDetectorService é STATEFUL (repoBasePath). Sem singleton, o
+        // FreshnessCheckCommand configurava `comRepoBasePath(base_path())` na SUA
+        // instância injetada, mas o ReindexJobDispatcher recebia OUTRA instância
+        // (repoBasePath=null) → detectDrift() no dispatcher sempre vazio → drift
+        // git-SHA detectado no relatório mas NUNCA reindexado (anulava o BUG-1 fix).
+        // Singleton já com base_path() → command e dispatcher compartilham a config.
+        $this->app->singleton(
+            \Modules\Jana\Services\Memoria\Freshness\StalenessDetectorService::class,
+            fn () => new \Modules\Jana\Services\Memoria\Freshness\StalenessDetectorService(base_path()),
+        );
 
         // L1 Onda 4 (P0 GAP-ANALYSIS-91-100-2026-05-13) — Langfuse v3 self-host
         // CT 100 + batch ingestion REST. Multiplicador exponencial: instrumenta

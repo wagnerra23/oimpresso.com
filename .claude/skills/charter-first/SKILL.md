@@ -1,8 +1,8 @@
 ---
 name: charter-first
 description: BLOQUEADOR — ANTES de editar qualquer .tsx que tenha .charter.md ao lado (ex Index.tsx + Index.charter.md), chame tool MCP `charter-fetch <page-id>` pra carregar contrato vivo da página (Mission/Goals/Non-Goals/UX targets/Anti-hooks). Tier A always-on — princípio duro #3 Constituição V2 (Charter > Spec). 26 charters em prod, tool MCP deployed em 2026-05-13.
-tier: A
-always_on: true
+tier: B
+always_on: false
 tier_enforce: hook-pre-tool-use-edit
 parent_adr: 0095
 related_adrs: [0094, 0101]

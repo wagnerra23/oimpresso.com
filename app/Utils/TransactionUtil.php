@@ -1246,7 +1246,10 @@ class TransactionUtil extends Util
 
         $output['date_label'] = $il->date_label;
         if (blank($il->date_time_format)) {
-            $output['invoice_date'] = $this->format_date($transaction->transaction_date, true, $business_details);
+            // Wagner 2026-05-27 (Larissa recibo 23:47 vs real 18:00): trocado
+            // format_date (que adicionava +3h "intencional") por format_date_no_shift.
+            // Pra recibo, valor do DB deve ser exibido fielmente (Carbon::parse direto).
+            $output['invoice_date'] = $this->format_date_no_shift($transaction->transaction_date, true, $business_details);
         } else {
             $output['invoice_date'] = \Carbon::createFromFormat('Y-m-d H:i:s', $transaction->transaction_date)->format($il->date_time_format);
         }

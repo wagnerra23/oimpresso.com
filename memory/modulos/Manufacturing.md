@@ -12,6 +12,7 @@
 ## Sinais detectados
 
 - 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
+- ✅ Tem testes (17)
 - 🔐 Registra 4 permissão(ões) Spatie
 
 - **Prioridade sugerida de migração:** média
@@ -24,13 +25,13 @@
 | Rotas (web+api) | 14 |
 | Controllers | 6 |
 | Entities (Models) | 3 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 2 |
+| FormRequests | 7 |
 | Middleware | 0 |
 | Views Blade | 20 |
 | Migrations | 13 |
 | Arquivos de lang | 14 |
-| Testes | 0 |
+| Testes | 17 |
 
 ## Rotas
 
@@ -60,9 +61,9 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 ## Controllers
 
 - **`DataController`** — 4 ação(ões): superadmin_package, user_permissions, modifyAdminMenu, profitLossReportData
-- **`InstallController`** — 4 ação(ões): index, install, update, uninstall
+- **`InstallController`** — 0 ação(ões): 
 - **`ManufacturingController`** — 7 ação(ões): index, create, store, show, edit, update, destroy
-- **`ProductionController`** — 8 ação(ões): index, create, store, show, edit, update, destroy, getManufacturingReport
+- **`ProductionController`** — 9 ação(ões): index, create, store, show, edit, update, destroy, indexV2 +1
 - **`RecipeController`** — 11 ação(ões): index, create, store, show, getIngredientRow, addIngredients, getRecipeDetails, getIngredientGroupForm +3
 - **`SettingsController`** — 2 ação(ões): index, store
 
@@ -121,6 +122,10 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - `manufacturing.access_production`
 - `manufacturing.add_recipe`
 
+## Processamento / eventos
+
+**Commands (artisan):** `ManufacturingHealthCommand`
+
 ## Peças adicionais
 
 - **Seeders:** `ManufacturingDatabaseSeeder`
@@ -165,84 +170,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 84
-- **Linhas +:** 6280 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2019_07_15_114211_add_manufacturing_module_version_to_system_table.php`
-  - `Database/Migrations/2019_07_15_114403_create_mfg_recipes_table.php`
-  - `Database/Migrations/2019_07_18_180217_add_production_columns_to_transactions_table.php`
-  - `Database/Migrations/2019_07_26_110753_add_manufacturing_settings_column_to_business_table.php`
-  - `Database/Migrations/2019_07_26_170450_add_manufacturing_permissions.php`
-  - `Database/Migrations/2019_08_08_110035_create_mfg_recipe_ingredients_table.php`
-  - `Database/Migrations/2019_08_08_172837_add_recipe_add_edit_permissions.php`
-  - `Database/Migrations/2019_08_12_114610_add_ingredient_waste_percent_columns.php`
-  - `Database/Migrations/2019_11_05_115136_create_ingredient_groups_table.php`
-  - `Database/Migrations/2020_02_22_120303_add_column_to_mfg_recipe_ingredients_table.php`
-  - `Database/Migrations/2020_08_19_103831_add_production_cost_type_to_recipe_and_transaction_table.php`
-  - `Database/Migrations/2021_02_16_190302_add_manufacturing_module_indexing.php`
-  - `Database/Migrations/2021_04_07_154331_add_mfg_ingredient_group_id_to_transaction_sell_lines_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/ManufacturingDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/MfgIngredientGroup.php`
-  - `Entities/MfgRecipe.php`
-  - `Entities/MfgRecipeIngredient.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/ManufacturingController.php`
-  - `Http/Controllers/ProductionController.php`
-  - `Http/Controllers/RecipeController.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 84
-- **Linhas +:** 6280 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2019_07_15_114211_add_manufacturing_module_version_to_system_table.php`
-  - `Database/Migrations/2019_07_15_114403_create_mfg_recipes_table.php`
-  - `Database/Migrations/2019_07_18_180217_add_production_columns_to_transactions_table.php`
-  - `Database/Migrations/2019_07_26_110753_add_manufacturing_settings_column_to_business_table.php`
-  - `Database/Migrations/2019_07_26_170450_add_manufacturing_permissions.php`
-  - `Database/Migrations/2019_08_08_110035_create_mfg_recipe_ingredients_table.php`
-  - `Database/Migrations/2019_08_08_172837_add_recipe_add_edit_permissions.php`
-  - `Database/Migrations/2019_08_12_114610_add_ingredient_waste_percent_columns.php`
-  - `Database/Migrations/2019_11_05_115136_create_ingredient_groups_table.php`
-  - `Database/Migrations/2020_02_22_120303_add_column_to_mfg_recipe_ingredients_table.php`
-  - `Database/Migrations/2020_08_19_103831_add_production_cost_type_to_recipe_and_transaction_table.php`
-  - `Database/Migrations/2021_02_16_190302_add_manufacturing_module_indexing.php`
-  - `Database/Migrations/2021_04_07_154331_add_mfg_ingredient_group_id_to_transaction_sell_lines_table.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/ManufacturingDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Entities/MfgIngredientGroup.php`
-  - `Entities/MfgRecipe.php`
-  - `Entities/MfgRecipeIngredient.php`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/ManufacturingController.php`
-  - `Http/Controllers/ProductionController.php`
-  - `Http/Controllers/RecipeController.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -252,5 +184,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Manufacturing`

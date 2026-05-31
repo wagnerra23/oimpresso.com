@@ -14,8 +14,9 @@
 - 🔗 Registra 5 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions, addTaxonomies, moduleViewPartials
 - 🔴 +50 rotas — módulo grande, migrar em fases
 - 🔴 +50 views — trabalho pesado
-- ✅ Tem testes (2)
+- ✅ Tem testes (12)
 - 🔐 Registra 23 permissão(ões) Spatie
+- 🔗 Acoplamento: depende de 2 outro(s) módulo(s)
 
 - **Prioridade sugerida de migração:** baixa (grande, fazer por último ou dividir)
 - **Risco estimado:** alto
@@ -24,16 +25,16 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 53 |
+| Rotas (web+api) | 55 |
 | Controllers | 19 |
 | Entities (Models) | 18 |
-| Services | 0 |
-| FormRequests | 4 |
+| Services | 4 |
+| FormRequests | 10 |
 | Middleware | 0 |
 | Views Blade | 87 |
 | Migrations | 36 |
 | Arquivos de lang | 16 |
-| Testes | 2 |
+| Testes | 12 |
 
 ## Rotas
 
@@ -46,6 +47,7 @@
 | `GET` | `/install/update` | `[Modules\Essentials\Http\Controllers\InstallController::class, 'update']` |
 | `GET` | `/install/uninstall` | `[Modules\Essentials\Http\Controllers\InstallController::class, 'uninstall']` |
 | `GET` | `/` | `[Modules\Essentials\Http\Controllers\EssentialsController::class, 'index']` |
+| `POST` | `document` | `[Modules\Essentials\Http\Controllers\DocumentController::class, 'store']` |
 | `GET` | `document/download/{id}` | `[Modules\Essentials\Http\Controllers\DocumentController::class, 'download']` |
 | `POST` | `todo/add-comment` | `[Modules\Essentials\Http\Controllers\ToDoController::class, 'addComment']` |
 | `GET` | `todo/delete-comment/{id}` | `[Modules\Essentials\Http\Controllers\ToDoController::class, 'deleteComment']` |
@@ -53,6 +55,7 @@
 | `POST` | `todo/upload-document` | `[Modules\Essentials\Http\Controllers\ToDoController::class, 'uploadDocument']` |
 | `GET` | `view-todo-{id}-share-docs` | `[Modules\Essentials\Http\Controllers\ToDoController::class, 'viewSharedDocs']` |
 | `GET` | `get-new-messages` | `[Modules\Essentials\Http\Controllers\EssentialsMessageController::class, 'getNewMessages']` |
+| `POST` | `messages` | `[Modules\Essentials\Http\Controllers\EssentialsMessageController::class, 'store']` |
 | `GET` | `user-sales-targets` | `[Modules\Essentials\Http\Controllers\DashboardController::class, 'getUserSalesTargets']` |
 | `GET` | `/dashboard` | `[Modules\Essentials\Http\Controllers\DashboardController::class, 'hrmDashboard']` |
 | `POST` | `/change-status` | `[Modules\Essentials\Http\Controllers\EssentialsLeaveController::class, 'changeStatus']` |
@@ -79,10 +82,8 @@
 | `GET` | `/shift/assign-users/{shift_id}` | `[Modules\Essentials\Http\Controllers\ShiftController::class, 'getAssignUsers']` |
 | `POST` | `/shift/assign-users` | `[Modules\Essentials\Http\Controllers\ShiftController::class, 'postAssignUsers']` |
 | `GET` | `/sales-target` | `[Modules\Essentials\Http\Controllers\SalesTargetController::class, 'index']` |
-| `GET` | `/set-sales-target/{id}` | `[Modules\Essentials\Http\Controllers\SalesTargetController::class, 'setSalesTarget']` |
-| `POST` | `/save-sales-target` | `[Modules\Essentials\Http\Controllers\SalesTargetController::class, 'saveSalesTarget']` |
 
-_... +13 rotas_
+_... +15 rotas_
 
 ### `api.php`
 
@@ -262,6 +263,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Peças adicionais
 
+- **Policies:** `DocumentPolicy`, `KnowledgeBasePolicy`, `ToDoPolicy`
 - **Notifications:** `DocumentShareNotification`, `LeaveStatusNotification`, `NewLeaveNotification`, `NewMessageNotification`, `NewTaskCommentNotification`, `NewTaskDocumentNotification`, `NewTaskNotification`, `PayrollNotification`
 - **Seeders:** `EssentialsDatabaseSeeder`
 
@@ -272,6 +274,15 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 | `name` | `Essentials` |
 | `module_version` | `4.0` |
 | `chat_refresh_interval` | `20` |
+
+## Dependências cross-module detectadas
+
+_Referências a outros módulos encontradas no código PHP._
+
+| Módulo referenciado | Ocorrências |
+|---|---:|
+| `KB` | 1 |
+| `NfeBrasil` | 1 |
 
 ## Integridade do banco
 
@@ -306,84 +317,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 219
-- **Linhas +:** 22920 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/AutoClockOutUser.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2018_10_01_151252_create_documents_table.php`
-  - `Database/Migrations/2018_10_02_151803_create_document_shares_table.php`
-  - `Database/Migrations/2018_10_09_134558_create_reminders_table.php`
-  - `Database/Migrations/2018_11_16_170756_create_to_dos_table.php`
-  - `Database/Migrations/2019_02_22_120329_essentials_messages.php`
-  - `Database/Migrations/2019_02_22_161513_add_message_permissions.php`
-  - `Database/Migrations/2019_03_29_164339_add_essentials_version_to_system_table.php`
-  - `Database/Migrations/2019_05_17_153306_create_essentials_leave_types_table.php`
-  - `Database/Migrations/2019_05_17_175921_create_essentials_leaves_table.php`
-  - `Database/Migrations/2019_05_21_154517_add_essentials_settings_columns_to_business_table.php`
-  - `Database/Migrations/2019_05_21_181653_create_table_essentials_attendance.php`
-  - `Database/Migrations/2019_05_30_110049_create_essentials_payrolls_table.php`
-  - `Database/Migrations/2019_06_04_105723_create_essentials_holidays_table.php`
-  - `Database/Migrations/2019_06_28_134217_add_payroll_columns_to_transactions_table.php`
-  - `Database/Migrations/2019_08_26_103520_add_approve_leave_permission.php`
-  - `Database/Migrations/2019_08_27_103724_create_essentials_allowance_and_deduction_table.php`
-  - `Database/Migrations/2019_08_27_105236_create_essentials_user_allowances_and_deductions.php`
-  - `Database/Migrations/2019_09_20_115906_add_more_columns_to_essentials_to_dos_table.php`
-  - `Database/Migrations/2019_09_23_120439_create_essentials_todo_comments_table.php`
-  - `Database/Migrations/2019_12_05_170724_add_hrm_columns_to_users_table.php`
-  - `Database/Migrations/2019_12_09_105809_add_allowance_and_deductions_permission.php`
-  - `Database/Migrations/2020_03_28_152838_create_essentials_shift_table.php`
-  - `Database/Migrations/2020_03_30_162029_create_user_shifts_table.php`
-  - `Database/Migrations/2020_03_31_134558_add_shift_id_to_attendance_table.php`
-  - `Database/Migrations/2020_11_05_105157_modify_todos_date_column_type.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 219
-- **Linhas +:** 22920 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Console/AutoClockOutUser.php`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2018_10_01_151252_create_documents_table.php`
-  - `Database/Migrations/2018_10_02_151803_create_document_shares_table.php`
-  - `Database/Migrations/2018_10_09_134558_create_reminders_table.php`
-  - `Database/Migrations/2018_11_16_170756_create_to_dos_table.php`
-  - `Database/Migrations/2019_02_22_120329_essentials_messages.php`
-  - `Database/Migrations/2019_02_22_161513_add_message_permissions.php`
-  - `Database/Migrations/2019_03_29_164339_add_essentials_version_to_system_table.php`
-  - `Database/Migrations/2019_05_17_153306_create_essentials_leave_types_table.php`
-  - `Database/Migrations/2019_05_17_175921_create_essentials_leaves_table.php`
-  - `Database/Migrations/2019_05_21_154517_add_essentials_settings_columns_to_business_table.php`
-  - `Database/Migrations/2019_05_21_181653_create_table_essentials_attendance.php`
-  - `Database/Migrations/2019_05_30_110049_create_essentials_payrolls_table.php`
-  - `Database/Migrations/2019_06_04_105723_create_essentials_holidays_table.php`
-  - `Database/Migrations/2019_06_28_134217_add_payroll_columns_to_transactions_table.php`
-  - `Database/Migrations/2019_08_26_103520_add_approve_leave_permission.php`
-  - `Database/Migrations/2019_08_27_103724_create_essentials_allowance_and_deduction_table.php`
-  - `Database/Migrations/2019_08_27_105236_create_essentials_user_allowances_and_deductions.php`
-  - `Database/Migrations/2019_09_20_115906_add_more_columns_to_essentials_to_dos_table.php`
-  - `Database/Migrations/2019_09_23_120439_create_essentials_todo_comments_table.php`
-  - `Database/Migrations/2019_12_05_170724_add_hrm_columns_to_users_table.php`
-  - `Database/Migrations/2019_12_09_105809_add_allowance_and_deductions_permission.php`
-  - `Database/Migrations/2020_03_28_152838_create_essentials_shift_table.php`
-  - `Database/Migrations/2020_03_30_162029_create_user_shifts_table.php`
-  - `Database/Migrations/2020_03_31_134558_add_shift_id_to_attendance_table.php`
-  - `Database/Migrations/2020_11_05_105157_modify_todos_date_column_type.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -393,5 +331,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 16:19.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Essentials`

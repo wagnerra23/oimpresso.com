@@ -10,7 +10,7 @@ use App\Util\OtelHelper;
  * Garante 4 invariantes (ver ADR 0091):
  * 1. 7 headers exatos, na ordem correta
  * 2. Termina com \n---END---
- * 3. ≤3500 tokens estimados (~4 chars/token PT-BR)
+ * 3. ≤8000 tokens estimados (~4 chars/token PT-BR) — ADR 0226 (1M-aware)
  * 4. Sem PII de cliente final (CPF/CNPJ)
  *
  * Ver memory/sprints/s1-daily-brief/03-prompt-generator.md.
@@ -30,7 +30,9 @@ final class BriefValidator
         '## METADATA',
     ];
 
-    public const MAX_TOKENS = 3500;
+    // ADR 0226 (Claude 4.8-aware): 3500 → 8000. Brief RICO > brief enxuto com 1M
+    // context. Validator acompanha o teto do gerador (BriefGeneratorService).
+    public const MAX_TOKENS = 8000;
 
     public function validate(string $content): ValidationResult
     {
@@ -56,7 +58,7 @@ final class BriefValidator
             return ValidationResult::fail('missing_end_sentinel');
         }
 
-        // 3) Token count <= 3500 (estimativa: ~4 chars/token PT-BR)
+        // 3) Token count <= MAX_TOKENS (8000, ADR 0226 — estimativa ~4 chars/token PT-BR)
         $estimatedTokens = (int) ceil(mb_strlen($content) / 4);
         if ($estimatedTokens > self::MAX_TOKENS) {
             return ValidationResult::fail("token_overflow:{$estimatedTokens}");

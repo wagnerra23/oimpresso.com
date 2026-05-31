@@ -18,7 +18,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
 import { CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
-import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -28,7 +27,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
-import CustomerSearchAutocomplete from './_components/CustomerSearchAutocomplete';
+import CustomerSearchAutocomplete, {
+  type CustomerSearchResult,
+} from './_components/CustomerSearchAutocomplete';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
 import NumericInputPtBR from './_components/NumericInputPtBR';
 import { dropdownEntries } from './_components/dropdownEntries';
@@ -416,6 +417,49 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     setData('products', updated);
   };
 
+  // R8 (2026-05-28) — Bug 2 hotfix Larissa "preço diferenciado" ainda aberto.
+  // Quando troca cliente, auto-aplica:
+  //   - selling_price_group_id (recalcula unit_price do carrinho via handlePriceGroupChange)
+  //   - pay_term_number/pay_term_type (cliente VIP "30 dias" não estava puxando)
+  //   - shipping_address (endereço de entrega pré-fill)
+  //
+  // Backend ContactController@getCustomers já devolve TODOS estes campos (linhas
+  // 2150-2176). Antes deste fix, o handler descartava — só salvava contact_id.
+  // Paridade Blade `customer_id.on('change')` em public/js/pos.js.
+  //
+  // shipping_address vive em data.shipping.address (nested) — setData usa dot path.
+  const handleCustomerSelect = (c: CustomerSearchResult) => {
+    setData('contact_id', c.id);
+    if (c.pay_term_number !== null && c.pay_term_number !== undefined && c.pay_term_number !== '') {
+      setData('pay_term_number', String(c.pay_term_number));
+    }
+    if (c.pay_term_type === 'days' || c.pay_term_type === 'months') {
+      setData('pay_term_type', c.pay_term_type);
+    }
+    // Shipping address — `data.shipping.address` é nested. Usa spread pra preservar
+    // outros campos (details, cost, status, deliver_to) que user pode ter editado.
+    if (c.shipping_address && c.shipping_address !== '') {
+      setData('shipping', { ...data.shipping, address: c.shipping_address });
+    }
+    // Grupo de preço — `handlePriceGroupChange` já existe (R3) e recalcula linhas.
+    // null/undefined → não muda (preserva default já aplicado).
+    if (c.selling_price_group_id !== null && c.selling_price_group_id !== undefined) {
+      void handlePriceGroupChange(c.selling_price_group_id);
+    }
+  };
+
+  // R8 — reset ao limpar cliente. Volta pros defaults (walk-in + props default).
+  const handleCustomerClear = () => {
+    setData('contact_id', props.walkInCustomer.id);
+    setData('pay_term_number', '');
+    setData('pay_term_type', 'days');
+    // shipping fica como user editou — não auto-limpa (pode ser endereço manual)
+    // price_group volta ao default do business
+    if (props.defaultPriceGroupId !== data.price_group_id) {
+      void handlePriceGroupChange(props.defaultPriceGroupId);
+    }
+  };
+
   const handleProductChange = (
     idx: number,
     field: 'quantity' | 'unit_price' | 'discount',
@@ -503,11 +547,41 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   const handleSubmit = (withPrint = false) => {
     if (!canSubmit) return;
+
+    // R9 (2026-05-28) — guard transaction_date drift +2h47.
+    //
+    // Cenário catalogado em session log 2026-05-27: Larissa salvou venda 18:00
+    // mas DB gravou transaction_date=20:47 (+2h47 drift = tempo ficou na tela).
+    // Root cause provável: input chega vazio no POST (user limpou o input, ou
+    // toDatetimeLocal não casou formato AM/PM, ou state perdeu durante sub-views)
+    // → SellPosController@store:435 fallback `\Carbon::now()` sobrescreve com
+    // hora do MOMENTO do submit (não da abertura).
+    //
+    // Fix preventivo: validar transaction_date ANTES do POST. Se vazio/inválido,
+    // re-aplica defaultDatetime (sempre válido do backend) + console.warn pra
+    // rastreabilidade.
+    const TX_DATE_RE = /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/;
+    if (!data.transaction_date || !TX_DATE_RE.test(data.transaction_date)) {
+      console.warn(
+        '[Sells/Create] transaction_date inválido no submit:',
+        JSON.stringify(data.transaction_date),
+        '— recuperando defaultDatetime:',
+        JSON.stringify(props.defaultDatetime),
+      );
+      setData('transaction_date', props.defaultDatetime);
+    }
+
     // Transform: mapeia state UX-friendly do React pra payload que SellPosController@store
     // espera (Blade legacy field names + flat shipping + is_direct_sale flag obrigatório).
     // Refs: SellPosController@store linhas 352-680 + sell/create.blade.php Form::* fields.
     transform((d) => ({
       ...d,
+      // R9 anti-drift — fallback em camada de transform (defesa em profundidade).
+      // Se setData acima não flushou ainda (race com Inertia post), garante valor.
+      transaction_date:
+        d.transaction_date && TX_DATE_RE.test(d.transaction_date)
+          ? d.transaction_date
+          : props.defaultDatetime,
       // Flag CRÍTICO: sem is_direct_sale=1, controller cai em cashRegister check (linha 364).
       is_direct_sale: 1,
       is_save_and_print: withPrint ? 1 : 0,
@@ -838,7 +912,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
       {/* KPI cards — 4 cards GIGANTES, value text-3xl, label uppercase tracking-widest. Estado da arte. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Itens
           </div>
@@ -846,7 +920,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {itensCount}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Total venda
           </div>
@@ -854,7 +928,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {formatBRL(totalGeral)}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Pago
           </div>
@@ -862,9 +936,17 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {formatBRL(totalPago)}
           </div>
         </div>
+        {/*
+          G1 (tela-venda-arte 2026-05-31) — board flagou "cor crua" aqui, mas
+          AVALIADO e MANTIDO de propósito: amber/blue/emerald é SEMÂNTICA DE STATUS
+          de pagamento (falta / troco / exato). O projeto mantém cores de status
+          intocadas por convenção (resources/css/cowork-payment-gateway-bundle.css:12)
+          e o charter lista "tone semântico" como Goal. Tokenizar (--success/--warning)
+          é decisão de fundações DS-v3 (ADR), não cleanup desta tela.
+        */}
         <div
           className={
-            'rounded-xl border p-6 shadow-sm ' +
+            'rounded-lg border p-6 shadow-sm ' +
             (totalGeral === 0
               ? 'border-border bg-background'
               : pagamentoStatus === 'falta'
@@ -913,8 +995,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <Label htmlFor="contact_id">Cliente</Label>
             <CustomerSearchAutocomplete
               defaultName={props.walkInCustomer.name}
-              onSelect={(c) => setData('contact_id', c.id)}
-              onClear={() => setData('contact_id', props.walkInCustomer.id)}
+              onSelect={handleCustomerSelect}
+              onClear={handleCustomerClear}
               forcedValue={forcedCustomer}
             />
             <p className="text-xs text-muted-foreground">

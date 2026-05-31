@@ -121,6 +121,57 @@ class McpMemoryDocument extends Model
     }
 
     /**
+     * Busca HYBRID (semantic + full-text) no índice Meilisearch — para as tools MCP
+     * decisions-search/kb-answer recuperarem com a qualidade do pipeline do chat.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): aplica `doBusiness($businessId)` na hidratação
+     * — SIMÉTRICO ao caminho FULLTEXT (DecisionsSearch/KbAnswer chamam doBusiness quando
+     * businessId>0). doBusiness = `business_id = X OR business_id IS NULL`, então docs de
+     * plataforma (NULL = ADR 0053 cross-tenant by design) aparecem pra todos, mas docs
+     * de um business específico NÃO vazam pra outro tenant. (Revisão adversarial 2026-05-29
+     * pegou a assimetria: hybrid não filtrava enquanto FULLTEXT filtrava.)
+     * + acessiveisPara (permissão Spatie). Embedder/ratio do config (qwen3_local / 0.6).
+     * `shouldBeSearchable` já exclui superseded/deprecated do índice.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, static>
+     */
+    public static function buscarHybrid(string $query, int $limit, ?\App\User $user, ?string $tipo = null, ?string $module = null, int $businessId = 0): \Illuminate\Database\Eloquent\Collection
+    {
+        // Embedder do índice mcp_memory_documents (verificado live CT 100: nomic_local +
+        // qwen3_local). NÃO usar copiloto.memoria.meilisearch.embedder — essa é a do chat
+        // (jana_memoria_facts), que no prod resolve 'openai' e NÃO existe neste índice.
+        $embedder = (string) config('copiloto.mcp_search.docs_embedder', 'qwen3_local');
+        $ratio    = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.6);
+
+        $filtros = ["status IN ['aceito','accepted','accepted-historical']"];
+        if ($tipo !== null && $tipo !== '' && $tipo !== 'all') {
+            $filtros[] = "type = '".addslashes($tipo)."'";
+        }
+        if ($module !== null && $module !== '') {
+            $filtros[] = "module = '".addslashes($module)."'";
+        }
+        $filtro = implode(' AND ', $filtros);
+
+        return static::search($query, function ($index, string $q, array $params) use ($embedder, $ratio, $filtro, $limit) {
+            $params['hybrid'] = ['embedder' => $embedder, 'semanticRatio' => $ratio];
+            $params['filter'] = $filtro;
+            $params['limit']  = $limit;
+
+            return $index->search($q, $params);
+        })
+            ->query(function ($q) use ($user, $businessId) {
+                $q->acessiveisPara($user);
+                if ($businessId > 0) {
+                    $q->doBusiness($businessId); // Tier 0 — simétrico ao FULLTEXT (ADR 0093)
+                }
+
+                return $q;
+            })
+            ->take($limit)
+            ->get();
+    }
+
+    /**
      * Filtra documentos por status no metadata (triagem 2026-05-06).
      *
      * Status canônicos:

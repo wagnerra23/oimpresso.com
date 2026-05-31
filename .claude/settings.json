@@ -20,6 +20,14 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tier-a-banner.ps1"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/loop-fechar-check.ps1"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/git-base-freshness-guard.mjs"
           }
         ]
       }
@@ -59,6 +67,10 @@
           },
           {
             "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/preflight-new-capability.ps1"
+          },
+          {
+            "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-bom-encoding.ps1"
           },
           {
@@ -93,6 +105,10 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-serving-branch-switch.ps1"
           }
         ]
       },
@@ -115,6 +131,15 @@
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/audit-creates-tasks.mjs"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -124,6 +149,29 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/memory-pending.ps1"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/nudge-recommend-not-menu.ps1"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/nudge-diagnosis-without-evidence.ps1"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/force-r12-closing-signal.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/design-handoff-reprocess.mjs"
           }
         ]
       }

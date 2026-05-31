@@ -11,6 +11,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
 
 interface DropdownMap {
@@ -76,39 +77,43 @@ export default function DeviceModelCreate({ brands, devices }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="brand_id">Marca</Label>
-            <select
-              id="brand_id"
-              name="brand_id"
-              value={data.brand_id}
-              onChange={(e) => setData('brand_id', e.target.value)}
-              className="w-full rounded border border-input bg-background px-2 py-2 text-sm"
+            <Select
+              value={String(data.brand_id || '__none__')}
+              onValueChange={(v) => setData('brand_id', v === '__none__' ? '' : v)}
             >
-              <option value="">Selecione…</option>
-              {Object.entries(brands ?? {}).map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="brand_id" aria-label="Marca" className="w-full">
+                <SelectValue placeholder="Selecione…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Selecione…</SelectItem>
+                {Object.entries(brands ?? {}).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.brand_id && <p className="mt-1 text-xs text-rose-600">{errors.brand_id}</p>}
           </div>
 
           <div>
             <Label htmlFor="device_id">Categoria / Dispositivo</Label>
-            <select
-              id="device_id"
-              name="device_id"
-              value={data.device_id}
-              onChange={(e) => setData('device_id', e.target.value)}
-              className="w-full rounded border border-input bg-background px-2 py-2 text-sm"
+            <Select
+              value={String(data.device_id || '__none__')}
+              onValueChange={(v) => setData('device_id', v === '__none__' ? '' : v)}
             >
-              <option value="">Selecione…</option>
-              {Object.entries(devices ?? {}).map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="device_id" aria-label="Categoria / Dispositivo" className="w-full">
+                <SelectValue placeholder="Selecione…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Selecione…</SelectItem>
+                {Object.entries(devices ?? {}).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.device_id && <p className="mt-1 text-xs text-rose-600">{errors.device_id}</p>}
           </div>
         </div>

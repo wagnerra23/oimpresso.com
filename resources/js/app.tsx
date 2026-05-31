@@ -6,12 +6,35 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
 import { StrictMode } from 'react';
 import { configureEcho } from '@laravel/echo-react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 configureEcho({
     broadcaster: 'reverb',
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'OI Impresso';
+
+// TanStack Query (Onda 4, ADR 0211 — R7 raiz). Factory em vez de singleton
+// module-level: o `setup` do Inertia client roda 1× por carga de página (o
+// QueryClient persiste através das navegações Inertia — cache compartilhado é
+// desejado). MAS app.tsx também é importado no caminho SSR; criar dentro do
+// `setup` garante que cada request SSR tenha sua própria instância e não vaze
+// cache entre requests/tenants (Tier 0 ADR 0093). Ver também ssr.tsx.
+//   - staleTime 60s: Larissa raramente recarrega no PDV → menos refetch
+//   - gcTime 5min: mantém cache após unmount durante a sessão
+//   - retry 1: endpoints UPOS falham geralmente de forma definitiva (401/422)
+function makeQueryClient(): QueryClient {
+    return new QueryClient({
+        defaultOptions: {
+            queries: {
+                staleTime: 60_000,
+                gcTime: 5 * 60_000,
+                retry: 1,
+            },
+        },
+    });
+}
 
 createInertiaApp({
   title: (title) => (title ? `${title} · ${appName}` : appName),
@@ -21,10 +44,16 @@ createInertiaApp({
       import.meta.glob('./Pages/**/*.tsx'),
     ),
   setup({ el, App, props }) {
+    const queryClient = makeQueryClient();
     const tree = (
       <StrictMode>
-        <App {...props} />
-        <Toaster position="top-right" richColors closeButton />
+        <QueryClientProvider client={queryClient}>
+          <App {...props} />
+          <Toaster position="top-right" richColors closeButton />
+          {import.meta.env.DEV && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
+        </QueryClientProvider>
       </StrictMode>
     );
 

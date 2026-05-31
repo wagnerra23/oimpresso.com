@@ -27,17 +27,25 @@ interface Kpis { total: number; active: number; p0: number; overdue: number; uno
 
 interface Props {
   project: { id: number; key: string; name: string } | null;
-  tasks: BoardTask[];
-  epics: EpicOption[];
-  owners: string[];
-  sprints: string[];
-  kpis: Kpis;
+  // tasks/kpis/epics/owners/sprints chegam via Inertia::defer (BacklogController:55-59)
+  // → `undefined` no 1º paint. Tipados opcionais + default-guard no destructuring
+  // pra NÃO crashar React antes do defer chegar (skill inertia-defer-default,
+  // Opção B; espelha OficinaAuto/ServiceOrders/Index.tsx). Sintoma do bug:
+  // tasks.length sobre undefined → tela branca.
+  tasks?: BoardTask[];
+  epics?: EpicOption[];
+  owners?: string[];
+  sprints?: string[];
+  kpis?: Kpis;
   filters: {
     status: string | null; priority: string | null; owner: string | null;
     epic: number | null; cycle: number | null; sprint: string | null;
     q: string; sort: string;
   };
 }
+
+// Default-guard pro prop deferred kpis (contadores começam zerados até o defer resolver).
+const EMPTY_KPIS: Kpis = { total: 0, active: 0, p0: 0, overdue: 0, unowned: 0 };
 
 const ALL = '__all__';
 const LS = {
@@ -59,7 +67,15 @@ function fmtDate(iso: string | null): string {
   return new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-function BacklogIndex({ project, tasks, epics, owners, sprints, kpis, filters }: Props) {
+function BacklogIndex({
+  project,
+  tasks = [],
+  epics = [],
+  owners = [],
+  sprints = [],
+  kpis = EMPTY_KPIS,
+  filters,
+}: Props) {
   const [status, setStatus] = useState(filters.status ?? localStorage.getItem(LS.STATUS) ?? ALL);
   const [priority, setPriority] = useState(filters.priority ?? localStorage.getItem(LS.PRIORITY) ?? ALL);
   const [owner, setOwner] = useState(filters.owner ?? localStorage.getItem(LS.OWNER) ?? ALL);
@@ -251,7 +267,7 @@ function BacklogIndex({ project, tasks, epics, owners, sprints, kpis, filters }:
       </Card>
 
       {selected.size > 0 && (
-        <div className="sticky top-2 z-20 mt-3 flex flex-wrap items-center gap-2 px-4 py-2 rounded-xl border bg-blue-50 dark:bg-blue-950/40 shadow">
+        <div className="sticky top-2 z-20 mt-3 flex flex-wrap items-center gap-2 px-4 py-2 rounded-xl border bg-primary/5 shadow">
           <span className="text-xs font-semibold">{selected.size} selecionada{selected.size > 1 ? 's' : ''}</span>
 
           <span className="text-xs text-muted-foreground">Status:</span>
@@ -323,7 +339,7 @@ function BacklogIndex({ project, tasks, epics, owners, sprints, kpis, filters }:
                     key={t.task_id}
                     className={[
                       'border-b transition-colors',
-                      sel ? 'bg-blue-50 dark:bg-blue-950/30' : 'hover:bg-muted/40',
+                      sel ? 'bg-primary/5' : 'hover:bg-muted/40',
                       t.is_blocked ? 'bg-red-50/40 dark:bg-red-950/10' : '',
                     ].filter(Boolean).join(' ')}
                   >

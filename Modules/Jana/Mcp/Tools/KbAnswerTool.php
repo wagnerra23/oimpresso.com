@@ -190,6 +190,26 @@ class KbAnswerTool extends Tool
     ): \Illuminate\Support\Collection {
         $businessId = (int) data_get($user, 'business_id', 0);
 
+        // Gap #2 (US-RET-001) — recall HYBRID atrás de flag, fallback FULLTEXT.
+        // Corpus MCP é GLOBAL (sem filtro business_id — verificado no índice CT 100).
+        if (config('copiloto.mcp_search.docs_pipeline', false)) {
+            try {
+                $hybrid = McpMemoryDocument::buscarHybrid(
+                    $pergunta,
+                    $topK,
+                    $user,
+                    $categoria !== 'all' ? $categoria : null,
+                    $module !== '' ? $module : null,
+                    $businessId, // Tier 0 — simétrico ao FULLTEXT (revisão 2026-05-29)
+                );
+                if ($hybrid->isNotEmpty()) {
+                    return $hybrid;
+                }
+            } catch (\Throwable $e) {
+                Log::channel('copiloto-ai')->warning('kb-answer: hybrid falhou, fallback FULLTEXT: '.$e->getMessage());
+            }
+        }
+
         $query = McpMemoryDocument::query()
             ->acessiveisPara($user)
             ->porStatusAtivo(false)   // só docs ativos

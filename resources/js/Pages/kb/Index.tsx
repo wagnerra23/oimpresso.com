@@ -35,6 +35,7 @@ import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { toast } from 'sonner';
+import { Copy, Lock, Github, History, Trash2, BookOpen } from 'lucide-react';
 
 interface DocRow {
   id: number;
@@ -359,7 +360,7 @@ function KbIndex(props: Props) {
                 return (
                   <tr
                     key={d.id}
-                    className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-blue-50 dark:bg-blue-950/30 border-l-2 border-l-blue-500' : ''} ${d.deleted_at ? 'opacity-50' : ''}`}
+                    className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-primary/5 border-l-2 border-primary' : ''} ${d.deleted_at ? 'opacity-50' : ''}`}
                     onClick={() => openDoc(d.slug)}
                   >
                     <td className="py-1.5 px-2 align-top">
@@ -435,7 +436,7 @@ function KbIndex(props: Props) {
         <div className="flex items-center gap-1 shrink-0">
           {detail && (
             <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => copySlug(detail.slug)} title="Copiar slug">
-              📋
+              <Copy className="h-4 w-4" />
             </Button>
           )}
           <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={closePreview} title="Fechar (Esc)">
@@ -469,7 +470,7 @@ function KbIndex(props: Props) {
               {detail.module && <Badge variant="outline" className="text-xs">{detail.module}</Badge>}
               {detail.scope_required && (
                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs" title="Spatie permission requerida">
-                  🔒 {detail.scope_required}
+                  <Lock className="h-3 w-3 mr-1" /> {detail.scope_required}
                 </Badge>
               )}
               {detail.admin_only && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">admin only</Badge>}
@@ -490,12 +491,12 @@ function KbIndex(props: Props) {
             <div className="flex gap-2 flex-wrap mt-2">
               {detail.github_url && (
                 <a href={detail.github_url} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="h-7 text-xs">📂 GitHub</Button>
+                  <Button variant="outline" size="sm" className="h-7 text-xs"><Github className="h-3.5 w-3.5 mr-1" /> GitHub</Button>
                 </a>
               )}
               {detail.history_count > 0 && (
                 <Button variant="outline" size="sm" className="h-7 text-xs" disabled title="Em breve (O11)">
-                  📜 {detail.history_count} versões
+                  <History className="h-3.5 w-3.5 mr-1" /> {detail.history_count} versões
                 </Button>
               )}
               {!detail.deleted_at ? (
@@ -504,7 +505,7 @@ function KbIndex(props: Props) {
                   className="h-7 text-xs"
                   onClick={() => setConfirmDelete(detail)}
                 >
-                  🗑️ Soft-delete LGPD
+                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Soft-delete LGPD
                 </Button>
               ) : (
                 <Button
@@ -527,7 +528,7 @@ function KbIndex(props: Props) {
               prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:rounded-md prose-pre:p-4 prose-pre:text-xs
               prose-code:before:content-none prose-code:after:content-none
               prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:font-normal
-              prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
               prose-table:text-xs prose-th:text-xs prose-td:py-1 prose-td:px-2
               prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-muted-foreground
               prose-hr:my-6 prose-hr:border-border
@@ -658,7 +659,7 @@ function KbIndex(props: Props) {
           )}
           {!previewOpen && selectedSlug && (
             <Button variant="default" size="sm" className="h-8 text-xs" onClick={() => openDoc(selectedSlug)}>
-              📖 Abrir preview
+              <BookOpen className="h-3.5 w-3.5 mr-1" /> Abrir preview
             </Button>
           )}
         </CardContent>

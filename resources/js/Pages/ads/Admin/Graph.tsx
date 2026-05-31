@@ -13,7 +13,7 @@ import ReactFlow, {
   type Node as RFNode, type Edge as RFEdge,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Brain, Zap, Wrench, Shield, Database } from 'lucide-react'
+import { Brain, Zap, Wrench, Shield, Database, Save, Workflow } from 'lucide-react'
 
 interface GraphNode {
   id: string
@@ -43,21 +43,24 @@ const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
  * Memory no centro, círculos concêntricos para os outros tipos.
  */
 function layoutNodes(nodes: GraphNode[]): RFNode[] {
-  const groups: Record<string, GraphNode[]> = {
-    memory: [], skill: [], metaskill: [], tool: [], policy: [],
-  }
-  nodes.forEach(n => groups[n.type]?.push(n))
+  const groups: {
+    memory: GraphNode[]; skill: GraphNode[]; metaskill: GraphNode[]; tool: GraphNode[]; policy: GraphNode[]
+  } = { memory: [], skill: [], metaskill: [], tool: [], policy: [] }
+  nodes.forEach(n => {
+    const g = groups[n.type as keyof typeof groups]
+    if (g) g.push(n)
+  })
 
   const positions: RFNode[] = []
   const cx = 600
   const cy = 350
 
   // Memory: centro
-  groups.memory.forEach((n, i) => {
+  groups.memory.forEach((n) => {
     positions.push({
       id: n.id, type: 'default',
       position: { x: cx, y: cy },
-      data: nodeData(n, '💾'),
+      data: nodeData(n, <Save className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -79,7 +82,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
     positions.push({
       id: n.id, type: 'default',
       position: { x: cx - 480, y: 100 + i * 110 },
-      data: nodeData(n, '🧬'),
+      data: nodeData(n, <Workflow className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -89,7 +92,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
     positions.push({
       id: n.id, type: 'default',
       position: { x: cx + 380, y: 100 + i * 90 },
-      data: nodeData(n, '🔧'),
+      data: nodeData(n, <Wrench className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -99,7 +102,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
     positions.push({
       id: n.id, type: 'default',
       position: { x: 100 + i * 240, y: cy + 280 },
-      data: nodeData(n, '🛡️'),
+      data: nodeData(n, <Shield className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -107,7 +110,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
   return positions
 }
 
-function nodeData(n: GraphNode, icon: string): any {
+function nodeData(n: GraphNode, icon: ReactNode): any {
   const lines: string[] = []
   if (n.data.success_rate !== undefined) lines.push(`taxa ${(n.data.success_rate * 100).toFixed(0)}%`)
   if (n.data.total_count !== undefined)  lines.push(`${n.data.total_count} exec`)
@@ -130,15 +133,26 @@ function nodeData(n: GraphNode, icon: string): any {
   }
 }
 
+// Cor por tipo via tokens DS (CSS vars de inertia.css @theme) — geometria fica
+// inline (exigência ReactFlow), mas COR nunca é hex cru. memory=primary roxo 295.
+const TYPE_COLOR_VAR: Record<string, string> = {
+  memory:    'var(--color-primary)',
+  skill:     'var(--color-warning)',
+  metaskill: 'var(--color-brand-meta)',
+  tool:      'var(--color-success)',
+  policy:    'var(--color-destructive)',
+}
+
 function nodeStyle(type: string): any {
-  const styles: Record<string, any> = {
-    memory:    { background: '#3b82f6', color: 'white', border: '2px solid #1e40af', borderRadius: 8, padding: 10, width: 140 },
-    skill:     { background: '#fef3c7', color: '#78350f', border: '1px solid #f59e0b', borderRadius: 8, padding: 8, width: 130 },
-    metaskill: { background: '#ddd6fe', color: '#4c1d95', border: '1px solid #8b5cf6', borderRadius: 8, padding: 8, width: 160 },
-    tool:      { background: '#d1fae5', color: '#064e3b', border: '1px solid #10b981', borderRadius: 8, padding: 8, width: 140 },
-    policy:    { background: '#fee2e2', color: '#7f1d1d', border: '1px solid #ef4444', borderRadius: 8, padding: 8, width: 180 },
+  const c = TYPE_COLOR_VAR[type] ?? 'var(--color-muted-foreground)'
+  return {
+    background: 'var(--color-card)',
+    color: 'var(--color-card-foreground)',
+    border: `2px solid ${c}`,
+    borderRadius: 8,
+    padding: type === 'memory' ? 10 : 8,
+    width: type === 'policy' ? 180 : type === 'metaskill' ? 160 : type === 'memory' ? 140 : 130,
   }
-  return styles[type] ?? {}
 }
 
 const Graph: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ nodes, edges, kpis }) => {
@@ -150,8 +164,8 @@ const Graph: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ nod
     label: e.label,
     animated: e.animated ?? false,
     markerEnd: { type: MarkerType.ArrowClosed },
-    style: { strokeWidth: 1, stroke: '#94a3b8' },
-    labelStyle: { fontSize: 10, fill: '#64748b' },
+    style: { strokeWidth: 1, stroke: 'var(--color-border)' },
+    labelStyle: { fontSize: 10, fill: 'var(--color-muted-foreground)' },
   })), [edges])
 
   return (
@@ -191,16 +205,9 @@ const Graph: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ nod
               <Controls />
               <MiniMap
                 nodeColor={(node) => {
-                  const colors: Record<string, string> = {
-                    memory:    '#3b82f6',
-                    skill:     '#f59e0b',
-                    metaskill: '#8b5cf6',
-                    tool:      '#10b981',
-                    policy:    '#ef4444',
-                  }
-                  // Match pelo prefixo do id pra cor
+                  // Match pelo prefixo do id → token DS (sem hex cru)
                   const prefix = (node.id.split('-')[0]) as string
-                  return colors[prefix] ?? '#94a3b8'
+                  return TYPE_COLOR_VAR[prefix] ?? 'var(--color-muted-foreground)'
                 }}
               />
             </ReactFlow>
@@ -213,17 +220,17 @@ const Graph: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ nod
 
 function Legend() {
   const items = [
-    { color: '#3b82f6', label: 'Memory', icon: <Database className="w-3 h-3" /> },
-    { color: '#f59e0b', label: 'Skills', icon: <Zap className="w-3 h-3" /> },
-    { color: '#8b5cf6', label: 'Meta-skills', icon: <Brain className="w-3 h-3" /> },
-    { color: '#10b981', label: 'Tools', icon: <Wrench className="w-3 h-3" /> },
-    { color: '#ef4444', label: 'Policy', icon: <Shield className="w-3 h-3" /> },
+    { type: 'memory', label: 'Memory', icon: <Database className="w-3 h-3" /> },
+    { type: 'skill', label: 'Skills', icon: <Zap className="w-3 h-3" /> },
+    { type: 'metaskill', label: 'Meta-skills', icon: <Brain className="w-3 h-3" /> },
+    { type: 'tool', label: 'Tools', icon: <Wrench className="w-3 h-3" /> },
+    { type: 'policy', label: 'Policy', icon: <Shield className="w-3 h-3" /> },
   ]
   return (
     <div className="flex items-center gap-3 text-xs">
       {items.map(i => (
         <div key={i.label} className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded" style={{ background: i.color }} />
+          <div className="w-3 h-3 rounded" style={{ background: TYPE_COLOR_VAR[i.type] }} />
           <span className="text-muted-foreground">{i.label}</span>
         </div>
       ))}

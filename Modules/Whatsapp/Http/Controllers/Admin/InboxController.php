@@ -845,28 +845,58 @@ class InboxController extends Controller
             return $back;
         }
 
-        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS
+            && $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW) {
             $message->forceFill([
                 'status' => 'failed',
-                'failed_reason' => "Envio só implementado pra Baileys nesta fase. Tipo atual: {$channel->type}",
+                'failed_reason' => "Envio só implementado pra Baileys/Whatsmeow nesta fase. Tipo atual: {$channel->type}",
             ])->save();
-            return back()->withErrors(['send' => 'Envio só disponível pra canais Baileys nesta fase.']);
+            return back()->withErrors(['send' => 'Envio só disponível pra canais Baileys/Whatsmeow nesta fase.']);
         }
 
-        // Daemon Baileys: POST /instances/{instance_id}/text
-        $daemonUrl = config('whatsapp.baileys.daemon_url');
-        $apiKey = config('whatsapp.baileys.api_key');
-        $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+        // Resolve daemon URL/auth + endpoint + payload por tipo:
+        //   - Baileys (legacy):  POST /instances/{ch-uuid}/text     Authorization Bearer {API_KEY}
+        //                        body {to, text} → resp {message_id, status}
+        //   - Whatsmeow (ADR 0204): POST /chat/send/text             Header Token {channel.config_json.whatsmeow_user_token}
+        //                        body {Phone, Body, Id} → resp {Id, Details: Sent}
+        //
+        // Incident 2026-05-28: outbound whatsmeow rejeitado por hardcode pra Baileys.
+        // UI mostrava verde (msg persistia status=queued→failed) mas msg NUNCA saía
+        // pro WhatsApp real. Padrão portado: aceita ambos drivers + dispatch por type.
         $toPhone = preg_replace('/^\+/', '', $conversation->customer_external_id);
+        $isWhatsmeow = $channel->type === Channel::TYPE_WHATSAPP_WHATSMEOW;
+
+        if ($isWhatsmeow) {
+            $daemonUrl = rtrim((string) config('whatsapp.whatsmeow.daemon_url'), '/');
+            $userToken = $channel->config_json['whatsmeow_user_token'] ?? null;
+            if (! $userToken) {
+                $message->forceFill([
+                    'status' => 'failed',
+                    'failed_reason' => 'whatsmeow_user_token ausente em channel.config_json — canal precisa ser reconectado (scan QR).',
+                ])->save();
+                return back()->withErrors(['send' => 'Canal whatsmeow não tem token — reconecte via QR.']);
+            }
+            $endpoint = '/chat/send/text';
+            $authHeaders = ['Token' => $userToken, 'Content-Type' => 'application/json'];
+            $payload = [
+                'Phone' => $toPhone,
+                'Body' => $data['body'],
+                'Id' => strtoupper(str_replace('-', '', (string) \Illuminate\Support\Str::uuid())),
+            ];
+        } else {
+            $daemonUrl = rtrim((string) config('whatsapp.baileys.daemon_url'), '/');
+            $apiKey = (string) config('whatsapp.baileys.api_key');
+            $instanceId = 'ch-' . str_replace('-', '', $channel->channel_uuid);
+            $endpoint = "/instances/{$instanceId}/text";
+            $authHeaders = ['Authorization' => "Bearer {$apiKey}", 'Content-Type' => 'application/json'];
+            $payload = ['to' => $toPhone, 'text' => $data['body']];
+        }
 
         try {
-            $response = Http::withToken($apiKey)
-                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente
+            $response = Http::withHeaders($authHeaders)
+                ->withoutVerifying() // FIXME(US-WA-058): cert LE pendente CT 100
                 ->timeout(15)
-                ->post("{$daemonUrl}/instances/{$instanceId}/text", [
-                    'to' => $toPhone,
-                    'text' => $data['body'],
-                ]);
+                ->post("{$daemonUrl}{$endpoint}", $payload);
 
             if (! $response->successful()) {
                 $message->forceFill([
@@ -875,16 +905,37 @@ class InboxController extends Controller
                 ])->save();
                 Log::warning('[atendimento.inbox.send] daemon error', [
                     'channel_id' => $channel->id,
+                    'channel_type' => $channel->type,
+                    'endpoint' => $endpoint,
                     'status' => $response->status(),
+                    'body_sample' => mb_substr($response->body(), 0, 200),
                 ]);
                 return back()->withErrors(['send' => 'Falha ao enviar via daemon. Veja status da mensagem.']);
             }
 
-            $payload = $response->json();
+            $respJson = $response->json();
+            // Normaliza resp por tipo:
+            //   Baileys: {message_id, status}
+            //   Whatsmeow WuzAPI: {Details: 'Sent', Id: 'WAMID...'} ou nested {Data: {Id: ...}}
+            $providerMsgId = $isWhatsmeow
+                ? ($respJson['Id'] ?? $respJson['Data']['Id'] ?? null)
+                : ($respJson['message_id'] ?? null);
+            $newStatus = $isWhatsmeow
+                ? (($respJson['Details'] ?? '') === 'Sent' ? 'sent' : ($respJson['Details'] ?? 'sent'))
+                : ($respJson['status'] ?? 'sent');
+
             $message->forceFill([
-                'status' => $payload['status'] ?? 'sent',
-                'provider_message_id' => $payload['message_id'] ?? null,
+                'status' => $newStatus,
+                'provider_message_id' => $providerMsgId,
             ])->save();
+
+            Log::info('[atendimento.inbox.send] daemon ok', [
+                'channel_id' => $channel->id,
+                'channel_type' => $channel->type,
+                'message_id' => $message->id,
+                'provider_message_id' => $providerMsgId,
+                'endpoint' => $endpoint,
+            ]);
 
             return back()->with('success', 'Mensagem enviada.');
         } catch (\Throwable $e) {
@@ -894,6 +945,7 @@ class InboxController extends Controller
             ])->save();
             Log::error('[atendimento.inbox.send] exception', [
                 'channel_id' => $channel->id,
+                'channel_type' => $channel->type,
                 'exception' => $e->getMessage(),
             ]);
             return back()->withErrors(['send' => 'Erro de rede com daemon: ' . $e->getMessage()]);
@@ -1316,12 +1368,15 @@ class InboxController extends Controller
             'last_message_at' => now(),
         ])->save();
 
-        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS) {
+        // M3 fix 2026-05-28: aceita Baileys OU Whatsmeow (incident outbound mídia
+        // hardcoded só Baileys). SendMediaJob faz dispatch por type pro daemon.
+        if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS
+            && $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW) {
             $message->forceFill([
                 'status' => 'failed',
-                'failed_reason' => "Envio de mídia só implementado pra Baileys nesta fase. Tipo: {$channel->type}",
+                'failed_reason' => "Envio de mídia só implementado pra Baileys/Whatsmeow nesta fase. Tipo: {$channel->type}",
             ])->save();
-            return back()->withErrors(['send_media' => 'Envio de mídia só disponível pra canais Baileys.']);
+            return back()->withErrors(['send_media' => 'Envio de mídia só disponível pra canais Baileys/Whatsmeow.']);
         }
 
         SendMediaJob::dispatch($businessId, $message->id);

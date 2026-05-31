@@ -47,7 +47,7 @@ export default function WidgetCycles({ data }: Props) {
           <div
             key={cycle.id}
             className={`border rounded p-3 ${
-              cycle.id === data.current_cycle ? 'bg-blue-50 border-blue-300' : 'bg-white'
+              cycle.id === data.current_cycle ? 'bg-primary/5 border-primary/30' : 'bg-white'
             }`}
           >
             <div className="font-medium">{cycle.name}</div>

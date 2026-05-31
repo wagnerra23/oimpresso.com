@@ -19,6 +19,7 @@ import {
 } from '@/Components/ui/select';
 import { Label } from '@/Components/ui/label';
 import { ScrollArea } from '@/Components/ui/scroll-area';
+import { FolderOpen, Inbox } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -255,7 +256,7 @@ function CcSessionsIndex(props: Props) {
       <CardContent className="p-0 flex-1 overflow-hidden">
         {isEmpty ? (
           <div className="p-8 text-center text-muted-foreground space-y-3">
-            <div className="text-4xl">📭</div>
+            <Inbox className="h-10 w-10 mx-auto text-muted-foreground/60" />
             <div className="text-sm font-medium">Nenhuma sessão Claude Code ingestada ainda</div>
             <div className="text-xs max-w-md mx-auto">
               Schema <code className="font-mono text-[10px]">mcp_cc_*</code> está pronto, mas o
@@ -263,7 +264,7 @@ function CcSessionsIndex(props: Props) {
               {' '}
               <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Copiloto/SPEC-cc-sessions.md#us-copi-cc-040--watcher-node-ingere-sessions-jsonl-local"
                  target="_blank" rel="noopener noreferrer"
-                 className="text-blue-600 hover:underline">SPEC US-COPI-CC-040</a>.
+                 className="text-primary hover:underline">SPEC US-COPI-CC-040</a>.
             </div>
             <div className="text-[10px] text-muted-foreground">
               Endpoint pronto: <code className="font-mono">POST /api/cc/ingest</code>
@@ -286,7 +287,7 @@ function CcSessionsIndex(props: Props) {
                   const isSel = s.session_uuid === selectedUuid;
                   return (
                     <tr key={s.id}
-                      className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-blue-50 dark:bg-blue-950/30 border-l-2 border-l-blue-500' : ''}`}
+                      className={`border-b cursor-pointer hover:bg-muted/40 ${isSel ? 'bg-primary/5 border-l-2 border-primary' : ''}`}
                       onClick={() => openSession(s.session_uuid)}>
                       <td className="py-1.5 px-2 align-top">
                         <div className="font-medium text-xs leading-tight">{s.user_nome}</div>
@@ -369,8 +370,8 @@ function CcSessionsIndex(props: Props) {
               {detail.session.entrypoint && <Badge variant="outline" className="text-[10px]">{detail.session.entrypoint}</Badge>}
               {detail.session.git_branch && <Badge variant="outline" className="text-[10px] font-mono">{detail.session.git_branch}</Badge>}
             </div>
-            <div className="text-[11px] text-muted-foreground">
-              📁 <span className="font-mono">{detail.session.project_path}</span>
+            <div className="text-[11px] text-muted-foreground inline-flex items-center">
+              <FolderOpen className="h-3 w-3 mr-1 shrink-0" /> <span className="font-mono">{detail.session.project_path}</span>
             </div>
             <div className="text-[11px] text-muted-foreground">
               {fmtDateTime(detail.session.started_at)} → {detail.session.ended_at ? fmtDateTime(detail.session.ended_at) : 'em curso'}
@@ -532,7 +533,7 @@ function MessageBubble({ m }: { m: Message }) {
       )}
       {isLong && (
         <button onClick={() => setExpanded(!expanded)}
-          className="text-[10px] text-blue-600 hover:underline mt-1">
+          className="text-[10px] text-primary hover:underline mt-1">
           {expanded ? '▲ recolher' : `▼ ver mais (${text.length} chars)`}
         </button>
       )}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Jana\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\Log;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -55,17 +56,34 @@ class DecisionsSearchTool extends Tool
         $user = $request->user();
         $businessId = (int) data_get($user, 'business_id', 0);
 
-        // Filtra por empresa (multi-tenant MEM-MULTI-1) + permissão Spatie + status lifecycle
-        $q = McpMemoryDocument::doTipo('adr')
-            ->acessiveisPara($user)
-            ->porStatusAtivo($includeArchived)
-            ->buscarTexto($query);
-
-        if ($businessId > 0) {
-            $q->doBusiness($businessId);
+        // Gap #2 (US-RET-001) — pipeline bom HYBRID atrás de flag, fallback FULLTEXT.
+        // Corpus MCP é GLOBAL (sem filtro business_id — verificado no índice CT 100).
+        // Só no caminho ativo (índice exclui superseded; archived continua FULLTEXT).
+        $rows = null;
+        if (! $includeArchived && config('copiloto.mcp_search.docs_pipeline', false)) {
+            try {
+                $hybrid = McpMemoryDocument::buscarHybrid($query, $limit, $user instanceof \App\User ? $user : null, 'adr', null, $businessId);
+                if ($hybrid->isNotEmpty()) {
+                    $rows = $hybrid;
+                }
+            } catch (\Throwable $e) {
+                Log::channel('copiloto-ai')->warning('decisions-search: hybrid falhou, fallback FULLTEXT: '.$e->getMessage());
+            }
         }
 
-        $rows = $q->limit($limit)->get(['slug', 'title', 'content_md', 'metadata']);
+        // FULLTEXT (default / fallback). Filtra permissão Spatie + status lifecycle.
+        if ($rows === null) {
+            $q = McpMemoryDocument::doTipo('adr')
+                ->acessiveisPara($user)
+                ->porStatusAtivo($includeArchived)
+                ->buscarTexto($query);
+
+            if ($businessId > 0) {
+                $q->doBusiness($businessId);
+            }
+
+            $rows = $q->limit($limit)->get(['slug', 'title', 'content_md', 'metadata']);
+        }
 
         if ($rows->isEmpty()) {
             $hint = $includeArchived

@@ -1,98 +1,42 @@
 # HANDOFF.md — estado vivo do loop
 
 > **Sobrescrito a cada sync.** Não é log — é "onde estamos agora".
-> Histórico vive em [SYNC_LOG.md](SYNC_LOG.md).
+> Histórico vive em [SYNC_LOG.md](SYNC_LOG.md). Como reportar: [PROTOCOL.md §10.2](PROTOCOL.md).
 
 ---
 
-## Estado atual: 2026-05-15 — Pivot Cowork ACEITO · `chat-jana.jsx` evolui `/jana/cockpit`
+## Estado atual: 2026-05-31 — DS adoção · Onda 1 MERGED · autonomia ativada
 
-**Fase global:** `[CC]` entregou novo export via Claude Design. Snapshot salvo em [`_cowork-export-2026-05-15/`](_cowork-export-2026-05-15/_SNAPSHOT.md) — 161 arquivos · 3.3 MB. CRITIQUE [interim](_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md) gerado e revisado pós Caixa Unificada check (Wagner 2026-05-15).
+**Onda 1 entregue e mergeada em `main`** (autônomo · gates CI = [W2]):
+- **Onda G / Fase C — badge variants** (PR #2025 · main `f3001f0e0`): +5 variants soft (`success/warning/danger/info/neutral`) no `badge.tsx` + story `_Showcase 3b`. Destrava o lote-badge (Fase D).
+- **Fase A — Sells** (PR #2026 · main `8d7c45507`): controles + rounded + FieldSuccess T1, **42→17 `ds/*`** (10 select→Select, 4 checkbox→Checkbox, 9 rounded-xl→lg, 2 FieldSuccess). Os 17 restantes = **Tipo 2** (status-badge/Alert/icon) → **Fase D**, não Fase A. eslint-baseline 1373→1348.
 
-**✅ PIVOT ACEITO** — Cowork pivotou de "chat 2-col conversacional" pra "Cockpit Analista IA" (dashboard + aba IA). O pivot é correto:
+**Mudança de modo (2026-05-31):** Wagner pediu **zero intervenção humana**. Gate visual [W2] manual → delegado aos **gates CI** (PR UI Judge Sonnet 4.5 + visual-regression, ambos green). Merge autônomo via `gh --admin` (CI verde = o gate). Playbook + custo-benefício em **[AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md)**.
 
-1. **Caixa Unificada V4 já cumpre o paradigma 2-col humano** ([`/atendimento/caixa-unificada/Index.charter.md`](../resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md)) — refazer outro 2-col em `/jana/` duplicaria conceito.
-2. **`Modules/Jana` já tem 3 páginas em prod**: `Chat.tsx` (`/jana/` — 2-col conversacional live) · `Cockpit.tsx` (`/jana/cockpit` — MVP piloto paralelo) · `Dashboard.tsx` (`/jana/dashboard` — KPIs/Farol). O `chat-jana.jsx` mapeia naturalmente pra **evolução do `Cockpit.tsx`** com a parte do `Dashboard.tsx` absorvida como tab.
-3. **Zero overlap arquitetural com Caixa Unificada** — audiência, layout, modelo de dado, real-time, ACL, composer, identidade visual: tudo distinto. Apenas tokens "Cockpit V2" e atalho `J/K` compartilhados (escopos diferentes — convs vs mensagens).
-4. **Routes já preparadas** — `Modules/Jana/Http/routes.php:30` comenta literal: *"rota PARALELA ao /copiloto atual; nao substitui Chat.tsx"*. Wagner previu separação.
+**Placar** (`npm run ds:report` · ver [DS_ADOCAO_INDICE.md](DS_ADOCAO_INDICE.md)): Sells 17 · RecurringBilling 58 · OficinaAuto 44 · Repair 14 · Purchase 19 · Admin 23 · Whatsapp 21 · Settings 18 · Financeiro 84 · Cliente 62 (+ fora-da-fila).
 
-**Score F1.5 interim:** **78/100** (gate ≥80 não atingido ainda · 1 round de refator necessário).
+### Fila Fase A (controles + FieldError/Success T1)
+| Módulo | Fase A | Nota |
+|---|---|---|
+| Sells | ✅ MERGED | restam 17 Tipo-2 → Fase D |
+| **RecurringBilling** | 🎯 **próximo** | Planos Create/Edit (ciclo/intervalo/gateway); billing não pode quebrar |
+| OficinaAuto | fila | DnD Kanban; `ServiceOrderStatusBadge` = Tipo 2 (deixa) |
+| Repair | fila | mobile-first ≥44px; JobSheet/DeviceModels |
+| Purchase | fila | Create/Edit/Index/Show |
+| Admin · Whatsapp · Settings | fila | descobrir com eslint; Settings toggles→`<Switch>` |
+| Financeiro · Cliente | fila (só FieldError T1) | controles já migrados (PR-C1/C2) |
 
-19 divergências P0 → 4 ✅ closed · 6 🟡 partial · 7 ❌ open · 2 ⚪ moot (B5/B6 não fazem sentido sem lista de conversas).
+Depois da Fase A → **Onda G / Fase D (lote-badge)**: migra os Tipo-2 pros `<Badge variant>` (as variants já existem desde #2025). É o grosso do drift (`no-adhoc-status-text`).
 
-**8 refinos abertos pra fechar F1.5 ≥80** (~3-4h Cowork V2.1):
+### O que [CL] faz agora
+Disparar **Fase A RecurringBilling** no mesmo loop autônomo (1 módulo = 1 branch = 1 PR · CI verde → merge → sync → próximo).
 
-1. A1 — `JanaAvatar` quadrado mono primary letra "J" (substitui gradient + 🤖)
-2. A3 — bubbles simétricos sem tail (remove `border-bottom-*-radius:4px` assimétrico)
-3. A5 — `mock-stream.js` SSE fake + `<TypingIndicator>` chip (A2 vira automático)
-4. B7 — keydown global `/` `J/K` `Esc`
-5. C1 — switch 4 kinds + 4 componentes (`<MarkdownBubble>`, `<ToolUseChip>`, `<DataTableBubble>`, `<ActionCardBubble>`)
-6. C2 — citations inline `[1]` clicáveis
-7. C4 — PII detector regex no composer
-8. C7 — `react-markdown` + `rehype-sanitize` (consistente com `Chat.tsx`)
+### 🔑 Bootstrap p/ tirar o `--admin` (decisão Wagner)
+Provisionar token do `grokwr2` (collaborator ≠ autor) → Action auto-approve+merge quando todos os checks passam. Ver [AUTOMACAO-LOOP-AUTONOMO.md §3](AUTOMACAO-LOOP-AUTONOMO.md).
 
-**Workstreams separados:**
+### Side-thread: mapa rotinas de design (F0 · 2026-05-31) — NÃO muda a fila acima
+Processei a proposta [CC] "otimizar rotinas de design" (§10.4): F0 em [AUDITORIA_ROTINAS_DESIGN.md](AUDITORIA_ROTINAS_DESIGN.md). Achado: **6 motores de score em 2 camadas** — a cara (LLM `design:*`: mwart-comparative dormante 05-17, design-deep-analysis 0 disparos, F1.5/F3.5) morreu de custo; a barata (`screen-grade`/`module:grade`/`ds/*`) escalou e o PROTOCOL não a menciona. Gate §10.4: G4 já existe (`ds:report`), G3 superado (0-humano), G5-ESLint feito — **sobra G1/G2/G6 + Stylelint `.css`**. Fila operacional (Fase A RecurringBilling) **inalterada**.
 
-- `/jana/` (`Chat.tsx` 2-col conversacional) → permanece live · amendment-block-renderer 2026-05-14 fica válido pra ele em workstream isolado se/quando Wagner reabrir.
-- `/jana/cockpit` (`Cockpit.tsx` evolução) → workstream principal · próxima ação.
-- `/jana/dashboard` (`Dashboard.tsx`) → folda como tab `dashboard` do `Cockpit.tsx` (canary 7d depois historical).
-
-**Outras telas candidatas no snapshot** (não há `prototipos/<tela>/` correspondente no repo): `crm-page.jsx`, `kb-page.jsx` (+ 5 satélites kb-*), `equipe-page.jsx`. Comparar antes de criar dir novo. Lista completa no [_SNAPSHOT.md](_cowork-export-2026-05-15/_SNAPSHOT.md).
-
-**⚠️ AVISO** — `_cowork-export-2026-05-15/prototipo-ui-patch/{Modules,Pages,resources,routes,app}` contém código de produção do Cowork. **NÃO copiar direto pra raiz do repo** — viola Tier 0 ([ADR 0093](../memory/decisions/0093-multi-tenant-isolation-tier-0.md)), mesmo bloqueio do PR #352 (2026-05-09) e do zip canon visual (2026-05-11). Material visual pode ser promovido tela-a-tela; controllers/migrations/rotas exigem reescrita do zero seguindo MWART ([ADR 0104](../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)).
-
-### Em voo agora
-
-| Tela | Fase | Responsável | Bloqueador / nota |
-|---|---|---|---|
-| `cockpit` (Jana) | **charter `spec-ahead-of-impl` criado · F1.5 score 78/100 · 1 round refator pendente** | [CC] / [W] | [`Cockpit.charter.md`](../resources/js/Pages/Jana/Cockpit.charter.md) define destino · supersedes_in_place `Cockpit.tsx` atual (que É anti-pattern WhatsApp do amendment 2026-05-14) · absorbs Dashboard.tsx como tab. 8 refinos abertos · ~3-4h Cowork V2.1 antes F3. |
-| `chat` (Jana 2-col) | F1.5 amendment válido em workstream separado | [W] | `Chat.tsx` (`/jana/`) permanece live · amendment-block-renderer 2026-05-14 fica congelado pra ele se Wagner reabrir |
-| `producao-oficina` | F2 approved | [CL] | aguarda Wagner pedir F3 (kanban 5 colunas) |
-| `financeiro-fluxo` | F1 commit-only | [W] / [CL] | sem tabela nova, ~1-2h trabalho [CL] |
-| `financeiro-plano-contas` | F1 commit-only | — | bloqueada por ADR `arq/0008-plano-contas-hierarquico` + migration `chart_of_accounts` |
-| `financeiro-dre` | F1 commit-only | — | bloqueada por plano-contas + ADR `arq/0007-dre-hierarquico` |
-| `financeiro-conciliacao` | F1 commit-only | — | bloqueada por ADR `arq/0006-importador-ofx` + tabela `bank_statement_lines` |
-| `financeiro-unificado` | F1 histórico | — | tela JÁ EM PROD com fixes #355/#358 — pino é referência visual |
-
-### Próxima da fila — decisão Wagner
-
-**Opção A — atacar Jana V2 primeiro** (recomendado se IA-conversacional é prioridade estratégica): [CC] consome trio de amendments, gera V2 `prototipos/chat/` com 4 kinds tipados + streaming + citations. F1.5 score ≥80 → F2 screenshot → F3 implementação em `resources/js/Pages/Jana/Chat.tsx`. Estimado: ~1 dia [CC] + ~3 dias [CL] (10x IA-pair ADR 0106).
-
-**Opção B — atacar Fluxo de caixa primeiro** (recomendado se cash-flow é prioridade): ver linha original abaixo.
-
-`Financeiro/Fluxo` — única do batch sem tabela nova. Service `FluxoCaixaService::projetar(businessId, dias)` consome `Titulo` + `TituloBaixa` + `ContaBancaria` que já existem.
-
-Ver [TELAS_REVIEW_QUEUE.md](TELAS_REVIEW_QUEUE.md). P0 fora desse batch: `Sells/Create`.
-
-### Métricas rápidas
-
-- Telas em F3 há +7d: 0 (loop saudável)
-- Telas com amendment P0 pendente [CC]: **1 (Jana/Chat)**
-- Protótipos sem critique-score: 6 (Cowork visual aprovado direto)
-- Merges sem a11y-report: 0
-
-### O que [W] precisa fazer
-
-1. **Decidir prioridade**: Jana V2 vs Fluxo de caixa (escolha A ou B acima)
-2. Se A: confirmar amendment-block-renderer (revisão de 2 min) e disparar [CC]
-3. Se B: confirmar Fluxo F1.5 → F3 (loop ~1-2h)
-4. Calibrar 4 questões abertas pra Fluxo (ver `prototipos/financeiro-fluxo/README.md` §decisões)
-5. Em paralelo, responder 3 perguntas iniciais ainda em [COWORK_NOTES.md](COWORK_NOTES.md) (sobre trigger F3, override, ADR 0114)
-
-### O que [CL] precisa fazer
-
-Aguardar decisão Wagner (A ou B). Se A: aguardar [CC] entregar V2, depois F3 Chat.tsx. Se B: gerar visual-comparison.md Fluxo → Service real → Controller real → Pest → .tsx → charter → routes → sidebar → PR.
-
-### O que [CC] precisa fazer
-
-Se Wagner escolher opção A: ler [`COWORK_NOTES.amendment-jana-chat-block-renderer.md`](COWORK_NOTES.amendment-jana-chat-block-renderer.md) (19 divergências catalogadas + correção formal item-por-item) + amendment-avatar 2026-05-09 + pedido #316 original. Gerar V2 em `prototipos/chat/` com:
-
-- Avatar Jana quadrado monocromático letra "J" (`rounded-md bg-primary`)
-- Tabs `Todas / Minhas / Compartilhadas / Arquivadas`
-- 4 componentes block renderer: `<MarkdownBubble/>` + `<ToolUseChip/>` + `<DataTableBubble/>` + `<ActionCardBubble/>`
-- `mock-stream.js` (substitui setTimeout por fake SSE chunks)
-- Empty state com 4 prompts iniciais
-- PII detector regex CPF/CNPJ/cartão no composer
-- Atalhos `/` `J/K` `Esc` globais
-- Chip business atual no header (`LARISSA · biz=4`)
-- Remover: read receipts, botão ligar, online dot, file attachment, emoji, mencionar
+### Workstreams parados (ponteiro)
+- **Jana** (`Chat.tsx`/`Cockpit.tsx`) — congelado até Wagner reabrir.
+- **Financeiro** Fluxo/Plano-contas/DRE/Conciliação — bloqueados por ADRs arq + migrations.

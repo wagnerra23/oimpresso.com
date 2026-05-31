@@ -48,6 +48,22 @@ final class StalenessDetectorService
     }
 
     /**
+     * Injeta o path do repo git (ex `base_path()`) pós-construção.
+     *
+     * BUG-1 fix (2026-05-29): o service é resolvido pelo container com
+     * `repoBasePath = null` (default), o que desligava silenciosamente o
+     * drift tipo-SHA (git↔DB). O FreshnessCheckCommand passa a chamar este
+     * setter com `base_path()` pra habilitar a detecção do drift "doc mudou
+     * no git mas o sync silenciou".
+     */
+    public function comRepoBasePath(?string $repoBasePath): static
+    {
+        $this->repoBasePath = $repoBasePath;
+
+        return $this;
+    }
+
+    /**
      * Retorna documentos com indexed_at acima do threshold de STALE/CRITICAL.
      *
      * @return array<int, McpMemoryDocument>
@@ -55,7 +71,10 @@ final class StalenessDetectorService
     public function detectStale(): array
     {
         return OtelHelper::spanBiz('jana.freshness.detect_stale', function () {
-            $staleDays = (int) config('copiloto.freshness.thresholds_days.stale', 7);
+            // BUG-2 fix (2026-05-29): STALE começa quando age >= warm (7d), não
+            // no cutoff de CRITICAL. Antes lia `stale` (=30) → a faixa 7-30d nunca
+            // era pega por detectStale. Cutoff = warm (default 7).
+            $staleDays = (int) config('copiloto.freshness.thresholds_days.warm', 7);
             $cutoff = now()->subDays($staleDays);
 
             return McpMemoryDocument::query()
@@ -238,7 +257,12 @@ final class StalenessDetectorService
      */
     public function detectCritical(): array
     {
-        $criticalDays = (int) config('copiloto.freshness.thresholds_days.stale', 30);
+        // BUG-2 fix (2026-05-29): CRITICAL lê a chave própria `critical` (>=30d),
+        // não `stale`. Fallback alinhado com staleness() (fronteira STALE→CRITICAL).
+        $criticalDays = (int) config(
+            'copiloto.freshness.thresholds_days.critical',
+            (int) config('copiloto.freshness.thresholds_days.stale', 30)
+        );
         $cutoff = now()->subDays($criticalDays);
 
         return McpMemoryDocument::query()
@@ -264,10 +288,15 @@ final class StalenessDetectorService
             return null;
         }
 
+        // Redireciona stderr cross-platform: `2>/dev/null` (POSIX/prod Linux) ou
+        // `2>NUL` (Windows dev). `2>/dev/null` no cmd.exe é interpretado como path
+        // inválido e faz o comando inteiro falhar (silenciava o drift git no dev).
+        $nullDevice = stripos(PHP_OS, 'WIN') === 0 ? '2>NUL' : '2>/dev/null';
         $cmd = sprintf(
-            'git -C %s log -n 1 --format=%%H -- %s 2>/dev/null',
+            'git -C %s log -n 1 --format=%%H -- %s %s',
             escapeshellarg($this->repoBasePath),
-            escapeshellarg($relativePath)
+            escapeshellarg($relativePath),
+            $nullDevice
         );
         try {
             $sha = trim((string) @shell_exec($cmd));

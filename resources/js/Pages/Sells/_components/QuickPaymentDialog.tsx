@@ -19,6 +19,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -159,16 +160,16 @@ export default function QuickPaymentDialog({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="qpd-method" className="text-xs">Forma</Label>
-              <select
-                id="qpd-method"
-                value={draft.method}
-                onChange={(e) => setDraft({ ...draft, method: e.target.value })}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-              >
-                {PAYMENT_METHODS_OPTIONS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
+              <Select value={draft.method} onValueChange={(v) => setDraft({ ...draft, method: v })}>
+                <SelectTrigger id="qpd-method" aria-label="Forma de pagamento" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHODS_OPTIONS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="space-y-1.5">

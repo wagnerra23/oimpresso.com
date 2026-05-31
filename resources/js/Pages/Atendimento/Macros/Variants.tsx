@@ -156,7 +156,10 @@ export default function MacroVariants({ macro, variants }: Props) {
     );
   }
 
-  const activeCount = variants.filter((v) => v.active).length;
+  // `variants` é deferred (undefined no 1º paint, antes do <Deferred> resolver).
+  // Guard contra crash — mirror do pattern Metricas/Index.tsx (aggregated?.series ?? []).
+  const safeVariants = variants ?? [];
+  const activeCount = safeVariants.filter((v) => v.active).length;
 
   return (
     <div className="space-y-4">
@@ -188,8 +191,8 @@ export default function MacroVariants({ macro, variants }: Props) {
             <span className="line-clamp-1">{macro.body}</span>
           </div>
           <div>
-            <strong>Variantes ativas:</strong> {activeCount}/{variants.length}
-            {activeCount === 0 && variants.length > 0 && (
+            <strong>Variantes ativas:</strong> {activeCount}/{safeVariants.length}
+            {activeCount === 0 && safeVariants.length > 0 && (
               <span className="ml-2 text-amber-600">
                 (sem variantes ativas — apply usa body padrão da macro)
               </span>

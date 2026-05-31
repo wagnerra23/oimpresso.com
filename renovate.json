@@ -1,0 +1,195 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(deps)",
+    "group:monorepos",
+    "group:recommended",
+    "schedule:earlyMondays",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "description": "ADR 0222 — Renovate config canônica oimpresso. Defesa proativa supply chain (Shai-Hulud + axios + laravel-lang 2026). Wagner-approved automation: PR sempre revisado manualmente, automerge OFF.",
+  "timezone": "America/Sao_Paulo",
+  "labels": [
+    "dependencies",
+    "renovate",
+    "governance"
+  ],
+  "assignees": [
+    "wagnerra23"
+  ],
+  "reviewers": [
+    "wagnerra23"
+  ],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "branchConcurrentLimit": 10,
+  "rangeStrategy": "bump",
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "configMigration": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": [
+      "security",
+      "vulnerability"
+    ],
+    "minimumReleaseAge": "0 days",
+    "schedule": [
+      "at any time"
+    ]
+  },
+  "osvVulnerabilityAlerts": true,
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "🛡️ Renovate Dashboard — Governance ADR 0222",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "before 5am on monday"
+    ],
+    "commitMessageAction": "Lock file maintenance — Renovate ADR 0222"
+  },
+  "packageRules": [
+    {
+      "description": "Laravel core ecosystem — group em 1 PR",
+      "matchPackagePatterns": [
+        "^laravel/",
+        "^illuminate/"
+      ],
+      "groupName": "Laravel framework",
+      "schedule": [
+        "before 5am on monday"
+      ]
+    },
+    {
+      "description": "Symfony ecosystem — group em 1 PR (alvo histórico CVEs)",
+      "matchPackagePatterns": [
+        "^symfony/"
+      ],
+      "groupName": "Symfony components",
+      "schedule": [
+        "before 5am on monday"
+      ]
+    },
+    {
+      "description": "Spatie packages — group em 1 PR",
+      "matchPackagePatterns": [
+        "^spatie/"
+      ],
+      "groupName": "Spatie packages"
+    },
+    {
+      "description": "Inertia + React + Vite frontend stack — group em 1 PR",
+      "matchPackagePatterns": [
+        "^@inertiajs/",
+        "^react",
+        "^vite",
+        "^@vitejs/"
+      ],
+      "groupName": "Frontend Inertia+React+Vite"
+    },
+    {
+      "description": "Tailwind + design system — group em 1 PR",
+      "matchPackagePatterns": [
+        "^tailwindcss",
+        "^@tailwindcss/",
+        "^autoprefixer",
+        "^postcss"
+      ],
+      "groupName": "Tailwind + PostCSS"
+    },
+    {
+      "description": "Type definitions DevDeps — sempre OK, esforço zero (Tier C)",
+      "matchPackagePatterns": [
+        "^@types/"
+      ],
+      "groupName": "TypeScript type definitions",
+      "schedule": [
+        "before 5am on monday"
+      ]
+    },
+    {
+      "description": "Major versions — ler changelog ANTES, schedule conservador",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "minimumReleaseAge": "30 days",
+      "schedule": [
+        "before 5am on first day of month"
+      ],
+      "labels": [
+        "dependencies",
+        "renovate",
+        "major-upgrade",
+        "needs-review"
+      ]
+    },
+    {
+      "description": "GitHub Actions — pinDigest obrigatório (defesa axios-style attack mar/2026)",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "pinDigests": true,
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Dev deps — agrupar, schedule menor risco",
+      "matchDepTypes": [
+        "devDependencies",
+        "require-dev"
+      ],
+      "groupName": "Dev dependencies",
+      "schedule": [
+        "before 5am on monday"
+      ]
+    },
+    {
+      "description": "Pacotes hospedados Anthropic — sempre revisar",
+      "matchPackagePatterns": [
+        "^@anthropic-ai/"
+      ],
+      "minimumReleaseAge": "3 days",
+      "labels": [
+        "dependencies",
+        "renovate",
+        "anthropic-sdk"
+      ]
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/vendor/**",
+    "**/storage/**",
+    "**/public/build/**",
+    "**/public/build-inertia/**",
+    "**/_lab/**",
+    "**/prototipo-ui/**",
+    "**/Modules/Whatsapp/daemon-node/**"
+  ],
+  "composer": {
+    "enabled": true,
+    "registryUrls": [
+      "https://packagist.org"
+    ]
+  },
+  "npm": {
+    "enabled": true,
+    "registryUrls": [
+      "https://registry.npmjs.org"
+    ]
+  },
+  "github-actions": {
+    "enabled": true,
+    "pinDigests": true
+  },
+  "docker-compose": {
+    "enabled": true
+  },
+  "dockerfile": {
+    "enabled": true
+  },
+  "prBodyTemplate": "{{{header}}}\n\n{{{table}}}\n\n## 🛡️ Governance ADR 0222\n\n- `minimumReleaseAge`: 7 dias (defesa supply chain — axios mar/2026 ataque)\n- **automerge OFF** (Wagner sempre revisa — lição Renovate auto-merge axios)\n- `governance:audit --check=composer_audit` deve passar 0 findings antes do merge\n\n{{{notes}}}\n\n{{{changelogs}}}\n\n{{{configDescription}}}\n\n{{{controls}}}\n\n{{{footer}}}",
+  "prFooter": "ADR 0222 · canon governance/renovate · oimpresso 2026"
+}

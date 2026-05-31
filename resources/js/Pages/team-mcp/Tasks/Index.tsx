@@ -135,7 +135,7 @@ function KanbanView({ kanban }: { kanban: Record<string, Task[]> }) {
       {COLUNAS.map(col => (
         <div
           key={col.key}
-          className={`rounded-xl border-t-4 ${col.color} bg-muted/30 p-3 min-h-[300px] transition-colors ${draggingOver === col.key ? 'bg-muted/60 ring-2 ring-blue-400' : ''}`}
+          className={`rounded-xl border-t-4 ${col.color} bg-muted/30 p-3 min-h-[300px] transition-colors ${draggingOver === col.key ? 'bg-muted/60 ring-2 ring-primary/60' : ''}`}
           onDragOver={e => { e.preventDefault(); setDraggingOver(col.key); }}
           onDragLeave={() => setDraggingOver(null)}
           onDrop={() => handleDrop(col.key)}

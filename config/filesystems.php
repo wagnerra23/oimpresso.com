@@ -94,6 +94,56 @@ return [
             'throw' => false,
         ],
 
+        /*
+         * ADR 0214 (aceita 2026-05-28) — Arquivos backbone S3 MinIO CT 100.
+         *
+         * Disk `arquivos-minio` é o backbone canon de qualquer anexo do
+         * oimpresso após adoção `HasArquivos` trait pelos módulos
+         * (Sprint 1 WhatsApp, Sprint 2+ Sells/Financeiro/Crm/etc).
+         *
+         * Endpoint: https://minio.oimpresso.com (Traefik proxy → CT 100 :9000)
+         * Bucket: oimpresso-arquivos (criado 2026-05-28)
+         * Auth: user MinIO `oimpresso-app` policy `arquivos-rw` (limit aos 2 buckets)
+         *
+         * Tier 0 (ADR 0093): path canon `biz=<businessId>/YYYY/MM/<md5>.<ext>`.
+         * Multi-tenant via prefix path, NÃO bucket-per-business (simplifica
+         * management; ACL aplicada via signed URL TTL no Controller que serve).
+         *
+         * Path-style endpoint OBRIGATÓRIO MinIO (não virtual-hosted como AWS).
+         *
+         * Signed URL TTL default 15min via Storage::temporaryUrl() —
+         * suficiente pra render thumb em tela atendimento + previne
+         * URL leak. Mídia grande: refresh on demand.
+         */
+        'arquivos-minio' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY'),
+            'secret' => env('MINIO_SECRET_KEY'),
+            'region' => env('MINIO_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET_ARQUIVOS', 'oimpresso-arquivos'),
+            'endpoint' => env('MINIO_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'url' => env('MINIO_PUBLIC_URL'),
+            'throw' => false,
+        ],
+
+        /*
+         * Bucket dedicado pra sensitive (encrypted-at-rest via VaultEncryptionService).
+         * ADR 0123 princípio 6 — upload .env/.pfx/.rdp/.pem/XML PII vai pra cá
+         * automaticamente. Audit log obrigatório.
+         */
+        'arquivos-vault-minio' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY'),
+            'secret' => env('MINIO_SECRET_KEY'),
+            'region' => env('MINIO_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET_VAULT', 'oimpresso-arquivos-vault'),
+            'endpoint' => env('MINIO_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'url' => env('MINIO_PUBLIC_URL'),
+            'throw' => false,
+        ],
+
         'dropbox' => [
             'driver' => 'dropbox',
             'authorization_token' => env('DROPBOX_ACCESS_TOKEN'),

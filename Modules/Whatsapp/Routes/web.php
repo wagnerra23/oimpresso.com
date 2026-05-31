@@ -140,6 +140,14 @@ Route::group([
         ->middleware('can:whatsapp.access')
         ->name('atendimento.caixa-unificada.index');
 
+    // M7 fix 2026-05-28 — serve mídia via Controller (Hostinger LiteSpeed
+    // bloqueia /storage/* direct serve 403). Path tem 4 partes:
+    // whatsapp/<businessId>/<YYYY-MM>/<uuid>.<ext>
+    Route::get('/midia/{path}', [CaixaUnificadaController::class, 'serveMedia'])
+        ->where('path', 'whatsapp/[0-9]+/[0-9]{4}-[0-9]{2}/[a-f0-9-]+(_thumb)?\.[a-z0-9]+')
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.midia.show');
+
     Route::post('/inbox/{id}/send', [InboxController::class, 'send'])
         ->whereNumber('id')
         ->middleware('can:whatsapp.send')
@@ -234,6 +242,15 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.status');
+
+    // ADR 0206 Fase D — endpoint dedicado pra polling 2s do Dialog "Conectar".
+    // Reconciler observa estado canon real do daemon (vs /status legacy que
+    // mistura branches Baileys/whatsmeow). UI usa pra detectar paired e fechar
+    // dialog automaticamente.
+    Route::get('/canais/{id}/whatsmeow-status', [ChannelsController::class, 'whatsmeowStatus'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.whatsmeow-status');
 
     // Wagner request 2026-05-14: importar histórico ~90d retroativo gated por
     // feature flag por business_id (`config('whatsapp.history_import.enabled_business_ids')`).

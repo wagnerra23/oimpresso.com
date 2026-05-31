@@ -431,23 +431,19 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
             {CANAIS.map((opt) => {
               const checked = canal === opt.value;
               return (
-                <label
+                <button
                   key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={checked}
+                  onClick={() => handleCanalChange(opt.value)}
+                  disabled={disabled}
                   className={`inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-xs transition-colors ${
                     checked
                       ? 'border-primary bg-primary/10 text-foreground'
                       : 'border-input bg-background text-muted-foreground hover:border-muted-foreground/40'
                   } ${disabled ? 'pointer-events-none opacity-50' : ''}`}
                 >
-                  <input
-                    type="radio"
-                    name="ct-canal"
-                    value={opt.value}
-                    checked={checked}
-                    onChange={() => handleCanalChange(opt.value)}
-                    className="sr-only"
-                    disabled={disabled}
-                  />
                   <span
                     aria-hidden
                     className={`h-2 w-2 rounded-full ${
@@ -455,7 +451,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
                     }`}
                   />
                   {opt.label}
-                </label>
+                </button>
               );
             })}
           </div>

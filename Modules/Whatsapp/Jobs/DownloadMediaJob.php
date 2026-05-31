@@ -66,7 +66,14 @@ class DownloadMediaJob implements ShouldQueue
         public int $messageId,
         public string $sourceUrl = '',
         public string $expectedMime = '',
-    ) {}
+    ) {
+        // M2-followup fix 2026-05-28: dispatch na queue `whatsapp` (que tem
+        // cron `queue:work --queue=whatsapp` everyMinute via PR #1826).
+        // ANTES caía em queue `default` sem worker — 20.282 jobs órfãos
+        // acumulados desde 2026-05-14 (audit honest pós-cobrança Wagner).
+        // Mesmo problema que ProcessIncomingWebhookJob já resolveu.
+        $this->onQueue(config('whatsapp.queue', 'whatsapp'));
+    }
 
     public function handle(): void
     {
@@ -114,9 +121,15 @@ class DownloadMediaJob implements ShouldQueue
 
         $attempts = $newAttempts;
 
-        // Valida MIME whitelist ANTES de baixar (Tier 0 — anti-XSS SVG)
+        // Valida MIME whitelist ANTES de baixar (Tier 0 — anti-XSS SVG).
+        // Strip RFC 7231 parameters: "audio/ogg; codecs=opus" → "audio/ogg".
+        // Whatsmeow protobuf manda full MIME spec com codecs parameter pra audio.
+        // Sem strip, TODOS audios opus falhavam early gate (audit 2026-05-28 18:00).
+        // Mantém bloqueio SVG: "image/svg+xml; charset=utf-8" → "image/svg+xml"
+        // (não está no whitelist) → bloqueado ✅.
         $mime = $this->expectedMime ?: ($message->media_mime ?? '');
-        if ($mime && ! in_array($mime, Message::MEDIA_MIME_WHITELIST, true)) {
+        $mimeBase = trim(explode(';', $mime)[0]);
+        if ($mimeBase && ! in_array($mimeBase, Message::MEDIA_MIME_WHITELIST, true)) {
             $this->markPermanentFailed($message, "MIME bloqueado pelo whitelist: {$mime}");
             return;
         }
@@ -149,7 +162,9 @@ class DownloadMediaJob implements ShouldQueue
             return;
         }
 
-        if ($contentType && ! in_array($contentType, Message::MEDIA_MIME_WHITELIST, true)) {
+        // Mesmo strip RFC 7231 params no Content-Type pós-download.
+        $contentTypeBase = trim(explode(';', $contentType ?: '')[0]);
+        if ($contentTypeBase && ! in_array($contentTypeBase, Message::MEDIA_MIME_WHITELIST, true)) {
             $this->markPermanentFailed($message, "Content-Type bloqueado: {$contentType}");
             return;
         }
@@ -221,6 +236,12 @@ class DownloadMediaJob implements ShouldQueue
         // Caminho 2: Baileys decrypt via daemon CT 100.
         if ($mediaKey !== null && $message->provider === 'whatsapp_baileys') {
             return $this->fetchViaDaemonDecrypt($message, $payload, $mediaKey);
+        }
+
+        // Caminho 3: Whatsmeow decrypt via daemon WuzAPI (M2 fix 2026-05-28).
+        // ADR 0204 daemon substituiu Baileys; download endpoint diferente.
+        if ($mediaKey !== null && $message->provider === 'whatsmeow') {
+            return $this->fetchViaWhatsmeowDownload($message, $payload, $mediaKey);
         }
 
         // Caminho 1: HTTP direto (Z-API / Meta Cloud) ou Baileys já flattado.
@@ -315,6 +336,156 @@ class DownloadMediaJob implements ShouldQueue
     }
 
     /**
+     * M2 fix 2026-05-28 — download mídia whatsmeow via daemon WuzAPI CT 100.
+     *
+     * Endpoint POST /chat/downloadimage|downloadvideo|downloadaudio|downloaddocument
+     * Header: Token: {channel.config_json['whatsmeow_user_token']}
+     * Body: {Url, MediaKey, Mimetype, FileSha256, FileEncSha256, FileLength, DirectPath}
+     *
+     * Response: binary direto (Content-Type matching mime) OU JSON {Data: base64}
+     * conforme implementação WuzAPI. Tratamos os 2 caminhos por defensive parse.
+     *
+     * Pre-requisito: Channel ativo com whatsmeow_user_token. Sem isso = fail
+     * permanente "token ausente" (channel precisa re-pareamento via QR).
+     *
+     * Sintoma original: 45.819 msgs presas em media_download_status='pending'
+     * porque branch antigo só conhecia Baileys + config_url Baileys NULL pós
+     * ADR 0202.
+     */
+    protected function fetchViaWhatsmeowDownload(Message $message, array $payload, string $mediaKey): string
+    {
+        $baseUrl = rtrim((string) config('whatsapp.whatsmeow.daemon_url'), '/');
+        if ($baseUrl === '') {
+            throw new HttpFetchException(
+                'Daemon whatsmeow não configurado (whatsmeow.daemon_url vazio)',
+                retryable: false,
+            );
+        }
+
+        // Resolve user_token via Conversation→Channel→config_json
+        $conv = DB::table('conversations')->where('id', $message->conversation_id)->first();
+        if (! $conv) {
+            throw new HttpFetchException('Conversation não encontrada pro msg', retryable: false);
+        }
+        $channel = \Modules\Whatsapp\Entities\Channel::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('id', $conv->channel_id)
+            ->first();
+        if (! $channel) {
+            throw new HttpFetchException('Channel não encontrado', retryable: false);
+        }
+        $userToken = $channel->config_json['whatsmeow_user_token'] ?? null;
+        if (! $userToken) {
+            throw new HttpFetchException(
+                'whatsmeow_user_token ausente — reconecte canal via QR',
+                retryable: false,
+            );
+        }
+
+        // Extrai metadata da mídia do payload raw whatsmeow protobuf
+        $messageProto = $payload['event']['Message'] ?? $payload['message'] ?? [];
+        $protoKey = match ($message->type) {
+            'image' => 'imageMessage',
+            'video' => 'videoMessage',
+            'audio' => 'audioMessage',
+            'document' => 'documentMessage',
+            'sticker' => 'stickerMessage',
+            default => null,
+        };
+        if ($protoKey === null) {
+            throw new HttpFetchException("Tipo {$message->type} não tem endpoint download", retryable: false);
+        }
+        $proto = $messageProto[$protoKey] ?? [];
+
+        // Whatsmeow/WuzAPI protobuf serializa chaves em UPPERCASE: URL, fileSHA256,
+        // fileEncSHA256 (diferente Baileys que era lowercase url, fileSha256).
+        // Validado no smoke real msg #46403 — payload tem `URL`, não `url`.
+        $url = $proto['URL'] ?? $proto['url'] ?? $payload['media_url'] ?? null;
+        if (! $url) {
+            throw new HttpFetchException('URL mídia ausente no payload', retryable: false);
+        }
+
+        // Endpoint WuzAPI varia por tipo
+        $endpoint = match ($message->type) {
+            'image' => '/chat/downloadimage',
+            'video' => '/chat/downloadvideo',
+            'audio' => '/chat/downloadaudio',
+            'document' => '/chat/downloaddocument',
+            'sticker' => '/chat/downloadimage', // sticker é webp tratado como image
+            default => null,
+        };
+
+        // Mesmo quirk uppercase: aceita ambos pra defense-in-depth.
+        $reqBody = array_filter([
+            'Url' => $url,
+            'MediaKey' => $mediaKey,
+            'Mimetype' => $this->expectedMime ?: ($message->media_mime ?? ($proto['mimetype'] ?? '')),
+            'FileSha256' => $proto['fileSHA256'] ?? $proto['fileSha256'] ?? null,
+            'FileEncSha256' => $proto['fileEncSHA256'] ?? $proto['fileEncSha256'] ?? null,
+            'FileLength' => isset($proto['fileLength']) ? (int) $proto['fileLength'] : null,
+            'DirectPath' => $proto['directPath'] ?? null,
+        ], fn ($v) => $v !== null && $v !== '');
+
+        try {
+            $response = Http::baseUrl($baseUrl)
+                ->withHeaders(['Token' => $userToken, 'Content-Type' => 'application/json'])
+                ->timeout(60)
+                ->withoutVerifying() // FIXME(US-WA-058)
+                ->post($endpoint, $reqBody);
+        } catch (\Throwable $e) {
+            throw new HttpFetchException(
+                'Daemon whatsmeow HTTP exception: ' . mb_substr($e->getMessage(), 0, 200),
+                retryable: true,
+            );
+        }
+
+        if (! $response->successful()) {
+            $body = mb_substr($response->body(), 0, 200);
+            $retryable = $response->status() === 404 || $response->status() >= 500;
+            throw new HttpFetchException(
+                "Daemon whatsmeow download falhou HTTP {$response->status()}: {$body}",
+                retryable: $retryable,
+            );
+        }
+
+        // WuzAPI download response: pode ser binary direto OU envelope JSON
+        // {success: true, data: {Data: <base64>, Mimetype, Size}}.
+        $rawBody = $response->body();
+        $contentType = $response->header('Content-Type') ?: '';
+
+        if (str_contains($contentType, 'application/json')) {
+            $json = $response->json();
+            $dataField = $json['data']['Data'] ?? $json['Data'] ?? null;
+            if (! $dataField) {
+                throw new HttpFetchException(
+                    'WuzAPI download response sem Data field: ' . mb_substr($rawBody, 0, 200),
+                    retryable: false,
+                );
+            }
+            // WuzAPI Data field é DATA URL: "data:image/jpeg;base64,<base64>"
+            // (validado via spec.yml + smoke 2026-05-28 msg #46403).
+            // base64_decode direto sem strip → fails. Strip prefixo primeiro.
+            if (str_starts_with($dataField, 'data:')) {
+                $commaPos = strpos($dataField, ',');
+                if ($commaPos !== false) {
+                    $dataField = substr($dataField, $commaPos + 1);
+                }
+            }
+            $decoded = base64_decode($dataField, true);
+            if ($decoded === false) {
+                throw new HttpFetchException(
+                    'Base64 inválido no response WuzAPI (após strip data: prefix)',
+                    retryable: false,
+                );
+            }
+            return $decoded;
+        }
+
+        // Binary direto (mais comum WuzAPI v2+)
+        return $rawBody;
+    }
+
+    /**
      * Lê mediaKey do payload Baileys aninhado.
      *
      * Estrutura típica:
@@ -333,8 +504,11 @@ class DownloadMediaJob implements ShouldQueue
             return $payload['mediaKey'];
         }
 
-        // Caminho 2: aninhado raw Baileys.
-        $messageProto = $payload['message'] ?? [];
+        // Caminho 2: aninhado raw Baileys → payload.message.{type}Message
+        // Caminho 3: aninhado raw Whatsmeow → payload.event.Message.{type}Message
+        $messageProto = $payload['message']
+            ?? ($payload['event']['Message'] ?? [])
+            ?? [];
 
         $protoKey = match ($type) {
             'audio' => 'audioMessage',

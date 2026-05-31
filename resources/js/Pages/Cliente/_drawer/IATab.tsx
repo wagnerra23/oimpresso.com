@@ -189,11 +189,11 @@ export default function IATab({ contact, stats }: IATabProps) {
     <div className="space-y-5" data-testid="ia-tab">
       {/* Header intro */}
       <div
-        className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/30 p-4"
+        className="rounded-lg border border-primary/20 bg-primary/5 p-4"
         data-testid="ia-tab-intro"
       >
         <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-blue-600 dark:text-blue-400" />
+          <Sparkles size={16} className="text-primary" />
           <h3 className="text-sm font-semibold text-foreground">
             Copiloto de cliente
           </h3>
@@ -207,7 +207,7 @@ export default function IATab({ contact, stats }: IATabProps) {
       {/* Card 1 -- Resumo do relacionamento */}
       <IaCard
         testid="ia-card-resumo"
-        icon={<MessageSquare size={14} className="text-blue-600" />}
+        icon={<MessageSquare size={14} className="text-primary" />}
         title="Resumo do relacionamento"
         description="A IA olha o historico (OSs, ticket, saldo, frescor) e propoe um sumario executivo em 3 frases."
         buttonLabel="Gerar resumo"

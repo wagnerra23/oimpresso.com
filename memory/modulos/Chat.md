@@ -36,10 +36,9 @@
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ❌ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ❌ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ❌ |
 
 ## Diferenças vs versões anteriores
 
@@ -51,5 +50,5 @@
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:13.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec Chat`

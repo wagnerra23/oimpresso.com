@@ -238,9 +238,18 @@ class CmsController extends Controller
     private function buildBlogPostPayload(int $id)
     {
         return OtelHelper::spanBiz('cms.blog.view', function () use ($id) {
-            return CmsPage::where('type', 'blog')
+            $post = CmsPage::where('type', 'blog')
                         ->where('is_enabled', 1)
                         ->findOrFail($id);
+
+            // XSS: sanitiza o HTML do post in-place antes de serializar pro Inertia
+            // (Site/BlogPost renderiza via dangerouslySetInnerHTML). Mantém o model
+            // pra preservar os appends (feature_image_url, slug, tags).
+            // getAttribute/setAttribute: coluna `content` (longText, migration
+            // 2022_08_04) é magic property do Eloquent — acesso explícito p/ PHPStan.
+            $post->setAttribute('content', $this->siteContent->sanitizeHtml($post->getAttribute('content')));
+
+            return $post;
         }, ['post_id' => $id]);
     }
 

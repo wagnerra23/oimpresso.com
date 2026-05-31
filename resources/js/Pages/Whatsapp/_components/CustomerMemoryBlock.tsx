@@ -114,7 +114,17 @@ export default function CustomerMemoryBlock({ customerExternalId }: Props) {
 
   useEffect(() => {
     if (!customerExternalId) return;
-    const ext = customerExternalId.replace(/^\+/, '');
+    // Tira leading "+" + sufixo "@lid"/"@s.whatsapp.net"/"@..." (JIDs Baileys/whatsmeow).
+    // Endpoint customer-profile só aceita E.164 puro 8-20 dígitos — JIDs LID que
+    // ainda não foram resolvidos pra phone real não tem profile e devem pular o fetch
+    // (caso contrário backend retorna 422 invalid_external_id e este componente quebra).
+    const ext = customerExternalId.replace(/^\+/, '').replace(/@.*$/, '');
+    if (!/^\d{8,20}$/.test(ext)) {
+      // LID/JID não-numérico → não buscar profile (não temos cadastro pelo LID raw).
+      // Sidebar oculta o bloco até LidPhoneResolver mapear pra phone real.
+      setData(null);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -146,7 +156,12 @@ export default function CustomerMemoryBlock({ customerExternalId }: Props) {
     );
   }
 
-  if (!data || data.state === 'not_found') {
+  // Defense-in-depth — `state: 'ok'` deve sempre vir junto de `memory`, mas se
+  // backend retornar shape inesperado (422 invalid_external_id, network error,
+  // memory rebuild não-completado), `data.memory` pode ser undefined.
+  // Sem este guard, linha 172 `const m = data.memory!` + acesso `m.display_name`
+  // crashava o React inteiro (incident 2026-05-28 Wagner click conv LID).
+  if (!data || data.state === 'not_found' || !data.memory) {
     return null;
   }
 

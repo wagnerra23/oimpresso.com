@@ -332,6 +332,69 @@ Sinais de "Wagner está fechando" — QUALQUER um:
 
 **Skill correlata:** [`memory-sync`](../../.claude/skills/memory-sync/SKILL.md) Tier C (dispara `git push` pós-edit em `memory/`, complementa R12 mas NÃO substitui — R12 é orchestrador do checklist).
 
+### ⚠️ Mecanismos de ATIVAÇÃO no momento certo (catalogado 2026-05-28)
+
+R12 é regra **passiva**. Wagner 2026-05-28 cobrou: *"mas não está funcionando porque? se existe mas não funciona ta errado. como colocar pra funcionar? qual momento tem que ser ativado?"*. Em sessão longa (200+ turnos / 8h+), Tier A always-on sai do contexto Claude. R12 precisa de **3 camadas** de ativação:
+
+| Camada | Mecanismo | Quando dispara | Garantia |
+|---|---|---|---|
+| 1 | Skill [`wagner-protocol-enforce`](../../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A | SessionStart (eager) | Sai do contexto em sessão longa |
+| 2 | Skill [`encerrar-sessao`](../../.claude/skills/encerrar-sessao/SKILL.md) Tier B | **description-match LAZY no trigger word** | **Garantido — recarrega R12 inline** |
+| 3 | Hook [`force-r12-closing-signal.mjs`](../../.claude/hooks/force-r12-closing-signal.mjs) | **UserPromptSubmit antes do Claude responder** | **Garantido — Node.js cross-platform (Windows/macOS/Linux), injeta `<system-reminder>` em TODO computador do time (Wagner/Felipe/Maiara/Eliana/Luiz)** |
+
+Camada 2 + 3 = defesa em depth. Mesmo em sessão de 17 PRs / 8h+, ao detectar pattern de fechamento R12 dispara via skill description-match OU hook UserPromptSubmit.
+
+**Trigger words canônicos** (consultar [skill encerrar-sessao description](../../.claude/skills/encerrar-sessao/SKILL.md) pra lista completa):
+
+- Explícito: `encerrar` · `fim de sessão` · `vamos parar` · `continua depois` · `salve as memórias` · `outra sessão` · `vai pra MCP`
+- Cortesia: `tchau` · `obrigado` · `valeu` · `tá bom` · `beleza` · `show` · `perfeito`
+- Adiamento: `depois eu vejo` · `fica pra depois` · `baixa prioridade`
+- Auto-detect: ≥3 PRs mergeados · ≥1 ADR proposto · ≥4h trabalho
+
+**CITAR EXPLÍCITO no report final:** `"Cumprindo R12 PROTOCOLO via skill encerrar-sessao (ativação lazy via hook UserPromptSubmit)"`. Garante auditoria do mecanismo — Wagner verifica que disparou.
+
+---
+
+## R13 — Recomendar decisão técnica, não devolver menu
+
+**Origem:** Wagner 2026-05-29, sessão DS v4 roxo OficinaAuto:
+
+> *"eu acho que eu não deveria decidir isso, eu vou errar a escolha. qual escolha é melhor para o meu caso?"*
+
+Decisão de **prioridade / ROI / arquitetura / sequenciamento** é trabalho do Claude (especialista — [ADR 0231](../decisions/0231-processo-trabalho-canonico-especialista-por-area.md)). Claude **crava UMA recomendação** com razão fundamentada nos sinais reais (brief/cycle, [ADR 0105](../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [ADR 0232](../decisions/0232-modelo-peso-real-classificacao-por-meta.md)); Wagner **valida** (sim/não/ajusta), não calcula.
+
+**Menu (opções 1/2/3) só é permitido pra PREFERÊNCIA/GOSTO do Wagner** — onde não há resposta técnica "certa":
+- ✅ "quer o primário roxo ou azul?" (gosto) · "nome A ou B?"
+- ❌ "conserto Compras (59) ou investigo o gap D8? qual prefere?" (isso é ROI → Claude calcula e recomenda)
+
+**Quando dispara:** Claude vai terminar resposta com menu de decisão técnica sem recomendação cravada.
+
+**Sinal de violação:** Wagner responde "eu não deveria decidir isso" / "qual é melhor pro meu caso?" / "você que sabe".
+
+**Ativação (3 camadas, ADR 0233):** (1) skill `wagner-protocol-enforce` Tier A · (2) este doc · (3) hook `nudge-recommend-not-menu.ps1` (`Stop`, advisory). Doc base: [feedback-recomendar-nao-menu.md](feedback-recomendar-nao-menu.md).
+
+---
+
+## R14 — Conferência é MINHA, jornada COMPLETA. Wagner NUNCA é testador.
+
+**Origem:** Wagner 2026-05-29, sessão Triage/Inbox:
+
+> *"depois de publicar tem que testar e garantir estar funcionando. use browser... testa porra"* + *"porque não obedece o comando de conferir? perco tempo de conferência, fico igual garoto de recado teste."*
+
+Declarei "no ar/funcionando" **2× em cima de prova PARCIAL** (1º `curl 302`; depois render de rota direta) — e o Wagner teve que testar e achar o que eu deveria ter achado (tela branca por `Inertia::defer` sem guard; depois 404 por falta de link no menu). Ele virou meu testador. **Proibido.**
+
+**Regra dura:**
+1. **Conferir = jornada do usuário REAL ponta-a-ponta, EU mesmo, com evidência:** descobre (link existe no menu) → clica/navega (URL certa, sem prefixo dobrado) → renderiza (não branco, 0 console error) → opera (a ação funciona). Uma etapa não basta.
+2. **PROIBIDO declarar "pronto / funcionando / no ar / live / deployado / entregue" em PROXY:** build-success, `curl`/HTTP 302, render de rota direta digitada, "deve funcionar". **Proxy ≠ funcionando.** `curl` prova ROTA, não RENDER nem NAVEGAÇÃO.
+3. **Wagner NUNCA é o testador.** Se dá pra conferir (headless / Pest Browser / MCP / `actingAs`), EU confiro. Não peço pro Wagner abrir/clicar/testar o que posso testar.
+4. **Se não conseguir conferir 100%, escrever "NÃO CONFERIDO: <o quê>"** explícito — nunca empurrar a conferência pro Wagner nem mascarar com proxy.
+
+**Quando dispara:** Claude vai escrever "funcionando / no ar / pronto / live / deployado / entregue".
+
+**Sinal de violação:** Wagner volta com "404" / "tela branca" / "não abre" / "testa" / "fico de garoto de recado" → declarei sem conferir a jornada.
+
+**Ativação (3 camadas):** este doc (R14) + reforça R1 + DoD da skill [`incident-done-checklist`](../../.claude/skills/incident-done-checklist/SKILL.md) + feedback [feedback-deploy-smoke-browser-obrigatorio.md](feedback-deploy-smoke-browser-obrigatorio.md). Evidência da jornada (screenshots) ANEXADA antes de declarar.
+
 ---
 
 ## Como Claude detecta violação no meio da sessão (auto-check)
@@ -341,7 +404,7 @@ Após cada turno, Claude se pergunta:
 - Mexi em path que precisa pré-flight? ler `SPEC.md`+`RUNBOOK*.md`+`charter.md`+ADRs (R3 R7)
 - Mexi em Eloquent/Service/Job que toca dados? confer `business_id` scope (R4)
 - Estou em worktree? Edits foram pro path worktree, não main repo? (R8)
-- Vou declarar "funcionando"? tenho `curl -sv` ou `screenshot` salvo? (R1)
+- Vou declarar "funcionando/pronto/no ar"? **conferi a JORNADA COMPLETA eu mesmo (menu→clica→navega URL certa→renderiza→opera) com screenshot? `curl`/build/302 NÃO contam — provam rota, não render. (R1 + R14)**
 - Wagner aprovou design? estou copiando integral, não slice? (R2)
 - Vou commit/push/merge? Wagner autorizou ESCOPO/CAMINHO (não só ação isolada)? (R10 + R11)
 - Texto UI/commit em PT-BR? (R5)

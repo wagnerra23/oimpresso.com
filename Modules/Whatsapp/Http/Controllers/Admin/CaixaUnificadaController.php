@@ -6,6 +6,7 @@ namespace Modules\Whatsapp\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Whatsapp\Entities\Channel;
@@ -595,7 +596,57 @@ class CaixaUnificadaController extends Controller
             'sender_user_name' => $senderName,
             'is_internal_note' => (bool) $m->is_internal_note,
             'created_at' => $m->created_at?->toIso8601String() ?? now()->toIso8601String(),
+            // M6+M7 fix 2026-05-28: expor media fields via Controller-served URL.
+            // M6 (PR #1846): media_url + media_thumbnail_url no UI shape.
+            // M7 (este PR): rotear via route('atendimento.midia.show') porque
+            // Hostinger LiteSpeed bloqueia /storage/* direct serve com 403.
+            'media_url' => $m->media_url ? route('atendimento.midia.show', ['path' => $m->media_url]) : null,
+            'media_thumbnail_url' => $m->media_thumbnail_url ? route('atendimento.midia.show', ['path' => $m->media_thumbnail_url]) : null,
+            'media_mime' => $m->media_mime,
+            'media_size_bytes' => $m->media_size_bytes ? (int) $m->media_size_bytes : null,
+            'media_filename' => $m->media_filename,
+            'media_transcription' => $m->media_transcription,
+            'media_download_status' => $m->media_download_status,
         ];
+    }
+
+    /**
+     * M7 fix 2026-05-28 — serve mídia via Controller (não /storage/* direct).
+     *
+     * Hostinger LiteSpeed retorna 403 pra /storage/whatsapp/... mesmo com symlink
+     * existente + permissões corretas (segurança contra symlink traversal).
+     * Solução: rotear via Controller que:
+     *   1. Valida path traversal (..)
+     *   2. Tier 0 — só serve arquivos do business_id do user atual
+     *   3. Storage::disk('public')->response($path) — Laravel serve com correct
+     *      Content-Type + Cache-Control + ETag
+     *
+     * Performance: pra mídias <16MB OK. Pra arquivos maiores usar download()
+     * + range support (não implementado nesta fase).
+     */
+    public function serveMedia(Request $request, string $path)
+    {
+        // Anti path-traversal
+        if (str_contains($path, '..') || str_contains($path, "\0")) {
+            abort(403, 'Invalid path');
+        }
+
+        // Tier 0 ADR 0093 — path canon: whatsapp/{businessId}/YYYY-MM/<uuid>.<ext>
+        $businessId = (int) (session('user.business_id') ?? auth()->user()?->business_id ?? 0);
+        if ($businessId <= 0) {
+            abort(403, 'No business context');
+        }
+        $expectedPrefix = "whatsapp/{$businessId}/";
+        if (! str_starts_with($path, $expectedPrefix)) {
+            abort(403, "Cross-tenant access denied (expected prefix: {$expectedPrefix})");
+        }
+
+        if (! Storage::disk('public')->exists($path)) {
+            abort(404, 'Media not found');
+        }
+
+        // Storage::response gera proper headers + suporta inline (não force download)
+        return Storage::disk('public')->response($path);
     }
 
     // ===========================================================================

@@ -4,7 +4,9 @@ namespace Modules\Governance\Providers;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Modules\Governance\Contracts\DriftChecker;
 use Modules\Governance\Http\Middleware\ActionGate;
+use Modules\Governance\Services\DriftCheckerRegistry;
 use Modules\TeamMcp\Services\ActorResolver;
 
 class GovernanceServiceProvider extends ServiceProvider
@@ -17,6 +19,35 @@ class GovernanceServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerMiddleware();
         $this->registerCommands();
+        $this->registerDriftCheckers();
+    }
+
+    /**
+     * Auto-registra DriftCheckers do config/governance.php em DriftCheckerRegistry.
+     * ADR 0216 §Decisão.
+     */
+    protected function registerDriftCheckers(): void
+    {
+        if (! config('governance.drift_framework_enabled', true)) {
+            return;
+        }
+
+        $registry = $this->app->make(DriftCheckerRegistry::class);
+        $classes = (array) config('governance.drift_checkers', []);
+
+        foreach ($classes as $class) {
+            if (! class_exists($class)) {
+                continue;
+            }
+            $checker = $this->app->make($class);
+            if (! $checker instanceof DriftChecker) {
+                continue;
+            }
+            if ($registry->has($checker->name())) {
+                continue; // idempotente — boot pode ser chamado mais de 1× em testes
+            }
+            $registry->register($checker);
+        }
     }
 
     protected function registerCommands(): void
@@ -33,6 +64,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\ScorecardSnapshotCommand::class,
                 \Modules\Governance\Console\Commands\ObservabilityAggregateCommand::class,  // Wave 26 Agent 3 — ADR 0162
                 \Modules\Governance\Console\Commands\ScorecardInitiativeSyncCommand::class, // Wave 28 Agent 1 — Initiatives Cortex-style
+                \Modules\Governance\Console\Commands\GovernanceAuditCommand::class,        // ADR 0216 — DriftChecker orchestrator
             ]);
         }
     }
@@ -42,6 +74,9 @@ class GovernanceServiceProvider extends ServiceProvider
         $this->app->singleton(ActionGate::class, function ($app) {
             return new ActionGate($app->make(ActorResolver::class));
         });
+
+        // ADR 0216 — Drift Framework registry singleton
+        $this->app->singleton(DriftCheckerRegistry::class);
     }
 
     protected function registerConfig(): void

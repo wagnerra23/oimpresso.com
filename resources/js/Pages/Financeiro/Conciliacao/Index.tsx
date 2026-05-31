@@ -9,9 +9,12 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
-import { Upload, Check, X, Search } from 'lucide-react';
+import { Upload, Check, X, Search, Inbox } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 
 interface Linha {
   id: number;
@@ -149,24 +152,26 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
               <label htmlFor="conta_id" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium block mb-1">
                 Conta bancária (opcional)
               </label>
-              <select
-                id="conta_id"
-                value={uploadForm.data.conta_bancaria_id}
-                onChange={(e) => uploadForm.setData('conta_bancaria_id', e.target.value)}
-                className="h-8 px-2 rounded-md border border-stone-300 text-[13px] bg-white w-full"
+              <Select
+                value={uploadForm.data.conta_bancaria_id || '__none__'}
+                onValueChange={(v) => uploadForm.setData('conta_bancaria_id', v === '__none__' ? '' : v)}
               >
-                <option value="">Detectar do arquivo</option>
-                {contas.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nome}</option>
-                ))}
-              </select>
+                <SelectTrigger id="conta_id" className="w-full" aria-label="Conta bancária">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Detectar do arquivo</SelectItem>
+                  {contas.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           <button
             type="submit"
             className="os-btn primary"
             disabled={!uploadForm.data.arquivo || uploadForm.processing}
-            style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
           >
             <Upload size={13} />
             {uploadForm.processing ? 'Processando…' : 'Importar OFX'}
@@ -275,7 +280,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
           <b className="fin-num-pos">{stats.conciliados}</b> conciliados
         </span>
         <span className="spacer" />
-        <span>📥 Parser OFX simples · próxima Onda: CNAB + Open Banking API</span>
+        <span className="inline-flex items-center gap-1"><Inbox className="h-3.5 w-3.5" /> Parser OFX simples · próxima Onda: CNAB + Open Banking API</span>
       </div>
     </div>
   );

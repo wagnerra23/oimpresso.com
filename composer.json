@@ -32,6 +32,7 @@
         "laravel/telescope": "^5.20",
         "laravel/tinker": "^3.0",
         "laravel/ui": "^4.2",
+        "laravel/wayfinder": "^0.1.20",
         "league/flysystem-aws-s3-v3": "^3.0",
         "maatwebsite/excel": "^3.1.8",
         "meilisearch/meilisearch-php": "^1.16",
@@ -57,6 +58,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
         "knuckleswtf/scribe": "^5.0",
+        "larastan/larastan": "3.10",
         "laravel/boost": "^2.4",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^8.5",
@@ -93,6 +95,9 @@
         ]
     },
     "scripts": {
+        "phpstan": [
+            "vendor/bin/phpstan analyse --memory-limit=2G"
+        ],
         "post-root-package-install": [
             "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],

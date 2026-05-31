@@ -56,3 +56,11 @@ tests/eval/results/*.json
 # Pest Browser screenshots — baselines em __snapshots__/ vão pro git, atual/diff temporários ficam de fora (ADR 0108)
 /tests/Browser/Screenshots/__failures__
 /tests/Browser/Screenshots/__diff_output__
+
+# PHPStan (ADR 0208)
+/.phpstan-cache
+/phpstan-gen.log
+/phpstan-gen.err
+
+# ESLint 9 (ADR 0209)
+# config/eslint-baseline.json é VERSIONADO (canon ratchet)

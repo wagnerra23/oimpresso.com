@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Jobs\ProcessIncomingWebhookJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
+use Modules\Whatsapp\Services\WhatsmeowReconciler;
 
 /**
  * WhatsmeowWebhookController — recebe eventos do daemon Go WuzAPI (CT 100).
@@ -39,7 +40,10 @@ use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
  */
 class WhatsmeowWebhookController extends Controller
 {
-    public function __construct(private readonly CentrifugoPublisher $centrifugo) {}
+    public function __construct(
+        private readonly CentrifugoPublisher $centrifugo,
+        private readonly WhatsmeowReconciler $reconciler,
+    ) {}
 
     public function handle(Request $request): JsonResponse
     {
@@ -50,17 +54,76 @@ class WhatsmeowWebhookController extends Controller
         $channel = $request->attributes->get('whatsapp.channel');
 
         $payload = $request->all();
-        $event = (string) ($payload['type'] ?? $payload['Event'] ?? '');
+
+        // WuzAPI envelope: payload outer tem {instanceName, jsonData (string)}.
+        // jsonData é JSON string aninhado com {event:{...}, type:"Message"}.
+        // Sessão 2026-05-27 confirmou via daemon logs. Faz unwrap defensivo.
+        $unwrapped = $payload;
+        if (isset($payload['jsonData']) && is_string($payload['jsonData'])) {
+            $decoded = json_decode($payload['jsonData'], true);
+            if (is_array($decoded)) {
+                $unwrapped = array_merge($payload, $decoded);
+            }
+        }
+
+        $event = (string) ($unwrapped['type'] ?? $unwrapped['Event'] ?? '');
+        $instanceName = (string) ($payload['instanceName'] ?? $unwrapped['instanceName'] ?? '');
+
+        // Fallback resolveChannel via instanceName (WuzAPI envia nome do user
+        // criado em POST /admin/users, que é nosso whatsmeowUserName()).
+        if ($channel === null && $instanceName !== '') {
+            $channel = Channel::query()
+                ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                ->where('business_id', $businessId)
+                ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
+                ->get()
+                ->first(fn (Channel $ch) => $ch->whatsmeowUserName() === $instanceName);
+        }
 
         Log::info('whatsapp.webhook.received', [
             'business_id' => $businessId,
             'provider' => 'whatsmeow',
             'channel_id' => $channel?->id,
             'event' => $event,
+            'instance_name' => $instanceName,
         ]);
+
+        // Substitui payload pelo unwrapped pra downstream
+        $payload = $unwrapped;
 
         // Eventos de mensagem/status → enfileira processamento assíncrono
         if (in_array($event, ['Message', 'ReadReceipt'], true)) {
+            // Filter Tier 0 — drop NON-conversação ANTES do dispatch.
+            // Bug 2026-05-27 prod biz=1: 5 failed jobs com `Duplicate entry '1-11-'` em
+            // `conv_biz_ch_ext_uniq` porque status@broadcast (Stories) criou conversation
+            // lixo com customer_external_id='' e qualquer msg subsequente bateu na UNIQUE.
+            // Padrão portado do ChannelBaileysWebhookController.php (linhas 295-313).
+            //   - `status@broadcast` / `status@...` → feed de WhatsApp Status (Stories alheios)
+            //   - `@g.us`                          → grupos (schema diferente, US futura)
+            //   - `@broadcast` / `@newsletter`     → listas de transmissão / canais
+            $chatJid = (string) ($payload['event']['Info']['Chat']
+                ?? $payload['Info']['Chat']
+                ?? $payload['Chat']
+                ?? '');
+            $isStatusBroadcast = $chatJid === 'status@broadcast'
+                || str_starts_with($chatJid, 'status@');
+            $isGroupOrBroadcast = str_contains($chatJid, '@g.us')
+                || str_contains($chatJid, '@broadcast')
+                || str_contains($chatJid, '@newsletter');
+            if ($isStatusBroadcast || $isGroupOrBroadcast) {
+                Log::info('whatsapp.webhook.whatsmeow.non_conversation_dropped', [
+                    'business_id' => $businessId,
+                    'channel_id' => $channel?->id,
+                    'event' => $event,
+                    'note' => $isStatusBroadcast ? 'status_broadcast_dropped' : 'group_or_broadcast_dropped',
+                    'chat_sample' => substr($chatJid, 0, 50),
+                ]);
+                return response()->json([
+                    'ok' => true,
+                    'note' => $isStatusBroadcast ? 'status_broadcast_dropped' : 'group_or_broadcast_dropped',
+                ], 200);
+            }
+
             ProcessIncomingWebhookJob::dispatch(
                 $businessId,
                 'whatsmeow',
@@ -73,10 +136,31 @@ class WhatsmeowWebhookController extends Controller
 
         // Eventos de estado da sessão → atualiza channel health + publica realtime
         if ($channel === null) {
-            // Sem channel resolvido — só loga e retorna 200 (daemon vai retentar)
+            // ADR 0206 Fase B fix: middleware retornou null porque payload sem
+            // Username OU Username não bateu nenhum channel. Pra eventos Connected/
+            // PairSuccess, fallback via Reconciler resolve "primeiro channel em
+            // pareamento ativo do business". Multi-tenant Tier 0 escopado ao biz.
+            if (in_array($event, ['Connected', 'PairSuccess'], true)) {
+                $channel = $this->reconciler->resolveChannelForPendingPair($businessId);
+                if ($channel !== null) {
+                    Log::info('[whatsapp.webhook.whatsmeow] channel resolvido via fallback pending-pair', [
+                        'event' => 'whatsmeow.webhook.fallback_resolved',
+                        'business_id' => $businessId,
+                        'channel_id' => $channel->id,
+                        'payload_event' => $event,
+                    ]);
+                }
+            }
+        }
+
+        if ($channel === null) {
+            // Após fallback, ainda null — loga payload completo pra debug (sem PII —
+            // payload de estado não tem texto de mensagem, só JID)
             Log::warning('[whatsapp.webhook.whatsmeow] evento de estado sem channel resolvido', [
+                'event' => 'whatsmeow.webhook.no_channel',
                 'business_id' => $businessId,
-                'event' => $event,
+                'payload_event' => $event,
+                'payload_keys' => array_keys($payload),
             ]);
             return response()->json(['ok' => true, 'note' => 'no_channel'], 200);
         }
@@ -90,23 +174,30 @@ class WhatsmeowWebhookController extends Controller
     }
 
     /**
-     * Sessão WhatsApp Web pareou com sucesso. Marca channel ativo + publica
-     * estado realtime pra UI atualizar.
+     * Sessão WhatsApp Web pareou com sucesso. Reconciler centraliza mutação DB.
+     *
+     * ADR 0206 Fase B fix: antes ChannelsController + WebhookController duplicavam
+     * a lógica de "marca channel ativo". Agora Reconciler.markPairedInDb() é
+     * o único ponto. Logs estruturados Pino-compat.
      */
     private function handleConnected(Channel $channel, array $payload): JsonResponse
     {
-        $channel->forceFill([
-            'status' => 'active',
-            'channel_health' => 'healthy',
-            'channel_health_consecutive_failures' => 0,
-            'last_health_check_at' => now(),
-            'last_health_message' => 'whatsmeow connected',
-        ])->save();
+        // JID pode vir em payload.Data.Jid (envelope WuzAPI) ou payload.Jid (raw)
+        $jid = $payload['Data']['Jid'] ?? $payload['Jid'] ?? $payload['jid'] ?? null;
 
-        $this->publish($channel, 'connected', [
-            'state' => 'connected',
+        $this->reconciler->markPairedInDb($channel, is_string($jid) ? $jid : null);
+
+        Log::info('whatsmeow.webhook.connected_processed', [
+            'event' => 'whatsmeow.webhook.connected_processed',
+            'business_id' => $channel->business_id,
             'channel_id' => $channel->id,
-            'jid' => $payload['Data']['Jid'] ?? null,
+            'jid' => $jid,
+        ]);
+
+        $this->publish($channel, 'paired', [
+            'state' => 'paired',
+            'channel_id' => $channel->id,
+            'jid' => $jid,
         ]);
 
         return response()->json(['ok' => true, 'note' => 'connected_recorded'], 200);
@@ -124,22 +215,19 @@ class WhatsmeowWebhookController extends Controller
             }
         }
 
-        $newHealth = $banDetected ? 'banned' : 'disconnected';
-
-        $channel->forceFill([
-            'channel_health' => $newHealth,
-            'last_health_check_at' => now(),
-            'last_health_message' => "whatsmeow disconnected: {$reason}",
-        ])->save();
+        // ADR 0206 Fase B: Reconciler centraliza mutação DB de disconnect
+        $this->reconciler->markDisconnectedInDb($channel, $reason, $banDetected);
 
         if ($banDetected) {
-            Log::error('[whatsapp.webhook.whatsmeow.ban_detected]', [
+            Log::error('whatsmeow.webhook.ban_detected', [
+                'event' => 'whatsmeow.webhook.ban_detected',
                 'business_id' => $channel->business_id,
                 'channel_id' => $channel->id,
                 'reason' => $reason,
             ]);
         }
 
+        $newHealth = $banDetected ? 'banned' : 'disconnected';
         $this->publish($channel, $banDetected ? 'ban_detected' : 'disconnected', [
             'state' => $newHealth,
             'channel_id' => $channel->id,

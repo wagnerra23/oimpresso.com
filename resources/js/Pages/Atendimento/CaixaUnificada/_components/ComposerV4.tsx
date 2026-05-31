@@ -31,8 +31,28 @@ interface Props {
 
 /** Wave 4 F1: limite legal Tier 0 da caption (espelha InboxController::sendMedia). */
 const CAPTION_MAX_CHARS = 1024;
-/** Wave 4 F1: tipos aceitos pelo daemon Baileys (imagem/doc/áudio). */
-const ACCEPT_MIME = 'image/jpeg,image/png,image/webp,image/gif,application/pdf,audio/ogg,audio/mpeg,audio/mp4,audio/webm,video/mp4';
+/** M5 fix 2026-05-28: cap unificado FE+BE = `Message::MEDIA_MAX_SIZE_BYTES` = 16MB
+ *  (Meta Cloud video limit; WhatsApp dropa upload > esse cap silenciosamente). */
+const MEDIA_MAX_BYTES = 16 * 1024 * 1024;
+/** Wave 4 F1 + M5 fix: tipos aceitos pelo daemon. Ampliado pra docx/xlsx/pptx/txt
+ *  conforme audit 2026-05-28 (alinha Meta Cloud + WuzAPI suportados). */
+const ACCEPT_MIME = [
+  // image
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+  // audio (voz + arquivos)
+  'audio/ogg', 'audio/mpeg', 'audio/mp4', 'audio/webm', 'audio/wav',
+  // video
+  'video/mp4', 'video/3gpp', 'video/quicktime',
+  // documents
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain', 'text/csv',
+].join(',');
 
 export default function ComposerV4({
   conversationId, isPreview, isBlocked, channelShort, channelLabel, channelType,
@@ -136,17 +156,72 @@ export default function ComposerV4({
     fileInputRef.current?.click();
   }
 
-  function onFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    // 25 MB hard cap espelhando InboxController::sendMedia
-    if (file.size > 25 * 1024 * 1024) {
-      setMediaError(`Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Máximo: 25 MB.`);
-      e.target.value = '';
-      return;
+  // M4 fix 2026-05-28: aceita arquivo de múltiplas origens (botão click + paste
+  // clipboard + drag-drop). Centralizado pra validar tamanho/mime uma vez.
+  function acceptFile(file: File): boolean {
+    if (file.size > MEDIA_MAX_BYTES) {
+      setMediaError(`Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Máximo: 16 MB.`);
+      return false;
     }
     setMediaError(null);
     setPendingFile(file);
+    return true;
+  }
+
+  function onFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!acceptFile(file)) {
+      e.target.value = '';
+    }
+  }
+
+  // M4 fix — paste de imagem do clipboard (Ctrl+V de print/foto copiada).
+  // Listener no window pra capturar mesmo quando focus está fora do input.
+  // Filtra apenas quando NÃO há texto digitado pra evitar bater com paste texto.
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      if (!canType || isBlocked || internalMode) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (it.kind === 'file') {
+          const f = it.getAsFile();
+          if (f && acceptFile(f)) {
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+    }
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [internalMode, isBlocked, isPreview]);
+
+  // M4 fix — drag-drop pra área do composer + thread. Visual highlight via
+  // dragActive state. Aceita 1 arquivo por vez (msg WhatsApp = 1 mídia).
+  const [dragActive, setDragActive] = useState(false);
+  function onDragOver(e: React.DragEvent) {
+    if (!canType || isBlocked || internalMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  }
+  function onDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  }
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (!canType || isBlocked || internalMode) return;
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    acceptFile(files[0]);
   }
 
   function clearPendingFile() {
@@ -198,7 +273,22 @@ export default function ComposerV4({
         : `Responder via ${channelShort}${channelLabel ? ` · ${channelLabel}` : ''}`;
 
   return (
-    <div className="flex flex-col">
+    <div
+      className={cn(
+        'flex flex-col relative',
+        dragActive && 'ring-2 ring-primary/60 ring-offset-2 ring-offset-background rounded-md',
+      )}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {dragActive && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 backdrop-blur-sm rounded-md pointer-events-none">
+          <div className="px-4 py-2 bg-primary text-primary-foreground rounded-full font-medium text-sm shadow-lg">
+            Solte o arquivo aqui pra anexar
+          </div>
+        </div>
+      )}
       {/* Wave 4 F1 — preview do arquivo selecionado (acima do composer) */}
       {pendingFile && (
         <div

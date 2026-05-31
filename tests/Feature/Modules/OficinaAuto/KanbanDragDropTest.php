@@ -18,7 +18,7 @@ use Modules\OficinaAuto\Entities\Vehicle;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse.
 
 /**
  * Kanban Produção · Oficina — Drag-and-Drop entre colunas (Martinho 13/maio).

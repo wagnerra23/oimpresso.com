@@ -11,7 +11,10 @@
 
 ## Sinais detectados
 
-- 🔗 Registra 2 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package
+- 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
+- ✅ Tem testes (7)
+- 🔐 Registra 1 permissão(ões) Spatie
+- 🔗 Acoplamento: depende de 1 outro(s) módulo(s)
 
 - **Prioridade sugerida de migração:** média
 - **Risco estimado:** médio
@@ -23,13 +26,13 @@
 | Rotas (web+api) | 7 |
 | Controllers | 3 |
 | Entities (Models) | 0 |
-| Services | 0 |
-| FormRequests | 0 |
+| Services | 2 |
+| FormRequests | 5 |
 | Middleware | 0 |
 | Views Blade | 8 |
 | Migrations | 1 |
 | Arquivos de lang | 1 |
-| Testes | 0 |
+| Testes | 7 |
 
 ## Rotas
 
@@ -51,8 +54,8 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Controllers
 
-- **`DataController`** — 2 ação(ões): superadmin_package, modifyAdminMenu
-- **`InstallController`** — 4 ação(ões): index, install, uninstall, update
+- **`DataController`** — 3 ação(ões): superadmin_package, user_permissions, modifyAdminMenu
+- **`InstallController`** — 0 ação(ões): 
 - **`ProductCatalogueController`** — 3 ação(ões): index, show, generateQr
 
 ## Migrations
@@ -73,6 +76,17 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 - **`modifyAdminMenu()`** — Injeta itens na sidebar admin
 - **`superadmin_package()`** — Registra pacote de licenciamento no Superadmin
+- **`user_permissions()`** — Registra permissões Spatie no cadastro de Roles
+
+## Permissões
+
+**Registradas pelo módulo** (via `user_permissions()`):
+
+- `productcatalogue.access`
+
+## Processamento / eventos
+
+**Commands (artisan):** `ProductCatalogueHealthCommand`
 
 ## Peças adicionais
 
@@ -85,6 +99,14 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 | `name` | `ProductCatalogue` |
 | `module_version` | `1.0` |
 | `pid` | `8` |
+
+## Dependências cross-module detectadas
+
+_Referências a outros módulos encontradas no código PHP._
+
+| Módulo referenciado | Ocorrências |
+|---|---:|
+| `Jana` | 1 |
 
 ## Assets (JS / CSS)
 
@@ -112,84 +134,11 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 | Branch | Presente |
 |---|:-:|
-| atual (6.7-react) | ✅ |
-| `main-wip-2026-04-22` (backup Wagner) | ✅ |
+| atual (main) | ✅ |
+| `main-wip-2026-04-22` (backup Wagner) | ❌ |
 | `origin/3.7-com-nfe` (versão antiga) | ✅ |
-| `origin/6.7-bootstrap` | ✅ |
 
 ## Diferenças vs versões anteriores
-
-### vs `origin/3.7-com-nfe`
-
-- **Arquivos alterados:** 39
-- **Linhas +:** 1315 **-:** 0
-- **Primeiros arquivos alterados:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_09_29_184909_add_product_catalogue_version.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/ProductCatalogueDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/ProductCatalogueController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Providers/.gitkeep`
-  - `Providers/ProductCatalogueServiceProvider.php`
-  - `Providers/RouteServiceProvider.php`
-  - `Resources/assets/.gitkeep`
-  - `Resources/assets/plugins/easy.qrcode.min.js`
-  - `Resources/assets/sass/app.scss`
-  - `Resources/lang/.gitkeep`
-  - `Resources/lang/en/lang.php`
-  - `Resources/views/.gitkeep`
-  - `Resources/views/catalogue/generate_qr.blade.php`
-  - `Resources/views/catalogue/index.blade.php`
-  - `Resources/views/catalogue/partials/combo_product_details.blade.php`
-  - `Resources/views/catalogue/partials/single_product_details.blade.php`
-  - `Resources/views/catalogue/partials/variable_product_details.blade.php`
-  - `Resources/views/catalogue/show.blade.php`
-
-### vs `main-wip-2026-04-22` (backup das customizações)
-
-- **Arquivos alterados:** 39
-- **Linhas +:** 1315 **-:** 0
-- ⚠️ **Arquivos que podem conter customizações suas não trazidas para 6.7-react:**
-  - `Config/.gitkeep`
-  - `Config/config.php`
-  - `Console/.gitkeep`
-  - `Database/Migrations/.gitkeep`
-  - `Database/Migrations/2020_09_29_184909_add_product_catalogue_version.php`
-  - `Database/Seeders/.gitkeep`
-  - `Database/Seeders/ProductCatalogueDatabaseSeeder.php`
-  - `Database/factories/.gitkeep`
-  - `Entities/.gitkeep`
-  - `Http/Controllers/.gitkeep`
-  - `Http/Controllers/DataController.php`
-  - `Http/Controllers/InstallController.php`
-  - `Http/Controllers/ProductCatalogueController.php`
-  - `Http/Middleware/.gitkeep`
-  - `Http/Requests/.gitkeep`
-  - `Providers/.gitkeep`
-  - `Providers/ProductCatalogueServiceProvider.php`
-  - `Providers/RouteServiceProvider.php`
-  - `Resources/assets/.gitkeep`
-  - `Resources/assets/plugins/easy.qrcode.min.js`
-  - `Resources/assets/sass/app.scss`
-  - `Resources/lang/.gitkeep`
-  - `Resources/lang/en/lang.php`
-  - `Resources/views/.gitkeep`
-  - `Resources/views/catalogue/generate_qr.blade.php`
-  - `Resources/views/catalogue/index.blade.php`
-  - `Resources/views/catalogue/partials/combo_product_details.blade.php`
-  - `Resources/views/catalogue/partials/single_product_details.blade.php`
-  - `Resources/views/catalogue/partials/variable_product_details.blade.php`
-  - `Resources/views/catalogue/show.blade.php`
 
 ## Gaps & próximos passos (preencher manualmente)
 
@@ -199,5 +148,5 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-04-22 14:14.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
 **Reaxecutar com:** `php artisan module:spec ProductCatalogue`

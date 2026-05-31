@@ -230,6 +230,93 @@ return [
     | Compat: env legado COPILOTO_RERANKER_ENABLED ainda funciona (true=usa driver, false=null).
     | Novo env JANA_RERANKER_ENABLED + JANA_RERANKER_DRIVER. Default = habilitado RRF.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | MCP search tools — pipeline bom vs FULLTEXT (gap #2)
+    |--------------------------------------------------------------------------
+    | SPEC-retrieval-tools-mcp-unificado. As tools MCP de busca usam FULLTEXT; o
+    | pipeline estado-da-arte (hybrid+HyDE+RRF+decay+Peso Real+rerank) só serve o chat.
+    |
+    | memoria_pipeline: liga a tool memoria-search a usar MeilisearchDriver::buscarBusiness
+    | (BUSINESS-scoped — memória da empresa, sem user_id). DEFAULT OFF = FULLTEXT atual
+    | byte-a-byte. Fallback gracioso pro FULLTEXT em erro/vazio/driver-incompatível.
+    | NÃO ligar default sem validar recall@5 com golden set (US-RET-003).
+    |
+    | Nota: decisions-search/kb-answer (corpus MCP global mcp_memory_documents) NÃO entram
+    | aqui ainda — dependem de verificar o embedder do índice no CT 100 (US-RET-001).
+    */
+    'mcp_search' => [
+        // memoria-search → jana_memoria_facts (corpus Jana, BUSINESS-scoped). US-RET-002.
+        'memoria_pipeline' => (bool) env('JANA_MCP_SEARCH_PIPELINE_MEMORIA', false),
+        // decisions-search + kb-answer → mcp_memory_documents (corpus MCP GLOBAL, sem
+        // filtro tenant). US-RET-001. Embedder qwen3_local + filterable status/type/module
+        // verificados no índice live (CT 100). Default OFF; só caminho ativo (não archived).
+        'docs_pipeline' => (bool) env('JANA_MCP_SEARCH_PIPELINE_DOCS', false),
+        // Embedder do índice mcp_memory_documents (qwen3_local OU nomic_local — ambos
+        // existem no índice). Separado da config do chat (que resolve 'openai', inexistente
+        // neste índice). Verificado live CT 100 2026-05-29.
+        'docs_embedder' => env('JANA_MCP_DOCS_EMBEDDER', 'qwen3_local'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Meilisearch index settings (embedders) — CONFIG-AS-CODE
+    |--------------------------------------------------------------------------
+    | Codifica o que antes era setado MANUAL via curl (Sprint 9b 2026-05-04) e
+    | SE PERDEU (jana_memoria_facts voltou a embedders {} → recall do chat degradou).
+    | Aplicado idempotente por `jana:meilisearch-setup`. Embedder ollama qwen3_local
+    | (qwen3-embedding:0.6b, 1024d) — venceu nomic (inútil PT-BR) no eval Sprint 9.
+    | URL interna CT 100. Ver INFRA-ACESSO-CANON + RUNBOOK-ragas-canary.
+    */
+    'meilisearch_indexes' => [
+        'jana_memoria_facts' => [
+            'embedders' => [
+                'qwen3_local' => [
+                    'source'                  => 'ollama',
+                    'model'                   => env('JANA_OLLAMA_EMBED_MODEL', 'qwen3-embedding:0.6b'),
+                    'dimensions'              => 1024,
+                    'documentTemplate'        => '{{doc.fato}}',
+                    'documentTemplateMaxBytes' => 400,
+                    'url'                     => env('JANA_OLLAMA_EMBED_URL', 'http://ollama-embedder:11434/api/embeddings'),
+                ],
+            ],
+            'filterableAttributes' => ['business_id', 'user_id', 'valid_until'],
+        ],
+        'mcp_memory_documents' => [
+            'embedders' => [
+                'qwen3_local' => [
+                    'source'                  => 'ollama',
+                    'model'                   => env('JANA_OLLAMA_EMBED_MODEL', 'qwen3-embedding:0.6b'),
+                    'dimensions'              => 1024,
+                    'documentTemplate'        => '{{doc.title}}. {{doc.content_excerpt}}',
+                    'documentTemplateMaxBytes' => 400,
+                    'url'                     => env('JANA_OLLAMA_EMBED_URL', 'http://ollama-embedder:11434/api/embeddings'),
+                ],
+            ],
+            // corpus MCP é GLOBAL — NÃO inclui business_id (ADR 0093 não se aplica: docs de programação)
+            'filterableAttributes' => ['status', 'type', 'module', 'slug'],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reconcilers — jana:reconcile loop único (ADR 0237)
+    |--------------------------------------------------------------------------
+    | Cada Reconciler garante sincronia de UMA faceta (git == índice == MCP ==
+    | settings == deploy). `jana:reconcile` itera esta lista — padrão idêntico ao
+    | `governance.drift_checkers` do ADR 0216. O orquestrador usa class_exists-guard
+    | (tolera reconciler ainda-não-criado). Filtra via `--only=index,settings`.
+    | Este config é merged como `copiloto.*` (JanaServiceProvider) → o orquestrador
+    | lê via config('copiloto.reconcilers').
+    */
+    'reconcilers' => [
+        \Modules\Jana\Services\Reconcile\Reconcilers\IndexReconciler::class,    // cura poluição dos índices (ADR 0237 P0)
+        \Modules\Jana\Services\Reconcile\Reconcilers\SettingsReconciler::class, // embedder Meilisearch (perdido 2×)
+        \Modules\Jana\Services\Reconcile\Reconcilers\ContentReconciler::class,  // git→DB mcp_memory_documents
+        \Modules\Jana\Services\Reconcile\Reconcilers\DeployReconciler::class,   // SHA deployado vs main
+        \Modules\Jana\Services\Reconcile\Reconcilers\EvalReconciler::class,     // RAGAS pass-rate threshold
+    ],
+
     'reranker' => [
         'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
         'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),
@@ -262,10 +349,20 @@ return [
     'freshness' => [
         'enabled'      => env('JANA_FRESHNESS_PIPELINE', true),
         'auto_reindex' => env('JANA_FRESHNESS_AUTO_REINDEX', false),
+        // Semântica dos cutoffs (alinhada com StalenessDetectorService::staleness):
+        //   FRESH    → age <= fresh (1d)
+        //   WARM     → fresh < age < warm (1d–7d)
+        //   STALE    → warm <= age < stale (7d–30d)   ← faixa warning
+        //   CRITICAL → age >= critical (>=30d)         ← alerta mcp_alertas_eventos
+        // `detectStale()` usa `warm` como cutoff (pega tudo >= 7d, inclui CRITICAL);
+        // `detectCritical()` usa `critical` (pega só >= 30d). A faixa 7-30d isolada
+        // = detectStale − detectCritical. Chave `stale` mantida pro método
+        // `staleness()` (fronteira STALE→CRITICAL). BUG-2 fix 2026-05-29.
         'thresholds_days' => [
-            'fresh' => (int) env('JANA_FRESHNESS_THRESHOLD_FRESH', 1),
-            'warm'  => (int) env('JANA_FRESHNESS_THRESHOLD_WARM', 7),
-            'stale' => (int) env('JANA_FRESHNESS_THRESHOLD_STALE', 30),
+            'fresh'    => (int) env('JANA_FRESHNESS_THRESHOLD_FRESH', 1),
+            'warm'     => (int) env('JANA_FRESHNESS_THRESHOLD_WARM', 7),
+            'stale'    => (int) env('JANA_FRESHNESS_THRESHOLD_STALE', 30),
+            'critical' => (int) env('JANA_FRESHNESS_THRESHOLD_CRITICAL', 30),
         ],
     ],
 
@@ -457,5 +554,120 @@ return [
         'retrieval_spans_enabled' => (bool) env('JANA_RETRIEVAL_SPANS', false),
         'redact_query'            => (bool) env('JANA_REDACT_QUERY_IN_SPANS', true),
         'audit_log_enabled'       => (bool) env('JANA_RETRIEVAL_AUDIT_LOG', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Peso Real — Modelo de classificação por meta (ADR 0232)
+    |--------------------------------------------------------------------------
+    | Mapas da heurística de `relevancia_meta` (0-100) — quanto um item
+    | move/protege a meta R$5M/ano (ADR 0022). Fonte do RelevanciaMetaInferer
+    | (Área B), consumido pelo PesoRealService (Área A).
+    |
+    | Régua canônica ADR 0232:
+    |   0-25 indireto · 26-50 habilitador · 51-75 alavanca · 76-100 receita direta.
+    |
+    | VALORES DIRETOS, SEM env() — Larastan barra env fora de config/ raiz.
+    | Ranking de módulos espelha memory/NORTE-ROI.md (Tier 1 vende > 2 > 3).
+    |
+    | @see Modules/Jana/Services/Peso/RelevanciaMetaInferer.php
+    | @see memory/decisions/0232-modelo-peso-real-classificacao-por-meta.md
+    | @see memory/NORTE-ROI.md
+    */
+    'peso_real' => [
+        'relevancia' => [
+            // Tags Tier 0 — proteção/meta direta (topo da régua). Maior peso vence.
+            'tags' => [
+                'tier-0'       => 95,
+                'multi-tenant' => 95,
+                'meta'         => 95,
+                'seguranca'    => 90,
+                'security'     => 90,
+                'peso-real'    => 70,
+                'roi'          => 60,
+                'governance'   => 45,
+                'meta-processo' => 45,
+                'feature-wish' => 25,
+            ],
+
+            // Módulos — ranking NORTE-ROI (Tier 1 vende/validado > Tier 2 > Tier 3).
+            'modules' => [
+                // Tier 1 — cliente pagante / validado / compliance obrigatório.
+                'Financeiro'       => 88,
+                'Vestuario'        => 88,
+                'RecurringBilling' => 85,
+                'NfeBrasil'        => 82,
+
+                // Tier 2 — diferencial, sem cliente pagante dedicado ainda.
+                'Copiloto'          => 65,
+                'Jana'              => 62,
+                'LaravelAI'         => 62,
+                'Whatsapp'          => 60,
+                'ComunicacaoVisual' => 58,
+
+                // Tier 3 — governança/infra (meio) e sem sinal (espera).
+                'governance' => 45,
+
+                // Tier 3 — sem cliente pagando (ADR 0105: feature-wish até sinal).
+                'OficinaAuto' => 28,
+            ],
+
+            // Tipo de documento — fallback fraco quando módulo/tag não casam.
+            'types' => [
+                'adr'       => 55,
+                'spec'      => 55,
+                'handoff'   => 45,
+                'session'   => 40,
+                'reference' => 45,
+            ],
+        ],
+
+        // ÁREA C / ETAPA 5 IAOS — feature-flag do passo de reordenação por Peso
+        // Real dentro do MeilisearchDriver::buscar (pós-time-decay, pré-reranker).
+        //
+        // ⚠️ FALSE POR DEFAULT (segurança máxima): com a flag OFF o pipeline de
+        // retrieval é BYTE-IDÊNTICO ao legado. Toca o coração da busca em prod —
+        // só ligar conscientemente em homolog após validação (Wagner aprova).
+        //
+        // Valor DIRETO (sem env) — Larastan barra env() fora de config/ raiz,
+        // mesmo padrão que a Área A adotou pro resto deste bloco.
+        //
+        // NOTA de namespace: este arquivo é merged como `copiloto.*`
+        // (JanaServiceProvider::registerConfig). O driver lê via
+        // config('copiloto.peso_real.retrieval_enabled') — chave que HOJE resolve
+        // pra null em runtime real (não há mergeConfigFrom 'copiloto.peso_real'),
+        // ou seja: OFF por default em prod, garantido. Para LIGAR em homolog,
+        // Wagner registra o merge `copiloto.peso_real` OU seta via config() runtime.
+        // Os testes exercitam ON via config([...]) em runtime (independe do merge).
+        'retrieval_enabled' => false,
+
+        // (a) DECISÃO/ADR — multiplicador por lifecycle (não decai por tempo).
+        'lifecycle_mult' => [
+            'accepted'            => 1.0,
+            'accepted-historical' => 0.8,
+            'sunsetting'          => 0.4,
+            'superseded'          => 0.1,
+            'deprecated'          => 0.1,
+        ],
+
+        // (b) MEMÓRIA — meia-vida default do decay exponencial, em dias (ADR 0195).
+        'half_life' => 60,
+
+        // (b) MEMÓRIA — piso crítico (fração de relevancia_meta). Memória que
+        // protege cliente pagante não cai abaixo deste piso, mesmo velha.
+        'piso_critico' => 0.5,
+
+        // (c) INICIATIVA — sinal de cliente (ADR 0105).
+        'sinal' => [
+            'paga_reporta' => 1.0,
+            'qualificado'  => 0.5,
+            'hipotese'     => 0.2,
+        ],
+
+        // (c) INICIATIVA — time_criticality (Cost of Delay / WSJF).
+        'time_criticality' => [
+            'normal'     => 1.0,
+            'compliance' => 1.5,
+        ],
     ],
 ];

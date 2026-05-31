@@ -495,6 +495,34 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // NOTA: a detecção de drift de settings/embedder do Meilisearch NÃO tem cron
+        // próprio — é o MeilisearchSettingsDriftChecker (Modules/Governance, ADR 0216)
+        // que roda no `governance:audit --all --notify` já agendado abaixo. Cura =
+        // `php artisan jana:meilisearch-setup`.
+
+        // MEM-MULTI-1 (auditoria seed 2026-05-28) — re-seed ADRs → jana_memoria_facts
+        // diário. Sem este schedule os fatos de ADR ficavam STALE: nova ADR aceita /
+        // ADR supersedida não viravam fato pesquisável até alguém rodar o command na mão.
+        //
+        // 04:45 BRT escolhido de propósito: DEPOIS do jana:freshness-check (04:30) que
+        // reindexa docs STALE/drift no Meilisearch, e bem depois do último ciclo de
+        // mcp:sync-memory (every5min — withoutOverlapping protege se o sync ainda estiver
+        // rodando). Idempotente (upsert por source_slug), safe pra cron diário.
+        // --type=all cobre adr+spec+reference numa passada.
+        $schedule->command('copiloto:seed-adrs --type=all')
+            ->dailyAt('04:45')
+            ->timezone('America/Sao_Paulo')
+            ->name('copiloto-seed-adrs-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/copiloto-seed-adrs.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule copiloto:seed-adrs FALHOU — fatos de ADR podem ficar STALE ' .
+                    '(investigar storage/logs/copiloto-seed-adrs.log)'
+                );
+            });
+
         // Sprint 1 — Daily Brief (ADR 0091, camada L7 da Constituição V2).
         // Gera o brief 6x/dia em horário comercial PT-BR (07/11/14/17/20/23h).
         // Custo médio: $0.05/run × 6 = $0.30/dia. Cap diário no command.
@@ -614,6 +642,28 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `whatsapp` (default do `ProcessIncomingWebhookJob`):
+        // recebe webhooks Meta/Z-API/Baileys/whatsmeow + dispara persistência.
+        // SEM ESTE CRON, msgs entrantes não persistem — incident 2026-05-28:
+        // queue worker `whatsapp` órfão fazia tela ficar vazia mesmo com daemon
+        // healthy e fix de código aplicado (PR #1825). Webhook chegava, job
+        // enfileirado, ninguém executava. Worker manual processou 54 jobs em 2s.
+        //
+        // Mesmo padrão Hostinger shared hosting cron-based: --max-time=55 +
+        // --stop-when-empty + everyMinute + runInBackground evita CPU ocioso
+        // e respeita limite de processos LSPHP. Tries=3 cobre retry transient
+        // (DB lock, OTel sidecar momentâneo).
+        $schedule->command('queue:work database --queue=whatsapp --max-time=55 --stop-when-empty --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(1)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work whatsapp FALHOU — msgs recebidas podem ficar órfãs em jobs table'
+                );
+            });
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria
@@ -666,6 +716,48 @@ class Kernel extends ConsoleKernel
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule whatsapp:auth-state-drift-check FALHOU — drift Baileys auth_state pode estar acumulando'
+                );
+            });
+
+        // Secrets Governance — ADR 0215 Camada 3 (auto-validate daily).
+        // Lê memory/_INDEX-SECRETS.md, valida cada secret (curl/grep/ssh),
+        // atualiza status, alerta Centrifugo + Brief Jana se drift.
+        // 06h BRT (após brief regenerar primeira vez do dia).
+        // --auto-pr commita mudanças; --notify publica Centrifugo.
+        $schedule->command('secrets:audit --auto-pr --notify')
+            ->dailyAt('06:15')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live'])
+            ->withoutOverlapping()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule secrets:audit FALHOU — secrets drift pode estar passando despercebido'
+                );
+            });
+
+        // ADR 0215 Camada 1 — discovery weekly (segundas 09h BRT).
+        // Procura secrets em git canon sem entry no índice.
+        $schedule->command('secrets:scan')
+            ->weeklyOn(1, '09:00')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live']);
+
+        // ADR 0216 — Governance Drift Framework (orchestrator)
+        // Slot 06:35 BRT escolhido (06:15 disputado por 4 schedules; 06:30 charter:health).
+        // Roda TODOS DriftCheckers registrados em config/governance.php > drift_checkers[].
+        // PR1 ships com 4 checkers: composer_audit, multi_tenant_scope, adr_link_rot, routes_zombie.
+        // --notify publica governance:drift Centrifugo (consumido por Brief Jana 07h).
+        // Canary 7d: roda em paralelo com schedules legacy (secrets:audit, governance:detect-drift).
+        // Após 7d sem regressão, PR cleanup remove entries legacy.
+        $schedule->command('governance:audit --all --notify')
+            ->dailyAt('06:35')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live'])
+            ->onOneServer()
+            ->withoutOverlapping(60)
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:audit FALHOU — drift detection paralisado, fallback nos checkers legacy 06:15'
                 );
             });
 

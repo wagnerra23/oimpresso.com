@@ -3,12 +3,33 @@
 
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { CircleDot, Circle, AlertCircle } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
+import { Label } from '@/Components/ui/label';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/Components/ui/alert-dialog';
 
 interface FeatureRule {
   id?: string;
@@ -51,7 +72,6 @@ interface PageProps {
 }
 
 export default function FeatureFlagsShow({
-  configured,
   key,
   feature,
   fetch_error,
@@ -100,7 +120,7 @@ export default function FeatureFlagsShow({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link
             href={route('admin.feature-flags.index')}
-            className="text-blue-600 hover:underline"
+            className="text-primary hover:underline"
           >
             ← Feature Flags
           </Link>
@@ -119,9 +139,10 @@ export default function FeatureFlagsShow({
         />
 
         {fetch_error && (
-          <div className="bg-red-100 border border-red-300 text-red-900 rounded px-4 py-3 text-sm">
-            ❌ {fetch_error}
-          </div>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{fetch_error}</AlertDescription>
+          </Alert>
         )}
 
         {feature && (
@@ -147,28 +168,47 @@ export default function FeatureFlagsShow({
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                      <span>
+                      <span className="flex items-center gap-2">
                         Environment <code className="text-base">{env}</code>{' '}
-                        <Badge variant={envData.enabled ? 'default' : 'destructive'}>
-                          {envData.enabled ? '🟢 ON' : '🔴 OFF'}
-                        </Badge>
+                        {envData.enabled ? (
+                          <Badge variant="default" className="gap-1">
+                            <CircleDot className="h-3.5 w-3.5" />
+                            ON
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <Circle className="h-3.5 w-3.5" />
+                            OFF
+                          </Badge>
+                        )}
                       </span>
-                      <Button
-                        size="sm"
-                        variant={envData.enabled ? 'destructive' : 'default'}
-                        onClick={() => {
-                          if (
-                            confirm(
-                              `Confirma ${envData.enabled ? 'DESLIGAR' : 'LIGAR'} ${key} em ${env}?\n\n` +
-                                `Isso é mata-switch global — afeta TODOS os bizs.`
-                            )
-                          ) {
-                            toggleEnv(!envData.enabled);
-                          }
-                        }}
-                      >
-                        {envData.enabled ? 'Desligar mata-switch' : 'Ligar environment'}
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant={envData.enabled ? 'destructive' : 'default'}
+                          >
+                            {envData.enabled ? 'Desligar mata-switch' : 'Ligar environment'}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {envData.enabled ? 'Desligar' : 'Ligar'} {key} em {env}?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Isso é mata-switch global — afeta TODOS os bizs do environment{' '}
+                              <code>{env}</code>.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => toggleEnv(!envData.enabled)}>
+                              Confirmar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardTitle>
                   </CardHeader>
                 </Card>
@@ -212,31 +252,56 @@ export default function FeatureFlagsShow({
                                 <td className="font-mono text-xs">
                                   {r.condition ?? '(sem)'}
                                 </td>
-                                <td>{r.enabled ? '🟢' : '🔴'}</td>
+                                <td>
+                                  {r.enabled ? (
+                                    <Badge variant="default" className="gap-1">
+                                      <CircleDot className="h-3.5 w-3.5" />
+                                      On
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="secondary" className="gap-1">
+                                      <Circle className="h-3.5 w-3.5" />
+                                      Off
+                                    </Badge>
+                                  )}
+                                </td>
                                 <td>
                                   {bizId !== null && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => {
-                                        if (
-                                          confirm(`Remover rule biz-${bizId}?\n\nBiz=${bizId} volta pra defaultValue.`)
-                                        ) {
-                                          router.post(
-                                            route('admin.feature-flags.biz-rule', { key }),
-                                            {
-                                              biz_id: bizId,
-                                              remove: true,
-                                              env,
-                                              clear_cache: true,
-                                            },
-                                            { preserveScroll: true }
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      Remover
-                                    </Button>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button size="sm" variant="outline">
+                                          Remover
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Remover rule biz-{bizId}?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            O business <code>{bizId}</code> volta pra{' '}
+                                            <code>defaultValue</code>.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() =>
+                                              router.post(
+                                                route('admin.feature-flags.biz-rule', { key }),
+                                                {
+                                                  biz_id: bizId,
+                                                  remove: true,
+                                                  env,
+                                                  clear_cache: true,
+                                                },
+                                                { preserveScroll: true }
+                                              )
+                                            }
+                                          >
+                                            Remover
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   )}
                                 </td>
                               </tr>
@@ -252,11 +317,12 @@ export default function FeatureFlagsShow({
                         Adicionar/atualizar rule por business_id
                       </div>
                       <div className="flex gap-2 items-end flex-wrap">
-                        <div>
-                          <label className="text-xs text-muted-foreground block mb-1">
+                        <div className="space-y-1">
+                          <Label htmlFor="biz_id" className="text-xs text-muted-foreground">
                             business_id
-                          </label>
+                          </Label>
                           <Input
+                            id="biz_id"
                             type="number"
                             min={1}
                             value={bizRuleForm.data.biz_id}
@@ -265,28 +331,32 @@ export default function FeatureFlagsShow({
                             className="w-32"
                           />
                         </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground block mb-1">
+                        <div className="space-y-1">
+                          <Label htmlFor="value" className="text-xs text-muted-foreground">
                             value
-                          </label>
-                          <select
+                          </Label>
+                          <Select
                             value={bizRuleForm.data.value}
-                            onChange={(e) => bizRuleForm.setData('value', e.target.value)}
-                            className="border rounded px-2 py-2 text-sm"
+                            onValueChange={(v) => bizRuleForm.setData('value', v)}
                           >
-                            <option value="true">true (ligar)</option>
-                            <option value="false">false (desligar)</option>
-                          </select>
+                            <SelectTrigger id="value" className="w-40">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="true">true (ligar)</SelectItem>
+                              <SelectItem value="false">false (desligar)</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <Button type="submit" disabled={bizRuleForm.processing}>
                           Salvar rule
                         </Button>
                       </div>
                       {bizRuleForm.errors.value && (
-                        <div className="text-xs text-red-600">{bizRuleForm.errors.value}</div>
+                        <div className="text-xs text-destructive">{bizRuleForm.errors.value}</div>
                       )}
-                      {bizRuleForm.errors.flag && (
-                        <div className="text-xs text-red-600">{bizRuleForm.errors.flag}</div>
+                      {bizRuleForm.errors.biz_id && (
+                        <div className="text-xs text-destructive">{bizRuleForm.errors.biz_id}</div>
                       )}
                     </form>
                   </CardContent>

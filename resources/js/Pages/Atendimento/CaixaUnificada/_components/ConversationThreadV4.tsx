@@ -71,9 +71,14 @@ export default function ConversationThreadV4({
   const isBlocked = thread.is_blocked;
 
   return (
-    <main
-      className="flex flex-col bg-muted/15 min-h-0 min-w-0"
+    // Fix scroll incident 2026-05-28: era <main> sem h-full → <main> aninhado dentro
+    // do <main> do AppShellV2 (HTML5 inválido) + filho overflow-auto sem altura de
+    // referência → conteúdo empurrava layout 375px além viewport → `.cockpit` ancestor
+    // tem overflow:hidden → cortado sem scrollbar. Fix: <div> semântico + h-full.
+    <div
+      className="flex flex-col bg-muted/15 min-h-0 min-w-0 h-full"
       aria-label="Thread da conversa"
+      role="region"
     >
       {/* Header */}
       <header className="flex items-center gap-3 bg-card border-b px-4 py-2.5">
@@ -287,7 +292,51 @@ export default function ConversationThreadV4({
                         {m.sender_user_name}
                       </small>
                     )}
-                    <span>{m.body ?? <em className="text-muted-foreground">[mídia]</em>}</span>
+                    {/* M6 fix 2026-05-28 — renderiza thumb/player quando media_url presente.
+                        Antes UI mostrava body literal "[imagem]"/"[áudio]" pq backend
+                        msgToUiArray não enviava media_url + frontend não checava. */}
+                    {m.media_url && m.type === 'image' && (
+                      <img
+                        src={m.media_thumbnail_url || m.media_url}
+                        alt={m.media_filename || 'imagem'}
+                        onClick={() => window.open(m.media_url!, '_blank')}
+                        className="rounded-md max-w-full max-h-64 cursor-pointer object-cover mb-1"
+                        loading="lazy"
+                      />
+                    )}
+                    {m.media_url && m.type === 'video' && (
+                      <video
+                        src={m.media_url}
+                        controls
+                        preload="metadata"
+                        className="rounded-md max-w-full max-h-64 mb-1"
+                      />
+                    )}
+                    {m.media_url && m.type === 'audio' && (
+                      <audio src={m.media_url} controls preload="metadata" className="max-w-full mb-1" />
+                    )}
+                    {m.media_url && (m.type === 'document' || m.type === 'pdf') && (
+                      <a
+                        href={m.media_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-2 py-1 rounded border bg-card hover:bg-muted/50 text-xs mb-1"
+                      >
+                        📄 {m.media_filename || 'documento'}
+                        {m.media_size_bytes && (
+                          <span className="text-muted-foreground text-[10px]">
+                            ({(m.media_size_bytes / 1024).toFixed(0)} KB)
+                          </span>
+                        )}
+                      </a>
+                    )}
+                    {/* Body texto (caption ou só texto) */}
+                    {(m.body && m.body !== '[imagem]' && m.body !== '[vídeo]' && m.body !== '[áudio]' && m.body !== '[documento]') && (
+                      <span>{m.body}</span>
+                    )}
+                    {!m.media_url && !m.body && (
+                      <em className="text-muted-foreground">[mídia]</em>
+                    )}
                     <small className="text-[9.5px] opacity-60 mt-1 font-mono inline-flex items-center gap-1 self-end">
                       {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       {m.direction === 'outbound' && (
@@ -326,6 +375,6 @@ export default function ConversationThreadV4({
         channelLabel={thread.channel_label ?? ''}
         channelType={thread.channel_type}
       />
-    </main>
+    </div>
   );
 }

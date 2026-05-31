@@ -104,6 +104,33 @@
 - ⛔ **Não assumir completude** — Wagner valoriza economia de crédito; confirme escopo com perguntas curtas antes de implementar massivamente
 - ⛔ **Não remover shim `App\View\Helpers\Form`** sem antes migrar ~6.4k chamadas Blade `Form::`
 - ⛔ **Identificadores MySQL >64 chars** — sempre passar nome explícito em índices compostos
+- ⛔ **NUNCA buscar secret (token/API key/password/SSH key/credential) sem consultar `memory/_INDEX-SECRETS.md` PRIMEIRO**. Falha 2026-05-28: agente declarou Tier 0 gap "token Hostinger inacessível" sem ter pesquisado memory canon. Token literalmente em `memory/claude/reference_hostinger_hpanel.md:37` desde 2026-04-28. Wagner cobrou: *"tem api da hostinger na memoria"* + *"arrume essa memoria, não esta indexada?"*. Skill canon `memory-first-secret-search` Tier A bloqueia. Ordem fixa: (1) Read `_INDEX-SECRETS.md` → (2) follow ponteiro → (3) se 🔴 EXPIRED registra rotação. Pular = violação Tier A.
+- ⛔ **NUNCA escalar pro Wagner ação automatizável (hPanel, painéis web, copy-paste secret no chat)** se existe API/CLI documentada. Falha 2026-05-28: agente pediu Wagner criar A record no hPanel quando ADR 0045 já dava receita exata via Hostinger DNS API. Wagner alertou 3× nesta sessão "não pede o que pode fazer". Skill canon `hostinger-dns-autonomy` Tier A lista 6 paths pra buscar token Hostinger antes de "desistir" — se TODOS falharem, registra Tier 0 gap, NÃO escala. Princípio: Wagner NÃO é helpdesk do agente. Ref [PROTOCOLO-WAGNER-SEMPRE](reference/PROTOCOLO-WAGNER-SEMPRE.md) regra 1, skill `publication-policy`, skill `hostinger-dns-autonomy`
+
+## Tier 0 gaps catalogados (precisam ADR estrutural pra unblock)
+
+### 2026-05-28 — Token Hostinger API inacessível ao agente autônomo
+
+**Bloqueador:** ADR 0045 (DNS API canônica) prevê uso programático mas token "Claude da hostinger" só vive encrypted no Vaultwarden `db.sqlite3` (CT 100). 6 paths skill `hostinger-dns-autonomy` testados, TODOS retornaram MISSING:
+1. `/root/.hostinger-api-token` CT 100 — vazio (file pronto, Wagner não colou)
+2. `~/.hostinger-api-token` Hostinger — não existe
+3. ENV `HOSTINGER_API_*` `.env` Hostinger — não set
+4. Containers CT 100 com env Hostinger — nenhum
+5. `bw` (Bitwarden CLI) — não instalado, sem session
+6. ENV CT 100 root sources — não set
+
+**Único arquivo `docker-host/.env` tem `VAULTWARDEN_ADMIN_TOKEN`** mas admin panel não dá acesso a items de outros users (só management). Items encrypted com master pass de cada user.
+
+**Impacto:** agente bloqueia em qualquer ação DNS Hostinger (criar subdomínio, alterar A/CNAME/MX). Cada incident requer Wagner colar token novamente (violação setup único irredutível).
+
+**Soluções estruturais propostas (ADR pendente):**
+- **A)** Setup único irredutível: Wagner cola token UMA VEZ em `/root/.hostinger-api-token` CT 100 chmod 600. Skill `hostinger-dns-autonomy` força agente a SEMPRE ler de lá daí em diante. Rotação anual via Wagner re-cola.
+- **B)** Vaultwarden API key user-level: Wagner cria service account "claude-agent" + API key + setup `bw` CLI no CT 100 + script `get-secret.sh`. Agente lê qualquer secret via `bw get item <slug>`. Setup 30min uma vez. Bonus: extensível pra outros secrets (Asaas, Sicoob, etc).
+- **C)** Migrar pra Hashicorp Vault / Doppler / 1Password Connect — over-engineering pra startup, descartado.
+
+**Recomendação:** B (Vaultwarden API key) — escalável + Wagner setup só 1× pra todos secrets futuros.
+
+**Status:** awaiting Wagner decisão A vs B. Próxima sessão começa por aceite + implementação.
 - ⛔ **Não suba código sem alertar pré-requisitos e riscos**. Histórico de crashes:
   - 2026-04-18: scaffold incompatível
   - 2026-04-19: PHP 8 em servidor PHP 7.1
