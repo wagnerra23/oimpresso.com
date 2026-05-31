@@ -16,7 +16,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint resources/js --max-warnings=999999",
     "lint:baseline:write": "node scripts/eslint-baseline.mjs --write",
-    "lint:baseline:check": "node scripts/eslint-baseline.mjs"
+    "lint:baseline:check": "node scripts/eslint-baseline.mjs",
+    "ds:report": "node scripts/ds-report.mjs",
+    "ds:report:write": "node scripts/ds-report.mjs --write"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

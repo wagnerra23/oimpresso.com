@@ -1,6 +1,6 @@
 ---
 title: Index de Lifecycle das ADRs — pós-triagem 2026-05-06 (refresh 2026-05-09)
-description: Single source of truth pra status de lifecycle das ADRs canon (4 colisões 0101/0102/0119/0195). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09; entrada colisão 0195 apendada em 2026-05-27. Tool MCP `decisions-search` filtra por este index.
+description: Single source of truth pra status de lifecycle das ADRs canon (11 colisões de número — ver numbering_collisions + Bloco 11). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09; entrada colisão 0195 apendada em 2026-05-27; colisão 0235 + auditoria de 6 colisões históricas apendadas em 2026-05-30. Tool MCP `decisions-search` filtra por este index.
 type: index
 status: aceito
 authority: [Wagner]
@@ -8,7 +8,7 @@ last_reviewed: 2026-05-09
 next_review: 2026-08-09  # trimestral
 total_adrs: 119
 unique_numbers: 116
-numbering_collisions: [0101, 0102, 0119, 0195]  # ADR 0028 não cumprido em 4 casos — pendente housekeeping (ADR 0120). Colisão 0195 adicionada 2026-05-27 (PR #1714 feedback-relevance + PR #1736 tabs-autosave mergeados mesmo dia).
+numbering_collisions: [0101, 0102, 0119, 0126, 0141, 0170, 0178, 0180, 0195, 0216, 0235]  # ADR 0028 não cumprido em 11 casos — pendente housekeeping (ADR 0120). 0195 add 2026-05-27 (PR #1714+#1736). 0235 add 2026-05-30 (PR #1963 roxo + PR #1973 staging; renumber PR #1995 bloqueado pelo gate append-only). 6 colisões históricas (0126/0141/0170×3/0178/0180/0216) surfaçadas + registradas 2026-05-30 pelo novo AdrNumberCollisionTest — ver Bloco 11.
 governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete uso, não validade histórica
 ---
 
@@ -306,3 +306,35 @@ governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete us
 > "Antes de criar pattern novo, faça `git grep` de patterns canon existentes."
 
 Ver [memory/sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md](../sessions/2026-05-27-diagnostico-hostinger-martinho-biz164.md) pra retrospectiva completa.
+
+---
+
+## Bloco 11 — Apendado 2026-05-30 — colisão 0235 + auditoria completa de colisões (enforçada por teste)
+
+### Colisão 0235 (DS v4 roxo + staging CT 100)
+
+| Numero | Lifecycle | Notas |
+|---|---|---|
+| 0235a | A | **DS v4 — accent roxo universal** (amends ADR 0190) (PR #1963 — 2026-05-29) · slug `0235-ds-v4-accent-roxo-universal` · ⚠️ colisão com 0235b |
+| 0235b | A | **Ambiente staging CT 100 — clone anonimizado** (emenda ADR 0062) (PR #1973 — 2026-05-29) · slug `0235-staging-ct100-clone-anonimizado` · ⚠️ colisão com 0235a |
+
+**Causa:** 2 PRs paralelos no mesmo dia (2026-05-29) numeraram `0235` sem coordenação cross-branch. Ironia: o [ADR 0236](0236-governanca-evolucao-doc-design.md), aceito no dia seguinte, alerta "evitar colisão paralela (lição 0180)" — o defeito já estava em main.
+
+**Renumber rejeitado:** PR #1995 tentou `git mv 0235-staging → 0237` mas o gate `Append-only canon` bloqueou (Constituição Art. 3 + ADR 0095). Wagner decidiu (Tier 0): **documentar, não mutar** — coexistência tech-debt, igual 0195. Ambos VIGENTES.
+
+### Auditoria completa de colisões (2026-05-30) — disparada pelo novo teste
+
+Ao escrever o gate Pest [`AdrNumberCollisionTest`](../../tests/Feature/Memory/AdrNumberCollisionTest.php) (falha se um número colide sem registro AQUI), a varredura surfaçou **6 colisões históricas nunca registradas** — `numbering_collisions` estava em drift com o disco:
+
+| Numero | Arquivos (slugs) |
+|---|---|
+| 0126 | `mcp-jira-projects-modulos-verticais` + `vault-chunked-encryption-sprint-2` |
+| 0141 | `agents-tool-use-pattern-claude-code` + `skill-migracao-blade-react` |
+| 0170 | `bancos-nativos-top5-drivers-separados` + `onda5-simplificada` + `paymentgateway-extracao-camada-cobranca` (×3) |
+| 0178 | `restauracao-campos-fiscais-br-canon` + `sells-unified-tabs-visao-supersede-0136` |
+| 0180 | `drift-numero-adr-0178-conflito-paralelo` + `sidebar-v3-5-grupos-ghosts-header` |
+| 0216 | `deploy-webhook-rodar-composer-dump-autoload` + `governance-drift-framework-driftchecker-plugavel` |
+
+**Achado-chave:** `0180-drift-numero-adr-0178-conflito-paralelo` é uma ADR *sobre* a colisão do 0178 — o time **documentou em prosa** mas **nunca atualizou o registro**, e o próprio 0180 colidiu depois. Prova de que doc-em-prosa não basta: precisa de **registro estruturado + teste**. Os 11 estão agora em `numbering_collisions` e o teste impede a 12ª.
+
+**Política (consolidada):** colisão de número = tech-debt aceito (Constituição append-only proíbe rename retroativo — gate provado em PR #1995). Descoberta: **referencie ADR por slug**, não pelo número cru; `decisions-search` retorna todos os slugs ao filtrar por number. Housekeeping eventual = ADR 0120.

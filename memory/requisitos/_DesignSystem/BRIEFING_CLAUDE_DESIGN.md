@@ -1,5 +1,13 @@
 # Briefing pra Claude Design — Migração dos módulos Blade do Oimpresso ERP
 
+> ## ⚠️ CANON ATUAL (2026-05-30) — corrige o corpo abaixo (2026-04-27)
+> Onde divergir, vence isto:
+> 1. **Ponto de entrada único:** leia primeiro **[`INDEX-DESIGN-MEMORIAS.md`](INDEX-DESIGN-MEMORIAS.md)** — índice mestre (positivo+negativo) + regra de ouro + os 5 goldens de arquétipo (PT-01..PT-05).
+> 2. **Cor = roxo.** `primary` `oklch(0.55 0.15 295)` (DS v4, ADR 0235). **Zero `blue-*` de marca** (azul só semântico). Onde o corpo disser "accent hue 220"/azul, está defasado.
+> 3. **Sidebar = LIGHT** por padrão (UI-0009 + UI-0014). Onde o corpo disser "sidebar dark", está **revogado** — não escurecer.
+> 4. **Posicionamento:** ERP **modular multi-vertical** (ADR 0121); Larissa/ROTA LIVRE = **vestuário**, não gráfica.
+> 5. **Crie DENTRO do que existe:** copie o golden do arquétipo, rode o PRE-FLIGHT, use só `@/Components/ui`; nunca invente componente/Model/paleta (M-AP-6) nem repita anti-padrão F3.
+
 > **Para quem é este arquivo:** o Wagner abre uma nova sessão no **Claude Design** (canvas/artifact UI da Claude.ai) e cola este briefing como primeira mensagem. A IA da aba Design entrega mockups HTML + manuais por módulo, que depois eu (Claude Code) porto pro repo.
 >
 > **Por que existe:** Claude Design é excelente em iteração visual rápida e mockups HTML auto-contidos, mas NÃO tem acesso ao filesystem nem ao git. Este briefing concentra todo o contexto necessário pra ela trabalhar autônoma e produzir entregáveis aproveitáveis.
