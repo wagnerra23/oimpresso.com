@@ -5,6 +5,12 @@ owner: wagner
 created: 2026-05-31
 route: /settings/payment-gateways/{credentialId}/cnab-retorno
 controller: Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysCnabRetornoController
+page: /settings/payment-gateways/{id}/cnab-retorno
+component: resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx
+last_validated: "2026-05-31"
+parent_module: PaymentGateway
+tier: B
+charter_version: 1
 ---
 
 # Charter · Retorno CNAB (Payment Gateways)

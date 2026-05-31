@@ -7,6 +7,12 @@ controller: Modules\Financeiro\Http\Controllers\Advisor\AdvisorAuthController@sh
 guard: web-advisor
 shell: none (portal contador isolado — justificadamente fora do AppShellV2)
 created: 2026-05-31
+page: /advisor/login
+component: resources/js/Pages/Financeiro/Advisor/Login.tsx
+last_validated: "2026-05-31"
+parent_module: Financeiro
+tier: B
+charter_version: 1
 ---
 
 # Charter — Login Portal do Contador

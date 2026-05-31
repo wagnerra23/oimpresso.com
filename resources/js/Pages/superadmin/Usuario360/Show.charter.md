@@ -3,6 +3,11 @@ page: superadmin/Usuario360/Show
 owner: wagner
 status: draft
 last_updated: 2026-05-31
+component: resources/js/Pages/superadmin/Usuario360/Show.tsx
+last_validated: "2026-05-31"
+parent_module: Superadmin
+tier: B
+charter_version: 1
 ---
 
 # Charter — Usuário 360 (Raio-X / Show)

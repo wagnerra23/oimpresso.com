@@ -9,6 +9,11 @@ refs:
   - FIN-004
   - ADR 0093 (multi-tenant Tier 0)
   - ADR UI-0013 (Constituição UI v2)
+component: resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx
+last_validated: "2026-05-31"
+parent_module: Financeiro
+tier: B
+charter_version: 1
 ---
 
 # Charter — Atualizar Cobrança (Assinatura)

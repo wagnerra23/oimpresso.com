@@ -7,6 +7,12 @@ status: draft
 created: 2026-05-31
 us: US-FIN-037
 onda: 31
+component: resources/js/Pages/Financeiro/Advisor/Dashboard.tsx
+owner: eliana
+last_validated: "2026-05-31"
+parent_module: Financeiro
+tier: B
+charter_version: 1
 ---
 
 # Charter — Dashboard do Portal do Contador

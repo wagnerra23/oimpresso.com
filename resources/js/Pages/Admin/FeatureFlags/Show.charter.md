@@ -3,6 +3,11 @@ page: Admin/FeatureFlags/Show
 status: draft
 owner: wagner
 updated: 2026-05-31
+component: resources/js/Pages/Admin/FeatureFlags/Show.tsx
+last_validated: "2026-05-31"
+parent_module: Admin
+tier: B
+charter_version: 1
 ---
 
 # Charter — Feature Flags (Show)

@@ -5,6 +5,12 @@ owner: wagner
 pt: PT-01-Lista
 adr: [UI-0013]
 created: 2026-05-31
+page: /superadmin/usuarios
+component: resources/js/Pages/superadmin/Usuario360/Index.tsx
+last_validated: "2026-05-31"
+parent_module: Superadmin
+tier: B
+charter_version: 1
 ---
 
 # Charter — Usuário 360 · Lista de busca

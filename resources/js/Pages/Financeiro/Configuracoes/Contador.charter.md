@@ -7,6 +7,12 @@ status: draft
 owner: eliana
 us: US-FIN-037
 created: 2026-05-31
+page: /financeiro/configuracoes/contador
+component: resources/js/Pages/Financeiro/Configuracoes/Contador.tsx
+last_validated: "2026-05-31"
+parent_module: Financeiro
+tier: B
+charter_version: 1
 ---
 
 # Charter — Contador Parceiro (Financeiro / Configurações)
