@@ -913,7 +913,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
       {/* KPI cards — 4 cards GIGANTES, value text-3xl, label uppercase tracking-widest. Estado da arte. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Itens
           </div>
@@ -921,7 +921,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {itensCount}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Total venda
           </div>
@@ -929,7 +929,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {formatBRL(totalGeral)}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Pago
           </div>
@@ -939,7 +939,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </div>
         <div
           className={
-            'rounded-xl border p-6 shadow-sm ' +
+            'rounded-lg border p-6 shadow-sm ' +
             (totalGeral === 0
               ? 'border-border bg-background'
               : pagamentoStatus === 'falta'

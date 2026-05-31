@@ -16,6 +16,9 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { FieldSuccess } from '@/Components/ui/field-state';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
 // ADR 0192 Onda 2 follow-up — editor commission_split mecânico/balcão.
 import CommissionSplitEditor, { type CommissionSplitValue } from '@/Pages/Sells/_components/CommissionSplitEditor';
@@ -515,21 +518,21 @@ export default function SellsEdit(props: SellsEditPageProps) {
         <div className="container mx-auto py-6 px-8 space-y-6 max-w-7xl flex-1">
           {/* 4 KPI cards GIGANTES — paridade Create pattern KB-9.75 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+            <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
               <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Itens</div>
               <div className="text-4xl font-semibold tabular-nums text-foreground mt-3">{itensCount}</div>
             </div>
-            <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+            <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
               <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Total venda</div>
               <div className="text-3xl font-semibold tabular-nums text-foreground mt-3">{formatBRL(totalVenda)}</div>
             </div>
-            <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+            <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
               <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Pago</div>
               <div className="text-3xl font-semibold tabular-nums text-foreground mt-3">{formatBRL(totalPago)}</div>
             </div>
             <div
               className={
-                'rounded-xl border p-6 shadow-sm ' +
+                'rounded-lg border p-6 shadow-sm ' +
                 (pagamentoStatus === 'zero'
                   ? 'border-border bg-background'
                   : pagamentoStatus === 'falta'
@@ -658,16 +661,16 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
           </div>
           <div>
             <Label htmlFor="status">Status</Label>
-            <select
-              id="status"
-              value={data.status}
-              onChange={(e) => setData('status', e.target.value)}
-              className="mt-1 w-full border border-input rounded-md px-3 py-2 bg-background text-sm"
-            >
-              {Object.entries(form.statuses).map(([k, label]) => (
-                <option key={k} value={k}>{label}</option>
-              ))}
-            </select>
+            <Select value={data.status} onValueChange={(v) => setData('status', v)}>
+              <SelectTrigger id="status" aria-label="Status" className="mt-1 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(form.statuses).map(([k, label]) => (
+                  <SelectItem key={k} value={k}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </section>
@@ -678,16 +681,19 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="discount_type">Tipo de desconto</Label>
-            <select
-              id="discount_type"
+            <Select
               value={data.discount_type}
-              onChange={(e) => setData('discount_type', e.target.value as 'percentage' | 'fixed')}
+              onValueChange={(v) => setData('discount_type', v as 'percentage' | 'fixed')}
               disabled={!permissions.editDiscount}
-              className="mt-1 w-full border border-input rounded-md px-3 py-2 bg-background text-sm disabled:opacity-50"
             >
-              <option value="percentage">Percentual (%)</option>
-              <option value="fixed">Valor fixo (R$)</option>
-            </select>
+              <SelectTrigger id="discount_type" aria-label="Tipo de desconto" className="mt-1 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="percentage">Percentual (%)</SelectItem>
+                <SelectItem value="fixed">Valor fixo (R$)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="discount_amount">Valor desconto</Label>
@@ -821,16 +827,23 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
                             disabled={!permissions.editDiscount}
                             aria-label={`Desconto de ${p.name}`}
                           />
-                          <select
+                          <Select
                             value={p.discount_type}
-                            onChange={(e) => onUpdateProduct(idx, { discount_type: e.target.value as 'fixed' | 'percentage' })}
+                            onValueChange={(v) => onUpdateProduct(idx, { discount_type: v as 'fixed' | 'percentage' })}
                             disabled={!permissions.editDiscount}
-                            className="border border-input rounded-md px-1 py-1 bg-background text-xs h-8 disabled:opacity-50"
-                            aria-label={`Tipo de desconto de ${p.name}: R$ ou %`}
                           >
-                            <option value="fixed">R$</option>
-                            <option value="percentage">%</option>
-                          </select>
+                            <SelectTrigger
+                              size="sm"
+                              aria-label={`Tipo de desconto de ${p.name}: R$ ou %`}
+                              className="h-8 w-16 text-xs"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fixed">R$</SelectItem>
+                              <SelectItem value="percentage">%</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums font-semibold">
@@ -886,18 +899,21 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
           {/* PR parking-lot P1 — Responsável select avatar (Blade legacy commission_agent). */}
           <div>
             <Label htmlFor="commission_agent">Responsável / comissionado</Label>
-            <select
-              id="commission_agent"
-              value={data.commission_agent ?? ''}
-              onChange={(e) => setData('commission_agent', e.target.value ? Number(e.target.value) : null)}
+            <Select
+              value={data.commission_agent != null ? String(data.commission_agent) : '__none__'}
+              onValueChange={(v) => setData('commission_agent', v === '__none__' ? null : Number(v))}
               disabled={!permissions.update}
-              className="mt-1 w-full border border-input rounded-md px-3 py-2 bg-background text-sm disabled:opacity-50"
             >
-              <option value="">— Sem responsável —</option>
-              {Object.entries((form.users ?? {}) as Record<number, string>).map(([id, name]) => (
-                <option key={id} value={id}>{name}</option>
-              ))}
-            </select>
+              <SelectTrigger id="commission_agent" aria-label="Responsável / comissionado" className="mt-1 w-full">
+                <SelectValue placeholder="— Sem responsável —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— Sem responsável —</SelectItem>
+                {Object.entries((form.users ?? {}) as Record<number, string>).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <p className="text-xs text-muted-foreground mt-1">
               Usuário responsável pela venda (aparece no recibo + relatório comissão).
             </p>
@@ -905,13 +921,12 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
 
           {/* PR parking-lot P1 — Inscrever-se? checkbox (Blade legacy is_recurring). */}
           <div className="flex items-start gap-2 pt-6">
-            <input
-              type="checkbox"
+            <Checkbox
               id="is_recurring"
               checked={data.is_recurring === 1}
-              onChange={(e) => setData('is_recurring', e.target.checked ? 1 : 0)}
+              onCheckedChange={(c) => setData('is_recurring', c === true ? 1 : 0)}
               disabled={!permissions.update}
-              className="mt-1 h-4 w-4 rounded border-input"
+              className="mt-1"
             />
             <div className="flex-1">
               <Label htmlFor="is_recurring" className="cursor-pointer">
@@ -963,9 +978,9 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
               Aceita .pdf, .csv, .zip, .doc, .docx, .jpg, .png — máx 5MB.
             </p>
             {data.sell_document && (
-              <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+              <FieldSuccess className="mt-1 text-xs">
                 Arquivo selecionado: <span className="font-medium">{data.sell_document.name}</span>
-              </p>
+              </FieldSuccess>
             )}
           </div>
         </div>
@@ -991,17 +1006,20 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
             </div>
             <div>
               <Label htmlFor="shipping_status">Status frete</Label>
-              <select
-                id="shipping_status"
-                value={data.shipping_status ?? ''}
-                onChange={(e) => setData('shipping_status', e.target.value)}
-                className="mt-1 w-full border border-input rounded-md px-3 py-2 bg-background text-sm"
+              <Select
+                value={data.shipping_status || '__none__'}
+                onValueChange={(v) => setData('shipping_status', v === '__none__' ? '' : v)}
               >
-                <option value="">— Selecione —</option>
-                {Object.entries(form.shippingStatuses).map(([k, label]) => (
-                  <option key={k} value={k}>{label}</option>
-                ))}
-              </select>
+                <SelectTrigger id="shipping_status" aria-label="Status frete" className="mt-1 w-full">
+                  <SelectValue placeholder="— Selecione —" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Selecione —</SelectItem>
+                  {Object.entries(form.shippingStatuses).map(([k, label]) => (
+                    <SelectItem key={k} value={k}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="shipping_address">Endereço entrega</Label>
