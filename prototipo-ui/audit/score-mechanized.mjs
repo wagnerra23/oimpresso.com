@@ -73,7 +73,18 @@ function detect(src) {
   const h = {};
   h.R1 = [...(src.match(RX.hex) || []).filter((x) => !/^#(?:fff|ffffff|000|000000)$/i.test(x)), ...(src.match(RX.colorFn) || [])];
   h.R2 = src.match(RX.native) || [];
-  h.R3 = []; let m; RX.ls.lastIndex = 0; while ((m = RX.ls.exec(src))) if (!m[1].startsWith('oimpresso.')) h.R3.push(m[1]);
+  h.R3 = []; let m; RX.ls.lastIndex = 0;
+  while ((m = RX.ls.exec(src))) {
+    const key = m[1];
+    if (key.startsWith('oimpresso.')) continue;
+    // ${VAR}... — resolve a const no arquivo; se VAR = 'oimpresso.*' está OK (não é violação)
+    const tv = key.match(/^\$\{(\w+)\}/);
+    if (tv) {
+      const d = new RegExp('(?:const|let|var)\\s+' + tv[1] + '\\s*=\\s*[\'"`]([^\'"`]+)').exec(src);
+      if (d && d[1].startsWith('oimpresso.')) continue;
+    }
+    h.R3.push(key);
+  }
   h.R4 = [...(src.match(RX.svg) || []), ...(src.match(RX.iconLib) || [])];
   h.R6 = src.match(RX.emoji) || [];
   h.R7 = src.match(RX.statusFill) || [];
