@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Models\BankStatementLine;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
@@ -46,20 +47,26 @@ class ConciliacaoController extends Controller
             : ['pendente', 'sugerido'];
 
         // Linhas ordenadas por data desc.
-        $linhas = DB::table('fin_bank_statement_lines')
-            ->where('business_id', $businessId)
+        // B3 (Tier 0): roteado pela Model BankStatementLine (BusinessScope global
+        // scope + SoftDeletes cuidam de business_id/deleted_at). Mantemos o
+        // where('business_id', …) EXPLÍCITO como defesa em profundidade (padrão
+        // do módulo). `->toBase()->get()` devolve stdClass — payload Inertia
+        // byte-for-byte idêntico ao DB::table anterior (casts da Model NÃO
+        // reformatam datas/decimais no wire). Os scopes globais são aplicados
+        // antes do toBase() (Eloquent\Builder::toBase() chama applyScopes()).
+        $linhas = BankStatementLine::where('business_id', $businessId)
             ->whereIn('status', $statusFiltro)
-            ->whereNull('deleted_at')
             ->orderBy('data_movimento', 'desc')
             ->limit(200)
+            ->toBase()
             ->get();
 
-        // Stats.
+        // Stats. (mesma blindagem: BusinessScope + SoftDeletes + where explícito).
         $stats = [
-            'pendentes'   => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'pendente')->whereNull('deleted_at')->count(),
-            'sugeridos'   => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'sugerido')->whereNull('deleted_at')->count(),
-            'conciliados' => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'conciliado')->whereNull('deleted_at')->count(),
-            'ignorados'   => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'ignorado')->whereNull('deleted_at')->count(),
+            'pendentes'   => BankStatementLine::where('business_id', $businessId)->where('status', 'pendente')->count(),
+            'sugeridos'   => BankStatementLine::where('business_id', $businessId)->where('status', 'sugerido')->count(),
+            'conciliados' => BankStatementLine::where('business_id', $businessId)->where('status', 'conciliado')->count(),
+            'ignorados'   => BankStatementLine::where('business_id', $businessId)->where('status', 'ignorado')->count(),
         ];
 
         // ContaBancaria.nome é accessor que lê de Account.name (eager load needed)
@@ -160,8 +167,11 @@ class ConciliacaoController extends Controller
         $tituloId = $request->integer('titulo_id');
         $userId = $request->user()?->id;
 
-        $afetadas = DB::table('fin_bank_statement_lines')
-            ->where('id', $lineId)
+        // B3 (Tier 0): UPDATE roteado pela Model (BusinessScope + SoftDeletes +
+        // where('business_id') explícito). Linha soft-deleted não é afetada
+        // (SoftDeletes), mas a tabela é append-only — sem delete real no fluxo —
+        // então o conjunto afetado é idêntico ao DB::table anterior.
+        $afetadas = BankStatementLine::where('id', $lineId)
             ->where('business_id', $businessId)
             ->update([
                 'status' => 'conciliado',
@@ -193,8 +203,9 @@ class ConciliacaoController extends Controller
         $businessId = (int) session('user.business_id');
         $userId = $request->user()?->id;
 
-        $afetadas = DB::table('fin_bank_statement_lines')
-            ->where('id', $lineId)
+        // B3 (Tier 0): UPDATE roteado pela Model (BusinessScope + SoftDeletes +
+        // where('business_id') explícito) — conjunto afetado idêntico.
+        $afetadas = BankStatementLine::where('id', $lineId)
             ->where('business_id', $businessId)
             ->update([
                 'status' => 'ignorado',
@@ -231,10 +242,11 @@ class ConciliacaoController extends Controller
         $userId = $request->user()?->id;
 
         // Carrega estado anterior pra auditoria + valida existência no tenant.
-        $linha = DB::table('fin_bank_statement_lines')
-            ->where('id', $lineId)
+        // B3 (Tier 0): roteado pela Model (BusinessScope + SoftDeletes cuidam de
+        // business_id/deleted_at) + where('business_id') explícito. Lê só
+        // status/titulo_id da instância — casts não alteram esse comportamento.
+        $linha = BankStatementLine::where('id', $lineId)
             ->where('business_id', $businessId)
-            ->whereNull('deleted_at')
             ->first();
 
         if (! $linha) {
@@ -244,8 +256,7 @@ class ConciliacaoController extends Controller
 
         $statusAnterior = $linha->status;
 
-        DB::table('fin_bank_statement_lines')
-            ->where('id', $lineId)
+        BankStatementLine::where('id', $lineId)
             ->where('business_id', $businessId)
             ->update([
                 'status' => 'pendente',
@@ -289,10 +300,12 @@ class ConciliacaoController extends Controller
      */
     private function sugerirMatches(int $businessId): void
     {
-        $pendentes = DB::table('fin_bank_statement_lines')
-            ->where('business_id', $businessId)
+        // B3 (Tier 0): candidatas roteadas pela Model (BusinessScope + SoftDeletes
+        // + where('business_id') explícito). As instâncias expõem valor/data_movimento/id
+        // exatamente como antes para o fuzzy match (CarbonImmutable::parse aceita o
+        // cast date; (float) aceita o cast decimal) — lógica do match inalterada.
+        $pendentes = BankStatementLine::where('business_id', $businessId)
             ->where('status', 'pendente')
-            ->whereNull('deleted_at')
             ->get();
 
         foreach ($pendentes as $linha) {
@@ -308,8 +321,11 @@ class ConciliacaoController extends Controller
                 ->first();
 
             if ($candidato) {
-                DB::table('fin_bank_statement_lines')
-                    ->where('id', $linha->id)
+                // where('business_id', $businessId) explícito amarra o UPDATE ao
+                // tenant recebido pelo método (não só ao global scope da sessão) —
+                // mesma linha já carregada acima, conjunto afetado idêntico.
+                BankStatementLine::where('id', $linha->id)
+                    ->where('business_id', $businessId)
                     ->update([
                         'status' => 'sugerido',
                         'titulo_id' => $candidato->id,
