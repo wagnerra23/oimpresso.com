@@ -18,6 +18,12 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
     Route::get('/add-ingredient', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'addIngredients']);
     Route::resource('/recipe', 'Modules\Manufacturing\Http\Controllers\RecipeController')->except('edit', 'update');
     Route::resource('/production', 'Modules\Manufacturing\Http\Controllers\ProductionController');
+
+    // MWART Wave J — Index Inertia v2 (coexiste com a Resource Blade legacy acima).
+    // Mantida fora do Route::resource pra não colidir com /production/{production}.
+    Route::get('/v2/production', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'indexV2'])
+        ->name('manufacturing.production.v2.index');
+
     Route::resource('/settings', 'Modules\Manufacturing\Http\Controllers\SettingsController')->only('index', 'store');
 
     Route::get('/report', [Modules\Manufacturing\Http\Controllers\ProductionController::class, 'getManufacturingReport']);
