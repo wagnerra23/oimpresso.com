@@ -6,7 +6,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { ArrowDownCircle, ArrowUpCircle, RefreshCw } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import PageHeader from '@/Components/shared/PageHeader';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { piiMask } from '@/Pages/Financeiro/Cobranca/_lib/cobranca-shared';
 
 interface Lancamento {
   id: number;
@@ -53,17 +56,21 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
   };
 
   return (
-    // Onda 12.8 (2026-05-19) — header canon paridade Unificado
+    // Wave 4 (2026-05-31) — header canon via <PageHeader> + FinanceiroSubNav (substitui os-page-h inline)
     <div className="fin-curadoria vendas-aplus p-6 space-y-6">
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>Extrato <span className="fin-hero-title-sub">· {conta.banco_nome}</span></h1>
-          <p>{conta.nome}{conta.numero_conta ? ` · Conta ${conta.numero_conta}` : ''}</p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
-          <a href={route('financeiro.contas-bancarias.index')} className="os-btn ghost">← Voltar pra contas</a>
-        </div>
-      </header>
+      <PageHeader
+        icon="landmark"
+        title={`Extrato · ${conta.banco_nome}`}
+        description={`${conta.nome}${conta.numero_conta ? ` · Conta ${conta.numero_conta}` : ''}`}
+        action={
+          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+            <FinanceiroSubNav active="extrato" hidePrimary />
+            <Button variant="outline" size="sm" onClick={() => router.visit(route('financeiro.contas-bancarias.index'))}>
+              <ArrowLeft className="h-4 w-4 mr-1.5" /> Voltar pra contas
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -94,11 +101,11 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <ArrowUpCircle className="h-4 w-4 text-red-600" /> Débitos
+              <ArrowUpCircle className="h-4 w-4 text-destructive" /> Débitos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{fmtBrl(totais.debitos)}</div>
+            <div className="text-2xl font-bold text-destructive">{fmtBrl(totais.debitos)}</div>
           </CardContent>
         </Card>
 
@@ -155,11 +162,13 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
                     <td className="py-2 pr-4">{l.descricao}</td>
                     <td className="py-2 pr-4 text-muted-foreground">
                       {l.contraparte_nome ?? '—'}
-                      {l.contraparte_documento ? ` · ${l.contraparte_documento}` : ''}
+                      {l.contraparte_documento ? (
+                        <span className="font-mono"> · {piiMask(l.contraparte_documento)}</span>
+                      ) : ''}
                     </td>
                     <td
                       className={`py-2 pr-4 text-right font-mono whitespace-nowrap ${
-                        l.tipo === 'C' ? 'text-emerald-600' : 'text-red-600'
+                        l.tipo === 'C' ? 'text-emerald-600' : 'text-destructive'
                       }`}
                     >
                       {l.tipo === 'C' ? '+' : '-'} {fmtBrl(l.valor)}
