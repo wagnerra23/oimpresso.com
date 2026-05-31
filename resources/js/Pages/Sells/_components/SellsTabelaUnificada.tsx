@@ -23,6 +23,7 @@ import {
 } from '../Index';
 import QuickPaymentPopover from './QuickPaymentPopover';
 import VdSource, { type VdSourceKind } from './VdSource';
+import { Checkbox } from '@/Components/ui/checkbox';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — sub-conjunto do SaleRow do Index.tsx (mantido independente
@@ -222,10 +223,9 @@ export default function SellsTabelaUnificada({
               if (id === 'check') {
                 return (
                   <th key={id} style={h.style ?? { width: h.width }}>
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={filteredCount > 0 && selectedIds.size === filteredCount}
-                      onChange={onToggleAll}
+                      onCheckedChange={onToggleAll}
                       aria-label="Selecionar todas"
                     />
                   </th>
@@ -307,10 +307,9 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
     case 'check':
       return (
         <td key={id} className="vd-chk" onClick={(e) => e.stopPropagation()}>
-          <input
-            type="checkbox"
+          <Checkbox
             checked={ctx.sel}
-            onChange={() => ctx.onToggleSel(v.id)}
+            onCheckedChange={() => ctx.onToggleSel(v.id)}
             aria-label={`Selecionar venda ${v.invoice_no}`}
           />
         </td>

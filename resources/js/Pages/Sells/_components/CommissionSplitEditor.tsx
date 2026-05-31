@@ -10,6 +10,8 @@ import { Loader2, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { FieldSuccess } from '@/Components/ui/field-state';
 
 export interface CommissionSplitValue {
   mecanico_id: number;
@@ -130,8 +132,6 @@ export default function CommissionSplitEditor({ value, users, saveUrl, disabled 
     }
   }
 
-  const selectClass = 'mt-1 w-full border border-input rounded-md px-3 py-2 bg-background text-sm disabled:opacity-50';
-
   return (
     <section className="rounded-lg border border-border bg-card p-5 space-y-4" data-testid="commission-split-editor">
       <div className="flex items-start justify-between gap-3">
@@ -142,24 +142,26 @@ export default function CommissionSplitEditor({ value, users, saveUrl, disabled 
           </p>
         </div>
         {savedFlash && (
-          <span className="text-xs text-emerald-600 font-medium" role="status">Salvo ✓</span>
+          <FieldSuccess className="text-xs font-medium">Salvo</FieldSuccess>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="commission-mecanico-id">Mecânico *</Label>
-          <select
-            id="commission-mecanico-id"
-            value={mecanicoId}
-            onChange={(e) => setMecanicoId(e.target.value === '' ? '' : Number(e.target.value))}
+          <Select
+            value={mecanicoId ? String(mecanicoId) : '__none__'}
+            onValueChange={(v) => setMecanicoId(v === '__none__' ? '' : Number(v))}
             disabled={disabled || saving}
-            className={selectClass}
-            aria-required="true"
           >
-            <option value="">— Selecione —</option>
-            {userOptions.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
+            <SelectTrigger id="commission-mecanico-id" aria-label="Mecânico" aria-required="true" className="mt-1 w-full">
+              <SelectValue placeholder="— Selecione —" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">— Selecione —</SelectItem>
+              {userOptions.map((u) => <SelectItem key={u.id} value={String(u.id)}>{u.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label htmlFor="commission-mecanico-pct">Mecânico %</Label>
@@ -178,16 +180,19 @@ export default function CommissionSplitEditor({ value, users, saveUrl, disabled 
 
         <div>
           <Label htmlFor="commission-balcao-id">Balconista (opcional)</Label>
-          <select
-            id="commission-balcao-id"
-            value={balcaoId}
-            onChange={(e) => handleBalcaoIdChange(e.target.value)}
+          <Select
+            value={balcaoId ? String(balcaoId) : '__none__'}
+            onValueChange={(v) => handleBalcaoIdChange(v === '__none__' ? '' : v)}
             disabled={disabled || saving}
-            className={selectClass}
           >
-            <option value="">— Sem balcão (100% mecânico) —</option>
-            {userOptions.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
+            <SelectTrigger id="commission-balcao-id" aria-label="Balconista (opcional)" className="mt-1 w-full">
+              <SelectValue placeholder="— Sem balcão (100% mecânico) —" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">— Sem balcão (100% mecânico) —</SelectItem>
+              {userOptions.map((u) => <SelectItem key={u.id} value={String(u.id)}>{u.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         {!isSoloMecanico && (
           <div>
