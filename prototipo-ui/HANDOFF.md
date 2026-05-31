@@ -34,6 +34,9 @@ Disparar **Fase A RecurringBilling** no mesmo loop autônomo (1 módulo = 1 bran
 ### 🔑 Bootstrap p/ tirar o `--admin` (decisão Wagner)
 Provisionar token do `grokwr2` (collaborator ≠ autor) → Action auto-approve+merge quando todos os checks passam. Ver [AUTOMACAO-LOOP-AUTONOMO.md §3](AUTOMACAO-LOOP-AUTONOMO.md).
 
+### Side-thread: mapa rotinas de design (F0 · 2026-05-31) — NÃO muda a fila acima
+Processei a proposta [CC] "otimizar rotinas de design" (§10.4): F0 em [AUDITORIA_ROTINAS_DESIGN.md](AUDITORIA_ROTINAS_DESIGN.md). Achado: **6 motores de score em 2 camadas** — a cara (LLM `design:*`: mwart-comparative dormante 05-17, design-deep-analysis 0 disparos, F1.5/F3.5) morreu de custo; a barata (`screen-grade`/`module:grade`/`ds/*`) escalou e o PROTOCOL não a menciona. Gate §10.4: G4 já existe (`ds:report`), G3 superado (0-humano), G5-ESLint feito — **sobra G1/G2/G6 + Stylelint `.css`**. Fila operacional (Fase A RecurringBilling) **inalterada**.
+
 ### Workstreams parados (ponteiro)
 - **Jana** (`Chat.tsx`/`Cockpit.tsx`) — congelado até Wagner reabrir.
 - **Financeiro** Fluxo/Plano-contas/DRE/Conciliação — bloqueados por ADRs arq + migrations.
