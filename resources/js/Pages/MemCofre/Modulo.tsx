@@ -8,6 +8,7 @@
 //   tests: Modules/MemCofre/Tests/Feature/ModuloTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import SimpleMarkdown from '@/Components/shared/SimpleMarkdown';
 import { Head, Link } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import {
@@ -17,13 +18,12 @@ import {
   CheckCircle2,
   Circle,
   ClipboardList,
-  ClipboardCheck,
   Code,
-  ExternalLink,
   FileCode,
   FileText,
   History,
   Lightbulb,
+  MoreHorizontal,
   Network,
   Scale,
   ShieldCheck,
@@ -136,6 +136,27 @@ export default function MemCofreModulo({
   const storiesImplementadas = stories.filter((s) => s.implementado_em).length;
   const rulesTestadas = rules.filter((r) => r.testado_em).length;
 
+  // Abas disponíveis (filtradas por presença de dados). Primárias ficam inline;
+  // o excedente vai pro menu "Mais" (overflow) — evita estouro em mobile.
+  const availableTabs: { key: Tab; label: string; icon: ReactNode; count?: number }[] = [
+    { key: 'overview', label: 'Overview', icon: <FileText size={13} /> },
+    ...(architecture ? [{ key: 'architecture' as Tab, label: 'Arquitetura', icon: <Boxes size={13} /> }] : []),
+    { key: 'stories', label: 'User stories', icon: <ClipboardList size={13} />, count: stories.length },
+    { key: 'rules', label: 'Regras', icon: <Scale size={13} />, count: rules.length },
+    ...(adrs.length > 0 ? [{ key: 'adrs' as Tab, label: 'Decisões', icon: <Lightbulb size={13} />, count: adrs.length }] : []),
+    ...(glossary ? [{ key: 'glossary' as Tab, label: 'Glossário', icon: <BookA size={13} /> }] : []),
+    ...(runbook ? [{ key: 'runbook' as Tab, label: 'Runbook', icon: <Wrench size={13} /> }] : []),
+    ...(diagrams.length > 0 ? [{ key: 'diagrams' as Tab, label: 'Diagramas', icon: <Network size={13} />, count: diagrams.length }] : []),
+    ...(contracts.length > 0 ? [{ key: 'contracts' as Tab, label: 'Contratos', icon: <FileCode size={13} />, count: contracts.length }] : []),
+    ...(audits.length > 0 ? [{ key: 'audits' as Tab, label: 'Auditorias', icon: <ShieldCheck size={13} />, count: audits.length }] : []),
+    ...(changelog ? [{ key: 'changelog' as Tab, label: 'Changelog', icon: <History size={13} /> }] : []),
+    { key: 'raw', label: 'Markdown', icon: <Code size={13} /> },
+  ];
+  const PRIMARY_COUNT = 6;
+  const primaryTabs = availableTabs.slice(0, PRIMARY_COUNT);
+  const overflowTabs = availableTabs.slice(PRIMARY_COUNT);
+  const activeOverflow = overflowTabs.find((t) => t.key === tab);
+
   return (
     <>
       <Head title={`MemCofre — ${module}`} />
@@ -193,66 +214,40 @@ export default function MemCofreModulo({
           <Kpi icon={<Code size={14} />} label="Tela React" value={storiesImplementadas > 0 ? 'sim' : 'não'} />
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-border flex gap-1 flex-wrap">
-          <TabBtn active={tab === 'overview'} onClick={() => setTab('overview')}>
-            <FileText size={13} className="mr-1" /> Overview
-          </TabBtn>
-          {architecture && (
-            <TabBtn active={tab === 'architecture'} onClick={() => setTab('architecture')}>
-              <Boxes size={13} className="mr-1" /> Arquitetura
+        {/* Tabs (primárias inline + secundárias no menu "Mais") */}
+        <div className="border-b border-border flex items-center gap-1 flex-wrap">
+          {primaryTabs.map((t) => (
+            <TabBtn key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
+              <span className="mr-1 flex items-center">{t.icon}</span> {t.label}
+              {t.count !== undefined && (
+                <Badge variant="secondary" className="ml-1 text-[10px]">{t.count}</Badge>
+              )}
             </TabBtn>
+          ))}
+          {overflowTabs.length > 0 && (
+            <div className="relative ml-auto -mb-px">
+              <MoreHorizontal size={14} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <select
+                aria-label="Mais abas"
+                value={activeOverflow ? tab : ''}
+                onChange={(e) => e.target.value && setTab(e.target.value as Tab)}
+                className={`appearance-none rounded-t-md border-b-2 bg-transparent pl-7 pr-2 py-2 text-sm transition ${
+                  activeOverflow
+                    ? 'border-primary text-foreground font-medium'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <option value="" disabled>
+                  {activeOverflow ? activeOverflow.label : 'Mais…'}
+                </option>
+                {overflowTabs.map((t) => (
+                  <option key={t.key} value={t.key}>
+                    {t.label}{t.count !== undefined ? ` (${t.count})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
-          <TabBtn active={tab === 'stories'} onClick={() => setTab('stories')}>
-            <ClipboardList size={13} className="mr-1" /> User stories
-            <Badge variant="secondary" className="ml-1 text-[10px]">{stories.length}</Badge>
-          </TabBtn>
-          <TabBtn active={tab === 'rules'} onClick={() => setTab('rules')}>
-            <Scale size={13} className="mr-1" /> Regras
-            <Badge variant="secondary" className="ml-1 text-[10px]">{rules.length}</Badge>
-          </TabBtn>
-          {adrs.length > 0 && (
-            <TabBtn active={tab === 'adrs'} onClick={() => setTab('adrs')}>
-              <Lightbulb size={13} className="mr-1" /> Decisões
-              <Badge variant="secondary" className="ml-1 text-[10px]">{adrs.length}</Badge>
-            </TabBtn>
-          )}
-          {glossary && (
-            <TabBtn active={tab === 'glossary'} onClick={() => setTab('glossary')}>
-              <BookA size={13} className="mr-1" /> Glossário
-            </TabBtn>
-          )}
-          {runbook && (
-            <TabBtn active={tab === 'runbook'} onClick={() => setTab('runbook')}>
-              <Wrench size={13} className="mr-1" /> Runbook
-            </TabBtn>
-          )}
-          {diagrams.length > 0 && (
-            <TabBtn active={tab === 'diagrams'} onClick={() => setTab('diagrams')}>
-              <Network size={13} className="mr-1" /> Diagramas
-              <Badge variant="secondary" className="ml-1 text-[10px]">{diagrams.length}</Badge>
-            </TabBtn>
-          )}
-          {contracts.length > 0 && (
-            <TabBtn active={tab === 'contracts'} onClick={() => setTab('contracts')}>
-              <FileCode size={13} className="mr-1" /> Contratos
-              <Badge variant="secondary" className="ml-1 text-[10px]">{contracts.length}</Badge>
-            </TabBtn>
-          )}
-          {audits.length > 0 && (
-            <TabBtn active={tab === 'audits'} onClick={() => setTab('audits')}>
-              <ShieldCheck size={13} className="mr-1" /> Auditorias
-              <Badge variant="secondary" className="ml-1 text-[10px]">{audits.length}</Badge>
-            </TabBtn>
-          )}
-          {changelog && (
-            <TabBtn active={tab === 'changelog'} onClick={() => setTab('changelog')}>
-              <History size={13} className="mr-1" /> Changelog
-            </TabBtn>
-          )}
-          <TabBtn active={tab === 'raw'} onClick={() => setTab('raw')}>
-            <Code size={13} className="mr-1" /> Markdown
-          </TabBtn>
         </div>
 
         {tab === 'overview' && (
@@ -267,9 +262,9 @@ export default function MemCofreModulo({
             </CardHeader>
             <CardContent className="text-sm space-y-3">
               {readme && (
-                <pre className="text-xs whitespace-pre-wrap font-mono bg-muted/30 rounded p-3 overflow-x-auto">
-                  {readme}
-                </pre>
+                <div className="bg-muted/30 rounded p-3">
+                  <MarkdownPane content={readme} />
+                </div>
               )}
               <div>
                 <strong>Fonte:</strong>{' '}
@@ -302,7 +297,7 @@ export default function MemCofreModulo({
         {tab === 'architecture' && architecture && (
           <Card>
             <CardContent>
-              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{architecture}</pre>
+              <MarkdownPane content={architecture} />
             </CardContent>
           </Card>
         )}
@@ -310,7 +305,7 @@ export default function MemCofreModulo({
         {tab === 'changelog' && changelog && (
           <Card>
             <CardContent>
-              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{changelog}</pre>
+              <MarkdownPane content={changelog} />
             </CardContent>
           </Card>
         )}
@@ -318,7 +313,7 @@ export default function MemCofreModulo({
         {tab === 'glossary' && glossary && (
           <Card>
             <CardContent>
-              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{glossary}</pre>
+              <MarkdownPane content={glossary} />
             </CardContent>
           </Card>
         )}
@@ -326,7 +321,7 @@ export default function MemCofreModulo({
         {tab === 'runbook' && runbook && (
           <Card>
             <CardContent>
-              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{runbook}</pre>
+              <MarkdownPane content={runbook} />
             </CardContent>
           </Card>
         )}
@@ -370,13 +365,7 @@ export default function MemCofreModulo({
                 )}
                 <ul className="divide-y divide-border">
                   {filteredAdrs.map((a) => {
-                    const toneCls = a.status === 'accepted'
-                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : a.status === 'proposed'
-                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                      : a.status === 'deprecated' || a.status.startsWith('superseded')
-                      ? 'bg-muted text-muted-foreground line-through'
-                      : 'bg-muted text-muted-foreground';
+                    const isSuperseded = a.status === 'deprecated' || a.status.startsWith('superseded');
                     const active = selectedAdr?.slug === a.slug;
                     return (
                       <li
@@ -388,11 +377,9 @@ export default function MemCofreModulo({
                           <code className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">
                             {a.number}
                           </code>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${toneCls}`}>
-                            {a.status}
-                          </span>
+                          <AdrStatusBadge status={a.status} />
                         </div>
-                        <div className="text-sm font-medium mt-1 line-clamp-2">{a.title}</div>
+                        <div className={`text-sm font-medium mt-1 line-clamp-2 ${isSuperseded ? 'line-through text-muted-foreground' : ''}`}>{a.title}</div>
                         {a.date && (
                           <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
                             {a.date}
@@ -407,9 +394,7 @@ export default function MemCofreModulo({
             <Card>
               <CardContent>
                 {selectedAdr ? (
-                  <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
-                    {selectedAdr.raw}
-                  </pre>
+                  <MarkdownPane content={selectedAdr.raw} />
                 ) : (
                   <div className="p-8 text-center text-sm text-muted-foreground">
                     Selecione uma decisão à esquerda.
@@ -435,7 +420,7 @@ export default function MemCofreModulo({
                       <li key={s.id} className="p-4 hover:bg-accent/30">
                         <div className="flex items-start gap-3">
                           {s.implementado_em ? (
-                            <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                            <CheckCircle2 size={16} className="text-primary flex-shrink-0 mt-0.5" />
                           ) : (
                             <Circle size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
                           )}
@@ -445,7 +430,7 @@ export default function MemCofreModulo({
                               <span className="font-medium text-sm">{s.title}</span>
                             </div>
                             {s.implementado_em && (
-                              <div className="text-[10px] text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
+                              <div className="text-[10px] text-primary mt-1 font-mono">
                                 → {s.implementado_em}
                               </div>
                             )}
@@ -453,7 +438,7 @@ export default function MemCofreModulo({
                               <div className="flex items-center gap-2 mt-2">
                                 <div className="flex-1 h-1 bg-muted rounded overflow-hidden max-w-xs">
                                   <div
-                                    className={`h-full ${pct >= 80 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                    className={`h-full ${pct >= 80 ? 'bg-primary' : pct >= 40 ? 'bg-muted-foreground' : 'bg-destructive'}`}
                                     style={{ width: `${pct}%` }}
                                   />
                                 </div>
@@ -486,7 +471,7 @@ export default function MemCofreModulo({
                     <li key={r.id} className="p-4 hover:bg-accent/30">
                       <div className="flex items-start gap-3">
                         {r.testado_em ? (
-                          <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 size={16} className="text-primary flex-shrink-0 mt-0.5" />
                         ) : (
                           <Circle size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
                         )}
@@ -496,7 +481,7 @@ export default function MemCofreModulo({
                             <span className="font-medium text-sm">{r.title}</span>
                           </div>
                           {r.testado_em && (
-                            <div className="text-[10px] text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
+                            <div className="text-[10px] text-primary mt-1 font-mono">
                               testado em: {r.testado_em}
                             </div>
                           )}
@@ -530,6 +515,36 @@ MemCofreModulo.layout = (page: ReactNode) => (
     {page}
   </AppShellV2>
 );
+
+function stripFrontmatter(content: string): string {
+  return content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
+}
+
+function MarkdownPane({ content }: { content?: string }) {
+  if (!content) {
+    return <p className="text-sm text-muted-foreground">Sem conteúdo.</p>;
+  }
+  return (
+    <div className="max-h-[70vh] overflow-y-auto">
+      <SimpleMarkdown source={stripFrontmatter(content)} />
+    </div>
+  );
+}
+
+const ADR_STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
+  accepted: 'default',
+  proposed: 'secondary',
+};
+
+function AdrStatusBadge({ status }: { status: string }) {
+  const isSuperseded = status === 'deprecated' || status.startsWith('superseded');
+  const variant = isSuperseded ? 'outline' : ADR_STATUS_VARIANT[status] ?? 'outline';
+  return (
+    <Badge variant={variant} className={`text-[10px] ${isSuperseded ? 'line-through' : ''}`}>
+      {status}
+    </Badge>
+  );
+}
 
 function Kpi({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string | number; hint?: string }) {
   return (
@@ -596,9 +611,13 @@ function SubFilesPane({
       </Card>
       <Card>
         <CardContent>
-          <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
-            {current?.raw ?? ''}
-          </pre>
+          {current?.ext === 'md' ? (
+            <MarkdownPane content={current?.raw ?? ''} />
+          ) : (
+            <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+              {current?.raw ?? ''}
+            </pre>
+          )}
         </CardContent>
       </Card>
     </div>
