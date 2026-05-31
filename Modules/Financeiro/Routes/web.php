@@ -174,9 +174,16 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->name('contas-bancarias.upsert');
 
         // Extrato bancário — leitura via Banking API (US-RB-046)
+        // Rota de detalhe FICA PRIMEIRO e exige id numérico (whereNumber) — não
+        // colide com /extrato (resolver sem id) declarada logo abaixo.
         Route::get('/extrato/{contaBancariaId}', [ExtratoController::class, 'index'])
             ->whereNumber('contaBancariaId')
             ->name('extrato.index');
+        // Entry point SEM id (sidebar/topnav apontam pra /financeiro/extrato).
+        // Redireciona pra primeira conta do business; se não houver, manda
+        // cadastrar conta bancária (fix B4 — antes dava 404). Ver ExtratoController::selecionar.
+        Route::get('/extrato', [ExtratoController::class, 'selecionar'])
+            ->name('extrato.selecionar');
 
         // Relatórios (DRE / Fluxo / Resumo) — US-FIN-014
         Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');

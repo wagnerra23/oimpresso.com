@@ -6,7 +6,9 @@ namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
@@ -27,6 +29,43 @@ use Modules\Financeiro\Models\ExtratoLancamento;
 class ExtratoController extends Controller
 {
     use RendersMockCowork;
+
+    /**
+     * Ponto de entrada SEM id: /financeiro/extrato.
+     *
+     * O sidebar / topnav apontam pra /financeiro/extrato (sem contaBancariaId),
+     * mas a tela de detalhe exige um id numérico (rota extrato.index com
+     * whereNumber). Sem este resolver o link dava 404 (bug B4).
+     *
+     * Resolve pra primeira conta bancária do business (orderBy id) e redireciona
+     * pra /financeiro/extrato/{id}. Se o business não tem nenhuma conta, manda
+     * cadastrar em /financeiro/contas-bancarias (com flash) — SEM fallback
+     * silencioso (Log::warning antes do redirect).
+     *
+     * Session key: usa `business.id` (mesma chave lida por index()) pra manter
+     * consistência com a tela de detalhe. O global scope BusinessScope reforça
+     * o isolamento por `user.business_id` (ambas as chaves carregam o mesmo
+     * valor em toda a stack UltimatePOS — SetSessionData + FinanceiroTestCase).
+     */
+    public function selecionar(Request $request): RedirectResponse
+    {
+        $businessId = (int) $request->session()->get('business.id');
+
+        $conta = ContaBancaria::where('business_id', $businessId)
+            ->orderBy('id')
+            ->first();
+
+        if ($conta === null) {
+            Log::warning('Financeiro/Extrato: business sem conta bancária ao abrir /financeiro/extrato', [
+                'business_id' => $businessId,
+            ]);
+
+            return redirect('/financeiro/contas-bancarias')
+                ->with('warning', 'Cadastre uma conta bancária para visualizar o extrato.');
+        }
+
+        return redirect('/financeiro/extrato/' . $conta->id);
+    }
 
     public function index(Request $request, int $contaBancariaId): Response|\Illuminate\Http\Response
     {
