@@ -53,7 +53,7 @@ function Dashboard({ advisor, clientes, total_clientes }: Props) {
         <header className="border-b bg-card">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary">
+              <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary">
                 <Icon name="users" size={20} className="text-primary-foreground" />
               </div>
               <div className="min-w-0">

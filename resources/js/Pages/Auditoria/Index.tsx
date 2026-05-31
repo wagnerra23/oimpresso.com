@@ -271,7 +271,7 @@ function AuditoriaIndex({ activities, filters = {} }: Props): React.ReactElement
         <CardContent>
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Origem</label>
+              <span className="text-xs font-medium text-muted-foreground">Origem</span>
               <Select
                 value={causerKind}
                 onValueChange={(v) => {
@@ -294,7 +294,7 @@ function AuditoriaIndex({ activities, filters = {} }: Props): React.ReactElement
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Evento</label>
+              <span className="text-xs font-medium text-muted-foreground">Evento</span>
               <Select
                 value={event}
                 onValueChange={(v) => {
@@ -317,7 +317,7 @@ function AuditoriaIndex({ activities, filters = {} }: Props): React.ReactElement
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Entidade (subject_type)</label>
+              <span className="text-xs font-medium text-muted-foreground">Entidade (subject_type)</span>
               <Input
                 type="text"
                 value={subjectType}

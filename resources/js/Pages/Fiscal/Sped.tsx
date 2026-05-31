@@ -195,8 +195,19 @@ export default function Sped({ periodos, notice }: SpedProps) {
       {preview && (() => {
         const stMeta = STATUS_META[preview.status];
         return (
-          <div className="fx-drawer-bg" onClick={() => setPreview(null)}>
-            <div className="fx-drawer" role="dialog" aria-label={`Competência ${preview.mes}`} onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fx-drawer-bg"
+            role="button"
+            tabIndex={0}
+            aria-label="Fechar"
+            onClick={() => setPreview(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') setPreview(null);
+            }}
+          >
+            {/* stopPropagation evita que clique no conteúdo feche o dialog; backdrop (acima) trata fechar+teclado */}
+            {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
+            <div className="fx-drawer" role="dialog" aria-modal="true" aria-label={`Competência ${preview.mes}`} onClick={(e) => e.stopPropagation()}>
               <div className="fx-drawer-h">
                 <div>
                   <small>EFD-ICMS/IPI · competência</small>

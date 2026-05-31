@@ -7,7 +7,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
-import type { ReactNode, FormEvent } from 'react';
+import type { ReactNode, FormEvent, KeyboardEvent } from 'react';
 import { Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/Components/ui/input';
@@ -107,7 +107,7 @@ function ProdutoSellingPrices(props: ProdutoSellingPricesPageProps) {
   };
 
   const navigateCell = (
-    e: React.KeyboardEvent<HTMLInputElement>,
+    e: KeyboardEvent<HTMLInputElement>,
     rowIdx: number,
     colIdx: number,
   ) => {

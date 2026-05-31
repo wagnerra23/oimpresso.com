@@ -255,6 +255,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                   {/* Material */}
                   <div className="col-span-2 md:col-span-3">
                     <Label className="text-xs md:hidden">Material</Label>
+                    {/* eslint-disable-next-line no-restricted-syntax -- select nativo: linha de grid densa multi-item (calculadora m²), estilizado com tokens DS; migração p/ <Select> shadcn é Wave 2 */}
                     <select
                       className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       value={item.material_id ?? ''}

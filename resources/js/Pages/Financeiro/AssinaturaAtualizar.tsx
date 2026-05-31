@@ -179,6 +179,8 @@ export default function AssinaturaAtualizar({ assinaturas }: Props) {
                       }`}
                     >
                       <td className="px-4 py-3">
+                        {/* radio nativo: seleção de linha em tabela (1 assinatura/vez); RadioGroup do DS não encapsula linhas de <table> */}
+                        {/* eslint-disable no-restricted-syntax */}
                         <input
                           type="radio"
                           name="assinatura"
@@ -187,6 +189,7 @@ export default function AssinaturaAtualizar({ assinaturas }: Props) {
                           aria-label={`Selecionar assinatura #${a.id}`}
                           className="accent-primary"
                         />
+                        {/* eslint-enable no-restricted-syntax */}
                       </td>
                       <td className="px-4 py-3 font-medium">
                         #{a.id} {a.plano ?? 'Sem plano'}

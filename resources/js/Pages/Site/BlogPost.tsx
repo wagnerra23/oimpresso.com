@@ -74,9 +74,9 @@ function SiteBlogPost({ post }: SiteBlogPostProps) {
           />
         )}
 
+        {/* HTML sanitizado server-side via SiteContentService::sanitizeHtml (HTMLPurifier). */}
         <div
           className="prose prose-slate dark:prose-invert mt-8 max-w-none"
-          // eslint-disable-next-line react/no-danger -- sanitizado server-side (SiteContentService::sanitizeHtml)
           dangerouslySetInnerHTML={{ __html: post?.content ?? '' }}
         />
 
