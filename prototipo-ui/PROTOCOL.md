@@ -1,6 +1,6 @@
 # PROTOCOL.md — protocolo formal do loop Claude Design ↔ Claude Code
 
-> **Versão:** 1.1 — reconciliada com o modelo **autônomo** de 2026-05-31 (ver overlay no §2 + [AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md)). ADR formal do shift = **[W] abre** (FICA humano).
+> **Versão:** 1.1 — reconciliada com o modelo **autônomo** de 2026-05-31 (ver overlay no §2 + [AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md)). Formalizado em [ADR 0241](../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md).
 > **Documento mãe:** [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 > **Última revisão:** 2026-05-31 (reconciliação [CL] — conteúdo base 1.0 = 2026-05-09)
 
@@ -38,7 +38,7 @@ F4 MERGE       [W2]  PR merge se F3.5 passou
 
 Sem fase pulada. Mesmo princípio do MWART process ([ADR 0104](../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 
-> **⚙️ Overlay autônomo (2026-05-31 — supersede os gates humanos abaixo · pende ADR formal de [W]).**
+> **⚙️ Overlay autônomo (2026-05-31 — supersede os gates humanos abaixo · [ADR 0241](../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md)).**
 > Wagner adotou **0 intervenção humana** no loop ([AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md) · `SYNC_LOG` 2026-05-31 00:45). As 7 fases continuam válidas como **lentes**, mas 3 gates humanos viraram automáticos:
 > - **F1.5 [CD] crítica + F3.5 [CA] a11y** → **auto-check de quem produz** ([CC] roda a crítica, [CL] roda a a11y) antes de entregar — não fases-ferry separadas. Trava objetiva mantida: critique **≥80** + **WCAG AA**. Nota <70 ou a11y crítica → escala revisão dedicada.
 > - **F2 [W2] screenshot** → **gates CI**: *PR UI Judge (Claude Sonnet 4.5)* + *visual-regression*. Sem aprovação síncrona de screenshot.
