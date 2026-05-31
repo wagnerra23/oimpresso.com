@@ -183,7 +183,11 @@ class ConciliacaoController extends Controller
 
     /**
      * Fuzzy match: pra cada linha pendente, busca Titulo aberto com valor ≈ e data ±3d.
-     * Score = (valor_match * 0.7) + (data_proximity * 0.3).
+     * Score = (valor_score * 0.7) + (data_score * 0.3), arredondado a 2 casas, clamp [0,1].
+     *
+     * A janela de candidatos (valor dentro de R$0,01 + vencimento ±3 dias) é mantida
+     * intacta — só a forma de calcular o score deixou de ser o constante 0.85 e passou
+     * a refletir o quão perto valor e data realmente estão (US bug B1).
      */
     private function sugerirMatches(int $businessId): void
     {
@@ -206,15 +210,61 @@ class ConciliacaoController extends Controller
                 ->first();
 
             if ($candidato) {
+                // Score REAL por candidato (substitui o 0.85 hardcoded — bug B1).
+                // vencimento é cast 'date' (Carbon) no model → normaliza pra string ISO.
+                $score = $this->calcularMatchScore(
+                    $valorAbs,
+                    (float) $candidato->valor_total,
+                    (string) $linha->data_movimento,
+                    CarbonImmutable::parse($candidato->vencimento)->toDateString(),
+                );
+
                 DB::table('fin_bank_statement_lines')
                     ->where('id', $linha->id)
                     ->update([
+                        // Candidato já passou pela janela valor≈ + ±3d: continua virando "sugerido"
+                        // (não introduzimos novo corte por threshold pra não regredir matches
+                        // legítimos com até 3 dias de diferença, score ~0.78).
                         'status' => 'sugerido',
                         'titulo_id' => $candidato->id,
-                        'match_score' => 0.85,
+                        'match_score' => $score,
                         'updated_at' => now(),
                     ]);
             }
         }
+    }
+
+    /**
+     * Calcula a confiança REAL do match em [0,1], arredondada a 2 casas.
+     * Peso: 0.7 valor + 0.3 proximidade-de-data.
+     *
+     *  - valor_score: 1.0 quando os valores batem; decai com a diferença relativa ao
+     *    valor da linha (diferença ≤ R$0,01 ≈ 1.0). Escala = max(|valor da linha|, R$0,01)
+     *    pra evitar divisão por zero e dar decaimento proporcional ao tamanho do título.
+     *  - data_score: 1.0 no mesmo dia; decai linear até ~0 na borda da janela ±3 dias
+     *    (1 - |diasDiff|/4 → 3 dias = 0.25). Clamp em 0 pra qualquer coisa fora da janela.
+     */
+    private function calcularMatchScore(
+        float $valorLinha,
+        float $valorTitulo,
+        string $dataLinha,
+        string $vencimentoTitulo,
+    ): float {
+        // valor_score — decaimento proporcional à diferença relativa.
+        $escalaValor = max(abs($valorLinha), 0.01);
+        $valorScore = 1.0 - (abs($valorLinha - abs($valorTitulo)) / $escalaValor);
+        $valorScore = max(0.0, min(1.0, $valorScore));
+
+        // data_score — decaimento linear na janela ±3 dias.
+        $diasDiff = abs(
+            CarbonImmutable::parse($dataLinha)
+                ->diffInDays(CarbonImmutable::parse($vencimentoTitulo))
+        );
+        $dataScore = 1.0 - ($diasDiff / 4.0);
+        $dataScore = max(0.0, min(1.0, $dataScore));
+
+        $score = (0.7 * $valorScore) + (0.3 * $dataScore);
+
+        return round(max(0.0, min(1.0, $score)), 2);
     }
 }
