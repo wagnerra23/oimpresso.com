@@ -137,4 +137,36 @@ Cruzando o board (agrupado por **módulo**) com o `SIDEBAR_GROUPS` canon ([ADR 0
 
 ---
 
+---
+
+## STATUS DE EXECUÇÃO (2026-05-31)
+
+Todas as 44 telas <70 implementadas + push na `feat/staging-ct100`. Fechamento por **código verde** (0 hex/oklch + 0 erro tsc nos alvos + php -l ok); falta a evidência final do ratchet (build real + screenshot Wagner — [ADR 0236](../../decisions/0236-screen-grade-ratchet.md)).
+
+| Onda | Telas | Commit | Estado |
+|---|--:|---|---|
+| 0 Resgate | 4 | `cb065833a` + `6d7f9f82d` | ✅ código verde |
+| 1 Cor→token | 13 | `5f5cb5390` | ✅ código verde |
+| 3 Conformance | 18 | `65f3cab39` | ✅ código verde |
+| 2 Stubs→real | 6 | `7d40f1f17` | ✅ código verde |
+| Público (XSS) | 3 | `7d40f1f17` | ✅ sanitize server-side (HTMLPurifier) |
+| 4 Sidebar | 1 de 4 fixes | `6abc5d8ff` | 🟡 dedup OficinaAuto feito; resto = decisão Wagner |
+
+**Plano (tasks):** US-TR-309 (O0) · US-TR-310 (O1) · US-TR-311 (Público) · US-TR-312 (O2) · US-TR-313 (O3) · US-TR-314 (O4 parcial).
+
+### Onda 4 — 3 fixes que FALTAM (decisão de produto Wagner, [ADR 0180](../../decisions/0180-sidebar-v3-href-direto-ghosts-pageheader.md))
+Não alterados sem aprovação — mudam o que cliente vê no menu (governado, Wagner-explícito):
+1. **Desinchar SISTEMA** — 15 telas internas (`ads/*`, `governance/*`, `MemCofre`, `Usuario360`, `RagQuality`) ≠ tela de cliente. Separar interno do SISTEMA do tenant.
+2. **Grupos órfãos** — `ads`/`MemCofre`/`kb`/`ProjectMgmt` sem `group` caem em MAIS. Decidir: dar group canon OU marcar interno (talvez MAIS já seja o certo p/ ferramenta interna).
+3. **Bucket "Público"** no board — Site/Auth não pertencem ao sidebar (mudança de scorecard, não de código).
+
+### Pendências de fechamento (todas as ondas)
+- `npm run build` real (Vite) + smoke das telas.
+- Screenshot aprovado pelo Wagner por tela (gate visual ADR 0107/0114) — fecha o ratchet ADR 0236.
+- Re-rodar o board SCREEN-GRADE pra medir a nova média (era 75).
+
+> **Nota de processo:** Ondas 0/1/3 via sub-agents paralelos; Onda 2/Público via main loop (agents bateram limite de sessão). Vários writes de agent se perderam no worktree sparse e foram refeitos direto — lição em [feedback-design-parallel-agents-sparse-worktree](../../reference/feedback-design-parallel-agents-sparse-worktree.md).
+
+---
+
 _Gerado 2026-05-31 a partir do board 2026-05-30. Companheiro de [SCREEN-GRADE-BOARD-2026-05-30.md](SCREEN-GRADE-BOARD-2026-05-30.md)._
