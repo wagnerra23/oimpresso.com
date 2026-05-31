@@ -10,11 +10,13 @@
 // Uso:
 //   node scripts/ds-report.mjs                 # tabela por regra + módulo
 //   node scripts/ds-report.mjs --json          # JSON (CI / scorecard)
-//   node scripts/ds-report.mjs --module Sells  # filtra um módulo
+//   node scripts/ds-report.mjs --module Sells  # filtra um módulo (tabela)
+//   node scripts/ds-report.mjs --module Sells --json [--target N]  # CARTÃO DE EVIDÊNCIA (ADR 0240):
+//        {module,total,by_rule,target,pass,measured_against_sha} — o artefato que FECHA a tarefa
 //   node scripts/ds-report.mjs --worklist      # checklist da fila (✅/☐) no stdout
 //   node scripts/ds-report.mjs --write         # idem + grava no DS_ADOCAO_INDICE.md
 //
-// Refs: ADR 0209 (ratchet), ADR 0239 (governança DS git=SSOT), PROTOCOL.md §10.2.
+// Refs: ADR 0209 (ratchet), ADR 0239 (gov DS git=SSOT), ADR 0240 (evidência fecha task), PROTOCOL §10.
 
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -26,6 +28,8 @@ const AS_WORKLIST = process.argv.includes('--worklist');
 const DO_WRITE = process.argv.includes('--write');
 const modIdx = process.argv.indexOf('--module');
 const ONLY_MODULE = modIdx !== -1 ? process.argv[modIdx + 1] : null;
+const tgtIdx = process.argv.indexOf('--target');
+const TARGET_DS = tgtIdx !== -1 ? Number(process.argv[tgtIdx + 1]) : 0; // alvo de fechamento (default 0)
 
 // Fila canônica de execução (PR-C-WORKLIST.md — módulo = ID, "C#" deprecado).
 // Ordem = prioridade de migração. ✅ quando ds/*=0 nesse módulo (todas as fases limpas).
@@ -49,6 +53,13 @@ function runEslint() {
     if (err.stdout) return JSON.parse(err.stdout);
     throw err;
   }
+}
+
+// SHA do commit onde a medição foi feita — anti-stale (§10.4): a evidência diz contra o quê foi medida.
+function gitSha() {
+  try {
+    return execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  } catch { return 'unknown'; }
 }
 
 const RULE_RE = /^(ds\/[a-z0-9-]+)/;
@@ -147,6 +158,20 @@ function printReport({ total, byRule, byModule }) {
 
 function main() {
   const data = collect();
+  // cartão de EVIDÊNCIA de fechamento (ADR 0240): `--module=X --json` ⇒ o artefato que FECHA a migração DS.
+  // pass=true só quando ds/* <= target (default 0). measured_against_sha amarra a evidência ao commit (§10.4).
+  if (AS_JSON && ONLY_MODULE) {
+    console.log(JSON.stringify({
+      module: ONLY_MODULE,
+      total: data.total,
+      by_rule: data.byRule,
+      target: TARGET_DS,
+      pass: data.total <= TARGET_DS,
+      measured_against_sha: gitSha(),
+      generated_at: new Date().toISOString(),
+    }, null, 2));
+    return;
+  }
   if (AS_JSON) { console.log(JSON.stringify({ ...data, generated_at: new Date().toISOString() }, null, 2)); return; }
   if (DO_WRITE) { const md = worklistMarkdown(data); writeIndice(md); console.log('\n' + md + '\n'); return; }
   if (AS_WORKLIST) { console.log('\n' + worklistMarkdown(data) + '\n'); return; }
