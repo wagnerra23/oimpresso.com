@@ -193,7 +193,7 @@ function ProdutoSellingPrices(props: ProdutoSellingPricesPageProps) {
           />
         </div>
 
-        <main className="pb-16 px-6 mt-4">
+        <div className="pb-16 px-6 mt-4">
           {priceGroups.length === 0 ? (
             <div className="rounded-lg border border-border bg-card p-10 text-center">
               <p className="text-sm text-muted-foreground">
@@ -303,7 +303,7 @@ function ProdutoSellingPrices(props: ProdutoSellingPricesPageProps) {
               </p>
             </form>
           )}
-        </main>
+        </div>
       </div>
     </>
   );
