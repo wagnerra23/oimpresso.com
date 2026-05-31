@@ -171,7 +171,8 @@ class CmsPageController extends Controller
             }
 
             // XSS: sanitiza o HTML in-place (Site/Page usa dangerouslySetInnerHTML).
-            $page->content = $this->siteContent->sanitizeHtml($page->content);
+            // getAttribute: coluna `content` é magic property Eloquent (PHPStan).
+            $page->setAttribute('content', $this->siteContent->sanitizeHtml($page->getAttribute('content')));
 
             return $page;
         }, ['page_title' => $title]);
