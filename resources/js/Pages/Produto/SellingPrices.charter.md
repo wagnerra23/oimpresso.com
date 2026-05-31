@@ -41,11 +41,15 @@ Configurar preços de variations por price_group (matriz N×M). Cada célula = p
 - p95 < 800ms
 - 1280px responsivo (matriz pode ter scroll horizontal se >5 price_groups)
 - Tabular-nums em valores
+- Dirty-state visível (badge "Não salvo" + botão salvar desabilitado sem mudança)
+- Atalho Cmd/Ctrl+S salva sem sair da tela (preserveScroll) + toast de confirmação
+- Navegação por teclado entre células (setas + Enter)
+- Erros de validação do servidor por célula (useForm errors, chave group_prices.{pg}.{v}.price)
 
 ## Anti-patterns
 
 - ❌ `auth()->user()->business_id` (canon UPOS session)
-- ❌ Cor crua
+- ❌ Cor crua (migrado pra tokens v4 — bg-background/bg-card/text-foreground/border-border/destructive — 2026-05-31)
 
 ## Pest GUARD
 
@@ -66,3 +70,4 @@ it('Controller cross-tenant retorna 404')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
+| 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
