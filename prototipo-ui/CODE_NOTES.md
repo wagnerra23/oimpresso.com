@@ -41,3 +41,30 @@ Auto-check OK. [CL] entendeu protocolo.
 ### Notas pra Wagner:
 <qualquer coisa que precisa atenção dele>
 ```
+
+---
+
+## 2026-05-31 [CL] → [W] — Fila COWORK_NOTES processada pelo gate §10.4 (bundle Cowork `ssTxBh7X8X`)
+
+Wagner trouxe 2 design files do Cowork e pediu *"implementar COWORK_NOTES.md / reduzir os loops / automatize, não pergunta, resolve"*. Apliquei o **gate §10.4** (`PROTOCOL.md` — valido contra `main` sozinho; só escalo o subjetivo). **Veredito: a fila do bundle está stale vs `main` — `main` já passou de tudo.** Item a item:
+
+| Item COWORK_NOTES (bundle) | Veredito §10.4 vs `main` | Ação [CL] |
+|---|---|---|
+| **#1 — cadeia 7→4 hops (com [W] no merge F4)** | **SUPERADO** — `main` já é **0-humano** desde hoje 00:45 (`SYNC_LOG` + `AUTOMACAO-LOOP-AUTONOMO.md`): merge autônomo `--admin`, gate visual = PR UI Judge + visual-regression. O 4-hop com [W]-merge é *menos* enxuto que o adotado. | **NÃO implementei** (seria regressão). |
+| **#2 — Regra de Ouro / gate de validação** | **JÁ É CANON** — `PROTOCOL.md §10.4` + ADR 0239 (2026-05-30) cobrem o lado [CL]. O pré-flight 4-gates do lado [CC] é comportamento **Cowork-local** (`LICOES_CC`/`STATUS`, jurisdição [CC]), não `proibicoes.md` do repo. | **NÃO dupliquei** (anti L-01/L-11). |
+| **#3 — guards de lint anti-drift** | **PARCIAL** — TAREFA 1 (eslint `ds/*`) **já ativa** (ratchet; baseline 1373→1348 hoje). TAREFA 2 (stylelint `.css`) **não existe** (sem config). Ligar = "lógica de tooling" = FICA humano (AUTOMACAO §4); o pedido pedia *"devolver contagem"*. | Devolvi o drift count (↓). **NÃO liguei guard.** |
+| **#4 — Vendas A+ (≥9.5)** | Fora do escopo [CL] — é **F1 design ([CC])**, não F3. | Não processei. |
+
+### Drift count item #3 (devolvido sem ligar guard) — mapa P0 da migração `.css`
+- `resources/css/cowork-financeiro-bundle.css`: **188 literais hex** + `--bubble-me: oklch(0.58 0.09 220)` (azul; canon = roxo `oklch(0.55 0.15 295)` — ADR 0235) + `--bubble-me-fg: #ffffff` + `--origin-CRM-*` em hue 220. **P0.**
+- `resources/js/Components/cockpit/Sidebar.tsx:1147`: `vibeAccent('workspace')` retorna `oklch(0.58 0.09 220)` (azul). Pode ser intencional (atmosfera ADR UI-0008) — **decisão sua**, não toquei.
+
+### Achado NOVO (o valor real desta passada) — `PROTOCOL.md` drifted vs prática
+A "lei" (`PROTOCOL.md`) ainda dizia **7-hop + [W2] screenshot manual + "--admin proibido"** (§2, §10.1) — contradizendo o modelo **0-humano** que você adotou hoje 00:45 (`HANDOFF` + `SYNC_LOG` + `AUTOMACAO-LOOP-AUTONOMO.md`). Loop-cause clássico: o próximo Claude lê a lei stale e re-introduz os gates manuais / recusa `--admin`. **Reconciliei** `PROTOCOL.md` §2 (overlay autônomo) + §10.1 (gate CI, merge `--admin`) — atribuído à *sua* decisão (§10.4: "se a resposta está no git, [CL] decide e age").
+
+### FICA pra você (Tier 0 — não fiz, de propósito)
+- **ADR formal do shift 0-humano** (supersede o gate [W2]-manual de ADR 0114/0107). "ADR novo" = FICA humano (AUTOMACAO §4). Não cunho número (colisão `0235` já documentada confirma a regra). Quando quiser, você abre — o overlay no §2 já tem o texto pronto.
+- **Nada foi mergeado.** PR `docs/cowork-loop-protocol-10-4` aguarda seu merge — mexe na lei/governança = Tier 0, **não** auto-merge.
+
+### Drift de canal (informo, não corrijo — é decisão sua)
+`COWORK_NOTES.md` do repo = *"INBOX: Wagner → Claude Design"*; o do bundle = *"Cowork → Claude Code"*. Definições contraditórias do **mesmo arquivo** = loop-cause. Reconciliar a semântica é subjetivo (§10.4 escala pra [W]).
