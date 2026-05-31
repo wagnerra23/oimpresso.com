@@ -1457,6 +1457,24 @@ parameters:
 			path: Modules/Brief/Services/BriefGeneratorService.php
 
 		-
+			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PublishesDriftToCentrifugo is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: Modules/Governance/Services/Concerns/PublishesDriftToCentrifugo.php
+
+		-
+			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PersistsDriftAlert is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: Modules/Governance/Services/Concerns/PersistsDriftAlert.php
+
+		-
+			message: '#^Argument of an invalid type Illuminate\\Routing\\RouteCollectionInterface supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: Modules/Governance/Services/Checkers/RoutesZombieChecker.php
+
+		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 4
@@ -9482,7 +9500,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 68
+			count: 76
 			path: Modules/Jana/Config/config.php
 
 		-
