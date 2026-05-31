@@ -1,0 +1,71 @@
+name: Stylelint CSS anti-drift (G5 · ADR 0209)
+
+# Gêmeo do eslint-gate.yml pro CSS. Fecha o G5 do F0-AUDITORIA-ROTINAS-DESIGN-2026-05-31.
+# Bloqueia PR que introduzir regressão de drift CSS vs config/stylelint-baseline.json.
+#
+# Pattern ratchet idêntico ao eslint-gate.yml — falha só em delta > 0.
+# Regras (stylelint.config.mjs): color-no-hex · no-duplicate-selectors ·
+# declaration-no-important · no-duplicate-at-import-rules. Mapeiam o "Checklist
+# pre-commit" do CODE_DESIGN_CONTRACT.md.
+#
+# Comando manual local: npm run stylelint:baseline:check
+
+on:
+  push:
+    branches: [main, 6.7-react]
+    paths:
+      - 'resources/css/**'
+      - 'stylelint.config.mjs'
+      - 'config/stylelint-baseline.json'
+      - 'scripts/stylelint-baseline.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/stylelint-gate.yml'
+  pull_request:
+    paths:
+      - 'resources/css/**'
+      - 'stylelint.config.mjs'
+      - 'config/stylelint-baseline.json'
+      - 'scripts/stylelint-baseline.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/stylelint-gate.yml'
+
+concurrency:
+  group: stylelint-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stylelint:
+    name: Stylelint · ratchet vs baseline
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install npm deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Stylelint ratchet (falha só em regressão vs baseline)
+        run: node scripts/stylelint-baseline.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Stylelint detectou REGRESSÃO de drift CSS vs config/stylelint-baseline.json"
+          echo ""
+          echo "Próximos passos:"
+          echo "  1. Local: npm run stylelint · vê quais arquivos regrediram"
+          echo "  2. Trocar hex cru por var(--token)/oklch · remover !important · dedup seletor"
+          echo "  3. Se regressão intencional/aceita, atualizar baseline em commit separado:"
+          echo "       npm run stylelint:baseline:write"
+          echo "     (commit + justificativa no PR — vai aparecer no diff do JSON)"
+          echo ""
+          echo "Refs: ADR 0209 · CODE_DESIGN_CONTRACT.md · F0 G5"
