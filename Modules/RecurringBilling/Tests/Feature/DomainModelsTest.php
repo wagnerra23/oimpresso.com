@@ -28,6 +28,7 @@ beforeEach(function () {
         $table->increments('id'); // int unsigned
         $table->unsignedInteger('business_id')->index();
         $table->string('name')->nullable();
+        $table->softDeletes();
         $table->timestamps();
     });
     Schema::create('fin_contas_bancarias', function ($table) {
@@ -65,6 +66,12 @@ beforeEach(function () {
         $table->dateTime('canceled_at')->nullable();
         $table->dateTime('paused_at')->nullable();
         $table->unsignedInteger('conta_bancaria_id')->nullable();
+        $table->unsignedSmallInteger('total_paid_cached')->default(0);
+        $table->unsignedSmallInteger('failed_count_cached')->default(0);
+        $table->decimal('total_revenue_cached', 14, 2)->default(0);
+        $table->date('paused_until')->nullable();
+        $table->string('churn_reason', 64)->nullable();
+        $table->string('contact_phone_cached', 32)->nullable();
         $table->json('metadata')->nullable();
         $table->timestamps();
         $table->softDeletes();
