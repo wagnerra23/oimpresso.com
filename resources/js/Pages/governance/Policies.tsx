@@ -2,11 +2,13 @@
 //   tela: /governance/policies
 //   adrs: 0079 Art. 8 (Policy Gating), 0086 (Fase 5 MVP)
 
-import React, { type ReactNode } from 'react'
+import React, { useState, type ReactNode } from 'react'
 import { router } from '@inertiajs/react'
+import { toast } from 'sonner'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import { Switch } from '@/Components/ui/switch'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -40,10 +42,25 @@ interface Props {
 }
 
 const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ rules_by_category, kpis }) => {
+  // estado otimista por rule id: { [id]: enabled } sobrepõe o valor vindo das props
+  const [overrides, setOverrides] = useState<Record<number, boolean>>({})
+  const [pendingId, setPendingId] = useState<number | null>(null)
+
+  const isEnabled = (rule: Rule) => overrides[rule.id] ?? rule.enabled
+
   const toggle = (id: number, current: boolean) => {
-    router.post(`/governance/policies/${id}/toggle`, { enabled: !current }, {
+    const next = !current
+    setPendingId(id)
+    setOverrides((prev) => ({ ...prev, [id]: next })) // otimista: reflete antes da resposta
+
+    router.post(`/governance/policies/${id}/toggle`, { enabled: next }, {
       preserveScroll: true,
       preserveState: true,
+      onError: () => {
+        setOverrides((prev) => ({ ...prev, [id]: current })) // rollback
+        toast.error('Falha ao alterar a policy. Revertido.')
+      },
+      onFinish: () => setPendingId(null),
     })
   }
 
@@ -71,24 +88,24 @@ const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
               <h3 className="text-lg font-semibold mb-3 capitalize">{group.category}</h3>
               <ul className="space-y-2">
                 {group.rules.map((rule) => (
-                  <li key={rule.id} className="flex items-start gap-3 text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2 last:border-0">
-                    <button
-                      onClick={() => toggle(rule.id, rule.enabled)}
-                      className={`shrink-0 w-12 h-6 rounded-full transition-colors ${rule.enabled ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
-                      aria-label={rule.enabled ? 'Desativar' : 'Ativar'}
-                    >
-                      <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${rule.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </button>
+                  <li key={rule.id} className="flex items-start gap-3 text-sm border-b border-border pb-2 last:border-0">
+                    <Switch
+                      checked={isEnabled(rule)}
+                      disabled={pendingId === rule.id}
+                      onCheckedChange={() => toggle(rule.id, isEnabled(rule))}
+                      aria-label={isEnabled(rule) ? 'Desativar policy' : 'Ativar policy'}
+                      className="mt-0.5 shrink-0"
+                    />
 
                     <div className="flex-1">
-                      <div className="font-mono text-xs text-zinc-500">{rule.rule_key}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{rule.rule_key}</div>
                       <div className="font-medium">{rule.name}</div>
-                      <div className="text-xs text-zinc-500 mt-1">{rule.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{rule.description}</div>
                     </div>
 
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       <Badge variant="outline" className="text-xs">v{rule.version}</Badge>
-                      <span className="text-xs text-zinc-500">{rule.triggered_count} hits</span>
+                      <span className="text-xs text-muted-foreground">{rule.triggered_count} hits</span>
                     </div>
                   </li>
                 ))}

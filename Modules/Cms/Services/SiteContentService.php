@@ -35,6 +35,37 @@ class SiteContentService
     public function __construct(protected CmsUtil $cmsUtil) {}
 
     /**
+     * Sanitiza HTML de conteúdo do CMS antes de ir pro front (dangerouslySetInnerHTML).
+     *
+     * Defesa contra stored-XSS: o conteúdo de blog/page é editável no admin e
+     * renderizado cru no Site/BlogPost + Site/Page. HTMLPurifier (ezyang/htmlpurifier,
+     * já no composer) remove <script>, handlers on*, javascript: e tags perigosas,
+     * preservando markup de texto rico (h/p/a/img/ul/strong/etc).
+     *
+     * Idempotente e null-safe. Cache de serializer em storage/ (criado on-demand).
+     */
+    public function sanitizeHtml(?string $html): string
+    {
+        if ($html === null || $html === '') {
+            return '';
+        }
+
+        return OtelHelper::spanBiz('cms.service.sanitize_html', function () use ($html) {
+            $cacheDir = storage_path('app/htmlpurifier');
+            if (! is_dir($cacheDir)) {
+                @mkdir($cacheDir, 0775, true);
+            }
+
+            $config = \HTMLPurifier_Config::createDefault();
+            $config->set('Cache.SerializerPath', $cacheDir);
+            $config->set('HTML.TargetBlank', true);
+            $config->set('Attr.AllowedFrameTargets', ['_blank']);
+
+            return (new \HTMLPurifier($config))->purify($html);
+        });
+    }
+
+    /**
      * Payload completo da home pública (/c).
      *
      * Usado por CmsController@index → Inertia::render('Site/Home').
