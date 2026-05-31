@@ -2,7 +2,32 @@
 
 > Visão unificada de AR/AP (Contas a Receber / Contas a Pagar) + Fluxo de Caixa + Boletos + Conciliação OFX + Plano de Contas BR + Workflow Aprovação. Cockpit V2 persona Eliana [E] (financeiro escritório, densidade alta, atalhos teclado).
 
-**Última atualização:** 2026-05-20 tarde · **27 PRs Ondas 12-26** ([#1158→#1252](https://github.com/wagnerra23/oimpresso.com/pulls)) · Bundle copy CSS canon 9054 LOC · 7 funções novas · paridade canon 4.8→**9.8/10** · drawer detalhe **10/10** · cobertura funcional 75%→**87%**.
+**Última atualização:** 2026-05-31 — **reconciliação BRIEFING × código real** (pré-flight do [Método 9.75 Financeiro](METODO-9.75-FINANCEIRO.md), [PR #2040](https://github.com/wagnerra23/oimpresso.com/pull/2040)). A entrada anterior (2026-05-20) ficou **atrás do código**: uma wave de features (US-FIN-021..029) entrou depois e não estava documentada aqui — o que induziu um roadmap errado. Bloco de reconciliação abaixo. Histórico 05-20 preservado mais abaixo (append-only).
+
+## 🔁 Reconciliação 2026-05-31 — features US-FIN-021..029 já em `main` (não estavam na briefing)
+
+> **Como foi verificado:** leitura direta de `Modules/Financeiro/Http/Controllers/UnificadoController.php` + `resources/js/Pages/Financeiro/Unificado/Index.tsx` + `_components/*` no código de `origin/main` (2026-05-31). Fonte da verdade = código, não doc. ⚠️ O [CHANGELOG.md](CHANGELOG.md) também está atrás (parado na Wave 18) — atualizar junto numa próxima.
+
+**Funções que a briefing 05-20 NÃO listava mas existem em prod** (método real no controller entre parênteses):
+
+| US / função | Evidência no código |
+|---|---|
+| US-FIN-021 — Insert manual de título | `UnificadoController::store()` (substitui stub `/unificado/novo`) |
+| US-FIN-022 — Aging buckets (filtro) | `agingBreakdown()` + chips `lt30/30-60/60-90/gt90/gt180` (Index.tsx:1164) |
+| US-FIN-023 — Delta % MoM nos KPIs | `kpis()` → `deltaPct()` |
+| US-FIN-024 — Combobox cliente + atalhos | `buscarCliente()` + J/K/↑↓/Space/Enter/Esc/⌘K/`/`/B/N/R/P (Index.tsx:936-1005) |
+| US-FIN-025 — Auto-sugerir valor | `sugerirValor()` (último + média + count por contraparte) |
+| US-FIN-026 — Anexos UI (listar/baixar) | `listarAnexos()` · `baixarAnexo()` · `anexar()` · `removerAnexo()` |
+| US-FIN-027/028 — Workflow aprovação + gate Spatie | `solicitarAprovacao()` · `aprovar()`/`rejeitar()` com `can:financeiro.titulo.aprovar` |
+| US-FIN-029 — OCR boleto (killer vs Conta Azul) | `ocrBoleto()` + `BoletoOcrService` (OpenAI Vision) |
+| Audit diff "ver edições" | `auditTrail()` retorna `{field, from, to}` (componente `FinAuditTrail`) |
+| Troubleshooter · Resumir · Anomaly · Imprimir PDF · Apresentação · Favoritos | `FinTroubleshooter` · `FinMonthDigest` · `FinAnomalyDetector` · `FinTranscriptPDF` · `FinPresentationMode` · `useFinFavs` |
+
+**Leitura real do módulo:** o Unificado (tela-carro-chefe) está em **~9,3/10** pelo método KB-9.75 — não 8,5. A maior parte de Navegação/Curadoria/Saída/Guia está fechada.
+
+**Gap REAL pra 9,75** (ver [METODO-9.75-FINANCEIRO.md](METODO-9.75-FINANCEIRO.md) §3): (1) 🔴 RAG "perguntar ao histórico" — precisa ADR (Jana + corpus); (2) 🔴 trilhas de onboarding; (3) 🟡 auto-sugerir categoria/plano-de-contas; (4) 🟡 mobile cards + a11y. Pendente também: **re-auditar as outras telas** (Conciliação/DRE/Cobrança/Relatórios/Extrato) contra o código real — a briefing por-tela abaixo é de 05-20.
+
+---
 
 ## Estado UI 2026-05-20 tarde — Drawer canon 10/10 ✅
 
