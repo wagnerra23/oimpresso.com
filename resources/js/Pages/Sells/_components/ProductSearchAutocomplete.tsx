@@ -178,6 +178,13 @@ export default function ProductSearchAutocomplete({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
+  // G3 (2026-05-31) — navegação por teclado no dropdown (paridade CustomerSearchAutocomplete).
+  // `highlightedIndex` percorre os GRUPOS do dropdown; `variationHighlightedIndex`
+  // percorre as VARIAÇÕES dentro do popover aberto (caso multi-tamanho — o comum
+  // pra Larissa @ vestuário). -1 = nada destacado. Larissa opera teclado+scanner,
+  // então o dropdown precisa ser 100% navegável sem mouse (gap board → Champion).
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const [variationHighlightedIndex, setVariationHighlightedIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // R7 anti-race — timestamp da última seleção. Bloqueia fetches em flight do
@@ -266,6 +273,9 @@ export default function ProductSearchAutocomplete({
     setResults(productQuery.data);
     setOpen(true);
     setExpandedProductId(null);
+    // G3 — dado novo zera o destaque de teclado (índice antigo ficaria stale).
+    setHighlightedIndex(-1);
+    setVariationHighlightedIndex(-1);
   }, [productQuery.data]);
 
   // Limpa results quando o termo cai abaixo do mínimo (debounce já zerou a key).
@@ -369,9 +379,42 @@ export default function ProductSearchAutocomplete({
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
+      // G3 — popover de variação aberto: Esc fecha só o popover (volta pro grupo).
+      if (expandedProductId !== null) {
+        setExpandedProductId(null);
+        setVariationHighlightedIndex(-1);
+        return;
+      }
       setOpen(false);
       setExpandedProductId(null);
+      setHighlightedIndex(-1);
       inputRef.current?.blur();
+      return;
+    }
+
+    // G3 — navegação por seta (paridade CustomerSearchAutocomplete:170-181).
+    // Quando o popover de variação está aberto, as setas navegam as VARIAÇÕES;
+    // caso contrário, navegam os GRUPOS do dropdown.
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (expandedProductId !== null) {
+        const grp = groups.find((g) => g.product_id === expandedProductId);
+        const n = grp ? grp.variations.length : 0;
+        setVariationHighlightedIndex((prev) => Math.min(prev + 1, n - 1));
+        return;
+      }
+      if (!open && groups.length > 0) setOpen(true);
+      setHighlightedIndex((prev) => Math.min(prev + 1, groups.length - 1));
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (expandedProductId !== null) {
+        setVariationHighlightedIndex((prev) => Math.max(prev - 1, 0));
+        return;
+      }
+      setHighlightedIndex((prev) => Math.max(prev - 1, -1));
       return;
     }
 
@@ -389,6 +432,33 @@ export default function ProductSearchAutocomplete({
       // anterior). Um 2º Enter rápido (operadora insistindo) cairia no mesmo branch
       // e poderia duplicar. Ignora.
       if (loading) return;
+
+      // G3 — popover de variação aberto: Enter seleciona a variação destacada
+      // (ou a 1ª, se nenhuma foi navegada). Precede o scanner/match — o usuário
+      // já está num sub-fluxo explícito de escolha de tamanho.
+      if (expandedProductId !== null) {
+        const grp = groups.find((g) => g.product_id === expandedProductId);
+        const idx = variationHighlightedIndex >= 0 ? variationHighlightedIndex : 0;
+        const v = grp?.variations[idx];
+        if (v) handleSelectVariation(v);
+        return;
+      }
+
+      // G3 — grupo destacado por seta: 1 variação → seleciona direto; multi → abre
+      // o popover e destaca a 1ª variação. Só dispara quando o usuário navegou de
+      // fato (highlightedIndex >= 0); o scanner (Enter sem seta) cai no match exato
+      // abaixo com highlightedIndex == -1 — comportamento legado intacto.
+      if (highlightedIndex >= 0 && groups[highlightedIndex]) {
+        const grp = groups[highlightedIndex];
+        const onlyVar = grp.variations[0];
+        if (grp.variations.length === 1 && onlyVar) {
+          handleSelectVariation(onlyVar);
+        } else {
+          setExpandedProductId(grp.product_id);
+          setVariationHighlightedIndex(0);
+        }
+        return;
+      }
 
       const q = query.trim();
 
@@ -441,6 +511,8 @@ export default function ProductSearchAutocomplete({
     setResults([]);
     setOpen(false);
     setExpandedProductId(null);
+    setHighlightedIndex(-1);
+    setVariationHighlightedIndex(-1);
     inputRef.current?.focus();
   };
 
@@ -453,6 +525,8 @@ export default function ProductSearchAutocomplete({
     setResults([]);
     setOpen(false);
     setExpandedProductId(null);
+    setHighlightedIndex(-1);
+    setVariationHighlightedIndex(-1);
     inputRef.current?.focus();
   };
 
@@ -465,6 +539,8 @@ export default function ProductSearchAutocomplete({
     }
     // >1 variação → toggla popover (open/close em click)
     setExpandedProductId((prev) => (prev === group.product_id ? null : group.product_id));
+    // G3 — abrir/fechar por clique zera o destaque de variação (teclado retoma do 0).
+    setVariationHighlightedIndex(-1);
   };
 
   return (
@@ -570,8 +646,9 @@ export default function ProductSearchAutocomplete({
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-border bg-popover shadow-md"
         >
-          {groups.map((group) => {
+          {groups.map((group, index) => {
             const isExpanded = expandedProductId === group.product_id;
+            const isHighlighted = index === highlightedIndex; // G3 — destaque teclado
             const firstVar = group.variations[0];
             // group.variations sempre tem ≥1 (garantido pelo groupResults).
             // Type guard explícito pro TS narrow.
@@ -588,8 +665,13 @@ export default function ProductSearchAutocomplete({
                   key={`g-${group.product_id}-${firstVar.variation_id}`}
                   type="button"
                   role="option"
+                  aria-selected={isHighlighted}
                   onClick={() => handleSelectVariation(firstVar)}
-                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm focus:outline-none ${
+                    isHighlighted
+                      ? 'bg-accent text-accent-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+                  }`}
                 >
                   <div className="flex flex-col min-w-0">
                     <span className="font-medium truncate">{displayName}</span>
@@ -615,16 +697,24 @@ export default function ProductSearchAutocomplete({
               <Popover
                 key={`g-${group.product_id}`}
                 open={isExpanded}
-                onOpenChange={(o) => setExpandedProductId(o ? group.product_id : null)}
+                onOpenChange={(o) => {
+                  setExpandedProductId(o ? group.product_id : null);
+                  if (!o) setVariationHighlightedIndex(-1); // G3 — fechar zera destaque
+                }}
               >
                 <PopoverTrigger asChild>
                   <button
                     type="button"
                     role="option"
+                    aria-selected={isHighlighted}
                     aria-expanded={isExpanded}
                     aria-haspopup="listbox"
                     onClick={() => handleGroupClick(group)}
-                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm focus:outline-none ${
+                      isHighlighted || isExpanded
+                        ? 'bg-accent text-accent-foreground'
+                        : 'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+                    }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <Package className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
@@ -656,8 +746,12 @@ export default function ProductSearchAutocomplete({
                   align="start"
                   sideOffset={8}
                   className="w-80 p-0"
-                  // Evita roubar foco do input principal — popover lida com seu próprio teclado
+                  // Foco permanece no input principal: o popover é navegado pelas setas
+                  // do próprio input (G3). Prevenir open+close auto-focus evita que o
+                  // Radix mande o foco pro PopoverContent (abrir) ou pro trigger (fechar)
+                  // — qualquer um dos dois quebraria a navegação por teclado seguinte.
                   onOpenAutoFocus={(e) => e.preventDefault()}
+                  onCloseAutoFocus={(e) => e.preventDefault()}
                 >
                   <div className="border-b border-border px-3 py-2">
                     <p className="text-xs font-medium text-muted-foreground">
@@ -665,13 +759,18 @@ export default function ProductSearchAutocomplete({
                     </p>
                   </div>
                   <ul role="listbox" aria-label={`Variações de ${group.name}`} className="max-h-72 overflow-auto">
-                    {group.variations.map((v) => (
+                    {group.variations.map((v, vIndex) => (
                       <li key={`v-${v.variation_id}`}>
                         <button
                           type="button"
                           role="option"
+                          aria-selected={vIndex === variationHighlightedIndex}
                           onClick={() => handleSelectVariation(v)}
-                          className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                          className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm focus:outline-none ${
+                            vIndex === variationHighlightedIndex
+                              ? 'bg-accent text-accent-foreground'
+                              : 'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+                          }`}
                         >
                           <div className="flex flex-col min-w-0">
                             <span className="font-medium truncate">

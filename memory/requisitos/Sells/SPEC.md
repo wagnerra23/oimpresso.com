@@ -1,3 +1,14 @@
+---
+slug: sells
+title: "Especificação funcional — Sells (migração MWART de /sells/create)"
+type: spec
+module: Sells
+status: ativo
+owner: wagner
+version: 1.0.0
+last_updated: 2026-05-31
+---
+
 # Especificação funcional — Sells (migração MWART de /sells/create)
 
 > **Convenção do ID:** `US-SELL-NNN` para user stories.
@@ -257,7 +268,7 @@ Como ter certeza que vai dar certo:
 3. **Pest tests do `store()`** — 5+ fixtures cobrindo casos reais (à vista, prazo, desconto %, fixo, frete, split). Baseline de regressão ANTES de qualquer mudança.
 4. **Smoke biz=1, NUNCA biz=4** — auto-mem `feedback_test_business_id_1_nunca_4`. Wagner WR2 SC é cobaia segura; Larissa nunca.
 5. **Canary 7 dias Wagner** — flag ON só em biz=1 antes de tocar biz=4. Bug encontrado → fix antes do cutover.
-6. **Audit cockpit-runbook modo B obrigatório** — score ≥ 70 em CADA US-SELL-00X antes de mergear PR. CRITICAL bloqueia merge.
+6. **Audit cockpit-runbook modo B obrigatório** — score ≥ 70 em CADA US-SELL-NNN antes de mergear PR. CRITICAL bloqueia merge.
 7. **Backup DB antes do cutover** — `mysqldump` das 4 tabelas críticas. Restore em <5min se necessário.
 8. **Aviso prévio pra Larissa** — humano-no-loop, ela sabe que mudança rolou e tem canal direto pra reportar.
 9. **30 dias monitorando antes de remover Blade** — janela longa pra qualquer regressão de borda aparecer.
@@ -892,6 +903,55 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 - **Estimate:** 4h código + 7d canary monitoring (relógio mundo real)
 - **blocked_by:** nenhum (FSM canon LIVE prod biz=1 desde 2026-05-12, ADR 0143)
 
+### US-SELL-041 · NFC-e "emitir agora" no fim do Create (paridade Bling)
+
+> owner: wagner · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** benchmark `tela-venda-arte` 2026-05-31 (gap **G5**, P1) — `memory/sessions/2026-05-31-tela-venda-arte.md`.
+
+**Problema:** o Bling emite NFC-e DENTRO do fluxo da venda; no oimpresso a NFe/NFC-e só sai depois (drawer do Index ou flag listener auto). A Larissa (biz=4) vende E fatura — hoje precisa sair do Create e ir ao Index pra emitir.
+
+**Aceite:**
+- [ ] Botão "Salvar e emitir NFC-e" no footer/pós-save do Create, reusando `VdNfeEmitModal` (já existe) + `FiscalSection`.
+- [ ] Gate por flag fiscal do business (só aparece se biz tem emissão habilitada — ex biz=4).
+- [ ] Não quebra o fluxo "só salvar" (botão primário continua "Salvar venda").
+- [ ] Pest cobrindo: salva venda → emite NFC-e cstat 100; venda sem flag → botão ausente.
+
+**Impacto:** alto (paridade concorrente BR + sinal forte Larissa fatura). **Esforço IA-pair:** ~3-5h.
+
+### US-SELL-042 · Batch no handlePriceGroupChange — elimina N+1 em /products/list
+
+> owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** benchmark `tela-venda-arte` 2026-05-31 (gap **G4**, P1) — `memory/sessions/2026-05-31-tela-venda-arte.md`.
+
+**Problema:** ao trocar o grupo de preço do cliente, `handlePriceGroupChange` (`Sells/Create.tsx` ~L353-419) refaz **1 request por item** do carrinho pra re-buscar preço → N+1. Com carrinho grande, trava perceptível.
+
+**Aceite:**
+- [ ] Batchar num único `/products/list` (ou endpoint que aceite lista de variation_ids) em vez de 1 request por linha.
+- [ ] Preço/grupo reaplicado a todas as linhas após 1 round-trip.
+- [ ] Sem regressão no auto-aplica grupo de preço ao trocar cliente (US-SELL R8).
+
+**Impacto:** médio (perf percebida com carrinho grande). **Esforço IA-pair:** ~1-2h. **Pré-req:** endpoint aceitar batch.
+
+### US-SELL-043 · Migrar CSS Cowork (.sells-cowork / vd-*) → tokens DS no Sells/Index
+
+> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** benchmark `tela-venda-arte` 2026-05-31 (gap **G6**, P1) — `memory/sessions/2026-05-31-tela-venda-arte.md`.
+
+**Problema:** `Sells/Index.tsx` (~1806 linhas) é o cockpit de vendas (board 90, Leader) mas desvia do DS por **CSS Cowork scoped** (`.sells-cowork`, `vd-*`, oklch/hex/blue cru) fora do DS v4. É o que separa o Index de Champion (95+).
+
+**Aceite:**
+- [ ] Mapa classe↔token (auditar `vd-*` / `.sells-cowork` no bundle + no .tsx).
+- [ ] Migrar pra tokens DS v4 / roxo 295; eliminar hex/blue cru (respeitando cores de status semânticas — ver convenção do projeto).
+- [ ] Sem regressão visual (gate PRE-MERGE-UI + screenshot Wagner).
+
+**Impacto:** médio (não move agulha da Larissa, mas destrava Champion). **Esforço IA-pair:** ~4-8h. **Relacionado:** cycle DS-v3 (provável ADR pra tokens semânticos de status).
+
 ---
 
-**Última atualização:** 2026-05-15 — US-SELL-036 adicionada (goal #3 CYCLE-06 FSM rollout). 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) + 1 P0 (US-036) = 22 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).
+**Última atualização:** 2026-05-31 — US-SELL-041/042/043 adicionadas (benchmark `tela-venda-arte` 2026-05-31, gaps P1 — G5 NFC-e inline no Create / G4 batch price-group / G6 CSS Cowork→tokens no Index). 2026-05-15 — US-SELL-036 adicionada (goal #3 CYCLE-06 FSM rollout). 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) + 1 P0 (US-036) = 22 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).
