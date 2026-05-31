@@ -11,7 +11,10 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { usePage, router } from '@inertiajs/react';
-import { Printer, CheckCircle2 } from 'lucide-react';
+import {
+  Printer, CheckCircle2,
+  Banknote, CreditCard, FileText, Landmark, Wallet, ReceiptText,
+} from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade backend SellController@inertiaCaixa
@@ -332,21 +335,23 @@ export default function SellsCaixaIndex() {
   );
 }
 
-// Mapeia keyword → emoji simples (paridade Cowork ícones leves).
-function paymentIcon(name: string): string {
+// Mapeia keyword → ícone lucide (AP6 · paridade Cowork ícones leves).
+// O wrapper <span className="vc-pay-icon"> já provê margin-right:6px (sells-cowork.css).
+function paymentIcon(name: string): ReactNode {
+  const cls = 'h-3.5 w-3.5 inline-block align-text-bottom';
   switch (name) {
     case 'cash':
-      return '💵';
+      return <Banknote className={cls} />;
     case 'card':
-      return '💳';
+      return <CreditCard className={cls} />;
     case 'cheque':
-      return '📄';
+      return <FileText className={cls} />;
     case 'transfer':
-      return '🏦';
+      return <Landmark className={cls} />;
     case 'advance':
-      return '💰';
+      return <Wallet className={cls} />;
     default:
-      return '🧾';
+      return <ReceiptText className={cls} />;
   }
 }
 

@@ -9,7 +9,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { type ReactNode, useMemo, useState } from 'react';
-import { Lock, FileText, Search } from 'lucide-react';
+import { Lock, FileText, Search, BookOpen } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
@@ -211,7 +211,7 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
           <b className="fin-num-neg">{stats.despesa}</b> despesa
         </span>
         <span className="spacer" />
-        <span>📖 Hierarquia BR · Receita Federal DCASP simplificado</span>
+        <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /> Hierarquia BR · Receita Federal DCASP simplificado</span>
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ import ReactFlow, {
   type Node as RFNode, type Edge as RFEdge,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Brain, Zap, Wrench, Shield, Database } from 'lucide-react'
+import { Brain, Zap, Wrench, Shield, Database, Save, Workflow } from 'lucide-react'
 
 interface GraphNode {
   id: string
@@ -60,7 +60,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
     positions.push({
       id: n.id, type: 'default',
       position: { x: cx, y: cy },
-      data: nodeData(n, '💾'),
+      data: nodeData(n, <Save className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -82,7 +82,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
     positions.push({
       id: n.id, type: 'default',
       position: { x: cx - 480, y: 100 + i * 110 },
-      data: nodeData(n, '🧬'),
+      data: nodeData(n, <Workflow className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -92,7 +92,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
     positions.push({
       id: n.id, type: 'default',
       position: { x: cx + 380, y: 100 + i * 90 },
-      data: nodeData(n, '🔧'),
+      data: nodeData(n, <Wrench className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -102,7 +102,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
     positions.push({
       id: n.id, type: 'default',
       position: { x: 100 + i * 240, y: cy + 280 },
-      data: nodeData(n, '🛡️'),
+      data: nodeData(n, <Shield className="h-4 w-4 mx-auto" />),
       style: nodeStyle(n.type),
     })
   })
@@ -110,7 +110,7 @@ function layoutNodes(nodes: GraphNode[]): RFNode[] {
   return positions
 }
 
-function nodeData(n: GraphNode, icon: string): any {
+function nodeData(n: GraphNode, icon: ReactNode): any {
   const lines: string[] = []
   if (n.data.success_rate !== undefined) lines.push(`taxa ${(n.data.success_rate * 100).toFixed(0)}%`)
   if (n.data.total_count !== undefined)  lines.push(`${n.data.total_count} exec`)

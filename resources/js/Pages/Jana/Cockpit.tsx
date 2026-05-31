@@ -17,6 +17,7 @@
 
 import { Head } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { BarChart3, Bot, Calendar, Lightbulb, MessageSquare, TrendingUp, Wallet } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { BusinessOpt } from '@/Components/cockpit/shared';
@@ -215,7 +216,7 @@ function BriefDiario({ today, brief }: { today: string; brief: Brief }) {
   return (
     <section className="rounded-lg border border-border bg-card p-4 mb-4 shadow-sm">
       <div className="flex items-center gap-2 mb-2 text-sm">
-        <span>📅</span>
+        <Calendar className="h-4 w-4" />
         <b className="text-foreground">Brief diário</b>
         <span className="opacity-40">·</span>
         <span className="text-muted-foreground">{today}</span>
@@ -788,7 +789,7 @@ function ConverseComJana({ chat }: { chat: ChatBlock }) {
   return (
     <section className="rounded-lg border border-border bg-card flex flex-col h-[calc(100vh-220px)] min-h-[480px] overflow-hidden">
       <div className="px-4 py-2.5 border-b border-border flex items-center gap-2">
-        <span>💬</span>
+        <MessageSquare className="h-4 w-4" />
         <b className="text-sm">Converse com Jana</b>
         <small className="text-[11.5px] text-muted-foreground ml-auto">
           Chat com contexto do seu negócio
@@ -805,18 +806,18 @@ function ConverseComJana({ chat }: { chat: ChatBlock }) {
             </p>
             <div className="grid grid-cols-2 gap-2 mt-2 max-w-md w-full">
               {[
-                { icon: '📈', label: 'Vendas de hoje', prompt: 'Quantas vendas tive hoje?' },
+                { icon: <TrendingUp className="h-3.5 w-3.5" />, label: 'Vendas de hoje', prompt: 'Quantas vendas tive hoje?' },
                 { icon: '⏰', label: 'OS atrasadas', prompt: 'Listar OS atrasadas' },
-                { icon: '💰', label: 'Inadimplentes', prompt: 'Top 5 clientes em débito' },
-                { icon: '📊', label: 'Financeiro mensal', prompt: 'Resumo financeiro do mês' },
+                { icon: <Wallet className="h-3.5 w-3.5" />, label: 'Inadimplentes', prompt: 'Top 5 clientes em débito' },
+                { icon: <BarChart3 className="h-3.5 w-3.5" />, label: 'Financeiro mensal', prompt: 'Resumo financeiro do mês' },
               ].map((p, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setDraft(p.prompt)}
-                  className="text-xs px-3 py-2 rounded-md border border-border bg-card hover:bg-muted/40 transition text-left"
+                  className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border border-border bg-card hover:bg-muted/40 transition text-left"
                 >
-                  <span className="mr-1.5">{p.icon}</span>
+                  <span className="shrink-0">{p.icon}</span>
                   {p.label}
                 </button>
               ))}
@@ -961,8 +962,8 @@ export default function Cockpit({
 
         <nav className="flex gap-1 border-b border-border mb-5" aria-label="Modo do Jana">
           {[
-            { key: 'dashboard' as const, label: 'Dashboard', icon: '📊' },
-            { key: 'ia' as const, label: 'Analista IA', icon: '🤖' },
+            { key: 'dashboard' as const, label: 'Dashboard', icon: <BarChart3 className="h-4 w-4" /> },
+            { key: 'ia' as const, label: 'Analista IA', icon: <Bot className="h-4 w-4" /> },
           ].map((t) => {
             const active = tab === t.key;
             return (
@@ -992,7 +993,7 @@ export default function Cockpit({
               ))}
             </div>
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              <span>📊</span> Análises principais
+              <BarChart3 className="h-4 w-4" /> Análises principais
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mb-5">
               {jana.analises.map((a) => (
@@ -1000,7 +1001,7 @@ export default function Cockpit({
               ))}
             </div>
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              <span>💡</span> Ações que {jana.person.name} sugere
+              <Lightbulb className="h-4 w-4" /> Ações que {jana.person.name} sugere
             </h2>
             <div className="space-y-2">
               {jana.acoes.map((a) => (

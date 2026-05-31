@@ -9,7 +9,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
-import { Upload, Check, X, Search } from 'lucide-react';
+import { Upload, Check, X, Search, Inbox } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
 import {
@@ -280,7 +280,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
           <b className="fin-num-pos">{stats.conciliados}</b> conciliados
         </span>
         <span className="spacer" />
-        <span>📥 Parser OFX simples · próxima Onda: CNAB + Open Banking API</span>
+        <span className="inline-flex items-center gap-1"><Inbox className="h-3.5 w-3.5" /> Parser OFX simples · próxima Onda: CNAB + Open Banking API</span>
       </div>
     </div>
   );
