@@ -3,11 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { CheckSquare, Clock, FileClock, Upload, ArrowRight } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import { Card, CardContent } from '@/Components/ui/card';
-
-interface WelcomeProps {
-  business?: { name?: string | null } | null;
-  usuario?: { name?: string | null } | null;
-}
+import { useBusiness, useAuth } from '@/Hooks/usePageProps';
 
 const SECOES = [
   { href: '/ponto/aprovacoes', icon: CheckSquare, label: 'Aprovações', desc: 'Pendências de ajuste e abono.' },
@@ -16,7 +12,13 @@ const SECOES = [
   { href: '/ponto/importacoes', icon: Upload, label: 'Importações', desc: 'Arquivos AFD do relógio.' },
 ];
 
-export default function PontoWelcome({ business, usuario }: WelcomeProps) {
+// Controller renderiza 'Ponto/Welcome' SEM props — business/usuário vêm dos
+// shared props via hooks (igual a versão original desta tela).
+export default function PontoWelcome() {
+  const business = useBusiness();
+  const auth = useAuth();
+  const userName = auth.user?.name ?? null;
+  const businessName = business?.name ?? null;
   return (
     <AppShellV2>
       <Head title="Ponto — Início" />
@@ -25,8 +27,8 @@ export default function PontoWelcome({ business, usuario }: WelcomeProps) {
           icon="clock"
           title="Ponto eletrônico"
           description={
-            usuario?.name
-              ? `Olá, ${usuario.name}. Acesse as áreas do controle de ponto${business?.name ? ` de ${business.name}` : ''}.`
+            userName
+              ? `Olá, ${userName}. Acesse as áreas do controle de ponto${businessName ? ` de ${businessName}` : ''}.`
               : 'Acesse as áreas do controle de ponto.'
           }
         />

@@ -6,10 +6,11 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 
 interface BriefProps {
-  generatedAt?: string | null;
+  // Controller passa businessId (session user.business_id).
+  businessId?: number;
 }
 
-export default function BriefIndex({ generatedAt }: BriefProps) {
+export default function BriefIndex({ businessId }: BriefProps) {
   return (
     <AppShellV2>
       <Head title="Brief — Jana" />
@@ -17,7 +18,11 @@ export default function BriefIndex({ generatedAt }: BriefProps) {
         <PageHeader
           icon="file-text"
           title="Brief diário"
-          description="Resumo executivo da Jana — estado consolidado do negócio."
+          description={
+            businessId
+              ? `Resumo executivo da Jana — estado consolidado do negócio (biz ${businessId}).`
+              : 'Resumo executivo da Jana — estado consolidado do negócio.'
+          }
         />
 
         <Card className="mt-6">
@@ -29,9 +34,9 @@ export default function BriefIndex({ generatedAt }: BriefProps) {
               O resumo executivo aparecerá aqui
             </h2>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              {generatedAt
-                ? `Último brief gerado em ${generatedAt}. Abra no chat para a versão completa.`
-                : 'Por enquanto, o brief completo está disponível no chat da Jana.'}
+              O brief diário é gerado pelo <code className="rounded bg-muted px-1 py-0.5">BriefDiarioAgent</code>{' '}
+              com base nas últimas 24h e fica disponível via <code className="rounded bg-muted px-1 py-0.5">brief-fetch</code>.
+              Peça à Jana no chat para a versão completa.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Button asChild>

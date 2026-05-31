@@ -7,6 +7,8 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 
 interface RegrasProps {
+  // Controller passa businessId (session). Lista de políticas reais vem em onda futura.
+  businessId?: number;
   count?: number;
 }
 
@@ -20,6 +22,7 @@ const OUTCOMES: Array<{ key: string; label: string; desc: string; variant: 'defa
 ];
 
 export default function RegrasIndex({ count }: RegrasProps) {
+  void 0; // businessId disponível p/ futura listagem por business
   return (
     <AppShellV2>
       <Head title="Regras — Jana" />
