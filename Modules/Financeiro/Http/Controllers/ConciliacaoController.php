@@ -11,20 +11,25 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
+use Modules\Financeiro\Services\FinanceiroAuditLogger;
 
 /**
  * Conciliação OFX — Onda 19 (2026-05-19) #49.
  *
  * Workflow:
- *  1. GET  /financeiro/conciliacao — lista linhas pendentes
+ *  1. GET  /financeiro/conciliacao — lista linhas pendentes (?incluir_resolvidos=1 inclui resolvidas)
  *  2. POST /financeiro/conciliacao/upload — recebe arquivo OFX, parseia, persiste
  *  3. POST /financeiro/conciliacao/{lineId}/match — confirma match com Titulo
  *  4. POST /financeiro/conciliacao/{lineId}/ignorar — marca como ignorado
+ *  5. POST /financeiro/conciliacao/{lineId}/reabrir — desfaz conciliação/ignore (volta a pendente)
  *
  * Parser OFX simples (regex). NÃO usa biblioteca externa (mantém deps enxutas).
  * Para CNAB / formatos complexos: Onda 22 com `OfxImporter` dedicated service.
  *
  * Tier 0: business_id global scope (BankStatementLine model usa BusinessScope).
+ *
+ * Auditoria (append-only): match/ignorar/reabrir registram quem+o quê+quando via
+ * FinanceiroAuditLogger (PII redacted, business_id preservado — ADR 0093 + Wave 14 D7.a).
  */
 class ConciliacaoController extends Controller
 {
@@ -32,10 +37,18 @@ class ConciliacaoController extends Controller
     {
         $businessId = (int) session('user.business_id');
 
-        // Linhas pendentes/sugeridas ordenadas por data desc.
+        // Toggle "ver conciliados/ignorados" — quando ligado, inclui linhas
+        // resolvidas pra permitir reabrir (undo). Default (não setado) mantém o
+        // fluxo original: só pendente/sugerido.
+        $incluirResolvidos = $request->boolean('incluir_resolvidos');
+        $statusFiltro = $incluirResolvidos
+            ? ['pendente', 'sugerido', 'conciliado', 'ignorado']
+            : ['pendente', 'sugerido'];
+
+        // Linhas ordenadas por data desc.
         $linhas = DB::table('fin_bank_statement_lines')
             ->where('business_id', $businessId)
-            ->whereIn('status', ['pendente', 'sugerido'])
+            ->whereIn('status', $statusFiltro)
             ->whereNull('deleted_at')
             ->orderBy('data_movimento', 'desc')
             ->limit(200)
@@ -59,6 +72,9 @@ class ConciliacaoController extends Controller
             'linhas' => $linhas,
             'stats' => $stats,
             'contas' => $contas,
+            'filters' => [
+                'incluir_resolvidos' => $incluirResolvidos,
+            ],
         ]);
     }
 
@@ -141,17 +157,33 @@ class ConciliacaoController extends Controller
     {
         $request->validate(['titulo_id' => 'required|integer']);
         $businessId = (int) session('user.business_id');
+        $tituloId = $request->integer('titulo_id');
+        $userId = $request->user()?->id;
 
-        DB::table('fin_bank_statement_lines')
+        $afetadas = DB::table('fin_bank_statement_lines')
             ->where('id', $lineId)
             ->where('business_id', $businessId)
             ->update([
                 'status' => 'conciliado',
-                'titulo_id' => $request->integer('titulo_id'),
-                'conciliado_by' => $request->user()?->id,
+                'titulo_id' => $tituloId,
+                'conciliado_by' => $userId,
                 'conciliado_at' => now(),
                 'updated_at' => now(),
             ]);
+
+        // Auditoria append-only (ADR 0093 + Wave 14 D7.a) — quem/o quê/quando.
+        // business_id/titulo_id são chaves operacionais (não redacionadas).
+        app(FinanceiroAuditLogger::class)->info(
+            'conciliacao.match: linha conciliada com título',
+            [
+                'business_id' => $businessId,
+                'line_id' => $lineId,
+                'titulo_id' => $tituloId,
+                'status' => 'conciliado',
+                'user_id' => $userId,
+                'afetadas' => $afetadas,
+            ]
+        );
 
         return back()->with('success', 'Conciliação confirmada.');
     }
@@ -159,8 +191,9 @@ class ConciliacaoController extends Controller
     public function ignorar(Request $request, int $lineId): RedirectResponse
     {
         $businessId = (int) session('user.business_id');
+        $userId = $request->user()?->id;
 
-        DB::table('fin_bank_statement_lines')
+        $afetadas = DB::table('fin_bank_statement_lines')
             ->where('id', $lineId)
             ->where('business_id', $businessId)
             ->update([
@@ -168,7 +201,76 @@ class ConciliacaoController extends Controller
                 'updated_at' => now(),
             ]);
 
+        // Auditoria append-only (ADR 0093 + Wave 14 D7.a) — quem/o quê/quando.
+        app(FinanceiroAuditLogger::class)->info(
+            'conciliacao.ignorar: linha marcada como ignorada',
+            [
+                'business_id' => $businessId,
+                'line_id' => $lineId,
+                'status' => 'ignorado',
+                'user_id' => $userId,
+                'afetadas' => $afetadas,
+            ]
+        );
+
         return back()->with('success', 'Linha marcada como ignorada.');
+    }
+
+    /**
+     * Reabre (undo) uma conciliação/ignore: volta a linha pra `pendente`,
+     * limpa titulo_id + match_score, e registra a reabertura na auditoria.
+     * POST /financeiro/conciliacao/{lineId}/reabrir.
+     *
+     * Tier 0: scoped por business_id. Linha inexistente neste tenant → 404
+     * (não-silencioso). Idempotente: reabrir linha já pendente é inócuo (o
+     * UPDATE só zera campos já nulos), mas SEMPRE muta de fato (sem no-op).
+     */
+    public function reabrir(Request $request, int $lineId): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = $request->user()?->id;
+
+        // Carrega estado anterior pra auditoria + valida existência no tenant.
+        $linha = DB::table('fin_bank_statement_lines')
+            ->where('id', $lineId)
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (! $linha) {
+            // Não-silencioso: linha não existe pra este business (Tier 0).
+            abort(404);
+        }
+
+        $statusAnterior = $linha->status;
+
+        DB::table('fin_bank_statement_lines')
+            ->where('id', $lineId)
+            ->where('business_id', $businessId)
+            ->update([
+                'status' => 'pendente',
+                'titulo_id' => null,
+                'match_score' => null,
+                'conciliado_by' => null,
+                'conciliado_at' => null,
+                'updated_at' => now(),
+            ]);
+
+        // Auditoria append-only (ADR 0093 + Wave 14 D7.a) — registra a reabertura
+        // com o status de onde veio (conciliado/ignorado/sugerido).
+        app(FinanceiroAuditLogger::class)->info(
+            'conciliacao.reabrir: linha reaberta (volta a pendente)',
+            [
+                'business_id' => $businessId,
+                'line_id' => $lineId,
+                'status' => 'pendente',
+                'status_anterior' => $statusAnterior,
+                'titulo_id' => $linha->titulo_id,
+                'user_id' => $userId,
+            ]
+        );
+
+        return back()->with('success', 'Linha reaberta — voltou para pendente.');
     }
 
     /** OFX TRNTYPE → enum interno */

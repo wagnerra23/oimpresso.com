@@ -227,6 +227,10 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/conciliacao/{lineId}/ignorar', [ConciliacaoController::class, 'ignorar'])
             ->whereNumber('lineId')
             ->name('conciliacao.ignorar');
+        // Reabrir (undo) conciliação/ignore → volta a pendente + audit-log.
+        Route::post('/conciliacao/{lineId}/reabrir', [ConciliacaoController::class, 'reabrir'])
+            ->whereNumber('lineId')
+            ->name('conciliacao.reabrir');
 
         // Onda 23 (2026-05-20) US-FIN-029 — OCR boleto upload (OpenAI Vision).
         // KILLER feature vs Conta Azul. Endpoint não cria titulo direto —
