@@ -148,11 +148,11 @@ function ChartSkeleton({ title }: { title: string }) {
 
 type BarTone = 'default' | 'info' | 'success';
 
-// currentColor dirige o fill do SVG — só tokens, zero hex/oklch literal.
+// currentColor dirige o fill do SVG — tokens semânticos DS, zero cor crua.
 const barToneClass: Record<BarTone, string> = {
   default: 'text-muted-foreground',
-  info: 'text-blue-600 dark:text-blue-400',
-  success: 'text-emerald-600 dark:text-emerald-400',
+  info: 'text-primary',
+  success: 'text-success',
 };
 
 interface BarChartCardProps {

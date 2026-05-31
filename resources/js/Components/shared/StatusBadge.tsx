@@ -102,13 +102,13 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   // snapshots + estado online/offline de infra. Substitui bg-(green|amber|red)-100
   // inline repetido 6x no Admin/Index.tsx (tokenização DS, ADR UI-0013).
   admin_health: {
-    green:   { variant: 'default',     label: 'green',   className: 'bg-emerald-600 hover:bg-emerald-700' },
-    yellow:  { variant: 'default',     label: 'yellow',  className: 'bg-amber-600 hover:bg-amber-700' },
+    green:   { variant: 'default',     label: 'green',   className: 'bg-success text-success-foreground hover:bg-success/90' },
+    yellow:  { variant: 'default',     label: 'yellow',  className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
     red:     { variant: 'destructive', label: 'red' },
     unknown: { variant: 'outline',     label: 'unknown' },
   },
   admin_reachable: {
-    online:  { variant: 'default',     label: 'online',  className: 'bg-emerald-600 hover:bg-emerald-700' },
+    online:  { variant: 'default',     label: 'online',  className: 'bg-success text-success-foreground hover:bg-success/90' },
     offline: { variant: 'destructive', label: 'offline' },
   },
 };
