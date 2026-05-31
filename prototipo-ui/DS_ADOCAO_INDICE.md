@@ -3,12 +3,12 @@
 <!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
 ## Status da fila — placar de execução (auto)
 
-> Gerado por `npm run ds:report -- --write` · 2026-05-30 21:32 UTC · **total `ds/*` = 558** · fila 0/10 ✅.
+> Gerado por `npm run ds:report -- --write` · 2026-05-31 01:26 UTC · **total `ds/*` = 533** · fila 0/10 ✅.
 > Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
 
 | # | Módulo (fila) | `ds/*` | Status |
 |---|---|---:|---|
-| 1 | Sells | 42 | ☐ pendente |
+| 1 | Sells | 17 | ☐ pendente |
 | 2 | RecurringBilling | 58 | ☐ pendente |
 | 3 | OficinaAuto | 44 | ☐ pendente |
 | 4 | Repair | 14 | ☐ pendente |
@@ -21,7 +21,7 @@
 
 **Fora da fila (pendentes · ordem por contagem):** Atendimento (19) · Ponto (17) · ProjectMgmt (17) · Fiscal (14) · Produto (13) · ads (12) · Jana (10) · governance (10) · StockAdjustment (9) · StockTransfer (9) · kb (7) · MemCofre (6) · NfeBrasil (5) · Site (5) · Home (4) · team-mcp (4) · Compras (3) · TransactionPayment (3) · Modules (2) · ConsultaOs (1) · Nfse (1) · Vestuario (1) · superadmin (1)
 
-**Próximo da fila:** Sells (42)
+**Próximo da fila:** Sells (17)
 <!-- ds:worklist:end -->
 
 > **Origem:** Cowork [CC] · 2026-05-29 · disparado pelo diagnóstico KB-9.75 do cadastro de Contacts
