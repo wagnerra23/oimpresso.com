@@ -5,43 +5,35 @@
 
 ---
 
-## Estado atual: 2026-05-30 — DS adoção (`ds/* → 0`) · loop reancorado
+## Estado atual: 2026-05-31 — DS adoção · Onda 1 MERGED · autonomia ativada
 
-**Fase global:** o visual do **DS v4 (accent roxo · ADR 0235)** está completo e o **guard `ds/*` + ratchet** (ADR 0209) está ligado — o drift **parou de crescer**. Agora roda a **limpeza da dívida tela-a-tela** (roadmap "DS até zero", fases A–F em `PROMPT_PARA_CODE_DS-ROADMAP-ATE-ZERO.md`).
+**Onda 1 entregue e mergeada em `main`** (autônomo · gates CI = [W2]):
+- **Onda G / Fase C — badge variants** (PR #2025 · main `f3001f0e0`): +5 variants soft (`success/warning/danger/info/neutral`) no `badge.tsx` + story `_Showcase 3b`. Destrava o lote-badge (Fase D).
+- **Fase A — Sells** (PR #2026 · main `8d7c45507`): controles + rounded + FieldSuccess T1, **42→17 `ds/*`** (10 select→Select, 4 checkbox→Checkbox, 9 rounded-xl→lg, 2 FieldSuccess). Os 17 restantes = **Tipo 2** (status-badge/Alert/icon) → **Fase D**, não Fase A. eslint-baseline 1373→1348.
 
-**Placar (`npm run ds:report`): `ds/* = 616`** (29/05 era 639; −23 do Financeiro #1982).
+**Mudança de modo (2026-05-31):** Wagner pediu **zero intervenção humana**. Gate visual [W2] manual → delegado aos **gates CI** (PR UI Judge Sonnet 4.5 + visual-regression, ambos green). Merge autônomo via `gh --admin` (CI verde = o gate). Playbook + custo-benefício em **[AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md)**.
 
-| Regra `ds/*` | Hits | Fase que fecha |
-|---|---:|---|
-| `no-adhoc-status-text` | 410 | A (Tipo 1 erro-de-form) → C+D (Tipo 2 badge) |
-| `no-native-select` | 93 | A |
-| `no-rounded-xl` | 66 | A |
-| `no-native-checkbox` | 41 | A |
-| `no-native-radio` | 6 | A |
-| `no-arbitrary-color` | 0 | B (já limpo) |
+**Placar** (`npm run ds:report` · ver [DS_ADOCAO_INDICE.md](DS_ADOCAO_INDICE.md)): Sells 17 · RecurringBilling 58 · OficinaAuto 44 · Repair 14 · Purchase 19 · Admin 23 · Whatsapp 21 · Settings 18 · Financeiro 84 · Cliente 62 (+ fora-da-fila).
 
-### Em voo agora
+### Fila Fase A (controles + FieldError/Success T1)
+| Módulo | Fase A | Nota |
+|---|---|---|
+| Sells | ✅ MERGED | restam 17 Tipo-2 → Fase D |
+| **RecurringBilling** | 🎯 **próximo** | Planos Create/Edit (ciclo/intervalo/gateway); billing não pode quebrar |
+| OficinaAuto | fila | DnD Kanban; `ServiceOrderStatusBadge` = Tipo 2 (deixa) |
+| Repair | fila | mobile-first ≥44px; JobSheet/DeviceModels |
+| Purchase | fila | Create/Edit/Index/Show |
+| Admin · Whatsapp · Settings | fila | descobrir com eslint; Settings toggles→`<Switch>` |
+| Financeiro · Cliente | fila (só FieldError T1) | controles já migrados (PR-C1/C2) |
 
-| Frente | Fase | Resp. | Nota |
-|---|---|---|---|
-| **Conserto do loop** (este PR) | aguardando merge | [CL] | PROTOCOL §10 (gatilho de ida + canal de retorno) · `ds:report` · 6 prompts versionados · HANDOFF/SYNC_LOG reancorados |
-| **Roadmap DS — Fase A** (controles + FieldError T1) | fila ativa, **não iniciada** | [CL] | ordem: Sells → RecurringBilling → OficinaAuto → Repair → Purchase → Admin → Whatsapp → Settings → Financeiro → Cliente (ver `PROMPT_PARA_CODE_PR-C-WORKLIST.md`) |
-| Fase B (cor crua → token) | independente | [CL] | `no-arbitrary-color` já = 0 — fila provável vazia, confirmar |
-| Fase C (Onda G badge variants) | component-only | [CC]/[CL] | pré-req da D |
-| Fase D (lote-badge 410 Tipo 2) | após C mergear | [CL] | o grosso do drift (66%) |
-| Fase E (FormSection) | após A, por módulo | [CL] | — |
-
-### Próxima da fila — decisão Wagner
-
-Depois deste PR de conserto mergear: **disparar Fase A pelo Sells** (1 módulo = 1 branch = 1 PR, para no gate visual). Cada PR reporta de volta via [§10.2](PROTOCOL.md).
-
-### Workstreams parados (ponteiro, não ativos)
-
-- **Jana** (`Chat.tsx` / `Cockpit.tsx`) — pivot 2026-05-15, score F1.5 78/100; congelado até Wagner reabrir (detalhe no SYNC_LOG 2026-05-15).
-- **Financeiro** Fluxo / Plano-contas / DRE / Conciliação — F1 commit-only, bloqueados por ADRs arq + migrations.
+Depois da Fase A → **Onda G / Fase D (lote-badge)**: migra os Tipo-2 pros `<Badge variant>` (as variants já existem desde #2025). É o grosso do drift (`no-adhoc-status-text`).
 
 ### O que [CL] faz agora
-Aguardar merge deste conserto → disparar Fase A (Sells).
+Disparar **Fase A RecurringBilling** no mesmo loop autônomo (1 módulo = 1 branch = 1 PR · CI verde → merge → sync → próximo).
 
-### O que [CC] (Cowork) faz
-Fechar **todo** roadmap com o Gatilho de RETORNO ([§10.2](PROTOCOL.md)). Ler o estado **por aqui** (`prototipo-ui/`), não por `memory/handoffs/` — `[CC]` não lê de lá.
+### 🔑 Bootstrap p/ tirar o `--admin` (decisão Wagner)
+Provisionar token do `grokwr2` (collaborator ≠ autor) → Action auto-approve+merge quando todos os checks passam. Ver [AUTOMACAO-LOOP-AUTONOMO.md §3](AUTOMACAO-LOOP-AUTONOMO.md).
+
+### Workstreams parados (ponteiro)
+- **Jana** (`Chat.tsx`/`Cockpit.tsx`) — congelado até Wagner reabrir.
+- **Financeiro** Fluxo/Plano-contas/DRE/Conciliação — bloqueados por ADRs arq + migrations.
