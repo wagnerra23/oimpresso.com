@@ -909,6 +909,14 @@ class ProductionController extends Controller
                     ];
                 })->values(),
             'summary' => $productionService->summary($business_id),
+            // Opções do filtro de local + estado dos filtros pra re-render (board uplift 50->70).
+            'business_locations' => BusinessLocation::forDropdown($business_id),
+            'filters' => [
+                'location_id' => $filters['location_id'] !== null ? (int) $filters['location_id'] : null,
+                'start_date' => $filters['start_date'],
+                'end_date' => $filters['end_date'],
+                'is_final' => (bool) $filters['is_final'],
+            ],
         ]);
     }
 
