@@ -18,7 +18,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
 import { CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
-import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -937,6 +936,14 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {formatBRL(totalPago)}
           </div>
         </div>
+        {/*
+          G1 (tela-venda-arte 2026-05-31) — board flagou "cor crua" aqui, mas
+          AVALIADO e MANTIDO de propósito: amber/blue/emerald é SEMÂNTICA DE STATUS
+          de pagamento (falta / troco / exato). O projeto mantém cores de status
+          intocadas por convenção (resources/css/cowork-payment-gateway-bundle.css:12)
+          e o charter lista "tone semântico" como Goal. Tokenizar (--success/--warning)
+          é decisão de fundações DS-v3 (ADR), não cleanup desta tela.
+        */}
         <div
           className={
             'rounded-lg border p-6 shadow-sm ' +
