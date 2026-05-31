@@ -1,3 +1,14 @@
+---
+slug: sells
+title: "Especificação funcional — Sells (migração MWART de /sells/create)"
+type: spec
+module: Sells
+status: ativo
+owner: wagner
+version: 1.0.0
+last_updated: 2026-05-31
+---
+
 # Especificação funcional — Sells (migração MWART de /sells/create)
 
 > **Convenção do ID:** `US-SELL-NNN` para user stories.
@@ -257,7 +268,7 @@ Como ter certeza que vai dar certo:
 3. **Pest tests do `store()`** — 5+ fixtures cobrindo casos reais (à vista, prazo, desconto %, fixo, frete, split). Baseline de regressão ANTES de qualquer mudança.
 4. **Smoke biz=1, NUNCA biz=4** — auto-mem `feedback_test_business_id_1_nunca_4`. Wagner WR2 SC é cobaia segura; Larissa nunca.
 5. **Canary 7 dias Wagner** — flag ON só em biz=1 antes de tocar biz=4. Bug encontrado → fix antes do cutover.
-6. **Audit cockpit-runbook modo B obrigatório** — score ≥ 70 em CADA US-SELL-00X antes de mergear PR. CRITICAL bloqueia merge.
+6. **Audit cockpit-runbook modo B obrigatório** — score ≥ 70 em CADA US-SELL-NNN antes de mergear PR. CRITICAL bloqueia merge.
 7. **Backup DB antes do cutover** — `mysqldump` das 4 tabelas críticas. Restore em <5min se necessário.
 8. **Aviso prévio pra Larissa** — humano-no-loop, ela sabe que mudança rolou e tem canal direto pra reportar.
 9. **30 dias monitorando antes de remover Blade** — janela longa pra qualquer regressão de borda aparecer.
