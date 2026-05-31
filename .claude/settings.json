@@ -24,6 +24,10 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/loop-fechar-check.ps1"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/git-base-freshness-guard.mjs"
           }
         ]
       }

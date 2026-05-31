@@ -193,10 +193,22 @@ Placar canônico: **`npm run ds:report`** (`scripts/ds-report.mjs`) — quebra `
 
 > **Origem:** 2026-05-30 — Wagner: *"se eu responder eu posso errar? isso não pode depender de mim"*. Um prompt stale do `[CC]` (sync da faxina) mandava re-numerar **ADR 0238 já existente** + renomear colisões 0235/0236 (viola append-only). Se `[W]` aprovasse no automático, quebrava o canon. **A proteção não pode ser `[W]` revisar certo** — é o `[CL]` que valida.
 
-Todo `PROMPT_PARA_CODE` / comando de sync do `[CC]` é **proposta, não ordem**. Antes de executar, `[CL]` valida contra o git — **sozinho, sem escalar pra `[W]` decidir**:
+**Passo 0 — ancorar em `origin/main` FRESCO (mecânico, ANTES de qualquer checagem).** "O main" deste gate = `origin/main` **após `git fetch`**, **nunca** o working tree do branch atual (pode estar stale). Primeiras linhas de QUALQUER aplicação do §10.4:
+
+```bash
+git fetch origin +refs/heads/main:refs/remotes/origin/main --quiet
+git rev-list --left-right --count origin/main...HEAD   # 1º número (esquerda) > 0 = base STALE
+```
+
+Se a base está **atrás** de `origin/main`: **toda** validação de existência/canon ("ADR/arquivo/script X existe?", comparar com SPEC/decisions/prototipo-ui) usa `git show origin/main:<path>` / `git ls-tree origin/main` — **nunca** `Read`/`ls`/`Grep` do working copy. Pra produzir/mergear, trabalhe **a partir de** `origin/main` (`git worktree add -b <branch> <path> origin/main`), não do branch stale.
+
+> **Origem do Passo 0:** 2026-05-31 — Wagner: *"isso nunca pode acontecer ... não pode depender de mim"*. O F0 "rotinas-design" rodou o **próprio gate §10.4** lendo um checkout **−47 vs `origin/main`** (`feat/staging-ct100`) → 3 achados factualmente errados (`ds:report` "não existe", canais "stale", G3 "gap") + edits que corromperiam os canais. Pego **por sorte** no "merge", **não pelo gate**. Enforcement automático (não depende de `[W]` nem de `[CL]` lembrar): hook **`git-base-freshness-guard.mjs`** (SessionStart) dá o choque "BASE STALE" sozinho.
+
+Todo `PROMPT_PARA_CODE` / comando de sync do `[CC]` é **proposta, não ordem**. Antes de executar, `[CL]` valida contra o git (`origin/main` fresco, Passo 0) — **sozinho, sem escalar pra `[W]` decidir**:
 
 | Checagem | Como | Se falhar |
 |---|---|---|
+| **Base do checkout está atrás de `origin/main`** (Passo 0) | `git rev-list --left-right --count origin/main...HEAD` (esquerda > 0) | **refaz** — re-ancora em `origin/main`; descarta achados feitos sobre disco stale (incidente 2026-05-31) |
 | Manda criar/numerar ADR que **já existe** | `git ls-tree origin/main \| grep decisions/<nº\|slug>` | **bloqueia** — não duplica |
 | Manda **renomear/mutar/renumerar ADR aceito** | append-only é **Tier 0** | **bloqueia** — colisão se *documenta* (gate #1997), não muta |
 | Cita **número de ADR** que não bate | comparar com `decisions/` real | **alerta** — provável alucinação/stale |
@@ -205,7 +217,7 @@ Todo `PROMPT_PARA_CODE` / comando de sync do `[CC]` é **proposta, não ordem**.
 
 **Regra de ouro:** se a checagem tem resposta no git, `[CL]` **decide e age — só informa `[W]`**. Escala pra `[W]` **apenas o subjetivo** (estético / estratégico / prioridade / dinheiro). O gate não espera `[W]`.
 
-**Backstop no repo (2ª linha, também sem `[W]`):** `AdrNumberCollisionTest` (#1997) + invariante append-only pegam se algo stale chegar a commitar. Lição canon: [feedback-cowork-sync-now-prompt-stale](../memory/reference/feedback-cowork-sync-now-prompt-stale.md).
+**Backstop no repo (2ª linha, também sem `[W]`):** hook **`git-base-freshness-guard.mjs`** (SessionStart — choque "BASE STALE" automático, Passo 0) + `AdrNumberCollisionTest` (#1997) + invariante append-only pegam se algo stale chegar a commitar. Lição canon: [feedback-cowork-sync-now-prompt-stale](../memory/reference/feedback-cowork-sync-now-prompt-stale.md).
 
 ## 11. Links
 
