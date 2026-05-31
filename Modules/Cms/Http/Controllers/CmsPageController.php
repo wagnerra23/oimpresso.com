@@ -31,7 +31,9 @@ class CmsPageController extends Controller
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(Util $commonUtil, PiiRedactor $piiRedactor)
+    protected \Modules\Cms\Services\SiteContentService $siteContent;
+
+    public function __construct(Util $commonUtil, PiiRedactor $piiRedactor, \Modules\Cms\Services\SiteContentService $siteContent)
     {
         $this->commonUtil = $commonUtil;
         $this->piiRedactor = $piiRedactor;

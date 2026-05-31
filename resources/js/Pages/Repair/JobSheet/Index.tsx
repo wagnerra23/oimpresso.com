@@ -1,145 +1,121 @@
-// @memcofre tela=/repair/job-sheet module=Repair
-// Sprint 2.5 / MWART-0002 — port Job Sheet Repair Blade → Inertia/React.
-// Lista filtrada por status/cliente/staff/location. Tabela puxa via DataTables AJAX legacy.
-// Create/Edit/Print/Upload mantêm rotas Blade — apenas o shell vira React.
-
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import PageHeader from '@/Components/shared/PageHeader';
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Icon } from '@/Components/Icon';
-import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
+import KpiGrid from '@/Components/shared/KpiGrid';
+import KpiCard from '@/Components/shared/KpiCard';
+import EmptyState from '@/Components/shared/EmptyState';
+import { Input } from '@/Components/ui/input';
 
-interface DropdownOption {
-  [key: string]: string;
+interface JobSheetRow {
+  id: number;
+  job_sheet_no: string | null;
+  contact_name: string | null;
+  device: string | null;
+  status_label: string | null;
+  created_at: string | null;
 }
 
-interface PageProps {
-  filters: {
-    business_locations: DropdownOption;
-    customers: DropdownOption;
-    status_dropdown: DropdownOption;
-    service_staffs: DropdownOption;
-  };
-  flags: {
-    is_user_service_staff: boolean;
-    show_serial_no: boolean;
-    enable_brand_in_job_sheet: boolean;
-  };
-  datatable_url: string;
+interface Props {
+  job_sheets?: JobSheetRow[];
+  counts?: Record<string, number>;
 }
 
-export default function JobSheetIndex({ filters, flags, datatable_url }: PageProps) {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
+export default function JobSheetIndex({ job_sheets, counts }: Props) {
+  const rows = job_sheets ?? [];
+  const [q, setQ] = useState('');
 
-  // Embed Blade datatable via iframe-like fetch (mantém compat com pipeline AJAX existente).
-  // Em iteração futura, migrar pra TanStack Table com fetch direto.
-  useEffect(() => {
-    if (!tableContainerRef.current) return;
-    const msg = document.createElement('div');
-    msg.className = 'p-8 text-center text-muted-foreground text-sm';
-    // textContent + DOM API — evita XSS com datatable_url (R-OWASP).
-    const p1 = document.createElement('p');
-    p1.className = 'mb-2';
-    p1.append('Listagem ainda usa DataTables AJAX legacy via ');
-    const code = document.createElement('code');
-    code.textContent = datatable_url;
-    p1.append(code);
-    p1.append('.');
-    const p2 = document.createElement('p');
-    p2.className = 'text-xs';
-    p2.textContent = 'Próxima iteração migra pra TanStack Table com fetch direto. Por ora, paridade visual mantida pelo Blade.';
-    msg.append(p1, p2);
-    tableContainerRef.current.replaceChildren(msg);
-  }, [datatable_url]);
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return rows;
+    return rows.filter(
+      (r) =>
+        (r.job_sheet_no ?? '').toLowerCase().includes(term) ||
+        (r.contact_name ?? '').toLowerCase().includes(term) ||
+        (r.device ?? '').toLowerCase().includes(term) ||
+        (r.status_label ?? '').toLowerCase().includes(term),
+    );
+  }, [rows, q]);
 
-  const filterCount = (
-    Object.values(filters.business_locations).length +
-    Object.values(filters.customers).length +
-    Object.values(filters.status_dropdown).length +
-    Object.values(filters.service_staffs).length
-  );
+  const total = counts?.total ?? rows.length;
+  const abertas = counts?.open ?? counts?.abertas;
+  const concluidas = counts?.done ?? counts?.concluidas;
 
   return (
-    <div className="container mx-auto p-4">
+    <AppShellV2>
+      <Head title="Ordens de serviço — Reparo" />
       <PageHeader
-        icon="clipboard-list"
-        title="Ordens de Serviço (Job Sheet)"
-        description="Gestão de OS por status, cliente, equipe e local"
-        action={
-          <Button variant="outline" asChild>
-            <Link href="/repair/job-sheet/create">
-              <Icon name="file-text" className="mr-2 h-4 w-4" />
-              Nova OS
-            </Link>
-          </Button>
-        }
+        icon="wrench"
+        title="Ordens de serviço"
+        description="Acompanhe as OS de reparo do balcão."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Icon name="clipboard-list" className="h-4 w-4" />
-              Filtros disponíveis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-1">
-            <p>Locations: {Object.keys(filters.business_locations).length}</p>
-            <p>Clientes: {Object.keys(filters.customers).length}</p>
-            <p>Status: {Object.keys(filters.status_dropdown).length}</p>
-            <p>Staff: {Object.keys(filters.service_staffs).length}</p>
-            <p className="font-medium pt-2 border-t mt-2">Total opções: {filterCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Permissões</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            {flags.is_user_service_staff ? (
-              <p className="text-amber-700 dark:text-amber-400">Service staff — vê só OS atribuídas a você.</p>
-            ) : (
-              <p className="text-muted-foreground">Acesso total — vê todas OS do business.</p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-1.5">
-            <FlagRow label="Serial no" enabled={flags.show_serial_no} />
-            <FlagRow label="Brand" enabled={flags.enable_brand_in_job_sheet} />
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
+        <KpiGrid cols={3}>
+          <KpiCard label="Total" value={total} icon="clipboard-list" size="compact" />
+          {abertas != null && <KpiCard label="Abertas" value={abertas} icon="clock" tone="warning" size="compact" />}
+          {concluidas != null && <KpiCard label="Concluídas" value={concluidas} icon="check-circle-2" tone="success" size="compact" />}
+        </KpiGrid>
+
+        {rows.length > 0 && (
+          <Input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por OS, cliente, aparelho ou status…"
+            aria-label="Buscar ordens de serviço"
+            className="max-w-md"
+          />
+        )}
+
+        {rows.length === 0 ? (
+          <EmptyState
+            icon="wrench"
+            title="Nenhuma ordem de serviço"
+            description="As OS de reparo criadas aparecerão aqui."
+          />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon="search"
+            variant="search"
+            title="Nada encontrado"
+            description={`Nenhuma OS para “${q}”.`}
+          />
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3">OS</th>
+                  <th className="px-4 py-3">Cliente</th>
+                  <th className="px-4 py-3">Aparelho</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Criada</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((r) => (
+                  <tr
+                    key={r.id}
+                    onClick={() => router.visit(`/repair/job-sheet/${r.id}`)}
+                    className="cursor-pointer border-t border-border hover:bg-muted/30"
+                  >
+                    <td className="px-4 py-3 font-mono text-xs">
+                      <Link href={`/repair/job-sheet/${r.id}`} className="text-primary hover:underline">
+                        {r.job_sheet_no ?? `#${r.id}`}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">{r.contact_name ?? '—'}</td>
+                    <td className="px-4 py-3">{r.device ?? '—'}</td>
+                    <td className="px-4 py-3">{r.status_label ?? '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{r.created_at ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de OS</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div ref={tableContainerRef} />
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-JobSheetIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
-
-function FlagRow({ label, enabled }: { label: string; enabled: boolean }) {
-  return (
-    <p className="flex items-center gap-2">
-      {enabled ? (
-        <Icon name="check-circle-2" className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-      ) : (
-        <Icon name="circle-minus" className="h-3.5 w-3.5 text-muted-foreground" />
-      )}
-      <span>{label}: <span className={enabled ? 'text-foreground' : 'text-muted-foreground'}>{enabled ? 'visível' : 'oculto'}</span></span>
-    </p>
+    </AppShellV2>
   );
 }
