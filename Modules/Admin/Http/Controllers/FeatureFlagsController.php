@@ -36,18 +36,21 @@ class FeatureFlagsController extends Controller
     {
         // D9.a (Wave 18): span agrega 2 sources (REST GrowthBook + DB audits) numa
         // métrica única — pra spotting de regressão de latência por env.
+        //
+        // DS uplift (2026-05-31): `features` (HTTP externo GrowthBook ~100-300ms) e
+        // `recent_audits` (DB query) viram Inertia::defer — props caras saem do
+        // first paint; Page wrappa ambos em <Deferred fallback={skeleton}>.
+        // `fetch_error` fica acoplado ao defer de `features` (mesmo safeCall).
+        // @see memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md
         return OtelHelper::spanBiz('admin.feature_flags.index', function () {
-            $features = $this->safeCall(fn () => $this->service->listFeatures());
-            $recentAudits = FeatureFlagAudit::query()
-                ->orderByDesc('id')
-                ->limit(20)
-                ->get(['id', 'created_at', 'actor_label', 'flag_key', 'action', 'environment', 'diff_summary']);
-
             return Inertia::render('Admin/FeatureFlags/Index', [
-                'configured'   => $this->service->isConfigured(),
-                'features'     => $features['data'] ?? [],
-                'fetch_error'  => $features['error'] ?? null,
-                'recent_audits' => $recentAudits,
+                'configured'    => $this->service->isConfigured(),
+                'features'      => Inertia::defer(fn () => $this->safeCall(fn () => $this->service->listFeatures())['data'] ?? []),
+                'fetch_error'   => Inertia::defer(fn () => $this->safeCall(fn () => $this->service->listFeatures())['error'] ?? null),
+                'recent_audits' => Inertia::defer(fn () => FeatureFlagAudit::query()
+                    ->orderByDesc('id')
+                    ->limit(20)
+                    ->get(['id', 'created_at', 'actor_label', 'flag_key', 'action', 'environment', 'diff_summary'])),
             ]);
         }, ['component' => 'admin.feature_flags']);
     }
