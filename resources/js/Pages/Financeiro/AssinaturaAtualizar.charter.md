@@ -1,5 +1,5 @@
 ---
-page: Financeiro/AssinaturaAtualizar
+page: /financeiro/assinatura/atualizar
 route: financeiro.assinaturas.atualizar.show
 controller: Modules\Financeiro\Http\Controllers\AssinaturaController@showAtualizar
 status: draft

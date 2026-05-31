@@ -1,5 +1,5 @@
 ---
-page: superadmin/Usuario360/Show
+page: /superadmin/usuarios/{id}/360
 owner: wagner
 status: draft
 last_updated: 2026-05-31

@@ -1,5 +1,5 @@
 ---
-page: Admin/FeatureFlags/Show
+page: /admin/feature-flags/{key}
 status: draft
 owner: wagner
 updated: 2026-05-31
