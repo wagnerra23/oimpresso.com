@@ -14,6 +14,9 @@
         }
     },
     "files": {
+        "resources\/js\/Components\/ui\/badge.tsx": {
+            "R1": 20
+        },
         "resources\/js\/app.tsx": {
             "R1": 1
         },
