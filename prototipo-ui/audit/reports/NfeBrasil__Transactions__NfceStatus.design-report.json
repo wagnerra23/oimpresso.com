@@ -1,0 +1,32 @@
+{
+  "$schema": "../design-report.schema.json",
+  "screen": "NfeBrasil/Transactions/NfceStatus",
+  "file": "resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx",
+  "measured_against_sha": "8a8517938",
+  "scored_by": "seed:board-2026-05-30",
+  "scored_at": "2026-05-30",
+  "archetype": "detail",
+  "persona": "eliana",
+  "nota": 38,
+  "nivel": "Beginner",
+  "rules": [
+    { "id": "R1", "status": "fail", "mechanized": true, "evidence": "style={{}} inline + oklch(0.55 0.05 240) azul hardcoded (board 2026-05-30) — viola cor-crua/token roxo 295" },
+    { "id": "R2", "status": "fail", "mechanized": false, "evidence": "div com background light-dark() ad-hoc em vez de Card/Badge DS (board) — status sem componente shared" },
+    { "id": "R3", "status": "n/a", "mechanized": false, "evidence": "não re-medido no seed" },
+    { "id": "R4", "status": "n/a", "mechanized": false, "evidence": "não re-medido no seed" },
+    { "id": "R5", "status": "n/a", "mechanized": false, "evidence": "não re-medido no seed" },
+    { "id": "R6", "status": "n/a", "mechanized": false, "evidence": "não re-medido no seed" },
+    { "id": "R7", "status": "fail", "mechanized": false, "evidence": "badge de status em background fill ad-hoc em vez de dot+texto (board)" },
+    { "id": "R8", "status": "n/a", "mechanized": false, "evidence": "não re-medido no seed" },
+    { "id": "R9", "status": "n/a", "mechanized": false, "evidence": "não re-medido no seed" },
+    { "id": "R10", "status": "n/a", "mechanized": false, "evidence": "não re-medido no seed" }
+  ],
+  "ds_violations": { "total": 0, "by_rule": {} },
+  "top_gaps": [
+    { "dim": "Pre-Flight-conformance", "best_of_class": "Linear (zero inline-style, zero cor crua)", "fix": "Eliminar todos style={{}} inline e oklch(0.55 0.05 240) azul; reescrever com Tailwind+tokens v4 roxo.", "esforco": "M" },
+    { "dim": "Affordance", "best_of_class": "Stripe (status page com timeline + acao reemitir)", "fix": "Adicionar acoes contextuais (reemitir/baixar DANFE) como Button DS, nao <a> inline.", "esforco": "M" },
+    { "dim": "Brand-confidence", "best_of_class": "Bling (status fiscal com identidade consistente)", "fix": "Usar Card/Badge do DS em vez de div com background light-dark() ad-hoc.", "esforco": "S" }
+  ],
+  "resumo": "Page demo de 1 badge de status com polling; tem charter mas e stub com inline style={{}} e oklch(...240) azul hardcoded — viola Pre-Flight, sem componentes DS nem estados ricos.",
+  "evidence_links": []
+}
