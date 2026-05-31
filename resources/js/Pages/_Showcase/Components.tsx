@@ -9,6 +9,7 @@ import { useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Badge } from '@/Components/ui/badge';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -200,6 +201,27 @@ export default function Showcase() {
           <div className="flex flex-wrap gap-2 mt-2">
             <Wrap>Fallback (value desconhecido):</Wrap>
             <StatusBadge kind="intercorrencia" value="zumbi" />
+          </div>
+        </Section>
+
+        {/* ========================================= BADGE (variants base) ========================================= */}
+        <Section title="3b. Badge (variants base — UI primitive · Onda G status pills)">
+          <div className="flex flex-wrap items-center gap-2">
+            <Wrap>Base:</Wrap>
+            <Badge variant="default">default</Badge>
+            <Badge variant="secondary">secondary</Badge>
+            <Badge variant="outline">outline</Badge>
+            <Badge variant="ghost">ghost</Badge>
+            <Badge variant="link">link</Badge>
+            <Badge variant="destructive">destructive (ação)</Badge>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <Wrap>Status soft (Onda G):</Wrap>
+            <Badge variant="success">success</Badge>
+            <Badge variant="warning">warning</Badge>
+            <Badge variant="danger">danger (estado)</Badge>
+            <Badge variant="info">info</Badge>
+            <Badge variant="neutral">neutral</Badge>
           </div>
         </Section>
 
