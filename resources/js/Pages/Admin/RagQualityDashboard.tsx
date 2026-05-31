@@ -1,12 +1,14 @@
 // @memcofre tela=/admin/rag-quality module=Admin
 // Wave 28 §G3 — RAG Quality Dashboard (KB + Jana pipeline observability).
 //
-// Charter ao lado: RagQualityDashboard.charter.md (futuro — escopo Wave 28).
+// Charter ao lado: RagQualityDashboard.charter.md (status draft — Wave 28 §G3).
 // Backend: Modules/Admin/Http/Controllers/RagQualityDashboardController.php
 //
 // 3 sparklines (retrieve/rerank/generate p99) + nDCG@5/recall@5 trend
 // + top 10 queries lentas + fallback rate BGE.
 //
+// Cores: tokens semânticos (success/warning/destructive/primary) — sem cru (Constituição UI v2).
+// Thresholds: const P99_THRESHOLDS / FALLBACK_THRESHOLDS (não hardcoded inline).
 // Inertia::defer DEFAULT em props caras (D-14 pattern — RUNBOOK-inertia-defer-pattern.md).
 
 import React from 'react';
@@ -89,36 +91,72 @@ const BUCKET_ICON: Record<Bucket, string> = {
 
 const BUCKET_ORDER: Bucket[] = ['retrieve', 'rerank', 'generate'];
 
+// Thresholds centralizados (eram hardcoded inline — Wave 28 §G3 polish).
+// p99 em ms; fallback em %. Espelham metas RAGAS/CT-100 BGE.
+const P99_THRESHOLDS = { good: 300, warn: 800 } as const;
+const FALLBACK_THRESHOLDS = { good: 5, warn: 15 } as const;
+
 // Sparkline SVG inline (zero JS lib — pattern reusado de GovernanceV4Dashboard).
-function Sparkline({ values, width = 120, height = 32 }: { values: number[]; width?: number; height?: number }) {
+// Tooltip nativo por ponto (<title>) + marcador no último ponto (estado-da-arte observability).
+function Sparkline({
+  values,
+  width = 120,
+  height = 32,
+  unit = 'ms',
+  formatValue,
+}: {
+  values: number[];
+  width?: number;
+  height?: number;
+  unit?: string;
+  formatValue?: (v: number) => string;
+}) {
   if (!values || values.length === 0) return <span className="text-xs text-zinc-400">sem dados</span>;
   const max = Math.max(...values, 1);
   const min = Math.min(...values, 0);
   const range = Math.max(max - min, 1);
   const step = values.length > 1 ? width / (values.length - 1) : width;
-  const pts = values
-    .map((v, i) => {
-      const x = i * step;
-      const y = height - ((v - min) / range) * height;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(' ');
+  const fmt = formatValue ?? ((v: number) => `${v}${unit}`);
+  const coords = values.map((v, i) => ({
+    x: i * step,
+    y: height - ((v - min) / range) * height,
+    v,
+  }));
+  const pts = coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' ');
+  // coords não-vazio (guard acima garante values.length > 0); fallback satisfaz noUncheckedIndexedAccess.
+  const lastPoint = coords[coords.length - 1] ?? { x: 0, y: height, v: 0 };
   return (
-    <svg width={width} height={height} className="inline-block">
+    <svg
+      width={width}
+      height={height}
+      className="inline-block overflow-visible"
+      role="img"
+      aria-label={`tendência ${values.length} pontos · último ${fmt(lastPoint.v)}`}
+    >
       <polyline fill="none" stroke="currentColor" strokeWidth="1.5" points={pts} />
+      {/* hover targets invisíveis com tooltip nativo por ponto */}
+      {coords.map((c, i) => (
+        <circle key={i} cx={c.x} cy={c.y} r={Math.max(step / 2, 3)} fill="transparent">
+          <title>{fmt(c.v)}</title>
+        </circle>
+      ))}
+      {/* marcador do último ponto (valor atual) */}
+      <circle cx={lastPoint.x} cy={lastPoint.y} r="2.5" fill="currentColor">
+        <title>{`atual: ${fmt(lastPoint.v)}`}</title>
+      </circle>
     </svg>
   );
 }
 
 function p99Color(ms: number): string {
-  if (ms <= 300) return 'text-emerald-700';
-  if (ms <= 800) return 'text-amber-700';
-  return 'text-red-700';
+  if (ms <= P99_THRESHOLDS.good) return 'text-success';
+  if (ms <= P99_THRESHOLDS.warn) return 'text-warning';
+  return 'text-destructive';
 }
 
 function LatencyBucketCard({ bucket, data }: { bucket: Bucket; data?: LatencyBucket }) {
   const values = (data?.daily_p99 ?? []).map((d) => d.p99_ms);
-  const last = values.length > 0 ? values[values.length - 1] : 0;
+  const last = values.length > 0 ? values[values.length - 1] ?? 0 : 0;
   const max = values.length > 0 ? Math.max(...values) : 0;
   const totalCount = (data?.daily_p99 ?? []).reduce((s, d) => s + d.count, 0);
   return (
@@ -132,8 +170,8 @@ function LatencyBucketCard({ bucket, data }: { bucket: Bucket; data?: LatencyBuc
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-zinc-500 mb-2">
-          <Sparkline values={values} />
+        <div className={`mb-2 ${p99Color(last)}`}>
+          <Sparkline values={values} unit="ms" />
         </div>
         <div className="text-xs text-zinc-500 grid grid-cols-2 gap-2">
           <div>último p99: <strong>{last}ms</strong></div>
@@ -162,11 +200,11 @@ function NdcgTrendCard({ points }: { points?: NdcgPoint[] }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline gap-4">
-        <div className="text-2xl font-bold text-emerald-700">{last.toFixed(3)}</div>
+        <div className="text-2xl font-bold text-success">{last.toFixed(3)}</div>
         <div className="text-xs text-zinc-500">média {avg.toFixed(3)} · n={points.length}d</div>
       </div>
-      <div className="text-emerald-600">
-        <Sparkline values={values} width={240} height={40} />
+      <div className="text-success">
+        <Sparkline values={values} width={240} height={40} formatValue={(v) => v.toFixed(3)} />
       </div>
     </div>
   );
@@ -186,11 +224,11 @@ function RecallTrendCard({ points }: { points?: RecallPoint[] }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline gap-4">
-        <div className="text-2xl font-bold text-indigo-700">{(last * 100).toFixed(1)}%</div>
+        <div className="text-2xl font-bold text-primary">{(last * 100).toFixed(1)}%</div>
         <div className="text-xs text-zinc-500">média {(avg * 100).toFixed(1)}% · n={points.length}d</div>
       </div>
-      <div className="text-indigo-600">
-        <Sparkline values={values} width={240} height={40} />
+      <div className="text-primary">
+        <Sparkline values={values} width={240} height={40} formatValue={(v) => `${(v * 100).toFixed(1)}%`} />
       </div>
     </div>
   );
@@ -241,7 +279,11 @@ function FallbackRateCard({ data }: { data?: FallbackRate }) {
     return <div className="text-sm text-zinc-500">Carregando rate fallback…</div>;
   }
   const pctColor =
-    data.fallback_pct <= 5 ? 'text-emerald-700' : data.fallback_pct <= 15 ? 'text-amber-700' : 'text-red-700';
+    data.fallback_pct <= FALLBACK_THRESHOLDS.good
+      ? 'text-success'
+      : data.fallback_pct <= FALLBACK_THRESHOLDS.warn
+        ? 'text-warning'
+        : 'text-destructive';
   return (
     <div className="space-y-2">
       <div className="flex items-baseline gap-4">
@@ -252,14 +294,16 @@ function FallbackRateCard({ data }: { data?: FallbackRate }) {
         </div>
       </div>
       <div className="text-xs text-zinc-600">
-        {data.fallback_pct <= 5 ? (
-          <span className="text-emerald-700">✓ CT 100 BGE saudável (&lt;5%).</span>
-        ) : data.fallback_pct <= 15 ? (
-          <span className="text-amber-700">
+        {data.fallback_pct <= FALLBACK_THRESHOLDS.good ? (
+          <span className="text-success">
+            ✓ CT 100 BGE saudável (&lt;{FALLBACK_THRESHOLDS.good}%).
+          </span>
+        ) : data.fallback_pct <= FALLBACK_THRESHOLDS.warn ? (
+          <span className="text-warning">
             ⚠ Acima da meta — investigar logs do container bge-reranker.
           </span>
         ) : (
-          <span className="text-red-700">
+          <span className="text-destructive">
             ⚠⚠ Drift crítico — container BGE down ou timeout. Conferir Tailscale + Docker.
           </span>
         )}
@@ -292,8 +336,8 @@ export default function RagQualityDashboard({
         <div
           className={`border rounded px-4 py-2 text-sm flex items-center gap-2 ${
             meta.bge_enabled
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-              : 'bg-amber-50 border-amber-300 text-amber-900'
+              ? 'bg-success/10 border-success/30 text-success-foreground'
+              : 'bg-warning/10 border-warning/30 text-warning-foreground'
           }`}
         >
           <Icon name={meta.bge_enabled ? 'check-circle' : 'alert-circle'} />

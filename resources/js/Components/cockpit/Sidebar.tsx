@@ -217,8 +217,11 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     label: 'PRODUÇÃO',
     // Wagner 2026-05-22: Fabricação/Manufacturing/Produção MOVIDOS pra CADASTRO
     // (Wagner direção pm). Grupo PRODUÇÃO mantém só verticais OS + restaurant.
+    // Wagner 2026-05-25: 'Oficina Auto' MOVIDO pra COMERCIAL — dedup 2026-05-31
+    // (entry duplicada aqui era dead code; findGroupKey já resolvia p/ COMERCIAL
+    // por vir antes na ordem canon). Removida da whitelist PRODUÇÃO.
     items: ['Reservas', 'Cocina', 'Cozinha', 'Pedidos',
-            'Comunicação Visual', 'Oficina Auto', 'Reparar',
+            'Comunicação Visual', 'Reparar',
             'Ordens de Serviço'],
   },
   {

@@ -4,9 +4,11 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
-import { Car, ArrowLeft, Edit } from 'lucide-react';
+import { ArrowLeft, Edit, Plus } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import PageHeader from '@/Components/shared/PageHeader';
+import VehicleStatusBadge, { type VehicleStatus } from './_components/VehicleStatusBadge';
+import ServiceOrderStatusBadge from '../ServiceOrders/_components/ServiceOrderStatusBadge';
 
 interface ServiceOrder {
   id: number;
@@ -29,6 +31,7 @@ interface Vehicle {
   mileage_at_entry: number | null;
   fuel_type: string | null;
   color: string | null;
+  current_status: VehicleStatus | null;
   notes: string | null;
   legacy_id: string | null;
   service_orders: ServiceOrder[];
@@ -45,10 +48,13 @@ export default function VehiclesShow({ vehicle }: Props) {
       <div className="px-4 py-6 max-w-5xl mx-auto">
         <PageHeader
           title={vehicle.plate}
-          subtitle={vehicle.secondary_plate ? `+ ${vehicle.secondary_plate} (reboque)` : 'Veículo cadastrado'}
-          icon={<Car className="size-5" />}
-          actions={
-            <div className="flex gap-2">
+          description={vehicle.secondary_plate ? `+ ${vehicle.secondary_plate} (reboque)` : 'Veículo cadastrado'}
+          icon="car"
+          action={
+            <div className="flex items-center gap-2">
+              {vehicle.current_status && (
+                <VehicleStatusBadge status={vehicle.current_status} />
+              )}
               <Link href="/oficina-auto/veiculos">
                 <Button variant="ghost">
                   <ArrowLeft className="size-4 mr-1" />
@@ -56,9 +62,15 @@ export default function VehiclesShow({ vehicle }: Props) {
                 </Button>
               </Link>
               <Link href={`/oficina-auto/veiculos/${vehicle.id}/edit`}>
-                <Button>
+                <Button variant="ghost">
                   <Edit className="size-4 mr-1" />
                   Editar
+                </Button>
+              </Link>
+              <Link href={`/oficina-auto/ordens-servico/create?vehicle_id=${vehicle.id}`}>
+                <Button>
+                  <Plus className="size-4 mr-1" />
+                  Nova OS
                 </Button>
               </Link>
             </div>
@@ -97,13 +109,13 @@ export default function VehiclesShow({ vehicle }: Props) {
             ) : (
               <ul className="space-y-2">
                 {vehicle.service_orders.map((os) => (
-                  <li key={os.id} className="text-sm border-b pb-2 last:border-0">
+                  <li key={os.id} className="flex items-center gap-2 text-sm border-b pb-2 last:border-0">
                     <Link href={`/oficina-auto/ordens-servico/${os.id}`} className="font-medium hover:underline">
                       OS #{os.id}
                     </Link>
-                    <span className="ml-2 text-xs px-2 py-0.5 rounded bg-muted">{os.status}</span>
+                    <ServiceOrderStatusBadge status={os.status} />
                     {os.entered_at && (
-                      <span className="ml-2 text-xs text-muted-foreground">
+                      <span className="ml-auto text-xs text-muted-foreground">
                         {new Date(os.entered_at).toLocaleDateString('pt-BR')}
                       </span>
                     )}

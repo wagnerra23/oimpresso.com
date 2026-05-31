@@ -11,7 +11,7 @@ import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import { Icon } from '@/Components/Icon'
-import { ArrowDown, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface Stage {
   key: string
@@ -44,16 +44,18 @@ interface Props {
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 
+// Colapsa as ~9 cores que o backend manda em `stage.color` em 4 tons semânticos
+// do DS (tokens) — sem 9 cores Tailwind cruas. neutral/progress/success/attention.
 const colorMap: Record<string, string> = {
-  zinc:    'bg-zinc-100 text-zinc-700 border-zinc-300',
-  blue:    'bg-blue-100 text-blue-700 border-blue-300',
-  indigo:  'bg-indigo-100 text-indigo-700 border-indigo-300',
-  amber:   'bg-amber-100 text-amber-700 border-amber-300',
-  orange:  'bg-orange-100 text-orange-700 border-orange-300',
-  emerald: 'bg-emerald-100 text-emerald-700 border-emerald-300',
-  purple:  'bg-purple-100 text-purple-700 border-purple-300',
-  yellow:  'bg-yellow-100 text-yellow-700 border-yellow-300',
-  green:   'bg-green-100 text-green-700 border-green-300',
+  zinc:    'bg-muted text-muted-foreground border-border',
+  blue:    'bg-primary/10 text-primary border-primary/30',
+  indigo:  'bg-primary/10 text-primary border-primary/30',
+  purple:  'bg-primary/10 text-primary border-primary/30',
+  amber:   'bg-warning/10 text-warning-foreground border-warning/30',
+  orange:  'bg-warning/10 text-warning-foreground border-warning/30',
+  yellow:  'bg-warning/10 text-warning-foreground border-warning/30',
+  emerald: 'bg-success/10 text-success-foreground border-success/30',
+  green:   'bg-success/10 text-success-foreground border-success/30',
 }
 
 const Learning: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ stages, throughput, kpis }) => {
@@ -193,10 +195,10 @@ function ThroughputChart({ data }: { data: ThroughputPoint[] }) {
         return (
           <div key={d.hora} className="flex items-center gap-2 text-xs">
             <div className="w-32 font-mono text-muted-foreground tabular-nums">{d.hora.slice(11)}</div>
-            <div className="flex-1 h-5 relative bg-muted/30 rounded overflow-hidden">
-              <div className="absolute h-full bg-emerald-500/70" style={{ width: `${sw}%` }} />
-              <div className="absolute h-full bg-red-500/70" style={{ left: `${sw}%`, width: `${rw}%` }} />
-              <div className="absolute h-full bg-zinc-300/50" style={{ left: `${sw + rw}%`, width: `${w - sw - rw}%` }} />
+            <div className="flex-1 h-5 relative bg-muted/30 rounded overflow-hidden" role="img" aria-label={`${d.sucessos} sucessos, ${d.rejeitadas} rejeitadas de ${d.total}`}>
+              <div className="absolute h-full bg-success" style={{ width: `${sw}%` }} title={`${d.sucessos} sucessos`} />
+              <div className="absolute h-full bg-destructive" style={{ left: `${sw}%`, width: `${rw}%` }} title={`${d.rejeitadas} rejeitadas`} />
+              <div className="absolute h-full bg-muted-foreground/40" style={{ left: `${sw + rw}%`, width: `${w - sw - rw}%` }} title="pendentes/outros" />
             </div>
             <div className="w-12 text-right tabular-nums font-medium">{d.total}</div>
           </div>
