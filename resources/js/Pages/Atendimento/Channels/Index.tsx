@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 // QR vem como data URL PNG do daemon (string Baileys excede limite QR v40 23KB).
 import {
   Plus, Trash2, AlertTriangle, CheckCircle2, Circle, Loader2,
-  MessageCircle, Plug, Smartphone, Zap,
+  MessageCircle, Plug, Smartphone, Zap, Inbox,
 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -555,7 +555,7 @@ function ChannelCard({
               className="h-7 gap-1.5"
               data-testid={`channel-card-import-history-${channel.id}`}
             >
-              📥 Importar Histórico
+              <Inbox className="h-3.5 w-3.5 mr-1" aria-hidden /> Importar Histórico
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={onDelete} title="Remover canal" className="h-7 w-7">

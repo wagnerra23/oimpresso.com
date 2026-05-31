@@ -19,6 +19,7 @@ import {
 } from '@/Components/ui/select';
 import { Label } from '@/Components/ui/label';
 import { ScrollArea } from '@/Components/ui/scroll-area';
+import { FolderOpen, Inbox } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -255,7 +256,7 @@ function CcSessionsIndex(props: Props) {
       <CardContent className="p-0 flex-1 overflow-hidden">
         {isEmpty ? (
           <div className="p-8 text-center text-muted-foreground space-y-3">
-            <div className="text-4xl">📭</div>
+            <Inbox className="h-10 w-10 mx-auto text-muted-foreground/60" />
             <div className="text-sm font-medium">Nenhuma sessão Claude Code ingestada ainda</div>
             <div className="text-xs max-w-md mx-auto">
               Schema <code className="font-mono text-[10px]">mcp_cc_*</code> está pronto, mas o
@@ -369,8 +370,8 @@ function CcSessionsIndex(props: Props) {
               {detail.session.entrypoint && <Badge variant="outline" className="text-[10px]">{detail.session.entrypoint}</Badge>}
               {detail.session.git_branch && <Badge variant="outline" className="text-[10px] font-mono">{detail.session.git_branch}</Badge>}
             </div>
-            <div className="text-[11px] text-muted-foreground">
-              📁 <span className="font-mono">{detail.session.project_path}</span>
+            <div className="text-[11px] text-muted-foreground inline-flex items-center">
+              <FolderOpen className="h-3 w-3 mr-1 shrink-0" /> <span className="font-mono">{detail.session.project_path}</span>
             </div>
             <div className="text-[11px] text-muted-foreground">
               {fmtDateTime(detail.session.started_at)} → {detail.session.ended_at ? fmtDateTime(detail.session.ended_at) : 'em curso'}
