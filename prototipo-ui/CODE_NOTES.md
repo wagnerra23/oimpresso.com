@@ -68,3 +68,28 @@ A "lei" (`PROTOCOL.md`) ainda dizia **7-hop + [W2] screenshot manual + "--admin 
 
 ### Drift de canal (informo, não corrijo — é decisão sua)
 `COWORK_NOTES.md` do repo = *"INBOX: Wagner → Claude Design"*; o do bundle = *"Cowork → Claude Code"*. Definições contraditórias do **mesmo arquivo** = loop-cause. Reconciliar a semântica é subjetivo (§10.4 escala pra [W]).
+
+---
+
+## 2026-05-31 ~07:20 [CL] → [W] — F0 "otimizar rotinas de design" (complementa a fila §10.4 das 07:00)
+
+Chegou OUTRA proposta [CC] (amendment `otimizar-rotinas-design`, URL diferente do bundle `ssTxBh7X8X`). É mais rica que a fila das 07:00: foca **consolidação dos motores de score** (G1 "um motor, não 4" · G2 "um schema" · G6 "não regenerar"), além de repetir hops (G3) e lint (G5). Entreguei o **F0** (medir antes de mexer) e apliquei o **gate §10.4**.
+
+> ⚠️ **Honestidade de processo:** a 1ª versão saiu numa base **stale** (`feat/staging-ct100`, −46 vs `main`) e teve 3 achados ERRADOS. **Refiz contra `origin/main`** (este é o resultado correto). Foi exatamente o modo-de-falha que o §10.4 existe pra pegar — peguei via o próprio gate (cruzar `git show origin/main:` em vez do working tree).
+
+### Gate §10.4 (vs `origin/main` `e443c2ea4`): PASSA, mas a maioria dos G já está feita/superada
+| Item | Realidade no main | Veredito |
+|---|---|---|
+| G4 `ds:report`/`ds-report.mjs` | **já existe** (criado 05-30) | não recriar ✅ |
+| Canais stale / [W] carteiro (premissa G4) | **reancorados 05-30**, vivos hoje | premissa histórica, consertada |
+| G3 7→4 hops | loop **0-humano** desde 00:45 + ADR 0241 | **superado** (já ~0 hop) |
+| G5 ESLint `ds/*` + `REGRAS_DS_LINT` | já ativos (ADR 0209) | metade DONE; não recriar |
+| G5 Stylelint `.css` + `REGRAS_STYLELINT_CSS.md` | **não existe** | trabalho novo 🔴 |
+| G1 "não duplicar score engine" | **6 motores** já existem | não cunhar `design-score` do zero ✅ |
+
+### Achado NOVO (o valor desta passada — não coberto pela fila das 07:00)
+**6 motores de score, em 2 camadas:** a **cara** (LLM `design:*`: `mwart-comparative` dormante desde 05-17 · `design-deep-analysis` **0 disparos na história** · gates F1.5/F3.5 com artefato morto) **morreu de custo**; a **barata/estática** (`screen-grade` 222 telas · `module:grade` D1-D9 · ESLint `ds/*`) **escalou** — e o `PROTOCOL.md` descreve **só a camada morta**. → G1 já aconteceu de fato na camada barata; o caminho não é skill nova, é **religar `mwart-comparative` como aprofundamento sob demanda do `screen-grade`** (as 44 telas <70 do PLANO-DESIGN-TELAS) + aposentar/fundir `design-deep-analysis`.
+
+### FICA pra você [W]
+- **Único bloqueador:** ordem de consolidação. Sobra real = **G1/G2/G6** (motores) + **G5-`.css`** (Stylelint). Minha leitura: G5-css e G2 (agregar `screen-grades-baseline.json` + `DS_ADOCAO_INDICE` num `design-report.json`) têm o melhor ROI; G1 é o mais estratégico (mata 3 dicionários de dimensão duplicados).
+- **Nada de código mergeado.** Este PR é **só docs** (`prototipo-ui/*.md`) — você autorizou o merge enxuto. ADR de evolução do loop (se quiser) nasce rascunho mãe 0114, sem número.
