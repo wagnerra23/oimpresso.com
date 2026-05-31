@@ -55,7 +55,7 @@ function Dashboard({ advisor, clientes, total_clientes }: Props) {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
         <section>
           <h2 className="text-base font-semibold">Meus clientes ({total_clientes})</h2>
           <p className="text-sm text-muted-foreground">
@@ -109,7 +109,7 @@ function Dashboard({ advisor, clientes, total_clientes }: Props) {
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

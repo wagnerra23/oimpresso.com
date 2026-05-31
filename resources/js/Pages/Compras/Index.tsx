@@ -301,7 +301,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
         {/* BODY */}
         <div className={`bd ${drawerOpen ? 'with-drawer' : ''}`}>
           {/* LISTA */}
-          <main className="list">
+          <div className="list">
             <Deferred data="kpis" fallback={<KpisSkeleton />}>
               {kpis ? <KpisGrid k={kpis} /> : <KpisSkeleton />}
             </Deferred>
@@ -337,7 +337,7 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
                 <SummaryFooter summary={summary} meta={rows.meta} onPageChange={(p) => navigateWithFilters({ page: p })} />
               ) : null}
             </Deferred>
-          </main>
+          </div>
 
           {/* DRAWER 5 tabs sobre grid */}
           {drawerOpen && (
