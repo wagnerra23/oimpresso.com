@@ -337,7 +337,7 @@ export default function SellsShow(props: SellsShowPageProps) {
             icon="file-text"
             tone={totalFalta > 0 ? 'warning' : 'default'}
           />
-          <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-2 shadow-sm">
+          <div className="rounded-lg border border-border bg-card p-4 flex flex-col gap-2 shadow-sm">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
               Status pgto
             </span>

@@ -35,6 +35,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/Components/ui/popover';
+import { Checkbox } from '@/Components/ui/checkbox';
 
 // Backend devolve estes campos por row (ProductUtil@filterProduct:1715-1734).
 // AP-12 F3 audit (memory/sessions/2026-05-27-audit-sells-create-vs-blade-larissa.md):
@@ -535,12 +536,11 @@ export default function ProductSearchAutocomplete({
                 const checked = searchFields.includes(field.key);
                 return (
                   <li key={field.key}>
-                    <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
-                      <input
-                        type="checkbox"
+                    <label htmlFor={`search-field-${field.key}`} className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
+                      <Checkbox
+                        id={`search-field-${field.key}`}
                         checked={checked}
-                        onChange={() => toggleSearchField(field.key)}
-                        className="h-4 w-4 cursor-pointer accent-primary"
+                        onCheckedChange={() => toggleSearchField(field.key)}
                         data-testid={`search-field-${field.key}`}
                       />
                       <span className="select-none">{field.label}</span>

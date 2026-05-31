@@ -27,6 +27,7 @@ import {
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
   Sheet,
   SheetContent,
@@ -519,16 +520,16 @@ export default function SaleSheet({
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="qp-method" className="text-xs">Forma</Label>
-                        <select
-                          id="qp-method"
-                          value={paymentDraft.method}
-                          onChange={(e) => setPaymentDraft({ ...paymentDraft, method: e.target.value })}
-                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                        >
-                          {PAYMENT_METHODS_OPTIONS.map((m) => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
-                          ))}
-                        </select>
+                        <Select value={paymentDraft.method} onValueChange={(v) => setPaymentDraft({ ...paymentDraft, method: v })}>
+                          <SelectTrigger id="qp-method" aria-label="Forma de pagamento" className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PAYMENT_METHODS_OPTIONS.map((m) => (
+                              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
