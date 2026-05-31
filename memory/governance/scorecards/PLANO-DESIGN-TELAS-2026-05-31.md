@@ -160,10 +160,19 @@ Não alterados sem aprovação — mudam o que cliente vê no menu (governado, W
 2. **Grupos órfãos** — `ads`/`MemCofre`/`kb`/`ProjectMgmt` sem `group` caem em MAIS. Decidir: dar group canon OU marcar interno (talvez MAIS já seja o certo p/ ferramenta interna).
 3. **Bucket "Público"** no board — Site/Auth não pertencem ao sidebar (mudança de scorecard, não de código).
 
-### Pendências de fechamento (todas as ondas)
-- `npm run build` real (Vite) + smoke das telas.
-- Screenshot aprovado pelo Wagner por tela (gate visual ADR 0107/0114) — fecha o ratchet ADR 0236.
-- Re-rodar o board SCREEN-GRADE pra medir a nova média (era 75).
+### Evidência de build (2026-05-31) ✅
+- **Vite Inertia build REAL passou:** `npx vite build --config vite.inertia.config.mjs` → **`✓ built in 12m 21s`, exit 0**. Compilou a árvore inteira (app + 44 telas + 3 controllers Cms) sem erro de import/type. Único aviso = chunk-size (não-erro). **Esta é a evidência estática mais forte do ratchet** — não "tsc por arquivo", mas o bundle inteiro compilando.
+- **tsc por arquivo:** 0 erro nos 44 alvos (onda a onda).
+- **0 hex/oklch** real nas 44 (os únicos hits são `#`/`oklch` dentro de comentário documentando o que foi removido).
+- **php -l** verde nos 3 controllers Cms.
+- **XSS REAL:** `SiteContentService::sanitizeHtml()` (HTMLPurifier) aplicado server-side em BlogPost+Page. (1º commit deixou incompleto — `4c91d15eb` consertou.)
+- **Auditoria de contrato controller↔tela:** pegou 3 bugs que o tsc NÃO via (props opcionais) — JobSheet/Index, Ponto/Welcome, Jana/Brief renderizariam VAZIAS em prod. Corrigidos em `fe9054af8`.
+
+### Pendências de fechamento (precisam de Wagner / runtime)
+- **Screenshot aprovado por tela** (gate visual ADR 0107/0114) — fecha o ratchet ADR 0236. Só Wagner fecha; é runtime/visual, não estático.
+- Smoke real das 44 (servidor live + browser) pra pegar "prop opcional não chega → render vazio" residual nas 18 telas da Onda 3 (3 spot-checks bateram com o controller; build passa = imports OK app-wide).
+- Re-rodar o board SCREEN-GRADE (workflow 19-agentes) pra medir a nova média (era 75) — não roda barato no main loop.
+- 3 fixes de sidebar (Onda 4) — decisão de produto Wagner.
 
 > **Nota de processo:** Ondas 0/1/3 via sub-agents paralelos; Onda 2/Público via main loop (agents bateram limite de sessão). Vários writes de agent se perderam no worktree sparse e foram refeitos direto — lição em [feedback-design-parallel-agents-sparse-worktree](../../reference/feedback-design-parallel-agents-sparse-worktree.md).
 
