@@ -40,6 +40,15 @@ Contagem por módulo de `config/eslint-baseline.json` (ratchet ADR 0209). Cada `
 
 > `ds/*` é a evidência mais dura (a máquina varre 100% dos arquivos). As 10 regras acima cobrem o que o ESLint ainda não pega (estrutura, `<main>`, overflow, emoji, PT-BR).
 
+## Implementação mecanizada ([`score-mechanized.mjs`](score-mechanized.mjs))
+
+Roda **7 das 10 regras** por regex, zero LLM (R1·R2-nativo·R3·R4·R6·R7·R9) + `ds/*` do baseline. As 3 julgadas (R5·R8·R10) ficam pro agente Fase 2.
+
+Calibração v1 (2026-05-31, após validar contra o board):
+- **R6** = só emoji real (`\u{1F000}-\u{1FAFF}`). Dingbats BMP (`✓ ✕ ★ ✦ ⚙ ⬇`) **excluídos** — eram falso-positivo nos goldens (são glyph de UI, não emoji; o smell correto é R4 "usar lucide").
+- **R7** = heurística **ampla** (qualquer `bg-*-(50|100|200)`, não só badge). Mecanizado mas **baixa-precisão** → o agente Fase 2 confirma AP7 real. 80/239 telas batem; tratar como sinal.
+- **R1** exclui `#fff`/`#000`; pode ter FP raro em comentário (aceitável v1).
+
 ## Nota e nível (derivados — secundário ao pass/fail)
 
 A **nota 0-100** mantém compatibilidade com o board (`SCREEN-GRADE-9.75`): é o sinal de julgamento. O sinal **primário** desta worklist é o **pass/fail mecanizado** (quantas das ✅ falharam + `ds/*` total) — esse é o que fecha tela por evidência. Níveis: `Champion 95-100 · Leader 85-94 · Advanced 70-84 · Developing 50-69 · Beginner 0-49`.

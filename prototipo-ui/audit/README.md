@@ -17,13 +17,20 @@ O [`SCREEN-GRADE-BOARD-2026-05-30`](../../memory/governance/scorecards/SCREEN-GR
 - regra **pass/fail mecanizada** (regex/ESLint) separada do julgamento LLM (`mechanized: true/false`) → evidência ≠ opinião (anti-"Gaming the Judge");
 - `measured_against_sha` em cada report → anti-stale (sabe-se contra qual HEAD foi medido).
 
-## Como roda (5 passos)
+## Como roda (2 fases + consolidação)
 
-1. **DISPATCH** *(Cowork ou Wagner)* — gera a lista de telas (glob `resources/js/Pages/**/*.tsx`) e dispara N agentes read-only, 1 lote de telas por agente.
-2. **SCORE** *(cada agente)* — pra cada tela: roda os checks mecanizados (ver GOLDEN-REFERENCE §Detecção) + julga as regras não-mecanizáveis, e **escreve `reports/<slug>.design-report.json`** seguindo [`design-report.schema.json`](design-report.schema.json). NÃO edita nenhum outro arquivo.
-3. **CONSOLIDATE** *(Code)* — `node prototipo-ui/audit/consolidate.mjs` → gera [`CONSOLIDADO.md`](CONSOLIDADO.md) (placar worst-first) + `CONSOLIDADO.json` (rollup).
+**Fase 1 — MECANIZADA (determinística, zero LLM):**
+1. `node prototipo-ui/audit/score-mechanized.mjs` — varre TODAS as telas (`resources/js/Pages/**/*.tsx`), roda os regex das 7 regras mecanizáveis (R1,R2,R3,R4,R6,R7,R9), puxa a contagem `ds/*` real por arquivo de `config/eslint-baseline.json`, e escreve 1 `design-report.json` por tela. **Evidência reproduzível, custo zero de agente.** As 3 regras julgadas (R5,R8,R10) ficam `status:"n/a"` pendentes.
+
+**Fase 2 — JULGADA (agentes LLM, OPCIONAL):**
+2. *(Cowork/Wagner dispara)* N agentes read-only leem só as telas que importam e preenchem **só** R5/R8/R10 + refinam `nota`/`resumo` (o regex já fez o resto). 1 lote por agente, zero colisão. A Fase 1 já dá um placar utilizável sozinha — a Fase 2 é refino.
+
+**Consolidação:**
+3. `node prototipo-ui/audit/consolidate.mjs` → [`CONSOLIDADO.md`](CONSOLIDADO.md) (placar worst-first) + `CONSOLIDADO.json`.
 4. **EXTEND** — o placar vira a dimensão "Adoção DS / Pre-Flight" no `DS_ADOCAO_INDICE.md` (link, não cópia).
 5. **CLOSE-BY-EVIDENCE** — uma tela "sobe" só quando um novo `design-report.json` (medido contra HEAD mais novo) mostra a regra zerada. Ratchet: nota só sobe ([ADR 0236](../../memory/decisions/0236-screen-grade-ratchet.md)).
+
+> **`nota` é TETO provisório**, não a nota holística do board. O mecanizado conta só as 7 regras-DS — uma tela com UX excelente (board 90+) pode ter nota mecanizada menor por ter cor crua/elemento nativo. Os dois sinais são verdadeiros e **complementares**: board = qualidade UX; mecanizado = conformidade-DS reproduzível.
 
 ## Regra de ouro da paralelização (zero colisão)
 
@@ -51,10 +58,18 @@ NÃO escreva mais nada. NÃO consolide. 1 arquivo por tela.
 | Arquivo | Papel |
 |---|---|
 | [`GOLDEN-REFERENCE.md`](GOLDEN-REFERENCE.md) | As 10 regras + `ds/*` · fonte canon de cada uma · método de detecção · peso |
+| [`score-mechanized.mjs`](score-mechanized.mjs) | **Fase 1** — scorer determinístico (regex + `ds/*`), zero LLM. Gera os reports de todas as telas |
 | [`design-report.schema.json`](design-report.schema.json) | Contrato do `design-report.json` por tela |
-| `reports/*.design-report.json` | 1 por tela (escrito pelos agentes) — append do próprio arquivo, zero colisão |
+| `reports/*.design-report.json` | 1 por tela (gerado — **gitignored**, regenerável via `score-mechanized.mjs`; agente Fase 2 sobrescreve só R5/R8/R10) |
+| [`example.design-report.json`](example.design-report.json) | 1 exemplo versionado (amostra do schema) |
 | [`consolidate.mjs`](consolidate.mjs) | Determinístico: lê `reports/` → `CONSOLIDADO.md` + `CONSOLIDADO.json` |
-| `CONSOLIDADO.md` / `.json` | Placar único (gerado — nunca editado à mão) |
+| `CONSOLIDADO.md` | Placar único versionado (gerado — Cowork lê daqui; nunca editado à mão) |
+
+## Calibração & honestidade (v1, 2026-05-31)
+
+- **R6 (emoji)** calibrado: pega só emoji real (plano `1F000-1FAFF`). Dingbats BMP (`✓ ✕ ★ ✦ ⚙ ⬇`) **não** contam — são glyph de UI (smell de R4 "usar lucide"), não emoji. Sem isso, falso-positivava goldens.
+- **R7 (status bg-fill)** é **heurística ampla** (80/239 telas): pega qualquer `bg-*-100`, não só em badge de status. Mecanizado mas **baixa-precisão** — o agente Fase 2 confirma se é mesmo violação AP7. Tratar como sinal, não veredito.
+- **Validação contra o board:** goldens batem de forma explicável (Inbox 91→88, Sells/Index 90→72 por R1/R2/R4 que o board já notava). A divergência é a dívida-DS que a nota holística mascarava — não é bug.
 
 ## Pendências (Wagner decide)
 
