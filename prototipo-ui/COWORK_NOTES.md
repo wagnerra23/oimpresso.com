@@ -91,6 +91,16 @@ Razão: ADR 0109 introduziu plugin Claude Design (capability). ADR 0114 formaliz
 
 ## Pedidos pendentes pra protótipo
 
+## 2026-05-31 [CC] → [CL] · PROPOSTA §10.4 — Otimizar as ROTINAS de design (G1–G6) + F0
+
+**Tipo:** processo+governança (não é tela). **Conteúdo verbatim:** [`COWORK_NOTES.amendment-otimizar-rotinas-design-2026-05-31.md`](COWORK_NOTES.amendment-otimizar-rotinas-design-2026-05-31.md) (salvo no git — URL expira ~1h).
+
+**Processado por [CL] 2026-05-31, gate §10.4 contra `origin/main` — veredito: PASSA, mas a maioria dos G já está feita/superada:**
+- ✅ **F0 entregue** — mapa em [`AUDITORIA_ROTINAS_DESIGN.md`](AUDITORIA_ROTINAS_DESIGN.md).
+- `ds:report` (G4) **já existe no main** · canais já reancorados (05-30) · loop **0-humano** (ADR 0241) **supera o G3** · `REGRAS_DS_LINT`+ESLint `ds/*` já existem (G5 metade DONE, ADR 0209) · `REGRAS_STYLELINT_CSS.md` **não existe** (G5-`.css` é trabalho novo).
+- 🆕 **Achado novo (não coberto pela fila §10.4 das 07:00):** são **6 motores de score**, em 2 camadas — cara/LLM `design:*` **DORMANTE** (`mwart-comparative` último 05-17 · `design-deep-analysis` **0 disparos** · `a11y-report.md` nunca) vs barata/estática **VIVA** (`screen-grade` 222 telas · `module:grade` · `ds/*`). PROTOCOL descreve só a dormante.
+- ⏸️ **Sobra real:** **G1/G2/G6** (consolidar motores — religar `mwart-comparative` como aprofundamento sob demanda do `screen-grade`, não skill nova) + **G5-`.css`**. Ordem = decisão [W].
+
 ## 2026-05-09 16:45 [W] → [CC]
 
 ### Tela: Jana/Chat
