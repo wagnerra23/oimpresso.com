@@ -120,8 +120,8 @@ class ConciliacaoController extends Controller
             'valor'          => $signed,
             'tipo'           => $l->tipo === 'C' ? 'credit' : 'debit',
             'status'         => $l->status ?? 'pendente', // NULL = nunca avaliada → exibe "pendente".
-            'titulo_id'      => isset($l->titulo_id) && $l->titulo_id !== null ? (int) $l->titulo_id : null,
-            'match_score'    => isset($l->match_score) && $l->match_score !== null ? (float) $l->match_score : null,
+            'titulo_id'      => isset($l->titulo_id) ? (int) $l->titulo_id : null,
+            'match_score'    => isset($l->match_score) ? (float) $l->match_score : null,
             'source_file'    => null, // API não tem arquivo; front mostra chip "Banco".
         ];
     }
