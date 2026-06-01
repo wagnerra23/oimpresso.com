@@ -132,3 +132,28 @@ test('GUARD 7 — PlacasMainTab.tsx existe + endpoint canon mantido', function (
     $oldDir = __DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/oss';
     expect(is_dir($oldDir))->toBeFalse();
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// Fix 2026-06-01 — atalho de teclado 1-N do drawer dessincronizou do rename
+// oss→operacoes (it.2 2026-05-27): TAB_ORDER ainda apontava 'oss' (tab inválida)
+// → tecla "6" deixava o tabpanel em branco + erro TS. Correção: TAB_ORDER deriva
+// de DRAWER_TABS (single source of truth), então as teclas 1-N seguem a tab bar
+// e nunca mais dessincronizam de um rename futuro.
+// (GUARDs 8–11 cobrem o chip de anexos — trabalho separado; numeração mantida
+//  pra não colidir quando aquela onda voltar à árvore.)
+// ════════════════════════════════════════════════════════════════════════
+
+// ─── GUARD 12: atalho teclado deriva TAB_ORDER de DRAWER_TABS (sem 'oss' legado)
+
+test('GUARD 12 — atalho 1-N deriva TAB_ORDER de DRAWER_TABS (single source of truth, sem oss)', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        // TAB_ORDER deriva da tab bar — keys 1-N mapeiam exatamente as N tabs visíveis.
+        ->toContain('const TAB_ORDER: DrawerTab[] = DRAWER_TABS.map((t) => t.key)')
+        // Bound dinâmico (segue tamanho da tab bar), não mais hardcoded 8.
+        ->toContain('n <= TAB_ORDER.length')
+        // Valor legado 'oss' não aparece mais no array de atalhos (renomeado operacoes).
+        ->not->toContain("'classificacao', 'oss', 'ia', 'auditoria'");
+});

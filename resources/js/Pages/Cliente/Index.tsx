@@ -1800,14 +1800,15 @@ function ClienteSheet({
     }
   }, [open, contactId]);
 
-  // Z-2.1: Atalho 1-8 troca tab quando drawer aberto. Alinhado ao protótipo Cowork.
+  // Z-2.1: Atalho 1-6 troca tab quando drawer aberto. Alinhado ao protótipo Cowork.
   // Pulado quando user está digitando em input/textarea (form fields cadastrais).
+  // TAB_ORDER deriva de DRAWER_TABS (single source of truth) — as teclas 1-N
+  // mapeiam EXATAMENTE as N tabs visíveis na tab bar, então nunca dessincroniza
+  // de um rename (ex: oss→operacoes 2026-05-27). Tabs read-only viraram chips de
+  // header (placas/auditoria/ia + anexos) — acesso por clique, sem atalho numérico.
   useEffect(() => {
     if (!open) return;
-    const TAB_ORDER: DrawerTab[] = [
-      'identificacao', 'contato', 'endereco', 'comercial',
-      'classificacao', 'oss', 'ia', 'auditoria',
-    ];
+    const TAB_ORDER: DrawerTab[] = DRAWER_TABS.map((t) => t.key);
     const onKey = (e: KeyboardEvent) => {
       const target = e.target;
       if (target instanceof HTMLElement) {
@@ -1817,9 +1818,14 @@ function ClienteSheet({
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const n = parseInt(e.key, 10);
-      if (!Number.isNaN(n) && n >= 1 && n <= 8) {
-        e.preventDefault();
-        setActiveTab(TAB_ORDER[n - 1]);
+      if (!Number.isNaN(n) && n >= 1 && n <= TAB_ORDER.length) {
+        // Bound-check acima garante in-range; narrow explícito satisfaz o
+        // noUncheckedIndexedAccess do tsconfig (TAB_ORDER[i] é DrawerTab|undefined).
+        const next = TAB_ORDER[n - 1];
+        if (next) {
+          e.preventDefault();
+          setActiveTab(next);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -2005,7 +2011,7 @@ function ClienteSheet({
                   Notion/Linear. Render-condicional anterior desmontava o componente,
                   matando state + cleanup clearTimeout matando debounces → user digita
                   CEP/número/etc e troca pra aba "Contato" em <800ms → valor sumia.
-                  Tabs read-only (oss/ia/auditoria) seguem condicionais — desmontar
+                  Tabs read-only (operacoes/ia/auditoria) seguem condicionais — desmontar
                   é OK pra elas (consultas pesadas, sem state user-editável). */}
               <div hidden={activeTab !== 'identificacao'}>
                 <IdentificacaoTab
