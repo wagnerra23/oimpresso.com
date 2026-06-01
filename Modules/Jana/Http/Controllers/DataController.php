@@ -245,6 +245,10 @@ class DataController extends Controller
                             ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
                             ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
                             ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],
+                            // Jana Pro — entry-point pro paywall/upgrade (ADR 0140). Ghost no hub IA
+                            // pra ficar clicável de qualquer tela Jana (a própria /ia/pro é modo FOCO
+                            // sem SubNav). Billing real fica pra Sprint JANA-B.
+                            ['key' => 'pro',       'label' => 'Jana Pro',  'href' => '/ia/pro'],
                             // Wagner 2026-05-25: Governança canon (Modules/Governance · policies/audit/
                             // drift/module-grades) entra como ghost da Jana — "governança é da IA".
                             // Entry sidebar foi desligada no mesmo dia (Modules/Governance/DataController
