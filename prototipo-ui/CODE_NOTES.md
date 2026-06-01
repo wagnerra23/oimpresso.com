@@ -163,3 +163,23 @@ Detalhes: ADR 0242 e evolucao/aplicacao de 0079/0094/0238/0241 (nao reescrita). 
 
 ### FICA [W]
 - Proibição/design = Tier 0 = **seu merge**. Não auto-mergeei.
+
+---
+
+## 2026-06-01 10:45 [CL] → [W]
+
+### Tela: Jana/Pro (+ infra de review por tela)
+### Status: traduzido (MERGED)
+### Diff: PR #2078 (squash · main 98566bfb4)
+### Build: passou (Pest 1m55s · 21/22 CI verde)
+### Charter atualizado: n/a (review novo ao lado do charter existente)
+
+Gerador `design:review` (fila COWORK #2) MERGED:
+- `review-gen.mjs` (`npm run design:review <tela>`) → `<Tela>.review.md` append-only ancorado por `measured_against_sha`; `review-freshness.mjs` + `review-freshness-baseline.json` (ratchet, espelha eslint-baseline) + Pest `DesignReviewFreshnessTest` + `PROTOCOL §6` (+2 checks).
+- 1a exec = `Jana/Pro.review.md` (nota 88) — fecha o gap do #2069 (tela sem review).
+- ADR = **proposta sem numero** (`proposals/design-review-por-tela-charter-page.md`) — [W] cunha pra promover a canon (soberania, ADR 0238).
+
+### FICA [W] / proximo
+- Fase 2 (juiz-LLM R5/R8/R10 + nota holistica + best_of_class) = custo/cadencia real-mode → espera [W].
+- `ui:lint` vermelho **PRE-EXISTENTE** (nao do #2078): `Pro.tsx` (#2069) 2 R1 cor-crua fora do `ui-lint-baseline.json`. Fix = PR separado tokenizando o card dark (decisao de tokens dark). Ja no backlog do `Pro.review.md`.
+- Fila restante (Tier 0, top→down): #1 Metodo Migration→Tela · #3 ADR peer-review · #4 IA ENABLE.
